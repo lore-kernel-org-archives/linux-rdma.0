@@ -1,11 +1,11 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Date: Wed, 28 Feb 2018 16:40:06 -0700
-Message-ID: <20180228234006.21093-11-logang@deltatee.com>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Thu, 01 Mar 2018 14:54:49 +1100
+Message-ID: <1519876489.4592.3.camel@kernel.crashing.org>
 References: <20180228234006.21093-1-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 In-Reply-To: <20180228234006.21093-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
@@ -17,215 +17,157 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-V2UgY3JlYXRlIGEgY29uZmlnZnMgYXR0cmlidXRlIGluIGVhY2ggbnZtZS1mYWJyaWNzIHRhcmdl
-dCBwb3J0IHRvCmVuYWJsZSBwMnAgbWVtb3J5IHVzZS4gV2hlbiBlbmFibGVkLCB0aGUgcG9ydCB3
-aWxsIG9ubHkgdGhlbiB1c2UgdGhlCnAycCBtZW1vcnkgaWYgYSBwMnAgbWVtb3J5IGRldmljZSBj
-YW4gYmUgZm91bmQgd2hpY2ggaXMgYmVoaW5kIHRoZQpzYW1lIHN3aXRjaCBhcyB0aGUgUkRNQSBw
-b3J0IGFuZCBhbGwgdGhlIGJsb2NrIGRldmljZXMgaW4gdXNlLiBJZgp0aGUgdXNlciBlbmFibGVk
-IGl0IGFuIG5vIGRldmljZXMgYXJlIGZvdW5kLCB0aGVuIHRoZSBzeXN0ZW0gd2lsbApzaWxlbnRs
-eSBmYWxsIGJhY2sgb24gdXNpbmcgcmVndWxhciBtZW1vcnkuCgpJZiBhcHByb3ByaWF0ZSwgdGhh
-dCBwb3J0IHdpbGwgYWxsb2NhdGUgbWVtb3J5IGZvciB0aGUgUkRNQSBidWZmZXJzCmZvciBxdWV1
-ZXMgZnJvbSB0aGUgcDJwbWVtIGRldmljZSBmYWxsaW5nIGJhY2sgdG8gc3lzdGVtIG1lbW9yeSBz
-aG91bGQKYW55dGhpbmcgZmFpbC4KCklkZWFsbHksIHdlJ2Qgd2FudCB0byB1c2UgYW4gTlZNRSBD
-TUIgYnVmZmVyIGFzIHAycCBtZW1vcnkuIFRoaXMgd291bGQKc2F2ZSBhbiBleHRyYSBQQ0kgdHJh
-bnNmZXIgYXMgdGhlIE5WTUUgY2FyZCBjb3VsZCBqdXN0IHRha2UgdGhlIGRhdGEKb3V0IG9mIGl0
-J3Mgb3duIG1lbW9yeS4gSG93ZXZlciwgYXQgdGhpcyB0aW1lLCBjYXJkcyB3aXRoIENNQiBidWZm
-ZXJzCmRvbid0IHNlZW0gdG8gYmUgYXZhaWxhYmxlLgoKU2lnbmVkLW9mZi1ieTogU3RlcGhlbiBC
-YXRlcyA8c2JhdGVzQHJhaXRobGluLmNvbT4KU2lnbmVkLW9mZi1ieTogU3RldmUgV2lzZSA8c3dp
-c2VAb3BlbmdyaWRjb21wdXRpbmcuY29tPgpbaGNoOiBwYXJ0aWFsIHJld3JpdGUgb2YgdGhlIGlu
-aXRpYWwgY29kZV0KU2lnbmVkLW9mZi1ieTogQ2hyaXN0b3BoIEhlbGx3aWcgPGhjaEBsc3QuZGU+
-ClNpZ25lZC1vZmYtYnk6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4KLS0t
-CiBkcml2ZXJzL252bWUvdGFyZ2V0L2NvbmZpZ2ZzLmMgfCAyOSArKysrKysrKysrKysrCiBkcml2
-ZXJzL252bWUvdGFyZ2V0L2NvcmUuYyAgICAgfCA5NSArKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKy0KIGRyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLmMgICB8ICAzICsr
-CiBkcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmggICAgfCAxMCArKysrKwogZHJpdmVycy9udm1l
-L3RhcmdldC9yZG1hLmMgICAgIHwgNDEgKysrKysrKysrKysrKystLS0tCiA1IGZpbGVzIGNoYW5n
-ZWQsIDE2OSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvbnZtZS90YXJnZXQvY29uZmlnZnMuYyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvY29uZmlnZnMu
-YwppbmRleCBlNmIyZDJhZjgxYjYuLmYxYWQ5ZDMyMzQ0ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9u
-dm1lL3RhcmdldC9jb25maWdmcy5jCisrKyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvY29uZmlnZnMu
-YwpAQCAtODY3LDEyICs4NjcsNDEgQEAgc3RhdGljIHZvaWQgbnZtZXRfcG9ydF9yZWxlYXNlKHN0
-cnVjdCBjb25maWdfaXRlbSAqaXRlbSkKIAlrZnJlZShwb3J0KTsKIH0KIAorI2lmZGVmIENPTkZJ
-R19QQ0lfUDJQRE1BCitzdGF0aWMgc3NpemVfdCBudm1ldF9hbGxvd19wMnBtZW1fc2hvdyhzdHJ1
-Y3QgY29uZmlnX2l0ZW0gKml0ZW0sIGNoYXIgKnBhZ2UpCit7CisJcmV0dXJuIHNwcmludGYocGFn
-ZSwgIiVkXG4iLCB0b19udm1ldF9wb3J0KGl0ZW0pLT5hbGxvd19wMnBtZW0pOworfQorCitzdGF0
-aWMgc3NpemVfdCBudm1ldF9hbGxvd19wMnBtZW1fc3RvcmUoc3RydWN0IGNvbmZpZ19pdGVtICpp
-dGVtLAorCQkJCQljb25zdCBjaGFyICpwYWdlLCBzaXplX3QgY291bnQpCit7CisJc3RydWN0IG52
-bWV0X3BvcnQgKnBvcnQgPSB0b19udm1ldF9wb3J0KGl0ZW0pOworCWJvb2wgYWxsb3c7CisJaW50
-IHJldDsKKworCXJldCA9IHN0cnRvYm9vbChwYWdlLCAmYWxsb3cpOworCWlmIChyZXQpCisJCXJl
-dHVybiByZXQ7CisKKwlkb3duX3dyaXRlKCZudm1ldF9jb25maWdfc2VtKTsKKwlwb3J0LT5hbGxv
-d19wMnBtZW0gPSBhbGxvdzsKKwl1cF93cml0ZSgmbnZtZXRfY29uZmlnX3NlbSk7CisKKwlyZXR1
-cm4gY291bnQ7Cit9CitDT05GSUdGU19BVFRSKG52bWV0XywgYWxsb3dfcDJwbWVtKTsKKyNlbmRp
-ZiAvKiBDT05GSUdfUENJX1AyUERNQSAqLworCiBzdGF0aWMgc3RydWN0IGNvbmZpZ2ZzX2F0dHJp
-YnV0ZSAqbnZtZXRfcG9ydF9hdHRyc1tdID0gewogCSZudm1ldF9hdHRyX2FkZHJfYWRyZmFtLAog
-CSZudm1ldF9hdHRyX2FkZHJfdHJlcSwKIAkmbnZtZXRfYXR0cl9hZGRyX3RyYWRkciwKIAkmbnZt
-ZXRfYXR0cl9hZGRyX3Ryc3ZjaWQsCiAJJm52bWV0X2F0dHJfYWRkcl90cnR5cGUsCisjaWZkZWYg
-Q09ORklHX1BDSV9QMlBETUEKKwkmbnZtZXRfYXR0cl9hbGxvd19wMnBtZW0sCisjZW5kaWYKIAlO
-VUxMLAogfTsKIApkaWZmIC0tZ2l0IGEvZHJpdmVycy9udm1lL3RhcmdldC9jb3JlLmMgYi9kcml2
-ZXJzL252bWUvdGFyZ2V0L2NvcmUuYwppbmRleCAwYmQ3MzcxMTdhODAuLjU5ODQ3YWVjMjdkYiAx
-MDA2NDQKLS0tIGEvZHJpdmVycy9udm1lL3RhcmdldC9jb3JlLmMKKysrIGIvZHJpdmVycy9udm1l
-L3RhcmdldC9jb3JlLmMKQEAgLTE1LDYgKzE1LDcgQEAKICNpbmNsdWRlIDxsaW51eC9tb2R1bGUu
-aD4KICNpbmNsdWRlIDxsaW51eC9yYW5kb20uaD4KICNpbmNsdWRlIDxsaW51eC9yY3VsaXN0Lmg+
-CisjaW5jbHVkZSA8bGludXgvcGNpLXAycGRtYS5oPgogCiAjaW5jbHVkZSAibnZtZXQuaCIKIApA
-QCAtMjcxLDYgKzI3MiwyNSBAQCB2b2lkIG52bWV0X3B1dF9uYW1lc3BhY2Uoc3RydWN0IG52bWV0
-X25zICpucykKIAlwZXJjcHVfcmVmX3B1dCgmbnMtPnJlZik7CiB9CiAKK3N0YXRpYyBpbnQgbnZt
-ZXRfcDJwZG1hX2FkZF9jbGllbnQoc3RydWN0IG52bWV0X2N0cmwgKmN0cmwsCisJCQkJICAgc3Ry
-dWN0IG52bWV0X25zICpucykKK3sKKwlpbnQgcmV0OworCisJaWYgKCFibGtfcXVldWVfcGNpX3Ay
-cGRtYShucy0+YmRldi0+YmRfcXVldWUpKSB7CisJCXByX2VycigicGVlci10by1wZWVyIERNQSBp
-cyBub3Qgc3VwcG9ydGVkIGJ5ICVzXG4iLAorCQkgICAgICAgbnMtPmRldmljZV9wYXRoKTsKKwkJ
-cmV0dXJuIC1FSU5WQUw7CisJfQorCisJcmV0ID0gcGNpX3AycGRtYV9hZGRfY2xpZW50KCZjdHJs
-LT5wMnBfY2xpZW50cywgbnZtZXRfbnNfZGV2KG5zKSk7CisJaWYgKHJldCkKKwkJcHJfZXJyKCJm
-YWlsZWQgdG8gYWRkIHBlZXItdG8tcGVlciBETUEgY2xpZW50ICVzOiAlZFxuIiwKKwkJICAgICAg
-IG5zLT5kZXZpY2VfcGF0aCwgcmV0KTsKKworCXJldHVybiByZXQ7Cit9CisKIGludCBudm1ldF9u
-c19lbmFibGUoc3RydWN0IG52bWV0X25zICpucykKIHsKIAlzdHJ1Y3QgbnZtZXRfc3Vic3lzICpz
-dWJzeXMgPSBucy0+c3Vic3lzOwpAQCAtMjk5LDYgKzMxOSwxNCBAQCBpbnQgbnZtZXRfbnNfZW5h
-YmxlKHN0cnVjdCBudm1ldF9ucyAqbnMpCiAJaWYgKHJldCkKIAkJZ290byBvdXRfYmxrZGV2X3B1
-dDsKIAorCWxpc3RfZm9yX2VhY2hfZW50cnkoY3RybCwgJnN1YnN5cy0+Y3RybHMsIHN1YnN5c19l
-bnRyeSkgeworCQlpZiAoY3RybC0+cDJwX2RldikgeworCQkJcmV0ID0gbnZtZXRfcDJwZG1hX2Fk
-ZF9jbGllbnQoY3RybCwgbnMpOworCQkJaWYgKHJldCkKKwkJCQlnb3RvIG91dF9yZW1vdmVfY2xp
-ZW50czsKKwkJfQorCX0KKwogCWlmIChucy0+bnNpZCA+IHN1YnN5cy0+bWF4X25zaWQpCiAJCXN1
-YnN5cy0+bWF4X25zaWQgPSBucy0+bnNpZDsKIApAQCAtMzI4LDYgKzM1Niw5IEBAIGludCBudm1l
-dF9uc19lbmFibGUoc3RydWN0IG52bWV0X25zICpucykKIG91dF91bmxvY2s6CiAJbXV0ZXhfdW5s
-b2NrKCZzdWJzeXMtPmxvY2spOwogCXJldHVybiByZXQ7CitvdXRfcmVtb3ZlX2NsaWVudHM6CisJ
-bGlzdF9mb3JfZWFjaF9lbnRyeShjdHJsLCAmc3Vic3lzLT5jdHJscywgc3Vic3lzX2VudHJ5KQor
-CQlwY2lfcDJwZG1hX3JlbW92ZV9jbGllbnQoJmN0cmwtPnAycF9jbGllbnRzLCBudm1ldF9uc19k
-ZXYobnMpKTsKIG91dF9ibGtkZXZfcHV0OgogCWJsa2Rldl9wdXQobnMtPmJkZXYsIEZNT0RFX1dS
-SVRFfEZNT0RFX1JFQUQpOwogCW5zLT5iZGV2ID0gTlVMTDsKQEAgLTM2Myw4ICszOTQsMTAgQEAg
-dm9pZCBudm1ldF9uc19kaXNhYmxlKHN0cnVjdCBudm1ldF9ucyAqbnMpCiAJcGVyY3B1X3JlZl9l
-eGl0KCZucy0+cmVmKTsKIAogCW11dGV4X2xvY2soJnN1YnN5cy0+bG9jayk7Ci0JbGlzdF9mb3Jf
-ZWFjaF9lbnRyeShjdHJsLCAmc3Vic3lzLT5jdHJscywgc3Vic3lzX2VudHJ5KQorCWxpc3RfZm9y
-X2VhY2hfZW50cnkoY3RybCwgJnN1YnN5cy0+Y3RybHMsIHN1YnN5c19lbnRyeSkgeworCQlwY2lf
-cDJwZG1hX3JlbW92ZV9jbGllbnQoJmN0cmwtPnAycF9jbGllbnRzLCBudm1ldF9uc19kZXYobnMp
-KTsKIAkJbnZtZXRfYWRkX2FzeW5jX2V2ZW50KGN0cmwsIE5WTUVfQUVSX1RZUEVfTk9USUNFLCAw
-LCAwKTsKKwl9CiAKIAlpZiAobnMtPmJkZXYpCiAJCWJsa2Rldl9wdXQobnMtPmJkZXYsIEZNT0RF
-X1dSSVRFfEZNT0RFX1JFQUQpOwpAQCAtNzYxLDYgKzc5NCw2MyBAQCBib29sIG52bWV0X2hvc3Rf
-YWxsb3dlZChzdHJ1Y3QgbnZtZXRfcmVxICpyZXEsIHN0cnVjdCBudm1ldF9zdWJzeXMgKnN1YnN5
-cywKIAkJcmV0dXJuIF9fbnZtZXRfaG9zdF9hbGxvd2VkKHN1YnN5cywgaG9zdG5xbik7CiB9CiAK
-Ky8qCisgKiBJZiBhbGxvd19wMnBtZW0gaXMgc2V0LCB3ZSB3aWxsIHRyeSB0byB1c2UgUDJQIG1l
-bW9yeSBmb3IgdGhlIFNHTCBsaXN0cyBmb3IKKyAqIM6ZL08gY29tbWFuZHMuIFRoaXMgcmVxdWly
-ZXMgdGhlIFBDSSBwMnAgZGV2aWNlIHRvIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUKKyAqIGJhY2tp
-bmcgZGV2aWNlIGZvciBldmVyeSBuYW1lc3BhY2Ugb24gdGhpcyBjb250cm9sbGVyLgorICovCitz
-dGF0aWMgdm9pZCBudm1ldF9zZXR1cF9wMnBtZW0oc3RydWN0IG52bWV0X2N0cmwgKmN0cmwsIHN0
-cnVjdCBudm1ldF9yZXEgKnJlcSkKK3sKKwlzdHJ1Y3QgbnZtZXRfbnMgKm5zOworCWludCByZXQ7
-CisKKwlpZiAoIXJlcS0+cG9ydC0+YWxsb3dfcDJwbWVtIHx8ICFyZXEtPnAycF9jbGllbnQpCisJ
-CXJldHVybjsKKworCW11dGV4X2xvY2soJmN0cmwtPnN1YnN5cy0+bG9jayk7CisKKwlyZXQgPSBw
-Y2lfcDJwZG1hX2FkZF9jbGllbnQoJmN0cmwtPnAycF9jbGllbnRzLCByZXEtPnAycF9jbGllbnQp
-OworCWlmIChyZXQpIHsKKwkJcHJfZXJyKCJmYWlsZWQgYWRkaW5nIHBlZXItdG8tcGVlciBETUEg
-Y2xpZW50ICVzOiAlZFxuIiwKKwkJICAgICAgIGRldl9uYW1lKHJlcS0+cDJwX2NsaWVudCksIHJl
-dCk7CisJCWdvdG8gZnJlZV9kZXZpY2VzOworCX0KKworCWxpc3RfZm9yX2VhY2hfZW50cnlfcmN1
-KG5zLCAmY3RybC0+c3Vic3lzLT5uYW1lc3BhY2VzLCBkZXZfbGluaykgeworCQlyZXQgPSBudm1l
-dF9wMnBkbWFfYWRkX2NsaWVudChjdHJsLCBucyk7CisJCWlmIChyZXQpCisJCQlnb3RvIGZyZWVf
-ZGV2aWNlczsKKwl9CisKKwljdHJsLT5wMnBfZGV2ID0gcGNpX3AycG1lbV9maW5kKCZjdHJsLT5w
-MnBfY2xpZW50cyk7CisJaWYgKCFjdHJsLT5wMnBfZGV2KSB7CisJCXByX2luZm8oIm5vIHN1cHBv
-cnRlZCBwZWVyLXRvLXBlZXIgbWVtb3J5IGRldmljZXMgZm91bmRcbiIpOworCQlnb3RvIGZyZWVf
-ZGV2aWNlczsKKwl9CisJbXV0ZXhfdW5sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOworCisJcHJf
-aW5mbygidXNpbmcgcGVlci10by1wZWVyIG1lbW9yeSBvbiAlc1xuIiwgcGNpX25hbWUoY3RybC0+
-cDJwX2RldikpOworCXJldHVybjsKKworZnJlZV9kZXZpY2VzOgorCXBjaV9wMnBkbWFfY2xpZW50
-X2xpc3RfZnJlZSgmY3RybC0+cDJwX2NsaWVudHMpOworCW11dGV4X3VubG9jaygmY3RybC0+c3Vi
-c3lzLT5sb2NrKTsKK30KKworc3RhdGljIHZvaWQgbnZtZXRfcmVsZWFzZV9wMnBtZW0oc3RydWN0
-IG52bWV0X2N0cmwgKmN0cmwpCit7CisJaWYgKCFjdHJsLT5wMnBfZGV2KQorCQlyZXR1cm47CisK
-KwltdXRleF9sb2NrKCZjdHJsLT5zdWJzeXMtPmxvY2spOworCisJcGNpX3AycGRtYV9jbGllbnRf
-bGlzdF9mcmVlKCZjdHJsLT5wMnBfY2xpZW50cyk7CisJcGNpX2Rldl9wdXQoY3RybC0+cDJwX2Rl
-dik7CisJY3RybC0+cDJwX2RldiA9IE5VTEw7CisKKwltdXRleF91bmxvY2soJmN0cmwtPnN1YnN5
-cy0+bG9jayk7Cit9CisKIHUxNiBudm1ldF9hbGxvY19jdHJsKGNvbnN0IGNoYXIgKnN1YnN5c25x
-biwgY29uc3QgY2hhciAqaG9zdG5xbiwKIAkJc3RydWN0IG52bWV0X3JlcSAqcmVxLCB1MzIga2F0
-bywgc3RydWN0IG52bWV0X2N0cmwgKipjdHJscCkKIHsKQEAgLTgwMCw2ICs4OTAsNyBAQCB1MTYg
-bnZtZXRfYWxsb2NfY3RybChjb25zdCBjaGFyICpzdWJzeXNucW4sIGNvbnN0IGNoYXIgKmhvc3Ru
-cW4sCiAKIAlJTklUX1dPUksoJmN0cmwtPmFzeW5jX2V2ZW50X3dvcmssIG52bWV0X2FzeW5jX2V2
-ZW50X3dvcmspOwogCUlOSVRfTElTVF9IRUFEKCZjdHJsLT5hc3luY19ldmVudHMpOworCUlOSVRf
-TElTVF9IRUFEKCZjdHJsLT5wMnBfY2xpZW50cyk7CiAKIAltZW1jcHkoY3RybC0+c3Vic3lzbnFu
-LCBzdWJzeXNucW4sIE5WTUZfTlFOX1NJWkUpOwogCW1lbWNweShjdHJsLT5ob3N0bnFuLCBob3N0
-bnFuLCBOVk1GX05RTl9TSVpFKTsKQEAgLTg1NSw2ICs5NDYsNyBAQCB1MTYgbnZtZXRfYWxsb2Nf
-Y3RybChjb25zdCBjaGFyICpzdWJzeXNucW4sIGNvbnN0IGNoYXIgKmhvc3RucW4sCiAJCWN0cmwt
-PmthdG8gPSBESVZfUk9VTkRfVVAoa2F0bywgMTAwMCk7CiAJfQogCW52bWV0X3N0YXJ0X2tlZXBf
-YWxpdmVfdGltZXIoY3RybCk7CisJbnZtZXRfc2V0dXBfcDJwbWVtKGN0cmwsIHJlcSk7CiAKIAlt
-dXRleF9sb2NrKCZzdWJzeXMtPmxvY2spOwogCWxpc3RfYWRkX3RhaWwoJmN0cmwtPnN1YnN5c19l
-bnRyeSwgJnN1YnN5cy0+Y3RybHMpOwpAQCAtODkxLDYgKzk4Myw3IEBAIHN0YXRpYyB2b2lkIG52
-bWV0X2N0cmxfZnJlZShzdHJ1Y3Qga3JlZiAqcmVmKQogCWZsdXNoX3dvcmsoJmN0cmwtPmFzeW5j
-X2V2ZW50X3dvcmspOwogCWNhbmNlbF93b3JrX3N5bmMoJmN0cmwtPmZhdGFsX2Vycl93b3JrKTsK
-IAorCW52bWV0X3JlbGVhc2VfcDJwbWVtKGN0cmwpOwogCWlkYV9zaW1wbGVfcmVtb3ZlKCZjbnRs
-aWRfaWRhLCBjdHJsLT5jbnRsaWQpOwogCiAJa2ZyZWUoY3RybC0+c3FzKTsKZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLmMgYi9kcml2ZXJzL252bWUvdGFyZ2V0L2lvLWNt
-ZC5jCmluZGV4IDI4YmJkZmY0YTg4Yi4uYTIxM2Y4ZmMzYmYzIDEwMDY0NAotLS0gYS9kcml2ZXJz
-L252bWUvdGFyZ2V0L2lvLWNtZC5jCisrKyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvaW8tY21kLmMK
-QEAgLTU2LDYgKzU2LDkgQEAgc3RhdGljIHZvaWQgbnZtZXRfZXhlY3V0ZV9ydyhzdHJ1Y3QgbnZt
-ZXRfcmVxICpyZXEpCiAJCW9wID0gUkVRX09QX1JFQUQ7CiAJfQogCisJaWYgKGlzX3BjaV9wMnBk
-bWFfcGFnZShzZ19wYWdlKHJlcS0+c2cpKSkKKwkJb3BfZmxhZ3MgfD0gUkVRX1BDSV9QMlBETUE7
-CisKIAlzZWN0b3IgPSBsZTY0X3RvX2NwdShyZXEtPmNtZC0+cncuc2xiYSk7CiAJc2VjdG9yIDw8
-PSAocmVxLT5ucy0+Ymxrc2l6ZV9zaGlmdCAtIDkpOwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL252
-bWUvdGFyZ2V0L252bWV0LmggYi9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmgKaW5kZXggNDE3
-ZjZjMDMzMWNjLi44NWExNzA5MTQ1ODggMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbnZtZS90YXJnZXQv
-bnZtZXQuaAorKysgYi9kcml2ZXJzL252bWUvdGFyZ2V0L252bWV0LmgKQEAgLTY0LDYgKzY0LDEx
-IEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IG52bWV0X25zICp0b19udm1ldF9ucyhzdHJ1Y3QgY29u
-ZmlnX2l0ZW0gKml0ZW0pCiAJcmV0dXJuIGNvbnRhaW5lcl9vZih0b19jb25maWdfZ3JvdXAoaXRl
-bSksIHN0cnVjdCBudm1ldF9ucywgZ3JvdXApOwogfQogCitzdGF0aWMgaW5saW5lIHN0cnVjdCBk
-ZXZpY2UgKm52bWV0X25zX2RldihzdHJ1Y3QgbnZtZXRfbnMgKm5zKQoreworCXJldHVybiBkaXNr
-X3RvX2Rldihucy0+YmRldi0+YmRfZGlzayk7Cit9CisKIHN0cnVjdCBudm1ldF9jcSB7CiAJdTE2
-CQkJcWlkOwogCXUxNgkJCXNpemU7CkBAIC05OCw2ICsxMDMsNyBAQCBzdHJ1Y3QgbnZtZXRfcG9y
-dCB7CiAJc3RydWN0IGxpc3RfaGVhZAkJcmVmZXJyYWxzOwogCXZvaWQJCQkJKnByaXY7CiAJYm9v
-bAkJCQllbmFibGVkOworCWJvb2wJCQkJYWxsb3dfcDJwbWVtOwogfTsKIAogc3RhdGljIGlubGlu
-ZSBzdHJ1Y3QgbnZtZXRfcG9ydCAqdG9fbnZtZXRfcG9ydChzdHJ1Y3QgY29uZmlnX2l0ZW0gKml0
-ZW0pCkBAIC0xMzEsNiArMTM3LDggQEAgc3RydWN0IG52bWV0X2N0cmwgewogCXN0cnVjdCB3b3Jr
-X3N0cnVjdAlmYXRhbF9lcnJfd29yazsKIAogCXN0cnVjdCBudm1ldF9mYWJyaWNzX29wcyAqb3Bz
-OworCXN0cnVjdCBwY2lfZGV2CQkqcDJwX2RldjsKKwlzdHJ1Y3QgbGlzdF9oZWFkCXAycF9jbGll
-bnRzOwogCiAJY2hhcgkJCXN1YnN5c25xbltOVk1GX05RTl9GSUVMRF9MRU5dOwogCWNoYXIJCQlo
-b3N0bnFuW05WTUZfTlFOX0ZJRUxEX0xFTl07CkBAIC0yMzIsNiArMjQwLDggQEAgc3RydWN0IG52
-bWV0X3JlcSB7CiAKIAl2b2lkICgqZXhlY3V0ZSkoc3RydWN0IG52bWV0X3JlcSAqcmVxKTsKIAlz
-dHJ1Y3QgbnZtZXRfZmFicmljc19vcHMgKm9wczsKKworCXN0cnVjdCBkZXZpY2UgKnAycF9jbGll
-bnQ7CiB9OwogCiBzdGF0aWMgaW5saW5lIHZvaWQgbnZtZXRfc2V0X3N0YXR1cyhzdHJ1Y3QgbnZt
-ZXRfcmVxICpyZXEsIHUxNiBzdGF0dXMpCmRpZmYgLS1naXQgYS9kcml2ZXJzL252bWUvdGFyZ2V0
-L3JkbWEuYyBiL2RyaXZlcnMvbnZtZS90YXJnZXQvcmRtYS5jCmluZGV4IDAyMDM1NGUxMTM1MS4u
-N2ExZjA5OTk1ZWQ1IDEwMDY0NAotLS0gYS9kcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuYworKysg
-Yi9kcml2ZXJzL252bWUvdGFyZ2V0L3JkbWEuYwpAQCAtMjMsNiArMjMsNyBAQAogI2luY2x1ZGUg
-PGxpbnV4L3N0cmluZy5oPgogI2luY2x1ZGUgPGxpbnV4L3dhaXQuaD4KICNpbmNsdWRlIDxsaW51
-eC9pbmV0Lmg+CisjaW5jbHVkZSA8bGludXgvcGNpLXAycGRtYS5oPgogI2luY2x1ZGUgPGFzbS91
-bmFsaWduZWQuaD4KIAogI2luY2x1ZGUgPHJkbWEvaWJfdmVyYnMuaD4KQEAgLTY4LDYgKzY5LDcg
-QEAgc3RydWN0IG52bWV0X3JkbWFfcnNwIHsKIAl1OAkJCW5fcmRtYTsKIAl1MzIJCQlmbGFnczsK
-IAl1MzIJCQlpbnZhbGlkYXRlX3JrZXk7CisJc3RydWN0IHBjaV9kZXYJCSpwMnBfZGV2OwogCiAJ
-c3RydWN0IGxpc3RfaGVhZAl3YWl0X2xpc3Q7CiAJc3RydWN0IGxpc3RfaGVhZAlmcmVlX2xpc3Q7
-CkBAIC00MjYsMTIgKzQyOCwxOCBAQCBzdGF0aWMgdm9pZCBudm1ldF9yZG1hX3JlbGVhc2VfcnNw
-KHN0cnVjdCBudm1ldF9yZG1hX3JzcCAqcnNwKQogCiAJaWYgKHJzcC0+bl9yZG1hKSB7CiAJCXJk
-bWFfcndfY3R4X2Rlc3Ryb3koJnJzcC0+cncsIHF1ZXVlLT5jbV9pZC0+cXAsCi0JCQkJcXVldWUt
-PmNtX2lkLT5wb3J0X251bSwgcnNwLT5yZXEuc2csCi0JCQkJcnNwLT5yZXEuc2dfY250LCBudm1l
-dF9kYXRhX2RpcigmcnNwLT5yZXEpLCAwKTsKKwkJCXF1ZXVlLT5jbV9pZC0+cG9ydF9udW0sIHJz
-cC0+cmVxLnNnLAorCQkJcnNwLT5yZXEuc2dfY250LCBudm1ldF9kYXRhX2RpcigmcnNwLT5yZXEp
-LAorCQkJcnNwLT5wMnBfZGV2ID8gUkRNQV9SV19DVFhfRkxBR19QQ0lfUDJQRE1BIDogMCk7CiAJ
-fQogCi0JaWYgKHJzcC0+cmVxLnNnICE9ICZyc3AtPmNtZC0+aW5saW5lX3NnKQotCQlzZ2xfZnJl
-ZShyc3AtPnJlcS5zZyk7CisJaWYgKHJzcC0+cmVxLnNnICE9ICZyc3AtPmNtZC0+aW5saW5lX3Nn
-KSB7CisJCWlmIChyc3AtPnAycF9kZXYpCisJCQlwY2lfcDJwbWVtX2ZyZWVfc2dsKHJzcC0+cDJw
-X2RldiwgcnNwLT5yZXEuc2csCisJCQkJCSAgICByc3AtPnJlcS5zZ19jbnQpOworCQllbHNlCisJ
-CQlzZ2xfZnJlZShyc3AtPnJlcS5zZyk7CisJfQogCiAJaWYgKHVubGlrZWx5KCFsaXN0X2VtcHR5
-X2NhcmVmdWwoJnF1ZXVlLT5yc3Bfd3Jfd2FpdF9saXN0KSkpCiAJCW52bWV0X3JkbWFfcHJvY2Vz
-c193cl93YWl0X2xpc3QocXVldWUpOwpAQCAtNTY3LDE5ICs1NzUsMzQgQEAgc3RhdGljIHUxNiBu
-dm1ldF9yZG1hX21hcF9zZ2xfa2V5ZWQoc3RydWN0IG52bWV0X3JkbWFfcnNwICpyc3AsCiAJdTY0
-IGFkZHIgPSBsZTY0X3RvX2NwdShzZ2wtPmFkZHIpOwogCXUzMiBsZW4gPSBnZXRfdW5hbGlnbmVk
-X2xlMjQoc2dsLT5sZW5ndGgpOwogCXUzMiBrZXkgPSBnZXRfdW5hbGlnbmVkX2xlMzIoc2dsLT5r
-ZXkpOworCXN0cnVjdCBwY2lfZGV2ICpwMnBfZGV2ID0gTlVMTDsKIAlpbnQgcmV0OwogCiAJLyog
-bm8gZGF0YSBjb21tYW5kPyAqLwogCWlmICghbGVuKQogCQlyZXR1cm4gMDsKIAotCXJzcC0+cmVx
-LnNnID0gc2dsX2FsbG9jKGxlbiwgR0ZQX0tFUk5FTCwgJnJzcC0+cmVxLnNnX2NudCk7Ci0JaWYg
-KCFyc3AtPnJlcS5zZykKLQkJcmV0dXJuIE5WTUVfU0NfSU5URVJOQUw7CisJaWYgKHJzcC0+cXVl
-dWUtPm52bWVfc3EuY3RybCkKKwkJcDJwX2RldiA9IHJzcC0+cXVldWUtPm52bWVfc3EuY3RybC0+
-cDJwX2RldjsKKworCXJzcC0+cDJwX2RldiA9IE5VTEw7CisJaWYgKHJzcC0+cXVldWUtPm52bWVf
-c3EucWlkICYmIHAycF9kZXYpIHsKKwkJcmV0ID0gcGNpX3AycG1lbV9hbGxvY19zZ2wocDJwX2Rl
-diwgJnJzcC0+cmVxLnNnLAorCQkJCQkgICAmcnNwLT5yZXEuc2dfY250LCBsZW4pOworCQlpZiAo
-IXJldCkKKwkJCXJzcC0+cDJwX2RldiA9IHAycF9kZXY7CisJfQorCisJaWYgKCFyc3AtPnAycF9k
-ZXYpIHsKKwkJcnNwLT5yZXEuc2cgPSBzZ2xfYWxsb2MobGVuLCBHRlBfS0VSTkVMLCAmcnNwLT5y
-ZXEuc2dfY250KTsKKwkJaWYgKCFyc3AtPnJlcS5zZykKKwkJCXJldHVybiBOVk1FX1NDX0lOVEVS
-TkFMOworCX0KIAogCXJldCA9IHJkbWFfcndfY3R4X2luaXQoJnJzcC0+cncsIGNtX2lkLT5xcCwg
-Y21faWQtPnBvcnRfbnVtLAogCQkJcnNwLT5yZXEuc2csIHJzcC0+cmVxLnNnX2NudCwgMCwgYWRk
-ciwga2V5LAotCQkJbnZtZXRfZGF0YV9kaXIoJnJzcC0+cmVxKSwgMCk7CisJCQludm1ldF9kYXRh
-X2RpcigmcnNwLT5yZXEpLAorCQkJcnNwLT5wMnBfZGV2ID8gUkRNQV9SV19DVFhfRkxBR19QQ0lf
-UDJQRE1BIDogMCk7CiAJaWYgKHJldCA8IDApCiAJCXJldHVybiBOVk1FX1NDX0lOVEVSTkFMOwog
-CXJzcC0+cmVxLnRyYW5zZmVyX2xlbiArPSBsZW47CkBAIC02NTgsNiArNjgxLDggQEAgc3RhdGlj
-IHZvaWQgbnZtZXRfcmRtYV9oYW5kbGVfY29tbWFuZChzdHJ1Y3QgbnZtZXRfcmRtYV9xdWV1ZSAq
-cXVldWUsCiAJCWNtZC0+c2VuZF9zZ2UuYWRkciwgY21kLT5zZW5kX3NnZS5sZW5ndGgsCiAJCURN
-QV9UT19ERVZJQ0UpOwogCisJY21kLT5yZXEucDJwX2NsaWVudCA9ICZxdWV1ZS0+ZGV2LT5kZXZp
-Y2UtPmRldjsKKwogCWlmICghbnZtZXRfcmVxX2luaXQoJmNtZC0+cmVxLCAmcXVldWUtPm52bWVf
-Y3EsCiAJCQkmcXVldWUtPm52bWVfc3EsICZudm1ldF9yZG1hX29wcykpCiAJCXJldHVybjsKLS0g
-CjIuMTEuMAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-TGludXgtbnZkaW1tIG1haWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBz
-Oi8vbGlzdHMuMDEub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+On Wed, 2018-02-28 at 16:39 -0700, Logan Gunthorpe wrote:
+> Hi Everyone,
+
+
+So Oliver (CC) was having issues getting any of that to work for us.
+
+The problem is that acccording to him (I didn't double check the latest
+patches) you effectively hotplug the PCIe memory into the system when
+creating struct pages.
+
+This cannot possibly work for us. First we cannot map PCIe memory as
+cachable. (Note that doing so is a bad idea if you are behind a PLX
+switch anyway since you'd ahve to manage cache coherency in SW).
+
+Then our MMIO space is so far away from our memory space that there is
+not enough vmemmap virtual space to be able to do that.
+
+So this can only work accross achitectures by using something like HMM
+to create special device struct page's.
+
+Ben.
+
+
+> Here's v2 of our series to introduce P2P based copy offload to NVMe
+> fabrics. This version has been rebased onto v4.16-rc3 which already
+> includes Christoph's devpagemap work the previous version was based
+> off as well as a couple of the cleanup patches that were in v1.
+> 
+> Additionally, we've made the following changes based on feedback:
+> 
+> * Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
+>   as a bunch of cleanup and spelling fixes he pointed out in the last
+>   series.
+> 
+> * To address Alex's ACS concerns, we change to a simpler method of
+>   just disabling ACS behind switches for any kernel that has
+>   CONFIG_PCI_P2PDMA.
+> 
+> * We also reject using devices that employ 'dma_virt_ops' which should
+>   fairly simply handle Jason's concerns that this work might break with
+>   the HFI, QIB and rxe drivers that use the virtual ops to implement
+>   their own special DMA operations.
+> 
+> Thanks,
+> 
+> Logan
+> 
+> --
+> 
+> This is a continuation of our work to enable using Peer-to-Peer PCI
+> memory in NVMe fabrics targets. Many thanks go to Christoph Hellwig who
+> provided valuable feedback to get these patches to where they are today.
+> 
+> The concept here is to use memory that's exposed on a PCI BAR as
+> data buffers in the NVME target code such that data can be transferred
+> from an RDMA NIC to the special memory and then directly to an NVMe
+> device avoiding system memory entirely. The upside of this is better
+> QoS for applications running on the CPU utilizing memory and lower
+> PCI bandwidth required to the CPU (such that systems could be designed
+> with fewer lanes connected to the CPU). However, presently, the
+> trade-off is currently a reduction in overall throughput. (Largely due
+> to hardware issues that would certainly improve in the future).
+> 
+> Due to these trade-offs we've designed the system to only enable using
+> the PCI memory in cases where the NIC, NVMe devices and memory are all
+> behind the same PCI switch. This will mean many setups that could likely
+> work well will not be supported so that we can be more confident it
+> will work and not place any responsibility on the user to understand
+> their topology. (We chose to go this route based on feedback we
+> received at the last LSF). Future work may enable these transfers behind
+> a fabric of PCI switches or perhaps using a white list of known good
+> root complexes.
+> 
+> In order to enable this functionality, we introduce a few new PCI
+> functions such that a driver can register P2P memory with the system.
+> Struct pages are created for this memory using devm_memremap_pages()
+> and the PCI bus offset is stored in the corresponding pagemap structure.
+> 
+> Another set of functions allow a client driver to create a list of
+> client devices that will be used in a given P2P transactions and then
+> use that list to find any P2P memory that is supported by all the
+> client devices. This list is then also used to selectively disable the
+> ACS bits for the downstream ports behind these devices.
+> 
+> In the block layer, we also introduce a P2P request flag to indicate a
+> given request targets P2P memory as well as a flag for a request queue
+> to indicate a given queue supports targeting P2P memory. P2P requests
+> will only be accepted by queues that support it. Also, P2P requests
+> are marked to not be merged seeing a non-homogenous request would
+> complicate the DMA mapping requirements.
+> 
+> In the PCI NVMe driver, we modify the existing CMB support to utilize
+> the new PCI P2P memory infrastructure and also add support for P2P
+> memory in its request queue. When a P2P request is received it uses the
+> pci_p2pmem_map_sg() function which applies the necessary transformation
+> to get the corrent pci_bus_addr_t for the DMA transactions.
+> 
+> In the RDMA core, we also adjust rdma_rw_ctx_init() and
+> rdma_rw_ctx_destroy() to take a flags argument which indicates whether
+> to use the PCI P2P mapping functions or not.
+> 
+> Finally, in the NVMe fabrics target port we introduce a new
+> configuration boolean: 'allow_p2pmem'. When set, the port will attempt
+> to find P2P memory supported by the RDMA NIC and all namespaces. If
+> supported memory is found, it will be used in all IO transfers. And if
+> a port is using P2P memory, adding new namespaces that are not supported
+> by that memory will fail.
+> 
+> Logan Gunthorpe (10):
+>   PCI/P2PDMA: Support peer to peer memory
+>   PCI/P2PDMA: Add sysfs group to display p2pmem stats
+>   PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
+>   PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
+>   block: Introduce PCI P2P flags for request and request queue
+>   IB/core: Add optional PCI P2P flag to rdma_rw_ctx_[init|destroy]()
+>   nvme-pci: Use PCI p2pmem subsystem to manage the CMB
+>   nvme-pci: Add support for P2P memory in requests
+>   nvme-pci: Add a quirk for a pseudo CMB
+>   nvmet: Optionally use PCI P2P memory
+> 
+>  Documentation/ABI/testing/sysfs-bus-pci |  25 ++
+>  block/blk-core.c                        |   3 +
+>  drivers/infiniband/core/rw.c            |  21 +-
+>  drivers/infiniband/ulp/isert/ib_isert.c |   5 +-
+>  drivers/infiniband/ulp/srpt/ib_srpt.c   |   7 +-
+>  drivers/nvme/host/core.c                |   4 +
+>  drivers/nvme/host/nvme.h                |   8 +
+>  drivers/nvme/host/pci.c                 | 118 ++++--
+>  drivers/nvme/target/configfs.c          |  29 ++
+>  drivers/nvme/target/core.c              |  95 ++++-
+>  drivers/nvme/target/io-cmd.c            |   3 +
+>  drivers/nvme/target/nvmet.h             |  10 +
+>  drivers/nvme/target/rdma.c              |  43 +-
+>  drivers/pci/Kconfig                     |  20 +
+>  drivers/pci/Makefile                    |   1 +
+>  drivers/pci/p2pdma.c                    | 713 ++++++++++++++++++++++++++++++++
+>  drivers/pci/pci.c                       |   4 +
+>  include/linux/blk_types.h               |  18 +-
+>  include/linux/blkdev.h                  |   3 +
+>  include/linux/memremap.h                |  19 +
+>  include/linux/pci-p2pdma.h              | 105 +++++
+>  include/linux/pci.h                     |   4 +
+>  include/rdma/rw.h                       |   7 +-
+>  net/sunrpc/xprtrdma/svc_rdma_rw.c       |   6 +-
+>  24 files changed, 1204 insertions(+), 67 deletions(-)
+>  create mode 100644 drivers/pci/p2pdma.c
+>  create mode 100644 include/linux/pci-p2pdma.h
+> 
+> --
+> 2.11.0
