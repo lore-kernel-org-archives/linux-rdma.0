@@ -1,7 +1,7 @@
-From: Benjamin Herrenschmidt <benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
 Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Fri, 02 Mar 2018 10:25:34 +1100
-Message-ID: <1519946734.4592.48.camel@au1.ibm.com>
+Date: Fri, 02 Mar 2018 10:26:07 +1100
+Message-ID: <1519946767.4592.49.camel@kernel.crashing.org>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <1519876489.4592.3.camel@kernel.crashing.org>
  <1519876569.4592.4.camel@au1.ibm.com>
@@ -12,7 +12,6 @@ References: <20180228234006.21093-1-logang@deltatee.com>
  <43ba615f-a6e1-9444-65e1-494169cb415d@deltatee.com>
  <1519945204.4592.45.camel@au1.ibm.com>
  <595acefb-18fc-e650-e172-bae271263c4c@deltatee.com>
-Reply-To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -32,7 +31,9 @@ Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79u
 List-Id: linux-rdma@vger.kernel.org
 
 On Thu, 2018-03-01 at 16:19 -0700, Logan Gunthorpe wrote:
-> 
+
+(Switching back to my non-IBM address ...)
+
 > On 01/03/18 04:00 PM, Benjamin Herrenschmidt wrote:
 > > We use only 52 in practice but yes.
 > > 
