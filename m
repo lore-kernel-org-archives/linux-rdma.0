@@ -1,16 +1,16 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 04/10] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Thu, 1 Mar 2018 12:02:57 -0600
-Message-ID: <20180301180257.GH13722@bhelgaas-glaptop.roam.corp.google.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Thu, 1 Mar 2018 11:04:32 -0700
+Message-ID: <8e808448-fc01-5da0-51e7-1a6657d5a23a@deltatee.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-5-logang@deltatee.com>
+ <1519876489.4592.3.camel@kernel.crashing.org>
+ <1519876569.4592.4.camel@au1.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180228234006.21093-5-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1519876569.4592.4.camel-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,165 +20,45 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 28, 2018 at 04:40:00PM -0700, Logan Gunthorpe wrote:
-> For peer-to-peer transactions to work the downstream ports in each
-> switch must not have the ACS flags set. At this time there is no way
-> to dynamically change the flags and update the corresponding IOMMU
-> groups so this is done at enumeration time before the the groups are
-> assigned.
 
-s/the the/the/
 
-> This effectively means that if CONFIG_PCI_P2PDMA is selected then
-> all devices behind any switch will be in the same IOMMU group.
+On 28/02/18 08:56 PM, Benjamin Herrenschmidt wrote:
+> On Thu, 2018-03-01 at 14:54 +1100, Benjamin Herrenschmidt wrote:
+>> The problem is that acccording to him (I didn't double check the latest
+>> patches) you effectively hotplug the PCIe memory into the system when
+>> creating struct pages.
+>>
+>> This cannot possibly work for us. First we cannot map PCIe memory as
+>> cachable. (Note that doing so is a bad idea if you are behind a PLX
+>> switch anyway since you'd ahve to manage cache coherency in SW).
 > 
-> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-> ---
->  drivers/pci/Kconfig        |  4 ++++
->  drivers/pci/p2pdma.c       | 44 ++++++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/pci.c          |  4 ++++
->  include/linux/pci-p2pdma.h |  5 +++++
->  4 files changed, 57 insertions(+)
-> 
-> diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
-> index 840831418cbd..a430672f0ad4 100644
-> --- a/drivers/pci/Kconfig
-> +++ b/drivers/pci/Kconfig
-> @@ -138,6 +138,10 @@ config PCI_P2PDMA
->  	  it's hard to tell which support it with good performance, so
->  	  at this time you will need a PCIe switch.
->  
-> +	  Enabling this option will also disable ACS on all ports behind
-> +	  any PCIe switch. This effictively puts all devices behind any
-> +	  switch into the same IOMMU group.
+> Note: I think the above means it won't work behind a switch on x86
+> either, will it ?
 
-s/effictively/effectively/
+This works perfectly fine on x86 behind a switch and we've tested it on 
+multiple machines. We've never had an issue of running out of virtual 
+space despite our PCI bars typically being located with an offset of 
+56TB or more. The arch code on x86 also somehow figures out not to map 
+the memory as cachable so that's not an issue (though, at this point, 
+the CPU never accesses the memory so even if it were, it wouldn't affect 
+anything).
 
-Does this really mean "all devices behind the same Root Port"?
+We also had this working on ARM64 a while back but it required some out 
+of tree ZONE_DEVICE patches and some truly horrid hacks to it's arch 
+code to ioremap the memory into the page map.
 
-What does this mean in terms of device security?  I assume it means,
-at least, that individual devices can't be assigned to separate VMs.
+You didn't mention what architecture you were trying this on.
 
-I don't mind admitting that this patch makes me pretty nervous, and I
-don't have a clear idea of what the implications of this are, or how
-to communicate those to end users.  "The same IOMMU group" is a pretty
-abstract idea.
+It may make sense at this point to make this feature dependent on x86 
+until more work is done to make it properly portable. Something like 
+arch functions that allow adding IO memory pages to with a specific 
+cache setting. Though, if an arch has such restrictive limits on the map 
+size it would probably need to address that too somehow.
 
->  	  If unsure, say N.
->  
->  config PCI_LABEL
-> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 4e1c81f64b29..61af07acd21a 100644
-> --- a/drivers/pci/p2pdma.c
-> +++ b/drivers/pci/p2pdma.c
-> @@ -255,6 +255,50 @@ static struct pci_dev *get_upstream_bridge_port(struct pci_dev *pdev)
->  	return up2;
->  }
->  
-> +/*
-> + * pci_p2pdma_disable_acs - disable ACS flags for ports in PCI
-> + *	bridges/switches
-> + * @pdev: device to disable ACS flags for
-> + *
-> + * The ACS flags for P2P Request Redirect and P2P Completion Redirect need
-> + * to be disabled on any downstream port in any switch in order for
-> + * the TLPs to not be forwarded up to the RC which is not what we want
-> + * for P2P.
-> + *
-> + * This function is called when the devices are first enumerated and
-> + * will result in all devices behind any switch to be in the same IOMMU
-> + * group. At this time there is no way to "hotplug" IOMMU groups so we rely
-> + * on this largish hammer. If you need the devices to be in separate groups
-> + * don't enable CONFIG_PCI_P2PDMA.
-> + *
-> + * Returns 1 if the ACS bits for this device were cleared, otherwise 0.
-> + */
-> +int pci_p2pdma_disable_acs(struct pci_dev *pdev)
-> +{
-> +	struct pci_dev *up;
-> +	int pos;
-> +	u16 ctrl;
-> +
-> +	up = get_upstream_bridge_port(pdev);
-> +	if (!up)
-> +		return 0;
-> +	pci_dev_put(up);
-> +
-> +	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_ACS);
-> +	if (!pos)
-> +		return 0;
-> +
-> +	dev_info(&pdev->dev, "disabling ACS flags for peer-to-peer DMA\n");
-> +
-> +	pci_read_config_word(pdev, pos + PCI_ACS_CTRL, &ctrl);
-> +
-> +	ctrl &= ~(PCI_ACS_RR | PCI_ACS_CR);
-> +
-> +	pci_write_config_word(pdev, pos + PCI_ACS_CTRL, ctrl);
-> +
-> +	return 1;
-> +}
-> +
->  static bool __upstream_bridges_match(struct pci_dev *upstream,
->  				     struct pci_dev *client)
->  {
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index f6a4dd10d9b0..95ad3cf288c8 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -16,6 +16,7 @@
->  #include <linux/of.h>
->  #include <linux/of_pci.h>
->  #include <linux/pci.h>
-> +#include <linux/pci-p2pdma.h>
->  #include <linux/pm.h>
->  #include <linux/slab.h>
->  #include <linux/module.h>
-> @@ -2826,6 +2827,9 @@ static void pci_std_enable_acs(struct pci_dev *dev)
->   */
->  void pci_enable_acs(struct pci_dev *dev)
->  {
-> +	if (pci_p2pdma_disable_acs(dev))
-> +		return;
+Thanks,
 
-This doesn't read naturally to me.  I do see that when
-CONFIG_PCI_P2PDMA is not set, pci_p2pdma_disable_acs() does nothing
-and returns 0, so we'll go ahead and try to enable ACS as before.
-
-But I think it would be clearer to have an #ifdef CONFIG_PCI_P2PDMA
-right here so it's more obvious that we only disable ACS when it's
-selected.
-
->  	if (!pci_acs_enable)
->  		return;
->  
-> diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-> index 126eca697ab3..f537f521f60c 100644
-> --- a/include/linux/pci-p2pdma.h
-> +++ b/include/linux/pci-p2pdma.h
-> @@ -22,6 +22,7 @@ struct block_device;
->  struct scatterlist;
->  
->  #ifdef CONFIG_PCI_P2PDMA
-> +int pci_p2pdma_disable_acs(struct pci_dev *pdev);
->  int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
->  		u64 offset);
->  int pci_p2pdma_add_client(struct list_head *head, struct device *dev);
-> @@ -41,6 +42,10 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
->  void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
->  			 enum dma_data_direction dir);
->  #else /* CONFIG_PCI_P2PDMA */
-> +static inline int pci_p2pdma_disable_acs(struct pci_dev *pdev)
-> +{
-> +	return 0;
-> +}
->  static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
->  		size_t size, u64 offset)
->  {
-> -- 
-> 2.11.0
-> 
+Logan
