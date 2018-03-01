@@ -1,50 +1,92 @@
-From: Benjamin Herrenschmidt <benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Fri, 02 Mar 2018 09:06:52 +1100
-Message-ID: <1519942012.4592.31.camel@au1.ibm.com>
-References: <20180228234006.21093-1-logang@deltatee.com>
- <1519876489.4592.3.camel@kernel.crashing.org>
- <1519876569.4592.4.camel@au1.ibm.com>
- <CAPcyv4h7mcFphv3j_vW-CGxXa2pjQgLqpBOLzHuTzAFzygai-Q@mail.gmail.com>
- <1519936477.4592.23.camel@au1.ibm.com>
- <1519936815.4592.25.camel@au1.ibm.com> <20180301205315.GJ19007@ziepe.ca>
-Reply-To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 1/3] RDMA/core: Avoid that ib_drain_qp() triggers an
+ out-of-bounds stack access
+Date: Thu, 1 Mar 2018 15:19:14 -0700
+Message-ID: <20180301221914.GK19007@ziepe.ca>
+References: <20180301220030.27433-1-bart.vanassche@wdc.com>
+ <20180301220030.27433-2-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180301205315.GJ19007-uk2M96/98Pc@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180301220030.27433-2-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Doug Ledford <dledford@redhat.com>, Laurence Oberman <loberman@redhat.com>, linux-rdma@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2018-03-01 at 13:53 -0700, Jason Gunthorpe wrote:
-> On Fri, Mar 02, 2018 at 07:40:15AM +1100, Benjamin Herrenschmidt wrote:
-> > Also we need to be able to hard block MEMREMAP_WB mappings of non-RAM
-> > on ppc64 (maybe via an arch hook as it might depend on the processor
-> > family). Server powerpc cannot do cachable accesses on IO memory
-> > (unless it's special OpenCAPI or nVlink, but not on PCIe).
+On Thu, Mar 01, 2018 at 02:00:28PM -0800, Bart Van Assche wrote:
+> This patch fixes the following KASAN complaint:
 > 
-> I think you are right on this - even on x86 we must not create
-> cachable mappings of PCI BARs - there is no way that works the way
-> anyone would expect.
+> ==================================================================
+> BUG: KASAN: stack-out-of-bounds in rxe_post_send+0x77d/0x9b0 [rdma_rxe]
+> Read of size 8 at addr ffff880061aef860 by task 01/1080
 > 
-> I think this series doesn't have a problem here only because it never
-> touches the BAR pages with the CPU.
+> CPU: 2 PID: 1080 Comm: 01 Not tainted 4.16.0-rc3-dbg+ #2
+> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+> Call Trace:
+> dump_stack+0x85/0xc7
+> print_address_description+0x65/0x270
+> kasan_report+0x231/0x350
+> rxe_post_send+0x77d/0x9b0 [rdma_rxe]
+> __ib_drain_sq+0x1ad/0x250 [ib_core]
+> ib_drain_qp+0x9/0x30 [ib_core]
+> srp_destroy_qp+0x51/0x70 [ib_srp]
+> srp_free_ch_ib+0xfc/0x380 [ib_srp]
+> srp_create_target+0x1071/0x19e0 [ib_srp]
+> kernfs_fop_write+0x180/0x210
+> __vfs_write+0xb1/0x2e0
+> vfs_write+0xf6/0x250
+> SyS_write+0x99/0x110
+> do_syscall_64+0xee/0x2b0
+> entry_SYSCALL_64_after_hwframe+0x42/0xb7
 > 
-> BAR memory should be mapped into the CPU as WC at best on all arches..
+> The buggy address belongs to the page:
+> page:ffffea000186bbc0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+> flags: 0x4000000000000000()
+> raw: 4000000000000000 0000000000000000 0000000000000000 00000000ffffffff
+> raw: 0000000000000000 ffffea000186bbe0 0000000000000000 0000000000000000
+> page dumped because: kasan: bad access detected
+> 
+> Memory state around the buggy address:
+> ffff880061aef700: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> ffff880061aef780: 00 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00
+> >ffff880061aef800: f2 f2 f2 f2 f2 f2 f2 00 00 00 00 00 f2 f2 f2 f2
+>                                                       ^
+> ffff880061aef880: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 f2 f2
+> ffff880061aef900: f2 f2 f2 00 00 00 00 00 00 00 00 00 00 00 00 00
+> ==================================================================
+> 
+> Fixes: 765d67748bcf ("IB: new common API for draining queues")
+> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+> Cc: Steve Wise <swise@opengridcomputing.com>
+> Cc: Sagi Grimberg <sagi@grimberg.me>
+> Cc: stable@vger.kernel.org
+>  drivers/infiniband/core/verbs.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+> index 2c7b0ceb46e6..4e2b231b03f7 100644
+> +++ b/drivers/infiniband/core/verbs.c
+> @@ -2194,7 +2194,13 @@ static void __ib_drain_sq(struct ib_qp *qp)
+>  	struct ib_cq *cq = qp->send_cq;
+>  	struct ib_qp_attr attr = { .qp_state = IB_QPS_ERR };
+>  	struct ib_drain_cqe sdrain;
+> -	struct ib_send_wr swr = {}, *bad_swr;
+> +	struct ib_send_wr *bad_swr;
+> +	struct ib_rdma_wr swr = {
+> +		.wr = {
+> +			.opcode	= IB_WR_RDMA_WRITE,
+> +			.wr_cqe	= &sdrain.cqe,
+> +		},
+> +	};
 
-Could be that x86 has the smarts to do the right thing, still trying to
-untangle the code :-)
+I don't get it..
 
-Cheers,
-Ben.
+Since when did ib_post_send() start requiring a ib_rdma_wr?
+
+IB_WR_RDMA_WRITE == 0, so even missing that is 'OK' but ugly. 
+
+What is the actual bug here?
+
+Jason
