@@ -1,50 +1,47 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 1 Mar 2018 16:19:59 -0700
-Message-ID: <595acefb-18fc-e650-e172-bae271263c4c@deltatee.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
+Date: Thu, 1 Mar 2018 16:20:38 -0700
+Message-ID: <20180301232038.GO19007@ziepe.ca>
 References: <20180228234006.21093-1-logang@deltatee.com>
- <1519876489.4592.3.camel@kernel.crashing.org>
- <1519876569.4592.4.camel@au1.ibm.com>
- <CAPcyv4h7mcFphv3j_vW-CGxXa2pjQgLqpBOLzHuTzAFzygai-Q@mail.gmail.com>
- <1519936477.4592.23.camel@au1.ibm.com>
- <CAPcyv4goHsYytq60ehJUori8Xq+Z0p8dV-8_oRALj244H4YtwQ@mail.gmail.com>
- <2079ba48-5ae5-5b44-cce1-8175712dd395@deltatee.com>
- <43ba615f-a6e1-9444-65e1-494169cb415d@deltatee.com>
- <1519945204.4592.45.camel@au1.ibm.com>
+ <20180228234006.21093-11-logang@deltatee.com>
+ <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
+ <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
+ <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
+ <20180301184249.GI19007@ziepe.ca>
+ <edaf476a-cfe9-0598-1aa5-14802a9a1477@deltatee.com>
+ <20180301224540.GL19007@ziepe.ca>
+ <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1519945204.4592.45.camel-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Bates <sbates@raithlin.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.w>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Mar 01, 2018 at 11:00:51PM +0000, Stephen  Bates wrote:
 
-
-On 01/03/18 04:00 PM, Benjamin Herrenschmidt wrote:
-> We use only 52 in practice but yes.
+> > Seems like a very subtle and hard to debug performance trap to leave
+> > for the users, and pretty much the only reason to use P2P is
+> > performance... So why have such a dangerous interface?
 > 
->>   That's 64PB. If you use need
->> a sparse vmemmap for the entire space it will take 16TB which leaves you
->> with 63.98PB of address space left. (Similar calculations for other
->> numbers of address bits.)
-> 
-> We only have 52 bits of virtual space for the kernel with the radix
-> MMU.
+> P2P is about offloading the memory and PCI subsystem of the host CPU
+> and this is achieved no matter which p2p_dev is used.
 
-Ok, assuming you only have 52 bits of physical address space: the sparse 
-vmemmap takes 1TB and you're left with 3.9PB of address space for other 
-things. So, again, why doesn't that work? Is my math wrong?
+No, locality matters. If you have a bunch of NICs and bunch of drives
+and the allocator chooses to put all P2P memory on a single drive your
+performance will suck horribly even if all the traffic is offloaded.
 
-Logan
+Performance will suck if you have speed differences between the PCI-E
+devices. Eg a bunch of Gen 3 x8 NVMe cards paired with a Gen 4 x16 NIC
+will not reach full performance unless the p2p buffers are properly
+balanced between all cards.
+
+This is why I think putting things in one big pool and pretending like
+any P2P mem is interchangable with any other makes zero sense to me,
+it is not how the system actually works. Proper locality matters a
+lot.
+
+Jason
