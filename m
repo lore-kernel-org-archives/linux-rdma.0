@@ -1,13 +1,15 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 1 Mar 2018 12:31:53 +0200
-Message-ID: <90b658d9-da8a-af36-ad8f-a72ef0c6e3c1@grimberg.me>
+Subject: Re: [PATCH v2 06/10] IB/core: Add optional PCI P2P flag to
+ rdma_rw_ctx_[init|destroy]()
+Date: Thu, 1 Mar 2018 12:32:45 +0200
+Message-ID: <72e90cc2-c05a-3ed8-42c7-e4d7a0d535d8@grimberg.me>
 References: <20180228234006.21093-1-logang@deltatee.com>
+ <20180228234006.21093-7-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180228234006.21093-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180228234006.21093-7-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -23,30 +25,59 @@ Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrens
 List-Id: linux-rdma@vger.kernel.org
 
 
-> Hi Everyone,
 
-Hi Logan,
+On 03/01/2018 01:40 AM, Logan Gunthorpe wrote:
+> In order to use PCI P2P memory pci_p2pmem_[un]map_sg() functions must be
+> called to map the correct DMA address. To do this, we add a flags
+> variable and the RDMA_RW_CTX_FLAG_PCI_P2P flag. When the flag is
+> specified use the appropriate map function.
+> 
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> ---
+>   drivers/infiniband/core/rw.c            | 21 +++++++++++++++++----
+>   drivers/infiniband/ulp/isert/ib_isert.c |  5 +++--
+>   drivers/infiniband/ulp/srpt/ib_srpt.c   |  7 ++++---
+>   drivers/nvme/target/rdma.c              |  6 +++---
+>   include/rdma/rw.h                       |  7 +++++--
+>   net/sunrpc/xprtrdma/svc_rdma_rw.c       |  6 +++---
+>   6 files changed, 35 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
+> index c8963e91f92a..775a9f8b15a6 100644
+> --- a/drivers/infiniband/core/rw.c
+> +++ b/drivers/infiniband/core/rw.c
+> @@ -12,6 +12,7 @@
+>    */
+>   #include <linux/moduleparam.h>
+>   #include <linux/slab.h>
+> +#include <linux/pci-p2pdma.h>
+>   #include <rdma/mr_pool.h>
+>   #include <rdma/rw.h>
+>   
+> @@ -269,18 +270,24 @@ static int rdma_rw_init_single_wr(struct rdma_rw_ctx *ctx, struct ib_qp *qp,
+>    * @remote_addr:remote address to read/write (relative to @rkey)
+>    * @rkey:	remote key to operate on
+>    * @dir:	%DMA_TO_DEVICE for RDMA WRITE, %DMA_FROM_DEVICE for RDMA READ
+> + * @flags:      any of the RDMA_RW_CTX_FLAG_* flags
+>    *
+>    * Returns the number of WQEs that will be needed on the workqueue if
+>    * successful, or a negative error code.
+>    */
+>   int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
+>   		struct scatterlist *sg, u32 sg_cnt, u32 sg_offset,
+> -		u64 remote_addr, u32 rkey, enum dma_data_direction dir)
+> +		u64 remote_addr, u32 rkey, enum dma_data_direction dir,
+> +		unsigned int flags)
+>   {
+>   	struct ib_device *dev = qp->pd->device;
+>   	int ret;
+>   
+> -	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
+> +	if (flags & RDMA_RW_CTX_FLAG_PCI_P2PDMA)
+> +		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
+> +	else
+> +		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
+> +
 
-> Here's v2 of our series to introduce P2P based copy offload to NVMe
-> fabrics. This version has been rebased onto v4.16-rc3 which already
-> includes Christoph's devpagemap work the previous version was based
-> off as well as a couple of the cleanup patches that were in v1.
-> 
-> Additionally, we've made the following changes based on feedback:
-> 
-> * Renamed everything to 'p2pdma' per the suggestion from Bjorn as well
->    as a bunch of cleanup and spelling fixes he pointed out in the last
->    series.
-> 
-> * To address Alex's ACS concerns, we change to a simpler method of
->    just disabling ACS behind switches for any kernel that has
->    CONFIG_PCI_P2PDMA.
-> 
-> * We also reject using devices that employ 'dma_virt_ops' which should
->    fairly simply handle Jason's concerns that this work might break with
->    the HFI, QIB and rxe drivers that use the virtual ops to implement
->    their own special DMA operations.
-
-That's good, but what would happen for these devices? simply fail the
-mapping causing the ulp to fail its rdma operation? I would think
-that we need a capability flag for devices that support it.
+Why not use is_pci_p2pdma_page(sg) instead of a flag? It would be so
+much cleaner...
