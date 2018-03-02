@@ -1,54 +1,94 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Date: Fri, 2 Mar 2018 09:18:42 -0700
-Message-ID: <20180302161842.GB14861@ziepe.ca>
-References: <20180228234006.21093-11-logang@deltatee.com>
- <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
- <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
- <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
- <20180301184249.GI19007@ziepe.ca>
- <edaf476a-cfe9-0598-1aa5-14802a9a1477@deltatee.com>
- <20180301224540.GL19007@ziepe.ca>
- <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
- <20180301234930.GG14799@localhost.localdomain>
- <CE2A5D93-E735-4414-8DC1-B308B74A1C5B@raithlin.com>
+From: "Kani, Toshi" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Fri, 2 Mar 2018 16:22:24 +0000
+Message-ID: <1520010446.2693.19.camel@hpe.com>
+References: <20180228234006.21093-1-logang@deltatee.com>
+ <1519876489.4592.3.camel@kernel.crashing.org>
+ <1519876569.4592.4.camel@au1.ibm.com>
+ <CAPcyv4h7mcFphv3j_vW-CGxXa2pjQgLqpBOLzHuTzAFzygai-Q@mail.gmail.com>
+ <1519936477.4592.23.camel@au1.ibm.com>
+ <1519936815.4592.25.camel@au1.ibm.com> <20180301205315.GJ19007@ziepe.ca>
+ <1519942012.4592.31.camel@au1.ibm.com>
+ <CA+55aFy-oAiFJ3WDx4giR1enj65y-YJnZZhY6geFw0ygFyKXfQ@mail.gmail.com>
+ <1519943658.4592.34.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CE2A5D93-E735-4414-8DC1-B308B74A1C5B@raithlin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: Keith Busch <keith.busch@intel.com>, Logan Gunthorpe <logang@deltatee.com>, Sagi Grimberg <sagi@grimberg.me>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.w>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1519943658.4592.34.camel-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A740CC14662A0948A822E31824F31125-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, "benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org" <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org" <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 01, 2018 at 11:57:43PM +0000, Stephen  Bates wrote:
-> > We don't want to lump these all together without knowing which region you're allocating from, right?
+On Fri, 2018-03-02 at 09:34 +1100, Benjamin Herrenschmidt wrote:
+> On Thu, 2018-03-01 at 14:31 -0800, Linus Torvalds wrote:
+> > On Thu, Mar 1, 2018 at 2:06 PM, Benjamin Herrenschmidt <benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org> wrote:
+> > > 
+> > > Could be that x86 has the smarts to do the right thing, still trying to
+> > > untangle the code :-)
+> > 
+> > Afaik, x86 will not cache PCI unless the system is misconfigured, and
+> > even then it's more likely to just raise a machine check exception
+> > than cache things.
+> > 
+> > The last-level cache is going to do fills and spills directly to the
+> > memory controller, not to the PCIe side of things.
+> > 
+> > (I guess you *can* do things differently, and I wouldn't be surprised
+> > if some people inside Intel did try to do things differently with
+> > trying nvram over PCIe, but in general I think the above is true)
+> > 
+> > You won't find it in the kernel code either. It's in hardware with
+> > firmware configuration of what addresses are mapped to the memory
+> > controllers (and _how_ they are mapped) and which are not.
 > 
-> In all seriousness I do agree with you on these Keith in the long
-> term. We would consider adding property flags for the memory as it
-> is added to the p2p core and then the allocator could evolve to
-> intelligently dish it out. Attributes like endurance, latency and
-> special write commit requirements could all become attributes in
-> time. Perhaps one more reason for a central entity for p2p memory
-> allocation so this code does not end up having to go into many
-> different drivers?
+> Ah thanks ! Thanks explains. We can fix that on ppc64 in our linear
+> mapping code by checking the address vs. memblocks to chose the right
+> page table attributes.
 
-I fear we will find that every kind of P2P memory has special
-allocator requirements and dumping it all into one giant pool is not
-going to be helpful.
+FWIW, this thing is called MTRRs on x86, which are initialized by BIOS.
+These registers effectively overwrite page table setups.  Intel SDM
+defines the effect as follows.  'PAT Entry Value' is the page table
+setup.
 
-This allocator is already seems not useful for the P2P target memory
-on a Mellanox NIC due to the way it has a special allocation flow
-(windowing) and special usage requirements..
+MTRR Memory Type  PAT Entry Value  Effective Memory Type
+--------------------------------------------------------
+UC                UC               UC
+UC                WC               WC
+UC                WT               UC
+UC                WB               UC
+UC                WP               UC 
 
-Nor can it be usefull for the doorbell memory in the NIC.
+On my system, BIOS sets MTRRs to cover the entire MMIO ranges with UC.
+Other BIOSes may simply set the MTRR default type to UC, i.e. uncovered
+ranges become UC.
 
-Both of these are existing use cases for P2P with out of tree patches..
+# cat /proc/mtrr
+ :
+reg01: base=0xc0000000000 (12582912MB), size=2097152MB, count=1:
+uncachable
+ :
 
-The allocator seems to only be able to solve the CMB problem, and I
-think due to that it is better to put this allocator in the NVMe
-driver and not the core code.. At least until we find a 2nd user that
-needs the same allocation scheme...
+# cat /proc/iomem | grep 'PCI Bus'
+ :
+c0000000000-c3fffffffff : PCI Bus 0000:00
+c4000000000-c7fffffffff : PCI Bus 0000:11
+c8000000000-cbfffffffff : PCI Bus 0000:36
+cc000000000-cffffffffff : PCI Bus 0000:5b
+d0000000000-d3fffffffff : PCI Bus 0000:80
+d4000000000-d7fffffffff : PCI Bus 0000:85
+d8000000000-dbfffffffff : PCI Bus 0000:ae
+dc000000000-dffffffffff : PCI Bus 0000:d7
 
-Jason
+-Toshi
