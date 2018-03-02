@@ -1,38 +1,44 @@
-From: "Stephen  Bates" <sbates@raithlin.com>
-Subject: Re: [PATCH v2 10/10] nvmet: Optionally use PCI P2P memory
-Date: Fri, 2 Mar 2018 20:51:42 +0000
-Message-ID: <F7179402-E931-45DB-903E-5D92608A464E@raithlin.com>
-References: <20180228234006.21093-11-logang@deltatee.com>
- <749e3752-4349-0bdf-5243-3d510c2b26db@grimberg.me>
- <40d69074-31a8-d06a-ade9-90de7712c553@deltatee.com>
- <5649098f-b775-815b-8b9a-f34628873ff4@grimberg.me>
- <20180301184249.GI19007@ziepe.ca>
- <edaf476a-cfe9-0598-1aa5-14802a9a1477@deltatee.com>
- <20180301224540.GL19007@ziepe.ca>
- <77591162-4CCD-446E-A27C-1CDB4996ACB7@raithlin.com>
- <20180301234930.GG14799@localhost.localdomain>
- <6B6A0FD9-14F5-4AF2-A74A-DAA562C34AB9@raithlin.com>
- <20180302155322.GA5934@infradead.org>
+From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2 00/10] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Fri, 2 Mar 2018 21:38:43 +0000
+Message-ID: <8D3B5C26-39E0-478D-B51F-A22B3F36C4D7@raithlin.com>
+References: <20180228234006.21093-1-logang@deltatee.com>
+ <1519876489.4592.3.camel@kernel.crashing.org>
+ <1519876569.4592.4.camel@au1.ibm.com>
+ <8e808448-fc01-5da0-51e7-1a6657d5a23a@deltatee.com>
+ <1519936195.4592.18.camel@au1.ibm.com> <20180301205548.GA6742@redhat.com>
+ <a512edf9-2d96-9229-fe60-e0ea60b3922b@deltatee.com>
+ <20180301211036.GB6742@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180302155322.GA5934@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180301211036.GB6742-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Content-ID: <8E49611D39222C488A2D4E7EA032409A@CANPRD01.PROD.OUTLOOK.COM>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@kernel.dk>, Alex Williamson <alex.williamson@redhat.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Christoph Hellwig <hch@lst.de>
+Content-ID: <0AF11F09DBD48946B0DE6C3030518A52-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Oliver OHalloran <oliveroh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, Benjamin Herrenschmidt <benh-8fk3Idey6ehBDgjK7y7TUQ@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiAgICBodHRwOi8vbnZtZXhwcmVzcy5vcmcvd3AtY29udGVudC91cGxvYWRzL05WTS1FeHByZXNz
-LTEuMy1SYXRpZmllZC1UUHMuemlwDQoNCkBLZWl0aCAtIG15IGFwb2xvZ2llcy4NCg0KQENocmlz
-dG9waCAtIHRoYW5rcyBmb3IgdGhlIGxpbmsNCg0KU28gbXkgdW5kZXJzdGFuZGluZyBvZiB3aGVu
-IHRoZSB0ZWNobmljYWwgY29udGVudCBzdXJyb3VuZGluZyBuZXcgTlZNZSBUZWNobmljYWwgUHJv
-cG9zYWxzIChUUHMpIHdhcyB3cm9uZy4gSSB0aG91Z2ggdGhlIFRQIGNvbnRlbnQgY291bGQgb25s
-eSBiZSBkaXNjdXNzZWQgb25jZSBkaXNjbG9zZWQgaW4gdGhlIHB1YmxpYyBzdGFuZGFyZC4gSSBo
-YXZlIG5vdyBsZWFybnQgdGhhdCBvbmNlIHRoZSBUUHMgYXJlIHJhdGlmaWVkIHRoZXkgYXJlIHB1
-YmxpY2FsbHkgYXZhaWxhYmxlIQ0KDQpIb3dldmVyLCBhcyBMb2dhbiBwb2ludGVkIG91dCwgUE1S
-cyBhcmUgbm90IHJlbGV2YW50IHRvIHRoaXMgc2VyaWVzIHNvIGxldCdzIGRlZmVyIGRpc2N1c3Np
-b24gb24gaG93IHRvIHN1cHBvcnQgdGhlbSB0byBhIGxhdGVyIGRhdGUhDQoNClN0ZXBoZW4NCiAg
-ICANCg0K
+> It seems people miss-understand HMM :( 
+
+Hi Jerome
+
+Your unhappy face emoticon made me sad so I went off to (re)read up on HMM. Along the way I came up with a couple of things.
+
+While hmm.txt is really nice to read it makes no mention of DEVICE_PRIVATE and DEVICE_PUBLIC. It also gives no indication when one might choose to use one over the other. Would it be possible to update hmm.txt to include some discussion on this? I understand that DEVICE_PUBLIC creates a mapping in the kernel's linear address space for the device memory and DEVICE_PRIVATE does not. However, like I said, I am not sure when you would use either one and the pros and cons of doing so. I actually ended up finding some useful information in memremap.h but I don't think it is fair to expect people to dig *that* deep to find this information ;-).
+
+A quick grep shows no drivers using the HMM API in the upstream code today. Is this correct? Are there any examples of out of tree drivers that use HMM you can point me too? As a driver developer what resources exist to help me write a HMM aware driver?
+
+The (very nice) hmm.txt document is not references in the MAINTAINERS file? You might want to fix that when you have a moment.
+
+Stephen
