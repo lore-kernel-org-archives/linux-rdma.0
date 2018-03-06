@@ -1,18 +1,20 @@
-From: Oliver <oohall-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage the
  CMB
-Date: Tue, 6 Mar 2018 11:49:02 +1100
-Message-ID: <CAOSf1CHvaz0QTCkptQwsdyPp6uvvHqtM51N0MfrO9RqYf9W0tg@mail.gmail.com>
+Date: Mon, 5 Mar 2018 18:14:02 -0700
+Message-ID: <416d8d27-200f-befb-1c30-14544fffcba0@deltatee.com>
 References: <20180228234006.21093-1-logang@deltatee.com>
  <20180228234006.21093-8-logang@deltatee.com>
  <CAOSf1CEj1vmLLd27-642=XSnL9ODkpEC0qLHA2_W5_7rV5+4Pg@mail.gmail.com>
  <20180305160004.GA30975@localhost.localdomain>
  <3f56c76d-6a5c-7c2f-5442-c9209749b598@deltatee.com>
+ <CAOSf1CHvaz0QTCkptQwsdyPp6uvvHqtM51N0MfrO9RqYf9W0tg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <3f56c76d-6a5c-7c2f-5442-c9209749b598-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CAOSf1CHvaz0QTCkptQwsdyPp6uvvHqtM51N0MfrO9RqYf9W0tg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -22,162 +24,44 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+To: Oliver <oohall-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 6, 2018 at 4:10 AM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->
->
-> On 05/03/18 09:00 AM, Keith Busch wrote:
->>
->> On Mon, Mar 05, 2018 at 12:33:29PM +1100, Oliver wrote:
->>>
->>> On Thu, Mar 1, 2018 at 10:40 AM, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
->>> wrote:
->>>>
->>>> @@ -429,10 +429,7 @@ static void __nvme_submit_cmd(struct nvme_queue
->>>> *nvmeq,
->>>>   {
->>>>          u16 tail = nvmeq->sq_tail;
->>>
->>>
->>>> -       if (nvmeq->sq_cmds_io)
->>>> -               memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd,
->>>> sizeof(*cmd));
->>>> -       else
->>>> -               memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
->>>> +       memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
->>>
->>>
->>> Hmm, how safe is replacing memcpy_toio() with regular memcpy()? On PPC
->>> the _toio() variant enforces alignment, does the copy with 4 byte
->>> stores, and has a full barrier after the copy. In comparison our
->>> regular memcpy() does none of those things and may use unaligned and
->>> vector load/stores. For normal (cacheable) memory that is perfectly
->>> fine, but they can cause alignment faults when targeted at MMIO
->>> (cache-inhibited) memory.
->>>
->>> I think in this particular case it might be ok since we know SEQs are
->>> aligned to 64 byte boundaries and the copy is too small to use our
->>> vectorised memcpy(). I'll assume we don't need explicit ordering
->>> between writes of SEQs since the existing code doesn't seem to care
->>> unless the doorbell is being rung, so you're probably fine there too.
->>> That said, I still think this is a little bit sketchy and at the very
->>> least you should add a comment explaining what's going on when the CMB
->>> is being used. If someone more familiar with the NVMe driver could
->>> chime in I would appreciate it.
->>
->>
->> I may not be understanding the concern, but I'll give it a shot.
->>
->> You're right, the start of any SQE is always 64-byte aligned, so that
->> should satisfy alignment requirements.
->>
->> The order when writing multiple/successive SQEs in a submission queue
->> does matter, and this is currently serialized through the q_lock.
->>
->> The order in which the bytes of a single SQE is written doesn't really
->> matter as long as the entire SQE is written into the CMB prior to writing
->> that SQ's doorbell register.
->>
->> The doorbell register is written immediately after copying a command
->> entry into the submission queue (ignore "shadow buffer" features),
->> so the doorbells written to commands submitted is 1:1.
->>
->> If a CMB SQE and DB order is not enforced with the memcpy, then we do
->> need a barrier after the SQE's memcpy and before the doorbell's writel.
->
->
->
-> Thanks for the information Keith.
->
-> Adding to this: regular memcpy generally also enforces alignment as
-> unaligned access to regular memory is typically bad in some way on most
-> arches. The generic memcpy_toio also does not have any barrier as it is just
-> a call to memcpy. Arm64 also does not appear to have a barrier in its
-> implementation and in the short survey I did I could not find any
-> implementation with a barrier. I also did not find a ppc implementation in
-> the tree but it would be weird for it to add a barrier when other arches do
-> not appear to need it.
 
-It's in arch/powerpc/kernel/io.c as _memcpy_toio() and it has two full barriers!
 
-Awesome!
+On 05/03/18 05:49 PM, Oliver wrote:
+> It's in arch/powerpc/kernel/io.c as _memcpy_toio() and it has two full barriers!
+> 
+> Awesome!
+> 
+> Our io.h indicates that our iomem accessors are designed to provide x86ish
+> strong ordering of accesses to MMIO space. The git log indicates
+> arch/powerpc/kernel/io.c has barely been touched in the last decade so
+> odds are most of that code was written in the elder days when people
+> were less aware of ordering issues. It might just be overly conservative
+> by today's standards, but maybe not (see below).
 
-Our io.h indicates that our iomem accessors are designed to provide x86ish
-strong ordering of accesses to MMIO space. The git log indicates
-arch/powerpc/kernel/io.c has barely been touched in the last decade so
-odds are most of that code was written in the elder days when people
-were less aware of ordering issues. It might just be overly conservative
-by today's standards, but maybe not (see below).
+Yes, that seems overly conservative.
 
-> We've been operating on the assumption that memory mapped by
-> devm_memremap_pages() can be treated as regular memory. This is emphasized
-> by the fact that it does not return an __iomem pointer.
+> (I'm not going to suggest ditching the lwsync trick. mpe is not going
+> to take that patch
+> without a really good reason)
 
-I think the lack of an __iomem annotation is a bit of a red herring. The comment
-header for devm_memremap_pages() outlines the conditions for when using
-it is valid, the important one being:
+Well, that's pretty gross. Is this not exactly the situation mmiowb() is 
+meant to solve? See [1].
 
-> * 4/ res is expected to be a host memory range that could feasibly be
-> *    treated as a "System RAM" range, i.e. not a device mmio range, but
-> *    this is not enforced.
+Though, you're right in principle. Even if power was similar to other 
+systems in this way, it's still a risk that if these pages get passed 
+somewhere in the kernel that uses a spin lock like that without an 
+mmiowb() call, then it's going to have a bug. For now, the risk is 
+pretty low as we know exactly where all the p2pmem pages will be used 
+but if it gets into other places, all bets are off. I did do some work 
+trying to make a safe version of io-pages and also trying to change from 
+pages to pfn_t in large areas but neither approach seemed likely to get 
+any traction in the community, at least not in the near term.
 
-Granted, the CMB is a MMIO buffer rather than a register range, but from
-my perspective it's still a device MMIO range rather than something we
-could feasibly treat as system RAM. The two big reasons being:
+Logan
 
-a) System RAM is cacheable and coherent while the CMB is neither, and
-b) On PPC MMIO accesses are in a separate ordering domain to cacheable
-   memory accesses.
-
-The latter isn't as terrifying as it sounds since a full barrier will
-order everything
-with everything, but it still causes problems. For performance reasons
-we want to
-minimise the number of cases where we need to use a sync instruction
-(full barrier)
-in favour of a lightweight sync (lwsync) which only orders cacheable
-accesses. To
-implement that our MMIO accessors set a percpu flag that arch_spin_unlock()
-checks to see if any MMIO accesses have occured which would require a full
-barrier. If we havn't done any MMIO operations then it'll only do a lwsync. My
-concern here is that a driver might do something like this:
-
-void *buffer = devm_memremap_pages(<stuff corresponding to card memory buffer>);
-
-spin_lock();
-<do some stuff with system memory>
-// buffer is in MMIO space, so the writes are uncached
-memcpy(buffer, source_data, <size>);
-<do more stuff with system memory>
-spin_unlock(); // no MMIO access detected, so it does a lwsync
-
-As far as I know the spinlock API guarantees that accesses that
-occurring inside the
-critical section will be ordered relative to what happens outside the
-critical section.
-In this case we would be violating that guarantee and I don't see a
-clean way to keep
-the fix for it contained to arch/powerpc/. Fundamentally we need to know when
-something is accessing MMIO space.
-
-(I'm not going to suggest ditching the lwsync trick. mpe is not going
-to take that patch
-without a really good reason)
-
->If this assumption
-> does not hold for an arch then we cannot support P2P DMA without an overhaul
-> of many kernel interfaces or creating other backend interfaces into the
-> drivers which take different data types (ie. we'd have to bypass the entire
-> block layer when trying to write data in p2pmem to an nvme device. This is
-> very undesirable.
-
-I know. I'm not trying to ruin your day, but the separation between io
-and normal memory
-is there for a reason. Maybe we can relax that separation, but we need
-to be careful about
-how we do it.
-
-Oliver
+[1] ACQUIRES VS I/O ACCESSES in 
+https://www.kernel.org/doc/Documentation/memory-barriers.txt
