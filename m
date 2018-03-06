@@ -1,67 +1,45 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 07/10] nvme-pci: Use PCI p2pmem subsystem to manage the
- CMB
-Date: Mon, 5 Mar 2018 18:14:02 -0700
-Message-ID: <416d8d27-200f-befb-1c30-14544fffcba0@deltatee.com>
-References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-8-logang@deltatee.com>
- <CAOSf1CEj1vmLLd27-642=XSnL9ODkpEC0qLHA2_W5_7rV5+4Pg@mail.gmail.com>
- <20180305160004.GA30975@localhost.localdomain>
- <3f56c76d-6a5c-7c2f-5442-c9209749b598@deltatee.com>
- <CAOSf1CHvaz0QTCkptQwsdyPp6uvvHqtM51N0MfrO9RqYf9W0tg@mail.gmail.com>
+From: Selvin Xavier <selvin.xavier@broadcom.com>
+Subject: Re: [PATCH] RDMA/bnxt_re/qplib_sp: Use true and false for boolean values
+Date: Tue, 6 Mar 2018 11:26:41 +0530
+Message-ID: <CA+sbYW1xzCLsA8sQ2mMnujFDTeDLTHS+O9psr03ZLEDo0Aieyw@mail.gmail.com>
+References: <20180305233647.GA30787@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAOSf1CHvaz0QTCkptQwsdyPp6uvvHqtM51N0MfrO9RqYf9W0tg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Oliver <oohall-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180305233647.GA30787@embeddedgus>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Mar 6, 2018 at 5:06 AM, Gustavo A. R. Silva
+<gustavo@embeddedor.com> wrote:
+> Assign true or false to boolean variables instead of an integer value.
+>
+> This issue was detected with the help of Coccinelle.
+>
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 
+Thanks.
 
-On 05/03/18 05:49 PM, Oliver wrote:
-> It's in arch/powerpc/kernel/io.c as _memcpy_toio() and it has two full barriers!
-> 
-> Awesome!
-> 
-> Our io.h indicates that our iomem accessors are designed to provide x86ish
-> strong ordering of accesses to MMIO space. The git log indicates
-> arch/powerpc/kernel/io.c has barely been touched in the last decade so
-> odds are most of that code was written in the elder days when people
-> were less aware of ordering issues. It might just be overly conservative
-> by today's standards, but maybe not (see below).
-
-Yes, that seems overly conservative.
-
-> (I'm not going to suggest ditching the lwsync trick. mpe is not going
-> to take that patch
-> without a really good reason)
-
-Well, that's pretty gross. Is this not exactly the situation mmiowb() is 
-meant to solve? See [1].
-
-Though, you're right in principle. Even if power was similar to other 
-systems in this way, it's still a risk that if these pages get passed 
-somewhere in the kernel that uses a spin lock like that without an 
-mmiowb() call, then it's going to have a bug. For now, the risk is 
-pretty low as we know exactly where all the p2pmem pages will be used 
-but if it gets into other places, all bets are off. I did do some work 
-trying to make a safe version of io-pages and also trying to change from 
-pages to pfn_t in large areas but neither approach seemed likely to get 
-any traction in the community, at least not in the near term.
-
-Logan
-
-[1] ACQUIRES VS I/O ACCESSES in 
-https://www.kernel.org/doc/Documentation/memory-barriers.txt
+Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> index ee98e5e..2f3f32ea 100644
+> --- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+> @@ -154,7 +154,7 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+>                 attr->tqm_alloc_reqs[i * 4 + 3] = *(++tqm_alloc);
+>         }
+>
+> -       attr->is_atomic = 0;
+> +       attr->is_atomic = false;
+>  bail:
+>         bnxt_qplib_rcfw_free_sbuf(rcfw, sbuf);
+>         return rc;
+> --
+> 2.7.4
+>
