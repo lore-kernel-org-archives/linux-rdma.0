@@ -1,30 +1,72 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/bnxt_re/qplib_sp: Use true and false for boolean
- values
-Date: Tue, 6 Mar 2018 16:36:04 -0700
-Message-ID: <20180306233604.GG8328@ziepe.ca>
-References: <20180305233647.GA30787@embeddedgus>
+Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
+Date: Tue, 6 Mar 2018 16:45:39 -0700
+Message-ID: <20180306234539.GB1037@ziepe.ca>
+References: <20180220205638.1959033-1-arnd@arndb.de>
+ <20180228211514.GC13394@ziepe.ca>
+ <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180305233647.GA30787@embeddedgus>
+In-Reply-To: <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 05, 2018 at 05:36:47PM -0600, Gustavo A. R. Silva wrote:
-> Assign true or false to boolean variables instead of an integer value.
+On Wed, Mar 07, 2018 at 12:25:14AM +0100, Arnd Bergmann wrote:
+> On Wed, Feb 28, 2018 at 10:15 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > On Tue, Feb 20, 2018 at 09:56:26PM +0100, Arnd Bergmann wrote:
+> >> Building for a 32-bit target results in a couple of warnings from casting between
+> >> a 32-bit pointer and a 64-bit integer:
+> >>
+> >> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_service_nq':
+> >> drivers/infiniband/hw/bnxt_re/qplib_fp.c:333:23: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> >>     bnxt_qplib_arm_srq((struct bnxt_qplib_srq *)q_handle,
+> >>                        ^
+> >> drivers/infiniband/hw/bnxt_re/qplib_fp.c:336:12: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+> >>             (struct bnxt_qplib_srq *)q_handle,
+> >>             ^
+> >> In file included from include/linux/byteorder/little_endian.h:5,
+> >>                  from arch/arm/include/uapi/asm/byteorder.h:22,
+> >>                  from include/asm-generic/bitops/le.h:6,
+> >>                  from arch/arm/include/asm/bitops.h:342,
+> >>                  from include/linux/bitops.h:38,
+> >>                  from include/linux/kernel.h:11,
+> >>                  from include/linux/interrupt.h:6,
+> >>                  from drivers/infiniband/hw/bnxt_re/qplib_fp.c:39:
+> >> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_create_srq':
+> >> include/uapi/linux/byteorder/little_endian.h:31:43: error: cast from pointer to integer of different size [-Werror=pointer-to-int-cast]
+> >>  #define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
+> >>                                            ^
+> >> include/linux/byteorder/generic.h:86:21: note: in expansion of macro '__cpu_to_le64'
+> >>  #define cpu_to_le64 __cpu_to_le64
+> >>                      ^~~~~~~~~~~~~
+> >> drivers/infiniband/hw/bnxt_re/qplib_fp.c:569:19: note: in expansion of macro 'cpu_to_le64'
+> >>   req.srq_handle = cpu_to_le64(srq);
+> >>
+> >> Using a uintptr_t as an intermediate works on all architectures.
+> >>
+> >> Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
+> >> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> >>  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > I applied the series to for-next, thanks
 > 
-> This issue was detected with the help of Coccinelle.
+> Hi Jason,
 > 
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> ---
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> kernelci still reports the warning for v4.16-rc, any chance you can also send it
+> as a bugfix for the current release?
 
-Applied to for-next, thanks
+As a general rule we haven't been sending sparse cleanups like this to
+-rc which is why it went to -next..
+
+Can you talk about why this is important to kernelci? I'm not familiar
+at all with it.
+
+I'm a little leary to duplicate a commit in both our branches without
+a good reason??
 
 Jason
