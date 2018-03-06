@@ -1,30 +1,30 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] infiniband: hw: Drop unnecessary continue
-Date: Tue, 6 Mar 2018 16:35:05 -0700
-Message-ID: <20180306233505.GD8328@ziepe.ca>
-References: <20180303162457.GA21730@seema-Inspiron-15-3567>
+Subject: Re: [PATCH] RDMA/bnxt_re/qplib_sp: Use true and false for boolean
+ values
+Date: Tue, 6 Mar 2018 16:36:04 -0700
+Message-ID: <20180306233604.GG8328@ziepe.ca>
+References: <20180305233647.GA30787@embeddedgus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180303162457.GA21730@seema-Inspiron-15-3567>
+In-Reply-To: <20180305233647.GA30787@embeddedgus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arushi <arushisinghal19971997@gmail.com>
-Cc: dennis.dalessandro@intel.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, outreachy-kernel@googlegroups.com
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Mar 03, 2018 at 09:54:57PM +0530, Arushi wrote:
-> Continue at the bottom of a loop are removed.
-> Issue found using drop_continue.cocci Coccinelle script.
+On Mon, Mar 05, 2018 at 05:36:47PM -0600, Gustavo A. R. Silva wrote:
+> Assign true or false to boolean variables instead of an integer value.
 > 
-> Signed-off-by: Arushi Singhal <arushisinghal19971997@gmail.com>
-> Changes in v2:
-> - Braces is dropped from if with single statement.
+> This issue was detected with the help of Coccinelle.
 > 
->  drivers/infiniband/hw/qib/qib_init.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-applied to for-next
+Applied to for-next, thanks
 
-Thanks
 Jason
