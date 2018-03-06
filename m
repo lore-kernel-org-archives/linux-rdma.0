@@ -1,74 +1,59 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 3/7] RDMAVT: Fix synchronization around percpu_ref
-Date: Tue,  6 Mar 2018 09:33:12 -0800
-Message-ID: <20180306173316.3088458-3-tj@kernel.org>
-References: <20180306172657.3060270-1-tj@kernel.org>
- <20180306173316.3088458-1-tj@kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
+Date: Wed, 7 Mar 2018 00:25:14 +0100
+Message-ID: <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
+References: <20180220205638.1959033-1-arnd@arndb.de> <20180228211514.GC13394@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180306173316.3088458-1-tj@kernel.org>
+In-Reply-To: <20180228211514.GC13394@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: torvalds@linux-foundation.org, jannh@google.com, paulmck@linux.vnet.ibm.com, bcrl@kvack.org, viro@zeniv.linux.org.uk, kent.overstreet@gmail.com
-Cc: security@kernel.org, linux-kernel@vger.kernel.org, kernel-team@fb.com, Tejun Heo <tj@kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rvt_mregion uses percpu_ref for reference counting and RCU to protect
-accesses from lkey_table.  When a rvt_mregion needs to be freed, it
-first gets unregistered from lkey_table and then rvt_check_refs() is
-called to wait for in-flight usages before the rvt_mregion is freed.
+On Wed, Feb 28, 2018 at 10:15 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Tue, Feb 20, 2018 at 09:56:26PM +0100, Arnd Bergmann wrote:
+>> Building for a 32-bit target results in a couple of warnings from casting between
+>> a 32-bit pointer and a 64-bit integer:
+>>
+>> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_service_nq':
+>> drivers/infiniband/hw/bnxt_re/qplib_fp.c:333:23: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+>>     bnxt_qplib_arm_srq((struct bnxt_qplib_srq *)q_handle,
+>>                        ^
+>> drivers/infiniband/hw/bnxt_re/qplib_fp.c:336:12: error: cast to pointer from integer of different size [-Werror=int-to-pointer-cast]
+>>             (struct bnxt_qplib_srq *)q_handle,
+>>             ^
+>> In file included from include/linux/byteorder/little_endian.h:5,
+>>                  from arch/arm/include/uapi/asm/byteorder.h:22,
+>>                  from include/asm-generic/bitops/le.h:6,
+>>                  from arch/arm/include/asm/bitops.h:342,
+>>                  from include/linux/bitops.h:38,
+>>                  from include/linux/kernel.h:11,
+>>                  from include/linux/interrupt.h:6,
+>>                  from drivers/infiniband/hw/bnxt_re/qplib_fp.c:39:
+>> drivers/infiniband/hw/bnxt_re/qplib_fp.c: In function 'bnxt_qplib_create_srq':
+>> include/uapi/linux/byteorder/little_endian.h:31:43: error: cast from pointer to integer of different size [-Werror=pointer-to-int-cast]
+>>  #define __cpu_to_le64(x) ((__force __le64)(__u64)(x))
+>>                                            ^
+>> include/linux/byteorder/generic.h:86:21: note: in expansion of macro '__cpu_to_le64'
+>>  #define cpu_to_le64 __cpu_to_le64
+>>                      ^~~~~~~~~~~~~
+>> drivers/infiniband/hw/bnxt_re/qplib_fp.c:569:19: note: in expansion of macro 'cpu_to_le64'
+>>   req.srq_handle = cpu_to_le64(srq);
+>>
+>> Using a uintptr_t as an intermediate works on all architectures.
+>>
+>> Fixes: 37cb11acf1f7 ("RDMA/bnxt_re: Add SRQ support for Broadcom adapters")
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>>  drivers/infiniband/hw/bnxt_re/qplib_fp.c | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> I applied the series to for-next, thanks
 
-rvt_check_refs() seems to have a couple issues.
+Hi Jason,
 
-* It has a fast exit path which tests percpu_ref_is_zero().  However,
-  a percpu_ref reading zero doesn't mean that the object can be
-  released.  In fact, the ->release() callback might not even have
-  started executing yet.  Proceeding with freeing can lead to
-  use-after-free.
+kernelci still reports the warning for v4.16-rc, any chance you can also send it
+as a bugfix for the current release?
 
-* lkey_table is RCU protected but there is no RCU grace period in the
-  free path.  percpu_ref uses RCU internally but it's sched-RCU whose
-  grace periods are different from regular RCU.  Also, it generally
-  isn't a good idea to depend on internal behaviors like this.
-
-To address the above issues, this patch removes the the fast exit and
-adds an explicit synchronize_rcu().
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
----
-Hello, Dennis, Mike.
-
-I don't know RDMA at all and this patch is only compile tested.  Can
-you please take a careful look?
-
-Thanks.
-
- drivers/infiniband/sw/rdmavt/mr.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 1b2e536..cc429b5 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -489,11 +489,13 @@ static int rvt_check_refs(struct rvt_mregion *mr, const char *t)
- 	unsigned long timeout;
- 	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
- 
--	if (percpu_ref_is_zero(&mr->refcount))
--		return 0;
--	/* avoid dma mr */
--	if (mr->lkey)
-+	if (mr->lkey) {
-+		/* avoid dma mr */
- 		rvt_dereg_clean_qps(mr);
-+		/* @mr was indexed on rcu protected @lkey_table */
-+		synchronize_rcu();
-+	}
-+
- 	timeout = wait_for_completion_timeout(&mr->comp, 5 * HZ);
- 	if (!timeout) {
- 		rvt_pr_err(rdi,
--- 
-2.9.5
+      Arnd
