@@ -1,40 +1,57 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: mainline build: 15 warnings 0 failures (mainline/v4.16-rc2-64-gaf3e79d)
-Date: Wed, 7 Mar 2018 13:34:54 +0100
-Message-ID: <CAK8P3a0ZRGgYV=0MYSmp7u1AxvBPEEJkrEFh+Vk+NpKjuSYdUA@mail.gmail.com>
-References: <5a8c6a34.8880a70a.2a9a1.afc7@mx.google.com> <CAK8P3a0OaN6QjPdTXXXzMeYQt+WnMfvVuhza5Rb2wqdq_iEFVA@mail.gmail.com>
- <7b724d51-52b8-6cbf-2a9d-f44f3de28dc8@ti.com> <CAK8P3a2-zq95wnNYDSeTubkhr4Oc_YTSHX-NjvbD35iVNk+fWg@mail.gmail.com>
- <2196d230-6124-b5c6-e0a2-463fe8a6c510@ti.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH 3/7] RDMAVT: Fix synchronization around percpu_ref
+Date: Wed, 7 Mar 2018 10:39:58 -0500
+Message-ID: <5288ee8a-179a-8e45-0300-6a3c382a1cf9@intel.com>
+References: <20180306172657.3060270-1-tj@kernel.org>
+ <20180306173316.3088458-1-tj@kernel.org>
+ <20180306173316.3088458-3-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2196d230-6124-b5c6-e0a2-463fe8a6c510@ti.com>
+In-Reply-To: <20180306173316.3088458-3-tj@kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Olof's autobuilder <build@lixom.net>, Olof Johansson <olof@lixom.net>, Kernel Build Reports Mailman List <kernel-build-reports@lists.linaro.org>, linux-rdma <linux-rdma@vger.kernel.org>, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tejun Heo <tj@kernel.org>, torvalds@linux-foundation.org, jannh@google.com, paulmck@linux.vnet.ibm.com, bcrl@kvack.org, viro@zeniv.linux.org.uk, kent.overstreet@gmail.com
+Cc: security@kernel.org, linux-kernel@vger.kernel.org, kernel-team@fb.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 7, 2018 at 12:02 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
-> On Wednesday 07 March 2018 04:55 AM, Arnd Bergmann wrote:
->> On Wed, Feb 21, 2018 at 3:42 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
->>> On Wednesday 21 February 2018 06:12 PM, Arnd Bergmann wrote:
->>>> On Tue, Feb 20, 2018 at 7:34 PM, Olof's autobuilder <build@lixom.net> wrote:
->>>>> WARNING: modpost: missing MODULE_LICENSE() in drivers/phy/qualcomm/phy-qcom-ufs.o
->>>>
->>>> Still waiting for Kishon to apply an older patch I sent for this.
->>>
->>> I had merged it locally. Now pushed everything.
->>
->> Hi Kishon,
->>
->> kernelci still reports it as one of the remaining warnings for v4.16-rc,
->> any chance you can send this as a bugfix for the current release?
->
-> I had queued this for next. Sure, I'll try to send this for current -rc.
+On 3/6/2018 12:33 PM, Tejun Heo wrote:
+> rvt_mregion uses percpu_ref for reference counting and RCU to protect
+> accesses from lkey_table.  When a rvt_mregion needs to be freed, it
+> first gets unregistered from lkey_table and then rvt_check_refs() is
+> called to wait for in-flight usages before the rvt_mregion is freed.
+> 
+> rvt_check_refs() seems to have a couple issues.
+> 
+> * It has a fast exit path which tests percpu_ref_is_zero().  However,
+>    a percpu_ref reading zero doesn't mean that the object can be
+>    released.  In fact, the ->release() callback might not even have
+>    started executing yet.  Proceeding with freeing can lead to
+>    use-after-free.
+> 
+> * lkey_table is RCU protected but there is no RCU grace period in the
+>    free path.  percpu_ref uses RCU internally but it's sched-RCU whose
+>    grace periods are different from regular RCU.  Also, it generally
+>    isn't a good idea to depend on internal behaviors like this.
+> 
+> To address the above issues, this patch removes the the fast exit and
 
-Thanks a lot! I got a confirmation on one of the other remaining issues,
-so we're down to one or two patches for a clean 4.16 build now,
-plus probably another three that we need to get a clean 'randconfig'
-build on x86 and arm64.
+Typo above too many "the".
 
-       Arnd
+> adds an explicit synchronize_rcu().
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+> ---
+> Hello, Dennis, Mike.
+> 
+> I don't know RDMA at all and this patch is only compile tested.  Can
+> you please take a careful look?
+
+Looks good to me, passes my basic sanity tests. Thanks!
+
+Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
