@@ -1,40 +1,58 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
-Date: Wed, 7 Mar 2018 11:12:50 +0100
-Message-ID: <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
-References: <20180220205638.1959033-1-arnd@arndb.de> <20180228211514.GC13394@ziepe.ca>
- <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
- <20180306234539.GB1037@ziepe.ca> <CAK8P3a0mHEm8m8=CfV5Qmw0EcVCc31OetdFXHQ0KEvWk6K40Gw@mail.gmail.com>
+From: Kishon Vijay Abraham I <kishon@ti.com>
+Subject: Re: mainline build: 15 warnings 0 failures
+ (mainline/v4.16-rc2-64-gaf3e79d)
+Date: Wed, 7 Mar 2018 16:32:57 +0530
+Message-ID: <2196d230-6124-b5c6-e0a2-463fe8a6c510@ti.com>
+References: <5a8c6a34.8880a70a.2a9a1.afc7@mx.google.com>
+ <CAK8P3a0OaN6QjPdTXXXzMeYQt+WnMfvVuhza5Rb2wqdq_iEFVA@mail.gmail.com>
+ <7b724d51-52b8-6cbf-2a9d-f44f3de28dc8@ti.com>
+ <CAK8P3a2-zq95wnNYDSeTubkhr4Oc_YTSHX-NjvbD35iVNk+fWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a0mHEm8m8=CfV5Qmw0EcVCc31OetdFXHQ0KEvWk6K40Gw@mail.gmail.com>
+In-Reply-To: <CAK8P3a2-zq95wnNYDSeTubkhr4Oc_YTSHX-NjvbD35iVNk+fWg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Olof's autobuilder <build@lixom.net>, Olof Johansson <olof@lixom.net>, Kernel Build Reports Mailman List <kernel-build-reports@lists.linaro.org>, linux-rdma <linux-rdma@vger.kernel.org>, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 7, 2018 at 10:05 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+Hi Arnd,
 
-> A small complication is that I wrote the changelog for the build warning
-> on 32-bit architectures, which is more elaborate. kernelci.org for
-> some reasons currently skips the allmodconfig build on all 32-bit
-> architectures (I should ask the kernelci maintainers to change that),
+On Wednesday 07 March 2018 04:55 AM, Arnd Bergmann wrote:
+> On Wed, Feb 21, 2018 at 3:42 PM, Kishon Vijay Abraham I <kishon@ti.com> wrote:
+>>
+>>
+>> On Wednesday 21 February 2018 06:12 PM, Arnd Bergmann wrote:
+>>> On Tue, Feb 20, 2018 at 7:34 PM, Olof's autobuilder <build@lixom.net> wrote:
+>>>> Here are the build results from automated periodic testing.
+>>>>
+>>>> The tree being built was mainline, found at:
+>>>>
+>>>> URL: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+>>>>
+>>>>
+>>>> Warnings:
+>>>>
+>>>>         arm64.allmodconfig:
+>>>> include/uapi/linux/byteorder/big_endian.h:31:52: warning: passing argument 1 of '__fswab64' makes integer from pointer without a cast [-Wint-conversion]
+>>>
+>>> I sent two patches to the bnxt_re maintainers yesterday. I expect them
+>>> to get applied
+>>> soon, but haven't heard back yet.
+>>>
+>>>> WARNING: modpost: missing MODULE_LICENSE() in drivers/phy/qualcomm/phy-qcom-ufs.o
+>>>
+>>> Still waiting for Kishon to apply an older patch I sent for this.
+>>
+>> I had merged it locally. Now pushed everything.
+> 
+> Hi Kishon,
+> 
+> kernelci still reports it as one of the remaining warnings for v4.16-rc,
+> any chance you can send this as a bugfix for the current release?
 
-I see that Olof's build bot does have build results for arm32
-allmodconfig, which is also big-endian, and reports the same
-errors that I described in the patch changelog.
+I had queued this for next. Sure, I'll try to send this for current -rc.
 
-See
-
-http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/
-http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/buildall.arm.allmodconfig.log.passed
-
-for today's results.
-
-This bot reports one other warning for arm32, but it's
-specific to the toolchain version used on that bot.
-I have a fix for that one as well, but there was some
-discussion on what the best approach would be.
-
-      Arnd
+Thanks
+Kishon
