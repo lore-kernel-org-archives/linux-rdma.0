@@ -1,50 +1,43 @@
-From: Bart Van Assche <Bart.VanAssche-Sjgp3cTcYWE@public.gmane.org>
-Subject: Re: [PATCH v2 08/10] nvme-pci: Add support for P2P memory in requests
-Date: Fri, 9 Mar 2018 05:08:36 +0000
-Message-ID: <1520572115.11647.3.camel@wdc.com>
-References: <20180228234006.21093-1-logang@deltatee.com>
- <20180228234006.21093-9-logang@deltatee.com>
- <c6639530-48ba-4655-c772-7d88a030e37e@grimberg.me>
- <1CE68E79-E5FD-4EE2-BD88-B3EE57E43ACE@raithlin.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.8-2-rc3 release is available
+Date: Fri, 9 Mar 2018 18:22:54 +0200
+Message-ID: <7e1a28b2-2575-8c59-6ca9-aaca4bb29145@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1CE68E79-E5FD-4EE2-BD88-B3EE57E43ACE-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Language: en-US
-Content-ID: <C229E9B9532B144A863F407D859C647F-+cFlbfsKLD6cE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org" <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, "sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, "logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org" <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org" <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org" <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, "jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hch-jcswGhMUV9g@public.gmane.org" <hch-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2018-03-01 at 15:58 +0000, Stephen  Bates wrote:
-> > Any plans adding the capability to nvme-rdma? Should be
-> > straight-forward... In theory, the use-case would be rdma backend
-> > fabric behind. Shouldn't be hard to test either...
-> 
-> Nice idea Sagi. Yes we have been starting to look at that. Though again we
-> would probably want to impose the "attached to the same PCIe switch" rule
-> which might be less common to satisfy in initiator systems. 
-> 
-> Down the road I would also like to discuss the best way to use this P2P
-> framework to facilitate copies between NVMe namespaces (on both PCIe and
-> fabric attached namespaces) without having to expose the CMB up to user
-> space. Wasn't something like that done in the SCSI world at some point
-> Martin?
-
-Are you perhaps referring to the following patch series: "Copy Offload"
-(https://www.spinics.net/lists/linux-scsi/msg74680.html /
-https://lwn.net/Articles/592094/)? I will contact Martin off-list and in
-case he wouldn't have the time myself to revive that patch series then I
-will free up some time to work on this.
-
-Bart.
+SGksCk9GRUQtNC44LTItcmMzIGlzIGF2YWlsYWJsZSBhdDoKCmh0dHBzOi8vb3BlbmZhYnJpY3Mu
+b3JnL2Rvd25sb2Fkcy9PRkVEL29mZWQtNC44LTIvT0ZFRC00LjgtMi1yYzMudGd6CgoKVG8gZ2V0
+IEJVSUxEX0lEIHJ1biBvZmVkX2luZm8KClBsZWFzZSByZXBvcnQgYW55IGlzc3VlcyBpbiBidWd6
+aWxsYQpodHRwOi8vYnVncy5vcGVuZmFicmljcy5vcmcvYnVnemlsbGEvIGZvciBPRkVEIDQuOC0y
+CgpSZWxlYXNlIG5vdGVzOgoKaHR0cHM6Ly9vcGVuZmFicmljcy5vcmcvZG93bmxvYWRzL09GRUQv
+cmVsZWFzZV9ub3Rlcy9PRkVEXzQuOC0yLXJjMy1yZWxlYXNlX25vdGVzCgoKT0ZFRC00LjgtMi1y
+YzMgTWFpbiBDaGFuZ2VzIGZyb20gT0ZFRC00LjgtMi1yYzIKLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LQoxLiBjb21wYXQtcmRtYQpibnh0X3JlOiBBdm9pZCBIYXJkIGxvY2t1cCBkdXJpbmcgZXJyb3Ig
+Q1FFIHByb2Nlc3NpbmcKQkFDS1BPUlQgcWVkOiBFbmFibGUgUm9DRSBwYXJzZXIgc2VhcmNoaW5n
+IG9uIGZwIGluaXQKQkFDS1BPUlQgcWVkOiBmaXggZHVtcCBvZiBjb250ZXh0IGRhdGEKcWVkOiBC
+YWNrcG9ydCBGcmVlIFJvQ0UgSUxUIE1lbW9yeSBvbiBybW1vZCBxZWRyCmJueHRfcmU6IEZpeCBp
+bmNvcnJlY3QgREIgb2Zmc2V0IGNhbGN1bGF0aW9uCmJueHRfcmU6IFVuY29uZGl0aW9ubHkgZmVu
+Y2Ugbm9uIHdpcmUgbWVtb3J5IG9wZXJhdGlvbnMKYm54dF9yZTogRml4IHJhY2UgY29uZGl0aW9u
+cyBkdXJpbmcgbG9hZC91bmxvYWQgdGVzdGluZwpibnh0X3JlOiBGaXggbWVtb3J5IGxlYWsgaWYg
+UVAgY3JlYXRlIGZhaWxzCmJueHRfcmU6IERpc2FibGUgYXRvbWljcyBzdXBwb3J0CgoyLiBVcGRh
+dGVkIHBhY2thZ2VzCi0gb2ZlZC1zY3JpcHRzOgogwqAgaW5zdGFsbC5wbDogSWdub3JlIGZpcm13
+YXJlIGluIGNvbXBhdC1yZG1hLWNvbnRlbnQuIGJ1ZzogMjY3NwoKClJlZ2FyZHMsCgpWbGFkaW1p
+cgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1h
+aWxpbmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFi
+cmljcy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
