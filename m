@@ -1,51 +1,41 @@
-From: Salvatore Mesoraca <s.mesoraca16@gmail.com>
-Subject: [PATCH 2/2] net: rds: drop VLA in rds_walk_conn_path_info()
-Date: Sun, 11 Mar 2018 22:07:50 +0100
-Message-ID: <1520802470-17374-2-git-send-email-s.mesoraca16@gmail.com>
-References: <1520802470-17374-1-git-send-email-s.mesoraca16@gmail.com>
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] net/mlx4_en: Fix a memory leak in case of error in 'mlx4_en_init_netdev()'
+Date: Sun, 11 Mar 2018 23:45:29 +0100
+Message-ID: <20180311224529.4427-1-christophe.jaillet@wanadoo.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1520802470-17374-1-git-send-email-s.mesoraca16@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: kernel-hardening@lists.openwall.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Kees Cook <keescook@chromium.org>, Salvatore Mesoraca <s.mesoraca16@gmail.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+To: tariqt@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid VLA[1] by using an already allocated buffer passed
-by the caller.
+If 'kzalloc' fails, we must free some memory before returning.
 
-[1] https://lkml.org/lkml/2018/3/7/621
-
-Signed-off-by: Salvatore Mesoraca <s.mesoraca16@gmail.com>
+Fixes: 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings scheme")
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
- net/rds/connection.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/rds/connection.c b/net/rds/connection.c
-index f80792c..abef75d 100644
---- a/net/rds/connection.c
-+++ b/net/rds/connection.c
-@@ -578,9 +578,9 @@ static void rds_walk_conn_path_info(struct socket *sock, unsigned int len,
- 				    struct rds_info_iterator *iter,
- 				    struct rds_info_lengths *lens,
- 				    int (*visitor)(struct rds_conn_path *, void *),
-+				    u64 *buffer,
- 				    size_t item_len)
- {
--	u64  buffer[(item_len + 7) / 8];
- 	struct hlist_head *head;
- 	struct rds_connection *conn;
- 	size_t i;
-@@ -649,8 +649,11 @@ static void rds_conn_info(struct socket *sock, unsigned int len,
- 			  struct rds_info_iterator *iter,
- 			  struct rds_info_lengths *lens)
- {
-+	u64 buffer[(sizeof(struct rds_info_connection) + 7) / 8];
-+
- 	rds_walk_conn_path_info(sock, len, iter, lens,
- 				rds_conn_info_visitor,
-+				buffer,
- 				sizeof(struct rds_info_connection));
- }
- 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index 8fc51bc29003..f9db018e858f 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -3327,7 +3327,7 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 		if (!priv->tx_cq[t]) {
+ 			kfree(priv->tx_ring[t]);
+ 			err = -ENOMEM;
+-			goto out;
++			goto err_free_tx;
+ 		}
+ 	}
+ 	priv->rx_ring_num = prof->rx_ring_num;
 -- 
-1.9.1
+2.14.1
+
+
+---
+L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+https://www.avast.com/antivirus
