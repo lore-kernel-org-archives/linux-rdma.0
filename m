@@ -1,29 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH][rds-next] rds: remove redundant variable 'sg_off'
-Date: Mon, 12 Mar 2018 11:12:51 -0400 (EDT)
-Message-ID: <20180312.111251.956883878311919021.davem@davemloft.net>
-References: <20180311162756.26950-1-colin.king@canonical.com>
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH] IB/rxe: Remove unused variable (char
+ *rxe_qp_state_name[])
+Date: Mon, 12 Mar 2018 18:51:08 +0200
+Message-ID: <20180312165106.GA5986@yuvallap>
+References: <1519769278-20094-1-git-send-email-hernan@vanguardiasur.com.ar>
+ <1519769819.23791.19.camel@wdc.com>
+ <CALfa3vGLja=CvkK-L+9CV9seF9C=jUkBR9p46bWb4oO1vFkgcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180311162756.26950-1-colin.king@canonical.com>
+Content-Disposition: inline
+In-Reply-To: <CALfa3vGLja=CvkK-L+9CV9seF9C=jUkBR9p46bWb4oO1vFkgcg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: colin.king@canonical.com
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?iso-8859-1?Q?Hern=E1n?= Gonzalez <hernan@vanguardiasur.com.ar>
+Cc: Bart Van Assche <Bart.VanAssche@wdc.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "monis@mellanox.com" <monis@mellanox.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin King <colin.king@canonical.com>
-Date: Sun, 11 Mar 2018 17:27:56 +0100
+On Wed, Feb 28, 2018 at 07:58:20PM -0300, Hernán Gonzalez wrote:
+> On Tue, Feb 27, 2018 at 7:17 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
+> > On Tue, 2018-02-27 at 19:07 -0300, Hernán Gonzalez wrote:
+> >> Note: This is compile only tested as I have no access to the hw.
+> >
+> > Hello Hernán,
+> >
+> > Are you aware that the only hardware that is needed to test this driver is
+> > an Ethernet interface, and that this driver even supports the loopback
+> > interface?
+> >
+> > Bart.
+> >
+> 
+> Hello Bart,
+> 
+> No, I didn't know, sorry about that. I'll test it as soon as I can.
+> Thanks for the response.
 
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> Variable sg_off is assigned a value but it is never read, hence it is
-> redundant and can be removed.
-> 
-> Cleans up clang warning:
-> net/rds/message.c:373:2: warning: Value stored to 'sg_off' is never read
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+Tested-by: Yuval Shaia <yuval.shaia@oracle.com>
 
-Applied.
+> 
+> Cheers,
+> Hernán
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
