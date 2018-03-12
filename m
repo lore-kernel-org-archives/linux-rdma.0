@@ -1,33 +1,29 @@
-From: Salvatore Mesoraca <s.mesoraca16@gmail.com>
-Subject: Re: [PATCH 1/2] net: rds: drop VLA in rds_for_each_conn_info()
-Date: Mon, 12 Mar 2018 11:12:57 +0100
-Message-ID: <CAJHCu1+afx1jMA1eAsEdrqLBN1o=ndQUXEheEteVw+VHEwZJdg@mail.gmail.com>
-References: <1520802470-17374-1-git-send-email-s.mesoraca16@gmail.com> <9f197147-c050-dd70-23ea-ec880d205201@oracle.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH][rds-next] rds: remove redundant variable 'sg_off'
+Date: Mon, 12 Mar 2018 11:12:51 -0400 (EDT)
+Message-ID: <20180312.111251.956883878311919021.davem@davemloft.net>
+References: <20180311162756.26950-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9f197147-c050-dd70-23ea-ec880d205201@oracle.com>
+In-Reply-To: <20180311162756.26950-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Cc: linux-kernel@vger.kernel.org, Kernel Hardening <kernel-hardening@lists.openwall.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Kees Cook <keescook@chromium.org>
+To: colin.king@canonical.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-2018-03-12 8:06 GMT+01:00 santosh.shilimkar@oracle.com
-<santosh.shilimkar@oracle.com>:
-> On 3/11/18 2:07 PM, Salvatore Mesoraca wrote:
->>
->> Avoid VLA[1] by using an already allocated buffer passed
->> by the caller.
->>
->> [1] https://lkml.org/lkml/2018/3/7/621
->>
->> Signed-off-by: Salvatore Mesoraca <s.mesoraca16@gmail.com>
->> ---
->
-> Thanks for both VLA fixes Salvatore.
->
-> FWIW, Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+From: Colin King <colin.king@canonical.com>
+Date: Sun, 11 Mar 2018 17:27:56 +0100
 
-Thank you very much for your time,
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> Variable sg_off is assigned a value but it is never read, hence it is
+> redundant and can be removed.
+> 
+> Cleans up clang warning:
+> net/rds/message.c:373:2: warning: Value stored to 'sg_off' is never read
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Salvatore
+Applied.
