@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 08/11] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
-Date: Mon, 12 Mar 2018 13:35:22 -0600
-Message-ID: <20180312193525.2855-9-logang@deltatee.com>
+Subject: [PATCH v3 04/11] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Mon, 12 Mar 2018 13:35:18 -0600
+Message-ID: <20180312193525.2855-5-logang@deltatee.com>
 References: <20180312193525.2855-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,183 +22,158 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Register the CMB buffer as p2pmem and use the appropriate allocation
-functions to create and destroy the IO SQ.
+For peer-to-peer transactions to work the downstream ports in each
+switch must not have the ACS flags set. At this time there is no way
+to dynamically change the flags and update the corresponding IOMMU
+groups so this is done at enumeration time before the groups are
+assigned.
 
-If the CMB supports WDS and RDS, publish it for use as P2P memory
-by other devices.
+This effectively means that if CONFIG_PCI_P2PDMA is selected then
+all devices behind any PCIe switch will be in the same IOMMU group.
+Which implies that individual devices behind any switch will not be
+able to be assigned to separate VMs because there is no isolation
+between them. Additionally, any malicious PCIe devices will be able
+to DMA to memory exposed by other EPs in the same domain as TLPs will
+not be checked by the IOMMU.
+
+Given that the intended use case of P2P Memory is for users with
+custom hardware designed for purpose, we do not expect distributors
+to ever need to enable this option. Users that want to use P2P
+must have compiled a custom kernel with this configuration option
+and understand the implications regarding ACS. They will either
+not require ACS or will have design the system in such a way that
+devices that require isolation will be separate from those using P2P
+transactions.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 ---
- drivers/nvme/host/pci.c | 75 +++++++++++++++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 34 deletions(-)
+ drivers/pci/Kconfig        |  9 +++++++++
+ drivers/pci/p2pdma.c       | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c          |  6 ++++++
+ include/linux/pci-p2pdma.h |  5 +++++
+ 4 files changed, 64 insertions(+)
 
-diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index b6f43b738f03..1fb57fa42dd0 100644
---- a/drivers/nvme/host/pci.c
-+++ b/drivers/nvme/host/pci.c
-@@ -29,6 +29,7 @@
- #include <linux/types.h>
- #include <linux/io-64-nonatomic-lo-hi.h>
- #include <linux/sed-opal.h>
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index d59f6f5ddfcd..c7a9d155baca 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -138,6 +138,15 @@ config PCI_P2PDMA
+ 	  it's hard to tell which support it at all, so at this time you
+ 	  will need a PCIe switch.
+ 
++	  Enabling this option will also disable ACS on all ports behind
++	  any PCIe switch. This effectively puts all devices behind any
++	  switch into the same IOMMU group. Which implies that individual
++	  devices behind any switch will not be able to be assigned to
++	  separate VMs because there is no isolation between them.
++	  Additionally, any malicious PCIe devices will be able to DMA
++	  to memory exposed by other EPs in the same domain as TLPs will
++	  not be checked by the IOMMU.
++
+ 	  If unsure, say N.
+ 
+ config PCI_LABEL
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index ab810c3a93eb..3e70b0662def 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -264,6 +264,50 @@ static struct pci_dev *get_upstream_bridge_port(struct pci_dev *pdev)
+ }
+ 
+ /*
++ * pci_p2pdma_disable_acs - disable ACS flags for ports in PCI
++ *	bridges/switches
++ * @pdev: device to disable ACS flags for
++ *
++ * The ACS flags for P2P Request Redirect and P2P Completion Redirect need
++ * to be disabled on any downstream port in any switch in order for
++ * the TLPs to not be forwarded up to the RC which is not what we want
++ * for P2P.
++ *
++ * This function is called when the devices are first enumerated and
++ * will result in all devices behind any switch to be in the same IOMMU
++ * group. At this time there is no way to "hotplug" IOMMU groups so we rely
++ * on this largish hammer. If you need the devices to be in separate groups
++ * don't enable CONFIG_PCI_P2PDMA.
++ *
++ * Returns 1 if the ACS bits for this device were cleared, otherwise 0.
++ */
++int pci_p2pdma_disable_acs(struct pci_dev *pdev)
++{
++	struct pci_dev *up;
++	int pos;
++	u16 ctrl;
++
++	up = get_upstream_bridge_port(pdev);
++	if (!up)
++		return 0;
++	pci_dev_put(up);
++
++	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_ACS);
++	if (!pos)
++		return 0;
++
++	pci_info(pdev, "disabling ACS flags for peer-to-peer DMA\n");
++
++	pci_read_config_word(pdev, pos + PCI_ACS_CTRL, &ctrl);
++
++	ctrl &= ~(PCI_ACS_RR | PCI_ACS_CR);
++
++	pci_write_config_word(pdev, pos + PCI_ACS_CTRL, ctrl);
++
++	return 1;
++}
++
++/*
+  * This function checks if two PCI devices are behind the same switch.
+  * (ie. they share the same second upstream port as returned by
+  *  get_upstream_bridge_port().)
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index f6a4dd10d9b0..e5da8f482e94 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -16,6 +16,7 @@
+ #include <linux/of.h>
+ #include <linux/of_pci.h>
+ #include <linux/pci.h>
 +#include <linux/pci-p2pdma.h>
- 
- #include "nvme.h"
- 
-@@ -91,9 +92,8 @@ struct nvme_dev {
- 	struct work_struct remove_work;
- 	struct mutex shutdown_lock;
- 	bool subsystem;
--	void __iomem *cmb;
--	pci_bus_addr_t cmb_bus_addr;
- 	u64 cmb_size;
-+	bool cmb_use_sqes;
- 	u32 cmbsz;
- 	u32 cmbloc;
- 	struct nvme_ctrl ctrl;
-@@ -148,7 +148,7 @@ struct nvme_queue {
- 	struct nvme_dev *dev;
- 	spinlock_t q_lock;
- 	struct nvme_command *sq_cmds;
--	struct nvme_command __iomem *sq_cmds_io;
-+	bool sq_cmds_is_io;
- 	volatile struct nvme_completion *cqes;
- 	struct blk_mq_tags **tags;
- 	dma_addr_t sq_dma_addr;
-@@ -429,10 +429,7 @@ static void __nvme_submit_cmd(struct nvme_queue *nvmeq,
+ #include <linux/pm.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+@@ -2826,6 +2827,11 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+  */
+ void pci_enable_acs(struct pci_dev *dev)
  {
- 	u16 tail = nvmeq->sq_tail;
- 
--	if (nvmeq->sq_cmds_io)
--		memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
--	else
--		memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
-+	memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
- 
- 	if (++tail == nvmeq->q_depth)
- 		tail = 0;
-@@ -1287,9 +1284,18 @@ static void nvme_free_queue(struct nvme_queue *nvmeq)
- {
- 	dma_free_coherent(nvmeq->q_dmadev, CQ_SIZE(nvmeq->q_depth),
- 				(void *)nvmeq->cqes, nvmeq->cq_dma_addr);
--	if (nvmeq->sq_cmds)
--		dma_free_coherent(nvmeq->q_dmadev, SQ_SIZE(nvmeq->q_depth),
--					nvmeq->sq_cmds, nvmeq->sq_dma_addr);
++#ifdef CONFIG_PCI_P2PDMA
++	if (pci_p2pdma_disable_acs(dev))
++		return;
++#endif
 +
-+	if (nvmeq->sq_cmds) {
-+		if (nvmeq->sq_cmds_is_io)
-+			pci_free_p2pmem(to_pci_dev(nvmeq->q_dmadev),
-+					nvmeq->sq_cmds,
-+					SQ_SIZE(nvmeq->q_depth));
-+		else
-+			dma_free_coherent(nvmeq->q_dmadev,
-+					  SQ_SIZE(nvmeq->q_depth),
-+					  nvmeq->sq_cmds,
-+					  nvmeq->sq_dma_addr);
-+	}
- }
- 
- static void nvme_free_queues(struct nvme_dev *dev, int lowest)
-@@ -1369,12 +1375,21 @@ static int nvme_cmb_qdepth(struct nvme_dev *dev, int nr_io_queues,
- static int nvme_alloc_sq_cmds(struct nvme_dev *dev, struct nvme_queue *nvmeq,
- 				int qid, int depth)
- {
--	/* CMB SQEs will be mapped before creation */
--	if (qid && dev->cmb && use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS))
--		return 0;
-+	struct pci_dev *pdev = to_pci_dev(dev->dev);
-+
-+	if (qid && dev->cmb_use_sqes && (dev->cmbsz & NVME_CMBSZ_SQS)) {
-+		nvmeq->sq_cmds = pci_alloc_p2pmem(pdev, SQ_SIZE(depth));
-+		nvmeq->sq_dma_addr = pci_p2pmem_virt_to_bus(pdev,
-+						nvmeq->sq_cmds);
-+		nvmeq->sq_cmds_is_io = true;
-+	}
-+
-+	if (!nvmeq->sq_cmds) {
-+		nvmeq->sq_cmds = dma_alloc_coherent(dev->dev, SQ_SIZE(depth),
-+					&nvmeq->sq_dma_addr, GFP_KERNEL);
-+		nvmeq->sq_cmds_is_io = false;
-+	}
- 
--	nvmeq->sq_cmds = dma_alloc_coherent(dev->dev, SQ_SIZE(depth),
--					    &nvmeq->sq_dma_addr, GFP_KERNEL);
- 	if (!nvmeq->sq_cmds)
- 		return -ENOMEM;
- 	return 0;
-@@ -1450,13 +1465,6 @@ static int nvme_create_queue(struct nvme_queue *nvmeq, int qid)
- 	struct nvme_dev *dev = nvmeq->dev;
- 	int result;
- 
--	if (dev->cmb && use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS)) {
--		unsigned offset = (qid - 1) * roundup(SQ_SIZE(nvmeq->q_depth),
--						      dev->ctrl.page_size);
--		nvmeq->sq_dma_addr = dev->cmb_bus_addr + offset;
--		nvmeq->sq_cmds_io = dev->cmb + offset;
--	}
--
- 	nvmeq->cq_vector = qid - 1;
- 	result = adapter_alloc_cq(dev, qid, nvmeq);
- 	if (result < 0)
-@@ -1689,9 +1697,6 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	if (!pci_acs_enable)
  		return;
- 	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
  
--	if (!use_cmb_sqes)
--		return;
--
- 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
- 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
- 	bar = NVME_CMB_BIR(dev->cmbloc);
-@@ -1708,11 +1713,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 	if (size > bar_size - offset)
- 		size = bar_size - offset;
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 59eb218bdb25..2a2bf2ca018e 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -18,6 +18,7 @@ struct block_device;
+ struct scatterlist;
  
--	dev->cmb = ioremap_wc(pci_resource_start(pdev, bar) + offset, size);
--	if (!dev->cmb)
-+	if (pci_p2pdma_add_resource(pdev, bar, size, offset))
- 		return;
--	dev->cmb_bus_addr = pci_bus_address(pdev, bar) + offset;
-+
- 	dev->cmb_size = size;
-+	dev->cmb_use_sqes = use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS);
-+
-+	if ((dev->cmbsz & (NVME_CMBSZ_WDS | NVME_CMBSZ_RDS)) ==
-+			(NVME_CMBSZ_WDS | NVME_CMBSZ_RDS))
-+		pci_p2pmem_publish(pdev, true);
- 
- 	if (sysfs_add_file_to_group(&dev->ctrl.device->kobj,
- 				    &dev_attr_cmb.attr, NULL))
-@@ -1722,12 +1731,10 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 
- static inline void nvme_release_cmb(struct nvme_dev *dev)
+ #ifdef CONFIG_PCI_P2PDMA
++int pci_p2pdma_disable_acs(struct pci_dev *pdev);
+ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+ 		u64 offset);
+ int pci_p2pdma_add_client(struct list_head *head, struct device *dev);
+@@ -41,6 +42,10 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 			 enum dma_data_direction dir);
+ #else /* CONFIG_PCI_P2PDMA */
++static inline int pci_p2pdma_disable_acs(struct pci_dev *pdev)
++{
++	return 0;
++}
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
  {
--	if (dev->cmb) {
--		iounmap(dev->cmb);
--		dev->cmb = NULL;
-+	if (dev->cmb_size) {
- 		sysfs_remove_file_from_group(&dev->ctrl.device->kobj,
- 					     &dev_attr_cmb.attr, NULL);
--		dev->cmbsz = 0;
-+		dev->cmb_size = 0;
- 	}
- }
- 
-@@ -1922,13 +1929,13 @@ static int nvme_setup_io_queues(struct nvme_dev *dev)
- 	if (nr_io_queues == 0)
- 		return 0;
- 
--	if (dev->cmb && (dev->cmbsz & NVME_CMBSZ_SQS)) {
-+	if (dev->cmb_use_sqes) {
- 		result = nvme_cmb_qdepth(dev, nr_io_queues,
- 				sizeof(struct nvme_command));
- 		if (result > 0)
- 			dev->q_depth = result;
- 		else
--			nvme_release_cmb(dev);
-+			dev->cmb_use_sqes = false;
- 	}
- 
- 	do {
 -- 
 2.11.0
