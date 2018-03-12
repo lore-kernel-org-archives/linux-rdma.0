@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 02/11] PCI/P2PDMA: Add sysfs group to display p2pmem stats
-Date: Mon, 12 Mar 2018 13:35:16 -0600
-Message-ID: <20180312193525.2855-3-logang@deltatee.com>
+Subject: [PATCH v3 03/11] PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust
+ the bus offset
+Date: Mon, 12 Mar 2018 13:35:17 -0600
+Message-ID: <20180312193525.2855-4-logang@deltatee.com>
 References: <20180312193525.2855-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,132 +22,127 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a sysfs group to display statistics about P2P memory that is
-registered in each PCI device.
+The DMA address used when mapping PCI P2P memory must be the PCI bus
+address. Thus, introduce pci_p2pmem_[un]map_sg() to map the correct
+addresses when using P2P memory.
 
-Attributes in the group display the total amount of P2P memory, the
-amount available and whether it is published or not.
+For this, we assume that an SGL passed to these functions contain all
+P2P memory or no P2P memory.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 ---
- Documentation/ABI/testing/sysfs-bus-pci | 25 +++++++++++++++
- drivers/pci/p2pdma.c                    | 54 +++++++++++++++++++++++++++++++++
- 2 files changed, 79 insertions(+)
+ drivers/pci/p2pdma.c       | 51 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/memremap.h   |  1 +
+ include/linux/pci-p2pdma.h | 13 ++++++++++++
+ 3 files changed, 65 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-index 44d4b2be92fd..044812c816d0 100644
---- a/Documentation/ABI/testing/sysfs-bus-pci
-+++ b/Documentation/ABI/testing/sysfs-bus-pci
-@@ -323,3 +323,28 @@ Description:
- 
- 		This is similar to /sys/bus/pci/drivers_autoprobe, but
- 		affects only the VFs associated with a specific PF.
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/available
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the amount of memory that has not been
-+		allocated (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/size
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the total amount of memory that the device
-+		provides (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/published
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains a '1' if the memory has been published for
-+		use inside the kernel or a '0' if it is only intended
-+		for use within the driver that published it.
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 0ee917381dce..fd4789566a56 100644
+index fd4789566a56..ab810c3a93eb 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -24,6 +24,54 @@ struct pci_p2pdma {
- 	bool p2pmem_published;
+@@ -190,6 +190,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+ 	pgmap->res.flags = pci_resource_flags(pdev, bar);
+ 	pgmap->ref = &pdev->p2pdma->devmap_ref;
+ 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
++	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
++		pci_resource_start(pdev, bar);
+ 
+ 	addr = devm_memremap_pages(&pdev->dev, pgmap);
+ 	if (IS_ERR(addr)) {
+@@ -731,3 +733,52 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ 	pdev->p2pdma->p2pmem_published = publish;
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
++
++/**
++ * pci_p2pdma_map_sg - map a PCI peer-to-peer sg for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ *
++ * Returns the number of SG entries mapped
++ */
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir)
++{
++	struct dev_pagemap *pgmap;
++	struct scatterlist *s;
++	phys_addr_t paddr;
++	int i;
++
++	/*
++	 * p2pdma mappings are not compatible with devices that use
++	 * dma_virt_ops.
++	 */
++	if (IS_ENABLED(CONFIG_DMA_VIRT_OPS) && dev->dma_ops == &dma_virt_ops)
++		return 0;
++
++	for_each_sg(sg, s, nents, i) {
++		pgmap = sg_page(s)->pgmap;
++		paddr = sg_phys(s);
++
++		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
++		sg_dma_len(s) = s->length;
++	}
++
++	return nents;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
++
++/**
++ * pci_p2pdma_unmap_sg - unmap a PCI peer-to-peer sg for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ */
++void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir)
++{
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_unmap_sg);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 9e907c338a44..1660f64ce96f 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -125,6 +125,7 @@ struct dev_pagemap {
+ 	struct device *dev;
+ 	void *data;
+ 	enum memory_type type;
++	u64 pci_p2pdma_bus_offset;
  };
  
-+static ssize_t size_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t size = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		size = gen_pool_size(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
-+}
-+static DEVICE_ATTR_RO(size);
-+
-+static ssize_t available_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t avail = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		avail = gen_pool_avail(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
-+}
-+static DEVICE_ATTR_RO(available);
-+
-+static ssize_t published_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			pdev->p2pdma->p2pmem_published);
-+}
-+static DEVICE_ATTR_RO(published);
-+
-+static struct attribute *p2pmem_attrs[] = {
-+	&dev_attr_size.attr,
-+	&dev_attr_available.attr,
-+	&dev_attr_published.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group p2pmem_group = {
-+	.attrs = p2pmem_attrs,
-+	.name = "p2pmem",
-+};
-+
- static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
+ #ifdef CONFIG_ZONE_DEVICE
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 1f7856ff098b..59eb218bdb25 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -36,6 +36,10 @@ int pci_p2pmem_alloc_sgl(struct pci_dev *pdev, struct scatterlist **sgl,
+ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl,
+ 		unsigned int nents);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir);
++void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
++			 enum dma_data_direction dir);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -97,5 +101,14 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
+ static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
  {
- 	struct pci_p2pdma *p2p =
-@@ -53,6 +101,7 @@ static void pci_p2pdma_release(void *data)
- 	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
- 
- 	gen_pool_destroy(pdev->p2pdma->pool);
-+	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
- 	pdev->p2pdma = NULL;
  }
- 
-@@ -83,9 +132,14 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 
- 	pdev->p2pdma = p2p;
- 
-+	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
-+	if (error)
-+		goto out_pool_destroy;
-+
- 	return 0;
- 
- out_pool_destroy:
-+	pdev->p2pdma = NULL;
- 	gen_pool_destroy(p2p->pool);
- out:
- 	devm_kfree(&pdev->dev, p2p);
++static inline int pci_p2pdma_map_sg(struct device *dev,
++	struct scatterlist *sg, int nents, enum dma_data_direction dir)
++{
++	return 0;
++}
++static inline void pci_p2pdma_unmap_sg(struct device *dev,
++	struct scatterlist *sg, int nents, enum dma_data_direction dir)
++{
++}
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
 -- 
 2.11.0
