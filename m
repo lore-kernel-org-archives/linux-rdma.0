@@ -1,15 +1,17 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Tue, 13 Mar 2018 12:40:13 -0600
-Message-ID: <a01a0ef4-3b0a-b169-2628-cb8fbe51867c@deltatee.com>
+Date: Tue, 13 Mar 2018 12:44:34 -0600
+Message-ID: <3e738f95-d73c-4182-2fa1-8664aafb1ab7@deltatee.com>
 References: <20180312193525.2855-1-logang@deltatee.com>
  <20180312193525.2855-2-logang@deltatee.com>
  <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
+ <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
+ <52cbbbc4-c488-f83f-8d02-14d455b4efd7@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+In-Reply-To: <52cbbbc4-c488-f83f-8d02-14d455b4efd7-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -26,14 +28,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 12/03/18 09:28 PM, Sinan Kaya wrote:
-> Maybe, dev parameter should also be struct pci_dev so that you can get rid of
-> all to_pci_dev() calls in this code including find_parent_pci_dev() function.
+On 13/03/18 11:49 AM, Sinan Kaya wrote:
+>> And there's also the ACS problem which means if you want to use P2P on the root ports you'll have to disable ACS on the entire system. (Or preferably, the IOMMU groups need to get more sophisticated to allow for dynamic changes).
+>>
+> 
+> Do you think you can keep a pointer to the parent bridge instead of querying it
+> via get_upstream_bridge_port() here so that we can reuse your
+> pci_p2pdma_disable_acs() in the future.
 
-No, this was mentioned in v2. find_parent_pci_dev is necessary because 
-the calling drivers aren't likely to have a bunch of struct pci_dev's 
-for all the devices they are working with lying around. It's a much 
-nicer from an API stand point to take struct devs and not worth it just 
-to have a PCI API only taking struct pci_devs.
+Keep a pointer where? pci_p2pdma_disable_acs() and 
+pci_p2pdma_add_client() are used in completely different cases on 
+completely different devices. There really is no overlap and no obvious 
+place to store the port pointer (except in the struct pci_dev itself, in 
+which case why not just call the function again).
+
+> +int pci_p2pdma_disable_acs(struct pci_dev *pdev)
+> +{
+> +	struct pci_dev *up;
+> +	int pos;
+> +	u16 ctrl;
+> +
+> +	up = get_upstream_bridge_port(pdev);
+> +	if (!up)
+> +		return 0;
+> 
+> Some future device would only deal with pci_p2pdma_add_client(() for whitelisting
+> instead of changing all of your code.
+
+That's a problem for whoever writes the future code.
+
+> We should at least limit the usage of get_upstream_bridge_port() family of functions
+> to probe time only.
+
+Why?
+
+> We can tell iommu to do one to one translation by passing iommu.passthrough=1 to kernel
+> command line to have identical behavior to your switch case.
+
+Well, someone will need to write code for all available IOMMUs to 
+support this. That's a very big project.
 
 Logan
