@@ -1,7 +1,7 @@
-From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+From: "Stephen  Bates" <sbates@raithlin.com>
 Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Tue, 13 Mar 2018 22:31:55 +0000
-Message-ID: <BB94077B-7EB3-49C4-862D-BF77D0A692CC@raithlin.com>
+Date: Tue, 13 Mar 2018 22:45:41 +0000
+Message-ID: <47F026DE-AFD0-4F63-8D39-375D3684C7B1@raithlin.com>
 References: <20180312193525.2855-1-logang@deltatee.com>
  <20180312193525.2855-2-logang@deltatee.com>
  <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
@@ -14,35 +14,49 @@ References: <20180312193525.2855-1-logang@deltatee.com>
  <4eb6850c-df1b-fd44-3ee0-d43a50270b53@deltatee.com>
  <757fca36-dee4-e070-669e-f2788bd78e41@codeaurora.org>
  <4f761f55-4e9a-dccb-d12f-c59d2cd689db@deltatee.com>
+ <016dc910-f96a-8a60-4bda-fa24eea98ea5@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <4f761f55-4e9a-dccb-d12f-c59d2cd689db-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <016dc910-f96a-8a60-4bda-fa24eea98ea5@codeaurora.org>
 Content-Language: en-US
-Content-ID: <EFD005DA0C72A448A2E37DC6C4BFB51D-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-ID: <CBB285235DCCC44AADEE04E9322EF6A5@CANPRD01.PROD.OUTLOOK.COM>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, Logan Gunthorpe <logang@deltatee.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
->> It sounds like you have very tight hardware expectations for this to work
->> at this moment. You also don't want to generalize this code for others and
->> address the shortcomings.
->  No, that's the way the community has pushed this work
-
-Hi Sinan
-
-Thanks for all the input. As Logan has pointed out the switch requirement is something that has evolved over time based on input from the community. You are more than welcome to have an opinion on this (and you have made that opinion clear ;-)). Over time the patchset may evolve from its current requirements but right now we are aligned with the feedback from the community.
-
-Cheers
-
-Stephen
+SGkgU2luYW4NCg0KPiAgICBJZiBoYXJkd2FyZSBkb2Vzbid0IHN1cHBvcnQgaXQsIGJsYWNrbGlz
+dGluZyBzaG91bGQgaGF2ZSBiZWVuIHRoZSByaWdodA0KPiAgICBwYXRoIGFuZCBJIHN0aWxsIHRo
+aW5rIHRoYXQgeW91IHNob3VsZCByZW1vdmUgYWxsIHN3aXRjaCBidXNpbmVzcyBmcm9tIHRoZSBj
+b2RlLg0KPiAgICBJIGRpZCBub3QgaGVhciBlbm91Z2gganVzdGlmaWNhdGlvbiBmb3IgaGF2aW5n
+IGEgc3dpdGNoIHJlcXVpcmVtZW50DQo+ICAgIGZvciBQMlAuDQogIA0KV2UgZGlzYWdyZWUuIEFz
+IGRvZXMgdGhlIGNvbW11bml0eSBiYXNlZCBvbiBmZWVkYmFjayBvbiBwcmV2aW91cyB2ZXJzaW9u
+IG9mIHRoaXMgcGF0Y2ggc2V0Lg0KICANCj4gWW91IGFyZSBhbHNvIHNheWluZyB0aGF0IHJvb3Qg
+cG9ydHMgaGF2ZSBpc3N1ZXMgbm90IGJlY2F1c2Ugb2YgZnVuY3Rpb25hbGl0eSBidXQNCj4gYmVj
+YXVzZSBvZiBwZXJmb3JtYW5jZS4gDQoNCkkgaGF2ZSBzZWVuIGJvdGguICBTb21lIHN5c3RlbXMg
+ZmFpbCBpbiBlbnRpcmV0eSB0byByb3V0ZSBUTFBzIGFjcm9zcyByb3V0ZSBwb3J0cy4gT3RoZXJz
+IGRvIHJvdXRlIGJ1dCB3aXRoIHBvb3IgcGVyZm9ybWFuY2UuIEhhdmluZyBhIHJlcXVpcmVtZW50
+IGZvciBhIHN3aXRjaCBpcyB0aGVyZWZvcmUgYSByZWFzb25hYmxlIGFuZCBzZW5zaWJsZSBtaW5p
+bXVtIGNyaXRlcmlhIGZvciBlbmFibGluZyBwMnAuDQogICAgDQo+IElmIHlvdSBrbm93IHdoYXQg
+aXMgYmFkLCBjcmVhdGUgYSBsaXN0IGFuZCBrZWVwIGFkZGluZyBpdC4gWW91IGNhbid0IGFzc3Vt
+ZQ0KPiB1bml2ZXJzYWxseSB0aGF0IGFsbCByb290IHBvcnRzIGFyZSBicm9rZW4vIGhhdmUgYmFk
+IHBlcmZvcm1hbmNlLg0KDQpJIGFjdHVhbGx5IHdhbnRlZCB0byBkbyBhIGJsYWNrbGlzdCBvcmln
+aW5hbGx5IGJ1dCB0aGF0IGlkZWEgd2FzIG5vdCBhY2NlcHRlZCBieSB0aGUgY29tbXVuaXR5LiAN
+CiAgICANCj4gICAgV2hhdCBpZiBJIGNvbWUgdXAgd2l0aCBhIHZlcnkgY2hlYXAvY3JhcHB5IHN3
+aXRjaCAoc29tZXRoaW5nIGxpa2UgdXNlZCBpbiBkYXRhDQo+ICAgIG1pbmluZyk/DQo+IFdoYXQg
+Z3VhcmFudGVlcyB0aGF0IFAyUCB3aWxsIHdvcmsgd2l0aCB0aGlzIGRldmljZT8gWW91IGFyZSBt
+YWtpbmcgYW4NCj4gYXNzdW1wdGlvbiBoZXJlIHRoYXQgYWxsIHN3aXRjaGVzIGhhdmUgZ29vZCBw
+ZXJmb3JtYW5jZS4NCg0KQSBzd2l0Y2ggbXVzdCBzdXBwb3J0IFAyUCBvciBpdCBpcyBpbiB2aW9s
+YXRpb24gb2YgdGhlIFBDSWUgc3BlY2lmaWNhdGlvbi4NCiAgICANCj4gICAgSSBoYXZlIGJlZW4g
+ZG9pbmcgbXkgYmVzdCB0byBwcm92aWRlIGZlZWRiYWNrLiBJdCBmZWVscyBsaWtlIHlvdSBhcmUg
+dGhyb3dpbmcNCj4gICAgdGhlbSBvdmVyIHRoZSB3YWxsIHRvIGJlIGhvbmVzdC4NCg0KSSB0aGlu
+ayBvbmUgaXNzdWUgU2luYW4gaXMgdGhhdCBhIGxvdCBvZiB5b3VyIGlkZWFzIGhhdmUgYmVlbiBk
+aXNjdXNzZWQgaW4gcHJldmlvdXMgdmVyc2lvbnMgb2YgdGhlIHNlcmllcy4gU28geW91IGFyZSBh
+c2tpbmcgdXMgdG8gbWFrZSBjaGFuZ2VzIHdoaWNoLCBpbiBzb21lIGNhc2VzLCB3ZSBrbm93IGFy
+ZSBub3QgYWNjZXB0YWJsZSB0byBvdGhlcnMgaW4gdGhlIGNvbW11bml0eS4gVGhlIGlucHV0IGlz
+IHdlbGNvbWUgYnV0IGl0IGZsaWVzIGluIHRoZSBmYWNlIG9mIG90aGVyIGlucHV0IHdlIGhhdmUg
+cmVjZWl2ZWQuIA0KDQpIb3dldmVyIGlmIG90aGVyIGRldmVsb3BlcnMgZmVlbCBzdHJvbmdseSBh
+Ym91dCB0aGUgYmxhY2tsaXN0L3doaXRlbGlzdCBhbmQgc3dpdGNoIGNyaXRlcmlhIHBsZWFzZSBz
+cGVhayB1cCEgOy0pDQoNClN0ZXBoZW4NCg0KICAgIA0KDQo=
