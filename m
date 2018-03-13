@@ -1,46 +1,40 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
-Date: Tue, 13 Mar 2018 09:50:20 +0100
-Message-ID: <CAK8P3a2SS4RBwjrd2XCnpA8W_bmHtjdjWdX1RTnkou0OQ5ROdA@mail.gmail.com>
-References: <20180220205638.1959033-1-arnd@arndb.de> <20180228211514.GC13394@ziepe.ca>
- <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
- <20180306234539.GB1037@ziepe.ca> <CAK8P3a0mHEm8m8=CfV5Qmw0EcVCc31OetdFXHQ0KEvWk6K40Gw@mail.gmail.com>
- <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH] 40iw: include linux/irq.h
+Date: Tue, 13 Mar 2018 13:06:20 +0100
+Message-ID: <20180313120644.2619889-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>, Artemy Kovalyov <artemyko@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 7, 2018 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wed, Mar 7, 2018 at 10:05 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->
->> A small complication is that I wrote the changelog for the build warning
->> on 32-bit architectures, which is more elaborate. kernelci.org for
->> some reasons currently skips the allmodconfig build on all 32-bit
->> architectures (I should ask the kernelci maintainers to change that),
->
-> I see that Olof's build bot does have build results for arm32
-> allmodconfig, which is also big-endian, and reports the same
-> errors that I described in the patch changelog.
->
-> See
->
-> http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/
-> http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/buildall.arm.allmodconfig.log.passed
->
-> for today's results.
->
-> This bot reports one other warning for arm32, but it's
-> specific to the toolchain version used on that bot.
-> I have a fix for that one as well, but there was some
-> discussion on what the best approach would be.
+We get a build failure on ARM unless the header is included explicitly:
 
-Any update on this? This is now the only remaining gcc warning we get on
-allmodconfig builds for arm (both 32-bit and 64-bit) in linux-4.16-rc.
+drivers/infiniband/hw/i40iw/i40iw_verbs.c: In function 'i40iw_get_vector_affinity':
+drivers/infiniband/hw/i40iw/i40iw_verbs.c:2747:9: error: implicit declaration of function 'irq_get_affinity_mask'; did you mean 'irq_create_affinity_masks'? [-Werror=implicit-function-declaration]
+  return irq_get_affinity_mask(msix_vec->irq);
+         ^~~~~~~~~~~~~~~~~~~~~
+         irq_create_affinity_masks
+drivers/infiniband/hw/i40iw/i40iw_verbs.c:2747:9: error: returning 'int' from a function with return type 'const struct cpumask *' makes pointer from integer without a cast [-Werror=int-conversion]
+  return irq_get_affinity_mask(msix_vec->irq);
 
+Fixes: 7e952b19eb63 ("i40iw: Implement get_vector_affinity API")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-     Arnd
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index a51798578f27..f3af952402e9 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -38,6 +38,7 @@
+ #include <linux/highmem.h>
+ #include <linux/time.h>
+ #include <linux/hugetlb.h>
++#include <linux/irq.h>
+ #include <asm/byteorder.h>
+ #include <net/ip.h>
+ #include <rdma/ib_verbs.h>
+-- 
+2.9.0
