@@ -1,51 +1,46 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Mon, 12 Mar 2018 23:28:17 -0400
-Message-ID: <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
-References: <20180312193525.2855-1-logang@deltatee.com>
- <20180312193525.2855-2-logang@deltatee.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
+Date: Tue, 13 Mar 2018 09:50:20 +0100
+Message-ID: <CAK8P3a2SS4RBwjrd2XCnpA8W_bmHtjdjWdX1RTnkou0OQ5ROdA@mail.gmail.com>
+References: <20180220205638.1959033-1-arnd@arndb.de> <20180228211514.GC13394@ziepe.ca>
+ <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
+ <20180306234539.GB1037@ziepe.ca> <CAK8P3a0mHEm8m8=CfV5Qmw0EcVCc31OetdFXHQ0KEvWk6K40Gw@mail.gmail.com>
+ <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180312193525.2855-2-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/12/2018 3:35 PM, Logan Gunthorpe wrote:
-> +int pci_p2pdma_add_client(struct list_head *head, struct device *dev)
+On Wed, Mar 7, 2018 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wed, Mar 7, 2018 at 10:05 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
+>> A small complication is that I wrote the changelog for the build warning
+>> on 32-bit architectures, which is more elaborate. kernelci.org for
+>> some reasons currently skips the allmodconfig build on all 32-bit
+>> architectures (I should ask the kernelci maintainers to change that),
+>
+> I see that Olof's build bot does have build results for arm32
+> allmodconfig, which is also big-endian, and reports the same
+> errors that I described in the patch changelog.
+>
+> See
+>
+> http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/
+> http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/buildall.arm.allmodconfig.log.passed
+>
+> for today's results.
+>
+> This bot reports one other warning for arm32, but it's
+> specific to the toolchain version used on that bot.
+> I have a fix for that one as well, but there was some
+> discussion on what the best approach would be.
 
-It feels like code tried to be a generic p2pdma provider first. Then got
-converted to PCI, yet all dev parameters are still struct device.
+Any update on this? This is now the only remaining gcc warning we get on
+allmodconfig builds for arm (both 32-bit and 64-bit) in linux-4.16-rc.
 
-Maybe, dev parameter should also be struct pci_dev so that you can get rid of
-all to_pci_dev() calls in this code including find_parent_pci_dev() function.
 
-Regarding the switch business, It is amazing how much trouble you went into
-limit this functionality into very specific hardware.
-
-I thought that we reached to an agreement that code would not impose
-any limits on what user wants.
-
-What happened to all the emails we exchanged?
-
-I understand you are coming from what you tested. Considering that you
-are singing up for providing a generic PCI functionality into the kernel,
-why don't you just blacklist the products that you had problems with and
-yet still allow other architectures to use your code with their root ports?
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+     Arnd
