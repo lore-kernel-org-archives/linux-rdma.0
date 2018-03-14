@@ -1,7 +1,7 @@
-From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Wed, 14 Mar 2018 14:05:06 +0000
-Message-ID: <45A47A71-B435-4DFA-8925-8EB91CEAB230@raithlin.com>
+Date: Wed, 14 Mar 2018 10:17:34 -0600
+Message-ID: <112493af-ccd0-455b-6600-b50764f7ab7e@deltatee.com>
 References: <3e738f95-d73c-4182-2fa1-8664aafb1ab7@deltatee.com>
  <703aa92c-0c1c-4852-5887-6f6e6ccde0fb@codeaurora.org>
  <a0af83f8-2cbc-862b-6f8b-231991527cfc@deltatee.com>
@@ -19,7 +19,6 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 In-Reply-To: <20180314025639.GA50067-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
 Content-Language: en-US
-Content-ID: <4EAE1FFD2D16CE4CBB709CC99D67468E-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -29,22 +28,58 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->I assume you want to exclude Root Ports because of multi-function
->  devices and the "route to self" error.  I was hoping for a reference
->  to that so I could learn more about it.
 
-Apologies Bjorn. This slipped through my net. I will try and get you a reference for RTS in the next couple of days.
-    
-> While I was looking for it, I found sec 6.12.1.2 (PCIe r4.0), "ACS
-> Functions in SR-IOV Capable and Multi-Function Devices", which seems
-> relevant.  It talks about "peer-to-peer Requests (between Functions of
-> the device)".  Thay says to me that multi-function devices can DMA
-> between themselves.
-    
-I will go take a look. Appreciate the link.
 
-Stephen 
+On 13/03/18 08:56 PM, Bjorn Helgaas wrote:
+> I assume you want to exclude Root Ports because of multi-function
+> devices and the "route to self" error.  I was hoping for a reference
+> to that so I could learn more about it.
+
+I haven't been able to find where in the spec it forbids route to self.
+But I was told this by developers who work know switches. Hopefully
+Stephen can find the reference.
+
+But it's a bit of a moot point. Devices can DMA to themselves if they
+are designed to do so. For example, some NVMe cards can read and write
+their own CMB for certain types of DMA request. There is a register in
+the spec (CMBSZ) which specifies which types of requests are supported.
+(See 3.1.12 in NVMe 1.3a).
+
+> I agree that peers need to have a common upstream bridge.  I think
+> you're saying peers need to have *two* common upstream bridges.  If I
+> understand correctly, requiring two common bridges is a way to ensure
+> that peers directly below Root Ports don't try to DMA to each other.
+
+No, I don't get where you think we need to have two common upstream
+bridges. I'm not sure when such a case would ever happen. But you seem
+to understand based on what you wrote below.
+
+> So I guess the first order of business is to nail down whether peers
+> below a Root Port are prohibited from DMAing to each other.  My
+> assumption, based on 6.12.1.2 and the fact that I haven't yet found
+> a prohibition, is that they can.
+
+If you have a multifunction device designed to DMA to itself below a
+root port, it can. But determining this is on a device by device basis,
+just as determining whether a root complex can do peer to peer is on a
+per device basis. So I'd say we don't want to allow it by default and
+let someone who has such a device figure out what's necessary if and
+when one comes along.
+
+> You already have upstream_bridges_match(), which takes two pci_devs.
+> I think it should walk up the PCI hierarchy from the first device,
+> checking whether the bridge at each level is also a parent of the
+> second device.
+
+Yes, this is what I meant when I said walking the entire tree. I've been
+kicking the can down the road on implementing this as getting ref
+counting right and testing it is going to be quite tricky. The single
+switch approach we implemented now is just a simplification which works
+for a single switch. But I guess we can look at implementing it this way
+for v4.
+
+Logan
