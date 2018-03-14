@@ -1,72 +1,155 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [patch 1/1] drivers/infiniband/core/verbs.c: fix build with
- gcc-4.4.4
-Date: Wed, 14 Mar 2018 17:12:19 -0400
-Message-ID: <1521061939.18703.126.camel@redhat.com>
-References: <20180313215157.GL3mSm-p6%akpm@linux-foundation.org>
-         <1521060060.18703.111.camel@redhat.com>
-         <20180314140817.8d1b8854af509981ff6562bd@linux-foundation.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: WARNING in __local_bh_enable_ip (2)
+Date: Wed, 14 Mar 2018 14:28:02 -0700
+Message-ID: <1686ceff-9b7e-592e-8607-b3b8add6a6a3@gmail.com>
+References: <001a113de654ad181e056764f936@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-DLdkohL7q5ZQsvvkSMbH"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180314140817.8d1b8854af509981ff6562bd@linux-foundation.org>
-Sender: stable-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: bart.vanassche@wdc.com, jgg@mellanox.com, linux-rdma@vger.kernel.org, sagi@grimberg.me, stable@vger.kernel.org, swise@opengridcomputing.com
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <001a113de654ad181e056764f936@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+c68e51bb5e699d3f8d91@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-DLdkohL7q5ZQsvvkSMbH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2018-03-14 at 14:08 -0700, Andrew Morton wrote:
-> On Wed, 14 Mar 2018 16:41:00 -0400 Doug Ledford <dledford@redhat.com> wro=
-te:
->=20
-> > On Tue, 2018-03-13 at 14:51 -0700, akpm@linux-foundation.org wrote:
-> > > From: Andrew Morton <akpm@linux-foundation.org>
-> > > Subject: drivers/infiniband/core/verbs.c: fix build with gcc-4.4.4
-> > >=20
-> > > gcc-4.4.4 has issues with initialization of anonymous unions.
-> >=20
-> > That compiler was released in April of 2010, almost a full 8 years ago.=
-=20
-> > What still uses it, and do we seriously care?
->=20
-> Documentation/Changes still says gcc-3.2.  A few people are using the
-> older versions.  There's talk going around about requiring something
-> more recent but nothing has happened yet.
+On 03/14/2018 01:11 PM, syzbot wrote:
+> Hello,
+> 
+> syzbot hit the following crash on net-next commit
+> be9fc0971a5c27b791608cf9705a04fe96dbd395 (Tue Mar 13 11:44:53 2018 +0000)
+> net: fix sysctl_fb_tunnels_only_for_init_net link error
+> 
+> So far this crash happened 2 times on net-next.
+> Unfortunately, I don't have any reproducer for this crash yet.
+> Raw console output is attached.
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached.
+> 
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+c68e51bb5e699d3f8d91@syzkaller.appspotmail.com
+> It will help syzbot understand when the bug is fixed. See footer for 
+> details.
+> If you forward the report, please keep this part and the footer.
+> 
+> ------------[ cut here ]------------
+> IRQs not enabled as expected
+> WARNING: CPU: 1 PID: 21587 at kernel/softirq.c:162 
+> __local_bh_enable_ip+0x1bb/0x230 kernel/softirq.c:162
+> Kernel panic - not syncing: panic_on_warn set ...
+> 
+> CPU: 1 PID: 21587 Comm: syz-executor6 Not tainted 4.16.0-rc4+ #264
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS 
+> Google 01/01/2011
+> Call Trace:
+>   __dump_stack lib/dump_stack.c:17 [inline]
+>   dump_stack+0x194/0x24d lib/dump_stack.c:53
+>   panic+0x1e4/0x41c kernel/panic.c:183
+>   __warn+0x1dc/0x200 kernel/panic.c:547
+> syz-executor7: vmalloc: allocation failure: 17045651456 bytes, 
+> mode:0x14080c0(GFP_KERNEL|__GFP_ZERO), nodemask=(null)
+>   report_bug+0x211/0x2d0 lib/bug.c:184
+>   fixup_bug.part.11+0x37/0x80 arch/x86/kernel/traps.c:178
+>   fixup_bug arch/x86/kernel/traps.c:247 [inline]
+>   do_error_trap+0x2d7/0x3e0 arch/x86/kernel/traps.c:296
+> syz-executor7 cpuset=
+> /
+>   do_invalid_op+0x1b/0x20 arch/x86/kernel/traps.c:315
+>   mems_allowed=0
+>   invalid_op+0x1b/0x40 arch/x86/entry/entry_64.S:986
+> RIP: 0010:__local_bh_enable_ip+0x1bb/0x230 kernel/softirq.c:162
+> RSP: 0018:ffff8801c95f71e0 EFLAGS: 00010082
+> RAX: dffffc0000000008 RBX: 0000000000000201 RCX: ffffffff815abf2e
+> RDX: 00000000000037b0 RSI: ffffc900045ec000 RDI: 1ffff100392bedc1
+> RBP: ffff8801c95f71f8 R08: 0000000000000000 R09: 1ffff100392bed93
+> R10: ffff8801c95f70d8 R11: 0000000000000002 R12: ffffffff85638c44
+> R13: ffff8801bb9fc080 R14: ffff8801c95f7290 R15: 1ffff100392bee4a
+>   __raw_spin_unlock_bh include/linux/spinlock_api_smp.h:176 [inline]
+>   _raw_spin_unlock_bh+0x30/0x40 kernel/locking/spinlock.c:200
+>   spin_unlock_bh include/linux/spinlock.h:355 [inline]
+>   rds_tcp_conn_free+0xa4/0x2d0 net/rds/tcp.c:281
+>   __rds_conn_create+0x148f/0x1b60 net/rds/connection.c:277
+>   rds_conn_create_outgoing+0x3f/0x50 net/rds/connection.c:309
+>   rds_sendmsg+0xe63/0x2590 net/rds/send.c:1156
+>   sock_sendmsg_nosec net/socket.c:629 [inline]
+>   sock_sendmsg+0xca/0x110 net/socket.c:639
+>   ___sys_sendmsg+0x767/0x8b0 net/socket.c:2047
+>   __sys_sendmsg+0xe5/0x210 net/socket.c:2081
+>   SYSC_sendmsg net/socket.c:2092 [inline]
+>   SyS_sendmsg+0x2d/0x50 net/socket.c:2088
+>   do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+>   entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x453e69
+> RSP: 002b:00007f102cbd0c68 EFLAGS: 00000246 ORIG_RAX: 000000000000002e
+> RAX: ffffffffffffffda RBX: 00007f102cbd16d4 RCX: 0000000000453e69
+> RDX: 0000000000000000 RSI: 0000000020001580 RDI: 0000000000000014
+> RBP: 000000000072bf58 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+> R13: 00000000000004b9 R14: 00000000006f71f8 R15: 0000000000000001
+> CPU: 0 PID: 21594 Comm: syz-executor7 Not tainted 4.16.0-rc4+ #264
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS 
+> Google 01/01/2011
+> Call Trace:
+>   __dump_stack lib/dump_stack.c:17 [inline]
+>   dump_stack+0x194/0x24d lib/dump_stack.c:53
+>   warn_alloc+0x19a/0x2b0 mm/page_alloc.c:3310
+>   __vmalloc_node_range+0x4f0/0x650 mm/vmalloc.c:1775
+>   __vmalloc_node mm/vmalloc.c:1804 [inline]
+>   __vmalloc_node_flags_caller+0x50/0x60 mm/vmalloc.c:1826
+>   kvmalloc_node+0x82/0xd0 mm/util.c:428
+>   kvmalloc include/linux/mm.h:541 [inline]
+>   kvmalloc_array include/linux/mm.h:557 [inline]
+>   xt_alloc_entry_offsets+0x21/0x30 net/netfilter/x_tables.c:778
+>   translate_table+0x235/0x1690 net/ipv6/netfilter/ip6_tables.c:703
+>   do_replace net/ipv6/netfilter/ip6_tables.c:1164 [inline]
+>   do_ip6t_set_ctl+0x370/0x5f0 net/ipv6/netfilter/ip6_tables.c:1690
+>   nf_sockopt net/netfilter/nf_sockopt.c:106 [inline]
+>   nf_setsockopt+0x67/0xc0 net/netfilter/nf_sockopt.c:115
+>   ipv6_setsockopt+0x10b/0x130 net/ipv6/ipv6_sockglue.c:927
+>   tcp_setsockopt+0x82/0xd0 net/ipv4/tcp.c:2878
+>   sock_common_setsockopt+0x95/0xd0 net/core/sock.c:2980
+>   SYSC_setsockopt net/socket.c:1850 [inline]
+>   SyS_setsockopt+0x189/0x360 net/socket.c:1829
+>   do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+>   entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x453e69
+> RSP: 002b:00007f0cd3439c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+> RAX: ffffffffffffffda RBX: 00007f0cd343a6d4 RCX: 0000000000453e69
+> RDX: 0000000000000040 RSI: 0000000000000029 RDI: 0000000000000014
+> RBP: 000000000072bea0 R08: 0000000000000004 R09: 0000000000000000
+> R10: 0000000020001fde R11: 0000000000000246 R12: 00000000ffffffff
+> R13: 0000000000000520 R14: 00000000006f7ba0 R15: 0000000000000000
+> Dumping ftrace buffer:
+>     (ftrace buffer empty)
+> Kernel Offset: disabled
+> Rebooting in 86400 seconds..
+> 
+> 
+> ---
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+> 
+> syzbot will keep track of this bug report.
+> If you forgot to add the Reported-by tag, once the fix for this bug is 
+> merged
+> into any tree, please reply to this email with:
+> #syz fix: exact-commit-title
+> To mark this as a duplicate of another syzbot report, please reply with:
+> #syz dup: exact-subject-of-another-report
+> If it's a one-off invalid bug report, please reply with:
+> #syz invalid
+> Note: if the crash happens again, it will cause creation of a new bug 
+> report.
+> Note: all commands must start from beginning of the line in the email body.
 
-OK, count this as a grumble about the outdated compiler requirement :-/.=
-=20
-The code this patches looks nice and clean, this patch uglies it up.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-DLdkohL7q5ZQsvvkSMbH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+spin_lock_bh(&rds_tcp_conn_lock);/spin_unlock_bh(&rds_tcp_conn_lock); 
+in rds_tcp_conn_free()
 
------BEGIN PGP SIGNATURE-----
+is in conflict with the spin_lock_irqsave(&rds_conn_lock, flags);
+in __rds_conn_create()
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlqpkDMACgkQuCajMw5X
-L93BVQ//eDBupo7M/d+9ZG0FhDApmcX9A9KJstUQs771W6WDiuIGCbtID+qICCXg
-IKr4Em0WybfC6dCLnISTwR8tL33grE2SVB/gBlFPC9P7qeprSFtxpR0bBDmoyzHb
-+VXmtDHEoLvz8PNCTnGIoP2cXx/pnLMtJJy2f2smgyIOfurZdojEf4iXuZjCGW5s
-xYo8wbF94BEzv4SW0ZhX4sBpnBKUHVBunzkjc+iYOPYwBUHFvP2QnmRpadCUih9r
-hrtUADaTpEEtjFTvK2PIBMJFJv7AUUNedD+B6p4Fhr9uQIZF7eOCu/fCGKh5w1mw
-RIsylT8JdZ8x0mGHpud0SSYkJzGJ5vZ8O/50vL7xja2UdTr0a9fnVz5v8DAIssEM
-5HyoyjHihf/dK6X42PXh0v+EZp0EX8m1dowOFrN7FuQ9QE+6DXv+T0QXAJhhxZA7
-a2Db+mDF/N9oMUV0ohKYE4GFIPf1ws8EPpc2Xdfh69BYK1Zw0tTfVE/vJkhs/Bc4
-2HAwdnpyK/aBiRbAc7BIhlpsWEYUQ5gucnoWLd0U52xt0QOcoo97UnQd92pJKdvR
-Awh5H9LD/AbGhoDSjpyESD5g4mB+fFYyJuVGJKfHAE+XvTQ3lKkFcm7xKOv4qslp
-lX0UW1i5HzfokQvvD2ypQbM3eC1Yp8cLyeod5QFbnwfbWNdH9aU=
-=RqFo
------END PGP SIGNATURE-----
-
---=-DLdkohL7q5ZQsvvkSMbH--
+Hard to understand why RDS is messing with hard irqs really.
