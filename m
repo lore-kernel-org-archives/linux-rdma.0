@@ -1,67 +1,88 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 3/8] RDMAVT: Fix synchronization around percpu_ref
-Date: Wed, 14 Mar 2018 12:45:10 -0700
-Message-ID: <20180314194515.1661824-3-tj@kernel.org>
-References: <20180314194205.1651587-1-tj@kernel.org>
- <20180314194515.1661824-1-tj@kernel.org>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 1/2] infiniband: qplib_fp: fix pointer cast
+Date: Wed, 14 Mar 2018 16:03:51 -0400
+Message-ID: <1521057831.18703.101.camel@redhat.com>
+References: <20180220205638.1959033-1-arnd@arndb.de>
+         <20180228211514.GC13394@ziepe.ca>
+         <CAK8P3a2dsQ7QAb64DCp9Fc2xXjEyHNjBFdRc=y6FanQKsXhADg@mail.gmail.com>
+         <20180306234539.GB1037@ziepe.ca>
+         <CAK8P3a0mHEm8m8=CfV5Qmw0EcVCc31OetdFXHQ0KEvWk6K40Gw@mail.gmail.com>
+         <CAK8P3a2cqjQzhaPwk9rE6=s4QQVFk8vAoYQfqSrh1nOi-KpZew@mail.gmail.com>
+         <CAK8P3a2SS4RBwjrd2XCnpA8W_bmHtjdjWdX1RTnkou0OQ5ROdA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-UJaNqwXGmqS0tl2yU1Rb"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180314194515.1661824-1-tj@kernel.org>
+In-Reply-To: <CAK8P3a2SS4RBwjrd2XCnpA8W_bmHtjdjWdX1RTnkou0OQ5ROdA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: torvalds@linux-foundation.org, jannh@google.com, paulmck@linux.vnet.ibm.com, bcrl@kvack.org, viro@zeniv.linux.org.uk, kent.overstreet@gmail.com
-Cc: security@kernel.org, linux-kernel@vger.kernel.org, kernel-team@fb.com, Tejun Heo <tj@kernel.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Bart Van Assche <bart.vanassche@wdc.com>, Eddie Wai <eddie.wai@broadcom.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rvt_mregion uses percpu_ref for reference counting and RCU to protect
-accesses from lkey_table.  When a rvt_mregion needs to be freed, it
-first gets unregistered from lkey_table and then rvt_check_refs() is
-called to wait for in-flight usages before the rvt_mregion is freed.
 
-rvt_check_refs() seems to have a couple issues.
+--=-UJaNqwXGmqS0tl2yU1Rb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-* It has a fast exit path which tests percpu_ref_is_zero().  However,
-  a percpu_ref reading zero doesn't mean that the object can be
-  released.  In fact, the ->release() callback might not even have
-  started executing yet.  Proceeding with freeing can lead to
-  use-after-free.
+On Tue, 2018-03-13 at 09:50 +0100, Arnd Bergmann wrote:
+> On Wed, Mar 7, 2018 at 11:12 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Wed, Mar 7, 2018 at 10:05 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >=20
+> > > A small complication is that I wrote the changelog for the build warn=
+ing
+> > > on 32-bit architectures, which is more elaborate. kernelci.org for
+> > > some reasons currently skips the allmodconfig build on all 32-bit
+> > > architectures (I should ask the kernelci maintainers to change that),
+> >=20
+> > I see that Olof's build bot does have build results for arm32
+> > allmodconfig, which is also big-endian, and reports the same
+> > errors that I described in the patch changelog.
+> >=20
+> > See
+> >=20
+> > http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/
+> > http://arm-soc.lixom.net/buildlogs/arm-soc/v4.16-rc4-25-g41c42fe/builda=
+ll.arm.allmodconfig.log.passed
+> >=20
+> > for today's results.
+> >=20
+> > This bot reports one other warning for arm32, but it's
+> > specific to the toolchain version used on that bot.
+> > I have a fix for that one as well, but there was some
+> > discussion on what the best approach would be.
+>=20
+> Any update on this? This is now the only remaining gcc warning we get on
+> allmodconfig builds for arm (both 32-bit and 64-bit) in linux-4.16-rc.
+>=20
+>=20
+>      Arnd
 
-* lkey_table is RCU protected but there is no RCU grace period in the
-  free path.  percpu_ref uses RCU internally but it's sched-RCU whose
-  grace periods are different from regular RCU.  Also, it generally
-  isn't a good idea to depend on internal behaviors like this.
+Do you need the full series to fix this (it looked that way to me)?
 
-To address the above issues, this patch removes the fast exit and adds
-an explicit synchronize_rcu().
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-UJaNqwXGmqS0tl2yU1Rb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
----
- drivers/infiniband/sw/rdmavt/mr.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+-----BEGIN PGP SIGNATURE-----
 
-diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
-index 1b2e536..cc429b5 100644
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -489,11 +489,13 @@ static int rvt_check_refs(struct rvt_mregion *mr, const char *t)
- 	unsigned long timeout;
- 	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
- 
--	if (percpu_ref_is_zero(&mr->refcount))
--		return 0;
--	/* avoid dma mr */
--	if (mr->lkey)
-+	if (mr->lkey) {
-+		/* avoid dma mr */
- 		rvt_dereg_clean_qps(mr);
-+		/* @mr was indexed on rcu protected @lkey_table */
-+		synchronize_rcu();
-+	}
-+
- 	timeout = wait_for_completion_timeout(&mr->comp, 5 * HZ);
- 	if (!timeout) {
- 		rvt_pr_err(rdi,
--- 
-2.9.5
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlqpgCcACgkQuCajMw5X
+L91xFBAAtH7NYOxqPq7xaCstsugw3L8s3QHtEMNDnT4f1zAdQFUW6k1AmlpsT38I
+CfrVE91jqi45p9O95ipRv4/diVb4j+RpzO0QLtA/WNpvkgNgwcUdDYHfVpktx+aT
+3cZ4RRXbqXZG+AJRKQb1L3wLEDz3sQHeLxQ0n8yZjCksF1SUaKOh6sGpZJdQraFu
+O5conXnugLTe8i5b4gZSM39Ak4O/GzNkNtlp8RrbX2Qye55Tyyb0/Gw43Ch86uKR
+O3yslNUvs0rkmKCNO+0yVEgnMFdhDi7+qiJ9g3zxqrmIyuuae3owAT0Cchr8aaH+
+MumCI4iLN4bRImxvkzzR3aAJAm8eOF0kdFCuOzlUAWzPXz/5V9Sv1Y45fjlqvEhG
+hfkUlSeSgZo0y9wZw73w31NGUXhAZxxqR9yLHfmUNjv6GrnlsHmNFIZdjxOKOlwY
+c+C2C/k4uUrL/Iyxl3mGq6TFGzAWJOOoZmTVEPzddnLwk1nwLnQK5J1PUHBDM/Zg
++Xy9OHHSpvirIj0XUxXqctBL/v/hiLPTRVpImEP7+RVhcvKLPp87jFCqvaaIfa60
+8x5ffiKOmtt6/h4skeCvbalLdQvB9S1PEXE0tbiPr0QZikR7g5cYvUk2HGkkPBTC
+a8vrdCIjK9Zq0EFbWPItmENQaTXWRTWM9a/lLm7ZI0e8shsz75s=
+=P7RC
+-----END PGP SIGNATURE-----
+
+--=-UJaNqwXGmqS0tl2yU1Rb--
