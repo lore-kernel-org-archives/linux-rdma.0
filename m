@@ -1,78 +1,59 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [patch 1/1] drivers/infiniband/core/verbs.c: fix build with
- gcc-4.4.4
-Date: Wed, 14 Mar 2018 18:15:25 -0400
-Message-ID: <1521065725.18703.127.camel@redhat.com>
-References: <20180313215157.GL3mSm-p6%akpm@linux-foundation.org>
-         <1521060060.18703.111.camel@redhat.com>
-         <20180314140817.8d1b8854af509981ff6562bd@linux-foundation.org>
-         <1521061939.18703.126.camel@redhat.com>
+From: "Martin K. Petersen" <martin.petersen-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
+Date: Thu, 15 Mar 2018 00:00:27 -0400
+Message-ID: <yq1fu529eec.fsf@oracle.com>
+References: <a0af83f8-2cbc-862b-6f8b-231991527cfc@deltatee.com>
+ <3ea80992-a0fc-08f2-d93d-ae0ec4e3f4ce@codeaurora.org>
+ <4eb6850c-df1b-fd44-3ee0-d43a50270b53@deltatee.com>
+ <757fca36-dee4-e070-669e-f2788bd78e41@codeaurora.org>
+ <4f761f55-4e9a-dccb-d12f-c59d2cd689db@deltatee.com>
+ <BB94077B-7EB3-49C4-862D-BF77D0A692CC@raithlin.com>
+ <20180313230850.GA45763@bhelgaas-glaptop.roam.corp.google.com>
+ <8de5d3dd-a78f-02d5-0eea-4365364143b6@deltatee.com>
+ <20180314025639.GA50067@bhelgaas-glaptop.roam.corp.google.com>
+ <112493af-ccd0-455b-6600-b50764f7ab7e@deltatee.com>
+ <20180314185159.GD179719@bhelgaas-glaptop.roam.corp.google.com>
+ <b75e83ad-bb83-1f8d-1751-0989cc2493f1@deltatee.com>
+ <CAPcyv4g-A6fqdTahxX=aONSCgp1eEvBb=ZVMzbZUWUDmqBbj7Q@mail.gmail.com>
+ <AA646409-BB63-4757-A250-CE7118D4D3B8@raithlin.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-X8GJwRJvDy/tNaxtBQmH"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1521061939.18703.126.camel@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: bart.vanassche@wdc.com, jgg@mellanox.com, linux-rdma@vger.kernel.org, sagi@grimberg.me, stable@vger.kernel.org, swise@opengridcomputing.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <AA646409-BB63-4757-A250-CE7118D4D3B8-pv7U853sEMVWk0Htik3J/w@public.gmane.org> (Stephen
+ Bates's message of "Wed, 14 Mar 2018 19:34:53 +0000")
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-X8GJwRJvDy/tNaxtBQmH
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Stephen,
 
-On Wed, 2018-03-14 at 17:12 -0400, Doug Ledford wrote:
-> On Wed, 2018-03-14 at 14:08 -0700, Andrew Morton wrote:
-> > On Wed, 14 Mar 2018 16:41:00 -0400 Doug Ledford <dledford@redhat.com> w=
-rote:
-> >=20
-> > > On Tue, 2018-03-13 at 14:51 -0700, akpm@linux-foundation.org wrote:
-> > > > From: Andrew Morton <akpm@linux-foundation.org>
-> > > > Subject: drivers/infiniband/core/verbs.c: fix build with gcc-4.4.4
-> > > >=20
-> > > > gcc-4.4.4 has issues with initialization of anonymous unions.
-> > >=20
-> > > That compiler was released in April of 2010, almost a full 8 years ag=
-o.=20
-> > > What still uses it, and do we seriously care?
-> >=20
-> > Documentation/Changes still says gcc-3.2.  A few people are using the
-> > older versions.  There's talk going around about requiring something
-> > more recent but nothing has happened yet.
->=20
-> OK, count this as a grumble about the outdated compiler requirement :-/.=
-=20
-> The code this patches looks nice and clean, this patch uglies it up.
->=20
+>> It would be useful if those configurations were not left behind so
+>> that Linux could feasibly deploy offload code to a controller in the
+>> PCI domain.
+>    
+> Agreed. I think this would be great. Kind of like the XCOPY framework
+> that was proposed a while back for SCSI devices [1] but updated to also
+> include NVMe devices. That is definitely a use case we would like this
+> framework to support.
 
-If it wasn't obvious BTW, this and the other patch you sent have been
-applied to for-next area, begrudgingly ;-)
+I'm on my umpteenth rewrite of the block/SCSI offload code. It is not as
+protocol-agnostic as I would like in the block layer facing downwards.
+It has proven quite hard to reconcile token-based and EXTENDED COPY
+semantics along with the desire to support stacking. But from an
+application/filesystem perspective everything looks the same regardless
+of the intricacies of the device. Nothing is preventing us from
+supporting other protocols...
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-X8GJwRJvDy/tNaxtBQmH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlqpnv0ACgkQuCajMw5X
-L905rQ/+NiGzvyfW0/uSCbaJPE1mgNE5eEQ/RiTmFX2xde85sCYYcjMyIOhkeUdI
-GAQFJhCYBAuOBEGc8Ozbv78eoy41UG5Zbloge+6f2SECycD/E5X1T5TOe73MLIHE
-YO/ROi8aAAiZl42IEIFztbZv0CXyTAN9DSbblsKwmQ7k3w+7PHdGg6p2VziyU9Fu
-3zYKrAIMBxMify7tbzzkyqoKPOwTy/EdTp1FTZfNLMeeG5kOy6w0IKuj9sKhVM+S
-O7SK/BidsWmT8uIbBa1/dLocCs5WIrZHQlWECxIhHWDruv8J6zA0dzrkbbQILYYw
-ShjmWghKA+2KDT7O9RNJ7rOXpunQUkxlYBAGkBgP30ujGqH4OsVxac1hHcuuyGfA
-jC/bqCArVsqz6LW9mIFL35i6KSY0zCFc31VqVHi/96qcdTcQQlxNIt6ChxW3VyRh
-80FScMb53b61VnTGrtA/ON/SPvJZeiRhLk+F7EKcnxl6hhd/3a9WTVe1II/mxiQq
-cwaZ+AmhRNjxL/2upDCTghoGt/oRZXc7zxQApyTOevTywp9DICQHUptBh4vD5M0l
-2oeFay7e6jZZcE9PdinFXgzHFxTvEX9kDlTvgobKo+3BYTrZ8w5ECSCcduSWZOtq
-IGM3TCaoOVTLm5jJvg1GuqPOfmefDUXIiZyjELm4/ruJyAvcy4w=
-=hnQF
------END PGP SIGNATURE-----
-
---=-X8GJwRJvDy/tNaxtBQmH--
+-- 
+Martin K. Petersen	Oracle Linux Engineering
