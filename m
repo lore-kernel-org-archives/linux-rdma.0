@@ -1,36 +1,50 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 3/7] RDMA/qedr: eliminate duplicate barriers on
- weakly-ordered archs
-Date: Thu, 15 Mar 2018 16:23:46 -0600
-Message-ID: <20180315222346.GC27537@ziepe.ca>
-References: <1520997629-17361-1-git-send-email-okaya@codeaurora.org>
- <1520997629-17361-3-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH 3/8] RDMAVT: Fix synchronization around percpu_ref
+Date: Thu, 15 Mar 2018 16:24:28 -0600
+Message-ID: <20180315222428.GE27537@ziepe.ca>
+References: <20180314194515.1661824-1-tj@kernel.org>
+ <20180314194515.1661824-3-tj@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1520997629-17361-3-git-send-email-okaya@codeaurora.org>
+In-Reply-To: <20180314194515.1661824-3-tj@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: netdev@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: torvalds@linux-foundation.org, jannh@google.com, paulmck@linux.vnet.ibm.com, bcrl@kvack.org, viro@zeniv.linux.org.uk, kent.overstreet@gmail.com, security@kernel.org, linux-kernel@vger.kernel.org, kernel-team@fb.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 13, 2018 at 11:20:24PM -0400, Sinan Kaya wrote:
-> Code includes wmb() followed by writel() in multiple places. writel()
-> already has a barrier on some architectures like arm64.
+On Wed, Mar 14, 2018 at 12:45:10PM -0700, Tejun Heo wrote:
+> rvt_mregion uses percpu_ref for reference counting and RCU to protect
+> accesses from lkey_table.  When a rvt_mregion needs to be freed, it
+> first gets unregistered from lkey_table and then rvt_check_refs() is
+> called to wait for in-flight usages before the rvt_mregion is freed.
 > 
-> This ends up CPU observing two barriers back to back before executing the
-> register write.
+> rvt_check_refs() seems to have a couple issues.
 > 
-> Since code already has an explicit barrier call, changing writel() to
-> writel_relaxed().
+> * It has a fast exit path which tests percpu_ref_is_zero().  However,
+>   a percpu_ref reading zero doesn't mean that the object can be
+>   released.  In fact, the ->release() callback might not even have
+>   started executing yet.  Proceeding with freeing can lead to
+>   use-after-free.
 > 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
->  drivers/infiniband/hw/qedr/verbs.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> * lkey_table is RCU protected but there is no RCU grace period in the
+>   free path.  percpu_ref uses RCU internally but it's sched-RCU whose
+>   grace periods are different from regular RCU.  Also, it generally
+>   isn't a good idea to depend on internal behaviors like this.
+> 
+> To address the above issues, this patch removes the fast exit and adds
+> an explicit synchronize_rcu().
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+>  drivers/infiniband/sw/rdmavt/mr.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
 
-Applied to RDMA for-next
+Applied to rdma for-next
 
 Thanks,
 Jason
