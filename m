@@ -1,45 +1,95 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: general protection fault in ucma_connect
-Date: Sat, 17 Mar 2018 00:21:14 +0000
-Message-ID: <20180317002114.GL30522@ZenIV.linux.org.uk>
-References: <f4f5e80792347b0aa7056790643c@google.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v3 18/18] infiniband: cxgb4: Eliminate duplicate barriers
+ on weakly-ordered archs
+Date: Fri, 16 Mar 2018 23:40:50 -0400
+Message-ID: <740c7d45-450e-c9b3-ceed-7bc7fcefbc5a@codeaurora.org>
+References: <1521216991-28706-1-git-send-email-okaya@codeaurora.org>
+ <1521216991-28706-19-git-send-email-okaya@codeaurora.org>
+ <003601d3bd6a$783d6970$68b83c50$@opengridcomputing.com>
+ <83387f6e-adcb-14e9-2c22-96abf9493cc6@codeaurora.org>
+ <004501d3bd7b$505e70f0$f11b52d0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f4f5e80792347b0aa7056790643c@google.com>
+In-Reply-To: <004501d3bd7b$505e70f0$f11b52d0$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+36712f50b0552615bf59@syzkaller.appspotmail.com>
-Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com
+To: Steve Wise <swise@opengridcomputing.com>, netdev@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 'Steve Wise' <swise@chelsio.com>, 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, 'Michael Werner' <werner@chelsio.com>, 'Casey Leedom' <leedom@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 16, 2018 at 04:59:02PM -0700, syzbot wrote:
-> Hello,
+On 3/16/2018 7:05 PM, Steve Wise wrote:
+>>
+>> On 3/16/2018 5:05 PM, Steve Wise wrote:
+>>>> Code includes wmb() followed by writel(). writel() already has a barrier
+>>> on
+>>>> some architectures like arm64.
+>>>>
+>>>> This ends up CPU observing two barriers back to back before executing
+>> the
+>>>> register write.
+>>>>
+>>>> Since code already has an explicit barrier call, changing writel() to
+>>>> writel_relaxed().
+>>>>
+>>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+>>>
+>>> NAK - This isn't correct for PowerPC.  For PowerPC, writeX_relaxed() is just
+>>> writeX().
+>>>
+>>> I was just looking at this with Chelsio developers, and they said the
+>>> writeX() should be replaced with __raw_writeX(), not writeX_relaxed(), to
+>>> get rid of the extra barrier for all architectures.
+>>
+>> OK. I can do that but isn't the problem at PowerPC adaptation?
+>>
+>> /*
+>>  * We don't do relaxed operations yet, at least not with this semantic
+>>  */
+>> #define readb_relaxed(addr)	readb(addr)
+>> #define readw_relaxed(addr)	readw(addr)
+>> #define readl_relaxed(addr)	readl(addr)
+>> #define readq_relaxed(addr)	readq(addr)
+>> #define writeb_relaxed(v, addr)	writeb(v, addr)
+>> #define writew_relaxed(v, addr)	writew(v, addr)
+>> #define writel_relaxed(v, addr)	writel(v, addr)
+>> #define writeq_relaxed(v, addr)	writeq(v, addr)
+>>
+>> Why don't we fix the PowerPC's relaxed operators? Is that a bigger task?
 > 
-> syzbot hit the following crash on upstream commit
-> e2c15aff5f353ba80bd3bb49840837f65fa5cc43 (Thu Mar 15 18:07:35 2018 +0000)
-> Merge tag 'sound-4.16-rc6' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound
+> I don't know the answer, but perhaps the proper fix is to correctly implement these for PPC?
 > 
-> So far this crash happened 2 times on upstream.
-> C reproducer is attached.
-> syzkaller reproducer is attached.
-> Raw console output is attached.
-> compiler: gcc (GCC) 7.1.1 20170620
-> .config is attached.
 
-May I politely inquire why am I getting Cc on the slew of ucma reports?
-My last involvement with that thing that wouldn't have been absolutely
-trivial had been back in 2012, and even that had been a conversion of
-fget() to fdget() - nowhere near the areas implicated by those.  Anything
-more recent would have no impact on the object code - replacement of
-POLL{IN,RDNORM} with EPOLL{IN,RDNORM} (equal values on x86) and two
-replacements of unsigned int with __poll_t, which is typedefed to
-unsigned.
+I found this article: https://lwn.net/Articles/698014/#PowerPC%20Implementation
 
-It's not that I've objections against helping to debug that thing (other
-than general aversion to drivers/infinibarf), but I'm really curious -
-just what got me volunteered from the syzbot POV?
+Apparently, this issue was discussed at a conference in 2015.
 
-Al, digging through tons of unpleasant code in fs/{config,debug}fs
-at the moment...
+Based on how I read this article, writel() and writel_relaxed() behave exactly
+the same on PowerPC because the barrier is enforced by the time code is leaving
+a critical section not during MMIO execution.
+
+I also see that __raw_writel() is being heavily used in drivers directory.
+
+https://elixir.bootlin.com/linux/latest/ident/__raw_writel
+
+I'll change writel_relaxed() with __raw_writel() in the series like you suggested
+and also look at your other comments.
+
+This seems to be the current norm.
+
+> 
+>>
+>> >From API perspective both __raw_writeX() and writeX_relaxed() are
+>> correct.
+>> It is just PowerPC doesn't seem the follow the definition yet.
+> 
+> 
+> 
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
