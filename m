@@ -1,28 +1,28 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: general protection fault in ucma_accept
-Date: Mon, 19 Mar 2018 12:17:02 +0200
-Message-ID: <20180319101701.GO19440@mtr-leonro.local>
-References: <001a113ee2f2f1403c0567010fff@google.com>
+Subject: Re: general protection fault in ucma_set_ib_path
+Date: Mon, 19 Mar 2018 16:14:52 +0200
+Message-ID: <20180319141451.GS19440@mtr-leonro.local>
+References: <001a11425c96f6be240567010fc4@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="cVp8NMj01v+Em8Se"
+        protocol="application/pgp-signature"; boundary="C01fF7hLGvN0zd9s"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <001a113ee2f2f1403c0567010fff@google.com>
+In-Reply-To: <001a11425c96f6be240567010fc4@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+7bed8439de3bce19a53e@syzkaller.appspotmail.com>
-Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, don.hiatt@intel.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
+To: syzbot <syzbot+5e82f99b242e7f5e1d18@syzkaller.appspotmail.com>
+Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-rdma@vger.kernel.org
 
 
---cVp8NMj01v+Em8Se
+--C01fF7hLGvN0zd9s
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 #syz dup: general protection fault in ucma_connect
 
-On Fri, Mar 09, 2018 at 12:59:03PM -0800, syzbot wrote:
+On Fri, Mar 09, 2018 at 12:59:04PM -0800, syzbot wrote:
 > Hello,
 >
 > syzbot hit the following crash on upstream commit
@@ -38,34 +38,49 @@ On Fri, Mar 09, 2018 at 12:59:03PM -0800, syzbot wrote:
 > .config is attached.
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+7bed8439de3bce19a53e@syzkaller.appspotmail.com
+> Reported-by: syzbot+5e82f99b242e7f5e1d18@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
 >
+> audit: type=3D1400 audit(1520532856.844:6): avc:  denied  { map } for
+> pid=3D4235 comm=3D"bash" path=3D"/bin/bash" dev=3D"sda1" ino=3D1457
+> scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
+> tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
+> audit: type=3D1400 audit(1520532863.173:7): avc:  denied  { map } for
+> pid=3D4249 comm=3D"syzkaller677323" path=3D"/root/syzkaller677323420" dev=
+=3D"sda1"
+> ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
+> tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfile permissive=
+=3D1
+> kasan: CONFIG_KASAN_INLINE enabled
+> kasan: GPF could be caused by NULL-ptr deref or user memory access
 > general protection fault: 0000 [#1] SMP KASAN
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
 > Modules linked in:
-> CPU: 1 PID: 4256 Comm: syzkaller154615 Not tainted 4.16.0-rc4+ #346
+> CPU: 0 PID: 4249 Comm: syzkaller677323 Not tainted 4.16.0-rc4+ #346
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
-> RIP: 0010:ucma_copy_conn_param drivers/infiniband/core/ucma.c:1021 [inlin=
-e]
-> RIP: 0010:ucma_accept+0x4eb/0x970 drivers/infiniband/core/ucma.c:1085
-> RSP: 0018:ffff8801b9a4f8c8 EFLAGS: 00010202
-> RAX: ffff8801af1ec400 RBX: ffff8801b9a4f948 RCX: dffffc0000000000
-> RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000020
-> RBP: ffff8801b9a4fad0 R08: 0000000000000000 R09: 1ffff10037349f23
-> R10: ffffffff88613380 R11: 0000000000000000 R12: ffff8801b9a4f908
-> R13: ffff8801b9a4faa8 R14: ffff8801aeba3a00 R15: ffff8801afa34c00
-> FS:  00007f8d6f239700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000=
+> RIP: 0010:rdma_cap_opa_ah include/rdma/ib_verbs.h:2777 [inline]
+> RIP: 0010:ucma_set_ib_path.isra.14+0x26a/0x850
+> drivers/infiniband/core/ucma.c:1231
+> RSP: 0018:ffff8801d3fcf820 EFLAGS: 00010202
+> RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000029
+> RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000148
+> RBP: ffff8801d3fcfa20 R08: ffffed003a7f9f1e R09: ffffffff867a1b5c
+> R10: 0000000000000002 R11: ffffed003a7f9f1d R12: ffff8801d3fcf8d0
+> R13: 1ffff1003a7f9f06 R14: ffff8801b0e3d070 R15: ffff8801b09576c0
+> FS:  0000000001c43880(0000) GS:ffff8801db200000(0000) knlGS:0000000000000=
 000
 > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007f8d6f238e78 CR3: 00000001b0505006 CR4: 00000000001606e0
+> CR2: 00005581e954c110 CR3: 00000001b7de6005 CR4: 00000000001606f0
 > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
+>  ucma_set_option_ib drivers/infiniband/core/ucma.c:1254 [inline]
+>  ucma_set_option_level drivers/infiniband/core/ucma.c:1273 [inline]
+>  ucma_set_option+0x252/0x4d0 drivers/infiniband/core/ucma.c:1304
 >  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1627
 >  __vfs_write+0xef/0x970 fs/read_write.c:480
 >  vfs_write+0x189/0x510 fs/read_write.c:544
@@ -73,23 +88,22 @@ e]
 >  SyS_write+0xef/0x220 fs/read_write.c:581
 >  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
 >  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x445ae9
-> RSP: 002b:00007f8d6f238da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000006dac3c RCX: 0000000000445ae9
-> RDX: 0000000000000128 RSI: 0000000020000780 RDI: 0000000000000003
-> RBP: 00000000006dac38 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f616d6472
-> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000004
-> Code: 0c 09 84 c9 74 09 80 f9 03 0f 8e 4a 02 00 00 49 8d 78 20 41 89 b5 70
-> fe ff ff 48 b9 00 00 00 00 00 fc ff df 48 89 fe 48 c1 ee 03 <0f> b6 34 0e=
- 48
-> 89 f9 83 e1 07 83 c1 01 40 38 f1 7c 09 40 84 f6
-> RIP: ucma_copy_conn_param drivers/infiniband/core/ucma.c:1021 [inline] RS=
-P:
-> ffff8801b9a4f8c8
-> RIP: ucma_accept+0x4eb/0x970 drivers/infiniband/core/ucma.c:1085 RSP:
-> ffff8801b9a4f8c8
-> ---[ end trace efb43dccceaff67b ]---
+> RIP: 0033:0x43fea9
+> RSP: 002b:00007ffc0b06c988 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fea9
+> RDX: 000000000000034d RSI: 0000000020001340 RDI: 0000000000000003
+> RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+> R10: 00000000004002c8 R11: 0000000000000217 R12: 00000000004017d0
+> R13: 0000000000401860 R14: 0000000000000000 R15: 0000000000000000
+> Code: 00 00 48 c1 ea 03 80 3c 02 00 0f 85 0d 05 00 00 49 8b 07 48 ba 00 00
+> 00 00 00 fc ff df 48 8d b8 48 01 00 00 48 89 f9 48 c1 e9 03 <80> 3c 11 00=
+ 0f
+> 85 54 05 00 00 48 c1 e3 04 48 03 98 48 01 00 00
+> RIP: rdma_cap_opa_ah include/rdma/ib_verbs.h:2777 [inline] RSP:
+> ffff8801d3fcf820
+> RIP: ucma_set_ib_path.isra.14+0x26a/0x850
+> drivers/infiniband/core/ucma.c:1231 RSP: ffff8801d3fcf820
+> ---[ end trace e658861a5e75e206 ]---
 > Kernel panic - not syncing: Fatal exception
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
@@ -119,8 +133,8 @@ P:
 > Note: all commands must start from beginning of the line in the email bod=
 y.
 
-> [....] Starting enhanced syslogd: rsyslogd[   17.067647] audit: type=3D14=
-00 audit(1520530817.148:5): avc:  denied  { syslog } for  pid=3D4085 comm=
+> [....] Starting enhanced syslogd: rsyslogd[   16.952834] audit: type=3D14=
+00 audit(1520532854.319:5): avc:  denied  { syslog } for  pid=3D4095 comm=
 =3D"rsyslogd" capability=3D34  scontext=3Dsystem_u:system_r:kernel_t:s0 tco=
 ntext=3Dsystem_u:system_r:kernel_t:s0 tclass=3Dcapability2 permissive=3D1
 > =1B[?25l=1B[?1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
@@ -134,650 +148,194 @@ G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 >
 > Debian GNU/Linux 7 syzkaller ttyS0
 >
-> syzkaller login: [   22.239931] audit: type=3D1400 audit(1520530822.320:6=
-): avc:  denied  { map } for  pid=3D4223 comm=3D"bash" path=3D"/bin/bash" d=
+> syzkaller login: [   19.477896] audit: type=3D1400 audit(1520532856.844:6=
+): avc:  denied  { map } for  pid=3D4235 comm=3D"bash" path=3D"/bin/bash" d=
 ev=3D"sda1" ino=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c=
 1023 tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> Warning: Permanently added '10.128.0.57' (ECDSA) to the list of known hos=
+> Warning: Permanently added '10.128.0.46' (ECDSA) to the list of known hos=
 ts.
 > executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.216510] audit: type=3D1400 audit(1520530848.297:7): avc:  denied  =
-{ map } for  pid=3D4239 comm=3D"syzkaller154615" path=3D"/root/syzkaller154=
-615024" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
+> [   25.807149] audit: type=3D1400 audit(1520532863.173:7): avc:  denied  =
+{ map } for  pid=3D4249 comm=3D"syzkaller677323" path=3D"/root/syzkaller677=
+323420" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
 s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfil=
 e permissive=3D1
-> [   48.249457] kasan: CONFIG_KASAN_INLINE enabled
-> [   48.254242] kasan: GPF could be caused by NULL-ptr deref or user memor=
+> [   25.811564] kasan: CONFIG_KASAN_INLINE enabled
+> [   25.837858] kasan: GPF could be caused by NULL-ptr deref or user memor=
 y access
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.261607] general protection fault: 0000 [#1] SMP KASAN
-> [   48.267118] Dumping ftrace buffer:
-> [   48.270625]    (ftrace buffer empty)
-> [   48.274305] Modules linked in:
-> [   48.277475] CPU: 1 PID: 4256 Comm: syzkaller154615 Not tainted 4.16.0-=
+> [   25.845242] general protection fault: 0000 [#1] SMP KASAN
+> [   25.850762] Dumping ftrace buffer:
+> [   25.854274]    (ftrace buffer empty)
+> [   25.857953] Modules linked in:
+> [   25.861117] CPU: 0 PID: 4249 Comm: syzkaller677323 Not tainted 4.16.0-=
 rc4+ #346
-> [   48.284887] Hardware name: Google Google Compute Engine/Google Compute=
+> [   25.868530] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   48.294219] RIP: 0010:ucma_accept+0x4eb/0x970
-> [   48.298680] RSP: 0018:ffff8801b9a4f8c8 EFLAGS: 00010202
-> [   48.304009] RAX: ffff8801af1ec400 RBX: ffff8801b9a4f948 RCX: dffffc000=
-0000000
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.311249] RDX: 0000000000000000 RSI: 0000000000000004 RDI: 000000000=
-0000020
-> [   48.318487] RBP: ffff8801b9a4fad0 R08: 0000000000000000 R09: 1ffff1003=
-7349f23
-> [   48.325725] R10: ffffffff88613380 R11: 0000000000000000 R12: ffff8801b=
-9a4f908
-> [   48.332966] R13: ffff8801b9a4faa8 R14: ffff8801aeba3a00 R15: ffff8801a=
-fa34c00
-> [   48.340208] FS:  00007f8d6f239700(0000) GS:ffff8801db300000(0000) knlG=
+> [   25.877860] RIP: 0010:ucma_set_ib_path.isra.14+0x26a/0x850
+> [   25.883451] RSP: 0018:ffff8801d3fcf820 EFLAGS: 00010202
+> [   25.888782] RAX: 0000000000000000 RBX: 0000000000000000 RCX: 000000000=
+0000029
+> [   25.896026] RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 000000000=
+0000148
+> [   25.903267] RBP: ffff8801d3fcfa20 R08: ffffed003a7f9f1e R09: ffffffff8=
+67a1b5c
+> [   25.910504] R10: 0000000000000002 R11: ffffed003a7f9f1d R12: ffff8801d=
+3fcf8d0
+> [   25.917744] R13: 1ffff1003a7f9f06 R14: ffff8801b0e3d070 R15: ffff8801b=
+09576c0
+> [   25.924984] FS:  0000000001c43880(0000) GS:ffff8801db200000(0000) knlG=
 S:0000000000000000
-> [   48.348405] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   48.354254] CR2: 00007f8d6f238e78 CR3: 00000001b0505006 CR4: 000000000=
-01606e0
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.361494] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
+> [   25.933883] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   25.939737] CR2: 00005581e954c110 CR3: 00000001b7de6005 CR4: 000000000=
+01606f0
+> [   25.946987] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
 0000000
-> [   48.368734] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
+> [   25.954243] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
 0000400
-> [   48.375974] Call Trace:
-> [   48.378532]  ? ucma_reject+0x220/0x220
-> [   48.382409]  ? kasan_check_write+0x14/0x20
-> [   48.386616]  ucma_write+0x2d6/0x3d0
-> [   48.390212]  ? ucma_reject+0x220/0x220
-> [   48.394068]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   48.398538]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   48.403095]  __vfs_write+0xef/0x970
-> [   48.406694]  ? rcu_note_context_switch+0x710/0x710
-> [   48.411595]  ? kernel_read+0x120/0x120
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.415451]  ? __might_sleep+0x95/0x190
-> [   48.419398]  ? _cond_resched+0x14/0x30
-> [   48.423257]  ? __inode_security_revalidate+0xd9/0x130
-> [   48.428417]  ? avc_policy_seqno+0x9/0x20
-> [   48.432449]  ? selinux_file_permission+0x82/0x460
-> [   48.437263]  ? security_file_permission+0x89/0x1e0
-> [   48.442164]  ? rw_verify_area+0xe5/0x2b0
-> [   48.446193]  ? __fdget_raw+0x20/0x20
-> [   48.449874]  vfs_write+0x189/0x510
-> [   48.453384]  SyS_write+0xef/0x220
-> [   48.456805]  ? filp_open+0x70/0x70
-> [   48.460314]  ? SyS_read+0x220/0x220
-> [   48.463912]  ? do_syscall_64+0xb7/0x940
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.467855]  ? SyS_read+0x220/0x220
-> [   48.471452]  do_syscall_64+0x281/0x940
-> [   48.475310]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   48.479772]  ? finish_task_switch+0x1c1/0x7e0
-> [   48.484236]  ? syscall_return_slowpath+0x550/0x550
-> [   48.489132]  ? syscall_return_slowpath+0x2ac/0x550
-> [   48.494033]  ? prepare_exit_to_usermode+0x350/0x350
-> [   48.499021]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
-> [   48.504358]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   48.509172]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> [   48.514332] RIP: 0033:0x445ae9
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.517490] RSP: 002b:00007f8d6f238da8 EFLAGS: 00000246 ORIG_RAX: 0000=
+> [   25.961483] Call Trace:
+> [   25.964044]  ? find_held_lock+0x35/0x1d0
+> [   25.968074]  ? ucma_event_handler+0xfa0/0xfa0
+> [   25.972540]  ? __might_fault+0x110/0x1d0
+> [   25.976573]  ? lock_downgrade+0x980/0x980
+> [   25.980705]  ? __might_sleep+0x95/0x190
+> [   25.984663]  ? kasan_check_write+0x14/0x20
+> [   25.988869]  ? _copy_from_user+0x99/0x110
+> [   25.992989]  ucma_set_option+0x252/0x4d0
+> [   25.997031]  ? ucma_set_option+0x252/0x4d0
+> [   26.001239]  ? ucma_set_ib_path.isra.14+0x850/0x850
+> [   26.006224]  ? kasan_check_write+0x14/0x20
+> [   26.010431]  ? _copy_from_user+0x99/0x110
+> [   26.014550]  ucma_write+0x2d6/0x3d0
+> [   26.018147]  ? ucma_set_ib_path.isra.14+0x850/0x850
+> [   26.023134]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   26.027601]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   26.032068]  __vfs_write+0xef/0x970
+> [   26.035669]  ? rcu_note_context_switch+0x710/0x710
+> [   26.040569]  ? kernel_read+0x120/0x120
+> [   26.044425]  ? __might_sleep+0x95/0x190
+> [   26.048371]  ? _cond_resched+0x14/0x30
+> [   26.052233]  ? __inode_security_revalidate+0xd9/0x130
+> [   26.057400]  ? avc_policy_seqno+0x9/0x20
+> [   26.061430]  ? selinux_file_permission+0x82/0x460
+> [   26.066247]  ? security_file_permission+0x89/0x1e0
+> [   26.071148]  ? rw_verify_area+0xe5/0x2b0
+> [   26.075191]  ? __fdget_raw+0x20/0x20
+> [   26.078876]  vfs_write+0x189/0x510
+> [   26.082390]  SyS_write+0xef/0x220
+> [   26.085810]  ? filp_open+0x70/0x70
+> [   26.089320]  ? SyS_read+0x220/0x220
+> [   26.092917]  ? do_syscall_64+0xb7/0x940
+> [   26.096861]  ? SyS_read+0x220/0x220
+> [   26.100459]  do_syscall_64+0x281/0x940
+> [   26.104316]  ? __do_page_fault+0xc90/0xc90
+> [   26.108523]  ? trace_hardirqs_on_thunk+0x1a/0x1c
+> [   26.113249]  ? syscall_return_slowpath+0x550/0x550
+> [   26.118148]  ? syscall_return_slowpath+0x2ac/0x550
+> [   26.123047]  ? prepare_exit_to_usermode+0x350/0x350
+> [   26.128034]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [   26.133367]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [   26.138181]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   26.143346] RIP: 0033:0x43fea9
+> [   26.146507] RSP: 002b:00007ffc0b06c988 EFLAGS: 00000217 ORIG_RAX: 0000=
 000000000001
-> [   48.525164] RAX: ffffffffffffffda RBX: 00000000006dac3c RCX: 000000000=
-0445ae9
-> [   48.532404] RDX: 0000000000000128 RSI: 0000000020000780 RDI: 000000000=
+> [   26.154181] RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000=
+043fea9
+> [   26.161422] RDX: 000000000000034d RSI: 0000000020001340 RDI: 000000000=
 0000003
-> [   48.539645] RBP: 00000000006dac38 R08: 0000000000000000 R09: 000000000=
+> [   26.168662] RBP: 00000000006ca018 R08: 00000000004002c8 R09: 000000000=
+04002c8
+> [   26.175900] R10: 00000000004002c8 R11: 0000000000000217 R12: 000000000=
+04017d0
+> [   26.183138] R13: 0000000000401860 R14: 0000000000000000 R15: 000000000=
 0000000
-> [   48.546884] R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f6=
-16d6472
-> [   48.554124] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
-0000004
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   48.561377] Code: 0c 09 84 c9 74 09 80 f9 03 0f 8e 4a 02 00 00 49 8d 7=
-8 20 41 89 b5 70 fe ff ff 48 b9 00 00 00 00 00 fc ff df 48 89 fe 48 c1 ee 0=
-3 <0f> b6 34 0e 48 89 f9 83 e1 07 83 c1 01 40 38 f1 7c 09 40 84 f6
-> [   48.580440] RIP: ucma_accept+0x4eb/0x970 RSP: ffff8801b9a4f8c8
-> [   48.586408] ---[ end trace efb43dccceaff67b ]---
-> [   48.591140] Kernel panic - not syncing: Fatal exception
-> [   48.596802] Dumping ftrace buffer:
-> [   48.600310]    (ftrace buffer empty)
-> [   48.603990] Kernel Offset: disabled
-> [   48.607590] Rebooting in 86400 seconds..
+> [   26.190385] Code: 00 00 48 c1 ea 03 80 3c 02 00 0f 85 0d 05 00 00 49 8=
+b 07 48 ba 00 00 00 00 00 fc ff df 48 8d b8 48 01 00 00 48 89 f9 48 c1 e9 0=
+3 <80> 3c 11 00 0f 85 54 05 00 00 48 c1 e3 04 48 03 98 48 01 00 00
+> [   26.209449] RIP: ucma_set_ib_path.isra.14+0x26a/0x850 RSP: ffff8801d3f=
+cf820
+> [   26.216568] ---[ end trace e658861a5e75e206 ]---
+> [   26.221330] Kernel panic - not syncing: Fatal exception
+> [   26.227141] Dumping ftrace buffer:
+> [   26.230658]    (ftrace buffer empty)
+> [   26.234337] Kernel Offset: disabled
+> [   26.237935] Rebooting in 86400 seconds..
 
 > # See https://goo.gl/kgGztJ for information about syzkaller reproducers.
-> #{Threaded:true Collide:true Repeat:true Procs:8 Sandbox: Fault:false Fau=
-ltCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false WaitR=
-epeat:false Debug:false Repro:false}
+> #{Threaded:false Collide:false Repeat:false Procs:1 Sandbox: Fault:false =
+FaultCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false Wa=
+itRepeat:false Debug:false Repro:false}
 > r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f00000001c0)=3D'/dev/infin=
 iband/rdma_cm\x00', 0x2, 0x0)
-> write$rdma_cm(r0, &(0x7f0000000500)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
-x1, &(0x7f00000004c0)=3D{<r1=3D>0xffffffff}, 0x13f, 0x8}}, 0x20)
-> write$rdma_cm(r0, &(0x7f0000000780)=3D@accept=3D{0x8, 0x120, 0xfa00, {0x4=
-, {0x7, 0x5, "c0c375cac61e6862f197eb0fe145d6163054423ad94fb0d7cc849874d0555=
-ad38b0157bceca74a01ca68214873b7c46aa2d46e1b5bbfd28a37e17855db623bbaf8d1ea16=
-c50032b3b41bf21f80bbe659c47ddf199f7f346173c6c68d21c56e8fd9e6aa114446cfab37d=
-5662b5308d4eee6320737c76d4b72ebab0a8559ebabf144252584543e9cc4372b551ab53a19=
-de5a3053d38fe4ce92bf569416d4a0a4bb8069bd07ed74b17a7926fd1f13f921e8923f08d2a=
-b350f0b88916177c5b1db4a569f6767c7e9e6182841e0b0be5447c9e2e2a5747c619fc5c8f9=
-5a89269c7aad7d1bbc7f06b01fac8e14472fd58f1e4b4ffa7cc8aa668b3fc977e1c8e442b77=
-9", 0xb3, 0x1, 0x6, 0x6, 0x6, 0x20, 0x9f31, 0x1}, r1}}, 0x128)
-> close(r0)
+> write$rdma_cm(r0, &(0x7f0000001300)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
+x0, &(0x7f00000012c0)=3D{<r1=3D>0xffffffff}, 0x106}}, 0x20)
+> write$rdma_cm(r0, &(0x7f0000001340)=3D@set_option=3D{0xe, 0x18, 0xfa00, @=
+ib_path=3D{&(0x7f0000000b00)=3D[{0x2b}], r1, 0x1, 0x1, 0x48}}, 0x34d)
 
 > // autogenerated by syzkaller (http://github.com/google/syzkaller)
 >
 > #define _GNU_SOURCE
 > #include <endian.h>
-> #include <linux/futex.h>
-> #include <pthread.h>
 > #include <stdint.h>
-> #include <stdlib.h>
 > #include <string.h>
 > #include <sys/syscall.h>
 > #include <unistd.h>
 >
-> static void test();
->
+> uint64_t r[2] =3D {0xffffffffffffffff, 0xffffffff};
 > void loop()
 > {
->   while (1) {
->     test();
->   }
-> }
->
-> struct thread_t {
->   int created, running, call;
->   pthread_t th;
-> };
->
-> static struct thread_t threads[16];
-> static void execute_call(int call);
-> static int running;
-> static int collide;
->
-> static void* thr(void* arg)
-> {
->   struct thread_t* th =3D (struct thread_t*)arg;
->   for (;;) {
->     while (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE))
->       syscall(SYS_futex, &th->running, FUTEX_WAIT, 0, 0);
->     execute_call(th->call);
->     __atomic_fetch_sub(&running, 1, __ATOMIC_RELAXED);
->     __atomic_store_n(&th->running, 0, __ATOMIC_RELEASE);
->     syscall(SYS_futex, &th->running, FUTEX_WAKE);
->   }
->   return 0;
-> }
->
-> static void execute(int num_calls)
-> {
->   int call, thread;
->   running =3D 0;
->   for (call =3D 0; call < num_calls; call++) {
->     for (thread =3D 0; thread < sizeof(threads) / sizeof(threads[0]); thr=
-ead++) {
->       struct thread_t* th =3D &threads[thread];
->       if (!th->created) {
->         th->created =3D 1;
->         pthread_attr_t attr;
->         pthread_attr_init(&attr);
->         pthread_attr_setstacksize(&attr, 128 << 10);
->         pthread_create(&th->th, &attr, thr, th);
->       }
->       if (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE)) {
->         th->call =3D call;
->         __atomic_fetch_add(&running, 1, __ATOMIC_RELAXED);
->         __atomic_store_n(&th->running, 1, __ATOMIC_RELEASE);
->         syscall(SYS_futex, &th->running, FUTEX_WAKE);
->         if (collide && call % 2)
->           break;
->         struct timespec ts;
->         ts.tv_sec =3D 0;
->         ts.tv_nsec =3D 20 * 1000 * 1000;
->         syscall(SYS_futex, &th->running, FUTEX_WAIT, 1, &ts);
->         if (running)
->           usleep((call =3D=3D num_calls - 1) ? 10000 : 1000);
->         break;
->       }
->     }
->   }
-> }
->
-> uint64_t r[2] =3D {0xffffffffffffffff, 0xffffffff};
-> uint64_t procid;
-> void execute_call(int call)
-> {
 >   long res;
->   switch (call) {
->   case 0:
->     memcpy((void*)0x200001c0, "/dev/infiniband/rdma_cm", 24);
->     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x200001c0, 2, 0);
->     if (res !=3D -1)
->       r[0] =3D res;
->     break;
->   case 1:
->     *(uint32_t*)0x20000500 =3D 0;
->     *(uint16_t*)0x20000504 =3D 0x18;
->     *(uint16_t*)0x20000506 =3D 0xfa00;
->     *(uint64_t*)0x20000508 =3D 1;
->     *(uint64_t*)0x20000510 =3D 0x200004c0;
->     *(uint16_t*)0x20000518 =3D 0x13f;
->     *(uint8_t*)0x2000051a =3D 8;
->     *(uint8_t*)0x2000051b =3D 0;
->     *(uint8_t*)0x2000051c =3D 0;
->     *(uint8_t*)0x2000051d =3D 0;
->     *(uint8_t*)0x2000051e =3D 0;
->     *(uint8_t*)0x2000051f =3D 0;
->     res =3D syscall(__NR_write, r[0], 0x20000500, 0x20);
->     if (res !=3D -1)
->       r[1] =3D *(uint32_t*)0x200004c0;
->     break;
->   case 2:
->     *(uint32_t*)0x20000780 =3D 8;
->     *(uint16_t*)0x20000784 =3D 0x120;
->     *(uint16_t*)0x20000786 =3D 0xfa00;
->     *(uint64_t*)0x20000788 =3D 4;
->     *(uint32_t*)0x20000790 =3D 7;
->     *(uint32_t*)0x20000794 =3D 5;
->     memcpy((void*)0x20000798,
->            "\xc0\xc3\x75\xca\xc6\x1e\x68\x62\xf1\x97\xeb\x0f\xe1\x45\xd6\=
-x16"
->            "\x30\x54\x42\x3a\xd9\x4f\xb0\xd7\xcc\x84\x98\x74\xd0\x55\x5a\=
-xd3"
->            "\x8b\x01\x57\xbc\xec\xa7\x4a\x01\xca\x68\x21\x48\x73\xb7\xc4\=
-x6a"
->            "\xa2\xd4\x6e\x1b\x5b\xbf\xd2\x8a\x37\xe1\x78\x55\xdb\x62\x3b\=
-xba"
->            "\xf8\xd1\xea\x16\xc5\x00\x32\xb3\xb4\x1b\xf2\x1f\x80\xbb\xe6\=
-x59"
->            "\xc4\x7d\xdf\x19\x9f\x7f\x34\x61\x73\xc6\xc6\x8d\x21\xc5\x6e\=
-x8f"
->            "\xd9\xe6\xaa\x11\x44\x46\xcf\xab\x37\xd5\x66\x2b\x53\x08\xd4\=
-xee"
->            "\xe6\x32\x07\x37\xc7\x6d\x4b\x72\xeb\xab\x0a\x85\x59\xeb\xab\=
-xf1"
->            "\x44\x25\x25\x84\x54\x3e\x9c\xc4\x37\x2b\x55\x1a\xb5\x3a\x19\=
-xde"
->            "\x5a\x30\x53\xd3\x8f\xe4\xce\x92\xbf\x56\x94\x16\xd4\xa0\xa4\=
-xbb"
->            "\x80\x69\xbd\x07\xed\x74\xb1\x7a\x79\x26\xfd\x1f\x13\xf9\x21\=
-xe8"
->            "\x92\x3f\x08\xd2\xab\x35\x0f\x0b\x88\x91\x61\x77\xc5\xb1\xdb\=
-x4a"
->            "\x56\x9f\x67\x67\xc7\xe9\xe6\x18\x28\x41\xe0\xb0\xbe\x54\x47\=
-xc9"
->            "\xe2\xe2\xa5\x74\x7c\x61\x9f\xc5\xc8\xf9\x5a\x89\x26\x9c\x7a\=
-xad"
->            "\x7d\x1b\xbc\x7f\x06\xb0\x1f\xac\x8e\x14\x47\x2f\xd5\x8f\x1e\=
-x4b"
->            "\x4f\xfa\x7c\xc8\xaa\x66\x8b\x3f\xc9\x77\xe1\xc8\xe4\x42\xb7\=
-x79",
->            256);
->     *(uint8_t*)0x20000898 =3D 0xb3;
->     *(uint8_t*)0x20000899 =3D 1;
->     *(uint8_t*)0x2000089a =3D 6;
->     *(uint8_t*)0x2000089b =3D 6;
->     *(uint8_t*)0x2000089c =3D 6;
->     *(uint8_t*)0x2000089d =3D 0x20;
->     *(uint8_t*)0x2000089e =3D 0x31;
->     *(uint8_t*)0x2000089f =3D 1;
->     *(uint32_t*)0x200008a0 =3D r[1];
->     *(uint32_t*)0x200008a4 =3D 0;
->     syscall(__NR_write, r[0], 0x20000780, 0x128);
->     break;
->   case 3:
->     syscall(__NR_close, r[0]);
->     break;
->   }
-> }
->
-> void test()
-> {
->   execute(4);
->   collide =3D 1;
->   execute(4);
+>   memcpy((void*)0x200001c0, "/dev/infiniband/rdma_cm", 24);
+>   res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x200001c0, 2, 0);
+>   if (res !=3D -1)
+>     r[0] =3D res;
+>   *(uint32_t*)0x20001300 =3D 0;
+>   *(uint16_t*)0x20001304 =3D 0x18;
+>   *(uint16_t*)0x20001306 =3D 0xfa00;
+>   *(uint64_t*)0x20001308 =3D 0;
+>   *(uint64_t*)0x20001310 =3D 0x200012c0;
+>   *(uint16_t*)0x20001318 =3D 0x106;
+>   *(uint8_t*)0x2000131a =3D 0;
+>   *(uint8_t*)0x2000131b =3D 0;
+>   *(uint8_t*)0x2000131c =3D 0;
+>   *(uint8_t*)0x2000131d =3D 0;
+>   *(uint8_t*)0x2000131e =3D 0;
+>   *(uint8_t*)0x2000131f =3D 0;
+>   res =3D syscall(__NR_write, r[0], 0x20001300, 0x20);
+>   if (res !=3D -1)
+>     r[1] =3D *(uint32_t*)0x200012c0;
+>   *(uint32_t*)0x20001340 =3D 0xe;
+>   *(uint16_t*)0x20001344 =3D 0x18;
+>   *(uint16_t*)0x20001346 =3D 0xfa00;
+>   *(uint64_t*)0x20001348 =3D 0x20000b00;
+>   *(uint32_t*)0x20000b00 =3D 0x2b;
+>   *(uint32_t*)0x20000b04 =3D 0;
+>   *(uint32_t*)0x20000b08 =3D 0;
+>   *(uint32_t*)0x20000b0c =3D 0;
+>   *(uint32_t*)0x20000b10 =3D 0;
+>   *(uint32_t*)0x20000b14 =3D 0;
+>   *(uint32_t*)0x20000b18 =3D 0;
+>   *(uint32_t*)0x20000b1c =3D 0;
+>   *(uint32_t*)0x20000b20 =3D 0;
+>   *(uint32_t*)0x20000b24 =3D 0;
+>   *(uint32_t*)0x20000b28 =3D 0;
+>   *(uint32_t*)0x20000b2c =3D 0;
+>   *(uint32_t*)0x20000b30 =3D 0;
+>   *(uint32_t*)0x20000b34 =3D 0;
+>   *(uint32_t*)0x20000b38 =3D 0;
+>   *(uint32_t*)0x20000b3c =3D 0;
+>   *(uint32_t*)0x20000b40 =3D 0;
+>   *(uint32_t*)0x20000b44 =3D 0;
+>   *(uint32_t*)0x20001350 =3D r[1];
+>   *(uint32_t*)0x20001354 =3D 1;
+>   *(uint32_t*)0x20001358 =3D 1;
+>   *(uint32_t*)0x2000135c =3D 0x48;
+>   syscall(__NR_write, r[0], 0x20001340, 0x34d);
 > }
 >
 > int main()
 > {
 >   syscall(__NR_mmap, 0x20000000, 0x1000000, 3, 0x32, -1, 0);
->   for (procid =3D 0; procid < 8; procid++) {
->     if (fork() =3D=3D 0) {
->       for (;;) {
->         loop();
->       }
->     }
->   }
->   sleep(1000000);
+>   loop();
 >   return 0;
 > }
 
@@ -6043,24 +5601,24 @@ r30,binder31"
 > # CONFIG_STRING_SELFTEST is not set
 
 
---cVp8NMj01v+Em8Se
+--C01fF7hLGvN0zd9s
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqvjh0ACgkQ5GN7iDZy
-WKf7zA//W52+/744nUcz1sRvd60ao7B8+Ba24qq+w4CXxiX7vtb2vB+6LCtZa7L1
-cqz+MOk2uQg5t0k5yJgoCsBmL47zC22Rt5noDF55BmDKjba0Bj4RbI+OscAu4vIn
-6U8Xg/aYs3QncCHfaZfNi4MUPqUpNReleAUAuovXSekOR0J3gQtqMWPnUczgrYXV
-9ubUGW3zdA1dsInhoZ9cxKCIkyczVWmf/v3ugE1ecKXoZ6niM1r1CzLJmHQGJAWF
-iBWj07C4bREgw/NR1SquoM+RwIZuTJUIq18Gau94qxSqMqhDEhx55yny6Z9upDjA
-au3e0I/Aj9FRJxdTbDXGwsvvp+YoCNrvnmXojiI3CZtc0c7MbL0sP4YWGnyuXBVr
-VGTLpmBwJprbGLJo1YhTG6mOqKmnh25YQlcApW09ndCySJr22hsg/C6gh6w5SXSJ
-PKKv6eZ66mCkVfbQbOEjWjJopK5UFXypo/NWqqUUJz/BrT6QtNaxfWk3/ilYQYV1
-vwYpEg+KKSTCU6TVB3/+gHW+zjQhphlfsq7cCAhv1sCQjGZI0ezOmnS52VDNdo8t
-GczU8Rroid3mIj2iTl000oJKEXSTEUeMmKryzpBFZvD9tc9xH0b2SvPvroz9obcO
-hca45MvvtZCI1ll6qLSN+go8juH5rlERU80ESofwO/B1wdvj7sA=
-=knGc
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqvxdsACgkQ5GN7iDZy
+WKez2Q/9H6Uj5cCG8xr5v9qO9y5g7aknCpfONKd+bPeTIjmRnHmLOacxEUeugnoH
+lhwUgHicGuPXqb6qpoWgem7s7SvEJ9PyF1NoPGZqFQeFJlRIadzlU+Ib4Y+f2nfD
+ryEfvwoOC/EEPkttOH6ejkdINPGLXTyWr1iJcTAoZuSDI0cBzobFAqwotIUz8qKh
+mXethWXCnxKM9duWXdjUfJv4ROZnbA9yMXF3w8wGVFiRJYOjT5eWudj2FC1avbl+
+fVNiPNKsl3uGes5CySIZC7+cRYTrsbw1JjEXTcZt8cN2O0kUCb1L3+pY1bFNhXe2
+cMlwAHce2elJ+C0Xz3sFqgjY1yhDFBdei6Q36t/ibebg75JswCa4KifQ9uyICo4A
+zB0qwhkPRlbIskXWm+lmiaAYOHvzgpqHmUE6QILO0uVax3uFvPJ8IuGb/R2v/Ggp
+7bPQyQPqC5FqBLeXjuhdOjBliH+SpcLfKQLTzY78F+lYYScafBIfeKod+pGg25R4
+/a3d8H4GNAkONSBH4Cne3K4hvg2Mth4nZXOAMqQbKYj6oY6E7D+e8vl8C5xo2/Lx
+rAJo1D5+iRcBXm0/YCXgyb4o6GVujQHneJNF82WR4zFBD/HFHsChjWEah9aY7S6R
+Wa4kY2Tiuw+9yvd8w0/n7SslOTIZY1A/6aNJGL1u7SdyfH/hwpw=
+=KuY/
 -----END PGP SIGNATURE-----
 
---cVp8NMj01v+Em8Se--
+--C01fF7hLGvN0zd9s--
