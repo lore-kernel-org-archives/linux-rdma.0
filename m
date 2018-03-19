@@ -1,74 +1,86 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.15 28/52] RDMAVT: Fix synchronization around percpu_ref
-Date: Mon, 19 Mar 2018 19:08:26 +0100
-Message-ID: <20180319180736.648327623@linuxfoundation.org>
-References: <20180319180734.976730813@linuxfoundation.org>
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: [PATCH] xprtrdma: Fix corner cases when handling device removal
+Date: Mon, 19 Mar 2018 14:23:16 -0400
+Message-ID: <20180319182316.3060.7675.stgit@manet.1015granger.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180319180734.976730813@linuxfoundation.org>
 Sender: stable-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Tejun Heo <tj@kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+To: anna.schumaker@netapp.com
+Cc: linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-4.15-stable review patch.  If anyone has any objections, please let me know.
+Michal Kalderon has found some corner cases around device unload
+with active NFS mounts that I didn't have the imagination to test
+when xprtrdma device removal was added last year.
 
-------------------
+- The ULP device removal handler is responsible for deallocating
+  the PD. That wasn't clear to me initially, and my own testing
+  suggested it was not necessary, but that is incorrect.
 
-From: Tejun Heo <tj@kernel.org>
+- The transport destruction path can no longer assume that there
+  is a valid ID.
 
-commit 74b44bbe80b4c62113ac1501482ea1ee40eb9d67 upstream.
+- When destroying a transport, ensure that ib_free_cq() is not
+  invoked on a CQ that was already released.
 
-rvt_mregion uses percpu_ref for reference counting and RCU to protect
-accesses from lkey_table.  When a rvt_mregion needs to be freed, it
-first gets unregistered from lkey_table and then rvt_check_refs() is
-called to wait for in-flight usages before the rvt_mregion is freed.
-
-rvt_check_refs() seems to have a couple issues.
-
-* It has a fast exit path which tests percpu_ref_is_zero().  However,
-  a percpu_ref reading zero doesn't mean that the object can be
-  released.  In fact, the ->release() callback might not even have
-  started executing yet.  Proceeding with freeing can lead to
-  use-after-free.
-
-* lkey_table is RCU protected but there is no RCU grace period in the
-  free path.  percpu_ref uses RCU internally but it's sched-RCU whose
-  grace periods are different from regular RCU.  Also, it generally
-  isn't a good idea to depend on internal behaviors like this.
-
-To address the above issues, this patch removes the fast exit and adds
-an explicit synchronize_rcu().
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
+Reported-by: Michal Kalderon <Michal.Kalderon@cavium.com>
+Fixes: bebd031866ca ("xprtrdma: Support unplugging an HCA from ...")
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Cc: stable@vger.kernel.org
 ---
- drivers/infiniband/sw/rdmavt/mr.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ net/sunrpc/xprtrdma/verbs.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/drivers/infiniband/sw/rdmavt/mr.c
-+++ b/drivers/infiniband/sw/rdmavt/mr.c
-@@ -489,11 +489,13 @@ static int rvt_check_refs(struct rvt_mre
- 	unsigned long timeout;
- 	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
+diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
+index fe518b3..5e3afed 100644
+--- a/net/sunrpc/xprtrdma/verbs.c
++++ b/net/sunrpc/xprtrdma/verbs.c
+@@ -250,7 +250,6 @@
+ 		wait_for_completion(&ia->ri_remove_done);
  
--	if (percpu_ref_is_zero(&mr->refcount))
--		return 0;
--	/* avoid dma mr */
--	if (mr->lkey)
-+	if (mr->lkey) {
-+		/* avoid dma mr */
- 		rvt_dereg_clean_qps(mr);
-+		/* @mr was indexed on rcu protected @lkey_table */
-+		synchronize_rcu();
-+	}
-+
- 	timeout = wait_for_completion_timeout(&mr->comp, 5 * HZ);
- 	if (!timeout) {
- 		rvt_pr_err(rdi,
+ 		ia->ri_id = NULL;
+-		ia->ri_pd = NULL;
+ 		ia->ri_device = NULL;
+ 		/* Return 1 to ensure the core destroys the id. */
+ 		return 1;
+@@ -448,7 +447,9 @@
+ 		ia->ri_id->qp = NULL;
+ 	}
+ 	ib_free_cq(ep->rep_attr.recv_cq);
++	ep->rep_attr.recv_cq = NULL;
+ 	ib_free_cq(ep->rep_attr.send_cq);
++	ep->rep_attr.send_cq = NULL;
+ 
+ 	/* The ULP is responsible for ensuring all DMA
+ 	 * mappings and MRs are gone.
+@@ -461,6 +462,8 @@
+ 		rpcrdma_dma_unmap_regbuf(req->rl_recvbuf);
+ 	}
+ 	rpcrdma_mrs_destroy(buf);
++	ib_dealloc_pd(ia->ri_pd);
++	ia->ri_pd = NULL;
+ 
+ 	/* Allow waiters to continue */
+ 	complete(&ia->ri_remove_done);
+@@ -628,14 +631,16 @@
+ {
+ 	cancel_delayed_work_sync(&ep->rep_connect_worker);
+ 
+-	if (ia->ri_id->qp) {
++	if (ia->ri_id && ia->ri_id->qp) {
+ 		rpcrdma_ep_disconnect(ep, ia);
+ 		rdma_destroy_qp(ia->ri_id);
+ 		ia->ri_id->qp = NULL;
+ 	}
+ 
+-	ib_free_cq(ep->rep_attr.recv_cq);
+-	ib_free_cq(ep->rep_attr.send_cq);
++	if (ep->rep_attr.recv_cq)
++		ib_free_cq(ep->rep_attr.recv_cq);
++	if (ep->rep_attr.send_cq)
++		ib_free_cq(ep->rep_attr.send_cq);
+ }
+ 
+ /* Re-establish a connection after a device removal event.
