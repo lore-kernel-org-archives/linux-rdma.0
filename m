@@ -1,41 +1,74 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/mlx5: Set the default active rate and width to QDR
- and 4X
-Date: Mon, 19 Mar 2018 11:53:28 -0600
-Message-ID: <20180319175328.GF1225@ziepe.ca>
-References: <20180316023713.30323-1-honli@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.14 28/41] RDMAVT: Fix synchronization around percpu_ref
+Date: Mon, 19 Mar 2018 19:08:28 +0100
+Message-ID: <20180319180734.083478211@linuxfoundation.org>
+References: <20180319180732.195217948@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180316023713.30323-1-honli@redhat.com>
+In-Reply-To: <20180319180732.195217948@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Honggang LI <honli@redhat.com>
-Cc: dledford@redhat.com, matanb@mellanox.com, leonro@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, noaos@mellanox.com
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Tejun Heo <tj@kernel.org>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 16, 2018 at 10:37:13AM +0800, Honggang LI wrote:
-> From: Honggang Li <honli@redhat.com>
-> 
-> commit f1b65df5a232 ("IB/mlx5: Add support for active_width and
-> active_speed in RoCE"). Before this patch applied, the mlx5_ib
-> driver set default active_width and active_speed to IB_WIDTH_4X
-> and IB_SPEED_QDR.
-> 
-> When the RoCE port is down, the RoCE port did not negotiate the
-> active width with remote side. The active width is zero. If run
-> ibstat to require the port status, ibstat will panic as it read
-> invalid width from sys file.
-> 
-> This patch restores the original behavior.
-> 
-> Fixes: f1b65df5a232 ("IB/mlx5: Add support for active_width and active_speed in RoCE").
-> Signed-off-by: Honggang Li <honli@redhat.com>
-> Reviewed-by: Hal Rosenstock <hal@mellanox.com>
-> Reviewed-by: Noa Osherovich <noaos@mellanox.com>
->  drivers/infiniband/hw/mlx5/main.c | 3 +++
->  1 file changed, 3 insertions(+)
+4.14-stable review patch.  If anyone has any objections, please let me know.
 
-Applied to for-next, thanks
+------------------
 
-Jason
+From: Tejun Heo <tj@kernel.org>
+
+commit 74b44bbe80b4c62113ac1501482ea1ee40eb9d67 upstream.
+
+rvt_mregion uses percpu_ref for reference counting and RCU to protect
+accesses from lkey_table.  When a rvt_mregion needs to be freed, it
+first gets unregistered from lkey_table and then rvt_check_refs() is
+called to wait for in-flight usages before the rvt_mregion is freed.
+
+rvt_check_refs() seems to have a couple issues.
+
+* It has a fast exit path which tests percpu_ref_is_zero().  However,
+  a percpu_ref reading zero doesn't mean that the object can be
+  released.  In fact, the ->release() callback might not even have
+  started executing yet.  Proceeding with freeing can lead to
+  use-after-free.
+
+* lkey_table is RCU protected but there is no RCU grace period in the
+  free path.  percpu_ref uses RCU internally but it's sched-RCU whose
+  grace periods are different from regular RCU.  Also, it generally
+  isn't a good idea to depend on internal behaviors like this.
+
+To address the above issues, this patch removes the fast exit and adds
+an explicit synchronize_rcu().
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ drivers/infiniband/sw/rdmavt/mr.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -489,11 +489,13 @@ static int rvt_check_refs(struct rvt_mre
+ 	unsigned long timeout;
+ 	struct rvt_dev_info *rdi = ib_to_rvt(mr->pd->device);
+ 
+-	if (percpu_ref_is_zero(&mr->refcount))
+-		return 0;
+-	/* avoid dma mr */
+-	if (mr->lkey)
++	if (mr->lkey) {
++		/* avoid dma mr */
+ 		rvt_dereg_clean_qps(mr);
++		/* @mr was indexed on rcu protected @lkey_table */
++		synchronize_rcu();
++	}
++
+ 	timeout = wait_for_completion_timeout(&mr->comp, 5 * HZ);
+ 	if (!timeout) {
+ 		rvt_pr_err(rdi,
