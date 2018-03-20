@@ -1,106 +1,101 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 5/6] IB/nes: Eliminate duplicate barriers on
+Subject: Re: [PATCH v4 1/6] RDMA/bnxt_re: Eliminate duplicate barriers on
  weakly-ordered archs
-Date: Tue, 20 Mar 2018 10:01:51 -0600
-Message-ID: <20180320160151.GM19744@ziepe.ca>
+Date: Tue, 20 Mar 2018 10:02:29 -0600
+Message-ID: <20180320160229.GN19744@ziepe.ca>
 References: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
- <1521514068-8856-6-git-send-email-okaya@codeaurora.org>
- <20180320145413.GH19744@ziepe.ca>
- <3b96019a-2b3b-374a-453e-0553fb04c0a7@codeaurora.org>
+ <1521514068-8856-2-git-send-email-okaya@codeaurora.org>
+ <20180320144801.GE19744@ziepe.ca>
+ <d31c062b-5629-62b8-c291-c656e23c6f82@codeaurora.org>
+ <20180320152043.GK19744@ziepe.ca>
+ <dbfd4127-d6d5-eccc-4b7b-0ea3bf51a699@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <3b96019a-2b3b-374a-453e-0553fb04c0a7@codeaurora.org>
+In-Reply-To: <dbfd4127-d6d5-eccc-4b7b-0ea3bf51a699@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 20, 2018 at 10:23:16AM -0500, Sinan Kaya wrote:
-> On 3/20/2018 9:54 AM, Jason Gunthorpe wrote:
-> > On Mon, Mar 19, 2018 at 10:47:47PM -0400, Sinan Kaya wrote:
-> >> Code includes barrier() followed by writel(). writel() already has a
-> >> barrier on some architectures like arm64.
+On Tue, Mar 20, 2018 at 10:30:34AM -0500, Sinan Kaya wrote:
+> On 3/20/2018 10:20 AM, Jason Gunthorpe wrote:
+> > On Tue, Mar 20, 2018 at 10:00:49AM -0500, Sinan Kaya wrote:
+> >> On 3/20/2018 9:48 AM, Jason Gunthorpe wrote:
+> >>> On Mon, Mar 19, 2018 at 10:47:43PM -0400, Sinan Kaya wrote:
+> >>>> Code includes wmb() followed by writel(). writel() already has a barrier on
+> >>>> some architectures like arm64.
+> >>>>
+> >>>> This ends up CPU observing two barriers back to back before executing the
+> >>>> register write.
+> >>>>
+> >>>> Since code already has an explicit barrier call, changing writel() to
+> >>>> writel_relaxed().
+> >>>>
+> >>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> >>>>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 8 ++++----
+> >>>>  1 file changed, 4 insertions(+), 4 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> >>>> index 8329ec6..4a6b981 100644
+> >>>> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> >>>> @@ -181,10 +181,10 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+> >>>>  
+> >>>>  	/* ring CMDQ DB */
+> >>>>  	wmb();
+> >>>> -	writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+> >>>> -	       rcfw->cmdq_bar_reg_prod_off);
+> >>>> -	writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> >>>> -	       rcfw->cmdq_bar_reg_trig_off);
+> >>>> +	writel_relaxed(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+> >>>> +		       rcfw->cmdq_bar_reg_prod_off);
+> >>>> +	writel_relaxed(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> >>>> +		       rcfw->cmdq_bar_reg_trig_off);
+> >>>
+> >>> Woah, this may not be safe..
+> >>>
+> >>> The definition of writel_relaxed() is that it is fully unordered, so
+> >>> the above two writes may change order now. Broadcom guys would have to
+> >>> ack if that it is OK or not for their hardware.
+> >>>
+> >>> In general this is not an OK approach for a mechanical
+> >>> conversion.. Only the first writel can be convereted.
+> >>>
+> >>> You need to check all your patches to make sure there are no
+> >>> subsequent writel's in the places touched.
 > >>
-> >> This ends up CPU observing two barriers back to back before executing the
-> >> register write.
-> >>
-> >> Create a new wrapper function with relaxed write operator. Use the new
-> >> wrapper when a write is following a barrier().
-> >>
-> >> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> >>  drivers/infiniband/hw/nes/nes.h       |  5 +++++
-> >>  drivers/infiniband/hw/nes/nes_hw.c    | 21 ++++++++++++++-------
-> >>  drivers/infiniband/hw/nes/nes_mgt.c   | 15 ++++++++++-----
-> >>  drivers/infiniband/hw/nes/nes_nic.c   |  2 +-
-> >>  drivers/infiniband/hw/nes/nes_utils.c |  3 ++-
-> >>  drivers/infiniband/hw/nes/nes_verbs.c |  5 +++--
-> >>  6 files changed, 35 insertions(+), 16 deletions(-)
-> >>
-> >> diff --git a/drivers/infiniband/hw/nes/nes.h b/drivers/infiniband/hw/nes/nes.h
-> >> index 00c27291..85e007d 100644
-> >> +++ b/drivers/infiniband/hw/nes/nes.h
-> >> @@ -387,6 +387,11 @@ static inline void nes_write_indexed(struct nes_device *nesdev, u32 reg_index, u
-> >>  	spin_unlock_irqrestore(&nesdev->indexed_regs_lock, flags);
-> >>  }
-> >>  
-> >> +static inline void nes_write32_relaxed(void __iomem *addr, u32 val)
-> >> +{
-> >> +	writel_relaxed(val, addr);
-> >> +}
+> >> I paid special attention to this one and went to check the barriers
+> >> document. According to the document, writes (whether it is relaxed or not)
+> >> are always observed by the HW inorder with respect to each other.
 > > 
-> > This wrapper is pointless, let us not add more..
+> > Oh interesting, that document got revised to make writel_relaxed less
+> > relaxed a few years ago, didn't know that. Thanks.
 > > 
-> >>  static inline void nes_write32(void __iomem *addr, u32 val)
-> >>  {
-> >>  	writel(val, addr);
-> >> diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-> >> index 18a7de1..568e17d 100644
-> >> +++ b/drivers/infiniband/hw/nes/nes_hw.c
-> >> @@ -1257,7 +1257,8 @@ int nes_destroy_cqp(struct nes_device *nesdev)
-> >>  
-> >>  	barrier();
-> >>  	/* Ring doorbell (5 WQEs) */
-> >> -	nes_write32(nesdev->regs+NES_WQE_ALLOC, 0x05800000 | nesdev->cqp.qp_id);
-> >> +	nes_write32_relaxed(nesdev->regs+NES_WQE_ALLOC,
-> >> +			    0x05800000 | nesdev->cqp.qp_id);
+> > However, this is still not OK, the full code is:
 > > 
-> > barrier() is not strong enough to order writel, so this doesn't seem
-> > right?
+> >         /* ring CMDQ DB */
+> >         wmb();
+> >         writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+> >                rcfw->cmdq_bar_reg_prod_off);
+> >         writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> >                rcfw->cmdq_bar_reg_trig_off);
+> > done:
+> >         spin_unlock_irqrestore(&cmdq->lock, flags);
 > > 
-> > It is probably noteven strong enough for what this driver thinks it is
-> > doing..  This driver is essentially dead and broken, probably just
-> > don't change it.
+> > 
+> > And the definition of _relaxed allows the writes to order outside the
+> > spinlock region, which is very likely to be wrong in this driver.
+> > 
+> > I'm not sure adding a mmiowb() just to use a writel_relaxed is any
+> > sort of win though?
 > 
-> Just for the sake of other changes in netdev directory and my education...
+> I'd prefer this. 
 > 
-> barrier() on ARM is a wmb(). It should be a compiler barrier on intel.
+> mmiowb() on ARM64 is empty. mmiowb() guarantees that code also works for PPC too.
 > 
-> You are saying barrier() should have been a wmb(), right?
+> I'll switch to this instead so it works for everybody.
 
-Yes, that is my understanding.. barrier() is supposed to be a very
-weak barrier that just ensures the CPU is locally consistent with
-itself. It doesn't say anything about DMA access, or SMP cases.
-
-I don't think it is supposed to order anything related to
-writel_relaxed()
-
-> I have gone through similar exercise on netdev directory and changed
-> 
-> barrier()
-> writel()
-> 
-> to 
-> 
-> barrier()
-> writel_relaxed()
-> 
-> Do you see any problem with this?
-
-Seems dangerous as a mechanical change to me, it really depends on why
-the driver author put barrier() there.
-
-In this case, I strongly suspect nes really intended to say wmb()
+It looks like a compiler barrier on x86 so that seems fine too.
 
 Jason
