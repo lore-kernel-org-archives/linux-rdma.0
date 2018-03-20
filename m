@@ -1,64 +1,60 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: RE: [PATCH v4 6/6] RDMA/qedr: eliminate duplicate barriers on
- weakly-ordered archs #2
-Date: Tue, 20 Mar 2018 07:38:48 +0000
-Message-ID: <CY1PR0701MB20128974717898F2D399431688AB0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 1/6] RDMA/bnxt_re: Eliminate duplicate barriers on
+ weakly-ordered archs
+Date: Tue, 20 Mar 2018 08:48:01 -0600
+Message-ID: <20180320144801.GE19744@ziepe.ca>
 References: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
- <1521514068-8856-7-git-send-email-okaya@codeaurora.org>
+ <1521514068-8856-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1521514068-8856-7-git-send-email-okaya@codeaurora.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1521514068-8856-2-git-send-email-okaya@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>
-Cc: "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Sinan Kaya [mailto:okaya@codeaurora.org]
-> Sent: Tuesday, March 20, 2018 4:48 AM
->=20
-> Code includes wmb() followed by writel() in multiple places. writel() alr=
-eady
-> has a barrier on some architectures like arm64.
->=20
+On Mon, Mar 19, 2018 at 10:47:43PM -0400, Sinan Kaya wrote:
+> Code includes wmb() followed by writel(). writel() already has a barrier on
+> some architectures like arm64.
+> 
 > This ends up CPU observing two barriers back to back before executing the
 > register write.
->=20
+> 
 > Since code already has an explicit barrier call, changing writel() to
 > writel_relaxed().
->=20
+> 
 > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/qedr/verbs.c
-> b/drivers/infiniband/hw/qedr/verbs.c
-> index ccd55f4..db60360 100644
-> --- a/drivers/infiniband/hw/qedr/verbs.c
-> +++ b/drivers/infiniband/hw/qedr/verbs.c
-> @@ -860,7 +860,7 @@ static void doorbell_cq(struct qedr_cq *cq, u32 cons,
-> u8 flags)
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> index 8329ec6..4a6b981 100644
+> +++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+> @@ -181,10 +181,10 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+>  
+>  	/* ring CMDQ DB */
 >  	wmb();
->  	cq->db.data.agg_flags =3D flags;
->  	cq->db.data.value =3D cpu_to_le32(cons);
-> -	writeq(cq->db.raw, cq->db_addr);
-> +	writeq_relaxed(cq->db.raw, cq->db_addr);
->=20
->  	/* Make sure write would stick */
->  	mmiowb();
-> @@ -3338,7 +3338,7 @@ int qedr_post_recv(struct ib_qp *ibqp, struct
-> ib_recv_wr *wr,
->=20
->  		qp->rq.db_data.data.value++;
->=20
-> -		writel(qp->rq.db_data.raw, qp->rq.db);
-> +		writel_relaxed(qp->rq.db_data.raw, qp->rq.db);
->=20
->  		/* Make sure write sticks */
->  		mmiowb();
-> --
-> 2.7.4
-Acked-by: Michal Kalderon <Michal.Kalderon@cavium.com>
+> -	writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+> -	       rcfw->cmdq_bar_reg_prod_off);
+> -	writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> -	       rcfw->cmdq_bar_reg_trig_off);
+> +	writel_relaxed(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+> +		       rcfw->cmdq_bar_reg_prod_off);
+> +	writel_relaxed(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+> +		       rcfw->cmdq_bar_reg_trig_off);
+
+Woah, this may not be safe..
+
+The definition of writel_relaxed() is that it is fully unordered, so
+the above two writes may change order now. Broadcom guys would have to
+ack if that it is OK or not for their hardware.
+
+In general this is not an OK approach for a mechanical
+conversion.. Only the first writel can be convereted.
+
+You need to check all your patches to make sure there are no
+subsequent writel's in the places touched.
+
+Jason
