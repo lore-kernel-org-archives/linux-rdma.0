@@ -1,21 +1,21 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 2/6] IB/mlx4: Eliminate duplicate barriers on
- weakly-ordered archs
-Date: Tue, 20 Mar 2018 08:48:51 -0600
-Message-ID: <20180320144851.GF19744@ziepe.ca>
+Subject: Re: [PATCH v4 4/6] infiniband: cxgb4: Eliminate duplicate barriers
+ on weakly-ordered archs
+Date: Tue, 20 Mar 2018 08:51:59 -0600
+Message-ID: <20180320145159.GG19744@ziepe.ca>
 References: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
- <1521514068-8856-3-git-send-email-okaya@codeaurora.org>
+ <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1521514068-8856-3-git-send-email-okaya@codeaurora.org>
+In-Reply-To: <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 19, 2018 at 10:47:44PM -0400, Sinan Kaya wrote:
+On Mon, Mar 19, 2018 at 10:47:46PM -0400, Sinan Kaya wrote:
 > Code includes wmb() followed by writel(). writel() already has a barrier on
 > some architectures like arm64.
 > 
@@ -26,27 +26,24 @@ On Mon, Mar 19, 2018 at 10:47:44PM -0400, Sinan Kaya wrote:
 > writel_relaxed().
 > 
 > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/infiniband/hw/mlx4/qp.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
-
-> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-> index f045491..74b27b0 100644
-> --- a/drivers/infiniband/hw/mlx4/qp.c
-> +++ b/drivers/infiniband/hw/mlx4/qp.c
-> @@ -3880,8 +3880,8 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->  		 */
->  		wmb();
->  
-> -		writel(qp->doorbell_qpn,
-> -		       to_mdev(ibqp->device)->uar_map + MLX4_SEND_DOORBELL);
-> +		writel_relaxed(qp->doorbell_qpn,
-> +			to_mdev(ibqp->device)->uar_map + MLX4_SEND_DOORBELL);
->  
->  		/*
->  		 * Make sure doorbells don't leak out of SQ spinlock
-> -- 
-> 2.7.4
+>  drivers/infiniband/hw/cxgb4/t4.h | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
 > 
+> diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+> index 8369c7c..6e5658a 100644
+> +++ b/drivers/infiniband/hw/cxgb4/t4.h
+> @@ -457,7 +457,7 @@ static inline void pio_copy(u64 __iomem *dst, u64 *src)
+>  	int count = 8;
+>  
+>  	while (count) {
+> -		writeq(*src, dst);
+> +		writeq_relaxed(*src, dst);
+>  		src++;
+>  		dst++;
+>  		count--;
+
+This is another case where writes can be re-ordered.. IIRC dst is WC
+BAR memory, so the NIC should tolerate re-ordering, but Steve will
+have to ack this.
+
+Jason
