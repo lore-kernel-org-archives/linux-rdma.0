@@ -1,75 +1,77 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v4 3/6] RDMA/i40iw: Eliminate duplicate barriers on
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 0/6] ib: Eliminate duplicate barriers on
  weakly-ordered archs
-Date: Wed, 21 Mar 2018 16:01:48 -0500
-Message-ID: <596af6f5-3668-2545-4d79-b7b8c6713444@codeaurora.org>
+Date: Wed, 21 Mar 2018 14:08:08 -0600
+Message-ID: <20180321200808.GC22381@ziepe.ca>
 References: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
- <1521514068-8856-4-git-send-email-okaya@codeaurora.org>
- <20180321200253.GA21453@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180321200253.GA21453@ziepe.ca>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/21/2018 3:02 PM, Jason Gunthorpe wrote:
-> On Mon, Mar 19, 2018 at 10:47:45PM -0400, Sinan Kaya wrote:
->> diff --git a/drivers/infiniband/hw/i40iw/i40iw_uk.c b/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> index 8afa5a6..7f0ebed 100644
->> +++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
->> @@ -723,7 +723,7 @@ static void i40iw_cq_request_notification(struct i40iw_cq_uk *cq,
->>  
->>  	wmb(); /* make sure WQE is populated before valid bit is set */
->>  
->> -	writel(cq->cq_id, cq->cqe_alloc_reg);
->> +	writel_relaxed(cq->cq_id, cq->cqe_alloc_reg);
->>  }
+On Mon, Mar 19, 2018 at 10:47:42PM -0400, Sinan Kaya wrote:
+> Code includes wmb() followed by writel() in multiple places. writel()
+> already has a barrier on some architectures like arm64.
 > 
-> Ah, this one is probably not OK, i40iw_cq_request_notification is
-> called here:
+> This ends up CPU observing two barriers back to back before executing the
+> register write.
 > 
-> 	spin_lock_irqsave(&iwcq->lock, flags);
-> 	ukcq->ops.iw_cq_request_notification(ukcq, cq_notify);
-> 	spin_unlock_irqrestore(&iwcq->lock, flags);
+> Since code already has an explicit barrier call, changing writel() to
+> writel_relaxed().
 > 
-> So this needs to add mmmiomb(); to keep the same semantics.
+> I did a regex search for wmb() followed by writel() in each drivers
+> directory.
+> I scrubbed the ones I care about in this series.
 > 
-> Generally I think you need to be very careful to ensure that any
-> conversion to _relaxed isn't contained by a spinlock, or the mmiomb()
-> is present.
+> I considered "ease of change", "popular usage" and "performance critical
+> path" as the determining criteria for my filtering.
 > 
-> Maybe even do a first series with this obviously correct pattern:
+> We used relaxed API heavily on ARM for a long time but
+> it did not exist on other architectures. For this reason, relaxed
+> architectures have been paying double penalty in order to use the common
+> drivers.
 > 
->  wmb();
->  writel() -> writel_relaxed()
->  writel() -> writel_relaxed()
->  [..]
->  mmiowmb();
-
-Good catch. I changed it as follows:
-
-+++ b/drivers/infiniband/hw/i40iw/i40iw_uk.c
-@@ -723,7 +723,8 @@ static void i40iw_cq_request_notification(struct i40iw_cq_uk *cq,
-
-        wmb(); /* make sure WQE is populated before valid bit is set */
-
--       writel(cq->cq_id, cq->cqe_alloc_reg);
-+       writel_relaxed(cq->cq_id, cq->cqe_alloc_reg);
-+       mmiowb();
- }
-
-
+> Now that relaxed API is present on all architectures, we can go and scrub
+> all drivers to see what needs to change and what can remain.
 > 
-> Jason
+> We start with mostly used ones and hope to increase the coverage over time.
+> It will take a while to cover all drivers.
 > 
+> Feel free to apply patches individually.
+> 
+> Changes since v3:
+> - https://www.spinics.net/lists/arm-kernel/msg641851.html
+> - group patches together into subsystems ib:...
+> - collect reviewed and tested bys
+> - scrub barrier()
 
+> Sinan Kaya (6):
+>   IB/mlx4: Eliminate duplicate barriers on weakly-ordered archs
+>   infiniband: cxgb4: Eliminate duplicate barriers on weakly-ordered
+>     archs
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+I took these two patches to for-next since they seem OK to me
+
+>   RDMA/bnxt_re: Eliminate duplicate barriers on weakly-ordered archs
+>   RDMA/i40iw: Eliminate duplicate barriers on weakly-ordered archs
+>   IB/nes: Eliminate duplicate barriers on weakly-ordered archs
+>   RDMA/qedr: eliminate duplicate barriers on weakly-ordered archs #2
+
+These will need their comments addressed
+
+Thanks,
+Jason
