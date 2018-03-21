@@ -1,16 +1,16 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v3 06/11] block: Introduce PCI P2P flags for request
- and request queue
-Date: Wed, 21 Mar 2018 10:27:22 +0100
-Message-ID: <20180321092722.GD7098@lst.de>
+Subject: Re: [PATCH v3 07/11] IB/core: Ensure we map P2P memory correctly
+ in  rdma_rw_ctx_[init|destroy]()
+Date: Wed, 21 Mar 2018 10:27:36 +0100
+Message-ID: <20180321092736.GE7098@lst.de>
 References: <20180312193525.2855-1-logang@deltatee.com>
- <20180312193525.2855-7-logang@deltatee.com>
+ <20180312193525.2855-8-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180312193525.2855-7-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180312193525.2855-8-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
