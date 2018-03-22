@@ -1,77 +1,76 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 0/6] ib: Eliminate duplicate barriers on
- weakly-ordered archs
-Date: Wed, 21 Mar 2018 14:08:08 -0600
-Message-ID: <20180321200808.GC22381@ziepe.ca>
-References: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Thu, 22 Mar 2018 15:24:49 +1100
+Message-ID: <1521692689.16434.293.camel@kernel.crashing.org>
+References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
+ <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
+ <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1521514068-8856-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: linux-rdma@vger.kernel.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Sinan Kaya <okaya@codeaurora.org>, Oliver <oohall@gmail.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 19, 2018 at 10:47:42PM -0400, Sinan Kaya wrote:
-> Code includes wmb() followed by writel() in multiple places. writel()
-> already has a barrier on some architectures like arm64.
-> 
-> This ends up CPU observing two barriers back to back before executing the
-> register write.
-> 
-> Since code already has an explicit barrier call, changing writel() to
-> writel_relaxed().
-> 
-> I did a regex search for wmb() followed by writel() in each drivers
-> directory.
-> I scrubbed the ones I care about in this series.
-> 
-> I considered "ease of change", "popular usage" and "performance critical
-> path" as the determining criteria for my filtering.
-> 
-> We used relaxed API heavily on ARM for a long time but
-> it did not exist on other architectures. For this reason, relaxed
-> architectures have been paying double penalty in order to use the common
-> drivers.
-> 
-> Now that relaxed API is present on all architectures, we can go and scrub
-> all drivers to see what needs to change and what can remain.
-> 
-> We start with mostly used ones and hope to increase the coverage over time.
-> It will take a while to cover all drivers.
-> 
-> Feel free to apply patches individually.
-> 
-> Changes since v3:
-> - https://www.spinics.net/lists/arm-kernel/msg641851.html
-> - group patches together into subsystems ib:...
-> - collect reviewed and tested bys
-> - scrub barrier()
+On Wed, 2018-03-21 at 08:53 -0500, Sinan Kaya wrote:
+> writel_relaxed() needs to have ordering guarantees with respect to the order
+> device observes writes. 
 
-> Sinan Kaya (6):
->   IB/mlx4: Eliminate duplicate barriers on weakly-ordered archs
->   infiniband: cxgb4: Eliminate duplicate barriers on weakly-ordered
->     archs
+Correct.
 
-I took these two patches to for-next since they seem OK to me
+> x86 has compiler barrier inside the relaxed() API so that code does not
+> get reordered. ARM64 architecturally guarantees device writes to be observed
+> in order.
+> 
+> I was hoping that PPC could follow x86 and inject compiler barrier into the
+> relaxed functions. 
+> 
+> BTW, I have no idea what compiler barrier does on PPC and if
+> 
+> wrltel() == compiler barrier() + wrltel_relaxed()
+> 
+> can be said.
 
->   RDMA/bnxt_re: Eliminate duplicate barriers on weakly-ordered archs
->   RDMA/i40iw: Eliminate duplicate barriers on weakly-ordered archs
->   IB/nes: Eliminate duplicate barriers on weakly-ordered archs
->   RDMA/qedr: eliminate duplicate barriers on weakly-ordered archs #2
+No, it's not sufficient.
 
-These will need their comments addressed
+Replacing wmb() + writel() with wmb() + writel_relaxed() will work on
+PPC, it will just not give you a benefit today.
 
-Thanks,
-Jason
+The main problem is that the semantics of writel/writel_relaxed (and
+read versions) aren't very well defined in Linux esp. when it comes
+to different memory types (NC, WC, ...).
+
+I've been wanting to implement the relaxed accessors for a while but
+was battling with this to try to also better support WC, and due to
+other commitments, this somewhat fell down the cracks.
+
+Two options I can think of:
+
+ - Just make the _relaxed variants use an eieio instead of a sync, this
+will effectively lift the ordering guarantee vs. cachable storage (and
+thus unlock) and might give a (small) performance improvement. However,
+we still have the problem that on WC mappings, neither writel nor
+writel_relaxed will effectively allow combining to happen (only raw
+accesses will because on powerpc *all* barriers will break combining).
+
+ - Make writel_relaxed() be a simple store without barriers, and
+readl_relaxed() be "eieio, read, eieio", thus allowing write combining
+to happen between successive writel_relaxed on WC space (no change on
+normal NC space) while maintaining the ordering between relaxed reads
+and writes. The flip side is a (slight) increased overhead of
+readl_relaxed.
+
+Cheers,
+Ben.
