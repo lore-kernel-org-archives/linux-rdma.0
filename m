@@ -1,40 +1,43 @@
-From: Casey Leedom <leedom@chelsio.com>
-Subject: Re: [PATCH v4 4/6] infiniband: cxgb4: Eliminate duplicate barriers on
- weakly-ordered archs
-Date: Thu, 22 Mar 2018 22:02:52 +0000
-Message-ID: <BY2PR1201MB09833C062294345C829E90A9C8A90@BY2PR1201MB0983.namprd12.prod.outlook.com>
-References: <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
- <201803221430.P43GJl9U%fengguang.wu@intel.com>
- <3664b253c730dbf83f4528acaedb3a88@codeaurora.org>
- <3e9c006e4541acbce11743dbda553e84@codeaurora.org>
- <03d201d3c1eb$b71fb460$255f1d20$@opengridcomputing.com>
- <83484a3f-d3f7-d763-e4f8-e4fec3bb8cc2@codeaurora.org>
- <52cbc9d7-5a6b-5c8b-b930-058f5be62079@opengridcomputing.com>
- <BY2PR1201MB098352CB012D8AE8084882F3C8A90@BY2PR1201MB0983.namprd12.prod.outlook.com>
- <20180322201649.GC9469@ziepe.ca>
- <BY2PR1201MB098367F8F217A8BF66AE68B6C8A90@BY2PR1201MB0983.namprd12.prod.outlook.com>,<f676414b-20b7-d724-4fcd-d2b4c24259b5@codeaurora.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH v2] net/mlx5: Fix use-after-free
+Date: Thu, 22 Mar 2018 22:08:55 +0000
+Message-ID: <1521756532.8756.60.camel@mellanox.com>
+References: <20180322184456.GA22259@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f676414b-20b7-d724-4fcd-d2b4c24259b5@codeaurora.org>
+In-Reply-To: <20180322184456.GA22259@embeddedgus>
 Content-Language: en-US
+Content-ID: <ED0D7A3D6A5C8C41849C8C274CB7C3C9@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: SWise OGC <swise@opengridcomputing.com>, 'kbuild test robot' <lkp@intel.com>, "kbuild-all@01.org" <kbuild-all@01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Steve Wise <swise@chelsio.com>, 'Doug Ledford' <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Michael Werner <werner@chelsio.com>
+To: "yuval.shaia@oracle.com" <yuval.shaia@oracle.com>, Matan Barak <matanb@mellanox.com>, Ilan Tayari <ilant@mellanox.com>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, Boris Pismenny <borisp@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  Okay, thanks Sinan.  I ~think~ we're on the same page here.
-
-  Our guy Michael Werner is carefully going through our drivers with Steve
-Wise.  I'd like to let them work on the changes with a lot of thought and
-testing before diving in too far.
-
-  We had thought that we could get around the lack of a real Relaxed
-Ordering Write on the PowerPC via the __raw_write*() API, but that isn't
-really part of the defined API and various platforms define that API
-differently (some doing PCI Byte Ordering rearrangements and some not).  I
-think that we're going to have to work with the PowerPC platform folks to
-get a real Relaxed Ordering Write.
-
-Casey
+T24gVGh1LCAyMDE4LTAzLTIyIGF0IDEzOjQ0IC0wNTAwLCBHdXN0YXZvIEEuIFIuIFNpbHZhIHdy
+b3RlOg0KPiBfcnVsZV8gaXMgYmVpbmcgZnJlZWQgYW5kIHRoZW4gZGVyZWZlcmVuY2VkIGJ5IGFj
+Y2Vzc2luZyBydWxlLT5jdHgNCj4gDQo+IEZpeCB0aGlzIGJ5IGNvcHlpbmcgdGhlIHZhbHVlIHJl
+dHVybmVkIGJ5IFBUUl9FUlIocnVsZS0+Y3R4KSBpbnRvIGENCj4gbG9jYWwNCj4gdmFyaWFibGUg
+Zm9yIGl0cyBzYWZlIHVzZSBhZnRlciBmcmVlaW5nIF9ydWxlXw0KPiANCj4gQWRkcmVzc2VzLUNv
+dmVyaXR5LUlEOiAxNDY2MDQxICgiUmVhZCBmcm9tIHBvaW50ZXIgYWZ0ZXIgZnJlZSIpDQo+IEZp
+eGVzOiAwNTU2NGQwYWUwNzUgKCJuZXQvbWx4NTogQWRkIGZsb3ctc3RlZXJpbmcgY29tbWFuZHMg
+Zm9yIEZQR0ENCj4gSVBTZWMgaW1wbGVtZW50YXRpb24iKQ0KPiBSZXZpZXdlZC1ieTogWXV2YWwg
+U2hhaWEgPHl1dmFsLnNoYWlhQG9yYWNsZS5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEd1c3Rhdm8g
+QS4gUi4gU2lsdmEgPGd1c3Rhdm9AZW1iZWRkZWRvci5jb20+DQoNCkFja2VkLWJ5OiBTYWVlZCBN
+YWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCg0KPiAtLS0NCj4gQ2hhbmdlcyBpbiB2MjoN
+Cj4gIC0gVXNlIGEgc2hvcnQgc3ViamVjdCBwcmVmaXggYXMgc3VnZ2VzdGVkIGJ5IFl1dmFsIFNo
+YWlhLg0KPiAgLSBBZGQgWXV2YWwncyBSZXZpZXdlZC1ieS4NCj4gDQo+ICBkcml2ZXJzL25ldC9l
+dGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS9pcHNlYy5jIHwgMyArKy0NCj4gIDEgZmls
+ZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gDQo+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS9pcHNlYy5j
+DQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvaXBzZWMu
+Yw0KPiBpbmRleCA0ZjE1Njg1Li4wZjVkYTQ5IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9l
+dGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS9pcHNlYy5jDQo+ICsrKyBiL2RyaXZlcnMv
+bmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9mcGdhL2lwc2VjLmMNCj4gQEAgLTEwNjEs
+OCArMTA2MSw5IEBAIHN0YXRpYyBpbnQgZnBnYV9pcHNlY19mc19jcmVhdGVfZnRlKHN0cnVjdA0K
+PiBtbHg1X2NvcmVfZGV2ICpkZXYsDQo+ICANCj4gIAlydWxlLT5jdHggPSBtbHg1X2ZwZ2FfaXBz
+ZWNfZnNfY3JlYXRlX3NhX2N0eChkZXYsIGZ0ZSwNCj4gaXNfZWdyZXNzKTsNCj4gIAlpZiAoSVNf
+RVJSKHJ1bGUtPmN0eCkpIHsNCj4gKwkJaW50IGVyciA9IFBUUl9FUlIocnVsZS0+Y3R4KTsNCj4g
+IAkJa2ZyZWUocnVsZSk7DQo+IC0JCXJldHVybiBQVFJfRVJSKHJ1bGUtPmN0eCk7DQo+ICsJCXJl
+dHVybiBlcnI7DQo+ICAJfQ0KPiAgDQo+ICAJcnVsZS0+ZnRlID0gZnRlOw==
