@@ -1,118 +1,50 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: WARNING: ODEBUG bug in process_one_req
-Date: Thu, 22 Mar 2018 17:31:40 +0200
-Message-ID: <20180322153140.GP19440@mtr-leonro.local>
-References: <94eb2c0bc3aa8b2432056623c735@google.com>
- <20180322124823.GB19440@mtr-leonro.local>
- <CACT4Y+Ya8iMgV=7YGgsO2XnusF9tnGcHHPF5U5oNjQz_eJ+vMw@mail.gmail.com>
- <20180322132031.GC19440@mtr-leonro.local>
- <CACT4Y+a2KB6vvgFcqkq7cMCiCZQEFNxsCTgP+_gtgju8H2q9hQ@mail.gmail.com>
- <20180322142900.GD19440@mtr-leonro.local>
- <CACT4Y+ZEGHp9vg68O7dDfRWj+_bKZQCGQX2AcFckm8GBYaREug@mail.gmail.com>
- <20180322151358.GE19440@mtr-leonro.local>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH v5 1/3] RDMA/bnxt_re: Eliminate duplicate barriers on weakly-ordered archs
+Date: Thu, 22 Mar 2018 12:26:47 -0400
+Message-ID: <1521736009-23387-2-git-send-email-okaya@codeaurora.org>
+References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="DEZnBEgdqIPZuRMC"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180322151358.GE19440@mtr-leonro.local>
+In-Reply-To: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>
-Cc: syzbot <syzbot+3b4acab09b6463472d0a@syzkaller.appspotmail.com>, danielj@mellanox.com, dledford@redhat.com, Jason Gunthorpe <jgg@ziepe.ca>, Johannes Berg <johannes.berg@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, monis@mellanox.com, Paolo Abeni <pabeni@redhat.com>, parav@mellanox.com, Roland Dreier <roland@purestorage.com>, syzkaller-bugs@googlegroups.com, yuval.shaia@oracle.com
+To: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Code includes wmb() followed by writel(). writel() already has a barrier on
+some architectures like arm64.
 
---DEZnBEgdqIPZuRMC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This ends up CPU observing two barriers back to back before executing the
+register write.
 
-On Thu, Mar 22, 2018 at 05:13:58PM +0200, Leon Romanovsky wrote:
-> On Thu, Mar 22, 2018 at 03:47:41PM +0100, Dmitry Vyukov wrote:
-> > On Thu, Mar 22, 2018 at 3:29 PM, Leon Romanovsky <leonro@mellanox.com> wrote:
-> > > On Thu, Mar 22, 2018 at 02:36:55PM +0100, Dmitry Vyukov wrote:
-> > >> On Thu, Mar 22, 2018 at 2:20 PM, Leon Romanovsky <leonro@mellanox.com> wrote:
-> > >> > On Thu, Mar 22, 2018 at 02:10:21PM +0100, Dmitry Vyukov wrote:
-> > >> >> This bug is actively happening several times per day, if such bug is
-> > >> >> closed syzbot will open another bug on the next crash.
-> > >> >> This bug has a reproducer, why do you think it is invalid?
-> > >> >
-> > >> > I tried to reproduce it on latest rdma-next and failed, so wanted to
-> > >> > start from clean page and see if it is still relevant.
-> > >>
-> > >> Ah,  I see.
-> > >> You can now see the current status on dashboard:
-> > >> https://syzkaller.appspot.com/bug?id=d4ac7bfeafac8a3d6d06123e078462ac765415e7
-> > >> Yes, it still happens.
-> > >>
-> > >> syzbot has already reported another incarnation of this bug, you can
-> > >> see the link to dashboard in the email:
-> > >> https://syzkaller.appspot.com/bug?extid=b8d5eb964e412cfd2678
-> > >> and it contains a link to the first version with reproducer.
-> > >>
-> > >> > Does it still reproduce on latest rdma-next?
-> > >>
-> > >> syzbot does not test rdma-next.
-> > >>
-> > >> But can you reproduce it on upstream tree where syzbot hits it? Just
-> > >> to make sure, you have ODEBUG enabled, right?
-> > >
-> > > Thanks for the tip, I added more debug options and returned to try the
-> > > repro on clean v4.16-rc1, it looks like I still don't have all needed
-> > > config options (SELinux).
-> > >
-> > >   mount(selinuxfs) failed (errno 2)
-> >
-> >
-> > It seems that you have old syzkaller sources, it now explicitly does
-> > not fail on ENOENT:
-> >
-> >     // selinux mount used to be at /selinux, but then moved to /sys/fs/selinux.
-> >     const char* selinux_path = "./syz-tmp/newroot/selinux";
-> >     if (mount("/selinux", selinux_path, NULL, mount_flags, NULL)) {
-> >         if (errno != ENOENT)
-> >             fail("mount(/selinux) failed");
-> >         if (mount("/sys/fs/selinux", selinux_path, NULL, mount_flags,
-> > NULL) && errno != ENOENT)
-> >             fail("mount(/sys/fs/selinux) failed");
-> >     }
-> >
-> >
-> > > Can you please cancel my email that closes this bug?
-> >
-> > There is no such option. The new bug is already created:
-> > https://syzkaller.appspot.com/bug?id=6ecd3fdba0501c8843300056375abea0880816d2
-> > now if we open the old one, we now have 2 for the same root cause. It
-> > will lead to mess.
->
-> Still no luck, I'll leave this bug for now.
+Since code already has an explicit barrier call, changing writel() to
+writel_relaxed().
 
-So, except this bug, everything else is fixed.
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-Thanks
-
->
-> Thanks
-
-
-
---DEZnBEgdqIPZuRMC
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzzFwACgkQ5GN7iDZy
-WKeP5g//b/HiA2DIE5Gxjlp69N2tpx82adjhR6eKSyvRq+r6mTMFXOdJsb5NytB9
-+R5L+8x7bDpL8AMa5abTxNzBgX+CaN1jUSVxRsawpGKcfQRLxoRwhu0WrWEISHsD
-0jlzxzJvInhmpsnJzpw6UGfBxYzWaj3TsxB1uMdv9olsPLZhlgmXPBUPhG/Eoexz
-JLeLPN+n8cFgOKaBU0xkhK3mHQgm5YO/pZT8rIvOYl7HhdzAOxuqQ0mn/REUA4Dz
-PIeiBc6bW+nTHlA9Tt6FH7le7m7TNyjc3iN9Z5YqnP49W2cjmI4OKfEhP1+k78ww
-yMfo5J2KNlI1t1mtj5I2PvUeDGyrNzrbA+yz8t2xtIPbH9vMlD/ycFdzptjtq+Z8
-PKLdzHoK+uYrDU+xhwP7E1RBt9QI4YfbuRc2Q2sFLsx79JM8uvEv1PLBGTISVY6P
-Dd0gcjI0Taa7dr4Yqw4wJzNbzu7KCDEEyXVsFJlwCCuJikgLYiOAgV6CnQl6Mj3N
-g/p+2Se/GARhS+FnDyYCDCdJcKBqJMwuj1gDEp9ME9DXZqp0IgcT5qja4lzHNQ/N
-RH96ibEBmkdWV35qHorW365mZ2Fti7itJ61ecQFflgOLcrEPxQDADWZyZQRzdKIS
-jpzDu2IGV4oZP8D2mmV8fGFtAcHu487bJt+lwBfJljIXaL4mxOA=
-=MoRE
------END PGP SIGNATURE-----
-
---DEZnBEgdqIPZuRMC--
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 8329ec6..10f9a26 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -181,10 +181,11 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 
+ 	/* ring CMDQ DB */
+ 	wmb();
+-	writel(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
+-	       rcfw->cmdq_bar_reg_prod_off);
+-	writel(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
+-	       rcfw->cmdq_bar_reg_trig_off);
++	writel_relaxed(cmdq_prod, rcfw->cmdq_bar_reg_iomem +
++		       rcfw->cmdq_bar_reg_prod_off);
++	writel_relaxed(RCFW_CMDQ_TRIG_VAL, rcfw->cmdq_bar_reg_iomem +
++		       rcfw->cmdq_bar_reg_trig_off);
++	mmiowb();
+ done:
+ 	spin_unlock_irqrestore(&cmdq->lock, flags);
+ 	/* Return the CREQ response pointer */
+-- 
+2.7.4
