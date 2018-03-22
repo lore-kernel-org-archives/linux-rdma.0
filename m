@@ -1,34 +1,35 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: general protection fault in rdma_resolve_addr
-Date: Thu, 22 Mar 2018 17:24:59 +0200
-Message-ID: <20180322152459.GI19440@mtr-leonro.local>
-References: <94eb2c03a2440a07af0566e73dcc@google.com>
+Subject: Re: general protection fault in rdma_reject
+Date: Thu, 22 Mar 2018 17:25:15 +0200
+Message-ID: <20180322152515.GJ19440@mtr-leonro.local>
+References: <001a114aa33405a4ad0566e73d18@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="aiJlF+TB2UsRxGRQ"
+        protocol="application/pgp-signature"; boundary="kd7cwL6IYJrQFfWn"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <94eb2c03a2440a07af0566e73dcc@google.com>
+In-Reply-To: <001a114aa33405a4ad0566e73d18@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+06674559539eceb4d6f0@syzkaller.appspotmail.com>
+To: syzbot <syzbot+b9336dcb3661363ee088@syzkaller.appspotmail.com>
 Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
---aiJlF+TB2UsRxGRQ
+--kd7cwL6IYJrQFfWn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 #syz dup: KASAN: null-ptr-deref Write in rdma_resolve_addr
 
-On Thu, Mar 08, 2018 at 06:10:31AM -0800, syzbot wrote:
+On Thu, Mar 08, 2018 at 06:10:30AM -0800, syzbot wrote:
 > Hello,
 >
 > syzbot hit the following crash on upstream commit
-> 851710a8096131129ad1da79a47d385c4926d114 (Thu Mar 8 01:37:32 2018 +0000)
-> Merge branch 'for-linus' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
+> 1b88accf6a659c46d5c8e68912896f112bf882bb (Thu Mar 8 01:49:33 2018 +0000)
+> Merge tag 'for_linus' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/mst/vhost
 >
+> So far this crash happened 2 times on upstream.
 > C reproducer is attached.
 > syzkaller reproducer is attached.
 > Raw console output is attached.
@@ -36,7 +37,7 @@ On Thu, Mar 08, 2018 at 06:10:31AM -0800, syzbot wrote:
 > .config is attached.
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+06674559539eceb4d6f0@syzkaller.appspotmail.com
+> Reported-by: syzbot+b9336dcb3661363ee088@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
@@ -47,25 +48,24 @@ On Thu, Mar 08, 2018 at 06:10:31AM -0800, syzbot wrote:
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
 > Modules linked in:
-> CPU: 0 PID: 10410 Comm: syzkaller958277 Not tainted 4.16.0-rc4+ #345
+> CPU: 0 PID: 6876 Comm: syzkaller888997 Not tainted 4.16.0-rc4+ #346
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
-> RIP: 0010:rdma_resolve_addr+0x13c/0x26c0 drivers/infiniband/core/cma.c:29=
-21
-> RSP: 0018:ffff8801b3807680 EFLAGS: 00010207
-> RAX: 0000000000000042 RBX: ffff8801b3807a44 RCX: 0000000000000000
-> RDX: 0000000000000000 RSI: ffff8801b3807a44 RDI: 0000000000000214
-> RBP: ffff8801b38079e0 R08: 0000000000000000 R09: 0000000000000000
-> R10: ffff8801b38079f8 R11: 0000000000000000 R12: dffffc0000000000
-> R13: 00000000000000a0 R14: ffff8801b3807a28 R15: 0000000000000000
-> FS:  00007f2dc376e700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000=
+> RIP: 0010:rdma_reject+0x37/0x220 drivers/infiniband/core/cma.c:3851
+> RSP: 0018:ffff8801b50bf8f8 EFLAGS: 00010206
+> RAX: dffffc0000000000 RBX: 1ffff10036a17f29 RCX: ffffffff841bb25f
+> RDX: 0000000000000078 RSI: ffff8801b50bf970 RDI: 00000000000003c0
+> RBP: ffff8801b50bf928 R08: 0000000000000000 R09: 0000000000000000
+> R10: ffffffff88613380 R11: 0000000000000000 R12: 0000000000000000
+> R13: ffff8801b50bfaa8 R14: ffff8801b50bf970 R15: 0000000000000000
+> FS:  00007f7d987bc700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000=
 000
 > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 0000000020000140 CR3: 00000001c6e4e006 CR4: 00000000001606f0
+> CR2: 00000000006de0f8 CR3: 00000001bf0e0006 CR4: 00000000001606f0
 > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  ucma_resolve_ip+0x142/0x1f0 drivers/infiniband/core/ucma.c:677
+>  ucma_reject+0x149/0x220 drivers/infiniband/core/ucma.c:1112
 >  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1627
 >  __vfs_write+0xef/0x970 fs/read_write.c:480
 >  vfs_write+0x189/0x510 fs/read_write.c:544
@@ -73,21 +73,20 @@ On Thu, Mar 08, 2018 at 06:10:31AM -0800, syzbot wrote:
 >  SyS_write+0xef/0x220 fs/read_write.c:581
 >  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
 >  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x446aa9
-> RSP: 002b:00007f2dc376dda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 0000000000446aa9
-> RDX: 0000000000000008 RSI: 0000000020007100 RDI: 0000000000000004
-> RBP: 00000000006e29f8 R08: 00007f2dc376e700 R09: 0000000000000000
-> R10: 00007f2dc376e700 R11: 0000000000000246 R12: 006d635f616d6472
-> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000003
-> Code: 31 c0 e8 f8 b1 53 fd 48 89 df e8 70 f4 f5 ff 4c 89 ef 48 63 d0 48 89
-> de e8 02 df 8b fd 49 8d bf 14 02 00 00 48 89 f8 48 c1 e8 03 <42> 0f b6 14=
- 20
-> 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
-> RIP: rdma_resolve_addr+0x13c/0x26c0 drivers/infiniband/core/cma.c:2921 RS=
-P:
-> ffff8801b3807680
-> ---[ end trace 35b5ca64e9e3cd3f ]---
+> RIP: 0033:0x4489a9
+> RSP: 002b:00007f7d987bbda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 0000000000700024 RCX: 00000000004489a9
+> RDX: 0000000000000008 RSI: 00000000200003c0 RDI: 0000000000000003
+> RBP: 0000000000700020 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f616d6472
+> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000001
+> Code: 49 89 ff 53 41 89 d4 49 89 f6 48 83 ec 08 e8 b1 53 55 fd 49 8d bf c0
+> 03 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 <80> 3c 02 00=
+ 0f
+> 85 a0 01 00 00 4d 8b af c0 03 00 00 4d 85 ed 0f
+> RIP: rdma_reject+0x37/0x220 drivers/infiniband/core/cma.c:3851 RSP:
+> ffff8801b50bf8f8
+> ---[ end trace edcac9dcf5a05d54 ]---
 > Kernel panic - not syncing: Fatal exception
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
@@ -117,41 +116,197 @@ P:
 > Note: all commands must start from beginning of the line in the email bod=
 y.
 
+> [....] Starting enhanced syslogd: rsyslogd[   17.005786] audit: type=3D14=
+00 audit(1520516714.267:5): avc:  denied  { syslog } for  pid=3D4098 comm=
+=3D"rsyslogd" capability=3D34  scontext=3Dsystem_u:system_r:kernel_t:s0 tco=
+ntext=3Dsystem_u:system_r:kernel_t:s0 tclass=3Dcapability2 permissive=3D1
 > =1B[?25l=1B[?1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting periodic command scheduler: cron=1B[?25l=1B[?1c=1B7=1B[1G=
 [=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > Starting mcstransd:
-> [....] Starting OpenBSD Secure Shell server: sshd=1B[?25l=1B[?1c=1B7=1B[1=
-G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting file context maintaining daemon: restorecond=1B[?25l=1B[?=
 1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
-> [   19.110518] audit: type=3D1400 audit(1520479597.561:6): avc:  denied  =
-{ map } for  pid=3D4181 comm=3D"bash" path=3D"/bin/bash" dev=3D"sda1" ino=
-=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=
-=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
+> [....] Starting OpenBSD Secure Shell server: sshd=1B[?25l=1B[?1c=1B7=1B[1=
+G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 >
 > Debian GNU/Linux 7 syzkaller ttyS0
 >
-> Warning: Permanently added '10.128.0.6' (ECDSA) to the list of known host=
-s.
-> syzkaller login: [   30.486227] audit: type=3D1400 audit(1520479608.937:7=
-): avc:  denied  { map } for  pid=3D4196 comm=3D"syzkaller958277" path=3D"/=
-root/syzkaller958277320" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:s=
-ystem_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_=
-t:s0 tclass=3Dfile permissive=3D1
-> [   30.502445] IPVS: ftp: loaded support on port[0] =3D 21
+> syzkaller login: [   23.295973] audit: type=3D1400 audit(1520516720.557:6=
+): avc:  denied  { map } for  pid=3D4238 comm=3D"bash" path=3D"/bin/bash" d=
+ev=3D"sda1" ino=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c=
+1023 tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
+> Warning: Permanently added '10.128.0.48' (ECDSA) to the list of known hos=
+ts.
+> [  184.150068] audit: type=3D1400 audit(1520516881.411:7): avc:  denied  =
+{ map } for  pid=3D4254 comm=3D"syzkaller888997" path=3D"/root/syzkaller888=
+997320" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
+s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfil=
+e permissive=3D1
+> [  184.167269] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> [  184.176044] audit: type=3D1400 audit(1520516881.412:8): avc:  denied  =
+{ sys_admin } for  pid=3D4262 comm=3D"syzkaller888997" capability=3D21  sco=
+ntext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfined=
+_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=3Dcap_userns permissive=3D1
+> [  184.200576] IPVS: ftp: loaded support on port[0] =3D 21
+> [  184.215269] audit: type=3D1400 audit(1520516881.474:9): avc:  denied  =
+{ net_admin } for  pid=3D4264 comm=3D"syzkaller888997" capability=3D12  sco=
+ntext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfined=
+_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=3Dcap_userns permissive=3D1
+> [  184.233321] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> [  184.268785] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> [  184.306475] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> [  184.351868] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> [  184.410597] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> [  184.457288] IPVS: ftp: loaded support on port[0] =3D 21
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> net.ipv6.conf.syz_tun.accept_dad =3D 0
+> net.ipv6.conf.syz_tun.router_solicitations =3D 0
+> RTNETLINK answers: File exists
+> RTNETLINK answers: File exists
+> RTNETLINK answers: File exists
+> RTNETLINK answers: File exists
+> RTNETLINK answers: File exists
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: File exists
+> RTNETLINK answers: File exists
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: File exists
+> RTNETLINK answers: Operation not supported
+> [  185.058088] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> [  185.160172] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: No buffer space available
+> [  185.217687] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> [  185.224755] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> [  185.394279] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> [  185.421635] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> [  185.434777] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> [  185.516874] IPv6: ADDRCONF(NETDEV_UP): bridge0: link is not ready
+> RTNETLINK answers: No buffer space available
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Operation not supported
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> RTNETLINK answers: Invalid argument
+> [  186.659588] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  186.665716] 8021q: adding VLAN 0 to HW filter on device bond0
+> RTNETLINK answers: Invalid argument
+> [  186.759547] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  186.765683] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  186.779982] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  186.786193] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  186.873606] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  186.879752] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  186.945228] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+> [  186.996640] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+> [  187.038940] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+> [  187.098589] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
+> [  187.132865] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  187.139107] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  187.169780] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  187.176031] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  187.217724] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.223944] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.234916] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
+> [  187.255555] audit: type=3D1400 audit(1520516884.517:10): avc:  denied =
+ { sys_chroot } for  pid=3D4265 comm=3D"syzkaller888997" capability=3D18  s=
+context=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfin=
+ed_u:system_r:insmod_t:s0-s0:c0.c1023 tclass=3Dcap_userns permissive=3D1
+> [  187.261309] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  187.286243] 8021q: adding VLAN 0 to HW filter on device bond0
 > executing program
 > executing program
+> [  187.316644] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.323413] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.333787] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
-> [   30.540985] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
+> [  187.364419] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.370753] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.384478] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
 > executing program
 > executing program
-> [   30.579193] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
+> [  187.409630] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.419055] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.435047] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+> [  187.456000] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
 > executing program
 > executing program
 > executing program
@@ -159,8 +314,8 @@ t:s0 tclass=3Dfile permissive=3D1
 > executing program
 > executing program
 > executing program
+> [  187.474958] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
 > executing program
-> [   30.635337] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -169,36 +324,44 @@ t:s0 tclass=3Dfile permissive=3D1
 > executing program
 > executing program
 > executing program
-> [   30.693344] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
+> [  187.569276] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
-> [   30.743845] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
+> [  187.639857] IPv6: ADDRCONF(NETDEV_UP): bond0: link is not ready
+> [  187.646189] 8021q: adding VLAN 0 to HW filter on device bond0
+> [  187.653990] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.661323] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.669966] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
 > executing program
 > executing program
-> [   30.792724] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
+> [  187.724511] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  187.730791] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.746937] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+> [  187.757440] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
-> [   30.855563] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
+> [  187.772607] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  187.788609] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
 > executing program
 > executing program
@@ -219,6 +382,7 @@ t:s0 tclass=3Dfile permissive=3D1
 > executing program
 > executing program
 > executing program
+> [  187.888481] IPv6: ADDRCONF(NETDEV_UP): veth0: link is not ready
 > executing program
 > executing program
 > executing program
@@ -246,6 +410,9 @@ t:s0 tclass=3Dfile permissive=3D1
 > executing program
 > executing program
 > executing program
+> [  188.038099] IPv6: ADDRCONF(NETDEV_UP): veth1: link is not ready
+> [  188.044283] IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+> [  188.051371] IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
 > executing program
 > executing program
 > executing program
@@ -573,973 +740,163 @@ t:s0 tclass=3Dfile permissive=3D1
 > executing program
 > executing program
 > executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   36.151874] kasan: CONFIG_KASAN_INLINE enabled
-> [   36.156755] kasan: GPF could be caused by NULL-ptr deref or user memor=
+> [  189.437588] kasan: CONFIG_KASAN_INLINE enabled
+> [  189.442307] kasan: GPF could be caused by NULL-ptr deref or user memor=
 y access
-> [   36.164197] general protection fault: 0000 [#1] SMP KASAN
-> [   36.169729] Dumping ftrace buffer:
-> [   36.173267]    (ftrace buffer empty)
-> [   36.176970] Modules linked in:
-> [   36.180152] CPU: 0 PID: 10410 Comm: syzkaller958277 Not tainted 4.16.0=
--rc4+ #345
-> [   36.187665] Hardware name: Google Google Compute Engine/Google Compute=
+> [  189.449706] general protection fault: 0000 [#1] SMP KASAN
+> [  189.455228] Dumping ftrace buffer:
+> [  189.458749]    (ftrace buffer empty)
+> [  189.462447] Modules linked in:
+> [  189.465626] CPU: 0 PID: 6876 Comm: syzkaller888997 Not tainted 4.16.0-=
+rc4+ #346
+> [  189.473052] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   36.197025] RIP: 0010:rdma_resolve_addr+0x13c/0x26c0
+> [  189.482397] RIP: 0010:rdma_reject+0x37/0x220
 > executing program
 > executing program
 > executing program
-> [   36.202117] RSP: 0018:ffff8801b3807680 EFLAGS: 00010207
-> [   36.207476] RAX: 0000000000000042 RBX: ffff8801b3807a44 RCX: 000000000=
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [  189.486783] RSP: 0018:ffff8801b50bf8f8 EFLAGS: 00010206
+> [  189.492132] RAX: dffffc0000000000 RBX: 1ffff10036a17f29 RCX: ffffffff8=
+41bb25f
+> [  189.499392] RDX: 0000000000000078 RSI: ffff8801b50bf970 RDI: 000000000=
+00003c0
+> [  189.506647] RBP: ffff8801b50bf928 R08: 0000000000000000 R09: 000000000=
 0000000
-> [   36.214739] RDX: 0000000000000000 RSI: ffff8801b3807a44 RDI: 000000000=
-0000214
-> [   36.222006] RBP: ffff8801b38079e0 R08: 0000000000000000 R09: 000000000=
+> [  189.513899] R10: ffffffff88613380 R11: 0000000000000000 R12: 000000000=
 0000000
-> [   36.229272] R10: ffff8801b38079f8 R11: 0000000000000000 R12: dffffc000=
+> [  189.521154] R13: ffff8801b50bfaa8 R14: ffff8801b50bf970 R15: 000000000=
 0000000
-> [   36.236542] R13: 00000000000000a0 R14: ffff8801b3807a28 R15: 000000000=
-0000000
-> [   36.243810] FS:  00007f2dc376e700(0000) GS:ffff8801db200000(0000) knlG=
+> [  189.528413] FS:  00007f7d987bc700(0000) GS:ffff8801db200000(0000) knlG=
 S:0000000000000000
-> [   36.252032] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   36.257911] CR2: 0000000020000140 CR3: 00000001c6e4e006 CR4: 000000000=
+> [  189.536621] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  189.542488] CR2: 00000000006de0f8 CR3: 00000001bf0e0006 CR4: 000000000=
 01606f0
-> [   36.265178] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
+> [  189.550240] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
 0000000
-> [   36.272443] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
+> [  189.557498] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
 0000400
-> [   36.279704] Call Trace:
-> [   36.282298]  ? find_held_lock+0x35/0x1d0
-> [   36.286365]  ? rdma_bind_addr+0x1b50/0x1b50
-> [   36.290688]  ? lock_downgrade+0x980/0x980
-> [   36.294840]  ? __radix_tree_lookup+0x435/0x5e0
-> [   36.299435]  ? __mutex_unlock_slowpath+0xe9/0xac0
-> [   36.304285]  ? wait_for_completion+0x770/0x770
-> [   36.308878]  ? lock_release+0xa40/0xa40
-> [   36.312861]  ? check_same_owner+0x320/0x320
-> [   36.317184]  ? find_held_lock+0x35/0x1d0
-> [   36.321267]  ucma_resolve_ip+0x142/0x1f0
-> [   36.325329]  ? ucma_resolve_ip+0x142/0x1f0
-> [   36.329566]  ? ucma_resolve_addr+0x330/0x330
-> [   36.333984]  ? kasan_check_write+0x14/0x20
-> [   36.338227]  ucma_write+0x2d6/0x3d0
-> [   36.341860]  ? ucma_resolve_addr+0x330/0x330
-> [   36.346276]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   36.350788]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   36.355280]  __vfs_write+0xef/0x970
-> [   36.358908]  ? rcu_note_context_switch+0x710/0x710
-> [   36.363841]  ? kernel_read+0x120/0x120
-> [   36.367752]  ? __might_sleep+0x95/0x190
-> [   36.371737]  ? _cond_resched+0x14/0x30
-> [   36.375627]  ? __inode_security_revalidate+0xd9/0x130
-> [   36.380820]  ? avc_policy_seqno+0x9/0x20
-> [   36.384896]  ? selinux_file_permission+0x82/0x460
-> [   36.389743]  ? security_file_permission+0x89/0x1e0
-> [   36.394676]  ? rw_verify_area+0xe5/0x2b0
-> [   36.398735]  ? __fdget_raw+0x20/0x20
-> [   36.402452]  vfs_write+0x189/0x510
-> [   36.406007]  SyS_write+0xef/0x220
-> [   36.409468]  ? SyS_read+0x220/0x220
-> [   36.413096]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   36.418110]  ? do_syscall_64+0xb7/0x940
-> [   36.422084]  ? SyS_read+0x220/0x220
-> [   36.425716]  do_syscall_64+0x281/0x940
-> [   36.429607]  ? syscall_return_slowpath+0x550/0x550
-> [   36.434536]  ? syscall_return_slowpath+0x2ac/0x550
-> [   36.439469]  ? prepare_exit_to_usermode+0x350/0x350
-> [   36.444491]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
-> [   36.449865]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   36.454735]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> [   36.459937] RIP: 0033:0x446aa9
-> [   36.463119] RSP: 002b:00007f2dc376dda8 EFLAGS: 00000246 ORIG_RAX: 0000=
+> [  189.564752] Call Trace:
+> [  189.567337]  ucma_reject+0x149/0x220
+> [  189.571050]  ? ucma_disconnect+0x150/0x150
+> [  189.575302]  ? kasan_check_write+0x14/0x20
+> [  189.579531]  ucma_write+0x2d6/0x3d0
+> [  189.583146]  ? ucma_disconnect+0x150/0x150
+> [  189.587366]  ? ucma_resolve_route+0x1a0/0x1a0
+> [  189.591850]  ? handle_mm_fault+0x35b/0xb10
+> [  189.596079]  ? ucma_resolve_route+0x1a0/0x1a0
+> [  189.600560]  __vfs_write+0xef/0x970
+> [  189.604183]  ? rcu_note_context_switch+0x710/0x710
+> [  189.609100]  ? kernel_read+0x120/0x120
+> [  189.612974]  ? __might_sleep+0x95/0x190
+> [  189.616946]  ? _cond_resched+0x14/0x30
+> [  189.620823]  ? __inode_security_revalidate+0xd9/0x130
+> [  189.626007]  ? avc_policy_seqno+0x9/0x20
+> [  189.630061]  ? selinux_file_permission+0x82/0x460
+> [  189.634897]  ? security_file_permission+0x89/0x1e0
+> [  189.639823]  ? rw_verify_area+0xe5/0x2b0
+> [  189.643875]  ? __fdget_raw+0x20/0x20
+> [  189.647586]  vfs_write+0x189/0x510
+> [  189.651119]  SyS_write+0xef/0x220
+> [  189.654560]  ? SyS_read+0x220/0x220
+> [  189.658178]  ? do_syscall_64+0xb7/0x940
+> [  189.662140]  ? SyS_read+0x220/0x220
+> [  189.665755]  do_syscall_64+0x281/0x940
+> [  189.669631]  ? __do_page_fault+0xc90/0xc90
+> [  189.673856]  ? _raw_spin_unlock_irq+0x27/0x70
+> [  189.678341]  ? finish_task_switch+0x1c1/0x7e0
+> [  189.682839]  ? syscall_return_slowpath+0x550/0x550
+> [  189.687775]  ? syscall_return_slowpath+0x2ac/0x550
+> [  189.692693]  ? prepare_exit_to_usermode+0x350/0x350
+> [  189.697700]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [  189.703056]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [  189.707894]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [  189.713070] RIP: 0033:0x4489a9
+> [  189.716248] RSP: 002b:00007f7d987bbda8 EFLAGS: 00000246 ORIG_RAX: 0000=
 000000000001
-> [   36.470821] RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 000000000=
-0446aa9
-> [   36.478092] RDX: 0000000000000008 RSI: 0000000020007100 RDI: 000000000=
-0000004
-> [   36.485358] RBP: 00000000006e29f8 R08: 00007f2dc376e700 R09: 000000000=
-0000000
-> [   36.492626] R10: 00007f2dc376e700 R11: 0000000000000246 R12: 006d635f6=
-16d6472
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> executing program
-> [   36.499894] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+> [  189.723939] RAX: ffffffffffffffda RBX: 0000000000700024 RCX: 000000000=
+04489a9
+> [  189.731193] RDX: 0000000000000008 RSI: 00000000200003c0 RDI: 000000000=
 0000003
-> [   36.507165] Code: 31 c0 e8 f8 b1 53 fd 48 89 df e8 70 f4 f5 ff 4c 89 e=
-f 48 63 d0 48 89 de e8 02 df 8b fd 49 8d bf 14 02 00 00 48 89 f8 48 c1 e8 0=
-3 <42> 0f b6 14 20 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
-> [   36.526604] RIP: rdma_resolve_addr+0x13c/0x26c0 RSP: ffff8801b3807680
-> [   36.533224] ---[ end trace 35b5ca64e9e3cd3f ]---
-> [   36.538007] Kernel panic - not syncing: Fatal exception
-> [   36.543817] Dumping ftrace buffer:
-> [   36.547350]    (ftrace buffer empty)
-> [   36.551032] Kernel Offset: disabled
-> [   36.554631] Rebooting in 86400 seconds..
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [  189.738447] RBP: 0000000000700020 R08: 0000000000000000 R09: 000000000=
+0000000
+> [  189.745704] R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f6=
+16d6472
+> [  189.752969] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+0000001
+> [  189.760240] Code: 49 89 ff 53 41 89 d4 49 89 f6 48 83 ec 08 e8 b1 53 5=
+5 fd 49 8d bf c0 03 00 00 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 0=
+3 <80> 3c 02 00 0f 85 a0 01 00 00 4d 8b af c0 03 00 00 4d 85 ed 0f
+> [  189.779413] RIP: rdma_reject+0x37/0x220 RSP: ffff8801b50bf8f8
+> [  189.785734] ---[ end trace edcac9dcf5a05d54 ]---
+> [  189.790506] Kernel panic - not syncing: Fatal exception
+> [  189.796263] Dumping ftrace buffer:
+> [  189.799776]    (ftrace buffer empty)
+> [  189.803455] Kernel Offset: disabled
+> [  189.807051] Rebooting in 86400 seconds..
 
 > # See https://goo.gl/kgGztJ for information about syzkaller reproducers.
-> #{Threaded:true Collide:true Repeat:true Procs:8 Sandbox:none Fault:false=
- FaultCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false W=
-aitRepeat:true Debug:false Repro:false}
-> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000140)=3D'/dev/infin=
+> #{Threaded:true Collide:false Repeat:true Procs:8 Sandbox:namespace Fault=
+:false FaultCall:-1 FaultNth:0 EnableTun:true UseTmpDir:true HandleSegv:fal=
+se WaitRepeat:true Debug:false Repro:false}
+> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000180)=3D'/dev/infin=
 iband/rdma_cm\x00', 0x2, 0x0)
-> write$rdma_cm(r0, &(0x7f00000070c0)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
-x0, &(0x7f0000007080)=3D{<r1=3D>0xffffffff}, 0x13f}}, 0x20)
-> write$rdma_cm(r0, &(0x7f0000007100)=3DANY=3D[@ANYBLOB, @ANYRES32=3Dr1, @A=
-NYBLOB=3D'\x00\x00\x00\x00'], 0x8)
+> write$rdma_cm(r0, &(0x7f0000000000)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
+x0, &(0x7f0000000f00), 0x106}}, 0x20)
+> write$rdma_cm(r0, &(0x7f00000003c0)=3DANY=3D[@ANYBLOB=3D"09000000000000fa=
+", @ANYBLOB], 0x8)
 
 > // autogenerated by syzkaller (http://github.com/google/syzkaller)
 >
 > #define _GNU_SOURCE
+> #include <arpa/inet.h>
+> #include <dirent.h>
 > #include <endian.h>
 > #include <errno.h>
 > #include <errno.h>
+> #include <errno.h>
+> #include <fcntl.h>
+> #include <fcntl.h>
+> #include <linux/capability.h>
 > #include <linux/futex.h>
+> #include <linux/if.h>
+> #include <linux/if_ether.h>
+> #include <linux/if_tun.h>
+> #include <linux/ip.h>
 > #include <linux/net.h>
+> #include <linux/tcp.h>
+> #include <net/if_arp.h>
 > #include <netinet/in.h>
 > #include <pthread.h>
 > #include <sched.h>
@@ -1547,17 +904,28 @@ NYBLOB=3D'\x00\x00\x00\x00'], 0x8)
 > #include <signal.h>
 > #include <stdarg.h>
 > #include <stdarg.h>
+> #include <stdarg.h>
+> #include <stdbool.h>
 > #include <stdbool.h>
 > #include <stdio.h>
 > #include <stdio.h>
+> #include <stdio.h>
 > #include <stdlib.h>
+> #include <stdlib.h>
+> #include <sys/ioctl.h>
+> #include <sys/mman.h>
+> #include <sys/mount.h>
+> #include <sys/mount.h>
 > #include <sys/prctl.h>
 > #include <sys/prctl.h>
 > #include <sys/resource.h>
 > #include <sys/socket.h>
+> #include <sys/stat.h>
+> #include <sys/stat.h>
 > #include <sys/syscall.h>
 > #include <sys/time.h>
 > #include <sys/time.h>
+> #include <sys/uio.h>
 > #include <sys/wait.h>
 > #include <sys/wait.h>
 > #include <time.h>
@@ -1574,7 +942,9 @@ NYBLOB=3D'\x00\x00\x00\x00'], 0x8)
 > #include <stdarg.h>
 > #include <stdint.h>
 > #include <stdio.h>
+> #include <stdlib.h>
 > #include <string.h>
+> #include <sys/stat.h>
 >
 > const int kFailStatus =3D 67;
 > const int kRetryStatus =3D 69;
@@ -1591,6 +961,17 @@ NYBLOB=3D'\x00\x00\x00\x00'], 0x8)
 s);
 > }
 >
+> static void exitf(const char* msg, ...)
+> {
+>   int e =3D errno;
+>   va_list args;
+>   va_start(args, msg);
+>   vfprintf(stderr, msg, args);
+>   va_end(args);
+>   fprintf(stderr, " (errno %d)\n", e);
+>   doexit(kRetryStatus);
+> }
+>
 > static uint64_t current_time_ms()
 > {
 >   struct timespec ts;
@@ -1598,6 +979,185 @@ s);
 >   if (clock_gettime(CLOCK_MONOTONIC, &ts))
 >     fail("clock_gettime failed");
 >   return (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+> }
+>
+> static void use_temporary_dir()
+> {
+>   char tmpdir_template[] =3D "./syzkaller.XXXXXX";
+>   char* tmpdir =3D mkdtemp(tmpdir_template);
+>   if (!tmpdir)
+>     fail("failed to mkdtemp");
+>   if (chmod(tmpdir, 0777))
+>     fail("failed to chmod");
+>   if (chdir(tmpdir))
+>     fail("failed to chdir");
+> }
+>
+> static void vsnprintf_check(char* str, size_t size, const char* format,
+>                             va_list args)
+> {
+>   int rv;
+>
+>   rv =3D vsnprintf(str, size, format, args);
+>   if (rv < 0)
+>     fail("tun: snprintf failed");
+>   if ((size_t)rv >=3D size)
+>     fail("tun: string '%s...' doesn't fit into buffer", str);
+> }
+>
+> static void snprintf_check(char* str, size_t size, const char* format, ..=
+=2E)
+> {
+>   va_list args;
+>
+>   va_start(args, format);
+>   vsnprintf_check(str, size, format, args);
+>   va_end(args);
+> }
+>
+> #define COMMAND_MAX_LEN 128
+> #define PATH_PREFIX                                                      =
+      \
+>   "PATH=3D/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin "
+> #define PATH_PREFIX_LEN (sizeof(PATH_PREFIX) - 1)
+>
+> static void execute_command(bool panic, const char* format, ...)
+> {
+>   va_list args;
+>   char command[PATH_PREFIX_LEN + COMMAND_MAX_LEN];
+>   int rv;
+>
+>   va_start(args, format);
+>   memcpy(command, PATH_PREFIX, PATH_PREFIX_LEN);
+>   vsnprintf_check(command + PATH_PREFIX_LEN, COMMAND_MAX_LEN, format, arg=
+s);
+>   rv =3D system(command);
+>   if (panic && rv !=3D 0)
+>     fail("tun: command \"%s\" failed with code %d", &command[0], rv);
+>
+>   va_end(args);
+> }
+>
+> static int tunfd =3D -1;
+> static int tun_frags_enabled;
+>
+> #define SYZ_TUN_MAX_PACKET_SIZE 1000
+>
+> #define TUN_IFACE "syz_tun"
+>
+> #define LOCAL_MAC "aa:aa:aa:aa:aa:aa"
+> #define REMOTE_MAC "aa:aa:aa:aa:aa:bb"
+>
+> #define LOCAL_IPV4 "172.20.20.170"
+> #define REMOTE_IPV4 "172.20.20.187"
+>
+> #define LOCAL_IPV6 "fe80::aa"
+> #define REMOTE_IPV6 "fe80::bb"
+>
+> #define IFF_NAPI 0x0010
+> #define IFF_NAPI_FRAGS 0x0020
+>
+> static void initialize_tun(void)
+> {
+>   tunfd =3D open("/dev/net/tun", O_RDWR | O_NONBLOCK);
+>   if (tunfd =3D=3D -1) {
+>     printf("tun: can't open /dev/net/tun: please enable CONFIG_TUN=3Dy\n"=
+);
+>     printf("otherwise fuzzing or reproducing might not work as intended\n=
+");
+>     return;
+>   }
+>   const int kTunFd =3D 252;
+>   if (dup2(tunfd, kTunFd) < 0)
+>     fail("dup2(tunfd, kTunFd) failed");
+>   close(tunfd);
+>   tunfd =3D kTunFd;
+>
+>   struct ifreq ifr;
+>   memset(&ifr, 0, sizeof(ifr));
+>   strncpy(ifr.ifr_name, TUN_IFACE, IFNAMSIZ);
+>   ifr.ifr_flags =3D IFF_TAP | IFF_NO_PI | IFF_NAPI | IFF_NAPI_FRAGS;
+>   if (ioctl(tunfd, TUNSETIFF, (void*)&ifr) < 0) {
+>     ifr.ifr_flags =3D IFF_TAP | IFF_NO_PI;
+>     if (ioctl(tunfd, TUNSETIFF, (void*)&ifr) < 0)
+>       fail("tun: ioctl(TUNSETIFF) failed");
+>   }
+>   if (ioctl(tunfd, TUNGETIFF, (void*)&ifr) < 0)
+>     fail("tun: ioctl(TUNGETIFF) failed");
+>   tun_frags_enabled =3D (ifr.ifr_flags & IFF_NAPI_FRAGS) !=3D 0;
+>
+>   execute_command(1, "sysctl -w net.ipv6.conf.%s.accept_dad=3D0", TUN_IFA=
+CE);
+>
+>   execute_command(1, "sysctl -w net.ipv6.conf.%s.router_solicitations=3D0=
+",
+>                   TUN_IFACE);
+>
+>   execute_command(1, "ip link set dev %s address %s", TUN_IFACE, LOCAL_MA=
+C);
+>   execute_command(1, "ip addr add %s/24 dev %s", LOCAL_IPV4, TUN_IFACE);
+>   execute_command(1, "ip -6 addr add %s/120 dev %s", LOCAL_IPV6, TUN_IFAC=
+E);
+>   execute_command(1, "ip neigh add %s lladdr %s dev %s nud permanent",
+>                   REMOTE_IPV4, REMOTE_MAC, TUN_IFACE);
+>   execute_command(1, "ip -6 neigh add %s lladdr %s dev %s nud permanent",
+>                   REMOTE_IPV6, REMOTE_MAC, TUN_IFACE);
+>   execute_command(1, "ip link set dev %s up", TUN_IFACE);
+> }
+>
+> #define DEV_IPV4 "172.20.20.%d"
+> #define DEV_IPV6 "fe80::%02hx"
+> #define DEV_MAC "aa:aa:aa:aa:aa:%02hx"
+>
+> static void initialize_netdevices(void)
+> {
+>   unsigned i;
+>   const char* devtypes[] =3D {"ip6gretap", "bridge", "vcan", "bond", "vet=
+h"};
+>   const char* devnames[] =3D {"lo",       "sit0",    "bridge0", "vcan0",
+>                             "tunl0",    "gre0",    "gretap0", "ip_vti0",
+>                             "ip6_vti0", "ip6tnl0", "ip6gre0", "ip6gretap0=
+",
+>                             "erspan0",  "bond0",   "veth0",   "veth1"};
+>
+>   for (i =3D 0; i < sizeof(devtypes) / (sizeof(devtypes[0])); i++)
+>     execute_command(0, "ip link add dev %s0 type %s", devtypes[i], devtyp=
+es[i]);
+>   execute_command(0, "ip link add dev veth1 type veth");
+>   for (i =3D 0; i < sizeof(devnames) / (sizeof(devnames[0])); i++) {
+>     char addr[32];
+>     snprintf_check(addr, sizeof(addr), DEV_IPV4, i + 10);
+>     execute_command(0, "ip -4 addr add %s/24 dev %s", addr, devnames[i]);
+>     snprintf_check(addr, sizeof(addr), DEV_IPV6, i + 10);
+>     execute_command(0, "ip -6 addr add %s/120 dev %s", addr, devnames[i]);
+>     snprintf_check(addr, sizeof(addr), DEV_MAC, i + 10);
+>     execute_command(0, "ip link set dev %s address %s", devnames[i], addr=
+);
+>     execute_command(0, "ip link set dev %s up", devnames[i]);
+>   }
+> }
+>
+> static int read_tun(char* data, int size)
+> {
+>   if (tunfd < 0)
+>     return -1;
+>
+>   int rv =3D read(tunfd, data, size);
+>   if (rv < 0) {
+>     if (errno =3D=3D EAGAIN)
+>       return -1;
+>     if (errno =3D=3D EBADFD)
+>       return -1;
+>     fail("tun: read failed with %d", rv);
+>   }
+>   return rv;
+> }
+>
+> static void flush_tun()
+> {
+>   char data[SYZ_TUN_MAX_PACKET_SIZE];
+>   while (read_tun(&data[0], sizeof(data)) !=3D -1)
+>     ;
 > }
 >
 > static void loop();
@@ -1634,22 +1194,117 @@ s);
 >   }
 > }
 >
-> static int do_sandbox_none(void)
+> static bool write_file(const char* file, const char* what, ...)
 > {
->   if (unshare(CLONE_NEWPID)) {
->   }
->   int pid =3D fork();
->   if (pid < 0)
->     fail("sandbox fork failed");
->   if (pid)
->     return pid;
+>   char buf[1024];
+>   va_list args;
+>   va_start(args, what);
+>   vsnprintf(buf, sizeof(buf), what, args);
+>   va_end(args);
+>   buf[sizeof(buf) - 1] =3D 0;
+>   int len =3D strlen(buf);
 >
->   sandbox_common();
->   if (unshare(CLONE_NEWNET)) {
+>   int fd =3D open(file, O_WRONLY | O_CLOEXEC);
+>   if (fd =3D=3D -1)
+>     return false;
+>   if (write(fd, buf, len) !=3D len) {
+>     close(fd);
+>     return false;
 >   }
+>   close(fd);
+>   return true;
+> }
+>
+> static int real_uid;
+> static int real_gid;
+> __attribute__((aligned(64 << 10))) static char sandbox_stack[1 << 20];
+>
+> static int namespace_sandbox_proc(void* arg)
+> {
+>   sandbox_common();
+>
+>   write_file("/proc/self/setgroups", "deny");
+>   if (!write_file("/proc/self/uid_map", "0 %d 1\n", real_uid))
+>     fail("write of /proc/self/uid_map failed");
+>   if (!write_file("/proc/self/gid_map", "0 %d 1\n", real_gid))
+>     fail("write of /proc/self/gid_map failed");
+>
+>   if (unshare(CLONE_NEWNET))
+>     fail("unshare(CLONE_NEWNET)");
+>   initialize_tun();
+>   initialize_netdevices();
+>
+>   if (mkdir("./syz-tmp", 0777))
+>     fail("mkdir(syz-tmp) failed");
+>   if (mount("", "./syz-tmp", "tmpfs", 0, NULL))
+>     fail("mount(tmpfs) failed");
+>   if (mkdir("./syz-tmp/newroot", 0777))
+>     fail("mkdir failed");
+>   if (mkdir("./syz-tmp/newroot/dev", 0700))
+>     fail("mkdir failed");
+>   unsigned mount_flags =3D MS_BIND | MS_REC | MS_PRIVATE;
+>   if (mount("/dev", "./syz-tmp/newroot/dev", NULL, mount_flags, NULL))
+>     fail("mount(dev) failed");
+>   if (mkdir("./syz-tmp/newroot/proc", 0700))
+>     fail("mkdir failed");
+>   if (mount(NULL, "./syz-tmp/newroot/proc", "proc", 0, NULL))
+>     fail("mount(proc) failed");
+>   if (mkdir("./syz-tmp/newroot/selinux", 0700))
+>     fail("mkdir failed");
+>   const char* selinux_path =3D "./syz-tmp/newroot/selinux";
+>   if (mount("/selinux", selinux_path, NULL, mount_flags, NULL)) {
+>     if (errno !=3D ENOENT)
+>       fail("mount(/selinux) failed");
+>     if (mount("/sys/fs/selinux", selinux_path, NULL, mount_flags, NULL) &&
+>         errno !=3D ENOENT)
+>       fail("mount(/sys/fs/selinux) failed");
+>   }
+>   if (mkdir("./syz-tmp/pivot", 0777))
+>     fail("mkdir failed");
+>   if (syscall(SYS_pivot_root, "./syz-tmp", "./syz-tmp/pivot")) {
+>     if (chdir("./syz-tmp"))
+>       fail("chdir failed");
+>   } else {
+>     if (chdir("/"))
+>       fail("chdir failed");
+>     if (umount2("./pivot", MNT_DETACH))
+>       fail("umount failed");
+>   }
+>   if (chroot("./newroot"))
+>     fail("chroot failed");
+>   if (chdir("/"))
+>     fail("chdir failed");
+>
+>   struct __user_cap_header_struct cap_hdr =3D {};
+>   struct __user_cap_data_struct cap_data[2] =3D {};
+>   cap_hdr.version =3D _LINUX_CAPABILITY_VERSION_3;
+>   cap_hdr.pid =3D getpid();
+>   if (syscall(SYS_capget, &cap_hdr, &cap_data))
+>     fail("capget failed");
+>   cap_data[0].effective &=3D ~(1 << CAP_SYS_PTRACE);
+>   cap_data[0].permitted &=3D ~(1 << CAP_SYS_PTRACE);
+>   cap_data[0].inheritable &=3D ~(1 << CAP_SYS_PTRACE);
+>   if (syscall(SYS_capset, &cap_hdr, &cap_data))
+>     fail("capset failed");
 >
 >   loop();
 >   doexit(1);
+> }
+>
+> static int do_sandbox_namespace(void)
+> {
+>   int pid;
+>
+>   real_uid =3D getuid();
+>   real_gid =3D getgid();
+>   mprotect(sandbox_stack, 4096, PROT_NONE);
+>   pid =3D
+>       clone(namespace_sandbox_proc, &sandbox_stack[sizeof(sandbox_stack) =
+- 64],
+>             CLONE_NEWUSER | CLONE_NEWPID, 0);
+>   if (pid < 0)
+>     fail("sandbox clone failed");
+>   return pid;
 > }
 >
 > #define XT_TABLE_SIZE 1536
@@ -2056,6 +1711,70 @@ es[0]),
 >                  AF_INET6, SOL_IPV6);
 > }
 >
+> static void remove_dir(const char* dir)
+> {
+>   DIR* dp;
+>   struct dirent* ep;
+>   int iter =3D 0;
+> retry:
+>   dp =3D opendir(dir);
+>   if (dp =3D=3D NULL) {
+>     if (errno =3D=3D EMFILE) {
+>       exitf("opendir(%s) failed due to NOFILE, exiting", dir);
+>     }
+>     exitf("opendir(%s) failed", dir);
+>   }
+>   while ((ep =3D readdir(dp))) {
+>     if (strcmp(ep->d_name, ".") =3D=3D 0 || strcmp(ep->d_name, "..") =3D=
+=3D 0)
+>       continue;
+>     char filename[FILENAME_MAX];
+>     snprintf(filename, sizeof(filename), "%s/%s", dir, ep->d_name);
+>     struct stat st;
+>     if (lstat(filename, &st))
+>       exitf("lstat(%s) failed", filename);
+>     if (S_ISDIR(st.st_mode)) {
+>       remove_dir(filename);
+>       continue;
+>     }
+>     int i;
+>     for (i =3D 0;; i++) {
+>       if (unlink(filename) =3D=3D 0)
+>         break;
+>       if (errno =3D=3D EROFS) {
+>         break;
+>       }
+>       if (errno !=3D EBUSY || i > 100)
+>         exitf("unlink(%s) failed", filename);
+>       if (umount2(filename, MNT_DETACH))
+>         exitf("umount(%s) failed", filename);
+>     }
+>   }
+>   closedir(dp);
+>   int i;
+>   for (i =3D 0;; i++) {
+>     if (rmdir(dir) =3D=3D 0)
+>       break;
+>     if (i < 100) {
+>       if (errno =3D=3D EROFS) {
+>         break;
+>       }
+>       if (errno =3D=3D EBUSY) {
+>         if (umount2(dir, MNT_DETACH))
+>           exitf("umount(%s) failed", dir);
+>         continue;
+>       }
+>       if (errno =3D=3D ENOTEMPTY) {
+>         if (iter < 100) {
+>           iter++;
+>           goto retry;
+>         }
+>       }
+>     }
+>     exitf("rmdir(%s) failed", dir);
+>   }
+> }
+>
 > static void test();
 >
 > void loop()
@@ -2063,12 +1782,19 @@ es[0]),
 >   int iter;
 >   checkpoint_net_namespace();
 >   for (iter =3D 0;; iter++) {
+>     char cwdbuf[256];
+>     sprintf(cwdbuf, "./%d", iter);
+>     if (mkdir(cwdbuf, 0777))
+>       fail("failed to mkdir");
 >     int pid =3D fork();
 >     if (pid < 0)
 >       fail("loop fork failed");
 >     if (pid =3D=3D 0) {
 >       prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0);
 >       setpgrp();
+>       if (chdir(cwdbuf))
+>         fail("failed to chdir");
+>       flush_tun();
 >       test();
 >       doexit(0);
 >     }
@@ -2087,6 +1813,7 @@ es[0]),
 >         break;
 >       }
 >     }
+>     remove_dir(cwdbuf);
 >     reset_net_namespace();
 >   }
 > }
@@ -2099,7 +1826,6 @@ es[0]),
 > static struct thread_t threads[16];
 > static void execute_call(int call);
 > static int running;
-> static int collide;
 >
 > static void* thr(void* arg)
 > {
@@ -2135,8 +1861,6 @@ ead++) {
 >         __atomic_fetch_add(&running, 1, __ATOMIC_RELAXED);
 >         __atomic_store_n(&th->running, 1, __ATOMIC_RELEASE);
 >         syscall(SYS_futex, &th->running, FUTEX_WAKE);
->         if (collide && call % 2)
->           break;
 >         struct timespec ts;
 >         ts.tv_sec =3D 0;
 >         ts.tv_nsec =3D 20 * 1000 * 1000;
@@ -2149,39 +1873,36 @@ ead++) {
 >   }
 > }
 >
-> uint64_t r[2] =3D {0xffffffffffffffff, 0xffffffffffffffff};
+> uint64_t r[1] =3D {0xffffffffffffffff};
 > uint64_t procid;
 > void execute_call(int call)
 > {
 >   long res;
 >   switch (call) {
 >   case 0:
->     memcpy((void*)0x20000140, "/dev/infiniband/rdma_cm", 24);
->     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000140, 2, 0);
+>     memcpy((void*)0x20000180, "/dev/infiniband/rdma_cm", 24);
+>     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000180, 2, 0);
 >     if (res !=3D -1)
 >       r[0] =3D res;
 >     break;
 >   case 1:
->     *(uint32_t*)0x200070c0 =3D 0;
->     *(uint16_t*)0x200070c4 =3D 0x18;
->     *(uint16_t*)0x200070c6 =3D 0xfa00;
->     *(uint64_t*)0x200070c8 =3D 0;
->     *(uint64_t*)0x200070d0 =3D 0x20007080;
->     *(uint16_t*)0x200070d8 =3D 0x13f;
->     *(uint8_t*)0x200070da =3D 0;
->     *(uint8_t*)0x200070db =3D 0;
->     *(uint8_t*)0x200070dc =3D 0;
->     *(uint8_t*)0x200070dd =3D 0;
->     *(uint8_t*)0x200070de =3D 0;
->     *(uint8_t*)0x200070df =3D 0;
->     res =3D syscall(__NR_write, r[0], 0x200070c0, 0x20);
->     if (res !=3D -1)
->       r[1] =3D *(uint32_t*)0x20007080;
+>     *(uint32_t*)0x20000000 =3D 0;
+>     *(uint16_t*)0x20000004 =3D 0x18;
+>     *(uint16_t*)0x20000006 =3D 0xfa00;
+>     *(uint64_t*)0x20000008 =3D 0;
+>     *(uint64_t*)0x20000010 =3D 0x20000f00;
+>     *(uint16_t*)0x20000018 =3D 0x106;
+>     *(uint8_t*)0x2000001a =3D 0;
+>     *(uint8_t*)0x2000001b =3D 0;
+>     *(uint8_t*)0x2000001c =3D 0;
+>     *(uint8_t*)0x2000001d =3D 0;
+>     *(uint8_t*)0x2000001e =3D 0;
+>     *(uint8_t*)0x2000001f =3D 0;
+>     syscall(__NR_write, r[0], 0x20000000, 0x20);
 >     break;
 >   case 2:
->     *(uint32_t*)0x20007100 =3D r[1];
->     memcpy((void*)0x20007104, "\x00\x00\x00\x00", 4);
->     syscall(__NR_write, r[0], 0x20007100, 8);
+>     memcpy((void*)0x200003c0, "\x09\x00\x00\x00\x00\x00\x00\xfa", 8);
+>     syscall(__NR_write, r[0], 0x200003c0, 8);
 >     break;
 >   }
 > }
@@ -2189,17 +1910,19 @@ ead++) {
 > void test()
 > {
 >   execute(3);
->   collide =3D 1;
->   execute(3);
 > }
 >
 > int main()
 > {
 >   syscall(__NR_mmap, 0x20000000, 0x1000000, 3, 0x32, -1, 0);
+>   char* cwd =3D get_current_dir_name();
 >   for (procid =3D 0; procid < 8; procid++) {
 >     if (fork() =3D=3D 0) {
 >       for (;;) {
->         int pid =3D do_sandbox_none();
+>         if (chdir(cwd))
+>           fail("failed to chdir");
+>         use_temporary_dir();
+>         int pid =3D do_sandbox_namespace();
 >         int status =3D 0;
 >         while (waitpid(pid, &status, __WALL) !=3D pid) {
 >         }
@@ -7472,24 +7195,24 @@ r30,binder31"
 > # CONFIG_STRING_SELFTEST is not set
 
 
---aiJlF+TB2UsRxGRQ
+--kd7cwL6IYJrQFfWn
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzyssACgkQ5GN7iDZy
-WKf+hQ/7BWXMjRvHAvWPdhl7HsFjz8Z1v6MgpxsdBZII06mn/K3DWjtrbv1UrAL9
-o8QSf6hAaBEVUFJJ0bN1KOG0gkLZMrOoG/cHXTVcY99yfNg+K1F/5D5chXNlP+ho
-laNwC7ouXeVeD8Aq+cMFfVCJT/Q24O3Ak4m14VN7tjdNMDxtwzRd3EDIWL8NnWtg
-7lEfUlZj6aI65AsqNrr3x15kTR5QmN1gPOdnzc8lataO7/l6Qfb8n+CIOnPlhc8D
-D0W2MLhVoclK62B5gpxL8Ebsaxg2YaCg5SCW8hOZSdfzWQbWkRBhZfxxwQiW2rq4
-48hb/6H4qP5mOYTBmKPFrgELzsk8tIfJN+FxblLo7K3++YFHc+kZ9/nzg8DSXfTJ
-FYaqpchIjt5nX8I8kj5WyEdSvS6GMEogRnI4E6zF6yO4ki/6jZiJxXlf39GjzpCG
-m0ovlLgIUgNFUQU0B5NRaE5GuFOsOLecfeY1M8c4SlrQi5vB5+BYiAK/x6ghEYxd
-s+GRfS5xyButDzhvvjfZA6tJl/DFn1fhdTtNtX5ly5H1NwNoOPQMX/42kUXchJ0r
-KhqZFOyZefWr7lGPtXxgKaGvas6NP+I9OUeLVIJaSrspEZyTF/zDX+m/d2jf4lFp
-jQHY9UZXO6lbJ9/UhAv3aaxQMyLacNS9yj3m0OyqKrjvuej8jpY=
-=mp1V
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzytoACgkQ5GN7iDZy
+WKejwQ//YGYDFYcMgNcSZCFHELIvIDIjnWEUgtYcsKZv3j1h4rJ56/d3CbHBv3Z+
+KkQtc8IikVWQJf+qiSAzg7pgSOtngBBgIZmfWrCTOIpDv26sA5hKfFtCoMCdvmua
+0Gubiet32CNzXFaK7SkfJPvba35chrN48NFi+Udl9QWJcCvdIjO22PWE6dyYMd60
+aM5DD8g21j9pYkZXPGbO0+EZ4wUkZGuedb93Zi+j2ET8fN93/7f3fRYv6iNkqaAP
+rUHCHSGzVdwY4fbJdZuRNbwg3+1/SWD0QN2dWTmPqIpgolq1AqZ7qO7ClaaK5FxK
+okunsvLI7nyks+qaiBLffYzZ0Fq/qYK1P5LmkA8d6H1yo1150Qj8DmKA3LzYNA5I
+4tL2vAK8gSWNHFaOUrYPJ54C76z98tqquWYYKVnMyXrjkoenvVuDzlN7VNDQ9axu
+eqqGtDzyBINme7D3yLjYSGUz7RDAEMwde4w23AvfLXj+FZEo6EWqSi8QXLC7HR3W
+agDdtqmgF47+BYP3HmXWCg2emxBlJnzCyx9N0oEg5AYXW+o5d09Y+VWTWnPOzzKh
+aHPo0RKHebmgINv7ELL3xkRYDFLI1XcsVjMo29KSLEYf367FW+UY4gk9nQEQWFFj
+EmB7IwngyIq7EMDsWldo0JDsUMgJMmBG4DLFKZBChBcOznKF9X4=
+=IfZj
 -----END PGP SIGNATURE-----
 
---aiJlF+TB2UsRxGRQ--
+--kd7cwL6IYJrQFfWn--
