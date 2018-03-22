@@ -1,35 +1,34 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: general protection fault in rdma_destroy_id
-Date: Thu, 22 Mar 2018 17:23:36 +0200
-Message-ID: <20180322152336.GF19440@mtr-leonro.local>
-References: <94eb2c05a2963475610566cd18e7@google.com>
+Subject: Re: general protection fault in rdma_resolve_addr
+Date: Thu, 22 Mar 2018 17:24:59 +0200
+Message-ID: <20180322152459.GI19440@mtr-leonro.local>
+References: <94eb2c03a2440a07af0566e73dcc@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="De7JZ5cYyW/PeqB+"
+        protocol="application/pgp-signature"; boundary="aiJlF+TB2UsRxGRQ"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <94eb2c05a2963475610566cd18e7@google.com>
+In-Reply-To: <94eb2c03a2440a07af0566e73dcc@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+8882c6f4c8feae701eba@syzkaller.appspotmail.com>
+To: syzbot <syzbot+06674559539eceb4d6f0@syzkaller.appspotmail.com>
 Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
---De7JZ5cYyW/PeqB+
+--aiJlF+TB2UsRxGRQ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 #syz dup: KASAN: null-ptr-deref Write in rdma_resolve_addr
 
-On Tue, Mar 06, 2018 at 10:59:03PM -0800, syzbot wrote:
+On Thu, Mar 08, 2018 at 06:10:31AM -0800, syzbot wrote:
 > Hello,
 >
 > syzbot hit the following crash on upstream commit
-> ce380619fab99036f5e745c7a865b21c59f005f6 (Tue Mar 6 04:31:14 2018 +0000)
-> Merge tag 'please-pull-ia64_misc' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux
+> 851710a8096131129ad1da79a47d385c4926d114 (Thu Mar 8 01:37:32 2018 +0000)
+> Merge branch 'for-linus' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
 >
-> So far this crash happened 3 times on upstream.
 > C reproducer is attached.
 > syzkaller reproducer is attached.
 > Raw console output is attached.
@@ -37,7 +36,7 @@ On Tue, Mar 06, 2018 at 10:59:03PM -0800, syzbot wrote:
 > .config is attached.
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+8882c6f4c8feae701eba@syzkaller.appspotmail.com
+> Reported-by: syzbot+06674559539eceb4d6f0@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
@@ -48,29 +47,25 @@ On Tue, Mar 06, 2018 at 10:59:03PM -0800, syzbot wrote:
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
 > Modules linked in:
-> CPU: 1 PID: 4278 Comm: syzkaller771653 Not tainted 4.16.0-rc4+ #343
+> CPU: 0 PID: 10410 Comm: syzkaller958277 Not tainted 4.16.0-rc4+ #345
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
-> RIP: 0010:__lock_acquire+0xa09/0x3e00 kernel/locking/lockdep.c:3310
-> RSP: 0018:ffff8801b0477370 EFLAGS: 00010002
-> RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 0000000000000000
-> RDX: 0000000000000046 RSI: 0000000000000000 RDI: ffffffff86ec9920
-> RBP: ffff8801b0477700 R08: ffffffff841cb939 R09: 0000000000000001
-> R10: 0000000000000000 R11: 0000000000000230 R12: 0000000000000000
-> R13: 0000000000000001 R14: 0000000000000000 R15: ffff8801b09f8080
-> FS:  00007f9804bd9700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000=
+> RIP: 0010:rdma_resolve_addr+0x13c/0x26c0 drivers/infiniband/core/cma.c:29=
+21
+> RSP: 0018:ffff8801b3807680 EFLAGS: 00010207
+> RAX: 0000000000000042 RBX: ffff8801b3807a44 RCX: 0000000000000000
+> RDX: 0000000000000000 RSI: ffff8801b3807a44 RDI: 0000000000000214
+> RBP: ffff8801b38079e0 R08: 0000000000000000 R09: 0000000000000000
+> R10: ffff8801b38079f8 R11: 0000000000000000 R12: dffffc0000000000
+> R13: 00000000000000a0 R14: ffff8801b3807a28 R15: 0000000000000000
+> FS:  00007f2dc376e700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000=
 000
 > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007fd44e116000 CR3: 00000001b77dc005 CR4: 00000000001606e0
+> CR2: 0000000020000140 CR3: 00000001c6e4e006 CR4: 00000000001606f0
 > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  lock_acquire+0x1d5/0x580 kernel/locking/lockdep.c:3920
->  __raw_spin_lock_irqsave include/linux/spinlock_api_smp.h:110 [inline]
->  _raw_spin_lock_irqsave+0x96/0xc0 kernel/locking/spinlock.c:152
->  cma_exch drivers/infiniband/core/cma.c:461 [inline]
->  rdma_destroy_id+0xa9/0xda0 drivers/infiniband/core/cma.c:1660
->  ucma_destroy_id+0x2e9/0x4c0 drivers/infiniband/core/ucma.c:606
+>  ucma_resolve_ip+0x142/0x1f0 drivers/infiniband/core/ucma.c:677
 >  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1627
 >  __vfs_write+0xef/0x970 fs/read_write.c:480
 >  vfs_write+0x189/0x510 fs/read_write.c:544
@@ -78,20 +73,21 @@ On Tue, Mar 06, 2018 at 10:59:03PM -0800, syzbot wrote:
 >  SyS_write+0xef/0x220 fs/read_write.c:581
 >  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
 >  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x449639
-> RSP: 002b:00007f9804bd8da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000006dac5c RCX: 0000000000449639
-> RDX: 00000000000000a4 RSI: 0000000020000000 RDI: 00000000000001b4
-> RBP: 00000000006dac58 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f616d6472
-> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000007
-> Code: 81 c4 60 03 00 00 44 89 d0 5b 41 5a 41 5c 41 5d 41 5e 41 5f 5d 49 8d
-> 62 f8 c3 4c 89 da 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 <80> 3c 02 00=
- 0f
-> 85 0a 33 00 00 49 81 3b 60 ed 9f 87 41 bd 00 00
-> RIP: __lock_acquire+0xa09/0x3e00 kernel/locking/lockdep.c:3310 RSP:
-> ffff8801b0477370
-> ---[ end trace 885cef83eddc104c ]---
+> RIP: 0033:0x446aa9
+> RSP: 002b:00007f2dc376dda8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 0000000000446aa9
+> RDX: 0000000000000008 RSI: 0000000020007100 RDI: 0000000000000004
+> RBP: 00000000006e29f8 R08: 00007f2dc376e700 R09: 0000000000000000
+> R10: 00007f2dc376e700 R11: 0000000000000246 R12: 006d635f616d6472
+> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000003
+> Code: 31 c0 e8 f8 b1 53 fd 48 89 df e8 70 f4 f5 ff 4c 89 ef 48 63 d0 48 89
+> de e8 02 df 8b fd 49 8d bf 14 02 00 00 48 89 f8 48 c1 e8 03 <42> 0f b6 14=
+ 20
+> 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
+> RIP: rdma_resolve_addr+0x13c/0x26c0 drivers/infiniband/core/cma.c:2921 RS=
+P:
+> ffff8801b3807680
+> ---[ end trace 35b5ca64e9e3cd3f ]---
 > Kernel panic - not syncing: Fatal exception
 > Dumping ftrace buffer:
 >    (ftrace buffer empty)
@@ -121,41 +117,40 @@ On Tue, Mar 06, 2018 at 10:59:03PM -0800, syzbot wrote:
 > Note: all commands must start from beginning of the line in the email bod=
 y.
 
-> [....] Starting enhanced syslogd: rsyslogd[   17.675701] audit: type=3D14=
-00 audit(1520372118.003:5): avc:  denied  { syslog } for  pid=3D4122 comm=
-=3D"rsyslogd" capability=3D34  scontext=3Dsystem_u:system_r:kernel_t:s0 tco=
-ntext=3Dsystem_u:system_r:kernel_t:s0 tclass=3Dcapability2 permissive=3D1
 > =1B[?25l=1B[?1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting periodic command scheduler: cron=1B[?25l=1B[?1c=1B7=1B[1G=
 [=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > Starting mcstransd:
-> [....] Starting file context maintaining daemon: restorecond=1B[?25l=1B[?=
-1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting OpenBSD Secure Shell server: sshd=1B[?25l=1B[?1c=1B7=1B[1=
 G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
+> [....] Starting file context maintaining daemon: restorecond=1B[?25l=1B[?=
+1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
+> [   19.110518] audit: type=3D1400 audit(1520479597.561:6): avc:  denied  =
+{ map } for  pid=3D4181 comm=3D"bash" path=3D"/bin/bash" dev=3D"sda1" ino=
+=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=
+=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
 >
 > Debian GNU/Linux 7 syzkaller ttyS0
 >
-> syzkaller login: [   23.723433] audit: type=3D1400 audit(1520372124.051:6=
-): avc:  denied  { map } for  pid=3D4262 comm=3D"bash" path=3D"/bin/bash" d=
-ev=3D"sda1" ino=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c=
-1023 tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> Warning: Permanently added '10.128.0.25' (ECDSA) to the list of known hos=
-ts.
+> Warning: Permanently added '10.128.0.6' (ECDSA) to the list of known host=
+s.
+> syzkaller login: [   30.486227] audit: type=3D1400 audit(1520479608.937:7=
+): avc:  denied  { map } for  pid=3D4196 comm=3D"syzkaller958277" path=3D"/=
+root/syzkaller958277320" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:s=
+ystem_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_=
+t:s0 tclass=3Dfile permissive=3D1
+> [   30.502445] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
 > executing program
+> [   30.540985] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
-> [   30.153607] audit: type=3D1400 audit(1520372130.481:7): avc:  denied  =
-{ map } for  pid=3D4276 comm=3D"syzkaller771653" path=3D"/root/syzkaller771=
-653808" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
-s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfil=
-e permissive=3D1
 > executing program
 > executing program
 > executing program
 > executing program
+> [   30.579193] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -165,6 +160,7 @@ e permissive=3D1
 > executing program
 > executing program
 > executing program
+> [   30.635337] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -173,12 +169,14 @@ e permissive=3D1
 > executing program
 > executing program
 > executing program
+> [   30.693344] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
 > executing program
+> [   30.743845] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -187,6 +185,7 @@ e permissive=3D1
 > executing program
 > executing program
 > executing program
+> [   30.792724] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -194,6 +193,7 @@ e permissive=3D1
 > executing program
 > executing program
 > executing program
+> [   30.855563] IPVS: ftp: loaded support on port[0] =3D 21
 > executing program
 > executing program
 > executing program
@@ -256,195 +256,1838 @@ e permissive=3D1
 > executing program
 > executing program
 > executing program
-> [   31.778948] kasan: CONFIG_KASAN_INLINE enabled
-> [   31.783564] kasan: GPF could be caused by NULL-ptr deref or user memor=
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   36.151874] kasan: CONFIG_KASAN_INLINE enabled
+> [   36.156755] kasan: GPF could be caused by NULL-ptr deref or user memor=
 y access
-> [   31.790896] general protection fault: 0000 [#1] SMP KASAN
-> [   31.796408] Dumping ftrace buffer:
-> [   31.799914]    (ftrace buffer empty)
-> [   31.803593] Modules linked in:
-> [   31.806757] CPU: 1 PID: 4278 Comm: syzkaller771653 Not tainted 4.16.0-=
-rc4+ #343
-> [   31.814169] Hardware name: Google Google Compute Engine/Google Compute=
+> [   36.164197] general protection fault: 0000 [#1] SMP KASAN
+> [   36.169729] Dumping ftrace buffer:
+> [   36.173267]    (ftrace buffer empty)
+> [   36.176970] Modules linked in:
+> [   36.180152] CPU: 0 PID: 10410 Comm: syzkaller958277 Not tainted 4.16.0=
+-rc4+ #345
+> [   36.187665] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   31.823504] RIP: 0010:__lock_acquire+0xa09/0x3e00
-> [   31.828311] RSP: 0018:ffff8801b0477370 EFLAGS: 00010002
-> [   31.833641] RAX: dffffc0000000000 RBX: 0000000000000001 RCX: 000000000=
+> [   36.197025] RIP: 0010:rdma_resolve_addr+0x13c/0x26c0
+> executing program
+> executing program
+> executing program
+> [   36.202117] RSP: 0018:ffff8801b3807680 EFLAGS: 00010207
+> [   36.207476] RAX: 0000000000000042 RBX: ffff8801b3807a44 RCX: 000000000=
 0000000
-> [   31.840879] RDX: 0000000000000046 RSI: 0000000000000000 RDI: ffffffff8=
-6ec9920
-> [   31.848117] RBP: ffff8801b0477700 R08: ffffffff841cb939 R09: 000000000=
-0000001
-> [   31.855354] R10: 0000000000000000 R11: 0000000000000230 R12: 000000000=
+> [   36.214739] RDX: 0000000000000000 RSI: ffff8801b3807a44 RDI: 000000000=
+0000214
+> [   36.222006] RBP: ffff8801b38079e0 R08: 0000000000000000 R09: 000000000=
 0000000
-> [   31.862593] R13: 0000000000000001 R14: 0000000000000000 R15: ffff8801b=
-09f8080
-> [   31.869835] FS:  00007f9804bd9700(0000) GS:ffff8801db300000(0000) knlG=
+> [   36.229272] R10: ffff8801b38079f8 R11: 0000000000000000 R12: dffffc000=
+0000000
+> [   36.236542] R13: 00000000000000a0 R14: ffff8801b3807a28 R15: 000000000=
+0000000
+> [   36.243810] FS:  00007f2dc376e700(0000) GS:ffff8801db200000(0000) knlG=
 S:0000000000000000
-> [   31.878030] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   31.883878] CR2: 00007fd44e116000 CR3: 00000001b77dc005 CR4: 000000000=
-01606e0
-> [   31.891118] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
+> [   36.252032] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   36.257911] CR2: 0000000020000140 CR3: 00000001c6e4e006 CR4: 000000000=
+01606f0
+> [   36.265178] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
 0000000
-> [   31.898357] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
+> [   36.272443] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
 0000400
-> [   31.905597] Call Trace:
-> [   31.908162]  ? __lock_acquire+0x664/0x3e00
-> [   31.912364]  ? print_irqtrace_events+0x270/0x270
-> [   31.917087]  ? __lockdep_init_map+0xe4/0x650
-> [   31.921464]  ? debug_check_no_locks_freed+0x3c0/0x3c0
-> [   31.926623]  ? debug_check_no_locks_freed+0x3c0/0x3c0
-> [   31.931779]  ? __lock_acquire+0x664/0x3e00
-> [   31.935985]  ? ucma_destroy_id+0x269/0x4c0
-> [   31.940191]  ? debug_check_no_locks_freed+0x3c0/0x3c0
-> [   31.945352]  ? __might_sleep+0x95/0x190
-> [   31.949292]  ? ucma_destroy_id+0x269/0x4c0
-> [   31.953495]  ? __mutex_lock+0x16f/0x1a80
-> [   31.957522]  ? ucma_destroy_id+0x269/0x4c0
-> [   31.961728]  ? trace_hardirqs_off+0x10/0x10
-> [   31.966016]  ? trace_hardirqs_off+0x10/0x10
-> [   31.970303]  ? mutex_lock_io_nested+0x1900/0x1900
-> [   31.975114]  ? futex_wait+0x6a9/0x9a0
-> [   31.978884]  lock_acquire+0x1d5/0x580
-> [   31.982660]  ? lock_acquire+0x1d5/0x580
-> [   31.986606]  ? rdma_destroy_id+0xa9/0xda0
-> [   31.990721]  ? lock_release+0xa40/0xa40
-> [   31.994663]  ? lock_downgrade+0x980/0x980
-> [   31.998779]  ? lock_release+0xa40/0xa40
-> [   32.002725]  ? check_same_owner+0x320/0x320
-> [   32.007025]  ? do_raw_spin_trylock+0x190/0x190
-> [   32.011577]  _raw_spin_lock_irqsave+0x96/0xc0
-> [   32.016043]  ? rdma_destroy_id+0xa9/0xda0
-> [   32.020157]  rdma_destroy_id+0xa9/0xda0
-> [   32.024100]  ? trace_hardirqs_on+0xd/0x10
-> [   32.028225]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.032692]  ? wait_for_completion+0xe0/0x770
-> [   32.037157]  ? cma_release_dev+0x350/0x350
-> [   32.041359]  ? wait_for_completion_interruptible+0x7e0/0x7e0
-> [   32.047125]  ? do_wait_intr_irq+0x3e0/0x3e0
-> [   32.051416]  ? do_raw_spin_trylock+0x190/0x190
-> [   32.055967]  ? _raw_spin_unlock_irqrestore+0x31/0xc0
-> [   32.061038]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   32.066023]  ? trace_hardirqs_on+0xd/0x10
-> [   32.070137]  ? complete+0x62/0x80
-> [   32.073559]  ucma_destroy_id+0x2e9/0x4c0
-> [   32.077588]  ? ucma_close+0x2f0/0x2f0
-> [   32.081359]  ? __might_sleep+0x95/0x190
-> [   32.085302]  ? kasan_check_write+0x14/0x20
-> [   32.089511]  ? _copy_from_user+0x99/0x110
-> [   32.093630]  ucma_write+0x2d6/0x3d0
-> [   32.097223]  ? ucma_close+0x2f0/0x2f0
-> [   32.100991]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   32.105458]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   32.109930]  __vfs_write+0xef/0x970
-> [   32.113529]  ? rcu_note_context_switch+0x710/0x710
-> [   32.118427]  ? kernel_read+0x120/0x120
-> [   32.122295]  ? __might_sleep+0x95/0x190
-> [   32.126241]  ? _cond_resched+0x14/0x30
-> [   32.130097]  ? __inode_security_revalidate+0xd9/0x130
-> [   32.135254]  ? avc_policy_seqno+0x9/0x20
-> [   32.139281]  ? selinux_file_permission+0x82/0x460
-> [   32.144102]  ? security_file_permission+0x89/0x1e0
-> [   32.148997]  ? rw_verify_area+0xe5/0x2b0
-> [   32.153025]  ? __fdget_raw+0x20/0x20
-> [   32.156706]  vfs_write+0x189/0x510
-> [   32.160214]  SyS_write+0xef/0x220
-> [   32.163634]  ? filp_open+0x70/0x70
-> [   32.167141]  ? SyS_read+0x220/0x220
-> [   32.170737]  ? do_syscall_64+0xb7/0x940
-> [   32.174681]  ? SyS_read+0x220/0x220
-> [   32.178274]  do_syscall_64+0x281/0x940
-> [   32.182130]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.186593]  ? finish_task_switch+0x1c1/0x7e0
-> [   32.191056]  ? syscall_return_slowpath+0x550/0x550
-> [   32.195952]  ? syscall_return_slowpath+0x2ac/0x550
-> [   32.200849]  ? prepare_exit_to_usermode+0x350/0x350
-> [   32.205832]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
-> [   32.211163]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   32.215975]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> [   32.221132] RIP: 0033:0x449639
-> [   32.224291] RSP: 002b:00007f9804bd8da8 EFLAGS: 00000246 ORIG_RAX: 0000=
+> [   36.279704] Call Trace:
+> [   36.282298]  ? find_held_lock+0x35/0x1d0
+> [   36.286365]  ? rdma_bind_addr+0x1b50/0x1b50
+> [   36.290688]  ? lock_downgrade+0x980/0x980
+> [   36.294840]  ? __radix_tree_lookup+0x435/0x5e0
+> [   36.299435]  ? __mutex_unlock_slowpath+0xe9/0xac0
+> [   36.304285]  ? wait_for_completion+0x770/0x770
+> [   36.308878]  ? lock_release+0xa40/0xa40
+> [   36.312861]  ? check_same_owner+0x320/0x320
+> [   36.317184]  ? find_held_lock+0x35/0x1d0
+> [   36.321267]  ucma_resolve_ip+0x142/0x1f0
+> [   36.325329]  ? ucma_resolve_ip+0x142/0x1f0
+> [   36.329566]  ? ucma_resolve_addr+0x330/0x330
+> [   36.333984]  ? kasan_check_write+0x14/0x20
+> [   36.338227]  ucma_write+0x2d6/0x3d0
+> [   36.341860]  ? ucma_resolve_addr+0x330/0x330
+> [   36.346276]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   36.350788]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   36.355280]  __vfs_write+0xef/0x970
+> [   36.358908]  ? rcu_note_context_switch+0x710/0x710
+> [   36.363841]  ? kernel_read+0x120/0x120
+> [   36.367752]  ? __might_sleep+0x95/0x190
+> [   36.371737]  ? _cond_resched+0x14/0x30
+> [   36.375627]  ? __inode_security_revalidate+0xd9/0x130
+> [   36.380820]  ? avc_policy_seqno+0x9/0x20
+> [   36.384896]  ? selinux_file_permission+0x82/0x460
+> [   36.389743]  ? security_file_permission+0x89/0x1e0
+> [   36.394676]  ? rw_verify_area+0xe5/0x2b0
+> [   36.398735]  ? __fdget_raw+0x20/0x20
+> [   36.402452]  vfs_write+0x189/0x510
+> [   36.406007]  SyS_write+0xef/0x220
+> [   36.409468]  ? SyS_read+0x220/0x220
+> [   36.413096]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   36.418110]  ? do_syscall_64+0xb7/0x940
+> [   36.422084]  ? SyS_read+0x220/0x220
+> [   36.425716]  do_syscall_64+0x281/0x940
+> [   36.429607]  ? syscall_return_slowpath+0x550/0x550
+> [   36.434536]  ? syscall_return_slowpath+0x2ac/0x550
+> [   36.439469]  ? prepare_exit_to_usermode+0x350/0x350
+> [   36.444491]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [   36.449865]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [   36.454735]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   36.459937] RIP: 0033:0x446aa9
+> [   36.463119] RSP: 002b:00007f2dc376dda8 EFLAGS: 00000246 ORIG_RAX: 0000=
 000000000001
-> [   32.231968] RAX: ffffffffffffffda RBX: 00000000006dac5c RCX: 000000000=
-0449639
-> [   32.239206] RDX: 00000000000000a4 RSI: 0000000020000000 RDI: 000000000=
-00001b4
-> [   32.246443] RBP: 00000000006dac58 R08: 0000000000000000 R09: 000000000=
+> [   36.470821] RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 000000000=
+0446aa9
+> [   36.478092] RDX: 0000000000000008 RSI: 0000000020007100 RDI: 000000000=
+0000004
+> [   36.485358] RBP: 00000000006e29f8 R08: 00007f2dc376e700 R09: 000000000=
 0000000
-> [   32.253682] R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f6=
+> [   36.492626] R10: 00007f2dc376e700 R11: 0000000000000246 R12: 006d635f6=
 16d6472
-> [   32.260922] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
-0000007
-> [   32.268163] Code: 81 c4 60 03 00 00 44 89 d0 5b 41 5a 41 5c 41 5d 41 5=
-e 41 5f 5d 49 8d 62 f8 c3 4c 89 da 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 0=
-3 <80> 3c 02 00 0f 85 0a 33 00 00 49 81 3b 60 ed 9f 87 41 bd 00 00
-> [   32.287208] RIP: __lock_acquire+0xa09/0x3e00 RSP: ffff8801b0477370
-> [   32.293497] ---[ end trace 885cef83eddc104c ]---
-> [   32.298219] Kernel panic - not syncing: Fatal exception
-> [   32.304030] Dumping ftrace buffer:
-> [   32.307548]    (ftrace buffer empty)
-> [   32.311227] Kernel Offset: disabled
-> [   32.314823] Rebooting in 86400 seconds..
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   36.499894] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+0000003
+> [   36.507165] Code: 31 c0 e8 f8 b1 53 fd 48 89 df e8 70 f4 f5 ff 4c 89 e=
+f 48 63 d0 48 89 de e8 02 df 8b fd 49 8d bf 14 02 00 00 48 89 f8 48 c1 e8 0=
+3 <42> 0f b6 14 20 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
+> [   36.526604] RIP: rdma_resolve_addr+0x13c/0x26c0 RSP: ffff8801b3807680
+> [   36.533224] ---[ end trace 35b5ca64e9e3cd3f ]---
+> [   36.538007] Kernel panic - not syncing: Fatal exception
+> [   36.543817] Dumping ftrace buffer:
+> [   36.547350]    (ftrace buffer empty)
+> [   36.551032] Kernel Offset: disabled
+> [   36.554631] Rebooting in 86400 seconds..
 
 > # See https://goo.gl/kgGztJ for information about syzkaller reproducers.
-> #{Threaded:true Collide:true Repeat:true Procs:1 Sandbox: Fault:false Fau=
-ltCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false WaitR=
-epeat:false Debug:false Repro:false}
-> r0 =3D syz_open_dev$vcsa(&(0x7f0000000040)=3D'/dev/vcsa#\x00', 0x3, 0x80)
-> connect$unix(r0, &(0x7f0000000080)=3D@abs=3D{0x1, 0x0, 0x4e24}, 0x6e)
-> clock_gettime(0x0, &(0x7f0000000100))
-> ioctl$SNDRV_SEQ_IOCTL_GET_QUEUE_STATUS(r0, 0xc05c5340, &(0x7f00000001c0)=
-=3D{0x80000000, 0x80000001, 0x4, {0x0, 0x989680}, 0x75a})
-> r1 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000180)=3D'/dev/infin=
+> #{Threaded:true Collide:true Repeat:true Procs:8 Sandbox:none Fault:false=
+ FaultCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false W=
+aitRepeat:true Debug:false Repro:false}
+> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000140)=3D'/dev/infin=
 iband/rdma_cm\x00', 0x2, 0x0)
-> write$rdma_cm(r1, &(0x7f0000002940)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
-x0, &(0x7f0000002900)=3D{<r2=3D>0xffffffff}, 0x106}}, 0x20)
-> write$rdma_cm(r1, &(0x7f0000000000)=3D@destroy_id=3D{0x1, 0x0, 0xfa00, {&=
-(0x7f00000013c0), r2}}, 0xa4)
+> write$rdma_cm(r0, &(0x7f00000070c0)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
+x0, &(0x7f0000007080)=3D{<r1=3D>0xffffffff}, 0x13f}}, 0x20)
+> write$rdma_cm(r0, &(0x7f0000007100)=3DANY=3D[@ANYBLOB, @ANYRES32=3Dr1, @A=
+NYBLOB=3D'\x00\x00\x00\x00'], 0x8)
 
 > // autogenerated by syzkaller (http://github.com/google/syzkaller)
 >
 > #define _GNU_SOURCE
 > #include <endian.h>
-> #include <fcntl.h>
+> #include <errno.h>
+> #include <errno.h>
 > #include <linux/futex.h>
+> #include <linux/net.h>
+> #include <netinet/in.h>
 > #include <pthread.h>
-> #include <stdint.h>
+> #include <sched.h>
+> #include <signal.h>
+> #include <signal.h>
+> #include <stdarg.h>
+> #include <stdarg.h>
+> #include <stdbool.h>
+> #include <stdio.h>
 > #include <stdio.h>
 > #include <stdlib.h>
-> #include <string.h>
-> #include <string.h>
-> #include <sys/stat.h>
+> #include <sys/prctl.h>
+> #include <sys/prctl.h>
+> #include <sys/resource.h>
+> #include <sys/socket.h>
 > #include <sys/syscall.h>
+> #include <sys/time.h>
+> #include <sys/time.h>
+> #include <sys/wait.h>
+> #include <sys/wait.h>
+> #include <time.h>
 > #include <unistd.h>
 >
-> static uintptr_t syz_open_dev(uintptr_t a0, uintptr_t a1, uintptr_t a2)
+> __attribute__((noreturn)) static void doexit(int status)
 > {
->   if (a0 =3D=3D 0xc || a0 =3D=3D 0xb) {
->     char buf[128];
->     sprintf(buf, "/dev/%s/%d:%d", a0 =3D=3D 0xc ? "char" : "block", (uint=
-8_t)a1,
->             (uint8_t)a2);
->     return open(buf, O_RDWR, 0);
->   } else {
->     char buf[1024];
->     char* hash;
->     strncpy(buf, (char*)a0, sizeof(buf));
->     buf[sizeof(buf) - 1] =3D 0;
->     while ((hash =3D strchr(buf, '#'))) {
->       *hash =3D '0' + (char)(a1 % 10);
->       a1 /=3D 10;
->     }
->     return open(buf, a2, 0);
+>   volatile unsigned i;
+>   syscall(__NR_exit_group, status);
+>   for (i =3D 0;; i++) {
 >   }
+> }
+> #include <errno.h>
+> #include <stdarg.h>
+> #include <stdint.h>
+> #include <stdio.h>
+> #include <string.h>
+>
+> const int kFailStatus =3D 67;
+> const int kRetryStatus =3D 69;
+>
+> static void fail(const char* msg, ...)
+> {
+>   int e =3D errno;
+>   va_list args;
+>   va_start(args, msg);
+>   vfprintf(stderr, msg, args);
+>   va_end(args);
+>   fprintf(stderr, " (errno %d)\n", e);
+>   doexit((e =3D=3D ENOMEM || e =3D=3D EAGAIN) ? kRetryStatus : kFailStatu=
+s);
+> }
+>
+> static uint64_t current_time_ms()
+> {
+>   struct timespec ts;
+>
+>   if (clock_gettime(CLOCK_MONOTONIC, &ts))
+>     fail("clock_gettime failed");
+>   return (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+> }
+>
+> static void loop();
+>
+> static void sandbox_common()
+> {
+>   prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0);
+>   setpgrp();
+>   setsid();
+>
+>   struct rlimit rlim;
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 128 << 20;
+>   setrlimit(RLIMIT_AS, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 8 << 20;
+>   setrlimit(RLIMIT_MEMLOCK, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 1 << 20;
+>   setrlimit(RLIMIT_FSIZE, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 1 << 20;
+>   setrlimit(RLIMIT_STACK, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 0;
+>   setrlimit(RLIMIT_CORE, &rlim);
+>
+> #define CLONE_NEWCGROUP 0x02000000
+>
+>   if (unshare(CLONE_NEWNS)) {
+>   }
+>   if (unshare(CLONE_NEWIPC)) {
+>   }
+>   if (unshare(CLONE_NEWCGROUP)) {
+>   }
+>   if (unshare(CLONE_NEWUTS)) {
+>   }
+>   if (unshare(CLONE_SYSVSEM)) {
+>   }
+> }
+>
+> static int do_sandbox_none(void)
+> {
+>   if (unshare(CLONE_NEWPID)) {
+>   }
+>   int pid =3D fork();
+>   if (pid < 0)
+>     fail("sandbox fork failed");
+>   if (pid)
+>     return pid;
+>
+>   sandbox_common();
+>   if (unshare(CLONE_NEWNET)) {
+>   }
+>
+>   loop();
+>   doexit(1);
+> }
+>
+> #define XT_TABLE_SIZE 1536
+> #define XT_MAX_ENTRIES 10
+>
+> struct xt_counters {
+>   uint64_t pcnt, bcnt;
+> };
+>
+> struct ipt_getinfo {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int hook_entry[5];
+>   unsigned int underflow[5];
+>   unsigned int num_entries;
+>   unsigned int size;
+> };
+>
+> struct ipt_get_entries {
+>   char name[32];
+>   unsigned int size;
+>   void* entrytable[XT_TABLE_SIZE / sizeof(void*)];
+> };
+>
+> struct ipt_replace {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int num_entries;
+>   unsigned int size;
+>   unsigned int hook_entry[5];
+>   unsigned int underflow[5];
+>   unsigned int num_counters;
+>   struct xt_counters* counters;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> struct ipt_table_desc {
+>   const char* name;
+>   struct ipt_getinfo info;
+>   struct ipt_replace replace;
+> };
+>
+> static struct ipt_table_desc ipv4_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"},      {.name =3D "mangle"},
+>     {.name =3D "raw"},    {.name =3D "security"},
+> };
+>
+> static struct ipt_table_desc ipv6_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"},      {.name =3D "mangle"},
+>     {.name =3D "raw"},    {.name =3D "security"},
+> };
+>
+> #define IPT_BASE_CTL 64
+> #define IPT_SO_SET_REPLACE (IPT_BASE_CTL)
+> #define IPT_SO_GET_INFO (IPT_BASE_CTL)
+> #define IPT_SO_GET_ENTRIES (IPT_BASE_CTL + 1)
+>
+> struct arpt_getinfo {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int hook_entry[3];
+>   unsigned int underflow[3];
+>   unsigned int num_entries;
+>   unsigned int size;
+> };
+>
+> struct arpt_get_entries {
+>   char name[32];
+>   unsigned int size;
+>   void* entrytable[XT_TABLE_SIZE / sizeof(void*)];
+> };
+>
+> struct arpt_replace {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int num_entries;
+>   unsigned int size;
+>   unsigned int hook_entry[3];
+>   unsigned int underflow[3];
+>   unsigned int num_counters;
+>   struct xt_counters* counters;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> struct arpt_table_desc {
+>   const char* name;
+>   struct arpt_getinfo info;
+>   struct arpt_replace replace;
+> };
+>
+> static struct arpt_table_desc arpt_tables[] =3D {
+>     {.name =3D "filter"},
+> };
+>
+> #define ARPT_BASE_CTL 96
+> #define ARPT_SO_SET_REPLACE (ARPT_BASE_CTL)
+> #define ARPT_SO_GET_INFO (ARPT_BASE_CTL)
+> #define ARPT_SO_GET_ENTRIES (ARPT_BASE_CTL + 1)
+>
+> static void checkpoint_iptables(struct ipt_table_desc* tables, int num_ta=
+bles,
+>                                 int family, int level)
+> {
+>   struct ipt_get_entries entries;
+>   socklen_t optlen;
+>   int fd, i;
+>
+>   fd =3D socket(family, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(%d, SOCK_STREAM, IPPROTO_TCP)", family);
+>   for (i =3D 0; i < num_tables; i++) {
+>     struct ipt_table_desc* table =3D &tables[i];
+>     strcpy(table->info.name, table->name);
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->info);
+>     if (getsockopt(fd, level, IPT_SO_GET_INFO, &table->info, &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(IPT_SO_GET_INFO)");
+>     }
+>     if (table->info.size > sizeof(table->replace.entrytable))
+>       fail("table size is too large: %u", table->info.size);
+>     if (table->info.num_entries > XT_MAX_ENTRIES)
+>       fail("too many counters: %u", table->info.num_entries);
+>     memset(&entries, 0, sizeof(entries));
+>     strcpy(entries.name, table->name);
+>     entries.size =3D table->info.size;
+>     optlen =3D sizeof(entries) - sizeof(entries.entrytable) + table->info=
+=2Esize;
+>     if (getsockopt(fd, level, IPT_SO_GET_ENTRIES, &entries, &optlen))
+>       fail("getsockopt(IPT_SO_GET_ENTRIES)");
+>     table->replace.valid_hooks =3D table->info.valid_hooks;
+>     table->replace.num_entries =3D table->info.num_entries;
+>     table->replace.size =3D table->info.size;
+>     memcpy(table->replace.hook_entry, table->info.hook_entry,
+>            sizeof(table->replace.hook_entry));
+>     memcpy(table->replace.underflow, table->info.underflow,
+>            sizeof(table->replace.underflow));
+>     memcpy(table->replace.entrytable, entries.entrytable, table->info.siz=
+e);
+>   }
+>   close(fd);
+> }
+>
+> static void reset_iptables(struct ipt_table_desc* tables, int num_tables,
+>                            int family, int level)
+> {
+>   struct xt_counters counters[XT_MAX_ENTRIES];
+>   struct ipt_get_entries entries;
+>   struct ipt_getinfo info;
+>   socklen_t optlen;
+>   int fd, i;
+>
+>   fd =3D socket(family, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(%d, SOCK_STREAM, IPPROTO_TCP)", family);
+>   for (i =3D 0; i < num_tables; i++) {
+>     struct ipt_table_desc* table =3D &tables[i];
+>     if (table->info.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&info, 0, sizeof(info));
+>     strcpy(info.name, table->name);
+>     optlen =3D sizeof(info);
+>     if (getsockopt(fd, level, IPT_SO_GET_INFO, &info, &optlen))
+>       fail("getsockopt(IPT_SO_GET_INFO)");
+>     if (memcmp(&table->info, &info, sizeof(table->info)) =3D=3D 0) {
+>       memset(&entries, 0, sizeof(entries));
+>       strcpy(entries.name, table->name);
+>       entries.size =3D table->info.size;
+>       optlen =3D sizeof(entries) - sizeof(entries.entrytable) + entries.s=
+ize;
+>       if (getsockopt(fd, level, IPT_SO_GET_ENTRIES, &entries, &optlen))
+>         fail("getsockopt(IPT_SO_GET_ENTRIES)");
+>       if (memcmp(table->replace.entrytable, entries.entrytable,
+>                  table->info.size) =3D=3D 0)
+>         continue;
+>     }
+>     table->replace.num_counters =3D info.num_entries;
+>     table->replace.counters =3D counters;
+>     optlen =3D sizeof(table->replace) - sizeof(table->replace.entrytable)=
+ +
+>              table->replace.size;
+>     if (setsockopt(fd, level, IPT_SO_SET_REPLACE, &table->replace, optlen=
+))
+>       fail("setsockopt(IPT_SO_SET_REPLACE)");
+>   }
+>   close(fd);
+> }
+>
+> static void checkpoint_arptables(void)
+> {
+>   struct arpt_get_entries entries;
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(arpt_tables) / sizeof(arpt_tables[0]); i++) {
+>     struct arpt_table_desc* table =3D &arpt_tables[i];
+>     strcpy(table->info.name, table->name);
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->info);
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_INFO, &table->info, &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(ARPT_SO_GET_INFO)");
+>     }
+>     if (table->info.size > sizeof(table->replace.entrytable))
+>       fail("table size is too large: %u", table->info.size);
+>     if (table->info.num_entries > XT_MAX_ENTRIES)
+>       fail("too many counters: %u", table->info.num_entries);
+>     memset(&entries, 0, sizeof(entries));
+>     strcpy(entries.name, table->name);
+>     entries.size =3D table->info.size;
+>     optlen =3D sizeof(entries) - sizeof(entries.entrytable) + table->info=
+=2Esize;
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_ENTRIES, &entries, &optlen))
+>       fail("getsockopt(ARPT_SO_GET_ENTRIES)");
+>     table->replace.valid_hooks =3D table->info.valid_hooks;
+>     table->replace.num_entries =3D table->info.num_entries;
+>     table->replace.size =3D table->info.size;
+>     memcpy(table->replace.hook_entry, table->info.hook_entry,
+>            sizeof(table->replace.hook_entry));
+>     memcpy(table->replace.underflow, table->info.underflow,
+>            sizeof(table->replace.underflow));
+>     memcpy(table->replace.entrytable, entries.entrytable, table->info.siz=
+e);
+>   }
+>   close(fd);
+> }
+>
+> static void reset_arptables()
+> {
+>   struct xt_counters counters[XT_MAX_ENTRIES];
+>   struct arpt_get_entries entries;
+>   struct arpt_getinfo info;
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(arpt_tables) / sizeof(arpt_tables[0]); i++) {
+>     struct arpt_table_desc* table =3D &arpt_tables[i];
+>     if (table->info.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&info, 0, sizeof(info));
+>     strcpy(info.name, table->name);
+>     optlen =3D sizeof(info);
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_INFO, &info, &optlen))
+>       fail("getsockopt(ARPT_SO_GET_INFO)");
+>     if (memcmp(&table->info, &info, sizeof(table->info)) =3D=3D 0) {
+>       memset(&entries, 0, sizeof(entries));
+>       strcpy(entries.name, table->name);
+>       entries.size =3D table->info.size;
+>       optlen =3D sizeof(entries) - sizeof(entries.entrytable) + entries.s=
+ize;
+>       if (getsockopt(fd, SOL_IP, ARPT_SO_GET_ENTRIES, &entries, &optlen))
+>         fail("getsockopt(ARPT_SO_GET_ENTRIES)");
+>       if (memcmp(table->replace.entrytable, entries.entrytable,
+>                  table->info.size) =3D=3D 0)
+>         continue;
+>     }
+>     table->replace.num_counters =3D info.num_entries;
+>     table->replace.counters =3D counters;
+>     optlen =3D sizeof(table->replace) - sizeof(table->replace.entrytable)=
+ +
+>              table->replace.size;
+>     if (setsockopt(fd, SOL_IP, ARPT_SO_SET_REPLACE, &table->replace, optl=
+en))
+>       fail("setsockopt(ARPT_SO_SET_REPLACE)");
+>   }
+>   close(fd);
+> }
+> #include <linux/if.h>
+> #include <linux/netfilter_bridge/ebtables.h>
+>
+> struct ebt_table_desc {
+>   const char* name;
+>   struct ebt_replace replace;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> static struct ebt_table_desc ebt_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"}, {.name =3D "broute"},
+> };
+>
+> static void checkpoint_ebtables(void)
+> {
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(ebt_tables) / sizeof(ebt_tables[0]); i++) {
+>     struct ebt_table_desc* table =3D &ebt_tables[i];
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->replace);
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INIT_INFO, &table->replace,
+>                    &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(EBT_SO_GET_INIT_INFO)");
+>     }
+>     if (table->replace.entries_size > sizeof(table->entrytable))
+>       fail("table size is too large: %u", table->replace.entries_size);
+>     table->replace.num_counters =3D 0;
+>     table->replace.entries =3D table->entrytable;
+>     optlen =3D sizeof(table->replace) + table->replace.entries_size;
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INIT_ENTRIES, &table->replace,
+>                    &optlen))
+>       fail("getsockopt(EBT_SO_GET_INIT_ENTRIES)");
+>   }
+>   close(fd);
+> }
+>
+> static void reset_ebtables()
+> {
+>   struct ebt_replace replace;
+>   char entrytable[XT_TABLE_SIZE];
+>   socklen_t optlen;
+>   unsigned i, j, h;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(ebt_tables) / sizeof(ebt_tables[0]); i++) {
+>     struct ebt_table_desc* table =3D &ebt_tables[i];
+>     if (table->replace.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&replace, 0, sizeof(replace));
+>     strcpy(replace.name, table->name);
+>     optlen =3D sizeof(replace);
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INFO, &replace, &optlen))
+>       fail("getsockopt(EBT_SO_GET_INFO)");
+>     replace.num_counters =3D 0;
+>     for (h =3D 0; h < NF_BR_NUMHOOKS; h++)
+>       table->replace.hook_entry[h] =3D 0;
+>     if (memcmp(&table->replace, &replace, sizeof(table->replace)) =3D=3D =
+0) {
+>       memset(&entrytable, 0, sizeof(entrytable));
+>       replace.entries =3D entrytable;
+>       optlen =3D sizeof(replace) + replace.entries_size;
+>       if (getsockopt(fd, SOL_IP, EBT_SO_GET_ENTRIES, &replace, &optlen))
+>         fail("getsockopt(EBT_SO_GET_ENTRIES)");
+>       if (memcmp(table->entrytable, entrytable, replace.entries_size) =3D=
+=3D 0)
+>         continue;
+>     }
+>     for (j =3D 0, h =3D 0; h < NF_BR_NUMHOOKS; h++) {
+>       if (table->replace.valid_hooks & (1 << h)) {
+>         table->replace.hook_entry[h] =3D
+>             (struct ebt_entries*)table->entrytable + j;
+>         j++;
+>       }
+>     }
+>     optlen =3D sizeof(table->replace) + table->replace.entries_size;
+>     if (setsockopt(fd, SOL_IP, EBT_SO_SET_ENTRIES, &table->replace, optle=
+n))
+>       fail("setsockopt(EBT_SO_SET_ENTRIES)");
+>   }
+>   close(fd);
+> }
+>
+> static void checkpoint_net_namespace(void)
+> {
+>   checkpoint_ebtables();
+>   checkpoint_arptables();
+>   checkpoint_iptables(ipv4_tables, sizeof(ipv4_tables) / sizeof(ipv4_tabl=
+es[0]),
+>                       AF_INET, SOL_IP);
+>   checkpoint_iptables(ipv6_tables, sizeof(ipv6_tables) / sizeof(ipv6_tabl=
+es[0]),
+>                       AF_INET6, SOL_IPV6);
+> }
+>
+> static void reset_net_namespace(void)
+> {
+>   reset_ebtables();
+>   reset_arptables();
+>   reset_iptables(ipv4_tables, sizeof(ipv4_tables) / sizeof(ipv4_tables[0]=
+),
+>                  AF_INET, SOL_IP);
+>   reset_iptables(ipv6_tables, sizeof(ipv6_tables) / sizeof(ipv6_tables[0]=
+),
+>                  AF_INET6, SOL_IPV6);
 > }
 >
 > static void test();
 >
 > void loop()
 > {
->   while (1) {
->     test();
+>   int iter;
+>   checkpoint_net_namespace();
+>   for (iter =3D 0;; iter++) {
+>     int pid =3D fork();
+>     if (pid < 0)
+>       fail("loop fork failed");
+>     if (pid =3D=3D 0) {
+>       prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0);
+>       setpgrp();
+>       test();
+>       doexit(0);
+>     }
+>     int status =3D 0;
+>     uint64_t start =3D current_time_ms();
+>     for (;;) {
+>       int res =3D waitpid(-1, &status, __WALL | WNOHANG);
+>       if (res =3D=3D pid)
+>         break;
+>       usleep(1000);
+>       if (current_time_ms() - start > 5 * 1000) {
+>         kill(-pid, SIGKILL);
+>         kill(pid, SIGKILL);
+>         while (waitpid(-1, &status, __WALL) !=3D pid) {
+>         }
+>         break;
+>       }
+>     }
+>     reset_net_namespace();
 >   }
 > }
 >
@@ -506,148 +2149,65 @@ ead++) {
 >   }
 > }
 >
-> uint64_t r[3] =3D {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffff};
+> uint64_t r[2] =3D {0xffffffffffffffff, 0xffffffffffffffff};
+> uint64_t procid;
 > void execute_call(int call)
 > {
 >   long res;
 >   switch (call) {
 >   case 0:
->     memcpy((void*)0x20000040, "/dev/vcsa#", 11);
->     res =3D syz_open_dev(0x20000040, 3, 0x80);
+>     memcpy((void*)0x20000140, "/dev/infiniband/rdma_cm", 24);
+>     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000140, 2, 0);
 >     if (res !=3D -1)
 >       r[0] =3D res;
 >     break;
 >   case 1:
->     *(uint16_t*)0x20000080 =3D 1;
->     *(uint8_t*)0x20000082 =3D 0;
->     *(uint32_t*)0x20000084 =3D 0x4e24;
->     syscall(__NR_connect, r[0], 0x20000080, 0x6e);
+>     *(uint32_t*)0x200070c0 =3D 0;
+>     *(uint16_t*)0x200070c4 =3D 0x18;
+>     *(uint16_t*)0x200070c6 =3D 0xfa00;
+>     *(uint64_t*)0x200070c8 =3D 0;
+>     *(uint64_t*)0x200070d0 =3D 0x20007080;
+>     *(uint16_t*)0x200070d8 =3D 0x13f;
+>     *(uint8_t*)0x200070da =3D 0;
+>     *(uint8_t*)0x200070db =3D 0;
+>     *(uint8_t*)0x200070dc =3D 0;
+>     *(uint8_t*)0x200070dd =3D 0;
+>     *(uint8_t*)0x200070de =3D 0;
+>     *(uint8_t*)0x200070df =3D 0;
+>     res =3D syscall(__NR_write, r[0], 0x200070c0, 0x20);
+>     if (res !=3D -1)
+>       r[1] =3D *(uint32_t*)0x20007080;
 >     break;
 >   case 2:
->     syscall(__NR_clock_gettime, 0, 0x20000100);
->     break;
->   case 3:
->     *(uint32_t*)0x200001c0 =3D 0x80000000;
->     *(uint32_t*)0x200001c4 =3D 0x80000001;
->     *(uint32_t*)0x200001c8 =3D 4;
->     *(uint64_t*)0x200001d0 =3D 0;
->     *(uint64_t*)0x200001d8 =3D 0x989680;
->     *(uint32_t*)0x200001e0 =3D 0x75a;
->     *(uint32_t*)0x200001e4 =3D 0;
->     *(uint8_t*)0x200001e8 =3D 0;
->     *(uint8_t*)0x200001e9 =3D 0;
->     *(uint8_t*)0x200001ea =3D 0;
->     *(uint8_t*)0x200001eb =3D 0;
->     *(uint8_t*)0x200001ec =3D 0;
->     *(uint8_t*)0x200001ed =3D 0;
->     *(uint8_t*)0x200001ee =3D 0;
->     *(uint8_t*)0x200001ef =3D 0;
->     *(uint8_t*)0x200001f0 =3D 0;
->     *(uint8_t*)0x200001f1 =3D 0;
->     *(uint8_t*)0x200001f2 =3D 0;
->     *(uint8_t*)0x200001f3 =3D 0;
->     *(uint8_t*)0x200001f4 =3D 0;
->     *(uint8_t*)0x200001f5 =3D 0;
->     *(uint8_t*)0x200001f6 =3D 0;
->     *(uint8_t*)0x200001f7 =3D 0;
->     *(uint8_t*)0x200001f8 =3D 0;
->     *(uint8_t*)0x200001f9 =3D 0;
->     *(uint8_t*)0x200001fa =3D 0;
->     *(uint8_t*)0x200001fb =3D 0;
->     *(uint8_t*)0x200001fc =3D 0;
->     *(uint8_t*)0x200001fd =3D 0;
->     *(uint8_t*)0x200001fe =3D 0;
->     *(uint8_t*)0x200001ff =3D 0;
->     *(uint8_t*)0x20000200 =3D 0;
->     *(uint8_t*)0x20000201 =3D 0;
->     *(uint8_t*)0x20000202 =3D 0;
->     *(uint8_t*)0x20000203 =3D 0;
->     *(uint8_t*)0x20000204 =3D 0;
->     *(uint8_t*)0x20000205 =3D 0;
->     *(uint8_t*)0x20000206 =3D 0;
->     *(uint8_t*)0x20000207 =3D 0;
->     *(uint8_t*)0x20000208 =3D 0;
->     *(uint8_t*)0x20000209 =3D 0;
->     *(uint8_t*)0x2000020a =3D 0;
->     *(uint8_t*)0x2000020b =3D 0;
->     *(uint8_t*)0x2000020c =3D 0;
->     *(uint8_t*)0x2000020d =3D 0;
->     *(uint8_t*)0x2000020e =3D 0;
->     *(uint8_t*)0x2000020f =3D 0;
->     *(uint8_t*)0x20000210 =3D 0;
->     *(uint8_t*)0x20000211 =3D 0;
->     *(uint8_t*)0x20000212 =3D 0;
->     *(uint8_t*)0x20000213 =3D 0;
->     *(uint8_t*)0x20000214 =3D 0;
->     *(uint8_t*)0x20000215 =3D 0;
->     *(uint8_t*)0x20000216 =3D 0;
->     *(uint8_t*)0x20000217 =3D 0;
->     *(uint8_t*)0x20000218 =3D 0;
->     *(uint8_t*)0x20000219 =3D 0;
->     *(uint8_t*)0x2000021a =3D 0;
->     *(uint8_t*)0x2000021b =3D 0;
->     *(uint8_t*)0x2000021c =3D 0;
->     *(uint8_t*)0x2000021d =3D 0;
->     *(uint8_t*)0x2000021e =3D 0;
->     *(uint8_t*)0x2000021f =3D 0;
->     *(uint8_t*)0x20000220 =3D 0;
->     *(uint8_t*)0x20000221 =3D 0;
->     *(uint8_t*)0x20000222 =3D 0;
->     *(uint8_t*)0x20000223 =3D 0;
->     *(uint8_t*)0x20000224 =3D 0;
->     *(uint8_t*)0x20000225 =3D 0;
->     *(uint8_t*)0x20000226 =3D 0;
->     *(uint8_t*)0x20000227 =3D 0;
->     syscall(__NR_ioctl, r[0], 0xc05c5340, 0x200001c0);
->     break;
->   case 4:
->     memcpy((void*)0x20000180, "/dev/infiniband/rdma_cm", 24);
->     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000180, 2, 0);
->     if (res !=3D -1)
->       r[1] =3D res;
->     break;
->   case 5:
->     *(uint32_t*)0x20002940 =3D 0;
->     *(uint16_t*)0x20002944 =3D 0x18;
->     *(uint16_t*)0x20002946 =3D 0xfa00;
->     *(uint64_t*)0x20002948 =3D 0;
->     *(uint64_t*)0x20002950 =3D 0x20002900;
->     *(uint16_t*)0x20002958 =3D 0x106;
->     *(uint8_t*)0x2000295a =3D 0;
->     *(uint8_t*)0x2000295b =3D 0;
->     *(uint8_t*)0x2000295c =3D 0;
->     *(uint8_t*)0x2000295d =3D 0;
->     *(uint8_t*)0x2000295e =3D 0;
->     *(uint8_t*)0x2000295f =3D 0;
->     res =3D syscall(__NR_write, r[1], 0x20002940, 0x20);
->     if (res !=3D -1)
->       r[2] =3D *(uint32_t*)0x20002900;
->     break;
->   case 6:
->     *(uint32_t*)0x20000000 =3D 1;
->     *(uint16_t*)0x20000004 =3D 0;
->     *(uint16_t*)0x20000006 =3D 0xfa00;
->     *(uint64_t*)0x20000008 =3D 0x200013c0;
->     *(uint32_t*)0x20000010 =3D r[2];
->     *(uint32_t*)0x20000014 =3D 0;
->     syscall(__NR_write, r[1], 0x20000000, 0xa4);
+>     *(uint32_t*)0x20007100 =3D r[1];
+>     memcpy((void*)0x20007104, "\x00\x00\x00\x00", 4);
+>     syscall(__NR_write, r[0], 0x20007100, 8);
 >     break;
 >   }
 > }
 >
 > void test()
 > {
->   execute(7);
+>   execute(3);
 >   collide =3D 1;
->   execute(7);
+>   execute(3);
 > }
 >
 > int main()
 > {
 >   syscall(__NR_mmap, 0x20000000, 0x1000000, 3, 0x32, -1, 0);
->   for (;;) {
->     loop();
+>   for (procid =3D 0; procid < 8; procid++) {
+>     if (fork() =3D=3D 0) {
+>       for (;;) {
+>         int pid =3D do_sandbox_none();
+>         int status =3D 0;
+>         while (waitpid(pid, &status, __WALL) !=3D pid) {
+>         }
+>       }
+>     }
 >   }
+>   sleep(1000000);
+>   return 0;
 > }
 
 > #
@@ -5912,24 +7472,24 @@ r30,binder31"
 > # CONFIG_STRING_SELFTEST is not set
 
 
---De7JZ5cYyW/PeqB+
+--aiJlF+TB2UsRxGRQ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzyncACgkQ5GN7iDZy
-WKdcrRAAvIaWWHgt7gwxQfmo2te+f92yhquWP2ST+udxohZBnQA1UjAiZULo0oOk
-gliypMFjAj7thXM3NzyTtZvkRRsPYFFm6bZjqN8PsTjfyApJORvMvFsCuuIvG/EN
-na8F6WTLcPl3QJkHiFksrk1NbS9UoSPAntCOhlxWI/j7pDrmDOu8V5245TLWBRDG
-q9tiuqNFSeBT4E3oXqB3KPEKjce6s9pvg2J7AolTZ81bQiMUKAdZ1yd6tv6xTY5Z
-EX519ixE1Fv5zn5NCM8vLWVTGg8fzR/Z2Jnt4GQDODg70s7ZQ6N77Z4wpELq9QWs
-vYDXPH27r5ODuau/o0ccPBaWo9cN82a8Xj2t1F69zo1ZGNkciyXOmUzB8LC1njKE
-EkFhAWYKlzcv3SjbeBO0Iv+tvbCmxLENKLdHGX97VS6RuUCCUYeIVyUI7mHAH9/F
-QA/OxOabIzKh7/qOtia1QheAbq4EdfccF4W/FERYx8/IGAnNyPkMsTNxtPOZvjJv
-h2aUOHSGaeEpueFc1LmecOu5N3iIc+vbM4KGmcAg5ZvuqLhldJ5Ws/gX6hWwrMcM
-yrhHOPPnOsA3jPbY9Jt0FWYr6B2Q3SZDQ35dnjBpKs0P/oKvja/MJmB5GKQ4xJXN
-Pp7QE379nzUSR5tUxL+dDbT/oVFloOJwro/c6Aw2mgit1hXHtdk=
-=MbYe
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzyssACgkQ5GN7iDZy
+WKf+hQ/7BWXMjRvHAvWPdhl7HsFjz8Z1v6MgpxsdBZII06mn/K3DWjtrbv1UrAL9
+o8QSf6hAaBEVUFJJ0bN1KOG0gkLZMrOoG/cHXTVcY99yfNg+K1F/5D5chXNlP+ho
+laNwC7ouXeVeD8Aq+cMFfVCJT/Q24O3Ak4m14VN7tjdNMDxtwzRd3EDIWL8NnWtg
+7lEfUlZj6aI65AsqNrr3x15kTR5QmN1gPOdnzc8lataO7/l6Qfb8n+CIOnPlhc8D
+D0W2MLhVoclK62B5gpxL8Ebsaxg2YaCg5SCW8hOZSdfzWQbWkRBhZfxxwQiW2rq4
+48hb/6H4qP5mOYTBmKPFrgELzsk8tIfJN+FxblLo7K3++YFHc+kZ9/nzg8DSXfTJ
+FYaqpchIjt5nX8I8kj5WyEdSvS6GMEogRnI4E6zF6yO4ki/6jZiJxXlf39GjzpCG
+m0ovlLgIUgNFUQU0B5NRaE5GuFOsOLecfeY1M8c4SlrQi5vB5+BYiAK/x6ghEYxd
+s+GRfS5xyButDzhvvjfZA6tJl/DFn1fhdTtNtX5ly5H1NwNoOPQMX/42kUXchJ0r
+KhqZFOyZefWr7lGPtXxgKaGvas6NP+I9OUeLVIJaSrspEZyTF/zDX+m/d2jf4lFp
+jQHY9UZXO6lbJ9/UhAv3aaxQMyLacNS9yj3m0OyqKrjvuej8jpY=
+=mp1V
 -----END PGP SIGNATURE-----
 
---De7JZ5cYyW/PeqB+--
+--aiJlF+TB2UsRxGRQ--
