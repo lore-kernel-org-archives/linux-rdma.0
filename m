@@ -1,35 +1,35 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: KASAN: stack-out-of-bounds Read in rdma_bind_addr
-Date: Thu, 22 Mar 2018 17:25:48 +0200
-Message-ID: <20180322152548.GK19440@mtr-leonro.local>
-References: <001a114a825afb17560567010fe6@google.com>
+Subject: Re: general protection fault in rdma_listen
+Date: Thu, 22 Mar 2018 17:24:48 +0200
+Message-ID: <20180322152448.GH19440@mtr-leonro.local>
+References: <94eb2c11ce96002be20566e73dcb@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="zCmt8XF9/WUitJEp"
+        protocol="application/pgp-signature"; boundary="RMlwNl9HEic8ziTx"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <001a114a825afb17560567010fe6@google.com>
+In-Reply-To: <94eb2c11ce96002be20566e73dcb@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+28b14b75b4a9314ead4a@syzkaller.appspotmail.com>
+To: syzbot <syzbot+6e81476d2dff22e77c18@syzkaller.appspotmail.com>
 Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
---zCmt8XF9/WUitJEp
+--RMlwNl9HEic8ziTx
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 #syz dup: KASAN: null-ptr-deref Write in rdma_resolve_addr
 
-On Fri, Mar 09, 2018 at 12:59:04PM -0800, syzbot wrote:
+On Thu, Mar 08, 2018 at 06:10:30AM -0800, syzbot wrote:
 > Hello,
 >
 > syzbot hit the following crash on upstream commit
-> 1b88accf6a659c46d5c8e68912896f112bf882bb (Thu Mar 8 01:49:33 2018 +0000)
-> Merge tag 'for_linus' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/mst/vhost
+> 851710a8096131129ad1da79a47d385c4926d114 (Thu Mar 8 01:37:32 2018 +0000)
+> Merge branch 'for-linus' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/dtor/input
 >
-> So far this crash happened 2 times on upstream.
+> So far this crash happened 7 times on upstream.
 > C reproducer is attached.
 > syzkaller reproducer is attached.
 > Raw console output is attached.
@@ -37,45 +37,40 @@ On Fri, Mar 09, 2018 at 12:59:04PM -0800, syzbot wrote:
 > .config is attached.
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+28b14b75b4a9314ead4a@syzkaller.appspotmail.com
+> Reported-by: syzbot+6e81476d2dff22e77c18@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
 >
-> audit: type=3D1400 audit(1520533676.373:6): avc:  denied  { map } for
-> pid=3D4262 comm=3D"bash" path=3D"/bin/bash" dev=3D"sda1" ino=3D1457
-> scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
-> tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> audit: type=3D1400 audit(1520533682.727:7): avc:  denied  { map } for
-> pid=3D4276 comm=3D"syzkaller727467" path=3D"/root/syzkaller727467593" dev=
-=3D"sda1"
-> ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
-> tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfile permissive=
-=3D1
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:345
-> [inline]
-> BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x156/0x1b50
-> drivers/infiniband/core/cma.c:3359
-> Read of size 48 at addr ffff8801cb03fa50 by task syzkaller727467/4276
->
-> CPU: 1 PID: 4276 Comm: syzkaller727467 Not tainted 4.16.0-rc4+ #346
+> IPVS: ftp: loaded support on port[0] =3D 21
+> IPVS: ftp: loaded support on port[0] =3D 21
+> IPVS: ftp: loaded support on port[0] =3D 21
+> kasan: CONFIG_KASAN_INLINE enabled
+> kasan: GPF could be caused by NULL-ptr deref or user memory access
+> general protection fault: 0000 [#1] SMP KASAN
+> IPVS: ftp: loaded support on port[0] =3D 21
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Modules linked in:
+> CPU: 1 PID: 4307 Comm: syzkaller595147 Not tainted 4.16.0-rc4+ #345
+> IPVS: ftp: loaded support on port[0] =3D 21
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
+> RIP: 0010:rdma_listen+0x72/0x8e0 drivers/infiniband/core/cma.c:3300
+> RSP: 0018:ffff8801b60bf998 EFLAGS: 00010207
+> RAX: 0000000000000042 RBX: 0000000000000000 RCX: ffffffff841d7a24
+> RDX: 0000000000000000 RSI: 0000000000000400 RDI: 0000000000000214
+> RBP: ffff8801b60bfa30 R08: 0000000000000000 R09: 0000000000000000
+> R10: ffffffff88613380 R11: 0000000000000000 R12: 1ffff10036c17f35
+> R13: dffffc0000000000 R14: 0000000000000000 R15: 0000000000000400
+> FS:  00007f29d24eb700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000=
+000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00007f29d24c9e78 CR3: 00000001b0558006 CR4: 00000000001606e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  __dump_stack lib/dump_stack.c:17 [inline]
->  dump_stack+0x194/0x24d lib/dump_stack.c:53
->  print_address_description+0x73/0x250 mm/kasan/report.c:256
->  kasan_report_error mm/kasan/report.c:354 [inline]
->  kasan_report+0x23c/0x360 mm/kasan/report.c:412
->  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
->  check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
->  memcpy+0x23/0x50 mm/kasan/kasan.c:302
->  memcpy include/linux/string.h:345 [inline]
->  rdma_bind_addr+0x156/0x1b50 drivers/infiniband/core/cma.c:3359
->  ucma_bind_ip+0x10a/0x190 drivers/infiniband/core/ucma.c:633
+>  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1064
 >  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1627
 >  __vfs_write+0xef/0x970 fs/read_write.c:480
 >  vfs_write+0x189/0x510 fs/read_write.c:544
@@ -83,32 +78,25 @@ On Fri, Mar 09, 2018 at 12:59:04PM -0800, syzbot wrote:
 >  SyS_write+0xef/0x220 fs/read_write.c:581
 >  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
 >  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x43fdb9
-> RSP: 002b:00007ffc27556e48 EFLAGS: 00000213 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdb9
-> RDX: 0000000000000024 RSI: 0000000020000bc0 RDI: 0000000000000003
-> RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-> R10: 00000000004002c8 R11: 0000000000000213 R12: 00000000004016e0
-> R13: 0000000000401770 R14: 0000000000000000 R15: 0000000000000000
->
-> The buggy address belongs to the page:
-> page:ffffea00072c0fc0 count:0 mapcount:0 mapping:0000000000000000 index:0=
-x0
-> flags: 0x2fffc0000000000()
-> raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
-> raw: 0000000000000000 ffffea00072c0101 0000000000000000 0000000000000000
-> page dumped because: kasan: bad access detected
->
-> Memory state around the buggy address:
->  ffff8801cb03f900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2
->  ffff8801cb03f980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 f3 00 00
-> > ffff8801cb03fa00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 00 f2 f2
->                                                              ^
->  ffff8801cb03fa80: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
->  ffff8801cb03fb00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00 00
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> RIP: 0033:0x449b59
+> RSP: 002b:00007f29d24eada8 EFLAGS: 00000297 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000006dbc5c RCX: 0000000000449b59
+> RDX: 0000000000000010 RSI: 0000000020004400 RDI: 000000000000000c
+> RBP: 00000000006dbc58 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000297 R12: 006d635f616d6472
+> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000006
+> Code: c0 79 1d 84 c7 00 f1 f1 f1 f1 c7 40 04 00 f2 f2 f2 c7 40 08 f3 f3 f3
+> f3 e8 ec 8b 53 fd 48 8d bb 14 02 00 00 48 89 f8 48 c1 e8 03 <42> 0f b6 14=
+ 28
+> 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
+> RIP: rdma_listen+0x72/0x8e0 drivers/infiniband/core/cma.c:3300 RSP:
+> ffff8801b60bf998
+> ---[ end trace 387a11ed6fffdaf9 ]---
+> Kernel panic - not syncing: Fatal exception
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Kernel Offset: disabled
+> Rebooting in 86400 seconds..
 >
 >
 > ---
@@ -133,14 +121,14 @@ x0
 > Note: all commands must start from beginning of the line in the email bod=
 y.
 
-> [....] Starting enhanced syslogd: rsyslogd[   16.861241] audit: type=3D14=
-00 audit(1520533669.996:5): avc:  denied  { syslog } for  pid=3D4122 comm=
+> [....] Starting enhanced syslogd: rsyslogd[   17.456116] audit: type=3D14=
+00 audit(1520486007.750:5): avc:  denied  { syslog } for  pid=3D4082 comm=
 =3D"rsyslogd" capability=3D34  scontext=3Dsystem_u:system_r:kernel_t:s0 tco=
 ntext=3Dsystem_u:system_r:kernel_t:s0 tclass=3Dcapability2 permissive=3D1
 > =1B[?25l=1B[?1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
-> Starting mcstransd:
 > [....] Starting periodic command scheduler: cron=1B[?25l=1B[?1c=1B7=1B[1G=
 [=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
+> Starting mcstransd:
 > [....] Starting file context maintaining daemon: restorecond=1B[?25l=1B[?=
 1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting OpenBSD Secure Shell server: sshd=1B[?25l=1B[?1c=1B7=1B[1=
@@ -148,249 +136,449 @@ G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 >
 > Debian GNU/Linux 7 syzkaller ttyS0
 >
-> syzkaller login: [   23.237634] audit: type=3D1400 audit(1520533676.373:6=
-): avc:  denied  { map } for  pid=3D4262 comm=3D"bash" path=3D"/bin/bash" d=
+> syzkaller login: [   23.105923] audit: type=3D1400 audit(1520486013.400:6=
+): avc:  denied  { map } for  pid=3D4222 comm=3D"bash" path=3D"/bin/bash" d=
 ev=3D"sda1" ino=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c=
 1023 tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> Warning: Permanently added '10.128.0.35' (ECDSA) to the list of known hos=
+> Warning: Permanently added '10.128.0.15' (ECDSA) to the list of known hos=
 ts.
 > executing program
-> [   29.591294] audit: type=3D1400 audit(1520533682.727:7): avc:  denied  =
-{ map } for  pid=3D4276 comm=3D"syzkaller727467" path=3D"/root/syzkaller727=
-467593" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
+> [   29.440706] audit: type=3D1400 audit(1520486019.735:7): avc:  denied  =
+{ map } for  pid=3D4236 comm=3D"syzkaller595147" path=3D"/root/syzkaller595=
+147440" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:=
 s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfil=
 e permissive=3D1
-> [   29.602553] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [   29.624565] BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x156/0x=
-1b50
-> [   29.631555] Read of size 48 at addr ffff8801cb03fa50 by task syzkaller=
-727467/4276
-> [   29.639147]
-> [   29.640756] CPU: 1 PID: 4276 Comm: syzkaller727467 Not tainted 4.16.0-=
-rc4+ #346
-> [   29.648172] Hardware name: Google Google Compute Engine/Google Compute=
+> [   29.450644] IPVS: ftp: loaded support on port[0] =3D 21
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.493400] IPVS: ftp: loaded support on port[0] =3D 21
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.517966] IPVS: ftp: loaded support on port[0] =3D 21
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.543922] IPVS: ftp: loaded support on port[0] =3D 21
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.569240] IPVS: ftp: loaded support on port[0] =3D 21
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.594509] IPVS: ftp: loaded support on port[0] =3D 21
+> [   29.609693] kasan: CONFIG_KASAN_INLINE enabled
+> [   29.614517] kasan: GPF could be caused by NULL-ptr deref or user memor=
+y access
+> [   29.621890] general protection fault: 0000 [#1] SMP KASAN
+> [   29.625817] IPVS: ftp: loaded support on port[0] =3D 21
+> [   29.627403] Dumping ftrace buffer:
+> [   29.627406]    (ftrace buffer empty)
+> [   29.627407] Modules linked in:
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> [   29.627416] CPU: 1 PID: 4307 Comm: syzkaller595147 Not tainted 4.16.0-=
+rc4+ #345
+> [   29.648764] IPVS: ftp: loaded support on port[0] =3D 21
+> [   29.650355] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   29.657499] Call Trace:
-> [   29.660068]  dump_stack+0x194/0x24d
-> [   29.663671]  ? arch_local_irq_restore+0x53/0x53
-> [   29.668314]  ? show_regs_print_info+0x18/0x18
-> [   29.672782]  ? lock_release+0xa40/0xa40
-> [   29.676737]  ? __radix_tree_lookup+0x435/0x5e0
-> [   29.681288]  ? find_held_lock+0x35/0x1d0
-> [   29.685323]  ? rdma_bind_addr+0x156/0x1b50
-> [   29.689530]  print_address_description+0x73/0x250
-> [   29.694345]  ? rdma_bind_addr+0x156/0x1b50
-> [   29.698550]  kasan_report+0x23c/0x360
-> [   29.702349]  check_memory_region+0x137/0x190
-> [   29.706727]  memcpy+0x23/0x50
-> [   29.709809]  rdma_bind_addr+0x156/0x1b50
-> [   29.713855]  ? lock_release+0xa40/0xa40
-> [   29.717804]  ? check_same_owner+0x320/0x320
-> [   29.722103]  ? cma_ndev_work_handler+0x1a0/0x1a0
-> [   29.726846]  ucma_bind_ip+0x10a/0x190
-> [   29.730618]  ? ucma_bind+0x260/0x260
-> [   29.734310]  ? kasan_check_write+0x14/0x20
-> [   29.738521]  ucma_write+0x2d6/0x3d0
-> [   29.742118]  ? ucma_bind+0x260/0x260
-> [   29.745804]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   29.750280]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   29.754748]  __vfs_write+0xef/0x970
-> [   29.758349]  ? rcu_note_context_switch+0x710/0x710
-> [   29.763268]  ? kernel_read+0x120/0x120
-> [   29.767143]  ? __might_sleep+0x95/0x190
-> [   29.771100]  ? _cond_resched+0x14/0x30
-> [   29.774958]  ? __inode_security_revalidate+0xd9/0x130
-> [   29.780119]  ? avc_policy_seqno+0x9/0x20
-> [   29.784152]  ? selinux_file_permission+0x82/0x460
-> [   29.788970]  ? security_file_permission+0x89/0x1e0
-> [   29.793871]  ? rw_verify_area+0xe5/0x2b0
-> [   29.797903]  ? __fdget_raw+0x20/0x20
-> [   29.801593]  vfs_write+0x189/0x510
-> [   29.805110]  SyS_write+0xef/0x220
-> [   29.808534]  ? filp_open+0x70/0x70
-> [   29.812049]  ? SyS_read+0x220/0x220
-> [   29.815656]  ? do_syscall_64+0xb7/0x940
-> [   29.819611]  ? SyS_read+0x220/0x220
-> [   29.823209]  do_syscall_64+0x281/0x940
-> [   29.827067]  ? trace_event_raw_event_sys_exit+0x260/0x260
-> [   29.832575]  ? syscall_return_slowpath+0x550/0x550
-> [   29.837477]  ? syscall_return_slowpath+0x2ac/0x550
-> [   29.842382]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
-> [   29.847735]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   29.852566]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> [   29.857728] RIP: 0033:0x43fdb9
-> [   29.860897] RSP: 002b:00007ffc27556e48 EFLAGS: 00000213 ORIG_RAX: 0000=
-000000000001
-> [   29.868577] RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000=
-043fdb9
-> [   29.875823] RDX: 0000000000000024 RSI: 0000000020000bc0 RDI: 000000000=
-0000003
-> [   29.883064] RBP: 00000000006ca018 R08: 00000000004002c8 R09: 000000000=
-04002c8
-> [   29.890308] R10: 00000000004002c8 R11: 0000000000000213 R12: 000000000=
-04016e0
-> [   29.897549] R13: 0000000000401770 R14: 0000000000000000 R15: 000000000=
+> [   29.650367] RIP: 0010:rdma_listen+0x72/0x8e0
+> [   29.650372] RSP: 0018:ffff8801b60bf998 EFLAGS: 00010207
+> [   29.674608] RAX: 0000000000000042 RBX: 0000000000000000 RCX: ffffffff8=
+41d7a24
+> [   29.681849] RDX: 0000000000000000 RSI: 0000000000000400 RDI: 000000000=
+0000214
+> [   29.689088] RBP: ffff8801b60bfa30 R08: 0000000000000000 R09: 000000000=
 0000000
-> [   29.904807]
-> [   29.906403] The buggy address belongs to the page:
-> [   29.911302] page:ffffea00072c0fc0 count:0 mapcount:0 mapping:000000000=
-0000000 index:0x0
-> [   29.919415] flags: 0x2fffc0000000000()
-> [   29.923273] raw: 02fffc0000000000 0000000000000000 0000000000000000 00=
-000000ffffffff
-> [   29.931125] raw: 0000000000000000 ffffea00072c0101 0000000000000000 00=
-00000000000000
-> [   29.938972] page dumped because: kasan: bad access detected
-> [   29.944646]
-> [   29.946243] Memory state around the buggy address:
-> [   29.951140]  ffff8801cb03f900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 =
-f1 04 f2
-> [   29.958467]  ffff8801cb03f980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 =
-f3 00 00
-> [   29.965796] >ffff8801cb03fa00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 =
-00 f2 f2
-> [   29.973123]                                                           =
-   ^
-> [   29.980102]  ffff8801cb03fa80: f2 00 00 00 00 00 00 00 00 00 00 00 00 =
-00 00 f1
-> [   29.987430]  ffff8801cb03fb00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 =
-00 00 00
-> [   29.994753] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [   30.002081] Disabling lock debugging due to kernel taint
-> [   30.007720] Kernel panic - not syncing: panic_on_warn set ...
-> [   30.007720]
-> [   30.015059] CPU: 1 PID: 4276 Comm: syzkaller727467 Tainted: G    B    =
-        4.16.0-rc4+ #346
-> [   30.023788] Hardware name: Google Google Compute Engine/Google Compute=
- Engine, BIOS Google 01/01/2011
-> [   30.033109] Call Trace:
-> [   30.035667]  dump_stack+0x194/0x24d
-> [   30.039266]  ? arch_local_irq_restore+0x53/0x53
-> [   30.043902]  ? kasan_end_report+0x32/0x50
-> [   30.048023]  ? trace_hardirqs_on_thunk+0x1a/0x1c
-> [   30.052749]  ? vsnprintf+0x1ed/0x1900
-> [   30.056522]  ? rdma_bind_addr+0x150/0x1b50
-> [   30.060727]  panic+0x1e4/0x41c
-> [   30.063889]  ? refcount_error_report+0x214/0x214
-> [   30.068618]  ? add_taint+0x1c/0x50
-> [   30.072127]  ? add_taint+0x1c/0x50
-> [   30.075640]  ? rdma_bind_addr+0x156/0x1b50
-> [   30.079846]  kasan_end_report+0x50/0x50
-> [   30.083789]  kasan_report+0x149/0x360
-> [   30.087559]  check_memory_region+0x137/0x190
-> [   30.091935]  memcpy+0x23/0x50
-> [   30.095010]  rdma_bind_addr+0x156/0x1b50
-> [   30.099055]  ? lock_release+0xa40/0xa40
-> [   30.102999]  ? check_same_owner+0x320/0x320
-> [   30.107294]  ? cma_ndev_work_handler+0x1a0/0x1a0
-> [   30.112028]  ucma_bind_ip+0x10a/0x190
-> [   30.115798]  ? ucma_bind+0x260/0x260
-> [   30.119501]  ? kasan_check_write+0x14/0x20
-> [   30.123705]  ucma_write+0x2d6/0x3d0
-> [   30.127300]  ? ucma_bind+0x260/0x260
-> [   30.130983]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   30.135450]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   30.139914]  __vfs_write+0xef/0x970
-> [   30.143519]  ? rcu_note_context_switch+0x710/0x710
-> [   30.148428]  ? kernel_read+0x120/0x120
-> [   30.152299]  ? __might_sleep+0x95/0x190
-> [   30.156252]  ? _cond_resched+0x14/0x30
-> [   30.160118]  ? __inode_security_revalidate+0xd9/0x130
-> [   30.165278]  ? avc_policy_seqno+0x9/0x20
-> [   30.169312]  ? selinux_file_permission+0x82/0x460
-> [   30.174142]  ? security_file_permission+0x89/0x1e0
-> [   30.179056]  ? rw_verify_area+0xe5/0x2b0
-> [   30.183086]  ? __fdget_raw+0x20/0x20
-> [   30.186770]  vfs_write+0x189/0x510
-> [   30.190281]  SyS_write+0xef/0x220
-> [   30.193704]  ? filp_open+0x70/0x70
-> [   30.197215]  ? SyS_read+0x220/0x220
-> [   30.200814]  ? do_syscall_64+0xb7/0x940
-> [   30.204770]  ? SyS_read+0x220/0x220
-> [   30.208369]  do_syscall_64+0x281/0x940
-> [   30.212229]  ? trace_event_raw_event_sys_exit+0x260/0x260
-> [   30.217733]  ? syscall_return_slowpath+0x550/0x550
-> [   30.222637]  ? syscall_return_slowpath+0x2ac/0x550
-> [   30.227538]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
-> [   30.232871]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   30.237695]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> [   30.242856] RIP: 0033:0x43fdb9
-> [   30.246015] RSP: 002b:00007ffc27556e48 EFLAGS: 00000213 ORIG_RAX: 0000=
-000000000001
-> [   30.253689] RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000=
-043fdb9
-> [   30.260928] RDX: 0000000000000024 RSI: 0000000020000bc0 RDI: 000000000=
-0000003
-> [   30.268166] RBP: 00000000006ca018 R08: 00000000004002c8 R09: 000000000=
-04002c8
-> [   30.275402] R10: 00000000004002c8 R11: 0000000000000213 R12: 000000000=
-04016e0
-> [   30.282640] R13: 0000000000401770 R14: 0000000000000000 R15: 000000000=
+> [   29.696331] R10: ffffffff88613380 R11: 0000000000000000 R12: 1ffff1003=
+6c17f35
+> [   29.703572] R13: dffffc0000000000 R14: 0000000000000000 R15: 000000000=
+0000400
+> [   29.710812] FS:  00007f29d24eb700(0000) GS:ffff8801db300000(0000) knlG=
+S:0000000000000000
+> [   29.719006] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   29.724856] CR2: 00007f29d24c9e78 CR3: 00000001b0558006 CR4: 000000000=
+01606e0
+> [   29.732099] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000=
 0000000
-> [   30.290371] Dumping ftrace buffer:
-> [   30.293877]    (ftrace buffer empty)
-> [   30.297558] Kernel Offset: disabled
-> [   30.301153] Rebooting in 86400 seconds..
+> [   29.739339] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000=
+0000400
+> [   29.746581] Call Trace:
+> [   29.749146]  ? rdma_resolve_addr+0x26c0/0x26c0
+> [   29.753703]  ucma_listen+0x172/0x1f0
+> [   29.757391]  ? ucma_accept+0x970/0x970
+> [   29.761254]  ? kasan_check_write+0x14/0x20
+> [   29.765460]  ? _copy_from_user+0x99/0x110
+> [   29.769579]  ucma_write+0x2d6/0x3d0
+> [   29.773179]  ? ucma_accept+0x970/0x970
+> [   29.777039]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   29.781509]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   29.785975]  __vfs_write+0xef/0x970
+> [   29.789573]  ? rcu_note_context_switch+0x710/0x710
+> [   29.794478]  ? kernel_read+0x120/0x120
+> [   29.798338]  ? __might_sleep+0x95/0x190
+> [   29.802289]  ? _cond_resched+0x14/0x30
+> [   29.806147]  ? __inode_security_revalidate+0xd9/0x130
+> [   29.811306]  ? avc_policy_seqno+0x9/0x20
+> [   29.815338]  ? selinux_file_permission+0x82/0x460
+> [   29.820156]  ? security_file_permission+0x89/0x1e0
+> [   29.825055]  ? rw_verify_area+0xe5/0x2b0
+> [   29.829086]  ? __fdget_raw+0x20/0x20
+> [   29.832771]  vfs_write+0x189/0x510
+> [   29.836285]  SyS_write+0xef/0x220
+> [   29.839714]  ? SyS_read+0x220/0x220
+> [   29.843313]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   29.848298]  ? do_syscall_64+0xb7/0x940
+> [   29.852244]  ? SyS_read+0x220/0x220
+> [   29.855843]  do_syscall_64+0x281/0x940
+> [   29.859706]  ? syscall_return_slowpath+0x550/0x550
+> [   29.864618]  ? syscall_return_slowpath+0x2ac/0x550
+> [   29.869521]  ? prepare_exit_to_usermode+0x350/0x350
+> [   29.874510]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [   29.879855]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [   29.884672]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   29.889830] RIP: 0033:0x449b59
+> [   29.892990] RSP: 002b:00007f29d24eada8 EFLAGS: 00000297 ORIG_RAX: 0000=
+000000000001
+> [   29.900667] RAX: ffffffffffffffda RBX: 00000000006dbc5c RCX: 000000000=
+0449b59
+> [   29.907972] RDX: 0000000000000010 RSI: 0000000020004400 RDI: 000000000=
+000000c
+> [   29.915211] RBP: 00000000006dbc58 R08: 0000000000000000 R09: 000000000=
+0000000
+> [   29.922465] R10: 0000000000000000 R11: 0000000000000297 R12: 006d635f6=
+16d6472
+> [   29.929705] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+0000006
+> [   29.936956] Code: c0 79 1d 84 c7 00 f1 f1 f1 f1 c7 40 04 00 f2 f2 f2 c=
+7 40 08 f3 f3 f3 f3 e8 ec 8b 53 fd 48 8d bb 14 02 00 00 48 89 f8 48 c1 e8 0=
+3 <42> 0f b6 14 28 48 89 f8 83 e0 07 83 c0 03 38 d0 7c 08 84 d2 0f
+> [   29.956039] RIP: rdma_listen+0x72/0x8e0 RSP: ffff8801b60bf998
+> [   29.961953] ---[ end trace 387a11ed6fffdaf9 ]---
+> [   29.966713] Kernel panic - not syncing: Fatal exception
+> [   29.972449] Dumping ftrace buffer:
+> [   29.975973]    (ftrace buffer empty)
+> [   29.979657] Kernel Offset: disabled
+> [   29.983257] Rebooting in 86400 seconds..
 
 > # See https://goo.gl/kgGztJ for information about syzkaller reproducers.
-> #{Threaded:false Collide:false Repeat:false Procs:1 Sandbox: Fault:false =
-FaultCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false Wa=
-itRepeat:false Debug:false Repro:false}
-> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f00000001c0)=3D'/dev/infin=
+> #{Threaded:true Collide:true Repeat:true Procs:8 Sandbox:none Fault:false=
+ FaultCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false W=
+aitRepeat:false Debug:false Repro:false}
+> r0 =3D syz_open_dev$mice(&(0x7f0000000000)=3D'/dev/input/mice\x00', 0x0, =
+0x80)
+> getsockopt$inet_tcp_TCP_REPAIR_WINDOW(r0, 0x6, 0x1d, &(0x7f0000000080), &=
+(0x7f00000000c0)=3D0x14)
+> r1 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000040)=3D'/dev/infin=
 iband/rdma_cm\x00', 0x2, 0x0)
-> write$rdma_cm(r0, &(0x7f0000000b80)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
-x0, &(0x7f0000000b40), 0x2}}, 0x20)
-> write$rdma_cm(r0, &(0x7f0000000bc0)=3DANY=3D[@ANYBLOB=3D"02000000000000fa=
-00000000000000001b004e20000000000000000000000000000000e1"], 0x24)
+> write$rdma_cm(r1, &(0x7f00000064c0)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
+x0, &(0x7f0000006480)=3D{<r2=3D>0xffffffff}, 0x13f}}, 0x20)
+> write$rdma_cm(r1, &(0x7f0000004400)=3D@listen=3D{0x7, 0x8, 0xfa00, {r2}},=
+ 0x10)
+> close(r1)
 
 > // autogenerated by syzkaller (http://github.com/google/syzkaller)
 >
 > #define _GNU_SOURCE
 > #include <endian.h>
-> #include <stdint.h>
+> #include <errno.h>
+> #include <fcntl.h>
+> #include <linux/futex.h>
+> #include <pthread.h>
+> #include <sched.h>
+> #include <signal.h>
+> #include <stdarg.h>
+> #include <stdbool.h>
+> #include <stdio.h>
+> #include <stdio.h>
+> #include <stdlib.h>
 > #include <string.h>
+> #include <sys/prctl.h>
+> #include <sys/resource.h>
+> #include <sys/stat.h>
 > #include <sys/syscall.h>
+> #include <sys/time.h>
+> #include <sys/wait.h>
 > #include <unistd.h>
 >
-> uint64_t r[1] =3D {0xffffffffffffffff};
+> __attribute__((noreturn)) static void doexit(int status)
+> {
+>   volatile unsigned i;
+>   syscall(__NR_exit_group, status);
+>   for (i =3D 0;; i++) {
+>   }
+> }
+> #include <errno.h>
+> #include <stdarg.h>
+> #include <stdint.h>
+> #include <stdio.h>
+> #include <string.h>
+>
+> const int kFailStatus =3D 67;
+> const int kRetryStatus =3D 69;
+>
+> static void fail(const char* msg, ...)
+> {
+>   int e =3D errno;
+>   va_list args;
+>   va_start(args, msg);
+>   vfprintf(stderr, msg, args);
+>   va_end(args);
+>   fprintf(stderr, " (errno %d)\n", e);
+>   doexit((e =3D=3D ENOMEM || e =3D=3D EAGAIN) ? kRetryStatus : kFailStatu=
+s);
+> }
+>
+> static uintptr_t syz_open_dev(uintptr_t a0, uintptr_t a1, uintptr_t a2)
+> {
+>   if (a0 =3D=3D 0xc || a0 =3D=3D 0xb) {
+>     char buf[128];
+>     sprintf(buf, "/dev/%s/%d:%d", a0 =3D=3D 0xc ? "char" : "block", (uint=
+8_t)a1,
+>             (uint8_t)a2);
+>     return open(buf, O_RDWR, 0);
+>   } else {
+>     char buf[1024];
+>     char* hash;
+>     strncpy(buf, (char*)a0, sizeof(buf));
+>     buf[sizeof(buf) - 1] =3D 0;
+>     while ((hash =3D strchr(buf, '#'))) {
+>       *hash =3D '0' + (char)(a1 % 10);
+>       a1 /=3D 10;
+>     }
+>     return open(buf, a2, 0);
+>   }
+> }
+>
+> static void loop();
+>
+> static void sandbox_common()
+> {
+>   prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0);
+>   setpgrp();
+>   setsid();
+>
+>   struct rlimit rlim;
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 128 << 20;
+>   setrlimit(RLIMIT_AS, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 8 << 20;
+>   setrlimit(RLIMIT_MEMLOCK, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 1 << 20;
+>   setrlimit(RLIMIT_FSIZE, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 1 << 20;
+>   setrlimit(RLIMIT_STACK, &rlim);
+>   rlim.rlim_cur =3D rlim.rlim_max =3D 0;
+>   setrlimit(RLIMIT_CORE, &rlim);
+>
+> #define CLONE_NEWCGROUP 0x02000000
+>
+>   if (unshare(CLONE_NEWNS)) {
+>   }
+>   if (unshare(CLONE_NEWIPC)) {
+>   }
+>   if (unshare(CLONE_NEWCGROUP)) {
+>   }
+>   if (unshare(CLONE_NEWUTS)) {
+>   }
+>   if (unshare(CLONE_SYSVSEM)) {
+>   }
+> }
+>
+> static int do_sandbox_none(void)
+> {
+>   if (unshare(CLONE_NEWPID)) {
+>   }
+>   int pid =3D fork();
+>   if (pid < 0)
+>     fail("sandbox fork failed");
+>   if (pid)
+>     return pid;
+>
+>   sandbox_common();
+>   if (unshare(CLONE_NEWNET)) {
+>   }
+>
+>   loop();
+>   doexit(1);
+> }
+>
+> static void test();
+>
 > void loop()
 > {
+>   while (1) {
+>     test();
+>   }
+> }
+>
+> struct thread_t {
+>   int created, running, call;
+>   pthread_t th;
+> };
+>
+> static struct thread_t threads[16];
+> static void execute_call(int call);
+> static int running;
+> static int collide;
+>
+> static void* thr(void* arg)
+> {
+>   struct thread_t* th =3D (struct thread_t*)arg;
+>   for (;;) {
+>     while (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE))
+>       syscall(SYS_futex, &th->running, FUTEX_WAIT, 0, 0);
+>     execute_call(th->call);
+>     __atomic_fetch_sub(&running, 1, __ATOMIC_RELAXED);
+>     __atomic_store_n(&th->running, 0, __ATOMIC_RELEASE);
+>     syscall(SYS_futex, &th->running, FUTEX_WAKE);
+>   }
+>   return 0;
+> }
+>
+> static void execute(int num_calls)
+> {
+>   int call, thread;
+>   running =3D 0;
+>   for (call =3D 0; call < num_calls; call++) {
+>     for (thread =3D 0; thread < sizeof(threads) / sizeof(threads[0]); thr=
+ead++) {
+>       struct thread_t* th =3D &threads[thread];
+>       if (!th->created) {
+>         th->created =3D 1;
+>         pthread_attr_t attr;
+>         pthread_attr_init(&attr);
+>         pthread_attr_setstacksize(&attr, 128 << 10);
+>         pthread_create(&th->th, &attr, thr, th);
+>       }
+>       if (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE)) {
+>         th->call =3D call;
+>         __atomic_fetch_add(&running, 1, __ATOMIC_RELAXED);
+>         __atomic_store_n(&th->running, 1, __ATOMIC_RELEASE);
+>         syscall(SYS_futex, &th->running, FUTEX_WAKE);
+>         if (collide && call % 2)
+>           break;
+>         struct timespec ts;
+>         ts.tv_sec =3D 0;
+>         ts.tv_nsec =3D 20 * 1000 * 1000;
+>         syscall(SYS_futex, &th->running, FUTEX_WAIT, 1, &ts);
+>         if (running)
+>           usleep((call =3D=3D num_calls - 1) ? 10000 : 1000);
+>         break;
+>       }
+>     }
+>   }
+> }
+>
+> uint64_t r[3] =3D {0xffffffffffffffff, 0xffffffffffffffff, 0xffffffff};
+> uint64_t procid;
+> void execute_call(int call)
+> {
 >   long res;
->   memcpy((void*)0x200001c0, "/dev/infiniband/rdma_cm", 24);
->   res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x200001c0, 2, 0);
->   if (res !=3D -1)
->     r[0] =3D res;
->   *(uint32_t*)0x20000b80 =3D 0;
->   *(uint16_t*)0x20000b84 =3D 0x18;
->   *(uint16_t*)0x20000b86 =3D 0xfa00;
->   *(uint64_t*)0x20000b88 =3D 0;
->   *(uint64_t*)0x20000b90 =3D 0x20000b40;
->   *(uint16_t*)0x20000b98 =3D 2;
->   *(uint8_t*)0x20000b9a =3D 0;
->   *(uint8_t*)0x20000b9b =3D 0;
->   *(uint8_t*)0x20000b9c =3D 0;
->   *(uint8_t*)0x20000b9d =3D 0;
->   *(uint8_t*)0x20000b9e =3D 0;
->   *(uint8_t*)0x20000b9f =3D 0;
->   syscall(__NR_write, r[0], 0x20000b80, 0x20);
->   memcpy((void*)0x20000bc0, "\x02\x00\x00\x00\x00\x00\x00\xfa\x00\x00\x00=
-\x00"
->                             "\x00\x00\x00\x00\x1b\x00\x4e\x20\x00\x00\x00=
-\x00"
->                             "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00=
-\xe1",
->          36);
->   syscall(__NR_write, r[0], 0x20000bc0, 0x24);
+>   switch (call) {
+>   case 0:
+>     memcpy((void*)0x20000000, "/dev/input/mice", 16);
+>     res =3D syz_open_dev(0x20000000, 0, 0x80);
+>     if (res !=3D -1)
+>       r[0] =3D res;
+>     break;
+>   case 1:
+>     *(uint32_t*)0x200000c0 =3D 0x14;
+>     syscall(__NR_getsockopt, r[0], 6, 0x1d, 0x20000080, 0x200000c0);
+>     break;
+>   case 2:
+>     memcpy((void*)0x20000040, "/dev/infiniband/rdma_cm", 24);
+>     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000040, 2, 0);
+>     if (res !=3D -1)
+>       r[1] =3D res;
+>     break;
+>   case 3:
+>     *(uint32_t*)0x200064c0 =3D 0;
+>     *(uint16_t*)0x200064c4 =3D 0x18;
+>     *(uint16_t*)0x200064c6 =3D 0xfa00;
+>     *(uint64_t*)0x200064c8 =3D 0;
+>     *(uint64_t*)0x200064d0 =3D 0x20006480;
+>     *(uint16_t*)0x200064d8 =3D 0x13f;
+>     *(uint8_t*)0x200064da =3D 0;
+>     *(uint8_t*)0x200064db =3D 0;
+>     *(uint8_t*)0x200064dc =3D 0;
+>     *(uint8_t*)0x200064dd =3D 0;
+>     *(uint8_t*)0x200064de =3D 0;
+>     *(uint8_t*)0x200064df =3D 0;
+>     res =3D syscall(__NR_write, r[1], 0x200064c0, 0x20);
+>     if (res !=3D -1)
+>       r[2] =3D *(uint32_t*)0x20006480;
+>     break;
+>   case 4:
+>     *(uint32_t*)0x20004400 =3D 7;
+>     *(uint16_t*)0x20004404 =3D 8;
+>     *(uint16_t*)0x20004406 =3D 0xfa00;
+>     *(uint32_t*)0x20004408 =3D r[2];
+>     *(uint32_t*)0x2000440c =3D 0;
+>     syscall(__NR_write, r[1], 0x20004400, 0x10);
+>     break;
+>   case 5:
+>     syscall(__NR_close, r[1]);
+>     break;
+>   }
+> }
+>
+> void test()
+> {
+>   execute(6);
+>   collide =3D 1;
+>   execute(6);
 > }
 >
 > int main()
 > {
 >   syscall(__NR_mmap, 0x20000000, 0x1000000, 3, 0x32, -1, 0);
->   loop();
+>   for (procid =3D 0; procid < 8; procid++) {
+>     if (fork() =3D=3D 0) {
+>       for (;;) {
+>         int pid =3D do_sandbox_none();
+>         int status =3D 0;
+>         while (waitpid(pid, &status, __WALL) !=3D pid) {
+>         }
+>       }
+>     }
+>   }
+>   sleep(1000000);
 >   return 0;
 > }
 
@@ -5656,24 +5844,24 @@ r30,binder31"
 > # CONFIG_STRING_SELFTEST is not set
 
 
---zCmt8XF9/WUitJEp
+--RMlwNl9HEic8ziTx
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzyvwACgkQ5GN7iDZy
-WKfh8BAAiLr4tDIjsCh0vEVYaZiohTD8Ncfk6xgPU+FhrbOsS7Bp6lMgNn9NLe/v
-QGdH9MkIOhRdxAnvOXOvfiQ4BXP77/xG8qfyQqPH9Z+m/yB+bBVm9Ck9+PdWYD9a
-sag5eNUfTyZxu4tAC6Rzz93GwpdnbW8vVA310FPLNp9tuRmRaTUR8qrpl2W+ffXO
-RB5ufAYCVgsmeXHcxgnMrOvhe7BZlB+eNtxhy0ZS38eyqS1jJ6caTzTVgtSTTn9A
-dJNdxJf5suotnSI0ShFd2ym1UHQy1f+gSr1wwROtigf4LYbMiJDOdS1nV52gmz5v
-RWR3tLobQLm+qICGhwUpYKOGqFlAF6ek1YPJYkcz1+9KfgB52vXAjtx8aSQti7M+
-hbMm6IJiebMZosNxVC5etyO6md+KPeq8EBdNzfsg2dObygI+q6p29LtN8wkmadN0
-xlp06/WwayIYX4npynCA6SdXtF5WdgeXPO42HKWqQcxZpnlMB2u89rn25nge2pdL
-Dmqzm7xgjhWx28Zg9WoW0dopYrshTzrQqFZTzW7AtUdDOusk6ksZ/jEUopjVLjlF
-vNh4K4gUfH4l4bCVVHNKzjPm7byj+x1dZ3XFH2TniwRgGSmkkONLkfmVPLuI1fJw
-Wo3ckb0O5JSoeJ76s69eSNsRq6bljZgYDvyhmgRhjHVSTcHiWzA=
-=+MT1
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzysAACgkQ5GN7iDZy
+WKdRVg/9E4QTLaeTK52uNsqUtreWqLFvZ0mJl0+mk1dyZOYKTtTR/cptizTZ+C7C
+dcHRE+s+hFi88W06otiKdU5UHw4TaY5UyRCz4+X1KKBmrYpNANwEKVq5oQ8xm/Ac
+C0/MZ7fmk/YZ38IK5NQINf54NapXf7bQazFgMcxcCdXq1UVgimKnGEg7HtAcq7IC
+3tCFzJxNNovJRvJr9rp3P4VwnP4S2/wd8+SeycrnsOfWuO9QC8wBgz+5mLlPmu4r
+WLrjjTItHhq2TDGI0uyZiCCNQJ1U6U36OcRKFHKpkZl0eV27Jf6wa13m8x9GKNOs
+/D9/qnVOv1t+a+awfvHoGOJnXK9zVJhG/4PbrFsMsIwSdzqipyghygcUA7tdbuRQ
+P5dVqqlzxiqppZhosvPkEJqNWrex7V/33y/NtMZhxUA2lkTMc98fdikRSubbNo4W
+L0vYSF3TV/tdRy0xXOCd1oVV30citI14zH6BAhGjvqObKZQvZheZHulMmQ+NmYjn
+jO0O5HSiP5b6wz3+dLgXhVdaKFoqNITd9VlN5iC0o49B1Y6rXlALXebX22WfBGls
+R7gD1+eeq0H+QHKBq94q5neoLEHLiG1p6NL9WaegchRAq4v1pHJckZ33eQ+FmcZs
+edoqaw09DZmiTvM7CmeEfM1w3PGLoVlziFm1c4TUIC1mae8qM18=
+=yav1
 -----END PGP SIGNATURE-----
 
---zCmt8XF9/WUitJEp--
+--RMlwNl9HEic8ziTx--
