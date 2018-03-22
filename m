@@ -1,120 +1,83 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Fri, 23 Mar 2018 00:52:02 +1100
-Message-ID: <1521726722.16434.312.camel@kernel.crashing.org>
-References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
- <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
- <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
- <1521692689.16434.293.camel@kernel.crashing.org>
- <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: WARNING: ODEBUG bug in process_one_req
+Date: Thu, 22 Mar 2018 16:29:00 +0200
+Message-ID: <20180322142900.GD19440@mtr-leonro.local>
+References: <94eb2c0bc3aa8b2432056623c735@google.com>
+ <20180322124823.GB19440@mtr-leonro.local>
+ <CACT4Y+Ya8iMgV=7YGgsO2XnusF9tnGcHHPF5U5oNjQz_eJ+vMw@mail.gmail.com>
+ <20180322132031.GC19440@mtr-leonro.local>
+ <CACT4Y+a2KB6vvgFcqkq7cMCiCZQEFNxsCTgP+_gtgju8H2q9hQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Oliver <oohall@gmail.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "open list:LINUX FOR POWERPC (32-BIT
- AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="HtrkgkD3uBADSQLK"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CACT4Y+a2KB6vvgFcqkq7cMCiCZQEFNxsCTgP+_gtgju8H2q9hQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Vyukov <dvyukov@google.com>
+Cc: syzbot <syzbot+3b4acab09b6463472d0a@syzkaller.appspotmail.com>, danielj@mellanox.com, dledford@redhat.com, Jason Gunthorpe <jgg@ziepe.ca>, Johannes Berg <johannes.berg@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, monis@mellanox.com, Paolo Abeni <pabeni@redhat.com>, parav@mellanox.com, Roland Dreier <roland@purestorage.com>, syzkaller-bugs@googlegroups.com, yuval.shaia@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2018-03-22 at 21:15 +1100, Oliver wrote:
-> On Thu, Mar 22, 2018 at 3:24 PM, Benjamin Herrenschmidt
-> <benh@kernel.crashing.org> wrote:
-> > On Wed, 2018-03-21 at 08:53 -0500, Sinan Kaya wrote:
-> > > writel_relaxed() needs to have ordering guarantees with respect to the order
-> > > device observes writes.
-> > 
-> > Correct.
-> > 
-> > > x86 has compiler barrier inside the relaxed() API so that code does not
-> > > get reordered. ARM64 architecturally guarantees device writes to be observed
-> > > in order.
-> > > 
-> > > I was hoping that PPC could follow x86 and inject compiler barrier into the
-> > > relaxed functions.
-> > > 
-> > > BTW, I have no idea what compiler barrier does on PPC and if
-> > > 
-> > > wrltel() == compiler barrier() + wrltel_relaxed()
-> > > 
-> > > can be said.
-> > 
-> > No, it's not sufficient.
 
-Just to clarify ... barrier() is just a compiler barrier, it means the
-compiler will generate things in the order they are written. This isn't
-sufficient on archs with an OO memory model, where an actual memory
-barrier instruction needs to be emited.
+--HtrkgkD3uBADSQLK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-As for Oliver comments...
+On Thu, Mar 22, 2018 at 02:36:55PM +0100, Dmitry Vyukov wrote:
+> On Thu, Mar 22, 2018 at 2:20 PM, Leon Romanovsky <leonro@mellanox.com> wrote:
+> > On Thu, Mar 22, 2018 at 02:10:21PM +0100, Dmitry Vyukov wrote:
+> >> This bug is actively happening several times per day, if such bug is
+> >> closed syzbot will open another bug on the next crash.
+> >> This bug has a reproducer, why do you think it is invalid?
+> >
+> > I tried to reproduce it on latest rdma-next and failed, so wanted to
+> > start from clean page and see if it is still relevant.
+>
+> Ah,  I see.
+> You can now see the current status on dashboard:
+> https://syzkaller.appspot.com/bug?id=d4ac7bfeafac8a3d6d06123e078462ac765415e7
+> Yes, it still happens.
+>
+> syzbot has already reported another incarnation of this bug, you can
+> see the link to dashboard in the email:
+> https://syzkaller.appspot.com/bug?extid=b8d5eb964e412cfd2678
+> and it contains a link to the first version with reproducer.
+>
+> > Does it still reproduce on latest rdma-next?
+>
+> syzbot does not test rdma-next.
+>
+> But can you reproduce it on upstream tree where syzbot hits it? Just
+> to make sure, you have ODEBUG enabled, right?
 
-> > Replacing wmb() + writel() with wmb() + writel_relaxed() will work on
-> > PPC, it will just not give you a benefit today.
-> > 
-> > The main problem is that the semantics of writel/writel_relaxed (and
-> > read versions) aren't very well defined in Linux esp. when it comes
-> > to different memory types (NC, WC, ...).
-> > 
-> > I've been wanting to implement the relaxed accessors for a while but
-> > was battling with this to try to also better support WC, and due to
-> > other commitments, this somewhat fell down the cracks.
-> > 
-> > Two options I can think of:
-> > 
-> >  - Just make the _relaxed variants use an eieio instead of a sync, this
-> > will effectively lift the ordering guarantee vs. cachable storage (and
-> > thus unlock) and might give a (small) performance improvement.
-> 
-> Wouldn't we still have the unlock ordering due to the io_sync hack or
-> are you thinking we should remove that too for the relaxed version?
+Thanks for the tip, I added more debug options and returned to try the
+repro on clean v4.16-rc1, it looks like I still don't have all needed
+config options (SELinux).
 
-Well, the documentation says we don't care about synchronization vs.
-locks so we should probably remove it (then we need to make sure mmiowb
-works, thus sets the flag).
+  mount(selinuxfs) failed (errno 2)
 
-> > However,
-> > we still have the problem that on WC mappings, neither writel nor
-> > writel_relaxed will effectively allow combining to happen (only raw
-> > accesses will because on powerpc *all* barriers will break combining).
-> 
-> Hmm, eieio is only architected to affect CI+G (and WT) so it shouldn't
-> affect combining
-> on non-guarded memory. Do most implementations apply it to all CI
-> accesses anyway?
+Can you please cancel my email that closes this bug?
 
-Yes, as far as I know all implementations will stop combining on *any*
-barrier instruction.
+Thanks
 
-> >  - Make writel_relaxed() be a simple store without barriers, and
-> > readl_relaxed() be "eieio, read, eieio", thus allowing write combining
-> > to happen between successive writel_relaxed on WC space (no change on
-> > normal NC space) while maintaining the ordering between relaxed reads
-> > and writes. The flip side is a (slight) increased overhead of
-> > readl_relaxed.
-> 
-> Are there many drivers that actually do writeX() on WC space?
-> memory-barriers.txt
-> pretty much says that all bets are off and no ordering guarantees can be assumed
-> when using readX/writeX on prefetchable IO memory. It seems sketchy enough to
-> give me some pause, but maybe it works fine elsewhere.
+--HtrkgkD3uBADSQLK
+Content-Type: application/pgp-signature; name="signature.asc"
 
-I don't know whether any does it, but I want to provide a way for a
-driver to somewhat reliably obtain write combine semantics without
-having to hand code endian swap and other horrors involved with using
-__raw_* accessors.
+-----BEGIN PGP SIGNATURE-----
 
-So my thinking is to define that the combination of WC + writel_relaxed
-gives you that, which it does at least on x86 and ARM afaik.
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzvawACgkQ5GN7iDZy
+WKccUA/+LbBHJ0iMv/ogS7qC2Lc8Uflh7l/he/6nRHkQMoRtZzdTQyuY38tOrHtN
+YKQH+TyA6wgmH7WVGMJG1qkHCo878i7RX4JyDBKzSgAabL2WGsG1f5ZBxp5u3DSE
+sWws0IxRCRVde4VYhiBj+Az/WbtTXzz4vmua0q5dGNrIHGftReOu5nojw+hFCX4P
+KPT7EOFSE7na7n9Qv1TJEuLFzu5fZiFXAS5aVIjJ+7axJwJ7gAArNML//lLW9d01
+YJyM1eEXRWEAfKBJZEYylGEJTKG4jlzPJJdbPtTeVCERApDLUX9G0QG7vDqSHT+r
+XEfS44e9XbrNjL6iyZYIU7CBukewKXxxHGLiWptOkAzOue/d5SGXRFryDea6JnZP
+nYPV+xKwWD+tevax4WxjEKSe82s6hwyqou+Gs2Iv0YQUagjul7Weep/DGFryiir/
+meGv/AxN5mbn2KNtKHwh7cZQkTKb7I5TnhW/bIR18RIN2gj6f6SQZsz+jMohI5Yn
+pAqZtP54XjxBhBHybdOXJOP5eu7pOOP5IcHVjozENhhywliLZayGtWTv8D+N0PbJ
+VQ3z9w3YfmadHyub/DLYP4b56m45Uf5xsnG4FkezMWL9ugou0wAi2DXdTWLWkRua
+EzwC9RrP577dwCykxq1P/iGw3nk9GD+7wtHNeNVMAOsMP3w/728=
+=sXbH
+-----END PGP SIGNATURE-----
 
-Cheers,
-Ben.
+--HtrkgkD3uBADSQLK--
