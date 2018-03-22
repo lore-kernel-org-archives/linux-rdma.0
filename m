@@ -1,72 +1,50 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: WARNING: ODEBUG bug in process_one_req
-Date: Thu, 22 Mar 2018 15:47:41 +0100
-Message-ID: <CACT4Y+ZEGHp9vg68O7dDfRWj+_bKZQCGQX2AcFckm8GBYaREug@mail.gmail.com>
-References: <94eb2c0bc3aa8b2432056623c735@google.com> <20180322124823.GB19440@mtr-leonro.local>
- <CACT4Y+Ya8iMgV=7YGgsO2XnusF9tnGcHHPF5U5oNjQz_eJ+vMw@mail.gmail.com>
- <20180322132031.GC19440@mtr-leonro.local> <CACT4Y+a2KB6vvgFcqkq7cMCiCZQEFNxsCTgP+_gtgju8H2q9hQ@mail.gmail.com>
- <20180322142900.GD19440@mtr-leonro.local>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v4 4/6] infiniband: cxgb4: Eliminate duplicate barriers on
+ weakly-ordered archs
+Date: Thu, 22 Mar 2018 09:52:04 -0500
+Message-ID: <83484a3f-d3f7-d763-e4f8-e4fec3bb8cc2@codeaurora.org>
+References: <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
+ <201803221430.P43GJl9U%fengguang.wu@intel.com>
+ <3664b253c730dbf83f4528acaedb3a88@codeaurora.org>
+ <3e9c006e4541acbce11743dbda553e84@codeaurora.org>
+ <03d201d3c1eb$b71fb460$255f1d20$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180322142900.GD19440@mtr-leonro.local>
+In-Reply-To: <03d201d3c1eb$b71fb460$255f1d20$@opengridcomputing.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: syzbot <syzbot+3b4acab09b6463472d0a@syzkaller.appspotmail.com>, danielj@mellanox.com, dledford@redhat.com, Jason Gunthorpe <jgg@ziepe.ca>, Johannes Berg <johannes.berg@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, monis@mellanox.com, Paolo Abeni <pabeni@redhat.com>, parav@mellanox.com, Roland Dreier <roland@purestorage.com>, syzkaller-bugs@googlegroups.com, yuval.shaia@oracle.com
+To: Steve Wise <swise@opengridcomputing.com>, 'kbuild test robot' <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 'Steve Wise' <swise@chelsio.com>, 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@ziepe.ca>, linux-kernel@vger.kernel.org, 'Casey Leedom' <leedom@chelsio.com>, 'Michael Werner' <werner@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 22, 2018 at 3:29 PM, Leon Romanovsky <leonro@mellanox.com> wrote:
-> On Thu, Mar 22, 2018 at 02:36:55PM +0100, Dmitry Vyukov wrote:
->> On Thu, Mar 22, 2018 at 2:20 PM, Leon Romanovsky <leonro@mellanox.com> wrote:
->> > On Thu, Mar 22, 2018 at 02:10:21PM +0100, Dmitry Vyukov wrote:
->> >> This bug is actively happening several times per day, if such bug is
->> >> closed syzbot will open another bug on the next crash.
->> >> This bug has a reproducer, why do you think it is invalid?
->> >
->> > I tried to reproduce it on latest rdma-next and failed, so wanted to
->> > start from clean page and see if it is still relevant.
->>
->> Ah,  I see.
->> You can now see the current status on dashboard:
->> https://syzkaller.appspot.com/bug?id=d4ac7bfeafac8a3d6d06123e078462ac765415e7
->> Yes, it still happens.
->>
->> syzbot has already reported another incarnation of this bug, you can
->> see the link to dashboard in the email:
->> https://syzkaller.appspot.com/bug?extid=b8d5eb964e412cfd2678
->> and it contains a link to the first version with reproducer.
->>
->> > Does it still reproduce on latest rdma-next?
->>
->> syzbot does not test rdma-next.
->>
->> But can you reproduce it on upstream tree where syzbot hits it? Just
->> to make sure, you have ODEBUG enabled, right?
->
-> Thanks for the tip, I added more debug options and returned to try the
-> repro on clean v4.16-rc1, it looks like I still don't have all needed
-> config options (SELinux).
->
->   mount(selinuxfs) failed (errno 2)
+On 3/22/2018 9:40 AM, Steve Wise wrote:
+> I think all these iw_cxgb4 changes should be reverted until we really have a
+> plan for multi-platform that works.  
 
+I know you are looking to have support for PowerPC. 
 
-It seems that you have old syzkaller sources, it now explicitly does
-not fail on ENOENT:
+Isn't this a PowerPC problem? Why penalize other architectures?
 
-    // selinux mount used to be at /selinux, but then moved to /sys/fs/selinux.
-    const char* selinux_path = "./syz-tmp/newroot/selinux";
-    if (mount("/selinux", selinux_path, NULL, mount_flags, NULL)) {
-        if (errno != ENOENT)
-            fail("mount(/selinux) failed");
-        if (mount("/sys/fs/selinux", selinux_path, NULL, mount_flags,
-NULL) && errno != ENOENT)
-            fail("mount(/sys/fs/selinux) failed");
-    }
+Do you see anything wrong with the code itself?
 
+I started this thread with the PowerPC develoeprs on your request.
+"RFC on writel and writel_relaxed"
 
-> Can you please cancel my email that closes this bug?
+They are looking into adding the relaxed API support. Support can come
+in later. Why block this change now?
 
-There is no such option. The new bug is already created:
-https://syzkaller.appspot.com/bug?id=6ecd3fdba0501c8843300056375abea0880816d2
-now if we open the old one, we now have 2 for the same root cause. It
-will lead to mess.
+benh@kernel.crashing.org:
+"I've been wanting to implement the relaxed accessors for a while but
+was battling with this to try to also better support WC, and due to
+other commitments, this somewhat fell down the cracks."
+
+I have seen four different responses on this thread. Since this is an
+architecture change it will take a while to get the semantics right.
+It won't happen in the new few days.
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
