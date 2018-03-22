@@ -1,47 +1,58 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH v2] net/mlx5: Fix use-after-free
-Date: Thu, 22 Mar 2018 13:44:56 -0500
-Message-ID: <20180322184456.GA22259@embeddedgus>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 4/6] infiniband: cxgb4: Eliminate duplicate barriers
+ on weakly-ordered archs
+Date: Thu, 22 Mar 2018 12:46:44 -0600
+Message-ID: <20180322184644.GA9469@ziepe.ca>
+References: <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
+ <201803221430.P43GJl9U%fengguang.wu@intel.com>
+ <3664b253c730dbf83f4528acaedb3a88@codeaurora.org>
+ <3e9c006e4541acbce11743dbda553e84@codeaurora.org>
+ <437ab002-b8db-24aa-583e-0e61d61aaa97@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <437ab002-b8db-24aa-583e-0e61d61aaa97@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>, Ilan Tayari <ilant@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org, linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-_rule_ is being freed and then dereferenced by accessing rule->ctx
+On Thu, Mar 22, 2018 at 10:28:13AM -0400, Sinan Kaya wrote:
+>    On 03/22/2018 08:48 AM, [1]okaya@codeaurora.org wrote:
+> 
+>      Jason,
+>      Can you remove the writeq change if it is too late for me to fix?
+>      This is an infrastructural issue on xtensa arch.
+>      Probably, it won't get fixed today.
 
-Fix this by copying the value returned by PTR_ERR(rule->ctx) into a local
-variable for its safe use after freeing _rule_
+I was able to drop the patch, please resend.
 
-Addresses-Coverity-ID: 1466041 ("Read from pointer after free")
-Fixes: 05564d0ae075 ("net/mlx5: Add flow-steering commands for FPGA IPSec implementation")
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
-Changes in v2:
- - Use a short subject prefix as suggested by Yuval Shaia.
- - Add Yuval's Reviewed-by.
+>      AFAIS, even writeq won't compile on this arch. I started questioning
+>      this build test.
 
- drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+>    I found out that the solution is this:
+> #include <linux/io-64-nonatomic-hi-lo.h>
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-index 4f15685..0f5da49 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/ipsec.c
-@@ -1061,8 +1061,9 @@ static int fpga_ipsec_fs_create_fte(struct mlx5_core_dev *dev,
- 
- 	rule->ctx = mlx5_fpga_ipsec_fs_create_sa_ctx(dev, fte, is_egress);
- 	if (IS_ERR(rule->ctx)) {
-+		int err = PTR_ERR(rule->ctx);
- 		kfree(rule);
--		return PTR_ERR(rule->ctx);
-+		return err;
- 	}
- 
- 	rule->fte = fte;
--- 
-2.7.4
+Yuk, what an ugly API..
+
+>    [2]https://patchwork.ozlabs.org/patch/511801/
+>    I did a compile test with this change on xtensa and it passed. I'll
+>    repost with the added diff.
+>    +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+>    @@ -46,7 +46,7 @@
+>     #include <linux/timer.h>
+>     #include <linux/io.h>
+>     #include <linux/workqueue.h>
+>    -
+>    +#include <linux/io-64-nonatomic-hi-lo.h>
+
+I think this is the wrong one. I would expect all PCI-E devices should
+use lo-hi, eg writes are done in address increasing order on the bus.
+
+This is what the PCI-E spec would require if a write were to be
+fragmented so I would expect devices to handle it properly.
+
+Steve? Any idea of specific things for this HW?
+
+Jason
