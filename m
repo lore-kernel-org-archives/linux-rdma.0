@@ -1,57 +1,58 @@
 From: Leon Romanovsky <leonro@mellanox.com>
 Subject: Re: KASAN: use-after-free Read in __list_del_entry_valid (3)
-Date: Thu, 22 Mar 2018 17:30:37 +0200
-Message-ID: <20180322153037.GN19440@mtr-leonro.local>
+Date: Thu, 22 Mar 2018 17:30:46 +0200
+Message-ID: <20180322153046.GO19440@mtr-leonro.local>
 References: <001a1140c614ad7a730566ba3f61@google.com>
- <001a1144966ac62d2705670c672c@google.com>
+ <001a113f0892656fd50567767acd@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="p1CTWWYPX4x7uy/s"
+        protocol="application/pgp-signature"; boundary="Ts3D3es+1xJsYBr5"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <001a1144966ac62d2705670c672c@google.com>
+In-Reply-To: <001a113f0892656fd50567767acd@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: syzbot <syzbot+09e05aba06723a94d43d@syzkaller.appspotmail.com>
 Cc: arve@android.com, dasaratharaman.chandramouli@intel.com, devel@driverdev.osuosl.org, dledford@redhat.com, gregkh@linuxfoundation.org, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, maco@android.com, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com, tkjos@android.com
 List-Id: linux-rdma@vger.kernel.org
 
---p1CTWWYPX4x7uy/s
+--Ts3D3es+1xJsYBr5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 #syz dup: KASAN: null-ptr-deref Write in rdma_resolve_addr
 
-On Sat, Mar 10, 2018 at 02:31:01AM -0800, syzbot wrote:
+On Thu, Mar 15, 2018 at 10:04:00AM -0700, syzbot wrote:
 > syzbot has found reproducer for the following crash on upstream commit
-> cdb06e9d8f520c969676e7d6778cffe5894f079f (Sat Mar 10 00:59:19 2018 +0000)
-> Merge tag 'for-linus' of git://git.kernel.org/pub/scm/virt/kvm/kvm
+> 0aa3fdb8b3a6df3c2e3b61dbfe079db9d30e03cd (Thu Mar 15 00:02:49 2018 +0000)
+> Merge tag 'scsi-fixes' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/jejb/scsi
 >
-> So far this crash happened 5 times on upstream.
+> So far this crash happened 8 times on upstream.
+> C reproducer is attached.
 > syzkaller reproducer is attached.
 > Raw console output is attached.
 > compiler: gcc (GCC) 7.1.1 20170620
 > .config is attached.
-> user-space arch: i386
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
 > Reported-by: syzbot+09e05aba06723a94d43d@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed.
 >
-> audit: type=3D1400 audit(1520677624.558:8): avc:  denied  { map } for
-> pid=3D4244 comm=3D"syz-execprog" path=3D"/root/syzkaller-shm785876307" de=
-v=3D"sda1"
-> ino=3D16482 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
-> tcontext=3Dunconfined_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> IPVS: ftp: loaded support on port[0] =3D 21
+> audit: type=3D1400 audit(1521133204.939:7): avc:  denied  { map } for
+> pid=3D4096 comm=3D"syzkaller144721" path=3D"/root/syzkaller144721791" dev=
+=3D"sda1"
+> ino=3D16481 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023
+> tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfile permissive=
+=3D1
 > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 > BUG: KASAN: use-after-free in __list_del_entry_valid+0x144/0x150
 > lib/list_debug.c:54
-> Read of size 8 at addr ffff8801cde96ae0 by task syz-executor0/4261
+> Read of size 8 at addr ffff8801d2435ce0 by task syzkaller144721/4121
 >
-> CPU: 0 PID: 4261 Comm: syz-executor0 Not tainted 4.16.0-rc4+ #258
+> CPU: 0 PID: 4121 Comm: syzkaller144721 Not tainted 4.16.0-rc5+ #354
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
 > Call Trace:
@@ -67,7 +68,7 @@ v=3D"sda1"
 >  cma_cancel_listens drivers/infiniband/core/cma.c:1569 [inline]
 >  cma_cancel_operation+0x455/0xd60 drivers/infiniband/core/cma.c:1597
 >  rdma_destroy_id+0xff/0xda0 drivers/infiniband/core/cma.c:1661
->  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1706
+>  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1712
 >  __fput+0x327/0x7e0 fs/file_table.c:209
 >  ____fput+0x15/0x20 fs/file_table.c:243
 >  task_work_run+0x199/0x270 kernel/task_work.c:113
@@ -79,18 +80,17 @@ v=3D"sda1"
 >  exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
 >  prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
 >  syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
->  do_syscall_32_irqs_on arch/x86/entry/common.c:336 [inline]
->  do_fast_syscall_32+0xbe6/0xf9f arch/x86/entry/common.c:392
->  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
-> RIP: 0023:0xf7f93c99
-> RSP: 002b:00000000f7f6e10c EFLAGS: 00000296 ORIG_RAX: 00000000000000f0
-> RAX: fffffffffffffe00 RBX: 000000000813af98 RCX: 0000000000000000
-> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-> RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+>  do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x446af9
+> RSP: 002b:00007fc143953da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+> RAX: fffffffffffffe00 RBX: 00000000006e29fc RCX: 0000000000446af9
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000006e29fc
+> RBP: 00000000006e29f8 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f616d6472
+> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000005
 >
-> Allocated by task 4258:
+> Allocated by task 4121:
 >  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
 >  set_track mm/kasan/kasan.c:459 [inline]
 >  kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
@@ -99,16 +99,15 @@ v=3D"sda1"
 >  kzalloc include/linux/slab.h:701 [inline]
 >  rdma_create_id+0xd0/0x630 drivers/infiniband/core/cma.c:787
 >  ucma_create_id+0x31a/0x620 drivers/infiniband/core/ucma.c:479
->  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1627
+>  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
 >  __vfs_write+0xef/0x970 fs/read_write.c:480
 >  vfs_write+0x189/0x510 fs/read_write.c:544
 >  SYSC_write fs/read_write.c:589 [inline]
 >  SyS_write+0xef/0x220 fs/read_write.c:581
->  do_syscall_32_irqs_on arch/x86/entry/common.c:330 [inline]
->  do_fast_syscall_32+0x3ec/0xf9f arch/x86/entry/common.c:392
->  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+>  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
 >
-> Freed by task 4261:
+> Freed by task 4121:
 >  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
 >  set_track mm/kasan/kasan.c:459 [inline]
 >  __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
@@ -116,7 +115,7 @@ v=3D"sda1"
 >  __cache_free mm/slab.c:3485 [inline]
 >  kfree+0xd9/0x260 mm/slab.c:3800
 >  rdma_destroy_id+0x821/0xda0 drivers/infiniband/core/cma.c:1691
->  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1706
+>  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1712
 >  __fput+0x327/0x7e0 fs/file_table.c:209
 >  ____fput+0x15/0x20 fs/file_table.c:243
 >  task_work_run+0x199/0x270 kernel/task_work.c:113
@@ -128,393 +127,1039 @@ v=3D"sda1"
 >  exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
 >  prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
 >  syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
->  do_syscall_32_irqs_on arch/x86/entry/common.c:336 [inline]
->  do_fast_syscall_32+0xbe6/0xf9f arch/x86/entry/common.c:392
->  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+>  do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
 >
-> The buggy address belongs to the object at ffff8801cde96900
+> The buggy address belongs to the object at ffff8801d2435b00
 >  which belongs to the cache kmalloc-1024 of size 1024
 > The buggy address is located 480 bytes inside of
->  1024-byte region [ffff8801cde96900, ffff8801cde96d00)
+>  1024-byte region [ffff8801d2435b00, ffff8801d2435f00)
 > The buggy address belongs to the page:
-> page:ffffea000737a580 count:1 mapcount:0 mapping:ffff8801cde96000 index:0=
+> page:ffffea0007490d00 count:1 mapcount:0 mapping:ffff8801d2434000 index:0=
 x0
 > compound_mapcount: 0
 > flags: 0x2fffc0000008100(slab|head)
-> raw: 02fffc0000008100 ffff8801cde96000 0000000000000000 0000000100000007
-> raw: ffffea0006a8e720 ffff8801dac01848 ffff8801dac00ac0 0000000000000000
+> raw: 02fffc0000008100 ffff8801d2434000 0000000000000000 0000000100000007
+> raw: ffffea000730eb20 ffff8801dac01848 ffff8801dac00ac0 0000000000000000
 > page dumped because: kasan: bad access detected
 >
 > Memory state around the buggy address:
->  ffff8801cde96980: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8801cde96a00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> > ffff8801cde96a80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801d2435b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801d2435c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> > ffff8801d2435c80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 >                                                        ^
->  ffff8801cde96b00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8801cde96b80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801d2435d00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801d2435d80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 >
 
-> [....] Starting enhanced syslogd: rsyslogd[   16.890933] audit: type=3D14=
-00 audit(1520677609.975:5): avc:  denied  { syslog } for  pid=3D4090 comm=
-=3D"rsyslogd" capability=3D34  scontext=3Dsystem_u:system_r:kernel_t:s0 tco=
-ntext=3Dsystem_u:system_r:kernel_t:s0 tclass=3Dcapability2 permissive=3D1
 > =1B[?25l=1B[?1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
+> Starting mcstransd:
 > [....] Starting periodic command scheduler: cron=1B[?25l=1B[?1c=1B7=1B[1G=
 [=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
-> Starting mcstransd:
 > [....] Starting file context maintaining daemon: restorecond=1B[?25l=1B[?=
 1c=1B7=1B[1G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
 > [....] Starting OpenBSD Secure Shell server: sshd=1B[?25l=1B[?1c=1B7=1B[1=
 G[=1B[32m ok =1B[39;49m=1B8=1B[?25h=1B[?0c.
+> [   18.269550] audit: type=3D1400 audit(1521133198.540:6): avc:  denied  =
+{ map } for  pid=3D4082 comm=3D"bash" path=3D"/bin/bash" dev=3D"sda1" ino=
+=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c1023 tcontext=
+=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
 >
 > Debian GNU/Linux 7 syzkaller ttyS0
 >
-> syzkaller login: [   22.330197] audit: type=3D1400 audit(1520677615.415:6=
-): avc:  denied  { map } for  pid=3D4230 comm=3D"bash" path=3D"/bin/bash" d=
-ev=3D"sda1" ino=3D1457 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.c=
-1023 tcontext=3Dsystem_u:object_r:file_t:s0 tclass=3Dfile permissive=3D1
-> Warning: Permanently added '10.128.0.27' (ECDSA) to the list of known hos=
+> Warning: Permanently added '10.128.0.55' (ECDSA) to the list of known hos=
 ts.
-> [   31.223614] audit: type=3D1400 audit(1520677624.308:7): avc:  denied  =
-{ map } for  pid=3D4244 comm=3D"syz-execprog" path=3D"/root/syz-execprog" d=
-ev=3D"sda1" ino=3D16479 scontext=3Dunconfined_u:system_r:insmod_t:s0-s0:c0.=
-c1023 tcontext=3Dunconfined_u:object_r:user_home_t:s0 tclass=3Dfile permiss=
-ive=3D1
-> 2018/03/10 10:27:04 parsed 1 programs
-> 2018/03/10 10:27:04 executed programs: 0
-> [   31.473999] audit: type=3D1400 audit(1520677624.558:8): avc:  denied  =
-{ map } for  pid=3D4244 comm=3D"syz-execprog" path=3D"/root/syzkaller-shm78=
-5876307" dev=3D"sda1" ino=3D16482 scontext=3Dunconfined_u:system_r:insmod_t=
-:s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:file_t:s0 tclass=3Dfile pe=
-rmissive=3D1
-> [   31.487142] IPVS: ftp: loaded support on port[0] =3D 21
-> [   31.563356] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+> executing program
+> executing program
+> executing program
+> executing program
+> executing program
+> syzkaller login: [   24.668499] audit: type=3D1400 audit(1521133204.939:7=
+): avc:  denied  { map } for  pid=3D4096 comm=3D"syzkaller144721" path=3D"/=
+root/syzkaller144721791" dev=3D"sda1" ino=3D16481 scontext=3Dunconfined_u:s=
+ystem_r:insmod_t:s0-s0:c0.c1023 tcontext=3Dunconfined_u:object_r:user_home_=
+t:s0 tclass=3Dfile permissive=3D1
+> [   24.740230] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [   31.570787] BUG: KASAN: use-after-free in __list_del_entry_valid+0x144=
+> [   24.747669] BUG: KASAN: use-after-free in __list_del_entry_valid+0x144=
 /0x150
-> [   31.577949] Read of size 8 at addr ffff8801cde96ae0 by task syz-execut=
-or0/4261
-> [   31.585275]
-> [   31.586883] CPU: 0 PID: 4261 Comm: syz-executor0 Not tainted 4.16.0-rc=
-4+ #258
-> [   31.594126] Hardware name: Google Google Compute Engine/Google Compute=
+> [   24.754833] Read of size 8 at addr ffff8801d2435ce0 by task syzkaller1=
+44721/4121
+> [   24.762337]
+> [   24.763943] CPU: 0 PID: 4121 Comm: syzkaller144721 Not tainted 4.16.0-=
+rc5+ #354
+> [   24.771370] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   31.603451] Call Trace:
-> [   31.606020]  dump_stack+0x194/0x24d
-> [   31.609624]  ? arch_local_irq_restore+0x53/0x53
-> [   31.614264]  ? show_regs_print_info+0x18/0x18
-> [   31.618746]  ? rcu_note_context_switch+0x710/0x710
-> [   31.623658]  ? __list_del_entry_valid+0x144/0x150
-> [   31.628477]  print_address_description+0x73/0x250
-> [   31.633301]  ? __list_del_entry_valid+0x144/0x150
-> [   31.638118]  kasan_report+0x23c/0x360
-> [   31.641897]  __asan_report_load8_noabort+0x14/0x20
-> [   31.646797]  __list_del_entry_valid+0x144/0x150
-> [   31.651439]  cma_cancel_operation+0x455/0xd60
-> [   31.655918]  ? finish_task_switch+0x182/0x7e0
-> [   31.660399]  ? find_held_lock+0x35/0x1d0
-> [   31.664435]  ? rdma_destroy_id+0xda0/0xda0
-> [   31.668650]  ? rdma_destroy_id+0xf4/0xda0
-> [   31.672773]  ? lock_downgrade+0x980/0x980
-> [   31.676897]  ? lock_release+0xa40/0xa40
-> [   31.680851]  ? do_raw_spin_trylock+0x190/0x190
-> [   31.685407]  ? _raw_spin_unlock_irqrestore+0x31/0xc0
-> [   31.690483]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   31.695476]  rdma_destroy_id+0xff/0xda0
-> [   31.699421]  ? lock_release+0xa40/0xa40
-> [   31.703367]  ? lock_downgrade+0x980/0x980
-> [   31.707489]  ? cma_release_dev+0x350/0x350
-> [   31.711702]  ? radix_tree_delete_item+0x146/0x280
-> [   31.716538]  ucma_close+0x100/0x2f0
-> [   31.720140]  ? ucma_free_ctx+0xd90/0xd90
-> [   31.724172]  __fput+0x327/0x7e0
-> [   31.727429]  ? fput+0x140/0x140
-> [   31.730686]  ? check_same_owner+0x320/0x320
-> [   31.734980]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   31.739468]  ____fput+0x15/0x20
-> [   31.742726]  task_work_run+0x199/0x270
-> [   31.746587]  ? task_work_cancel+0x210/0x210
-> [   31.750883]  ? _raw_spin_unlock+0x22/0x30
-> [   31.755004]  ? switch_task_namespaces+0x87/0xc0
-> [   31.759657]  do_exit+0x9bb/0x1ad0
-> [   31.763088]  ? find_held_lock+0x35/0x1d0
-> [   31.767125]  ? mm_update_next_owner+0x930/0x930
-> [   31.771772]  ? debug_check_no_locks_freed+0x3c0/0x3c0
-> [   31.776935]  ? lock_downgrade+0x980/0x980
-> [   31.781062]  ? __unqueue_futex+0x1c0/0x290
-> [   31.785270]  ? lock_release+0xa40/0xa40
-> [   31.789216]  ? fault_in_user_writeable+0x90/0x90
-> [   31.793944]  ? do_raw_spin_trylock+0x190/0x190
-> [   31.798499]  ? futex_wake+0x680/0x680
-> [   31.802292]  ? drop_futex_key_refs.isra.13+0x63/0xb0
-> [   31.807374]  ? futex_wait+0x6a9/0x9a0
-> [   31.811163]  ? trace_hardirqs_off+0x10/0x10
-> [   31.815456]  ? drop_futex_key_refs.isra.13+0x63/0xb0
-> [   31.820531]  ? futex_wake+0x2ca/0x680
-> [   31.824307]  ? memset+0x31/0x40
-> [   31.827562]  ? find_held_lock+0x35/0x1d0
-> [   31.831603]  ? get_signal+0x7a9/0x16d0
-> [   31.835465]  ? lock_downgrade+0x980/0x980
-> [   31.839594]  do_group_exit+0x149/0x400
-> [   31.843463]  ? do_raw_spin_trylock+0x190/0x190
-> [   31.848026]  ? SyS_exit+0x30/0x30
-> [   31.851458]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   31.855928]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   31.860920]  get_signal+0x73a/0x16d0
-> [   31.864614]  ? ptrace_notify+0x130/0x130
-> [   31.868647]  ? ucma_put_ctx+0x26/0x30
-> [   31.872430]  ? ucma_bind_ip+0x11a/0x190
-> [   31.876376]  ? ucma_bind+0x260/0x260
-> [   31.880069]  ? kasan_check_write+0x14/0x20
-> [   31.884280]  ? ucma_write+0x11f/0x3d0
-> [   31.888055]  ? ucma_bind+0x260/0x260
-> [   31.891755]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   31.896225]  do_signal+0x90/0x1e90
-> [   31.899746]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   31.904220]  ? __vfs_write+0xf7/0x970
-> [   31.907992]  ? rcu_note_context_switch+0x710/0x710
-> [   31.912898]  ? setup_sigcontext+0x7d0/0x7d0
-> [   31.917192]  ? kernel_read+0x120/0x120
-> [   31.921054]  ? __might_sleep+0x95/0x190
-> [   31.925003]  ? _cond_resched+0x14/0x30
-> [   31.928871]  ? __inode_security_revalidate+0xd9/0x130
-> [   31.934040]  ? avc_policy_seqno+0x9/0x20
-> [   31.938078]  ? selinux_file_permission+0x82/0x460
-> [   31.942911]  ? exit_to_usermode_loop+0x8c/0x2f0
-> [   31.947563]  exit_to_usermode_loop+0x258/0x2f0
-> [   31.952125]  ? trace_event_raw_event_sys_exit+0x260/0x260
-> [   31.957641]  ? do_fast_syscall_32+0x156/0xf9f
-> [   31.962122]  do_fast_syscall_32+0xbe6/0xf9f
-> [   31.966418]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   31.970891]  ? do_int80_syscall_32+0x9c0/0x9c0
-> [   31.975442]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   31.979912]  ? finish_task_switch+0x1c1/0x7e0
-> [   31.984387]  ? syscall_return_slowpath+0x2ac/0x550
-> [   31.989291]  ? prepare_exit_to_usermode+0x350/0x350
-> [   31.994283]  ? sysret32_from_system_call+0x5/0x3c
-> [   31.999108]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   32.003933]  entry_SYSENTER_compat+0x70/0x7f
-> [   32.008317] RIP: 0023:0xf7f93c99
-> [   32.011656] RSP: 002b:00000000f7f6e10c EFLAGS: 00000296 ORIG_RAX: 0000=
-0000000000f0
-> [   32.019347] RAX: fffffffffffffe00 RBX: 000000000813af98 RCX: 000000000=
+> [   24.780699] Call Trace:
+> [   24.783265]  dump_stack+0x194/0x24d
+> [   24.786876]  ? arch_local_irq_restore+0x53/0x53
+> [   24.791519]  ? show_regs_print_info+0x18/0x18
+> [   24.796031]  ? rcu_note_context_switch+0x710/0x710
+> [   24.800948]  ? __list_del_entry_valid+0x144/0x150
+> [   24.805774]  print_address_description+0x73/0x250
+> [   24.810601]  ? __list_del_entry_valid+0x144/0x150
+> [   24.815436]  kasan_report+0x23c/0x360
+> [   24.819226]  __asan_report_load8_noabort+0x14/0x20
+> [   24.824144]  __list_del_entry_valid+0x144/0x150
+> [   24.828791]  cma_cancel_operation+0x455/0xd60
+> [   24.833260]  ? finish_task_switch+0x182/0x7e0
+> [   24.837736]  ? find_held_lock+0x35/0x1d0
+> [   24.841773]  ? rdma_destroy_id+0xda0/0xda0
+> [   24.845991]  ? rdma_destroy_id+0xf4/0xda0
+> [   24.850123]  ? lock_downgrade+0x980/0x980
+> [   24.854249]  ? lock_release+0xa40/0xa40
+> [   24.858199]  ? do_raw_spin_trylock+0x190/0x190
+> [   24.862755]  ? _raw_spin_unlock_irqrestore+0x31/0xc0
+> [   24.867838]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   24.872860]  rdma_destroy_id+0xff/0xda0
+> [   24.876809]  ? lock_release+0xa40/0xa40
+> [   24.880771]  ? lock_downgrade+0x980/0x980
+> [   24.884893]  ? cma_release_dev+0x350/0x350
+> [   24.889105]  ? radix_tree_delete_item+0x146/0x280
+> [   24.893948]  ucma_close+0x100/0x2f0
+> [   24.897554]  ? ucma_free_ctx+0xd90/0xd90
+> [   24.901587]  __fput+0x327/0x7e0
+> [   24.904847]  ? fput+0x140/0x140
+> [   24.908108]  ? check_same_owner+0x320/0x320
+> [   24.912403]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   24.916886]  ____fput+0x15/0x20
+> [   24.920142]  task_work_run+0x199/0x270
+> [   24.924005]  ? task_work_cancel+0x210/0x210
+> [   24.928309]  ? _raw_spin_unlock+0x22/0x30
+> [   24.932439]  ? switch_task_namespaces+0x87/0xc0
+> [   24.937089]  do_exit+0x9bb/0x1ad0
+> [   24.940516]  ? find_held_lock+0x35/0x1d0
+> [   24.944555]  ? mm_update_next_owner+0x930/0x930
+> [   24.949208]  ? debug_check_no_locks_freed+0x3c0/0x3c0
+> [   24.954374]  ? lock_downgrade+0x980/0x980
+> [   24.958503]  ? __unqueue_futex+0x1c0/0x290
+> [   24.962715]  ? lock_release+0xa40/0xa40
+> [   24.966662]  ? fault_in_user_writeable+0x90/0x90
+> [   24.971392]  ? do_raw_spin_trylock+0x190/0x190
+> [   24.975952]  ? futex_wake+0x680/0x680
+> [   24.979734]  ? drop_futex_key_refs.isra.13+0x63/0xb0
+> [   24.984817]  ? futex_wait+0x6a9/0x9a0
+> [   24.988608]  ? trace_hardirqs_off+0x10/0x10
+> [   24.992920]  ? drop_futex_key_refs.isra.13+0x63/0xb0
+> [   24.997997]  ? futex_wake+0x2ca/0x680
+> [   25.001780]  ? memset+0x31/0x40
+> [   25.005049]  ? find_held_lock+0x35/0x1d0
+> [   25.009092]  ? get_signal+0x7a9/0x16d0
+> [   25.012961]  ? lock_downgrade+0x980/0x980
+> [   25.017091]  do_group_exit+0x149/0x400
+> [   25.020957]  ? do_raw_spin_trylock+0x190/0x190
+> [   25.025514]  ? SyS_exit+0x30/0x30
+> [   25.028945]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   25.033418]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   25.038419]  get_signal+0x73a/0x16d0
+> [   25.042118]  ? ptrace_notify+0x130/0x130
+> [   25.046152]  ? ucma_resolve_addr+0x330/0x330
+> [   25.050547]  ? kasan_check_write+0x14/0x20
+> [   25.054761]  ? ucma_write+0x11f/0x3d0
+> [   25.058534]  ? ucma_resolve_addr+0x330/0x330
+> [   25.062916]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   25.067388]  do_signal+0x90/0x1e90
+> [   25.070912]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   25.075384]  ? __vfs_write+0xf7/0x970
+> [   25.079167]  ? rcu_note_context_switch+0x710/0x710
+> [   25.084084]  ? setup_sigcontext+0x7d0/0x7d0
+> [   25.088385]  ? kernel_read+0x120/0x120
+> [   25.092254]  ? __might_sleep+0x95/0x190
+> [   25.096206]  ? _cond_resched+0x14/0x30
+> [   25.100074]  ? __inode_security_revalidate+0xd9/0x130
+> [   25.105238]  ? avc_policy_seqno+0x9/0x20
+> [   25.109312]  ? selinux_file_permission+0x82/0x460
+> [   25.114146]  ? exit_to_usermode_loop+0x8c/0x2f0
+> [   25.118795]  exit_to_usermode_loop+0x258/0x2f0
+> [   25.123354]  ? trace_event_raw_event_sys_exit+0x260/0x260
+> [   25.128867]  ? do_syscall_64+0xb7/0x940
+> [   25.132836]  do_syscall_64+0x6ec/0x940
+> [   25.136700]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   25.141172]  ? finish_task_switch+0x1c1/0x7e0
+> [   25.145643]  ? syscall_return_slowpath+0x550/0x550
+> [   25.150549]  ? syscall_return_slowpath+0x2ac/0x550
+> [   25.155454]  ? prepare_exit_to_usermode+0x350/0x350
+> [   25.160448]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [   25.165798]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [   25.170628]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   25.175792] RIP: 0033:0x446af9
+> [   25.178955] RSP: 002b:00007fc143953da8 EFLAGS: 00000246 ORIG_RAX: 0000=
+0000000000ca
+> [   25.186643] RAX: fffffffffffffe00 RBX: 00000000006e29fc RCX: 000000000=
+0446af9
+> [   25.193905] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000=
+06e29fc
+> [   25.201172] RBP: 00000000006e29f8 R08: 0000000000000000 R09: 000000000=
 0000000
-> [   32.026592] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000=
-0000000
-> [   32.033835] RBP: 0000000000000000 R08: 0000000000000000 R09: 000000000=
-0000000
-> [   32.041076] R10: 0000000000000000 R11: 0000000000000000 R12: 000000000=
-0000000
-> [   32.048319] R13: 0000000000000000 R14: 0000000000000000 R15: 000000000=
-0000000
-> [   32.055576]
-> [   32.057176] Allocated by task 4258:
-> [   32.060778]  save_stack+0x43/0xd0
-> [   32.064212]  kasan_kmalloc+0xad/0xe0
-> [   32.067898]  kmem_cache_alloc_trace+0x136/0x740
-> [   32.072537]  rdma_create_id+0xd0/0x630
-> [   32.076396]  ucma_create_id+0x31a/0x620
-> [   32.080343]  ucma_write+0x2d6/0x3d0
-> [   32.083945]  __vfs_write+0xef/0x970
-> [   32.087553]  vfs_write+0x189/0x510
-> [   32.091072]  SyS_write+0xef/0x220
-> [   32.094506]  do_fast_syscall_32+0x3ec/0xf9f
-> [   32.098801]  entry_SYSENTER_compat+0x70/0x7f
-> [   32.103176]
-> [   32.104773] Freed by task 4261:
-> [   32.108027]  save_stack+0x43/0xd0
-> [   32.111454]  __kasan_slab_free+0x11a/0x170
-> [   32.115656]  kasan_slab_free+0xe/0x10
-> [   32.119425]  kfree+0xd9/0x260
-> [   32.122503]  rdma_destroy_id+0x821/0xda0
-> [   32.126533]  ucma_close+0x100/0x2f0
-> [   32.130130]  __fput+0x327/0x7e0
-> [   32.133380]  ____fput+0x15/0x20
-> [   32.136635]  task_work_run+0x199/0x270
-> [   32.140493]  do_exit+0x9bb/0x1ad0
-> [   32.143926]  do_group_exit+0x149/0x400
-> [   32.147790]  get_signal+0x73a/0x16d0
-> [   32.151474]  do_signal+0x90/0x1e90
-> [   32.154985]  exit_to_usermode_loop+0x258/0x2f0
-> [   32.159537]  do_fast_syscall_32+0xbe6/0xf9f
-> [   32.163831]  entry_SYSENTER_compat+0x70/0x7f
-> [   32.168207]
-> [   32.169808] The buggy address belongs to the object at ffff8801cde96900
-> [   32.169808]  which belongs to the cache kmalloc-1024 of size 1024
-> [   32.182609] The buggy address is located 480 bytes inside of
-> [   32.182609]  1024-byte region [ffff8801cde96900, ffff8801cde96d00)
-> [   32.194542] The buggy address belongs to the page:
-> [   32.199446] page:ffffea000737a580 count:1 mapcount:0 mapping:ffff8801c=
-de96000 index:0x0 compound_mapcount: 0
-> [   32.209385] flags: 0x2fffc0000008100(slab|head)
-> [   32.214032] raw: 02fffc0000008100 ffff8801cde96000 0000000000000000 00=
+> [   25.208419] R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f6=
+16d6472
+> [   25.215662] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+0000005
+> [   25.222928]
+> [   25.224528] Allocated by task 4121:
+> [   25.228130]  save_stack+0x43/0xd0
+> [   25.231556]  kasan_kmalloc+0xad/0xe0
+> [   25.235243]  kmem_cache_alloc_trace+0x136/0x740
+> [   25.239884]  rdma_create_id+0xd0/0x630
+> [   25.243741]  ucma_create_id+0x31a/0x620
+> [   25.247688]  ucma_write+0x2d6/0x3d0
+> [   25.251295]  __vfs_write+0xef/0x970
+> [   25.254892]  vfs_write+0x189/0x510
+> [   25.258403]  SyS_write+0xef/0x220
+> [   25.261831]  do_syscall_64+0x281/0x940
+> [   25.265691]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   25.270850]
+> [   25.272452] Freed by task 4121:
+> [   25.275704]  save_stack+0x43/0xd0
+> [   25.279129]  __kasan_slab_free+0x11a/0x170
+> [   25.283334]  kasan_slab_free+0xe/0x10
+> [   25.287118]  kfree+0xd9/0x260
+> [   25.290202]  rdma_destroy_id+0x821/0xda0
+> [   25.294247]  ucma_close+0x100/0x2f0
+> [   25.297846]  __fput+0x327/0x7e0
+> [   25.301097]  ____fput+0x15/0x20
+> [   25.304349]  task_work_run+0x199/0x270
+> [   25.308209]  do_exit+0x9bb/0x1ad0
+> [   25.311644]  do_group_exit+0x149/0x400
+> [   25.315504]  get_signal+0x73a/0x16d0
+> [   25.319191]  do_signal+0x90/0x1e90
+> [   25.322712]  exit_to_usermode_loop+0x258/0x2f0
+> [   25.327271]  do_syscall_64+0x6ec/0x940
+> [   25.331131]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   25.336292]
+> [   25.337892] The buggy address belongs to the object at ffff8801d2435b00
+> [   25.337892]  which belongs to the cache kmalloc-1024 of size 1024
+> [   25.350699] The buggy address is located 480 bytes inside of
+> [   25.350699]  1024-byte region [ffff8801d2435b00, ffff8801d2435f00)
+> [   25.362640] The buggy address belongs to the page:
+> [   25.367547] page:ffffea0007490d00 count:1 mapcount:0 mapping:ffff8801d=
+2434000 index:0x0 compound_mapcount: 0
+> [   25.377492] flags: 0x2fffc0000008100(slab|head)
+> [   25.382137] raw: 02fffc0000008100 ffff8801d2434000 0000000000000000 00=
 00000100000007
-> [   32.221892] raw: ffffea0006a8e720 ffff8801dac01848 ffff8801dac00ac0 00=
+> [   25.390167] raw: ffffea000730eb20 ffff8801dac01848 ffff8801dac00ac0 00=
 00000000000000
-> [   32.229741] page dumped because: kasan: bad access detected
-> [   32.235419]
-> [   32.237020] Memory state around the buggy address:
-> [   32.241920]  ffff8801cde96980: fb fb fb fb fb fb fb fb fb fb fb fb fb =
+> [   25.398020] page dumped because: kasan: bad access detected
+> [   25.403706]
+> [   25.405307] Memory state around the buggy address:
+> [   25.410208]  ffff8801d2435b80: fb fb fb fb fb fb fb fb fb fb fb fb fb =
 fb fb fb
-> [   32.249247]  ffff8801cde96a00: fb fb fb fb fb fb fb fb fb fb fb fb fb =
+> [   25.417538]  ffff8801d2435c00: fb fb fb fb fb fb fb fb fb fb fb fb fb =
 fb fb fb
-> [   32.256682] >ffff8801cde96a80: fb fb fb fb fb fb fb fb fb fb fb fb fb =
+> [   25.424887] >ffff8801d2435c80: fb fb fb fb fb fb fb fb fb fb fb fb fb =
 fb fb fb
-> [   32.264023]                                                        ^
-> [   32.270485]  ffff8801cde96b00: fb fb fb fb fb fb fb fb fb fb fb fb fb =
+> [   25.432222]                                                        ^
+> [   25.438696]  ffff8801d2435d00: fb fb fb fb fb fb fb fb fb fb fb fb fb =
 fb fb fb
-> [   32.277815]  ffff8801cde96b80: fb fb fb fb fb fb fb fb fb fb fb fb fb =
+> [   25.446043]  ffff8801d2435d80: fb fb fb fb fb fb fb fb fb fb fb fb fb =
 fb fb fb
-> [   32.285144] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+> [   25.453376] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [   32.292473] Disabling lock debugging due to kernel taint
-> [   32.297982] Kernel panic - not syncing: panic_on_warn set ...
-> [   32.297982]
-> [   32.305338] CPU: 0 PID: 4261 Comm: syz-executor0 Tainted: G    B      =
-      4.16.0-rc4+ #258
-> [   32.313886] Hardware name: Google Google Compute Engine/Google Compute=
+> [   25.460707] Disabling lock debugging due to kernel taint
+> [   25.466184] Kernel panic - not syncing: panic_on_warn set ...
+> [   25.466184]
+> [   25.473540] CPU: 0 PID: 4121 Comm: syzkaller144721 Tainted: G    B    =
+        4.16.0-rc5+ #354
+> [   25.482281] Hardware name: Google Google Compute Engine/Google Compute=
  Engine, BIOS Google 01/01/2011
-> [   32.323219] Call Trace:
-> [   32.325781]  dump_stack+0x194/0x24d
-> [   32.329378]  ? arch_local_irq_restore+0x53/0x53
-> [   32.334019]  ? kasan_end_report+0x32/0x50
-> [   32.338143]  ? trace_hardirqs_on_thunk+0x1a/0x1c
-> [   32.342868]  ? vsnprintf+0x1ed/0x1900
-> [   32.346649]  ? __list_del_entry_valid+0x90/0x150
-> [   32.351375]  panic+0x1e4/0x41c
-> [   32.354535]  ? refcount_error_report+0x214/0x214
-> [   32.359260]  ? add_taint+0x1c/0x50
-> [   32.362769]  ? add_taint+0x1c/0x50
-> [   32.366278]  ? __list_del_entry_valid+0x144/0x150
-> [   32.371088]  kasan_end_report+0x50/0x50
-> [   32.375032]  kasan_report+0x149/0x360
-> [   32.378803]  __asan_report_load8_noabort+0x14/0x20
-> [   32.383699]  __list_del_entry_valid+0x144/0x150
-> [   32.388350]  cma_cancel_operation+0x455/0xd60
-> [   32.392815]  ? finish_task_switch+0x182/0x7e0
-> [   32.397283]  ? find_held_lock+0x35/0x1d0
-> [   32.401325]  ? rdma_destroy_id+0xda0/0xda0
-> [   32.405529]  ? rdma_destroy_id+0xf4/0xda0
-> [   32.409647]  ? lock_downgrade+0x980/0x980
-> [   32.413768]  ? lock_release+0xa40/0xa40
-> [   32.417713]  ? do_raw_spin_trylock+0x190/0x190
-> [   32.422274]  ? _raw_spin_unlock_irqrestore+0x31/0xc0
-> [   32.427346]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   32.432342]  rdma_destroy_id+0xff/0xda0
-> [   32.436286]  ? lock_release+0xa40/0xa40
-> [   32.440228]  ? lock_downgrade+0x980/0x980
-> [   32.444345]  ? cma_release_dev+0x350/0x350
-> [   32.448552]  ? radix_tree_delete_item+0x146/0x280
-> [   32.453374]  ucma_close+0x100/0x2f0
-> [   32.456971]  ? ucma_free_ctx+0xd90/0xd90
-> [   32.461004]  __fput+0x327/0x7e0
-> [   32.464261]  ? fput+0x140/0x140
-> [   32.467513]  ? check_same_owner+0x320/0x320
-> [   32.471803]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.476270]  ____fput+0x15/0x20
-> [   32.479520]  task_work_run+0x199/0x270
-> [   32.483386]  ? task_work_cancel+0x210/0x210
-> [   32.487678]  ? _raw_spin_unlock+0x22/0x30
-> [   32.491798]  ? switch_task_namespaces+0x87/0xc0
-> [   32.496447]  do_exit+0x9bb/0x1ad0
-> [   32.499872]  ? find_held_lock+0x35/0x1d0
-> [   32.503903]  ? mm_update_next_owner+0x930/0x930
-> [   32.508542]  ? debug_check_no_locks_freed+0x3c0/0x3c0
-> [   32.513700]  ? lock_downgrade+0x980/0x980
-> [   32.517820]  ? __unqueue_futex+0x1c0/0x290
-> [   32.522026]  ? lock_release+0xa40/0xa40
-> [   32.525971]  ? fault_in_user_writeable+0x90/0x90
-> [   32.530697]  ? do_raw_spin_trylock+0x190/0x190
-> [   32.535246]  ? futex_wake+0x680/0x680
-> [   32.539027]  ? drop_futex_key_refs.isra.13+0x63/0xb0
-> [   32.544097]  ? futex_wait+0x6a9/0x9a0
-> [   32.547874]  ? trace_hardirqs_off+0x10/0x10
-> [   32.552163]  ? drop_futex_key_refs.isra.13+0x63/0xb0
-> [   32.557234]  ? futex_wake+0x2ca/0x680
-> [   32.561006]  ? memset+0x31/0x40
-> [   32.564296]  ? find_held_lock+0x35/0x1d0
-> [   32.568339]  ? get_signal+0x7a9/0x16d0
-> [   32.572198]  ? lock_downgrade+0x980/0x980
-> [   32.576321]  do_group_exit+0x149/0x400
-> [   32.580182]  ? do_raw_spin_trylock+0x190/0x190
-> [   32.584732]  ? SyS_exit+0x30/0x30
-> [   32.588154]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.592621]  ? trace_hardirqs_on_caller+0x421/0x5c0
-> [   32.597610]  get_signal+0x73a/0x16d0
-> [   32.601299]  ? ptrace_notify+0x130/0x130
-> [   32.605332]  ? ucma_put_ctx+0x26/0x30
-> [   32.609105]  ? ucma_bind_ip+0x11a/0x190
-> [   32.613136]  ? ucma_bind+0x260/0x260
-> [   32.616820]  ? kasan_check_write+0x14/0x20
-> [   32.621029]  ? ucma_write+0x11f/0x3d0
-> [   32.624799]  ? ucma_bind+0x260/0x260
-> [   32.628485]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   32.632949]  do_signal+0x90/0x1e90
-> [   32.636459]  ? ucma_resolve_route+0x1a0/0x1a0
-> [   32.640924]  ? __vfs_write+0xf7/0x970
-> [   32.644693]  ? rcu_note_context_switch+0x710/0x710
-> [   32.649599]  ? setup_sigcontext+0x7d0/0x7d0
-> [   32.653893]  ? kernel_read+0x120/0x120
-> [   32.657752]  ? __might_sleep+0x95/0x190
-> [   32.661707]  ? _cond_resched+0x14/0x30
-> [   32.665565]  ? __inode_security_revalidate+0xd9/0x130
-> [   32.670727]  ? avc_policy_seqno+0x9/0x20
-> [   32.674759]  ? selinux_file_permission+0x82/0x460
-> [   32.679581]  ? exit_to_usermode_loop+0x8c/0x2f0
-> [   32.684221]  exit_to_usermode_loop+0x258/0x2f0
-> [   32.688774]  ? trace_event_raw_event_sys_exit+0x260/0x260
-> [   32.694279]  ? do_fast_syscall_32+0x156/0xf9f
-> [   32.698749]  do_fast_syscall_32+0xbe6/0xf9f
-> [   32.703041]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.707510]  ? do_int80_syscall_32+0x9c0/0x9c0
-> [   32.712061]  ? _raw_spin_unlock_irq+0x27/0x70
-> [   32.716528]  ? finish_task_switch+0x1c1/0x7e0
-> [   32.720995]  ? syscall_return_slowpath+0x2ac/0x550
-> [   32.725896]  ? prepare_exit_to_usermode+0x350/0x350
-> [   32.730884]  ? sysret32_from_system_call+0x5/0x3c
-> [   32.736182]  ? trace_hardirqs_off_thunk+0x1a/0x1c
-> [   32.740998]  entry_SYSENTER_compat+0x70/0x7f
-> [   32.745380] RIP: 0023:0xf7f93c99
-> [   32.748716] RSP: 002b:00000000f7f6e10c EFLAGS: 00000296 ORIG_RAX: 0000=
-0000000000f0
-> [   32.756393] RAX: fffffffffffffe00 RBX: 000000000813af98 RCX: 000000000=
+> [   25.491619] Call Trace:
+> [   25.494185]  dump_stack+0x194/0x24d
+> [   25.497788]  ? arch_local_irq_restore+0x53/0x53
+> [   25.502435]  ? kasan_end_report+0x32/0x50
+> [   25.507309]  ? trace_hardirqs_on_thunk+0x1a/0x1c
+> [   25.512044]  ? vsnprintf+0x1ed/0x1900
+> [   25.515818]  ? __list_del_entry_valid+0x120/0x150
+> [   25.520632]  panic+0x1e4/0x41c
+> [   25.523808]  ? refcount_error_report+0x214/0x214
+> [   25.528537]  ? add_taint+0x1c/0x50
+> [   25.532051]  ? add_taint+0x1c/0x50
+> [   25.535566]  ? __list_del_entry_valid+0x144/0x150
+> [   25.540469]  kasan_end_report+0x50/0x50
+> [   25.544415]  kasan_report+0x149/0x360
+> [   25.548189]  __asan_report_load8_noabort+0x14/0x20
+> [   25.553092]  __list_del_entry_valid+0x144/0x150
+> [   25.557732]  cma_cancel_operation+0x455/0xd60
+> [   25.562206]  ? finish_task_switch+0x182/0x7e0
+> [   25.566680]  ? find_held_lock+0x35/0x1d0
+> [   25.570718]  ? rdma_destroy_id+0xda0/0xda0
+> [   25.574929]  ? rdma_destroy_id+0xf4/0xda0
+> [   25.579059]  ? lock_downgrade+0x980/0x980
+> [   25.583190]  ? lock_release+0xa40/0xa40
+> [   25.587269]  ? do_raw_spin_trylock+0x190/0x190
+> [   25.591827]  ? _raw_spin_unlock_irqrestore+0x31/0xc0
+> [   25.596906]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   25.601897]  rdma_destroy_id+0xff/0xda0
+> [   25.605846]  ? lock_release+0xa40/0xa40
+> [   25.609826]  ? lock_downgrade+0x980/0x980
+> [   25.613967]  ? cma_release_dev+0x350/0x350
+> [   25.618194]  ? radix_tree_delete_item+0x146/0x280
+> [   25.623038]  ucma_close+0x100/0x2f0
+> [   25.626646]  ? ucma_free_ctx+0xd90/0xd90
+> [   25.630691]  __fput+0x327/0x7e0
+> [   25.633948]  ? fput+0x140/0x140
+> [   25.637202]  ? check_same_owner+0x320/0x320
+> [   25.641498]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   25.645972]  ____fput+0x15/0x20
+> [   25.649226]  task_work_run+0x199/0x270
+> [   25.653088]  ? task_work_cancel+0x210/0x210
+> [   25.657381]  ? _raw_spin_unlock+0x22/0x30
+> [   25.661502]  ? switch_task_namespaces+0x87/0xc0
+> [   25.666146]  do_exit+0x9bb/0x1ad0
+> [   25.669574]  ? find_held_lock+0x35/0x1d0
+> [   25.673607]  ? mm_update_next_owner+0x930/0x930
+> [   25.678251]  ? debug_check_no_locks_freed+0x3c0/0x3c0
+> [   25.683413]  ? lock_downgrade+0x980/0x980
+> [   25.687534]  ? __unqueue_futex+0x1c0/0x290
+> [   25.691746]  ? lock_release+0xa40/0xa40
+> [   25.695692]  ? fault_in_user_writeable+0x90/0x90
+> [   25.700428]  ? do_raw_spin_trylock+0x190/0x190
+> [   25.704984]  ? futex_wake+0x680/0x680
+> [   25.708766]  ? drop_futex_key_refs.isra.13+0x63/0xb0
+> [   25.713853]  ? futex_wait+0x6a9/0x9a0
+> [   25.717638]  ? trace_hardirqs_off+0x10/0x10
+> [   25.721934]  ? drop_futex_key_refs.isra.13+0x63/0xb0
+> [   25.727015]  ? futex_wake+0x2ca/0x680
+> [   25.730800]  ? memset+0x31/0x40
+> [   25.734056]  ? find_held_lock+0x35/0x1d0
+> [   25.738098]  ? get_signal+0x7a9/0x16d0
+> [   25.741960]  ? lock_downgrade+0x980/0x980
+> [   25.746085]  do_group_exit+0x149/0x400
+> [   25.749947]  ? do_raw_spin_trylock+0x190/0x190
+> [   25.754501]  ? SyS_exit+0x30/0x30
+> [   25.757934]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   25.762405]  ? trace_hardirqs_on_caller+0x421/0x5c0
+> [   25.767397]  get_signal+0x73a/0x16d0
+> [   25.771088]  ? ptrace_notify+0x130/0x130
+> [   25.775125]  ? ucma_resolve_addr+0x330/0x330
+> [   25.779512]  ? kasan_check_write+0x14/0x20
+> [   25.783720]  ? ucma_write+0x11f/0x3d0
+> [   25.787492]  ? ucma_resolve_addr+0x330/0x330
+> [   25.791869]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   25.796340]  do_signal+0x90/0x1e90
+> [   25.799867]  ? ucma_resolve_route+0x1a0/0x1a0
+> [   25.804336]  ? __vfs_write+0xf7/0x970
+> [   25.808112]  ? rcu_note_context_switch+0x710/0x710
+> [   25.813016]  ? setup_sigcontext+0x7d0/0x7d0
+> [   25.817316]  ? kernel_read+0x120/0x120
+> [   25.821175]  ? __might_sleep+0x95/0x190
+> [   25.825125]  ? _cond_resched+0x14/0x30
+> [   25.828987]  ? __inode_security_revalidate+0xd9/0x130
+> [   25.834155]  ? avc_policy_seqno+0x9/0x20
+> [   25.838198]  ? selinux_file_permission+0x82/0x460
+> [   25.843029]  ? exit_to_usermode_loop+0x8c/0x2f0
+> [   25.847679]  exit_to_usermode_loop+0x258/0x2f0
+> [   25.852233]  ? trace_event_raw_event_sys_exit+0x260/0x260
+> [   25.857741]  ? do_syscall_64+0xb7/0x940
+> [   25.861687]  do_syscall_64+0x6ec/0x940
+> [   25.865554]  ? _raw_spin_unlock_irq+0x27/0x70
+> [   25.870032]  ? finish_task_switch+0x1c1/0x7e0
+> [   25.874500]  ? syscall_return_slowpath+0x550/0x550
+> [   25.879402]  ? syscall_return_slowpath+0x2ac/0x550
+> [   25.884304]  ? prepare_exit_to_usermode+0x350/0x350
+> [   25.889291]  ? entry_SYSCALL_64_after_hwframe+0x52/0xb7
+> [   25.894627]  ? trace_hardirqs_off_thunk+0x1a/0x1c
+> [   25.899444]  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> [   25.904605] RIP: 0033:0x446af9
+> [   25.907776] RSP: 002b:00007fc143953da8 EFLAGS: 00000246 ORIG_RAX: 0000=
+0000000000ca
+> [   25.915461] RAX: fffffffffffffe00 RBX: 00000000006e29fc RCX: 000000000=
+0446af9
+> [   25.922710] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000=
+06e29fc
+> [   25.929952] RBP: 00000000006e29f8 R08: 0000000000000000 R09: 000000000=
 0000000
-> [   32.763632] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000=
-0000000
-> [   32.770871] RBP: 0000000000000000 R08: 0000000000000000 R09: 000000000=
-0000000
-> [   32.778108] R10: 0000000000000000 R11: 0000000000000000 R12: 000000000=
-0000000
-> [   32.785346] R13: 0000000000000000 R14: 0000000000000000 R15: 000000000=
-0000000
-> [   32.793032] Dumping ftrace buffer:
-> [   32.796543]    (ftrace buffer empty)
-> [   32.800225] Kernel Offset: disabled
-> [   32.803820] Rebooting in 86400 seconds..
+> [   25.937193] R10: 0000000000000000 R11: 0000000000000246 R12: 006d635f6=
+16d6472
+> [   25.944433] R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 000000000=
+0000005
+> [   25.952322] Dumping ftrace buffer:
+> [   25.955836]    (ftrace buffer empty)
+> [   25.959517] Kernel Offset: disabled
+> [   25.963115] Rebooting in 86400 seconds..
 
 > # See https://goo.gl/kgGztJ for information about syzkaller reproducers.
-> #{Threaded:true Collide:true Repeat:true Procs:1 Sandbox:none Fault:false=
- FaultCall:-1 FaultNth:0 EnableTun:true UseTmpDir:true HandleSegv:true Wait=
-Repeat:true Debug:false Repro:false}
-> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f00000001c0)=3D'/dev/infin=
+> #{Threaded:true Collide:true Repeat:true Procs:1 Sandbox: Fault:false Fau=
+ltCall:-1 FaultNth:0 EnableTun:false UseTmpDir:false HandleSegv:false WaitR=
+epeat:true Debug:false Repro:false}
+> r0 =3D openat$rdma_cm(0xffffffffffffff9c, &(0x7f0000000200)=3D'/dev/infin=
 iband/rdma_cm\x00', 0x2, 0x0)
-> write$rdma_cm(r0, &(0x7f0000003480)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
-x0, &(0x7f0000003440)=3D{<r1=3D>0xffffffff}, 0x2}}, 0x20)
-> write$rdma_cm(r0, &(0x7f0000000000)=3D@set_option=3D{0xe, 0x18, 0xfa00, @=
-id_resuseaddr=3D{&(0x7f0000000140)=3D0x1, r1, 0x0, 0x1, 0x4}}, 0x20)
-> write$rdma_cm(r0, &(0x7f0000000040)=3D@listen=3D{0x7, 0x8, 0xfa00, {r1}},=
- 0x10)
-> write$rdma_cm(r0, &(0x7f0000000080)=3D@bind_ip=3D{0x2, 0x28, 0xfa00, {0x0=
-, {0xa, 0x4e20, 0x4, @mcast1=3D{0xff, 0x1, [], 0x1}, 0x100}, r1}}, 0x30)
+> socketpair$inet_sctp(0x2, 0x5, 0x84, &(0x7f0000000040))
+> write$rdma_cm(r0, &(0x7f00000004c0)=3D@create_id=3D{0x0, 0x18, 0xfa00, {0=
+x0, &(0x7f0000000480)=3D{<r1=3D>0xffffffff}, 0x106}}, 0x20)
+> write$rdma_cm(r0, &(0x7f0000000000)=3D@listen=3D{0x7, 0x0, 0xfa00, {r1}},=
+ 0x3f)
+> write$rdma_cm(r0, &(0x7f0000000180)=3D@resolve_ip=3D{0x3, 0x40, 0xfa00, {=
+{0xa, 0x0, 0x0, @mcast1=3D{0xff, 0x1, [], 0x1}}, {0xa, 0x0, 0x0, @mcast1=3D=
+{0xff, 0x1, [], 0x1}}, r1}}, 0x48)
+
+> // autogenerated by syzkaller (http://github.com/google/syzkaller)
+>
+> #define _GNU_SOURCE
+> #include <endian.h>
+> #include <errno.h>
+> #include <linux/futex.h>
+> #include <linux/net.h>
+> #include <netinet/in.h>
+> #include <pthread.h>
+> #include <signal.h>
+> #include <stdarg.h>
+> #include <stdio.h>
+> #include <stdlib.h>
+> #include <sys/prctl.h>
+> #include <sys/socket.h>
+> #include <sys/syscall.h>
+> #include <sys/time.h>
+> #include <sys/wait.h>
+> #include <time.h>
+> #include <unistd.h>
+>
+> __attribute__((noreturn)) static void doexit(int status)
+> {
+>   volatile unsigned i;
+>   syscall(__NR_exit_group, status);
+>   for (i =3D 0;; i++) {
+>   }
+> }
+> #include <errno.h>
+> #include <stdarg.h>
+> #include <stdint.h>
+> #include <stdio.h>
+> #include <string.h>
+>
+> const int kFailStatus =3D 67;
+> const int kRetryStatus =3D 69;
+>
+> static void fail(const char* msg, ...)
+> {
+>   int e =3D errno;
+>   va_list args;
+>   va_start(args, msg);
+>   vfprintf(stderr, msg, args);
+>   va_end(args);
+>   fprintf(stderr, " (errno %d)\n", e);
+>   doexit((e =3D=3D ENOMEM || e =3D=3D EAGAIN) ? kRetryStatus : kFailStatu=
+s);
+> }
+>
+> static uint64_t current_time_ms()
+> {
+>   struct timespec ts;
+>
+>   if (clock_gettime(CLOCK_MONOTONIC, &ts))
+>     fail("clock_gettime failed");
+>   return (uint64_t)ts.tv_sec * 1000 + (uint64_t)ts.tv_nsec / 1000000;
+> }
+>
+> #define XT_TABLE_SIZE 1536
+> #define XT_MAX_ENTRIES 10
+>
+> struct xt_counters {
+>   uint64_t pcnt, bcnt;
+> };
+>
+> struct ipt_getinfo {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int hook_entry[5];
+>   unsigned int underflow[5];
+>   unsigned int num_entries;
+>   unsigned int size;
+> };
+>
+> struct ipt_get_entries {
+>   char name[32];
+>   unsigned int size;
+>   void* entrytable[XT_TABLE_SIZE / sizeof(void*)];
+> };
+>
+> struct ipt_replace {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int num_entries;
+>   unsigned int size;
+>   unsigned int hook_entry[5];
+>   unsigned int underflow[5];
+>   unsigned int num_counters;
+>   struct xt_counters* counters;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> struct ipt_table_desc {
+>   const char* name;
+>   struct ipt_getinfo info;
+>   struct ipt_replace replace;
+> };
+>
+> static struct ipt_table_desc ipv4_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"},      {.name =3D "mangle"},
+>     {.name =3D "raw"},    {.name =3D "security"},
+> };
+>
+> static struct ipt_table_desc ipv6_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"},      {.name =3D "mangle"},
+>     {.name =3D "raw"},    {.name =3D "security"},
+> };
+>
+> #define IPT_BASE_CTL 64
+> #define IPT_SO_SET_REPLACE (IPT_BASE_CTL)
+> #define IPT_SO_GET_INFO (IPT_BASE_CTL)
+> #define IPT_SO_GET_ENTRIES (IPT_BASE_CTL + 1)
+>
+> struct arpt_getinfo {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int hook_entry[3];
+>   unsigned int underflow[3];
+>   unsigned int num_entries;
+>   unsigned int size;
+> };
+>
+> struct arpt_get_entries {
+>   char name[32];
+>   unsigned int size;
+>   void* entrytable[XT_TABLE_SIZE / sizeof(void*)];
+> };
+>
+> struct arpt_replace {
+>   char name[32];
+>   unsigned int valid_hooks;
+>   unsigned int num_entries;
+>   unsigned int size;
+>   unsigned int hook_entry[3];
+>   unsigned int underflow[3];
+>   unsigned int num_counters;
+>   struct xt_counters* counters;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> struct arpt_table_desc {
+>   const char* name;
+>   struct arpt_getinfo info;
+>   struct arpt_replace replace;
+> };
+>
+> static struct arpt_table_desc arpt_tables[] =3D {
+>     {.name =3D "filter"},
+> };
+>
+> #define ARPT_BASE_CTL 96
+> #define ARPT_SO_SET_REPLACE (ARPT_BASE_CTL)
+> #define ARPT_SO_GET_INFO (ARPT_BASE_CTL)
+> #define ARPT_SO_GET_ENTRIES (ARPT_BASE_CTL + 1)
+>
+> static void checkpoint_iptables(struct ipt_table_desc* tables, int num_ta=
+bles,
+>                                 int family, int level)
+> {
+>   struct ipt_get_entries entries;
+>   socklen_t optlen;
+>   int fd, i;
+>
+>   fd =3D socket(family, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(%d, SOCK_STREAM, IPPROTO_TCP)", family);
+>   for (i =3D 0; i < num_tables; i++) {
+>     struct ipt_table_desc* table =3D &tables[i];
+>     strcpy(table->info.name, table->name);
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->info);
+>     if (getsockopt(fd, level, IPT_SO_GET_INFO, &table->info, &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(IPT_SO_GET_INFO)");
+>     }
+>     if (table->info.size > sizeof(table->replace.entrytable))
+>       fail("table size is too large: %u", table->info.size);
+>     if (table->info.num_entries > XT_MAX_ENTRIES)
+>       fail("too many counters: %u", table->info.num_entries);
+>     memset(&entries, 0, sizeof(entries));
+>     strcpy(entries.name, table->name);
+>     entries.size =3D table->info.size;
+>     optlen =3D sizeof(entries) - sizeof(entries.entrytable) + table->info=
+=2Esize;
+>     if (getsockopt(fd, level, IPT_SO_GET_ENTRIES, &entries, &optlen))
+>       fail("getsockopt(IPT_SO_GET_ENTRIES)");
+>     table->replace.valid_hooks =3D table->info.valid_hooks;
+>     table->replace.num_entries =3D table->info.num_entries;
+>     table->replace.size =3D table->info.size;
+>     memcpy(table->replace.hook_entry, table->info.hook_entry,
+>            sizeof(table->replace.hook_entry));
+>     memcpy(table->replace.underflow, table->info.underflow,
+>            sizeof(table->replace.underflow));
+>     memcpy(table->replace.entrytable, entries.entrytable, table->info.siz=
+e);
+>   }
+>   close(fd);
+> }
+>
+> static void reset_iptables(struct ipt_table_desc* tables, int num_tables,
+>                            int family, int level)
+> {
+>   struct xt_counters counters[XT_MAX_ENTRIES];
+>   struct ipt_get_entries entries;
+>   struct ipt_getinfo info;
+>   socklen_t optlen;
+>   int fd, i;
+>
+>   fd =3D socket(family, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(%d, SOCK_STREAM, IPPROTO_TCP)", family);
+>   for (i =3D 0; i < num_tables; i++) {
+>     struct ipt_table_desc* table =3D &tables[i];
+>     if (table->info.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&info, 0, sizeof(info));
+>     strcpy(info.name, table->name);
+>     optlen =3D sizeof(info);
+>     if (getsockopt(fd, level, IPT_SO_GET_INFO, &info, &optlen))
+>       fail("getsockopt(IPT_SO_GET_INFO)");
+>     if (memcmp(&table->info, &info, sizeof(table->info)) =3D=3D 0) {
+>       memset(&entries, 0, sizeof(entries));
+>       strcpy(entries.name, table->name);
+>       entries.size =3D table->info.size;
+>       optlen =3D sizeof(entries) - sizeof(entries.entrytable) + entries.s=
+ize;
+>       if (getsockopt(fd, level, IPT_SO_GET_ENTRIES, &entries, &optlen))
+>         fail("getsockopt(IPT_SO_GET_ENTRIES)");
+>       if (memcmp(table->replace.entrytable, entries.entrytable,
+>                  table->info.size) =3D=3D 0)
+>         continue;
+>     }
+>     table->replace.num_counters =3D info.num_entries;
+>     table->replace.counters =3D counters;
+>     optlen =3D sizeof(table->replace) - sizeof(table->replace.entrytable)=
+ +
+>              table->replace.size;
+>     if (setsockopt(fd, level, IPT_SO_SET_REPLACE, &table->replace, optlen=
+))
+>       fail("setsockopt(IPT_SO_SET_REPLACE)");
+>   }
+>   close(fd);
+> }
+>
+> static void checkpoint_arptables(void)
+> {
+>   struct arpt_get_entries entries;
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(arpt_tables) / sizeof(arpt_tables[0]); i++) {
+>     struct arpt_table_desc* table =3D &arpt_tables[i];
+>     strcpy(table->info.name, table->name);
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->info);
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_INFO, &table->info, &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(ARPT_SO_GET_INFO)");
+>     }
+>     if (table->info.size > sizeof(table->replace.entrytable))
+>       fail("table size is too large: %u", table->info.size);
+>     if (table->info.num_entries > XT_MAX_ENTRIES)
+>       fail("too many counters: %u", table->info.num_entries);
+>     memset(&entries, 0, sizeof(entries));
+>     strcpy(entries.name, table->name);
+>     entries.size =3D table->info.size;
+>     optlen =3D sizeof(entries) - sizeof(entries.entrytable) + table->info=
+=2Esize;
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_ENTRIES, &entries, &optlen))
+>       fail("getsockopt(ARPT_SO_GET_ENTRIES)");
+>     table->replace.valid_hooks =3D table->info.valid_hooks;
+>     table->replace.num_entries =3D table->info.num_entries;
+>     table->replace.size =3D table->info.size;
+>     memcpy(table->replace.hook_entry, table->info.hook_entry,
+>            sizeof(table->replace.hook_entry));
+>     memcpy(table->replace.underflow, table->info.underflow,
+>            sizeof(table->replace.underflow));
+>     memcpy(table->replace.entrytable, entries.entrytable, table->info.siz=
+e);
+>   }
+>   close(fd);
+> }
+>
+> static void reset_arptables()
+> {
+>   struct xt_counters counters[XT_MAX_ENTRIES];
+>   struct arpt_get_entries entries;
+>   struct arpt_getinfo info;
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(arpt_tables) / sizeof(arpt_tables[0]); i++) {
+>     struct arpt_table_desc* table =3D &arpt_tables[i];
+>     if (table->info.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&info, 0, sizeof(info));
+>     strcpy(info.name, table->name);
+>     optlen =3D sizeof(info);
+>     if (getsockopt(fd, SOL_IP, ARPT_SO_GET_INFO, &info, &optlen))
+>       fail("getsockopt(ARPT_SO_GET_INFO)");
+>     if (memcmp(&table->info, &info, sizeof(table->info)) =3D=3D 0) {
+>       memset(&entries, 0, sizeof(entries));
+>       strcpy(entries.name, table->name);
+>       entries.size =3D table->info.size;
+>       optlen =3D sizeof(entries) - sizeof(entries.entrytable) + entries.s=
+ize;
+>       if (getsockopt(fd, SOL_IP, ARPT_SO_GET_ENTRIES, &entries, &optlen))
+>         fail("getsockopt(ARPT_SO_GET_ENTRIES)");
+>       if (memcmp(table->replace.entrytable, entries.entrytable,
+>                  table->info.size) =3D=3D 0)
+>         continue;
+>     }
+>     table->replace.num_counters =3D info.num_entries;
+>     table->replace.counters =3D counters;
+>     optlen =3D sizeof(table->replace) - sizeof(table->replace.entrytable)=
+ +
+>              table->replace.size;
+>     if (setsockopt(fd, SOL_IP, ARPT_SO_SET_REPLACE, &table->replace, optl=
+en))
+>       fail("setsockopt(ARPT_SO_SET_REPLACE)");
+>   }
+>   close(fd);
+> }
+> #include <linux/if.h>
+> #include <linux/netfilter_bridge/ebtables.h>
+>
+> struct ebt_table_desc {
+>   const char* name;
+>   struct ebt_replace replace;
+>   char entrytable[XT_TABLE_SIZE];
+> };
+>
+> static struct ebt_table_desc ebt_tables[] =3D {
+>     {.name =3D "filter"}, {.name =3D "nat"}, {.name =3D "broute"},
+> };
+>
+> static void checkpoint_ebtables(void)
+> {
+>   socklen_t optlen;
+>   unsigned i;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(ebt_tables) / sizeof(ebt_tables[0]); i++) {
+>     struct ebt_table_desc* table =3D &ebt_tables[i];
+>     strcpy(table->replace.name, table->name);
+>     optlen =3D sizeof(table->replace);
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INIT_INFO, &table->replace,
+>                    &optlen)) {
+>       switch (errno) {
+>       case EPERM:
+>       case ENOENT:
+>       case ENOPROTOOPT:
+>         continue;
+>       }
+>       fail("getsockopt(EBT_SO_GET_INIT_INFO)");
+>     }
+>     if (table->replace.entries_size > sizeof(table->entrytable))
+>       fail("table size is too large: %u", table->replace.entries_size);
+>     table->replace.num_counters =3D 0;
+>     table->replace.entries =3D table->entrytable;
+>     optlen =3D sizeof(table->replace) + table->replace.entries_size;
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INIT_ENTRIES, &table->replace,
+>                    &optlen))
+>       fail("getsockopt(EBT_SO_GET_INIT_ENTRIES)");
+>   }
+>   close(fd);
+> }
+>
+> static void reset_ebtables()
+> {
+>   struct ebt_replace replace;
+>   char entrytable[XT_TABLE_SIZE];
+>   socklen_t optlen;
+>   unsigned i, j, h;
+>   int fd;
+>
+>   fd =3D socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+>   if (fd =3D=3D -1)
+>     fail("socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)");
+>   for (i =3D 0; i < sizeof(ebt_tables) / sizeof(ebt_tables[0]); i++) {
+>     struct ebt_table_desc* table =3D &ebt_tables[i];
+>     if (table->replace.valid_hooks =3D=3D 0)
+>       continue;
+>     memset(&replace, 0, sizeof(replace));
+>     strcpy(replace.name, table->name);
+>     optlen =3D sizeof(replace);
+>     if (getsockopt(fd, SOL_IP, EBT_SO_GET_INFO, &replace, &optlen))
+>       fail("getsockopt(EBT_SO_GET_INFO)");
+>     replace.num_counters =3D 0;
+>     for (h =3D 0; h < NF_BR_NUMHOOKS; h++)
+>       table->replace.hook_entry[h] =3D 0;
+>     if (memcmp(&table->replace, &replace, sizeof(table->replace)) =3D=3D =
+0) {
+>       memset(&entrytable, 0, sizeof(entrytable));
+>       replace.entries =3D entrytable;
+>       optlen =3D sizeof(replace) + replace.entries_size;
+>       if (getsockopt(fd, SOL_IP, EBT_SO_GET_ENTRIES, &replace, &optlen))
+>         fail("getsockopt(EBT_SO_GET_ENTRIES)");
+>       if (memcmp(table->entrytable, entrytable, replace.entries_size) =3D=
+=3D 0)
+>         continue;
+>     }
+>     for (j =3D 0, h =3D 0; h < NF_BR_NUMHOOKS; h++) {
+>       if (table->replace.valid_hooks & (1 << h)) {
+>         table->replace.hook_entry[h] =3D
+>             (struct ebt_entries*)table->entrytable + j;
+>         j++;
+>       }
+>     }
+>     optlen =3D sizeof(table->replace) + table->replace.entries_size;
+>     if (setsockopt(fd, SOL_IP, EBT_SO_SET_ENTRIES, &table->replace, optle=
+n))
+>       fail("setsockopt(EBT_SO_SET_ENTRIES)");
+>   }
+>   close(fd);
+> }
+>
+> static void checkpoint_net_namespace(void)
+> {
+>   checkpoint_ebtables();
+>   checkpoint_arptables();
+>   checkpoint_iptables(ipv4_tables, sizeof(ipv4_tables) / sizeof(ipv4_tabl=
+es[0]),
+>                       AF_INET, SOL_IP);
+>   checkpoint_iptables(ipv6_tables, sizeof(ipv6_tables) / sizeof(ipv6_tabl=
+es[0]),
+>                       AF_INET6, SOL_IPV6);
+> }
+>
+> static void reset_net_namespace(void)
+> {
+>   reset_ebtables();
+>   reset_arptables();
+>   reset_iptables(ipv4_tables, sizeof(ipv4_tables) / sizeof(ipv4_tables[0]=
+),
+>                  AF_INET, SOL_IP);
+>   reset_iptables(ipv6_tables, sizeof(ipv6_tables) / sizeof(ipv6_tables[0]=
+),
+>                  AF_INET6, SOL_IPV6);
+> }
+>
+> static void test();
+>
+> void loop()
+> {
+>   int iter;
+>   checkpoint_net_namespace();
+>   for (iter =3D 0;; iter++) {
+>     int pid =3D fork();
+>     if (pid < 0)
+>       fail("loop fork failed");
+>     if (pid =3D=3D 0) {
+>       prctl(PR_SET_PDEATHSIG, SIGKILL, 0, 0, 0);
+>       setpgrp();
+>       test();
+>       doexit(0);
+>     }
+>     int status =3D 0;
+>     uint64_t start =3D current_time_ms();
+>     for (;;) {
+>       int res =3D waitpid(-1, &status, __WALL | WNOHANG);
+>       if (res =3D=3D pid)
+>         break;
+>       usleep(1000);
+>       if (current_time_ms() - start > 5 * 1000) {
+>         kill(-pid, SIGKILL);
+>         kill(pid, SIGKILL);
+>         while (waitpid(-1, &status, __WALL) !=3D pid) {
+>         }
+>         break;
+>       }
+>     }
+>     reset_net_namespace();
+>   }
+> }
+>
+> struct thread_t {
+>   int created, running, call;
+>   pthread_t th;
+> };
+>
+> static struct thread_t threads[16];
+> static void execute_call(int call);
+> static int running;
+> static int collide;
+>
+> static void* thr(void* arg)
+> {
+>   struct thread_t* th =3D (struct thread_t*)arg;
+>   for (;;) {
+>     while (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE))
+>       syscall(SYS_futex, &th->running, FUTEX_WAIT, 0, 0);
+>     execute_call(th->call);
+>     __atomic_fetch_sub(&running, 1, __ATOMIC_RELAXED);
+>     __atomic_store_n(&th->running, 0, __ATOMIC_RELEASE);
+>     syscall(SYS_futex, &th->running, FUTEX_WAKE);
+>   }
+>   return 0;
+> }
+>
+> static void execute(int num_calls)
+> {
+>   int call, thread;
+>   running =3D 0;
+>   for (call =3D 0; call < num_calls; call++) {
+>     for (thread =3D 0; thread < sizeof(threads) / sizeof(threads[0]); thr=
+ead++) {
+>       struct thread_t* th =3D &threads[thread];
+>       if (!th->created) {
+>         th->created =3D 1;
+>         pthread_attr_t attr;
+>         pthread_attr_init(&attr);
+>         pthread_attr_setstacksize(&attr, 128 << 10);
+>         pthread_create(&th->th, &attr, thr, th);
+>       }
+>       if (!__atomic_load_n(&th->running, __ATOMIC_ACQUIRE)) {
+>         th->call =3D call;
+>         __atomic_fetch_add(&running, 1, __ATOMIC_RELAXED);
+>         __atomic_store_n(&th->running, 1, __ATOMIC_RELEASE);
+>         syscall(SYS_futex, &th->running, FUTEX_WAKE);
+>         if (collide && call % 2)
+>           break;
+>         struct timespec ts;
+>         ts.tv_sec =3D 0;
+>         ts.tv_nsec =3D 20 * 1000 * 1000;
+>         syscall(SYS_futex, &th->running, FUTEX_WAIT, 1, &ts);
+>         if (running)
+>           usleep((call =3D=3D num_calls - 1) ? 10000 : 1000);
+>         break;
+>       }
+>     }
+>   }
+> }
+>
+> uint64_t r[2] =3D {0xffffffffffffffff, 0xffffffff};
+> void execute_call(int call)
+> {
+>   long res;
+>   switch (call) {
+>   case 0:
+>     memcpy((void*)0x20000200, "/dev/infiniband/rdma_cm", 24);
+>     res =3D syscall(__NR_openat, 0xffffffffffffff9c, 0x20000200, 2, 0);
+>     if (res !=3D -1)
+>       r[0] =3D res;
+>     break;
+>   case 1:
+>     syscall(__NR_socketpair, 2, 5, 0x84, 0x20000040);
+>     break;
+>   case 2:
+>     *(uint32_t*)0x200004c0 =3D 0;
+>     *(uint16_t*)0x200004c4 =3D 0x18;
+>     *(uint16_t*)0x200004c6 =3D 0xfa00;
+>     *(uint64_t*)0x200004c8 =3D 0;
+>     *(uint64_t*)0x200004d0 =3D 0x20000480;
+>     *(uint16_t*)0x200004d8 =3D 0x106;
+>     *(uint8_t*)0x200004da =3D 0;
+>     *(uint8_t*)0x200004db =3D 0;
+>     *(uint8_t*)0x200004dc =3D 0;
+>     *(uint8_t*)0x200004dd =3D 0;
+>     *(uint8_t*)0x200004de =3D 0;
+>     *(uint8_t*)0x200004df =3D 0;
+>     res =3D syscall(__NR_write, r[0], 0x200004c0, 0x20);
+>     if (res !=3D -1)
+>       r[1] =3D *(uint32_t*)0x20000480;
+>     break;
+>   case 3:
+>     *(uint32_t*)0x20000000 =3D 7;
+>     *(uint16_t*)0x20000004 =3D 0;
+>     *(uint16_t*)0x20000006 =3D 0xfa00;
+>     *(uint32_t*)0x20000008 =3D r[1];
+>     *(uint32_t*)0x2000000c =3D 0;
+>     syscall(__NR_write, r[0], 0x20000000, 0x3f);
+>     break;
+>   case 4:
+>     *(uint32_t*)0x20000180 =3D 3;
+>     *(uint16_t*)0x20000184 =3D 0x40;
+>     *(uint16_t*)0x20000186 =3D 0xfa00;
+>     *(uint16_t*)0x20000188 =3D 0xa;
+>     *(uint16_t*)0x2000018a =3D htobe16(0);
+>     *(uint32_t*)0x2000018c =3D 0;
+>     *(uint8_t*)0x20000190 =3D -1;
+>     *(uint8_t*)0x20000191 =3D 1;
+>     *(uint8_t*)0x20000192 =3D 0;
+>     *(uint8_t*)0x20000193 =3D 0;
+>     *(uint8_t*)0x20000194 =3D 0;
+>     *(uint8_t*)0x20000195 =3D 0;
+>     *(uint8_t*)0x20000196 =3D 0;
+>     *(uint8_t*)0x20000197 =3D 0;
+>     *(uint8_t*)0x20000198 =3D 0;
+>     *(uint8_t*)0x20000199 =3D 0;
+>     *(uint8_t*)0x2000019a =3D 0;
+>     *(uint8_t*)0x2000019b =3D 0;
+>     *(uint8_t*)0x2000019c =3D 0;
+>     *(uint8_t*)0x2000019d =3D 0;
+>     *(uint8_t*)0x2000019e =3D 0;
+>     *(uint8_t*)0x2000019f =3D 1;
+>     *(uint32_t*)0x200001a0 =3D 0;
+>     *(uint16_t*)0x200001a4 =3D 0xa;
+>     *(uint16_t*)0x200001a6 =3D htobe16(0);
+>     *(uint32_t*)0x200001a8 =3D 0;
+>     *(uint8_t*)0x200001ac =3D -1;
+>     *(uint8_t*)0x200001ad =3D 1;
+>     *(uint8_t*)0x200001ae =3D 0;
+>     *(uint8_t*)0x200001af =3D 0;
+>     *(uint8_t*)0x200001b0 =3D 0;
+>     *(uint8_t*)0x200001b1 =3D 0;
+>     *(uint8_t*)0x200001b2 =3D 0;
+>     *(uint8_t*)0x200001b3 =3D 0;
+>     *(uint8_t*)0x200001b4 =3D 0;
+>     *(uint8_t*)0x200001b5 =3D 0;
+>     *(uint8_t*)0x200001b6 =3D 0;
+>     *(uint8_t*)0x200001b7 =3D 0;
+>     *(uint8_t*)0x200001b8 =3D 0;
+>     *(uint8_t*)0x200001b9 =3D 0;
+>     *(uint8_t*)0x200001ba =3D 0;
+>     *(uint8_t*)0x200001bb =3D 1;
+>     *(uint32_t*)0x200001bc =3D 0;
+>     *(uint32_t*)0x200001c0 =3D r[1];
+>     *(uint32_t*)0x200001c4 =3D 0;
+>     syscall(__NR_write, r[0], 0x20000180, 0x48);
+>     break;
+>   }
+> }
+>
+> void test()
+> {
+>   execute(5);
+>   collide =3D 1;
+>   execute(5);
+> }
+>
+> int main()
+> {
+>   syscall(__NR_mmap, 0x20000000, 0x1000000, 3, 0x32, -1, 0);
+>   for (;;) {
+>     loop();
+>   }
+> }
 
 > #
 > # Automatically generated file; DO NOT EDIT.
-> # Linux/x86 4.16.0-rc4 Kernel Configuration
+> # Linux/x86 4.16.0-rc5 Kernel Configuration
 > #
 > CONFIG_64BIT=3Dy
 > CONFIG_X86_64=3Dy
@@ -1177,7 +1822,6 @@ id_resuseaddr=3D{&(0x7f0000000140)=3D0x1, r1, 0x0, 0x1, 0x4}}, 0x20)
 > # CONFIG_BOOTPARAM_HOTPLUG_CPU0 is not set
 > # CONFIG_DEBUG_HOTPLUG_CPU0 is not set
 > # CONFIG_COMPAT_VDSO is not set
-> # CONFIG_LEGACY_VSYSCALL_NATIVE is not set
 > CONFIG_LEGACY_VSYSCALL_EMULATE=3Dy
 > # CONFIG_LEGACY_VSYSCALL_NONE is not set
 > # CONFIG_CMDLINE_BOOL is not set
@@ -4729,6 +5373,7 @@ HINGM)
 > # CONFIG_ACER_WIRELESS is not set
 > # CONFIG_ACERHDF is not set
 > # CONFIG_ASUS_LAPTOP is not set
+> # CONFIG_DELL_SMBIOS is not set
 > # CONFIG_DELL_LAPTOP is not set
 > # CONFIG_DELL_SMO8800 is not set
 > # CONFIG_DELL_RBTN is not set
@@ -5774,24 +6419,24 @@ r30,binder31"
 > # CONFIG_STRING_SELFTEST is not set
 
 
---p1CTWWYPX4x7uy/s
+--Ts3D3es+1xJsYBr5
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzzBwACgkQ5GN7iDZy
-WKdQpA/9EoLUDtnYaGzlUpUc+jAFxe1hMQr+8tJr1RQ8u15S1CngfJRZlsvlB408
-S1/71E+9dca1A1vwD7+khN6EN7btQqCKPETX/6zrgSLGyvg7MKbHJCARx1faZszq
-jt1m7nx9FCn1Kx8G5JOpada8Gq/d4sd/Ztv2NVBxOdj5zffF79gNHWN6npYfvOGj
-kAb6a1DCCy+hddk+wtTgJqv47d7TrtlSh8a8sZiT5HcG6dFqDnoGmamK7owV7GT9
-vlJFjeeMg4spDhEjmyK8p5iZZ4oIZ7K+jZjJGj2OEerp1WuHf/xk8l5UDb7Qjh/W
-8qRBN2ZFL+Kl8wcxmoTrBW3P3A+iiD/Tv7L8L2K1+H1IyPgXWjiMyVAsMOLyFPqP
-kkwhKeGptFqW+JR9Qo7gREcXHZNqtJ28XQ0J7+YcPdtR0q7SH3oHIWB281cJw6ZT
-W4VdZgF70pzAIQNvSKBcA719Av75N5J7LqPovaxwDhnAlvI1f4tGcD7mYxYN7BGw
-QgP6TUKiZSma1tA5YtAy9L8ogttJLAv28oeH1gbvishYlGE3khtFeM3GAyorTqBn
-/SSvCLiy0xDGIfvlMyrD6rP6OUP4IkzOfio820GHzHvCBLLvUxhEsAlaFcFoIb87
-lKXQFEKdx0phXWUzFBRvHRW6RhCX65537LDQXqyHee4/vac5UUk=
-=gBqQ
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlqzzCYACgkQ5GN7iDZy
+WKfwBQ//b6+ROqiqUVZFq/CVoFUJbhTagygDRdzGRXQ3S4LR8Xx4MdTfNnaOWAb8
+TMGHPg6sjRZqBzSBXPAzKg7VL0nkFO2joNwxz47OWcycovzL/7Fowe8WwzHcTFS3
+qLAw5eFH6l0uo4B9yx1JCIGZFlR2imqGvFdwOcq01dEDpCRaFC8hqNIEvyBTTfL2
+yk9yW6XFp4WXjRdEnDQpJwidzD5rgrdKddwH9rFpqMv51AiR0lRvDpRbw35vHPo0
+Ba7ZxfUrrBQpx1rPtDfmxG7C6cvSnBll79AmmU5tjNnp2FU2fVf39Qri11uA1iyk
+CRgQFHIRAbM+x3TPmyT9yT+twb818PjFtMNm3e5RlcN51W6mfMDo+ImI25Jaj5I2
+30e0hW5CfgZeEuoI+vsmfJ1nzSNvvlWxXuj2Lm8tBn72PsErYxanhGJiHhQQ4mY2
+Ffje8GHK1suPPNaDrtFQgVw+WQazpLgip0AMd9QJTOoMTWz0WQtPn5Fd3Pi48Otp
+N4x6btSS78YCZZiapP003H2A5Dnc6wqi3C2NzAZIM3YuDKOowflYwL4UCn5C0g38
+V7q7ixb3AvzWhEYD5sa6IexiQmeX50+cBCfwirMXyK0Uf2MJZ9BszKOI2xNW/Zj4
+kXMRgfrwmOMG4JvKzRJILfZPmcBflfYMwwBcUvaWIh7c7/O4GZk=
+=AjkV
 -----END PGP SIGNATURE-----
 
---p1CTWWYPX4x7uy/s--
+--Ts3D3es+1xJsYBr5--
