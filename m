@@ -1,95 +1,90 @@
-From: Gabriel Paubert <paubert@iram.es>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Thu, 22 Mar 2018 12:25:21 +0100
-Message-ID: <20180322112521.zlfnhnp4qanxqejn@lt-gp.iram.es>
-References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
- <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
- <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
- <8a13375fd8e5439890768b7dd8473099@AcuMS.aculab.com>
- <CAOSf1CHTouXQ+sPxu7ySCtw--maef+knFC9bCQ7rpuk-hf-puQ@mail.gmail.com>
- <20180322082041.hvaneyfpzdwelely@lt-gp.iram.es>
- <CAOSf1CE+gsoZB-YNYdx=oNmrdCje4yxiz76hSb4UQ4F5cL8SqQ@mail.gmail.com>
+From: okaya@codeaurora.org
+Subject: Re: [PATCH v4 4/6] infiniband: cxgb4: Eliminate duplicate barriers on
+ weakly-ordered archs
+Date: Thu, 22 Mar 2018 08:24:42 -0400
+Message-ID: <3664b253c730dbf83f4528acaedb3a88@codeaurora.org>
+References: <1521514068-8856-5-git-send-email-okaya@codeaurora.org>
+ <201803221430.P43GJl9U%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-Content-Disposition: inline
-In-Reply-To: <CAOSf1CE+gsoZB-YNYdx=oNmrdCje4yxiz76hSb4UQ4F5cL8SqQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Oliver <oohall@gmail.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, David Laight <David.Laight@aculab.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201803221430.P43GJl9U%fengguang.wu@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 22, 2018 at 08:25:43PM +1100, Oliver wrote:
-> On Thu, Mar 22, 2018 at 7:20 PM, Gabriel Paubert <paubert@iram.es> wrote:
-> > On Thu, Mar 22, 2018 at 04:24:24PM +1100, Oliver wrote:
-> >> On Thu, Mar 22, 2018 at 1:35 AM, David Laight <David.Laight@aculab.com> wrote:
-> >> >> x86 has compiler barrier inside the relaxed() API so that code does not
-> >> >> get reordered. ARM64 architecturally guarantees device writes to be observed
-> >> >> in order.
-> >> >
-> >> > There are places where you don't even need a compile barrier between
-> >> > every write.
-> >> >
-> >> > I had horrid problems getting some ppc code (for a specific embedded SoC)
-> >> > optimised to have no extra barriers.
-> >> > I ended up just writing through 'pointer to volatile' and adding an
-> >> > explicit 'eieio' between the block of writes and status read.
-> >>
-> >> This is what you are supposed to do. For accesses to MMIO (cache
-> >> inhibited + guarded) storage the Power ISA guarantees that load-load
-> >> and store-store pairs of accesses will always occur in program order,
-> >> but there's no implicit ordering between load-store or store-load
-> >
-> > And even for load store, eieio is not always necessary, in the important
-> > case of reading and writing to the same address, when modifying bits in
-> > a control register for example.
-> >
-> > Typically also loads will be moved ahead of stores, but not the other
-> > way around, so in practice you won't notice a missed eieio in this case.
-> > This does not mean you should not insert it.
+On 2018-03-22 02:44, kbuild test robot wrote:
+> Hi Sinan,
 > 
-> Yep, but it doesn't really help us here. The generic accessors need to cope
-> with the general case.
-
-A generic accessor for modifying fields in a device register might be an 
-useful addition to the current set. This is a fairly frequent operation.
-
-Actually I did add macros to do exactly this in drivers for our own 
-hardware here almost 20 years ago. I was fed up with writing
-writel(readl(reg) & mask | value, reg), especially when reg was not
-that simple (one device had over 100 registers). The macros obviously 
-guaranteed that both accesses would be to the same register, something 
-easy to get wrong with cut and paste.
-
+> Thank you for the patch! Yet something to improve:
 > 
-> >> pairs. In those cases you need an explicit eieio barrier between the
-> >> two accesses. At the HW level you can think of the CPU as having
-> >> separate queues for MMIO loads and stores. Accesses will be added to
-> >> the respective queue in program order, but there's no synchronisation
-> >> between the two queues. If the CPU is doing write combining it's easy
-> >> to imagine the whole store queue being emptied in one big gulp before
-> >> the load queue is even touched.
-> >
-> > Is write combining allowed on guarded storage?
-> >
-> > <Looking at docs>
-> > From PowerISA_V3.0.pdf, Book2, section 1.6.2 "Caching inhibited":
-> >
-> > "No combining occurs if the storage is also Guarded"
+> [auto build test ERROR on linus/master]
+> [also build test ERROR on v4.16-rc6 next-20180321]
+> [if your patch is applied to the wrong git tree, please drop us a note
+> to help improve the system]
 > 
-> Yeah it's not allowed. That's what I get for handwaving examples ;)
+> url:
+> https://github.com/0day-ci/linux/commits/Sinan-Kaya/ib-Eliminate-duplicate-barriers-on-weakly-ordered-archs/20180321-091659
+> config: xtensa-allyesconfig (attached as .config)
+> compiler: xtensa-linux-gcc (GCC) 7.2.0
+> reproduce:
+>         wget
+> https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross
+> -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=xtensa
+> 
 
-At least it means that, for cache-inhibited guarded storage, there is a 
-one to one correspondance between instructions and bus cycles. The only 
-issue left is ordering ;)
+Jason,
 
-	Gabriel
+Can you remove the writeq change if it is too late for me to fix?
+
+This is an infrastructural issue on xtensa arch.
+
+Probably, it won't get fixed today.
+
+Sinan
+
+
+> All errors (new ones prefixed by >>):
+> 
+>    In file included from drivers/infiniband/hw/cxgb4/iw_cxgb4.h:73:0,
+>                     from drivers/infiniband/hw/cxgb4/device.c:40:
+>    drivers/infiniband/hw/cxgb4/t4.h: In function 'pio_copy':
+>>> drivers/infiniband/hw/cxgb4/t4.h:460:3: error: implicit declaration 
+>>> of function 'writeq_relaxed'; did you mean 'writel_relaxed'? 
+>>> [-Werror=implicit-function-declaration]
+>       writeq_relaxed(*src, dst);
+>       ^~~~~~~~~~~~~~
+>       writel_relaxed
+>    cc1: some warnings being treated as errors
+> 
+> vim +460 drivers/infiniband/hw/cxgb4/t4.h
+> 
+>    450
+>    451	/* This function copies 64 byte coalesced work request to memory
+>    452	 * mapped BAR2 space. For coalesced WRs, the SGE fetches data
+>    453	 * from the FIFO instead of from Host.
+>    454	 */
+>    455	static inline void pio_copy(u64 __iomem *dst, u64 *src)
+>    456	{
+>    457		int count = 8;
+>    458
+>    459		while (count) {
+>  > 460			writeq_relaxed(*src, dst);
+>    461			src++;
+>    462			dst++;
+>    463			count--;
+>    464		}
+>    465	}
+>    466
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology 
+> Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel 
+> Corporation
