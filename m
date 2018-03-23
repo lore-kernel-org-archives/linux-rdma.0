@@ -1,21 +1,18 @@
-From: Sinan Kaya <okaya@codeaurora.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Fri, 23 Mar 2018 09:42:04 -0400
-Message-ID: <9c7d3d35-ddaf-60ee-1430-19b5c3f66813@codeaurora.org>
+Date: Fri, 23 Mar 2018 10:35:10 -0600
+Message-ID: <20180323163510.GC13033@ziepe.ca>
 References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
  <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
  <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
  <1521692689.16434.293.camel@kernel.crashing.org>
  <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
  <1521726722.16434.312.camel@kernel.crashing.org>
- <5ccdb208-4664-0a7f-df5d-2e12cbe4c239@codeaurora.org>
- <1521764168.16434.324.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1521764168.16434.324.camel@kernel.crashing.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1521726722.16434.312.camel@kernel.crashing.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
  <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
@@ -26,71 +23,54 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
 Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
 Sender: "Linuxppc-dev"
  <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Oliver <oohall@gmail.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Marc Zyngier <marc.zyngier@arm.com>, linuxppc dev list <linuxppc-dev@lists.ozlabs.org>, Will Deacon <will.deacon@arm.com>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Oliver <oohall@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/22/2018 8:16 PM, Benjamin Herrenschmidt wrote:
-> On Thu, 2018-03-22 at 12:51 -0500, Sinan Kaya wrote:
->> On 3/22/2018 8:52 AM, Benjamin Herrenschmidt wrote:
->>>>> No, it's not sufficient.
->>>
->>> Just to clarify ... barrier() is just a compiler barrier, it means the
->>> compiler will generate things in the order they are written. This isn't
->>> sufficient on archs with an OO memory model, where an actual memory
->>> barrier instruction needs to be emited.
->>
->> Surprisingly, ARM64 GCC compiler generates a write barrier as
->> opposed to preventing code reordering.
->>
->> I was curious if this is an ARM only thing or not. 
-> 
-> Are you sure of that ? I thought it's the ARM implementation of writel
-> that had an explicit write barrier in it:
+On Fri, Mar 23, 2018 at 12:52:02AM +1100, Benjamin Herrenschmidt wrote:
 
-Yes, I'm %100 sure. The answer is both writel() and barrier() generates
-a write barrier instruction. I found this by searching the kernel disassembly
-for back to back "dsb st" instruction.
+> > >  - Make writel_relaxed() be a simple store without barriers, and
+> > > readl_relaxed() be "eieio, read, eieio", thus allowing write combining
+> > > to happen between successive writel_relaxed on WC space (no change on
+> > > normal NC space) while maintaining the ordering between relaxed reads
+> > > and writes. The flip side is a (slight) increased overhead of
+> > > readl_relaxed.
+> > 
+> > Are there many drivers that actually do writeX() on WC space?
+> > memory-barriers.txt
+> > pretty much says that all bets are off and no ordering guarantees can be assumed
+> > when using readX/writeX on prefetchable IO memory. It seems sketchy enough to
+> > give me some pause, but maybe it works fine elsewhere.
+> 
+> I don't know whether any does it, but I want to provide a way for a
+> driver to somewhat reliably obtain write combine semantics without
+> having to hand code endian swap and other horrors involved with using
+> __raw_* accessors.
 
-> 
-> #define writel(v,c)		({ __iowmb(); writel_relaxed((v),(c)); })
-> 
-> And __iowmb() is 
-> 
-> #define __iowmb()		wmb()
-> 
-> Note, I'm a bit dubious about this in ARM:
-> 
-> #define readl(c)		({ u32 __v = readl_relaxed(c); __iormb(); __v; }
-> 
-> Will, Marc, on powerpc, we put a sync *before* the read in readl etc...
-> 
-> The reasoning was there could be some DMA setup followed by a side
-> effect readl rather than a side effect writel to trigger a DMA. Granted
-> I wouldn't expect modern devices to be that stupid, but I have vague
-> memory of some devices back in the day having that sort of read ops.
-> 
-> In general, I though the model offerred by x86 and thus by Linux
-> readl/writel was full synchronization both before and after the MMIO,
-> vs either other MMIO or all other forms of ops (cachable memory, locks
-> etc...).
-> 
-> Also, can't the above readl_relaxed leak out of a lock ?
+Many of the drivers in drivers/infiniband work with write combining
+memory.
 
-I think you are asking about PPC, correct? 
+The usual pattern is a desire to push 32 or 64 bytes to the WC BAR as
+efficiently as possible, ideally in a single PCI-E TLP.
 
-I read somewhere that PPC implementation keeps track of MMIO accesses and
-has an implicit barrier inside the spin_unlock() code for such accesses.
-Isn't this true?
+A memcpy_to_wc primitive could probably cover these use cases, no need
+to redesign the IO accessors..
 
-> 
-> Cheers,
-> Ben.
-> 
-> 
+The WC memory is never read, so read/write order is not important to
+any infiniband driver.
 
+What is very important is keeping the WC behavior isolated within the
+spinlock. WC to the same addresses cannot be permitted in this pattern:
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+   writel(addr = 0);
+   mmiowmb();
+   spin_unlock();
+   spin_lock()
+   writel(addr = 0);
+
+The CPU must always generate two PCI-E TLPs to the device.
+
+This is a super performance critical operation for most drivers and
+directly impacts network performance.
+
+Jason
