@@ -1,41 +1,72 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v5 2/3] RDMA/i40iw: Eliminate duplicate barriers on
- weakly-ordered archs
-Date: Fri, 23 Mar 2018 15:15:04 -0400
-Message-ID: <352b0adc-5489-c919-fa0a-2a3a3b2d37a0@codeaurora.org>
-References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
- <1521736009-23387-3-git-send-email-okaya@codeaurora.org>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.8-2 GA release is available
+Date: Fri, 23 Mar 2018 22:56:27 +0300
+Message-ID: <72e7e7f4-ca98-a9d0-ca9d-894d2f454f7b@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1521736009-23387-3-git-send-email-okaya@codeaurora.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/22/2018 12:26 PM, Sinan Kaya wrote:
-> +++ b/drivers/infiniband/hw/i40iw/i40iw_ctrl.c
-> @@ -706,9 +706,11 @@ static void i40iw_sc_ccq_arm(struct i40iw_sc_cq *ccq)
->  	wmb();       /* make sure shadow area is updated before arming */
->  
->  	if (ccq->dev->is_pf)
-> -		i40iw_wr32(ccq->dev->hw, I40E_PFPE_CQARM, ccq->cq_uk.cq_id);
-> +		i40iw_wr32_relaxed(ccq->dev->hw, I40E_PFPE_CQARM,
-> +				   ccq->cq_uk.cq_id);
->  	else
-> -		i40iw_wr32(ccq->dev->hw, I40E_VFPE_CQARM1, ccq->cq_uk.cq_id);
-> +		i40iw_wr32_relaxed(ccq->dev->hw, I40E_VFPE_CQARM1,
-> +				   ccq->cq_uk.cq_id);
-
-do we want an mmiowb() here?
-
->  }
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+SGksCk9GRUQtNC44LTIgaXMgYXZhaWxhYmxlIGF0OgpodHRwczovL29wZW5mYWJyaWNzLm9yZy9k
+b3dubG9hZHMvT0ZFRC9vZmVkLTQuOC0yL09GRUQtNC44LTIudGd6CgpUbyBnZXQgQlVJTERfSUQg
+cnVuIG9mZWRfaW5mbwoKUGxlYXNlIHJlcG9ydCBhbnkgaXNzdWVzIGluIGJ1Z3ppbGxhCmh0dHA6
+Ly9idWdzLm9wZW5mYWJyaWNzLm9yZy9idWd6aWxsYS8gZm9yIE9GRUQgNC44LTIKClJlbGVhc2Ug
+bm90ZXM6Cmh0dHBzOi8vb3BlbmZhYnJpY3Mub3JnL2Rvd25sb2Fkcy9PRkVEL3JlbGVhc2Vfbm90
+ZXMvT0ZFRF80LjgtMi1yZWxlYXNlX25vdGVzCgpPRkVELTQuOC0yIE1haW4gQ2hhbmdlcyBmcm9t
+IE9GRUQtNC44LTEKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoxLiBjb21wYXQtcmRtYQotIGJueHRf
+cmU6IEFkZCBzcGVlZCBkZWZpbmVzIGZvciA1MEcgYW5kIDEwMEcgYWRhcHRlcnMKLSBJQi9jb3Jl
+OiBBZGRpbmcgSUJfU1BFRURfSERSIGRlZmluaXRpb24KLSBibnh0X2VuOiBBZGRpbmcgZGV2aWNl
+IGlkcyBmb3IgQkNNNTg4MHggZGV2aWNlcwotIGJueHRfcmU6IEF2b2lkIEhhcmQgbG9ja3VwIGR1
+cmluZyBlcnJvciBDUUUgcHJvY2Vzc2luZwotIEJBQ0tQT1JUIHFlZDogRW5hYmxlIFJvQ0UgcGFy
+c2VyIHNlYXJjaGluZyBvbiBmcCBpbml0Ci0gQkFDS1BPUlQgcWVkOiBmaXggZHVtcCBvZiBjb250
+ZXh0IGRhdGEKLSBxZWQ6IEJhY2twb3J0IEZyZWUgUm9DRSBJTFQgTWVtb3J5IG9uIHJtbW9kIHFl
+ZHIKLSBibnh0X3JlOiBGaXggaW5jb3JyZWN0IERCIG9mZnNldCBjYWxjdWxhdGlvbgotIGJueHRf
+cmU6IFVuY29uZGl0aW9ubHkgZmVuY2Ugbm9uIHdpcmUgbWVtb3J5IG9wZXJhdGlvbnMKLSBibnh0
+X3JlOiBGaXggcmFjZSBjb25kaXRpb25zIGR1cmluZyBsb2FkL3VubG9hZCB0ZXN0aW5nCi0gYm54
+dF9yZTogRml4IG1lbW9yeSBsZWFrIGlmIFFQIGNyZWF0ZSBmYWlscwotIGJueHRfcmU6IERpc2Fi
+bGUgYXRvbWljcyBzdXBwb3J0Ci0gYm54dF9lbjogRml4IE1heCBNVFUgc2V0dGluZyBvbiBTTEVT
+IDEyIFNQMwotIHFlZGU6IFNMRTEyU1AzIEJhY2twb3J0IGZpeCB1c2UgY29yZSBtaW4gbWF4IE1U
+VSBjaGVjawotIGN4Z2I6IFNMRTEyU1AzIEJhY2twb3J0IGZpeDogdXNlIG5ldCBjb3JlIE1UVSBy
+YW5nZSBjaGVja2luZwotIFJlbW92ZSB2bXdfcHZyZG1hIHRlY2ggcHJldmlldyBwYXRjaGVzCi0g
+Rml4ZWQgbWx4NCBiYWNrcG9ydAotIHFlZHIgY2hlcnJ5IHBpY2s6IGxvd2VyIG1lc3NhZ2UgdmVy
+Ym9zaXR5Ci0gVXBkYXRlIHFpYiBiYWNrcG9ydCBmb3IgU0xFUyAxMi4zCi0gYm54dF9lbjogYmFj
+a3BvcnQgZm9yIFJIIDcuMCBhbmQgNy4xCi0gY29tcGF0LXJkbWEuc3BlYzogQWRkZWQgY29tcGF0
+LXJkbWEtZmlybXdhcmUgc3VicGFja2FnZQotIGJueHRfZW46IEJhY2twb3J0aW5nIGZvciBSSEVM
+IDcuNCBhbmQgU0xFUzEyU1AzCi0gcWVkcjogQWRkIGJhY2twb3J0cyBmb3IgUkhFTCA3LjQgYW5k
+IFNMRVMgMTIgU1AzCi0gY29uZmlndXJlOiBBZGQgcGFyYW1ldGVycyBmb3IgUlhFIGFuZCBSRE1B
+VlQKLSBpYl9pc2VyOiBBZGRlZCBzdXBwb3J0IGZvciBTTEVTMTIgU1AzCi0gbWx4NTogQWRkZWQg
+c3VwcG9ydCBmb3IgU0xFUzEyIFNQMwotIG1seDQ6IEFkZGVkIHN1cHBvcnQgZm9yIFNMRVMxMiBT
+UDMKLSBpYl9jb3JlOiBBZGRlZCBzdXBwb3J0IGZvciBTTEVTMTIgU1AzCi0gbWx4NTogQWRkZWQg
+UkhFTDcuNCBzdXBwb3J0Ci0gbWx4NDogQWRkZWQgUkhFTDcuNCBzdXBwb3J0Ci0gY29uZmlndXJl
+L21ha2VmaWxlOiBSZW5hbWUgQ09ORklHX0lORklOSUJBTkRfUlhFIC0+IENPTkZJR19SRE1BX1JY
+RSB0byBtYXRjaCB1cHN0cmVhbQoKMi4gVXBkYXRlZCBwYWNrYWdlcwotIG9mZWQtc2NyaXB0czoK
+ICAgaW5zdGFsbC5wbDogSWdub3JlIGZpcm13YXJlIGluIGNvbXBhdC1yZG1hLWNvbnRlbnQuIGJ1
+ZzogMjY3NwogICBhZGQgLS13aXRoLXJkbWF2dC1tb2QgZm9yIHFpYgogICBBZGQgVk13YXJlIFBh
+cmF2aXJ0dWFsIFJETUEgRHJpdmVyIGFzIGFuIGluc3RhbGxhYmxlIGRyaXZlcgogICBSZW1vdmUg
+dm13X3B2cmRtYSB0ZWNoIHByZXZpZXcgaW5zdGFsbCBvcHRpb24KICAgaW5zdGFsbC5wbDogQWRk
+ZWQgcmRtYS1jb3JlLWRldmVsIGRlcGVuZGVuY3kgZm9yIHRoZSBwZXJmdGVzdCBidWlsZAogICBS
+ZXZlcnQgImluc3RhbGwucGw6IEVuYWJsZSBibnh0X3JlIG9uIHN1cHBvcnRlZCBPU2VzIG9ubHki
+CiAgIGluc3RhbGwucGw6IEFkZGVkIGNvbXBhdC1yZG1hLWZpcm13YXJlIHBhY2thZ2UKICAgaW5z
+dGFsbC5wbDogRW5hYmxlIGJueHRfcmUgb24gc3VwcG9ydGVkIE9TZXMgb25seQogICBpbnN0YWxs
+LnBsOiBVcGRhdGVkIHJkbWEtY29yZSBkZXBlbmRlbmNpZXMKICAgaW5zdGFsbC5wbDogUmVtb3Zl
+IHJlcXVpcmVtZW50IG9uIHRoZSBzcGVjaWZpYyBjbWFrZSB2ZXJzaW9uCiAgIGluc3RhbGwucGw6
+IEFkZGVkIHN1cHBvcnQgZm9yIFNMRVMxMiBTUDMKICAgaW5zdGFsbC5wbDogQWRkZWQgUkhFTDcu
+NCBzdXBwb3J0Ci0gcmRtYS1jb3JlLXYxNi4zCi0gZmFidGVzdHMtMS41LjMKLSBsaWJmYWJyaWMt
+MS41LjMKLSBwZXJmdGVzdC00LjEtMC4yLmc3NzA2MjNmCgpSZWdhcmRzLApWbGFkaW1pcgoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1haWxpbmcg
+bGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFicmljcy5v
+cmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
