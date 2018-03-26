@@ -1,7 +1,7 @@
-From: syzbot <syzbot+29ee8f76017ce6cf03da@syzkaller.appspotmail.com>
-Subject: KASAN: use-after-free Read in __list_del_entry_valid (4)
+From: syzbot <syzbot+db1c219466daac1083df@syzkaller.appspotmail.com>
+Subject: KASAN: use-after-free Read in __list_add_valid (5)
 Date: Sun, 25 Mar 2018 17:01:03 -0700
-Message-ID: <001a1141551246502d056845782e@google.com>
+Message-ID: <089e0825fc78410eaa056845781e@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -16,74 +16,68 @@ bcfc1f4554662d8f2429ac8bd96064a59c149754 (Sat Mar 24 16:50:12 2018 +0000)
 Merge tag 'pinctrl-v4.16-3' of  
 git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl
 syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=29ee8f76017ce6cf03da
+https://syzkaller.appspot.com/bug?extid=db1c219466daac1083df
 
-So far this crash happened 2 times on upstream.
+So far this crash happened 4 times on upstream.
+C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5164223906709504
 syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=5803165253369856
+https://syzkaller.appspot.com/x/repro.syz?id=5357898477600768
 Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=5801459614482432
+https://syzkaller.appspot.com/x/log.txt?id=5549124782915584
 Kernel config:  
 https://syzkaller.appspot.com/x/.config?id=-5034017172441945317
 compiler: gcc (GCC) 7.1.1 20170620
-user-space arch: i386
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+29ee8f76017ce6cf03da@syzkaller.appspotmail.com
+Reported-by: syzbot+db1c219466daac1083df@syzkaller.appspotmail.com
 It will help syzbot understand when the bug is fixed. See footer for  
 details.
 If you forward the report, please keep this part and the footer.
 
-audit: type=1400 audit(1521923673.824:8): avc:  denied  { map } for   
-pid=4229 comm="syz-execprog" path="/root/syzkaller-shm086223256" dev="sda1"  
-ino=16482 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023  
-tcontext=unconfined_u:object_r:file_t:s0 tclass=file permissive=1
+IPVS: ftp: loaded support on port[0] = 21
+IPVS: ftp: loaded support on port[0] = 21
 IPVS: ftp: loaded support on port[0] = 21
 ==================================================================
-BUG: KASAN: use-after-free in __list_del_entry_valid+0x144/0x150  
-lib/list_debug.c:54
-Read of size 8 at addr ffff8801afaf33e0 by task syz-executor0/4703
+BUG: KASAN: use-after-free in __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
+IPVS: ftp: loaded support on port[0] = 21
+Read of size 8 at addr ffff8801ca8adcd8 by task syzkaller401155/4288
 
-CPU: 0 PID: 4703 Comm: syz-executor0 Not tainted 4.16.0-rc6+ #275
+CPU: 0 PID: 4288 Comm: syzkaller401155 Not tainted 4.16.0-rc6+ #365
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
 Google 01/01/2011
 Call Trace:
   __dump_stack lib/dump_stack.c:17 [inline]
   dump_stack+0x194/0x24d lib/dump_stack.c:53
   print_address_description+0x73/0x250 mm/kasan/report.c:256
+IPVS: ftp: loaded support on port[0] = 21
   kasan_report_error mm/kasan/report.c:354 [inline]
   kasan_report+0x23c/0x360 mm/kasan/report.c:412
   __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
-  __list_del_entry_valid+0x144/0x150 lib/list_debug.c:54
-  __list_del_entry include/linux/list.h:117 [inline]
-  list_del include/linux/list.h:125 [inline]
-  cma_cancel_listens drivers/infiniband/core/cma.c:1569 [inline]
-  cma_cancel_operation+0x455/0xd60 drivers/infiniband/core/cma.c:1597
-  rdma_destroy_id+0xff/0xda0 drivers/infiniband/core/cma.c:1661
-  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1728
-  __fput+0x327/0x7e0 fs/file_table.c:209
-  ____fput+0x15/0x20 fs/file_table.c:243
-  task_work_run+0x199/0x270 kernel/task_work.c:113
-  exit_task_work include/linux/task_work.h:22 [inline]
-  do_exit+0x9bb/0x1ad0 kernel/exit.c:865
-  do_group_exit+0x149/0x400 kernel/exit.c:968
-  get_signal+0x73a/0x16d0 kernel/signal.c:2469
-  do_signal+0x90/0x1e90 arch/x86/kernel/signal.c:809
-  exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
-  prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
-  syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
-  do_syscall_32_irqs_on arch/x86/entry/common.c:336 [inline]
-  do_fast_syscall_32+0xbe6/0xf9f arch/x86/entry/common.c:392
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
-RIP: 0023:0xf7f03c99
-RSP: 002b:00000000f7ede10c EFLAGS: 00000296 ORIG_RAX: 00000000000000f0
-RAX: fffffffffffffe00 RBX: 000000000813af98 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+  __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
+  __list_add include/linux/list.h:60 [inline]
+  list_add_tail include/linux/list.h:93 [inline]
+  cma_listen_on_all drivers/infiniband/core/cma.c:2309 [inline]
+  rdma_listen+0x581/0x8e0 drivers/infiniband/core/cma.c:3333
+  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1074
+  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+IPVS: ftp: loaded support on port[0] = 21
+  __vfs_write+0xef/0x970 fs/read_write.c:480
+IPVS: ftp: loaded support on port[0] = 21
+  vfs_write+0x189/0x510 fs/read_write.c:544
+  SYSC_write fs/read_write.c:589 [inline]
+  SyS_write+0xef/0x220 fs/read_write.c:581
+  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+IPVS: ftp: loaded support on port[0] = 21
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x44a9e9
+RSP: 002b:00007f94303f3da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 000000000044a9e9
+RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000004
+RBP: 00000000006e29f8 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 2f646e6162696e69
+R13: 666e692f7665642f R14: 7073642f7665642f R15: 0000000000000009
 
-Allocated by task 4703:
+Allocated by task 4284:
   save_stack+0x43/0xd0 mm/kasan/kasan.c:447
   set_track mm/kasan/kasan.c:459 [inline]
   kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
@@ -97,11 +91,10 @@ Allocated by task 4703:
   vfs_write+0x189/0x510 fs/read_write.c:544
   SYSC_write fs/read_write.c:589 [inline]
   SyS_write+0xef/0x220 fs/read_write.c:581
-  do_syscall_32_irqs_on arch/x86/entry/common.c:330 [inline]
-  do_fast_syscall_32+0x3ec/0xf9f arch/x86/entry/common.c:392
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
 
-Freed by task 4703:
+Freed by task 4284:
   save_stack+0x43/0xd0 mm/kasan/kasan.c:447
   set_track mm/kasan/kasan.c:459 [inline]
   __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
@@ -121,29 +114,28 @@ Freed by task 4703:
   exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
   prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
   syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
-  do_syscall_32_irqs_on arch/x86/entry/common.c:336 [inline]
-  do_fast_syscall_32+0xbe6/0xf9f arch/x86/entry/common.c:392
-  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+  do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
 
-The buggy address belongs to the object at ffff8801afaf3200
+The buggy address belongs to the object at ffff8801ca8adb00
   which belongs to the cache kmalloc-1024 of size 1024
-The buggy address is located 480 bytes inside of
-  1024-byte region [ffff8801afaf3200, ffff8801afaf3600)
+The buggy address is located 472 bytes inside of
+  1024-byte region [ffff8801ca8adb00, ffff8801ca8adf00)
 The buggy address belongs to the page:
-page:ffffea0006bebc80 count:1 mapcount:0 mapping:ffff8801afaf2000 index:0x0  
+page:ffffea00072a2b00 count:1 mapcount:0 mapping:ffff8801ca8ac000 index:0x0  
 compound_mapcount: 0
 flags: 0x2fffc0000008100(slab|head)
-raw: 02fffc0000008100 ffff8801afaf2000 0000000000000000 0000000100000007
-raw: ffffea0007272f20 ffffea0006bc6520 ffff8801dac00ac0 0000000000000000
+raw: 02fffc0000008100 ffff8801ca8ac000 0000000000000000 0000000100000007
+raw: ffffea00072969a0 ffffea00072c5d20 ffff8801dac00ac0 0000000000000000
 page dumped because: kasan: bad access detected
 
 Memory state around the buggy address:
-  ffff8801afaf3280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-  ffff8801afaf3300: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> ffff8801afaf3380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                                                        ^
-  ffff8801afaf3400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-  ffff8801afaf3480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff8801ca8adb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff8801ca8adc00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ffff8801ca8adc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                     ^
+  ffff8801ca8add00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff8801ca8add80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 ==================================================================
 
 
