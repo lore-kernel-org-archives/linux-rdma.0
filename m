@@ -1,43 +1,62 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: RFC on writel and writel_relaxed
-Date: Mon, 26 Mar 2018 11:08:45 +0000
-Message-ID: <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
-References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
- <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
- <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
- <1521692689.16434.293.camel@kernel.crashing.org>
- <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
- <1521726722.16434.312.camel@kernel.crashing.org>
- <20180323163510.GC13033@ziepe.ca>
- <1521854626.16434.359.camel@kernel.crashing.org>
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
+Date: Mon, 26 Mar 2018 12:11:38 +0100
+Message-ID: <20180326121138.00005e30@huawei.com>
+References: <20180312193525.2855-1-logang@deltatee.com>
+        <20180312193525.2855-2-logang@deltatee.com>
+        <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
+        <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1521854626.16434.359.camel@kernel.crashing.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT
- AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Eric Wehage <Eric.Wehage@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IFRoaXMgaXMgYSBzdXBlciBwZXJmb3JtYW5jZSBjcml0aWNhbCBvcGVyYXRpb24gZm9yIG1v
-c3QgZHJpdmVycyBhbmQNCj4gPiBkaXJlY3RseSBpbXBhY3RzIG5ldHdvcmsgcGVyZm9ybWFuY2Uu
-DQoNClBlcmhhcHMgdGhlcmUgb3VnaHQgdG8gYmUgd3JpdGVsX25vYmFycmllcigpIChldGMpIHRo
-YXQgbmV2ZXIgY29udGFpbg0KYW55IGJhcnJpZXJzIGF0IGFsbC4NClRoaXMgbWlnaHQgbWVhbiB0
-aGF0IHRoZXkgYXJlIGFsd2F5cyBqdXN0IHRoZSBtZW1vcnkgb3BlcmF0aW9uLA0KYnV0IGl0IHdv
-dWxkIG1ha2UgaXQgbW9yZSBvYnZpb3VzIHdoYXQgdGhlIGRyaXZlciB3YXMgZG9pbmcuDQoNClRo
-ZSBkcml2ZXIgd291bGQgdGhlbiBiZSBleHBsaWNpdGx5IHJlc3BvbnNpYmxlIGZvciBhbGwgdGhl
-IHJtYigpLCB3bWIoKQ0KYW5kIG1taW93YigpIChldGMpLg0KUGVyZm9ybWFuY2UgY3JpdGljYWwg
-cGF0aHMgY291bGQgdGhlbiBhdm9pZCBhbGwgdGhlIGV4dHJhIGJhcnJpZXJzLg0KDQoJRGF2aWQN
-Cg0KDQo=
+On Tue, 13 Mar 2018 10:43:55 -0600
+Logan Gunthorpe <logang@deltatee.com> wrote:
+
+> On 12/03/18 09:28 PM, Sinan Kaya wrote:
+> > On 3/12/2018 3:35 PM, Logan Gunthorpe wrote:
+> > Regarding the switch business, It is amazing how much trouble you went into
+> > limit this functionality into very specific hardware.
+> > 
+> > I thought that we reached to an agreement that code would not impose
+> > any limits on what user wants.
+> > 
+> > What happened to all the emails we exchanged?  
+> 
+> It turns out that root ports that support P2P are far less common than 
+> anyone thought. So it will likely have to be a white list.
+
+This came as a bit of a surprise to our PCIe architect.
+
+His follow up was whether it was worth raising an ECR for the PCIe spec
+to add a capability bit to allow this to be discovered.  This might
+long term avoid the need to maintain the white list for new devices.
+
+So is it worth having a long term solution for making this discoverable?
+
+Jonathan
+
+> Nobody else 
+> seems keen on allowing the user to enable this on hardware that doesn't 
+> work. The easiest solution is still limiting it to using a switch. From 
+> there, if someone wants to start creating a white-list then that's 
+> probably the way forward to support root ports.
+> 
+> And there's also the ACS problem which means if you want to use P2P on 
+> the root ports you'll have to disable ACS on the entire system. (Or 
+> preferably, the IOMMU groups need to get more sophisticated to allow for 
+> dynamic changes).
+> 
+> Additionally, once you allow for root ports you may find the IOMMU 
+> getting in the way.
+> 
+> So there are great deal more issues to sort out if you don't restrict to 
+> devices behind switches.
+> 
+> Logan
