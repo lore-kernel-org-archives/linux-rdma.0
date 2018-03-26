@@ -1,8 +1,7 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v3 iproute2-next 2/8] rdma: Makefile change to find
- <rdma/rdma_cma.h>
-Date: Mon, 26 Mar 2018 13:57:33 -0700
-Message-ID: <a0f4455c51a4d19d3eab4b9ccd9426e7baf150d8.1522097991.git.swise@opengridcomputing.com>
+Subject: [PATCH v3 iproute2-next 3/8] rdma: update rdma_netlink.h
+Date: Mon, 26 Mar 2018 13:57:34 -0700
+Message-ID: <01a0fdf37e80e5df5baaf461d283da5306c0ce57.1522097991.git.swise@opengridcomputing.com>
 References: <cover.1522097991.git.swise@opengridcomputing.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.1522097991.git.swise@opengridcomputing.com>
@@ -11,23 +10,72 @@ To: dsahern@gmail.com
 Cc: leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Steve Wise <swise@opengridcomputing.com>
+
+Pull in the latest rdma_netlink.h which has support for
+the rdma nldev resource tracking objects being added
+with this patch series.
+
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
- rdma/Makefile | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ rdma/include/uapi/rdma/rdma_netlink.h | 38 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index 819fcbe..2cb46b6 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -4,7 +4,7 @@ include ../config.mk
- TARGETS :=
+diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
+index dbac3b8..9446a72 100644
+--- a/rdma/include/uapi/rdma/rdma_netlink.h
++++ b/rdma/include/uapi/rdma/rdma_netlink.h
+@@ -238,6 +238,14 @@ enum rdma_nldev_command {
  
- ifeq ($(HAVE_MNL),y)
--CFLAGS += -I./include/uapi/
-+CFLAGS += -I./include/uapi/ -I./include/
+ 	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
  
- RDMA_OBJ = rdma.o utils.o dev.o link.o res.o
++	RDMA_NLDEV_CMD_RES_CM_ID_GET, /* can dump */
++
++	RDMA_NLDEV_CMD_RES_CQ_GET, /* can dump */
++
++	RDMA_NLDEV_CMD_RES_MR_GET, /* can dump */
++
++	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
++
+ 	RDMA_NLDEV_NUM_OPS
+ };
  
+@@ -350,6 +358,36 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_RES_KERN_NAME,		/* string */
+ 
++	RDMA_NLDEV_ATTR_RES_CM_ID,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_CM_ID_ENTRY,	/* nested table */
++	/*
++	 * rdma_cm_id port space.
++	 */
++	RDMA_NLDEV_ATTR_RES_PS,			/* u32 */
++	/*
++	 * Source and destination socket addresses
++	 */
++	RDMA_NLDEV_ATTR_RES_SRC_ADDR,		/* __kernel_sockaddr_storage */
++	RDMA_NLDEV_ATTR_RES_DST_ADDR,		/* __kernel_sockaddr_storage */
++
++	RDMA_NLDEV_ATTR_RES_CQ,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_CQ_ENTRY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_CQE,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_USECNT,		/* u64 */
++	RDMA_NLDEV_ATTR_RES_POLL_CTX,		/* u8 */
++
++	RDMA_NLDEV_ATTR_RES_MR,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_MR_ENTRY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_RKEY,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_LKEY,		/* u32 */
++	RDMA_NLDEV_ATTR_RES_IOVA,		/* u64 */
++	RDMA_NLDEV_ATTR_RES_MRLEN,		/* u64 */
++
++	RDMA_NLDEV_ATTR_RES_PD,			/* nested table */
++	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
++	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
++	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
++
+ 	RDMA_NLDEV_ATTR_MAX
+ };
+ #endif /* _RDMA_NETLINK_H */
 -- 
 1.8.3.1
