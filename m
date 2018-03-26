@@ -1,87 +1,71 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking
- information
-Date: Mon, 26 Mar 2018 18:08:26 +0300
-Message-ID: <20180326150826.GH1877@mtr-leonro.local>
-References: <cover.1520020530.git.swise@opengridcomputing.com>
- <743dc7a5306f9b3368fcd4c143cdd822250444a6.1520020530.git.swise@opengridcomputing.com>
- <f6dd4255-69b2-bb90-de92-bb633f7248ef@gmail.com>
- <0443b8e0-17ff-1e62-51ba-ba1fa0e0d529@opengridcomputing.com>
- <8d788e10-c170-9b94-09f0-98515fdd5bac@gmail.com>
- <783e600a-9296-8ea0-003e-59e48fd5234b@opengridcomputing.com>
+Subject: Re: [PATCH iproute2-next 2/2] rdma: Print net device name and index
+ for RDMA device
+Date: Mon, 26 Mar 2018 18:09:33 +0300
+Message-ID: <20180326150933.GI1877@mtr-leonro.local>
+References: <20180326082829.21214-1-leon@kernel.org>
+ <20180326082829.21214-3-leon@kernel.org>
+ <7b6f0370-4749-5327-5701-6567587d2044@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="OzxllxdKGCiKxUZM"
+        protocol="application/pgp-signature"; boundary="O8XZ+2Hy8Kj8wLPZ"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <783e600a-9296-8ea0-003e-59e48fd5234b@opengridcomputing.com>
+In-Reply-To: <7b6f0370-4749-5327-5701-6567587d2044@gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: David Ahern <dsahern@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---OzxllxdKGCiKxUZM
+--O8XZ+2Hy8Kj8wLPZ
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Mar 26, 2018 at 09:55:46AM -0500, Steve Wise wrote:
+On Mon, Mar 26, 2018 at 08:06:52AM -0600, David Ahern wrote:
+> On 3/26/18 2:28 AM, Leon Romanovsky wrote:
+> > diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
+> > index 9446a721..45474f13 100644
+> > --- a/rdma/include/uapi/rdma/rdma_netlink.h
+> > +++ b/rdma/include/uapi/rdma/rdma_netlink.h
+> > @@ -388,6 +388,10 @@ enum rdma_nldev_attr {
+> >  	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
+> >  	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
+> >
+> > +	/* Netdev information for relevant protocols, like RoCE and iWARP */
+> > +	RDMA_NLDEV_ATTR_NDEV_INDEX,		/* u32 */
+> > +	RDMA_NLDEV_ATTR_NDEV_NAME,		/* string */
+> > +
+> >  	RDMA_NLDEV_ATTR_MAX
+> >  };
+> >  #endif /* _RDMA_NETLINK_H */
+>
+> Why wasn't the above included in patch 1 as part of the header file update?
 >
 >
-> On 3/26/2018 9:44 AM, David Ahern wrote:
-> > On 3/26/18 8:30 AM, Steve Wise wrote:
-> >>
-> >> On 3/26/2018 9:17 AM, David Ahern wrote:
-> >>> On 2/27/18 9:07 AM, Steve Wise wrote:
-> >>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
-> >>>> index 5809f70..e55205b 100644
-> >>>> --- a/rdma/rdma.h
-> >>>> +++ b/rdma/rdma.h
-> >>>> @@ -18,10 +18,12 @@
-> >>>>  #include <libmnl/libmnl.h>
-> >>>>  #include <rdma/rdma_netlink.h>
-> >>>>  #include <time.h>
-> >>>> +#include <net/if_arp.h>
-> >>>>
-> >>>>  #include "list.h"
-> >>>>  #include "utils.h"
-> >>>>  #include "json_writer.h"
-> >>>> +#include <rdma/rdma_cma.h>
-> >>>>
-> >>> did you forget to add rdma_cma.h? I don't see that file in my repo.
-> >> It is provided by the rdma-core package, upon which rdma tool now
-> >> depends for the rdma_port_space enum.
-> >>
-> > You need to add a check for the package, and only build rdma if that
-> > package is installed. See check_mnl in configure for an example.
->
-> Ok, that makes sense.
 
-IMHO, better solution will be to copy those files to iproute2.
+Kernel part is not accepted yet, this is why I separated them.
 
 Thanks
 
->
-> Steve.
-
---OzxllxdKGCiKxUZM
+--O8XZ+2Hy8Kj8wLPZ
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlq5DOoACgkQ5GN7iDZy
-WKdLSA/+IS9qx4FTkwmJAZCIglQponhjcoVwDBxMDjf7ZBbExMmlfoiwPXTW4c2W
-nxkyO4hR41SslA1E1i+3IB5VS3uWFwGqm8mR/cPBI5biLllk29arQR5nxhilusji
-ZxyOv7hiOJI+jUUtAocLf7mvWCicz92d2E1eqm/WmEWomRYNG62Ti6qJrbvTxwJb
-9a6vC476ecINT5CkkThyw+fNlIz+Bi1rJTD+e1bR9VXOpea/963nSl5sR3rL2gBs
-gi6HXQ2cX9DGLreSHc2ZhT1CcDNQd0CeCaNfUnb2hWj9qNIA4J8tMu4IETwnarSV
-rYYjVNNqq1tj+XXkpZPQ9//Q1JWeXebKySezNoiyiNEthAx37uyiaEK/ISatZEIB
-t07dN+HSoBF57XpissOjoThoI289GhHrQbP5wr9jXl0K6Esq/dxEEjrtyJcy1Kqm
-ztg+3lQpKqlEgEEmslmAjAHbbUIK8+6BQ1btv5R834HHCvmDEU88a4ABmBAuJQPI
-2g4YTSrdd4MHDDgsgOi3LWxvZZb9Mz6nkRAGP1UCXaifUyEJv3w7C/CH6XHx4GS5
-DkIl4MGZGzGi7HnzQs7m+5jrEkO+J5K8/hKVVS24Ws312TNkt/LP8OyxEE/Bmdqw
-Ze0/K+hoTSfk3bU0Deq68IBWIJKCGe3+AhieGKDt1vd4HHyPFbc=
-=cDVb
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlq5DS0ACgkQ5GN7iDZy
+WKfeOQ/9FnyXPjmBq4SLMpksf9DQGPYj5atduQNfdvna7rS7dDB284G1WAqi0p0x
+O6spwlJaOz/ydE5+1ZGJEY7CtWVsgUpWj8ckmGWKhHxogjSXRi6aP5pIP1Yj6K1U
+XRB8WnrVzCTc4WCmy5/3oyPHUIyUfi15posrnR9s+Y2OTZPfA9zU0/wfhctj+41y
+/LLhBRoTjTwNN488xVGTwPtJFkBdx+p/u2jS/90yP1ixMHknxMmKoWWYU+dTshnU
+++z+hCxL+hfEzu6/gJYG/ETJxFniG1NMH3cpFUwHWJQP74b9QoZe22L6vBR0/JO+
+W+c8pTNxktjezkh9G66tyda2ValUxiyYcl+3RZ/IhYa3IjvLMWTABmXpU1HpiCvY
+sZY6T3nX5MxZg9Ai2BkkIM+nMMvEU0SplUu81j8b9Fv9VNmqWnkYhPYSecfo2O+F
+xSJn+vDXKxEttzWCfDpopH5itD547DpcRsDGrbBWvravAiry1CDWEm2yPY2j3eJh
+ptseY/4XkKnkGl7ADzGYr8M3mkZB6h1vr94HHMT8YBS9x6438HYBM0bB7P4OgIO+
+tqX3qIqUJvh2lOezHQnIK8sk+wi9SYMWEv8e2+HFMq0+fzdG1TC60W85bYxuTMBu
+e/LSd/vt3PE2my6C9nrANWt4423KI2RSgo13WsXiCM3L3Wwug40=
+=y+B1
 -----END PGP SIGNATURE-----
 
---OzxllxdKGCiKxUZM--
+--O8XZ+2Hy8Kj8wLPZ--
