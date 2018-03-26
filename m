@@ -1,7 +1,7 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v3 iproute2-next 3/8] rdma: update rdma_netlink.h
-Date: Mon, 26 Mar 2018 13:57:34 -0700
-Message-ID: <01a0fdf37e80e5df5baaf461d283da5306c0ce57.1522097991.git.swise@opengridcomputing.com>
+Subject: [PATCH v3 iproute2-next 4/8] rdma: initialize the rd struct
+Date: Mon, 26 Mar 2018 13:57:36 -0700
+Message-ID: <2de3f506d81317bab93103874147c5eb90b56798.1522097991.git.swise@opengridcomputing.com>
 References: <cover.1522097991.git.swise@opengridcomputing.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.1522097991.git.swise@opengridcomputing.com>
@@ -10,72 +10,28 @@ To: dsahern@gmail.com
 Cc: leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Steve Wise <swise@opengridcomputing.com>
-
-Pull in the latest rdma_netlink.h which has support for
-the rdma nldev resource tracking objects being added
-with this patch series.
+Initialize the rd struct so port_idx is 0 unless set otherwise.
+Otherwise, strict_port queries end up passing an uninitialized PORT
+nlattr.
 
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 38 +++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ rdma/rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index dbac3b8..9446a72 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -238,6 +238,14 @@ enum rdma_nldev_command {
+diff --git a/rdma/rdma.c b/rdma/rdma.c
+index ab2c960..b43e538 100644
+--- a/rdma/rdma.c
++++ b/rdma/rdma.c
+@@ -135,7 +135,7 @@ int main(int argc, char **argv)
+ 	bool json_output = false;
+ 	bool force = false;
+ 	char *filename;
+-	struct rd rd;
++	struct rd rd = {};
+ 	int opt;
+ 	int err;
  
- 	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
- 
-+	RDMA_NLDEV_CMD_RES_CM_ID_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_CQ_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_MR_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
-@@ -350,6 +358,36 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_RES_KERN_NAME,		/* string */
- 
-+	RDMA_NLDEV_ATTR_RES_CM_ID,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CM_ID_ENTRY,	/* nested table */
-+	/*
-+	 * rdma_cm_id port space.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PS,			/* u32 */
-+	/*
-+	 * Source and destination socket addresses
-+	 */
-+	RDMA_NLDEV_ATTR_RES_SRC_ADDR,		/* __kernel_sockaddr_storage */
-+	RDMA_NLDEV_ATTR_RES_DST_ADDR,		/* __kernel_sockaddr_storage */
-+
-+	RDMA_NLDEV_ATTR_RES_CQ,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CQ_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CQE,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_USECNT,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_POLL_CTX,		/* u8 */
-+
-+	RDMA_NLDEV_ATTR_RES_MR,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_MR_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_RKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_LKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_IOVA,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_MRLEN,		/* u64 */
-+
-+	RDMA_NLDEV_ATTR_RES_PD,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
-+	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _RDMA_NETLINK_H */
 -- 
 1.8.3.1
