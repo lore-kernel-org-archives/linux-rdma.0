@@ -1,57 +1,150 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Mon, 26 Mar 2018 21:44:15 +0200
-Message-ID: <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
-References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
- <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
- <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
- <1521692689.16434.293.camel@kernel.crashing.org>
- <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
- <1521726722.16434.312.camel@kernel.crashing.org>
- <20180323163510.GC13033@ziepe.ca>
- <1521854626.16434.359.camel@kernel.crashing.org>
- <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
- <20180326165425.GA15554@ziepe.ca>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking
+ information
+Date: Mon, 26 Mar 2018 14:55:40 -0500
+Message-ID: <424df3d1-2552-7877-2891-9506067169a0@opengridcomputing.com>
+References: <cover.1520020530.git.swise@opengridcomputing.com>
+ <743dc7a5306f9b3368fcd4c143cdd822250444a6.1520020530.git.swise@opengridcomputing.com>
+ <5e6c4b3c-03b2-aab2-d2e6-52f0edf960bb@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <20180326165425.GA15554@ziepe.ca>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Sinan Kaya <okaya@codeaurora.org>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5e6c4b3c-03b2-aab2-d2e6-52f0edf960bb@gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 26, 2018 at 6:54 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> On Mon, Mar 26, 2018 at 11:08:45AM +0000, David Laight wrote:
->> > > This is a super performance critical operation for most drivers and
->> > > directly impacts network performance.
+
+
+On 3/26/2018 10:40 AM, David Ahern wrote:
+> On 2/27/18 9:07 AM, Steve Wise wrote:
+>> Sample output:
 >>
->> Perhaps there ought to be writel_nobarrier() (etc) that never contain
->> any barriers at all.
->> This might mean that they are always just the memory operation,
->> but it would make it more obvious what the driver was doing.
+>> # rdma resource
+>> 2: cxgb4_0: pd 5 cq 2 qp 2 cm_id 3 mr 7
+>> 3: mlx4_0: pd 7 cq 3 qp 3 cm_id 3 mr 7
+>>
+>> # rdma resource show cm_id
+>> link cxgb4_0/- lqpn 0 qp-type RC state LISTEN ps TCP pid 30485 comm rping src-addr 0.0.0.0:7174
+>> link cxgb4_0/2 lqpn 1048 qp-type RC state CONNECT ps TCP pid 30503 comm rping src-addr 172.16.2.1:7174 dst-addr 172.16.2.1:38246
+>> link cxgb4_0/2 lqpn 1040 qp-type RC state CONNECT ps TCP pid 30498 comm rping src-addr 172.16.2.1:38246 dst-addr 172.16.2.1:7174
+>> link mlx4_0/- lqpn 0 qp-type RC state LISTEN ps TCP pid 30485 comm rping src-addr 0.0.0.0:7174
+>> link mlx4_0/1 lqpn 539 qp-type RC state CONNECT ps TCP pid 30494 comm rping src-addr 172.16.99.1:7174 dst-addr 172.16.99.1:43670
+>> link mlx4_0/1 lqpn 538 qp-type RC state CONNECT ps TCP pid 30492 comm rping src-addr 172.16.99.1:43670 dst-addr 172.16.99.1:7174
+>>
+>> # rdma resource show cm_id dst-port 7174
+>> link cxgb4_0/2 lqpn 1040 qp-type RC state CONNECT ps TCP pid 30498 comm rping src-addr 172.16.2.1:38246 dst-addr 172.16.2.1:7174
+>> link mlx4_0/1 lqpn 538 qp-type RC state CONNECT ps TCP pid 30492 comm rping src-addr 172.16.99.1:43670 dst-addr 172.16.99.1:7174
+>>
+>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+>> ---
+>>  rdma/rdma.h  |   2 +
+>>  rdma/res.c   | 258 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>>  rdma/utils.c |   5 ++
+>>  3 files changed, 264 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/rdma/rdma.h b/rdma/rdma.h
+>> index 5809f70..e55205b 100644
+>> --- a/rdma/rdma.h
+>> +++ b/rdma/rdma.h
+>> @@ -18,10 +18,12 @@
+>>  #include <libmnl/libmnl.h>
+>>  #include <rdma/rdma_netlink.h>
+>>  #include <time.h>
+>> +#include <net/if_arp.h>
+>>  
+>>  #include "list.h"
+>>  #include "utils.h"
+>>  #include "json_writer.h"
+>> +#include <rdma/rdma_cma.h>
+>>  
+>>  #define pr_err(args...) fprintf(stderr, ##args)
+>>  #define pr_out(args...) fprintf(stdout, ##args)
+>> diff --git a/rdma/res.c b/rdma/res.c
+>> index 62f5c54..1ef4f20 100644
+>> --- a/rdma/res.c
+>> +++ b/rdma/res.c
+>> @@ -16,9 +16,11 @@ static int res_help(struct rd *rd)
+>>  {
+>>  	pr_out("Usage: %s resource\n", rd->filename);
+>>  	pr_out("          resource show [DEV]\n");
+>> -	pr_out("          resource show [qp]\n");
+>> +	pr_out("          resource show [qp|cm_id]\n");
+>>  	pr_out("          resource show qp link [DEV/PORT]\n");
+>>  	pr_out("          resource show qp link [DEV/PORT] [FILTER-NAME FILTER-VALUE]\n");
+>> +	pr_out("          resource show cm_id link [DEV/PORT]\n");
+>> +	pr_out("          resource show cm_id link [DEV/PORT] [FILTER-NAME FILTER-VALUE]\n");
+>>  	return 0;
+>>  }
+>>  
+>> @@ -433,6 +435,230 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
+>>  	return MNL_CB_OK;
+>>  }
+>>  
+>> +static void print_qp_type(struct rd *rd, uint32_t val)
+>> +{
+>> +	if (rd->json_output)
+>> +		jsonw_string_field(rd->jw, "qp-type",
+>> +				   qp_types_to_str(val));
+>> +	else
+>> +		pr_out("qp-type %s ", qp_types_to_str(val));
+>> +}
+>> +
+>> +static const char *cm_id_state_to_str(uint8_t idx)
+>> +{
+>> +	static const char * const cm_id_states_str[] = { "IDLE", "ADDR_QUERY",
+>> +						      "ADDR_RESOLVED", "ROUTE_QUERY", "ROUTE_RESOLVED",
+>> +						      "CONNECT", "DISCONNECT",
+>> +						      "ADDR_BOUND", "LISTEN", "DEVICE_REMOVAL", "DESTROYING" };
+>> +
+> In general lines should stay under 80 columns. There are a few
+> exceptions to the rule (e.g., print strings), but most of the long lines
+> you have in this patch need to conform.
+
+Ok. Will do.
+
+>> @@ -457,11 +683,41 @@ filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {{ .name = "link",
+>>  
+>>  RES_FUNC(res_qp,	RDMA_NLDEV_CMD_RES_QP_GET, qp_valid_filters, false);
+>>  
+>> +static const struct
+>> +filters cm_id_valid_filters[MAX_NUMBER_OF_FILTERS] = {{ .name = "link",
+>> +						   .is_number = false },
+>> +						   { .name = "lqpn",
+>> +						   .is_number = true },
+>> +						   { .name = "qp-type",
+>> +						   .is_number = false },
+>> +						   { .name = "state",
+>> +						   .is_number = false },
+>> +						   { .name = "ps",
+>> +						   .is_number = false },
+>> +						   { .name = "dev-type",
+>> +						   .is_number = false },
+>> +						   { .name = "transport-type",
+>> +						   .is_number = false },
+>> +						   { .name = "pid",
+>> +						   .is_number = true },
+>> +						   { .name = "src-addr",
+>> +						   .is_number = false },
+>> +						   { .name = "src-port",
+>> +						   .is_number = true },
+>> +						   { .name = "dst-addr",
+>> +						   .is_number = false },
+>> +						   { .name = "dst-port",
+>> +						   .is_number = true }};
+>> +
+> The above would be more readable as
+> 	static const
+> 	struct filters cm_id_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+> 		{ .name = "link", .is_number = false },
+> 		{ .name = "lqpn", .is_number = true },
+> ...
 >
-> I think that is what writel_relaxed is supposed to be.
->
-> The only restriction it has is that the writes to a single device
-> using UC memory must be kept in program order..
+> Definitely do not split between struct and filters.
 
-Not sure about whether we have ever defined what happens to
-writel_relaxed() on WC memory though: On ARM, we disallow
-the compiler to combine writes, but the CPU still might.
+Your formatting is easier to read/maintain.
 
-It's also not entirely clear to me what we want writel() inside a
-spinlock to mean: should the spinlock guarantee that two writel()
-calls on different CPUs that are protected by spinlocks are
-serialized by those locks, or not?
-
-       Arnd
+Thanks for the comments!
