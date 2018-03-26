@@ -1,60 +1,71 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Mon, 26 Mar 2018 09:46:24 -0600
-Message-ID: <c717eb06-1e83-f0f3-4d6c-15531aa808e0@deltatee.com>
-References: <20180312193525.2855-1-logang@deltatee.com>
- <20180312193525.2855-2-logang@deltatee.com>
- <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
- <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
- <20180326121138.00005e30@huawei.com>
- <20180326140118.GA221690@bhelgaas-glaptop.roam.corp.google.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Mon, 26 Mar 2018 12:00:52 -0400
+Message-ID: <4b1004a8-2d8b-681f-3050-a1365cfb8321@codeaurora.org>
+References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
+ <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
+ <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
+ <2d2a744a-57b2-ca42-db40-4705df0375db@codeaurora.org>
+ <CAK8P3a2tumcR7mcE3++cofhF-FHzgZg_1OF+GXCZuwGckMOF1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180326140118.GA221690-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <CAK8P3a2tumcR7mcE3++cofhF-FHzgZg_1OF+GXCZuwGckMOF1Q@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eric Wehage <Eric.Wehage-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Oliver <oohall@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 26/03/18 08:01 AM, Bjorn Helgaas wrote:
-> On Mon, Mar 26, 2018 at 12:11:38PM +0100, Jonathan Cameron wrote:
->> On Tue, 13 Mar 2018 10:43:55 -0600
->> Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->>> It turns out that root ports that support P2P are far less common than 
->>> anyone thought. So it will likely have to be a white list.
+On 3/26/2018 9:43 AM, Arnd Bergmann wrote:
+> On Wed, Mar 21, 2018 at 2:58 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>> On 3/21/2018 8:53 AM, Sinan Kaya wrote:
+>>> BTW, I have no idea what compiler barrier does on PPC and if
+>>>
+>>> wrltel() == compiler barrier() + wrltel_relaxed()
+>>>
+>>> can be said.
 >>
->> This came as a bit of a surprise to our PCIe architect.
+>> this should have been
 >>
->> His follow up was whether it was worth raising an ECR for the PCIe spec
->> to add a capability bit to allow this to be discovered.  This might
->> long term avoid the need to maintain the white list for new devices.
->>
->> So is it worth having a long term solution for making this discoverable?
+>> writel_relaxed() == compiler barrier() + __raw_writel()
 > 
-> It was surprising to me that there's no architected way to discover
-> this.  It seems like such an obvious thing that I guess I assumed the
-> omission was intentional, i.e., maybe there's something that makes it
-> impractical, but it would be worth at least asking somebody in the
-> SIG.  It seems like for root ports in the same root complex, at least,
-> there could be a bit somewhere in the root port or the RCRB (which
-> Linux doesn't support yet).
+> I don't think anyone clarified this so far, but there are additional differences
+> between the two, writel_relaxed() assumes we are talking to a 32-bit
+> little-endian
+> MMIO register, while __raw_writel() is primarily used for writing into
+> memory-type
+> regions with no particular byte order. This means:
+> 
+> - writel_relaxed() must perform a byte swap when running on big-endian kernels
+> - when used with __packed MMIO pointers, __raw_writel() may turn into a series
+>   of byte writes, while writel_relaxed() must result in a single 32-bit access.
+> - A set if consecutive writel_relaxed() on the same device is issued in program
+>   order, while __raw_writel() is not ordered. This typically requires
+> only a compiler
+>   barrier, but may also need a CPU barrier (in addition to the
+> barriers we use to
+>   serialize with spinlocks and DMA in writel() but not writel_relaxed()).
 
-Yes, I agree. It would be a good long term solution to have this bit in
-the spec. That would avoid us needing to create a white list for new
-hardware. However, I expect it would be years before we can rely on it
-so someone may yet implement that white list.
+Thanks for the great summary. I didn't know that __raw_writel() could get converted
+to byte writes.
 
-Logan
+> 
+>         Arnd
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
