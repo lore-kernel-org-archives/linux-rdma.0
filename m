@@ -1,49 +1,37 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Mon, 26 Mar 2018 09:01:18 -0500
-Message-ID: <20180326140118.GA221690@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180312193525.2855-1-logang@deltatee.com>
- <20180312193525.2855-2-logang@deltatee.com>
- <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
- <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
- <20180326121138.00005e30@huawei.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH iproute2-next] rdma: Move RDMA UAPI header file to be
+ under RDMA responsibility
+Date: Mon, 26 Mar 2018 08:03:04 -0600
+Message-ID: <c1cd4d27-dce6-84d0-344d-86ff7223add8@gmail.com>
+References: <20180325063856.31709-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180326121138.00005e30-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eric Wehage <Eric.Wehage-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180325063856.31709-1-leon@kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 26, 2018 at 12:11:38PM +0100, Jonathan Cameron wrote:
-> On Tue, 13 Mar 2018 10:43:55 -0600
-> Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
-> > It turns out that root ports that support P2P are far less common than 
-> > anyone thought. So it will likely have to be a white list.
+On 3/25/18 12:38 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> This came as a bit of a surprise to our PCIe architect.
+> In iproute2 package, the updates of UAPIs files are performed
+> after the needed feature lands in kernel's net-next tree.
 > 
-> His follow up was whether it was worth raising an ECR for the PCIe spec
-> to add a capability bit to allow this to be discovered.  This might
-> long term avoid the need to maintain the white list for new devices.
+> Such development flow created delays to the rdma tool developers,
+> who uses rdma-next tree as a basis for their work.
 > 
-> So is it worth having a long term solution for making this discoverable?
+> Move RDMA UAPI file to be under rdma/ folder, so whole responsibility
+> of syncing this file will be on them.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  rdma/Makefile                                      | 1 +
+>  {include => rdma/include}/uapi/rdma/rdma_netlink.h | 0
+>  2 files changed, 1 insertion(+)
+>  rename {include => rdma/include}/uapi/rdma/rdma_netlink.h (100%)
 
-It was surprising to me that there's no architected way to discover
-this.  It seems like such an obvious thing that I guess I assumed the
-omission was intentional, i.e., maybe there's something that makes it
-impractical, but it would be worth at least asking somebody in the
-SIG.  It seems like for root ports in the same root complex, at least,
-there could be a bit somewhere in the root port or the RCRB (which
-Linux doesn't support yet).
+applied to iproute2-next
