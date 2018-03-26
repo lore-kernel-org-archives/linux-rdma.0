@@ -1,119 +1,60 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH iproute2-next 2/2] rdma: Print net device name and index
- for RDMA device
-Date: Mon, 26 Mar 2018 10:17:12 -0500
-Message-ID: <dcaa5a29-e39a-b325-5146-3ceb5e7b0f40@opengridcomputing.com>
-References: <20180326082829.21214-1-leon@kernel.org>
- <20180326082829.21214-3-leon@kernel.org>
+Subject: Re: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking
+ information
+Date: Mon, 26 Mar 2018 10:24:25 -0500
+Message-ID: <09f5080f-04d2-3b5e-74fd-7aba85516097@opengridcomputing.com>
+References: <cover.1520020530.git.swise@opengridcomputing.com>
+ <743dc7a5306f9b3368fcd4c143cdd822250444a6.1520020530.git.swise@opengridcomputing.com>
+ <f6dd4255-69b2-bb90-de92-bb633f7248ef@gmail.com>
+ <0443b8e0-17ff-1e62-51ba-ba1fa0e0d529@opengridcomputing.com>
+ <8d788e10-c170-9b94-09f0-98515fdd5bac@gmail.com>
+ <783e600a-9296-8ea0-003e-59e48fd5234b@opengridcomputing.com>
+ <20180326150826.GH1877@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180326082829.21214-3-leon@kernel.org>
+In-Reply-To: <20180326150826.GH1877@mtr-leonro.local>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, David Ahern <dsahern@gmail.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: David Ahern <dsahern@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 3/26/2018 3:28 AM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
->
-> The RDMA devices are operated in RoCE and iWARP modes have net device
-> underneath. Present their names in regular output and their net index
-> in detailed mode.
->
-> [root@nps ~]# rdma link show mlx5_3/1
-> 4/1: mlx5_3/1: state ACTIVE physical_state LINK_UP netdev ens7
-> [root@nps ~]# rdma link show mlx5_3/1 -d
-> 4/1: mlx5_3/1: state ACTIVE physical_state LINK_UP netdev ens7 netdev_index 7
->     caps: <CM, IP_BASED_GIDS>
->
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  rdma/include/uapi/rdma/rdma_netlink.h |  4 ++++
->  rdma/link.c                           | 21 +++++++++++++++++++++
->  rdma/utils.c                          |  2 ++
->  3 files changed, 27 insertions(+)
->
-> diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-> index 9446a721..45474f13 100644
-> --- a/rdma/include/uapi/rdma/rdma_netlink.h
-> +++ b/rdma/include/uapi/rdma/rdma_netlink.h
-> @@ -388,6 +388,10 @@ enum rdma_nldev_attr {
->  	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
->  	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
->
-> +	/* Netdev information for relevant protocols, like RoCE and iWARP */
-> +	RDMA_NLDEV_ATTR_NDEV_INDEX,		/* u32 */
-> +	RDMA_NLDEV_ATTR_NDEV_NAME,		/* string */
-> +
->  	RDMA_NLDEV_ATTR_MAX
->  };
->  #endif /* _RDMA_NETLINK_H */
-> diff --git a/rdma/link.c b/rdma/link.c
-> index 66bcd50e..7e914c87 100644
-> --- a/rdma/link.c
-> +++ b/rdma/link.c
-> @@ -205,6 +205,26 @@ static void link_print_phys_state(struct rd *rd, struct nlattr **tb)
->  		pr_out("physical_state %s ", phys_state_to_str(phys_state));
->  }
->
-> +static void link_print_netdev(struct rd *rd, struct nlattr **tb)
-> +{
-> +	const char *netdev_name;
-> +	uint32_t idx;
-> +
-> +	if (!tb[RDMA_NLDEV_ATTR_NDEV_NAME] || !tb[RDMA_NLDEV_ATTR_NDEV_INDEX])
-> +		return;
-> +
-> +	netdev_name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_NDEV_NAME]);
-> +	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_NDEV_INDEX]);
-> +	if (rd->json_output) {
-> +		jsonw_string_field(rd->jw, "netdev", netdev_name);
-> +		jsonw_uint_field(rd->jw, "netdev_index", idx);
-> +	} else {
-> +		pr_out("netdev %s ", netdev_name);
-> +		if (rd->show_details)
-> +			pr_out("netdev_index %u ", idx);
-> +	}
-> +}
-> +
+On 3/26/2018 10:08 AM, Leon Romanovsky wrote:
+> On Mon, Mar 26, 2018 at 09:55:46AM -0500, Steve Wise wrote:
+>>
+>> On 3/26/2018 9:44 AM, David Ahern wrote:
+>>> On 3/26/18 8:30 AM, Steve Wise wrote:
+>>>> On 3/26/2018 9:17 AM, David Ahern wrote:
+>>>>> On 2/27/18 9:07 AM, Steve Wise wrote:
+>>>>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
+>>>>>> index 5809f70..e55205b 100644
+>>>>>> --- a/rdma/rdma.h
+>>>>>> +++ b/rdma/rdma.h
+>>>>>> @@ -18,10 +18,12 @@
+>>>>>>  #include <libmnl/libmnl.h>
+>>>>>>  #include <rdma/rdma_netlink.h>
+>>>>>>  #include <time.h>
+>>>>>> +#include <net/if_arp.h>
+>>>>>>
+>>>>>>  #include "list.h"
+>>>>>>  #include "utils.h"
+>>>>>>  #include "json_writer.h"
+>>>>>> +#include <rdma/rdma_cma.h>
+>>>>>>
+>>>>> did you forget to add rdma_cma.h? I don't see that file in my repo.
+>>>> It is provided by the rdma-core package, upon which rdma tool now
+>>>> depends for the rdma_port_space enum.
+>>>>
+>>> You need to add a check for the package, and only build rdma if that
+>>> package is installed. See check_mnl in configure for an example.
+>> Ok, that makes sense.
+> IMHO, better solution will be to copy those files to iproute2.
 
-Why is the netdev_index under 'show_details'?
+Hey Leon,
 
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-
->  static int link_parse_cb(const struct nlmsghdr *nlh, void *data)
->  {
->  	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-> @@ -241,6 +261,7 @@ static int link_parse_cb(const struct nlmsghdr *nlh, void *data)
->  	link_print_lmc(rd, tb);
->  	link_print_state(rd, tb);
->  	link_print_phys_state(rd, tb);
-> +	link_print_netdev(rd, tb);
->  	if (rd->show_details)
->  		link_print_caps(rd, tb);
->
-> diff --git a/rdma/utils.c b/rdma/utils.c
-> index f9460162..4fed80ab 100644
-> --- a/rdma/utils.c
-> +++ b/rdma/utils.c
-> @@ -375,6 +375,8 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
->  	[RDMA_NLDEV_ATTR_RES_STATE]		= MNL_TYPE_U8,
->  	[RDMA_NLDEV_ATTR_RES_PID]		= MNL_TYPE_U32,
->  	[RDMA_NLDEV_ATTR_RES_KERN_NAME]	= MNL_TYPE_NUL_STRING,
-> +	[RDMA_NLDEV_ATTR_NDEV_INDEX]		= MNL_TYPE_U32,
-> +	[RDMA_NLDEV_ATTR_NDEV_NAME]		= MNL_TYPE_NUL_STRING,
->  };
->
->  int rd_attr_cb(const struct nlattr *attr, void *data)
-> --
-> 2.14.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why is it better in your opinion?  My gut tells me adding rdma_cma.h to
+iproute2 means more uabi type syncing.
