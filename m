@@ -1,78 +1,43 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 1/2] rdma: Update RDMA header file
-Date: Mon, 26 Mar 2018 11:28:28 +0300
-Message-ID: <20180326082829.21214-2-leon@kernel.org>
-References: <20180326082829.21214-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180326082829.21214-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: RFC on writel and writel_relaxed
+Date: Mon, 26 Mar 2018 11:08:45 +0000
+Message-ID: <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
+References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
+ <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
+ <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
+ <1521692689.16434.293.camel@kernel.crashing.org>
+ <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
+ <1521726722.16434.312.camel@kernel.crashing.org>
+ <20180323163510.GC13033@ziepe.ca>
+ <1521854626.16434.359.camel@kernel.crashing.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <1521854626.16434.359.camel@kernel.crashing.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Sinan Kaya <okaya@codeaurora.org>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT
+ AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
-
-Update RDMA netlink header file to kernel commit 29cf1351d450
-("RDMA/nldev: provide detailed PD information")
-
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/include/uapi/rdma/rdma_netlink.h | 38 +++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index dbac3b82..9446a721 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -238,6 +238,14 @@ enum rdma_nldev_command {
-
- 	RDMA_NLDEV_CMD_RES_QP_GET, /* can dump */
-
-+	RDMA_NLDEV_CMD_RES_CM_ID_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_CQ_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_MR_GET, /* can dump */
-+
-+	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
-+
- 	RDMA_NLDEV_NUM_OPS
- };
-
-@@ -350,6 +358,36 @@ enum rdma_nldev_attr {
- 	 */
- 	RDMA_NLDEV_ATTR_RES_KERN_NAME,		/* string */
-
-+	RDMA_NLDEV_ATTR_RES_CM_ID,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CM_ID_ENTRY,	/* nested table */
-+	/*
-+	 * rdma_cm_id port space.
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PS,			/* u32 */
-+	/*
-+	 * Source and destination socket addresses
-+	 */
-+	RDMA_NLDEV_ATTR_RES_SRC_ADDR,		/* __kernel_sockaddr_storage */
-+	RDMA_NLDEV_ATTR_RES_DST_ADDR,		/* __kernel_sockaddr_storage */
-+
-+	RDMA_NLDEV_ATTR_RES_CQ,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CQ_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_CQE,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_USECNT,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_POLL_CTX,		/* u8 */
-+
-+	RDMA_NLDEV_ATTR_RES_MR,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_MR_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_RKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_LKEY,		/* u32 */
-+	RDMA_NLDEV_ATTR_RES_IOVA,		/* u64 */
-+	RDMA_NLDEV_ATTR_RES_MRLEN,		/* u64 */
-+
-+	RDMA_NLDEV_ATTR_RES_PD,			/* nested table */
-+	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
-+	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
-+	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
-+
- 	RDMA_NLDEV_ATTR_MAX
- };
- #endif /* _RDMA_NETLINK_H */
+PiA+IFRoaXMgaXMgYSBzdXBlciBwZXJmb3JtYW5jZSBjcml0aWNhbCBvcGVyYXRpb24gZm9yIG1v
+c3QgZHJpdmVycyBhbmQNCj4gPiBkaXJlY3RseSBpbXBhY3RzIG5ldHdvcmsgcGVyZm9ybWFuY2Uu
+DQoNClBlcmhhcHMgdGhlcmUgb3VnaHQgdG8gYmUgd3JpdGVsX25vYmFycmllcigpIChldGMpIHRo
+YXQgbmV2ZXIgY29udGFpbg0KYW55IGJhcnJpZXJzIGF0IGFsbC4NClRoaXMgbWlnaHQgbWVhbiB0
+aGF0IHRoZXkgYXJlIGFsd2F5cyBqdXN0IHRoZSBtZW1vcnkgb3BlcmF0aW9uLA0KYnV0IGl0IHdv
+dWxkIG1ha2UgaXQgbW9yZSBvYnZpb3VzIHdoYXQgdGhlIGRyaXZlciB3YXMgZG9pbmcuDQoNClRo
+ZSBkcml2ZXIgd291bGQgdGhlbiBiZSBleHBsaWNpdGx5IHJlc3BvbnNpYmxlIGZvciBhbGwgdGhl
+IHJtYigpLCB3bWIoKQ0KYW5kIG1taW93YigpIChldGMpLg0KUGVyZm9ybWFuY2UgY3JpdGljYWwg
+cGF0aHMgY291bGQgdGhlbiBhdm9pZCBhbGwgdGhlIGV4dHJhIGJhcnJpZXJzLg0KDQoJRGF2aWQN
+Cg0KDQo=
