@@ -1,59 +1,55 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking
- information
-Date: Mon, 26 Mar 2018 16:34:44 -0500
-Message-ID: <b5f651c2-8f71-bc1b-32b8-f4c5175fb4a0@opengridcomputing.com>
-References: <cover.1520020530.git.swise@opengridcomputing.com>
- <743dc7a5306f9b3368fcd4c143cdd822250444a6.1520020530.git.swise@opengridcomputing.com>
- <f6dd4255-69b2-bb90-de92-bb633f7248ef@gmail.com>
- <0443b8e0-17ff-1e62-51ba-ba1fa0e0d529@opengridcomputing.com>
- <20180326211505.GF15554@ziepe.ca>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Tue, 27 Mar 2018 08:26:58 +1100
+Message-ID: <1522099618.7364.0.camel@kernel.crashing.org>
+References: <3611eabe-2999-1482-b2b4-6d216bbe4762@codeaurora.org>
+ <CAOSf1CFmoK2XSn0=qAtiVEO9t4i-DHGgfieiedDfuO6E3tpkQw@mail.gmail.com>
+ <4e5c745a-8b9b-959e-8893-d99cd6032484@codeaurora.org>
+ <1521692689.16434.293.camel@kernel.crashing.org>
+ <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
+ <1521726722.16434.312.camel@kernel.crashing.org>
+ <20180323163510.GC13033@ziepe.ca>
+ <1521854626.16434.359.camel@kernel.crashing.org>
+ <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
+ <20180326165425.GA15554@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180326211505.GF15554@ziepe.ca>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: David Ahern <dsahern@gmail.com>, leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <20180326165425.GA15554@ziepe.ca>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@ACULAB.COM>
+Cc: Sinan Kaya <okaya@codeaurora.org>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT
+ AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, 2018-03-26 at 10:54 -0600, Jason Gunthorpe wrote:
+> On Mon, Mar 26, 2018 at 11:08:45AM +0000, David Laight wrote:
+> > > > This is a super performance critical operation for most drivers and
+> > > > directly impacts network performance.
+> > 
+> > Perhaps there ought to be writel_nobarrier() (etc) that never contain
+> > any barriers at all.
+> > This might mean that they are always just the memory operation,
+> > but it would make it more obvious what the driver was doing.
+> 
+> I think that is what writel_relaxed is supposed to be.
+> 
+> The only restriction it has is that the writes to a single device
+> using UC memory must be kept in program order..
 
-On 3/26/2018 4:15 PM, Jason Gunthorpe wrote:
-> On Mon, Mar 26, 2018 at 09:30:41AM -0500, Steve Wise wrote:
->>
->> On 3/26/2018 9:17 AM, David Ahern wrote:
->>> On 2/27/18 9:07 AM, Steve Wise wrote:
->>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
->>>> index 5809f70..e55205b 100644
->>>> +++ b/rdma/rdma.h
->>>> @@ -18,10 +18,12 @@
->>>>  #include <libmnl/libmnl.h>
->>>>  #include <rdma/rdma_netlink.h>
->>>>  #include <time.h>
->>>> +#include <net/if_arp.h>
->>>>  
->>>>  #include "list.h"
->>>>  #include "utils.h"
->>>>  #include "json_writer.h"
->>>> +#include <rdma/rdma_cma.h>
->>>>  
->>> did you forget to add rdma_cma.h? I don't see that file in my repo.
->> It is provided by the rdma-core package, upon which rdma tool now
->> depends for the rdma_port_space enum.
-> It is a kernel bug that enum is not in an include/uapi/rdma header
->
-> Fix it there and don't try to use rdma-core headers to get kernel ABI.
->
-> Jason
+Which requires barriers on some architectures :-)
 
-I wish you'd commented on this just a little sooner.  I just resent v3
-of this series... with rdma_cma.h included. :)
+Also we don't have a clear definition of what happens on WC memory.
 
-How about the restrack/nldev code just translates the port space from
-enum rdma_port_space to a new ABI enum, say nldev_rdma_port_space, that
-i add to rdma_netlink.h?  I'd hate to open the can of worms of trying to
-split rdma_cma.h into uabi and no uabi headers. :(
-
-Steve.
+Cheers,
+Ben.
