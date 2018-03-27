@@ -1,54 +1,54 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Alexander Duyck <alexander.duyck@gmail.com>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 08:35:19 +1100
-Message-ID: <1522186519.7364.64.camel@kernel.crashing.org>
-References: <1521692689.16434.293.camel@kernel.crashing.org>
-         <CAOSf1CFv1HHCL3YOVhRn2U=grdNjaQ=A4m3xwxN2Rek1-_TySg@mail.gmail.com>
-         <1521726722.16434.312.camel@kernel.crashing.org>
-         <20180323163510.GC13033@ziepe.ca>
-         <1521854626.16434.359.camel@kernel.crashing.org>
-         <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
-         <20180326165425.GA15554@ziepe.ca>
-         <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
-         <20180326202545.GB15554@ziepe.ca>
-         <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
-         <20180326210951.GD15554@ziepe.ca>
-         <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
-         <1522101616.7364.13.camel@kernel.crashing.org>
-         <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+Date: Tue, 27 Mar 2018 14:54:09 -0700
+Message-ID: <CAKgT0UfZKBTYPCqWtBF=N5TPFrbsv0ZU+2GHMqF3J4BM9Hw4yw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
 Sender: netdev-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, Will Deacon <will.deacon@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Alexander Duyck <alexander.duyck@gmail.com>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 10:46 -0400, Sinan Kaya wrote:
->  combined buffers.
-> 
-> Alex:
-> "Don't bother. I can tell you right now that for x86 you have to have a
-> wmb() before the writel().
+On Tue, Mar 27, 2018 at 2:35 PM, Benjamin Herrenschmidt
+<benh@kernel.crashing.org> wrote:
+> On Tue, 2018-03-27 at 10:46 -0400, Sinan Kaya wrote:
+>>  combined buffers.
+>>
+>> Alex:
+>> "Don't bother. I can tell you right now that for x86 you have to have a
+>> wmb() before the writel().
+>
+> No, this isn't the semantics of writel. You shouldn't need it unless
+> something changed and we need to revisit our complete understanding of
+> *all* MMIO accessor semantics.
 
-No, this isn't the semantics of writel. You shouldn't need it unless
-something changed and we need to revisit our complete understanding of
-*all* MMIO accessor semantics.
+The issue seems to be that there have been two different ways of
+dealing with this. There has historically been a number of different
+drivers that have been carrying this wmb() workaround since something
+like 2002. I get that the semantics for writel might have changed
+since then, but those of us who already have the wmb() in our drivers
+will be very wary of anyone wanting to go through and remove them
+since writel is supposed to be "good enough". I would much rather err
+on the side of caution here.
 
-At least for UC space, it has always been accepted (and enforced) that
-writel would not require any other barrier to order vs. previous stores
-to memory.
+I view the wmb() + writel_relaxed() as more of a driver owning and
+handling this itself. Besides in the Intel Ethernet driver case it is
+better performance as our wmb() placement for us also provides a
+secondary barrier so we don't need to add a separate smp_wmb() to deal
+with a potential race we have with the Tx cleanup.
 
-> Based on the comment in
-> (https://www.spinics.net/lists/linux-rdma/msg62666.html):
->     Replacing wmb() + writel() with wmb() + writel_relaxed() will work on
->     PPC, it will just not give you a benefit today.
-> 
-> I say the patch set stays. This gives benefit on ARM, and has no
-> effect on x86 and PowerPC. If you want to look at trying to optimize
-> things further on PowerPC and such then go for it in terms of trying
-> to implement the writel_relaxed(). Otherwise I say we call the ARM
-> goodness a win and don't get ourselves too wrapped up in trying to fix
-> this for all architectures."
+> At least for UC space, it has always been accepted (and enforced) that
+> writel would not require any other barrier to order vs. previous stores
+> to memory.
+
+So the one thing I would question here is if this is UC vs UC or if
+this extends to other types as well? So for x86 we could find
+references to Write Combining being flushed by a write to UC memory,
+however I have yet to find a clear explanation of what a write to UC
+does to WB. My personal inclination would be to err on the side of
+caution. I just don't want us going through and removing the wmb()
+calls because it "should" work. I would want to know for certain it
+will work.
+
+- Alex
