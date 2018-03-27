@@ -1,151 +1,133 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Tue, 27 Mar 2018 16:10:30 +0100
-Message-ID: <20180327151029.GB17494@arm.com>
-References: <1521854626.16434.359.camel@kernel.crashing.org>
- <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
- <20180326165425.GA15554@ziepe.ca>
- <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
- <20180326202545.GB15554@ziepe.ca>
- <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
- <20180326210951.GD15554@ziepe.ca>
- <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
- <1522101616.7364.13.camel@kernel.crashing.org>
- <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking
+ information
+Date: Tue, 27 Mar 2018 18:15:44 +0300
+Message-ID: <20180327151544.GZ1877@mtr-leonro.local>
+References: <cover.1520020530.git.swise@opengridcomputing.com>
+ <743dc7a5306f9b3368fcd4c143cdd822250444a6.1520020530.git.swise@opengridcomputing.com>
+ <f6dd4255-69b2-bb90-de92-bb633f7248ef@gmail.com>
+ <0443b8e0-17ff-1e62-51ba-ba1fa0e0d529@opengridcomputing.com>
+ <20180326211505.GF15554@ziepe.ca>
+ <b5f651c2-8f71-bc1b-32b8-f4c5175fb4a0@opengridcomputing.com>
+ <20180326223033.GK15554@ziepe.ca>
+ <20180327032141.GS1877@mtr-leonro.local>
+ <20180327144455.GG12318@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="gXx2FYK2AghGE4Yq"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+In-Reply-To: <20180327144455.GG12318@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Alexander Duyck <alexander.duyck@gmail.com>, torvalds@linux-foundation.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Steve Wise <swise@opengridcomputing.com>, David Ahern <dsahern@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Alex,
 
-On Tue, Mar 27, 2018 at 10:46:58AM -0400, Sinan Kaya wrote:
-> +netdev, +Alex
-> 
-> On 3/26/2018 6:00 PM, Benjamin Herrenschmidt wrote:
-> > On Mon, 2018-03-26 at 23:30 +0200, Arnd Bergmann wrote:
-> >>  Most of the drivers have a unwound loop with writeq() or something to
-> >>> do it.
-> >>
-> >> But isn't the writeq() barrier much more expensive than anything you'd
-> >> do in function calls?
-> > 
-> > It is for us, and will break any write combining.
-> > 
-> >>>>> The same document says that _relaxed() does not give that guarentee.
-> >>>>>
-> >>>>> The lwn articule on this went into some depth on the interaction with
-> >>>>> spinlocks.
-> >>>>>
-> >>>>> As far as I can see, containment in a spinlock seems to be the only
-> >>>>> different between writel and writel_relaxed..
-> >>>>
-> >>>> I was always puzzled by this: The intention of _relaxed() on ARM
-> >>>> (where it originates) was to skip the barrier that serializes DMA
-> >>>> with MMIO, not to skip the serialization between MMIO and locks.
-> >>>
-> >>> But that was never a requirement of writel(),
-> >>> Documentation/memory-barriers.txt gives an explicit example demanding
-> >>> the wmb() before writel() for ordering system memory against writel.
-> > 
-> > This is a bug in the documentation.
-> > 
-> >> Indeed, but it's in an example for when to use dma_wmb(), not wmb().
-> >> Adding Alexander Duyck to Cc, he added that section as part of
-> >> 1077fa36f23e ("arch: Add lightweight memory barriers dma_rmb() and
-> >> dma_wmb()"). Also adding the other people that were involved with that.
-> > 
-> > Linus himself made it very clear years ago. readl and writel have to
-> > order vs memory accesses.
-> > 
-> >>> I actually have no idea why ARM had that barrier, I always assumed it
-> >>> was to give program ordering to the accesses and that _relaxed allowed
-> >>> re-ordering (the usual meaning of relaxed)..
-> >>>
-> >>> But the barrier document makes it pretty clear that the only
-> >>> difference between the two is spinlock containment, and WillD wrote
-> >>> this text, so I belive it is accurate for ARM.
-> >>>
-> >>> Very confusing.
-> >>
-> >> It does mention serialization with both DMA and locks in the
-> >> section about  readX_relaxed()/writeX_relaxed(). The part
-> >> about DMA is very clear here, and I must have just forgotten
-> >> the exact semantics with regards to spinlocks. I'm still not
-> >> sure what prevents a writel() from leaking out the end of a
-> >> spinlock section that doesn't happen with writel_relaxed(), since
-> >> the barrier in writel() comes before the access, and the
-> >> spin_unlock() shouldn't affect the external buses.
-> > 
-> > So...
-> > 
-> > Historically, what happened is that we (we means whoever participated
-> > in the discussion on the list with Linus calling the shots really)
-> > decided that there was no sane way for drivers to understand a world
-> > where readl/writel didn't fully order things vs. memory accesses (ie,
-> > DMA).
-> > 
-> > So it should always be correct to do:
-> > 
-> > 	- Write to some in-memory buffer
-> > 	- writel() to kick the DMA read of that buffer
-> > 
-> > without any extra barrier.
-> > 
-> > The spinlock situation however got murky. Mostly that came up because
-> > on architecture (I forgot who, might have been ia64) has a hard time
-> > providing that consistency without making writel insanely expensive.
-> > 
-> > Thus they created mmiowb whose main purpose was precisely to order
-> > writel with a following spin_unlock.
-> > 
-> > I decided not to go down that path on power because getting all drivers
-> > "fixed" to do the right thing was going to be a losing battle, and
-> > instead added per-cpu tracking of writel in order to "escalate" to a
-> > heavier barrier in spin_unlock itself when necessary.
-> > 
-> > Now, all this happened more than a decade ago and it's possible that
-> > the understanding or expectations "shifted" over time...
-> 
-> Alex is raising concerns on the netdev list.
-> 
-> Sinan
-> "We are being told that if you use writel(), then you don't need a wmb() on
-> all architectures."
-> 
-> Alex:
-> "I'm not sure who told you that but that is incorrect, at least for
-> x86. If you attempt to use writel() without the wmb() we will have to
-> NAK the patches. We will accept the wmb() with writel_releaxed() since
-> that solves things for ARM."
-> 
-> > Jason is seeking behavior clarification for write combined buffers.
-> 
-> Alex:
-> "Don't bother. I can tell you right now that for x86 you have to have a
-> wmb() before the writel().
+--gXx2FYK2AghGE4Yq
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-To clarify: are you saying that on x86 you need a wmb() prior to a writel
-if you want that writel to be ordered after prior writes to memory? Is this
-specific to WC memory or some other non-standard attribute?
+On Tue, Mar 27, 2018 at 08:44:55AM -0600, Jason Gunthorpe wrote:
+> On Tue, Mar 27, 2018 at 06:21:41AM +0300, Leon Romanovsky wrote:
+> > On Mon, Mar 26, 2018 at 04:30:33PM -0600, Jason Gunthorpe wrote:
+> > > On Mon, Mar 26, 2018 at 04:34:44PM -0500, Steve Wise wrote:
+> > > >
+> > > > On 3/26/2018 4:15 PM, Jason Gunthorpe wrote:
+> > > > > On Mon, Mar 26, 2018 at 09:30:41AM -0500, Steve Wise wrote:
+> > > > >>
+> > > > >> On 3/26/2018 9:17 AM, David Ahern wrote:
+> > > > >>> On 2/27/18 9:07 AM, Steve Wise wrote:
+> > > > >>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
+> > > > >>>> index 5809f70..e55205b 100644
+> > > > >>>> +++ b/rdma/rdma.h
+> > > > >>>> @@ -18,10 +18,12 @@
+> > > > >>>>  #include <libmnl/libmnl.h>
+> > > > >>>>  #include <rdma/rdma_netlink.h>
+> > > > >>>>  #include <time.h>
+> > > > >>>> +#include <net/if_arp.h>
+> > > > >>>>
+> > > > >>>>  #include "list.h"
+> > > > >>>>  #include "utils.h"
+> > > > >>>>  #include "json_writer.h"
+> > > > >>>> +#include <rdma/rdma_cma.h>
+> > > > >>>>
+> > > > >>> did you forget to add rdma_cma.h? I don't see that file in my r=
+epo.
+> > > > >> It is provided by the rdma-core package, upon which rdma tool now
+> > > > >> depends for the rdma_port_space enum.
+> > > > > It is a kernel bug that enum is not in an include/uapi/rdma header
+> > > > >
+> > > > > Fix it there and don't try to use rdma-core headers to get kernel=
+ ABI.
+> > > > >
+> > > > > Jason
+> > > >
+> > > > I wish you'd commented on this just a little sooner.=A0 I just rese=
+nt v3
+> > > > of this series... with rdma_cma.h included. :)
+> > > >
+> > > > How about the restrack/nldev code just translates the port space fr=
+om
+> > > > enum rdma_port_space to a new ABI enum, say nldev_rdma_port_space, =
+that
+> > > > i add to rdma_netlink.h?=A0 I'd hate to open the can of worms of tr=
+ying to
+> > > > split rdma_cma.h into uabi and no uabi headers. :(
+> > >
+> > > If port space is already part of the ABI there isn't much reason to
+> > > translate it.
+> > >
+> > > You just need to pick the right header to put it in, since it is a ve=
+rbs
+> > > define it doesn't belong in the netlink header.
+> >
+> > I completely understand Steve's concerns.
+> >
+> > I tried to do such thing (expose kernel headers) in first incarnation of
+> > rdmatool with attempt to clean IB/core as well to ensure that we won't =
+expose
+> > anything that is not implemented. It didn't go well.
+>
+> rdma-core is now using the kernel uapi/ headers natively, seems to be
+> going OK. What problem did you face?
 
-The only reason we have wmb() inside writel() on arm, arm64 and power is for
-parity with x86 because Linus (CC'd) wanted architectures to order I/O vs
-memory by default so that it was easier to write portable drivers. The
-performance impact of that implicit barrier is non-trivial, but we want the
-driver portability and I went as far as adding generic _relaxed versions for
-the cases where ordering isn't required. You seem to be suggesting that none
-of this is necessary and drivers would already run into problems on x86 if
-they didn't use wmb() explicitly in conjunction with writel, which I find
-hard to believe and is in direct contradiction with the current Linux I/O
-memory model (modulo the broken example in the dma_*mb section of
-memory-barriers.txt).
+I didn't agree to move to UAPI defines which are not implemented and not
+used in the kernel, so I sent small number of patches similar to those [1, =
+2].
 
-Has something changed?
+Those patches were rejected.
 
-Will
+So please don't mix Steve's need to use 3 defines with very large and
+painful task to expose proper UAPIs.
+
+Thanks
+
+[1] https://patchwork.kernel.org/patch/9901319/
+[2] https://patchwork.kernel.org/patch/9901317/
+
+>
+> Jason
+
+--gXx2FYK2AghGE4Yq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlq6YB8ACgkQ5GN7iDZy
+WKd0Lw/9EE4binrL3CeYLPKV+mhN5p37T82i0IRvHvdSgIHe3VuIkeQW28qmYy6y
+l9WBjF0+mX9R8K1LIEsku1MxieWSdUgAHU+QsV1JAcaUCayj1HrU7pYohhheQrB/
+YPZDAOwOWedoTmPtTCcH5X7feC82uHZkRj3x/sMnJCh7RgMMM783xBq8M2+n63P7
+HVJyAcfv4WKz09Edp2o25m7M7rwi5a7PDapPYQ4oztDjU+mbEhCI7lzmBrIXgULI
+oxtNdvNTuqEc1SPHpuVLDdbWtkVoEus3JFbewWK71v/ofb/hKsDROdKK3SODqLzw
+UPnOa2qcD/ScTzhVn1q0AB6dxofvHH7cXL5C3UofVht2mceowX9lMXji5Ufxz3Sn
+8d+Qr8+ByQaxGneMjZXgAKkfXLuOActBTrmNu3R3WCYYCJJNsPUd59PeOOYrkywm
+Om7yzlCiazpWsyhu8KEc68FOYqhlY3ulYZxaaMhYEE9D+9rXWBYfXqmFJwgMoMQN
+RIbnZvjI9M6LLw47vHfCtPPyVltVTz99S3Yd+IqfVeUvvBAGxRlL1AAA8NwFIa0D
+MtX/JQfyUbts9Ws099V9FKi8qWLZ6E5pFnPam07KC18pUe6lklED7iHWrxv9H4In
+OYJXAYQMj3dOTwq6JuwOUtFZIrZlouvz3xNnWXhosQaQylKatI0=
+=bZkv
+-----END PGP SIGNATURE-----
+
+--gXx2FYK2AghGE4Yq--
