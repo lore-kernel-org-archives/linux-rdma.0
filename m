@@ -1,44 +1,50 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH v3 iproute2-next 1/8] rdma: include rdma-core
- <rdma/rdma_cma.h>
-Date: Tue, 27 Mar 2018 07:23:27 -0600
-Message-ID: <6392b5eb-4966-460c-0a63-ef3124399a9a@gmail.com>
-References: <cover.1522097991.git.swise@opengridcomputing.com>
- <326e72eaa0a6ed3d42aa857f13c80232a2550c77.1522097991.git.swise@opengridcomputing.com>
- <20180327054622.GU1877@mtr-leonro.local>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Tue, 27 Mar 2018 09:46:51 -0400
+Message-ID: <bba5ebd8-0643-6f09-9367-419b49e53535@codeaurora.org>
+References: <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
+ <ebb36fd4-62e2-394a-219f-686c45a6dc75@codeaurora.org>
+ <1522101717.7364.14.camel@kernel.crashing.org>
+ <20180326222756.GJ15554@ziepe.ca>
+ <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
+ <1522141019.7364.43.camel@kernel.crashing.org>
+ <20180327095745.GB29373@arm.com>
+ <CAK8P3a0s+kP5=qEqTqAHGwB7j9ydaXD+oQJdLrFz=8swuWaDBg@mail.gmail.com>
+ <20180327100944.GD29373@arm.com>
+ <CAK8P3a0Xep0-EpGS9jnjUf1iJhRxH1WRztGQrvkdrLVaxBPT1w@mail.gmail.com>
+ <20180327110258.GF2464@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180327054622.GU1877@mtr-leonro.local>
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <20180327110258.GF2464@arm.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Steve Wise <swise@opengridcomputing.com>
-Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Peter Zijlstra <peterz@infradead.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/26/18 11:46 PM, Leon Romanovsky wrote:
-> On Mon, Mar 26, 2018 at 01:57:32PM -0700, Steve Wise wrote:
->> This avoids requiring rdma-core be installed on systems.
->>
->> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
->> ---
->>  rdma/include/rdma/rdma_cma.h | 728 +++++++++++++++++++++++++++++++++++++++++++
->>  1 file changed, 728 insertions(+)
->>  create mode 100644 rdma/include/rdma/rdma_cma.h
->>
-> 
-> Steve,
-> 
-> Sorry for not spotting it before, you actually need only 3 enums for the
-> cm_id_ps_to_str() from rdma_cma.h.
-> 
-> Simply copy/paste that enum into cm_id_ps_to_str().
-> 
-> Thanks
-> 
+On 3/27/2018 7:02 AM, Will Deacon wrote:
+> -     See Documentation/DMA-API.txt for more information on consistent memory.
+> +     can see it now has ownership.  Note that, when using writel(), a prior
+> +     wmb() is not needed to guarantee that the cache coherent memory writes
+> +     have completed before writing to the MMIO region.  The cheaper
+> +     writel_relaxed() does not provide this guarantee and must not be used
+> +     here.
 
-I think this is Jason's point: if that enum is part of the UAPI why
-isn't it part of a uapi header file?
+Can we say the same thing for iowrite32() and iowrite32be(). I also see wmb()
+in front of these.
 
-We definitely do not want that entire header file brought in to iproute2
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
