@@ -1,70 +1,70 @@
-From: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 01/11] PCI/P2PDMA: Support peer-to-peer memory
-Date: Tue, 27 Mar 2018 09:47:01 +0100
-Message-ID: <20180327094701.0000300d@huawei.com>
-References: <20180312193525.2855-1-logang@deltatee.com>
- <20180312193525.2855-2-logang@deltatee.com>
- <59fd2f5d-177f-334a-a9c4-0f8a6ec7c303@codeaurora.org>
- <24d8e5c2-065d-8bde-3f5d-7f158be9c578@deltatee.com>
- <20180326121138.00005e30@huawei.com>
- <20180326140118.GA221690@bhelgaas-glaptop.roam.corp.google.com>
- <c717eb06-1e83-f0f3-4d6c-15531aa808e0@deltatee.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Tue, 27 Mar 2018 19:56:59 +1100
+Message-ID: <1522141019.7364.43.camel@kernel.crashing.org>
+References: <1521854626.16434.359.camel@kernel.crashing.org>
+ <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
+ <20180326165425.GA15554@ziepe.ca>
+ <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
+ <20180326202545.GB15554@ziepe.ca>
+ <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
+ <20180326210951.GD15554@ziepe.ca>
+ <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
+ <ebb36fd4-62e2-394a-219f-686c45a6dc75@codeaurora.org>
+ <1522101717.7364.14.camel@kernel.crashing.org>
+ <20180326222756.GJ15554@ziepe.ca>
+ <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <c717eb06-1e83-f0f3-4d6c-15531aa808e0-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eric Wehage <Eric.Wehage-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "open list:LINUX FOR
+ POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 26 Mar 2018 09:46:24 -0600
-Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
-
-> On 26/03/18 08:01 AM, Bjorn Helgaas wrote:
-> > On Mon, Mar 26, 2018 at 12:11:38PM +0100, Jonathan Cameron wrote:  
-> >> On Tue, 13 Mar 2018 10:43:55 -0600
-> >> Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:  
-> >>> It turns out that root ports that support P2P are far less common than 
-> >>> anyone thought. So it will likely have to be a white list.  
-> >>
-> >> This came as a bit of a surprise to our PCIe architect.
-> >>
-> >> His follow up was whether it was worth raising an ECR for the PCIe spec
-> >> to add a capability bit to allow this to be discovered.  This might
-> >> long term avoid the need to maintain the white list for new devices.
-> >>
-> >> So is it worth having a long term solution for making this discoverable?  
+On Tue, 2018-03-27 at 09:56 +0200, Arnd Bergmann wrote:
+> On Tue, Mar 27, 2018 at 12:27 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > On Tue, Mar 27, 2018 at 09:01:57AM +1100, Benjamin Herrenschmidt wrote:
+> > > On Mon, 2018-03-26 at 17:46 -0400, Sinan Kaya wrote:
 > > 
-> > It was surprising to me that there's no architected way to discover
-> > this.  It seems like such an obvious thing that I guess I assumed the
-> > omission was intentional, i.e., maybe there's something that makes it
-> > impractical, but it would be worth at least asking somebody in the
-> > SIG.  It seems like for root ports in the same root complex, at least,
-> > there could be a bit somewhere in the root port or the RCRB (which
-> > Linux doesn't support yet).  
+> > I even see patches adding wmb() based on actual observed memory
+> > corruption during testing on Intel:
+> > 
+> > https://patchwork.kernel.org/patch/10177207/
+> > 
+> > So you think all of this is unnecessary and writel is totally strongly
+> > ordered, even on multi-socket Intel?
 > 
-> Yes, I agree. It would be a good long term solution to have this bit in
-> the spec. That would avoid us needing to create a white list for new
-> hardware. However, I expect it would be years before we can rely on it
-> so someone may yet implement that white list.
-> 
-> Logan
+> This example adds a wmb() between two writes to a coherent DMA
+> area, it is definitely required there. 
 
-I'll see if I can get our PCI SIG people to follow this through and see if
-it is just an omission or as Bjorn suggested, there is some reason we
-aren't thinking of that makes it hard.
+Ah you are right, I incorrectly assumed that the "prod_db" function was
+an MMIO. So we do NOT have a counter example where wmb is needed on
+x86, pfiew ! :-)
 
-Agreed that it is a somewhat tangential question to what to do with current
-hardware, but let's get the ball rolling if possible.
+> I'm pretty sure I've never seen
+> any bug reports pointing to a missing wmb() between memory
+> and MMIO write accesses, but if you remember seeing them in the
+> list, maybe you can look again for some evidence of something going
+> wrong on x86 without it?
 
-Jonathan
+The interesting thing is that we do seem to have a whole LOT of these
+spurrious wmb before writel all over the tree, I suspect because of
+that incorrect recommendation in memory-barriers.txt.
+
+We should fix that.
+
+Cheers,
+Ben.
