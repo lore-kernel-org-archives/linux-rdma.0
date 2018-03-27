@@ -1,12 +1,8 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Will Deacon <will.deacon@arm.com>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Tue, 27 Mar 2018 22:23:21 +1100
-Message-ID: <1522149801.7364.49.camel@kernel.crashing.org>
-References: <1521854626.16434.359.camel@kernel.crashing.org>
- <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
- <20180326165425.GA15554@ziepe.ca>
- <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
- <20180326202545.GB15554@ziepe.ca>
+Date: Tue, 27 Mar 2018 12:24:57 +0100
+Message-ID: <20180327112456.GA15531@arm.com>
+References: <20180326202545.GB15554@ziepe.ca>
  <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
  <20180326210951.GD15554@ziepe.ca>
  <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
@@ -14,13 +10,13 @@ References: <1521854626.16434.359.camel@kernel.crashing.org>
  <1522101717.7364.14.camel@kernel.crashing.org>
  <20180326222756.GJ15554@ziepe.ca>
  <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
- <1522141019.7364.43.camel@kernel.crashing.org>
- <CAK8P3a0gCYjw78snni_1Jkk5uA5a-j0x-XZDrN=RaZfXctOSoA@mail.gmail.com>
+ <20180327094159.GA29373@arm.com>
+ <1522149602.7364.44.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <CAK8P3a0gCYjw78snni_1Jkk5uA5a-j0x-XZDrN=RaZfXctOSoA@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <1522149602.7364.44.camel@kernel.crashing.org>
 List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
  <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
@@ -31,38 +27,32 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
 Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
 Sender: "Linuxppc-dev"
  <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "open
- list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 11:44 +0200, Arnd Bergmann wrote:
-> > The interesting thing is that we do seem to have a whole LOT of these
-> > spurrious wmb before writel all over the tree, I suspect because of
-> > that incorrect recommendation in memory-barriers.txt.
+On Tue, Mar 27, 2018 at 10:20:02PM +1100, Benjamin Herrenschmidt wrote:
+> On Tue, 2018-03-27 at 10:42 +0100, Will Deacon wrote:
+> > > 
+> > > This example adds a wmb() between two writes to a coherent DMA
+> > > area, it is definitely required there. I'm pretty sure I've never seen
+> > > any bug reports pointing to a missing wmb() between memory
+> > > and MMIO write accesses, but if you remember seeing them in the
+> > > list, maybe you can look again for some evidence of something going
+> > > wrong on x86 without it?
 > > 
-> > We should fix that.
+> > If this is just about ordering accesses to coherent DMA, then using
+> > dma_wmb() instead will be much better performance on arm/arm64.
 > 
-> Maybe the problem is just that it's so counter-intuitive that we don't
-> need that barrier in Linux, when the hardware does need one on some
-> architectures.
+> Ah, something we should look into for powerpc as well, as we could use
+> an lwsync for that which is also cheaper than a full sync wmb does.
 > 
-> How about we define a barrier type instruction specifically for this
-> purpose, something like wmb_before_mmio() and have all architectures
-> define that to an empty macro?
+> dma_wmb() is basically the same as smp_wmb() without the CONFIG_SMP
+> conditional right ?
 
-This is exactly what wmb() is about and exactly what Linux rejected
-back in the day (and in hindsight I agree with him).
+Almost -- the slight change we have on arm64 is to say that it's
+"outer-shareable", which means it also orders non-cacheable accesses
+in the case that dma_alloc_coherent is used to allocate a consistent
+buffer for a non-coherent device.
 
-> That way, having correct code using wmb_before_mmio() will not
-> trigger an incorrect review comment that leads to extra wmb(). ;-)
-
-Ah, you mean have an empty macro that will always be empty on all
-architectures just to fool people ? :-)
-
-Not sure that will fly ... I think we just need to be documenting that
-stuff better and not have incorrect examples. Also a sweep to remove
-some useless ones like the one in e1000e would help.
-
-Cheers,
-Ben.
+Will
