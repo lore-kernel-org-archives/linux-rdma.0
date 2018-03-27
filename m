@@ -1,28 +1,24 @@
-From: okaya@codeaurora.org
-Subject: Re: RFC on writel and writel_relaxed
-Date: Tue, 27 Mar 2018 08:22:55 -0400
-Message-ID: <4f27ac42a6953589157f4d7f18051366@codeaurora.org>
-References: <1521854626.16434.359.camel@kernel.crashing.org>
- <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
- <20180326165425.GA15554@ziepe.ca>
- <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
- <20180326202545.GB15554@ziepe.ca>
- <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
- <20180326210951.GD15554@ziepe.ca>
- <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: RFC on writel and writel_relaxed
+Date: Tue, 27 Mar 2018 13:20:44 +0000
+Message-ID: <6179a46115f54162b350fa54505b033d@AcuMS.aculab.com>
+References: <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
  <ebb36fd4-62e2-394a-219f-686c45a6dc75@codeaurora.org>
  <1522101717.7364.14.camel@kernel.crashing.org>
  <20180326222756.GJ15554@ziepe.ca>
  <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
  <1522141019.7364.43.camel@kernel.crashing.org>
- <CAK8P3a0gCYjw78snni_1Jkk5uA5a-j0x-XZDrN=RaZfXctOSoA@mail.gmail.com>
- <1522149801.7364.49.camel@kernel.crashing.org>
+ <20180327095745.GB29373@arm.com>
+ <CAK8P3a0s+kP5=qEqTqAHGwB7j9ydaXD+oQJdLrFz=8swuWaDBg@mail.gmail.com>
+ <20180327100944.GD29373@arm.com>
+ <CAK8P3a0Xep0-EpGS9jnjUf1iJhRxH1WRztGQrvkdrLVaxBPT1w@mail.gmail.com>
+ <20180327110258.GF2464@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <1522149801.7364.49.camel@kernel.crashing.org>
+In-Reply-To: <20180327110258.GF2464@arm.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
  <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
 List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
@@ -33,47 +29,37 @@ List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
 Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
 Sender: "Linuxppc-dev"
  <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "open
- list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
+To: 'Will Deacon' <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-03-27 07:23, Benjamin Herrenschmidt wrote:
-> On Tue, 2018-03-27 at 11:44 +0200, Arnd Bergmann wrote:
->> > The interesting thing is that we do seem to have a whole LOT of these
->> > spurrious wmb before writel all over the tree, I suspect because of
->> > that incorrect recommendation in memory-barriers.txt.
->> >
->> > We should fix that.
->> 
->> Maybe the problem is just that it's so counter-intuitive that we don't
->> need that barrier in Linux, when the hardware does need one on some
->> architectures.
->> 
->> How about we define a barrier type instruction specifically for this
->> purpose, something like wmb_before_mmio() and have all architectures
->> define that to an empty macro?
-> 
-> This is exactly what wmb() is about and exactly what Linux rejected
-> back in the day (and in hindsight I agree with him).
-> 
->> That way, having correct code using wmb_before_mmio() will not
->> trigger an incorrect review comment that leads to extra wmb(). ;-)
-> 
-> Ah, you mean have an empty macro that will always be empty on all
-> architectures just to fool people ? :-)
-> 
-> Not sure that will fly ... I think we just need to be documenting that
-> stuff better and not have incorrect examples. Also a sweep to remove
-> some useless ones like the one in e1000e would help.
+> Fair enough. I'd rather people used _relaxed by default, but I have to ad=
+mit
+> that it will probably just result in them getting things wrong...
 
-I have been converting wmb+writel to wmb+writel_relaxed. (About 30 
-patches)
+Certainly requiring the driver writes use explicit barriers should make
+them understand when and why they are needed - and then put in the correct =
+ones.
 
-I will have to just remove the wmb and keep writel, then repost.
+The problem I've had is that I have a good idea which barriers are needed
+but find that readl/writel seem to contain a lot of extra ones.
+Maybe the are required in some places, but the extra synchronising
+instructions could easily have measureable performance effects on
+hot paths.
 
-Some of these got applied. It will cause some churn for the maintainers.
+Drivers are likely to contain sequences like:
+	read_io
+	if (...) return
+	write_mem
+	...
+	write_mem
+	barrier
+	write_mem
+	barrier
+	write_io
+for things like ring updates.
+Where the 'mem' might actually be in io space.
+In such sequences not all the synchronising instructions are needed.
+I'm not at all sure it is easy to get the right set.
 
-> 
-> Cheers,
-> Ben.
+	David
