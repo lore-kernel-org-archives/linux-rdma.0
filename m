@@ -1,167 +1,74 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v2 iproute2-next 3/6] rdma: Add CM_ID resource tracking information
-Date: Tue, 27 Mar 2018 11:38:48 -0500
-Message-ID: <028701d3c5ea$15075ea0$3f161be0$@opengridcomputing.com>
-References: <20180326211505.GF15554@ziepe.ca> <b5f651c2-8f71-bc1b-32b8-f4c5175fb4a0@opengridcomputing.com> <20180326223033.GK15554@ziepe.ca> <20180327032141.GS1877@mtr-leonro.local> <20180327144455.GG12318@ziepe.ca> <20180327151544.GZ1877@mtr-leonro.local> <20180327152356.GH12318@ziepe.ca> <023301d3c5e2$a2a48c90$e7eda5b0$@opengridcomputing.com> <20180327160150.GB1877@mtr-leonro.local> <026701d3c5e7$838c65d0$8aa53170$@opengridcomputing.com> <20180327163023.GC1877@mtr-leonro.local>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: RE: [PATCH net-next] qed*: Utilize FW 8.33.11.0
+Date: Tue, 27 Mar 2018 17:41:51 +0000
+Message-ID: <CY1PR0701MB201259F4DC154EFA6AE90E6F88AC0@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <1522083732-26560-1-git-send-email-Michal.Kalderon@cavium.com>
+ <20180326211827.GG15554@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180327163023.GC1877@mtr-leonro.local>
-Content-Language: en-us
+In-Reply-To: <20180326211827.GG15554@ziepe.ca>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: 'Leon Romanovsky' <leon@kernel.org>
-Cc: 'Jason Gunthorpe' <jgg@ziepe.ca>, 'David Ahern' <dsahern@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "Tayar, Tomer" <Tomer.Tayar@cavium.com>, "Rangankar, Manish" <Manish.Rangankar@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> On Tue, Mar 27, 2018 at 11:20:25AM -0500, Steve Wise wrote:
-> > > On Tue, Mar 27, 2018 at 10:45:30AM -0500, Steve Wise wrote:
-> > > >
-> > > > >
-> > > > > On Tue, Mar 27, 2018 at 06:15:44PM +0300, Leon Romanovsky wrote:
-> > > > > > On Tue, Mar 27, 2018 at 08:44:55AM -0600, Jason Gunthorpe
-> wrote:
-> > > > > > > On Tue, Mar 27, 2018 at 06:21:41AM +0300, Leon Romanovsky
-> > > wrote:
-> > > > > > > > On Mon, Mar 26, 2018 at 04:30:33PM -0600, Jason Gunthorpe
-> > > wrote:
-> > > > > > > > > On Mon, Mar 26, 2018 at 04:34:44PM -0500, Steve Wise
-> wrote:
-> > > > > > > > > >
-> > > > > > > > > > On 3/26/2018 4:15 PM, Jason Gunthorpe wrote:
-> > > > > > > > > > > On Mon, Mar 26, 2018 at 09:30:41AM -0500, Steve Wise
-> > > wrote:
-> > > > > > > > > > >>
-> > > > > > > > > > >> On 3/26/2018 9:17 AM, David Ahern wrote:
-> > > > > > > > > > >>> On 2/27/18 9:07 AM, Steve Wise wrote:
-> > > > > > > > > > >>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
-> > > > > > > > > > >>>> index 5809f70..e55205b 100644
-> > > > > > > > > > >>>> +++ b/rdma/rdma.h
-> > > > > > > > > > >>>> @@ -18,10 +18,12 @@
-> > > > > > > > > > >>>>  #include <libmnl/libmnl.h>
-> > > > > > > > > > >>>>  #include <rdma/rdma_netlink.h>
-> > > > > > > > > > >>>>  #include <time.h>
-> > > > > > > > > > >>>> +#include <net/if_arp.h>
-> > > > > > > > > > >>>>
-> > > > > > > > > > >>>>  #include "list.h"
-> > > > > > > > > > >>>>  #include "utils.h"
-> > > > > > > > > > >>>>  #include "json_writer.h"
-> > > > > > > > > > >>>> +#include <rdma/rdma_cma.h>
-> > > > > > > > > > >>>>
-> > > > > > > > > > >>> did you forget to add rdma_cma.h? I don't see that
-file
-> > in
-> > > my
-> > > > > repo.
-> > > > > > > > > > >> It is provided by the rdma-core package, upon which
-> rdma
-> > > tool
-> > > > > now
-> > > > > > > > > > >> depends for the rdma_port_space enum.
-> > > > > > > > > > > It is a kernel bug that enum is not in an
-> > include/uapi/rdma
-> > > > > header
-> > > > > > > > > > >
-> > > > > > > > > > > Fix it there and don't try to use rdma-core headers to
-get
-> > > kernel
-> > > > > ABI.
-> > > > > > > > > > >
-> > > > > > > > > > > Jason
-> > > > > > > > > >
-> > > > > > > > > > I wish you'd commented on this just a little sooner.  I
-just
-> > > resent
-> > > > > v3
-> > > > > > > > > > of this series... with rdma_cma.h included. :)
-> > > > > > > > > >
-> > > > > > > > > > How about the restrack/nldev code just translates the
-port
-> > > space
-> > > > > from
-> > > > > > > > > > enum rdma_port_space to a new ABI enum, say
-> > > > > nldev_rdma_port_space, that
-> > > > > > > > > > i add to rdma_netlink.h?  I'd hate to open the can of
-worms
-> > of
-> > > > > trying to
-> > > > > > > > > > split rdma_cma.h into uabi and no uabi headers. :(
-> > > > > > > > >
-> > > > > > > > > If port space is already part of the ABI there isn't much
-> > reason to
-> > > > > > > > > translate it.
-> > > > > > > > >
-> > > > > > > > > You just need to pick the right header to put it in, since
-it
-> > is a
-> > > verbs
-> > > > > > > > > define it doesn't belong in the netlink header.
-> > > > > > > >
-> > > > > > > > I completely understand Steve's concerns.
-> > > > > > > >
-> > > > > > > > I tried to do such thing (expose kernel headers) in first
-> > incarnation
-> > > of
-> > > > > > > > rdmatool with attempt to clean IB/core as well to ensure
-that
-> we
-> > > > > won't expose
-> > > > > > > > anything that is not implemented. It didn't go well.
-> > > > > > >
-> > > > > > > rdma-core is now using the kernel uapi/ headers natively,
-seems
-> to
-> > > be
-> > > > > > > going OK. What problem did you face?
-> > > > > >
-> > > > > > I didn't agree to move to UAPI defines which are not implemented
-> and
-> > > > > not
-> > > > > > used in the kernel, so I sent small number of patches similar to
-> > those
-> > > [1,
-> > > > > 2].
-> > > > > >
-> > > > > > Those patches were rejected.
-> > > > > >
-> > > > > > So please don't mix Steve's need to use 3 defines with very
-large
-> > and
-> > > > > > painful task to expose proper UAPIs.
-> > > > >
-> > > > > Steve can just move the 3 defines he needs to the uapi, we are
-doing
-> > > > > this incrementally..
-> > > > >
-> > > > > rdma_core does not define kernel ABI and it is totally wrong to
-use
-> > > > > random constants from rdma_cma.h as kernel ABI.
-> > > > >
-> > > >
-> > > > Proposal:
-> > > >
-> > > > Since the cm_id port space is part of the rdma_ucm_create_id struct
-> in
-> > > include/uapi/rdma/rdma_user_cm.h, I'll move the rdma_port_space
-> enum
-> > > there.  And then my iproute2 series will have to add a copy of
-> > > rdma_user_cm.h locally into rdma/include/uapi/rdma, right?
-> > > >
-> > > > Will that work for everyone?
-> > >
-> > > You need to remove _PS from that structure and from the kernel with
-> > > justification that it is safe to do.
-> > >
-> > > Thanks
+> From: Jason Gunthorpe [mailto:jgg@ziepe.ca]
+> Sent: Tuesday, March 27, 2018 12:18 AM
+> > diff --git a/drivers/infiniband/hw/qedr/main.c
+> > b/drivers/infiniband/hw/qedr/main.c
+> > index db4bf97..7dbbe6d 100644
+> > +++ b/drivers/infiniband/hw/qedr/main.c
+> > @@ -51,6 +51,7 @@
+> >  MODULE_DESCRIPTION("QLogic 40G/100G ROCE Driver");
+> > MODULE_AUTHOR("QLogic Corporation");  MODULE_LICENSE("Dual
+> BSD/GPL");
+> > +MODULE_VERSION(QEDR_MODULE_VERSION);
 > >
-> > I'm pretty sure port space is needed.  That struct is used to create a
-user
-> > mode cm_id...
-> 
-> Sorry, it is RDMA_PS_SDP.
-> 
-> Thanks
+> >  #define QEDR_WQ_MULTIPLIER_DFT	(3)
+> >
+> > diff --git a/drivers/infiniband/hw/qedr/qedr.h
+> > b/drivers/infiniband/hw/qedr/qedr.h
+> > index 86d4511..ab0d411 100644
+> > +++ b/drivers/infiniband/hw/qedr/qedr.h
+> > @@ -43,6 +43,8 @@
+> >  #include "qedr_hsi_rdma.h"
+> >
+> >  #define QEDR_NODE_DESC "QLogic 579xx RoCE HCA"
+> > +#define QEDR_MODULE_VERSION "8.33.11.20"
+> > +
+>=20
+> I thought we had a general prohibition against versions like this in main=
+line
+> drivers? And what does this hunk have to do with supporting new firmware?
+>=20
+> Jason
+I'm assuming you refer only to rdma in regards to version prohibition right=
+ ? as looking at all other vendors
+(including Mellanox) all have module versions under net/ why is rdma differ=
+ent in this way ?
+I now searched back mails on the topic and found an email from Leon where h=
+e stated:=20
+" I am strongly against module versions. You should rely on official kernel=
+ version."
+But it's not always the inbox driver that is installed or probed, the kerne=
+l version is not enough.=20
+Given different distros, vanilla kernels, out of box drivers, etc... it is =
+essential for  us that based on
+logs And modinfo we can determine the qed* drivers that are running.=20
 
-Right.  Will do.
+We have received complaints that our qedr module doesn't have a version whe=
+reas all of our other
+components do (qed, qede, qedi, qedf). We decided to add the qedr version w=
+ith the next version
+update to align with the rest of the components.=20
+
+We can move the driver version bump into a different commit for all compone=
+nts, just made
+sense to Add it to this one as it is the root of the version update.=20
+Let me know if you think it is essential and I'll make the change for v2
+
+Thanks,
+Michal
