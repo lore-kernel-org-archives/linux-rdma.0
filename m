@@ -1,50 +1,69 @@
-From: "Lino Sanfilippo" <LinoSanfilippo@gmx.de>
-Subject: Aw: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 12:13:22 +0200
-Message-ID: <trinity-2ee224b5-cbac-415e-9f8c-305e802b5369-1522232002354@3c-app-gmx-bs61>
-References: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
- <20180327151029.GB17494@arm.com>
- <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
- <1522186396.7364.61.camel@kernel.crashing.org>
- <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
- <1522198981.7364.81.camel@kernel.crashing.org>
- <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
- <1522211620.7364.94.camel@kernel.crashing.org>
- <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
- <1522219376.7364.109.camel@kernel.crashing.org>
- <20180328090710.GB28871@arm.com>
- <1522230988.21446.7.camel@kernel.crashing.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Wed, 28 Mar 2018 11:13:45 +0100
+Message-ID: <20180328101345.GA30850@arm.com>
+References: <20180327100944.GD29373@arm.com>
+ <CAK8P3a0Xep0-EpGS9jnjUf1iJhRxH1WRztGQrvkdrLVaxBPT1w@mail.gmail.com>
+ <20180327110258.GF2464@arm.com>
+ <bba5ebd8-0643-6f09-9367-419b49e53535@codeaurora.org>
+ <20180327143628.GA10642@arm.com>
+ <1522186185.7364.59.camel@kernel.crashing.org>
+ <20180328085338.GA28871@arm.com>
+ <1522230616.21446.1.camel@kernel.crashing.org>
+ <CAK8P3a1E54K2pxw-9J5NazF2xNFNvOY1JsGr5C727zAxaz0K5g@mail.gmail.com>
+ <1522231287.21446.9.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1522230988.21446.7.camel@kernel.crashing.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <1522231287.21446.9.camel@kernel.crashing.org>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
 To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Will Deacon <will.deacon@arm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>, Peter Zijlstra <peterz@infradead.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Wed, Mar 28, 2018 at 09:01:27PM +1100, Benjamin Herrenschmidt wrote:
+> On Wed, 2018-03-28 at 11:55 +0200, Arnd Bergmann wrote:
+> > > powerpc and ARM can't quite make them synchronous I think, but at least
+> > > they should have the same semantics as writel.
+> > 
+> > One thing that ARM does IIRC is that it only guarantees to order writel() within
+> > one device, and the memory mapped PCI I/O space window almost certainly
+> > counts as a separate device to the CPU.
+> 
+> That sounds bogus.
 
+To elaborate, if you do the following on arm:
 
-> 
-> Yeah so that other trick I'm talking about is also used for timing
-> accuracy.
-> 
-> For example, let's say I have a device with a reset bit and the spec
-> says the reset bit needs to be set for at least 10us.
-> 
-> This is wrong:
-> 
-> 	writel(1, RESET_REG);
-> 	usleep(10);
-> 	writel(0, RESET_REG);
-> 
-> Because of write posting, the first write might arrive to the device
-> right before the second one.
-> 
+	writel(DEVICE_FOO);
+	writel(DEVICE_BAR);
 
-Does not write posting only concern PCI? This seems to be a different topic. Furthermore
-write posting should not include write reordering...
+we generally cannot guarantee in which order those accesses will hit the
+devices even if we add every barrier under the sun. You'd need something
+in between, specific to DEVICE_FOO (probably a read-back) to really push
+the first write out. This doesn't sound like it would be that uncommon to
+me.
 
-Regards,
-Lino
+On the other hand:
+
+	writel(DEVICE_FOO);
+	writel(DEVICE_FOO);
+
+is obviously ordered and also things like:
+
+	writel(DEVICE_FOO_IN_PCI_MEM_SPACE);
+	writel(DEVICE_BAR_IN_SAME_PCI_MEM_SPACE);
+
+are ordered up to the PCI host bridge, because that's really the "device"
+here.
+
+Will
