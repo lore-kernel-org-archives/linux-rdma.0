@@ -1,7 +1,7 @@
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 12:03:01 +1100
-Message-ID: <1522198981.7364.81.camel@kernel.crashing.org>
+Date: Wed, 28 Mar 2018 12:21:17 +1100
+Message-ID: <1522200077.7364.85.camel@kernel.crashing.org>
 References: <1521854626.16434.359.camel@kernel.crashing.org>
          <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
          <20180326165425.GA15554@ziepe.ca>
@@ -13,89 +13,45 @@ References: <1521854626.16434.359.camel@kernel.crashing.org>
          <1522101616.7364.13.camel@kernel.crashing.org>
          <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
          <20180327151029.GB17494@arm.com>
-         <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
-         <1522186396.7364.61.camel@kernel.crashing.org>
-         <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
+In-Reply-To: <20180327151029.GB17494@arm.com>
 Sender: netdev-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Alexander Duyck <alexander.duyck@gmail.com>, torvalds@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 14:39 -1000, Linus Torvalds wrote:
-> On Tue, Mar 27, 2018 at 11:33 AM, Benjamin Herrenschmidt
-> <benh@kernel.crashing.org> wrote:
-> > 
-> > Well, we need to clarify that once and for all, because as I wrote
-> > earlier, it was decreed by Linus more than a decade ago that writel
-> > would be fully ordered by itself vs. previous memory stores (at least
-> > on UC memory).
+On Tue, 2018-03-27 at 16:10 +0100, Will Deacon wrote:
+> To clarify: are you saying that on x86 you need a wmb() prior to a writel
+> if you want that writel to be ordered after prior writes to memory? Is this
+> specific to WC memory or some other non-standard attribute?
 > 
-> Yes.
-> 
-> So "writel()" needs to be ordered with respect to other writel() uses
-> on the same thread. Anything else *will* break drivers. Obviously, the
-> drivers may then do magic to say "do write combining etc", but that
-> magic will be architecture-specific.
-> 
-> The other issue is that "writel()" needs to be ordered wrt other CPU's
-> doing "writel()" if those writel's are in a spinlocked region.
+> The only reason we have wmb() inside writel() on arm, arm64 and power is for
+> parity with x86 because Linus (CC'd) wanted architectures to order I/O vs
+> memory by default so that it was easier to write portable drivers. The
+> performance impact of that implicit barrier is non-trivial, but we want the
+> driver portability and I went as far as adding generic _relaxed versions for
+> the cases where ordering isn't required. You seem to be suggesting that none
+> of this is necessary and drivers would already run into problems on x86 if
+> they didn't use wmb() explicitly in conjunction with writel, which I find
+> hard to believe and is in direct contradiction with the current Linux I/O
+> memory model (modulo the broken example in the dma_*mb section of
+> memory-barriers.txt).
 
- .../...
+Another clarification while we are at it ....
 
-The discussion at hand is about
+All of this only applies to concurrent access by the CPU and the device
+to memory allocate with dma_alloc_coherent().
 
-	dma_buffer->foo = 1;			/* WB */
-	writel(KICK, DMA_KICK_REGISTER);	/* UC */
+For memory "mapped" into the DMA domain via dma_map_* then an extra
+dma_sync_for_* is needed.
 
-(The WC case is something else, let's not mix things up just yet)
-
-IE, a store to normal WB cache memory followed by a writel to a device
-which will then DMA from that buffer.
-
-Back in the days, we did require on powerpc a wmb() between these, but
-you made the point that x86 didn't and driver writers would never get
-that right.
-
-We decided to go conservative, added the necessary barrier inside
-writel, so did ARM and it became the norm that writel is also fully
-ordered vs. previous stores to memory *by the same CPU* of course (or
-protected by the same spinlock).
-
-Now it appears that this wasn't fully understood back then, and some
-people are now saying that x86 might not even provide that semantic
-always.
-
-So a number (fairly large) of drivers have been adding wmb() in those
-case, while others haven't, and it's a mess.
-
-The mess is compounded by the fact that if writel is now defined to
-*not* provide that ordering guarantee, then writel_relaxed() is
-pointless since all it is defined to relax is precisely the above
-ordering guarantee.
-
-So I want to get to the bottom of this once and for all so we can have
-well defined and documented semantics and stop having drivers do random
-things that may or may not work on some or all architectures (including
-x86 !).
-
-Quite note about the spinlock case... In fact this is the only case you
-did allow back then to be relaxed. In theory a writel followed by a
-spin_unlock requires an mmiowb (which is the only point of that barrier
-in fact). This was done because an arch (I think ia64) had a hard time
-getting MMIOs from multiple CPUs get in order vs. a lock and required
-an expensive access to the PCI host bridge to do so.
-
-Back then, on powerpc, we chose not to allow that relaxing and instead
-added code to our writel to set a per-cpu flag which would cause the
-next spin_unlock to use a stronger barrier than usual.
-
-We do need to clarify this as well, but let's start with the most basic
-one first, there is enough confusion already.
+In most useful server cases etc... these latter are NOPs, but
+architecture without full DMA cache coherency or using swiotlb,
+dma_map_* might maintain bounce buffers or play additional cache
+flushing tricks.
 
 Cheers,
 Ben.
