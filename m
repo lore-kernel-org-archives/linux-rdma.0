@@ -1,116 +1,108 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 15:41:45 +1100
-Message-ID: <1522212105.7364.101.camel@kernel.crashing.org>
-References: <1521854626.16434.359.camel@kernel.crashing.org>
-         <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
-         <20180326165425.GA15554@ziepe.ca>
-         <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
-         <20180326202545.GB15554@ziepe.ca>
-         <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
-         <20180326210951.GD15554@ziepe.ca>
-         <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
-         <1522101616.7364.13.camel@kernel.crashing.org>
-         <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
-         <20180327151029.GB17494@arm.com>
-         <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
-         <1522186396.7364.61.camel@kernel.crashing.org>
-         <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
-         <1522198981.7364.81.camel@kernel.crashing.org>
-         <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
-         <bf77be28-051d-79c8-9b65-948c8a254d6d@codeaurora.org>
+From: syzbot <syzbot+6800425d54ed3ed8135d@syzkaller.appspotmail.com>
+Subject: kernel BUG at lib/string.c:LINE! (3)
+Date: Tue, 27 Mar 2018 23:01:01 -0700
+Message-ID: <f403043cbe844e4c44056872bb7e@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <bf77be28-051d-79c8-9b65-948c8a254d6d@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 23:24 -0400, Sinan Kaya wrote:
-> On 3/27/2018 10:51 PM, Linus Torvalds wrote:
-> > > The discussion at hand is about
-> > > 
-> > >         dma_buffer->foo = 1;                    /* WB */
-> > >         writel(KICK, DMA_KICK_REGISTER);        /* UC */
-> > 
-> > Yes. That certainly is ordered on x86. In fact, afaik it's ordered
-> > even if that writel() might be of type WC, because that only delays
-> > writes, it doesn't move them earlier.
-> 
-> Now that we clarified x86 myth, Is this guaranteed on all architectures?
+Hello,
 
-If not we need to fix it. It's guaranteed on the "main" ones (arm,
-arm64, powerpc, i386, x86_64). We might need to check with other arch
-maintainers for the rest.
+syzbot hit the following crash on upstream commit
+3eb2ce825ea1ad89d20f7a3b5780df850e4be274 (Sun Mar 25 22:44:30 2018 +0000)
+Linux 4.16-rc7
+syzbot dashboard link:  
+https://syzkaller.appspot.com/bug?extid=6800425d54ed3ed8135d
 
-We really want Linux to provide well defined "sane" semantics for the
-basic writel accessors.
+So far this crash happened 2 times on upstream.
+syzkaller reproducer:  
+https://syzkaller.appspot.com/x/repro.syz?id=4538383284043776
+Raw console output:  
+https://syzkaller.appspot.com/x/log.txt?id=4665917640278016
+Kernel config:  
+https://syzkaller.appspot.com/x/.config?id=-2340295454854568752
+compiler: gcc (GCC) 7.1.1 20170620
+user-space arch: i386
 
-Note: We still have open questions about how readl() relates to
-surrounding memory accesses. It looks like ARM and powerpc do different
-things here.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+6800425d54ed3ed8135d@syzkaller.appspotmail.com
+It will help syzbot understand when the bug is fixed. See footer for  
+details.
+If you forward the report, please keep this part and the footer.
 
-> We keep getting IA64 exception example. Maybe, this is also corrected since
-> then.
+IPVS: ftp: loaded support on port[0] = 21
+detected buffer overflow in memcpy
+------------[ cut here ]------------
+kernel BUG at lib/string.c:1052!
+invalid opcode: 0000 [#1] SMP KASAN
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+Modules linked in:
+CPU: 0 PID: 4211 Comm: syz-executor0 Not tainted 4.16.0-rc7+ #277
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+RIP: 0010:fortify_panic+0x13/0x20 lib/string.c:1051
+RSP: 0018:ffff8801bccaf8f0 EFLAGS: 00010286
+RAX: 0000000000000022 RBX: 1ffff10037995f23 RCX: 0000000000000000
+RDX: 0000000000000022 RSI: 1ffff10037995ed3 RDI: ffffed0037995f12
+RBP: ffff8801bccaf8f0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000006 R11: 0000000000000000 R12: ffff8801bccaf998
+R13: ffff8801bccaf938 R14: ffff8801bccafa58 R15: 000000000000fa00
+FS:  0000000000000000(0000) GS:ffff8801db200000(0063) knlGS:0000000009f8f900
+CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+CR2: 0000000008138024 CR3: 00000001ccb50005 CR4: 00000000001606f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+  memcpy include/linux/string.h:344 [inline]
+  ucma_join_ip_multicast+0x37a/0x3c0 drivers/infiniband/core/ucma.c:1434
+  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+  __vfs_write+0xef/0x970 fs/read_write.c:480
+  vfs_write+0x189/0x510 fs/read_write.c:544
+  SYSC_write fs/read_write.c:589 [inline]
+  SyS_write+0xef/0x220 fs/read_write.c:581
+  do_syscall_32_irqs_on arch/x86/entry/common.c:330 [inline]
+  do_fast_syscall_32+0x3ec/0xf9f arch/x86/entry/common.c:392
+  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7f3ec99
+RSP: 002b:00000000ffe9b98c EFLAGS: 00000286 ORIG_RAX: 0000000000000004
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000020000040
+RDX: 0000000000000038 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+Code: 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 0f 0b 48 89 df e8 b2 e8 e2 fb eb  
+de 55 48 89 fe 48 c7 c7 00 7b 98 86 48 89 e5 e8 55 48 94 fb <0f> 0b 90 90  
+90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 41 56
+RIP: fortify_panic+0x13/0x20 lib/string.c:1051 RSP: ffff8801bccaf8f0
+---[ end trace c61655b171bd6d64 ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
 
-I would think ia64 fixed it back when it was all discussed. I was under
-the impression all ia64 had "special" was the writel vs. spin_unlock
-which requires mmiowb, but maybe that was never completely fixed ?
 
-> Jose Abreu says "I don't know about x86 but arc architecture doesn't
-> have a wmb() in the writel() function (in some configs)".
+---
+This bug is generated by a dumb bot. It may contain errors.
+See https://goo.gl/tpsmEJ for details.
+Direct all questions to syzkaller@googlegroups.com.
 
-Well, it probably should then.
-
-> As long as we have these exceptions, these wmb() in common drivers is not
-> going anywhere and relaxed-arches will continue paying performance penalty.
-
-Well, let's fix them or leave them broken, at this point, it doesn't
-matter. We can give all arch maintainers a wakeup call and start making
-drivers work based on the documented assumptions.
-
-> I see 15% performance loss on ARM64 servers using Intel i40e network
-> drivers and an XL710 adapter due to CPU keeping itself busy doing barriers
-> most of the time rather than real work because of sequences like this all over
-> the place.
-> 
->          dma_buffer->foo = 1;                    /* WB */
-> 	 wmb()
->          writel(KICK, DMA_KICK_REGISTER);        /* UC */
->
-> I posted several patches last week to remove duplicate barriers on ARM while
-> trying to make the code friendly with other architectures.
-> 
-> Basically changing it to
-> 
-> dma_buffer->foo = 1;                    /* WB */
-> wmb()
-> writel_relaxed(KICK, DMA_KICK_REGISTER);        /* UC */
-> mmiowb()
-> 
-> This is a small step in the performance direction until we remove all exceptions.
-> 
-> https://www.spinics.net/lists/netdev/msg491842.html
-> https://www.spinics.net/lists/linux-rdma/msg62434.html
-> https://www.spinics.net/lists/arm-kernel/msg642336.html
-> 
-> Discussion started to move around the need for relaxed API on PPC and then
-> why wmb() question came up.
-
-I'm working on the problem of relaxed APIs for powerpc, but we can keep
-that orthogonal. As is, today, a wmb() + writel() and a wmb() +
-writel_relaxed() on powerpc are identical. So changing them will not
-break us.
-
-But I don't see the point of doing that transformation if we can just
-get the straying archs fixed. It's not like any of them has a
-significant market presence these days anyway.
-
-Cheers,
-Ben.
-
-> Sinan
-> 
+syzbot will keep track of this bug report.
+If you forgot to add the Reported-by tag, once the fix for this bug is  
+merged
+into any tree, please reply to this email with:
+#syz fix: exact-commit-title
+If you want to test a patch for this bug, please reply with:
+#syz test: git://repo/address.git branch
+and provide the patch inline or as an attachment.
+To mark this as a duplicate of another syzbot report, please reply with:
+#syz dup: exact-subject-of-another-report
+If it's a one-off invalid bug report, please reply with:
+#syz invalid
+Note: if the crash happens again, it will cause creation of a new bug  
+report.
+Note: all commands must start from beginning of the line in the email body.
