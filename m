@@ -1,84 +1,70 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2 net-next] qed*: Utilize FW 8.33.11.0
-Date: Wed, 28 Mar 2018 11:32:53 -0600
-Message-ID: <20180328173253.GE4546@ziepe.ca>
-References: <1522226536-9812-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Thu, 29 Mar 2018 08:31:32 +1100
+Message-ID: <1522272692.21446.42.camel@kernel.crashing.org>
+References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
+         <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
+         <1522249996.21446.25.camel@kernel.crashing.org>
+         <20180328.115509.481837809903086401.davem@davemloft.net>
+         <20180329022324.037c3f39@roar.ozlabs.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1522226536-9812-1-git-send-email-Michal.Kalderon@cavium.com>
+In-Reply-To: <20180329022324.037c3f39@roar.ozlabs.ibm.com>
 Sender: netdev-owner@vger.kernel.org
-To: Michal Kalderon <Michal.Kalderon@cavium.com>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Tomer Tayar <Tomer.Tayar@cavium.com>, Manish Rangankar <Manish.Rangankar@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>
+To: Nicholas Piggin <npiggin@gmail.com>, David Miller <davem@davemloft.net>
+Cc: paulmck@linux.vnet.ibm.com, arnd@arndb.de, linux-rdma@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linus971@gmail.com, will.deacon@arm.com, alexander.duyck@gmail.com, okaya@codeaurora.org, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, netdev@vger.kernel.org, alexander.h.duyck@redhat.com, torvalds@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 28, 2018 at 11:42:16AM +0300, Michal Kalderon wrote:
-> This FW contains several fixes and features
+On Thu, 2018-03-29 at 02:23 +1000, Nicholas Piggin wrote:
+> On Wed, 28 Mar 2018 11:55:09 -0400 (EDT)
+> David Miller <davem@davemloft.net> wrote:
 > 
-> RDMA Features
-> - SRQ support
-> - XRC support
-> - Memory window support
-> - RDMA low latency queue support
-> - RDMA bonding support
+> > From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> > Date: Thu, 29 Mar 2018 02:13:16 +1100
+> > 
+> > > Let's fix all archs, it's way easier than fixing all drivers. Half of
+> > > the archs are unused or dead anyway.  
+> > 
+> > Agreed.
 > 
-> RDMA bug fixes
-> - RDMA remote invalidate during retransmit fix
-> - iWARP MPA connect interop issue with RTR fix
-> - iWARP Legacy DPM support
-> - Fix MPA reject flow
-> - iWARP error handling
-> - RQ WQE validation checks
-> 
-> MISC
-> - Fix some HSI types endianity
-> - New Restriction: vlan insertion in core_tx_bd_data can't be set
->   for LB packets
-> 
-> ETH
-> - HW QoS offload support
-> - Fix vlan, dcb and sriov flow of VF sending a packet with
->   inband VLAN tag instead of default VLAN
-> - Allow GRE version 1 offloads in RX flow
-> - Allow VXLAN steering
-> 
-> iSCSI / FcoE
-> - Fix bd availability checking flow
-> - Support 256th sge proerly in iscsi/fcoe retransmit
-> - Performance improvement
-> - Fix handle iSCSI command arrival with AHS and with immediate
-> - Fix ipv6 traffic class configuration
-> 
-> DEBUG
-> - Update debug utilities
-> 
-> Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
-> Signed-off-by: Tomer Tayar <Tomer.Tayar@cavium.com>
-> Signed-off-by: Manish Rangankar <Manish.Rangankar@cavium.com>
-> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
-> ---
-> Changes from v1
-> 	Remove version bump and qedr module version addition
-> ---
->  drivers/infiniband/hw/qedr/qedr_hsi_rdma.h         |    4 +-
->  drivers/infiniband/hw/qedr/verbs.c                 |    4 +-
->  drivers/net/ethernet/qlogic/qed/qed_debug.c        |  415 +++--
->  drivers/net/ethernet/qlogic/qed/qed_dev.c          |    4 +-
->  drivers/net/ethernet/qlogic/qed/qed_hsi.h          | 1892 ++++++++++----------
->  .../net/ethernet/qlogic/qed/qed_init_fw_funcs.c    |  103 +-
->  drivers/net/ethernet/qlogic/qed/qed_iwarp.c        |    7 -
->  drivers/net/ethernet/qlogic/qed/qed_l2.c           |    2 +-
->  drivers/net/ethernet/qlogic/qed/qed_ll2.c          |   13 -
->  include/linux/qed/common_hsi.h                     |    2 +-
->  include/linux/qed/eth_common.h                     |    2 +-
->  include/linux/qed/iscsi_common.h                   |    4 +-
->  include/linux/qed/rdma_common.h                    |    2 +
->  include/linux/qed/roce_common.h                    |    3 +
->  14 files changed, 1310 insertions(+), 1147 deletions(-)
+> While we're making decrees here, can we do something about mmiowb?
+> The semantics are basically indecipherable.
 
-For drivers/infiniband:
+I was going to tackle that next :-)
 
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+>   This is a variation on the mandatory write barrier that causes writes to weakly
+>   ordered I/O regions to be partially ordered.  Its effects may go beyond the
+>   CPU->Hardware interface and actually affect the hardware at some level.
+> 
+> How can a driver writer possibly get that right?
+> 
+> IIRC it was added for some big ia64 system that was really expensive
+> to implement the proper wmb() semantics on. So wmb() semantics were
+> quietly downgraded, then the subsequently broken drivers they cared
+> about were fixed by adding the stronger mmiowb().
+> 
+> What should have happened was wmb and writel remained correct, sane, and
+> expensive, and they add an mmio_wmb() to order MMIO stores made by the
+> writel_relaxed accessors, then use that to speed up the few drivers they
+> care about.
+> 
+> Now that ia64 doesn't matter too much, can we deprecate mmiowb and just
+> make wmb ordering talk about stores to the device, not to some
+> intermediate stage of the interconnect where it can be subsequently
+> reordered wrt the device? Drivers can be converted back to using wmb
+> or writel gradually.
 
-Jason
+I was under the impression that mmiowb was specifically about ordering
+writel's with a subsequent spin_unlock, without it, MMIOs from
+different CPUs (within the same lock) would still arrive OO.
+
+If that's indeed the case, I would suggest ia64 switches to a similar
+per-cpu flag trick powerpc uses.
+
+Cheers,
+Ben.
+
+> Thanks,
+> Nick
