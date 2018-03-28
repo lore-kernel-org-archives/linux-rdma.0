@@ -1,7 +1,7 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: Aw: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 21:20:16 +1100
-Message-ID: <1522232416.21446.10.camel@kernel.crashing.org>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: RFC on writel and writel_relaxed
+Date: Wed, 28 Mar 2018 11:30:54 +0000
+Message-ID: <a642dc060b484d98bc728eb1f4b5c600@AcuMS.aculab.com>
 References: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
          <20180327151029.GB17494@arm.com>
          <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
@@ -13,44 +13,58 @@ References: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
          <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
          <1522219376.7364.109.camel@kernel.crashing.org>
          <20180328090710.GB28871@arm.com>
-         <1522230988.21446.7.camel@kernel.crashing.org>
-         <trinity-2ee224b5-cbac-415e-9f8c-305e802b5369-1522232002354@3c-app-gmx-bs61>
+ <1522230988.21446.7.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <trinity-2ee224b5-cbac-415e-9f8c-305e802b5369-1522232002354@3c-app-gmx-bs61>
+In-Reply-To: <1522230988.21446.7.camel@kernel.crashing.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Cc: Will Deacon <will.deacon@arm.com>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, Will Deacon <will.deacon@arm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2018-03-28 at 12:13 +0200, Lino Sanfilippo wrote:
-> Hi,
-> 
-> 
-> > 
-> > Yeah so that other trick I'm talking about is also used for timing
-> > accuracy.
-> > 
-> > For example, let's say I have a device with a reset bit and the spec
-> > says the reset bit needs to be set for at least 10us.
-> > 
-> > This is wrong:
-> > 
-> > 	writel(1, RESET_REG);
-> > 	usleep(10);
-> > 	writel(0, RESET_REG);
-> > 
-> > Because of write posting, the first write might arrive to the device
-> > right before the second one.
-> > 
-> 
-> Does not write posting only concern PCI? This seems to be a different topic. Furthermore
-> write posting should not include write reordering...
-
-Nobody's talking about re-ordering and no, write posting is rather
-common practice on a whole lot of different busses, not just PCI(e).
-
-Cheers,
-Ben.
+RnJvbTogQmVuamFtaW4gSGVycmVuc2NobWlkdA0KPiBTZW50OiAyOCBNYXJjaCAyMDE4IDEwOjU2
+DQouLi4NCj4gRm9yIGV4YW1wbGUsIGxldCdzIHNheSBJIGhhdmUgYSBkZXZpY2Ugd2l0aCBhIHJl
+c2V0IGJpdCBhbmQgdGhlIHNwZWMNCj4gc2F5cyB0aGUgcmVzZXQgYml0IG5lZWRzIHRvIGJlIHNl
+dCBmb3IgYXQgbGVhc3QgMTB1cy4NCj4gDQo+IFRoaXMgaXMgd3Jvbmc6DQo+IA0KPiAJd3JpdGVs
+KDEsIFJFU0VUX1JFRyk7DQo+IAl1c2xlZXAoMTApOw0KPiAJd3JpdGVsKDAsIFJFU0VUX1JFRyk7
+DQo+IA0KPiBCZWNhdXNlIG9mIHdyaXRlIHBvc3RpbmcsIHRoZSBmaXJzdCB3cml0ZSBtaWdodCBh
+cnJpdmUgdG8gdGhlIGRldmljZQ0KPiByaWdodCBiZWZvcmUgdGhlIHNlY29uZCBvbmUuDQo+IA0K
+PiBUaGUgdHlwaWNhbCAiZml4IiBpcyB0byB0dXJuIHRoYXQgaW50bzoNCj4gDQo+IAl3cml0ZWwo
+MSwgUkVTRVRfUkVHKTsNCj4gCXJlYWRsKFJFU0VUX1JFRyk7IC8qIEZsdXNoIHBvc3RlZCB3cml0
+ZXMgKi8NCg0KV291bGQgYSB3cml0ZWwoMSwgUkVTRVRfUkVHKSBoZXJlIHByb3ZpZGUgZW5vdWdo
+IHN5bmNocm9uc2lhdGlvbj8NCg0KPiAJdXNsZWVwKDEwKTsNCj4gCXdyaXRlbCgwLCBSRVNFVF9S
+RUcpOw0KPiANCj4gKkhvd2V2ZXIqIHRoZSBpc3N1ZSBoZXJlLCBhdCBsZWFzdCBvbiBwb3dlciwg
+aXMgdGhhdCB0aGUgQ1BVIGNhbiBpc3N1ZQ0KPiB0aGF0IHJlYWRsIGJ1dCBkb2Vzbid0IG5lY2Vz
+c2FyaWx5IHdhaXQgZm9yIGl0IHRvIGNvbXBsZXRlIChpZSwgdGhlDQo+IGRhdGEgdG8gcmV0dXJu
+KSwgYmVmb3JlIHByb2NlZWRpbmcgdG8gdGhlIHVzbGVlcC4gTm93IGEgdXNsZWVwIGNvbnRhaW5z
+DQo+IGEgYnVuY2ggb2YgbG9hZHMgYW5kIHN0b3JlcyBhbmQgaXMgcHJvYmFibHkgZmluZSwgYnV0
+IGEgdWRlbGF5IHdoaWNoDQo+IGp1c3QgbG9vcHMgb24gdGhlIHRpbWViYXNlIG1heSBub3QgYmUu
+DQo+IA0KPiBUaHVzIHdlIG1heSBzdGlsbCB2aW9sYXRlIHRoZSB0aW1pbmcgcmVxdWlyZW1lbnQu
+DQoNCkkndmUgc2VlbSB0aGF0IHNvcnQgb2YgY29kZSAod2l0aCB1ZGVsYXkoKSBhbmQgbm8gcmVh
+ZCBiYWNrKSBxdWl0ZSBvZnRlbi4NCkhvdyBtYW55IHdlcmUgaW4gbGludXggSSBkb24ndCBrbm93
+Lg0KDQpGb3Igc21hbGwgZGVsYXlzIEkgdXN1YWxseSBmaXggaXQgYnkgcmVwZWF0ZWQgd3JpdGVz
+IChvZiB0aGUgc2FtZSB2YWx1ZSkNCnRvIHRoZSBkZXZpY2UgcmVnaXN0ZXIuIFRoYXQgY2FuIGd1
+YXJhbnRlZSB2ZXJ5IHNob3J0IGludGVydmFscy4NCg0KVGhlIG9ubHkgdGltZSBJJ3ZlIGFjdHVh
+bGx5IHNlZW4gYnVmZmVyZWQgd3JpdGVzIGJyZWFrIHRpbWluZyB3YXMNCmJldHdlZW4gYSAyODYg
+YW5kIGFuIDg4NTkgaW50ZXJydXB0IGNvbnRyb2xsZXIuDQpJZiB5b3Ugd3JvdGUgdG8gdGhlIG1h
+c2sgdGhlbiBlbmFibGVkIGludGVycnVwdHMgdGhlIGZpcnN0IElBQ0sgY3ljbGUNCmNvdWxkIGJl
+IHRvbyBjbG9zZSB0byB3cml0ZSBhbmQgYnJlYWsgdGhlIGN5Y2xlIHJlY292ZXJ5IHRpbWUuDQpU
+aGF0IGNsb2JiZXJlZCBtb3N0IG9mIHRoZSBpbnRlcnJ1cHQgY29udHJvbGxlciByZWdpc3RlcnMu
+DQpUaGF0IHByb2JhYmx5IGFmZmVjdGVkIGV2ZXJ5IDI4NiBib2FyZCBldmVyIGJ1aWx0IQ0KTm90
+IHN1cmUgaG93IG11Y2ggc29mdHdhcmUgYWRkZWQgdGhlIHJlcXVpcmVkIGV4dHJhIGJ1cyBjeWNs
+ZS4NCg0KPiBXaGF0IHdlIGRpZCBpbnNpZGUgcmVhZGwsIHdpdGggdGhlIHR3aTtpc3luYyBzZXF1
+ZW5jZSAod2hpY2ggYmFzaWNhbGx5DQo+IG1lYW5zLCB0cmFwIG9uIHJldHVybiB2YWx1ZSB3aXRo
+ICJ0cmFwIG5ldmVyIiBhcyBhIGNvbmRpdGlvbiwgZm9sbG93ZWQNCj4gYnkgaXN5bmMgdGhhdCBl
+bnN1cmVzIGFsbCBleGNwZXRpb24gY29uZGl0aW9ucyBhcmUgcmVzb2x2ZWQpLCBpcyBmb3JjZQ0K
+PiB0aGUgQ1BVIHRvICJjb25zdW1lIiB0aGUgZGF0YSBmcm9tIHRoZSByZWFkIGJlZm9yZSBtb3Zp
+bmcgb24uDQo+IA0KPiBUaGlzIGVmZmVjdGl2ZWx5IG1ha2VzIHJlYWRsIGZ1bGx5IHN5bmNocm9u
+b3VzICh3ZSB3b3VsZCBwcm9iYWJseSBhdm9pZA0KPiB0aGF0IGlmIHdlIHdlcmUgdG8gaW1wbGVt
+ZW50IGEgcmVhZGxfcmVsYXhlZCkuDQoNCkkndmUgYWx3YXlzIHdvbmRlcmVkIGV4YWN0bHkgd2hh
+dCB0aGUgdHdpO2lzeW5jIHdlcmUgZm9yIC0gYWx3YXlzIHNlZW1lZA0KdmVyeSBoZWF2eSBoYW5k
+ZWQgZm9yIG1vc3QgbW1pbyByZWFkcy4NClBhcnRpY3VsYXJseSBpZiB5b3UgYXJlIGRvaW5nIG1t
+aW8gcmVhZHMgZnJvbSBhIGRhdGEgZmlmby4NCg0KUGVyaGFwcyB0aGVyZSBzaG91bGQgYmUgYSB3
+cml0ZWxfd2FpdCgpIHRoYXQgaXMgYWxsb3dlZCB0byBkbyBhIHJlYWQgYmFjaw0KZm9yIHN1Y2gg
+Y29kZSBwYXRocz8NCg0KCURhdmlkDQoNCg==
