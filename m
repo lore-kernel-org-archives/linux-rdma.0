@@ -1,130 +1,96 @@
-From: syzbot <syzbot+449737930e1faf08523e@syzkaller.appspotmail.com>
-Subject: Re: INFO: task hung in ucma_destroy_id
-Date: Wed, 28 Mar 2018 02:56:01 -0700
-Message-ID: <000000000000b4f5de0568760341@google.com>
-References: <001a113f2be0b4b0ad0567464413@google.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Wed, 28 Mar 2018 20:56:28 +1100
+Message-ID: <1522230988.21446.7.camel@kernel.crashing.org>
+References: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+         <20180327151029.GB17494@arm.com>
+         <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
+         <1522186396.7364.61.camel@kernel.crashing.org>
+         <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
+         <1522198981.7364.81.camel@kernel.crashing.org>
+         <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
+         <1522211620.7364.94.camel@kernel.crashing.org>
+         <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
+         <1522219376.7364.109.camel@kernel.crashing.org>
+         <20180328090710.GB28871@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <001a113f2be0b4b0ad0567464413@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180328090710.GB28871@arm.com>
+Sender: netdev-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-syzbot has found reproducer for the following crash on upstream commit
-3eb2ce825ea1ad89d20f7a3b5780df850e4be274 (Sun Mar 25 22:44:30 2018 +0000)
-Linux 4.16-rc7
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=449737930e1faf08523e
+On Wed, 2018-03-28 at 10:07 +0100, Will Deacon wrote:
+> 
+> For arm/arm64 we guarantee ordering for (1) but not for (2) -- you'd need to
+> add an mb() to make it work.
+> 
+> Do both of these work on power? 
 
-So far this crash happened 38 times on upstream.
-C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6522989826801664
-syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=4513717152645120
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=6625862883475456
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
-compiler: gcc (GCC) 7.1.1 20170620
+Yes. There's even another quirk, see further down ;-)
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+449737930e1faf08523e@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed.
+> If so, I guess I can make readl even more
+> expensive :/ Feels a bit like the tail wagging the dog, though.
 
-INFO: task syzkaller681645:4295 blocked for more than 120 seconds.
-       Not tainted 4.16.0-rc7+ #3
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-syzkaller681645 D20744  4295   4293 0x00000000
-Call Trace:
-  context_switch kernel/sched/core.c:2862 [inline]
-  __schedule+0x8fb/0x1ec0 kernel/sched/core.c:3440
-  schedule+0xf5/0x430 kernel/sched/core.c:3499
-  schedule_timeout+0x1a3/0x230 kernel/time/timer.c:1777
-  do_wait_for_common kernel/sched/completion.c:86 [inline]
-  __wait_for_common kernel/sched/completion.c:107 [inline]
-  wait_for_common kernel/sched/completion.c:118 [inline]
-  wait_for_completion+0x415/0x770 kernel/sched/completion.c:139
-  ucma_destroy_id+0x2f0/0x500 drivers/infiniband/core/ucma.c:611
-  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
-  __vfs_write+0xef/0x970 fs/read_write.c:480
-  vfs_write+0x189/0x510 fs/read_write.c:544
-  SYSC_write fs/read_write.c:589 [inline]
-  SyS_write+0xef/0x220 fs/read_write.c:581
-  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-RIP: 0033:0x440719
-RSP: 002b:00007ffc7e451f28 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007ffc7e451f50 RCX: 0000000000440719
-RDX: 0000000000000018 RSI: 0000000020000080 RDI: 0000000000000003
-RBP: 0000000000000000 R08: 00007ffc7e451fa0 R09: 00007ffc7e451fa0
-R10: 00007ffc7e451fa0 R11: 0000000000000246 R12: 0000000000402040
-R13: 00000000004020d0 R14: 0000000000000000 R15: 0000000000000000
+Maybe, but then readl is always horribly slow anyway so you may not
+necessarily be losing that much.
 
-Showing all locks held in the system:
-2 locks held by khungtaskd/868:
-  #0:  (rcu_read_lock){....}, at: [<00000000dbcbeec6>]  
-check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
-  #0:  (rcu_read_lock){....}, at: [<00000000dbcbeec6>] watchdog+0x1c5/0xd60  
-kernel/hung_task.c:249
-  #1:  (tasklist_lock){.+.+}, at: [<000000003f35a062>]  
-debug_show_all_locks+0xd3/0x3d0 kernel/locking/lockdep.c:4470
-1 lock held by rsyslogd/4176:
-  #0:  (&f->f_pos_lock){+.+.}, at: [<00000000337d089e>]  
-__fdget_pos+0x12b/0x190 fs/file.c:765
-2 locks held by getty/4266:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4267:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4268:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4269:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4270:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4271:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
-2 locks held by getty/4272:
-  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
-ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
-  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
-n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+> Another thing I just realised is that we restrict the barriers we use in
+> readl/writel on arm64 so that they don't necessary apply to both loads and
+> stores. To be specific:
+> 
+>    writel is ordered against prior writes to memory, but not reads
 
-=============================================
+That could be tricky... You may end up with something that reads before
+triggering a DMA and ends up with the post-DMA value ... ugh.
 
-NMI backtrace for cpu 0
-CPU: 0 PID: 868 Comm: khungtaskd Not tainted 4.16.0-rc7+ #3
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:17 [inline]
-  dump_stack+0x194/0x24d lib/dump_stack.c:53
-  nmi_cpu_backtrace+0x1d2/0x210 lib/nmi_backtrace.c:103
-  nmi_trigger_cpumask_backtrace+0x123/0x180 lib/nmi_backtrace.c:62
-  arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
-  trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
-  check_hung_task kernel/hung_task.c:132 [inline]
-  check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
-  watchdog+0x90c/0xd60 kernel/hung_task.c:249
-  kthread+0x33c/0x400 kernel/kthread.c:238
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
-Sending NMI from CPU 0 to CPUs 1:
-NMI backtrace for cpu 1 skipped: idling at native_safe_halt+0x6/0x10  
-arch/x86/include/asm/irqflags.h:54
+>    readl is ordered against subsequent reads of memory, but not writes (but
+>    note that in example (1) above, the control dependency ensures that).
+> 
+> If necessary, I could move the barrier in our readl implementation to be
+> before the read, then play the control-dependency + instruction-sync (ISB)
+> trick that you do on power.
+
+Yeah so that other trick I'm talking about is also used for timing
+accuracy.
+
+For example, let's say I have a device with a reset bit and the spec
+says the reset bit needs to be set for at least 10us.
+
+This is wrong:
+
+	writel(1, RESET_REG);
+	usleep(10);
+	writel(0, RESET_REG);
+
+Because of write posting, the first write might arrive to the device
+right before the second one.
+
+The typical "fix" is to turn that into:
+
+	writel(1, RESET_REG);
+	readl(RESET_REG); /* Flush posted writes */
+	usleep(10);
+	writel(0, RESET_REG);
+
+*However* the issue here, at least on power, is that the CPU can issue
+that readl but doesn't necessarily wait for it to complete (ie, the
+data to return), before proceeding to the usleep. Now a usleep contains
+a bunch of loads and stores and is probably fine, but a udelay which
+just loops on the timebase may not be.
+
+Thus we may still violate the timing requirement.
+
+What we did inside readl, with the twi;isync sequence (which basically
+means, trap on return value with "trap never" as a condition, followed
+by isync that ensures all excpetion conditions are resolved), is force
+the CPU to "consume" the data from the read before moving on.
+
+This effectively makes readl fully synchronous (we would probably avoid
+that if we were to implement a readl_relaxed).
+
+Cheers,
+Ben.
