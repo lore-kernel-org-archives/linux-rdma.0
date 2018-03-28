@@ -1,47 +1,130 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 20:50:16 +1100
-Message-ID: <1522230616.21446.1.camel@kernel.crashing.org>
-References: <CAK8P3a3a+zUNLjqw9CL5rYkXhJ-GMVTVnBU2XUu2f3njZfrqKw@mail.gmail.com>
- <1522141019.7364.43.camel@kernel.crashing.org>
- <20180327095745.GB29373@arm.com>
- <CAK8P3a0s+kP5=qEqTqAHGwB7j9ydaXD+oQJdLrFz=8swuWaDBg@mail.gmail.com>
- <20180327100944.GD29373@arm.com>
- <CAK8P3a0Xep0-EpGS9jnjUf1iJhRxH1WRztGQrvkdrLVaxBPT1w@mail.gmail.com>
- <20180327110258.GF2464@arm.com>
- <bba5ebd8-0643-6f09-9367-419b49e53535@codeaurora.org>
- <20180327143628.GA10642@arm.com>
- <1522186185.7364.59.camel@kernel.crashing.org>
- <20180328085338.GA28871@arm.com>
+From: syzbot <syzbot+449737930e1faf08523e@syzkaller.appspotmail.com>
+Subject: Re: INFO: task hung in ucma_destroy_id
+Date: Wed, 28 Mar 2018 02:56:01 -0700
+Message-ID: <000000000000b4f5de0568760341@google.com>
+References: <001a113f2be0b4b0ad0567464413@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <20180328085338.GA28871@arm.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Will Deacon <will.deacon@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Jason Gunthorpe <jgg@ziepe.ca>, Peter Zijlstra <peterz@infradead.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Ingo Molnar <mingo@redhat.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <001a113f2be0b4b0ad0567464413@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2018-03-28 at 09:53 +0100, Will Deacon wrote:
-> For arm/arm64 these end up behaving exactly the same as readX/writeX, but
-> I'm nervous about changing the documentation without understanding why it's
-> like it is currently. Maybe another ia64 thing?.
+syzbot has found reproducer for the following crash on upstream commit
+3eb2ce825ea1ad89d20f7a3b5780df850e4be274 (Sun Mar 25 22:44:30 2018 +0000)
+Linux 4.16-rc7
+syzbot dashboard link:  
+https://syzkaller.appspot.com/bug?extid=449737930e1faf08523e
 
-I doubt it ... the Intel ancestry here would make me think they are
-completely ordered there too.
+So far this crash happened 38 times on upstream.
+C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6522989826801664
+syzkaller reproducer:  
+https://syzkaller.appspot.com/x/repro.syz?id=4513717152645120
+Raw console output:  
+https://syzkaller.appspot.com/x/log.txt?id=6625862883475456
+Kernel config:  
+https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
+compiler: gcc (GCC) 7.1.1 20170620
 
-powerpc and ARM can't quite make them synchronous I think, but at least
-they should have the same semantics as writel.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+449737930e1faf08523e@syzkaller.appspotmail.com
+It will help syzbot understand when the bug is fixed.
 
-Cheers,
-Ben.
+INFO: task syzkaller681645:4295 blocked for more than 120 seconds.
+       Not tainted 4.16.0-rc7+ #3
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+syzkaller681645 D20744  4295   4293 0x00000000
+Call Trace:
+  context_switch kernel/sched/core.c:2862 [inline]
+  __schedule+0x8fb/0x1ec0 kernel/sched/core.c:3440
+  schedule+0xf5/0x430 kernel/sched/core.c:3499
+  schedule_timeout+0x1a3/0x230 kernel/time/timer.c:1777
+  do_wait_for_common kernel/sched/completion.c:86 [inline]
+  __wait_for_common kernel/sched/completion.c:107 [inline]
+  wait_for_common kernel/sched/completion.c:118 [inline]
+  wait_for_completion+0x415/0x770 kernel/sched/completion.c:139
+  ucma_destroy_id+0x2f0/0x500 drivers/infiniband/core/ucma.c:611
+  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+  __vfs_write+0xef/0x970 fs/read_write.c:480
+  vfs_write+0x189/0x510 fs/read_write.c:544
+  SYSC_write fs/read_write.c:589 [inline]
+  SyS_write+0xef/0x220 fs/read_write.c:581
+  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x440719
+RSP: 002b:00007ffc7e451f28 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007ffc7e451f50 RCX: 0000000000440719
+RDX: 0000000000000018 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 0000000000000000 R08: 00007ffc7e451fa0 R09: 00007ffc7e451fa0
+R10: 00007ffc7e451fa0 R11: 0000000000000246 R12: 0000000000402040
+R13: 00000000004020d0 R14: 0000000000000000 R15: 0000000000000000
+
+Showing all locks held in the system:
+2 locks held by khungtaskd/868:
+  #0:  (rcu_read_lock){....}, at: [<00000000dbcbeec6>]  
+check_hung_uninterruptible_tasks kernel/hung_task.c:175 [inline]
+  #0:  (rcu_read_lock){....}, at: [<00000000dbcbeec6>] watchdog+0x1c5/0xd60  
+kernel/hung_task.c:249
+  #1:  (tasklist_lock){.+.+}, at: [<000000003f35a062>]  
+debug_show_all_locks+0xd3/0x3d0 kernel/locking/lockdep.c:4470
+1 lock held by rsyslogd/4176:
+  #0:  (&f->f_pos_lock){+.+.}, at: [<00000000337d089e>]  
+__fdget_pos+0x12b/0x190 fs/file.c:765
+2 locks held by getty/4266:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4267:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4268:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4269:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4270:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4271:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+2 locks held by getty/4272:
+  #0:  (&tty->ldisc_sem){++++}, at: [<0000000091eb7f81>]  
+ldsem_down_read+0x37/0x40 drivers/tty/tty_ldsem.c:365
+  #1:  (&ldata->atomic_read_lock){+.+.}, at: [<00000000c6c6bab6>]  
+n_tty_read+0x2ef/0x1a40 drivers/tty/n_tty.c:2131
+
+=============================================
+
+NMI backtrace for cpu 0
+CPU: 0 PID: 868 Comm: khungtaskd Not tainted 4.16.0-rc7+ #3
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:17 [inline]
+  dump_stack+0x194/0x24d lib/dump_stack.c:53
+  nmi_cpu_backtrace+0x1d2/0x210 lib/nmi_backtrace.c:103
+  nmi_trigger_cpumask_backtrace+0x123/0x180 lib/nmi_backtrace.c:62
+  arch_trigger_cpumask_backtrace+0x14/0x20 arch/x86/kernel/apic/hw_nmi.c:38
+  trigger_all_cpu_backtrace include/linux/nmi.h:138 [inline]
+  check_hung_task kernel/hung_task.c:132 [inline]
+  check_hung_uninterruptible_tasks kernel/hung_task.c:190 [inline]
+  watchdog+0x90c/0xd60 kernel/hung_task.c:249
+  kthread+0x33c/0x400 kernel/kthread.c:238
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+Sending NMI from CPU 0 to CPUs 1:
+NMI backtrace for cpu 1 skipped: idling at native_safe_halt+0x6/0x10  
+arch/x86/include/asm/irqflags.h:54
