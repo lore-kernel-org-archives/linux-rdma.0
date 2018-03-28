@@ -1,7 +1,7 @@
 From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 17:42:56 +1100
-Message-ID: <1522219376.7364.109.camel@kernel.crashing.org>
+Date: Wed, 28 Mar 2018 17:56:05 +1100
+Message-ID: <1522220165.7364.110.camel@kernel.crashing.org>
 References: <1521854626.16434.359.camel@kernel.crashing.org>
          <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
          <20180326165425.GA15554@ziepe.ca>
@@ -20,62 +20,55 @@ References: <1521854626.16434.359.camel@kernel.crashing.org>
          <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
          <1522211620.7364.94.camel@kernel.crashing.org>
          <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
+         <1522219376.7364.109.camel@kernel.crashing.org>
+         <CA+55aFyaZ=WEXFg4KZ0yCWaR=8Dm_FPK-xcA0EYi3fEzm+KZkA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
+In-Reply-To: <CA+55aFyaZ=WEXFg4KZ0yCWaR=8Dm_FPK-xcA0EYi3fEzm+KZkA@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 20:26 -1000, Linus Torvalds wrote:
-> On Tue, Mar 27, 2018 at 6:33 PM, Benjamin Herrenschmidt
-> <benh@kernel.crashing.org> wrote:
+On Wed, 2018-03-28 at 06:53 +0000, Linus Torvalds wrote:
+> 
+> 
+> On Tue, Mar 27, 2018, 20:43 Benjamin Herrenschmidt <benh@kernel.crash
+> ing.org> wrote:
+> > >
+> > > Of course, you'd have to be pretty odd to want to start a DMA
+> > with a
+> > > read anyway - partly exactly because it's bad for performance
+> > since
+> > > reads will be synchronous and not buffered like a write).
 > > 
-> > This is why, I want (with your agreement) to define clearly and once
-> > and for all, that the Linux semantics of writel are that it is ordered
-> > with previous writes to coherent memory (*)
+> > I have bad memories of old adaptec controllers ...
 > 
-> Honestly, I think those are the sane semantics. In fact, make it
-> "ordered with previous writes" full stop, since it's not only ordered
-> wrt previous writes to memory, but also previous writel's.
-
-Of course. It was somewhat a given that it's ordered vs. any previous
-MMIO actually, but it doesn't hurt to spell it out once more.
-
-> > Also, can I assume the above ordering with writel() equally applies to
-> > readl() or not ?
-> > 
-> > IE:
-> >         dma_buf->foo = 1;
-> >         readl(STUPID_DEVICE_DMA_KICK_ON_READ);
+> *Old* adaptec controllers were likely to use the in/out instructions
+> for status and command data.
 > 
-> If that KICK_ON_READ is UC, then that's definitely the case. And
-> honestly, status registers like that really should always be UC.
+> Those are actually even more ordered than UC reads and writes: the
+> in/out instructions are not just fully ordered, but are fully
+> *synchronous* on x86. 
 > 
-> But if somebody sets the area WC (which is crazy), then I think it
-> might be at least debatable. x86 semantics does allow reads to be done
-> before previous writes (or, put another way, writes to be buffered -
-> the buffers are ordered so writes don't get re-ordered, but reads can
-> happen during the buffering).
-
-Right, for now I worry about UC semantics. Once we have nailed that, we
-can look at WC, which is a lot more tricky as archs differs more
-widely, but one thing at a time.
-
-> But UC accesses are always  done entirely ordered, and honestly, any
-> status register that starts a DMA would not make sense any other way.
+> So not just doing accesses in order, but actually waiting for
+> everything to drain before they start executing, but they also wait
+> for the operation itself to complete (ie "out" will not just queue
+> the write, it will then wait for the queue to empty and the write
+> data to hit the line).
 > 
-> Of course, you'd have to be pretty odd to want to start a DMA with a
-> read anyway - partly exactly because it's bad for performance since
-> reads will be synchronous and not buffered like a write).
+> That's why in/out were *so* slow, and why nobody uses them any more
+> (well, the address size limitations and the lack of any remapping of
+> the address obviously also are a reason).
 
-I have bad memories of old adaptec controllers ...
+All true indeed, though a lot of other archs never quite made them
+fully synchronous, which was another can of worms ... oh well.
 
-That said, I think the above might not be right on ARM if we want to
-make it the rule, Will, what do you reckon ?
+As for Adaptec, you might be right, I do remember having cases of old
+stuff triggering DMA on reads, it might have been "Mac" variants of
+Adaptec using MMIO or something...
 
 Cheers,
 Ben.
