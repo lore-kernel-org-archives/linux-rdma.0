@@ -1,80 +1,58 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 10:43:49 +1100
-Message-ID: <1522194229.7364.73.camel@kernel.crashing.org>
-References: <CAKgT0UfZKBTYPCqWtBF=N5TPFrbsv0ZU+2GHMqF3J4BM9Hw4yw@mail.gmail.com>
+Date: Tue, 27 Mar 2018 14:39:13 -1000
+Message-ID: <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
+References: <1521854626.16434.359.camel@kernel.crashing.org>
+ <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com> <20180326165425.GA15554@ziepe.ca>
+ <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
+ <20180326202545.GB15554@ziepe.ca> <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
+ <20180326210951.GD15554@ziepe.ca> <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
+ <1522101616.7364.13.camel@kernel.crashing.org> <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+ <20180327151029.GB17494@arm.com> <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
+ <1522186396.7364.61.camel@kernel.crashing.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAKgT0UfZKBTYPCqWtBF=N5TPFrbsv0ZU+2GHMqF3J4BM9Hw4yw@mail.gmail.com>
+In-Reply-To: <1522186396.7364.61.camel@kernel.crashing.org>
 Sender: netdev-owner@vger.kernel.org
-To: Alexander Duyck <alexander.duyck@gmail.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2018-03-27 at 14:54 -0700, Alexander Duyck wrote:
-> On Tue, Mar 27, 2018 at 2:35 PM, Benjamin Herrenschmidt
-> <benh@kernel.crashing.org> wrote:
-> > On Tue, 2018-03-27 at 10:46 -0400, Sinan Kaya wrote:
-> > >  combined buffers.
-> > > 
-> > > Alex:
-> > > "Don't bother. I can tell you right now that for x86 you have to have a
-> > > wmb() before the writel().
-> > 
-> > No, this isn't the semantics of writel. You shouldn't need it unless
-> > something changed and we need to revisit our complete understanding of
-> > *all* MMIO accessor semantics.
-> 
-> The issue seems to be that there have been two different ways of
-> dealing with this. There has historically been a number of different
-> drivers that have been carrying this wmb() workaround since something
-> like 2002. I get that the semantics for writel might have changed
-> since then, but those of us who already have the wmb() in our drivers
-> will be very wary of anyone wanting to go through and remove them
-> since writel is supposed to be "good enough". I would much rather err
-> on the side of caution here.
-> 
-> I view the wmb() + writel_relaxed() as more of a driver owning and
-> handling this itself. Besides in the Intel Ethernet driver case it is
-> better performance as our wmb() placement for us also provides a
-> secondary barrier so we don't need to add a separate smp_wmb() to deal
-> with a potential race we have with the Tx cleanup.
-> 
-> > At least for UC space, it has always been accepted (and enforced) that
-> > writel would not require any other barrier to order vs. previous stores
-> > to memory.
-> 
-> So the one thing I would question here is if this is UC vs UC or if
-> this extends to other types as well? So for x86 we could find
-> references to Write Combining being flushed by a write to UC memory,
-> however I have yet to find a clear explanation of what a write to UC
-> does to WB. 
+On Tue, Mar 27, 2018 at 11:33 AM, Benjamin Herrenschmidt
+<benh@kernel.crashing.org> wrote:
+>
+> Well, we need to clarify that once and for all, because as I wrote
+> earlier, it was decreed by Linus more than a decade ago that writel
+> would be fully ordered by itself vs. previous memory stores (at least
+> on UC memory).
 
-Well, this is the standard write memory + trigger DMA case, the one
-specific case for which Linus was adamant we don't need another barrier
- back then ...
+Yes.
 
-> My personal inclination would be to err on the side of
-> caution.
+So "writel()" needs to be ordered with respect to other writel() uses
+on the same thread. Anything else *will* break drivers. Obviously, the
+drivers may then do magic to say "do write combining etc", but that
+magic will be architecture-specific.
 
-Which means writel_relaxed is now pointless ?
+The other issue is that "writel()" needs to be ordered wrt other CPU's
+doing "writel()" if those writel's are in a spinlocked region.
 
-We need clear semantics here. In this case the "side of caution" means
-we are randomly doing things not understanding what really happens and
-that makes me *more* nervous.
+So it's not  that "writel()" needs to be ordered wrt the spinlock
+itself, but you *do* need to honor ordering if you have something like
+this:
 
->  I just don't want us going through and removing the wmb()
-> calls because it "should" work. I would want to know for certain it
-> will work.
+   spin_lock(&somelock);
+   writel(a);
+   writel(b);
+   spin_unlock(&somelock);
 
-We need to know for certain anyway. Otherwise, all the drivers that do
-not have wmb's are potentially broken.
+and if two CPU's run the above code "at the same time", then the
+*ONLY* acceptable sequence is abab.
 
-So I dont agree with the status quo.
+You cannot, and must not, ever see "aabb" at the device, for example,
+because of how the writel would basically leak out of the spinlock.
 
-We need to establish precisely what x86 does, decide what we want the
-semantic of writel to be, and implement things accordingly.
+That sounds "obvious", but dammit, a lot of architectures got that
+wrong, afaik.
 
-Ben.
+                Linus
