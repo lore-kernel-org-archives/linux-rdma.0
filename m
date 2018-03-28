@@ -1,70 +1,63 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: RFC on writel and writel_relaxed
-Date: Wed, 28 Mar 2018 11:30:54 +0000
-Message-ID: <a642dc060b484d98bc728eb1f4b5c600@AcuMS.aculab.com>
-References: <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
-         <20180327151029.GB17494@arm.com>
-         <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
-         <1522186396.7364.61.camel@kernel.crashing.org>
-         <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
-         <1522198981.7364.81.camel@kernel.crashing.org>
-         <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
-         <1522211620.7364.94.camel@kernel.crashing.org>
-         <CA+55aFw24R3YAujir59GdG+sBBQOA9WyXySEN3AcEYK99ZHuwQ@mail.gmail.com>
-         <1522219376.7364.109.camel@kernel.crashing.org>
-         <20180328090710.GB28871@arm.com>
- <1522230988.21446.7.camel@kernel.crashing.org>
+From: okaya@codeaurora.org
+Subject: Re: RFC on writel and writel_relaxed
+Date: Wed, 28 Mar 2018 07:41:16 -0400
+Message-ID: <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
+References: <1521854626.16434.359.camel@kernel.crashing.org>
+ <58ce5b83f40f4775bec1be8db66adb0d@AcuMS.aculab.com>
+ <20180326165425.GA15554@ziepe.ca>
+ <CAK8P3a1zeMyj+Z-y4ER4moY6Zip9EWNOinf+VnboGOrgiwbBZA@mail.gmail.com>
+ <20180326202545.GB15554@ziepe.ca>
+ <CAK8P3a3fc43ZcW626hmsd3DVcLw7hGkdUMxp7s4Rn3mdkziwMQ@mail.gmail.com>
+ <20180326210951.GD15554@ziepe.ca>
+ <CAK8P3a2UU1xAM0NLo7Q4-Xgo1SzY3De1uqpFudr+2ZW7nHEPmA@mail.gmail.com>
+ <1522101616.7364.13.camel@kernel.crashing.org>
+ <1e077f6a-90b6-cce9-6f0f-a8c003fec850@codeaurora.org>
+ <20180327151029.GB17494@arm.com>
+ <CAKgT0Uem6HT-Z=HBnSVcC4rnDL0yFyXEbr+FN3YYkJ=ExZpUPQ@mail.gmail.com>
+ <1522186396.7364.61.camel@kernel.crashing.org>
+ <CA+55aFw2R4pirO0m+jtj4F8AF2-tVi3guEaWOA-EBqNyFmh29w@mail.gmail.com>
+ <1522198981.7364.81.camel@kernel.crashing.org>
+ <CA+55aFyTeuXPmC5-1JGh2ow-rf5wMA6Vcv0aeS_q0_EnptSK9Q@mail.gmail.com>
+ <bf77be28-051d-79c8-9b65-948c8a254d6d@codeaurora.org>
+ <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1522230988.21446.7.camel@kernel.crashing.org>
-Content-Language: en-US
+In-Reply-To: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: 'Benjamin Herrenschmidt' <benh@kernel.crashing.org>, Will Deacon <will.deacon@arm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Sinan Kaya <okaya@codeaurora.org>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, linux-rdma@vger.kernel.org, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, netdev@vger.kernel.org, linus971@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogQmVuamFtaW4gSGVycmVuc2NobWlkdA0KPiBTZW50OiAyOCBNYXJjaCAyMDE4IDEwOjU2
-DQouLi4NCj4gRm9yIGV4YW1wbGUsIGxldCdzIHNheSBJIGhhdmUgYSBkZXZpY2Ugd2l0aCBhIHJl
-c2V0IGJpdCBhbmQgdGhlIHNwZWMNCj4gc2F5cyB0aGUgcmVzZXQgYml0IG5lZWRzIHRvIGJlIHNl
-dCBmb3IgYXQgbGVhc3QgMTB1cy4NCj4gDQo+IFRoaXMgaXMgd3Jvbmc6DQo+IA0KPiAJd3JpdGVs
-KDEsIFJFU0VUX1JFRyk7DQo+IAl1c2xlZXAoMTApOw0KPiAJd3JpdGVsKDAsIFJFU0VUX1JFRyk7
-DQo+IA0KPiBCZWNhdXNlIG9mIHdyaXRlIHBvc3RpbmcsIHRoZSBmaXJzdCB3cml0ZSBtaWdodCBh
-cnJpdmUgdG8gdGhlIGRldmljZQ0KPiByaWdodCBiZWZvcmUgdGhlIHNlY29uZCBvbmUuDQo+IA0K
-PiBUaGUgdHlwaWNhbCAiZml4IiBpcyB0byB0dXJuIHRoYXQgaW50bzoNCj4gDQo+IAl3cml0ZWwo
-MSwgUkVTRVRfUkVHKTsNCj4gCXJlYWRsKFJFU0VUX1JFRyk7IC8qIEZsdXNoIHBvc3RlZCB3cml0
-ZXMgKi8NCg0KV291bGQgYSB3cml0ZWwoMSwgUkVTRVRfUkVHKSBoZXJlIHByb3ZpZGUgZW5vdWdo
-IHN5bmNocm9uc2lhdGlvbj8NCg0KPiAJdXNsZWVwKDEwKTsNCj4gCXdyaXRlbCgwLCBSRVNFVF9S
-RUcpOw0KPiANCj4gKkhvd2V2ZXIqIHRoZSBpc3N1ZSBoZXJlLCBhdCBsZWFzdCBvbiBwb3dlciwg
-aXMgdGhhdCB0aGUgQ1BVIGNhbiBpc3N1ZQ0KPiB0aGF0IHJlYWRsIGJ1dCBkb2Vzbid0IG5lY2Vz
-c2FyaWx5IHdhaXQgZm9yIGl0IHRvIGNvbXBsZXRlIChpZSwgdGhlDQo+IGRhdGEgdG8gcmV0dXJu
-KSwgYmVmb3JlIHByb2NlZWRpbmcgdG8gdGhlIHVzbGVlcC4gTm93IGEgdXNsZWVwIGNvbnRhaW5z
-DQo+IGEgYnVuY2ggb2YgbG9hZHMgYW5kIHN0b3JlcyBhbmQgaXMgcHJvYmFibHkgZmluZSwgYnV0
-IGEgdWRlbGF5IHdoaWNoDQo+IGp1c3QgbG9vcHMgb24gdGhlIHRpbWViYXNlIG1heSBub3QgYmUu
-DQo+IA0KPiBUaHVzIHdlIG1heSBzdGlsbCB2aW9sYXRlIHRoZSB0aW1pbmcgcmVxdWlyZW1lbnQu
-DQoNCkkndmUgc2VlbSB0aGF0IHNvcnQgb2YgY29kZSAod2l0aCB1ZGVsYXkoKSBhbmQgbm8gcmVh
-ZCBiYWNrKSBxdWl0ZSBvZnRlbi4NCkhvdyBtYW55IHdlcmUgaW4gbGludXggSSBkb24ndCBrbm93
-Lg0KDQpGb3Igc21hbGwgZGVsYXlzIEkgdXN1YWxseSBmaXggaXQgYnkgcmVwZWF0ZWQgd3JpdGVz
-IChvZiB0aGUgc2FtZSB2YWx1ZSkNCnRvIHRoZSBkZXZpY2UgcmVnaXN0ZXIuIFRoYXQgY2FuIGd1
-YXJhbnRlZSB2ZXJ5IHNob3J0IGludGVydmFscy4NCg0KVGhlIG9ubHkgdGltZSBJJ3ZlIGFjdHVh
-bGx5IHNlZW4gYnVmZmVyZWQgd3JpdGVzIGJyZWFrIHRpbWluZyB3YXMNCmJldHdlZW4gYSAyODYg
-YW5kIGFuIDg4NTkgaW50ZXJydXB0IGNvbnRyb2xsZXIuDQpJZiB5b3Ugd3JvdGUgdG8gdGhlIG1h
-c2sgdGhlbiBlbmFibGVkIGludGVycnVwdHMgdGhlIGZpcnN0IElBQ0sgY3ljbGUNCmNvdWxkIGJl
-IHRvbyBjbG9zZSB0byB3cml0ZSBhbmQgYnJlYWsgdGhlIGN5Y2xlIHJlY292ZXJ5IHRpbWUuDQpU
-aGF0IGNsb2JiZXJlZCBtb3N0IG9mIHRoZSBpbnRlcnJ1cHQgY29udHJvbGxlciByZWdpc3RlcnMu
-DQpUaGF0IHByb2JhYmx5IGFmZmVjdGVkIGV2ZXJ5IDI4NiBib2FyZCBldmVyIGJ1aWx0IQ0KTm90
-IHN1cmUgaG93IG11Y2ggc29mdHdhcmUgYWRkZWQgdGhlIHJlcXVpcmVkIGV4dHJhIGJ1cyBjeWNs
-ZS4NCg0KPiBXaGF0IHdlIGRpZCBpbnNpZGUgcmVhZGwsIHdpdGggdGhlIHR3aTtpc3luYyBzZXF1
-ZW5jZSAod2hpY2ggYmFzaWNhbGx5DQo+IG1lYW5zLCB0cmFwIG9uIHJldHVybiB2YWx1ZSB3aXRo
-ICJ0cmFwIG5ldmVyIiBhcyBhIGNvbmRpdGlvbiwgZm9sbG93ZWQNCj4gYnkgaXN5bmMgdGhhdCBl
-bnN1cmVzIGFsbCBleGNwZXRpb24gY29uZGl0aW9ucyBhcmUgcmVzb2x2ZWQpLCBpcyBmb3JjZQ0K
-PiB0aGUgQ1BVIHRvICJjb25zdW1lIiB0aGUgZGF0YSBmcm9tIHRoZSByZWFkIGJlZm9yZSBtb3Zp
-bmcgb24uDQo+IA0KPiBUaGlzIGVmZmVjdGl2ZWx5IG1ha2VzIHJlYWRsIGZ1bGx5IHN5bmNocm9u
-b3VzICh3ZSB3b3VsZCBwcm9iYWJseSBhdm9pZA0KPiB0aGF0IGlmIHdlIHdlcmUgdG8gaW1wbGVt
-ZW50IGEgcmVhZGxfcmVsYXhlZCkuDQoNCkkndmUgYWx3YXlzIHdvbmRlcmVkIGV4YWN0bHkgd2hh
-dCB0aGUgdHdpO2lzeW5jIHdlcmUgZm9yIC0gYWx3YXlzIHNlZW1lZA0KdmVyeSBoZWF2eSBoYW5k
-ZWQgZm9yIG1vc3QgbW1pbyByZWFkcy4NClBhcnRpY3VsYXJseSBpZiB5b3UgYXJlIGRvaW5nIG1t
-aW8gcmVhZHMgZnJvbSBhIGRhdGEgZmlmby4NCg0KUGVyaGFwcyB0aGVyZSBzaG91bGQgYmUgYSB3
-cml0ZWxfd2FpdCgpIHRoYXQgaXMgYWxsb3dlZCB0byBkbyBhIHJlYWQgYmFjaw0KZm9yIHN1Y2gg
-Y29kZSBwYXRocz8NCg0KCURhdmlkDQoNCg==
+On 2018-03-28 02:14, Linus Torvalds wrote:
+> On Tue, Mar 27, 2018 at 5:24 PM, Sinan Kaya <okaya@codeaurora.org> 
+> wrote:
+>> 
+>> Basically changing it to
+>> 
+>> dma_buffer->foo = 1;                    /* WB */
+>> wmb()
+>> writel_relaxed(KICK, DMA_KICK_REGISTER);        /* UC */
+>> mmiowb()
+> 
+> Why?
+> 
+> Why not  just remove the wmb(), and keep the barrier in the writel()?
+
+Yes, we want to get there indeed. It is because of some arch not 
+implementing writel properly. Maintainers want to play safe.
+
+That is why I asked if IA64 and other well known archs follow the 
+strongly ordered rule at this moment like PPC and ARM.
+
+Or should we go and inform every arch about this before yanking wmb()?
+
+Maintainers are afraid of introducing a regression.
+
+> 
+> The above code makes no sense, and just looks stupid to me. It also
+> generates pointlessly bad code on x86, so it's bad there too.
+> 
+>                Linus
