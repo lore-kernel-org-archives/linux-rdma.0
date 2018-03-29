@@ -1,66 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next] qed*: Utilize FW 8.33.11.0
-Date: Thu, 29 Mar 2018 14:18:40 -0400 (EDT)
-Message-ID: <20180329.141840.1799263974241169651.davem@davemloft.net>
-References: <1522226536-9812-1-git-send-email-Michal.Kalderon@cavium.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Thu, 29 Mar 2018 13:17:29 -0600
+Message-ID: <20180329191729.GA24187@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1522226536-9812-1-git-send-email-Michal.Kalderon@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal.Kalderon@cavium.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Tomer.Tayar@cavium.com, Manish.Rangankar@cavium.com, Ariel.Elior@cavium.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Date: Wed, 28 Mar 2018 11:42:16 +0300
+Hi Linus,
 
-> This FW contains several fixes and features
-> 
-> RDMA Features
-> - SRQ support
-> - XRC support
-> - Memory window support
-> - RDMA low latency queue support
-> - RDMA bonding support
-> 
-> RDMA bug fixes
-> - RDMA remote invalidate during retransmit fix
-> - iWARP MPA connect interop issue with RTR fix
-> - iWARP Legacy DPM support
-> - Fix MPA reject flow
-> - iWARP error handling
-> - RQ WQE validation checks
-> 
-> MISC
-> - Fix some HSI types endianity
-> - New Restriction: vlan insertion in core_tx_bd_data can't be set
->   for LB packets
-> 
-> ETH
-> - HW QoS offload support
-> - Fix vlan, dcb and sriov flow of VF sending a packet with
->   inband VLAN tag instead of default VLAN
-> - Allow GRE version 1 offloads in RX flow
-> - Allow VXLAN steering
-> 
-> iSCSI / FcoE
-> - Fix bd availability checking flow
-> - Support 256th sge proerly in iscsi/fcoe retransmit
-> - Performance improvement
-> - Fix handle iSCSI command arrival with AHS and with immediate
-> - Fix ipv6 traffic class configuration
-> 
-> DEBUG
-> - Update debug utilities
-> 
-> Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
-> Signed-off-by: Tomer Tayar <Tomer.Tayar@cavium.com>
-> Signed-off-by: Manish Rangankar <Manish.Rangankar@cavium.com>
-> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
-> ---
-> Changes from v1
-> 	Remove version bump and qedr module version addition
+Fifth pull request for -rc.
 
-Applied.
+It has been fairly silent lately on our -rc front. Big queue of patches on the
+mailing list going to for-next though.
+
+The following changes since commit e8980d67d6017c8eee8f9c35f782c4bd68e004c9:
+
+  RDMA/ucma: Ensure that CM_ID exists prior to access it (2018-03-20 11:07:21 -0600)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to 84652aefb347297aa08e91e283adf7b18f77c2d5:
+
+  RDMA/ucma: Introduce safer rdma_addr_size() variants (2018-03-28 16:13:36 -0600)
+
+----------------------------------------------------------------
+Fifth pull request for 4.16-rc
+
+Bug fixes:
+- qedr driver bugfixes causing application hangs, wrong uapi errnos, and a
+  race condition
+- 3 syzkaller found bugfixes in the ucma uapi
+
+Regression fixes for things introduced in 4.16:
+- Crash on error introduced in mlx5 UMR flow
+- Crash on module unload/etc introduced by bad interaction of restrack
+  and mlx5 patches this cycle
+- Typo in a two line syzkaller bugfix causing a bad regression
+- Coverity report of nonsense code in hns driver
+
+----------------------------------------------------------------
+Chien Tin Tung (1):
+      RDMA/ucma: Correct option size check using optlen
+
+Colin Ian King (1):
+      RDMA/hns: ensure for-loop actually iterates and free's buffers
+
+Jason Gunthorpe (1):
+      RDMA/rdma_cm: Fix use after free race with process_one_req
+
+Kalderon, Michal (3):
+      RDMA/qedr: fix QP's ack timeout configuration
+      RDMA/qedr: Fix rc initialization on CNQ allocation failure
+      RDMA/qedr: Fix QP state initialization race
+
+Leon Romanovsky (3):
+      RDMA/restrack: Move restrack_clean to be symmetrical to restrack_init
+      RDMA/ucma: Check that device is connected prior to access it
+      RDMA/ucma: Check that device exists prior to accessing it
+
+Mark Bloch (1):
+      IB/mlx5: Don't clean uninitialized UMR resources
+
+Roland Dreier (1):
+      RDMA/ucma: Introduce safer rdma_addr_size() variants
+
+ drivers/infiniband/core/addr.c             | 25 ++++++++++++++++
+ drivers/infiniband/core/device.c           |  3 +-
+ drivers/infiniband/core/ucma.c             | 47 +++++++++++++++++-------------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c |  2 +-
+ drivers/infiniband/hw/mlx5/main.c          | 12 ++++++--
+ drivers/infiniband/hw/mlx5/mr.c            |  3 ++
+ drivers/infiniband/hw/qedr/main.c          |  3 +-
+ drivers/infiniband/hw/qedr/verbs.c         | 45 +++++++++++++++++++---------
+ include/rdma/ib_addr.h                     |  2 ++
+ 9 files changed, 102 insertions(+), 40 deletions(-)
