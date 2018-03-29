@@ -1,84 +1,109 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Thu, 29 Mar 2018 10:40:48 -0600
-Message-ID: <20180329164048.GB13656@ziepe.ca>
-References: <1522186185.7364.59.camel@kernel.crashing.org>
- <20180328085338.GA28871@arm.com>
- <1522230616.21446.1.camel@kernel.crashing.org>
- <CAK8P3a1E54K2pxw-9J5NazF2xNFNvOY1JsGr5C727zAxaz0K5g@mail.gmail.com>
- <1522231287.21446.9.camel@kernel.crashing.org>
- <20180328101345.GA30850@arm.com> <20180328165732.GA4546@ziepe.ca>
- <20180329091941.GA22926@arm.com> <20180329144515.GA13656@ziepe.ca>
- <4ce6f0338fe04574bd3c0633c522a1c7@AcuMS.aculab.com>
+Date: Thu, 29 Mar 2018 12:59:23 -0400
+Message-ID: <48b2698a-8cc6-22c5-551c-88e84cc06a71@codeaurora.org>
+References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
+ <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
+ <1522249996.21446.25.camel@kernel.crashing.org>
+ <20180328.115509.481837809903086401.davem@davemloft.net>
+ <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
+ <CAK8P3a2qcXmPx-j6XZPGhWZ_K3=cBym8tVFzwcZMSCjVfzMs1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-Content-Disposition: inline
-In-Reply-To: <4ce6f0338fe04574bd3c0633c522a1c7@AcuMS.aculab.com>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: David Laight <David.Laight@ACULAB.COM>
-Cc: Arnd Bergmann <arnd@arndb.de>, Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a2qcXmPx-j6XZPGhWZ_K3=cBym8tVFzwcZMSCjVfzMs1g@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver O'Halloran <oohall@gmail.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Networking <netdev@vger.kernel.org>, Linus Torvalds <linus971@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 29, 2018 at 02:58:34PM +0000, David Laight wrote:
-> From: Jason Gunthorpe
-> > Sent: 29 March 2018 15:45
-> ...
-> > > > When talking about ordering between the devices, the relevant question
-> > > > is what happens if the writel(DEVICE_BAR) triggers DEVICE_BAR to DMA
-> > > > from the DEVICE_FOO. 'ordered' means that in this case
-> > > > writel(DEVICE_FOO) must be presented to FOO before anything generated
-> > > > by BAR.
-> > >
-> > > Yes, and that isn't the case for arm because the writes can still be
-> > > buffered.
-> > 
-> > The statement is not about buffering, or temporal completion order, or
-> > the order of acks returning to the CPU. It is about pure transaction
-> > ordering inside the interconnect.
-> > 
-> > Can write BAR -> FOO pass write CPU -> FOO?
+On 3/29/2018 12:29 PM, Arnd Bergmann wrote:
+> On Thu, Mar 29, 2018 at 3:56 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>> On 3/28/2018 11:55 AM, David Miller wrote:
+>>> From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>>> Date: Thu, 29 Mar 2018 02:13:16 +1100
+>>>
+>>>> Let's fix all archs, it's way easier than fixing all drivers. Half of
+>>>> the archs are unused or dead anyway.
+>>>
+>>> Agreed.
+>>>
+>>
+>> I pinged most of the maintainers yesterday.
+>> Which arches do we care about these days?
+>> I have not been paying attention any other architecture besides arm64.
+>>
+>> arch            status                  detail
+>> ------          -------------           ------------------------------------
+>> alpha           question sent
+
+Thanks for the detailed analysis.
+
 > 
-> Almost certainly.
-> The first cpu write can almost certainly be 'stalled' at the shared PCIe bridge.
-> The second cpu write then completes (to a different target).
-> That target then issues a peer to peer transfer that reaches the shared bridge.
-> I doubt the order of the transactions is guaranteed when it becomes 'un-stalled'.
+> I'm guessing alpha has problems
+> 
+> extern inline u32 readl(const volatile void __iomem *addr)
+> {
+>         u32 ret = __raw_readl(addr);
+>         mb();
+>         return ret;
+> }
+> extern inline void writel(u32 b, volatile void __iomem *addr)
+> {
+>         __raw_writel(b, addr);
+>         mb();
+> }
 
-The PCI spec has very strong wording on ordering that covers this
-case. Stalled bridges have to follow the ordering rules, and posted
-writes cannot pass other posted writes.
+Looks like a problem to me too. I'll start a thread with the alpha
+people and CC you.
 
-Since in PCI all three transactions:
- CPU -> FOO
- CPU -> BAR
- BAR -> FOO
 
-Must traverse a shared bus segment, they must be placed on that bus in
-the above order, and the bridge(s) toward FOO must preserve this
-order.
+> 
+> There is a barrier in writel /after/ the acess but not before.
+> 
 
-ARM's AXI has similar rules, I just can't recall the tiny details
-right now :)
+This is the consolidated list. I also heart back from m68k and corrected
+contacts for arc and h8300.
 
-> Of course, these are peer to peer transfers, and strange ones at that.
-> Normally you'd not be doing peer to peer transfers that access 'memory'
-> the cpu has just written to.
+arch            status                  detail
+------          -------------           ------------------------------------
+alpha		question sent		Arnd: alpha has problems
+arc		question sent		Vineet.Gupta1@synopsys.com says he'll get to this
+					in the next few days
+arm		no issues
+arm64		no issues
+c6x		no issues		no PCI
+h8300		no issues		no PCI: ysato@users.sourceforge.jp will fix it.
+hexagon		no issues		no PCI
+ia64		no issues		confirmed by Tony Luck
+m68k		no issues		geert@linux-m68k.org says no problem
+metag		no issues		arnd: removed
+microblaze	question sent		arnd: some mips platforms have problems
+mips		question sent		arnd: some mips platforms have problems
+nds32		question sent
+nios2		no issues		no PCI
+openrisc	no issues		shorne@gmail.com says should no issues
+parisc		no issues		grantgrundler@gmail.com says most probably no problem
+					but still looking
+powerpc		no issues
+riscv		no issues		arnd: riscv should be fine
+s390		no issues		arnd: Pretty sure this is also fine
+sh		question sent
+sparc		no issues		davem@davemloft.net says always strongly ordered
+unicore32	question sent		resent to gxt@pku.edu.cn
+x86		no issues
+x86_64		no issues
 
-It is the best situation I can think of where order of completion to
-different devices would matter to a generic Linux driver..
 
-.. And there are patches circulating right now for NVMe that enable
-exactly this kind of transfer, and rely on these kind of semantics, so
-it is a relevant detail :)
 
-Jason
+> 
+>          Arnd
+> 
+
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
