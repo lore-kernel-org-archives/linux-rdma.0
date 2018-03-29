@@ -1,27 +1,95 @@
-From: David Miller <davem@davemloft.net>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: RFC on writel and writel_relaxed
-Date: Thu, 29 Mar 2018 10:04:14 -0400 (EDT)
-Message-ID: <20180329.100414.1839699928682052200.davem@davemloft.net>
-References: <1522249996.21446.25.camel@kernel.crashing.org>
-        <20180328.115509.481837809903086401.davem@davemloft.net>
-        <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
+Date: Thu, 29 Mar 2018 08:45:15 -0600
+Message-ID: <20180329144515.GA13656@ziepe.ca>
+References: <bba5ebd8-0643-6f09-9367-419b49e53535@codeaurora.org>
+ <20180327143628.GA10642@arm.com>
+ <1522186185.7364.59.camel@kernel.crashing.org>
+ <20180328085338.GA28871@arm.com>
+ <1522230616.21446.1.camel@kernel.crashing.org>
+ <CAK8P3a1E54K2pxw-9J5NazF2xNFNvOY1JsGr5C727zAxaz0K5g@mail.gmail.com>
+ <1522231287.21446.9.camel@kernel.crashing.org>
+ <20180328101345.GA30850@arm.com> <20180328165732.GA4546@ziepe.ca>
+ <20180329091941.GA22926@arm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-To: okaya@codeaurora.org
-Cc: benh@kernel.crashing.org, torvalds@linux-foundation.org, alexander.duyck@gmail.com, will.deacon@arm.com, arnd@arndb.de, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, alexander.h.duyck@redhat.com, paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org, linus971@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+Content-Disposition: inline
+In-Reply-To: <20180329091941.GA22926@arm.com>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Jonathan Corbet <corbet@lwn.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Peter Zijlstra <peterz@infradead.org>, David Laight <David.Laight@aculab.com>, Oliver <oohall@gmail.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" <linuxppc-dev@lists.ozlabs.org>, Ingo Molnar <mingo@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sinan Kaya <okaya@codeaurora.org>
-Date: Thu, 29 Mar 2018 09:56:01 -0400
+On Thu, Mar 29, 2018 at 10:19:41AM +0100, Will Deacon wrote:
+> On Wed, Mar 28, 2018 at 10:57:32AM -0600, Jason Gunthorpe wrote:
+> > On Wed, Mar 28, 2018 at 11:13:45AM +0100, Will Deacon wrote:
+> > > On Wed, Mar 28, 2018 at 09:01:27PM +1100, Benjamin Herrenschmidt wrote:
+> > > > On Wed, 2018-03-28 at 11:55 +0200, Arnd Bergmann wrote:
+> > > > > > powerpc and ARM can't quite make them synchronous I think, but at least
+> > > > > > they should have the same semantics as writel.
+> > > > > 
+> > > > > One thing that ARM does IIRC is that it only guarantees to order writel() within
+> > > > > one device, and the memory mapped PCI I/O space window almost certainly
+> > > > > counts as a separate device to the CPU.
+> > > > 
+> > > > That sounds bogus.
+> > > 
+> > > To elaborate, if you do the following on arm:
+> > > 
+> > > 	writel(DEVICE_FOO);
+> > > 	writel(DEVICE_BAR);
+> > > 
+> > > we generally cannot guarantee in which order those accesses will hit the
+> > > devices even if we add every barrier under the sun. You'd need something
+> > > in between, specific to DEVICE_FOO (probably a read-back) to really push
+> > > the first write out. This doesn't sound like it would be that uncommon to
+> > > me.
+> > 
+> > The PCI posted write does not require the above to execute 'in order'
+> > only that any bus segment shared by the two devices have the writes
+> > issued in CPU order. ie at a shared PCI root port for instance.
+> > 
+> > If I recall this is very similar to the ordering that ARM's on-chip
+> > AXI interconnect is supposed to provide.. So I'd be very surprised if
+> > a modern ARM64 has an meaningful difference from x86 here.
+> 
+> From the architectural perspective, writes to different "peripherals" are
+> not ordered with respect to each other. The first writel will complete once
+> it gets its write acknowledgement, but this may not necessarily come from
+> the endpoint -- it could come from an intermediate buffer past the point of
+> serialisation (i.e. the write will then be ordered with respect to other
+> accesses to that same endpoint). The PCI root port would look like one
+> peripheral here.
 
-> sparc		question sent
+That is basically the same as PCI - PCI has no write ACK, so all
+writes are buffered by the PCI interconnect and complete in some
+undefined temporal order when multiple end points are involved.
 
-Sparc never lets physical memory accesses pass MMIO, and vice versa.
+This does not seem very different from what happens in x86..
 
-They are always strongly ordered amongst eachother.
+> > When talking about ordering between the devices, the relevant question
+> > is what happens if the writel(DEVICE_BAR) triggers DEVICE_BAR to DMA
+> > from the DEVICE_FOO. 'ordered' means that in this case
+> > writel(DEVICE_FOO) must be presented to FOO before anything generated
+> > by BAR.
+> 
+> Yes, and that isn't the case for arm because the writes can still be
+> buffered.
 
-Therefore no explicit barrier instructions are necessary.
+The statement is not about buffering, or temporal completion order, or
+the order of acks returning to the CPU. It is about pure transaction
+ordering inside the interconnect.
+
+Can write BAR -> FOO pass write CPU -> FOO?
+
+Jason
