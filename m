@@ -1,156 +1,110 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v4 iproute2-next 7/7] rdma: Add PD resource tracking
- information
-Date: Thu, 29 Mar 2018 09:10:44 -0700
-Message-ID: <9745441dbbcbbd3e0b4ac12c2930c752cf35c342.1522359537.git.swise@opengridcomputing.com>
-References: <cover.1522359537.git.swise@opengridcomputing.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1522359537.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: dsahern@gmail.com
-Cc: leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: syzbot <syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com>
+Subject: KASAN: stack-out-of-bounds Read in rdma_bind_addr (2)
+Date: Thu, 29 Mar 2018 15:01:02 -0700
+Message-ID: <94eb2c0b8e086ce11505689442f9@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-Sample output:
+Hello,
 
-Without CAP_NET_ADMIN capability:
+syzbot hit the following crash on upstream commit
+0b412605ef5f5c64b31f19e2910b1d5eba9929c3 (Thu Mar 29 01:07:23 2018 +0000)
+Merge tag 'drm-fixes-for-v4.16-rc8' of  
+git://people.freedesktop.org/~airlied/linux
+syzbot dashboard link:  
+https://syzkaller.appspot.com/bug?extid=4b6afe4bdd99cb99e664
 
-dev mlx4_0 users 0 pid 0 comm [ib_srpt]
-dev mlx4_0 users 0 pid 0 comm [ib_srp]
-dev mlx4_0 users 1 pid 0 comm [ib_core]
-dev cxgb4_0 users 0 pid 0 comm [ib_srp]
+So far this crash happened 4 times on upstream.
+C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6021023174492160
+syzkaller reproducer:  
+https://syzkaller.appspot.com/x/repro.syz?id=6269942299099136
+Raw console output:  
+https://syzkaller.appspot.com/x/log.txt?id=6347752745205760
+Kernel config:  
+https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
+compiler: gcc (GCC) 7.1.1 20170620
 
-With CAP_NET_ADMIN capability:
-dev mlx4_0 local_dma_lkey 0x8000 users 0 pid 0 comm [ib_srpt]
-dev mlx4_0 local_dma_lkey 0x8000 users 0 pid 0 comm [ib_srp]
-dev mlx4_0 local_dma_lkey 0x8000 users 1 pid 0 comm [ib_core]
-dev cxgb4_0 local_dma_lkey 0x0 users 0 pid 0 comm [ib_srp]
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com
+It will help syzbot understand when the bug is fixed. See footer for  
+details.
+If you forward the report, please keep this part and the footer.
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+==================================================================
+BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:345  
+[inline]
+BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x13b/0x1d60  
+drivers/infiniband/core/cma.c:3361
+Read of size 48 at addr ffff8801af717a50 by task syzkaller366236/4421
+
+CPU: 0 PID: 4421 Comm: syzkaller366236 Not tainted 4.16.0-rc7+ #5
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:17 [inline]
+  dump_stack+0x194/0x24d lib/dump_stack.c:53
+  print_address_description+0x73/0x250 mm/kasan/report.c:256
+  kasan_report_error mm/kasan/report.c:354 [inline]
+  kasan_report+0x23c/0x360 mm/kasan/report.c:412
+  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+  check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+  memcpy+0x23/0x50 mm/kasan/kasan.c:302
+  memcpy include/linux/string.h:345 [inline]
+  rdma_bind_addr+0x13b/0x1d60 drivers/infiniband/core/cma.c:3361
+  ucma_bind_ip+0x10a/0x190 drivers/infiniband/core/ucma.c:639
+  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+  __vfs_write+0xef/0x970 fs/read_write.c:480
+  vfs_write+0x189/0x510 fs/read_write.c:544
+  SYSC_write fs/read_write.c:589 [inline]
+  SyS_write+0xef/0x220 fs/read_write.c:581
+  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x43fdd9
+RSP: 002b:00007ffc69ab4bb8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdd9
+RDX: 0000000000000090 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401700
+R13: 0000000000401790 R14: 0000000000000000 R15: 0000000000000000
+
+The buggy address belongs to the page:
+page:ffffea0006bdc5c0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+raw: 0000000000000000 ffffea0006bd0101 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff8801af717900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2
+  ffff8801af717980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 f3 00 00
+> ffff8801af717a00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 00 f2 f2
+                                                              ^
+  ffff8801af717a80: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
+  ffff8801af717b00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00 00
+==================================================================
+
+
 ---
- rdma/res.c | 95 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+This bug is generated by a dumb bot. It may contain errors.
+See https://goo.gl/tpsmEJ for details.
+Direct all questions to syzkaller@googlegroups.com.
 
-diff --git a/rdma/res.c b/rdma/res.c
-index 9c1f736..1a0aab6 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -927,6 +927,91 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 	return MNL_CB_OK;
- }
- 
-+static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct nlattr *nla_table, *nla_entry;
-+	struct rd *rd = data;
-+	const char *name;
-+	uint32_t idx;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
-+	    !tb[RDMA_NLDEV_ATTR_RES_PD])
-+		return MNL_CB_ERROR;
-+
-+	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
-+	idx =  mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	nla_table = tb[RDMA_NLDEV_ATTR_RES_PD];
-+
-+	mnl_attr_for_each_nested(nla_entry, nla_table) {
-+		uint32_t local_dma_lkey = 0, unsafe_global_rkey = 0;
-+		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
-+		char *comm = NULL;
-+		uint32_t pid = 0;
-+		uint64_t users;
-+		int err;
-+
-+		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
-+		if (err != MNL_CB_OK)
-+			return MNL_CB_ERROR;
-+
-+		if (!nla_line[RDMA_NLDEV_ATTR_RES_USECNT] ||
-+		    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
-+		     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
-+			return MNL_CB_ERROR;
-+		}
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY])
-+			local_dma_lkey = mnl_attr_get_u32(
-+				nla_line[RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY]);
-+
-+		users = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_USECNT]);
-+		if (rd_check_is_filtered(rd, "users", users))
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY])
-+			unsafe_global_rkey = mnl_attr_get_u32(
-+			      nla_line[RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY]);
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
-+			pid = mnl_attr_get_u32(
-+				nla_line[RDMA_NLDEV_ATTR_RES_PID]);
-+			comm = get_task_name(pid);
-+		}
-+
-+		if (rd_check_is_filtered(rd, "pid", pid))
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
-+			/* discard const from mnl_attr_get_str */
-+			comm = (char *)mnl_attr_get_str(
-+				nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
-+
-+		if (rd->json_output)
-+			jsonw_start_array(rd->jw);
-+
-+		print_dev(rd, idx, name);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY])
-+			print_key(rd, "local_dma_lkey", local_dma_lkey);
-+		print_users(rd, users);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY])
-+			print_key(rd, "unsafe_global_rkey", unsafe_global_rkey);
-+		print_pid(rd, pid);
-+		print_comm(rd, comm, nla_line);
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
-+			free(comm);
-+
-+		if (rd->json_output)
-+			jsonw_end_array(rd->jw);
-+		else
-+			pr_out("\n");
-+	}
-+	return MNL_CB_OK;
-+}
-+
- RES_FUNC(res_no_args,	RDMA_NLDEV_CMD_RES_GET,	NULL, true);
- 
- static const struct
-@@ -990,6 +1075,15 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- 
- RES_FUNC(res_mr, RDMA_NLDEV_CMD_RES_MR_GET, mr_valid_filters, true);
- 
-+static const
-+struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-+	{ .name = "dev", .is_number = false },
-+	{ .name = "users", .is_number = true },
-+	{ .name = "pid", .is_number = true }
-+};
-+
-+RES_FUNC(res_pd, RDMA_NLDEV_CMD_RES_PD_GET, pd_valid_filters, true);
-+
- static int res_show(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
-@@ -998,6 +1092,7 @@ static int res_show(struct rd *rd)
- 		{ "cm_id",	res_cm_id	},
- 		{ "cq",		res_cq		},
- 		{ "mr",		res_mr		},
-+		{ "pd",		res_pd		},
- 		{ 0 }
- 	};
- 
--- 
-1.8.3.1
+syzbot will keep track of this bug report.
+If you forgot to add the Reported-by tag, once the fix for this bug is  
+merged
+into any tree, please reply to this email with:
+#syz fix: exact-commit-title
+If you want to test a patch for this bug, please reply with:
+#syz test: git://repo/address.git branch
+and provide the patch inline or as an attachment.
+To mark this as a duplicate of another syzbot report, please reply with:
+#syz dup: exact-subject-of-another-report
+If it's a one-off invalid bug report, please reply with:
+#syz invalid
+Note: if the crash happens again, it will cause creation of a new bug  
+report.
+Note: all commands must start from beginning of the line in the email body.
