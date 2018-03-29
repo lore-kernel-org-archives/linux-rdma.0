@@ -1,83 +1,56 @@
-From: syzbot <syzbot+6800425d54ed3ed8135d@syzkaller.appspotmail.com>
-Subject: Re: kernel BUG at lib/string.c:LINE! (3)
-Date: Wed, 28 Mar 2018 22:09:01 -0700
-Message-ID: <00000000000025e4720568861faf@google.com>
-References: <f403043cbe844e4c44056872bb7e@google.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Thu, 29 Mar 2018 10:20:47 +0100
+Message-ID: <20180329092046.GB22926@arm.com>
+References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
+ <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
+ <1522249996.21446.25.camel@kernel.crashing.org>
+ <20180328.115509.481837809903086401.davem@davemloft.net>
+ <20180329022324.037c3f39@roar.ozlabs.ibm.com>
+ <1522272692.21446.42.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f403043cbe844e4c44056872bb7e@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, don.hiatt@intel.com, dvyukov@google.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@kernel.org, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1522272692.21446.42.camel@kernel.crashing.org>
+Sender: netdev-owner@vger.kernel.org
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>, David Miller <davem@davemloft.net>, paulmck@linux.vnet.ibm.com, arnd@arndb.de, linux-rdma@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linus971@gmail.com, alexander.duyck@gmail.com, okaya@codeaurora.org, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, netdev@vger.kernel.org, alexander.h.duyck@redhat.com, torvalds@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-syzbot has found reproducer for the following crash on upstream commit
-a2601d78b77aacc5dd790f488188f9556f4a9eb2 (Wed Mar 28 23:54:03 2018 +0000)
-Merge tag 'powerpc-4.16-6' of  
-git://git.kernel.org/pub/scm/linux/kernel/git/powerpc/linux
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=6800425d54ed3ed8135d
+On Thu, Mar 29, 2018 at 08:31:32AM +1100, Benjamin Herrenschmidt wrote:
+> On Thu, 2018-03-29 at 02:23 +1000, Nicholas Piggin wrote:
+> >   This is a variation on the mandatory write barrier that causes writes to weakly
+> >   ordered I/O regions to be partially ordered.  Its effects may go beyond the
+> >   CPU->Hardware interface and actually affect the hardware at some level.
+> > 
+> > How can a driver writer possibly get that right?
+> > 
+> > IIRC it was added for some big ia64 system that was really expensive
+> > to implement the proper wmb() semantics on. So wmb() semantics were
+> > quietly downgraded, then the subsequently broken drivers they cared
+> > about were fixed by adding the stronger mmiowb().
+> > 
+> > What should have happened was wmb and writel remained correct, sane, and
+> > expensive, and they add an mmio_wmb() to order MMIO stores made by the
+> > writel_relaxed accessors, then use that to speed up the few drivers they
+> > care about.
+> > 
+> > Now that ia64 doesn't matter too much, can we deprecate mmiowb and just
+> > make wmb ordering talk about stores to the device, not to some
+> > intermediate stage of the interconnect where it can be subsequently
+> > reordered wrt the device? Drivers can be converted back to using wmb
+> > or writel gradually.
+> 
+> I was under the impression that mmiowb was specifically about ordering
+> writel's with a subsequent spin_unlock, without it, MMIOs from
+> different CPUs (within the same lock) would still arrive OO.
+> 
+> If that's indeed the case, I would suggest ia64 switches to a similar
+> per-cpu flag trick powerpc uses.
 
-So far this crash happened 3 times on upstream.
-C reproducer: https://syzkaller.appspot.com/x/repro.c?id=4970341969428480
-syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=5526256363765760
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=5692795733934080
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
-compiler: gcc (GCC) 7.1.1 20170620
+... or we could remove ia64.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+6800425d54ed3ed8135d@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed.
+/me runs for cover
 
-detected buffer overflow in memcpy
-------------[ cut here ]------------
-kernel BUG at lib/string.c:1052!
-invalid opcode: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Modules linked in:
-CPU: 1 PID: 4420 Comm: syzkaller185831 Not tainted 4.16.0-rc7+ #4
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:fortify_panic+0x13/0x20 lib/string.c:1051
-RSP: 0018:ffff8801b02bf940 EFLAGS: 00010282
-RAX: 0000000000000022 RBX: 1ffff10036057f2d RCX: 0000000000000000
-RDX: 0000000000000022 RSI: 1ffff10036057edd RDI: ffffed0036057f1c
-RBP: ffff8801b02bf940 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000006 R11: 0000000000000000 R12: ffff8801b02bf9e8
-R13: ffff8801b02bf988 R14: ffff8801b02bfaa8 R15: 000000000000fa00
-FS:  00000000019ff880(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000140 CR3: 00000001b0f1b005 CR4: 00000000001606e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  memcpy include/linux/string.h:344 [inline]
-  ucma_join_ip_multicast+0x37a/0x3c0 drivers/infiniband/core/ucma.c:1434
-  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
-  __vfs_write+0xef/0x970 fs/read_write.c:480
-  vfs_write+0x189/0x510 fs/read_write.c:544
-  SYSC_write fs/read_write.c:589 [inline]
-  SyS_write+0xef/0x220 fs/read_write.c:581
-  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-RIP: 0033:0x43fd29
-RSP: 002b:00007ffed3ea1058 EFLAGS: 00000213 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fd29
-RDX: 0000000000000118 RSI: 0000000020000f80 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000213 R12: 0000000000401650
-R13: 00000000004016e0 R14: 0000000000000000 R15: 0000000000000000
-Code: 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 0f 0b 48 89 df e8 d2 a7 3f fb eb  
-de 55 48 89 fe 48 c7 c7 c0 43 44 87 48 89 e5 e8 d5 05 f1 fa <0f> 0b 90 90  
-90 90 90 90 90 90 90 90 90 55 48 89 e5 41 57 41 56
-RIP: fortify_panic+0x13/0x20 lib/string.c:1051 RSP: ffff8801b02bf940
----[ end trace 71f07011b6e6886b ]---
-Kernel panic - not syncing: Fatal exception
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+Will
