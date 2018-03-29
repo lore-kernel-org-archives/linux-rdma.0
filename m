@@ -1,109 +1,45 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Thu, 29 Mar 2018 12:59:23 -0400
-Message-ID: <48b2698a-8cc6-22c5-551c-88e84cc06a71@codeaurora.org>
-References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
- <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
- <1522249996.21446.25.camel@kernel.crashing.org>
- <20180328.115509.481837809903086401.davem@davemloft.net>
- <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
- <CAK8P3a2qcXmPx-j6XZPGhWZ_K3=cBym8tVFzwcZMSCjVfzMs1g@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 0/5] Introduce net_rwsem to protect
+ net_namespace_list
+Date: Thu, 29 Mar 2018 13:48:14 -0400 (EDT)
+Message-ID: <20180329.134814.2157489714350229877.davem@davemloft.net>
+References: <152234005959.19153.17907173734141707348.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a2qcXmPx-j6XZPGhWZ_K3=cBym8tVFzwcZMSCjVfzMs1g@mail.gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linus Torvalds <torvalds@linux-foundation.org>, Alexander Duyck <alexander.duyck@gmail.com>, Will Deacon <will.deacon@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, David Laight <David.Laight@aculab.com>, Oliver O'Halloran <oohall@gmail.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Networking <netdev@vger.kernel.org>, Linus Torvalds <linus971@gmail.com>
+Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <152234005959.19153.17907173734141707348.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
+List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+To: ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org
+Cc: jakub.kicinski-wFxRvT7yatFl57MIdRCFDg@public.gmane.org, avagin-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-qQsb+v5E8BnlAoU/VqSP6n9LOBIZ5rWg@public.gmane.org, ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, roman.kapl-uSbOeAmDUekAvxtiuMwx3w@public.gmane.org, selinux-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, christian.brauner-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org, dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, linux-security-module-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lucien.xin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org, jgg-uk2M96/98Pc@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, sds-+05T5uksL2qpZYMLLGbcSA@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, serge-A9i7LUbDfNHQT0dZR+AlfA@public.gmane.org, parav-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, brouer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, yuval.shaia-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, jbenc-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, eparis-FjpueFixGhCM4zKIHC2jIg@public.gmane.org, nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org, vyasevic-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, vvs-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, pombredanne-od1rfyK75/E@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, vyasevich-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, danielj-VPRAkNaXOzVWk0Htik3J/w@public.gmane.orgma
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/29/2018 12:29 PM, Arnd Bergmann wrote:
-> On Thu, Mar 29, 2018 at 3:56 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 3/28/2018 11:55 AM, David Miller wrote:
->>> From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>> Date: Thu, 29 Mar 2018 02:13:16 +1100
->>>
->>>> Let's fix all archs, it's way easier than fixing all drivers. Half of
->>>> the archs are unused or dead anyway.
->>>
->>> Agreed.
->>>
->>
->> I pinged most of the maintainers yesterday.
->> Which arches do we care about these days?
->> I have not been paying attention any other architecture besides arm64.
->>
->> arch            status                  detail
->> ------          -------------           ------------------------------------
->> alpha           question sent
+From: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
+Date: Thu, 29 Mar 2018 19:20:23 +0300
 
-Thanks for the detailed analysis.
-
+> The series introduces fine grained rw_semaphore, which will be used
+> instead of rtnl_lock() to protect net_namespace_list.
 > 
-> I'm guessing alpha has problems
+> This improves scalability and allows to do non-exclusive sleepable
+> iteration for_each_net(), which is enough for most cases.
 > 
-> extern inline u32 readl(const volatile void __iomem *addr)
-> {
->         u32 ret = __raw_readl(addr);
->         mb();
->         return ret;
-> }
-> extern inline void writel(u32 b, volatile void __iomem *addr)
-> {
->         __raw_writel(b, addr);
->         mb();
-> }
-
-Looks like a problem to me too. I'll start a thread with the alpha
-people and CC you.
-
-
+> scripts/get_maintainer.pl gives enormous list of people, and I add
+> all to CC.
 > 
-> There is a barrier in writel /after/ the acess but not before.
+> Note, that this patch is independent of "Close race between
+> {un, }register_netdevice_notifier and pernet_operations":
+> https://patchwork.ozlabs.org/project/netdev/list/?series=36495
 > 
+> Signed-off-by: Kirill Tkhai <ktkhai-5HdwGun5lf+gSpxsJD1C4w@public.gmane.org>
 
-This is the consolidated list. I also heart back from m68k and corrected
-contacts for arc and h8300.
+Great stuff!
 
-arch            status                  detail
-------          -------------           ------------------------------------
-alpha		question sent		Arnd: alpha has problems
-arc		question sent		Vineet.Gupta1@synopsys.com says he'll get to this
-					in the next few days
-arm		no issues
-arm64		no issues
-c6x		no issues		no PCI
-h8300		no issues		no PCI: ysato@users.sourceforge.jp will fix it.
-hexagon		no issues		no PCI
-ia64		no issues		confirmed by Tony Luck
-m68k		no issues		geert@linux-m68k.org says no problem
-metag		no issues		arnd: removed
-microblaze	question sent		arnd: some mips platforms have problems
-mips		question sent		arnd: some mips platforms have problems
-nds32		question sent
-nios2		no issues		no PCI
-openrisc	no issues		shorne@gmail.com says should no issues
-parisc		no issues		grantgrundler@gmail.com says most probably no problem
-					but still looking
-powerpc		no issues
-riscv		no issues		arnd: riscv should be fine
-s390		no issues		arnd: Pretty sure this is also fine
-sh		question sent
-sparc		no issues		davem@davemloft.net says always strongly ordered
-unicore32	question sent		resent to gxt@pku.edu.cn
-x86		no issues
-x86_64		no issues
-
-
-
-> 
->          Arnd
-> 
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Series applied, thanks!
