@@ -1,110 +1,77 @@
-From: syzbot <syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com>
-Subject: KASAN: stack-out-of-bounds Read in rdma_bind_addr (2)
-Date: Thu, 29 Mar 2018 15:01:02 -0700
-Message-ID: <94eb2c0b8e086ce11505689442f9@google.com>
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: Re: RFC on writel and writel_relaxed
+Date: Fri, 30 Mar 2018 12:40:27 +1100
+Message-ID: <1522374027.21446.64.camel@kernel.crashing.org>
+References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
+         <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
+         <1522249996.21446.25.camel@kernel.crashing.org>
+         <20180328.115509.481837809903086401.davem@davemloft.net>
+         <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
+Sender: netdev-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, alexander.duyck@gmail.com, will.deacon@arm.com, arnd@arndb.de, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, alexander.h.duyck@redhat.com, paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org, linus971@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Thu, 2018-03-29 at 09:56 -0400, Sinan Kaya wrote:
+> On 3/28/2018 11:55 AM, David Miller wrote:
+> > From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> > Date: Thu, 29 Mar 2018 02:13:16 +1100
+> > 
+> > > Let's fix all archs, it's way easier than fixing all drivers. Half of
+> > > the archs are unused or dead anyway.
+> > 
+> > Agreed.
+> > 
+> 
+> I pinged most of the maintainers yesterday.
+> Which arches do we care about these days?
+> I have not been paying attention any other architecture besides arm64.
 
-syzbot hit the following crash on upstream commit
-0b412605ef5f5c64b31f19e2910b1d5eba9929c3 (Thu Mar 29 01:07:23 2018 +0000)
-Merge tag 'drm-fixes-for-v4.16-rc8' of  
-git://people.freedesktop.org/~airlied/linux
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=4b6afe4bdd99cb99e664
+Thanks for going through that exercise !
 
-So far this crash happened 4 times on upstream.
-C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6021023174492160
-syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=6269942299099136
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=6347752745205760
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
-compiler: gcc (GCC) 7.1.1 20170620
+Once sparc, s390, microblaze and mips reply, I think we'll have a good
+coverage, maybe riscv is to put in that lot too.
+ 
+Cheers,
+Ben.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed. See footer for  
-details.
-If you forward the report, please keep this part and the footer.
-
-==================================================================
-BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:345  
-[inline]
-BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x13b/0x1d60  
-drivers/infiniband/core/cma.c:3361
-Read of size 48 at addr ffff8801af717a50 by task syzkaller366236/4421
-
-CPU: 0 PID: 4421 Comm: syzkaller366236 Not tainted 4.16.0-rc7+ #5
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:17 [inline]
-  dump_stack+0x194/0x24d lib/dump_stack.c:53
-  print_address_description+0x73/0x250 mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report+0x23c/0x360 mm/kasan/report.c:412
-  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
-  check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
-  memcpy+0x23/0x50 mm/kasan/kasan.c:302
-  memcpy include/linux/string.h:345 [inline]
-  rdma_bind_addr+0x13b/0x1d60 drivers/infiniband/core/cma.c:3361
-  ucma_bind_ip+0x10a/0x190 drivers/infiniband/core/ucma.c:639
-  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
-  __vfs_write+0xef/0x970 fs/read_write.c:480
-  vfs_write+0x189/0x510 fs/read_write.c:544
-  SYSC_write fs/read_write.c:589 [inline]
-  SyS_write+0xef/0x220 fs/read_write.c:581
-  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-RIP: 0033:0x43fdd9
-RSP: 002b:00007ffc69ab4bb8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdd9
-RDX: 0000000000000090 RSI: 0000000020000080 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401700
-R13: 0000000000401790 R14: 0000000000000000 R15: 0000000000000000
-
-The buggy address belongs to the page:
-page:ffffea0006bdc5c0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-flags: 0x2fffc0000000000()
-raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
-raw: 0000000000000000 ffffea0006bd0101 0000000000000000 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
-  ffff8801af717900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2
-  ffff8801af717980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 f3 00 00
-> ffff8801af717a00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 00 f2 f2
-                                                              ^
-  ffff8801af717a80: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
-  ffff8801af717b00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00 00
-==================================================================
-
-
----
-This bug is generated by a dumb bot. It may contain errors.
-See https://goo.gl/tpsmEJ for details.
-Direct all questions to syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report.
-If you forgot to add the Reported-by tag, once the fix for this bug is  
-merged
-into any tree, please reply to this email with:
-#syz fix: exact-commit-title
-If you want to test a patch for this bug, please reply with:
-#syz test: git://repo/address.git branch
-and provide the patch inline or as an attachment.
-To mark this as a duplicate of another syzbot report, please reply with:
-#syz dup: exact-subject-of-another-report
-If it's a one-off invalid bug report, please reply with:
-#syz invalid
-Note: if the crash happens again, it will cause creation of a new bug  
-report.
-Note: all commands must start from beginning of the line in the email body.
+> 
+> arch		status			detail
+> ------		-------------		------------------------------------
+> alpha		question sent
+> arc		question sent		ysato@users.sourceforge.jp will fix it.
+> arm		no issues
+> arm64		no issues
+> blackfin	question sent		about to be removed
+> c6x		question sent
+> cris		question sent
+> frv
+> h8300		question sent
+> hexagon		question sent
+> ia64		no issues		confirmed by Tony Luck
+> m32r
+> m68k		question sent
+> metag
+> microblaze	question sent
+> mips		question sent
+> mn10300		question sent
+> nios2		question sent
+> openrisc	no issues		shorne@gmail.com says should no issues
+> parisc		no issues		grantgrundler@gmail.com says most probably no problem but still looking
+> powerpc		no issues
+> riscv		question sent
+> s390		question sent
+> score		question sent
+> sh		question sent
+> sparc		question sent
+> tile		question sent
+> unicore32	question sent
+> x86		no issues
+> xtensa		question sent
+> 
+> 
