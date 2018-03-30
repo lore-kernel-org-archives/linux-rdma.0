@@ -1,77 +1,53 @@
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Fri, 30 Mar 2018 12:40:27 +1100
-Message-ID: <1522374027.21446.64.camel@kernel.crashing.org>
-References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
-         <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
-         <1522249996.21446.25.camel@kernel.crashing.org>
-         <20180328.115509.481837809903086401.davem@davemloft.net>
-         <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, alexander.duyck@gmail.com, will.deacon@arm.com, arnd@arndb.de, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, alexander.h.duyck@redhat.com, paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org, linus971@gmail.com
+From: Greg Thelen <gthelen@google.com>
+Subject: [PATCH] RDMA/ucma: reject AF_IB ip multicast requests
+Date: Thu, 29 Mar 2018 21:24:55 -0700
+Message-ID: <20180330042455.81032-1-gthelen@google.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sean Hefty <sean.hefty@intel.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Thelen <gthelen@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2018-03-29 at 09:56 -0400, Sinan Kaya wrote:
-> On 3/28/2018 11:55 AM, David Miller wrote:
-> > From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> > Date: Thu, 29 Mar 2018 02:13:16 +1100
-> > 
-> > > Let's fix all archs, it's way easier than fixing all drivers. Half of
-> > > the archs are unused or dead anyway.
-> > 
-> > Agreed.
-> > 
-> 
-> I pinged most of the maintainers yesterday.
-> Which arches do we care about these days?
-> I have not been paying attention any other architecture besides arm64.
+syzbot discovered that ucma_join_ip_multicast() mishandles AF_IB request
+addresses.  If an RDMA_USER_CM_CMD_JOIN_IP_MCAST request has
+cmd.addr.sa_family=AF_IB then ucma_join_ip_multicast() reads beyond the
+end of its cmd.addr.
 
-Thanks for going through that exercise !
+Reject non IP RDMA_USER_CM_CMD_JOIN_IP_MCAST requests.
+RDMA_USER_CM_CMD_JOIN_MCAST is interface for AF_IB multicast.
 
-Once sparc, s390, microblaze and mips reply, I think we'll have a good
-coverage, maybe riscv is to put in that lot too.
+And add a buffer length safety check.
+
+Fixes: 5bc2b7b397b0 ("RDMA/ucma: Allow user space to specify AF_IB when joining multicast")
+Signed-off-by: Greg Thelen <gthelen@google.com>
+---
+ drivers/infiniband/core/ucma.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index e5a1e7d81326..e410e03940ff 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1423,11 +1423,19 @@ static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
+ 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+ 		return -EFAULT;
  
-Cheers,
-Ben.
-
-> 
-> arch		status			detail
-> ------		-------------		------------------------------------
-> alpha		question sent
-> arc		question sent		ysato@users.sourceforge.jp will fix it.
-> arm		no issues
-> arm64		no issues
-> blackfin	question sent		about to be removed
-> c6x		question sent
-> cris		question sent
-> frv
-> h8300		question sent
-> hexagon		question sent
-> ia64		no issues		confirmed by Tony Luck
-> m32r
-> m68k		question sent
-> metag
-> microblaze	question sent
-> mips		question sent
-> mn10300		question sent
-> nios2		question sent
-> openrisc	no issues		shorne@gmail.com says should no issues
-> parisc		no issues		grantgrundler@gmail.com says most probably no problem but still looking
-> powerpc		no issues
-> riscv		question sent
-> s390		question sent
-> score		question sent
-> sh		question sent
-> sparc		question sent
-> tile		question sent
-> unicore32	question sent
-> x86		no issues
-> xtensa		question sent
-> 
-> 
++	switch (cmd.addr.sin6_family) {
++	case AF_INET:
++	case AF_INET6:
++		break;
++	default:
++		return -EINVAL;
++	}
++
+ 	join_cmd.response = cmd.response;
+ 	join_cmd.uid = cmd.uid;
+ 	join_cmd.id = cmd.id;
+ 	join_cmd.addr_size = rdma_addr_size((struct sockaddr *) &cmd.addr);
+-	if (!join_cmd.addr_size)
++	if (!join_cmd.addr_size || join_cmd.addr_size > sizeof(cmd.addr))
+ 		return -EINVAL;
+ 
+ 	join_cmd.join_flags = RDMA_MC_JOIN_FLAG_FULLMEMBER;
+-- 
+2.17.0.rc1.321.gba9d0f2565-goog
