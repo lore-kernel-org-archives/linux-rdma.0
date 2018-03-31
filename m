@@ -1,74 +1,63 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] IB/ocrdma_hw: Remove redundant checks and goto labels
-Date: Fri, 30 Mar 2018 10:38:58 -0500
-Message-ID: <20180330153858.GA14385@embeddedgus>
+From: Greg Thelen <gthelen@google.com>
+Subject: Re: [PATCH] RDMA/ucma: reject AF_IB ip multicast requests
+Date: Fri, 30 Mar 2018 18:32:01 -0700
+Message-ID: <CAHH2K0aH-dJMzR=unhBWPD7=d0RQoTK35o6U4dP+FSKj-a0WgQ@mail.gmail.com>
+References: <20180330042455.81032-1-gthelen@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20180330042455.81032-1-gthelen@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sean Hefty <sean.hefty@intel.com>
+Cc: linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Greg Thelen <gthelen@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Check on return values and goto label mbx_err are unnecessary.
+On Thu, Mar 29, 2018 at 9:24 PM, Greg Thelen <gthelen@google.com> wrote:
+> syzbot discovered that ucma_join_ip_multicast() mishandles AF_IB request
+> addresses.  If an RDMA_USER_CM_CMD_JOIN_IP_MCAST request has
+> cmd.addr.sa_family=AF_IB then ucma_join_ip_multicast() reads beyond the
+> end of its cmd.addr.
+>
+> Reject non IP RDMA_USER_CM_CMD_JOIN_IP_MCAST requests.
+> RDMA_USER_CM_CMD_JOIN_MCAST is interface for AF_IB multicast.
+>
+> And add a buffer length safety check.
+>
+> Fixes: 5bc2b7b397b0 ("RDMA/ucma: Allow user space to specify AF_IB when joining multicast")
+> Signed-off-by: Greg Thelen <gthelen@google.com>
+> ---
+>  drivers/infiniband/core/ucma.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
 
-Addresses-Coverity-ID: 1271151 ("Identical code for different branches")
-Addresses-Coverity-ID: 1268788 ("Identical code for different branches")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/infiniband/hw/ocrdma/ocrdma_hw.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+My patch is no longer needed.  linus/master recently picked up
+84652aefb347 ("RDMA/ucma: Introduce safer rdma_addr_size() variants")
+which fixes the same issue.
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-index 9904918..90cf772 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
-@@ -2014,7 +2014,7 @@ static int ocrdma_mbx_reg_mr_cont(struct ocrdma_dev *dev,
- 				  struct ocrdma_hw_mr *hwmr, u32 pbl_cnt,
- 				  u32 pbl_offset, u32 last)
- {
--	int status = -ENOMEM;
-+	int status;
- 	int i;
- 	struct ocrdma_reg_nsmr_cont *cmd;
- 
-@@ -2033,9 +2033,7 @@ static int ocrdma_mbx_reg_mr_cont(struct ocrdma_dev *dev,
- 		    upper_32_bits(hwmr->pbl_table[i + pbl_offset].pa);
- 	}
- 	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
--	if (status)
--		goto mbx_err;
--mbx_err:
-+
- 	kfree(cmd);
- 	return status;
- }
-@@ -3133,12 +3131,12 @@ static int ocrdma_create_eqs(struct ocrdma_dev *dev)
- static int ocrdma_mbx_modify_eqd(struct ocrdma_dev *dev, struct ocrdma_eq *eq,
- 				 int num)
- {
--	int i, status = -ENOMEM;
-+	int i, status;
- 	struct ocrdma_modify_eqd_req *cmd;
- 
- 	cmd = ocrdma_init_emb_mqe(OCRDMA_CMD_MODIFY_EQ_DELAY, sizeof(*cmd));
- 	if (!cmd)
--		return status;
-+		return -ENOMEM;
- 
- 	ocrdma_init_mch(&cmd->cmd.req, OCRDMA_CMD_MODIFY_EQ_DELAY,
- 			OCRDMA_SUBSYS_COMMON, sizeof(*cmd));
-@@ -3151,9 +3149,7 @@ static int ocrdma_mbx_modify_eqd(struct ocrdma_dev *dev, struct ocrdma_eq *eq,
- 				(eq[i].aic_obj.prev_eqd * 65)/100;
- 	}
- 	status = ocrdma_mbx_cmd(dev, (struct ocrdma_mqe *)cmd);
--	if (status)
--		goto mbx_err;
--mbx_err:
-+
- 	kfree(cmd);
- 	return status;
- }
--- 
-2.7.4
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> index e5a1e7d81326..e410e03940ff 100644
+> --- a/drivers/infiniband/core/ucma.c
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -1423,11 +1423,19 @@ static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
+>         if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+>                 return -EFAULT;
+>
+> +       switch (cmd.addr.sin6_family) {
+> +       case AF_INET:
+> +       case AF_INET6:
+> +               break;
+> +       default:
+> +               return -EINVAL;
+> +       }
+> +
+>         join_cmd.response = cmd.response;
+>         join_cmd.uid = cmd.uid;
+>         join_cmd.id = cmd.id;
+>         join_cmd.addr_size = rdma_addr_size((struct sockaddr *) &cmd.addr);
+> -       if (!join_cmd.addr_size)
+> +       if (!join_cmd.addr_size || join_cmd.addr_size > sizeof(cmd.addr))
+>                 return -EINVAL;
+>
+>         join_cmd.join_flags = RDMA_MC_JOIN_FLAG_FULLMEMBER;
+> --
+> 2.17.0.rc1.321.gba9d0f2565-goog
+>
