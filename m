@@ -1,63 +1,59 @@
-From: Greg Thelen <gthelen@google.com>
-Subject: Re: [PATCH] RDMA/ucma: reject AF_IB ip multicast requests
-Date: Fri, 30 Mar 2018 18:32:01 -0700
-Message-ID: <CAHH2K0aH-dJMzR=unhBWPD7=d0RQoTK35o6U4dP+FSKj-a0WgQ@mail.gmail.com>
-References: <20180330042455.81032-1-gthelen@google.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v4 iproute2-next 1/7] rdma: update rdma_netlink.h
+Date: Sun, 1 Apr 2018 13:47:55 +0300
+Message-ID: <20180401104755.GG22232@mtr-leonro.local>
+References: <cover.1522359537.git.swise@opengridcomputing.com>
+ <8b0ef68809c44e8d92d47a7bf95a69f2d9743407.1522359537.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180330042455.81032-1-gthelen@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sean Hefty <sean.hefty@intel.com>
-Cc: linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Greg Thelen <gthelen@google.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="Izn7cH1Com+I3R9J"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <8b0ef68809c44e8d92d47a7bf95a69f2d9743407.1522359537.git.swise@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 29, 2018 at 9:24 PM, Greg Thelen <gthelen@google.com> wrote:
-> syzbot discovered that ucma_join_ip_multicast() mishandles AF_IB request
-> addresses.  If an RDMA_USER_CM_CMD_JOIN_IP_MCAST request has
-> cmd.addr.sa_family=AF_IB then ucma_join_ip_multicast() reads beyond the
-> end of its cmd.addr.
+
+--Izn7cH1Com+I3R9J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Mar 29, 2018 at 09:10:30AM -0700, Steve Wise wrote:
+> From: Steve Wise <swise@opengridcomputing.com>
 >
-> Reject non IP RDMA_USER_CM_CMD_JOIN_IP_MCAST requests.
-> RDMA_USER_CM_CMD_JOIN_MCAST is interface for AF_IB multicast.
+> Pull in the latest rdma_netlink.h which has support for
+> the rdma nldev resource tracking objects being added
+> with this patch series.
 >
-> And add a buffer length safety check.
->
-> Fixes: 5bc2b7b397b0 ("RDMA/ucma: Allow user space to specify AF_IB when joining multicast")
-> Signed-off-by: Greg Thelen <gthelen@google.com>
+> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 > ---
->  drivers/infiniband/core/ucma.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
+>  rdma/include/uapi/rdma/rdma_netlink.h | 38 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
+>
 
-My patch is no longer needed.  linus/master recently picked up
-84652aefb347 ("RDMA/ucma: Introduce safer rdma_addr_size() variants")
-which fixes the same issue.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-> index e5a1e7d81326..e410e03940ff 100644
-> --- a/drivers/infiniband/core/ucma.c
-> +++ b/drivers/infiniband/core/ucma.c
-> @@ -1423,11 +1423,19 @@ static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
->         if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
->                 return -EFAULT;
->
-> +       switch (cmd.addr.sin6_family) {
-> +       case AF_INET:
-> +       case AF_INET6:
-> +               break;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +
->         join_cmd.response = cmd.response;
->         join_cmd.uid = cmd.uid;
->         join_cmd.id = cmd.id;
->         join_cmd.addr_size = rdma_addr_size((struct sockaddr *) &cmd.addr);
-> -       if (!join_cmd.addr_size)
-> +       if (!join_cmd.addr_size || join_cmd.addr_size > sizeof(cmd.addr))
->                 return -EINVAL;
->
->         join_cmd.join_flags = RDMA_MC_JOIN_FLAG_FULLMEMBER;
-> --
-> 2.17.0.rc1.321.gba9d0f2565-goog
->
+--Izn7cH1Com+I3R9J
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrAuNoACgkQ5GN7iDZy
+WKehkw//RXCSiiP2Fjpdg+8e3tsI7SrRxzcdK3P0vpqktbEFhZ7QIFLNGwU1ylZA
+TcMdZtKiJZRVJrgL76K2ubvqUCJ8P5uvjUPVj3UIUI2lANi8m5dhbY2swrLad9y+
+i3F64VpPqS+K3VnGTA4oU/u9lvIi1nNhKBcBYoYnlLItCqF9HoO8GX+6kaL+hrKK
+r2d1rFbVSkqOXIGzl0vVX/Kp0ikyTZdZ03hiRLWUg1Za3cqL72V4UHn/OIxG/rGD
+zg6ke7uLvTPPx8eP1KTlHKqOwo9VQnp5pkMKyfK4iby/k+MIyMccvFUp68/PYp6d
+mrZY18Ucpvt3CGsJwm/Tf4xOyuioBWslMS5MBlZwaaKHebAA6fIZkRc+KOGQEvlm
+3OH496yXTV23l1jzJd6zs77Jqx9FAzUEOOVRkEEhtC5p05HKL4x48BB6fkcNFtSu
+TdrPNog/y9kbL0AHgvMYrwG5J8edfVavJSHvYXV2ovEuRvQ3GAqtX3S5Z60tgW2U
+sCKWysAZyVnZsZ78d9XGkr9tcjQHAzhGaOKpPw3FeL5OM8StvFR2xkFj5ci716QY
+t7V77zTo9Vb860eviF2jsMlJIvmOt0TedyDXvwahYNcs8Z7NV7CiU+UUu25mUCc2
+kSgzMcNsJde37cF3PR/+A8TI2Z57khqs6VfWcSUqJpvcEAJ2HYg=
+=EOnr
+-----END PGP SIGNATURE-----
+
+--Izn7cH1Com+I3R9J--
