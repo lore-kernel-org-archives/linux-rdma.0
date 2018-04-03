@@ -1,113 +1,38 @@
-From: syzbot <syzbot+a67bc93e14682d92fc2f@syzkaller.appspotmail.com>
-Subject: general protection fault in ucma_set_ib_path (2)
-Date: Tue, 03 Apr 2018 08:01:02 -0700
-Message-ID: <001a113ff9ca93424e0568f2f939@google.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH v5 3/3] RDMA/qedr: eliminate duplicate barriers on
+ weakly-ordered archs #2
+Date: Tue, 3 Apr 2018 13:47:05 -0400
+Message-ID: <3f8de63a-9036-a5ac-2369-2d9af80bb6ef@codeaurora.org>
+References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
+ <1521736009-23387-4-git-send-email-okaya@codeaurora.org>
+ <ac46b4e4-7e6c-c15f-06eb-01b1e4893d50@codeaurora.org>
+ <CY1PR0701MB201215C9F38E8760732B595088A50@CY1PR0701MB2012.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CY1PR0701MB201215C9F38E8760732B595088A50@CY1PR0701MB2012.namprd07.prod.outlook.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: chien.tin.tung@intel.com, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, ira.weiny@intel.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, syzkaller-bugs@googlegroups.com
+To: "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>
+Cc: "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On 4/3/2018 3:42 AM, Kalderon, Michal wrote:
+> The wmb before writel are used to make sure the
+> HW observes the changes in memory before we trigger the doorbell. 
 
-syzbot hit the following crash on upstream commit
-642e7fd23353e22290e3d51719fcb658dc252342 (Tue Apr 3 04:22:12 2018 +0000)
-Merge branch 'syscalls-next' of  
-git://git.kernel.org/pub/scm/linux/kernel/git/brodo/linux
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=a67bc93e14682d92fc2f
+According to Linus, writel() guarantees observability. No extra
+barrier is necessary.
 
-So far this crash happened 3 times on upstream.
-C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5952837750095872
-syzkaller reproducer:  
-https://syzkaller.appspot.com/x/repro.syz?id=6196262000918528
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=4604792739463168
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-6874493495260513980
-compiler: gcc (GCC) 7.1.1 20170620
+https://www.mail-archive.com/netdev@vger.kernel.org/msg225806.html
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+a67bc93e14682d92fc2f@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed. See footer for  
-details.
-If you forward the report, please keep this part and the footer.
+There shouldn't be any wmb() in drivers unless it is used for a
+very well-known reason. 
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Modules linked in:
-CPU: 1 PID: 4443 Comm: syzkaller826180 Not tainted 4.16.0+ #377
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:rdma_cap_opa_ah include/rdma/ib_verbs.h:2773 [inline]
-RIP: 0010:ucma_set_ib_path.isra.14+0x26a/0x850  
-drivers/infiniband/core/ucma.c:1249
-RSP: 0018:ffff8801da4cf7f0 EFLAGS: 00010202
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: 0000000000000029
-RDX: dffffc0000000000 RSI: 0000000000000001 RDI: 0000000000000148
-RBP: ffff8801da4cf9f0 R08: ffffed003b499f18 R09: ffffffff87b6c65c
-R10: 0000000000000002 R11: ffffed003b499f17 R12: ffff8801da4cf8a0
-R13: 1ffff1003b499f00 R14: ffff8801d91a11b0 R15: ffff8801d95cadc0
-FS:  0000000001ef1880(0000) GS:ffff8801db100000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020000140 CR3: 00000001d956e001 CR4: 00000000001606e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  ucma_set_option_ib drivers/infiniband/core/ucma.c:1272 [inline]
-  ucma_set_option_level drivers/infiniband/core/ucma.c:1291 [inline]
-  ucma_set_option+0x234/0x520 drivers/infiniband/core/ucma.c:1325
-  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1656
-  __vfs_write+0xef/0x970 fs/read_write.c:485
-  vfs_write+0x189/0x510 fs/read_write.c:549
-  ksys_write+0xef/0x220 fs/read_write.c:598
-  SYSC_write fs/read_write.c:610 [inline]
-  SyS_write+0x24/0x30 fs/read_write.c:607
-  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-RIP: 0033:0x440039
-RSP: 002b:00007ffdc2f973a8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440039
-RDX: 0000000000000020 RSI: 0000000020001500 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401960
-R13: 00000000004019f0 R14: 0000000000000000 R15: 0000000000000000
-Code: 00 00 48 c1 ea 03 80 3c 02 00 0f 85 0d 05 00 00 49 8b 07 48 ba 00 00  
-00 00 00 fc ff df 48 8d b8 48 01 00 00 48 89 f9 48 c1 e9 03 <80> 3c 11 00  
-0f 85 54 05 00 00 48 c1 e3 04 48 03 98 48 01 00 00
-RIP: rdma_cap_opa_ah include/rdma/ib_verbs.h:2773 [inline] RSP:  
-ffff8801da4cf7f0
-RIP: ucma_set_ib_path.isra.14+0x26a/0x850  
-drivers/infiniband/core/ucma.c:1249 RSP: ffff8801da4cf7f0
----[ end trace 96ad186dbb9ca6d0 ]---
-Kernel panic - not syncing: Fatal exception
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
+APIs like readX() and writeX() guarantee observability.
 
-
----
-This bug is generated by a dumb bot. It may contain errors.
-See https://goo.gl/tpsmEJ for details.
-Direct all questions to syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report.
-If you forgot to add the Reported-by tag, once the fix for this bug is  
-merged
-into any tree, please reply to this email with:
-#syz fix: exact-commit-title
-If you want to test a patch for this bug, please reply with:
-#syz test: git://repo/address.git branch
-and provide the patch inline or as an attachment.
-To mark this as a duplicate of another syzbot report, please reply with:
-#syz dup: exact-subject-of-another-report
-If it's a one-off invalid bug report, please reply with:
-#syz invalid
-Note: if the crash happens again, it will cause creation of a new bug  
-report.
-Note: all commands must start from beginning of the line in the email body.
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
