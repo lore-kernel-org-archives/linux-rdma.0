@@ -1,80 +1,65 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: RE: [PATCH v5 3/3] RDMA/qedr: eliminate duplicate barriers on
- weakly-ordered archs #2
-Date: Tue, 3 Apr 2018 07:42:28 +0000
-Message-ID: <CY1PR0701MB201215C9F38E8760732B595088A50@CY1PR0701MB2012.namprd07.prod.outlook.com>
-References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
- <1521736009-23387-4-git-send-email-okaya@codeaurora.org>
- <ac46b4e4-7e6c-c15f-06eb-01b1e4893d50@codeaurora.org>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH iproute2 rdma: Ignore unknown netlink attributes
+Date: Tue, 3 Apr 2018 08:32:36 -0500
+Message-ID: <016b01d3cb50$3adc88b0$b0959a10$@opengridcomputing.com>
+References: <20180403072842.32153-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ac46b4e4-7e6c-c15f-06eb-01b1e4893d50@codeaurora.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>
-Cc: "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>"Elior, Ariel" <Ariel.Elior@cavium.com>
+Content-Type: text/plain;
+        charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180403072842.32153-1-leon@kernel.org>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Leon Romanovsky' <leon@kernel.org>, 'Stephen Hemminger' <stephen@networkplumber.org>
+Cc: 'Leon Romanovsky' <leonro@mellanox.com>, 'netdev' <netdev@vger.kernel.org>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'David Ahern' <dsahern@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBTaW5hbiBLYXlhIFttYWlsdG86b2theWFAY29kZWF1cm9yYS5vcmddDQo+IFNlbnQ6
-IFR1ZXNkYXksIEFwcmlsIDAzLCAyMDE4IDU6MzAgQU0NCj4gVG86IGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnOyB0aW11ckBjb2RlYXVyb3JhLm9yZzsNCj4gc3VscmljaEBjb2RlYXVyb3JhLm9y
-Zw0KPiBDYzogbGludXgtYXJtLW1zbUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZzsNCj4gS2FsZGVyb24sIE1pY2hhbCA8TWljaGFsLkthbGRlcm9u
-QGNhdml1bS5jb20+OyBFbGlvciwgQXJpZWwNCj4gPEFyaWVsLkVsaW9yQGNhdml1bS5jb20+OyBE
-b3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+OyBKYXNvbg0KPiBHdW50aG9ycGUgPGpn
-Z0B6aWVwZS5jYT47IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6
-IFtQQVRDSCB2NSAzLzNdIFJETUEvcWVkcjogZWxpbWluYXRlIGR1cGxpY2F0ZSBiYXJyaWVycyBv
-bg0KPiB3ZWFrbHktb3JkZXJlZCBhcmNocyAjMg0KPiANCj4gT24gMy8yMi8yMDE4IDEyOjI2IFBN
-LCBTaW5hbiBLYXlhIHdyb3RlOg0KPiA+IEBAIC04NjAsNyArODYwLDcgQEAgc3RhdGljIHZvaWQg
-ZG9vcmJlbGxfY3Eoc3RydWN0IHFlZHJfY3EgKmNxLCB1MzINCj4gY29ucywgdTggZmxhZ3MpDQo+
-ID4gIAl3bWIoKTsNCj4gPiAgCWNxLT5kYi5kYXRhLmFnZ19mbGFncyA9IGZsYWdzOw0KPiA+ICAJ
-Y3EtPmRiLmRhdGEudmFsdWUgPSBjcHVfdG9fbGUzMihjb25zKTsNCj4gPiAtCXdyaXRlcShjcS0+
-ZGIucmF3LCBjcS0+ZGJfYWRkcik7DQo+ID4gKwl3cml0ZXFfcmVsYXhlZChjcS0+ZGIucmF3LCBj
-cS0+ZGJfYWRkcik7DQo+IA0KPiBHaXZlbiB0aGUgZGlyZWN0aW9uIHRvIGdldCByaWQgb2Ygd21i
-KCkgaW4gZnJvbnQgb2Ygd3JpdGVYKCkgZnVuY3Rpb25zLCBJIGhhdmUNCj4gYmVlbiByZXZpZXdp
-bmcgdGhpcyBjb2RlLiBVbmRlciBub3JtYWwgY2lyY3Vtc3RhbmNlcywgSSBjYW4gZ2V0IHJpZCBv
-ZiBhbGwNCj4gd21iKCkgYXMgZm9sbG93cy4NCj4gDQo+IEhvd2V2ZXIsIEkgc3RhcnRlZCBoYXZp
-bmcgbXkgZG91YnRzIG5vdy4gQXJlIHRoZXNlIHdtYigpIHVzZWQgYXMgYSBTTVANCj4gYmFycmll
-ciB0b28/DQo+IEkgY2FuJ3QgZmluZCBhbnkgc21wX1htYigpIGluIGRyaXZlcnMvaW5maW5pYmFu
-ZC9ody9xZWRyIGRpcmVjdG9yeS4NCg0KWW91ciBkb3VidHMgYXJlIGluIHBsYWNlLiBZb3UgaW5p
-dGlhbCBwYXRjaCBzZXJpZXMgbW9kaWZpZWQgd3JpdGVsIHRvIHdyaXRlbF9yZWxheGVkDQpTaW1w
-bHkgcmVtb3ZpbmcgdGhlIHdtYiBpcyBkYW5nZXJvdXMuIFRoZSB3bWIgYmVmb3JlIHdyaXRlbCBh
-cmUgdXNlZCB0byBtYWtlIHN1cmUgdGhlDQpIVyBvYnNlcnZlcyB0aGUgY2hhbmdlcyBpbiBtZW1v
-cnkgYmVmb3JlIHdlIHRyaWdnZXIgdGhlIGRvb3JiZWxsLiBTbXAgYmFycmllcnMgaGVyZQ0Kd291
-bGRuJ3Qgc3VmZmljZSwgYXMgb24gYSBzaW5nbGUgcHJvY2Vzc29yLiB3ZSBzdGlsbCBuZWVkIHRv
-IG1ha2Ugc3VyZSBtZW1vcnkgaXMgdXBkYXRlZA0KYW5kIG5vdCByZW1haW5lZCBpbiBjYWNoZSB3
-aGVuIEhXIGFjY2Vzc2VzIGl0Lg0KUmV2aWV3aW5nIHRoZSBxZWRyIGJhcnJpZXJzLCBJIGNhbiBm
-aW5kIHBsYWNlcyB3aGVyZSB0aGlzIG1heSBoYXZlIG5vdCBiZWVuIG5lY2Vzc2FyeSwgDQpCdXQg
-ZGVmaW5pdGVseSB5b3UgY2FuJ3Qgc2ltcGx5IHJlbW92ZSB0aGlzIHdtYiBiYXJyaWVycy4gDQoN
-Cj4gDQo+IHN0YXRpYyB2b2lkIGRvb3JiZWxsX2NxKHN0cnVjdCBxZWRyX2NxICpjcSwgdTMyIGNv
-bnMsIHU4IGZsYWdzKSAgew0KPiAtICAgICAgIC8qIEZsdXNoIGRhdGEgYmVmb3JlIHNpZ25hbGxp
-bmcgZG9vcmJlbGwgKi8NCj4gLSAgICAgICB3bWIoKTsNCj4gICAgICAgICBjcS0+ZGIuZGF0YS5h
-Z2dfZmxhZ3MgPSBmbGFnczsNCj4gICAgICAgICBjcS0+ZGIuZGF0YS52YWx1ZSA9IGNwdV90b19s
-ZTMyKGNvbnMpOw0KPiAgICAgICAgIHdyaXRlcShjcS0+ZGIucmF3LCBjcS0+ZGJfYWRkcik7IEBA
-IC0xODcwLDggKzE4NjgsNyBAQCBzdGF0aWMgaW50DQo+IHFlZHJfdXBkYXRlX3FwX3N0YXRlKHN0
-cnVjdCBxZWRyX2RldiAqZGV2LA0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgKi8NCj4gDQo+
-ICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChyZG1hX3Byb3RvY29sX3JvY2UoJmRldi0+aWJk
-ZXYsIDEpKSB7DQo+IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgd21iKCk7DQo+IC0g
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgd3JpdGVsX3JlbGF4ZWQocXAtPnJxLmRiX2Rh
-dGEucmF3LCBxcC0+cnEuZGIpOw0KPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHdy
-aXRlbChxcC0+cnEuZGJfZGF0YS5yYXcsIHFwLT5ycS5kYik7DQo+ICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgLyogTWFrZSBzdXJlIHdyaXRlIHRha2VzIGVmZmVjdCAqLw0KPiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIG1taW93YigpOw0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgICB9DQo+IEBAIC0zMjc1LDggKzMyNzIsNyBAQCBpbnQgcWVkcl9wb3N0X3NlbmQoc3Ry
-dWN0IGliX3FwICppYnFwLCBzdHJ1Y3QNCj4gaWJfc2VuZF93ciAqd3IsDQo+ICAgICAgICAgICog
-dW5jaGFuZ2VkKS4gRm9yIHBlcmZvcm1hbmNlIHJlYXNvbnMgd2UgYXZvaWQgY2hlY2tpbmcgZm9y
-IHRoaXMNCj4gICAgICAgICAgKiByZWR1bmRhbnQgZG9vcmJlbGwuDQo+ICAgICAgICAgICovDQo+
-IC0gICAgICAgd21iKCk7DQo+IC0gICAgICAgd3JpdGVsX3JlbGF4ZWQocXAtPnNxLmRiX2RhdGEu
-cmF3LCBxcC0+c3EuZGIpOw0KPiArICAgICAgIHdyaXRlbChxcC0+c3EuZGJfZGF0YS5yYXcsIHFw
-LT5zcS5kYik7DQo+IA0KPiAgICAgICAgIC8qIE1ha2Ugc3VyZSB3cml0ZSBzdGlja3MgKi8NCj4g
-ICAgICAgICBtbWlvd2IoKTsNCj4gQEAgLTMzNjIsOSArMzM1OCw2IEBAIGludCBxZWRyX3Bvc3Rf
-cmVjdihzdHJ1Y3QgaWJfcXAgKmlicXAsIHN0cnVjdA0KPiBpYl9yZWN2X3dyICp3ciwNCj4gDQo+
-ICAgICAgICAgICAgICAgICBxZWRyX2luY19zd19wcm9kKCZxcC0+cnEpOw0KPiANCj4gLSAgICAg
-ICAgICAgICAgIC8qIEZsdXNoIGFsbCB0aGUgd3JpdGVzIGJlZm9yZSBzaWduYWxsaW5nIGRvb3Ji
-ZWxsICovDQo+IC0gICAgICAgICAgICAgICB3bWIoKTsNCj4gDQo+IA0KPiANCj4gDQo+IA0KPiAt
-LQ0KPiBTaW5hbiBLYXlhDQo+IFF1YWxjb21tIERhdGFjZW50ZXIgVGVjaG5vbG9naWVzLCBJbmMu
-IGFzIGFuIGFmZmlsaWF0ZSBvZiBRdWFsY29tbQ0KPiBUZWNobm9sb2dpZXMsIEluYy4NCj4gUXVh
-bGNvbW0gVGVjaG5vbG9naWVzLCBJbmMuIGlzIGEgbWVtYmVyIG9mIHRoZSBDb2RlIEF1cm9yYSBG
-b3J1bSwgYSBMaW51eA0KPiBGb3VuZGF0aW9uIENvbGxhYm9yYXRpdmUgUHJvamVjdC4NCg==
+
+
+> -----Original Message-----
+> From: Leon Romanovsky <leon@kernel.org>
+> Sent: Tuesday, April 3, 2018 2:29 AM
+> To: Stephen Hemminger <stephen@networkplumber.org>
+> Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
+> <netdev@vger.kernel.org>; RDMA mailing list <linux-
+> rdma@vger.kernel.org>; David Ahern <dsahern@gmail.com>; Steve Wise
+> <swise@opengridcomputing.com>
+> Subject: [PATCH iproute2 rdma: Ignore unknown netlink attributes
+> 
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> The check if netlink attributes supplied more than maximum supported
+> is to strict and may lead to backward compatibility issues with old
+> application with a newer kernel that supports new attribute.
+> 
+> CC: Steve Wise <swise@opengridcomputing.com>
+> Fixes: 74bd75c2b68d ("rdma: Add basic infrastructure for RDMA tool")
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  rdma/utils.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/rdma/utils.c b/rdma/utils.c
+> index a2e08e91..5c1e736a 100644
+> --- a/rdma/utils.c
+> +++ b/rdma/utils.c
+> @@ -399,7 +399,8 @@ int rd_attr_cb(const struct nlattr *attr, void *data)
+>  	int type;
+> 
+>  	if (mnl_attr_type_valid(attr, RDMA_NLDEV_ATTR_MAX) < 0)
+> -		return MNL_CB_ERROR;
+> +		/* We received uknown attribute */
+> +		return MNL_CB_OK;
+> 
+>  	type = mnl_attr_get_type(attr);
+> 
+
+Hey Leon,
+
+So the resource parsing functions correctly ignore the unkown attrs and
+print everything else?
+
+Looks good.
+
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
