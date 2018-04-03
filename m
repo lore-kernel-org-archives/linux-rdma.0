@@ -1,54 +1,71 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: RFC on writel and writel_relaxed
-Date: Mon, 2 Apr 2018 09:01:37 -0400
-Message-ID: <43a8a11b-50fd-1382-30e3-e9c0a20087b6@codeaurora.org>
-References: <CA+55aFxULkhZGhg-tTBBxBBvXbL7QV7f6zvwW7U2wHFijqGEqw@mail.gmail.com>
- <b02cc752d90c5e5ae2cc8cc4f67429a7@codeaurora.org>
- <1522249996.21446.25.camel@kernel.crashing.org>
- <20180328.115509.481837809903086401.davem@davemloft.net>
- <29fe17e0-9978-dc43-d02c-de8fabdc66c2@codeaurora.org>
- <1522374027.21446.64.camel@kernel.crashing.org>
+Subject: Re: [PATCH v5 3/3] RDMA/qedr: eliminate duplicate barriers on
+ weakly-ordered archs #2
+Date: Mon, 2 Apr 2018 22:29:53 -0400
+Message-ID: <ac46b4e4-7e6c-c15f-06eb-01b1e4893d50@codeaurora.org>
+References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
+ <1521736009-23387-4-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1522374027.21446.64.camel@kernel.crashing.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1521736009-23387-4-git-send-email-okaya@codeaurora.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, alexander.duyck@gmail.com, will.deacon@arm.com, arnd@arndb.de, jgg@ziepe.ca, David.Laight@aculab.com, oohall@gmail.com, linuxppc-dev@lists.ozlabs.org, linux-rdma@vger.kernel.org, alexander.h.duyck@redhat.com, paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org, linus971@gmail.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, timur@codeaurora.org, sulrich@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/29/2018 9:40 PM, Benjamin Herrenschmidt wrote:
-> On Thu, 2018-03-29 at 09:56 -0400, Sinan Kaya wrote:
->> On 3/28/2018 11:55 AM, David Miller wrote:
->>> From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->>> Date: Thu, 29 Mar 2018 02:13:16 +1100
->>>
->>>> Let's fix all archs, it's way easier than fixing all drivers. Half of
->>>> the archs are unused or dead anyway.
->>>
->>> Agreed.
->>>
->>
->> I pinged most of the maintainers yesterday.
->> Which arches do we care about these days?
->> I have not been paying attention any other architecture besides arm64.
-> 
-> Thanks for going through that exercise !
-> 
-> Once sparc, s390, microblaze and mips reply, I think we'll have a good
-> coverage, maybe riscv is to put in that lot too.
+On 3/22/2018 12:26 PM, Sinan Kaya wrote:
+> @@ -860,7 +860,7 @@ static void doorbell_cq(struct qedr_cq *cq, u32 cons, u8 flags)
+>  	wmb();
+>  	cq->db.data.agg_flags = flags;
+>  	cq->db.data.value = cpu_to_le32(cons);
+> -	writeq(cq->db.raw, cq->db_addr);
+> +	writeq_relaxed(cq->db.raw, cq->db_addr);
+
+Given the direction to get rid of wmb() in front of writeX() functions, I have been
+reviewing this code. Under normal circumstances, I can get rid of all wmb() as follows.
+
+However, I started having my doubts now. Are these wmb() used as a SMP barrier too?
+I can't find any smp_Xmb() in drivers/infiniband/hw/qedr directory.
+
+static void doorbell_cq(struct qedr_cq *cq, u32 cons, u8 flags)
+ {
+-       /* Flush data before signalling doorbell */
+-       wmb();
+        cq->db.data.agg_flags = flags;
+        cq->db.data.value = cpu_to_le32(cons);
+        writeq(cq->db.raw, cq->db_addr);
+@@ -1870,8 +1868,7 @@ static int qedr_update_qp_state(struct qedr_dev *dev,
+                         */
+
+                        if (rdma_protocol_roce(&dev->ibdev, 1)) {
+-                               wmb();
+-                               writel_relaxed(qp->rq.db_data.raw, qp->rq.db);
++                               writel(qp->rq.db_data.raw, qp->rq.db);
+                                /* Make sure write takes effect */
+                                mmiowb();
+                        }
+@@ -3275,8 +3272,7 @@ int qedr_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+         * unchanged). For performance reasons we avoid checking for this
+         * redundant doorbell.
+         */
+-       wmb();
+-       writel_relaxed(qp->sq.db_data.raw, qp->sq.db);
++       writel(qp->sq.db_data.raw, qp->sq.db);
+
+        /* Make sure write sticks */
+        mmiowb();
+@@ -3362,9 +3358,6 @@ int qedr_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
+
+                qedr_inc_sw_prod(&qp->rq);
+
+-               /* Flush all the writes before signalling doorbell */
+-               wmb();
 
 
-I posted the following two patches for supporting microblaze and unicore32. 
 
-[PATCH v2 1/2] io: prevent compiler reordering on the default writeX() implementation
-[PATCH v2 2/2] io: prevent compiler reordering on the default readX() implementation
-
-The rest of the arches except mips and alpha seem OK.
-I sent a question email on Friday to mips and alpha mailing lists. I'll follow up with
-an actual patch today.
 
 
 -- 
