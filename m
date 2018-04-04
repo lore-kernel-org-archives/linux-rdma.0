@@ -1,99 +1,145 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2 rdma: Ignore unknown netlink attributes
-Date: Wed, 4 Apr 2018 08:42:11 +0300
-Message-ID: <20180404054211.GN25411@mtr-leonro.local>
-References: <20180403072842.32153-1-leon@kernel.org>
- <016b01d3cb50$3adc88b0$b0959a10$@opengridcomputing.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: KASAN: stack-out-of-bounds Read in rdma_bind_addr (2)
+Date: Wed, 4 Apr 2018 09:24:04 +0300
+Message-ID: <20180404062404.GR25411@mtr-leonro.local>
+References: <94eb2c0b8e086ce11505689442f9@google.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fNagykWcDoSVAmSd"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="YzdYn+D7cUqe+VA3"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <016b01d3cb50$3adc88b0$b0959a10$@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: 'Stephen Hemminger' <stephen@networkplumber.org>, 'netdev' <netdev@vger.kernel.org>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'David Ahern' <dsahern@gmail.com>
+In-Reply-To: <94eb2c0b8e086ce11505689442f9@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com>
+Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---fNagykWcDoSVAmSd
+--YzdYn+D7cUqe+VA3
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Apr 03, 2018 at 08:32:36AM -0500, Steve Wise wrote:
->
->
-> > -----Original Message-----
-> > From: Leon Romanovsky <leon@kernel.org>
-> > Sent: Tuesday, April 3, 2018 2:29 AM
-> > To: Stephen Hemminger <stephen@networkplumber.org>
-> > Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
-> > <netdev@vger.kernel.org>; RDMA mailing list <linux-
-> > rdma@vger.kernel.org>; David Ahern <dsahern@gmail.com>; Steve Wise
-> > <swise@opengridcomputing.com>
-> > Subject: [PATCH iproute2 rdma: Ignore unknown netlink attributes
-> >
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > The check if netlink attributes supplied more than maximum supported
-> > is to strict and may lead to backward compatibility issues with old
-> > application with a newer kernel that supports new attribute.
-> >
-> > CC: Steve Wise <swise@opengridcomputing.com>
-> > Fixes: 74bd75c2b68d ("rdma: Add basic infrastructure for RDMA tool")
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  rdma/utils.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/rdma/utils.c b/rdma/utils.c
-> > index a2e08e91..5c1e736a 100644
-> > --- a/rdma/utils.c
-> > +++ b/rdma/utils.c
-> > @@ -399,7 +399,8 @@ int rd_attr_cb(const struct nlattr *attr, void *data)
-> >  	int type;
-> >
-> >  	if (mnl_attr_type_valid(attr, RDMA_NLDEV_ATTR_MAX) < 0)
-> > -		return MNL_CB_ERROR;
-> > +		/* We received uknown attribute */
-> > +		return MNL_CB_OK;
-> >
-> >  	type = mnl_attr_get_type(attr);
-> >
->
-> Hey Leon,
->
-> So the resource parsing functions correctly ignore the unkown attrs and
-> print everything else?
+#syz dup: kernel BUG at lib/string.c:LINE! (3)
 
-Yes.
-
+On Thu, Mar 29, 2018 at 03:01:02PM -0700, syzbot wrote:
+> Hello,
 >
-> Looks good.
+> syzbot hit the following crash on upstream commit
+> 0b412605ef5f5c64b31f19e2910b1d5eba9929c3 (Thu Mar 29 01:07:23 2018 +0000)
+> Merge tag 'drm-fixes-for-v4.16-rc8' of
+> git://people.freedesktop.org/~airlied/linux
+> syzbot dashboard link:
+> https://syzkaller.appspot.com/bug?extid=4b6afe4bdd99cb99e664
 >
-> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+> So far this crash happened 4 times on upstream.
+> C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6021023174492160
+> syzkaller reproducer:
+> https://syzkaller.appspot.com/x/repro.syz?id=6269942299099136
+> Raw console output:
+> https://syzkaller.appspot.com/x/log.txt?id=6347752745205760
+> Kernel config:
+> https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
+> compiler: gcc (GCC) 7.1.1 20170620
 >
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com
+> It will help syzbot understand when the bug is fixed. See footer for
+> details.
+> If you forward the report, please keep this part and the footer.
+>
+> ==================================================================
+> BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:345
+> [inline]
+> BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x13b/0x1d60
+> drivers/infiniband/core/cma.c:3361
+> Read of size 48 at addr ffff8801af717a50 by task syzkaller366236/4421
+>
+> CPU: 0 PID: 4421 Comm: syzkaller366236 Not tainted 4.16.0-rc7+ #5
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x24d lib/dump_stack.c:53
+>  print_address_description+0x73/0x250 mm/kasan/report.c:256
+>  kasan_report_error mm/kasan/report.c:354 [inline]
+>  kasan_report+0x23c/0x360 mm/kasan/report.c:412
+>  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+>  check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
+>  memcpy+0x23/0x50 mm/kasan/kasan.c:302
+>  memcpy include/linux/string.h:345 [inline]
+>  rdma_bind_addr+0x13b/0x1d60 drivers/infiniband/core/cma.c:3361
+>  ucma_bind_ip+0x10a/0x190 drivers/infiniband/core/ucma.c:639
+>  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+>  __vfs_write+0xef/0x970 fs/read_write.c:480
+>  vfs_write+0x189/0x510 fs/read_write.c:544
+>  SYSC_write fs/read_write.c:589 [inline]
+>  SyS_write+0xef/0x220 fs/read_write.c:581
+>  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x43fdd9
+> RSP: 002b:00007ffc69ab4bb8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdd9
+> RDX: 0000000000000090 RSI: 0000000020000080 RDI: 0000000000000003
+> RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
+> R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401700
+> R13: 0000000000401790 R14: 0000000000000000 R15: 0000000000000000
+>
+> The buggy address belongs to the page:
+> page:ffffea0006bdc5c0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+> flags: 0x2fffc0000000000()
+> raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
+> raw: 0000000000000000 ffffea0006bd0101 0000000000000000 0000000000000000
+> page dumped because: kasan: bad access detected
+>
+> Memory state around the buggy address:
+>  ffff8801af717900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2
+>  ffff8801af717980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 f3 00 00
+> > ffff8801af717a00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 00 f2 f2
+>                                                              ^
+>  ffff8801af717a80: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
+>  ffff8801af717b00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00 00
+> ==================================================================
+>
+>
+> ---
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+>
+> syzbot will keep track of this bug report.
+> If you forgot to add the Reported-by tag, once the fix for this bug is
+> merged
+> into any tree, please reply to this email with:
+> #syz fix: exact-commit-title
+> If you want to test a patch for this bug, please reply with:
+> #syz test: git://repo/address.git branch
+> and provide the patch inline or as an attachment.
+> To mark this as a duplicate of another syzbot report, please reply with:
+> #syz dup: exact-subject-of-another-report
+> If it's a one-off invalid bug report, please reply with:
+> #syz invalid
+> Note: if the crash happens again, it will cause creation of a new bug
+> report.
+> Note: all commands must start from beginning of the line in the email body.
 
-Thanks a lot.
-
---fNagykWcDoSVAmSd
+--YzdYn+D7cUqe+VA3
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrEZbMACgkQ5GN7iDZy
-WKcuxA/6AnsfEu8V9WOLN+6v7hDjViZ//nTdi9hFwPeL/3i84vJGOST7YgXfFMsh
-45mCo3gk5ucchVbWeUi9Vnf0rRDww7S8AcnWSTshsTDtcYeBb/SsR6iE+/CpU5EN
-Xk7ZJ6Z5qD71xxXSfKPSuLnmS+TOyo5v/aAJs6WbIL3rHKZjEPrfui+0VrfJfqIa
-MPMmGROgrNiAyhJ5/T4YPe4NSYZUHNN3pyflxV3LgsnHOkMljVzwMIHcOjeL93i4
-81h9X+3k0ZBOPlYEZZkFNFZnaAldDOl1VOC0WmSlj4BpUk9bA+0EO4DSFHetNGcB
-fVYuVvDK30X3wKoRdpC2XEQAlCfH0TyyO1CwQG37qerP7g1LkVfF09VZamKm8onE
-uOC9+PxqiQFFH0GsTaHeGY1ng7IhdtmzbMGqqWLyNNDEm8LXftBm4PDdRuBCjpsR
-/dxdMf+Ax44nlP9rcyF6/FSvowh6FIGbKaQ1AqrsGYTu0JAE7YGLWIB2ixoiIt87
-i2NpWc4SQSCQiHFg7hyBRb2jObFbnDtm13nkkN/1XetejJy0WbXij+BxjdN+k7Th
-O1WQl8S2fKV51mB+xUKOuE+EliADYB8GGIZ8wPAGaEXkKADgmpTmJiEsXt9JngiX
-OAWVma9Jvh1CyPhLjr5uskx4MIvV9QHmNpfpBgHOELxbIDH+uo4=
-=4bL+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrEb4QACgkQ5GN7iDZy
+WKcoHRAAquAbRWFf+Baxyt6awf/DQOtzhkXgDSoMTOqcmh/JeMtiR3roj5Ur+mkj
+Eo+qq3/jhoV9pGCNGTzdGJu41n+hgozyPxvKc8pB9G1F9QU8uZhZmRCyMIRD079j
++8Vazx+QCMU84x0Sbsg2EuBQFo0BC4QtlWhWowvT1nZo1nIYx7p4zLmsRWqb+lqr
+Wjd+7Vrigsc6BtKCjpm221MOyQRxboM5Vhx2SweZv8qbKEzqjSYtDEWa6tbtnpca
+GDPWoay4398aDfdFfC7jJyzyaHm8RIeLsuYqZXH8le5BIHFdfSxVEdSZ22zGhfqx
+ULAi0PzYnqnA+/n1zRbVyWUJ2UffoGy90jPASPA3PdppCFq/B1ve+V9E26HOLyUY
+YtiUu2mCukfAbUhsLkwdU5/zsyu8jdV6OMFdsa7q7ZUyZBbLGwcC85DtfJiBLedQ
+Nf1eLxicCNZ3hT9MZeopWF+6GfOt02rFkBqud/60x57JifQQ6Su4w9YFvYalsfXk
+qsaLGBFXkGEF7P0runMs1Zuq5/vquwSdgri1oiRQhCZ78BFThIBATXq0Rr0Yoj+M
+NB1p2VckWCwPSSmFek8+wsjXRKp1HFp4PGtLYN7/Q6y3lTVKI4bCNuLStOpm7ALJ
+lECoPx1W4j+yvPUQ+UrA05vestOhcY7129kntwoRrsmILndxJeE=
+=EZ+1
 -----END PGP SIGNATURE-----
 
---fNagykWcDoSVAmSd--
+--YzdYn+D7cUqe+VA3--
