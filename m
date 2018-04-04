@@ -1,145 +1,85 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: KASAN: stack-out-of-bounds Read in rdma_bind_addr (2)
-Date: Wed, 4 Apr 2018 09:24:04 +0300
-Message-ID: <20180404062404.GR25411@mtr-leonro.local>
-References: <94eb2c0b8e086ce11505689442f9@google.com>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: RE: [PATCH v5 3/3] RDMA/qedr: eliminate duplicate barriers on
+ weakly-ordered archs #2
+Date: Wed, 4 Apr 2018 11:54:22 +0000
+Message-ID: <CY1PR0701MB201281968E401A66825498DB88A40@CY1PR0701MB2012.namprd07.prod.outlook.com>
+References: <1521736009-23387-1-git-send-email-okaya@codeaurora.org>
+ <1521736009-23387-4-git-send-email-okaya@codeaurora.org>
+ <ac46b4e4-7e6c-c15f-06eb-01b1e4893d50@codeaurora.org>
+ <CY1PR0701MB201215C9F38E8760732B595088A50@CY1PR0701MB2012.namprd07.prod.outlook.com>
+ <20180403200348.GB21167@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="YzdYn+D7cUqe+VA3"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <94eb2c0b8e086ce11505689442f9@google.com>
+In-Reply-To: <20180403200348.GB21167@ziepe.ca>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com>
-Cc: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Sinan Kaya <okaya@codeaurora.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Elior, Ariel" <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> From: Jason Gunthorpe [mailto:jgg@ziepe.ca]
+> Sent: Tuesday, April 03, 2018 11:04 PM
+>=20
+> On Tue, Apr 03, 2018 at 07:42:28AM +0000, Kalderon, Michal wrote:
+> > > From: Sinan Kaya [mailto:okaya@codeaurora.org]
+> > > Sent: Tuesday, April 03, 2018 5:30 AM
+> > > To: linux-rdma@vger.kernel.org; timur@codeaurora.org;
+> > > sulrich@codeaurora.org
+> > > Cc: linux-arm-msm@vger.kernel.org;
+> > > linux-arm-kernel@lists.infradead.org;
+> > > Kalderon, Michal <Michal.Kalderon@cavium.com>; Elior, Ariel
+> > > <Ariel.Elior@cavium.com>; Doug Ledford <dledford@redhat.com>; Jason
+> > > Gunthorpe <jgg@ziepe.ca>; linux-kernel@vger.kernel.org
+> > > Subject: Re: [PATCH v5 3/3] RDMA/qedr: eliminate duplicate barriers
+> > > on weakly-ordered archs #2
+> > >
+> > > On 3/22/2018 12:26 PM, Sinan Kaya wrote:
+> > > > @@ -860,7 +860,7 @@ static void doorbell_cq(struct qedr_cq *cq,
+> > > > u32
+> > > cons, u8 flags)
+> > > >  	wmb();
+> > > >  	cq->db.data.agg_flags =3D flags;
+> > > >  	cq->db.data.value =3D cpu_to_le32(cons);
+> > > > -	writeq(cq->db.raw, cq->db_addr);
+> > > > +	writeq_relaxed(cq->db.raw, cq->db_addr);
+> > >
+> > > Given the direction to get rid of wmb() in front of writeX()
+> > > functions, I have been reviewing this code. Under normal
+> > > circumstances, I can get rid of all
+> > > wmb() as follows.
+> > >
+> > > However, I started having my doubts now. Are these wmb() used as a
+> > > SMP barrier too?
+> > > I can't find any smp_Xmb() in drivers/infiniband/hw/qedr directory.
+> >
+> > Your doubts are in place. You initial patch series modified writel to
+> > writel_relaxed Simply removing the wmb is dangerous. The wmb before
+> > writel are used to make sure the HW observes the changes in memory
+> > before we trigger the doorbell. Smp barriers here wouldn't suffice, as
+> > on a single processor. we still need to make sure memory is updated and
+> not remained in cache when HW accesses it.
+> > Reviewing the qedr barriers, I can find places where this may have not
+> > been necessary, But definitely you can't simply remove this wmb barrier=
+s.
+>=20
+> As Sinan said, the consensus is that wmb();writel(); is redundant if the =
+only
+> purpose of the wmb is to order DMA and system memory.
+>=20
+> So can you review these patches on that basis please? Is the WMB doing
+> something else, eg SMP related? If yes, please send a patch adding
+> appropriate comments.
 
---YzdYn+D7cUqe+VA3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks Sinan and Jason for the references and explanations, I've reviewed t=
+he wmb
+usages in qedr and am about to send a patch that replaces two of them with =
+smp_wmb
+and completely removes two of them that given your explanation, turned out =
+to be redundant,
+thanks.
 
-#syz dup: kernel BUG at lib/string.c:LINE! (3)
-
-On Thu, Mar 29, 2018 at 03:01:02PM -0700, syzbot wrote:
-> Hello,
->
-> syzbot hit the following crash on upstream commit
-> 0b412605ef5f5c64b31f19e2910b1d5eba9929c3 (Thu Mar 29 01:07:23 2018 +0000)
-> Merge tag 'drm-fixes-for-v4.16-rc8' of
-> git://people.freedesktop.org/~airlied/linux
-> syzbot dashboard link:
-> https://syzkaller.appspot.com/bug?extid=4b6afe4bdd99cb99e664
->
-> So far this crash happened 4 times on upstream.
-> C reproducer: https://syzkaller.appspot.com/x/repro.c?id=6021023174492160
-> syzkaller reproducer:
-> https://syzkaller.appspot.com/x/repro.syz?id=6269942299099136
-> Raw console output:
-> https://syzkaller.appspot.com/x/log.txt?id=6347752745205760
-> Kernel config:
-> https://syzkaller.appspot.com/x/.config?id=-8440362230543204781
-> compiler: gcc (GCC) 7.1.1 20170620
->
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+4b6afe4bdd99cb99e664@syzkaller.appspotmail.com
-> It will help syzbot understand when the bug is fixed. See footer for
-> details.
-> If you forward the report, please keep this part and the footer.
->
-> ==================================================================
-> BUG: KASAN: stack-out-of-bounds in memcpy include/linux/string.h:345
-> [inline]
-> BUG: KASAN: stack-out-of-bounds in rdma_bind_addr+0x13b/0x1d60
-> drivers/infiniband/core/cma.c:3361
-> Read of size 48 at addr ffff8801af717a50 by task syzkaller366236/4421
->
-> CPU: 0 PID: 4421 Comm: syzkaller366236 Not tainted 4.16.0-rc7+ #5
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-> Google 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:17 [inline]
->  dump_stack+0x194/0x24d lib/dump_stack.c:53
->  print_address_description+0x73/0x250 mm/kasan/report.c:256
->  kasan_report_error mm/kasan/report.c:354 [inline]
->  kasan_report+0x23c/0x360 mm/kasan/report.c:412
->  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
->  check_memory_region+0x137/0x190 mm/kasan/kasan.c:267
->  memcpy+0x23/0x50 mm/kasan/kasan.c:302
->  memcpy include/linux/string.h:345 [inline]
->  rdma_bind_addr+0x13b/0x1d60 drivers/infiniband/core/cma.c:3361
->  ucma_bind_ip+0x10a/0x190 drivers/infiniband/core/ucma.c:639
->  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
->  __vfs_write+0xef/0x970 fs/read_write.c:480
->  vfs_write+0x189/0x510 fs/read_write.c:544
->  SYSC_write fs/read_write.c:589 [inline]
->  SyS_write+0xef/0x220 fs/read_write.c:581
->  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
->  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x43fdd9
-> RSP: 002b:00007ffc69ab4bb8 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 000000000043fdd9
-> RDX: 0000000000000090 RSI: 0000000020000080 RDI: 0000000000000003
-> RBP: 00000000006ca018 R08: 00000000004002c8 R09: 00000000004002c8
-> R10: 00000000004002c8 R11: 0000000000000217 R12: 0000000000401700
-> R13: 0000000000401790 R14: 0000000000000000 R15: 0000000000000000
->
-> The buggy address belongs to the page:
-> page:ffffea0006bdc5c0 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-> flags: 0x2fffc0000000000()
-> raw: 02fffc0000000000 0000000000000000 0000000000000000 00000000ffffffff
-> raw: 0000000000000000 ffffea0006bd0101 0000000000000000 0000000000000000
-> page dumped because: kasan: bad access detected
->
-> Memory state around the buggy address:
->  ffff8801af717900: 00 00 00 00 00 00 00 00 00 00 f1 f1 f1 f1 04 f2
->  ffff8801af717980: f2 f2 f2 f2 f2 f2 04 f2 f2 f2 f3 f3 f3 f3 00 00
-> > ffff8801af717a00: 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00 00 f2 f2
->                                                              ^
->  ffff8801af717a80: f2 00 00 00 00 00 00 00 00 00 00 00 00 00 00 f1
->  ffff8801af717b00: f1 f1 f1 00 f2 f2 f2 f3 f3 f3 f3 00 00 00 00 00
-> ==================================================================
->
->
-> ---
-> This bug is generated by a dumb bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for details.
-> Direct all questions to syzkaller@googlegroups.com.
->
-> syzbot will keep track of this bug report.
-> If you forgot to add the Reported-by tag, once the fix for this bug is
-> merged
-> into any tree, please reply to this email with:
-> #syz fix: exact-commit-title
-> If you want to test a patch for this bug, please reply with:
-> #syz test: git://repo/address.git branch
-> and provide the patch inline or as an attachment.
-> To mark this as a duplicate of another syzbot report, please reply with:
-> #syz dup: exact-subject-of-another-report
-> If it's a one-off invalid bug report, please reply with:
-> #syz invalid
-> Note: if the crash happens again, it will cause creation of a new bug
-> report.
-> Note: all commands must start from beginning of the line in the email body.
-
---YzdYn+D7cUqe+VA3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrEb4QACgkQ5GN7iDZy
-WKcoHRAAquAbRWFf+Baxyt6awf/DQOtzhkXgDSoMTOqcmh/JeMtiR3roj5Ur+mkj
-Eo+qq3/jhoV9pGCNGTzdGJu41n+hgozyPxvKc8pB9G1F9QU8uZhZmRCyMIRD079j
-+8Vazx+QCMU84x0Sbsg2EuBQFo0BC4QtlWhWowvT1nZo1nIYx7p4zLmsRWqb+lqr
-Wjd+7Vrigsc6BtKCjpm221MOyQRxboM5Vhx2SweZv8qbKEzqjSYtDEWa6tbtnpca
-GDPWoay4398aDfdFfC7jJyzyaHm8RIeLsuYqZXH8le5BIHFdfSxVEdSZ22zGhfqx
-ULAi0PzYnqnA+/n1zRbVyWUJ2UffoGy90jPASPA3PdppCFq/B1ve+V9E26HOLyUY
-YtiUu2mCukfAbUhsLkwdU5/zsyu8jdV6OMFdsa7q7ZUyZBbLGwcC85DtfJiBLedQ
-Nf1eLxicCNZ3hT9MZeopWF+6GfOt02rFkBqud/60x57JifQQ6Su4w9YFvYalsfXk
-qsaLGBFXkGEF7P0runMs1Zuq5/vquwSdgri1oiRQhCZ78BFThIBATXq0Rr0Yoj+M
-NB1p2VckWCwPSSmFek8+wsjXRKp1HFp4PGtLYN7/Q6y3lTVKI4bCNuLStOpm7ALJ
-lECoPx1W4j+yvPUQ+UrA05vestOhcY7129kntwoRrsmILndxJeE=
-=EZ+1
------END PGP SIGNATURE-----
-
---YzdYn+D7cUqe+VA3--
+>=20
+> Thanks,
+> Jason
