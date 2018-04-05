@@ -1,83 +1,172 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
-Date: Wed, 04 Apr 2018 20:01:11 -0700
-Message-ID: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 04/13] IB/hfi1: Fix handling of FECN marked
+ multicast packet
+Date: Wed, 04 Apr 2018 20:01:58 -0700
+Message-ID: <20180405030154.18766.58460.stgit@scvm10.sc.intel.com>
+References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
+Cc: linux-rdma@vger.kernel.org, Don Hiatt <don.hiatt@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason and Doug,
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-Here are most of our updates for 4.17. I will follow this up with a small
-16B series then I still have a few more patches that are waiting on
-some more thorough testing. Should be able to get them on the list tomrrow or
-Friday at the latest, wanted to get these out now. I don't think anything
-is really that scary in here.
+The code for handling a marked UD packet unconditionally returns the
+dlid in the header of the FECN marked packet.  This is not correct
+for multicast packets where the DLID is in the multicast range.
 
-These are mostly driver fixes. Patches 4,7,8,11, and 14 are marked stable.
-They didn't get sent for the -rc because they fix really old issues.
+The subsequent attempt to send the CNP with the multicast lid will
+cause the chip to halt the ack send context because the source
+lid doesn't match the chip programming.   The send context will
+be halted and flush any other pending packets in the pio ring causing
+the CNP to not be sent.
 
-Patch 5 is a core fix. I should have sent it a bit sooner, sorry about that but
-it's pretty trivial so I decided to include it as well rather than wait for
-4.18.
+A part of investigating the fix, it was determinted that the 16B work
+broke the FECN routine badly with inconsitent use of 16 bit and 32 bits
+types for lids and pkeys.  Since the port's source lid was correctly 32
+bits the type mixmatches need to be dealt with at the same time as
+fixing the CNP header issue.
 
+Fix these issues by:
+- Using the ports lid for as the SLID for responding to FECN marked UD
+  packets
+- Insure pkey is always 16 bit in this and subordinate routines
+- Insure lids are 32 bits in this and subordinate routines
+
+Cc: <stable@vger.kernel.org> # 4.14.x
+Fixes: 88733e3b8450 ("IB/hfi1: Add 16B UD support")
+Reviewed-by: Don Hiatt <don.hiatt@intel.com>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
+ drivers/infiniband/hw/hfi1/driver.c |   19 +++++++++++++++----
+ drivers/infiniband/hw/hfi1/hfi.h    |    8 ++++----
+ drivers/infiniband/hw/hfi1/ud.c     |    6 +++---
+ 3 files changed, 22 insertions(+), 11 deletions(-)
 
-Alex Estrin (2):
-      IB/hfi1: Complete check for locally terminated smp
-      IB/{hfi1,qib}: Add handling of kernel restart
-
-Ashutosh Dixit (1):
-      IB/core: Fix rkey invalidation from user space into the kernel
-
-Michael J. Ruhl (5):
-      IB/hfi1: Return actual error value from program_rcvarray()
-      IB/hfi1: Use after free race condition in send context error path
-      IB/hfi1 Use correct type for num_user_context
-      IB/hfi1: Return correct value for device state
-      IB/hfi1: Reorder incorrect send context disable
-
-Mike Marciniszyn (3):
-      IB/hfi1: Fix handling of FECN marked multicast packet
-      IB/hfi1: Fix fault injection init/exit issues
-      IB/hfi1: Fix loss of BECN with AHG
-
-Sebastian Sanchez (2):
-      IB/hfi1: Prevent LNI hang when LCB can't obtain lanes
-      IB/{hfi1,rdmavt,qib}: Fit kernel completions into single aligned cache-line
-
-
- drivers/infiniband/core/uverbs_cmd.c        |    4 +
- drivers/infiniband/hw/hfi1/chip.c           |   59 ++++++++---
- drivers/infiniband/hw/hfi1/chip.h           |   15 ++-
- drivers/infiniband/hw/hfi1/chip_registers.h |    7 +
- drivers/infiniband/hw/hfi1/debugfs.c        |    8 +
- drivers/infiniband/hw/hfi1/driver.c         |   19 +++-
- drivers/infiniband/hw/hfi1/file_ops.c       |    2 
- drivers/infiniband/hw/hfi1/hfi.h            |    9 +-
- drivers/infiniband/hw/hfi1/init.c           |    9 +-
- drivers/infiniband/hw/hfi1/mad.c            |   36 ++++---
- drivers/infiniband/hw/hfi1/pio.c            |   44 ++++++--
- drivers/infiniband/hw/hfi1/rc.c             |    2 
- drivers/infiniband/hw/hfi1/ruc.c            |   54 ++++++++--
- drivers/infiniband/hw/hfi1/uc.c             |    2 
- drivers/infiniband/hw/hfi1/ud.c             |   10 +-
- drivers/infiniband/hw/hfi1/user_exp_rcv.c   |    1 
- drivers/infiniband/hw/qib/qib.h             |    1 
- drivers/infiniband/hw/qib/qib_init.c        |    5 +
- drivers/infiniband/hw/qib/qib_rc.c          |    2 
- drivers/infiniband/hw/qib/qib_ruc.c         |    4 -
- drivers/infiniband/hw/qib/qib_uc.c          |    2 
- drivers/infiniband/hw/qib/qib_ud.c          |    4 -
- drivers/infiniband/sw/rdmavt/cq.c           |  146 ++++++++++++++++++---------
- drivers/infiniband/sw/rdmavt/qp.c           |    4 -
- drivers/infiniband/sw/rdmavt/trace_cq.h     |    6 +
- include/rdma/ib_verbs.h                     |    5 +
- include/rdma/rdmavt_cq.h                    |   35 +++++-
- include/rdma/rdmavt_qp.h                    |    2 
- 28 files changed, 344 insertions(+), 153 deletions(-)
+diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
+index addc68e..78f7c4e 100644
+--- a/drivers/infiniband/hw/hfi1/driver.c
++++ b/drivers/infiniband/hw/hfi1/driver.c
+@@ -432,31 +432,43 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
+ 			       bool do_cnp)
+ {
+ 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
++	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct ib_other_headers *ohdr = pkt->ohdr;
+ 	struct ib_grh *grh = pkt->grh;
+ 	u32 rqpn = 0, bth1;
+-	u16 pkey, rlid, dlid = ib_get_dlid(pkt->hdr);
++	u16 pkey;
++	u32 rlid, slid, dlid = 0;
+ 	u8 hdr_type, sc, svc_type;
+ 	bool is_mcast = false;
+ 
++	/* can be called from prescan */
+ 	if (pkt->etype == RHF_RCV_TYPE_BYPASS) {
+ 		is_mcast = hfi1_is_16B_mcast(dlid);
+ 		pkey = hfi1_16B_get_pkey(pkt->hdr);
+ 		sc = hfi1_16B_get_sc(pkt->hdr);
++		dlid = hfi1_16B_get_dlid(pkt->hdr);
++		slid = hfi1_16B_get_slid(pkt->hdr);
+ 		hdr_type = HFI1_PKT_TYPE_16B;
+ 	} else {
+ 		is_mcast = (dlid > be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
+ 			   (dlid != be16_to_cpu(IB_LID_PERMISSIVE));
+ 		pkey = ib_bth_get_pkey(ohdr);
+ 		sc = hfi1_9B_get_sc5(pkt->hdr, pkt->rhf);
++		dlid = ib_get_dlid(pkt->hdr);
++		slid = ib_get_slid(pkt->hdr);
+ 		hdr_type = HFI1_PKT_TYPE_9B;
+ 	}
+ 
+ 	switch (qp->ibqp.qp_type) {
++	case IB_QPT_UD:
++		dlid = ppd->lid;
++		rlid = slid;
++		rqpn = ib_get_sqpn(pkt->ohdr);
++		svc_type = IB_CC_SVCTYPE_UD;
++		break;
+ 	case IB_QPT_SMI:
+ 	case IB_QPT_GSI:
+-	case IB_QPT_UD:
+-		rlid = ib_get_slid(pkt->hdr);
++		rlid = slid;
+ 		rqpn = ib_get_sqpn(pkt->ohdr);
+ 		svc_type = IB_CC_SVCTYPE_UD;
+ 		break;
+@@ -481,7 +493,6 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
+ 					      dlid, rlid, sc, grh);
+ 
+ 	if (!is_mcast && (bth1 & IB_BECN_SMASK)) {
+-		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
+ 		u32 lqpn = bth1 & RVT_QPN_MASK;
+ 		u8 sl = ibp->sc_to_sl[sc];
+ 
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 90bc8c7..4305000 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1538,13 +1538,13 @@ static inline u32 egress_cycles(u32 len, u32 rate)
+ void process_becn(struct hfi1_pportdata *ppd, u8 sl, u32 rlid, u32 lqpn,
+ 		  u32 rqpn, u8 svc_type);
+ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+-		u32 pkey, u32 slid, u32 dlid, u8 sc5,
++		u16 pkey, u32 slid, u32 dlid, u8 sc5,
+ 		const struct ib_grh *old_grh);
+ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+-		    u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
++		    u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
+ 		    u8 sc5, const struct ib_grh *old_grh);
+ typedef void (*hfi1_handle_cnp)(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+-				u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
++				u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
+ 				u8 sc5, const struct ib_grh *old_grh);
+ 
+ #define PKEY_CHECK_INVALID -1
+@@ -2438,7 +2438,7 @@ static inline void hfi1_make_16b_hdr(struct hfi1_16b_header *hdr,
+ 		((slid >> OPA_16B_SLID_SHIFT) << OPA_16B_SLID_HIGH_SHIFT);
+ 	lrh2 = (lrh2 & ~OPA_16B_DLID_MASK) |
+ 		((dlid >> OPA_16B_DLID_SHIFT) << OPA_16B_DLID_HIGH_SHIFT);
+-	lrh2 = (lrh2 & ~OPA_16B_PKEY_MASK) | (pkey << OPA_16B_PKEY_SHIFT);
++	lrh2 = (lrh2 & ~OPA_16B_PKEY_MASK) | ((u32)pkey << OPA_16B_PKEY_SHIFT);
+ 	lrh2 = (lrh2 & ~OPA_16B_L4_MASK) | l4;
+ 
+ 	hdr->lrh[0] = lrh0;
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index bcf3b0b..49a38a6 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -628,7 +628,7 @@ int hfi1_lookup_pkey_idx(struct hfi1_ibport *ibp, u16 pkey)
+ }
+ 
+ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+-		    u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
++		    u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
+ 		    u8 sc5, const struct ib_grh *old_grh)
+ {
+ 	u64 pbc, pbc_flags = 0;
+@@ -687,7 +687,7 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+ }
+ 
+ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+-		u32 pkey, u32 slid, u32 dlid, u8 sc5,
++		u16 pkey, u32 slid, u32 dlid, u8 sc5,
+ 		const struct ib_grh *old_grh)
+ {
+ 	u64 pbc, pbc_flags = 0;
+@@ -719,7 +719,7 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
+ 
+ 	lrh0 |= (sc5 & 0xf) << 12 | sl << 4;
+ 
+-	bth0 = pkey | (IB_OPCODE_CNP << 24);
++	bth0 = (u32)pkey | (IB_OPCODE_CNP << 24);
+ 	ohdr->bth[0] = cpu_to_be32(bth0);
+ 
+ 	ohdr->bth[1] = cpu_to_be32(remote_qpn | (1 << IB_BECN_SHIFT));
