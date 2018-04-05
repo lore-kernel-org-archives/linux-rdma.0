@@ -1,44 +1,96 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
-Date: Thu, 5 Apr 2018 08:49:21 -0600
-Message-ID: <20180405144921.GB29712@ziepe.ca>
+Subject: Re: [PATCH for-next 12/13] IB/{hfi1, qib}: Add handling of kernel
+ restart
+Date: Thu, 5 Apr 2018 13:17:57 -0600
+Message-ID: <20180405191757.GA13857@ziepe.ca>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
- <20180405030916.GD29229@ziepe.ca>
- <080bb43b-86bc-6943-81a2-93c8808b41a0@intel.com>
+ <20180405030308.18766.22246.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <080bb43b-86bc-6943-81a2-93c8808b41a0@intel.com>
+In-Reply-To: <20180405030308.18766.22246.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 04, 2018 at 11:33:02PM -0400, Dennis Dalessandro wrote:
-> On 4/4/2018 11:09 PM, Jason Gunthorpe wrote:
-> >On Wed, Apr 04, 2018 at 08:01:11PM -0700, Dennis Dalessandro wrote:
-> >>Hi Jason and Doug,
-> >>
-> >>Here are most of our updates for 4.17. I will follow this up with a small
-> >>16B series then I still have a few more patches that are waiting on
-> >>some more thorough testing. Should be able to get them on the list tomrrow or
-> >>Friday at the latest, wanted to get these out now. I don't think anything
-> >>is really that scary in here.
-> >
-> >Probably not going to happen for 4.17.
-> >
-> >As a general rule series that are not on the list before the merge
-> >window opens are not going to be make it. Linus discourages doing
-> >things at the last minute as it encourages bad behavior that reduces
-> >release quality.
+On Wed, Apr 04, 2018 at 08:03:12PM -0700, Dennis Dalessandro wrote:
+> From: Alex Estrin <alex.estrin@intel.com>
 > 
-> I think that's a fine policy, and usually try to stick to that myself, but
-> got behind this time by a couple days. To be fair though, I wouldn't call
-> this last minute.
+> A warm restart will fail to unload the driver, leaving link state
+> potentially flapping up to the point the BIOS resets the adapter.
+> Correct the issue by hooking the shutdown pci method,
+> which will bring link down and remove the driver.
+> 
+> Cc: <stable@vger.kernel.org> # 4.9.x
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+>  drivers/infiniband/hw/hfi1/hfi.h     |    1 +
+>  drivers/infiniband/hw/hfi1/init.c    |    5 +++++
+>  drivers/infiniband/hw/qib/qib.h      |    1 +
+>  drivers/infiniband/hw/qib/qib_init.c |    5 +++++
+>  4 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+> index 4305000..777abb8 100644
+> +++ b/drivers/infiniband/hw/hfi1/hfi.h
+> @@ -1857,6 +1857,7 @@ struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
+>  #define HFI1_HAS_SDMA_TIMEOUT  0x8
+>  #define HFI1_HAS_SEND_DMA      0x10   /* Supports Send DMA */
+>  #define HFI1_FORCED_FREEZE     0x80   /* driver forced freeze mode */
+> +#define HFI1_REMOVE           0x100   /* unloading device */
+>  
+>  /* IB dword length mask in PBC (lower 11 bits); same for all chips */
+>  #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
+> diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+> index c45cca5..20fa898 100644
+> +++ b/drivers/infiniband/hw/hfi1/init.c
+> @@ -1388,6 +1388,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
+>  	.name = DRIVER_NAME,
+>  	.probe = init_one,
+>  	.remove = remove_one,
+> +	.shutdown = remove_one,
+>  	.id_table = hfi1_pci_tbl,
+>  	.err_handler = &hfi1_pci_err_handler,
+>  };
+> @@ -1768,6 +1769,10 @@ static void remove_one(struct pci_dev *pdev)
+>  {
+>  	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
+>  
+> +	if (dd->flags & HFI1_REMOVE)
+> +		return;
+> +	dd->flags |= HFI1_REMOVE;
+> +
+>  	/* close debugfs files before ib unregister */
+>  	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
+>  
+> diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+> index 4607245..677b757 100644
+> +++ b/drivers/infiniband/hw/qib/qib.h
+> @@ -1228,6 +1228,7 @@ int qib_cdev_init(int minor, const char *name,
+>  #define QIB_BADINTR           0x8000 /* severe interrupt problems */
+>  #define QIB_DCA_ENABLED       0x10000 /* Direct Cache Access enabled */
+>  #define QIB_HAS_QSFP          0x20000 /* device (card instance) has QSFP */
+> +#define QIB_REMOVE            0x40000 /* unloading device */
+>  
+>  /*
+>   * values for ppd->lflags (_ib_port_ related flags)
+> diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+> index 3990f38..796dea4 100644
+> +++ b/drivers/infiniband/hw/qib/qib_init.c
+> @@ -1201,6 +1201,7 @@ void qib_disable_after_error(struct qib_devdata *dd)
+>  	.name = QIB_DRV_NAME,
+>  	.probe = qib_init_one,
+>  	.remove = qib_remove_one,
+> +	.shutdown = qib_remove_one,
 
-'last minute' was sending series during the rc6 time period.
+No way, qib_remove_one() ultimately calls ib_unregister_device() which
+is not approprite for a shutdown callback, especially since these
+drivers do not support RDMA hot removal.
 
-After release is 'too late'
+I think you need something lighter weight that just turns off the
+physical port.
 
 Jason
