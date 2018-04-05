@@ -1,32 +1,44 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
-Date: Thu, 5 Apr 2018 04:09:22 +0000
-Message-ID: <f80b35cc6faa13fde58c6179fdeadd6ccec0eb42.camel@wdc.com>
+Date: Thu, 5 Apr 2018 08:49:21 -0600
+Message-ID: <20180405144921.GB29712@ziepe.ca>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
-         <20180405030916.GD29229@ziepe.ca>
-         <080bb43b-86bc-6943-81a2-93c8808b41a0@intel.com>
+ <20180405030916.GD29229@ziepe.ca>
+ <080bb43b-86bc-6943-81a2-93c8808b41a0@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <080bb43b-86bc-6943-81a2-93c8808b41a0@intel.com>
-Content-Language: en-US
-Content-ID: <00927B16625A7343BA569AB4DA876BC0@namprd04.prod.outlook.com>
 Sender: stable-owner@vger.kernel.org
-To: "dennis.dalessandro@intel.com" <dennis.dalessandro@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "prathap.kumar.valsan@intel.com" <prathap.kumar.valsan@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "don.hiatt@intel.com" <don.hiatt@intel.com>, "michael.j.ruhl@intel.com" <michael.j.ruhl@intel.com>, "mike.marciniszyn@intel.com" <mike.marciniszyn@intel.com>, "alex.estrin@intel.com" <alex.estrin@intel.com>, "mitko.haralanov@intel.com" <mitko.haralanov@intel.com>, "ashutosh.dixit@intel.com" <ashutosh.dixit@intel.com>, "brian.welty@intel.com" <brian.welty@intel.com>, "sebastian.sanchez@intel.com" <sebastian.sanchez@intel.com>, "harish.chegondi@intel.com" <harish.chegondi@intel.com>, "dledford@redhat.com" <dledford@redhat.com>
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTA0LTA0IGF0IDIzOjMzIC0wNDAwLCBEZW5uaXMgRGFsZXNzYW5kcm8gd3Jv
-dGU6DQo+IEkgdGhpbmsgdGhhdCdzIGEgZmluZSBwb2xpY3ksIGFuZCB1c3VhbGx5IHRyeSB0byBz
-dGljayB0byB0aGF0IG15c2VsZiwgDQo+IGJ1dCBnb3QgYmVoaW5kIHRoaXMgdGltZSBieSBhIGNv
-dXBsZSBkYXlzLiBUbyBiZSBmYWlyIHRob3VnaCwgSSB3b3VsZG4ndCANCj4gY2FsbCB0aGlzIGxh
-c3QgbWludXRlLiBUaGVyZSBpcyBzdGlsbCBhIHdlZWsgYW5kIGEgaGFsZiBvZiBtZXJnZSB3aW5k
-b3cuIA0KPiBJIGRvIHJlYWxpemUgdGhlcmUgaXMgdW5mb3J0dW5hdGUgdGltaW5nIHdpdGggT0ZB
-IGZhbGxpbmcgaW4gdGhlIG1pZGRsZSANCj4gb2YgdGhlIG1lcmdlIHdpbmRvdyB0aG91Z2guDQoN
-ClVzdWFsbHkga2VybmVsIG1haW50YWluZXJzIGFyZSBidXN5IGR1cmluZyB0aGUgbWVyZ2Ugd2lu
-ZG93IHdpdGggYWRkcmVzc2luZw0KbWVyZ2UgY29uZmxpY3RzIGFuZCB3aXRoIGFuYWx5emluZyBh
-bmQgZml4aW5nIHJlZ3Jlc3Npb25zLiBJIGRvbid0IGtub3cgYW55DQptYWludGFpbmVyIHdobyBh
-Y2NlcHRzIG5ldyBwYXRjaGVzIGR1cmluZyB0aGUgbWVyZ2Ugd2luZG93LiBNb3N0IG1haW50YWlu
-ZXJzDQpnZXQgaXJyaXRhdGVkIGlmIHBhdGNoZXMgdGhhdCBhcmUgcG9zdGVkIGR1cmluZyB0aGUg
-bWVyZ2Ugd2luZG93IGFuZCBpZ25vcmUNCnN1Y2ggcGF0Y2hlcy4NCg0KQmFydC4NCg0KDQoNCg==
+On Wed, Apr 04, 2018 at 11:33:02PM -0400, Dennis Dalessandro wrote:
+> On 4/4/2018 11:09 PM, Jason Gunthorpe wrote:
+> >On Wed, Apr 04, 2018 at 08:01:11PM -0700, Dennis Dalessandro wrote:
+> >>Hi Jason and Doug,
+> >>
+> >>Here are most of our updates for 4.17. I will follow this up with a small
+> >>16B series then I still have a few more patches that are waiting on
+> >>some more thorough testing. Should be able to get them on the list tomrrow or
+> >>Friday at the latest, wanted to get these out now. I don't think anything
+> >>is really that scary in here.
+> >
+> >Probably not going to happen for 4.17.
+> >
+> >As a general rule series that are not on the list before the merge
+> >window opens are not going to be make it. Linus discourages doing
+> >things at the last minute as it encourages bad behavior that reduces
+> >release quality.
+> 
+> I think that's a fine policy, and usually try to stick to that myself, but
+> got behind this time by a couple days. To be fair though, I wouldn't call
+> this last minute.
+
+'last minute' was sending series during the rc6 time period.
+
+After release is 'too late'
+
+Jason
