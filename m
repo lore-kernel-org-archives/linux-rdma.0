@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 08/13] IB/hfi1: Use after free race condition in
- send context error path
-Date: Wed, 04 Apr 2018 20:02:35 -0700
-Message-ID: <20180405030232.18766.89603.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 11/13] IB/hfi1: Reorder incorrect send context
+ disable
+Date: Wed, 04 Apr 2018 20:03:03 -0700
+Message-ID: <20180405030259.18766.92068.stgit@scvm10.sc.intel.com>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,83 +11,123 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mitko Haralanov <mitko.haralanov@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-A pio send egress error can occur when the PSM library attempts to
-to send a bad packet.  That issue is still being investigated.
+User send context integrity bits are cleared before the context is
+disabled.  If the send context is still processing data, any packets
+that need those integrity bits will cause an error and halt the send
+context.
 
-The pio error interrupt handler then attempts to progress the recovery
-of the errored pio send context.
+During the disable handling, the driver waits for the context to drain.
+If the context is halted, the driver will eventually timeout because
+the context won't drain and then incorrectly bounce the link.
 
-Code inspection reveals that the handling lacks the necessary locking
-if that recovery interleaves with a PSM close of the "context" object
-contains the pio send context.
+Reorder the bit clearing and the context disable.
 
-The lack of the locking can cause the recovery to access the already
-freed pio send context object and incorrectly deduce that the pio
-send context is actually a kernel pio send context as shown by the
-NULL deref stack below:
+Examine the software state and send context status as well as the
+egress status to determine if a send context is in the halted state.
 
-[<ffffffff8143d78c>] _dev_info+0x6c/0x90
-[<ffffffffc0613230>] sc_restart+0x70/0x1f0 [hfi1]
-[<ffffffff816ab124>] ? __schedule+0x424/0x9b0
-[<ffffffffc06133c5>] sc_halted+0x15/0x20 [hfi1]
-[<ffffffff810aa3ba>] process_one_work+0x17a/0x440
-[<ffffffff810ab086>] worker_thread+0x126/0x3c0
-[<ffffffff810aaf60>] ? manage_workers.isra.24+0x2a0/0x2a0
-[<ffffffff810b252f>] kthread+0xcf/0xe0
-[<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
-[<ffffffff816b8798>] ret_from_fork+0x58/0x90
-[<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
+Promote the check macros to static functions for consistency with the
+new check and to follow kernel style.
 
-This is the best case scenario and other scenarios can corrupt the
-already freed memory.
-
-Fix by adding the necessary locking in the pio send context error
-handler.
+Remove an unused define that refers to the egress timeout.
 
 Cc: <stable@vger.kernel.org> # 4.9.x
+Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/chip.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/file_ops.c |    2 +-
+ drivers/infiniband/hw/hfi1/pio.c      |   44 ++++++++++++++++++++++++++-------
+ 2 files changed, 35 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index cb9095d..e5254f8 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -5944,6 +5944,7 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
- 	u64 status;
- 	u32 sw_index;
- 	int i = 0;
-+	unsigned long irq_flags;
- 
- 	sw_index = dd->hw_to_sw[hw_context];
- 	if (sw_index >= dd->num_send_contexts) {
-@@ -5953,10 +5954,12 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
- 		return;
- 	}
- 	sci = &dd->send_contexts[sw_index];
-+	spin_lock_irqsave(&dd->sc_lock, irq_flags);
- 	sc = sci->sc;
- 	if (!sc) {
- 		dd_dev_err(dd, "%s: context %u(%u): no sc?\n", __func__,
- 			   sw_index, hw_context);
-+		spin_unlock_irqrestore(&dd->sc_lock, irq_flags);
- 		return;
- 	}
- 
-@@ -5978,6 +5981,7 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index 41fafeb..b042184 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -689,8 +689,8 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
+ 	 * checks to default and disable the send context.
  	 */
- 	if (sc->type != SC_USER)
- 		queue_work(dd->pport->hfi1_wq, &sc->halt_work);
-+	spin_unlock_irqrestore(&dd->sc_lock, irq_flags);
+ 	if (uctxt->sc) {
+-		set_pio_integrity(uctxt->sc);
+ 		sc_disable(uctxt->sc);
++		set_pio_integrity(uctxt->sc);
+ 	}
  
- 	/*
- 	 * Update the counters for the corresponding status bits.
+ 	hfi1_free_ctxt_rcv_groups(uctxt);
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index 40dac4d..9cac15d 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -50,8 +50,6 @@
+ #include "qp.h"
+ #include "trace.h"
+ 
+-#define SC_CTXT_PACKET_EGRESS_TIMEOUT 350 /* in chip cycles */
+-
+ #define SC(name) SEND_CTXT_##name
+ /*
+  * Send Context functions
+@@ -961,15 +959,40 @@ void sc_disable(struct send_context *sc)
+ }
+ 
+ /* return SendEgressCtxtStatus.PacketOccupancy */
+-#define packet_occupancy(r) \
+-	(((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK)\
+-	>> SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT)
++static u64 packet_occupancy(u64 reg)
++{
++	return (reg &
++		SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK)
++		>> SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT;
++}
+ 
+ /* is egress halted on the context? */
+-#define egress_halted(r) \
+-	((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK)
++static bool egress_halted(u64 reg)
++{
++	return !!(reg & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK);
++}
+ 
+-/* wait for packet egress, optionally pause for credit return  */
++/* is the send context halted? */
++static bool is_sc_halted(struct hfi1_devdata *dd, u32 hw_context)
++{
++	return !!(read_kctxt_csr(dd, hw_context, SC(STATUS)) &
++		  SC(STATUS_CTXT_HALTED_SMASK));
++}
++
++/**
++ * sc_wait_for_packet_egress
++ * @sc: valid send context
++ * @pause: wait for credit return
++ *
++ * Wait for packet egress, optionally pause for credit return
++ *
++ * Egress halt and Context halt are not necessarily the same thing, so
++ * check for both.
++ *
++ * NOTE: The context halt bit may not be set immediately.  Because of this,
++ * it is necessary to check the SW SFC_HALTED bit (set in the IRQ) and the HW
++ * context bit to determine if the context is halted.
++ */
+ static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
+ {
+ 	struct hfi1_devdata *dd = sc->dd;
+@@ -981,8 +1004,9 @@ static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
+ 		reg_prev = reg;
+ 		reg = read_csr(dd, sc->hw_context * 8 +
+ 			       SEND_EGRESS_CTXT_STATUS);
+-		/* done if egress is stopped */
+-		if (egress_halted(reg))
++		/* done if any halt bits, SW or HW are set */
++		if (sc->flags & SCF_HALTED ||
++		    is_sc_halted(dd, sc->hw_context) || egress_halted(reg))
+ 			break;
+ 		reg = packet_occupancy(reg);
+ 		if (reg == 0)
