@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 07/13] IB/hfi1: Fix fault injection init/exit issues
-Date: Wed, 04 Apr 2018 20:02:27 -0700
-Message-ID: <20180405030221.18766.9970.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 08/13] IB/hfi1: Use after free race condition in
+ send context error path
+Date: Wed, 04 Apr 2018 20:02:35 -0700
+Message-ID: <20180405030232.18766.89603.stgit@scvm10.sc.intel.com>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,117 +14,80 @@ To: jgg@ziepe.ca, dledford@redhat.com
 Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-There are config dependent code paths that expose panics in unload
-paths both in this file and in debugfs_remove_recursive() because
-CONFIG_FAULT_INJECTION and CONFIG_FAULT_INJECTION_DEBUG_FS can be
-set independently.
+A pio send egress error can occur when the PSM library attempts to
+to send a bad packet.  That issue is still being investigated.
 
-Having CONFIG_FAULT_INJECTION set and CONFIG_FAULT_INJECTION_DEBUG_FS
-reset causes fault_create_debugfs_attr() to return an error.
+The pio error interrupt handler then attempts to progress the recovery
+of the errored pio send context.
 
-The debugfs.c routines tolerate failures, but the module unload panics
-dereferencing a NULL in the two exit routines.  If that is fixed, the
-dir passed to debugfs_remove_recursive comes from a memory location
-that was freed and potentially reused causing a segfault or corrupting
-memory.
+Code inspection reveals that the handling lacks the necessary locking
+if that recovery interleaves with a PSM close of the "context" object
+contains the pio send context.
 
-Here is an example of the NULL deref panic:
+The lack of the locking can cause the recovery to access the already
+freed pio send context object and incorrectly deduce that the pio
+send context is actually a kernel pio send context as shown by the
+NULL deref stack below:
 
-[66866.286829] BUG: unable to handle kernel NULL pointer dereference at 0000000000000088
-[66866.295602] IP: hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1]
-[66866.301138] PGD 858496067 P4D 858496067 PUD 8433a7067 PMD 0
-[66866.307452] Oops: 0000 [#1] SMP
-[66866.310953] Modules linked in: hfi1(-) rdmavt rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm iw_cm ib_cm ib_core rpcsec_gss_krb5 nfsv4 dns_resolver nfsv3 nfs fscache sb_edac x86_pkg_temp_thermal intel_powerclamp vfat fat coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel iTCO_wdt iTCO_vendor_support crypto_simd mei_me glue_helper cryptd mxm_wmi ipmi_si pcspkr lpc_ich sg mei ioatdma ipmi_devintf i2c_i801 mfd_core shpchp ipmi_msghandler wmi acpi_power_meter acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt igb fb_sys_fops ttm ahci ptp crc32c_intel libahci pps_core drm dca libata i2c_algo_bit i2c_core [last unloaded: opa_vnic]
-[66866.385551] CPU: 8 PID: 7470 Comm: rmmod Not tainted 4.14.0-mam-tid-rdma #2
-[66866.393317] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0018.C4.072020161249 07/20/2016
-[66866.405252] task: ffff88084f28c380 task.stack: ffffc90008454000
-[66866.411866] RIP: 0010:hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1]
-[66866.417984] RSP: 0018:ffffc90008457da0 EFLAGS: 00010202
-[66866.423812] RAX: 0000000000000000 RBX: ffff880857de0000 RCX: 0000000180040001
-[66866.431773] RDX: 0000000180040002 RSI: ffffea0021088200 RDI: 0000000040000000
-[66866.439734] RBP: ffffc90008457da8 R08: ffff88084220e000 R09: 0000000180040001
-[66866.447696] R10: 000000004220e001 R11: ffff88084220e000 R12: ffff88085a31c000
-[66866.455657] R13: ffffffffa07c9820 R14: ffffffffa07c9890 R15: ffff881059d78100
-[66866.463618] FS:  00007f6876047740(0000) GS:ffff88085f800000(0000) knlGS:0000000000000000
-[66866.472644] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[66866.479053] CR2: 0000000000000088 CR3: 0000000856357006 CR4: 00000000001606e0
-[66866.487013] Call Trace:
-[66866.489747]  remove_one+0x1f/0x220 [hfi1]
-[66866.494221]  pci_device_remove+0x39/0xc0
-[66866.498596]  device_release_driver_internal+0x141/0x210
-[66866.504424]  driver_detach+0x3f/0x80
-[66866.508409]  bus_remove_driver+0x55/0xd0
-[66866.512784]  driver_unregister+0x2c/0x50
-[66866.517164]  pci_unregister_driver+0x2a/0xa0
-[66866.521934]  hfi1_mod_cleanup+0x10/0xaa2 [hfi1]
-[66866.526988]  SyS_delete_module+0x171/0x250
-[66866.531558]  do_syscall_64+0x67/0x1b0
-[66866.535644]  entry_SYSCALL64_slow_path+0x25/0x25
-[66866.540792] RIP: 0033:0x7f6875525c27
-[66866.544777] RSP: 002b:00007ffd48528e78 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
-[66866.553224] RAX: ffffffffffffffda RBX: 0000000001cc01d0 RCX: 00007f6875525c27
-[66866.561185] RDX: 00007f6875596000 RSI: 0000000000000800 RDI: 0000000001cc0238
-[66866.569146] RBP: 0000000000000000 R08: 00007f68757e9060 R09: 00007f6875596000
-[66866.577120] R10: 00007ffd48528c00 R11: 0000000000000206 R12: 00007ffd48529db4
-[66866.585080] R13: 0000000000000000 R14: 0000000001cc01d0 R15: 0000000001cc0010
-[66866.593040] Code: 90 0f 1f 44 00 00 48 83 3d a3 8b 03 00 00 55 48 89 e5 53 48 89 fb 74 4e 48 8d bf 18 0c 00 00 e8 9d f2 ff ff 48 8b 83 20 0c 00 00 <48> 8b b8 88 00 00 00 e8 2a 21 b3 e0 48 8b bb 20 0c 00 00 e8 0e
-[66866.614127] RIP: hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1] RSP: ffffc90008457da0
-[66866.621885] CR2: 0000000000000088
-[66866.625618] ---[ end trace c4817425783fb092 ]---
+[<ffffffff8143d78c>] _dev_info+0x6c/0x90
+[<ffffffffc0613230>] sc_restart+0x70/0x1f0 [hfi1]
+[<ffffffff816ab124>] ? __schedule+0x424/0x9b0
+[<ffffffffc06133c5>] sc_halted+0x15/0x20 [hfi1]
+[<ffffffff810aa3ba>] process_one_work+0x17a/0x440
+[<ffffffff810ab086>] worker_thread+0x126/0x3c0
+[<ffffffff810aaf60>] ? manage_workers.isra.24+0x2a0/0x2a0
+[<ffffffff810b252f>] kthread+0xcf/0xe0
+[<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
+[<ffffffff816b8798>] ret_from_fork+0x58/0x90
+[<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
 
-Fix by insuring that upon failure from fault_create_debugfs_attr() the
-parent pointer for the routines is always set to NULL and guards added
-in the exit routines to insure that debugfs_remove_recursive() is not
-called when when the parent pointer is NULL.
+This is the best case scenario and other scenarios can corrupt the
+already freed memory.
 
-Fixes: 0181ce31b260 ("IB/hfi1: Add receive fault injection feature")
-Cc: <stable@vger.kernel.org> # 4.14.x
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Fix by adding the necessary locking in the pio send context error
+handler.
+
+Cc: <stable@vger.kernel.org> # 4.9.x
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/debugfs.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hfi1/chip.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
-index 852173b..5343960 100644
---- a/drivers/infiniband/hw/hfi1/debugfs.c
-+++ b/drivers/infiniband/hw/hfi1/debugfs.c
-@@ -1227,7 +1227,8 @@ static int _fault_stats_seq_show(struct seq_file *s, void *v)
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index cb9095d..e5254f8 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -5944,6 +5944,7 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
+ 	u64 status;
+ 	u32 sw_index;
+ 	int i = 0;
++	unsigned long irq_flags;
  
- static void fault_exit_opcode_debugfs(struct hfi1_ibdev *ibd)
- {
--	debugfs_remove_recursive(ibd->fault_opcode->dir);
-+	if (ibd->fault_opcode)
-+		debugfs_remove_recursive(ibd->fault_opcode->dir);
- 	kfree(ibd->fault_opcode);
- 	ibd->fault_opcode = NULL;
- }
-@@ -1255,6 +1256,7 @@ static int fault_init_opcode_debugfs(struct hfi1_ibdev *ibd)
- 					  &ibd->fault_opcode->attr);
- 	if (IS_ERR(ibd->fault_opcode->dir)) {
- 		kfree(ibd->fault_opcode);
-+		ibd->fault_opcode = NULL;
- 		return -ENOENT;
+ 	sw_index = dd->hw_to_sw[hw_context];
+ 	if (sw_index >= dd->num_send_contexts) {
+@@ -5953,10 +5954,12 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
+ 		return;
+ 	}
+ 	sci = &dd->send_contexts[sw_index];
++	spin_lock_irqsave(&dd->sc_lock, irq_flags);
+ 	sc = sci->sc;
+ 	if (!sc) {
+ 		dd_dev_err(dd, "%s: context %u(%u): no sc?\n", __func__,
+ 			   sw_index, hw_context);
++		spin_unlock_irqrestore(&dd->sc_lock, irq_flags);
+ 		return;
  	}
  
-@@ -1278,7 +1280,8 @@ static int fault_init_opcode_debugfs(struct hfi1_ibdev *ibd)
+@@ -5978,6 +5981,7 @@ static void is_sendctxt_err_int(struct hfi1_devdata *dd,
+ 	 */
+ 	if (sc->type != SC_USER)
+ 		queue_work(dd->pport->hfi1_wq, &sc->halt_work);
++	spin_unlock_irqrestore(&dd->sc_lock, irq_flags);
  
- static void fault_exit_packet_debugfs(struct hfi1_ibdev *ibd)
- {
--	debugfs_remove_recursive(ibd->fault_packet->dir);
-+	if (ibd->fault_packet)
-+		debugfs_remove_recursive(ibd->fault_packet->dir);
- 	kfree(ibd->fault_packet);
- 	ibd->fault_packet = NULL;
- }
-@@ -1304,6 +1307,7 @@ static int fault_init_packet_debugfs(struct hfi1_ibdev *ibd)
- 					  &ibd->fault_opcode->attr);
- 	if (IS_ERR(ibd->fault_packet->dir)) {
- 		kfree(ibd->fault_packet);
-+		ibd->fault_packet = NULL;
- 		return -ENOENT;
- 	}
- 
+ 	/*
+ 	 * Update the counters for the corresponding status bits.
