@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 11/13] IB/hfi1: Reorder incorrect send context
- disable
-Date: Wed, 04 Apr 2018 20:03:03 -0700
-Message-ID: <20180405030259.18766.92068.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 12/13] IB/{hfi1,
+ qib}: Add handling of kernel restart
+Date: Wed, 04 Apr 2018 20:03:12 -0700
+Message-ID: <20180405030308.18766.22246.stgit@scvm10.sc.intel.com>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,123 +11,94 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mitko Haralanov <mitko.haralanov@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+From: Alex Estrin <alex.estrin@intel.com>
 
-User send context integrity bits are cleared before the context is
-disabled.  If the send context is still processing data, any packets
-that need those integrity bits will cause an error and halt the send
-context.
-
-During the disable handling, the driver waits for the context to drain.
-If the context is halted, the driver will eventually timeout because
-the context won't drain and then incorrectly bounce the link.
-
-Reorder the bit clearing and the context disable.
-
-Examine the software state and send context status as well as the
-egress status to determine if a send context is in the halted state.
-
-Promote the check macros to static functions for consistency with the
-new check and to follow kernel style.
-
-Remove an unused define that refers to the egress timeout.
+A warm restart will fail to unload the driver, leaving link state
+potentially flapping up to the point the BIOS resets the adapter.
+Correct the issue by hooking the shutdown pci method,
+which will bring link down and remove the driver.
 
 Cc: <stable@vger.kernel.org> # 4.9.x
-Reviewed-by: Mitko Haralanov <mitko.haralanov@intel.com>
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Alex Estrin <alex.estrin@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c |    2 +-
- drivers/infiniband/hw/hfi1/pio.c      |   44 ++++++++++++++++++++++++++-------
- 2 files changed, 35 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/hfi1/hfi.h     |    1 +
+ drivers/infiniband/hw/hfi1/init.c    |    5 +++++
+ drivers/infiniband/hw/qib/qib.h      |    1 +
+ drivers/infiniband/hw/qib/qib_init.c |    5 +++++
+ 4 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 41fafeb..b042184 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -689,8 +689,8 @@ static int hfi1_file_close(struct inode *inode, struct file *fp)
- 	 * checks to default and disable the send context.
- 	 */
- 	if (uctxt->sc) {
--		set_pio_integrity(uctxt->sc);
- 		sc_disable(uctxt->sc);
-+		set_pio_integrity(uctxt->sc);
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 4305000..777abb8 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1857,6 +1857,7 @@ struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
+ #define HFI1_HAS_SDMA_TIMEOUT  0x8
+ #define HFI1_HAS_SEND_DMA      0x10   /* Supports Send DMA */
+ #define HFI1_FORCED_FREEZE     0x80   /* driver forced freeze mode */
++#define HFI1_REMOVE           0x100   /* unloading device */
  
- 	hfi1_free_ctxt_rcv_groups(uctxt);
-diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
-index 40dac4d..9cac15d 100644
---- a/drivers/infiniband/hw/hfi1/pio.c
-+++ b/drivers/infiniband/hw/hfi1/pio.c
-@@ -50,8 +50,6 @@
- #include "qp.h"
- #include "trace.h"
- 
--#define SC_CTXT_PACKET_EGRESS_TIMEOUT 350 /* in chip cycles */
--
- #define SC(name) SEND_CTXT_##name
- /*
-  * Send Context functions
-@@ -961,15 +959,40 @@ void sc_disable(struct send_context *sc)
- }
- 
- /* return SendEgressCtxtStatus.PacketOccupancy */
--#define packet_occupancy(r) \
--	(((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK)\
--	>> SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT)
-+static u64 packet_occupancy(u64 reg)
-+{
-+	return (reg &
-+		SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SMASK)
-+		>> SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_PACKET_OCCUPANCY_SHIFT;
-+}
- 
- /* is egress halted on the context? */
--#define egress_halted(r) \
--	((r) & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK)
-+static bool egress_halted(u64 reg)
-+{
-+	return !!(reg & SEND_EGRESS_CTXT_STATUS_CTXT_EGRESS_HALT_STATUS_SMASK);
-+}
- 
--/* wait for packet egress, optionally pause for credit return  */
-+/* is the send context halted? */
-+static bool is_sc_halted(struct hfi1_devdata *dd, u32 hw_context)
-+{
-+	return !!(read_kctxt_csr(dd, hw_context, SC(STATUS)) &
-+		  SC(STATUS_CTXT_HALTED_SMASK));
-+}
-+
-+/**
-+ * sc_wait_for_packet_egress
-+ * @sc: valid send context
-+ * @pause: wait for credit return
-+ *
-+ * Wait for packet egress, optionally pause for credit return
-+ *
-+ * Egress halt and Context halt are not necessarily the same thing, so
-+ * check for both.
-+ *
-+ * NOTE: The context halt bit may not be set immediately.  Because of this,
-+ * it is necessary to check the SW SFC_HALTED bit (set in the IRQ) and the HW
-+ * context bit to determine if the context is halted.
-+ */
- static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
+ /* IB dword length mask in PBC (lower 11 bits); same for all chips */
+ #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index c45cca5..20fa898 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1388,6 +1388,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
+ 	.name = DRIVER_NAME,
+ 	.probe = init_one,
+ 	.remove = remove_one,
++	.shutdown = remove_one,
+ 	.id_table = hfi1_pci_tbl,
+ 	.err_handler = &hfi1_pci_err_handler,
+ };
+@@ -1768,6 +1769,10 @@ static void remove_one(struct pci_dev *pdev)
  {
- 	struct hfi1_devdata *dd = sc->dd;
-@@ -981,8 +1004,9 @@ static void sc_wait_for_packet_egress(struct send_context *sc, int pause)
- 		reg_prev = reg;
- 		reg = read_csr(dd, sc->hw_context * 8 +
- 			       SEND_EGRESS_CTXT_STATUS);
--		/* done if egress is stopped */
--		if (egress_halted(reg))
-+		/* done if any halt bits, SW or HW are set */
-+		if (sc->flags & SCF_HALTED ||
-+		    is_sc_halted(dd, sc->hw_context) || egress_halted(reg))
- 			break;
- 		reg = packet_occupancy(reg);
- 		if (reg == 0)
+ 	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
+ 
++	if (dd->flags & HFI1_REMOVE)
++		return;
++	dd->flags |= HFI1_REMOVE;
++
+ 	/* close debugfs files before ib unregister */
+ 	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index 4607245..677b757 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -1228,6 +1228,7 @@ int qib_cdev_init(int minor, const char *name,
+ #define QIB_BADINTR           0x8000 /* severe interrupt problems */
+ #define QIB_DCA_ENABLED       0x10000 /* Direct Cache Access enabled */
+ #define QIB_HAS_QSFP          0x20000 /* device (card instance) has QSFP */
++#define QIB_REMOVE            0x40000 /* unloading device */
+ 
+ /*
+  * values for ppd->lflags (_ib_port_ related flags)
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 3990f38..796dea4 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1201,6 +1201,7 @@ void qib_disable_after_error(struct qib_devdata *dd)
+ 	.name = QIB_DRV_NAME,
+ 	.probe = qib_init_one,
+ 	.remove = qib_remove_one,
++	.shutdown = qib_remove_one,
+ 	.id_table = qib_pci_tbl,
+ 	.err_handler = &qib_pci_err_handler,
+ };
+@@ -1526,6 +1527,10 @@ static void qib_remove_one(struct pci_dev *pdev)
+ 	struct qib_devdata *dd = pci_get_drvdata(pdev);
+ 	int ret;
+ 
++	if (dd->flags & QIB_REMOVE)
++		return;
++	dd->flags |= QIB_REMOVE;
++
+ 	/* unregister from IB core */
+ 	qib_unregister_ib_device(dd);
+ 
