@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 04/13] IB/hfi1: Fix handling of FECN marked
- multicast packet
-Date: Wed, 04 Apr 2018 20:01:58 -0700
-Message-ID: <20180405030154.18766.58460.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 07/13] IB/hfi1: Fix fault injection init/exit issues
+Date: Wed, 04 Apr 2018 20:02:27 -0700
+Message-ID: <20180405030221.18766.9970.stgit@scvm10.sc.intel.com>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,162 +10,120 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Don Hiatt <don.hiatt@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-The code for handling a marked UD packet unconditionally returns the
-dlid in the header of the FECN marked packet.  This is not correct
-for multicast packets where the DLID is in the multicast range.
+There are config dependent code paths that expose panics in unload
+paths both in this file and in debugfs_remove_recursive() because
+CONFIG_FAULT_INJECTION and CONFIG_FAULT_INJECTION_DEBUG_FS can be
+set independently.
 
-The subsequent attempt to send the CNP with the multicast lid will
-cause the chip to halt the ack send context because the source
-lid doesn't match the chip programming.   The send context will
-be halted and flush any other pending packets in the pio ring causing
-the CNP to not be sent.
+Having CONFIG_FAULT_INJECTION set and CONFIG_FAULT_INJECTION_DEBUG_FS
+reset causes fault_create_debugfs_attr() to return an error.
 
-A part of investigating the fix, it was determinted that the 16B work
-broke the FECN routine badly with inconsitent use of 16 bit and 32 bits
-types for lids and pkeys.  Since the port's source lid was correctly 32
-bits the type mixmatches need to be dealt with at the same time as
-fixing the CNP header issue.
+The debugfs.c routines tolerate failures, but the module unload panics
+dereferencing a NULL in the two exit routines.  If that is fixed, the
+dir passed to debugfs_remove_recursive comes from a memory location
+that was freed and potentially reused causing a segfault or corrupting
+memory.
 
-Fix these issues by:
-- Using the ports lid for as the SLID for responding to FECN marked UD
-  packets
-- Insure pkey is always 16 bit in this and subordinate routines
-- Insure lids are 32 bits in this and subordinate routines
+Here is an example of the NULL deref panic:
 
+[66866.286829] BUG: unable to handle kernel NULL pointer dereference at 0000000000000088
+[66866.295602] IP: hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1]
+[66866.301138] PGD 858496067 P4D 858496067 PUD 8433a7067 PMD 0
+[66866.307452] Oops: 0000 [#1] SMP
+[66866.310953] Modules linked in: hfi1(-) rdmavt rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm iw_cm ib_cm ib_core rpcsec_gss_krb5 nfsv4 dns_resolver nfsv3 nfs fscache sb_edac x86_pkg_temp_thermal intel_powerclamp vfat fat coretemp kvm irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc aesni_intel iTCO_wdt iTCO_vendor_support crypto_simd mei_me glue_helper cryptd mxm_wmi ipmi_si pcspkr lpc_ich sg mei ioatdma ipmi_devintf i2c_i801 mfd_core shpchp ipmi_msghandler wmi acpi_power_meter acpi_cpufreq nfsd auth_rpcgss nfs_acl lockd grace sunrpc ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt igb fb_sys_fops ttm ahci ptp crc32c_intel libahci pps_core drm dca libata i2c_algo_bit i2c_core [last unloaded: opa_vnic]
+[66866.385551] CPU: 8 PID: 7470 Comm: rmmod Not tainted 4.14.0-mam-tid-rdma #2
+[66866.393317] Hardware name: Intel Corporation S2600WT2/S2600WT2, BIOS SE5C610.86B.01.01.0018.C4.072020161249 07/20/2016
+[66866.405252] task: ffff88084f28c380 task.stack: ffffc90008454000
+[66866.411866] RIP: 0010:hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1]
+[66866.417984] RSP: 0018:ffffc90008457da0 EFLAGS: 00010202
+[66866.423812] RAX: 0000000000000000 RBX: ffff880857de0000 RCX: 0000000180040001
+[66866.431773] RDX: 0000000180040002 RSI: ffffea0021088200 RDI: 0000000040000000
+[66866.439734] RBP: ffffc90008457da8 R08: ffff88084220e000 R09: 0000000180040001
+[66866.447696] R10: 000000004220e001 R11: ffff88084220e000 R12: ffff88085a31c000
+[66866.455657] R13: ffffffffa07c9820 R14: ffffffffa07c9890 R15: ffff881059d78100
+[66866.463618] FS:  00007f6876047740(0000) GS:ffff88085f800000(0000) knlGS:0000000000000000
+[66866.472644] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[66866.479053] CR2: 0000000000000088 CR3: 0000000856357006 CR4: 00000000001606e0
+[66866.487013] Call Trace:
+[66866.489747]  remove_one+0x1f/0x220 [hfi1]
+[66866.494221]  pci_device_remove+0x39/0xc0
+[66866.498596]  device_release_driver_internal+0x141/0x210
+[66866.504424]  driver_detach+0x3f/0x80
+[66866.508409]  bus_remove_driver+0x55/0xd0
+[66866.512784]  driver_unregister+0x2c/0x50
+[66866.517164]  pci_unregister_driver+0x2a/0xa0
+[66866.521934]  hfi1_mod_cleanup+0x10/0xaa2 [hfi1]
+[66866.526988]  SyS_delete_module+0x171/0x250
+[66866.531558]  do_syscall_64+0x67/0x1b0
+[66866.535644]  entry_SYSCALL64_slow_path+0x25/0x25
+[66866.540792] RIP: 0033:0x7f6875525c27
+[66866.544777] RSP: 002b:00007ffd48528e78 EFLAGS: 00000206 ORIG_RAX: 00000000000000b0
+[66866.553224] RAX: ffffffffffffffda RBX: 0000000001cc01d0 RCX: 00007f6875525c27
+[66866.561185] RDX: 00007f6875596000 RSI: 0000000000000800 RDI: 0000000001cc0238
+[66866.569146] RBP: 0000000000000000 R08: 00007f68757e9060 R09: 00007f6875596000
+[66866.577120] R10: 00007ffd48528c00 R11: 0000000000000206 R12: 00007ffd48529db4
+[66866.585080] R13: 0000000000000000 R14: 0000000001cc01d0 R15: 0000000001cc0010
+[66866.593040] Code: 90 0f 1f 44 00 00 48 83 3d a3 8b 03 00 00 55 48 89 e5 53 48 89 fb 74 4e 48 8d bf 18 0c 00 00 e8 9d f2 ff ff 48 8b 83 20 0c 00 00 <48> 8b b8 88 00 00 00 e8 2a 21 b3 e0 48 8b bb 20 0c 00 00 e8 0e
+[66866.614127] RIP: hfi1_dbg_ibdev_exit+0x2a/0x80 [hfi1] RSP: ffffc90008457da0
+[66866.621885] CR2: 0000000000000088
+[66866.625618] ---[ end trace c4817425783fb092 ]---
+
+Fix by insuring that upon failure from fault_create_debugfs_attr() the
+parent pointer for the routines is always set to NULL and guards added
+in the exit routines to insure that debugfs_remove_recursive() is not
+called when when the parent pointer is NULL.
+
+Fixes: 0181ce31b260 ("IB/hfi1: Add receive fault injection feature")
 Cc: <stable@vger.kernel.org> # 4.14.x
-Fixes: 88733e3b8450 ("IB/hfi1: Add 16B UD support")
-Reviewed-by: Don Hiatt <don.hiatt@intel.com>
 Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/driver.c |   19 +++++++++++++++----
- drivers/infiniband/hw/hfi1/hfi.h    |    8 ++++----
- drivers/infiniband/hw/hfi1/ud.c     |    6 +++---
- 3 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/hfi1/debugfs.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/driver.c b/drivers/infiniband/hw/hfi1/driver.c
-index addc68e..78f7c4e 100644
---- a/drivers/infiniband/hw/hfi1/driver.c
-+++ b/drivers/infiniband/hw/hfi1/driver.c
-@@ -432,31 +432,43 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
- 			       bool do_cnp)
- {
- 	struct hfi1_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 	struct ib_other_headers *ohdr = pkt->ohdr;
- 	struct ib_grh *grh = pkt->grh;
- 	u32 rqpn = 0, bth1;
--	u16 pkey, rlid, dlid = ib_get_dlid(pkt->hdr);
-+	u16 pkey;
-+	u32 rlid, slid, dlid = 0;
- 	u8 hdr_type, sc, svc_type;
- 	bool is_mcast = false;
+diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
+index 852173b..5343960 100644
+--- a/drivers/infiniband/hw/hfi1/debugfs.c
++++ b/drivers/infiniband/hw/hfi1/debugfs.c
+@@ -1227,7 +1227,8 @@ static int _fault_stats_seq_show(struct seq_file *s, void *v)
  
-+	/* can be called from prescan */
- 	if (pkt->etype == RHF_RCV_TYPE_BYPASS) {
- 		is_mcast = hfi1_is_16B_mcast(dlid);
- 		pkey = hfi1_16B_get_pkey(pkt->hdr);
- 		sc = hfi1_16B_get_sc(pkt->hdr);
-+		dlid = hfi1_16B_get_dlid(pkt->hdr);
-+		slid = hfi1_16B_get_slid(pkt->hdr);
- 		hdr_type = HFI1_PKT_TYPE_16B;
- 	} else {
- 		is_mcast = (dlid > be16_to_cpu(IB_MULTICAST_LID_BASE)) &&
- 			   (dlid != be16_to_cpu(IB_LID_PERMISSIVE));
- 		pkey = ib_bth_get_pkey(ohdr);
- 		sc = hfi1_9B_get_sc5(pkt->hdr, pkt->rhf);
-+		dlid = ib_get_dlid(pkt->hdr);
-+		slid = ib_get_slid(pkt->hdr);
- 		hdr_type = HFI1_PKT_TYPE_9B;
+ static void fault_exit_opcode_debugfs(struct hfi1_ibdev *ibd)
+ {
+-	debugfs_remove_recursive(ibd->fault_opcode->dir);
++	if (ibd->fault_opcode)
++		debugfs_remove_recursive(ibd->fault_opcode->dir);
+ 	kfree(ibd->fault_opcode);
+ 	ibd->fault_opcode = NULL;
+ }
+@@ -1255,6 +1256,7 @@ static int fault_init_opcode_debugfs(struct hfi1_ibdev *ibd)
+ 					  &ibd->fault_opcode->attr);
+ 	if (IS_ERR(ibd->fault_opcode->dir)) {
+ 		kfree(ibd->fault_opcode);
++		ibd->fault_opcode = NULL;
+ 		return -ENOENT;
  	}
  
- 	switch (qp->ibqp.qp_type) {
-+	case IB_QPT_UD:
-+		dlid = ppd->lid;
-+		rlid = slid;
-+		rqpn = ib_get_sqpn(pkt->ohdr);
-+		svc_type = IB_CC_SVCTYPE_UD;
-+		break;
- 	case IB_QPT_SMI:
- 	case IB_QPT_GSI:
--	case IB_QPT_UD:
--		rlid = ib_get_slid(pkt->hdr);
-+		rlid = slid;
- 		rqpn = ib_get_sqpn(pkt->ohdr);
- 		svc_type = IB_CC_SVCTYPE_UD;
- 		break;
-@@ -481,7 +493,6 @@ void hfi1_process_ecn_slowpath(struct rvt_qp *qp, struct hfi1_packet *pkt,
- 					      dlid, rlid, sc, grh);
+@@ -1278,7 +1280,8 @@ static int fault_init_opcode_debugfs(struct hfi1_ibdev *ibd)
  
- 	if (!is_mcast && (bth1 & IB_BECN_SMASK)) {
--		struct hfi1_pportdata *ppd = ppd_from_ibp(ibp);
- 		u32 lqpn = bth1 & RVT_QPN_MASK;
- 		u8 sl = ibp->sc_to_sl[sc];
- 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 90bc8c7..4305000 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1538,13 +1538,13 @@ static inline u32 egress_cycles(u32 len, u32 rate)
- void process_becn(struct hfi1_pportdata *ppd, u8 sl, u32 rlid, u32 lqpn,
- 		  u32 rqpn, u8 svc_type);
- void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
--		u32 pkey, u32 slid, u32 dlid, u8 sc5,
-+		u16 pkey, u32 slid, u32 dlid, u8 sc5,
- 		const struct ib_grh *old_grh);
- void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
--		    u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
-+		    u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
- 		    u8 sc5, const struct ib_grh *old_grh);
- typedef void (*hfi1_handle_cnp)(struct hfi1_ibport *ibp, struct rvt_qp *qp,
--				u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
-+				u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
- 				u8 sc5, const struct ib_grh *old_grh);
- 
- #define PKEY_CHECK_INVALID -1
-@@ -2438,7 +2438,7 @@ static inline void hfi1_make_16b_hdr(struct hfi1_16b_header *hdr,
- 		((slid >> OPA_16B_SLID_SHIFT) << OPA_16B_SLID_HIGH_SHIFT);
- 	lrh2 = (lrh2 & ~OPA_16B_DLID_MASK) |
- 		((dlid >> OPA_16B_DLID_SHIFT) << OPA_16B_DLID_HIGH_SHIFT);
--	lrh2 = (lrh2 & ~OPA_16B_PKEY_MASK) | (pkey << OPA_16B_PKEY_SHIFT);
-+	lrh2 = (lrh2 & ~OPA_16B_PKEY_MASK) | ((u32)pkey << OPA_16B_PKEY_SHIFT);
- 	lrh2 = (lrh2 & ~OPA_16B_L4_MASK) | l4;
- 
- 	hdr->lrh[0] = lrh0;
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index bcf3b0b..49a38a6 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -628,7 +628,7 @@ int hfi1_lookup_pkey_idx(struct hfi1_ibport *ibp, u16 pkey)
- }
- 
- void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
--		    u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
-+		    u32 remote_qpn, u16 pkey, u32 slid, u32 dlid,
- 		    u8 sc5, const struct ib_grh *old_grh)
+ static void fault_exit_packet_debugfs(struct hfi1_ibdev *ibd)
  {
- 	u64 pbc, pbc_flags = 0;
-@@ -687,7 +687,7 @@ void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
+-	debugfs_remove_recursive(ibd->fault_packet->dir);
++	if (ibd->fault_packet)
++		debugfs_remove_recursive(ibd->fault_packet->dir);
+ 	kfree(ibd->fault_packet);
+ 	ibd->fault_packet = NULL;
  }
+@@ -1304,6 +1307,7 @@ static int fault_init_packet_debugfs(struct hfi1_ibdev *ibd)
+ 					  &ibd->fault_opcode->attr);
+ 	if (IS_ERR(ibd->fault_packet->dir)) {
+ 		kfree(ibd->fault_packet);
++		ibd->fault_packet = NULL;
+ 		return -ENOENT;
+ 	}
  
- void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
--		u32 pkey, u32 slid, u32 dlid, u8 sc5,
-+		u16 pkey, u32 slid, u32 dlid, u8 sc5,
- 		const struct ib_grh *old_grh)
- {
- 	u64 pbc, pbc_flags = 0;
-@@ -719,7 +719,7 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
- 
- 	lrh0 |= (sc5 & 0xf) << 12 | sl << 4;
- 
--	bth0 = pkey | (IB_OPCODE_CNP << 24);
-+	bth0 = (u32)pkey | (IB_OPCODE_CNP << 24);
- 	ohdr->bth[0] = cpu_to_be32(bth0);
- 
- 	ohdr->bth[1] = cpu_to_be32(remote_qpn | (1 << IB_BECN_SHIFT));
