@@ -1,132 +1,40 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 13/13] IB/hfi1: Fix loss of BECN with AHG
-Date: Wed, 04 Apr 2018 20:03:21 -0700
-Message-ID: <20180405030317.18766.16118.stgit@scvm10.sc.intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
+Date: Wed, 4 Apr 2018 21:09:16 -0600
+Message-ID: <20180405030916.GD29229@ziepe.ca>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Wed, Apr 04, 2018 at 08:01:11PM -0700, Dennis Dalessandro wrote:
+> Hi Jason and Doug,
+> 
+> Here are most of our updates for 4.17. I will follow this up with a small
+> 16B series then I still have a few more patches that are waiting on
+> some more thorough testing. Should be able to get them on the list tomrrow or
+> Friday at the latest, wanted to get these out now. I don't think anything
+> is really that scary in here.
 
-AHG may be armed to use the stored header, which by design is limited
-to edits in the PSN/A 32 bit word (bth2).
+Probably not going to happen for 4.17.
 
-When the code is trying to send a BECN, the use of the stored header
-will lose the BECN bit.
+As a general rule series that are not on the list before the merge
+window opens are not going to be make it. Linus discourages doing
+things at the last minute as it encourages bad behavior that reduces
+release quality.
 
-Fix by avoiding AHG when getting ready to send a BECN. This is
-accomplished by always claiming the packet is not a middle packet which
-is an AHG precursor.  BECNs are not a normal case and this should not
-hurt AHG optimizations.
+In this specific case, Doug and I are both going to be at OFA next
+week so I'm not anticipating a 2nd pull request. I expect the only PR
+will go out on Friday.
 
-Cc: <stable@vger.kernel.org> # 4.14.x
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/ruc.c |   50 ++++++++++++++++++++++++++++++--------
- 1 files changed, 40 insertions(+), 10 deletions(-)
+If any of these are super important for 4.17 (eg would go to -rc) then
+let me now and I can look at only those, and they need really
+good rc worthy commit messages..
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index bab720c..e2fa689 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -733,6 +733,20 @@ static inline void hfi1_make_ruc_bth(struct rvt_qp *qp,
- 	ohdr->bth[2] = cpu_to_be32(bth2);
- }
- 
-+/**
-+ * hfi1_make_ruc_header_16B - build a 16B header
-+ * @qp: the queue pair
-+ * @ohdr: a pointer to the destination header memory
-+ * @bth0: bth0 passed in from the RC/UC builder
-+ * @bth2: bth2 passed in from the RC/UC builder
-+ * @middle: non zero implies indicates ahg "could" be used
-+ * @ps: the current packet state
-+ *
-+ * This routine may disarm ahg under these situations:
-+ * - packet needs a GRH
-+ * - BECN needed
-+ * - migration state not IB_MIG_MIGRATED
-+ */
- static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 					    struct ib_other_headers *ohdr,
- 					    u32 bth0, u32 bth2, int middle,
-@@ -777,6 +791,12 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 	else
- 		middle = 0;
- 
-+	if (qp->s_flags & RVT_S_ECN) {
-+		qp->s_flags &= ~RVT_S_ECN;
-+		/* we recently received a FECN, so return a BECN */
-+		becn = true;
-+		middle = 0;
-+	}
- 	if (middle)
- 		build_ahg(qp, bth2);
- 	else
-@@ -784,11 +804,6 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 
- 	bth0 |= pkey;
- 	bth0 |= extra_bytes << 20;
--	if (qp->s_flags & RVT_S_ECN) {
--		qp->s_flags &= ~RVT_S_ECN;
--		/* we recently received a FECN, so return a BECN */
--		becn = true;
--	}
- 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
- 
- 	if (!ppd->lid)
-@@ -806,6 +821,20 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 			  pkey, becn, 0, l4, priv->s_sc);
- }
- 
-+/**
-+ * hfi1_make_ruc_header_9B - build a 9B header
-+ * @qp: the queue pair
-+ * @ohdr: a pointer to the destination header memory
-+ * @bth0: bth0 passed in from the RC/UC builder
-+ * @bth2: bth2 passed in from the RC/UC builder
-+ * @middle: non zero implies indicates ahg "could" be used
-+ * @ps: the current packet state
-+ *
-+ * This routine may disarm ahg under these situations:
-+ * - packet needs a GRH
-+ * - BECN needed
-+ * - migration state not IB_MIG_MIGRATED
-+ */
- static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 					   struct ib_other_headers *ohdr,
- 					   u32 bth0, u32 bth2, int middle,
-@@ -839,6 +868,12 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 	else
- 		middle = 0;
- 
-+	if (qp->s_flags & RVT_S_ECN) {
-+		qp->s_flags &= ~RVT_S_ECN;
-+		/* we recently received a FECN, so return a BECN */
-+		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
-+		middle = 0;
-+	}
- 	if (middle)
- 		build_ahg(qp, bth2);
- 	else
-@@ -846,11 +881,6 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 
- 	bth0 |= pkey;
- 	bth0 |= extra_bytes << 20;
--	if (qp->s_flags & RVT_S_ECN) {
--		qp->s_flags &= ~RVT_S_ECN;
--		/* we recently received a FECN, so return a BECN */
--		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
--	}
- 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
- 	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
- 			 lrh0,
+Jason
