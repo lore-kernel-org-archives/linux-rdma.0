@@ -1,8 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 12/13] IB/{hfi1,
- qib}: Add handling of kernel restart
-Date: Wed, 04 Apr 2018 20:03:12 -0700
-Message-ID: <20180405030308.18766.22246.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 13/13] IB/hfi1: Fix loss of BECN with AHG
+Date: Wed, 04 Apr 2018 20:03:21 -0700
+Message-ID: <20180405030317.18766.16118.stgit@scvm10.sc.intel.com>
 References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,94 +10,123 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-A warm restart will fail to unload the driver, leaving link state
-potentially flapping up to the point the BIOS resets the adapter.
-Correct the issue by hooking the shutdown pci method,
-which will bring link down and remove the driver.
+AHG may be armed to use the stored header, which by design is limited
+to edits in the PSN/A 32 bit word (bth2).
 
-Cc: <stable@vger.kernel.org> # 4.9.x
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+When the code is trying to send a BECN, the use of the stored header
+will lose the BECN bit.
+
+Fix by avoiding AHG when getting ready to send a BECN. This is
+accomplished by always claiming the packet is not a middle packet which
+is an AHG precursor.  BECNs are not a normal case and this should not
+hurt AHG optimizations.
+
+Cc: <stable@vger.kernel.org> # 4.14.x
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/hfi.h     |    1 +
- drivers/infiniband/hw/hfi1/init.c    |    5 +++++
- drivers/infiniband/hw/qib/qib.h      |    1 +
- drivers/infiniband/hw/qib/qib_init.c |    5 +++++
- 4 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/hfi1/ruc.c |   50 ++++++++++++++++++++++++++++++--------
+ 1 files changed, 40 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index 4305000..777abb8 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1857,6 +1857,7 @@ struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
- #define HFI1_HAS_SDMA_TIMEOUT  0x8
- #define HFI1_HAS_SEND_DMA      0x10   /* Supports Send DMA */
- #define HFI1_FORCED_FREEZE     0x80   /* driver forced freeze mode */
-+#define HFI1_REMOVE           0x100   /* unloading device */
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index bab720c..e2fa689 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -733,6 +733,20 @@ static inline void hfi1_make_ruc_bth(struct rvt_qp *qp,
+ 	ohdr->bth[2] = cpu_to_be32(bth2);
+ }
  
- /* IB dword length mask in PBC (lower 11 bits); same for all chips */
- #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index c45cca5..20fa898 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1388,6 +1388,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
- 	.name = DRIVER_NAME,
- 	.probe = init_one,
- 	.remove = remove_one,
-+	.shutdown = remove_one,
- 	.id_table = hfi1_pci_tbl,
- 	.err_handler = &hfi1_pci_err_handler,
- };
-@@ -1768,6 +1769,10 @@ static void remove_one(struct pci_dev *pdev)
- {
- 	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
++/**
++ * hfi1_make_ruc_header_16B - build a 16B header
++ * @qp: the queue pair
++ * @ohdr: a pointer to the destination header memory
++ * @bth0: bth0 passed in from the RC/UC builder
++ * @bth2: bth2 passed in from the RC/UC builder
++ * @middle: non zero implies indicates ahg "could" be used
++ * @ps: the current packet state
++ *
++ * This routine may disarm ahg under these situations:
++ * - packet needs a GRH
++ * - BECN needed
++ * - migration state not IB_MIG_MIGRATED
++ */
+ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+ 					    struct ib_other_headers *ohdr,
+ 					    u32 bth0, u32 bth2, int middle,
+@@ -777,6 +791,12 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+ 	else
+ 		middle = 0;
  
-+	if (dd->flags & HFI1_REMOVE)
-+		return;
-+	dd->flags |= HFI1_REMOVE;
-+
- 	/* close debugfs files before ib unregister */
- 	hfi1_dbg_ibdev_exit(&dd->verbs_dev);
++	if (qp->s_flags & RVT_S_ECN) {
++		qp->s_flags &= ~RVT_S_ECN;
++		/* we recently received a FECN, so return a BECN */
++		becn = true;
++		middle = 0;
++	}
+ 	if (middle)
+ 		build_ahg(qp, bth2);
+ 	else
+@@ -784,11 +804,6 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
  
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 4607245..677b757 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1228,6 +1228,7 @@ int qib_cdev_init(int minor, const char *name,
- #define QIB_BADINTR           0x8000 /* severe interrupt problems */
- #define QIB_DCA_ENABLED       0x10000 /* Direct Cache Access enabled */
- #define QIB_HAS_QSFP          0x20000 /* device (card instance) has QSFP */
-+#define QIB_REMOVE            0x40000 /* unloading device */
+ 	bth0 |= pkey;
+ 	bth0 |= extra_bytes << 20;
+-	if (qp->s_flags & RVT_S_ECN) {
+-		qp->s_flags &= ~RVT_S_ECN;
+-		/* we recently received a FECN, so return a BECN */
+-		becn = true;
+-	}
+ 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
  
- /*
-  * values for ppd->lflags (_ib_port_ related flags)
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 3990f38..796dea4 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -1201,6 +1201,7 @@ void qib_disable_after_error(struct qib_devdata *dd)
- 	.name = QIB_DRV_NAME,
- 	.probe = qib_init_one,
- 	.remove = qib_remove_one,
-+	.shutdown = qib_remove_one,
- 	.id_table = qib_pci_tbl,
- 	.err_handler = &qib_pci_err_handler,
- };
-@@ -1526,6 +1527,10 @@ static void qib_remove_one(struct pci_dev *pdev)
- 	struct qib_devdata *dd = pci_get_drvdata(pdev);
- 	int ret;
+ 	if (!ppd->lid)
+@@ -806,6 +821,20 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+ 			  pkey, becn, 0, l4, priv->s_sc);
+ }
  
-+	if (dd->flags & QIB_REMOVE)
-+		return;
-+	dd->flags |= QIB_REMOVE;
-+
- 	/* unregister from IB core */
- 	qib_unregister_ib_device(dd);
++/**
++ * hfi1_make_ruc_header_9B - build a 9B header
++ * @qp: the queue pair
++ * @ohdr: a pointer to the destination header memory
++ * @bth0: bth0 passed in from the RC/UC builder
++ * @bth2: bth2 passed in from the RC/UC builder
++ * @middle: non zero implies indicates ahg "could" be used
++ * @ps: the current packet state
++ *
++ * This routine may disarm ahg under these situations:
++ * - packet needs a GRH
++ * - BECN needed
++ * - migration state not IB_MIG_MIGRATED
++ */
+ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
+ 					   struct ib_other_headers *ohdr,
+ 					   u32 bth0, u32 bth2, int middle,
+@@ -839,6 +868,12 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
+ 	else
+ 		middle = 0;
  
++	if (qp->s_flags & RVT_S_ECN) {
++		qp->s_flags &= ~RVT_S_ECN;
++		/* we recently received a FECN, so return a BECN */
++		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
++		middle = 0;
++	}
+ 	if (middle)
+ 		build_ahg(qp, bth2);
+ 	else
+@@ -846,11 +881,6 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
+ 
+ 	bth0 |= pkey;
+ 	bth0 |= extra_bytes << 20;
+-	if (qp->s_flags & RVT_S_ECN) {
+-		qp->s_flags &= ~RVT_S_ECN;
+-		/* we recently received a FECN, so return a BECN */
+-		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
+-	}
+ 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
+ 	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
+ 			 lrh0,
