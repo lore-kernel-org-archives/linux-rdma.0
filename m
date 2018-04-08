@@ -1,45 +1,136 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v1] rdma: Print net device name and index
- for RDMA device
-Date: Fri, 6 Apr 2018 12:54:20 -0600
-Message-ID: <c37f7312-27c9-8e2c-1b7f-691c79211bea@gmail.com>
-References: <20180403042914.23360-1-leon@kernel.org>
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: Re: KASAN: use-after-free Read in inet_create
+Date: Sun, 8 Apr 2018 16:17:56 -0700
+Message-ID: <20180408231756.GI685@sol.localdomain>
+References: <001a1144d1c8e819f6055fee7118@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180403042914.23360-1-leon@kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <001a1144d1c8e819f6055fee7118@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: syzbot <bot+db99bd25cd19d3347dbf8c05d7dd3ca9bab2d7ad@syzkaller.appspotmail.com>, davem@davemloft.net, kuznet@ms2.inr.ac.ru, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/2/18 10:29 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+[+RDS list and maintainer]
+
+On Sat, Dec 09, 2017 at 12:50:01PM -0800, syzbot wrote:
+> Hello,
 > 
-> The RDMA devices are operated in RoCE and iWARP modes have net device
-> underneath. Present their names in regular output and their net index
-> in detailed mode.
+> syzkaller hit the following crash on
+> 82bcf1def3b5f1251177ad47c44f7e17af039b4b
+> git://git.cmpxchg.org/linux-mmots.git/master
+> compiler: gcc (GCC) 7.1.1 20170620
+> .config is attached
+> Raw console output is attached.
 > 
-> [root@nps ~]# rdma link show mlx5_3/1
-> 4/1: mlx5_3/1: state ACTIVE physical_state LINK_UP netdev ens7
-> [root@nps ~]# rdma link show mlx5_3/1 -d
-> 4/1: mlx5_3/1: state ACTIVE physical_state LINK_UP netdev ens7 netdev_index 7
->     caps: <CM, IP_BASED_GIDS>
+> Unfortunately, I don't have any reproducer for this bug yet.
 > 
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+> 
+> ==================================================================
+> BUG: KASAN: use-after-free in inet_create+0xda0/0xf50 net/ipv4/af_inet.c:338
+> Read of size 4 at addr ffff8801bde28554 by task kworker/u4:5/3492
+> 
+> CPU: 0 PID: 3492 Comm: kworker/u4:5 Not tainted 4.15.0-rc2-mm1+ #39
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Workqueue: krdsd rds_connect_worker
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x257 lib/dump_stack.c:53
+>  print_address_description+0x73/0x250 mm/kasan/report.c:252
+>  kasan_report_error mm/kasan/report.c:351 [inline]
+>  kasan_report+0x25b/0x340 mm/kasan/report.c:409
+>  __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:429
+>  inet_create+0xda0/0xf50 net/ipv4/af_inet.c:338
+>  __sock_create+0x4d4/0x850 net/socket.c:1265
+>  sock_create_kern+0x3f/0x50 net/socket.c:1311
+>  rds_tcp_conn_path_connect+0x26f/0x920 net/rds/tcp_connect.c:108
+>  rds_connect_worker+0x156/0x1f0 net/rds/threads.c:165
+>  process_one_work+0xbfd/0x1bc0 kernel/workqueue.c:2113
+>  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+>  kthread+0x37a/0x440 kernel/kthread.c:238
+>  ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+> 
+> Allocated by task 3362:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+>  set_track mm/kasan/kasan.c:459 [inline]
+>  kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:551
+>  kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:489
+>  kmem_cache_alloc+0x12e/0x760 mm/slab.c:3548
+>  kmem_cache_zalloc include/linux/slab.h:695 [inline]
+>  net_alloc net/core/net_namespace.c:362 [inline]
+>  copy_net_ns+0x196/0x580 net/core/net_namespace.c:402
+>  create_new_namespaces+0x425/0x880 kernel/nsproxy.c:107
+>  unshare_nsproxy_namespaces+0xae/0x1e0 kernel/nsproxy.c:206
+>  SYSC_unshare kernel/fork.c:2421 [inline]
+>  SyS_unshare+0x653/0xfa0 kernel/fork.c:2371
+>  entry_SYSCALL_64_fastpath+0x1f/0x96
+> 
+> Freed by task 35:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+>  set_track mm/kasan/kasan.c:459 [inline]
+>  kasan_slab_free+0x71/0xc0 mm/kasan/kasan.c:524
+>  __cache_free mm/slab.c:3492 [inline]
+>  kmem_cache_free+0x77/0x280 mm/slab.c:3750
+>  net_free+0xca/0x110 net/core/net_namespace.c:378
+>  net_drop_ns.part.11+0x26/0x30 net/core/net_namespace.c:385
+>  net_drop_ns net/core/net_namespace.c:384 [inline]
+>  cleanup_net+0x895/0xb60 net/core/net_namespace.c:502
+>  process_one_work+0xbfd/0x1bc0 kernel/workqueue.c:2113
+>  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+>  kthread+0x37a/0x440 kernel/kthread.c:238
+>  ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:524
+> 
+> The buggy address belongs to the object at ffff8801bde28080
+>  which belongs to the cache net_namespace of size 6272
+> The buggy address is located 1236 bytes inside of
+>  6272-byte region [ffff8801bde28080, ffff8801bde29900)
+> The buggy address belongs to the page:
+> page:00000000df6a4dc0 count:1 mapcount:0 mapping:00000000553659f1 index:0x0
+> compound_mapcount: 0
+> flags: 0x2fffc0000008100(slab|head)
+> raw: 02fffc0000008100 ffff8801bde28080 0000000000000000 0000000100000001
+> raw: ffffea0006f75da0 ffffea0006f60220 ffff8801d989fe00 0000000000000000
+> page dumped because: kasan: bad access detected
+> 
+> Memory state around the buggy address:
+>  ffff8801bde28400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801bde28480: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> > ffff8801bde28500: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>                                                  ^
+>  ffff8801bde28580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801bde28600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ==================================================================
+> 
+> 
 > ---
->  Changes v0->v1:
->   * Resend after commit 29122c1aae35 ("rdma: update rdma_netlink.h")
->     which updated relevant netlink attributes.
->   * Added Steve's ROB
-> ---
->  rdma/include/uapi/rdma/rdma_netlink.h |  4 ++++
->  rdma/link.c                           | 21 +++++++++++++++++++++
->  rdma/utils.c                          |  2 ++
->  3 files changed, 27 insertions(+)
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+> Please credit me with: Reported-by: syzbot <syzkaller@googlegroups.com>
+> 
+> syzbot will keep track of this bug report.
+> Once a fix for this bug is merged into any tree, reply to this email with:
+> #syz fix: exact-commit-title
+> To mark this as a duplicate of another syzbot report, please reply with:
+> #syz dup: exact-subject-of-another-report
+> If it's a one-off invalid bug report, please reply with:
+> #syz invalid
+> Note: if the crash happens again, it will cause creation of a new bug
+> report.
+> Note: all commands must start from beginning of the line in the email body.
 > 
 
-applied to iproute2-next
+This is still happening regularly, though syzbot hasn't been able to generate a
+reproducer yet.  All the reports seem to involve rds_connect_worker()
+encountering a freed network namespace (struct net) when calling
+sock_create_kern() from rds_tcp_conn_path_connect().  Probably something in RDS
+needs to be taking a reference to the network namespace and isn't, or the RDS
+workqueue isn't being shut down correctly.  You can see all reports of this on
+the syzbot dashboard at
+https://syzkaller.appspot.com/bug?id=1f45ae538a0453220337ccb84962249fdd67107f.
+Last one was April 5 on Linus' tree (commit 3e968c9f1401088).
+
+- Eric
