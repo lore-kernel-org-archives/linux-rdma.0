@@ -1,30 +1,69 @@
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Subject: Re: KASAN: use-after-free Read in inet_create
-Date: Sun, 8 Apr 2018 21:04:31 -0400
-Message-ID: <20180409010431.GA32646@oracle.com>
-References: <001a1144d1c8e819f6055fee7118@google.com>
- <20180408231756.GI685@sol.localdomain>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] net/mlx5: remove some extraneous spaces in indentations
+Date: Mon,  9 Apr 2018 13:43:36 +0100
+Message-ID: <20180409124336.29274-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180408231756.GI685@sol.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Biggers <ebiggers3@gmail.com>
-Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzbot <bot+db99bd25cd19d3347dbf8c05d7dd3ca9bab2d7ad@syzkaller.appspotmail.com>, davem@davemloft.net, kuznet@ms2.inr.ac.ru, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin Ian King <colin.king@canonical.com>
 
-#syz dup: KASAN: use-after-free Read in rds_cong_queue_updates
+There are several lines where there is an extraneous space causing
+indentation misalignment. Remove them.
 
-There  are a number of manifestations of this bug, basically
-all suggest that the connect/reconnect etc workqs are somehow
-being scheduled after the netns is deleted, despite the
-code refactoring in Commit  3db6e0d172c (and looks like
-the WARN_ONs in that commit are not even being triggered).
-We've not been able to reproduce this issues, and without
-a crash dump (or some hint of other threads that were running
-at the time of the problem) are working on figuring out
-the root-cause by code-inspection.
+Cleans up Cocconelle warnings:
 
---Sowmini
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:409:3-18: code aligned
+with following code on line 410
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:415:3-18: code aligned
+with following code on line 416
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:421:3-18: code aligned
+with following code on line 422
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index 02d6c5b5d502..4ca07bfb6b14 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -407,21 +407,21 @@ static int modify_qp_mbox_alloc(struct mlx5_core_dev *dev, u16 opcode, int qpn,
+ 	case MLX5_CMD_OP_RST2INIT_QP:
+ 		if (MBOX_ALLOC(mbox, rst2init_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(rst2init_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(rst2init_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_INIT2RTR_QP:
+ 		if (MBOX_ALLOC(mbox, init2rtr_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(init2rtr_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(init2rtr_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_RTR2RTS_QP:
+ 		if (MBOX_ALLOC(mbox, rtr2rts_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(rtr2rts_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(rtr2rts_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_RTS2RTS_QP:
+ 		if (MBOX_ALLOC(mbox, rts2rts_qp))
+ 			return -ENOMEM;
+-- 
+2.15.1
