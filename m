@@ -1,45 +1,38 @@
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 3/3] infiniband: i40iw: Replace GFP_ATOMIC with GFP_KERNEL in i40iw_l2param_change
-Date: Wed, 11 Apr 2018 15:33:06 +0800
-Message-ID: <1523431986-3596-1-git-send-email-baijiaju1990@gmail.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH 1/3] infiniband: i40iw: Replace GFP_ATOMIC with GFP_KERNEL
+ in i40iw_add_mqh_4
+Date: Wed, 11 Apr 2018 10:53:13 -0400
+Message-ID: <a2af56ae-075f-bd13-3308-6c6ebbca7694@intel.com>
+References: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Jia-Ju Bai <baijiaju1990@gmail.com>
+To: Jia-Ju Bai <baijiaju1990@gmail.com>, faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-i40iw_l2param_change() is never called in atomic context.
+On 4/11/2018 3:32 AM, Jia-Ju Bai wrote:
+> i40iw_add_mqh_4() is never called in atomic context, because it
+> calls rtnl_lock() that can sleep.
+> 
+> Despite never getting called from atomic context,
+> i40iw_add_mqh_4() calls kzalloc() with GFP_ATOMIC,
+> which does not sleep for allocation.
+> GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
+> which can sleep and improve the possibility of sucessful allocation.
 
-i40iw_make_listen_node() is only set as ".l2_param_change" 
-in struct i40e_client_ops, and this function pointer is not called 
-in atomic context.
+Just a general comment. I don't know that this is the greatest idea. I 
+can imagine instances where sleeping is OK as far as how the code is 
+written, but for performance reasons you would rather fail than sleep.
 
-Despite never getting called from atomic context,
-i40iw_l2param_change() calls kzalloc() with GFP_ATOMIC,
-which does not sleep for allocation.
-GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
-which can sleep and improve the possibility of sucessful allocation.
+As to whether that is the case here I'll let the i40iw folks comment.
 
-This is found by a static analysis tool named DCNS written by myself.
-And I also manually check it.
+> This is found by a static analysis tool named DCNS written by myself.
+> And I also manually check it.
+You should probably post a pointer to your tool.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/infiniband/hw/i40iw/i40iw_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_main.c b/drivers/infiniband/hw/i40iw/i40iw_main.c
-index 27590ae..b86bda8 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_main.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_main.c
-@@ -1737,7 +1737,7 @@ static void i40iw_l2param_change(struct i40e_info *ldev, struct i40e_client *cli
- 		return;
- 
- 
--	work = kzalloc(sizeof(*work), GFP_ATOMIC);
-+	work = kzalloc(sizeof(*work), GFP_KERNEL);
- 	if (!work)
- 		return;
- 
--- 
-1.9.1
+-Denny
