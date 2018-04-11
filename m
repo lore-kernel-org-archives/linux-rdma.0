@@ -1,25 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net/mlx5: remove some extraneous spaces in indentations
-Date: Wed, 11 Apr 2018 14:43:27 -0400 (EDT)
-Message-ID: <20180411.144327.652687327492518064.davem@davemloft.net>
-References: <20180410232254.mg7stooh5tytv6m2@ziepe.ca>
-        <20180410232719.qzaltu7hu57aqps3@ziepe.ca>
-        <1523471018.3402.42.camel@mellanox.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] asm-generic fixes for v4.17-rc1
+Date: Wed, 11 Apr 2018 16:16:38 -0700
+Message-ID: <CA+55aFx4_gaBeffy9roFRnkB30fnRa=nhh5qR=o=CgrWmgphiw@mail.gmail.com>
+References: <CAK8P3a081_hkr5d0FRWpTaT-AsJoqznsS1=_WF4JVLTUOupUgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1523471018.3402.42.camel@mellanox.com>
+In-Reply-To: <CAK8P3a081_hkr5d0FRWpTaT-AsJoqznsS1=_WF4JVLTUOupUgg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: colin.king@canonical.com, jgg@ziepe.ca, matanb@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, leon@kernel.org, kernel-janitors@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sinan Kaya <okaya@codeaurora.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-arch <linux-arch@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Ley Foon Tan <lftan@altera.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Michal Simek <monstr@monstr.eu>, "moderated list:H8/300 ARCHITECTURE" <uclinux-h8-devel@lists.sourceforge.jp>, Yoshinori Sato <ysato@users.sourceforge.jp>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Guan
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Wed, 11 Apr 2018 18:23:41 +0000
+On Wed, Apr 11, 2018 at 8:40 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> are available in the git repository at:
+>
+>   git+ssh://gitolite@ra.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
+> tags/asm-generic
 
-> Dave, if it is ok with you I would like to apply this into mlx5-next
-> branch so it won't cause any issues with our next pull requests to rdma
-> and netdev.
+Yeah, no they aren't available there at all.
 
-Ok.
+That tag is some old tag from two years ago that just contains your
+ancient "asm-generic: use compat version for preadv2 and pwritev2".
+
+Forgot to push out? Or forgot to use "-f" to overwrite the old tag?
+
+                 Linus
