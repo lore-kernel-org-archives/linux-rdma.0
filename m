@@ -1,42 +1,30 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL] asm-generic fixes for v4.17-rc1
-Date: Thu, 12 Apr 2018 09:16:30 +0200
-Message-ID: <CAK8P3a2brHyWJx=WwXgxr3Gkouu5DAgqBvBQiz0rcPvZ18xO8g@mail.gmail.com>
-References: <CAK8P3a081_hkr5d0FRWpTaT-AsJoqznsS1=_WF4JVLTUOupUgg@mail.gmail.com>
- <CA+55aFx4_gaBeffy9roFRnkB30fnRa=nhh5qR=o=CgrWmgphiw@mail.gmail.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH] net/mlx5: remove some extraneous spaces in indentations
+Date: Thu, 12 Apr 2018 22:39:26 +0000
+Message-ID: <1523572761.3587.45.camel@mellanox.com>
+References: <20180409124336.29274-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFx4_gaBeffy9roFRnkB30fnRa=nhh5qR=o=CgrWmgphiw@mail.gmail.com>
+In-Reply-To: <20180409124336.29274-1-colin.king@canonical.com>
+Content-Language: en-US
+Content-ID: <FC75B43AF2142440B31F479CA9B4A71D@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-arch <linux-arch@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Ley Foon Tan <lftan@altera.com>, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, Michal Simek <monstr@monstr.eu>, "moderated list:H8/300 ARCHITECTURE" <uclinux-h8-devel@lists.sourceforge.jp>, Yoshinori Sato <ysato@users.sourceforge.jp>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Guan
+To: "colin.king@canonical.com" <colin.king@canonical.com>, Matan Barak <matanb@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 12, 2018 at 1:16 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Wed, Apr 11, 2018 at 8:40 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->>
->> are available in the git repository at:
->>
->>   git+ssh://gitolite@ra.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
->> tags/asm-generic
->
-> Yeah, no they aren't available there at all.
->
-> That tag is some old tag from two years ago that just contains your
-> ancient "asm-generic: use compat version for preadv2 and pwritev2".
->
-> Forgot to push out? Or forgot to use "-f" to overwrite the old tag?
-
-Yes, something like that, I first tagged the local branch in the wrong
-tree which had an old branch of the same name, noticed my mistake
-as I pushed it, but then screwed up again when I tried to correct it:
-I force-pushed the correct branch again, but not the tag.
-
-Pushed the right tag now, please pull from
-
-git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git
-tags/asm-generic
-
-        Arnd
+T24gTW9uLCAyMDE4LTA0LTA5IGF0IDEzOjQzICswMTAwLCBDb2xpbiBLaW5nIHdyb3RlOg0KPiBG
+cm9tOiBDb2xpbiBJYW4gS2luZyA8Y29saW4ua2luZ0BjYW5vbmljYWwuY29tPg0KPiANCj4gVGhl
+cmUgYXJlIHNldmVyYWwgbGluZXMgd2hlcmUgdGhlcmUgaXMgYW4gZXh0cmFuZW91cyBzcGFjZSBj
+YXVzaW5nDQo+IGluZGVudGF0aW9uIG1pc2FsaWdubWVudC4gUmVtb3ZlIHRoZW0uDQo+IA0KPiBD
+bGVhbnMgdXAgQ29jY29uZWxsZSB3YXJuaW5nczoNCj4gDQo+IC4vZHJpdmVycy9uZXQvZXRoZXJu
+ZXQvbWVsbGFub3gvbWx4NS9jb3JlL3FwLmM6NDA5OjMtMTg6IGNvZGUgYWxpZ25lZA0KPiB3aXRo
+IGZvbGxvd2luZyBjb2RlIG9uIGxpbmUgNDEwDQo+IC4vZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
+bGFub3gvbWx4NS9jb3JlL3FwLmM6NDE1OjMtMTg6IGNvZGUgYWxpZ25lZA0KPiB3aXRoIGZvbGxv
+d2luZyBjb2RlIG9uIGxpbmUgNDE2DQo+IC4vZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4NS9jb3JlL3FwLmM6NDIxOjMtMTg6IGNvZGUgYWxpZ25lZA0KPiB3aXRoIGZvbGxvd2luZyBj
+b2RlIG9uIGxpbmUgNDIyDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBDb2xpbiBJYW4gS2luZyA8Y29s
+aW4ua2luZ0BjYW5vbmljYWwuY29tPg0KPiANCg0KQXBwbGllZCB0byBtbHg1LW5leHQsIFRoYW5r
+cyBDb2xpbiENCg0K
