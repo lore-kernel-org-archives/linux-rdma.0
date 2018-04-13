@@ -1,35 +1,41 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
-Subject: Re: [PATCH] IB: make INFINIBAND_ADDR_TRANS configurable
-Date: Fri, 13 Apr 2018 12:47:53 +0000
-Message-ID: <9ad4563e701a38915d58552f9eee5b3602833ddf.camel@wdc.com>
-References: <20180413070644.11974-1-gthelen@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Greg Thelen <gthelen@google.com>
+Subject: [PATCH v2] IB: make INFINIBAND_ADDR_TRANS configurable
+Date: Fri, 13 Apr 2018 10:27:08 -0700
+Message-ID: <20180413172708.30286-1-gthelen@google.com>
+References: <9ad4563e701a38915d58552f9eee5b3602833ddf.camel@wdc.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180413070644.11974-1-gthelen@google.com>
-Content-Language: en-US
-Content-ID: <2DC7EF9E12448E438AB79FED8F102327@namprd04.prod.outlook.com>
+In-Reply-To: <9ad4563e701a38915d58552f9eee5b3602833ddf.camel@wdc.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "gthelen@google.com" <gthelen@google.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "tarick@google.com" <tarick@google.com>
+To: Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Thelen <gthelen@google.com>, Tarick Bedeir <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTA0LTEzIGF0IDAwOjA2IC0wNzAwLCBHcmVnIFRoZWxlbiB3cm90ZToNCj4g
-QWxsb3cgSU5GSU5JQkFORCB3aXRob3V0IElORklOSUJBTkRfQUREUl9UUkFOUy4NCj4gDQo+IFNp
-Z25lZC1vZmYtYnk6IEdyZWcgVGhlbGVuIDxndGhlbGVuQGdvb2dsZS5jb20+DQo+IENjOiBUYXJp
-Y2sgQmVkZWlyIDx0YXJpY2tAZ29vZ2xlLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJh
-bmQvS2NvbmZpZyB8IDIgKy0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBk
-ZWxldGlvbigtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9LY29uZmln
-IGIvZHJpdmVycy9pbmZpbmliYW5kL0tjb25maWcNCj4gaW5kZXggZWUyNzBlMDY1YmE5Li5mMjBh
-Mzk3NzA4N2MgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9LY29uZmlnDQo+ICsr
-KyBiL2RyaXZlcnMvaW5maW5pYmFuZC9LY29uZmlnDQo+IEBAIC02MSw3ICs2MSw3IEBAIGNvbmZp
-ZyBJTkZJTklCQU5EX09OX0RFTUFORF9QQUdJTkcNCj4gIAkgIHBhZ2VzIG9uIGRlbWFuZCBpbnN0
-ZWFkLg0KPiAgDQo+ICBjb25maWcgSU5GSU5JQkFORF9BRERSX1RSQU5TDQo+IC0JYm9vbA0KPiAr
-CWJvb2wgIkluZmluaUJhbmQgYWRkcmVzcyB0cmFuc2xhdGlvbiINCj4gIAlkZXBlbmRzIG9uIElO
-RklOSUJBTkQNCj4gIAlkZWZhdWx0IHkNCg0KSGVsbG8gR3JlZywNCg0KUGxlYXNlIGNoYW5nZSB0
-aGUgc2hvcnQgZGVzY3JpcHRpb24gZnJvbSAiSW5maW5pQmFuZCBhZGRyZXNzIHRyYW5zbGF0aW9u
-IiAod2hpY2gNCmlzIGEgbWlzbGVhZGluZyBkZXNjcmlwdGlvbikgaW50byAiUkRNQS9DTSIuIFBs
-ZWFzZSBhbHNvIGFkZCBhIGhlbHAgdGV4dCB0aGF0DQpleHBsYWlucyB0byBwZW9wbGUgd2hvIGFy
-ZSBub3QgUkRNQSBleHBlcnRzIHdoYXQgdGhlIFJETUEvQ00gaXMuDQoNClRoYW5rcywNCg0KQmFy
-dC4NCg0KDQoNCg==
+Allow INFINIBAND without INFINIBAND_ADDR_TRANS.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Tarick Bedeir <tarick@google.com>
+Change-Id: I6fbbf8a432e467710fa65e4904b7d61880b914e5
+---
+ drivers/infiniband/Kconfig | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index ee270e065ba9..2a972ed6851b 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -61,9 +61,12 @@ config INFINIBAND_ON_DEMAND_PAGING
+ 	  pages on demand instead.
+ 
+ config INFINIBAND_ADDR_TRANS
+-	bool
++	bool "RDMA/CM"
+ 	depends on INFINIBAND
+ 	default y
++	---help---
++	  Support for RDMA communication manager (CM).
++	  This allows for a generic connection abstraction over RDMA.
+ 
+ config INFINIBAND_ADDR_TRANS_CONFIGFS
+ 	bool
+-- 
+2.17.0.484.g0c8726318c-goog
