@@ -1,43 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing
- an offline device
-Date: Mon, 16 Apr 2018 12:51:10 -0400 (EDT)
-Message-ID: <20180416.125110.1875435797136179428.davem@davemloft.net>
-References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH] infiniband: mlx5: fix build error when
+ INFINIBAND_USER_ACCESS=m
+Date: Mon, 16 Apr 2018 14:21:07 -0700
+Message-ID: <81ea9f01-4624-38d7-2bfe-1dd7063fa3f0@infradead.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: yanjun.zhu@oracle.com
-Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Date: Sun, 15 Apr 2018 21:02:07 -0400
+From: Randy Dunlap <rdunlap@infradead.org>
 
-> While a faulty cable is used or HCA firmware error, HCA device will
-> be offline. When the driver is accessing this offline device, the
-> following call trace will pop out.
- ...
-> In the above call trace, the function mlx4_cmd_poll calls the function
-> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
-> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
-> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
-> 
-> This is not reasonable. Since HCA device is offline when it is being
-> accessed, it should not be reset again.
-> 
-> In this patch, since HCA is offline, the function mlx4_cmd_post returns
-> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly returns
-> instead of resetting HCA.
-> 
-> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
-> CC: Junxiao Bi <junxiao.bi@oracle.com>
-> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+Fix build errors when INFINIBAND_USER_ACCESS=m and MLX5_INFINIBAND=y.
+The build error occurs when the mlx5 driver code attempts to use
+USER_ACCESS interfaces, which are built as a loadable module.
 
-Tariq, I'm assuming you'll take this in and send it to me later.
+Fixes these build errors:
 
-Thanks.
+drivers/infiniband/hw/mlx5/main.o: In function `populate_specs_root':
+../drivers/infiniband/hw/mlx5/main.c:4982: undefined reference to `uverbs_default_get_objects'
+../drivers/infiniband/hw/mlx5/main.c:4994: undefined reference to `uverbs_alloc_spec_tree'
+drivers/infiniband/hw/mlx5/main.o: In function `depopulate_specs_root':
+../drivers/infiniband/hw/mlx5/main.c:5001: undefined reference to `uverbs_free_spec_tree'
+
+Reported-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matan Barak <matanb@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org # reported against 4.16
+---
+ drivers/infiniband/hw/mlx5/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- lnx-417-rc1.orig/drivers/infiniband/hw/mlx5/Kconfig
++++ lnx-417-rc1/drivers/infiniband/hw/mlx5/Kconfig
+@@ -1,6 +1,7 @@
+ config MLX5_INFINIBAND
+ 	tristate "Mellanox Connect-IB HCA support"
+ 	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE
++	select INFINIBAND_USER_ACCESS
+ 	---help---
+ 	  This driver provides low-level InfiniBand support for
+ 	  Mellanox Connect-IB PCI Express host channel adapters (HCAs).
