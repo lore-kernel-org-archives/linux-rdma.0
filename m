@@ -1,42 +1,43 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB: make INFINIBAND_ADDR_TRANS configurable
-Date: Mon, 16 Apr 2018 08:51:53 -0600
-Message-ID: <20180416145153.GA23029@ziepe.ca>
-References: <20180413070644.11974-1-gthelen@google.com>
- <20180415120636.GA10759@infradead.org>
- <CAHH2K0ZKqDt2OS1RN7i6qqc=VyPfhzC5sfSSb4ktDdtZnzAhCA@mail.gmail.com>
- <20180416085620.GA30363@infradead.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing
+ an offline device
+Date: Mon, 16 Apr 2018 12:51:10 -0400 (EDT)
+Message-ID: <20180416.125110.1875435797136179428.davem@davemloft.net>
+References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180416085620.GA30363@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Greg Thelen <gthelen@google.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: yanjun.zhu@oracle.com
+Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 16, 2018 at 01:56:20AM -0700, Christoph Hellwig wrote:
-> On Mon, Apr 16, 2018 at 04:02:12AM +0000, Greg Thelen wrote:
-> > I think I've identified the set of options which use
-> > INFINIBAND_ADDR_TRANS without a kconfig depends:
-> > * CIFS_SMB_DIRECT
-> > * INFINIBAND_SRPT
-> > * NVME_RDMA
-> > * NVME_TARGET_RDMA
-> > 
-> > I have patches for the above, but need to finish the commit logs.  Let me
-> > know if they'll be nacked and I'll just patch my kernel and forget
-> > upstreaming.
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Date: Sun, 15 Apr 2018 21:02:07 -0400
+
+> While a faulty cable is used or HCA firmware error, HCA device will
+> be offline. When the driver is accessing this offline device, the
+> following call trace will pop out.
+ ...
+> In the above call trace, the function mlx4_cmd_poll calls the function
+> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
+> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
+> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
 > 
-> I think those are what is needed.  But better do a full cycle through
-> the build bot first..
+> This is not reasonable. Since HCA device is offline when it is being
+> accessed, it should not be reset again.
+> 
+> In this patch, since HCA is offline, the function mlx4_cmd_post returns
+> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly returns
+> instead of resetting HCA.
+> 
+> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
+> CC: Junxiao Bi <junxiao.bi@oracle.com>
+> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 
-Yes, you have to post the full series and have the build bots say it
-is clean, collect acks from the various maintainers and then we can
-apply the whole thing through RDMA..
+Tariq, I'm assuming you'll take this in and send it to me later.
 
-I n't want to apply kconfig changes piecemeal, we just get bug reports
-from build bots that way.
-
-Jason
+Thanks.
