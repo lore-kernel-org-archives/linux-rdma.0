@@ -1,59 +1,53 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing an
- offline device
-Date: Tue, 17 Apr 2018 10:05:09 +0300
-Message-ID: <ca105394-8168-6896-9c0b-b335de39154e@mellanox.com>
-References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
- <20180416.125110.1875435797136179428.davem@davemloft.net>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/6] cifs: smbd: Check for iov length on sending the last
+ iov
+Date: Tue, 17 Apr 2018 09:29:23 +0200
+Message-ID: <20180417072923.GA15310@kroah.com>
+References: <20180417004918.29213-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180416.125110.1875435797136179428.davem@davemloft.net>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, yanjun.zhu@oracle.com
-Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180417004918.29213-1-longli@linuxonhyperv.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: longli@microsoft.com
+Cc: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 16/04/2018 7:51 PM, David Miller wrote:
-> From: Zhu Yanjun <yanjun.zhu@oracle.com>
-> Date: Sun, 15 Apr 2018 21:02:07 -0400
+On Mon, Apr 16, 2018 at 05:49:13PM -0700, Long Li wrote:
+> From: Long Li <longli@microsoft.com>
 > 
->> While a faulty cable is used or HCA firmware error, HCA device will
->> be offline. When the driver is accessing this offline device, the
->> following call trace will pop out.
->   ...
->> In the above call trace, the function mlx4_cmd_poll calls the function
->> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
->> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
->> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
->>
->> This is not reasonable. Since HCA device is offline when it is being
->> accessed, it should not be reset again.
->>
->> In this patch, since HCA is offline, the function mlx4_cmd_post returns
->> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly returns
->> instead of resetting HCA.
->>
->> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
->> CC: Junxiao Bi <junxiao.bi@oracle.com>
->> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
->> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> When sending the last iov that breaks into smaller buffers to fit the
+> transfer size, it's necessary to check if this is the last iov.
 > 
-> Tariq, I'm assuming you'll take this in and send it to me later.
+> If this is the latest iov, stop and proceed to send pages.
 > 
-> Thanks.
-
-Yes, I will review and send if all is OK.
-
-Thanks,
-Tariq
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Long Li <longli@microsoft.com>
+> ---
+>  fs/cifs/smbdirect.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
+> diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+> index 90e673c..b5c6c0d 100644
+> --- a/fs/cifs/smbdirect.c
+> +++ b/fs/cifs/smbdirect.c
+> @@ -2197,6 +2197,8 @@ int smbd_send(struct smbd_connection *info, struct smb_rqst *rqst)
+>  						goto done;
+>  				}
+>  				i++;
+> +				if (i == rqst->rq_nvec)
+> +					break;
+>  			}
+>  			start = i;
+>  			buflen = 0;
+> -- 
+> 2.7.4
+
+<formletter>
+
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read:
+    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+for how to do this properly.
+
+</formletter>
