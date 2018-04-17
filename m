@@ -1,108 +1,80 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing an
- offline device
-Date: Tue, 17 Apr 2018 18:37:06 +0300
-Message-ID: <6dd17e45-e27e-8451-42ab-1a4551d3a651@mellanox.com>
-References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [PATCH 1/6] cifs: smbd: Check for iov length on sending the last
+ iov
+Date: Tue, 17 Apr 2018 17:55:00 +0000
+Message-ID: <MWHPR2101MB0729066A1D5BB83987440EDECEB70@MWHPR2101MB0729.namprd21.prod.outlook.com>
+References: <20180417004918.29213-1-longli@linuxonhyperv.com>
+ <20180417072923.GA15310@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180417072923.GA15310@kroah.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Zhu Yanjun <yanjun.zhu@oracle.com>, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> Subject: Re: [PATCH 1/6] cifs: smbd: Check for iov length on sending the =
+last
+> iov
+>=20
+> On Mon, Apr 16, 2018 at 05:49:13PM -0700, Long Li wrote:
+> > From: Long Li <longli@microsoft.com>
+> >
+> > When sending the last iov that breaks into smaller buffers to fit the
+> > transfer size, it's necessary to check if this is the last iov.
+> >
+> > If this is the latest iov, stop and proceed to send pages.
+> >
+> > Signed-off-by: Long Li <longli@microsoft.com>
+> > ---
+> >  fs/cifs/smbdirect.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c index
+> > 90e673c..b5c6c0d 100644
+> > --- a/fs/cifs/smbdirect.c
+> > +++ b/fs/cifs/smbdirect.c
+> > @@ -2197,6 +2197,8 @@ int smbd_send(struct smbd_connection *info,
+> struct smb_rqst *rqst)
+> >  						goto done;
+> >  				}
+> >  				i++;
+> > +				if (i =3D=3D rqst->rq_nvec)
+> > +					break;
+> >  			}
+> >  			start =3D i;
+> >  			buflen =3D 0;
+> > --
+> > 2.7.4
+>=20
+> <formletter>
+>=20
+> This is not the correct way to submit patches for inclusion in the stable=
+ kernel
+> tree.  Please read:
+>=20
+> https://na01.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fwww.
+> kernel.org%2Fdoc%2Fhtml%2Flatest%2Fprocess%2Fstable-kernel-
+> rules.html&data=3D02%7C01%7Clongli%40microsoft.com%7Cec2fc0284244483b
+> 25bf08d5a434f6dc%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C636
+> 595469807590402&sdata=3DYXqnaTFgRyUyN1ubhCcyblT2ni%2F%2BCowPYJSFje
+> 6PuCk%3D&reserved=3D0
+> for how to do this properly.
+>=20
+> </formletter>
 
+Will do. Thank you.
 
-On 16/04/2018 4:02 AM, Zhu Yanjun wrote:
-> While a faulty cable is used or HCA firmware error, HCA device will
-> be offline. When the driver is accessing this offline device, the
-> following call trace will pop out.
-> 
-> "
-> ...
->    [<ffffffff816e4842>] dump_stack+0x63/0x81
->    [<ffffffff816e459e>] panic+0xcc/0x21b
->    [<ffffffffa03e5f8a>] mlx4_enter_error_state+0xba/0xf0 [mlx4_core]
->    [<ffffffffa03e7298>] mlx4_cmd_reset_flow+0x38/0x60 [mlx4_core]
->    [<ffffffffa03e7381>] mlx4_cmd_poll+0xc1/0x2e0 [mlx4_core]
->    [<ffffffffa03e9f00>] __mlx4_cmd+0xb0/0x160 [mlx4_core]
->    [<ffffffffa0406934>] mlx4_SENSE_PORT+0x54/0xd0 [mlx4_core]
->    [<ffffffffa03f5f54>] mlx4_dev_cap+0x4a4/0xb50 [mlx4_core]
-> ...
-> "
-> In the above call trace, the function mlx4_cmd_poll calls the function
-> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
-> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
-> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
-> 
-> This is not reasonable. Since HCA device is offline when it is being
-> accessed, it should not be reset again.
-> 
-> In this patch, since HCA is offline, the function mlx4_cmd_post returns
-> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly returns
-> instead of resetting HCA.
-> 
-> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
-> CC: Junxiao Bi <junxiao.bi@oracle.com>
-> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
->   drivers/net/ethernet/mellanox/mlx4/cmd.c | 8 ++++++++
->   1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> index 6a9086d..f1c8c42 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-> @@ -451,6 +451,8 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, u64 in_param, u64 out_param,
->   		 * Device is going through error recovery
->   		 * and cannot accept commands.
->   		 */
-> +		mlx4_err(dev, "%s : Device is in error recovery.\n", __func__);
-> +		ret = -EINVAL;
->   		goto out;
->   	}
->   
-> @@ -657,6 +659,9 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
->   	}
->   
->   out_reset:
-> +	if (err == -EINVAL)
-> +		goto out;
-> +
-
-See below.
-
->   	if (err)
->   		err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
->   out:
-> @@ -766,6 +771,9 @@ static int mlx4_cmd_wait(struct mlx4_dev *dev, u64 in_param, u64 *out_param,
->   		*out_param = context->out_param;
->   
->   out_reset:
-> +	if (err == -EINVAL)
-> +		goto out;
-> +
->   	if (err)
-
-Instead, just do here: if (err && err != -EINVAL)
-
->   		err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
->   out:
-> 
-
-I am not sure this does not mistakenly cover other cases that already 
-exist and have (err == -EINVAL).
-
-For example, this line is hard to predict:
-err = mlx4_status_to_errno
-and later on, we might get into
-if (mlx4_closing_cmd_fatal_error(op, stat))
-which leads to out_reset.
-
-We must have a deeper look at this.
-But a better option is, change the error indication to uniquely indicate 
-"already in error recovery".
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in =
+the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> https://na01.safelinks.protection.outlook.com/?url=3Dhttp%3A%2F%2Fvger.ke
+> rnel.org%2Fmajordomo-
+> info.html&data=3D02%7C01%7Clongli%40microsoft.com%7Cec2fc0284244483b2
+> 5bf08d5a434f6dc%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C6365
+> 95469807590402&sdata=3Duu9VQ%2BHscmeFJH6kQEf39G2a7Y8M9hMmvBI2s9
+> T1DXs%3D&reserved=3D0
