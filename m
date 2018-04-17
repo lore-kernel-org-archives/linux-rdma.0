@@ -1,41 +1,47 @@
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: [PATCH] infiniband: hw: qib: Change return type to vm_fault_t
-Date: Tue, 17 Apr 2018 20:04:28 +0530
-Message-ID: <20180417143428.GA31255@jordon-HP-15-Notebook-PC>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v3 0/2] IB/hfi1: Cleanup PCIe link configuration
+Date: Tue, 17 Apr 2018 09:32:32 -0500
+Message-ID: <20180417143232.GH28657@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180417002825.2737-1-fred@fredlawl.com>
+ <20180417065343.GA29193@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <20180417065343.GA29193@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, willy@infradead.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Frederick Lawler <fred@fredlawl.com>, bhelgaas@google.com, mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, dledford@redhat.com, jgg@mellanox.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Bartlomiej Dudek <bartlomiej.dudek@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use new return type vm_fault_t for fault handler. For
-now, this is just documenting that the function returns
-a VM_FAULT value rather than an errno. Once all instances
-are converted, vm_fault_t will become a distinct type.
+[+cc Bartlomiej, who recently changed do_pcie_gen3_transition(), LKML]
 
-Reference id -> 1c8f422059ae ("mm: change return type to
-vm_fault_t")
+On Mon, Apr 16, 2018 at 11:53:43PM -0700, Christoph Hellwig wrote:
+> On Mon, Apr 16, 2018 at 07:28:23PM -0500, Frederick Lawler wrote:
+> > The IB/hfi1 driver uses custom macros to configure the target link speed. Some 
+> > macros were previously replaced, but not fully. This patch series addresses the
+> > configuration inconsistencies by adding PCI_EXP_LNKCTL2_TLS* macros to PCI,
+> > and then use them in the following IB/hfi1 patch.
+> 
+> Btw, why is the driver configuring the PCIe link speed?  Isn't this
+> something we should be handling in the PCI core?
 
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
----
- drivers/infiniband/hw/qib/qib_file_ops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Good question.  I think this sort of code definitely should not be in
+drivers unless it's to work around some kind of defect in the device.
 
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 52c29db3..52aea84 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -868,7 +868,7 @@ static int mmap_rcvegrbufs(struct vm_area_struct *vma,
- /*
-  * qib_file_vma_fault - handle a VMA page fault.
-  */
--static int qib_file_vma_fault(struct vm_fault *vmf)
-+static vm_fault_t qib_file_vma_fault(struct vm_fault *vmf)
- {
- 	struct page *page;
+I think the intent of the spec is that neither the OS nor the driver
+has to deal with link training and the link should train to the
+highest speed supported by both ends.  For example, PCIe r4.0, sec 1.2
+says
 
---
-1.9.1
+  Initialization – During hardware initialization, each PCI Express
+  Link is set up following a negotiation of Lane widths and frequency
+  of operation by the two agents at each end of the Link. No firmware
+  or operating system software is involved.
+
+Maybe the Intel guys can comment on why HFI needs this code.
+Presumably they didn't write it just for fun, so I assume there's
+some reason.
+
+Bjorn
