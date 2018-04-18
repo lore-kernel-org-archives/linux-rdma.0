@@ -1,54 +1,63 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] infiniband: mlx5: fix build errors when
- INFINIBAND_USER_ACCESS=m
-Date: Tue, 17 Apr 2018 19:30:40 -0600
-Message-ID: <20180418013040.GA9616@ziepe.ca>
-References: <aa0dd9f7-3475-c2b3-8d5c-032a7ad72fe9@infradead.org>
+Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
+Date: Tue, 17 Apr 2018 19:40:53 -0600
+Message-ID: <20180418014053.GA10098@ziepe.ca>
+References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <aa0dd9f7-3475-c2b3-8d5c-032a7ad72fe9@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>
+In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 16, 2018 at 06:51:50PM -0700, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
+On Wed, Apr 04, 2018 at 08:01:11PM -0700, Dennis Dalessandro wrote:
+> Hi Jason and Doug,
 > 
-> Fix build errors when INFINIBAND_USER_ACCESS=m and MLX5_INFINIBAND=y.
-> The build error occurs when the mlx5 driver code attempts to use
-> USER_ACCESS interfaces, which are built as a loadable module.
+> Here are most of our updates for 4.17. I will follow this up with a small
+> 16B series then I still have a few more patches that are waiting on
+> some more thorough testing. Should be able to get them on the list tomrrow or
+> Friday at the latest, wanted to get these out now. I don't think anything
+> is really that scary in here.
 > 
-> Fixes these build errors:
+> These are mostly driver fixes. Patches 4,7,8,11, and 14 are marked stable.
+> They didn't get sent for the -rc because they fix really old issues.
 > 
-> drivers/infiniband/hw/mlx5/main.o: In function `populate_specs_root':
-> ../drivers/infiniband/hw/mlx5/main.c:4982: undefined reference to `uverbs_default_get_objects'
-> ../drivers/infiniband/hw/mlx5/main.c:4994: undefined reference to `uverbs_alloc_spec_tree'
-> drivers/infiniband/hw/mlx5/main.o: In function `depopulate_specs_root':
-> ../drivers/infiniband/hw/mlx5/main.c:5001: undefined reference to `uverbs_free_spec_tree'
+> Patch 5 is a core fix. I should have sent it a bit sooner, sorry about that but
+> it's pretty trivial so I decided to include it as well rather than wait for
+> 4.18.
 > 
-> Build-tested with multiple config combinations.
 > 
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Matan Barak <matanb@mellanox.com>
-> Cc: Jason Gunthorpe <jgg@mellanox.com>
-> Cc: Leon Romanovsky <leonro@mellanox.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: linux-rdma@vger.kernel.org
-> Cc: stable@vger.kernel.org # reported against 4.16
-> ---
-> v2: allow building mxl5 even when INFINIBAND_USER_ACCESS is disabled.
+> Alex Estrin (2):
+>       IB/hfi1: Complete check for locally terminated smp
+>       IB/{hfi1,qib}: Add handling of kernel restart
 > 
->  drivers/infiniband/hw/mlx5/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
+> Ashutosh Dixit (1):
+>       IB/core: Fix rkey invalidation from user space into the kernel
+> 
+> Michael J. Ruhl (5):
+>       IB/hfi1: Return actual error value from program_rcvarray()
+>       IB/hfi1: Use after free race condition in send context error path
+>       IB/hfi1 Use correct type for num_user_context
+>       IB/hfi1: Return correct value for device state
+>       IB/hfi1: Reorder incorrect send context disable
+> 
+> Mike Marciniszyn (3):
+>       IB/hfi1: Fix handling of FECN marked multicast packet
+>       IB/hfi1: Fix fault injection init/exit issues
+>       IB/hfi1: Fix loss of BECN with AHG
+> 
+> Sebastian Sanchez (2):
+>       IB/hfi1: Prevent LNI hang when LCB can't obtain lanes
+>       IB/{hfi1,rdmavt,qib}: Fit kernel completions into single aligned cache-line
 
-I added a
+Many of these got comments so I'm just going to drop the
+series. Please rebase and resend anything you think should go to -rc
+or -next that doesn't interact with the patches being revised.
 
-Fixes: 8c84660bb437 ("IB/mlx5: Initialize the parsing tree root without the help of uverbs")
-
-Applied to for-rc thanks
+Also let me know if the next '16B' series is independent of this, if
+yes I'll drop it to..
 
 Jason
