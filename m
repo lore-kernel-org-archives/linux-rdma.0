@@ -1,32 +1,123 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
-Date: Tue, 17 Apr 2018 22:56:00 -0400
-Message-ID: <971ab1a3-0d82-f471-748c-4d080a266e03@intel.com>
-References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
- <20180418014053.GA10098@ziepe.ca>
+From: Yanjun Zhu <yanjun.zhu@oracle.com>
+Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing an
+ offline device
+Date: Wed, 18 Apr 2018 13:46:18 +0800
+Message-ID: <82f1c53e-f0f6-2ad6-8f70-2f5ac58d560b@oracle.com>
+References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
+ <6dd17e45-e27e-8451-42ab-1a4551d3a651@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180418014053.GA10098@ziepe.ca>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <6dd17e45-e27e-8451-42ab-1a4551d3a651@mellanox.com>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/17/2018 9:40 PM, Jason Gunthorpe wrote:
-> Many of these got comments so I'm just going to drop the
-> series. Please rebase and resend anything you think should go to -rc
-> or -next that doesn't interact with the patches being revised.
 
-Already in the works. I am going to send a v2 with a few patches dropped 
-and a couple reworked. So yes please just drop this in favor of a v2.
 
-> Also let me know if the next '16B' series is independent of this, if
-> yes I'll drop it to..
+On 2018/4/17 23:37, Tariq Toukan wrote:
+>
+>
+> On 16/04/2018 4:02 AM, Zhu Yanjun wrote:
+>> While a faulty cable is used or HCA firmware error, HCA device will
+>> be offline. When the driver is accessing this offline device, the
+>> following call trace will pop out.
+>>
+>> "
+>> ...
+>>    [<ffffffff816e4842>] dump_stack+0x63/0x81
+>>    [<ffffffff816e459e>] panic+0xcc/0x21b
+>>    [<ffffffffa03e5f8a>] mlx4_enter_error_state+0xba/0xf0 [mlx4_core]
+>>    [<ffffffffa03e7298>] mlx4_cmd_reset_flow+0x38/0x60 [mlx4_core]
+>>    [<ffffffffa03e7381>] mlx4_cmd_poll+0xc1/0x2e0 [mlx4_core]
+>>    [<ffffffffa03e9f00>] __mlx4_cmd+0xb0/0x160 [mlx4_core]
+>>    [<ffffffffa0406934>] mlx4_SENSE_PORT+0x54/0xd0 [mlx4_core]
+>>    [<ffffffffa03f5f54>] mlx4_dev_cap+0x4a4/0xb50 [mlx4_core]
+>> ...
+>> "
+>> In the above call trace, the function mlx4_cmd_poll calls the function
+>> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
+>> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
+>> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
+>>
+>> This is not reasonable. Since HCA device is offline when it is being
+>> accessed, it should not be reset again.
+>>
+>> In this patch, since HCA is offline, the function mlx4_cmd_post returns
+>> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly 
+>> returns
+>> instead of resetting HCA.
+>>
+>> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
+>> CC: Junxiao Bi <junxiao.bi@oracle.com>
+>> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
+>> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+>> ---
+>>   drivers/net/ethernet/mellanox/mlx4/cmd.c | 8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c 
+>> b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> index 6a9086d..f1c8c42 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
+>> @@ -451,6 +451,8 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, 
+>> u64 in_param, u64 out_param,
+>>            * Device is going through error recovery
+>>            * and cannot accept commands.
+>>            */
+>> +        mlx4_err(dev, "%s : Device is in error recovery.\n", __func__);
+>> +        ret = -EINVAL;
+>>           goto out;
+>>       }
+>>   @@ -657,6 +659,9 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, 
+>> u64 in_param, u64 *out_param,
+>>       }
+>>     out_reset:
+>> +    if (err == -EINVAL)
+>> +        goto out;
+>> +
+>
+> See below.
+>
+>>       if (err)
+>>           err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
+>>   out:
+>> @@ -766,6 +771,9 @@ static int mlx4_cmd_wait(struct mlx4_dev *dev, 
+>> u64 in_param, u64 *out_param,
+>>           *out_param = context->out_param;
+>>     out_reset:
+>> +    if (err == -EINVAL)
+>> +        goto out;
+>> +
+>>       if (err)
+>
+> Instead, just do here: if (err && err != -EINVAL)
+>
+>>           err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
+>>   out:
+>>
+>
+> I am not sure this does not mistakenly cover other cases that already 
+> exist and have (err == -EINVAL).
+>
+> For example, this line is hard to predict:
+> err = mlx4_status_to_errno
+> and later on, we might get into
+> if (mlx4_closing_cmd_fatal_error(op, stat))
+> which leads to out_reset.
+Thanks a lot.
+Sure. I agree with you that "err = mlx4_status_to_errno" and "if 
+(mlx4_closing_cmd_fatal_error(op, stat))" will also make "err=-EINVAL".
+This will mistakenly go to out instead of resetting HCA device.
 
-You can drop this for now as well. We will rework and resubmit a v2 
-soon-ish.
+I will make a new patch to avoid the above error.
 
--Denny
+Zhu Yanjun
+>
+> We must have a deeper look at this.
+> But a better option is, change the error indication to uniquely 
+> indicate "already in error recovery".
+>
