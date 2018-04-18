@@ -1,63 +1,38 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
-Date: Tue, 17 Apr 2018 19:40:53 -0600
-Message-ID: <20180418014053.GA10098@ziepe.ca>
-References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
+Subject: Re: [PATCH 1/3] infiniband: i40iw: Replace GFP_ATOMIC with
+ GFP_KERNEL in i40iw_add_mqh_4
+Date: Tue, 17 Apr 2018 19:58:09 -0600
+Message-ID: <20180418015809.GA21056@ziepe.ca>
+References: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
+In-Reply-To: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 04, 2018 at 08:01:11PM -0700, Dennis Dalessandro wrote:
-> Hi Jason and Doug,
+On Wed, Apr 11, 2018 at 03:32:25PM +0800, Jia-Ju Bai wrote:
+> i40iw_add_mqh_4() is never called in atomic context, because it 
+> calls rtnl_lock() that can sleep.
 > 
-> Here are most of our updates for 4.17. I will follow this up with a small
-> 16B series then I still have a few more patches that are waiting on
-> some more thorough testing. Should be able to get them on the list tomrrow or
-> Friday at the latest, wanted to get these out now. I don't think anything
-> is really that scary in here.
+> Despite never getting called from atomic context,
+> i40iw_add_mqh_4() calls kzalloc() with GFP_ATOMIC,
+> which does not sleep for allocation.
+> GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
+> which can sleep and improve the possibility of sucessful allocation.
 > 
-> These are mostly driver fixes. Patches 4,7,8,11, and 14 are marked stable.
-> They didn't get sent for the -rc because they fix really old issues.
+> This is found by a static analysis tool named DCNS written by myself.
+> And I also manually check it.
 > 
-> Patch 5 is a core fix. I should have sent it a bit sooner, sorry about that but
-> it's pretty trivial so I decided to include it as well rather than wait for
-> 4.18.
-> 
-> 
-> Alex Estrin (2):
->       IB/hfi1: Complete check for locally terminated smp
->       IB/{hfi1,qib}: Add handling of kernel restart
-> 
-> Ashutosh Dixit (1):
->       IB/core: Fix rkey invalidation from user space into the kernel
-> 
-> Michael J. Ruhl (5):
->       IB/hfi1: Return actual error value from program_rcvarray()
->       IB/hfi1: Use after free race condition in send context error path
->       IB/hfi1 Use correct type for num_user_context
->       IB/hfi1: Return correct value for device state
->       IB/hfi1: Reorder incorrect send context disable
-> 
-> Mike Marciniszyn (3):
->       IB/hfi1: Fix handling of FECN marked multicast packet
->       IB/hfi1: Fix fault injection init/exit issues
->       IB/hfi1: Fix loss of BECN with AHG
-> 
-> Sebastian Sanchez (2):
->       IB/hfi1: Prevent LNI hang when LCB can't obtain lanes
->       IB/{hfi1,rdmavt,qib}: Fit kernel completions into single aligned cache-line
+> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
+> Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> ---
+>  drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Many of these got comments so I'm just going to drop the
-series. Please rebase and resend anything you think should go to -rc
-or -next that doesn't interact with the patches being revised.
-
-Also let me know if the next '16B' series is independent of this, if
-yes I'll drop it to..
+Applied all three patches in this series to for-next, thanks
 
 Jason
