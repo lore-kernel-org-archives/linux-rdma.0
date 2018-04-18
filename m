@@ -1,42 +1,50 @@
-From: Tom Talpey <tom@talpey.com>
-Subject: Re: [Patch v3 2/6] cifs: Allocate validate negotiation request
- through kmalloc
-Date: Wed, 18 Apr 2018 10:07:52 -0400
-Message-ID: <b8e56b14-a746-2a22-cb8d-94f1ba7d646b@talpey.com>
-References: <20180418003358.25098-1-longli@linuxonhyperv.com>
- <d7e569b6-d268-b8c1-e91d-d6dc0e7cdfc2@talpey.com>
- <e9e7f77032c5402e848de0293e4db3ee@AcuMS.aculab.com>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Wed, 18 Apr 2018 16:24:50 +0200
+Message-ID: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <e9e7f77032c5402e848de0293e4db3ee@AcuMS.aculab.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: David Laight <David.Laight@ACULAB.COM>, "longli@microsoft.com" <longli@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/18/2018 9:08 AM, David Laight wrote:
-> From: Tom Talpey
->> Sent: 18 April 2018 12:32
-> ...
->> On 4/17/2018 8:33 PM, Long Li wrote:
->>> From: Long Li <longli@microsoft.com>
->>>
->>> The data buffer allocated on the stack can't be DMA'ed, and hence can't send
->>> through RDMA via SMB Direct.
->>
->> This comment is confusing. Any registered memory can be DMA'd, need to
->> state the reason for the choice here more clearly.
-> 
-> The stack could be allocated with vmalloc().
-> In which case the pages might not be physically contiguous and there is no
-> (sensible) call to get the physical address required by the dma controller
-> (or other bus master).
+Two kernel threads may get the same value for agent.hi_tid, if the
+agents are registered for different ports. As of now, this works, as
+the agent list is per port.
 
-Memory registration does not requires pages to be physically contiguous.
-RDMA Regions can and do support very large physical page scatter/gather,
-and the adapter DMA's them readily. Is this the only reason?
+It is however confusing and not future robust. Hence, making it
+atomic.
 
-Tom.
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+---
+ drivers/infiniband/core/mad.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index c50596f7f98a..b28452a55a08 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -59,7 +59,7 @@ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+ MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+ 
+ static struct list_head ib_mad_port_list;
+-static u32 ib_mad_client_id = 0;
++static atomic_t ib_mad_client_id = ATOMIC_INIT(0);
+ 
+ /* Port list lock */
+ static DEFINE_SPINLOCK(ib_mad_port_list_lock);
+@@ -377,7 +377,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 	}
+ 
+ 	spin_lock_irqsave(&port_priv->reg_lock, flags);
+-	mad_agent_priv->agent.hi_tid = ++ib_mad_client_id;
++	mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id);
+ 
+ 	/*
+ 	 * Make sure MAD registration (if supplied)
+-- 
+2.13.6
