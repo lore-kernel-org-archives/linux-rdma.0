@@ -1,50 +1,47 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
-Subject: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Wed, 18 Apr 2018 16:24:50 +0200
-Message-ID: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v3 2/6] cifs: Allocate validate negotiation request
+ through kmalloc
+Date: Wed, 18 Apr 2018 17:11:14 +0000
+Message-ID: <MWHPR2101MB072909460F3898C6D13B4D4CCEB60@MWHPR2101MB0729.namprd21.prod.outlook.com>
+References: <20180418003358.25098-1-longli@linuxonhyperv.com>
+ <d7e569b6-d268-b8c1-e91d-d6dc0e7cdfc2@talpey.com>
+ <e9e7f77032c5402e848de0293e4db3ee@AcuMS.aculab.com>
+ <b8e56b14-a746-2a22-cb8d-94f1ba7d646b@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b8e56b14-a746-2a22-cb8d-94f1ba7d646b@talpey.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
+To: Tom Talpey <tom@talpey.com>, David Laight <David.Laight@ACULAB.COM>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Two kernel threads may get the same value for agent.hi_tid, if the
-agents are registered for different ports. As of now, this works, as
-the agent list is per port.
-
-It is however confusing and not future robust. Hence, making it
-atomic.
-
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
----
- drivers/infiniband/core/mad.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index c50596f7f98a..b28452a55a08 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -59,7 +59,7 @@ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
- MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
- 
- static struct list_head ib_mad_port_list;
--static u32 ib_mad_client_id = 0;
-+static atomic_t ib_mad_client_id = ATOMIC_INIT(0);
- 
- /* Port list lock */
- static DEFINE_SPINLOCK(ib_mad_port_list_lock);
-@@ -377,7 +377,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
- 	}
- 
- 	spin_lock_irqsave(&port_priv->reg_lock, flags);
--	mad_agent_priv->agent.hi_tid = ++ib_mad_client_id;
-+	mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id);
- 
- 	/*
- 	 * Make sure MAD registration (if supplied)
--- 
-2.13.6
+PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYzIDIvNl0gY2lmczogQWxsb2NhdGUgdmFsaWRhdGUgbmVn
+b3RpYXRpb24gcmVxdWVzdCB0aHJvdWdoDQo+IGttYWxsb2MNCj4gDQo+IE9uIDQvMTgvMjAxOCA5
+OjA4IEFNLCBEYXZpZCBMYWlnaHQgd3JvdGU6DQo+ID4gRnJvbTogVG9tIFRhbHBleQ0KPiA+PiBT
+ZW50OiAxOCBBcHJpbCAyMDE4IDEyOjMyDQo+ID4gLi4uDQo+ID4+IE9uIDQvMTcvMjAxOCA4OjMz
+IFBNLCBMb25nIExpIHdyb3RlOg0KPiA+Pj4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29m
+dC5jb20+DQo+ID4+Pg0KPiA+Pj4gVGhlIGRhdGEgYnVmZmVyIGFsbG9jYXRlZCBvbiB0aGUgc3Rh
+Y2sgY2FuJ3QgYmUgRE1BJ2VkLCBhbmQgaGVuY2UNCj4gPj4+IGNhbid0IHNlbmQgdGhyb3VnaCBS
+RE1BIHZpYSBTTUIgRGlyZWN0Lg0KPiA+Pg0KPiA+PiBUaGlzIGNvbW1lbnQgaXMgY29uZnVzaW5n
+LiBBbnkgcmVnaXN0ZXJlZCBtZW1vcnkgY2FuIGJlIERNQSdkLCBuZWVkDQo+ID4+IHRvIHN0YXRl
+IHRoZSByZWFzb24gZm9yIHRoZSBjaG9pY2UgaGVyZSBtb3JlIGNsZWFybHkuDQo+ID4NCj4gPiBU
+aGUgc3RhY2sgY291bGQgYmUgYWxsb2NhdGVkIHdpdGggdm1hbGxvYygpLg0KPiA+IEluIHdoaWNo
+IGNhc2UgdGhlIHBhZ2VzIG1pZ2h0IG5vdCBiZSBwaHlzaWNhbGx5IGNvbnRpZ3VvdXMgYW5kIHRo
+ZXJlDQo+ID4gaXMgbm8NCj4gPiAoc2Vuc2libGUpIGNhbGwgdG8gZ2V0IHRoZSBwaHlzaWNhbCBh
+ZGRyZXNzIHJlcXVpcmVkIGJ5IHRoZSBkbWENCj4gPiBjb250cm9sbGVyIChvciBvdGhlciBidXMg
+bWFzdGVyKS4NCj4gDQo+IE1lbW9yeSByZWdpc3RyYXRpb24gZG9lcyBub3QgcmVxdWlyZXMgcGFn
+ZXMgdG8gYmUgcGh5c2ljYWxseSBjb250aWd1b3VzLg0KPiBSRE1BIFJlZ2lvbnMgY2FuIGFuZCBk
+byBzdXBwb3J0IHZlcnkgbGFyZ2UgcGh5c2ljYWwgcGFnZSBzY2F0dGVyL2dhdGhlciwNCj4gYW5k
+IHRoZSBhZGFwdGVyIERNQSdzIHRoZW0gcmVhZGlseS4gSXMgdGhpcyB0aGUgb25seSByZWFzb24/
+DQoNCmliX2RtYV9tYXBfcGFnZSB3aWxsIHJldHVybiBhbiBpbnZhbGlkIERNQSBhZGRyZXNzIGZv
+ciBhIGJ1ZmZlciBvbiBzdGFjay4gRXZlbiB3b3JzZSwgdGhpcyBpbmNvcnJlY3QgYWRkcmVzcyBj
+YW4ndCBiZSBkZXRlY3RlZCBieSBpYl9kbWFfbWFwcGluZ19lcnJvci4gU2VuZGluZyBkYXRhIGZy
+b20gdGhpcyBhZGRyZXNzIHRvIGhhcmR3YXJlIHdpbGwgbm90IGZhaWwsIGJ1dCB0aGUgcmVtb3Rl
+IHBlZXIgd2lsbCBnZXQganVuayBkYXRhLg0KDQpJIHRoaW5rIGl0IG1ha2VzIHNlbnNlIGFzIHN0
+YWNrIGlzIGR5bmFtaWMgYW5kIGNhbiBzaHJpbmsgYXMgSS9PIHByb2NlZWRzLCBzbyB0aGUgYnVm
+ZmVyIGlzIGdvbmUuIE90aGVyIGtlcm5lbCBjb2RlIHVzZSBvbmx5IGRhdGEgb24gdGhlIGhlYXAg
+Zm9yIERNQSwgZS5nLiBCTEsvU0NTSSBsYXllciBuZXZlciB1c2UgYnVmZmVyIG9uIHRoZSBzdGFj
+ayB0byBzZW5kIGRhdGEuDQoNCj4gDQo+IFRvbS4NCg==
