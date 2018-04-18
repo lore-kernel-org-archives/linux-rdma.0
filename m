@@ -1,38 +1,88 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 1/3] infiniband: i40iw: Replace GFP_ATOMIC with
- GFP_KERNEL in i40iw_add_mqh_4
-Date: Tue, 17 Apr 2018 19:58:09 -0600
-Message-ID: <20180418015809.GA21056@ziepe.ca>
-References: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
+Subject: Re: [PATCH] IB/uverbs: Add missing braces in anonymous union
+ initializers
+Date: Tue, 17 Apr 2018 20:17:41 -0600
+Message-ID: <20180418021741.GA24191@ziepe.ca>
+References: <1523285567-26270-1-git-send-email-geert@linux-m68k.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1523431945-3508-1-git-send-email-baijiaju1990@gmail.com>
+In-Reply-To: <1523285567-26270-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: faisal.latif@intel.com, shiraz.saleem@intel.com, dledford@redhat.com, sean.hefty@intel.com, hal.rosenstock@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Doug Ledford <dledford@redhat.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 11, 2018 at 03:32:25PM +0800, Jia-Ju Bai wrote:
-> i40iw_add_mqh_4() is never called in atomic context, because it 
-> calls rtnl_lock() that can sleep.
+On Mon, Apr 09, 2018 at 04:52:47PM +0200, Geert Uytterhoeven wrote:
+> With gcc-4.1.2:
 > 
-> Despite never getting called from atomic context,
-> i40iw_add_mqh_4() calls kzalloc() with GFP_ATOMIC,
-> which does not sleep for allocation.
-> GFP_ATOMIC is not necessary and can be replaced with GFP_KERNEL,
-> which can sleep and improve the possibility of sucessful allocation.
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:366: error: unknown field ‘ptr’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: error: unknown field ‘type’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: warning: missing braces around initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>.<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: error: unknown field ‘min_len’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: error: unknown field ‘len’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: error: unknown field ‘flags’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:376: error: unknown field ‘ptr’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: error: unknown field ‘type’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: warning: missing braces around initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: warning: (near initialization for ‘uverbs_flow_action_esp_replay[0].<anonymous>.<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: error: unknown field ‘len’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: warning: (near initialization for ‘uverbs_flow_action_esp_replay[0].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:383: error: unknown field ‘ptr’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:384: error: unknown field ‘type’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: error: unknown field ‘min_len’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: error: unknown field ‘len’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: error: unknown field ‘flags’ specified in initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: warning: excess elements in union initializer
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
 > 
-> This is found by a static analysis tool named DCNS written by myself.
-> And I also manually check it.
+> Add the missing braces to fix this.
 > 
-> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-> Acked-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 > ---
->  drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Presumably also needed for Andrew's gcc-4.4.4.
+> 
+> Unfortunately I don't know how to fix the remaining warnings:
+> 
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:391: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:408: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:423: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_flow_action.c:430: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_cq.c:149: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_cq.c:194: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_cq.c:202: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_dm.c:86: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_dm.c:97: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_dm.c:104: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_mr.c:118: warning: initialization from incompatible pointer type
+>     drivers/infiniband/core/uverbs_std_types_mr.c:144: warning: initialization from incompatible pointer type
+> 
+> Smallest variable declaration exposing the problem:
+> 
+>     static const struct uverbs_method_def bad = {
+> 	    .attrs = &(const struct uverbs_attr_def * const []) { }
+>     };
+> ---
+>  drivers/infiniband/core/uverbs_std_types_flow_action.c | 12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
 
-Applied all three patches in this series to for-next, thanks
+I've applied this to for-rc, thanks
+
+I have a notion on how to fix the warnings, maybe you will see that in
+4.18..
 
 Jason
