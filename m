@@ -1,88 +1,32 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/uverbs: Add missing braces in anonymous union
- initializers
-Date: Tue, 17 Apr 2018 20:17:41 -0600
-Message-ID: <20180418021741.GA24191@ziepe.ca>
-References: <1523285567-26270-1-git-send-email-geert@linux-m68k.org>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH for-next 00/13] IB/hfi1,core: Driver updates for 4.17
+Date: Tue, 17 Apr 2018 22:56:00 -0400
+Message-ID: <971ab1a3-0d82-f471-748c-4d080a266e03@intel.com>
+References: <20180405025915.18766.41569.stgit@scvm10.sc.intel.com>
+ <20180418014053.GA10098@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1523285567-26270-1-git-send-email-geert@linux-m68k.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Doug Ledford <dledford@redhat.com>, Matan Barak <matanb@mellanox.com>, Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180418014053.GA10098@ziepe.ca>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Prathap Kumar Valsan <prathap.kumar.valsan@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 09, 2018 at 04:52:47PM +0200, Geert Uytterhoeven wrote:
-> With gcc-4.1.2:
-> 
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:366: error: unknown field ‘ptr’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: error: unknown field ‘type’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: warning: missing braces around initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:367: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>.<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: error: unknown field ‘min_len’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: error: unknown field ‘len’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:368: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: error: unknown field ‘flags’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:369: warning: (near initialization for ‘uverbs_flow_action_esp_keymat[0].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:376: error: unknown field ‘ptr’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: error: unknown field ‘type’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: warning: missing braces around initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:377: warning: (near initialization for ‘uverbs_flow_action_esp_replay[0].<anonymous>.<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: error: unknown field ‘len’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:379: warning: (near initialization for ‘uverbs_flow_action_esp_replay[0].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:383: error: unknown field ‘ptr’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:384: error: unknown field ‘type’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: error: unknown field ‘min_len’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: error: unknown field ‘len’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:385: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: error: unknown field ‘flags’ specified in initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: warning: excess elements in union initializer
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:386: warning: (near initialization for ‘uverbs_flow_action_esp_replay[1].<anonymous>’)
-> 
-> Add the missing braces to fix this.
-> 
-> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> ---
-> Presumably also needed for Andrew's gcc-4.4.4.
-> 
-> Unfortunately I don't know how to fix the remaining warnings:
-> 
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:391: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:408: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:423: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_flow_action.c:430: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_cq.c:149: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_cq.c:194: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_cq.c:202: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_dm.c:86: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_dm.c:97: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_dm.c:104: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_mr.c:118: warning: initialization from incompatible pointer type
->     drivers/infiniband/core/uverbs_std_types_mr.c:144: warning: initialization from incompatible pointer type
-> 
-> Smallest variable declaration exposing the problem:
-> 
->     static const struct uverbs_method_def bad = {
-> 	    .attrs = &(const struct uverbs_attr_def * const []) { }
->     };
-> ---
->  drivers/infiniband/core/uverbs_std_types_flow_action.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
+On 4/17/2018 9:40 PM, Jason Gunthorpe wrote:
+> Many of these got comments so I'm just going to drop the
+> series. Please rebase and resend anything you think should go to -rc
+> or -next that doesn't interact with the patches being revised.
 
-I've applied this to for-rc, thanks
+Already in the works. I am going to send a v2 with a few patches dropped 
+and a couple reworked. So yes please just drop this in favor of a v2.
 
-I have a notion on how to fix the warnings, maybe you will see that in
-4.18..
+> Also let me know if the next '16B' series is independent of this, if
+> yes I'll drop it to..
 
-Jason
+You can drop this for now as well. We will rework and resubmit a v2 
+soon-ish.
+
+-Denny
