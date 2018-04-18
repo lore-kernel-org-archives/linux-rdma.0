@@ -1,123 +1,185 @@
-From: Yanjun Zhu <yanjun.zhu@oracle.com>
-Subject: Re: [PATCH 1/1] net/mlx4_core: avoid resetting HCA when accessing an
- offline device
-Date: Wed, 18 Apr 2018 13:46:18 +0800
-Message-ID: <82f1c53e-f0f6-2ad6-8f70-2f5ac58d560b@oracle.com>
-References: <1523840527-22746-1-git-send-email-yanjun.zhu@oracle.com>
- <6dd17e45-e27e-8451-42ab-1a4551d3a651@mellanox.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [Patch v3 2/6] cifs: Allocate validate negotiation request
+ through kmalloc
+Date: Wed, 18 Apr 2018 07:32:28 -0400
+Message-ID: <d7e569b6-d268-b8c1-e91d-d6dc0e7cdfc2@talpey.com>
+References: <20180418003358.25098-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <6dd17e45-e27e-8451-42ab-1a4551d3a651@mellanox.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180418003358.25098-1-longli@linuxonhyperv.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, haakon.bugge@oracle.com
+Sender: stable-owner@vger.kernel.org
+To: longli@microsoft.com, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Two comments.
 
+On 4/17/2018 8:33 PM, Long Li wrote:
+> From: Long Li <longli@microsoft.com>
+> 
+> The data buffer allocated on the stack can't be DMA'ed, and hence can't send
+> through RDMA via SMB Direct.
 
-On 2018/4/17 23:37, Tariq Toukan wrote:
->
->
-> On 16/04/2018 4:02 AM, Zhu Yanjun wrote:
->> While a faulty cable is used or HCA firmware error, HCA device will
->> be offline. When the driver is accessing this offline device, the
->> following call trace will pop out.
->>
->> "
->> ...
->>    [<ffffffff816e4842>] dump_stack+0x63/0x81
->>    [<ffffffff816e459e>] panic+0xcc/0x21b
->>    [<ffffffffa03e5f8a>] mlx4_enter_error_state+0xba/0xf0 [mlx4_core]
->>    [<ffffffffa03e7298>] mlx4_cmd_reset_flow+0x38/0x60 [mlx4_core]
->>    [<ffffffffa03e7381>] mlx4_cmd_poll+0xc1/0x2e0 [mlx4_core]
->>    [<ffffffffa03e9f00>] __mlx4_cmd+0xb0/0x160 [mlx4_core]
->>    [<ffffffffa0406934>] mlx4_SENSE_PORT+0x54/0xd0 [mlx4_core]
->>    [<ffffffffa03f5f54>] mlx4_dev_cap+0x4a4/0xb50 [mlx4_core]
->> ...
->> "
->> In the above call trace, the function mlx4_cmd_poll calls the function
->> mlx4_cmd_post to access the HCA while HCA is offline. Then mlx4_cmd_post
->> returns an error -EIO. Per -EIO, the function mlx4_cmd_poll calls
->> mlx4_cmd_reset_flow to reset HCA. And the above call trace pops out.
->>
->> This is not reasonable. Since HCA device is offline when it is being
->> accessed, it should not be reset again.
->>
->> In this patch, since HCA is offline, the function mlx4_cmd_post returns
->> an error -EINVAL. Per -EINVAL, the function mlx4_cmd_poll directly 
->> returns
->> instead of resetting HCA.
->>
->> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
->> CC: Junxiao Bi <junxiao.bi@oracle.com>
->> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
->> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->> ---
->>   drivers/net/ethernet/mellanox/mlx4/cmd.c | 8 ++++++++
->>   1 file changed, 8 insertions(+)
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c 
->> b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> index 6a9086d..f1c8c42 100644
->> --- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> +++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
->> @@ -451,6 +451,8 @@ static int mlx4_cmd_post(struct mlx4_dev *dev, 
->> u64 in_param, u64 out_param,
->>            * Device is going through error recovery
->>            * and cannot accept commands.
->>            */
->> +        mlx4_err(dev, "%s : Device is in error recovery.\n", __func__);
->> +        ret = -EINVAL;
->>           goto out;
->>       }
->>   @@ -657,6 +659,9 @@ static int mlx4_cmd_poll(struct mlx4_dev *dev, 
->> u64 in_param, u64 *out_param,
->>       }
->>     out_reset:
->> +    if (err == -EINVAL)
->> +        goto out;
->> +
->
-> See below.
->
->>       if (err)
->>           err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
->>   out:
->> @@ -766,6 +771,9 @@ static int mlx4_cmd_wait(struct mlx4_dev *dev, 
->> u64 in_param, u64 *out_param,
->>           *out_param = context->out_param;
->>     out_reset:
->> +    if (err == -EINVAL)
->> +        goto out;
->> +
->>       if (err)
->
-> Instead, just do here: if (err && err != -EINVAL)
->
->>           err = mlx4_cmd_reset_flow(dev, op, op_modifier, err);
->>   out:
->>
->
-> I am not sure this does not mistakenly cover other cases that already 
-> exist and have (err == -EINVAL).
->
-> For example, this line is hard to predict:
-> err = mlx4_status_to_errno
-> and later on, we might get into
-> if (mlx4_closing_cmd_fatal_error(op, stat))
-> which leads to out_reset.
-Thanks a lot.
-Sure. I agree with you that "err = mlx4_status_to_errno" and "if 
-(mlx4_closing_cmd_fatal_error(op, stat))" will also make "err=-EINVAL".
-This will mistakenly go to out instead of resetting HCA device.
+This comment is confusing. Any registered memory can be DMA'd, need to
+state the reason for the choice here more clearly.
 
-I will make a new patch to avoid the above error.
+> 
+> Fix this by allocating the request on the heap in smb3_validate_negotiate.
+> 
+> Changes in v2:
+> Removed duplicated code on freeing buffers on function exit.
+> (Thanks to Parav Pandit <parav@mellanox.com>)
+> Fixed typo in the patch title.
+> 
+> Changes in v3:
+> Added "Fixes" to the patch.
+> Changed sizeof() to use *pointer in place of struct.
+> 
+> Fixes: ff1c038addc4 ("Check SMB3 dialects against downgrade attacks")
+> Signed-off-by: Long Li <longli@microsoft.com>
+> Cc: stable@vger.kernel.org
+> ---
+>   fs/cifs/smb2pdu.c | 59 ++++++++++++++++++++++++++++++-------------------------
+>   1 file changed, 32 insertions(+), 27 deletions(-)
+> 
+> diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c
+> index 0f044c4..5582a02 100644
+> --- a/fs/cifs/smb2pdu.c
+> +++ b/fs/cifs/smb2pdu.c
+> @@ -729,8 +729,8 @@ SMB2_negotiate(const unsigned int xid, struct cifs_ses *ses)
+>   
+>   int smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon *tcon)
+>   {
+> -	int rc = 0;
+> -	struct validate_negotiate_info_req vneg_inbuf;
+> +	int ret, rc = -EIO;
+> +	struct validate_negotiate_info_req *pneg_inbuf;
+>   	struct validate_negotiate_info_rsp *pneg_rsp = NULL;
+>   	u32 rsplen;
+>   	u32 inbuflen; /* max of 4 dialects */
+> @@ -741,6 +741,9 @@ int smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon *tcon)
+>   	if (tcon->ses->server->rdma)
+>   		return 0;
+>   #endif
+> +	pneg_inbuf = kmalloc(sizeof(*pneg_inbuf), GFP_KERNEL);
+> +	if (!pneg_inbuf)
+> +		return -ENOMEM;
 
-Zhu Yanjun
->
-> We must have a deeper look at this.
-> But a better option is, change the error indication to uniquely 
-> indicate "already in error recovery".
->
+Why is this a nonblocking allocation? It would seem more robust to
+use GFP_NOFS here.
+
+Tom.
+
+>   
+>   	/* In SMB3.11 preauth integrity supersedes validate negotiate */
+>   	if (tcon->ses->server->dialect == SMB311_PROT_ID)
+> @@ -764,63 +767,63 @@ int smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon *tcon)
+>   	if (tcon->ses->session_flags & SMB2_SESSION_FLAG_IS_NULL)
+>   		cifs_dbg(VFS, "Unexpected null user (anonymous) auth flag sent by server\n");
+>   
+> -	vneg_inbuf.Capabilities =
+> +	pneg_inbuf->Capabilities =
+>   			cpu_to_le32(tcon->ses->server->vals->req_capabilities);
+> -	memcpy(vneg_inbuf.Guid, tcon->ses->server->client_guid,
+> +	memcpy(pneg_inbuf->Guid, tcon->ses->server->client_guid,
+>   					SMB2_CLIENT_GUID_SIZE);
+>   
+>   	if (tcon->ses->sign)
+> -		vneg_inbuf.SecurityMode =
+> +		pneg_inbuf->SecurityMode =
+>   			cpu_to_le16(SMB2_NEGOTIATE_SIGNING_REQUIRED);
+>   	else if (global_secflags & CIFSSEC_MAY_SIGN)
+> -		vneg_inbuf.SecurityMode =
+> +		pneg_inbuf->SecurityMode =
+>   			cpu_to_le16(SMB2_NEGOTIATE_SIGNING_ENABLED);
+>   	else
+> -		vneg_inbuf.SecurityMode = 0;
+> +		pneg_inbuf->SecurityMode = 0;
+>   
+>   
+>   	if (strcmp(tcon->ses->server->vals->version_string,
+>   		SMB3ANY_VERSION_STRING) == 0) {
+> -		vneg_inbuf.Dialects[0] = cpu_to_le16(SMB30_PROT_ID);
+> -		vneg_inbuf.Dialects[1] = cpu_to_le16(SMB302_PROT_ID);
+> -		vneg_inbuf.DialectCount = cpu_to_le16(2);
+> +		pneg_inbuf->Dialects[0] = cpu_to_le16(SMB30_PROT_ID);
+> +		pneg_inbuf->Dialects[1] = cpu_to_le16(SMB302_PROT_ID);
+> +		pneg_inbuf->DialectCount = cpu_to_le16(2);
+>   		/* structure is big enough for 3 dialects, sending only 2 */
+>   		inbuflen = sizeof(struct validate_negotiate_info_req) - 2;
+>   	} else if (strcmp(tcon->ses->server->vals->version_string,
+>   		SMBDEFAULT_VERSION_STRING) == 0) {
+> -		vneg_inbuf.Dialects[0] = cpu_to_le16(SMB21_PROT_ID);
+> -		vneg_inbuf.Dialects[1] = cpu_to_le16(SMB30_PROT_ID);
+> -		vneg_inbuf.Dialects[2] = cpu_to_le16(SMB302_PROT_ID);
+> -		vneg_inbuf.DialectCount = cpu_to_le16(3);
+> +		pneg_inbuf->Dialects[0] = cpu_to_le16(SMB21_PROT_ID);
+> +		pneg_inbuf->Dialects[1] = cpu_to_le16(SMB30_PROT_ID);
+> +		pneg_inbuf->Dialects[2] = cpu_to_le16(SMB302_PROT_ID);
+> +		pneg_inbuf->DialectCount = cpu_to_le16(3);
+>   		/* structure is big enough for 3 dialects */
+>   		inbuflen = sizeof(struct validate_negotiate_info_req);
+>   	} else {
+>   		/* otherwise specific dialect was requested */
+> -		vneg_inbuf.Dialects[0] =
+> +		pneg_inbuf->Dialects[0] =
+>   			cpu_to_le16(tcon->ses->server->vals->protocol_id);
+> -		vneg_inbuf.DialectCount = cpu_to_le16(1);
+> +		pneg_inbuf->DialectCount = cpu_to_le16(1);
+>   		/* structure is big enough for 3 dialects, sending only 1 */
+>   		inbuflen = sizeof(struct validate_negotiate_info_req) - 4;
+>   	}
+>   
+> -	rc = SMB2_ioctl(xid, tcon, NO_FILE_ID, NO_FILE_ID,
+> +	ret = SMB2_ioctl(xid, tcon, NO_FILE_ID, NO_FILE_ID,
+>   		FSCTL_VALIDATE_NEGOTIATE_INFO, true /* is_fsctl */,
+> -		(char *)&vneg_inbuf, sizeof(struct validate_negotiate_info_req),
+> +		(char *)pneg_inbuf, sizeof(*pneg_inbuf),
+>   		(char **)&pneg_rsp, &rsplen);
+>   
+> -	if (rc != 0) {
+> -		cifs_dbg(VFS, "validate protocol negotiate failed: %d\n", rc);
+> -		return -EIO;
+> +	if (ret) {
+> +		cifs_dbg(VFS, "validate protocol negotiate failed: %d\n", ret);
+> +		goto out_free_inbuf;
+>   	}
+>   
+> -	if (rsplen != sizeof(struct validate_negotiate_info_rsp)) {
+> +	if (rsplen != sizeof(*pneg_rsp)) {
+>   		cifs_dbg(VFS, "invalid protocol negotiate response size: %d\n",
+>   			 rsplen);
+>   
+>   		/* relax check since Mac returns max bufsize allowed on ioctl */
+>   		if ((rsplen > CIFSMaxBufSize)
+>   		     || (rsplen < sizeof(struct validate_negotiate_info_rsp)))
+> -			goto err_rsp_free;
+> +			goto out_free_rsp;
+>   	}
+>   
+>   	/* check validate negotiate info response matches what we got earlier */
+> @@ -838,14 +841,16 @@ int smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon *tcon)
+>   
+>   	/* validate negotiate successful */
+>   	cifs_dbg(FYI, "validate negotiate info successful\n");
+> -	kfree(pneg_rsp);
+> -	return 0;
+> +	rc = 0;
+> +	goto out_free_rsp;
+>   
+>   vneg_out:
+>   	cifs_dbg(VFS, "protocol revalidation - security settings mismatch\n");
+> -err_rsp_free:
+> +out_free_rsp:
+>   	kfree(pneg_rsp);
+> -	return -EIO;
+> +out_free_inbuf:
+> +	kfree(pneg_inbuf);
+> +	return rc;
+>   }
+>   
+>   enum securityEnum
+> 
