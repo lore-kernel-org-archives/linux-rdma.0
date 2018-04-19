@@ -1,106 +1,107 @@
-From: syzbot <syzbot+8458d13b13562abf6b77@syzkaller.appspotmail.com>
-Subject: BUG: corrupted list in rdma_listen
-Date: Thu, 19 Apr 2018 09:08:01 -0700
-Message-ID: <000000000000a366e2056a35c6fd@google.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: general protection fault in rdma_resolve_route
+Date: Thu, 19 Apr 2018 16:12:20 +0000
+Message-ID: <VI1PR0502MB300899AC682257A6D3539E68D1B50@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+References: <0000000000005c2cc4056a35b85a@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0000000000005c2cc4056a35b85a@google.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
+To: syzbot <syzbot+17c13600b3977aa8ef7f@syzkaller.appspotmail.com>, Daniel Jurgens <danielj@mellanox.com>, "dasaratharaman.chandramouli@intel.com" <dasaratharaman.chandramouli@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, "syzkaller-bugs@googlegroups.com" <syzkaller-bugs@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
-
-syzbot hit the following crash on upstream commit
-bcfc1f4554662d8f2429ac8bd96064a59c149754 (Sat Mar 24 16:50:12 2018 +0000)
-Merge tag 'pinctrl-v4.16-3' of  
-git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl
-syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=8458d13b13562abf6b77
-
-So far this crash happened 3 times on upstream.
-Unfortunately, I don't have any reproducer for this crash yet.
-Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=5502346817699840
-Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-5034017172441945317
-compiler: gcc (GCC) 7.1.1 20170620
-
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+8458d13b13562abf6b77@syzkaller.appspotmail.com
-It will help syzbot understand when the bug is fixed. See footer for  
-details.
-If you forward the report, please keep this part and the footer.
-
-list_add corruption. prev->next should be next (00000000bbe7894a), but  
-was           (null). (prev=0000000053f15260).
-------------[ cut here ]------------
-kernel BUG at lib/list_debug.c:28!
-invalid opcode: 0000 [#1] SMP KASAN
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Modules linked in:
-CPU: 1 PID: 31373 Comm: syz-executor1 Not tainted 4.16.0-rc6+ #1
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-RIP: 0010:__list_add_valid+0x8f/0xd0 lib/list_debug.c:26
-RSP: 0018:ffff880188f87970 EFLAGS: 00010282
-RAX: 0000000000000075 RBX: ffffffff87449fe0 RCX: 0000000000000000
-RDX: 0000000000000075 RSI: ffffc900075c8000 RDI: ffffed00311f0f22
-RBP: ffff880188f87988 R08: 1ffff100311f0e7a R09: 0000000000000000
-R10: ffff880188f87988 R11: 0000000000000000 R12: ffff88018c479898
-R13: ffff88018c479898 R14: ffff8801d94baad8 R15: 0000000000000400
-FS:  00007f755bcca700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000725934 CR3: 00000001872ec001 CR4: 00000000001606e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
-  __list_add include/linux/list.h:60 [inline]
-  list_add_tail include/linux/list.h:93 [inline]
-  cma_listen_on_all drivers/infiniband/core/cma.c:2309 [inline]
-  rdma_listen+0x581/0x8e0 drivers/infiniband/core/cma.c:3333
-  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1074
-  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
-  __vfs_write+0xef/0x970 fs/read_write.c:480
-  vfs_write+0x189/0x510 fs/read_write.c:544
-  SYSC_write fs/read_write.c:589 [inline]
-  SyS_write+0xef/0x220 fs/read_write.c:581
-  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-RIP: 0033:0x454879
-RSP: 002b:00007f755bcc9c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007f755bcca6d4 RCX: 0000000000454879
-RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000013
-RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 0000000000000683 R14: 00000000006face8 R15: 0000000000000000
-Code: 00 00 00 5b 41 5c 5d c3 48 89 d9 48 c7 c7 60 7e 40 86 e8 ad e0 fb fe  
-0f 0b 48 89 f1 48 c7 c7 20 7f 40 86 48 89 de e8 99 e0 fb fe <0f> 0b 48 89  
-f2 48 89 d9 4c 89 e6 48 c7 c7 a0 7f 40 86 e8 82 e0
-RIP: __list_add_valid+0x8f/0xd0 lib/list_debug.c:26 RSP: ffff880188f87970
----[ end trace fe3987c6813eeb9c ]---
-Kernel panic - not syncing: Fatal exception
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
-
-
----
-This bug is generated by a dumb bot. It may contain errors.
-See https://goo.gl/tpsmEJ for details.
-Direct all questions to syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report.
-If you forgot to add the Reported-by tag, once the fix for this bug is  
-merged
-into any tree, please reply to this email with:
-#syz fix: exact-commit-title
-To mark this as a duplicate of another syzbot report, please reply with:
-#syz dup: exact-subject-of-another-report
-If it's a one-off invalid bug report, please reply with:
-#syz invalid
-Note: if the crash happens again, it will cause creation of a new bug  
-report.
-Note: all commands must start from beginning of the line in the email body.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogc3l6Ym90DQo+IFttYWls
+dG86c3l6Ym90KzE3YzEzNjAwYjM5NzdhYThlZjdmQHN5emthbGxlci5hcHBzcG90bWFpbC5jb21d
+DQo+IFNlbnQ6IFRodXJzZGF5LCBBcHJpbCAxOSwgMjAxOCAxMTowNCBBTQ0KPiBUbzogRGFuaWVs
+IEp1cmdlbnMgPGRhbmllbGpAbWVsbGFub3guY29tPjsNCj4gZGFzYXJhdGhhcmFtYW4uY2hhbmRy
+YW1vdWxpQGludGVsLmNvbTsgZGxlZGZvcmRAcmVkaGF0LmNvbTsNCj4gamdnQHppZXBlLmNhOyBs
+ZW9uQGtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBy
+ZG1hQHZnZXIua2VybmVsLm9yZzsgTW9uaSBTaG91YSA8bW9uaXNAbWVsbGFub3guY29tPjsgUGFy
+YXYgUGFuZGl0DQo+IDxwYXJhdkBtZWxsYW5veC5jb20+OyBzd2lzZUBvcGVuZ3JpZGNvbXB1dGlu
+Zy5jb207IHN5emthbGxlci0NCj4gYnVnc0Bnb29nbGVncm91cHMuY29tDQo+IFN1YmplY3Q6IGdl
+bmVyYWwgcHJvdGVjdGlvbiBmYXVsdCBpbiByZG1hX3Jlc29sdmVfcm91dGUNCj4gDQo+IEhlbGxv
+LA0KPiANCj4gc3l6Ym90IGhpdCB0aGUgZm9sbG93aW5nIGNyYXNoIG9uIHVwc3RyZWFtIGNvbW1p
+dA0KPiBhMjdmYzE0MjE5ZjJlM2M0YTQ2YmE5MTc3YjA0ZDliNTJjODc1NTMyIChNb24gQXByIDE2
+IDIxOjA3OjM5IDIwMTgNCj4gKzAwMDApIE1lcmdlIGJyYW5jaCAncGFyaXNjLTQuMTctMycgb2YN
+Cj4gZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2RlbGxlci9w
+YXJpc2MtbGludXgNCj4gc3l6Ym90IGRhc2hib2FyZCBsaW5rOg0KPiBodHRwczovL3N5emthbGxl
+ci5hcHBzcG90LmNvbS9idWc/ZXh0aWQ9MTdjMTM2MDBiMzk3N2FhOGVmN2YNCj4gDQo+IFNvIGZh
+ciB0aGlzIGNyYXNoIGhhcHBlbmVkIDIgdGltZXMgb24gdXBzdHJlYW0uDQo+IFVuZm9ydHVuYXRl
+bHksIEkgZG9uJ3QgaGF2ZSBhbnkgcmVwcm9kdWNlciBmb3IgdGhpcyBjcmFzaCB5ZXQuDQo+IFJh
+dyBjb25zb2xlIG91dHB1dDoNCj4gaHR0cHM6Ly9zeXprYWxsZXIuYXBwc3BvdC5jb20veC9sb2cu
+dHh0P2lkPTYxOTgxODM5MzE2NzQ2MjQNCj4gS2VybmVsIGNvbmZpZzoNCj4gaHR0cHM6Ly9zeXpr
+YWxsZXIuYXBwc3BvdC5jb20veC8uY29uZmlnP2lkPS01OTE0NDkwNzU4OTQzMjM2NzUwDQo+IGNv
+bXBpbGVyOiBnY2MgKEdDQykgOC4wLjEgMjAxODA0MTMgKGV4cGVyaW1lbnRhbCkNCj4gDQo+IElN
+UE9SVEFOVDogaWYgeW91IGZpeCB0aGUgYnVnLCBwbGVhc2UgYWRkIHRoZSBmb2xsb3dpbmcgdGFn
+IHRvIHRoZSBjb21taXQ6DQo+IFJlcG9ydGVkLWJ5OiBzeXpib3QrMTdjMTM2MDBiMzk3N2FhOGVm
+N2ZAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbQ0KPiBJdCB3aWxsIGhlbHAgc3l6Ym90IHVuZGVy
+c3RhbmQgd2hlbiB0aGUgYnVnIGlzIGZpeGVkLiBTZWUgZm9vdGVyIGZvciBkZXRhaWxzLg0KPiBJ
+ZiB5b3UgZm9yd2FyZCB0aGUgcmVwb3J0LCBwbGVhc2Uga2VlcCB0aGlzIHBhcnQgYW5kIHRoZSBm
+b290ZXIuDQo+IA0KPiBrYXNhbjogQ09ORklHX0tBU0FOX0lOTElORSBlbmFibGVkDQo+IGthc2Fu
+OiBHUEYgY291bGQgYmUgY2F1c2VkIGJ5IE5VTEwtcHRyIGRlcmVmIG9yIHVzZXIgbWVtb3J5IGFj
+Y2VzcyBnZW5lcmFsDQo+IHByb3RlY3Rpb24gZmF1bHQ6IDAwMDAgWyMxXSBTTVAgS0FTQU4gRHVt
+cGluZyBmdHJhY2UgYnVmZmVyOg0KPiAgICAgKGZ0cmFjZSBidWZmZXIgZW1wdHkpDQo+IE1vZHVs
+ZXMgbGlua2VkIGluOg0KPiBDUFU6IDEgUElEOiA3NTAgQ29tbTogc3l6LWV4ZWN1dG9yNCBOb3Qg
+dGFpbnRlZCA0LjE3LjAtcmMxKyAjNiBIYXJkd2FyZQ0KPiBuYW1lOiBHb29nbGUgR29vZ2xlIENv
+bXB1dGUgRW5naW5lL0dvb2dsZSBDb21wdXRlIEVuZ2luZSwgQklPUyBHb29nbGUNCj4gMDEvMDEv
+MjAxMQ0KPiBSSVA6IDAwMTA6cmRtYV9jYXBfaWJfc2EgaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmg6
+Mjg0MCBbaW5saW5lXQ0KPiBSSVA6IDAwMTA6cmRtYV9yZXNvbHZlX3JvdXRlKzB4MTM0LzB4MjE2
+MA0KPiBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYzoyNjY4DQo+IFJTUDogMDAxODpmZmZm
+ODgwMWIzZTg3ODUwIEVGTEFHUzogMDAwMTAyMDINCj4gUkFYOiAwMDAwMDAwMDAwMDAwMDAwIFJC
+WDogZmZmZjg4MDFhYmY5MmMwMCBSQ1g6IDAwMDAwMDAwMDAwMDAwMjkNCj4gUkRYOiBkZmZmZmMw
+MDAwMDAwMDAwIFJTSTogMDAwMDAwMDAwMDAwMDAwNCBSREk6IDAwMDAwMDAwMDAwMDAxNDgNCj4g
+UkJQOiBmZmZmODgwMWIzZTg3YTAwIFIwODogZmZmZmVkMDAzNTdmMjVlNSBSMDk6IGZmZmZlZDAw
+MzU3ZjI1ZTQNCj4gUjEwOiBmZmZmZWQwMDM1N2YyNWU0IFIxMTogZmZmZjg4MDFhYmY5MmYyMyBS
+MTI6IDFmZmZmMTAwMzY3ZDBmMTINCj4gUjEzOiBkZmZmZmMwMDAwMDAwMDAwIFIxNDogZmZmZjg4
+MDFhYmY5MmRiOCBSMTU6IDAwMDAwMDAwMDAwMDAwMDANCj4gRlM6ICAwMDAwN2Y2NzNlNzUyNzAw
+KDAwMDApIEdTOmZmZmY4ODAxZGIxMDAwMDAoMDAwMCkNCj4ga25sR1M6MDAwMDAwMDAwMDAwMDAw
+MA0KPiBDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzDQo+
+IENSMjogMDAwMDAwMDAwMGEzZWFiOCBDUjM6IDAwMDAwMDAxYjEwZTcwMDAgQ1I0OiAwMDAwMDAw
+MDAwMTQyNmUwDQo+IERSMDogMDAwMDAwMDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAg
+RFIyOiAwMDAwMDAwMDAwMDAwMDAwDQo+IERSMzogMDAwMDAwMDAwMDAwMDAwMCBEUjY6IDAwMDAw
+MDAwZmZmZTBmZjAgRFI3OiAwMDAwMDAwMDAwMDAwNDAwIENhbGwNCj4gVHJhY2U6DQo+ICAgdWNt
+YV9yZXNvbHZlX3JvdXRlKzB4MTc5LzB4MWMwIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VjbWEu
+Yzo3NDENCj4gICB1Y21hX3dyaXRlKzB4MzI4LzB4NDEwIGRyaXZlcnMvaW5maW5pYmFuZC9jb3Jl
+L3VjbWEuYzoxNjY0DQo+ICAgX192ZnNfd3JpdGUrMHgxMGIvMHg4ODAgZnMvcmVhZF93cml0ZS5j
+OjQ4NQ0KPiAgIHZmc193cml0ZSsweDFmOC8weDU2MCBmcy9yZWFkX3dyaXRlLmM6NTQ5DQo+ICAg
+a3N5c193cml0ZSsweGY5LzB4MjUwIGZzL3JlYWRfd3JpdGUuYzo1OTgNCj4gICBfX2RvX3N5c193
+cml0ZSBmcy9yZWFkX3dyaXRlLmM6NjEwIFtpbmxpbmVdDQo+ICAgX19zZV9zeXNfd3JpdGUgZnMv
+cmVhZF93cml0ZS5jOjYwNyBbaW5saW5lXQ0KPiAgIF9feDY0X3N5c193cml0ZSsweDczLzB4YjAg
+ZnMvcmVhZF93cml0ZS5jOjYwNw0KPiAgIGRvX3N5c2NhbGxfNjQrMHgxYjEvMHg4MDAgYXJjaC94
+ODYvZW50cnkvY29tbW9uLmM6Mjg3DQo+ICAgZW50cnlfU1lTQ0FMTF82NF9hZnRlcl9od2ZyYW1l
+KzB4NDkvMHhiZQ0KPiBSSVA6IDAwMzM6MHg0NTUzMjkNCj4gUlNQOiAwMDJiOjAwMDA3ZjY3M2U3
+NTFjNjggRUZMQUdTOiAwMDAwMDI0NiBPUklHX1JBWDoNCj4gMDAwMDAwMDAwMDAwMDAwMQ0KPiBS
+QVg6IGZmZmZmZmZmZmZmZmZmZGEgUkJYOiAwMDAwN2Y2NzNlNzUyNmQ0IFJDWDogMDAwMDAwMDAw
+MDQ1NTMyOQ0KPiBSRFg6IDAwMDAwMDAwMDAwMDAwMTAgUlNJOiAwMDAwMDAwMDIwMDAwMTAwIFJE
+STogMDAwMDAwMDAwMDAwMDAxNA0KPiBSQlA6IDAwMDAwMDAwMDA3MmMwMTAgUjA4OiAwMDAwMDAw
+MDAwMDAwMDAwIFIwOTogMDAwMDAwMDAwMDAwMDAwMA0KPiBSMTA6IDAwMDAwMDAwMDAwMDAwMDAg
+UjExOiAwMDAwMDAwMDAwMDAwMjQ2IFIxMjogMDAwMDAwMDBmZmZmZmZmZg0KPiBSMTM6IDAwMDAw
+MDAwMDAwMDA2YzMgUjE0OiAwMDAwMDAwMDAwNmZkMmU4IFIxNTogMDAwMDAwMDAwMDAwMDAwMg0K
+PiBDb2RlOiBmZiBkZiA0OCBjMSBlYSAwMyA4MCAzYyAwMiAwMCAwZiA4NSAxNCAxYyAwMCAwMCA0
+OCBiYSAwMCAwMCAwMCAwMCAwMCBmYyBmZiBkZg0KPiA0OCA4YiAwMyA0OCA4ZCBiOCA0OCAwMSAw
+MCAwMCA0OCA4OSBmOSA0OCBjMSBlOSAwMyA8ODA+IDNjIDExIDAwIDBmIDg1IGQ3IDFiIDAwDQo+
+IDAwIDQ1IDBmIGI2IGVmIDQ5IGMxIGU1IDA0IDRjIDAzIGE4DQo+IFJJUDogcmRtYV9jYXBfaWJf
+c2EgaW5jbHVkZS9yZG1hL2liX3ZlcmJzLmg6Mjg0MCBbaW5saW5lXSBSU1A6DQo+IGZmZmY4ODAx
+YjNlODc4NTANCj4gUklQOiByZG1hX3Jlc29sdmVfcm91dGUrMHgxMzQvMHgyMTYwIGRyaXZlcnMv
+aW5maW5pYmFuZC9jb3JlL2NtYS5jOjI2NjgNCj4gUlNQOiBmZmZmODgwMWIzZTg3ODUwDQo+IC0t
+LVsgZW5kIHRyYWNlIGMzNGMyZmI2YWVmZjRhMTkgXS0tLQ0KPiANCj4gDQo+IC0tLQ0KPiBUaGlz
+IGJ1ZyBpcyBnZW5lcmF0ZWQgYnkgYSBkdW1iIGJvdC4gSXQgbWF5IGNvbnRhaW4gZXJyb3JzLg0K
+PiBTZWUgaHR0cHM6Ly9nb28uZ2wvdHBzbUVKIGZvciBkZXRhaWxzLg0KPiBEaXJlY3QgYWxsIHF1
+ZXN0aW9ucyB0byBzeXprYWxsZXJAZ29vZ2xlZ3JvdXBzLmNvbS4NCj4gDQo+IHN5emJvdCB3aWxs
+IGtlZXAgdHJhY2sgb2YgdGhpcyBidWcgcmVwb3J0Lg0KPiBJZiB5b3UgZm9yZ290IHRvIGFkZCB0
+aGUgUmVwb3J0ZWQtYnkgdGFnLCBvbmNlIHRoZSBmaXggZm9yIHRoaXMgYnVnIGlzIG1lcmdlZCBp
+bnRvDQo+IGFueSB0cmVlLCBwbGVhc2UgcmVwbHkgdG8gdGhpcyBlbWFpbCB3aXRoOg0KPiAjc3l6
+IGZpeDogZXhhY3QtY29tbWl0LXRpdGxlDQo+IFRvIG1hcmsgdGhpcyBhcyBhIGR1cGxpY2F0ZSBv
+ZiBhbm90aGVyIHN5emJvdCByZXBvcnQsIHBsZWFzZSByZXBseSB3aXRoOg0KPiAjc3l6IGR1cDog
+ZXhhY3Qtc3ViamVjdC1vZi1hbm90aGVyLXJlcG9ydCBJZiBpdCdzIGEgb25lLW9mZiBpbnZhbGlk
+IGJ1ZyByZXBvcnQsDQo+IHBsZWFzZSByZXBseSB3aXRoOg0KPiAjc3l6IGludmFsaWQNCj4gTm90
+ZTogaWYgdGhlIGNyYXNoIGhhcHBlbnMgYWdhaW4sIGl0IHdpbGwgY2F1c2UgY3JlYXRpb24gb2Yg
+YSBuZXcgYnVnIHJlcG9ydC4NCj4gTm90ZTogYWxsIGNvbW1hbmRzIG11c3Qgc3RhcnQgZnJvbSBi
+ZWdpbm5pbmcgb2YgdGhlIGxpbmUgaW4gdGhlIGVtYWlsIGJvZHkuDQoNCkZvciBzaG9ydCB0ZXJt
+LCB3ZSBuZWVkIGhlbHBlciBzaW1pbGFyIHRvIHVjbWFfZ2V0X2N0eCgpIGFzIHVjbWFfZ2V0X2N0
+eF93aXRoX2RldmljZSgpIHdoaWNoIHBlcmZvcm1zIE5VTEwgY2hlY2sgZm9yIGNtX2lkLT5kZXZp
+Y2UuDQpDdXJyZW50bHkgaXRzIGRvbmUgYXQgc2V2ZXJhbCBwbGFjZXMgaW4gdWNtYSBjb21tYW5k
+cyBzdWNoIGFzIHVjbWFfc2V0X2liX3BhdGgsIHVjbWFfbm90aWZ5IGV0Yy4NCg0K
