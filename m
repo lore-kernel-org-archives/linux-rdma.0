@@ -1,62 +1,42 @@
-From: Benjamin Drung <benjamin.drung@profitbricks.com>
-Subject: Bug#894995: rdma-core: Please add support for new architecture "riscv64" (RISC-V 64 bits little-endian)
-Date: Thu, 19 Apr 2018 14:00:18 +0200
-Message-ID: <1524139218.4781.9.camel@profitbricks.com>
-References: <152297424964.29286.16311629290309565149.reportbug@reva.itsari.org> <152297424964.29286.16311629290309565149.reportbug@reva.itsari.org>
-Reply-To: Benjamin Drung <benjamin.drung@profitbricks.com>, 894995@bugs.debian.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist2=m.gmane.org@lists.debian.org>
-Resent-To: debian-bugs-dist@lists.debian.org
-Resent-Message-ID: <handler.894995.B894995.15241392224602@bugs.debian.org>
-In-Reply-To: <152297424964.29286.16311629290309565149.reportbug@reva.itsari.org>
-List-URL: <https://lists.debian.org/debian-bugs-dist/>
-List-Post: <mailto:debian-bugs-dist@lists.debian.org>
-List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
-List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
-List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
-To: "Manuel A. Fernandez Montecelo" <mafm@debian.org>, 894995@bugs.debian.org, List Linux RDMA Mailing <linux-rdma@vger.kernel.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [PATCH] RDMA/ucma: Allow resolving address without specifying source address
+Date: Thu, 19 Apr 2018 08:28:11 -0700
+Message-ID: <20180419152811.4340-1-roland@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, Roland Dreier <roland@purestorage.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Roland Dreier <roland@purestorage.com>
 
-Thanks for reporting this bug.
+The RDMA CM will select a source device and address by consulting the routing table
+if no source address is passed into rdma_resolve_address().  Userspace will ask for
+this by passing an all-zero source address in the RESOLVE_IP command.  Unfortunately
+the new check for non-zero address size rejects this with EINVAL, which breaks valid
+userspace applications.
 
-Am Freitag, den 06.04.2018, 02:24 +0200 schrieb Manuel A. Fernandez
-Montecelo:
-> Source: rdma-core
-> Version: 17.1-1
-> Severity: normal
-> Tags: patch
-> User: debian-riscv@lists.debian.org
-> Usertags: riscv64
-> 
-> Hello,
-> 
-> The current version of this package doesn't build for the riscv64
-> port.
-> 
-> First it fails to be considered to build (due to missing valgrind)
-> and, when
-> fixing that problem, FBTFS, because of missing files (see at bottom).
+Fix this by explicitly allowing a zero address family for the source.
 
-I'll apply that part of the patch.
+Fixes: 2975d5de6428 ("RDMA/ucma: Check AF family prior resolving address")
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+---
+ drivers/infiniband/core/ucma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> I applied the same fix as for many other arches, which is to add the
-> arch to the
-> list of NO_COHERENT_DMA_ARCHS in debian/rules.
-> 
-> I am not sure if support could be added at a later date, but for the
-> time being,
-> seems to be the best way to get it working -- I don't know enough
-> details of the
-> architecture or the assembly language to get the necessary
-> incantations in
-> place.
-
-RISC-V has a FENCE instruction and the A extension (which is part of
-the G instruction set) provides atomic memory operations. So the
-architecture should provide coherent DMA support. To enable support,
-util/udma_barrier.h needs to be adjusted. I am including
-linux-rdma@vger.kernel.org in the loop for help.
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 74329483af6d..0a7242ce7c1f 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -683,7 +683,7 @@ static ssize_t ucma_resolve_ip(struct ucma_file *file,
+ 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+ 		return -EFAULT;
+ 
+-	if (!rdma_addr_size_in6(&cmd.src_addr) ||
++	if ((cmd.src_addr.sin6_family && !rdma_addr_size_in6(&cmd.src_addr)) ||
+ 	    !rdma_addr_size_in6(&cmd.dst_addr))
+ 		return -EINVAL;
+ 
+-- 
+2.17.0
