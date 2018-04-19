@@ -1,219 +1,55 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 2/6] cifs: Allocate validate negotiation request
- through kmalloc
-Date: Thu, 19 Apr 2018 00:48:57 +0000
-Message-ID: <MWHPR2101MB072950054CB911F674EDF11FCEB50@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20180417191710.14855-1-longli@linuxonhyperv.com>
- <20180417191710.14855-2-longli@linuxonhyperv.com>
- <DM5PR2101MB1030884AD39F91A77BC0E16EDCB50@DM5PR2101MB1030.namprd21.prod.outlook.com>
+From: Yanjun Zhu <yanjun.zhu@oracle.com>
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Thu, 19 Apr 2018 10:59:28 +0800
+Message-ID: <d2d8f0c7-7802-a899-22de-1fe31603b21b@oracle.com>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <DM5PR2101MB1030884AD39F91A77BC0E16EDCB50@DM5PR2101MB1030.namprd21.prod.outlook.com>
+In-Reply-To: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael Kelley (EOSG)" <Michael.H.Kelley@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: RE: [Patch v2 2/6] cifs: Allocate validate negotiation request t=
-hrough
-> kmalloc
->=20
-> > -----Original Message-----
-> > From: linux-kernel-owner@vger.kernel.org
-> > <linux-kernel-owner@vger.kernel.org> On Behalf Of Long Li
-> > Sent: Tuesday, April 17, 2018 12:17 PM
-> > To: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org;
-> > samba- technical@lists.samba.org; linux-kernel@vger.kernel.org;
-> > linux-rdma@vger.kernel.org
-> > Cc: Long Li <longli@microsoft.com>; stable@vger.kernel.org
-> > Subject: [Patch v2 2/6] cifs: Allocate validate negotiation request
-> > through kmalloc
-> >
-> > From: Long Li <longli@microsoft.com>
-> >
-> > The data buffer allocated on the stack can't be DMA'ed, and hence
-> > can't send through RDMA via SMB Direct.
-> >
-> > Fix this by allocating the request on the heap in smb3_validate_negotia=
-te.
-> >
-> > Fixes: ff1c038addc4f205d5f1ede449426c7d316c0eed "Check SMB3 dialects
-> > against downgrade attacks"
-> >
-> > Changes in v2:
-> > Removed duplicated code on freeing buffers on function exit.
-> > (Thanks to Parav Pandit <parav@mellanox.com>)
-> >
-> > Fixed typo in the patch title.
-> >
-> > Signed-off-by: Long Li <longli@microsoft.com>
-> > Cc: stable@vger.kernel.org
-> > ---
-> >  fs/cifs/smb2pdu.c | 57
-> > ++++++++++++++++++++++++++++++-------------------------
-> >  1 file changed, 31 insertions(+), 26 deletions(-)
-> >
-> > diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c index
-> > 0f044c4..41625e4 100644
-> > --- a/fs/cifs/smb2pdu.c
-> > +++ b/fs/cifs/smb2pdu.c
-> > @@ -729,8 +729,8 @@ SMB2_negotiate(const unsigned int xid, struct
-> > cifs_ses *ses)
-> >
-> >  int smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon
-> > *tcon)  {
-> > -	int rc =3D 0;
-> > -	struct validate_negotiate_info_req vneg_inbuf;
-> > +	int ret, rc =3D -EIO;
-> > +	struct validate_negotiate_info_req *pneg_inbuf;
-> >  	struct validate_negotiate_info_rsp *pneg_rsp =3D NULL;
-> >  	u32 rsplen;
-> >  	u32 inbuflen; /* max of 4 dialects */ @@ -741,6 +741,9 @@ int
-> > smb3_validate_negotiate(const unsigned int xid, struct cifs_tcon
-> > *tcon)
-> >  	if (tcon->ses->server->rdma)
-> >  		return 0;
-> >  #endif
-> > +	pneg_inbuf =3D kmalloc(sizeof(*pneg_inbuf), GFP_KERNEL);
-> > +	if (!pneg_inbuf)
-> > +		return -ENOMEM;
->=20
-> Immediately after the above new code, there are three if statements that
-> can 'return 0' and never free the pneg_inbuf memory.  They should instead
-> set 'rc'
-> appropriately and 'goto' the out_free_inbuf label.
 
-Thanks!
 
-I will move the kmalloc after those statements.
-
->=20
-> Michael
->=20
-> >
-> >  	/* In SMB3.11 preauth integrity supersedes validate negotiate */
-> >  	if (tcon->ses->server->dialect =3D=3D SMB311_PROT_ID) @@ -764,53
-> +767,53
-> > @@ int smb3_validate_negotiate(const unsigned int xid, struct
-> > cifs_tcon
-> > *tcon)
-> >  	if (tcon->ses->session_flags & SMB2_SESSION_FLAG_IS_NULL)
-> >  		cifs_dbg(VFS, "Unexpected null user (anonymous) auth flag
-> sent by
-> > server\n");
-> >
-> > -	vneg_inbuf.Capabilities =3D
-> > +	pneg_inbuf->Capabilities =3D
-> >  			cpu_to_le32(tcon->ses->server->vals-
-> >req_capabilities);
-> > -	memcpy(vneg_inbuf.Guid, tcon->ses->server->client_guid,
-> > +	memcpy(pneg_inbuf->Guid, tcon->ses->server->client_guid,
-> >  					SMB2_CLIENT_GUID_SIZE);
-> >
-> >  	if (tcon->ses->sign)
-> > -		vneg_inbuf.SecurityMode =3D
-> > +		pneg_inbuf->SecurityMode =3D
-> >
-> 	cpu_to_le16(SMB2_NEGOTIATE_SIGNING_REQUIRED);
-> >  	else if (global_secflags & CIFSSEC_MAY_SIGN)
-> > -		vneg_inbuf.SecurityMode =3D
-> > +		pneg_inbuf->SecurityMode =3D
-> >
-> 	cpu_to_le16(SMB2_NEGOTIATE_SIGNING_ENABLED);
-> >  	else
-> > -		vneg_inbuf.SecurityMode =3D 0;
-> > +		pneg_inbuf->SecurityMode =3D 0;
-> >
-> >
-> >  	if (strcmp(tcon->ses->server->vals->version_string,
-> >  		SMB3ANY_VERSION_STRING) =3D=3D 0) {
-> > -		vneg_inbuf.Dialects[0] =3D cpu_to_le16(SMB30_PROT_ID);
-> > -		vneg_inbuf.Dialects[1] =3D cpu_to_le16(SMB302_PROT_ID);
-> > -		vneg_inbuf.DialectCount =3D cpu_to_le16(2);
-> > +		pneg_inbuf->Dialects[0] =3D cpu_to_le16(SMB30_PROT_ID);
-> > +		pneg_inbuf->Dialects[1] =3D cpu_to_le16(SMB302_PROT_ID);
-> > +		pneg_inbuf->DialectCount =3D cpu_to_le16(2);
-> >  		/* structure is big enough for 3 dialects, sending only 2 */
-> >  		inbuflen =3D sizeof(struct validate_negotiate_info_req) - 2;
-> >  	} else if (strcmp(tcon->ses->server->vals->version_string,
-> >  		SMBDEFAULT_VERSION_STRING) =3D=3D 0) {
-> > -		vneg_inbuf.Dialects[0] =3D cpu_to_le16(SMB21_PROT_ID);
-> > -		vneg_inbuf.Dialects[1] =3D cpu_to_le16(SMB30_PROT_ID);
-> > -		vneg_inbuf.Dialects[2] =3D cpu_to_le16(SMB302_PROT_ID);
-> > -		vneg_inbuf.DialectCount =3D cpu_to_le16(3);
-> > +		pneg_inbuf->Dialects[0] =3D cpu_to_le16(SMB21_PROT_ID);
-> > +		pneg_inbuf->Dialects[1] =3D cpu_to_le16(SMB30_PROT_ID);
-> > +		pneg_inbuf->Dialects[2] =3D cpu_to_le16(SMB302_PROT_ID);
-> > +		pneg_inbuf->DialectCount =3D cpu_to_le16(3);
-> >  		/* structure is big enough for 3 dialects */
-> >  		inbuflen =3D sizeof(struct validate_negotiate_info_req);
-> >  	} else {
-> >  		/* otherwise specific dialect was requested */
-> > -		vneg_inbuf.Dialects[0] =3D
-> > +		pneg_inbuf->Dialects[0] =3D
-> >  			cpu_to_le16(tcon->ses->server->vals->protocol_id);
-> > -		vneg_inbuf.DialectCount =3D cpu_to_le16(1);
-> > +		pneg_inbuf->DialectCount =3D cpu_to_le16(1);
-> >  		/* structure is big enough for 3 dialects, sending only 1 */
-> >  		inbuflen =3D sizeof(struct validate_negotiate_info_req) - 4;
-> >  	}
-> >
-> > -	rc =3D SMB2_ioctl(xid, tcon, NO_FILE_ID, NO_FILE_ID,
-> > +	ret =3D SMB2_ioctl(xid, tcon, NO_FILE_ID, NO_FILE_ID,
-> >  		FSCTL_VALIDATE_NEGOTIATE_INFO, true /* is_fsctl */,
-> > -		(char *)&vneg_inbuf, sizeof(struct
-> validate_negotiate_info_req),
-> > +		(char *)pneg_inbuf, sizeof(struct
-> validate_negotiate_info_req),
-> >  		(char **)&pneg_rsp, &rsplen);
-> >
-> > -	if (rc !=3D 0) {
-> > -		cifs_dbg(VFS, "validate protocol negotiate failed: %d\n", rc);
-> > -		return -EIO;
-> > +	if (ret !=3D 0) {
-> > +		cifs_dbg(VFS, "validate protocol negotiate failed: %d\n", ret);
-> > +		goto out_free_inbuf;
-> >  	}
-> >
-> >  	if (rsplen !=3D sizeof(struct validate_negotiate_info_rsp)) { @@
-> > -820,7 +823,7 @@ int smb3_validate_negotiate(const unsigned int xid,
-> > struct cifs_tcon
-> > *tcon)
-> >  		/* relax check since Mac returns max bufsize allowed on ioctl
-> */
-> >  		if ((rsplen > CIFSMaxBufSize)
-> >  		     || (rsplen < sizeof(struct validate_negotiate_info_rsp)))
-> > -			goto err_rsp_free;
-> > +			goto out_free_rsp;
-> >  	}
-> >
-> >  	/* check validate negotiate info response matches what we got
-> > earlier */ @@ -838,14 +841,16 @@ int smb3_validate_negotiate(const
-> > unsigned int xid, struct cifs_tcon
-> > *tcon)
-> >
-> >  	/* validate negotiate successful */
-> >  	cifs_dbg(FYI, "validate negotiate info successful\n");
-> > -	kfree(pneg_rsp);
-> > -	return 0;
-> > +	rc =3D 0;
-> > +	goto out_free_rsp;
-> >
-> >  vneg_out:
-> >  	cifs_dbg(VFS, "protocol revalidation - security settings
-> > mismatch\n");
-> > -err_rsp_free:
-> > +out_free_rsp:
-> >  	kfree(pneg_rsp);
-> > -	return -EIO;
-> > +out_free_inbuf:
-> > +	kfree(pneg_inbuf);
-> > +	return rc;
-> >  }
-> >
-> >  enum securityEnum
-> > --
-> > 2.7.4
+On 2018/4/18 22:24, Håkon Bugge wrote:
+> Two kernel threads may get the same value for agent.hi_tid, if the
+> agents are registered for different ports. As of now, this works, as
+> the agent list is per port.
+>
+> It is however confusing and not future robust. Hence, making it
+> atomic.
+>
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
+>   drivers/infiniband/core/mad.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index c50596f7f98a..b28452a55a08 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -59,7 +59,7 @@ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+>   MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+>   
+>   static struct list_head ib_mad_port_list;
+> -static u32 ib_mad_client_id = 0;
+> +static atomic_t ib_mad_client_id = ATOMIC_INIT(0);
+>   
+>   /* Port list lock */
+>   static DEFINE_SPINLOCK(ib_mad_port_list_lock);
+> @@ -377,7 +377,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+>   	}
+>   
+>   	spin_lock_irqsave(&port_priv->reg_lock, flags);
+> -	mad_agent_priv->agent.hi_tid = ++ib_mad_client_id;
+> +	mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id);
+>   
+>   	/*
+>   	 * Make sure MAD registration (if supplied)
