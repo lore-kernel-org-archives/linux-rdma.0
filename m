@@ -1,85 +1,90 @@
-From: syzbot <syzbot+17c13600b3977aa8ef7f@syzkaller.appspotmail.com>
-Subject: general protection fault in rdma_resolve_route
-Date: Thu, 19 Apr 2018 09:04:02 -0700
-Message-ID: <0000000000005c2cc4056a35b85a@google.com>
+From: syzbot <syzbot+8458d13b13562abf6b77@syzkaller.appspotmail.com>
+Subject: BUG: corrupted list in rdma_listen
+Date: Thu, 19 Apr 2018 09:08:01 -0700
+Message-ID: <000000000000a366e2056a35c6fd@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: danielj@mellanox.com, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, monis@mellanox.com, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
+To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, markb@mellanox.com, monis@mellanox.com, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
 Hello,
 
 syzbot hit the following crash on upstream commit
-a27fc14219f2e3c4a46ba9177b04d9b52c875532 (Mon Apr 16 21:07:39 2018 +0000)
-Merge branch 'parisc-4.17-3' of  
-git://git.kernel.org/pub/scm/linux/kernel/git/deller/parisc-linux
+bcfc1f4554662d8f2429ac8bd96064a59c149754 (Sat Mar 24 16:50:12 2018 +0000)
+Merge tag 'pinctrl-v4.16-3' of  
+git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl
 syzbot dashboard link:  
-https://syzkaller.appspot.com/bug?extid=17c13600b3977aa8ef7f
+https://syzkaller.appspot.com/bug?extid=8458d13b13562abf6b77
 
-So far this crash happened 2 times on upstream.
+So far this crash happened 3 times on upstream.
 Unfortunately, I don't have any reproducer for this crash yet.
 Raw console output:  
-https://syzkaller.appspot.com/x/log.txt?id=6198183931674624
+https://syzkaller.appspot.com/x/log.txt?id=5502346817699840
 Kernel config:  
-https://syzkaller.appspot.com/x/.config?id=-5914490758943236750
-compiler: gcc (GCC) 8.0.1 20180413 (experimental)
+https://syzkaller.appspot.com/x/.config?id=-5034017172441945317
+compiler: gcc (GCC) 7.1.1 20170620
 
 IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+17c13600b3977aa8ef7f@syzkaller.appspotmail.com
+Reported-by: syzbot+8458d13b13562abf6b77@syzkaller.appspotmail.com
 It will help syzbot understand when the bug is fixed. See footer for  
 details.
 If you forward the report, please keep this part and the footer.
 
-kasan: CONFIG_KASAN_INLINE enabled
-kasan: GPF could be caused by NULL-ptr deref or user memory access
-general protection fault: 0000 [#1] SMP KASAN
+list_add corruption. prev->next should be next (00000000bbe7894a), but  
+was           (null). (prev=0000000053f15260).
+------------[ cut here ]------------
+kernel BUG at lib/list_debug.c:28!
+invalid opcode: 0000 [#1] SMP KASAN
 Dumping ftrace buffer:
     (ftrace buffer empty)
 Modules linked in:
-CPU: 1 PID: 750 Comm: syz-executor4 Not tainted 4.17.0-rc1+ #6
+CPU: 1 PID: 31373 Comm: syz-executor1 Not tainted 4.16.0-rc6+ #1
 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
 Google 01/01/2011
-RIP: 0010:rdma_cap_ib_sa include/rdma/ib_verbs.h:2840 [inline]
-RIP: 0010:rdma_resolve_route+0x134/0x2160 drivers/infiniband/core/cma.c:2668
-RSP: 0018:ffff8801b3e87850 EFLAGS: 00010202
-RAX: 0000000000000000 RBX: ffff8801abf92c00 RCX: 0000000000000029
-RDX: dffffc0000000000 RSI: 0000000000000004 RDI: 0000000000000148
-RBP: ffff8801b3e87a00 R08: ffffed00357f25e5 R09: ffffed00357f25e4
-R10: ffffed00357f25e4 R11: ffff8801abf92f23 R12: 1ffff100367d0f12
-R13: dffffc0000000000 R14: ffff8801abf92db8 R15: 0000000000000000
-FS:  00007f673e752700(0000) GS:ffff8801db100000(0000) knlGS:0000000000000000
+RIP: 0010:__list_add_valid+0x8f/0xd0 lib/list_debug.c:26
+RSP: 0018:ffff880188f87970 EFLAGS: 00010282
+RAX: 0000000000000075 RBX: ffffffff87449fe0 RCX: 0000000000000000
+RDX: 0000000000000075 RSI: ffffc900075c8000 RDI: ffffed00311f0f22
+RBP: ffff880188f87988 R08: 1ffff100311f0e7a R09: 0000000000000000
+R10: ffff880188f87988 R11: 0000000000000000 R12: ffff88018c479898
+R13: ffff88018c479898 R14: ffff8801d94baad8 R15: 0000000000000400
+FS:  00007f755bcca700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
 CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000a3eab8 CR3: 00000001b10e7000 CR4: 00000000001426e0
+CR2: 0000000000725934 CR3: 00000001872ec001 CR4: 00000000001606e0
 DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
 DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 Call Trace:
-  ucma_resolve_route+0x179/0x1c0 drivers/infiniband/core/ucma.c:741
-  ucma_write+0x328/0x410 drivers/infiniband/core/ucma.c:1664
-  __vfs_write+0x10b/0x880 fs/read_write.c:485
-  vfs_write+0x1f8/0x560 fs/read_write.c:549
-  ksys_write+0xf9/0x250 fs/read_write.c:598
-  __do_sys_write fs/read_write.c:610 [inline]
-  __se_sys_write fs/read_write.c:607 [inline]
-  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
-  do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:287
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x455329
-RSP: 002b:00007f673e751c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 00007f673e7526d4 RCX: 0000000000455329
-RDX: 0000000000000010 RSI: 0000000020000100 RDI: 0000000000000014
-RBP: 000000000072c010 R08: 0000000000000000 R09: 0000000000000000
+  __list_add include/linux/list.h:60 [inline]
+  list_add_tail include/linux/list.h:93 [inline]
+  cma_listen_on_all drivers/infiniband/core/cma.c:2309 [inline]
+  rdma_listen+0x581/0x8e0 drivers/infiniband/core/cma.c:3333
+  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1074
+  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+  __vfs_write+0xef/0x970 fs/read_write.c:480
+  vfs_write+0x189/0x510 fs/read_write.c:544
+  SYSC_write fs/read_write.c:589 [inline]
+  SyS_write+0xef/0x220 fs/read_write.c:581
+  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+RIP: 0033:0x454879
+RSP: 002b:00007f755bcc9c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f755bcca6d4 RCX: 0000000000454879
+RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000013
+RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
 R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 00000000000006c3 R14: 00000000006fd2e8 R15: 0000000000000002
-Code: ff df 48 c1 ea 03 80 3c 02 00 0f 85 14 1c 00 00 48 ba 00 00 00 00 00  
-fc ff df 48 8b 03 48 8d b8 48 01 00 00 48 89 f9 48 c1 e9 03 <80> 3c 11 00  
-0f 85 d7 1b 00 00 45 0f b6 ef 49 c1 e5 04 4c 03 a8
-RIP: rdma_cap_ib_sa include/rdma/ib_verbs.h:2840 [inline] RSP:  
-ffff8801b3e87850
-RIP: rdma_resolve_route+0x134/0x2160 drivers/infiniband/core/cma.c:2668  
-RSP: ffff8801b3e87850
----[ end trace c34c2fb6aeff4a19 ]---
+R13: 0000000000000683 R14: 00000000006face8 R15: 0000000000000000
+Code: 00 00 00 5b 41 5c 5d c3 48 89 d9 48 c7 c7 60 7e 40 86 e8 ad e0 fb fe  
+0f 0b 48 89 f1 48 c7 c7 20 7f 40 86 48 89 de e8 99 e0 fb fe <0f> 0b 48 89  
+f2 48 89 d9 4c 89 e6 48 c7 c7 a0 7f 40 86 e8 82 e0
+RIP: __list_add_valid+0x8f/0xd0 lib/list_debug.c:26 RSP: ffff880188f87970
+---[ end trace fe3987c6813eeb9c ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
 
 
 ---
