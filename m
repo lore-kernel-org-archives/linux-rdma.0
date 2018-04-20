@@ -1,108 +1,111 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
-Date: Fri, 20 Apr 2018 10:12:28 -0400
-Message-ID: <9c893ac2-9482-2134-9ca9-04a306e9a416@intel.com>
+Date: Fri, 20 Apr 2018 10:23:18 -0400
+Message-ID: <b4e36805-d81d-714a-069e-c209834b87d4@codeaurora.org>
 References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
  <20180419202632.GE14063@ziepe.ca>
  <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
- <BN6PR12MB1809BD30AA5B890C054F9832F7B50@BN6PR12MB1809.namprd12.prod.outlook.com>
+ <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
+ <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BN6PR12MB1809BD30AA5B890C054F9832F7B50@BN6PR12MB1809.namprd12.prod.outlook.com>
+In-Reply-To: <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Deucher, Alexander" <Alexander.Deucher@amd.com>, Bjorn Helgaas <helgaas@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "sulrich@codeaurora.org" <sulrich@codeaurora.org>, "timur@codeaurora.org" <timur@codeaurora.org>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/19/2018 6:11 PM, Deucher, Alexander wrote:
->> -----Original Message-----
->> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
->> Sent: Thursday, April 19, 2018 5:47 PM
->> To: Jason Gunthorpe <jgg@ziepe.ca>
->> Cc: Sinan Kaya <okaya@codeaurora.org>; Bjorn Helgaas
->> <bhelgaas@google.com>; linux-pci@vger.kernel.org;
->> sulrich@codeaurora.org; timur@codeaurora.org; linux-arm-
->> msm@vger.kernel.org; linux-arm-kernel@lists.infradead.org; Mike
->> Marciniszyn <mike.marciniszyn@intel.com>; Dennis Dalessandro
->> <dennis.dalessandro@intel.com>; Doug Ledford <dledford@redhat.com>;
->> open list:HFI1 DRIVER <linux-rdma@vger.kernel.org>; open list <linux-
->> kernel@vger.kernel.org>; Deucher, Alexander
->> <Alexander.Deucher@amd.com>
->> Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
->>
->> [+cc Alex, who might know why DRM drivers have their own PCIe Gen3
->> code]
->>
->> On Thu, Apr 19, 2018 at 02:26:32PM -0600, Jason Gunthorpe wrote:
->>> On Thu, Apr 19, 2018 at 03:56:23PM -0400, Sinan Kaya wrote:
->>>> The infiniband adapter might be connected to a PCI hotplug slot.
->>>> Performing secondary bus reset on a hotplug slot causes PCI link
->> up/down interrupts.
->>>>
->>>> Hotplug driver removes the device from system when a link down
->>>> interrupt is observed and performs re-enumeration when link up
->> interrupt is observed.
->>>>
->>>> This conflicts with what this code is trying to do. Try secondary
->>>> bus reset only if pci_reset_slot() fails/unsupported.
->>>>
->>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->>>> drivers/infiniband/hw/hfi1/pcie.c | 3 ++-
->>>>   1 file changed, 2 insertions(+), 1 deletion(-)
->>>>
->>>> diff --git a/drivers/infiniband/hw/hfi1/pcie.c
->>>> b/drivers/infiniband/hw/hfi1/pcie.c
->>>> index 83d66e8..75f49e3 100644
->>>> +++ b/drivers/infiniband/hw/hfi1/pcie.c
->>>> @@ -908,7 +908,8 @@ static int trigger_sbr(struct hfi1_devdata *dd)
->>>
->>> The code above this hunk is:
->>>
->>> /*
->>>   * Trigger a secondary bus reset (SBR) on ourselves using our parent.
->>>   *
->>>   * Based on pci_parent_bus_reset() which is not exported by the
->>>   * kernel core.
->>>   */
->>> static int trigger_sbr(struct hfi1_devdata *dd) {
->>>
->>> [..]
->>>
->>> This really seems like something the PCI core should be helping with,
->>> drivers shouldn't be doing stuff like this. I get the feeling this
->>> should be a common need if drivers support various error recovery
->>> schemes?
->>>
->>> Bjorn, would be appropriate to export pci_parent_bus_reset() or some
->>> variation therin??
->>
->> I agree it would be really nice if the PCI core could help out somehow so we
->> could get some of this code out of individual drivers.
->>
->> If fact, stepping back a few paces, this HFI reset path is part of a transition to
->> PCIe gen3 signaling, and I'm not sure why *that* is in the driver either.
->>
->> There's an ongoing discussion [1] about why this gen3 code is in the driver.
->> Several DRM drivers include similar code (cik_pcie_gen3_enable(),
->> si_pcie_gen3_enable()).
->>
->> I *thought* the hardware was supposed to automatically negotiate to the
->> highest rate supported by both sides without any help at all from software.
->> But since several drivers have code to do it themselves, I wonder if I'm
->> missing something, or maybe there's something the PCI core should be doing
->> that it isn't, and the driver code is basically working around that PCI core
->> deficiency.
+On 4/20/2018 10:00 AM, Bjorn Helgaas wrote:
+> [+cc Rajat, Alex because of their interest in the reset/hotplug issue]
 > 
-> My understanding was that some platfoms only bring up the link in gen 1 mode for compatibility reasons.  TBH, I'm not that familiar with how the links come up on different platforms.
+> For context, Sinan's patch is this:
 > 
-> Alex
+>> diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+>> index 83d66e8..75f49e3 100644
+>> --- a/drivers/infiniband/hw/hfi1/pcie.c
+>> +++ b/drivers/infiniband/hw/hfi1/pcie.c
+>> @@ -908,7 +908,8 @@ static int trigger_sbr(struct hfi1_devdata *dd)
+>>          * delay after a reset is required.  Per spec requirements,
+>>          * the link is either working or not after that point.
+>>          */
+>> -       pci_reset_bridge_secondary_bus(dev->bus->self);
+>> +       if (pci_reset_slot(dev->slot))
+>> +               pci_reset_bridge_secondary_bus(dev->bus->self);
+> 
+> On Thu, Apr 19, 2018 at 06:19:32PM -0400, Sinan Kaya wrote:
+>> On 4/19/2018 5:47 PM, Bjorn Helgaas wrote:
+>>>> Bjorn, would be appropriate to export pci_parent_bus_reset() or some
+>>>> variation therin??
+>>> I agree it would be really nice if the PCI core could help out somehow
+>>> so we could get some of this code out of individual drivers.
+> 
+> What I was really thinking here was about the whole Gen3 transition
+> thing, not the reset thing by itself.
+> 
+>> I can create a function called pci_reset_link() and move both slot and
+>> secondary bus reset inside.
+> 
+> What exactly is your patch fixing?  Is it the following?
+> 
+>   If the HFI link is not operating at 8GT/s, the driver's .probe()
+>   method tries to transition it to 8GT/s, which involves resetting the
+>   HFI device with pci_reset_bridge_secondary_bus().  If the HFI device
+>   is in a hotplug slot, the reset causes a "Link Down" event, which
+>   causes the pciehp driver to remove the HFI device and re-enumerate
+>   it when the link comes back up.
+> 
+>   When pciehp removes the device, it calls the HFI .remove() method,
+>   which is a problem because the .probe() method is still active.
+> 
+>   It looks like this should deadlock because __device_attach() holds
+>   the device_lock while calling .probe() and the
+>   device_release_driver() path tries to acquire it.
+> 
+> Your patch uses pci_reset_slot(), which connects with Rajat's work
+> (06a8d89af551 ("PCI: pciehp: Disable link notification across slot
+> reset")) to avoid hotplug events for intentional resets.
+> 
+> So I think I just reverse-engineered the whole rationale for your
+> patch :)  Sorry about the long detour.
+
+Yes, you are on track. Basically; for all callers in drivers directory,
+I was trying to call hotplug reset as in (1/2) of this patch before
+secondary bus reset.
+
+I learnt about this during our DPC+hotplug interaction thread here:
+
+https://patchwork.kernel.org/project/linux-pci/list/?submitter=77241
+
+Existing issues:
+https://marc.info/?l=linux-pci&m=152336615707640&w=2
+https://www.spinics.net/lists/linux-pci/msg70614.html
+
+
+> 
+> I'm having a hard time articulating my thoughts here.  I think my
+> concern is that knowledge about this reset/link down/hotplug issue is
+> leaking out and we'll end up with different reset interfaces that may
+> or may not result in hotplug events.  This seems like a confusing API
+> because it's hard to explain which interface a driver should use.
+
+I think we should go ahead and combine slot reset and secondary bus
+reset into a single API and hide the other ones (pci_reset_slot() and
+pci_reset_bridge_secondary_bus()) from external users. This way,
+people don't have to query if system supports hotplug or not like VFIO
+does.
+
+Other drivers (AER/IB) not doing this are broken in hotplug systems today.
+
+
+> 
+> Bjorn
 > 
 
-I'm checking with our HW folks and the guys that wrote the PCI code in 
-our driver. I quite frankly just don't recall what all is going on here. 
-Let me find out for sure before I give out wrong information.
 
--Denny
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
