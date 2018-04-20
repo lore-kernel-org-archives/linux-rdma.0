@@ -1,50 +1,43 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Bug#894995: rdma-core: Please add support for new architecture "riscv64" (RISC-V 64 bits little-endian)
-Date: Fri, 20 Apr 2018 09:31:38 -0600
-Message-ID: <20180420153138.GE30433@ziepe.ca>
-References: <152297424964.29286.16311629290309565149.reportbug@reva.itsari.org> <1524139218.4781.9.camel@profitbricks.com> <152297424964.29286.16311629290309565149.reportbug@reva.itsari.org>
-Reply-To: Jason Gunthorpe <jgg@ziepe.ca>, 894995@bugs.debian.org
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Fri, 20 Apr 2018 09:34:51 -0600
+Message-ID: <20180420153451.GF30433@ziepe.ca>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+ <1524196555.11756.30.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <bounce-debian-bugs-dist=glddb-debian-bugs-dist2=m.gmane.org@lists.debian.org>
-Resent-To: debian-bugs-dist@lists.debian.org
-Resent-Message-ID: <handler.894995.B894995.152423830220086@bugs.debian.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1524139218.4781.9.camel@profitbricks.com>
-List-URL: <https://lists.debian.org/debian-bugs-dist/>
-List-Post: <mailto:debian-bugs-dist@lists.debian.org>
-List-Help: <mailto:debian-bugs-dist-request@lists.debian.org?subject=help>
-List-Subscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=subscribe>
-List-Unsubscribe: <mailto:debian-bugs-dist-request@lists.debian.org?subject=unsubscribe>
-To: Benjamin Drung <benjamin.drung@profitbricks.com>
-Cc: "Manuel A. Fernandez Montecelo" <mafm@debian.org>, 894995@bugs.debian.org, List Linux RDMA Mailing <linux-rdma@vger.kernel.org>
+In-Reply-To: <1524196555.11756.30.camel@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: =?utf-8?B?SMOla29u?= Bugge <Haakon.Bugge@oracle.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 19, 2018 at 02:00:18PM +0200, Benjamin Drung wrote:
-> > I applied the same fix as for many other arches, which is to add the
-> > arch to the
-> > list of NO_COHERENT_DMA_ARCHS in debian/rules.
+On Thu, Apr 19, 2018 at 11:55:55PM -0400, Doug Ledford wrote:
+> On Wed, 2018-04-18 at 16:24 +0200, Håkon Bugge wrote:
+> > Two kernel threads may get the same value for agent.hi_tid, if the
+> > agents are registered for different ports. As of now, this works, as
+> > the agent list is per port.
 > > 
-> > I am not sure if support could be added at a later date, but for the
-> > time being,
-> > seems to be the best way to get it working -- I don't know enough
-> > details of the
-> > architecture or the assembly language to get the necessary
-> > incantations in
-> > place.
+> > It is however confusing and not future robust. Hence, making it
+> > atomic.
+> > 
 > 
-> RISC-V has a FENCE instruction and the A extension (which is part of
-> the G instruction set) provides atomic memory operations. So the
-> architecture should provide coherent DMA support. To enable support,
-> util/udma_barrier.h needs to be adjusted. I am including
-> linux-rdma@vger.kernel.org in the loop for help.
+> People sometimes underestimate the performance penalty of atomic ops. 
+> Every atomic op is the equivalent of a spin_lock/spin_unlock pair.  This
+> is why two atomics are worse than taking a spin_lock, doing what you
+> have to do, and releasing the spin_lock.  Is this really what you want
+> for a "confusing, let's make it robust" issue?
 
-You can't tell from the instruction set if a chip is DMA coherent or
-not. It depends how the cache's are designed, and if they have a
-'snoop controller' or otherwise.
+But it is on the ib_register_mad_agent() path which is not a
+performance path..
 
-Generally if *any* DMA coherent implementations exist then we should
-add the fences, otherwise better to just not compile the drivers that
-have no chance of working.
+This actually looks like a genuine bug, why is it described only as
+'confusing'? ib_register_mad_agent is callable from userspace, so at
+least two userspace agents can race and get the same TID's.
+
+TIDs need to be globally unique on the entire machine.
 
 Jason
