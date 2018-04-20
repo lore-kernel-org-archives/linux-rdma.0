@@ -1,176 +1,77 @@
-From: Yanjun Zhu <yanjun.zhu@oracle.com>
-Subject: Re: [PATCH 1/1] IB/rxe: avoid double kfree_skb
-Date: Fri, 20 Apr 2018 13:46:30 +0800
-Message-ID: <89cbf00d-40b1-d3cc-dd1c-3c4b6fd365d8@oracle.com>
-References: <1524146512-4188-1-git-send-email-yanjun.zhu@oracle.com>
- <1524190794.11756.18.camel@redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
+Date: Fri, 20 Apr 2018 09:00:49 -0500
+Message-ID: <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
+References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
+ <20180419202632.GE14063@ziepe.ca>
+ <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
+ <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1524190794.11756.18.camel@redhat.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, monis@mellanox.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
-Cc: netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
+[+cc Rajat, Alex because of their interest in the reset/hotplug issue]
 
+For context, Sinan's patch is this:
 
-On 2018/4/20 10:19, Doug Ledford wrote:
-> On Thu, 2018-04-19 at 10:01 -0400, Zhu Yanjun wrote:
->> When skb is dropped by iptables rules, the skb is freed at the same time
->> -EPERM is returned. So in softroce, it is not necessary to free skb again.
->> Or else, crash will occur.
->>
->> The steps to reproduce:
->>
->>       server                       client
->>      ---------                    ---------
->>      |1.1.1.1|<----rxe-channel--->|1.1.1.2|
->>      ---------                    ---------
->>
->> On server: rping -s -a 1.1.1.1 -v -C 10000 -S 512
->> On client: rping -c -a 1.1.1.1 -v -C 10000 -S 512
->>
->> The kernel configs CONFIG_DEBUG_KMEMLEAK and
->> CONFIG_DEBUG_OBJECTS are enabled on both server and client.
->>
->> When rping runs, run the following command in server:
->>
->> iptables -I OUTPUT -p udp  --dport 4791 -j DROP
->>
->> Without this patch, crash will occur.
->>
->> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
->> CC: Junxiao Bi <junxiao.bi@oracle.com>
->> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> I have no reason to doubt your analysis, but if there are a bunch of
-> error paths for net_xmit and they all return with your skb still being
-> valid and holding a reference, and then one oddball that returns with
-> your skb already gone, that just sounds like a mistake waiting to happen
-> (not to mention a bajillion special cases sprinkled everywhere to deal
-> with this apparent inconsistency).
->
-> Can we get a netdev@ confirmation on this being the right solution?
-Yes. I agree with you.
-After iptables rule "iptables -I OUTPUT -p udp  --dport 4791 -j DROP", 
-the skb is freed in this function
+> diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+> index 83d66e8..75f49e3 100644
+> --- a/drivers/infiniband/hw/hfi1/pcie.c
+> +++ b/drivers/infiniband/hw/hfi1/pcie.c
+> @@ -908,7 +908,8 @@ static int trigger_sbr(struct hfi1_devdata *dd)
+>          * delay after a reset is required.  Per spec requirements,
+>          * the link is either working or not after that point.
+>          */
+> -       pci_reset_bridge_secondary_bus(dev->bus->self);
+> +       if (pci_reset_slot(dev->slot))
+> +               pci_reset_bridge_secondary_bus(dev->bus->self);
 
-/* Returns 1 if okfn() needs to be executed by the caller,
-  * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock. */
-int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
-                  const struct nf_hook_entries *e, unsigned int s)
-{
-         unsigned int verdict;
-         int ret;
+On Thu, Apr 19, 2018 at 06:19:32PM -0400, Sinan Kaya wrote:
+> On 4/19/2018 5:47 PM, Bjorn Helgaas wrote:
+> >> Bjorn, would be appropriate to export pci_parent_bus_reset() or some
+> >> variation therin??
+> > I agree it would be really nice if the PCI core could help out somehow
+> > so we could get some of this code out of individual drivers.
 
-         for (; s < e->num_hook_entries; s++) {
-                 verdict = nf_hook_entry_hookfn(&e->hooks[s], skb, state);
-                 switch (verdict & NF_VERDICT_MASK) {
-                 case NF_ACCEPT:
-                         break;
-                 case NF_DROP:
-kfree_skb(skb);                               <----here, skb is freed
-                         ret = NF_DROP_GETERR(verdict);
-                         if (ret == 0)
-                                 ret = -EPERM;
-                         return ret;
-                 case NF_QUEUE:
-                         ret = nf_queue(skb, state, e, s, verdict);
-                         if (ret == 1)
-                                 continue;
-                         return ret;
-                 default:
-                         /* Implicit handling for NF_STOLEN, as well as 
-any other
-                          * non conventional verdicts.
-                          */
-                         return 0;
-                 }
-         }
+What I was really thinking here was about the whole Gen3 transition
+thing, not the reset thing by itself.
 
-         return 1;
-}
-EXPORT_SYMBOL(nf_hook_slow);
+> I can create a function called pci_reset_link() and move both slot and
+> secondary bus reset inside.
 
-If I am wrong, please correct me.
+What exactly is your patch fixing?  Is it the following?
 
-And my test environment is still there, any solution can be verified in it.
+  If the HFI link is not operating at 8GT/s, the driver's .probe()
+  method tries to transition it to 8GT/s, which involves resetting the
+  HFI device with pci_reset_bridge_secondary_bus().  If the HFI device
+  is in a hotplug slot, the reset causes a "Link Down" event, which
+  causes the pciehp driver to remove the HFI device and re-enumerate
+  it when the link comes back up.
 
-Zhu Yanjun
->
->> ---
->>   drivers/infiniband/sw/rxe/rxe_net.c  | 3 +++
->>   drivers/infiniband/sw/rxe/rxe_req.c  | 5 +++--
->>   drivers/infiniband/sw/rxe/rxe_resp.c | 9 ++++++---
->>   3 files changed, 12 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c b/drivers/infiniband/sw/rxe/rxe_net.c
->> index 9da6e37..2094434 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_net.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
->> @@ -511,6 +511,9 @@ int rxe_send(struct rxe_pkt_info *pkt, struct sk_buff *skb)
->>   
->>          if (unlikely(net_xmit_eval(err))) {
->>                  pr_debug("error sending packet: %d\n", err);
->> +               /* -EPERM means the skb is dropped and freed. */
->> +               if (err == -EPERM)
->> +                       return -EPERM;
->>                  return -EAGAIN;
->>          }
->>   
->> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
->> index 7bdaf71..9d2efec 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_req.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
->> @@ -727,8 +727,9 @@ int rxe_requester(void *arg)
->>   
->>                  rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
->>   
->> -               if (ret == -EAGAIN) {
->> -                       kfree_skb(skb);
->> +               if ((ret == -EAGAIN) || (ret == -EPERM)) {
->> +                       if (ret == -EAGAIN)
->> +                               kfree_skb(skb);
->>                          rxe_run_task(&qp->req.task, 1);
->>                          goto exit;
->>                  }
->> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
->> index a65c996..6bdf9b2 100644
->> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
->> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
->> @@ -742,7 +742,8 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->>          err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
->>          if (err) {
->>                  pr_err("Failed sending RDMA reply.\n");
->> -               kfree_skb(skb);
->> +               if (err != -EPERM)
->> +                       kfree_skb(skb);
->>                  return RESPST_ERR_RNR;
->>          }
->>   
->> @@ -956,7 +957,8 @@ static int send_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
->>          err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
->>          if (err) {
->>                  pr_err_ratelimited("Failed sending ack\n");
->> -               kfree_skb(skb);
->> +               if (err != -EPERM)
->> +                       kfree_skb(skb);
->>          }
->>   
->>   err1:
->> @@ -1141,7 +1143,8 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
->>                          if (rc) {
->>                                  pr_err("Failed resending result. This flow is not handled - skb ignored\n");
->>                                  rxe_drop_ref(qp);
->> -                               kfree_skb(skb_copy);
->> +                               if (rc != -EPERM)
->> +                                       kfree_skb(skb_copy);
->>                                  rc = RESPST_CLEANUP;
->>                                  goto out;
->>                          }
->> -- 
->> 2.7.4
->>
+  When pciehp removes the device, it calls the HFI .remove() method,
+  which is a problem because the .probe() method is still active.
+
+  It looks like this should deadlock because __device_attach() holds
+  the device_lock while calling .probe() and the
+  device_release_driver() path tries to acquire it.
+
+Your patch uses pci_reset_slot(), which connects with Rajat's work
+(06a8d89af551 ("PCI: pciehp: Disable link notification across slot
+reset")) to avoid hotplug events for intentional resets.
+
+So I think I just reverse-engineered the whole rationale for your
+patch :)  Sorry about the long detour.
+
+I'm having a hard time articulating my thoughts here.  I think my
+concern is that knowledge about this reset/link down/hotplug issue is
+leaking out and we'll end up with different reset interfaces that may
+or may not result in hotplug events.  This seems like a confusing API
+because it's hard to explain which interface a driver should use.
+
+Bjorn
