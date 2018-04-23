@@ -1,81 +1,56 @@
-From: Alex Williamson <alex.williamson@redhat.com>
-Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
-Date: Mon, 23 Apr 2018 13:10:44 -0600
-Message-ID: <20180423131044.53471670@w520.home>
-References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
-        <20180419202632.GE14063@ziepe.ca>
-        <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
-        <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
-        <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
-        <20180420090420.03fb1e6c@w520.home>
-        <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
+From: jackm <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Mon, 23 Apr 2018 22:16:18 +0300
+Message-ID: <20180423221618.0000795d@dev.mellanox.co.il>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+        <1524196555.11756.30.camel@redhat.com>
+        <20180420153451.GF30433@ziepe.ca>
+        <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
+In-Reply-To: <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>
+To: =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 23 Apr 2018 13:28:22 -0400
-Sinan Kaya <okaya@codeaurora.org> wrote:
+On Mon, 23 Apr 2018 16:19:57 +0200
+H=C3=A5kon Bugge <haakon.bugge@oracle.com> wrote:
 
-> On 4/20/2018 11:04 AM, Alex Williamson wrote:
-> > Is there a concern here about whether the endpoint device driver or the
-> > PCI core really knows better about link retraining?  This makes me
-> > remember my unfinished (and need to revisit) Pericom quirk[1] where
-> > errata in the PCIe switch requires that upstream and downstream links
-> > are balanced (ie. same link rate) or else enabling ACS results in
-> > packets not properly flowing through the switch.  If an endpoint driver
-> > starts deciding to retrain links, overriding quirks in the PCI core,
-> > then such topology manipulation isn't possible.  Why does the
-> > driver .probe() function think it can retrain at a higher link rate
-> > than PCI core?  Thanks,  
-> 
-> The example given is for some serdes firmware load to happen in probe and
-> then performing a retrain to reach to a better speed.
-> 
-> It becomes a chicken and egg problem. 
-> 
-> 1. Endpoint HW trains to gen1 by default pre-boot.
-> 2. PCI core enumerates the device.
-> 3. Endpoint driver gets loaded
-> 4. Driver does the firmware programming followed by a link retrain.
-> 
-> I think it is the responsibility of the PCI core to provide reset APIs.
-> However, expecting endpoint drivers to be knowledgeable about hotplug is
-> too much.
-> 
-> We can certainly contain AER change into pci directory by moving the slot
-> reset function to drivers/pci.h file.
-> 
-> But, we need to think about what to do about VFIO and other endpoint
-> initiated reset cases. My suggestion was to move this into a single API and
-> remove all other APIs from include/linux/pci.h.
 
-I'm a little confused about the relation between reset and retrain.
-AIUI we can retrain the link without any sort of endpoint reset and if
-some sort of driver/firmware setup is required on the endpoint to
-achieve the target link speed, then I'd think we only want to retrain.
-How this is going to work with vfio is an interesting question.  We're
-only providing access to the device, not the link to the device.
-Multifunction endpoints become a big problem if one function starts
-requesting link retraining while another is in use elsewhere.
- 
-> Coming back to this patch...
-> 
-> Do we need a retrain API with the speed that driver wants to reach to?
-> API can return what was actually accomplished. The quirk from Alex can
-> run inside this API to make a decision on what speed do we actually want
-> to reach to for a given PCI topology by reprogramming the target link speed
-> field.
+> >=20
+> > This actually looks like a genuine bug, why is it described only as
+> > 'confusing'? ib_register_mad_agent is callable from userspace, so at
+> > least two userspace agents can race and get the same TID=E2=80=99s. =20
+>=20
+> My understanding is that every lookup is using the {port, TID} tuple.
+> As such, it is not a bug, but, very confusing.
+Haakon, you are correct (see snippet from the IB spec, below).
 
-Yes, I think the core should provide a retraining API, that would also
-make the Pericom quirk easier to implement.  We'd want a field/flag on
-the pcidev that could be set by quirks to limit the highest target
-rate, but it makes sense that this should be an interface provided by
-and control point for the PCI core.  Thanks,
+We will NOT have a situation where there are 2 threads/apps
+with the same agent ID on the *same port* (accessing the agent ID
+allocator is protected by a per-port spinlock). Having the same agent ID
+on DIFFERENT ports is OK.
+Thus, there is NO bug here. (But as Haakon says, IMHO it is more robust
+to avoid having the same agent ID for 2 agents even if those agents are
+on different ports).
 
-Alex
+>=20
+> > TIDs need to be globally unique on the entire machine. =20
+>=20
+Jason, that is not exactly correct.
+
+=46rom the IB Spec 1.3, C13-18.1.1 (in section 13.4.6.4 - TransactionID
+usage):
+"When initiating a new operation, MADHeader:TransactionID
+shall be set to such a value that within that MAD the combination of
+TID, SGID, and MgmtClass is different from that of any other currently
+executing operation. If the MAD does not have a GRH, its SLID is used
+in the combination in place of an SGID."
+
+Since the SGID/SLID is different for each port, the per-port guarantee
+of no 2 agents receiving the same agent-ID value is sufficient.
+
+-Jack
