@@ -1,123 +1,162 @@
-From: Steve French <smfrench@gmail.com>
-Subject: Re: [Patch v2 4/6] cifs: smbd: Don't use RDMA read/write when signing
- is used
-Date: Mon, 23 Apr 2018 10:34:55 -0500
-Message-ID: <CAH2r5msFfBuTb5AF7inHVnA0B=miTc-S3kw_cKV_SfmeEd0_cw@mail.gmail.com>
-References: <20180417191710.14855-1-longli@linuxonhyperv.com> <20180417191710.14855-4-longli@linuxonhyperv.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180417191710.14855-4-longli@linuxonhyperv.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Long Li <longli@microsoft.com>
-Cc: Steve French <sfrench@samba.org>, CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
+From: Raju Rangoju <rajur@chelsio.com>
+Subject: [PATCH] RDMA/cxgb4: release hw resources on device removal
+Date: Mon, 23 Apr 2018 21:42:37 +0530
+Message-ID: <20180423161237.3459-1-rajur@chelsio.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org
+Cc: swise@opengridcomputing.com, rajur@chelsio.com, bharat@chelsio.com, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-merged into cifs-2.6.git for-next
+The c4iw_rdev_close() logic was not releasing all the hw
+resources (PBL and RQT memory) during the device removal
+event (driver unload / system reboot). This can cause panic
+in gen_pool_destroy().
 
-On Tue, Apr 17, 2018 at 2:17 PM, Long Li <longli@linuxonhyperv.com> wrote:
-> From: Long Li <longli@microsoft.com>
->
-> SMB server will not sign data transferred through RDMA read/write. When
-> signing is used, it's a good idea to have all the data signed.
->
-> In this case, use RDMA send/recv for all data transfers. This will degrade
-> performance as this is not generally configured in RDMA environemnt. So
-> warn the user on signing and RDMA send/recv.
->
-> Signed-off-by: Long Li <longli@microsoft.com>
-> Cc: stable@vger.kernel.org
-> ---
->  fs/cifs/cifssmb.c |  3 +++
->  fs/cifs/smb2ops.c | 18 ++++++++++++++----
->  fs/cifs/smb2pdu.c |  4 ++--
->  3 files changed, 19 insertions(+), 6 deletions(-)
->
-> diff --git a/fs/cifs/cifssmb.c b/fs/cifs/cifssmb.c
-> index 6d3e40d..1529a08 100644
-> --- a/fs/cifs/cifssmb.c
-> +++ b/fs/cifs/cifssmb.c
-> @@ -455,6 +455,9 @@ cifs_enable_signing(struct TCP_Server_Info *server, bool mnt_sign_required)
->                 server->sign = true;
->         }
->
-> +       if (cifs_rdma_enabled(server) && server->sign)
-> +               cifs_dbg(VFS, "Signing is enabled, and RDMA read/write will be disabled");
-> +
->         return 0;
->  }
->
-> diff --git a/fs/cifs/smb2ops.c b/fs/cifs/smb2ops.c
-> index 38ebf3f..b76b858 100644
-> --- a/fs/cifs/smb2ops.c
-> +++ b/fs/cifs/smb2ops.c
-> @@ -252,9 +252,14 @@ smb2_negotiate_wsize(struct cifs_tcon *tcon, struct smb_vol *volume_info)
->         wsize = volume_info->wsize ? volume_info->wsize : CIFS_DEFAULT_IOSIZE;
->         wsize = min_t(unsigned int, wsize, server->max_write);
->  #ifdef CONFIG_CIFS_SMB_DIRECT
-> -       if (server->rdma)
-> -               wsize = min_t(unsigned int,
-> +       if (server->rdma) {
-> +               if (server->sign)
-> +                       wsize = min_t(unsigned int,
-> +                               wsize, server->smbd_conn->max_fragmented_send_size);
-> +               else
-> +                       wsize = min_t(unsigned int,
->                                 wsize, server->smbd_conn->max_readwrite_size);
-> +       }
->  #endif
->         if (!(server->capabilities & SMB2_GLOBAL_CAP_LARGE_MTU))
->                 wsize = min_t(unsigned int, wsize, SMB2_MAX_BUFFER_SIZE);
-> @@ -272,9 +277,14 @@ smb2_negotiate_rsize(struct cifs_tcon *tcon, struct smb_vol *volume_info)
->         rsize = volume_info->rsize ? volume_info->rsize : CIFS_DEFAULT_IOSIZE;
->         rsize = min_t(unsigned int, rsize, server->max_read);
->  #ifdef CONFIG_CIFS_SMB_DIRECT
-> -       if (server->rdma)
-> -               rsize = min_t(unsigned int,
-> +       if (server->rdma) {
-> +               if (server->sign)
-> +                       rsize = min_t(unsigned int,
-> +                               rsize, server->smbd_conn->max_fragmented_recv_size);
-> +               else
-> +                       rsize = min_t(unsigned int,
->                                 rsize, server->smbd_conn->max_readwrite_size);
-> +       }
->  #endif
->
->         if (!(server->capabilities & SMB2_GLOBAL_CAP_LARGE_MTU))
-> diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c
-> index 41625e4..33f612f 100644
-> --- a/fs/cifs/smb2pdu.c
-> +++ b/fs/cifs/smb2pdu.c
-> @@ -2595,7 +2595,7 @@ smb2_new_read_req(void **buf, unsigned int *total_len,
->          * If we want to do a RDMA write, fill in and append
->          * smbd_buffer_descriptor_v1 to the end of read request
->          */
-> -       if (server->rdma && rdata &&
-> +       if (server->rdma && rdata && !server->sign &&
->                 rdata->bytes >= server->smbd_conn->rdma_readwrite_threshold) {
->
->                 struct smbd_buffer_descriptor_v1 *v1;
-> @@ -2973,7 +2973,7 @@ smb2_async_writev(struct cifs_writedata *wdata,
->          * If we want to do a server RDMA read, fill in and append
->          * smbd_buffer_descriptor_v1 to the end of write request
->          */
-> -       if (server->rdma && wdata->bytes >=
-> +       if (server->rdma && !server->sign && wdata->bytes >=
->                 server->smbd_conn->rdma_readwrite_threshold) {
->
->                 struct smbd_buffer_descriptor_v1 *v1;
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The module remove function will wait for all the hw
+resources to be released during the device removal event.
 
+Fixes c12a67fe(iw_cxgb4: free EQ queue memory on last deref)
+Signed-off-by: Raju Rangoju <rajur@chelsio.com>
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/infiniband/hw/cxgb4/device.c   |  9 ++++++++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 ++++
+ drivers/infiniband/hw/cxgb4/resource.c | 26 ++++++++++++++++++++++++--
+ 3 files changed, 36 insertions(+), 3 deletions(-)
 
-
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index feeb8ee6f4a2..44161ca4d2a8 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -875,6 +875,11 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 
+ 	rdev->status_page->db_off = 0;
+ 
++	init_completion(&rdev->rqt_compl);
++	init_completion(&rdev->pbl_compl);
++	kref_init(&rdev->rqt_kref);
++	kref_init(&rdev->pbl_kref);
++
+ 	return 0;
+ err_free_status_page_and_wr_log:
+ 	if (c4iw_wr_log && rdev->wr_log)
+@@ -893,13 +898,15 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 
+ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
+ {
+-	destroy_workqueue(rdev->free_workq);
+ 	kfree(rdev->wr_log);
+ 	c4iw_release_dev_ucontext(rdev, &rdev->uctx);
+ 	free_page((unsigned long)rdev->status_page);
+ 	c4iw_pblpool_destroy(rdev);
+ 	c4iw_rqtpool_destroy(rdev);
++	wait_for_completion(&rdev->pbl_compl);
++	wait_for_completion(&rdev->rqt_compl);
+ 	c4iw_ocqp_pool_destroy(rdev);
++	destroy_workqueue(rdev->free_workq);
+ 	c4iw_destroy_resource(&rdev->resource);
+ }
+ 
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index cc929002c05e..a60def23e9ef 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -185,6 +185,10 @@ struct c4iw_rdev {
+ 	struct wr_log_entry *wr_log;
+ 	int wr_log_size;
+ 	struct workqueue_struct *free_workq;
++	struct completion rqt_compl;
++	struct completion pbl_compl;
++	struct kref rqt_kref;
++	struct kref pbl_kref;
+ };
+ 
+ static inline int c4iw_fatal_error(struct c4iw_rdev *rdev)
+diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
+index 3cf25997ed2b..0ef25ae05e6f 100644
+--- a/drivers/infiniband/hw/cxgb4/resource.c
++++ b/drivers/infiniband/hw/cxgb4/resource.c
+@@ -260,12 +260,22 @@ u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
+ 		rdev->stats.pbl.cur += roundup(size, 1 << MIN_PBL_SHIFT);
+ 		if (rdev->stats.pbl.cur > rdev->stats.pbl.max)
+ 			rdev->stats.pbl.max = rdev->stats.pbl.cur;
++		kref_get(&rdev->pbl_kref);
+ 	} else
+ 		rdev->stats.pbl.fail++;
+ 	mutex_unlock(&rdev->stats.lock);
+ 	return (u32)addr;
+ }
+ 
++static void destroy_pblpool(struct kref *kref)
++{
++	struct c4iw_rdev *rdev;
++
++	rdev = container_of(kref, struct c4iw_rdev, pbl_kref);
++	gen_pool_destroy(rdev->pbl_pool);
++	complete(&rdev->pbl_compl);
++}
++
+ void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
+ {
+ 	pr_debug("addr 0x%x size %d\n", addr, size);
+@@ -273,6 +283,7 @@ void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
+ 	rdev->stats.pbl.cur -= roundup(size, 1 << MIN_PBL_SHIFT);
+ 	mutex_unlock(&rdev->stats.lock);
+ 	gen_pool_free(rdev->pbl_pool, (unsigned long)addr, size);
++	kref_put(&rdev->pbl_kref, destroy_pblpool);
+ }
+ 
+ int c4iw_pblpool_create(struct c4iw_rdev *rdev)
+@@ -310,7 +321,7 @@ int c4iw_pblpool_create(struct c4iw_rdev *rdev)
+ 
+ void c4iw_pblpool_destroy(struct c4iw_rdev *rdev)
+ {
+-	gen_pool_destroy(rdev->pbl_pool);
++	kref_put(&rdev->pbl_kref, destroy_pblpool);
+ }
+ 
+ /*
+@@ -331,12 +342,22 @@ u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
+ 		rdev->stats.rqt.cur += roundup(size << 6, 1 << MIN_RQT_SHIFT);
+ 		if (rdev->stats.rqt.cur > rdev->stats.rqt.max)
+ 			rdev->stats.rqt.max = rdev->stats.rqt.cur;
++		kref_get(&rdev->rqt_kref);
+ 	} else
+ 		rdev->stats.rqt.fail++;
+ 	mutex_unlock(&rdev->stats.lock);
+ 	return (u32)addr;
+ }
+ 
++static void destroy_rqtpool(struct kref *kref)
++{
++	struct c4iw_rdev *rdev;
++
++	rdev = container_of(kref, struct c4iw_rdev, rqt_kref);
++	gen_pool_destroy(rdev->rqt_pool);
++	complete(&rdev->rqt_compl);
++}
++
+ void c4iw_rqtpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
+ {
+ 	pr_debug("addr 0x%x size %d\n", addr, size << 6);
+@@ -344,6 +365,7 @@ void c4iw_rqtpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
+ 	rdev->stats.rqt.cur -= roundup(size << 6, 1 << MIN_RQT_SHIFT);
+ 	mutex_unlock(&rdev->stats.lock);
+ 	gen_pool_free(rdev->rqt_pool, (unsigned long)addr, size << 6);
++	kref_put(&rdev->rqt_kref, destroy_rqtpool);
+ }
+ 
+ int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
+@@ -380,7 +402,7 @@ int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
+ 
+ void c4iw_rqtpool_destroy(struct c4iw_rdev *rdev)
+ {
+-	gen_pool_destroy(rdev->rqt_pool);
++	kref_put(&rdev->rqt_kref, destroy_rqtpool);
+ }
+ 
+ /*
 -- 
-Thanks,
-
-Steve
+2.12.0
