@@ -1,80 +1,47 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 1/6] cifs: smbd: Check for iov length on sending the
- last iov
-Date: Mon, 23 Apr 2018 19:34:23 +0000
-Message-ID: <SN4PR2101MB07337EA730A456125CF72787CE890@SN4PR2101MB0733.namprd21.prod.outlook.com>
-References: <20180417191710.14855-1-longli@linuxonhyperv.com>
- <DM5PR2101MB1030B8026AC0E48F3E96E739DC8A0@DM5PR2101MB1030.namprd21.prod.outlook.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
+Date: Mon, 23 Apr 2018 16:17:23 -0400
+Message-ID: <f7022685-9c99-7d49-a2f3-07b387d96e8d@codeaurora.org>
+References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
+ <20180419202632.GE14063@ziepe.ca>
+ <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
+ <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
+ <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
+ <20180420090420.03fb1e6c@w520.home>
+ <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
+ <20180423131044.53471670@w520.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <DM5PR2101MB1030B8026AC0E48F3E96E739DC8A0@DM5PR2101MB1030.namprd21.prod.outlook.com>
+In-Reply-To: <20180423131044.53471670@w520.home>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael Kelley (EOSG)" <Michael.H.Kelley@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: RE: [Patch v2 1/6] cifs: smbd: Check for iov length on sending t=
-he last
-> iov
->=20
-> > -----Original Message-----
-> > From: linux-kernel-owner@vger.kernel.org
-> > <linux-kernel-owner@vger.kernel.org> On Behalf Of Long Li
-> > Sent: Tuesday, April 17, 2018 12:17 PM
-> > To: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org;
-> > samba- technical@lists.samba.org; linux-kernel@vger.kernel.org;
-> > linux-rdma@vger.kernel.org
-> > Cc: Long Li <longli@microsoft.com>; stable@vger.kernel.org
-> > Subject: [Patch v2 1/6] cifs: smbd: Check for iov length on sending
-> > the last iov
-> >
-> > From: Long Li <longli@microsoft.com>
-> >
-> > When sending the last iov that breaks into smaller buffers to fit the
-> > transfer size, it's necessary to check if this is the last iov.
-> >
-> > If this is the latest iov, stop and proceed to send pages.
-> >
-> > Signed-off-by: Long Li <longli@microsoft.com>
-> > Cc: stable@vger.kernel.org
->=20
-> Reviewed-by: Michael Kelley <mikelley@microsoft.com>
->=20
-> But a question unrelated to this change arose during my review:  At the
-> beginning and end of smbd_send(), the field smbd_send_pending is
-> incremented and decremented, respectively.   The increment/decrement
-> are not done as atomic operations.  Is this code guaranteed to be single
-> threaded?  If not, the count could become corrupted, and
-> smbd_destroy_rdma_work(), which waits for the count to become zero,
-> could hang.  A similar question applies to smbd_recv_pending in smbd_recv=
-().
+On 4/23/2018 3:10 PM, Alex Williamson wrote:
+>> But, we need to think about what to do about VFIO and other endpoint
+>> initiated reset cases. My suggestion was to move this into a single API and
+>> remove all other APIs from include/linux/pci.h.
+> I'm a little confused about the relation between reset and retrain.
+> AIUI we can retrain the link without any sort of endpoint reset and if
+> some sort of driver/firmware setup is required on the endpoint to
+> achieve the target link speed, then I'd think we only want to retrain.
 
-It is safe. The transport sending path is locked by TCP_Server_Info->srv_mu=
-tex.
+I'm guessing on why you may want to do a secondary bus reset instead of just
+retrain bit in the PCI Express Capabilities register...
 
-The transport receiving path is single threaded.
+The maximum link speed is embedded into the TS1s that are exchanged during
+initial link training. 
 
->=20
-> > ---
-> >  fs/cifs/smbdirect.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c index
-> > 90e673c..b5c6c0d 100644
-> > --- a/fs/cifs/smbdirect.c
-> > +++ b/fs/cifs/smbdirect.c
-> > @@ -2197,6 +2197,8 @@ int smbd_send(struct smbd_connection *info,
-> struct smb_rqst *rqst)
-> >  						goto done;
-> >  				}
-> >  				i++;
-> > +				if (i =3D=3D rqst->rq_nvec)
-> > +					break;
-> >  			}
-> >  			start =3D i;
-> >  			buflen =3D 0;
-> > --
-> > 2.7.4
+If device only advertises gen1 during boot, no matter what you do with retrain
+bit link may not reach to gen3.
+
+A lot of guess here.
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
