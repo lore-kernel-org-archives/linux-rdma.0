@@ -1,73 +1,143 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH for-rc] uapi: Fix SPDX tags for files referring to the
- 'OpenIB.org' license
-Date: Mon, 23 Apr 2018 11:11:06 -0400
-Message-ID: <1524496266.11756.36.camel@redhat.com>
-References: <20180420154910.GA2519@ziepe.ca>
-         <20180422.210823.1454088204642743739.davem@davemloft.net>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [Patch v2 3/6] cifs: smbd: Avoid allocating iov on the stack
+Date: Mon, 23 Apr 2018 10:31:51 -0500
+Message-ID: <CAH2r5mv65CGR04f3Z20aRBufisPon5Ptvqk++zii3YT=GN8epQ@mail.gmail.com>
+References: <20180417191710.14855-1-longli@linuxonhyperv.com> <20180417191710.14855-3-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-aTiSFOavqybSiOFpKn2H"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180422.210823.1454088204642743739.davem@davemloft.net>
+In-Reply-To: <20180417191710.14855-3-longli@linuxonhyperv.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, jgg@mellanox.com
-Cc: linux-rdma@vger.kernel.org, kstewart@linuxfoundation.org, pombredanne@nexb.com, gregkh@linuxfoundation.org, tglx@linutronix.de, swinslow@linuxfoundation.org, santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, davejwatson@fb.com
+To: Long Li <longli@microsoft.com>
+Cc: CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Didn't see any obvious problems, but can you fix the checkpatch
+warnings and resend to the list (I am more concerned about the last
+two warnings rather than the first one).
 
---=-aTiSFOavqybSiOFpKn2H
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+$ scripts/checkpatch.pl 0001-cifs-smbd-Avoid-allocating-iov-on-the-stack.patch
+WARNING: line over 80 characters
+#60: FILE: fs/cifs/smbdirect.c:2106:
++        log_write(ERR, "expected the pdu length in 1st iov, but got
+0x%lu\n", rqst->rq_iov[0].iov_len);
 
-On Sun, 2018-04-22 at 21:08 -0400, David Miller wrote:
-> From: Jason Gunthorpe <jgg@mellanox.com>
-> Date: Fri, 20 Apr 2018 09:49:10 -0600
->=20
-> > Based on discussion with Kate Stewart this license is not a
-> > BSD-2-Clause, but is now formally identified as Linux-OpenIB
-> > by SPDX.
-> >=20
-> > The key difference between the licenses is in the 'warranty'
-> > paragraph.
-> >=20
-> > if_infiniband.h refers to the 'OpenIB.org' license, but
-> > does not include the text, instead it links to an obsolete
-> > web site that contains a license that matches the BSD-2-Clause
-> > SPX. There is no 'three clause' version of the OpenIB.org
-> > license.
-> >=20
-> > Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
->=20
-> Acked-by: David S. Miller <davem@davemloft.net>
->=20
+ERROR: Prefixing 0x with decimal output is defective
+#60: FILE: fs/cifs/smbdirect.c:2106:
++        log_write(ERR, "expected the pdu length in 1st iov, but got
+0x%lu\n", rqst->rq_iov[0].iov_len);
 
-Thanks, applied.
+WARNING: braces {} are not necessary for single statement blocks
+#69: FILE: fs/cifs/smbdirect.c:2112:
++    for (i = 0; i < rqst->rq_nvec-1; i++) {
+         buflen += iov[i].iov_len;
+     }
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-aTiSFOavqybSiOFpKn2H
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+total: 1 errors, 2 warnings, 65 lines checked
 
------BEGIN PGP SIGNATURE-----
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrd94oACgkQuCajMw5X
-L92qyQ/+N3Lbrhy4z7gxK7j1KPx6+DaH7yKqP1x3vjKkflvVDePAgfNKEgNWqKZv
-aq0KDjOH/j3JioIaGQRuVtGx7VX+6bhVGfzd0EG3rN4wSzOpklU7X4sgL5zW8ZQ+
-LLYMqTQ+adRZDHaks61gU6nHH8a2Tk2YtE6DaRO3XHzUlzxjVd4tXObDqV6lL2I3
-9bG/VRDteswILhyp5fXXFPrMvneXTUc/HuXCCgTyq+FyR89AXX3SwrRMm5lo6Ubp
-1StnQmkwSlmo6B9Y770zr3uAm8/EpdanTl6h0Oy3WyER+SPznElbiHK726UJ6BXS
-5hOU8K7flfDL9Os/JPIezMcnn/zCgBLCF8R/euzTI6mIjVMpX5bMjFlF3xSTam2H
-TkxFRxOiL/hrNrxRPvjOLgFkDdG8E/cZqhsi6Ap6WYeYiibWeT5PdsXD8o716uvE
-J17g15RK87Dh9I9ZdgKxfJJ7lNO6vsRtili/IC2mmPZHnPjIOx/dSacDZgaH6taV
-6Maquesc/ZACUf/gLoxYfJieagFcwMZTj3g3DgA9EHWwWxa19MFx2iQjBDMIUh7Q
-CYnpV4DkCmb+UNhGF82gG75Z9dQKlKUeGX+CkzOud4zQOGei4A2zXFVo2704hHHp
-d9jLr7oP6IDPvMvw0Y9E70DcwHRiINWJMjH0dA8DQfeTWBaBaI8=
-=slaJ
------END PGP SIGNATURE-----
+0001-cifs-smbd-Avoid-allocating-iov-on-the-stack.patch has style
+problems, please review.
 
---=-aTiSFOavqybSiOFpKn2H--
+On Tue, Apr 17, 2018 at 2:17 PM, Long Li <longli@linuxonhyperv.com> wrote:
+> From: Long Li <longli@microsoft.com>
+>
+> It's not necessary to allocate another iov when going through the buffers
+> in smbd_send() through RDMA send.
+>
+> Remove it to reduce stack size.
+>
+> Signed-off-by: Long Li <longli@microsoft.com>
+> Cc: stable@vger.kernel.org
+> ---
+>  fs/cifs/smbdirect.c | 36 ++++++++++++------------------------
+>  1 file changed, 12 insertions(+), 24 deletions(-)
+>
+> diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+> index b5c6c0d..f575e9a 100644
+> --- a/fs/cifs/smbdirect.c
+> +++ b/fs/cifs/smbdirect.c
+> @@ -2088,7 +2088,7 @@ int smbd_send(struct smbd_connection *info, struct smb_rqst *rqst)
+>         int start, i, j;
+>         int max_iov_size =
+>                 info->max_send_size - sizeof(struct smbd_data_transfer);
+> -       struct kvec iov[SMBDIRECT_MAX_SGE];
+> +       struct kvec *iov;
+>         int rc;
+>
+>         info->smbd_send_pending++;
+> @@ -2099,32 +2099,20 @@ int smbd_send(struct smbd_connection *info, struct smb_rqst *rqst)
+>         }
+>
+>         /*
+> -        * This usually means a configuration error
+> -        * We use RDMA read/write for packet size > rdma_readwrite_threshold
+> -        * as long as it's properly configured we should never get into this
+> -        * situation
+> -        */
+> -       if (rqst->rq_nvec + rqst->rq_npages > SMBDIRECT_MAX_SGE) {
+> -               log_write(ERR, "maximum send segment %x exceeding %x\n",
+> -                        rqst->rq_nvec + rqst->rq_npages, SMBDIRECT_MAX_SGE);
+> -               rc = -EINVAL;
+> -               goto done;
+> -       }
+> -
+> -       /*
+> -        * Remove the RFC1002 length defined in MS-SMB2 section 2.1
+> -        * It is used only for TCP transport
+> +        * Skip the RFC1002 length defined in MS-SMB2 section 2.1
+> +        * It is used only for TCP transport in the iov[0]
+>          * In future we may want to add a transport layer under protocol
+>          * layer so this will only be issued to TCP transport
+>          */
+> -       iov[0].iov_base = (char *)rqst->rq_iov[0].iov_base + 4;
+> -       iov[0].iov_len = rqst->rq_iov[0].iov_len - 4;
+> -       buflen += iov[0].iov_len;
+> +
+> +       if (rqst->rq_iov[0].iov_len != 4) {
+> +               log_write(ERR, "expected the pdu length in 1st iov, but got 0x%lu\n", rqst->rq_iov[0].iov_len);
+> +               return -EINVAL;
+> +       }
+> +       iov = &rqst->rq_iov[1];
+>
+>         /* total up iov array first */
+> -       for (i = 1; i < rqst->rq_nvec; i++) {
+> -               iov[i].iov_base = rqst->rq_iov[i].iov_base;
+> -               iov[i].iov_len = rqst->rq_iov[i].iov_len;
+> +       for (i = 0; i < rqst->rq_nvec-1; i++) {
+>                 buflen += iov[i].iov_len;
+>         }
+>
+> @@ -2197,14 +2185,14 @@ int smbd_send(struct smbd_connection *info, struct smb_rqst *rqst)
+>                                                 goto done;
+>                                 }
+>                                 i++;
+> -                               if (i == rqst->rq_nvec)
+> +                               if (i == rqst->rq_nvec-1)
+>                                         break;
+>                         }
+>                         start = i;
+>                         buflen = 0;
+>                 } else {
+>                         i++;
+> -                       if (i == rqst->rq_nvec) {
+> +                       if (i == rqst->rq_nvec-1) {
+>                                 /* send out all remaining vecs */
+>                                 remaining_data_length -= buflen;
+>                                 log_write(INFO,
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Thanks,
+
+Steve
