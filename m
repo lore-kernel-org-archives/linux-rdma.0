@@ -1,61 +1,73 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Mon, 23 Apr 2018 16:19:57 +0200
-Message-ID: <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
-References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
- <1524196555.11756.30.camel@redhat.com> <20180420153451.GF30433@ziepe.ca>
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH for-rc] uapi: Fix SPDX tags for files referring to the
+ 'OpenIB.org' license
+Date: Mon, 23 Apr 2018 11:11:06 -0400
+Message-ID: <1524496266.11756.36.camel@redhat.com>
+References: <20180420154910.GA2519@ziepe.ca>
+         <20180422.210823.1454088204642743739.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-aTiSFOavqybSiOFpKn2H"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420153451.GF30433@ziepe.ca>
+In-Reply-To: <20180422.210823.1454088204642743739.davem@davemloft.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, jackm <jackm@dev.mellanox.co.il>
+To: David Miller <davem@davemloft.net>, jgg@mellanox.com
+Cc: linux-rdma@vger.kernel.org, kstewart@linuxfoundation.org, pombredanne@nexb.com, gregkh@linuxfoundation.org, tglx@linutronix.de, swinslow@linuxfoundation.org, santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, davejwatson@fb.com
 List-Id: linux-rdma@vger.kernel.org
 
 
-+Jack
+--=-aTiSFOavqybSiOFpKn2H
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> On 20 Apr 2018, at 17:34, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Sun, 2018-04-22 at 21:08 -0400, David Miller wrote:
+> From: Jason Gunthorpe <jgg@mellanox.com>
+> Date: Fri, 20 Apr 2018 09:49:10 -0600
 >=20
-> On Thu, Apr 19, 2018 at 11:55:55PM -0400, Doug Ledford wrote:
->> On Wed, 2018-04-18 at 16:24 +0200, H=C3=A5kon Bugge wrote:
->>> Two kernel threads may get the same value for agent.hi_tid, if the
->>> agents are registered for different ports. As of now, this works, as
->>> the agent list is per port.
->>>=20
->>> It is however confusing and not future robust. Hence, making it
->>> atomic.
->>>=20
->>=20
->> People sometimes underestimate the performance penalty of atomic ops.=20=
-
->> Every atomic op is the equivalent of a spin_lock/spin_unlock pair.
-
-Well, may be this holds true if the mutex and the variable is located in =
-the same cacheline.
-
->>  This
->> is why two atomics are worse than taking a spin_lock, doing what you
->> have to do, and releasing the spin_lock.  Is this really what you =
-want
->> for a "confusing, let's make it robust" issue?
+> > Based on discussion with Kate Stewart this license is not a
+> > BSD-2-Clause, but is now formally identified as Linux-OpenIB
+> > by SPDX.
+> >=20
+> > The key difference between the licenses is in the 'warranty'
+> > paragraph.
+> >=20
+> > if_infiniband.h refers to the 'OpenIB.org' license, but
+> > does not include the text, instead it links to an obsolete
+> > web site that contains a license that matches the BSD-2-Clause
+> > SPX. There is no 'three clause' version of the OpenIB.org
+> > license.
+> >=20
+> > Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 >=20
-> But it is on the ib_register_mad_agent() path which is not a
-> performance path..
+> Acked-by: David S. Miller <davem@davemloft.net>
 >=20
-> This actually looks like a genuine bug, why is it described only as
-> 'confusing'? ib_register_mad_agent is callable from userspace, so at
-> least two userspace agents can race and get the same TID=E2=80=99s.
 
-My understanding is that every lookup is using the {port, TID} tuple. As =
-such, it is not a bug, but, very confusing.
+Thanks, applied.
 
-> TIDs need to be globally unique on the entire machine.
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-aTiSFOavqybSiOFpKn2H
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-If you are correct Jason, let me reword the commit message.
+-----BEGIN PGP SIGNATURE-----
 
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrd94oACgkQuCajMw5X
+L92qyQ/+N3Lbrhy4z7gxK7j1KPx6+DaH7yKqP1x3vjKkflvVDePAgfNKEgNWqKZv
+aq0KDjOH/j3JioIaGQRuVtGx7VX+6bhVGfzd0EG3rN4wSzOpklU7X4sgL5zW8ZQ+
+LLYMqTQ+adRZDHaks61gU6nHH8a2Tk2YtE6DaRO3XHzUlzxjVd4tXObDqV6lL2I3
+9bG/VRDteswILhyp5fXXFPrMvneXTUc/HuXCCgTyq+FyR89AXX3SwrRMm5lo6Ubp
+1StnQmkwSlmo6B9Y770zr3uAm8/EpdanTl6h0Oy3WyER+SPznElbiHK726UJ6BXS
+5hOU8K7flfDL9Os/JPIezMcnn/zCgBLCF8R/euzTI6mIjVMpX5bMjFlF3xSTam2H
+TkxFRxOiL/hrNrxRPvjOLgFkDdG8E/cZqhsi6Ap6WYeYiibWeT5PdsXD8o716uvE
+J17g15RK87Dh9I9ZdgKxfJJ7lNO6vsRtili/IC2mmPZHnPjIOx/dSacDZgaH6taV
+6Maquesc/ZACUf/gLoxYfJieagFcwMZTj3g3DgA9EHWwWxa19MFx2iQjBDMIUh7Q
+CYnpV4DkCmb+UNhGF82gG75Z9dQKlKUeGX+CkzOud4zQOGei4A2zXFVo2704hHHp
+d9jLr7oP6IDPvMvw0Y9E70DcwHRiINWJMjH0dA8DQfeTWBaBaI8=
+=slaJ
+-----END PGP SIGNATURE-----
 
-Thxs, H=C3=A5kon
+--=-aTiSFOavqybSiOFpKn2H--
