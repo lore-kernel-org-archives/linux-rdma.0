@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 09/14] nvme-pci: Use PCI p2pmem subsystem to manage the CMB
-Date: Mon, 23 Apr 2018 17:30:41 -0600
-Message-ID: <20180423233046.21476-10-logang@deltatee.com>
+Subject: [PATCH v4 11/14] nvme-pci: Add a quirk for a pseudo CMB
+Date: Mon, 23 Apr 2018 17:30:43 -0600
+Message-ID: <20180423233046.21476-12-logang@deltatee.com>
 References: <20180423233046.21476-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,187 +21,85 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Register the CMB buffer as p2pmem and use the appropriate allocation
-functions to create and destroy the IO submission queues.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-If the CMB supports WDS and RDS, publish it for use as P2P memory
-by other devices.
-
-We can now drop the __iomem safety on the buffer seeing that, by
-convention, devm_memremap_pages() allocates regular memory without
-side effects that's accessible without the iomem accessors.
+We'd like to use some of these older cards to test P2P memory.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/nvme/host/pci.c | 75 +++++++++++++++++++++++++++----------------------
- 1 file changed, 41 insertions(+), 34 deletions(-)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 9a689c13998f..885e9ec9b889 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -84,6 +84,13 @@ enum nvme_quirks {
+ 	 * Supports the LighNVM command set if indicated in vs[1].
+ 	 */
+ 	NVME_QUIRK_LIGHTNVM			= (1 << 6),
++
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 7),
+ };
+ 
+ /*
 diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
-index fbc71fac6f1e..514da4de3c85 100644
+index 09b6aba6ed28..e526e969680a 100644
 --- a/drivers/nvme/host/pci.c
 +++ b/drivers/nvme/host/pci.c
-@@ -29,6 +29,7 @@
- #include <linux/types.h>
- #include <linux/io-64-nonatomic-lo-hi.h>
- #include <linux/sed-opal.h>
-+#include <linux/pci-p2pdma.h>
- 
- #include "nvme.h"
- 
-@@ -92,9 +93,8 @@ struct nvme_dev {
- 	struct work_struct remove_work;
- 	struct mutex shutdown_lock;
- 	bool subsystem;
--	void __iomem *cmb;
--	pci_bus_addr_t cmb_bus_addr;
- 	u64 cmb_size;
-+	bool cmb_use_sqes;
- 	u32 cmbsz;
- 	u32 cmbloc;
- 	struct nvme_ctrl ctrl;
-@@ -149,7 +149,7 @@ struct nvme_queue {
- 	struct nvme_dev *dev;
- 	spinlock_t q_lock;
- 	struct nvme_command *sq_cmds;
--	struct nvme_command __iomem *sq_cmds_io;
-+	bool sq_cmds_is_io;
- 	volatile struct nvme_completion *cqes;
- 	struct blk_mq_tags **tags;
- 	dma_addr_t sq_dma_addr;
-@@ -431,10 +431,7 @@ static void __nvme_submit_cmd(struct nvme_queue *nvmeq,
- {
- 	u16 tail = nvmeq->sq_tail;
- 
--	if (nvmeq->sq_cmds_io)
--		memcpy_toio(&nvmeq->sq_cmds_io[tail], cmd, sizeof(*cmd));
--	else
--		memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
-+	memcpy(&nvmeq->sq_cmds[tail], cmd, sizeof(*cmd));
- 
- 	if (++tail == nvmeq->q_depth)
- 		tail = 0;
-@@ -1289,9 +1286,18 @@ static void nvme_free_queue(struct nvme_queue *nvmeq)
- {
- 	dma_free_coherent(nvmeq->q_dmadev, CQ_SIZE(nvmeq->q_depth),
- 				(void *)nvmeq->cqes, nvmeq->cq_dma_addr);
--	if (nvmeq->sq_cmds)
--		dma_free_coherent(nvmeq->q_dmadev, SQ_SIZE(nvmeq->q_depth),
--					nvmeq->sq_cmds, nvmeq->sq_dma_addr);
-+
-+	if (nvmeq->sq_cmds) {
-+		if (nvmeq->sq_cmds_is_io)
-+			pci_free_p2pmem(to_pci_dev(nvmeq->q_dmadev),
-+					nvmeq->sq_cmds,
-+					SQ_SIZE(nvmeq->q_depth));
-+		else
-+			dma_free_coherent(nvmeq->q_dmadev,
-+					  SQ_SIZE(nvmeq->q_depth),
-+					  nvmeq->sq_cmds,
-+					  nvmeq->sq_dma_addr);
-+	}
+@@ -1685,6 +1685,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
  
- static void nvme_free_queues(struct nvme_dev *dev, int lowest)
-@@ -1371,12 +1377,21 @@ static int nvme_cmb_qdepth(struct nvme_dev *dev, int nr_io_queues,
- static int nvme_alloc_sq_cmds(struct nvme_dev *dev, struct nvme_queue *nvmeq,
- 				int qid, int depth)
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
++{
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
++}
++
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
  {
--	/* CMB SQEs will be mapped before creation */
--	if (qid && dev->cmb && use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS))
--		return 0;
-+	struct pci_dev *pdev = to_pci_dev(dev->dev);
-+
-+	if (qid && dev->cmb_use_sqes && (dev->cmbsz & NVME_CMBSZ_SQS)) {
-+		nvmeq->sq_cmds = pci_alloc_p2pmem(pdev, SQ_SIZE(depth));
-+		nvmeq->sq_dma_addr = pci_p2pmem_virt_to_bus(pdev,
-+						nvmeq->sq_cmds);
-+		nvmeq->sq_cmds_is_io = true;
-+	}
-+
-+	if (!nvmeq->sq_cmds) {
-+		nvmeq->sq_cmds = dma_alloc_coherent(dev->dev, SQ_SIZE(depth),
-+					&nvmeq->sq_dma_addr, GFP_KERNEL);
-+		nvmeq->sq_cmds_is_io = false;
-+	}
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1704,10 +1711,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
  
--	nvmeq->sq_cmds = dma_alloc_coherent(dev->dev, SQ_SIZE(depth),
--					    &nvmeq->sq_dma_addr, GFP_KERNEL);
- 	if (!nvmeq->sq_cmds)
- 		return -ENOMEM;
- 	return 0;
-@@ -1451,13 +1466,6 @@ static int nvme_create_queue(struct nvme_queue *nvmeq, int qid)
- 	struct nvme_dev *dev = nvmeq->dev;
- 	int result;
- 
--	if (dev->cmb && use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS)) {
--		unsigned offset = (qid - 1) * roundup(SQ_SIZE(nvmeq->q_depth),
--						      dev->ctrl.page_size);
--		nvmeq->sq_dma_addr = dev->cmb_bus_addr + offset;
--		nvmeq->sq_cmds_io = dev->cmb + offset;
--	}
--
- 	/*
- 	 * A queue's vector matches the queue identifier unless the controller
- 	 * has only one vector available.
-@@ -1691,9 +1699,6 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 		return;
- 	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
- 
--	if (!use_cmb_sqes)
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
 -		return;
--
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
+ 
  	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
  	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
- 	bar = NVME_CMB_BIR(dev->cmbloc);
-@@ -1710,11 +1715,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 	if (size > bar_size - offset)
- 		size = bar_size - offset;
- 
--	dev->cmb = ioremap_wc(pci_resource_start(pdev, bar) + offset, size);
--	if (!dev->cmb)
-+	if (pci_p2pdma_add_resource(pdev, bar, size, offset))
- 		return;
--	dev->cmb_bus_addr = pci_bus_address(pdev, bar) + offset;
-+
- 	dev->cmb_size = size;
-+	dev->cmb_use_sqes = use_cmb_sqes && (dev->cmbsz & NVME_CMBSZ_SQS);
-+
-+	if ((dev->cmbsz & (NVME_CMBSZ_WDS | NVME_CMBSZ_RDS)) ==
-+			(NVME_CMBSZ_WDS | NVME_CMBSZ_RDS))
-+		pci_p2pmem_publish(pdev, true);
- 
- 	if (sysfs_add_file_to_group(&dev->ctrl.device->kobj,
- 				    &dev_attr_cmb.attr, NULL))
-@@ -1724,12 +1733,10 @@ static void nvme_map_cmb(struct nvme_dev *dev)
- 
- static inline void nvme_release_cmb(struct nvme_dev *dev)
- {
--	if (dev->cmb) {
--		iounmap(dev->cmb);
--		dev->cmb = NULL;
-+	if (dev->cmb_size) {
- 		sysfs_remove_file_from_group(&dev->ctrl.device->kobj,
- 					     &dev_attr_cmb.attr, NULL);
--		dev->cmbsz = 0;
-+		dev->cmb_size = 0;
- 	}
- }
- 
-@@ -1928,13 +1935,13 @@ static int nvme_setup_io_queues(struct nvme_dev *dev)
- 	if (nr_io_queues == 0)
- 		return 0;
- 
--	if (dev->cmb && (dev->cmbsz & NVME_CMBSZ_SQS)) {
-+	if (dev->cmb_use_sqes) {
- 		result = nvme_cmb_qdepth(dev, nr_io_queues,
- 				sizeof(struct nvme_command));
- 		if (result > 0)
- 			dev->q_depth = result;
- 		else
--			nvme_release_cmb(dev);
-+			dev->cmb_use_sqes = false;
- 	}
- 
- 	do {
+@@ -2736,6 +2748,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2807),	/* CNEX WL */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
 -- 
 2.11.0
