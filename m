@@ -1,56 +1,80 @@
-From: jackm <jackm@dev.mellanox.co.il>
-Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Mon, 23 Apr 2018 22:16:18 +0300
-Message-ID: <20180423221618.0000795d@dev.mellanox.co.il>
-References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
-        <1524196555.11756.30.camel@redhat.com>
-        <20180420153451.GF30433@ziepe.ca>
-        <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 1/6] cifs: smbd: Check for iov length on sending the
+ last iov
+Date: Mon, 23 Apr 2018 19:34:23 +0000
+Message-ID: <SN4PR2101MB07337EA730A456125CF72787CE890@SN4PR2101MB0733.namprd21.prod.outlook.com>
+References: <20180417191710.14855-1-longli@linuxonhyperv.com>
+ <DM5PR2101MB1030B8026AC0E48F3E96E739DC8A0@DM5PR2101MB1030.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
+In-Reply-To: <DM5PR2101MB1030B8026AC0E48F3E96E739DC8A0@DM5PR2101MB1030.namprd21.prod.outlook.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: "Michael Kelley (EOSG)" <Michael.H.Kelley@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 23 Apr 2018 16:19:57 +0200
-H=C3=A5kon Bugge <haakon.bugge@oracle.com> wrote:
-
-
-> >=20
-> > This actually looks like a genuine bug, why is it described only as
-> > 'confusing'? ib_register_mad_agent is callable from userspace, so at
-> > least two userspace agents can race and get the same TID=E2=80=99s. =20
+> Subject: RE: [Patch v2 1/6] cifs: smbd: Check for iov length on sending t=
+he last
+> iov
 >=20
-> My understanding is that every lookup is using the {port, TID} tuple.
-> As such, it is not a bug, but, very confusing.
-Haakon, you are correct (see snippet from the IB spec, below).
+> > -----Original Message-----
+> > From: linux-kernel-owner@vger.kernel.org
+> > <linux-kernel-owner@vger.kernel.org> On Behalf Of Long Li
+> > Sent: Tuesday, April 17, 2018 12:17 PM
+> > To: Steve French <sfrench@samba.org>; linux-cifs@vger.kernel.org;
+> > samba- technical@lists.samba.org; linux-kernel@vger.kernel.org;
+> > linux-rdma@vger.kernel.org
+> > Cc: Long Li <longli@microsoft.com>; stable@vger.kernel.org
+> > Subject: [Patch v2 1/6] cifs: smbd: Check for iov length on sending
+> > the last iov
+> >
+> > From: Long Li <longli@microsoft.com>
+> >
+> > When sending the last iov that breaks into smaller buffers to fit the
+> > transfer size, it's necessary to check if this is the last iov.
+> >
+> > If this is the latest iov, stop and proceed to send pages.
+> >
+> > Signed-off-by: Long Li <longli@microsoft.com>
+> > Cc: stable@vger.kernel.org
+>=20
+> Reviewed-by: Michael Kelley <mikelley@microsoft.com>
+>=20
+> But a question unrelated to this change arose during my review:  At the
+> beginning and end of smbd_send(), the field smbd_send_pending is
+> incremented and decremented, respectively.   The increment/decrement
+> are not done as atomic operations.  Is this code guaranteed to be single
+> threaded?  If not, the count could become corrupted, and
+> smbd_destroy_rdma_work(), which waits for the count to become zero,
+> could hang.  A similar question applies to smbd_recv_pending in smbd_recv=
+().
 
-We will NOT have a situation where there are 2 threads/apps
-with the same agent ID on the *same port* (accessing the agent ID
-allocator is protected by a per-port spinlock). Having the same agent ID
-on DIFFERENT ports is OK.
-Thus, there is NO bug here. (But as Haakon says, IMHO it is more robust
-to avoid having the same agent ID for 2 agents even if those agents are
-on different ports).
+It is safe. The transport sending path is locked by TCP_Server_Info->srv_mu=
+tex.
+
+The transport receiving path is single threaded.
 
 >=20
-> > TIDs need to be globally unique on the entire machine. =20
->=20
-Jason, that is not exactly correct.
-
-=46rom the IB Spec 1.3, C13-18.1.1 (in section 13.4.6.4 - TransactionID
-usage):
-"When initiating a new operation, MADHeader:TransactionID
-shall be set to such a value that within that MAD the combination of
-TID, SGID, and MgmtClass is different from that of any other currently
-executing operation. If the MAD does not have a GRH, its SLID is used
-in the combination in place of an SGID."
-
-Since the SGID/SLID is different for each port, the per-port guarantee
-of no 2 agents receiving the same agent-ID value is sufficient.
-
--Jack
+> > ---
+> >  fs/cifs/smbdirect.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c index
+> > 90e673c..b5c6c0d 100644
+> > --- a/fs/cifs/smbdirect.c
+> > +++ b/fs/cifs/smbdirect.c
+> > @@ -2197,6 +2197,8 @@ int smbd_send(struct smbd_connection *info,
+> struct smb_rqst *rqst)
+> >  						goto done;
+> >  				}
+> >  				i++;
+> > +				if (i =3D=3D rqst->rq_nvec)
+> > +					break;
+> >  			}
+> >  			start =3D i;
+> >  			buflen =3D 0;
+> > --
+> > 2.7.4
