@@ -1,162 +1,66 @@
-From: Raju Rangoju <rajur@chelsio.com>
-Subject: [PATCH] RDMA/cxgb4: release hw resources on device removal
-Date: Mon, 23 Apr 2018 21:42:37 +0530
-Message-ID: <20180423161237.3459-1-rajur@chelsio.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org
-Cc: swise@opengridcomputing.com, rajur@chelsio.com, bharat@chelsio.com, stable@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
+Date: Mon, 23 Apr 2018 13:28:22 -0400
+Message-ID: <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
+References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
+ <20180419202632.GE14063@ziepe.ca>
+ <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
+ <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
+ <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
+ <20180420090420.03fb1e6c@w520.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180420090420.03fb1e6c@w520.home>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The c4iw_rdev_close() logic was not releasing all the hw
-resources (PBL and RQT memory) during the device removal
-event (driver unload / system reboot). This can cause panic
-in gen_pool_destroy().
+On 4/20/2018 11:04 AM, Alex Williamson wrote:
+> Is there a concern here about whether the endpoint device driver or the
+> PCI core really knows better about link retraining?  This makes me
+> remember my unfinished (and need to revisit) Pericom quirk[1] where
+> errata in the PCIe switch requires that upstream and downstream links
+> are balanced (ie. same link rate) or else enabling ACS results in
+> packets not properly flowing through the switch.  If an endpoint driver
+> starts deciding to retrain links, overriding quirks in the PCI core,
+> then such topology manipulation isn't possible.  Why does the
+> driver .probe() function think it can retrain at a higher link rate
+> than PCI core?  Thanks,
 
-The module remove function will wait for all the hw
-resources to be released during the device removal event.
+The example given is for some serdes firmware load to happen in probe and
+then performing a retrain to reach to a better speed.
 
-Fixes c12a67fe(iw_cxgb4: free EQ queue memory on last deref)
-Signed-off-by: Raju Rangoju <rajur@chelsio.com>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
-Cc: stable@vger.kernel.org
----
- drivers/infiniband/hw/cxgb4/device.c   |  9 ++++++++-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |  4 ++++
- drivers/infiniband/hw/cxgb4/resource.c | 26 ++++++++++++++++++++++++--
- 3 files changed, 36 insertions(+), 3 deletions(-)
+It becomes a chicken and egg problem. 
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index feeb8ee6f4a2..44161ca4d2a8 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -875,6 +875,11 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
- 
- 	rdev->status_page->db_off = 0;
- 
-+	init_completion(&rdev->rqt_compl);
-+	init_completion(&rdev->pbl_compl);
-+	kref_init(&rdev->rqt_kref);
-+	kref_init(&rdev->pbl_kref);
-+
- 	return 0;
- err_free_status_page_and_wr_log:
- 	if (c4iw_wr_log && rdev->wr_log)
-@@ -893,13 +898,15 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
- 
- static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- {
--	destroy_workqueue(rdev->free_workq);
- 	kfree(rdev->wr_log);
- 	c4iw_release_dev_ucontext(rdev, &rdev->uctx);
- 	free_page((unsigned long)rdev->status_page);
- 	c4iw_pblpool_destroy(rdev);
- 	c4iw_rqtpool_destroy(rdev);
-+	wait_for_completion(&rdev->pbl_compl);
-+	wait_for_completion(&rdev->rqt_compl);
- 	c4iw_ocqp_pool_destroy(rdev);
-+	destroy_workqueue(rdev->free_workq);
- 	c4iw_destroy_resource(&rdev->resource);
- }
- 
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index cc929002c05e..a60def23e9ef 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -185,6 +185,10 @@ struct c4iw_rdev {
- 	struct wr_log_entry *wr_log;
- 	int wr_log_size;
- 	struct workqueue_struct *free_workq;
-+	struct completion rqt_compl;
-+	struct completion pbl_compl;
-+	struct kref rqt_kref;
-+	struct kref pbl_kref;
- };
- 
- static inline int c4iw_fatal_error(struct c4iw_rdev *rdev)
-diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
-index 3cf25997ed2b..0ef25ae05e6f 100644
---- a/drivers/infiniband/hw/cxgb4/resource.c
-+++ b/drivers/infiniband/hw/cxgb4/resource.c
-@@ -260,12 +260,22 @@ u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
- 		rdev->stats.pbl.cur += roundup(size, 1 << MIN_PBL_SHIFT);
- 		if (rdev->stats.pbl.cur > rdev->stats.pbl.max)
- 			rdev->stats.pbl.max = rdev->stats.pbl.cur;
-+		kref_get(&rdev->pbl_kref);
- 	} else
- 		rdev->stats.pbl.fail++;
- 	mutex_unlock(&rdev->stats.lock);
- 	return (u32)addr;
- }
- 
-+static void destroy_pblpool(struct kref *kref)
-+{
-+	struct c4iw_rdev *rdev;
-+
-+	rdev = container_of(kref, struct c4iw_rdev, pbl_kref);
-+	gen_pool_destroy(rdev->pbl_pool);
-+	complete(&rdev->pbl_compl);
-+}
-+
- void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
- {
- 	pr_debug("addr 0x%x size %d\n", addr, size);
-@@ -273,6 +283,7 @@ void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
- 	rdev->stats.pbl.cur -= roundup(size, 1 << MIN_PBL_SHIFT);
- 	mutex_unlock(&rdev->stats.lock);
- 	gen_pool_free(rdev->pbl_pool, (unsigned long)addr, size);
-+	kref_put(&rdev->pbl_kref, destroy_pblpool);
- }
- 
- int c4iw_pblpool_create(struct c4iw_rdev *rdev)
-@@ -310,7 +321,7 @@ int c4iw_pblpool_create(struct c4iw_rdev *rdev)
- 
- void c4iw_pblpool_destroy(struct c4iw_rdev *rdev)
- {
--	gen_pool_destroy(rdev->pbl_pool);
-+	kref_put(&rdev->pbl_kref, destroy_pblpool);
- }
- 
- /*
-@@ -331,12 +342,22 @@ u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
- 		rdev->stats.rqt.cur += roundup(size << 6, 1 << MIN_RQT_SHIFT);
- 		if (rdev->stats.rqt.cur > rdev->stats.rqt.max)
- 			rdev->stats.rqt.max = rdev->stats.rqt.cur;
-+		kref_get(&rdev->rqt_kref);
- 	} else
- 		rdev->stats.rqt.fail++;
- 	mutex_unlock(&rdev->stats.lock);
- 	return (u32)addr;
- }
- 
-+static void destroy_rqtpool(struct kref *kref)
-+{
-+	struct c4iw_rdev *rdev;
-+
-+	rdev = container_of(kref, struct c4iw_rdev, rqt_kref);
-+	gen_pool_destroy(rdev->rqt_pool);
-+	complete(&rdev->rqt_compl);
-+}
-+
- void c4iw_rqtpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
- {
- 	pr_debug("addr 0x%x size %d\n", addr, size << 6);
-@@ -344,6 +365,7 @@ void c4iw_rqtpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
- 	rdev->stats.rqt.cur -= roundup(size << 6, 1 << MIN_RQT_SHIFT);
- 	mutex_unlock(&rdev->stats.lock);
- 	gen_pool_free(rdev->rqt_pool, (unsigned long)addr, size << 6);
-+	kref_put(&rdev->rqt_kref, destroy_rqtpool);
- }
- 
- int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
-@@ -380,7 +402,7 @@ int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
- 
- void c4iw_rqtpool_destroy(struct c4iw_rdev *rdev)
- {
--	gen_pool_destroy(rdev->rqt_pool);
-+	kref_put(&rdev->rqt_kref, destroy_rqtpool);
- }
- 
- /*
+1. Endpoint HW trains to gen1 by default pre-boot.
+2. PCI core enumerates the device.
+3. Endpoint driver gets loaded
+4. Driver does the firmware programming followed by a link retrain.
+
+I think it is the responsibility of the PCI core to provide reset APIs.
+However, expecting endpoint drivers to be knowledgeable about hotplug is
+too much.
+
+We can certainly contain AER change into pci directory by moving the slot
+reset function to drivers/pci.h file.
+
+But, we need to think about what to do about VFIO and other endpoint
+initiated reset cases. My suggestion was to move this into a single API and
+remove all other APIs from include/linux/pci.h.
+
+Coming back to this patch...
+
+Do we need a retrain API with the speed that driver wants to reach to?
+API can return what was actually accomplished. The quirk from Alex can
+run inside this API to make a decision on what speed do we actually want
+to reach to for a given PCI topology by reprogramming the target link speed
+field.
+
 -- 
-2.12.0
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
