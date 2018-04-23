@@ -1,66 +1,129 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
-Date: Mon, 23 Apr 2018 13:28:22 -0400
-Message-ID: <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
-References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
- <20180419202632.GE14063@ziepe.ca>
- <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
- <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
- <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
- <20180420090420.03fb1e6c@w520.home>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 3/6] cifs: smbd: Avoid allocating iov on the stack
+Date: Mon, 23 Apr 2018 17:33:23 +0000
+Message-ID: <SN4PR2101MB0733595DB7FC0A122ADB9128CE890@SN4PR2101MB0733.namprd21.prod.outlook.com>
+References: <20180417191710.14855-1-longli@linuxonhyperv.com>
+ <20180417191710.14855-3-longli@linuxonhyperv.com>
+ <CAH2r5mv65CGR04f3Z20aRBufisPon5Ptvqk++zii3YT=GN8epQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420090420.03fb1e6c@w520.home>
+In-Reply-To: <CAH2r5mv65CGR04f3Z20aRBufisPon5Ptvqk++zii3YT=GN8epQ@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>
+To: Steve French <smfrench@gmail.com>
+Cc: CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/20/2018 11:04 AM, Alex Williamson wrote:
-> Is there a concern here about whether the endpoint device driver or the
-> PCI core really knows better about link retraining?  This makes me
-> remember my unfinished (and need to revisit) Pericom quirk[1] where
-> errata in the PCIe switch requires that upstream and downstream links
-> are balanced (ie. same link rate) or else enabling ACS results in
-> packets not properly flowing through the switch.  If an endpoint driver
-> starts deciding to retrain links, overriding quirks in the PCI core,
-> then such topology manipulation isn't possible.  Why does the
-> driver .probe() function think it can retrain at a higher link rate
-> than PCI core?  Thanks,
-
-The example given is for some serdes firmware load to happen in probe and
-then performing a retrain to reach to a better speed.
-
-It becomes a chicken and egg problem. 
-
-1. Endpoint HW trains to gen1 by default pre-boot.
-2. PCI core enumerates the device.
-3. Endpoint driver gets loaded
-4. Driver does the firmware programming followed by a link retrain.
-
-I think it is the responsibility of the PCI core to provide reset APIs.
-However, expecting endpoint drivers to be knowledgeable about hotplug is
-too much.
-
-We can certainly contain AER change into pci directory by moving the slot
-reset function to drivers/pci.h file.
-
-But, we need to think about what to do about VFIO and other endpoint
-initiated reset cases. My suggestion was to move this into a single API and
-remove all other APIs from include/linux/pci.h.
-
-Coming back to this patch...
-
-Do we need a retrain API with the speed that driver wants to reach to?
-API can return what was actually accomplished. The quirk from Alex can
-run inside this API to make a decision on what speed do we actually want
-to reach to for a given PCI topology by reprogramming the target link speed
-field.
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDMvNl0gY2lmczogc21iZDogQXZvaWQgYWxsb2NhdGlu
+ZyBpb3Ygb24gdGhlIHN0YWNrDQo+IA0KPiBEaWRuJ3Qgc2VlIGFueSBvYnZpb3VzIHByb2JsZW1z
+LCBidXQgY2FuIHlvdSBmaXggdGhlIGNoZWNrcGF0Y2ggd2FybmluZ3MNCj4gYW5kIHJlc2VuZCB0
+byB0aGUgbGlzdCAoSSBhbSBtb3JlIGNvbmNlcm5lZCBhYm91dCB0aGUgbGFzdCB0d28gd2Fybmlu
+Z3MNCj4gcmF0aGVyIHRoYW4gdGhlIGZpcnN0IG9uZSkuDQoNClllcywgSSB3aWxsIGZpeCBpdCBh
+bmQgcmVzZW5kLg0KDQo+IA0KPiAkIHNjcmlwdHMvY2hlY2twYXRjaC5wbCAwMDAxLWNpZnMtc21i
+ZC1Bdm9pZC1hbGxvY2F0aW5nLWlvdi1vbi10aGUtDQo+IHN0YWNrLnBhdGNoDQo+IFdBUk5JTkc6
+IGxpbmUgb3ZlciA4MCBjaGFyYWN0ZXJzDQo+ICM2MDogRklMRTogZnMvY2lmcy9zbWJkaXJlY3Qu
+YzoyMTA2Og0KPiArICAgICAgICBsb2dfd3JpdGUoRVJSLCAiZXhwZWN0ZWQgdGhlIHBkdSBsZW5n
+dGggaW4gMXN0IGlvdiwgYnV0IGdvdA0KPiAweCVsdVxuIiwgcnFzdC0+cnFfaW92WzBdLmlvdl9s
+ZW4pOw0KPiANCj4gRVJST1I6IFByZWZpeGluZyAweCB3aXRoIGRlY2ltYWwgb3V0cHV0IGlzIGRl
+ZmVjdGl2ZQ0KPiAjNjA6IEZJTEU6IGZzL2NpZnMvc21iZGlyZWN0LmM6MjEwNjoNCj4gKyAgICAg
+ICAgbG9nX3dyaXRlKEVSUiwgImV4cGVjdGVkIHRoZSBwZHUgbGVuZ3RoIGluIDFzdCBpb3YsIGJ1
+dCBnb3QNCj4gMHglbHVcbiIsIHJxc3QtPnJxX2lvdlswXS5pb3ZfbGVuKTsNCj4gDQo+IFdBUk5J
+Tkc6IGJyYWNlcyB7fSBhcmUgbm90IG5lY2Vzc2FyeSBmb3Igc2luZ2xlIHN0YXRlbWVudCBibG9j
+a3MNCj4gIzY5OiBGSUxFOiBmcy9jaWZzL3NtYmRpcmVjdC5jOjIxMTI6DQo+ICsgICAgZm9yIChp
+ID0gMDsgaSA8IHJxc3QtPnJxX252ZWMtMTsgaSsrKSB7DQo+ICAgICAgICAgIGJ1ZmxlbiArPSBp
+b3ZbaV0uaW92X2xlbjsNCj4gICAgICB9DQo+IA0KPiB0b3RhbDogMSBlcnJvcnMsIDIgd2Fybmlu
+Z3MsIDY1IGxpbmVzIGNoZWNrZWQNCj4gDQo+IE5PVEU6IEZvciBzb21lIG9mIHRoZSByZXBvcnRl
+ZCBkZWZlY3RzLCBjaGVja3BhdGNoIG1heSBiZSBhYmxlIHRvDQo+ICAgICAgIG1lY2hhbmljYWxs
+eSBjb252ZXJ0IHRvIHRoZSB0eXBpY2FsIHN0eWxlIHVzaW5nIC0tZml4IG9yIC0tZml4LWlucGxh
+Y2UuDQo+IA0KPiAwMDAxLWNpZnMtc21iZC1Bdm9pZC1hbGxvY2F0aW5nLWlvdi1vbi10aGUtc3Rh
+Y2sucGF0Y2ggaGFzIHN0eWxlIHByb2JsZW1zLA0KPiBwbGVhc2UgcmV2aWV3Lg0KPiANCj4gT24g
+VHVlLCBBcHIgMTcsIDIwMTggYXQgMjoxNyBQTSwgTG9uZyBMaSA8bG9uZ2xpQGxpbnV4b25oeXBl
+cnYuY29tPiB3cm90ZToNCj4gPiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4N
+Cj4gPg0KPiA+IEl0J3Mgbm90IG5lY2Vzc2FyeSB0byBhbGxvY2F0ZSBhbm90aGVyIGlvdiB3aGVu
+IGdvaW5nIHRocm91Z2ggdGhlDQo+ID4gYnVmZmVycyBpbiBzbWJkX3NlbmQoKSB0aHJvdWdoIFJE
+TUEgc2VuZC4NCj4gPg0KPiA+IFJlbW92ZSBpdCB0byByZWR1Y2Ugc3RhY2sgc2l6ZS4NCj4gPg0K
+PiA+IFNpZ25lZC1vZmYtYnk6IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+IENj
+OiBzdGFibGVAdmdlci5rZXJuZWwub3JnDQo+ID4gLS0tDQo+ID4gIGZzL2NpZnMvc21iZGlyZWN0
+LmMgfCAzNiArKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiAgMSBmaWxl
+IGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDI0IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlm
+ZiAtLWdpdCBhL2ZzL2NpZnMvc21iZGlyZWN0LmMgYi9mcy9jaWZzL3NtYmRpcmVjdC5jIGluZGV4
+DQo+ID4gYjVjNmMwZC4uZjU3NWU5YSAxMDA2NDQNCj4gPiAtLS0gYS9mcy9jaWZzL3NtYmRpcmVj
+dC5jDQo+ID4gKysrIGIvZnMvY2lmcy9zbWJkaXJlY3QuYw0KPiA+IEBAIC0yMDg4LDcgKzIwODgs
+NyBAQCBpbnQgc21iZF9zZW5kKHN0cnVjdCBzbWJkX2Nvbm5lY3Rpb24gKmluZm8sDQo+IHN0cnVj
+dCBzbWJfcnFzdCAqcnFzdCkNCj4gPiAgICAgICAgIGludCBzdGFydCwgaSwgajsNCj4gPiAgICAg
+ICAgIGludCBtYXhfaW92X3NpemUgPQ0KPiA+ICAgICAgICAgICAgICAgICBpbmZvLT5tYXhfc2Vu
+ZF9zaXplIC0gc2l6ZW9mKHN0cnVjdCBzbWJkX2RhdGFfdHJhbnNmZXIpOw0KPiA+IC0gICAgICAg
+c3RydWN0IGt2ZWMgaW92W1NNQkRJUkVDVF9NQVhfU0dFXTsNCj4gPiArICAgICAgIHN0cnVjdCBr
+dmVjICppb3Y7DQo+ID4gICAgICAgICBpbnQgcmM7DQo+ID4NCj4gPiAgICAgICAgIGluZm8tPnNt
+YmRfc2VuZF9wZW5kaW5nKys7DQo+ID4gQEAgLTIwOTksMzIgKzIwOTksMjAgQEAgaW50IHNtYmRf
+c2VuZChzdHJ1Y3Qgc21iZF9jb25uZWN0aW9uICppbmZvLA0KPiBzdHJ1Y3Qgc21iX3Jxc3QgKnJx
+c3QpDQo+ID4gICAgICAgICB9DQo+ID4NCj4gPiAgICAgICAgIC8qDQo+ID4gLSAgICAgICAgKiBU
+aGlzIHVzdWFsbHkgbWVhbnMgYSBjb25maWd1cmF0aW9uIGVycm9yDQo+ID4gLSAgICAgICAgKiBX
+ZSB1c2UgUkRNQSByZWFkL3dyaXRlIGZvciBwYWNrZXQgc2l6ZSA+DQo+IHJkbWFfcmVhZHdyaXRl
+X3RocmVzaG9sZA0KPiA+IC0gICAgICAgICogYXMgbG9uZyBhcyBpdCdzIHByb3Blcmx5IGNvbmZp
+Z3VyZWQgd2Ugc2hvdWxkIG5ldmVyIGdldCBpbnRvIHRoaXMNCj4gPiAtICAgICAgICAqIHNpdHVh
+dGlvbg0KPiA+IC0gICAgICAgICovDQo+ID4gLSAgICAgICBpZiAocnFzdC0+cnFfbnZlYyArIHJx
+c3QtPnJxX25wYWdlcyA+IFNNQkRJUkVDVF9NQVhfU0dFKSB7DQo+ID4gLSAgICAgICAgICAgICAg
+IGxvZ193cml0ZShFUlIsICJtYXhpbXVtIHNlbmQgc2VnbWVudCAleCBleGNlZWRpbmcgJXhcbiIs
+DQo+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgIHJxc3QtPnJxX252ZWMgKyBycXN0LT5ycV9u
+cGFnZXMsIFNNQkRJUkVDVF9NQVhfU0dFKTsNCj4gPiAtICAgICAgICAgICAgICAgcmMgPSAtRUlO
+VkFMOw0KPiA+IC0gICAgICAgICAgICAgICBnb3RvIGRvbmU7DQo+ID4gLSAgICAgICB9DQo+ID4g
+LQ0KPiA+IC0gICAgICAgLyoNCj4gPiAtICAgICAgICAqIFJlbW92ZSB0aGUgUkZDMTAwMiBsZW5n
+dGggZGVmaW5lZCBpbiBNUy1TTUIyIHNlY3Rpb24gMi4xDQo+ID4gLSAgICAgICAgKiBJdCBpcyB1
+c2VkIG9ubHkgZm9yIFRDUCB0cmFuc3BvcnQNCj4gPiArICAgICAgICAqIFNraXAgdGhlIFJGQzEw
+MDIgbGVuZ3RoIGRlZmluZWQgaW4gTVMtU01CMiBzZWN0aW9uIDIuMQ0KPiA+ICsgICAgICAgICog
+SXQgaXMgdXNlZCBvbmx5IGZvciBUQ1AgdHJhbnNwb3J0IGluIHRoZSBpb3ZbMF0NCj4gPiAgICAg
+ICAgICAqIEluIGZ1dHVyZSB3ZSBtYXkgd2FudCB0byBhZGQgYSB0cmFuc3BvcnQgbGF5ZXIgdW5k
+ZXIgcHJvdG9jb2wNCj4gPiAgICAgICAgICAqIGxheWVyIHNvIHRoaXMgd2lsbCBvbmx5IGJlIGlz
+c3VlZCB0byBUQ1AgdHJhbnNwb3J0DQo+ID4gICAgICAgICAgKi8NCj4gPiAtICAgICAgIGlvdlsw
+XS5pb3ZfYmFzZSA9IChjaGFyICopcnFzdC0+cnFfaW92WzBdLmlvdl9iYXNlICsgNDsNCj4gPiAt
+ICAgICAgIGlvdlswXS5pb3ZfbGVuID0gcnFzdC0+cnFfaW92WzBdLmlvdl9sZW4gLSA0Ow0KPiA+
+IC0gICAgICAgYnVmbGVuICs9IGlvdlswXS5pb3ZfbGVuOw0KPiA+ICsNCj4gPiArICAgICAgIGlm
+IChycXN0LT5ycV9pb3ZbMF0uaW92X2xlbiAhPSA0KSB7DQo+ID4gKyAgICAgICAgICAgICAgIGxv
+Z193cml0ZShFUlIsICJleHBlY3RlZCB0aGUgcGR1IGxlbmd0aCBpbiAxc3QgaW92LCBidXQgZ290
+DQo+IDB4JWx1XG4iLCBycXN0LT5ycV9pb3ZbMF0uaW92X2xlbik7DQo+ID4gKyAgICAgICAgICAg
+ICAgIHJldHVybiAtRUlOVkFMOw0KPiA+ICsgICAgICAgfQ0KPiA+ICsgICAgICAgaW92ID0gJnJx
+c3QtPnJxX2lvdlsxXTsNCj4gPg0KPiA+ICAgICAgICAgLyogdG90YWwgdXAgaW92IGFycmF5IGZp
+cnN0ICovDQo+ID4gLSAgICAgICBmb3IgKGkgPSAxOyBpIDwgcnFzdC0+cnFfbnZlYzsgaSsrKSB7
+DQo+ID4gLSAgICAgICAgICAgICAgIGlvdltpXS5pb3ZfYmFzZSA9IHJxc3QtPnJxX2lvdltpXS5p
+b3ZfYmFzZTsNCj4gPiAtICAgICAgICAgICAgICAgaW92W2ldLmlvdl9sZW4gPSBycXN0LT5ycV9p
+b3ZbaV0uaW92X2xlbjsNCj4gPiArICAgICAgIGZvciAoaSA9IDA7IGkgPCBycXN0LT5ycV9udmVj
+LTE7IGkrKykgew0KPiA+ICAgICAgICAgICAgICAgICBidWZsZW4gKz0gaW92W2ldLmlvdl9sZW47
+DQo+ID4gICAgICAgICB9DQo+ID4NCj4gPiBAQCAtMjE5NywxNCArMjE4NSwxNCBAQCBpbnQgc21i
+ZF9zZW5kKHN0cnVjdCBzbWJkX2Nvbm5lY3Rpb24gKmluZm8sDQo+IHN0cnVjdCBzbWJfcnFzdCAq
+cnFzdCkNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICBnb3RvIGRvbmU7DQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpKys7DQo+ID4gLSAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBpZiAoaSA9PSBycXN0LT5ycV9udmVjKQ0KPiA+ICsgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgaWYgKGkgPT0gcnFzdC0+cnFfbnZlYy0xKQ0KPiA+ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBicmVhazsNCj4gPiAgICAgICAgICAg
+ICAgICAgICAgICAgICB9DQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgc3RhcnQgPSBpOw0K
+PiA+ICAgICAgICAgICAgICAgICAgICAgICAgIGJ1ZmxlbiA9IDA7DQo+ID4gICAgICAgICAgICAg
+ICAgIH0gZWxzZSB7DQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgaSsrOw0KPiA+IC0gICAg
+ICAgICAgICAgICAgICAgICAgIGlmIChpID09IHJxc3QtPnJxX252ZWMpIHsNCj4gPiArICAgICAg
+ICAgICAgICAgICAgICAgICBpZiAoaSA9PSBycXN0LT5ycV9udmVjLTEpIHsNCj4gPiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIC8qIHNlbmQgb3V0IGFsbCByZW1haW5pbmcgdmVjcyAq
+Lw0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVtYWluaW5nX2RhdGFfbGVu
+Z3RoIC09IGJ1ZmxlbjsNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGxvZ193
+cml0ZShJTkZPLA0KPiA+IC0tDQo+ID4gMi43LjQNCj4gPg0KPiA+IC0tDQo+ID4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWNp
+ZnMiDQo+ID4gaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5l
+bC5vcmcgTW9yZQ0KPiBtYWpvcmRvbW8NCj4gPiBpbmZvIGF0DQo+ID4NCj4gaHR0cHM6Ly9uYTAx
+LnNhZmVsaW5rcy5wcm90ZWN0aW9uLm91dGxvb2suY29tLz91cmw9aHR0cCUzQSUyRiUyRnZnZXIu
+aw0KPiA+IGVybmVsLm9yZyUyRm1ham9yZG9tby0NCj4gaW5mby5odG1sJmRhdGE9MDIlN0MwMSU3
+Q2xvbmdsaSU0MG1pY3Jvc29mdC5jb20lDQo+ID4NCj4gN0MyM2ZiZGJiMDU5OGE0OTdmNjI0NzA4
+ZDVhOTJmNjQzNSU3QzcyZjk4OGJmODZmMTQxYWY5MWFiMmQ3Y2QwMTFkDQo+IGI0NyUNCj4gPg0K
+PiA3QzElN0MwJTdDNjM2NjAwOTQzMzgwODg3OTg4JnNkYXRhPWltaDljV0RRUUVYcXhIZFVyQ3VF
+eWtnaUxmS3MNCj4gVUFsMjBqQg0KPiA+IHlQT1M3RnJJJTNEJnJlc2VydmVkPTANCj4gDQo+IA0K
+PiANCj4gLS0NCj4gVGhhbmtzLA0KPiANCj4gU3RldmUNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUg
+ZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWNpZnMiIGlu
+IHRoZQ0KPiBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1v
+cmUgbWFqb3Jkb21vIGluZm8gYXQNCj4gaHR0cHM6Ly9uYTAxLnNhZmVsaW5rcy5wcm90ZWN0aW9u
+Lm91dGxvb2suY29tLz91cmw9aHR0cCUzQSUyRiUyRnZnZXIua2UNCj4gcm5lbC5vcmclMkZtYWpv
+cmRvbW8tDQo+IGluZm8uaHRtbCZkYXRhPTAyJTdDMDElN0Nsb25nbGklNDBtaWNyb3NvZnQuY29t
+JTdDMjNmYmRiYjA1OThhNDk3Zg0KPiA2MjQ3MDhkNWE5MmY2NDM1JTdDNzJmOTg4YmY4NmYxNDFh
+ZjkxYWIyZDdjZDAxMWRiNDclN0MxJTdDMCU3QzYzDQo+IDY2MDA5NDMzODA4ODc5ODgmc2RhdGE9
+aW1oOWNXRFFRRVhxeEhkVXJDdUV5a2dpTGZLc1VBbDIwakJ5UE9TN0YNCj4gckklM0QmcmVzZXJ2
+ZWQ9MA0K
