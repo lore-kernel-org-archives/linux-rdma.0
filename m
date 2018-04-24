@@ -1,91 +1,146 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v4 05/14] docs-rst: Add a new directory for PCI documentation
-Date: Mon, 23 Apr 2018 17:30:37 -0600
-Message-ID: <20180423233046.21476-6-logang@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180423233046.21476-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagar Dharia <sdharia-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sanyog Kale <sanyog.r.kale-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Subject: [PATCH 1/1] Revert "rds: ib: add error handle"
+Date: Mon, 23 Apr 2018 21:39:01 -0400
+Message-ID: <1524533941-4072-1-git-send-email-yanjun.zhu@oracle.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-Add a new directory in the driver API guide for PCI specific
-documentation.
+This reverts commit 3b12f73a5c2977153f28a224392fd4729b50d1dc.
 
-This is in preparation for adding a new PCI P2P DMA driver writers
-guide which will go in this directory.
+After long time discussion and investigations, it seems that there
+is no mem leak. So this patch is reverted.
 
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>
-Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Sanyog Kale <sanyog.r.kale-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagar Dharia <sdharia-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 ---
- Documentation/driver-api/index.rst         |  2 +-
- Documentation/driver-api/pci/index.rst     | 19 +++++++++++++++++++
- Documentation/driver-api/{ => pci}/pci.rst |  0
- 3 files changed, 20 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+ net/rds/ib_cm.c | 47 +++++++++++------------------------------------
+ 1 file changed, 11 insertions(+), 36 deletions(-)
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 6d8352c0f354..9e4cd4e91a49 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -27,7 +27,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
--   pci
-+   pci/index
-    spi
-    i2c
-    hsi
-diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-new file mode 100644
-index 000000000000..03b57cbf8cc2
---- /dev/null
-+++ b/Documentation/driver-api/pci/index.rst
-@@ -0,0 +1,19 @@
-+============================================
-+The Linux PCI driver implementer's API guide
-+============================================
-+
-+.. class:: toc-title
-+
-+	   Table of contents
-+
-+.. toctree::
-+   :maxdepth: 2
-+
-+   pci
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
-similarity index 100%
-rename from Documentation/driver-api/pci.rst
-rename to Documentation/driver-api/pci/pci.rst
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index eea1d86..d64bfaf 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -443,7 +443,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 		ic->i_send_cq = NULL;
+ 		ibdev_put_vector(rds_ibdev, ic->i_scq_vector);
+ 		rdsdebug("ib_create_cq send failed: %d\n", ret);
+-		goto rds_ibdev_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_rcq_vector = ibdev_get_unused_vector(rds_ibdev);
+@@ -457,19 +457,19 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 		ic->i_recv_cq = NULL;
+ 		ibdev_put_vector(rds_ibdev, ic->i_rcq_vector);
+ 		rdsdebug("ib_create_cq recv failed: %d\n", ret);
+-		goto send_cq_out;
++		goto out;
+ 	}
+ 
+ 	ret = ib_req_notify_cq(ic->i_send_cq, IB_CQ_NEXT_COMP);
+ 	if (ret) {
+ 		rdsdebug("ib_req_notify_cq send failed: %d\n", ret);
+-		goto recv_cq_out;
++		goto out;
+ 	}
+ 
+ 	ret = ib_req_notify_cq(ic->i_recv_cq, IB_CQ_SOLICITED);
+ 	if (ret) {
+ 		rdsdebug("ib_req_notify_cq recv failed: %d\n", ret);
+-		goto recv_cq_out;
++		goto out;
+ 	}
+ 
+ 	/* XXX negotiate max send/recv with remote? */
+@@ -495,7 +495,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	ret = rdma_create_qp(ic->i_cm_id, ic->i_pd, &attr);
+ 	if (ret) {
+ 		rdsdebug("rdma_create_qp failed: %d\n", ret);
+-		goto recv_cq_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_send_hdrs = ib_dma_alloc_coherent(dev,
+@@ -505,7 +505,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	if (!ic->i_send_hdrs) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("ib_dma_alloc_coherent send failed\n");
+-		goto qp_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_recv_hdrs = ib_dma_alloc_coherent(dev,
+@@ -515,7 +515,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	if (!ic->i_recv_hdrs) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("ib_dma_alloc_coherent recv failed\n");
+-		goto send_hdrs_dma_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_ack = ib_dma_alloc_coherent(dev, sizeof(struct rds_header),
+@@ -523,7 +523,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	if (!ic->i_ack) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("ib_dma_alloc_coherent ack failed\n");
+-		goto recv_hdrs_dma_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_sends = vzalloc_node(ic->i_send_ring.w_nr * sizeof(struct rds_ib_send_work),
+@@ -531,7 +531,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	if (!ic->i_sends) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("send allocation failed\n");
+-		goto ack_dma_out;
++		goto out;
+ 	}
+ 
+ 	ic->i_recvs = vzalloc_node(ic->i_recv_ring.w_nr * sizeof(struct rds_ib_recv_work),
+@@ -539,7 +539,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	if (!ic->i_recvs) {
+ 		ret = -ENOMEM;
+ 		rdsdebug("recv allocation failed\n");
+-		goto sends_out;
++		goto out;
+ 	}
+ 
+ 	rds_ib_recv_init_ack(ic);
+@@ -547,33 +547,8 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ 	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
+ 		 ic->i_send_cq, ic->i_recv_cq);
+ 
+-	return ret;
+-
+-sends_out:
+-	vfree(ic->i_sends);
+-ack_dma_out:
+-	ib_dma_free_coherent(dev, sizeof(struct rds_header),
+-			     ic->i_ack, ic->i_ack_dma);
+-recv_hdrs_dma_out:
+-	ib_dma_free_coherent(dev, ic->i_recv_ring.w_nr *
+-					sizeof(struct rds_header),
+-					ic->i_recv_hdrs, ic->i_recv_hdrs_dma);
+-send_hdrs_dma_out:
+-	ib_dma_free_coherent(dev, ic->i_send_ring.w_nr *
+-					sizeof(struct rds_header),
+-					ic->i_send_hdrs, ic->i_send_hdrs_dma);
+-qp_out:
+-	rdma_destroy_qp(ic->i_cm_id);
+-recv_cq_out:
+-	if (!ib_destroy_cq(ic->i_recv_cq))
+-		ic->i_recv_cq = NULL;
+-send_cq_out:
+-	if (!ib_destroy_cq(ic->i_send_cq))
+-		ic->i_send_cq = NULL;
+-rds_ibdev_out:
+-	rds_ib_remove_conn(rds_ibdev, conn);
++out:
+ 	rds_ib_dev_put(rds_ibdev);
+-
+ 	return ret;
+ }
+ 
 -- 
-2.11.0
+2.7.4
