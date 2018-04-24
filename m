@@ -1,58 +1,98 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/nes: fix nes_netdev_start_xmit()'s return type
-Date: Tue, 24 Apr 2018 20:36:12 +0300
-Message-ID: <20180424173612.GI24820@mtr-leonro.local>
-References: <20180424131545.2810-1-luc.vanoostenryck@gmail.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: [PATCH] tick/sched: Do not mess with an enqueued hrtimer
+Date: Tue, 24 Apr 2018 21:22:18 +0200 (CEST)
+Message-ID: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="f5QefDQHtn8hx44O"
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180424131545.2810-1-luc.vanoostenryck@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+To: Frederic Weisbecker <frederic@kernel.org>
+Cc: "Wan, Kaike" <kaike.wan@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Fleck, John" <john.fleck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Anna-Maria Gleixner <anna-maria@linutronix.de>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
+did great debugging, which provided enough context to decode the problem.
 
---f5QefDQHtn8hx44O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+CPU 3			     	      	     CPU 2
 
-On Tue, Apr 24, 2018 at 03:15:45PM +0200, Luc Van Oostenryck wrote:
-> The method ndo_start_xmit() is defined as returning an 'netdev_tx_t',
-> which is a typedef for an enum type, but the implementation in this
-> driver returns an 'int'.
->
-> Fix this by returning 'netdev_tx_t' in this driver too.
->
-> Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-> ---
->  drivers/infiniband/hw/nes/nes_nic.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+idle
+start sched_timer expires = 712171000000
+ queue->next = sched_timer
+					    start rdmavt timer. expires = 712172915662
+					    lock(baseof(CPU3))
+tick_nohz_stop_tick()
+tick = 716767000000			    timerqueue_add(tmr)
 
-ipoib_start_xmit() needs the same fix.
+hrtimer_set_expires(sched_timer, tick);
+  sched_timer->expires = 716767000000  <---- FAIL
+					     if (tmr->expires < queue->next->expires)
+hrtimer_start(sched_timer)		          queue->next = tmr;
+lock(baseof(CPU3))
+					     unlock(baseof(CPU3))
+timerqueue_remove()
+timerqueue_add()
 
-Thanks.
+ts->sched_timer is queued and queue->next is pointing to it, but then
+ts->sched_timer.expires is modified.
 
---f5QefDQHtn8hx44O
-Content-Type: application/pgp-signature; name="signature.asc"
+This not only corrupts the ordering of the timerqueue RB tree, it also
+makes CPU2 see the new expiry time of timerqueue->next->expires when
+checking whether timerqueue->next needs to be updated. So CPU2 sees that
+the rdma timer is earlier than timerqueue->next and sets the rdma timer as
+new next.
 
------BEGIN PGP SIGNATURE-----
+Depending on whether it had also seen the new time at RB tree enqueue, it
+might have queued the rdma timer at the wrong place and then after removing
+the sched_timer the RB tree is completely hosed.
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrfawsACgkQ5GN7iDZy
-WKfbUhAAhOvypJ95u/rDjVkRH752kVdNPdDMojU0DjVznGZe5U1tzvAriR5FPSq1
-s5O5dCoC9Z4E4Q1/jiG6z1QTX5V9faxdB/F6StUhPjD8dznYplIxWrFv+YqZOyzo
-YzMYrQgv+i4Rw8+39BWKVchW8uLz5PxtlOjtzB0JFBLy1BcMG6X1D5r4faI567Qc
-moB3aeP4wqFXKX6sI7HfPjjWlyzXrkUQG1s9Yzl5fspQCRnpR6ZcF7UMT7FEqvHp
-OChr6Mo/b/LanjYacKgz/oQ2IR7WQe73xRrszHizI0f1nNnJ9GcEsMb/+AHZ3VDO
-t107BCDJ5r2GXfTv7OrivKe0GlO7rITFFbfGO/+0TT1Rflg2Xq66g4lBfb2N7dNP
-u2R6ti9lDXYy5VdSyeQdkzpdb8L2QKkqLyxK+hFX9S/JH8FAAQYJxeePw710PqgA
-/NVo58pcnx1fIVycLuZ4wV1CPOgofn9p3LsLZRl05cGkQu42dU6ScS897WoYuUju
-Zv4k90ezHaNX1jsQZhTLB6jzqXDMuFmHpI9TsxsUN/0/P1g5dkxdWGv8YH6kq8ed
-w5xMGaDSGHEniuW06LC41wtcgjXH80J5P9zaWJZYHfP2CF+LPI0AWVXRo8UUaaYI
-F+hclUwuTHDFkSzhv+tKR4PO1h7Lv6mcXoI1ZfeU8P7a67fmU9k=
-=2qAd
------END PGP SIGNATURE-----
+The problem was introduced with a commit which tried to solve inconsistency
+between the hrtimer in the tick_sched data and the underlying hardware
+clockevent. It split out hrtimer_set_expires() to store the new tick time
+in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact that in
+the NOHZ + HIGHRES case the hrtimer might still be queued.
 
---f5QefDQHtn8hx44O--
+Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
+timer->expires after canceling the timer and move the hrtimer_set_expires()
+invocation into the NOHZ only code path which is not affected as it merily
+uses the hrtimer as next event storage so code pathes can be shared with
+the NOHZ + HIGHRES case.
+
+Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and clockevent get out of sync")
+Reported-by: "Wan Kaike" <kaike.wan@intel.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Marciniszyn Mike" <mike.marciniszyn@intel.com>
+Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>
+Cc: linux-rdma@vger.kernel.org
+Cc: "Dalessandro Dennis" <dennis.dalessandro@intel.com>
+Cc: "Fleck John" <john.fleck@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: "Weiny Ira" <ira.weiny@intel.com>
+Cc: "linux-rdma@vger.kernel.org"
+Cc: stable@vger.kernel.org
+Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804241637390.1679@nanos.tec.linutronix.de
+
+---
+ kernel/time/tick-sched.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- a/kernel/time/tick-sched.c
++++ b/kernel/time/tick-sched.c
+@@ -804,12 +804,12 @@ static void tick_nohz_stop_tick(struct t
+ 		return;
+ 	}
+ 
+-	hrtimer_set_expires(&ts->sched_timer, tick);
+-
+-	if (ts->nohz_mode == NOHZ_MODE_HIGHRES)
+-		hrtimer_start_expires(&ts->sched_timer, HRTIMER_MODE_ABS_PINNED);
+-	else
++	if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
++		hrtimer_start(&ts->sched_timer, tick, HRTIMER_MODE_ABS_PINNED);
++	} else {
++		hrtimer_set_expires(&ts->sched_timer, tick);
+ 		tick_program_event(tick, 1);
++	}
+ }
+ 
+ static void tick_nohz_retain_tick(struct tick_sched *ts)
