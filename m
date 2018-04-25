@@ -1,58 +1,55 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/ipoib: fix ipoib_start_xmit()'s return type
-Date: Wed, 25 Apr 2018 18:35:32 +0300
-Message-ID: <20180425153532.GM24820@mtr-leonro.local>
-References: <20180424131549.2859-1-luc.vanoostenryck@gmail.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] RDMA/iwpm: fix memory leak on map_info
+Date: Wed, 25 Apr 2018 17:24:04 +0100
+Message-ID: <20180425162404.28625-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mFHiwr52TKrxpkjc"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180424131549.2859-1-luc.vanoostenryck@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Alex Vesker <valex@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Erez Shitrit <erezsh@mellanox.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Feras Daoud <ferasda@mellanox.com>, linux-rdma@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin Ian King <colin.king@canonical.com>
 
---mFHiwr52TKrxpkjc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In the cases where iwpm_hash_bucket is NULL and where function
+get_mapinfo_hash_bucket returns NULL then the map_info is never added
+to hash_bucket_head and hence there is a leak of map_info. Fix this
+by nullifying hash_bucket_head and if that is null we know that
+that map_info was not added to hash_bucket_head and hence map_info
+should be free'd.
 
-On Tue, Apr 24, 2018 at 03:15:47PM +0200, Luc Van Oostenryck wrote:
-> The method ndo_start_xmit() is defined as returning an 'netdev_tx_t',
-> which is a typedef for an enum type, but the implementation in this
-> driver returns an 'int'.
->
-> Fix this by returning 'netdev_tx_t' in this driver too.
->
-> Signed-off-by: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-> ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+Detected by CoverityScan, CID#1222481 ("Resource Leak")
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 30dc5e63d6a5 ("RDMA/core: Add support for iWARP Port Mapper user space service")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/core/iwpm_util.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---mFHiwr52TKrxpkjc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrgoEQACgkQ5GN7iDZy
-WKfggg/8DGJIl7K00Hfuds0eJ/eySzKl4A/0UJYwtFnLB+DugSnjk2grpmgpZXQi
-HJO/j/OARdVe1FfLQqxXqel1ALn8lnT1f5h5jzSySiDlJmtxMvCwKCkZuKnQEf8e
-8xJ+xF6IaeWPUo54AB2nNgj9TedVgqfwoXUIj8hGER+YSaty7IyUswJpqdURIMON
-q9Pv+FY82Ila2hQDb8/ZVwlHGr7PRvofcCLbP9q+R5XzPZx/WxPPaxhtuifjLTeO
-a2x5NpVp80wOf3FxMC0BimL+pWJU9NPJPubU1Lk1peFsOSHMnwGGXYzm3/uqBobQ
-fv0Dh93W0twseGA+tpi/xVQXHoejtp/4pcRmOaIA9MWcrmTMnOcXbiYAzEc97b2k
-++lJW/qRixhCfink3+PTjmCQLPFJzDYYJ/BgknEHf1irNy0gmZgzmnvDA43cMWhc
-CWjCsuwgitTSV6++9V3rL9APGL3JINVf24ZSrM8eMLLKWJzuHqUfdYDf4ifxTaus
-PqTa45iGv4IuaTXJy2HSSKZHpa4GAg5TctauOzIAZONIkba08xdv0Hkui6wsyblz
-cP6GsMyZnyCf9iMrR9dzBbQXAocYoN1wUEuaKoIUiD+kPIHoh7t5bIxWUqj/O/yk
-LjaiC6aDVKQKqqhHqsKvjCG7MUnTDLMxlyv+u0F+TgNU73simIA=
-=f+da
------END PGP SIGNATURE-----
-
---mFHiwr52TKrxpkjc--
+diff --git a/drivers/infiniband/core/iwpm_util.c b/drivers/infiniband/core/iwpm_util.c
+index 9821ae900f6d..da12da1c36f6 100644
+--- a/drivers/infiniband/core/iwpm_util.c
++++ b/drivers/infiniband/core/iwpm_util.c
+@@ -114,7 +114,7 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 			struct sockaddr_storage *mapped_sockaddr,
+ 			u8 nl_client)
+ {
+-	struct hlist_head *hash_bucket_head;
++	struct hlist_head *hash_bucket_head = NULL;
+ 	struct iwpm_mapping_info *map_info;
+ 	unsigned long flags;
+ 	int ret = -EINVAL;
+@@ -142,6 +142,9 @@ int iwpm_create_mapinfo(struct sockaddr_storage *local_sockaddr,
+ 		}
+ 	}
+ 	spin_unlock_irqrestore(&iwpm_mapinfo_lock, flags);
++
++	if (!hash_bucket_head)
++		kfree(map_info);
+ 	return ret;
+ }
+ 
+-- 
+2.17.0
