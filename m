@@ -1,98 +1,237 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: [PATCH] tick/sched: Do not mess with an enqueued hrtimer
-Date: Tue, 24 Apr 2018 21:22:18 +0200 (CEST)
-Message-ID: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
+From: Yanjun Zhu <yanjun.zhu@oracle.com>
+Subject: Re: [PATCH 1/1] IB/rxe: avoid double kfree_skb
+Date: Wed, 25 Apr 2018 14:56:21 +0800
+Message-ID: <36d099a9-0946-c7b6-3c1f-0f64fc6bdf19@oracle.com>
+References: <1524146512-4188-1-git-send-email-yanjun.zhu@oracle.com>
+ <1524190794.11756.18.camel@redhat.com>
+ <89cbf00d-40b1-d3cc-dd1c-3c4b6fd365d8@oracle.com>
+ <0b87f416-eee1-fd6c-c386-27469d6db143@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Frederic Weisbecker <frederic@kernel.org>
-Cc: "Wan, Kaike" <kaike.wan@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Fleck, John" <john.fleck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Anna-Maria Gleixner <anna-maria@linutronix.de>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <0b87f416-eee1-fd6c-c386-27469d6db143@oracle.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, monis@mellanox.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
+Cc: netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
-did great debugging, which provided enough context to decode the problem.
+Hi, all
 
-CPU 3			     	      	     CPU 2
+rxe_send [rdma_rxe]
+     ip_local_out
+         __ip_local_out
+         ip_output
+             ip_finish_output
+                 ip_finish_output2
+                     dev_queue_xmit
+                         __dev_queue_xmit
+                             dev_hard_start_xmit
+                                 e1000_xmit_frame [e1000]
 
-idle
-start sched_timer expires = 712171000000
- queue->next = sched_timer
-					    start rdmavt timer. expires = 712172915662
-					    lock(baseof(CPU3))
-tick_nohz_stop_tick()
-tick = 716767000000			    timerqueue_add(tmr)
+When skb is sent, it will pass the above functions. I checked all the 
+above functions. If error occurs in the above functions after 
+ip_local_out, kfree_skb will be called.
+So when ip_local_out returns an error, skb should be freed. It is not 
+necessary to call kfree_skb in soft roce module again.
 
-hrtimer_set_expires(sched_timer, tick);
-  sched_timer->expires = 716767000000  <---- FAIL
-					     if (tmr->expires < queue->next->expires)
-hrtimer_start(sched_timer)		          queue->next = tmr;
-lock(baseof(CPU3))
-					     unlock(baseof(CPU3))
-timerqueue_remove()
-timerqueue_add()
+If I am wrong, please correct me.
 
-ts->sched_timer is queued and queue->next is pointing to it, but then
-ts->sched_timer.expires is modified.
-
-This not only corrupts the ordering of the timerqueue RB tree, it also
-makes CPU2 see the new expiry time of timerqueue->next->expires when
-checking whether timerqueue->next needs to be updated. So CPU2 sees that
-the rdma timer is earlier than timerqueue->next and sets the rdma timer as
-new next.
-
-Depending on whether it had also seen the new time at RB tree enqueue, it
-might have queued the rdma timer at the wrong place and then after removing
-the sched_timer the RB tree is completely hosed.
-
-The problem was introduced with a commit which tried to solve inconsistency
-between the hrtimer in the tick_sched data and the underlying hardware
-clockevent. It split out hrtimer_set_expires() to store the new tick time
-in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact that in
-the NOHZ + HIGHRES case the hrtimer might still be queued.
-
-Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
-timer->expires after canceling the timer and move the hrtimer_set_expires()
-invocation into the NOHZ only code path which is not affected as it merily
-uses the hrtimer as next event storage so code pathes can be shared with
-the NOHZ + HIGHRES case.
-
-Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and clockevent get out of sync")
-Reported-by: "Wan Kaike" <kaike.wan@intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Marciniszyn Mike" <mike.marciniszyn@intel.com>
-Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>
-Cc: linux-rdma@vger.kernel.org
-Cc: "Dalessandro Dennis" <dennis.dalessandro@intel.com>
-Cc: "Fleck John" <john.fleck@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: "Weiny Ira" <ira.weiny@intel.com>
-Cc: "linux-rdma@vger.kernel.org"
-Cc: stable@vger.kernel.org
-Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804241637390.1679@nanos.tec.linutronix.de
-
----
- kernel/time/tick-sched.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
---- a/kernel/time/tick-sched.c
-+++ b/kernel/time/tick-sched.c
-@@ -804,12 +804,12 @@ static void tick_nohz_stop_tick(struct t
- 		return;
- 	}
- 
--	hrtimer_set_expires(&ts->sched_timer, tick);
--
--	if (ts->nohz_mode == NOHZ_MODE_HIGHRES)
--		hrtimer_start_expires(&ts->sched_timer, HRTIMER_MODE_ABS_PINNED);
--	else
-+	if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
-+		hrtimer_start(&ts->sched_timer, tick, HRTIMER_MODE_ABS_PINNED);
-+	} else {
-+		hrtimer_set_expires(&ts->sched_timer, tick);
- 		tick_program_event(tick, 1);
-+	}
- }
- 
- static void tick_nohz_retain_tick(struct tick_sched *ts)
+Zhu Yanjun
+On 2018/4/24 16:34, Yanjun Zhu wrote:
+> Hi, all
+>
+> rxe_send
+>     ip_local_out
+>         __ip_local_out
+>             nf_hook_slow
+>
+> In the above call process, nf_hook_slow drops and frees skb, then 
+> -EPERM is returned when iptables rules(iptables -I OUTPUT -p udp 
+> --dport 4791 -j DROP) is set.
+>
+> If skb->users is not changed in softroce, kfree_skb should not be 
+> called in this module.
+>
+> I will make further investigations about other error handler after 
+> ip_local_out.
+> If I am wrong, please correct me.
+>
+> Any reply is appreciated.
+>
+> Zhu Yanjun
+> On 2018/4/20 13:46, Yanjun Zhu wrote:
+>>
+>>
+>> On 2018/4/20 10:19, Doug Ledford wrote:
+>>> On Thu, 2018-04-19 at 10:01 -0400, Zhu Yanjun wrote:
+>>>> When skb is dropped by iptables rules, the skb is freed at the same 
+>>>> time
+>>>> -EPERM is returned. So in softroce, it is not necessary to free skb 
+>>>> again.
+>>>> Or else, crash will occur.
+>>>>
+>>>> The steps to reproduce:
+>>>>
+>>>>       server                       client
+>>>>      ---------                    ---------
+>>>>      |1.1.1.1|<----rxe-channel--->|1.1.1.2|
+>>>>      ---------                    ---------
+>>>>
+>>>> On server: rping -s -a 1.1.1.1 -v -C 10000 -S 512
+>>>> On client: rping -c -a 1.1.1.1 -v -C 10000 -S 512
+>>>>
+>>>> The kernel configs CONFIG_DEBUG_KMEMLEAK and
+>>>> CONFIG_DEBUG_OBJECTS are enabled on both server and client.
+>>>>
+>>>> When rping runs, run the following command in server:
+>>>>
+>>>> iptables -I OUTPUT -p udp  --dport 4791 -j DROP
+>>>>
+>>>> Without this patch, crash will occur.
+>>>>
+>>>> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
+>>>> CC: Junxiao Bi <junxiao.bi@oracle.com>
+>>>> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+>>>> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+>>> I have no reason to doubt your analysis, but if there are a bunch of
+>>> error paths for net_xmit and they all return with your skb still being
+>>> valid and holding a reference, and then one oddball that returns with
+>>> your skb already gone, that just sounds like a mistake waiting to 
+>>> happen
+>>> (not to mention a bajillion special cases sprinkled everywhere to deal
+>>> with this apparent inconsistency).
+>>>
+>>> Can we get a netdev@ confirmation on this being the right solution?
+>> Yes. I agree with you.
+>> After iptables rule "iptables -I OUTPUT -p udp  --dport 4791 -j 
+>> DROP", the skb is freed in this function
+>>
+>> /* Returns 1 if okfn() needs to be executed by the caller,
+>>  * -EPERM for NF_DROP, 0 otherwise.  Caller must hold rcu_read_lock. */
+>> int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state,
+>>                  const struct nf_hook_entries *e, unsigned int s)
+>> {
+>>         unsigned int verdict;
+>>         int ret;
+>>
+>>         for (; s < e->num_hook_entries; s++) {
+>>                 verdict = nf_hook_entry_hookfn(&e->hooks[s], skb, 
+>> state);
+>>                 switch (verdict & NF_VERDICT_MASK) {
+>>                 case NF_ACCEPT:
+>>                         break;
+>>                 case NF_DROP:
+>> kfree_skb(skb);                               <----here, skb is freed
+>>                         ret = NF_DROP_GETERR(verdict);
+>>                         if (ret == 0)
+>>                                 ret = -EPERM;
+>>                         return ret;
+>>                 case NF_QUEUE:
+>>                         ret = nf_queue(skb, state, e, s, verdict);
+>>                         if (ret == 1)
+>>                                 continue;
+>>                         return ret;
+>>                 default:
+>>                         /* Implicit handling for NF_STOLEN, as well 
+>> as any other
+>>                          * non conventional verdicts.
+>>                          */
+>>                         return 0;
+>>                 }
+>>         }
+>>
+>>         return 1;
+>> }
+>> EXPORT_SYMBOL(nf_hook_slow);
+>>
+>> If I am wrong, please correct me.
+>>
+>> And my test environment is still there, any solution can be verified 
+>> in it.
+>>
+>> Zhu Yanjun
+>>>
+>>>> ---
+>>>>   drivers/infiniband/sw/rxe/rxe_net.c  | 3 +++
+>>>>   drivers/infiniband/sw/rxe/rxe_req.c  | 5 +++--
+>>>>   drivers/infiniband/sw/rxe/rxe_resp.c | 9 ++++++---
+>>>>   3 files changed, 12 insertions(+), 5 deletions(-)
+>>>>
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_net.c 
+>>>> b/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> index 9da6e37..2094434 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_net.c
+>>>> @@ -511,6 +511,9 @@ int rxe_send(struct rxe_pkt_info *pkt, struct 
+>>>> sk_buff *skb)
+>>>>            if (unlikely(net_xmit_eval(err))) {
+>>>>                  pr_debug("error sending packet: %d\n", err);
+>>>> +               /* -EPERM means the skb is dropped and freed. */
+>>>> +               if (err == -EPERM)
+>>>> +                       return -EPERM;
+>>>>                  return -EAGAIN;
+>>>>          }
+>>>>   diff --git a/drivers/infiniband/sw/rxe/rxe_req.c 
+>>>> b/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> index 7bdaf71..9d2efec 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
+>>>> @@ -727,8 +727,9 @@ int rxe_requester(void *arg)
+>>>>                    rollback_state(wqe, qp, &rollback_wqe, 
+>>>> rollback_psn);
+>>>>   -               if (ret == -EAGAIN) {
+>>>> -                       kfree_skb(skb);
+>>>> +               if ((ret == -EAGAIN) || (ret == -EPERM)) {
+>>>> +                       if (ret == -EAGAIN)
+>>>> +                               kfree_skb(skb);
+>>>>                          rxe_run_task(&qp->req.task, 1);
+>>>>                          goto exit;
+>>>>                  }
+>>>> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c 
+>>>> b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> index a65c996..6bdf9b2 100644
+>>>> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
+>>>> @@ -742,7 +742,8 @@ static enum resp_states read_reply(struct 
+>>>> rxe_qp *qp,
+>>>>          err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
+>>>>          if (err) {
+>>>>                  pr_err("Failed sending RDMA reply.\n");
+>>>> -               kfree_skb(skb);
+>>>> +               if (err != -EPERM)
+>>>> +                       kfree_skb(skb);
+>>>>                  return RESPST_ERR_RNR;
+>>>>          }
+>>>>   @@ -956,7 +957,8 @@ static int send_ack(struct rxe_qp *qp, struct 
+>>>> rxe_pkt_info *pkt,
+>>>>          err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
+>>>>          if (err) {
+>>>>                  pr_err_ratelimited("Failed sending ack\n");
+>>>> -               kfree_skb(skb);
+>>>> +               if (err != -EPERM)
+>>>> +                       kfree_skb(skb);
+>>>>          }
+>>>>     err1:
+>>>> @@ -1141,7 +1143,8 @@ static enum resp_states 
+>>>> duplicate_request(struct rxe_qp *qp,
+>>>>                          if (rc) {
+>>>>                                  pr_err("Failed resending result. 
+>>>> This flow is not handled - skb ignored\n");
+>>>>                                  rxe_drop_ref(qp);
+>>>> -                               kfree_skb(skb_copy);
+>>>> +                               if (rc != -EPERM)
+>>>> +                                       kfree_skb(skb_copy);
+>>>>                                  rc = RESPST_CLEANUP;
+>>>>                                  goto out;
+>>>>                          }
+>>>> -- 
+>>>> 2.7.4
+>>>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
