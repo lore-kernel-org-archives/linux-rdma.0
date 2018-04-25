@@ -1,42 +1,70 @@
-From: Dag Moxnes <dag.moxnes@oracle.com>
-Subject: [PATCH] rds: ib: Fix missing call to rds_ib_dev_put in rds_ib_setup_qp
-Date: Wed, 25 Apr 2018 13:22:01 +0200
-Message-ID: <1524655321-8379-1-git-send-email-dag.moxnes@oracle.com>
+From: Frederic Weisbecker <frederic@kernel.org>
+Subject: Re: [PATCH] tick/sched: Do not mess with an enqueued hrtimer
+Date: Wed, 25 Apr 2018 15:22:06 +0200
+Message-ID: <20180425132205.GA12534@lerouge>
+References: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Wan, Kaike" <kaike.wan@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Fleck, John" <john.fleck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Anna-Maria Gleixner <anna-maria@linutronix.de>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The function rds_ib_setup_qp is calling rds_ib_get_client_data and
-should correspondingly call rds_ib_dev_put. This call was lost in
-the non-error path with the introduction of error handling done in
-commit 3b12f73a5c29 ("rds: ib: add error handle")
+On Tue, Apr 24, 2018 at 09:22:18PM +0200, Thomas Gleixner wrote:
+> Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
+> did great debugging, which provided enough context to decode the problem.
+> 
+> CPU 3			     	      	     CPU 2
+> 
+> idle
+> start sched_timer expires = 712171000000
+>  queue->next = sched_timer
+> 					    start rdmavt timer. expires = 712172915662
+> 					    lock(baseof(CPU3))
+> tick_nohz_stop_tick()
+> tick = 716767000000			    timerqueue_add(tmr)
+> 
+> hrtimer_set_expires(sched_timer, tick);
+>   sched_timer->expires = 716767000000  <---- FAIL
+> 					     if (tmr->expires < queue->next->expires)
+> hrtimer_start(sched_timer)		          queue->next = tmr;
+> lock(baseof(CPU3))
+> 					     unlock(baseof(CPU3))
+> timerqueue_remove()
+> timerqueue_add()
+> 
+> ts->sched_timer is queued and queue->next is pointing to it, but then
+> ts->sched_timer.expires is modified.
+> 
+> This not only corrupts the ordering of the timerqueue RB tree, it also
+> makes CPU2 see the new expiry time of timerqueue->next->expires when
+> checking whether timerqueue->next needs to be updated. So CPU2 sees that
+> the rdma timer is earlier than timerqueue->next and sets the rdma timer as
+> new next.
+> 
+> Depending on whether it had also seen the new time at RB tree enqueue, it
+> might have queued the rdma timer at the wrong place and then after removing
+> the sched_timer the RB tree is completely hosed.
+> 
+> The problem was introduced with a commit which tried to solve inconsistency
+> between the hrtimer in the tick_sched data and the underlying hardware
+> clockevent. It split out hrtimer_set_expires() to store the new tick time
+> in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact that in
+> the NOHZ + HIGHRES case the hrtimer might still be queued.
+> 
+> Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
+> timer->expires after canceling the timer and move the hrtimer_set_expires()
+> invocation into the NOHZ only code path which is not affected as it merily
+> uses the hrtimer as next event storage so code pathes can be shared with
+> the NOHZ + HIGHRES case.
+> 
+> Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and clockevent get out of sync")
+> Reported-by: "Wan Kaike" <kaike.wan@intel.com>
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 
-Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
----
- net/rds/ib_cm.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Acked-by: Frederic Weisbecker <frederic@kernel.org>
 
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index eea1d86..13b38ad 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -547,7 +547,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
- 	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
- 		 ic->i_send_cq, ic->i_recv_cq);
- 
--	return ret;
-+	goto out;
- 
- sends_out:
- 	vfree(ic->i_sends);
-@@ -572,6 +572,7 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
- 		ic->i_send_cq = NULL;
- rds_ibdev_out:
- 	rds_ib_remove_conn(rds_ibdev, conn);
-+out:
- 	rds_ib_dev_put(rds_ibdev);
- 
- 	return ret;
--- 
-1.7.1
+Thanks!
