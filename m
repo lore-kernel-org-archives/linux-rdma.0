@@ -1,68 +1,45 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH] rds: ib: Fix missing call to rds_ib_dev_put in
- rds_ib_setup_qp
-Date: Wed, 25 Apr 2018 15:48:51 +0200
-Message-ID: <67AE1ED5-55ED-4572-92E9-9FCE18C824A5@oracle.com>
-References: <1524655321-8379-1-git-send-email-dag.moxnes@oracle.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
+Date: Wed, 25 Apr 2018 10:13:30 -0400
+Message-ID: <988448bc-a5be-2beb-cbe8-b5a8ec4b8cfa@codeaurora.org>
+References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
+ <20180419202632.GE14063@ziepe.ca>
+ <20180419214722.GO28657@bhelgaas-glaptop.roam.corp.google.com>
+ <290e9530-dcde-9c10-7ae0-59ac4c509db4@codeaurora.org>
+ <20180420140049.GP28657@bhelgaas-glaptop.roam.corp.google.com>
+ <20180420090420.03fb1e6c@w520.home>
+ <10d9cf68-29ed-d205-a25f-b8dade53cdd8@codeaurora.org>
+ <20180423131044.53471670@w520.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1524655321-8379-1-git-send-email-dag.moxnes@oracle.com>
+In-Reply-To: <20180423131044.53471670@w520.home>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dag Moxnes <dag.moxnes@oracle.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Alex Williamson <alex.williamson@redhat.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Alex Deucher <alexander.deucher@amd.com>, Rajat Jain <rajatja@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/23/2018 3:10 PM, Alex Williamson wrote:
+>> Do we need a retrain API with the speed that driver wants to reach to?
+>> API can return what was actually accomplished. The quirk from Alex can
+>> run inside this API to make a decision on what speed do we actually want
+>> to reach to for a given PCI topology by reprogramming the target link speed
+>> field.
+> Yes, I think the core should provide a retraining API, that would also
+> make the Pericom quirk easier to implement.  We'd want a field/flag on
+> the pcidev that could be set by quirks to limit the highest target
+> rate, but it makes sense that this should be an interface provided by
+> and control point for the PCI core.  Thanks,
 
+Maybe, we could live with the existing secondary bus reset API. The speed that
+driver wants to reach to is in the target speed field. Quirk can hook up
+to the secondary bus reset call, read the target speed field to see what speed
+we are trying to negotiate to and override the target speed register based on
+upstream and downstream speeds.
 
-> On 25 Apr 2018, at 13:22, Dag Moxnes <dag.moxnes@oracle.com> wrote:
->=20
-> The function rds_ib_setup_qp is calling rds_ib_get_client_data and
-> should correspondingly call rds_ib_dev_put. This call was lost in
-> the non-error path with the introduction of error handling done in
-> commit 3b12f73a5c29 ("rds: ib: add error handle")
->=20
-> Signed-off-by: Dag Moxnes <dag.moxnes@oracle.com>
-
-Reviewed-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
-
-
-Thxs, H=C3=A5kon
-
-> ---
-> net/rds/ib_cm.c |    3 ++-
-> 1 files changed, 2 insertions(+), 1 deletions(-)
->=20
-> diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-> index eea1d86..13b38ad 100644
-> --- a/net/rds/ib_cm.c
-> +++ b/net/rds/ib_cm.c
-> @@ -547,7 +547,7 @@ static int rds_ib_setup_qp(struct rds_connection =
-*conn)
-> 	rdsdebug("conn %p pd %p cq %p %p\n", conn, ic->i_pd,
-> 		 ic->i_send_cq, ic->i_recv_cq);
->=20
-> -	return ret;
-> +	goto out;
->=20
-> sends_out:
-> 	vfree(ic->i_sends);
-> @@ -572,6 +572,7 @@ static int rds_ib_setup_qp(struct rds_connection =
-*conn)
-> 		ic->i_send_cq =3D NULL;
-> rds_ibdev_out:
-> 	rds_ib_remove_conn(rds_ibdev, conn);
-> +out:
-> 	rds_ib_dev_put(rds_ibdev);
->=20
-> 	return ret;
-> --=20
-> 1.7.1
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
