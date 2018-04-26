@@ -1,112 +1,129 @@
-From: Yanjun Zhu <yanjun.zhu@oracle.com>
-Subject: Re: [PATCHv2 1/1] IB/rxe: avoid double kfree_skb
-Date: Thu, 26 Apr 2018 13:22:42 +0800
-Message-ID: <384c7cce-d1e9-214b-4e9e-e97e9b080f3f@oracle.com>
-References: <1524717670-10901-1-git-send-email-yanjun.zhu@oracle.com>
+From: "Wan, Kaike" <kaike.wan@intel.com>
+Subject: RE: [PATCH] tick/sched: Do not mess with an enqueued hrtimer
+Date: Thu, 26 Apr 2018 12:56:11 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB634CACE9@CRSMSX101.amr.corp.intel.com>
+References: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1524717670-10901-1-git-send-email-yanjun.zhu@oracle.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: monis@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>
+Cc: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Weiny, Ira" <ira.weiny@intel.com>, "Fleck, John" <john.fleck@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Anna-Maria Gleixner <anna-maria@linutronix.de>, Frederic Weisbecker <fweisbec@gmail.com>, Ingo Molnar <mingo@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add netdev@vger.kernel.org
+> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> owner@vger.kernel.org] On Behalf Of Thomas Gleixner
+> Sent: Tuesday, April 24, 2018 3:22 PM
+> To: Frederic Weisbecker <frederic@kernel.org>
+> Cc: Wan, Kaike <kaike.wan@intel.com>; Marciniszyn, Mike
+> <mike.marciniszyn@intel.com>; Dalessandro, Dennis
+> <dennis.dalessandro@intel.com>; Weiny, Ira <ira.weiny@intel.com>; Fleck,
+> John <john.fleck@intel.com>; linux-kernel@vger.kernel.org; linux-
+> rdma@vger.kernel.org; Peter Zijlstra <peterz@infradead.org>; Anna-Maria
+> Gleixner <anna-maria@linutronix.de>; Frederic Weisbecker
+> <fweisbec@gmail.com>; Ingo Molnar <mingo@kernel.org>
+> Subject: [PATCH] tick/sched: Do not mess with an enqueued hrtimer
+> 
+> Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
+> did great debugging, which provided enough context to decode the problem.
+> 
+> CPU 3			     	      	     CPU 2
+> 
+> idle
+> start sched_timer expires = 712171000000  queue->next = sched_timer
+> 					    start rdmavt timer. expires =
+> 712172915662
+> 					    lock(baseof(CPU3))
+> tick_nohz_stop_tick()
+> tick = 716767000000			    timerqueue_add(tmr)
+> 
+> hrtimer_set_expires(sched_timer, tick);
+>   sched_timer->expires = 716767000000  <---- FAIL
+> 					     if (tmr->expires < queue->next-
+> >expires)
+> hrtimer_start(sched_timer)		          queue->next = tmr;
+> lock(baseof(CPU3))
+> 					     unlock(baseof(CPU3))
+> timerqueue_remove()
+> timerqueue_add()
+> 
+> ts->sched_timer is queued and queue->next is pointing to it, but then
+> ts->sched_timer.expires is modified.
+> 
+> This not only corrupts the ordering of the timerqueue RB tree, it also makes
+> CPU2 see the new expiry time of timerqueue->next->expires when checking
+> whether timerqueue->next needs to be updated. So CPU2 sees that the
+> rdma timer is earlier than timerqueue->next and sets the rdma timer as new
+> next.
+> 
+> Depending on whether it had also seen the new time at RB tree enqueue, it
+> might have queued the rdma timer at the wrong place and then after
+> removing the sched_timer the RB tree is completely hosed.
+> 
+> The problem was introduced with a commit which tried to solve
+> inconsistency between the hrtimer in the tick_sched data and the underlying
+> hardware clockevent. It split out hrtimer_set_expires() to store the new tick
+> time in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact
+> that in the NOHZ + HIGHRES case the hrtimer might still be queued.
+> 
+> Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
+> timer->expires after canceling the timer and move the
+> timer->hrtimer_set_expires()
+> invocation into the NOHZ only code path which is not affected as it merily
+> uses the hrtimer as next event storage so code pathes can be shared with
+> the NOHZ + HIGHRES case.
+> 
+> Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and
+> clockevent get out of sync")
+> Reported-by: "Wan Kaike" <kaike.wan@intel.com>
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: "Marciniszyn Mike" <mike.marciniszyn@intel.com>
+> Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: "Dalessandro Dennis" <dennis.dalessandro@intel.com>
+> Cc: "Fleck John" <john.fleck@intel.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Frederic Weisbecker <fweisbec@gmail.com>
+> Cc: "Weiny Ira" <ira.weiny@intel.com>
+> Cc: "linux-rdma@vger.kernel.org"
+> Cc: stable@vger.kernel.org
+> Link:
+> https://lkml.kernel.org/r/alpine.DEB.2.21.1804241637390.1679@nanos.tec.lin
+> utronix.de
+> 
+> ---
+>  kernel/time/tick-sched.c |   10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> --- a/kernel/time/tick-sched.c
+> +++ b/kernel/time/tick-sched.c
+> @@ -804,12 +804,12 @@ static void tick_nohz_stop_tick(struct t
+>  		return;
+>  	}
+> 
+> -	hrtimer_set_expires(&ts->sched_timer, tick);
+> -
+> -	if (ts->nohz_mode == NOHZ_MODE_HIGHRES)
+> -		hrtimer_start_expires(&ts->sched_timer,
+> HRTIMER_MODE_ABS_PINNED);
+> -	else
+> +	if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
+> +		hrtimer_start(&ts->sched_timer, tick,
+> HRTIMER_MODE_ABS_PINNED);
+> +	} else {
+> +		hrtimer_set_expires(&ts->sched_timer, tick);
+>  		tick_program_event(tick, 1);
+> +	}
+>  }
+> 
+>  static void tick_nohz_retain_tick(struct tick_sched *ts)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the
+> body of a message to majordomo@vger.kernel.org More majordomo info at
+> http://vger.kernel.org/majordomo-info.html
 
 
-On 2018/4/26 12:41, Zhu Yanjun wrote:
-> When skb is sent, it will pass the following functions in soft roce.
->
-> rxe_send [rdma_rxe]
->      ip_local_out
->          __ip_local_out
->          ip_output
->              ip_finish_output
->                  ip_finish_output2
->                      dev_queue_xmit
->                          __dev_queue_xmit
->                              dev_hard_start_xmit
->
-> In the above functions, if error occurs in the above functions or
-> iptables rules drop skb after ip_local_out, kfree_skb will be called.
-> So it is not necessary to call kfree_skb in soft roce module again.
-> Or else crash will occur.
->
-> The steps to reproduce:
->
->       server                       client
->      ---------                    ---------
->      |1.1.1.1|<----rxe-channel--->|1.1.1.2|
->      ---------                    ---------
->
-> On server: rping -s -a 1.1.1.1 -v -C 10000 -S 512
-> On client: rping -c -a 1.1.1.1 -v -C 10000 -S 512
->
-> The kernel configs CONFIG_DEBUG_KMEMLEAK and
-> CONFIG_DEBUG_OBJECTS are enabled on both server and client.
->
-> When rping runs, run the following command in server:
->
-> iptables -I OUTPUT -p udp  --dport 4791 -j DROP
->
-> Without this patch, crash will occur.
->
-> CC: Srinivas Eeda <srinivas.eeda@oracle.com>
-> CC: Junxiao Bi <junxiao.bi@oracle.com>
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> ---
-> V1->V2: Not only the dropped skb is freed, but also the error skb
->          is also freed. So in soft roce, it is not necessary to call
->          kfree_skb again.
-> ---
->   drivers/infiniband/sw/rxe/rxe_req.c  | 1 -
->   drivers/infiniband/sw/rxe/rxe_resp.c | 6 +-----
->   2 files changed, 1 insertion(+), 6 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-> index 7bdaf71..7851999 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_req.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-> @@ -728,7 +728,6 @@ int rxe_requester(void *arg)
->   		rollback_state(wqe, qp, &rollback_wqe, rollback_psn);
->   
->   		if (ret == -EAGAIN) {
-> -			kfree_skb(skb);
->   			rxe_run_task(&qp->req.task, 1);
->   			goto exit;
->   		}
-> diff --git a/drivers/infiniband/sw/rxe/rxe_resp.c b/drivers/infiniband/sw/rxe/rxe_resp.c
-> index a65c996..955ff3b 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_resp.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_resp.c
-> @@ -742,7 +742,6 @@ static enum resp_states read_reply(struct rxe_qp *qp,
->   	err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
->   	if (err) {
->   		pr_err("Failed sending RDMA reply.\n");
-> -		kfree_skb(skb);
->   		return RESPST_ERR_RNR;
->   	}
->   
-> @@ -954,10 +953,8 @@ static int send_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
->   	}
->   
->   	err = rxe_xmit_packet(rxe, qp, &ack_pkt, skb);
-> -	if (err) {
-> +	if (err)
->   		pr_err_ratelimited("Failed sending ack\n");
-> -		kfree_skb(skb);
-> -	}
->   
->   err1:
->   	return err;
-> @@ -1141,7 +1138,6 @@ static enum resp_states duplicate_request(struct rxe_qp *qp,
->   			if (rc) {
->   				pr_err("Failed resending result. This flow is not handled - skb ignored\n");
->   				rxe_drop_ref(qp);
-> -				kfree_skb(skb_copy);
->   				rc = RESPST_CLEANUP;
->   				goto out;
->   			}
+Tested-by: Kaike Wan <Kaike.wan@intel.com>
