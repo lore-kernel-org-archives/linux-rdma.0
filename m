@@ -1,55 +1,80 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
+From: Greg Thelen <gthelen@google.com>
 Subject: Re: [PATCH 5/5] IB: make INFINIBAND_ADDR_TRANS configurable
-Date: Thu, 26 Apr 2018 02:13:12 +0000
-Message-ID: <14810de7b209468bc36fdb696db639242bbad9f9.camel@wdc.com>
-References: <20180425223424.207228-1-gthelen@google.com>
+Date: Thu, 26 Apr 2018 02:24:30 +0000
+Message-ID: <CAHH2K0aT+NOKFgVZSwdD2uOKx2ZVSO6sbFHj7KQEUWL8RL8RMw@mail.gmail.com>
+References: <20180425223424.207228-1-gthelen@google.com> <14810de7b209468bc36fdb696db639242bbad9f9.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425223424.207228-1-gthelen@google.com>
-Content-Language: en-US
-Content-ID: <DCEA09BAC798A74E8FB18C48E276D301@namprd04.prod.outlook.com>
+In-Reply-To: <14810de7b209468bc36fdb696db639242bbad9f9.camel@wdc.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "gthelen@google.com" <gthelen@google.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "hch@lst.de" <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "tarick@google.com" <tarick@google.com>
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Tarick Bedeir <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTA0LTI1IGF0IDE1OjM0IC0wNzAwLCBHcmVnIFRoZWxlbiB3cm90ZToNCj4g
-QWxsb3cgSU5GSU5JQkFORCB3aXRob3V0IElORklOSUJBTkRfQUREUl9UUkFOUyBiZWNhdXNlIGZ1
-enppbmcgaGFzIGJlZW4NCj4gZmluZGluZyBmYWlyIG51bWJlciBvZiBDTSBidWdzLiAgU28gcHJv
-dmlkZSBvcHRpb24gdG8gZGlzYWJsZSBpdC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEdyZWcgVGhl
-bGVuIDxndGhlbGVuQGdvb2dsZS5jb20+DQo+IENjOiBUYXJpY2sgQmVkZWlyIDx0YXJpY2tAZ29v
-Z2xlLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZyB8IDUgKysrKy0N
-Cj4gIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gDQo+
-IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZyBiL2RyaXZlcnMvaW5maW5p
-YmFuZC9LY29uZmlnDQo+IGluZGV4IGVlMjcwZTA2NWJhOS4uMmE5NzJlZDY4NTFiIDEwMDY0NA0K
-PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZw0KPiArKysgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvS2NvbmZpZw0KPiBAQCAtNjEsOSArNjEsMTIgQEAgY29uZmlnIElORklOSUJBTkRfT05f
-REVNQU5EX1BBR0lORw0KPiAgCSAgcGFnZXMgb24gZGVtYW5kIGluc3RlYWQuDQo+ICANCj4gIGNv
-bmZpZyBJTkZJTklCQU5EX0FERFJfVFJBTlMNCj4gLQlib29sDQo+ICsJYm9vbCAiUkRNQS9DTSIN
-Cj4gIAlkZXBlbmRzIG9uIElORklOSUJBTkQNCj4gIAlkZWZhdWx0IHkNCj4gKwktLS1oZWxwLS0t
-DQo+ICsJICBTdXBwb3J0IGZvciBSRE1BIGNvbW11bmljYXRpb24gbWFuYWdlciAoQ00pLg0KPiAr
-CSAgVGhpcyBhbGxvd3MgZm9yIGEgZ2VuZXJpYyBjb25uZWN0aW9uIGFic3RyYWN0aW9uIG92ZXIg
-UkRNQS4NCg0KSGVsbG8gR3JlZywNCg0KUGxlYXNlIHByb3ZpZGUgYSBjb3ZlciBsZXR0ZXIgd2hl
-biBwb3N0aW5nIGEgcGF0Y2ggc2VyaWVzLiBTdWNoIGEgY292ZXINCmxldHRlciBpcyBub3Qgb25s
-eSBpbmZvcm1hdGl2ZSBidXQgYWxzbyBtYWtlcyBpdCBlYXN5IGZvciBwZW9wbGUgd2hvIHdhbnQN
-CnRvIGNvbW1lbnQgb24gYSBwYXRjaCBzZXJpZXMgYXMgYSB3aG9sZS4gSSBoYXZlIGEgcXVlc3Rp
-b24gdGhhdCBhcHBsaWVzDQp0byB0aGUgZW50aXJlIHBhdGNoIHNlcmllcy4gVGhlIFJETUEvQ00g
-Y29kZSBkZWZpbmVzIGZ1bmN0aW9ucyBsaWtlDQpyZG1hX2NyZWF0ZV9pZCgpIGFuZCByZG1hX2Ny
-ZWF0ZV9xcCgpLiBJZiBJIHNlYXJjaCB0aHJvdWdoIHRoZSBrZXJuZWwgdHJlZQ0KZm9yIGNhbGxl
-cnMgb2YgdGhlc2UgZnVuY3Rpb25zIHRoZW4gSSBmaW5kIHNldmVyYWwgbW9yZSBrZXJuZWwgbW9k
-dWxlcyB0aGFuDQp0aGUgb25lcyB0aGF0IGFyZSBtb2RpZmllZCBieSB0aGlzIHBhdGNoIHNlcmll
-czoNCg0KJCBnaXQgZ3JlcCAtbEUgJ1tbOmJsYW5rOl1dKHJkbWFfY3JlYXRlX2lkfHJkbWFfY3Jl
-YXRlX3FwKVwoJw0KZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMNCmRyaXZlcnMvaW5maW5p
-YmFuZC91bHAvaXNlci9pc2VyX3ZlcmJzLmMNCmRyaXZlcnMvaW5maW5pYmFuZC91bHAvaXNlcnQv
-aWJfaXNlcnQuYw0KZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnAvaWJfc3JwLmMNCmRyaXZlcnMv
-aW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCmRyaXZlcnMvbnZtZS9ob3N0L3JkbWEuYw0K
-ZHJpdmVycy9udm1lL3RhcmdldC9yZG1hLmMNCmRyaXZlcnMvc3RhZ2luZy9sdXN0cmUvbG5ldC9r
-bG5kcy9vMmlibG5kL28yaWJsbmQuYw0KZHJpdmVycy9zdGFnaW5nL2x1c3RyZS9sbmV0L2tsbmRz
-L28yaWJsbmQvbzJpYmxuZC5oDQpmcy9jaWZzL3NtYmRpcmVjdC5jDQppbmNsdWRlL3JkbWEvcmRt
-YV9jbS5oDQpuZXQvOXAvdHJhbnNfcmRtYS5jDQpuZXQvcmRzL2liLmMNCm5ldC9yZHMvaWJfY20u
-Yw0KbmV0L3Jkcy9yZG1hX3RyYW5zcG9ydC5jDQpuZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1h
-X3RyYW5zcG9ydC5jDQpuZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMNCg0KQXJlIHlvdSBzdXJl
-IHRoYXQgdGhpcyBwYXRjaCBzZXJpZXMgaXMgY29tcGxldGU/DQoNClRoYW5rcywNCg0KQmFydC4N
-Cg0KDQo=
+On Wed, Apr 25, 2018 at 7:13 PM Bart Van Assche <Bart.VanAssche@wdc.com>
+wrote:
+
+> On Wed, 2018-04-25 at 15:34 -0700, Greg Thelen wrote:
+> > Allow INFINIBAND without INFINIBAND_ADDR_TRANS because fuzzing has been
+> > finding fair number of CM bugs.  So provide option to disable it.
+> >
+> > Signed-off-by: Greg Thelen <gthelen@google.com>
+> > Cc: Tarick Bedeir <tarick@google.com>
+> > ---
+> >  drivers/infiniband/Kconfig | 5 ++++-
+> >  1 file changed, 4 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+> > index ee270e065ba9..2a972ed6851b 100644
+> > --- a/drivers/infiniband/Kconfig
+> > +++ b/drivers/infiniband/Kconfig
+> > @@ -61,9 +61,12 @@ config INFINIBAND_ON_DEMAND_PAGING
+> >         pages on demand instead.
+> >
+> >  config INFINIBAND_ADDR_TRANS
+> > -     bool
+> > +     bool "RDMA/CM"
+> >       depends on INFINIBAND
+> >       default y
+> > +     ---help---
+> > +       Support for RDMA communication manager (CM).
+> > +       This allows for a generic connection abstraction over RDMA.
+
+> Hello Greg,
+
+> Please provide a cover letter when posting a patch series. Such a cover
+> letter is not only informative but also makes it easy for people who want
+> to comment on a patch series as a whole. I have a question that applies
+> to the entire patch series. The RDMA/CM code defines functions like
+> rdma_create_id() and rdma_create_qp(). If I search through the kernel tree
+> for callers of these functions then I find several more kernel modules
+than
+> the ones that are modified by this patch series:
+
+> $ git grep -lE '[[:blank:]](rdma_create_id|rdma_create_qp)\('
+> drivers/infiniband/core/cma.c
+> drivers/infiniband/ulp/iser/iser_verbs.c
+> drivers/infiniband/ulp/isert/ib_isert.c
+> drivers/infiniband/ulp/srp/ib_srp.c
+> drivers/infiniband/ulp/srpt/ib_srpt.c
+> drivers/nvme/host/rdma.c
+> drivers/nvme/target/rdma.c
+> drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+> drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
+> fs/cifs/smbdirect.c
+> include/rdma/rdma_cm.h
+> net/9p/trans_rdma.c
+> net/rds/ib.c
+> net/rds/ib_cm.c
+> net/rds/rdma_transport.c
+> net/sunrpc/xprtrdma/svc_rdma_transport.c
+> net/sunrpc/xprtrdma/verbs.c
+
+> Are you sure that this patch series is complete?
+
+I'll check your cited files.  I'll resend with cover letter.
+
+FYI: I already rand this series through the 0-day builder, which presumably
+would've caught most config dep issues.  But I'll research your list before
+reposting.
