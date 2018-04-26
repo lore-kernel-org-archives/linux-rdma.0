@@ -1,61 +1,55 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [PATCH 4/5] cifs: smbd: depend on INFINIBAND_ADDR_TRANS
-Date: Thu, 26 Apr 2018 01:14:49 +0000
-Message-ID: <MWHPR2101MB07293DD81DF86317C2A6917ECE8E0@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20180425223412.207127-1-gthelen@google.com>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
+Subject: Re: [PATCH 5/5] IB: make INFINIBAND_ADDR_TRANS configurable
+Date: Thu, 26 Apr 2018 02:13:12 +0000
+Message-ID: <14810de7b209468bc36fdb696db639242bbad9f9.camel@wdc.com>
+References: <20180425223424.207228-1-gthelen@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425223412.207127-1-gthelen@google.com>
+In-Reply-To: <20180425223424.207228-1-gthelen@google.com>
 Content-Language: en-US
+Content-ID: <DCEA09BAC798A74E8FB18C48E276D301@namprd04.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Thelen <gthelen@google.com>, Steve French <sfrench@samba.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Christoph Hellwig <hch@lst.de>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "gthelen@google.com" <gthelen@google.com>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "hch@lst.de" <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "tarick@google.com" <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH 4/5] cifs: smbd: depend on INFINIBAND_ADDR_TRANS
->=20
-> CIFS_SMB_DIRECT code depends on INFINIBAND_ADDR_TRANS provided
-> symbols.
-> So declare the kconfig dependency.  This is necessary to allow for enabli=
-ng
-> INFINIBAND without INFINIBAND_ADDR_TRANS.
->=20
-> Signed-off-by: Greg Thelen <gthelen@google.com>
-> Cc: Tarick Bedeir <tarick@google.com>
-
-Reviewed-by: Long Li <longli@microsoft.com>
-
-> ---
->  fs/cifs/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/fs/cifs/Kconfig b/fs/cifs/Kconfig index
-> 741749a98614..5f132d59dfc2 100644
-> --- a/fs/cifs/Kconfig
-> +++ b/fs/cifs/Kconfig
-> @@ -197,7 +197,7 @@ config CIFS_SMB311
->=20
->  config CIFS_SMB_DIRECT
->  	bool "SMB Direct support (Experimental)"
-> -	depends on CIFS=3Dm && INFINIBAND || CIFS=3Dy && INFINIBAND=3Dy
-> +	depends on CIFS=3Dm && INFINIBAND && INFINIBAND_ADDR_TRANS
-> || CIFS=3Dy &&
-> +INFINIBAND=3Dy && INFINIBAND_ADDR_TRANS=3Dy
->  	help
->  	  Enables SMB Direct experimental support for SMB 3.0, 3.02 and 3.1.1.
->  	  SMB Direct allows transferring SMB packets over RDMA. If unsure,
-> --
-> 2.17.0.441.gb46fe60e1d-goog
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-cifs" in =
-the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> https://na01.safelinks.protection.outlook.com/?url=3Dhttp%3A%2F%2Fvger.ke
-> rnel.org%2Fmajordomo-
-> info.html&data=3D02%7C01%7Clongli%40microsoft.com%7C680883705136432b
-> 280b08d5aafcb355%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C63
-> 6602924686676279&sdata=3Dcn1DPTCOpL2%2BBa62wGlUp2dEe8BAzFVPxhfRxf
-> 2N1Ek%3D&reserved=3D0
+T24gV2VkLCAyMDE4LTA0LTI1IGF0IDE1OjM0IC0wNzAwLCBHcmVnIFRoZWxlbiB3cm90ZToNCj4g
+QWxsb3cgSU5GSU5JQkFORCB3aXRob3V0IElORklOSUJBTkRfQUREUl9UUkFOUyBiZWNhdXNlIGZ1
+enppbmcgaGFzIGJlZW4NCj4gZmluZGluZyBmYWlyIG51bWJlciBvZiBDTSBidWdzLiAgU28gcHJv
+dmlkZSBvcHRpb24gdG8gZGlzYWJsZSBpdC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEdyZWcgVGhl
+bGVuIDxndGhlbGVuQGdvb2dsZS5jb20+DQo+IENjOiBUYXJpY2sgQmVkZWlyIDx0YXJpY2tAZ29v
+Z2xlLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZyB8IDUgKysrKy0N
+Cj4gIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gDQo+
+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZyBiL2RyaXZlcnMvaW5maW5p
+YmFuZC9LY29uZmlnDQo+IGluZGV4IGVlMjcwZTA2NWJhOS4uMmE5NzJlZDY4NTFiIDEwMDY0NA0K
+PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvS2NvbmZpZw0KPiArKysgYi9kcml2ZXJzL2luZmlu
+aWJhbmQvS2NvbmZpZw0KPiBAQCAtNjEsOSArNjEsMTIgQEAgY29uZmlnIElORklOSUJBTkRfT05f
+REVNQU5EX1BBR0lORw0KPiAgCSAgcGFnZXMgb24gZGVtYW5kIGluc3RlYWQuDQo+ICANCj4gIGNv
+bmZpZyBJTkZJTklCQU5EX0FERFJfVFJBTlMNCj4gLQlib29sDQo+ICsJYm9vbCAiUkRNQS9DTSIN
+Cj4gIAlkZXBlbmRzIG9uIElORklOSUJBTkQNCj4gIAlkZWZhdWx0IHkNCj4gKwktLS1oZWxwLS0t
+DQo+ICsJICBTdXBwb3J0IGZvciBSRE1BIGNvbW11bmljYXRpb24gbWFuYWdlciAoQ00pLg0KPiAr
+CSAgVGhpcyBhbGxvd3MgZm9yIGEgZ2VuZXJpYyBjb25uZWN0aW9uIGFic3RyYWN0aW9uIG92ZXIg
+UkRNQS4NCg0KSGVsbG8gR3JlZywNCg0KUGxlYXNlIHByb3ZpZGUgYSBjb3ZlciBsZXR0ZXIgd2hl
+biBwb3N0aW5nIGEgcGF0Y2ggc2VyaWVzLiBTdWNoIGEgY292ZXINCmxldHRlciBpcyBub3Qgb25s
+eSBpbmZvcm1hdGl2ZSBidXQgYWxzbyBtYWtlcyBpdCBlYXN5IGZvciBwZW9wbGUgd2hvIHdhbnQN
+CnRvIGNvbW1lbnQgb24gYSBwYXRjaCBzZXJpZXMgYXMgYSB3aG9sZS4gSSBoYXZlIGEgcXVlc3Rp
+b24gdGhhdCBhcHBsaWVzDQp0byB0aGUgZW50aXJlIHBhdGNoIHNlcmllcy4gVGhlIFJETUEvQ00g
+Y29kZSBkZWZpbmVzIGZ1bmN0aW9ucyBsaWtlDQpyZG1hX2NyZWF0ZV9pZCgpIGFuZCByZG1hX2Ny
+ZWF0ZV9xcCgpLiBJZiBJIHNlYXJjaCB0aHJvdWdoIHRoZSBrZXJuZWwgdHJlZQ0KZm9yIGNhbGxl
+cnMgb2YgdGhlc2UgZnVuY3Rpb25zIHRoZW4gSSBmaW5kIHNldmVyYWwgbW9yZSBrZXJuZWwgbW9k
+dWxlcyB0aGFuDQp0aGUgb25lcyB0aGF0IGFyZSBtb2RpZmllZCBieSB0aGlzIHBhdGNoIHNlcmll
+czoNCg0KJCBnaXQgZ3JlcCAtbEUgJ1tbOmJsYW5rOl1dKHJkbWFfY3JlYXRlX2lkfHJkbWFfY3Jl
+YXRlX3FwKVwoJw0KZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMNCmRyaXZlcnMvaW5maW5p
+YmFuZC91bHAvaXNlci9pc2VyX3ZlcmJzLmMNCmRyaXZlcnMvaW5maW5pYmFuZC91bHAvaXNlcnQv
+aWJfaXNlcnQuYw0KZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnAvaWJfc3JwLmMNCmRyaXZlcnMv
+aW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCmRyaXZlcnMvbnZtZS9ob3N0L3JkbWEuYw0K
+ZHJpdmVycy9udm1lL3RhcmdldC9yZG1hLmMNCmRyaXZlcnMvc3RhZ2luZy9sdXN0cmUvbG5ldC9r
+bG5kcy9vMmlibG5kL28yaWJsbmQuYw0KZHJpdmVycy9zdGFnaW5nL2x1c3RyZS9sbmV0L2tsbmRz
+L28yaWJsbmQvbzJpYmxuZC5oDQpmcy9jaWZzL3NtYmRpcmVjdC5jDQppbmNsdWRlL3JkbWEvcmRt
+YV9jbS5oDQpuZXQvOXAvdHJhbnNfcmRtYS5jDQpuZXQvcmRzL2liLmMNCm5ldC9yZHMvaWJfY20u
+Yw0KbmV0L3Jkcy9yZG1hX3RyYW5zcG9ydC5jDQpuZXQvc3VucnBjL3hwcnRyZG1hL3N2Y19yZG1h
+X3RyYW5zcG9ydC5jDQpuZXQvc3VucnBjL3hwcnRyZG1hL3ZlcmJzLmMNCg0KQXJlIHlvdSBzdXJl
+IHRoYXQgdGhpcyBwYXRjaCBzZXJpZXMgaXMgY29tcGxldGU/DQoNClRoYW5rcywNCg0KQmFydC4N
+Cg0KDQo=
