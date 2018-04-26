@@ -1,72 +1,178 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Thu, 26 Apr 2018 18:06:10 +0200
-Message-ID: <C546E163-297B-438E-AF76-CC04247ABFBA@oracle.com>
-References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
- <1524196555.11756.30.camel@redhat.com> <20180420153451.GF30433@ziepe.ca>
- <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
- <20180423221618.0000795d@dev.mellanox.co.il>
-Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+From: Greg Thelen <gthelen@google.com>
+Subject: [PATCH 0/6] IB: make INFINIBAND_ADDR_TRANS configurable
+Date: Thu, 26 Apr 2018 11:19:29 -0700
+Message-ID: <20180426181935.32977-1-gthelen@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180423221618.0000795d@dev.mellanox.co.il>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
-Cc: Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, jackm <jackm@dev.mellanox.co.il>
+To: Bart.VanAssche@wdc.com, hch@lst.de, dledford@redhat.com, jgg@ziepe.ca, axboe@fb.com, keith.busch@intel.com, sagi@grimberg.me, sfrench@samba.org
+Cc: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, linux-cifs@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Thelen <gthelen@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
+This series allows for CONFIG_INFINIBAND without
+CONFIG_INFINIBAND_ADDR_TRANS (aka RDMA communication manager).
+Fuzzing has been finding fair number of CM bugs.
+So provide an option to disable it in systems which don't need it.
 
+Changes since last posting (https://lkml.org/lkml/2018/4/25/1266):
+- added ("ib_srp: depend on INFINIBAND_ADDR_TRANS") patch
 
-> On 23 Apr 2018, at 21:16, jackm <jackm@dev.mellanox.co.il> wrote:
->=20
-> On Mon, 23 Apr 2018 16:19:57 +0200
-> H=C3=A5kon Bugge <haakon.bugge@oracle.com> wrote:
->=20
->=20
->>>=20
->>> This actually looks like a genuine bug, why is it described only as
->>> 'confusing'? ib_register_mad_agent is callable from userspace, so at
->>> least two userspace agents can race and get the same TID=E2=80=99s. =20=
+This series passed the 0-day builder.
 
->>=20
->> My understanding is that every lookup is using the {port, TID} tuple.
->> As such, it is not a bug, but, very confusing.
-> Haakon, you are correct (see snippet from the IB spec, below).
->=20
-> We will NOT have a situation where there are 2 threads/apps
-> with the same agent ID on the *same port* (accessing the agent ID
-> allocator is protected by a per-port spinlock). Having the same agent =
-ID
-> on DIFFERENT ports is OK.
-> Thus, there is NO bug here. (But as Haakon says, IMHO it is more =
-robust
-> to avoid having the same agent ID for 2 agents even if those agents =
-are
-> on different ports).
->=20
->>=20
->>> TIDs need to be globally unique on the entire machine. =20
->>=20
-> Jason, that is not exactly correct.
->=20
-> =46rom the IB Spec 1.3, C13-18.1.1 (in section 13.4.6.4 - =
-TransactionID
-> usage):
-> "When initiating a new operation, MADHeader:TransactionID
-> shall be set to such a value that within that MAD the combination of
-> TID, SGID, and MgmtClass is different from that of any other currently
-> executing operation. If the MAD does not have a GRH, its SLID is used
-> in the combination in place of an SGID."
->=20
-> Since the SGID/SLID is different for each port, the per-port guarantee
-> of no 2 agents receiving the same agent-ID value is sufficient.
->=20
-> -Jack
+I perfomed manual static analysis of this series based on next-20180424,
+looking for dependencies.
 
-Shall I interpret this silence as my commit is good to go or that I =
-should add Jack=E2=80=99s tangible information to the commit message?
+$ git grep -w CONFIG_INFINIBAND_ADDR_TRANS
+drivers/infiniband/core/Makefile:infiniband-$(CONFIG_INFINIBAND_ADDR_TRANS)     := rdma_cm.o
+drivers/infiniband/core/Makefile:user_access-$(CONFIG_INFINIBAND_ADDR_TRANS)    := rdma_ucm.o
 
+$ grep -w -e rdma_cm -e rdma_ucm drivers/infiniband/core/Makefile
+infiniband-$(CONFIG_INFINIBAND_ADDR_TRANS)      := rdma_cm.o
+user_access-$(CONFIG_INFINIBAND_ADDR_TRANS)     := rdma_ucm.o
+rdma_cm-y :=                    cma.o
+rdma_cm-$(CONFIG_INFINIBAND_ADDR_TRANS_CONFIGFS) += cma_configfs.o
+rdma_ucm-y :=                   ucma.o
 
-Thxs, H=C3=A5kon
+$ grep EXPORT drivers/infiniband/core/{cma,ucma}.c
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_event_msg);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_reject_msg);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_is_consumer_reject);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_consumer_reject_data);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(__rdma_create_id);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_create_qp);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_destroy_qp);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_init_qp_attr);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_destroy_id);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_get_service_id);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_read_gids);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_set_service_type);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_set_ib_path);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_resolve_route);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_resolve_addr);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_set_reuseaddr);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_set_afonly);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_listen);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_bind_addr);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_connect);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(__rdma_accept);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_notify);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_reject);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_disconnect);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_join_multicast);
+drivers/infiniband/core/cma.c:EXPORT_SYMBOL(rdma_leave_multicast);
+
+$ git grep -lw \
+  -e __rdma_accept \
+  -e __rdma_create_id \
+  -e rdma_bind_addr \
+  -e rdma_connect \
+  -e rdma_consumer_reject_data \
+  -e rdma_create_qp \
+  -e rdma_destroy_id \
+  -e rdma_destroy_qp \
+  -e rdma_disconnect \
+  -e rdma_event_msg \
+  -e rdma_get_service_id \
+  -e rdma_init_qp_attr \
+  -e rdma_is_consumer_reject \
+  -e rdma_join_multicast \
+  -e rdma_leave_multicast \
+  -e rdma_listen \
+  -e rdma_notify \
+  -e rdma_read_gids \
+  -e rdma_reject \
+  -e rdma_reject_msg \
+  -e rdma_resolve_addr \
+  -e rdma_resolve_route \
+  -e rdma_set_afonly \
+  -e rdma_set_ib_path \
+  -e rdma_set_reuseaddr \
+  -e rdma_set_service_type
+drivers/infiniband/core/cma.c
+drivers/infiniband/core/ucma.c
+drivers/infiniband/hw/qedr/verbs.c
+drivers/infiniband/ulp/iser/iser_verbs.c
+drivers/infiniband/ulp/isert/ib_isert.c
+drivers/infiniband/ulp/srp/ib_srp.c
+drivers/infiniband/ulp/srpt/ib_srpt.c
+drivers/net/ethernet/qlogic/qed/qed_rdma.c
+drivers/nvme/host/rdma.c
+drivers/nvme/target/rdma.c
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c
+fs/cifs/smbdirect.c
+include/linux/qed/qed_rdma_if.h
+include/rdma/rdma_cm.h
+include/rdma/rdma_cm_ib.h
+net/9p/trans_rdma.c
+net/rds/ib.c
+net/rds/ib_cm.c
+net/rds/rdma_transport.c
+net/sunrpc/xprtrdma/svc_rdma_transport.c
+net/sunrpc/xprtrdma/transport.c
+net/sunrpc/xprtrdma/verbs.c
+
+# analysis of each file:
+drivers/infiniband/hw/qedr/verbs.c
+drivers/net/ethernet/qlogic/qed/qed_rdma.c
+include/linux/qed/qed_rdma_if.h
+  - not a direct function call
+include/rdma/rdma_cm.h
+include/rdma/rdma_cm_ib.h
+  - just prototypes
+drivers/infiniband/core/cma.c
+drivers/infiniband/core/ucma.c
+  - depends on INFINIBAND_ADDR_TRANS
+drivers/infiniband/ulp/iser/iser_verbs.c
+  - depends on INFINIBAND_ISER => INFINIBAND_ADDR_TRANS
+drivers/infiniband/ulp/isert/ib_isert.c
+  - depends on INFINIBAND_ISERT => INFINIBAND_ADDR_TRANS
+drivers/infiniband/ulp/srp/ib_srp.c
+  - depends on INFINIBAND_SRP => INFINIBAND_ADDR_TRANS
+    per this series' "ib_srp: depend on INFINIBAND_ADDR_TRANS"
+drivers/infiniband/ulp/srpt/ib_srpt.c
+  - depends on INFINIBAND_SRPT => INFINIBAND_ADDR_TRANS
+    per this series' "ib_srpt: depend on INFINIBAND_ADDR_TRANS"
+drivers/nvme/host/rdma.c
+  - depends on NVME_RDMA => INFINIBAND_ADDR_TRANS
+    per this series' "nvme: depend on INFINIBAND_ADDR_TRANS"
+drivers/nvme/target/rdma.c
+  - depends on NVME_TARGET_RDMA => INFINIBAND_ADDR_TRANS
+    per this series' "nvmet-rdma: depend on INFINIBAND_ADDR_TRANS"
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.c
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd.h
+drivers/staging/lustre/lnet/klnds/o2iblnd/o2iblnd_cb.c
+  - depends on LNET_XPRT_IB => INFINIBAND_ADDR_TRANS
+fs/cifs/smbdirect.c
+  - depends on CIFS_SMB_DIRECT => INFINIBAND_ADDR_TRANS
+    per this series' "cifs: smbd: depend on INFINIBAND_ADDR_TRANS"
+net/9p/trans_rdma.c
+  - depends on NET_9P_RDMA => INFINIBAND_ADDR_TRANS
+net/rds/ib.c
+net/rds/ib_cm.c
+net/rds/rdma_transport.c
+  - depends on RDS_RDMA => INFINIBAND_ADDR_TRANS
+net/sunrpc/xprtrdma/svc_rdma_transport.c
+net/sunrpc/xprtrdma/transport.c
+net/sunrpc/xprtrdma/verbs.c
+  - depends on SUNRPC_XPRT_RDMA => INFINIBAND_ADDR_TRANS
+
+Greg Thelen (6):
+  nvme: depend on INFINIBAND_ADDR_TRANS
+  nvmet-rdma: depend on INFINIBAND_ADDR_TRANS
+  ib_srpt: depend on INFINIBAND_ADDR_TRANS
+  cifs: smbd: depend on INFINIBAND_ADDR_TRANS
+  ib_srp: depend on INFINIBAND_ADDR_TRANS
+  IB: make INFINIBAND_ADDR_TRANS configurable
+
+ drivers/infiniband/Kconfig          | 5 ++++-
+ drivers/infiniband/ulp/srp/Kconfig  | 2 +-
+ drivers/infiniband/ulp/srpt/Kconfig | 2 +-
+ drivers/nvme/host/Kconfig           | 2 +-
+ drivers/nvme/target/Kconfig         | 2 +-
+ fs/cifs/Kconfig                     | 2 +-
+ 6 files changed, 9 insertions(+), 6 deletions(-)
+
+-- 
+2.17.0.484.g0c8726318c-goog
