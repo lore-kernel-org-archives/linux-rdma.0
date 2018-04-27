@@ -1,50 +1,59 @@
-From: Tarick Bedeir <tarick@google.com>
-Subject: [PATCH] net/mlx4_core: Fix error handling in mlx4_init_port_info.
-Date: Fri, 27 Apr 2018 08:20:15 -0700
-Message-ID: <20180427152015.185861-1-tarick@google.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH 0/6] IB: make INFINIBAND_ADDR_TRANS configurable
+Date: Fri, 27 Apr 2018 12:07:52 -0400
+Message-ID: <1524845272.11756.51.camel@redhat.com>
+References: <20180426181935.32977-1-gthelen@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-ArJuE/oCyHuv67w/co53"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180426181935.32977-1-gthelen@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tariqt@mellanox.com
-Cc: Greg Thelen <gthelen@google.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tarick Bedeir <tarick@google.com>
+To: Greg Thelen <gthelen@google.com>, Bart.VanAssche@wdc.com, hch@lst.de, jgg@ziepe.ca, axboe@fb.com, keith.busch@intel.com, sagi@grimberg.me, sfrench@samba.org, linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, linux-cifs@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid exiting the function with a lingering sysfs file (if the first
-call to device_create_file() fails while the second succeeds), and avoid
-calling devlink_port_unregister() twice.
 
-In other words, either mlx4_init_port_info() succeeds and returns zero, or
-it fails, returns non-zero, and requires no cleanup.
+--=-ArJuE/oCyHuv67w/co53
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Tarick Bedeir <tarick@google.com>
----
- drivers/net/ethernet/mellanox/mlx4/main.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On Thu, 2018-04-26 at 11:19 -0700, Greg Thelen wrote:
+> This series allows for CONFIG_INFINIBAND without
+> CONFIG_INFINIBAND_ADDR_TRANS (aka RDMA communication manager).
+> Fuzzing has been finding fair number of CM bugs.
+> So provide an option to disable it in systems which don't need it.
+>=20
+> Changes since last posting (https://lkml.org/lkml/2018/4/25/1266):
+> - added ("ib_srp: depend on INFINIBAND_ADDR_TRANS") patch
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index 4d84cab77105..e8a3a45d0b53 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -3007,6 +3007,7 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
- 		mlx4_err(dev, "Failed to create file for port %d\n", port);
- 		devlink_port_unregister(&info->devlink_port);
- 		info->port = -1;
-+		return err;
- 	}
- 
- 	sprintf(info->dev_mtu_name, "mlx4_port%d_mtu", port);
-@@ -3028,9 +3029,10 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
- 				   &info->port_attr);
- 		devlink_port_unregister(&info->devlink_port);
- 		info->port = -1;
-+		return err;
- 	}
- 
--	return err;
-+	return 0;
- }
- 
- static void mlx4_cleanup_port_info(struct mlx4_port_info *info)
--- 
-2.17.0.441.gb46fe60e1d-goog
+[ snip explanation of series ]
+
+Thanks for taking the time to research this out.  Series applied.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-ArJuE/oCyHuv67w/co53
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrjStgACgkQuCajMw5X
+L90xJg//a3hFT2eczO/FPDKXHnrDksGkdNTHpQkUoL9zQOhTbWVG8CwPYtVB7Ozg
+DXDn2k0PgA0YHt40EX6t2WTwwKUcmcebCfVH9erg4AOW6FYfNZShCOQz/W3bvzgl
+19UUE7/7zGFELRmNPu/ZAy6FgZACrKpOP+DS/HkIaLQrJ8MvM9YSyoIhGlvrP8QX
+Qn2eGEKIP7qNYNTVPex51Y45SDqjP9CZFzYOvaUk26E6AHv4iJ2SFfKcin/qBWNG
+Rj2abtevDOsmrNXvskAF92yIIXGTZFX83dDrAS+B2vSJkFeVUfylIyVU4CylXT2a
+BwAj/Xwb2fYKzSy8AVclUy8I83gqKt+6IvqsxVdh0HmqKYvYDPLNgdnRe6PNb0uz
+xTmJHQRyF5rGSYVavqhIHP+5c2DkGZioOSlnpqD08PEqHaNnqLvWghInpKSl9qB8
+cMp2o2oVmMAEgs3RfCuGTAtiYW9uRAIHaaaoGUJEXXqNpGVXJbXmw21rUhVzxPQg
+s15x7dQfsfQKHrrhtr390WN8GJJZw/c26KxieJF8O3NNIlgXWmxDGoFeAvgFusQ/
+OBB2F0pfrE1faoXJ56ntqzSnnc+KFXfNluNrxYrFcd4rZqYCVyrvr9WgquvPb/EK
+whQoEIINKvsq+btKVZIJgj2eeak4Kau9k7+XdWURYZFQu8Uavwk=
+=MJmw
+-----END PGP SIGNATURE-----
+
+--=-ArJuE/oCyHuv67w/co53--
