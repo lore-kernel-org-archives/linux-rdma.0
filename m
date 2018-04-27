@@ -1,38 +1,40 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/iwpm: fix memory leak on map_info
-Date: Fri, 27 Apr 2018 14:23:33 -0400
-Message-ID: <1524853413.11756.71.camel@redhat.com>
-References: <20180425162404.28625-1-colin.king@canonical.com>
+Subject: Re: [PATCH] IB/rxe: add RXE_START_MASK for rxe_opcode
+ IB_OPCODE_RC_SEND_ONLY_INV
+Date: Fri, 27 Apr 2018 14:23:53 -0400
+Message-ID: <1524853433.11756.72.camel@redhat.com>
+References: <1524714759-14654-1-git-send-email-jianchao.w.wang@oracle.com>
+         <f2df9d02-8693-60e6-e4fd-24c81817b898@oracle.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-2v4Z2yp12xzBYoiqvhCn"
+        protocol="application/pgp-signature"; boundary="=-2dDtBQVpbCgD/xtK7qaX"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425162404.28625-1-colin.king@canonical.com>
+In-Reply-To: <f2df9d02-8693-60e6-e4fd-24c81817b898@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yanjun Zhu <yanjun.zhu@oracle.com>, Jianchao Wang <jianchao.w.wang@oracle.com>, monis@mellanox.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-2v4Z2yp12xzBYoiqvhCn
+--=-2dDtBQVpbCgD/xtK7qaX
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2018-04-25 at 17:24 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Thu, 2018-04-26 at 12:02 +0800, Yanjun Zhu wrote:
+> On 2018/4/26 11:52, Jianchao Wang wrote:
+> > w/o RXE_START_MASK, the last_psn of IB_OPCODE_RC_SEND_ONLY_INV
+> > will not be updated in update_wqe_psn, and the corresponding
+> > wqe will not be acked in rxe_completer due to its last_psn is
+> > zero. Finally, the other wqe will also not be able to be acked,
+> > because the wqe of IB_OPCODE_RC_SEND_ONLY_INV with last_psn 0
+> > is still there. This causes large amount of io timeout when
+> > nvmeof is over rxe.
+> >=20
+> > Add RXE_START_MASK for IB_OPCODE_RC_SEND_ONLY_INV to fix this.
+> >=20
+> > Signed-off-by: Jianchao Wang <jianchao.w.wang@oracle.com>
 >=20
-> In the cases where iwpm_hash_bucket is NULL and where function
-> get_mapinfo_hash_bucket returns NULL then the map_info is never added
-> to hash_bucket_head and hence there is a leak of map_info. Fix this
-> by nullifying hash_bucket_head and if that is null we know that
-> that map_info was not added to hash_bucket_head and hence map_info
-> should be free'd.
->=20
-> Detected by CoverityScan, CID#1222481 ("Resource Leak")
->=20
-> Fixes: 30dc5e63d6a5 ("RDMA/core: Add support for iWARP Port Mapper user s=
-pace service")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 
 Thanks, applied to for-rc.
 
@@ -40,26 +42,26 @@ Thanks, applied to for-rc.
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-2v4Z2yp12xzBYoiqvhCn
+--=-2dDtBQVpbCgD/xtK7qaX
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrjaqUACgkQuCajMw5X
-L93FUg/+K2La2SGLcWy0/0smPST/DIwfhF9jqpZ9yYrgGzBtZD7ZtQR1XPvRQxrC
-9pR5YOf6MwdEpTUKI9xb6utIQ53jG/fE7X0LvgpHFPQWNxm5KwVQ9eG7nfOBxFGr
-74UvZoK76eBGnWTPCDxdNHFSh8NZ+071TFXvSrZcTGsOTacp5/az8Z5c1GYqKyXL
-Jvz3eork1eS5vHa2YBQ3+3ynrnHqjRFU664KIXUyBXlJZEaCM+KTLRqyeqonPKPn
-UREHFtzEjD5CX3IEunE5+BinI8fv/dCfzD+pKLrzELapcMr2BQA+1hVHQuPHm2t6
-fECcHGVh0Qo2wNmQhJ+yGY01snkEO6pkNDSny1UJf+Wjt9zOp/PfV5RSTVnaqkXT
-Va8uYhwx6e5TZC851YpC1D5sLdxqcadTzUTolGH81RC3a04Vlvpx7jJOrWBT4yZa
-cYfeh/a/MPn/6uA520JqAjfdv7P37RXAmaHN6M+Hq+9NDUzY1e6mmwqTKj80BKJR
-ardIfFBVjfpWRVUSocwul6zRllGuA+c+DxVeH3ezp/b87V92UVedCYa1SvpKqLYO
-rozn76Py1cxNj0kOqocRKMDo9K8Zh7A519xr27bIR2xgPgfDlKb/fTc0pAdaG5Za
-+d/WIfQSPhtNbtWHWlRoR2o3/hFWKld1xulDF+JrkG8fkrOHfLE=
-=+d5T
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrjarkACgkQuCajMw5X
+L93d0xAAj+9kI9dpd+n3qjn4rOjfqG0V820I+WwQOEdFx19Be+UmbKN7nhifAuYS
+O/MtDE7j5gng5DNhl0QAcWUNgypEdeb4gonVIhqrUuEvpXz70cQcIcvoZ4kF+7A0
+Fp3cPTxG4h0wo8VLIh6AbZZT+Kr/umWJX6gAMiZEcVdsX5i//pV1/MJvvTydzYQm
+cv/XC5rRj2FlV8LpIKUsG0x3INLqh9nTM4biGdx8AvB7Sm3cQbxZ3c4MHOhGyJWD
+b8OKVlVAAtz2+uvqGfd2/+sgQeEWNfeUtETsfGOSPTx/08JV/HPS4C/rRmU2HuJH
+ZwKXmDyi5LaYGrDdKSX4MLdVH1e9zRfcueJnbNKdJFen4g1MpthHQa7sxm1KlQcI
+sj4rhHMVeuDWAJwmc5pHZnNKbRnbBPUdq92cSM2u2s5JVQlXgiN4yrzXPobZNWir
+r9aJ2XPf1jmCz6f5LbtMkqWR4BEvW5i7BBzX7WNCeHUxLXIiX7lJeVz6RoHYJDiP
+8Xxrlwe0iLTe83dJm8vhm6rfUWRxehWoqnDo7RU8L6JzXQLzDhjcquC7HC2kpheT
+0CZod266e95iMQfBIHNBIIzyWNNVUuP3Z1qW9rS3dXDaU5UZpM/SJOMusu9cuFc/
+rSFTg+qwOTwS6yohm47k57oGEVIcyHxiEiFaNubJMsAdIhTszD8=
+=+zIT
 -----END PGP SIGNATURE-----
 
---=-2v4Z2yp12xzBYoiqvhCn--
+--=-2dDtBQVpbCgD/xtK7qaX--
