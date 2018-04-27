@@ -1,86 +1,65 @@
-From: Alexander Duyck <alexander.h.duyck@intel.com>
-Subject: [PATCH 3/3] net: Revoke export for __skb_tx_hash,
- update it to just be static skb_tx_hash
-Date: Fri, 27 Apr 2018 14:06:53 -0400
-Message-ID: <20180427180651.4883.20883.stgit@ahduyck-green-test.jf.intel.com>
-References: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/iwpm: fix memory leak on map_info
+Date: Fri, 27 Apr 2018 14:23:33 -0400
+Message-ID: <1524853413.11756.71.camel@redhat.com>
+References: <20180425162404.28625-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, niranjana.vishwanathapura@intel.com, tariqt@mellanox.com
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-2v4Z2yp12xzBYoiqvhCn"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180425162404.28625-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-I am dropping the export of __skb_tx_hash as after my patches nobody is
-using it outside of the net/core/dev.c file. In addition I am renaming and
-repurposing it to just be a static declaration of skb_tx_hash since that
-was the only user for it at this point. By doing this the compiler can
-inline it into __netdev_pick_tx as that will improve performance.
 
-Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
----
- include/linux/netdevice.h |   13 -------------
- net/core/dev.c            |   10 ++++------
- 2 files changed, 4 insertions(+), 19 deletions(-)
+--=-2v4Z2yp12xzBYoiqvhCn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index cf44503..6da5371 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -3213,19 +3213,6 @@ static inline int netif_set_xps_queue(struct net_device *dev,
- }
- #endif
- 
--u16 __skb_tx_hash(const struct net_device *dev, struct sk_buff *skb,
--		  unsigned int num_tx_queues);
--
--/*
-- * Returns a Tx hash for the given packet when dev->real_num_tx_queues is used
-- * as a distribution range limit for the returned value.
-- */
--static inline u16 skb_tx_hash(const struct net_device *dev,
--			      struct sk_buff *skb)
--{
--	return __skb_tx_hash(dev, skb, dev->real_num_tx_queues);
--}
--
- /**
-  *	netif_is_multiqueue - test if device has multiple transmit queues
-  *	@dev: network device
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 9b04a9f..7584d9c 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -2614,17 +2614,16 @@ void netif_device_attach(struct net_device *dev)
-  * Returns a Tx hash based on the given packet descriptor a Tx queues' number
-  * to be used as a distribution range.
-  */
--u16 __skb_tx_hash(const struct net_device *dev, struct sk_buff *skb,
--		  unsigned int num_tx_queues)
-+static u16 skb_tx_hash(const struct net_device *dev, struct sk_buff *skb)
- {
- 	u32 hash;
- 	u16 qoffset = 0;
--	u16 qcount = num_tx_queues;
-+	u16 qcount = dev->real_num_tx_queues;
- 
- 	if (skb_rx_queue_recorded(skb)) {
- 		hash = skb_get_rx_queue(skb);
--		while (unlikely(hash >= num_tx_queues))
--			hash -= num_tx_queues;
-+		while (unlikely(hash >= qcount))
-+			hash -= qcount;
- 		return hash;
- 	}
- 
-@@ -2637,7 +2636,6 @@ u16 __skb_tx_hash(const struct net_device *dev, struct sk_buff *skb,
- 
- 	return (u16) reciprocal_scale(skb_get_hash(skb), qcount) + qoffset;
- }
--EXPORT_SYMBOL(__skb_tx_hash);
- 
- static void skb_warn_bad_offload(const struct sk_buff *skb)
- {
+On Wed, 2018-04-25 at 17:24 +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>=20
+> In the cases where iwpm_hash_bucket is NULL and where function
+> get_mapinfo_hash_bucket returns NULL then the map_info is never added
+> to hash_bucket_head and hence there is a leak of map_info. Fix this
+> by nullifying hash_bucket_head and if that is null we know that
+> that map_info was not added to hash_bucket_head and hence map_info
+> should be free'd.
+>=20
+> Detected by CoverityScan, CID#1222481 ("Resource Leak")
+>=20
+> Fixes: 30dc5e63d6a5 ("RDMA/core: Add support for iWARP Port Mapper user s=
+pace service")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+Thanks, applied to for-rc.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-2v4Z2yp12xzBYoiqvhCn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrjaqUACgkQuCajMw5X
+L93FUg/+K2La2SGLcWy0/0smPST/DIwfhF9jqpZ9yYrgGzBtZD7ZtQR1XPvRQxrC
+9pR5YOf6MwdEpTUKI9xb6utIQ53jG/fE7X0LvgpHFPQWNxm5KwVQ9eG7nfOBxFGr
+74UvZoK76eBGnWTPCDxdNHFSh8NZ+071TFXvSrZcTGsOTacp5/az8Z5c1GYqKyXL
+Jvz3eork1eS5vHa2YBQ3+3ynrnHqjRFU664KIXUyBXlJZEaCM+KTLRqyeqonPKPn
+UREHFtzEjD5CX3IEunE5+BinI8fv/dCfzD+pKLrzELapcMr2BQA+1hVHQuPHm2t6
+fECcHGVh0Qo2wNmQhJ+yGY01snkEO6pkNDSny1UJf+Wjt9zOp/PfV5RSTVnaqkXT
+Va8uYhwx6e5TZC851YpC1D5sLdxqcadTzUTolGH81RC3a04Vlvpx7jJOrWBT4yZa
+cYfeh/a/MPn/6uA520JqAjfdv7P37RXAmaHN6M+Hq+9NDUzY1e6mmwqTKj80BKJR
+ardIfFBVjfpWRVUSocwul6zRllGuA+c+DxVeH3ezp/b87V92UVedCYa1SvpKqLYO
+rozn76Py1cxNj0kOqocRKMDo9K8Zh7A519xr27bIR2xgPgfDlKb/fTc0pAdaG5Za
++d/WIfQSPhtNbtWHWlRoR2o3/hFWKld1xulDF+JrkG8fkrOHfLE=
+=+d5T
+-----END PGP SIGNATURE-----
+
+--=-2v4Z2yp12xzBYoiqvhCn--
