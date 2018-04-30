@@ -1,61 +1,112 @@
-From: "Weiny, Ira" <ira.weiny@intel.com>
-Subject: RE: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Mon, 30 Apr 2018 17:49:34 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E67DF88D8@CRSMSX101.amr.corp.intel.com>
-References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
-         <1524196555.11756.30.camel@redhat.com> <20180420153451.GF30433@ziepe.ca>
-         <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
-         <20180423221618.0000795d@dev.mellanox.co.il>
-         <20180430144930.GB26895@ziepe.ca> <1525108249.11756.93.camel@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.16 111/113] tick/sched: Do not mess with an enqueued hrtimer
+Date: Mon, 30 Apr 2018 12:25:22 -0700
+Message-ID: <20180430184019.880363152@linuxfoundation.org>
+References: <20180430184015.043892819@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1525108249.11756.93.camel@redhat.com>
-Content-Language: en-US
+In-Reply-To: <20180430184015.043892819@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, jackm <jackm@dev.mellanox.co.il>
-Cc: =?utf-8?B?SMOla29uIEJ1Z2dl?= <haakon.bugge@oracle.com>, "Hiatt, Don" <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, "Hefty, Sean" <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Wan Kaike <kaike.wan@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>, Marciniszyn Mike <mike.marciniszyn@intel.com>, Anna-Maria Gleixner <anna-maria@linutronix.de>, linux-rdma@vger.kernel.org, Dalessandro Dennis <dennis.dalessandro@intel.com>, Fleck John <john.fleck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Frederic Weisbecker <fweisbec@gmail.com>, Weiny Ira <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-TG9va3MgZmluZSB0byBtZS4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9t
-OiBEb3VnIExlZGZvcmQgW21haWx0bzpkbGVkZm9yZEByZWRoYXQuY29tXQ0KPiBTZW50OiBNb25k
-YXksIEFwcmlsIDMwLCAyMDE4IDEwOjExIEFNDQo+IFRvOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6
-aWVwZS5jYT47IGphY2ttIDxqYWNrbUBkZXYubWVsbGFub3guY28uaWw+DQo+IENjOiBIw6Vrb24g
-QnVnZ2UgPGhhYWtvbi5idWdnZUBvcmFjbGUuY29tPjsgSGlhdHQsIERvbg0KPiA8ZG9uLmhpYXR0
-QGludGVsLmNvbT47IERhc2FyYXRoYXJhbWFuIENoYW5kcmFtb3VsaQ0KPiA8ZGFzYXJhdGhhcmFt
-YW4uY2hhbmRyYW1vdWxpQGludGVsLmNvbT47IFdlaW55LCBJcmEgPGlyYS53ZWlueUBpbnRlbC5j
-b20+Ow0KPiBIZWZ0eSwgU2VhbiA8c2Vhbi5oZWZ0eUBpbnRlbC5jb20+OyBPRkVEIG1haWxpbmcg
-bGlzdCA8bGludXgtDQo+IHJkbWFAdmdlci5rZXJuZWwub3JnPjsgbGludXgta2VybmVsQHZnZXIu
-a2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBJQi9jb3JlOiBNYWtlIGliX21hZF9j
-bGllbnRfaWQgYXRvbWljDQo+IA0KPiBPbiBNb24sIDIwMTgtMDQtMzAgYXQgMDg6NDkgLTA2MDAs
-IEphc29uIEd1bnRob3JwZSB3cm90ZToNCj4gPiBPbiBNb24sIEFwciAyMywgMjAxOCBhdCAxMDox
-NjoxOFBNICswMzAwLCBqYWNrbSB3cm90ZToNCj4gPg0KPiA+ID4gPiA+IFRJRHMgbmVlZCB0byBi
-ZSBnbG9iYWxseSB1bmlxdWUgb24gdGhlIGVudGlyZSBtYWNoaW5lLg0KPiA+ID4gSmFzb24sIHRo
-YXQgaXMgbm90IGV4YWN0bHkgY29ycmVjdC4NCj4gPg0KPiA+IFRoZSBleHBlY2F0aW9uIGZvciAv
-ZGV2L3VtYWQgdXNlcnMgaXMgdGhhdCB0aGV5IGFsbCByZWNlaXZlIGxvY2FsbHkNCj4gPiB1bmlx
-dWUgVElEIHByZWZpeGVzLiBUaGUga2VybmVsIG1heSBiZSBPSyB0byBrZWVwIHRoaW5ncyBwb3J0
-LXNwZWNpZmljDQo+ID4gYnV0IGl0IGlzIHNsaWdodGx5IGJyZWFraW5nIHRoZSBBUEkgd2UgYXJl
-IHByZXNlbnRpbmcgdG8gdXNlcnNwYWNlIHRvDQo+ID4gYWxsb3cgdGhlbSB0byBhbGlhcy4uDQo+
-ID4NCj4gPiBKYXNvbg0KPiANCj4gV291bGQgcGVvcGxlIGJlIGhhcHBpZXIgd2l0aCB0aGlzIGNv
-bW1pdCBtZXNzYWdlIHRoZW46DQo+IA0KPiBJQi9jb3JlOiBNYWtlIGliX21hZF9jbGllbnRfaWQg
-YXRvbWljDQo+IA0KPiBDdXJyZW50bHksIHRoZSBrZXJuZWwgcHJvdGVjdHMgYWNjZXNzIHRvIHRo
-ZSBhZ2VudCBJRCBhbGxvY2F0b3Igb24gYSBwZXIgcG9ydCBiYXNpcw0KPiB1c2luZyBhIHNwaW5s
-b2NrLCBzbyBpdCBpcyBpbXBvc3NpYmxlIGZvciB0d28gYXBwcy90aHJlYWRzIG9uIHRoZSBzYW1l
-IHBvcnQgdG8gZ2V0DQo+IHRoZSBzYW1lIFRJRCwgYnV0IGl0IGlzIGVudGlyZWx5IHBvc3NpYmxl
-IGZvciB0d28gdGhyZWFkcyBvbiBkaWZmZXJlbnQgcG9ydHMgdG8gZW5kDQo+IHVwIHdpdGggdGhl
-IHNhbWUgVElELg0KPiANCj4gQXMgdGhpcyBjYW4gYmUgY29uZnVzaW5nIChyZWdhcmRsZXNzIG9m
-IGl0IGJlaW5nIGxlZ2FsIGFjY29yZGluZyB0byB0aGUgSUIgU3BlYyAxLjMsDQo+IEMxMy0xOC4x
-LjEsIGluIHNlY3Rpb24gMTMuNC42LjQgLSBUcmFuc2FjdGlvbklEIHVzYWdlKSwgYW5kIGFzIHRo
-ZSByZG1hLWNvcmUgdXNlcg0KPiBzcGFjZSBBUEkgZm9yIC9kZXYvdW1hZCBkZXZpY2VzIGltcGxp
-ZXMgdW5pcXVlIFRJRHMgZXZlbiBhY3Jvc3MgcG9ydHMsIG1ha2UNCj4gdGhlIFRJRCBhbiBhdG9t
-aWMgdHlwZSBzbyB0aGF0IG5vIHR3byBhbGxvY2F0aW9ucywgcmVnYXJkbGVzcyBvZiBwb3J0IG51
-bWJlciwgd2lsbA0KPiBiZSB0aGUgc2FtZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEjDpWtvbiBC
-dWdnZSA8aGFha29uLmJ1Z2dlQG9yYWNsZS5jb20+DQo+IFJldmlld2VkLWJ5OiBKYWNrIE1vcmdl
-bnN0ZWluIDxqYWNrbUBkZXYubWVsbGFub3guY28uaWw+DQo+IFJldmlld2VkLWJ5OiBJcmEgV2Vp
-bnkgPGlyYS53ZWlueUBpbnRlbC5jb20+DQo+IFJldmlld2VkLWJ5OiBaaHUgWWFuanVuIDx5YW5q
-dW4uemh1QG9yYWNsZS5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IERvdWcgTGVkZm9yZCA8ZGxlZGZv
-cmRAcmVkaGF0LmNvbT4NCj4gDQo+IA0KPiAtLQ0KPiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJl
-ZGhhdC5jb20+DQo+ICAgICBHUEcgS2V5SUQ6IEI4MjZBMzMzMEU1NzJGREQNCj4gICAgIEtleSBm
-aW5nZXJwcmludCA9IEFFNkIgMUJEQSAxMjJCIDIzQjQgMjY1QiAgMTI3NCBCODI2IEEzMzMgMEU1
-NyAyRkREDQo=
+4.16-stable review patch.  If anyone has any objections, please let me know.
+
+------------------
+
+From: Thomas Gleixner <tglx@linutronix.de>
+
+commit 1f71addd34f4c442bec7d7c749acc1beb58126f2 upstream.
+
+Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
+did great debugging, which provided enough context to decode the problem.
+
+CPU 3			     	      	     CPU 2
+
+idle
+start sched_timer expires = 712171000000
+ queue->next = sched_timer
+					    start rdmavt timer. expires = 712172915662
+					    lock(baseof(CPU3))
+tick_nohz_stop_tick()
+tick = 716767000000			    timerqueue_add(tmr)
+
+hrtimer_set_expires(sched_timer, tick);
+  sched_timer->expires = 716767000000  <---- FAIL
+					     if (tmr->expires < queue->next->expires)
+hrtimer_start(sched_timer)		          queue->next = tmr;
+lock(baseof(CPU3))
+					     unlock(baseof(CPU3))
+timerqueue_remove()
+timerqueue_add()
+
+ts->sched_timer is queued and queue->next is pointing to it, but then
+ts->sched_timer.expires is modified.
+
+This not only corrupts the ordering of the timerqueue RB tree, it also
+makes CPU2 see the new expiry time of timerqueue->next->expires when
+checking whether timerqueue->next needs to be updated. So CPU2 sees that
+the rdma timer is earlier than timerqueue->next and sets the rdma timer as
+new next.
+
+Depending on whether it had also seen the new time at RB tree enqueue, it
+might have queued the rdma timer at the wrong place and then after removing
+the sched_timer the RB tree is completely hosed.
+
+The problem was introduced with a commit which tried to solve inconsistency
+between the hrtimer in the tick_sched data and the underlying hardware
+clockevent. It split out hrtimer_set_expires() to store the new tick time
+in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact that in
+the NOHZ + HIGHRES case the hrtimer might still be queued.
+
+Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
+timer->expires after canceling the timer and move the hrtimer_set_expires()
+invocation into the NOHZ only code path which is not affected as it merily
+uses the hrtimer as next event storage so code pathes can be shared with
+the NOHZ + HIGHRES case.
+
+Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and clockevent get out of sync")
+Reported-by: "Wan Kaike" <kaike.wan@intel.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Frederic Weisbecker <frederic@kernel.org>
+Cc: "Marciniszyn Mike" <mike.marciniszyn@intel.com>
+Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>
+Cc: linux-rdma@vger.kernel.org
+Cc: "Dalessandro Dennis" <dennis.dalessandro@intel.com>
+Cc: "Fleck John" <john.fleck@intel.com>
+Cc: stable@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: "Weiny Ira" <ira.weiny@intel.com>
+Cc: "linux-rdma@vger.kernel.org"
+Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804241637390.1679@nanos.tec.linutronix.de
+Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ kernel/time/tick-sched.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+--- a/kernel/time/tick-sched.c
++++ b/kernel/time/tick-sched.c
+@@ -797,12 +797,13 @@ static ktime_t tick_nohz_stop_sched_tick
+ 		goto out;
+ 	}
+ 
+-	hrtimer_set_expires(&ts->sched_timer, tick);
+-
+-	if (ts->nohz_mode == NOHZ_MODE_HIGHRES)
+-		hrtimer_start_expires(&ts->sched_timer, HRTIMER_MODE_ABS_PINNED);
+-	else
++	if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
++		hrtimer_start(&ts->sched_timer, tick, HRTIMER_MODE_ABS_PINNED);
++	} else {
++		hrtimer_set_expires(&ts->sched_timer, tick);
+ 		tick_program_event(tick, 1);
++	}
++
+ out:
+ 	/*
+ 	 * Update the estimated sleep length until the next timer
