@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.16 111/113] tick/sched: Do not mess with an enqueued hrtimer
-Date: Mon, 30 Apr 2018 12:25:22 -0700
-Message-ID: <20180430184019.880363152@linuxfoundation.org>
-References: <20180430184015.043892819@linuxfoundation.org>
+Subject: [PATCH 4.14 88/91] tick/sched: Do not mess with an enqueued hrtimer
+Date: Mon, 30 Apr 2018 12:25:10 -0700
+Message-ID: <20180430184008.883885070@linuxfoundation.org>
+References: <20180430184004.216234025@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180430184015.043892819@linuxfoundation.org>
+In-Reply-To: <20180430184004.216234025@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Wan Kaike <kaike.wan@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>, Marciniszyn Mike <mike.marciniszyn@intel.com>, Anna-Maria Gleixner <anna-maria@linutronix.de>, linux-rdma@vger.kernel.org, Dalessandro Dennis <dennis.dalessandro@intel.com>, Fleck John <john.fleck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Frederic Weisbecker <fweisbec@gmail.com>, Weiny Ira <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-4.16-stable review patch.  If anyone has any objections, please let me know.
+4.14-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -91,7 +91,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/kernel/time/tick-sched.c
 +++ b/kernel/time/tick-sched.c
-@@ -797,12 +797,13 @@ static ktime_t tick_nohz_stop_sched_tick
+@@ -820,12 +820,13 @@ static ktime_t tick_nohz_stop_sched_tick
  		goto out;
  	}
  
