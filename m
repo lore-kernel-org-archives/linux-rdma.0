@@ -1,36 +1,29 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
-Date: Sat, 28 Apr 2018 06:53:37 -0500
-Message-ID: <004f01d3dee7$8b5c4cd0$a214e670$@opengridcomputing.com>
-References: <20180428073106.14696-1-yuehaibing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] Clean up users of skb_tx_hash and __skb_tx_hash
+Date: Sun, 29 Apr 2018 22:01:48 -0400 (EDT)
+Message-ID: <20180429.220148.1239493680371983770.davem@davemloft.net>
+References: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180428073106.14696-1-yuehaibing@huawei.com>
-Content-Language: en-us
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'YueHaibing' <yuehaibing@huawei.com>, swise@chelsio.com, dledford@redhat.com, jgg@ziepe.ca, monis@mellanox.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: alexander.h.duyck@intel.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dennis.dalessandro@intel.com, niranjana.vishwanathapura@intel.com, tariqt@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Alexander Duyck <alexander.h.duyck@intel.com>
+Date: Fri, 27 Apr 2018 14:06:22 -0400
 
-
-> -----Original Message-----
-> From: YueHaibing <yuehaibing@huawei.com>
-> Sent: Saturday, April 28, 2018 2:31 AM
-> To: swise@chelsio.com; dledford@redhat.com; jgg@ziepe.ca;
-> monis@mellanox.com
-> Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org; YueHaibing
-> <yuehaibing@huawei.com>
-> Subject: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
+> I am in the process of doing some work to try and enable macvlan Tx queue
+> selection without using ndo_select_queue. As a part of that I will likely
+> need to make changes to skb_tx_hash. As such this is a clean up or refactor
+> of the two spots where he function has been used. In both cases it didn't
+> really seem like the function was being used correctly so I have updated
+> both code paths to not make use of the function.
 > 
-> Use the recently introduced helper to replace the pattern of
-> skb_put_zero/__skb_put() && memset().
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> My current development environment doesn't have an mlx4 or OPA vnic
+> available so the changes to those have been build tested only.
 
-Looks ok.
-
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Looks good, series applied, thanks.
