@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 3/6] IB/hfi1: Fix loss of BECN with AHG
-Date: Mon, 30 Apr 2018 10:01:03 -0700
-Message-ID: <20180430170059.25378.86738.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 4/6] IB/hfi1: Fix NULL pointer dereference when
+ invalid num_vls is used
+Date: Mon, 30 Apr 2018 10:01:11 -0700
+Message-ID: <20180430170108.25378.56107.stgit@scvm10.sc.intel.com>
 References: <20180430165733.25378.38891.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,123 +11,79 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180430165733.25378.38891.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Sebastian Sanchez <sebastian.sanchez@intel.com>
 
-AHG may be armed to use the stored header, which by design is limited
-to edits in the PSN/A 32 bit word (bth2).
+When an invalid num_vls is used as a module parameter, the code
+execution follows an exception path where the macro dd_dev_err()
+expects dd->pcidev->dev not to be NULL in hfi1_init_dd(). This
+causes a NULL pointer dereference.
 
-When the code is trying to send a BECN, the use of the stored header
-will lose the BECN bit.
+Fix hfi1_init_dd() by initializing dd->pcidev and dd->pcidev->dev
+earlier in the code. If a dd exists, then dd->pcidev and
+dd->pcidev->dev always exists.
 
-Fix by avoiding AHG when getting ready to send a BECN. This is
-accomplished by always claiming the packet is not a middle packet which
-is an AHG precursor.  BECNs are not a normal case and this should not
-hurt AHG optimizations.
+BUG: unable to handle kernel NULL pointer dereference
+at 00000000000000f0
+IP: __dev_printk+0x15/0x90
+Workqueue: events work_for_cpu_fn
+RIP: 0010:__dev_printk+0x15/0x90
+Call Trace:
+ dev_err+0x6c/0x90
+ ? hfi1_init_pportdata+0x38d/0x3f0 [hfi1]
+ hfi1_init_dd+0xdd/0x2530 [hfi1]
+ ? pci_conf1_read+0xb2/0xf0
+ ? pci_read_config_word.part.9+0x64/0x80
+ ? pci_conf1_write+0xb0/0xf0
+ ? pcie_capability_clear_and_set_word+0x57/0x80
+ init_one+0x141/0x490 [hfi1]
+ local_pci_probe+0x3f/0xa0
+ work_for_cpu_fn+0x10/0x20
+ process_one_work+0x152/0x350
+ worker_thread+0x1cf/0x3e0
+ kthread+0xf5/0x130
+ ? max_active_store+0x80/0x80
+ ? kthread_bind+0x10/0x10
+ ? do_syscall_64+0x6e/0x1a0
+ ? SyS_exit_group+0x10/0x10
+ ret_from_fork+0x35/0x40
 
-Cc: <stable@vger.kernel.org> # 4.14.x
+Cc: <stable@vger.kernel.org> # 4.9.x
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/ruc.c |   50 ++++++++++++++++++++++++++++++--------
- 1 files changed, 40 insertions(+), 10 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c |    2 ++
+ drivers/infiniband/hw/hfi1/pcie.c |    3 ---
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
-index 3daa94b..c0071ca 100644
---- a/drivers/infiniband/hw/hfi1/ruc.c
-+++ b/drivers/infiniband/hw/hfi1/ruc.c
-@@ -733,6 +733,20 @@ static inline void hfi1_make_ruc_bth(struct rvt_qp *qp,
- 	ohdr->bth[2] = cpu_to_be32(bth2);
- }
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index c45cca5..b417e3b 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1265,6 +1265,8 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
+ 		return ERR_PTR(-ENOMEM);
+ 	dd->num_pports = nports;
+ 	dd->pport = (struct hfi1_pportdata *)(dd + 1);
++	dd->pcidev = pdev;
++	pci_set_drvdata(pdev, dd);
  
-+/**
-+ * hfi1_make_ruc_header_16B - build a 16B header
-+ * @qp: the queue pair
-+ * @ohdr: a pointer to the destination header memory
-+ * @bth0: bth0 passed in from the RC/UC builder
-+ * @bth2: bth2 passed in from the RC/UC builder
-+ * @middle: non zero implies indicates ahg "could" be used
-+ * @ps: the current packet state
-+ *
-+ * This routine may disarm ahg under these situations:
-+ * - packet needs a GRH
-+ * - BECN needed
-+ * - migration state not IB_MIG_MIGRATED
-+ */
- static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 					    struct ib_other_headers *ohdr,
- 					    u32 bth0, u32 bth2, int middle,
-@@ -777,6 +791,12 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 	else
- 		middle = 0;
+ 	INIT_LIST_HEAD(&dd->list);
+ 	idr_preload(GFP_KERNEL);
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 83d66e8..c1c9829 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -163,9 +163,6 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
+ 	resource_size_t addr;
+ 	int ret = 0;
  
-+	if (qp->s_flags & RVT_S_ECN) {
-+		qp->s_flags &= ~RVT_S_ECN;
-+		/* we recently received a FECN, so return a BECN */
-+		becn = true;
-+		middle = 0;
-+	}
- 	if (middle)
- 		build_ahg(qp, bth2);
- 	else
-@@ -784,11 +804,6 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
+-	dd->pcidev = pdev;
+-	pci_set_drvdata(pdev, dd);
+-
+ 	addr = pci_resource_start(pdev, 0);
+ 	len = pci_resource_len(pdev, 0);
  
- 	bth0 |= pkey;
- 	bth0 |= extra_bytes << 20;
--	if (qp->s_flags & RVT_S_ECN) {
--		qp->s_flags &= ~RVT_S_ECN;
--		/* we recently received a FECN, so return a BECN */
--		becn = true;
--	}
- 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
- 
- 	if (!ppd->lid)
-@@ -806,6 +821,20 @@ static inline void hfi1_make_ruc_header_16B(struct rvt_qp *qp,
- 			  pkey, becn, 0, l4, priv->s_sc);
- }
- 
-+/**
-+ * hfi1_make_ruc_header_9B - build a 9B header
-+ * @qp: the queue pair
-+ * @ohdr: a pointer to the destination header memory
-+ * @bth0: bth0 passed in from the RC/UC builder
-+ * @bth2: bth2 passed in from the RC/UC builder
-+ * @middle: non zero implies indicates ahg "could" be used
-+ * @ps: the current packet state
-+ *
-+ * This routine may disarm ahg under these situations:
-+ * - packet needs a GRH
-+ * - BECN needed
-+ * - migration state not IB_MIG_MIGRATED
-+ */
- static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 					   struct ib_other_headers *ohdr,
- 					   u32 bth0, u32 bth2, int middle,
-@@ -839,6 +868,12 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 	else
- 		middle = 0;
- 
-+	if (qp->s_flags & RVT_S_ECN) {
-+		qp->s_flags &= ~RVT_S_ECN;
-+		/* we recently received a FECN, so return a BECN */
-+		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
-+		middle = 0;
-+	}
- 	if (middle)
- 		build_ahg(qp, bth2);
- 	else
-@@ -846,11 +881,6 @@ static inline void hfi1_make_ruc_header_9B(struct rvt_qp *qp,
- 
- 	bth0 |= pkey;
- 	bth0 |= extra_bytes << 20;
--	if (qp->s_flags & RVT_S_ECN) {
--		qp->s_flags &= ~RVT_S_ECN;
--		/* we recently received a FECN, so return a BECN */
--		bth1 |= (IB_BECN_MASK << IB_BECN_SHIFT);
--	}
- 	hfi1_make_ruc_bth(qp, ohdr, bth0, bth1, bth2);
- 	hfi1_make_ib_hdr(&ps->s_txreq->phdr.hdr.ibh,
- 			 lrh0,
