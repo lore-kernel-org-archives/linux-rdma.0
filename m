@@ -1,68 +1,37 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [PATCH RFC iproute2-next 2/2] rdma: print provider resource
- attributes
-Date: Mon, 30 Apr 2018 08:25:24 -0700
-Message-ID: <20180430082524.530eff32@xeon-e3>
-References: <cover.1525100473.git.swise@opengridcomputing.com>
-        <9dc07757af0a98c444c5a40131a7c54922361e03.1525100473.git.swise@opengridcomputing.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] net/mlx4: fix spelling mistake: "failedi" -> "failed"
+Date: Mon, 30 Apr 2018 17:29:45 +0100
+Message-ID: <20180430162945.5274-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <9dc07757af0a98c444c5a40131a7c54922361e03.1525100473.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: dsahern@gmail.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 30 Apr 2018 07:36:18 -0700
-Steve Wise <swise@opengridcomputing.com> wrote:
+From: Colin Ian King <colin.king@canonical.com>
 
-> +#define nla_type(attr) ((attr)->nla_type & NLA_TYPE_MASK)
-> +
-> +void newline(struct rd *rd)
-> +{
-> +	if (rd->json_output)
-> +		jsonw_end_array(rd->jw);
-> +	else
-> +		pr_out("\n");
-> +}
-> +
-> +void newline_indent(struct rd *rd)
-> +{
-> +	newline(rd);
-> +	if (!rd->json_output)
-> +		pr_out("    ");
-> +}
-> +
-> +static int print_provider_string(struct rd *rd, const char *key_str,
-> +				 const char *val_str)
-> +{
-> +	if (rd->json_output) {
-> +		jsonw_string_field(rd->jw, key_str, val_str);
-> +		return 0;
-> +	} else {
-> +		return pr_out("%s %s ", key_str, val_str);
-> +	}
-> +}
-> +
-> +static int print_provider_s32(struct rd *rd, const char *key_str, int32_t val,
-> +			      enum rdma_nldev_print_type print_type)
-> +{
-> +	if (rd->json_output) {
-> +		jsonw_int_field(rd->jw, key_str, val);
-> +		return 0;
-> +	}
-> +	switch (print_type) {
-> +	case RDMA_NLDEV_PRINT_TYPE_UNSPEC:
-> +		return pr_out("%s %d ", key_str, val);
-> +	case RDMA_NLDEV_PRINT_TYPE_HEX:
-> +		return pr_out("%s 0x%x ", key_str, val);
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
+trivial fix to spelling mistake in mlx4_warn message.
 
-This code should get converted to json_print library that handles the
-different output modes; rather than rolling it's own equivalent functionality.
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index bfef69235d71..211578ffc70d 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -1317,7 +1317,7 @@ static int mlx4_mf_unbond(struct mlx4_dev *dev)
+ 
+ 	ret = mlx4_unbond_fs_rules(dev);
+ 	if (ret)
+-		mlx4_warn(dev, "multifunction unbond for flow rules failedi (%d)\n", ret);
++		mlx4_warn(dev, "multifunction unbond for flow rules failed (%d)\n", ret);
+ 	ret1 = mlx4_unbond_mac_table(dev);
+ 	if (ret1) {
+ 		mlx4_warn(dev, "multifunction unbond for MAC table failed (%d)\n", ret1);
+-- 
+2.17.0
