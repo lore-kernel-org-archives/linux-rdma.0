@@ -1,112 +1,60 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.14 88/91] tick/sched: Do not mess with an enqueued hrtimer
-Date: Mon, 30 Apr 2018 12:25:10 -0700
-Message-ID: <20180430184008.883885070@linuxfoundation.org>
-References: <20180430184004.216234025@linuxfoundation.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Mon, 30 Apr 2018 17:01:08 -0600
+Message-ID: <20180430230108.GE26909@ziepe.ca>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+ <1524196555.11756.30.camel@redhat.com>
+ <20180420153451.GF30433@ziepe.ca>
+ <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
+ <20180423221618.0000795d@dev.mellanox.co.il>
+ <20180430144930.GB26895@ziepe.ca>
+ <1525108249.11756.93.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180430184004.216234025@linuxfoundation.org>
+Content-Disposition: inline
+In-Reply-To: <1525108249.11756.93.camel@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Wan Kaike <kaike.wan@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Frederic Weisbecker <frederic@kernel.org>, Marciniszyn Mike <mike.marciniszyn@intel.com>, Anna-Maria Gleixner <anna-maria@linutronix.de>, linux-rdma@vger.kernel.org, Dalessandro Dennis <dennis.dalessandro@intel.com>, Fleck John <john.fleck@intel.com>, Peter Zijlstra <peterz@infradead.org>, Frederic Weisbecker <fweisbec@gmail.com>, Weiny Ira <ira.weiny@intel.com>
+To: Doug Ledford <dledford@redhat.com>
+Cc: jackm <jackm@dev.mellanox.co.il>, =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-4.14-stable review patch.  If anyone has any objections, please let me know.
+On Mon, Apr 30, 2018 at 01:10:49PM -0400, Doug Ledford wrote:
+> On Mon, 2018-04-30 at 08:49 -0600, Jason Gunthorpe wrote:
+> > On Mon, Apr 23, 2018 at 10:16:18PM +0300, jackm wrote:
+> > 
+> > > > > TIDs need to be globally unique on the entire machine.  
+> > > Jason, that is not exactly correct.
+> > 
+> > The expecation for /dev/umad users is that they all receive locally
+> > unique TID prefixes. The kernel may be OK to keep things port-specific
+> > but it is slightly breaking the API we are presenting to userspace to
+> > allow them to alias..
+> > 
+> > Jason
+> 
+> Would people be happier with this commit message then:
+> 
+> IB/core: Make ib_mad_client_id atomic
+>   
+> Currently, the kernel protects access to the agent ID allocator on a per
+> port basis using a spinlock, so it is impossible for two apps/threads on
+> the same port to get the same TID, but it is entirely possible for two
+> threads on different ports to end up with the same TID.  
+> 
+> As this can be confusing (regardless of it being legal according to the
+> IB Spec 1.3, C13-18.1.1, in section 13.4.6.4 - TransactionID usage),
+> and as the rdma-core user space API for /dev/umad devices implies unique
+> TIDs even across ports, make the TID an atomic type so that no two
+> allocations, regardless of port number, will be the same.
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+> Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> Signed-off-by: Doug Ledford <dledford@redhat.com>
 
-------------------
+fine for me
 
-From: Thomas Gleixner <tglx@linutronix.de>
-
-commit 1f71addd34f4c442bec7d7c749acc1beb58126f2 upstream.
-
-Kaike reported that in tests rdma hrtimers occasionaly stopped working. He
-did great debugging, which provided enough context to decode the problem.
-
-CPU 3			     	      	     CPU 2
-
-idle
-start sched_timer expires = 712171000000
- queue->next = sched_timer
-					    start rdmavt timer. expires = 712172915662
-					    lock(baseof(CPU3))
-tick_nohz_stop_tick()
-tick = 716767000000			    timerqueue_add(tmr)
-
-hrtimer_set_expires(sched_timer, tick);
-  sched_timer->expires = 716767000000  <---- FAIL
-					     if (tmr->expires < queue->next->expires)
-hrtimer_start(sched_timer)		          queue->next = tmr;
-lock(baseof(CPU3))
-					     unlock(baseof(CPU3))
-timerqueue_remove()
-timerqueue_add()
-
-ts->sched_timer is queued and queue->next is pointing to it, but then
-ts->sched_timer.expires is modified.
-
-This not only corrupts the ordering of the timerqueue RB tree, it also
-makes CPU2 see the new expiry time of timerqueue->next->expires when
-checking whether timerqueue->next needs to be updated. So CPU2 sees that
-the rdma timer is earlier than timerqueue->next and sets the rdma timer as
-new next.
-
-Depending on whether it had also seen the new time at RB tree enqueue, it
-might have queued the rdma timer at the wrong place and then after removing
-the sched_timer the RB tree is completely hosed.
-
-The problem was introduced with a commit which tried to solve inconsistency
-between the hrtimer in the tick_sched data and the underlying hardware
-clockevent. It split out hrtimer_set_expires() to store the new tick time
-in both the NOHZ and the NOHZ + HIGHRES case, but missed the fact that in
-the NOHZ + HIGHRES case the hrtimer might still be queued.
-
-Use hrtimer_start(timer, tick...) for the NOHZ + HIGHRES case which sets
-timer->expires after canceling the timer and move the hrtimer_set_expires()
-invocation into the NOHZ only code path which is not affected as it merily
-uses the hrtimer as next event storage so code pathes can be shared with
-the NOHZ + HIGHRES case.
-
-Fixes: d4af6d933ccf ("nohz: Fix spurious warning when hrtimer and clockevent get out of sync")
-Reported-by: "Wan Kaike" <kaike.wan@intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Frederic Weisbecker <frederic@kernel.org>
-Cc: "Marciniszyn Mike" <mike.marciniszyn@intel.com>
-Cc: Anna-Maria Gleixner <anna-maria@linutronix.de>
-Cc: linux-rdma@vger.kernel.org
-Cc: "Dalessandro Dennis" <dennis.dalessandro@intel.com>
-Cc: "Fleck John" <john.fleck@intel.com>
-Cc: stable@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: "Weiny Ira" <ira.weiny@intel.com>
-Cc: "linux-rdma@vger.kernel.org"
-Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804241637390.1679@nanos.tec.linutronix.de
-Link: https://lkml.kernel.org/r/alpine.DEB.2.21.1804242119210.1597@nanos.tec.linutronix.de
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- kernel/time/tick-sched.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
---- a/kernel/time/tick-sched.c
-+++ b/kernel/time/tick-sched.c
-@@ -820,12 +820,13 @@ static ktime_t tick_nohz_stop_sched_tick
- 		goto out;
- 	}
- 
--	hrtimer_set_expires(&ts->sched_timer, tick);
--
--	if (ts->nohz_mode == NOHZ_MODE_HIGHRES)
--		hrtimer_start_expires(&ts->sched_timer, HRTIMER_MODE_ABS_PINNED);
--	else
-+	if (ts->nohz_mode == NOHZ_MODE_HIGHRES) {
-+		hrtimer_start(&ts->sched_timer, tick, HRTIMER_MODE_ABS_PINNED);
-+	} else {
-+		hrtimer_set_expires(&ts->sched_timer, tick);
- 		tick_program_event(tick, 1);
-+	}
-+
- out:
- 	/*
- 	 * Update the estimated sleep length until the next timer
+Jason
