@@ -1,89 +1,86 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 4/6] IB/hfi1: Fix NULL pointer dereference when
- invalid num_vls is used
-Date: Mon, 30 Apr 2018 10:01:11 -0700
-Message-ID: <20180430170108.25378.56107.stgit@scvm10.sc.intel.com>
-References: <20180430165733.25378.38891.stgit@scvm10.sc.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Mon, 30 Apr 2018 13:10:49 -0400
+Message-ID: <1525108249.11756.93.camel@redhat.com>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+         <1524196555.11756.30.camel@redhat.com> <20180420153451.GF30433@ziepe.ca>
+         <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
+         <20180423221618.0000795d@dev.mellanox.co.il>
+         <20180430144930.GB26895@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180430165733.25378.38891.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-fsORuf+usU5/Vibvb5vC"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180430144930.GB26895@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, jackm <jackm@dev.mellanox.co.il>
+Cc: =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez@intel.com>
 
-When an invalid num_vls is used as a module parameter, the code
-execution follows an exception path where the macro dd_dev_err()
-expects dd->pcidev->dev not to be NULL in hfi1_init_dd(). This
-causes a NULL pointer dereference.
+--=-fsORuf+usU5/Vibvb5vC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Fix hfi1_init_dd() by initializing dd->pcidev and dd->pcidev->dev
-earlier in the code. If a dd exists, then dd->pcidev and
-dd->pcidev->dev always exists.
+On Mon, 2018-04-30 at 08:49 -0600, Jason Gunthorpe wrote:
+> On Mon, Apr 23, 2018 at 10:16:18PM +0300, jackm wrote:
+>=20
+> > > > TIDs need to be globally unique on the entire machine. =20
+> > Jason, that is not exactly correct.
+>=20
+> The expecation for /dev/umad users is that they all receive locally
+> unique TID prefixes. The kernel may be OK to keep things port-specific
+> but it is slightly breaking the API we are presenting to userspace to
+> allow them to alias..
+>=20
+> Jason
 
-BUG: unable to handle kernel NULL pointer dereference
-at 00000000000000f0
-IP: __dev_printk+0x15/0x90
-Workqueue: events work_for_cpu_fn
-RIP: 0010:__dev_printk+0x15/0x90
-Call Trace:
- dev_err+0x6c/0x90
- ? hfi1_init_pportdata+0x38d/0x3f0 [hfi1]
- hfi1_init_dd+0xdd/0x2530 [hfi1]
- ? pci_conf1_read+0xb2/0xf0
- ? pci_read_config_word.part.9+0x64/0x80
- ? pci_conf1_write+0xb0/0xf0
- ? pcie_capability_clear_and_set_word+0x57/0x80
- init_one+0x141/0x490 [hfi1]
- local_pci_probe+0x3f/0xa0
- work_for_cpu_fn+0x10/0x20
- process_one_work+0x152/0x350
- worker_thread+0x1cf/0x3e0
- kthread+0xf5/0x130
- ? max_active_store+0x80/0x80
- ? kthread_bind+0x10/0x10
- ? do_syscall_64+0x6e/0x1a0
- ? SyS_exit_group+0x10/0x10
- ret_from_fork+0x35/0x40
+Would people be happier with this commit message then:
 
-Cc: <stable@vger.kernel.org> # 4.9.x
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/init.c |    2 ++
- drivers/infiniband/hw/hfi1/pcie.c |    3 ---
- 2 files changed, 2 insertions(+), 3 deletions(-)
+IB/core: Make ib_mad_client_id atomic
+ =20
+Currently, the kernel protects access to the agent ID allocator on a per
+port basis using a spinlock, so it is impossible for two apps/threads on
+the same port to get the same TID, but it is entirely possible for two
+threads on different ports to end up with the same TID. =20
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index c45cca5..b417e3b 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1265,6 +1265,8 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
- 		return ERR_PTR(-ENOMEM);
- 	dd->num_pports = nports;
- 	dd->pport = (struct hfi1_pportdata *)(dd + 1);
-+	dd->pcidev = pdev;
-+	pci_set_drvdata(pdev, dd);
- 
- 	INIT_LIST_HEAD(&dd->list);
- 	idr_preload(GFP_KERNEL);
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 83d66e8..c1c9829 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -163,9 +163,6 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
- 	resource_size_t addr;
- 	int ret = 0;
- 
--	dd->pcidev = pdev;
--	pci_set_drvdata(pdev, dd);
--
- 	addr = pci_resource_start(pdev, 0);
- 	len = pci_resource_len(pdev, 0);
- 
+As this can be confusing (regardless of it being legal according to the
+IB Spec 1.3, C13-18.1.1, in section 13.4.6.4 - TransactionID usage),
+and as the rdma-core user space API for /dev/umad devices implies unique
+TIDs even across ports, make the TID an atomic type so that no two
+allocations, regardless of port number, will be the same.
+
+Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-fsORuf+usU5/Vibvb5vC
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrnThkACgkQuCajMw5X
+L93grBAAlcuVjyVohByp3vHuSNDyjvMn66qPcY9XMiAejp0N6xIykq/7ztLkqtqm
+PNj0fYEVbUfGKdueMz6SWFVf/dMHtZMuWrYZ18cG6nuRsO/UfHDfvDM/acIKXUPE
+bTGnZIsa/jqFmLPYW0at0+ww54aAZXchYlWgM24pWBdeqWDx+jVtY7XhGpzE1g/8
+5byLP7VP9wkrSyI+ozhXpUOxJrH2mdUqB7an9WiuFt4TZjd1seEchYp+ywlavX8+
+wAxpLhP+leQcV3hFI1fgGfKaK0VrjWUfGho2GGuHlaCmKnXqUthEWs9cnms/k+I9
+R/hsipt3ZtOfesfkfYFgzqAjLyPj8qikphWVd0/qdHv4W1cKrplpnMNv+pkPSSyc
+DVzzh1FaJF8TUTzBlTQdSL+L/nL50+b2ROJeOoGK/7lbOL4aH78ltf9j4TogC+Do
+myHoC6V1SI5/0xHsl39ZSEdAGX95Ou3CAd+JVVScHiGwvZbTR1q1B6nxZDadXJlM
+k0HGufN8L0IIldQKIsITCxmFG98hgJgu9EgWUVPQuHomdAnkiatr7SuRYYkkNdAj
+V91qHAs6O/nq8zr+EYL7iTRhYFPeqY3HakNWBgBeJh/+lbyOfFeHhFwTYG0/X26b
+bJL+uziVG7mwZUMNsAGolqo4Yi+yfoVLUFMu4UPvRcThCfIIKMM=
+=Mwa9
+-----END PGP SIGNATURE-----
+
+--=-fsORuf+usU5/Vibvb5vC--
