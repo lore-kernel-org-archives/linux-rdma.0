@@ -1,31 +1,40 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
-Date: Mon, 30 Apr 2018 08:49:30 -0600
-Message-ID: <20180430144930.GB26895@ziepe.ca>
-References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
- <1524196555.11756.30.camel@redhat.com>
- <20180420153451.GF30433@ziepe.ca>
- <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
- <20180423221618.0000795d@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180423221618.0000795d@dev.mellanox.co.il>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jackm <jackm@dev.mellanox.co.il>
-Cc: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: [PATCH RFC iproute2-next 0/2] RDMA tool provider resource tracking
+Date: Mon, 30 Apr 2018 08:01:13 -0700
+Message-ID: <cover.1525100473.git.swise@opengridcomputing.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: dsahern@gmail.com, leon@kernel.org
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 23, 2018 at 10:16:18PM +0300, jackm wrote:
+Hello,
 
-> > > TIDs need to be globally unique on the entire machine.  
+This series enhances the iproute2 rdma tool to include displaying
+provider-specific resource attributes.  It is the user-space part of
+the kernel provider resource tracking series currently under
+review [1].
 
-> Jason, that is not exactly correct.
+This is an RFC and should not be merged yet.  Once [1] is in the
+linux-rdma for-next branch (and all reviewing is complete), I'll post
+a final version and request merging.
 
-The expecation for /dev/umad users is that they all receive locally
-unique TID prefixes. The kernel may be OK to keep things port-specific
-but it is slightly breaking the API we are presenting to userspace to
-allow them to alias..
+Thanks,
 
-Jason
+Steve.
+
+[1] https://www.spinics.net/lists/linux-rdma/msg64013.html
+
+Steve Wise (2):
+  rdma: update rdma_netlink.h to get provider attrs
+  rdma: print provider resource attributes
+
+ rdma/include/uapi/rdma/rdma_netlink.h |  37 ++++++-
+ rdma/rdma.c                           |   7 +-
+ rdma/rdma.h                           |  11 ++
+ rdma/res.c                            |  30 ++----
+ rdma/utils.c                          | 194 ++++++++++++++++++++++++++++++++++
+ 5 files changed, 257 insertions(+), 22 deletions(-)
+
+-- 
+1.8.3.1
