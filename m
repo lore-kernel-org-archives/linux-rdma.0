@@ -1,57 +1,64 @@
-From: Greg Thelen <gthelen@google.com>
-Subject: Re: [PATCH 3/5] ib_srpt: depend on INFINIBAND_ADDR_TRANS
-Date: Tue, 01 May 2018 03:08:57 +0000
-Message-ID: <CAHH2K0aJgACn1fQrR=YpifWgOAFTCubcVo+bA+zCFg7++NR1kQ@mail.gmail.com>
-References: <20180425223340.206907-1-gthelen@google.com> <20180430233500.GI26909@ziepe.ca>
+From: jackm <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH] IB/core: Make ib_mad_client_id atomic
+Date: Tue, 1 May 2018 07:38:16 +0300
+Message-ID: <20180501073816.00001ec6@dev.mellanox.co.il>
+References: <20180418142450.15581-1-Haakon.Bugge@oracle.com>
+        <1524196555.11756.30.camel@redhat.com>
+        <20180420153451.GF30433@ziepe.ca>
+        <50E3FE4A-2C6E-4493-92E1-383C349FAE3A@oracle.com>
+        <20180423221618.0000795d@dev.mellanox.co.il>
+        <20180430144930.GB26895@ziepe.ca>
+        <1525108249.11756.93.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180430233500.GI26909@ziepe.ca>
+In-Reply-To: <1525108249.11756.93.camel@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
+To: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Don Hiatt <don.hiatt@intel.com>, Dasaratharaman Chandramouli <dasaratharaman.chandramouli@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 30, 2018 at 4:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Mon, 30 Apr 2018 13:10:49 -0400
+Doug Ledford <dledford@redhat.com> wrote:
 
-> On Wed, Apr 25, 2018 at 03:33:39PM -0700, Greg Thelen wrote:
-> > INFINIBAND_SRPT code depends on INFINIBAND_ADDR_TRANS provided symbols.
-> > So declare the kconfig dependency.  This is necessary to allow for
-> > enabling INFINIBAND without INFINIBAND_ADDR_TRANS.
-> >
-> > Signed-off-by: Greg Thelen <gthelen@google.com>
-> > Cc: Tarick Bedeir <tarick@google.com>
-> >  drivers/infiniband/ulp/srpt/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/ulp/srpt/Kconfig
-b/drivers/infiniband/ulp/srpt/Kconfig
-> > index 31ee83d528d9..fb8b7182f05e 100644
-> > +++ b/drivers/infiniband/ulp/srpt/Kconfig
-> > @@ -1,6 +1,6 @@
-> >  config INFINIBAND_SRPT
-> >       tristate "InfiniBand SCSI RDMA Protocol target support"
-> > -     depends on INFINIBAND && TARGET_CORE
-> > +     depends on INFINIBAND && INFINIBAND_ADDR_TRANS && TARGET_CORE
+Looks good!
 
-> Isn't INFINIBAND && INFINIBAND_ADDR_TRANS a bit redundant? Can't have
-> INFINIBAND_ADDR_TRANS without INFINIBAND.
+-Jack
 
-By kconfig INFINIBAND_ADDR_TRANS depends on INFINIBAND.  So yes, it seems
-redundant.  I don't know if anyone has designs to break this dependency and
-allow for ADDR_TRANS without INFINIBAND.  Assuming not, I'd be willing to
-amend my series removing redundant INFINIBAND and a followup series to
-remove it from similar depends.  Though I'm not familiar with rdma dev tree
-lifecycle.  Is rdma/for-rc a throw away branch (akin to linux-next), or
-will it be merged into linus/master?  If throwaway, then we can amend
-its patches, otherwise followups will be needed.
-
-Let me know what you'd prefer.  Thanks.
-
-FYI from v4.17-rc3:
-drivers/staging/lustre/lnet/Kconfig:  depends on LNET && PCI && INFINIBAND
-&& INFINIBAND_ADDR_TRANS
-net/9p/Kconfig:       depends on INET && INFINIBAND && INFINIBAND_ADDR_TRANS
-net/rds/Kconfig:      depends on RDS && INFINIBAND && INFINIBAND_ADDR_TRANS
-net/sunrpc/Kconfig:   depends on SUNRPC && INFINIBAND &&
-INFINIBAND_ADDR_TRANS
+> On Mon, 2018-04-30 at 08:49 -0600, Jason Gunthorpe wrote:
+> > On Mon, Apr 23, 2018 at 10:16:18PM +0300, jackm wrote:
+> >  =20
+> > > > > TIDs need to be globally unique on the entire machine.   =20
+> > > Jason, that is not exactly correct. =20
+> >=20
+> > The expecation for /dev/umad users is that they all receive locally
+> > unique TID prefixes. The kernel may be OK to keep things
+> > port-specific but it is slightly breaking the API we are presenting
+> > to userspace to allow them to alias..
+> >=20
+> > Jason =20
+>=20
+> Would people be happier with this commit message then:
+>=20
+> IB/core: Make ib_mad_client_id atomic
+>  =20
+> Currently, the kernel protects access to the agent ID allocator on a
+> per port basis using a spinlock, so it is impossible for two
+> apps/threads on the same port to get the same TID, but it is entirely
+> possible for two threads on different ports to end up with the same
+> TID. =20
+>=20
+> As this can be confusing (regardless of it being legal according to
+> the IB Spec 1.3, C13-18.1.1, in section 13.4.6.4 - TransactionID
+> usage), and as the rdma-core user space API for /dev/umad devices
+> implies unique TIDs even across ports, make the TID an atomic type so
+> that no two allocations, regardless of port number, will be the same.
+>=20
+> Signed-off-by: H=E5kon Bugge <haakon.bugge@oracle.com>
+> Reviewed-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> Signed-off-by: Doug Ledford <dledford@redhat.com>
+>=20
+>=20
