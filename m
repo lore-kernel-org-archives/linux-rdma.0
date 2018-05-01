@@ -1,89 +1,72 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc v2 4/6] IB/hfi1: Fix NULL pointer dereference when
- invalid num_vls is used
-Date: Tue, 01 May 2018 05:35:58 -0700
-Message-ID: <20180501123556.24520.59804.stgit@scvm10.sc.intel.com>
-References: <20180501123317.24520.8848.stgit@scvm10.sc.intel.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
+Date: Tue, 01 May 2018 11:27:57 -0400
+Message-ID: <1525188477.11756.101.camel@redhat.com>
+References: <20180428073106.14696-1-yuehaibing@huawei.com>
+         <004f01d3dee7$8b5c4cd0$a214e670$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180501123317.24520.8848.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-sCUh6x3wCQHXGA5RY3VO"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <004f01d3dee7$8b5c4cd0$a214e670$@opengridcomputing.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, 'YueHaibing' <yuehaibing@huawei.com>, swise@chelsio.com, jgg@ziepe.ca, monis@mellanox.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez@intel.com>
 
-When an invalid num_vls is used as a module parameter, the code
-execution follows an exception path where the macro dd_dev_err()
-expects dd->pcidev->dev not to be NULL in hfi1_init_dd(). This
-causes a NULL pointer dereference.
+--=-sCUh6x3wCQHXGA5RY3VO
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Fix hfi1_init_dd() by initializing dd->pcidev and dd->pcidev->dev
-earlier in the code. If a dd exists, then dd->pcidev and
-dd->pcidev->dev always exists.
+On Sat, 2018-04-28 at 06:53 -0500, Steve Wise wrote:
+> > -----Original Message-----
+> > From: YueHaibing <yuehaibing@huawei.com>
+> > Sent: Saturday, April 28, 2018 2:31 AM
+> > To: swise@chelsio.com; dledford@redhat.com; jgg@ziepe.ca;
+> > monis@mellanox.com
+> > Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org; YueHaibin=
+g
+> > <yuehaibing@huawei.com>
+> > Subject: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
+> >=20
+> > Use the recently introduced helper to replace the pattern of
+> > skb_put_zero/__skb_put() && memset().
+> >=20
+> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+>=20
+> Looks ok.
+>=20
+> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+>=20
+>=20
 
-BUG: unable to handle kernel NULL pointer dereference
-at 00000000000000f0
-IP: __dev_printk+0x15/0x90
-Workqueue: events work_for_cpu_fn
-RIP: 0010:__dev_printk+0x15/0x90
-Call Trace:
- dev_err+0x6c/0x90
- ? hfi1_init_pportdata+0x38d/0x3f0 [hfi1]
- hfi1_init_dd+0xdd/0x2530 [hfi1]
- ? pci_conf1_read+0xb2/0xf0
- ? pci_read_config_word.part.9+0x64/0x80
- ? pci_conf1_write+0xb0/0xf0
- ? pcie_capability_clear_and_set_word+0x57/0x80
- init_one+0x141/0x490 [hfi1]
- local_pci_probe+0x3f/0xa0
- work_for_cpu_fn+0x10/0x20
- process_one_work+0x152/0x350
- worker_thread+0x1cf/0x3e0
- kthread+0xf5/0x130
- ? max_active_store+0x80/0x80
- ? kthread_bind+0x10/0x10
- ? do_syscall_64+0x6e/0x1a0
- ? SyS_exit_group+0x10/0x10
- ret_from_fork+0x35/0x40
+Applied to for-next, thanks.
 
-Cc: <stable@vger.kernel.org> # 4.9.x
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/init.c |    2 ++
- drivers/infiniband/hw/hfi1/pcie.c |    3 ---
- 2 files changed, 2 insertions(+), 3 deletions(-)
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-sCUh6x3wCQHXGA5RY3VO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index c45cca5..b417e3b 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1265,6 +1265,8 @@ struct hfi1_devdata *hfi1_alloc_devdata(struct pci_dev *pdev, size_t extra)
- 		return ERR_PTR(-ENOMEM);
- 	dd->num_pports = nports;
- 	dd->pport = (struct hfi1_pportdata *)(dd + 1);
-+	dd->pcidev = pdev;
-+	pci_set_drvdata(pdev, dd);
- 
- 	INIT_LIST_HEAD(&dd->list);
- 	idr_preload(GFP_KERNEL);
-diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
-index 83d66e8..c1c9829 100644
---- a/drivers/infiniband/hw/hfi1/pcie.c
-+++ b/drivers/infiniband/hw/hfi1/pcie.c
-@@ -163,9 +163,6 @@ int hfi1_pcie_ddinit(struct hfi1_devdata *dd, struct pci_dev *pdev)
- 	resource_size_t addr;
- 	int ret = 0;
- 
--	dd->pcidev = pdev;
--	pci_set_drvdata(pdev, dd);
--
- 	addr = pci_resource_start(pdev, 0);
- 	len = pci_resource_len(pdev, 0);
- 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlroh30ACgkQuCajMw5X
+L93UzQ//Wucf429vIvYdtVH9nz7qpba/2MtVmKEPDOZzMrpUr1bJzj45aBM4OZ72
+67Re4rbcLE0CqEmvPOBsDelydHiTq+2TP2UGoKr/8ijMlUV2YjXXP0LRvOIs5KYR
+JN5TS5BBUU2cZmixY60I6uuKPSEvF/EJiuSRaUXmIIp4zJim2KRCKv3SJYW6xbnw
+QByv5MAWDMQoCdb9BV8W6ErX5Bd6CAS7tOafKIDOjBkvbz2wCTryAR5XuyuZ9lnT
+DPUYPQxU6tsfimr1KlmZjLl25iTSjXqiiYUzSRuiz4FRM6hieeYScAHhFJPVSzAx
+6ayBA3nBDsKzwWK3jqjZulerx1i1W1vM3MYqsB+Zju0OejxqzUKVRqOgIzwlvdH3
+7BYwIBQ41HjeZdXJSP6ioy8KponwdcpnVkceSjyDbWcJc3wHuCqtXTVsVwiIC+wO
+SHysgZXs3R6v5BWghhgVJThiplRAIVSwqp+sZAnAOHZhHSvNf2KQzH6pcuyrg7uS
+g/FbiPQ5iVDHk0e6Xxfm6EBpAL+/VUPGn/r2d4cLxkBUQYVJ3EtTAF32TrQHfedI
+CJdp+cyPlf8jvV/wxfg2+El+3ciqrCOIsE7ovSzxsAaSHR4nrYkHYPpxkkzO9OOw
+aMgdBsnl3DnZkRp3kM2q1kP/j77pbHopMZ8jPclPewC1ciMfQc8=
+=98m+
+-----END PGP SIGNATURE-----
+
+--=-sCUh6x3wCQHXGA5RY3VO--
