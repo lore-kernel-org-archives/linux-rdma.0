@@ -1,34 +1,25 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc v2 1/6] IB/hfi1: Fix handling of FECN marked
- multicast packet
-Date: Tue, 1 May 2018 12:05:31 -0600
-Message-ID: <20180501180531.GB17027@ziepe.ca>
-References: <20180501123317.24520.8848.stgit@scvm10.sc.intel.com>
- <20180501123532.24520.80857.stgit@scvm10.sc.intel.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/mlx4: fix spelling mistake: "failedi" -> "failed"
+Date: Tue, 01 May 2018 14:17:54 -0400 (EDT)
+Message-ID: <20180501.141754.2153173329337517095.davem@davemloft.net>
+References: <20180430162945.5274-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180501123532.24520.80857.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Don Hiatt <don.hiatt@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180430162945.5274-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: colin.king@canonical.com
+Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 01, 2018 at 05:35:36AM -0700, Dennis Dalessandro wrote:
-> @@ -719,7 +719,7 @@ void return_cnp(struct hfi1_ibport *ibp, struct rvt_qp *qp, u32 remote_qpn,
->  
->  	lrh0 |= (sc5 & 0xf) << 12 | sl << 4;
->  
-> -	bth0 = pkey | (IB_OPCODE_CNP << 24);
-> +	bth0 = (u32)pkey | (IB_OPCODE_CNP << 24);
+From: Colin King <colin.king@canonical.com>
+Date: Mon, 30 Apr 2018 17:29:45 +0100
 
-What do you think this cast does??
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> trivial fix to spelling mistake in mlx4_warn message.
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-void return_cnp_16B(struct hfi1_ibport *ibp, struct rvt_qp *qp,
-                    u32 remote_qpn, u32 pkey, u32 slid, u32 dlid,
-                    u8 sc5, const struct ib_grh *old_grh)
-{
-
-
-Jason
+Applied, thanks Colin.
