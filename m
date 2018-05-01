@@ -1,72 +1,56 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
-Date: Tue, 01 May 2018 11:27:57 -0400
-Message-ID: <1525188477.11756.101.camel@redhat.com>
-References: <20180428073106.14696-1-yuehaibing@huawei.com>
-         <004f01d3dee7$8b5c4cd0$a214e670$@opengridcomputing.com>
+Subject: Re: [PATCH] RDMA/qedr: fix spelling mistake: "failes" -> "fails"
+Date: Tue, 01 May 2018 11:36:44 -0400
+Message-ID: <1525189004.11756.102.camel@redhat.com>
+References: <20180501082549.22215-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-sCUh6x3wCQHXGA5RY3VO"
+        protocol="application/pgp-signature"; boundary="=-S3lX0KyBGy1LG9TOjIxF"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <004f01d3dee7$8b5c4cd0$a214e670$@opengridcomputing.com>
+In-Reply-To: <20180501082549.22215-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, 'YueHaibing' <yuehaibing@huawei.com>, swise@chelsio.com, jgg@ziepe.ca, monis@mellanox.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-sCUh6x3wCQHXGA5RY3VO
+--=-S3lX0KyBGy1LG9TOjIxF
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, 2018-04-28 at 06:53 -0500, Steve Wise wrote:
-> > -----Original Message-----
-> > From: YueHaibing <yuehaibing@huawei.com>
-> > Sent: Saturday, April 28, 2018 2:31 AM
-> > To: swise@chelsio.com; dledford@redhat.com; jgg@ziepe.ca;
-> > monis@mellanox.com
-> > Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org; YueHaibin=
-g
-> > <yuehaibing@huawei.com>
-> > Subject: [PATCH] IB/cxgb4: use skb_put_zero()/__skb_put_zero
-> >=20
-> > Use the recently introduced helper to replace the pattern of
-> > skb_put_zero/__skb_put() && memset().
-> >=20
-> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+On Tue, 2018-05-01 at 09:25 +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 >=20
-> Looks ok.
+> Trivial fix to spelling mistake in DP_ERR error message
 >=20
-> Reviewed-by: Steve Wise <swise@opengridcomputing.com>
->=20
->=20
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Applied to for-next, thanks.
+Thanks, applied.
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-sCUh6x3wCQHXGA5RY3VO
+--=-S3lX0KyBGy1LG9TOjIxF
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlroh30ACgkQuCajMw5X
-L93UzQ//Wucf429vIvYdtVH9nz7qpba/2MtVmKEPDOZzMrpUr1bJzj45aBM4OZ72
-67Re4rbcLE0CqEmvPOBsDelydHiTq+2TP2UGoKr/8ijMlUV2YjXXP0LRvOIs5KYR
-JN5TS5BBUU2cZmixY60I6uuKPSEvF/EJiuSRaUXmIIp4zJim2KRCKv3SJYW6xbnw
-QByv5MAWDMQoCdb9BV8W6ErX5Bd6CAS7tOafKIDOjBkvbz2wCTryAR5XuyuZ9lnT
-DPUYPQxU6tsfimr1KlmZjLl25iTSjXqiiYUzSRuiz4FRM6hieeYScAHhFJPVSzAx
-6ayBA3nBDsKzwWK3jqjZulerx1i1W1vM3MYqsB+Zju0OejxqzUKVRqOgIzwlvdH3
-7BYwIBQ41HjeZdXJSP6ioy8KponwdcpnVkceSjyDbWcJc3wHuCqtXTVsVwiIC+wO
-SHysgZXs3R6v5BWghhgVJThiplRAIVSwqp+sZAnAOHZhHSvNf2KQzH6pcuyrg7uS
-g/FbiPQ5iVDHk0e6Xxfm6EBpAL+/VUPGn/r2d4cLxkBUQYVJ3EtTAF32TrQHfedI
-CJdp+cyPlf8jvV/wxfg2+El+3ciqrCOIsE7ovSzxsAaSHR4nrYkHYPpxkkzO9OOw
-aMgdBsnl3DnZkRp3kM2q1kP/j77pbHopMZ8jPclPewC1ciMfQc8=
-=98m+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlroiYwACgkQuCajMw5X
+L91Zgg/+LvRAF5RTMvQTjOytdbsBOZIrwIpvKWbvee6wccr8qd9EXPAn3j9wLtCd
+pBeUP4nXLB3XA2qNa3eQL+2XU4SRVhesfxwQuo8NHyy1HPKgfNn2Mw/UNKXGwMOR
+IzFV7DJ64SOrZ0fhaLAfCklza9pZXooVHDui/7KqdtYcdxVj3qMUXoQxuslzLBUZ
+7enS4wgnjga1b02NEBGymut8R+zAbmRhnME2gEelbKki/RbQLL6frrMz5BQLfsf8
+cyz7xgMzhCE7XVg0+N9u6pjdCwoogASPmz0/tcphq6h3vNp1ogAsFmCC6nPkRAIj
+Sa1bpwtfpaWh+KLv7Z7Tp2++cI/RYrnQ9u6JOSy4vxg4p2IDqY52g2XSBj/8rlYm
+4Fxkrbi/txq7urInJki7/Z8D/X781Wn9JEuO1TV19nJjztL0nNsRhr3Z2anNMc1u
+r7BOzcW62rxM6HgTiQeH3BPqeSAA4d8egRECgouJGTBBeDl90USb+slD20Bxyvsj
+O7BkX8OzD6K6gWFZKbbO9ZfxjRUFQEcal46GU9XuDRftkVTl5PLt05rZmrJCkZpc
++lgbosl6+xj0VkvE44JeCim+LJUzUDlrKmcpcsPB5AlIHWX65pr8JlVuwgA609Aq
+CMmW81o5O2aCoiOxjzGlTDihF7QdWpgUJOu63YfIAlOT53x75/Q=
+=73Ky
 -----END PGP SIGNATURE-----
 
---=-sCUh6x3wCQHXGA5RY3VO--
+--=-S3lX0KyBGy1LG9TOjIxF--
