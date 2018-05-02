@@ -1,84 +1,62 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Subject: Re: [PATCH 2/3] mlx4: Don't bother using skb_tx_hash in mlx4_en_select_queue
-Date: Wed, 2 May 2018 13:20:30 -0700
-Message-ID: <CAKgT0UfmWExqMA1tvrQeOE=25gK7Bw3kf1ROCwA=-VHoivyfUQ@mail.gmail.com>
-References: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
- <20180427180640.4883.75746.stgit@ahduyck-green-test.jf.intel.com> <14063C7AD467DE4B82DEDB5C278E8663B2E40B6D@ORSMSX154.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Eric Dumazet <edumazet@google.com>
+Subject: [PATCH net] rds: do not leak kernel memory to user land
+Date: Wed,  2 May 2018 14:53:39 -0700
+Message-ID: <20180502215339.117702-1-edumazet@google.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663B2E40B6D@ORSMSX154.amr.corp.intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: "Duyck, Alexander H" <alexander.h.duyck@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "tariqt@mellanox.com" <tariqt@mellanox.com>
+To: "David S . Miller" <davem@davemloft.net>
+Cc: netdev <netdev@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, Eric Dumazet <eric.dumazet@gmail.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 2, 2018 at 11:09 AM, Ruhl, Michael J
-<michael.j.ruhl@intel.com> wrote:
->>-----Original Message-----
->>From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
->>owner@vger.kernel.org] On Behalf Of Alexander Duyck
->>Sent: Friday, April 27, 2018 2:07 PM
->>To: netdev@vger.kernel.org; davem@davemloft.net
->>Cc: linux-rdma@vger.kernel.org; Dalessandro, Dennis
->><dennis.dalessandro@intel.com>; Vishwanathapura, Niranjana
->><niranjana.vishwanathapura@intel.com>; tariqt@mellanox.com
->>Subject: [PATCH 2/3] mlx4: Don't bother using skb_tx_hash in
->>mlx4_en_select_queue
->>
->>The code in the fallback path has supported XDP in conjunction with the Tx
->>traffic classification for TCs for over a year now. So instead of just
->>calling skb_tx_hash for every packet we are better off using the fallback
->>since that will record the Tx queue to the socket and then that can be used
->>instead of having to recompute the hash every time.
->>
->>Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
->>---
->> drivers/net/ethernet/mellanox/mlx4/en_tx.c |    2 +-
->> 1 file changed, 1 insertion(+), 1 deletion(-)
->>
->>diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
->>b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
->>index 6b68537..0227786 100644
->>--- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
->>+++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
->>@@ -694,7 +694,7 @@ u16 mlx4_en_select_queue(struct net_device *dev,
->>struct sk_buff *skb,
->>       u16 rings_p_up = priv->num_tx_rings_p_up;
->>
->>       if (netdev_get_num_tc(dev))
->>-              return skb_tx_hash(dev, skb);
->>+              return fallback(dev, skb);
->>
->>       return fallback(dev, skb) % rings_p_up;
->
-> Hi Alexander,
->
-> The final return fallback() call is doing a % rings_p_up.
->
-> Do you need to do that for the new fallback() call?
->
-> Maybe you can get rid of the netdev_get_num_tc() call altogether?
->
-> Thanks,
->
-> Mike
+syzbot/KMSAN reported an uninit-value in put_cmsg(), originating
+from rds_cmsg_recv().
 
-I contemplated that. The problem I suspect that piece of code is
-solving is that there are cases where the number of queues the device
-advertises and the number in use may not match. We have similar cases
-in the ixgbe and i40e drivers for things like MACVLAN or FCoE offload
-where certain queues are reserved for the offloaded traffic. For those
-we are just setting up 1 TC in order to limit traffic to a given queue
-set.
+Simply clear the structure, since we have holes there, or since
+rx_traces might be smaller than RDS_MSG_RX_DGRAM_TRACE_MAX.
 
-As time permits one thing I may look at doing is making it so that
-this driver always has the number of TCs set to 1 or more. If we do
-that then we could drop the modulo fallback case, likely improve the
-performance as a result, and get rid of this ndo_select_queue call
-entirely. I just don't currently have the time or resources to take on
-the research and validation of such a change.
+BUG: KMSAN: uninit-value in copy_to_user include/linux/uaccess.h:184 [inline]
+BUG: KMSAN: uninit-value in put_cmsg+0x600/0x870 net/core/scm.c:242
+CPU: 0 PID: 4459 Comm: syz-executor582 Not tainted 4.16.0+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ kmsan_internal_check_memory+0x135/0x1e0 mm/kmsan/kmsan.c:1157
+ kmsan_copy_to_user+0x69/0x160 mm/kmsan/kmsan.c:1199
+ copy_to_user include/linux/uaccess.h:184 [inline]
+ put_cmsg+0x600/0x870 net/core/scm.c:242
+ rds_cmsg_recv net/rds/recv.c:570 [inline]
+ rds_recvmsg+0x2db5/0x3170 net/rds/recv.c:657
+ sock_recvmsg_nosec net/socket.c:803 [inline]
+ sock_recvmsg+0x1d0/0x230 net/socket.c:810
+ ___sys_recvmsg+0x3fb/0x810 net/socket.c:2205
+ __sys_recvmsg net/socket.c:2250 [inline]
+ SYSC_recvmsg+0x298/0x3c0 net/socket.c:2262
+ SyS_recvmsg+0x54/0x80 net/socket.c:2257
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
 
-Thanks.
+Fixes: 3289025aedc0 ("RDS: add receive message trace used by application")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>
+---
+ net/rds/recv.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-- Alex
+diff --git a/net/rds/recv.c b/net/rds/recv.c
+index de50e2126e404aed541b8d268a28da08154bf08d..dc67458b52f0043c2328d4a77a43536e7c62b0ed 100644
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -558,6 +558,7 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
+ 		struct rds_cmsg_rx_trace t;
+ 		int i, j;
+ 
++		memset(&t, 0, sizeof(t));
+ 		inc->i_rx_lat_trace[RDS_MSG_RX_CMSG] = local_clock();
+ 		t.rx_traces =  rs->rs_rx_traces;
+ 		for (i = 0; i < rs->rs_rx_traces; i++) {
+-- 
+2.17.0.441.gb46fe60e1d-goog
