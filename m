@@ -1,129 +1,111 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 11/14] IB/hfi1: Optimize kthread pointer locking
- when queuing CQ entries
-Date: Wed, 02 May 2018 06:43:39 -0700
-Message-ID: <20180502134336.20730.87592.stgit@scvm10.sc.intel.com>
-References: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH RFC iproute2-next 2/2] rdma: print provider resource
+ attributes
+Date: Wed, 2 May 2018 07:32:16 -0700
+Message-ID: <20180502073216.0794a08a@xeon-e3>
+References: <cover.1525100473.git.swise@opengridcomputing.com>
+        <9dc07757af0a98c444c5a40131a7c54922361e03.1525100473.git.swise@opengridcomputing.com>
+        <20180430082524.530eff32@xeon-e3>
+        <20180502133852.GK20375@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, stable@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/P/LadYf8aaYJeG.HL3qFR6P"; protocol="application/pgp-signature"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180502133852.GK20375@mtr-leonro.local>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Steve Wise <swise@opengridcomputing.com>, dsahern@gmail.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Sebastian Sanchez <sebastian.sanchez@intel.com>
+--Sig_/P/LadYf8aaYJeG.HL3qFR6P
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-All threads queuing CQ entries on different CQs are unnecessarily
-synchronized by a spin lock to check if the CQ kthread worker hasn't
-been destroyed before queuing an CQ entry.
+On Wed, 2 May 2018 16:38:52 +0300
+Leon Romanovsky <leon@kernel.org> wrote:
 
-The lock used in 6efaf10f163d ("IB/rdmavt: Avoid queuing work into a
-destroyed cq kthread worker") is a device global lock and will have
-poor performance at scale as completions are entered from a large
-number of CPUs.
+> On Mon, Apr 30, 2018 at 08:25:24AM -0700, Stephen Hemminger wrote:
+> > On Mon, 30 Apr 2018 07:36:18 -0700
+> > Steve Wise <swise@opengridcomputing.com> wrote:
+> > =20
+> > > +#define nla_type(attr) ((attr)->nla_type & NLA_TYPE_MASK)
+> > > +
+> > > +void newline(struct rd *rd)
+> > > +{
+> > > +	if (rd->json_output)
+> > > +		jsonw_end_array(rd->jw);
+> > > +	else
+> > > +		pr_out("\n");
+> > > +}
+> > > +
+> > > +void newline_indent(struct rd *rd)
+> > > +{
+> > > +	newline(rd);
+> > > +	if (!rd->json_output)
+> > > +		pr_out("    ");
+> > > +}
+> > > +
+> > > +static int print_provider_string(struct rd *rd, const char *key_str,
+> > > +				 const char *val_str)
+> > > +{
+> > > +	if (rd->json_output) {
+> > > +		jsonw_string_field(rd->jw, key_str, val_str);
+> > > +		return 0;
+> > > +	} else {
+> > > +		return pr_out("%s %s ", key_str, val_str);
+> > > +	}
+> > > +}
+> > > +
+> > > +static int print_provider_s32(struct rd *rd, const char *key_str, in=
+t32_t val,
+> > > +			      enum rdma_nldev_print_type print_type)
+> > > +{
+> > > +	if (rd->json_output) {
+> > > +		jsonw_int_field(rd->jw, key_str, val);
+> > > +		return 0;
+> > > +	}
+> > > +	switch (print_type) {
+> > > +	case RDMA_NLDEV_PRINT_TYPE_UNSPEC:
+> > > +		return pr_out("%s %d ", key_str, val);
+> > > +	case RDMA_NLDEV_PRINT_TYPE_HEX:
+> > > +		return pr_out("%s 0x%x ", key_str, val);
+> > > +	default:
+> > > +		return -EINVAL;
+> > > +	}
+> > > +}
+> > > + =20
+> >
+> > This code should get converted to json_print library that handles the
+> > different output modes; rather than rolling it's own equivalent functio=
+nality. =20
+>=20
+> Can it be done after this patch is merged? It will simplify review and
+> testing because current code is implemented to be in the same format as
+> the rest of the tool.
+>=20
+> Thanks
 
-Convert to use RCU where the read side of RCU is rvt_cq_enter() to
-determine that the worker is alive prior to triggering the
-completion event.
-Apply write side RCU semantics in rvt_driver_cq_init() and
-rvt_cq_exit().
+Sure, I was just encouraging future direction.
 
-Fixes: 6efaf10f163d ("IB/rdmavt: Avoid queuing work into a destroyed cq kthread worker")
-Cc: <stable@vger.kernel.org> # 4.14.x
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/sw/rdmavt/cq.c |   31 +++++++++++++++++++------------
- include/rdma/rdma_vt.h            |    2 +-
- 2 files changed, 20 insertions(+), 13 deletions(-)
+--Sig_/P/LadYf8aaYJeG.HL3qFR6P
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
-index fb52b66..340c17a 100644
---- a/drivers/infiniband/sw/rdmavt/cq.c
-+++ b/drivers/infiniband/sw/rdmavt/cq.c
-@@ -120,17 +120,20 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
- 	if (cq->notify == IB_CQ_NEXT_COMP ||
- 	    (cq->notify == IB_CQ_SOLICITED &&
- 	     (solicited || entry->status != IB_WC_SUCCESS))) {
-+		struct kthread_worker *worker;
-+
- 		/*
- 		 * This will cause send_complete() to be called in
- 		 * another thread.
- 		 */
--		spin_lock(&cq->rdi->n_cqs_lock);
--		if (likely(cq->rdi->worker)) {
-+		rcu_read_lock();
-+		worker = rcu_dereference(cq->rdi->worker);
-+		if (likely(worker)) {
- 			cq->notify = RVT_CQ_NONE;
- 			cq->triggered++;
--			kthread_queue_work(cq->rdi->worker, &cq->comptask);
-+			kthread_queue_work(worker, &cq->comptask);
- 		}
--		spin_unlock(&cq->rdi->n_cqs_lock);
-+		rcu_read_unlock();
- 	}
- 
- 	spin_unlock_irqrestore(&cq->lock, flags);
-@@ -512,7 +515,7 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
- 	int cpu;
- 	struct kthread_worker *worker;
- 
--	if (rdi->worker)
-+	if (rcu_access_pointer(rdi->worker))
- 		return 0;
- 
- 	spin_lock_init(&rdi->n_cqs_lock);
-@@ -524,7 +527,7 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
- 		return PTR_ERR(worker);
- 
- 	set_user_nice(worker->task, MIN_NICE);
--	rdi->worker = worker;
-+	RCU_INIT_POINTER(rdi->worker, worker);
- 	return 0;
- }
- 
-@@ -536,15 +539,19 @@ void rvt_cq_exit(struct rvt_dev_info *rdi)
- {
- 	struct kthread_worker *worker;
- 
--	/* block future queuing from send_complete() */
--	spin_lock_irq(&rdi->n_cqs_lock);
--	worker = rdi->worker;
-+	if (!rcu_access_pointer(rdi->worker))
-+		return;
-+
-+	spin_lock(&rdi->n_cqs_lock);
-+	worker = rcu_dereference_protected(rdi->worker,
-+					   lockdep_is_held(&rdi->n_cqs_lock));
- 	if (!worker) {
--		spin_unlock_irq(&rdi->n_cqs_lock);
-+		spin_unlock(&rdi->n_cqs_lock);
- 		return;
- 	}
--	rdi->worker = NULL;
--	spin_unlock_irq(&rdi->n_cqs_lock);
-+	RCU_INIT_POINTER(rdi->worker, NULL);
-+	spin_unlock(&rdi->n_cqs_lock);
-+	synchronize_rcu();
- 
- 	kthread_destroy_worker(worker);
- }
-diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
-index 3f4c187..eec495e 100644
---- a/include/rdma/rdma_vt.h
-+++ b/include/rdma/rdma_vt.h
-@@ -402,7 +402,7 @@ struct rvt_dev_info {
- 	spinlock_t pending_lock; /* protect pending mmap list */
- 
- 	/* CQ */
--	struct kthread_worker *worker; /* per device cq worker */
-+	struct kthread_worker __rcu *worker; /* per device cq worker */
- 	u32 n_cqs_allocated;    /* number of CQs allocated for device */
- 	spinlock_t n_cqs_lock; /* protect count of in use cqs */
- 
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEn2/DRbBb5+dmuDyPgKd/YJXN5H4FAlrpy/EACgkQgKd/YJXN
+5H569BAAoNfe9vL2ReTlja9+0eblxrfRjiLu5qbIwOoLFKCz/BAHBcr6TdVdEEHE
+tfoIImupc9urV9ShmElFjRI8FGxm6HCHvXamYGGbuR6+NDGQfZbDqrbgon9ZyGID
+uu5dWwuVZ/uIVWChbAhPCXbMDtpTTxiv054r9pFlB9SRZ7hAZzhmc4hmyqbHEFzW
+k1Jy6p4lAAfWEq7K88kzDt/+ldim/+4p+6eqm+c7oWgSq9m7FXiB6H5SM4NleVgb
+rmnV2n0FxJr84du/yfwg4SzIFgLntTBy1KwOuYa16C/mSaZZWaFd2fUYEA+DdMAR
+Jp9F8m4IMG+Su1s20IObP5owAzlFMLsPk2+QjF8cSh6JpLrw3eGmj+MUK84vQp6n
+LtH9QLFc0CD3WNPUSeS2UNJ2gSQOwsmqjwI5+b690kca0gBEzbcfYr/7zKGQo9kb
+SpL8J3NDQ/+wlLjcvEMjF4pK13rpEBFJuubNOpuFnPjrLnIbEKYpQpVe+Kpo3MrD
+sxQ90tp3dK8wM/Oqb4+DQdBs8b36SUYkEIFcEX6pu05LAmFNvzzRdrH9DwOktDPr
+wzGjAOdoid78u0qiDiutuEEbhhxQn5PJ1Ua7JAHf0WlAZyNO7pAaD74ECsK/5j7P
+DXIqI2TOQdq2V/BiByCMJYWw5lsKS7bkLcSkUQXKcArci3TO1fU=
+=xUQv
+-----END PGP SIGNATURE-----
+
+--Sig_/P/LadYf8aaYJeG.HL3qFR6P--
