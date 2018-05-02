@@ -1,54 +1,84 @@
-From: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Subject: RE: [PATCH 2/3] mlx4: Don't bother using skb_tx_hash in
- mlx4_en_select_queue
-Date: Wed, 2 May 2018 18:09:37 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663B2E40B6D@ORSMSX154.amr.corp.intel.com>
+From: Alexander Duyck <alexander.duyck@gmail.com>
+Subject: Re: [PATCH 2/3] mlx4: Don't bother using skb_tx_hash in mlx4_en_select_queue
+Date: Wed, 2 May 2018 13:20:30 -0700
+Message-ID: <CAKgT0UfmWExqMA1tvrQeOE=25gK7Bw3kf1ROCwA=-VHoivyfUQ@mail.gmail.com>
 References: <20180427180142.4883.96259.stgit@ahduyck-green-test.jf.intel.com>
- <20180427180640.4883.75746.stgit@ahduyck-green-test.jf.intel.com>
+ <20180427180640.4883.75746.stgit@ahduyck-green-test.jf.intel.com> <14063C7AD467DE4B82DEDB5C278E8663B2E40B6D@ORSMSX154.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180427180640.4883.75746.stgit@ahduyck-green-test.jf.intel.com>
-Content-Language: en-US
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663B2E40B6D@ORSMSX154.amr.corp.intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: "Duyck, Alexander H" <alexander.h.duyck@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "tariqt@mellanox.com" <tariqt@mellanox.com>
+To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Cc: "Duyck, Alexander H" <alexander.h.duyck@intel.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Vishwanathapura, Niranjana" <niranjana.vishwanathapura@intel.com>, "tariqt@mellanox.com" <tariqt@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Pi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogbGludXgtcmRtYS1vd25lckB2Z2Vy
-Lmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPm93bmVyQHZnZXIua2VybmVsLm9yZ10g
-T24gQmVoYWxmIE9mIEFsZXhhbmRlciBEdXljaw0KPlNlbnQ6IEZyaWRheSwgQXByaWwgMjcsIDIw
-MTggMjowNyBQTQ0KPlRvOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBkYXZlbUBkYXZlbWxvZnQu
-bmV0DQo+Q2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBEYWxlc3NhbmRybywgRGVubmlz
-DQo+PGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+OyBWaXNod2FuYXRoYXB1cmEsIE5pcmFu
-amFuYQ0KPjxuaXJhbmphbmEudmlzaHdhbmF0aGFwdXJhQGludGVsLmNvbT47IHRhcmlxdEBtZWxs
-YW5veC5jb20NCj5TdWJqZWN0OiBbUEFUQ0ggMi8zXSBtbHg0OiBEb24ndCBib3RoZXIgdXNpbmcg
-c2tiX3R4X2hhc2ggaW4NCj5tbHg0X2VuX3NlbGVjdF9xdWV1ZQ0KPg0KPlRoZSBjb2RlIGluIHRo
-ZSBmYWxsYmFjayBwYXRoIGhhcyBzdXBwb3J0ZWQgWERQIGluIGNvbmp1bmN0aW9uIHdpdGggdGhl
-IFR4DQo+dHJhZmZpYyBjbGFzc2lmaWNhdGlvbiBmb3IgVENzIGZvciBvdmVyIGEgeWVhciBub3cu
-IFNvIGluc3RlYWQgb2YganVzdA0KPmNhbGxpbmcgc2tiX3R4X2hhc2ggZm9yIGV2ZXJ5IHBhY2tl
-dCB3ZSBhcmUgYmV0dGVyIG9mZiB1c2luZyB0aGUgZmFsbGJhY2sNCj5zaW5jZSB0aGF0IHdpbGwg
-cmVjb3JkIHRoZSBUeCBxdWV1ZSB0byB0aGUgc29ja2V0IGFuZCB0aGVuIHRoYXQgY2FuIGJlIHVz
-ZWQNCj5pbnN0ZWFkIG9mIGhhdmluZyB0byByZWNvbXB1dGUgdGhlIGhhc2ggZXZlcnkgdGltZS4N
-Cj4NCj5TaWduZWQtb2ZmLWJ5OiBBbGV4YW5kZXIgRHV5Y2sgPGFsZXhhbmRlci5oLmR1eWNrQGlu
-dGVsLmNvbT4NCj4tLS0NCj4gZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl90
-eC5jIHwgICAgMiArLQ0KPiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKyksIDEgZGVsZXRp
-b24oLSkNCj4NCj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4
-NC9lbl90eC5jDQo+Yi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX3R4LmMN
-Cj5pbmRleCA2YjY4NTM3Li4wMjI3Nzg2IDEwMDY0NA0KPi0tLSBhL2RyaXZlcnMvbmV0L2V0aGVy
-bmV0L21lbGxhbm94L21seDQvZW5fdHguYw0KPisrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21l
-bGxhbm94L21seDQvZW5fdHguYw0KPkBAIC02OTQsNyArNjk0LDcgQEAgdTE2IG1seDRfZW5fc2Vs
-ZWN0X3F1ZXVlKHN0cnVjdCBuZXRfZGV2aWNlICpkZXYsDQo+c3RydWN0IHNrX2J1ZmYgKnNrYiwN
-Cj4gCXUxNiByaW5nc19wX3VwID0gcHJpdi0+bnVtX3R4X3JpbmdzX3BfdXA7DQo+DQo+IAlpZiAo
-bmV0ZGV2X2dldF9udW1fdGMoZGV2KSkNCj4tCQlyZXR1cm4gc2tiX3R4X2hhc2goZGV2LCBza2Ip
-Ow0KPisJCXJldHVybiBmYWxsYmFjayhkZXYsIHNrYik7DQo+DQo+IAlyZXR1cm4gZmFsbGJhY2so
-ZGV2LCBza2IpICUgcmluZ3NfcF91cDsNCg0KSGkgQWxleGFuZGVyLA0KDQpUaGUgZmluYWwgcmV0
-dXJuIGZhbGxiYWNrKCkgY2FsbCBpcyBkb2luZyBhICUgcmluZ3NfcF91cC4NCg0KRG8geW91IG5l
-ZWQgdG8gZG8gdGhhdCBmb3IgdGhlIG5ldyBmYWxsYmFjaygpIGNhbGw/DQoNCk1heWJlIHlvdSBj
-YW4gZ2V0IHJpZCBvZiB0aGUgbmV0ZGV2X2dldF9udW1fdGMoKSBjYWxsIGFsdG9nZXRoZXI/DQoN
-ClRoYW5rcywNCg0KTWlrZQ0KDQo+IH0NCj4NCj4tLQ0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhp
-cyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPnRoZSBi
-b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+TW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
-DQo=
+On Wed, May 2, 2018 at 11:09 AM, Ruhl, Michael J
+<michael.j.ruhl@intel.com> wrote:
+>>-----Original Message-----
+>>From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+>>owner@vger.kernel.org] On Behalf Of Alexander Duyck
+>>Sent: Friday, April 27, 2018 2:07 PM
+>>To: netdev@vger.kernel.org; davem@davemloft.net
+>>Cc: linux-rdma@vger.kernel.org; Dalessandro, Dennis
+>><dennis.dalessandro@intel.com>; Vishwanathapura, Niranjana
+>><niranjana.vishwanathapura@intel.com>; tariqt@mellanox.com
+>>Subject: [PATCH 2/3] mlx4: Don't bother using skb_tx_hash in
+>>mlx4_en_select_queue
+>>
+>>The code in the fallback path has supported XDP in conjunction with the Tx
+>>traffic classification for TCs for over a year now. So instead of just
+>>calling skb_tx_hash for every packet we are better off using the fallback
+>>since that will record the Tx queue to the socket and then that can be used
+>>instead of having to recompute the hash every time.
+>>
+>>Signed-off-by: Alexander Duyck <alexander.h.duyck@intel.com>
+>>---
+>> drivers/net/ethernet/mellanox/mlx4/en_tx.c |    2 +-
+>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>>diff --git a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+>>b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+>>index 6b68537..0227786 100644
+>>--- a/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+>>+++ b/drivers/net/ethernet/mellanox/mlx4/en_tx.c
+>>@@ -694,7 +694,7 @@ u16 mlx4_en_select_queue(struct net_device *dev,
+>>struct sk_buff *skb,
+>>       u16 rings_p_up = priv->num_tx_rings_p_up;
+>>
+>>       if (netdev_get_num_tc(dev))
+>>-              return skb_tx_hash(dev, skb);
+>>+              return fallback(dev, skb);
+>>
+>>       return fallback(dev, skb) % rings_p_up;
+>
+> Hi Alexander,
+>
+> The final return fallback() call is doing a % rings_p_up.
+>
+> Do you need to do that for the new fallback() call?
+>
+> Maybe you can get rid of the netdev_get_num_tc() call altogether?
+>
+> Thanks,
+>
+> Mike
+
+I contemplated that. The problem I suspect that piece of code is
+solving is that there are cases where the number of queues the device
+advertises and the number in use may not match. We have similar cases
+in the ixgbe and i40e drivers for things like MACVLAN or FCoE offload
+where certain queues are reserved for the offloaded traffic. For those
+we are just setting up 1 TC in order to limit traffic to a given queue
+set.
+
+As time permits one thing I may look at doing is making it so that
+this driver always has the number of TCs set to 1 or more. If we do
+that then we could drop the modulo fallback case, likely improve the
+performance as a result, and get rid of this ndo_select_queue call
+entirely. I just don't currently have the time or resources to take on
+the research and validation of such a change.
+
+Thanks.
+
+- Alex
