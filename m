@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 08/14] IB/{hfi1,
- qib}: Add handling of kernel restart
-Date: Wed, 02 May 2018 06:43:15 -0700
-Message-ID: <20180502134312.20730.58453.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 11/14] IB/hfi1: Optimize kthread pointer locking
+ when queuing CQ entries
+Date: Wed, 02 May 2018 06:43:39 -0700
+Message-ID: <20180502134336.20730.87592.stgit@scvm10.sc.intel.com>
 References: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,142 +11,119 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+From: Sebastian Sanchez <sebastian.sanchez@intel.com>
 
-A warm restart will fail to unload the driver, leaving link state
-potentially flapping up to the point the BIOS resets the adapter.
-Correct the issue by hooking the shutdown pci method,
-which will bring port down.
+All threads queuing CQ entries on different CQs are unnecessarily
+synchronized by a spin lock to check if the CQ kthread worker hasn't
+been destroyed before queuing an CQ entry.
 
-Cc: <stable@vger.kernel.org> # 4.9.x
+The lock used in 6efaf10f163d ("IB/rdmavt: Avoid queuing work into a
+destroyed cq kthread worker") is a device global lock and will have
+poor performance at scale as completions are entered from a large
+number of CPUs.
+
+Convert to use RCU where the read side of RCU is rvt_cq_enter() to
+determine that the worker is alive prior to triggering the
+completion event.
+Apply write side RCU semantics in rvt_driver_cq_init() and
+rvt_cq_exit().
+
+Fixes: 6efaf10f163d ("IB/rdmavt: Avoid queuing work into a destroyed cq kthread worker")
+Cc: <stable@vger.kernel.org> # 4.14.x
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+Signed-off-by: Sebastian Sanchez <sebastian.sanchez@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-
 ---
-v1->v2
-limit shutdown callback function to stop device HW only.
----
- drivers/infiniband/hw/hfi1/hfi.h     |    1 +
- drivers/infiniband/hw/hfi1/init.c    |   13 +++++++++++++
- drivers/infiniband/hw/qib/qib.h      |    1 +
- drivers/infiniband/hw/qib/qib_init.c |   13 +++++++++++++
- 4 files changed, 28 insertions(+), 0 deletions(-)
+ drivers/infiniband/sw/rdmavt/cq.c |   31 +++++++++++++++++++------------
+ include/rdma/rdma_vt.h            |    2 +-
+ 2 files changed, 20 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
-index cac2c62..9c97c18 100644
---- a/drivers/infiniband/hw/hfi1/hfi.h
-+++ b/drivers/infiniband/hw/hfi1/hfi.h
-@@ -1856,6 +1856,7 @@ struct cc_state *get_cc_state_protected(struct hfi1_pportdata *ppd)
- #define HFI1_HAS_SDMA_TIMEOUT  0x8
- #define HFI1_HAS_SEND_DMA      0x10   /* Supports Send DMA */
- #define HFI1_FORCED_FREEZE     0x80   /* driver forced freeze mode */
-+#define HFI1_SHUTDOWN          0x100  /* device is shutting down */
- 
- /* IB dword length mask in PBC (lower 11 bits); same for all chips */
- #define HFI1_PBC_LENGTH_MASK                     ((1 << 11) - 1)
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index 6309edf..790542c 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -1058,6 +1058,10 @@ static void shutdown_device(struct hfi1_devdata *dd)
- 	unsigned pidx;
- 	int i;
- 
-+	if (dd->flags & HFI1_SHUTDOWN)
-+		return;
-+	dd->flags |= HFI1_SHUTDOWN;
+diff --git a/drivers/infiniband/sw/rdmavt/cq.c b/drivers/infiniband/sw/rdmavt/cq.c
+index fb52b66..340c17a 100644
+--- a/drivers/infiniband/sw/rdmavt/cq.c
++++ b/drivers/infiniband/sw/rdmavt/cq.c
+@@ -120,17 +120,20 @@ void rvt_cq_enter(struct rvt_cq *cq, struct ib_wc *entry, bool solicited)
+ 	if (cq->notify == IB_CQ_NEXT_COMP ||
+ 	    (cq->notify == IB_CQ_SOLICITED &&
+ 	     (solicited || entry->status != IB_WC_SUCCESS))) {
++		struct kthread_worker *worker;
 +
- 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
- 		ppd = dd->pport + pidx;
+ 		/*
+ 		 * This will cause send_complete() to be called in
+ 		 * another thread.
+ 		 */
+-		spin_lock(&cq->rdi->n_cqs_lock);
+-		if (likely(cq->rdi->worker)) {
++		rcu_read_lock();
++		worker = rcu_dereference(cq->rdi->worker);
++		if (likely(worker)) {
+ 			cq->notify = RVT_CQ_NONE;
+ 			cq->triggered++;
+-			kthread_queue_work(cq->rdi->worker, &cq->comptask);
++			kthread_queue_work(worker, &cq->comptask);
+ 		}
+-		spin_unlock(&cq->rdi->n_cqs_lock);
++		rcu_read_unlock();
+ 	}
  
-@@ -1391,6 +1395,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
+ 	spin_unlock_irqrestore(&cq->lock, flags);
+@@ -512,7 +515,7 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
+ 	int cpu;
+ 	struct kthread_worker *worker;
  
- static void remove_one(struct pci_dev *);
- static int init_one(struct pci_dev *, const struct pci_device_id *);
-+static void shutdown_one(struct pci_dev *);
+-	if (rdi->worker)
++	if (rcu_access_pointer(rdi->worker))
+ 		return 0;
  
- #define DRIVER_LOAD_MSG "Intel " DRIVER_NAME " loaded: "
- #define PFX DRIVER_NAME ": "
-@@ -1407,6 +1412,7 @@ void hfi1_disable_after_error(struct hfi1_devdata *dd)
- 	.name = DRIVER_NAME,
- 	.probe = init_one,
- 	.remove = remove_one,
-+	.shutdown = shutdown_one,
- 	.id_table = hfi1_pci_tbl,
- 	.err_handler = &hfi1_pci_err_handler,
- };
-@@ -1816,6 +1822,13 @@ static void remove_one(struct pci_dev *pdev)
- 	postinit_cleanup(dd);
+ 	spin_lock_init(&rdi->n_cqs_lock);
+@@ -524,7 +527,7 @@ int rvt_driver_cq_init(struct rvt_dev_info *rdi)
+ 		return PTR_ERR(worker);
+ 
+ 	set_user_nice(worker->task, MIN_NICE);
+-	rdi->worker = worker;
++	RCU_INIT_POINTER(rdi->worker, worker);
+ 	return 0;
  }
  
-+static void shutdown_one(struct pci_dev *pdev)
-+{
-+	struct hfi1_devdata *dd = pci_get_drvdata(pdev);
-+
-+	shutdown_device(dd);
-+}
-+
- /**
-  * hfi1_create_rcvhdrq - create a receive header queue
-  * @dd: the hfi1_ib device
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 4607245..43a68d7 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1228,6 +1228,7 @@ int qib_cdev_init(int minor, const char *name,
- #define QIB_BADINTR           0x8000 /* severe interrupt problems */
- #define QIB_DCA_ENABLED       0x10000 /* Direct Cache Access enabled */
- #define QIB_HAS_QSFP          0x20000 /* device (card instance) has QSFP */
-+#define QIB_SHUTDOWN          0x40000 /* device is shutting down */
+@@ -536,15 +539,19 @@ void rvt_cq_exit(struct rvt_dev_info *rdi)
+ {
+ 	struct kthread_worker *worker;
  
- /*
-  * values for ppd->lflags (_ib_port_ related flags)
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 6c68f8a..0155202 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -841,6 +841,10 @@ static void qib_shutdown_device(struct qib_devdata *dd)
- 	struct qib_pportdata *ppd;
- 	unsigned pidx;
- 
-+	if (dd->flags & QIB_SHUTDOWN)
+-	/* block future queuing from send_complete() */
+-	spin_lock_irq(&rdi->n_cqs_lock);
+-	worker = rdi->worker;
++	if (!rcu_access_pointer(rdi->worker))
 +		return;
-+	dd->flags |= QIB_SHUTDOWN;
 +
- 	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
- 		ppd = dd->pport + pidx;
++	spin_lock(&rdi->n_cqs_lock);
++	worker = rcu_dereference_protected(rdi->worker,
++					   lockdep_is_held(&rdi->n_cqs_lock));
+ 	if (!worker) {
+-		spin_unlock_irq(&rdi->n_cqs_lock);
++		spin_unlock(&rdi->n_cqs_lock);
+ 		return;
+ 	}
+-	rdi->worker = NULL;
+-	spin_unlock_irq(&rdi->n_cqs_lock);
++	RCU_INIT_POINTER(rdi->worker, NULL);
++	spin_unlock(&rdi->n_cqs_lock);
++	synchronize_rcu();
  
-@@ -1182,6 +1186,7 @@ void qib_disable_after_error(struct qib_devdata *dd)
- 
- static void qib_remove_one(struct pci_dev *);
- static int qib_init_one(struct pci_dev *, const struct pci_device_id *);
-+static void qib_shutdown_one(struct pci_dev *);
- 
- #define DRIVER_LOAD_MSG "Intel " QIB_DRV_NAME " loaded: "
- #define PFX QIB_DRV_NAME ": "
-@@ -1199,6 +1204,7 @@ void qib_disable_after_error(struct qib_devdata *dd)
- 	.name = QIB_DRV_NAME,
- 	.probe = qib_init_one,
- 	.remove = qib_remove_one,
-+	.shutdown = qib_shutdown_one,
- 	.id_table = qib_pci_tbl,
- 	.err_handler = &qib_pci_err_handler,
- };
-@@ -1549,6 +1555,13 @@ static void qib_remove_one(struct pci_dev *pdev)
- 	qib_postinit_cleanup(dd);
+ 	kthread_destroy_worker(worker);
  }
+diff --git a/include/rdma/rdma_vt.h b/include/rdma/rdma_vt.h
+index 3f4c187..eec495e 100644
+--- a/include/rdma/rdma_vt.h
++++ b/include/rdma/rdma_vt.h
+@@ -402,7 +402,7 @@ struct rvt_dev_info {
+ 	spinlock_t pending_lock; /* protect pending mmap list */
  
-+static void qib_shutdown_one(struct pci_dev *pdev)
-+{
-+	struct qib_devdata *dd = pci_get_drvdata(pdev);
-+
-+	qib_shutdown_device(dd);
-+}
-+
- /**
-  * qib_create_rcvhdrq - create a receive header queue
-  * @dd: the qlogic_ib device
+ 	/* CQ */
+-	struct kthread_worker *worker; /* per device cq worker */
++	struct kthread_worker __rcu *worker; /* per device cq worker */
+ 	u32 n_cqs_allocated;    /* number of CQs allocated for device */
+ 	spinlock_t n_cqs_lock; /* protect count of in use cqs */
+ 
