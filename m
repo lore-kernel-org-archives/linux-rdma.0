@@ -1,104 +1,109 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH RFC iproute2-next 2/2] rdma: print provider resource
- attributes
-Date: Wed, 2 May 2018 16:38:52 +0300
-Message-ID: <20180502133852.GK20375@mtr-leonro.local>
-References: <cover.1525100473.git.swise@opengridcomputing.com>
- <9dc07757af0a98c444c5a40131a7c54922361e03.1525100473.git.swise@opengridcomputing.com>
- <20180430082524.530eff32@xeon-e3>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-next 00/14] IB/hfi1: Updates for-next 5/2/2018
+Date: Wed, 02 May 2018 06:42:11 -0700
+Message-ID: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="IvGM3kKqwtniy32b"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180430082524.530eff32@xeon-e3>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
-Cc: Steve Wise <swise@opengridcomputing.com>, dsahern@gmail.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: Mike Mariciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Mitko Haralanov <mitko.haralanov@intel.com>, Brian Welty <brian.welty@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Harish Chegondi <harish.chegondi@intel.com>, Don Hiatt <don.hiatt@intel.com>, Sebastian Sanchez <sebastian.sanchez@intel.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug and Jason,
 
---IvGM3kKqwtniy32b
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Here are some patches to go to for-next. These include the couple patches that
+needed rework that were posted before the OFA conf. Well actually those patches
+that had issues were just dropped with the exception of the one from Alex, to
+add handling of kernel restart to hfi1 and qib. Patch 8 is his V2.
 
-On Mon, Apr 30, 2018 at 08:25:24AM -0700, Stephen Hemminger wrote:
-> On Mon, 30 Apr 2018 07:36:18 -0700
-> Steve Wise <swise@opengridcomputing.com> wrote:
->
-> > +#define nla_type(attr) ((attr)->nla_type & NLA_TYPE_MASK)
-> > +
-> > +void newline(struct rd *rd)
-> > +{
-> > +	if (rd->json_output)
-> > +		jsonw_end_array(rd->jw);
-> > +	else
-> > +		pr_out("\n");
-> > +}
-> > +
-> > +void newline_indent(struct rd *rd)
-> > +{
-> > +	newline(rd);
-> > +	if (!rd->json_output)
-> > +		pr_out("    ");
-> > +}
-> > +
-> > +static int print_provider_string(struct rd *rd, const char *key_str,
-> > +				 const char *val_str)
-> > +{
-> > +	if (rd->json_output) {
-> > +		jsonw_string_field(rd->jw, key_str, val_str);
-> > +		return 0;
-> > +	} else {
-> > +		return pr_out("%s %s ", key_str, val_str);
-> > +	}
-> > +}
-> > +
-> > +static int print_provider_s32(struct rd *rd, const char *key_str, int32_t val,
-> > +			      enum rdma_nldev_print_type print_type)
-> > +{
-> > +	if (rd->json_output) {
-> > +		jsonw_int_field(rd->jw, key_str, val);
-> > +		return 0;
-> > +	}
-> > +	switch (print_type) {
-> > +	case RDMA_NLDEV_PRINT_TYPE_UNSPEC:
-> > +		return pr_out("%s %d ", key_str, val);
-> > +	case RDMA_NLDEV_PRINT_TYPE_HEX:
-> > +		return pr_out("%s 0x%x ", key_str, val);
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
-> > +}
-> > +
->
-> This code should get converted to json_print library that handles the
-> different output modes; rather than rolling it's own equivalent functionality.
+Nothing else too scary or exciting in here. Well OK so that's not quite right
+the CQ completion vector patch is rather interesting. This adds support
+for compeltion vectors for hfi1 and helps improve performance in things like
+IPoIB.
 
-Can it be done after this patch is merged? It will simplify review and
-testing because current code is implemented to be in the same format as
-the rest of the tool.
+There is a signifianct patch from Mitko that redoes a lof our fault injection
+stuff. It's a big patch but I'm not sure it lends itself to being broken up
+further.
 
-Thanks
+One other thing of note is the "Create common functions" patch from Sebastian
+depends on one of the patches that I sent for the -rc. It won't apply cleanly
+without that.
 
---IvGM3kKqwtniy32b
-Content-Type: application/pgp-signature; name="signature.asc"
+---
 
------BEGIN PGP SIGNATURE-----
+Alex Estrin (2):
+      IB/hfi1: Complete check for locally terminated smp
+      IB/{hfi1,qib}: Add handling of kernel restart
 
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrpv2sACgkQ5GN7iDZy
-WKd4VxAApgpFRCwNp79V/KeuRP27vKSuQU0oA94Mp67u3LiFNZdcy5IOfiCSet6M
-5B3QfV8dKBm62D/JfmRPPwuclFRByEFdIOwld6P9Stctp6gsi6O2WTmiUiUI7MHi
-/8ZDf7tYujw1gDuIXhE1tmPdFNF4l1gaZsRql8Ub5XHyu/qLA5aiDAS+DDb13Zh/
-6vdsTtzbTW91RifAEY51VdcPpHSVHmCc44Ry1n0wafbN/Wy++DrCezExuQrHLlUE
-mJx+IoRNf7cwxsvyEaiJw6YJAHD8Sm+ka+2loRCoNChE8uaPShDG6y/q7LiY3hlw
-4725J9RzmibKGvNZIXsJImgGhTWU8KP3fi2G7ToLkcjdkznJ5ewjR/unlMSm+Efr
-l4NQuXbehGw/zQ8Hc4k/oSMMtsZXplvC+tYwzhVNMeYrGG7jUDzQxXZF9vwlOyKo
-PYhcyGrLtgrtYz74FYEUTlL+PCt2c6X7xBvFzaNthCpewWd8lwgva5gaYFgIe74j
-tQxaeECNzzC/sHJJrUxcXY4y/TQ+b3Os5CjbYvCwKCMH/IMJSxo2RenU6LhFghy3
-GZFeISCPdDiid74+ilmrLDLwRzKraC36/DNo8yzA5E2KEl3FfucToDXMJShdMopX
-LeZl/zpKOMOdvNqn5DRCLzKFqOjEnATXhy1KQ87G4HM9GKoVn5w=
-=+rWn
------END PGP SIGNATURE-----
+Brian Welty (1):
+      IB/{hfi1,qib,rdmavt}: Move logic to allocate receive WQE into rdmavt
 
---IvGM3kKqwtniy32b--
+Kamenee Arumugam (1):
+      IB/Hfi1: Read CCE Revision register to verify the device is responsive
+
+Michael J. Ruhl (4):
+      IB/hfi1: Return actual error value from program_rcvarray()
+      IB/hfi1: Use after free race condition in send context error path
+      IB/hfi1: Return correct value for device state
+      IB/hfi1: Reorder incorrect send context disable
+
+Mike Marciniszyn (1):
+      IB/hfi1: Fix fault injection init/exit issues
+
+Mitko Haralanov (1):
+      IB/hfi1: Rework fault injection machinery
+
+Sebastian Sanchez (4):
+      IB/hfi1: Prevent LNI hang when LCB can't obtain lanes
+      IB/hfi1: Optimize kthread pointer locking when queuing CQ entries
+      IB/hfi1: Create common functions for affinity CPU mask operations
+      IB/{hfi1,rdmavt,qib}: Implement CQ completion vector support
+
+
+ drivers/infiniband/hw/hfi1/Makefile         |   10 -
+ drivers/infiniband/hw/hfi1/affinity.c       |  497 +++++++++++++++++++++++++--
+ drivers/infiniband/hw/hfi1/affinity.h       |   10 -
+ drivers/infiniband/hw/hfi1/chip.c           |   74 +++-
+ drivers/infiniband/hw/hfi1/chip.h           |   15 +
+ drivers/infiniband/hw/hfi1/chip_registers.h |    7 
+ drivers/infiniband/hw/hfi1/debugfs.c        |  292 ----------------
+ drivers/infiniband/hw/hfi1/debugfs.h        |   93 +++--
+ drivers/infiniband/hw/hfi1/driver.c         |   20 +
+ drivers/infiniband/hw/hfi1/fault.c          |  375 ++++++++++++++++++++
+ drivers/infiniband/hw/hfi1/fault.h          |  109 ++++++
+ drivers/infiniband/hw/hfi1/file_ops.c       |    2 
+ drivers/infiniband/hw/hfi1/hfi.h            |   14 +
+ drivers/infiniband/hw/hfi1/init.c           |   28 +-
+ drivers/infiniband/hw/hfi1/mad.c            |   36 +-
+ drivers/infiniband/hw/hfi1/pcie.c           |    8 
+ drivers/infiniband/hw/hfi1/pio.c            |   44 ++
+ drivers/infiniband/hw/hfi1/rc.c             |    8 
+ drivers/infiniband/hw/hfi1/ruc.c            |  154 --------
+ drivers/infiniband/hw/hfi1/trace.c          |    3 
+ drivers/infiniband/hw/hfi1/trace_dbg.h      |    3 
+ drivers/infiniband/hw/hfi1/uc.c             |    4 
+ drivers/infiniband/hw/hfi1/ud.c             |    4 
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c   |    1 
+ drivers/infiniband/hw/hfi1/verbs.c          |   20 -
+ drivers/infiniband/hw/hfi1/verbs.h          |    8 
+ drivers/infiniband/hw/qib/qib.h             |    1 
+ drivers/infiniband/hw/qib/qib_init.c        |   13 +
+ drivers/infiniband/hw/qib/qib_rc.c          |    8 
+ drivers/infiniband/hw/qib/qib_ruc.c         |  154 --------
+ drivers/infiniband/hw/qib/qib_uc.c          |    4 
+ drivers/infiniband/hw/qib/qib_ud.c          |    4 
+ drivers/infiniband/hw/qib/qib_verbs.c       |    6 
+ drivers/infiniband/hw/qib/qib_verbs.h       |    2 
+ drivers/infiniband/sw/rdmavt/cq.c           |   74 ++--
+ drivers/infiniband/sw/rdmavt/cq.h           |    6 
+ drivers/infiniband/sw/rdmavt/qp.c           |  149 ++++++++
+ drivers/infiniband/sw/rdmavt/trace_cq.h     |   35 ++
+ drivers/infiniband/sw/rdmavt/vt.c           |   35 +-
+ include/rdma/rdma_vt.h                      |    7 
+ include/rdma/rdmavt_cq.h                    |    5 
+ include/rdma/rdmavt_qp.h                    |    1 
+ 42 files changed, 1491 insertions(+), 852 deletions(-)
+ create mode 100644 drivers/infiniband/hw/hfi1/fault.c
+ create mode 100644 drivers/infiniband/hw/hfi1/fault.h
