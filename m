@@ -1,93 +1,69 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 3 May 2018 19:29:11 +0200
-Message-ID: <38d866cf-f7b4-7118-d737-5a5dcd9f3784@amd.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
- <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
- <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
- <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
+Date: Thu, 3 May 2018 21:12:35 +0300
+Message-ID: <20180503181235.GB4473@mtr-leonro.local>
+References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+ <20180503153310.GA9738@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <ce2e5351-f32a-bd80-1c77-b7fc38842175-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180503153310.GA9738@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Lidong Chen <jemmy858585@gmail.com>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-QW0gMDMuMDUuMjAxOCB1bSAxNzo1OSBzY2hyaWViIExvZ2FuIEd1bnRob3JwZToKPiBPbiAwMy8w
-NS8xOCAwMzowNSBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPj4gU2Vjb25kIHF1ZXN0aW9u
-IGlzIGhvdyB0byB5b3Ugd2FudCB0byBoYW5kbGUgdGhpbmdzIHdoZW4gZGV2aWNlIGFyZSBub3QK
-Pj4gYmVoaW5kIHRoZSBzYW1lIHJvb3QgcG9ydCAod2hpY2ggaXMgcGVyZmVjdGx5IHBvc3NpYmxl
-IGluIHRoZSBjYXNlcyBJCj4+IGRlYWwgd2l0aCk/Cj4gSSB0aGluayB3ZSBuZWVkIHRvIGltcGxl
-bWVudCBhIHdoaXRlbGlzdC4gSWYgYm90aCByb290IHBvcnRzIGFyZSBpbiB0aGUKPiB3aGl0ZSBs
-aXN0IGFuZCBhcmUgb24gdGhlIHNhbWUgYnVzIHRoZW4gd2UgcmV0dXJuIGEgbGFyZ2VyIGRpc3Rh
-bmNlCj4gaW5zdGVhZCBvZiAtMS4KClNvdW5kcyBnb29kLgoKPj4gVGhpcmQgcXVlc3Rpb24gd2h5
-IG11bHRpcGxlIGNsaWVudHM/IFRoYXQgZmVlbHMgYSBiaXQgbGlrZSB5b3UgYXJlCj4+IHB1c2hp
-bmcgc29tZXRoaW5nIHNwZWNpYWwgdG8geW91ciB1c2UgY2FzZSBpbnRvIHRoZSBjb21tb24gUENJ
-Cj4+IHN1YnN5c3RlbS4gU29tZXRoaW5nIHdoaWNoIHVzdWFsbHkgaXNuJ3QgYSBnb29kIGlkZWEu
-Cj4gTm8sIEkgdGhpbmsgdGhpcyB3aWxsIGJlIHByZXR0eSBzdGFuZGFyZC4gSW4gdGhlIHNpbXBs
-ZSBnZW5lcmFsIGNhc2UgeW91Cj4gYXJlIGdvaW5nIHRvIGhhdmUgb25lIHByb3ZpZGVyIGFuZCBh
-dCBsZWFzdCB0d28gY2xpZW50cyAob25lIHdoaWNoCj4gd3JpdGVzIHRoZSBtZW1vcnkgYW5kIG9u
-ZSB3aGljaCByZWFkcyBpdCkuIEhvd2V2ZXIsIG9uZSBjbGllbnQgaXMKPiBsaWtlbHksIGJ1dCBu
-b3QgbmVjZXNzYXJpbHksIHRoZSBzYW1lIGFzIHRoZSBwcm92aWRlci4KCk9rLCB0aGF0IGlzIHRo
-ZSBwb2ludCB3aGVyZSBJJ20gc3R1Y2suIFdoeSBkbyB3ZSBuZWVkIHRoYXQgaW4gb25lIApmdW5j
-dGlvbiBjYWxsIGluIHRoZSBQQ0llIHN1YnN5c3RlbT8KClRoZSBwcm9ibGVtIGF0IGxlYXN0IHdp
-dGggR1BVcyBpcyB0aGF0IHdlIHNlcmlvdXNseSBkb24ndCBoYXZlIHRoYXQgCmluZm9ybWF0aW9u
-IGhlcmUsIGNhdXNlIHRoZSBQQ0kgc3Vic3lzdGVtIG1pZ2h0IG5vdCBiZSBhd2FyZSBvZiBhbGwg
-dGhlIAppbnRlcmNvbm5lY3Rpb25zLgoKRm9yIGV4YW1wbGUgaXQgaXNuJ3QgdW5jb21tb24gdG8g
-cHV0IG11bHRpcGxlIEdQVXMgb24gb25lIGJvYXJkLiBUbyB0aGUgClBDSSBzdWJzeXN0ZW0gdGhh
-dCBsb29rcyBsaWtlIHNlcGFyYXRlIGRldmljZXMsIGJ1dCBpbiByZWFsaXR5IGFsbCBHUFVzIAph
-cmUgaW50ZXJjb25uZWN0ZWQgYW5kIGNhbiBhY2Nlc3MgZWFjaCBvdGhlcnMgbWVtb3J5IGRpcmVj
-dGx5IHdpdGhvdXQgCmdvaW5nIG92ZXIgdGhlIFBDSWUgYnVzLgoKSSBzZXJpb3VzbHkgZG9uJ3Qg
-d2FudCB0byBtb2RlbCB0aGF0IGluIHRoZSBQQ0kgc3Vic3lzdGVtLCBidXQgcmF0aGVyIAp0aGUg
-ZHJpdmVyLiBUaGF0J3Mgd2h5IGl0IGZlZWxzIGxpa2UgYSBtaXN0YWtlIHRvIG1lIHRvIHB1c2gg
-YWxsIHRoYXQgCmludG8gdGhlIFBDSSBmdW5jdGlvbi4KCj4gSW4gdGhlIE5WTWVvZiBjYXNlLCB3
-ZSBtaWdodCBoYXZlIE4gY2xpZW50czogMSBSRE1BIGRldmljZSBhbmQgTi0xIGJsb2NrCj4gZGV2
-aWNlcy4gVGhlIGNvZGUgZG9lc24ndCBjYXJlIHdoaWNoIGRldmljZSBwcm92aWRlcyB0aGUgbWVt
-b3J5IGFzIGl0Cj4gY291bGQgYmUgdGhlIFJETUEgZGV2aWNlIG9yIG9uZS9hbGwgb2YgdGhlIGJs
-b2NrIGRldmljZXMgKG9yLCBpbiB0aGVvcnksCj4gYSBjb21wbGV0ZWx5IHNlcGFyYXRlIGRldmlj
-ZSB3aXRoIFAyUC1hYmxlIG1lbW9yeSkuIEhvd2V2ZXIsIGl0IGRvZXMKPiByZXF1aXJlIHRoYXQg
-YWxsIGRldmljZXMgaW52b2x2ZWQgYXJlIGFjY2Vzc2libGUgcGVyCj4gcGNpX3AycGRtYV9kaXN0
-YW5jZSgpIG9yIGl0IHdvbid0IHVzZSBQMlAgdHJhbnNhY3Rpb25zLgo+Cj4gSSBjb3VsZCBhbHNv
-IGltYWdpbmUgb3RoZXIgdXNlIGNhc2VzOiBpZS4gYW4gUkRNQSBOSUMgc2VuZHMgZGF0YSB0byBh
-Cj4gR1BVIGZvciBwcm9jZXNzaW5nIGFuZCB0aGVuIHNlbmRzIHRoZSBkYXRhIHRvIGFuIE5WTWUg
-ZGV2aWNlIGZvciBzdG9yYWdlCj4gKG9yIHZpY2UtdmVyc2EpLiBJbiB0aGlzIGNhc2Ugd2UgaGF2
-ZSAzIGNsaWVudHMgYW5kIG9uZSBwcm92aWRlci4KCldoeSBjYW4ndCB3ZSBtb2RlbCB0aGF0IGFz
-IHR3byBzZXBhcmF0ZSB0cmFuc2FjdGlvbnM/CgpFLmcuIG9uZSBmcm9tIHRoZSBSRE1BIE5JQyB0
-byB0aGUgR1BVIG1lbW9yeS4gQW5kIGFub3RoZXIgb25lIGZyb20gdGhlIApHUFUgbWVtb3J5IHRv
-IHRoZSBOVk1lIGRldmljZS4KClRoYXQgd291bGQgYWxzbyBtYXRjaCBob3cgSSBnZXQgdGhpcyBp
-bmZvcm1hdGlvbiBmcm9tIHVzZXJzcGFjZS4KCj4+IEFzIGZhciBhcyBJIGNhbiBzZWUgd2UgbmVl
-ZCBhIGZ1bmN0aW9uIHdoaWNoIHJldHVybiB0aGUgZGlzdGFuY2UgYmV0d2Vlbgo+PiBhIGluaXRp
-YXRvciBhbmQgdGFyZ2V0IGRldmljZS4gVGhpcyBmdW5jdGlvbiB0aGVuIHJldHVybnMgLTEgaWYg
-dGhlCj4+IHRyYW5zYWN0aW9uIGNhbid0IGJlIG1hZGUgYW5kIGEgcG9zaXRpdmUgdmFsdWUgb3Ro
-ZXJ3aXNlLgo+IElmIHlvdSBuZWVkIHRvIG1ha2UgYSBzaW1wbGVyIGNvbnZlbmllbmNlIGZ1bmN0
-aW9uIGZvciB5b3VyIHVzZSBjYXNlIEknbQo+IG5vdCBhZ2FpbnN0IGl0LgoKWWVhaCwgc2FtZSBm
-b3IgbWUuIElmIEJqb3JuIGlzIG9rIHdpdGggdGhhdCBzcGVjaWFsaXplZCBOVk0gZnVuY3Rpb25z
-IAp0aGF0IEknbSBmaW5lIHdpdGggdGhhdCBhcyB3ZWxsLgoKSSB0aGluayBpdCB3b3VsZCBqdXN0
-IGJlIG1vcmUgY29udmVuaWVudCB3aGVuIHdlIGNhbiBjb21lIHVwIHdpdGggCmZ1bmN0aW9ucyB3
-aGljaCBjYW4gaGFuZGxlIGFsbCB1c2UgY2FzZXMsIGNhdXNlIHRoZXJlIHN0aWxsIHNlZW1zIHRv
-IGJlIAphIGxvdCBvZiBzaW1pbGFyaXRpZXMuCgo+Cj4+IFdlIGFsc28gbmVlZCB0byBnaXZlIHRo
-ZSBkaXJlY3Rpb24gb2YgdGhlIHRyYW5zYWN0aW9uIGFuZCBoYXZlIGEKPj4gd2hpdGVsaXN0IHJv
-b3QgY29tcGxleCBQQ0ktSURzIHdoaWNoIGNhbiBoYW5kbGUgUDJQIHRyYW5zYWN0aW9ucyBmcm9t
-Cj4+IGRpZmZlcmVudCBwb3J0cyBmb3IgYSBjZXJ0YWluIERNQSBkaXJlY3Rpb24uCj4gWWVzLiBJ
-biB0aGUgTlZNZW9mIGNhc2Ugd2UgbmVlZCBhbGwgZGV2aWNlcyB0byBiZSBhYmxlIHRvIERNQSBp
-biBib3RoCj4gZGlyZWN0aW9ucyBzbyB3ZSBkaWQgbm90IG5lZWQgdGhlIERNQSBkaXJlY3Rpb24u
-IEJ1dCBJIGNhbiBzZWUgdGhpcwo+IGJlaW5nIHVzZWZ1bCBvbmNlIHdlIGFkZCB0aGUgd2hpdGVs
-aXN0LgoKT2ssIEkgYWdyZWUgdGhhdCBjYW4gYmUgYWRkZWQgbGF0ZXIgb24uIEZvciBzaW1wbGlj
-aXR5IGxldCdzIGFzc3VtZSBmb3IgCm5vdyB3ZSBhbHdheXMgdG8gYmlkaXJlY3Rpb25hbCB0cmFu
-c2ZlcnMuCgpUaGFua3MgZm9yIHRoZSBleHBsYW5hdGlvbiwKQ2hyaXN0aWFuLgoKPgo+IExvZ2Fu
-CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1u
-dmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0
-cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
+> On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
+> > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+> > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+> > exited, get_pid_task will return NULL, ib_umem_release does not decrease
+> > mm->pinned_vm. This patch fixes it by use tgid.
+> >
+> > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+> > ---
+> >  drivers/infiniband/core/umem.c | 12 ++++++------
+> >  include/rdma/ib_umem.h         |  2 +-
+> >  2 files changed, 7 insertions(+), 7 deletions(-)
+>
+> Why are we even using a struct pid for this? Does anyone know?
+>
+
+Can it be related to "fork" support?
+
+> I'm surprised that struct task isn't held in the struct ib_umem..
+>
+
+I think that this code can be removed and all accesses to mm_struct can
+be done with "current->mm".
+
+Thanks
+
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrrUQsACgkQ5GN7iDZy
+WKfR1Q/8DLu4PQs5ddrqAwgwm+I8uKnXuhKvgeliiGFgi+uHNP+BUipP6Lq2dxZR
+aGjdBRfnHNZ/wWfI5zdE9H6nU4cY5BALpeMUvvr550ck3XGshqiPuuSQCb6b+o9F
++gP4GahIdp/Wipg42rYxplfThIcHdyd1CM3CT3mb5DNUV4kw1ij3YVYcq/lYC6b8
+xxMrkR5ta5G6wY2RcPxLW5RlCw3y9Y8V9qG5hXk8J0JIebWI4K0hfhLgIkSlLxk2
+RB6yyqQ1pwUyL6YU8MdBimbdPduI/T69bg32VijeISxmdMrCuoW75L1Wlu8Ttpg+
+jcsFWJby331+DWwAMBDafRg2gCewM8qsIlhygUA42fKChnj1ZFMRefsPtysCm/5H
+7h/VejPhhQyJUW6GD4/lTGBd865PQEBe9hcXy9zOOXoGDwGzXGmzJwugSPEgEbCs
+CNqMgTiVRLy2XD/B9v6P8iR2VewdhfF7X4vKwtLUCpwwSbtncAwPmniWdZ4/EsMG
+JukAmEnv2C309KJX0lIFzwldG4n2fHNYlkJSsHCjdBZ5ryCXXhH2V+XDv8wZNorx
+vy3GERitHqp8ZWaK+WEIcw+i3XjdVXiQ+EHuHf3jlB5Rj2WAY9u7frTxOqfPVBxY
+aE0SGN4Q/pFoskUaWlK/HyK4Fp98tzwtfJ4vC+cFtBh/h7UlxX0=
+=Qew0
+-----END PGP SIGNATURE-----
+
+--MGYHOYXEY6WxJCY8--
