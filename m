@@ -1,73 +1,71 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 3 May 2018 09:59:54 -0600
-Message-ID: <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
- <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
- <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
+From: Boris Pismenny <borisp@mellanox.com>
+Subject: Re: [bug report] net/mlx5e: TLS, Add Innova TLS TX offload data path
+Date: Thu, 3 May 2018 19:04:14 +0300
+Message-ID: <1c4a001c-b3a8-bf35-52c0-78526804ffcc@mellanox.com>
+References: <20180503112300.GA6309@mwanda>
+ <20180503120757.GA1641@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <3e4e0126-f444-8d88-6793-b5eb97c61f76-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180503120757.GA1641@mtr-leonro.local>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-CgpPbiAwMy8wNS8xOCAwMzowNSBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBPaywgSSdt
-IHN0aWxsIG1pc3NpbmcgdGhlIGJpZyBwaWN0dXJlIGhlcmUuIEZpcnN0IHF1ZXN0aW9uIGlzIHdo
-YXQgaXMgCj4gdGhlIFAyUERNQSBwcm92aWRlcj8KCldlbGwgdGhlcmUncyBzb21lIHByZXR0eSBn
-b29kIGRvY3VtZW50YXRpb24gaW4gdGhlIHBhdGNoc2V0IGZvciB0aGlzLApidXQgaW4gc2hvcnQs
-IGEgcHJvdmlkZXIgaXMgYSBkZXZpY2UgdGhhdCBwcm92aWRlcyBzb21lIGtpbmQgb2YgUDJQCnJl
-c291cmNlIChpZS4gQkFSIG1lbW9yeSwgb3IgcGVyaGFwcyBhIGRvb3JiZWxsIHJlZ2lzdGVyIC0t
-IG9ubHkgbWVtb3J5CmlzIHN1cHBvcnRlZCBhdCB0aGlzIHRpbWUpLgoKPiBTZWNvbmQgcXVlc3Rp
-b24gaXMgaG93IHRvIHlvdSB3YW50IHRvIGhhbmRsZSB0aGluZ3Mgd2hlbiBkZXZpY2UgYXJlIG5v
-dCAKPiBiZWhpbmQgdGhlIHNhbWUgcm9vdCBwb3J0ICh3aGljaCBpcyBwZXJmZWN0bHkgcG9zc2li
-bGUgaW4gdGhlIGNhc2VzIEkgCj4gZGVhbCB3aXRoKT8KCkkgdGhpbmsgd2UgbmVlZCB0byBpbXBs
-ZW1lbnQgYSB3aGl0ZWxpc3QuIElmIGJvdGggcm9vdCBwb3J0cyBhcmUgaW4gdGhlCndoaXRlIGxp
-c3QgYW5kIGFyZSBvbiB0aGUgc2FtZSBidXMgdGhlbiB3ZSByZXR1cm4gYSBsYXJnZXIgZGlzdGFu
-Y2UKaW5zdGVhZCBvZiAtMS4KCj4gVGhpcmQgcXVlc3Rpb24gd2h5IG11bHRpcGxlIGNsaWVudHM/
-IFRoYXQgZmVlbHMgYSBiaXQgbGlrZSB5b3UgYXJlIAo+IHB1c2hpbmcgc29tZXRoaW5nIHNwZWNp
-YWwgdG8geW91ciB1c2UgY2FzZSBpbnRvIHRoZSBjb21tb24gUENJIAo+IHN1YnN5c3RlbS4gU29t
-ZXRoaW5nIHdoaWNoIHVzdWFsbHkgaXNuJ3QgYSBnb29kIGlkZWEuCgpObywgSSB0aGluayB0aGlz
-IHdpbGwgYmUgcHJldHR5IHN0YW5kYXJkLiBJbiB0aGUgc2ltcGxlIGdlbmVyYWwgY2FzZSB5b3UK
-YXJlIGdvaW5nIHRvIGhhdmUgb25lIHByb3ZpZGVyIGFuZCBhdCBsZWFzdCB0d28gY2xpZW50cyAo
-b25lIHdoaWNoCndyaXRlcyB0aGUgbWVtb3J5IGFuZCBvbmUgd2hpY2ggcmVhZHMgaXQpLiBIb3dl
-dmVyLCBvbmUgY2xpZW50IGlzCmxpa2VseSwgYnV0IG5vdCBuZWNlc3NhcmlseSwgdGhlIHNhbWUg
-YXMgdGhlIHByb3ZpZGVyLgoKSW4gdGhlIE5WTWVvZiBjYXNlLCB3ZSBtaWdodCBoYXZlIE4gY2xp
-ZW50czogMSBSRE1BIGRldmljZSBhbmQgTi0xIGJsb2NrCmRldmljZXMuIFRoZSBjb2RlIGRvZXNu
-J3QgY2FyZSB3aGljaCBkZXZpY2UgcHJvdmlkZXMgdGhlIG1lbW9yeSBhcyBpdApjb3VsZCBiZSB0
-aGUgUkRNQSBkZXZpY2Ugb3Igb25lL2FsbCBvZiB0aGUgYmxvY2sgZGV2aWNlcyAob3IsIGluIHRo
-ZW9yeSwKYSBjb21wbGV0ZWx5IHNlcGFyYXRlIGRldmljZSB3aXRoIFAyUC1hYmxlIG1lbW9yeSku
-IEhvd2V2ZXIsIGl0IGRvZXMKcmVxdWlyZSB0aGF0IGFsbCBkZXZpY2VzIGludm9sdmVkIGFyZSBh
-Y2Nlc3NpYmxlIHBlcgpwY2lfcDJwZG1hX2Rpc3RhbmNlKCkgb3IgaXQgd29uJ3QgdXNlIFAyUCB0
-cmFuc2FjdGlvbnMuCgpJIGNvdWxkIGFsc28gaW1hZ2luZSBvdGhlciB1c2UgY2FzZXM6IGllLiBh
-biBSRE1BIE5JQyBzZW5kcyBkYXRhIHRvIGEKR1BVIGZvciBwcm9jZXNzaW5nIGFuZCB0aGVuIHNl
-bmRzIHRoZSBkYXRhIHRvIGFuIE5WTWUgZGV2aWNlIGZvciBzdG9yYWdlCihvciB2aWNlLXZlcnNh
-KS4gSW4gdGhpcyBjYXNlIHdlIGhhdmUgMyBjbGllbnRzIGFuZCBvbmUgcHJvdmlkZXIuCgo+IEFz
-IGZhciBhcyBJIGNhbiBzZWUgd2UgbmVlZCBhIGZ1bmN0aW9uIHdoaWNoIHJldHVybiB0aGUgZGlz
-dGFuY2UgYmV0d2VlbiAKPiBhIGluaXRpYXRvciBhbmQgdGFyZ2V0IGRldmljZS4gVGhpcyBmdW5j
-dGlvbiB0aGVuIHJldHVybnMgLTEgaWYgdGhlIAo+IHRyYW5zYWN0aW9uIGNhbid0IGJlIG1hZGUg
-YW5kIGEgcG9zaXRpdmUgdmFsdWUgb3RoZXJ3aXNlLgoKSWYgeW91IG5lZWQgdG8gbWFrZSBhIHNp
-bXBsZXIgY29udmVuaWVuY2UgZnVuY3Rpb24gZm9yIHlvdXIgdXNlIGNhc2UgSSdtCm5vdCBhZ2Fp
-bnN0IGl0LgoKPiBXZSBhbHNvIG5lZWQgdG8gZ2l2ZSB0aGUgZGlyZWN0aW9uIG9mIHRoZSB0cmFu
-c2FjdGlvbiBhbmQgaGF2ZSBhIAo+IHdoaXRlbGlzdCByb290IGNvbXBsZXggUENJLUlEcyB3aGlj
-aCBjYW4gaGFuZGxlIFAyUCB0cmFuc2FjdGlvbnMgZnJvbSAKPiBkaWZmZXJlbnQgcG9ydHMgZm9y
-IGEgY2VydGFpbiBETUEgZGlyZWN0aW9uLgoKWWVzLiBJbiB0aGUgTlZNZW9mIGNhc2Ugd2UgbmVl
-ZCBhbGwgZGV2aWNlcyB0byBiZSBhYmxlIHRvIERNQSBpbiBib3RoCmRpcmVjdGlvbnMgc28gd2Ug
-ZGlkIG5vdCBuZWVkIHRoZSBETUEgZGlyZWN0aW9uLiBCdXQgSSBjYW4gc2VlIHRoaXMKYmVpbmcg
-dXNlZnVsIG9uY2Ugd2UgYWRkIHRoZSB3aGl0ZWxpc3QuCgpMb2dhbgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
-CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9saW51eC1udmRpbW0K
+Hi Dan,
+
+Thanks for taking a look at our code.
+
+On 05/03/18 15:07, Leon Romanovsky wrote:
+> + Saeed, Boris and netdev
+>
+> On Thu, May 03, 2018 at 02:23:00PM +0300, Dan Carpenter wrote:
+>> Hello Ilya Lesokhin,
+>>
+>> The patch bf23974104fa: "net/mlx5e: TLS, Add Innova TLS TX offload
+>> data path" from Apr 30, 2018, leads to the following static checker
+>> warning:
+>>
+>> 	drivers/net/ethernet/mellanox/mlx5/core/en_accel/tls_rxtx.c:63 mlx5e_tls_add_metadata()
+>> 	warn: struct type mismatch 'ethhdr vs mlx5e_tls_metadata'
+>>
+>> drivers/net/ethernet/mellanox/mlx5/core/en_accel/tls_rxtx.c
+>>      55  static int mlx5e_tls_add_metadata(struct sk_buff *skb, __be32 swid)
+>>      56  {
+>>      57          struct mlx5e_tls_metadata *pet;
+>>      58          struct ethhdr *eth;
+>>                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>      59
+>>      60          if (skb_cow_head(skb, sizeof(struct mlx5e_tls_metadata)))
+>>                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>      61                  return -ENOMEM;
+>>      62
+>>      63          eth = (struct ethhdr *)skb_push(skb, sizeof(struct mlx5e_tls_metadata));
+>>                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> This feels like it should be sizeof(*eth) + sizeof(*pet)?
+No, we add only "sizeof(struct mlx5e_tls_metadata)" bytes to the skb 
+headroom for the mlx5_tls_metadata. The Ethernet header is already there.
+>>
+>>      64          skb->mac_header -= sizeof(struct mlx5e_tls_metadata);
+>>      65          pet = (struct mlx5e_tls_metadata *)(eth + 1);
+>>      66
+>>      67          memmove(skb->data, skb->data + sizeof(struct mlx5e_tls_metadata),
+>>      68                  2 * ETH_ALEN);
+>>      69
+>>      70          eth->h_proto = cpu_to_be16(MLX5E_METADATA_ETHER_TYPE);
+>>      71          pet->syndrome_swid = htonl(SYNDROME_OFFLOAD_REQUIRED << 24) | swid;
+>>      72
+>>      73          return 0;
+>>      74  }
+>>
+>> regards,
+>> dan carpenter
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Boris.
