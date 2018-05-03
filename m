@@ -1,102 +1,73 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Thu, 3 May 2018 09:33:10 -0600
-Message-ID: <20180503153310.GA9738@ziepe.ca>
-References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Thu, 3 May 2018 09:59:54 -0600
+Message-ID: <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
+ <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
+ <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lidong Chen <jemmy858585@gmail.com>
-Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, leon@kernel.org, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <3e4e0126-f444-8d88-6793-b5eb97c61f76-5C7GfCeVMHo@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
-> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
-> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
-> exited, get_pid_task will return NULL, ib_umem_release does not decrease
-> mm->pinned_vm. This patch fixes it by use tgid.
-> 
-> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
-> ---
->  drivers/infiniband/core/umem.c | 12 ++++++------
->  include/rdma/ib_umem.h         |  2 +-
->  2 files changed, 7 insertions(+), 7 deletions(-)
-
-Why are we even using a struct pid for this? Does anyone know?
-
-I'm surprised that struct task isn't held in the struct ib_umem..
-
-Is group_leader really OK and always guarenteed to return the same
-struct mm?? For some reason I have this recollection that the leader
-can change under some situation..
-
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index 9a4e899..8813ba5 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -119,7 +119,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  	umem->length     = size;
->  	umem->address    = addr;
->  	umem->page_shift = PAGE_SHIFT;
-> -	umem->pid	 = get_task_pid(current, PIDTYPE_PID);
-> +	umem->tgid	 = get_task_pid(current->group_leader, PIDTYPE_PID);
->  	/*
->  	 * We ask for writable memory if any of the following
->  	 * access flags are set.  "Local write" and "remote write"
-> @@ -132,7 +132,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
->  
->  	if (access & IB_ACCESS_ON_DEMAND) {
-> -		put_pid(umem->pid);
-> +		put_pid(umem->tgid);
->  		ret = ib_umem_odp_get(context, umem, access);
->  		if (ret) {
->  			kfree(umem);
-> @@ -148,7 +148,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  
->  	page_list = (struct page **) __get_free_page(GFP_KERNEL);
->  	if (!page_list) {
-> -		put_pid(umem->pid);
-> +		put_pid(umem->tgid);
->  		kfree(umem);
->  		return ERR_PTR(-ENOMEM);
->  	}
-> @@ -231,7 +231,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->  	if (ret < 0) {
->  		if (need_release)
->  			__ib_umem_release(context->device, umem, 0);
-> -		put_pid(umem->pid);
-> +		put_pid(umem->tgid);
->  		kfree(umem);
->  	} else
->  		current->mm->pinned_vm = locked;
-> @@ -274,8 +274,8 @@ void ib_umem_release(struct ib_umem *umem)
->  
->  	__ib_umem_release(umem->context->device, umem, 1);
->  
-> -	task = get_pid_task(umem->pid, PIDTYPE_PID);
-> -	put_pid(umem->pid);
-> +	task = get_pid_task(umem->tgid, PIDTYPE_PID);
-> +	put_pid(umem->tgid);
->  	if (!task)
->  		goto out;
->  	mm = get_task_mm(task);
-> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
-> index 23159dd..2398849 100644
-> --- a/include/rdma/ib_umem.h
-> +++ b/include/rdma/ib_umem.h
-> @@ -48,7 +48,7 @@ struct ib_umem {
->  	int                     writable;
->  	int                     hugetlb;
->  	struct work_struct	work;
-> -	struct pid             *pid;
-> +	struct pid             *tgid;
->  	struct mm_struct       *mm;
->  	unsigned long		diff;
->  	struct ib_umem_odp     *odp_data;
-> -- 
-> 1.8.3.1
-> 
+CgpPbiAwMy8wNS8xOCAwMzowNSBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBPaywgSSdt
+IHN0aWxsIG1pc3NpbmcgdGhlIGJpZyBwaWN0dXJlIGhlcmUuIEZpcnN0IHF1ZXN0aW9uIGlzIHdo
+YXQgaXMgCj4gdGhlIFAyUERNQSBwcm92aWRlcj8KCldlbGwgdGhlcmUncyBzb21lIHByZXR0eSBn
+b29kIGRvY3VtZW50YXRpb24gaW4gdGhlIHBhdGNoc2V0IGZvciB0aGlzLApidXQgaW4gc2hvcnQs
+IGEgcHJvdmlkZXIgaXMgYSBkZXZpY2UgdGhhdCBwcm92aWRlcyBzb21lIGtpbmQgb2YgUDJQCnJl
+c291cmNlIChpZS4gQkFSIG1lbW9yeSwgb3IgcGVyaGFwcyBhIGRvb3JiZWxsIHJlZ2lzdGVyIC0t
+IG9ubHkgbWVtb3J5CmlzIHN1cHBvcnRlZCBhdCB0aGlzIHRpbWUpLgoKPiBTZWNvbmQgcXVlc3Rp
+b24gaXMgaG93IHRvIHlvdSB3YW50IHRvIGhhbmRsZSB0aGluZ3Mgd2hlbiBkZXZpY2UgYXJlIG5v
+dCAKPiBiZWhpbmQgdGhlIHNhbWUgcm9vdCBwb3J0ICh3aGljaCBpcyBwZXJmZWN0bHkgcG9zc2li
+bGUgaW4gdGhlIGNhc2VzIEkgCj4gZGVhbCB3aXRoKT8KCkkgdGhpbmsgd2UgbmVlZCB0byBpbXBs
+ZW1lbnQgYSB3aGl0ZWxpc3QuIElmIGJvdGggcm9vdCBwb3J0cyBhcmUgaW4gdGhlCndoaXRlIGxp
+c3QgYW5kIGFyZSBvbiB0aGUgc2FtZSBidXMgdGhlbiB3ZSByZXR1cm4gYSBsYXJnZXIgZGlzdGFu
+Y2UKaW5zdGVhZCBvZiAtMS4KCj4gVGhpcmQgcXVlc3Rpb24gd2h5IG11bHRpcGxlIGNsaWVudHM/
+IFRoYXQgZmVlbHMgYSBiaXQgbGlrZSB5b3UgYXJlIAo+IHB1c2hpbmcgc29tZXRoaW5nIHNwZWNp
+YWwgdG8geW91ciB1c2UgY2FzZSBpbnRvIHRoZSBjb21tb24gUENJIAo+IHN1YnN5c3RlbS4gU29t
+ZXRoaW5nIHdoaWNoIHVzdWFsbHkgaXNuJ3QgYSBnb29kIGlkZWEuCgpObywgSSB0aGluayB0aGlz
+IHdpbGwgYmUgcHJldHR5IHN0YW5kYXJkLiBJbiB0aGUgc2ltcGxlIGdlbmVyYWwgY2FzZSB5b3UK
+YXJlIGdvaW5nIHRvIGhhdmUgb25lIHByb3ZpZGVyIGFuZCBhdCBsZWFzdCB0d28gY2xpZW50cyAo
+b25lIHdoaWNoCndyaXRlcyB0aGUgbWVtb3J5IGFuZCBvbmUgd2hpY2ggcmVhZHMgaXQpLiBIb3dl
+dmVyLCBvbmUgY2xpZW50IGlzCmxpa2VseSwgYnV0IG5vdCBuZWNlc3NhcmlseSwgdGhlIHNhbWUg
+YXMgdGhlIHByb3ZpZGVyLgoKSW4gdGhlIE5WTWVvZiBjYXNlLCB3ZSBtaWdodCBoYXZlIE4gY2xp
+ZW50czogMSBSRE1BIGRldmljZSBhbmQgTi0xIGJsb2NrCmRldmljZXMuIFRoZSBjb2RlIGRvZXNu
+J3QgY2FyZSB3aGljaCBkZXZpY2UgcHJvdmlkZXMgdGhlIG1lbW9yeSBhcyBpdApjb3VsZCBiZSB0
+aGUgUkRNQSBkZXZpY2Ugb3Igb25lL2FsbCBvZiB0aGUgYmxvY2sgZGV2aWNlcyAob3IsIGluIHRo
+ZW9yeSwKYSBjb21wbGV0ZWx5IHNlcGFyYXRlIGRldmljZSB3aXRoIFAyUC1hYmxlIG1lbW9yeSku
+IEhvd2V2ZXIsIGl0IGRvZXMKcmVxdWlyZSB0aGF0IGFsbCBkZXZpY2VzIGludm9sdmVkIGFyZSBh
+Y2Nlc3NpYmxlIHBlcgpwY2lfcDJwZG1hX2Rpc3RhbmNlKCkgb3IgaXQgd29uJ3QgdXNlIFAyUCB0
+cmFuc2FjdGlvbnMuCgpJIGNvdWxkIGFsc28gaW1hZ2luZSBvdGhlciB1c2UgY2FzZXM6IGllLiBh
+biBSRE1BIE5JQyBzZW5kcyBkYXRhIHRvIGEKR1BVIGZvciBwcm9jZXNzaW5nIGFuZCB0aGVuIHNl
+bmRzIHRoZSBkYXRhIHRvIGFuIE5WTWUgZGV2aWNlIGZvciBzdG9yYWdlCihvciB2aWNlLXZlcnNh
+KS4gSW4gdGhpcyBjYXNlIHdlIGhhdmUgMyBjbGllbnRzIGFuZCBvbmUgcHJvdmlkZXIuCgo+IEFz
+IGZhciBhcyBJIGNhbiBzZWUgd2UgbmVlZCBhIGZ1bmN0aW9uIHdoaWNoIHJldHVybiB0aGUgZGlz
+dGFuY2UgYmV0d2VlbiAKPiBhIGluaXRpYXRvciBhbmQgdGFyZ2V0IGRldmljZS4gVGhpcyBmdW5j
+dGlvbiB0aGVuIHJldHVybnMgLTEgaWYgdGhlIAo+IHRyYW5zYWN0aW9uIGNhbid0IGJlIG1hZGUg
+YW5kIGEgcG9zaXRpdmUgdmFsdWUgb3RoZXJ3aXNlLgoKSWYgeW91IG5lZWQgdG8gbWFrZSBhIHNp
+bXBsZXIgY29udmVuaWVuY2UgZnVuY3Rpb24gZm9yIHlvdXIgdXNlIGNhc2UgSSdtCm5vdCBhZ2Fp
+bnN0IGl0LgoKPiBXZSBhbHNvIG5lZWQgdG8gZ2l2ZSB0aGUgZGlyZWN0aW9uIG9mIHRoZSB0cmFu
+c2FjdGlvbiBhbmQgaGF2ZSBhIAo+IHdoaXRlbGlzdCByb290IGNvbXBsZXggUENJLUlEcyB3aGlj
+aCBjYW4gaGFuZGxlIFAyUCB0cmFuc2FjdGlvbnMgZnJvbSAKPiBkaWZmZXJlbnQgcG9ydHMgZm9y
+IGEgY2VydGFpbiBETUEgZGlyZWN0aW9uLgoKWWVzLiBJbiB0aGUgTlZNZW9mIGNhc2Ugd2UgbmVl
+ZCBhbGwgZGV2aWNlcyB0byBiZSBhYmxlIHRvIERNQSBpbiBib3RoCmRpcmVjdGlvbnMgc28gd2Ug
+ZGlkIG5vdCBuZWVkIHRoZSBETUEgZGlyZWN0aW9uLiBCdXQgSSBjYW4gc2VlIHRoaXMKYmVpbmcg
+dXNlZnVsIG9uY2Ugd2UgYWRkIHRoZSB3aGl0ZWxpc3QuCgpMb2dhbgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
+CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1udmRpbW0K
