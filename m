@@ -1,85 +1,60 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH rdma-next] MAINTAINERS: Remove bouncing @mellanox.com
- addresses
-Date: Thu, 3 May 2018 17:37:07 -0400
-Message-ID: <1e1754c4-520f-57c4-f6a8-c6cb2ad0f710@redhat.com>
-References: <20180503183746.7629-1-leon@kernel.org>
- <CAJ3xEMiCM38WhUWpKAiuk6OMwdZ6+cNZMcmTih9ZPosOa+ZSCg@mail.gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
+Date: Thu, 3 May 2018 16:01:48 -0600
+Message-ID: <20180503220148.GC14956@ziepe.ca>
+References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+ <20180503153310.GA9738@ziepe.ca>
+ <20180503181235.GB4473@mtr-leonro.local>
+ <20180503182656.GB14956@ziepe.ca>
+ <20180503184301.GD4473@mtr-leonro.local>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="LdcGsJ4qslXjNmd3Zq20RM2GB8Xm9vxjJ"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMiCM38WhUWpKAiuk6OMwdZ6+cNZMcmTih9ZPosOa+ZSCg@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180503184301.GD4473@mtr-leonro.local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Lidong Chen <jemmy858585@gmail.com>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---LdcGsJ4qslXjNmd3Zq20RM2GB8Xm9vxjJ
-Content-Type: multipart/mixed; boundary="lZ6zbLGpL7ybfd9xDDI5bbwvK4G3NK2XX";
- protected-headers="v1"
-From: Doug Ledford <dledford@redhat.com>
-To: Or Gerlitz <gerlitz.or@gmail.com>,
- Linux Netdev List <netdev@vger.kernel.org>,
- RDMA mailing list <linux-rdma@vger.kernel.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Message-ID: <1e1754c4-520f-57c4-f6a8-c6cb2ad0f710@redhat.com>
-Subject: Re: [PATCH rdma-next] MAINTAINERS: Remove bouncing @mellanox.com
- addresses
-References: <20180503183746.7629-1-leon@kernel.org>
- <CAJ3xEMiCM38WhUWpKAiuk6OMwdZ6+cNZMcmTih9ZPosOa+ZSCg@mail.gmail.com>
-In-Reply-To: <CAJ3xEMiCM38WhUWpKAiuk6OMwdZ6+cNZMcmTih9ZPosOa+ZSCg@mail.gmail.com>
+On Thu, May 03, 2018 at 09:43:01PM +0300, Leon Romanovsky wrote:
+> On Thu, May 03, 2018 at 12:26:56PM -0600, Jason Gunthorpe wrote:
+> > On Thu, May 03, 2018 at 09:12:35PM +0300, Leon Romanovsky wrote:
+> > > On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
+> > > > On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
+> > > > > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+> > > > > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+> > > > > exited, get_pid_task will return NULL, ib_umem_release does not decrease
+> > > > > mm->pinned_vm. This patch fixes it by use tgid.
+> > > > >
+> > > > > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+> > > > >  drivers/infiniband/core/umem.c | 12 ++++++------
+> > > > >  include/rdma/ib_umem.h         |  2 +-
+> > > > >  2 files changed, 7 insertions(+), 7 deletions(-)
+> > > >
+> > > > Why are we even using a struct pid for this? Does anyone know?
+> > > >
+> > >
+> > > Can it be related to "fork" support?
+> >
+> > Not sure..
+> >
+> > Ideally we want to hold the struct mm, but we can't hold it long
+> > term, so pid is a surrogate for that.
+> >
+> > > > I'm surprised that struct task isn't held in the struct ib_umem..
+> > > >
+> > >
+> > > I think that this code can be removed and all accesses to mm_struct can
+> > > be done with "current->mm".
+> >
+> > That sounds wrong for fork support, as the mm used in destroy MUST
+> > exactly match the mm used in create..
+> >
+> > How does this accounting work in fork anyhow?
+> 
+> We are not supporting fork, so this is why I proposed to remove it.
 
---lZ6zbLGpL7ybfd9xDDI5bbwvK4G3NK2XX
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: quoted-printable
+Er, the new kabi certainly can call reg and dereg across a fork
 
-On 5/3/2018 5:11 PM, Or Gerlitz wrote:
-> On Thu, May 3, 2018 at 9:37 PM, LR wrote:
->=20
->>  MELLANOX MLX5 core VPI driver
->>  M:     Saeed Mahameed <saeedm@mellanox.com>
->> -M:     Matan Barak <matanb@mellanox.com>
->=20
-> Goodbye Matan!
->=20
-> You were a long time developer, maintainer, hacker and a very deeply th=
-inking,
-> pleasant, nice and open person in our team, enjoy your new adventures a=
-nd thanks
-> a lot for your long time contributions to the upstream kernel
-
-Indeed, Matan was always a pleasure to work with.  Best of luck on
-whatever you are doing next!
-
-
-
---lZ6zbLGpL7ybfd9xDDI5bbwvK4G3NK2XX--
-
---LdcGsJ4qslXjNmd3Zq20RM2GB8Xm9vxjJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIzBAEBCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrrgQMACgkQuCajMw5X
-L929Aw//e/6TP5FF3OyPO4yVHxspZ8az53meGrEGBHYcucYJiddBWrOnR0XASblC
-mmWYuxRemF2ir9+c3EaKx9kNED1LhrEXq15y3ncn+Cmkt4r1z/XcT02vy0wa9rLE
-p/VsLyi2zK9p2a3RxaPI1bDWPGJ3O6nXlM7tTOHPW+JdoD3O6UxxxZSEFpoxpe2m
-nJOu01BngH8PR6mP4pszeuXcSqcZeBT0kayLmKYCz6NFEH7OIaIiNoM5IxU4d6uW
-Z+/vYI5tZULS/WvhDwCRasrYvYBsvlwtOHO8e6NCz/ggSyS5HA6IgseQuHzIEFe0
-GQigIQ30ieMbpZYBlypPVWXgaRQ+l++93yjePqHJYSoPPBCWZ0yv6wJQ6fbDwrFT
-zMVaBBNAfRW3/ctPyDvFnaq9ankbVw6xIb7bKjQtpf3/GpUKdv+xDZwUB+ZrUAdp
-oOEPgF+CGSGeA1EevZ6h0hpq41yLmwpPLCNhHZFmLPryAyTpHF4rYXSPkp3OwwEg
-EdbSX52szBd5Xq6wfLjEmWTscy3SA08FM1+f4CG/VI4ZJAgEF8+45i3kJByiUTq6
-7IiK4wNSn6IS0LaMNlyFh+vb42Q+LQCfWni8EBzdPSPOnjWbURr7w8C3G3wE0T8N
-EkcthHB/GQAfWWZ0ZklFC/STBFBm8WQ4zvwkKIabFLL1wwM+IwU=
-=YwJG
------END PGP SIGNATURE-----
-
---LdcGsJ4qslXjNmd3Zq20RM2GB8Xm9vxjJ--
+Jason
