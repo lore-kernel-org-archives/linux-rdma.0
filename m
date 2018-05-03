@@ -1,56 +1,87 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 01/21] drm/i915: Move u64-to-ptr helpers to general
- header
-Date: Thu,  3 May 2018 16:36:55 +0300
-Message-ID: <20180503133715.15276-2-leon@kernel.org>
-References: <20180503133715.15276-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180503133715.15276-1-leon@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: David Airlie <airlied@linux.ie>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, intel-gfx@lists.freedesktop.org
+From: Lidong Chen <jemmy858585@gmail.com>
+Subject: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
+Date: Thu,  3 May 2018 22:04:34 +0800
+Message-ID: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, jgg@ziepe.ca, akpm@linux-foundation.org, qing.huang@oracle.com, leon@kernel.org, artemyko@mellanox.com, dan.j.williams@intel.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29tPgoKVGhlIG1hY3JvIHU2
-NF90b19wdHIoKSBhbmQgZnVuY3Rpb24gcHRyX3RvX3U2NCgpIGFyZSB1c2VmdWwgZW5vdWdoCnRv
-IGJlIHBhcnQgb2YgZ2VuZXJhbCBoZWFkZXIsIHNvIG1vdmUgdGhlbSB0aGVyZSBhbmQgYWxsb3cg
-UkRNQQpzdWJzeXN0ZW0gcmV1c2UgdGhlbS4KClNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5vdnNr
-eSA8bGVvbnJvQG1lbGxhbm94LmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0
-aWxzLmggfCAxMiArKy0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgva2VybmVsLmggICAgICAgICAg
-ICB8IDEyICsrKysrKysrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCspLCAx
-MCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0
-aWxzLmggYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0aWxzLmgKaW5kZXggNTFkYmZlNWJi
-NDE4Li5kZTNiZmRhN2JmOTYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVf
-dXRpbHMuaAorKysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0aWxzLmgKQEAgLTI1LDYg
-KzI1LDggQEAKICNpZm5kZWYgX19JOTE1X1VUSUxTX0gKICNkZWZpbmUgX19JOTE1X1VUSUxTX0gK
-CisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+CisKICN1bmRlZiBXQVJOX09OCiAvKiBNYW55IGdj
-YyBzZWVtIHRvIG5vIHNlZSB0aHJvdWdoIHRoaXMgYW5kIGZhbGwgb3ZlciA6KCAqLwogI2lmIDAK
-QEAgLTEwMiwxNiArMTA0LDYgQEAKIAlfX1Q7CQkJCQkJCQlcCiB9KQoKLXN0YXRpYyBpbmxpbmUg
-dTY0IHB0cl90b191NjQoY29uc3Qgdm9pZCAqcHRyKQotewotCXJldHVybiAodWludHB0cl90KXB0
-cjsKLX0KLQotI2RlZmluZSB1NjRfdG9fcHRyKFQsIHgpICh7CQkJCQkJXAotCXR5cGVjaGVjayh1
-NjQsIHgpOwkJCQkJCVwKLQkoVCAqKSh1aW50cHRyX3QpKHgpOwkJCQkJCVwKLX0pCi0KICNkZWZp
-bmUgX19tYXNrX25leHRfYml0KG1hc2spICh7CQkJCQlcCiAJaW50IF9faWR4ID0gZmZzKG1hc2sp
-IC0gMTsJCQkJCVwKIAltYXNrICY9IH5CSVQoX19pZHgpOwkJCQkJCVwKZGlmZiAtLWdpdCBhL2lu
-Y2x1ZGUvbGludXgva2VybmVsLmggYi9pbmNsdWRlL2xpbnV4L2tlcm5lbC5oCmluZGV4IDZhMWVi
-MGIwYWFkOS4uYTczODM5M2M5Njk0IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2tlcm5lbC5o
-CisrKyBiL2luY2x1ZGUvbGludXgva2VybmVsLmgKQEAgLTcwLDYgKzcwLDE4IEBACiAgKi8KICNk
-ZWZpbmUgQVJSQVlfU0laRShhcnIpIChzaXplb2YoYXJyKSAvIHNpemVvZigoYXJyKVswXSkgKyBf
-X211c3RfYmVfYXJyYXkoYXJyKSkKCitzdGF0aWMgaW5saW5lIHU2NCBwdHJfdG9fdTY0KGNvbnN0
-IHZvaWQgKnB0cikKK3sKKwlyZXR1cm4gKHVpbnRwdHJfdClwdHI7Cit9CisKKyNkZWZpbmUgdTY0
-X3RvX3B0cihULCB4KSAoCQlcCit7CQkJCQlcCisJdHlwZWNoZWNrKHU2NCwgeCk7CQlcCisJKFQg
-KikodWludHB0cl90KSh4KTsJCVwKK30JCQkJCVwKKykKKwogI2RlZmluZSB1NjRfdG9fdXNlcl9w
-dHIoeCkgKAkJXAogewkJCQkJXAogCXR5cGVjaGVjayh1NjQsIHgpOwkJXAotLQoyLjE0LjMKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
-YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
-LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+exited, get_pid_task will return NULL, ib_umem_release does not decrease
+mm->pinned_vm. This patch fixes it by use tgid.
+
+Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+---
+ drivers/infiniband/core/umem.c | 12 ++++++------
+ include/rdma/ib_umem.h         |  2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 9a4e899..8813ba5 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -119,7 +119,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	umem->length     = size;
+ 	umem->address    = addr;
+ 	umem->page_shift = PAGE_SHIFT;
+-	umem->pid	 = get_task_pid(current, PIDTYPE_PID);
++	umem->tgid	 = get_task_pid(current->group_leader, PIDTYPE_PID);
+ 	/*
+ 	 * We ask for writable memory if any of the following
+ 	 * access flags are set.  "Local write" and "remote write"
+@@ -132,7 +132,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 		 IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
+ 
+ 	if (access & IB_ACCESS_ON_DEMAND) {
+-		put_pid(umem->pid);
++		put_pid(umem->tgid);
+ 		ret = ib_umem_odp_get(context, umem, access);
+ 		if (ret) {
+ 			kfree(umem);
+@@ -148,7 +148,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 
+ 	page_list = (struct page **) __get_free_page(GFP_KERNEL);
+ 	if (!page_list) {
+-		put_pid(umem->pid);
++		put_pid(umem->tgid);
+ 		kfree(umem);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+@@ -231,7 +231,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	if (ret < 0) {
+ 		if (need_release)
+ 			__ib_umem_release(context->device, umem, 0);
+-		put_pid(umem->pid);
++		put_pid(umem->tgid);
+ 		kfree(umem);
+ 	} else
+ 		current->mm->pinned_vm = locked;
+@@ -274,8 +274,8 @@ void ib_umem_release(struct ib_umem *umem)
+ 
+ 	__ib_umem_release(umem->context->device, umem, 1);
+ 
+-	task = get_pid_task(umem->pid, PIDTYPE_PID);
+-	put_pid(umem->pid);
++	task = get_pid_task(umem->tgid, PIDTYPE_PID);
++	put_pid(umem->tgid);
+ 	if (!task)
+ 		goto out;
+ 	mm = get_task_mm(task);
+diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
+index 23159dd..2398849 100644
+--- a/include/rdma/ib_umem.h
++++ b/include/rdma/ib_umem.h
+@@ -48,7 +48,7 @@ struct ib_umem {
+ 	int                     writable;
+ 	int                     hugetlb;
+ 	struct work_struct	work;
+-	struct pid             *pid;
++	struct pid             *tgid;
+ 	struct mm_struct       *mm;
+ 	unsigned long		diff;
+ 	struct ib_umem_odp     *odp_data;
+-- 
+1.8.3.1
