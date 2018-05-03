@@ -1,52 +1,71 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Thu, 3 May 2018 12:26:56 -0600
-Message-ID: <20180503182656.GB14956@ziepe.ca>
-References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
- <20180503153310.GA9738@ziepe.ca>
- <20180503181235.GB4473@mtr-leonro.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180503181235.GB4473@mtr-leonro.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Lidong Chen <jemmy858585@gmail.com>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next] MAINTAINERS: Remove bouncing @mellanox.com addresses
+Date: Thu,  3 May 2018 21:37:46 +0300
+Message-ID: <20180503183746.7629-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 03, 2018 at 09:12:35PM +0300, Leon Romanovsky wrote:
-> On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
-> > On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
-> > > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
-> > > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
-> > > exited, get_pid_task will return NULL, ib_umem_release does not decrease
-> > > mm->pinned_vm. This patch fixes it by use tgid.
-> > >
-> > > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
-> > >  drivers/infiniband/core/umem.c | 12 ++++++------
-> > >  include/rdma/ib_umem.h         |  2 +-
-> > >  2 files changed, 7 insertions(+), 7 deletions(-)
-> >
-> > Why are we even using a struct pid for this? Does anyone know?
-> >
-> 
-> Can it be related to "fork" support?
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Not sure..
+Delete non-existent @mellanox.com addresses from MAINTAINERS file.
 
-Ideally we want to hold the struct mm, but we can't hold it long
-term, so pid is a surrogate for that.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ MAINTAINERS | 6 ------
+ 1 file changed, 6 deletions(-)
 
-> > I'm surprised that struct task isn't held in the struct ib_umem..
-> >
-> 
-> I think that this code can be removed and all accesses to mm_struct can
-> be done with "current->mm".
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a1410d5a621..1b52c7e7fc7d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5391,7 +5391,6 @@ S:	Maintained
+ F:	drivers/iommu/exynos-iommu.c
 
-That sounds wrong for fork support, as the mm used in destroy MUST
-exactly match the mm used in create..
+ EZchip NPS platform support
+-M:	Elad Kanfi <eladkan@mellanox.com>
+ M:	Vineet Gupta <vgupta@synopsys.com>
+ S:	Supported
+ F:	arch/arc/plat-eznps
+@@ -9012,7 +9011,6 @@ Q:	http://patchwork.ozlabs.org/project/netdev/list/
+ F:	drivers/net/ethernet/mellanox/mlx5/core/en_*
 
-How does this accounting work in fork anyhow?
+ MELLANOX ETHERNET INNOVA DRIVER
+-M:	Ilan Tayari <ilant@mellanox.com>
+ R:	Boris Pismenny <borisp@mellanox.com>
+ L:	netdev@vger.kernel.org
+ S:	Supported
+@@ -9022,7 +9020,6 @@ F:	drivers/net/ethernet/mellanox/mlx5/core/fpga/*
+ F:	include/linux/mlx5/mlx5_ifc_fpga.h
 
-Jason
+ MELLANOX ETHERNET INNOVA IPSEC DRIVER
+-M:	Ilan Tayari <ilant@mellanox.com>
+ R:	Boris Pismenny <borisp@mellanox.com>
+ L:	netdev@vger.kernel.org
+ S:	Supported
+@@ -9078,7 +9075,6 @@ F:	include/uapi/rdma/mlx4-abi.h
+
+ MELLANOX MLX5 core VPI driver
+ M:	Saeed Mahameed <saeedm@mellanox.com>
+-M:	Matan Barak <matanb@mellanox.com>
+ M:	Leon Romanovsky <leonro@mellanox.com>
+ L:	netdev@vger.kernel.org
+ L:	linux-rdma@vger.kernel.org
+@@ -9089,7 +9085,6 @@ F:	drivers/net/ethernet/mellanox/mlx5/core/
+ F:	include/linux/mlx5/
+
+ MELLANOX MLX5 IB driver
+-M:	Matan Barak <matanb@mellanox.com>
+ M:	Leon Romanovsky <leonro@mellanox.com>
+ L:	linux-rdma@vger.kernel.org
+ W:	http://www.mellanox.com
+@@ -9821,7 +9816,6 @@ F:	net/netfilter/xt_CONNSECMARK.c
+ F:	net/netfilter/xt_SECMARK.c
+
+ NETWORKING [TLS]
+-M:	Ilya Lesokhin <ilyal@mellanox.com>
+ M:	Aviad Yehezkel <aviadye@mellanox.com>
+ M:	Dave Watson <davejwatson@fb.com>
+ L:	netdev@vger.kernel.org
