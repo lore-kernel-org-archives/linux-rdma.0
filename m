@@ -1,72 +1,28 @@
-From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Subject: Re: [PATCH rdma-next 01/21] drm/i915: Move u64-to-ptr
- helpers to general header
-Date: Thu, 03 May 2018 19:41:54 +0300
-Message-ID: <152536571479.15663.3652988290664391583@jlahtine-desk.ger.corp.intel.com>
-References: <20180503133715.15276-1-leon@kernel.org>
- <20180503133715.15276-2-leon@kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/mlx5e: fix spelling mistake: "loobpack" ->
+ "loopback"
+Date: Thu, 03 May 2018 12:58:42 -0400 (EDT)
+Message-ID: <20180503.125842.794766419877660253.davem@davemloft.net>
+References: <20180503091253.29324-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20180503133715.15276-2-leon@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leon@kernel.org>
-Cc: David Airlie <airlied@linux.ie>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, intel-gfx@lists.freedesktop.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180503091253.29324-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: colin.king@canonical.com
+Cc: saeedm@mellanox.com, matanb@mellanox.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-UXVvdGluZyBMZW9uIFJvbWFub3Zza3kgKDIwMTgtMDUtMDMgMTY6MzY6NTUpCj4gRnJvbTogTGVv
-biBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29tPgo+IAo+IFRoZSBtYWNybyB1NjRfdG9f
-cHRyKCkgYW5kIGZ1bmN0aW9uIHB0cl90b191NjQoKSBhcmUgdXNlZnVsIGVub3VnaAo+IHRvIGJl
-IHBhcnQgb2YgZ2VuZXJhbCBoZWFkZXIsIHNvIG1vdmUgdGhlbSB0aGVyZSBhbmQgYWxsb3cgUkRN
-QQo+IHN1YnN5c3RlbSByZXVzZSB0aGVtLgo+IAo+IFNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5v
-dnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4KCkZlZWwgZnJlZSB0byBtZXJnZSB0aGlzIHRocm91
-Z2ggYW4gYXBwcm9wcmlhdGUgdHJlZSwgSSBndWVzcyB5b3UgY291bGQKZ2V0IHNvbWUgYWNrcyBm
-cm9tIExLTUwuCgpSZXZpZXdlZC1ieTogSm9vbmFzIExhaHRpbmVuIDxqb29uYXMubGFodGluZW5A
-bGludXguaW50ZWwuY29tPgoKUmVnYXJkcywgSm9vbmFzCgo+IC0tLQo+ICBkcml2ZXJzL2dwdS9k
-cm0vaTkxNS9pOTE1X3V0aWxzLmggfCAxMiArKy0tLS0tLS0tLS0KPiAgaW5jbHVkZS9saW51eC9r
-ZXJuZWwuaCAgICAgICAgICAgIHwgMTIgKysrKysrKysrKysrCj4gIDIgZmlsZXMgY2hhbmdlZCwg
-MTQgaW5zZXJ0aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvZ3B1L2RybS9pOTE1L2k5MTVfdXRpbHMuaCBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVf
-dXRpbHMuaAo+IGluZGV4IDUxZGJmZTViYjQxOC4uZGUzYmZkYTdiZjk2IDEwMDY0NAo+IC0tLSBh
-L2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfdXRpbHMuaAo+ICsrKyBiL2RyaXZlcnMvZ3B1L2Ry
-bS9pOTE1L2k5MTVfdXRpbHMuaAo+IEBAIC0yNSw2ICsyNSw4IEBACj4gICNpZm5kZWYgX19JOTE1
-X1VUSUxTX0gKPiAgI2RlZmluZSBfX0k5MTVfVVRJTFNfSAo+IAo+ICsjaW5jbHVkZSA8bGludXgv
-a2VybmVsLmg+Cj4gKwo+ICAjdW5kZWYgV0FSTl9PTgo+ICAvKiBNYW55IGdjYyBzZWVtIHRvIG5v
-IHNlZSB0aHJvdWdoIHRoaXMgYW5kIGZhbGwgb3ZlciA6KCAqLwo+ICAjaWYgMAo+IEBAIC0xMDIs
-MTYgKzEwNCw2IEBACj4gICAgICAgICBfX1Q7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAo+ICB9KQo+IAo+IC1zdGF0aWMgaW5saW5l
-IHU2NCBwdHJfdG9fdTY0KGNvbnN0IHZvaWQgKnB0cikKPiAtewo+IC0gICAgICAgcmV0dXJuICh1
-aW50cHRyX3QpcHRyOwo+IC19Cj4gLQo+IC0jZGVmaW5lIHU2NF90b19wdHIoVCwgeCkgKHsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiAtICAgICAgIHR5cGVj
-aGVjayh1NjQsIHgpOyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBcCj4gLSAgICAgICAoVCAqKSh1aW50cHRyX3QpKHgpOyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgXAo+IC19KQo+IC0KPiAgI2RlZmluZSBfX21hc2tfbmV4dF9i
-aXQobWFzaykgKHsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gICAg
-ICAgICBpbnQgX19pZHggPSBmZnMobWFzaykgLSAxOyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgXAo+ICAgICAgICAgbWFzayAmPSB+QklUKF9faWR4KTsgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9rZXJuZWwuaCBiL2luY2x1ZGUvbGludXgva2VybmVsLmgKPiBpbmRleCA2YTFlYjBiMGFh
-ZDkuLmE3MzgzOTNjOTY5NCAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2tlcm5lbC5oCj4g
-KysrIGIvaW5jbHVkZS9saW51eC9rZXJuZWwuaAo+IEBAIC03MCw2ICs3MCwxOCBAQAo+ICAgKi8K
-PiAgI2RlZmluZSBBUlJBWV9TSVpFKGFycikgKHNpemVvZihhcnIpIC8gc2l6ZW9mKChhcnIpWzBd
-KSArIF9fbXVzdF9iZV9hcnJheShhcnIpKQo+IAo+ICtzdGF0aWMgaW5saW5lIHU2NCBwdHJfdG9f
-dTY0KGNvbnN0IHZvaWQgKnB0cikKPiArewo+ICsgICAgICAgcmV0dXJuICh1aW50cHRyX3QpcHRy
-Owo+ICt9Cj4gKwo+ICsjZGVmaW5lIHU2NF90b19wdHIoVCwgeCkgKCAgICAgICAgICAgICBcCj4g
-K3sgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFwKPiArICAgICAgIHR5cGVj
-aGVjayh1NjQsIHgpOyAgICAgICAgICAgICAgXAo+ICsgICAgICAgKFQgKikodWludHB0cl90KSh4
-KTsgICAgICAgICAgICBcCj4gK30gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IFwKPiArKQo+ICsKPiAgI2RlZmluZSB1NjRfdG9fdXNlcl9wdHIoeCkgKCAgICAgICAgICAgXAo+
-ICB7ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcCj4gICAgICAgICB0eXBl
-Y2hlY2sodTY0LCB4KTsgICAgICAgICAgICAgIFwKPiAtLQo+IDIuMTQuMwo+IApfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBs
-aXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+From: Colin King <colin.king@canonical.com>
+Date: Thu,  3 May 2018 10:12:53 +0100
+
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> Trivial fix to spelling mistake in netdev_err error message
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+
+Transposed characters are so annoying ;)
+
+Applied, thanks Colin.
