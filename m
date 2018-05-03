@@ -1,37 +1,56 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] net/mlx5: fix spelling mistake: "modfiy" -> "modify"
-Date: Thu,  3 May 2018 14:35:03 +0100
-Message-ID: <20180503133503.14508-1-colin.king@canonical.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 01/21] drm/i915: Move u64-to-ptr helpers to general
+ header
+Date: Thu,  3 May 2018 16:36:55 +0300
+Message-ID: <20180503133715.15276-2-leon@kernel.org>
+References: <20180503133715.15276-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180503133715.15276-1-leon@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: David Airlie <airlied@linux.ie>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, intel-gfx@lists.freedesktop.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-
-Trivial fix to spelling mistake in netdev_warn warning message
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-index 610d485c4b03..f64b5e78519b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c
-@@ -565,7 +565,7 @@ static void arfs_modify_rule_rq(struct mlx5e_priv *priv,
- 	err =  mlx5_modify_rule_destination(rule, &dst, NULL);
- 	if (err)
- 		netdev_warn(priv->netdev,
--			    "Failed to modfiy aRFS rule destination to rq=%d\n", rxq);
-+			    "Failed to modify aRFS rule destination to rq=%d\n", rxq);
- }
- 
- static void arfs_handle_work(struct work_struct *work)
--- 
-2.17.0
+RnJvbTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29tPgoKVGhlIG1hY3JvIHU2
+NF90b19wdHIoKSBhbmQgZnVuY3Rpb24gcHRyX3RvX3U2NCgpIGFyZSB1c2VmdWwgZW5vdWdoCnRv
+IGJlIHBhcnQgb2YgZ2VuZXJhbCBoZWFkZXIsIHNvIG1vdmUgdGhlbSB0aGVyZSBhbmQgYWxsb3cg
+UkRNQQpzdWJzeXN0ZW0gcmV1c2UgdGhlbS4KClNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5vdnNr
+eSA8bGVvbnJvQG1lbGxhbm94LmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0
+aWxzLmggfCAxMiArKy0tLS0tLS0tLS0KIGluY2x1ZGUvbGludXgva2VybmVsLmggICAgICAgICAg
+ICB8IDEyICsrKysrKysrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAxNCBpbnNlcnRpb25zKCspLCAx
+MCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0
+aWxzLmggYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0aWxzLmgKaW5kZXggNTFkYmZlNWJi
+NDE4Li5kZTNiZmRhN2JmOTYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVf
+dXRpbHMuaAorKysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X3V0aWxzLmgKQEAgLTI1LDYg
+KzI1LDggQEAKICNpZm5kZWYgX19JOTE1X1VUSUxTX0gKICNkZWZpbmUgX19JOTE1X1VUSUxTX0gK
+CisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+CisKICN1bmRlZiBXQVJOX09OCiAvKiBNYW55IGdj
+YyBzZWVtIHRvIG5vIHNlZSB0aHJvdWdoIHRoaXMgYW5kIGZhbGwgb3ZlciA6KCAqLwogI2lmIDAK
+QEAgLTEwMiwxNiArMTA0LDYgQEAKIAlfX1Q7CQkJCQkJCQlcCiB9KQoKLXN0YXRpYyBpbmxpbmUg
+dTY0IHB0cl90b191NjQoY29uc3Qgdm9pZCAqcHRyKQotewotCXJldHVybiAodWludHB0cl90KXB0
+cjsKLX0KLQotI2RlZmluZSB1NjRfdG9fcHRyKFQsIHgpICh7CQkJCQkJXAotCXR5cGVjaGVjayh1
+NjQsIHgpOwkJCQkJCVwKLQkoVCAqKSh1aW50cHRyX3QpKHgpOwkJCQkJCVwKLX0pCi0KICNkZWZp
+bmUgX19tYXNrX25leHRfYml0KG1hc2spICh7CQkJCQlcCiAJaW50IF9faWR4ID0gZmZzKG1hc2sp
+IC0gMTsJCQkJCVwKIAltYXNrICY9IH5CSVQoX19pZHgpOwkJCQkJCVwKZGlmZiAtLWdpdCBhL2lu
+Y2x1ZGUvbGludXgva2VybmVsLmggYi9pbmNsdWRlL2xpbnV4L2tlcm5lbC5oCmluZGV4IDZhMWVi
+MGIwYWFkOS4uYTczODM5M2M5Njk0IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2tlcm5lbC5o
+CisrKyBiL2luY2x1ZGUvbGludXgva2VybmVsLmgKQEAgLTcwLDYgKzcwLDE4IEBACiAgKi8KICNk
+ZWZpbmUgQVJSQVlfU0laRShhcnIpIChzaXplb2YoYXJyKSAvIHNpemVvZigoYXJyKVswXSkgKyBf
+X211c3RfYmVfYXJyYXkoYXJyKSkKCitzdGF0aWMgaW5saW5lIHU2NCBwdHJfdG9fdTY0KGNvbnN0
+IHZvaWQgKnB0cikKK3sKKwlyZXR1cm4gKHVpbnRwdHJfdClwdHI7Cit9CisKKyNkZWZpbmUgdTY0
+X3RvX3B0cihULCB4KSAoCQlcCit7CQkJCQlcCisJdHlwZWNoZWNrKHU2NCwgeCk7CQlcCisJKFQg
+KikodWludHB0cl90KSh4KTsJCVwKK30JCQkJCVwKKykKKwogI2RlZmluZSB1NjRfdG9fdXNlcl9w
+dHIoeCkgKAkJXAogewkJCQkJXAogCXR5cGVjaGVjayh1NjQsIHgpOwkJXAotLQoyLjE0LjMKCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
+YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
+LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
