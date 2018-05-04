@@ -1,65 +1,27 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next 05/14] IB/hfi1: Use after free race condition in
- send context error path
-Date: Fri, 4 May 2018 12:38:39 -0600
-Message-ID: <20180504183839.6wexn5phhiyo6xra@ziepe.ca>
-References: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
- <20180502134249.20730.78919.stgit@scvm10.sc.intel.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH] net/mlx5: fix spelling mistake: "modfiy" -> "modify"
+Date: Fri, 4 May 2018 19:09:41 +0000
+Message-ID: <1525460978.2882.0.camel@mellanox.com>
+References: <20180503133503.14508-1-colin.king@canonical.com>
+         <20180503.144440.629738993491549851.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180502134249.20730.78919.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180503.144440.629738993491549851.davem@davemloft.net>
+Content-Language: en-US
+Content-ID: <6ACEC21FEE4BA64A9D7F73D9C9553FA2@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "davem@davemloft.net" <davem@davemloft.net>, "colin.king@canonical.com" <colin.king@canonical.com>
+Cc: Matan Barak <matanb@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 02, 2018 at 06:42:51AM -0700, Dennis Dalessandro wrote:
-> From: Michael J. Ruhl <michael.j.ruhl@intel.com>
-> 
-> A pio send egress error can occur when the PSM library attempts to
-> to send a bad packet.  That issue is still being investigated.
-> 
-> The pio error interrupt handler then attempts to progress the recovery
-> of the errored pio send context.
-> 
-> Code inspection reveals that the handling lacks the necessary locking
-> if that recovery interleaves with a PSM close of the "context" object
-> contains the pio send context.
-> 
-> The lack of the locking can cause the recovery to access the already
-> freed pio send context object and incorrectly deduce that the pio
-> send context is actually a kernel pio send context as shown by the
-> NULL deref stack below:
-> 
-> [<ffffffff8143d78c>] _dev_info+0x6c/0x90
-> [<ffffffffc0613230>] sc_restart+0x70/0x1f0 [hfi1]
-> [<ffffffff816ab124>] ? __schedule+0x424/0x9b0
-> [<ffffffffc06133c5>] sc_halted+0x15/0x20 [hfi1]
-> [<ffffffff810aa3ba>] process_one_work+0x17a/0x440
-> [<ffffffff810ab086>] worker_thread+0x126/0x3c0
-> [<ffffffff810aaf60>] ? manage_workers.isra.24+0x2a0/0x2a0
-> [<ffffffff810b252f>] kthread+0xcf/0xe0
-> [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
-> [<ffffffff816b8798>] ret_from_fork+0x58/0x90
-> [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
-> 
-> This is the best case scenario and other scenarios can corrupt the
-> already freed memory.
-> 
-> Fix by adding the necessary locking in the pio send context error
-> handler.
-> 
-> Cc: <stable@vger.kernel.org> # 4.9.x
-> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> ---
->  drivers/infiniband/hw/hfi1/chip.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-
-Why are you sending this to for-next not for-rc?
-
-Jason
+T24gVGh1LCAyMDE4LTA1LTAzIGF0IDE0OjQ0IC0wNDAwLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+
+IEZyb206IENvbGluIEtpbmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4NCj4gRGF0ZTogVGh1
+LCAgMyBNYXkgMjAxOCAxNDozNTowMyArMDEwMA0KPiANCj4gPiBGcm9tOiBDb2xpbiBJYW4gS2lu
+ZyA8Y29saW4ua2luZ0BjYW5vbmljYWwuY29tPg0KPiA+IA0KPiA+IFRyaXZpYWwgZml4IHRvIHNw
+ZWxsaW5nIG1pc3Rha2UgaW4gbmV0ZGV2X3dhcm4gd2FybmluZyBtZXNzYWdlDQo+ID4gDQo+ID4g
+U2lnbmVkLW9mZi1ieTogQ29saW4gSWFuIEtpbmcgPGNvbGluLmtpbmdAY2Fub25pY2FsLmNvbT4N
+Cj4gDQo+IFNhZWVkLCBwbGVhc2Ugc2VuZCB0aGlzIHRvIG1lIGluIHlvdXIgbmV4dCBwdWxsIHJl
+cXVlc3QuDQo+IA0KDQpBcHBsaWVkIHRvIG1seDUtbmV4dCwgVGhhbmtzIENvbGluIGFuZCBEYXZl
+ICENCg0K
