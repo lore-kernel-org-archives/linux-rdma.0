@@ -1,7 +1,7 @@
 From: 858585 jemmy <jemmy858585@gmail.com>
 Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Fri, 4 May 2018 10:41:33 +0800
-Message-ID: <CAOGPPbe_kDROfPampoiGW=v-AsYeBQjQ01wwfuMKPkSk-yqHoA@mail.gmail.com>
+Date: Fri, 4 May 2018 11:14:14 +0800
+Message-ID: <CAOGPPbd8ysq3XDpa4TYQpWVMmpVo4NPhPw5NWyQS1OSc6rXjQQ@mail.gmail.com>
 References: <1525356274-736-1-git-send-email-lidongchen@tencent.com> <20180503153310.GA9738@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -26,21 +26,22 @@ On Thu, May 3, 2018 at 11:33 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
 >>  2 files changed, 7 insertions(+), 7 deletions(-)
 >
 > Why are we even using a struct pid for this? Does anyone know?
+
+commit 87773dd56d5405ac28119fcfadacefd35877c18f add pid in ib_umem structure.
+
+and the comment has such information:
+Later a different process with a different mm_struct than the one that
+allocated the ib_umem struct
+ends up releasing it which results in decrementing the new processes
+mm->pinned_vm count past
+zero and wrapping.
+
 >
 > I'm surprised that struct task isn't held in the struct ib_umem..
 >
 > Is group_leader really OK and always guarenteed to return the same
 > struct mm?? For some reason I have this recollection that the leader
 > can change under some situation..
-
-I read kernel code, it seems that the userspace thread can guarantee
-to return the same struct mm.
-in the copy_process function, it checks the CLONE_THREAD,
-CLONE_SIGHAND, CLONE_VM must use
-at the same time.
-And I do not find any other part code change the mm and group_leader
-for userspace thread.
-
 >
 >> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
 >> index 9a4e899..8813ba5 100644
