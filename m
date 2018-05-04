@@ -1,105 +1,90 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Fri, 4 May 2018 16:39:29 +0300
-Message-ID: <20180504133929.GF4473@mtr-leonro.local>
-References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
- <20180503153310.GA9738@ziepe.ca>
- <20180503181235.GB4473@mtr-leonro.local>
- <20180503182656.GB14956@ziepe.ca>
- <20180503184301.GD4473@mtr-leonro.local>
- <20180503220148.GC14956@ziepe.ca>
- <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Fri, 4 May 2018 16:27:35 +0200
+Message-ID: <17e7bc28-f499-c7f7-f91a-9f6778de5fd3@amd.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
+ <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
+ <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
+ <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
+ <38d866cf-f7b4-7118-d737-5a5dcd9f3784@amd.com>
+ <2d59aa02-f2fa-bd88-1b6c-923117a6ad28@deltatee.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ZmUaFz6apKcXQszQ"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: 858585 jemmy <jemmy858585@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <2d59aa02-f2fa-bd88-1b6c-923117a6ad28-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---ZmUaFz6apKcXQszQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, May 04, 2018 at 04:32:38PM +0800, 858585 jemmy wrote:
-> On Fri, May 4, 2018 at 6:01 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > On Thu, May 03, 2018 at 09:43:01PM +0300, Leon Romanovsky wrote:
-> >> On Thu, May 03, 2018 at 12:26:56PM -0600, Jason Gunthorpe wrote:
-> >> > On Thu, May 03, 2018 at 09:12:35PM +0300, Leon Romanovsky wrote:
-> >> > > On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
-> >> > > > On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
-> >> > > > > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
-> >> > > > > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
-> >> > > > > exited, get_pid_task will return NULL, ib_umem_release does not decrease
-> >> > > > > mm->pinned_vm. This patch fixes it by use tgid.
-> >> > > > >
-> >> > > > > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
-> >> > > > >  drivers/infiniband/core/umem.c | 12 ++++++------
-> >> > > > >  include/rdma/ib_umem.h         |  2 +-
-> >> > > > >  2 files changed, 7 insertions(+), 7 deletions(-)
-> >> > > >
-> >> > > > Why are we even using a struct pid for this? Does anyone know?
-> >> > > >
-> >> > >
-> >> > > Can it be related to "fork" support?
-> >> >
-> >> > Not sure..
-> >> >
-> >> > Ideally we want to hold the struct mm, but we can't hold it long
-> >> > term, so pid is a surrogate for that.
-> >> >
-> >> > > > I'm surprised that struct task isn't held in the struct ib_umem..
-> >> > > >
-> >> > >
-> >> > > I think that this code can be removed and all accesses to mm_struct can
-> >> > > be done with "current->mm".
-> >> >
-> >> > That sounds wrong for fork support, as the mm used in destroy MUST
-> >> > exactly match the mm used in create..
-> >> >
-> >> > How does this accounting work in fork anyhow?
-> >>
-> >> We are not supporting fork, so this is why I proposed to remove it.
-> >
-> > Er, the new kabi certainly can call reg and dereg across a fork
->
-> what is the expect behavior after fork?
-> I write a test code, the dereg just return EACCES in the child
-> process. and have no effect.
-
-Did you do reg/dereg over write() interface? If yes, this is expected
-behaviour of "not-supported fork()". A couple of months/years ago, your
-test program would work, but we closed this option due to security
-constraints.
-
-Thanks
-
->
-> >
-> > Jason
-
---ZmUaFz6apKcXQszQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrsYpEACgkQ5GN7iDZy
-WKf/JhAAomy9HNZLRJ3JuVjnHS6HOzqPb47MDlJsPBHuzATxG1uA2lphJJTzCkbo
-aKkX8bnkO7NkwiJpTtwV8GY9Es3ZeJBlyAOC9Ox+UU+zhFHxfZ49cRSPVGcM2RYV
-rmw4yaSSMfvt9Rvgb/mVelqj5OBqQOkbs/JfkXLTxj/hCz832AYTsdMAhdOWcV4Z
-PhcVCahSVEAeyUtleDLXadAG6YMwY+W1UzmG8ud3MMfExKj7tKO2TGxZusg2NVFM
-kmTrCmI8JcizmoldSmQUQPqv0BlDbNf2FxeZqftjEyNa0AodQ08xPtLMhHJPW36A
-Pr9INm45/qADPfUoi/GMp8SKxj2pqRQc5tYhqd5Xv++f+l2tldXmgHRZ4A6KjwSE
-tlCMArm5siwNfifZEFTx5SaOjkX0WlfNzO2NMmLjLh/hefH2KqSNwzY2RaNr3Daf
-CMRP5B2j1TjcbJJsmjdKcnpkL+NUBKC8unnlgae9R8RWEbr3ttXMCv2YSLLXuKN7
-EgoZkgo5P9fSGFrCnUtiYmcw/+kZ7M/GS72pBHt41wwrTwX1oOl7aT5MaVcj/9OW
-1C2l0bzr4L/BELqdruJ3S/Q7kUfHdK2Oe4ViL/Zl53pxUIQdeR5cBYN2GNMZBHfY
-iZqD57g2NeW1uvPSaNrpqZKPGWLTvJHq04r5MQF28kynubQ0TSc=
-=pDG3
------END PGP SIGNATURE-----
-
---ZmUaFz6apKcXQszQ--
+QW0gMDMuMDUuMjAxOCB1bSAyMDo0MyBzY2hyaWViIExvZ2FuIEd1bnRob3JwZToKPgo+IE9uIDAz
+LzA1LzE4IDExOjI5IEFNLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+PiBPaywgdGhhdCBpcyB0
+aGUgcG9pbnQgd2hlcmUgSSdtIHN0dWNrLiBXaHkgZG8gd2UgbmVlZCB0aGF0IGluIG9uZQo+PiBm
+dW5jdGlvbiBjYWxsIGluIHRoZSBQQ0llIHN1YnN5c3RlbT8KPj4KPj4gVGhlIHByb2JsZW0gYXQg
+bGVhc3Qgd2l0aCBHUFVzIGlzIHRoYXQgd2Ugc2VyaW91c2x5IGRvbid0IGhhdmUgdGhhdAo+PiBp
+bmZvcm1hdGlvbiBoZXJlLCBjYXVzZSB0aGUgUENJIHN1YnN5c3RlbSBtaWdodCBub3QgYmUgYXdh
+cmUgb2YgYWxsIHRoZQo+PiBpbnRlcmNvbm5lY3Rpb25zLgo+Pgo+PiBGb3IgZXhhbXBsZSBpdCBp
+c24ndCB1bmNvbW1vbiB0byBwdXQgbXVsdGlwbGUgR1BVcyBvbiBvbmUgYm9hcmQuIFRvIHRoZQo+
+PiBQQ0kgc3Vic3lzdGVtIHRoYXQgbG9va3MgbGlrZSBzZXBhcmF0ZSBkZXZpY2VzLCBidXQgaW4g
+cmVhbGl0eSBhbGwgR1BVcwo+PiBhcmUgaW50ZXJjb25uZWN0ZWQgYW5kIGNhbiBhY2Nlc3MgZWFj
+aCBvdGhlcnMgbWVtb3J5IGRpcmVjdGx5IHdpdGhvdXQKPj4gZ29pbmcgb3ZlciB0aGUgUENJZSBi
+dXMuCj4+Cj4+IEkgc2VyaW91c2x5IGRvbid0IHdhbnQgdG8gbW9kZWwgdGhhdCBpbiB0aGUgUENJ
+IHN1YnN5c3RlbSwgYnV0IHJhdGhlcgo+PiB0aGUgZHJpdmVyLiBUaGF0J3Mgd2h5IGl0IGZlZWxz
+IGxpa2UgYSBtaXN0YWtlIHRvIG1lIHRvIHB1c2ggYWxsIHRoYXQKPj4gaW50byB0aGUgUENJIGZ1
+bmN0aW9uLgo+IEh1aD8gSSdtIGxvc3QuIElmIHlvdSBoYXZlIGEgYnVuY2ggb2YgUENJIGRldmlj
+ZXMgeW91IGNhbiBzZW5kIHRoZW0gYXMgYQo+IGxpc3QgdG8gdGhpcyBBUEksIGlmIHlvdSB3YW50
+LiBJZiB0aGUgZHJpdmVyIGlzIF9zdXJlXyB0aGV5IGFyZSBhbGwgdGhlCj4gc2FtZSwgeW91IG9u
+bHkgaGF2ZSB0byBzZW5kIG9uZS4gSW4geW91ciB0ZXJtaW5vbG9neSwgeW91J2QganVzdCBoYXZl
+IHRvCj4gY2FsbCB0aGUgaW50ZXJmYWNlIHdpdGg6Cj4KPiBwY2lfcDJwZG1hX2Rpc3RhbmNlKHRh
+cmdldCwgW2luaXRpYXRvciwgdGFyZ2V0XSkKCk9rLCBJIGV4cGVjdGVkIHRoYXQgc29tZXRoaW5n
+IGxpa2UgdGhhdCB3b3VsZCBkbyBpdC4KClNvIGp1c3QgdG8gY29uZmlybTogV2hlbiBJIGhhdmUg
+YSBidW5jaCBvZiBHUFVzIHdoaWNoIGNvdWxkIGJlIHRoZSAKaW5pdGlhdG9yIEkgb25seSBuZWVk
+IHRvIGRvICJwY2lfcDJwZG1hX2Rpc3RhbmNlKHRhcmdldCwgW2ZpcnN0IEdQVSwgCnRhcmdldF0p
+OyIgYW5kIG5vdCAicGNpX3AycGRtYV9kaXN0YW5jZSh0YXJnZXQsIFtmaXJzdCBHUFUsIHNlY29u
+ZCBHUFUsIAp0aGlyZCBHUFUsIGZvcnRoLi4uLiwgdGFyZ2V0XSkiID8KCj4+IFdoeSBjYW4ndCB3
+ZSBtb2RlbCB0aGF0IGFzIHR3byBzZXBhcmF0ZSB0cmFuc2FjdGlvbnM/Cj4gWW91IGNvdWxkLCBi
+dXQgdGhpcyBpcyBtb3JlIGNvbnZlbmllbnQgZm9yIHVzZXJzIG9mIHRoZSBBUEkgdGhhdCBuZWVk
+IHRvCj4gZGVhbCB3aXRoIG11bHRpcGxlIGRldmljZXMgKGFuZCBtYW5hZ2UgZGV2aWNlcyB0aGF0
+IG1heSBiZSBhZGRlZCBvcgo+IHJlbW92ZWQgYXQgYW55IHRpbWUpLgoKQXJlIHlvdSBzdXJlIHRo
+YXQgdGhpcyBpcyBtb3JlIGNvbnZlbmllbnQ/IEF0IGxlYXN0IG9uIGZpcnN0IGdsYW5jZSBpdCAK
+ZmVlbHMgb3Zlcmx5IGNvbXBsaWNhdGVkLgoKSSBtZWFuIHdoYXQncyB0aGUgZGlmZmVyZW5jZSBi
+ZXR3ZWVuIHRoZSB0d28gYXBwcm9hY2hlcz8KCiDCoMKgwqAgc3VtID0gcGNpX3AycGRtYV9kaXN0
+YW5jZSh0YXJnZXQsIFtBLCBCLCBDLCB0YXJnZXRdKTsKCmFuZAoKIMKgwqDCoCBzdW0gPSBwY2lf
+cDJwZG1hX2Rpc3RhbmNlKHRhcmdldCwgQSk7CiDCoMKgwqAgc3VtICs9IHBjaV9wMnBkbWFfZGlz
+dGFuY2UodGFyZ2V0LCBCKTsKIMKgwqDCoCBzdW0gKz0gcGNpX3AycGRtYV9kaXN0YW5jZSh0YXJn
+ZXQsIEMpOwoKPj4gWWVhaCwgc2FtZSBmb3IgbWUuIElmIEJqb3JuIGlzIG9rIHdpdGggdGhhdCBz
+cGVjaWFsaXplZCBOVk0gZnVuY3Rpb25zCj4+IHRoYXQgSSdtIGZpbmUgd2l0aCB0aGF0IGFzIHdl
+bGwuCj4+Cj4+IEkgdGhpbmsgaXQgd291bGQganVzdCBiZSBtb3JlIGNvbnZlbmllbnQgd2hlbiB3
+ZSBjYW4gY29tZSB1cCB3aXRoCj4+IGZ1bmN0aW9ucyB3aGljaCBjYW4gaGFuZGxlIGFsbCB1c2Ug
+Y2FzZXMsIGNhdXNlIHRoZXJlIHN0aWxsIHNlZW1zIHRvIGJlCj4+IGEgbG90IG9mIHNpbWlsYXJp
+dGllcy4KPiBUaGUgd2F5IGl0J3MgaW1wbGVtZW50ZWQgaXMgbW9yZSBnZW5lcmFsIGFuZCBjYW4g
+aGFuZGxlIGFsbCB1c2UgY2FzZXMuCj4gWW91IGFyZSBhcmd1aW5nIGZvciBhIGZ1bmN0aW9uIHRo
+YXQgY2FuIGhhbmRsZSB5b3VyIGNhc2UgKGFsYmVpdCB3aXRoIGEKPiBiaXQgbW9yZSBmdXNzKSBi
+dXQgY2FuJ3QgaGFuZGxlIG1pbmUgYW5kIGlzIHRoZXJlZm9yZSBsZXNzIGdlbmVyYWwuCj4gQ2Fs
+bGluZyBteSBpbnRlcmZhY2Ugc3BlY2lhbGl6ZWQgaXMgd3JvbmcuCgpXZWxsIGF0IHRoZSBlbmQg
+b2YgdGhlIGRheSB5b3Ugb25seSBuZWVkIHRvIGNvbnZpbmNlIEJqb3JuIG9mIHRoZSAKaW50ZXJm
+YWNlLCBzbyBJJ20gcGVyZmVjdGx5IGZpbmUgd2l0aCBpdCBhcyBsb25nIGFzIGl0IHNlcnZlcyBt
+eSB1c2UgCmNhc2UgYXMgd2VsbCA6KQoKQnV0IEkgc3RpbGwgd291bGQgbGlrZSB0byB1bmRlcnN0
+YW5kIHlvdXIgaW50ZW50aW9uLCBjYXVzZSB0aGF0IHJlYWxseSAKaGVscHMgbm90IHRvIGFjY2lk
+ZW50YWxseSBicmVhayBzb21ldGhpbmcgaW4gdGhlIGxvbmcgdGVybS4KCk5vdyB3aGVuIEkgdGFr
+ZSBhIGxvb2sgYXQgdGhlIHB1cmUgUENJIGhhcmR3YXJlIGxldmVsLCB3aGF0IEkgaGF2ZSBpcyBh
+IAp0cmFuc2FjdGlvbiBiZXR3ZWVuIGFuIGluaXRpYXRvciBhbmQgYSB0YXJnZXQsIGFuZCBub3Qg
+bXVsdGlwbGUgZGV2aWNlcyAKaW4gb25lIG9wZXJhdGlvbi4KCkkgbWVhbiB5b3UgbXVzdCBoYXZl
+IGEgdmVyeSBnb29kIHJlYXNvbiB0aGF0IHlvdSBub3cgd2FudCB0byBkZWFsIHdpdGggCm11bHRp
+cGxlIGRldmljZXMgaW4gdGhlIHNvZnR3YXJlIGxheWVyLCBidXQgbmVpdGhlciBmcm9tIHRoZSBj
+b2RlIG5vciAKZnJvbSB5b3VyIGV4cGxhbmF0aW9uIHRoYXQgcmVhc29uIGJlY29tZXMgb2J2aW91
+cyB0byBtZS4KClRoYW5rcywKQ2hyaXN0aWFuLgoKPgo+IExvZ2FuCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0
+CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1udmRpbW0K
