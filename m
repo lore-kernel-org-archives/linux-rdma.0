@@ -1,119 +1,105 @@
-From: 858585 jemmy <jemmy858585@gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
 Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Fri, 4 May 2018 16:51:15 +0800
-Message-ID: <CAOGPPbenmtuFwCuGMFJDZrqK+D5atkhK+srm+2yX=+CAwgjPHQ@mail.gmail.com>
+Date: Fri, 4 May 2018 16:39:29 +0300
+Message-ID: <20180504133929.GF4473@mtr-leonro.local>
 References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
- <20180503153310.GA9738@ziepe.ca> <CAOGPPbd8ysq3XDpa4TYQpWVMmpVo4NPhPw5NWyQS1OSc6rXjQQ@mail.gmail.com>
+ <20180503153310.GA9738@ziepe.ca>
+ <20180503181235.GB4473@mtr-leonro.local>
+ <20180503182656.GB14956@ziepe.ca>
+ <20180503184301.GD4473@mtr-leonro.local>
+ <20180503220148.GC14956@ziepe.ca>
+ <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ZmUaFz6apKcXQszQ"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAOGPPbd8ysq3XDpa4TYQpWVMmpVo4NPhPw5NWyQS1OSc6rXjQQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, Leon Romanovsky <leon@kernel.org>, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
+To: 858585 jemmy <jemmy858585@gmail.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 4, 2018 at 11:14 AM, 858585 jemmy <jemmy858585@gmail.com> wrote:
-> On Thu, May 3, 2018 at 11:33 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->> On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
->>> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
->>> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
->>> exited, get_pid_task will return NULL, ib_umem_release does not decrease
->>> mm->pinned_vm. This patch fixes it by use tgid.
->>>
->>> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
->>> ---
->>>  drivers/infiniband/core/umem.c | 12 ++++++------
->>>  include/rdma/ib_umem.h         |  2 +-
->>>  2 files changed, 7 insertions(+), 7 deletions(-)
->>
->> Why are we even using a struct pid for this? Does anyone know?
->
-> commit 87773dd56d5405ac28119fcfadacefd35877c18f add pid in ib_umem structure.
->
-> and the comment has such information:
-> Later a different process with a different mm_struct than the one that
-> allocated the ib_umem struct
-> ends up releasing it which results in decrementing the new processes
-> mm->pinned_vm count past
-> zero and wrapping.
->
 
-I think a different process should not have the permission to release ib_umem.
-so maybe the reason is not a different process?
-can ib_umem_release be invoked in interrupt context?
+--ZmUaFz6apKcXQszQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
->>
->> I'm surprised that struct task isn't held in the struct ib_umem..
->>
->> Is group_leader really OK and always guarenteed to return the same
->> struct mm?? For some reason I have this recollection that the leader
->> can change under some situation..
->>
->>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
->>> index 9a4e899..8813ba5 100644
->>> --- a/drivers/infiniband/core/umem.c
->>> +++ b/drivers/infiniband/core/umem.c
->>> @@ -119,7 +119,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->>>       umem->length     = size;
->>>       umem->address    = addr;
->>>       umem->page_shift = PAGE_SHIFT;
->>> -     umem->pid        = get_task_pid(current, PIDTYPE_PID);
->>> +     umem->tgid       = get_task_pid(current->group_leader, PIDTYPE_PID);
->>>       /*
->>>        * We ask for writable memory if any of the following
->>>        * access flags are set.  "Local write" and "remote write"
->>> @@ -132,7 +132,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->>>                IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
->>>
->>>       if (access & IB_ACCESS_ON_DEMAND) {
->>> -             put_pid(umem->pid);
->>> +             put_pid(umem->tgid);
->>>               ret = ib_umem_odp_get(context, umem, access);
->>>               if (ret) {
->>>                       kfree(umem);
->>> @@ -148,7 +148,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->>>
->>>       page_list = (struct page **) __get_free_page(GFP_KERNEL);
->>>       if (!page_list) {
->>> -             put_pid(umem->pid);
->>> +             put_pid(umem->tgid);
->>>               kfree(umem);
->>>               return ERR_PTR(-ENOMEM);
->>>       }
->>> @@ -231,7 +231,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
->>>       if (ret < 0) {
->>>               if (need_release)
->>>                       __ib_umem_release(context->device, umem, 0);
->>> -             put_pid(umem->pid);
->>> +             put_pid(umem->tgid);
->>>               kfree(umem);
->>>       } else
->>>               current->mm->pinned_vm = locked;
->>> @@ -274,8 +274,8 @@ void ib_umem_release(struct ib_umem *umem)
->>>
->>>       __ib_umem_release(umem->context->device, umem, 1);
->>>
->>> -     task = get_pid_task(umem->pid, PIDTYPE_PID);
->>> -     put_pid(umem->pid);
->>> +     task = get_pid_task(umem->tgid, PIDTYPE_PID);
->>> +     put_pid(umem->tgid);
->>>       if (!task)
->>>               goto out;
->>>       mm = get_task_mm(task);
->>> diff --git a/include/rdma/ib_umem.h b/include/rdma/ib_umem.h
->>> index 23159dd..2398849 100644
->>> --- a/include/rdma/ib_umem.h
->>> +++ b/include/rdma/ib_umem.h
->>> @@ -48,7 +48,7 @@ struct ib_umem {
->>>       int                     writable;
->>>       int                     hugetlb;
->>>       struct work_struct      work;
->>> -     struct pid             *pid;
->>> +     struct pid             *tgid;
->>>       struct mm_struct       *mm;
->>>       unsigned long           diff;
->>>       struct ib_umem_odp     *odp_data;
->>> --
->>> 1.8.3.1
->>>
+On Fri, May 04, 2018 at 04:32:38PM +0800, 858585 jemmy wrote:
+> On Fri, May 4, 2018 at 6:01 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > On Thu, May 03, 2018 at 09:43:01PM +0300, Leon Romanovsky wrote:
+> >> On Thu, May 03, 2018 at 12:26:56PM -0600, Jason Gunthorpe wrote:
+> >> > On Thu, May 03, 2018 at 09:12:35PM +0300, Leon Romanovsky wrote:
+> >> > > On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
+> >> > > > On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
+> >> > > > > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+> >> > > > > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+> >> > > > > exited, get_pid_task will return NULL, ib_umem_release does not decrease
+> >> > > > > mm->pinned_vm. This patch fixes it by use tgid.
+> >> > > > >
+> >> > > > > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+> >> > > > >  drivers/infiniband/core/umem.c | 12 ++++++------
+> >> > > > >  include/rdma/ib_umem.h         |  2 +-
+> >> > > > >  2 files changed, 7 insertions(+), 7 deletions(-)
+> >> > > >
+> >> > > > Why are we even using a struct pid for this? Does anyone know?
+> >> > > >
+> >> > >
+> >> > > Can it be related to "fork" support?
+> >> >
+> >> > Not sure..
+> >> >
+> >> > Ideally we want to hold the struct mm, but we can't hold it long
+> >> > term, so pid is a surrogate for that.
+> >> >
+> >> > > > I'm surprised that struct task isn't held in the struct ib_umem..
+> >> > > >
+> >> > >
+> >> > > I think that this code can be removed and all accesses to mm_struct can
+> >> > > be done with "current->mm".
+> >> >
+> >> > That sounds wrong for fork support, as the mm used in destroy MUST
+> >> > exactly match the mm used in create..
+> >> >
+> >> > How does this accounting work in fork anyhow?
+> >>
+> >> We are not supporting fork, so this is why I proposed to remove it.
+> >
+> > Er, the new kabi certainly can call reg and dereg across a fork
+>
+> what is the expect behavior after fork?
+> I write a test code, the dereg just return EACCES in the child
+> process. and have no effect.
+
+Did you do reg/dereg over write() interface? If yes, this is expected
+behaviour of "not-supported fork()". A couple of months/years ago, your
+test program would work, but we closed this option due to security
+constraints.
+
+Thanks
+
+>
+> >
+> > Jason
+
+--ZmUaFz6apKcXQszQ
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEEkhr/r4Op1/04yqaB5GN7iDZyWKcFAlrsYpEACgkQ5GN7iDZy
+WKf/JhAAomy9HNZLRJ3JuVjnHS6HOzqPb47MDlJsPBHuzATxG1uA2lphJJTzCkbo
+aKkX8bnkO7NkwiJpTtwV8GY9Es3ZeJBlyAOC9Ox+UU+zhFHxfZ49cRSPVGcM2RYV
+rmw4yaSSMfvt9Rvgb/mVelqj5OBqQOkbs/JfkXLTxj/hCz832AYTsdMAhdOWcV4Z
+PhcVCahSVEAeyUtleDLXadAG6YMwY+W1UzmG8ud3MMfExKj7tKO2TGxZusg2NVFM
+kmTrCmI8JcizmoldSmQUQPqv0BlDbNf2FxeZqftjEyNa0AodQ08xPtLMhHJPW36A
+Pr9INm45/qADPfUoi/GMp8SKxj2pqRQc5tYhqd5Xv++f+l2tldXmgHRZ4A6KjwSE
+tlCMArm5siwNfifZEFTx5SaOjkX0WlfNzO2NMmLjLh/hefH2KqSNwzY2RaNr3Daf
+CMRP5B2j1TjcbJJsmjdKcnpkL+NUBKC8unnlgae9R8RWEbr3ttXMCv2YSLLXuKN7
+EgoZkgo5P9fSGFrCnUtiYmcw/+kZ7M/GS72pBHt41wwrTwX1oOl7aT5MaVcj/9OW
+1C2l0bzr4L/BELqdruJ3S/Q7kUfHdK2Oe4ViL/Zl53pxUIQdeR5cBYN2GNMZBHfY
+iZqD57g2NeW1uvPSaNrpqZKPGWLTvJHq04r5MQF28kynubQ0TSc=
+=pDG3
+-----END PGP SIGNATURE-----
+
+--ZmUaFz6apKcXQszQ--
