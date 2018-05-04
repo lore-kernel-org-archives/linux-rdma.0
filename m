@@ -1,63 +1,63 @@
-From: Greg Thelen <gthelen@google.com>
-Subject: Re: [PATCH 3/5] ib_srpt: depend on INFINIBAND_ADDR_TRANS
-Date: Fri, 04 May 2018 03:30:44 +0000
-Message-ID: <CAHH2K0Y0wByaf3JzomfrzKwMZMbOw=NdXg++3vVfn9F=ZCYxnQ@mail.gmail.com>
-References: <20180425223340.206907-1-gthelen@google.com> <20180430233500.GI26909@ziepe.ca>
- <CAHH2K0aJgACn1fQrR=YpifWgOAFTCubcVo+bA+zCFg7++NR1kQ@mail.gmail.com> <20180501204803.GE28551@ziepe.ca>
+From: 858585 jemmy <jemmy858585@gmail.com>
+Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
+Date: Fri, 4 May 2018 16:32:38 +0800
+Message-ID: <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>
+References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+ <20180503153310.GA9738@ziepe.ca> <20180503181235.GB4473@mtr-leonro.local>
+ <20180503182656.GB14956@ziepe.ca> <20180503184301.GD4473@mtr-leonro.local> <20180503220148.GC14956@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180501204803.GE28551@ziepe.ca>
+In-Reply-To: <20180503220148.GC14956@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
+Cc: Leon Romanovsky <leon@kernel.org>, dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 1, 2018 at 1:48 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Fri, May 4, 2018 at 6:01 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Thu, May 03, 2018 at 09:43:01PM +0300, Leon Romanovsky wrote:
+>> On Thu, May 03, 2018 at 12:26:56PM -0600, Jason Gunthorpe wrote:
+>> > On Thu, May 03, 2018 at 09:12:35PM +0300, Leon Romanovsky wrote:
+>> > > On Thu, May 03, 2018 at 09:33:10AM -0600, Jason Gunthorpe wrote:
+>> > > > On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
+>> > > > > The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+>> > > > > If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+>> > > > > exited, get_pid_task will return NULL, ib_umem_release does not decrease
+>> > > > > mm->pinned_vm. This patch fixes it by use tgid.
+>> > > > >
+>> > > > > Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+>> > > > >  drivers/infiniband/core/umem.c | 12 ++++++------
+>> > > > >  include/rdma/ib_umem.h         |  2 +-
+>> > > > >  2 files changed, 7 insertions(+), 7 deletions(-)
+>> > > >
+>> > > > Why are we even using a struct pid for this? Does anyone know?
+>> > > >
+>> > >
+>> > > Can it be related to "fork" support?
+>> >
+>> > Not sure..
+>> >
+>> > Ideally we want to hold the struct mm, but we can't hold it long
+>> > term, so pid is a surrogate for that.
+>> >
+>> > > > I'm surprised that struct task isn't held in the struct ib_umem..
+>> > > >
+>> > >
+>> > > I think that this code can be removed and all accesses to mm_struct can
+>> > > be done with "current->mm".
+>> >
+>> > That sounds wrong for fork support, as the mm used in destroy MUST
+>> > exactly match the mm used in create..
+>> >
+>> > How does this accounting work in fork anyhow?
+>>
+>> We are not supporting fork, so this is why I proposed to remove it.
+>
+> Er, the new kabi certainly can call reg and dereg across a fork
 
-> On Tue, May 01, 2018 at 03:08:57AM +0000, Greg Thelen wrote:
-> > On Mon, Apr 30, 2018 at 4:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >
-> > > On Wed, Apr 25, 2018 at 03:33:39PM -0700, Greg Thelen wrote:
-> > > > INFINIBAND_SRPT code depends on INFINIBAND_ADDR_TRANS provided
-symbols.
-> > > > So declare the kconfig dependency.  This is necessary to allow for
-> > > > enabling INFINIBAND without INFINIBAND_ADDR_TRANS.
-> > > >
-> > > > Signed-off-by: Greg Thelen <gthelen@google.com>
-> > > > Cc: Tarick Bedeir <tarick@google.com>
-> > > >  drivers/infiniband/ulp/srpt/Kconfig | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > >
-> > > > diff --git a/drivers/infiniband/ulp/srpt/Kconfig
-> > b/drivers/infiniband/ulp/srpt/Kconfig
-> > > > index 31ee83d528d9..fb8b7182f05e 100644
-> > > > +++ b/drivers/infiniband/ulp/srpt/Kconfig
-> > > > @@ -1,6 +1,6 @@
-> > > >  config INFINIBAND_SRPT
-> > > >       tristate "InfiniBand SCSI RDMA Protocol target support"
-> > > > -     depends on INFINIBAND && TARGET_CORE
-> > > > +     depends on INFINIBAND && INFINIBAND_ADDR_TRANS && TARGET_CORE
-> >
-> > > Isn't INFINIBAND && INFINIBAND_ADDR_TRANS a bit redundant? Can't have
-> > > INFINIBAND_ADDR_TRANS without INFINIBAND.
-> >
-> > By kconfig INFINIBAND_ADDR_TRANS depends on INFINIBAND.  So yes, it
-seems
-> > redundant.  I don't know if anyone has designs to break this dependency
-and
-> > allow for ADDR_TRANS without INFINIBAND.  Assuming not, I'd be willing
-to
-> > amend my series removing redundant INFINIBAND and a followup series to
-> > remove it from similar depends.  Though I'm not familiar with rdma dev
-tree
-> > lifecycle.  Is rdma/for-rc a throw away branch (akin to linux-next), or
-> > will it be merged into linus/master?  If throwaway, then we can amend
-> > its patches, otherwise followups will be needed.
-> >
-> > Let me know what you'd prefer.  Thanks.
+what is the expect behavior after fork?
+I write a test code, the dereg just return EACCES in the child
+process. and have no effect.
 
-> I think a single update patch to fix all of these, and the
-> pre-existing ones would be great
-
-I just posted the cleanup: https://lkml.org/lkml/2018/5/3/1045
+>
+> Jason
