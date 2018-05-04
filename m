@@ -1,66 +1,50 @@
-From: =?gb2312?B?bGlkb25nY2hlbiizwsGitqsp?= <lidongchen@tencent.com>
-Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
-Date: Fri, 4 May 2018 15:14:06 +0000
-Message-ID: <011606E7-9AE2-4250-A687-307C7D687FA9@tencent.com>
-References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
- <20180503153310.GA9738@ziepe.ca> <20180503181235.GB4473@mtr-leonro.local>
- <20180503182656.GB14956@ziepe.ca> <20180503184301.GD4473@mtr-leonro.local>
- <20180503220148.GC14956@ziepe.ca>
- <CAOGPPbfwOHy547d3attGxMW=muRhHGRhxxtnoSDd_SZYu_c3fg@mail.gmail.com>,<20180504133929.GF4473@mtr-leonro.local>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Fri, 4 May 2018 09:52:26 -0600
+Message-ID: <aa542739-17c1-870d-bac8-1d53eb32ff70@deltatee.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <b8acf835-df94-9967-2327-8f0e39d88511@amd.com>
+ <805645c1-ea40-2e57-88eb-5dd34e579b2e@deltatee.com>
+ <3e4e0126-f444-8d88-6793-b5eb97c61f76@amd.com>
+ <ce2e5351-f32a-bd80-1c77-b7fc38842175@deltatee.com>
+ <38d866cf-f7b4-7118-d737-5a5dcd9f3784@amd.com>
+ <2d59aa02-f2fa-bd88-1b6c-923117a6ad28@deltatee.com>
+ <17e7bc28-f499-c7f7-f91a-9f6778de5fd3@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="gb2312"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180504133929.GF4473@mtr-leonro.local>
-Content-Language: zh-CN
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: 858585 jemmy <jemmy858585@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "qing.huang@oracle.com" <qing.huang@oracle.com>, "artemyko@mellanox.com" <artemyko@mellanox.com>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "adido@mellanox.com" <adido@mellanox.com>, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <17e7bc28-f499-c7f7-f91a-9f6778de5fd3-5C7GfCeVMHo@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4g1NogMjAxOMTqNdTCNMjVo6wyMTozOaOsTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5l
-bC5vcmc+INC0tcCjug0KPiANCj4+IE9uIEZyaSwgTWF5IDA0LCAyMDE4IGF0IDA0OjMyOjM4UE0g
-KzA4MDAsIDg1ODU4NSBqZW1teSB3cm90ZToNCj4+PiBPbiBGcmksIE1heSA0LCAyMDE4IGF0IDY6
-MDEgQU0sIEphc29uIEd1bnRob3JwZSA8amdnQHppZXBlLmNhPiB3cm90ZToNCj4+Pj4gT24gVGh1
-LCBNYXkgMDMsIDIwMTggYXQgMDk6NDM6MDFQTSArMDMwMCwgTGVvbiBSb21hbm92c2t5IHdyb3Rl
-Og0KPj4+Pj4gT24gVGh1LCBNYXkgMDMsIDIwMTggYXQgMTI6MjY6NTZQTSAtMDYwMCwgSmFzb24g
-R3VudGhvcnBlIHdyb3RlOg0KPj4+Pj4+IE9uIFRodSwgTWF5IDAzLCAyMDE4IGF0IDA5OjEyOjM1
-UE0gKzAzMDAsIExlb24gUm9tYW5vdnNreSB3cm90ZToNCj4+Pj4+Pj4gT24gVGh1LCBNYXkgMDMs
-IDIwMTggYXQgMDk6MzM6MTBBTSAtMDYwMCwgSmFzb24gR3VudGhvcnBlIHdyb3RlOg0KPj4+Pj4+
-Pj4gT24gVGh1LCBNYXkgMDMsIDIwMTggYXQgMTA6MDQ6MzRQTSArMDgwMCwgTGlkb25nIENoZW4g
-d3JvdGU6DQo+Pj4+Pj4+PiBUaGUgdXNlcnNwYWNlIG1heSBpbnZva2UgaWJ2X3JlZ19tciBhbmQg
-aWJ2X2RlcmVnX21yIGJ5IGRpZmZlcmVudCB0aHJlYWRzLg0KPj4+Pj4+Pj4gSWYgd2hlbiBpYnZf
-ZGVyZWdfbXIgaW52b2tlIGFuZCB0aGUgdGhyZWFkIHdoaWNoIGludm9rZWQgaWJ2X3JlZ19tciBo
-YXMNCj4+Pj4+Pj4+IGV4aXRlZCwgZ2V0X3BpZF90YXNrIHdpbGwgcmV0dXJuIE5VTEwsIGliX3Vt
-ZW1fcmVsZWFzZSBkb2VzIG5vdCBkZWNyZWFzZQ0KPj4+Pj4+Pj4gbW0tPnBpbm5lZF92bS4gVGhp
-cyBwYXRjaCBmaXhlcyBpdCBieSB1c2UgdGdpZC4NCj4+Pj4+Pj4+IA0KPj4+Pj4+Pj4gU2lnbmVk
-LW9mZi1ieTogTGlkb25nIENoZW4gPGxpZG9uZ2NoZW5AdGVuY2VudC5jb20+DQo+Pj4+Pj4+PiBk
-cml2ZXJzL2luZmluaWJhbmQvY29yZS91bWVtLmMgfCAxMiArKysrKystLS0tLS0NCj4+Pj4+Pj4+
-IGluY2x1ZGUvcmRtYS9pYl91bWVtLmggICAgICAgICB8ICAyICstDQo+Pj4+Pj4+PiAyIGZpbGVz
-IGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4+Pj4+Pj4gDQo+Pj4+
-Pj4+IFdoeSBhcmUgd2UgZXZlbiB1c2luZyBhIHN0cnVjdCBwaWQgZm9yIHRoaXM/IERvZXMgYW55
-b25lIGtub3c/DQo+Pj4+Pj4+IA0KPj4+Pj4+IA0KPj4+Pj4+IENhbiBpdCBiZSByZWxhdGVkIHRv
-ICJmb3JrIiBzdXBwb3J0Pw0KPj4+Pj4gDQo+Pj4+PiBOb3Qgc3VyZS4uDQo+Pj4+PiANCj4+Pj4+
-IElkZWFsbHkgd2Ugd2FudCB0byBob2xkIHRoZSBzdHJ1Y3QgbW0sIGJ1dCB3ZSBjYW4ndCBob2xk
-IGl0IGxvbmcNCj4+Pj4+IHRlcm0sIHNvIHBpZCBpcyBhIHN1cnJvZ2F0ZSBmb3IgdGhhdC4NCj4+
-Pj4+IA0KPj4+Pj4+PiBJJ20gc3VycHJpc2VkIHRoYXQgc3RydWN0IHRhc2sgaXNuJ3QgaGVsZCBp
-biB0aGUgc3RydWN0IGliX3VtZW0uLg0KPj4+Pj4+PiANCj4+Pj4+PiANCj4+Pj4+PiBJIHRoaW5r
-IHRoYXQgdGhpcyBjb2RlIGNhbiBiZSByZW1vdmVkIGFuZCBhbGwgYWNjZXNzZXMgdG8gbW1fc3Ry
-dWN0IGNhbg0KPj4+Pj4+IGJlIGRvbmUgd2l0aCAiY3VycmVudC0+bW0iLg0KPj4+Pj4gDQo+Pj4+
-PiBUaGF0IHNvdW5kcyB3cm9uZyBmb3IgZm9yayBzdXBwb3J0LCBhcyB0aGUgbW0gdXNlZCBpbiBk
-ZXN0cm95IE1VU1QNCj4+Pj4+IGV4YWN0bHkgbWF0Y2ggdGhlIG1tIHVzZWQgaW4gY3JlYXRlLi4N
-Cj4+Pj4+IA0KPj4+Pj4gSG93IGRvZXMgdGhpcyBhY2NvdW50aW5nIHdvcmsgaW4gZm9yayBhbnlo
-b3c/DQo+Pj4+IA0KPj4+PiBXZSBhcmUgbm90IHN1cHBvcnRpbmcgZm9yaywgc28gdGhpcyBpcyB3
-aHkgSSBwcm9wb3NlZCB0byByZW1vdmUgaXQuDQo+Pj4gDQo+Pj4gRXIsIHRoZSBuZXcga2FiaSBj
-ZXJ0YWlubHkgY2FuIGNhbGwgcmVnIGFuZCBkZXJlZyBhY3Jvc3MgYSBmb3JrDQo+PiANCj4+IHdo
-YXQgaXMgdGhlIGV4cGVjdCBiZWhhdmlvciBhZnRlciBmb3JrPw0KPj4gSSB3cml0ZSBhIHRlc3Qg
-Y29kZSwgdGhlIGRlcmVnIGp1c3QgcmV0dXJuIEVBQ0NFUyBpbiB0aGUgY2hpbGQNCj4+IHByb2Nl
-c3MuIGFuZCBoYXZlIG5vIGVmZmVjdC4NCj4gDQo+IERpZCB5b3UgZG8gcmVnL2RlcmVnIG92ZXIg
-d3JpdGUoKSBpbnRlcmZhY2U/IElmIHllcywgdGhpcyBpcyBleHBlY3RlZA0KPiBiZWhhdmlvdXIg
-b2YgIm5vdC1zdXBwb3J0ZWQgZm9yaygpIi4gQSBjb3VwbGUgb2YgbW9udGhzL3llYXJzIGFnbywg
-eW91cg0KPiB0ZXN0IHByb2dyYW0gd291bGQgd29yaywgYnV0IHdlIGNsb3NlZCB0aGlzIG9wdGlv
-biBkdWUgdG8gc2VjdXJpdHkNCj4gY29uc3RyYWludHMuDQoNCnRoZSBwYXJlbnQgcHJvY2VzcyBj
-YWxsIGlidl9yZWdfbXIsIGFuZCB0aGUgY2hpbGQgcHJvY2VzcyBjYWxsIGlidl9kZXJlZ19tci4N
-Cg0KSWYgZm9yayBpcyBub3Qgc3VwcG9ydGVkIG5vdywgc28gdXNlIHRnaWQgdG8gZ2V0IG1tIHN0
-cnVjdHVyZSBpcyBmaW5lIGZvciBtdWx0aXRocmVhZC4NCg0KPiANCj4gVGhhbmtzDQo+IA0KPj4g
-DQo+Pj4gDQo+Pj4gSmFzb24NCg==
+CgpPbiAwNC8wNS8xOCAwODoyNyBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBBcmUgeW91
+IHN1cmUgdGhhdCB0aGlzIGlzIG1vcmUgY29udmVuaWVudD8gQXQgbGVhc3Qgb24gZmlyc3QgZ2xh
+bmNlIGl0IAo+IGZlZWxzIG92ZXJseSBjb21wbGljYXRlZC4KPiAKPiBJIG1lYW4gd2hhdCdzIHRo
+ZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlIHR3byBhcHByb2FjaGVzPwo+IAo+ICDCoMKgwqAgc3Vt
+ID0gcGNpX3AycGRtYV9kaXN0YW5jZSh0YXJnZXQsIFtBLCBCLCBDLCB0YXJnZXRdKTsKPiAKPiBh
+bmQKPiAKPiAgwqDCoMKgIHN1bSA9IHBjaV9wMnBkbWFfZGlzdGFuY2UodGFyZ2V0LCBBKTsKPiAg
+wqDCoMKgIHN1bSArPSBwY2lfcDJwZG1hX2Rpc3RhbmNlKHRhcmdldCwgQik7Cj4gIMKgwqDCoCBz
+dW0gKz0gcGNpX3AycGRtYV9kaXN0YW5jZSh0YXJnZXQsIEMpOwoKV2VsbCwgaXQncyBtb3JlIGZv
+ciBjb25zaXN0ZW5jeSB3aXRoIHRoZSBwY2lfcDJwZG1hX2ZpbmQoKSB3aGljaCBoYXMgdG8KdGFr
+ZSBhIGxpc3Qgb2YgZGV2aWNlcyB0byBmaW5kIGEgcmVzb3VyY2Ugd2hpY2ggbWF0Y2hlcyBhbGwg
+b2YgdGhlbS4KKFlvdSBjYW4ndCB1c2UgbXVsdGlwbGUgY2FsbHMgaW4gdGhhdCBjYXNlIGJlY2F1
+c2UgYWxsIHRoZSBkZXZpY2VzIGluCnRoZSBsaXN0IG1pZ2h0IG5vdCBoYXZlIHRoZSBzYW1lIHNl
+dCBvZiBjb21wYXRpYmxlIHByb3ZpZGVycy4pIFRoYXQgd2F5CndlIGNhbiB1c2UgdGhlIHNhbWUg
+bGlzdCB0byBjaGVjayB0aGUgZGlzdGFuY2UgKHdoZW4gdGhlIHVzZXIgc3BlY2lmaWVzCmEgZGV2
+aWNlKSBhcyB3ZSBkbyB0byBmaW5kIGEgY29tcGF0aWJsZSBkZXZpY2UgKHdoZW4gdGhlIHVzZXIg
+d2FudHMgdG8KYXV0b21hdGljYWxseSBmaW5kIG9uZS4KCkxvZ2FuCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QK
+TGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2xpbnV4LW52ZGltbQo=
