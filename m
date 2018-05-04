@@ -1,133 +1,63 @@
 From: Greg Thelen <gthelen@google.com>
-Subject: [PATCH] IB: remove redundant INFINIBAND kconfig dependencies
-Date: Thu,  3 May 2018 20:29:19 -0700
-Message-ID: <20180504032919.90515-1-gthelen@google.com>
+Subject: Re: [PATCH 3/5] ib_srpt: depend on INFINIBAND_ADDR_TRANS
+Date: Fri, 04 May 2018 03:30:44 +0000
+Message-ID: <CAHH2K0Y0wByaf3JzomfrzKwMZMbOw=NdXg++3vVfn9F=ZCYxnQ@mail.gmail.com>
+References: <20180425223340.206907-1-gthelen@google.com> <20180430233500.GI26909@ziepe.ca>
+ <CAHH2K0aJgACn1fQrR=YpifWgOAFTCubcVo+bA+zCFg7++NR1kQ@mail.gmail.com> <20180501204803.GE28551@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180501204803.GE28551@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Greg Thelen <gthelen@google.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, Bart Van Assche <Bart.VanAssche@wdc.com>, Christoph Hellwig <hch@lst.de>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-INFINIBAND_ADDR_TRANS depends on INFINIBAND.  So there's no need for
-options which depend INFINIBAND_ADDR_TRANS to also depend on INFINIBAND.
-Remove the unnecessary INFINIBAND depends.
+On Tue, May 1, 2018 at 1:48 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
----
- drivers/infiniband/ulp/srpt/Kconfig | 2 +-
- drivers/nvme/host/Kconfig           | 2 +-
- drivers/nvme/target/Kconfig         | 2 +-
- drivers/staging/lustre/lnet/Kconfig | 2 +-
- fs/cifs/Kconfig                     | 2 +-
- net/9p/Kconfig                      | 2 +-
- net/rds/Kconfig                     | 2 +-
- net/sunrpc/Kconfig                  | 2 +-
- 8 files changed, 8 insertions(+), 8 deletions(-)
+> On Tue, May 01, 2018 at 03:08:57AM +0000, Greg Thelen wrote:
+> > On Mon, Apr 30, 2018 at 4:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> >
+> > > On Wed, Apr 25, 2018 at 03:33:39PM -0700, Greg Thelen wrote:
+> > > > INFINIBAND_SRPT code depends on INFINIBAND_ADDR_TRANS provided
+symbols.
+> > > > So declare the kconfig dependency.  This is necessary to allow for
+> > > > enabling INFINIBAND without INFINIBAND_ADDR_TRANS.
+> > > >
+> > > > Signed-off-by: Greg Thelen <gthelen@google.com>
+> > > > Cc: Tarick Bedeir <tarick@google.com>
+> > > >  drivers/infiniband/ulp/srpt/Kconfig | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > >
+> > > > diff --git a/drivers/infiniband/ulp/srpt/Kconfig
+> > b/drivers/infiniband/ulp/srpt/Kconfig
+> > > > index 31ee83d528d9..fb8b7182f05e 100644
+> > > > +++ b/drivers/infiniband/ulp/srpt/Kconfig
+> > > > @@ -1,6 +1,6 @@
+> > > >  config INFINIBAND_SRPT
+> > > >       tristate "InfiniBand SCSI RDMA Protocol target support"
+> > > > -     depends on INFINIBAND && TARGET_CORE
+> > > > +     depends on INFINIBAND && INFINIBAND_ADDR_TRANS && TARGET_CORE
+> >
+> > > Isn't INFINIBAND && INFINIBAND_ADDR_TRANS a bit redundant? Can't have
+> > > INFINIBAND_ADDR_TRANS without INFINIBAND.
+> >
+> > By kconfig INFINIBAND_ADDR_TRANS depends on INFINIBAND.  So yes, it
+seems
+> > redundant.  I don't know if anyone has designs to break this dependency
+and
+> > allow for ADDR_TRANS without INFINIBAND.  Assuming not, I'd be willing
+to
+> > amend my series removing redundant INFINIBAND and a followup series to
+> > remove it from similar depends.  Though I'm not familiar with rdma dev
+tree
+> > lifecycle.  Is rdma/for-rc a throw away branch (akin to linux-next), or
+> > will it be merged into linus/master?  If throwaway, then we can amend
+> > its patches, otherwise followups will be needed.
+> >
+> > Let me know what you'd prefer.  Thanks.
 
-diff --git a/drivers/infiniband/ulp/srpt/Kconfig b/drivers/infiniband/ulp/srpt/Kconfig
-index fb8b7182f05e..25bf6955b6d0 100644
---- a/drivers/infiniband/ulp/srpt/Kconfig
-+++ b/drivers/infiniband/ulp/srpt/Kconfig
-@@ -1,6 +1,6 @@
- config INFINIBAND_SRPT
- 	tristate "InfiniBand SCSI RDMA Protocol target support"
--	depends on INFINIBAND && INFINIBAND_ADDR_TRANS && TARGET_CORE
-+	depends on INFINIBAND_ADDR_TRANS && TARGET_CORE
- 	---help---
- 
- 	  Support for the SCSI RDMA Protocol (SRP) Target driver. The
-diff --git a/drivers/nvme/host/Kconfig b/drivers/nvme/host/Kconfig
-index 88a8b5916624..dbb7464c018c 100644
---- a/drivers/nvme/host/Kconfig
-+++ b/drivers/nvme/host/Kconfig
-@@ -27,7 +27,7 @@ config NVME_FABRICS
- 
- config NVME_RDMA
- 	tristate "NVM Express over Fabrics RDMA host driver"
--	depends on INFINIBAND && INFINIBAND_ADDR_TRANS && BLOCK
-+	depends on INFINIBAND_ADDR_TRANS && BLOCK
- 	select NVME_CORE
- 	select NVME_FABRICS
- 	select SG_POOL
-diff --git a/drivers/nvme/target/Kconfig b/drivers/nvme/target/Kconfig
-index 3c7b61ddb0d1..7595664ee753 100644
---- a/drivers/nvme/target/Kconfig
-+++ b/drivers/nvme/target/Kconfig
-@@ -27,7 +27,7 @@ config NVME_TARGET_LOOP
- 
- config NVME_TARGET_RDMA
- 	tristate "NVMe over Fabrics RDMA target support"
--	depends on INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on INFINIBAND_ADDR_TRANS
- 	depends on NVME_TARGET
- 	select SGL_ALLOC
- 	help
-diff --git a/drivers/staging/lustre/lnet/Kconfig b/drivers/staging/lustre/lnet/Kconfig
-index ad049e6f24e4..f3b1ad4bd3dc 100644
---- a/drivers/staging/lustre/lnet/Kconfig
-+++ b/drivers/staging/lustre/lnet/Kconfig
-@@ -34,7 +34,7 @@ config LNET_SELFTEST
- 
- config LNET_XPRT_IB
- 	tristate "LNET infiniband support"
--	depends on LNET && PCI && INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on LNET && PCI && INFINIBAND_ADDR_TRANS
- 	default LNET && INFINIBAND
- 	help
- 	  This option allows the LNET users to use infiniband as an
-diff --git a/fs/cifs/Kconfig b/fs/cifs/Kconfig
-index 5f132d59dfc2..d61e2de8d0eb 100644
---- a/fs/cifs/Kconfig
-+++ b/fs/cifs/Kconfig
-@@ -197,7 +197,7 @@ config CIFS_SMB311
- 
- config CIFS_SMB_DIRECT
- 	bool "SMB Direct support (Experimental)"
--	depends on CIFS=m && INFINIBAND && INFINIBAND_ADDR_TRANS || CIFS=y && INFINIBAND=y && INFINIBAND_ADDR_TRANS=y
-+	depends on CIFS=m && INFINIBAND_ADDR_TRANS || CIFS=y && INFINIBAND_ADDR_TRANS=y
- 	help
- 	  Enables SMB Direct experimental support for SMB 3.0, 3.02 and 3.1.1.
- 	  SMB Direct allows transferring SMB packets over RDMA. If unsure,
-diff --git a/net/9p/Kconfig b/net/9p/Kconfig
-index e6014e0e51f7..46c39f7da444 100644
---- a/net/9p/Kconfig
-+++ b/net/9p/Kconfig
-@@ -32,7 +32,7 @@ config NET_9P_XEN
- 
- 
- config NET_9P_RDMA
--	depends on INET && INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on INET && INFINIBAND_ADDR_TRANS
- 	tristate "9P RDMA Transport (Experimental)"
- 	help
- 	  This builds support for an RDMA transport.
-diff --git a/net/rds/Kconfig b/net/rds/Kconfig
-index bffde4b46c5d..1a31502ee7db 100644
---- a/net/rds/Kconfig
-+++ b/net/rds/Kconfig
-@@ -8,7 +8,7 @@ config RDS
- 
- config RDS_RDMA
- 	tristate "RDS over Infiniband"
--	depends on RDS && INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on RDS && INFINIBAND_ADDR_TRANS
- 	---help---
- 	  Allow RDS to use Infiniband as a transport.
- 	  This transport supports RDMA operations.
-diff --git a/net/sunrpc/Kconfig b/net/sunrpc/Kconfig
-index ac09ca803296..6358e5271070 100644
---- a/net/sunrpc/Kconfig
-+++ b/net/sunrpc/Kconfig
-@@ -50,7 +50,7 @@ config SUNRPC_DEBUG
- 
- config SUNRPC_XPRT_RDMA
- 	tristate "RPC-over-RDMA transport"
--	depends on SUNRPC && INFINIBAND && INFINIBAND_ADDR_TRANS
-+	depends on SUNRPC && INFINIBAND_ADDR_TRANS
- 	default SUNRPC && INFINIBAND
- 	select SG_POOL
- 	help
--- 
-2.17.0.441.gb46fe60e1d-goog
+> I think a single update patch to fix all of these, and the
+> pre-existing ones would be great
+
+I just posted the cleanup: https://lkml.org/lkml/2018/5/3/1045
