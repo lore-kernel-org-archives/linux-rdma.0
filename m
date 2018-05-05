@@ -1,74 +1,94 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next 05/14] IB/hfi1: Use after free race condition in
- send context error path
-Date: Fri, 4 May 2018 16:01:04 -0400
-Message-ID: <add45f95-61e0-aa96-6738-08c15a234f33@intel.com>
-References: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
- <20180502134249.20730.78919.stgit@scvm10.sc.intel.com>
- <20180504183839.6wexn5phhiyo6xra@ziepe.ca>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH] net/mlx5: Fix mlx5_get_vector_affinity function
+Date: Sat, 5 May 2018 07:38:38 -0700
+Message-ID: <20180505143838.GA12621@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180504183839.6wexn5phhiyo6xra@ziepe.ca>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Israel Rukshin <israelr@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>, Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/4/2018 2:38 PM, Jason Gunthorpe wrote:
-> On Wed, May 02, 2018 at 06:42:51AM -0700, Dennis Dalessandro wrote:
->> From: Michael J. Ruhl <michael.j.ruhl@intel.com>
->>
->> A pio send egress error can occur when the PSM library attempts to
->> to send a bad packet.  That issue is still being investigated.
->>
->> The pio error interrupt handler then attempts to progress the recovery
->> of the errored pio send context.
->>
->> Code inspection reveals that the handling lacks the necessary locking
->> if that recovery interleaves with a PSM close of the "context" object
->> contains the pio send context.
->>
->> The lack of the locking can cause the recovery to access the already
->> freed pio send context object and incorrectly deduce that the pio
->> send context is actually a kernel pio send context as shown by the
->> NULL deref stack below:
->>
->> [<ffffffff8143d78c>] _dev_info+0x6c/0x90
->> [<ffffffffc0613230>] sc_restart+0x70/0x1f0 [hfi1]
->> [<ffffffff816ab124>] ? __schedule+0x424/0x9b0
->> [<ffffffffc06133c5>] sc_halted+0x15/0x20 [hfi1]
->> [<ffffffff810aa3ba>] process_one_work+0x17a/0x440
->> [<ffffffff810ab086>] worker_thread+0x126/0x3c0
->> [<ffffffff810aaf60>] ? manage_workers.isra.24+0x2a0/0x2a0
->> [<ffffffff810b252f>] kthread+0xcf/0xe0
->> [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
->> [<ffffffff816b8798>] ret_from_fork+0x58/0x90
->> [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
->>
->> This is the best case scenario and other scenarios can corrupt the
->> already freed memory.
->>
->> Fix by adding the necessary locking in the pio send context error
->> handler.
->>
->> Cc: <stable@vger.kernel.org> # 4.9.x
->> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
->> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
->> Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
->> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
->> ---
->>   drivers/infiniband/hw/hfi1/chip.c |    4 ++++
->>   1 files changed, 4 insertions(+), 0 deletions(-)
+On Thu, Apr 12, 2018 at 09:49:11AM +0000, Israel Rukshin wrote:
+> Adding the vector offset when calling to mlx5_vector2eqn() is wrong.
+> This is because mlx5_vector2eqn() checks if EQ index is equal to vector number
+> and the fact that the internal completion vectors that mlx5 allocates
+> don't get an EQ index.
 > 
-> Why are you sending this to for-next not for-rc?
+> The second problem here is that using effective_affinity_mask gives the same
+> CPU for different vectors.
+> This leads to unmapped queues when calling it from blk_mq_rdma_map_queues().
+> This doesn't happen when using affinity_hint mask.
+> 
+Except that affinity_hint is only defined if SMP is enabled. Without:
 
-I went back and forth on this one. In the end decided against it because 
-we've lived with it for so long, note stable tag is all the way back to 
-4.9, that and the fact that it's extremely unlikely to occur. I would be 
-fine including it with the -rc though. I think a case could be made 
-either way.
+include/linux/mlx5/driver.h: In function ‘mlx5_get_vector_affinity_hint’:
+include/linux/mlx5/driver.h:1299:13: error:
+        ‘struct irq_desc’ has no member named ‘affinity_hint’
 
--Denny
+Note that this is the only use of affinity_hint outside kernel/irq.
+Don't other drivers have similar problems ?
+
+Guenter
+
+> Fixes: 2572cf57d75a ("mlx5: fix mlx5_get_vector_affinity to start from completion vector 0")
+> Fixes: 05e0cc84e00c ("net/mlx5: Fix get vector affinity helper function")
+> Signed-off-by: Israel Rukshin <israelr@mellanox.com>
+> Reviewed-by: Max Gurtovoy <maxg@mellanox.com>
+> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c |  2 +-
+>  include/linux/mlx5/driver.h       | 12 +++---------
+>  2 files changed, 4 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index daa919e5a442..241cf4ff9901 100644
+> --- a/drivers/infiniband/hw/mlx5/main.c
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -4757,7 +4757,7 @@ mlx5_ib_get_vector_affinity(struct ib_device *ibdev, int comp_vector)
+>  {
+>  	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+>  
+> -	return mlx5_get_vector_affinity(dev->mdev, comp_vector);
+> +	return mlx5_get_vector_affinity_hint(dev->mdev, comp_vector);
+>  }
+>  
+>  /* The mlx5_ib_multiport_mutex should be held when calling this function */
+> diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+> index 767d193c269a..2a156c5dfadd 100644
+> --- a/include/linux/mlx5/driver.h
+> +++ b/include/linux/mlx5/driver.h
+> @@ -1284,25 +1284,19 @@ enum {
+>  };
+>  
+>  static inline const struct cpumask *
+> -mlx5_get_vector_affinity(struct mlx5_core_dev *dev, int vector)
+> +mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
+>  {
+> -	const struct cpumask *mask;
+>  	struct irq_desc *desc;
+>  	unsigned int irq;
+>  	int eqn;
+>  	int err;
+>  
+> -	err = mlx5_vector2eqn(dev, MLX5_EQ_VEC_COMP_BASE + vector, &eqn, &irq);
+> +	err = mlx5_vector2eqn(dev, vector, &eqn, &irq);
+>  	if (err)
+>  		return NULL;
+>  
+>  	desc = irq_to_desc(irq);
+> -#ifdef CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK
+> -	mask = irq_data_get_effective_affinity_mask(&desc->irq_data);
+> -#else
+> -	mask = desc->irq_common_data.affinity;
+> -#endif
+> -	return mask;
+> +	return desc->affinity_hint;
+>  }
+>  
+>  #endif /* MLX5_DRIVER_H */
+> -- 
+> 2.7.4
