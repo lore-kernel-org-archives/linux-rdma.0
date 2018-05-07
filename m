@@ -1,68 +1,69 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [pull request][for-next 0/6] Mellanox, mlx5 updates 2018-05-07
-Date: Mon,  7 May 2018 16:52:58 -0700
-Message-ID: <20180507235304.25085-1-saeedm@mellanox.com>
+Subject: [for-next 1/6] net/mlx5: remove some extraneous spaces in indentations
+Date: Mon,  7 May 2018 16:52:59 -0700
+Message-ID: <20180507235304.25085-2-saeedm@mellanox.com>
+References: <20180507235304.25085-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180507235304.25085-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Colin Ian King <colin.king@canonical.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Dave & Doug,
+From: Colin Ian King <colin.king@canonical.com>
 
-This pull request includes misc updates and cleanups for mlx5 core
-driver for both net and rdma next branches, for more information please
-see tag log below.
+There are several lines where there is an extraneous space causing
+indentation misalignment. Remove them.
 
-Please pull and let me know if there's any problem.
+Cleans up Cocconelle warnings:
 
-Thanks,
-Saeed.
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:409:3-18: code aligned
+with following code on line 410
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:415:3-18: code aligned
+with following code on line 416
+./drivers/net/ethernet/mellanox/mlx5/core/qp.c:421:3-18: code aligned
+with following code on line 422
 
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
-
-  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-updates-2018-05-07
-
-for you to fetch changes up to a8408f4e6db775e245f20edf12b13fd58cc03a1c:
-
-  net/mlx5: fix spelling mistake: "modfiy" -> "modify" (2018-05-04 12:11:51 -0700)
-
-----------------------------------------------------------------
-mlx5-updates-2018-05-07
-
-mlx5 core driver misc cleanups and updates:
- - fix spelling mistake: "modfiy" -> "modify"
- - Cleanup unused field in Work Queue parameters
- - dump_command mailbox length printed
- - Refactor num of blocks in mailbox calculation
- - Decrease level of prints about non-existent MKEY
- - remove some extraneous spaces in indentations
-
-----------------------------------------------------------------
-Colin Ian King (2):
-      net/mlx5: remove some extraneous spaces in indentations
-      net/mlx5: fix spelling mistake: "modfiy" -> "modify"
-
-Leon Romanovsky (1):
-      net/mlx5: Decrease level of prints about non-existent MKEY
-
-Moshe Shemesh (2):
-      net/mlx5: Refactor num of blocks in mailbox calculation
-      net/mlx5: Fix dump_command mailbox length printed
-
-Tariq Toukan (1):
-      net/mlx5: Cleanup unused field in Work Queue parameters
-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c     | 28 ++++++++++++-----------
- drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  1 -
- drivers/net/ethernet/mellanox/mlx5/core/mr.c      |  4 ++--
- drivers/net/ethernet/mellanox/mlx5/core/qp.c      | 18 +++++++--------
- drivers/net/ethernet/mellanox/mlx5/core/wq.h      |  1 -
- 6 files changed, 27 insertions(+), 27 deletions(-)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index 02d6c5b5d502..4ca07bfb6b14 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -407,21 +407,21 @@ static int modify_qp_mbox_alloc(struct mlx5_core_dev *dev, u16 opcode, int qpn,
+ 	case MLX5_CMD_OP_RST2INIT_QP:
+ 		if (MBOX_ALLOC(mbox, rst2init_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(rst2init_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(rst2init_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_INIT2RTR_QP:
+ 		if (MBOX_ALLOC(mbox, init2rtr_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(init2rtr_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(init2rtr_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_RTR2RTS_QP:
+ 		if (MBOX_ALLOC(mbox, rtr2rts_qp))
+ 			return -ENOMEM;
+-		 MOD_QP_IN_SET_QPC(rtr2rts_qp, mbox->in, opcode, qpn,
+-				   opt_param_mask, qpc);
+-		 break;
++		MOD_QP_IN_SET_QPC(rtr2rts_qp, mbox->in, opcode, qpn,
++				  opt_param_mask, qpc);
++		break;
+ 	case MLX5_CMD_OP_RTS2RTS_QP:
+ 		if (MBOX_ALLOC(mbox, rts2rts_qp))
+ 			return -ENOMEM;
+-- 
+2.14.3
