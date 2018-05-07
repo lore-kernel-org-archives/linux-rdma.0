@@ -1,40 +1,68 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Mon, 7 May 2018 17:34:53 -0600
-Message-ID: <dc207a94-35a6-6182-1331-154ece9ac00d@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <20180507232346.GI161390@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180507232346.GI161390-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [pull request][for-next 0/6] Mellanox, mlx5 updates 2018-05-07
+Date: Mon,  7 May 2018 16:52:58 -0700
+Message-ID: <20180507235304.25085-1-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Dave & Doug,
 
-> How do you envison merging this?  There's a big chunk in drivers/pci, but
-> really no opportunity for conflicts there, and there's significant stuff in
-> block and nvme that I don't really want to merge.
-> 
-> If Alex is OK with the ACS situation, I can ack the PCI parts and you could
-> merge it elsewhere?
+This pull request includes misc updates and cleanups for mlx5 core
+driver for both net and rdma next branches, for more information please
+see tag log below.
 
-Honestly, I don't know. I guess with your ACK on the PCI parts, the vast
-balance is NVMe stuff so we could look at merging it through that tree.
-The block patch and IB patch are pretty small.
+Please pull and let me know if there's any problem.
 
 Thanks,
+Saeed.
 
-Logan
+---
+
+The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
+
+  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-updates-2018-05-07
+
+for you to fetch changes up to a8408f4e6db775e245f20edf12b13fd58cc03a1c:
+
+  net/mlx5: fix spelling mistake: "modfiy" -> "modify" (2018-05-04 12:11:51 -0700)
+
+----------------------------------------------------------------
+mlx5-updates-2018-05-07
+
+mlx5 core driver misc cleanups and updates:
+ - fix spelling mistake: "modfiy" -> "modify"
+ - Cleanup unused field in Work Queue parameters
+ - dump_command mailbox length printed
+ - Refactor num of blocks in mailbox calculation
+ - Decrease level of prints about non-existent MKEY
+ - remove some extraneous spaces in indentations
+
+----------------------------------------------------------------
+Colin Ian King (2):
+      net/mlx5: remove some extraneous spaces in indentations
+      net/mlx5: fix spelling mistake: "modfiy" -> "modify"
+
+Leon Romanovsky (1):
+      net/mlx5: Decrease level of prints about non-existent MKEY
+
+Moshe Shemesh (2):
+      net/mlx5: Refactor num of blocks in mailbox calculation
+      net/mlx5: Fix dump_command mailbox length printed
+
+Tariq Toukan (1):
+      net/mlx5: Cleanup unused field in Work Queue parameters
+
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c     | 28 ++++++++++++-----------
+ drivers/net/ethernet/mellanox/mlx5/core/en_arfs.c |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  1 -
+ drivers/net/ethernet/mellanox/mlx5/core/mr.c      |  4 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c      | 18 +++++++--------
+ drivers/net/ethernet/mellanox/mlx5/core/wq.h      |  1 -
+ 6 files changed, 27 insertions(+), 27 deletions(-)
