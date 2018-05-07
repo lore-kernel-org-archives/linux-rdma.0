@@ -1,256 +1,152 @@
-From: Long Li <longli@linuxonhyperv.com>
-Subject: [PATCH 1/7] cifs: smbd: Make upper layer decide when to destroy the transport
-Date: Mon,  7 May 2018 15:20:00 -0700
-Message-ID: <20180507222006.20781-1-longli@linuxonhyperv.com>
-Reply-To: longli@microsoft.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Long Li <longli@microsoft.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v4 01/14] PCI/P2PDMA: Support peer-to-peer memory
+Date: Mon, 7 May 2018 18:00:34 -0500
+Message-ID: <20180507230034.GE161390@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-2-logang@deltatee.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180423233046.21476-2-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
-
-On transport recoonect, upper layer CIFS code destroys the current
-transport and then recoonect. This code path is not used by SMBD, in that
-SMBD destroys its transport on RDMA disconnect notification independent of
-CIFS upper layer behavior.
-
-This approach adds some costs to SMBD layer to handle transport shutdown
-and restart, and to deal with several racing conditions on reconnecting
-transport.
-
-Re-work this code path by introducing a new smbd_destroy. This function is
-called form upper layer to ask SMBD to destroy the transport. SMBD will no
-longer need to destroy the transport by itself while worrying about data
-transfer is in progress. The upper layer guarantees the transport is
-locked.
-
-Signed-off-by: Long Li <longli@microsoft.com>
----
- fs/cifs/connect.c   |   9 ++---
- fs/cifs/smbdirect.c | 114 +++++++++++++++++++++++++++++++++++++++++++---------
- fs/cifs/smbdirect.h |   3 +-
- 3 files changed, 100 insertions(+), 26 deletions(-)
-
-diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
-index 83b0234..5db3e9d 100644
---- a/fs/cifs/connect.c
-+++ b/fs/cifs/connect.c
-@@ -377,7 +377,8 @@ cifs_reconnect(struct TCP_Server_Info *server)
- 			 server->ssocket->state, server->ssocket->flags);
- 		sock_release(server->ssocket);
- 		server->ssocket = NULL;
--	}
-+	} else if (cifs_rdma_enabled(server))
-+		smbd_destroy(server);
- 	server->sequence_number = 0;
- 	server->session_estab = false;
- 	kfree(server->session_key.response);
-@@ -710,10 +711,8 @@ static void clean_demultiplex_info(struct TCP_Server_Info *server)
- 	wake_up_all(&server->request_q);
- 	/* give those requests time to exit */
- 	msleep(125);
--	if (cifs_rdma_enabled(server) && server->smbd_conn) {
--		smbd_destroy(server->smbd_conn);
--		server->smbd_conn = NULL;
--	}
-+	if (cifs_rdma_enabled(server))
-+		smbd_destroy(server);
- 	if (server->ssocket) {
- 		sock_release(server->ssocket);
- 		server->ssocket = NULL;
-diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
-index c62f7c9..1aa2d35 100644
---- a/fs/cifs/smbdirect.c
-+++ b/fs/cifs/smbdirect.c
-@@ -318,6 +318,9 @@ static int smbd_conn_upcall(
- 
- 		info->transport_status = SMBD_DISCONNECTED;
- 		smbd_process_disconnected(info);
-+		wake_up(&info->disconn_wait);
-+		wake_up_interruptible(&info->wait_reassembly_queue);
-+		wake_up_interruptible_all(&info->wait_send_queue);
- 		break;
- 
- 	default:
-@@ -1476,17 +1479,97 @@ static void idle_connection_timer(struct work_struct *work)
- 			info->keep_alive_interval*HZ);
- }
- 
--/* Destroy this SMBD connection, called from upper layer */
--void smbd_destroy(struct smbd_connection *info)
-+/*
-+ * Destroy the transport and related RDMA and memory resources
-+ * Need to go through all the pending counters and make sure on one is using
-+ * the transport while it is destroyed
-+ */
-+void smbd_destroy(struct TCP_Server_Info *server)
- {
-+	struct smbd_connection *info = server->smbd_conn;
-+	struct smbd_response *response;
-+	unsigned long flags;
-+
-+	if (!info) {
-+		log_rdma_event(INFO, "rdma session already destroyed\n");
-+		return;
-+	}
-+
- 	log_rdma_event(INFO, "destroying rdma session\n");
-+	if (info->transport_status != SMBD_DISCONNECTED) {
-+		rdma_disconnect(server->smbd_conn->id);
-+		log_rdma_event(INFO, "wait for transport being disconnected\n");
-+		wait_event(
-+			info->disconn_wait,
-+			info->transport_status == SMBD_DISCONNECTED);
-+	}
- 
--	/* Kick off the disconnection process */
--	smbd_disconnect_rdma_connection(info);
-+	log_rdma_event(INFO, "destroying qp\n");
-+	ib_drain_qp(info->id->qp);
-+	rdma_destroy_qp(info->id);
-+
-+	log_rdma_event(INFO, "cancelling idle timer\n");
-+	cancel_delayed_work_sync(&info->idle_timer_work);
-+	log_rdma_event(INFO, "cancelling send immediate work\n");
-+	cancel_delayed_work_sync(&info->send_immediate_work);
- 
--	log_rdma_event(INFO, "wait for transport being destroyed\n");
--	wait_event(info->wait_destroy,
--		info->transport_status == SMBD_DESTROYED);
-+	log_rdma_event(INFO, "wait for all send posted to IB to finish\n");
-+	wait_event(info->wait_send_pending,
-+		atomic_read(&info->send_pending) == 0);
-+	wait_event(info->wait_send_payload_pending,
-+		atomic_read(&info->send_payload_pending) == 0);
-+
-+	/* It's not posssible for upper layer to get to reassembly */
-+	log_rdma_event(INFO, "drain the reassembly queue\n");
-+	do {
-+		spin_lock_irqsave(&info->reassembly_queue_lock, flags);
-+		response = _get_first_reassembly(info);
-+		if (response) {
-+			list_del(&response->list);
-+			spin_unlock_irqrestore(
-+				&info->reassembly_queue_lock, flags);
-+			put_receive_buffer(info, response);
-+		} else
-+			spin_unlock_irqrestore(
-+				&info->reassembly_queue_lock, flags);
-+	} while (response);
-+	info->reassembly_data_length = 0;
-+
-+	log_rdma_event(INFO, "free receive buffers\n");
-+	wait_event(info->wait_receive_queues,
-+		info->count_receive_queue + info->count_empty_packet_queue
-+			== info->receive_credit_max);
-+	destroy_receive_buffers(info);
-+
-+	/*
-+	 * For performance reasons, memory registration and deregistration
-+	 * are not locked by srv_mutex. It is possible some processes are
-+	 * blocked on transport srv_mutex while holding memory registration.
-+	 * Release the transport srv_mutex to allow them to hit the failure
-+	 * path when sending data, and then release memory registartions.
-+	 */
-+	log_rdma_event(INFO, "freeing mr list\n");
-+	wake_up_interruptible_all(&info->wait_mr);
-+	while (atomic_read(&info->mr_used_count)) {
-+		mutex_unlock(&server->srv_mutex);
-+		msleep(1000);
-+		mutex_lock(&server->srv_mutex);
-+	}
-+	destroy_mr_list(info);
-+
-+	ib_free_cq(info->send_cq);
-+	ib_free_cq(info->recv_cq);
-+	ib_dealloc_pd(info->pd);
-+	rdma_destroy_id(info->id);
-+
-+	/* free mempools */
-+	mempool_destroy(info->request_mempool);
-+	kmem_cache_destroy(info->request_cache);
-+
-+	mempool_destroy(info->response_mempool);
-+	kmem_cache_destroy(info->response_cache);
-+
-+	info->transport_status = SMBD_DESTROYED;
- 
- 	destroy_workqueue(info->workqueue);
- 	kfree(info);
-@@ -1511,17 +1594,9 @@ int smbd_reconnect(struct TCP_Server_Info *server)
- 	 */
- 	if (server->smbd_conn->transport_status == SMBD_CONNECTED) {
- 		log_rdma_event(INFO, "disconnecting transport\n");
--		smbd_disconnect_rdma_connection(server->smbd_conn);
-+		smbd_destroy(server);
- 	}
- 
--	/* wait until the transport is destroyed */
--	if (!wait_event_timeout(server->smbd_conn->wait_destroy,
--		server->smbd_conn->transport_status == SMBD_DESTROYED, 5*HZ))
--		return -EAGAIN;
--
--	destroy_workqueue(server->smbd_conn->workqueue);
--	kfree(server->smbd_conn);
--
- create_conn:
- 	log_rdma_event(INFO, "creating rdma session\n");
- 	server->smbd_conn = smbd_get_connection(
-@@ -1730,12 +1805,13 @@ static struct smbd_connection *_smbd_get_connection(
- 	conn_param.retry_count = SMBD_CM_RETRY;
- 	conn_param.rnr_retry_count = SMBD_CM_RNR_RETRY;
- 	conn_param.flow_control = 0;
--	init_waitqueue_head(&info->wait_destroy);
- 
- 	log_rdma_event(INFO, "connecting to IP %pI4 port %d\n",
- 		&addr_in->sin_addr, port);
- 
- 	init_waitqueue_head(&info->conn_wait);
-+	init_waitqueue_head(&info->disconn_wait);
-+	init_waitqueue_head(&info->wait_reassembly_queue);
- 	rc = rdma_connect(info->id, &conn_param);
- 	if (rc) {
- 		log_rdma_event(ERR, "rdma_connect() failed with %i\n", rc);
-@@ -1759,8 +1835,6 @@ static struct smbd_connection *_smbd_get_connection(
- 	}
- 
- 	init_waitqueue_head(&info->wait_send_queue);
--	init_waitqueue_head(&info->wait_reassembly_queue);
--
- 	INIT_DELAYED_WORK(&info->idle_timer_work, idle_connection_timer);
- 	INIT_DELAYED_WORK(&info->send_immediate_work, send_immediate_work);
- 	queue_delayed_work(info->workqueue, &info->idle_timer_work,
-@@ -1801,7 +1875,7 @@ static struct smbd_connection *_smbd_get_connection(
- 
- allocate_mr_failed:
- 	/* At this point, need to a full transport shutdown */
--	smbd_destroy(info);
-+	smbd_destroy(server);
- 	return NULL;
- 
- negotiation_failed:
-diff --git a/fs/cifs/smbdirect.h b/fs/cifs/smbdirect.h
-index f9038da..7849989 100644
---- a/fs/cifs/smbdirect.h
-+++ b/fs/cifs/smbdirect.h
-@@ -71,6 +71,7 @@ struct smbd_connection {
- 	struct completion ri_done;
- 	wait_queue_head_t conn_wait;
- 	wait_queue_head_t wait_destroy;
-+	wait_queue_head_t disconn_wait;
- 
- 	struct completion negotiate_completion;
- 	bool negotiate_done;
-@@ -288,7 +289,7 @@ struct smbd_connection *smbd_get_connection(
- /* Reconnect SMBDirect session */
- int smbd_reconnect(struct TCP_Server_Info *server);
- /* Destroy SMBDirect session */
--void smbd_destroy(struct smbd_connection *info);
-+void smbd_destroy(struct TCP_Server_Info *server);
- 
- /* Interface for carrying upper layer I/O through send/recv */
- int smbd_recv(struct smbd_connection *info, struct msghdr *msg);
--- 
-2.7.4
+T24gTW9uLCBBcHIgMjMsIDIwMTggYXQgMDU6MzA6MzNQTSAtMDYwMCwgTG9nYW4gR3VudGhvcnBl
+IHdyb3RlOgo+IFNvbWUgUENJIGRldmljZXMgbWF5IGhhdmUgbWVtb3J5IG1hcHBlZCBpbiBhIEJB
+UiBzcGFjZSB0aGF0J3MKPiBpbnRlbmRlZCBmb3IgdXNlIGluIHBlZXItdG8tcGVlciB0cmFuc2Fj
+dGlvbnMuIEluIG9yZGVyIHRvIGVuYWJsZQo+IHN1Y2ggdHJhbnNhY3Rpb25zIHRoZSBtZW1vcnkg
+bXVzdCBiZSByZWdpc3RlcmVkIHdpdGggWk9ORV9ERVZJQ0UgcGFnZXMKPiBzbyBpdCBjYW4gYmUg
+dXNlZCBieSBETUEgaW50ZXJmYWNlcyBpbiBleGlzdGluZyBkcml2ZXJzLgo+IAo+IEFkZCBhbiBp
+bnRlcmZhY2UgZm9yIG90aGVyIHN1YnN5c3RlbXMgdG8gZmluZCBhbmQgYWxsb2NhdGUgY2h1bmtz
+IG9mIFAyUAo+IG1lbW9yeSBhcyBuZWNlc3NhcnkgdG8gZmFjaWxpdGF0ZSB0cmFuc2ZlcnMgYmV0
+d2VlbiB0d28gUENJIHBlZXJzOgo+IAo+IGludCBwY2lfcDJwZG1hX2FkZF9jbGllbnQoKTsKPiBz
+dHJ1Y3QgcGNpX2RldiAqcGNpX3AycG1lbV9maW5kKCk7Cj4gdm9pZCAqcGNpX2FsbG9jX3AycG1l
+bSgpOwo+IAo+IFRoZSBuZXcgaW50ZXJmYWNlIHJlcXVpcmVzIGEgZHJpdmVyIHRvIGNvbGxlY3Qg
+YSBsaXN0IG9mIGNsaWVudCBkZXZpY2VzCj4gaW52b2x2ZWQgaW4gdGhlIHRyYW5zYWN0aW9uIHdp
+dGggdGhlIHBjaV9wMnBtZW1fYWRkX2NsaWVudCooKSBmdW5jdGlvbnMKPiB0aGVuIGNhbGwgcGNp
+X3AycG1lbV9maW5kKCkgdG8gb2J0YWluIGFueSBzdWl0YWJsZSBQMlAgbWVtb3J5LiBPbmNlCj4g
+dGhpcyBpcyBkb25lIHRoZSBsaXN0IGlzIGJvdW5kIHRvIHRoZSBtZW1vcnkgYW5kIHRoZSBjYWxs
+aW5nIGRyaXZlciBpcwo+IGZyZWUgdG8gYWRkIGFuZCByZW1vdmUgY2xpZW50cyBhcyBuZWNlc3Nh
+cnkgKGFkZGluZyBpbmNvbXBhdGlibGUgY2xpZW50cwo+IHdpbGwgZmFpbCkuIFdpdGggYSBzdWl0
+YWJsZSBwMnBtZW0gZGV2aWNlLCBtZW1vcnkgY2FuIHRoZW4gYmUKPiBhbGxvY2F0ZWQgd2l0aCBw
+Y2lfYWxsb2NfcDJwbWVtKCkgZm9yIHVzZSBpbiBETUEgdHJhbnNhY3Rpb25zLgo+IAo+IERlcGVu
+ZGluZyBvbiBoYXJkd2FyZSwgdXNpbmcgcGVlci10by1wZWVyIG1lbW9yeSBtYXkgcmVkdWNlIHRo
+ZSBiYW5kd2lkdGgKPiBvZiB0aGUgdHJhbnNmZXIgYnV0IGNhbiBzaWduaWZpY2FudGx5IHJlZHVj
+ZSBwcmVzc3VyZSBvbiBzeXN0ZW0gbWVtb3J5Lgo+IFRoaXMgbWF5IGJlIGRlc2lyYWJsZSBpbiBt
+YW55IGNhc2VzOiBmb3IgZXhhbXBsZSBhIHN5c3RlbSBjb3VsZCBiZSBkZXNpZ25lZAo+IHdpdGgg
+YSBzbWFsbCBDUFUgY29ubmVjdGVkIHRvIGEgUENJIHN3aXRjaCBieSBhIHNtYWxsIG51bWJlciBv
+ZiBsYW5lcwoKcy9QQ0kvUENJZS8KCj4gd2hpY2ggd291bGQgbWF4aW1pemUgdGhlIG51bWJlciBv
+ZiBsYW5lcyBhdmFpbGFibGUgdG8gY29ubmVjdCB0byBOVk1lCj4gZGV2aWNlcy4KPiAKPiBUaGUg
+Y29kZSBpcyBkZXNpZ25lZCB0byBvbmx5IHV0aWxpemUgdGhlIHAycG1lbSBkZXZpY2UgaWYgYWxs
+IHRoZSBkZXZpY2VzCj4gaW52b2x2ZWQgaW4gYSB0cmFuc2ZlciBhcmUgYmVoaW5kIHRoZSBzYW1l
+IHJvb3QgcG9ydCAodHlwaWNhbGx5IHRocm91Z2gKCnMvcm9vdCBwb3J0L1BDSSBicmlkZ2UvCgo+
+IGEgbmV0d29yayBvZiBQQ0llIHN3aXRjaGVzKS4gVGhpcyBpcyBiZWNhdXNlIHdlIGhhdmUgbm8g
+d2F5IG9mIGtub3dpbmcKPiB3aGV0aGVyIHBlZXItdG8tcGVlciByb3V0aW5nIGJldHdlZW4gUENJ
+ZSBSb290IFBvcnRzIGlzIHN1cHBvcnRlZAo+IChQQ0llIHI0LjAsIHNlYyAxLjMuMSkuICBBZGRp
+dGlvbmFsbHksIHRoZSBiZW5lZml0cyBvZiBQMlAgdHJhbnNmZXJzIHRoYXQKPiBnbyB0aHJvdWdo
+IHRoZSBSQyBpcyBsaW1pdGVkIHRvIG9ubHkgcmVkdWNpbmcgRFJBTSB1c2FnZSBhbmQsIGluIHNv
+bWUKPiBjYXNlcywgY29kaW5nIGNvbnZlbmllbmNlLiBUaGUgUENJLVNJRyBtYXkgYmUgZXhwbG9y
+aW5nIGFkZGluZyBhIG5ldwo+IGNhcGFiaWxpdHkgYml0IHRvIGFkdmVydGlzZSB3aGV0aGVyIHRo
+aXMgaXMgcG9zc2libGUgZm9yIGZ1dHVyZQo+IGhhcmR3YXJlLgo+IAo+IFRoaXMgY29tbWl0IGlu
+Y2x1ZGVzIHNpZ25pZmljYW50IHJld29yayBhbmQgZmVlZGJhY2sgZnJvbSBDaHJpc3RvcGgKPiBI
+ZWxsd2lnLgo+IAo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waCBIZWxsd2lnIDxoY2hAbHN0LmRl
+Pgo+IFNpZ25lZC1vZmYtYnk6IExvZ2FuIEd1bnRob3JwZSA8bG9nYW5nQGRlbHRhdGVlLmNvbT4K
+PiAtLS0KPiAgZHJpdmVycy9wY2kvS2NvbmZpZyAgICAgICAgfCAgMTcgKysKPiAgZHJpdmVycy9w
+Y2kvTWFrZWZpbGUgICAgICAgfCAgIDEgKwo+ICBkcml2ZXJzL3BjaS9wMnBkbWEuYyAgICAgICB8
+IDY5NCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiAgaW5j
+bHVkZS9saW51eC9tZW1yZW1hcC5oICAgfCAgMTggKysKPiAgaW5jbHVkZS9saW51eC9wY2ktcDJw
+ZG1hLmggfCAxMDAgKysrKysrKwo+ICBpbmNsdWRlL2xpbnV4L3BjaS5oICAgICAgICB8ICAgNCAr
+Cj4gIDYgZmlsZXMgY2hhbmdlZCwgODM0IGluc2VydGlvbnMoKykKPiAgY3JlYXRlIG1vZGUgMTAw
+NjQ0IGRyaXZlcnMvcGNpL3AycGRtYS5jCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBpbmNsdWRlL2xp
+bnV4L3BjaS1wMnBkbWEuaAo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3BjaS9LY29uZmlnIGIv
+ZHJpdmVycy9wY2kvS2NvbmZpZwo+IGluZGV4IDM0YjU2YThmODQ4MC4uYjIzOTZjMjJiNTNlIDEw
+MDY0NAo+IC0tLSBhL2RyaXZlcnMvcGNpL0tjb25maWcKPiArKysgYi9kcml2ZXJzL3BjaS9LY29u
+ZmlnCj4gQEAgLTEyNCw2ICsxMjQsMjMgQEAgY29uZmlnIFBDSV9QQVNJRAo+ICAKPiAgCSAgSWYg
+dW5zdXJlLCBzYXkgTi4KPiAgCj4gK2NvbmZpZyBQQ0lfUDJQRE1BCj4gKwlib29sICJQQ0kgcGVl
+ci10by1wZWVyIHRyYW5zZmVyIHN1cHBvcnQiCj4gKwlkZXBlbmRzIG9uIFBDSSAmJiBaT05FX0RF
+VklDRSAmJiBFWFBFUlQKPiArCXNlbGVjdCBHRU5FUklDX0FMTE9DQVRPUgo+ICsJaGVscAo+ICsJ
+ICBFbmFibGXRlSBkcml2ZXJzIHRvIGRvIFBDSSBwZWVyLXRvLXBlZXIgdHJhbnNhY3Rpb25zIHRv
+IGFuZCBmcm9tCj4gKwkgIEJBUnMgdGhhdCBhcmUgZXhwb3NlZCBpbiBvdGhlciBkZXZpY2VzIHRo
+YXQgYXJlIHRoZSBwYXJ0IG9mCj4gKwkgIHRoZSBoaWVyYXJjaHkgd2hlcmUgcGVlci10by1wZWVy
+IERNQSBpcyBndWFyYW50ZWVkIGJ5IHRoZSBQQ0kKPiArCSAgc3BlY2lmaWNhdGlvbiB0byB3b3Jr
+IChpZS4gYW55dGhpbmcgYmVsb3cgYSBzaW5nbGUgUENJIGJyaWRnZSkuCj4gKwo+ICsJICBNYW55
+IFBDSWUgcm9vdCBjb21wbGV4ZXMgZG8gbm90IHN1cHBvcnQgUDJQIHRyYW5zYWN0aW9ucyBhbmQK
+PiArCSAgaXQncyBoYXJkIHRvIHRlbGwgd2hpY2ggc3VwcG9ydCBpdCBhdCBhbGwsIHNvIGF0IHRo
+aXMgdGltZSwgRE1BCj4gKwkgIHRyYW5zYXRpb25zIG11c3QgYmUgYmV0d2VlbiBkZXZpY2VzIGJl
+aGluZCB0aGUgc2FtZSByb290IHBvcnQuCgpzL0RNQSB0cmFuc2FjdGlvbnMvUENJZSBETUEgdHJh
+bnNhY3Rpb25zLwoKKFRoZW9yZXRpY2FsbHkgUDJQIHNob3VsZCB3b3JrIG9uIGNvbnZlbnRpb25h
+bCBQQ0ksIGFuZCB0aGlzIHNlbnRlbmNlIG9ubHkKYXBwbGllcyB0byBQQ0llLikKCj4gKwkgIChU
+eXBpY2FsbHkgYmVoaW5kIGEgbmV0d29yayBvZiBQQ0llIHN3aXRjaGVzKS4KCk5vdCBzdXJlIHRo
+aXMgbGFzdCBzZW50ZW5jZSBhZGRzIHVzZWZ1bCBpbmZvcm1hdGlvbi4KCj4gKysrIGIvZHJpdmVy
+cy9wY2kvcDJwZG1hLmMKPiBAQCAtMCwwICsxLDY5NCBAQAo+ICsvLyBTUERYLUxpY2Vuc2UtSWRl
+bnRpZmllcjogR1BMLTIuMAo+ICsvKgo+ICsgKiBQQ0kgUGVlciAyIFBlZXIgRE1BIHN1cHBvcnQu
+Cj4gKyAqCj4gKyAqIENvcHlyaWdodCAoYykgMjAxNi0yMDE4LCBMb2dhbiBHdW50aG9ycGUKPiAr
+ICogQ29weXJpZ2h0IChjKSAyMDE2LTIwMTcsIE1pY3Jvc2VtaSBDb3Jwb3JhdGlvbgo+ICsgKiBD
+b3B5cmlnaHQgKGMpIDIwMTcsIENocmlzdG9waCBIZWxsd2lnCj4gKyAqIENvcHlyaWdodCAoYykg
+MjAxOCwgRWlkZXRpY29tIEluYy4KPiArICoKCk5pdDogdW5uZWNlc3NhcnkgYmxhbmsgbGluZS4K
+Cj4gKy8qCj4gKyAqIElmIGEgZGV2aWNlIGlzIGJlaGluZCBhIHN3aXRjaCwgd2UgdHJ5IHRvIGZp
+bmQgdGhlIHVwc3RyZWFtIGJyaWRnZQo+ICsgKiBwb3J0IG9mIHRoZSBzd2l0Y2guIFRoaXMgcmVx
+dWlyZXMgdHdvIGNhbGxzIHRvIHBjaV91cHN0cmVhbV9icmlkZ2UoKToKPiArICogb25lIGZvciB0
+aGUgdXBzdHJlYW0gcG9ydCBvbiB0aGUgc3dpdGNoLCBvbmUgb24gdGhlIHVwc3RyZWFtIHBvcnQK
+PiArICogZm9yIHRoZSBuZXh0IGxldmVsIGluIHRoZSBoaWVyYXJjaHkuIEJlY2F1c2Ugb2YgdGhp
+cywgZGV2aWNlcyBjb25uZWN0ZWQKPiArICogdG8gdGhlIHJvb3QgcG9ydCB3aWxsIGJlIHJlamVj
+dGVkLgo+ICsgKi8KPiArc3RhdGljIHN0cnVjdCBwY2lfZGV2ICpnZXRfdXBzdHJlYW1fYnJpZGdl
+X3BvcnQoc3RydWN0IHBjaV9kZXYgKnBkZXYpCgpUaGlzIGZ1bmN0aW9uIGRvZXNuJ3Qgc2VlbSB0
+byBiZSB1c2VkIGFueW1vcmUuICBUaGFua3MgZm9yIGFsbCB5b3VyIGhhcmQKd29yayB0byBnZXQg
+cmlkIG9mIGl0IQoKPiArewo+ICsJc3RydWN0IHBjaV9kZXYgKnVwMSwgKnVwMjsKPiArCj4gKwlp
+ZiAoIXBkZXYpCj4gKwkJcmV0dXJuIE5VTEw7Cj4gKwo+ICsJdXAxID0gcGNpX2Rldl9nZXQocGNp
+X3Vwc3RyZWFtX2JyaWRnZShwZGV2KSk7Cj4gKwlpZiAoIXVwMSkKPiArCQlyZXR1cm4gTlVMTDsK
+PiArCj4gKwl1cDIgPSBwY2lfZGV2X2dldChwY2lfdXBzdHJlYW1fYnJpZGdlKHVwMSkpOwo+ICsJ
+cGNpX2Rldl9wdXQodXAxKTsKPiArCj4gKwlyZXR1cm4gdXAyOwo+ICt9Cj4gKwo+ICsvKgo+ICsg
+KiBGaW5kIHRoZSBkaXN0YW5jZSB0aHJvdWdoIHRoZSBuZWFyZXN0IGNvbW1vbiB1cHN0cmVhbSBi
+cmlkZ2UgYmV0d2Vlbgo+ICsgKiB0d28gUENJIGRldmljZXMuCj4gKyAqCj4gKyAqIElmIHRoZSB0
+d28gZGV2aWNlcyBhcmUgdGhlIHNhbWUgZGV2aWNlIHRoZW4gMCB3aWxsIGJlIHJldHVybmVkLgo+
+ICsgKgo+ICsgKiBJZiB0aGVyZSBhcmUgdHdvIHZpcnR1YWwgZnVuY3Rpb25zIG9mIHRoZSBzYW1l
+IGRldmljZSBiZWhpbmQgdGhlIHNhbWUKPiArICogYnJpZGdlIHBvcnQgdGhlbiAyIHdpbGwgYmUg
+cmV0dXJuZWQgKG9uZSBzdGVwIGRvd24gdG8gdGhlIGJyaWRnZSB0aGVuCgpzL2JyaWRnZS9QQ0ll
+IHN3aXRjaC8KCj4gKyAqIG9uZSBzdGVwIGJhY2sgdG8gdGhlIHNhbWUgZGV2aWNlKS4KPiArICoK
+PiArICogSW4gdGhlIGNhc2Ugd2hlcmUgdHdvIGRldmljZXMgYXJlIGNvbm5lY3RlZCB0byB0aGUg
+c2FtZSBQQ0llIHN3aXRjaCwgdGhlCj4gKyAqIHZhbHVlIDQgd2lsbCBiZSByZXR1cm5lZC4gVGhp
+cyBjb3JyZXNwb25kcyB0byB0aGUgZm9sbG93aW5nIFBDSSB0cmVlOgo+ICsgKgo+ICsgKiAgICAg
+LSsgIFJvb3QgUG9ydAo+ICsgKiAgICAgIFwrIFN3aXRjaCBVcHN0cmVhbSBQb3J0Cj4gKyAqICAg
+ICAgICstKyBTd2l0Y2ggRG93bnN0cmVhbSBQb3J0Cj4gKyAqICAgICAgICsgXC0gRGV2aWNlIEEK
+PiArICogICAgICAgXC0rIFN3aXRjaCBEb3duc3RyZWFtIFBvcnQKPiArICogICAgICAgICBcLSBE
+ZXZpY2UgQgo+ICsgKgo+ICsgKiBUaGUgZGlzdGFuY2UgaXMgNCBiZWNhdXNlIHdlIHRyYXZlcnNl
+IGZyb20gRGV2aWNlIEEgdGhyb3VnaCB0aGUgZG93bnN0cmVhbQo+ICsgKiBwb3J0IG9mIHRoZSBz
+d2l0Y2gsIHRvIHRoZSBjb21tb24gdXBzdHJlYW0gcG9ydCwgYmFjayB1cCB0byB0aGUgc2Vjb25k
+Cj4gKyAqIGRvd25zdHJlYW0gcG9ydCBhbmQgdGhlbiB0byBEZXZpY2UgQi4KPiArICoKPiArICog
+QW55IHR3byBkZXZpY2VzIHRoYXQgZG9uJ3QgaGF2ZSBhIGNvbW1vbiB1cHN0cmVhbSBicmlkZ2Ug
+d2lsbCByZXR1cm4gLTEuCj4gKyAqIEluIHRoaXMgd2F5IGRldmljZXMgb24gc2VwZXJhdGUgcm9v
+dCBwb3J0cyB3aWxsIGJlIHJlamVjdGVkLCB3aGljaAoKcy9zZXBlcmF0ZS9zZXBhcmF0ZS8Kcy9y
+b290IHBvcnQvUENJZSByb290IHBvcnRzLwooQWdhaW4sIHNpbmNlIFAyUCBzaG91bGQgd29yayBv
+biBjb252ZW50aW9uYWwgUENJKQoKPiArICogaXMgd2hhdCB3ZSB3YW50IGZvciBwZWVyLXRvLXBl
+ZXIgc2VlaW5nIHRoZXJlJ3Mgbm8gd2F5IHRvIGRldGVybWluZQo+ICsgKiBpZiB0aGUgcm9vdCBj
+b21wbGV4IHN1cHBvcnRzIGZvcndhcmRpbmcgYmV0d2VlbiByb290IHBvcnRzLgoKcy9zZWVpbmcg
+dGhlcmUncyBubyB3YXkuLi4vCiAgc2VlaW5nIGVhY2ggUENJZSByb290IHBvcnQgZGVmaW5lcyBh
+IHNlcGFyYXRlIGhpZXJhcmNoeSBkb21haW4gYW5kCiAgdGhlcmUncyBubyB3YXkgdG8gZGV0ZXJt
+aW5lIHdoZXRoZXIgdGhlIHJvb3QgY29tcGxleCBzdXBwb3J0cyBmb3J3YXJkaW5nCiAgYmV0d2Vl
+biB0aGVtLi8KCj4gKyAqCj4gKyAqIEluIHRoZSBjYXNlIHdoZXJlIHR3byBkZXZpY2VzIGFyZSBj
+b25uZWN0ZWQgdG8gZGlmZmVyZW50IFBDSWUgc3dpdGNoZXMKPiArICogdGhpcyBmdW5jdGlvbiB3
+aWxsIHN0aWxsIHJldHVybiBhIHBvc2l0aXZlIGRpc3RhbmNlIGFzIGxvbmcgYXMgYm90aAo+ICsg
+KiBzd2l0Y2hlcyBldmVudXRhbGx5IGhhdmUgYSBjb21tb24gdXBzdHJlYW0gYnJpZGdlLiBOb3Rl
+IHRoaXMgY292ZXJzCj4gKyAqIHRoZSBjYXNlIG9mIHVzaW5nIG11bHRpcGxlIFBDSWUgc3dpdGNo
+ZXMgdG8gYWNoaWV2ZSBhIGRlc2lyZWQgbGV2ZWwgb2YKPiArICogZmFuLW91dCBmcm9tIGEgcm9v
+dCBwb3J0LiBUaGUgZXhhY3QgZGlzdGFuY2Ugd2lsbCBiZSBhIGZ1bmN0aW9uIG9mIHRoZQo+ICsg
+KiBudW1iZXIgb2Ygc3dpdGNoZXMgYmV0d2VlbiBEZXZpY2UgQSBhbmQgRGV2aWNlIEIuCj4gKyAq
+CgpOaXQ6IHVubmVjZXNzYXJ5IGJsYW5rIGxpbmUuCgo+ICsgKi8KPiArc3RhdGljIGludCB1cHN0
+cmVhbV9icmlkZ2VfZGlzdGFuY2Uoc3RydWN0IHBjaV9kZXYgKmEsID4gKwkJCQkgICAgc3RydWN0
+IHBjaV9kZXYgKmIpCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
+aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
