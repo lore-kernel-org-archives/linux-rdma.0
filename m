@@ -1,92 +1,59 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v1 iproute2-next 3/3] rdma: update man pages
-Date: Mon, 7 May 2018 08:53:22 -0700
-Message-ID: <d1bfde0c077eafa04dbc8b5f0a5d7173b690919a.1525709213.git.swise@opengridcomputing.com>
-References: <cover.1525709213.git.swise@opengridcomputing.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1525709213.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: dsahern@gmail.com, leon@kernel.org
-Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Long Li <longli@linuxonhyperv.com>
+Subject: [PATCH 4/7] cifs: smbd: Indicate to retry on transport sending failure
+Date: Mon,  7 May 2018 15:20:03 -0700
+Message-ID: <20180507222006.20781-4-longli@linuxonhyperv.com>
+References: <20180507222006.20781-1-longli@linuxonhyperv.com>
+Reply-To: longli@microsoft.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180507222006.20781-1-longli@linuxonhyperv.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Update the man pages for the resource attributes as well
-as the driver-specific attributes.
+From: Long Li <longli@microsoft.com>
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+Failure to send a packet doesn't mean it's a permanent failure, it can't be
+returned to user process. This I/O should be retried or failed based on
+server packet response and transport health. This logic is handled by the
+upper layer.
+
+Give this decision to upper layer.
+
+Signed-off-by: Long Li <longli@microsoft.com>
 ---
- man/man8/rdma-resource.8 | 29 ++++++++++++++++++++++++++---
- man/man8/rdma.8          |  2 +-
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ fs/cifs/smbdirect.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index ff5d25d..40b073d 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -7,13 +7,16 @@ rdma-resource \- rdma resource configuration
- .in +8
- .ti -8
- .B rdma
--.RI "[ " OPTIONS " ]"
--.B resource
--.RI  " { " COMMAND " | "
-+.RI "[ " OPTIONS " ] " RESOURCE " { " COMMAND " | "
- .BR help " }"
- .sp
+diff --git a/fs/cifs/smbdirect.c b/fs/cifs/smbdirect.c
+index b8dd493..74620f5 100644
+--- a/fs/cifs/smbdirect.c
++++ b/fs/cifs/smbdirect.c
+@@ -851,7 +851,7 @@ static int smbd_create_header(struct smbd_connection *info,
  
- .ti -8
-+.IR RESOURCE " := { "
-+.BR cm_id " | " cq " | " mr " | " pd " | " qp " }"
-+.sp
-+
-+.ti -8
- .IR OPTIONS " := { "
- \fB\-j\fR[\fIson\fR] |
- \fB\-d\fR[\fIetails\fR] }
-@@ -70,11 +73,31 @@ rdma res show qp link mlx5_4/- -d
- Detailed view.
- .RE
- .PP
-+rdma res show qp link mlx5_4/- -dd
-+.RS 4
-+Detailed view including driver-specific details.
-+.RE
-+.PP
- rdma res show qp link mlx5_4/1 lqpn 0-6
- .RS 4
- Limit to specific Local QPNs.
- .RE
- .PP
-+rdma resource show cm_id dst-port 7174
-+.RS 4
-+Show CM_IDs with destination ip port of 7174.
-+.RE
-+.PP
-+rdma resource show cm_id src-addr 172.16.0.100
-+.RS 4
-+Show CM_IDs bound to local ip address 172.16.0.100
-+.RE
-+.PP
-+rdma resource show cq pid 30489
-+.RS 4
-+Show CQs belonging to pid 30489
-+.RE
-+.PP
+ 	if (info->transport_status != SMBD_CONNECTED) {
+ 		log_outgoing(ERR, "disconnected not sending\n");
+-		return -ENOENT;
++		return -EAGAIN;
+ 	}
+ 	atomic_dec(&info->send_credits);
  
- .SH SEE ALSO
- .BR rdma (8),
-diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
-index 6f88f37..12aa149 100644
---- a/man/man8/rdma.8
-+++ b/man/man8/rdma.8
-@@ -49,7 +49,7 @@ If there were any errors during execution of the commands, the application retur
+@@ -977,6 +977,7 @@ static int smbd_post_send(struct smbd_connection *info,
+ 				wake_up(&info->wait_send_pending);
+ 		}
+ 		smbd_disconnect_rdma_connection(info);
++		rc = -EAGAIN;
+ 	} else
+ 		/* Reset timer for idle connection after packet is sent */
+ 		mod_delayed_work(info->workqueue, &info->idle_timer_work,
+@@ -2062,7 +2063,7 @@ int smbd_send(struct smbd_connection *info, struct smb_rqst *rqst)
+ 	int rc;
  
- .TP
- .BR "\-d" , " --details"
--Output detailed information.
-+Output detailed information.  Adding a second \-d includes driver-specific details.
+ 	if (info->transport_status != SMBD_CONNECTED) {
+-		rc = -ENODEV;
++		rc = -EAGAIN;
+ 		goto done;
+ 	}
  
- .TP
- .BR "\-p" , " --pretty"
 -- 
-1.8.3.1
+2.7.4
