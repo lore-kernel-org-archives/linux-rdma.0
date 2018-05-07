@@ -1,45 +1,54 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 2/6] net/mlx5: Decrease level of prints about non-existent MKEY
-Date: Mon,  7 May 2018 16:53:00 -0700
-Message-ID: <20180507235304.25085-3-saeedm@mellanox.com>
+Subject: [for-next 4/6] net/mlx5: Fix dump_command mailbox length printed
+Date: Mon,  7 May 2018 16:53:02 -0700
+Message-ID: <20180507235304.25085-5-saeedm@mellanox.com>
 References: <20180507235304.25085-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180507235304.25085-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Moshe Shemesh <moshe@mellanox.com>
 
-User-controlled application can cause multiple prints as below to flood
-dmesg. Since knowledge of failed MKey release is important for debug,
-let's decrease its level to debug.
+Dump command mailbox length printed was correct only if data_only flag
+was set. For the case that data_only flag was clear the offset to stop
+printing at was wrong and so the buffer printed was too short.
+Changed the print loop to stop according to number of buffers in
+mailbox.
 
-mlx5_core 0000:00:04.0: mlx5_core_destroy_mkey:127:(pid 2352): failed
-radix tree delete of mkey 0x1ed700
-
-Reported-by: Noa Osherovich <noaos@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/mr.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-index b9736f505bdf..f4f02f775c93 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-@@ -123,8 +123,8 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev,
- 	deleted_mkey = radix_tree_delete(&table->tree, mlx5_base_mkey(mkey->key));
- 	write_unlock_irqrestore(&table->lock, flags);
- 	if (!deleted_mkey) {
--		mlx5_core_warn(dev, "failed radix tree delete of mkey 0x%x\n",
--			       mlx5_base_mkey(mkey->key));
-+		mlx5_core_dbg(dev, "failed radix tree delete of mkey 0x%x\n",
-+			      mlx5_base_mkey(mkey->key));
- 		return -ENOENT;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 0f7062104ad9..487388aed98f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -722,9 +722,11 @@ static void dump_command(struct mlx5_core_dev *dev,
+ 	struct mlx5_cmd_msg *msg = input ? ent->in : ent->out;
+ 	u16 op = MLX5_GET(mbox_in, ent->lay->in, opcode);
+ 	struct mlx5_cmd_mailbox *next = msg->next;
++	int n = mlx5_calc_cmd_blocks(msg);
+ 	int data_only;
+ 	u32 offset = 0;
+ 	int dump_len;
++	int i;
+ 
+ 	data_only = !!(mlx5_core_debug_mask & (1 << MLX5_CMD_DATA));
+ 
+@@ -751,7 +753,7 @@ static void dump_command(struct mlx5_core_dev *dev,
+ 		offset += sizeof(*ent->lay);
  	}
  
+-	while (next && offset < msg->len) {
++	for (i = 0; i < n && next; i++)  {
+ 		if (data_only) {
+ 			dump_len = min_t(int, MLX5_CMD_DATA_BLOCK_SIZE, msg->len - offset);
+ 			dump_buf(next->buf, dump_len, 1, offset);
 -- 
 2.14.3
