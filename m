@@ -1,200 +1,118 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [PATCH 5/7] cifs: smbd: Protect memory registration using RCU
-Date: Tue, 8 May 2018 22:16:23 +0000
-Message-ID: <MWHPR2101MB0729D64EBD5E4BAE67C26E7CCE9A0@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20180507222006.20781-5-longli@linuxonhyperv.com>
- <201805081349.MX5qQDch%fengguang.wu@intel.com>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Tue, 8 May 2018 18:21:15 -0400
+Message-ID: <11819753-af26-4632-8580-d4a47127a3b2@redhat.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508144341.0441b676@w520.home>
+ <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
+ <20180508152631.50fd583c@w520.home>
+ <354F7407-0DC7-470C-B9AA-74FDF9C46B08@raithlin.com>
+ <20180508160336.0935ddde@w520.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201805081349.MX5qQDch%fengguang.wu@intel.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180508160336.0935ddde-DGNDKt5SQtizQB+pC5nmwQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>, Long Li <longli@linuxonhyperv.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Steve
+On 05/08/2018 06:03 PM, Alex Williamson wrote:
+> On Tue, 8 May 2018 21:42:27 +0000
+> "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote:
+> 
+>> Hi Alex
+>>
+>>>     But it would be a much easier proposal to disable ACS when the
+>>> IOMMU is not enabled, ACS has no real purpose in that case.
+>>
+>> I guess one issue I have with this is that it disables IOMMU groups
+>> for all Root Ports and not just the one(s) we wish to do p2pdma on.
+> 
+> But as I understand this series, we're not really targeting specific
+> sets of devices either.  It's more of a shotgun approach that we
+> disable ACS on downstream switch ports and hope that we get the right
+> set of devices, but with the indecisiveness that we might later
+> white-list select root ports to further increase the blast radius.
+> 
+>>>     The IOMMU and P2P are already not exclusive, we can bounce off
+>>> the IOMMU or make use of ATS as we've previously discussed.  We were
+>>>     previously talking about a build time config option that you
+>>> didn't expect distros to use, so I don't think intervention for the
+>>> user to disable the IOMMU if it's enabled by default is a serious
+>>> concern either.
+>>
+>> ATS definitely makes things more interesting for the cases where the
+>> EPs support it. However I don't really have a handle on how common
+>> ATS support is going to be in the kinds of devices we have been
+>> focused on (NVMe SSDs and RDMA NICs mostly).
+>>
+>>> What you're trying to do is enabled direct peer-to-peer for
+>>> endpoints which do not support ATS when the IOMMU is enabled, which
+>>> is not something that necessarily makes sense to me.
+>>
+>> As above the advantage of leaving the IOMMU on is that it allows for
+>> both p2pdma PCI domains and IOMMU groupings PCI domains in the same
+>> system. It is just that these domains will be separate to each other.
+> 
+> That argument makes sense if we had the ability to select specific sets
+> of devices, but that's not the case here, right?  With the shotgun
+> approach, we're clearly favoring one at the expense of the other and
+> it's not clear why we don't simple force the needle all the way in that
+> direction such that the results are at least predictable.
+> 
+>>>   So that leaves avoiding bounce buffers as the remaining IOMMU
+>>> feature
+>>
+>> I agree with you here that the devices we will want to use for p2p
+>> will probably not require a bounce buffer and will support 64 bit DMA
+>> addressing.
+>>
+>>> I'm still not seeing why it's terribly undesirable to require
+>>> devices to support ATS if they want to do direct P2P with an IOMMU
+>>> enabled.
+>>
+>> I think the one reason is for the use-case above. Allowing IOMMU
+>> groupings on one domain and p2pdma on another domain....
+> 
+> If IOMMU grouping implies device assignment (because nobody else uses
+> it to the same extent as device assignment) then the build-time option
+> falls to pieces, we need a single kernel that can do both.  I think we
+> need to get more clever about allowing the user to specify exactly at
+> which points in the topology they want to disable isolation.  Thanks,
+> 
+> Alex
 
-Please drop this patch. I will find another solution.
++1/ack
 
-The other patches in the series can be reviewed and applied.
+RDMA VFs lend themselves to NVMEoF w/device-assignment.... need a way to
+put NVME 'resources' into an assignable/manageable object for 'IOMMU-grouping',
+which is really a 'DMA security domain' and less an 'IOMMU grouping domain'.
 
-Long
 
-> -----Original Message-----
-> From: kbuild test robot <lkp@intel.com>
-> Sent: Monday, May 7, 2018 11:36 PM
-> To: Long Li <longli@linuxonhyperv.com>
-> Cc: kbuild-all@01.org; Steve French <sfrench@samba.org>; linux-
-> cifs@vger.kernel.org; samba-technical@lists.samba.org; linux-
-> kernel@vger.kernel.org; linux-rdma@vger.kernel.org; Long Li
-> <longli@microsoft.com>
-> Subject: Re: [PATCH 5/7] cifs: smbd: Protect memory registration using RC=
-U
->=20
-> Hi Long,
->=20
-> Thank you for the patch! Perhaps something to improve:
->=20
-> [auto build test WARNING on cifs/for-next] [also build test WARNING on
-> v4.17-rc4 next-20180507] [if your patch is applied to the wrong git tree,
-> please drop us a note to help improve the system]
->=20
-> url:
-> https://na01.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Fgithub
-> .com%2F0day-ci%2Flinux%2Fcommits%2FLong-Li%2Fcifs-smbd-Make-upper-
-> layer-decide-when-to-destroy-the-transport%2F20180508-
-> 110150&data=3D02%7C01%7Clongli%40microsoft.com%7C56045b01aeae4e53b1
-> 9408d5b4ae0502%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C6366
-> 13581873868980&sdata=3Da1Ds3qI7sRrLCE77Eoasifonm1rUQYi7rdUEnLnGOB4%
-> 3D&reserved=3D0
-> base:   git://git.samba.org/sfrench/cifs-2.6.git for-next
-> reproduce:
->         # apt-get install sparse
->         make ARCH=3Dx86_64 allmodconfig
->         make C=3D1 CF=3D-D__CHECK_ENDIAN__
->=20
->=20
-> sparse warnings: (new ones prefixed by >>)
->=20
->    fs/cifs/smb2pdu.c:110:47: sparse: expression using sizeof(void)
->    fs/cifs/smb2pdu.c:681:26: sparse: expression using sizeof(void)
-> >> fs/cifs/smb2pdu.c:2613:17: sparse: incompatible types in comparison
-> >> expression (different address spaces)
->    fs/cifs/smb2pdu.c:2993:17: sparse: incompatible types in comparison
-> expression (different address spaces)
->    fs/cifs/smb2pdu.c:3251:23: sparse: expression using sizeof(void)
->    fs/cifs/smb2pdu.c:3251:23: sparse: expression using sizeof(void)
->    fs/cifs/smb2pdu.c:3252:23: sparse: expression using sizeof(void)
->    fs/cifs/smb2pdu.c:3713:17: sparse: expression using sizeof(void)
->    fs/cifs/smb2pdu.c:3713:17: sparse: expression using sizeof(void)
->=20
-> vim +2613 fs/cifs/smb2pdu.c
->=20
->   2565
->   2566	/*
->   2567	 * To form a chain of read requests, any read requests after the f=
-irst
-> should
->   2568	 * have the end_of_chain boolean set to true.
->   2569	 */
->   2570	static int
->   2571	smb2_new_read_req(void **buf, unsigned int *total_len,
->   2572		struct cifs_io_parms *io_parms, struct cifs_readdata *rdata,
->   2573		unsigned int remaining_bytes, int request_type)
->   2574	{
->   2575		int rc =3D -EACCES;
->   2576		struct smb2_read_plain_req *req =3D NULL;
->   2577		struct smb2_sync_hdr *shdr;
->   2578		struct TCP_Server_Info *server;
->   2579
->   2580		rc =3D smb2_plain_req_init(SMB2_READ, io_parms->tcon, (void
-> **) &req,
->   2581					 total_len);
->   2582		if (rc)
->   2583			return rc;
->   2584
->   2585		server =3D io_parms->tcon->ses->server;
->   2586		if (server =3D=3D NULL)
->   2587			return -ECONNABORTED;
->   2588
->   2589		shdr =3D &req->sync_hdr;
->   2590		shdr->ProcessId =3D cpu_to_le32(io_parms->pid);
->   2591
->   2592		req->PersistentFileId =3D io_parms->persistent_fid;
->   2593		req->VolatileFileId =3D io_parms->volatile_fid;
->   2594		req->ReadChannelInfoOffset =3D 0; /* reserved */
->   2595		req->ReadChannelInfoLength =3D 0; /* reserved */
->   2596		req->Channel =3D 0; /* reserved */
->   2597		req->MinimumCount =3D 0;
->   2598		req->Length =3D cpu_to_le32(io_parms->length);
->   2599		req->Offset =3D cpu_to_le64(io_parms->offset);
->   2600	#ifdef CONFIG_CIFS_SMB_DIRECT
->   2601		/*
->   2602		 * If we want to do a RDMA write, fill in and append
->   2603		 * smbd_buffer_descriptor_v1 to the end of read request
->   2604		 */
->   2605		if (server->rdma && rdata && !server->sign &&
->   2606			rdata->bytes >=3D server->smbd_conn-
-> >rdma_readwrite_threshold) {
->   2607
->   2608			struct smbd_buffer_descriptor_v1 *v1;
->   2609			bool need_invalidate =3D
->   2610				io_parms->tcon->ses->server->dialect =3D=3D
-> SMB30_PROT_ID;
->   2611
->   2612			rcu_read_lock();
-> > 2613			rcu_dereference(server->smbd_conn);
->   2614			rdata->mr =3D smbd_register_mr(
->   2615					server->smbd_conn, rdata->pages,
->   2616					rdata->nr_pages, rdata->tailsz,
->   2617					true, need_invalidate);
->   2618			rcu_read_unlock();
->   2619			if (!rdata->mr)
->   2620				return -ENOBUFS;
->   2621
->   2622			req->Channel =3D
-> SMB2_CHANNEL_RDMA_V1_INVALIDATE;
->   2623			if (need_invalidate)
->   2624				req->Channel =3D SMB2_CHANNEL_RDMA_V1;
->   2625			req->ReadChannelInfoOffset =3D
->   2626				cpu_to_le16(offsetof(struct
-> smb2_read_plain_req, Buffer));
->   2627			req->ReadChannelInfoLength =3D
->   2628				cpu_to_le16(sizeof(struct
-> smbd_buffer_descriptor_v1));
->   2629			v1 =3D (struct smbd_buffer_descriptor_v1 *) &req-
-> >Buffer[0];
->   2630			v1->offset =3D cpu_to_le64(rdata->mr->mr->iova);
->   2631			v1->token =3D cpu_to_le32(rdata->mr->mr->rkey);
->   2632			v1->length =3D cpu_to_le32(rdata->mr->mr->length);
->   2633
->   2634			*total_len +=3D sizeof(*v1) - 1;
->   2635		}
->   2636	#endif
->   2637		if (request_type & CHAINED_REQUEST) {
->   2638			if (!(request_type & END_OF_CHAIN)) {
->   2639				/* next 8-byte aligned request */
->   2640				*total_len =3D DIV_ROUND_UP(*total_len, 8) *
-> 8;
->   2641				shdr->NextCommand =3D
-> cpu_to_le32(*total_len);
->   2642			} else /* END_OF_CHAIN */
->   2643				shdr->NextCommand =3D 0;
->   2644			if (request_type & RELATED_REQUEST) {
->   2645				shdr->Flags |=3D
-> SMB2_FLAGS_RELATED_OPERATIONS;
->   2646				/*
->   2647				 * Related requests use info from previous
-> read request
->   2648				 * in chain.
->   2649				 */
->   2650				shdr->SessionId =3D 0xFFFFFFFF;
->   2651				shdr->TreeId =3D 0xFFFFFFFF;
->   2652				req->PersistentFileId =3D 0xFFFFFFFF;
->   2653				req->VolatileFileId =3D 0xFFFFFFFF;
->   2654			}
->   2655		}
->   2656		if (remaining_bytes > io_parms->length)
->   2657			req->RemainingBytes =3D
-> cpu_to_le32(remaining_bytes);
->   2658		else
->   2659			req->RemainingBytes =3D 0;
->   2660
->   2661		*buf =3D req;
->   2662		return rc;
->   2663	}
->   2664
->=20
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Ce=
-nter
-> https://na01.safelinks.protection.outlook.com/?url=3Dhttps%3A%2F%2Flists.=
-01
-> .org%2Fpipermail%2Fkbuild-
-> all&data=3D02%7C01%7Clongli%40microsoft.com%7C56045b01aeae4e53b19408
-> d5b4ae0502%7C72f988bf86f141af91ab2d7cd011db47%7C1%7C0%7C63661358
-> 1873868980&sdata=3Dy3BYFeKEayhIfrs6hodamCPCyz8n3YQdN1yX3yXKs80%3D
-> &reserved=3D0                   Intel Corporation
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
