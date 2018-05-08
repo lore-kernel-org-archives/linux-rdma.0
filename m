@@ -1,7 +1,7 @@
 From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Subject: [PATCH net 1/2] qed: Fix l2 initializations over iWARP personality
-Date: Tue, 8 May 2018 21:29:18 +0300
-Message-ID: <20180508182919.23590-2-Michal.Kalderon@cavium.com>
+Subject: [PATCH net 2/2] qede: Fix gfp flags sent to rdma event node allocation
+Date: Tue, 8 May 2018 21:29:19 +0300
+Message-ID: <20180508182919.23590-3-Michal.Kalderon@cavium.com>
 References: <20180508182919.23590-1-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,40 +12,30 @@ To: michal.kalderon@cavium.com, davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, chad.dupuis@cavium.com, Michal Kalderon <Michal.Kalderon@cavium.com>, Sudarsana Kalluru <Sudarsana.Kalluru@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
-If qede driver was loaded on a device configured for iWARP
-the l2 mutex wouldn't be allocated, and some l2 related
-resources wouldn't be freed.
+A previous commit 4609adc27175 ("qede: Fix qedr link update")
+added a flow that could allocate rdma event objects from an
+interrupt path (link notification). Therefore the kzalloc call
+should be done with GFP_ATOMIC.
 
-fixes: c851a9dc4359 ("qed: Introduce iWARP personality")
+fixes: 4609adc27175 ("qede: Fix qedr link update")
 Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
 Signed-off-by: Sudarsana Kalluru <Sudarsana.Kalluru@cavium.com>
 ---
- drivers/net/ethernet/qlogic/qed/qed_l2.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/qlogic/qede/qede_rdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/qlogic/qed/qed_l2.c b/drivers/net/ethernet/qlogic/qed/qed_l2.c
-index e874504..8667799 100644
---- a/drivers/net/ethernet/qlogic/qed/qed_l2.c
-+++ b/drivers/net/ethernet/qlogic/qed/qed_l2.c
-@@ -115,8 +115,7 @@ int qed_l2_alloc(struct qed_hwfn *p_hwfn)
+diff --git a/drivers/net/ethernet/qlogic/qede/qede_rdma.c b/drivers/net/ethernet/qlogic/qede/qede_rdma.c
+index 50b142f..1900bf7 100644
+--- a/drivers/net/ethernet/qlogic/qede/qede_rdma.c
++++ b/drivers/net/ethernet/qlogic/qede/qede_rdma.c
+@@ -238,7 +238,7 @@ qede_rdma_get_free_event_node(struct qede_dev *edev)
+ 	}
  
- void qed_l2_setup(struct qed_hwfn *p_hwfn)
- {
--	if (p_hwfn->hw_info.personality != QED_PCI_ETH &&
--	    p_hwfn->hw_info.personality != QED_PCI_ETH_ROCE)
-+	if (!QED_IS_L2_PERSONALITY(p_hwfn))
- 		return;
- 
- 	mutex_init(&p_hwfn->p_l2_info->lock);
-@@ -126,8 +125,7 @@ void qed_l2_free(struct qed_hwfn *p_hwfn)
- {
- 	u32 i;
- 
--	if (p_hwfn->hw_info.personality != QED_PCI_ETH &&
--	    p_hwfn->hw_info.personality != QED_PCI_ETH_ROCE)
-+	if (!QED_IS_L2_PERSONALITY(p_hwfn))
- 		return;
- 
- 	if (!p_hwfn->p_l2_info)
+ 	if (!found) {
+-		event_node = kzalloc(sizeof(*event_node), GFP_KERNEL);
++		event_node = kzalloc(sizeof(*event_node), GFP_ATOMIC);
+ 		if (!event_node) {
+ 			DP_NOTICE(edev,
+ 				  "qedr: Could not allocate memory for rdma work\n");
 -- 
 2.9.5
