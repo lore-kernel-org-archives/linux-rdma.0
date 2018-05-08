@@ -1,150 +1,60 @@
-From: Yanjun Zhu <yanjun.zhu@oracle.com>
-Subject: Re: [PATCH v4] nvmet,rxe: defer ip datagram sending to tasklet
-Date: Tue, 8 May 2018 21:41:01 +0800
-Message-ID: <d0d98b95-fd6b-ae14-4700-9bad068140b5@oracle.com>
-References: <20180508090202.GA1690@gmail.com>
+From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Tue, 8 May 2018 14:25:10 +0000
+Message-ID: <479F2F93-903B-4A8A-8989-A4BD0E5E1471@raithlin.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180508090202.GA1690@gmail.com>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <e58e8d27-42a5-ca69-3b68-c409a2922cd1-5C7GfCeVMHo@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Moise <00moses.alexander00@gmail.com>, monis@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-ID: <3CD50565E70F874B8651DD7C38C3ECA2-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Bjorn
+ Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Alex
+ Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+    
+Hi Christian
 
+> AMD APUs mandatory need the ACS flag set for the GPU integrated in the 
+> CPU when IOMMU is enabled or otherwise you will break SVM.
 
-On 2018/5/8 17:02, Alexandru Moise wrote:
-> This addresses 3 separate problems:
->
-> 1. When using NVME over Fabrics we may end up sending IP
-> packets in interrupt context, we should defer this work
-> to a tasklet.
->
-> [   50.939957] WARNING: CPU: 3 PID: 0 at kernel/softirq.c:161 __local_bh_enable_ip+0x1f/0xa0
-> [   50.942602] CPU: 3 PID: 0 Comm: swapper/3 Kdump: loaded Tainted: G        W         4.17.0-rc3-ARCH+ #104
-> [   50.945466] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.11.0-20171110_100015-anatol 04/01/2014
-> [   50.948163] RIP: 0010:__local_bh_enable_ip+0x1f/0xa0
-> [   50.949631] RSP: 0018:ffff88009c183900 EFLAGS: 00010006
-> [   50.951029] RAX: 0000000080010403 RBX: 0000000000000200 RCX: 0000000000000001
-> [   50.952636] RDX: 0000000000000000 RSI: 0000000000000200 RDI: ffffffff817e04ec
-> [   50.954278] RBP: ffff88009c183910 R08: 0000000000000001 R09: 0000000000000614
-> [   50.956000] R10: ffffea00021d5500 R11: 0000000000000001 R12: ffffffff817e04ec
-> [   50.957779] R13: 0000000000000000 R14: ffff88009566f400 R15: ffff8800956c7000
-> [   50.959402] FS:  0000000000000000(0000) GS:ffff88009c180000(0000) knlGS:0000000000000000
-> [   50.961552] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   50.963798] CR2: 000055c4ec0ccac0 CR3: 0000000002209001 CR4: 00000000000606e0
-> [   50.966121] Call Trace:
-> [   50.966845]  <IRQ>
-> [   50.967497]  __dev_queue_xmit+0x62d/0x690
-> [   50.968722]  dev_queue_xmit+0x10/0x20
-> [   50.969894]  neigh_resolve_output+0x173/0x190
-> [   50.971244]  ip_finish_output2+0x2b8/0x370
-> [   50.972527]  ip_finish_output+0x1d2/0x220
-> [   50.973785]  ? ip_finish_output+0x1d2/0x220
-> [   50.975010]  ip_output+0xd4/0x100
-> [   50.975903]  ip_local_out+0x3b/0x50
-> [   50.976823]  rxe_send+0x74/0x120
-> [   50.977702]  rxe_requester+0xe3b/0x10b0
-> [   50.978881]  ? ip_local_deliver_finish+0xd1/0xe0
-> [   50.980260]  rxe_do_task+0x85/0x100
-> [   50.981386]  rxe_run_task+0x2f/0x40
-> [   50.982470]  rxe_post_send+0x51a/0x550
-> [   50.983591]  nvmet_rdma_queue_response+0x10a/0x170
-> [   50.985024]  __nvmet_req_complete+0x95/0xa0
-> [   50.986287]  nvmet_req_complete+0x15/0x60
-> [   50.987469]  nvmet_bio_done+0x2d/0x40
-> [   50.988564]  bio_endio+0x12c/0x140
-> [   50.989654]  blk_update_request+0x185/0x2a0
-> [   50.990947]  blk_mq_end_request+0x1e/0x80
-> [   50.991997]  nvme_complete_rq+0x1cc/0x1e0
-> [   50.993171]  nvme_pci_complete_rq+0x117/0x120
-> [   50.994355]  __blk_mq_complete_request+0x15e/0x180
-> [   50.995988]  blk_mq_complete_request+0x6f/0xa0
-> [   50.997304]  nvme_process_cq+0xe0/0x1b0
-> [   50.998494]  nvme_irq+0x28/0x50
-> [   50.999572]  __handle_irq_event_percpu+0xa2/0x1c0
-> [   51.000986]  handle_irq_event_percpu+0x32/0x80
-> [   51.002356]  handle_irq_event+0x3c/0x60
-> [   51.003463]  handle_edge_irq+0x1c9/0x200
-> [   51.004473]  handle_irq+0x23/0x30
-> [   51.005363]  do_IRQ+0x46/0xd0
-> [   51.006182]  common_interrupt+0xf/0xf
-> [   51.007129]  </IRQ>
->
-> 2. Work must always be offloaded to tasklet for rxe_post_send_kernel()
-> when using NVMEoF in order to solve lock ordering between neigh->ha_lock
-> seqlock and the nvme queue lock:
->
-> [   77.833783]  Possible interrupt unsafe locking scenario:
-> [   77.833783]
-> [   77.835831]        CPU0                    CPU1
-> [   77.837129]        ----                    ----
-> [   77.838313]   lock(&(&n->ha_lock)->seqcount);
-> [   77.839550]                                local_irq_disable();
-> [   77.841377]                                lock(&(&nvmeq->q_lock)->rlock);
-> [   77.843222]                                lock(&(&n->ha_lock)->seqcount);
-> [   77.845178]   <Interrupt>
-> [   77.846298]     lock(&(&nvmeq->q_lock)->rlock);
-> [   77.847986]
-> [   77.847986]  *** DEADLOCK ***
->
-> 3. Same goes for the lock ordering between sch->q.lock and nvme queue lock:
->
-> [   47.634271]  Possible interrupt unsafe locking scenario:
-> [   47.634271]
-> [   47.636452]        CPU0                    CPU1
-> [   47.637861]        ----                    ----
-> [   47.639285]   lock(&(&sch->q.lock)->rlock);
-> [   47.640654]                                local_irq_disable();
-> [   47.642451]                                lock(&(&nvmeq->q_lock)->rlock);
-> [   47.644521]                                lock(&(&sch->q.lock)->rlock);
-> [   47.646480]   <Interrupt>
-> [   47.647263]     lock(&(&nvmeq->q_lock)->rlock);
-> [   47.648492]
-> [   47.648492]  *** DEADLOCK ***
->
-> Using NVMEoF after this patch seems to finally be stable, without it,
-> rxe eventually deadlocks the whole system and causes RCU stalls.
->
-> Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
-Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+OK but in this case aren't you losing (many of) the benefits of P2P since all DMAs will now get routed up to the IOMMU before being passed down to the destination PCIe EP?
 
-Thanks a lot.
-Zhu Yanjun
-> ---
-> v3->v4: only force rxe_post_send_kernel() to always offload work to
-> tasklet, suggestion from Zhu Yanjun. Tested this and it seems OK.
->
->   drivers/infiniband/sw/rxe/rxe_verbs.c | 10 +---------
->   1 file changed, 1 insertion(+), 9 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> index 2cb52fd48cf1..73a00a1c06f6 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
-> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
-> @@ -761,7 +761,6 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, struct ib_send_wr *wr,
->   	unsigned int mask;
->   	unsigned int length = 0;
->   	int i;
-> -	int must_sched;
->   
->   	while (wr) {
->   		mask = wr_opcode_mask(wr->opcode, qp);
-> @@ -791,14 +790,7 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, struct ib_send_wr *wr,
->   		wr = wr->next;
->   	}
->   
-> -	/*
-> -	 * Must sched in case of GSI QP because ib_send_mad() hold irq lock,
-> -	 * and the requester call ip_local_out_sk() that takes spin_lock_bh.
-> -	 */
-> -	must_sched = (qp_type(qp) == IB_QPT_GSI) ||
-> -			(queue_count(qp->sq.queue) > 1);
-> -
-> -	rxe_run_task(&qp->req.task, must_sched);
-> +	rxe_run_task(&qp->req.task, 1);
->   	if (unlikely(qp->req.state == QP_STATE_ERROR))
->   		rxe_run_task(&qp->comp.task, 1);
->   
+> Similar problems arise when you do this for dedicated GPU, but we 
+> haven't upstreamed the support for this yet.
+
+Hmm, as above. With ACS enabled on all downstream ports any P2P enabled DMA will be routed to the IOMMU which removes a lot of the benefit. 
+    
+> So that is a clear NAK from my side for the approach.
+
+Do you have an alternative? This is the approach we arrived it after a reasonably lengthy discussion on the mailing lists. Alex, are you still comfortable with this approach?
+    
+> And what exactly is the problem here?
+ 
+We had a pretty lengthy discussion on this topic on one of the previous revisions. The issue is that currently there is no mechanism in the IOMMU code to inform VMs if IOMMU groupings change. Since p2pdma can dynamically change its topology (due to PCI hotplug) we had to be cognizant of the fact that ACS settings could change. Since there is no way to currently handle changing ACS settings and hence IOMMU groupings the consensus was to simply disable ACS on all ports in a p2pdma domain. This effectively makes all the devices in the p2pdma domain part of the same IOMMU grouping. The plan will be to address this in time and add a mechanism for IOMMU grouping changes and notification to VMs but that's not part of this series. Note you are still allowed to have ACS functioning on other PCI dom
+ ains so if you do not a plurality of IOMMU groupings you can still achieve it (but you can't do p2pdma across IOMMU groupings, which is safe).
+
+> I'm currently testing P2P with  GPUs in different IOMMU domains and at least with AMD IOMMUs that works perfectly fine.
+
+Yup that should work though again I have to ask are you disabling ACS on the ports between the two peer devices to get the p2p benefit? If not you are not getting all the performance benefit (due to IOMMU routing), if you are then there are obviously security implications between those IOMMU domains if they are assigned to different VMs. And now the issue is if new devices are added and the p2p topology needed to change there would be no way to inform the VMs of any IOMMU group change. 
+
+Cheers
+
+Stephen
