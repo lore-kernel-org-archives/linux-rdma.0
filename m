@@ -1,31 +1,20 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
  behind switches
-Date: Tue, 8 May 2018 16:00:33 -0700
-Message-ID: <CAPcyv4i1ksiu1pExF=EE21P2Wz1a9LaDaG247oG_WSbYgcR93g@mail.gmail.com>
+Date: Tue, 8 May 2018 19:06:17 -0400
+Message-ID: <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
 References: <20180423233046.21476-1-logang@deltatee.com>
  <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508144341.0441b676@w520.home>
- <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
- <20180508152631.50fd583c@w520.home>
- <354F7407-0DC7-470C-B9AA-74FDF9C46B08@raithlin.com>
- <20180508160336.0935ddde@w520.home>
- <20905682-9440-7d4b-0260-99d3dc794c3d@deltatee.com>
- <20180508163206.7d3bf383@w520.home>
+ <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
+ <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
+ <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
+ <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180508163206.7d3bf383-DGNDKt5SQtizQB+pC5nmwQ@public.gmane.org>
+In-Reply-To: <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -35,59 +24,33 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 8, 2018 at 3:32 PM, Alex Williamson
-<alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
-> On Tue, 8 May 2018 16:10:19 -0600
-> Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
->
->> On 08/05/18 04:03 PM, Alex Williamson wrote:
->> > If IOMMU grouping implies device assignment (because nobody else uses
->> > it to the same extent as device assignment) then the build-time option
->> > falls to pieces, we need a single kernel that can do both.  I think we
->> > need to get more clever about allowing the user to specify exactly at
->> > which points in the topology they want to disable isolation.  Thanks,
->>
->>
->> Yeah, so based on the discussion I'm leaning toward just having a
->> command line option that takes a list of BDFs and disables ACS for them.
->> (Essentially as Dan has suggested.) This avoids the shotgun.
->>
->> Then, the pci_p2pdma_distance command needs to check that ACS is
->> disabled for all bridges between the two devices. If this is not the
->> case, it returns -1. Future work can check if the EP has ATS support, in
->> which case it has to check for the ACS direct translated bit.
->>
->> A user then needs to either disable the IOMMU and/or add the command
->> line option to disable ACS for the specific downstream ports in the PCI
->> hierarchy. This means the IOMMU groups will be less granular but
->> presumably the person adding the command line argument understands this.
->>
->> We may also want to do some work so that there's informative dmesgs on
->> which BDFs need to be specified on the command line so it's not so
->> difficult for the user to figure out.
->
-> I'd advise caution with a user supplied BDF approach, we have no
-> guaranteed persistence for a device's PCI address.  Adding a device
-> might renumber the buses, replacing a device with one that consumes
-> more/less bus numbers can renumber the buses, motherboard firmware
-> updates could renumber the buses, pci=assign-buses can renumber the
-> buses, etc.  This is why the VT-d spec makes use of device paths when
-> describing PCI hierarchies, firmware can't know what bus number will be
-> assigned to a device, but it does know the base bus number and the path
-> of devfns needed to get to it.  I don't know how we come up with an
-> option that's easy enough for a user to understand, but reasonably
-> robust against hardware changes.  Thanks,
+On 05/08/2018 05:27 PM, Stephen  Bates wrote:
+> Hi Don
+> 
+>> Well, p2p DMA is a function of a cooperating 'agent' somewhere above the two devices.
+>>     That agent should 'request' to the kernel that ACS be removed/circumvented (p2p enabled) btwn two endpoints.
+>>     I recommend doing so via a sysfs method.
+> 
+> Yes we looked at something like this in the past but it does hit the IOMMU grouping issue I discussed earlier today which is not acceptable right now. In the long term, once we get IOMMU grouping callbacks to VMs we can look at extending p2pdma in this way. But I don't think this is viable for the initial series.
+> 
+>      
+>>             So I don't understand the comments why VMs should need to know.
+> 
+> As I understand it VMs need to know because VFIO passes IOMMU grouping up into the VMs. So if a IOMMU grouping changes the VM's view of its PCIe topology changes. I think we even have to be cognizant of the fact the OS running on the VM may not even support hot-plug of PCI devices.
+Alex:
+Really? IOMMU groups are created by the kernel, so don't know how they would be passed into the VMs, unless indirectly via  PCI(e) layout.
+At best, twiddling w/ACS enablement (emulation) would cause VMs to see different IOMMU groups, but again, VMs are not the security point/level, the host/HV's are.
 
-True, but at the same time this feature is for "users with custom
-hardware designed for purpose", I assume they would be willing to take
-on the bus renumbering risk. It's already the case that
-/sys/bus/pci/drivers/<x>/bind takes BDF, which is why it seemed to
-make a similar interface for the command line. Ideally we could later
-get something into ACPI or other platform firmware to arrange for
-bridges to disable ACS by default if we see p2p becoming a
-common-off-the-shelf feature. I.e. a BIOS switch to enable p2p in a
-given PCI-E sub-domain.
+>      
+>> Is there a thread I need to read up to explain /clear-up the thoughts above?
+> 
+> If you search for p2pdma you should find the previous discussions. Thanks for the input!
+> 
+> Stephen
+>      
+>      
+> 
