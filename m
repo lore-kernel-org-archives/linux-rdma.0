@@ -1,149 +1,224 @@
-From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH 5/7] cifs: smbd: Protect memory registration using RCU
-Date: Tue, 8 May 2018 14:35:56 +0800
-Message-ID: <201805081349.MX5qQDch%fengguang.wu@intel.com>
-References: <20180507222006.20781-5-longli@linuxonhyperv.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Tue, 8 May 2018 09:17:51 +0200
+Message-ID: <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180507222006.20781-5-longli@linuxonhyperv.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Long Li <longli@linuxonhyperv.com>
-Cc: kbuild-all@01.org, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Long Li <longli@microsoft.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180507231306.GG161390-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Long,
+Hi Bjorn,
 
-Thank you for the patch! Perhaps something to improve:
+Am 08.05.2018 um 01:13 schrieb Bjorn Helgaas:
+> [+to Alex]
+>
+> Alex,
+>
+> Are you happy with this strategy of turning off ACS based on
+> CONFIG_PCI_P2PDMA?  We only check this at enumeration-time and
+> I don't know if there are other places we would care?
 
-[auto build test WARNING on cifs/for-next]
-[also build test WARNING on v4.17-rc4 next-20180507]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+thanks for pointing this out, I totally missed this hack.
 
-url:    https://github.com/0day-ci/linux/commits/Long-Li/cifs-smbd-Make-upper-layer-decide-when-to-destroy-the-transport/20180508-110150
-base:   git://git.samba.org/sfrench/cifs-2.6.git for-next
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+AMD APUs mandatory need the ACS flag set for the GPU integrated in the 
+CPU when IOMMU is enabled or otherwise you will break SVM.
 
+Similar problems arise when you do this for dedicated GPU, but we 
+haven't upstreamed the support for this yet.
 
-sparse warnings: (new ones prefixed by >>)
+So that is a clear NAK from my side for the approach.
 
-   fs/cifs/smb2pdu.c:110:47: sparse: expression using sizeof(void)
-   fs/cifs/smb2pdu.c:681:26: sparse: expression using sizeof(void)
->> fs/cifs/smb2pdu.c:2613:17: sparse: incompatible types in comparison expression (different address spaces)
-   fs/cifs/smb2pdu.c:2993:17: sparse: incompatible types in comparison expression (different address spaces)
-   fs/cifs/smb2pdu.c:3251:23: sparse: expression using sizeof(void)
-   fs/cifs/smb2pdu.c:3251:23: sparse: expression using sizeof(void)
-   fs/cifs/smb2pdu.c:3252:23: sparse: expression using sizeof(void)
-   fs/cifs/smb2pdu.c:3713:17: sparse: expression using sizeof(void)
-   fs/cifs/smb2pdu.c:3713:17: sparse: expression using sizeof(void)
+And what exactly is the problem here? I'm currently testing P2P with 
+GPUs in different IOMMU domains and at least with AMD IOMMUs that works 
+perfectly fine.
 
-vim +2613 fs/cifs/smb2pdu.c
+Regards,
+Christian.
 
-  2565	
-  2566	/*
-  2567	 * To form a chain of read requests, any read requests after the first should
-  2568	 * have the end_of_chain boolean set to true.
-  2569	 */
-  2570	static int
-  2571	smb2_new_read_req(void **buf, unsigned int *total_len,
-  2572		struct cifs_io_parms *io_parms, struct cifs_readdata *rdata,
-  2573		unsigned int remaining_bytes, int request_type)
-  2574	{
-  2575		int rc = -EACCES;
-  2576		struct smb2_read_plain_req *req = NULL;
-  2577		struct smb2_sync_hdr *shdr;
-  2578		struct TCP_Server_Info *server;
-  2579	
-  2580		rc = smb2_plain_req_init(SMB2_READ, io_parms->tcon, (void **) &req,
-  2581					 total_len);
-  2582		if (rc)
-  2583			return rc;
-  2584	
-  2585		server = io_parms->tcon->ses->server;
-  2586		if (server == NULL)
-  2587			return -ECONNABORTED;
-  2588	
-  2589		shdr = &req->sync_hdr;
-  2590		shdr->ProcessId = cpu_to_le32(io_parms->pid);
-  2591	
-  2592		req->PersistentFileId = io_parms->persistent_fid;
-  2593		req->VolatileFileId = io_parms->volatile_fid;
-  2594		req->ReadChannelInfoOffset = 0; /* reserved */
-  2595		req->ReadChannelInfoLength = 0; /* reserved */
-  2596		req->Channel = 0; /* reserved */
-  2597		req->MinimumCount = 0;
-  2598		req->Length = cpu_to_le32(io_parms->length);
-  2599		req->Offset = cpu_to_le64(io_parms->offset);
-  2600	#ifdef CONFIG_CIFS_SMB_DIRECT
-  2601		/*
-  2602		 * If we want to do a RDMA write, fill in and append
-  2603		 * smbd_buffer_descriptor_v1 to the end of read request
-  2604		 */
-  2605		if (server->rdma && rdata && !server->sign &&
-  2606			rdata->bytes >= server->smbd_conn->rdma_readwrite_threshold) {
-  2607	
-  2608			struct smbd_buffer_descriptor_v1 *v1;
-  2609			bool need_invalidate =
-  2610				io_parms->tcon->ses->server->dialect == SMB30_PROT_ID;
-  2611	
-  2612			rcu_read_lock();
-> 2613			rcu_dereference(server->smbd_conn);
-  2614			rdata->mr = smbd_register_mr(
-  2615					server->smbd_conn, rdata->pages,
-  2616					rdata->nr_pages, rdata->tailsz,
-  2617					true, need_invalidate);
-  2618			rcu_read_unlock();
-  2619			if (!rdata->mr)
-  2620				return -ENOBUFS;
-  2621	
-  2622			req->Channel = SMB2_CHANNEL_RDMA_V1_INVALIDATE;
-  2623			if (need_invalidate)
-  2624				req->Channel = SMB2_CHANNEL_RDMA_V1;
-  2625			req->ReadChannelInfoOffset =
-  2626				cpu_to_le16(offsetof(struct smb2_read_plain_req, Buffer));
-  2627			req->ReadChannelInfoLength =
-  2628				cpu_to_le16(sizeof(struct smbd_buffer_descriptor_v1));
-  2629			v1 = (struct smbd_buffer_descriptor_v1 *) &req->Buffer[0];
-  2630			v1->offset = cpu_to_le64(rdata->mr->mr->iova);
-  2631			v1->token = cpu_to_le32(rdata->mr->mr->rkey);
-  2632			v1->length = cpu_to_le32(rdata->mr->mr->length);
-  2633	
-  2634			*total_len += sizeof(*v1) - 1;
-  2635		}
-  2636	#endif
-  2637		if (request_type & CHAINED_REQUEST) {
-  2638			if (!(request_type & END_OF_CHAIN)) {
-  2639				/* next 8-byte aligned request */
-  2640				*total_len = DIV_ROUND_UP(*total_len, 8) * 8;
-  2641				shdr->NextCommand = cpu_to_le32(*total_len);
-  2642			} else /* END_OF_CHAIN */
-  2643				shdr->NextCommand = 0;
-  2644			if (request_type & RELATED_REQUEST) {
-  2645				shdr->Flags |= SMB2_FLAGS_RELATED_OPERATIONS;
-  2646				/*
-  2647				 * Related requests use info from previous read request
-  2648				 * in chain.
-  2649				 */
-  2650				shdr->SessionId = 0xFFFFFFFF;
-  2651				shdr->TreeId = 0xFFFFFFFF;
-  2652				req->PersistentFileId = 0xFFFFFFFF;
-  2653				req->VolatileFileId = 0xFFFFFFFF;
-  2654			}
-  2655		}
-  2656		if (remaining_bytes > io_parms->length)
-  2657			req->RemainingBytes = cpu_to_le32(remaining_bytes);
-  2658		else
-  2659			req->RemainingBytes = 0;
-  2660	
-  2661		*buf = req;
-  2662		return rc;
-  2663	}
-  2664	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>
+> On Mon, Apr 23, 2018 at 05:30:36PM -0600, Logan Gunthorpe wrote:
+>> For peer-to-peer transactions to work the downstream ports in each
+>> switch must not have the ACS flags set. At this time there is no way
+>> to dynamically change the flags and update the corresponding IOMMU
+>> groups so this is done at enumeration time before the groups are
+>> assigned.
+>>
+>> This effectively means that if CONFIG_PCI_P2PDMA is selected then
+>> all devices behind any PCIe switch heirarchy will be in the same IOMMU
+>> group. Which implies that individual devices behind any switch
+>> heirarchy will not be able to be assigned to separate VMs because
+>> there is no isolation between them. Additionally, any malicious PCIe
+>> devices will be able to DMA to memory exposed by other EPs in the same
+>> domain as TLPs will not be checked by the IOMMU.
+>>
+>> Given that the intended use case of P2P Memory is for users with
+>> custom hardware designed for purpose, we do not expect distributors
+>> to ever need to enable this option. Users that want to use P2P
+>> must have compiled a custom kernel with this configuration option
+>> and understand the implications regarding ACS. They will either
+>> not require ACS or will have design the system in such a way that
+>> devices that require isolation will be separate from those using P2P
+>> transactions.
+>>
+>> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+>> ---
+>>   drivers/pci/Kconfig        |  9 +++++++++
+>>   drivers/pci/p2pdma.c       | 45 ++++++++++++++++++++++++++++++---------------
+>>   drivers/pci/pci.c          |  6 ++++++
+>>   include/linux/pci-p2pdma.h |  5 +++++
+>>   4 files changed, 50 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+>> index b2396c22b53e..b6db41d4b708 100644
+>> --- a/drivers/pci/Kconfig
+>> +++ b/drivers/pci/Kconfig
+>> @@ -139,6 +139,15 @@ config PCI_P2PDMA
+>>   	  transations must be between devices behind the same root port.
+>>   	  (Typically behind a network of PCIe switches).
+>>   
+>> +	  Enabling this option will also disable ACS on all ports behind
+>> +	  any PCIe switch. This effectively puts all devices behind any
+>> +	  switch heirarchy into the same IOMMU group. Which implies that
+> s/heirarchy/hierarchy/ (also above in changelog)
+>
+>> +	  individual devices behind any switch will not be able to be
+>> +	  assigned to separate VMs because there is no isolation between
+>> +	  them. Additionally, any malicious PCIe devices will be able to
+>> +	  DMA to memory exposed by other EPs in the same domain as TLPs
+>> +	  will not be checked by the IOMMU.
+>> +
+>>   	  If unsure, say N.
+>>   
+>>   config PCI_LABEL
+>> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+>> index ed9dce8552a2..e9f43b43acac 100644
+>> --- a/drivers/pci/p2pdma.c
+>> +++ b/drivers/pci/p2pdma.c
+>> @@ -240,27 +240,42 @@ static struct pci_dev *find_parent_pci_dev(struct device *dev)
+>>   }
+>>   
+>>   /*
+>> - * If a device is behind a switch, we try to find the upstream bridge
+>> - * port of the switch. This requires two calls to pci_upstream_bridge():
+>> - * one for the upstream port on the switch, one on the upstream port
+>> - * for the next level in the hierarchy. Because of this, devices connected
+>> - * to the root port will be rejected.
+>> + * pci_p2pdma_disable_acs - disable ACS flags for all PCI bridges
+>> + * @pdev: device to disable ACS flags for
+>> + *
+>> + * The ACS flags for P2P Request Redirect and P2P Completion Redirect need
+>> + * to be disabled on any PCI bridge in order for the TLPS to not be forwarded
+>> + * up to the RC which is not what we want for P2P.
+> s/PCI bridge/PCIe switch/ (ACS doesn't apply to conventional PCI)
+>
+>> + *
+>> + * This function is called when the devices are first enumerated and
+>> + * will result in all devices behind any bridge to be in the same IOMMU
+>> + * group. At this time, there is no way to "hotplug" IOMMU groups so we rely
+>> + * on this largish hammer. If you need the devices to be in separate groups
+>> + * don't enable CONFIG_PCI_P2PDMA.
+>> + *
+>> + * Returns 1 if the ACS bits for this device was cleared, otherwise 0.
+>>    */
+>> -static struct pci_dev *get_upstream_bridge_port(struct pci_dev *pdev)
+>> +int pci_p2pdma_disable_acs(struct pci_dev *pdev)
+>>   {
+>> -	struct pci_dev *up1, *up2;
+>> +	int pos;
+>> +	u16 ctrl;
+>>   
+>> -	if (!pdev)
+>> -		return NULL;
+>> +	if (!pci_is_bridge(pdev))
+>> +		return 0;
+>>   
+>> -	up1 = pci_dev_get(pci_upstream_bridge(pdev));
+>> -	if (!up1)
+>> -		return NULL;
+>> +	pos = pci_find_ext_capability(pdev, PCI_EXT_CAP_ID_ACS);
+>> +	if (!pos)
+>> +		return 0;
+>> +
+>> +	pci_info(pdev, "disabling ACS flags for peer-to-peer DMA\n");
+>> +
+>> +	pci_read_config_word(pdev, pos + PCI_ACS_CTRL, &ctrl);
+>> +
+>> +	ctrl &= ~(PCI_ACS_RR | PCI_ACS_CR);
+>>   
+>> -	up2 = pci_dev_get(pci_upstream_bridge(up1));
+>> -	pci_dev_put(up1);
+>> +	pci_write_config_word(pdev, pos + PCI_ACS_CTRL, ctrl);
+>>   
+>> -	return up2;
+>> +	return 1;
+>>   }
+>>   
+>>   /*
+>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> index e597655a5643..7e2f5724ba22 100644
+>> --- a/drivers/pci/pci.c
+>> +++ b/drivers/pci/pci.c
+>> @@ -16,6 +16,7 @@
+>>   #include <linux/of.h>
+>>   #include <linux/of_pci.h>
+>>   #include <linux/pci.h>
+>> +#include <linux/pci-p2pdma.h>
+>>   #include <linux/pm.h>
+>>   #include <linux/slab.h>
+>>   #include <linux/module.h>
+>> @@ -2835,6 +2836,11 @@ static void pci_std_enable_acs(struct pci_dev *dev)
+>>    */
+>>   void pci_enable_acs(struct pci_dev *dev)
+>>   {
+>> +#ifdef CONFIG_PCI_P2PDMA
+>> +	if (pci_p2pdma_disable_acs(dev))
+>> +		return;
+>> +#endif
+>> +
+>>   	if (!pci_acs_enable)
+>>   		return;
+>>   
+>> diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+>> index 0cde88341eeb..fcb3437a2f3c 100644
+>> --- a/include/linux/pci-p2pdma.h
+>> +++ b/include/linux/pci-p2pdma.h
+>> @@ -18,6 +18,7 @@ struct block_device;
+>>   struct scatterlist;
+>>   
+>>   #ifdef CONFIG_PCI_P2PDMA
+>> +int pci_p2pdma_disable_acs(struct pci_dev *pdev);
+>>   int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+>>   		u64 offset);
+>>   int pci_p2pdma_add_client(struct list_head *head, struct device *dev);
+>> @@ -40,6 +41,10 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+>>   void pci_p2pdma_unmap_sg(struct device *dev, struct scatterlist *sg, int nents,
+>>   			 enum dma_data_direction dir);
+>>   #else /* CONFIG_PCI_P2PDMA */
+>> +static inline int pci_p2pdma_disable_acs(struct pci_dev *pdev)
+>> +{
+>> +	return 0;
+>> +}
+>>   static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+>>   		size_t size, u64 offset)
+>>   {
+>> -- 
+>> 2.11.0
+>>
