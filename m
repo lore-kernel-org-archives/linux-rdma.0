@@ -1,97 +1,170 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 3/6] net/mlx5: Refactor num of blocks in mailbox calculation
-Date: Mon,  7 May 2018 16:53:01 -0700
-Message-ID: <20180507235304.25085-4-saeedm@mellanox.com>
-References: <20180507235304.25085-1-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180507235304.25085-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+From: Yanjun Zhu <yanjun.zhu@oracle.com>
+Subject: Re: [PATCH v3] nvmet,rxe: defer ip datagram sending to tasklet
+Date: Tue, 8 May 2018 11:09:18 +0800
+Message-ID: <562873bf-075c-f148-c528-dddf188113c2@oracle.com>
+References: <20180507205858.GA11664@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180507205858.GA11664@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandru Moise <00moses.alexander00@gmail.com>, monis@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Shemesh <moshe@mellanox.com>
 
-Get the logic that calculates the number of blocks in a command mailbox
-into a dedicated function.
 
-Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+On 2018/5/8 4:58, Alexandru Moise wrote:
+> This addresses 3 separate problems:
+>
+> 1. When using NVME over Fabrics we may end up sending IP
+> packets in interrupt context, we should defer this work
+> to a tasklet.
+>
+> [   50.939957] WARNING: CPU: 3 PID: 0 at kernel/softirq.c:161 __local_bh_enable_ip+0x1f/0xa0
+> [   50.942602] CPU: 3 PID: 0 Comm: swapper/3 Kdump: loaded Tainted: G        W         4.17.0-rc3-ARCH+ #104
+> [   50.945466] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.11.0-20171110_100015-anatol 04/01/2014
+> [   50.948163] RIP: 0010:__local_bh_enable_ip+0x1f/0xa0
+> [   50.949631] RSP: 0018:ffff88009c183900 EFLAGS: 00010006
+> [   50.951029] RAX: 0000000080010403 RBX: 0000000000000200 RCX: 0000000000000001
+> [   50.952636] RDX: 0000000000000000 RSI: 0000000000000200 RDI: ffffffff817e04ec
+> [   50.954278] RBP: ffff88009c183910 R08: 0000000000000001 R09: 0000000000000614
+> [   50.956000] R10: ffffea00021d5500 R11: 0000000000000001 R12: ffffffff817e04ec
+> [   50.957779] R13: 0000000000000000 R14: ffff88009566f400 R15: ffff8800956c7000
+> [   50.959402] FS:  0000000000000000(0000) GS:ffff88009c180000(0000) knlGS:0000000000000000
+> [   50.961552] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   50.963798] CR2: 000055c4ec0ccac0 CR3: 0000000002209001 CR4: 00000000000606e0
+> [   50.966121] Call Trace:
+> [   50.966845]  <IRQ>
+> [   50.967497]  __dev_queue_xmit+0x62d/0x690
+> [   50.968722]  dev_queue_xmit+0x10/0x20
+> [   50.969894]  neigh_resolve_output+0x173/0x190
+> [   50.971244]  ip_finish_output2+0x2b8/0x370
+> [   50.972527]  ip_finish_output+0x1d2/0x220
+> [   50.973785]  ? ip_finish_output+0x1d2/0x220
+> [   50.975010]  ip_output+0xd4/0x100
+> [   50.975903]  ip_local_out+0x3b/0x50
+> [   50.976823]  rxe_send+0x74/0x120
+> [   50.977702]  rxe_requester+0xe3b/0x10b0
+> [   50.978881]  ? ip_local_deliver_finish+0xd1/0xe0
+> [   50.980260]  rxe_do_task+0x85/0x100
+> [   50.981386]  rxe_run_task+0x2f/0x40
+> [   50.982470]  rxe_post_send+0x51a/0x550
+> [   50.983591]  nvmet_rdma_queue_response+0x10a/0x170
+> [   50.985024]  __nvmet_req_complete+0x95/0xa0
+> [   50.986287]  nvmet_req_complete+0x15/0x60
+> [   50.987469]  nvmet_bio_done+0x2d/0x40
+> [   50.988564]  bio_endio+0x12c/0x140
+> [   50.989654]  blk_update_request+0x185/0x2a0
+> [   50.990947]  blk_mq_end_request+0x1e/0x80
+> [   50.991997]  nvme_complete_rq+0x1cc/0x1e0
+> [   50.993171]  nvme_pci_complete_rq+0x117/0x120
+> [   50.994355]  __blk_mq_complete_request+0x15e/0x180
+> [   50.995988]  blk_mq_complete_request+0x6f/0xa0
+> [   50.997304]  nvme_process_cq+0xe0/0x1b0
+> [   50.998494]  nvme_irq+0x28/0x50
+> [   50.999572]  __handle_irq_event_percpu+0xa2/0x1c0
+> [   51.000986]  handle_irq_event_percpu+0x32/0x80
+> [   51.002356]  handle_irq_event+0x3c/0x60
+> [   51.003463]  handle_edge_irq+0x1c9/0x200
+> [   51.004473]  handle_irq+0x23/0x30
+> [   51.005363]  do_IRQ+0x46/0xd0
+> [   51.006182]  common_interrupt+0xf/0xf
+> [   51.007129]  </IRQ>
+>
+> 2. Work must always be offloaded to tasklet when using NVMEoF in order to
+> solve lock ordering between neigh->ha_lock seqlock and the nvme queue lock:
+>
+> [   77.833783]  Possible interrupt unsafe locking scenario:
+> [   77.833783]
+> [   77.835831]        CPU0                    CPU1
+> [   77.837129]        ----                    ----
+> [   77.838313]   lock(&(&n->ha_lock)->seqcount);
+> [   77.839550]                                local_irq_disable();
+> [   77.841377]                                lock(&(&nvmeq->q_lock)->rlock);
+> [   77.843222]                                lock(&(&n->ha_lock)->seqcount);
+> [   77.845178]   <Interrupt>
+> [   77.846298]     lock(&(&nvmeq->q_lock)->rlock);
+> [   77.847986]
+> [   77.847986]  *** DEADLOCK ***
+>
+> 3. Same goes for the lock ordering between sch->q.lock and nvme queue lock:
+>
+> [   47.634271]  Possible interrupt unsafe locking scenario:
+> [   47.634271]
+> [   47.636452]        CPU0                    CPU1
+> [   47.637861]        ----                    ----
+> [   47.639285]   lock(&(&sch->q.lock)->rlock);
+> [   47.640654]                                local_irq_disable();
+> [   47.642451]                                lock(&(&nvmeq->q_lock)->rlock);
+> [   47.644521]                                lock(&(&sch->q.lock)->rlock);
+> [   47.646480]   <Interrupt>
+> [   47.647263]     lock(&(&nvmeq->q_lock)->rlock);
+> [   47.648492]
+> [   47.648492]  *** DEADLOCK ***
+>
+> Using NVMEoF after this patch seems to finally be stable, without it,
+> rxe eventually deadlocks the whole system and causes RCU stalls.
+>
+> Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
+> ---
+> v2->v3: Abandoned the idea of just offloading work to tasklet in irq
+> context. NVMEoF needs the work to always be offloaded in order to
+> function. I am unsure how large an impact this has on other rxe users.
+>
+>   drivers/infiniband/sw/rxe/rxe_verbs.c | 12 ++----------
+>   1 file changed, 2 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> index 2cb52fd48cf1..564453060c54 100644
+> --- a/drivers/infiniband/sw/rxe/rxe_verbs.c
+> +++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+> @@ -761,7 +761,6 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, struct ib_send_wr *wr,
+>   	unsigned int mask;
+>   	unsigned int length = 0;
+>   	int i;
+> -	int must_sched;
+>   
+>   	while (wr) {
+>   		mask = wr_opcode_mask(wr->opcode, qp);
+> @@ -791,14 +790,7 @@ static int rxe_post_send_kernel(struct rxe_qp *qp, struct ib_send_wr *wr,
+>   		wr = wr->next;
+>   	}
+>   
+> -	/*
+> -	 * Must sched in case of GSI QP because ib_send_mad() hold irq lock,
+> -	 * and the requester call ip_local_out_sk() that takes spin_lock_bh.
+> -	 */
+> -	must_sched = (qp_type(qp) == IB_QPT_GSI) ||
+> -			(queue_count(qp->sq.queue) > 1);
+> -
+> -	rxe_run_task(&qp->req.task, must_sched);
+> +	rxe_run_task(&qp->req.task, 1);
+>   	if (unlikely(qp->req.state == QP_STATE_ERROR))
+>   		rxe_run_task(&qp->comp.task, 1);
+>   
+> @@ -822,7 +814,7 @@ static int rxe_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>   
+>   	if (qp->is_user) {
+>   		/* Utilize process context to do protocol processing */
+> -		rxe_run_task(&qp->req.task, 0);
+> +		rxe_run_task(&qp->req.task, 1);
+Hi,
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 21cd1703a862..0f7062104ad9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -135,6 +135,14 @@ static struct mlx5_cmd_layout *get_inst(struct mlx5_cmd *cmd, int idx)
- 	return cmd->cmd_buf + (idx << cmd->log_stride);
- }
- 
-+static int mlx5_calc_cmd_blocks(struct mlx5_cmd_msg *msg)
-+{
-+	int size = msg->len;
-+	int blen = size - min_t(int, sizeof(msg->first.data), size);
-+
-+	return DIV_ROUND_UP(blen, MLX5_CMD_DATA_BLOCK_SIZE);
-+}
-+
- static u8 xor8_buf(void *buf, size_t offset, int len)
- {
- 	u8 *ptr = buf;
-@@ -174,10 +182,7 @@ static void calc_block_sig(struct mlx5_cmd_prot_block *block)
- static void calc_chain_sig(struct mlx5_cmd_msg *msg)
- {
- 	struct mlx5_cmd_mailbox *next = msg->next;
--	int size = msg->len;
--	int blen = size - min_t(int, sizeof(msg->first.data), size);
--	int n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1)
--		/ MLX5_CMD_DATA_BLOCK_SIZE;
-+	int n = mlx5_calc_cmd_blocks(msg);
- 	int i = 0;
- 
- 	for (i = 0; i < n && next; i++)  {
-@@ -220,12 +225,9 @@ static void free_cmd(struct mlx5_cmd_work_ent *ent)
- static int verify_signature(struct mlx5_cmd_work_ent *ent)
- {
- 	struct mlx5_cmd_mailbox *next = ent->out->next;
-+	int n = mlx5_calc_cmd_blocks(ent->out);
- 	int err;
- 	u8 sig;
--	int size = ent->out->len;
--	int blen = size - min_t(int, sizeof(ent->out->first.data), size);
--	int n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1)
--		/ MLX5_CMD_DATA_BLOCK_SIZE;
- 	int i = 0;
- 
- 	sig = xor8_buf(ent->lay, 0, sizeof(*ent->lay));
-@@ -1137,7 +1139,6 @@ static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
- 	struct mlx5_cmd_mailbox *tmp, *head = NULL;
- 	struct mlx5_cmd_prot_block *block;
- 	struct mlx5_cmd_msg *msg;
--	int blen;
- 	int err;
- 	int n;
- 	int i;
-@@ -1146,8 +1147,8 @@ static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
- 	if (!msg)
- 		return ERR_PTR(-ENOMEM);
- 
--	blen = size - min_t(int, sizeof(msg->first.data), size);
--	n = (blen + MLX5_CMD_DATA_BLOCK_SIZE - 1) / MLX5_CMD_DATA_BLOCK_SIZE;
-+	msg->len = size;
-+	n = mlx5_calc_cmd_blocks(msg);
- 
- 	for (i = 0; i < n; i++) {
- 		tmp = alloc_cmd_box(dev, flags);
-@@ -1165,7 +1166,6 @@ static struct mlx5_cmd_msg *mlx5_alloc_cmd_msg(struct mlx5_core_dev *dev,
- 		head = tmp;
- 	}
- 	msg->next = head;
--	msg->len = size;
- 	return msg;
- 
- err_alloc:
--- 
-2.14.3
+ From your description, it seems that all the problems are caused by 
+NVME kernel.
+
+Am I correct?
+
+It seems that this block handles process context. If we keep 
+"rxe_run_task(&qp->req.task, 0);",
+
+Do all the problems still occur?
+
+Zhu Yanjun
+
+
+>   		return 0;
+>   	} else
+>   		return rxe_post_send_kernel(qp, wr, bad_wr);
