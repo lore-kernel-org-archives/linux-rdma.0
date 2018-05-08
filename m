@@ -1,39 +1,83 @@
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] iw_cxgb4: Fix an error handling path in 'c4iw_get_dma_mr()'
-Date: Tue,  8 May 2018 07:44:27 +0200
-Message-ID: <20180508054427.10697-1-christophe.jaillet@wanadoo.fr>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/umem: use tgid instead of pid in ib_umem structure
+Date: Tue, 8 May 2018 00:30:06 -0600
+Message-ID: <20180508063006.aicgwalirnkjmeuf@ziepe.ca>
+References: <1525356274-736-1-git-send-email-lidongchen@tencent.com>
+ <20180503153310.GA9738@ziepe.ca>
+ <CAOGPPbd8ysq3XDpa4TYQpWVMmpVo4NPhPw5NWyQS1OSc6rXjQQ@mail.gmail.com>
+ <CAOGPPbenmtuFwCuGMFJDZrqK+D5atkhK+srm+2yX=+CAwgjPHQ@mail.gmail.com>
+ <20180504182302.zunfryk2czge5adx@ziepe.ca>
+ <CAOGPPbcF1m-ATdY-OCeXJDgsqXvn2-oD_OA8d3nyP_6YYd6ZMA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAOGPPbcF1m-ATdY-OCeXJDgsqXvn2-oD_OA8d3nyP_6YYd6ZMA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: swise@chelsio.com, dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: 858585 jemmy <jemmy858585@gmail.com>
+Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, Leon Romanovsky <leon@kernel.org>, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The error handling path of 'c4iw_get_dma_mr()' does not free resources
-in the correct order.
-If an error occures, it can leak 'mhp->wr_waitp'.
+On Mon, May 07, 2018 at 09:38:53AM +0800, 858585 jemmy wrote:
+> On Sat, May 5, 2018 at 2:23 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > On Fri, May 04, 2018 at 04:51:15PM +0800, 858585 jemmy wrote:
+> >> On Fri, May 4, 2018 at 11:14 AM, 858585 jemmy <jemmy858585@gmail.com> wrote:
+> >> > On Thu, May 3, 2018 at 11:33 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> >> >> On Thu, May 03, 2018 at 10:04:34PM +0800, Lidong Chen wrote:
+> >> >>> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+> >> >>> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+> >> >>> exited, get_pid_task will return NULL, ib_umem_release does not decrease
+> >> >>> mm->pinned_vm. This patch fixes it by use tgid.
+> >> >>>
+> >> >>> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+> >> >>>  drivers/infiniband/core/umem.c | 12 ++++++------
+> >> >>>  include/rdma/ib_umem.h         |  2 +-
+> >> >>>  2 files changed, 7 insertions(+), 7 deletions(-)
+> >> >>
+> >> >> Why are we even using a struct pid for this? Does anyone know?
+> >> >
+> >> > commit 87773dd56d5405ac28119fcfadacefd35877c18f add pid in ib_umem structure.
+> >> >
+> >> > and the comment has such information:
+> >> > Later a different process with a different mm_struct than the one that
+> >> > allocated the ib_umem struct
+> >> > ends up releasing it which results in decrementing the new processes
+> >> > mm->pinned_vm count past
+> >> > zero and wrapping.
+> >>
+> >> I think a different process should not have the permission to release ib_umem.
+> >> so maybe the reason is not a different process?
+> >> can ib_umem_release be invoked in interrupt context?
+> >
+> > We plan to restore fork support and add some way to share MRs between
+> > processes, so we must consider having a different process release the
+> > umem than acquired it.
+> 
+> If restore fork support, what is the expected behavior?
+> If parent process pinned_vm is x, what is the child process pinned_vm
+> value after fork? It reset to zero now.
+> If the parent process call ibv_dereg_mr after fork, should the child
+> process decrease pinned_vm?
+> If the child process call  ibv_dereg_mr after fork, should the parent
+> process decrease pinned_vm?
 
-Fixes: a3f12da0e99a ("iw_cxgb4: allocate wait object for each memory object")
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
----
- drivers/infiniband/hw/cxgb4/mem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+If I recall the purpose of accessing the MM during de-register is to
+undo the pinned pages change (pinned_vm) that register performed.
 
-diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index e90f2fd8dc16..1445918e3239 100644
---- a/drivers/infiniband/hw/cxgb4/mem.c
-+++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -489,10 +489,10 @@ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
- err_dereg_mem:
- 	dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
- 		  mhp->attr.pbl_addr, mhp->dereg_skb, mhp->wr_waitp);
--err_free_wr_wait:
--	c4iw_put_wr_wait(mhp->wr_waitp);
- err_free_skb:
- 	kfree_skb(mhp->dereg_skb);
-+err_free_wr_wait:
-+	c4iw_put_wr_wait(mhp->wr_waitp);
- err_free_mhp:
- 	kfree(mhp);
- 	return ERR_PTR(ret);
--- 
-2.17.0
+So, the semantic is simple, during deregister we must access excatly
+the same MM that was used during register and undo the change to
+pinned_vm.
+
+The approach should be to find the most reliably way to hold a
+reference to the MM that was used during register.
+
+Apparently we can't just hold a ref on the mm (according to mm_get's
+comment at least)
+
+tgid is clearly a better indirect reference to the mm than pid (pid is
+so obviously wrong)
+
+But I am wondering why not just hold struct task here instead of tgid?
+Isn't task->mm going to be more reliably than tgid->task->mm ??
+
+Jason
