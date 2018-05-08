@@ -1,16 +1,26 @@
-From: Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 00/14] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Tue, 8 May 2018 17:25:24 -0400
-Message-ID: <c16ecc49-a0f3-152d-785b-a646a3dab60d@redhat.com>
+From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
+ devices behind switches
+Date: Tue, 8 May 2018 15:26:31 -0600
+Message-ID: <20180508152631.50fd583c@w520.home>
 References: <20180423233046.21476-1-logang@deltatee.com>
- <20180507232346.GI161390@bhelgaas-glaptop.roam.corp.google.com>
- <20180508105759.7dbaa8fe@w520.home>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508144341.0441b676@w520.home>
+ <a524127a-3557-3dff-971c-dfe94ba5a01c@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180508105759.7dbaa8fe-DGNDKt5SQtizQB+pC5nmwQ@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <a524127a-3557-3dff-971c-dfe94ba5a01c-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,107 +30,63 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/08/2018 12:57 PM, Alex Williamson wrote:
-> On Mon, 7 May 2018 18:23:46 -0500
-> Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> 
->> On Mon, Apr 23, 2018 at 05:30:32PM -0600, Logan Gunthorpe wrote:
->>> Hi Everyone,
->>>
->>> Here's v4 of our series to introduce P2P based copy offload to NVMe
->>> fabrics. This version has been rebased onto v4.17-rc2. A git repo
->>> is here:
->>>
->>> https://github.com/sbates130272/linux-p2pmem pci-p2p-v4
->>> ...
->>
->>> Logan Gunthorpe (14):
->>>    PCI/P2PDMA: Support peer-to-peer memory
->>>    PCI/P2PDMA: Add sysfs group to display p2pmem stats
->>>    PCI/P2PDMA: Add PCI p2pmem dma mappings to adjust the bus offset
->>>    PCI/P2PDMA: Clear ACS P2P flags for all devices behind switches
->>>    docs-rst: Add a new directory for PCI documentation
->>>    PCI/P2PDMA: Add P2P DMA driver writer's documentation
->>>    block: Introduce PCI P2P flags for request and request queue
->>>    IB/core: Ensure we map P2P memory correctly in
->>>      rdma_rw_ctx_[init|destroy]()
->>>    nvme-pci: Use PCI p2pmem subsystem to manage the CMB
->>>    nvme-pci: Add support for P2P memory in requests
->>>    nvme-pci: Add a quirk for a pseudo CMB
->>>    nvmet: Introduce helper functions to allocate and free request SGLs
->>>    nvmet-rdma: Use new SGL alloc/free helper for requests
->>>    nvmet: Optionally use PCI P2P memory
->>>
->>>   Documentation/ABI/testing/sysfs-bus-pci    |  25 +
->>>   Documentation/PCI/index.rst                |  14 +
->>>   Documentation/driver-api/index.rst         |   2 +-
->>>   Documentation/driver-api/pci/index.rst     |  20 +
->>>   Documentation/driver-api/pci/p2pdma.rst    | 166 ++++++
->>>   Documentation/driver-api/{ => pci}/pci.rst |   0
->>>   Documentation/index.rst                    |   3 +-
->>>   block/blk-core.c                           |   3 +
->>>   drivers/infiniband/core/rw.c               |  13 +-
->>>   drivers/nvme/host/core.c                   |   4 +
->>>   drivers/nvme/host/nvme.h                   |   8 +
->>>   drivers/nvme/host/pci.c                    | 118 +++--
->>>   drivers/nvme/target/configfs.c             |  67 +++
->>>   drivers/nvme/target/core.c                 | 143 ++++-
->>>   drivers/nvme/target/io-cmd.c               |   3 +
->>>   drivers/nvme/target/nvmet.h                |  15 +
->>>   drivers/nvme/target/rdma.c                 |  22 +-
->>>   drivers/pci/Kconfig                        |  26 +
->>>   drivers/pci/Makefile                       |   1 +
->>>   drivers/pci/p2pdma.c                       | 814 +++++++++++++++++++++++++++++
->>>   drivers/pci/pci.c                          |   6 +
->>>   include/linux/blk_types.h                  |  18 +-
->>>   include/linux/blkdev.h                     |   3 +
->>>   include/linux/memremap.h                   |  19 +
->>>   include/linux/pci-p2pdma.h                 | 118 +++++
->>>   include/linux/pci.h                        |   4 +
->>>   26 files changed, 1579 insertions(+), 56 deletions(-)
->>>   create mode 100644 Documentation/PCI/index.rst
->>>   create mode 100644 Documentation/driver-api/pci/index.rst
->>>   create mode 100644 Documentation/driver-api/pci/p2pdma.rst
->>>   rename Documentation/driver-api/{ => pci}/pci.rst (100%)
->>>   create mode 100644 drivers/pci/p2pdma.c
->>>   create mode 100644 include/linux/pci-p2pdma.h
->>
->> How do you envison merging this?  There's a big chunk in drivers/pci, but
->> really no opportunity for conflicts there, and there's significant stuff in
->> block and nvme that I don't really want to merge.
->>
->> If Alex is OK with the ACS situation, I can ack the PCI parts and you could
->> merge it elsewhere?
-> 
-> AIUI from previously questioning this, the change is hidden behind a
-> build-time config option and only custom kernels or distros optimized
-> for this sort of support would enable that build option.  I'm more than
-> a little dubious though that we're not going to have a wave of distros
-> enabling this only to get user complaints that they can no longer make
-> effective use of their devices for assignment due to the resulting span
-> of the IOMMU groups, nor is there any sort of compromise, configure
-> the kernel for p2p or device assignment, not both.  Is this really such
-> a unique feature that distro users aren't going to be asking for both
-> features?  Thanks,
-> 
-> Alex
-At least 1/2 the cases presented to me by existing customers want it in a tunable kernel,
-and tunable btwn two points, if the hw allows it to be 'contained' in that manner, which
-a (layer of) switch(ing) provides.
-To me, that means a kernel cmdline parameter to _enable_, and another sysfs (configfs? ... i'm not a configfs afficionato to say which is best),
-method to make two points p2p dma capable.
+On Tue, 8 May 2018 14:49:23 -0600
+Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org> wrote:
 
-Worse case, the whole system is one large IOMMU group (current mindset of this static or run-time config option),
-or best case (over time, more hw), a secure set of the primary system with p2p-enabled sections, that are deemed 'safe' or 'self-inflicting-unsecure',
-the latter the case of today's VM with an assigned device -- can scribble all over the VM, but no other VM and not the host/HV.
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 08/05/18 02:43 PM, Alex Williamson wrote:
+> > Yes, GPUs seem to be leading the pack in implementing ATS.  So now the
+> > dumb question, why not simply turn off the IOMMU and thus ACS?  The
+> > argument of using the IOMMU for security is rather diminished if we're
+> > specifically enabling devices to poke one another directly and clearly
+> > this isn't favorable for device assignment either.  Are there target
+> > systems where this is not a simple kernel commandline option?  Thanks,  
 > 
+> Well, turning off the IOMMU doesn't necessarily turn off ACS. We've run
+> into some bios's that set the bits on boot (which is annoying).
+
+But it would be a much easier proposal to disable ACS when the IOMMU is
+not enabled, ACS has no real purpose in that case.
+
+> I also don't expect people will respond well to making the IOMMU and P2P
+> exclusive. The IOMMU is often used for more than just security and on
+> many platforms it's enabled by default. I'd much rather allow IOMMU use
+> but have fewer isolation groups in much the same way as if you had PCI
+> bridges that didn't support ACS.
+
+The IOMMU and P2P are already not exclusive, we can bounce off the
+IOMMU or make use of ATS as we've previously discussed.  We were
+previously talking about a build time config option that you didn't
+expect distros to use, so I don't think intervention for the user to
+disable the IOMMU if it's enabled by default is a serious concern
+either.
+
+What you're trying to do is enabled direct peer-to-peer for endpoints
+which do not support ATS when the IOMMU is enabled, which is not
+something that necessarily makes sense to me.  As I mentioned in a
+previous reply, the IOMMU provides us with an I/O virtual address space
+for devices, ACS is meant to fill the topology based gaps in that
+virtual address space, making transactions follow IOMMU compliant
+routing rules to avoid aliases between the IOVA and physical address
+spaces.  But this series specifically wants to leave those gaps open
+for direct P2P access.
+
+So we compromise the P2P aspect of security, still protecting RAM, but
+potentially only to the extent that a device cannot hop through or
+interfere with other devices to do its bidding.  Device assignment is
+mostly tossed out the window because not only are bigger groups more
+difficult to deal with, the IOVA space is riddled with gaps, which is
+not really a solved problem.  So that leaves avoiding bounce buffers as
+the remaining IOMMU feature, but we're dealing with native express
+devices and relatively high end devices that are probably installed in
+modern systems, so that seems like a non-issue.
+
+Are there other uses I'm forgetting?  We can enable interrupt remapping
+separate from DMA translation, so we can exclude that one.  I'm still
+not seeing why it's terribly undesirable to require devices to support
+ATS if they want to do direct P2P with an IOMMU enabled.  Thanks,
+
+Alex
