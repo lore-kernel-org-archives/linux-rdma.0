@@ -1,86 +1,66 @@
-From: Guenter Roeck <linux@roeck-us.net>
+From: Saeed Mahameed <saeedm@mellanox.com>
 Subject: Re: [PATCH] net/mlx5: Fix mlx5_get_vector_affinity function
-Date: Wed, 9 May 2018 15:19:06 -0700
-Message-ID: <20180509221906.GA7548@roeck-us.net>
+Date: Wed, 9 May 2018 23:19:36 +0000
+Message-ID: <1525907973.19800.1.camel@mellanox.com>
 References: <20180505143838.GA12621@roeck-us.net>
- <alpine.DEB.2.21.1805060929540.1685@nanos.tec.linutronix.de>
+         <alpine.DEB.2.21.1805060929540.1685@nanos.tec.linutronix.de>
+         <20180509221906.GA7548@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.1805060929540.1685@nanos.tec.linutronix.de>
+In-Reply-To: <20180509221906.GA7548@roeck-us.net>
+Content-Language: en-US
+Content-ID: <49144164A709E24DBB0AFE285EBE216D@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Israel Rukshin <israelr@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Matan Barak <matanb@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org
+To: "linux@roeck-us.net" <linux@roeck-us.net>, "tglx@linutronix.de" <tglx@linutronix.de>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Max Gurtovoy <maxg@mellanox.com>, Israel Rukshin <israelr@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 06, 2018 at 09:33:26AM +0200, Thomas Gleixner wrote:
-> On Sat, 5 May 2018, Guenter Roeck wrote:
-> 
-> > On Thu, Apr 12, 2018 at 09:49:11AM +0000, Israel Rukshin wrote:
-> > > Adding the vector offset when calling to mlx5_vector2eqn() is wrong.
-> > > This is because mlx5_vector2eqn() checks if EQ index is equal to vector number
-> > > and the fact that the internal completion vectors that mlx5 allocates
-> > > don't get an EQ index.
-> > > 
-> > > The second problem here is that using effective_affinity_mask gives the same
-> > > CPU for different vectors.
-> > > This leads to unmapped queues when calling it from blk_mq_rdma_map_queues().
-> > > This doesn't happen when using affinity_hint mask.
-> > > 
-> > Except that affinity_hint is only defined if SMP is enabled. Without:
-> > 
-> > include/linux/mlx5/driver.h: In function ‘mlx5_get_vector_affinity_hint’:
-> > include/linux/mlx5/driver.h:1299:13: error:
-> >         ‘struct irq_desc’ has no member named ‘affinity_hint’
-> > 
-> > Note that this is the only use of affinity_hint outside kernel/irq.
-> > Don't other drivers have similar problems ?
-> 
-> Aside of that.
-> 
-> > >  static inline const struct cpumask *
-> > > -mlx5_get_vector_affinity(struct mlx5_core_dev *dev, int vector)
-> > > +mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
-> > >  {
-> > > -	const struct cpumask *mask;
-> > >  	struct irq_desc *desc;
-> > >  	unsigned int irq;
-> > >  	int eqn;
-> > >  	int err;
-> > >  
-> > > -	err = mlx5_vector2eqn(dev, MLX5_EQ_VEC_COMP_BASE + vector, &eqn, &irq);
-> > > +	err = mlx5_vector2eqn(dev, vector, &eqn, &irq);
-> > >  	if (err)
-> > >  		return NULL;
-> > >  
-> > >  	desc = irq_to_desc(irq);
-> > > -#ifdef CONFIG_GENERIC_IRQ_EFFECTIVE_AFF_MASK
-> > > -	mask = irq_data_get_effective_affinity_mask(&desc->irq_data);
-> > > -#else
-> > > -	mask = desc->irq_common_data.affinity;
-> > > -#endif
-> > > -	return mask;
-> > > +	return desc->affinity_hint;
-> 
-> NAK.
-> 
-
-The offending patch is upstream, breaking non-SMP test builds, and I have
-not seen any feedback from the submitter. Any suggestion how to proceed ?
-
-Guenter
-
-> Nothing in regular device drivers is supposed to ever fiddle with struct
-> irq_desc. The existing code is already a violation of that rule and needs
-> to be fixed, but not in that way.
-> 
-> The logic here is completely screwed. affinity_hint is set by the driver,
-> so the driver already knows what it is. If the driver does not set it, then
-> the thing is NULL.
-> 
-> Thanks,
-> 
-> 	tglx
-> 
+T24gV2VkLCAyMDE4LTA1LTA5IGF0IDE1OjE5IC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOg0K
+PiBPbiBTdW4sIE1heSAwNiwgMjAxOCBhdCAwOTozMzoyNkFNICswMjAwLCBUaG9tYXMgR2xlaXhu
+ZXIgd3JvdGU6DQo+ID4gT24gU2F0LCA1IE1heSAyMDE4LCBHdWVudGVyIFJvZWNrIHdyb3RlOg0K
+PiA+IA0KPiA+ID4gT24gVGh1LCBBcHIgMTIsIDIwMTggYXQgMDk6NDk6MTFBTSArMDAwMCwgSXNy
+YWVsIFJ1a3NoaW4gd3JvdGU6DQo+ID4gPiA+IEFkZGluZyB0aGUgdmVjdG9yIG9mZnNldCB3aGVu
+IGNhbGxpbmcgdG8gbWx4NV92ZWN0b3IyZXFuKCkgaXMNCj4gPiA+ID4gd3JvbmcuDQo+ID4gPiA+
+IFRoaXMgaXMgYmVjYXVzZSBtbHg1X3ZlY3RvcjJlcW4oKSBjaGVja3MgaWYgRVEgaW5kZXggaXMg
+ZXF1YWwNCj4gPiA+ID4gdG8gdmVjdG9yIG51bWJlcg0KPiA+ID4gPiBhbmQgdGhlIGZhY3QgdGhh
+dCB0aGUgaW50ZXJuYWwgY29tcGxldGlvbiB2ZWN0b3JzIHRoYXQgbWx4NQ0KPiA+ID4gPiBhbGxv
+Y2F0ZXMNCj4gPiA+ID4gZG9uJ3QgZ2V0IGFuIEVRIGluZGV4Lg0KPiA+ID4gPiANCj4gPiA+ID4g
+VGhlIHNlY29uZCBwcm9ibGVtIGhlcmUgaXMgdGhhdCB1c2luZyBlZmZlY3RpdmVfYWZmaW5pdHlf
+bWFzaw0KPiA+ID4gPiBnaXZlcyB0aGUgc2FtZQ0KPiA+ID4gPiBDUFUgZm9yIGRpZmZlcmVudCB2
+ZWN0b3JzLg0KPiA+ID4gPiBUaGlzIGxlYWRzIHRvIHVubWFwcGVkIHF1ZXVlcyB3aGVuIGNhbGxp
+bmcgaXQgZnJvbQ0KPiA+ID4gPiBibGtfbXFfcmRtYV9tYXBfcXVldWVzKCkuDQo+ID4gPiA+IFRo
+aXMgZG9lc24ndCBoYXBwZW4gd2hlbiB1c2luZyBhZmZpbml0eV9oaW50IG1hc2suDQo+ID4gPiA+
+IA0KPiA+ID4gDQo+ID4gPiBFeGNlcHQgdGhhdCBhZmZpbml0eV9oaW50IGlzIG9ubHkgZGVmaW5l
+ZCBpZiBTTVAgaXMgZW5hYmxlZC4NCj4gPiA+IFdpdGhvdXQ6DQo+ID4gPiANCj4gPiA+IGluY2x1
+ZGUvbGludXgvbWx4NS9kcml2ZXIuaDogSW4gZnVuY3Rpb24NCj4gPiA+IOKAmG1seDVfZ2V0X3Zl
+Y3Rvcl9hZmZpbml0eV9oaW504oCZOg0KPiA+ID4gaW5jbHVkZS9saW51eC9tbHg1L2RyaXZlci5o
+OjEyOTk6MTM6IGVycm9yOg0KPiA+ID4gICAgICAgICDigJhzdHJ1Y3QgaXJxX2Rlc2PigJkgaGFz
+IG5vIG1lbWJlciBuYW1lZCDigJhhZmZpbml0eV9oaW504oCZDQo+ID4gPiANCj4gPiA+IE5vdGUg
+dGhhdCB0aGlzIGlzIHRoZSBvbmx5IHVzZSBvZiBhZmZpbml0eV9oaW50IG91dHNpZGUNCj4gPiA+
+IGtlcm5lbC9pcnEuDQo+ID4gPiBEb24ndCBvdGhlciBkcml2ZXJzIGhhdmUgc2ltaWxhciBwcm9i
+bGVtcyA/DQo+ID4gDQo+ID4gQXNpZGUgb2YgdGhhdC4NCj4gPiANCj4gPiA+ID4gIHN0YXRpYyBp
+bmxpbmUgY29uc3Qgc3RydWN0IGNwdW1hc2sgKg0KPiA+ID4gPiAtbWx4NV9nZXRfdmVjdG9yX2Fm
+ZmluaXR5KHN0cnVjdCBtbHg1X2NvcmVfZGV2ICpkZXYsIGludA0KPiA+ID4gPiB2ZWN0b3IpDQo+
+ID4gPiA+ICttbHg1X2dldF92ZWN0b3JfYWZmaW5pdHlfaGludChzdHJ1Y3QgbWx4NV9jb3JlX2Rl
+diAqZGV2LCBpbnQNCj4gPiA+ID4gdmVjdG9yKQ0KPiA+ID4gPiAgew0KPiA+ID4gPiAtCWNvbnN0
+IHN0cnVjdCBjcHVtYXNrICptYXNrOw0KPiA+ID4gPiAgCXN0cnVjdCBpcnFfZGVzYyAqZGVzYzsN
+Cj4gPiA+ID4gIAl1bnNpZ25lZCBpbnQgaXJxOw0KPiA+ID4gPiAgCWludCBlcW47DQo+ID4gPiA+
+ICAJaW50IGVycjsNCj4gPiA+ID4gIA0KPiA+ID4gPiAtCWVyciA9IG1seDVfdmVjdG9yMmVxbihk
+ZXYsIE1MWDVfRVFfVkVDX0NPTVBfQkFTRSArDQo+ID4gPiA+IHZlY3RvciwgJmVxbiwgJmlycSk7
+DQo+ID4gPiA+ICsJZXJyID0gbWx4NV92ZWN0b3IyZXFuKGRldiwgdmVjdG9yLCAmZXFuLCAmaXJx
+KTsNCj4gPiA+ID4gIAlpZiAoZXJyKQ0KPiA+ID4gPiAgCQlyZXR1cm4gTlVMTDsNCj4gPiA+ID4g
+IA0KPiA+ID4gPiAgCWRlc2MgPSBpcnFfdG9fZGVzYyhpcnEpOw0KPiA+ID4gPiAtI2lmZGVmIENP
+TkZJR19HRU5FUklDX0lSUV9FRkZFQ1RJVkVfQUZGX01BU0sNCj4gPiA+ID4gLQltYXNrID0gaXJx
+X2RhdGFfZ2V0X2VmZmVjdGl2ZV9hZmZpbml0eV9tYXNrKCZkZXNjLQ0KPiA+ID4gPiA+aXJxX2Rh
+dGEpOw0KPiA+ID4gPiAtI2Vsc2UNCj4gPiA+ID4gLQltYXNrID0gZGVzYy0+aXJxX2NvbW1vbl9k
+YXRhLmFmZmluaXR5Ow0KPiA+ID4gPiAtI2VuZGlmDQo+ID4gPiA+IC0JcmV0dXJuIG1hc2s7DQo+
+ID4gPiA+ICsJcmV0dXJuIGRlc2MtPmFmZmluaXR5X2hpbnQ7DQo+ID4gDQo+ID4gTkFLLg0KPiA+
+IA0KPiANCj4gVGhlIG9mZmVuZGluZyBwYXRjaCBpcyB1cHN0cmVhbSwgYnJlYWtpbmcgbm9uLVNN
+UCB0ZXN0IGJ1aWxkcywgYW5kIEkNCj4gaGF2ZQ0KPiBub3Qgc2VlbiBhbnkgZmVlZGJhY2sgZnJv
+bSB0aGUgc3VibWl0dGVyLiBBbnkgc3VnZ2VzdGlvbiBob3cgdG8NCj4gcHJvY2VlZCA/DQo+IA0K
+PiBHdWVudGVyDQo+IA0KPiA+IA0KPiANCg0KSGkgR3VlbnRlciBhbmQgVGhvbWFzLA0KDQpNYXgg
+YW5kIElzcmFlbCBhcmUgaGFuZGxpbmcgdGhpcyBpbnRlcm5hbGx5IHRvIGZpbmQgYSBzb2x1dGlv
+biB0aGF0DQpwcm92aWRlcyB0aGUgbmVlZGVkIGZ1bmN0aW9uYWxpdHkgZm9yIHJkbWEgYW5kIGFk
+ZHJlc3NlcyB5b3VyIGNvbW1lbnRzLg0KDQpUaGFua3MsDQpTYWVlZC4=
