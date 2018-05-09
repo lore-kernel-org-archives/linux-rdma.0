@@ -1,56 +1,75 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Wed, 9 May 2018 10:45:16 -0600
-Message-ID: <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
-References: <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508205005.GC15608@redhat.com>
- <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
- <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+From: Corey Minyard <tcminyard@gmail.com>
+Subject: Re: [PATCH 0/6] treewide: Add and use dev_fmt similar to pr_fmt
+Date: Wed, 9 May 2018 11:47:15 -0500
+Message-ID: <4a397208-bd6c-a6c3-c161-4de8579ca17e@gmail.com>
+References: <cover.1525878372.git.joe@perches.com>
+Reply-To: minyard@acm.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd-5C7GfCeVMHo@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1525878372.git.joe@perches.com>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>, openipmi-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-CgpPbiAwOS8wNS8xOCAwNzo0MCBBTSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBUaGUga2V5
-IHRha2Vhd2F5IGlzIHRoYXQgd2hlbiBhbnkgZGV2aWNlIGhhcyBBVFMgZW5hYmxlZCB5b3UgY2Fu
-J3QgCj4gZGlzYWJsZSBBQ1Mgd2l0aG91dCBicmVha2luZyBpdCAoZXZlbiBpZiB5b3UgdW5wbHVn
-IGFuZCByZXBsdWcgaXQpLgoKSSBkb24ndCBmb2xsb3cgaG93IHlvdSBjYW1lIHRvIHRoaXMgY29u
-Y2x1c2lvbi4uLgogVGhlIEFDUyBiaXRzIHdlJ2QgYmUgdHVybmluZyBvZmYgYXJlIHRoZSBvbmVz
-IHRoYXQgZm9yY2UgVExQcyBhZGRyZXNzZWQKYXQgYSBwZWVyIHRvIGdvIHRvIHRoZSBSQy4gSG93
-ZXZlciwgQVRTIHRyYW5zbGF0aW9uIHBhY2tldHMgd2lsbCBiZQphZGRyZXNzZWQgdG8gYW4gdW50
-cmFuc2xhdGVkIGFkZHJlc3Mgd2hpY2ggYSBzd2l0Y2ggd2lsbCBub3QgaWRlbnRpZnkgYXMKYSBw
-ZWVyIGFkZHJlc3Mgc28gaXQgc2hvdWxkIHNlbmQgdXBzdHJlYW0gcmVnYXJkbGVzcyB0aGUgc3Rh
-dGUgb2YgdGhlCkFDUyBSZXEvQ29tcCByZWRpcmVjdCBiaXRzLgoKT25jZSB0aGUgdHJhbnNsYXRp
-b24gY29tZXMgYmFjaywgdGhlIEFUUyBlbmRwb2ludCBzaG91bGQgc2VuZCB0aGUgVExQIHRvCnRo
-ZSBwZWVyIGFkZHJlc3Mgd2l0aCB0aGUgQVQgcGFja2V0IHR5cGUgYW5kIGl0IHdpbGwgYmUgZGly
-ZWN0ZWQgdG8gdGhlCnBlZXIgcHJvdmlkZWQgdGhlIERpcmVjdCBUcmFuc2xhdGVkIGJpdCBpcyBz
-ZXQgKG9yIHRoZSByZWRpcmVjdCBiaXRzIGFyZQp1bnNldCkuCgpJIGNhbid0IHNlZSBob3cgdHVy
-bmluZyBvZmYgdGhlIFJlcS9Db21wIHJlZGlyZWN0IGJpdHMgY291bGQgYnJlYWsKYW55dGhpbmcg
-ZXhjZXB0IGZvciB0aGUgaXNvbGF0aW9uIHRoZXkgcHJvdmlkZS4KCkxvZ2FuCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5n
-IGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWls
-bWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On 05/09/2018 10:15 AM, Joe Perches wrote:
+> The pr_fmt mechanism exists for pr_<level> logging message prefixing,
+> but no similar capability exists for dev_<level> message prefixing.
+>
+> Many uses of dev_<level> have an embedded prefix for logging output.
+>
+> So add a similar dev_fmt macro that can automatically prefix the
+> dev_<level> logging output.
+>
+> Rename the existing dev_<level> functions to _dev_<level> and add new
+> macros that call _dev_<level> with the desired prefix if defined.
+>
+> The new default #define for dev_fmt is blank.
+>
+> Convert ipmi and infiniband to use this mechanism.
+
+The IPMI changes look good to me.
+
+There are some conflicts with a patch I have pulling out the proc 
+interface that is
+destined for 3.18.  I can take the IPMI changes into my tree, if you want.
+
+Thanks,
+
+-corey
+
+> Miscellanea:
+>
+> o x86/early-quirks uses an internal macro for #define dev_err which conflicts
+>   with the existing dev_err macro, so rename it.
+>
+> Joe Perches (6):
+>    x86/early-quirks: Rename duplicate define of dev_err
+>    device: Add #define dev_fmt similar to #define pr_fmt
+>    ipmi: msghandler: Add and use pr_fmt and dev_fmt, remove PFX
+>    ipmi: Use more common logging styles
+>    ipmi: Convert printk(KERN_<level> to pr_<level>(
+>    infiniband: qplib_fp: Use dev_fmt
+>
+>   arch/x86/kernel/early-quirks.c           |   8 +-
+>   drivers/base/core.c                      |  12 +--
+>   drivers/char/ipmi/ipmi_bt_sm.c           |  64 ++++++++--------
+>   drivers/char/ipmi/ipmi_devintf.c         |  11 ++-
+>   drivers/char/ipmi/ipmi_kcs_sm.c          |   4 +-
+>   drivers/char/ipmi/ipmi_msghandler.c      |  53 +++++++------
+>   drivers/char/ipmi/ipmi_poweroff.c        |  67 ++++++++---------
+>   drivers/char/ipmi/ipmi_si_hardcode.c     |   9 ++-
+>   drivers/char/ipmi/ipmi_si_hotmod.c       |  17 +++--
+>   drivers/char/ipmi/ipmi_si_intf.c         |  22 +++---
+>   drivers/char/ipmi/ipmi_si_pci.c          |  12 +--
+>   drivers/char/ipmi/ipmi_si_platform.c     |  20 ++---
+>   drivers/char/ipmi/ipmi_smic_sm.c         |  26 +++----
+>   drivers/char/ipmi/ipmi_ssif.c            |  73 +++++++++---------
+>   drivers/char/ipmi/ipmi_watchdog.c        |  52 +++++++------
+>   drivers/infiniband/hw/bnxt_re/qplib_fp.c | 125 ++++++++++++++-----------------
+>   include/linux/device.h                   | 103 ++++++++++++++-----------
+>   17 files changed, 330 insertions(+), 348 deletions(-)
+>
