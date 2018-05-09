@@ -1,180 +1,41 @@
-From: Hal Rosenstock <hal@dev.mellanox.co.il>
-Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
- check eligibility of the pkeys
-Date: Wed, 9 May 2018 07:28:40 -0400
-Message-ID: <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
-References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
- <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+From: "Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Wed, 9 May 2018 12:35:56 +0000
+Message-ID: <B5BFCF39-6BB4-4E45-B805-C8FCC8B79EF3@raithlin.com>
+References: <20180423233046.21476-1-logang@deltatee.com>
+ <20180423233046.21476-5-logang@deltatee.com>
+ <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
+ <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
+ <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
+ <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
+ <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
+ <20180508180157.7c7b393f@w520.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180508180157.7c7b393f-DGNDKt5SQtizQB+pC5nmwQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-ID: <1637E91BB2F65F4B8ECDBB1A7D276542-JkAt9bkEularoOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/9/2018 5:30 AM, Håkon Bugge wrote:
-> There is no point in using RDMA CM to establish a connection between
-> two QPs that cannot possible communicate. Particularly, if both the
-> active and passive side use limited pkeys, they are not able to
-> communicate.
-> 
-> In order to detect this situation, the authentic pkey is used in the
-> CM REQ message. The authentic pkey is the one that the HCA inserts
-> into the BTH in the IB packets.
-> 
-> When the passive side receives the REQ, commit ("ib_core: A full pkey
-> is required to match a limited one") ensures that
-> ib_find_matched_cached_pkey() fails unless at least one of the pkeys
-> compared has the full-member bit.
-> 
-> In the limited-to-limited case, this will prohibit the connection to
-> be formed, and thus, Pkey Violation Traps will not be sent to the SM.
-> 
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-> ---
->  drivers/infiniband/core/cm.c | 39 ++++++++++++++++++++++++++++++++-------
->  include/rdma/ib_cm.h         |  4 +++-
->  2 files changed, 35 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-> index a92e1a5c202b..52ed51d5bd2a 100644
-> --- a/drivers/infiniband/core/cm.c
-> +++ b/drivers/infiniband/core/cm.c
-> @@ -3,6 +3,7 @@
->   * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
->   * Copyright (c) 2004, 2005 Voltaire Corporation.  All rights reserved.
->   * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-> + * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
->   *
->   * This software is available to you under a choice of one of two
->   * licenses.  You may choose to be licensed under the terms of the GNU
-> @@ -91,6 +92,7 @@ static const char * const ibcm_rej_reason_strs[] = {
->  	[IB_CM_REJ_INVALID_CLASS_VERSION]	= "invalid class version",
->  	[IB_CM_REJ_INVALID_FLOW_LABEL]		= "invalid flow label",
->  	[IB_CM_REJ_INVALID_ALT_FLOW_LABEL]	= "invalid alt flow label",
-> +	[IB_CM_REJ_INVALID_PKEY]		= "invalid PKey",
+Hi Alex and Don
 
-If this patch goes ahead, IBA spec for CM should be updated to include this.
+>    Correct, the VM has no concept of the host's IOMMU groups, only the
+>   hypervisor knows about the groups, 
 
->  };
->  
->  const char *__attribute_const__ ibcm_reject_msg(int reason)
-> @@ -518,8 +520,8 @@ static int cm_init_av_by_path(struct sa_path_rec *path, struct cm_av *av,
->  		return -EINVAL;
->  	cm_dev = port->cm_dev;
->  
-> -	ret = ib_find_cached_pkey(cm_dev->ib_device, port->port_num,
-> -				  be16_to_cpu(path->pkey), &av->pkey_index);
-> +	ret = ib_find_matched_cached_pkey(cm_dev->ib_device, port->port_num,
-> +					  be16_to_cpu(path->pkey), &av->pkey_index);
->  	if (ret)
->  		return ret;
->  
-> @@ -1241,7 +1243,7 @@ static void cm_format_req(struct cm_req_msg *req_msg,
->  	cm_req_set_starting_psn(req_msg, cpu_to_be32(param->starting_psn));
->  	cm_req_set_local_resp_timeout(req_msg,
->  				      param->local_cm_response_timeout);
-> -	req_msg->pkey = param->primary_path->pkey;
-> +	req_msg->pkey = cpu_to_be16(cm_id_priv->pkey);
->  	cm_req_set_path_mtu(req_msg, param->primary_path->mtu);
->  	cm_req_set_max_cm_retries(req_msg, param->max_cm_retries);
->  
-> @@ -1396,7 +1398,23 @@ int ib_send_cm_req(struct ib_cm_id *cm_id,
->  	cm_id_priv->responder_resources = param->responder_resources;
->  	cm_id_priv->retry_count = param->retry_count;
->  	cm_id_priv->path_mtu = param->primary_path->mtu;
-> -	cm_id_priv->pkey = param->primary_path->pkey;
-> +
-> +	/*
-> +	 * We want to send the pkey used in the BTH in packets
-> +	 * sent. This, in order for the passive side to determine if
-> +	 * communication is permitted by the respective pkeys.
-> +	 *
-> +	 * The pkey in the paths are derived from the MGID, which has
-> +	 * the full membership bit set. Hence, we retrieve the pkey by
-> +	 * using the address vector's pkey_index.
+But as I understand it these groups are usually passed through to VMs on a pre-group basis by the hypervisor? So IOMMU group 1 might be passed to VM A and IOMMU group 2 passed to VM B. So I agree the VM is not aware of IOMMU groupings but it is impacted by them in the sense that if the groupings change the PCI topology presented to the VM needs to change too.
 
-The paths usually come from the SM and I don't expect SM to provide path
-between ports of only limited members of partition. Default ACM provider
-forms path from multicast group parameters including pkey. Is that the
-scenario of concern ? If so, I still don't fully understand the scenario
-because limited members are not supposed to be part of a multicast
-group. There was some work started to extend this for client/server
-model but it was never completed. However, there may be hole(s) in
-various components of implementation which open(s) this door.
-
--- Hal
-
-> +	 */
-> +	ret = ib_get_cached_pkey(cm_id_priv->id.device,
-> +				 cm_id_priv->av.port->port_num,
-> +				 cm_id_priv->av.pkey_index,
-> +				 &cm_id_priv->pkey);
-> +	if (ret)
-> +		goto error1;
-> +
->  	cm_id_priv->qp_type = param->qp_type;
->  
->  	ret = cm_alloc_msg(cm_id_priv, &cm_id_priv->msg);
-> @@ -1956,16 +1974,19 @@ static int cm_req_handler(struct cm_work *work)
->  				 cm_id_priv);
->  	if (ret) {
->  		int err;
-> +		int rej_reason = (ret == -ENOENT ?
-> +				  IB_CM_REJ_INVALID_PKEY :
-> +				  IB_CM_REJ_INVALID_GID);
->  
->  		err = ib_get_cached_gid(work->port->cm_dev->ib_device,
->  					work->port->port_num, 0,
->  					&work->path[0].sgid,
->  					NULL);
->  		if (err)
-> -			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
-> +			ib_send_cm_rej(cm_id, rej_reason,
->  				       NULL, 0, NULL, 0);
->  		else
-> -			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_GID,
-> +			ib_send_cm_rej(cm_id, rej_reason,
->  				       &work->path[0].sgid,
->  				       sizeof(work->path[0].sgid),
->  				       NULL, 0);
-> @@ -1975,7 +1996,11 @@ static int cm_req_handler(struct cm_work *work)
->  		ret = cm_init_av_by_path(&work->path[1], &cm_id_priv->alt_av,
->  					 cm_id_priv);
->  		if (ret) {
-> -			ib_send_cm_rej(cm_id, IB_CM_REJ_INVALID_ALT_GID,
-> +			int rej_reason = (ret == -ENOENT ?
-> +					  IB_CM_REJ_INVALID_PKEY :
-> +					  IB_CM_REJ_INVALID_ALT_GID);
-> +
-> +			ib_send_cm_rej(cm_id, rej_reason,
->  				       &work->path[0].sgid,
->  				       sizeof(work->path[0].sgid), NULL, 0);
->  			goto rejected;
-> diff --git a/include/rdma/ib_cm.h b/include/rdma/ib_cm.h
-> index 7979cb04f529..56b62303946a 100644
-> --- a/include/rdma/ib_cm.h
-> +++ b/include/rdma/ib_cm.h
-> @@ -3,6 +3,7 @@
->   * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
->   * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
->   * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-> + * Copyright (c) 2018 Oracle and/or its affiliates. All rights reserved.
->   *
->   * This software is available to you under a choice of one of two
->   * licenses.  You may choose to be licensed under the terms of the GNU
-> @@ -183,7 +184,8 @@ enum ib_cm_rej_reason {
->  	IB_CM_REJ_DUPLICATE_LOCAL_COMM_ID	= 30,
->  	IB_CM_REJ_INVALID_CLASS_VERSION		= 31,
->  	IB_CM_REJ_INVALID_FLOW_LABEL		= 32,
-> -	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33
-> +	IB_CM_REJ_INVALID_ALT_FLOW_LABEL	= 33,
-> +	IB_CM_REJ_INVALID_PKEY			= 34,
->  };
->  
->  struct ib_cm_rej_event_param {
-> 
+Stephen
