@@ -1,65 +1,59 @@
-From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all
- devices behind switches
-Date: Wed, 9 May 2018 08:44:45 -0600
-Message-ID: <20180509084445.626d2732@w520.home>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <20180423233046.21476-5-logang@deltatee.com>
- <CAPcyv4g+5N_n03J-VhmJfrr60Sqk95ZapLKBkwSsGvV4nQ+ZRw@mail.gmail.com>
- <64C231F5-DE36-415F-B308-3A423B0BBACB@raithlin.com>
- <15433946-f7f5-f610-4e80-380fb59920e5@redhat.com>
- <3C9FB262-A93C-4C8F-B1E0-85C6D6F78BC2@raithlin.com>
- <c5f30ced-7bbf-9420-db1a-72519fc78b3a@redhat.com>
- <20180508180157.7c7b393f@w520.home>
- <B5BFCF39-6BB4-4E45-B805-C8FCC8B79EF3@raithlin.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] iw_cxgb4: Fix an error handling path in
+ 'c4iw_get_dma_mr()'
+Date: Wed, 09 May 2018 11:09:37 -0400
+Message-ID: <1525878577.11756.380.camel@redhat.com>
+References: <20180508054427.10697-1-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <B5BFCF39-6BB4-4E45-B805-C8FCC8B79EF3-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen  Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Christian =?UTF-8?B?S8O2bmln?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?UTF-8?B?SsOpcsO0?= =?UTF-8?B?bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Don Dutile <ddutile-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-tu8UbiFGbtEvy150MBQD"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180508054427.10697-1-christophe.jaillet@wanadoo.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, swise@chelsio.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 9 May 2018 12:35:56 +0000
-"Stephen  Bates" <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org> wrote:
 
-> Hi Alex and Don
-> 
-> >    Correct, the VM has no concept of the host's IOMMU groups, only
-> > the hypervisor knows about the groups,   
-> 
-> But as I understand it these groups are usually passed through to VMs
-> on a pre-group basis by the hypervisor? So IOMMU group 1 might be
-> passed to VM A and IOMMU group 2 passed to VM B. So I agree the VM is
-> not aware of IOMMU groupings but it is impacted by them in the sense
-> that if the groupings change the PCI topology presented to the VM
-> needs to change too.
+--=-tu8UbiFGbtEvy150MBQD
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hypervisors don't currently expose any topology based on the grouping,
-the only case where such a concept even makes sense is when a vIOMMU is
-present as devices within the same group cannot have separate address
-spaces.  Our options for exposing such information is also limited, our
-only real option would seem to be placing devices within the same group
-together on a conventional PCI bus to denote the address space
-granularity.  Currently we strongly recommend singleton groups for this
-case and leave any additional configuration constraints to the admin.
+On Tue, 2018-05-08 at 07:44 +0200, Christophe JAILLET wrote:
+> The error handling path of 'c4iw_get_dma_mr()' does not free resources
+> in the correct order.
+> If an error occures, it can leak 'mhp->wr_waitp'.
+>=20
+> Fixes: a3f12da0e99a ("iw_cxgb4: allocate wait object for each memory obje=
+ct")
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 
-The case you note of a group passed to VM A and another passed to VM B
-is exactly an example of why any sort of dynamic routing change needs to
-have the groups fully released, such as via hot-unplug.  For instance,
-a routing change at a shared node above groups 1 & 2 could result in
-the merging of these groups and there is absolutely no way to handle
-that with portions of the group being owned by two separate VMs after
-the merge.  Thanks,
+Applied to for-rc, thanks.
 
-Alex
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-tu8UbiFGbtEvy150MBQD
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrzDzEACgkQuCajMw5X
+L93N1RAAndYlgYvHUI1z7oeyyb3p1oaay0oX1mDBohcOYRUAG3vkmvtPl4/pXyXY
+9ZpNIzqiTmAAM3xDQHsbPeRJA7CjA2cFDUiT8/jlQWBH1r1iqC/LL7GH4ix47tLS
+fsJkl1j1NgSzPCdA0R5cqiA1XkNjUSknexKPKF487ngfFFISaycy2BrzlGY+M03O
+isCuGq0fRK3XjpVJfwgyv7+xG5SVf+plnUszsXtIf1BwhXlmLLCARAUmQx1W4bue
+D+Y469uI5eVo6bqi1ng8trp6UeiUhl4GFvua/CQs6+uoMB6IqZ6MpBrF6FVWhrWU
+G7bRSbu5MHdxyrWxv9z2kqYtMQ5Boa7jOV/9CQH/pY/4MHrGghFv87MMd77bckUY
+hHYUEmdntuqhIdKTj8SHZXcH7MfmwpNS0i3f6Wbm0GWvN0y9nJH9iAHEXXLnBflR
+eoSLC9Dmgwm3SpyMZzQRK34PjwYNwXgskrl6Z/A+B8JUfs+YXXiCoSqk9S4mTdX5
+duZSAoeu2OceSZ0kVL+6ILzZ3xi2ntFegZreoA3LuytT+m4cAyU6Z6R4AmcSBlnj
+blMmwUeRGQHedjKqoRrZH8IFzclfSfy5VnKemvt1TEeANUiF0JMjnz4q9/PvTxyV
+rpp8cZKKoooz8TNtIGbr50dlCZ9+oRR/IciXd/MiCyrLUTNsyPI=
+=KOUl
+-----END PGP SIGNATURE-----
+
+--=-tu8UbiFGbtEvy150MBQD--
