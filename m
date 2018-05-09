@@ -1,59 +1,59 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] iw_cxgb4: Fix an error handling path in
- 'c4iw_get_dma_mr()'
-Date: Wed, 09 May 2018 11:09:37 -0400
-Message-ID: <1525878577.11756.380.camel@redhat.com>
-References: <20180508054427.10697-1-christophe.jaillet@wanadoo.fr>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-tu8UbiFGbtEvy150MBQD"
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 0/6] treewide: Add and use dev_fmt similar to pr_fmt
+Date: Wed,  9 May 2018 08:15:44 -0700
+Message-ID: <cover.1525878372.git.joe@perches.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180508054427.10697-1-christophe.jaillet@wanadoo.fr>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, swise@chelsio.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: openipmi-developer@lists.sourceforge.net, linux-rdma@vger.kernel.org
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+The pr_fmt mechanism exists for pr_<level> logging message prefixing,
+but no similar capability exists for dev_<level> message prefixing.
 
---=-tu8UbiFGbtEvy150MBQD
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Many uses of dev_<level> have an embedded prefix for logging output.
 
-On Tue, 2018-05-08 at 07:44 +0200, Christophe JAILLET wrote:
-> The error handling path of 'c4iw_get_dma_mr()' does not free resources
-> in the correct order.
-> If an error occures, it can leak 'mhp->wr_waitp'.
->=20
-> Fixes: a3f12da0e99a ("iw_cxgb4: allocate wait object for each memory obje=
-ct")
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+So add a similar dev_fmt macro that can automatically prefix the
+dev_<level> logging output.
 
-Applied to for-rc, thanks.
+Rename the existing dev_<level> functions to _dev_<level> and add new
+macros that call _dev_<level> with the desired prefix if defined.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-tu8UbiFGbtEvy150MBQD
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+The new default #define for dev_fmt is blank.
 
------BEGIN PGP SIGNATURE-----
+Convert ipmi and infiniband to use this mechanism.
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrzDzEACgkQuCajMw5X
-L93N1RAAndYlgYvHUI1z7oeyyb3p1oaay0oX1mDBohcOYRUAG3vkmvtPl4/pXyXY
-9ZpNIzqiTmAAM3xDQHsbPeRJA7CjA2cFDUiT8/jlQWBH1r1iqC/LL7GH4ix47tLS
-fsJkl1j1NgSzPCdA0R5cqiA1XkNjUSknexKPKF487ngfFFISaycy2BrzlGY+M03O
-isCuGq0fRK3XjpVJfwgyv7+xG5SVf+plnUszsXtIf1BwhXlmLLCARAUmQx1W4bue
-D+Y469uI5eVo6bqi1ng8trp6UeiUhl4GFvua/CQs6+uoMB6IqZ6MpBrF6FVWhrWU
-G7bRSbu5MHdxyrWxv9z2kqYtMQ5Boa7jOV/9CQH/pY/4MHrGghFv87MMd77bckUY
-hHYUEmdntuqhIdKTj8SHZXcH7MfmwpNS0i3f6Wbm0GWvN0y9nJH9iAHEXXLnBflR
-eoSLC9Dmgwm3SpyMZzQRK34PjwYNwXgskrl6Z/A+B8JUfs+YXXiCoSqk9S4mTdX5
-duZSAoeu2OceSZ0kVL+6ILzZ3xi2ntFegZreoA3LuytT+m4cAyU6Z6R4AmcSBlnj
-blMmwUeRGQHedjKqoRrZH8IFzclfSfy5VnKemvt1TEeANUiF0JMjnz4q9/PvTxyV
-rpp8cZKKoooz8TNtIGbr50dlCZ9+oRR/IciXd/MiCyrLUTNsyPI=
-=KOUl
------END PGP SIGNATURE-----
+Miscellanea:
 
---=-tu8UbiFGbtEvy150MBQD--
+o x86/early-quirks uses an internal macro for #define dev_err which conflicts
+ with the existing dev_err macro, so rename it.
+
+Joe Perches (6):
+  x86/early-quirks: Rename duplicate define of dev_err
+  device: Add #define dev_fmt similar to #define pr_fmt
+  ipmi: msghandler: Add and use pr_fmt and dev_fmt, remove PFX
+  ipmi: Use more common logging styles
+  ipmi: Convert printk(KERN_<level> to pr_<level>(
+  infiniband: qplib_fp: Use dev_fmt
+
+ arch/x86/kernel/early-quirks.c           |   8 +-
+ drivers/base/core.c                      |  12 +--
+ drivers/char/ipmi/ipmi_bt_sm.c           |  64 ++++++++--------
+ drivers/char/ipmi/ipmi_devintf.c         |  11 ++-
+ drivers/char/ipmi/ipmi_kcs_sm.c          |   4 +-
+ drivers/char/ipmi/ipmi_msghandler.c      |  53 +++++++------
+ drivers/char/ipmi/ipmi_poweroff.c        |  67 ++++++++---------
+ drivers/char/ipmi/ipmi_si_hardcode.c     |   9 ++-
+ drivers/char/ipmi/ipmi_si_hotmod.c       |  17 +++--
+ drivers/char/ipmi/ipmi_si_intf.c         |  22 +++---
+ drivers/char/ipmi/ipmi_si_pci.c          |  12 +--
+ drivers/char/ipmi/ipmi_si_platform.c     |  20 ++---
+ drivers/char/ipmi/ipmi_smic_sm.c         |  26 +++----
+ drivers/char/ipmi/ipmi_ssif.c            |  73 +++++++++---------
+ drivers/char/ipmi/ipmi_watchdog.c        |  52 +++++++------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c | 125 ++++++++++++++-----------------
+ include/linux/device.h                   | 103 ++++++++++++++-----------
+ 17 files changed, 330 insertions(+), 348 deletions(-)
+
+-- 
+2.15.0
