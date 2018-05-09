@@ -1,67 +1,117 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Wed, 9 May 2018 15:40:29 +0200
-Message-ID: <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
-References: <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508205005.GC15608@redhat.com>
- <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH for-next 05/14] IB/hfi1: Use after free race condition
+ in send context error path
+Date: Wed, 09 May 2018 10:38:52 -0400
+Message-ID: <1525876732.11756.372.camel@redhat.com>
+References: <20180502133831.20730.42677.stgit@scvm10.sc.intel.com>
+         <20180502134249.20730.78919.stgit@scvm10.sc.intel.com>
+         <20180504183839.6wexn5phhiyo6xra@ziepe.ca>
+         <add45f95-61e0-aa96-6738-08c15a234f33@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <7FFB9603-DF9F-4441-82E9-46037CB6C0DE-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-+uo9LjxAIskht2C96nrh"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <add45f95-61e0-aa96-6738-08c15a234f33@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Am 09.05.2018 um 15:12 schrieb Stephen Bates:
-> Jerome and Christian
->      
->> I think there is confusion here, Alex properly explained the scheme
->> PCIE-device do a ATS request to the IOMMU which returns a valid
->> translation for a virtual address. Device can then use that address
->> directly without going through IOMMU for translation.
-> So I went through ATS in version 4.0r1 of the PCI spec. It looks like even a ATS translated TLP is still impacted by ACS though it has a separate control knob for translated address TLPs (see 7.7.7.2 of 4.0r1 of the spec). So even if your device supports ATS a P2P DMA will still be routed to the associated RP of the domain and down again unless we disable ACS DT P2P on all bridges between the two devices involved in the P2P DMA.
->
-> So we still don't get fine grained control with ATS and I guess we still have security issues because a rogue or malfunctioning EP could just as easily issue TLPs with TA set vs not set.
 
-Still need to double check the specification (had a busy morning today), 
-but that sounds about correct.
+--=-+uo9LjxAIskht2C96nrh
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The key takeaway is that when any device has ATS enabled you can't 
-disable ACS without breaking it (even if you unplug and replug it).
+On Fri, 2018-05-04 at 16:01 -0400, Dennis Dalessandro wrote:
+> On 5/4/2018 2:38 PM, Jason Gunthorpe wrote:
+> > On Wed, May 02, 2018 at 06:42:51AM -0700, Dennis Dalessandro wrote:
+> > > From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> > >=20
+> > > A pio send egress error can occur when the PSM library attempts to
+> > > to send a bad packet.  That issue is still being investigated.
+> > >=20
+> > > The pio error interrupt handler then attempts to progress the recover=
+y
+> > > of the errored pio send context.
+> > >=20
+> > > Code inspection reveals that the handling lacks the necessary locking
+> > > if that recovery interleaves with a PSM close of the "context" object
+> > > contains the pio send context.
+> > >=20
+> > > The lack of the locking can cause the recovery to access the already
+> > > freed pio send context object and incorrectly deduce that the pio
+> > > send context is actually a kernel pio send context as shown by the
+> > > NULL deref stack below:
+> > >=20
+> > > [<ffffffff8143d78c>] _dev_info+0x6c/0x90
+> > > [<ffffffffc0613230>] sc_restart+0x70/0x1f0 [hfi1]
+> > > [<ffffffff816ab124>] ? __schedule+0x424/0x9b0
+> > > [<ffffffffc06133c5>] sc_halted+0x15/0x20 [hfi1]
+> > > [<ffffffff810aa3ba>] process_one_work+0x17a/0x440
+> > > [<ffffffff810ab086>] worker_thread+0x126/0x3c0
+> > > [<ffffffff810aaf60>] ? manage_workers.isra.24+0x2a0/0x2a0
+> > > [<ffffffff810b252f>] kthread+0xcf/0xe0
+> > > [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
+> > > [<ffffffff816b8798>] ret_from_fork+0x58/0x90
+> > > [<ffffffff810b2460>] ? insert_kthread_work+0x40/0x40
+> > >=20
+> > > This is the best case scenario and other scenarios can corrupt the
+> > > already freed memory.
+> > >=20
+> > > Fix by adding the necessary locking in the pio send context error
+> > > handler.
+> > >=20
+> > > Cc: <stable@vger.kernel.org> # 4.9.x
+> > > Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> > > Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > > Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> > > Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > > ---
+> > >   drivers/infiniband/hw/hfi1/chip.c |    4 ++++
+> > >   1 files changed, 4 insertions(+), 0 deletions(-)
+> >=20
+> > Why are you sending this to for-next not for-rc?
+>=20
+> I went back and forth on this one. In the end decided against it because=
+=20
+> we've lived with it for so long, note stable tag is all the way back to=
+=20
+> 4.9, that and the fact that it's extremely unlikely to occur. I would be=
+=20
+> fine including it with the -rc though. I think a case could be made=20
+> either way.
+>=20
+> -Denny
+>=20
+>=20
+>=20
 
->> Also ATS is meaningless without something like PASID as far as i know.
->      
-> ATS is still somewhat valuable without PSAID in the sense you can cache IOMMU address translations at the EP. This saves hammering on the IOMMU as much in certain workloads.
->
-> Interestingly Section 7.7.7.2 almost mentions that Root Ports that support ATS AND can implement P2P between root ports should advertise "ACS Direct Translated P2P (T)" capability. This ties into the discussion around P2P between route ports we had a few weeks ago...
+I went ahead and pulled this into for-rc instead of for-next.  Thanks.
 
-Interesting point, give me a moment to check that. That finally makes 
-all the hardware I have standing around here valuable :)
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-+uo9LjxAIskht2C96nrh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Christian.
+-----BEGIN PGP SIGNATURE-----
 
->
-> Stephen
->
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlrzB/wACgkQuCajMw5X
+L93RDQ//enJTyRTpz0nfg7bCGZtO2W+N/ftkRYaxve4bTAjrc+6YKfcg2Z1s5xdr
+dZxq94xO3FLBrkURfvp9Hw22hLGD3vKo75fK3mggcAmDN/31C37m43JcTMcEooKl
+sjJ1zNKk6S+rRP9n31Yk1wgw+y3gsmK8SYzJnnuifaNNmhptJAnBQI0/RGkf75PC
+eKNweN7aoGtPjHuT23aK+JTKeIUG87gJzo0Kfv56PGJpvv7D7UDk1Uendr36WpbE
+KeXlZZBUzlbyNwEoJoEZXyO0dHbXNGaZ24IglJ6Fw1cf/PSAjTUpZOKAXmuDzdO4
+Hwgox6GTAZZ7Rc+/gjyh3qkIYH+KYIKVc/ZI/jLlnwQbbpOVvl3qGMFaA80TQJSY
+OI9sf6eyqfUMTbI+DPdeu5vL+cy19w4duIQQYObzVU3k/Z0VJin4IC9yTUdeUh5X
+bzm9DCaHY/kKQ8gVK3LWzzblumZs8MZ6aFGND19wzDzRcp0TkLnsNxr0xVn1BQv+
+VBGRrVYkmowqQN9ScIuxhDWZwppa9ekkDSUJcaUZREBsbSsZuuF8RQarfDkU26uB
+FPuw/FQeFavcS0GKFp3Kz+Ncvdhicf/9VjcsEPs3ybQXnvs/N/QJuXksOZ4I8vGG
+QQyN1dCm0g/ducmvh3UAg2ZTbO49jlzfH9E94izl34V6SNQUB4A=
+=kNzC
+-----END PGP SIGNATURE-----
+
+--=-+uo9LjxAIskht2C96nrh--
