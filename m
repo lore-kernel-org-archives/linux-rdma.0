@@ -1,27 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [pull request][for-next 0/6] Mellanox, mlx5 updates 2018-05-07
-Date: Thu, 10 May 2018 08:18:36 -0400 (EDT)
-Message-ID: <20180510.081836.382051449994824032.davem@davemloft.net>
-References: <20180507235304.25085-1-saeedm@mellanox.com>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH v2] net/mlx4_en: Fix an error handling path in
+ 'mlx4_en_init_netdev()'
+Date: Thu, 10 May 2018 15:42:24 +0300
+Message-ID: <086ee1ec-3806-d1f4-78df-d3f4417e47f9@mellanox.com>
+References: <20180510070604.19635-1-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180507235304.25085-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: dledford@redhat.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, jgg@mellanox.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180510070604.19635-1-christophe.jaillet@wanadoo.fr>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, davem@davemloft.net, tariqt@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Mon,  7 May 2018 16:52:58 -0700
 
-> This pull request includes misc updates and cleanups for mlx5 core
-> driver for both net and rdma next branches, for more information please
-> see tag log below.
+
+On 10/05/2018 10:06 AM, Christophe JAILLET wrote:
+> If an error occurs, 'mlx4_en_destroy_netdev()' is called.
+> It then calls 'mlx4_en_free_resources()' which does the needed resources
+> cleanup.
 > 
-> Please pull and let me know if there's any problem.
+> So, doing some explicit kfree in the error handling path would lead to
+> some double kfree.
+> 
+> Simplify code to avoid such a case.
+> 
+> Fixes: 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings scheme")
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+> v1 -> v2 : rewrite the fix as explained by Tariq Toukan
+>             (this 2nd version may have been posted twice, once without the
+>             v2 tag. PLease ignore the first one)
+> ---
+> 
+>   drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 8 +-------
+>   1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> index e0adac4a9a19..9670b33fc9b1 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> @@ -3324,12 +3324,11 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+>   					   MAX_TX_RINGS, GFP_KERNEL);
+>   		if (!priv->tx_ring[t]) {
+>   			err = -ENOMEM;
+> -			goto err_free_tx;
+> +			goto out;
+>   		}
+>   		priv->tx_cq[t] = kzalloc(sizeof(struct mlx4_en_cq *) *
+>   					 MAX_TX_RINGS, GFP_KERNEL);
+>   		if (!priv->tx_cq[t]) {
+> -			kfree(priv->tx_ring[t]);
+>   			err = -ENOMEM;
+>   			goto out;
+>   		}
+> @@ -3582,11 +3581,6 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+>   
+>   	return 0;
+>   
+> -err_free_tx:
+> -	while (t--) {
+> -		kfree(priv->tx_ring[t]);
+> -		kfree(priv->tx_cq[t]);
+> -	}
+>   out:
+>   	mlx4_en_destroy_netdev(dev);
+>   	return err;
+> 
 
-Looks good, pulled into net-next.
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 
-Thanks.
+Thanks Christophe.
