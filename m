@@ -1,66 +1,36 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH] net/mlx5: Fix mlx5_get_vector_affinity function
-Date: Wed, 9 May 2018 23:19:36 +0000
-Message-ID: <1525907973.19800.1.camel@mellanox.com>
-References: <20180505143838.GA12621@roeck-us.net>
-         <alpine.DEB.2.21.1805060929540.1685@nanos.tec.linutronix.de>
-         <20180509221906.GA7548@roeck-us.net>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
+ attributes
+Date: Wed, 9 May 2018 22:08:52 -0600
+Message-ID: <06375fd7-f241-74ad-70ce-a670100bf060@gmail.com>
+References: <cover.1525709213.git.swise@opengridcomputing.com>
+ <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180509221906.GA7548@roeck-us.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
 Content-Language: en-US
-Content-ID: <49144164A709E24DBB0AFE285EBE216D@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux@roeck-us.net" <linux@roeck-us.net>, "tglx@linutronix.de" <tglx@linutronix.de>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Max Gurtovoy <maxg@mellanox.com>, Israel Rukshin <israelr@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, leon@kernel.org
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTA1LTA5IGF0IDE1OjE5IC0wNzAwLCBHdWVudGVyIFJvZWNrIHdyb3RlOg0K
-PiBPbiBTdW4sIE1heSAwNiwgMjAxOCBhdCAwOTozMzoyNkFNICswMjAwLCBUaG9tYXMgR2xlaXhu
-ZXIgd3JvdGU6DQo+ID4gT24gU2F0LCA1IE1heSAyMDE4LCBHdWVudGVyIFJvZWNrIHdyb3RlOg0K
-PiA+IA0KPiA+ID4gT24gVGh1LCBBcHIgMTIsIDIwMTggYXQgMDk6NDk6MTFBTSArMDAwMCwgSXNy
-YWVsIFJ1a3NoaW4gd3JvdGU6DQo+ID4gPiA+IEFkZGluZyB0aGUgdmVjdG9yIG9mZnNldCB3aGVu
-IGNhbGxpbmcgdG8gbWx4NV92ZWN0b3IyZXFuKCkgaXMNCj4gPiA+ID4gd3JvbmcuDQo+ID4gPiA+
-IFRoaXMgaXMgYmVjYXVzZSBtbHg1X3ZlY3RvcjJlcW4oKSBjaGVja3MgaWYgRVEgaW5kZXggaXMg
-ZXF1YWwNCj4gPiA+ID4gdG8gdmVjdG9yIG51bWJlcg0KPiA+ID4gPiBhbmQgdGhlIGZhY3QgdGhh
-dCB0aGUgaW50ZXJuYWwgY29tcGxldGlvbiB2ZWN0b3JzIHRoYXQgbWx4NQ0KPiA+ID4gPiBhbGxv
-Y2F0ZXMNCj4gPiA+ID4gZG9uJ3QgZ2V0IGFuIEVRIGluZGV4Lg0KPiA+ID4gPiANCj4gPiA+ID4g
-VGhlIHNlY29uZCBwcm9ibGVtIGhlcmUgaXMgdGhhdCB1c2luZyBlZmZlY3RpdmVfYWZmaW5pdHlf
-bWFzaw0KPiA+ID4gPiBnaXZlcyB0aGUgc2FtZQ0KPiA+ID4gPiBDUFUgZm9yIGRpZmZlcmVudCB2
-ZWN0b3JzLg0KPiA+ID4gPiBUaGlzIGxlYWRzIHRvIHVubWFwcGVkIHF1ZXVlcyB3aGVuIGNhbGxp
-bmcgaXQgZnJvbQ0KPiA+ID4gPiBibGtfbXFfcmRtYV9tYXBfcXVldWVzKCkuDQo+ID4gPiA+IFRo
-aXMgZG9lc24ndCBoYXBwZW4gd2hlbiB1c2luZyBhZmZpbml0eV9oaW50IG1hc2suDQo+ID4gPiA+
-IA0KPiA+ID4gDQo+ID4gPiBFeGNlcHQgdGhhdCBhZmZpbml0eV9oaW50IGlzIG9ubHkgZGVmaW5l
-ZCBpZiBTTVAgaXMgZW5hYmxlZC4NCj4gPiA+IFdpdGhvdXQ6DQo+ID4gPiANCj4gPiA+IGluY2x1
-ZGUvbGludXgvbWx4NS9kcml2ZXIuaDogSW4gZnVuY3Rpb24NCj4gPiA+IOKAmG1seDVfZ2V0X3Zl
-Y3Rvcl9hZmZpbml0eV9oaW504oCZOg0KPiA+ID4gaW5jbHVkZS9saW51eC9tbHg1L2RyaXZlci5o
-OjEyOTk6MTM6IGVycm9yOg0KPiA+ID4gICAgICAgICDigJhzdHJ1Y3QgaXJxX2Rlc2PigJkgaGFz
-IG5vIG1lbWJlciBuYW1lZCDigJhhZmZpbml0eV9oaW504oCZDQo+ID4gPiANCj4gPiA+IE5vdGUg
-dGhhdCB0aGlzIGlzIHRoZSBvbmx5IHVzZSBvZiBhZmZpbml0eV9oaW50IG91dHNpZGUNCj4gPiA+
-IGtlcm5lbC9pcnEuDQo+ID4gPiBEb24ndCBvdGhlciBkcml2ZXJzIGhhdmUgc2ltaWxhciBwcm9i
-bGVtcyA/DQo+ID4gDQo+ID4gQXNpZGUgb2YgdGhhdC4NCj4gPiANCj4gPiA+ID4gIHN0YXRpYyBp
-bmxpbmUgY29uc3Qgc3RydWN0IGNwdW1hc2sgKg0KPiA+ID4gPiAtbWx4NV9nZXRfdmVjdG9yX2Fm
-ZmluaXR5KHN0cnVjdCBtbHg1X2NvcmVfZGV2ICpkZXYsIGludA0KPiA+ID4gPiB2ZWN0b3IpDQo+
-ID4gPiA+ICttbHg1X2dldF92ZWN0b3JfYWZmaW5pdHlfaGludChzdHJ1Y3QgbWx4NV9jb3JlX2Rl
-diAqZGV2LCBpbnQNCj4gPiA+ID4gdmVjdG9yKQ0KPiA+ID4gPiAgew0KPiA+ID4gPiAtCWNvbnN0
-IHN0cnVjdCBjcHVtYXNrICptYXNrOw0KPiA+ID4gPiAgCXN0cnVjdCBpcnFfZGVzYyAqZGVzYzsN
-Cj4gPiA+ID4gIAl1bnNpZ25lZCBpbnQgaXJxOw0KPiA+ID4gPiAgCWludCBlcW47DQo+ID4gPiA+
-ICAJaW50IGVycjsNCj4gPiA+ID4gIA0KPiA+ID4gPiAtCWVyciA9IG1seDVfdmVjdG9yMmVxbihk
-ZXYsIE1MWDVfRVFfVkVDX0NPTVBfQkFTRSArDQo+ID4gPiA+IHZlY3RvciwgJmVxbiwgJmlycSk7
-DQo+ID4gPiA+ICsJZXJyID0gbWx4NV92ZWN0b3IyZXFuKGRldiwgdmVjdG9yLCAmZXFuLCAmaXJx
-KTsNCj4gPiA+ID4gIAlpZiAoZXJyKQ0KPiA+ID4gPiAgCQlyZXR1cm4gTlVMTDsNCj4gPiA+ID4g
-IA0KPiA+ID4gPiAgCWRlc2MgPSBpcnFfdG9fZGVzYyhpcnEpOw0KPiA+ID4gPiAtI2lmZGVmIENP
-TkZJR19HRU5FUklDX0lSUV9FRkZFQ1RJVkVfQUZGX01BU0sNCj4gPiA+ID4gLQltYXNrID0gaXJx
-X2RhdGFfZ2V0X2VmZmVjdGl2ZV9hZmZpbml0eV9tYXNrKCZkZXNjLQ0KPiA+ID4gPiA+aXJxX2Rh
-dGEpOw0KPiA+ID4gPiAtI2Vsc2UNCj4gPiA+ID4gLQltYXNrID0gZGVzYy0+aXJxX2NvbW1vbl9k
-YXRhLmFmZmluaXR5Ow0KPiA+ID4gPiAtI2VuZGlmDQo+ID4gPiA+IC0JcmV0dXJuIG1hc2s7DQo+
-ID4gPiA+ICsJcmV0dXJuIGRlc2MtPmFmZmluaXR5X2hpbnQ7DQo+ID4gDQo+ID4gTkFLLg0KPiA+
-IA0KPiANCj4gVGhlIG9mZmVuZGluZyBwYXRjaCBpcyB1cHN0cmVhbSwgYnJlYWtpbmcgbm9uLVNN
-UCB0ZXN0IGJ1aWxkcywgYW5kIEkNCj4gaGF2ZQ0KPiBub3Qgc2VlbiBhbnkgZmVlZGJhY2sgZnJv
-bSB0aGUgc3VibWl0dGVyLiBBbnkgc3VnZ2VzdGlvbiBob3cgdG8NCj4gcHJvY2VlZCA/DQo+IA0K
-PiBHdWVudGVyDQo+IA0KPiA+IA0KPiANCg0KSGkgR3VlbnRlciBhbmQgVGhvbWFzLA0KDQpNYXgg
-YW5kIElzcmFlbCBhcmUgaGFuZGxpbmcgdGhpcyBpbnRlcm5hbGx5IHRvIGZpbmQgYSBzb2x1dGlv
-biB0aGF0DQpwcm92aWRlcyB0aGUgbmVlZGVkIGZ1bmN0aW9uYWxpdHkgZm9yIHJkbWEgYW5kIGFk
-ZHJlc3NlcyB5b3VyIGNvbW1lbnRzLg0KDQpUaGFua3MsDQpTYWVlZC4=
+On 5/7/18 9:53 AM, Steve Wise wrote:
+> @@ -152,7 +153,10 @@ int main(int argc, char **argv)
+>  			pretty_output = true;
+>  			break;
+>  		case 'd':
+> -			show_details = true;
+> +			if (show_details)
+> +				show_driver_details = true;
+> +			else
+> +				show_details = true;
+>  			break;
+>  		case 'j':
+>  			json_output = true;
+
+The above change should be reflected in the man page.
+
+Also, the set needs to be respun after I merged master where Stephen
+brought in updates to the uapi files.
