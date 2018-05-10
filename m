@@ -1,48 +1,71 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH] net/mlx4_en: Fix an error handling path in
- 'mlx4_en_init_netdev()'
-Date: Thu, 10 May 2018 17:36:55 +0300
-Message-ID: <f29e851d-c4d7-cd04-dbb7-582adebc2854@mellanox.com>
-References: <20180510070226.19575-1-christophe.jaillet@wanadoo.fr>
- <20180510133808.GA10943@lap1> <20180510141836.2qlm676j4675buti@mwanda>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Thu, 10 May 2018 10:41:37 -0400
+Message-ID: <20180510144137.GA3652@redhat.com>
+References: <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508205005.GC15608@redhat.com>
+ <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+ <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+ <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
+ <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
+ <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180510141836.2qlm676j4675buti@mwanda>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, davem@davemloft.net, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Stephen Bates <sbates@raithlin.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Logan Gunthorpe <logang@deltatee.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mel>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 10/05/2018 5:18 PM, Dan Carpenter wrote:
-> On Thu, May 10, 2018 at 04:38:08PM +0300, Yuval Shaia wrote:
->> On Thu, May 10, 2018 at 09:02:26AM +0200, Christophe JAILLET wrote:
->>> If an error occurs, 'mlx4_en_destroy_netdev()' is called.
->>> It then calls 'mlx4_en_free_resources()' which does the needed resources
->>> cleanup.
->>>
->>> So, doing some explicit kfree in the error handling path would lead to
->>> some double kfree.
->>
->> Patch make sense but what's bothering me is that mlx4_en_free_resources
->> loops on the entire array, assuming !priv->tx_ring[t] means entry is
->> allocated but the existing code does not assume that, see [1]. So i looked
->> to see where tx_ring array is zeroed and didn't find it.
->>
->> Am i missing something here.
->>
+On Thu, May 10, 2018 at 02:16:25PM +0000, Stephen  Bates wrote:
+> Hi Christian
 > 
-> It's zeroed twice.  alloc_etherdev_mqs() allocates zeroed memory and
-> then we do a memset(priv, 0, sizeof(struct mlx4_en_priv));
+> > Why would a switch not identify that as a peer address? We use the PASID 
+> >    together with ATS to identify the address space which a transaction 
+> >    should use.
 > 
-> regards,
-> dan carpenter
+> I think you are conflating two types of TLPs here. If the device supports ATS then it will issue a TR TLP to obtain a translated address from the IOMMU. This TR TLP will be addressed to the RP and so regardless of ACS it is going up to the Root Port. When it gets the response it gets the physical address and can use that with the TA bit set for the p2pdma. In the case of ATS support we also have more control over ACS as we can disable it just for TA addresses (as per 7.7.7.7.2 of the spec).
+>     
+>  >   If I'm not completely mistaken when you disable ACS it is perfectly 
+>  >   possible that a bridge identifies a transaction as belonging to a peer 
+>  >   address, which isn't what we want here.
+>    
+> You are right here and I think this illustrates a problem for using the IOMMU at all when P2PDMA devices do not support ATS. Let me explain:
+> 
+> If we want to do a P2PDMA and the DMA device does not support ATS then I think we have to disable the IOMMU (something Mike suggested earlier). The reason is that since ATS is not an option the EP must initiate the DMA using the addresses passed down to it. If the IOMMU is on then this is an IOVA that could (with some non-zero probability) point to an IO Memory address in the same PCI domain. So if we disable ACS we are in trouble as we might MemWr to the wrong place but if we enable ACS we lose much of the benefit of P2PDMA. Disabling the IOMMU removes the IOVA risk and ironically also resolves the IOMMU grouping issues.
+> 
+> So I think if we want to support performant P2PDMA for devices that don't have ATS (and no NVMe SSDs today support ATS) then we have to disable the IOMMU. I know this is problematic for AMDs use case so perhaps we also need to consider a mode for P2PDMA for devices that DO support ATS where we can enable the IOMMU (but in this case EPs without ATS cannot participate as P2PDMA DMA iniators).
+> 
+> Make sense?
 > 
 
-We do zero (twice) on init, that's right. But I think Yuval's comment is 
-valid in case of the driver went into configuration change, or down/up, 
-that reallocates the rings. I'm double checking this.
+Note on GPU we do would not rely on ATS for peer to peer. Some part
+of the GPU (DMA engines) do not necessarily support ATS. Yet those
+are the part likely to be use in peer to peer.
+
+However here this is a distinction in objective that i believe is lost.
+We (ake GPU people aka the good guys ;)) do no want to do peer to peer
+for performance reasons ie we do not care having our transaction going
+to the root complex and back down the destination. At least in use case
+i am working on this is fine.
+
+Reasons is that GPU are giving up on PCIe (see all specialize link like
+NVlink that are popping up in GPU space). So for fast GPU inter-connect
+we have this new links. Yet for legacy and inter-operability we would
+like to do peer to peer with other devices like RDMA ... going through
+the root complex would be fine from performance point of view. Worst
+case is that it is slower than existing design where system memory is
+use as bounce buffer.
+
+Also the IOMMU isolation do matter a lot to us. Think someone using this
+peer to peer to gain control of a server in the cloud.
+
+Cheers,
+Jérôme
