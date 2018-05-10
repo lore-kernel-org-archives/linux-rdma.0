@@ -1,41 +1,60 @@
-From: Raju Rangoju <rajur@chelsio.com>
-Subject: Re: Backport commit b7363e67 to stable 4.9.y
-Date: Fri, 11 May 2018 00:25:55 +0530
-Message-ID: <20180510185552.GA32531@chelsio.com>
-References: <CY1PR12MB0774AE97D2837E07B12129AEBC980@CY1PR12MB0774.namprd12.prod.outlook.com>
- <20180510104825.GB7059@kroah.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Thu, 10 May 2018 12:59:47 -0600
+Message-ID: <3e2269ca-126e-ec13-5133-6591c45ccbf4@deltatee.com>
+References: <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508205005.GC15608@redhat.com>
+ <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+ <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+ <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
+ <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
+ <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
+ <20180510144137.GA3652@redhat.com>
+ <B525870A-B25E-46BB-B501-DAA39F1741DC@raithlin.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180510104825.GB7059@kroah.com>
-Sender: stable-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, SWise OGC <swise@opengridcomputing.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <B525870A-B25E-46BB-B501-DAA39F1741DC-pv7U853sEMVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday, May 05/10/18, 2018 at 12:48:25 +0200, Greg KH wrote:
-> On Thu, May 10, 2018 at 06:41:17AM +0000, Raju  Rangoju wrote:
-> > Hi Greg,
-> > 
-> > Could you please backport the below commit to 4.9 stable tree. With a CPU bounded workqueue we see much lower cpu utilization and the same IOPs performance. 
-> > 
+
+
+On 10/05/18 12:41 PM, Stephen  Bates wrote:
+> Hi Jerome
 > 
-> Your editor can use some '\n' characters :)
+>>    Note on GPU we do would not rely on ATS for peer to peer. Some part
+>>    of the GPU (DMA engines) do not necessarily support ATS. Yet those
+>>    are the part likely to be use in peer to peer.
 > 
-
-Sure :)
-
-> > commit b7363e67b23e04c23c2a99437feefac7292a88bc
-> > Author: Sagi Grimberg <sagi@grimberg.me>
-> > Date:   Wed Mar 8 22:03:17 2017 +0200
-> > 
-> >     IB/device: Convert ib-comp-wq to be CPU-bound
+> OK this is good to know. I agree the DMA engine is probably one of the GPU components most applicable to p2pdma.
+>     
+>>    We (ake GPU people aka the good guys ;)) do no want to do peer to peer
+>>    for performance reasons ie we do not care having our transaction going
+>>    to the root complex and back down the destination. At least in use case
+>>    i am working on this is fine.
 > 
-> Now queued up, thanks.
-> 
+> If the GPU people are the good guys does that make the NVMe people the bad guys ;-). If so, what are the RDMA people??? Again good to know.
 
-Thanks Greg.
+The NVMe people are the Nice Neighbors, the RDMA people are the
+Righteous Romantics and the PCI people are the Pleasant Protagonists...
 
+Obviously.
 
-> greg k-h
+Logan
