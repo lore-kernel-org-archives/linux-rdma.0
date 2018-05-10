@@ -1,65 +1,80 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Thu, 10 May 2018 14:52:46 +0200
-Message-ID: <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
-References: <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508205005.GC15608@redhat.com>
- <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
- <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
- <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH] net/mlx4_en: Fix an error handling path in
+ 'mlx4_en_init_netdev()'
+Date: Thu, 10 May 2018 16:38:08 +0300
+Message-ID: <20180510133808.GA10943@lap1>
+References: <20180510070226.19575-1-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <4e0d0b96-ab02-2662-adf3-fa956efd294c-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180510070226.19575-1-christophe.jaillet@wanadoo.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: davem@davemloft.net, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-QW0gMDkuMDUuMjAxOCB1bSAxODo0NSBzY2hyaWViIExvZ2FuIEd1bnRob3JwZToKPgo+IE9uIDA5
-LzA1LzE4IDA3OjQwIEFNLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+PiBUaGUga2V5IHRha2Vh
-d2F5IGlzIHRoYXQgd2hlbiBhbnkgZGV2aWNlIGhhcyBBVFMgZW5hYmxlZCB5b3UgY2FuJ3QKPj4g
-ZGlzYWJsZSBBQ1Mgd2l0aG91dCBicmVha2luZyBpdCAoZXZlbiBpZiB5b3UgdW5wbHVnIGFuZCBy
-ZXBsdWcgaXQpLgo+IEkgZG9uJ3QgZm9sbG93IGhvdyB5b3UgY2FtZSB0byB0aGlzIGNvbmNsdXNp
-b24uLi4KPiAgIFRoZSBBQ1MgYml0cyB3ZSdkIGJlIHR1cm5pbmcgb2ZmIGFyZSB0aGUgb25lcyB0
-aGF0IGZvcmNlIFRMUHMgYWRkcmVzc2VkCj4gYXQgYSBwZWVyIHRvIGdvIHRvIHRoZSBSQy4gSG93
-ZXZlciwgQVRTIHRyYW5zbGF0aW9uIHBhY2tldHMgd2lsbCBiZQo+IGFkZHJlc3NlZCB0byBhbiB1
-bnRyYW5zbGF0ZWQgYWRkcmVzcyB3aGljaCBhIHN3aXRjaCB3aWxsIG5vdCBpZGVudGlmeSBhcwo+
-IGEgcGVlciBhZGRyZXNzIHNvIGl0IHNob3VsZCBzZW5kIHVwc3RyZWFtIHJlZ2FyZGxlc3MgdGhl
-IHN0YXRlIG9mIHRoZQo+IEFDUyBSZXEvQ29tcCByZWRpcmVjdCBiaXRzLgoKV2h5IHdvdWxkIGEg
-c3dpdGNoIG5vdCBpZGVudGlmeSB0aGF0IGFzIGEgcGVlciBhZGRyZXNzPyBXZSB1c2UgdGhlIFBB
-U0lEIAp0b2dldGhlciB3aXRoIEFUUyB0byBpZGVudGlmeSB0aGUgYWRkcmVzcyBzcGFjZSB3aGlj
-aCBhIHRyYW5zYWN0aW9uIApzaG91bGQgdXNlLgoKSWYgSSdtIG5vdCBjb21wbGV0ZWx5IG1pc3Rh
-a2VuIHdoZW4geW91IGRpc2FibGUgQUNTIGl0IGlzIHBlcmZlY3RseSAKcG9zc2libGUgdGhhdCBh
-IGJyaWRnZSBpZGVudGlmaWVzIGEgdHJhbnNhY3Rpb24gYXMgYmVsb25naW5nIHRvIGEgcGVlciAK
-YWRkcmVzcywgd2hpY2ggaXNuJ3Qgd2hhdCB3ZSB3YW50IGhlcmUuCgpDaHJpc3RpYW4uCgo+Cj4g
-T25jZSB0aGUgdHJhbnNsYXRpb24gY29tZXMgYmFjaywgdGhlIEFUUyBlbmRwb2ludCBzaG91bGQg
-c2VuZCB0aGUgVExQIHRvCj4gdGhlIHBlZXIgYWRkcmVzcyB3aXRoIHRoZSBBVCBwYWNrZXQgdHlw
-ZSBhbmQgaXQgd2lsbCBiZSBkaXJlY3RlZCB0byB0aGUKPiBwZWVyIHByb3ZpZGVkIHRoZSBEaXJl
-Y3QgVHJhbnNsYXRlZCBiaXQgaXMgc2V0IChvciB0aGUgcmVkaXJlY3QgYml0cyBhcmUKPiB1bnNl
-dCkuCj4KPiBJIGNhbid0IHNlZSBob3cgdHVybmluZyBvZmYgdGhlIFJlcS9Db21wIHJlZGlyZWN0
-IGJpdHMgY291bGQgYnJlYWsKPiBhbnl0aGluZyBleGNlcHQgZm9yIHRoZSBpc29sYXRpb24gdGhl
-eSBwcm92aWRlLgo+Cj4gTG9nYW4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+On Thu, May 10, 2018 at 09:02:26AM +0200, Christophe JAILLET wrote:
+> If an error occurs, 'mlx4_en_destroy_netdev()' is called.
+> It then calls 'mlx4_en_free_resources()' which does the needed resources
+> cleanup.
+> 
+> So, doing some explicit kfree in the error handling path would lead to
+> some double kfree.
+
+Patch make sense but what's bothering me is that mlx4_en_free_resources
+loops on the entire array, assuming !priv->tx_ring[t] means entry is
+allocated but the existing code does not assume that, see [1]. So i looked
+to see where tx_ring array is zeroed and didn't find it.
+
+Am i missing something here.
+
+> 
+> Simplify code to avoid such a case.
+> 
+> Fixes: 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings scheme")
+> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+> ---
+>  drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> index e0adac4a9a19..9670b33fc9b1 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> @@ -3324,12 +3324,11 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+>  					   MAX_TX_RINGS, GFP_KERNEL);
+>  		if (!priv->tx_ring[t]) {
+>  			err = -ENOMEM;
+> -			goto err_free_tx;
+> +			goto out;
+>  		}
+>  		priv->tx_cq[t] = kzalloc(sizeof(struct mlx4_en_cq *) *
+>  					 MAX_TX_RINGS, GFP_KERNEL);
+>  		if (!priv->tx_cq[t]) {
+> -			kfree(priv->tx_ring[t]);
+>  			err = -ENOMEM;
+>  			goto out;
+>  		}
+> @@ -3582,11 +3581,6 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+>  
+>  	return 0;
+>  
+> -err_free_tx:
+> -	while (t--) {
+
+[1]
+
+> -		kfree(priv->tx_ring[t]);
+> -		kfree(priv->tx_cq[t]);
+> -	}
+>  out:
+>  	mlx4_en_destroy_netdev(dev);
+>  	return err;
+> -- 
+> 2.17.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
