@@ -1,7 +1,7 @@
 From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: [PATCH] net/mlx4_en: Fix an error handling path in 'mlx4_en_init_netdev()'
-Date: Thu, 10 May 2018 09:02:26 +0200
-Message-ID: <20180510070226.19575-1-christophe.jaillet@wanadoo.fr>
+Subject: [PATCH v2] net/mlx4_en: Fix an error handling path in 'mlx4_en_init_netdev()'
+Date: Thu, 10 May 2018 09:06:04 +0200
+Message-ID: <20180510070604.19635-1-christophe.jaillet@wanadoo.fr>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: davem@davemloft.net, tariqt@mellanox.com
@@ -20,6 +20,11 @@ Simplify code to avoid such a case.
 Fixes: 67f8b1dcb9ee ("net/mlx4_en: Refactor the XDP forwarding rings scheme")
 Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 ---
+v1 -> v2 : rewrite the fix as explained by Tariq Toukan
+           (this 2nd version may have been posted twice, once without the
+           v2 tag. PLease ignore the first one)
+---
+
  drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 8 +-------
  1 file changed, 1 insertion(+), 7 deletions(-)
 
