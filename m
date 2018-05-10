@@ -1,71 +1,145 @@
-From: Jerome Glisse <jglisse@redhat.com>
+From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
  behind switches
-Date: Thu, 10 May 2018 10:41:37 -0400
-Message-ID: <20180510144137.GA3652@redhat.com>
-References: <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+Date: Thu, 10 May 2018 10:59:46 -0400
+Message-ID: <20180510145946.GB3652@redhat.com>
+References: <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
  <20180508205005.GC15608@redhat.com>
  <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
  <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
- <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
- <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
- <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
+ <1775CC56-4651-422F-953A-18E024D3717C@raithlin.com>
+ <20180509160722.GB4140@redhat.com>
+ <366A8132-B88A-40F7-BDE3-DA542E45FC0C@raithlin.com>
+ <20180509174952.GC4140@redhat.com>
+ <405531AE-8315-4A4F-9B0C-8DBE49BFCAB4@raithlin.com>
+ <73b6a454-bf84-1640-0b5e-137d03c0ad8c@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Bates <sbates@raithlin.com>
-Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Logan Gunthorpe <logang@deltatee.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <helgaas@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-nvme@lists.infradead.org" <linux-nvme@lists.infradead.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Jens Axboe <axboe@kernel.dk>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mel>
+In-Reply-To: <73b6a454-bf84-1640-0b5e-137d03c0ad8c-5C7GfCeVMHo@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 10, 2018 at 02:16:25PM +0000, Stephen  Bates wrote:
-> Hi Christian
-> 
-> > Why would a switch not identify that as a peer address? We use the PASID 
-> >    together with ATS to identify the address space which a transaction 
-> >    should use.
-> 
-> I think you are conflating two types of TLPs here. If the device supports ATS then it will issue a TR TLP to obtain a translated address from the IOMMU. This TR TLP will be addressed to the RP and so regardless of ACS it is going up to the Root Port. When it gets the response it gets the physical address and can use that with the TA bit set for the p2pdma. In the case of ATS support we also have more control over ACS as we can disable it just for TA addresses (as per 7.7.7.7.2 of the spec).
->     
->  >   If I'm not completely mistaken when you disable ACS it is perfectly 
->  >   possible that a bridge identifies a transaction as belonging to a peer 
->  >   address, which isn't what we want here.
->    
-> You are right here and I think this illustrates a problem for using the IOMMU at all when P2PDMA devices do not support ATS. Let me explain:
-> 
-> If we want to do a P2PDMA and the DMA device does not support ATS then I think we have to disable the IOMMU (something Mike suggested earlier). The reason is that since ATS is not an option the EP must initiate the DMA using the addresses passed down to it. If the IOMMU is on then this is an IOVA that could (with some non-zero probability) point to an IO Memory address in the same PCI domain. So if we disable ACS we are in trouble as we might MemWr to the wrong place but if we enable ACS we lose much of the benefit of P2PDMA. Disabling the IOMMU removes the IOVA risk and ironically also resolves the IOMMU grouping issues.
-> 
-> So I think if we want to support performant P2PDMA for devices that don't have ATS (and no NVMe SSDs today support ATS) then we have to disable the IOMMU. I know this is problematic for AMDs use case so perhaps we also need to consider a mode for P2PDMA for devices that DO support ATS where we can enable the IOMMU (but in this case EPs without ATS cannot participate as P2PDMA DMA iniators).
-> 
-> Make sense?
-> 
+On Thu, May 10, 2018 at 04:29:44PM +0200, Christian K=F6nig wrote:
+> Am 10.05.2018 um 16:20 schrieb Stephen Bates:
+> > Hi Jerome
+> > =
 
-Note on GPU we do would not rely on ATS for peer to peer. Some part
-of the GPU (DMA engines) do not necessarily support ATS. Yet those
-are the part likely to be use in peer to peer.
+> > > As it is tie to PASID this is done using IOMMU so looks for caller
+> > > of amd_iommu_bind_pasid() or intel_svm_bind_mm() in GPU the existing
+> > >   user is the AMD GPU driver see:
+> > Ah thanks. This cleared things up for me. A quick search shows there ar=
+e still no users of intel_svm_bind_mm() but I see the AMD version used in t=
+hat GPU driver.
+> =
 
-However here this is a distinction in objective that i believe is lost.
-We (ake GPU people aka the good guys ;)) do no want to do peer to peer
-for performance reasons ie we do not care having our transaction going
-to the root complex and back down the destination. At least in use case
-i am working on this is fine.
+> Just FYI: There is also another effort ongoing to give both the AMD, Intel
+> as well as ARM IOMMUs a common interface so that drivers can use whatever
+> the platform offers fro SVM support.
+> =
 
-Reasons is that GPU are giving up on PCIe (see all specialize link like
-NVlink that are popping up in GPU space). So for fast GPU inter-connect
-we have this new links. Yet for legacy and inter-operability we would
-like to do peer to peer with other devices like RDMA ... going through
-the root complex would be fine from performance point of view. Worst
-case is that it is slower than existing design where system memory is
-use as bounce buffer.
+> > One thing I could not grok from the code how the GPU driver indicates w=
+hich DMA events require ATS translations and which do not. I am assuming th=
+e driver implements someway of indicating that and its not just a global ON=
+ or OFF for all DMAs? The reason I ask is that I looking at if NVMe was to =
+support ATS what would need to be added in the NVMe spec above and beyond w=
+hat we have in PCI ATS to support efficient use of ATS (for example would w=
+e need a flag in the submission queue entries to indicate a particular IO's=
+ SGL/PRP should undergo ATS).
+> =
 
-Also the IOMMU isolation do matter a lot to us. Think someone using this
-peer to peer to gain control of a server in the cloud.
+> Oh, well that is complicated at best.
+> =
+
+> On very old hardware it wasn't a window, but instead you had to use speci=
+al
+> commands in your shader which indicated that you want to use an ATS
+> transaction instead of a normal PCIe transaction for your read/write/atom=
+ic.
+> =
+
+> As Jerome explained on most hardware we have a window inside the internal
+> GPU address space which when accessed issues a ATS transaction with a
+> configurable PASID.
+> =
+
+> But on very newer hardware that window became a bit in the GPUVM page
+> tables, so in theory we now can control it on a 4K granularity basis for =
+the
+> internal 48bit GPU address space.
+> =
+
+
+To complete this a 50 lines primer on GPU:
+
+GPUVA - GPU virtual address
+GPUPA - GPU physical address
+
+GPU run programs very much like CPU program expect a program will have
+many thousands of threads running concurrently. There is a hierarchy of
+groups for a given program ie threads are grouped together, the lowest
+hierarchy level have a group size in <=3D 64 threads on most GPUs.
+
+Those programs (call shader for graphic program think OpenGL, Vulkan
+or compute for GPGPU think OpenCL CUDA) are submited by the userspace
+against a given address space. In the "old" days (couple years back
+when dinausor were still roaming the earth) this address space was
+specific to the GPU and each user space program could create multiple
+GPU address space. All the memory operation done by the program was
+against this address space. Hence all PCIE transactions are spawn from
+a program + address space.
+
+GPU use page table + window aperture (the window aperture is going away
+so you can focus on page table). To translate GPU virtual address into
+a physical address. The physical address can point to GPU local memory
+or to system memory or to another PCIE device memory (ie some PCIE BAR).
+
+So all PCIE transaction are spawn through this process of GPUVA to GPUPA
+then GPUPA is handled by the GPU mmu unit that either spawn a PCIE
+transaction for non local GPUPA or access local memory otherwise.
+
+
+So per say the kernel driver does not configure which transaction is
+using ATS or peer to peer. Userspace program create a GPU virtual address
+space and bind object into it. This object can be system memory or some
+other PCIE device memory in which case we would to do a peer to peer.
+
+
+So you won't find any logic in the kernel. What you find is creating
+virtual address space and binding object.
+
+
+Above i talk about the old days, nowadays we want the GPU virtual address
+space to be exactly the same as the CPU virtual address space as the
+process which initiate the GPU program is using. This is where we use the
+PASID and ATS. So here userspace create a special "GPU context" that says
+that the GPU virtual address space will be the same as the program that
+create the GPU context. A process ID is then allocated and the mm_struct
+is bind to this process ID in the IOMMU driver. Then all program executed
+on the GPU use the process ID to identify the address space against which
+they are running.
+
+
+All of the above i did not talk about DMA engine which are on the "side"
+of the GPU to copy memory around. GPU have multiple DMA engines with
+different capabilities, some of those DMA engine use the same GPU address
+space as describe above, other use directly GPUPA.
+
+
+Hopes this helps understanding the big picture. I over simplify thing and
+devils is in the details.
 
 Cheers,
-Jérôme
+J=E9r=F4me
