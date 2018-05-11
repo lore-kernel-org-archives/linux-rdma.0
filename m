@@ -1,143 +1,128 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH] mlx4_core: allocate 4KB ICM chunks
-Date: Thu, 10 May 2018 18:36:58 -0700
-Message-ID: <a1ecd591-7462-d43d-cc4e-206b0321742f@oracle.com>
-References: <20180510233143.7236-1-qing.huang@oracle.com>
- <6454d5eb-2700-4fe2-fd91-d366112c4674@oracle.com>
- <4a23dac7-fafe-3b1c-7284-75f3a38f420c@oracle.com>
- <6768e075-70f5-4de3-a98a-fdffa53e0a2f@oracle.com>
+From: DaeRyong Jeong <threeearcat@gmail.com>
+Subject: KASAN: null-ptr-deref Read in rds_ib_get_mr
+Date: Fri, 11 May 2018 14:20:59 +0900
+Message-ID: <20180511052056.GA10547@dragonet.kaist.ac.kr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6768e075-70f5-4de3-a98a-fdffa53e0a2f@oracle.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yanjun Zhu <yanjun.zhu@oracle.com>, tariqt@mellanox.com, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: santosh.shilimkar@oracle.com, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, byoungyoung@purdue.edu, kt0755@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you for reviewing it!
+We report the crash: KASAN: null-ptr-deref Read in rds_ib_get_mr
+
+Note that this bug is previously reported by syzkaller.
+https://syzkaller.appspot.com/bug?id=0bb56a5a48b000b52aa2b0d8dd20b1f545214d91
+Nonetheless, this bug has not fixed yet, and we hope that this report and our
+analysis, which gets help by the RaceFuzzer's feature, will helpful to fix the
+crash.
+
+This crash has been found in v4.17-rc1 using RaceFuzzer (a modified
+version of Syzkaller), which we describe more at the end of this
+report. Our analysis shows that the race occurs when invoking two
+syscalls concurrently, bind$rds and setsockopt$RDS_GET_MR.
 
 
-On 5/10/2018 6:23 PM, Yanjun Zhu wrote:
->
->
->
-> On 2018/5/11 9:15, Qing Huang wrote:
->>
->>
->>
->> On 5/10/2018 5:13 PM, Yanjun Zhu wrote:
->>>
->>>
->>> On 2018/5/11 7:31, Qing Huang wrote:
->>>> When a system is under memory presure (high usage with fragments),
->>>> the original 256KB ICM chunk allocations will likely trigger kernel
->>>> memory management to enter slow path doing memory compact/migration
->>>> ops in order to complete high order memory allocations.
->>>>
->>>> When that happens, user processes calling uverb APIs may get stuck
->>>> for more than 120s easily even though there are a lot of free pages
->>>> in smaller chunks available in the system.
->>>>
->>>> Syslog:
->>>> ...
->>>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->>>> oracle_205573_e:205573 blocked for more than 120 seconds.
->>>> ...
->>>>
->>>> With 4KB ICM chunk size, the above issue is fixed.
->>>>
->>>> However in order to support 4KB ICM chunk size, we need to fix another
->>>> issue in large size kcalloc allocations.
->>>>
->>>> E.g.
->>>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
->>>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for 
->>>> each mtt
->>>> entry). So we need a 16MB allocation for a table->icm pointer array to
->>>> hold 2M pointers which can easily cause kcalloc to fail.
->>>>
->>>> The solution is to use vzalloc to replace kcalloc. There is no need
->>>> for contiguous memory pages for a driver meta data structure (no need
->>> Hi,
->>>
->>> Replace continuous memory pages with virtual memory, is there any 
->>> performance loss?
->>
->> Not really. "table->icm" will be accessed as individual pointer 
->> variables randomly. Kcalloc
->
-> Sure. Thanks. If "table->icm" will be accessed as individual pointer 
-> variables randomly, the performance loss
-> caused by discontinuous memory will be very trivial.
->
-> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->
->> also returns a virtual address except its mapped pages are guaranteed 
->> to be contiguous
->> which will provide little advantage over vzalloc for individual 
->> pointer variable access.
->>
->> Qing
->>
->>>
->>> Zhu Yanjun
->>>> of DMA ops).
->>>>
->>>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
->>>> ---
->>>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
->>>>   1 file changed, 7 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
->>>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> index a822f7a..2b17a4b 100644
->>>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> @@ -43,12 +43,12 @@
->>>>   #include "fw.h"
->>>>     /*
->>>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
->>>> - * per chunk.
->>>> + * We allocate in 4KB page size chunks to avoid high order memory
->>>> + * allocations in fragmented/high usage memory situation.
->>>>    */
->>>>   enum {
->>>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
->>>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
->>>> +    MLX4_ICM_ALLOC_SIZE    = 1 << 12,
->>>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << 12
->>>>   };
->>>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
->>>> mlx4_icm_chunk *chunk)
->>>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>> struct mlx4_icm_table *table,
->>>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
->>>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
->>>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
->>>> GFP_KERNEL);
->>>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
->>>>       if (!table->icm)
->>>>           return -ENOMEM;
->>>>       table->virt     = virt;
->>>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>> struct mlx4_icm_table *table,
->>>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
->>>>           }
->>>>   -    kfree(table->icm);
->>>> +    vfree(table->icm);
->>>>         return -ENOMEM;
->>>>   }
->>>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev 
->>>> *dev, struct mlx4_icm_table *table)
->>>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
->>>>           }
->>>>   -    kfree(table->icm);
->>>> +    vfree(table->icm);
->>>>   }
->>>
->>
->
+Analysis:
+We think the concurrent execution of __rds_rdma_map() and rds_bind()
+causes the problem. __rds_rdma_map() checks whether rs->rs_bound_addr is 0
+or not. But the concurrent execution with rds_bind() can by-pass this
+check. Therefore, __rds_rdmap_map() calls rs->rs_transport->get_mr() and
+rds_ib_get_mr() causes the null deref at ib_rdma.c:544 in v4.17-rc1, when
+dereferencing rs_conn.
+
+
+Thread interleaving:
+CPU0 (__rds_rdma_map)					CPU1 (rds_bind)
+							// rds_add_bound() sets rs->bound_addr as none 0
+							ret = rds_add_bound(rs, sin->sin_addr.s_addr, &sin->sin_port);
+if (rs->rs_bound_addr == 0 || !rs->rs_transport) {
+	ret = -ENOTCONN; /* XXX not a great errno */
+	goto out;
+}
+							if (rs->rs_transport) { /* previously bound */
+								trans = rs->rs_transport;
+								if (trans->laddr_check(sock_net(sock->sk),
+										       sin->sin_addr.s_addr) != 0) {
+									ret = -ENOPROTOOPT;
+									// rds_remove_bound() sets rs->bound_addr as 0
+									rds_remove_bound(rs);
+...
+trans_private = rs->rs_transport->get_mr(sg, nents, rs,
+					 &mr->r_key);
+(in rds_ib_get_mr())
+struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
+
+
+Call sequence (v4.17-rc1):
+CPU0
+rds_setsockopt
+	rds_get_mr
+		__rds_rdma_map
+			rds_ib_get_mr
+
+
+CPU1
+rds_bind
+	rds_add_bound
+	...
+	rds_remove_bound
+
+
+Crash log:
+==================================================================
+BUG: KASAN: null-ptr-deref in rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
+Read of size 8 at addr 0000000000000068 by task syz-executor0/32067
+
+CPU: 0 PID: 32067 Comm: syz-executor0 Not tainted 4.17.0-rc1 #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.2-0-g33fbe13 by qemu-project.org 04/01/2014
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x166/0x21c lib/dump_stack.c:113
+ kasan_report_error mm/kasan/report.c:352 [inline]
+ kasan_report+0x140/0x360 mm/kasan/report.c:412
+ check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+ __asan_load8+0x54/0x90 mm/kasan/kasan.c:699
+ rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
+ __rds_rdma_map+0x521/0x9d0 net/rds/rdma.c:271
+ rds_get_mr+0xad/0xf0 net/rds/rdma.c:333
+ rds_setsockopt+0x57f/0x720 net/rds/af_rds.c:347
+ __sys_setsockopt+0x147/0x230 net/socket.c:1903
+ __do_sys_setsockopt net/socket.c:1914 [inline]
+ __se_sys_setsockopt net/socket.c:1911 [inline]
+ __x64_sys_setsockopt+0x67/0x80 net/socket.c:1911
+ do_syscall_64+0x15f/0x4a0 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4563f9
+RSP: 002b:00007f6a2b3c2b28 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+RAX: ffffffffffffffda RBX: 000000000072bee0 RCX: 00000000004563f9
+RDX: 0000000000000002 RSI: 0000000000000114 RDI: 0000000000000015
+RBP: 0000000000000575 R08: 0000000000000020 R09: 0000000000000000
+R10: 0000000020000140 R11: 0000000000000246 R12: 00007f6a2b3c36d4
+R13: 00000000ffffffff R14: 00000000006fd398 R15: 0000000000000000
+==================================================================
+
+
+= About RaceFuzzer
+
+RaceFuzzer is a customized version of Syzkaller, specifically tailored
+to find race condition bugs in the Linux kernel. While we leverage
+many different technique, the notable feature of RaceFuzzer is in
+leveraging a custom hypervisor (QEMU/KVM) to interleave the
+scheduling. In particular, we modified the hypervisor to intentionally
+stall a per-core execution, which is similar to supporting per-core
+breakpoint functionality. This allows RaceFuzzer to force the kernel
+to deterministically trigger racy condition (which may rarely happen
+in practice due to randomness in scheduling).
+
+RaceFuzzer's C repro always pinpoints two racy syscalls. Since C
+repro's scheduling synchronization should be performed at the user
+space, its reproducibility is limited (reproduction may take from 1
+second to 10 minutes (or even more), depending on a bug). This is
+because, while RaceFuzzer precisely interleaves the scheduling at the
+kernel's instruction level when finding this bug, C repro cannot fully
+utilize such a feature. Please disregard all code related to
+"should_hypercall" in the C repro, as this is only for our debugging
+purposes using our own hypervisor.
