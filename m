@@ -1,158 +1,125 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: KASAN: null-ptr-deref Read in rds_ib_get_mr
-Date: Fri, 11 May 2018 09:58:54 -0700
-Message-ID: <86dab6f3-aa60-699f-da77-581359a6475f@oracle.com>
-References: <20180511052056.GA10547@dragonet.kaist.ac.kr>
- <fa3461d4-8872-48af-9b67-be0affd16bbd@oracle.com>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH] mlx4_core: allocate 4KB ICM chunks
+Date: Fri, 11 May 2018 12:16:19 -0700
+Message-ID: <c94909ea-ffed-88e1-88a5-ad8b586b768e@oracle.com>
+References: <20180510233143.7236-1-qing.huang@oracle.com>
+ <5ABF1B88-882E-4575-8E8C-41F0452FECC1@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fa3461d4-8872-48af-9b67-be0affd16bbd@oracle.com>
+In-Reply-To: <5ABF1B88-882E-4575-8E8C-41F0452FECC1@oracle.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yanjun Zhu <yanjun.zhu@oracle.com>, DaeRyong Jeong <threeearcat@gmail.com>, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, byoungyoung@purdue.edu, kt0755@gmail.com
+To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>
+Cc: tariqt@mellanox.com, davem@davemloft.net, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/11/2018 12:48 AM, Yanjun Zhu wrote:
-> 
-> 
-> On 2018/5/11 13:20, DaeRyong Jeong wrote:
->> We report the crash: KASAN: null-ptr-deref Read in rds_ib_get_mr
+
+On 5/11/2018 3:27 AM, Håkon Bugge wrote:
+>> On 11 May 2018, at 01:31, Qing Huang<qing.huang@oracle.com>  wrote:
 >>
->> Note that this bug is previously reported by syzkaller.
->> https://syzkaller.appspot.com/bug?id=0bb56a5a48b000b52aa2b0d8dd20b1f545214d91 
+>> When a system is under memory presure (high usage with fragments),
+>> the original 256KB ICM chunk allocations will likely trigger kernel
+>> memory management to enter slow path doing memory compact/migration
+>> ops in order to complete high order memory allocations.
 >>
->> Nonetheless, this bug has not fixed yet, and we hope that this report 
->> and our
->> analysis, which gets help by the RaceFuzzer's feature, will helpful to 
->> fix the
->> crash.
+>> When that happens, user processes calling uverb APIs may get stuck
+>> for more than 120s easily even though there are a lot of free pages
+>> in smaller chunks available in the system.
 >>
->> This crash has been found in v4.17-rc1 using RaceFuzzer (a modified
->> version of Syzkaller), which we describe more at the end of this
->> report. Our analysis shows that the race occurs when invoking two
->> syscalls concurrently, bind$rds and setsockopt$RDS_GET_MR.
->>
->>
->> Analysis:
->> We think the concurrent execution of __rds_rdma_map() and rds_bind()
->> causes the problem. __rds_rdma_map() checks whether rs->rs_bound_addr 
->> is 0
->> or not. But the concurrent execution with rds_bind() can by-pass this
->> check. Therefore, __rds_rdmap_map() calls rs->rs_transport->get_mr() and
->> rds_ib_get_mr() causes the null deref at ib_rdma.c:544 in v4.17-rc1, when
->> dereferencing rs_conn.
->>
->>
->> Thread interleaving:
->> CPU0 (__rds_rdma_map)                    CPU1 (rds_bind)
->>                             // rds_add_bound() sets rs->bound_addr as 
->> none 0
->>                             ret = rds_add_bound(rs, 
->> sin->sin_addr.s_addr, &sin->sin_port);
->> if (rs->rs_bound_addr == 0 || !rs->rs_transport) {
->>     ret = -ENOTCONN; /* XXX not a great errno */
->>     goto out;
->> }
->>                             if (rs->rs_transport) { /* previously 
->> bound */
->>                                 trans = rs->rs_transport;
->>                                 if 
->> (trans->laddr_check(sock_net(sock->sk),
->>                                                sin->sin_addr.s_addr) 
->> != 0) {
->>                                     ret = -ENOPROTOOPT;
->>                                     // rds_remove_bound() sets 
->> rs->bound_addr as 0
->>                                     rds_remove_bound(rs);
+>> Syslog:
 >> ...
->> trans_private = rs->rs_transport->get_mr(sg, nents, rs,
->>                      &mr->r_key);
->> (in rds_ib_get_mr())
->> struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
+>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
+>> oracle_205573_e:205573 blocked for more than 120 seconds.
+>> ...
 >>
+>> With 4KB ICM chunk size, the above issue is fixed.
 >>
->> Call sequence (v4.17-rc1):
->> CPU0
->> rds_setsockopt
->>     rds_get_mr
->>         __rds_rdma_map
->>             rds_ib_get_mr
+>> However in order to support 4KB ICM chunk size, we need to fix another
+>> issue in large size kcalloc allocations.
 >>
+>> E.g.
+>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
+>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for each mtt
+>> entry). So we need a 16MB allocation for a table->icm pointer array to
+>> hold 2M pointers which can easily cause kcalloc to fail.
 >>
->> CPU1
->> rds_bind
->>     rds_add_bound
->>     ...
->>     rds_remove_bound
+>> The solution is to use vzalloc to replace kcalloc. There is no need
+>> for contiguous memory pages for a driver meta data structure (no need
+>> of DMA ops).
 >>
+>> Signed-off-by: Qing Huang<qing.huang@oracle.com>
+>> Acked-by: Daniel Jurgens<danielj@mellanox.com>
+>> ---
+>> drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
+>> 1 file changed, 7 insertions(+), 7 deletions(-)
 >>
->> Crash log:
->> ==================================================================
->> BUG: KASAN: null-ptr-deref in rds_ib_get_mr+0x3a/0x150 
->> net/rds/ib_rdma.c:544
->> Read of size 8 at addr 0000000000000068 by task syz-executor0/32067
+>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> index a822f7a..2b17a4b 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> @@ -43,12 +43,12 @@
+>> #include "fw.h"
 >>
->> CPU: 0 PID: 32067 Comm: syz-executor0 Not tainted 4.17.0-rc1 #1
->> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 
->> rel-1.8.2-0-g33fbe13 by qemu-project.org 04/01/2014
->> Call Trace:
->>   __dump_stack lib/dump_stack.c:77 [inline]
->>   dump_stack+0x166/0x21c lib/dump_stack.c:113
->>   kasan_report_error mm/kasan/report.c:352 [inline]
->>   kasan_report+0x140/0x360 mm/kasan/report.c:412
->>   check_memory_region_inline mm/kasan/kasan.c:260 [inline]
->>   __asan_load8+0x54/0x90 mm/kasan/kasan.c:699
->>   rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
->>   __rds_rdma_map+0x521/0x9d0 net/rds/rdma.c:271
->>   rds_get_mr+0xad/0xf0 net/rds/rdma.c:333
->>   rds_setsockopt+0x57f/0x720 net/rds/af_rds.c:347
->>   __sys_setsockopt+0x147/0x230 net/socket.c:1903
->>   __do_sys_setsockopt net/socket.c:1914 [inline]
->>   __se_sys_setsockopt net/socket.c:1911 [inline]
->>   __x64_sys_setsockopt+0x67/0x80 net/socket.c:1911
->>   do_syscall_64+0x15f/0x4a0 arch/x86/entry/common.c:287
->>   entry_SYSCALL_64_after_hwframe+0x49/0xbe
->> RIP: 0033:0x4563f9
->> RSP: 002b:00007f6a2b3c2b28 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
->> RAX: ffffffffffffffda RBX: 000000000072bee0 RCX: 00000000004563f9
->> RDX: 0000000000000002 RSI: 0000000000000114 RDI: 0000000000000015
->> RBP: 0000000000000575 R08: 0000000000000020 R09: 0000000000000000
->> R10: 0000000020000140 R11: 0000000000000246 R12: 00007f6a2b3c36d4
->> R13: 00000000ffffffff R14: 00000000006fd398 R15: 0000000000000000
->> ==================================================================
-> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-> index e678699..2228b50 100644
-> --- a/net/rds/ib_rdma.c
-> +++ b/net/rds/ib_rdma.c
-> @@ -539,11 +539,17 @@ void rds_ib_flush_mrs(void)
->   void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
->                      struct rds_sock *rs, u32 *key_ret)
->   {
-> -       struct rds_ib_device *rds_ibdev;
-> +       struct rds_ib_device *rds_ibdev = NULL;
->          struct rds_ib_mr *ibmr = NULL;
-> -       struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
-> +       struct rds_ib_connection *ic = NULL;
->          int ret;
-> 
-> +       if (rs->rs_bound_addr == 0) {
-> +               ret = -EPERM;
-> +               goto out;
-> +       }
-> +
-No you can't return such error for this API and the
-socket related checks needs to be done at core layer.
-I remember fixing this race but probably never pushed
-fix upstream.
+>> /*
+>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
+>> - * per chunk.
+>> + * We allocate in 4KB page size chunks to avoid high order memory
+>> + * allocations in fragmented/high usage memory situation.
+>>   */
+>> enum {
+>> -	MLX4_ICM_ALLOC_SIZE	= 1 << 18,
+>> -	MLX4_TABLE_CHUNK_SIZE	= 1 << 18
+>> +	MLX4_ICM_ALLOC_SIZE	= 1 << 12,
+>> +	MLX4_TABLE_CHUNK_SIZE	= 1 << 12
+> Shouldn’t these be the arch’s page size order? E.g., if running on SPARC, the hw page size is 8KiB.
 
-The MR code is due for update with optimized FRWR code
-which now stable enough. We will address this issue as
-well as part of that patchset.
+Good point on supporting wider range of architectures. I got tunnel 
+vision when fixing this on our x64 lab machines.
+Will send an v2 patch.
 
-Thanks for looking into it.
+Thanks,
+Qing
 
-Regards,
-Santosh
+> Thxs, Håkon
+>
+>> };
+>>
+>> static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct mlx4_icm_chunk *chunk)
+>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
+>> 	obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
+>> 	num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
+>>
+>> -	table->icm      = kcalloc(num_icm, sizeof(*table->icm), GFP_KERNEL);
+>> +	table->icm      = vzalloc(num_icm * sizeof(*table->icm));
+>> 	if (!table->icm)
+>> 		return -ENOMEM;
+>> 	table->virt     = virt;
+>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
+>> 			mlx4_free_icm(dev, table->icm[i], use_coherent);
+>> 		}
+>>
+>> -	kfree(table->icm);
+>> +	vfree(table->icm);
+>>
+>> 	return -ENOMEM;
+>> }
+>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table)
+>> 			mlx4_free_icm(dev, table->icm[i], table->coherent);
+>> 		}
+>>
+>> -	kfree(table->icm);
+>> +	vfree(table->icm);
+>> }
+>> -- 
+>> 2.9.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message tomajordomo@vger.kernel.org
+>> More majordomo info athttp://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message tomajordomo@vger.kernel.org
+> More majordomo info athttp://vger.kernel.org/majordomo-info.html
