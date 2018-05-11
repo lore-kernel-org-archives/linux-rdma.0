@@ -1,163 +1,109 @@
-From: Yanjun Zhu <yanjun.zhu@oracle.com>
-Subject: Re: KASAN: null-ptr-deref Read in rds_ib_get_mr
-Date: Fri, 11 May 2018 15:48:50 +0800
-Message-ID: <fa3461d4-8872-48af-9b67-be0affd16bbd@oracle.com>
-References: <20180511052056.GA10547@dragonet.kaist.ac.kr>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
+ behind switches
+Date: Fri, 11 May 2018 10:52:49 +0200
+Message-ID: <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
+References: <20180423233046.21476-5-logang@deltatee.com>
+ <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
+ <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
+ <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
+ <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
+ <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
+ <20180508133407.57a46902@w520.home>
+ <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
+ <20180508141331.7cd737cb@w520.home>
+ <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
+ <20180508205005.GC15608@redhat.com>
+ <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
+ <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
+ <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
+ <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
+ <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
+ <f0101988-cf82-7ffb-2aca-d3b8d2f4b504@deltatee.com>
+ <868B49CE-4F0E-4A48-BE78-12149F85F1A4@raithlin.com>
+ <8113cba8-62b9-1801-7a77-f82be223b183@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180511052056.GA10547@dragonet.kaist.ac.kr>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <8113cba8-62b9-1801-7a77-f82be223b183-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: DaeRyong Jeong <threeearcat@gmail.com>, santosh.shilimkar@oracle.com, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, byoungyoung@purdue.edu, kt0755@gmail.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Am 10.05.2018 um 19:15 schrieb Logan Gunthorpe:
+>
+> On 10/05/18 11:11 AM, Stephen  Bates wrote:
+>>> Not to me. In the p2pdma code we specifically program DMA engines with
+>>> the PCI bus address.
+>> Ah yes of course. Brain fart on my part. We are not programming the P2PDMA initiator with an IOVA but with the PCI bus address...
+
+By disabling the ACS bits on the intermediate bridges you turn their 
+address routing from IOVA addresses (which are to be resolved by the 
+root complex) back to PCI bus addresses (which are resolved locally in 
+the bridge).
+
+This only works when the IOVA and the PCI bus addresses never overlap. 
+I'm not sure how the IOVA allocation works but I don't think we 
+guarantee that on Linux.
+
+>>
+>>> So regardless of whether we are using the IOMMU or
+>>> not, the packets will be forwarded directly to the peer. If the ACS
+>>>   Redir bits are on they will be forced back to the RC by the switch and
+>>>   the transaction will fail. If we clear the ACS bits, the TLPs will go
+>>>   where we want and everything will work (but we lose the isolation of ACS).
+>> Agreed.
+
+If we really want to enable P2P without ATS and IOMMU enabled I think we 
+should probably approach it like this:
+
+a) Make double sure that IOVA in an IOMMU group never overlap with PCI 
+BARs in that group.
+
+b) Add configuration options to put a whole PCI branch of devices (e.g. 
+a bridge) into a single IOMMU group.
+
+c) Add a configuration option to disable the ACS bit on bridges in the 
+same IOMMU group.
 
 
-On 2018/5/11 13:20, DaeRyong Jeong wrote:
-> We report the crash: KASAN: null-ptr-deref Read in rds_ib_get_mr
->
-> Note that this bug is previously reported by syzkaller.
-> https://syzkaller.appspot.com/bug?id=0bb56a5a48b000b52aa2b0d8dd20b1f545214d91
-> Nonetheless, this bug has not fixed yet, and we hope that this report and our
-> analysis, which gets help by the RaceFuzzer's feature, will helpful to fix the
-> crash.
->
-> This crash has been found in v4.17-rc1 using RaceFuzzer (a modified
-> version of Syzkaller), which we describe more at the end of this
-> report. Our analysis shows that the race occurs when invoking two
-> syscalls concurrently, bind$rds and setsockopt$RDS_GET_MR.
->
->
-> Analysis:
-> We think the concurrent execution of __rds_rdma_map() and rds_bind()
-> causes the problem. __rds_rdma_map() checks whether rs->rs_bound_addr is 0
-> or not. But the concurrent execution with rds_bind() can by-pass this
-> check. Therefore, __rds_rdmap_map() calls rs->rs_transport->get_mr() and
-> rds_ib_get_mr() causes the null deref at ib_rdma.c:544 in v4.17-rc1, when
-> dereferencing rs_conn.
->
->
-> Thread interleaving:
-> CPU0 (__rds_rdma_map)					CPU1 (rds_bind)
-> 							// rds_add_bound() sets rs->bound_addr as none 0
-> 							ret = rds_add_bound(rs, sin->sin_addr.s_addr, &sin->sin_port);
-> if (rs->rs_bound_addr == 0 || !rs->rs_transport) {
-> 	ret = -ENOTCONN; /* XXX not a great errno */
-> 	goto out;
-> }
-> 							if (rs->rs_transport) { /* previously bound */
-> 								trans = rs->rs_transport;
-> 								if (trans->laddr_check(sock_net(sock->sk),
-> 										       sin->sin_addr.s_addr) != 0) {
-> 									ret = -ENOPROTOOPT;
-> 									// rds_remove_bound() sets rs->bound_addr as 0
-> 									rds_remove_bound(rs);
-> ...
-> trans_private = rs->rs_transport->get_mr(sg, nents, rs,
-> 					 &mr->r_key);
-> (in rds_ib_get_mr())
-> struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
->
->
-> Call sequence (v4.17-rc1):
-> CPU0
-> rds_setsockopt
-> 	rds_get_mr
-> 		__rds_rdma_map
-> 			rds_ib_get_mr
->
->
-> CPU1
-> rds_bind
-> 	rds_add_bound
-> 	...
-> 	rds_remove_bound
->
->
-> Crash log:
-> ==================================================================
-> BUG: KASAN: null-ptr-deref in rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
-> Read of size 8 at addr 0000000000000068 by task syz-executor0/32067
->
-> CPU: 0 PID: 32067 Comm: syz-executor0 Not tainted 4.17.0-rc1 #1
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.2-0-g33fbe13 by qemu-project.org 04/01/2014
-> Call Trace:
->   __dump_stack lib/dump_stack.c:77 [inline]
->   dump_stack+0x166/0x21c lib/dump_stack.c:113
->   kasan_report_error mm/kasan/report.c:352 [inline]
->   kasan_report+0x140/0x360 mm/kasan/report.c:412
->   check_memory_region_inline mm/kasan/kasan.c:260 [inline]
->   __asan_load8+0x54/0x90 mm/kasan/kasan.c:699
->   rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
->   __rds_rdma_map+0x521/0x9d0 net/rds/rdma.c:271
->   rds_get_mr+0xad/0xf0 net/rds/rdma.c:333
->   rds_setsockopt+0x57f/0x720 net/rds/af_rds.c:347
->   __sys_setsockopt+0x147/0x230 net/socket.c:1903
->   __do_sys_setsockopt net/socket.c:1914 [inline]
->   __se_sys_setsockopt net/socket.c:1911 [inline]
->   __x64_sys_setsockopt+0x67/0x80 net/socket.c:1911
->   do_syscall_64+0x15f/0x4a0 arch/x86/entry/common.c:287
->   entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> RIP: 0033:0x4563f9
-> RSP: 002b:00007f6a2b3c2b28 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-> RAX: ffffffffffffffda RBX: 000000000072bee0 RCX: 00000000004563f9
-> RDX: 0000000000000002 RSI: 0000000000000114 RDI: 0000000000000015
-> RBP: 0000000000000575 R08: 0000000000000020 R09: 0000000000000000
-> R10: 0000000020000140 R11: 0000000000000246 R12: 00007f6a2b3c36d4
-> R13: 00000000ffffffff R14: 00000000006fd398 R15: 0000000000000000
-> ==================================================================
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index e678699..2228b50 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -539,11 +539,17 @@ void rds_ib_flush_mrs(void)
-  void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
-                     struct rds_sock *rs, u32 *key_ret)
-  {
--       struct rds_ib_device *rds_ibdev;
-+       struct rds_ib_device *rds_ibdev = NULL;
-         struct rds_ib_mr *ibmr = NULL;
--       struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
-+       struct rds_ib_connection *ic = NULL;
-         int ret;
+I agree that we have a rather special case here, but I still find that 
+approach rather brave and would vote for disabling P2P without ATS when 
+IOMMU is enabled.
 
-+       if (rs->rs_bound_addr == 0) {
-+               ret = -EPERM;
-+               goto out;
-+       }
-+
-+       ic = rs->rs_conn->c_transport_data;
-         rds_ibdev = rds_ib_get_device(rs->rs_bound_addr);
-         if (!rds_ibdev) {
-                 ret = -ENODEV;
 
-I made this raw patch. If you can reproduce this bug, please make tests 
-with it.
+BTW: I can't say anything about other implementations, but at least for 
+the AMD-IOMMU the transaction won't fail when it is send to the root 
+complex.
 
-Thanks a lot.
+Instead the root complex would send it to the correct device. I already 
+tested that on an AMD Ryzen with IOMMU enabled and P2P between two GPUs 
+(but could be that this only works because of ATS).
+
+Regards,
+Christian.
+
+>>>     For EPs that support ATS, we should (but don't necessarily have to)
+>>>     program them with the IOVA address so they can go through the
+>>>     translation process which will allow P2P without disabling the ACS Redir
+>>>     bits -- provided the ACS direct translation bit is set. (And btw, if it
+>>>     is, then we lose the benefit of ACS protecting against malicious EPs).
+>>>     But, per above, the ATS transaction should involve only the IOVA address
+>>>     so the ACS bits not being set should not break ATS.
+>>      
+>> Well we would still have to clear some ACS bits but now we can clear only for translated addresses.
+> We don't have to clear the ACS Redir bits as we did in the first case.
+> We just have to make sure the ACS Direct Translated bit is set.
 >
-> = About RaceFuzzer
->
-> RaceFuzzer is a customized version of Syzkaller, specifically tailored
-> to find race condition bugs in the Linux kernel. While we leverage
-> many different technique, the notable feature of RaceFuzzer is in
-> leveraging a custom hypervisor (QEMU/KVM) to interleave the
-> scheduling. In particular, we modified the hypervisor to intentionally
-> stall a per-core execution, which is similar to supporting per-core
-> breakpoint functionality. This allows RaceFuzzer to force the kernel
-> to deterministically trigger racy condition (which may rarely happen
-> in practice due to randomness in scheduling).
->
-> RaceFuzzer's C repro always pinpoints two racy syscalls. Since C
-> repro's scheduling synchronization should be performed at the user
-> space, its reproducibility is limited (reproduction may take from 1
-> second to 10 minutes (or even more), depending on a bug). This is
-> because, while RaceFuzzer precisely interleaves the scheduling at the
-> kernel's instruction level when finding this bug, C repro cannot fully
-> utilize such a feature. Please disregard all code related to
-> "should_hypercall" in the C repro, as this is only for our debugging
-> purposes using our own hypervisor.
->
+> Logan
