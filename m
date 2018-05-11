@@ -1,69 +1,158 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 04/14] PCI/P2PDMA: Clear ACS P2P flags for all devices
- behind switches
-Date: Fri, 11 May 2018 09:48:27 -0600
-Message-ID: <53fa38ce-40dd-6bc1-9b83-c6ccf228b755@deltatee.com>
-References: <20180423233046.21476-5-logang@deltatee.com>
- <20180507231306.GG161390@bhelgaas-glaptop.roam.corp.google.com>
- <e58e8d27-42a5-ca69-3b68-c409a2922cd1@amd.com>
- <0b4183ef-e720-204b-9e85-b9eaf7a4136a@deltatee.com>
- <a943a92d-15cd-fb2d-21c3-5e5cfccd9eff@amd.com>
- <3584a6ac-95c7-5d23-1859-aee30605776e@deltatee.com>
- <20180508133407.57a46902@w520.home>
- <5fc9b1c1-9208-06cc-0ec5-1f54c2520494@deltatee.com>
- <20180508141331.7cd737cb@w520.home>
- <d70cf286-f7b7-99a5-1042-022506298fed@deltatee.com>
- <20180508205005.GC15608@redhat.com>
- <7FFB9603-DF9F-4441-82E9-46037CB6C0DE@raithlin.com>
- <a1a36f88-fbfb-b5ee-6dcb-5c5bb96132dd@amd.com>
- <4e0d0b96-ab02-2662-adf3-fa956efd294c@deltatee.com>
- <2fc61d29-9eb4-d168-a3e5-955c36e5d821@amd.com>
- <94C8FE12-7FC3-48BD-9DCA-E6A427E71810@raithlin.com>
- <f0101988-cf82-7ffb-2aca-d3b8d2f4b504@deltatee.com>
- <868B49CE-4F0E-4A48-BE78-12149F85F1A4@raithlin.com>
- <8113cba8-62b9-1801-7a77-f82be223b183@deltatee.com>
- <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1@amd.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: KASAN: null-ptr-deref Read in rds_ib_get_mr
+Date: Fri, 11 May 2018 09:58:54 -0700
+Message-ID: <86dab6f3-aa60-699f-da77-581359a6475f@oracle.com>
+References: <20180511052056.GA10547@dragonet.kaist.ac.kr>
+ <fa3461d4-8872-48af-9b67-be0affd16bbd@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <cf2b92c9-7c5b-f19c-b5b1-2f2d435296d1-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <fa3461d4-8872-48af-9b67-be0affd16bbd@oracle.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Stephen Bates <sbates-pv7U853sEMVWk0Htik3J/w@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yanjun Zhu <yanjun.zhu@oracle.com>, DaeRyong Jeong <threeearcat@gmail.com>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, byoungyoung@purdue.edu, kt0755@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNS8xMS8yMDE4IDI6NTIgQU0sIENocmlzdGlhbiBLw7ZuaWcgd3JvdGU6Cj4gVGhpcyBvbmx5
-IHdvcmtzIHdoZW4gdGhlIElPVkEgYW5kIHRoZSBQQ0kgYnVzIGFkZHJlc3NlcyBuZXZlciBvdmVy
-bGFwLiAKPiBJJ20gbm90IHN1cmUgaG93IHRoZSBJT1ZBIGFsbG9jYXRpb24gd29ya3MgYnV0IEkg
-ZG9uJ3QgdGhpbmsgd2UgCj4gZ3VhcmFudGVlIHRoYXQgb24gTGludXguCgpJIGZpbmQgdGhpcyBo
-YXJkIHRvIGJlbGlldmUuIFRoZXJlJ3MgYWx3YXlzIHRoZSBwb3NzaWJpbGl0eSB0aGF0IHNvbWUg
-CnBhcnQgb2YgdGhlIHN5c3RlbSBkb2Vzbid0IHN1cHBvcnQgQUNTIHNvIGlmIHRoZSBQQ0kgYnVz
-IGFkZHJlc3NlcyBhbmQgCklPVkEgb3ZlcmxhcCB0aGVyZSdzIGEgZ29vZCBjaGFuY2UgdGhhdCBQ
-MlAgYW5kIEFUUyB3b24ndCB3b3JrIGF0IGFsbCBvbiAKc29tZSBoYXJkd2FyZS4KCgo+IElmIHdl
-IHJlYWxseSB3YW50IHRvIGVuYWJsZSBQMlAgd2l0aG91dCBBVFMgYW5kIElPTU1VIGVuYWJsZWQg
-SSB0aGluayB3ZSAKPiBzaG91bGQgcHJvYmFibHkgYXBwcm9hY2ggaXQgbGlrZSB0aGlzOgo+IAo+
-IGEpIE1ha2UgZG91YmxlIHN1cmUgdGhhdCBJT1ZBIGluIGFuIElPTU1VIGdyb3VwIG5ldmVyIG92
-ZXJsYXAgd2l0aCBQQ0kgCj4gQkFScyBpbiB0aGF0IGdyb3VwLgo+IAo+IGIpIEFkZCBjb25maWd1
-cmF0aW9uIG9wdGlvbnMgdG8gcHV0IGEgd2hvbGUgUENJIGJyYW5jaCBvZiBkZXZpY2VzIChlLmcu
-IAo+IGEgYnJpZGdlKSBpbnRvIGEgc2luZ2xlIElPTU1VIGdyb3VwLgo+IAo+IGMpIEFkZCBhIGNv
-bmZpZ3VyYXRpb24gb3B0aW9uIHRvIGRpc2FibGUgdGhlIEFDUyBiaXQgb24gYnJpZGdlcyBpbiB0
-aGUgCj4gc2FtZSBJT01NVSBncm91cC4KCkkgdGhpbmsgYSBjb25maWd1cmF0aW9uIG9wdGlvbiB0
-byBtYW5hZ2UgSU9NTVUgZ3JvdXBzIGFzIHlvdSBzdWdnZXN0IAp3b3VsZCBiZSBhIHZlcnkgY29t
-cGxleCBpbnRlcmZhY2UgYW5kIGRpZmZpY3VsdCB0byBpbXBsZW1lbnQuIEkgcHJlZmVyIAp0aGUg
-b3B0aW9uIHRvIGRpc2FibGUgdGhlIEFDUyBiaXQgb24gYm9vdCBhbmQgbGV0IHRoZSBleGlzdGlu
-ZyBjb2RlIHB1dCAKdGhlIGRldmljZXMgaW50byB0aGVpciBvd24gSU9NTVUgZ3JvdXAgKGFzIGl0
-IHNob3VsZCBhbHJlYWR5IGRvIHRvIApzdXBwb3J0IGhhcmR3YXJlIHRoYXQgZG9lc24ndCBoYXZl
-IEFDUyBzdXBwb3J0KS4KCkxvZ2FuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3Rz
-LjAxLm9yZwpodHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGlt
-bQo=
+On 5/11/2018 12:48 AM, Yanjun Zhu wrote:
+> 
+> 
+> On 2018/5/11 13:20, DaeRyong Jeong wrote:
+>> We report the crash: KASAN: null-ptr-deref Read in rds_ib_get_mr
+>>
+>> Note that this bug is previously reported by syzkaller.
+>> https://syzkaller.appspot.com/bug?id=0bb56a5a48b000b52aa2b0d8dd20b1f545214d91 
+>>
+>> Nonetheless, this bug has not fixed yet, and we hope that this report 
+>> and our
+>> analysis, which gets help by the RaceFuzzer's feature, will helpful to 
+>> fix the
+>> crash.
+>>
+>> This crash has been found in v4.17-rc1 using RaceFuzzer (a modified
+>> version of Syzkaller), which we describe more at the end of this
+>> report. Our analysis shows that the race occurs when invoking two
+>> syscalls concurrently, bind$rds and setsockopt$RDS_GET_MR.
+>>
+>>
+>> Analysis:
+>> We think the concurrent execution of __rds_rdma_map() and rds_bind()
+>> causes the problem. __rds_rdma_map() checks whether rs->rs_bound_addr 
+>> is 0
+>> or not. But the concurrent execution with rds_bind() can by-pass this
+>> check. Therefore, __rds_rdmap_map() calls rs->rs_transport->get_mr() and
+>> rds_ib_get_mr() causes the null deref at ib_rdma.c:544 in v4.17-rc1, when
+>> dereferencing rs_conn.
+>>
+>>
+>> Thread interleaving:
+>> CPU0 (__rds_rdma_map)                    CPU1 (rds_bind)
+>>                             // rds_add_bound() sets rs->bound_addr as 
+>> none 0
+>>                             ret = rds_add_bound(rs, 
+>> sin->sin_addr.s_addr, &sin->sin_port);
+>> if (rs->rs_bound_addr == 0 || !rs->rs_transport) {
+>>     ret = -ENOTCONN; /* XXX not a great errno */
+>>     goto out;
+>> }
+>>                             if (rs->rs_transport) { /* previously 
+>> bound */
+>>                                 trans = rs->rs_transport;
+>>                                 if 
+>> (trans->laddr_check(sock_net(sock->sk),
+>>                                                sin->sin_addr.s_addr) 
+>> != 0) {
+>>                                     ret = -ENOPROTOOPT;
+>>                                     // rds_remove_bound() sets 
+>> rs->bound_addr as 0
+>>                                     rds_remove_bound(rs);
+>> ...
+>> trans_private = rs->rs_transport->get_mr(sg, nents, rs,
+>>                      &mr->r_key);
+>> (in rds_ib_get_mr())
+>> struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
+>>
+>>
+>> Call sequence (v4.17-rc1):
+>> CPU0
+>> rds_setsockopt
+>>     rds_get_mr
+>>         __rds_rdma_map
+>>             rds_ib_get_mr
+>>
+>>
+>> CPU1
+>> rds_bind
+>>     rds_add_bound
+>>     ...
+>>     rds_remove_bound
+>>
+>>
+>> Crash log:
+>> ==================================================================
+>> BUG: KASAN: null-ptr-deref in rds_ib_get_mr+0x3a/0x150 
+>> net/rds/ib_rdma.c:544
+>> Read of size 8 at addr 0000000000000068 by task syz-executor0/32067
+>>
+>> CPU: 0 PID: 32067 Comm: syz-executor0 Not tainted 4.17.0-rc1 #1
+>> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 
+>> rel-1.8.2-0-g33fbe13 by qemu-project.org 04/01/2014
+>> Call Trace:
+>>   __dump_stack lib/dump_stack.c:77 [inline]
+>>   dump_stack+0x166/0x21c lib/dump_stack.c:113
+>>   kasan_report_error mm/kasan/report.c:352 [inline]
+>>   kasan_report+0x140/0x360 mm/kasan/report.c:412
+>>   check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+>>   __asan_load8+0x54/0x90 mm/kasan/kasan.c:699
+>>   rds_ib_get_mr+0x3a/0x150 net/rds/ib_rdma.c:544
+>>   __rds_rdma_map+0x521/0x9d0 net/rds/rdma.c:271
+>>   rds_get_mr+0xad/0xf0 net/rds/rdma.c:333
+>>   rds_setsockopt+0x57f/0x720 net/rds/af_rds.c:347
+>>   __sys_setsockopt+0x147/0x230 net/socket.c:1903
+>>   __do_sys_setsockopt net/socket.c:1914 [inline]
+>>   __se_sys_setsockopt net/socket.c:1911 [inline]
+>>   __x64_sys_setsockopt+0x67/0x80 net/socket.c:1911
+>>   do_syscall_64+0x15f/0x4a0 arch/x86/entry/common.c:287
+>>   entry_SYSCALL_64_after_hwframe+0x49/0xbe
+>> RIP: 0033:0x4563f9
+>> RSP: 002b:00007f6a2b3c2b28 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
+>> RAX: ffffffffffffffda RBX: 000000000072bee0 RCX: 00000000004563f9
+>> RDX: 0000000000000002 RSI: 0000000000000114 RDI: 0000000000000015
+>> RBP: 0000000000000575 R08: 0000000000000020 R09: 0000000000000000
+>> R10: 0000000020000140 R11: 0000000000000246 R12: 00007f6a2b3c36d4
+>> R13: 00000000ffffffff R14: 00000000006fd398 R15: 0000000000000000
+>> ==================================================================
+> diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
+> index e678699..2228b50 100644
+> --- a/net/rds/ib_rdma.c
+> +++ b/net/rds/ib_rdma.c
+> @@ -539,11 +539,17 @@ void rds_ib_flush_mrs(void)
+>   void *rds_ib_get_mr(struct scatterlist *sg, unsigned long nents,
+>                      struct rds_sock *rs, u32 *key_ret)
+>   {
+> -       struct rds_ib_device *rds_ibdev;
+> +       struct rds_ib_device *rds_ibdev = NULL;
+>          struct rds_ib_mr *ibmr = NULL;
+> -       struct rds_ib_connection *ic = rs->rs_conn->c_transport_data;
+> +       struct rds_ib_connection *ic = NULL;
+>          int ret;
+> 
+> +       if (rs->rs_bound_addr == 0) {
+> +               ret = -EPERM;
+> +               goto out;
+> +       }
+> +
+No you can't return such error for this API and the
+socket related checks needs to be done at core layer.
+I remember fixing this race but probably never pushed
+fix upstream.
+
+The MR code is due for update with optimized FRWR code
+which now stable enough. We will address this issue as
+well as part of that patchset.
+
+Thanks for looking into it.
+
+Regards,
+Santosh
