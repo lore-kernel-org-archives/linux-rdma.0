@@ -1,29 +1,46 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2] {net, IB}/mlx5: Use 'kvfree()' for memory allocated by
- 'kvzalloc()'
-Date: Sun, 13 May 2018 09:21:26 -0700
-Message-ID: <91c6f7a0-e099-5b93-1b3a-f16f650adc2e@gmail.com>
-References: <20180513070041.24246-1-christophe.jaillet@wanadoo.fr>
+From: Michal Kalderon <Michal.Kalderon@cavium.com>
+Subject: [PATCH net] qede: Fix ref-cnt usage count
+Date: Sun, 13 May 2018 20:54:06 +0300
+Message-ID: <20180513175406.21350-1-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180513070041.24246-1-christophe.jaillet@wanadoo.fr>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, saeedm@mellanox.com, matanb@mellanox.com, leon@kernel.org, dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: michal.kalderon@cavium.com, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, chad.dupuis@cavium.com, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <ariel.elior@cavium.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Rebooting while qedr is loaded with a VLAN interface present
+results in unregister_netdevice waiting for the usage count
+to become free.
+The fix is that rdma devices should be removed before unregistering
+the netdevice, to assure all references to ndev are decreased.
 
+Fixes: cee9fbd8e2e9 ("qede: Add qedr framework")
+Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
+Signed-off-by: Michal Kalderon <michal.kalderon@cavium.com>
+---
+ drivers/net/ethernet/qlogic/qede/qede_main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-On 05/13/2018 12:00 AM, Christophe JAILLET wrote:
-> When 'kvzalloc()' is used to allocate memory, 'kvfree()' must be used to
-> free it.
-> 
-> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> ---
-> v1 -> v2: More places to update have been added to the patch
-
-
-Please add relevant Fixes: tag(s)
+diff --git a/drivers/net/ethernet/qlogic/qede/qede_main.c b/drivers/net/ethernet/qlogic/qede/qede_main.c
+index a01e7d6..f6655e2 100644
+--- a/drivers/net/ethernet/qlogic/qede/qede_main.c
++++ b/drivers/net/ethernet/qlogic/qede/qede_main.c
+@@ -1066,13 +1066,12 @@ static void __qede_remove(struct pci_dev *pdev, enum qede_remove_mode mode)
+ 
+ 	DP_INFO(edev, "Starting qede_remove\n");
+ 
++	qede_rdma_dev_remove(edev);
+ 	unregister_netdev(ndev);
+ 	cancel_delayed_work_sync(&edev->sp_task);
+ 
+ 	qede_ptp_disable(edev);
+ 
+-	qede_rdma_dev_remove(edev);
+-
+ 	edev->ops->common->set_power_state(cdev, PCI_D0);
+ 
+ 	pci_set_drvdata(pdev, NULL);
+-- 
+2.9.5
