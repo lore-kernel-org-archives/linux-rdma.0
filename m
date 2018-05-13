@@ -1,244 +1,54 @@
-From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Re: KASAN: use-after-free Read in __list_add_valid (5)
-Date: Sun, 13 May 2018 16:02:37 -0700
-Message-ID: <20180513230237.GG677@sol.localdomain>
-References: <089e0825fc78410eaa056845781e@google.com>
+From: Tarick Bedeir <tarick@google.com>
+Subject: [PATCH v2] net/mlx4_core: Fix error handling in mlx4_init_port_info.
+Date: Sun, 13 May 2018 16:38:45 -0700
+Message-ID: <20180513233845.135290-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <089e0825fc78410eaa056845781e@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, rds-devel@oss.oracle.com
-Cc: syzbot <syzbot+db1c219466daac1083df@syzkaller.appspotmail.com>, linux-kernel@vger.kernel.org, syzkaller-bugs@googlegroups.com
+To: tariqt@mellanox.com
+Cc: Greg Thelen <gthelen@google.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tarick Bedeir <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 25, 2018 at 05:01:03PM -0700, syzbot wrote:
-> Hello,
-> 
-> syzbot hit the following crash on upstream commit
-> bcfc1f4554662d8f2429ac8bd96064a59c149754 (Sat Mar 24 16:50:12 2018 +0000)
-> Merge tag 'pinctrl-v4.16-3' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl
-> syzbot dashboard link:
-> https://syzkaller.appspot.com/bug?extid=db1c219466daac1083df
-> 
-> So far this crash happened 4 times on upstream.
-> C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5164223906709504
-> syzkaller reproducer:
-> https://syzkaller.appspot.com/x/repro.syz?id=5357898477600768
-> Raw console output:
-> https://syzkaller.appspot.com/x/log.txt?id=5549124782915584
-> Kernel config:
-> https://syzkaller.appspot.com/x/.config?id=-5034017172441945317
-> compiler: gcc (GCC) 7.1.1 20170620
-> 
-> IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+db1c219466daac1083df@syzkaller.appspotmail.com
-> It will help syzbot understand when the bug is fixed. See footer for
-> details.
-> If you forward the report, please keep this part and the footer.
-> 
-> IPVS: ftp: loaded support on port[0] = 21
-> IPVS: ftp: loaded support on port[0] = 21
-> IPVS: ftp: loaded support on port[0] = 21
-> ==================================================================
-> BUG: KASAN: use-after-free in __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
-> IPVS: ftp: loaded support on port[0] = 21
-> Read of size 8 at addr ffff8801ca8adcd8 by task syzkaller401155/4288
-> 
-> CPU: 0 PID: 4288 Comm: syzkaller401155 Not tainted 4.16.0-rc6+ #365
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
-> Google 01/01/2011
-> Call Trace:
->  __dump_stack lib/dump_stack.c:17 [inline]
->  dump_stack+0x194/0x24d lib/dump_stack.c:53
->  print_address_description+0x73/0x250 mm/kasan/report.c:256
-> IPVS: ftp: loaded support on port[0] = 21
->  kasan_report_error mm/kasan/report.c:354 [inline]
->  kasan_report+0x23c/0x360 mm/kasan/report.c:412
->  __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
->  __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
->  __list_add include/linux/list.h:60 [inline]
->  list_add_tail include/linux/list.h:93 [inline]
->  cma_listen_on_all drivers/infiniband/core/cma.c:2309 [inline]
->  rdma_listen+0x581/0x8e0 drivers/infiniband/core/cma.c:3333
->  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1074
->  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
-> IPVS: ftp: loaded support on port[0] = 21
->  __vfs_write+0xef/0x970 fs/read_write.c:480
-> IPVS: ftp: loaded support on port[0] = 21
->  vfs_write+0x189/0x510 fs/read_write.c:544
->  SYSC_write fs/read_write.c:589 [inline]
->  SyS_write+0xef/0x220 fs/read_write.c:581
->  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
-> IPVS: ftp: loaded support on port[0] = 21
->  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x44a9e9
-> RSP: 002b:00007f94303f3da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 000000000044a9e9
-> RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000004
-> RBP: 00000000006e29f8 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 2f646e6162696e69
-> R13: 666e692f7665642f R14: 7073642f7665642f R15: 0000000000000009
-> 
-> Allocated by task 4284:
->  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
->  set_track mm/kasan/kasan.c:459 [inline]
->  kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
->  kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3607
->  kmalloc include/linux/slab.h:512 [inline]
->  kzalloc include/linux/slab.h:701 [inline]
->  rdma_create_id+0xd0/0x630 drivers/infiniband/core/cma.c:787
->  ucma_create_id+0x35f/0x920 drivers/infiniband/core/ucma.c:480
->  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
->  __vfs_write+0xef/0x970 fs/read_write.c:480
->  vfs_write+0x189/0x510 fs/read_write.c:544
->  SYSC_write fs/read_write.c:589 [inline]
->  SyS_write+0xef/0x220 fs/read_write.c:581
->  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
->  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> 
-> Freed by task 4284:
->  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
->  set_track mm/kasan/kasan.c:459 [inline]
->  __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
->  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
->  __cache_free mm/slab.c:3485 [inline]
->  kfree+0xd9/0x260 mm/slab.c:3800
->  rdma_destroy_id+0x821/0xda0 drivers/infiniband/core/cma.c:1691
->  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1728
->  __fput+0x327/0x7e0 fs/file_table.c:209
->  ____fput+0x15/0x20 fs/file_table.c:243
->  task_work_run+0x199/0x270 kernel/task_work.c:113
->  exit_task_work include/linux/task_work.h:22 [inline]
->  do_exit+0x9bb/0x1ad0 kernel/exit.c:865
->  do_group_exit+0x149/0x400 kernel/exit.c:968
->  get_signal+0x73a/0x16d0 kernel/signal.c:2469
->  do_signal+0x90/0x1e90 arch/x86/kernel/signal.c:809
->  exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
->  prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
->  syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
->  do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
->  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> 
-> The buggy address belongs to the object at ffff8801ca8adb00
->  which belongs to the cache kmalloc-1024 of size 1024
-> The buggy address is located 472 bytes inside of
->  1024-byte region [ffff8801ca8adb00, ffff8801ca8adf00)
-> The buggy address belongs to the page:
-> page:ffffea00072a2b00 count:1 mapcount:0 mapping:ffff8801ca8ac000 index:0x0
-> compound_mapcount: 0
-> flags: 0x2fffc0000008100(slab|head)
-> raw: 02fffc0000008100 ffff8801ca8ac000 0000000000000000 0000000100000007
-> raw: ffffea00072969a0 ffffea00072c5d20 ffff8801dac00ac0 0000000000000000
-> page dumped because: kasan: bad access detected
-> 
-> Memory state around the buggy address:
->  ffff8801ca8adb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8801ca8adc00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> > ffff8801ca8adc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->                                                     ^
->  ffff8801ca8add00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->  ffff8801ca8add80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> ==================================================================
-> 
-> 
-> ---
-> This bug is generated by a dumb bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for details.
-> Direct all questions to syzkaller@googlegroups.com.
-> 
-> syzbot will keep track of this bug report.
-> If you forgot to add the Reported-by tag, once the fix for this bug is
-> merged
-> into any tree, please reply to this email with:
-> #syz fix: exact-commit-title
-> If you want to test a patch for this bug, please reply with:
-> #syz test: git://repo/address.git branch
-> and provide the patch inline or as an attachment.
-> To mark this as a duplicate of another syzbot report, please reply with:
-> #syz dup: exact-subject-of-another-report
-> If it's a one-off invalid bug report, please reply with:
-> #syz invalid
-> Note: if the crash happens again, it will cause creation of a new bug
-> report.
-> Note: all commands must start from beginning of the line in the email body.
+Avoid exiting the function with a lingering sysfs file (if the first
+call to device_create_file() fails while the second succeeds), and avoid
+calling devlink_port_unregister() twice.
 
-Still reproducible on Linus' tree (commit 66e1c94db3cd4e) and on linux-next
-(next-20180511).  Here's a simplified reproducer:
+In other words, either mlx4_init_port_info() succeeds and returns zero, or
+it fails, returns non-zero, and requires no cleanup.
 
-#include <fcntl.h>
-#include <netinet/in.h>
-#include <pthread.h>
-#include <rdma/rdma_user_cm.h>
-#include <unistd.h>
+Fixes: 096335b3f983 ("mlx4_core: Allow dynamic MTU configuration for IB
+ports")
+Signed-off-by: Tarick Bedeir <tarick@google.com>
+---
+v1 -> v2: Added "Fixes" tag.
+---
+ drivers/net/ethernet/mellanox/mlx4/main.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-static int cmfd;
-static volatile uint64_t id;
-
-static void *thr1(void *_ignored)
-{
-        for (;;) {
-                struct {
-                        struct rdma_ucm_cmd_hdr hdr;
-                        struct rdma_ucm_create_id create;
-                } msg = {
-                        .hdr = {
-                                .cmd = RDMA_USER_CM_CMD_CREATE_ID,
-                                .out = 8
-                        },
-                        .create = {
-                                .response = (unsigned long)&id,
-                                .ps = 2, /* RDMA_PS_IPOIB */
-                        },
-                };
-                write(cmfd, &msg, sizeof(msg));
-        }
-}
-
-static void *thr2(void *_ignored)
-{
-        for (;;) {
-                struct {
-                        struct rdma_ucm_cmd_hdr hdr;
-                        struct rdma_ucm_bind_ip bind;
-                } msg = {
-                        .hdr = { .cmd = RDMA_USER_CM_CMD_BIND_IP },
-                        .bind = {
-                                .addr = {
-                                        .sin6_family = AF_INET6,
-                                        .sin6_addr = { .s6_addr = { 0xff } },
-                                },
-                                .id = id,
-                        },
-                };
-                write(cmfd, &msg, sizeof(msg));
-        }
-}
-
-static void *thr3(void *_ignored)
-{
-        for (;;) {
-                struct {
-                        struct rdma_ucm_cmd_hdr hdr;
-                        struct rdma_ucm_listen listen;
-                } msg = {
-                        .hdr = { .cmd = RDMA_USER_CM_CMD_LISTEN },
-                        .listen = { .id = id },
-                };
-                write(cmfd, &msg, sizeof(msg));
-        }
-}
-
-int main()
-{
-        pthread_t t[3];
-
-        cmfd = open("/dev/infiniband/rdma_cm", O_WRONLY);
-
-        pthread_create(&t[0], NULL, thr1, NULL);
-        pthread_create(&t[1], NULL, thr2, NULL);
-        pthread_create(&t[2], NULL, thr3, NULL);
-        usleep(100000);
-}
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 4d84cab77105..e8a3a45d0b53 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -3007,6 +3007,7 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
+ 		mlx4_err(dev, "Failed to create file for port %d\n", port);
+ 		devlink_port_unregister(&info->devlink_port);
+ 		info->port = -1;
++		return err;
+ 	}
+ 
+ 	sprintf(info->dev_mtu_name, "mlx4_port%d_mtu", port);
+@@ -3028,9 +3029,10 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
+ 				   &info->port_attr);
+ 		devlink_port_unregister(&info->devlink_port);
+ 		info->port = -1;
++		return err;
+ 	}
+ 
+-	return err;
++	return 0;
+ }
+ 
+ static void mlx4_cleanup_port_info(struct mlx4_port_info *info)
+-- 
+2.17.0.441.gb46fe60e1d-goog
