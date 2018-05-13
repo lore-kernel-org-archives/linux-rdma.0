@@ -1,91 +1,147 @@
 From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Re: general protection fault in rds_ib_get_mr
-Date: Sun, 13 May 2018 14:10:58 -0700
-Message-ID: <20180513211058.GE677@sol.localdomain>
-References: <089e082ce58896ad350567ee4825@google.com>
+Subject: Re: KASAN: use-after-free Read in __list_add_valid (5)
+Date: Sun, 13 May 2018 16:02:37 -0700
+Message-ID: <20180513230237.GG677@sol.localdomain>
+References: <089e0825fc78410eaa056845781e@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <089e082ce58896ad350567ee4825@google.com>
+In-Reply-To: <089e0825fc78410eaa056845781e@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com
-Cc: syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
+To: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, rds-devel@oss.oracle.com
+Cc: syzbot <syzbot+db1c219466daac1083df@syzkaller.appspotmail.com>, linux-kernel@vger.kernel.org, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
+On Sun, Mar 25, 2018 at 05:01:03PM -0700, syzbot wrote:
 > Hello,
 > 
 > syzbot hit the following crash on upstream commit
-> 3215b9d57a2c75c4305a3956ca303d7004485200 (Wed Mar 21 00:44:27 2018 +0000)
-> Merge tag 'clk-fixes-for-linus' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/clk/linux
+> bcfc1f4554662d8f2429ac8bd96064a59c149754 (Sat Mar 24 16:50:12 2018 +0000)
+> Merge tag 'pinctrl-v4.16-3' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/linusw/linux-pinctrl
 > syzbot dashboard link:
-> https://syzkaller.appspot.com/bug?extid=b51c77ef956678a65834
+> https://syzkaller.appspot.com/bug?extid=db1c219466daac1083df
 > 
-> So far this crash happened 4 times on net-next, upstream.
-> C reproducer is attached.
-> syzkaller reproducer is attached.
-> Raw console output is attached.
+> So far this crash happened 4 times on upstream.
+> C reproducer: https://syzkaller.appspot.com/x/repro.c?id=5164223906709504
+> syzkaller reproducer:
+> https://syzkaller.appspot.com/x/repro.syz?id=5357898477600768
+> Raw console output:
+> https://syzkaller.appspot.com/x/log.txt?id=5549124782915584
+> Kernel config:
+> https://syzkaller.appspot.com/x/.config?id=-5034017172441945317
 > compiler: gcc (GCC) 7.1.1 20170620
-> .config is attached.
 > 
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com
+> Reported-by: syzbot+db1c219466daac1083df@syzkaller.appspotmail.com
 > It will help syzbot understand when the bug is fixed. See footer for
 > details.
 > If you forward the report, please keep this part and the footer.
 > 
-> audit: type=1400 audit(1521615317.627:7): avc:  denied  { map } for
-> pid=4240 comm="syzkaller468044" path="/root/syzkaller468044973" dev="sda1"
-> ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023
-> tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
-> kasan: CONFIG_KASAN_INLINE enabled
-> kasan: GPF could be caused by NULL-ptr deref or user memory access
-> general protection fault: 0000 [#1] SMP KASAN
-> Dumping ftrace buffer:
->    (ftrace buffer empty)
-> Modules linked in:
-> CPU: 1 PID: 4244 Comm: syzkaller468044 Not tainted 4.16.0-rc6+ #361
+> IPVS: ftp: loaded support on port[0] = 21
+> IPVS: ftp: loaded support on port[0] = 21
+> IPVS: ftp: loaded support on port[0] = 21
+> ==================================================================
+> BUG: KASAN: use-after-free in __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
+> IPVS: ftp: loaded support on port[0] = 21
+> Read of size 8 at addr ffff8801ca8adcd8 by task syzkaller401155/4288
+> 
+> CPU: 0 PID: 4288 Comm: syzkaller401155 Not tainted 4.16.0-rc6+ #365
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
-> RIP: 0010:rds_ib_get_mr+0x5c/0x230 net/rds/ib_rdma.c:544
-> RSP: 0018:ffff8801b059f890 EFLAGS: 00010202
-> RAX: dffffc0000000000 RBX: ffff8801b07e1300 RCX: ffffffff8562d96e
-> RDX: 000000000000000d RSI: 0000000000000001 RDI: 0000000000000068
-> RBP: ffff8801b059f8b8 R08: ffffed0036274244 R09: ffff8801b13a1200
-> R10: 0000000000000004 R11: ffffed0036274243 R12: ffff8801b13a1200
-> R13: 0000000000000001 R14: ffff8801ca09fa9c R15: 0000000000000000
-> FS:  00007f4d050af700(0000) GS:ffff8801db300000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> CR2: 00007f4d050aee78 CR3: 00000001b0d9b006 CR4: 00000000001606e0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
 > Call Trace:
->  __rds_rdma_map+0x710/0x1050 net/rds/rdma.c:271
->  rds_get_mr_for_dest+0x1d4/0x2c0 net/rds/rdma.c:357
->  rds_setsockopt+0x6cc/0x980 net/rds/af_rds.c:347
->  SYSC_setsockopt net/socket.c:1849 [inline]
->  SyS_setsockopt+0x189/0x360 net/socket.c:1828
+>  __dump_stack lib/dump_stack.c:17 [inline]
+>  dump_stack+0x194/0x24d lib/dump_stack.c:53
+>  print_address_description+0x73/0x250 mm/kasan/report.c:256
+> IPVS: ftp: loaded support on port[0] = 21
+>  kasan_report_error mm/kasan/report.c:354 [inline]
+>  kasan_report+0x23c/0x360 mm/kasan/report.c:412
+>  __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
+>  __list_add_valid+0xc6/0xd0 lib/list_debug.c:26
+>  __list_add include/linux/list.h:60 [inline]
+>  list_add_tail include/linux/list.h:93 [inline]
+>  cma_listen_on_all drivers/infiniband/core/cma.c:2309 [inline]
+>  rdma_listen+0x581/0x8e0 drivers/infiniband/core/cma.c:3333
+>  ucma_listen+0x172/0x1f0 drivers/infiniband/core/ucma.c:1074
+>  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+> IPVS: ftp: loaded support on port[0] = 21
+>  __vfs_write+0xef/0x970 fs/read_write.c:480
+> IPVS: ftp: loaded support on port[0] = 21
+>  vfs_write+0x189/0x510 fs/read_write.c:544
+>  SYSC_write fs/read_write.c:589 [inline]
+>  SyS_write+0xef/0x220 fs/read_write.c:581
+>  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+> IPVS: ftp: loaded support on port[0] = 21
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x44a9e9
+> RSP: 002b:00007f94303f3da8 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000006e29fc RCX: 000000000044a9e9
+> RDX: 0000000000000010 RSI: 0000000020000000 RDI: 0000000000000004
+> RBP: 00000000006e29f8 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 2f646e6162696e69
+> R13: 666e692f7665642f R14: 7073642f7665642f R15: 0000000000000009
+> 
+> Allocated by task 4284:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+>  set_track mm/kasan/kasan.c:459 [inline]
+>  kasan_kmalloc+0xad/0xe0 mm/kasan/kasan.c:552
+>  kmem_cache_alloc_trace+0x136/0x740 mm/slab.c:3607
+>  kmalloc include/linux/slab.h:512 [inline]
+>  kzalloc include/linux/slab.h:701 [inline]
+>  rdma_create_id+0xd0/0x630 drivers/infiniband/core/cma.c:787
+>  ucma_create_id+0x35f/0x920 drivers/infiniband/core/ucma.c:480
+>  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1649
+>  __vfs_write+0xef/0x970 fs/read_write.c:480
+>  vfs_write+0x189/0x510 fs/read_write.c:544
+>  SYSC_write fs/read_write.c:589 [inline]
+>  SyS_write+0xef/0x220 fs/read_write.c:581
 >  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
 >  entry_SYSCALL_64_after_hwframe+0x42/0xb7
-> RIP: 0033:0x4456d9
-> RSP: 002b:00007f4d050aedb8 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-> RAX: ffffffffffffffda RBX: 00000000006dac3c RCX: 00000000004456d9
-> RDX: 0000000000000007 RSI: 0000000000000114 RDI: 0000000000000004
-> RBP: 00000000006dac38 R08: 00000000000000a0 R09: 0000000000000000
-> R10: 0000000020000380 R11: 0000000000000246 R12: 0000000000000000
-> R13: 00007fffbfb36d6f R14: 00007f4d050af9c0 R15: 0000000000000005
-> Code: fa 48 c1 ea 03 80 3c 02 00 0f 85 cc 01 00 00 4c 8b bb 80 04 00 00 48
-> b8 00 00 00 00 00 fc ff df 49 8d 7f 68 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f
-> 85 9c 01 00 00 4d 8b 7f 68 48 b8 00 00 00 00 00
-> RIP: rds_ib_get_mr+0x5c/0x230 net/rds/ib_rdma.c:544 RSP: ffff8801b059f890
-> ---[ end trace 7e1cea13b85473b0 ]---
-> Kernel panic - not syncing: Fatal exception
-> Dumping ftrace buffer:
->    (ftrace buffer empty)
-> Kernel Offset: disabled
-> Rebooting in 86400 seconds..
+> 
+> Freed by task 4284:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:447
+>  set_track mm/kasan/kasan.c:459 [inline]
+>  __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:520
+>  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:527
+>  __cache_free mm/slab.c:3485 [inline]
+>  kfree+0xd9/0x260 mm/slab.c:3800
+>  rdma_destroy_id+0x821/0xda0 drivers/infiniband/core/cma.c:1691
+>  ucma_close+0x100/0x2f0 drivers/infiniband/core/ucma.c:1728
+>  __fput+0x327/0x7e0 fs/file_table.c:209
+>  ____fput+0x15/0x20 fs/file_table.c:243
+>  task_work_run+0x199/0x270 kernel/task_work.c:113
+>  exit_task_work include/linux/task_work.h:22 [inline]
+>  do_exit+0x9bb/0x1ad0 kernel/exit.c:865
+>  do_group_exit+0x149/0x400 kernel/exit.c:968
+>  get_signal+0x73a/0x16d0 kernel/signal.c:2469
+>  do_signal+0x90/0x1e90 arch/x86/kernel/signal.c:809
+>  exit_to_usermode_loop+0x258/0x2f0 arch/x86/entry/common.c:162
+>  prepare_exit_to_usermode arch/x86/entry/common.c:196 [inline]
+>  syscall_return_slowpath arch/x86/entry/common.c:265 [inline]
+>  do_syscall_64+0x6ec/0x940 arch/x86/entry/common.c:292
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> 
+> The buggy address belongs to the object at ffff8801ca8adb00
+>  which belongs to the cache kmalloc-1024 of size 1024
+> The buggy address is located 472 bytes inside of
+>  1024-byte region [ffff8801ca8adb00, ffff8801ca8adf00)
+> The buggy address belongs to the page:
+> page:ffffea00072a2b00 count:1 mapcount:0 mapping:ffff8801ca8ac000 index:0x0
+> compound_mapcount: 0
+> flags: 0x2fffc0000008100(slab|head)
+> raw: 02fffc0000008100 ffff8801ca8ac000 0000000000000000 0000000100000007
+> raw: ffffea00072969a0 ffffea00072c5d20 ffff8801dac00ac0 0000000000000000
+> page dumped because: kasan: bad access detected
+> 
+> Memory state around the buggy address:
+>  ffff8801ca8adb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801ca8adc00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> > ffff8801ca8adc80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>                                                     ^
+>  ffff8801ca8add00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801ca8add80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ==================================================================
 > 
 > 
 > ---
@@ -109,78 +165,80 @@ On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
 > report.
 > Note: all commands must start from beginning of the line in the email body.
 
-Still reproducible on Linus' tree (commit 66e1c94db3cd4) and linux-next
+Still reproducible on Linus' tree (commit 66e1c94db3cd4e) and on linux-next
 (next-20180511).  Here's a simplified reproducer:
 
-#include <linux/rds.h>
+#include <fcntl.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <rdma/rdma_user_cm.h>
 #include <unistd.h>
 
-int main()
+static int cmfd;
+static volatile uint64_t id;
+
+static void *thr1(void *_ignored)
 {
-        int transport = RDS_TRANS_IB;
-        int fd;
-
-        fd = socket(AF_RDS, SOCK_SEQPACKET, 0);
-        setsockopt(fd, SOL_RDS, SO_RDS_TRANSPORT, &transport, sizeof(transport));
-
-        if (fork()) {
-                for (;;) {
-                        struct sockaddr_in addr = {
-                                .sin_family = AF_INET,
-                                .sin_port = 0,
-                                .sin_addr = { htobe32(0x7f000001) },
-                        };
-                        bind(fd, (struct sockaddr *)&addr, sizeof(addr));
-                }
-        } else {
-                for (;;) {
-                        char buf[128] = { 0 };
-                        struct rds_get_mr_for_dest_args args = {
-                                .vec = {
-                                        .addr = (unsigned long)buf,
-                                        .bytes = sizeof(buf),
-                                },
-                        };
-
-                        setsockopt(fd, SOL_RDS, RDS_GET_MR_FOR_DEST, &args, sizeof(args));
-                }
+        for (;;) {
+                struct {
+                        struct rdma_ucm_cmd_hdr hdr;
+                        struct rdma_ucm_create_id create;
+                } msg = {
+                        .hdr = {
+                                .cmd = RDMA_USER_CM_CMD_CREATE_ID,
+                                .out = 8
+                        },
+                        .create = {
+                                .response = (unsigned long)&id,
+                                .ps = 2, /* RDMA_PS_IPOIB */
+                        },
+                };
+                write(cmfd, &msg, sizeof(msg));
         }
 }
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000068
-PGD 0 P4D 0
-Oops: 0000 [#1] SMP
-CPU: 4 PID: 224 Comm: syz_rdma Not tainted 4.17.0-rc4-next-20180511 #40
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.11.0-20171110_100015-anatol 04/01/2014
-RIP: 0010:rds_ib_get_mr+0x23/0xb0 net/rds/ib_rdma.c:547
-Code: 93 5a a6 ff 5b 5d c3 55 48 89 e5 41 57 49 89 cf 41 56 41 55 49 89 f5 41 54 49 89 fc 53 48 8b 82 68 04 00 00 8b ba 50 04 00 00 <48> 8b 40 68 4c 8b b0 98 00 00 00 e8 fd ef ff ff 48 85 c0 0f 84 a6
-RSP: 0018:ffffb39f4088fd10 EFLAGS: 00010246
-RAX: 0000000000000000 RBX: ffff8c69f8f05a80 RCX: ffff8c69f986f49c
-RDX: ffff8c69f8d75840 RSI: 0000000000000002 RDI: 000000000100007f
-RBP: ffffb39f4088fd38 R08: ffff8c69f9a1a980 R09: 0000000000000002
-R10: 0000000087654321 R11: 0000000000000000 R12: ffff8c69f8f05a80
-R13: 0000000000000002 R14: ffff8c69f986f480 R15: ffff8c69f986f49c
-FS:  00007f140caf4740(0000) GS:ffff8c69ffd00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000068 CR3: 0000000078c2d000 CR4: 00000000003406e0
-Call Trace:
- __rds_rdma_map+0x36f/0x4c0 net/rds/rdma.c:271
- rds_get_mr_for_dest+0x84/0xb0 net/rds/rdma.c:357
- rds_setsockopt+0x176/0x360 net/rds/af_rds.c:350
- __sys_setsockopt+0x6d/0xd0 net/socket.c:1910
- __do_sys_setsockopt net/socket.c:1921 [inline]
- __se_sys_setsockopt net/socket.c:1918 [inline]
- __x64_sys_setsockopt+0x1f/0x30 net/socket.c:1918
- do_syscall_64+0x4a/0x180 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x7f140c1fd20a
-Code: 9c 2b 00 f7 d8 64 89 02 48 c7 c0 ff ff ff ff eb b7 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 49 89 ca b8 36 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d e6 9b 2b 00 f7 d8 64 89 01 48
-RSP: 002b:00007fffcaa06f18 EFLAGS: 00000246 ORIG_RAX: 0000000000000036
-RAX: ffffffffffffffda RBX: 00007fffcaa06f30 RCX: 00007f140c1fd20a
-RDX: 0000000000000007 RSI: 0000000000000114 RDI: 0000000000000003
-RBP: 00007fffcaa06fd0 R08: 00000000000000a0 R09: 00007f140c8da010
-R10: 00007fffcaa06f30 R11: 0000000000000246 R12: 0000000000000003
-R13: 00007fffcaa06f30 R14: 0000000000000000 R15: 0000000000000000
-CR2: 0000000000000068
----[ end trace fd75e4e4e9b87576 ]---
+static void *thr2(void *_ignored)
+{
+        for (;;) {
+                struct {
+                        struct rdma_ucm_cmd_hdr hdr;
+                        struct rdma_ucm_bind_ip bind;
+                } msg = {
+                        .hdr = { .cmd = RDMA_USER_CM_CMD_BIND_IP },
+                        .bind = {
+                                .addr = {
+                                        .sin6_family = AF_INET6,
+                                        .sin6_addr = { .s6_addr = { 0xff } },
+                                },
+                                .id = id,
+                        },
+                };
+                write(cmfd, &msg, sizeof(msg));
+        }
+}
+
+static void *thr3(void *_ignored)
+{
+        for (;;) {
+                struct {
+                        struct rdma_ucm_cmd_hdr hdr;
+                        struct rdma_ucm_listen listen;
+                } msg = {
+                        .hdr = { .cmd = RDMA_USER_CM_CMD_LISTEN },
+                        .listen = { .id = id },
+                };
+                write(cmfd, &msg, sizeof(msg));
+        }
+}
+
+int main()
+{
+        pthread_t t[3];
+
+        cmfd = open("/dev/infiniband/rdma_cm", O_WRONLY);
+
+        pthread_create(&t[0], NULL, thr1, NULL);
+        pthread_create(&t[1], NULL, thr2, NULL);
+        pthread_create(&t[2], NULL, thr3, NULL);
+        usleep(100000);
+}
