@@ -1,46 +1,109 @@
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Subject: [PATCH net] qede: Fix ref-cnt usage count
-Date: Sun, 13 May 2018 20:54:06 +0300
-Message-ID: <20180513175406.21350-1-Michal.Kalderon@cavium.com>
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: Re: general protection fault in rdma_addr_size
+Date: Sun, 13 May 2018 12:40:56 -0700
+Message-ID: <20180513194056.GB677@sol.localdomain>
+References: <001a1140e0de40f8e2056819e283@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: michal.kalderon@cavium.com, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, chad.dupuis@cavium.com, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <ariel.elior@cavium.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <001a1140e0de40f8e2056819e283@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+2a2c48fc189ed5125b9c@syzkaller.appspotmail.com>
+Cc: dledford@redhat.com, jgg@ziepe.ca, johannes.berg@intel.com, leonro@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, monis@mellanox.com, muneendra.kumar@broadcom.com, pabeni@redhat.com, parav@mellanox.com, roland@purestorage.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com, yuval.shaia@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-Rebooting while qedr is loaded with a VLAN interface present
-results in unregister_netdevice waiting for the usage count
-to become free.
-The fix is that rdma devices should be removed before unregistering
-the netdevice, to assure all references to ndev are decreased.
+On Fri, Mar 23, 2018 at 01:01:02PM -0700, syzbot wrote:
+> Hello,
+> 
+> syzbot hit the following crash on upstream commit
+> 8f5fd927c3a7576d57248a2d7a0861c3f2795973 (Fri Mar 16 20:37:42 2018 +0000)
+> Merge tag 'for-4.16-rc5-tag' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/kdave/linux
+> syzbot dashboard link:
+> https://syzkaller.appspot.com/bug?extid=2a2c48fc189ed5125b9c
+> 
+> So far this crash happened 2 times on upstream.
+> C reproducer is attached.
+> syzkaller reproducer is attached.
+> Raw console output is attached.
+> .config is attached.
+> compiler: gcc (GCC) 7.1.1 20170620
+> 
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+2a2c48fc189ed5125b9c@syzkaller.appspotmail.com
+> It will help syzbot understand when the bug is fixed. See footer for
+> details.
+> If you forward the report, please keep this part and the footer.
+> 
+> audit: type=1400 audit(1521277737.761:7): avc:  denied  { map } for
+> pid=4234 comm="syzkaller098821" path="/root/syzkaller098821515" dev="sda1"
+> ino=16481 scontext=unconfined_u:system_r:insmod_t:s0-s0:c0.c1023
+> tcontext=unconfined_u:object_r:user_home_t:s0 tclass=file permissive=1
+> kasan: CONFIG_KASAN_INLINE enabled
+> kasan: GPF could be caused by NULL-ptr deref or user memory access
+> general protection fault: 0000 [#1] SMP KASAN
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Modules linked in:
+> CPU: 0 PID: 4236 Comm: syzkaller098821 Not tainted 4.16.0-rc5+ #357
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> RIP: 0010:rdma_addr_size+0x1e/0x70 drivers/infiniband/core/addr.c:197
+> RSP: 0018:ffff8801b9cc7870 EFLAGS: 00010202
+> RAX: dffffc0000000000 RBX: 0000000000000020 RCX: ffffffff841374bd
+> RDX: 0000000000000004 RSI: 0000000000000000 RDI: 0000000000000020
+> RBP: ffff8801b9cc7878 R08: ffffed0037398f3a R09: ffff8801b9cc78c0
+> R10: 0000000000000022 R11: ffffed0037398f39 R12: ffff8801b9cc78c0
+> R13: ffff8801b260a1f0 R14: ffff8801b9cc7a00 R15: 0000000000000020
+> FS:  00007fd9212b2700(0000) GS:ffff8801db200000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00007fd9212b1e78 CR3: 00000001b7af4006 CR4: 00000000001606f0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> Call Trace:
+>  ucma_query_addr.isra.7+0xce/0x4f0 drivers/infiniband/core/ucma.c:871
+>  ucma_query+0x1bb/0x230 drivers/infiniband/core/ucma.c:991
+>  ucma_write+0x2d6/0x3d0 drivers/infiniband/core/ucma.c:1633
+>  __vfs_write+0xef/0x970 fs/read_write.c:480
+>  vfs_write+0x189/0x510 fs/read_write.c:544
+>  SYSC_write fs/read_write.c:589 [inline]
+>  SyS_write+0xef/0x220 fs/read_write.c:581
+>  do_syscall_64+0x281/0x940 arch/x86/entry/common.c:287
+>  entry_SYSCALL_64_after_hwframe+0x42/0xb7
+> RIP: 0033:0x445959
+> RSP: 002b:00007fd9212b1da8 EFLAGS: 00000297 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00000000006dac5c RCX: 0000000000445959
+> RDX: 0000000000000018 RSI: 00000000200022c0 RDI: 0000000000000003
+> RBP: 00000000006dac58 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000297 R12: 006d635f616d6472
+> R13: 2f646e6162696e69 R14: 666e692f7665642f R15: 0000000000000008
+> Code: 29 e4 95 fd e9 f8 fe ff ff 90 90 90 90 55 48 89 e5 53 48 89 fb e8 e3
+> a2 5d fd 48 89 da 48 b8 00 00 00 00 00 fc ff df 48 c1 ea 03 <0f> b6 14 02 48
+> 89 d8 83 e0 07 83 c0 01 38 d0 7c 04 84 d2 75 2f
+> RIP: rdma_addr_size+0x1e/0x70 drivers/infiniband/core/addr.c:197 RSP:
+> ffff8801b9cc7870
+> ---[ end trace 6c753cc522bb59ed ]---
+> Kernel panic - not syncing: Fatal exception
+> Dumping ftrace buffer:
+>    (ftrace buffer empty)
+> Kernel Offset: disabled
+> Rebooting in 86400 seconds..
+> 
+> 
+> ---
+> This bug is generated by a dumb bot. It may contain errors.
+> See https://goo.gl/tpsmEJ for details.
+> Direct all questions to syzkaller@googlegroups.com.
+> 
+> syzbot will keep track of this bug report.
+> If you forgot to add the Reported-by tag, once the fix for this bug is
+> merged
+> into any tree, please reply to this email with:
+> #syz fix: exact-commit-title
 
-Fixes: cee9fbd8e2e9 ("qede: Add qedr framework")
-Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
-Signed-off-by: Michal Kalderon <michal.kalderon@cavium.com>
----
- drivers/net/ethernet/qlogic/qede/qede_main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This seems to have been fixed by commit e8980d67d6017:
 
-diff --git a/drivers/net/ethernet/qlogic/qede/qede_main.c b/drivers/net/ethernet/qlogic/qede/qede_main.c
-index a01e7d6..f6655e2 100644
---- a/drivers/net/ethernet/qlogic/qede/qede_main.c
-+++ b/drivers/net/ethernet/qlogic/qede/qede_main.c
-@@ -1066,13 +1066,12 @@ static void __qede_remove(struct pci_dev *pdev, enum qede_remove_mode mode)
- 
- 	DP_INFO(edev, "Starting qede_remove\n");
- 
-+	qede_rdma_dev_remove(edev);
- 	unregister_netdev(ndev);
- 	cancel_delayed_work_sync(&edev->sp_task);
- 
- 	qede_ptp_disable(edev);
- 
--	qede_rdma_dev_remove(edev);
--
- 	edev->ops->common->set_power_state(cdev, PCI_D0);
- 
- 	pci_set_drvdata(pdev, NULL);
--- 
-2.9.5
+#syz fix: RDMA/ucma: Ensure that CM_ID exists prior to access it
+
+- Eric
