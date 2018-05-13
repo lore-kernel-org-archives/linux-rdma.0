@@ -1,102 +1,118 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
- attributes
-Date: Sun, 13 May 2018 16:10:04 +0300
-Message-ID: <20180513131004.GD10381@mtr-leonro.mtl.com>
+Subject: Re: [PATCH v1 iproute2-next 1/3] rdma: update rdma_netlink.h to get
+ driver attrs
+Date: Sun, 13 May 2018 16:15:09 +0300
+Message-ID: <20180513131509.GE10381@mtr-leonro.mtl.com>
 References: <cover.1525709213.git.swise@opengridcomputing.com>
- <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
- <06375fd7-f241-74ad-70ce-a670100bf060@gmail.com>
- <e94d0444-fcda-3a62-3b12-3b9e6ff23119@opengridcomputing.com>
- <06d8cb88-21e0-b7cc-10e2-efa453d9adc9@gmail.com>
+ <312486eb14b460e455e7b2926d7ea06e3a8411fc.1525709213.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="GPJrCs/72TxItFYR"
+        protocol="application/pgp-signature"; boundary="mSxgbZZZvrAyzONB"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <06d8cb88-21e0-b7cc-10e2-efa453d9adc9@gmail.com>
+In-Reply-To: <312486eb14b460e455e7b2926d7ea06e3a8411fc.1525709213.git.swise@opengridcomputing.com>
 Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---GPJrCs/72TxItFYR
-Content-Type: text/plain; charset=iso-8859-1
+--mSxgbZZZvrAyzONB
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, May 10, 2018 at 08:20:51AM -0600, David Ahern wrote:
-> On 5/10/18 8:19 AM, Steve Wise wrote:
-> >
-> > On 5/9/2018 11:08 PM, David Ahern wrote:
-> >> On 5/7/18 9:53 AM, Steve Wise wrote:
-> >>> @@ -152,7 +153,10 @@ int main(int argc, char **argv)
-> >>>  			pretty_output =3D true;
-> >>>  			break;
-> >>>  		case 'd':
-> >>> -			show_details =3D true;
-> >>> +			if (show_details)
-> >>> +				show_driver_details =3D true;
-> >>> +			else
-> >>> +				show_details =3D true;
-> >>>  			break;
-> >>>  		case 'j':
-> >>>  			json_output =3D true;
-> >> The above change should be reflected in the man page.
-> >
-> > I did mention it in the man page:
-> >
-> > =A0=A0=A0=A0=A0=A0 -d, --details
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 Output detailed information.=A0=
- Adding a second -d includes
-> > driver-specific details.
-> >
-> > But I wasn't sure how to show it in the syntax.=A0 Maybe this?
-> >
-> > =A0OPTIONS :=3D { -V[ersion] | -d[etails] [-d[etails]] } -j[son] } -p[r=
-etty] }
->
-> I should have read the second patch before commenting. Didn't it have
-> first -d =3D details, a second -d =3D driver details? That should be fine.
+On Mon, May 07, 2018 at 08:53:10AM -0700, Steve Wise wrote:
+> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> ---
+>  rdma/include/uapi/rdma/rdma_netlink.h | 37 ++++++++++++++++++++++++++++++++++-
+>  1 file changed, 36 insertions(+), 1 deletion(-)
 
-Yes, our idea is to require "-dd" to print such driver specific
-information. The level of nesting is:
- * No arguments -> info usable for most of the users
- * -d - pre-parsed flags and rarely used information.
- * -dd - very detailed output, can be very specific to device.
-
-Thanks
+Please write in commit message something like: "Based on kernel commit
+....", so we will be able to track changes.
 
 >
-> >
-> >
-> >> Also, the set needs to be respun after I merged master where Stephen
-> >> brought in updates to the uapi files.
-> >
-> > Will do.=A0 Thanks for reviewing.
-> >
-> > Steve.
-> >
+> diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
+> index 45474f1..40be0d8 100644
+> --- a/rdma/include/uapi/rdma/rdma_netlink.h
+> +++ b/rdma/include/uapi/rdma/rdma_netlink.h
+> @@ -249,10 +249,22 @@ enum rdma_nldev_command {
+>  	RDMA_NLDEV_NUM_OPS
+>  };
+>
+> +enum {
+> +	RDMA_NLDEV_ATTR_ENTRY_STRLEN = 16,
+> +};
+> +
+> +enum rdma_nldev_print_type {
+> +	RDMA_NLDEV_PRINT_TYPE_UNSPEC,
+> +	RDMA_NLDEV_PRINT_TYPE_HEX,
+> +};
+> +
+>  enum rdma_nldev_attr {
+>  	/* don't change the order or add anything between, this is ABI! */
+>  	RDMA_NLDEV_ATTR_UNSPEC,
+>
+> +	/* Pad attribute for 64b alignment */
+> +	RDMA_NLDEV_ATTR_PAD = RDMA_NLDEV_ATTR_UNSPEC,
+> +
+>  	/* Identifier for ib_device */
+>  	RDMA_NLDEV_ATTR_DEV_INDEX,		/* u32 */
+>
+> @@ -387,8 +399,31 @@ enum rdma_nldev_attr {
+>  	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
+>  	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
+>  	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
+> +	/*
+> +	 * driver-specific attributes.
+> +	 */
+> +	RDMA_NLDEV_ATTR_DRIVER,			/* nested table */
+> +	RDMA_NLDEV_ATTR_DRIVER_ENTRY,		/* nested table */
+> +	RDMA_NLDEV_ATTR_DRIVER_STRING,		/* string */
+> +	/*
+> +	 * u8 values from enum rdma_nldev_print_type
+> +	 */
+> +	RDMA_NLDEV_ATTR_DRIVER_PRINT_TYPE,	/* u8 */
+> +	RDMA_NLDEV_ATTR_DRIVER_S32,		/* s32 */
+> +	RDMA_NLDEV_ATTR_DRIVER_U32,		/* u32 */
+> +	RDMA_NLDEV_ATTR_DRIVER_S64,		/* s64 */
+> +	RDMA_NLDEV_ATTR_DRIVER_U64,		/* u64 */
+>
+> -	/* Netdev information for relevant protocols, like RoCE and iWARP */
+> +	/*
+> +	 * Provides logical name and index of netdevice which is
+> +	 * connected to physical port. This information is relevant
+> +	 * for RoCE and iWARP.
+> +	 *
+> +	 * The netdevices which are associated with containers are
+> +	 * supposed to be exported together with GID table once it
+> +	 * will be exposed through the netlink. Because the
+> +	 * associated netdevices are properties of GIDs.
+> +	 */
+>  	RDMA_NLDEV_ATTR_NDEV_INDEX,		/* u32 */
+>  	RDMA_NLDEV_ATTR_NDEV_NAME,		/* string */
+>
+> --
+> 1.8.3.1
 >
 
---GPJrCs/72TxItFYR
+--mSxgbZZZvrAyzONB
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJa+DksAAoJEORje4g2clinKXYQAIWuKaPakq0E8SHa/YkWLhNp
-CVEEw9uWvd0X6tDRb5H5a/Le9W5UX46HsyQwX9RK0C+DtFcp4VQJ4aXhrU+qnBk/
-5aJowT5m6fzwvoE/rEtHdvVvQ1TQ4s/5F3bpFX0OyhRO0/u+sQSzLftNEndJ1w13
-sVGYfc4UzzawH6pa1pAIxiSGdTVBuD+eCLq/NOYspvSfS3ARY3ZnXO0g8jCMsNdT
-JTDa6VBIVEzclwt5HDf0UDfLp2w0qldjlInvAsno+uIXKC0+TKPBpBnPEOvSbi9D
-LxKyPy7ClG84eeZLkOY950rTQ4/FYAti4KMoMFUNQHGTaIutFCwIntnSX7j6YyCS
-79smxarq9+YZY7T5ilW4dlWmDpunEmVemosCaAKtP5TkerR6uLRrG0lV7bR/Edz7
-cDdwrng0Id/y91gXYX87Zc8ds6q1S8x96GJzpHuJ3rr7AxcUgUeozzRw+3kpcfaa
-vWkqEWSZUhTcHP/xaR2vf+2S5PJKWfpYfYOTWX4RH7XUUEEWsIaeTaA96XrVhl6D
-jlj981vNj/gJOof6rOMrU+fPPrsEHC6xbJJ/D8kHqRqlX3tTOrZ+Y28Ws53lbCDA
-JrB/dr97qKI4eLumfBRtjr4CIzcK+2QiMffYcXksHvw4tpOec8hzD6QgWGf/fzBf
-9InghZ487HGLapJZyE9w
-=HrWr
+iQIcBAEBAgAGBQJa+DpdAAoJEORje4g2clin38sP/RNuYXAhcUyEMJpw8DWjWd0T
+KlEZrMySUkJgsqcLDt85GV8xRVz36sGQfhRIUCMC0oZoePWuS0vdB009HFyxDTuX
+QSvePwA2TIrlKoGh37RHniBFW5N9X7yy3/rPMKUO7NpxnYr8riIvqJ3SLMMxb6qq
+eIrWfCPlusPET7B98tkl+saxGNFOSVHz77/3i9xBrvUniGM5WKIsfT5nCg/mx6UB
+IRsqmF3J1iXpiOav7c0YqKvc5kZjh/M+AfuONsoHHInCK1DuRNjdLoHHzlZJpzJY
++E/JixojKflshuhtsaXGFw10TxjaML27Xln1SYeUI/bxIlwdJNTu5sGzKRiTnZ4S
+/MvP3EhwmB+sM0qK8pQ2ci9P2aLiyzYy6i1xnibIaTD5+G5Pr5TqQ6mapbT8JIBV
+hKfwlXqWHVBti+oEZhcWkAL/bSkNt1rJ/YDsd/jsJ9fIJoQXhuymteQkn7EazaY5
+zgFWtuHdfSGWQLc88/Ddj01Jsk6mbB896WNlqkJDyDbPmdlPus+0bA7lHgrAEh+6
+IPIhGvBhAMBytVxws/wAJCP8UtWDusOj1ysYkSkz0Cgz2CsB2Zm59rC6svwfL/if
+gU0V3SSRmDaY13LevEMV0U6BTJX6fYZHvD4qbQWrawTVUn+hfDQ0ZJW9BJOMT7cl
+kyNM2r3LXOME5/OxKKKM
+=bbrq
 -----END PGP SIGNATURE-----
 
---GPJrCs/72TxItFYR--
+--mSxgbZZZvrAyzONB--
