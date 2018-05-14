@@ -1,29 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net] qede: Fix ref-cnt usage count
-Date: Sun, 13 May 2018 20:27:59 -0400 (EDT)
-Message-ID: <20180513.202759.122123618609853060.davem@davemloft.net>
-References: <20180513175406.21350-1-Michal.Kalderon@cavium.com>
+From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Subject: Re: general protection fault in rds_ib_get_mr
+Date: Sun, 13 May 2018 22:46:37 -0700
+Message-ID: <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
+References: <089e082ce58896ad350567ee4825@google.com>
+ <20180513211058.GE677@sol.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180513175406.21350-1-Michal.Kalderon@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal.Kalderon@cavium.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, chad.dupuis@cavium.com, ariel.elior@cavium.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180513211058.GE677@sol.localdomain>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eric Biggers <ebiggers3@gmail.com>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <Michal.Kalderon@cavium.com>
-Date: Sun, 13 May 2018 20:54:06 +0300
+On 5/13/18 2:10 PM, Eric Biggers wrote:
+> On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
 
-> Rebooting while qedr is loaded with a VLAN interface present
-> results in unregister_netdevice waiting for the usage count
-> to become free.
-> The fix is that rdma devices should be removed before unregistering
-> the netdevice, to assure all references to ndev are decreased.
+[...]
+
+
+> Still reproducible on Linus' tree (commit 66e1c94db3cd4) and linux-next
+> (next-20180511).  Here's a simplified reproducer:
 > 
-> Fixes: cee9fbd8e2e9 ("qede: Add qedr framework")
-> Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
-> Signed-off-by: Michal Kalderon <michal.kalderon@cavium.com>
+Thanks for the test case !!
 
-Applied.
+Regards,
+Santosh
