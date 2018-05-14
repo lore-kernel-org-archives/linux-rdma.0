@@ -1,42 +1,63 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
- check eligibility of the pkeys
-Date: Mon, 14 May 2018 15:04:08 -0600
-Message-ID: <20180514210408.GO21531@ziepe.ca>
-References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
- <20180509093020.24503-3-Haakon.Bugge@oracle.com>
- <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
- <F9802EE9-4420-44EE-93DC-27CC799B427E@oracle.com>
- <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
- <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
- <325ba4af-b52e-4f70-9d89-38dafe10ba99@dev.mellanox.co.il>
- <23B160D2-6631-42A6-8A4D-644E90E8A704@oracle.com>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
+ attributes
+Date: Mon, 14 May 2018 17:04:26 -0500
+Message-ID: <a8493ed9-f16c-eb71-55db-f27bd1331521@opengridcomputing.com>
+References: <cover.1525709213.git.swise@opengridcomputing.com>
+ <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
+ <20180514204125.GM21531@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <23B160D2-6631-42A6-8A4D-644E90E8A704@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc: Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180514204125.GM21531@ziepe.ca>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dsahern@gmail.com, leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 11, 2018 at 12:55:00PM +0200, Håkon Bugge wrote:
-> > I'll check upstream OpenSM when I get a chance to see if same problem
-> > exists. Oracle OpenSM forked from upstream long time ago and not sure
-> > how similar the path record code is. There were various impacts for the
-> > shared port virtualization (for CX-3) in terms of adding the ability to
-> > allow both pkeys.
-> 
-> I just had a chat with Line H. here in Oracle. She confirms that Oracle’s SM and the upstream one act similar in this matter.
-> 
-> Further, using shared port virtualization, OpenSM will adhere to the
-> physical ports only, and doesn’t even know the PKey assignments to
-> the VFs assigned the VMs.
 
-Yes, but that isn't the point. If the VM receives a PR with a pkey
-that is not found in the VM's table then it should not even send a CM
-REQ in the first place.
 
-Jason
+On 5/14/2018 3:41 PM, Jason Gunthorpe wrote:
+> On Mon, May 07, 2018 at 08:53:16AM -0700, Steve Wise wrote:
+>> This enhancement allows printing rdma device-specific state, if provided
+>> by the kernel.  This is done in a generic manner, so rdma tool doesn't
+>> need to know about the details of every type of rdma device.
+>>
+>> Driver attributes for a rdma resource are in the form of <key,
+>> [print_type], value> tuples, where the key is a string and the value can
+>> be any supported driver attribute.  The print_type attribute, if present,
+>> provides a print format to use vs the standard print format for the type.
+>> For example, the default print type for a PROVIDER_S32 value is "%d ",
+>> but "0x%x " if the print_type of PRINT_TYPE_HEX is included inthe tuple.
+>>
+>> Driver resources are only printed when the -dd flag is present.
+>> If -p is present, then the output is formatted to not exceed 80 columns,
+>> otherwise it is printed as a single row to be grep/awk friendly.
+>>
+>> Example output:
+>>
+>> # rdma resource show qp lqpn 1028 -dd -p
+>> link cxgb4_0/- lqpn 1028 rqpn 0 type RC state RTS rq-psn 0 sq-psn 0 path-mig-state MIGRATED pid 0 comm [nvme_rdma]
+>>     sqid 1028 flushed 0 memsize 123968 cidx 85 pidx 85 wq_pidx 106 flush_cidx 85 in_use 0
+>>     size 386 flags 0x0 rqid 1029 memsize 16768 cidx 43 pidx 41 wq_pidx 171 msn 44 rqt_hwaddr 0x2a8a5d00
+>>     rqt_size 256 in_use 128 size 130 idx 43 wr_id 0xffff881057c03408 idx 40 wr_id 0xffff881057c033f0
+> Hey some of these look like kernel pointers.. That is a no-no.. What
+> is up there?
+
+Nothing is defined as a kernel pointer.  But wr_id is often a pointer to
+the kernel rdma application's context...
+
+> The wr_id often contains a pointer, right? So we cannot just pass it
+> to user space..
+
+Hmm.  It is useful for debugging kernel rdma applications.  Perhaps
+these attrs can be only be sent up by the kernel if the capabilities
+allow.  But previous review comments of the kernel series, which is now
+merged, forced me to remove passing the capabilities information to the
+driver resource fill functions. 
+
+So what's the right way to do this?
+
+Steve.
