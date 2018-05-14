@@ -1,61 +1,68 @@
-From: Leon Romanovsky <leon@kernel.org>
+From: Tariq Toukan <tariqt@mellanox.com>
 Subject: Re: [PATCH v2] net/mlx4_core: Fix error handling in
  mlx4_init_port_info.
-Date: Mon, 14 May 2018 09:21:09 +0300
-Message-ID: <20180514062109.GK10381@mtr-leonro.mtl.com>
+Date: Mon, 14 May 2018 12:08:59 +0300
+Message-ID: <02b1c1aa-9d40-78ac-8136-f2c46d0e2424@mellanox.com>
 References: <20180513233845.135290-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Y1L3PTX8QE8cb2T+"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180513233845.135290-1-tarick@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tarick Bedeir <tarick@google.com>
-Cc: tariqt@mellanox.com, gthelen@google.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Tarick Bedeir <tarick@google.com>, tariqt@mellanox.com, gthelen@google.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, David Miller <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Y1L3PTX8QE8cb2T+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Sun, May 13, 2018 at 04:38:45PM -0700, Tarick Bedeir wrote:
+On 14/05/2018 2:38 AM, Tarick Bedeir wrote:
 > Avoid exiting the function with a lingering sysfs file (if the first
 > call to device_create_file() fails while the second succeeds), and avoid
 > calling devlink_port_unregister() twice.
->
+> 
 > In other words, either mlx4_init_port_info() succeeds and returns zero, or
 > it fails, returns non-zero, and requires no cleanup.
->
+> 
 > Fixes: 096335b3f983 ("mlx4_core: Allow dynamic MTU configuration for IB
 > ports")
+> Signed-off-by: Tarick Bedeir <tarick@google.com>
+> ---
+> v1 -> v2: Added "Fixes" tag.
+> ---
+>   drivers/net/ethernet/mellanox/mlx4/main.c | 4 +++-
+>   1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+> index 4d84cab77105..e8a3a45d0b53 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/main.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+> @@ -3007,6 +3007,7 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
+>   		mlx4_err(dev, "Failed to create file for port %d\n", port);
+>   		devlink_port_unregister(&info->devlink_port);
+>   		info->port = -1;
+> +		return err;
+>   	}
+>   
+>   	sprintf(info->dev_mtu_name, "mlx4_port%d_mtu", port);
+> @@ -3028,9 +3029,10 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
+>   				   &info->port_attr);
+>   		devlink_port_unregister(&info->devlink_port);
+>   		info->port = -1;
+> +		return err;
+>   	}
+>   
+> -	return err;
+> +	return 0;
+>   }
+>   
+>   static void mlx4_cleanup_port_info(struct mlx4_port_info *info)
+> 
 
-Please don't break "Fixes" lines, it complicates "grep".
+Thanks for you patch.
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 
-IMHO, general cleanup exit point is needed in this function (goto ...),
-but your fix is good enough too. Thanks for doing it.
+Dave, please queue for -stable.
 
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-
---Y1L3PTX8QE8cb2T+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJa+SrVAAoJEORje4g2clinP+0P/2WCHSxqo1z6MnkYwbN24ix9
-hPxeRmGlfBBAIEVt54BFI248Y2pxeOpRmtct1SktOeidkR2sqfIvTwGuuUBq8Iw9
-gun9qfwgWXciGYNl/VR4udy65dwcd/YuRoeYbvpvFm3/7zYKZXKoXl1vEp9CvT0t
-Lo2MEiaSjTUSo9wzzJBfvppeqsoI+h5vOx+zmsHjm2b3CjuikiqQ5/wBT410glx1
-0EV5EY0Z0zfQROarzJViL2nn3Zeoai9VFfrVh2ujcZ9yOjF/K/GyO3ovE/h1DuhD
-3GiMPEh7s1Ua1w8x1VyIf7oRZkIOSRpOvc1vclwF8sMD4eIwxtTpLs/DaaNB4lCi
-YU3/hOfwfL3kAne79MTaK6PJPh3zVoeBFhwlu1xIkXR5D3VbmGnzU94iU7hzRiEN
-90+majc6aurhetVzUN0NxSXTaRagOZ7Ae2vmCchHxSTczNe/8e1pGNOwef4h7HH6
-QKQ5OHldp10A9s1tDh+wr2xt5VZsL1GKNfRVDXH/0H4nnBOyIopOkVtVbnSNUvYr
-WW78FSCFIsDPRH9kcJf/XFzhusY+9Ev4z6+lJbQoRfR0uOGEMtttJfIIIgEfuW1b
-W4AjihHqMeacQXOXRSevTtTnmpXJZm9rGd8kDZ1BqiCJo5PH+8Vl8uMQs8L9Tim+
-/8CQJ23NPZwyqyccy4xj
-=7qEX
------END PGP SIGNATURE-----
-
---Y1L3PTX8QE8cb2T+--
+Best,
+Tariq
