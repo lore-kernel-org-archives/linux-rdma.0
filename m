@@ -1,33 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net/mlx4_core: Fix error handling in
- mlx4_init_port_info.
-Date: Mon, 14 May 2018 16:29:45 -0400 (EDT)
-Message-ID: <20180514.162945.673218440357756147.davem@davemloft.net>
-References: <20180513233845.135290-1-tarick@google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
+ attributes
+Date: Mon, 14 May 2018 14:41:25 -0600
+Message-ID: <20180514204125.GM21531@ziepe.ca>
+References: <cover.1525709213.git.swise@opengridcomputing.com>
+ <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180513233845.135290-1-tarick@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tarick@google.com
-Cc: tariqt@mellanox.com, gthelen@google.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dsahern@gmail.com, leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tarick Bedeir <tarick@google.com>
-Date: Sun, 13 May 2018 16:38:45 -0700
-
-> Avoid exiting the function with a lingering sysfs file (if the first
-> call to device_create_file() fails while the second succeeds), and avoid
-> calling devlink_port_unregister() twice.
+On Mon, May 07, 2018 at 08:53:16AM -0700, Steve Wise wrote:
+> This enhancement allows printing rdma device-specific state, if provided
+> by the kernel.  This is done in a generic manner, so rdma tool doesn't
+> need to know about the details of every type of rdma device.
 > 
-> In other words, either mlx4_init_port_info() succeeds and returns zero, or
-> it fails, returns non-zero, and requires no cleanup.
+> Driver attributes for a rdma resource are in the form of <key,
+> [print_type], value> tuples, where the key is a string and the value can
+> be any supported driver attribute.  The print_type attribute, if present,
+> provides a print format to use vs the standard print format for the type.
+> For example, the default print type for a PROVIDER_S32 value is "%d ",
+> but "0x%x " if the print_type of PRINT_TYPE_HEX is included inthe tuple.
 > 
-> Fixes: 096335b3f983 ("mlx4_core: Allow dynamic MTU configuration for IB
-> ports")
-> Signed-off-by: Tarick Bedeir <tarick@google.com>
-> ---
-> v1 -> v2: Added "Fixes" tag.
+> Driver resources are only printed when the -dd flag is present.
+> If -p is present, then the output is formatted to not exceed 80 columns,
+> otherwise it is printed as a single row to be grep/awk friendly.
+> 
+> Example output:
+> 
+> # rdma resource show qp lqpn 1028 -dd -p
+> link cxgb4_0/- lqpn 1028 rqpn 0 type RC state RTS rq-psn 0 sq-psn 0 path-mig-state MIGRATED pid 0 comm [nvme_rdma]
+>     sqid 1028 flushed 0 memsize 123968 cidx 85 pidx 85 wq_pidx 106 flush_cidx 85 in_use 0
+>     size 386 flags 0x0 rqid 1029 memsize 16768 cidx 43 pidx 41 wq_pidx 171 msn 44 rqt_hwaddr 0x2a8a5d00
+>     rqt_size 256 in_use 128 size 130 idx 43 wr_id 0xffff881057c03408 idx 40 wr_id 0xffff881057c033f0
 
-Applied and queued up for -stable.
+Hey some of these look like kernel pointers.. That is a no-no.. What
+is up there?
+
+The wr_id often contains a pointer, right? So we cannot just pass it
+to user space..
+
+Jason
