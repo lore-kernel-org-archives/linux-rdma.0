@@ -1,92 +1,145 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v2 iproute2-next 3/3] rdma: update man pages
-Date: Mon, 14 May 2018 08:42:39 -0700
-Message-ID: <ac30882e06363dfff08abfbe48dfcb10961d057f.1526312594.git.swise@opengridcomputing.com>
-References: <cover.1526312594.git.swise@opengridcomputing.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1526312594.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: dsahern@gmail.com, leon@kernel.org
-Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
+Date: Mon, 14 May 2018 09:41:49 -0700
+Message-ID: <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
+References: <20180511192318.22342-1-qing.huang@oracle.com>
+ <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tariq Toukan <ttoukan.linux@gmail.com>, tariqt@mellanox.com, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Update the man pages for the resource attributes as well
-as the driver-specific attributes.
 
-Signed-off-by: Steve Wise <swise@opengridcomputing.com>
----
- man/man8/rdma-resource.8 | 29 ++++++++++++++++++++++++++---
- man/man8/rdma.8          |  2 +-
- 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index ff5d25d..40b073d 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -7,13 +7,16 @@ rdma-resource \- rdma resource configuration
- .in +8
- .ti -8
- .B rdma
--.RI "[ " OPTIONS " ]"
--.B resource
--.RI  " { " COMMAND " | "
-+.RI "[ " OPTIONS " ] " RESOURCE " { " COMMAND " | "
- .BR help " }"
- .sp
- 
- .ti -8
-+.IR RESOURCE " := { "
-+.BR cm_id " | " cq " | " mr " | " pd " | " qp " }"
-+.sp
-+
-+.ti -8
- .IR OPTIONS " := { "
- \fB\-j\fR[\fIson\fR] |
- \fB\-d\fR[\fIetails\fR] }
-@@ -70,11 +73,31 @@ rdma res show qp link mlx5_4/- -d
- Detailed view.
- .RE
- .PP
-+rdma res show qp link mlx5_4/- -dd
-+.RS 4
-+Detailed view including driver-specific details.
-+.RE
-+.PP
- rdma res show qp link mlx5_4/1 lqpn 0-6
- .RS 4
- Limit to specific Local QPNs.
- .RE
- .PP
-+rdma resource show cm_id dst-port 7174
-+.RS 4
-+Show CM_IDs with destination ip port of 7174.
-+.RE
-+.PP
-+rdma resource show cm_id src-addr 172.16.0.100
-+.RS 4
-+Show CM_IDs bound to local ip address 172.16.0.100
-+.RE
-+.PP
-+rdma resource show cq pid 30489
-+.RS 4
-+Show CQs belonging to pid 30489
-+.RE
-+.PP
- 
- .SH SEE ALSO
- .BR rdma (8),
-diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
-index 6f88f37..12aa149 100644
---- a/man/man8/rdma.8
-+++ b/man/man8/rdma.8
-@@ -49,7 +49,7 @@ If there were any errors during execution of the commands, the application retur
- 
- .TP
- .BR "\-d" , " --details"
--Output detailed information.
-+Output detailed information.  Adding a second \-d includes driver-specific details.
- 
- .TP
- .BR "\-p" , " --pretty"
--- 
-1.8.3.1
+On 5/13/2018 2:00 AM, Tariq Toukan wrote:
+>
+>
+> On 11/05/2018 10:23 PM, Qing Huang wrote:
+>> When a system is under memory presure (high usage with fragments),
+>> the original 256KB ICM chunk allocations will likely trigger kernel
+>> memory management to enter slow path doing memory compact/migration
+>> ops in order to complete high order memory allocations.
+>>
+>> When that happens, user processes calling uverb APIs may get stuck
+>> for more than 120s easily even though there are a lot of free pages
+>> in smaller chunks available in the system.
+>>
+>> Syslog:
+>> ...
+>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
+>> oracle_205573_e:205573 blocked for more than 120 seconds.
+>> ...
+>>
+>> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
+>>
+>> However in order to support smaller ICM chunk size, we need to fix
+>> another issue in large size kcalloc allocations.
+>>
+>> E.g.
+>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
+>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for each mtt
+>> entry). So we need a 16MB allocation for a table->icm pointer array to
+>> hold 2M pointers which can easily cause kcalloc to fail.
+>>
+>> The solution is to use vzalloc to replace kcalloc. There is no need
+>> for contiguous memory pages for a driver meta data structure (no need
+>> of DMA ops).
+>>
+>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
+>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
+>> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+>> ---
+>> v2 -> v1: adjusted chunk size to reflect different architectures.
+>>
+>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
+>>   1 file changed, 7 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
+>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> index a822f7a..ccb62b8 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>> @@ -43,12 +43,12 @@
+>>   #include "fw.h"
+>>     /*
+>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
+>> - * per chunk.
+>> + * We allocate in page size (default 4KB on many archs) chunks to 
+>> avoid high
+>> + * order memory allocations in fragmented/high usage memory situation.
+>>    */
+>>   enum {
+>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
+>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
+>> +    MLX4_ICM_ALLOC_SIZE    = 1 << PAGE_SHIFT,
+>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << PAGE_SHIFT
+>
+> Which is actually PAGE_SIZE.
+
+Yes, we wanted to avoid high order memory allocations.
+
+> Also, please add a comma at the end of the last entry.
+
+Hmm..., followed the existing code style and checkpatch.pl didn't 
+complain about the comma.
+
+>
+>>   };
+>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
+>> mlx4_icm_chunk *chunk)
+>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
+>> struct mlx4_icm_table *table,
+>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
+>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
+>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
+>> GFP_KERNEL);
+>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
+>
+> Why not kvzalloc ?
+
+I think table->icm pointer array doesn't really need physically 
+contiguous memory. Sometimes high order
+memory allocation by kmalloc variants may trigger slow path and cause 
+tasks to be blocked.
+
+Thanks,
+Qing
+
+>
+>>       if (!table->icm)
+>>           return -ENOMEM;
+>>       table->virt     = virt;
+>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
+>> struct mlx4_icm_table *table,
+>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
+>>           }
+>>   -    kfree(table->icm);
+>> +    vfree(table->icm);
+>>         return -ENOMEM;
+>>   }
+>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev *dev, 
+>> struct mlx4_icm_table *table)
+>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
+>>           }
+>>   -    kfree(table->icm);
+>> +    vfree(table->icm);
+>>   }
+>>
+>
+> Thanks for your patch.
+>
+> I need to verify there is no dramatic performance degradation here.
+> You can prepare and send a v3 in the meanwhile.
+>
+> Thanks,
+> Tariq
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
