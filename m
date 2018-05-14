@@ -1,35 +1,33 @@
-From: Christophe Jaillet <christophe.jaillet@wanadoo.fr>
-Subject: Re: [PATCH] net/mlx5: Use 'kvfree()' for memory allocated by
- 'kvzalloc()'
-Date: Mon, 14 May 2018 21:37:38 +0200
-Message-ID: <72339a77-1740-e081-06bc-8295687f80b8@wanadoo.fr>
-References: <20180512170925.23690-1-christophe.jaillet@wanadoo.fr>
- <20180514.145642.989041199343505570.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2] net/mlx4_core: Fix error handling in
+ mlx4_init_port_info.
+Date: Mon, 14 May 2018 16:29:45 -0400 (EDT)
+Message-ID: <20180514.162945.673218440357756147.davem@davemloft.net>
+References: <20180513233845.135290-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180514.145642.989041199343505570.davem@davemloft.net>
-Content-Language: fr
+In-Reply-To: <20180513233845.135290-1-tarick@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: saeedm@mellanox.com, matanb@mellanox.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: tarick@google.com
+Cc: tariqt@mellanox.com, gthelen@google.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Le 14/05/2018 à 20:56, David Miller a écrit :
-> From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> Date: Sat, 12 May 2018 19:09:25 +0200
-> 
->> 'out' is allocated with 'kvzalloc()'. 'kvfree()' must be used to free it.
->>
->> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> 
-> Saeed, I assume I will see this in one of your forthcoming pull
-> requests.
-> 
-> Thanks.
-> 
+From: Tarick Bedeir <tarick@google.com>
+Date: Sun, 13 May 2018 16:38:45 -0700
 
-I've send a v2 with additional 'kvfree()' fixes.
+> Avoid exiting the function with a lingering sysfs file (if the first
+> call to device_create_file() fails while the second succeeds), and avoid
+> calling devlink_port_unregister() twice.
+> 
+> In other words, either mlx4_init_port_info() succeeds and returns zero, or
+> it fails, returns non-zero, and requires no cleanup.
+> 
+> Fixes: 096335b3f983 ("mlx4_core: Allow dynamic MTU configuration for IB
+> ports")
+> Signed-off-by: Tarick Bedeir <tarick@google.com>
+> ---
+> v1 -> v2: Added "Fixes" tag.
 
-CJ
+Applied and queued up for -stable.
