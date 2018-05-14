@@ -1,35 +1,53 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH v1 iproute2-next 1/3] rdma: update rdma_netlink.h to get
- driver attrs
-Date: Mon, 14 May 2018 10:15:26 -0500
-Message-ID: <f8c60d5c-dea2-3730-d356-3f84a68c2529@opengridcomputing.com>
-References: <cover.1525709213.git.swise@opengridcomputing.com>
- <312486eb14b460e455e7b2926d7ea06e3a8411fc.1525709213.git.swise@opengridcomputing.com>
- <20180513131509.GE10381@mtr-leonro.mtl.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2 iproute2-next 0/3] RDMA tool driver-specific resource tracking
+Date: Mon, 14 May 2018 08:43:14 -0700
+Message-ID: <cover.1526312594.git.swise@opengridcomputing.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180513131509.GE10381@mtr-leonro.mtl.com>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: dsahern@gmail.com, leon@kernel.org
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello,
 
+This series enhances the iproute2 rdma tool to include displaying
+driver-specific resource attributes.  It is the user-space part of the
+kernel driver resource tracking series that has been accepted for merging
+into linux-4.18 [1]
 
-On 5/13/2018 8:15 AM, Leon Romanovsky wrote:
-> On Mon, May 07, 2018 at 08:53:10AM -0700, Steve Wise wrote:
->> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
->> ---
->>  rdma/include/uapi/rdma/rdma_netlink.h | 37 ++++++++++++++++++++++++++++++++++-
->>  1 file changed, 36 insertions(+), 1 deletion(-)
-> Please write in commit message something like: "Based on kernel commit
-> ....", so we will be able to track changes.
+If there are no additional review comments, it can now be merged, I think.
 
-Sure.
+Changes since v1:
+- commit log editorial fixes
+- cite kernel commits that updated rdma_netlink.h in the 
+  iproute2 commit syncing this header
+- reorder stack definitions ala "reverse christmas tree"
+- correctly handle unknown driver attributes when printing
+
+Changes since v0/rfc:
+- changed "provider" to "driver" based on kernel side changes
+- updated man pages
+- removed "RFC" tag
 
 Thanks,
 
 Steve.
+
+[1] https://www.spinics.net/lists/linux-rdma/msg64199.html
+
+Steve Wise (3):
+  rdma: update rdma_netlink.h to get new driver attributes
+  rdma: print driver resource attributes
+  rdma: update man pages
+
+ man/man8/rdma-resource.8              |  29 ++++-
+ man/man8/rdma.8                       |   2 +-
+ rdma/include/uapi/rdma/rdma_netlink.h |  26 +++++
+ rdma/rdma.c                           |   9 +-
+ rdma/rdma.h                           |  11 ++
+ rdma/res.c                            |  30 ++----
+ rdma/utils.c                          | 196 ++++++++++++++++++++++++++++++++++
+ 7 files changed, 277 insertions(+), 26 deletions(-)
+
+-- 
+1.8.3.1
