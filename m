@@ -1,43 +1,122 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
-Date: Tue, 15 May 2018 12:45:30 -0700
-Message-ID: <094279df-93c2-b06e-9f48-11be5cd78b69@oracle.com>
-References: <20180511192318.22342-1-qing.huang@oracle.com>
- <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
- <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
- <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
- <f4c5d8d3-1eea-8566-9921-a9dc48435f66@oracle.com>
- <f71278c2-a111-1bf6-2ff3-d9a8dd46bfbe@gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v2 iproute2-next 1/3] rdma: update rdma_netlink.h to get
+ new driver attributes
+Date: Tue, 15 May 2018 15:47:41 -0400
+Message-ID: <eb6edd23b76a176b876002cc19c546a0669cf66f.camel@redhat.com>
+References: <cover.1526312594.git.swise@opengridcomputing.com>
+         <ef3d41db66cf503f717f92f6e595c065ea4dbe4e.1526312594.git.swise@opengridcomputing.com>
+         <f419f21a-d57d-ba6c-419e-4fdf24eaa662@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f71278c2-a111-1bf6-2ff3-d9a8dd46bfbe@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-FBiqdOJLUZGq2YN6kkwY"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <f419f21a-d57d-ba6c-419e-4fdf24eaa662@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>, Steve Wise <swise@opengridcomputing.com>, leon@kernel.org
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-FBiqdOJLUZGq2YN6kkwY
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 5/15/2018 12:08 PM, Eric Dumazet wrote:
->
-> On 05/15/2018 11:53 AM, Qing Huang wrote:
->>> This is control path so it is less latency-sensitive.
->>> Let's not produce unnecessary degradation here, please call kvzalloc so we maintain a similar behavior when contiguous memory is available, and a fallback for resiliency.
->> No sure what exactly degradation is caused by vzalloc here. I think it's better to keep physically contiguous pages
->> to other requests which really need them. Besides slow path/mem compacting can be really expensive.
->>
-> Just use kvzalloc(), and you get the benefit of having contiguous memory if available,
-> without expensive compact phase.
->
-> This thing _automatically_ falls back to vmalloc(), thus your problem will be solved.
->
-> If you are not sure, trust others.
+On Tue, 2018-05-15 at 13:37 -0600, David Ahern wrote:
+> On 5/14/18 9:42 AM, Steve Wise wrote:
+> > diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/=
+rdma/rdma_netlink.h
+> > index 60416ed..40be0d8 100644
+> > --- a/rdma/include/uapi/rdma/rdma_netlink.h
+> > +++ b/rdma/include/uapi/rdma/rdma_netlink.h
+> > @@ -249,10 +249,22 @@ enum rdma_nldev_command {
+> >  	RDMA_NLDEV_NUM_OPS
+> >  };
+> > =20
+> > +enum {
+> > +	RDMA_NLDEV_ATTR_ENTRY_STRLEN =3D 16,
+> > +};
+> > +
+> > +enum rdma_nldev_print_type {
+> > +	RDMA_NLDEV_PRINT_TYPE_UNSPEC,
+> > +	RDMA_NLDEV_PRINT_TYPE_HEX,
+> > +};
+> > +
+> >  enum rdma_nldev_attr {
+> >  	/* don't change the order or add anything between, this is ABI! */
+>=20
+> I asked this before and did not get a response. As the comment above
+> states with an emphasis (!) ...
+>=20
+> >  	RDMA_NLDEV_ATTR_UNSPEC,
+> > =20
+> > +	/* Pad attribute for 64b alignment */
+> > +	RDMA_NLDEV_ATTR_PAD =3D RDMA_NLDEV_ATTR_UNSPEC,
+> > +
+>=20
+> ... are you really adding new attributes in the middle?
 
-Thanks for the review. There are many places in kernel and applications 
-where physically contiguous pages are needed.
-We saw quite a few issues when there were not enough contiguous phy mem 
-available. My main concern here is that why
-using physically contiguous pages when they are not really needed?
+Not really.  The new item is being explicitly set to the same value as
+the item above it.  It therefore becomes two entries with the same enum
+value.  The rest of the enum is all unchanged.
+
+> >  	/* Identifier for ib_device */
+> >  	RDMA_NLDEV_ATTR_DEV_INDEX,		/* u32 */
+> > =20
+> > @@ -387,6 +399,20 @@ enum rdma_nldev_attr {
+> >  	RDMA_NLDEV_ATTR_RES_PD_ENTRY,		/* nested table */
+> >  	RDMA_NLDEV_ATTR_RES_LOCAL_DMA_LKEY,	/* u32 */
+> >  	RDMA_NLDEV_ATTR_RES_UNSAFE_GLOBAL_RKEY,	/* u32 */
+> > +	/*
+> > +	 * driver-specific attributes.
+> > +	 */
+> > +	RDMA_NLDEV_ATTR_DRIVER,			/* nested table */
+> > +	RDMA_NLDEV_ATTR_DRIVER_ENTRY,		/* nested table */
+> > +	RDMA_NLDEV_ATTR_DRIVER_STRING,		/* string */
+> > +	/*
+> > +	 * u8 values from enum rdma_nldev_print_type
+> > +	 */
+> > +	RDMA_NLDEV_ATTR_DRIVER_PRINT_TYPE,	/* u8 */
+> > +	RDMA_NLDEV_ATTR_DRIVER_S32,		/* s32 */
+> > +	RDMA_NLDEV_ATTR_DRIVER_U32,		/* u32 */
+> > +	RDMA_NLDEV_ATTR_DRIVER_S64,		/* s64 */
+> > +	RDMA_NLDEV_ATTR_DRIVER_U64,		/* u64 */
+>=20
+> and again here.
+>=20
+> > =20
+> >  	/*
+> >  	 * Provides logical name and index of netdevice which is
+> >=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-FBiqdOJLUZGq2YN6kkwY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlr7OV0ACgkQuCajMw5X
+L92mJQ/+NqfZ7C1shZNKon05pqHxXqAMQMdjq3zri08K18jSVO9NmkEw9dIID0R4
+TArSXYJxGey4Xo5YVboY8MJopyL0tGPSlIw4ZoSERS0mnMtL9hH4mcDLIdiMYpp7
+/kagQrlOAK7awztMm9dWvMsNploYWDAL7PApmgqwrnkxTljpEcGz1jbNllYFSPJo
+lTvlS3fymUBEGyLFJqD+PrggLwFtGtnyZazzSrAll6T0wuHcJBQornCNBbIUD80M
+8PVvZ74qJuekrrV7pklqytawoaI8OZbdpDFLK+k/0I1Yu9YKLpZIMDhVQmjyrIKu
+FKHrFM3cav8suibPWw6mQH2sEIm37VOyw+6TN3rOEZL9diWd7S7z0WvqXnoua6UO
+Dy+MhprtVeGNO3qipyDW951bUfPMsDhumcUiCP9/Koteydg0vJQpDaRGWRq4UYv3
+O7psngN76JYNzsIEwn1WBR7O5zqEYUkQHWAFYcE61m5vREmwbgrOUGUxcaV4axiq
+MKXgnXYYUkU+EhAzcVsJuoX1AaNTnlt00axu5cmGnC2ZWH87UkxqrdhZRZYDGkEb
+dbR2icwuqmysIwG00evLAeD4kWVQp/a8hzOhfHJe7lVF5O1vivSrxj5nOnMlXNhw
+ha6bSOJJNzTbMmmuNmzS8IRvBk4wlHVz/+jtdrEEvqumbvnSuoI=
+=8y91
+-----END PGP SIGNATURE-----
+
+--=-FBiqdOJLUZGq2YN6kkwY--
