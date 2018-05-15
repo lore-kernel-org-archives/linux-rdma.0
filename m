@@ -1,193 +1,128 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
-Date: Tue, 15 May 2018 11:53:29 -0700
-Message-ID: <f4c5d8d3-1eea-8566-9921-a9dc48435f66@oracle.com>
-References: <20180511192318.22342-1-qing.huang@oracle.com>
- <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
- <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
- <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
+ check eligibility of the pkeys
+Date: Tue, 15 May 2018 13:04:24 -0600
+Message-ID: <20180515190424.GL5615@ziepe.ca>
+References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
+ <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+ <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
+ <F9802EE9-4420-44EE-93DC-27CC799B427E@oracle.com>
+ <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
+ <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
+ <20180514210200.GN21531@ziepe.ca>
+ <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+ <E41BCEAA-0204-448D-8188-ACA03932B3AC@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <E41BCEAA-0204-448D-8188-ACA03932B3AC@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 15, 2018 at 08:11:09PM +0200, Håkon Bugge wrote:
+> > On 15 May 2018, at 02:38, Hal Rosenstock <hal@dev.mellanox.co.il> wrote:
+> > 
+> > On 5/14/2018 5:02 PM, Jason Gunthorpe wrote:
+> >> On Thu, May 10, 2018 at 05:16:28PM +0200, Håkon Bugge wrote:
+> >> 
+> >>> We are talking about two things here. The PKey in the BTH and the
+> >>> PKey in the CM REQ payload. They differ.
+> >>> 
+> >>> I am out of office, but if my memory serves me correct, the PKey in
+> >>> the BTH in the MAD packet will be the default PKey. Further, we have
+> >>> per IBTA:
+> >> 
+> >> This sounds like a Linux bug.
+> >> 
+> >> Linux does not do a PR to get a reversible path dedicated to the GMP> so it always uses the data flow path, thus the GMP path paramenters
+> >> and those in the REQ should always exactly match.
+> >> 
+> >> Where is Linux setting the BTH.PKey and how did it choose to use the
+> >> default pkey? Lets fix that at least for sure.
+> 
+> Linux isn’t. The BTH.PKey is inserted by the HCA (hw or fw) coming from the P_Key table (10.9.2 in IBTA), selected by a pkey_index associated with the QP.
+> 
+> As per C10-133: Packets sent from the Send Queue of a GSI QP shall
+> attach a P_Key associated with that QP, just as a P_Key is
+> associated with nonmanagement QPs
 
+That language doesn't mean the PKey is forced to the default, it says
+the pkey is programmable.
 
-On 5/15/2018 2:19 AM, Tariq Toukan wrote:
->
->
-> On 14/05/2018 7:41 PM, Qing Huang wrote:
->>
->>
->> On 5/13/2018 2:00 AM, Tariq Toukan wrote:
->>>
->>>
->>> On 11/05/2018 10:23 PM, Qing Huang wrote:
->>>> When a system is under memory presure (high usage with fragments),
->>>> the original 256KB ICM chunk allocations will likely trigger kernel
->>>> memory management to enter slow path doing memory compact/migration
->>>> ops in order to complete high order memory allocations.
->>>>
->>>> When that happens, user processes calling uverb APIs may get stuck
->>>> for more than 120s easily even though there are a lot of free pages
->>>> in smaller chunks available in the system.
->>>>
->>>> Syslog:
->>>> ...
->>>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->>>> oracle_205573_e:205573 blocked for more than 120 seconds.
->>>> ...
->>>>
->>>> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
->>>>
->>>> However in order to support smaller ICM chunk size, we need to fix
->>>> another issue in large size kcalloc allocations.
->>>>
->>>> E.g.
->>>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
->>>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for 
->>>> each mtt
->>>> entry). So we need a 16MB allocation for a table->icm pointer array to
->>>> hold 2M pointers which can easily cause kcalloc to fail.
->>>>
->>>> The solution is to use vzalloc to replace kcalloc. There is no need
->>>> for contiguous memory pages for a driver meta data structure (no need
->>>> of DMA ops).
->>>>
->>>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
->>>> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->>>> ---
->>>> v2 -> v1: adjusted chunk size to reflect different architectures.
->>>>
->>>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
->>>>   1 file changed, 7 insertions(+), 7 deletions(-)
->>>>
->>>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
->>>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> index a822f7a..ccb62b8 100644
->>>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>> @@ -43,12 +43,12 @@
->>>>   #include "fw.h"
->>>>     /*
->>>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
->>>> - * per chunk.
->>>> + * We allocate in page size (default 4KB on many archs) chunks to 
->>>> avoid high
->>>> + * order memory allocations in fragmented/high usage memory 
->>>> situation.
->>>>    */
->>>>   enum {
->>>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
->>>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
->>>> +    MLX4_ICM_ALLOC_SIZE    = 1 << PAGE_SHIFT,
->>>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << PAGE_SHIFT
->>>
->>> Which is actually PAGE_SIZE.
->>
->> Yes, we wanted to avoid high order memory allocations.
->>
->
-> Then please use PAGE_SIZE instead.
+Linux implemented programmable PKeys for the GSI by using the work
+request, so it deviates from what the spec imagined (which was
+probably one GSI QP per PKey).
 
-PAGE_SIZE is usually defined as 1 << PAGE_SHIFT. So I think PAGE_SHIFT 
-is actually more appropriate here.
+See ib_create_send_mad for instance:
 
+        mad_send_wr->send_wr.wr.wr_cqe = &mad_send_wr->mad_list.cqe;
+        mad_send_wr->send_wr.wr.sg_list = mad_send_wr->sg_list;
+        mad_send_wr->send_wr.wr.num_sge = 2;
+        mad_send_wr->send_wr.wr.opcode = IB_WR_SEND;
+        mad_send_wr->send_wr.wr.send_flags = IB_SEND_SIGNALED;
+        mad_send_wr->send_wr.remote_qpn = remote_qpn;
+        mad_send_wr->send_wr.remote_qkey = IB_QP_SET_QKEY;
+        mad_send_wr->send_wr.pkey_index = pkey_index;
 
->
->>> Also, please add a comma at the end of the last entry.
->>
->> Hmm..., followed the existing code style and checkpatch.pl didn't 
->> complain about the comma.
->>
->
-> I am in favor of having a comma also after the last element, so that 
-> when another enum element is added we do not modify this line again, 
-> which would falsely affect git blame.
->
-> I know it didn't exist before your patch, but once we're here, let's 
-> do it.
+The pkey_index associated with the QP1 is ignored:
 
-I'm okay either way. If adding an extra comma is preferred by many 
-people, someone should update checkpatch.pl to enforce it. :)
+                /*
+                 * PKey index for QP1 is irrelevant but
+                 * one is needed for the Reset to Init transition
+                 */
+                attr->qp_state = IB_QPS_INIT;
+                attr->pkey_index = pkey_index;
+                attr->qkey = (qp->qp_num == 0) ? 0 : IB_QP1_QKEY;
+                ret = ib_modify_qp(qp, attr, IB_QP_STATE |
+                                             IB_QP_PKEY_INDEX | IB_QP_QKEY);
 
->
->>>
->>>>   };
->>>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
->>>> mlx4_icm_chunk *chunk)
->>>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>> struct mlx4_icm_table *table,
->>>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
->>>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
->>>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
->>>> GFP_KERNEL);
->>>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
->>>
->>> Why not kvzalloc ?
->>
->> I think table->icm pointer array doesn't really need physically 
->> contiguous memory. Sometimes high order
->> memory allocation by kmalloc variants may trigger slow path and cause 
->> tasks to be blocked.
->>
->
-> This is control path so it is less latency-sensitive.
-> Let's not produce unnecessary degradation here, please call kvzalloc 
-> so we maintain a similar behavior when contiguous memory is available, 
-> and a fallback for resiliency.
+Since is is present in every WR.
 
-No sure what exactly degradation is caused by vzalloc here. I think it's 
-better to keep physically contiguous pages
-to other requests which really need them. Besides slow path/mem 
-compacting can be really expensive.
+> >> Basically this means that any pkey in the REQ could randomly be the
+> >> full or limited value, and that in-of-itself has not bearing on the
+> >> connection.
+> >> 
+> >> So it is quite wrong to insist that the pkey be limited or full when
+> >> processing the REQ. The end port is expected to match against the
+> >> local table.
+> > 
+> > Note that there is thorny issue with shared (physical) port
+> > virtualization. In shared port virtualization, the VF pkey assignment is
+> > a local matter. Only thing SM knows is the physical port pkeys where
+> > both full and limited membership of same partition is possible. It is
+> > conceivable that CM REQ contains limited partition key between 2 limited
+> > VFs and for that a new REJ reason code appears to be needed.
+> 
+> +1
 
->
->> Thanks,
->> Qing
->>
->>>
->>>>       if (!table->icm)
->>>>           return -ENOMEM;
->>>>       table->virt     = virt;
->>>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>> struct mlx4_icm_table *table,
->>>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
->>>>           }
->>>>   -    kfree(table->icm);
->>>> +    vfree(table->icm);
->>>>         return -ENOMEM;
->>>>   }
->>>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev 
->>>> *dev, struct mlx4_icm_table *table)
->>>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
->>>>           }
->>>>   -    kfree(table->icm);
->>>> +    vfree(table->icm);
->>>>   }
->>>>
->>>
->>> Thanks for your patch.
->>>
->>> I need to verify there is no dramatic performance degradation here.
->>> You can prepare and send a v3 in the meanwhile.
->>>
->>> Thanks,
->>> Tariq
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-rdma" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
+This is not a difficult issue.
+
+If the GMP is properly tagged with the right PKey then it will never
+be delivered to the VM if the VM does not have the PKey in the
+table. It is up to the hypervisor to block GMPs that have Pkeys not in
+the virtual PKey table of the VF.
+
+The only time you could need a new REJ code is if the GMP is using a
+PKey different from the REQ - which is a pretty goofy thing to do
+considering this VM case.
+
+Remember the SM doesn't know what Pkeys are in the VM, so it is
+basically impossible for the REQ side to reliably select two different
+pkeys and know that they will bothmake it to the VM.
+
+One pkey could be done reliably if it matched ipoib, for instance, but
+two really cannot in the general case.
+
+So again - the bug here is that the GMP is being sent with the wrong
+pkey. Fix that, then see what is left to fix..
+
+If I recall there were bugs here in mlx drivers, where the driver sent
+with the wrong Pkey. I think this has actually been fixed now, so
+please check the upstream kernel to be sure the Pkey is not what it is
+supposed to be.
+
+Jason
