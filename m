@@ -1,166 +1,99 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
-Date: Tue, 15 May 2018 12:19:09 +0300
-Message-ID: <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
-References: <20180511192318.22342-1-qing.huang@oracle.com>
- <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
- <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH v1 iproute2-next 2/3] rdma: print driver resource attributes
+Date: Tue, 15 May 2018 08:18:51 -0500
+Message-ID: <00fe01d3ec4f$44a6f400$cdf4dc00$@opengridcomputing.com>
+References: <cover.1525709213.git.swise@opengridcomputing.com> <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com> <20180514204125.GM21531@ziepe.ca> <a8493ed9-f16c-eb71-55db-f27bd1331521@opengridcomputing.com> <20180515085411.GT10381@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>, tariqt@mellanox.com, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain;
+        charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: 
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Leon Romanovsky' <leon@kernel.org>
+Cc: 'Jason Gunthorpe' <jgg@ziepe.ca>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+ 
+> > On Mon, May 14, 2018 at 05:04:26PM -0500, Steve Wise wrote:
+> > >
+> > >
+> > > On 5/14/2018 3:41 PM, Jason Gunthorpe wrote:
+> > > > On Mon, May 07, 2018 at 08:53:16AM -0700, Steve Wise wrote:
+> > > >> This enhancement allows printing rdma device-specific state, if
+> provided
+> > > >> by the kernel.  This is done in a generic manner, so rdma tool
+doesn't
+> > > >> need to know about the details of every type of rdma device.
+> > > >>
+> > > >> Driver attributes for a rdma resource are in the form of <key,
+> > > >> [print_type], value> tuples, where the key is a string and the
+value can
+> > > >> be any supported driver attribute.  The print_type attribute, if
+present,
+> > > >> provides a print format to use vs the standard print format for the
+> type.
+> > > >> For example, the default print type for a PROVIDER_S32 value is "%d
+",
+> > > >> but "0x%x " if the print_type of PRINT_TYPE_HEX is included inthe
+> tuple.
+> > > >>
+> > > >> Driver resources are only printed when the -dd flag is present.
+> > > >> If -p is present, then the output is formatted to not exceed 80
+> columns,
+> > > >> otherwise it is printed as a single row to be grep/awk friendly.
+> > > >>
+> > > >> Example output:
+> > > >>
+> > > >> # rdma resource show qp lqpn 1028 -dd -p
+> > > >> link cxgb4_0/- lqpn 1028 rqpn 0 type RC state RTS rq-psn 0 sq-psn 0
+> > path-mig-state MIGRATED pid 0 comm [nvme_rdma]
+> > > >>     sqid 1028 flushed 0 memsize 123968 cidx 85 pidx 85 wq_pidx 106
+> > flush_cidx 85 in_use 0
+> > > >>     size 386 flags 0x0 rqid 1029 memsize 16768 cidx 43 pidx 41
+wq_pidx
+> > 171 msn 44 rqt_hwaddr 0x2a8a5d00
+> > > >>     rqt_size 256 in_use 128 size 130 idx 43 wr_id
+0xffff881057c03408 idx
+> > 40 wr_id 0xffff881057c033f0
+> > > > Hey some of these look like kernel pointers.. That is a no-no.. What
+> > > > is up there?
+> > >
+> > > Nothing is defined as a kernel pointer.� But wr_id is often a pointer
+to
+> > > the kernel rdma application's context...
+> > >
+> > > > The wr_id often contains a pointer, right? So we cannot just pass it
+> > > > to user space..
+> > >
+> > > Hmm.� It is useful for debugging kernel rdma applications.� Perhaps
+> > > these attrs can be only be sent up by the kernel if the capabilities
+> > > allow.� But previous review comments of the kernel series, which is
+now
+> > > merged, forced me to remove passing the capabilities information to
+the
+> > > driver resource fill functions.
+> > >
+> > > So what's the right way to do this?
+> >
+> > The reviewer asked do not pass to drivers whole CAP_.. bits, because
+> > they anyway don't need such granularity.
+> >
+> 
+> Ok thanks.
 
+How's this?
 
-On 14/05/2018 7:41 PM, Qing Huang wrote:
-> 
-> 
-> On 5/13/2018 2:00 AM, Tariq Toukan wrote:
->>
->>
->> On 11/05/2018 10:23 PM, Qing Huang wrote:
->>> When a system is under memory presure (high usage with fragments),
->>> the original 256KB ICM chunk allocations will likely trigger kernel
->>> memory management to enter slow path doing memory compact/migration
->>> ops in order to complete high order memory allocations.
->>>
->>> When that happens, user processes calling uverb APIs may get stuck
->>> for more than 120s easily even though there are a lot of free pages
->>> in smaller chunks available in the system.
->>>
->>> Syslog:
->>> ...
->>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->>> oracle_205573_e:205573 blocked for more than 120 seconds.
->>> ...
->>>
->>> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
->>>
->>> However in order to support smaller ICM chunk size, we need to fix
->>> another issue in large size kcalloc allocations.
->>>
->>> E.g.
->>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
->>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for each mtt
->>> entry). So we need a 16MB allocation for a table->icm pointer array to
->>> hold 2M pointers which can easily cause kcalloc to fail.
->>>
->>> The solution is to use vzalloc to replace kcalloc. There is no need
->>> for contiguous memory pages for a driver meta data structure (no need
->>> of DMA ops).
->>>
->>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
->>> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->>> ---
->>> v2 -> v1: adjusted chunk size to reflect different architectures.
->>>
->>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
->>>   1 file changed, 7 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
->>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>> index a822f7a..ccb62b8 100644
->>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
->>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>> @@ -43,12 +43,12 @@
->>>   #include "fw.h"
->>>     /*
->>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
->>> - * per chunk.
->>> + * We allocate in page size (default 4KB on many archs) chunks to 
->>> avoid high
->>> + * order memory allocations in fragmented/high usage memory situation.
->>>    */
->>>   enum {
->>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
->>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
->>> +    MLX4_ICM_ALLOC_SIZE    = 1 << PAGE_SHIFT,
->>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << PAGE_SHIFT
->>
->> Which is actually PAGE_SIZE.
-> 
-> Yes, we wanted to avoid high order memory allocations.
-> 
-
-Then please use PAGE_SIZE instead.
-
->> Also, please add a comma at the end of the last entry.
-> 
-> Hmm..., followed the existing code style and checkpatch.pl didn't 
-> complain about the comma.
-> 
-
-I am in favor of having a comma also after the last element, so that 
-when another enum element is added we do not modify this line again, 
-which would falsely affect git blame.
-
-I know it didn't exist before your patch, but once we're here, let's do it.
-
->>
->>>   };
->>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
->>> mlx4_icm_chunk *chunk)
->>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>> struct mlx4_icm_table *table,
->>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
->>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
->>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
->>> GFP_KERNEL);
->>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
->>
->> Why not kvzalloc ?
-> 
-> I think table->icm pointer array doesn't really need physically 
-> contiguous memory. Sometimes high order
-> memory allocation by kmalloc variants may trigger slow path and cause 
-> tasks to be blocked.
-> 
-
-This is control path so it is less latency-sensitive.
-Let's not produce unnecessary degradation here, please call kvzalloc so 
-we maintain a similar behavior when contiguous memory is available, and 
-a fallback for resiliency.
-
-> Thanks,
-> Qing
-> 
->>
->>>       if (!table->icm)
->>>           return -ENOMEM;
->>>       table->virt     = virt;
->>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>> struct mlx4_icm_table *table,
->>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
->>>           }
->>>   -    kfree(table->icm);
->>> +    vfree(table->icm);
->>>         return -ENOMEM;
->>>   }
->>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev *dev, 
->>> struct mlx4_icm_table *table)
->>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
->>>           }
->>>   -    kfree(table->icm);
->>> +    vfree(table->icm);
->>>   }
->>>
->>
->> Thanks for your patch.
->>
->> I need to verify there is no dramatic performance degradation here.
->> You can prepare and send a v3 in the meanwhile.
->>
->> Thanks,
->> Tariq
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+index 6379685..2cf9c5c 100644
+--- a/include/rdma/restrack.h
++++ b/include/rdma/restrack.h
+@@ -66,7 +66,8 @@ struct rdma_restrack_root {
+         * Allows rdma drivers to add their own restrack attributes.
+         */
+        int (*fill_res_entry)(struct sk_buff *msg,
+-                             struct rdma_restrack_entry *entry);
++                             struct rdma_restrack_entry *entry,
++                             bool net_admin_capable);
+ };
