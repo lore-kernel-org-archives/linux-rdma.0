@@ -1,135 +1,64 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v1 iproute2-next 2/3] rdma: print driver resource attributes
-Date: Tue, 15 May 2018 09:31:27 -0500
-Message-ID: <012201d3ec59$69242fa0$3b6c8ee0$@opengridcomputing.com>
-References: <cover.1525709213.git.swise@opengridcomputing.com> <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com> <20180514204125.GM21531@ziepe.ca> <a8493ed9-f16c-eb71-55db-f27bd1331521@opengridcomputing.com> <20180515085411.GT10381@mtr-leonro.mtl.com> <00fe01d3ec4f$44a6f400$cdf4dc00$@opengridcomputing.com> <20180515135335.GA5615@ziepe.ca>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [pull request][for-next 0/6] Mellanox, mlx5 updates 2018-05-07
+Date: Tue, 15 May 2018 10:34:16 -0400
+Message-ID: <798dec2fab70f7cb845942c6fcbe430378b8551e.camel@redhat.com>
+References: <20180507235304.25085-1-saeedm@mellanox.com>
+         <20180510.081836.382051449994824032.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-s5xQ/cxTdQdl0AZNhDYb"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180515135335.GA5615@ziepe.ca>
-Content-Language: en-us
+In-Reply-To: <20180510.081836.382051449994824032.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgg@ziepe.ca>
-Cc: 'Leon Romanovsky' <leon@kernel.org>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: David Miller <davem@davemloft.net>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, jgg@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
 
-> From: Jason Gunthorpe <jgg@ziepe.ca>
-> On Tue, May 15, 2018 at 08:18:51AM -0500, Steve Wise wrote:
-> >
-> > > > On Mon, May 14, 2018 at 05:04:26PM -0500, Steve Wise wrote:
-> > > > >
-> > > > >
-> > > > > On 5/14/2018 3:41 PM, Jason Gunthorpe wrote:
-> > > > > > On Mon, May 07, 2018 at 08:53:16AM -0700, Steve Wise wrote:
-> > > > > >> This enhancement allows printing rdma device-specific state, if
-> > > provided
-> > > > > >> by the kernel.  This is done in a generic manner, so rdma tool
-> > doesn't
-> > > > > >> need to know about the details of every type of rdma device.
-> > > > > >>
-> > > > > >> Driver attributes for a rdma resource are in the form of <key,
-> > > > > >> [print_type], value> tuples, where the key is a string and the
-> > value can
-> > > > > >> be any supported driver attribute.  The print_type attribute, if
-> > present,
-> > > > > >> provides a print format to use vs the standard print format for the
-> > > type.
-> > > > > >> For example, the default print type for a PROVIDER_S32 value is
-> "%d
-> > ",
-> > > > > >> but "0x%x " if the print_type of PRINT_TYPE_HEX is included inthe
-> > > tuple.
-> > > > > >>
-> > > > > >> Driver resources are only printed when the -dd flag is present.
-> > > > > >> If -p is present, then the output is formatted to not exceed 80
-> > > columns,
-> > > > > >> otherwise it is printed as a single row to be grep/awk friendly.
-> > > > > >>
-> > > > > >> Example output:
-> > > > > >>
-> > > > > >> # rdma resource show qp lqpn 1028 -dd -p
-> > > > > >> link cxgb4_0/- lqpn 1028 rqpn 0 type RC state RTS rq-psn 0 sq-psn 0
-> > > > path-mig-state MIGRATED pid 0 comm [nvme_rdma]
-> > > > > >>     sqid 1028 flushed 0 memsize 123968 cidx 85 pidx 85 wq_pidx 106
-> > > > flush_cidx 85 in_use 0
-> > > > > >>     size 386 flags 0x0 rqid 1029 memsize 16768 cidx 43 pidx 41
-> > wq_pidx
-> > > > 171 msn 44 rqt_hwaddr 0x2a8a5d00
-> > > > > >>     rqt_size 256 in_use 128 size 130 idx 43 wr_id
-> > 0xffff881057c03408 idx
-> > > > 40 wr_id 0xffff881057c033f0
-> > > > > > Hey some of these look like kernel pointers.. That is a no-no.. What
-> > > > > > is up there?
-> > > > >
-> > > > > Nothing is defined as a kernel pointer.  But wr_id is often a pointer
-> > to
-> > > > > the kernel rdma application's context...
-> > > > >
-> > > > > > The wr_id often contains a pointer, right? So we cannot just pass it
-> > > > > > to user space..
-> > > > >
-> > > > > Hmm.  It is useful for debugging kernel rdma applications.  Perhaps
-> > > > > these attrs can be only be sent up by the kernel if the capabilities
-> > > > > allow.  But previous review comments of the kernel series, which is
-> > now
-> > > > > merged, forced me to remove passing the capabilities information to
-> > the
-> > > > > driver resource fill functions.
-> > > > >
-> > > > > So what's the right way to do this?
-> > > >
-> > > > The reviewer asked do not pass to drivers whole CAP_.. bits, because
-> > > > they anyway don't need such granularity.
-> > > >
-> > >
-> > > Ok thanks.
-> >
-> > How's this?
-> >
-> > diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
-> > index 6379685..2cf9c5c 100644
-> > +++ b/include/rdma/restrack.h
-> > @@ -66,7 +66,8 @@ struct rdma_restrack_root {
-> >          * Allows rdma drivers to add their own restrack attributes.
-> >          */
-> >         int (*fill_res_entry)(struct sk_buff *msg,
-> > -                             struct rdma_restrack_entry *entry);
-> > +                             struct rdma_restrack_entry *entry,
-> > +                             bool net_admin_capable);
-> >  };
-> 
-> cap net admin is not high enough privledge to see unhashed kernel
-> pointers. CAP_RAW_IO? Or follow what printk does?
-> 
+--=-s5xQ/cxTdQdl0AZNhDYb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Do you mean CAP_NET_RAW?  Here's the comments for it:
+On Thu, 2018-05-10 at 08:18 -0400, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Mon,  7 May 2018 16:52:58 -0700
+>=20
+> > This pull request includes misc updates and cleanups for mlx5 core
+> > driver for both net and rdma next branches, for more information please
+> > see tag log below.
+> >=20
+> > Please pull and let me know if there's any problem.
+>=20
+> Looks good, pulled into net-next.
+>=20
+> Thanks.
 
-/* Allow use of RAW sockets */
-/* Allow use of PACKET sockets */
-/* Allow binding to any address for transparent proxying (also via NET_ADMIN) */
+Thanks, pulled into rdma-next.
 
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-s5xQ/cxTdQdl0AZNhDYb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Func restricted_pointer() from lib/vsprintf.c uses CAP_SYSLOG.  The comment for CAP_SYSLOG:
+-----BEGIN PGP SIGNATURE-----
 
-/* Allow configuring the kernel's syslog (printk behaviour) */
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlr67+gACgkQuCajMw5X
+L90rVA/+KnnWRazDtT4AP0166pVv3LxX30P+3c6Yjgsm2FYykvAcEsI7b14At4qL
+bI2qJiH/RVYQ1d1f/49smjEwIdjBZ0A7AjH2obWhNGUZJqkZwVC+fTFeOz7Hs/EJ
+oCPm3FRZGWWnbzn/NsPUT49eN1QZmw7bmSIZY45UckEelFmI+5KAugSeX4LXFLM0
+6EMU2h/AzSYEwq2S5lgZPwbS1yddHGT+PoLqvXef5KRwn4ELjv0igUlC0ojq52Mu
+Kpgb54QaDoF4b0NL1mzCuHmThVP2bsv7I0IlcTdua1OxSIhuP3NjEh+fY+VhKXl+
+K3eLp1/x4TsxT5lZ7URj9oZpvgeoo6LvyQW0nQeHoMPBI6lf7ezra9oCraMjC4yB
+aN5mxz8c3zoaslu8N1DYE3voZ33mD81XOsI/aR9Nyv/xNc36iAASrBtIsUpMeXeJ
+35HjG5BnWB9I0S1TF/NSOiGcibdNAh7Pm/f5BQRZxFAL8iY8I4u/mlGRkvSA7PVX
+Fs3Py+4xAr5BQeQplv1aAjAeE1q4723iGVEowQBYtA5iXH1Z2nDH3pQfnF5jpadM
+gxmaSlcVqf9PIZmVir/ekIbAW5HB+GdKWz2r1OppIRy/hucGWyUgrpjltHWEsYyI
+hbFtKZwLe+XTbrADniVc6L/6Ww7iPl2WtuMaIsHXhriDvbjWGps=
+=7ktp
+-----END PGP SIGNATURE-----
 
-Func kallsyms_show_value() also uses CAP_SYSLOG.  And there is a non-exported global kptr_restrict that they use apparently to allow overriding all this for profiling.
-
-Here is NET_ADMIN's comments:
-
-/* Allow interface configuration */
-/* Allow administration of IP firewall, masquerading and accounting */
-/* Allow setting debug option on sockets */
-/* Allow modification of routing tables */
-/* Allow setting arbitrary process / process group ownership on
-   sockets */
-/* Allow binding to any address for transparent proxying (also via NET_RAW) */
-/* Allow setting TOS (type of service) */
-/* Allow setting promiscuous mode */
-/* Allow clearing driver statistics */
-/* Allow multicasting */
-/* Allow read/write of device-specific registers */
-/* Allow activation of ATM control sockets */
+--=-s5xQ/cxTdQdl0AZNhDYb--
