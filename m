@@ -1,96 +1,166 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 01/21] drm/i915: Move u64-to-ptr helpers to
- general header
-Date: Tue, 15 May 2018 12:04:00 +0300
-Message-ID: <20180515090400.GU10381@mtr-leonro.mtl.com>
-References: <20180503133715.15276-1-leon@kernel.org>
- <20180503133715.15276-2-leon@kernel.org>
- <20180514201054.GF21531@ziepe.ca>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
+Date: Tue, 15 May 2018 12:19:09 +0300
+Message-ID: <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
+References: <20180511192318.22342-1-qing.huang@oracle.com>
+ <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
+ <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1009381345=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180514201054.GF21531@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Matan Barak <matanb@mellanox.com>, David Airlie <airlied@linux.ie>, Doug Ledford <dledford@redhat.com>, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, intel-gfx@lists.freedesktop.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Qing Huang <qing.huang@oracle.com>, tariqt@mellanox.com, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---===============1009381345==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PEfPc/DjvCj+JzNg"
-Content-Disposition: inline
 
+On 14/05/2018 7:41 PM, Qing Huang wrote:
+> 
+> 
+> On 5/13/2018 2:00 AM, Tariq Toukan wrote:
+>>
+>>
+>> On 11/05/2018 10:23 PM, Qing Huang wrote:
+>>> When a system is under memory presure (high usage with fragments),
+>>> the original 256KB ICM chunk allocations will likely trigger kernel
+>>> memory management to enter slow path doing memory compact/migration
+>>> ops in order to complete high order memory allocations.
+>>>
+>>> When that happens, user processes calling uverb APIs may get stuck
+>>> for more than 120s easily even though there are a lot of free pages
+>>> in smaller chunks available in the system.
+>>>
+>>> Syslog:
+>>> ...
+>>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
+>>> oracle_205573_e:205573 blocked for more than 120 seconds.
+>>> ...
+>>>
+>>> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
+>>>
+>>> However in order to support smaller ICM chunk size, we need to fix
+>>> another issue in large size kcalloc allocations.
+>>>
+>>> E.g.
+>>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
+>>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for each mtt
+>>> entry). So we need a 16MB allocation for a table->icm pointer array to
+>>> hold 2M pointers which can easily cause kcalloc to fail.
+>>>
+>>> The solution is to use vzalloc to replace kcalloc. There is no need
+>>> for contiguous memory pages for a driver meta data structure (no need
+>>> of DMA ops).
+>>>
+>>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
+>>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
+>>> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+>>> ---
+>>> v2 -> v1: adjusted chunk size to reflect different architectures.
+>>>
+>>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
+>>>   1 file changed, 7 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
+>>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>>> index a822f7a..ccb62b8 100644
+>>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
+>>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
+>>> @@ -43,12 +43,12 @@
+>>>   #include "fw.h"
+>>>     /*
+>>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
+>>> - * per chunk.
+>>> + * We allocate in page size (default 4KB on many archs) chunks to 
+>>> avoid high
+>>> + * order memory allocations in fragmented/high usage memory situation.
+>>>    */
+>>>   enum {
+>>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
+>>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
+>>> +    MLX4_ICM_ALLOC_SIZE    = 1 << PAGE_SHIFT,
+>>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << PAGE_SHIFT
+>>
+>> Which is actually PAGE_SIZE.
+> 
+> Yes, we wanted to avoid high order memory allocations.
+> 
 
---PEfPc/DjvCj+JzNg
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Then please use PAGE_SIZE instead.
 
-On Mon, May 14, 2018 at 02:10:54PM -0600, Jason Gunthorpe wrote:
-> On Thu, May 03, 2018 at 04:36:55PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > The macro u64_to_ptr() and function ptr_to_u64() are useful enough
-> > to be part of general header, so move them there and allow RDMA
-> > subsystem reuse them.
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  drivers/gpu/drm/i915/i915_utils.h | 12 ++----------
-> >  include/linux/kernel.h            | 12 ++++++++++++
-> >  2 files changed, 14 insertions(+), 10 deletions(-)
->
-> This patch and the next one to kernel.h will need to be Ack'd be
-> someone.. But I am not sure who.. AndrewM perhaps?
+>> Also, please add a comma at the end of the last entry.
+> 
+> Hmm..., followed the existing code style and checkpatch.pl didn't 
+> complain about the comma.
+> 
 
-Why is that?
+I am in favor of having a comma also after the last element, so that 
+when another enum element is added we do not modify this line again, 
+which would falsely affect git blame.
 
-The kernel.h doesn't have explicit maintainer and is managed by
-community effort.
+I know it didn't exist before your patch, but once we're here, let's do it.
 
-Thanks
+>>
+>>>   };
+>>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
+>>> mlx4_icm_chunk *chunk)
+>>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
+>>> struct mlx4_icm_table *table,
+>>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
+>>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
+>>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
+>>> GFP_KERNEL);
+>>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
+>>
+>> Why not kvzalloc ?
+> 
+> I think table->icm pointer array doesn't really need physically 
+> contiguous memory. Sometimes high order
+> memory allocation by kmalloc variants may trigger slow path and cause 
+> tasks to be blocked.
+> 
 
->
-> Jason
+This is control path so it is less latency-sensitive.
+Let's not produce unnecessary degradation here, please call kvzalloc so 
+we maintain a similar behavior when contiguous memory is available, and 
+a fallback for resiliency.
 
---PEfPc/DjvCj+JzNg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJa+qKAAAoJEORje4g2clinrKMQAIWPr1AcsnSgJjYZQvaVsON5
-svikX7KLOaRQ13JauTDV7k7wfo75U98MPPyGyjOTMmqR/GSZVOkkMLkwev4w/vud
-uCGO5UPk/B2lvW4dfooSodwk+80ItyQFDKH8iLMMjWj0TihVtXqsUN3/YNyCXAHn
-W7QIJhYw3mkni2xdO4MohodZdeg9QpXz4HopW1Hx2XUKoLKh2uael0suEBOGLmJ8
-TOdHaos/s4Bn0aqbbIDvCPBvXiqmdKwmtUeArKKi+xbaCkMfQITE2P3qF0c0ceSW
-bMm6TzAkplV0d8a3ATe7dw8Ny7tdqcqWNLfqL2ocq5pykdUcg4GHdQ1pd4R0SS2H
-mbuWyprmhqkmCf58LU3f5BAZh6ipPJyRHASf3cy7KN25xVu9PrrwtZ9AarmaK6f+
-djjc98iQdiotObmZ36z9WZAQ+Ae1LUZXRza+sPyJywoZK532RXgx/qbuOGOyipo/
-SD9oTkShPuu7OHmiENJoOGOTcAM7IF9RaL53K+gQnMMqPO2/3eZHNIlMG/zlIx4k
-JbENkOkv++nrifNi6DSHqfABMyZg/XET3LnjEIFWijXnMpweG8zICDz5uK/NquM5
-BoTMC5O9tFGXeFkQYmqsO9kuMHXY6RAJZVVWCP1WIiKtrxT2ZyMilp0z7ecMzuc5
-T9nEV4q8ErrnFcf3n55O
-=IVMt
------END PGP SIGNATURE-----
-
---PEfPc/DjvCj+JzNg--
-
---===============1009381345==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1009381345==--
+> Thanks,
+> Qing
+> 
+>>
+>>>       if (!table->icm)
+>>>           return -ENOMEM;
+>>>       table->virt     = virt;
+>>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
+>>> struct mlx4_icm_table *table,
+>>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
+>>>           }
+>>>   -    kfree(table->icm);
+>>> +    vfree(table->icm);
+>>>         return -ENOMEM;
+>>>   }
+>>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev *dev, 
+>>> struct mlx4_icm_table *table)
+>>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
+>>>           }
+>>>   -    kfree(table->icm);
+>>> +    vfree(table->icm);
+>>>   }
+>>>
+>>
+>> Thanks for your patch.
+>>
+>> I need to verify there is no dramatic performance degradation here.
+>> You can prepare and send a v3 in the meanwhile.
+>>
+>> Thanks,
+>> Tariq
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
