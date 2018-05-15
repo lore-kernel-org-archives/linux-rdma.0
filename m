@@ -1,33 +1,86 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH] net/mlx5: Use 'kvfree()' for memory allocated by 'kvzalloc()'
-Date: Mon, 14 May 2018 15:35:41 -0700
-Message-ID: <CALzJLG9_Yqv96DoRLPZ1641FY5s99vR4Z3_Q=NJHiVMadpnO-A@mail.gmail.com>
-References: <20180512170925.23690-1-christophe.jaillet@wanadoo.fr> <20180514.145642.989041199343505570.davem@davemloft.net>
+From: Hal Rosenstock <hal@dev.mellanox.co.il>
+Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
+ check eligibility of the pkeys
+Date: Mon, 14 May 2018 20:38:47 -0400
+Message-ID: <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
+ <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+ <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
+ <F9802EE9-4420-44EE-93DC-27CC799B427E@oracle.com>
+ <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
+ <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
+ <20180514210200.GN21531@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180514.145642.989041199343505570.davem@davemloft.net>
+In-Reply-To: <20180514210200.GN21531@ziepe.ca>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: christophe.jaillet@wanadoo.fr, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 14, 2018 at 11:56 AM, David Miller <davem@davemloft.net> wrote:
-> From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-> Date: Sat, 12 May 2018 19:09:25 +0200
->
->> 'out' is allocated with 'kvzalloc()'. 'kvfree()' must be used to free it.
+On 5/14/2018 5:02 PM, Jason Gunthorpe wrote:
+> On Thu, May 10, 2018 at 05:16:28PM +0200, Håkon Bugge wrote:
+> 
+>> We are talking about two things here. The PKey in the BTH and the
+>> PKey in the CM REQ payload. They differ.
 >>
->> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+>> I am out of office, but if my memory serves me correct, the PKey in
+>> the BTH in the MAD packet will be the default PKey. Further, we have
+>> per IBTA:
+> 
+> This sounds like a Linux bug.
+> 
+> Linux does not do a PR to get a reversible path dedicated to the GMP> so it always uses the data flow path, thus the GMP path paramenters
+> and those in the REQ should always exactly match.
 >
-> Saeed, I assume I will see this in one of your forthcoming pull
-> requests.
+> Where is Linux setting the BTH.PKey and how did it choose to use the
+> default pkey? Lets fix that at least for sure.
+> 
+> Once that is fixed the rest of the series makes no sense since a REQ
+> with invalid PKey will never arrive.
+> 
+> However...
+> 
+> This series seems inconsistent with the spec.
+> 
+> IIRC the spec doesn't say if a full or limited pkey should be placed
+> in the REQ (Hal?). 
+
+CM spec for REQ just says partition key without indicating whether this
+means P_Key or just the partition (15 bits) so my read is that either
+full or limited pkey is allowed in REQ.
+
+> It is designed so that the requestor can get a
+> single reversible path and put that results into the REQ without
+> additional processing, however the PR returns only one PKey and again,
+> it is not really specified if it should be the full or limited pkey
+> (Hal?).
+
+Correct; it's not specified.
+
+> Basically this means that any pkey in the REQ could randomly be the
+> full or limited value, and that in-of-itself has not bearing on the
+> connection.
+> 
+> So it is quite wrong to insist that the pkey be limited or full when
+> processing the REQ. The end port is expected to match against the
+> local table.
+
+Note that there is thorny issue with shared (physical) port
+virtualization. In shared port virtualization, the VF pkey assignment is
+a local matter. Only thing SM knows is the physical port pkeys where
+both full and limited membership of same partition is possible. It is
+conceivable that CM REQ contains limited partition key between 2 limited
+VFs and for that a new REJ reason code appears to be needed.
+
+-- Hal
+
+> The real answer to your trap problem is to fix the SM to not create
+> paths that are non-functional, that is just flat out broken SM
+> behavior.
 >
-> Thanks.
-
-In case this is for net-next,  I will apply v3 to mlx5-next once
-Christophe adds the "Fixes" tags according to Eric's request.
-if it is for net (RC) then you can go ahead and apply v3 to net branch.
-
-Thanks,
-Saeed.
+> Jason
+> 
