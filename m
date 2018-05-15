@@ -1,63 +1,38 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH 6/6] infiniband: qplib_fp: Use dev_fmt
-Date: Tue, 15 May 2018 10:40:42 -0400
-Message-ID: <117ed9198ff46889d3e66a0d501fb574e60544ed.camel@redhat.com>
-References: <cover.1525878372.git.joe@perches.com>
-         <51c5082a4add7520b4fac54e58ca26a8156bf5e8.1525878372.git.joe@perches.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
+ attributes
+Date: Tue, 15 May 2018 08:44:20 -0600
+Message-ID: <20180515144420.GB5615@ziepe.ca>
+References: <cover.1525709213.git.swise@opengridcomputing.com>
+ <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
+ <20180514204125.GM21531@ziepe.ca>
+ <a8493ed9-f16c-eb71-55db-f27bd1331521@opengridcomputing.com>
+ <20180515085411.GT10381@mtr-leonro.mtl.com>
+ <00fe01d3ec4f$44a6f400$cdf4dc00$@opengridcomputing.com>
+ <20180515135335.GA5615@ziepe.ca>
+ <012201d3ec59$69242fa0$3b6c8ee0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-k7eLPhUI2HJkNmQ8vgQd"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51c5082a4add7520b4fac54e58ca26a8156bf5e8.1525878372.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
-Cc: x86@kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <012201d3ec59$69242fa0$3b6c8ee0$@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: 'Leon Romanovsky' <leon@kernel.org>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 15, 2018 at 09:31:27AM -0500, Steve Wise wrote:
+> > cap net admin is not high enough privledge to see unhashed kernel
+> > pointers. CAP_RAW_IO? Or follow what printk does?
+> > 
+> 
+> Do you mean CAP_NET_RAW?  Here's the comments for it:
 
---=-k7eLPhUI2HJkNmQ8vgQd
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Nope..
 
-On Wed, 2018-05-09 at 08:15 -0700, Joe Perches wrote:
-> Convert the embedded dev_<level> uses to use the new dev_fmt
-> prefix and remove the prefix from the formats.
->=20
-> Miscellanea:
->=20
-> o Add missing terminating newlines to avoid possible interleaving
-> o Realign arguments
->=20
-> Signed-off-by: Joe Perches <joe@perches.com>
+> Func restricted_pointer() from lib/vsprintf.c uses CAP_SYSLOG.  The comment for CAP_SYSLOG:
 
-I don't see any problem with this patch.  For the IB part:
+Yikes, yes, that is probably the required logic here, including the
+kptr_restrict = 0 thing
 
-Acked-by: Doug Ledford <dledford@redhat.com>
-
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-k7eLPhUI2HJkNmQ8vgQd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlr68WoACgkQuCajMw5X
-L92/0Q//bGW3mh1Eok5Q5JHlmfBjRO1hf3NIFGMtEsjJFqOwptqWg+nFdkwwg3TQ
-V4laIumHEhmgVKBzxtiX2nIitNrY79NO8Au99TAetJuzEtRPENdOY4QrIbdYBo8O
-kj3pKpafBum08uwmZMj13hvAaiEJZl5pRqYQ3xhoCybxW5l5gQkdJYGaKvMnefws
-3yxjGIq1KzFw0z0nwZZR2a8UKPz7wEKG0y/yN5K3oK1K2BX8+qxHblulbr+8ezdr
-lJFJV53B23aepGBOb5pBShpnjcABOqcATJmS9Yd1WtJ9064FcNrjMq/PUFPGqxuP
-GchlXvAKsrCovGxZcdGrHxmxmFJ1Q8e8nKc/fM8E1J1JYg1DhlDds6gWoRnA5ah3
-eIMX26giAzWDZykeVfHT/0NrJ3kRm9ydULHGG6Xw3NbgwgRTxERbeU25xfE7wVBn
-X2kuYe9wsScY2BgGfQ1m1bKG8nTnByrERvL864G/Lo3pbgfbtuKL9CPoQCJGFl2V
-+665A9H0L1+Wy2dZPCppeWXJvYNckn8Z6UxsON4dDVDNeKDDn9D44b8RvLEo60y3
-BzbBbSAjZSfZPNkV8Pa6akVpppdJY6U6lWmf9RS52bEpWgMmjvAQZSs6vfy/kdja
-ESmW0d4yTC3wrV91X8a+1ecoYjaZ2pgiDtiEQG6EAEjTaK4i4gM=
-=tYVD
------END PGP SIGNATURE-----
-
---=-k7eLPhUI2HJkNmQ8vgQd--
+Jason
