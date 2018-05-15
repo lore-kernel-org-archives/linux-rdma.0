@@ -1,106 +1,111 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v1 iproute2-next 2/3] rdma: print driver resource
- attributes
-Date: Tue, 15 May 2018 14:00:52 -0400
-Message-ID: <c74b3331aca2a8a0504fef7b82d3a584a614649f.camel@redhat.com>
-References: <cover.1525709213.git.swise@opengridcomputing.com>
-         <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com>
-         <20180513132447.GF10381@mtr-leonro.mtl.com>
-         <c57b8f18-858c-62df-50c6-453933a67913@opengridcomputing.com>
-         <13da78012c55e8f224c2226f3c0cfc53bd0522be.camel@redhat.com>
-         <20180515165955.GD10381@mtr-leonro.mtl.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-kMxoPhaVr3kauAmaopDX"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180515165955.GD10381@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Steve Wise <swise@opengridcomputing.com>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
+ check eligibility of the pkeys
+Date: Tue, 15 May 2018 20:11:09 +0200
+Message-ID: <E41BCEAA-0204-448D-8188-ACA03932B3AC@oracle.com>
+References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
+ <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+ <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
+ <F9802EE9-4420-44EE-93DC-27CC799B427E@oracle.com>
+ <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
+ <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
+ <20180514210200.GN21531@ziepe.ca>
+ <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hal Rosenstock <hal@dev.mellanox.co.il>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-kMxoPhaVr3kauAmaopDX
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, 2018-05-15 at 19:59 +0300, Leon Romanovsky wrote:
-> On Tue, May 15, 2018 at 12:35:34PM -0400, Doug Ledford wrote:
-> > On Mon, 2018-05-14 at 09:51 -0500, Steve Wise wrote:
-> > >=20
-> > > On 5/13/2018 8:24 AM, Leon Romanovsky wrote:
-> > > > On Mon, May 07, 2018 at 08:53:16AM -0700, Steve Wise wrote:
-> > > > > This enhancement allows printing rdma device-specific state, if p=
-rovided
-> > > > > by the kernel.  This is done in a generic manner, so rdma tool do=
-esn't
-> > > >=20
-> > > > Double space between "." and "This".
-> > > >=20
-> > > > > need to know about the details of every type of rdma device.
-> > > > >=20
-> > > > > Driver attributes for a rdma resource are in the form of <key,
-> > > > > [print_type], value> tuples, where the key is a string and the va=
-lue can
-> > > > > be any supported driver attribute.  The print_type attribute, if =
-present,
-> > > >=20
-> > > > ditto
-> > >=20
-> > > I'll fix these.
-> >=20
-> > Fix it if you want, but don't do it because Leon told you to.  A double
-> > space after period is perfectly acceptable.
+> On 15 May 2018, at 02:38, Hal Rosenstock <hal@dev.mellanox.co.il> =
+wrote:
 >=20
-> It is very controversial thing [1],
+> On 5/14/2018 5:02 PM, Jason Gunthorpe wrote:
+>> On Thu, May 10, 2018 at 05:16:28PM +0200, H=C3=A5kon Bugge wrote:
+>>=20
+>>> We are talking about two things here. The PKey in the BTH and the
+>>> PKey in the CM REQ payload. They differ.
+>>>=20
+>>> I am out of office, but if my memory serves me correct, the PKey in
+>>> the BTH in the MAD packet will be the default PKey. Further, we have
+>>> per IBTA:
+>>=20
+>> This sounds like a Linux bug.
+>>=20
+>> Linux does not do a PR to get a reversible path dedicated to the GMP> =
+so it always uses the data flow path, thus the GMP path paramenters
+>> and those in the REQ should always exactly match.
+>>=20
+>> Where is Linux setting the BTH.PKey and how did it choose to use the
+>> default pkey? Lets fix that at least for sure.
+
+Linux isn=E2=80=99t. The BTH.PKey is inserted by the HCA (hw or fw) =
+coming from the P_Key table (10.9.2 in IBTA), selected by a pkey_index =
+associated with the QP.
+
+As per C10-133: Packets sent from the Send Queue of a GSI QP shall =
+attach a P_Key associated with that QP, just as a P_Key is associated =
+with nonmanagement QPs
+
+>> Once that is fixed the rest of the series makes no sense since a REQ
+>> with invalid PKey will never arrive.
+>>=20
+>> However...
+>>=20
+>> This series seems inconsistent with the spec.
+>>=20
+>> IIRC the spec doesn't say if a full or limited pkey should be placed
+>> in the REQ (Hal?).=20
 >=20
-> "Most style guides indicate that single sentence spacing is proper for
-> final or published work today, and most publishers require manuscripts
-> to be submitted as they will appear in publication=E2=80=94single
-> sentence spaced."
+> CM spec for REQ just says partition key without indicating whether =
+this
+> means P_Key or just the partition (15 bits) so my read is that either
+> full or limited pkey is allowed in REQ.
 >=20
-> [1] https://en.wikipedia.org/wiki/Sentence_spacing
+>> It is designed so that the requestor can get a
+>> single reversible path and put that results into the REQ without
+>> additional processing, however the PR returns only one PKey and =
+again,
+>> it is not really specified if it should be the full or limited pkey
+>> (Hal?).
+>=20
+> Correct; it's not specified.
+>=20
+>> Basically this means that any pkey in the REQ could randomly be the
+>> full or limited value, and that in-of-itself has not bearing on the
+>> connection.
+>>=20
+>> So it is quite wrong to insist that the pkey be limited or full when
+>> processing the REQ. The end port is expected to match against the
+>> local table.
+>=20
+> Note that there is thorny issue with shared (physical) port
+> virtualization. In shared port virtualization, the VF pkey assignment =
+is
+> a local matter. Only thing SM knows is the physical port pkeys where
+> both full and limited membership of same partition is possible. It is
+> conceivable that CM REQ contains limited partition key between 2 =
+limited
+> VFs and for that a new REJ reason code appears to be needed.
 
-Yes...and the justification is that proportional font systems resolve
-the issue of delineating sentences without the need for a second space
-(they actually don't because they are improperly implemented, but that's
-another issue).  But we don't work on proportional font systems, we work
-with git, on command lines, with fixed spacing fonts, all the things
-that indicate double spaces are actually preferred even by those people
-that are proponents of single spacing.  And on top of that, current
-research suggests maybe the single spacers are wrong after all :-o
++1
 
-https://www.theatlantic.com/science/archive/2018/05/two-spaces-after-a-p
-eriod/559304/
 
-Anyway, my original point stands.  It's controversial, as you said, so
-Steve should do what Steve feels is best and not worry about anyone
-else' opinion on the matter.
+H=C3=A5kon
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-kMxoPhaVr3kauAmaopDX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlr7IFQACgkQuCajMw5X
-L93hPw//VmGF6IUM9sIDhO/zCTy5Yb3rHlRDOBevYdc2JLOn1+qIkO64p0T7FjSK
-b89ppAcy2W8sq3YriGT34BUbZMU4othRvmJp+kjaY+I0eb/YYzrfmwYmelsEDvkG
-ESeY7WF8MTURfV0lQEIACBfwrY92PjesZMd6g1PATTG/fKuKRGHv02sJlpJkBgbm
-QxftdqgNg0ukuEpeVGtWFhuvZOc0P+OwKnQm8Fp87MaHensjzq/sgmr6aXSqT+3v
-m2IqgQkEfNjzpSV+t2jgLrdvacYwxZOamFm7AdgWPOoBVyt5s3TAzoLk+7+/IG7f
-GmfXfrC352u8eLRV5cLOfCRR/taNwACaeYOsaTBO9ECImseg4EuF6DF73GGkbNMl
-JXGp8Oaliiv+QfzfqZt0+0ePN9Owckv5rmgbiOxhJw9pJyMUUmYurGsmSPuBHMn8
-reJ5Vj67auzPXajyw4WURSfpWVREcEBAeGf14HVacgV4egSWTgX01LKrJ3hAvrRV
-JJeR4lQOYqbpxMpBVVYpVgk18VgrAZfI1lAIPf29ZQi9AG11/cYWKxTq7ajotj7b
-8L0YU38UoTyQN+5jsdyx7sQEAeElbTwIh/QlzoS4IwKeJWF2i/nhfI0aImVCqT66
-vR62QHs429rkyaoFT9GQ9vY235SFM3T7EKXlPE+YFjDYNKgBFsU=
-=GWSK
------END PGP SIGNATURE-----
-
---=-kMxoPhaVr3kauAmaopDX--
+>=20
+> -- Hal
+>=20
+>> The real answer to your trap problem is to fix the SM to not create
+>> paths that are non-functional, that is just flat out broken SM
+>> behavior.
+>>=20
+>> Jason
+>>=20
