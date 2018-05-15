@@ -1,33 +1,38 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: Re: [PATCH 6/6] infiniband: qplib_fp: Use dev_fmt
-Date: Tue, 15 May 2018 20:31:15 +0530
-Message-ID: <CA+sbYW19fDrSnRiGt8JEhC6OUpziYJtXT3wUe6qENbTXnDVo+Q@mail.gmail.com>
-References: <cover.1525878372.git.joe@perches.com> <51c5082a4add7520b4fac54e58ca26a8156bf5e8.1525878372.git.joe@perches.com>
- <117ed9198ff46889d3e66a0d501fb574e60544ed.camel@redhat.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH v1 iproute2-next 2/3] rdma: print driver resource attributes
+Date: Tue, 15 May 2018 10:02:08 -0500
+Message-ID: <015b01d3ec5d$b1db4f90$1591eeb0$@opengridcomputing.com>
+References: <cover.1525709213.git.swise@opengridcomputing.com> <1a0d146dffb17449aa6d8a6b6d06e865e69226de.1525709213.git.swise@opengridcomputing.com> <20180514204125.GM21531@ziepe.ca> <a8493ed9-f16c-eb71-55db-f27bd1331521@opengridcomputing.com> <20180515085411.GT10381@mtr-leonro.mtl.com> <00fe01d3ec4f$44a6f400$cdf4dc00$@opengridcomputing.com> <20180515135335.GA5615@ziepe.ca> <012201d3ec59$69242fa0$3b6c8ee0$@opengridcomputing.com> <20180515144420.GB5615@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <117ed9198ff46889d3e66a0d501fb574e60544ed.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Joe Perches <joe@perches.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, x86@kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180515144420.GB5615@ziepe.ca>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Jason Gunthorpe' <jgg@ziepe.ca>
+Cc: 'Leon Romanovsky' <leon@kernel.org>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 15, 2018 at 8:10 PM, Doug Ledford <dledford@redhat.com> wrote:
-> On Wed, 2018-05-09 at 08:15 -0700, Joe Perches wrote:
->> Convert the embedded dev_<level> uses to use the new dev_fmt
->> prefix and remove the prefix from the formats.
->>
->> Miscellanea:
->>
->> o Add missing terminating newlines to avoid possible interleaving
->> o Realign arguments
->>
->> Signed-off-by: Joe Perches <joe@perches.com>
->
-> I don't see any problem with this patch.  For the IB part:
->
-> Acked-by: Doug Ledford <dledford@redhat.com>
->
->
-Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> On Tue, May 15, 2018 at 09:31:27AM -0500, Steve Wise wrote:
+> > > cap net admin is not high enough privledge to see unhashed kernel
+> > > pointers. CAP_RAW_IO? Or follow what printk does?
+> > >
+> >
+> > Do you mean CAP_NET_RAW?  Here's the comments for it:
+> 
+> Nope..
+> 
+> > Func restricted_pointer() from lib/vsprintf.c uses CAP_SYSLOG.  The
+> comment for CAP_SYSLOG:
+> 
+> Yikes, yes, that is probably the required logic here, including the
+> kptr_restrict = 0 thing
+> 
+
+Let's defer the ktpr_restrict issue for now; I want to finish the initial
+work this cycle, and adding that will likely take too much time.   I'll use
+CAP_SYSLOG and add a FIXME comment.  Ok? 
+
+Steve.
