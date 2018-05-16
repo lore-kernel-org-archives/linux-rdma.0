@@ -1,45 +1,59 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] IB/umem: ib_ucontext already have tgid, remove pid
- from ib_umem structure
-Date: Tue, 15 May 2018 17:14:45 -0600
-Message-ID: <20180515231445.GA15921@ziepe.ca>
-References: <1525769416-14596-1-git-send-email-lidongchen@tencent.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH v2] {net, IB}/mlx5: Use 'kvfree()' for memory allocated by 'kvzalloc()'
+Date: Tue, 15 May 2018 17:12:36 -0700
+Message-ID: <CALzJLG-Fzev4U3dUKSVb2pm=rknSGVoMW4mbbjTugdP+e13XKQ@mail.gmail.com>
+References: <20180513070041.24246-1-christophe.jaillet@wanadoo.fr> <20180515222125.GA20160@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1525769416-14596-1-git-send-email-lidongchen@tencent.com>
+In-Reply-To: <20180515222125.GA20160@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lidong Chen <jemmy858585@gmail.com>
-Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, leon@kernel.org, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, galsha@mellanox.com, aviadye@mellanox.com, Lidong Chen <lidongchen@tencent.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>, Saeed Mahameed <saeedm@mellanox.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, "David S. Miller" <davem@davemloft.net>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 08, 2018 at 04:50:16PM +0800, Lidong Chen wrote:
-> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
-> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
-> exited, get_pid_task will return NULL, ib_umem_release does not decrease
-> mm->pinned_vm. This patch fixes it by use tgid in ib_ucontext struct.
-> 
-> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
-> ---
->  [v2]
->  - use ib_ucontext tgid instread of tgid in ib_umem structure
->  
->  drivers/infiniband/core/umem.c | 7 +------
->  include/rdma/ib_umem.h         | 1 -
->  2 files changed, 1 insertion(+), 7 deletions(-)
+On Tue, May 15, 2018 at 3:21 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Sun, May 13, 2018 at 09:00:41AM +0200, Christophe JAILLET wrote:
+>> When 'kvzalloc()' is used to allocate memory, 'kvfree()' must be used to
+>> free it.
+>>
+>> Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+>> ---
+>> v1 -> v2: More places to update have been added to the patch
+>> ---
+>>  drivers/infiniband/hw/mlx5/cq.c                            | 2 +-
+>>  drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 2 +-
+>>  drivers/net/ethernet/mellanox/mlx5/core/vport.c            | 6 +++---
+>>  3 files changed, 5 insertions(+), 5 deletions(-)
+>
+> I agree with Eric on the need for fixes lines in v3..
+>
+>> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+>> index 77d257ec899b..6d52ea03574e 100644
+>> --- a/drivers/infiniband/hw/mlx5/cq.c
+>> +++ b/drivers/infiniband/hw/mlx5/cq.c
+>> @@ -849,7 +849,7 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+>>       return 0;
+>>
+>>  err_cqb:
+>> -     kfree(*cqb);
+>> +     kvfree(*cqb);
+>
+> For the infiniband part:
+>
+> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+>
+> Since this is mostly ethernet, can it go through netdev? thanks
+>
 
-Applied to for-rc, thanks.
+for the mlx5 core parts:
 
-It would be nice to send a cleanup to have all the users of tgid doing
-this pattern
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
 
-	task = get_pid_task(umem->context->tgid, PIDTYPE_PID);
-  	if (!task)
-  		goto out;
-  	mm = get_task_mm(task);
+Yes i will take v3 to mlx5-next branch.
 
-To call some kind of common function like ib_get_mr_mm(), just to make
-it really clear what is happening. 
-
-Jason
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
