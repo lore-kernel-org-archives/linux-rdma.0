@@ -1,217 +1,48 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH V2] mlx4_core: allocate ICM memory in page size chunks
-Date: Wed, 16 May 2018 10:04:37 +0300
-Message-ID: <465cf5c6-46be-2701-1c26-3e90f31f05e4@mellanox.com>
-References: <20180511192318.22342-1-qing.huang@oracle.com>
- <2797ac27-022c-0818-388c-e4a6131ad1ca@gmail.com>
- <ff9c44ca-eaae-cb3e-4c69-e9e3cbb72ca1@oracle.com>
- <1ded7d49-0ba2-3594-f840-74d7cf37a0eb@mellanox.com>
- <f4c5d8d3-1eea-8566-9921-a9dc48435f66@oracle.com>
+From: 858585 jemmy <jemmy858585@gmail.com>
+Subject: Re: [PATCH v2] IB/umem: ib_ucontext already have tgid, remove pid
+ from ib_umem structure
+Date: Wed, 16 May 2018 15:32:48 +0800
+Message-ID: <CAOGPPbf-gQLd93mZ6pLCw4-QgcBqQOhDf33zj+3Rb2SEfk=VNw@mail.gmail.com>
+References: <1525769416-14596-1-git-send-email-lidongchen@tencent.com> <20180515231445.GA15921@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <f4c5d8d3-1eea-8566-9921-a9dc48435f66@oracle.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>, Tariq Toukan <tariqt@mellanox.com>, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180515231445.GA15921@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, Leon Romanovsky <leon@kernel.org>, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, adido@mellanox.com, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, May 16, 2018 at 7:14 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Tue, May 08, 2018 at 04:50:16PM +0800, Lidong Chen wrote:
+>> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+>> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+>> exited, get_pid_task will return NULL, ib_umem_release does not decrease
+>> mm->pinned_vm. This patch fixes it by use tgid in ib_ucontext struct.
+>>
+>> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+>> ---
+>>  [v2]
+>>  - use ib_ucontext tgid instread of tgid in ib_umem structure
+>>
+>>  drivers/infiniband/core/umem.c | 7 +------
+>>  include/rdma/ib_umem.h         | 1 -
+>>  2 files changed, 1 insertion(+), 7 deletions(-)
+>
+> Applied to for-rc, thanks.
+>
+> It would be nice to send a cleanup to have all the users of tgid doing
+> this pattern
+>
+>         task = get_pid_task(umem->context->tgid, PIDTYPE_PID);
+>         if (!task)
+>                 goto out;
+>         mm = get_task_mm(task);
+>
+> To call some kind of common function like ib_get_mr_mm(), just to make
+> it really clear what is happening.
 
+OK, I will submit a patch for this.
 
-On 15/05/2018 9:53 PM, Qing Huang wrote:
-> 
-> 
-> On 5/15/2018 2:19 AM, Tariq Toukan wrote:
->>
->>
->> On 14/05/2018 7:41 PM, Qing Huang wrote:
->>>
->>>
->>> On 5/13/2018 2:00 AM, Tariq Toukan wrote:
->>>>
->>>>
->>>> On 11/05/2018 10:23 PM, Qing Huang wrote:
->>>>> When a system is under memory presure (high usage with fragments),
->>>>> the original 256KB ICM chunk allocations will likely trigger kernel
->>>>> memory management to enter slow path doing memory compact/migration
->>>>> ops in order to complete high order memory allocations.
->>>>>
->>>>> When that happens, user processes calling uverb APIs may get stuck
->>>>> for more than 120s easily even though there are a lot of free pages
->>>>> in smaller chunks available in the system.
->>>>>
->>>>> Syslog:
->>>>> ...
->>>>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->>>>> oracle_205573_e:205573 blocked for more than 120 seconds.
->>>>> ...
->>>>>
->>>>> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
->>>>>
->>>>> However in order to support smaller ICM chunk size, we need to fix
->>>>> another issue in large size kcalloc allocations.
->>>>>
->>>>> E.g.
->>>>> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
->>>>> size, each ICM chunk can only hold 512 mtt entries (8 bytes for 
->>>>> each mtt
->>>>> entry). So we need a 16MB allocation for a table->icm pointer array to
->>>>> hold 2M pointers which can easily cause kcalloc to fail.
->>>>>
->>>>> The solution is to use vzalloc to replace kcalloc. There is no need
->>>>> for contiguous memory pages for a driver meta data structure (no need
->>>>> of DMA ops).
->>>>>
->>>>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>>>> Acked-by: Daniel Jurgens <danielj@mellanox.com>
->>>>> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
->>>>> ---
->>>>> v2 -> v1: adjusted chunk size to reflect different architectures.
->>>>>
->>>>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 14 +++++++-------
->>>>>   1 file changed, 7 insertions(+), 7 deletions(-)
->>>>>
->>>>> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c 
->>>>> b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>>> index a822f7a..ccb62b8 100644
->>>>> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>>> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
->>>>> @@ -43,12 +43,12 @@
->>>>>   #include "fw.h"
->>>>>     /*
->>>>> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
->>>>> - * per chunk.
->>>>> + * We allocate in page size (default 4KB on many archs) chunks to 
->>>>> avoid high
->>>>> + * order memory allocations in fragmented/high usage memory 
->>>>> situation.
->>>>>    */
->>>>>   enum {
->>>>> -    MLX4_ICM_ALLOC_SIZE    = 1 << 18,
->>>>> -    MLX4_TABLE_CHUNK_SIZE    = 1 << 18
->>>>> +    MLX4_ICM_ALLOC_SIZE    = 1 << PAGE_SHIFT,
->>>>> +    MLX4_TABLE_CHUNK_SIZE    = 1 << PAGE_SHIFT
->>>>
->>>> Which is actually PAGE_SIZE.
->>>
->>> Yes, we wanted to avoid high order memory allocations.
->>>
->>
->> Then please use PAGE_SIZE instead.
-> 
-> PAGE_SIZE is usually defined as 1 << PAGE_SHIFT. So I think PAGE_SHIFT 
-> is actually more appropriate here.
-> 
-
-Definition of PAGE_SIZE varies among different archs.
-It is not always as simple as 1 << PAGE_SHIFT.
-It might be:
-PAGE_SIZE (1UL << PAGE_SHIFT)
-PAGE_SIZE (_AC(1, UL) << PAGE_SHIFT)
-etc...
-
-Please replace 1 << PAGE_SHIFT with PAGE_SIZE.
-
-> 
->>
->>>> Also, please add a comma at the end of the last entry.
->>>
->>> Hmm..., followed the existing code style and checkpatch.pl didn't 
->>> complain about the comma.
->>>
->>
->> I am in favor of having a comma also after the last element, so that 
->> when another enum element is added we do not modify this line again, 
->> which would falsely affect git blame.
->>
->> I know it didn't exist before your patch, but once we're here, let's 
->> do it.
-> 
-> I'm okay either way. If adding an extra comma is preferred by many 
-> people, someone should update checkpatch.pl to enforce it. :)
-> 
-I agree.
-Until then, please use an extra comma in this patch.
-
->>
->>>>
->>>>>   };
->>>>>     static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct 
->>>>> mlx4_icm_chunk *chunk)
->>>>> @@ -400,7 +400,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>>> struct mlx4_icm_table *table,
->>>>>       obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
->>>>>       num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
->>>>>   -    table->icm      = kcalloc(num_icm, sizeof(*table->icm), 
->>>>> GFP_KERNEL);
->>>>> +    table->icm      = vzalloc(num_icm * sizeof(*table->icm));
->>>>
->>>> Why not kvzalloc ?
->>>
->>> I think table->icm pointer array doesn't really need physically 
->>> contiguous memory. Sometimes high order
->>> memory allocation by kmalloc variants may trigger slow path and cause 
->>> tasks to be blocked.
->>>
->>
->> This is control path so it is less latency-sensitive.
->> Let's not produce unnecessary degradation here, please call kvzalloc 
->> so we maintain a similar behavior when contiguous memory is available, 
->> and a fallback for resiliency.
-> 
-> No sure what exactly degradation is caused by vzalloc here. I think it's 
-> better to keep physically contiguous pages
-> to other requests which really need them. Besides slow path/mem 
-> compacting can be really expensive.
-> 
-
-Degradation is expected when you replace a contig memory with non-contig 
-memory, without any perf test.
-We agree that when contig memory is not available, we should use 
-non-contig instead of simply failing, and for this you can call kvzalloc.
-
->>
->>> Thanks,
->>> Qing
->>>
->>>>
->>>>>       if (!table->icm)
->>>>>           return -ENOMEM;
->>>>>       table->virt     = virt;
->>>>> @@ -446,7 +446,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, 
->>>>> struct mlx4_icm_table *table,
->>>>>               mlx4_free_icm(dev, table->icm[i], use_coherent);
->>>>>           }
->>>>>   -    kfree(table->icm);
->>>>> +    vfree(table->icm);
->>>>>         return -ENOMEM;
->>>>>   }
->>>>> @@ -462,5 +462,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev 
->>>>> *dev, struct mlx4_icm_table *table)
->>>>>               mlx4_free_icm(dev, table->icm[i], table->coherent);
->>>>>           }
->>>>>   -    kfree(table->icm);
->>>>> +    vfree(table->icm);
->>>>>   }
->>>>>
->>>>
->>>> Thanks for your patch.
->>>>
->>>> I need to verify there is no dramatic performance degradation here.
->>>> You can prepare and send a v3 in the meanwhile.
->>>>
->>>> Thanks,
->>>> Tariq
->>>> -- 
->>>> To unsubscribe from this list: send the line "unsubscribe 
->>>> linux-rdma" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
-> 
+>
+> Jason
