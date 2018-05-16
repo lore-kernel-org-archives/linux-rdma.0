@@ -1,122 +1,188 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug check_sync
- warning
-Date: Tue, 15 May 2018 18:31:39 -0700
-Message-ID: <20180516013137.12474.10259.stgit@scvm10.sc.intel.com>
-References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Don Dutile <ddutile@redhat.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
+ check eligibility of the pkeys
+Date: Wed, 16 May 2018 08:47:21 +0200
+Message-ID: <3E15B62F-E705-43BD-8A72-9E74F784D40E@oracle.com>
+References: <20180509093020.24503-1-Haakon.Bugge@oracle.com>
+ <20180509093020.24503-3-Haakon.Bugge@oracle.com>
+ <ab1f16cd-aa60-0c43-841c-aed301fd2a7e@dev.mellanox.co.il>
+ <F9802EE9-4420-44EE-93DC-27CC799B427E@oracle.com>
+ <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
+ <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
+ <20180514210200.GN21531@ziepe.ca>
+ <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+ <E41BCEAA-0204-448D-8188-ACA03932B3AC@oracle.com>
+ <20180515190424.GL5615@ziepe.ca>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180515190424.GL5615@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Hal Rosenstock <hal@dev.mellanox.co.il>, Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
 
-The following error message occurs on a target host in a debug build
-during session login:
 
-[ 3524.411874] WARNING: CPU: 5 PID: 12063 at lib/dma-debug.c:1207 check_sync+0x4ec/0x5b0
-[ 3524.421057] infiniband hfi1_0: DMA-API: device driver tries to sync DMA memory it has not allocated [device address=0x0000000000000000] [size=76 bytes]
-......snip .....
+> On 15 May 2018, at 21:04, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>=20
+> On Tue, May 15, 2018 at 08:11:09PM +0200, H=C3=A5kon Bugge wrote:
+>>> On 15 May 2018, at 02:38, Hal Rosenstock <hal@dev.mellanox.co.il> =
+wrote:
+>>>=20
+>>> On 5/14/2018 5:02 PM, Jason Gunthorpe wrote:
+>>>> On Thu, May 10, 2018 at 05:16:28PM +0200, H=C3=A5kon Bugge wrote:
+>>>>=20
+>>>>> We are talking about two things here. The PKey in the BTH and the
+>>>>> PKey in the CM REQ payload. They differ.
+>>>>>=20
+>>>>> I am out of office, but if my memory serves me correct, the PKey =
+in
+>>>>> the BTH in the MAD packet will be the default PKey. Further, we =
+have
+>>>>> per IBTA:
+>>>>=20
+>>>> This sounds like a Linux bug.
+>>>>=20
+>>>> Linux does not do a PR to get a reversible path dedicated to the =
+GMP> so it always uses the data flow path, thus the GMP path paramenters
+>>>> and those in the REQ should always exactly match.
+>>>>=20
+>>>> Where is Linux setting the BTH.PKey and how did it choose to use =
+the
+>>>> default pkey? Lets fix that at least for sure.
+>>=20
+>> Linux isn=E2=80=99t. The BTH.PKey is inserted by the HCA (hw or fw) =
+coming from the P_Key table (10.9.2 in IBTA), selected by a pkey_index =
+associated with the QP.
+>>=20
+>> As per C10-133: Packets sent from the Send Queue of a GSI QP shall
+>> attach a P_Key associated with that QP, just as a P_Key is
+>> associated with nonmanagement QPs
+>=20
+> That language doesn't mean the PKey is forced to the default, it says
+> the pkey is programmable.
+>=20
+> Linux implemented programmable PKeys for the GSI by using the work
+> request, so it deviates from what the spec imagined (which was
+> probably one GSI QP per PKey).
+>=20
+> See ib_create_send_mad for instance:
+>=20
+>        mad_send_wr->send_wr.wr.wr_cqe =3D &mad_send_wr->mad_list.cqe;
+>        mad_send_wr->send_wr.wr.sg_list =3D mad_send_wr->sg_list;
+>        mad_send_wr->send_wr.wr.num_sge =3D 2;
+>        mad_send_wr->send_wr.wr.opcode =3D IB_WR_SEND;
+>        mad_send_wr->send_wr.wr.send_flags =3D IB_SEND_SIGNALED;
+>        mad_send_wr->send_wr.remote_qpn =3D remote_qpn;
+>        mad_send_wr->send_wr.remote_qkey =3D IB_QP_SET_QKEY;
+>        mad_send_wr->send_wr.pkey_index =3D pkey_index;
+>=20
+> The pkey_index associated with the QP1 is ignored:
+>=20
+>                /*
+>                 * PKey index for QP1 is irrelevant but
+>                 * one is needed for the Reset to Init transition
+>                 */
+>                attr->qp_state =3D IB_QPS_INIT;
+>                attr->pkey_index =3D pkey_index;
+>                attr->qkey =3D (qp->qp_num =3D=3D 0) ? 0 : IB_QP1_QKEY;
+>                ret =3D ib_modify_qp(qp, attr, IB_QP_STATE |
+>                                             IB_QP_PKEY_INDEX | =
+IB_QP_QKEY);
+>=20
+> Since is is present in every WR.
+>=20
+>>>> Basically this means that any pkey in the REQ could randomly be the
+>>>> full or limited value, and that in-of-itself has not bearing on the
+>>>> connection.
+>>>>=20
+>>>> So it is quite wrong to insist that the pkey be limited or full =
+when
+>>>> processing the REQ. The end port is expected to match against the
+>>>> local table.
+>>>=20
+>>> Note that there is thorny issue with shared (physical) port
+>>> virtualization. In shared port virtualization, the VF pkey =
+assignment is
+>>> a local matter. Only thing SM knows is the physical port pkeys where
+>>> both full and limited membership of same partition is possible. It =
+is
+>>> conceivable that CM REQ contains limited partition key between 2 =
+limited
+>>> VFs and for that a new REJ reason code appears to be needed.
+>>=20
+>> +1
+>=20
+> This is not a difficult issue.
+>=20
+> If the GMP is properly tagged with the right PKey then it will never
+> be delivered to the VM if the VM does not have the PKey in the
+> table.
 
-[ 3524.535846] CPU: 5 PID: 12063 Comm: iscsi_np Kdump: loaded Not tainted 3.10.0-862.el7.x86_64.debug #1
-[ 3524.546764] Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.2.6 06/08/2015
-[ 3524.555740] Call Trace:
-[ 3524.559102]  [<ffffffffa5fe915b>] dump_stack+0x19/0x1b
-[ 3524.565477]  [<ffffffffa58a2f58>] __warn+0xd8/0x100
-[ 3524.571557]  [<ffffffffa58a2fdf>] warn_slowpath_fmt+0x5f/0x80
-[ 3524.578610]  [<ffffffffa5bf5b8c>] check_sync+0x4ec/0x5b0
-[ 3524.585177]  [<ffffffffa58efc3f>] ? set_cpus_allowed_ptr+0x5f/0x1c0
-[ 3524.592812]  [<ffffffffa5bf5cd0>] debug_dma_sync_single_for_cpu+0x80/0x90
-[ 3524.601029]  [<ffffffffa586add3>] ? x2apic_send_IPI_mask+0x13/0x20
-[ 3524.608574]  [<ffffffffa585ee1b>] ? native_smp_send_reschedule+0x5b/0x80
-[ 3524.616699]  [<ffffffffa58e9b76>] ? resched_curr+0xf6/0x140
-[ 3524.623567]  [<ffffffffc0879af0>] isert_create_send_desc.isra.26+0xe0/0x110 [ib_isert]
-[ 3524.633060]  [<ffffffffc087af95>] isert_put_login_tx+0x55/0x8b0 [ib_isert]
-[ 3524.641383]  [<ffffffffa58ef114>] ? try_to_wake_up+0x1a4/0x430
-[ 3524.648561]  [<ffffffffc098cfed>] iscsi_target_do_tx_login_io+0xdd/0x230 [iscsi_target_mod]
-[ 3524.658557]  [<ffffffffc098d827>] iscsi_target_do_login+0x1a7/0x600 [iscsi_target_mod]
-[ 3524.668084]  [<ffffffffa59f9bc9>] ? kstrdup+0x49/0x60
-[ 3524.674420]  [<ffffffffc098e976>] iscsi_target_start_negotiation+0x56/0xc0 [iscsi_target_mod]
-[ 3524.684656]  [<ffffffffc098c2ee>] __iscsi_target_login_thread+0x90e/0x1070 [iscsi_target_mod]
-[ 3524.694901]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
-[ 3524.705446]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
-[ 3524.715976]  [<ffffffffc098ca78>] iscsi_target_login_thread+0x28/0x60 [iscsi_target_mod]
-[ 3524.725739]  [<ffffffffa58d60ff>] kthread+0xef/0x100
-[ 3524.732007]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
-[ 3524.739540]  [<ffffffffa5fff1b7>] ret_from_fork_nospec_begin+0x21/0x21
-[ 3524.747558]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
-[ 3524.755088] ---[ end trace 23f8bf9238bd1ed8 ]---
-[ 3595.510822] iSCSI/iqn.1994-05.com.redhat:537fa56299: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
+Not quite right. For the shared port model, a GMP will (most probably) =
+be accepted by the physical port, due to:
 
-The code calls dma_sync on login_tx_desc->dma_addr prior to initializing it
-with dma-mapped address.
-login_tx_desc is a part of iser_conn structure and is used only once
-during login negotiation, so the issue is fixed by eliminating
-dma_sync call for this buffer using a special case routine.
+IBTA 3.9.5: QP1 is a member of all of the port=E2=80=99s partitions =
+(i.e., can accept any packet specifying a P_Key contained in the =
+port=E2=80=99s P_Key table).
 
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Don Dutile <ddutile@redhat.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/ulp/isert/ib_isert.c |   26 +++++++++++++++++---------
- 1 files changed, 17 insertions(+), 9 deletions(-)
+and=20
 
-diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
-index fff40b0..6a55b87 100644
---- a/drivers/infiniband/ulp/isert/ib_isert.c
-+++ b/drivers/infiniband/ulp/isert/ib_isert.c
-@@ -886,15 +886,9 @@
- }
- 
- static void
--isert_create_send_desc(struct isert_conn *isert_conn,
--		       struct isert_cmd *isert_cmd,
--		       struct iser_tx_desc *tx_desc)
-+__isert_create_send_desc(struct isert_device *device,
-+			 struct iser_tx_desc *tx_desc)
- {
--	struct isert_device *device = isert_conn->device;
--	struct ib_device *ib_dev = device->ib_device;
--
--	ib_dma_sync_single_for_cpu(ib_dev, tx_desc->dma_addr,
--				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
- 
- 	memset(&tx_desc->iser_header, 0, sizeof(struct iser_ctrl));
- 	tx_desc->iser_header.flags = ISCSI_CTRL;
-@@ -907,6 +901,20 @@
- 	}
- }
- 
-+static void
-+isert_create_send_desc(struct isert_conn *isert_conn,
-+		       struct isert_cmd *isert_cmd,
-+		       struct iser_tx_desc *tx_desc)
-+{
-+	struct isert_device *device = isert_conn->device;
-+	struct ib_device *ib_dev = device->ib_device;
-+
-+	ib_dma_sync_single_for_cpu(ib_dev, tx_desc->dma_addr,
-+				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
-+
-+	__isert_create_send_desc(device, tx_desc);
-+}
-+
- static int
- isert_init_tx_hdrs(struct isert_conn *isert_conn,
- 		   struct iser_tx_desc *tx_desc)
-@@ -994,7 +1002,7 @@
- 	struct iser_tx_desc *tx_desc = &isert_conn->login_tx_desc;
- 	int ret;
- 
--	isert_create_send_desc(isert_conn, NULL, tx_desc);
-+	__isert_create_send_desc(device, tx_desc);
- 
- 	memcpy(&tx_desc->iscsi_header, &login->rsp[0],
- 	       sizeof(struct iscsi_hdr));
+C9-42: If the destination QP is QP1, the BTH:P_Key shall be compared to =
+the set of P_Keys associated with the port on which the packet arrived. =
+If the P_Key matches any of the keys associated with the port, it shall =
+be considered valid.
+
+So, if the GMP is destined to VM1, which is a limited member, but we =
+have another VM2 which is a full member of the same partition, the GMP =
+will pass the HCA=E2=80=99s PKey check.
+
+> It is up to the hypervisor to block GMPs that have Pkeys not in
+> the virtual PKey table of the VF.
+
+The packet is received by the HCA and stripped from IB headers, in =
+particular the BTH. How can the "hypervisor" block it when its doesn=E2=80=
+=99t have access to the GMP=E2=80=99s BTH.PKey?
+
+> The only time you could need a new REJ code is if the GMP is using a
+> PKey different from the REQ - which is a pretty goofy thing to do
+> considering this VM case.
+
+Its goofy. In the CX-3 shared port model, the BTH.PKey is the default =
+one and the REQ.PKey is the full one even if the sending VM=E2=80=99s =
+port only is a limited member. This patch series fixes the last issue.
+
+> Remember the SM doesn't know what Pkeys are in the VM, so it is
+> basically impossible for the REQ side to reliably select two different
+> pkeys and know that they will bothmake it to the VM.
+
+The active side should use the "authentic" PKey in the REQ message. That =
+is the one that would be used in BTH.PKey when communication has been =
+established. This is implemented by this patch series.
+
+Not sure what you mean by "reliably select two different pkeys". The CM =
+REQ message contains one PKey.
+
+> One pkey could be done reliably if it matched ipoib, for instance, but
+> two really cannot in the general case.
+>=20
+> So again - the bug here is that the GMP is being sent with the wrong
+> pkey. Fix that, then see what is left to fix..
+
+See above, not sure how that could be implemented. And if it is solved =
+by the HCA trapping the GMP due to the PKey check, it doesn=E2=80=99t =
+help me, as the purpose of the series is to avoid (excessive) PKey traps =
+sent to the SM.
+
+> If I recall there were bugs here in mlx drivers, where the driver sent
+> with the wrong Pkey. I think this has actually been fixed now, so
+> please check the upstream kernel to be sure the Pkey is not what it is
+> supposed to be.
+
+Let me get back to you with some ibdumps here.
+
+
+H=C3=A5kon
