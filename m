@@ -1,56 +1,40 @@
-From: Eugene Syromiatnikov <esyr@redhat.com>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Wed, 16 May 2018 20:01:38 +0200
-Message-ID: <20180516180138.GB5486@asgard.redhat.com>
-References: <20180406160541.GA28094@ziepe.ca>
- <20180516173908.GA21169@asgard.redhat.com>
- <20180516174933.GN25675@mellanox.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH IB/core 2/2] IB/cm: Send authentic pkey in REQ msg and
+ check eligibility of the pkeys
+Date: Wed, 16 May 2018 12:01:15 -0600
+Message-ID: <20180516180115.GF25661@ziepe.ca>
+References: <3bee76df-49a6-cf3c-6df4-749a6309358e@dev.mellanox.co.il>
+ <B3360947-5905-47BD-ABC4-6C4BB32F5DA6@oracle.com>
+ <20180514210200.GN21531@ziepe.ca>
+ <ab0e1318-8e1a-5822-5484-33e460095830@dev.mellanox.co.il>
+ <E41BCEAA-0204-448D-8188-ACA03932B3AC@oracle.com>
+ <20180515190424.GL5615@ziepe.ca>
+ <3E15B62F-E705-43BD-8A72-9E74F784D40E@oracle.com>
+ <20180516151201.GA25661@ziepe.ca>
+ <695ae613-931a-50ba-2b83-9d172e0ac2bc@dev.mellanox.co.il>
+ <151B2A36-28F0-4A88-8633-31AE7E55F848@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180516174933.GN25675@mellanox.com>
+In-Reply-To: <151B2A36-28F0-4A88-8633-31AE7E55F848@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, Hal Rosenstock <hal@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 16, 2018 at 11:49:33AM -0600, Jason Gunthorpe wrote:
-> On Wed, May 16, 2018 at 07:39:08PM +0200, Eugene Syromiatnikov wrote:
-> > On Fri, Apr 06, 2018 at 10:05:41AM -0600, Jason Gunthorpe wrote:
-> > >       RDMA: Change all uapi headers to use __aligned_u64 instead of __u64
-> > Looks like this change changed the size of struct hfi1_ctxt_info and the
-> > value of HFI1_IOCTL_CTXT_INFO ioctl number as a result.
-> 
-> Only on 32 bit..
-> 
-> HF1 does not build on 32 bit kernels, so the 32 bit version of the
-> ioctl is never supported.
-> 
-> HFI1 also does not define '.compat_ioctl' so even a 32 bit user space
-> on 64 bit kernel cannot call this ioctl.
-> 
-> So, yes it changed, but it doesn't matter.
-> 
-> > >       IB/uverbs: Extend uverbs_ioctl header with driver_id
-> > This patch changed the value of the RDMA_VERBS_IOCTL ioctl number.
-> > 
-> > (see https://lists.strace.io/pipermail/strace-devel/2018-May/008196.html
-> > for the reference)
-> 
-> Yes.
-> 
-> RDMA_VERBS_IOCTL has been considered experimental and was protected by
-> a CONFIG option.
-> 
-> After the above commit the experimental was dropped and the ABI was
-> fixed, but prior to doing so, the struct was revised based on
-> feedback.
-> 
-> There is no userspace user of the old struct, only the new struct.
-> 
-> Basically from strace's perspective it should use the new ioctl #'s
-> across all kernel revs and it will be correct as there is no user
-> space that will issue the old ioctls.
+On Wed, May 16, 2018 at 07:46:10PM +0200, Håkon Bugge wrote:
 
-Got it, thanks for the clarification!
+>    OK. Lets take one example. The pkey table contains 0xFFFF, 0x8001,
+>    0x0001.
+> 
+>    The wce.pkey_index is 1 (i.e., pointing to 0x8001). Now, tell me, was
+>    BTH.PKey 0x8001 (matches 0x8001) or was it 0x0001 (also matching
+>    0x8001) ?
+
+As far as the Linux core is concerned, it must have been 0x8001,
+because the only way the pkey_index feature works properly is if
+exact-match takes precedence over in-exact match.
+
+Jason
