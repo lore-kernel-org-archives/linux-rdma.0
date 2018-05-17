@@ -1,57 +1,117 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH v3] mlx4_core: allocate ICM memory in page size chunks
-Date: Thu, 17 May 2018 14:45:20 -0700
-Message-ID: <19b7818e-16f6-2349-dc34-245c2f215f6f@oracle.com>
-References: <20180517205343.8401-1-qing.huang@oracle.com>
- <e6c470f0-f2ae-5efd-09ed-0c9562a4a764@gmail.com>
+From: Don Dutile <ddutile@redhat.com>
+Subject: Re: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug check_sync
+ warning
+Date: Thu, 17 May 2018 19:01:30 -0400
+Message-ID: <5372c148-a07c-64bb-5608-9ec64a90ef73@redhat.com>
+References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
+ <20180516013137.12474.10259.stgit@scvm10.sc.intel.com>
+ <20180516200441.GN25661@ziepe.ca>
+ <4039808d-7997-8b95-f1b9-d3d1d181f00e@intel.com>
+ <20180517151057.GC10842@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e6c470f0-f2ae-5efd-09ed-0c9562a4a764@gmail.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180517151057.GC10842@ziepe.ca>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>, tariqt@mellanox.com, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 5/17/2018 2:14 PM, Eric Dumazet wrote:
-> On 05/17/2018 01:53 PM, Qing Huang wrote:
->> When a system is under memory presure (high usage with fragments),
->> the original 256KB ICM chunk allocations will likely trigger kernel
->> memory management to enter slow path doing memory compact/migration
->> ops in order to complete high order memory allocations.
+On 05/17/2018 11:10 AM, Jason Gunthorpe wrote:
+> On Thu, May 17, 2018 at 11:03:49AM -0400, Dennis Dalessandro wrote:
+>> On 5/16/2018 4:04 PM, Jason Gunthorpe wrote:
+>>> On Tue, May 15, 2018 at 06:31:39PM -0700, Dennis Dalessandro wrote:
+>>>> From: Alex Estrin <alex.estrin@intel.com>
+>>>>
+>>>> The following error message occurs on a target host in a debug build
+>>>> during session login:
+>>>>
+>>>> [ 3524.411874] WARNING: CPU: 5 PID: 12063 at lib/dma-debug.c:1207 check_sync+0x4ec/0x5b0
+>>>> [ 3524.421057] infiniband hfi1_0: DMA-API: device driver tries to sync DMA memory it has not allocated [device address=0x0000000000000000] [size=76 bytes]
+>>>> ......snip .....
+>>>>
+>>>> [ 3524.535846] CPU: 5 PID: 12063 Comm: iscsi_np Kdump: loaded Not tainted 3.10.0-862.el7.x86_64.debug #1
+>>>> [ 3524.546764] Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.2.6 06/08/2015
+>>>> [ 3524.555740] Call Trace:
+>>>> [ 3524.559102]  [<ffffffffa5fe915b>] dump_stack+0x19/0x1b
+>>>> [ 3524.565477]  [<ffffffffa58a2f58>] __warn+0xd8/0x100
+>>>> [ 3524.571557]  [<ffffffffa58a2fdf>] warn_slowpath_fmt+0x5f/0x80
+>>>> [ 3524.578610]  [<ffffffffa5bf5b8c>] check_sync+0x4ec/0x5b0
+>>>> [ 3524.585177]  [<ffffffffa58efc3f>] ? set_cpus_allowed_ptr+0x5f/0x1c0
+>>>> [ 3524.592812]  [<ffffffffa5bf5cd0>] debug_dma_sync_single_for_cpu+0x80/0x90
+>>>> [ 3524.601029]  [<ffffffffa586add3>] ? x2apic_send_IPI_mask+0x13/0x20
+>>>> [ 3524.608574]  [<ffffffffa585ee1b>] ? native_smp_send_reschedule+0x5b/0x80
+>>>> [ 3524.616699]  [<ffffffffa58e9b76>] ? resched_curr+0xf6/0x140
+>>>> [ 3524.623567]  [<ffffffffc0879af0>] isert_create_send_desc.isra.26+0xe0/0x110 [ib_isert]
+>>>> [ 3524.633060]  [<ffffffffc087af95>] isert_put_login_tx+0x55/0x8b0 [ib_isert]
+>>>> [ 3524.641383]  [<ffffffffa58ef114>] ? try_to_wake_up+0x1a4/0x430
+>>>> [ 3524.648561]  [<ffffffffc098cfed>] iscsi_target_do_tx_login_io+0xdd/0x230 [iscsi_target_mod]
+>>>> [ 3524.658557]  [<ffffffffc098d827>] iscsi_target_do_login+0x1a7/0x600 [iscsi_target_mod]
+>>>> [ 3524.668084]  [<ffffffffa59f9bc9>] ? kstrdup+0x49/0x60
+>>>> [ 3524.674420]  [<ffffffffc098e976>] iscsi_target_start_negotiation+0x56/0xc0 [iscsi_target_mod]
+>>>> [ 3524.684656]  [<ffffffffc098c2ee>] __iscsi_target_login_thread+0x90e/0x1070 [iscsi_target_mod]
+>>>> [ 3524.694901]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
+>>>> [ 3524.705446]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
+>>>> [ 3524.715976]  [<ffffffffc098ca78>] iscsi_target_login_thread+0x28/0x60 [iscsi_target_mod]
+>>>> [ 3524.725739]  [<ffffffffa58d60ff>] kthread+0xef/0x100
+>>>> [ 3524.732007]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
+>>>> [ 3524.739540]  [<ffffffffa5fff1b7>] ret_from_fork_nospec_begin+0x21/0x21
+>>>> [ 3524.747558]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
+>>>> [ 3524.755088] ---[ end trace 23f8bf9238bd1ed8 ]---
+>>>> [ 3595.510822] iSCSI/iqn.1994-05.com.redhat:537fa56299: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
+>>>>
+>>>> The code calls dma_sync on login_tx_desc->dma_addr prior to initializing it
+>>>> with dma-mapped address.
+>>>> login_tx_desc is a part of iser_conn structure and is used only once
+>>>> during login negotiation, so the issue is fixed by eliminating
+>>>> dma_sync call for this buffer using a special case routine.
+>>>>
+>>>> Cc: <stable@vger.kernel.org>
+>>>> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+>>>> Reviewed-by: Don Dutile <ddutile@redhat.com>
+>>>> Signed-off-by: Alex Estrin <alex.estrin@intel.com>
+>>>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+>>>>   drivers/infiniband/ulp/isert/ib_isert.c |   26 +++++++++++++++++---------
+>>>>   1 files changed, 17 insertions(+), 9 deletions(-)
+>>>
+>>> This sounds like -rc material? Why is it for-next?
 >>
->> When that happens, user processes calling uverb APIs may get stuck
->> for more than 120s easily even though there are a lot of free pages
->> in smaller chunks available in the system.
->>
->> Syslog:
->> ...
->> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->> oracle_205573_e:205573 blocked for more than 120 seconds.
->> ...
->>
-> NACK on this patch.
->
-> You have been asked repeatedly to use kvmalloc()
->
-> This is not a minor suggestion.
->
-> Take a look athttps://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d8c13f2271ec5178c52fbde072ec7b562651ed9d
+>> Should something that only occurs in a debug build be considered -rc
+>> material?
+> 
+> Usually errors produced in debug builds reflect some kind of real-world
+> error as well.
+> 
+> Calling dma_sync on random garbage seems like the sort of thing that
+> might crash on some archs?? But I guess HFI1 don't care about that..
+> 
+> Jason
+> 
+That's not the case here.
+What is actually happening is a blind, dma-sync call before any DMA is being done, and the call is not needed.
 
-Would you please take a look at how table->icm is being used in the mlx4 
-driver? It's a meta data used for individual pointer variable referencing,
-not as data frag or in/out buffer. It has no need for contiguous phy. 
-memory.
+Additionally, I believe dma-debug has a bug:
+  -- doing a check on an op when there is no op in the dma-ops struct is not correct:
+static inline void dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr,
+                                            size_t size,
+                                            enum dma_data_direction dir)
+{
+         struct dma_map_ops *ops = get_dma_ops(dev);
 
-Thanks.
+         BUG_ON(!valid_dma_direction(dir));
+         if (ops->sync_single_for_cpu)
+                 ops->sync_single_for_cpu(dev, addr, size, dir);
+         debug_dma_sync_single_for_cpu(dev, addr, size, dir);
+}
 
-> And you'll understand some people care about this.
->
-> Strongly.
->
-> Thanks.
->
+Note: above: debug_dma_sync is called indep of whether an op function exists.
+For hfi1 & qib & rxe -- which use dma-virt-ops for non-IOMMU-enabled configs,
+the sync_syngle_for_cpu ops does not exist, yet debug_dma_sync is still called.
+
+
+Christoph:
+care to comment, since you've done a fair amount in this space?
+
+- Don
