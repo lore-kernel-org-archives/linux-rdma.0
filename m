@@ -1,74 +1,84 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH v3] {net, IB}/mlx5: Use 'kvfree()' for memory allocated by
- 'kvzalloc()'
-Date: Thu, 17 May 2018 00:42:33 +0000
-Message-ID: <52e933f9bab99e5b04d7faac21ef4371776ed2e9.camel@mellanox.com>
-References: <20180516190720.11633-1-christophe.jaillet@wanadoo.fr>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: [PATCH rdma-next 1/5] RDMA/hns: Implement the disassociate_ucontext API
+Date: Thu, 17 May 2018 16:02:49 +0800
+Message-ID: <1526544173-106587-2-git-send-email-xavier.huwei@huawei.com>
+References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180516190720.11633-1-christophe.jaillet@wanadoo.fr>
-Content-Language: en-US
-Content-ID: <B311BB3954EEAA42990BB2DDDACFF947@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "christophe.jaillet@wanadoo.fr" <christophe.jaillet@wanadoo.fr>, Matan Barak <matanb@mellanox.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTA1LTE2IGF0IDIxOjA3ICswMjAwLCBDaHJpc3RvcGhlIEpBSUxMRVQgd3Jv
-dGU6DQo+IFdoZW4gJ2t2emFsbG9jKCknIGlzIHVzZWQgdG8gYWxsb2NhdGUgbWVtb3J5LCAna3Zm
-cmVlKCknIG11c3QgYmUgdXNlZA0KPiB0bw0KPiBmcmVlIGl0Lg0KPiANCj4gRml4ZXM6IDFjYmU2
-ZmM4NmNjZmUgKCJJQi9tbHg1OiBBZGQgc3VwcG9ydCBmb3IgQ1FFIGNvbXByZXNzaW5nIikNCj4g
-Rml4ZXM6IGZlZDljZTIyYmY4YWUgKCJuZXQvbWx4NTogRS1Td2l0Y2gsIEFkZCBBUEkgdG8gY3Jl
-YXRlIHZwb3J0IHJ4DQo+IHJ1bGVzIikNCj4gRml4ZXM6IDllZmE3NTI1NDU5M2QgKCJuZXQvbWx4
-NV9jb3JlOiBJbnRyb2R1Y2UgYWNjZXNzIGZ1bmN0aW9ucyB0bw0KPiBxdWVyeSB2cG9ydCBSb0NF
-IGZpZWxkcyIpDQo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waGUgSkFJTExFVCA8Y2hyaXN0b3Bo
-ZS5qYWlsbGV0QHdhbmFkb28uZnI+DQo+IC0tLQ0KPiB2MSAtPiB2MjogTW9yZSBwbGFjZXMgdG8g
-dXBkYXRlIGhhdmUgYmVlbiBhZGRlZCB0byB0aGUgcGF0Y2gNCj4gdjIgLT4gdjM6IEFkZCBGaXhl
-cyB0YWcNCj4gDQo+IDMgcGF0Y2hlcyB3aXRoIG9uZSBGaXhlcyB0YWcgZWFjaCBzaG91bGQgcHJv
-YmFibHkgYmUgYmV0dGVyLCBidXQNCj4gaG9uZXN0bHksIEkgd29uJ3Qgc2VuZCBhIHY0Lg0KPiBG
-aWxsIGZyZWUgdG8gc3BsaXQgaXQgaWYgbmVlZGVkLg0KDQpBcHBsaWVkIHRvIG1seDUtbmV4dCwg
-dGhhbmtzIENocmlzdG9waGUhDQoNCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4
-NS9jcS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMiArLQ0KPiAgZHJpdmVycy9uZXQv
-ZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyB8IDIgKy0NCj4g
-IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS92cG9ydC5jICAgICAgICAg
-ICAgfCA2ICsrKw0KPiAtLS0NCj4gIDMgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA1
-IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9t
-bHg1L2NxLmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9jcS5jDQo+IGluZGV4IDc3
-ZDI1N2VjODk5Yi4uNmQ1MmVhMDM1NzRlIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJh
-bmQvaHcvbWx4NS9jcS5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2NxLmMN
-Cj4gQEAgLTg0OSw3ICs4NDksNyBAQCBzdGF0aWMgaW50IGNyZWF0ZV9jcV91c2VyKHN0cnVjdCBt
-bHg1X2liX2Rldg0KPiAqZGV2LCBzdHJ1Y3QgaWJfdWRhdGEgKnVkYXRhLA0KPiAgCXJldHVybiAw
-Ow0KPiAgDQo+ICBlcnJfY3FiOg0KPiAtCWtmcmVlKCpjcWIpOw0KPiArCWt2ZnJlZSgqY3FiKTsN
-Cj4gIA0KPiAgZXJyX2RiOg0KPiAgCW1seDVfaWJfZGJfdW5tYXBfdXNlcih0b19tdWNvbnRleHQo
-Y29udGV4dCksICZjcS0+ZGIpOw0KPiBkaWZmIC0tZ2l0DQo+IGEvZHJpdmVycy9uZXQvZXRoZXJu
-ZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYw0KPiBiL2RyaXZlcnMvbmV0
-L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCj4gaW5kZXgg
-MzVlMjU2ZWIyZjZlLi5iMTIzZjhhNTJhZDggMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0
-aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCj4gKysrIGIvZHJp
-dmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYw0K
-PiBAQCAtNjYzLDcgKzY2Myw3IEBAIHN0YXRpYyBpbnQgZXN3X2NyZWF0ZV92cG9ydF9yeF9ncm91
-cChzdHJ1Y3QNCj4gbWx4NV9lc3dpdGNoICplc3cpDQo+ICANCj4gIAllc3ctPm9mZmxvYWRzLnZw
-b3J0X3J4X2dyb3VwID0gZzsNCj4gIG91dDoNCj4gLQlrZnJlZShmbG93X2dyb3VwX2luKTsNCj4g
-KwlrdmZyZWUoZmxvd19ncm91cF9pbik7DQo+ICAJcmV0dXJuIGVycjsNCj4gIH0NCj4gIA0KPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0
-LmMNCj4gYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvdnBvcnQuYw0K
-PiBpbmRleCAxNzdlMDc2YjhkMTcuLjcxOWNlY2IxODJjNiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVy
-cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0LmMNCj4gKysrIGIvZHJpdmVy
-cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0LmMNCj4gQEAgLTUxMSw3ICs1
-MTEsNyBAQCBpbnQgbWx4NV9xdWVyeV9uaWNfdnBvcnRfc3lzdGVtX2ltYWdlX2d1aWQoc3RydWN0
-DQo+IG1seDVfY29yZV9kZXYgKm1kZXYsDQo+ICAJKnN5c3RlbV9pbWFnZV9ndWlkID0gTUxYNV9H
-RVQ2NChxdWVyeV9uaWNfdnBvcnRfY29udGV4dF9vdXQsDQo+IG91dCwNCj4gIAkJCQkJbmljX3Zw
-b3J0X2NvbnRleHQuc3lzdGVtX2ltYQ0KPiBnZV9ndWlkKTsNCj4gIA0KPiAtCWtmcmVlKG91dCk7
-DQo+ICsJa3ZmcmVlKG91dCk7DQo+ICANCj4gIAlyZXR1cm4gMDsNCj4gIH0NCj4gQEAgLTUzMSw3
-ICs1MzEsNyBAQCBpbnQgbWx4NV9xdWVyeV9uaWNfdnBvcnRfbm9kZV9ndWlkKHN0cnVjdA0KPiBt
-bHg1X2NvcmVfZGV2ICptZGV2LCB1NjQgKm5vZGVfZ3VpZCkNCj4gIAkqbm9kZV9ndWlkID0gTUxY
-NV9HRVQ2NChxdWVyeV9uaWNfdnBvcnRfY29udGV4dF9vdXQsIG91dCwNCj4gIAkJCQluaWNfdnBv
-cnRfY29udGV4dC5ub2RlX2d1aWQpOw0KPiAgDQo+IC0Ja2ZyZWUob3V0KTsNCj4gKwlrdmZyZWUo
-b3V0KTsNCj4gIA0KPiAgCXJldHVybiAwOw0KPiAgfQ0KPiBAQCAtNTg3LDcgKzU4Nyw3IEBAIGlu
-dCBtbHg1X3F1ZXJ5X25pY192cG9ydF9xa2V5X3Zpb2xfY250cihzdHJ1Y3QNCj4gbWx4NV9jb3Jl
-X2RldiAqbWRldiwNCj4gIAkqcWtleV92aW9sX2NudHIgPSBNTFg1X0dFVChxdWVyeV9uaWNfdnBv
-cnRfY29udGV4dF9vdXQsIG91dCwNCj4gIAkJCQkgICBuaWNfdnBvcnRfY29udGV4dC5xa2V5X3Zp
-b2xhdGlvbl8NCj4gY291bnRlcik7DQo+ICANCj4gLQlrZnJlZShvdXQpOw0KPiArCWt2ZnJlZShv
-dXQpOw0KPiAgDQo+ICAJcmV0dXJuIDA7DQo+ICB9
+This patch Implements the IB core disassociate_ucontext API.
+
+Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_main.c | 36 +++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+index 96fb6a9..7fafe9d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_main.c
++++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+@@ -33,6 +33,9 @@
+ #include <linux/acpi.h>
+ #include <linux/of_platform.h>
+ #include <linux/module.h>
++#include <linux/sched.h>
++#include <linux/sched/mm.h>
++#include <linux/sched/task.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_user_verbs.h>
+@@ -422,6 +425,38 @@ static int hns_roce_port_immutable(struct ib_device *ib_dev, u8 port_num,
+ 	return 0;
+ }
+ 
++static void hns_roce_disassociate_ucontext(struct ib_ucontext *ibcontext)
++{
++	struct task_struct *process;
++	struct mm_struct   *mm;
++
++	process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
++	if (!process)
++		return;
++
++	mm = get_task_mm(process);
++	if (!mm) {
++		pr_info("no mm, disassociate ucontext is pending task termination\n");
++		while (1) {
++			put_task_struct(process);
++			usleep_range(1000, 2000);
++			process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
++			if (!process || process->state == TASK_DEAD) {
++				pr_info("disassociate ucontext done, task was terminated\n");
++				/* if task was dead, need to release the task
++				 * struct.
++				 */
++				if (process)
++					put_task_struct(process);
++				return;
++			}
++		}
++	}
++
++	mmput(mm);
++	put_task_struct(process);
++}
++
+ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
+ {
+ 	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
+@@ -516,6 +551,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
+ 
+ 	/* OTHERS */
+ 	ib_dev->get_port_immutable	= hns_roce_port_immutable;
++	ib_dev->disassociate_ucontext	= hns_roce_disassociate_ucontext;
+ 
+ 	ib_dev->driver_id = RDMA_DRIVER_HNS;
+ 	ret = ib_register_device(ib_dev, NULL);
+-- 
+1.9.1
