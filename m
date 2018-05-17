@@ -1,135 +1,74 @@
-From: Don Dutile <ddutile@redhat.com>
-Subject: Re: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug check_sync
- warning
-Date: Wed, 16 May 2018 17:03:12 -0400
-Message-ID: <bbbd8cb3-1878-82f4-4650-0b8ab1822f4e@redhat.com>
-References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
- <20180516013137.12474.10259.stgit@scvm10.sc.intel.com>
- <20180516200441.GN25661@ziepe.ca>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH v3] {net, IB}/mlx5: Use 'kvfree()' for memory allocated by
+ 'kvzalloc()'
+Date: Thu, 17 May 2018 00:42:33 +0000
+Message-ID: <52e933f9bab99e5b04d7faac21ef4371776ed2e9.camel@mellanox.com>
+References: <20180516190720.11633-1-christophe.jaillet@wanadoo.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180516200441.GN25661@ziepe.ca>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180516190720.11633-1-christophe.jaillet@wanadoo.fr>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+Content-ID: <B311BB3954EEAA42990BB2DDDACFF947@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "christophe.jaillet@wanadoo.fr" <christophe.jaillet@wanadoo.fr>, Matan Barak <matanb@mellanox.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/16/2018 04:04 PM, Jason Gunthorpe wrote:
-> On Tue, May 15, 2018 at 06:31:39PM -0700, Dennis Dalessandro wrote:
->> From: Alex Estrin <alex.estrin@intel.com>
->>
->> The following error message occurs on a target host in a debug build
->> during session login:
->>
->> [ 3524.411874] WARNING: CPU: 5 PID: 12063 at lib/dma-debug.c:1207 check_sync+0x4ec/0x5b0
->> [ 3524.421057] infiniband hfi1_0: DMA-API: device driver tries to sync DMA memory it has not allocated [device address=0x0000000000000000] [size=76 bytes]
->> ......snip .....
->>
->> [ 3524.535846] CPU: 5 PID: 12063 Comm: iscsi_np Kdump: loaded Not tainted 3.10.0-862.el7.x86_64.debug #1
->> [ 3524.546764] Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.2.6 06/08/2015
->> [ 3524.555740] Call Trace:
->> [ 3524.559102]  [<ffffffffa5fe915b>] dump_stack+0x19/0x1b
->> [ 3524.565477]  [<ffffffffa58a2f58>] __warn+0xd8/0x100
->> [ 3524.571557]  [<ffffffffa58a2fdf>] warn_slowpath_fmt+0x5f/0x80
->> [ 3524.578610]  [<ffffffffa5bf5b8c>] check_sync+0x4ec/0x5b0
->> [ 3524.585177]  [<ffffffffa58efc3f>] ? set_cpus_allowed_ptr+0x5f/0x1c0
->> [ 3524.592812]  [<ffffffffa5bf5cd0>] debug_dma_sync_single_for_cpu+0x80/0x90
->> [ 3524.601029]  [<ffffffffa586add3>] ? x2apic_send_IPI_mask+0x13/0x20
->> [ 3524.608574]  [<ffffffffa585ee1b>] ? native_smp_send_reschedule+0x5b/0x80
->> [ 3524.616699]  [<ffffffffa58e9b76>] ? resched_curr+0xf6/0x140
->> [ 3524.623567]  [<ffffffffc0879af0>] isert_create_send_desc.isra.26+0xe0/0x110 [ib_isert]
->> [ 3524.633060]  [<ffffffffc087af95>] isert_put_login_tx+0x55/0x8b0 [ib_isert]
->> [ 3524.641383]  [<ffffffffa58ef114>] ? try_to_wake_up+0x1a4/0x430
->> [ 3524.648561]  [<ffffffffc098cfed>] iscsi_target_do_tx_login_io+0xdd/0x230 [iscsi_target_mod]
->> [ 3524.658557]  [<ffffffffc098d827>] iscsi_target_do_login+0x1a7/0x600 [iscsi_target_mod]
->> [ 3524.668084]  [<ffffffffa59f9bc9>] ? kstrdup+0x49/0x60
->> [ 3524.674420]  [<ffffffffc098e976>] iscsi_target_start_negotiation+0x56/0xc0 [iscsi_target_mod]
->> [ 3524.684656]  [<ffffffffc098c2ee>] __iscsi_target_login_thread+0x90e/0x1070 [iscsi_target_mod]
->> [ 3524.694901]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
->> [ 3524.705446]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
->> [ 3524.715976]  [<ffffffffc098ca78>] iscsi_target_login_thread+0x28/0x60 [iscsi_target_mod]
->> [ 3524.725739]  [<ffffffffa58d60ff>] kthread+0xef/0x100
->> [ 3524.732007]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
->> [ 3524.739540]  [<ffffffffa5fff1b7>] ret_from_fork_nospec_begin+0x21/0x21
->> [ 3524.747558]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
->> [ 3524.755088] ---[ end trace 23f8bf9238bd1ed8 ]---
->> [ 3595.510822] iSCSI/iqn.1994-05.com.redhat:537fa56299: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
->>
->> The code calls dma_sync on login_tx_desc->dma_addr prior to initializing it
->> with dma-mapped address.
->> login_tx_desc is a part of iser_conn structure and is used only once
->> during login negotiation, so the issue is fixed by eliminating
->> dma_sync call for this buffer using a special case routine.
->>
->> Cc: <stable@vger.kernel.org>
->> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
->> Reviewed-by: Don Dutile <ddutile@redhat.com>
->> Signed-off-by: Alex Estrin <alex.estrin@intel.com>
->> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
->> ---
->>   drivers/infiniband/ulp/isert/ib_isert.c |   26 +++++++++++++++++---------
->>   1 files changed, 17 insertions(+), 9 deletions(-)
-> 
-> This sounds like -rc material? Why is it for-next?
-> 
->> diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
->> index fff40b0..6a55b87 100644
->> --- a/drivers/infiniband/ulp/isert/ib_isert.c
->> +++ b/drivers/infiniband/ulp/isert/ib_isert.c
->> @@ -886,15 +886,9 @@
->>   }
->>   
->>   static void
->> -isert_create_send_desc(struct isert_conn *isert_conn,
->> -		       struct isert_cmd *isert_cmd,
->> -		       struct iser_tx_desc *tx_desc)
->> +__isert_create_send_desc(struct isert_device *device,
->> +			 struct iser_tx_desc *tx_desc)
->>   {
->> -	struct isert_device *device = isert_conn->device;
->> -	struct ib_device *ib_dev = device->ib_device;
->> -
->> -	ib_dma_sync_single_for_cpu(ib_dev, tx_desc->dma_addr,
->> -				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
->>   
->>   	memset(&tx_desc->iser_header, 0, sizeof(struct iser_ctrl));
->>   	tx_desc->iser_header.flags = ISCSI_CTRL;
->> @@ -907,6 +901,20 @@
->>   	}
->>   }
->>   
->> +static void
->> +isert_create_send_desc(struct isert_conn *isert_conn,
->> +		       struct isert_cmd *isert_cmd,
->> +		       struct iser_tx_desc *tx_desc)
->> +{
->> +	struct isert_device *device = isert_conn->device;
->> +	struct ib_device *ib_dev = device->ib_device;
->> +
->> +	ib_dma_sync_single_for_cpu(ib_dev, tx_desc->dma_addr,
->> +				   ISER_HEADERS_LEN, DMA_TO_DEVICE);
->> +
->> +	__isert_create_send_desc(device, tx_desc);
->> +}
->> +
->>   static int
->>   isert_init_tx_hdrs(struct isert_conn *isert_conn,
->>   		   struct iser_tx_desc *tx_desc)
->> @@ -994,7 +1002,7 @@
->>   	struct iser_tx_desc *tx_desc = &isert_conn->login_tx_desc;
->>   	int ret;
->>   
->> -	isert_create_send_desc(isert_conn, NULL, tx_desc);
->> +	__isert_create_send_desc(device, tx_desc);
->>   
->>   	memcpy(&tx_desc->iscsi_header, &login->rsp[0],
->>   	       sizeof(struct iscsi_hdr));
->>
-It is an unnecessary synch at login, harmless if done, but causes the lib/dma-debug dma-synch checker to complain, which only occurs in the debug kernel.
-
-e.g., RHEL is including it in it's next release, but not backporting to existing release (not doing a z-stream update to 7.5 release which took the multiple code chunks in to see this warning pop). Move along, nothing to see here... ;-)
-
--dd
+T24gV2VkLCAyMDE4LTA1LTE2IGF0IDIxOjA3ICswMjAwLCBDaHJpc3RvcGhlIEpBSUxMRVQgd3Jv
+dGU6DQo+IFdoZW4gJ2t2emFsbG9jKCknIGlzIHVzZWQgdG8gYWxsb2NhdGUgbWVtb3J5LCAna3Zm
+cmVlKCknIG11c3QgYmUgdXNlZA0KPiB0bw0KPiBmcmVlIGl0Lg0KPiANCj4gRml4ZXM6IDFjYmU2
+ZmM4NmNjZmUgKCJJQi9tbHg1OiBBZGQgc3VwcG9ydCBmb3IgQ1FFIGNvbXByZXNzaW5nIikNCj4g
+Rml4ZXM6IGZlZDljZTIyYmY4YWUgKCJuZXQvbWx4NTogRS1Td2l0Y2gsIEFkZCBBUEkgdG8gY3Jl
+YXRlIHZwb3J0IHJ4DQo+IHJ1bGVzIikNCj4gRml4ZXM6IDllZmE3NTI1NDU5M2QgKCJuZXQvbWx4
+NV9jb3JlOiBJbnRyb2R1Y2UgYWNjZXNzIGZ1bmN0aW9ucyB0bw0KPiBxdWVyeSB2cG9ydCBSb0NF
+IGZpZWxkcyIpDQo+IFNpZ25lZC1vZmYtYnk6IENocmlzdG9waGUgSkFJTExFVCA8Y2hyaXN0b3Bo
+ZS5qYWlsbGV0QHdhbmFkb28uZnI+DQo+IC0tLQ0KPiB2MSAtPiB2MjogTW9yZSBwbGFjZXMgdG8g
+dXBkYXRlIGhhdmUgYmVlbiBhZGRlZCB0byB0aGUgcGF0Y2gNCj4gdjIgLT4gdjM6IEFkZCBGaXhl
+cyB0YWcNCj4gDQo+IDMgcGF0Y2hlcyB3aXRoIG9uZSBGaXhlcyB0YWcgZWFjaCBzaG91bGQgcHJv
+YmFibHkgYmUgYmV0dGVyLCBidXQNCj4gaG9uZXN0bHksIEkgd29uJ3Qgc2VuZCBhIHY0Lg0KPiBG
+aWxsIGZyZWUgdG8gc3BsaXQgaXQgaWYgbmVlZGVkLg0KDQpBcHBsaWVkIHRvIG1seDUtbmV4dCwg
+dGhhbmtzIENocmlzdG9waGUhDQoNCj4gLS0tDQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4
+NS9jcS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMiArLQ0KPiAgZHJpdmVycy9uZXQv
+ZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyB8IDIgKy0NCj4g
+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS92cG9ydC5jICAgICAgICAg
+ICAgfCA2ICsrKw0KPiAtLS0NCj4gIDMgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCA1
+IGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9t
+bHg1L2NxLmMNCj4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9jcS5jDQo+IGluZGV4IDc3
+ZDI1N2VjODk5Yi4uNmQ1MmVhMDM1NzRlIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2luZmluaWJh
+bmQvaHcvbWx4NS9jcS5jDQo+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L2NxLmMN
+Cj4gQEAgLTg0OSw3ICs4NDksNyBAQCBzdGF0aWMgaW50IGNyZWF0ZV9jcV91c2VyKHN0cnVjdCBt
+bHg1X2liX2Rldg0KPiAqZGV2LCBzdHJ1Y3QgaWJfdWRhdGEgKnVkYXRhLA0KPiAgCXJldHVybiAw
+Ow0KPiAgDQo+ICBlcnJfY3FiOg0KPiAtCWtmcmVlKCpjcWIpOw0KPiArCWt2ZnJlZSgqY3FiKTsN
+Cj4gIA0KPiAgZXJyX2RiOg0KPiAgCW1seDVfaWJfZGJfdW5tYXBfdXNlcih0b19tdWNvbnRleHQo
+Y29udGV4dCksICZjcS0+ZGIpOw0KPiBkaWZmIC0tZ2l0DQo+IGEvZHJpdmVycy9uZXQvZXRoZXJu
+ZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYw0KPiBiL2RyaXZlcnMvbmV0
+L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCj4gaW5kZXgg
+MzVlMjU2ZWIyZjZlLi5iMTIzZjhhNTJhZDggMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0
+aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoX29mZmxvYWRzLmMNCj4gKysrIGIvZHJp
+dmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYw0K
+PiBAQCAtNjYzLDcgKzY2Myw3IEBAIHN0YXRpYyBpbnQgZXN3X2NyZWF0ZV92cG9ydF9yeF9ncm91
+cChzdHJ1Y3QNCj4gbWx4NV9lc3dpdGNoICplc3cpDQo+ICANCj4gIAllc3ctPm9mZmxvYWRzLnZw
+b3J0X3J4X2dyb3VwID0gZzsNCj4gIG91dDoNCj4gLQlrZnJlZShmbG93X2dyb3VwX2luKTsNCj4g
+KwlrdmZyZWUoZmxvd19ncm91cF9pbik7DQo+ICAJcmV0dXJuIGVycjsNCj4gIH0NCj4gIA0KPiBk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0
+LmMNCj4gYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvdnBvcnQuYw0K
+PiBpbmRleCAxNzdlMDc2YjhkMTcuLjcxOWNlY2IxODJjNiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVy
+cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0LmMNCj4gKysrIGIvZHJpdmVy
+cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3Zwb3J0LmMNCj4gQEAgLTUxMSw3ICs1
+MTEsNyBAQCBpbnQgbWx4NV9xdWVyeV9uaWNfdnBvcnRfc3lzdGVtX2ltYWdlX2d1aWQoc3RydWN0
+DQo+IG1seDVfY29yZV9kZXYgKm1kZXYsDQo+ICAJKnN5c3RlbV9pbWFnZV9ndWlkID0gTUxYNV9H
+RVQ2NChxdWVyeV9uaWNfdnBvcnRfY29udGV4dF9vdXQsDQo+IG91dCwNCj4gIAkJCQkJbmljX3Zw
+b3J0X2NvbnRleHQuc3lzdGVtX2ltYQ0KPiBnZV9ndWlkKTsNCj4gIA0KPiAtCWtmcmVlKG91dCk7
+DQo+ICsJa3ZmcmVlKG91dCk7DQo+ICANCj4gIAlyZXR1cm4gMDsNCj4gIH0NCj4gQEAgLTUzMSw3
+ICs1MzEsNyBAQCBpbnQgbWx4NV9xdWVyeV9uaWNfdnBvcnRfbm9kZV9ndWlkKHN0cnVjdA0KPiBt
+bHg1X2NvcmVfZGV2ICptZGV2LCB1NjQgKm5vZGVfZ3VpZCkNCj4gIAkqbm9kZV9ndWlkID0gTUxY
+NV9HRVQ2NChxdWVyeV9uaWNfdnBvcnRfY29udGV4dF9vdXQsIG91dCwNCj4gIAkJCQluaWNfdnBv
+cnRfY29udGV4dC5ub2RlX2d1aWQpOw0KPiAgDQo+IC0Ja2ZyZWUob3V0KTsNCj4gKwlrdmZyZWUo
+b3V0KTsNCj4gIA0KPiAgCXJldHVybiAwOw0KPiAgfQ0KPiBAQCAtNTg3LDcgKzU4Nyw3IEBAIGlu
+dCBtbHg1X3F1ZXJ5X25pY192cG9ydF9xa2V5X3Zpb2xfY250cihzdHJ1Y3QNCj4gbWx4NV9jb3Jl
+X2RldiAqbWRldiwNCj4gIAkqcWtleV92aW9sX2NudHIgPSBNTFg1X0dFVChxdWVyeV9uaWNfdnBv
+cnRfY29udGV4dF9vdXQsIG91dCwNCj4gIAkJCQkgICBuaWNfdnBvcnRfY29udGV4dC5xa2V5X3Zp
+b2xhdGlvbl8NCj4gY291bnRlcik7DQo+ICANCj4gLQlrZnJlZShvdXQpOw0KPiArCWt2ZnJlZShv
+dXQpOw0KPiAgDQo+ICAJcmV0dXJuIDA7DQo+ICB9
