@@ -1,37 +1,63 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH v2 01/26] rculist: introduce list_next_or_null_rr_rcu()
-Date: Fri, 18 May 2018 09:56:27 -0700
-Message-ID: <CA+55aFw2u4=X1LPU5kdqPX1C182-oTRvf1qwJ7_Ac+newVXAJA@mail.gmail.com>
-References: <20180518130413.16997-1-roman.penyaev@profitbricks.com> <20180518130413.16997-2-roman.penyaev@profitbricks.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [pull request][for-next 00/15] Mellanox, mlx5 core and netdev
+ updates 2018-05-17
+Date: Fri, 18 May 2018 13:03:51 -0400 (EDT)
+Message-ID: <20180518.130351.456975805564832525.davem@davemloft.net>
+References: <20180518012258.26968-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518130413.16997-2-roman.penyaev@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roman Pen <roman.penyaev@profitbricks.com>
-Cc: linux-block <linux-block@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Doug Ledford <dledford@redhat.com>, swapnil.ingle@profitbricks.com, danil.kipnis@profitbricks.com, jinpu.wang@profitbricks.com, Paul McKenney <paulmck@linux.vnet.ibm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180518012258.26968-1-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: saeedm@mellanox.com
+Cc: dledford@redhat.com, jgg@mellanox.com, leonro@mellanox.com, ogerlitz@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 18, 2018 at 6:07 AM Roman Pen <roman.penyaev@profitbricks.com>
-wrote:
+From: Saeed Mahameed <saeedm@mellanox.com>
+Date: Thu, 17 May 2018 18:22:43 -0700
 
-> Function is going to be used in transport over RDMA module
-> in subsequent patches.
+> Below you can find two pull requests,
+> 
+> 1. mlx5 core updates to be shared for both netdev and RDMA, (patches 1..9)
+>  which is based on the last mlx5-next pull request
+>  
+> The following changes since commit a8408f4e6db775e245f20edf12b13fd58cc03a1c:
+> 
+>   net/mlx5: fix spelling mistake: "modfiy" -> "modify" (2018-05-04 12:11:51 -0700)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-updates-2018-05-17
+> 
+> for you to fetch changes up to 10ff5359f883412728ba816046ee3a696625ca02:
+> 
+>   net/mlx5e: Explicitly set source e-switch in offloaded TC rules (2018-05-17 14:17:35 -0700)
+> 
+> 2. mlx5e netdev updates only for net-next branch (patches 10..15) based on net-next
+> and the above pull request.
+> 
+> The following changes since commit 538e2de104cfb4ef1acb35af42427bff42adbe4d:
+> 
+>   Merge branch 'net-Allow-more-drivers-with-COMPILE_TEST' (2018-05-17 17:11:07 -0400)
+> 
+> are available in the Git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux.git tags/mlx5e-updates-2018-05-17
+> 
+> for you to fetch changes up to a228060a7c9ab88597eeac131e4578595d5d46ae:
+> 
+>   net/mlx5e: Add HW vport counters to representor ethtool stats (2018-05-17 17:48:54 -0700)
+> 
+> Dave, for your convenience you can either pull 1. and then 2. or pull 2.
+> directly.
 
-Does this really merit its own helper macro in a generic header?
+Looks good.
 
-It honestly smells more like "just have an inline helper function that is
-specific to rdma" to me. Particularly since it's probably just one specific
-list where you want this oddly specific behavior.
+I pulled 1 then I pulled 2.  That seemed to work well.  Particularly
+it allowed me to capture the two different merge commit messages one
+by one.
 
-Also, if we really want a round-robin list traversal macro, this isn't the
-way it should be implemented, I suspect, and it probably shouldn't be
-RCU-specific to begin with.
+Is this basically how you want to handle things moving forward?
 
-Side note: I notice that I should already  have been more critical of even
-the much simpler "list_next_or_null_rcu()" macro. The "documentation"
-comment above the macro is pure and utter cut-and-paste garbage.
-
-Paul, mind giving this a look?
-
-                 Linus
+Thanks.
