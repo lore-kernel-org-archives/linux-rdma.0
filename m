@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 02/15] net/mlx5: Eswitch, Use 'kvfree()' for memory allocated by 'kvzalloc()'
-Date: Thu, 17 May 2018 18:22:45 -0700
-Message-ID: <20180518012258.26968-3-saeedm@mellanox.com>
+Subject: [for-next 03/15] IB/mlx5: Use 'kvfree()' for memory allocated by 'kvzalloc()'
+Date: Thu, 17 May 2018 18:22:46 -0700
+Message-ID: <20180518012258.26968-4-saeedm@mellanox.com>
 References: <20180518012258.26968-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180518012258.26968-1-saeedm@mellanox.com>
@@ -15,25 +15,26 @@ From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 When 'kvzalloc()' is used to allocate memory, 'kvfree()' must be used to
 free it.
 
-Fixes: fed9ce22bf8ae ("net/mlx5: E-Switch, Add API to create vport rx rules")
+Fixes: 1cbe6fc86ccfe ("IB/mlx5: Add support for CQE compressing")
 Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 2 +-
+ drivers/infiniband/hw/mlx5/cq.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 35e256eb2f6e..b123f8a52ad8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -663,7 +663,7 @@ static int esw_create_vport_rx_group(struct mlx5_eswitch *esw)
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 77d257ec899b..6d52ea03574e 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -849,7 +849,7 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 	return 0;
  
- 	esw->offloads.vport_rx_group = g;
- out:
--	kfree(flow_group_in);
-+	kvfree(flow_group_in);
- 	return err;
- }
+ err_cqb:
+-	kfree(*cqb);
++	kvfree(*cqb);
  
+ err_db:
+ 	mlx5_ib_db_unmap_user(to_mucontext(context), &cq->db);
 -- 
 2.17.0
