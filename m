@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 06/15] net/mlx5: Add destination e-switch owner
-Date: Thu, 17 May 2018 18:22:49 -0700
-Message-ID: <20180518012258.26968-7-saeedm@mellanox.com>
+Subject: [for-next 08/15] net/mlx5: Add source e-switch owner
+Date: Thu, 17 May 2018 18:22:51 -0700
+Message-ID: <20180518012258.26968-9-saeedm@mellanox.com>
 References: <20180518012258.26968-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180518012258.26968-1-saeedm@mellanox.com>
@@ -12,146 +12,74 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shahar Klein <shahark@mellanox.com>
 
-The destination e-switch owner allows a rule in namespace of one e-switch
-owner to point to a vport that is natively associated with another
-e-switch owner.
+The source e-switch owner allows a vport on one e-switch port be associated
+with a rule defined on the second port e-switch.
+
+The role of the source eswitch owner valid bit in the flow group is to
+allow the firmware fail driver attempts to wild card the source eswitch
+match field. If this bit is not set, the firmware ignores the source
+eswitch owner field totally.
 
 Signed-off-by: Shahar Klein <shahark@mellanox.com>
 Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Reviewed-by: Roi Dayan <roid@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c  | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c         | 2 +-
- .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 6 +++---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c          | 8 +++++++-
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c         | 2 +-
- include/linux/mlx5/fs.h                                   | 6 +++++-
- include/linux/mlx5/mlx5_ifc.h                             | 5 +++--
- 7 files changed, 21 insertions(+), 10 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 10 ++++++++++
+ include/linux/mlx5/mlx5_ifc.h                     |  6 ++++--
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-index d93ff567b40d..b3820a34e773 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-@@ -235,7 +235,7 @@ const char *parse_fs_dst(struct trace_seq *p,
- 
- 	switch (dst->type) {
- 	case MLX5_FLOW_DESTINATION_TYPE_VPORT:
--		trace_seq_printf(p, "vport=%u\n", dst->vport_num);
-+		trace_seq_printf(p, "vport=%u\n", dst->vport.num);
- 		break;
- 	case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
- 		trace_seq_printf(p, "ft=%p\n", dst->ft);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 332bc56306bf..9a24314b817a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -192,7 +192,7 @@ __esw_fdb_set_vport_rule(struct mlx5_eswitch *esw, u32 vport, bool rx_rule,
- 	}
- 
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
--	dest.vport_num = vport;
-+	dest.vport.num = vport;
- 
- 	esw_debug(esw->dev,
- 		  "\tFDB add rule dmac_v(%pM) dmac_c(%pM) -> vport(%d)\n",
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index b123f8a52ad8..90c8cb31e633 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -71,7 +71,7 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
- 
- 	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) {
- 		dest[i].type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
--		dest[i].vport_num = attr->out_rep->vport;
-+		dest[i].vport.num = attr->out_rep->vport;
- 		i++;
- 	}
- 	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_COUNT) {
-@@ -343,7 +343,7 @@ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw, int vport, u32 sqn
- 
- 	spec->match_criteria_enable = MLX5_MATCH_MISC_PARAMETERS;
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
--	dest.vport_num = vport;
-+	dest.vport.num = vport;
- 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
- 
- 	flow_rule = mlx5_add_flow_rules(esw->fdb_table.offloads.fdb, spec,
-@@ -387,7 +387,7 @@ static int esw_add_fdb_miss_rule(struct mlx5_eswitch *esw)
- 	dmac_c[0] = 0x01;
- 
- 	dest.type = MLX5_FLOW_DESTINATION_TYPE_VPORT;
--	dest.vport_num = 0;
-+	dest.vport.num = 0;
- 	flow_act.action = MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
- 
- 	flow_rule = mlx5_add_flow_rules(esw->fdb_table.offloads.fdb, spec,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 0bfce6a82c91..5a00deff5457 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -374,7 +374,13 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 				id = dst->dest_attr.ft->id;
- 			} else if (dst->dest_attr.type ==
- 				   MLX5_FLOW_DESTINATION_TYPE_VPORT) {
--				id = dst->dest_attr.vport_num;
-+				id = dst->dest_attr.vport.num;
-+				MLX5_SET(dest_format_struct, in_dests,
-+					 destination_eswitch_owner_vhca_id_valid,
-+					 dst->dest_attr.vport.vhca_id_valid);
-+				MLX5_SET(dest_format_struct, in_dests,
-+					 destination_eswitch_owner_vhca_id,
-+					 dst->dest_attr.vport.vhca_id);
- 			} else {
- 				id = dst->dest_attr.tir_num;
- 			}
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index de51e7c39bc8..5a80279b052a 100644
+index 5a80279b052a..b1a2ca0ff320 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1404,7 +1404,7 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
- {
- 	if (d1->type == d2->type) {
- 		if ((d1->type == MLX5_FLOW_DESTINATION_TYPE_VPORT &&
--		     d1->vport_num == d2->vport_num) ||
-+		     d1->vport.num == d2->vport.num) ||
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
- 		     d1->ft == d2->ft) ||
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 47aecc4fa8c2..9f4d32e41c06 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -90,8 +90,12 @@ struct mlx5_flow_destination {
- 	union {
- 		u32			tir_num;
- 		struct mlx5_flow_table	*ft;
--		u32			vport_num;
- 		struct mlx5_fc		*counter;
-+		struct {
-+			u16		num;
-+			u16		vhca_id;
-+			bool		vhca_id_valid;
-+		} vport;
- 	};
- };
+@@ -1372,6 +1372,8 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
+ 	struct mlx5_core_dev *dev = get_dev(&ft->node);
+ 	int inlen = MLX5_ST_SZ_BYTES(create_flow_group_in);
+ 	void *match_criteria_addr;
++	u8 src_esw_owner_mask_on;
++	void *misc;
+ 	int err;
+ 	u32 *in;
  
+@@ -1384,6 +1386,14 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
+ 	MLX5_SET(create_flow_group_in, in, start_flow_index, fg->start_index);
+ 	MLX5_SET(create_flow_group_in, in, end_flow_index,   fg->start_index +
+ 		 fg->max_ftes - 1);
++
++	misc = MLX5_ADDR_OF(fte_match_param, fg->mask.match_criteria,
++			    misc_parameters);
++	src_esw_owner_mask_on = !!MLX5_GET(fte_match_set_misc, misc,
++					 source_eswitch_owner_vhca_id);
++	MLX5_SET(create_flow_group_in, in,
++		 source_eswitch_owner_vhca_id_valid, src_esw_owner_mask_on);
++
+ 	match_criteria_addr = MLX5_ADDR_OF(create_flow_group_in,
+ 					   in, match_criteria);
+ 	memcpy(match_criteria_addr, fg->mask.match_criteria,
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index ef15f751a984..3d17709bc30c 100644
+index 3d17709bc30c..9c3538f1b8b9 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1148,8 +1148,9 @@ enum mlx5_flow_destination_type {
- struct mlx5_ifc_dest_format_struct_bits {
- 	u8         destination_type[0x8];
- 	u8         destination_id[0x18];
--
--	u8         reserved_at_20[0x20];
-+	u8         destination_eswitch_owner_vhca_id_valid[0x1];
-+	u8         reserved_at_21[0xf];
-+	u8         destination_eswitch_owner_vhca_id[0x10];
- };
+@@ -412,7 +412,7 @@ struct mlx5_ifc_fte_match_set_misc_bits {
+ 	u8         reserved_at_0[0x8];
+ 	u8         source_sqn[0x18];
  
- struct mlx5_ifc_flow_counter_list_bits {
+-	u8         reserved_at_20[0x10];
++	u8         source_eswitch_owner_vhca_id[0x10];
+ 	u8         source_port[0x10];
+ 
+ 	u8         outer_second_prio[0x3];
+@@ -6995,7 +6995,9 @@ struct mlx5_ifc_create_flow_group_in_bits {
+ 	u8         reserved_at_a0[0x8];
+ 	u8         table_id[0x18];
+ 
+-	u8         reserved_at_c0[0x20];
++	u8         source_eswitch_owner_vhca_id_valid[0x1];
++
++	u8         reserved_at_c1[0x1f];
+ 
+ 	u8         start_flow_index[0x20];
+ 
 -- 
 2.17.0
