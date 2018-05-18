@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 08/15] net/mlx5: Add source e-switch owner
-Date: Thu, 17 May 2018 18:22:51 -0700
-Message-ID: <20180518012258.26968-9-saeedm@mellanox.com>
+Subject: [for-next 09/15] net/mlx5e: Explicitly set source e-switch in offloaded TC rules
+Date: Thu, 17 May 2018 18:22:52 -0700
+Message-ID: <20180518012258.26968-10-saeedm@mellanox.com>
 References: <20180518012258.26968-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180518012258.26968-1-saeedm@mellanox.com>
@@ -12,74 +12,63 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Shahar Klein <shahark@mellanox.com>
 
-The source e-switch owner allows a vport on one e-switch port be associated
-with a rule defined on the second port e-switch.
-
-The role of the source eswitch owner valid bit in the flow group is to
-allow the firmware fail driver attempts to wild card the source eswitch
-match field. If this bit is not set, the firmware ignores the source
-eswitch owner field totally.
+Set a specific source e-switch when setting a rule that matches on the
+ingress port.
 
 Signed-off-by: Shahar Klein <shahark@mellanox.com>
 Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Reviewed-by: Roi Dayan <roid@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 10 ++++++++++
- include/linux/mlx5/mlx5_ifc.h                     |  6 ++++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c           | 1 +
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h         | 1 +
+ .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 8 ++++++++
+ 3 files changed, 10 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index 5a80279b052a..b1a2ca0ff320 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1372,6 +1372,8 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
- 	struct mlx5_core_dev *dev = get_dev(&ft->node);
- 	int inlen = MLX5_ST_SZ_BYTES(create_flow_group_in);
- 	void *match_criteria_addr;
-+	u8 src_esw_owner_mask_on;
-+	void *misc;
- 	int err;
- 	u32 *in;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 880adc810ccc..1d2ba687b902 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -2462,6 +2462,7 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
  
-@@ -1384,6 +1386,14 @@ static int create_auto_flow_group(struct mlx5_flow_table *ft,
- 	MLX5_SET(create_flow_group_in, in, start_flow_index, fg->start_index);
- 	MLX5_SET(create_flow_group_in, in, end_flow_index,   fg->start_index +
- 		 fg->max_ftes - 1);
+ 	memset(attr, 0, sizeof(*attr));
+ 	attr->in_rep = rpriv->rep;
++	attr->in_mdev = priv->mdev;
+ 
+ 	tcf_exts_to_list(exts, &actions);
+ 	list_for_each_entry(a, &actions, list) {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+index ac5db54823a1..98a306e02640 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
+@@ -231,6 +231,7 @@ struct mlx5_esw_flow_attr {
+ 	struct mlx5_eswitch_rep *in_rep;
+ 	struct mlx5_eswitch_rep *out_rep;
+ 	struct mlx5_core_dev	*out_mdev;
++	struct mlx5_core_dev	*in_mdev;
+ 
+ 	int	action;
+ 	__be16	vlan_proto;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index ea93867d1ab4..6c83eef5141a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -93,8 +93,16 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 	misc = MLX5_ADDR_OF(fte_match_param, spec->match_value, misc_parameters);
+ 	MLX5_SET(fte_match_set_misc, misc, source_port, attr->in_rep->vport);
+ 
++	if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
++		MLX5_SET(fte_match_set_misc, misc,
++			 source_eswitch_owner_vhca_id,
++			 MLX5_CAP_GEN(attr->in_mdev, vhca_id));
 +
-+	misc = MLX5_ADDR_OF(fte_match_param, fg->mask.match_criteria,
-+			    misc_parameters);
-+	src_esw_owner_mask_on = !!MLX5_GET(fte_match_set_misc, misc,
-+					 source_eswitch_owner_vhca_id);
-+	MLX5_SET(create_flow_group_in, in,
-+		 source_eswitch_owner_vhca_id_valid, src_esw_owner_mask_on);
-+
- 	match_criteria_addr = MLX5_ADDR_OF(create_flow_group_in,
- 					   in, match_criteria);
- 	memcpy(match_criteria_addr, fg->mask.match_criteria,
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 3d17709bc30c..9c3538f1b8b9 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -412,7 +412,7 @@ struct mlx5_ifc_fte_match_set_misc_bits {
- 	u8         reserved_at_0[0x8];
- 	u8         source_sqn[0x18];
+ 	misc = MLX5_ADDR_OF(fte_match_param, spec->match_criteria, misc_parameters);
+ 	MLX5_SET_TO_ONES(fte_match_set_misc, misc, source_port);
++	if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
++		MLX5_SET_TO_ONES(fte_match_set_misc, misc,
++				 source_eswitch_owner_vhca_id);
  
--	u8         reserved_at_20[0x10];
-+	u8         source_eswitch_owner_vhca_id[0x10];
- 	u8         source_port[0x10];
- 
- 	u8         outer_second_prio[0x3];
-@@ -6995,7 +6995,9 @@ struct mlx5_ifc_create_flow_group_in_bits {
- 	u8         reserved_at_a0[0x8];
- 	u8         table_id[0x18];
- 
--	u8         reserved_at_c0[0x20];
-+	u8         source_eswitch_owner_vhca_id_valid[0x1];
-+
-+	u8         reserved_at_c1[0x1f];
- 
- 	u8         start_flow_index[0x20];
- 
+ 	spec->match_criteria_enable = MLX5_MATCH_OUTER_HEADERS |
+ 				      MLX5_MATCH_MISC_PARAMETERS;
 -- 
 2.17.0
