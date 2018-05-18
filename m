@@ -1,117 +1,472 @@
-From: Don Dutile <ddutile@redhat.com>
-Subject: Re: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug check_sync
- warning
-Date: Thu, 17 May 2018 19:01:30 -0400
-Message-ID: <5372c148-a07c-64bb-5608-9ec64a90ef73@redhat.com>
-References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
- <20180516013137.12474.10259.stgit@scvm10.sc.intel.com>
- <20180516200441.GN25661@ziepe.ca>
- <4039808d-7997-8b95-f1b9-d3d1d181f00e@intel.com>
- <20180517151057.GC10842@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180517151057.GC10842@ziepe.ca>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+From: Long Li <longli@linuxonhyperv.com>
+Subject: [RFC PATCH 08/09] Implement direct file I/O interfaces
+Date: Thu, 17 May 2018 17:22:13 -0700
+Message-ID: <20180518002214.5657-9-longli@linuxonhyperv.com>
+References: <20180518002214.5657-1-longli@linuxonhyperv.com>
+Reply-To: longli@microsoft.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180518002214.5657-1-longli@linuxonhyperv.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/17/2018 11:10 AM, Jason Gunthorpe wrote:
-> On Thu, May 17, 2018 at 11:03:49AM -0400, Dennis Dalessandro wrote:
->> On 5/16/2018 4:04 PM, Jason Gunthorpe wrote:
->>> On Tue, May 15, 2018 at 06:31:39PM -0700, Dennis Dalessandro wrote:
->>>> From: Alex Estrin <alex.estrin@intel.com>
->>>>
->>>> The following error message occurs on a target host in a debug build
->>>> during session login:
->>>>
->>>> [ 3524.411874] WARNING: CPU: 5 PID: 12063 at lib/dma-debug.c:1207 check_sync+0x4ec/0x5b0
->>>> [ 3524.421057] infiniband hfi1_0: DMA-API: device driver tries to sync DMA memory it has not allocated [device address=0x0000000000000000] [size=76 bytes]
->>>> ......snip .....
->>>>
->>>> [ 3524.535846] CPU: 5 PID: 12063 Comm: iscsi_np Kdump: loaded Not tainted 3.10.0-862.el7.x86_64.debug #1
->>>> [ 3524.546764] Hardware name: Dell Inc. PowerEdge R430/03XKDV, BIOS 1.2.6 06/08/2015
->>>> [ 3524.555740] Call Trace:
->>>> [ 3524.559102]  [<ffffffffa5fe915b>] dump_stack+0x19/0x1b
->>>> [ 3524.565477]  [<ffffffffa58a2f58>] __warn+0xd8/0x100
->>>> [ 3524.571557]  [<ffffffffa58a2fdf>] warn_slowpath_fmt+0x5f/0x80
->>>> [ 3524.578610]  [<ffffffffa5bf5b8c>] check_sync+0x4ec/0x5b0
->>>> [ 3524.585177]  [<ffffffffa58efc3f>] ? set_cpus_allowed_ptr+0x5f/0x1c0
->>>> [ 3524.592812]  [<ffffffffa5bf5cd0>] debug_dma_sync_single_for_cpu+0x80/0x90
->>>> [ 3524.601029]  [<ffffffffa586add3>] ? x2apic_send_IPI_mask+0x13/0x20
->>>> [ 3524.608574]  [<ffffffffa585ee1b>] ? native_smp_send_reschedule+0x5b/0x80
->>>> [ 3524.616699]  [<ffffffffa58e9b76>] ? resched_curr+0xf6/0x140
->>>> [ 3524.623567]  [<ffffffffc0879af0>] isert_create_send_desc.isra.26+0xe0/0x110 [ib_isert]
->>>> [ 3524.633060]  [<ffffffffc087af95>] isert_put_login_tx+0x55/0x8b0 [ib_isert]
->>>> [ 3524.641383]  [<ffffffffa58ef114>] ? try_to_wake_up+0x1a4/0x430
->>>> [ 3524.648561]  [<ffffffffc098cfed>] iscsi_target_do_tx_login_io+0xdd/0x230 [iscsi_target_mod]
->>>> [ 3524.658557]  [<ffffffffc098d827>] iscsi_target_do_login+0x1a7/0x600 [iscsi_target_mod]
->>>> [ 3524.668084]  [<ffffffffa59f9bc9>] ? kstrdup+0x49/0x60
->>>> [ 3524.674420]  [<ffffffffc098e976>] iscsi_target_start_negotiation+0x56/0xc0 [iscsi_target_mod]
->>>> [ 3524.684656]  [<ffffffffc098c2ee>] __iscsi_target_login_thread+0x90e/0x1070 [iscsi_target_mod]
->>>> [ 3524.694901]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
->>>> [ 3524.705446]  [<ffffffffc098ca50>] ? __iscsi_target_login_thread+0x1070/0x1070 [iscsi_target_mod]
->>>> [ 3524.715976]  [<ffffffffc098ca78>] iscsi_target_login_thread+0x28/0x60 [iscsi_target_mod]
->>>> [ 3524.725739]  [<ffffffffa58d60ff>] kthread+0xef/0x100
->>>> [ 3524.732007]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
->>>> [ 3524.739540]  [<ffffffffa5fff1b7>] ret_from_fork_nospec_begin+0x21/0x21
->>>> [ 3524.747558]  [<ffffffffa58d6010>] ? insert_kthread_work+0x80/0x80
->>>> [ 3524.755088] ---[ end trace 23f8bf9238bd1ed8 ]---
->>>> [ 3595.510822] iSCSI/iqn.1994-05.com.redhat:537fa56299: Unsupported SCSI Opcode 0xa3, sending CHECK_CONDITION.
->>>>
->>>> The code calls dma_sync on login_tx_desc->dma_addr prior to initializing it
->>>> with dma-mapped address.
->>>> login_tx_desc is a part of iser_conn structure and is used only once
->>>> during login negotiation, so the issue is fixed by eliminating
->>>> dma_sync call for this buffer using a special case routine.
->>>>
->>>> Cc: <stable@vger.kernel.org>
->>>> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
->>>> Reviewed-by: Don Dutile <ddutile@redhat.com>
->>>> Signed-off-by: Alex Estrin <alex.estrin@intel.com>
->>>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
->>>>   drivers/infiniband/ulp/isert/ib_isert.c |   26 +++++++++++++++++---------
->>>>   1 files changed, 17 insertions(+), 9 deletions(-)
->>>
->>> This sounds like -rc material? Why is it for-next?
->>
->> Should something that only occurs in a debug build be considered -rc
->> material?
-> 
-> Usually errors produced in debug builds reflect some kind of real-world
-> error as well.
-> 
-> Calling dma_sync on random garbage seems like the sort of thing that
-> might crash on some archs?? But I guess HFI1 don't care about that..
-> 
-> Jason
-> 
-That's not the case here.
-What is actually happening is a blind, dma-sync call before any DMA is being done, and the call is not needed.
+From: Long Li <longli@microsoft.com>
 
-Additionally, I believe dma-debug has a bug:
-  -- doing a check on an op when there is no op in the dma-ops struct is not correct:
-static inline void dma_sync_single_for_cpu(struct device *dev, dma_addr_t addr,
-                                            size_t size,
-                                            enum dma_data_direction dir)
-{
-         struct dma_map_ops *ops = get_dma_ops(dev);
+Implement the main filesystem interface for doing read and write. These functions
+don't copy the user data into a kenrel buffer for data transfer. Pages are directly
+pinned and passed to the RDMA transport.
 
-         BUG_ON(!valid_dma_direction(dir));
-         if (ops->sync_single_for_cpu)
-                 ops->sync_single_for_cpu(dev, addr, size, dir);
-         debug_dma_sync_single_for_cpu(dev, addr, size, dir);
-}
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ fs/cifs/cifsfs.c |  19 ++++
+ fs/cifs/cifsfs.h |   3 +
+ fs/cifs/file.c   | 322 ++++++++++++++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 329 insertions(+), 15 deletions(-)
 
-Note: above: debug_dma_sync is called indep of whether an op function exists.
-For hfi1 & qib & rxe -- which use dma-virt-ops for non-IOMMU-enabled configs,
-the sync_syngle_for_cpu ops does not exist, yet debug_dma_sync is still called.
-
-
-Christoph:
-care to comment, since you've done a fair amount in this space?
-
-- Don
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index f715609..ba19fed 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -1118,6 +1118,25 @@ const struct file_operations cifs_file_direct_ops = {
+ 	.fallocate = cifs_fallocate,
+ };
+ 
++const struct file_operations cifs_file_direct_rdma_ops = {
++	.read_iter = cifs_direct_readv,
++	.write_iter = cifs_direct_writev,
++	.open = cifs_open,
++	.release = cifs_close,
++	.lock = cifs_lock,
++	.fsync = cifs_fsync,
++	.flush = cifs_flush,
++	.mmap = cifs_file_mmap,
++	.splice_read = generic_file_splice_read,
++	.splice_write = iter_file_splice_write,
++	.unlocked_ioctl  = cifs_ioctl,
++	.copy_file_range = cifs_copy_file_range,
++	.clone_file_range = cifs_clone_file_range,
++	.llseek = cifs_llseek,
++	.setlease = cifs_setlease,
++	.fallocate = cifs_fallocate,
++};
++
+ const struct file_operations cifs_file_nobrl_ops = {
+ 	.read_iter = cifs_loose_read_iter,
+ 	.write_iter = cifs_file_write_iter,
+diff --git a/fs/cifs/cifsfs.h b/fs/cifs/cifsfs.h
+index 013ba2a..223cca8 100644
+--- a/fs/cifs/cifsfs.h
++++ b/fs/cifs/cifsfs.h
+@@ -94,6 +94,7 @@ extern const struct inode_operations cifs_dfs_referral_inode_operations;
+ /* Functions related to files and directories */
+ extern const struct file_operations cifs_file_ops;
+ extern const struct file_operations cifs_file_direct_ops; /* if directio mnt */
++extern const struct file_operations cifs_file_direct_rdma_ops; /* if directio mnt */
+ extern const struct file_operations cifs_file_strict_ops; /* if strictio mnt */
+ extern const struct file_operations cifs_file_nobrl_ops; /* no brlocks */
+ extern const struct file_operations cifs_file_direct_nobrl_ops;
+@@ -102,8 +103,10 @@ extern int cifs_open(struct inode *inode, struct file *file);
+ extern int cifs_close(struct inode *inode, struct file *file);
+ extern int cifs_closedir(struct inode *inode, struct file *file);
+ extern ssize_t cifs_user_readv(struct kiocb *iocb, struct iov_iter *to);
++extern ssize_t cifs_direct_readv(struct kiocb *iocb, struct iov_iter *to);
+ extern ssize_t cifs_strict_readv(struct kiocb *iocb, struct iov_iter *to);
+ extern ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from);
++extern ssize_t cifs_direct_writev(struct kiocb *iocb, struct iov_iter *from);
+ extern ssize_t cifs_strict_writev(struct kiocb *iocb, struct iov_iter *from);
+ extern int cifs_lock(struct file *, int, struct file_lock *);
+ extern int cifs_fsync(struct file *, loff_t, loff_t, int);
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index e240c7c..0b394db 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2452,15 +2452,46 @@ cifs_uncached_writedata_release(struct kref *refcount)
+ 	int i;
+ 	struct cifs_writedata *wdata = container_of(refcount,
+ 					struct cifs_writedata, refcount);
++	struct page **pages = wdata->direct_pages ? wdata->direct_pages : wdata->pages;
+ 
+ 	kref_put(&wdata->ctx->refcount, cifs_aio_ctx_release);
+ 	for (i = 0; i < wdata->nr_pages; i++)
+-		put_page(wdata->pages[i]);
++		put_page(pages[i]);
+ 	cifs_writedata_release(refcount);
+ }
+ 
+ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx);
+ 
++static void cifs_direct_writedata_release(struct kref *refcount)
++{
++	int i;
++	struct cifs_writedata *wdata = container_of(refcount,
++					struct cifs_writedata, refcount);
++
++	for (i = 0; i < wdata->nr_pages; i++)
++		put_page(wdata->direct_pages[i]);
++	kvfree(wdata->direct_pages);
++
++	cifs_writedata_release(refcount);
++}
++
++static void cifs_direct_writev_complete(struct work_struct *work)
++{
++	struct cifs_writedata *wdata = container_of(work,
++					struct cifs_writedata, work);
++	struct inode *inode = d_inode(wdata->cfile->dentry);
++	struct cifsInodeInfo *cifsi = CIFS_I(inode);
++
++	spin_lock(&inode->i_lock);
++	cifs_update_eof(cifsi, wdata->offset, wdata->bytes);
++	if (cifsi->server_eof > inode->i_size)
++		i_size_write(inode, cifsi->server_eof);
++	spin_unlock(&inode->i_lock);
++
++	complete(&wdata->done);
++	kref_put(&wdata->refcount, cifs_direct_writedata_release);
++}
++
+ static void
+ cifs_uncached_writev_complete(struct work_struct *work)
+ {
+@@ -2703,6 +2734,125 @@ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx)
+ 		complete(&ctx->done);
+ }
+ 
++ssize_t cifs_direct_writev(struct kiocb *iocb, struct iov_iter *from)
++{
++	struct file *file = iocb->ki_filp;
++	ssize_t total_written = 0;
++	struct cifsFileInfo *cfile;
++	struct cifs_tcon *tcon;
++	struct cifs_sb_info *cifs_sb;
++	struct TCP_Server_Info *server;
++	pid_t pid;
++	unsigned long nr_pages;
++	loff_t offset = iocb->ki_pos;
++	size_t len = iov_iter_count(from);
++	int rc;
++	struct cifs_writedata *wdata;
++
++	rc = generic_write_checks(iocb, from);
++	if (rc <= 0)
++		return rc;
++
++	cifs_sb = CIFS_FILE_SB(file);
++	cfile = file->private_data;
++	tcon = tlink_tcon(cfile->tlink);
++	server = tcon->ses->server;
++
++	if (!server->ops->async_writev)
++		return -ENOSYS;
++
++	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_RWPIDFORWARD)
++		pid = cfile->pid;
++	else
++		pid = current->tgid;
++
++	do {
++		unsigned int wsize, credits;
++		struct page **pagevec;
++		size_t start;
++		ssize_t cur_len;
++
++		rc = server->ops->wait_mtu_credits(server, cifs_sb->wsize,
++						   &wsize, &credits);
++		if (rc)
++			break;
++
++		cur_len = iov_iter_get_pages_alloc(from, &pagevec, wsize, &start);
++		if (cur_len < 0) {
++			cifs_dbg(VFS, "direct_writev couldn't get user pages (rc=%zd) iter type %d iov_offset %lu count %lu\n", cur_len, from->type, from->iov_offset, from->count);
++			dump_stack();
++			break;
++		}
++		if (cur_len < 0)
++			break;
++
++		nr_pages = (cur_len + start + PAGE_SIZE -1) / PAGE_SIZE;
++
++		wdata = cifs_writedata_alloc(nr_pages, pagevec,
++					     cifs_direct_writev_complete);
++		if (!wdata) {
++			rc = -ENOMEM;
++			add_credits_and_wake_if(server, credits, 0);
++			break;
++		}
++
++		wdata->nr_pages = nr_pages;
++		wdata->page_offset = start;
++		wdata->pagesz = PAGE_SIZE;
++		wdata->tailsz =
++			nr_pages > 1 ?
++			cur_len - (PAGE_SIZE-start) - (nr_pages - 2)*PAGE_SIZE :
++			cur_len;
++
++		wdata->sync_mode = WB_SYNC_ALL;
++		wdata->offset = (__u64)offset;
++		wdata->cfile = cifsFileInfo_get(cfile);
++		wdata->pid = pid;
++		wdata->bytes = cur_len;
++		wdata->credits = credits;
++
++		kref_get(&wdata->refcount);
++
++		if (!wdata->cfile->invalidHandle ||
++		    !(rc = cifs_reopen_file(wdata->cfile, false)))
++			rc = server->ops->async_writev(wdata,
++					cifs_direct_writedata_release);
++		if (rc) {
++			add_credits_and_wake_if(server, wdata->credits, 0);
++			kref_put(&wdata->refcount,
++				 cifs_writedata_release);
++			if (rc == -EAGAIN)
++				continue;
++			break;
++		} else
++			wait_for_completion(&wdata->done);
++
++		if (wdata->result) {
++			rc = wdata->result;
++			kref_put(&wdata->refcount, cifs_direct_writedata_release);
++			if (rc == -EAGAIN)
++				continue;
++			break;
++		}
++
++		kref_put(&wdata->refcount, cifs_direct_writedata_release);
++
++		iov_iter_advance(from, cur_len);
++		total_written += cur_len;
++		offset += cur_len;
++		len -= cur_len;
++	} while (len);
++
++	if (unlikely(!total_written)) {
++		printk(KERN_ERR "%s: total_written=%ld rc=%d\n", __func__, total_written, rc);
++		return rc;
++	}
++
++	iocb->ki_pos += total_written;
++	return total_written;
++
++}
++
+ ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+@@ -2942,18 +3092,30 @@ cifs_read_allocate_pages(struct cifs_readdata *rdata, unsigned int nr_pages)
+ 	return rc;
+ }
+ 
++static void cifs_direct_readdata_release(struct kref *refcount)
++{
++	struct cifs_readdata *rdata = container_of(refcount,
++					struct cifs_readdata, refcount);
++	unsigned int i;
++	for (i = 0; i < rdata->nr_pages; i++) {
++		put_page(rdata->direct_pages[i]);
++	}
++	kvfree(rdata->direct_pages);
++
++	cifs_readdata_release(refcount);
++}
++
+ static void
+ cifs_uncached_readdata_release(struct kref *refcount)
+ {
+ 	struct cifs_readdata *rdata = container_of(refcount,
+ 					struct cifs_readdata, refcount);
+ 	unsigned int i;
++	struct page **pages = rdata->direct_pages ? rdata->direct_pages : rdata->pages;
+ 
+ 	kref_put(&rdata->ctx->refcount, cifs_aio_ctx_release);
+-	for (i = 0; i < rdata->nr_pages; i++) {
+-		put_page(rdata->pages[i]);
+-		rdata->pages[i] = NULL;
+-	}
++	for (i = 0; i < rdata->nr_pages; i++)
++		put_page(pages[i]);
+ 	cifs_readdata_release(refcount);
+ }
+ 
+@@ -3013,30 +3175,32 @@ uncached_fill_pages(struct TCP_Server_Info *server,
+ 	int result = 0;
+ 	unsigned int i;
+ 	unsigned int nr_pages = rdata->nr_pages;
++	unsigned int page_offset = rdata->page_offset;
+ 
+ 	rdata->got_bytes = 0;
+ 	rdata->tailsz = PAGE_SIZE;
+ 	for (i = 0; i < nr_pages; i++) {
+-		struct page *page = rdata->pages[i];
++		struct page *page = rdata->direct_pages ? rdata->direct_pages[i] : rdata->pages[i];
+ 		size_t n;
++		unsigned int segment_size = rdata->pagesz;
++
++		if (i == 0)
++			segment_size -= page_offset;
++		else
++			page_offset = 0;
++
+ 
+ 		if (len <= 0) {
+ 			/* no need to hold page hostage */
+-			rdata->pages[i] = NULL;
+ 			rdata->nr_pages--;
+ 			put_page(page);
+ 			continue;
+ 		}
+ 		n = len;
+-		if (len >= PAGE_SIZE) {
++		if (len >= segment_size)
+ 			/* enough data to fill the page */
+-			n = PAGE_SIZE;
+-			len -= n;
+-		} else {
+-			zero_user(page, len, PAGE_SIZE - len);
+-			rdata->tailsz = len;
+-			len = 0;
+-		}
++			n = segment_size;
++		len -= n;
+ 		if (iter)
+ 			result = copy_page_from_iter(page, 0, n, iter);
+ #ifdef CONFIG_CIFS_SMB_DIRECT
+@@ -3243,6 +3407,134 @@ collect_uncached_read_data(struct cifs_aio_ctx *ctx)
+ 		complete(&ctx->done);
+ }
+ 
++static void cifs_direct_readv_complete(struct work_struct *work)
++{
++	struct cifs_readdata *rdata = container_of(work, struct cifs_readdata, work);
++	int i = 0;
++	unsigned int bytes = 0;
++
++	// Set them dirty?
++	while (bytes < rdata->got_bytes + rdata->page_offset) {
++		set_page_dirty(rdata->direct_pages[i++]);
++		bytes += rdata->pagesz;
++	}
++	
++	complete(&rdata->done);
++	kref_put(&rdata->refcount, cifs_direct_readdata_release);
++}
++
++ssize_t cifs_direct_readv(struct kiocb *iocb, struct iov_iter *to)
++{
++	size_t len, cur_len, start;
++	unsigned int npages, rsize, credits;
++	struct file *file;
++	struct cifs_sb_info *cifs_sb;
++	struct cifsFileInfo *cfile;
++	struct cifs_tcon *tcon;
++	struct page **pagevec;
++	ssize_t rc, total_read = 0;
++	struct TCP_Server_Info *server;
++	loff_t offset = iocb->ki_pos;
++	pid_t pid;
++	struct cifs_readdata *rdata;
++	char *buf = to->iov->iov_base;
++
++	len = iov_iter_count(to);
++	if (!len)
++		return 0;
++
++	file = iocb->ki_filp;
++	cifs_sb = CIFS_FILE_SB(file);
++	cfile = file->private_data;
++	tcon = tlink_tcon(cfile->tlink);
++	server = tcon->ses->server;
++
++	if (!server->ops->async_readv)
++		return -ENOSYS;
++
++	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_RWPIDFORWARD)
++		pid = cfile->pid;
++	else
++		pid = current->tgid;
++
++	if ((file->f_flags & O_ACCMODE) == O_WRONLY)
++		cifs_dbg(FYI, "attempting read on write only file instance\n");
++
++	do {
++		rc = server->ops->wait_mtu_credits(server, cifs_sb->rsize,
++					&rsize, &credits);
++		if (rc)
++			break;
++
++		cur_len = min_t(const size_t, len, rsize);
++
++		rc = iov_iter_get_pages_alloc(to, &pagevec, cur_len, &start);
++		if (rc < 0) {
++			cifs_dbg(VFS, "couldn't get user pages (rc=%zd) iter type %d iov_offset %lu count %lu\n", rc, to->type, to->iov_offset, to->count);
++			dump_stack();
++			break;
++		}
++
++		rdata = cifs_readdata_alloc(0, pagevec, cifs_direct_readv_complete);
++		if (!rdata) {
++			add_credits_and_wake_if(server, credits, 0);
++			rc = -ENOMEM;
++			break;
++		}
++
++		npages = (rc + start + PAGE_SIZE-1) / PAGE_SIZE;
++		rdata->nr_pages = npages;
++		rdata->page_offset = start;
++		rdata->pagesz = PAGE_SIZE;
++		rdata->tailsz = npages > 1 ?
++				rc-(PAGE_SIZE-start)-(npages-2)*PAGE_SIZE :
++				rc;
++		cur_len = rc;
++
++		rdata->cfile = cfile;
++		rdata->offset = offset;
++		rdata->bytes = rc;
++		rdata->pid = pid;
++		rdata->read_into_pages = cifs_uncached_read_into_pages;
++		rdata->copy_into_pages = cifs_uncached_copy_into_pages;
++		rdata->credits = credits;
++
++		kref_get(&rdata->refcount);
++
++		if (!rdata->cfile->invalidHandle ||
++		    !(rc = cifs_reopen_file(rdata->cfile, true)))
++			rc = server->ops->async_readv(rdata);
++
++		if (rc) {
++			add_credits_and_wake_if(server, rdata->credits, 0);
++			kref_put(&rdata->refcount,
++				 cifs_direct_readdata_release);
++			if (rc == -EAGAIN)
++				continue;
++		} else
++			wait_for_completion(&rdata->done);
++
++		rc = rdata->result;
++		if (rc) {
++			kref_put(&rdata->refcount, cifs_direct_readdata_release);
++			if (rc == -EAGAIN)
++				continue;
++			break;
++		}
++
++		total_read += rdata->got_bytes;
++		kref_put(&rdata->refcount, cifs_direct_readdata_release);
++
++		iov_iter_advance(to, cur_len);
++		len -= cur_len;
++		offset += cur_len;
++	} while (len);
++
++	iocb->ki_pos += total_read;
++
++	return total_read;
++}
++
+ ssize_t cifs_user_readv(struct kiocb *iocb, struct iov_iter *to)
+ {
+ 	struct file *file = iocb->ki_filp;
+-- 
+2.7.4
