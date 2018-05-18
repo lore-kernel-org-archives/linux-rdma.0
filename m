@@ -1,73 +1,68 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 4/5] RDMA/hns: Add reset process for RoCE in
- hip08
-Date: Thu, 17 May 2018 22:15:02 -0600
-Message-ID: <20180518041502.GS10842@ziepe.ca>
-References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
- <1526544173-106587-5-git-send-email-xavier.huwei@huawei.com>
- <20180517151459.GD10842@ziepe.ca>
- <5AFE484B.2080206@huawei.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [RFC PATCH 00/09] Implement direct user I/O interfaces for RDMA
+Date: Fri, 18 May 2018 06:03:09 +0000
+Message-ID: <MWHPR2101MB0729BFF8F0A397805087C3A4CE900@MWHPR2101MB0729.namprd21.prod.outlook.com>
+References: <20180518002214.5657-1-longli@linuxonhyperv.com>
+ <d5eaf67d-4b0d-9206-a016-67cb3b5a0df8@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5AFE484B.2080206@huawei.com>
+In-Reply-To: <d5eaf67d-4b0d-9206-a016-67cb3b5a0df8@talpey.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
+To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 18, 2018 at 11:28:11AM +0800, Wei Hu (Xavier) wrote:
-> 
-> 
-> On 2018/5/17 23:14, Jason Gunthorpe wrote:
-> > On Thu, May 17, 2018 at 04:02:52PM +0800, Wei Hu (Xavier) wrote:
-> >> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >> index 86ef15f..e1c44a6 100644
-> >> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >> @@ -774,6 +774,9 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
-> >>  	int ret = 0;
-> >>  	int ntc;
-> >>  
-> >> +	if (hr_dev->is_reset)
-> >> +		return 0;
-> >> +
-> >>  	spin_lock_bh(&csq->lock);
-> >>  
-> >>  	if (num > hns_roce_cmq_space(csq)) {
-> >> @@ -4790,6 +4793,7 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
-> >>  	return 0;
-> >>  
-> >>  error_failed_get_cfg:
-> >> +	handle->priv = NULL;
-> >>  	kfree(hr_dev->priv);
-> >>  
-> >>  error_failed_kzalloc:
-> >> @@ -4803,14 +4807,70 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
-> >>  {
-> >>  	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
-> >>  
-> >> +	if (!hr_dev)
-> >> +		return;
-> >> +
-> >>  	hns_roce_exit(hr_dev);
-> >> +	handle->priv = NULL;
-> >>  	kfree(hr_dev->priv);
-> >>  	ib_dealloc_device(&hr_dev->ib_dev);
-> >>  }
-> > Why are these hunks here? If init fails then uninit should not be
-> > called, so why meddle with priv?
-> In hns_roce_hw_v2_init_instance function, we evaluate handle->priv with 
-> hr_dev,
-> We want clear the value in hns_roce_hw_v2_uninit_instance function.
-> So we can ensure no problem in RoCE driver.
-
-What problem could happen?
-
-I keep removing unnecessary sets to null and checks of null, so please
-don't add them if they cannot happen.
-
-Eg uninit should never be called with a null priv, that is a serious
-logic mis-design someplace if it happens.
-
-Jason
+PiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCAwMC8wOV0gSW1wbGVtZW50IGRpcmVjdCB1c2VyIEkv
+TyBpbnRlcmZhY2VzIGZvcg0KPiBSRE1BDQo+IA0KPiBPbiA1LzE3LzIwMTggODoyMiBQTSwgTG9u
+ZyBMaSB3cm90ZToNCj4gPiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4g
+Pg0KPiA+IFRoaXMgcGF0Y2hzZXQgaW1wbGVtZW50cyBkaXJlY3QgdXNlciBJL08gdGhyb3VnaCBS
+RE1BLg0KPiA+DQo+ID4gSW4gbm9ybWFsIGNvZGUgcGF0aCAoZXZlbiB3aXRoIGNhY2hlPW5vbmUp
+LCBDSUZTIGNvcGllcyBJL08gZGF0YSBmcm9tDQo+ID4gdXNlci1zcGFjZSB0byBrZXJuZWwtc3Bh
+Y2UgZm9yIHNlY3VyaXR5IHJlYXNvbnMuDQo+ID4NCj4gPiBXaXRoIHRoaXMgcGF0Y2hzZXQsIGEg
+bmV3IG1vdW50aW5nIG9wdGlvbiBpcyBpbnRyb2R1Y2VkIHRvIGhhdmUgQ0lGUw0KPiA+IHBpbiB0
+aGUgdXNlci1zcGFjZSBidWZmZXIgaW50byBtZW1vcnkgYW5kIHBlcmZvcm1zIEkvTyB0aHJvdWdo
+IFJETUEuDQo+ID4gVGhpcyBhdm9pZHMgbWVtb3J5IGNvcHksIGF0IHRoZSBjb3N0IG9mIGFkZGVk
+IHNlY3VyaXR5IHJpc2suDQo+IA0KPiBXaGF0J3MgdGhlIHNlY3VyaXR5IHJpc2s/IFRoaXMgdHlw
+ZSBvZiBkaXJlY3QgaS9vIGJlaGF2aW9yIGlzIG5vdCB1bmNvbW1vbiwNCj4gYW5kIGNhbiBjZXJ0
+YWlubHkgYmUgbWFkZSBzYWZlLCB1c2luZyB0aGUgYXBwcm9wcmlhdGUgbWVtb3J5IHJlZ2lzdHJh
+dGlvbg0KPiBhbmQgcHJvdGVjdGlvbiBkb21haW5zLiBBbnkgcmlzayBuZWVkcyB0byBiZSBzdGF0
+ZWQgZXhwbGljaXRseSwgYW5kIG1pdGlnYXRpb24NCj4gcHJvdmlkZWQsIG9yIGF0IGxlYXN0IGRl
+c2NyaWJlZC4NCg0KSSB0aGluayBpdCdzIGFuIGFzc3VtcHRpb24gdGhhdCB1c2VyLW1vZGUgYnVm
+ZmVyIGNhbid0IGJlIHRydXN0ZWQsIHNvIENJRlMgYWx3YXlzIGNvcGllcyB0aGVtIGludG8gaW50
+ZXJuYWwgYnVmZmVycywgYW5kIGNhbGN1bGF0ZSBzaWduYXR1cmUgYW5kIGVuY3J5cHRpb24gYmFz
+ZWQgb24gcHJvdG9jb2wgdXNlZC4NCg0KV2l0aCB0aGUgZGlyZWN0IGJ1ZmZlciwgdGhlIHVzZXIg
+Y2FuIHBvdGVudGlhbGx5IG1vZGlmeSB0aGUgYnVmZmVyIHdoZW4gc2lnbmF0dXJlIG9yIGVuY3J5
+cHRpb24gaXMgaW4gcHJvZ3Jlc3Mgb3IgYWZ0ZXIgdGhleSBhcmUgZG9uZS4NCg0KSSBhbHNvIHdh
+bnQgdG8gcG9pbnQgb3V0IHRoYXQsIEkgY2hvb3NlIHRvIGltcGxlbWVudCAucmVhZF9pdGVyIGFu
+ZCAud3JpdGVfaXRlciBmcm9tIGZpbGVfb3BlcmF0aW9ucyB0byBpbXBsZW1lbnQgZGlyZWN0IEkv
+TyAoQ0lGUyBpcyBhbHJlYWR5IGRvaW5nIHRoaXMgZm9yIE9fRElSRUNULCBzbyBmb2xsb3dpbmcg
+dGhpcyBjb2RlIHBhdGggd2lsbCBhdm9pZCBhIGJpZyBtZXNzIHVwKS4gIFRoZSBpZGVhbCBjaG9p
+Y2UgaXMgdG8gaW1wbGVtZW50IC5kaXJlY3RfSU8gZnJvbSBhZGRyZXNzX3NwYWNlX29wZXJhdGlv
+bnMgdGhhdCBJIHRoaW5rIGV2ZW50dWFsbHkgd2Ugd2FudCB0byBtb3ZlIHRvLg0KDQo+IA0KPiBU
+b20uDQo+IA0KPiA+DQo+ID4gVGhpcyBwYXRjaHNldCBpcyBSRkMuIFRoZSB3b3JrIGlzIGluIHBy
+b2dyZXNzLCBkbyBub3QgbWVyZ2UuDQo+ID4NCj4gPg0KPiA+IExvbmcgTGkgKDkpOg0KPiA+ICAg
+IEludHJvZHVjZSBvZmZzZXQgZm9yIHRoZSAxc3QgcGFnZSBpbiBkYXRhIHRyYW5zZmVyIHN0cnVj
+dHVyZXMNCj4gPiAgICBDaGFuZ2Ugd2RhdGEgYWxsb2MgdG8gc3VwcG9ydCBkaXJlY3QgcGFnZXMN
+Cj4gPiAgICBDaGFuZ2UgcmRhdGEgYWxsb2MgdG8gc3VwcG9ydCBkaXJlY3QgcGFnZXMNCj4gPiAg
+ICBDaGFuZ2UgZnVuY3Rpb24gdG8gc3VwcG9ydCBvZmZzZXQgd2hlbiByZWFkaW5nIHBhZ2VzDQo+
+ID4gICAgQ2hhbmdlIFJETUEgc2VuZCB0byByZWdvbml6ZSBwYWdlIG9mZnNldCBpbiB0aGUgMXN0
+IHBhZ2UNCj4gPiAgICBDaGFuZ2UgUkRNQSByZWN2IHRvIHN1cHBvcnQgb2Zmc2V0IGluIHRoZSAx
+c3QgcGFnZQ0KPiA+ICAgIFN1cHBvcnQgcGFnZSBvZmZzZXQgaW4gbWVtb3J5IHJlZ3NpdHJhdGlv
+bnMNCj4gPiAgICBJbXBsZW1lbnQgbm8tY29weSBmaWxlIEkvTyBpbnRlcmZhY2VzDQo+ID4gICAg
+SW50cm9kdWNlIGNhY2hlPXJkbWEgbW91dG5pbmcgb3B0aW9uDQo+ID4NCj4gPg0KPiA+ICAgZnMv
+Y2lmcy9jaWZzX2ZzX3NiLmggICAgICB8ICAgMiArDQo+ID4gICBmcy9jaWZzL2NpZnNmcy5jICAg
+ICAgICAgIHwgIDE5ICsrKw0KPiA+ICAgZnMvY2lmcy9jaWZzZnMuaCAgICAgICAgICB8ICAgMyAr
+DQo+ID4gICBmcy9jaWZzL2NpZnNnbG9iLmggICAgICAgIHwgICA2ICsNCj4gPiAgIGZzL2NpZnMv
+Y2lmc3Byb3RvLmggICAgICAgfCAgIDQgKy0NCj4gPiAgIGZzL2NpZnMvY2lmc3NtYi5jICAgICAg
+ICAgfCAgMTAgKy0NCj4gPiAgIGZzL2NpZnMvY29ubmVjdC5jICAgICAgICAgfCAgMTMgKy0NCj4g
+PiAgIGZzL2NpZnMvZGlyLmMgICAgICAgICAgICAgfCAgIDUgKw0KPiA+ICAgZnMvY2lmcy9maWxl
+LmMgICAgICAgICAgICB8IDM1MQ0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKystLS0tDQo+ID4gICBmcy9jaWZzL2lub2RlLmMgICAgICAgICAgIHwgICA0ICstDQo+
+ID4gICBmcy9jaWZzL3NtYjJvcHMuYyAgICAgICAgIHwgICAyICstDQo+ID4gICBmcy9jaWZzL3Nt
+YjJwZHUuYyAgICAgICAgIHwgIDIyICsrLQ0KPiA+ICAgZnMvY2lmcy9zbWJkaXJlY3QuYyAgICAg
+ICB8IDEzMiArKysrKysrKysrLS0tLS0tLQ0KPiA+ICAgZnMvY2lmcy9zbWJkaXJlY3QuaCAgICAg
+ICB8ICAgMiArLQ0KPiA+ICAgZnMvcmVhZF93cml0ZS5jICAgICAgICAgICB8ICAgNyArDQo+ID4g
+ICBpbmNsdWRlL2xpbnV4L3JhdGVsaW1pdC5oIHwgICAyICstDQo+ID4gICAxNiBmaWxlcyBjaGFu
+Z2VkLCA0ODkgaW5zZXJ0aW9ucygrKSwgOTUgZGVsZXRpb25zKC0pDQo+ID4NCg==
