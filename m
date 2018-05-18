@@ -1,137 +1,56 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [pull request][for-next 00/15] Mellanox, mlx5 core and netdev
- updates 2018-05-17
-Date: Fri, 18 May 2018 11:21:25 -0600
-Message-ID: <20180518172125.GA15625@mellanox.com>
-References: <20180518012258.26968-1-saeedm@mellanox.com>
- <20180518.130351.456975805564832525.davem@davemloft.net>
+From: Don Dutile <ddutile@redhat.com>
+Subject: Re: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug check_sync
+ warning
+Date: Fri, 18 May 2018 13:50:17 -0400
+Message-ID: <78d118e0-890f-e368-9190-94e475204740@redhat.com>
+References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
+ <20180516013137.12474.10259.stgit@scvm10.sc.intel.com>
+ <20180516200441.GN25661@ziepe.ca>
+ <4039808d-7997-8b95-f1b9-d3d1d181f00e@intel.com>
+ <20180517151057.GC10842@ziepe.ca>
+ <5372c148-a07c-64bb-5608-9ec64a90ef73@redhat.com>
+ <20180518090030.GA24436@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180518.130351.456975805564832525.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: saeedm@mellanox.com, dledford@redhat.com, leonro@mellanox.com, ogerlitz@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180518090030.GA24436@lst.de>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 18, 2018 at 01:03:51PM -0400, David Miller wrote:
-> From: Saeed Mahameed <saeedm@mellanox.com>
-> Date: Thu, 17 May 2018 18:22:43 -0700
+On 05/18/2018 05:00 AM, Christoph Hellwig wrote:
+> On Thu, May 17, 2018 at 07:01:30PM -0400, Don Dutile wrote:
+>> Additionally, I believe dma-debug has a bug:
+>>   -- doing a check on an op when there is no op in the dma-ops struct is not correct:
 > 
-> > Below you can find two pull requests,
-> > 
-> > 1. mlx5 core updates to be shared for both netdev and RDMA, (patches 1..9)
-> >  which is based on the last mlx5-next pull request
-> >  
-> > The following changes since commit a8408f4e6db775e245f20edf12b13fd58cc03a1c:
-> > 
-> >   net/mlx5: fix spelling mistake: "modfiy" -> "modify" (2018-05-04 12:11:51 -0700)
-> > 
-> > are available in the Git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git tags/mlx5-updates-2018-05-17
-> > 
-> > for you to fetch changes up to 10ff5359f883412728ba816046ee3a696625ca02:
-> > 
-> >   net/mlx5e: Explicitly set source e-switch in offloaded TC rules (2018-05-17 14:17:35 -0700)
-> > 
-> > 2. mlx5e netdev updates only for net-next branch (patches 10..15) based on net-next
-> > and the above pull request.
-> > 
-> > The following changes since commit 538e2de104cfb4ef1acb35af42427bff42adbe4d:
-> > 
-> >   Merge branch 'net-Allow-more-drivers-with-COMPILE_TEST' (2018-05-17 17:11:07 -0400)
-> > 
-> > are available in the Git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux.git tags/mlx5e-updates-2018-05-17
-> > 
-> > for you to fetch changes up to a228060a7c9ab88597eeac131e4578595d5d46ae:
-> > 
-> >   net/mlx5e: Add HW vport counters to representor ethtool stats (2018-05-17 17:48:54 -0700)
-> > 
-> > Dave, for your convenience you can either pull 1. and then 2. or pull 2.
-> > directly.
+> No, that is a feature.
 > 
-> Looks good.
+>> Note: above: debug_dma_sync is called indep of whether an op function exists.
+>> For hfi1 & qib & rxe -- which use dma-virt-ops for non-IOMMU-enabled configs,
+>> the sync_syngle_for_cpu ops does not exist, yet debug_dma_sync is still called.
 > 
-> I pulled 1 then I pulled 2.  That seemed to work well.  Particularly
-> it allowed me to capture the two different merge commit messages one
-> by one.
+> Yes, if you call dma ops you better make sure you respect the invariants.
+> 
+> This is the only way to get the code right for the 90% case where people
+> develop on x86 with cache coherent DMA but do calls that only exist
+> on non-coherent implementations.
+> 
+So, if I re-state the above correctly, it's not an issue on x86 (a cache-coherent arch, where we saw
+this message occurred), but it would be on a non-cache-coherent arch.
+The 'feature' warns the caller even when run on an arch that its not a true issue/warning.
 
-Does this double up the merge commit though? I see this in Saeed's
-tags/mlx5e-updates-2018-05-17 ?
+So, to Jason's question as for-rc, no, unless someone has a case of running RDMA on a non-cache-coherent arch... which seems counter-intuitive -- high speed RDMA on low-speed/cache-incorehent arch.
 
-commit 260ab7042e24ccd4407985c6e775e39d064fab2b
-Merge: 538e2de104cfb4 10ff5359f88341
-Author: Saeed Mahameed <saeedm@mellanox.com>
-Date:   Thu May 17 17:47:09 2018 -0700
+Christoph:
+Would you object to a patch that more clearly states the above, i.e., still generates the warning but delineates that it's not an error on the given arch, but potentially other arch's?
 
-    Merge tag 'mlx5-updates-2018-05-17' of git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux
-    
-    mlx5-updates-2018-05-17
-    
-    mlx5 core dirver updates for both net-next and rdma-next branches.
-    
-    From Christophe JAILLET, first three patches to use kvfree where needed.
-    
-    From: Or Gerlitz <ogerlitz@mellanox.com>
-    
-    Next six patches from Roi and Co adds support for merged
-    sriov e-switch which comes to serve cases where both PFs, VFs set
-    on them and both uplinks are to be used in single v-switch SW model.
-    When merged e-switch is supported, the per-port e-switch is logically
-    merged into one e-switch that spans both physical ports and all the VFs.
-    
-    This model allows to offload TC eswitch rules between VFs belonging
-    to different PFs (and hence have different eswitch affinity), it also
-    sets the some of the foundations needed for uplink LAG support.
-    
-    Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+I'm getting a fairly decent set of lib/dma-debug bz's atm (since I backported latest dma-map refactoring
+& all of lib/dma-debug to RHEL-7), and I'd like to easily discern what needs to be fixed asap, e.g., not checking return value of dma_map(),  vs warnings (that will still be bz'd) I don't have to prioritize over more pressing bz's.
+Having the warning provide a bit more info in that area, as suggested above, would help.
 
-And this in your tree:
+Thanks for review & feedback.
 
-commit 3888ea4e2f1fb2f61e5418adf4b8332107ac0c8f
-Merge: 2c47a65b7009eb 10ff5359f88341
-Author: David S. Miller <davem@davemloft.net>
-Date:   Fri May 18 13:00:08 2018 -0400
-
-    Merge tag 'mlx5-updates-2018-05-17' of git://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux
-    
-    Saeed Mahameed says:
-    
-    ====================
-    mlx5-updates-2018-05-17
-    
-    mlx5 core dirver updates for both net-next and rdma-next branches.
-    
-    From Christophe JAILLET, first three patche to use kvfree where needed.
-    
-    From: Or Gerlitz <ogerlitz@mellanox.com>
-    
-    Next six patches from Roi and Co adds support for merged
-    sriov e-switch which comes to serve cases where both PFs, VFs set
-    on them and both uplinks are to be used in single v-switch SW model.
-    When merged e-switch is supported, the per-port e-switch is logically
-    merged into one e-switch that spans both physical ports and all the VFs.
-    
-    This model allows to offload TC eswitch rules between VFs belonging
-    to different PFs (and hence have different eswitch affinity), it also
-    sets the some of the foundations needed for uplink LAG support.
-    ====================
-    
-    Signed-off-by: David S. Miller <davem@davemloft.net>
-
-I think the trouble is the Saeed needs to merge the 'core' stuff to
-create the non-core patches for netdev (just like we want to do for
-rdma)
-
-So maybe netdev should take the #2 pull request and rdma should
-take number #1?
-
-This seems to be working OK from RDMA's side, we have much less netdev
-stuff in our tree now which seems good!
-
-Thanks,
-Jason
+- Don
