@@ -1,32 +1,30 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 02/26] sysfs: export sysfs_remove_file_self()
-Date: Fri, 18 May 2018 08:08:38 -0700
-Message-ID: <20180518150838.GC1718769@devbig577.frc2.facebook.com>
-References: <20180518130413.16997-1-roman.penyaev@profitbricks.com>
- <20180518130413.16997-3-roman.penyaev@profitbricks.com>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH v3 iproute2-next 0/3] RDMA tool driver-specific resource
+ tracking
+Date: Fri, 18 May 2018 10:23:19 -0600
+Message-ID: <6bfd8532-503e-3e37-87ea-83381d419b05@gmail.com>
+References: <cover.1526483157.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180518130413.16997-3-roman.penyaev@profitbricks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roman Pen <roman.penyaev@profitbricks.com>
-Cc: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Doug Ledford <dledford@redhat.com>, Swapnil Ingle <swapnil.ingle@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1526483157.git.swise@opengridcomputing.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, leon@kernel.org
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 18, 2018 at 03:03:49PM +0200, Roman Pen wrote:
-> Function is going to be used in transport over RDMA module
-> in subsequent patches.
+On 5/16/18 9:05 AM, Steve Wise wrote:
+> This series enhances the iproute2 rdma tool to include displaying
+> driver-specific resource attributes.  It is the user-space part of the
+> kernel driver resource tracking series that has been accepted for merging
+> into linux-4.18 [1]
 > 
-> Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
-> Cc: Tejun Heo <tj@kernel.org>
-> Cc: linux-kernel@vger.kernel.org
+> If there are no additional review comments, it can now be merged, I think.
+> 
 
-Acked-by: Tejun Heo <tj@kernel.org>
+applied to iproute2-next.
 
-Please feel free to apply with other patches.
-
-Thanks.
-
--- 
-tejun
+BTW: Something is off with the header dependencies. After applying patch
+1 nothing was rebuilt.
