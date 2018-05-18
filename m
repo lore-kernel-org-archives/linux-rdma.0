@@ -1,31 +1,72 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH for-next 5/5] IB/isert: Fix for lib/dma_debug
-        check_sync warning
-Date: Fri, 18 May 2018 11:00:30 +0200
-Message-ID: <20180518090030.GA24436@lst.de>
-References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com> <20180516013137.12474.10259.stgit@scvm10.sc.intel.com> <20180516200441.GN25661@ziepe.ca> <4039808d-7997-8b95-f1b9-d3d1d181f00e@intel.com> <20180517151057.GC10842@ziepe.ca> <5372c148-a07c-64bb-5608-9ec64a90ef73@redhat.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.16 22/55] rds: do not leak kernel memory to user land
+Date: Fri, 18 May 2018 10:15:18 +0200
+Message-ID: <20180518081458.505663153@linuxfoundation.org>
+References: <20180518081457.428920292@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5372c148-a07c-64bb-5608-9ec64a90ef73@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Don Dutile <ddutile@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Dennis Dalessandro <dennis.dalessandro@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180518081457.428920292@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Eric Dumazet <edumazet@google.com>, syzbot <syzkaller@googlegroups.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 17, 2018 at 07:01:30PM -0400, Don Dutile wrote:
-> Additionally, I believe dma-debug has a bug:
->  -- doing a check on an op when there is no op in the dma-ops struct is not correct:
+4.16-stable review patch.  If anyone has any objections, please let me know.
 
-No, that is a feature.
+------------------
 
-> Note: above: debug_dma_sync is called indep of whether an op function exists.
-> For hfi1 & qib & rxe -- which use dma-virt-ops for non-IOMMU-enabled configs,
-> the sync_syngle_for_cpu ops does not exist, yet debug_dma_sync is still called.
+From: Eric Dumazet <edumazet@google.com>
 
-Yes, if you call dma ops you better make sure you respect the invariants.
+[ Upstream commit eb80ca476ec11f67a62691a93604b405ffc7d80c ]
 
-This is the only way to get the code right for the 90% case where people
-develop on x86 with cache coherent DMA but do calls that only exist
-on non-coherent implementations.
+syzbot/KMSAN reported an uninit-value in put_cmsg(), originating
+from rds_cmsg_recv().
+
+Simply clear the structure, since we have holes there, or since
+rx_traces might be smaller than RDS_MSG_RX_DGRAM_TRACE_MAX.
+
+BUG: KMSAN: uninit-value in copy_to_user include/linux/uaccess.h:184 [inline]
+BUG: KMSAN: uninit-value in put_cmsg+0x600/0x870 net/core/scm.c:242
+CPU: 0 PID: 4459 Comm: syz-executor582 Not tainted 4.16.0+ #87
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:17 [inline]
+ dump_stack+0x185/0x1d0 lib/dump_stack.c:53
+ kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
+ kmsan_internal_check_memory+0x135/0x1e0 mm/kmsan/kmsan.c:1157
+ kmsan_copy_to_user+0x69/0x160 mm/kmsan/kmsan.c:1199
+ copy_to_user include/linux/uaccess.h:184 [inline]
+ put_cmsg+0x600/0x870 net/core/scm.c:242
+ rds_cmsg_recv net/rds/recv.c:570 [inline]
+ rds_recvmsg+0x2db5/0x3170 net/rds/recv.c:657
+ sock_recvmsg_nosec net/socket.c:803 [inline]
+ sock_recvmsg+0x1d0/0x230 net/socket.c:810
+ ___sys_recvmsg+0x3fb/0x810 net/socket.c:2205
+ __sys_recvmsg net/socket.c:2250 [inline]
+ SYSC_recvmsg+0x298/0x3c0 net/socket.c:2262
+ SyS_recvmsg+0x54/0x80 net/socket.c:2257
+ do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
+ entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+
+Fixes: 3289025aedc0 ("RDS: add receive message trace used by application")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ net/rds/recv.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -558,6 +558,7 @@ static int rds_cmsg_recv(struct rds_inco
+ 		struct rds_cmsg_rx_trace t;
+ 		int i, j;
+ 
++		memset(&t, 0, sizeof(t));
+ 		inc->i_rx_lat_trace[RDS_MSG_RX_CMSG] = local_clock();
+ 		t.rx_traces =  rs->rs_rx_traces;
+ 		for (i = 0; i < rs->rs_rx_traces; i++) {
