@@ -1,72 +1,36 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.16 22/55] rds: do not leak kernel memory to user land
-Date: Fri, 18 May 2018 10:15:18 +0200
-Message-ID: <20180518081458.505663153@linuxfoundation.org>
-References: <20180518081457.428920292@linuxfoundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Roman Pen <roman.penyaev@profitbricks.com>
+Subject: [PATCH v2 02/26] sysfs: export sysfs_remove_file_self()
+Date: Fri, 18 May 2018 15:03:49 +0200
+Message-ID: <20180518130413.16997-3-roman.penyaev@profitbricks.com>
+References: <20180518130413.16997-1-roman.penyaev@profitbricks.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518081457.428920292@linuxfoundation.org>
+In-Reply-To: <20180518130413.16997-1-roman.penyaev@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Eric Dumazet <edumazet@google.com>, syzbot <syzkaller@googlegroups.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
+To: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Doug Ledford <dledford@redhat.com>, Swapnil Ingle <swapnil.ingle@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>, Roman Pen <roman.penyaev@profitbricks.com>, Tejun Heo <tj@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-4.16-stable review patch.  If anyone has any objections, please let me know.
+Function is going to be used in transport over RDMA module
+in subsequent patches.
 
-------------------
-
-From: Eric Dumazet <edumazet@google.com>
-
-[ Upstream commit eb80ca476ec11f67a62691a93604b405ffc7d80c ]
-
-syzbot/KMSAN reported an uninit-value in put_cmsg(), originating
-from rds_cmsg_recv().
-
-Simply clear the structure, since we have holes there, or since
-rx_traces might be smaller than RDS_MSG_RX_DGRAM_TRACE_MAX.
-
-BUG: KMSAN: uninit-value in copy_to_user include/linux/uaccess.h:184 [inline]
-BUG: KMSAN: uninit-value in put_cmsg+0x600/0x870 net/core/scm.c:242
-CPU: 0 PID: 4459 Comm: syz-executor582 Not tainted 4.16.0+ #87
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-Call Trace:
- __dump_stack lib/dump_stack.c:17 [inline]
- dump_stack+0x185/0x1d0 lib/dump_stack.c:53
- kmsan_report+0x142/0x240 mm/kmsan/kmsan.c:1067
- kmsan_internal_check_memory+0x135/0x1e0 mm/kmsan/kmsan.c:1157
- kmsan_copy_to_user+0x69/0x160 mm/kmsan/kmsan.c:1199
- copy_to_user include/linux/uaccess.h:184 [inline]
- put_cmsg+0x600/0x870 net/core/scm.c:242
- rds_cmsg_recv net/rds/recv.c:570 [inline]
- rds_recvmsg+0x2db5/0x3170 net/rds/recv.c:657
- sock_recvmsg_nosec net/socket.c:803 [inline]
- sock_recvmsg+0x1d0/0x230 net/socket.c:810
- ___sys_recvmsg+0x3fb/0x810 net/socket.c:2205
- __sys_recvmsg net/socket.c:2250 [inline]
- SYSC_recvmsg+0x298/0x3c0 net/socket.c:2262
- SyS_recvmsg+0x54/0x80 net/socket.c:2257
- do_syscall_64+0x309/0x430 arch/x86/entry/common.c:287
- entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-
-Fixes: 3289025aedc0 ("RDS: add receive message trace used by application")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: syzbot <syzkaller@googlegroups.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: linux-kernel@vger.kernel.org
 ---
- net/rds/recv.c |    1 +
+ fs/sysfs/file.c | 1 +
  1 file changed, 1 insertion(+)
 
---- a/net/rds/recv.c
-+++ b/net/rds/recv.c
-@@ -558,6 +558,7 @@ static int rds_cmsg_recv(struct rds_inco
- 		struct rds_cmsg_rx_trace t;
- 		int i, j;
+diff --git a/fs/sysfs/file.c b/fs/sysfs/file.c
+index 5c13f29bfcdb..ff7443ac2aa7 100644
+--- a/fs/sysfs/file.c
++++ b/fs/sysfs/file.c
+@@ -444,6 +444,7 @@ bool sysfs_remove_file_self(struct kobject *kobj, const struct attribute *attr)
+ 	kernfs_put(kn);
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(sysfs_remove_file_self);
  
-+		memset(&t, 0, sizeof(t));
- 		inc->i_rx_lat_trace[RDS_MSG_RX_CMSG] = local_clock();
- 		t.rx_traces =  rs->rs_rx_traces;
- 		for (i = 0; i < rs->rs_rx_traces; i++) {
+ void sysfs_remove_files(struct kobject *kobj, const struct attribute **ptr)
+ {
+-- 
+2.13.1
