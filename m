@@ -1,42 +1,49 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [for-next 05/15] net/mlx5: Properly handle a vport destination when setting FTE
-Date: Thu, 17 May 2018 18:22:48 -0700
-Message-ID: <20180518012258.26968-6-saeedm@mellanox.com>
+Subject: [for-next 04/15] net/mlx5: Add merged e-switch cap
+Date: Thu, 17 May 2018 18:22:47 -0700
+Message-ID: <20180518012258.26968-5-saeedm@mellanox.com>
 References: <20180518012258.26968-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180518012258.26968-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Shahar Klein <shahark@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Roi Dayan <roid@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shahar Klein <shahark@mellanox.com>
+From: Roi Dayan <roid@mellanox.com>
 
-When creating FTE, properly distinguish between destination being vport
-or tir. The previous code just worked accidentally b/c of both dest being
-in the same offset within a union.
+When merged e-switch is supported, the per-port e-switch is logically
+merged into one e-switch that spans both physical ports and all the VFs.
+Under merged eswitch, both the matching on source vport and setting
+destination vport can have a 2nd attribute which is the vhca id of the
+eswitch owner.
 
-Signed-off-by: Shahar Klein <shahark@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-Reviewed-by: Roi Dayan <roid@mellanox.com>
+For example:
+esw0: {match: <src vport=1 owner=0> action: fwd to <dst vport=7, owner=1>}
+is a flow set on eswitch0 matching on source vport=1 from his eswitch
+and the action being fwd to dest vport=7 of eswitch1.
+
+Signed-off-by: Roi Dayan <roid@mellanox.com>
+Reviewed-by: Shahar Klein <shahark@mellanox.com>
+Reviewed-by: Or Gerlitz Klein <ogerlitz@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/mlx5/mlx5_ifc.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index ef5afd7c9325..0bfce6a82c91 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -372,6 +372,9 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 			if (dst->dest_attr.type ==
- 			    MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
- 				id = dst->dest_attr.ft->id;
-+			} else if (dst->dest_attr.type ==
-+				   MLX5_FLOW_DESTINATION_TYPE_VPORT) {
-+				id = dst->dest_attr.vport_num;
- 			} else {
- 				id = dst->dest_attr.tir_num;
- 			}
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 1aad455538f4..ef15f751a984 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -557,7 +557,8 @@ struct mlx5_ifc_e_switch_cap_bits {
+ 	u8         vport_svlan_insert[0x1];
+ 	u8         vport_cvlan_insert_if_not_exist[0x1];
+ 	u8         vport_cvlan_insert_overwrite[0x1];
+-	u8         reserved_at_5[0x19];
++	u8         reserved_at_5[0x18];
++	u8         merged_eswitch[0x1];
+ 	u8         nic_vport_node_guid_modify[0x1];
+ 	u8         nic_vport_port_guid_modify[0x1];
+ 
 -- 
 2.17.0
