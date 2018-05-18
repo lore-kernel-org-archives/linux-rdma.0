@@ -1,34 +1,62 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [RFC PATCH 09/09] Introduce cache=rdma moutning option
-Date: Fri, 18 May 2018 19:00:39 +0000
-Message-ID: <MWHPR2101MB07297B07D495D66A1C9416FACE900@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20180518002214.5657-1-longli@linuxonhyperv.com>
- <20180518002214.5657-10-longli@linuxonhyperv.com>
- <20180518072631.GA19250@infradead.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [pull request][for-next 00/15] Mellanox, mlx5 core and netdev
+ updates 2018-05-17
+Date: Fri, 18 May 2018 20:33:23 +0000
+Message-ID: <feff55e081cc69a774de885ec9df0ac844a4e098.camel@mellanox.com>
+References: <20180518012258.26968-1-saeedm@mellanox.com>
+         <20180518.130351.456975805564832525.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180518072631.GA19250@infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180518.130351.456975805564832525.davem@davemloft.net>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-ID: <5A82CA2E892A6F4297BF9E8960327C00@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "davem@davemloft.net" <davem@davemloft.net>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: Re: [RFC PATCH 09/09] Introduce cache=3Drdma moutning option
->=20
-> On Thu, May 17, 2018 at 05:22:14PM -0700, Long Li wrote:
-> > From: Long Li <longli@microsoft.com>
-> >
-> > When cache=3Drdma is enabled on mount options, CIFS do not allocate
-> > internal data buffer pages for I/O, data is read/writen directly to use=
-r
-> memory via RDMA.
->=20
-> I don't think this should be an option.  For direct I/O without signing o=
-r
-> encryption CIFS should always use get_user_pages, with or without RDMA.
-
-Yes this should be done for all transport. If there are no objections, I'll=
- send patches to change this.
+T24gRnJpLCAyMDE4LTA1LTE4IGF0IDEzOjAzIC0wNDAwLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+
+IEZyb206IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KPiBEYXRlOiBUaHUs
+IDE3IE1heSAyMDE4IDE4OjIyOjQzIC0wNzAwDQo+IA0KPiA+IEJlbG93IHlvdSBjYW4gZmluZCB0
+d28gcHVsbCByZXF1ZXN0cywNCj4gPiANCj4gPiAxLiBtbHg1IGNvcmUgdXBkYXRlcyB0byBiZSBz
+aGFyZWQgZm9yIGJvdGggbmV0ZGV2IGFuZCBSRE1BLA0KPiA+IChwYXRjaGVzIDEuLjkpDQo+ID4g
+IHdoaWNoIGlzIGJhc2VkIG9uIHRoZSBsYXN0IG1seDUtbmV4dCBwdWxsIHJlcXVlc3QNCj4gPiAg
+DQo+ID4gVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdA0KPiA+IGE4NDA4ZjRlNmRi
+Nzc1ZTI0NWYyMGVkZjEyYjEzZmQ1OGNjMDNhMWM6DQo+ID4gDQo+ID4gICBuZXQvbWx4NTogZml4
+IHNwZWxsaW5nIG1pc3Rha2U6ICJtb2RmaXkiIC0+ICJtb2RpZnkiICgyMDE4LTA1LTA0DQo+ID4g
+MTI6MTE6NTEgLTA3MDApDQo+ID4gDQo+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUgR2l0IHJlcG9z
+aXRvcnkgYXQ6DQo+ID4gDQo+ID4gICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4
+L2tlcm5lbC9naXQvbWVsbGFub3gvbGludXguZ2l0DQo+ID4gdGFncy9tbHg1LXVwZGF0ZXMtMjAx
+OC0wNS0xNw0KPiA+IA0KPiA+IGZvciB5b3UgdG8gZmV0Y2ggY2hhbmdlcyB1cCB0bw0KPiA+IDEw
+ZmY1MzU5Zjg4MzQxMjcyOGJhODE2MDQ2ZWUzYTY5NjYyNWNhMDI6DQo+ID4gDQo+ID4gICBuZXQv
+bWx4NWU6IEV4cGxpY2l0bHkgc2V0IHNvdXJjZSBlLXN3aXRjaCBpbiBvZmZsb2FkZWQgVEMgcnVs
+ZXMNCj4gPiAoMjAxOC0wNS0xNyAxNDoxNzozNSAtMDcwMCkNCj4gPiANCj4gPiAyLiBtbHg1ZSBu
+ZXRkZXYgdXBkYXRlcyBvbmx5IGZvciBuZXQtbmV4dCBicmFuY2ggKHBhdGNoZXMgMTAuLjE1KQ0K
+PiA+IGJhc2VkIG9uIG5ldC1uZXh0DQo+ID4gYW5kIHRoZSBhYm92ZSBwdWxsIHJlcXVlc3QuDQo+
+ID4gDQo+ID4gVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdA0KPiA+IDUzOGUyZGUx
+MDRjZmI0ZWYxYWNiMzVhZjQyNDI3YmZmNDJhZGJlNGQ6DQo+ID4gDQo+ID4gICBNZXJnZSBicmFu
+Y2ggJ25ldC1BbGxvdy1tb3JlLWRyaXZlcnMtd2l0aC1DT01QSUxFX1RFU1QnICgyMDE4LTA1LQ0K
+PiA+IDE3IDE3OjExOjA3IC0wNDAwKQ0KPiA+IA0KPiA+IGFyZSBhdmFpbGFibGUgaW4gdGhlIEdp
+dCByZXBvc2l0b3J5IGF0Og0KPiA+IA0KPiA+ICAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3Nj
+bS9saW51eC9rZXJuZWwvZ2l0L3NhZWVkL2xpbnV4LmdpdA0KPiA+IHRhZ3MvbWx4NWUtdXBkYXRl
+cy0yMDE4LTA1LTE3DQo+ID4gDQo+ID4gZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvDQo+
+ID4gYTIyODA2MGE3YzlhYjg4NTk3ZWVhYzEzMWU0NTc4NTk1ZDVkNDZhZToNCj4gPiANCj4gPiAg
+IG5ldC9tbHg1ZTogQWRkIEhXIHZwb3J0IGNvdW50ZXJzIHRvIHJlcHJlc2VudG9yIGV0aHRvb2wg
+c3RhdHMNCj4gPiAoMjAxOC0wNS0xNyAxNzo0ODo1NCAtMDcwMCkNCj4gPiANCj4gPiBEYXZlLCBm
+b3IgeW91ciBjb252ZW5pZW5jZSB5b3UgY2FuIGVpdGhlciBwdWxsIDEuIGFuZCB0aGVuIDIuIG9y
+DQo+ID4gcHVsbCAyLg0KPiA+IGRpcmVjdGx5Lg0KPiANCj4gTG9va3MgZ29vZC4NCj4gDQo+IEkg
+cHVsbGVkIDEgdGhlbiBJIHB1bGxlZCAyLiAgVGhhdCBzZWVtZWQgdG8gd29yayB3ZWxsLiAgUGFy
+dGljdWxhcmx5DQo+IGl0IGFsbG93ZWQgbWUgdG8gY2FwdHVyZSB0aGUgdHdvIGRpZmZlcmVudCBt
+ZXJnZSBjb21taXQgbWVzc2FnZXMgb25lDQo+IGJ5IG9uZS4NCj4gDQo+IElzIHRoaXMgYmFzaWNh
+bGx5IGhvdyB5b3Ugd2FudCB0byBoYW5kbGUgdGhpbmdzIG1vdmluZyBmb3J3YXJkPw0KPiANCg0K
+VGhhbmtzIERhdmUgIQ0KQmFzaWNhbGx5IHllcywgd2Ugd2FudCB0byBhdm9pZCBzZW5kaW5nIG5l
+dGRldiByZWxhdGVkIHBhdGNoZXMgdG8gcmRtYSwNCmFuZCB2aWNlIHZlcnNhLg0KVW5saWtlIHRo
+ZSBwcmV2aW91cyAic2hhcmVkIGNvZGUiIHByb2NlZHVyZSwgdGhpcyBpcyBhIG1vcmUgbmF0dXJh
+bCB3YXkNCnRvIGRvIHRoaW5ncywgc2luY2UgdGhlIG1seDUgY29yZSBpcyBhIHNoYXJlZCBhcmVu
+YSwgd2Ugd2FudCB0bw0KbWFpbnRhaW4gaXQgc2VwYXJhdGUgZnJvbSBuZXRkZXYgYW5kIHJkbWEu
+DQoNCkJlZm9yZSwgTGVvbiBhbmQgSSBuZWVkZWQgdG8gc3luYyBiZWZvcmUgZWFjaCByZWxlYXNl
+IGFuZCBjcmVhdGUgYQ0KInNoYXJlZCBjb2RlIiBwdWxsIHJlcXVlc3RzIHRoYXQgaW5jbHVkZXMg
+ZXZlcnl0aGluZyAoY29yZS9yZG1hL25ldGRldikNCnRoYXQgd2FzIGNvbmZsaWN0aW5nIGluIHRo
+ZSBjb3JlIGFyZW5hLg0KDQoNCj4gVGhhbmtzLg==
