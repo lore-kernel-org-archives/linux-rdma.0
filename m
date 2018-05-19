@@ -1,169 +1,108 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next] IB/qib: Fix DMA api warning with debug kernel
-Date: Fri, 18 May 2018 17:07:01 -0700
-Message-ID: <20180519000653.10154.69033.stgit@scvm10.sc.intel.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [RFC PATCH 02/09] Change wdata alloc to support direct pages
+Date: Fri, 18 May 2018 18:05:10 -0700
+Message-ID: <e8eba448-542b-2e20-506b-a91dc12335c6@talpey.com>
+References: <20180518002214.5657-1-longli@linuxonhyperv.com>
+ <20180518002214.5657-3-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Don Dutile <ddutile@redhat.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180518002214.5657-3-longli@linuxonhyperv.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: longli@microsoft.com, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On 5/17/2018 5:22 PM, Long Li wrote:
+> From: Long Li <longli@microsoft.com>
+> 
+> When using direct pages from user space, there is no need to allocate pages.
+> 
+> Just ping those user pages for RDMA.
 
-The following error occurs in a debug build when running MPI PSM:
+Did you mean "pin" those user pages? If so, where does that pinning
+occur, it's not in this patch.
 
-[  307.415911] WARNING: CPU: 4 PID: 23867 at lib/dma-debug.c:1158
-check_unmap+0x4ee/0xa20
-[  307.455661] ib_qib 0000:05:00.0: DMA-API: device driver failed to check map
-error[device address=0x00000000df82b000] [size=4096 bytes] [mapped as page]
-[  307.517494] Modules linked in:
-[  307.531584]  ib_isert iscsi_target_mod ib_srpt target_core_mod rpcrdma
-sunrpc ib_srp scsi_transport_srp scsi_tgt ib_iser libiscsi ib_ipoib
-scsi_transport_iscsi rdma_ucm ib_ucm ib_uverbs ib_umad rdma_cm ib_cm iw_cm
-ib_qib intel_powerclamp coretemp rdmavt intel_rapl iosf_mbi kvm_intel kvm
-irqbypass crc32_pclmul ghash_clmulni_intel ipmi_ssif ib_core aesni_intel sg
-ipmi_si lrw gf128mul dca glue_helper ipmi_devintf iTCO_wdt gpio_ich hpwdt
-iTCO_vendor_support ablk_helper hpilo acpi_power_meter cryptd ipmi_msghandler
-ie31200_edac shpchp pcc_cpufreq lpc_ich pcspkr ip_tables xfs libcrc32c sd_mod
-crc_t10dif crct10dif_generic mgag200 i2c_algo_bit drm_kms_helper syscopyarea
-sysfillrect sysimgblt fb_sys_fops ttm ahci crct10dif_pclmul crct10dif_common
-drm crc32c_intel libahci tg3 libata serio_raw ptp i2c_core
-[  307.846113]  pps_core dm_mirror dm_region_hash dm_log dm_mod
-[  307.866505] CPU: 4 PID: 23867 Comm: mpitests-IMB-MP Kdump: loaded Not
-tainted 3.10.0-862.el7.x86_64.debug #1
-[  307.911178] Hardware name: HP ProLiant DL320e Gen8, BIOS J05 11/09/2013
-[  307.944206] Call Trace:
-[  307.956973]  [<ffffffffbd9e915b>] dump_stack+0x19/0x1b
-[  307.982201]  [<ffffffffbd2a2f58>] __warn+0xd8/0x100
-[  308.005999]  [<ffffffffbd2a2fdf>] warn_slowpath_fmt+0x5f/0x80
-[  308.034260]  [<ffffffffbd5f667e>] check_unmap+0x4ee/0xa20
-[  308.060801]  [<ffffffffbd41acaa>] ? page_add_file_rmap+0x2a/0x1d0
-[  308.090689]  [<ffffffffbd5f6c4d>] debug_dma_unmap_page+0x9d/0xb0
-[  308.120155]  [<ffffffffbd4082e0>] ? might_fault+0xa0/0xb0
-[  308.146656]  [<ffffffffc07761a5>] qib_tid_free.isra.14+0x215/0x2a0 [ib_qib]
-[  308.180739]  [<ffffffffc0776bf4>] qib_write+0x894/0x1280 [ib_qib]
-[  308.210733]  [<ffffffffbd540b00>] ? __inode_security_revalidate+0x70/0x80
-[  308.244837]  [<ffffffffbd53c2b7>] ? security_file_permission+0x27/0xb0
-[  308.266025] qib_ib0.8006: multicast join failed for
-ff12:401b:8006:0000:0000:0000:ffff:ffff, status -22
-[  308.323421]  [<ffffffffbd46f5d3>] vfs_write+0xc3/0x1f0
-[  308.347077]  [<ffffffffbd492a5c>] ? fget_light+0xfc/0x510
-[  308.372533]  [<ffffffffbd47045a>] SyS_write+0x8a/0x100
-[  308.396456]  [<ffffffffbd9ff355>] system_call_fastpath+0x1c/0x21
+Perhaps this should just say "point to" those user pages.
 
-The code calls a qib_map_page() which has never correctly tested for a
-mapping error.
+I also don't think this is necessarily only "for RDMA". Perhaps
+there are other transport scenarios where this is advantageous.
 
-Fix by testing for pci_dma_mapping_error() in all cases and properly
-handling the failure in the caller.
 
-Additionally, streamline qib_map_page() arguments to satisfy just
-the single caller.
-
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Alex Estrin <alex.estrin@intel.com>
-Tested-by: Don Dutile <ddutile@redhat.com>
-Reviewed-by: Don Dutile <ddutile@redhat.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-
----
-
-I'd rank this one alongside [1] as to whether it should go to -rc or -next. I'm
-pretty much fine with either.
-
-[1] https://marc.info/?l=linux-rdma&m=152643430302065&w=2
----
- drivers/infiniband/hw/qib/qib.h            |    3 +--
- drivers/infiniband/hw/qib/qib_file_ops.c   |   10 +++++++---
- drivers/infiniband/hw/qib/qib_user_pages.c |   20 ++++++++++++--------
- 3 files changed, 20 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 43a68d7..3461df0 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1424,8 +1424,7 @@ int qib_pcie_ddinit(struct qib_devdata *, struct pci_dev *,
- /*
-  * dma_addr wrappers - all 0's invalid for hw
-  */
--dma_addr_t qib_map_page(struct pci_dev *, struct page *, unsigned long,
--			  size_t, int);
-+int qib_map_page(struct pci_dev *d, struct page *p, dma_addr_t *daddr);
- struct pci_dev *qib_get_pci_dev(struct rvt_dev_info *rdi);
- 
- /*
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index bbb720b..98e1ce1 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -364,6 +364,8 @@ static int qib_tid_update(struct qib_ctxtdata *rcd, struct file *fp,
- 		goto done;
- 	}
- 	for (i = 0; i < cnt; i++, vaddr += PAGE_SIZE) {
-+		dma_addr_t daddr;
-+
- 		for (; ntids--; tid++) {
- 			if (tid == tidcnt)
- 				tid = 0;
-@@ -380,12 +382,14 @@ static int qib_tid_update(struct qib_ctxtdata *rcd, struct file *fp,
- 			ret = -ENOMEM;
- 			break;
- 		}
-+		ret = qib_map_page(dd->pcidev, pagep[i], &daddr);
-+		if (ret)
-+			break;
-+
- 		tidlist[i] = tid + tidoff;
- 		/* we "know" system pages and TID pages are same size */
- 		dd->pageshadow[ctxttid + tid] = pagep[i];
--		dd->physshadow[ctxttid + tid] =
--			qib_map_page(dd->pcidev, pagep[i], 0, PAGE_SIZE,
--				     PCI_DMA_FROMDEVICE);
-+		dd->physshadow[ctxttid + tid] = daddr;
- 		/*
- 		 * don't need atomic or it's overhead
- 		 */
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index ce83ba9..16543d5 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -99,23 +99,27 @@ static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
-  *
-  * I'm sure we won't be so lucky with other iommu's, so FIXME.
-  */
--dma_addr_t qib_map_page(struct pci_dev *hwdev, struct page *page,
--			unsigned long offset, size_t size, int direction)
-+int qib_map_page(struct pci_dev *hwdev, struct page *page, dma_addr_t *daddr)
- {
- 	dma_addr_t phys;
- 
--	phys = pci_map_page(hwdev, page, offset, size, direction);
-+	phys = pci_map_page(hwdev, page, 0, PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+	if (pci_dma_mapping_error(hwdev, phys))
-+		return -ENOMEM;
- 
--	if (phys == 0) {
--		pci_unmap_page(hwdev, phys, size, direction);
--		phys = pci_map_page(hwdev, page, offset, size, direction);
-+	if (!phys) {
-+		pci_unmap_page(hwdev, phys, PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+		phys = pci_map_page(hwdev, page, 0, PAGE_SIZE,
-+				    PCI_DMA_FROMDEVICE);
-+		if (pci_dma_mapping_error(hwdev, phys))
-+			return -ENOMEM;
- 		/*
- 		 * FIXME: If we get 0 again, we should keep this page,
- 		 * map another, then free the 0 page.
- 		 */
- 	}
--
--	return phys;
-+	*daddr = phys;
-+	return 0;
- }
- 
- /**
+> 
+> Signed-off-by: Long Li <longli@microsoft.com>
+> ---
+>   fs/cifs/cifsproto.h |  2 +-
+>   fs/cifs/cifssmb.c   | 10 +++++++---
+>   fs/cifs/file.c      |  4 ++--
+>   3 files changed, 10 insertions(+), 6 deletions(-)
+> 
+> diff --git a/fs/cifs/cifsproto.h b/fs/cifs/cifsproto.h
+> index 365a414..94106b9 100644
+> --- a/fs/cifs/cifsproto.h
+> +++ b/fs/cifs/cifsproto.h
+> @@ -523,7 +523,7 @@ int cifs_readv_receive(struct TCP_Server_Info *server, struct mid_q_entry *mid);
+>   int cifs_async_writev(struct cifs_writedata *wdata,
+>   		      void (*release)(struct kref *kref));
+>   void cifs_writev_complete(struct work_struct *work);
+> -struct cifs_writedata *cifs_writedata_alloc(unsigned int nr_pages,
+> +struct cifs_writedata *cifs_writedata_alloc(unsigned int nr_pages, struct page **direct_pages,
+>   						work_func_t complete);
+>   void cifs_writedata_release(struct kref *refcount);
+>   int cifs_query_mf_symlink(unsigned int xid, struct cifs_tcon *tcon,
+> diff --git a/fs/cifs/cifssmb.c b/fs/cifs/cifssmb.c
+> index 1529a08..3b1731d 100644
+> --- a/fs/cifs/cifssmb.c
+> +++ b/fs/cifs/cifssmb.c
+> @@ -1983,7 +1983,7 @@ cifs_writev_requeue(struct cifs_writedata *wdata)
+>   			tailsz = rest_len - (nr_pages - 1) * PAGE_SIZE;
+>   		}
+>   
+> -		wdata2 = cifs_writedata_alloc(nr_pages, cifs_writev_complete);
+> +		wdata2 = cifs_writedata_alloc(nr_pages, NULL, cifs_writev_complete);
+>   		if (!wdata2) {
+>   			rc = -ENOMEM;
+>   			break;
+> @@ -2067,12 +2067,16 @@ cifs_writev_complete(struct work_struct *work)
+>   }
+>   
+>   struct cifs_writedata *
+> -cifs_writedata_alloc(unsigned int nr_pages, work_func_t complete)
+> +cifs_writedata_alloc(unsigned int nr_pages, struct page **direct_pages, work_func_t complete)
+>   {
+>   	struct cifs_writedata *wdata;
+>   
+>   	/* writedata + number of page pointers */
+> -	wdata = kzalloc(sizeof(*wdata) +
+> +	if (direct_pages) {
+> +		wdata = kzalloc(sizeof(*wdata), GFP_NOFS);
+> +		wdata->direct_pages = direct_pages;
+> +	} else
+> +		wdata = kzalloc(sizeof(*wdata) +
+>   			sizeof(struct page *) * nr_pages, GFP_NOFS);
+>   	if (wdata != NULL) {
+>   		kref_init(&wdata->refcount);
+> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+> index 23fd430..a6ec896 100644
+> --- a/fs/cifs/file.c
+> +++ b/fs/cifs/file.c
+> @@ -1965,7 +1965,7 @@ wdata_alloc_and_fillpages(pgoff_t tofind, struct address_space *mapping,
+>   {
+>   	struct cifs_writedata *wdata;
+>   
+> -	wdata = cifs_writedata_alloc((unsigned int)tofind,
+> +	wdata = cifs_writedata_alloc((unsigned int)tofind, NULL,
+>   				     cifs_writev_complete);
+>   	if (!wdata)
+>   		return NULL;
+> @@ -2554,7 +2554,7 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
+>   			break;
+>   
+>   		nr_pages = get_numpages(wsize, len, &cur_len);
+> -		wdata = cifs_writedata_alloc(nr_pages,
+> +		wdata = cifs_writedata_alloc(nr_pages, NULL,
+>   					     cifs_uncached_writev_complete);
+>   		if (!wdata) {
+>   			rc = -ENOMEM;
+> 
