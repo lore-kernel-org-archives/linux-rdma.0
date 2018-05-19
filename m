@@ -1,83 +1,161 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [RFC PATCH 05/09] Change RDMA send to regonize page offset in the
- 1st page
-Date: Sat, 19 May 2018 05:54:26 +0000
-Message-ID: <MWHPR2101MB0729768F05DC55631C07605BCE970@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20180518002214.5657-1-longli@linuxonhyperv.com>
- <20180518002214.5657-6-longli@linuxonhyperv.com>
- <8a32557a-684a-bf6b-bb1d-3f1f0d5c32c9@talpey.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH rdma-next 1/5] RDMA/hns: Implement the
+ disassociate_ucontext API
+Date: Sat, 19 May 2018 16:24:40 +0800
+Message-ID: <5AFFDF48.9010805@huawei.com>
+References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
+ <1526544173-106587-2-git-send-email-xavier.huwei@huawei.com>
+ <20180517150019.GB10842@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8a32557a-684a-bf6b-bb1d-3f1f0d5c32c9@talpey.com>
-Content-Language: en-US
+In-Reply-To: <20180517150019.GB10842@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCAwNS8wOV0gQ2hhbmdlIFJETUEgc2VuZCB0byByZWdv
-bml6ZSBwYWdlIG9mZnNldA0KPiBpbiB0aGUgMXN0IHBhZ2UNCj4gDQo+IE9uIDUvMTcvMjAxOCA1
-OjIyIFBNLCBMb25nIExpIHdyb3RlOg0KPiA+IEZyb206IExvbmcgTGkgPGxvbmdsaUBtaWNyb3Nv
-ZnQuY29tPg0KPiANCj4gVGhlcmUncyBhIHR5cG8gInJlY29nbml6ZSIgaW4gdGhlIHBhdGNoIHRp
-dGxlDQo+IA0KPiANCj4gPiBXaGVuIGRvaW5nIFJETUEgc2VuZCwgdGhlIG9mZnNldCBuZWVkcyB0
-byBiZSBjaGVja2VkIGFzIGRhdGEgbWF5IHN0YXJ0DQo+ID4gaW4gYW4gb2Zmc2V0IGluIHRoZSAx
-c3QgcGFnZS4NCj4gDQo+IERvZXNuJ3QgdGhpcyBwYXRjaCBhbHRlciB0aGUgZ2VuZXJpYyBzbWIy
-cGR1LmMgY29kZSB0b28/IEkgdGhpbmsgdGhpcyBzaG91bGQNCj4gbm90ZSAiYW55IiBzZW5kLCBu
-b3QganVzdCBSRE1BPw0KDQpZZXMsIGJ1dCBmb3IgVENQIHRoZSBkaXJlY3RfcGFnZXMgYW5kIHBh
-Z2Vfb2Zmc2V0IGFyZSBhbHdheXMgTlVMTCBhbmQgMCB3aGVuIGNhY2hlPXJkbWEgaXMgaW4gbW91
-bnRpbmcgb3B0aW9ucywgc28gaXQgZG9lc24ndCByZWFsbHkgYWZmZWN0IGhlIFRDUCBjb2RlIHBh
-dGggaW4gdGhpcyBwYXRjaCBzZXQuDQoNClRoaXMgYmVoYXZpb3IgY2FuIGJlIGNoYW5nZWQsIGFu
-ZCBpdCB3aWxsIHdvcmsgd2l0aCBUQ1AgdG9vLg0KDQo+IA0KPiBUb20uDQo+IA0KPiA+DQo+ID4g
-U2lnbmVkLW9mZi1ieTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gLS0tDQo+
-ID4gICBmcy9jaWZzL3NtYjJwZHUuYyAgIHwgIDMgKystDQo+ID4gICBmcy9jaWZzL3NtYmRpcmVj
-dC5jIHwgMjUgKysrKysrKysrKysrKysrKysrKy0tLS0tLQ0KPiA+ICAgMiBmaWxlcyBjaGFuZ2Vk
-LCAyMSBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBh
-L2ZzL2NpZnMvc21iMnBkdS5jIGIvZnMvY2lmcy9zbWIycGR1LmMgaW5kZXgNCj4gPiA1MDk3ZjI4
-Li5mZGNmOTdlIDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2NpZnMvc21iMnBkdS5jDQo+ID4gKysrIGIv
-ZnMvY2lmcy9zbWIycGR1LmMNCj4gPiBAQCAtMzAxNSw3ICszMDE1LDggQEAgc21iMl9hc3luY193
-cml0ZXYoc3RydWN0IGNpZnNfd3JpdGVkYXRhICp3ZGF0YSwNCj4gPg0KPiA+ICAgCXJxc3QucnFf
-aW92ID0gaW92Ow0KPiA+ICAgCXJxc3QucnFfbnZlYyA9IDI7DQo+ID4gLQlycXN0LnJxX3BhZ2Vz
-ID0gd2RhdGEtPnBhZ2VzOw0KPiA+ICsJcnFzdC5ycV9wYWdlcyA9IHdkYXRhLT5kaXJlY3RfcGFn
-ZXMgPyB3ZGF0YS0+ZGlyZWN0X3BhZ2VzIDoNCj4gd2RhdGEtPnBhZ2VzOw0KPiA+ICsJcnFzdC5y
-cV9vZmZzZXQgPSB3ZGF0YS0+cGFnZV9vZmZzZXQ7DQo+ID4gICAJcnFzdC5ycV9ucGFnZXMgPSB3
-ZGF0YS0+bnJfcGFnZXM7DQo+ID4gICAJcnFzdC5ycV9wYWdlc3ogPSB3ZGF0YS0+cGFnZXN6Ow0K
-PiA+ICAgCXJxc3QucnFfdGFpbHN6ID0gd2RhdGEtPnRhaWxzejsNCj4gPiBkaWZmIC0tZ2l0IGEv
-ZnMvY2lmcy9zbWJkaXJlY3QuYyBiL2ZzL2NpZnMvc21iZGlyZWN0LmMgaW5kZXgNCj4gPiBiMGEx
-OTU1Li5iNDY1ODZkIDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2NpZnMvc21iZGlyZWN0LmMNCj4gPiAr
-KysgYi9mcy9jaWZzL3NtYmRpcmVjdC5jDQo+ID4gQEAgLTIwODQsOCArMjA4NCwxMCBAQCBpbnQg
-c21iZF9zZW5kKHN0cnVjdCBzbWJkX2Nvbm5lY3Rpb24gKmluZm8sDQo+ID4gc3RydWN0IHNtYl9y
-cXN0ICpycXN0KQ0KPiA+DQo+ID4gICAJLyogYWRkIGluIHRoZSBwYWdlIGFycmF5IGlmIHRoZXJl
-IGlzIG9uZSAqLw0KPiA+ICAgCWlmIChycXN0LT5ycV9ucGFnZXMpIHsNCj4gPiAtCQlidWZsZW4g
-Kz0gcnFzdC0+cnFfcGFnZXN6ICogKHJxc3QtPnJxX25wYWdlcyAtIDEpOw0KPiA+IC0JCWJ1Zmxl
-biArPSBycXN0LT5ycV90YWlsc3o7DQo+ID4gKwkJaWYgKHJxc3QtPnJxX25wYWdlcyA9PSAxKQ0K
-PiA+ICsJCQlidWZsZW4gKz0gcnFzdC0+cnFfdGFpbHN6Ow0KPiA+ICsJCWVsc2UNCj4gPiArCQkJ
-YnVmbGVuICs9IHJxc3QtPnJxX3BhZ2VzeiAqIChycXN0LT5ycV9ucGFnZXMgLSAxKSAtDQo+ID4g
-K3Jxc3QtPnJxX29mZnNldCArIHJxc3QtPnJxX3RhaWxzejsNCj4gPiAgIAl9DQo+ID4NCj4gPiAg
-IAlpZiAoYnVmbGVuICsgc2l6ZW9mKHN0cnVjdCBzbWJkX2RhdGFfdHJhbnNmZXIpID4gQEAgLTIx
-ODIsOA0KPiA+ICsyMTg0LDE5IEBAIGludCBzbWJkX3NlbmQoc3RydWN0IHNtYmRfY29ubmVjdGlv
-biAqaW5mbywgc3RydWN0DQo+ID4gc21iX3Jxc3QgKnJxc3QpDQo+ID4NCj4gPiAgIAkvKiBub3cg
-c2VuZGluZyBwYWdlcyBpZiB0aGVyZSBhcmUgYW55ICovDQo+ID4gICAJZm9yIChpID0gMDsgaSA8
-IHJxc3QtPnJxX25wYWdlczsgaSsrKSB7DQo+ID4gLQkJYnVmbGVuID0gKGkgPT0gcnFzdC0+cnFf
-bnBhZ2VzLTEpID8NCj4gPiAtCQkJcnFzdC0+cnFfdGFpbHN6IDogcnFzdC0+cnFfcGFnZXN6Ow0K
-PiA+ICsJCXVuc2lnbmVkIGludCBvZmZzZXQgPSAwOw0KPiA+ICsJCWlmIChpID09IDApDQo+ID4g
-KwkJCW9mZnNldCA9IHJxc3QtPnJxX29mZnNldDsNCj4gPiArCQlpZiAocnFzdC0+cnFfbnBhZ2Vz
-ID09IDEgfHwgaSA9PSBycXN0LT5ycV9ucGFnZXMtMSkNCj4gPiArCQkJYnVmbGVuID0gcnFzdC0+
-cnFfdGFpbHN6Ow0KPiA+ICsJCWVsc2Ugew0KPiA+ICsJCQkvKiBXZSBoYXZlIGF0IGxlYXN0IHR3
-byBwYWdlcywgYW5kIHRoaXMgaXMgbm90IHRoZSBsYXN0DQo+IHBhZ2UgKi8NCj4gPiArCQkJaWYg
-KGkgPT0gMCkNCj4gPiArCQkJCWJ1ZmxlbiA9IHJxc3QtPnJxX3BhZ2VzeiAtIHJxc3QtPnJxX29m
-ZnNldDsNCj4gPiArCQkJZWxzZQ0KPiA+ICsJCQkJYnVmbGVuID0gcnFzdC0+cnFfcGFnZXN6Ow0K
-PiA+ICsJCX0NCj4gPiArDQo+ID4gICAJCW52ZWNzID0gKGJ1ZmxlbiArIG1heF9pb3Zfc2l6ZSAt
-IDEpIC8gbWF4X2lvdl9zaXplOw0KPiA+ICAgCQlsb2dfd3JpdGUoSU5GTywgInNlbmRpbmcgcGFn
-ZXMgYnVmbGVuPSVkIG52ZWNzPSVkXG4iLA0KPiA+ICAgCQkJYnVmbGVuLCBudmVjcyk7DQo+ID4g
-QEAgLTIxOTQsOSArMjIwNyw5IEBAIGludCBzbWJkX3NlbmQoc3RydWN0IHNtYmRfY29ubmVjdGlv
-biAqaW5mbywNCj4gc3RydWN0IHNtYl9ycXN0ICpycXN0KQ0KPiA+ICAgCQkJcmVtYWluaW5nX2Rh
-dGFfbGVuZ3RoIC09IHNpemU7DQo+ID4gICAJCQlsb2dfd3JpdGUoSU5GTywgInNlbmRpbmcgcGFn
-ZXMgaT0lZCBvZmZzZXQ9JWQNCj4gc2l6ZT0lZCINCj4gPiAgIAkJCQkiIHJlbWFpbmluZ19kYXRh
-X2xlbmd0aD0lZFxuIiwNCj4gPiAtCQkJCWksIGoqbWF4X2lvdl9zaXplLCBzaXplLA0KPiByZW1h
-aW5pbmdfZGF0YV9sZW5ndGgpOw0KPiA+ICsJCQkJaSwgaiptYXhfaW92X3NpemUrb2Zmc2V0LCBz
-aXplLA0KPiByZW1haW5pbmdfZGF0YV9sZW5ndGgpOw0KPiA+ICAgCQkJcmMgPSBzbWJkX3Bvc3Rf
-c2VuZF9wYWdlKA0KPiA+IC0JCQkJaW5mbywgcnFzdC0+cnFfcGFnZXNbaV0sIGoqbWF4X2lvdl9z
-aXplLA0KPiA+ICsJCQkJaW5mbywgcnFzdC0+cnFfcGFnZXNbaV0sIGoqbWF4X2lvdl9zaXplICsN
-Cj4gb2Zmc2V0LA0KPiA+ICAgCQkJCXNpemUsIHJlbWFpbmluZ19kYXRhX2xlbmd0aCk7DQo+ID4g
-ICAJCQlpZiAocmMpDQo+ID4gICAJCQkJZ290byBkb25lOw0KPiA+DQo=
+
+
+On 2018/5/17 23:00, Jason Gunthorpe wrote:
+> On Thu, May 17, 2018 at 04:02:49PM +0800, Wei Hu (Xavier) wrote:
+>> This patch Implements the IB core disassociate_ucontext API.
+>>
+>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+>>  drivers/infiniband/hw/hns/hns_roce_main.c | 36 +++++++++++++++++++++++++++++++
+>>  1 file changed, 36 insertions(+)
+>>
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+>> index 96fb6a9..7fafe9d 100644
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+>> @@ -33,6 +33,9 @@
+>>  #include <linux/acpi.h>
+>>  #include <linux/of_platform.h>
+>>  #include <linux/module.h>
+>> +#include <linux/sched.h>
+>> +#include <linux/sched/mm.h>
+>> +#include <linux/sched/task.h>
+>>  #include <rdma/ib_addr.h>
+>>  #include <rdma/ib_smi.h>
+>>  #include <rdma/ib_user_verbs.h>
+>> @@ -422,6 +425,38 @@ static int hns_roce_port_immutable(struct ib_device *ib_dev, u8 port_num,
+>>  	return 0;
+>>  }
+>>  
+>> +static void hns_roce_disassociate_ucontext(struct ib_ucontext *ibcontext)
+>> +{
+>> +	struct task_struct *process;
+>> +	struct mm_struct   *mm;
+>> +
+>> +	process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
+>> +	if (!process)
+>> +		return;
+>> +
+>> +	mm = get_task_mm(process);
+>> +	if (!mm) {
+>> +		pr_info("no mm, disassociate ucontext is pending task termination\n");
+>> +		while (1) {
+>> +			put_task_struct(process);
+>> +			usleep_range(1000, 2000);
+>> +			process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
+>> +			if (!process || process->state == TASK_DEAD) {
+>> +				pr_info("disassociate ucontext done, task was terminated\n");
+>> +				/* if task was dead, need to release the task
+>> +				 * struct.
+>> +				 */
+>> +				if (process)
+>> +					put_task_struct(process);
+>> +				return;
+>> +			}
+>> +		}
+>> +	}
+> I don't want to see this boilerplate code copied into every
+> driver. Hoist it into the core code, have the disassociate driver callback
+> accept a mm_struct parameter, and refactor the other drivers using this.
+
+When the userspace RDMA application process is suspended for some reason
+without executing ibv_close_device function,
+There will be calltrace as follows when rmmod roce kernel driver ko in
+the current version.
+It looks like a common problem to every driver and the code segment
+above is suitable for every driver.
+Pardon me for asking, but if you have any plan to do this?
+
+root@(none)# rmmod
+../ko/hns-roce-hw-v2.ko                                                                                         
+
+[ 1222.676069] INFO: task rmmod:1996 blocked for more than 120
+seconds.                                                            
+[ 1222.682423]       Not tainted 4.16.0-rc1-29112-ge237d0c-dirty
+#15                                                               
+[ 1222.688507] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.                                           
+[ 1222.696327] rmmod           D    0  1996   1951
+0x00000000                                                                      
+
+[ 1222.701807] Call
+trace:                                                                                                         
+
+[ 1222.704252] 
+__switch_to+0x9c/0xd8                                                                                              
+
+[ 1222.707644] 
+__schedule+0x1d8/0x854                                                                                             
+
+[ 1222.711125] 
+schedule+0x3c/0x9c                                                                                                 
+
+[ 1222.714258] 
+schedule_timeout+0x1dc/0x3f8                                                                                       
+
+[ 1222.718260] 
+wait_for_common+0x120/0x1e0                                                                                        
+
+[ 1222.722174] 
+wait_for_completion+0x28/0x34                                                                                      
+
+[ 1222.726264] 
+ib_uverbs_remove_one+0x29c/0x2bc                                                                                   
+
+[ 1222.730614] 
+ib_unregister_device+0xe8/0x198                                                                                    
+
+[ 1222.734888]  hns_roce_exit+0xb4/0xc4
+[hns_roce]                                                                                 
+
+[ 1222.739414]  hns_roce_hw_v2_uninit_instance+0x24/0x40
+[hns_roce_hw_v2]                                                          
+[ 1222.745934] 
+hclge_uninit_client_instance+0x88/0xb8                                                                             
+
+[ 1222.750803] 
+hnae3_match_n_instantiate+0xbc/0xd0                                                                                
+
+[ 1222.755411] 
+hnae3_unregister_client+0x50/0xb0                                                                                  
+
+[ 1222.759850]  hns_roce_hw_v2_exit+0x10/0xd48
+[hns_roce_hw_v2]                                                                    
+
+[ 1222.765501] 
+SyS_delete_module+0x1e8/0x238                                                                                      
+
+[ 1222.769589] 
+el0_svc_naked+0x30/0x34                                                                                            
+
+   
+Thanks, Jason
+
+>> +	mmput(mm);
+>> +	put_task_struct(process);
+>> +}
+> This can't be right, disassociate requires the driver to replace all
+> the mmaps it make to user space with the 0 page, I see hns does use
+> mmaps, so it must zap them here.
+Ok, got it.
+>
+> Jason
+>
+> .
+>
