@@ -1,161 +1,110 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH rdma-next 1/5] RDMA/hns: Implement the
- disassociate_ucontext API
-Date: Sat, 19 May 2018 16:24:40 +0800
-Message-ID: <5AFFDF48.9010805@huawei.com>
-References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
- <1526544173-106587-2-git-send-email-xavier.huwei@huawei.com>
- <20180517150019.GB10842@ziepe.ca>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2 01/26] rculist: introduce list_next_or_null_rr_rcu()
+Date: Sat, 19 May 2018 09:37:35 -0700
+Message-ID: <20180519163735.GX3803@linux.vnet.ibm.com>
+References: <20180518130413.16997-1-roman.penyaev@profitbricks.com>
+ <20180518130413.16997-2-roman.penyaev@profitbricks.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180517150019.GB10842@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <20180518130413.16997-2-roman.penyaev@profitbricks.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
+To: Roman Pen <roman.penyaev@profitbricks.com>
+Cc: linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, Jens Axboe <axboe@kernel.dk>, Christoph Hellwig <hch@infradead.org>, Sagi Grimberg <sagi@grimberg.me>, Bart Van Assche <bart.vanassche@sandisk.com>, Or Gerlitz <ogerlitz@mellanox.com>, Doug Ledford <dledford@redhat.com>, Swapnil Ingle <swapnil.ingle@profitbricks.com>, Danil Kipnis <danil.kipnis@profitbricks.com>, Jack Wang <jinpu.wang@profitbricks.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, May 18, 2018 at 03:03:48PM +0200, Roman Pen wrote:
+> Function is going to be used in transport over RDMA module
+> in subsequent patches.
+> 
+> Function returns next element in round-robin fashion,
+> i.e. head will be skipped.  NULL will be returned if list
+> is observed as empty.
+> 
+> Signed-off-by: Roman Pen <roman.penyaev@profitbricks.com>
+> Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  include/linux/rculist.h | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+> 
+> diff --git a/include/linux/rculist.h b/include/linux/rculist.h
+> index 127f534fec94..b0840d5ab25a 100644
+> --- a/include/linux/rculist.h
+> +++ b/include/linux/rculist.h
+> @@ -339,6 +339,25 @@ static inline void list_splice_tail_init_rcu(struct list_head *list,
+>  })
+> 
+>  /**
+> + * list_next_or_null_rr_rcu - get next list element in round-robin fashion.
+> + * @head:	the head for the list.
+> + * @ptr:        the list head to take the next element from.
+> + * @type:       the type of the struct this is embedded in.
+> + * @memb:       the name of the list_head within the struct.
+> + *
+> + * Next element returned in round-robin fashion, i.e. head will be skipped,
+> + * but if list is observed as empty, NULL will be returned.
+> + *
+> + * This primitive may safely run concurrently with the _rcu list-mutation
+> + * primitives such as list_add_rcu() as long as it's guarded by rcu_read_lock().
 
+Of course, all the set of list_next_or_null_rr_rcu() invocations that
+are round-robining a given list must all be under the same RCU read-side
+critical section.  For example, the following will break badly:
 
-On 2018/5/17 23:00, Jason Gunthorpe wrote:
-> On Thu, May 17, 2018 at 04:02:49PM +0800, Wei Hu (Xavier) wrote:
->> This patch Implements the IB core disassociate_ucontext API.
->>
->> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
->>  drivers/infiniband/hw/hns/hns_roce_main.c | 36 +++++++++++++++++++++++++++++++
->>  1 file changed, 36 insertions(+)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
->> index 96fb6a9..7fafe9d 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
->> @@ -33,6 +33,9 @@
->>  #include <linux/acpi.h>
->>  #include <linux/of_platform.h>
->>  #include <linux/module.h>
->> +#include <linux/sched.h>
->> +#include <linux/sched/mm.h>
->> +#include <linux/sched/task.h>
->>  #include <rdma/ib_addr.h>
->>  #include <rdma/ib_smi.h>
->>  #include <rdma/ib_user_verbs.h>
->> @@ -422,6 +425,38 @@ static int hns_roce_port_immutable(struct ib_device *ib_dev, u8 port_num,
->>  	return 0;
->>  }
->>  
->> +static void hns_roce_disassociate_ucontext(struct ib_ucontext *ibcontext)
->> +{
->> +	struct task_struct *process;
->> +	struct mm_struct   *mm;
->> +
->> +	process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
->> +	if (!process)
->> +		return;
->> +
->> +	mm = get_task_mm(process);
->> +	if (!mm) {
->> +		pr_info("no mm, disassociate ucontext is pending task termination\n");
->> +		while (1) {
->> +			put_task_struct(process);
->> +			usleep_range(1000, 2000);
->> +			process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
->> +			if (!process || process->state == TASK_DEAD) {
->> +				pr_info("disassociate ucontext done, task was terminated\n");
->> +				/* if task was dead, need to release the task
->> +				 * struct.
->> +				 */
->> +				if (process)
->> +					put_task_struct(process);
->> +				return;
->> +			}
->> +		}
->> +	}
-> I don't want to see this boilerplate code copied into every
-> driver. Hoist it into the core code, have the disassociate driver callback
-> accept a mm_struct parameter, and refactor the other drivers using this.
+	struct foo *take_rr_step(struct list_head *head, struct foo *ptr)
+	{
+		struct foo *ret;
 
-When the userspace RDMA application process is suspended for some reason
-without executing ibv_close_device function,
-There will be calltrace as follows when rmmod roce kernel driver ko in
-the current version.
-It looks like a common problem to every driver and the code segment
-above is suitable for every driver.
-Pardon me for asking, but if you have any plan to do this?
+		rcu_read_lock();
+		ret = list_next_or_null_rr_rcu(head, ptr, struct foo, foolist);
+		rcu_read_unlock();  /* BUG */
+		return ret;
+	}
 
-root@(none)# rmmod
-../ko/hns-roce-hw-v2.ko                                                                                         
+You need a big fat comment stating this, at the very least.  The resulting
+bug can be very hard to trigger and even harder to debug.
 
-[ 1222.676069] INFO: task rmmod:1996 blocked for more than 120
-seconds.                                                            
-[ 1222.682423]       Not tainted 4.16.0-rc1-29112-ge237d0c-dirty
-#15                                                               
-[ 1222.688507] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
-disables this message.                                           
-[ 1222.696327] rmmod           D    0  1996   1951
-0x00000000                                                                      
+And yes, I know that the same restriction applies to list_next_rcu()
+and friends.  The difference is that if you try to invoke those in an
+infinite loop, you will be rapped on the knuckles as soon as you hit
+the list header.  Without that knuckle-rapping, RCU CPU stall warnings
+might tempt people to do something broken like take_rr_step() above.
 
-[ 1222.701807] Call
-trace:                                                                                                         
+Is it possible to instead do some sort of list_for_each_entry_rcu()-like
+macro that makes it more obvious that the whole thing need to be under
+a single RCU read-side critical section?  Such a macro would of course be
+an infinite loop if the list never went empty, so presumably there would
+be a break or return statement in there somewhere.
 
-[ 1222.704252] 
-__switch_to+0x9c/0xd8                                                                                              
+> + */
+> +#define list_next_or_null_rr_rcu(head, ptr, type, memb) \
+> +({ \
+> +	list_next_or_null_rcu(head, ptr, type, memb) ?: \
+> +		list_next_or_null_rcu(head, READ_ONCE((ptr)->next), type, memb); \
 
-[ 1222.707644] 
-__schedule+0x1d8/0x854                                                                                             
+Are there any uses for this outside of RDMA?  If not, I am with Linus.
+Define this within RDMA, where a smaller number of people can more
+easily be kept aware of the restrictions on use.  If it turns out to be
+more generally useful, we can take a look at exactly what makes sense
+more globally.
 
-[ 1222.711125] 
-schedule+0x3c/0x9c                                                                                                 
+Even within RDMA, I strongly recommend the big fat comment called out above.
+And the list_for_each_entry_rcu()-like formulation, if that can be made to
+work within RDMA's code structure.
 
-[ 1222.714258] 
-schedule_timeout+0x1dc/0x3f8                                                                                       
+Seem reasonable, or am I missing something here?
 
-[ 1222.718260] 
-wait_for_common+0x120/0x1e0                                                                                        
+								Thanx, Paul
 
-[ 1222.722174] 
-wait_for_completion+0x28/0x34                                                                                      
-
-[ 1222.726264] 
-ib_uverbs_remove_one+0x29c/0x2bc                                                                                   
-
-[ 1222.730614] 
-ib_unregister_device+0xe8/0x198                                                                                    
-
-[ 1222.734888]  hns_roce_exit+0xb4/0xc4
-[hns_roce]                                                                                 
-
-[ 1222.739414]  hns_roce_hw_v2_uninit_instance+0x24/0x40
-[hns_roce_hw_v2]                                                          
-[ 1222.745934] 
-hclge_uninit_client_instance+0x88/0xb8                                                                             
-
-[ 1222.750803] 
-hnae3_match_n_instantiate+0xbc/0xd0                                                                                
-
-[ 1222.755411] 
-hnae3_unregister_client+0x50/0xb0                                                                                  
-
-[ 1222.759850]  hns_roce_hw_v2_exit+0x10/0xd48
-[hns_roce_hw_v2]                                                                    
-
-[ 1222.765501] 
-SyS_delete_module+0x1e8/0x238                                                                                      
-
-[ 1222.769589] 
-el0_svc_naked+0x30/0x34                                                                                            
-
-   
-Thanks, Jason
-
->> +	mmput(mm);
->> +	put_task_struct(process);
->> +}
-> This can't be right, disassociate requires the driver to replace all
-> the mmaps it make to user space with the 0 page, I see hns does use
-> mmaps, so it must zap them here.
-Ok, got it.
->
-> Jason
->
-> .
->
+> +})
+> +
+> +/**
+>   * list_for_each_entry_rcu	-	iterate over rcu list of given type
+>   * @pos:	the type * to use as a loop cursor.
+>   * @head:	the head for your list.
+> -- 
+> 2.13.1
+> 
