@@ -1,43 +1,54 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4 06/14] PCI/P2PDMA: Add P2P DMA driver writer's
- documentation
-Date: Tue, 22 May 2018 15:28:19 -0600
-Message-ID: <9e20024d-8b32-61ff-4b9a-c9392082987f@deltatee.com>
-References: <20180423233046.21476-1-logang@deltatee.com>
- <20180423233046.21476-7-logang@deltatee.com>
- <59b7762e-6d38-7746-20f3-22fd762ecfe7@infradead.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [net-next] i40iw/i40e: Remove link dependency on i40e
+Date: Tue, 22 May 2018 15:33:34 -0600
+Message-ID: <20180522213334.GE7502@mellanox.com>
+References: <20180522203831.20624-1-jeffrey.t.kirsher@intel.com>
+ <20180522205612.GD7502@mellanox.com>
+ <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <59b7762e-6d38-7746-20f3-22fd762ecfe7-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Randy Dunlap <rdunlap-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: davem@davemloft.net, dledford@redhat.com, Sindhu Devale <sindhu.devale@intel.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, nhorman@redhat.com, sassmann@redhat.com, jogreene@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks for the review Randy! I'll make the changes for the next time we
-post the series.
+On Tue, May 22, 2018 at 02:04:06PM -0700, Jeff Kirsher wrote:
+> On Tue, 2018-05-22 at 14:56 -0600, Jason Gunthorpe wrote:
+> > On Tue, May 22, 2018 at 01:38:31PM -0700, Jeff Kirsher wrote:
+> > > From: Sindhu Devale <sindhu.devale@intel.com>
+> > > 
+> > > Currently i40iw is dependent on i40e symbols
+> > > i40e_register_client and i40e_unregister_client due to
+> > > which i40iw cannot be loaded without i40e being loaded.
+> > > 
+> > > This patch allows RDMA driver to build and load without
+> > > linking to LAN driver and without LAN driver being loaded
+> > > first. Once the LAN driver is loaded, the RDMA driver
+> > > is notified through the netdevice notifiers to register
+> > > as client to the LAN driver. Add function pointers to IDC
+> > > register/unregister in the private VSI structure. This
+> > > allows a RDMA driver to build without linking to i40e.
+> > 
+> > Why would you want to do this? The rdma driver is non-functional
+> > without the ethernet driver, so why on earth would we want to defeat
+> > the module dependency mechanism?
+> 
+> This change is driven by the OSV's like Red Hat, where customer's were
+> updating the i40e driver, which in turn broke i40iw.
 
-On 22/05/18 03:24 PM, Randy Dunlap wrote:
->> +The first task an orchestrator driver must do is compile a list of
->> +all client drivers that will be involved in a given transaction. For
->> +example, the NVMe Target driver creates a list including all NVMe drives
->                                                                      ^^^^^^
->                                                                    or drivers ?
-> Could be either, I guess, but the previous sentence says "compile a list of drivers."
+So that isn't a reason to put something into the main line kernel, and
+I'm deeply skeptical this change is even sane.
 
-I did mean "drives". But perhaps "devices" would be more clear. A list
-of all NVMe drivers doesn't make much sense as I'm pretty sure there is
-only one NVMe driver.
+It has been a while since I've looked at RH's kernel, but AFAIK,
+breakage should only happen if the ABIs around
+i40e_unregister_client/etc change..
 
-Logan
+So if the i40e module updates breaks the ABI, then stuffing that same
+broken ABI through a function pointer is *totally* wrong.
+
+Looks like a NAK for the RDMA side.
+
+Jason
