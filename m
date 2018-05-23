@@ -1,67 +1,55 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [net-next] i40iw/i40e: Remove link dependency on i40e
-Date: Tue, 22 May 2018 15:54:49 -0600
-Message-ID: <20180522215449.GG7502@mellanox.com>
-References: <20180522203831.20624-1-jeffrey.t.kirsher@intel.com>
- <20180522205612.GD7502@mellanox.com>
- <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
- <20180522213334.GE7502@mellanox.com>
- <2fcc22b088fd04dafbdc1582d03c4bca21eefade.camel@intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH for-next 0/5] IB/hfi1,isert: Updates for-next 5/15/2018
+Date: Tue, 22 May 2018 20:54:05 -0400
+Message-ID: <77a63b1c-1307-8533-4a34-b46768627f46@intel.com>
+References: <20180516012947.12474.2286.stgit@scvm10.sc.intel.com>
+ <38faf50391a9bc1a8d874a32ce5857a4023dff3e.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2fcc22b088fd04dafbdc1582d03c4bca21eefade.camel@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: davem@davemloft.net, dledford@redhat.com, Sindhu Devale <sindhu.devale@intel.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, nhorman@redhat.com, sassmann@redhat.com, jogreene@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <38faf50391a9bc1a8d874a32ce5857a4023dff3e.camel@redhat.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, jgg@ziepe.ca
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Don Dutile <ddutile@redhat.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 22, 2018 at 02:50:32PM -0700, Jeff Kirsher wrote:
-> On Tue, 2018-05-22 at 15:33 -0600, Jason Gunthorpe wrote:
-> > On Tue, May 22, 2018 at 02:04:06PM -0700, Jeff Kirsher wrote:
-> > > On Tue, 2018-05-22 at 14:56 -0600, Jason Gunthorpe wrote:
-> > > > On Tue, May 22, 2018 at 01:38:31PM -0700, Jeff Kirsher wrote:
-> > > > > From: Sindhu Devale <sindhu.devale@intel.com>
-> > > > > 
-> > > > > Currently i40iw is dependent on i40e symbols
-> > > > > i40e_register_client and i40e_unregister_client due to
-> > > > > which i40iw cannot be loaded without i40e being loaded.
-> > > > > 
-> > > > > This patch allows RDMA driver to build and load without
-> > > > > linking to LAN driver and without LAN driver being loaded
-> > > > > first. Once the LAN driver is loaded, the RDMA driver
-> > > > > is notified through the netdevice notifiers to register
-> > > > > as client to the LAN driver. Add function pointers to IDC
-> > > > > register/unregister in the private VSI structure. This
-> > > > > allows a RDMA driver to build without linking to i40e.
-> > > > 
-> > > > Why would you want to do this? The rdma driver is non-functional
-> > > > without the ethernet driver, so why on earth would we want to
-> > > > defeat
-> > > > the module dependency mechanism?
-> > > 
-> > > This change is driven by the OSV's like Red Hat, where customer's
-> > > were
-> > > updating the i40e driver, which in turn broke i40iw.
-> > 
-> > So that isn't a reason to put something into the main line kernel,
-> > and
-> > I'm deeply skeptical this change is even sane.
-> > 
-> > It has been a while since I've looked at RH's kernel, but AFAIK,
-> > breakage should only happen if the ABIs around
-> > i40e_unregister_client/etc change..
-> > 
-> > So if the i40e module updates breaks the ABI, then stuffing that same
-> > broken ABI through a function pointer is *totally* wrong.
-> > 
-> > Looks like a NAK for the RDMA side.
+On 5/22/2018 3:33 PM, Doug Ledford wrote:
+> On Tue, 2018-05-15 at 18:31 -0700, Dennis Dalessandro wrote:
+>> Hi Doug and Jason,
+>>
+>> Here are some patches to go to for-next. One is a code cleanup. The rest are
+>> bug fixes that are probably not serious enough for an -rc6. The one that may be
+>> on the fence is the isert patch. Since it only affects debug kernels it can
+>> probably even wait till for-next. It has been marked stable though.
+>>
+>> ---
+>>
+>> Alex Estrin (1):
+>>        IB/isert: Fix for lib/dma_debug check_sync warning
+>>
+>> Kamenee Arumugam (1):
+>>        IB/Hfi1: Mask Unsupported Request error bit in PCIe AER
+>>
+>> Michael J. Ruhl (1):
+>>        IB/hfi1: Set port number for errorinfo MAD response
+>>
+>> Mike Marciniszyn (2):
+>>        IB/hfi1: Cleanup of exp_rcv
+>>        IB/{rdmavt,hfi1}; Change hrtimer add to use the pinned variation
 > 
-> The ABI rarely changes, if at all.  The issue OSV's are seeing is that
-> upgrading i40e, requires that i40iw be recompiled even though there
-> were no updates/changes to the ABI.
+> Hi Denny,
+> 
+> I dropped the PCI bit fiddling patch as per comments.  Please provide a
+> more detailed commit message if you want this patch to go in.
 
-Why does it need recompiling? Details please.
+Kamenee is looking into this some more. Yeah, OK to drop for now, we'll 
+resubmit with at least a better commit message or a different approach 
+depending on her investigation.
+  > I provided my own guestimate of a commit message touchup to the hrtimers
+> patch.  Please let me know if I was wrong in my assumptions there.
 
-Jason
+Sounds good to me, thanks!
+
+-Denny
