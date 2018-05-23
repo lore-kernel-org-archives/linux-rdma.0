@@ -1,64 +1,33 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 5/5] RDMA/hns: Fix the illegal memory operation
- when cross page
-Date: Wed, 23 May 2018 09:17:06 +0300
-Message-ID: <20180523061706.GA5729@mtr-leonro.mtl.com>
-References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
- <1526544173-106587-6-git-send-email-xavier.huwei@huawei.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [net-next] i40iw/i40e: Remove link dependency on i40e
+Date: Tue, 22 May 2018 23:19:22 -0700
+Message-ID: <20180523061922.GA4753@infradead.org>
+References: <20180522203831.20624-1-jeffrey.t.kirsher@intel.com>
+ <20180522205612.GD7502@mellanox.com>
+ <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1526544173-106587-6-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
+In-Reply-To: <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, davem@davemloft.net, dledford@redhat.com, Sindhu Devale <sindhu.devale@intel.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, nhorman@redhat.com, sassmann@redhat.com, jogreene@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, May 22, 2018 at 02:04:06PM -0700, Jeff Kirsher wrote:
+> > Why would you want to do this? The rdma driver is non-functional
+> > without the ethernet driver, so why on earth would we want to defeat
+> > the module dependency mechanism?
+> 
+> This change is driven by the OSV's like Red Hat, where customer's were
+> updating the i40e driver, which in turn broke i40iw.
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Doctor it hurts when I do this..
 
-On Thu, May 17, 2018 at 04:02:53PM +0800, Wei Hu (Xavier) wrote:
-> This patch fixed the potential illegal operation when using the
-> extend sge buffer cross page in post send operation. The bug
-> will cause the calltrace.
->
-> Reported-by: Jie Chen <chenjie103@huawei.com>
-> Reported-by: Xiping Zhang (Francis) <zhangxiping3@huawei.com>
-> Fixes: b1c1583("RDMA/hns: Get rid of virt_to_page and vmap calls after dma_alloc_coherent")
+There is no reason to make a mess of our drivers because people are
+doing things they should haver never done and that aren't supported
+in Linux.
 
-Documentation/process/submitting-patches.rst
-183 If your patch fixes a bug in a specific commit, e.g. you found an issue using
-184 ``git bisect``, please use the 'Fixes:' tag with the first 12 characters of
-185 the SHA-1 ID, and the one line summary.  For example::
-186
-187         Fixes: e21d2170f366 ("video: remove unnecessary platform_set_drvdata()")
-
-Thanks
-
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbBQdiAAoJEORje4g2clinsxIQAMAN+dwMEzxYHWqAqnFzdG96
-v8Y1NcWPuy6xcQuMPVbWpiLCTV/8OUFj6AO+b0v8moAcVGKBn8JCy5FSyl+52Nm7
-snLQ1vqocq/dUFKnOI51Mqw38YcpM83tVqZ+shnIBbpkUQ8KFcRxILa0UDtwPPO3
-EFZV6zZZ8sQjthq2ddpZAXXrcDdxzLmgNtXeHEw0X1UjIDZLkMAjxWJfdI8pKhV1
-OxlMeL+9taRmr/PDHtRTaIHvt6IRXFze5gsd1x6KukrPYR1N3GiGt/Cr3wPHzpZm
-HudNU8PhEqcmpebSR0Ydn6FZUV4fPYWCd4i3i1ViZ3w8ay/ouFcSxaEr0utDaEZL
-AyAmtg1rbWkljmcdeXuj/4Ooxp2k8IjH9y0lVyNQpIcTEbRkHaMLznxZCxjgZeTa
-G3T5xV97wHKsouF2ipA9jz7RBgawIc+c2A6+VtKJqQvAmPCrVqujx0GL+mi58Uc/
-Vl7HceomIqJ/sfBaCu5d7prNmUVCwtjesFyUrGGAKsm7WBHvyFaQdg995JDZGw54
-KxnIvWIWFiQodOMQrzTg7ujDAlSOssGxEZjFvvKs9SWRXY/hRkWgeOnssDpb95MS
-1WVH/QHF6IRP2N+7eFBcD0PIyhYJ6EufreQXek9ZsIYIy1MLCYqZv4MLVGomDpGP
-wYpRkzgICN33p7zhLe5E
-=0eOK
------END PGP SIGNATURE-----
-
---LQksG6bCIzRHxTLp--
+If Intel didn;t offer any out of tree drivers I'm pretty sure no
+customer would even attempt this.  So fix this where the problem is.
