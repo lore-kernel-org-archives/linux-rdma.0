@@ -1,122 +1,112 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH v3] mlx4_core: allocate ICM memory in page size chunks
-Date: Tue, 22 May 2018 18:41:39 -0700
-Message-ID: <4b7a4f67-2c08-a60d-81cd-f12db42622ec@oracle.com>
-References: <20180517205343.8401-1-qing.huang@oracle.com>
- <e6c470f0-f2ae-5efd-09ed-0c9562a4a764@gmail.com>
- <19b7818e-16f6-2349-dc34-245c2f215f6f@oracle.com>
- <35ba0f14-7b24-96ff-6b2d-610a4b2980c2@mellanox.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH rdma-next 4/5] RDMA/hns: Add reset process for RoCE in
+ hip08
+Date: Wed, 23 May 2018 10:54:54 +0800
+Message-ID: <5B04D7FE.70806@huawei.com>
+References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
+ <1526544173-106587-5-git-send-email-xavier.huwei@huawei.com>
+ <20180517151459.GD10842@ziepe.ca> <5AFE484B.2080206@huawei.com>
+ <20180518041502.GS10842@ziepe.ca> <5AFE7F54.9030201@huawei.com>
+ <20180522202612.GB21148@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <35ba0f14-7b24-96ff-6b2d-610a4b2980c2@mellanox.com>
-Content-Language: en-US
+In-Reply-To: <20180522202612.GB21148@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, Eric Dumazet <eric.dumazet@gmail.com>, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 5/22/2018 8:33 AM, Tariq Toukan wrote:
->
->
-> On 18/05/2018 12:45 AM, Qing Huang wrote:
+On 2018/5/23 4:26, Jason Gunthorpe wrote:
+> On Fri, May 18, 2018 at 03:23:00PM +0800, Wei Hu (Xavier) wrote:
 >>
->>
->> On 5/17/2018 2:14 PM, Eric Dumazet wrote:
->>> On 05/17/2018 01:53 PM, Qing Huang wrote:
->>>> When a system is under memory presure (high usage with fragments),
->>>> the original 256KB ICM chunk allocations will likely trigger kernel
->>>> memory management to enter slow path doing memory compact/migration
->>>> ops in order to complete high order memory allocations.
->>>>
->>>> When that happens, user processes calling uverb APIs may get stuck
->>>> for more than 120s easily even though there are a lot of free pages
->>>> in smaller chunks available in the system.
->>>>
->>>> Syslog:
->>>> ...
->>>> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
->>>> oracle_205573_e:205573 blocked for more than 120 seconds.
->>>> ...
->>>>
->>> NACK on this patch.
+>> On 2018/5/18 12:15, Jason Gunthorpe wrote:
+>>> On Fri, May 18, 2018 at 11:28:11AM +0800, Wei Hu (Xavier) wrote:
+>>>> On 2018/5/17 23:14, Jason Gunthorpe wrote:
+>>>>> On Thu, May 17, 2018 at 04:02:52PM +0800, Wei Hu (Xavier) wrote:
+>>>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>>>>>> index 86ef15f..e1c44a6 100644
+>>>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>>>>>> @@ -774,6 +774,9 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+>>>>>>  	int ret = 0;
+>>>>>>  	int ntc;
+>>>>>>  
+>>>>>> +	if (hr_dev->is_reset)
+>>>>>> +		return 0;
+>>>>>> +
+>>>>>>  	spin_lock_bh(&csq->lock);
+>>>>>>  
+>>>>>>  	if (num > hns_roce_cmq_space(csq)) {
+>>>>>> @@ -4790,6 +4793,7 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
+>>>>>>  	return 0;
+>>>>>>  
+>>>>>>  error_failed_get_cfg:
+>>>>>> +	handle->priv = NULL;
+>>>>>>  	kfree(hr_dev->priv);
+>>>>>>  
+>>>>>>  error_failed_kzalloc:
+>>>>>> @@ -4803,14 +4807,70 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
+>>>>>>  {
+>>>>>>  	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
+>>>>>>  
+>>>>>> +	if (!hr_dev)
+>>>>>> +		return;
+>>>>>> +
+>>>>>>  	hns_roce_exit(hr_dev);
+>>>>>> +	handle->priv = NULL;
+>>>>>>  	kfree(hr_dev->priv);
+>>>>>>  	ib_dealloc_device(&hr_dev->ib_dev);
+>>>>>>  }
+>>>>> Why are these hunks here? If init fails then uninit should not be
+>>>>> called, so why meddle with priv?
+>>>> In hns_roce_hw_v2_init_instance function, we evaluate handle->priv with 
+>>>> hr_dev,
+>>>> We want clear the value in hns_roce_hw_v2_uninit_instance function.
+>>>> So we can ensure no problem in RoCE driver.
+>>> What problem could happen?
 >>>
->>> You have been asked repeatedly to use kvmalloc()
+>>> I keep removing unnecessary sets to null and checks of null, so please
+>>> don't add them if they cannot happen.
 >>>
->>> This is not a minor suggestion.
+>>> Eg uninit should never be called with a null priv, that is a serious
+>>> logic mis-design someplace if it happens.
 >>>
->>> Take a look 
->>> athttps://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d8c13f2271ec5178c52fbde072ec7b562651ed9d 
->>>
->>
->> Would you please take a look at how table->icm is being used in the 
->> mlx4 driver? It's a meta data used for individual pointer variable 
->> referencing,
->> not as data frag or in/out buffer. It has no need for contiguous phy. 
->> memory.
->>
->> Thanks.
->>
+>>> Jason
+>> NIC driver call the registered reset_notify() function to finish the
+>> part of RoCE reset process.
+>> In RoCE driver,  when hnae3_reset_notify_type is HNAE3_UNINIT_CLIENT,
+>> we call hns_roce_hw_v2_uninit_instance(handle, false) to release the
+>> resources.
+>> when hnae3_reset_notify_type is HNAE3_INIT_CLIENT, we call
+>> hns_roce_hw_v2_init_instance.
+>> if hns_roce_hw_v2_init_instance failed, we should ensure no problem in
+>> the other callback
+>> function registered by RoCE driver.
+> Don't design things like this.
 >
-> NACK.
+> init/uninit are paired - do not call something uninit if it can be
+> called after init fails, or better, arrange to prevent that so things
+> are sane.
 >
-> This would cause a degradation when iterating the entries of table->icm.
-> For example, in mlx4_table_get_range.
-E.g.
-int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
-                          u32 start, u32 end)
-{
-         int inc = MLX4_TABLE_CHUNK_SIZE / table->obj_size;
-         int err;
-         u32 i;
-
-         for (i = start; i <= end; i += inc) {
-                 err = mlx4_table_get(dev, table, i);
-                 if (err)
-                         goto fail;
-         }
-
-         return 0;
-...
-}
-
-E.g. mtt obj is 8 bytes, so a 4KB ICM block would have 512 mtt objects. 
-So you will have to allocate
-more 512 mtt objects in order to have table->icm pointer to increment by 
-1 to fetch next pointer
-value.  So 256K mtt objects are needed in order to traverse table->icm 
-pointer across a page boundary
-in the call stacks.
-
-Considering mlx4_table_get_range() is only used in control path, there 
-is no significant gain by using kvzalloc
-vs. vzalloc for table->icm.
-
-Anyway, if a user makes sure mlx4 driver to be loaded very early and 
-doesn't remove and reload it afterwards,
-we should have enough (and not wasting) contiguous phy mem for 
-table->icm allocation. I will use kvzalloc to
-replace vzalloc and send a V4 patch.
-
-Thanks,
-Qing
-
-
+> Jason
 >
-> Thanks,
-> Tariq
+> .
+The current RoCE driver registered 3 callback function to NIC driver as
+belows:
+1.init_instance/uninit_instance are paired.
+2.In reset_notify function,  RoCE dirver still call
+init_instance/uninit_instance function.
+but NIC driver does not perceive the behavior.  We need to judge in RoCE
+driver.
+
+static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
+    .init_instance = hns_roce_hw_v2_init_instance,
+    .uninit_instance = hns_roce_hw_v2_uninit_instance,
+    .reset_notify = hns_roce_hw_v2_reset_notify,
+};
+
+Wei Hu
 >
->>> And you'll understand some people care about this.
->>>
->>> Strongly.
->>>
->>> Thanks.
->>>
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
