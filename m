@@ -1,117 +1,36 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH rdma-next 4/5] RDMA/hns: Add reset process for RoCE in
- hip08
-Date: Wed, 23 May 2018 17:35:18 +0800
-Message-ID: <5B0535D6.3020203@huawei.com>
-References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
- <1526544173-106587-5-git-send-email-xavier.huwei@huawei.com>
- <20180517151459.GD10842@ziepe.ca> <5AFE484B.2080206@huawei.com>
- <20180518041502.GS10842@ziepe.ca> <5AFE7F54.9030201@huawei.com>
- <20180522202612.GB21148@ziepe.ca> <5B04D7FE.70806@huawei.com>
- <20180523034748.GC21148@ziepe.ca>
+Subject: [PATCH V2 rdma-next 0/4] Misc update for hns driver
+Date: Wed, 23 May 2018 18:16:26 +0800
+Message-ID: <1527070590-94399-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180523034748.GC21148@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
+To: dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patchset included fixing bug, some optimization, reset
+process for hns driver.
 
+v1->v2: 1.pull the patch out of the series. The name of the patch is 
+	  RDMA/hns: Implement the disassociate_ucontext API.
+	2.Modify the fixes statement according to Leon's comment.
+	3.Address the Jason's comment in reset relevant patch.
 
-On 2018/5/23 11:47, Jason Gunthorpe wrote:
-> On Wed, May 23, 2018 at 10:54:54AM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2018/5/23 4:26, Jason Gunthorpe wrote:
->>> On Fri, May 18, 2018 at 03:23:00PM +0800, Wei Hu (Xavier) wrote:
->>>> On 2018/5/18 12:15, Jason Gunthorpe wrote:
->>>>> On Fri, May 18, 2018 at 11:28:11AM +0800, Wei Hu (Xavier) wrote:
->>>>>> On 2018/5/17 23:14, Jason Gunthorpe wrote:
->>>>>>> On Thu, May 17, 2018 at 04:02:52PM +0800, Wei Hu (Xavier) wrote:
->>>>>>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>>>>>>> index 86ef15f..e1c44a6 100644
->>>>>>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->>>>>>>> @@ -774,6 +774,9 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
->>>>>>>>  	int ret = 0;
->>>>>>>>  	int ntc;
->>>>>>>>  
->>>>>>>> +	if (hr_dev->is_reset)
->>>>>>>> +		return 0;
->>>>>>>> +
->>>>>>>>  	spin_lock_bh(&csq->lock);
->>>>>>>>  
->>>>>>>>  	if (num > hns_roce_cmq_space(csq)) {
->>>>>>>> @@ -4790,6 +4793,7 @@ static int hns_roce_hw_v2_init_instance(struct hnae3_handle *handle)
->>>>>>>>  	return 0;
->>>>>>>>  
->>>>>>>>  error_failed_get_cfg:
->>>>>>>> +	handle->priv = NULL;
->>>>>>>>  	kfree(hr_dev->priv);
->>>>>>>>  
->>>>>>>>  error_failed_kzalloc:
->>>>>>>> @@ -4803,14 +4807,70 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
->>>>>>>>  {
->>>>>>>>  	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
->>>>>>>>  
->>>>>>>> +	if (!hr_dev)
->>>>>>>> +		return;
->>>>>>>> +
->>>>>>>>  	hns_roce_exit(hr_dev);
->>>>>>>> +	handle->priv = NULL;
->>>>>>>>  	kfree(hr_dev->priv);
->>>>>>>>  	ib_dealloc_device(&hr_dev->ib_dev);
->>>>>>>>  }
->>>>>>> Why are these hunks here? If init fails then uninit should not be
->>>>>>> called, so why meddle with priv?
->>>>>> In hns_roce_hw_v2_init_instance function, we evaluate handle->priv with 
->>>>>> hr_dev,
->>>>>> We want clear the value in hns_roce_hw_v2_uninit_instance function.
->>>>>> So we can ensure no problem in RoCE driver.
->>>>> What problem could happen?
->>>>>
->>>>> I keep removing unnecessary sets to null and checks of null, so please
->>>>> don't add them if they cannot happen.
->>>>>
->>>>> Eg uninit should never be called with a null priv, that is a serious
->>>>> logic mis-design someplace if it happens.
->>>>>
->>>>> Jason
->>>> NIC driver call the registered reset_notify() function to finish the
->>>> part of RoCE reset process.
->>>> In RoCE driver,  when hnae3_reset_notify_type is HNAE3_UNINIT_CLIENT,
->>>> we call hns_roce_hw_v2_uninit_instance(handle, false) to release the
->>>> resources.
->>>> when hnae3_reset_notify_type is HNAE3_INIT_CLIENT, we call
->>>> hns_roce_hw_v2_init_instance.
->>>> if hns_roce_hw_v2_init_instance failed, we should ensure no problem in
->>>> the other callback
->>>> function registered by RoCE driver.
->>> Don't design things like this.
->>>
->>> init/uninit are paired - do not call something uninit if it can be
->>> called after init fails, or better, arrange to prevent that so things
->>> are sane.
->>>
->>> Jason
->>>
->>> .
->> The current RoCE driver registered 3 callback function to NIC driver as
->> belows:
->> 1.init_instance/uninit_instance are paired.
->> 2.In reset_notify function,  RoCE dirver still call
->> init_instance/uninit_instance function.
->> but NIC driver does not perceive the behavior.  We need to judge in RoCE
->> driver.
-Hi, Jason
-    I will send v2, thanks.
-    Regards
-Wei Hu
+Wei Hu (Xavier) (4):
+  RDMA/hns: Modify uar allocation algorithm to avoid bitmap exhaust
+  RDMA/hns: Increase checking CMQ status timeout value
+  RDMA/hns: Add reset process for RoCE in hip08
+  RDMA/hns: Fix the illegal memory operation when cross page
 
-> fix the nic driver
->
-> Jason
->
-> .
->
+ drivers/infiniband/hw/hns/hns_roce_cmd.c    |   3 +
+ drivers/infiniband/hw/hns/hns_roce_device.h |   3 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 146 ++++++++++++++++++++++++----
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   3 +-
+ drivers/infiniband/hw/hns/hns_roce_main.c   |   7 ++
+ drivers/infiniband/hw/hns/hns_roce_pd.c     |  10 +-
+ 6 files changed, 147 insertions(+), 25 deletions(-)
+
+-- 
+1.9.1
