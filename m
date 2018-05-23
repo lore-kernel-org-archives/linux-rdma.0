@@ -1,28 +1,86 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [net-next] i40iw/i40e: Remove link dependency on i40e
-Date: Tue, 22 May 2018 23:20:24 -0700
-Message-ID: <20180523062024.GB4753@infradead.org>
-References: <20180522203831.20624-1-jeffrey.t.kirsher@intel.com>
- <20180522205612.GD7502@mellanox.com>
- <079ceee3bc8cd0ea50dd7ddc12b27512ca5ac49e.camel@intel.com>
- <20180522213334.GE7502@mellanox.com>
- <2fcc22b088fd04dafbdc1582d03c4bca21eefade.camel@intel.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next 3/5] RDMA/hns: Increase checking CMQ status
+ timeout value
+Date: Wed, 23 May 2018 09:23:46 +0300
+Message-ID: <20180523062346.GB5729@mtr-leonro.mtl.com>
+References: <1526544173-106587-1-git-send-email-xavier.huwei@huawei.com>
+ <1526544173-106587-4-git-send-email-xavier.huwei@huawei.com>
+ <20180523054918.GB2933@mtr-leonro.mtl.com>
+ <5B0505A9.8040908@huawei.com>
+ <5B050714.2040205@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="BwCQnh7xodEAoBMC"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2fcc22b088fd04dafbdc1582d03c4bca21eefade.camel@intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, davem@davemloft.net, dledford@redhat.com, Sindhu Devale <sindhu.devale@intel.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, nhorman@redhat.com, sassmann@redhat.com, jogreene@redhat.com, Shiraz Saleem <shiraz.saleem@intel.com>
+In-Reply-To: <5B050714.2040205@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, xavier.huwei@tom.com, lijun_nudt@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 22, 2018 at 02:50:32PM -0700, Jeff Kirsher wrote:
-> The ABI rarely changes, if at all.  The issue OSV's are seeing is that
-> upgrading i40e, requires that i40iw be recompiled even though there
-> were no updates/changes to the ABI.
 
-So fscking what.  If you upgrade one part of the kernel you have to
-rebuild anbything.  If people try to get away without that that is
-their problem, an certainly not something in any way supported by
-Linux.
+--BwCQnh7xodEAoBMC
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, May 23, 2018 at 02:15:48PM +0800, Wei Hu (Xavier) wrote:
+>
+>
+> On 2018/5/23 14:09, Wei Hu (Xavier) wrote:
+> >
+> > On 2018/5/23 13:49, Leon Romanovsky wrote:
+> >> On Thu, May 17, 2018 at 04:02:51PM +0800, Wei Hu (Xavier) wrote:
+> >>> This patch increases checking CMQ status timeout value and
+> >>> uses the same value with NIC driver to avoid deficiency of
+> >>> time.
+> >>>
+> >>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+> >>> ---
+> >>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 +-
+> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>
+> >>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+> >>> index 182b672..f16df1b 100644
+> >>> --- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+> >>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+> >>> @@ -76,7 +76,7 @@
+> >>>  #define HNS_ROCE_V2_PAGE_SIZE_SUPPORTED		0xFFFFF000
+> >>>  #define HNS_ROCE_V2_MAX_INNER_MTPT_NUM		2
+> >>>  #define HNS_ROCE_INVALID_LKEY			0x100
+> >>> -#define HNS_ROCE_CMQ_TX_TIMEOUT			200
+> >>> +#define HNS_ROCE_CMQ_TX_TIMEOUT			30000
+> >> Don't you think that loop of 30 seconds too much?
+> >>
+> >> Thanks
+> > Leon, 30ms
+> Because firmware take turns excuting NIC and RoCE command.
+> Although RoCE command does not  take so long,  we still use
+> the same timeout value with NIC driver.
+
+Sorry, you are right it is 30ms and not 30s.
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--BwCQnh7xodEAoBMC
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbBQjyAAoJEORje4g2clinxMkQAIJ5hCq4bFowGwpaaSdlwkp8
+gy9JTUMq7a456zR3NQJ2iaU0rF1tWAr4mI3FcGjTCYTpbrPdBpM54z4xBF/vmqI8
+xNG2WWE91FwCw1YsJ9Hl5YC1cQ16J5Ot0vKOWKUbIGJjXEzmxsegGUL/LfpzXoRn
+chEh0Jikt0+zQcUMdIqurFzAoqC8jXXL3m4Idos7YfZc/J1krSBc2b5TfdfgLODB
+E6LimI2xoJnUzIjYamGu7jYFMzwPSoW9ThdVbstk5rQLkX7UfrBmnMIN7kwdx7GG
+LEaX8cZnHbqN+XtXAwPXmToRbPjyfozdrBNAMlpaNdvdlzk6LM3OcwQX6r7JrE9K
+V5YoTyhaYFqENw3FmapMNo9PKwziqrHFAveDXCTRPQLY6vqMbSIqpVWtD7FH6ztl
+NMKtmthJZGxMUAXAzSqb6o/j++sLAxeppg3OdNEBod7wFa7fU/2ztWRg2Uq0OgrN
+LeuQSoGjKZwLyGYqzO6Dz4wANdDXn6aAEfoFIULeDhQTp/S7NYudEPmEVrl+rINA
+YDQsfD3Qvix1e9T6tHgcRvf27uR5KoClDNcvnK/RsqJR0X2dXlFUCVs8Oh4Kpo4j
+715XNsOO4tmF6gVzzDnUXLrtqR0gvesjyRQNkAQNPlIzF+RPywn8nhHKbSft0TA1
+0WIvHlQWjnap7xVz/s7Z
+=8nhN
+-----END PGP SIGNATURE-----
+
+--BwCQnh7xodEAoBMC--
