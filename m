@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH V2 rdma-next 1/4] RDMA/hns: Modify uar allocation algorithm to avoid bitmap exhaust
-Date: Wed, 23 May 2018 18:16:27 +0800
-Message-ID: <1527070590-94399-2-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH V2 rdma-next 2/4] RDMA/hns: Increase checking CMQ status timeout value
+Date: Wed, 23 May 2018 18:16:28 +0800
+Message-ID: <1527070590-94399-3-git-send-email-xavier.huwei@huawei.com>
 References: <1527070590-94399-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,59 +12,28 @@ To: dledford@redhat.com, jgg@ziepe.ca
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch modified uar allocation algorithm in hns_roce_uar_alloc
-function to avoid bitmap exhaust.
+This patch increases checking CMQ status timeout value and
+uses the same value with NIC driver to avoid deficiency of
+time.
 
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/hns/hns_roce_device.h |  1 +
- drivers/infiniband/hw/hns/hns_roce_pd.c     | 10 ++++++----
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 53c2f1b..412297d4 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -214,6 +214,7 @@ enum {
- struct hns_roce_uar {
- 	u64		pfn;
- 	unsigned long	index;
-+	unsigned long	logic_idx;
- };
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 182b672..f16df1b 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -76,7 +76,7 @@
+ #define HNS_ROCE_V2_PAGE_SIZE_SUPPORTED		0xFFFFF000
+ #define HNS_ROCE_V2_MAX_INNER_MTPT_NUM		2
+ #define HNS_ROCE_INVALID_LKEY			0x100
+-#define HNS_ROCE_CMQ_TX_TIMEOUT			200
++#define HNS_ROCE_CMQ_TX_TIMEOUT			30000
  
- struct hns_roce_ucontext {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_pd.c b/drivers/infiniband/hw/hns/hns_roce_pd.c
-index 4b41e04..b9f2c87 100644
---- a/drivers/infiniband/hw/hns/hns_roce_pd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_pd.c
-@@ -107,13 +107,15 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- 	int ret = 0;
- 
- 	/* Using bitmap to manager UAR index */
--	ret = hns_roce_bitmap_alloc(&hr_dev->uar_table.bitmap, &uar->index);
-+	ret = hns_roce_bitmap_alloc(&hr_dev->uar_table.bitmap, &uar->logic_idx);
- 	if (ret == -1)
- 		return -ENOMEM;
- 
--	if (uar->index > 0)
--		uar->index = (uar->index - 1) %
-+	if (uar->logic_idx > 0 && hr_dev->caps.phy_num_uars > 1)
-+		uar->index = (uar->logic_idx - 1) %
- 			     (hr_dev->caps.phy_num_uars - 1) + 1;
-+	else
-+		uar->index = 0;
- 
- 	if (!dev_is_pci(hr_dev->dev)) {
- 		res = platform_get_resource(hr_dev->pdev, IORESOURCE_MEM, 0);
-@@ -132,7 +134,7 @@ int hns_roce_uar_alloc(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- 
- void hns_roce_uar_free(struct hns_roce_dev *hr_dev, struct hns_roce_uar *uar)
- {
--	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->index,
-+	hns_roce_bitmap_free(&hr_dev->uar_table.bitmap, uar->logic_idx,
- 			     BITMAP_NO_RR);
- }
- 
+ #define HNS_ROCE_CONTEXT_HOP_NUM		1
+ #define HNS_ROCE_MTT_HOP_NUM			1
 -- 
 1.9.1
