@@ -1,136 +1,185 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Thu, 24 May 2018 14:51:15 -0600
-Message-ID: <20180524205114.GA8656@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH V2 rdma-next 3/4] RDMA/hns: Add reset process for RoCE in
+ hip08
+Date: Thu, 24 May 2018 15:31:43 -0600
+Message-ID: <20180524213143.GE3948@ziepe.ca>
+References: <1527070590-94399-1-git-send-email-xavier.huwei@huawei.com>
+ <1527070590-94399-4-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
+In-Reply-To: <1527070590-94399-4-git-send-email-xavier.huwei@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+On Wed, May 23, 2018 at 06:16:29PM +0800, Wei Hu (Xavier) wrote:
+> This patch added reset process for RoCE in hip08.
+> 
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+> 
+> v1->v2: 1.Delete handle->priv = NULL in hns_roce_hw_v2_uninit_instance.
+> 	2.Add hns_roce_hw_v2_reset_notify_init callback function,
+> 	  When RoCE reinit failed in this function, inform NIC driver.
+> 	The related link of Jason's commets:
+> 	https://www.spinics.net/lists/linux-rdma/msg65009.html
+>  drivers/infiniband/hw/hns/hns_roce_cmd.c    |  3 ++
+>  drivers/infiniband/hw/hns/hns_roce_device.h |  2 +
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 76 +++++++++++++++++++++++++++++
+>  drivers/infiniband/hw/hns/hns_roce_main.c   |  7 +++
+>  4 files changed, 88 insertions(+)
+> 
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+> index 9ebe839..a0ba19d 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
+> @@ -176,6 +176,9 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
+>  		      unsigned long in_modifier, u8 op_modifier, u16 op,
+>  		      unsigned long timeout)
+>  {
+> +	if (hr_dev->is_reset)
+> +		return 0;
+> +
+>  	if (hr_dev->cmd.use_events)
+>  		return hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
+>  					      in_modifier, op_modifier, op,
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+> index 412297d4..da8512b 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+> @@ -774,6 +774,8 @@ struct hns_roce_dev {
+>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
+>  	spinlock_t		sm_lock;
+>  	spinlock_t		bt_cmd_lock;
+> +	bool			active;
+> +	bool			is_reset;
+>  	struct hns_roce_ib_iboe iboe;
+>  
+>  	struct list_head        pgdir_list;
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> index e0ab672..a70d07b 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> @@ -768,6 +768,9 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+>  	int ret = 0;
+>  	int ntc;
+>  
+> +	if (hr_dev->is_reset)
+> +		return 0;
+> +
+>  	spin_lock_bh(&csq->lock);
+>  
+>  	if (num > hns_roce_cmq_space(csq)) {
+> @@ -4790,14 +4793,87 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
+>  {
+>  	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
+>  
+> +	if (!hr_dev)
+> +		return;
+> +
+>  	hns_roce_exit(hr_dev);
+>  	kfree(hr_dev->priv);
+>  	ib_dealloc_device(&hr_dev->ib_dev);
+>  }
+>  
+> +static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
+> +{
+> +	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
+> +	struct ib_event event;
+> +
+> +	if (!hr_dev) {
+> +		dev_err(&handle->pdev->dev,
+> +			"Input parameter handle->priv is NULL!\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	hr_dev->active = false;
+> +	hr_dev->is_reset = true;
+> +
+> +	event.event = IB_EVENT_DEVICE_FATAL;
+> +	event.device = &hr_dev->ib_dev;
+> +	event.element.port_num = 1;
+> +	ib_dispatch_event(&event);
+> +
+> +	return 0;
+> +}
+> +
+> +static int hns_roce_hw_v2_reset_notify_init(struct hnae3_handle *handle)
+> +{
+> +	int ret;
+> +
+> +	ret = hns_roce_hw_v2_init_instance(handle);
+> +	if (ret) {
+> +		/* when reset notify type is HNAE3_INIT_CLIENT In reset notify
+> +		 * callback function, RoCE Engine reinitialize. If RoCE reinit
+> +		 * failed, we should inform NIC driver.
+> +		 */
+> +		handle->priv = NULL;
+> +		dev_err(&handle->pdev->dev,
+> +			"In reset process RoCE reinit failed %d.\n", ret);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int hns_roce_hw_v2_reset_notify_uninit(struct hnae3_handle *handle)
+> +{
+> +	msleep(100);
+> +	hns_roce_hw_v2_uninit_instance(handle, false);
+> +	return 0;
+> +}
+> +
+> +static int hns_roce_hw_v2_reset_notify(struct hnae3_handle *handle,
+> +				       enum hnae3_reset_notify_type type)
+> +{
+> +	int ret = 0;
+> +
+> +	switch (type) {
+> +	case HNAE3_DOWN_CLIENT:
+> +		ret = hns_roce_hw_v2_reset_notify_down(handle);
+> +		break;
+> +	case HNAE3_INIT_CLIENT:
+> +		ret = hns_roce_hw_v2_reset_notify_init(handle);
+> +		break;
+> +	case HNAE3_UNINIT_CLIENT:
+> +		ret = hns_roce_hw_v2_reset_notify_uninit(handle);
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
+>  	.init_instance = hns_roce_hw_v2_init_instance,
+>  	.uninit_instance = hns_roce_hw_v2_uninit_instance,
+> +	.reset_notify = hns_roce_hw_v2_reset_notify,
+>  };
+>  
+>  static struct hnae3_client hns_roce_hw_v2_client = {
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+> index 1b79a38..ac51372 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+> @@ -332,6 +332,9 @@ static struct ib_ucontext *hns_roce_alloc_ucontext(struct ib_device *ib_dev,
+>  	struct hns_roce_ib_alloc_ucontext_resp resp = {};
+>  	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+>  
+> +	if (!hr_dev->active)
+> +		return ERR_PTR(-EAGAIN);
 
-Second pull request for -rc
+This still doesn't make sense, ib_unregister_device already makes sure
+that hns_roce_alloc_ucontext isn't running and won't be called before
+returning, don't need another flag to do that.
 
-We haven't had quite the same rate of -rc patches this cycle, not much Syzkaller
-related stuff right now as the remaining bugs it has found require some kind of
-significant redesign to solve. The -next branch is also somewhat quieter than
-normal.
+Since this is the only place the active flag is tested it can just be deleted
+entirely.
 
-This is pretty much just the usual array of smallish driver bugs.
+> @@ -425,6 +428,7 @@ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
+>  {
+>  	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
+>  
+> +	hr_dev->active = false;
+>  	unregister_netdevice_notifier(&iboe->nb);
+>  	ib_unregister_device(&hr_dev->ib_dev);
 
-There is a patch that cleans up the kconfig around INFINIBAND_ADDR_TRANS that
-touches a few files, this is related the the patch introducing
-INFINIBAND_ADDR_TRANS that was accepted earlier this cycle
-  f7cb7b85be55 ("IB: make INFINIBAND_ADDR_TRANS configurable")
-
-The following changes since commit 9aa169213d1166d30ae357a44abbeae93459339d:
-
-  RDMA/cma: Do not query GID during QP state transition to RTR (2018-05-03 15:45:18 -0400)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-for you to fetch changes up to 55ba49cbcef37053d973f9a45bc58818c333fe13:
-
-  RDMA/hns: Move the location for initializing tmp_len (2018-05-23 15:45:44 -0600)
-
-----------------------------------------------------------------
-Merge candidates for 4.17-rc
-
-- Remove bouncing addresses from the MAINTAINERS file
-- Kernel oops and bad error handling fixes for hfi, i40iw, cxgb4, and hns drivers
-- Various small LOC behavioral/operational bugs in mlx5, hns, qedr and i40iw drivers
-- Two fixes for patches already sent during the merge window
-- A long standing bug related to not decreasing the pinned pages count in the right
-  MM was found and fixed
-
-----------------------------------------------------------------
-Alexandru Moise (1):
-      nvmet,rxe: defer ip datagram sending to tasklet
-
-Andrew Boyer (3):
-      RDMA/i40iw: Avoid panic when objects are being created and destroyed
-      RDMA/i40iw: Avoid reference leaks when processing the AEQ
-      RDMA/i40iw: Avoid panic when reading back the IRQ affinity hint
-
-Christophe Jaillet (1):
-      iw_cxgb4: Fix an error handling path in 'c4iw_get_dma_mr()'
-
-Daria Velikovsky (1):
-      RDMA/mlx5: Use proper spec flow label type
-
-Greg Thelen (1):
-      IB: remove redundant INFINIBAND kconfig dependencies
-
-Jason Gunthorpe (1):
-      IB/uverbs: Fix uverbs_attr_get_obj
-
-Kalderon, Michal (1):
-      RDMA/qedr: Fix doorbell bar mapping for dpi > 1
-
-Leon Romanovsky (1):
-      MAINTAINERS: Remove bouncing @mellanox.com addresses
-
-Lidong Chen (1):
-      IB/umem: Use the correct mm during ib_umem_release
-
-Michael J. Ruhl (1):
-      IB/hfi1: Use after free race condition in send context error path
-
-Mustafa Ismail (2):
-      i40iw: Fix memory leak in error path of create QP
-      i40iw: Use correct address in dst_neigh_lookup for IPv6
-
-Yishai Hadas (1):
-      RDMA/mlx5: Don't assume that medium blueFlame register exists
-
-oulijun (13):
-      RDMA/hns: Add rq inline flags judgement
-      RDMA/hns: Bugfix for rq record db for kernel
-      RDMA/hns: Load the RoCE dirver automatically
-      RDMA/hns: Update convert function of endian format
-      RDMA/hns: Add return operation when configured global param fail
-      RDMA/hns: Not support qp transition from reset to reset for hip06
-      RDMA/hns: Fix the bug with rq sge
-      RDMA/hns: Set desc_dma_addr for zero when free cmq desc
-      RDMA/hns: Enable inner_pa_vld filed of mpt
-      RDMA/hns: Set NULL for __internal_mr
-      RDMA/hns: Fix the bug with NULL pointer
-      RDMA/hns: Bugfix for cq record db for kernel
-      RDMA/hns: Move the location for initializing tmp_len
-
- MAINTAINERS                                |  6 ---
- drivers/infiniband/core/umem.c             |  7 +---
- drivers/infiniband/hw/cxgb4/mem.c          |  4 +-
- drivers/infiniband/hw/hfi1/chip.c          |  4 ++
- drivers/infiniband/hw/hns/hns_roce_cq.c    |  1 +
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  3 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 32 +++++++++++-----
- drivers/infiniband/hw/hns/hns_roce_main.c  |  2 +-
- drivers/infiniband/hw/hns/hns_roce_qp.c    | 10 ++++-
- drivers/infiniband/hw/i40iw/i40iw.h        |  1 +
- drivers/infiniband/hw/i40iw/i40iw_cm.c     |  2 +-
- drivers/infiniband/hw/i40iw/i40iw_hw.c     |  4 +-
- drivers/infiniband/hw/i40iw/i40iw_main.c   |  7 ++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.c  | 13 +++++--
- drivers/infiniband/hw/i40iw/i40iw_verbs.h  |  1 +
- drivers/infiniband/hw/mlx5/main.c          |  2 +-
- drivers/infiniband/hw/mlx5/qp.c            | 18 +++++----
- drivers/infiniband/hw/qedr/verbs.c         | 60 +++++++++++++++---------------
- drivers/infiniband/sw/rxe/rxe_verbs.c      | 10 +----
- drivers/infiniband/ulp/srpt/Kconfig        |  2 +-
- drivers/nvme/host/Kconfig                  |  2 +-
- drivers/nvme/target/Kconfig                |  2 +-
- drivers/staging/lustre/lnet/Kconfig        |  2 +-
- fs/cifs/Kconfig                            |  2 +-
- include/rdma/ib_umem.h                     |  1 -
- include/rdma/uverbs_ioctl.h                | 10 ++---
- net/9p/Kconfig                             |  2 +-
- net/rds/Kconfig                            |  2 +-
- net/sunrpc/Kconfig                         |  2 +-
- 29 files changed, 116 insertions(+), 98 deletions(-)
+Jason
