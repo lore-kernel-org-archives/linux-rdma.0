@@ -1,120 +1,136 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH V4] mlx4_core: allocate ICM memory in page size chunks
-Date: Thu, 24 May 2018 12:45:03 +0300
-Message-ID: <bc652655-29de-a34b-a78a-0de19fc20df5@mellanox.com>
-References: <20180523232246.20445-1-qing.huang@oracle.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Thu, 24 May 2018 14:51:15 -0600
+Message-ID: <20180524205114.GA8656@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180523232246.20445-1-qing.huang@oracle.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>, tariqt@mellanox.com, davem@davemloft.net, haakon.bugge@oracle.com, yanjun.zhu@oracle.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Linus,
 
+Second pull request for -rc
 
-On 24/05/2018 2:22 AM, Qing Huang wrote:
-> When a system is under memory presure (high usage with fragments),
-> the original 256KB ICM chunk allocations will likely trigger kernel
-> memory management to enter slow path doing memory compact/migration
-> ops in order to complete high order memory allocations.
-> 
-> When that happens, user processes calling uverb APIs may get stuck
-> for more than 120s easily even though there are a lot of free pages
-> in smaller chunks available in the system.
-> 
-> Syslog:
-> ...
-> Dec 10 09:04:51 slcc03db02 kernel: [397078.572732] INFO: task
-> oracle_205573_e:205573 blocked for more than 120 seconds.
-> ...
-> 
-> With 4KB ICM chunk size on x86_64 arch, the above issue is fixed.
-> 
-> However in order to support smaller ICM chunk size, we need to fix
-> another issue in large size kcalloc allocations.
-> 
-> E.g.
-> Setting log_num_mtt=30 requires 1G mtt entries. With the 4KB ICM chunk
-> size, each ICM chunk can only hold 512 mtt entries (8 bytes for each mtt
-> entry). So we need a 16MB allocation for a table->icm pointer array to
-> hold 2M pointers which can easily cause kcalloc to fail.
-> 
-> The solution is to use kvzalloc to replace kcalloc which will fall back
-> to vmalloc automatically if kmalloc fails.
-> 
-> Signed-off-by: Qing Huang <qing.huang@oracle.com>
-> Acked-by: Daniel Jurgens <danielj@mellanox.com>
-> Reviewed-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
-> v4: use kvzalloc instead of vzalloc
->      add one err condition check
->      don't include vmalloc.h any more
-> 
-> v3: use PAGE_SIZE instead of PAGE_SHIFT
->      add comma to the end of enum variables
->      include vmalloc.h header file to avoid build issues on Sparc
-> 
-> v2: adjusted chunk size to reflect different architectures
-> 
->   drivers/net/ethernet/mellanox/mlx4/icm.c | 16 +++++++++-------
->   1 file changed, 9 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
-> index a822f7a..685337d 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
-> @@ -43,12 +43,12 @@
->   #include "fw.h"
->   
->   /*
-> - * We allocate in as big chunks as we can, up to a maximum of 256 KB
-> - * per chunk.
-> + * We allocate in page size (default 4KB on many archs) chunks to avoid high
-> + * order memory allocations in fragmented/high usage memory situation.
->    */
->   enum {
-> -	MLX4_ICM_ALLOC_SIZE	= 1 << 18,
-> -	MLX4_TABLE_CHUNK_SIZE	= 1 << 18
-> +	MLX4_ICM_ALLOC_SIZE	= PAGE_SIZE,
-> +	MLX4_TABLE_CHUNK_SIZE	= PAGE_SIZE,
->   };
->   
->   static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct mlx4_icm_chunk *chunk)
-> @@ -398,9 +398,11 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
->   	u64 size;
->   
->   	obj_per_chunk = MLX4_TABLE_CHUNK_SIZE / obj_size;
-> +	if (WARN_ON(!obj_per_chunk))
-> +		return -EINVAL;
->   	num_icm = (nobj + obj_per_chunk - 1) / obj_per_chunk;
->   
-> -	table->icm      = kcalloc(num_icm, sizeof(*table->icm), GFP_KERNEL);
-> +	table->icm      = kvzalloc(num_icm * sizeof(*table->icm), GFP_KERNEL);
->   	if (!table->icm)
->   		return -ENOMEM;
->   	table->virt     = virt;
-> @@ -446,7 +448,7 @@ int mlx4_init_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table,
->   			mlx4_free_icm(dev, table->icm[i], use_coherent);
->   		}
->   
-> -	kfree(table->icm);
-> +	kvfree(table->icm);
->   
->   	return -ENOMEM;
->   }
-> @@ -462,5 +464,5 @@ void mlx4_cleanup_icm_table(struct mlx4_dev *dev, struct mlx4_icm_table *table)
->   			mlx4_free_icm(dev, table->icm[i], table->coherent);
->   		}
->   
-> -	kfree(table->icm);
-> +	kvfree(table->icm);
->   }
-> 
+We haven't had quite the same rate of -rc patches this cycle, not much Syzkaller
+related stuff right now as the remaining bugs it has found require some kind of
+significant redesign to solve. The -next branch is also somewhat quieter than
+normal.
 
-Thanks Qing.
+This is pretty much just the usual array of smallish driver bugs.
 
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+There is a patch that cleans up the kconfig around INFINIBAND_ADDR_TRANS that
+touches a few files, this is related the the patch introducing
+INFINIBAND_ADDR_TRANS that was accepted earlier this cycle
+  f7cb7b85be55 ("IB: make INFINIBAND_ADDR_TRANS configurable")
+
+The following changes since commit 9aa169213d1166d30ae357a44abbeae93459339d:
+
+  RDMA/cma: Do not query GID during QP state transition to RTR (2018-05-03 15:45:18 -0400)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to 55ba49cbcef37053d973f9a45bc58818c333fe13:
+
+  RDMA/hns: Move the location for initializing tmp_len (2018-05-23 15:45:44 -0600)
+
+----------------------------------------------------------------
+Merge candidates for 4.17-rc
+
+- Remove bouncing addresses from the MAINTAINERS file
+- Kernel oops and bad error handling fixes for hfi, i40iw, cxgb4, and hns drivers
+- Various small LOC behavioral/operational bugs in mlx5, hns, qedr and i40iw drivers
+- Two fixes for patches already sent during the merge window
+- A long standing bug related to not decreasing the pinned pages count in the right
+  MM was found and fixed
+
+----------------------------------------------------------------
+Alexandru Moise (1):
+      nvmet,rxe: defer ip datagram sending to tasklet
+
+Andrew Boyer (3):
+      RDMA/i40iw: Avoid panic when objects are being created and destroyed
+      RDMA/i40iw: Avoid reference leaks when processing the AEQ
+      RDMA/i40iw: Avoid panic when reading back the IRQ affinity hint
+
+Christophe Jaillet (1):
+      iw_cxgb4: Fix an error handling path in 'c4iw_get_dma_mr()'
+
+Daria Velikovsky (1):
+      RDMA/mlx5: Use proper spec flow label type
+
+Greg Thelen (1):
+      IB: remove redundant INFINIBAND kconfig dependencies
+
+Jason Gunthorpe (1):
+      IB/uverbs: Fix uverbs_attr_get_obj
+
+Kalderon, Michal (1):
+      RDMA/qedr: Fix doorbell bar mapping for dpi > 1
+
+Leon Romanovsky (1):
+      MAINTAINERS: Remove bouncing @mellanox.com addresses
+
+Lidong Chen (1):
+      IB/umem: Use the correct mm during ib_umem_release
+
+Michael J. Ruhl (1):
+      IB/hfi1: Use after free race condition in send context error path
+
+Mustafa Ismail (2):
+      i40iw: Fix memory leak in error path of create QP
+      i40iw: Use correct address in dst_neigh_lookup for IPv6
+
+Yishai Hadas (1):
+      RDMA/mlx5: Don't assume that medium blueFlame register exists
+
+oulijun (13):
+      RDMA/hns: Add rq inline flags judgement
+      RDMA/hns: Bugfix for rq record db for kernel
+      RDMA/hns: Load the RoCE dirver automatically
+      RDMA/hns: Update convert function of endian format
+      RDMA/hns: Add return operation when configured global param fail
+      RDMA/hns: Not support qp transition from reset to reset for hip06
+      RDMA/hns: Fix the bug with rq sge
+      RDMA/hns: Set desc_dma_addr for zero when free cmq desc
+      RDMA/hns: Enable inner_pa_vld filed of mpt
+      RDMA/hns: Set NULL for __internal_mr
+      RDMA/hns: Fix the bug with NULL pointer
+      RDMA/hns: Bugfix for cq record db for kernel
+      RDMA/hns: Move the location for initializing tmp_len
+
+ MAINTAINERS                                |  6 ---
+ drivers/infiniband/core/umem.c             |  7 +---
+ drivers/infiniband/hw/cxgb4/mem.c          |  4 +-
+ drivers/infiniband/hw/hfi1/chip.c          |  4 ++
+ drivers/infiniband/hw/hns/hns_roce_cq.c    |  1 +
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c |  3 +-
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 32 +++++++++++-----
+ drivers/infiniband/hw/hns/hns_roce_main.c  |  2 +-
+ drivers/infiniband/hw/hns/hns_roce_qp.c    | 10 ++++-
+ drivers/infiniband/hw/i40iw/i40iw.h        |  1 +
+ drivers/infiniband/hw/i40iw/i40iw_cm.c     |  2 +-
+ drivers/infiniband/hw/i40iw/i40iw_hw.c     |  4 +-
+ drivers/infiniband/hw/i40iw/i40iw_main.c   |  7 ++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c  | 13 +++++--
+ drivers/infiniband/hw/i40iw/i40iw_verbs.h  |  1 +
+ drivers/infiniband/hw/mlx5/main.c          |  2 +-
+ drivers/infiniband/hw/mlx5/qp.c            | 18 +++++----
+ drivers/infiniband/hw/qedr/verbs.c         | 60 +++++++++++++++---------------
+ drivers/infiniband/sw/rxe/rxe_verbs.c      | 10 +----
+ drivers/infiniband/ulp/srpt/Kconfig        |  2 +-
+ drivers/nvme/host/Kconfig                  |  2 +-
+ drivers/nvme/target/Kconfig                |  2 +-
+ drivers/staging/lustre/lnet/Kconfig        |  2 +-
+ fs/cifs/Kconfig                            |  2 +-
+ include/rdma/ib_umem.h                     |  1 -
+ include/rdma/uverbs_ioctl.h                | 10 ++---
+ net/9p/Kconfig                             |  2 +-
+ net/rds/Kconfig                            |  2 +-
+ net/sunrpc/Kconfig                         |  2 +-
+ 29 files changed, 116 insertions(+), 98 deletions(-)
