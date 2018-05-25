@@ -1,86 +1,39 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH V2 rdma-next 4/4] RDMA/hns: Fix the illegal memory
- operation when cross page
-Date: Fri, 25 May 2018 13:56:02 +0800
-Message-ID: <5B07A572.3000900@huawei.com>
-References: <1527070590-94399-1-git-send-email-xavier.huwei@huawei.com>
- <1527070590-94399-5-git-send-email-xavier.huwei@huawei.com>
- <20180524214047.GF3948@ziepe.ca>
+From: Josh Boyer <jwboyer@kernel.org>
+Subject: Re: [PATCH v2 1/1] qed: Add firmware 8.37.2.0
+Date: Fri, 25 May 2018 08:07:17 -0400
+Message-ID: <CA+5PVA4SVAz6O5ioK-mbhzpULxQWbBK1DTXrFKwgQkFW7WxB5A@mail.gmail.com>
+References: <20180521135141.11091-1-rahul.verma@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180524214047.GF3948@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180521135141.11091-1-rahul.verma@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Rahul Verma <rahul.verma@cavium.com>
+Cc: Kyle McMartin <kyle@kernel.org>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Linux Firmware <linux-firmware@kernel.org>, Ben Hutchings <ben@decadent.org.uk>, ariel.elior@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, May 21, 2018 at 10:25 AM Rahul Verma <rahul.verma@cavium.com> wrote:
 
+> This patch add a new qed firmware with fixes and added
+> support for new features.
+> -Fix aRFS for tunneled traffic without inner IP.
+> -Fix chip configuration which may fail under heavy traffic conditions.
+> -Fix iSCSI recovery flow.
+> -Support receiving any-VNI in VXLAN and GENEVE RX classification.
+> -Support additional RoCE statistics for error cases.
+> -Support RoCE T10DIF.
 
-On 2018/5/25 5:40, Jason Gunthorpe wrote:
-> On Wed, May 23, 2018 at 06:16:30PM +0800, Wei Hu (Xavier) wrote:
->> This patch fixed the potential illegal operation when using the
->> extend sge buffer cross page in post send operation. The bug
->> will cause the calltrace.
-> Should include the oops for reference here..
-OK, we will fix it in v3.
-Thanks
->> Reported-by: Jie Chen <chenjie103@huawei.com>
->> Reported-by: Xiping Zhang (Francis) <zhangxiping3@huawei.com>
->> Fixes: b1c158350968("RDMA/hns: Get rid of virt_to_page and vmap calls after dma_alloc_coherent")
->> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
->>
->> v1->v2: Modify the Fixes statement according to Leon's comment.
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 70 +++++++++++++++++++++---------
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  1 +
->>  2 files changed, 51 insertions(+), 20 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index a70d07b..62c1eb5 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -52,6 +52,52 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
->>  	dseg->len  = cpu_to_le32(sg->length);
->>  }
->>  
->> +static void set_extend_sge(struct hns_roce_qp *qp, struct ib_send_wr *wr,
->> +			   unsigned int *sge_ind)
->> +{
->> +	struct hns_roce_v2_wqe_data_seg *dseg;
->> +	struct ib_sge *sg;
->> +	int num_in_wqe = 0;
->> +	int extend_sge_num;
->> +	int fi_sge_num;
->> +	int se_sge_num;
->> +	int shift;
->> +	int i;
->> +
->> +	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
->> +		num_in_wqe = HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE;
->> +	extend_sge_num = wr->num_sge - num_in_wqe;
->> +	sg = wr->sg_list + num_in_wqe;
->> +	shift = qp->hr_buf.page_shift;
->> +
->> +	/*
->> +	 * Check whether wr->num_sge sges are in the same page. If not, we
->> +	 * should calculate how many sges in the first page and the second
->> +	 * page.
->> +	 */
->> +	dseg = get_send_extend_sge(qp, (*sge_ind) & (qp->sge.sge_cnt - 1));
->> +	fi_sge_num = (((((u64)dseg >> shift) + 1) << shift) - (u64)dseg) /
->> +		      sizeof(struct hns_roce_v2_wqe_data_seg);
-> desg is a pointer.. that u64 should be a uinptr_t
->
-> And it is better written as
->
->   (round_up((uintptr_t)dseg, 1 << shift) - (uintptr)desg)/sizeof(struct hns_roce_v2_wqe_data_seg)
->
-> if I got it right..
-Ok, we will fix it v3.
-Thanks
+> v1->v2:
+> Added signoff for Ariel Elior.
 
-Wei Hu
-> Jason
->
-> .
->
+> Signed-off-by: Rahul Verma <rahul.verma@cavium.com>
+> Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
+> ---
+>   WHENCE                                  |   1 +
+>   qed/qed_init_values_zipped-8.37.2.0.bin | Bin 0 -> 867472 bytes
+>   2 files changed, 1 insertion(+)
+>   create mode 100755 qed/qed_init_values_zipped-8.37.2.0.bin
+
+Applied and pushed out.
+
+josh
