@@ -1,7 +1,7 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH V3 rdma-next 3/4] RDMA/uverbs: Hoist the common process of disassociate_ucontext into ib core
-Date: Sat, 26 May 2018 16:41:46 +0800
-Message-ID: <1527324107-56593-4-git-send-email-xavier.huwei@huawei.com>
+Subject: [PATCH V3 rdma-next 2/4] RDMA/hns: Fix the illegal memory operation when cross page
+Date: Sat, 26 May 2018 16:41:45 +0800
+Message-ID: <1527324107-56593-3-git-send-email-xavier.huwei@huawei.com>
 References: <1527324107-56593-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,195 +12,212 @@ To: dledford@redhat.com, jgg@ziepe.ca
 Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, leonro@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-This patch hoisted the common process of disassociate_ucontext
-callback function into ib core code, and these code are common
-to ervery ib_device driver.
+This patch fixed the potential illegal operation when using the
+extend sge buffer cross page in post send operation. The bug
+will cause the calltrace as below.
 
+[ 3302.922107] Unable to handle kernel paging request at virtual address ffff00003b3a0004
+[ 3302.930009] Mem abort info:
+[ 3302.932790]   Exception class = DABT (current EL), IL = 32 bits
+[ 3302.938695]   SET = 0, FnV = 0
+[ 3302.941735]   EA = 0, S1PTW = 0
+[ 3302.944863] Data abort info:
+[ 3302.947729]   ISV = 0, ISS = 0x00000047
+[ 3302.951551]   CM = 0, WnR = 1
+[ 3302.954506] swapper pgtable: 4k pages, 48-bit VAs, pgd = ffff000009ea5000
+[ 3302.961279] [ffff00003b3a0004] *pgd=00000023dfffe003, *pud=00000023dfffd003, *pmd=00000022dc84c003, *pte=0000000000000000
+[ 3302.972224] Internal error: Oops: 96000047 [#1] SMP
+[ 3302.999509] CPU: 9 PID: 19628 Comm: roce_test_main Tainted: G           OE   4.14.10 #1
+[ 3303.007498] task: ffff80234df78000 task.stack: ffff00000f640000
+[ 3303.013412] PC is at hns_roce_v2_post_send+0x690/0xe20 [hns_roce_pci]
+[ 3303.019843] LR is at hns_roce_v2_post_send+0x658/0xe20 [hns_roce_pci]
+[ 3303.026269] pc : [<ffff0000020694f8>] lr : [<ffff0000020694c0>] pstate: 804001c9
+[ 3303.033649] sp : ffff00000f643870
+[ 3303.036951] x29: ffff00000f643870 x28: ffff80232bfa9c00
+[ 3303.042250] x27: ffff80234d909380 x26: ffff00003b37f0c0
+[ 3303.047549] x25: 0000000000000000 x24: 0000000000000003
+[ 3303.052848] x23: 0000000000000000 x22: 0000000000000000
+[ 3303.058148] x21: 0000000000000101 x20: 0000000000000001
+[ 3303.063447] x19: ffff80236163f800 x18: 0000000000000000
+[ 3303.068746] x17: 0000ffff86b76fc8 x16: ffff000008301600
+[ 3303.074045] x15: 000020a51c000000 x14: 3128726464615f65
+[ 3303.079344] x13: 746f6d6572202c29 x12: 303035312879656b
+[ 3303.084643] x11: 723a6f666e692072 x10: 573a6f666e693a5d
+[ 3303.089943] x9 : 0000000000000004 x8 : ffff8023ce38b000
+[ 3303.095242] x7 : ffff8023ce38b320 x6 : 0000000000000418
+[ 3303.100541] x5 : ffff80232bfa9cc8 x4 : 0000000000000030
+[ 3303.105839] x3 : 0000000000000100 x2 : 0000000000000200
+[ 3303.111138] x1 : 0000000000000320 x0 : ffff00003b3a0000
+[ 3303.116438] Process roce_test_main (pid: 19628, stack limit = 0xffff00000f640000)
+[ 3303.123906] Call trace:
+[ 3303.126339] Exception stack(0xffff00000f643730 to 0xffff00000f643870)
+[ 3303.215790] [<ffff0000020694f8>] hns_roce_v2_post_send+0x690/0xe20 [hns_roce_pci]
+[ 3303.223293] [<ffff0000021c3750>] rt_ktest_post_send+0x5d0/0x8b8 [rdma_test]
+[ 3303.230261] [<ffff0000021b3234>] exec_send_cmd+0x664/0x1350 [rdma_test]
+[ 3303.236881] [<ffff0000021b8b30>] rt_ktest_dispatch_cmd_3+0x1510/0x3790 [rdma_test]
+[ 3303.244455] [<ffff0000021bae54>] rt_ktest_dispatch_cmd_2+0xa4/0x118 [rdma_test]
+[ 3303.251770] [<ffff0000021bafec>] rt_ktest_dispatch_cmd+0x124/0xaa8 [rdma_test]
+[ 3303.258997] [<ffff0000021bbc3c>] rt_ktest_dev_write+0x2cc/0x568 [rdma_test]
+[ 3303.265947] [<ffff0000082ad688>] __vfs_write+0x60/0x18c
+[ 3303.271158] [<ffff0000082ad998>] vfs_write+0xa8/0x198
+[ 3303.276196] [<ffff0000082adc7c>] SyS_write+0x6c/0xd4
+[ 3303.281147] Exception stack(0xffff00000f643ec0 to 0xffff00000f644000)
+[ 3303.287573] 3ec0: 0000000000000003 0000fffffc85faa8 0000000000004e60 0000000000000000
+[ 3303.295388] 3ee0: 0000000021fb2000 000000000000ffff eff0e3efe4e58080 0000fffffcc724fe
+[ 3303.303204] 3f00: 0000000000000040 1999999999999999 0101010101010101 0000000000000038
+[ 3303.311019] 3f20: 0000000000000005 ffffffffffffffff 0d73757461747320 ffffffffffffffff
+[ 3303.318835] 3f40: 0000000000000000 0000000000459b00 0000fffffc85e360 000000000043d788
+[ 3303.326650] 3f60: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[ 3303.334465] 3f80: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[ 3303.342281] 3fa0: 0000000000000000 0000fffffc85e570 0000000000438804 0000fffffc85e570
+[ 3303.350096] 3fc0: 0000ffff8553f618 0000000080000000 0000000000000003 0000000000000040
+[ 3303.357911] 3fe0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[ 3303.365729] [<ffff000008083808>] __sys_trace_return+0x0/0x4
+[ 3303.371288] Code: b94008e9 34000129 b9400ce2 110006b5 (b9000402)
+[ 3303.377377] ---[ end trace fd5ab98b3325cf9a ]---
+
+Reported-by: Jie Chen <chenjie103@huawei.com>
+Reported-by: Xiping Zhang (Francis) <zhangxiping3@huawei.com>
+Fixes: b1c158350968("RDMA/hns: Get rid of virt_to_page and vmap calls after dma_alloc_coherent")
 Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
----
- drivers/infiniband/core/uverbs_main.c | 45 ++++++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx4/main.c     | 34 --------------------------
- drivers/infiniband/hw/mlx5/main.c     | 34 --------------------------
- 3 files changed, 44 insertions(+), 69 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 4445d8e..a0a1c70 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -41,6 +41,8 @@
- #include <linux/fs.h>
- #include <linux/poll.h>
- #include <linux/sched.h>
-+#include <linux/sched/mm.h>
-+#include <linux/sched/task.h>
- #include <linux/file.h>
- #include <linux/cdev.h>
- #include <linux/anon_inodes.h>
-@@ -1090,6 +1092,47 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	return;
+---
+v2->v3: Add calltrace info and modify judegment conditon according
+	to Jason's comment.
+v1->v2: Modify the Fixes statement according to Leon's comment.
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 72 +++++++++++++++++++++---------
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.h |  1 +
+ 2 files changed, 53 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 368f682..46f289d 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -34,6 +34,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
++#include <linux/types.h>
+ #include <net/addrconf.h>
+ #include <rdma/ib_umem.h>
+ 
+@@ -52,6 +53,53 @@ static void set_data_seg_v2(struct hns_roce_v2_wqe_data_seg *dseg,
+ 	dseg->len  = cpu_to_le32(sg->length);
  }
  
-+static void ib_uverbs_disassociate_ucontext(struct ib_ucontext *ibcontext)
++static void set_extend_sge(struct hns_roce_qp *qp, struct ib_send_wr *wr,
++			   unsigned int *sge_ind)
 +{
-+	struct ib_device *ib_dev = ibcontext->device;
-+	struct task_struct *owning_process  = NULL;
-+	struct mm_struct   *owning_mm       = NULL;
++	struct hns_roce_v2_wqe_data_seg *dseg;
++	struct ib_sge *sg;
++	int num_in_wqe = 0;
++	int extend_sge_num;
++	int fi_sge_num;
++	int se_sge_num;
++	int shift;
++	int i;
 +
-+	owning_process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
-+	if (!owning_process)
-+		return;
++	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
++		num_in_wqe = HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE;
++	extend_sge_num = wr->num_sge - num_in_wqe;
++	sg = wr->sg_list + num_in_wqe;
++	shift = qp->hr_buf.page_shift;
 +
-+	owning_mm = get_task_mm(owning_process);
-+	if (!owning_mm) {
-+		pr_info("no mm, disassociate ucontext is pending task termination\n");
-+		while (1) {
-+			put_task_struct(owning_process);
-+			usleep_range(1000, 2000);
-+			owning_process = get_pid_task(ibcontext->tgid,
-+						      PIDTYPE_PID);
-+			if (!owning_process ||
-+			    owning_process->state == TASK_DEAD) {
-+				pr_info("disassociate ucontext done, task was terminated\n");
-+				/* in case task was dead need to release the
-+				 * task struct.
-+				 */
-+				if (owning_process)
-+					put_task_struct(owning_process);
-+				return;
-+			}
++	/*
++	 * Check whether wr->num_sge sges are in the same page. If not, we
++	 * should calculate how many sges in the first page and the second
++	 * page.
++	 */
++	dseg = get_send_extend_sge(qp, (*sge_ind) & (qp->sge.sge_cnt - 1));
++	fi_sge_num = (round_up((uintptr_t)dseg, 1 << shift) -
++		      (uintptr_t)dseg) /
++		      sizeof(struct hns_roce_v2_wqe_data_seg);
++	if (extend_sge_num > fi_sge_num) {
++		se_sge_num = extend_sge_num - fi_sge_num;
++		for (i = 0; i < fi_sge_num; i++) {
++			set_data_seg_v2(dseg++, sg + i);
++			(*sge_ind)++;
++		}
++		dseg = get_send_extend_sge(qp,
++					   (*sge_ind) & (qp->sge.sge_cnt - 1));
++		for (i = 0; i < se_sge_num; i++) {
++			set_data_seg_v2(dseg++, sg + fi_sge_num + i);
++			(*sge_ind)++;
++		}
++	} else {
++		for (i = 0; i < extend_sge_num; i++) {
++			set_data_seg_v2(dseg++, sg + i);
++			(*sge_ind)++;
 +		}
 +	}
-+
-+	/* need to protect from a race on closing the vma as part of
-+	 * mlx5_ib_vma_close.
-+	 */
-+	down_write(&owning_mm->mmap_sem);
-+	ib_dev->disassociate_ucontext(ibcontext);
-+	up_write(&owning_mm->mmap_sem);
-+	mmput(owning_mm);
-+	put_task_struct(owning_process);
 +}
 +
- static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
- 					struct ib_device *ib_dev)
- {
-@@ -1130,7 +1173,7 @@ static void ib_uverbs_free_hw_resources(struct ib_uverbs_device *uverbs_dev,
- 			 * (e.g mmput).
- 			 */
- 			ib_uverbs_event_handler(&file->event_handler, &event);
--			ib_dev->disassociate_ucontext(ucontext);
-+			ib_uverbs_disassociate_ucontext(ucontext);
- 			mutex_lock(&file->cleanup_mutex);
- 			ib_uverbs_cleanup_ucontext(file, ucontext, true);
- 			mutex_unlock(&file->cleanup_mutex);
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf12394..59aed45 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1189,40 +1189,10 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 	int ret = 0;
- 	struct vm_area_struct *vma;
- 	struct mlx4_ib_ucontext *context = to_mucontext(ibcontext);
--	struct task_struct *owning_process  = NULL;
--	struct mm_struct   *owning_mm       = NULL;
+ static int set_rwqe_data_seg(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			     struct hns_roce_v2_rc_send_wqe *rc_sq_wqe,
+ 			     void *wqe, unsigned int *sge_ind,
+@@ -85,7 +133,7 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 		roce_set_bit(rc_sq_wqe->byte_4, V2_RC_SEND_WQE_BYTE_4_INLINE_S,
+ 			     1);
+ 	} else {
+-		if (wr->num_sge <= 2) {
++		if (wr->num_sge <= HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE) {
+ 			for (i = 0; i < wr->num_sge; i++) {
+ 				if (likely(wr->sg_list[i].length)) {
+ 					set_data_seg_v2(dseg, wr->sg_list + i);
+@@ -98,24 +146,14 @@ static int set_rwqe_data_seg(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 				     V2_RC_SEND_WQE_BYTE_20_MSG_START_SGE_IDX_S,
+ 				     (*sge_ind) & (qp->sge.sge_cnt - 1));
+ 
+-			for (i = 0; i < 2; i++) {
++			for (i = 0; i < HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE; i++) {
+ 				if (likely(wr->sg_list[i].length)) {
+ 					set_data_seg_v2(dseg, wr->sg_list + i);
+ 					dseg++;
+ 				}
+ 			}
+ 
+-			dseg = get_send_extend_sge(qp,
+-					    (*sge_ind) & (qp->sge.sge_cnt - 1));
 -
--	owning_process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
--	if (!owning_process)
--		return;
--
--	owning_mm = get_task_mm(owning_process);
--	if (!owning_mm) {
--		pr_info("no mm, disassociate ucontext is pending task termination\n");
--		while (1) {
--			/* make sure that task is dead before returning, it may
--			 * prevent a rare case of module down in parallel to a
--			 * call to mlx4_ib_vma_close.
--			 */
--			put_task_struct(owning_process);
--			usleep_range(1000, 2000);
--			owning_process = get_pid_task(ibcontext->tgid,
--						      PIDTYPE_PID);
--			if (!owning_process ||
--			    owning_process->state == TASK_DEAD) {
--				pr_info("disassociate ucontext done, task was terminated\n");
--				/* in case task was dead need to release the task struct */
--				if (owning_process)
--					put_task_struct(owning_process);
--				return;
+-			for (i = 0; i < wr->num_sge - 2; i++) {
+-				if (likely(wr->sg_list[i + 2].length)) {
+-					set_data_seg_v2(dseg,
+-							wr->sg_list + 2 + i);
+-					dseg++;
+-					(*sge_ind)++;
+-				}
 -			}
--		}
--	}
++			set_extend_sge(qp, wr, sge_ind);
+ 		}
  
- 	/* need to protect from a race on closing the vma as part of
- 	 * mlx4_ib_vma_close().
- 	 */
--	down_write(&owning_mm->mmap_sem);
- 	for (i = 0; i < HW_BAR_COUNT; i++) {
- 		vma = context->hw_bar_info[i].vma;
- 		if (!vma)
-@@ -1241,10 +1211,6 @@ static void mlx4_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 		/* context going to be destroyed, should not access ops any more */
- 		context->hw_bar_info[i].vma->vm_ops = NULL;
- 	}
--
--	up_write(&owning_mm->mmap_sem);
--	mmput(owning_mm);
--	put_task_struct(owning_process);
- }
+ 		roce_set_field(rc_sq_wqe->byte_16,
+@@ -318,13 +356,7 @@ static int hns_roce_v2_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ 			memcpy(&ud_sq_wqe->dgid[0], &ah->av.dgid[0],
+ 			       GID_LEN_V2);
  
- static void mlx4_ib_set_vma_data(struct vm_area_struct *vma,
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index f3e7d7c..136d64f 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1965,38 +1965,7 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 	struct vm_area_struct *vma;
- 	struct mlx5_ib_vma_private_data *vma_private, *n;
- 	struct mlx5_ib_ucontext *context = to_mucontext(ibcontext);
--	struct task_struct *owning_process  = NULL;
--	struct mm_struct   *owning_mm       = NULL;
- 
--	owning_process = get_pid_task(ibcontext->tgid, PIDTYPE_PID);
--	if (!owning_process)
--		return;
--
--	owning_mm = get_task_mm(owning_process);
--	if (!owning_mm) {
--		pr_info("no mm, disassociate ucontext is pending task termination\n");
--		while (1) {
--			put_task_struct(owning_process);
--			usleep_range(1000, 2000);
--			owning_process = get_pid_task(ibcontext->tgid,
--						      PIDTYPE_PID);
--			if (!owning_process ||
--			    owning_process->state == TASK_DEAD) {
--				pr_info("disassociate ucontext done, task was terminated\n");
--				/* in case task was dead need to release the
--				 * task struct.
--				 */
--				if (owning_process)
--					put_task_struct(owning_process);
--				return;
+-			dseg = get_send_extend_sge(qp,
+-					    sge_ind & (qp->sge.sge_cnt - 1));
+-			for (i = 0; i < wr->num_sge; i++) {
+-				set_data_seg_v2(dseg + i, wr->sg_list + i);
+-				sge_ind++;
 -			}
--		}
--	}
 -
--	/* need to protect from a race on closing the vma as part of
--	 * mlx5_ib_vma_close.
--	 */
--	down_write(&owning_mm->mmap_sem);
- 	mutex_lock(&context->vma_private_list_mutex);
- 	list_for_each_entry_safe(vma_private, n, &context->vma_private_list,
- 				 list) {
-@@ -2013,9 +1982,6 @@ static void mlx5_ib_disassociate_ucontext(struct ib_ucontext *ibcontext)
- 		kfree(vma_private);
- 	}
- 	mutex_unlock(&context->vma_private_list_mutex);
--	up_write(&owning_mm->mmap_sem);
--	mmput(owning_mm);
--	put_task_struct(owning_process);
- }
++			set_extend_sge(qp, wr, &sge_ind);
+ 			ind++;
+ 		} else if (ibqp->qp_type == IB_QPT_RC) {
+ 			rc_sq_wqe = wqe;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+index 2caeb4c..d47675f 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
+@@ -77,6 +77,7 @@
+ #define HNS_ROCE_V2_MAX_INNER_MTPT_NUM		2
+ #define HNS_ROCE_INVALID_LKEY			0x100
+ #define HNS_ROCE_CMQ_TX_TIMEOUT			30000
++#define HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE	2
  
- static inline char *mmap_cmd2str(enum mlx5_ib_mmap_cmd cmd)
+ #define HNS_ROCE_CONTEXT_HOP_NUM		1
+ #define HNS_ROCE_MTT_HOP_NUM			1
 -- 
 1.9.1
