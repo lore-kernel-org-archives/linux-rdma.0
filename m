@@ -1,209 +1,55 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH V3 rdma-next 1/4] RDMA/hns: Add reset process for RoCE in hip08
-Date: Sat, 26 May 2018 16:41:44 +0800
-Message-ID: <1527324107-56593-2-git-send-email-xavier.huwei@huawei.com>
-References: <1527324107-56593-1-git-send-email-xavier.huwei@huawei.com>
+From: Boris Pismenny <borisp@mellanox.com>
+Subject: RE: [PATCH, net-next] net/mlx5e: fix TLS dependency
+Date: Sat, 26 May 2018 14:17:02 +0000
+Message-ID: <VI1PR05MB43508C6652266FD72C96EBF8B0680@VI1PR05MB4350.eurprd05.prod.outlook.com>
+References: <20180525213630.2119214-1-arnd@arndb.de>
+ <ffcbcc97b72bd9957a7eafb2553edd1cd7e68dab.camel@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1527324107-56593-1-git-send-email-xavier.huwei@huawei.com>
+In-Reply-To: <ffcbcc97b72bd9957a7eafb2553edd1cd7e68dab.camel@mellanox.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, leonro@mellanox.com
+To: Saeed Mahameed <saeedm@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "leon@kernel.org" <leon@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch added reset process for RoCE in hip08.
-
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-
---
-v2->v3: no change.
-v1->v2: 1.Delete handle->priv = NULL in hns_roce_hw_v2_uninit_instance.
-	2.Add hns_roce_hw_v2_reset_notify_init callback function,
-	  When RoCE reinit failed in this function, inform NIC driver.
-	The related link of Jason's commets:
-	https://www.spinics.net/lists/linux-rdma/msg65009.html
----
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |  3 ++
- drivers/infiniband/hw/hns/hns_roce_device.h |  2 +
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 76 +++++++++++++++++++++++++++++
- drivers/infiniband/hw/hns/hns_roce_main.c   |  7 +++
- 4 files changed, 88 insertions(+)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index 9ebe839..a0ba19d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -176,6 +176,9 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
- 		      unsigned long in_modifier, u8 op_modifier, u16 op,
- 		      unsigned long timeout)
- {
-+	if (hr_dev->is_reset)
-+		return 0;
-+
- 	if (hr_dev->cmd.use_events)
- 		return hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
- 					      in_modifier, op_modifier, op,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 412297d4..da8512b 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -774,6 +774,8 @@ struct hns_roce_dev {
- 	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
- 	spinlock_t		sm_lock;
- 	spinlock_t		bt_cmd_lock;
-+	bool			active;
-+	bool			is_reset;
- 	struct hns_roce_ib_iboe iboe;
- 
- 	struct list_head        pgdir_list;
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index a25c3da..368f682 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -768,6 +768,9 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	int ret = 0;
- 	int ntc;
- 
-+	if (hr_dev->is_reset)
-+		return 0;
-+
- 	spin_lock_bh(&csq->lock);
- 
- 	if (num > hns_roce_cmq_space(csq)) {
-@@ -4790,14 +4793,87 @@ static void hns_roce_hw_v2_uninit_instance(struct hnae3_handle *handle,
- {
- 	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
- 
-+	if (!hr_dev)
-+		return;
-+
- 	hns_roce_exit(hr_dev);
- 	kfree(hr_dev->priv);
- 	ib_dealloc_device(&hr_dev->ib_dev);
- }
- 
-+static int hns_roce_hw_v2_reset_notify_down(struct hnae3_handle *handle)
-+{
-+	struct hns_roce_dev *hr_dev = (struct hns_roce_dev *)handle->priv;
-+	struct ib_event event;
-+
-+	if (!hr_dev) {
-+		dev_err(&handle->pdev->dev,
-+			"Input parameter handle->priv is NULL!\n");
-+		return -EINVAL;
-+	}
-+
-+	hr_dev->active = false;
-+	hr_dev->is_reset = true;
-+
-+	event.event = IB_EVENT_DEVICE_FATAL;
-+	event.device = &hr_dev->ib_dev;
-+	event.element.port_num = 1;
-+	ib_dispatch_event(&event);
-+
-+	return 0;
-+}
-+
-+static int hns_roce_hw_v2_reset_notify_init(struct hnae3_handle *handle)
-+{
-+	int ret;
-+
-+	ret = hns_roce_hw_v2_init_instance(handle);
-+	if (ret) {
-+		/* when reset notify type is HNAE3_INIT_CLIENT In reset notify
-+		 * callback function, RoCE Engine reinitialize. If RoCE reinit
-+		 * failed, we should inform NIC driver.
-+		 */
-+		handle->priv = NULL;
-+		dev_err(&handle->pdev->dev,
-+			"In reset process RoCE reinit failed %d.\n", ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static int hns_roce_hw_v2_reset_notify_uninit(struct hnae3_handle *handle)
-+{
-+	msleep(100);
-+	hns_roce_hw_v2_uninit_instance(handle, false);
-+	return 0;
-+}
-+
-+static int hns_roce_hw_v2_reset_notify(struct hnae3_handle *handle,
-+				       enum hnae3_reset_notify_type type)
-+{
-+	int ret = 0;
-+
-+	switch (type) {
-+	case HNAE3_DOWN_CLIENT:
-+		ret = hns_roce_hw_v2_reset_notify_down(handle);
-+		break;
-+	case HNAE3_INIT_CLIENT:
-+		ret = hns_roce_hw_v2_reset_notify_init(handle);
-+		break;
-+	case HNAE3_UNINIT_CLIENT:
-+		ret = hns_roce_hw_v2_reset_notify_uninit(handle);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
- static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
- 	.init_instance = hns_roce_hw_v2_init_instance,
- 	.uninit_instance = hns_roce_hw_v2_uninit_instance,
-+	.reset_notify = hns_roce_hw_v2_reset_notify,
- };
- 
- static struct hnae3_client hns_roce_hw_v2_client = {
-diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
-index 1b79a38..ac51372 100644
---- a/drivers/infiniband/hw/hns/hns_roce_main.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_main.c
-@@ -332,6 +332,9 @@ static struct ib_ucontext *hns_roce_alloc_ucontext(struct ib_device *ib_dev,
- 	struct hns_roce_ib_alloc_ucontext_resp resp = {};
- 	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
- 
-+	if (!hr_dev->active)
-+		return ERR_PTR(-EAGAIN);
-+
- 	resp.qp_tab_size = hr_dev->caps.num_qps;
- 
- 	context = kmalloc(sizeof(*context), GFP_KERNEL);
-@@ -425,6 +428,7 @@ static void hns_roce_unregister_device(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_ib_iboe *iboe = &hr_dev->iboe;
- 
-+	hr_dev->active = false;
- 	unregister_netdevice_notifier(&iboe->nb);
- 	ib_unregister_device(&hr_dev->ib_dev);
- }
-@@ -536,6 +540,7 @@ static int hns_roce_register_device(struct hns_roce_dev *hr_dev)
- 		goto error_failed_setup_mtu_mac;
- 	}
- 
-+	hr_dev->active = true;
- 	return 0;
- 
- error_failed_setup_mtu_mac:
-@@ -728,6 +733,7 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- 			return ret;
- 		}
- 	}
-+	hr_dev->is_reset = false;
- 
- 	if (hr_dev->hw->cmq_init) {
- 		ret = hr_dev->hw->cmq_init(hr_dev);
-@@ -827,6 +833,7 @@ int hns_roce_init(struct hns_roce_dev *hr_dev)
- void hns_roce_exit(struct hns_roce_dev *hr_dev)
- {
- 	hns_roce_unregister_device(hr_dev);
-+
- 	if (hr_dev->hw->hw_exit)
- 		hr_dev->hw->hw_exit(hr_dev);
- 	hns_roce_cleanup_bitmap(hr_dev);
--- 
-1.9.1
+QWNrZWQtYnk6IEJvcmlzIFBpc21lbm55IDxib3Jpc3BAbWVsbGFub3guY29tPg0KDQpUaGFuayB5
+b3UuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU2FlZWQgTWFoYW1l
+ZWQNCj4gU2VudDogU2F0dXJkYXksIE1heSAyNiwgMjAxOCAyOjE5IEFNDQo+IFRvOiBkYXZlbUBk
+YXZlbWxvZnQubmV0OyBhcm5kQGFybmRiLmRlOyBsZW9uQGtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4
+LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBCb3Jp
+cw0KPiBQaXNtZW5ueSA8Ym9yaXNwQG1lbGxhbm94LmNvbT47IE9yIEdlcmxpdHogPG9nZXJsaXR6
+QG1lbGxhbm94LmNvbT47DQo+IEZlcmFzIERhb3VkIDxmZXJhc2RhQG1lbGxhbm94LmNvbT47IEls
+YW4gVGF5YXJpIDxpbGFudEBtZWxsYW5veC5jb20+Ow0KPiBuZXRkZXZAdmdlci5rZXJuZWwub3Jn
+OyBJbHlhIExlc29raGluIDxpbHlhbEBtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFU
+Q0gsIG5ldC1uZXh0XSBuZXQvbWx4NWU6IGZpeCBUTFMgZGVwZW5kZW5jeQ0KPiANCj4gT24gRnJp
+LCAyMDE4LTA1LTI1IGF0IDIzOjM2ICswMjAwLCBBcm5kIEJlcmdtYW5uIHdyb3RlOg0KPiA+IFdp
+dGggQ09ORklHX1RMUz1tIGFuZCBNTFg1X0NPUkVfRU49eSwgd2UgZ2V0IGEgbGluayBmYWlsdXJl
+Og0KPiA+DQo+ID4gZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VuX2Fj
+Y2VsL3Rsc19yeHR4Lm86IEluDQo+ID4gZnVuY3Rpb24gYG1seDVlX3Rsc19oYW5kbGVfb29vJzoN
+Cj4gPiB0bHNfcnh0eC5jOigudGV4dCsweDI0Yyk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHRs
+c19nZXRfcmVjb3JkJw0KPiA+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
+ZS9lbl9hY2NlbC90bHNfcnh0eC5vOiBJbg0KPiA+IGZ1bmN0aW9uIGBtbHg1ZV90bHNfaGFuZGxl
+X3R4X3NrYic6DQo+ID4gdGxzX3J4dHguYzooLnRleHQrMHg5YTgpOiB1bmRlZmluZWQgcmVmZXJl
+bmNlIHRvDQo+ID4gYHRsc19kZXZpY2Vfc2tfZGVzdHJ1Y3QnDQo+ID4NCj4gPiBUaGlzIG5hcnJv
+d3MgZG93biB0aGUgZGVwZW5kZW5jeSB0byBvbmx5IGFsbG93IHRoZSBjb25maWd1cmF0aW9ucyB0
+aGF0DQo+ID4gd2lsbCBhY3R1YWxseSB3b3JrLiBUaGUgZXhpc3RpbmcgZGVwZW5kZW5jeSBvbiBU
+TFNfREVWSUNFIGlzIG5vdA0KPiA+IHN1ZmZpY2llbnQgaGVyZSBzaW5jZSBNTFg1X0VOX1RMUyBp
+cyBhICdib29sJyBzeW1ib2wuDQo+ID4NCj4gPiBGaXhlczogYzgzMjk0YjllZmE1ICgibmV0L21s
+eDVlOiBUTFMsIEFkZCBJbm5vdmEgVExTIFRYIHN1cHBvcnQiKQ0KPiA+IFNpZ25lZC1vZmYtYnk6
+IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+DQo+ID4gLS0tDQo+IA0KPiBMR1RNDQo+IA0K
+PiBBY2tlZC1ieTogU2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQo+IA0KPiBU
+aGFuayB5b3UgQXJuZCENCj4gDQo+IA0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
+eC9tbHg1L2NvcmUvS2NvbmZpZyB8IDEgKw0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRp
+b24oKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
+eC9tbHg1L2NvcmUvS2NvbmZpZw0KPiA+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4NS9jb3JlL0tjb25maWcNCj4gPiBpbmRleCBlZTY2ODQ3NzlkMTEuLjI1NDUyOTZhMGMwOCAx
+MDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+S2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
+ZS9LY29uZmlnDQo+ID4gQEAgLTkxLDYgKzkxLDcgQEAgY29uZmlnIE1MWDVfRU5fVExTDQo+ID4g
+IAlib29sICJUTFMgY3J5cHRvZ3JhcGh5LW9mZmxvYWQgYWNjZWxhcmF0aW9uIg0KPiA+ICAJZGVw
+ZW5kcyBvbiBNTFg1X0NPUkVfRU4NCj4gPiAgCWRlcGVuZHMgb24gVExTX0RFVklDRQ0KPiA+ICsJ
+ZGVwZW5kcyBvbiBUTFM9eSB8fCBNTFg1X0NPUkU9bQ0KPiA+ICAJZGVwZW5kcyBvbiBNTFg1X0FD
+Q0VMDQo+ID4gIAlkZWZhdWx0IG4NCj4gPiAgCS0tLWhlbHAtLS0NCg==
