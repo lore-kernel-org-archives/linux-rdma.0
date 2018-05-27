@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 13/13] IB/mlx5: Add counters read support
-Date: Sun, 27 May 2018 13:23:46 +0300
-Message-ID: <20180527102346.15149-14-leon@kernel.org>
+Subject: [PATCH rdma-next v1 08/13] IB/core: Add support for flow counters
+Date: Sun, 27 May 2018 13:23:41 +0300
+Message-ID: <20180527102346.15149-9-leon@kernel.org>
 References: <20180527102346.15149-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180527102346.15149-1-leon@kernel.org>
@@ -12,78 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-This patch implements the uverbs counters read API, it will use the
-specific read counters function to the given type to accomplish its
-task.
+A counters object could be attached to flow on creation
+by providing the counter specification action.
+
+General counters description which count packets and bytes are
+introduced, downstream patches from this series will use them
+as part of flow counters binding.
+
+In addition, increase number of flow specifications supported
+layers to 10 upon adding count specification and for the
+previously added drop specification.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 44 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ include/rdma/ib_verbs.h | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2044d9f69a83..ef688a265d47 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5316,6 +5316,49 @@ static void depopulate_specs_root(struct mlx5_ib_dev *dev)
- 	uverbs_free_spec_tree(dev->ib_dev.specs_root);
- }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 80956b1c9f4d..3acf7a9fa452 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1859,9 +1859,10 @@ enum ib_flow_spec_type {
+ 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
+ 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
+ 	IB_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
++	IB_FLOW_SPEC_ACTION_COUNT       = 0x1003,
+ };
+ #define IB_FLOW_SPEC_LAYER_MASK	0xF0
+-#define IB_FLOW_SPEC_SUPPORT_LAYERS 8
++#define IB_FLOW_SPEC_SUPPORT_LAYERS 10
  
-+static int mlx5_ib_read_counters(struct ib_counters *counters,
-+				 struct ib_counters_read_attr *read_attr,
-+				 struct uverbs_attr_bundle *attrs)
-+{
-+	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
-+	struct mlx5_read_counters_attr mread_attr = {};
-+	u32 *desc;
-+	int ret, i;
-+
-+	mutex_lock(&mcounters->mcntrs_mutex);
-+	if (mcounters->cntrs_max_index > read_attr->ncounters) {
-+		ret = -EINVAL;
-+		goto err_bound;
-+	}
-+
-+	mread_attr.out = kcalloc(mcounters->counters_num, sizeof(u64),
-+				 GFP_KERNEL);
-+	if (!mread_attr.out) {
-+		ret = -ENOMEM;
-+		goto err_bound;
-+	}
-+
-+	mread_attr.hw_cntrs_hndl = mcounters->hw_cntrs_hndl;
-+	mread_attr.flags = read_attr->flags;
-+	ret = mcounters->read_counters(counters->device, &mread_attr);
-+	if (ret)
-+		goto err_read;
-+
-+	/*
-+	 * We pass over the counters data array to assign according
-+	 * to the descriptions and indexing pairs.
-+	 */
-+	desc = mcounters->counters_data;
-+	for (i = 0; i < mcounters->ncounters * 2; i += 2)
-+		read_attr->counters_buff[desc[i+1]] += mread_attr.out[desc[i]];
-+
-+err_read:
-+	kfree(mread_attr.out);
-+err_bound:
-+	mutex_unlock(&mcounters->mcntrs_mutex);
-+	return ret;
-+}
-+
- static int mlx5_ib_destroy_counters(struct ib_counters *counters)
- {
- 	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
-@@ -5589,6 +5632,7 @@ int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 	dev->ib_dev.driver_id = RDMA_DRIVER_MLX5;
- 	dev->ib_dev.create_counters = mlx5_ib_create_counters;
- 	dev->ib_dev.destroy_counters = mlx5_ib_destroy_counters;
-+	dev->ib_dev.read_counters = mlx5_ib_read_counters;
+ /* Flow steering rule priority is set according to it's domain.
+  * Lower domain value means higher priority.
+@@ -2041,6 +2042,17 @@ struct ib_flow_spec_action_handle {
+ 	struct ib_flow_action	     *act;
+ };
  
- 	err = init_node_data(dev);
- 	if (err)
++enum ib_counters_description {
++	IB_COUNTER_PACKETS,
++	IB_COUNTER_BYTES,
++};
++
++struct ib_flow_spec_action_count {
++	enum ib_flow_spec_type type;
++	u16 size;
++	struct ib_counters *counters;
++};
++
+ union ib_flow_spec {
+ 	struct {
+ 		u32			type;
+@@ -2058,6 +2070,7 @@ union ib_flow_spec {
+ 	struct ib_flow_spec_action_tag  flow_tag;
+ 	struct ib_flow_spec_action_drop drop;
+ 	struct ib_flow_spec_action_handle action;
++	struct ib_flow_spec_action_count flow_count;
+ };
+ 
+ struct ib_flow_attr {
 -- 
 2.14.3
