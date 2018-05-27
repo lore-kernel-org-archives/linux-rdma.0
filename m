@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 08/13] IB/core: Add support for flow counters
-Date: Sun, 27 May 2018 13:23:41 +0300
-Message-ID: <20180527102346.15149-9-leon@kernel.org>
+Subject: [PATCH rdma-next v1 12/13] IB/mlx5: Add flow counters read support
+Date: Sun, 27 May 2018 13:23:45 +0300
+Message-ID: <20180527102346.15149-13-leon@kernel.org>
 References: <20180527102346.15149-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180527102346.15149-1-leon@kernel.org>
@@ -12,65 +12,80 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-A counters object could be attached to flow on creation
-by providing the counter specification action.
-
-General counters description which count packets and bytes are
-introduced, downstream patches from this series will use them
-as part of flow counters binding.
-
-In addition, increase number of flow specifications supported
-layers to 10 upon adding count specification and for the
-previously added drop specification.
+Implements the flow counters read wrapper.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c    | 16 ++++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 11 +++++++++++
+ 2 files changed, 27 insertions(+)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 80956b1c9f4d..3acf7a9fa452 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1859,9 +1859,10 @@ enum ib_flow_spec_type {
- 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
- 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
- 	IB_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
-+	IB_FLOW_SPEC_ACTION_COUNT       = 0x1003,
- };
- #define IB_FLOW_SPEC_LAYER_MASK	0xF0
--#define IB_FLOW_SPEC_SUPPORT_LAYERS 8
-+#define IB_FLOW_SPEC_SUPPORT_LAYERS 10
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 3f1e957946e6..2044d9f69a83 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3150,7 +3150,21 @@ static void set_underlay_qp(struct mlx5_ib_dev *dev,
+ 	}
+ }
  
- /* Flow steering rule priority is set according to it's domain.
-  * Lower domain value means higher priority.
-@@ -2041,6 +2042,17 @@ struct ib_flow_spec_action_handle {
- 	struct ib_flow_action	     *act;
++static int read_flow_counters(struct ib_device *ibdev,
++			       struct mlx5_read_counters_attr *read_attr)
++{
++	struct mlx5_fc *fc = (struct mlx5_fc *)(read_attr->hw_cntrs_hndl);
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
++
++	return mlx5_fc_query(dev->mdev, fc->id,
++			     &read_attr->out[IB_COUNTER_PACKETS],
++			     &read_attr->out[IB_COUNTER_BYTES]);
++}
++
+ #define MAX_COUNTERS_NUM (USHRT_MAX / (sizeof(u32) * 2))
++/* flow counters currently expose two counters packets and bytes */
++#define FLOW_COUNTERS_NUM 2
++
+ static int counters_set_description(struct ib_counters *counters,
+ 				    enum mlx5_ib_counters_type counters_type,
+ 				    const void __user *cntrs_data,
+@@ -3182,6 +3196,8 @@ static int counters_set_description(struct ib_counters *counters,
+ 
+ 	/* init the fields for the object */
+ 	mcounters->type = counters_type;
++	mcounters->read_counters = read_flow_counters;
++	mcounters->counters_num = FLOW_COUNTERS_NUM;
+ 	mcounters->ncounters = ncounters;
+ 	desc = mcounters->counters_data;
+ 	for (i = 0; i < ncounters * 2; i += 2) {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7313d3cd04f0..1baee579d84b 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -814,6 +814,12 @@ struct mlx5_memic {
+ 	DECLARE_BITMAP(memic_alloc_pages, MLX5_MAX_MEMIC_PAGES);
  };
  
-+enum ib_counters_description {
-+	IB_COUNTER_PACKETS,
-+	IB_COUNTER_BYTES,
++struct mlx5_read_counters_attr {
++	void *hw_cntrs_hndl;
++	u64 *out;
++	u32 flags;
 +};
 +
-+struct ib_flow_spec_action_count {
-+	enum ib_flow_spec_type type;
-+	u16 size;
-+	struct ib_counters *counters;
-+};
-+
- union ib_flow_spec {
- 	struct {
- 		u32			type;
-@@ -2058,6 +2070,7 @@ union ib_flow_spec {
- 	struct ib_flow_spec_action_tag  flow_tag;
- 	struct ib_flow_spec_action_drop drop;
- 	struct ib_flow_spec_action_handle action;
-+	struct ib_flow_spec_action_count flow_count;
+ enum mlx5_ib_counters_type {
+ 	MLX5_IB_COUNTERS_FLOW,
  };
- 
- struct ib_flow_attr {
+@@ -821,7 +827,12 @@ enum mlx5_ib_counters_type {
+ struct mlx5_ib_mcounters {
+ 	struct ib_counters ibcntrs;
+ 	enum mlx5_ib_counters_type type;
++	/* number of counters supported for this counters type */
++	u32 counters_num;
+ 	void *hw_cntrs_hndl;
++	/* read function for this counters type */
++	int (*read_counters)(struct ib_device *ibdev,
++			     struct mlx5_read_counters_attr *read_attr);
+ 	/* max index set as part of create_flow */
+ 	u32 cntrs_max_index;
+ 	/* number of counters data entries (<description,index> pair) */
 -- 
 2.14.3
