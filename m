@@ -1,55 +1,103 @@
-From: Boris Pismenny <borisp@mellanox.com>
-Subject: RE: [PATCH, net-next] net/mlx5e: fix TLS dependency
-Date: Sat, 26 May 2018 14:17:02 +0000
-Message-ID: <VI1PR05MB43508C6652266FD72C96EBF8B0680@VI1PR05MB4350.eurprd05.prod.outlook.com>
-References: <20180525213630.2119214-1-arnd@arndb.de>
- <ffcbcc97b72bd9957a7eafb2553edd1cd7e68dab.camel@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ffcbcc97b72bd9957a7eafb2553edd1cd7e68dab.camel@mellanox.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "leon@kernel.org" <leon@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Or Gerlitz <ogerlitz@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next v1 00/13] Verbs flow counters support
+Date: Sun, 27 May 2018 13:23:33 +0300
+Message-ID: <20180527102346.15149-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QWNrZWQtYnk6IEJvcmlzIFBpc21lbm55IDxib3Jpc3BAbWVsbGFub3guY29tPg0KDQpUaGFuayB5
-b3UuDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU2FlZWQgTWFoYW1l
-ZWQNCj4gU2VudDogU2F0dXJkYXksIE1heSAyNiwgMjAxOCAyOjE5IEFNDQo+IFRvOiBkYXZlbUBk
-YXZlbWxvZnQubmV0OyBhcm5kQGFybmRiLmRlOyBsZW9uQGtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4
-LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBCb3Jp
-cw0KPiBQaXNtZW5ueSA8Ym9yaXNwQG1lbGxhbm94LmNvbT47IE9yIEdlcmxpdHogPG9nZXJsaXR6
-QG1lbGxhbm94LmNvbT47DQo+IEZlcmFzIERhb3VkIDxmZXJhc2RhQG1lbGxhbm94LmNvbT47IEls
-YW4gVGF5YXJpIDxpbGFudEBtZWxsYW5veC5jb20+Ow0KPiBuZXRkZXZAdmdlci5rZXJuZWwub3Jn
-OyBJbHlhIExlc29raGluIDxpbHlhbEBtZWxsYW5veC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFU
-Q0gsIG5ldC1uZXh0XSBuZXQvbWx4NWU6IGZpeCBUTFMgZGVwZW5kZW5jeQ0KPiANCj4gT24gRnJp
-LCAyMDE4LTA1LTI1IGF0IDIzOjM2ICswMjAwLCBBcm5kIEJlcmdtYW5uIHdyb3RlOg0KPiA+IFdp
-dGggQ09ORklHX1RMUz1tIGFuZCBNTFg1X0NPUkVfRU49eSwgd2UgZ2V0IGEgbGluayBmYWlsdXJl
-Og0KPiA+DQo+ID4gZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VuX2Fj
-Y2VsL3Rsc19yeHR4Lm86IEluDQo+ID4gZnVuY3Rpb24gYG1seDVlX3Rsc19oYW5kbGVfb29vJzoN
-Cj4gPiB0bHNfcnh0eC5jOigudGV4dCsweDI0Yyk6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHRs
-c19nZXRfcmVjb3JkJw0KPiA+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
-ZS9lbl9hY2NlbC90bHNfcnh0eC5vOiBJbg0KPiA+IGZ1bmN0aW9uIGBtbHg1ZV90bHNfaGFuZGxl
-X3R4X3NrYic6DQo+ID4gdGxzX3J4dHguYzooLnRleHQrMHg5YTgpOiB1bmRlZmluZWQgcmVmZXJl
-bmNlIHRvDQo+ID4gYHRsc19kZXZpY2Vfc2tfZGVzdHJ1Y3QnDQo+ID4NCj4gPiBUaGlzIG5hcnJv
-d3MgZG93biB0aGUgZGVwZW5kZW5jeSB0byBvbmx5IGFsbG93IHRoZSBjb25maWd1cmF0aW9ucyB0
-aGF0DQo+ID4gd2lsbCBhY3R1YWxseSB3b3JrLiBUaGUgZXhpc3RpbmcgZGVwZW5kZW5jeSBvbiBU
-TFNfREVWSUNFIGlzIG5vdA0KPiA+IHN1ZmZpY2llbnQgaGVyZSBzaW5jZSBNTFg1X0VOX1RMUyBp
-cyBhICdib29sJyBzeW1ib2wuDQo+ID4NCj4gPiBGaXhlczogYzgzMjk0YjllZmE1ICgibmV0L21s
-eDVlOiBUTFMsIEFkZCBJbm5vdmEgVExTIFRYIHN1cHBvcnQiKQ0KPiA+IFNpZ25lZC1vZmYtYnk6
-IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+DQo+ID4gLS0tDQo+IA0KPiBMR1RNDQo+IA0K
-PiBBY2tlZC1ieTogU2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQo+IA0KPiBU
-aGFuayB5b3UgQXJuZCENCj4gDQo+IA0KPiA+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg1L2NvcmUvS2NvbmZpZyB8IDEgKw0KPiA+ICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRp
-b24oKykNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
-eC9tbHg1L2NvcmUvS2NvbmZpZw0KPiA+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
-bWx4NS9jb3JlL0tjb25maWcNCj4gPiBpbmRleCBlZTY2ODQ3NzlkMTEuLjI1NDUyOTZhMGMwOCAx
-MDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
-S2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
-ZS9LY29uZmlnDQo+ID4gQEAgLTkxLDYgKzkxLDcgQEAgY29uZmlnIE1MWDVfRU5fVExTDQo+ID4g
-IAlib29sICJUTFMgY3J5cHRvZ3JhcGh5LW9mZmxvYWQgYWNjZWxhcmF0aW9uIg0KPiA+ICAJZGVw
-ZW5kcyBvbiBNTFg1X0NPUkVfRU4NCj4gPiAgCWRlcGVuZHMgb24gVExTX0RFVklDRQ0KPiA+ICsJ
-ZGVwZW5kcyBvbiBUTFM9eSB8fCBNTFg1X0NPUkU9bQ0KPiA+ICAJZGVwZW5kcyBvbiBNTFg1X0FD
-Q0VMDQo+ID4gIAlkZWZhdWx0IG4NCj4gPiAgCS0tLWhlbHAtLS0NCg==
+From: Leon Romanovsky <leonro@mellanox.com>
+
+Changelog v0->v1:
+ * Decouple from DevX submission
+ * Use uverbs_attr_get_obj at counters read method
+ * Added define for max read buffer size (MAX_COUNTERS_BUFF_SIZE)
+ * Removed the struct mlx5_ib_flow_counter basic_flow_cnts and
+   the related structs used, used define instead
+ * Took Matan's patch from DevX
+ * uverbs_free_counters removed void* casting
+ * Added check to bound ncounters value (added define
+ * Changed user supplied data buffer structure to be array of
+   struct <desc,index> pair (applied this change to user space also)
+
+Not changed:
+ * UAPI files
+ * Addition of uhw to flow
+
+Thanks
+
+----------------------------------------------------------------------
+>From Raed:
+
+This series comes to allow user space applications to monitor real time
+traffic activity and events of the verbs objects it manages, e.g.:
+ibv_qp, ibv_wq, ibv_flow.
+
+This API enables generic counters creation and define mapping
+to association with a verbs object, current mlx5 driver using
+this API for flow counters.
+
+With this API, an application can monitor the entire life cycle of
+object activity, defined here as a static counters attachment.
+This API also allows dynamic counters monitoring of measurement points
+for a partial period in the verbs object life cycle.
+
+In addition it presents the implementation of the generic counters interface.
+
+This will be achieved by extending flow creation by adding a new flow count
+specification type which allows the user to associate a previously created
+flow counters using the generic verbs counters interface to the created flow,
+once associated the user could read statistics by using the read function of
+the generic counters interface.
+
+The API includes:
+1. create and destroyed API of a new counters objects
+2. read the counters values from HW
+
+Note:
+Attaching API to allow application to define the measurement points per objects
+is a user space only API and this data is passed to kernel when the counted
+object (e.g. flow) is created with the counters object.
+
+Thanks
+
+Matan Barak (2):
+  IB/uverbs: Add an ib_uobject getter to ioctl() infrastructure
+  IB/core: Support passing uhw for create_flow
+
+Raed Salem (11):
+  net/mlx5: Export flow counter related API
+  IB/core: Introduce counters object and its create/destroy
+  IB/uverbs: Add create/destroy counters support
+  IB/core: Introduce counters read verb
+  IB/uverbs: Add read counters support
+  IB/core: Add support for flow counters
+  IB/uverbs: Add support for flow counters
+  IB/mlx5: Add counters create and destroy support
+  IB/mlx5: Add flow counters binding support
+  IB/mlx5: Add flow counters read support
+  IB/mlx5: Add counters read support
+
+ drivers/infiniband/core/Makefile                   |   2 +-
+ drivers/infiniband/core/uverbs.h                   |   2 +
+ drivers/infiniband/core/uverbs_cmd.c               |  88 ++++++-
+ drivers/infiniband/core/uverbs_std_types.c         |   3 +-
+ .../infiniband/core/uverbs_std_types_counters.c    | 157 +++++++++++
+ drivers/infiniband/core/uverbs_std_types_cq.c      |  23 +-
+ .../infiniband/core/uverbs_std_types_flow_action.c |   4 +-
+ drivers/infiniband/core/verbs.c                    |   2 +-
+ drivers/infiniband/hw/mlx4/main.c                  |   6 +-
+ drivers/infiniband/hw/mlx5/main.c                  | 291 ++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  36 +++
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |  23 --
+ .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |   3 +
+ include/linux/mlx5/fs.h                            |  23 ++
+ include/rdma/ib_verbs.h                            |  43 ++-
+ include/rdma/uverbs_ioctl.h                        |  11 +
+ include/uapi/rdma/ib_user_ioctl_cmds.h             |  21 ++
+ include/uapi/rdma/ib_user_verbs.h                  |  13 +
+ include/uapi/rdma/mlx5-abi.h                       |  14 +
+ 19 files changed, 701 insertions(+), 64 deletions(-)
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_counters.c
