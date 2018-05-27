@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 01/13] IB/uverbs: Add an ib_uobject getter to ioctl() infrastructure
-Date: Sun, 27 May 2018 13:23:34 +0300
-Message-ID: <20180527102346.15149-2-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 02/13] net/mlx5: Export flow counter related API
+Date: Sun, 27 May 2018 13:23:35 +0300
+Message-ID: <20180527102346.15149-3-leon@kernel.org>
 References: <20180527102346.15149-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180527102346.15149-1-leon@kernel.org>
@@ -10,121 +10,113 @@ To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb@mellanox.com>
+From: Raed Salem <raeds@mellanox.com>
 
-Previously, the user had to dig inside the attribute to get the uobject.
-Add a helper function that correctly extract it (and do the required
-checks) for him/her.
+Exports counters API to be used in both IB and EN.
 
-Signed-off-by: Matan Barak <matanb@mellanox.com>
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_std_types_cq.c      | 23 +++++++++++-----------
- .../infiniband/core/uverbs_std_types_flow_action.c |  4 ++--
- include/rdma/uverbs_ioctl.h                        | 11 +++++++++++
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  | 23 ----------------------
+ .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |  3 +++
+ include/linux/mlx5/fs.h                            | 22 +++++++++++++++++++++
+ 3 files changed, 25 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_cq.c b/drivers/infiniband/core/uverbs_std_types_cq.c
-index b0dbae9dd0d7..3d293d01afea 100644
---- a/drivers/infiniband/core/uverbs_std_types_cq.c
-+++ b/drivers/infiniband/core/uverbs_std_types_cq.c
-@@ -65,7 +65,6 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(struct ib_device *ib_dev,
- 	struct ib_cq_init_attr attr = {};
- 	struct ib_cq                   *cq;
- 	struct ib_uverbs_completion_event_file    *ev_file = NULL;
--	const struct uverbs_attr *ev_file_attr;
- 	struct ib_uobject *ev_file_uobj;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+index b6da322a8016..40992aed1791 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+@@ -131,29 +131,6 @@ struct mlx5_flow_table {
+ 	struct rhltable			fgs_hash;
+ };
  
- 	if (!(ib_dev->uverbs_cmd_mask & 1ULL << IB_USER_VERBS_CMD_CREATE_CQ))
-@@ -87,10 +86,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(struct ib_device *ib_dev,
- 						UVERBS_ATTR_CREATE_CQ_FLAGS)))
- 		return -EFAULT;
- 
--	ev_file_attr = uverbs_attr_get(attrs, UVERBS_ATTR_CREATE_CQ_COMP_CHANNEL);
--	if (!IS_ERR(ev_file_attr)) {
--		ev_file_uobj = ev_file_attr->obj_attr.uobject;
+-struct mlx5_fc_cache {
+-	u64 packets;
+-	u64 bytes;
+-	u64 lastuse;
+-};
 -
-+	ev_file_uobj = uverbs_attr_get_uobject(attrs, UVERBS_ATTR_CREATE_CQ_COMP_CHANNEL);
-+	if (!IS_ERR(ev_file_uobj)) {
- 		ev_file = container_of(ev_file_uobj,
- 				       struct ib_uverbs_completion_event_file,
- 				       uobj_file.uobj);
-@@ -102,8 +99,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_CREATE)(struct ib_device *ib_dev,
- 		goto err_event_file;
- 	}
+-struct mlx5_fc {
+-	struct rb_node node;
+-	struct list_head list;
+-
+-	/* last{packets,bytes} members are used when calculating the delta since
+-	 * last reading
+-	 */
+-	u64 lastpackets;
+-	u64 lastbytes;
+-
+-	u32 id;
+-	bool deleted;
+-	bool aging;
+-
+-	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
+-};
+-
+ struct mlx5_ft_underlay_qp {
+ 	struct list_head list;
+ 	u32 qpn;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+index b7ab929d5f8e..10f407843e03 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+@@ -243,6 +243,7 @@ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging)
  
--	obj = container_of(uverbs_attr_get(attrs,
--					   UVERBS_ATTR_CREATE_CQ_HANDLE)->obj_attr.uobject,
-+	obj = container_of(uverbs_attr_get_uobject(attrs,
-+						   UVERBS_ATTR_CREATE_CQ_HANDLE),
- 			   typeof(*obj), uobject);
- 	obj->uverbs_file	   = ucontext->ufile;
- 	obj->comp_events_reported  = 0;
-@@ -170,13 +167,17 @@ static int UVERBS_HANDLER(UVERBS_METHOD_CQ_DESTROY)(struct ib_device *ib_dev,
- 						    struct ib_uverbs_file *file,
- 						    struct uverbs_attr_bundle *attrs)
- {
--	struct ib_uverbs_destroy_cq_resp resp;
- 	struct ib_uobject *uobj =
--		uverbs_attr_get(attrs, UVERBS_ATTR_DESTROY_CQ_HANDLE)->obj_attr.uobject;
--	struct ib_ucq_object *obj = container_of(uobj, struct ib_ucq_object,
--						 uobject);
-+		uverbs_attr_get_uobject(attrs, UVERBS_ATTR_DESTROY_CQ_HANDLE);
-+	struct ib_uverbs_destroy_cq_resp resp;
-+	struct ib_ucq_object *obj;
- 	int ret;
- 
-+	if (IS_ERR(uobj))
-+		return PTR_ERR(uobj);
-+
-+	obj = container_of(uobj, struct ib_ucq_object, uobject);
-+
- 	if (!(ib_dev->uverbs_cmd_mask & 1ULL << IB_USER_VERBS_CMD_DESTROY_CQ))
- 		return -EOPNOTSUPP;
- 
-diff --git a/drivers/infiniband/core/uverbs_std_types_flow_action.c b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-index b4f016dfa23d..a7be51cf2e42 100644
---- a/drivers/infiniband/core/uverbs_std_types_flow_action.c
-+++ b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-@@ -320,7 +320,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_FLOW_ACTION_ESP_CREATE)(struct ib_device
- 		return ret;
- 
- 	/* No need to check as this attribute is marked as MANDATORY */
--	uobj = uverbs_attr_get(attrs, UVERBS_ATTR_FLOW_ACTION_ESP_HANDLE)->obj_attr.uobject;
-+	uobj = uverbs_attr_get_uobject(attrs, UVERBS_ATTR_FLOW_ACTION_ESP_HANDLE);
- 	action = ib_dev->create_flow_action_esp(ib_dev, &esp_attr.hdr, attrs);
- 	if (IS_ERR(action))
- 		return PTR_ERR(action);
-@@ -350,7 +350,7 @@ static int UVERBS_HANDLER(UVERBS_METHOD_FLOW_ACTION_ESP_MODIFY)(struct ib_device
- 	if (ret)
- 		return ret;
- 
--	uobj = uverbs_attr_get(attrs, UVERBS_ATTR_FLOW_ACTION_ESP_HANDLE)->obj_attr.uobject;
-+	uobj = uverbs_attr_get_uobject(attrs, UVERBS_ATTR_FLOW_ACTION_ESP_HANDLE);
- 	action = uobj->object;
- 
- 	if (action->type != IB_FLOW_ACTION_ESP)
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 4a4201d997a7..7ac6271a5ee0 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -420,6 +420,17 @@ static inline void *uverbs_attr_get_obj(const struct uverbs_attr_bundle *attrs_b
- 	return uobj->object;
+ 	return ERR_PTR(err);
  }
++EXPORT_SYMBOL(mlx5_fc_create);
  
-+static inline struct ib_uobject *uverbs_attr_get_uobject(const struct uverbs_attr_bundle *attrs_bundle,
-+							 u16 idx)
-+{
-+	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
-+
-+	if (IS_ERR(attr))
-+		return ERR_CAST(attr);
-+
-+	return attr->obj_attr.uobject;
-+}
-+
- static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
- 				 size_t idx, const void *from, size_t size)
+ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
  {
+@@ -260,6 +261,7 @@ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
+ 	mlx5_cmd_fc_free(dev, counter->id);
+ 	kfree(counter);
+ }
++EXPORT_SYMBOL(mlx5_fc_destroy);
+ 
+ int mlx5_init_fc_stats(struct mlx5_core_dev *dev)
+ {
+@@ -317,6 +319,7 @@ int mlx5_fc_query(struct mlx5_core_dev *dev, u16 id,
+ {
+ 	return mlx5_cmd_fc_query(dev, id, packets, bytes);
+ }
++EXPORT_SYMBOL(mlx5_fc_query);
+ 
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+ 			  u64 *bytes, u64 *packets, u64 *lastuse)
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 9f4d32e41c06..93aab0f055b4 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -186,6 +186,28 @@ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging);
+ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter);
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
+ 			  u64 *bytes, u64 *packets, u64 *lastuse);
++int mlx5_fc_query(struct mlx5_core_dev *dev, u16 id,
++		  u64 *packets, u64 *bytes);
++
++struct mlx5_fc_cache {
++	u64 packets;
++	u64 bytes;
++	u64 lastuse;
++};
++
++struct mlx5_fc {
++	struct rb_node node;
++	struct list_head list;
++
++	u64 lastpackets;
++	u64 lastbytes;
++
++	u32 id;
++	bool deleted;
++	bool aging;
++	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
++};
++
+ int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+ int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+ 
 -- 
 2.14.3
