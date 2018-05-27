@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 2/3] IB/mlx5: Refactor CQE compression response
-Date: Sun, 27 May 2018 13:42:33 +0300
-Message-ID: <20180527104234.17261-3-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] IB/mlx5: Introduce a new mini-CQE format
+Date: Sun, 27 May 2018 13:42:34 +0300
+Message-ID: <20180527104234.17261-4-leon@kernel.org>
 References: <20180527104234.17261-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180527104234.17261-1-leon@kernel.org>
@@ -12,45 +12,120 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc@mellanox.com>
 
-Refactor CQE compression response to be fully set only
-when it`s really supported. There is no change from user
-perspective because anyway resp.cqe_comp_caps.max_num was
-set to zero.
+The new mini-CQE format includes the stride index, byte count and
+packet checksum.
+Stride index is needed for striding WQ feature.
+This patch exposes this capability and enables its setting
+via mlx5 UHW data as part of query device and cq creation.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>W
+Reviewed-by: Guy Levi <guyle@mellanox.com>
+Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/mlx5/cq.c   | 42 +++++++++++++++++++++++++++++----------
+ drivers/infiniband/hw/mlx5/main.c |  4 ++++
+ include/uapi/rdma/mlx5-abi.h      |  2 +-
+ 3 files changed, 37 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
+index 7b4ce1a19de0..ad39d64b8108 100644
+--- a/drivers/infiniband/hw/mlx5/cq.c
++++ b/drivers/infiniband/hw/mlx5/cq.c
+@@ -751,6 +751,28 @@ static int alloc_cq_frag_buf(struct mlx5_ib_dev *dev,
+ 	return 0;
+ }
+ 
++enum {
++	MLX5_CQE_RES_FORMAT_HASH = 0,
++	MLX5_CQE_RES_FORMAT_CSUM = 1,
++	MLX5_CQE_RES_FORMAT_CSUM_STRIDX = 3,
++};
++
++static int mini_cqe_res_format_to_hw(struct mlx5_ib_dev *dev, u8 format)
++{
++	switch (format) {
++	case MLX5_IB_CQE_RES_FORMAT_HASH:
++		return MLX5_CQE_RES_FORMAT_HASH;
++	case MLX5_IB_CQE_RES_FORMAT_CSUM:
++		return MLX5_CQE_RES_FORMAT_CSUM;
++	case MLX5_IB_CQE_RES_FORMAT_CSUM_STRIDX:
++		if (MLX5_CAP_GEN(dev->mdev, mini_cqe_resp_stride_index))
++			return MLX5_CQE_RES_FORMAT_CSUM_STRIDX;
++		return -EOPNOTSUPP;
++	default:
++		return -EINVAL;
++	}
++}
++
+ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 			  struct ib_ucontext *context, struct mlx5_ib_cq *cq,
+ 			  int entries, u32 **cqb,
+@@ -816,6 +838,8 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 	*index = to_mucontext(context)->bfregi.sys_pages[0];
+ 
+ 	if (ucmd.cqe_comp_en == 1) {
++		int mini_cqe_format;
++
+ 		if (!((*cqe_size == 128 &&
+ 		       MLX5_CAP_GEN(dev->mdev, cqe_compression_128)) ||
+ 		      (*cqe_size == 64  &&
+@@ -826,20 +850,18 @@ static int create_cq_user(struct mlx5_ib_dev *dev, struct ib_udata *udata,
+ 			goto err_cqb;
+ 		}
+ 
+-		if (unlikely(!ucmd.cqe_comp_res_format ||
+-			     !(ucmd.cqe_comp_res_format <
+-			       MLX5_IB_CQE_RES_RESERVED) ||
+-			     (ucmd.cqe_comp_res_format &
+-			      (ucmd.cqe_comp_res_format - 1)))) {
+-			err = -EOPNOTSUPP;
+-			mlx5_ib_warn(dev, "CQE compression res format %d is not supported!\n",
+-				     ucmd.cqe_comp_res_format);
++		mini_cqe_format =
++			mini_cqe_res_format_to_hw(dev,
++						  ucmd.cqe_comp_res_format);
++		if (mini_cqe_format < 0) {
++			err = mini_cqe_format;
++			mlx5_ib_dbg(dev, "CQE compression res format %d error: %d\n",
++				    ucmd.cqe_comp_res_format, err);
+ 			goto err_cqb;
+ 		}
+ 
+ 		MLX5_SET(cqc, cqc, cqe_comp_en, 1);
+-		MLX5_SET(cqc, cqc, mini_cqe_res_format,
+-			 ilog2(ucmd.cqe_comp_res_format));
++		MLX5_SET(cqc, cqc, mini_cqe_res_format, mini_cqe_format);
+ 	}
+ 
+ 	if (ucmd.flags & MLX5_IB_CREATE_CQ_FLAGS_CQE_128B_PAD) {
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 59e080da32aa..95e67a85078c 100644
+index 95e67a85078c..238f1eed714c 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -982,13 +982,17 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+@@ -992,6 +992,10 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 			resp.cqe_comp_caps.supported_format =
+ 				MLX5_IB_CQE_RES_FORMAT_HASH |
+ 				MLX5_IB_CQE_RES_FORMAT_CSUM;
++
++			if (MLX5_CAP_GEN(dev->mdev, mini_cqe_resp_stride_index))
++				resp.cqe_comp_caps.supported_format |=
++					MLX5_IB_CQE_RES_FORMAT_CSUM_STRIDX;
+ 		}
  	}
  
- 	if (field_avail(typeof(resp), cqe_comp_caps, uhw->outlen)) {
--		resp.cqe_comp_caps.max_num =
--			MLX5_CAP_GEN(dev->mdev, cqe_compression) ?
--			MLX5_CAP_GEN(dev->mdev, cqe_compression_max_num) : 0;
--		resp.cqe_comp_caps.supported_format =
--			MLX5_IB_CQE_RES_FORMAT_HASH |
--			MLX5_IB_CQE_RES_FORMAT_CSUM;
- 		resp.response_length += sizeof(resp.cqe_comp_caps);
-+
-+		if (MLX5_CAP_GEN(dev->mdev, cqe_compression)) {
-+			resp.cqe_comp_caps.max_num =
-+				MLX5_CAP_GEN(dev->mdev,
-+					     cqe_compression_max_num);
-+
-+			resp.cqe_comp_caps.supported_format =
-+				MLX5_IB_CQE_RES_FORMAT_HASH |
-+				MLX5_IB_CQE_RES_FORMAT_CSUM;
-+		}
- 	}
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index beec971effef..a03b68b3e26c 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -166,7 +166,7 @@ struct mlx5_ib_rss_caps {
+ enum mlx5_ib_cqe_comp_res_format {
+ 	MLX5_IB_CQE_RES_FORMAT_HASH	= 1 << 0,
+ 	MLX5_IB_CQE_RES_FORMAT_CSUM	= 1 << 1,
+-	MLX5_IB_CQE_RES_RESERVED	= 1 << 2,
++	MLX5_IB_CQE_RES_FORMAT_CSUM_STRIDX = 1 << 2,
+ };
  
- 	if (field_avail(typeof(resp), packet_pacing_caps, uhw->outlen) &&
+ struct mlx5_ib_cqe_comp_caps {
 -- 
 2.14.3
