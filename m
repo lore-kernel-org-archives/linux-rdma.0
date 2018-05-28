@@ -1,70 +1,62 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH rdma-next v1 00/13] Verbs flow counters support
-Date: Sun, 27 May 2018 19:22:31 +0300
-Message-ID: <20180527162231.GC3085@mtr-leonro.mtl.com>
-References: <20180527102346.15149-1-leon@kernel.org>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH mlx5-next v1 02/13] net/mlx5: Export flow counter related API
+Date: Mon, 28 May 2018 11:34:18 +0300
+Message-ID: <CAJ3xEMg_2zd1yr4vZjvgEEmAAYbXX9Ax9C+Jtyt87eQNrioPVA@mail.gmail.com>
+References: <20180527102346.15149-1-leon@kernel.org> <20180527102346.15149-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="FkmkrVfFsRoUs1wW"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180527102346.15149-1-leon@kernel.org>
+In-Reply-To: <20180527102346.15149-3-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Raed Salem <raeds@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---FkmkrVfFsRoUs1wW
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, May 27, 2018 at 01:23:33PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+On Sun, May 27, 2018 at 1:23 PM, Leon Romanovsky <leon@kernel.org> wrote:
+> From: Raed Salem <raeds@mellanox.com>
 >
-> Changelog v0->v1:
->  * Decouple from DevX submission
->  * Use uverbs_attr_get_obj at counters read method
->  * Added define for max read buffer size (MAX_COUNTERS_BUFF_SIZE)
->  * Removed the struct mlx5_ib_flow_counter basic_flow_cnts and
->    the related structs used, used define instead
->  * Took Matan's patch from DevX
->  * uverbs_free_counters removed void* casting
->  * Added check to bound ncounters value (added define
->  * Changed user supplied data buffer structure to be array of
->    struct <desc,index> pair (applied this change to user space also)
+> Exports counters API to be used in both IB and EN.
 >
-> Not changed:
->  * UAPI files
->  * Addition of uhw to flow
+> Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+> Signed-off-by: Raed Salem <raeds@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  | 23 ----------------------
+>  .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |  3 +++
+>  include/linux/mlx5/fs.h                            | 22 +++++++++++++++++++++
+>  3 files changed, 25 insertions(+), 23 deletions(-)
 >
-> Thanks
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+> index b6da322a8016..40992aed1791 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+> @@ -131,29 +131,6 @@ struct mlx5_flow_table {
+>         struct rhltable                 fgs_hash;
+>  };
+>
+> -struct mlx5_fc_cache {
+> -       u64 packets;
+> -       u64 bytes;
+> -       u64 lastuse;
+> -};
+> -
+> -struct mlx5_fc {
+> -       struct rb_node node;
+> -       struct list_head list;
+> -
+> -       /* last{packets,bytes} members are used when calculating the delta since
+> -        * last reading
+> -        */
+> -       u64 lastpackets;
+> -       u64 lastbytes;
+> -
+> -       u32 id;
+> -       bool deleted;
+> -       bool aging;
+> -
+> -       struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
+> -};
+> -
 
-Sorry for the noise, but please drop this series.
-
-We found improper locking sequence in one of error paths which can be
-triggered by the user.
-
-Thanks
-
---FkmkrVfFsRoUs1wW
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbCttGAAoJEORje4g2clinTn4P/iOfDh83t5pIfG6DwK+hDYGA
-bMxriU7uOrXU62SShRSG4A7AK9yKl8DBGy8HnklYLGnYWrxDW326qlI4Zr3JHjzM
-ofoF88P6dnqq2HhbJNzGIQS2PRsmkD/7ehxlWuGGHlzeqvAF4QlD/2RuFwfqLenI
-hrbysLMD3oYfz14wpO1GukthXaWY4sdyO+kXQA4kH0DrMrNI3d0pXgZwMp9syXS6
-bHESiW4zDRWqXxDmdAF9S4q+hJTlR4MulCHefq0ZIK9iOKhKShoHlRhpAwk8Qpkk
-+/gsQw1ri8+eyESSxzJ1dqc1qHQn2iRQZXg08qRzq/mlk9f8uCq+Kkk/b+QG1iID
-RiQfO1jstBLWwirPHgHuDIhb2AgU7LiiEDXncom6mpyRfgnOGsoda2OwnosCLWwW
-u4eMpdb4JtJ3hhBiqAgZtbo9KY6K3nY/NOT8HGLH5kUqNuQwWf63cIvqrHZBK6bD
-Qt+V8gyyqwPKof/3qKAOUapIw6U8EB63TnSU9XXaq3pxmcKu70hmQlZrim0SEOCq
-KrPXA+/I5y1hmIc1yukdgFMcnAii6eOwnsTUZZAewLQUH1JkJVvJh1Y4DyusYt4H
-wrFi28GZ2+dUfTN6/bk18xd4TVYpXtjxo1vzsIa7pLqOn7zUcBEuljIvWbBAC1BV
-Z4To0iC5aFdYspIa8Gn0
-=M6MU
------END PGP SIGNATURE-----
-
---FkmkrVfFsRoUs1wW--
+are you using the caching services @ the IB driver? please point me to
+the patch that does so
