@@ -1,83 +1,54 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH rdma-next 3/3] IB/mlx5: Introduce a new mini-CQE format
-Date: Mon, 28 May 2018 10:11:48 -0600
-Message-ID: <20180528161148.GD17491@mellanox.com>
-References: <20180527104234.17261-1-leon@kernel.org>
- <20180527104234.17261-4-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB: Revert "remove redundant INFINIBAND kconfig
+ dependencies"
+Date: Mon, 28 May 2018 10:39:49 -0600
+Message-ID: <20180528163949.GA17505@ziepe.ca>
+References: <20180525213123.2113748-1-arnd@arndb.de>
+ <CAHH2K0Ysgi30gHPN8EEdDa+PfSFJLo8=6j-aq=SYy=_h6K0kPg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180527104234.17261-4-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Yonatan Cohen <yonatanc@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <CAHH2K0Ysgi30gHPN8EEdDa+PfSFJLo8=6j-aq=SYy=_h6K0kPg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Thelen <gthelen@google.com>
+Cc: arnd@arndb.de, Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, oleg.drokin@intel.com, andreas.dilger@intel.com, jsimmons@infradead.org, gregkh@linuxfoundation.org, Steve French <sfrench@samba.org>, ericvh@gmail.com, rminnich@sandia.gov, lucho@ionkov.net, "David S. Miller" <davem@davemloft.net>, santosh.shilimkar@oracle.com, trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, bfields@fieldses.org, jlayton@kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-nvme@lists.infradead.org, lustre-devel@lists.lustre.org, devel@driverdev.osuosl.org, linux-cifs@vger.kernel.org, samba-techni
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 27, 2018 at 01:42:34PM +0300, Leon Romanovsky wrote:
-> From: Yonatan Cohen <yonatanc@mellanox.com>
+On Fri, May 25, 2018 at 05:32:52PM -0700, Greg Thelen wrote:
+> On Fri, May 25, 2018 at 2:32 PM Arnd Bergmann <arnd@arndb.de> wrote:
 > 
-> The new mini-CQE format includes the stride index, byte count and
-> packet checksum.
-> Stride index is needed for striding WQ feature.
-> This patch exposes this capability and enables its setting
-> via mlx5 UHW data as part of query device and cq creation.
+> > Several subsystems depend on INFINIBAND_ADDR_TRANS, which in turn depends
+> > on INFINIBAND. However, when with CONFIG_INIFIBAND=m, this leads to a
+> > link error when another driver using it is built-in. The
+> > INFINIBAND_ADDR_TRANS dependency is insufficient here as this is
+> > a 'bool' symbol that does not force anything to be a module in turn.
 > 
-> Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-> Reviewed-by: Guy Levi <guyle@mellanox.com>
-> Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->  drivers/infiniband/hw/mlx5/cq.c   | 42 +++++++++++++++++++++++++++++----------
->  drivers/infiniband/hw/mlx5/main.c |  4 ++++
->  include/uapi/rdma/mlx5-abi.h      |  2 +-
->  3 files changed, 37 insertions(+), 11 deletions(-)
+> > fs/cifs/smbdirect.o: In function `smbd_disconnect_rdma_work':
+> > smbdirect.c:(.text+0x1e4): undefined reference to `rdma_disconnect'
+> > net/9p/trans_rdma.o: In function `rdma_request':
+> > trans_rdma.c:(.text+0x7bc): undefined reference to `rdma_disconnect'
+> > net/9p/trans_rdma.o: In function `rdma_destroy_trans':
+> > trans_rdma.c:(.text+0x830): undefined reference to `ib_destroy_qp'
+> > trans_rdma.c:(.text+0x858): undefined reference to `ib_dealloc_pd'
 > 
-> diff --git a/drivers/infiniband/hw/mlx5/cq.c b/drivers/infiniband/hw/mlx5/cq.c
-> index 7b4ce1a19de0..ad39d64b8108 100644
-> +++ b/drivers/infiniband/hw/mlx5/cq.c
-> @@ -751,6 +751,28 @@ static int alloc_cq_frag_buf(struct mlx5_ib_dev *dev,
->  	return 0;
->  }
->  
-> +enum {
-> +	MLX5_CQE_RES_FORMAT_HASH = 0,
-> +	MLX5_CQE_RES_FORMAT_CSUM = 1,
-> +	MLX5_CQE_RES_FORMAT_CSUM_STRIDX = 3,
-> +};
+> > Fixes: 9533b292a7ac ("IB: remove redundant INFINIBAND kconfig
+> dependencies")
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> Acked-by: Greg Thelen <gthelen@google.com>
+> 
+> Sorry for the 9533b292a7ac problem.
+> At this point the in release cycle, I think Arnd's revert is best.
+> 
+> If there is interest, I've put a little thought into an alternative fix:
+> making INFINIBAND_ADDR_TRANS tristate.  But it's nontrivial.
+> So I prefer this simple revert for now.
 
-What is this??
+Is that a normal thing to do?
 
-> +static int mini_cqe_res_format_to_hw(struct mlx5_ib_dev *dev, u8 format)
-> +{
-> +	switch (format) {
-> +	case MLX5_IB_CQE_RES_FORMAT_HASH:
-> +		return MLX5_CQE_RES_FORMAT_HASH;
+> Doug: do you need anything from me on this?
 
-Used here..
-
-> +		mini_cqe_format =
-> +			mini_cqe_res_format_to_hw(dev,
-> +						  ucmd.cqe_comp_res_format);
-
-And format comes from a ucmd, so that enum is upai.
-
-Put it in the right place and put the right comment beside
-struct mlx5_ib_create_cq's cqe_comp_res_format..
-
-And what is wrong with the user space patches? Where is the update to
-enum mlx5dv_cqe_comp_res_format ? And why is this wrong?
-
-struct mlx5dv_cq_init_attr {
-        uint64_t comp_mask; /* Use enum mlx5dv_cq_init_attr_mask */
-        uint8_t cqe_comp_res_format; /* Use enum mlx5dv_cqe_comp_res_format */
-                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-No, it isn't, and there isn't even an enum for it. Are you sure this is
-designed right? Looks pretty wrong to me.
-
-Fix it all please, and you need to arrange things to share the uapi
-header with dv just like verbs is doing.
-
-No more of this lax attitude toward uapi!
+I can take the revert..
 
 Jason
