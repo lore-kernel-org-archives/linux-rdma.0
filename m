@@ -1,52 +1,90 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB: Revert "remove redundant INFINIBAND kconfig
- dependencies"
-Date: Mon, 28 May 2018 10:44:17 -0600
-Message-ID: <20180528164417.GA24505@ziepe.ca>
-References: <20180525213123.2113748-1-arnd@arndb.de>
+Subject: Re: [PATCH V2 rdma-next 3/4] RDMA/hns: Add reset process for RoCE in
+ hip08
+Date: Mon, 28 May 2018 10:46:22 -0600
+Message-ID: <20180528164622.GB17505@ziepe.ca>
+References: <1527070590-94399-1-git-send-email-xavier.huwei@huawei.com>
+ <1527070590-94399-4-git-send-email-xavier.huwei@huawei.com>
+ <20180524213143.GE3948@ziepe.ca>
+ <5B07A517.7030507@huawei.com>
+ <20180525145553.GA27342@ziepe.ca>
+ <5B08BCBF.9040001@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180525213123.2113748-1-arnd@arndb.de>
+In-Reply-To: <5B08BCBF.9040001@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Doug Ledford <dledford@redhat.com>, Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@fb.com>, Christoph Hellwig <hch@lst.de>, Sagi Grimberg <sagi@grimberg.me>, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, James Simmons <jsimmons@infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Steve French <sfrench@samba.org>, Eric Van Hensbergen <ericvh@gmail.com>, Ron Minnich <rminnich@sandia.gov>, Latchesar Ionkov <lucho@ionkov.net>, "David S. Miller" <davem@davemloft.net>, Santosh Shilimkar <santosh.shilimkar@oracle.com>, Trond Myklebust <trond.myklebust@hammerspace.com>, Anna Schumaker <anna.schumaker@netapp.com>, "J. Bruce Fields" <bfields@fieldses.org>, Jeff Layton <jlayton@kernel.org>Greg
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 25, 2018 at 11:29:59PM +0200, Arnd Bergmann wrote:
-> Several subsystems depend on INFINIBAND_ADDR_TRANS, which in turn depends
-> on INFINIBAND. However, when with CONFIG_INIFIBAND=m, this leads to a
-> link error when another driver using it is built-in. The
-> INFINIBAND_ADDR_TRANS dependency is insufficient here as this is
-> a 'bool' symbol that does not force anything to be a module in turn.
+On Sat, May 26, 2018 at 09:47:43AM +0800, Wei Hu (Xavier) wrote:
 > 
-> fs/cifs/smbdirect.o: In function `smbd_disconnect_rdma_work':
-> smbdirect.c:(.text+0x1e4): undefined reference to `rdma_disconnect'
-> net/9p/trans_rdma.o: In function `rdma_request':
-> trans_rdma.c:(.text+0x7bc): undefined reference to `rdma_disconnect'
-> net/9p/trans_rdma.o: In function `rdma_destroy_trans':
-> trans_rdma.c:(.text+0x830): undefined reference to `ib_destroy_qp'
-> trans_rdma.c:(.text+0x858): undefined reference to `ib_dealloc_pd'
 > 
-> Fixes: 9533b292a7ac ("IB: remove redundant INFINIBAND kconfig dependencies")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Acked-by: Greg Thelen <gthelen@google.com>
-> ---
-> The patch that introduced the problem has been queued in the
-> rdma-fixes/for-rc tree. Please revert the patch before sending
-> the branch to Linus.
-> ---
->  drivers/infiniband/ulp/srpt/Kconfig | 2 +-
->  drivers/nvme/host/Kconfig           | 2 +-
->  drivers/nvme/target/Kconfig         | 2 +-
->  drivers/staging/lustre/lnet/Kconfig | 2 +-
->  fs/cifs/Kconfig                     | 2 +-
->  net/9p/Kconfig                      | 2 +-
->  net/rds/Kconfig                     | 2 +-
->  net/sunrpc/Kconfig                  | 2 +-
->  8 files changed, 8 insertions(+), 8 deletions(-)
+> On 2018/5/25 22:55, Jason Gunthorpe wrote:
+> > On Fri, May 25, 2018 at 01:54:31PM +0800, Wei Hu (Xavier) wrote:
+> >>
+> >> On 2018/5/25 5:31, Jason Gunthorpe wrote:
+> >>>>  static const struct hnae3_client_ops hns_roce_hw_v2_ops = {
+> >>>>  	.init_instance = hns_roce_hw_v2_init_instance,
+> >>>>  	.uninit_instance = hns_roce_hw_v2_uninit_instance,
+> >>>> +	.reset_notify = hns_roce_hw_v2_reset_notify,
+> >>>>  };
+> >>>>  
+> >>>>  static struct hnae3_client hns_roce_hw_v2_client = {
+> >>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_main.c b/drivers/infiniband/hw/hns/hns_roce_main.c
+> >>>> index 1b79a38..ac51372 100644
+> >>>> +++ b/drivers/infiniband/hw/hns/hns_roce_main.c
+> >>>> @@ -332,6 +332,9 @@ static struct ib_ucontext *hns_roce_alloc_ucontext(struct ib_device *ib_dev,
+> >>>>  	struct hns_roce_ib_alloc_ucontext_resp resp = {};
+> >>>>  	struct hns_roce_dev *hr_dev = to_hr_dev(ib_dev);
+> >>>>  
+> >>>> +	if (!hr_dev->active)
+> >>>> +		return ERR_PTR(-EAGAIN);
+> >>> This still doesn't make sense, ib_unregister_device already makes sure
+> >>> that hns_roce_alloc_ucontext isn't running and won't be called before
+> >>> returning, don't need another flag to do that.
+> >>>
+> >>> Since this is the only place the active flag is tested it can just be deleted
+> >>> entirely.
+> >> Hi, Jason
+> >>    
+> >>     roce reset process:
+> >>     1. hr_dev->active = false;  //make sure no any process call
+> >> ibv_open_device.   
+> >>     2. call ib_dispatch_event() function to report IB_EVENT_DEVICE_FATAL
+> >> event.
+> >>     3. msleep(100);   // for some app to free resources
+> >>     4. call ib_unregister_device().   
+> >>     5. ...
+> >>     6. ...
+> >>
+> >>     There are 2 steps as above before calling ib_unregister_device(), we
+> >> evaluate
+> >> hr_dev->active with false to avoid no any process call
+> >> ibv_open_device.
+> > If you think this is the right flow then it is core issue to block new
+> > opens, not an individual driver issue, send a core patch - eg add a
+> > 'ib_driver_fatal_error()' call that does the dispatch and call it from
+> > all the drivers using this IB_EVENT_DEVICE_FATAL
+> Hi, Jason
+> 
+> It seem to be no difference between calling ib_driver_fatal_error and
+> calling ib_dispatch_event  directly in manufacturer driver.
+> 
+> void ib_driver_fatal_error(struct ib_device *ib_dev, u8 port_num)
+>  {
+>        struct ib_event event;
+>                 
+>   event.event = IB_EVENT_DEVICE_FATAL;
+>     event.device = ib_dev;
+>     event.element.port_num = port_num;
+>     ib_dispatch_event(&event);
+> }
 
-Applied to for-rc, thanks
+My point was the core code should block calling
+hns_roce_alloc_ucontext after DEVICE_FATAL if we agree that is
+correct, the driver shouldn't be doing it.
 
 Jason
