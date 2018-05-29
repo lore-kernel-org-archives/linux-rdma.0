@@ -1,65 +1,38 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH mlx5-next v2 11/13] IB/mlx5: Add flow counters binding
- support
-Date: Tue, 29 May 2018 13:56:27 -0600
-Message-ID: <20180529195627.GA31423@ziepe.ca>
-References: <20180529130917.13592-1-leon@kernel.org>
- <20180529130917.13592-12-leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/3] Introduce new mlx5 CQE format
+Date: Tue, 29 May 2018 14:05:15 -0600
+Message-ID: <20180529200515.GA26938@ziepe.ca>
+References: <20180527104234.17261-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180529130917.13592-12-leon@kernel.org>
+In-Reply-To: <20180527104234.17261-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Alex Rosenbaum <alexr@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Yonatan Cohen <yonatanc@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 29, 2018 at 04:09:15PM +0300, Leon Romanovsky wrote:
-> diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-> index 508ea8c82da7..ef3f430a7050 100644
-> +++ b/include/uapi/rdma/mlx5-abi.h
-> @@ -443,4 +443,18 @@ enum {
->  enum {
->  	MLX5_IB_CLOCK_INFO_V1              = 0,
->  };
-> +
-> +struct mlx5_ib_flow_counters_data {
-> +	__aligned_u64   counters_data;
-> +	__u32   ncounters;
-> +	__u32   reserved;
-> +};
-> +
-> +struct mlx5_ib_create_flow {
-> +	__u32   ncounters_data;
-> +	__u32   reserved;
-> +	/* Following are counters data based on ncounters_data */
-> +	struct mlx5_ib_flow_counters_data data[];
-> +};
-> +
->  #endif /* MLX5_ABI_USER_H */
+On Sun, May 27, 2018 at 01:42:31PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Introduce new internal to mlx5 CQE format - mini-CQE. It is a CQE in
+> compressed form that holds data needed to extra a single full CQE.
+> 
+> It stride index, byte count and packet checksum.
+> 
+> Thanks
+> 
+> Yonatan Cohen (3):
+>   net/mlx5: Exposing a new mini-CQE format
+>   IB/mlx5: Refactor CQE compression response
+>   IB/mlx5: Introduce a new mini-CQE format
 
-This uapi thing still needs to be fixed as I pointed out before.
+Applied to for-next.
 
-I still can't figure out why this should be a 2d array. I think it
-should be written simply as:
+Generally taking new uapi patches that are first the list should have
+a few weeks of comment period, but since this is just adding a new bit
+to an existing driver private api it seems OK to go this merge window.
 
-struct mlx5_ib_flow_counter_desc {
-        __u32 description;
-        __u32 index;
-};
-
-struct mlx5_ib_create_flow {
-	RDMA_UAPI_PTR(struct mlx5_ib_flow_counter_desc, counters_data);
-	__u32   ncounters;
-	__u32   reserved;
-};
-
-With the corresponding changes elsewhere.
-
-A flex array at the end of a struct means that the struct can never be
-extended again which seems like a terrible idea, especially since I
-can't fathom why we'd need more that one array of counters and the
-current code doesn't even support more than one..
-
+Thanks,
 Jason
