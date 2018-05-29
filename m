@@ -1,71 +1,29 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next v2 01/13] IB/uverbs: Add an ib_uobject getter
- to ioctl() infrastructure
-Date: Tue, 29 May 2018 14:51:06 -0600
-Message-ID: <20180529205106.GD18457@ziepe.ca>
-References: <20180529130917.13592-1-leon@kernel.org>
- <20180529130917.13592-2-leon@kernel.org>
- <14063C7AD467DE4B82DEDB5C278E8663B38ED738@FMSMSX108.amr.corp.intel.com>
- <20180529202119.GK18442@mellanox.com>
- <14063C7AD467DE4B82DEDB5C278E8663B38EE87B@FMSMSX108.amr.corp.intel.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 1/3] net/mlx5: Exposing a new mini-CQE format
+Date: Tue, 29 May 2018 21:01:27 +0000
+Message-ID: <7aba104bb1313c1cda01baae2ff8495d5623f4b1.camel@mellanox.com>
+References: <20180527104234.17261-1-leon@kernel.org>
+         <20180527104234.17261-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663B38EE87B@FMSMSX108.amr.corp.intel.com>
+In-Reply-To: <20180527104234.17261-2-leon@kernel.org>
+Content-Language: en-US
+Content-ID: <5797DF2ADFE0394EB7BA5078ADA3E16E@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: Yonatan Cohen <yonatanc@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Guy Levi(SW)" <guyle@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 29, 2018 at 08:49:58PM +0000, Ruhl, Michael J wrote:
-> >From: Jason Gunthorpe [mailto:jgg@mellanox.com]
-> >Sent: Tuesday, May 29, 2018 4:21 PM
-> >To: Ruhl, Michael J <michael.j.ruhl@intel.com>
-> >Cc: Leon Romanovsky <leon@kernel.org>; Doug Ledford
-> ><dledford@redhat.com>; Leon Romanovsky <leonro@mellanox.com>; RDMA
-> >mailing list <linux-rdma@vger.kernel.org>; Boris Pismenny
-> ><borisp@mellanox.com>; Matan Barak <matanb@mellanox.com>; Raed
-> >Salem <raeds@mellanox.com>; Yishai Hadas <yishaih@mellanox.com>; Saeed
-> >Mahameed <saeedm@mellanox.com>; linux-netdev
-> ><netdev@vger.kernel.org>
-> >Subject: Re: [PATCH rdma-next v2 01/13] IB/uverbs: Add an ib_uobject getter
-> >to ioctl() infrastructure
-> >
-> >On Tue, May 29, 2018 at 07:31:22PM +0000, Ruhl, Michael J wrote:
-> >> >-	struct ib_uverbs_destroy_cq_resp resp;
-> >> > 	struct ib_uobject *uobj =
-> >> >-		uverbs_attr_get(attrs,
-> >> >UVERBS_ATTR_DESTROY_CQ_HANDLE)->obj_attr.uobject;
-> >> >-	struct ib_ucq_object *obj = container_of(uobj, struct ib_ucq_object,
-> >> >-						 uobject);
-> >> >+		uverbs_attr_get_uobject(attrs,
-> >> >UVERBS_ATTR_DESTROY_CQ_HANDLE);
-> >> >+	struct ib_uverbs_destroy_cq_resp resp;
-> >> >+	struct ib_ucq_object *obj;
-> >> > 	int ret;
-> >> >
-> >> >+	if (IS_ERR(uobj))
-> >> >+		return PTR_ERR(uobj);
-> >> >+
-> >>
-> >> I remember a conversation that if an method attribute was mandatory, that
-> >you did not need to
-> >> test the uobj for error (since it was checked in the infrastructure).
-> >
-> >Yes.
-> >
-> >> Is this error check necessary?
-> >
-> >No
-> >
-> >But there is no way to check one way or the other at compile time
-> >right now, and omitting the check makes smatch mad.
-> 
-> Is smatch going to get mad at (same patch):
-
-Yes, this is where it already got mad, IIRC :( 
-
-Fixing this whole thing is a todo on my list..
-
-Jason
+T24gU3VuLCAyMDE4LTA1LTI3IGF0IDEzOjQyICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IEZyb206IFlvbmF0YW4gQ29oZW4gPHlvbmF0YW5jQG1lbGxhbm94LmNvbT4NCj4gDQo+IFRo
+ZSBuZXcgbWluaS1DUUUgZm9ybWF0IGluY2x1ZGVzIGJ5dGUtY291bnQsIGNoZWNrc3VtDQo+IGFu
+ZCBzdHJpZGUgaW5kZXguDQo+IA0KPiBSZXZpZXdlZC1ieTogWWlzaGFpIEhhZGFzIDx5aXNoYWlo
+QG1lbGxhbm94LmNvbT4NCj4gUmV2aWV3ZWQtYnk6IEd1eSBMZXZpIDxndXlsZUBtZWxsYW5veC5j
+b20+DQo+IFNpZ25lZC1vZmYtYnk6IFlvbmF0YW4gQ29oZW4gPHlvbmF0YW5jQG1lbGxhbm94LmNv
+bT4NCj4gU2lnbmVkLW9mZi1ieTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29t
+Pg0KDQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0Lg0KDQpnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIv
+c2NtL2xpbnV4L2tlcm5lbC9naXQvbWVsbGFub3gvbGludXguZ2l0ICBtbHg1LQ0KbmV4dA0KDQpj
+b21taXQtaWQ6IGFiNzQxYjJlZWQzZTQ1NmNlYmQyMjQwZDRjOWM2YmUwMDNkNWFlNzINCg0KVGhh
+bmtzIQ0KDQo=
