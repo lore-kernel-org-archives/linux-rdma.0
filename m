@@ -1,75 +1,145 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next v1 11/13] IB/mlx5: Add flow counters binding
- support
-Date: Tue, 29 May 2018 10:11:19 +0300
-Message-ID: <20180529071119.GC3697@mtr-leonro.mtl.com>
-References: <20180527102346.15149-1-leon@kernel.org>
- <20180527102346.15149-12-leon@kernel.org>
- <20180528172752.GD17505@ziepe.ca>
+From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+Subject: [PATCH] IB/mad: Use ID allocator routines to allocate agent number
+Date: Tue, 29 May 2018 09:38:08 +0200
+Message-ID: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qDbXVdCdHGoSgWSk"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180528172752.GD17505@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Hakon Bugge <haakon.bugge@oracle.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+The agent TID is a 64 bit value split in two dwords.  The least
+significant dword is the TID running counter. The most significant
+dword is the agent number. In the CX-3 shared port model, the mlx4
+driver uses the most significant byte of the agent number to store the
+slave number, making agent numbers greater and equal to 2^24 (3 bytes)
+unusable.  The current codebase uses a variable which is incremented
+atomically for each new agent number giving too large agent numbers
+over time.  The IDA set of functions are used instead of the simple
+counter approach. This allows re-use of agent numbers. A sysctl
+variable is also introduced, to control the max agent number.
 
---qDbXVdCdHGoSgWSk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The signature of the bug is a MAD layer that stops working and the
+console is flooded with messages like:
+ mlx4_ib: egress mad has non-null tid msb:1 class:4 slave:0
 
-On Mon, May 28, 2018 at 11:27:52AM -0600, Jason Gunthorpe wrote:
-> On Sun, May 27, 2018 at 01:23:44PM +0300, Leon Romanovsky wrote:
->
-> > +	if (!mcounters->hw_cntrs_hndl) {
-> > +		mcounters->hw_cntrs_hndl =
-> > +			(void *)mlx5_fc_create(to_mdev(ibcounters->device)->mdev,
-> > +					       false);
->
-> No unnecessary casts
+Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
 
-hw_cntrs_hndl was intended to be generic enough to be connected with
-different type of counters and not only mlx5_fc. However, i don't see
-any coming feature are using this generic interface, so I'll remove.
+---
+ drivers/infiniband/core/mad.c | 50 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 48 insertions(+), 2 deletions(-)
 
->
-> > +struct mlx5_ib_flow_counters_data {
-> > +	__aligned_u64   counters_data;
->
-> I think this is supposed to use RDMA_UAPI_PTR() these days.
-
-It is a little bit problematic,
-1. That RDMA_UAPI_PTR is declared in ib_user_ioctl_verbs.h, while
-mlx5_ib_flow_counters_data in mlx5-abi.h.
-2. Other similar __aligned_u64 needs to be updated in other mlx5-abi.h structures.
-
-Thanks
-
->
-> Jason
-
---qDbXVdCdHGoSgWSk
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbDP0XAAoJEORje4g2clinkpEP/AyPqfqZafaxyf9r8269IKdD
-bLjf4b/xguoZvZ65gbu/q4u1Odlj60ETEzEHw3lUElUItKDVICpRK8jzeiJ0j/Gc
-uF0u+6/Ar4fNjNORHnQpukVMKw5EFXYrcXxqfFr33tdRfB9uJX0PPqwEZmonOsBi
-igI+WdnA+853KDVJfNoMb+2LCVohVd/b30RVl5EJPU8kgUp6vUvfmfSFDpV5rUOU
-cNy50ouwRPdd6U67izj9YhwAqJkku7IS2bgZsL372QfXrHajVgAvzh+LUfwVpF9m
-Pa7Ws5pNELYHIMc77qaySYpYzGRfLWNXJPDv3Sy1HZvrZWUj8dsjLDvL34/tIX+p
-08IfKR9/8ZPjxyc/kn62wpQx/R2G4wbiSrjod59nPSk0ci930fvcJ8qKaw7RZLvF
-2w5qUSr3UiXqs4eRECfdNTeHz2rfwyeInYqN5BNjgWNxcxIRdGBsQgjdwGZP0NhA
-Twaz1kjaFUb7ZgtvmbSmXRi+PtXd8jo+xLRueE+OkuG4qrX9LJXeWJRLmDlqeoPn
-kpHhrp7THrpVA6e2rfVjrsX2k31ymU7YJS4l+I2AsNZXOt7/pHDUmbCBKZPbw/8L
-OwVgRIUvZJu1LvJtnF7F4PmKsdeZxE0clcY+X7JlNKmfFfrccIzFo0BlAh97mBM2
-sUwhf4wPB8I3wQO3J4c2
-=Zq3q
------END PGP SIGNATURE-----
-
---qDbXVdCdHGoSgWSk--
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index b28452a55a08..adce6cd5fc41 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -41,6 +41,8 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/security.h>
++#include <linux/idr.h>
++#include <linux/sysctl.h>
+ #include <rdma/ib_cache.h>
+ 
+ #include "mad_priv.h"
+@@ -57,9 +59,27 @@ module_param_named(send_queue_size, mad_sendq_size, int, 0444);
+ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests");
+ module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+ MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
++/* Sysctl variable to set largest mad agent number */
++static u32 ib_mad_sysctl_min_client_id_max;
++static u32 ib_mad_sysctl_max_client_id_max;
++static u32 ib_mad_sysctl_client_id_max;
++static struct ctl_table_header *ib_mad_sysctl_hdr;
++
++static struct ctl_table ib_mad_sysctl_table[] = {
++	{
++		.procname       = "client_id_max",
++		.data           = &ib_mad_sysctl_client_id_max,
++		.maxlen         = sizeof(ib_mad_sysctl_client_id_max),
++		.mode           = 0644,
++		.proc_handler   = &proc_douintvec_minmax,
++		.extra1         = &ib_mad_sysctl_min_client_id_max,
++		.extra2         = &ib_mad_sysctl_max_client_id_max,
++	},
++	{ }
++};
+ 
+ static struct list_head ib_mad_port_list;
+-static atomic_t ib_mad_client_id = ATOMIC_INIT(0);
++DEFINE_IDA(ib_mad_client_ids);
+ 
+ /* Port list lock */
+ static DEFINE_SPINLOCK(ib_mad_port_list_lock);
+@@ -212,6 +232,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 	int ret2, qpn;
+ 	unsigned long flags;
+ 	u8 mgmt_class, vclass;
++	u32 ib_mad_client_id;
+ 
+ 	/* Validate parameters */
+ 	qpn = get_spl_qp_index(qp_type);
+@@ -376,8 +397,18 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ 		goto error4;
+ 	}
+ 
++	ib_mad_client_id = ida_simple_get(&ib_mad_client_ids,
++					  0,
++					  ib_mad_sysctl_client_id_max,
++					  GFP_KERNEL);
++	if (ib_mad_client_id < 0) {
++		pr_err("Couldn't allocate agent tid; errcode: %#x\n",
++		       ib_mad_client_id);
++		ret = ERR_PTR(ib_mad_client_id);
++		goto error4;
++	}
++	mad_agent_priv->agent.hi_tid = ib_mad_client_id;
+ 	spin_lock_irqsave(&port_priv->reg_lock, flags);
+-	mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id);
+ 
+ 	/*
+ 	 * Make sure MAD registration (if supplied)
+@@ -428,6 +459,8 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
+ error5:
+ 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+ 	ib_mad_agent_security_cleanup(&mad_agent_priv->agent);
++	ida_simple_remove(&ib_mad_client_ids, ib_mad_client_id);
++
+ error4:
+ 	kfree(reg_req);
+ error3:
+@@ -588,6 +621,7 @@ static void unregister_mad_agent(struct ib_mad_agent_private *mad_agent_priv)
+ 	cancel_delayed_work(&mad_agent_priv->timed_work);
+ 
+ 	spin_lock_irqsave(&port_priv->reg_lock, flags);
++	ida_simple_remove(&ib_mad_client_ids, mad_agent_priv->agent.hi_tid);
+ 	remove_mad_reg_req(mad_agent_priv);
+ 	list_del(&mad_agent_priv->agent_list);
+ 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+@@ -3341,10 +3375,22 @@ int ib_mad_init(void)
+ 		return -EINVAL;
+ 	}
+ 
++	ib_mad_sysctl_min_client_id_max = 1 << 10;
++	ib_mad_sysctl_max_client_id_max = 1 << 23;
++	ib_mad_sysctl_client_id_max     = 1 << 18;
++	ib_mad_sysctl_hdr = register_net_sysctl(&init_net, "net/ibmad",
++						ib_mad_sysctl_table);
++	if (!ib_mad_sysctl_hdr) {
++		pr_err("%s: register_net_sysctl failed\n",  __func__);
++		ib_mad_cleanup();
++		return -EINVAL;
++	}
+ 	return 0;
+ }
+ 
+ void ib_mad_cleanup(void)
+ {
+ 	ib_unregister_client(&mad_client);
++	ida_destroy(&ib_mad_client_ids);
++	unregister_net_sysctl_table(ib_mad_sysctl_hdr);
+ }
+-- 
+2.13.6
