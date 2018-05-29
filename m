@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 08/13] IB/core: Add support for flow counters
-Date: Tue, 29 May 2018 16:09:12 +0300
-Message-ID: <20180529130917.13592-9-leon@kernel.org>
+Subject: [PATCH rdma-next v2 09/13] IB/uverbs: Add support for flow counters
+Date: Tue, 29 May 2018 16:09:13 +0300
+Message-ID: <20180529130917.13592-10-leon@kernel.org>
 References: <20180529130917.13592-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180529130917.13592-1-leon@kernel.org>
@@ -12,64 +12,183 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-A counters object could be attached to flow on creation
-by providing the counter specification action.
+The struct ib_uverbs_flow_spec_action_count associates
+a counters object with the flow.
 
-General counters description which count packets and bytes are
-introduced, downstream patches from this series will use them
-as part of flow counters binding.
-
-In addition, increase number of flow specifications supported
-layers to 10 upon adding count specification and for the
-previously added drop specification.
+Post this association the flow counters can be read via
+the counters object.
 
 Tested-by: Michael Guralnik <michaelgur@mellanox.com>
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs.h     |  1 +
+ drivers/infiniband/core/uverbs_cmd.c | 81 +++++++++++++++++++++++++++++++-----
+ include/uapi/rdma/ib_user_verbs.h    | 13 ++++++
+ 3 files changed, 84 insertions(+), 11 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 80956b1c9f4d..3acf7a9fa452 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1859,9 +1859,10 @@ enum ib_flow_spec_type {
- 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
- 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
- 	IB_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
-+	IB_FLOW_SPEC_ACTION_COUNT       = 0x1003,
- };
- #define IB_FLOW_SPEC_LAYER_MASK	0xF0
--#define IB_FLOW_SPEC_SUPPORT_LAYERS 8
-+#define IB_FLOW_SPEC_SUPPORT_LAYERS 10
-
- /* Flow steering rule priority is set according to it's domain.
-  * Lower domain value means higher priority.
-@@ -2041,6 +2042,17 @@ struct ib_flow_spec_action_handle {
- 	struct ib_flow_action	     *act;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 5b2461fa634d..c0d40fc3a53a 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -263,6 +263,7 @@ struct ib_uverbs_flow_spec {
+ 		struct ib_uverbs_flow_spec_action_tag	flow_tag;
+ 		struct ib_uverbs_flow_spec_action_drop	drop;
+ 		struct ib_uverbs_flow_spec_action_handle action;
++		struct ib_uverbs_flow_spec_action_count flow_count;
+ 	};
  };
 
-+enum ib_counters_description {
-+	IB_COUNTER_PACKETS,
-+	IB_COUNTER_BYTES,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index ddb9d79691be..3179a95c6f5e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2748,43 +2748,82 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
+ struct ib_uflow_resources {
+ 	size_t			max;
+ 	size_t			num;
+-	struct ib_flow_action	*collection[0];
++	size_t			collection_num;
++	size_t			counters_num;
++	struct ib_counters	**counters;
++	struct ib_flow_action	**collection;
+ };
+
+ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
+ {
+ 	struct ib_uflow_resources *resources;
+
+-	resources =
+-		kmalloc(sizeof(*resources) +
+-			num_specs * sizeof(*resources->collection), GFP_KERNEL);
++	resources = kzalloc(sizeof(*resources), GFP_KERNEL);
+
+ 	if (!resources)
+-		return NULL;
++		goto err_res;
++
++	resources->counters =
++		kcalloc(num_specs, sizeof(*resources->counters), GFP_KERNEL);
++
++	if (!resources->counters)
++		goto err_cnt;
++
++	resources->collection =
++		kcalloc(num_specs, sizeof(*resources->collection), GFP_KERNEL);
++
++	if (!resources->collection)
++		goto err_collection;
+
+-	resources->num = 0;
+ 	resources->max = num_specs;
+
+ 	return resources;
++
++err_collection:
++	kfree(resources->counters);
++err_cnt:
++	kfree(resources);
++err_res:
++	return NULL;
+ }
+
+ void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
+ {
+ 	unsigned int i;
+
+-	for (i = 0; i < uflow_res->num; i++)
++	for (i = 0; i < uflow_res->collection_num; i++)
+ 		atomic_dec(&uflow_res->collection[i]->usecnt);
+
++	for (i = 0; i < uflow_res->counters_num; i++)
++		atomic_dec(&uflow_res->counters[i]->usecnt);
++
++	kfree(uflow_res->collection);
++	kfree(uflow_res->counters);
+ 	kfree(uflow_res);
+ }
+
+ static void flow_resources_add(struct ib_uflow_resources *uflow_res,
+-			       struct ib_flow_action *action)
++			       enum ib_flow_spec_type type,
++			       void *ibobj)
+ {
+ 	WARN_ON(uflow_res->num >= uflow_res->max);
+
+-	atomic_inc(&action->usecnt);
+-	uflow_res->collection[uflow_res->num++] = action;
++	switch (type) {
++	case IB_FLOW_SPEC_ACTION_HANDLE:
++		atomic_inc(&((struct ib_flow_action *)ibobj)->usecnt);
++		uflow_res->collection[uflow_res->collection_num++] =
++			(struct ib_flow_action *)ibobj;
++		break;
++	case IB_FLOW_SPEC_ACTION_COUNT:
++		atomic_inc(&((struct ib_counters *)ibobj)->usecnt);
++		uflow_res->counters[uflow_res->counters_num++] =
++			(struct ib_counters *)ibobj;
++		break;
++	default:
++		WARN_ON(1);
++	}
++
++	uflow_res->num++;
+ }
+
+ static int kern_spec_to_ib_spec_action(struct ib_ucontext *ucontext,
+@@ -2821,9 +2860,29 @@ static int kern_spec_to_ib_spec_action(struct ib_ucontext *ucontext,
+ 			return -EINVAL;
+ 		ib_spec->action.size =
+ 			sizeof(struct ib_flow_spec_action_handle);
+-		flow_resources_add(uflow_res, ib_spec->action.act);
++		flow_resources_add(uflow_res,
++				   IB_FLOW_SPEC_ACTION_HANDLE,
++				   ib_spec->action.act);
+ 		uobj_put_obj_read(ib_spec->action.act);
+ 		break;
++	case IB_FLOW_SPEC_ACTION_COUNT:
++		if (kern_spec->flow_count.size !=
++			sizeof(struct ib_uverbs_flow_spec_action_count))
++			return -EINVAL;
++		ib_spec->flow_count.counters =
++			uobj_get_obj_read(counters,
++					  UVERBS_OBJECT_COUNTERS,
++					  kern_spec->flow_count.handle,
++					  ucontext);
++		if (!ib_spec->flow_count.counters)
++			return -EINVAL;
++		ib_spec->flow_count.size =
++				sizeof(struct ib_flow_spec_action_count);
++		flow_resources_add(uflow_res,
++				   IB_FLOW_SPEC_ACTION_COUNT,
++				   ib_spec->flow_count.counters);
++		uobj_put_obj_read(ib_spec->flow_count.counters);
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 409507f83b91..4f9991de8e3a 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -998,6 +998,19 @@ struct ib_uverbs_flow_spec_action_handle {
+ 	__u32			      reserved1;
+ };
+
++struct ib_uverbs_flow_spec_action_count {
++	union {
++		struct ib_uverbs_flow_spec_hdr hdr;
++		struct {
++			__u32 type;
++			__u16 size;
++			__u16 reserved;
++		};
++	};
++	__u32			      handle;
++	__u32			      reserved1;
 +};
 +
-+struct ib_flow_spec_action_count {
-+	enum ib_flow_spec_type type;
-+	u16 size;
-+	struct ib_counters *counters;
-+};
-+
- union ib_flow_spec {
- 	struct {
- 		u32			type;
-@@ -2058,6 +2070,7 @@ union ib_flow_spec {
- 	struct ib_flow_spec_action_tag  flow_tag;
- 	struct ib_flow_spec_action_drop drop;
- 	struct ib_flow_spec_action_handle action;
-+	struct ib_flow_spec_action_count flow_count;
+ struct ib_uverbs_flow_tunnel_filter {
+ 	__be32 tunnel_id;
  };
-
- struct ib_flow_attr {
