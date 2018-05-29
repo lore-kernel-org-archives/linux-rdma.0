@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 06/13] IB/uverbs: Add read counters support
-Date: Tue, 29 May 2018 16:09:10 +0300
-Message-ID: <20180529130917.13592-7-leon@kernel.org>
+Subject: [PATCH rdma-next v2 08/13] IB/core: Add support for flow counters
+Date: Tue, 29 May 2018 16:09:12 +0300
+Message-ID: <20180529130917.13592-9-leon@kernel.org>
 References: <20180529130917.13592-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180529130917.13592-1-leon@kernel.org>
@@ -12,119 +12,64 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-This patch exposes the read counters verb to user space
-applications.
-By that verb the user can read the hardware counters which
-are associated with the counters object.
+A counters object could be attached to flow on creation
+by providing the counter specification action.
 
-The application needs to provide a sufficient memory to
-hold the statistics.
+General counters description which count packets and bytes are
+introduced, downstream patches from this series will use them
+as part of flow counters binding.
+
+In addition, increase number of flow specifications supported
+layers to 10 upon adding count specification and for the
+previously added drop specification.
 
 Tested-by: Michael Guralnik <michaelgur@mellanox.com>
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../infiniband/core/uverbs_std_types_counters.c    | 59 +++++++++++++++++++++-
- include/uapi/rdma/ib_user_ioctl_cmds.h             |  7 +++
- 2 files changed, 65 insertions(+), 1 deletion(-)
+ include/rdma/ib_verbs.h | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_counters.c b/drivers/infiniband/core/uverbs_std_types_counters.c
-index a5bc50ceee13..b35fcd3718c8 100644
---- a/drivers/infiniband/core/uverbs_std_types_counters.c
-+++ b/drivers/infiniband/core/uverbs_std_types_counters.c
-@@ -80,6 +80,49 @@ static int UVERBS_HANDLER(UVERBS_METHOD_COUNTERS_CREATE)(struct ib_device *ib_de
- 	return ret;
- }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 80956b1c9f4d..3acf7a9fa452 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1859,9 +1859,10 @@ enum ib_flow_spec_type {
+ 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
+ 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
+ 	IB_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
++	IB_FLOW_SPEC_ACTION_COUNT       = 0x1003,
+ };
+ #define IB_FLOW_SPEC_LAYER_MASK	0xF0
+-#define IB_FLOW_SPEC_SUPPORT_LAYERS 8
++#define IB_FLOW_SPEC_SUPPORT_LAYERS 10
 
-+static int UVERBS_HANDLER(UVERBS_METHOD_COUNTERS_READ)(struct ib_device *ib_dev,
-+						       struct ib_uverbs_file *file,
-+						       struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_counters_read_attr read_attr = {};
-+	const struct uverbs_attr *uattr;
-+	struct ib_counters *counters =
-+		uverbs_attr_get_obj(attrs, UVERBS_ATTR_READ_COUNTERS_HANDLE);
-+	int ret;
-+
-+	if (!ib_dev->read_counters)
-+		return -EOPNOTSUPP;
-+
-+	if (!atomic_read(&counters->usecnt))
-+		return -EINVAL;
-+
-+	ret = uverbs_copy_from(&read_attr.flags, attrs,
-+			       UVERBS_ATTR_READ_COUNTERS_FLAGS);
-+	if (ret)
-+		return ret;
-+
-+	uattr = uverbs_attr_get(attrs, UVERBS_ATTR_READ_COUNTERS_BUFF);
-+	read_attr.ncounters = uattr->ptr_attr.len / sizeof(u64);
-+	read_attr.counters_buff = kcalloc(read_attr.ncounters,
-+					  sizeof(u64), GFP_KERNEL);
-+	if (!read_attr.counters_buff)
-+		return -ENOMEM;
-+
-+	ret = ib_dev->read_counters(counters,
-+				    &read_attr,
-+				    attrs);
-+	if (ret)
-+		goto err_read;
-+
-+	ret = uverbs_copy_to(attrs, UVERBS_ATTR_READ_COUNTERS_BUFF,
-+			     read_attr.counters_buff,
-+			     read_attr.ncounters * sizeof(u64));
-+
-+err_read:
-+	kfree(read_attr.counters_buff);
-+	return ret;
-+}
-+
- static DECLARE_UVERBS_NAMED_METHOD(UVERBS_METHOD_COUNTERS_CREATE,
- 	&UVERBS_ATTR_IDR(UVERBS_ATTR_CREATE_COUNTERS_HANDLE,
- 			 UVERBS_OBJECT_COUNTERS,
-@@ -93,8 +136,22 @@ static DECLARE_UVERBS_NAMED_METHOD_WITH_HANDLER(UVERBS_METHOD_COUNTERS_DESTROY,
- 			 UVERBS_ACCESS_DESTROY,
- 			 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
-
-+#define MAX_COUNTERS_BUFF_SIZE USHRT_MAX
-+static DECLARE_UVERBS_NAMED_METHOD(UVERBS_METHOD_COUNTERS_READ,
-+	&UVERBS_ATTR_IDR(UVERBS_ATTR_READ_COUNTERS_HANDLE,
-+			 UVERBS_OBJECT_COUNTERS,
-+			 UVERBS_ACCESS_READ,
-+			 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
-+	&UVERBS_ATTR_PTR_OUT(UVERBS_ATTR_READ_COUNTERS_BUFF,
-+			     UVERBS_ATTR_SIZE(0, MAX_COUNTERS_BUFF_SIZE),
-+			     UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
-+	&UVERBS_ATTR_PTR_IN(UVERBS_ATTR_READ_COUNTERS_FLAGS,
-+			    UVERBS_ATTR_TYPE(__u32),
-+			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
-+
- DECLARE_UVERBS_NAMED_OBJECT(UVERBS_OBJECT_COUNTERS,
- 			    &UVERBS_TYPE_ALLOC_IDR(0, uverbs_free_counters),
- 			    &UVERBS_METHOD(UVERBS_METHOD_COUNTERS_CREATE),
--			    &UVERBS_METHOD(UVERBS_METHOD_COUNTERS_DESTROY));
-+			    &UVERBS_METHOD(UVERBS_METHOD_COUNTERS_DESTROY),
-+			    &UVERBS_METHOD(UVERBS_METHOD_COUNTERS_READ));
-
-diff --git a/include/uapi/rdma/ib_user_ioctl_cmds.h b/include/uapi/rdma/ib_user_ioctl_cmds.h
-index c28ce62d2e40..888ac5975a6c 100644
---- a/include/uapi/rdma/ib_user_ioctl_cmds.h
-+++ b/include/uapi/rdma/ib_user_ioctl_cmds.h
-@@ -140,9 +140,16 @@ enum uverbs_attrs_destroy_counters_cmd_attr_ids {
- 	UVERBS_ATTR_DESTROY_COUNTERS_HANDLE,
+ /* Flow steering rule priority is set according to it's domain.
+  * Lower domain value means higher priority.
+@@ -2041,6 +2042,17 @@ struct ib_flow_spec_action_handle {
+ 	struct ib_flow_action	     *act;
  };
 
-+enum uverbs_attrs_read_counters_cmd_attr_ids {
-+	UVERBS_ATTR_READ_COUNTERS_HANDLE,
-+	UVERBS_ATTR_READ_COUNTERS_BUFF,
-+	UVERBS_ATTR_READ_COUNTERS_FLAGS,
++enum ib_counters_description {
++	IB_COUNTER_PACKETS,
++	IB_COUNTER_BYTES,
 +};
 +
- enum uverbs_methods_actions_counters_ops {
- 	UVERBS_METHOD_COUNTERS_CREATE,
- 	UVERBS_METHOD_COUNTERS_DESTROY,
-+	UVERBS_METHOD_COUNTERS_READ,
++struct ib_flow_spec_action_count {
++	enum ib_flow_spec_type type;
++	u16 size;
++	struct ib_counters *counters;
++};
++
+ union ib_flow_spec {
+ 	struct {
+ 		u32			type;
+@@ -2058,6 +2070,7 @@ union ib_flow_spec {
+ 	struct ib_flow_spec_action_tag  flow_tag;
+ 	struct ib_flow_spec_action_drop drop;
+ 	struct ib_flow_spec_action_handle action;
++	struct ib_flow_spec_action_count flow_count;
  };
 
- #endif
+ struct ib_flow_attr {
