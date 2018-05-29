@@ -1,68 +1,116 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH V3 rdma-next 4/4] RDMA/hns: Implement the
- disassociate_ucontext API
-Date: Tue, 29 May 2018 19:36:46 +0800
-Message-ID: <5B0D3B4E.4020909@huawei.com>
-References: <1527324107-56593-1-git-send-email-xavier.huwei@huawei.com>
- <1527324107-56593-5-git-send-email-xavier.huwei@huawei.com>
- <20180528165323.GC17505@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180528165323.GC17505@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, linux-kernel@vger.kernel.org, leonro@mellanox.com
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next v2 00/13] Verbs flow counters support
+Date: Tue, 29 May 2018 16:09:04 +0300
+Message-ID: <20180529130917.13592-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
+
+Changelog
+v1->v2:
+ * Removed conversion from struct mlx5_fc* to void*
+ * Fixed one place with double space in it
+ * Balanced release of hardware handler in case of counters allocation failure
+ * Added Tested-by
+ * Minimize time spent holding mutex lock
+ * Fixed deadlock caused by nested lock in error path
+ * Protect from handler pointer derefence in the error paths
+
+Not changed: mlx5-abi.h
+
+v0->v1:
+ * Decouple from DevX submission
+ * Use uverbs_attr_get_obj at counters read method
+ * Added define for max read buffer size (MAX_COUNTERS_BUFF_SIZE)
+ * Removed the struct mlx5_ib_flow_counter basic_flow_cnts and
+   the related structs used, used define instead
+ * Took Matan's patch from DevX
+ * uverbs_free_counters removed void* casting
+ * Added check to bound ncounters value (added define
+ * Changed user supplied data buffer structure to be array of
+   struct <desc,index> pair (applied this change to user space also)
+
+Not changed:
+ * UAPI files
+ * Addition of uhw to flow
+
+Thanks
+
+----------------------------------------------------------------------
+>From Raed:
+
+This series comes to allow user space applications to monitor real time
+traffic activity and events of the verbs objects it manages, e.g.:
+ibv_qp, ibv_wq, ibv_flow.
+
+This API enables generic counters creation and define mapping
+to association with a verbs object, current mlx5 driver using
+this API for flow counters.
+
+With this API, an application can monitor the entire life cycle of
+object activity, defined here as a static counters attachment.
+This API also allows dynamic counters monitoring of measurement points
+for a partial period in the verbs object life cycle.
+
+In addition it presents the implementation of the generic counters interface.
+
+This will be achieved by extending flow creation by adding a new flow count
+specification type which allows the user to associate a previously created
+flow counters using the generic verbs counters interface to the created flow,
+once associated the user could read statistics by using the read function of
+the generic counters interface.
+
+The API includes:
+1. create and destroyed API of a new counters objects
+2. read the counters values from HW
+
+Note:
+Attaching API to allow application to define the measurement points per objects
+is a user space only API and this data is passed to kernel when the counted
+object (e.g. flow) is created with the counters object.
+
+Thanks
 
 
-On 2018/5/29 0:53, Jason Gunthorpe wrote:
-> On Sat, May 26, 2018 at 04:41:47PM +0800, Wei Hu (Xavier) wrote:
->> This patch implemented the IB core disassociate_ucontext API.
->>
->> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
->>
->> v2->v3: Addressed the comments from Jason. The related link:
->> 	https://lkml.org/lkml/2018/5/22/967
->> v1->v2: no change.
->>  drivers/infiniband/hw/hns/hns_roce_device.h |  8 ++++
->>  drivers/infiniband/hw/hns/hns_roce_main.c   | 70 ++++++++++++++++++++++++++++-
->>  2 files changed, 77 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
->> index da8512b..31221d5 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
->> @@ -217,11 +217,19 @@ struct hns_roce_uar {
->>  	unsigned long	logic_idx;
->>  };
->>  
->> +struct hns_roce_vma_data {
->> +	struct list_head list;
->> +	struct vm_area_struct *vma;
->> +	struct mutex *vma_list_mutex;
->> +};
-> This stuff is basically shared in all the drivers too - would it make
-> sense to maintain this information and do the zap_pte in the core code
-> as well?
->
-> There is no way to implement dis-associate without also doing the
-> zaps..
->
-> Jason
->
-> .
-Hi, Jason
-    You may have noticed there are difference about the process of
-zap_vmp_ptes
-    between mlx4_ib_disassociate_ucontext and mlx5_ib_disassociate_ucontext
-    If I hoist zap_vmp_ptes process into the core code, Maybe need to
-modify more mlx4 code.
-    Maybe I am not the right person to do this thing,  Could you give
-more suggestion?
-    Thanks   
+Matan Barak (2):
+  IB/uverbs: Add an ib_uobject getter to ioctl() infrastructure
+  IB/core: Support passing uhw for create_flow
 
-    Regards
-Wei Hu
->
+Raed Salem (11):
+  net/mlx5: Export flow counter related API
+  IB/core: Introduce counters object and its create/destroy
+  IB/uverbs: Add create/destroy counters support
+  IB/core: Introduce counters read verb
+  IB/uverbs: Add read counters support
+  IB/core: Add support for flow counters
+  IB/uverbs: Add support for flow counters
+  IB/mlx5: Add counters create and destroy support
+  IB/mlx5: Add flow counters binding support
+  IB/mlx5: Add flow counters read support
+  IB/mlx5: Add counters read support
+
+ drivers/infiniband/core/Makefile                   |   2 +-
+ drivers/infiniband/core/uverbs.h                   |   2 +
+ drivers/infiniband/core/uverbs_cmd.c               |  88 +++++-
+ drivers/infiniband/core/uverbs_std_types.c         |   3 +-
+ .../infiniband/core/uverbs_std_types_counters.c    | 157 +++++++++++
+ drivers/infiniband/core/uverbs_std_types_cq.c      |  23 +-
+ .../infiniband/core/uverbs_std_types_flow_action.c |   4 +-
+ drivers/infiniband/core/verbs.c                    |   2 +-
+ drivers/infiniband/hw/mlx4/main.c                  |   6 +-
+ drivers/infiniband/hw/mlx5/main.c                  | 305 ++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  36 +++
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |  23 --
+ .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |   3 +
+ include/linux/mlx5/fs.h                            |  23 ++
+ include/rdma/ib_verbs.h                            |  43 ++-
+ include/rdma/uverbs_ioctl.h                        |  11 +
+ include/uapi/rdma/ib_user_ioctl_cmds.h             |  21 ++
+ include/uapi/rdma/ib_user_verbs.h                  |  13 +
+ include/uapi/rdma/mlx5-abi.h                       |  14 +
+ 19 files changed, 713 insertions(+), 66 deletions(-)
+ create mode 100644 drivers/infiniband/core/uverbs_std_types_counters.c
