@@ -1,33 +1,55 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
 Subject: Re: [PATCH] IB/mad: Use ID allocator routines to allocate agent
  number
-Date: Tue, 29 May 2018 09:49:22 -0600
-Message-ID: <20180529154922.GA18457@ziepe.ca>
+Date: Tue, 29 May 2018 18:16:14 +0200
+Message-ID: <A470D739-D0CD-42EE-9196-8E7610B6DAF4@oracle.com>
 References: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+ <20180529154922.GA18457@ziepe.ca>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
+In-Reply-To: <20180529154922.GA18457@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Hakon Bugge <haakon.bugge@oracle.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 29, 2018 at 09:38:08AM +0200, Hans Westgaard Ry wrote:
-> The agent TID is a 64 bit value split in two dwords.  The least
-> significant dword is the TID running counter. The most significant
-> dword is the agent number. In the CX-3 shared port model, the mlx4
-> driver uses the most significant byte of the agent number to store the
-> slave number, making agent numbers greater and equal to 2^24 (3 bytes)
-> unusable.
 
-There is no reason for this to be an ida, just do something like
 
- mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id) & mad_agent_priv->ib_dev->tid_mask;
+> On 29 May 2018, at 17:49, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>=20
+> On Tue, May 29, 2018 at 09:38:08AM +0200, Hans Westgaard Ry wrote:
+>> The agent TID is a 64 bit value split in two dwords.  The least
+>> significant dword is the TID running counter. The most significant
+>> dword is the agent number. In the CX-3 shared port model, the mlx4
+>> driver uses the most significant byte of the agent number to store =
+the
+>> slave number, making agent numbers greater and equal to 2^24 (3 =
+bytes)
+>> unusable.
+>=20
+> There is no reason for this to be an ida, just do something like
+>=20
+> mad_agent_priv->agent.hi_tid =3D atomic_inc_return(&ib_mad_client_id) =
+& mad_agent_priv->ib_dev->tid_mask;
+>=20
+> And have the driver set tid_mask to 3 bytes of 0xFF
 
-And have the driver set tid_mask to 3 bytes of 0xFF
+The issue is that some of the mad agents are long-lived, so you will =
+wrap and use the same TID twice.
 
-And no sysctl.
 
-Jason
+Thxs, H=C3=A5kon
+
+
+>=20
+> And no sysctl.
+>=20
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
