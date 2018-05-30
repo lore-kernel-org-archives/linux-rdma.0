@@ -1,59 +1,92 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] iw_cxgb4: add INFINIBAND_ADDR_TRANS dependency
-Date: Wed, 30 May 2018 17:01:36 -0600
-Message-ID: <20180530230136.GK30754@ziepe.ca>
-References: <20180530215826.1343234-1-arnd@arndb.de>
- <20180530220405.GH30754@ziepe.ca>
- <0be4e0fb-8d8e-b337-fc8d-550c90829d8c@opengridcomputing.com>
- <20180530222520.GJ30754@ziepe.ca>
- <d2472443-3ae6-63f4-59ad-d6367b837038@opengridcomputing.com>
- <CAK8P3a3HZXTR60ua=cjBHnB5FWWKve9F-JqcNwn0ujks+=FsNg@mail.gmail.com>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH net] mlx4_core: restore optimal ICM memory allocation
+Date: Wed, 30 May 2018 16:03:09 -0700
+Message-ID: <badc0256-14ef-231c-8d3f-59d01ac17be8@oracle.com>
+References: <20180530041152.113393-1-edumazet@google.com>
+ <c87db444-266d-eb76-d8d5-d8a0c11038b1@oracle.com>
+ <CANn89i+KRHvsxH9Gs4QhtMt4Ex2OH2h120gxjYkBf1_27O27_g@mail.gmail.com>
+ <2cd40c9e-16a5-ba96-db7c-3aafc5af0957@oracle.com>
+ <CANn89i+K3LS7+idPBOkcaBPBdBwz9tWCLqkzbWZA10W2mmR9hA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAK8P3a3HZXTR60ua=cjBHnB5FWWKve9F-JqcNwn0ujks+=FsNg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Steve Wise <swise@opengridcomputing.com>, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, Greg Thelen <gthelen@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CANn89i+K3LS7+idPBOkcaBPBdBwz9tWCLqkzbWZA10W2mmR9hA@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Eric Dumazet <edumazet@google.com>
+Cc: David Miller <davem@davemloft.net>, netdev <netdev@vger.kernel.org>, Eric Dumazet <eric.dumazet@gmail.com>, John Sperbeck <jsperbeck@google.com>, Tarick Bedeir <tarick@google.com>, Daniel Jurgens <danielj@mellanox.com>, Zhu Yanjun <yanjun.zhu@oracle.com>, Tariq Toukan <tariqt@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 31, 2018 at 12:40:54AM +0200, Arnd Bergmann wrote:
-> > On 5/30/2018 5:25 PM, Jason Gunthorpe wrote:
-> >> On Wed, May 30, 2018 at 05:10:35PM -0500, Steve Wise wrote:
-> >>>
-> >>> On 5/30/2018 5:04 PM, Jason Gunthorpe wrote:
-> >>>> On Wed, May 30, 2018 at 11:58:18PM +0200, Arnd Bergmann wrote:
-> >>>>> The newly added fill_res_ep_entry function fails to link if
-> >>>>> CONFIG_INFINIBAND_ADDR_TRANS is not set:
-> >>>>>
-> >>>>> drivers/infiniband/hw/cxgb4/restrack.o: In function `fill_res_ep_entry':
-> >>>>> restrack.c:(.text+0x3cc): undefined reference to `rdma_res_to_id'
-> >>>>> restrack.c:(.text+0x3d0): undefined reference to `rdma_iw_cm_id'
-> >>>>>
-> >>>>> This adds a Kconfig dependency for the driver.
-> >>>>>
-> >>>>> Fixes: 116aeb887371 ("iw_cxgb4: provide detailed provider-specific CM_ID information")
-> >>>>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> >>>>>  drivers/infiniband/hw/cxgb4/Kconfig | 1 +
-> >>>>>  1 file changed, 1 insertion(+)
-> >>>> Oh, I think we need to solve this with maybe a header fill null stub
-> >>>> instead..
-> >>>>
-> >>>> We don't want to disable drivers just because a user interface is
-> >>>> disabled.
-> >>>>
-> >>> Why does CONFIG_INFINIBAND_ADDR_TRANS disable building rdma_cm.ko? That
-> >>> is not correct.
-> >> That seems like a reasonable thing to do..
-> > rdma_ucm.ko is for usermode users, rdma_cm.ko is for kernel users, and
-> > is required for iwarp drivers.  It seems rdma_cm.ko is not being
-> > compiled if ADDR_TRANS is not set.
 
-I think the intention was to completely disable rdma-cm, including all
-support for rx'ing remote packets? Greg?
 
-If this is required for iwarp then Arnd's patch is probably the right
-way to go..
+On 5/30/2018 2:30 PM, Eric Dumazet wrote:
+> On Wed, May 30, 2018 at 5:08 PM Qing Huang<qing.huang@oracle.com>  wrote:
+>>
+>> On 5/30/2018 1:50 PM, Eric Dumazet wrote:
+>>> On Wed, May 30, 2018 at 4:30 PM Qing Huang<qing.huang@oracle.com>  wrote:
+>>>> On 5/29/2018 9:11 PM, Eric Dumazet wrote:
+>>>>> Commit 1383cb8103bb ("mlx4_core: allocate ICM memory in page size chunks")
+>>>>> brought a regression caught in our regression suite, thanks to KASAN.
+>>>> If KASAN reported issue was really caused by smaller chunk sizes,
+>>>> changing allocation
+>>>> order dynamically will eventually hit the same issue.
+>>> Sigh, you have little idea of what your patch really did...
+>>>
+>>> The KASAN part only shows the tip of the iceberg, but our main concern
+>>> is an increase of memory overhead.
+>> Well, the commit log only mentioned KASAN and but the change here didn't
+>> seem to solve
+>> the issue.
+> Can you elaborate ?
+>
+> My patch solves our problems.
+>
+> Both the memory overhead and KASAN splats are gone.
 
-Jason
+If KASAN issue was triggered by using smaller chunks, when under memory 
+pressure with lots of fragments,
+low order memory allocation will do the similar things. So perhaps in 
+your test env, memory allocation
+and usage is relatively static, that's probably why using larger chunks 
+didn't really utilize low order
+allocation code path hence no KASAN issue was spotted.
+
+Smaller chunk size in the mlx4 driver is not supposed to cause any 
+memory corruption. We will probably
+need to continue to investigate this. Can you provide the test command 
+that trigger this issue when running
+KASAN kernel so we can try to reproduce it in our lab? It could be that 
+upstream code is missing some other
+fixes.
+
+
+>>> Alternative is to revert your patch, since we are now very late in 4.17 cycle.
+>>>
+>>> Memory usage has grown a lot with your patch, since each 4KB page needs a full
+>>> struct mlx4_icm_chunk (256 bytes of overhead !)
+>> Going to smaller chunks will have some overhead. It depends on the
+>> application though.
+>> What's the total increased memory consumption in your env?
+> As I explained, your patch adds 256 bytes of overhead per 4KB.
+>
+> Your changelog did not mentioned that at all, and we discovered this
+> the hard way.
+
+If you have some concern regarding memory usage, you should bring this 
+up during code review.
+
+Repeated failure and retry for lower order allocations could be bad for 
+latency too. This wasn't
+mentioned in this commit either.
+
+Like I said, how much overhead really depends on the application. 256 
+bytes x chunks may not be
+significant on a server with lots of memory.
+
+> That is pretty intolerable, and is a blocker for us, memory is precious.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message tomajordomo@vger.kernel.org
+> More majordomo info athttp://vger.kernel.org/majordomo-info.html
