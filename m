@@ -1,104 +1,40 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH mlx5-next v2 11/13] IB/mlx5: Add flow counters binding
- support
-Date: Wed, 30 May 2018 09:35:21 -0600
-Message-ID: <20180530153521.GD30754@ziepe.ca>
-References: <20180529130917.13592-1-leon@kernel.org>
- <20180529130917.13592-12-leon@kernel.org>
- <20180529195627.GA31423@ziepe.ca>
- <316f5042-b47d-2cee-48de-514467817e7a@dev.mellanox.co.il>
- <20180530150608.GA30754@ziepe.ca>
- <0dec7cc6-5715-4513-d55b-c53271c4fbee@dev.mellanox.co.il>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [PATCH mlx5-next 1/2] net/mlx5: Add temperature warning event to
+ log
+Date: Wed, 30 May 2018 18:17:20 +0200
+Message-ID: <20180530161720.GE27537@lunn.ch>
+References: <20180530001954.12000-1-saeedm@mellanox.com>
+ <20180530001954.12000-2-saeedm@mellanox.com>
+ <20180530010404.GB30239@lunn.ch>
+ <994d317b8c28c197ec4f8b7db67bcd045cb0284e.camel@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <0dec7cc6-5715-4513-d55b-c53271c4fbee@dev.mellanox.co.il>
+In-Reply-To: <994d317b8c28c197ec4f8b7db67bcd045cb0284e.camel@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Alex Rosenbaum <alexr@mellanox.com>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilan Tayari <ilant@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Adi Nissim <adin@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2018 at 06:24:00PM +0300, Yishai Hadas wrote:
-> On 5/30/2018 6:06 PM, Jason Gunthorpe wrote:
-> >On Wed, May 30, 2018 at 03:31:34PM +0300, Yishai Hadas wrote:
-> >>On 5/29/2018 10:56 PM, Jason Gunthorpe wrote:
-> >>>On Tue, May 29, 2018 at 04:09:15PM +0300, Leon Romanovsky wrote:
-> >>>>diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-> >>>>index 508ea8c82da7..ef3f430a7050 100644
-> >>>>+++ b/include/uapi/rdma/mlx5-abi.h
-> >>>>@@ -443,4 +443,18 @@ enum {
-> >>>>  enum {
-> >>>>  	MLX5_IB_CLOCK_INFO_V1              = 0,
-> >>>>  };
-> >>>>+
-> >>>>+struct mlx5_ib_flow_counters_data {
-> >>>>+	__aligned_u64   counters_data;
-> >>>>+	__u32   ncounters;
-> >>>>+	__u32   reserved;
-> >>>>+};
-> >>>>+
-> >>>>+struct mlx5_ib_create_flow {
-> >>>>+	__u32   ncounters_data;
-> >>>>+	__u32   reserved;
-> >>>>+	/* Following are counters data based on ncounters_data */
-> >>>>+	struct mlx5_ib_flow_counters_data data[];
-> >>>>+};
-> >>>>+
-> >>>>  #endif /* MLX5_ABI_USER_H */
-> >>>
-> >>>This uapi thing still needs to be fixed as I pointed out before.
-> >>
-> >>In V3 we can go with below, no change in memory layout but it can clarify
-> >>the code/usage.
-> >>
-> >>struct mlx5_ib_flow_counters_desc {
-> >>         __u32   description;
-> >>         __u32   index;
-> >>};
-> >>
-> >>struct mlx5_ib_flow_counters_data {
-> >>         RDMA_UAPI_PTR(struct mlx5_ib_flow_counters_desc *, counters_data);
-> >>         __u32   ncounters;
-> >>         __u32   reserved;
-> >>};
-> >
-> >OK, this is what I asked for originally..
-> >
-> >>struct mlx5_ib_create_flow {
-> >>         __u32   ncounters_data;
-> >>         __u32   reserved;
-> >>         /* Following are counters data based on ncounters_data */
-> >>         struct mlx5_ib_flow_counters_data data[];
-> >>
-> >>
-> >>>I still can't figure out why this should be a 2d array.
-> >>
-> >>This comes to support the future case of multiple counters objects/specs
-> >>passed with the same flow. There is a need to differentiate mapping data for
-> >>each counters object and that is done via the 'ncounters_data' field and the
-> >>2d array.
-> >
-> >This still doesn't make any sense to me. How are these multiple
-> >counters objects/specs going to be identified?
-> >
-> >Basically, what does the array index for data[] mean? Should it match
-> >the spec index from the main verb or something?
-> >
+> Hi Andrew, yes the temperature is available by other means, this patch
+> is needed for alert information reasons in order to know which internal
+> sensors triggered the alarm.
+> We are working in parallel to expose temperature sensor to hwmon, but
+> this is still WIP.
 > 
-> Each entry in the data[] should match a corresponding counter object that
-> was pointed by a counters spec upon the flow creation.
-
-What if there are a mixture of specs, some with counters and some
-without?
-
-The index is just matching the index of the spec? That makes sense.
-
-> >This is a good place for a comment, since the intention is completely
-> >opaque here.
 > 
-> Sure, we'll add comment to clarify the above.
+> Is it ok to have both ?
 
-Sure, can leave the flex array then too
+Hi Saeed
 
-Jason
+Ideally no. hwmon has mechanisms for setting alarm thresholds, and
+indicating the thresholds have been exceeded. There are also ways to
+tie this to thermal zones, so the system can react on overheating,
+slow down the CPU, drop voltages, ramp up fans, etc. hwmon should be
+your primary interface, not dmesg.
+
+But if you are stuck doing things in the wrong order, i guess it is
+O.K. I don't think dmesg is a Binary API, so you can remove it later.
+
+     Andrew
