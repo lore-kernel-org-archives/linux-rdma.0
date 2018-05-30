@@ -1,29 +1,29 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/mad: Use ID allocator routines to allocate agent
- number
-Date: Wed, 30 May 2018 09:10:23 -0600
-Message-ID: <20180530151023.GB30754@ziepe.ca>
-References: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
- <20180529154922.GA18457@ziepe.ca>
- <A470D739-D0CD-42EE-9196-8E7610B6DAF4@oracle.com>
- <20180529164032.GB18457@ziepe.ca>
- <20180530110216.00000913@dev.mellanox.co.il>
- <d8b75416-6a01-aa64-cd60-0cb4f2b6d0d5@oracle.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 2/2] net/mlx5: Add FPGA QP error event
+Date: Wed, 30 May 2018 15:14:20 +0000
+Message-ID: <da8acf8e4a2c976fd3ce4f8e17a969b3464fd263.camel@mellanox.com>
+References: <20180530001954.12000-1-saeedm@mellanox.com>
+         <20180530001954.12000-3-saeedm@mellanox.com>
+         <20180530010710.GC30239@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d8b75416-6a01-aa64-cd60-0cb4f2b6d0d5@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Cc: jackm <jackm@dev.mellanox.co.il>, =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, Leon Romanovsky <leon@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180530010710.GC30239@lunn.ch>
+Content-Language: en-US
+Content-ID: <921B642344943B418EC495ECFA1F4FE1@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "andrew@lunn.ch" <andrew@lunn.ch>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilan Tayari <ilant@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Adi Nissim <adin@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2018 at 02:22:56PM +0200, Hans Westgaard Ry wrote:
-
-> We came up with this code snippet which we think handles both preventing
-> immediate re-use and too big/wrapping...
-
-Isn't this basically the same as idr_alloc_cyclic ?
-
-Jason
+T24gV2VkLCAyMDE4LTA1LTMwIGF0IDAzOjA3ICswMjAwLCBBbmRyZXcgTHVubiB3cm90ZToNCj4g
+T24gVHVlLCBNYXkgMjksIDIwMTggYXQgMDU6MTk6NTRQTSAtMDcwMCwgU2FlZWQgTWFoYW1lZWQg
+d3JvdGU6DQo+ID4gRnJvbTogSWxhbiBUYXlhcmkgPGlsYW50QG1lbGxhbm94LmNvbT4NCj4gPiAN
+Cj4gPiBUaGUgRlBHQSBRUCBldmVudCBmaXJlcyB3aGVuZXZlciBhIFFQIG9uIHRoZSBGUEdBIHRy
+YXNpdGlvbnMNCj4gPiB0byB0aGUgZXJyb3Igc3RhdGUuDQo+IA0KPiBGUEdBIGkga25vdywgZmll
+bGQgcHJvZ3JhbW1hYmxlIGdhdGUgYXJyYXkuIENvdWxkIHlvdSBvZmZlciBzb21lIGNsdWUNCj4g
+YXMgdG8gd2hhdCBRUCBtZWFucz8NCj4gDQoNCkhpIEFuZHJlLCBRUCAiUXVldWUgUGFpciIgaXMg
+d2VsbCBrbm93biByZG1hIGNvbmNlcHQsIGFuZCB3aWRlbHkgdXNlZA0KaW4gbWx4IGRyaXZlcnMs
+IGl0IGlzIHVzZWQgYXMgaW4gdGhlIGRyaXZlciBhcyBhIHJpbmcgYnVmZmVyIHRvDQpjb21tdW5p
+Y2F0ZSB3aXRoIHRoZSBGUEdBIGRldmljZS4NCiANCj4gICAgVGhhbmtzDQo+IAlBbmRyZXc=
