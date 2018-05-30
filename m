@@ -1,17 +1,16 @@
 From: Or Gerlitz <ogerlitz@mellanox.com>
-Subject: [PATCH rdma-next] net/mlx5: Use flow counter pointer as input to the query function
-Date: Wed, 30 May 2018 09:35:12 +0300
-Message-ID: <1527662112-14904-1-git-send-email-ogerlitz@mellanox.com>
+Subject: [PATCH RESEND rdma-next] net/mlx5: Use flow counter pointer as input to the query function
+Date: Wed, 30 May 2018 09:44:34 +0300
+Message-ID: <1527662674-16546-1-git-send-email-ogerlitz@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, raeds@mellanox.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 This allows to un-expose the details of struct mlx5_fc and keep
 it internal to the core driver as it used to be.
 
-Change-Id: I780cd74863fa2beccdd52e7d0cdd1e117a5aa353
 Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
 ---
 
@@ -20,6 +19,8 @@ Jason,
 As you asked, I am sending a fixup in case you intend to apply
 V2 of the flow counter series [1], if there's going to be V3,
 Leon, please apply it from the begining.
+
+Fixed Jason's address @ my git aliases, he's with MLNX by now..
 
 Or.
 
