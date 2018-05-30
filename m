@@ -1,76 +1,93 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/mad: Use ID allocator routines to allocate agent
- number
-Date: Wed, 30 May 2018 09:15:47 -0600
-Message-ID: <20180530151547.GC30754@ziepe.ca>
-References: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
- <20180529154922.GA18457@ziepe.ca>
- <A470D739-D0CD-42EE-9196-8E7610B6DAF4@oracle.com>
- <20180529164032.GB18457@ziepe.ca>
- <0E56560E-F577-43A6-9F18-B7AC7B5DB213@oracle.com>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next v2 11/13] IB/mlx5: Add flow counters binding
+ support
+Date: Wed, 30 May 2018 18:24:00 +0300
+Message-ID: <0dec7cc6-5715-4513-d55b-c53271c4fbee@dev.mellanox.co.il>
+References: <20180529130917.13592-1-leon@kernel.org>
+ <20180529130917.13592-12-leon@kernel.org> <20180529195627.GA31423@ziepe.ca>
+ <316f5042-b47d-2cee-48de-514467817e7a@dev.mellanox.co.il>
+ <20180530150608.GA30754@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <0E56560E-F577-43A6-9F18-B7AC7B5DB213@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180530150608.GA30754@ziepe.ca>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Alex Rosenbaum <alexr@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2018 at 09:32:02AM +0200, Håkon Bugge wrote:
+On 5/30/2018 6:06 PM, Jason Gunthorpe wrote:
+> On Wed, May 30, 2018 at 03:31:34PM +0300, Yishai Hadas wrote:
+>> On 5/29/2018 10:56 PM, Jason Gunthorpe wrote:
+>>> On Tue, May 29, 2018 at 04:09:15PM +0300, Leon Romanovsky wrote:
+>>>> diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+>>>> index 508ea8c82da7..ef3f430a7050 100644
+>>>> +++ b/include/uapi/rdma/mlx5-abi.h
+>>>> @@ -443,4 +443,18 @@ enum {
+>>>>   enum {
+>>>>   	MLX5_IB_CLOCK_INFO_V1              = 0,
+>>>>   };
+>>>> +
+>>>> +struct mlx5_ib_flow_counters_data {
+>>>> +	__aligned_u64   counters_data;
+>>>> +	__u32   ncounters;
+>>>> +	__u32   reserved;
+>>>> +};
+>>>> +
+>>>> +struct mlx5_ib_create_flow {
+>>>> +	__u32   ncounters_data;
+>>>> +	__u32   reserved;
+>>>> +	/* Following are counters data based on ncounters_data */
+>>>> +	struct mlx5_ib_flow_counters_data data[];
+>>>> +};
+>>>> +
+>>>>   #endif /* MLX5_ABI_USER_H */
+>>>
+>>> This uapi thing still needs to be fixed as I pointed out before.
+>>
+>> In V3 we can go with below, no change in memory layout but it can clarify
+>> the code/usage.
+>>
+>> struct mlx5_ib_flow_counters_desc {
+>>          __u32   description;
+>>          __u32   index;
+>> };
+>>
+>> struct mlx5_ib_flow_counters_data {
+>>          RDMA_UAPI_PTR(struct mlx5_ib_flow_counters_desc *, counters_data);
+>>          __u32   ncounters;
+>>          __u32   reserved;
+>> };
 > 
+> OK, this is what I asked for originally..
 > 
-> > On 29 May 2018, at 18:40, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > 
-> > On Tue, May 29, 2018 at 06:16:14PM +0200, Håkon Bugge wrote:
-> >> 
-> >>> On 29 May 2018, at 17:49, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >>> 
-> >>> On Tue, May 29, 2018 at 09:38:08AM +0200, Hans Westgaard Ry wrote:
-> >>>> The agent TID is a 64 bit value split in two dwords.  The least
-> >>>> significant dword is the TID running counter. The most significant
-> >>>> dword is the agent number. In the CX-3 shared port model, the mlx4
-> >>>> driver uses the most significant byte of the agent number to store the
-> >>>> slave number, making agent numbers greater and equal to 2^24 (3 bytes)
-> >>>> unusable.
-> >>> 
-> >>> There is no reason for this to be an ida, just do something like
-> >>> 
-> >>> mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id) & mad_agent_priv->ib_dev->tid_mask;
-> >>> 
-> >>> And have the driver set tid_mask to 3 bytes of 0xFF
-> >> 
-> >> The issue is that some of the mad agents are long-lived, so you will
-> >> wrap and use the same TID twice.
-> > 
-> > We already have that problem, and using ida is problematic because we
-> > need to maximize the time between TID re-use, which ida isn't doing.
+>> struct mlx5_ib_create_flow {
+>>          __u32   ncounters_data;
+>>          __u32   reserved;
+>>          /* Following are counters data based on ncounters_data */
+>>          struct mlx5_ib_flow_counters_data data[];
+>>
+>>
+>>> I still can't figure out why this should be a 2d array.
+>>
+>> This comes to support the future case of multiple counters objects/specs
+>> passed with the same flow. There is a need to differentiate mapping data for
+>> each counters object and that is done via the 'ncounters_data' field and the
+>> 2d array.
 > 
-> Initially, I thought that too, but consulted the spec which states:
+> This still doesn't make any sense to me. How are these multiple
+> counters objects/specs going to be identified?
 > 
-> C13-18.1.1: When initiating a new operation, MADHeader:TransactionID
-> shall be set to such a value that within that MAD the combination of TID,
-> SGID, and MgmtClass is different from that of any other currently executing
-> operation. []
+> Basically, what does the array index for data[] mean? Should it match
+> the spec index from the main verb or something?
 > 
-> "currently executing operation" that is.
 
-'currently executing operation' encompasses a wide range of behaviors
-and it is not just 'completing the MAD at the local node'
+Each entry in the data[] should match a corresponding counter object 
+that was pointed by a counters spec upon the flow creation.
 
-You have to exceed all the timeouts before a single node can be
-certain that the condition is satisfied.
+> This is a good place for a comment, since the intention is completely
+> opaque here.
 
-This is why we just simply maximize the time between allocations, and
-encourage the user providing the rest of the tid to do the same.
-
-> > Preventing re-use seems like a seperate issue from limiting the range
-> > to be compatible with mlx4.
-> 
-> Yes. But a v2 of Hans' patch using idr_alloc_cyclic() solves both issues.
-
-That might work, but still have to get rid of the sysctl
-
-Jason
+Sure, we'll add comment to clarify the above.
