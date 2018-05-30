@@ -1,105 +1,112 @@
-From: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
-Subject: Re: [PATCH] IB/mad: Use ID allocator routines to allocate agent
- number
-Date: Wed, 30 May 2018 14:22:56 +0200
-Message-ID: <d8b75416-6a01-aa64-cd60-0cb4f2b6d0d5@oracle.com>
-References: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
- <20180529154922.GA18457@ziepe.ca>
- <A470D739-D0CD-42EE-9196-8E7610B6DAF4@oracle.com>
- <20180529164032.GB18457@ziepe.ca>
- <20180530110216.00000913@dev.mellanox.co.il>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next v2 11/13] IB/mlx5: Add flow counters binding
+ support
+Date: Wed, 30 May 2018 15:31:34 +0300
+Message-ID: <316f5042-b47d-2cee-48de-514467817e7a@dev.mellanox.co.il>
+References: <20180529130917.13592-1-leon@kernel.org>
+ <20180529130917.13592-12-leon@kernel.org> <20180529195627.GA31423@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530110216.00000913@dev.mellanox.co.il>
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180529195627.GA31423@ziepe.ca>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: jackm <jackm@dev.mellanox.co.il>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: =?UTF-8?Q?H=c3=a5kon_Bugge?= <haakon.bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, Daniel Jurgens <danielj@mellanox.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org, Leon Romanovsky <leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Alex Rosenbaum <alexr@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 5/29/2018 10:56 PM, Jason Gunthorpe wrote:
+> On Tue, May 29, 2018 at 04:09:15PM +0300, Leon Romanovsky wrote:
+>> diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+>> index 508ea8c82da7..ef3f430a7050 100644
+>> +++ b/include/uapi/rdma/mlx5-abi.h
+>> @@ -443,4 +443,18 @@ enum {
+>>   enum {
+>>   	MLX5_IB_CLOCK_INFO_V1              = 0,
+>>   };
+>> +
+>> +struct mlx5_ib_flow_counters_data {
+>> +	__aligned_u64   counters_data;
+>> +	__u32   ncounters;
+>> +	__u32   reserved;
+>> +};
+>> +
+>> +struct mlx5_ib_create_flow {
+>> +	__u32   ncounters_data;
+>> +	__u32   reserved;
+>> +	/* Following are counters data based on ncounters_data */
+>> +	struct mlx5_ib_flow_counters_data data[];
+>> +};
+>> +
+>>   #endif /* MLX5_ABI_USER_H */
+> 
+> This uapi thing still needs to be fixed as I pointed out before.
+
+In V3 we can go with below, no change in memory layout but it can 
+clarify the code/usage.
+
+struct mlx5_ib_flow_counters_desc {
+         __u32   description;
+         __u32   index;
+};
+
+struct mlx5_ib_flow_counters_data {
+         RDMA_UAPI_PTR(struct mlx5_ib_flow_counters_desc *, counters_data);
+         __u32   ncounters;
+         __u32   reserved;
+};
+
+struct mlx5_ib_create_flow {
+         __u32   ncounters_data;
+         __u32   reserved;
+         /* Following are counters data based on ncounters_data */
+         struct mlx5_ib_flow_counters_data data[];
 
 
-On 05/30/2018 10:02 AM, jackm wrote:
-> On Tue, 29 May 2018 10:40:32 -0600
-> Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
->> On Tue, May 29, 2018 at 06:16:14PM +0200, Håkon Bugge wrote:
->>>   
->>>> On 29 May 2018, at 17:49, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->>>>
->>>> On Tue, May 29, 2018 at 09:38:08AM +0200, Hans Westgaard Ry
->>>> wrote:
->>>>> The agent TID is a 64 bit value split in two dwords.  The least
->>>>> significant dword is the TID running counter. The most
->>>>> significant dword is the agent number. In the CX-3 shared port
->>>>> model, the mlx4 driver uses the most significant byte of the
->>>>> agent number to store the slave number, making agent numbers
->>>>> greater and equal to 2^24 (3 bytes) unusable.
->>>> There is no reason for this to be an ida, just do something like
->>>>
->>>> mad_agent_priv->agent.hi_tid =
->>>> atomic_inc_return(&ib_mad_client_id) &
->>>> mad_agent_priv->ib_dev->tid_mask;
->>>>
->>>> And have the driver set tid_mask to 3 bytes of 0xFF
->>> The issue is that some of the mad agents are long-lived, so you will
->>> wrap and use the same TID twice.
->> We already have that problem, and using ida is problematic because we
->> need to maximize the time between TID re-use, which ida isn't doing.
->>
->> Preventing re-use seems like a seperate issue from limiting the range
->> to be compatible with mlx4.
->>
-> Preventing immediate re-use can be accomplished by judicious use of the
-> start argument (second argument) in the call to ida_simple_get (to
-> introduce hysteresis into the id allocations).
->
-> For example, can do something like:
->
-> static atomic_t ib_mad_client_id_min = ATOMIC_INIT(1);
-> ...
->          ib_mad_client_id = ida_simple_get(&ib_mad_client_ids,
->                                            atomic_read(&ib_mad_client_id_min),
->                                            ib_mad_sysctl_client_id_max,
->                                            GFP_KERNEL);
-> ....
->          if (!(ib_mad_client_id % 1000) ||
->              ib_mad_sysctl_client_id_max - ib_mad_client_id <= 1000)
-> 		atomic_set(&ib_mad_client_id_min, 1);
-> 	else
->                  atomic_set(&ib_mad_client_id_min, ib_mad_client_id + 1);
->
-> The above avoids immediate re-use of ids, and only searches for past
-> freed ids if the last allocated-id is zero mod 1000.
->
-> This is just suggestion -- will probably need some variation of the
-> above to handle what happens over time (i.e., to not depend on the
-> modulo operation to reset the search start to 1), to properly handle
-> how we deal with the start value when we are close to the allowed
-> client_id_max, and also to implement some sort of locking.
->
-> -Jack
->
-We came up with this code snippet which we think handles both preventing 
-immediate re-use and too big/wrapping...
+> I still can't figure out why this should be a 2d array.
 
-         max = mad_agent_priv->ib_dev->tid_max;
-         start = atomic_inc_return(&start);
-retry:
-         tid = ida_simple_get(&ib_mad_client_ids, start, max, GFP_KERNEL);
-         if (unlikely(tid == -ENOSPC))    {
-                 spin_lock_irq_save();
-                 tid = ida_simple_get(&ib_mad_client_ids, start, max, 
-GFP_ATOMIC);
-                 if (unlikely(tid == -ENOSPC))    {
-                         atomic_set(&start, 1);
-                         spin_unlock_irq_restore();
-                         goto retry;
-                 }
-                 spin_unlock_irq_restore();
-         }
+This comes to support the future case of multiple counters objects/specs 
+passed with the same flow. There is a need to differentiate mapping data 
+for each counters object and that is done via the 'ncounters_data' field 
+and the 2d array.
 
+  I think it
+> should be written simply as:
+> 
+> struct mlx5_ib_flow_counter_desc {
+>          __u32 description;
+>          __u32 index;
+> };
+> 
+> struct mlx5_ib_create_flow {
+> 	RDMA_UAPI_PTR(struct mlx5_ib_flow_counter_desc, counters_data);
+> 	__u32   ncounters;
+> 	__u32   reserved;
+> };
+> 
+> With the corresponding changes elsewhere.
+> 
 
-Hans
+This doesn't support the above use case.
+
+> A flex array at the end of a struct means that the struct can never be
+> extended again which seems like a terrible idea,
+
+The header [1] has a fixed size and will always exist even if there will 
+be no counters. Future extensions [2] will be added in the memory post 
+the flex array which its size depends on 'ncounters_data'. This pattern 
+is used also in other extended APIs. [3]
+
+struct mlx5_ib_create_flow {
+         __u32   ncounters_data;
+         __u32   reserved;
+[1] /* Header is above ********
+
+         /* Following are counters data based on ncounters_data */
+         struct mlx5_ib_flow_counters_data data[];
+
+[2] Future fields.
+
+[3] 
+https://elixir.bootlin.com/linux/latest/source/include/uapi/rdma/ib_user_verbs.h#L1145
