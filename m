@@ -1,112 +1,36 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH mlx5-next v2 11/13] IB/mlx5: Add flow counters binding
- support
-Date: Wed, 30 May 2018 09:06:08 -0600
-Message-ID: <20180530150608.GA30754@ziepe.ca>
-References: <20180529130917.13592-1-leon@kernel.org>
- <20180529130917.13592-12-leon@kernel.org>
- <20180529195627.GA31423@ziepe.ca>
- <316f5042-b47d-2cee-48de-514467817e7a@dev.mellanox.co.il>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 1/2] net/mlx5: Add temperature warning event to
+ log
+Date: Wed, 30 May 2018 15:08:44 +0000
+Message-ID: <994d317b8c28c197ec4f8b7db67bcd045cb0284e.camel@mellanox.com>
+References: <20180530001954.12000-1-saeedm@mellanox.com>
+         <20180530001954.12000-2-saeedm@mellanox.com>
+         <20180530010404.GB30239@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <316f5042-b47d-2cee-48de-514467817e7a@dev.mellanox.co.il>
+In-Reply-To: <20180530010404.GB30239@lunn.ch>
+Content-Language: en-US
+Content-ID: <1774D55980B73C419F6B800E387D4262@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Alex Rosenbaum <alexr@mellanox.com>
+To: "andrew@lunn.ch" <andrew@lunn.ch>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilan Tayari <ilant@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Adi Nissim <adin@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2018 at 03:31:34PM +0300, Yishai Hadas wrote:
-> On 5/29/2018 10:56 PM, Jason Gunthorpe wrote:
-> >On Tue, May 29, 2018 at 04:09:15PM +0300, Leon Romanovsky wrote:
-> >>diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-> >>index 508ea8c82da7..ef3f430a7050 100644
-> >>+++ b/include/uapi/rdma/mlx5-abi.h
-> >>@@ -443,4 +443,18 @@ enum {
-> >>  enum {
-> >>  	MLX5_IB_CLOCK_INFO_V1              = 0,
-> >>  };
-> >>+
-> >>+struct mlx5_ib_flow_counters_data {
-> >>+	__aligned_u64   counters_data;
-> >>+	__u32   ncounters;
-> >>+	__u32   reserved;
-> >>+};
-> >>+
-> >>+struct mlx5_ib_create_flow {
-> >>+	__u32   ncounters_data;
-> >>+	__u32   reserved;
-> >>+	/* Following are counters data based on ncounters_data */
-> >>+	struct mlx5_ib_flow_counters_data data[];
-> >>+};
-> >>+
-> >>  #endif /* MLX5_ABI_USER_H */
-> >
-> >This uapi thing still needs to be fixed as I pointed out before.
-> 
-> In V3 we can go with below, no change in memory layout but it can clarify
-> the code/usage.
-> 
-> struct mlx5_ib_flow_counters_desc {
->         __u32   description;
->         __u32   index;
-> };
-> 
-> struct mlx5_ib_flow_counters_data {
->         RDMA_UAPI_PTR(struct mlx5_ib_flow_counters_desc *, counters_data);
->         __u32   ncounters;
->         __u32   reserved;
-> };
-
-OK, this is what I asked for originally..
-
-> struct mlx5_ib_create_flow {
->         __u32   ncounters_data;
->         __u32   reserved;
->         /* Following are counters data based on ncounters_data */
->         struct mlx5_ib_flow_counters_data data[];
-> 
-> 
-> >I still can't figure out why this should be a 2d array.
-> 
-> This comes to support the future case of multiple counters objects/specs
-> passed with the same flow. There is a need to differentiate mapping data for
-> each counters object and that is done via the 'ncounters_data' field and the
-> 2d array.
-
-This still doesn't make any sense to me. How are these multiple
-counters objects/specs going to be identified?
-
-Basically, what does the array index for data[] mean? Should it match
-the spec index from the main verb or something?
-
-This is a good place for a comment, since the intention is completely
-opaque here.
-
-> >A flex array at the end of a struct means that the struct can never be
-> >extended again which seems like a terrible idea,
-> 
-> The header [1] has a fixed size and will always exist even if there will be
-> no counters. Future extensions [2] will be added in the memory post the flex
-> array which its size depends on 'ncounters_data'. This pattern is used also
-> in other extended APIs. [3]
-> 
-> struct mlx5_ib_create_flow {
->         __u32   ncounters_data;
->         __u32   reserved;
-> [1] /* Header is above ********
-> 
->         /* Following are counters data based on ncounters_data */
->         struct mlx5_ib_flow_counters_data data[];
-> 
-> [2] Future fields.
-
-We could do that.. But we won't - if it comes to it this will have to
-move to the new kabi.
-
-> [3] https://elixir.bootlin.com/linux/latest/source/include/uapi/rdma/ib_user_verbs.h#L1145
-
-?? That looks like a normal flex array to me.
-
-Jason
+T24gV2VkLCAyMDE4LTA1LTMwIGF0IDAzOjA0ICswMjAwLCBBbmRyZXcgTHVubiB3cm90ZToNCj4g
+T24gVHVlLCBNYXkgMjksIDIwMTggYXQgMDU6MTk6NTNQTSAtMDcwMCwgU2FlZWQgTWFoYW1lZWQg
+d3JvdGU6DQo+ID4gRnJvbTogSWxhbiBUYXlhcmkgPGlsYW50QG1lbGxhbm94LmNvbT4NCj4gPiAN
+Cj4gPiBUZW1wZXJhdHVyZSB3YXJuaW5nIGV2ZW50IGlzIHNlbnQgYnkgRlcgdG8gaW5kaWNhdGUg
+aGlnaA0KPiA+IHRlbXBlcmF0dXJlDQo+ID4gYXMgZGV0ZWN0ZWQgYnkgb25lIG9mIHRoZSBzZW5z
+b3JzIG9uIHRoZSBib2FyZC4NCj4gPiBBZGQgaGFuZGxpbmcgb2YgdGhpcyBldmVudCBieSB3cml0
+aW5nIHRoZSBudW1iZXJzIG9mIHRoZSBhbGVydA0KPiA+IHNlbnNvcnMNCj4gPiB0byB0aGUga2Vy
+bmVsIGxvZy4NCj4gDQo+IEhpIFNhYWVkDQo+IA0KPiBJcyB0aGUgdGVtcGVyYXR1cmUgaXRzZWxm
+IGF2YWlsYWJsZT8gSWYgc28sIGl0IHdvdWxkIGJlIGJldHRlciB0bw0KPiBleHBvc2UgdGhpcyBh
+cyBhIGh3bW9uIGRldmljZSBwZXIgdGVtcGVyYXR1cmUgc2Vuc29yLg0KPiANCg0KSGkgQW5kcmV3
+LCB5ZXMgdGhlIHRlbXBlcmF0dXJlIGlzIGF2YWlsYWJsZSBieSBvdGhlciBtZWFucywgdGhpcyBw
+YXRjaA0KaXMgbmVlZGVkIGZvciBhbGVydCBpbmZvcm1hdGlvbiByZWFzb25zIGluIG9yZGVyIHRv
+IGtub3cgd2hpY2ggaW50ZXJuYWwNCnNlbnNvcnMgdHJpZ2dlcmVkIHRoZSBhbGFybS4NCldlIGFy
+ZSB3b3JraW5nIGluIHBhcmFsbGVsIHRvIGV4cG9zZSB0ZW1wZXJhdHVyZSBzZW5zb3IgdG8gaHdt
+b24sIGJ1dA0KdGhpcyBpcyBzdGlsbCBXSVAuDQoNCg0KSXMgaXQgb2sgdG8gaGF2ZSBib3RoID8N
+Cg0KPiAgICAgICAgQW5kcmV3
