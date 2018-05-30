@@ -1,43 +1,46 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 1/2] net/mlx5: Add temperature warning event to
- log
-Date: Wed, 30 May 2018 17:31:37 +0000
-Message-ID: <b836a69b6b9ee7059ff2fbbacbebc67e2ef4e8c1.camel@mellanox.com>
-References: <20180530001954.12000-1-saeedm@mellanox.com>
-         <20180530001954.12000-2-saeedm@mellanox.com>
-         <20180530010404.GB30239@lunn.ch>
-         <994d317b8c28c197ec4f8b7db67bcd045cb0284e.camel@mellanox.com>
-         <20180530161720.GE27537@lunn.ch>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: Re: [PATCH V4] mlx4_core: allocate ICM memory in page size chunks
+Date: Wed, 30 May 2018 10:39:14 -0700
+Message-ID: <05a97a57-2a25-34b5-e8eb-6452d6bb419a@oracle.com>
+References: <20180523232246.20445-1-qing.huang@oracle.com>
+ <20180525.102321.858995452200286788.davem@davemloft.net>
+ <7a353b65-6b7f-1aee-1c48-e83c8e02f693@gmail.com>
+ <0e11e0fc-6ccf-aa93-9c4f-b9eae1b90643@gmail.com>
+ <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180530161720.GE27537@lunn.ch>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
 Content-Language: en-US
-Content-ID: <9234A23B69418B4483491B6E3245F49C@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "andrew@lunn.ch" <andrew@lunn.ch>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilan Tayari <ilant@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Adi Nissim <adin@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>, David Miller <davem@davemloft.net>
+Cc: tariqt@mellanox.com, haakon.bugge@oracle.com, yanjun.zhu@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTA1LTMwIGF0IDE4OjE3ICswMjAwLCBBbmRyZXcgTHVubiB3cm90ZToNCj4g
-PiBIaSBBbmRyZXcsIHllcyB0aGUgdGVtcGVyYXR1cmUgaXMgYXZhaWxhYmxlIGJ5IG90aGVyIG1l
-YW5zLCB0aGlzDQo+ID4gcGF0Y2gNCj4gPiBpcyBuZWVkZWQgZm9yIGFsZXJ0IGluZm9ybWF0aW9u
-IHJlYXNvbnMgaW4gb3JkZXIgdG8ga25vdyB3aGljaA0KPiA+IGludGVybmFsDQo+ID4gc2Vuc29y
-cyB0cmlnZ2VyZWQgdGhlIGFsYXJtLg0KPiA+IFdlIGFyZSB3b3JraW5nIGluIHBhcmFsbGVsIHRv
-IGV4cG9zZSB0ZW1wZXJhdHVyZSBzZW5zb3IgdG8gaHdtb24sDQo+ID4gYnV0DQo+ID4gdGhpcyBp
-cyBzdGlsbCBXSVAuDQo+ID4gDQo+ID4gDQo+ID4gSXMgaXQgb2sgdG8gaGF2ZSBib3RoID8NCj4g
-DQo+IEhpIFNhZWVkDQo+IA0KPiBJZGVhbGx5IG5vLiBod21vbiBoYXMgbWVjaGFuaXNtcyBmb3Ig
-c2V0dGluZyBhbGFybSB0aHJlc2hvbGRzLCBhbmQNCj4gaW5kaWNhdGluZyB0aGUgdGhyZXNob2xk
-cyBoYXZlIGJlZW4gZXhjZWVkZWQuIFRoZXJlIGFyZSBhbHNvIHdheXMgdG8NCj4gdGllIHRoaXMg
-dG8gdGhlcm1hbCB6b25lcywgc28gdGhlIHN5c3RlbSBjYW4gcmVhY3Qgb24gb3ZlcmhlYXRpbmcs
-DQo+IHNsb3cgZG93biB0aGUgQ1BVLCBkcm9wIHZvbHRhZ2VzLCByYW1wIHVwIGZhbnMsIGV0Yy4g
-aHdtb24gc2hvdWxkIGJlDQo+IHlvdXIgcHJpbWFyeSBpbnRlcmZhY2UsIG5vdCBkbWVzZy4NCj4g
-DQoNClllcyB3ZSBhcmUgd29ya2luZyBvbiB0aGlzLCBidXQgaXQgaXMgbm90IHNvbWV0aGluZyB0
-aGF0IGNhbiBoYXBwZW4NCnNvb24gc2luY2Ugd2UgbmVlZCB0byBkZWZpbmUgdGhlIGNvcnJlY3Qg
-RmlybXdhcmUgQVBJcyB3aGljaCBhcmUgc3RpbGwNCldJUC4NCg0KPiBCdXQgaWYgeW91IGFyZSBz
-dHVjayBkb2luZyB0aGluZ3MgaW4gdGhlIHdyb25nIG9yZGVyLCBpIGd1ZXNzIGl0IGlzDQo+IE8u
-Sy4gSSBkb24ndCB0aGluayBkbWVzZyBpcyBhIEJpbmFyeSBBUEksIHNvIHlvdSBjYW4gcmVtb3Zl
-IGl0IGxhdGVyLg0KPiANCg0KWWVzIHRoaXMgaXMgdGhlIHBsYW4sIG9uY2UgdGhlIGh3bW9uIGlz
-IHN1cHBvcnRlZCB3ZSB3aWxsIHJlbW92ZSB0aGUNCmV4dHJhIGRtZXNnIHdhcm5pbmdzLg0KDQo+
-ICAgICAgQW5kcmV3
+
+
+On 5/29/2018 8:49 PM, Eric Dumazet wrote:
+>
+> On 05/29/2018 11:44 PM, Eric Dumazet wrote:
+>
+>> And I will add this simple fix, this really should address your initial concern much better.
+>>
+>> @@ -99,6 +100,8 @@ static int mlx4_alloc_icm_pages(struct scatterlist *mem, int order,
+>>   {
+>>          struct page *page;
+>>   
+>> +       if (order)
+>> +               gfp_mask |= __GFP_NORETRY;
+>      and also      gfp_mask &= ~__GFP_DIRECT_RECLAIM
+>
+
+Would this just fail the allocation without trying to reclaim memory 
+under memory pressure? We've tried something similar but it didn't fix 
+the original problem we were facing.
+
+
+>>          page = alloc_pages_node(node, gfp_mask, order);
+>>          if (!page) {
+>>                  page = alloc_pages(gfp_mask, order);
+>>
