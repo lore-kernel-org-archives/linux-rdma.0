@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v3 09/14] IB/core: Add support for flow counters
-Date: Thu, 31 May 2018 16:43:36 +0300
-Message-ID: <20180531134341.18441-10-leon@kernel.org>
+Subject: [PATCH mlx5-next v3 02/14] net/mlx5: Use flow counter pointer as input to the query function
+Date: Thu, 31 May 2018 16:43:29 +0300
+Message-ID: <20180531134341.18441-3-leon@kernel.org>
 References: <20180531134341.18441-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
@@ -10,67 +10,80 @@ To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Raed Salem <raeds@mellanox.com>
+From: Or Gerlitz <ogerlitz@mellanox.com>
 
-A counters object could be attached to flow on creation
-by providing the counter specification action.
+This allows to un-expose the details of struct mlx5_fc and keep
+it internal to the core driver as it used to be.
 
-General counters description which count packets and bytes are
-introduced, downstream patches from this series will use them
-as part of flow counters binding.
-
-In addition, increase number of flow specifications supported
-layers to 10 upon adding count specification and for the
-previously added drop specification.
-
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Raed Salem <raeds@mellanox.com>
+Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h | 15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c     | 15 ++++++---------
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.h     |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c |  4 ++--
+ 3 files changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 84f412f7b8f3..2cc04abb6df8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1859,9 +1859,10 @@ enum ib_flow_spec_type {
- 	IB_FLOW_SPEC_ACTION_TAG         = 0x1000,
- 	IB_FLOW_SPEC_ACTION_DROP        = 0x1001,
- 	IB_FLOW_SPEC_ACTION_HANDLE	= 0x1002,
-+	IB_FLOW_SPEC_ACTION_COUNT       = 0x1003,
- };
- #define IB_FLOW_SPEC_LAYER_MASK	0xF0
--#define IB_FLOW_SPEC_SUPPORT_LAYERS 8
-+#define IB_FLOW_SPEC_SUPPORT_LAYERS 10
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 9a24314b817a..bb9665b7e8e7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -2104,21 +2104,18 @@ static int mlx5_eswitch_query_vport_drop_stats(struct mlx5_core_dev *dev,
+ 	struct mlx5_vport *vport = &esw->vports[vport_idx];
+ 	u64 rx_discard_vport_down, tx_discard_vport_down;
+ 	u64 bytes = 0;
+-	u16 idx = 0;
+ 	int err = 0;
  
- /* Flow steering rule priority is set according to it's domain.
-  * Lower domain value means higher priority.
-@@ -2041,6 +2042,17 @@ struct ib_flow_spec_action_handle {
- 	struct ib_flow_action	     *act;
- };
+ 	if (!vport->enabled || esw->mode != SRIOV_LEGACY)
+ 		return 0;
  
-+enum ib_counters_description {
-+	IB_COUNTER_PACKETS,
-+	IB_COUNTER_BYTES,
-+};
-+
-+struct ib_flow_spec_action_count {
-+	enum ib_flow_spec_type type;
-+	u16 size;
-+	struct ib_counters *counters;
-+};
-+
- union ib_flow_spec {
- 	struct {
- 		u32			type;
-@@ -2058,6 +2070,7 @@ union ib_flow_spec {
- 	struct ib_flow_spec_action_tag  flow_tag;
- 	struct ib_flow_spec_action_drop drop;
- 	struct ib_flow_spec_action_handle action;
-+	struct ib_flow_spec_action_count flow_count;
- };
+-	if (vport->egress.drop_counter) {
+-		idx = vport->egress.drop_counter->id;
+-		mlx5_fc_query(dev, idx, &stats->rx_dropped, &bytes);
+-	}
++	if (vport->egress.drop_counter)
++		mlx5_fc_query(dev, vport->egress.drop_counter,
++			      &stats->rx_dropped, &bytes);
  
- struct ib_flow_attr {
+-	if (vport->ingress.drop_counter) {
+-		idx = vport->ingress.drop_counter->id;
+-		mlx5_fc_query(dev, idx, &stats->tx_dropped, &bytes);
+-	}
++	if (vport->ingress.drop_counter)
++		mlx5_fc_query(dev, vport->ingress.drop_counter,
++			      &stats->tx_dropped, &bytes);
+ 
+ 	if (!MLX5_CAP_GEN(dev, receive_discard_vport_down) &&
+ 	    !MLX5_CAP_GEN(dev, transmit_discard_vport_down))
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+index b6da322a8016..d589dbbc72a7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+@@ -233,7 +233,7 @@ void mlx5_fc_queue_stats_work(struct mlx5_core_dev *dev,
+ 			      unsigned long delay);
+ void mlx5_fc_update_sampling_interval(struct mlx5_core_dev *dev,
+ 				      unsigned long interval);
+-int mlx5_fc_query(struct mlx5_core_dev *dev, u16 id,
++int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
+ 		  u64 *packets, u64 *bytes);
+ 
+ int mlx5_init_fs(struct mlx5_core_dev *dev);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+index b7ab929d5f8e..f5cb3fa5d8cf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+@@ -312,10 +312,10 @@ void mlx5_cleanup_fc_stats(struct mlx5_core_dev *dev)
+ 	}
+ }
+ 
+-int mlx5_fc_query(struct mlx5_core_dev *dev, u16 id,
++int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
+ 		  u64 *packets, u64 *bytes)
+ {
+-	return mlx5_cmd_fc_query(dev, id, packets, bytes);
++	return mlx5_cmd_fc_query(dev, counter->id, packets, bytes);
+ }
+ 
+ void mlx5_fc_query_cached(struct mlx5_fc *counter,
 -- 
 2.14.3
