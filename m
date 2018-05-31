@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v3 06/14] IB/core: Introduce counters read verb
-Date: Thu, 31 May 2018 16:43:33 +0300
-Message-ID: <20180531134341.18441-7-leon@kernel.org>
+Subject: [PATCH rdma-next v3 10/14] IB/uverbs: Add support for flow counters
+Date: Thu, 31 May 2018 16:43:37 +0300
+Message-ID: <20180531134341.18441-11-leon@kernel.org>
 References: <20180531134341.18441-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
@@ -12,56 +12,184 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-The user supplies counters instance and a reference to an output
-array of uint64_t.
-The driver reads the hardware counters values and writes them to
-the output index location in the user supplied array.
-All counters values are represented as uint64_t types.
+The struct ib_uverbs_flow_spec_action_count associates
+a counters object with the flow.
 
-To be able to successfully read the data the counters must be
-first bound to an IB object.
-
-Downstream patches will present binding method for
-flow counters.
+Post this association the flow counters can be read via
+the counters object.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/infiniband/core/uverbs.h     |  1 +
+ drivers/infiniband/core/uverbs_cmd.c | 81 +++++++++++++++++++++++++++++++-----
+ include/uapi/rdma/ib_user_verbs.h    | 13 ++++++
+ 3 files changed, 84 insertions(+), 11 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 90c548437c8a..ba49e874c841 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2219,6 +2219,17 @@ struct ib_counters {
- 	atomic_t	usecnt;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index 5b2461fa634d..c0d40fc3a53a 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -263,6 +263,7 @@ struct ib_uverbs_flow_spec {
+ 		struct ib_uverbs_flow_spec_action_tag	flow_tag;
+ 		struct ib_uverbs_flow_spec_action_drop	drop;
+ 		struct ib_uverbs_flow_spec_action_handle action;
++		struct ib_uverbs_flow_spec_action_count flow_count;
+ 	};
  };
  
-+enum ib_read_counters_flags {
-+	/* prefer read values from driver cache */
-+	IB_READ_COUNTERS_ATTR_PREFER_CACHED = 1 << 0,
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index ddb9d79691be..3179a95c6f5e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2748,43 +2748,82 @@ ssize_t ib_uverbs_detach_mcast(struct ib_uverbs_file *file,
+ struct ib_uflow_resources {
+ 	size_t			max;
+ 	size_t			num;
+-	struct ib_flow_action	*collection[0];
++	size_t			collection_num;
++	size_t			counters_num;
++	struct ib_counters	**counters;
++	struct ib_flow_action	**collection;
+ };
+ 
+ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
+ {
+ 	struct ib_uflow_resources *resources;
+ 
+-	resources =
+-		kmalloc(sizeof(*resources) +
+-			num_specs * sizeof(*resources->collection), GFP_KERNEL);
++	resources = kzalloc(sizeof(*resources), GFP_KERNEL);
+ 
+ 	if (!resources)
+-		return NULL;
++		goto err_res;
++
++	resources->counters =
++		kcalloc(num_specs, sizeof(*resources->counters), GFP_KERNEL);
++
++	if (!resources->counters)
++		goto err_cnt;
++
++	resources->collection =
++		kcalloc(num_specs, sizeof(*resources->collection), GFP_KERNEL);
++
++	if (!resources->collection)
++		goto err_collection;
+ 
+-	resources->num = 0;
+ 	resources->max = num_specs;
+ 
+ 	return resources;
++
++err_collection:
++	kfree(resources->counters);
++err_cnt:
++	kfree(resources);
++err_res:
++	return NULL;
+ }
+ 
+ void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
+ {
+ 	unsigned int i;
+ 
+-	for (i = 0; i < uflow_res->num; i++)
++	for (i = 0; i < uflow_res->collection_num; i++)
+ 		atomic_dec(&uflow_res->collection[i]->usecnt);
+ 
++	for (i = 0; i < uflow_res->counters_num; i++)
++		atomic_dec(&uflow_res->counters[i]->usecnt);
++
++	kfree(uflow_res->collection);
++	kfree(uflow_res->counters);
+ 	kfree(uflow_res);
+ }
+ 
+ static void flow_resources_add(struct ib_uflow_resources *uflow_res,
+-			       struct ib_flow_action *action)
++			       enum ib_flow_spec_type type,
++			       void *ibobj)
+ {
+ 	WARN_ON(uflow_res->num >= uflow_res->max);
+ 
+-	atomic_inc(&action->usecnt);
+-	uflow_res->collection[uflow_res->num++] = action;
++	switch (type) {
++	case IB_FLOW_SPEC_ACTION_HANDLE:
++		atomic_inc(&((struct ib_flow_action *)ibobj)->usecnt);
++		uflow_res->collection[uflow_res->collection_num++] =
++			(struct ib_flow_action *)ibobj;
++		break;
++	case IB_FLOW_SPEC_ACTION_COUNT:
++		atomic_inc(&((struct ib_counters *)ibobj)->usecnt);
++		uflow_res->counters[uflow_res->counters_num++] =
++			(struct ib_counters *)ibobj;
++		break;
++	default:
++		WARN_ON(1);
++	}
++
++	uflow_res->num++;
+ }
+ 
+ static int kern_spec_to_ib_spec_action(struct ib_ucontext *ucontext,
+@@ -2821,9 +2860,29 @@ static int kern_spec_to_ib_spec_action(struct ib_ucontext *ucontext,
+ 			return -EINVAL;
+ 		ib_spec->action.size =
+ 			sizeof(struct ib_flow_spec_action_handle);
+-		flow_resources_add(uflow_res, ib_spec->action.act);
++		flow_resources_add(uflow_res,
++				   IB_FLOW_SPEC_ACTION_HANDLE,
++				   ib_spec->action.act);
+ 		uobj_put_obj_read(ib_spec->action.act);
+ 		break;
++	case IB_FLOW_SPEC_ACTION_COUNT:
++		if (kern_spec->flow_count.size !=
++			sizeof(struct ib_uverbs_flow_spec_action_count))
++			return -EINVAL;
++		ib_spec->flow_count.counters =
++			uobj_get_obj_read(counters,
++					  UVERBS_OBJECT_COUNTERS,
++					  kern_spec->flow_count.handle,
++					  ucontext);
++		if (!ib_spec->flow_count.counters)
++			return -EINVAL;
++		ib_spec->flow_count.size =
++				sizeof(struct ib_flow_spec_action_count);
++		flow_resources_add(uflow_res,
++				   IB_FLOW_SPEC_ACTION_COUNT,
++				   ib_spec->flow_count.counters);
++		uobj_put_obj_read(ib_spec->flow_count.counters);
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 409507f83b91..4f9991de8e3a 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -998,6 +998,19 @@ struct ib_uverbs_flow_spec_action_handle {
+ 	__u32			      reserved1;
+ };
+ 
++struct ib_uverbs_flow_spec_action_count {
++	union {
++		struct ib_uverbs_flow_spec_hdr hdr;
++		struct {
++			__u32 type;
++			__u16 size;
++			__u16 reserved;
++		};
++	};
++	__u32			      handle;
++	__u32			      reserved1;
 +};
 +
-+struct ib_counters_read_attr {
-+	u64	*counters_buff;
-+	u32	ncounters;
-+	u32	flags; /* use enum ib_read_counters_flags */
-+};
-+
- struct uverbs_attr_bundle;
- 
- struct ib_device {
-@@ -2493,6 +2504,9 @@ struct ib_device {
- 	struct ib_counters *	(*create_counters)(struct ib_device *device,
- 						   struct uverbs_attr_bundle *attrs);
- 	int	(*destroy_counters)(struct ib_counters	*counters);
-+	int	(*read_counters)(struct ib_counters *counters,
-+				 struct ib_counters_read_attr *counters_read_attr,
-+				 struct uverbs_attr_bundle *attrs);
- 
- 	/**
- 	 * rdma netdev operation
+ struct ib_uverbs_flow_tunnel_filter {
+ 	__be32 tunnel_id;
+ };
 -- 
 2.14.3
