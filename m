@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v3 03/14] net/mlx5: Export flow counter related API
-Date: Thu, 31 May 2018 16:43:30 +0300
-Message-ID: <20180531134341.18441-4-leon@kernel.org>
+Subject: [PATCH rdma-next v3 14/14] IB/mlx5: Add counters read support
+Date: Thu, 31 May 2018 16:43:41 +0300
+Message-ID: <20180531134341.18441-15-leon@kernel.org>
 References: <20180531134341.18441-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
@@ -12,71 +12,77 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-Exports counters API to be used in both IB and EN.
+This patch implements the uverbs counters read API, it will use the
+specific read counters function to the given type to accomplish its
+task.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.h     | 2 --
- drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c | 3 +++
- include/linux/mlx5/fs.h                               | 3 +++
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 43 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-index d589dbbc72a7..32070e5d993d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
-@@ -233,8 +233,6 @@ void mlx5_fc_queue_stats_work(struct mlx5_core_dev *dev,
- 			      unsigned long delay);
- void mlx5_fc_update_sampling_interval(struct mlx5_core_dev *dev,
- 				      unsigned long interval);
--int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
--		  u64 *packets, u64 *bytes);
- 
- int mlx5_init_fs(struct mlx5_core_dev *dev);
- void mlx5_cleanup_fs(struct mlx5_core_dev *dev);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-index f5cb3fa5d8cf..58af6be13dfa 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
-@@ -243,6 +243,7 @@ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging)
- 
- 	return ERR_PTR(err);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index e7c90c151165..d0c94c2b49de 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5335,6 +5335,48 @@ static void depopulate_specs_root(struct mlx5_ib_dev *dev)
+ 	uverbs_free_spec_tree(dev->ib_dev.specs_root);
  }
-+EXPORT_SYMBOL(mlx5_fc_create);
  
- void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
- {
-@@ -260,6 +261,7 @@ void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter)
- 	mlx5_cmd_fc_free(dev, counter->id);
- 	kfree(counter);
- }
-+EXPORT_SYMBOL(mlx5_fc_destroy);
- 
- int mlx5_init_fc_stats(struct mlx5_core_dev *dev)
- {
-@@ -317,6 +319,7 @@ int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
- {
- 	return mlx5_cmd_fc_query(dev, counter->id, packets, bytes);
- }
-+EXPORT_SYMBOL(mlx5_fc_query);
- 
- void mlx5_fc_query_cached(struct mlx5_fc *counter,
- 			  u64 *bytes, u64 *packets, u64 *lastuse)
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 9f4d32e41c06..3b4c3298061c 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -186,6 +186,9 @@ struct mlx5_fc *mlx5_fc_create(struct mlx5_core_dev *dev, bool aging);
- void mlx5_fc_destroy(struct mlx5_core_dev *dev, struct mlx5_fc *counter);
- void mlx5_fc_query_cached(struct mlx5_fc *counter,
- 			  u64 *bytes, u64 *packets, u64 *lastuse);
-+int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
-+		  u64 *packets, u64 *bytes);
++static int mlx5_ib_read_counters(struct ib_counters *counters,
++				 struct ib_counters_read_attr *read_attr,
++				 struct uverbs_attr_bundle *attrs)
++{
++	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
++	struct mlx5_read_counters_attr mread_attr = {};
++	struct mlx5_ib_flow_counters_desc *desc;
++	int ret, i;
 +
- int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
- int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
++	mutex_lock(&mcounters->mcntrs_mutex);
++	if (mcounters->cntrs_max_index > read_attr->ncounters) {
++		ret = -EINVAL;
++		goto err_bound;
++	}
++
++	mread_attr.out = kcalloc(mcounters->counters_num, sizeof(u64),
++				 GFP_KERNEL);
++	if (!mread_attr.out) {
++		ret = -ENOMEM;
++		goto err_bound;
++	}
++
++	mread_attr.hw_cntrs_hndl = mcounters->hw_cntrs_hndl;
++	mread_attr.flags = read_attr->flags;
++	ret = mcounters->read_counters(counters->device, &mread_attr);
++	if (ret)
++		goto err_read;
++
++	/* do the pass over the counters data array to assign according to the
++	 * descriptions and indexing pairs
++	 */
++	desc = mcounters->counters_data;
++	for (i = 0; i < mcounters->ncounters; i++)
++		read_attr->counters_buff[desc[i].index] += mread_attr.out[desc[i].description];
++
++err_read:
++	kfree(mread_attr.out);
++err_bound:
++	mutex_unlock(&mcounters->mcntrs_mutex);
++	return ret;
++}
++
+ static int mlx5_ib_destroy_counters(struct ib_counters *counters)
+ {
+ 	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
+@@ -5608,6 +5650,7 @@ int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
+ 	dev->ib_dev.driver_id = RDMA_DRIVER_MLX5;
+ 	dev->ib_dev.create_counters = mlx5_ib_create_counters;
+ 	dev->ib_dev.destroy_counters = mlx5_ib_destroy_counters;
++	dev->ib_dev.read_counters = mlx5_ib_read_counters;
  
+ 	err = init_node_data(dev);
+ 	if (err)
 -- 
 2.14.3
