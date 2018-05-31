@@ -1,57 +1,84 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH] RDMA/qedr: fix spelling mistake: "adrresses" ->
- "addresses"
-Date: Thu, 31 May 2018 14:03:53 -0400
-Message-ID: <dc29e2b147cae0e13e570c2c6c62a433414b25ac.camel@redhat.com>
-References: <20180530094029.10747-1-colin.king@canonical.com>
+Subject: Re: [PATCH V2 mlx5-next 0/2] Mellanox, mlx5 new device events
+Date: Thu, 31 May 2018 14:08:40 -0400
+Message-ID: <55f448f04bcd26c87ca97c53e700faddd4f43486.camel@redhat.com>
+References: <20180530175950.9488-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-fZQ65AHqLw3T4cI0Jayg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530094029.10747-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+        protocol="application/pgp-signature"; boundary="=-6TzZ2MqOMIDJCmO1t8ST"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180530175950.9488-1-saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-fZQ65AHqLw3T4cI0Jayg
+--=-6TzZ2MqOMIDJCmO1t8ST
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, 2018-05-30 at 10:40 +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Wed, 2018-05-30 at 10:59 -0700, Saeed Mahameed wrote:
+> Hi,=20
 >=20
-> Trivial fix to spelling mistake in DP_ERR error message
+> The following series is for mlx5-next tree [1], it adds the support of tw=
+o
+> new device events, from Ilan Tayari:
 >=20
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> 1. High temperature warnings.
+> 2. FPGA QP error event.
+>=20
+> In case of no objection this series will be applied to mlx5-next tree
+> and will be sent later as a pull request to both rdma and net trees.
+>=20
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/lo=
+g/?h=3Dmlx5-next
+>=20
+> v1->v2:
+>   - improve commit message of the FPGA QP error event patch.
+>=20
+> Thanks,
+> Saeed.
+>=20
+> Ilan Tayari (2):
+>   net/mlx5: Add temperature warning event to log
+>   net/mlx5: Add FPGA QP error event
+>=20
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c | 28 +++++++++++++++++++-
+>  include/linux/mlx5/device.h                  |  8 ++++++
+>  include/linux/mlx5/mlx5_ifc.h                |  3 ++-
+>  include/linux/mlx5/mlx5_ifc_fpga.h           | 16 +++++++++++
+>  4 files changed, 53 insertions(+), 2 deletions(-)
+>=20
 
-Thanks, applied.
+For the RDMA community, series ack:
+
+Acked-by: Doug Ledford <dledford@redhat.com>
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
---=-fZQ65AHqLw3T4cI0Jayg
+--=-6TzZ2MqOMIDJCmO1t8ST
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlsQOQkACgkQuCajMw5X
-L91YzxAAhBw5z7RJNEPHFbcMVhdKm8qDhCcv+N84eMt1ngLnALedIyWisgl3GodM
-Z8d/yE/CQG1JDRbuJlc6qZ0E3iMnkA8h2PMnVGIYI4F/Nf/zNGbNSnd18hwsewjx
-KlAUtv8F9eGM/3xsb8+0F3fTFdqkIKmULbs9WKUsThCSlq+SqOrEZBXK1Zd9KfAq
-aDnAoGzuHgrukTN00yOwwTq3hRxDuA+a1SJ2BGPdiMCDEj7tfDve0ZBpL9orTAwX
-YsoBaGIOJGgJmPlpgCRXhaZw/cOvvlmPoUSB0i+lH42qtGHI2VjzGTWtref9jqFp
-+8ntHWETIEUNDmggVjnrkruogp0LU59zQbFPFV9IiJGK68MVDzM29Vxh0ToG35wl
-/eVhnQ78Im32PmdSvfa8ctmChDEJNeDpXG9XHwPq8mjoXGPkKpDnomA7zZKRDgwR
-2HR6IgN9iHSwn0RCNXNLxGzwJIqxHLbq8eKkDUpCx59H+LLAlywBWp67oxNEqDKx
-SoyP/MSc2tvtEVcRKvsl1VnKN+GbFpI6TqJg3jk/w6Th1oyAwi2PnzuDi/vyGWXq
-LZAeU8mV707db70kOI4P9xyIivUHJllycUD7Bl2rfa0za/colXPZQZvbcwUwXFZf
-CyR4H3oGgvgWm5ByRzZwonqtYd2la1+rPGHVq15cfGkJUHl3fP4=
-=k/CM
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlsQOigACgkQuCajMw5X
+L92VvxAAk9IO0+un7DD9AWl114Z+OThsQUsgWPakGiEvbphAeRcjzgpa2wWfhExd
+EQrsKxCsX///a4xGPZRhnUadAX8PaarqpyA4NtkKv1lyWGLEUlwnW5TVghcmnOeM
+SSlwLD/03IFiYympT+LGQtwHZJHEUo37urTO07YzbfSujvjo7HzT5lofXfEFfG3T
+b3YNPN9xbeMyX5tOeWyRIJ08FssnUOqv6UDrSwcP1vgdYXlIgK7LFrHJo37d5oa9
+HHQBhTt/sEJxPM/qlG/4K/dkriVeIfcmuaqR0NQcidM0PG5vN546XeWrWjNatrEN
+sHwUP8lk880Mbw+vkcNFR/IQEnm8XE1GadwwBdligaBEOi5XnouiGXTqDFFfhpIw
+DU1MZyZu2j7sRiRfnLlxaZnipy3+1FXVonTFo5wgGF996ShZsLlGWMM6BJjKlhfX
+hAYZyKMrmtGYJJKyaCB8EXe3FfKbwG7Mf5T92/aH8NnJ8bueD10i/y/6rgw3rQ3T
+3Ts6p3+Q9W+ndHFbu/CGJ/UNysmTjvhWfxa6e/WP+W9HQ3wFsvSWyKpClITR2wTn
+FxXGYKVpBFSH/3gLHrsjzXy3UINPYVgkZdeJnaOWoFZSk2mIstBvvux+uERWLGeQ
+uhD9FCzhXG+TiMwJac0Iok1wy8nkinu8LjsFHEvbPqgH5ZM7nMI=
+=eDjq
 -----END PGP SIGNATURE-----
 
---=-fZQ65AHqLw3T4cI0Jayg--
+--=-6TzZ2MqOMIDJCmO1t8ST--
