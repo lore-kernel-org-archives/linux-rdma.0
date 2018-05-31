@@ -1,47 +1,40 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH V4] mlx4_core: allocate ICM memory in page size chunks
-Date: Thu, 31 May 2018 08:54:05 +0200
-Message-ID: <20180531065405.GH15278@dhcp22.suse.cz>
-References: <20180523232246.20445-1-qing.huang@oracle.com>
- <20180525.102321.858995452200286788.davem@davemloft.net>
- <7a353b65-6b7f-1aee-1c48-e83c8e02f693@gmail.com>
- <0e11e0fc-6ccf-aa93-9c4f-b9eae1b90643@gmail.com>
- <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: David Miller <davem@davemloft.net>, qing.huang@oracle.com, tariqt@mellanox.com, haakon.bugge@oracle.com, yanjun.zhu@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: [PATCH 1/4] IB/isert: fix T10-pi check mask setting
+Date: Thu, 31 May 2018 11:05:23 +0300
+Message-ID: <1527753926-18593-2-git-send-email-maxg@mellanox.com>
+References: <1527753926-18593-1-git-send-email-maxg@mellanox.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <1527753926-18593-1-git-send-email-maxg@mellanox.com>
+Sender: stable-owner@vger.kernel.org
+To: leonro@mellanox.com, jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org
+Cc: sagi@grimberg.me, hch@lst.de, martin.petersen@oracle.com, Max Gurtovoy <maxg@mellanox.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue 29-05-18 23:49:59, Eric Dumazet wrote:
-> 
-> 
-> On 05/29/2018 11:44 PM, Eric Dumazet wrote:
-> 
-> > 
-> > And I will add this simple fix, this really should address your initial concern much better.
-> > 
-> > @@ -99,6 +100,8 @@ static int mlx4_alloc_icm_pages(struct scatterlist *mem, int order,
-> >  {
-> >         struct page *page;
-> >  
-> > +       if (order)
-> > +               gfp_mask |= __GFP_NORETRY;
-> 
->     and also      gfp_mask &= ~__GFP_DIRECT_RECLAIM
+A copy/paste bug (probably) caused setting of an app_tag check mask
+in case where a ref_tag check was needed.
 
-JFTR the latter one makes __GFP_NORETRY pointless. Non sleeping allocations
-are not retrying.
+Fixes: 38a2d0d429f1 ("IB/isert: convert to the generic RDMA READ/WRITE API")
+Fixes: 9e961ae73c2c ("IB/isert: Support T10-PI protected transactions")
+Cc: stable@vger.kernel.org
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Signed-off-by: Max Gurtovoy <maxg@mellanox.com>
+---
+ drivers/infiniband/ulp/isert/ib_isert.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> >         page = alloc_pages_node(node, gfp_mask, order);
-> >         if (!page) {
-> >                 page = alloc_pages(gfp_mask, order);
-> > 
-
+diff --git a/drivers/infiniband/ulp/isert/ib_isert.c b/drivers/infiniband/ulp/isert/ib_isert.c
+index fff40b0..d8b6bde 100644
+--- a/drivers/infiniband/ulp/isert/ib_isert.c
++++ b/drivers/infiniband/ulp/isert/ib_isert.c
+@@ -2108,7 +2108,7 @@
+ 
+ 	sig_attrs->check_mask =
+ 	       (se_cmd->prot_checks & TARGET_DIF_CHECK_GUARD  ? 0xc0 : 0) |
+-	       (se_cmd->prot_checks & TARGET_DIF_CHECK_REFTAG ? 0x30 : 0) |
++	       (se_cmd->prot_checks & TARGET_DIF_CHECK_APPTAG ? 0x30 : 0) |
+ 	       (se_cmd->prot_checks & TARGET_DIF_CHECK_REFTAG ? 0x0f : 0);
+ 	return 0;
+ }
 -- 
-Michal Hocko
-SUSE Labs
+1.8.3.1
