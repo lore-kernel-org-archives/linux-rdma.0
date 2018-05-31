@@ -1,76 +1,57 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH net-next] qed: Add srq core support for RoCE and iWARP
-Date: Thu, 31 May 2018 20:33:01 +0300
-Message-ID: <20180531173301.GV3697@mtr-leonro.mtl.com>
-References: <20180530131137.4653-1-yuval.bason@cavium.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/qedr: fix spelling mistake: "adrresses" ->
+ "addresses"
+Date: Thu, 31 May 2018 14:03:53 -0400
+Message-ID: <dc29e2b147cae0e13e570c2c6c62a433414b25ac.camel@redhat.com>
+References: <20180530094029.10747-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="AYsPlKobQGgtCvjI"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180530131137.4653-1-yuval.bason@cavium.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yuval Bason <yuval.bason@cavium.com>
-Cc: davem@davemloft.net, netdev@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org, Michal Kalderon <michal.kalderon@cavium.com>, Ariel Elior <ariel.elior@cavium.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-fZQ65AHqLw3T4cI0Jayg"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180530094029.10747-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---AYsPlKobQGgtCvjI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--=-fZQ65AHqLw3T4cI0Jayg
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 30, 2018 at 04:11:37PM +0300, Yuval Bason wrote:
-> This patch adds support for configuring SRQ and provides the necessary
-> APIs for rdma upper layer driver (qedr) to enable the SRQ feature.
->
-> Signed-off-by: Michal Kalderon <michal.kalderon@cavium.com>
-> Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
-> Signed-off-by: Yuval Bason <yuval.bason@cavium.com>
-> ---
->  drivers/net/ethernet/qlogic/qed/qed_cxt.c   |   5 +-
->  drivers/net/ethernet/qlogic/qed/qed_cxt.h   |   1 +
->  drivers/net/ethernet/qlogic/qed/qed_hsi.h   |   2 +
->  drivers/net/ethernet/qlogic/qed/qed_iwarp.c |  23 ++++
->  drivers/net/ethernet/qlogic/qed/qed_main.c  |   2 +
->  drivers/net/ethernet/qlogic/qed/qed_rdma.c  | 179 +++++++++++++++++++++++++++-
->  drivers/net/ethernet/qlogic/qed/qed_rdma.h  |   2 +
->  drivers/net/ethernet/qlogic/qed/qed_roce.c  |  17 ++-
->  include/linux/qed/qed_rdma_if.h             |  12 +-
->  9 files changed, 235 insertions(+), 8 deletions(-)
->
+On Wed, 2018-05-30 at 10:40 +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>=20
+> Trivial fix to spelling mistake in DP_ERR error message
+>=20
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-...
+Thanks, applied.
 
-> +	struct qed_sp_init_data init_data;
-
-...
-
-> +	memset(&init_data, 0, sizeof(init_data));
-
-This patter is so common in this patch, why?
-
-"struct qed_sp_init_data init_data = {};" will do the trick.
-
-Thanks
-
---AYsPlKobQGgtCvjI
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-fZQ65AHqLw3T4cI0Jayg
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbEDHNAAoJEORje4g2clinpZYP/3VV80y/PljD5m7lIMD6XgBM
-MKvLaeefcrJ8nJt9SdaJ3zSR/nZ5vnUoRsE/fFL3S2DQ6+0uC6IAF5od9pcinX2X
-U85n1EsrZDiWB3577yyvjPEU8dQlnYQVR9SGtNPYDkYcU9py1KBtSHh5QN4IQJmo
-895f40SwPuqRjXD3vnyxuvPW+zi5jXh9Dz5YUmVRvn1NyO0h4sKU+hpJag90XQy2
-8gptqvZ2MgJ/JlWuBjo4ecqpKqE9YIZ+TCmigQ07XAjNMM/Cdn2PaJrARFfNkpcg
-Im/8+w6w6aqzBrNxEucJTPrP/eOcxkRcyoDL6RKo9S83MQNXOhkPq4/FkUzdWlSh
-C/4xS2miiG1fA52QEHZ3TMGMgf9NUdIBbL32ANqyIOSzXoIHLItVUhOhJin0gwPZ
-GBc57lng331px/R+Ljn/JhMi0EtQKF9Yv+0YNlZxBTB7hnXyGu2HsaiLNrCTLbs1
-0Uao9TtJDj7WF0jn84JB5h2IOmyaJDUEDp088LSWKdkfGjwYMT9uDaJ/+JxKoB+9
-tODUMp8EYFtcdMNfqJrionhuaSsBRKmbU9SrPPJuMl5SWGgdsgc/4ufWMtpgnjap
-sum/ZDTauN3WTAF0N+JLgxG6b3VgnawGJTQOFkhubscM14TpqC4LY7iOyOkHETyd
-osxNQhzlzpsR881wm0R+
-=DcZo
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlsQOQkACgkQuCajMw5X
+L91YzxAAhBw5z7RJNEPHFbcMVhdKm8qDhCcv+N84eMt1ngLnALedIyWisgl3GodM
+Z8d/yE/CQG1JDRbuJlc6qZ0E3iMnkA8h2PMnVGIYI4F/Nf/zNGbNSnd18hwsewjx
+KlAUtv8F9eGM/3xsb8+0F3fTFdqkIKmULbs9WKUsThCSlq+SqOrEZBXK1Zd9KfAq
+aDnAoGzuHgrukTN00yOwwTq3hRxDuA+a1SJ2BGPdiMCDEj7tfDve0ZBpL9orTAwX
+YsoBaGIOJGgJmPlpgCRXhaZw/cOvvlmPoUSB0i+lH42qtGHI2VjzGTWtref9jqFp
++8ntHWETIEUNDmggVjnrkruogp0LU59zQbFPFV9IiJGK68MVDzM29Vxh0ToG35wl
+/eVhnQ78Im32PmdSvfa8ctmChDEJNeDpXG9XHwPq8mjoXGPkKpDnomA7zZKRDgwR
+2HR6IgN9iHSwn0RCNXNLxGzwJIqxHLbq8eKkDUpCx59H+LLAlywBWp67oxNEqDKx
+SoyP/MSc2tvtEVcRKvsl1VnKN+GbFpI6TqJg3jk/w6Th1oyAwi2PnzuDi/vyGWXq
+LZAeU8mV707db70kOI4P9xyIivUHJllycUD7Bl2rfa0za/colXPZQZvbcwUwXFZf
+CyR4H3oGgvgWm5ByRzZwonqtYd2la1+rPGHVq15cfGkJUHl3fP4=
+=k/CM
 -----END PGP SIGNATURE-----
 
---AYsPlKobQGgtCvjI--
+--=-fZQ65AHqLw3T4cI0Jayg--
