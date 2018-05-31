@@ -1,67 +1,47 @@
-From: Greg Thelen <gthelen@google.com>
-Subject: Re: [PATCH] iw_cxgb4: add INFINIBAND_ADDR_TRANS dependency
-Date: Wed, 30 May 2018 21:03:41 -0700
-Message-ID: <CAHH2K0ZLDmsPNw=sOobL=+R54yRFrnG4syWcW43UEbwxsvFehw@mail.gmail.com>
-References: <20180530215826.1343234-1-arnd@arndb.de> <20180530220405.GH30754@ziepe.ca>
- <0be4e0fb-8d8e-b337-fc8d-550c90829d8c@opengridcomputing.com>
- <20180530222520.GJ30754@ziepe.ca> <d2472443-3ae6-63f4-59ad-d6367b837038@opengridcomputing.com>
- <CAK8P3a3HZXTR60ua=cjBHnB5FWWKve9F-JqcNwn0ujks+=FsNg@mail.gmail.com> <20180530230136.GK30754@ziepe.ca>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH V4] mlx4_core: allocate ICM memory in page size chunks
+Date: Thu, 31 May 2018 08:54:05 +0200
+Message-ID: <20180531065405.GH15278@dhcp22.suse.cz>
+References: <20180523232246.20445-1-qing.huang@oracle.com>
+ <20180525.102321.858995452200286788.davem@davemloft.net>
+ <7a353b65-6b7f-1aee-1c48-e83c8e02f693@gmail.com>
+ <0e11e0fc-6ccf-aa93-9c4f-b9eae1b90643@gmail.com>
+ <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180530230136.GK30754@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Arnd Bergmann <arnd@arndb.de>, swise@opengridcomputing.com, swise@chelsio.com, Doug Ledford <dledford@redhat.com>, yuval.shaia@oracle.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Tarick Bedeir <tarick@google.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Miller <davem@davemloft.net>, qing.huang@oracle.com, tariqt@mellanox.com, haakon.bugge@oracle.com, yanjun.zhu@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 30, 2018 at 4:01 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+On Tue 29-05-18 23:49:59, Eric Dumazet wrote:
+> 
+> 
+> On 05/29/2018 11:44 PM, Eric Dumazet wrote:
+> 
+> > 
+> > And I will add this simple fix, this really should address your initial concern much better.
+> > 
+> > @@ -99,6 +100,8 @@ static int mlx4_alloc_icm_pages(struct scatterlist *mem, int order,
+> >  {
+> >         struct page *page;
+> >  
+> > +       if (order)
+> > +               gfp_mask |= __GFP_NORETRY;
+> 
+>     and also      gfp_mask &= ~__GFP_DIRECT_RECLAIM
 
-> On Thu, May 31, 2018 at 12:40:54AM +0200, Arnd Bergmann wrote:
-> > > On 5/30/2018 5:25 PM, Jason Gunthorpe wrote:
-> > >> On Wed, May 30, 2018 at 05:10:35PM -0500, Steve Wise wrote:
-> > >>>
-> > >>> On 5/30/2018 5:04 PM, Jason Gunthorpe wrote:
-> > >>>> On Wed, May 30, 2018 at 11:58:18PM +0200, Arnd Bergmann wrote:
-> > >>>>> The newly added fill_res_ep_entry function fails to link if
-> > >>>>> CONFIG_INFINIBAND_ADDR_TRANS is not set:
-> > >>>>>
-> > >>>>> drivers/infiniband/hw/cxgb4/restrack.o: In function
-`fill_res_ep_entry':
-> > >>>>> restrack.c:(.text+0x3cc): undefined reference to `rdma_res_to_id'
-> > >>>>> restrack.c:(.text+0x3d0): undefined reference to `rdma_iw_cm_id'
-> > >>>>>
-> > >>>>> This adds a Kconfig dependency for the driver.
-> > >>>>>
-> > >>>>> Fixes: 116aeb887371 ("iw_cxgb4: provide detailed
-provider-specific CM_ID information")
-> > >>>>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > >>>>>  drivers/infiniband/hw/cxgb4/Kconfig | 1 +
-> > >>>>>  1 file changed, 1 insertion(+)
-> > >>>> Oh, I think we need to solve this with maybe a header fill null
-stub
-> > >>>> instead..
-> > >>>>
-> > >>>> We don't want to disable drivers just because a user interface is
-> > >>>> disabled.
-> > >>>>
-> > >>> Why does CONFIG_INFINIBAND_ADDR_TRANS disable building rdma_cm.ko?
-That
-> > >>> is not correct.
-> > >> That seems like a reasonable thing to do..
-> > > rdma_ucm.ko is for usermode users, rdma_cm.ko is for kernel users, and
-> > > is required for iwarp drivers.  It seems rdma_cm.ko is not being
-> > > compiled if ADDR_TRANS is not set.
+JFTR the latter one makes __GFP_NORETRY pointless. Non sleeping allocations
+are not retrying.
 
-> I think the intention was to completely disable rdma-cm, including all
-> support for rx'ing remote packets? Greg?
+> >         page = alloc_pages_node(node, gfp_mask, order);
+> >         if (!page) {
+> >                 page = alloc_pages(gfp_mask, order);
+> > 
 
-Yes.  That's my goal when INFINIBAND_ADDR_TRANS is unset.
-
-> If this is required for iwarp then Arnd's patch is probably the right
-> way to go..
-
-> Jason
-
-Agreed.
-Acked-by: Greg Thelen <gthelen@google.com>
+-- 
+Michal Hocko
+SUSE Labs
