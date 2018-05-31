@@ -1,146 +1,274 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH rdma-next v3 00/14] Verbs flow counters support
-Date: Thu, 31 May 2018 19:15:44 +0300
-Message-ID: <db11463e-45dd-233d-f366-2ad8b032fba7@dev.mellanox.co.il>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next v3 10/14] IB/uverbs: Add support for flow
+ counters
+Date: Thu, 31 May 2018 20:23:27 +0300
+Message-ID: <20180531172327.GU3697@mtr-leonro.mtl.com>
 References: <20180531134341.18441-1-leon@kernel.org>
+ <20180531134341.18441-11-leon@kernel.org>
+ <14063C7AD467DE4B82DEDB5C278E8663B38F0661@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="x+WOirvrtTKur1pg"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663B38F0661@FMSMSX108.amr.corp.intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/31/2018 4:43 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Changelog:
-> v2->v3:
->   * Change function mlx5_fc_query signature to hide the details of
->     internal core driver struct mlx5_fc
->   * Add commen to data[] field at struct mlx5_ib_flow_counters_data (mlx5-abi.h)
->   * Use array of struct mlx5_ib_flow_counters_desc to clarify the output
-> v1->v2:
->   * Removed conversion from struct mlx5_fc* to void*
->   * Fixed one place with double space in it
->   * Balanced release of hardware handler in case of counters allocation failure
->   * Added Tested-by
->   * Minimize time spent holding mutex lock
->   * Fixed deadlock caused by nested lock in error path
->   * Protect from handler pointer derefence in the error paths
-> 
-> Not changed: mlx5-abi.h
-> 
-> v0->v1:
->   * Decouple from DevX submission
->   * Use uverbs_attr_get_obj at counters read method
->   * Added define for max read buffer size (MAX_COUNTERS_BUFF_SIZE)
->   * Removed the struct mlx5_ib_flow_counter basic_flow_cnts and
->     the related structs used, used define instead
->   * Took Matan's patch from DevX
->   * uverbs_free_counters removed void* casting
->   * Added check to bound ncounters value (added define
->   * Changed user supplied data buffer structure to be array of
->     struct <desc,index> pair (applied this change to user space also)
-> 
-> Not changed:
->   * UAPI files
->   * Addition of uhw to flow
-> 
-> Thanks
 
+--x+WOirvrtTKur1pg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The corresponding rdma-core PR [1] was updated to match this V3 series.
-[1] https://github.com/linux-rdma/rdma-core/pull/330
+On Thu, May 31, 2018 at 02:49:44PM +0000, Ruhl, Michael J wrote:
+> >-----Original Message-----
+> >From: Leon Romanovsky [mailto:leon@kernel.org]
+> >Sent: Thursday, May 31, 2018 9:44 AM
+> >To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe
+> ><jgg@mellanox.com>
+> >Cc: Leon Romanovsky <leonro@mellanox.com>; RDMA mailing list <linux-
+> >rdma@vger.kernel.org>; Boris Pismenny <borisp@mellanox.com>; Matan
+> >Barak <matanb@mellanox.com>; Ruhl, Michael J <michael.j.ruhl@intel.com>;
+> >Or Gerlitz <ogerlitz@mellanox.com>; Raed Salem <raeds@mellanox.com>;
+> >Yishai Hadas <yishaih@mellanox.com>; Saeed Mahameed
+> ><saeedm@mellanox.com>; linux-netdev <netdev@vger.kernel.org>
+> >Subject: [PATCH rdma-next v3 10/14] IB/uverbs: Add support for flow
+> >counters
+> >
+> >From: Raed Salem <raeds@mellanox.com>
+> >
+> >The struct ib_uverbs_flow_spec_action_count associates
+> >a counters object with the flow.
+> >
+> >Post this association the flow counters can be read via
+> >the counters object.
+> >
+> >Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+> >Signed-off-by: Raed Salem <raeds@mellanox.com>
+> >Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> >---
+> > drivers/infiniband/core/uverbs.h     |  1 +
+> > drivers/infiniband/core/uverbs_cmd.c | 81
+> >+++++++++++++++++++++++++++++++-----
+> > include/uapi/rdma/ib_user_verbs.h    | 13 ++++++
+> > 3 files changed, 84 insertions(+), 11 deletions(-)
+> >
+> >diff --git a/drivers/infiniband/core/uverbs.h
+> >b/drivers/infiniband/core/uverbs.h
+> >index 5b2461fa634d..c0d40fc3a53a 100644
+> >--- a/drivers/infiniband/core/uverbs.h
+> >+++ b/drivers/infiniband/core/uverbs.h
+> >@@ -263,6 +263,7 @@ struct ib_uverbs_flow_spec {
+> > 		struct ib_uverbs_flow_spec_action_tag	flow_tag;
+> > 		struct ib_uverbs_flow_spec_action_drop	drop;
+> > 		struct ib_uverbs_flow_spec_action_handle action;
+> >+		struct ib_uverbs_flow_spec_action_count flow_count;
+> > 	};
+> > };
+> >
+> >diff --git a/drivers/infiniband/core/uverbs_cmd.c
+> >b/drivers/infiniband/core/uverbs_cmd.c
+> >index ddb9d79691be..3179a95c6f5e 100644
+> >--- a/drivers/infiniband/core/uverbs_cmd.c
+> >+++ b/drivers/infiniband/core/uverbs_cmd.c
+> >@@ -2748,43 +2748,82 @@ ssize_t ib_uverbs_detach_mcast(struct
+> >ib_uverbs_file *file,
+> > struct ib_uflow_resources {
+> > 	size_t			max;
+> > 	size_t			num;
+> >-	struct ib_flow_action	*collection[0];
+> >+	size_t			collection_num;
+> >+	size_t			counters_num;
+> >+	struct ib_counters	**counters;
+> >+	struct ib_flow_action	**collection;
+> > };
+> >
+> > static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
+> > {
+> > 	struct ib_uflow_resources *resources;
+> >
+> >-	resources =
+> >-		kmalloc(sizeof(*resources) +
+> >-			num_specs * sizeof(*resources->collection),
+> >GFP_KERNEL);
+> >+	resources = kzalloc(sizeof(*resources), GFP_KERNEL);
+> >
+> > 	if (!resources)
+> >-		return NULL;
+> >+		goto err_res;
+>
+> Why the new goto?
 
-Yishai
+No real reason :)
 
-> ----------------------------------------------------------------------
->  From Raed:
-> 
-> This series comes to allow user space applications to monitor real time
-> traffic activity and events of the verbs objects it manages, e.g.:
-> ibv_qp, ibv_wq, ibv_flow.
-> 
-> This API enables generic counters creation and define mapping
-> to association with a verbs object, current mlx5 driver using
-> this API for flow counters.
-> 
-> With this API, an application can monitor the entire life cycle of
-> object activity, defined here as a static counters attachment.
-> This API also allows dynamic counters monitoring of measurement points
-> for a partial period in the verbs object life cycle.
-> 
-> In addition it presents the implementation of the generic counters interface.
-> 
-> This will be achieved by extending flow creation by adding a new flow count
-> specification type which allows the user to associate a previously created
-> flow counters using the generic verbs counters interface to the created flow,
-> once associated the user could read statistics by using the read function of
-> the generic counters interface.
-> 
-> The API includes:
-> 1. create and destroyed API of a new counters objects
-> 2. read the counters values from HW
-> 
-> Note:
-> Attaching API to allow application to define the measurement points per objects
-> is a user space only API and this data is passed to kernel when the counted
-> object (e.g. flow) is created with the counters object.
-> 
-> Thanks
-> 
-> Matan Barak (2):
->    IB/uverbs: Add an ib_uobject getter to ioctl() infrastructure
->    IB/core: Support passing uhw for create_flow
-> 
-> Or Gerlitz (1):
->    net/mlx5: Use flow counter pointer as input to the query function
-> 
-> Raed Salem (11):
->    net/mlx5: Export flow counter related API
->    IB/core: Introduce counters object and its create/destroy
->    IB/uverbs: Add create/destroy counters support
->    IB/core: Introduce counters read verb
->    IB/uverbs: Add read counters support
->    IB/core: Add support for flow counters
->    IB/uverbs: Add support for flow counters
->    IB/mlx5: Add counters create and destroy support
->    IB/mlx5: Add flow counters binding support
->    IB/mlx5: Add flow counters read support
->    IB/mlx5: Add counters read support
-> 
->   drivers/infiniband/core/Makefile                   |   2 +-
->   drivers/infiniband/core/uverbs.h                   |   2 +
->   drivers/infiniband/core/uverbs_cmd.c               |  88 +++++-
->   drivers/infiniband/core/uverbs_std_types.c         |   3 +-
->   .../infiniband/core/uverbs_std_types_counters.c    | 157 +++++++++++
->   drivers/infiniband/core/uverbs_std_types_cq.c      |  23 +-
->   .../infiniband/core/uverbs_std_types_flow_action.c |   4 +-
->   drivers/infiniband/core/verbs.c                    |   2 +-
->   drivers/infiniband/hw/mlx4/main.c                  |   6 +-
->   drivers/infiniband/hw/mlx5/main.c                  | 305 ++++++++++++++++++++-
->   drivers/infiniband/hw/mlx5/mlx5_ib.h               |  36 +++
->   drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  15 +-
->   drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |   2 -
->   .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |   7 +-
->   include/linux/mlx5/fs.h                            |   4 +
->   include/rdma/ib_verbs.h                            |  43 ++-
->   include/rdma/uverbs_ioctl.h                        |  11 +
->   include/uapi/rdma/ib_user_ioctl_cmds.h             |  21 ++
->   include/uapi/rdma/ib_user_verbs.h                  |  13 +
->   include/uapi/rdma/mlx5-abi.h                       |  24 ++
->   20 files changed, 712 insertions(+), 56 deletions(-)
->   create mode 100644 drivers/infiniband/core/uverbs_std_types_counters.c
-> 
-> --
-> 2.14.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> >+
+> >+	resources->counters =
+> >+		kcalloc(num_specs, sizeof(*resources->counters),
+> >GFP_KERNEL);
+> >+
+> >+	if (!resources->counters)
+> >+		goto err_cnt;
+>
+> kcalloc() zeros stuff.  Could you just have a single common goto for the
+> cleanup?
+
+I have mixed feelings regarding such approach, technically you are
+right, but I think that it will hurt readability.
+
+I can send followup patch, will it work for you?
+
+Thanks for review.
+
+>
+> Mike
+>
+> >+
+> >+	resources->collection =
+> >+		kcalloc(num_specs, sizeof(*resources->collection),
+> >GFP_KERNEL);
+> >+
+> >+	if (!resources->collection)
+> >+		goto err_collection;
+> >
+> >-	resources->num = 0;
+> > 	resources->max = num_specs;
+> >
+> > 	return resources;
+> >+
+> >+err_collection:
+> >+	kfree(resources->counters);
+> >+err_cnt:
+> >+	kfree(resources);
+> >+err_res:
+> >+	return NULL;
+> > }
+> >
+> > void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
+> > {
+> > 	unsigned int i;
+> >
+> >-	for (i = 0; i < uflow_res->num; i++)
+> >+	for (i = 0; i < uflow_res->collection_num; i++)
+> > 		atomic_dec(&uflow_res->collection[i]->usecnt);
+> >
+> >+	for (i = 0; i < uflow_res->counters_num; i++)
+> >+		atomic_dec(&uflow_res->counters[i]->usecnt);
+> >+
+> >+	kfree(uflow_res->collection);
+> >+	kfree(uflow_res->counters);
+> > 	kfree(uflow_res);
+> > }
+> >
+> > static void flow_resources_add(struct ib_uflow_resources *uflow_res,
+> >-			       struct ib_flow_action *action)
+> >+			       enum ib_flow_spec_type type,
+> >+			       void *ibobj)
+> > {
+> > 	WARN_ON(uflow_res->num >= uflow_res->max);
+> >
+> >-	atomic_inc(&action->usecnt);
+> >-	uflow_res->collection[uflow_res->num++] = action;
+> >+	switch (type) {
+> >+	case IB_FLOW_SPEC_ACTION_HANDLE:
+> >+		atomic_inc(&((struct ib_flow_action *)ibobj)->usecnt);
+> >+		uflow_res->collection[uflow_res->collection_num++] =
+> >+			(struct ib_flow_action *)ibobj;
+> >+		break;
+> >+	case IB_FLOW_SPEC_ACTION_COUNT:
+> >+		atomic_inc(&((struct ib_counters *)ibobj)->usecnt);
+> >+		uflow_res->counters[uflow_res->counters_num++] =
+> >+			(struct ib_counters *)ibobj;
+> >+		break;
+> >+	default:
+> >+		WARN_ON(1);
+> >+	}
+> >+
+> >+	uflow_res->num++;
+> > }
+> >
+> > static int kern_spec_to_ib_spec_action(struct ib_ucontext *ucontext,
+> >@@ -2821,9 +2860,29 @@ static int kern_spec_to_ib_spec_action(struct
+> >ib_ucontext *ucontext,
+> > 			return -EINVAL;
+> > 		ib_spec->action.size =
+> > 			sizeof(struct ib_flow_spec_action_handle);
+> >-		flow_resources_add(uflow_res, ib_spec->action.act);
+> >+		flow_resources_add(uflow_res,
+> >+				   IB_FLOW_SPEC_ACTION_HANDLE,
+> >+				   ib_spec->action.act);
+> > 		uobj_put_obj_read(ib_spec->action.act);
+> > 		break;
+> >+	case IB_FLOW_SPEC_ACTION_COUNT:
+> >+		if (kern_spec->flow_count.size !=
+> >+			sizeof(struct ib_uverbs_flow_spec_action_count))
+> >+			return -EINVAL;
+> >+		ib_spec->flow_count.counters =
+> >+			uobj_get_obj_read(counters,
+> >+					  UVERBS_OBJECT_COUNTERS,
+> >+					  kern_spec->flow_count.handle,
+> >+					  ucontext);
+> >+		if (!ib_spec->flow_count.counters)
+> >+			return -EINVAL;
+> >+		ib_spec->flow_count.size =
+> >+				sizeof(struct ib_flow_spec_action_count);
+> >+		flow_resources_add(uflow_res,
+> >+				   IB_FLOW_SPEC_ACTION_COUNT,
+> >+				   ib_spec->flow_count.counters);
+> >+		uobj_put_obj_read(ib_spec->flow_count.counters);
+> >+		break;
+> > 	default:
+> > 		return -EINVAL;
+> > 	}
+> >diff --git a/include/uapi/rdma/ib_user_verbs.h
+> >b/include/uapi/rdma/ib_user_verbs.h
+> >index 409507f83b91..4f9991de8e3a 100644
+> >--- a/include/uapi/rdma/ib_user_verbs.h
+> >+++ b/include/uapi/rdma/ib_user_verbs.h
+> >@@ -998,6 +998,19 @@ struct ib_uverbs_flow_spec_action_handle {
+> > 	__u32			      reserved1;
+> > };
+> >
+> >+struct ib_uverbs_flow_spec_action_count {
+> >+	union {
+> >+		struct ib_uverbs_flow_spec_hdr hdr;
+> >+		struct {
+> >+			__u32 type;
+> >+			__u16 size;
+> >+			__u16 reserved;
+> >+		};
+> >+	};
+> >+	__u32			      handle;
+> >+	__u32			      reserved1;
+> >+};
+> >+
+> > struct ib_uverbs_flow_tunnel_filter {
+> > 	__be32 tunnel_id;
+> > };
+> >--
+> >2.14.3
+>
+
+--x+WOirvrtTKur1pg
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbEC+PAAoJEORje4g2clin+EMP/3ZqHe2+2Ed8/1K88j71snX+
+bFoMhGxQwhyjL8BQD2wEefNQwtEoLF1/Yyl44eQDZ7QZUCmgYeAuNNQpKB4Fa7oL
+5Ibluq0vDe/E5mGQo+krgsC9zQ6/YYFNZKN9DHfH2Pg3sUIRkYaSvZT/MTydFBCQ
+wGVeNSissphzY71IVEY3r9NeELKq79iV9k1VD1rG6T9ufpMjL/loizHSIn3DgZF/
+P+Lfx9E8fMlL6wkqacg2aEwMYW2drKRj9DJlQmAyyn4gNgaMX98FqrdqSw4j/fKr
+LOYYFdh708clAKBWsQFQPlGhmbt+RT6H86vXehhNlH5HbOYnhmSeWxocO2mdVoe8
+cGzX/wTVZF0ZSJByeZWU/RDdVJhOqafvarOTEY1dBQEq+OH/Ndf0pQYfGKrXD8a0
+5Va1KXiKeFs+fNHLvSheV0B/r5iuYsn5ETrObb2VaJIw0uD/9oxvZL/aYMT7PPUO
+el3qbWeQUpqZWLkigZsgkmQRuoEOOQeS7ZrHxz5qMI/MjGBcljbjgcUi9WcCN4Ub
+CMti9XAVD4M/CWVu5f31CV+TKzfYEwdeCAS5xt/2/LkZLTakWdK0aHZitYrjE5UR
+EwIx1Gtys3YMwWkRIyTdqaAdMGfiVFqC9rUFKfAb7nkE/VJVZ577nIJtfaGs4dF+
+4xkKSWTijGqI7Odvybkl
+=Uq2B
+-----END PGP SIGNATURE-----
+
+--x+WOirvrtTKur1pg--
