@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v3 11/14] IB/mlx5: Add counters create and destroy support
-Date: Thu, 31 May 2018 16:43:38 +0300
-Message-ID: <20180531134341.18441-12-leon@kernel.org>
+Subject: [PATCH rdma-next v3 13/14] IB/mlx5: Add flow counters read support
+Date: Thu, 31 May 2018 16:43:40 +0300
+Message-ID: <20180531134341.18441-14-leon@kernel.org>
 References: <20180531134341.18441-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
@@ -12,81 +12,79 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Raed Salem <raeds@mellanox.com>
 
-This patch implements the device counters create and destroy APIs
-and introducing some internal management structures.
-
-Downstream patches in this series will add the functionality to
-support flow counters binding and reading.
+Implements the flow counters read wrapper.
 
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Raed Salem <raeds@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 23 +++++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 ++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c    | 15 +++++++++++++++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 13 ++++++++++++-
+ 2 files changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index fb31a719ee25..4d0f53566854 100644
+index 6a5600db897e..e7c90c151165 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5132,6 +5132,27 @@ static void depopulate_specs_root(struct mlx5_ib_dev *dev)
- 	uverbs_free_spec_tree(dev->ib_dev.specs_root);
+@@ -3157,6 +3157,19 @@ static void set_underlay_qp(struct mlx5_ib_dev *dev,
+ 	}
  }
  
-+static int mlx5_ib_destroy_counters(struct ib_counters *counters)
++static int read_flow_counters(struct ib_device *ibdev,
++			      struct mlx5_read_counters_attr *read_attr)
 +{
-+	struct mlx5_ib_mcounters *mcounters = to_mcounters(counters);
++	struct mlx5_fc *fc = read_attr->hw_cntrs_hndl;
++	struct mlx5_ib_dev *dev = to_mdev(ibdev);
 +
-+	kfree(mcounters);
-+
-+	return 0;
++	return mlx5_fc_query(dev->mdev, fc,
++			     &read_attr->out[IB_COUNTER_PACKETS],
++			     &read_attr->out[IB_COUNTER_BYTES]);
 +}
 +
-+static struct ib_counters *mlx5_ib_create_counters(struct ib_device *device,
-+						   struct uverbs_attr_bundle *attrs)
-+{
-+	struct mlx5_ib_mcounters *mcounters;
-+
-+	mcounters = kzalloc(sizeof(*mcounters), GFP_KERNEL);
-+	if (!mcounters)
-+		return ERR_PTR(-ENOMEM);
-+
-+	return &mcounters->ibcntrs;
-+}
-+
- void mlx5_ib_stage_init_cleanup(struct mlx5_ib_dev *dev)
- {
- 	mlx5_ib_cleanup_multiport_master(dev);
-@@ -5375,6 +5396,8 @@ int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 	dev->ib_dev.destroy_flow_action = mlx5_ib_destroy_flow_action;
- 	dev->ib_dev.modify_flow_action_esp = mlx5_ib_modify_flow_action_esp;
- 	dev->ib_dev.driver_id = RDMA_DRIVER_MLX5;
-+	dev->ib_dev.create_counters = mlx5_ib_create_counters;
-+	dev->ib_dev.destroy_counters = mlx5_ib_destroy_counters;
++/* flow counters currently expose two counters packets and bytes */
++#define FLOW_COUNTERS_NUM 2
+ static int counters_set_description(struct ib_counters *counters,
+ 				    enum mlx5_ib_counters_type counters_type,
+ 				    struct mlx5_ib_flow_counters_desc *desc_data,
+@@ -3171,6 +3184,8 @@ static int counters_set_description(struct ib_counters *counters,
  
- 	err = init_node_data(dev);
- 	if (err)
+ 	/* init the fields for the object */
+ 	mcounters->type = counters_type;
++	mcounters->read_counters = read_flow_counters;
++	mcounters->counters_num = FLOW_COUNTERS_NUM;
+ 	mcounters->ncounters = ncounters;
+ 	/* each counter entry have both description and index pair */
+ 	for (i = 0; i < ncounters; i++) {
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 49a1aa0ff429..fd27ec1aed08 100644
+index 155bca627222..d89c8fe626f6 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -813,6 +813,16 @@ struct mlx5_memic {
+@@ -814,6 +814,12 @@ struct mlx5_memic {
  	DECLARE_BITMAP(memic_alloc_pages, MLX5_MAX_MEMIC_PAGES);
  };
  
-+struct mlx5_ib_mcounters {
-+	struct ib_counters ibcntrs;
++struct mlx5_read_counters_attr {
++	struct mlx5_fc *hw_cntrs_hndl;
++	u64 *out;
++	u32 flags;
 +};
 +
-+static inline struct mlx5_ib_mcounters *
-+to_mcounters(struct ib_counters *ibcntrs)
-+{
-+	return container_of(ibcntrs, struct mlx5_ib_mcounters, ibcntrs);
-+}
-+
- struct mlx5_ib_dev {
- 	struct ib_device		ib_dev;
- 	struct mlx5_core_dev		*mdev;
+ enum mlx5_ib_counters_type {
+ 	MLX5_IB_COUNTERS_FLOW,
+ };
+@@ -821,7 +827,12 @@ enum mlx5_ib_counters_type {
+ struct mlx5_ib_mcounters {
+ 	struct ib_counters ibcntrs;
+ 	enum mlx5_ib_counters_type type;
+-	void *hw_cntrs_hndl;
++	/* number of counters supported for this counters type */
++	u32 counters_num;
++	struct mlx5_fc *hw_cntrs_hndl;
++	/* read function for this counters type */
++	int (*read_counters)(struct ib_device *ibdev,
++			     struct mlx5_read_counters_attr *read_attr);
+ 	/* max index set as part of create_flow */
+ 	u32 cntrs_max_index;
+ 	/* number of counters data entries (<description,index> pair) */
 -- 
 2.14.3
