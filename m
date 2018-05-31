@@ -1,181 +1,143 @@
 From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH rdma-next v3 08/14] IB/core: Support passing uhw for
- create_flow
-Date: Thu, 31 May 2018 18:09:48 +0300
-Message-ID: <a052d9e5-16c9-5a89-8f55-c7650eff4b38@dev.mellanox.co.il>
+Subject: Re: [PATCH rdma-next v3 00/14] Verbs flow counters support
+Date: Thu, 31 May 2018 19:15:44 +0300
+Message-ID: <db11463e-45dd-233d-f366-2ad8b032fba7@dev.mellanox.co.il>
 References: <20180531134341.18441-1-leon@kernel.org>
- <20180531134341.18441-9-leon@kernel.org>
- <14063C7AD467DE4B82DEDB5C278E8663B38F0635@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663B38F0635@FMSMSX108.amr.corp.intel.com>
+In-Reply-To: <20180531134341.18441-1-leon@kernel.org>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/31/2018 5:42 PM, Ruhl, Michael J wrote:
->> -----Original Message-----
->> From: Leon Romanovsky [mailto:leon@kernel.org]
->> Sent: Thursday, May 31, 2018 9:44 AM
->> To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe
->> <jgg@mellanox.com>
->> Cc: Leon Romanovsky <leonro@mellanox.com>; RDMA mailing list <linux-
->> rdma@vger.kernel.org>; Boris Pismenny <borisp@mellanox.com>; Matan
->> Barak <matanb@mellanox.com>; Ruhl, Michael J <michael.j.ruhl@intel.com>;
->> Or Gerlitz <ogerlitz@mellanox.com>; Raed Salem <raeds@mellanox.com>;
->> Yishai Hadas <yishaih@mellanox.com>; Saeed Mahameed
->> <saeedm@mellanox.com>; linux-netdev <netdev@vger.kernel.org>
->> Subject: [PATCH rdma-next v3 08/14] IB/core: Support passing uhw for
->> create_flow
->>
->> From: Matan Barak <matanb@mellanox.com>
->>
->> This is required when user-space drivers need to pass extra information
->> regarding how to handle this flow steering specification.
->>
->> Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
->> Signed-off-by: Matan Barak <matanb@mellanox.com>
->> Signed-off-by: Boris Pismenny <borisp@mellanox.com>
->> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->> ---
->> drivers/infiniband/core/uverbs_cmd.c | 7 ++++++-
->> drivers/infiniband/core/verbs.c      | 2 +-
->> drivers/infiniband/hw/mlx4/main.c    | 6 +++++-
->> drivers/infiniband/hw/mlx5/main.c    | 7 ++++++-
->> include/rdma/ib_verbs.h              | 3 ++-
->> 5 files changed, 20 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/infiniband/core/uverbs_cmd.c
->> b/drivers/infiniband/core/uverbs_cmd.c
->> index e74262ee104c..ddb9d79691be 100644
->> --- a/drivers/infiniband/core/uverbs_cmd.c
->> +++ b/drivers/infiniband/core/uverbs_cmd.c
->> @@ -3542,11 +3542,16 @@ int ib_uverbs_ex_create_flow(struct
->> ib_uverbs_file *file,
->> 		err = -EINVAL;
->> 		goto err_free;
->> 	}
->> -	flow_id = ib_create_flow(qp, flow_attr, IB_FLOW_DOMAIN_USER);
->> +
->> +	flow_id = qp->device->create_flow(qp, flow_attr,
->> +					  IB_FLOW_DOMAIN_USER, uhw);
->> +
+On 5/31/2018 4:43 PM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> If the create_flow() callback is not defined, won't this cause a problem?
+> Changelog:
+> v2->v3:
+>   * Change function mlx5_fc_query signature to hide the details of
+>     internal core driver struct mlx5_fc
+>   * Add commen to data[] field at struct mlx5_ib_flow_counters_data (mlx5-abi.h)
+>   * Use array of struct mlx5_ib_flow_counters_desc to clarify the output
+> v1->v2:
+>   * Removed conversion from struct mlx5_fc* to void*
+>   * Fixed one place with double space in it
+>   * Balanced release of hardware handler in case of counters allocation failure
+>   * Added Tested-by
+>   * Minimize time spent holding mutex lock
+>   * Fixed deadlock caused by nested lock in error path
+>   * Protect from handler pointer derefence in the error paths
 > 
-> ib_flow_create() checks for the NULL.
+> Not changed: mlx5-abi.h
 > 
+> v0->v1:
+>   * Decouple from DevX submission
+>   * Use uverbs_attr_get_obj at counters read method
+>   * Added define for max read buffer size (MAX_COUNTERS_BUFF_SIZE)
+>   * Removed the struct mlx5_ib_flow_counter basic_flow_cnts and
+>     the related structs used, used define instead
+>   * Took Matan's patch from DevX
+>   * uverbs_free_counters removed void* casting
+>   * Added check to bound ncounters value (added define
+>   * Changed user supplied data buffer structure to be array of
+>     struct <desc,index> pair (applied this change to user space also)
+> 
+> Not changed:
+>   * UAPI files
+>   * Addition of uhw to flow
+> 
+> Thanks
 
-We are fine here.
 
-This function is called only if the device turned on the command mask 
-(i.e. IB_USER_VERBS_EX_CMD_CREATE_FLOW) which comes together with its 
-callback.
+The corresponding rdma-core PR [1] was updated to match this V3 series.
+[1] https://github.com/linux-rdma/rdma-core/pull/330
 
-see:
-https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/core/uverbs_main.c#L709
+Yishai
 
+> ----------------------------------------------------------------------
+>  From Raed:
 > 
+> This series comes to allow user space applications to monitor real time
+> traffic activity and events of the verbs objects it manages, e.g.:
+> ibv_qp, ibv_wq, ibv_flow.
 > 
->> 	if (IS_ERR(flow_id)) {
->> 		err = PTR_ERR(flow_id);
->> 		goto err_free;
->> 	}
->> +	atomic_inc(&qp->usecnt);
->> +	flow_id->qp = qp;
->> 	flow_id->uobject = uobj;
->> 	uobj->object = flow_id;
->> 	uflow = container_of(uobj, typeof(*uflow), uobject);
->> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
->> index 6ddfb1fade79..0b56828c1319 100644
->> --- a/drivers/infiniband/core/verbs.c
->> +++ b/drivers/infiniband/core/verbs.c
->> @@ -1983,7 +1983,7 @@ struct ib_flow *ib_create_flow(struct ib_qp *qp,
->> 	if (!qp->device->create_flow)
->> 		return ERR_PTR(-EOPNOTSUPP);
->>
->> -	flow_id = qp->device->create_flow(qp, flow_attr, domain);
->> +	flow_id = qp->device->create_flow(qp, flow_attr, domain, NULL);
->> 	if (!IS_ERR(flow_id)) {
->> 		atomic_inc(&qp->usecnt);
->> 		flow_id->qp = qp;
->> diff --git a/drivers/infiniband/hw/mlx4/main.c
->> b/drivers/infiniband/hw/mlx4/main.c
->> index bf12394c13c1..6fe5d5d1d1d9 100644
->> --- a/drivers/infiniband/hw/mlx4/main.c
->> +++ b/drivers/infiniband/hw/mlx4/main.c
->> @@ -1848,7 +1848,7 @@ static int mlx4_ib_add_dont_trap_rule(struct
->> mlx4_dev *dev,
->>
->> static struct ib_flow *mlx4_ib_create_flow(struct ib_qp *qp,
->> 				    struct ib_flow_attr *flow_attr,
->> -				    int domain)
->> +				    int domain, struct ib_udata *udata)
->> {
->> 	int err = 0, i = 0, j = 0;
->> 	struct mlx4_ib_flow *mflow;
->> @@ -1866,6 +1866,10 @@ static struct ib_flow *mlx4_ib_create_flow(struct
->> ib_qp *qp,
->> 	    (flow_attr->type != IB_FLOW_ATTR_NORMAL))
->> 		return ERR_PTR(-EOPNOTSUPP);
->>
->> +	if (udata &&
->> +	    udata->inlen && !ib_is_udata_cleared(udata, 0, udata->inlen))
->> +		return ERR_PTR(-EOPNOTSUPP);
->> +
->> 	memset(type, 0, sizeof(type));
->>
->> 	mflow = kzalloc(sizeof(*mflow), GFP_KERNEL);
->> diff --git a/drivers/infiniband/hw/mlx5/main.c
->> b/drivers/infiniband/hw/mlx5/main.c
->> index 92879d2d3026..fb31a719ee25 100644
->> --- a/drivers/infiniband/hw/mlx5/main.c
->> +++ b/drivers/infiniband/hw/mlx5/main.c
->> @@ -3371,7 +3371,8 @@ static struct mlx5_ib_flow_handler
->> *create_sniffer_rule(struct mlx5_ib_dev *dev,
->>
->> static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
->> 					   struct ib_flow_attr *flow_attr,
->> -					   int domain)
->> +					   int domain,
->> +					   struct ib_udata *udata)
->> {
->> 	struct mlx5_ib_dev *dev = to_mdev(qp->device);
->> 	struct mlx5_ib_qp *mqp = to_mqp(qp);
->> @@ -3383,6 +3384,10 @@ static struct ib_flow *mlx5_ib_create_flow(struct
->> ib_qp *qp,
->> 	int err;
->> 	int underlay_qpn;
->>
->> +	if (udata &&
->> +	    udata->inlen && !ib_is_udata_cleared(udata, 0, udata->inlen))
->> +		return ERR_PTR(-EOPNOTSUPP);
->> +
->> 	if (flow_attr->priority > MLX5_IB_FLOW_LAST_PRIO)
->> 		return ERR_PTR(-ENOMEM);
->>
->> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
->> index ba49e874c841..84f412f7b8f3 100644
->> --- a/include/rdma/ib_verbs.h
->> +++ b/include/rdma/ib_verbs.h
->> @@ -2459,7 +2459,8 @@ struct ib_device {
->> 	struct ib_flow *	   (*create_flow)(struct ib_qp *qp,
->> 						  struct ib_flow_attr
->> 						  *flow_attr,
->> -						  int domain);
->> +						  int domain,
->> +						  struct ib_udata *udata);
->> 	int			   (*destroy_flow)(struct ib_flow *flow_id);
->> 	int			   (*check_mr_status)(struct ib_mr *mr, u32
->> check_mask,
->> 						      struct ib_mr_status
->> *mr_status);
->> --
->> 2.14.3
+> This API enables generic counters creation and define mapping
+> to association with a verbs object, current mlx5 driver using
+> this API for flow counters.
+> 
+> With this API, an application can monitor the entire life cycle of
+> object activity, defined here as a static counters attachment.
+> This API also allows dynamic counters monitoring of measurement points
+> for a partial period in the verbs object life cycle.
+> 
+> In addition it presents the implementation of the generic counters interface.
+> 
+> This will be achieved by extending flow creation by adding a new flow count
+> specification type which allows the user to associate a previously created
+> flow counters using the generic verbs counters interface to the created flow,
+> once associated the user could read statistics by using the read function of
+> the generic counters interface.
+> 
+> The API includes:
+> 1. create and destroyed API of a new counters objects
+> 2. read the counters values from HW
+> 
+> Note:
+> Attaching API to allow application to define the measurement points per objects
+> is a user space only API and this data is passed to kernel when the counted
+> object (e.g. flow) is created with the counters object.
+> 
+> Thanks
+> 
+> Matan Barak (2):
+>    IB/uverbs: Add an ib_uobject getter to ioctl() infrastructure
+>    IB/core: Support passing uhw for create_flow
+> 
+> Or Gerlitz (1):
+>    net/mlx5: Use flow counter pointer as input to the query function
+> 
+> Raed Salem (11):
+>    net/mlx5: Export flow counter related API
+>    IB/core: Introduce counters object and its create/destroy
+>    IB/uverbs: Add create/destroy counters support
+>    IB/core: Introduce counters read verb
+>    IB/uverbs: Add read counters support
+>    IB/core: Add support for flow counters
+>    IB/uverbs: Add support for flow counters
+>    IB/mlx5: Add counters create and destroy support
+>    IB/mlx5: Add flow counters binding support
+>    IB/mlx5: Add flow counters read support
+>    IB/mlx5: Add counters read support
+> 
+>   drivers/infiniband/core/Makefile                   |   2 +-
+>   drivers/infiniband/core/uverbs.h                   |   2 +
+>   drivers/infiniband/core/uverbs_cmd.c               |  88 +++++-
+>   drivers/infiniband/core/uverbs_std_types.c         |   3 +-
+>   .../infiniband/core/uverbs_std_types_counters.c    | 157 +++++++++++
+>   drivers/infiniband/core/uverbs_std_types_cq.c      |  23 +-
+>   .../infiniband/core/uverbs_std_types_flow_action.c |   4 +-
+>   drivers/infiniband/core/verbs.c                    |   2 +-
+>   drivers/infiniband/hw/mlx4/main.c                  |   6 +-
+>   drivers/infiniband/hw/mlx5/main.c                  | 305 ++++++++++++++++++++-
+>   drivers/infiniband/hw/mlx5/mlx5_ib.h               |  36 +++
+>   drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |  15 +-
+>   drivers/net/ethernet/mellanox/mlx5/core/fs_core.h  |   2 -
+>   .../net/ethernet/mellanox/mlx5/core/fs_counters.c  |   7 +-
+>   include/linux/mlx5/fs.h                            |   4 +
+>   include/rdma/ib_verbs.h                            |  43 ++-
+>   include/rdma/uverbs_ioctl.h                        |  11 +
+>   include/uapi/rdma/ib_user_ioctl_cmds.h             |  21 ++
+>   include/uapi/rdma/ib_user_verbs.h                  |  13 +
+>   include/uapi/rdma/mlx5-abi.h                       |  24 ++
+>   20 files changed, 712 insertions(+), 56 deletions(-)
+>   create mode 100644 drivers/infiniband/core/uverbs_std_types_counters.c
+> 
+> --
+> 2.14.3
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
