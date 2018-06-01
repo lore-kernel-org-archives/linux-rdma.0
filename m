@@ -1,110 +1,98 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH V2 mlx5-next 0/2] Mellanox, mlx5 new device events
-Date: Fri, 1 Jun 2018 19:21:26 +0300
-Message-ID: <20180601162126.GB2843@mtr-leonro.mtl.com>
-References: <20180530175950.9488-1-saeedm@mellanox.com>
- <20180531.153603.45475041396194381.davem@davemloft.net>
- <82ddad11b6a77aa07238ff50ae8769360bfb583b.camel@redhat.com>
- <20180601.114558.569563972122502762.davem@davemloft.net>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Fri, 1 Jun 2018 10:47:32 -0600
+Message-ID: <20180601164732.GA21374@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="rJwd6BRFiFCcLxzm"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="wRRV7LY7NUeQGEoC"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180601.114558.569563972122502762.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: dledford@redhat.com, saeedm@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, jgg@mellanox.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---rJwd6BRFiFCcLxzm
+--wRRV7LY7NUeQGEoC
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jun 01, 2018 at 11:45:58AM -0400, David Miller wrote:
-> From: Doug Ledford <dledford@redhat.com>
-> Date: Fri, 01 Jun 2018 11:08:24 -0400
->
-> > On Thu, 2018-05-31 at 15:36 -0400, David Miller wrote:
-> >> From: Saeed Mahameed <saeedm@mellanox.com>
-> >> Date: Wed, 30 May 2018 10:59:48 -0700
-> >>
-> >> > The following series is for mlx5-next tree [1], it adds the support of two
-> >> > new device events, from Ilan Tayari:
-> >> >
-> >> > 1. High temperature warnings.
-> >> > 2. FPGA QP error event.
-> >> >
-> >> > In case of no objection this series will be applied to mlx5-next tree
-> >> > and will be sent later as a pull request to both rdma and net trees.
-> >> >
-> >> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/log/?h=mlx5-next
-> >> >
-> >> > v1->v2:
-> >> >   - improve commit message of the FPGA QP error event patch.
-> >>
-> >> Series applied, thanks.
-> >
-> > Hi Dave,
-> >
-> > Although in this case it doesn't really matter and we can work around
-> > it, this was supposed to be a case of the new methodology that Saeed and
-> > Jason had worked out with you.  Specifically, when Saeed says in the
-> > cover letter:
-> >
-> >> In case of no objection this series will be applied to mlx5-next tree>
-> >> and will be sent later as a pull request to both rdma and net trees.
-> >
-> > then it is intended for you to ack the original patch series, not apply
-> > it, and when acks from both the net and rdma side have been received,
-> > then we will get a pull request of just that series.
->
-> Sorry, I saw your ACK and misinterpreted the situation.
->
-> I'll be more careful next time.
+Hi Linus,
 
-Doug, Dave
+Third pull request for -rc
 
-I would like to clarify this point, we intend to send pull request to only
-one maintainer, who actually needs the accepted patches.
+Just 3 small last minute regressions that were found in the last week. The
+Broadcom fix is a bit big for rc7, but since it is fixing driver crash
+regressions that were merged via netdev into rc1, I am sending it.
 
-Let's take the RDMA flow counters series as an example:
-https://www.spinics.net/lists/linux-rdma/msg65620.html
+The following changes since commit 55ba49cbcef37053d973f9a45bc58818c333fe13:
 
-This series includes 12 patches for RDMA and 2 shared code
-(mlx5-next). Those two patches, the RDMA side will receive as part
-of specific pull request and netdev will get them if some netdev
-feature down the road will need mlx5-next branch.
+  RDMA/hns: Move the location for initializing tmp_len (2018-05-23 15:45:44 -0600)
 
-Of course, it is harmless for both of you to pull, but it looks like
-extra work which is not needed for you.
+are available in the Git repository at:
 
-Thanks
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+for you to fetch changes up to a840c93ca7582bb6c88df2345a33f979b7a67874:
 
---rJwd6BRFiFCcLxzm
+  IB/core: Fix error code for invalid GID entry (2018-05-29 12:08:37 -0600)
+
+----------------------------------------------------------------
+Merge candidates for 4.17-rc
+
+- bnxt netdev changes merged this cycle caused the bnxt RDMA driver to crash under
+  certain situations
+- Arnd found (several, unfortunately) kconfig problems with the patches adding
+  INFINIBAND_ADDR_TRANS. Reverting this last part, will fix it more fully
+  outside -rc.
+- Subtle change in error code for a uapi function caused breakage in userspace.
+  This was bug was subtly introduced cycle
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      IB: Revert "remove redundant INFINIBAND kconfig dependencies"
+
+Devesh Sharma (1):
+      RDMA/bnxt_re: Fix broken RoCE driver due to recent L2 driver changes
+
+Parav Pandit (1):
+      IB/core: Fix error code for invalid GID entry
+
+ drivers/infiniband/core/cache.c            |  2 +-
+ drivers/infiniband/hw/bnxt_re/main.c       | 55 ++++++++++++++++-
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 94 +++++++++++++++++++-----------
+ drivers/infiniband/hw/bnxt_re/qplib_fp.h   |  3 +
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c | 61 +++++++++++++------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.h |  3 +
+ drivers/infiniband/ulp/srpt/Kconfig        |  2 +-
+ drivers/nvme/host/Kconfig                  |  2 +-
+ drivers/nvme/target/Kconfig                |  2 +-
+ drivers/staging/lustre/lnet/Kconfig        |  2 +-
+ fs/cifs/Kconfig                            |  2 +-
+ net/9p/Kconfig                             |  2 +-
+ net/rds/Kconfig                            |  2 +-
+ net/sunrpc/Kconfig                         |  2 +-
+ 14 files changed, 172 insertions(+), 62 deletions(-)
+
+--wRRV7LY7NUeQGEoC
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJbEXKGAAoJEORje4g2clins6gP/0ovsHbRF8JfzA6Bnpo+EeVN
-v0+z7zM7f/vtF7cq7IQxTSyy+XcW+jxZFLFWCl6yPiSwUtt7KEbxvDaAoeA9wvU5
-7lsXw3W4h8k2mBtBWOc96XMsEM5PFTKbSJ1Ojdv4jH1jiKJdVUuCZsOprO7yA/+k
-eDc0e2pjvA493QFQCoJL1Q6NFdQKKeptQfl4O1YL9tiuVY3vlpfsHSQCcrV0QRFs
-Rnz5txgL/6g+6UAgycLFKk4lRS2bPQCvGoH7pycvsNxMMz515mgGNDArc/sSRiAl
-zK+SGxu2q12KIIWLXBGX4RvFpIjzlP0bm3D5b+gIzilldy9L4IFezrYb9LSOpGSN
-WeOej6NBZyYY9hB4PmBkDbaGzBg3JF8avISk4SWrA1gzs/OzClpYQTLjg+FA2+yR
-n5m2vC9vwbNt4OlvDAmru2aWW0pNyCGC6xJMuUAZVQr++iSo9RIuuczhjxLm8XfL
-/e+b9TtMkRdlBfHrxN+M4jWImXaD352B9Fut8IPb0M+kK/qrh3KWba7IAS/u10zB
-47Re5wZS66ZmnyU6sHY/Tkm7E9gplUihbezkPnzB7eIxqlBotZMaTjL3g+hTG3Qu
-f5xy1UO2H5rkFRpZy8fNMR2UuFH1K7WXPq5yRCXreHZ2TkFmDris9T4iceALt+MT
-hURH+1nJTW0RiznIS6Oh
-=jhVQ
+iQIcBAABCgAGBQJbEXihAAoJEDht9xV+IJsa2qYP/3GB77ZPYc+joHaEjvFD8AOd
+BFr91XpB1lun32b3KfRs3j9MBNLeILhLMasWnVZeQXH95x4i5oG7cQ3ItVvk5DvO
+bbrjDyUl1gj496IQ0ur0SvSqFkn9+/4/+eMBw1ov9oq3J0LNoPwOLR+SPsRfo3DH
+51OtZiortaF7EkJEwyUCmz3rSP0Khwqx0MSWLmAd05t1Ca9Cbsa8NFJx/zNT9c44
+Oy8YsH+eGeY+Kr2Hbv4eZhD1UC8TI6ixVt2zTpHTwnbqtQXuEU1OW2zrwbVlzqAp
+/VS1ZA4VamDG6h5GOQtfFVEWL5z6VYQHU6WIOq8zNMYyIjqS7kPalV9/7XmDVS98
+lZC8eCe8JF8sg33bI4mmYD0aisJmzzuuRx3xmxlHm1Wb7NbwBoRqg+sC9Z7ybPcw
+W3lY++c550f7zXiS0XSR1ZirlvAYQt6b5JtRLfMWNsrt9k6gQWMtE726J1tVKO4D
+Da7KbGBLhrH5dioLLAngKxgTelieNe67XhVBICY2KQl9SPdgSYVyMyfcRPN5foTe
+f01Vs3kOD188EJ96AGfITBZ8jGPlFijrwtbe52qY4VlYSQG9NDgOBMeIuAEy5gcG
+JEjjWU9umMlyg567vKfG5I98B8pc7vZealUnyqh1j128eZ4kud8dzPAY+tjP6vp5
+KqHcdkVbcRSMdVQVUyci
+=SfxG
 -----END PGP SIGNATURE-----
 
---rJwd6BRFiFCcLxzm--
+--wRRV7LY7NUeQGEoC--
