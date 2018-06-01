@@ -1,83 +1,84 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH V4] mlx4_core: allocate ICM memory in page size chunks
-Date: Fri, 1 Jun 2018 09:31:37 +0200
-Message-ID: <20180601073137.GV15278@dhcp22.suse.cz>
-References: <20180523232246.20445-1-qing.huang@oracle.com>
- <20180525.102321.858995452200286788.davem@davemloft.net>
- <7a353b65-6b7f-1aee-1c48-e83c8e02f693@gmail.com>
- <0e11e0fc-6ccf-aa93-9c4f-b9eae1b90643@gmail.com>
- <cdf0d1a9-378a-8b09-544e-a4918acb57fe@gmail.com>
- <20180531065405.GH15278@dhcp22.suse.cz>
- <ae114f01-4b09-bb1c-fb92-6152486a896f@gmail.com>
- <20180531085532.GK15278@dhcp22.suse.cz>
- <20180531091022.GL15278@dhcp22.suse.cz>
- <7d8f52e1-aa16-d20c-a9a8-35ad88c0b1ab@oracle.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH V2 mlx5-next 0/2] Mellanox, mlx5 new device events
+Date: Fri, 01 Jun 2018 11:08:24 -0400
+Message-ID: <82ddad11b6a77aa07238ff50ae8769360bfb583b.camel@redhat.com>
+References: <20180530175950.9488-1-saeedm@mellanox.com>
+         <20180531.153603.45475041396194381.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7d8f52e1-aa16-d20c-a9a8-35ad88c0b1ab@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, David Miller <davem@davemloft.net>, tariqt@mellanox.com, haakon.bugge@oracle.com, yanjun.zhu@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, gi-oh.kim@profitbricks.com, "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-UVolf40a18z/6Ie6NlHo"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180531.153603.45475041396194381.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leonro@mellanox.com, jgg@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 31-05-18 19:04:46, Qing Huang wrote:
-> 
-> 
-> On 5/31/2018 2:10 AM, Michal Hocko wrote:
-> > On Thu 31-05-18 10:55:32, Michal Hocko wrote:
-> > > On Thu 31-05-18 04:35:31, Eric Dumazet wrote:
-> > [...]
-> > > > I merely copied/pasted from alloc_skb_with_frags() :/
-> > > I will have a look at it. Thanks!
-> > OK, so this is an example of an incremental development ;).
-> > 
-> > __GFP_NORETRY was added by ed98df3361f0 ("net: use __GFP_NORETRY for
-> > high order allocations") to prevent from OOM killer. Yet this was
-> > not enough because fb05e7a89f50 ("net: don't wait for order-3 page
-> > allocation") didn't want an excessive reclaim for non-costly orders
-> > so it made it completely NOWAIT while it preserved __GFP_NORETRY in
-> > place which is now redundant. Should I send a patch?
-> > 
-> 
-> Just curious, how about GFP_ATOMIC flag? Would it work in a similar fashion?
-> We experimented
-> with it a bit in the past but it seemed to cause other issue in our tests.
-> :-)
 
-GFP_ATOMIC is a non-sleeping (aka no reclaim) context with an access to
-memory reserves. So the risk is that you deplete those reserves and
-cause issues to other subsystems which need them as well.
+--=-UVolf40a18z/6Ie6NlHo
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> By the way, we didn't encounter any OOM killer events. It seemed that the
-> mlx4_alloc_icm() triggered slowpath.
-> We still had about 2GB free memory while it was highly fragmented.
+On Thu, 2018-05-31 at 15:36 -0400, David Miller wrote:
+> From: Saeed Mahameed <saeedm@mellanox.com>
+> Date: Wed, 30 May 2018 10:59:48 -0700
+>=20
+> > The following series is for mlx5-next tree [1], it adds the support of =
+two
+> > new device events, from Ilan Tayari:
+> >=20
+> > 1. High temperature warnings.
+> > 2. FPGA QP error event.
+> >=20
+> > In case of no objection this series will be applied to mlx5-next tree
+> > and will be sent later as a pull request to both rdma and net trees.
+> >=20
+> > [1] https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/=
+log/?h=3Dmlx5-next
+> >=20
+> > v1->v2:
+> >   - improve commit message of the FPGA QP error event patch.
+>=20
+> Series applied, thanks.
 
-The compaction was able to make a reasonable forward progress for you.
-But considering mlx4_alloc_icm is called with GFP_KERNEL resp. GFP_HIGHUSER
-then the OOM killer is clearly possible as long as the order is lower
-than 4.
+Hi Dave,
 
->  #0 [ffff8801f308b380] remove_migration_pte at ffffffff811f0e0b
->  #1 [ffff8801f308b3e0] rmap_walk_file at ffffffff811cb890
->  #2 [ffff8801f308b440] rmap_walk at ffffffff811cbaf2
->  #3 [ffff8801f308b450] remove_migration_ptes at ffffffff811f0db0
->  #4 [ffff8801f308b490] __unmap_and_move at ffffffff811f2ea6
->  #5 [ffff8801f308b4e0] unmap_and_move at ffffffff811f2fc5
->  #6 [ffff8801f308b540] migrate_pages at ffffffff811f3219
->  #7 [ffff8801f308b5c0] compact_zone at ffffffff811b707e
->  #8 [ffff8801f308b650] compact_zone_order at ffffffff811b735d
->  #9 [ffff8801f308b6e0] try_to_compact_pages at ffffffff811b7485
-> #10 [ffff8801f308b770] __alloc_pages_direct_compact at ffffffff81195f96
-> #11 [ffff8801f308b7b0] __alloc_pages_slowpath at ffffffff811978a1
-> #12 [ffff8801f308b890] __alloc_pages_nodemask at ffffffff81197ec1
-> #13 [ffff8801f308b970] alloc_pages_current at ffffffff811e261f
-> #14 [ffff8801f308b9e0] mlx4_alloc_icm at ffffffffa01f39b2 [mlx4_core]
-> 
-> Thanks!
+Although in this case it doesn't really matter and we can work around
+it, this was supposed to be a case of the new methodology that Saeed and
+Jason had worked out with you.  Specifically, when Saeed says in the
+cover letter:
 
--- 
-Michal Hocko
-SUSE Labs
+> In case of no objection this series will be applied to mlx5-next tree>
+> and will be sent later as a pull request to both rdma and net trees.
+
+then it is intended for you to ack the original patch series, not apply
+it, and when acks from both the net and rdma side have been received,
+then we will get a pull request of just that series.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+--=-UVolf40a18z/6Ie6NlHo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlsRYWgACgkQuCajMw5X
+L929BQ//ck20GiC8ScXU1XxLxcj3CUq0HJA9mlv1SvOo0kUzOmil1S3urrT1CjDZ
+yrxGbV4YgD61dgmFuwTU7Q9/icvSpAkd3hI0Ekipzd/sXwz/tV/GhCNg16FX2a8t
+6QK4Xwr+hpCweHBAQNlaR6ankSWQ+8wqS9IT+9FgIs028+GAe3mHOCCWQZZeL3jz
+3iSxDYEf7w7UCwZtMkL1FeWDgLEVkBNLz0UO7isBAuZJ+l+imvJTMC+iIj2YfKJx
+Py8R7NirpX1YbmhrFYGF5MLfsBokLuGvi0eB9dZ4wjA7YW8MSgyAQa3tZoR42zLA
+7z+t2RNo6gFF4ZkVUE0VuedLh7GZsS9pyOzGIZL1u1mZCd1CtcK6gSDmkOtQiSlT
+knT8nFUeaw+k338vvCecpO4e38o2WWdWbzDNr78Ey2K+3XvMeq+4iNz5tasyrfwl
+S6FekUaSrQ3B/iYMDKn4L1LNwJ30PYjf3994WAUCk1mPwoGYunmgx0ZEKUYNWdYx
+SGdC5avlqL9dENI3TkudbbxGkqrYHxlIGEAAQ59wtpuZmXQM6snvpdJcMm6JjQu0
+oiGY2L1Nluo8QNmeMMXZJDiPnPwf4vCE3W+owl4qe9YCmY5axhwGEAiEyRixRWPz
+zK1ISraAbkZKe4f1nNxBTNy5kFeLPBMEBwhk6doaPzUucDsRR38=
+=zvwF
+-----END PGP SIGNATURE-----
+
+--=-UVolf40a18z/6Ie6NlHo--
