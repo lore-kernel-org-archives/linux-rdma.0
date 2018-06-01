@@ -1,64 +1,79 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH V2 mlx5-next 0/2] Mellanox, mlx5 new device events
-Date: Fri, 1 Jun 2018 22:30:28 +0300
-Message-ID: <20180601193028.GD2843@mtr-leonro.mtl.com>
-References: <82ddad11b6a77aa07238ff50ae8769360bfb583b.camel@redhat.com>
- <20180601.114558.569563972122502762.davem@davemloft.net>
- <20180601162126.GB2843@mtr-leonro.mtl.com>
- <20180601.130818.1180539221546183992.davem@davemloft.net>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v3 05/14] IB/uverbs: Add create/destroy
+ counters support
+Date: Fri, 1 Jun 2018 14:54:36 -0600
+Message-ID: <20180601205436.GA20377@ziepe.ca>
+References: <20180531134341.18441-1-leon@kernel.org>
+ <20180531134341.18441-6-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="DrWhICOqskFTAXiy"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180601.130818.1180539221546183992.davem@davemloft.net>
+In-Reply-To: <20180531134341.18441-6-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: dledford@redhat.com, saeedm@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, jgg@mellanox.com
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> diff --git a/drivers/infiniband/core/uverbs_std_types_counters.c b/drivers/infiniband/core/uverbs_std_types_counters.c
+> new file mode 100644
+> index 000000000000..a5bc50ceee13
+> +++ b/drivers/infiniband/core/uverbs_std_types_counters.c
+> @@ -0,0 +1,100 @@
+> +/* SPDX-License-Identifier: ((GPL-2.0 WITH Linux-syscall-note) OR BSD-2-Clause) */
 
---DrWhICOqskFTAXiy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Check patch tells me this is malformed should be:
 
-On Fri, Jun 01, 2018 at 01:08:18PM -0400, David Miller wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> Date: Fri, 1 Jun 2018 19:21:26 +0300
->
-> > Of course, it is harmless for both of you to pull, but it looks like
-> > extra work which is not needed for you.
->
-> Just put net-next or rdma-next in the subject line(s) and that will
-> make it very clear what it expected to happen.
+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
 
-It was our intention too.
+Apparently the WITH Linux-syscall-note is only used in uapi header
+files.
 
-Thanks
+> +/*
+> + * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And this is not a SPDX BSD-2-Clause license, this is the SPDX
+Linux-OpenIB license.
 
---DrWhICOqskFTAXiy
-Content-Type: application/pgp-signature; name="signature.asc"
+Please be careful to use the correct tag with SPDX..
 
------BEGIN PGP SIGNATURE-----
+Also can you check if these SPDX tags are what are intended:
 
-iQIcBAEBAgAGBQJbEZ7UAAoJEORje4g2clinNWMP/0o/lXk8QjHPN1qbGNOBkxh7
-GjFOCk83EAjnP55691hrDEzLp2VwhbO116dKEMPgfhvGH9NSc8YSr5Wg/j6NnrI7
-18R+KQOcyuwJJzRRcAc1I/Y/DtA6RQl10ABEg7XnhWC66JQ2nNrb8N0WfRVXZ8Fq
-EP0hyph7vJOb0mHTL7A/AdTNOgYENyn6tWuvsxDvmJ9zO7d4NYZVBHXYbXrKwUUp
-EQZC4XXS6++zH+T6r8x5zmynE87BYDCjfzy6AQZP82tuIpNGBimHCa1DSVlz15ZM
-kXwZEEQH7+0++mKNar4LnMmx9ezIrTojkRr0WHoIrPkqJLtei0EAnX2xZbqaFqiN
-0pFUk7bYW1L4tEdP5cvLHP4ld5Nvn6c6zJFA3G2gu+skC/VqodFGDOG+WcqHPyVJ
-cmdD7sROpu/VOHJGmnkl/mIt2r1ZADCCPdSevncWaVawJxlBAq6sQw3hA1UFilrk
-b7YchG0fkDwhGxfeem84leVNIKWxoyz9D9rJ144sIkPTHWqOhq4bFCu/DDdgUNLn
-0UfexgPKUJyldpSIsa0R0baydbWNdtOwhy9F9M1RkIiLiIutDLCH2KRKpqvjkEO/
-3/XDFRcxmuBK8JLrpkJO2gwtMHNHPae4+o5DgDvv4hdulWLOyEzTeZD6InHcJkeA
-xusXsyTFHmC/4CooztTH
-=kotk
------END PGP SIGNATURE-----
+include/rdma/restrack.h:/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
+drivers/infiniband/core/restrack.c:/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
+drivers/infiniband/hw/mlx5/ib_rep.c:/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
+drivers/infiniband/hw/mlx5/ib_rep.h:/* SPDX-License-Identifier: (GPL-2.0+ OR BSD-3-Clause) */
 
---DrWhICOqskFTAXiy--
+I'm not super excited about the license proliferation, so if they
+should have been OR Linux-OpenIB as well then please send a patch.
+
+Jason
