@@ -1,47 +1,90 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH V2 mlx5-next 0/2] Mellanox, mlx5 new device events
-Date: Sat, 2 Jun 2018 00:17:37 +0000
-Message-ID: <a6385f91ca1611184391b1949f26f531ae812911.camel@mellanox.com>
-References: <20180530175950.9488-1-saeedm@mellanox.com>
-         <20180531.153603.45475041396194381.davem@davemloft.net>
-         <34cedd2bed26c85e886426bde8635081a4b36e64.camel@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next v3 00/14] Verbs flow counters support
+Date: Sat, 2 Jun 2018 08:04:19 +0300
+Message-ID: <20180602050419.GH2843@mtr-leonro.mtl.com>
+References: <20180531134341.18441-1-leon@kernel.org>
+ <20180601211149.GA24028@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="y2zxS2PfCDLh6JVG"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <34cedd2bed26c85e886426bde8635081a4b36e64.camel@mellanox.com>
-Content-Language: en-US
-Content-ID: <3513FCEAE99B8D4DB129331631B66BF2@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <20180601211149.GA24028@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: "davem@davemloft.net" <davem@davemloft.net>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Matan Barak <matanb@mellanox.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Or Gerlitz <ogerlitz@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTA2LTAxIGF0IDE3OjEzIC0wNzAwLCBzYWVlZG1AbWVsbGFub3guY29tIHdy
-b3RlOg0KPiBPbiBUaHUsIDIwMTgtMDUtMzEgYXQgMTU6MzYgLTA0MDAsIERhdmlkIE1pbGxlciB3
-cm90ZToNCj4gPiBGcm9tOiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCj4g
-PiBEYXRlOiBXZWQsIDMwIE1heSAyMDE4IDEwOjU5OjQ4IC0wNzAwDQo+ID4gDQo+ID4gPiBUaGUg
-Zm9sbG93aW5nIHNlcmllcyBpcyBmb3IgbWx4NS1uZXh0IHRyZWUgWzFdLCBpdCBhZGRzIHRoZQ0K
-PiA+ID4gc3VwcG9ydA0KPiA+ID4gb2YgdHdvDQo+ID4gPiBuZXcgZGV2aWNlIGV2ZW50cywgZnJv
-bSBJbGFuIFRheWFyaToNCj4gPiA+IA0KPiA+ID4gMS4gSGlnaCB0ZW1wZXJhdHVyZSB3YXJuaW5n
-cy4NCj4gPiA+IDIuIEZQR0EgUVAgZXJyb3IgZXZlbnQuDQo+ID4gPiANCj4gPiA+IEluIGNhc2Ug
-b2Ygbm8gb2JqZWN0aW9uIHRoaXMgc2VyaWVzIHdpbGwgYmUgYXBwbGllZCB0byBtbHg1LW5leHQN
-Cj4gPiA+IHRyZWUNCj4gPiA+IGFuZCB3aWxsIGJlIHNlbnQgbGF0ZXIgYXMgYSBwdWxsIHJlcXVl
-c3QgdG8gYm90aCByZG1hIGFuZCBuZXQNCj4gPiA+IHRyZWVzLg0KPiA+ID4gDQo+ID4gPiBbMV0g
-aHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbWVsbGFub3gv
-bGludQ0KPiA+ID4geC4NCj4gPiA+IGdpdC9sb2cvP2g9bWx4NS1uZXh0DQo+ID4gPiANCj4gPiA+
-IHYxLT52MjoNCj4gPiA+ICAgLSBpbXByb3ZlIGNvbW1pdCBtZXNzYWdlIG9mIHRoZSBGUEdBIFFQ
-IGVycm9yIGV2ZW50IHBhdGNoLg0KPiA+IA0KPiA+IFNlcmllcyBhcHBsaWVkLCB0aGFua3MuDQo+
-IA0KPiBIZXkgRGF2ZSwgdGhpcyBzZXJpZXMgd2FzIG1lYW50IHRvIGdvIHRvIG1seDUtbmV4dCB0
-cmVlIGFzIHN0YXRlZCBpbg0KPiB0aGUgY292ZXIgbGV0dGVyIGFuZCBwYXRjaGVzIHRpdGxlcyAi
-W1BBVENIIFYyIG1seDUtbmV4dCAwLzJdIi4NCj4gDQo+IEl0IGlzIG9rIHlvdSBhcHBsaWVkIHRo
-b3NlIHBhdGNoZXMgdG8gbmV0LW5leHQgdGhpcyB0aW1lLCBidXQgZm9yDQo+IG5leHQNCj4gdGlt
-ZSBJIHdvdWxkIGxpa2UgdG8gYXBwbHkgdGhlbSBteXNlbGYgdG8gbWx4NS1uZXh0IGFuZCBzZW5k
-IGEgY2xlYW4NCj4gcHVsbCByZXF1ZXN0IGxhdGVyIHRvIGJvdGggcmRtYSBhbmQgbmV0IHRyZWVz
-Lg0KPiANCg0KU29ycnkgcGxlYXNlIGlnbm9yZSwgSSBqdXN0IHNhdyB0aGF0IHRoaXMgd2FzIHNv
-cnRlZCBvdXQgLi4gOikuDQpUaGFua3MgQSBsb3QgIQ0KDQo+IElzIHRoZXJlIGEgd2F5IGZvciBt
-ZSB0byBtYXJrIHRoZW0gYXMgZGVsZWdhdGVkIGluIHBhdGNod29yayA/DQo+IEkgc2VlIHRoYXQg
-aSBoYXZlICJ1cGRhdGUgUHJvcGVydGllcyIgb3B0aW9uIGluIHBhdGNod29yayBidXQgaSBkb24n
-dA0KPiBrbm93IGhvdyB0byB1c2UgaXQgb3Igd2hldGhlciBJIGFtIGFsbG93ZWQgdG8gZG8gYW55
-dGhpbmcgd2l0aCBpdC4NCj4gDQoNCkl0IHdvdWxkIGJlIGdyZWF0IGlmIHdlIGNhbiBtYXJrIHN1
-Y2ggcGF0Y2hlcyBpbiBwYXRjaHdvcmsgdGhvdWdoLi4gDQoNCj4gVGhhbmtzLA0KPiBTYWVlZC4=
+
+--y2zxS2PfCDLh6JVG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Jun 01, 2018 at 03:11:49PM -0600, Jason Gunthorpe wrote:
+> On Thu, May 31, 2018 at 04:43:27PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Changelog:
+> > v2->v3:
+> >  * Change function mlx5_fc_query signature to hide the details of
+> >    internal core driver struct mlx5_fc
+> >  * Add commen to data[] field at struct mlx5_ib_flow_counters_data (mlx5-abi.h)
+> >  * Use array of struct mlx5_ib_flow_counters_desc to clarify the output
+> > v1->v2:
+> >  * Removed conversion from struct mlx5_fc* to void*
+> >  * Fixed one place with double space in it
+> >  * Balanced release of hardware handler in case of counters allocation failure
+> >  * Added Tested-by
+> >  * Minimize time spent holding mutex lock
+> >  * Fixed deadlock caused by nested lock in error path
+> >  * Protect from handler pointer derefence in the error paths
+>
+> Okay,
+>
+> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+>
+> I've revised some of the commit messages, fixed the two bad
+> check-patch warnings, and fixed the patch ordering..
+>
+> https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-counters
+>
+> Please send a PR with the mlx-core bits and above commits.
+
+Hi,
+
+I applied two mlx5-next commits to the relevant tree:
+https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/commit/?h=mlx5-next&id=930821e39d0a5f91ed58fea1692afe04f0fe0e1f
+https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/commit/?h=mlx5-next&id=5f9bf63ae80c4d0e5e986b6c1280bf8174978545
+
+In first commit, I dropped the words "as used to be", per-Saeed's request.
+
+The proper signed tag for whole the series is: verbs_flow_counters
+git://git.kernel.org/pub/scm/linux/kernel/git/leon/linux-rdma.git tags/verbs_flow_counters
+
+Thanks
+
+>
+> Thanks,
+> Jason
+
+--y2zxS2PfCDLh6JVG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbEiVTAAoJEORje4g2clinOlsP/jmDywMxEUAIUpS0V2DZF94j
+Mr0LL0JImPBp2xdoQiVMYCpIT9Hx0O2NaeHxO7D8QyLZVsK0RLsDXrFDGrkPk3eB
+Kw1GQdXlWHqLUGhtgiyxEGbj2F9jWHIjsUkrMRFc0IHvEakEX62HhnlgTtm+XxAb
+WZFao8ZWe0FEbv3G3q5FP+6xkHcNQrt4L6HpndtZIL/IVXWU7hnC/611hxCMB5Ip
+OUCCItb324rJuSPafEzyBw7mmM16leFnTu9w8ZhX68x9laXtUsqM6HRMeMzcklD2
+h0l1dmDkmxMNRr+HqJTA4zJuMfQLcUHzRTS3siLaG1O8tp0OOkICneeOhKfGBXRJ
+75dD3hTeiKJnxaEz8WzW7dWwAsPaejVacwgiTZ3S5yp43wK7eCX+nrbKoL4CVCZ8
+eAl/mqUibaLKUoCYq7Ht3a8JGiC47fTzFVC5Us26HWfgMbko+qcT6d8m56wqCy0S
+cJJoQwM3S8HdgOJ03lDuWML5YG786BkT6l+eWn8REa0hr5KOj0JBpLxdlJDmIrFs
+ZU2tEfWIeRqGr9UyWYc8wtnH1LkrhJKcLJQrX7P/3gDy7IZmipCx45SW9Zgd638f
+chF06x3YmAJL3jbr1hdCG1u4ZbIv1n89kwcQSbf8sXp6O3mgK9ioPWhOPJiOcBOu
+DSBpdC/CSqLSAcs7YB2z
+=tkiJ
+-----END PGP SIGNATURE-----
+
+--y2zxS2PfCDLh6JVG--
