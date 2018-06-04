@@ -1,34 +1,31 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc 0/2] IB/hfi1: Fixes for rc or next if too late
-Date: Mon, 4 Jun 2018 13:34:48 -0600
-Message-ID: <20180604193448.GA27896@ziepe.ca>
-References: <20180531182633.26542.10152.stgit@scvm10.sc.intel.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next v2] qed: Add srq core support for RoCE and
+ iWARP
+Date: Mon, 04 Jun 2018 17:12:15 -0400 (EDT)
+Message-ID: <20180604.171215.1900107573480185166.davem@davemloft.net>
+References: <20180603161307.29832-1-yuval.bason@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180531182633.26542.10152.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180603161307.29832-1-yuval.bason@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: yuval.bason@cavium.com
+Cc: netdev@vger.kernel.org, jgg@mellanox.com, dledford@redhat.com, linux-rdma@vger.kernel.org, michal.kalderon@cavium.com, ariel.elior@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 31, 2018 at 11:29:59AM -0700, Dennis Dalessandro wrote:
-> Hi Doug and Jason,
-> 
-> We have two more late breaking fix up patches. The DMA_RTAIL fix is the more
-> serious of the two. I realize we are at the tail end of 4.17 so I would not be
-> against holding off till 4.18 for these, but if there is another rdma
-> pull request we may want to tack these on.
-> 
-> 
-> Kaike Wan (1):
->       IB/hfi1: Ensure VL index is within bounds
-> 
-> Mike Marciniszyn (1):
->       IB/hfi1: Fix user context tail allocation for DMA_RTAIL
+From: Yuval Bason <yuval.bason@cavium.com>
+Date: Sun, 3 Jun 2018 19:13:07 +0300
 
-applied to for-next since the merge window is open now
+> This patch adds support for configuring SRQ and provides the necessary
+> APIs for rdma upper layer driver (qedr) to enable the SRQ feature.
+> 
+> Signed-off-by: Michal Kalderon <michal.kalderon@cavium.com>
+> Signed-off-by: Ariel Elior <ariel.elior@cavium.com>
+> Signed-off-by: Yuval Bason <yuval.bason@cavium.com>
+> ---
+> Changes from v1:
+> 	- sparse warnings
+> 	- replace memset with ={}
 
-Thanks,
-Jason
+Applied, thanks.
