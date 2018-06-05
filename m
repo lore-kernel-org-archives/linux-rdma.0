@@ -1,26 +1,45 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net/mlx5e: fix error return code in
- mlx5e_alloc_rq()
-Date: Tue, 05 Jun 2018 10:20:57 -0400 (EDT)
-Message-ID: <20180605.102057.1833899340780364135.davem@davemloft.net>
-References: <1528166576-55047-1-git-send-email-weiyongjun1@huawei.com>
+Subject: Re: [PATCH net-next] qed*: Utilize FW 8.37.2.0
+Date: Tue, 05 Jun 2018 10:48:37 -0400 (EDT)
+Message-ID: <20180605.104837.461936459830856823.davem@davemloft.net>
+References: <20180605101116.30292-1-Michal.Kalderon@cavium.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1528166576-55047-1-git-send-email-weiyongjun1@huawei.com>
+In-Reply-To: <20180605101116.30292-1-Michal.Kalderon@cavium.com>
 Sender: netdev-owner@vger.kernel.org
-To: weiyongjun1@huawei.com
-Cc: saeedm@mellanox.com, leon@kernel.org, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Michal.Kalderon@cavium.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Ariel.Elior@cavium.com, manish.rangankar@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Date: Tue, 5 Jun 2018 02:42:56 +0000
+From: Michal Kalderon <Michal.Kalderon@cavium.com>
+Date: Tue, 5 Jun 2018 13:11:16 +0300
 
-> Fix to return error code -ENOMEM from the kvzalloc_node() error handling
-> case instead of 0, as done elsewhere in this function.
+> This FW contains several fixes and features.
 > 
-> Fixes: 069d11465a80 ("net/mlx5e: RX, Enhance legacy Receive Queue memory scheme")
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> RDMA
+> - Several modifications and fixes for Memory Windows
+> - drop vlan and tcp timestamp from mss calculation in driver for
+>   this FW
+> - Fix SQ completion flow when local ack timeout is infinite
+> - Modifications in t10dif support
+> 
+> ETH
+> - Fix aRFS for tunneled traffic without inner IP.
+> - Fix chip configuration which may fail under heavy traffic conditions.
+> - Support receiving any-VNI in VXLAN and GENEVE RX classification.
+> 
+> iSCSI / FcoE
+> - Fix iSCSI recovery flow
+> - Drop vlan and tcp timestamp from mss calc for fw 8.37.2.0
+> 
+> Misc
+> - Several registers (split registers) won't read correctly with
+>   ethtool -d
+> 
+> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
+> Signed-off-by: Manish Rangankar <manish.rangankar@cavium.com>
+> Signed-off-by: Michal Kalderon <Michal.Kalderon@cavium.com>
 
-Applied.
+Applied, thank you.
