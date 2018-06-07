@@ -1,112 +1,194 @@
-From: Matthew Wilcox <mawilcox@microsoft.com>
-Subject: RE: [PATCH v3 2/2] IB/mad: Use ID allocator routines to allocate
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Subject: Re: [PATCH v3 2/2] IB/mad: Use ID allocator routines to allocate
  agent number
-Date: Thu, 7 Jun 2018 15:37:50 +0000
-Message-ID: <BL0PR2101MB088460CA4C97562CB311ED3ECB640@BL0PR2101MB0884.namprd21.prod.outlook.com>
+Date: Thu, 7 Jun 2018 19:59:58 +0200
+Message-ID: <7314EE01-3CCE-4C76-B7AB-C40AEC2F17E7@oracle.com>
 References: <20180529073808.27735-1-hans.westgaard.ry@oracle.com>
  <20180607111435.17538-1-hans.westgaard.ry@oracle.com>
  <20180607111435.17538-3-hans.westgaard.ry@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+ <BL0PR2101MB088460CA4C97562CB311ED3ECB640@BL0PR2101MB0884.namprd21.prod.outlook.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.18\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180607111435.17538-3-hans.westgaard.ry@oracle.com>
-Content-Language: en-US
+In-Reply-To: <BL0PR2101MB088460CA4C97562CB311ED3ECB640@BL0PR2101MB0884.namprd21.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Hakon Bugge <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Pravin Shedge <pravin.shedge4linux@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@kernel.org>, Wei Wang <wei.w.wang@intel.com>, Chris Mi <chrism@mellanox.com>, Eric Biggers <ebiggers@google.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Mel Gorman <mgorman@techsingularity.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Pravin Shedge <pravin.shedge4linux@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Jeff Layton <jlayton@kernel.org>, Wei Wang <wei.w.wang@intel.com>, Chris Mi <chrism@mellanox.com>, Eric Biggers <ebiggers@google.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Mel Gorman <mgorman@techsingularity.net>, OFED mailing list <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-V2h5IGRvIHlvdSBuZWVkIHRoZSBJRCB0byBpbmNyZW1lbnQgbGlrZSB0aGlzPyAgV2h5IGNhbid0
-IHlvdSBqdXN0IHVzZSBhIHVuaXF1ZSBJRD8NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPiBGcm9tOiBIYW5zIFdlc3RnYWFyZCBSeSBbbWFpbHRvOmhhbnMud2VzdGdhYXJkLnJ5QG9y
-YWNsZS5jb21dDQo+IFNlbnQ6IFRodXJzZGF5LCBKdW5lIDcsIDIwMTggNzoxNSBBTQ0KPiBUbzog
-RG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPjsgSmFzb24gR3VudGhvcnBlIDxqZ2dA
-emllcGUuY2E+Ow0KPiBIYWtvbiBCdWdnZSA8aGFha29uLmJ1Z2dlQG9yYWNsZS5jb20+OyBQYXJh
-diBQYW5kaXQNCj4gPHBhcmF2QG1lbGxhbm94LmNvbT47IEphY2sgTW9yZ2Vuc3RlaW4gPGphY2tt
-QGRldi5tZWxsYW5veC5jby5pbD47IFByYXZpbg0KPiBTaGVkZ2UgPHByYXZpbi5zaGVkZ2U0bGlu
-dXhAZ21haWwuY29tPjsgTWF0dGhldyBXaWxjb3gNCj4gPG1hd2lsY294QG1pY3Jvc29mdC5jb20+
-OyBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPjsNCj4gSmVmZiBMYXl0
-b24gPGpsYXl0b25Aa2VybmVsLm9yZz47IFdlaSBXYW5nIDx3ZWkudy53YW5nQGludGVsLmNvbT47
-IENocmlzDQo+IE1pIDxjaHJpc21AbWVsbGFub3guY29tPjsgRXJpYyBCaWdnZXJzIDxlYmlnZ2Vy
-c0Bnb29nbGUuY29tPjsgUmFzbXVzDQo+IFZpbGxlbW9lcyA8bGludXhAcmFzbXVzdmlsbGVtb2Vz
-LmRrPjsgTWVsIEdvcm1hbg0KPiA8bWdvcm1hbkB0ZWNoc2luZ3VsYXJpdHkubmV0PjsgbGludXgt
-cmRtYUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+
-IFN1YmplY3Q6IFtQQVRDSCB2MyAyLzJdIElCL21hZDogVXNlIElEIGFsbG9jYXRvciByb3V0aW5l
-cyB0byBhbGxvY2F0ZSBhZ2VudA0KPiBudW1iZXINCj4gDQo+IFRoZSBhZ2VudCBUSUQgaXMgYSA2
-NCBiaXQgdmFsdWUgc3BsaXQgaW4gdHdvIGR3b3Jkcy4gIFRoZSBsZWFzdA0KPiBzaWduaWZpY2Fu
-dCBkd29yZCBpcyB0aGUgVElEIHJ1bm5pbmcgY291bnRlci4gVGhlIG1vc3Qgc2lnbmlmaWNhbnQN
-Cj4gZHdvcmQgaXMgdGhlIGFnZW50IG51bWJlci4gSW4gdGhlIENYLTMgc2hhcmVkIHBvcnQgbW9k
-ZWwsIHRoZSBtbHg0DQo+IGRyaXZlciB1c2VzIHRoZSBtb3N0IHNpZ25pZmljYW50IGJ5dGUgb2Yg
-dGhlIGFnZW50IG51bWJlciB0byBzdG9yZSB0aGUNCj4gc2xhdmUgbnVtYmVyLCBtYWtpbmcgYWdl
-bnQgbnVtYmVycyBncmVhdGVyIGFuZCBlcXVhbCB0byAyXjI0ICgzIGJ5dGVzKQ0KPiB1bnVzYWJs
-ZS4gIFRoZSBjdXJyZW50IGNvZGViYXNlIHVzZXMgYSB2YXJpYWJsZSB3aGljaCBpcyBpbmNyZW1l
-bnRlZA0KPiBhdG9taWNhbGx5IGZvciBlYWNoIG5ldyBhZ2VudCBudW1iZXIgZ2l2aW5nIHRvbyBs
-YXJnZSBhZ2VudCBudW1iZXJzDQo+IG92ZXIgdGltZS4gIFRoZSBJREEgc2V0IG9mIGZ1bmN0aW9u
-cyBhcmUgdXNlZCBpbnN0ZWFkIG9mIHRoZSBzaW1wbGUNCj4gY291bnRlciBhcHByb2FjaC4gVGhp
-cyBhbGxvd3MgcmUtdXNlIG9mIGFnZW50IG51bWJlcnMuDQo+IA0KPiBUaGUgc2lnbmF0dXJlIG9m
-IHRoZSBidWcgaXMgYSBNQUQgbGF5ZXIgdGhhdCBzdG9wcyB3b3JraW5nIGFuZCB0aGUNCj4gY29u
-c29sZSBpcyBmbG9vZGVkIHdpdGggbWVzc2FnZXMgbGlrZToNCj4gIG1seDRfaWI6IGVncmVzcyBt
-YWQgaGFzIG5vbi1udWxsIHRpZCBtc2I6MSBjbGFzczo0IHNsYXZlOjANCj4gDQo+IFNpZ25lZC1v
-ZmYtYnk6IEhhbnMgV2VzdGdhYXJkIFJ5IDxoYW5zLndlc3RnYWFyZC5yeUBvcmFjbGUuY29tPg0K
-PiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jIHwgMjUgKysrKysrKysrKysr
-KysrKysrKysrLS0tLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIxIGluc2VydGlvbnMoKyksIDQgZGVs
-ZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFk
-LmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPiBpbmRleCBiMjg0NTJhNTVhMDgu
-LmMwMWEyZDYzZmZhMiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFk
-LmMNCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCj4gQEAgLTQxLDYgKzQx
-LDcgQEANCj4gICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+DQo+ICAjaW5jbHVkZSA8bGludXgvbW9k
-dWxlLmg+DQo+ICAjaW5jbHVkZSA8bGludXgvc2VjdXJpdHkuaD4NCj4gKyNpbmNsdWRlIDxsaW51
-eC9pZHIuaD4NCj4gICNpbmNsdWRlIDxyZG1hL2liX2NhY2hlLmg+DQo+IA0KPiAgI2luY2x1ZGUg
-Im1hZF9wcml2LmgiDQo+IEBAIC01OSw4ICs2MCw3IEBAIG1vZHVsZV9wYXJhbV9uYW1lZChyZWN2
-X3F1ZXVlX3NpemUsDQo+IG1hZF9yZWN2cV9zaXplLCBpbnQsIDA0NDQpOw0KPiAgTU9EVUxFX1BB
-Uk1fREVTQyhyZWN2X3F1ZXVlX3NpemUsICJTaXplIG9mIHJlY2VpdmUgcXVldWUgaW4gbnVtYmVy
-IG9mDQo+IHdvcmsgcmVxdWVzdHMiKTsNCj4gDQo+ICBzdGF0aWMgc3RydWN0IGxpc3RfaGVhZCBp
-Yl9tYWRfcG9ydF9saXN0Ow0KPiAtc3RhdGljIGF0b21pY190IGliX21hZF9jbGllbnRfaWQgPSBB
-VE9NSUNfSU5JVCgwKTsNCj4gLQ0KPiArc3RhdGljIERFRklORV9JREEoaWJfbWFkX2NsaWVudF9p
-ZHMpOw0KPiAgLyogUG9ydCBsaXN0IGxvY2sgKi8NCj4gIHN0YXRpYyBERUZJTkVfU1BJTkxPQ0so
-aWJfbWFkX3BvcnRfbGlzdF9sb2NrKTsNCj4gDQo+IEBAIC0yMTIsNyArMjEyLDcgQEAgc3RydWN0
-IGliX21hZF9hZ2VudCAqaWJfcmVnaXN0ZXJfbWFkX2FnZW50KHN0cnVjdA0KPiBpYl9kZXZpY2Ug
-KmRldmljZSwNCj4gIAlpbnQgcmV0MiwgcXBuOw0KPiAgCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+
-ICAJdTggbWdtdF9jbGFzcywgdmNsYXNzOw0KPiAtDQo+ICsJdTMyIGliX21hZF9jbGllbnRfaWQ7
-DQo+ICAJLyogVmFsaWRhdGUgcGFyYW1ldGVycyAqLw0KPiAgCXFwbiA9IGdldF9zcGxfcXBfaW5k
-ZXgocXBfdHlwZSk7DQo+ICAJaWYgKHFwbiA9PSAtMSkgew0KPiBAQCAtMzc1LDkgKzM3NSwxOSBA
-QCBzdHJ1Y3QgaWJfbWFkX2FnZW50ICppYl9yZWdpc3Rlcl9tYWRfYWdlbnQoc3RydWN0DQo+IGli
-X2RldmljZSAqZGV2aWNlLA0KPiAgCQlyZXQgPSBFUlJfUFRSKHJldDIpOw0KPiAgCQlnb3RvIGVy
-cm9yNDsNCj4gIAl9DQo+ICsJaWJfbWFkX2NsaWVudF9pZCA9IGlkYV9zaW1wbGVfZ2V0X2N5Y2xp
-YygmaWJfbWFkX2NsaWVudF9pZHMsDQo+ICsJCQkJCQkxLA0KPiArCQkJCQkJQklUKDI0KSAtIDEs
-DQo+ICsJCQkJCQlHRlBfS0VSTkVMKTsNCj4gKwlpZiAoaWJfbWFkX2NsaWVudF9pZCA8IDApIHsN
-Cj4gKwkJcHJfZXJyKCJDb3VsZG4ndCBhbGxvY2F0ZSBhZ2VudCB0aWQ7IGVycmNvZGU6ICUjeFxu
-IiwNCj4gKwkJCWliX21hZF9jbGllbnRfaWQpOw0KPiArCQlyZXQgPSBFUlJfUFRSKGliX21hZF9j
-bGllbnRfaWQpOw0KPiArCQlnb3RvIGVycm9yNDsNCj4gKwl9DQo+ICsJbWFkX2FnZW50X3ByaXYt
-PmFnZW50LmhpX3RpZCA9IGliX21hZF9jbGllbnRfaWQ7DQo+IA0KPiAgCXNwaW5fbG9ja19pcnFz
-YXZlKCZwb3J0X3ByaXYtPnJlZ19sb2NrLCBmbGFncyk7DQo+IC0JbWFkX2FnZW50X3ByaXYtPmFn
-ZW50LmhpX3RpZCA9DQo+IGF0b21pY19pbmNfcmV0dXJuKCZpYl9tYWRfY2xpZW50X2lkKTsNCj4g
-DQo+ICAJLyoNCj4gIAkgKiBNYWtlIHN1cmUgTUFEIHJlZ2lzdHJhdGlvbiAoaWYgc3VwcGxpZWQp
-DQo+IEBAIC00MjgsNiArNDM4LDggQEAgc3RydWN0IGliX21hZF9hZ2VudCAqaWJfcmVnaXN0ZXJf
-bWFkX2FnZW50KHN0cnVjdA0KPiBpYl9kZXZpY2UgKmRldmljZSwNCj4gIGVycm9yNToNCj4gIAlz
-cGluX3VubG9ja19pcnFyZXN0b3JlKCZwb3J0X3ByaXYtPnJlZ19sb2NrLCBmbGFncyk7DQo+ICAJ
-aWJfbWFkX2FnZW50X3NlY3VyaXR5X2NsZWFudXAoJm1hZF9hZ2VudF9wcml2LT5hZ2VudCk7DQo+
-ICsJaWRhX3NpbXBsZV9yZW1vdmUoJmliX21hZF9jbGllbnRfaWRzLCBpYl9tYWRfY2xpZW50X2lk
-KTsNCj4gKw0KPiAgZXJyb3I0Og0KPiAgCWtmcmVlKHJlZ19yZXEpOw0KPiAgZXJyb3IzOg0KPiBA
-QCAtNTc2LDYgKzU4OCw3IEBAIHN0YXRpYyB2b2lkIHVucmVnaXN0ZXJfbWFkX2FnZW50KHN0cnVj
-dA0KPiBpYl9tYWRfYWdlbnRfcHJpdmF0ZSAqbWFkX2FnZW50X3ByaXYpDQo+ICB7DQo+ICAJc3Ry
-dWN0IGliX21hZF9wb3J0X3ByaXZhdGUgKnBvcnRfcHJpdjsNCj4gIAl1bnNpZ25lZCBsb25nIGZs
-YWdzOw0KPiArCXUzMiBpYl9tYWRfY2xpZW50X2lkOw0KPiANCj4gIAkvKiBOb3RlIHRoYXQgd2Ug
-Y291bGQgc3RpbGwgYmUgaGFuZGxpbmcgcmVjZWl2ZWQgTUFEcyAqLw0KPiANCj4gQEAgLTU4Nyw2
-ICs2MDAsOCBAQCBzdGF0aWMgdm9pZCB1bnJlZ2lzdGVyX21hZF9hZ2VudChzdHJ1Y3QNCj4gaWJf
-bWFkX2FnZW50X3ByaXZhdGUgKm1hZF9hZ2VudF9wcml2KQ0KPiAgCXBvcnRfcHJpdiA9IG1hZF9h
-Z2VudF9wcml2LT5xcF9pbmZvLT5wb3J0X3ByaXY7DQo+ICAJY2FuY2VsX2RlbGF5ZWRfd29yaygm
-bWFkX2FnZW50X3ByaXYtPnRpbWVkX3dvcmspOw0KPiANCj4gKwlpYl9tYWRfY2xpZW50X2lkID0g
-bWFkX2FnZW50X3ByaXYtPmFnZW50LmhpX3RpZDsNCj4gKw0KPiAgCXNwaW5fbG9ja19pcnFzYXZl
-KCZwb3J0X3ByaXYtPnJlZ19sb2NrLCBmbGFncyk7DQo+ICAJcmVtb3ZlX21hZF9yZWdfcmVxKG1h
-ZF9hZ2VudF9wcml2KTsNCj4gIAlsaXN0X2RlbCgmbWFkX2FnZW50X3ByaXYtPmFnZW50X2xpc3Qp
-Ow0KPiBAQCAtNjAyLDYgKzYxNyw3IEBAIHN0YXRpYyB2b2lkIHVucmVnaXN0ZXJfbWFkX2FnZW50
-KHN0cnVjdA0KPiBpYl9tYWRfYWdlbnRfcHJpdmF0ZSAqbWFkX2FnZW50X3ByaXYpDQo+IA0KPiAg
-CWtmcmVlKG1hZF9hZ2VudF9wcml2LT5yZWdfcmVxKTsNCj4gIAlrZnJlZShtYWRfYWdlbnRfcHJp
-dik7DQo+ICsJaWRhX3NpbXBsZV9yZW1vdmUoJmliX21hZF9jbGllbnRfaWRzLCBpYl9tYWRfY2xp
-ZW50X2lkKTsNCj4gIH0NCj4gDQo+ICBzdGF0aWMgdm9pZCB1bnJlZ2lzdGVyX21hZF9zbm9vcChz
-dHJ1Y3QgaWJfbWFkX3Nub29wX3ByaXZhdGUNCj4gKm1hZF9zbm9vcF9wcml2KQ0KPiBAQCAtMzM0
-Nyw0ICszMzYzLDUgQEAgaW50IGliX21hZF9pbml0KHZvaWQpDQo+ICB2b2lkIGliX21hZF9jbGVh
-bnVwKHZvaWQpDQo+ICB7DQo+ICAJaWJfdW5yZWdpc3Rlcl9jbGllbnQoJm1hZF9jbGllbnQpOw0K
-PiArCWlkYV9kZXN0cm95KCZpYl9tYWRfY2xpZW50X2lkcyk7DQo+ICB9DQo+IC0tDQo+IDIuMTQu
-Mw0KDQo=
+
+
+> On 7 Jun 2018, at 17:37, Matthew Wilcox <mawilcox@microsoft.com> =
+wrote:
+>=20
+> Why do you need the ID to increment like this?  Why can't you just use =
+a unique ID?
+
+Hans first patch did that, but it was "beaten" up. Turns out, MAD =
+packets can be hiding and lingering in the fabric, hence, when an ID is =
+released after, lets say a timeout, we want to maximize the time until =
+its reuse.
+
+
+Thxs, H=C3=A5kon
+
+>=20
+>> -----Original Message-----
+>> From: Hans Westgaard Ry [mailto:hans.westgaard.ry@oracle.com]
+>> Sent: Thursday, June 7, 2018 7:15 AM
+>> To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe =
+<jgg@ziepe.ca>;
+>> Hakon Bugge <haakon.bugge@oracle.com>; Parav Pandit
+>> <parav@mellanox.com>; Jack Morgenstein <jackm@dev.mellanox.co.il>; =
+Pravin
+>> Shedge <pravin.shedge4linux@gmail.com>; Matthew Wilcox
+>> <mawilcox@microsoft.com>; Andrew Morton <akpm@linux-foundation.org>;
+>> Jeff Layton <jlayton@kernel.org>; Wei Wang <wei.w.wang@intel.com>; =
+Chris
+>> Mi <chrism@mellanox.com>; Eric Biggers <ebiggers@google.com>; Rasmus
+>> Villemoes <linux@rasmusvillemoes.dk>; Mel Gorman
+>> <mgorman@techsingularity.net>; linux-rdma@vger.kernel.org; linux-
+>> kernel@vger.kernel.org
+>> Subject: [PATCH v3 2/2] IB/mad: Use ID allocator routines to allocate =
+agent
+>> number
+>>=20
+>> The agent TID is a 64 bit value split in two dwords.  The least
+>> significant dword is the TID running counter. The most significant
+>> dword is the agent number. In the CX-3 shared port model, the mlx4
+>> driver uses the most significant byte of the agent number to store =
+the
+>> slave number, making agent numbers greater and equal to 2^24 (3 =
+bytes)
+>> unusable.  The current codebase uses a variable which is incremented
+>> atomically for each new agent number giving too large agent numbers
+>> over time.  The IDA set of functions are used instead of the simple
+>> counter approach. This allows re-use of agent numbers.
+>>=20
+>> The signature of the bug is a MAD layer that stops working and the
+>> console is flooded with messages like:
+>> mlx4_ib: egress mad has non-null tid msb:1 class:4 slave:0
+>>=20
+>> Signed-off-by: Hans Westgaard Ry <hans.westgaard.ry@oracle.com>
+>> ---
+>> drivers/infiniband/core/mad.c | 25 +++++++++++++++++++++----
+>> 1 file changed, 21 insertions(+), 4 deletions(-)
+>>=20
+>> diff --git a/drivers/infiniband/core/mad.c =
+b/drivers/infiniband/core/mad.c
+>> index b28452a55a08..c01a2d63ffa2 100644
+>> --- a/drivers/infiniband/core/mad.c
+>> +++ b/drivers/infiniband/core/mad.c
+>> @@ -41,6 +41,7 @@
+>> #include <linux/slab.h>
+>> #include <linux/module.h>
+>> #include <linux/security.h>
+>> +#include <linux/idr.h>
+>> #include <rdma/ib_cache.h>
+>>=20
+>> #include "mad_priv.h"
+>> @@ -59,8 +60,7 @@ module_param_named(recv_queue_size,
+>> mad_recvq_size, int, 0444);
+>> MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of
+>> work requests");
+>>=20
+>> static struct list_head ib_mad_port_list;
+>> -static atomic_t ib_mad_client_id =3D ATOMIC_INIT(0);
+>> -
+>> +static DEFINE_IDA(ib_mad_client_ids);
+>> /* Port list lock */
+>> static DEFINE_SPINLOCK(ib_mad_port_list_lock);
+>>=20
+>> @@ -212,7 +212,7 @@ struct ib_mad_agent *ib_register_mad_agent(struct
+>> ib_device *device,
+>> 	int ret2, qpn;
+>> 	unsigned long flags;
+>> 	u8 mgmt_class, vclass;
+>> -
+>> +	u32 ib_mad_client_id;
+>> 	/* Validate parameters */
+>> 	qpn =3D get_spl_qp_index(qp_type);
+>> 	if (qpn =3D=3D -1) {
+>> @@ -375,9 +375,19 @@ struct ib_mad_agent =
+*ib_register_mad_agent(struct
+>> ib_device *device,
+>> 		ret =3D ERR_PTR(ret2);
+>> 		goto error4;
+>> 	}
+>> +	ib_mad_client_id =3D ida_simple_get_cyclic(&ib_mad_client_ids,
+>> +						1,
+>> +						BIT(24) - 1,
+>> +						GFP_KERNEL);
+>> +	if (ib_mad_client_id < 0) {
+>> +		pr_err("Couldn't allocate agent tid; errcode: %#x\n",
+>> +			ib_mad_client_id);
+>> +		ret =3D ERR_PTR(ib_mad_client_id);
+>> +		goto error4;
+>> +	}
+>> +	mad_agent_priv->agent.hi_tid =3D ib_mad_client_id;
+>>=20
+>> 	spin_lock_irqsave(&port_priv->reg_lock, flags);
+>> -	mad_agent_priv->agent.hi_tid =3D
+>> atomic_inc_return(&ib_mad_client_id);
+>>=20
+>> 	/*
+>> 	 * Make sure MAD registration (if supplied)
+>> @@ -428,6 +438,8 @@ struct ib_mad_agent *ib_register_mad_agent(struct
+>> ib_device *device,
+>> error5:
+>> 	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
+>> 	ib_mad_agent_security_cleanup(&mad_agent_priv->agent);
+>> +	ida_simple_remove(&ib_mad_client_ids, ib_mad_client_id);
+>> +
+>> error4:
+>> 	kfree(reg_req);
+>> error3:
+>> @@ -576,6 +588,7 @@ static void unregister_mad_agent(struct
+>> ib_mad_agent_private *mad_agent_priv)
+>> {
+>> 	struct ib_mad_port_private *port_priv;
+>> 	unsigned long flags;
+>> +	u32 ib_mad_client_id;
+>>=20
+>> 	/* Note that we could still be handling received MADs */
+>>=20
+>> @@ -587,6 +600,8 @@ static void unregister_mad_agent(struct
+>> ib_mad_agent_private *mad_agent_priv)
+>> 	port_priv =3D mad_agent_priv->qp_info->port_priv;
+>> 	cancel_delayed_work(&mad_agent_priv->timed_work);
+>>=20
+>> +	ib_mad_client_id =3D mad_agent_priv->agent.hi_tid;
+>> +
+>> 	spin_lock_irqsave(&port_priv->reg_lock, flags);
+>> 	remove_mad_reg_req(mad_agent_priv);
+>> 	list_del(&mad_agent_priv->agent_list);
+>> @@ -602,6 +617,7 @@ static void unregister_mad_agent(struct
+>> ib_mad_agent_private *mad_agent_priv)
+>>=20
+>> 	kfree(mad_agent_priv->reg_req);
+>> 	kfree(mad_agent_priv);
+>> +	ida_simple_remove(&ib_mad_client_ids, ib_mad_client_id);
+>> }
+>>=20
+>> static void unregister_mad_snoop(struct ib_mad_snoop_private
+>> *mad_snoop_priv)
+>> @@ -3347,4 +3363,5 @@ int ib_mad_init(void)
+>> void ib_mad_cleanup(void)
+>> {
+>> 	ib_unregister_client(&mad_client);
+>> +	ida_destroy(&ib_mad_client_ids);
+>> }
+>> --
+>> 2.14.3
+>=20
+> =
+N=C2=8B=C2=A7=C4=93=C3=A6=C4=97r=C4=BC=C2=9By=C3=BA=C4=8D=C2=9A=C3=98b=C4=93=
+X=C5=BD=C4=B7=C4=AE=C2=A7v=C3=98^=C2=96)=C3=9E=C5=A1{.n=C4=AE+=C2=89=C2=B7=
+=C4=A8=C2=8A{=C4=85=C2=AD=C5=B2=C2=9A=C2=8A{ay=C5=A1=1D=C4=98=C2=87=C3=9A=C2=
+=99=C3=AB,j=07=C2=AD=C4=92f=C4=A2=C4=92=C2=B7h=C2=9A=C2=8B=C4=81z=C4=91=1E=
+=C5=AAw=C4=A8=C4=92=C4=BC=0C=
+=C4=92=C2=B7=C4=B6j:+v=C2=89=C4=BB=C2=8Aw=C4=8Dj=C3=98m=C4=B7=C2=9F=C4=B8=C5=
+=AB=07=C5=A6=C2=91=C4=99=C4=AFzZ+=C2=83=C5=B3=C2=9A=C2=8E=C2=8A=C3=9D=C4=92=
+j"=C2=9D=C3=BA!
