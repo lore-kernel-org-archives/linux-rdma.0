@@ -1,87 +1,56 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] IB/mlx5: Fix memory leak in mlx5_ib_create_flow
-Date: Thu, 7 Jun 2018 14:19:15 -0500
-Message-ID: <20180607191915.GA9092@embeddedor.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: Please add mlx5-next tree
+Date: Fri, 8 Jun 2018 07:47:26 +1000
+Message-ID: <20180608074726.5b3883e2@canb.auug.org.au>
+References: <20180606192500.GZ2958@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/UN3x1Q=Yj6cpBanhrYXGxtn"; protocol="application/pgp-signature"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20180606192500.GZ2958@mtr-leonro.mtl.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Raed Salem <raeds@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "David S. Miller" <davem@davemloft.net>, linux-netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In case memory resources for *ucmd* were allocated, release them
-before return.
+--Sig_/UN3x1Q=Yj6cpBanhrYXGxtn
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Addresses-Coverity-ID: 1469857 ("Resource leak")
-Fixes: 3b3233fbf02e ("IB/mlx5: Add flow counters binding support")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/infiniband/hw/mlx5/main.c | 33 +++++++++++++++++++++------------
- 1 file changed, 21 insertions(+), 12 deletions(-)
+Hi Leon,
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index e52dd21..0472e6c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3546,29 +3546,35 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 			return ERR_PTR(-ENOMEM);
- 
- 		err = ib_copy_from_udata(ucmd, udata, required_ucmd_sz);
--		if (err) {
--			kfree(ucmd);
--			return ERR_PTR(err);
--		}
-+		if (err)
-+			goto free_ucmd;
- 	}
- 
--	if (flow_attr->priority > MLX5_IB_FLOW_LAST_PRIO)
--		return ERR_PTR(-ENOMEM);
-+	if (flow_attr->priority > MLX5_IB_FLOW_LAST_PRIO) {
-+		err = -ENOMEM;
-+		goto free_ucmd;
-+	}
- 
- 	if (domain != IB_FLOW_DOMAIN_USER ||
- 	    flow_attr->port > dev->num_ports ||
- 	    (flow_attr->flags & ~(IB_FLOW_ATTR_FLAGS_DONT_TRAP |
--				  IB_FLOW_ATTR_FLAGS_EGRESS)))
--		return ERR_PTR(-EINVAL);
-+				  IB_FLOW_ATTR_FLAGS_EGRESS))) {
-+		err = -EINVAL;
-+		goto free_ucmd;
-+	}
- 
- 	if (is_egress &&
- 	    (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
--	     flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT))
--		return ERR_PTR(-EINVAL);
-+	     flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT)) {
-+		err = -EINVAL;
-+		goto free_ucmd;
-+	}
- 
- 	dst = kzalloc(sizeof(*dst), GFP_KERNEL);
--	if (!dst)
--		return ERR_PTR(-ENOMEM);
-+	if (!dst) {
-+		err = -ENOMEM;
-+		goto free_ucmd;
-+	}
- 
- 	mutex_lock(&dev->flow_db->lock);
- 
-@@ -3640,6 +3646,9 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
- 	kfree(ucmd);
- 	kfree(handler);
- 	return ERR_PTR(err);
-+free_ucmd:
-+	kfree(ucmd);
-+	return ERR_PTR(err);
- }
- 
- static u32 mlx5_ib_flow_action_flags_to_accel_xfrm_flags(u32 mlx5_flags)
--- 
-2.7.4
+On Wed, 6 Jun 2018 22:25:00 +0300 Leon Romanovsky <leon@kernel.org> wrote:
+>
+> Can you please add the branch "mlx5-next" from the following tree to the
+> linux-next integration tree?
+>=20
+> https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/
+>=20
+> The mlx5-next branch is used to send shared pull requests to both netdev
+> and RDMA subsystems and it is worth to have linux-next coverage on it
+> before.
+
+I try hard not to add new trees during the merge window, sorry.  If I
+forget to add it after -rc1 has been released, please remind me.
+
+--=20
+Cheers,
+Stephen Rothwell
+
+--Sig_/UN3x1Q=Yj6cpBanhrYXGxtn
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlsZp+4ACgkQAVBC80lX
+0GwegAgAgZxkXXOi0xwk4FojHb+ikjjx8be8DI0H5eGoem9Y09r3Y2W8IgY569QI
+FYLuaW8BCo7+tSlNSXYjUG1yv32qrKadsFd+JytDtfIkqYDxIxXvy4cKKPaU2zL/
+YN898P+unVkRBA9vYgJl7g0ueGSZloV5g6c7ljVGRsOCgvgSI9hLj4D5hOJs5T2s
+zH1r9QFt2CRLVYtdS3SkcGO1e016Hmx1Zn9yzRArYOofqcwN+hfj9cVu9aZrucY3
+0R1RXjf7XH4iPJpaiTbdw9aBEaeQdd28X8vk7p9McnWTdM3q3npKPUf+OoEURJ7C
+WguSLs6vLbrj+vJs/cfk+PXT1LUU7g==
+=urIq
+-----END PGP SIGNATURE-----
+
+--Sig_/UN3x1Q=Yj6cpBanhrYXGxtn--
