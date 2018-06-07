@@ -1,56 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: Please add mlx5-next tree
-Date: Fri, 8 Jun 2018 07:47:26 +1000
-Message-ID: <20180608074726.5b3883e2@canb.auug.org.au>
-References: <20180606192500.GZ2958@mtr-leonro.mtl.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [RFC] IB/mad: Use IDR instead of per-port list
+Date: Thu, 7 Jun 2018 16:26:46 -0600
+Message-ID: <20180607222646.GX14597@mellanox.com>
+References: <20180607190832.GA24370@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/UN3x1Q=Yj6cpBanhrYXGxtn"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606192500.GZ2958@mtr-leonro.mtl.com>
+Content-Disposition: inline
+In-Reply-To: <20180607190832.GA24370@bombadil.infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "David S. Miller" <davem@davemloft.net>, linux-netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: hans.westgaard.ry@oracle.com, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/UN3x1Q=Yj6cpBanhrYXGxtn
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Thu, Jun 07, 2018 at 12:08:32PM -0700, Matthew Wilcox wrote:
+> 
+> Hans reports a bug where the mlx4 driver uses the MSB of the agent number
+> to store slave number, meaning we can only use agent numbers up to 2^24.
+> Fix this by using an IDR to assign the agent numbers and also look up the
+> agent when a MSD packet is received.
+> 
+> I've changed the locking substantially, so this may well have a
+> performance issue.  There are a few different possibilities for fixing
+> that, including moving to an RCU-based lookup.
 
-Hi Leon,
+I do like this better than the last series..
 
-On Wed, 6 Jun 2018 22:25:00 +0300 Leon Romanovsky <leon@kernel.org> wrote:
->
-> Can you please add the branch "mlx5-next" from the following tree to the
-> linux-next integration tree?
->=20
-> https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/
->=20
-> The mlx5-next branch is used to send shared pull requests to both netdev
-> and RDMA subsystems and it is worth to have linux-next coverage on it
-> before.
+This are is somewhat performance sensitive and it would be nice to
+avoid this global lock.
 
-I try hard not to add new trees during the merge window, sorry.  If I
-forget to add it after -rc1 has been released, please remind me.
+What about using a read/write spinlock instead of the IDR internal
+lock? Then all the per-port reading threads calling find_mad_agent can
+run concurrently..
 
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/UN3x1Q=Yj6cpBanhrYXGxtn
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlsZp+4ACgkQAVBC80lX
-0GwegAgAgZxkXXOi0xwk4FojHb+ikjjx8be8DI0H5eGoem9Y09r3Y2W8IgY569QI
-FYLuaW8BCo7+tSlNSXYjUG1yv32qrKadsFd+JytDtfIkqYDxIxXvy4cKKPaU2zL/
-YN898P+unVkRBA9vYgJl7g0ueGSZloV5g6c7ljVGRsOCgvgSI9hLj4D5hOJs5T2s
-zH1r9QFt2CRLVYtdS3SkcGO1e016Hmx1Zn9yzRArYOofqcwN+hfj9cVu9aZrucY3
-0R1RXjf7XH4iPJpaiTbdw9aBEaeQdd28X8vk7p9McnWTdM3q3npKPUf+OoEURJ7C
-WguSLs6vLbrj+vJs/cfk+PXT1LUU7g==
-=urIq
------END PGP SIGNATURE-----
-
---Sig_/UN3x1Q=Yj6cpBanhrYXGxtn--
+Thanks,
+Jason
