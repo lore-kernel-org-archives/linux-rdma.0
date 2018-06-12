@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] opensm git repo is now moved from OFA server to
+Subject: [ANNOUNCE] ibsim git repo is now moved from OFA server to
  github.com linux-rdma
-Date: Tue, 12 Jun 2018 10:02:45 -0400
-Message-ID: <38378bf1-77f1-76e0-7eca-b3429ff02709@dev.mellanox.co.il>
+Date: Tue, 12 Jun 2018 10:02:51 -0400
+Message-ID: <a48e7f55-22f0-259b-d0b1-d87789f24a3c@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
@@ -20,12 +20,12 @@ Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIG9wZW5zbSBnaXQgcmVwbyBvbiB0aGUgT0ZBIHNlcnZlciAoaHR0cDovL2dpdC5vcGVuZmFi
-cmljcy5vcmcvP3A9fmhhbHIvb3BlbnNtLmdpdCkgaXMgbm93IG9ic29sZXRlCmFuZCBoYXMgYmVl
-biBtb3ZlZCB0byB0aGUgbGludXgtcmRtYSBwcm9qZWN0IGluIGdpdGh1Yi5jb20gKGh0dHBzOi8v
-Z2l0aHViLmNvbS9saW51eC1yZG1hL29wZW5zbSkuCgpPcmlnaW5hbCByZWxlYXNlcyAodGFyIGJh
-bGxzKSBhcmUgYXZhaWxhYmxlIG9uIGh0dHA6Ly9kb3dubG9hZHMub3BlbmZhYnJpY3Mub3JnL21h
-bmFnZW1lbnQvCgpMYXN0IHJlbGVhc2Ugd2FzIG9wZW5zbS0zLjMuMjAgb24gSnVuZSA5LCAyMDE2
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWls
-aW5nIGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwOi8vbGlzdHMub3BlbmZhYnJp
-Y3Mub3JnL21haWxtYW4vbGlzdGluZm8vZXdn
+VGhlIGlic2ltIGdpdCByZXBvIG9uIHRoZSBPRkEgc2VydmVyIChodHRwOi8vZ2l0Lm9wZW5mYWJy
+aWNzLm9yZy8/cD1+aGFsci9pYnNpbS5naXQpIGlzIG5vdyBvYnNvbGV0ZQphbmQgaGFzIGJlZW4g
+bW92ZWQgdG8gdGhlIGxpbnV4LXJkbWEgcHJvamVjdCBpbiBnaXRodWIuY29tIChodHRwczovL2dp
+dGh1Yi5jb20vbGludXgtcmRtYS9pYnNpbSkuCgpPcmlnaW5hbCByZWxlYXNlcyAodGFyIGJhbGxz
+KSBhcmUgYXZhaWxhYmxlIG9uIGh0dHA6Ly9kb3dubG9hZHMub3BlbmZhYnJpY3Mub3JnL21hbmFn
+ZW1lbnQvCgpMYXN0IHJlbGVhc2Ugd2FzIGlic2ltLTAuNyBvbiBKdW5lIDExLCAyMDE2Cl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxp
+c3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwOi8vbGlzdHMub3BlbmZhYnJpY3Mub3Jn
+L21haWxtYW4vbGlzdGluZm8vZXdn
