@@ -1,129 +1,159 @@
-From: syzbot <syzbot+287843ad8a4d2870e538@syzkaller.appspotmail.com>
-Subject: KASAN: out-of-bounds Read in rds_cong_queue_updates (2)
-Date: Wed, 13 Jun 2018 00:51:02 -0700
-Message-ID: <00000000000081bd9d056e813e48@google.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: KASAN: use-after-free Read in rds_cong_queue_updates
+Date: Wed, 13 Jun 2018 09:51:44 +0200
+Message-ID: <CACT4Y+b+DFpa34E3UWzSYn6qy-BMmxN80ikdmU_xMe9x9JF2+Q@mail.gmail.com>
+References: <089e08e548431cd0f90565c9f4e5@google.com> <000000000000a643e4056e7d0db4@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <000000000000a643e4056e7d0db4@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
+To: syzbot <syzbot+4c20b3866171ce8441d2@syzkaller.appspotmail.com>, Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Wed, Jun 13, 2018 at 4:51 AM, syzbot
+<syzbot+4c20b3866171ce8441d2@syzkaller.appspotmail.com> wrote:
+> syzbot has found a reproducer for the following crash on:
 
-syzbot found the following crash on:
+Woohoo! Please take a look, this is a top crasher.
 
-HEAD commit:    0adb32858b0b Linux 4.16
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=138f2d0b800000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=df0c336cc3b55d45
-dashboard link: https://syzkaller.appspot.com/bug?extid=287843ad8a4d2870e538
-compiler:       gcc (GCC) 7.1.1 20170620
-
-Unfortunately, I don't have any reproducer for this crash yet.
-
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+287843ad8a4d2870e538@syzkaller.appspotmail.com
-
-==================================================================
-BUG: KASAN: out-of-bounds in __read_once_size include/linux/compiler.h:188  
-[inline]
-BUG: KASAN: out-of-bounds in atomic_read arch/x86/include/asm/atomic.h:27  
-[inline]
-BUG: KASAN: out-of-bounds in refcount_read include/linux/refcount.h:42  
-[inline]
-BUG: KASAN: out-of-bounds in check_net include/net/net_namespace.h:228  
-[inline]
-BUG: KASAN: out-of-bounds in rds_destroy_pending net/rds/rds.h:868 [inline]
-BUG: KASAN: out-of-bounds in rds_cong_queue_updates+0x4d3/0x4f0  
-net/rds/cong.c:226
-Read of size 4 at addr ffff88018d7f2204 by task kworker/u4:6/10561
-
-CPU: 1 PID: 10561 Comm: kworker/u4:6 Not tainted 4.16.0+ #10
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Workqueue: krdsd rds_send_worker
-Call Trace:
-  __dump_stack lib/dump_stack.c:17 [inline]
-  dump_stack+0x194/0x24d lib/dump_stack.c:53
-kernel msg: ebtables bug: please report to author: Wrong len argument
-  print_address_description+0x73/0x250 mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report+0x23c/0x360 mm/kasan/report.c:412
-  __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
-  __read_once_size include/linux/compiler.h:188 [inline]
-  atomic_read arch/x86/include/asm/atomic.h:27 [inline]
-  refcount_read include/linux/refcount.h:42 [inline]
-  check_net include/net/net_namespace.h:228 [inline]
-  rds_destroy_pending net/rds/rds.h:868 [inline]
-  rds_cong_queue_updates+0x4d3/0x4f0 net/rds/cong.c:226
-  rds_recv_rcvbuf_delta.part.2+0x289/0x320 net/rds/recv.c:118
-  rds_recv_rcvbuf_delta net/rds/recv.c:377 [inline]
-  rds_recv_incoming+0xeb4/0x11d0 net/rds/recv.c:377
-  rds_loop_xmit+0x149/0x320 net/rds/loop.c:82
-  rds_send_xmit+0xbcd/0x26b0 net/rds/send.c:355
-  rds_send_worker+0x115/0x2a0 net/rds/threads.c:199
-  process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
-  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
-  kthread+0x33c/0x400 kernel/kthread.c:238
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
-
-The buggy address belongs to the page:
-page:ffffea000635fc80 count:3 mapcount:2 mapping:0000000000000000 index:0x0
-flags: 0x2fffc0000000000()
-raw: 02fffc0000000000 0000000000000000 0000000000000000 0000000300000001
-raw: dead000000000100 dead000000000200 0000000000000000 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
-  ffff88018d7f2100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  ffff88018d7f2180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> ffff88018d7f2200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-                       ^
-  ffff88018d7f2280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-  ffff88018d7f2300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-==================================================================
-Kernel panic - not syncing: panic_on_warn set ...
-
-CPU: 1 PID: 10561 Comm: kworker/u4:6 Tainted: G    B            4.16.0+ #10
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Workqueue: krdsd rds_send_worker
-Call Trace:
-  __dump_stack lib/dump_stack.c:17 [inline]
-  dump_stack+0x194/0x24d lib/dump_stack.c:53
-  panic+0x1e4/0x41c kernel/panic.c:183
-  kasan_end_report+0x50/0x50 mm/kasan/report.c:180
-  kasan_report_error mm/kasan/report.c:359 [inline]
-  kasan_report+0x149/0x360 mm/kasan/report.c:412
-  __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
-  __read_once_size include/linux/compiler.h:188 [inline]
-  atomic_read arch/x86/include/asm/atomic.h:27 [inline]
-  refcount_read include/linux/refcount.h:42 [inline]
-  check_net include/net/net_namespace.h:228 [inline]
-  rds_destroy_pending net/rds/rds.h:868 [inline]
-  rds_cong_queue_updates+0x4d3/0x4f0 net/rds/cong.c:226
-  rds_recv_rcvbuf_delta.part.2+0x289/0x320 net/rds/recv.c:118
-  rds_recv_rcvbuf_delta net/rds/recv.c:377 [inline]
-  rds_recv_incoming+0xeb4/0x11d0 net/rds/recv.c:377
-  rds_loop_xmit+0x149/0x320 net/rds/loop.c:82
-  rds_send_xmit+0xbcd/0x26b0 net/rds/send.c:355
-  rds_send_worker+0x115/0x2a0 net/rds/threads.c:199
-  process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
-  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
-  kthread+0x33c/0x400 kernel/kthread.c:238
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
-Dumping ftrace buffer:
-    (ftrace buffer empty)
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
+> HEAD commit:    f0dc7f9c6dd9 Merge git://git.kernel.org/pub/scm/linux/kern..
+> git tree:       net-next
+> console output: https://syzkaller.appspot.com/x/log.txt?x=1461f03f800000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=fa9c20c48788d1c1
+> dashboard link: https://syzkaller.appspot.com/bug?extid=4c20b3866171ce8441d2
+> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=16cbfeaf800000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=165227f7800000
+>
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+4c20b3866171ce8441d2@syzkaller.appspotmail.com
+>
+> IPv6: ADDRCONF(NETDEV_CHANGE): bond0: link becomes ready
+> 8021q: adding VLAN 0 to HW filter on device team0
+> IPVS: ftp: loaded support on port[0] = 21
+> IPVS: ftp: loaded support on port[0] = 21
+> ==================================================================
+> BUG: KASAN: use-after-free in atomic_read
+> include/asm-generic/atomic-instrumented.h:21 [inline]
+> BUG: KASAN: use-after-free in refcount_read include/linux/refcount.h:42
+> [inline]
+> BUG: KASAN: use-after-free in check_net include/net/net_namespace.h:236
+> [inline]
+> BUG: KASAN: use-after-free in rds_destroy_pending net/rds/rds.h:897 [inline]
+> BUG: KASAN: use-after-free in rds_cong_queue_updates+0x255/0x590
+> net/rds/cong.c:226
+> Read of size 4 at addr ffff8801ab180044 by task syz-executor199/4800
+>
+> CPU: 1 PID: 4800 Comm: syz-executor199 Not tainted 4.17.0+ #84
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
+> Google 01/01/2011
+> Call Trace:
+>  __dump_stack lib/dump_stack.c:77 [inline]
+>  dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+>  print_address_description+0x6c/0x20b mm/kasan/report.c:256
+>  kasan_report_error mm/kasan/report.c:354 [inline]
+>  kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+>  check_memory_region_inline mm/kasan/kasan.c:260 [inline]
+>  check_memory_region+0x13e/0x1b0 mm/kasan/kasan.c:267
+>  kasan_check_read+0x11/0x20 mm/kasan/kasan.c:272
+>  atomic_read include/asm-generic/atomic-instrumented.h:21 [inline]
+>  refcount_read include/linux/refcount.h:42 [inline]
+>  check_net include/net/net_namespace.h:236 [inline]
+>  rds_destroy_pending net/rds/rds.h:897 [inline]
+>  rds_cong_queue_updates+0x255/0x590 net/rds/cong.c:226
+>  rds_recv_rcvbuf_delta.part.3+0x211/0x350 net/rds/recv.c:126
+>  rds_recv_rcvbuf_delta net/rds/recv.c:735 [inline]
+>  rds_clear_recv_queue+0x2f0/0x4c0 net/rds/recv.c:735
+>  rds_release+0x15c/0x550 net/rds/af_rds.c:72
+>  __sock_release+0xd7/0x260 net/socket.c:603
+>  sock_close+0x19/0x20 net/socket.c:1186
+>  __fput+0x353/0x890 fs/file_table.c:209
+>  ____fput+0x15/0x20 fs/file_table.c:243
+>  task_work_run+0x1e4/0x290 kernel/task_work.c:113
+>  exit_task_work include/linux/task_work.h:22 [inline]
+>  do_exit+0x1aee/0x2730 kernel/exit.c:865
+>  do_group_exit+0x16f/0x430 kernel/exit.c:968
+>  get_signal+0x886/0x1960 kernel/signal.c:2468
+>  do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+>  exit_to_usermode_loop+0x2cf/0x360 arch/x86/entry/common.c:162
+>  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+>  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+>  do_syscall_64+0x6ac/0x800 arch/x86/entry/common.c:293
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> RIP: 0033:0x44f439
+> Code: e8 ac be 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7
+> 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff
+> 0f 83 5b ff fb ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007fc65567dcf8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+> RAX: fffffffffffffe00 RBX: 00000000006edadc RCX: 000000000044f439
+> RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000006edadc
+> RBP: 00000000006edad8 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+> R13: 00007fff3df31b1f R14: 00007fc65567e9c0 R15: 0000000000000061
+>
+> Allocated by task 4800:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+>  set_track mm/kasan/kasan.c:460 [inline]
+>  kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+>  kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
+>  kmem_cache_alloc+0x12e/0x760 mm/slab.c:3554
+>  kmem_cache_zalloc include/linux/slab.h:696 [inline]
+>  net_alloc net/core/net_namespace.c:383 [inline]
+>  copy_net_ns+0x159/0x4c0 net/core/net_namespace.c:423
+>  create_new_namespaces+0x69d/0x8f0 kernel/nsproxy.c:107
+>  unshare_nsproxy_namespaces+0xc3/0x1f0 kernel/nsproxy.c:206
+>  ksys_unshare+0x708/0xf90 kernel/fork.c:2411
+>  __do_sys_unshare kernel/fork.c:2479 [inline]
+>  __se_sys_unshare kernel/fork.c:2477 [inline]
+>  __x64_sys_unshare+0x31/0x40 kernel/fork.c:2477
+>  do_syscall_64+0x1b1/0x800 arch/x86/entry/common.c:290
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+>
+> Freed by task 746:
+>  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+>  set_track mm/kasan/kasan.c:460 [inline]
+>  __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
+>  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+>  __cache_free mm/slab.c:3498 [inline]
+>  kmem_cache_free+0x86/0x2d0 mm/slab.c:3756
+>  net_free net/core/net_namespace.c:399 [inline]
+>  net_drop_ns.part.14+0x11a/0x130 net/core/net_namespace.c:406
+>  net_drop_ns net/core/net_namespace.c:405 [inline]
+>  cleanup_net+0x6a1/0xb20 net/core/net_namespace.c:541
+>  process_one_work+0xc64/0x1b70 kernel/workqueue.c:2153
+>  worker_thread+0x181/0x13a0 kernel/workqueue.c:2296
+>  kthread+0x345/0x410 kernel/kthread.c:240
+>  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+>
+> The buggy address belongs to the object at ffff8801ab180040
+>  which belongs to the cache net_namespace(17:syz0) of size 8896
+> The buggy address is located 4 bytes inside of
+>  8896-byte region [ffff8801ab180040, ffff8801ab182300)
+> The buggy address belongs to the page:
+> page:ffffea0006ac6000 count:1 mapcount:0 mapping:ffff8801aeaa0080 index:0x0
+> compound_mapcount: 0
+> flags: 0x2fffc0000008100(slab|head)
+> raw: 02fffc0000008100 ffff8801d3827048 ffff8801d3827048 ffff8801aeaa0080
+> raw: 0000000000000000 ffff8801ab180040 0000000100000001 ffff8801ab7cae40
+> page dumped because: kasan: bad access detected
+> page->mem_cgroup:ffff8801ab7cae40
+>
+> Memory state around the buggy address:
+>  ffff8801ab17ff00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>  ffff8801ab17ff80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>                                            ^
+>  ffff8801ab180080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>  ffff8801ab180100: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ==================================================================
+>
+> --
+> You received this message because you are subscribed to the Google Groups
+> "syzkaller-bugs" group.
+> To unsubscribe from this group and stop receiving emails from it, send an
+> email to syzkaller-bugs+unsubscribe@googlegroups.com.
+> To view this discussion on the web visit
+> https://groups.google.com/d/msgid/syzkaller-bugs/000000000000a643e4056e7d0db4%40google.com.
+>
+> For more options, visit https://groups.google.com/d/optout.
