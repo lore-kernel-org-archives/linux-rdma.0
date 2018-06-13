@@ -1,46 +1,92 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: [PATCH v3 1/2] IDR: Expose the XArray lock
-Date: Wed, 13 Jun 2018 05:34:02 -0700
-Message-ID: <20180613123403.25233-2-willy@infradead.org>
-References: <20180613123403.25233-1-willy@infradead.org>
+From: syzbot <syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com>
+Subject: WARNING: bad unlock balance in ucma_event_handler
+Date: Wed, 13 Jun 2018 06:47:02 -0700
+Message-ID: <000000000000af6530056e863794@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180613123403.25233-1-willy@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: hans.westgaard.ry@oracle.com, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-rdma@vger.kernel.org, =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-kernel@vger.kernel.org
+To: dasaratharaman.chandramouli@intel.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-Allow users of the IDR to use the XArray lock for their own
-synchronisation purposes.  The IDR continues to rely on the caller to
-handle locking, but this lets the caller use the lock embedded in the
-IDR data structure instead of allocating their own lock.
+Hello,
 
-Signed-off-by: Matthew Wilcox <willy@infradead.org>
+syzbot found the following crash on:
+
+HEAD commit:    73fcb1a370c7 Merge branch 'akpm' (patches from Andrew)
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16d70827800000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f3b4e30da84ec1ed
+dashboard link: https://syzkaller.appspot.com/bug?extid=e5579222b6a3edd96522
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=176daf97800000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15e7bd57800000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com
+
+
+=====================================
+WARNING: bad unlock balance detected!
+4.17.0-rc5+ #58 Not tainted
+-------------------------------------
+kworker/u4:0/6 is trying to release lock (&file->mut) at:
+[<ffffffff8593ecc0>] ucma_event_handler+0x780/0xff0  
+drivers/infiniband/core/ucma.c:390
+but there are no more locks to release!
+
+other info that might help us debug this:
+4 locks held by kworker/u4:0/6:
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:  
+__write_once_size include/linux/compiler.h:215 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:  
+arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic64_set  
+include/asm-generic/atomic-instrumented.h:40 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic_long_set  
+include/asm-generic/atomic-long.h:57 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: set_work_data  
+kernel/workqueue.c:617 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:  
+set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:  
+process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+  #1:         (ptrval) ((work_completion)(&(&req->work)->work)){+.+.}, at:  
+process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+  #2:         (ptrval) (&id_priv->handler_mutex){+.+.}, at:  
+addr_handler+0xa6/0x3d0 drivers/infiniband/core/cma.c:2796
+  #3:         (ptrval) (&file->mut){+.+.}, at:  
+ucma_event_handler+0x10e/0xff0 drivers/infiniband/core/ucma.c:350
+
+stack backtrace:
+CPU: 1 PID: 6 Comm: kworker/u4:0 Not tainted 4.17.0-rc5+ #58
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Workqueue: ib_addr process_one_req
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x1b9/0x294 lib/dump_stack.c:113
+  print_unlock_imbalance_bug.cold.50+0xcc/0xd8 kernel/locking/lockdep.c:3484
+  __lock_release kernel/locking/lockdep.c:3691 [inline]
+  lock_release+0x77a/0xa10 kernel/locking/lockdep.c:3939
+  __mutex_unlock_slowpath+0xeb/0x8a0 kernel/locking/mutex.c:1018
+  mutex_unlock+0xd/0x10 kernel/locking/mutex.c:614
+  ucma_event_handler+0x780/0xff0 drivers/infiniband/core/ucma.c:390
+  addr_handler+0x2bd/0x3d0 drivers/infiniband/core/cma.c:2820
+  process_one_req+0x2e8/0x750 drivers/infiniband/core/addr.c:616
+  process_one_work+0xc1e/0x1b50 kernel/workqueue.c:2145
+  worker_thread+0x1cc/0x1440 kernel/workqueue.c:2279
+  kthread+0x345/0x410 kernel/kthread.c:240
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:412
+
+
 ---
- include/linux/idr.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/include/linux/idr.h b/include/linux/idr.h
-index e856f4e0ab35..109d7a3c8d56 100644
---- a/include/linux/idr.h
-+++ b/include/linux/idr.h
-@@ -98,6 +98,17 @@ static inline void idr_set_cursor(struct idr *idr, unsigned int val)
-  * period).
-  */
- 
-+#define idr_lock(idr)		xa_lock(&(idr)->idr_xa)
-+#define idr_unlock(idr)		xa_unlock(&(idr)->idr_xa)
-+#define idr_lock_bh(idr)	xa_lock_bh(&(idr)->idr_xa)
-+#define idr_unlock_bh(idr)	xa_unlock_bh(&(idr)->idr_xa)
-+#define idr_lock_irq(idr)	xa_lock_irq(&(idr)->idr_xa)
-+#define idr_unlock_irq(idr)	xa_unlock_irq(&(idr)->idr_xa)
-+#define idr_lock_irqsave(idr, flags) \
-+				xa_lock_irqsave(&(idr)->idr_xa, flags)
-+#define idr_unlock_irqrestore(idr, flags) \
-+				xa_unlock_irqrestore(&(idr)->idr_xa, flags)
-+
- void idr_preload(gfp_t gfp_mask);
- 
- int idr_alloc(struct idr *, void *ptr, int start, int end, gfp_t);
--- 
-2.17.1
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
