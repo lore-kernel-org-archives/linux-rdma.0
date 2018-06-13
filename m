@@ -1,84 +1,129 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 2/2] IB/mad: Use IDR for agent IDs
-Date: Wed, 13 Jun 2018 10:36:53 +0300
-Message-ID: <20180613073653.GC3275@mtr-leonro.mtl.com>
-References: <20180608174218.32455-1-willy@infradead.org>
- <20180608174218.32455-3-willy@infradead.org>
- <20180612203322.GG6314@ziepe.ca>
- <20180613000739.GA32191@bombadil.infradead.org>
+From: syzbot <syzbot+287843ad8a4d2870e538@syzkaller.appspotmail.com>
+Subject: KASAN: out-of-bounds Read in rds_cong_queue_updates (2)
+Date: Wed, 13 Jun 2018 00:51:02 -0700
+Message-ID: <00000000000081bd9d056e813e48@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="1UWUbFP1cBYEclgG"
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180613000739.GA32191@bombadil.infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, hans.westgaard.ry@oracle.com, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
+Hello,
 
---1UWUbFP1cBYEclgG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+syzbot found the following crash on:
 
-On Tue, Jun 12, 2018 at 05:07:39PM -0700, Matthew Wilcox wrote:
-> On Tue, Jun 12, 2018 at 02:33:22PM -0600, Jason Gunthorpe wrote:
-> > > @@ -377,13 +378,24 @@ struct ib_mad_agent *ib_register_mad_agent(struct ib_device *device,
-> > >  		goto error4;
-> > >  	}
-> > >
-> > > -	spin_lock_irq(&port_priv->reg_lock);
-> > > -	mad_agent_priv->agent.hi_tid = atomic_inc_return(&ib_mad_client_id);
-> > > +	idr_preload(GFP_KERNEL);
-> > > +	idr_lock(&ib_mad_clients);
-> > > +	ret2 = idr_alloc_cyclic(&ib_mad_clients, mad_agent_priv, 0,
-> > > +			(1 << 24), GFP_ATOMIC);
-> >
-> > I like this series, my only concern is this magic number here, at the
-> > very least it deserves a big comment explaining why it
-> > exists..
->
-> Yes, you're right.  Maybe something like this ...
->
-> /*
->  * The mlx4 driver uses the top byte to distinguish which virtual function
->  * generated the MAD, so we must avoid using it.
->  */
-> #define AGENT_ID_LIMIT		(1 << 24)
->
-> ...
->
-> 	ret2 = idr_alloc_cyclic(&ib_mad_clients, mad_agent_priv, 0,
-> 			AGENT_ID_LIMIT, GFP_ATOMIC);
->
-> > Let me see if I can get someone to give it some test time, I assume
-> > you haven't been able to test it it?
->
-> I don't have any IB hardware.  Frankly I'm scared of Infiniband ;-)
+HEAD commit:    0adb32858b0b Linux 4.16
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=138f2d0b800000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=df0c336cc3b55d45
+dashboard link: https://syzkaller.appspot.com/bug?extid=287843ad8a4d2870e538
+compiler:       gcc (GCC) 7.1.1 20170620
 
-I took it for regression, reliable results will be after -rc1 only.
+Unfortunately, I don't have any reproducer for this crash yet.
 
-Thanks
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+287843ad8a4d2870e538@syzkaller.appspotmail.com
 
---1UWUbFP1cBYEclgG
-Content-Type: application/pgp-signature; name="signature.asc"
+==================================================================
+BUG: KASAN: out-of-bounds in __read_once_size include/linux/compiler.h:188  
+[inline]
+BUG: KASAN: out-of-bounds in atomic_read arch/x86/include/asm/atomic.h:27  
+[inline]
+BUG: KASAN: out-of-bounds in refcount_read include/linux/refcount.h:42  
+[inline]
+BUG: KASAN: out-of-bounds in check_net include/net/net_namespace.h:228  
+[inline]
+BUG: KASAN: out-of-bounds in rds_destroy_pending net/rds/rds.h:868 [inline]
+BUG: KASAN: out-of-bounds in rds_cong_queue_updates+0x4d3/0x4f0  
+net/rds/cong.c:226
+Read of size 4 at addr ffff88018d7f2204 by task kworker/u4:6/10561
 
------BEGIN PGP SIGNATURE-----
+CPU: 1 PID: 10561 Comm: kworker/u4:6 Not tainted 4.16.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Workqueue: krdsd rds_send_worker
+Call Trace:
+  __dump_stack lib/dump_stack.c:17 [inline]
+  dump_stack+0x194/0x24d lib/dump_stack.c:53
+kernel msg: ebtables bug: please report to author: Wrong len argument
+  print_address_description+0x73/0x250 mm/kasan/report.c:256
+  kasan_report_error mm/kasan/report.c:354 [inline]
+  kasan_report+0x23c/0x360 mm/kasan/report.c:412
+  __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+  __read_once_size include/linux/compiler.h:188 [inline]
+  atomic_read arch/x86/include/asm/atomic.h:27 [inline]
+  refcount_read include/linux/refcount.h:42 [inline]
+  check_net include/net/net_namespace.h:228 [inline]
+  rds_destroy_pending net/rds/rds.h:868 [inline]
+  rds_cong_queue_updates+0x4d3/0x4f0 net/rds/cong.c:226
+  rds_recv_rcvbuf_delta.part.2+0x289/0x320 net/rds/recv.c:118
+  rds_recv_rcvbuf_delta net/rds/recv.c:377 [inline]
+  rds_recv_incoming+0xeb4/0x11d0 net/rds/recv.c:377
+  rds_loop_xmit+0x149/0x320 net/rds/loop.c:82
+  rds_send_xmit+0xbcd/0x26b0 net/rds/send.c:355
+  rds_send_worker+0x115/0x2a0 net/rds/threads.c:199
+  process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+  kthread+0x33c/0x400 kernel/kthread.c:238
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
 
-iQIcBAEBAgAGBQJbIMmVAAoJEORje4g2clinhC0QAKb9tFYihLRWT+2+/JJMEyZZ
-blKKXZgQlxNnKWUNAn5iQhwsXNrQrmXR9S2nxKuVIenIrUrig57FG1ULp7jttsFq
-qXiCIrYgHU78nvMmQnr78Xkjstm2EBkmKFnLWjVyPuDYp/IsJgcq4/q7lSu8gSAK
-VMYrAkEQUD6k+oegXaiKLsLpMVIiU3VNSQvNA6+mJm3VWUI640sWRWiPuAo8KXsw
-FqpS2dSMKVM+LLRpV1Xqtl+3HpvgL4rPHra+HXfQqbpNpDBwWsPa538DCFFp+Ep6
-1F+6OsiD/m1xIZntX0hMNueUKEkNeEgI7nSJJC+PUb1BstOVQ2Z0W6+YmrX0XqyZ
-Xc3I5kfyWmtvdulwGl4OatBiLzfj4ni6Wdj47+JF9r0b2beVJYj9rBJlUtRBAK5w
-XwHqSfkh97F7S62609E376lsMgUiVIQ/4NfWFP/ESES5LeVtMr0jVNsaV9EIzzZs
-3y3llRC1qM9p7iVFuM8Gbx2dL+eS0eUbQq4h84sLziNRK81ws2k0A49iLeRKk6ZJ
-z91VT1FzT4K5KcRRRrtO3OXaEy/vbT3frtJUxEwuyxF2VHUahyZNvJSfkxY9LEUJ
-32RyvQQZs6sQRZUcdsd8+zC51RIAUtoOsWRNbmC7R0E+MNbjf4Gg7IW9GIimtPTg
-cP1PlC2rxb0gyIfawXUK
-=1UG0
------END PGP SIGNATURE-----
+The buggy address belongs to the page:
+page:ffffea000635fc80 count:3 mapcount:2 mapping:0000000000000000 index:0x0
+flags: 0x2fffc0000000000()
+raw: 02fffc0000000000 0000000000000000 0000000000000000 0000000300000001
+raw: dead000000000100 dead000000000200 0000000000000000 0000000000000000
+page dumped because: kasan: bad access detected
 
---1UWUbFP1cBYEclgG--
+Memory state around the buggy address:
+  ffff88018d7f2100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffff88018d7f2180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> ffff88018d7f2200: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                       ^
+  ffff88018d7f2280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  ffff88018d7f2300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+Kernel panic - not syncing: panic_on_warn set ...
+
+CPU: 1 PID: 10561 Comm: kworker/u4:6 Tainted: G    B            4.16.0+ #10
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Workqueue: krdsd rds_send_worker
+Call Trace:
+  __dump_stack lib/dump_stack.c:17 [inline]
+  dump_stack+0x194/0x24d lib/dump_stack.c:53
+  panic+0x1e4/0x41c kernel/panic.c:183
+  kasan_end_report+0x50/0x50 mm/kasan/report.c:180
+  kasan_report_error mm/kasan/report.c:359 [inline]
+  kasan_report+0x149/0x360 mm/kasan/report.c:412
+  __asan_report_load4_noabort+0x14/0x20 mm/kasan/report.c:432
+  __read_once_size include/linux/compiler.h:188 [inline]
+  atomic_read arch/x86/include/asm/atomic.h:27 [inline]
+  refcount_read include/linux/refcount.h:42 [inline]
+  check_net include/net/net_namespace.h:228 [inline]
+  rds_destroy_pending net/rds/rds.h:868 [inline]
+  rds_cong_queue_updates+0x4d3/0x4f0 net/rds/cong.c:226
+  rds_recv_rcvbuf_delta.part.2+0x289/0x320 net/rds/recv.c:118
+  rds_recv_rcvbuf_delta net/rds/recv.c:377 [inline]
+  rds_recv_incoming+0xeb4/0x11d0 net/rds/recv.c:377
+  rds_loop_xmit+0x149/0x320 net/rds/loop.c:82
+  rds_send_xmit+0xbcd/0x26b0 net/rds/send.c:355
+  rds_send_worker+0x115/0x2a0 net/rds/threads.c:199
+  process_one_work+0xc47/0x1bb0 kernel/workqueue.c:2113
+  worker_thread+0x223/0x1990 kernel/workqueue.c:2247
+  kthread+0x33c/0x400 kernel/kthread.c:238
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:406
+Dumping ftrace buffer:
+    (ftrace buffer empty)
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
