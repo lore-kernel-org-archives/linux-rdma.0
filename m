@@ -1,318 +1,95 @@
-From: jackm <jackm@dev.mellanox.co.il>
-Subject: Re: [PATCH 2/2] IB/mad: Use IDR for agent IDs
-Date: Wed, 13 Jun 2018 10:56:05 +0300
-Message-ID: <20180613105605.00003c33@dev.mellanox.co.il>
-References: <20180608174218.32455-1-willy@infradead.org>
-        <20180608174218.32455-3-willy@infradead.org>
+From: 858585 jemmy <jemmy858585@gmail.com>
+Subject: Re: [PATCH v2] IB/umem: ib_ucontext already have tgid, remove pid
+ from ib_umem structure
+Date: Wed, 13 Jun 2018 17:25:00 +0800
+Message-ID: <CAOGPPbe8V45B0TVMUiezKDcm0_d5dJhrubpbu5ARhi-y6MXkUg@mail.gmail.com>
+References: <1525769416-14596-1-git-send-email-lidongchen@tencent.com> <20180613043620.GA22578@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180608174218.32455-3-willy@infradead.org>
+In-Reply-To: <20180613043620.GA22578@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: hans.westgaard.ry@oracle.com, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, Pravin Shedge <pravin.shedge4linux@gmail.com>, linux-kernel@vger.kernel.org, majd@mellanox.com
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, akpm@linux-foundation.org, qing.huang@oracle.com, Leon Romanovsky <leon@kernel.org>, artemyko@mellanox.com, dan.j.williams@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Adi Dotan <adido@mellanox.com>, Gal Shachaf <galsha@mellanox.com>, Aviad Yehezkel <aviadye@mellanox.com>, Lidong Chen <lidongchen@tencent.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri,  8 Jun 2018 10:42:18 -0700
-Matthew Wilcox <willy@infradead.org> wrote:
+On Wed, Jun 13, 2018 at 12:36 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Tue, May 08, 2018 at 04:50:16PM +0800, Lidong Chen wrote:
+>> The userspace may invoke ibv_reg_mr and ibv_dereg_mr by different threads.
+>> If when ibv_dereg_mr invoke and the thread which invoked ibv_reg_mr has
+>> exited, get_pid_task will return NULL, ib_umem_release does not decrease
+>> mm->pinned_vm. This patch fixes it by use tgid in ib_ucontext struct.
+>>
+>> Signed-off-by: Lidong Chen <lidongchen@tencent.com>
+>> ---
+>>  [v2]
+>>  - use ib_ucontext tgid instread of tgid in ib_umem structure
+>
+> I'm looking at this again, and it doesn't seem quite right..
+>
+>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+>> index 9a4e899..2b6c9b5 100644
+>> --- a/drivers/infiniband/core/umem.c
+>> +++ b/drivers/infiniband/core/umem.c
+>> @@ -119,7 +119,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+>>       umem->length     = size;
+>>       umem->address    = addr;
+>>       umem->page_shift = PAGE_SHIFT;
+>> -     umem->pid        = get_task_pid(current, PIDTYPE_PID);
+>>       /*
+>>        * We ask for writable memory if any of the following
+>>        * access flags are set.  "Local write" and "remote write"
+>> @@ -132,7 +131,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+>>                IB_ACCESS_REMOTE_ATOMIC | IB_ACCESS_MW_BIND));
+>>
+>>       if (access & IB_ACCESS_ON_DEMAND) {
+>> -             put_pid(umem->pid);
+>>               ret = ib_umem_odp_get(context, umem, access);
+>>               if (ret) {
+>>                       kfree(umem);
+>> @@ -148,7 +146,6 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+>>
+>>       page_list = (struct page **) __get_free_page(GFP_KERNEL);
+>>       if (!page_list) {
+>> -             put_pid(umem->pid);
+>>               kfree(umem);
+>>               return ERR_PTR(-ENOMEM);
+>>       }
+>
+> in ib_umem_get we are doing this:
+>
+>         down_write(&current->mm->mmap_sem);
+>         locked     = npages + current->mm->pinned_vm;
+>
+> And then in release we now do:
+>
+>         task = get_pid_task(umem->context->tgid, PIDTYPE_PID);
+>         if (!task)
+>                 goto out;
+>         mm = get_task_mm(task);
+>         mm->pinned_vm -= diff;
+>
+> But there is no guarantee that context->tgid and 'current' are the
+> same thing during ib_umem_get..
 
-> From: Matthew Wilcox <mawilcox@microsoft.com>
-> 
-> Allocate agent IDs from a global IDR instead of an atomic variable.
-> This eliminates the possibility of reusing an ID which is already in
-> use after 4 billion registrations, and we can also limit the assigned
-> ID to be less than 2^24, which fixes a bug in the mlx4 device.
-> 
-> We look up the agent under protection of the RCU lock, which means we
-> have to free the agent using kfree_rcu, and only increment the
-> reference counter if it is not 0.
-> 
-> Signed-off-by: Matthew Wilcox <mawilcox@microsoft.com>
-> ---
->  drivers/infiniband/core/mad.c      | 78
-> ++++++++++++++++++------------ drivers/infiniband/core/mad_priv.h |
-> 7 +-- include/linux/idr.h                |  9 ++++
->  3 files changed, 59 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/mad.c
-> b/drivers/infiniband/core/mad.c index 68f4dda916c8..62384a3dd3ec
-> 100644 --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -38,6 +38,7 @@
->  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->  
->  #include <linux/dma-mapping.h>
-> +#include <linux/idr.h>
->  #include <linux/slab.h>
->  #include <linux/module.h>
->  #include <linux/security.h>
-> @@ -58,8 +59,8 @@ MODULE_PARM_DESC(send_queue_size, "Size of send
-> queue in number of work requests module_param_named(recv_queue_size,
-> mad_recvq_size, int, 0444); MODULE_PARM_DESC(recv_queue_size, "Size
-> of receive queue in number of work requests"); 
-> +static DEFINE_IDR(ib_mad_clients);
->  static struct list_head ib_mad_port_list;
-> -static atomic_t ib_mad_client_id = ATOMIC_INIT(0);
->  
->  /* Port list lock */
->  static DEFINE_SPINLOCK(ib_mad_port_list_lock);
-> @@ -377,13 +378,24 @@ struct ib_mad_agent
-> *ib_register_mad_agent(struct ib_device *device, goto error4;
->  	}
->  
-> -	spin_lock_irq(&port_priv->reg_lock);
-> -	mad_agent_priv->agent.hi_tid =
-> atomic_inc_return(&ib_mad_client_id);
-> +	idr_preload(GFP_KERNEL);
-> +	idr_lock(&ib_mad_clients);
-> +	ret2 = idr_alloc_cyclic(&ib_mad_clients, mad_agent_priv, 0,
-> +			(1 << 24), GFP_ATOMIC);
-> +	idr_unlock(&ib_mad_clients);
-> +	idr_preload_end();
-> +
-> +	if (ret2 < 0) {
-> +		ret = ERR_PTR(ret2);
-> +		goto error5;
-> +	}
-> +	mad_agent_priv->agent.hi_tid = ret2;
->  
->  	/*
->  	 * Make sure MAD registration (if supplied)
->  	 * is non overlapping with any existing ones
->  	 */
-> +	spin_lock_irq(&port_priv->reg_lock);
->  	if (mad_reg_req) {
->  		mgmt_class =
-> convert_mgmt_class(mad_reg_req->mgmt_class); if
-> (!is_vendor_class(mgmt_class)) { @@ -394,7 +406,7 @@ struct
-> ib_mad_agent *ib_register_mad_agent(struct ib_device *device, if
-> (method) { if (method_in_use(&method,
->  							   mad_reg_req))
-> -						goto error5;
-> +						goto error6;
->  				}
->  			}
->  			ret2 = add_nonoui_reg_req(mad_reg_req,
-> mad_agent_priv, @@ -410,24 +422,25 @@ struct ib_mad_agent
-> *ib_register_mad_agent(struct ib_device *device, if
-> (is_vendor_method_in_use( vendor_class,
->  							mad_reg_req))
-> -						goto error5;
-> +						goto error6;
->  				}
->  			}
->  			ret2 = add_oui_reg_req(mad_reg_req,
-> mad_agent_priv); }
->  		if (ret2) {
->  			ret = ERR_PTR(ret2);
-> -			goto error5;
-> +			goto error6;
->  		}
->  	}
-> -
-> -	/* Add mad agent into port's agent list */
-> -	list_add_tail(&mad_agent_priv->agent_list,
-> &port_priv->agent_list); spin_unlock_irq(&port_priv->reg_lock);
->  
->  	return &mad_agent_priv->agent;
-> -error5:
-> +error6:
->  	spin_unlock_irq(&port_priv->reg_lock);
-> +	idr_lock(&ib_mad_clients);
-> +	idr_remove(&ib_mad_clients, mad_agent_priv->agent.hi_tid);
-> +	idr_unlock(&ib_mad_clients);
-> +error5:
->  	ib_mad_agent_security_cleanup(&mad_agent_priv->agent);
->  error4:
->  	kfree(reg_req);
-> @@ -589,8 +602,10 @@ static void unregister_mad_agent(struct
-> ib_mad_agent_private *mad_agent_priv) 
->  	spin_lock_irq(&port_priv->reg_lock);
->  	remove_mad_reg_req(mad_agent_priv);
-> -	list_del(&mad_agent_priv->agent_list);
->  	spin_unlock_irq(&port_priv->reg_lock);
-> +	idr_lock(&ib_mad_clients);
-> +	idr_remove(&ib_mad_clients, mad_agent_priv->agent.hi_tid);
-> +	idr_unlock(&ib_mad_clients);
->  
->  	flush_workqueue(port_priv->wq);
->  	ib_cancel_rmpp_recvs(mad_agent_priv);
-> @@ -601,7 +616,7 @@ static void unregister_mad_agent(struct
-> ib_mad_agent_private *mad_agent_priv)
-> ib_mad_agent_security_cleanup(&mad_agent_priv->agent); 
->  	kfree(mad_agent_priv->reg_req);
-> -	kfree(mad_agent_priv);
-> +	kfree_rcu(mad_agent_priv, rcu);
->  }
->  
->  static void unregister_mad_snoop(struct ib_mad_snoop_private
-> *mad_snoop_priv) @@ -1722,22 +1737,19 @@ find_mad_agent(struct
-> ib_mad_port_private *port_priv, struct ib_mad_agent_private
-> *mad_agent = NULL; unsigned long flags;
->  
-> -	spin_lock_irqsave(&port_priv->reg_lock, flags);
->  	if (ib_response_mad(mad_hdr)) {
->  		u32 hi_tid;
-> -		struct ib_mad_agent_private *entry;
->  
->  		/*
->  		 * Routing is based on high 32 bits of transaction ID
->  		 * of MAD.
->  		 */
->  		hi_tid = be64_to_cpu(mad_hdr->tid) >> 32;
-> -		list_for_each_entry(entry, &port_priv->agent_list,
-> agent_list) {
-> -			if (entry->agent.hi_tid == hi_tid) {
-> -				mad_agent = entry;
-> -				break;
-> -			}
-> -		}
-> +		rcu_read_lock();
-> +		mad_agent = idr_find(&ib_mad_clients, hi_tid);
-> +		if (mad_agent
-> && !atomic_inc_not_zero(&mad_agent->refcount))
-> +			mad_agent = NULL;
-> +		rcu_read_unlock();
->  	} else {
->  		struct ib_mad_mgmt_class_table *class;
->  		struct ib_mad_mgmt_method_table *method;
-> @@ -1746,6 +1758,7 @@ find_mad_agent(struct ib_mad_port_private
-> *port_priv, const struct ib_vendor_mad *vendor_mad;
->  		int index;
->  
-> +		spin_lock_irqsave(&port_priv->reg_lock, flags);
->  		/*
->  		 * Routing is based on version, class, and method
->  		 * For "newer" vendor MADs, also based on OUI
-> @@ -1785,20 +1798,19 @@ find_mad_agent(struct ib_mad_port_private
-> *port_priv, ~IB_MGMT_METHOD_RESP];
->  			}
->  		}
-> +		if (mad_agent)
-> +			atomic_inc(&mad_agent->refcount);
-> +out:
-> +		spin_unlock_irqrestore(&port_priv->reg_lock, flags);
->  	}
->  
-> -	if (mad_agent) {
-> -		if (mad_agent->agent.recv_handler)
-> -			atomic_inc(&mad_agent->refcount);
-> -		else {
-> -			dev_notice(&port_priv->device->dev,
-> -				   "No receive handler for client %p
-> on port %d\n",
-> -				   &mad_agent->agent,
-> port_priv->port_num);
-> -			mad_agent = NULL;
-> -		}
-> +	if (mad_agent && !mad_agent->agent.recv_handler) {
-> +		dev_notice(&port_priv->device->dev,
-> +			   "No receive handler for client %p on port
-> %d\n",
-> +			   &mad_agent->agent, port_priv->port_num);
-> +		deref_mad_agent(mad_agent);
-> +		mad_agent = NULL;
->  	}
-> -out:
-> -	spin_unlock_irqrestore(&port_priv->reg_lock, flags);
->  
->  	return mad_agent;
->  }
-> @@ -3161,7 +3173,6 @@ static int ib_mad_port_open(struct ib_device
-> *device, port_priv->device = device;
->  	port_priv->port_num = port_num;
->  	spin_lock_init(&port_priv->reg_lock);
-> -	INIT_LIST_HEAD(&port_priv->agent_list);
->  	init_mad_qp(port_priv, &port_priv->qp_info[0]);
->  	init_mad_qp(port_priv, &port_priv->qp_info[1]);
->  
-> @@ -3340,6 +3351,9 @@ int ib_mad_init(void)
->  
->  	INIT_LIST_HEAD(&ib_mad_port_list);
->  
-> +	/* Client ID 0 is used for snoop-only clients */
-> +	idr_alloc(&ib_mad_clients, NULL, 0, 0, GFP_KERNEL);
-> +
->  	if (ib_register_client(&mad_client)) {
->  		pr_err("Couldn't register ib_mad client\n");
->  		return -EINVAL;
-> diff --git a/drivers/infiniband/core/mad_priv.h
-> b/drivers/infiniband/core/mad_priv.h index 28669f6419e1..d84ae1671898
-> 100644 --- a/drivers/infiniband/core/mad_priv.h
-> +++ b/drivers/infiniband/core/mad_priv.h
-> @@ -89,7 +89,6 @@ struct ib_rmpp_segment {
->  };
->  
->  struct ib_mad_agent_private {
-> -	struct list_head agent_list;
->  	struct ib_mad_agent agent;
->  	struct ib_mad_reg_req *reg_req;
->  	struct ib_mad_qp_info *qp_info;
-> @@ -105,7 +104,10 @@ struct ib_mad_agent_private {
->  	struct list_head rmpp_list;
->  
->  	atomic_t refcount;
-> -	struct completion comp;
-> +	union {
-> +		struct completion comp;
-> +		struct rcu_head rcu;
-> +	};
->  };
->  
->  struct ib_mad_snoop_private {
-> @@ -203,7 +205,6 @@ struct ib_mad_port_private {
->  
->  	spinlock_t reg_lock;
->  	struct ib_mad_mgmt_version_table version[MAX_MGMT_VERSION];
-> -	struct list_head agent_list;
->  	struct workqueue_struct *wq;
->  	struct ib_mad_qp_info qp_info[IB_MAD_QPS_CORE];
->  };
-> diff --git a/include/linux/idr.h b/include/linux/idr.h
-> index e856f4e0ab35..bef0df8600e2 100644
-> --- a/include/linux/idr.h
-> +++ b/include/linux/idr.h
-> @@ -81,6 +81,15 @@ static inline void idr_set_cursor(struct idr *idr,
-> unsigned int val) WRITE_ONCE(idr->idr_next, val);
->  }
->  
-> +#define idr_lock(idr)		xa_lock(&(idr)->idr_rt)
-> +#define idr_unlock(idr)		xa_unlock(&(idr)->idr_rt)
-> +#define idr_lock_irq(idr)	xa_lock_irq(&(idr)->idr_rt)
-> +#define idr_unlock_irq(idr)	xa_unlock_irq(&(idr)->idr_rt)
-> +#define idr_lock_irqsave(idr, flags) \
-> +				xa_lock_irqsave(&(idr)->idr_rt,
-> flags) +#define idr_unlock_irqrestore(idr, flags) \
-> +				xa_unlock_irqrestore(&(idr)->idr_rt,
-> flags) +
->  /**
->   * DOC: idr sync
->   * idr synchronization (stolen from radix-tree.h)
+context->tgid and current maybe different. but different threads in one
+process should point to one mm structure. so it should works for multithread.
 
-Acked-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+>
+> So in the dysfunctional case where someone forks and keeps the context
+> FD open on both sides of the fork they can cause the pinned_vm
+> counter to become wrong in the processes. Sounds bad..
 
-Thanks for handling this, Matthew!
-Excellent job.
+I am not sure about fork support, I will check this problem.
 
-I tested this out both with and without sriov.
-For testing, reduced the max id value in the idr_alloc_cyclic call to
-1<<5 so as to test wraparound behavior.
-I had an infinite "saquery" loop in one console window.  In another, I
-did modprobe -r/modprobe mlx4_ib, and also openibd stop/start
-occasionally.
-For good measure, I had IPoIB ping -f on the ib0 interface running
-continuously.
-
-The patch worked perfectly.
-I even managed to catch the idr_find returning NULL in find_mad_agent
-once, but did not get the idr_find succeeding but the agent refcount
-being zero. (Not a big deal -- this would be ferociously hard to catch,
-but your logic here is correct).
-
-No oopses, no unexpected behavior. Wraparound worked perfectly.
-
-P.S., it might be a good idea to put the idr.h changes into a separate
-commit, since these changes are for the idr library.
-
- -Jack
+>
+> Thus, I think we need to go back to storing the tgid in the ib_umem
+> and just fix it to store the group leader not the thread PID?
+>
+> And then even more we need the ib_get_mr_mm() helper to make sense of
+> this, because all the drivers are doing the wrong thing by using the
+> context->tgid too.
+>
+> Is that all right?
+>
+> Jason
