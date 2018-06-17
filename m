@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 20/20] IB/mlx5: Expose DEVX tree
-Date: Sun, 17 Jun 2018 13:00:06 +0300
-Message-ID: <20180617100006.30663-21-leon@kernel.org>
+Subject: [PATCH rdma-next v2 19/20] IB/mlx5: Add DEVX query EQN support
+Date: Sun, 17 Jun 2018 13:00:05 +0300
+Message-ID: <20180617100006.30663-20-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -12,73 +12,103 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Expose DEVX tree to be used by upper layers.
+Return the matching device EQN for a given user vector number via the
+DEVX interface.
+
+Note:
+EQs are owned by the kernel and shared by all user processes.
+Basically, a user CQ can point to any EQ.
+The kernel doesn't enforce any such limitation today either.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c    | 5 +++++
- drivers/infiniband/hw/mlx5/main.c    | 7 ++++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 +++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/devx.c        | 34 +++++++++++++++++++++++++++++++-
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h |  6 ++++++
+ 2 files changed, 39 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index de1a418331b2..875f8c705ab9 100644
+index ba6b9b46cd90..de1a418331b2 100644
 --- a/drivers/infiniband/hw/mlx5/devx.c
 +++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -1099,3 +1099,8 @@ static DECLARE_UVERBS_OBJECT_TREE(devx_objects,
- 	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX),
- 	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ),
- 	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX_UMEM));
-+
-+const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void)
+@@ -389,6 +389,31 @@ static bool devx_is_general_cmd(void *in)
+ 	}
+ }
+ 
++static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_QUERY_EQN)(struct ib_device *ib_dev,
++				  struct ib_uverbs_file *file,
++				  struct uverbs_attr_bundle *attrs)
 +{
-+	return &devx_objects;
-+}
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 430a9e36d392..c7c31bbbca72 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5290,7 +5290,7 @@ ADD_UVERBS_ATTRIBUTES_SIMPLE(mlx5_ib_flow_action, UVERBS_OBJECT_FLOW_ACTION,
- 						 UVERBS_ATTR_TYPE(u64),
- 						 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
- 
--#define NUM_TREES	2
-+#define NUM_TREES	3
- static int populate_specs_root(struct mlx5_ib_dev *dev)
- {
- 	const struct uverbs_object_tree_def *default_root[NUM_TREES + 1] = {
-@@ -5305,6 +5305,11 @@ static int populate_specs_root(struct mlx5_ib_dev *dev)
- 	    !WARN_ON(num_trees >= ARRAY_SIZE(default_root)))
- 		default_root[num_trees++] = &mlx5_ib_dm;
- 
-+	if (MLX5_CAP_GEN_64(dev->mdev, general_obj_types) &
-+			    MLX5_GENERAL_OBJ_TYPES_CAP_UCTX &&
-+	    !WARN_ON(num_trees >= ARRAY_SIZE(default_root)))
-+		default_root[num_trees++] = mlx5_ib_get_devx_tree();
++	struct mlx5_ib_dev *dev = to_mdev(ib_dev);
++	int user_vector;
++	int dev_eqn;
++	unsigned int irqn;
++	int err;
 +
- 	dev->ib_dev.specs_root =
- 		uverbs_alloc_spec_tree(num_trees, default_root);
++	if (uverbs_copy_from(&user_vector, attrs,
++			     MLX5_IB_ATTR_DEVX_QUERY_EQN_USER_VEC))
++		return -EFAULT;
++
++	err = mlx5_vector2eqn(dev->mdev, user_vector, &dev_eqn, &irqn);
++	if (err < 0)
++		return err;
++
++	if (uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_QUERY_EQN_DEV_EQN,
++			   &dev_eqn, sizeof(dev_eqn)))
++		return -EFAULT;
++
++	return 0;
++}
++
+ /*
+  *Security note:
+  * The hardware protection mechanism works like this: Each device object that
+@@ -978,6 +1003,12 @@ static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_UMEM_DEREG,
+ 			 UVERBS_ACCESS_DESTROY,
+ 			 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
  
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index a5560375047a..be8615de14fc 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1223,12 +1223,15 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
- 			struct mlx5_ib_ucontext *context);
- void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
- 			  struct mlx5_ib_ucontext *context);
-+const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
- #else
- static inline int
- mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
- 		    struct mlx5_ib_ucontext *context) { return -EOPNOTSUPP; };
- static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
- 					struct mlx5_ib_ucontext *context) {}
-+static inline const struct uverbs_object_tree_def *
-+mlx5_ib_get_devx_tree(void) { return NULL; }
- #endif
- static inline void init_query_mad(struct ib_smp *mad)
- {
++static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_QUERY_EQN,
++	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_QUERY_EQN_USER_VEC, UVERBS_ATTR_TYPE(u32),
++			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
++	&UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_DEVX_QUERY_EQN_DEV_EQN, UVERBS_ATTR_TYPE(u32),
++			     UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
++
+ static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR,
+ 	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_QUERY_UAR_USER_IDX, UVERBS_ATTR_TYPE(u32),
+ 			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
+@@ -1049,7 +1080,8 @@ static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_OBJ_QUERY,
+ 
+ static DECLARE_UVERBS_GLOBAL_METHODS(MLX5_IB_OBJECT_DEVX,
+ 	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_OTHER),
+-	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR));
++	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR),
++	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_QUERY_EQN));
+ 
+ static DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ,
+ 	&UVERBS_TYPE_ALLOC_IDR(devx_obj_cleanup),
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index dbc549a7bf50..1a05bb4b0b34 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -48,6 +48,7 @@ enum mlx5_ib_alloc_dm_attrs {
+ enum mlx5_ib_devx_methods {
+ 	MLX5_IB_METHOD_DEVX_OTHER  = (1U << UVERBS_ID_NS_SHIFT),
+ 	MLX5_IB_METHOD_DEVX_QUERY_UAR,
++	MLX5_IB_METHOD_DEVX_QUERY_EQN,
+ };
+ 
+ enum  mlx5_ib_devx_other_attrs {
+@@ -82,6 +83,11 @@ enum mlx5_ib_devx_obj_query_attrs {
+ 	MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_OUT,
+ };
+ 
++enum  mlx5_ib_devx_query_eqn_attrs {
++	MLX5_IB_ATTR_DEVX_QUERY_EQN_USER_VEC = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_DEVX_QUERY_EQN_DEV_EQN,
++};
++
+ enum mlx5_ib_devx_obj_methods {
+ 	MLX5_IB_METHOD_DEVX_OBJ_CREATE = (1U << UVERBS_ID_NS_SHIFT),
+ 	MLX5_IB_METHOD_DEVX_OBJ_DESTROY,
 -- 
 2.14.4
