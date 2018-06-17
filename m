@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v2 10/20] net/mlx5: Expose DEVX ifc structures
-Date: Sun, 17 Jun 2018 12:59:56 +0300
-Message-ID: <20180617100006.30663-11-leon@kernel.org>
+Subject: [PATCH rdma-next v2 12/20] IB/core: Introduce DECLARE_UVERBS_GLOBAL_METHODS
+Date: Sun, 17 Jun 2018 12:59:58 +0300
+Message-ID: <20180617100006.30663-13-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -12,79 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-This patch updates the mlx5_ifc structures with the following:
-- Expose general command header in/out format.
-- Expose user context format.
-- Expose umem format.
+Introduce a new macro to be used for global methods on a singleton
+object.
 
-Downstream patches from this series will use this stuff.
+This macros sets internally the type_attrs to be NULL as such an object
+can't be created.
+
+Downstream patches from this series will use this macro.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 52 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ include/rdma/uverbs_named_ioctl.h | 4 ++++
+ include/rdma/uverbs_std_types.h   | 2 --
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 27134c4fcb76..78d4993a2920 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -9115,4 +9115,56 @@ struct mlx5_ifc_dealloc_memic_out_bits {
- 	u8         reserved_at_40[0x40];
- };
+diff --git a/include/rdma/uverbs_named_ioctl.h b/include/rdma/uverbs_named_ioctl.h
+index c5bb4ebdb0b0..228421f2a427 100644
+--- a/include/rdma/uverbs_named_ioctl.h
++++ b/include/rdma/uverbs_named_ioctl.h
+@@ -43,6 +43,7 @@
+ #define _UVERBS_NAME(x, y)	_UVERBS_PASTE(x, y)
+ #define UVERBS_METHOD(id)	_UVERBS_NAME(UVERBS_MODULE_NAME, _method_##id)
+ #define UVERBS_HANDLER(id)	_UVERBS_NAME(UVERBS_MODULE_NAME, _handler_##id)
++#define UVERBS_OBJECT(id)	_UVERBS_NAME(UVERBS_MOUDLE_NAME, _object_##id)
  
-+struct mlx5_ifc_general_obj_in_cmd_hdr_bits {
-+	u8         opcode[0x10];
-+	u8         uid[0x10];
+ #define DECLARE_UVERBS_NAMED_METHOD(id, ...)	\
+ 	DECLARE_UVERBS_METHOD(UVERBS_METHOD(id), id, UVERBS_HANDLER(id), ##__VA_ARGS__)
+@@ -56,6 +57,9 @@
+ #define DECLARE_UVERBS_NAMED_OBJECT(id, ...)	\
+ 	DECLARE_UVERBS_OBJECT(UVERBS_OBJECT(id), id, ##__VA_ARGS__)
+ 
++#define DECLARE_UVERBS_GLOBAL_METHODS(_name, ...)	\
++	DECLARE_UVERBS_NAMED_OBJECT(_name, NULL, ##__VA_ARGS__)
 +
-+	u8         reserved_at_20[0x10];
-+	u8         obj_type[0x10];
-+
-+	u8         obj_id[0x20];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
-+struct mlx5_ifc_general_obj_out_cmd_hdr_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         obj_id[0x20];
-+
-+	u8         reserved_at_60[0x20];
-+};
-+
-+struct mlx5_ifc_umem_bits {
-+	u8         modify_field_select[0x40];
-+
-+	u8         reserved_at_40[0x5b];
-+	u8         log_page_size[0x5];
-+
-+	u8         page_offset[0x20];
-+
-+	u8         num_of_mtt[0x40];
-+
-+	struct mlx5_ifc_mtt_bits  mtt[0];
-+};
-+
-+struct mlx5_ifc_uctx_bits {
-+	u8         modify_field_select[0x40];
-+
-+	u8         reserved_at_40[0x1c0];
-+};
-+
-+struct mlx5_ifc_create_umem_in_bits {
-+	struct mlx5_ifc_general_obj_in_cmd_hdr_bits   hdr;
-+	struct mlx5_ifc_umem_bits                     umem;
-+};
-+
-+struct mlx5_ifc_create_uctx_in_bits {
-+	struct mlx5_ifc_general_obj_in_cmd_hdr_bits   hdr;
-+	struct mlx5_ifc_uctx_bits                     uctx;
-+};
-+
- #endif /* MLX5_IFC_H */
+ #define _UVERBS_COMP_NAME(x, y, z) _UVERBS_NAME(_UVERBS_NAME(x, y), z)
+ 
+ #define UVERBS_NO_OVERRIDE	NULL
+diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
+index 9d56cdb84655..4c151b67fb6d 100644
+--- a/include/rdma/uverbs_std_types.h
++++ b/include/rdma/uverbs_std_types.h
+@@ -37,8 +37,6 @@
+ #include <rdma/uverbs_ioctl.h>
+ #include <rdma/ib_user_ioctl_verbs.h>
+ 
+-#define UVERBS_OBJECT(id)	uverbs_object_##id
+-
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+ const struct uverbs_object_tree_def *uverbs_default_get_objects(void);
+ #else
 -- 
 2.14.4
