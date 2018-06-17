@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 17/20] IB/mlx5: Add support for DEVX query UAR
-Date: Sun, 17 Jun 2018 13:00:03 +0300
-Message-ID: <20180617100006.30663-18-leon@kernel.org>
+Subject: [PATCH mlx5-next v2 18/20] IB/mlx5: Add DEVX support for memory registration
+Date: Sun, 17 Jun 2018 13:00:04 +0300
+Message-ID: <20180617100006.30663-19-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -12,180 +12,287 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Return a device UAR index for a given user index via the DEVX interface.
+Add support to register a memory with the firmware via the DEVX
+interface.
 
-Security note:
-The hardware protection mechanism works like this: Each device object that
-is subject to UAR doorbells (QP/SQ/CQ) gets a UAR ID (called uar_page in
-the device specification manual) upon its creation. Then upon doorbell,
-hardware fetches the object context for which the doorbell was rang, and
-validates that the UAR through which the DB was rang matches the UAR ID
-of the object.
-
-If no match the doorbell is silently ignored by the hardware.  Of
-course, the user cannot ring a doorbell on a UAR that was not mapped to
-it.
-
-Now in devx, as the devx kernel does not manipulate the QP/SQ/CQ command
-mailboxes (except tagging them with UID), we expose to the user its UAR
-ID, so it can embed it in these objects in the expected specification
-format. So the only thing the user can do is hurt itself by creating a
-QP/SQ/CQ with a UAR ID other than his, and then in this case other users
-may ring a doorbell on its objects.
-
-The consequence of that will be that another user can schedule a QP/SQ
-of the buggy user for execution (just insert it to the hardware schedule
-queue or arm its CQ for event generation), no further harm is expected.
+The driver translates a given user address to ib_umem then it will
+register the physical addresses with the firmware and get a unique id
+for this registration to be used for this virtual address.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c        | 53 +++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h     |  3 ++
- drivers/infiniband/hw/mlx5/qp.c          |  9 ++++--
- include/uapi/rdma/mlx5_user_ioctl_cmds.h |  6 ++++
- 4 files changed, 67 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c        | 199 ++++++++++++++++++++++++++++++-
+ include/linux/mlx5/mlx5_ifc.h            |   1 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h |  18 +++
+ 3 files changed, 217 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index d1cf14874323..386142684637 100644
+index 386142684637..ba6b9b46cd90 100644
 --- a/drivers/infiniband/hw/mlx5/devx.c
 +++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -373,6 +373,50 @@ static bool devx_is_general_cmd(void *in)
- 	}
+@@ -24,6 +24,22 @@ struct devx_obj {
+ 	u32			dinbox[MLX5_MAX_DESTROY_INBOX_SIZE_DW];
+ };
+ 
++struct devx_umem {
++	struct mlx5_core_dev		*mdev;
++	struct ib_umem			*umem;
++	u32				page_offset;
++	int				page_shift;
++	int				ncont;
++	u32				dinlen;
++	u32				dinbox[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)];
++};
++
++struct devx_umem_reg_cmd {
++	void				*in;
++	u32				inlen;
++	u32				out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
++};
++
+ static struct mlx5_ib_ucontext *devx_ufile2uctx(struct ib_uverbs_file *file)
+ {
+ 	return to_mucontext(ib_uverbs_get_ucontext(file));
+@@ -787,6 +803,181 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(struct ib_device *ib_de
+ 	return err;
  }
  
-+/*
-+ *Security note:
-+ * The hardware protection mechanism works like this: Each device object that
-+ * is subject to UAR doorbells (QP/SQ/CQ) gets a UAR ID (called uar_page in
-+ * the device specification manual) upon its creation. Then upon doorbell,
-+ * hardware fetches the object context for which the doorbell was rang, and
-+ * validates that the UAR through which the DB was rang matches the UAR ID
-+ * of the object.
-+ * If no match the doorbell is silently ignored by the hardware. Of course,
-+ * the user cannot ring a doorbell on a UAR that was not mapped to it.
-+ * Now in devx, as the devx kernel does not manipulate the QP/SQ/CQ command
-+ * mailboxes (except tagging them with UID), we expose to the user its UAR
-+ * ID, so it can embed it in these objects in the expected specification
-+ * format. So the only thing the user can do is hurt itself by creating a
-+ * QP/SQ/CQ with a UAR ID other than his, and then in this case other users
-+ * may ring a doorbell on its objects.
-+ * The consequence of that will be that another user can schedule a QP/SQ
-+ * of the buggy user for execution (just insert it to the hardware schedule
-+ * queue or arm its CQ for event generation), no further harm is expected.
-+ */
-+static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_QUERY_UAR)(struct ib_device *ib_dev,
-+				  struct ib_uverbs_file *file,
-+				  struct uverbs_attr_bundle *attrs)
++static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
++			 struct uverbs_attr_bundle *attrs,
++			 struct devx_umem *obj)
 +{
-+	struct mlx5_ib_ucontext *c = devx_ufile2uctx(file);
-+	u32 user_idx;
-+	s32 dev_idx;
++	u64 addr;
++	size_t size;
++	int access;
++	int npages;
++	int err;
++	u32 page_mask;
 +
-+	if (uverbs_copy_from(&user_idx, attrs,
-+			     MLX5_IB_ATTR_DEVX_QUERY_UAR_USER_IDX))
++	if (uverbs_copy_from(&addr, attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_ADDR) ||
++	    uverbs_copy_from(&size, attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_LEN) ||
++	    uverbs_copy_from(&access, attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS))
 +		return -EFAULT;
 +
-+	dev_idx = bfregn_to_uar_index(to_mdev(ib_dev),
-+				      &c->bfregi, user_idx, true);
-+	if (dev_idx < 0)
-+		return dev_idx;
++	err = ib_check_mr_access(access);
++	if (err)
++		return err;
 +
-+	if (uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_QUERY_UAR_DEV_IDX,
-+			   &dev_idx, sizeof(dev_idx)))
-+		return -EFAULT;
++	obj->umem = ib_umem_get(ucontext, addr, size, access, 0);
++	if (IS_ERR(obj->umem))
++		return PTR_ERR(obj->umem);
++
++	mlx5_ib_cont_pages(obj->umem, obj->umem->address,
++			   MLX5_MKEY_PAGE_SHIFT_MASK, &npages,
++			   &obj->page_shift, &obj->ncont, NULL);
++
++	if (!npages) {
++		ib_umem_release(obj->umem);
++		return -EINVAL;
++	}
++
++	page_mask = (1 << obj->page_shift) - 1;
++	obj->page_offset = obj->umem->address & page_mask;
 +
 +	return 0;
 +}
 +
- static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(struct ib_device *ib_dev,
- 				  struct ib_uverbs_file *file,
- 				  struct uverbs_attr_bundle *attrs)
-@@ -743,6 +787,12 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(struct ib_device *ib_de
- 	return err;
- }
- 
-+static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR,
-+	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_QUERY_UAR_USER_IDX, UVERBS_ATTR_TYPE(u32),
++static int devx_umem_reg_cmd_alloc(struct devx_umem *obj,
++				   struct devx_umem_reg_cmd *cmd)
++{
++	cmd->inlen = MLX5_ST_SZ_BYTES(create_umem_in) +
++		    (MLX5_ST_SZ_BYTES(mtt) * obj->ncont);
++	cmd->in = kvzalloc(cmd->inlen, GFP_KERNEL);
++	return cmd->in ? 0 : -ENOMEM;
++}
++
++static void devx_umem_reg_cmd_free(struct devx_umem_reg_cmd *cmd)
++{
++	kvfree(cmd->in);
++}
++
++static void devx_umem_reg_cmd_build(struct mlx5_ib_dev *dev,
++				    struct devx_umem *obj,
++				    struct devx_umem_reg_cmd *cmd)
++{
++	void *umem;
++	__be64 *mtt;
++
++	umem = MLX5_ADDR_OF(create_umem_in, cmd->in, umem);
++	mtt = (__be64 *)MLX5_ADDR_OF(umem, umem, mtt);
++
++	MLX5_SET(general_obj_in_cmd_hdr, cmd->in, opcode, MLX5_CMD_OP_CREATE_GENERAL_OBJECT);
++	MLX5_SET(general_obj_in_cmd_hdr, cmd->in, obj_type, MLX5_OBJ_TYPE_UMEM);
++	MLX5_SET64(umem, umem, num_of_mtt, obj->ncont);
++	MLX5_SET(umem, umem, log_page_size, obj->page_shift -
++					    MLX5_ADAPTER_PAGE_SHIFT);
++	MLX5_SET(umem, umem, page_offset, obj->page_offset);
++	mlx5_ib_populate_pas(dev, obj->umem, obj->page_shift, mtt,
++			     (obj->umem->writable ? MLX5_IB_MTT_WRITE : 0) |
++			     MLX5_IB_MTT_READ);
++}
++
++static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_REG)(struct ib_device *ib_dev,
++				 struct ib_uverbs_file *file,
++				 struct uverbs_attr_bundle *attrs)
++{
++	struct mlx5_ib_ucontext *c = devx_ufile2uctx(file);
++	struct mlx5_ib_dev *dev = to_mdev(ib_dev);
++	struct devx_umem_reg_cmd cmd;
++	struct devx_umem *obj;
++	struct ib_uobject *uobj;
++	u32 obj_id;
++	int err;
++
++	if (!c->devx_uid)
++		return -EPERM;
++
++	uobj = uverbs_attr_get_uobject(attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_HANDLE);
++	obj = kzalloc(sizeof(struct devx_umem), GFP_KERNEL);
++	if (!obj)
++		return -ENOMEM;
++
++	err = devx_umem_get(dev, &c->ibucontext, attrs, obj);
++	if (err)
++		goto err_obj_free;
++
++	err = devx_umem_reg_cmd_alloc(obj, &cmd);
++	if (err)
++		goto err_umem_release;
++
++	devx_umem_reg_cmd_build(dev, obj, &cmd);
++
++	MLX5_SET(general_obj_in_cmd_hdr, cmd.in, uid, c->devx_uid);
++	err = mlx5_cmd_exec(dev->mdev, cmd.in, cmd.inlen, cmd.out,
++			    sizeof(cmd.out));
++	if (err)
++		goto err_umem_reg_cmd_free;
++
++	obj->mdev = dev->mdev;
++	uobj->object = obj;
++	devx_obj_build_destroy_cmd(cmd.in, cmd.out, obj->dinbox, &obj->dinlen, &obj_id);
++	err = uverbs_copy_to(attrs, MLX5_IB_ATTR_DEVX_UMEM_REG_OUT_ID, &obj_id, sizeof(obj_id));
++	if (err)
++		goto err_umem_destroy;
++
++	devx_umem_reg_cmd_free(&cmd);
++
++	return 0;
++
++err_umem_destroy:
++	mlx5_cmd_exec(obj->mdev, obj->dinbox, obj->dinlen, cmd.out, sizeof(cmd.out));
++err_umem_reg_cmd_free:
++	devx_umem_reg_cmd_free(&cmd);
++err_umem_release:
++	ib_umem_release(obj->umem);
++err_obj_free:
++	kfree(obj);
++	return err;
++}
++
++static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_DEREG)(struct ib_device *ib_dev,
++				   struct ib_uverbs_file *file,
++				   struct uverbs_attr_bundle *attrs)
++{
++	return 0;
++}
++
++static int devx_umem_cleanup(struct ib_uobject *uobject,
++			     enum rdma_remove_reason why)
++{
++	struct devx_umem *obj = uobject->object;
++	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)];
++	int err;
++
++	err = mlx5_cmd_exec(obj->mdev, obj->dinbox, obj->dinlen, out, sizeof(out));
++	if (err && why == RDMA_REMOVE_DESTROY)
++		return err;
++
++	ib_umem_release(obj->umem);
++	kfree(obj);
++	return 0;
++}
++
++static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_UMEM_REG,
++	&UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_UMEM_REG_HANDLE,
++			 MLX5_IB_OBJECT_DEVX_UMEM,
++			 UVERBS_ACCESS_NEW,
++			 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
++	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_UMEM_REG_ADDR, UVERBS_ATTR_TYPE(u64),
 +			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
-+	&UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_DEVX_QUERY_UAR_DEV_IDX, UVERBS_ATTR_TYPE(u32),
++	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_UMEM_REG_LEN, UVERBS_ATTR_TYPE(u64),
++			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
++	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS, UVERBS_ATTR_TYPE(u32),
++			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
++	&UVERBS_ATTR_PTR_OUT(MLX5_IB_ATTR_DEVX_UMEM_REG_OUT_ID, UVERBS_ATTR_TYPE(u32),
 +			     UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
 +
- static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_OTHER,
- 	&UVERBS_ATTR_PTR_IN_SZ(MLX5_IB_ATTR_DEVX_OTHER_CMD_IN,
- 			       UVERBS_ATTR_MIN_SIZE(MLX5_ST_SZ_BYTES(general_obj_in_cmd_hdr)),
-@@ -807,7 +857,8 @@ static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_OBJ_QUERY,
- 					 UVERBS_ATTR_SPEC_F_MIN_SZ_OR_ZERO)));
- 
- static DECLARE_UVERBS_GLOBAL_METHODS(MLX5_IB_OBJECT_DEVX,
--	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_OTHER));
-+	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_OTHER),
-+	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR));
- 
- static DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ,
- 	&UVERBS_TYPE_ALLOC_IDR(devx_obj_cleanup),
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 5e8abd8bcd71..a5560375047a 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1331,4 +1331,7 @@ static inline int get_num_static_uars(struct mlx5_ib_dev *dev,
- unsigned long mlx5_ib_get_xlt_emergency_page(void);
- void mlx5_ib_put_xlt_emergency_page(void);
- 
-+int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
-+			struct mlx5_bfreg_info *bfregi, int bfregn,
-+			bool dyn_bfreg);
- #endif /* MLX5_IB_H */
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index a4f1f638509f..f6389d0373d0 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -641,9 +641,9 @@ static void mlx5_ib_lock_cqs(struct mlx5_ib_cq *send_cq,
- static void mlx5_ib_unlock_cqs(struct mlx5_ib_cq *send_cq,
- 			       struct mlx5_ib_cq *recv_cq);
- 
--static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
--			       struct mlx5_bfreg_info *bfregi, int bfregn,
--			       bool dyn_bfreg)
-+int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
-+			struct mlx5_bfreg_info *bfregi, int bfregn,
-+			bool dyn_bfreg)
- {
- 	int bfregs_per_sys_page;
- 	int index_of_sys_page;
-@@ -653,6 +653,9 @@ static int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
- 				MLX5_NON_FP_BFREGS_PER_UAR;
- 	index_of_sys_page = bfregn / bfregs_per_sys_page;
- 
-+	if (index_of_sys_page >= bfregi->num_sys_pages)
-+		return -EINVAL;
++static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_UMEM_DEREG,
++	&UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_UMEM_DEREG_HANDLE,
++			 MLX5_IB_OBJECT_DEVX_UMEM,
++			 UVERBS_ACCESS_DESTROY,
++			 UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)));
 +
- 	if (dyn_bfreg) {
- 		index_of_sys_page += bfregi->num_static_sys_pages;
- 		if (bfregn > bfregi->num_dyn_bfregs ||
+ static DECLARE_UVERBS_NAMED_METHOD(MLX5_IB_METHOD_DEVX_QUERY_UAR,
+ 	&UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_DEVX_QUERY_UAR_USER_IDX, UVERBS_ATTR_TYPE(u32),
+ 			    UA_FLAGS(UVERBS_ATTR_SPEC_F_MANDATORY)),
+@@ -867,6 +1058,12 @@ static DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ,
+ 		&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_OBJ_MODIFY),
+ 		&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_OBJ_QUERY));
+ 
++static DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_DEVX_UMEM,
++	&UVERBS_TYPE_ALLOC_IDR(devx_umem_cleanup),
++	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_UMEM_REG),
++	&UVERBS_METHOD(MLX5_IB_METHOD_DEVX_UMEM_DEREG));
++
+ static DECLARE_UVERBS_OBJECT_TREE(devx_objects,
+ 	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX),
+-	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ));
++	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX_OBJ),
++	&UVERBS_OBJECT(MLX5_IB_OBJECT_DEVX_UMEM));
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index ac24ed87c67e..00b539303f5d 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -82,6 +82,7 @@ enum {
+ 
+ enum {
+ 	MLX5_OBJ_TYPE_UCTX = 0x0004,
++	MLX5_OBJ_TYPE_UMEM = 0x0005,
+ };
+ 
+ enum {
 diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 97d216b8d053..1252695cd94b 100644
+index 1252695cd94b..dbc549a7bf50 100644
 --- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -47,6 +47,7 @@ enum mlx5_ib_alloc_dm_attrs {
- 
- enum mlx5_ib_devx_methods {
- 	MLX5_IB_METHOD_DEVX_OTHER  = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_METHOD_DEVX_QUERY_UAR,
+@@ -89,9 +89,27 @@ enum mlx5_ib_devx_obj_methods {
+ 	MLX5_IB_METHOD_DEVX_OBJ_QUERY,
  };
  
- enum  mlx5_ib_devx_other_attrs {
-@@ -60,6 +61,11 @@ enum mlx5_ib_devx_obj_create_attrs {
- 	MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_OUT,
- };
- 
-+enum  mlx5_ib_devx_query_uar_attrs {
-+	MLX5_IB_ATTR_DEVX_QUERY_UAR_USER_IDX = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_ATTR_DEVX_QUERY_UAR_DEV_IDX,
++enum mlx5_ib_devx_umem_reg_attrs {
++	MLX5_IB_ATTR_DEVX_UMEM_REG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_DEVX_UMEM_REG_ADDR,
++	MLX5_IB_ATTR_DEVX_UMEM_REG_LEN,
++	MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS,
++	MLX5_IB_ATTR_DEVX_UMEM_REG_OUT_ID,
 +};
 +
- enum mlx5_ib_devx_obj_destroy_attrs {
- 	MLX5_IB_ATTR_DEVX_OBJ_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++enum mlx5_ib_devx_umem_dereg_attrs {
++	MLX5_IB_ATTR_DEVX_UMEM_DEREG_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++};
++
++enum mlx5_ib_devx_umem_methods {
++	MLX5_IB_METHOD_DEVX_UMEM_REG = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_METHOD_DEVX_UMEM_DEREG,
++};
++
+ enum mlx5_ib_devx_objects {
+ 	MLX5_IB_OBJECT_DEVX = (1U << UVERBS_ID_NS_SHIFT),
+ 	MLX5_IB_OBJECT_DEVX_OBJ,
++	MLX5_IB_OBJECT_DEVX_UMEM,
  };
+ 
+ #endif
 -- 
 2.14.4
