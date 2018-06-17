@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 08/20] IB/uverbs: Allow an empty namespace in ioctl() framework
-Date: Sun, 17 Jun 2018 12:59:54 +0300
-Message-ID: <20180617100006.30663-9-leon@kernel.org>
+Subject: [PATCH rdma-next v2 06/20] IB/uverbs: Add PTR_IN attributes that are allocated/copied automatically
+Date: Sun, 17 Jun 2018 12:59:52 +0300
+Message-ID: <20180617100006.30663-7-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -12,63 +12,112 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Matan Barak <matanb@mellanox.com>
 
-The ioctl parser framework wrongly assumed that each namespace is
-populated. This could lead to NULL dereferences. Fix the parser to
-always check that a given namespace indeed exists.
+Adding UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY flag to PTR_IN attributes.
+By using this flag, the parse automatically allocates and copies the
+user-space data. This data is accessible by using uverbs_attr_get_len
+and uverbs_attr_get_alloced_ptr inline accessor functions from the
+handler.
 
-Fixes: fac9658cabb9 ("IB/core: Add new ioctl interface")
 Signed-off-by: Matan Barak <matanb@mellanox.com>
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_ioctl.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_ioctl.c | 25 ++++++++++++++++++++++++-
+ include/rdma/uverbs_ioctl.h            | 25 +++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index ee15c9ca788b..fb12e8ef7147 100644
+index 8cc3e8dad9b5..ee15c9ca788b 100644
 --- a/drivers/infiniband/core/uverbs_ioctl.c
 +++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -201,6 +201,9 @@ static int uverbs_finalize_attrs(struct uverbs_attr_bundle *attrs_bundle,
- 			spec_hash[i];
- 		unsigned int j;
+@@ -114,7 +114,26 @@ static int uverbs_process_attr(struct ib_device *ibdev,
+ 		    uattr->attr_data.reserved)
+ 			return -EINVAL;
  
-+		if (!curr_spec_bucket)
-+			continue;
+-		e->ptr_attr.data = uattr->data;
++		if (val_spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
++		    uattr->len > sizeof(((struct ib_uverbs_attr *)0)->data)) {
++			int ret;
++			void *p;
 +
- 		for (j = 0; j < curr_bundle->num_attrs; j++) {
- 			struct uverbs_attr *attr;
- 			const struct uverbs_attr_spec *spec;
-@@ -248,7 +251,7 @@ static int uverbs_uattrs_process(struct ib_device *ibdev,
- 		struct uverbs_attr_spec_hash *attr_spec_bucket;
++			p = kvmalloc(uattr->len, GFP_KERNEL);
++			if (!p)
++				return -ENOMEM;
++
++			e->ptr_attr.data = ptr_to_u64(p);
++
++			ret = copy_from_user(p, u64_to_user_ptr(uattr->data),
++					     uattr->len);
++			if (ret) {
++				kvfree(p);
++				return -EFAULT;
++			}
++		} else {
++			e->ptr_attr.data = uattr->data;
++		}
+ 		e->ptr_attr.len = uattr->len;
+ 		e->ptr_attr.flags = uattr->flags;
+ 		break;
+@@ -201,6 +220,10 @@ static int uverbs_finalize_attrs(struct uverbs_attr_bundle *attrs_bundle,
+ 								     commit);
+ 				if (!ret)
+ 					ret = current_ret;
++			} else if (spec->type == UVERBS_ATTR_TYPE_PTR_IN &&
++				   spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
++				   !uverbs_attr_ptr_is_inline(attr)) {
++				kvfree(u64_to_ptr(void, attr->ptr_attr.data));
+ 			}
+ 		}
+ 	}
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index bd6bba3a6e04..0e6f782727bd 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -65,6 +65,8 @@ enum {
+ 	UVERBS_ATTR_SPEC_F_MANDATORY	= 1U << 0,
+ 	/* Support extending attributes by length, validate all unknown size == zero  */
+ 	UVERBS_ATTR_SPEC_F_MIN_SZ_OR_ZERO = 1U << 1,
++	/* Valid only for PTR_IN. Allocate and copy the data inside the parser */
++	UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY = 1U << 2,
+ };
  
- 		ret = uverbs_ns_idx(&attr_id, method->num_buckets);
--		if (ret < 0) {
-+		if (ret < 0 || !method->attr_buckets[ret]) {
- 			if (uattr->flags & UVERBS_ATTR_F_MANDATORY) {
- 				uverbs_finalize_attrs(attr_bundle,
- 						      method->attr_buckets,
-@@ -291,6 +294,9 @@ static int uverbs_validate_kernel_mandatory(const struct uverbs_method_spec *met
- 		struct uverbs_attr_spec_hash *attr_spec_bucket =
- 			method_spec->attr_buckets[i];
+ /* Specification of a single attribute inside the ioctl message */
+@@ -431,6 +433,17 @@ static inline struct ib_uobject *uverbs_attr_get_uobject(const struct uverbs_att
+ 	return attr->obj_attr.uobject;
+ }
  
-+		if (!attr_spec_bucket)
-+			continue;
++static inline int uverbs_attr_get_len(const struct uverbs_attr_bundle *attrs_bundle,
++				      u16 idx)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
 +
- 		if (!bitmap_subset(attr_spec_bucket->mandatory_attrs_bitmask,
- 				   attr_bundle->hash[i].valid_bitmap,
- 				   attr_spec_bucket->num_attrs))
-@@ -404,7 +410,12 @@ static long ib_uverbs_cmd_verbs(struct ib_device *ib_dev,
- 	 * filled at a later stage (uverbs_process_attr)
- 	 */
- 	for (i = 0; i < method_spec->num_buckets; i++) {
--		unsigned int curr_num_attrs = method_spec->attr_buckets[i]->num_attrs;
-+		unsigned int curr_num_attrs;
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
 +
-+		if (!method_spec->attr_buckets[i])
-+			continue;
++	return attr->ptr_attr.len;
++}
 +
-+		curr_num_attrs = method_spec->attr_buckets[i]->num_attrs;
+ static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
+ 				 size_t idx, const void *from, size_t size)
+ {
+@@ -457,6 +470,18 @@ static inline bool uverbs_attr_ptr_is_inline(const struct uverbs_attr *attr)
+ 	return attr->ptr_attr.len <= sizeof(attr->ptr_attr.data);
+ }
  
- 		ctx->uverbs_attr_bundle->hash[i].attrs = curr_attr;
- 		curr_attr += curr_num_attrs;
++static inline void *uverbs_attr_get_alloced_ptr(const struct uverbs_attr_bundle *attrs_bundle,
++						u16 idx)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
++
++	if (IS_ERR(attr))
++		return (void *)attr;
++
++	return uverbs_attr_ptr_is_inline(attr) ? u64_to_ptr(void *, attr->ptr_attr.data) :
++		u64_to_ptr(void, attr->ptr_attr.data);
++}
++
+ static inline int _uverbs_copy_from(void *to,
+ 				    const struct uverbs_attr_bundle *attrs_bundle,
+ 				    size_t idx,
 -- 
 2.14.4
