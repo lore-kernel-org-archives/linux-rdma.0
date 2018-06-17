@@ -1,123 +1,80 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 06/20] IB/uverbs: Add PTR_IN attributes that are allocated/copied automatically
-Date: Sun, 17 Jun 2018 12:59:52 +0300
-Message-ID: <20180617100006.30663-7-leon@kernel.org>
-References: <20180617100006.30663-1-leon@kernel.org>
+Subject: Re: linux-next: Please add mlx5-next tree
+Date: Sun, 17 Jun 2018 21:52:53 +0300
+Message-ID: <20180617185253.GA7393@mtr-leonro.mtl.com>
+References: <20180606192500.GZ2958@mtr-leonro.mtl.com>
+ <20180608074726.5b3883e2@canb.auug.org.au>
+ <20180610054128.GG12407@mtr-leonro.mtl.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180610054128.GG12407@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "David S. Miller" <davem@davemloft.net>, linux-netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb@mellanox.com>
 
-Adding UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY flag to PTR_IN attributes.
-By using this flag, the parse automatically allocates and copies the
-user-space data. This data is accessible by using uverbs_attr_get_len
-and uverbs_attr_get_alloced_ptr inline accessor functions from the
-handler.
+--/04w6evG8XlLl3ft
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Matan Barak <matanb@mellanox.com>
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/uverbs_ioctl.c | 25 ++++++++++++++++++++++++-
- include/rdma/uverbs_ioctl.h            | 25 +++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 1 deletion(-)
+On Sun, Jun 10, 2018 at 08:41:28AM +0300, Leon Romanovsky wrote:
+> On Fri, Jun 08, 2018 at 07:47:26AM +1000, Stephen Rothwell wrote:
+> > Hi Leon,
+> >
+> > On Wed, 6 Jun 2018 22:25:00 +0300 Leon Romanovsky <leon@kernel.org> wrote:
+> > >
+> > > Can you please add the branch "mlx5-next" from the following tree to the
+> > > linux-next integration tree?
+> > >
+> > > https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/
+> > >
+> > > The mlx5-next branch is used to send shared pull requests to both netdev
+> > > and RDMA subsystems and it is worth to have linux-next coverage on it
+> > > before.
+> >
+> > I try hard not to add new trees during the merge window, sorry.  If I
+> > forget to add it after -rc1 has been released, please remind me.
+>
+> Thanks Stephen, I'll do.
+>
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 8cc3e8dad9b5..ee15c9ca788b 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -114,7 +114,26 @@ static int uverbs_process_attr(struct ib_device *ibdev,
- 		    uattr->attr_data.reserved)
- 			return -EINVAL;
- 
--		e->ptr_attr.data = uattr->data;
-+		if (val_spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
-+		    uattr->len > sizeof(((struct ib_uverbs_attr *)0)->data)) {
-+			int ret;
-+			void *p;
-+
-+			p = kvmalloc(uattr->len, GFP_KERNEL);
-+			if (!p)
-+				return -ENOMEM;
-+
-+			e->ptr_attr.data = ptr_to_u64(p);
-+
-+			ret = copy_from_user(p, u64_to_user_ptr(uattr->data),
-+					     uattr->len);
-+			if (ret) {
-+				kvfree(p);
-+				return -EFAULT;
-+			}
-+		} else {
-+			e->ptr_attr.data = uattr->data;
-+		}
- 		e->ptr_attr.len = uattr->len;
- 		e->ptr_attr.flags = uattr->flags;
- 		break;
-@@ -201,6 +220,10 @@ static int uverbs_finalize_attrs(struct uverbs_attr_bundle *attrs_bundle,
- 								     commit);
- 				if (!ret)
- 					ret = current_ret;
-+			} else if (spec->type == UVERBS_ATTR_TYPE_PTR_IN &&
-+				   spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
-+				   !uverbs_attr_ptr_is_inline(attr)) {
-+				kvfree(u64_to_ptr(void, attr->ptr_attr.data));
- 			}
- 		}
- 	}
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index bd6bba3a6e04..0e6f782727bd 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -65,6 +65,8 @@ enum {
- 	UVERBS_ATTR_SPEC_F_MANDATORY	= 1U << 0,
- 	/* Support extending attributes by length, validate all unknown size == zero  */
- 	UVERBS_ATTR_SPEC_F_MIN_SZ_OR_ZERO = 1U << 1,
-+	/* Valid only for PTR_IN. Allocate and copy the data inside the parser */
-+	UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY = 1U << 2,
- };
- 
- /* Specification of a single attribute inside the ioctl message */
-@@ -431,6 +433,17 @@ static inline struct ib_uobject *uverbs_attr_get_uobject(const struct uverbs_att
- 	return attr->obj_attr.uobject;
- }
- 
-+static inline int uverbs_attr_get_len(const struct uverbs_attr_bundle *attrs_bundle,
-+				      u16 idx)
-+{
-+	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
-+
-+	if (IS_ERR(attr))
-+		return PTR_ERR(attr);
-+
-+	return attr->ptr_attr.len;
-+}
-+
- static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
- 				 size_t idx, const void *from, size_t size)
- {
-@@ -457,6 +470,18 @@ static inline bool uverbs_attr_ptr_is_inline(const struct uverbs_attr *attr)
- 	return attr->ptr_attr.len <= sizeof(attr->ptr_attr.data);
- }
- 
-+static inline void *uverbs_attr_get_alloced_ptr(const struct uverbs_attr_bundle *attrs_bundle,
-+						u16 idx)
-+{
-+	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
-+
-+	if (IS_ERR(attr))
-+		return (void *)attr;
-+
-+	return uverbs_attr_ptr_is_inline(attr) ? u64_to_ptr(void *, attr->ptr_attr.data) :
-+		u64_to_ptr(void, attr->ptr_attr.data);
-+}
-+
- static inline int _uverbs_copy_from(void *to,
- 				    const struct uverbs_attr_bundle *attrs_bundle,
- 				    size_t idx,
--- 
-2.14.4
+Hi Stephen,
+
+This is reminder.
+
+Thanks
+
+> >
+> > --
+> > Cheers,
+> > Stephen Rothwell
+>
+>
+
+
+
+--/04w6evG8XlLl3ft
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbJq4FAAoJEORje4g2clinc0MP/iyLkAw8x2jg3WfXW1flAH75
+QY6mdmkx94bLPQq0k/wYnQQfoo3aMdxRWcABzKEGsAY8toWFLK0lkUkt8w/njzgv
+grGlBNSHXQbPHCAXNuxbUSBLqZ4xpD5ainJkUZqDW/Z/4zpX4xcqjElyMCDPF10u
+V2izS5DorHb0ny2+YSxrrckSldEWtFTsLBXHUXVya5Edsf6755DdirwgEyTD/92e
+a1FJ+aDRh74zzgMDOJzZjUPgj5fwVnINuf4v6o0+YMJIVfkI7XDI1B4cP6XL2vT+
+kYyIfd53MNqZ1m5UtPowLxWyLHNn1UnWERlGDxbzvqhPBLfVClTZQDyqSp6VbfoR
++zem0z/8bLVzPbZLDZqdYwGOfHo9K6BM99jMdYvDseyoG1pgtgXat03YjdxRWPZl
+WvLeSNDGJg+Lar79HMkCAznW0SNSdRKmipELGqnVvS5vq11welLOfzvQ+s67Oy4U
+lIbnwm2YgDZ8iN+GRNJHmr1Pu6A1wvsDfLsBl3sV1qe0RrVHouwBcuN6YgUOCqpg
+lhg6S+HWHrKqxJ1cuW+DW0RSmfpVz/OqtNZXGhOB6o/n8Z/2FAd2rbtycqfijDr+
+2VeMK6o+nplk0kEcSEef+YVQ5JPU/7b0K6CUXHYHNZH5jZ+RCyN5K85NYKuTvlb3
+SNQXxmpLiItcQAI9Ca1w
+=Sq+z
+-----END PGP SIGNATURE-----
+
+--/04w6evG8XlLl3ft--
