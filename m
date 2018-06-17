@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 12/20] IB/core: Introduce DECLARE_UVERBS_GLOBAL_METHODS
-Date: Sun, 17 Jun 2018 12:59:58 +0300
-Message-ID: <20180617100006.30663-13-leon@kernel.org>
+Subject: [PATCH rdma-next v2 13/20] IB: Expose ib_ucontext from a given ib_uverbs_file
+Date: Sun, 17 Jun 2018 12:59:59 +0300
+Message-ID: <20180617100006.30663-14-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -12,55 +12,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Introduce a new macro to be used for global methods on a singleton
-object.
+Drivers that use the IOCTL API may have the ib_uverbs_file and need a
+way to get the related ib_ucontext from it, this is enabled by this
+patch.
 
-This macros sets internally the type_attrs to be NULL as such an object
-can't be created.
-
-Downstream patches from this series will use this macro.
+Downstream patches from this series will use it.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/uverbs_named_ioctl.h | 4 ++++
- include/rdma/uverbs_std_types.h   | 2 --
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 6 ++++++
+ include/rdma/ib_verbs.h               | 2 ++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/include/rdma/uverbs_named_ioctl.h b/include/rdma/uverbs_named_ioctl.h
-index c5bb4ebdb0b0..228421f2a427 100644
---- a/include/rdma/uverbs_named_ioctl.h
-+++ b/include/rdma/uverbs_named_ioctl.h
-@@ -43,6 +43,7 @@
- #define _UVERBS_NAME(x, y)	_UVERBS_PASTE(x, y)
- #define UVERBS_METHOD(id)	_UVERBS_NAME(UVERBS_MODULE_NAME, _method_##id)
- #define UVERBS_HANDLER(id)	_UVERBS_NAME(UVERBS_MODULE_NAME, _handler_##id)
-+#define UVERBS_OBJECT(id)	_UVERBS_NAME(UVERBS_MOUDLE_NAME, _object_##id)
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 3ae2339dd27a..f5f4bfb59705 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -138,6 +138,12 @@ static int (*uverbs_ex_cmd_table[])(struct ib_uverbs_file *file,
+ static void ib_uverbs_add_one(struct ib_device *device);
+ static void ib_uverbs_remove_one(struct ib_device *device, void *client_data);
  
- #define DECLARE_UVERBS_NAMED_METHOD(id, ...)	\
- 	DECLARE_UVERBS_METHOD(UVERBS_METHOD(id), id, UVERBS_HANDLER(id), ##__VA_ARGS__)
-@@ -56,6 +57,9 @@
- #define DECLARE_UVERBS_NAMED_OBJECT(id, ...)	\
- 	DECLARE_UVERBS_OBJECT(UVERBS_OBJECT(id), id, ##__VA_ARGS__)
- 
-+#define DECLARE_UVERBS_GLOBAL_METHODS(_name, ...)	\
-+	DECLARE_UVERBS_NAMED_OBJECT(_name, NULL, ##__VA_ARGS__)
++struct ib_ucontext *ib_uverbs_get_ucontext(struct ib_uverbs_file *ufile)
++{
++	return ufile->ucontext;
++}
++EXPORT_SYMBOL(ib_uverbs_get_ucontext);
 +
- #define _UVERBS_COMP_NAME(x, y, z) _UVERBS_NAME(_UVERBS_NAME(x, y), z)
+ int uverbs_dealloc_mw(struct ib_mw *mw)
+ {
+ 	struct ib_pd *pd = mw->pd;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 152b5907c864..1b30520c8c28 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4107,4 +4107,6 @@ ib_get_vector_affinity(struct ib_device *device, int comp_vector)
+  */
+ void rdma_roce_rescan_device(struct ib_device *ibdev);
  
- #define UVERBS_NO_OVERRIDE	NULL
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
-index 9d56cdb84655..4c151b67fb6d 100644
---- a/include/rdma/uverbs_std_types.h
-+++ b/include/rdma/uverbs_std_types.h
-@@ -37,8 +37,6 @@
- #include <rdma/uverbs_ioctl.h>
- #include <rdma/ib_user_ioctl_verbs.h>
- 
--#define UVERBS_OBJECT(id)	uverbs_object_##id
--
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
- const struct uverbs_object_tree_def *uverbs_default_get_objects(void);
- #else
++struct ib_ucontext *ib_uverbs_get_ucontext(struct ib_uverbs_file *ufile);
++
+ #endif /* IB_VERBS_H */
 -- 
 2.14.4
