@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 05/20] IB/uverbs: Refactor uverbs_finalize_objects
-Date: Sun, 17 Jun 2018 12:59:51 +0300
-Message-ID: <20180617100006.30663-6-leon@kernel.org>
+Subject: [PATCH mlx5-next v2 01/20] net/mlx5_core: Prevent warns in dmesg upon firmware commands
+Date: Sun, 17 Jun 2018 12:59:47 +0300
+Message-ID: <20180617100006.30663-2-leon@kernel.org>
 References: <20180617100006.30663-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180617100006.30663-1-leon@kernel.org>
@@ -10,191 +10,69 @@ To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Matan Barak <matanb@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
-uverbs_finalize_objects is currently used only to commit or abort
-objects. Since we want to add automatic allocation/free of PTR_IN
-attributes, moving it to uverbs_ioctl.c and renamit it to
-uverbs_finalize_attrs.
+When DEVX is used application builds by itself the command mail box,
+this patch prevents warns upon firmware commands as of invalid user
+space usage.
 
-Signed-off-by: Matan Barak <matanb@mellanox.com>
+In addition,
+A failure in destroy_mkey command was changed to be printed only under
+debug mode.
+
+This prevents a redundant warn when a memory window was used
+with rereg_mr and finally was some kernel cleanup as of reset
+flow/process termination.
+
+In that case this command might temporarily fails as part of the cleanup
+but finally it expects to succeed.
+
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/rdma_core.c    | 40 ---------------------
- drivers/infiniband/core/rdma_core.h    | 10 ++----
- drivers/infiniband/core/uverbs_ioctl.c | 64 +++++++++++++++++++++++++++-------
- 3 files changed, 55 insertions(+), 59 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index 8035a0a7564c..df3c40533252 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -779,43 +779,3 @@ int uverbs_finalize_object(struct ib_uobject *uobj,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 487388aed98f..b99d6df3905b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -677,7 +677,7 @@ struct mlx5_ifc_mbox_out_bits {
  
- 	return ret;
- }
--
--int uverbs_finalize_objects(struct uverbs_attr_bundle *attrs_bundle,
--			    struct uverbs_attr_spec_hash * const *spec_hash,
--			    size_t num,
--			    bool commit)
--{
--	unsigned int i;
--	int ret = 0;
--
--	for (i = 0; i < num; i++) {
--		struct uverbs_attr_bundle_hash *curr_bundle =
--			&attrs_bundle->hash[i];
--		const struct uverbs_attr_spec_hash *curr_spec_bucket =
--			spec_hash[i];
--		unsigned int j;
--
--		for (j = 0; j < curr_bundle->num_attrs; j++) {
--			struct uverbs_attr *attr;
--			const struct uverbs_attr_spec *spec;
--
--			if (!uverbs_attr_is_valid_in_hash(curr_bundle, j))
--				continue;
--
--			attr = &curr_bundle->attrs[j];
--			spec = &curr_spec_bucket->attrs[j];
--
--			if (spec->type == UVERBS_ATTR_TYPE_IDR ||
--			    spec->type == UVERBS_ATTR_TYPE_FD) {
--				int current_ret;
--
--				current_ret = uverbs_finalize_object(attr->obj_attr.uobject,
--								     spec->obj.access,
--								     commit);
--				if (!ret)
--					ret = current_ret;
--			}
--		}
--	}
--	return ret;
--}
-diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
-index 1efcf93238dd..a243cc2a59f7 100644
---- a/drivers/infiniband/core/rdma_core.h
-+++ b/drivers/infiniband/core/rdma_core.h
-@@ -94,9 +94,6 @@ struct ib_uobject *uverbs_get_uobject_from_context(const struct uverbs_obj_type
- 						   struct ib_ucontext *ucontext,
- 						   enum uverbs_obj_access access,
- 						   int id);
--int uverbs_finalize_object(struct ib_uobject *uobj,
--			   enum uverbs_obj_access access,
--			   bool commit);
- /*
-  * Note that certain finalize stages could return a status:
-  *   (a) alloc_commit could return a failure if the object is committed at the
-@@ -112,9 +109,8 @@ int uverbs_finalize_object(struct ib_uobject *uobj,
-  * function. For example, this could happen when we couldn't destroy an
-  * object.
-  */
--int uverbs_finalize_objects(struct uverbs_attr_bundle *attrs_bundle,
--			    struct uverbs_attr_spec_hash * const *spec_hash,
--			    size_t num,
--			    bool commit);
-+int uverbs_finalize_object(struct ib_uobject *uobj,
-+			   enum uverbs_obj_access access,
-+			   bool commit);
+ struct mlx5_ifc_mbox_in_bits {
+ 	u8         opcode[0x10];
+-	u8         reserved_at_10[0x10];
++	u8         uid[0x10];
  
- #endif /* RDMA_CORE_H */
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 8d32c4ae368c..8cc3e8dad9b5 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -167,6 +167,46 @@ static int uverbs_process_attr(struct ib_device *ibdev,
- 	return 0;
- }
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+@@ -697,6 +697,7 @@ static int mlx5_cmd_check(struct mlx5_core_dev *dev, void *in, void *out)
+ 	u8  status;
+ 	u16 opcode;
+ 	u16 op_mod;
++	u16 uid;
  
-+static int uverbs_finalize_attrs(struct uverbs_attr_bundle *attrs_bundle,
-+			  struct uverbs_attr_spec_hash * const *spec_hash,
-+			  size_t num,
-+			  bool commit)
-+{
-+	unsigned int i;
-+	int ret = 0;
-+
-+	for (i = 0; i < num; i++) {
-+		struct uverbs_attr_bundle_hash *curr_bundle =
-+			&attrs_bundle->hash[i];
-+		const struct uverbs_attr_spec_hash *curr_spec_bucket =
-+			spec_hash[i];
-+		unsigned int j;
-+
-+		for (j = 0; j < curr_bundle->num_attrs; j++) {
-+			struct uverbs_attr *attr;
-+			const struct uverbs_attr_spec *spec;
-+
-+			if (!uverbs_attr_is_valid_in_hash(curr_bundle, j))
-+				continue;
-+
-+			attr = &curr_bundle->attrs[j];
-+			spec = &curr_spec_bucket->attrs[j];
-+
-+			if (spec->type == UVERBS_ATTR_TYPE_IDR ||
-+			    spec->type == UVERBS_ATTR_TYPE_FD) {
-+				int current_ret;
-+
-+				current_ret = uverbs_finalize_object(attr->obj_attr.uobject,
-+								     spec->obj.access,
-+								     commit);
-+				if (!ret)
-+					ret = current_ret;
-+			}
-+		}
-+	}
-+	return ret;
-+}
-+
- static int uverbs_uattrs_process(struct ib_device *ibdev,
- 				 struct ib_ucontext *ucontext,
- 				 const struct ib_uverbs_attr *uattrs,
-@@ -187,10 +227,10 @@ static int uverbs_uattrs_process(struct ib_device *ibdev,
- 		ret = uverbs_ns_idx(&attr_id, method->num_buckets);
- 		if (ret < 0) {
- 			if (uattr->flags & UVERBS_ATTR_F_MANDATORY) {
--				uverbs_finalize_objects(attr_bundle,
--							method->attr_buckets,
--							num_given_buckets,
--							false);
-+				uverbs_finalize_attrs(attr_bundle,
-+						      method->attr_buckets,
-+						      num_given_buckets,
-+						      false);
- 				return ret;
- 			}
- 			continue;
-@@ -208,10 +248,10 @@ static int uverbs_uattrs_process(struct ib_device *ibdev,
- 					  attr_spec_bucket, &attr_bundle->hash[ret],
- 					  uattr_ptr++);
- 		if (ret) {
--			uverbs_finalize_objects(attr_bundle,
--						method->attr_buckets,
--						num_given_buckets,
--						false);
-+			uverbs_finalize_attrs(attr_bundle,
-+					      method->attr_buckets,
-+					      num_given_buckets,
-+					      false);
- 			return ret;
- 		}
- 	}
-@@ -271,10 +311,10 @@ static int uverbs_handle_method(struct ib_uverbs_attr __user *uattr_ptr,
+ 	mlx5_cmd_mbox_status(out, &status, &syndrome);
+ 	if (!status)
+@@ -704,8 +705,18 @@ static int mlx5_cmd_check(struct mlx5_core_dev *dev, void *in, void *out)
  
- 	ret = method_spec->handler(ibdev, ufile, attr_bundle);
- cleanup:
--	finalize_ret = uverbs_finalize_objects(attr_bundle,
--					       method_spec->attr_buckets,
--					       attr_bundle->num_buckets,
--					       !ret);
-+	finalize_ret = uverbs_finalize_attrs(attr_bundle,
-+					     method_spec->attr_buckets,
-+					     attr_bundle->num_buckets,
-+					     !ret);
+ 	opcode = MLX5_GET(mbox_in, in, opcode);
+ 	op_mod = MLX5_GET(mbox_in, in, op_mod);
++	uid    = MLX5_GET(mbox_in, in, uid);
  
- 	return ret ? ret : finalize_ret;
- }
+-	mlx5_core_err(dev,
++	if (!uid && opcode != MLX5_CMD_OP_DESTROY_MKEY)
++		mlx5_core_err(dev,
++		      "%s(0x%x) op_mod(0x%x) failed, status %s(0x%x), syndrome (0x%x)\n",
++		      mlx5_command_str(opcode),
++		      opcode, op_mod,
++		      cmd_status_str(status),
++		      status,
++		      syndrome);
++	else
++		mlx5_core_dbg(dev,
+ 		      "%s(0x%x) op_mod(0x%x) failed, status %s(0x%x), syndrome (0x%x)\n",
+ 		      mlx5_command_str(opcode),
+ 		      opcode, op_mod,
 -- 
 2.14.4
