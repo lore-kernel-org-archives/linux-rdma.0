@@ -1,68 +1,217 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
-Date: Mon, 18 Jun 2018 13:04:36 -0700
-Message-ID: <CAPcyv4jbwtOqG_473SeK12LKghMo6mCDWRuTxqYVP6R-sLhpoA@mail.gmail.com>
-References: <20180617012510.20139-3-jhubbard@nvidia.com> <CAPcyv4i=eky-QrPcLUEqjsASuRUrFEWqf79hWe0mU8xtz6Jk-w@mail.gmail.com>
- <20180617200432.krw36wrcwidb25cj@ziepe.ca> <CAPcyv4gayKk_zHDYAvntware12qMXWjnnL_FDJNUQsJS_zNfDw@mail.gmail.com>
- <311eba48-60f1-b6cc-d001-5cc3ed4d76a9@nvidia.com> <20180618081258.GB16991@lst.de>
- <d4817192-6db0-2f3f-7c67-6078b69686d3@nvidia.com> <CAPcyv4iacHYxGmyWokFrVsmxvLj7=phqp2i0tv8z6AT-mYuEEA@mail.gmail.com>
- <3898ef6b-2fa0-e852-a9ac-d904b47320d5@nvidia.com> <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
- <20180618193158.GE6805@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 06/20] IB/uverbs: Add PTR_IN attributes that
+ are allocated/copied automatically
+Date: Mon, 18 Jun 2018 14:48:54 -0600
+Message-ID: <20180618204854.GG6805@ziepe.ca>
+References: <20180617100006.30663-1-leon@kernel.org>
+ <20180617100006.30663-7-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180618193158.GE6805@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>, Christoph Hellwig <hch@lst.de>, John Hubbard <john.hubbard@gmail.com>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180617100006.30663-7-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 18, 2018 at 12:31 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> On Mon, Jun 18, 2018 at 12:21:46PM -0700, Dan Williams wrote:
->> On Mon, Jun 18, 2018 at 11:14 AM, John Hubbard <jhubbard@nvidia.com> wrote:
->> > On 06/18/2018 10:56 AM, Dan Williams wrote:
->> >> On Mon, Jun 18, 2018 at 10:50 AM, John Hubbard <jhubbard@nvidia.com> wrote:
->> >>> On 06/18/2018 01:12 AM, Christoph Hellwig wrote:
->> >>>> On Sun, Jun 17, 2018 at 01:28:18PM -0700, John Hubbard wrote:
->> >>>>> Yes. However, my thinking was: get_user_pages() can become a way to indicate that
->> >>>>> these pages are going to be treated specially. In particular, the caller
->> >>>>> does not really want or need to support certain file operations, while the
->> >>>>> page is flagged this way.
->> >>>>>
->> >>>>> If necessary, we could add a new API call.
->> >>>>
->> >>>> That API call is called get_user_pages_longterm.
->> >>>
->> >>> OK...I had the impression that this was just semi-temporary API for dax, but
->> >>> given that it's an exported symbol, I guess it really is here to stay.
->> >>
->> >> The plan is to go back and provide api changes that bypass
->> >> get_user_page_longterm() for RDMA. However, for VFIO and others, it's
->> >> not clear what we could do. In the VFIO case the guest would need to
->> >> be prepared handle the revocation.
->> >
->> > OK, let's see if I understand that plan correctly:
->> >
->> > 1. Change RDMA users (this could be done entirely in the various device drivers'
->> > code, unless I'm overlooking something) to use mmu notifiers, and to do their
->> > DMA to/from non-pinned pages.
->>
->> The problem with this approach is surprising the RDMA drivers with
->> notifications of teardowns. It's the RDMA userspace applications that
->> need the notification, and it likely needs to be explicit opt-in, at
->> least for the non-ODP drivers.
->
-> Well, more than that, we have no real plan on how to accomplish this,
-> or any idea if it can even really work.. Most userspace give up
-> control of the memory lifetime to the remote side of the connection
-> and have no way to recover it other than a full teardown.
->
-> Given that John is trying to fix a kernel oops, I don't think we
-> should tie progress on it to the RDMA notification idea.
->
-> .. and given that John is trying to fix a kernel oops, maybe the
-> weird/bad/ugly behavior of ftruncte is a better bug to have than for
-> unprivileged users to be able to oops the kernel???
+On Sun, Jun 17, 2018 at 12:59:52PM +0300, Leon Romanovsky wrote:
+> From: Matan Barak <matanb@mellanox.com>
+> 
+> Adding UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY flag to PTR_IN attributes.
+> By using this flag, the parse automatically allocates and copies the
+> user-space data. This data is accessible by using uverbs_attr_get_len
+> and uverbs_attr_get_alloced_ptr inline accessor functions from the
+> handler.
+> 
+> Signed-off-by: Matan Barak <matanb@mellanox.com>
+> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/core/uverbs_ioctl.c | 25 ++++++++++++++++++++++++-
+>  include/rdma/uverbs_ioctl.h            | 25 +++++++++++++++++++++++++
+>  2 files changed, 49 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+> index 8cc3e8dad9b5..ee15c9ca788b 100644
+> +++ b/drivers/infiniband/core/uverbs_ioctl.c
+> @@ -114,7 +114,26 @@ static int uverbs_process_attr(struct ib_device *ibdev,
+>  		    uattr->attr_data.reserved)
+>  			return -EINVAL;
+>  
+> -		e->ptr_attr.data = uattr->data;
+> +		if (val_spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
+> +		    uattr->len > sizeof(((struct ib_uverbs_attr *)0)->data)) {
 
-Trading one bug for another is not a fix. We did not fix the
-DAX-dma-vs-trruncate bug by breaking truncate() guarantees.
+Why open-code uverbs_attr_ptr_is_inline() ?
+
+> diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+> index bd6bba3a6e04..0e6f782727bd 100644
+> +++ b/include/rdma/uverbs_ioctl.h
+> @@ -65,6 +65,8 @@ enum {
+>  	UVERBS_ATTR_SPEC_F_MANDATORY	= 1U << 0,
+>  	/* Support extending attributes by length, validate all unknown size == zero  */
+>  	UVERBS_ATTR_SPEC_F_MIN_SZ_OR_ZERO = 1U << 1,
+> +	/* Valid only for PTR_IN. Allocate and copy the data inside the parser */
+> +	UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY = 1U << 2,
+>  };
+>  
+>  /* Specification of a single attribute inside the ioctl message */
+> @@ -431,6 +433,17 @@ static inline struct ib_uobject *uverbs_attr_get_uobject(const struct uverbs_att
+>  	return attr->obj_attr.uobject;
+>  }
+>  
+> +static inline int uverbs_attr_get_len(const struct uverbs_attr_bundle *attrs_bundle,
+> +				      u16 idx)
+> +{
+> +	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
+> +
+> +	if (IS_ERR(attr))
+> +		return PTR_ERR(attr);
+> +
+> +	return attr->ptr_attr.len;
+> +}
+> +
+>  static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
+>  				 size_t idx, const void *from, size_t size)
+>  {
+> @@ -457,6 +470,18 @@ static inline bool uverbs_attr_ptr_is_inline(const struct uverbs_attr *attr)
+>  	return attr->ptr_attr.len <= sizeof(attr->ptr_attr.data);
+>  }
+>  
+> +static inline void *uverbs_attr_get_alloced_ptr(const struct uverbs_attr_bundle *attrs_bundle,
+> +						u16 idx)
+> +{
+> +	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
+> +
+> +	if (IS_ERR(attr))
+> +		return (void *)attr;
+> +
+> +	return uverbs_attr_ptr_is_inline(attr) ? u64_to_ptr(void *, attr->ptr_attr.data) :
+> +		u64_to_ptr(void, attr->ptr_attr.data);
+
+WTF is this:
+
+   u64_to_ptr(void *, attr->ptr_attr.data) 
+
+That returns attr->ptr_attr.data casted to a void **, then casts it to
+a void * - which is identical to u64_to_ptr(void, attr->ptr_attr.data)
+
+It should be &attr->ptr_attr.data. And the return should be const, the
+caller shouldn't be mutating the copy.
+
+All this use of u64_to_ptr is ugly needless obfuscation here, and
+look, it causes bugs. Use a union.
+
+Like this:
+
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 8cc3e8dad9b506..82c5d33195dfc7 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -114,9 +114,27 @@ static int uverbs_process_attr(struct ib_device *ibdev,
+ 		    uattr->attr_data.reserved)
+ 			return -EINVAL;
+ 
+-		e->ptr_attr.data = uattr->data;
+ 		e->ptr_attr.len = uattr->len;
+ 		e->ptr_attr.flags = uattr->flags;
++
++		if (val_spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
++		    !uverbs_attr_ptr_is_inline(e)) {
++			void *p;
++
++			p = kvmalloc(uattr->len, GFP_KERNEL);
++			if (!p)
++				return -ENOMEM;
++
++			e->ptr_attr.ptr = p;
++
++			if (copy_from_user(p, u64_to_user_ptr(uattr->data),
++					   uattr->len)) {
++				kvfree(p);
++				return -EFAULT;
++			}
++		} else {
++			e->ptr_attr.data = uattr->data;
++		}
+ 		break;
+ 
+ 	case UVERBS_ATTR_TYPE_IDR:
+@@ -201,6 +219,10 @@ static int uverbs_finalize_attrs(struct uverbs_attr_bundle *attrs_bundle,
+ 								     commit);
+ 				if (!ret)
+ 					ret = current_ret;
++			} else if (spec->type == UVERBS_ATTR_TYPE_PTR_IN &&
++				   spec->flags & UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY &&
++				   !uverbs_attr_ptr_is_inline(attr)) {
++				kvfree(attr->ptr_attr.ptr);
+ 			}
+ 		}
+ 	}
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index bd6bba3a6e04a1..6e1c322ff5c015 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -65,6 +65,8 @@ enum {
+ 	UVERBS_ATTR_SPEC_F_MANDATORY	= 1U << 0,
+ 	/* Support extending attributes by length, validate all unknown size == zero  */
+ 	UVERBS_ATTR_SPEC_F_MIN_SZ_OR_ZERO = 1U << 1,
++	/* Valid only for PTR_IN. Allocate and copy the data inside the parser */
++	UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY = 1U << 2,
+ };
+ 
+ /* Specification of a single attribute inside the ioctl message */
+@@ -323,7 +325,15 @@ struct uverbs_object_tree_def {
+  */
+ 
+ struct uverbs_ptr_attr {
+-	u64		data;
++	/*
++	 * If UVERBS_ATTR_SPEC_F_ALLOC_AND_COPY is set then the 'ptr' is
++	 * used.
++	 */
++	union
++	{
++		void *ptr;
++		u64 data;
++	};
+ 	u16		len;
+ 	/* Combination of bits from enum UVERBS_ATTR_F_XXXX */
+ 	u16		flags;
+@@ -431,6 +441,17 @@ static inline struct ib_uobject *uverbs_attr_get_uobject(const struct uverbs_att
+ 	return attr->obj_attr.uobject;
+ }
+ 
++static inline int uverbs_attr_get_len(const struct uverbs_attr_bundle *attrs_bundle,
++				      u16 idx)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
++
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
++
++	return attr->ptr_attr.len;
++}
++
+ static inline int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle,
+ 				 size_t idx, const void *from, size_t size)
+ {
+@@ -457,6 +478,18 @@ static inline bool uverbs_attr_ptr_is_inline(const struct uverbs_attr *attr)
+ 	return attr->ptr_attr.len <= sizeof(attr->ptr_attr.data);
+ }
+ 
++static inline const void *uverbs_attr_get_alloced_ptr(
++	const struct uverbs_attr_bundle *attrs_bundle, u16 idx)
++{
++	const struct uverbs_attr *attr = uverbs_attr_get(attrs_bundle, idx);
++
++	if (IS_ERR(attr))
++		return (void *)attr;
++
++	return uverbs_attr_ptr_is_inline(attr) ? &attr->ptr_attr.data :
++						 attr->ptr_attr.ptr;
++}
++
+ static inline int _uverbs_copy_from(void *to,
+ 				    const struct uverbs_attr_bundle *attrs_bundle,
+ 				    size_t idx,
