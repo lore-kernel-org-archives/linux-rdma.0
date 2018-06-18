@@ -1,33 +1,22 @@
-From: Christoph Hellwig <hch@infradead.org>
+From: Christoph Hellwig <hch@lst.de>
 Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
-Date: Mon, 18 Jun 2018 00:56:50 -0700
-Message-ID: <20180618075650.GA7300@infradead.org>
-References: <20180617012510.20139-1-jhubbard@nvidia.com>
- <20180617012510.20139-3-jhubbard@nvidia.com>
+Date: Mon, 18 Jun 2018 10:11:13 +0200
+Message-ID: <20180618081113.GA16991@lst.de>
+References: <20180617012510.20139-1-jhubbard@nvidia.com> <20180617012510.20139-3-jhubbard@nvidia.com> <CAPcyv4i=eky-QrPcLUEqjsASuRUrFEWqf79hWe0mU8xtz6Jk-w@mail.gmail.com> <20180617200432.krw36wrcwidb25cj@ziepe.ca> <CAPcyv4gayKk_zHDYAvntware12qMXWjnnL_FDJNUQsJS_zNfDw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180617012510.20139-3-jhubbard@nvidia.com>
+In-Reply-To: <CAPcyv4gayKk_zHDYAvntware12qMXWjnnL_FDJNUQsJS_zNfDw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Christoph Hellwig <hch@lst.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jun 16, 2018 at 06:25:10PM -0700, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
-> 
-> This fixes a few problems that come up when using devices (NICs, GPUs,
-> for example) that want to have direct access to a chunk of system (CPU)
-> memory, so that they can DMA to/from that memory. Problems [1] come up
-> if that memory is backed by persistence storage; for example, an ext4
-> file system. I've been working on several customer bugs that are hitting
-> this, and this patchset fixes those bugs.
+On Sun, Jun 17, 2018 at 01:10:04PM -0700, Dan Williams wrote:
+> I believe kernel behavior regression is a primary concern as now
+> fallocate() and truncate() can randomly fail where they didn't before.
 
-What happens if we do get_user_page from two different threads or even
-processes on the same page?  As far as I can tell from your patch
-the first one finishing the page will clear the bit and then we are
-back to no protection.
+Fail or block forever due to actions of other unprivileged users.
 
-Note that you can reproduce such a condition trivially using direct
-I/O reads or writes.
+That is a complete no-go.
