@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Limit scope of dump_fill_mkey function
-Date: Tue, 19 Jun 2018 08:47:22 +0300
-Message-ID: <20180619054724.32677-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/3] IB/mlx5: Expose dump and fill memory key
+Date: Tue, 19 Jun 2018 08:47:24 +0300
+Message-ID: <20180619054724.32677-4-leon@kernel.org>
 References: <20180619054724.32677-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180619054724.32677-1-leon@kernel.org>
@@ -12,97 +12,90 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc@mellanox.com>
 
-mlx5_core_dump_fill_mkey() is going to be used in next
-patch in IB and doesn't need to be visible to whole
-mlx5_core. Move that command to mlx5_ib.
+MLX5 IB HCA offers the memory key, dump_fill_mkey to boost
+performance, when used in a send or receive operations.
+
+It is used to force local HCA operations to skip the PCI bus access,
+while keeping track of the processed length in the ibv_sge handling.
+
+Meaning, instead of a PCI write access the HCA leaves the target
+memory untouched, and skips filling that packet section. Similar
+behavior is done upon send, the HCA skips data in memory relevant
+to this key and saves PCI bus access.
+
+This functionality saves PCI read/write operations.
 
 Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
+Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Guy Levi <guyle@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cmd.c             | 15 +++++++++++++++
- drivers/infiniband/hw/mlx5/cmd.h             |  1 +
- drivers/net/ethernet/mellanox/mlx5/core/mr.c | 17 -----------------
- include/linux/mlx5/driver.h                  |  2 --
- 4 files changed, 16 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 16 +++++++++++++++-
+ include/uapi/rdma/mlx5-abi.h      |  3 ++-
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index 188512bf46e6..ccc0b5d06a7d 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -32,6 +32,21 @@
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index c29c7c838980..97113957398d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1634,6 +1634,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	int err;
+ 	size_t min_req_v2 = offsetof(struct mlx5_ib_alloc_ucontext_req_v2,
+ 				     max_cqe_version);
++	u32 dump_fill_mkey;
+ 	bool lib_uar_4k;
  
- #include "cmd.h"
+ 	if (!dev->ib_active)
+@@ -1743,8 +1744,12 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 		}
  
-+int mlx5_cmd_dump_fill_mkey(struct mlx5_core_dev *dev, u32 *mkey)
-+{
-+	u32 out[MLX5_ST_SZ_DW(query_special_contexts_out)] = {0};
-+	u32 in[MLX5_ST_SZ_DW(query_special_contexts_in)]   = {0};
-+	int err;
+ 		err = mlx5_ib_devx_create(dev, context);
++	}
 +
-+	MLX5_SET(query_special_contexts_in, in, opcode,
-+		 MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
-+	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-+	if (!err)
-+		*mkey = MLX5_GET(query_special_contexts_out, out,
-+				 dump_fill_mkey);
-+	return err;
-+}
++	if (MLX5_CAP_GEN(dev->mdev, dump_fill_mkey)) {
++		err = mlx5_cmd_dump_fill_mkey(dev->mdev, &dump_fill_mkey);
+ 		if (err)
+-			goto out_td;
++			goto out_mdev;
+ 	}
+ 
+ 	INIT_LIST_HEAD(&context->vma_private_list);
+@@ -1805,6 +1810,15 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 		resp.response_length += sizeof(resp.num_dyn_bfregs);
+ 	}
+ 
++	if (field_avail(typeof(resp), dump_fill_mkey, udata->outlen)) {
++		if (MLX5_CAP_GEN(dev->mdev, dump_fill_mkey)) {
++			resp.dump_fill_mkey = dump_fill_mkey;
++			resp.comp_mask |=
++				MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_DUMP_FILL_MKEY;
++		}
++		resp.response_length += sizeof(resp.dump_fill_mkey);
++	}
 +
- int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey)
- {
- 	u32 out[MLX5_ST_SZ_DW(query_special_contexts_out)] = {};
-diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
-index e7206c8a8011..98ea4648c655 100644
---- a/drivers/infiniband/hw/mlx5/cmd.h
-+++ b/drivers/infiniband/hw/mlx5/cmd.h
-@@ -37,6 +37,7 @@
- #include <linux/kernel.h>
- #include <linux/mlx5/driver.h>
+ 	err = ib_copy_to_udata(udata, &resp, resp.response_length);
+ 	if (err)
+ 		goto out_mdev;
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index 5d591ff28139..addbb9c4529e 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -93,6 +93,7 @@ struct mlx5_ib_alloc_ucontext_req_v2 {
  
-+int mlx5_cmd_dump_fill_mkey(struct mlx5_core_dev *dev, u32 *mkey);
- int mlx5_cmd_null_mkey(struct mlx5_core_dev *dev, u32 *null_mkey);
- int mlx5_cmd_query_cong_params(struct mlx5_core_dev *dev, int cong_point,
- 			       void *out, int out_size);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mr.c b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-index f4f02f775c93..0670165afd5f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mr.c
-@@ -146,23 +146,6 @@ int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey,
- }
- EXPORT_SYMBOL(mlx5_core_query_mkey);
+ enum mlx5_ib_alloc_ucontext_resp_mask {
+ 	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_CORE_CLOCK_OFFSET = 1UL << 0,
++	MLX5_IB_ALLOC_UCONTEXT_RESP_MASK_DUMP_FILL_MKEY    = 1UL << 1,
+ };
  
--int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *_mkey,
--			     u32 *mkey)
--{
--	u32 out[MLX5_ST_SZ_DW(query_special_contexts_out)] = {0};
--	u32 in[MLX5_ST_SZ_DW(query_special_contexts_in)]   = {0};
--	int err;
--
--	MLX5_SET(query_special_contexts_in, in, opcode,
--		 MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS);
--	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
--	if (!err)
--		*mkey = MLX5_GET(query_special_contexts_out, out,
--				 dump_fill_mkey);
--	return err;
--}
--EXPORT_SYMBOL(mlx5_core_dump_fill_mkey);
--
- static inline u32 mlx5_get_psv(u32 *out, int psv_index)
- {
- 	switch (psv_index) {
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 80cbb7fdce4a..1cb1c0317b77 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1067,8 +1067,6 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev,
- 			   struct mlx5_core_mkey *mkey);
- int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey,
- 			 u32 *out, int outlen);
--int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *_mkey,
--			     u32 *mkey);
- int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn);
- int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn);
- int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+ enum mlx5_user_cmds_supp_uhw {
+@@ -141,7 +142,7 @@ struct mlx5_ib_alloc_ucontext_resp {
+ 	__u32	log_uar_size;
+ 	__u32	num_uars_per_page;
+ 	__u32	num_dyn_bfregs;
+-	__u32	reserved3;
++	__u32	dump_fill_mkey;
+ };
+ 
+ struct mlx5_ib_alloc_pd_resp {
 -- 
 2.14.4
