@@ -1,42 +1,61 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 2/3] net/mlx5: Add hardware definitions for dump_fill_mkey
-Date: Tue, 19 Jun 2018 08:47:23 +0300
-Message-ID: <20180619054724.32677-3-leon@kernel.org>
-References: <20180619054724.32677-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180619054724.32677-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Yonatan Cohen <yonatanc@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Tue, 19 Jun 2018 09:15:48 +0300
+Message-ID: <20180619061548.GC7557@mtr-leonro.mtl.com>
+References: <20180617012510.20139-1-jhubbard@nvidia.com>
+ <20180617012510.20139-3-jhubbard@nvidia.com>
+ <CAPcyv4i=eky-QrPcLUEqjsASuRUrFEWqf79hWe0mU8xtz6Jk-w@mail.gmail.com>
+ <20180617200432.krw36wrcwidb25cj@ziepe.ca>
+ <CAPcyv4gayKk_zHDYAvntware12qMXWjnnL_FDJNUQsJS_zNfDw@mail.gmail.com>
+ <20180618081113.GA16991@lst.de>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="7iMSBzlTiPOCCT2k"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180618081113.GA16991@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-MLX5 IB HCA offers the memory key, dump_fill_mkey to boost
-performance by forcing local HCA operations to skip the PCI bus
-access,
+--7iMSBzlTiPOCCT2k
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patch adds needed hardware definitions.
+On Mon, Jun 18, 2018 at 10:11:13AM +0200, Christoph Hellwig wrote:
+> On Sun, Jun 17, 2018 at 01:10:04PM -0700, Dan Williams wrote:
+> > I believe kernel behavior regression is a primary concern as now
+> > fallocate() and truncate() can randomly fail where they didn't before.
+>
+> Fail or block forever due to actions of other unprivileged users.
+>
+> That is a complete no-go.
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/mlx5_ifc.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+They will fail "properly" with some error, which is better than current
+situation where those unprivileged users can trigger oops.
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 00b539303f5d..b4302ccb63a6 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -889,7 +889,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         log_max_eq_sz[0x8];
- 	u8         reserved_at_e8[0x2];
- 	u8         log_max_mkey[0x6];
--	u8         reserved_at_f0[0xc];
-+	u8         reserved_at_f0[0x8];
-+	u8         dump_fill_mkey[0x1];
-+	u8         reserved_at_fa[0x3];
- 	u8         log_max_eq[0x4];
- 
- 	u8         max_indirection[0x8];
--- 
-2.14.4
+Thanks
+
+--7iMSBzlTiPOCCT2k
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbKJ+UAAoJEORje4g2clin69QP/jWFR8E7MKYfBqiosGF6OPVf
+qxjEVTcaIMnnC6GrMykfAnOg7ApYKitetux5SV3+h+EChVTck2nQacbNKGC+kRJ1
+bPKSM2qVPUSgcsfj5kDPXHslVZdhnuYp066rnGkc7CJEfnrMTpcexgOkCQW7iQb/
+B+dpa2VaC5G14XoxVBpONweQ+NedTSX8lLemYazAsY6nm8uwVDAQqdk8bu2F0ayp
+zoarTVCwYV7ENdv0rTkhLyPtB207GHoeCweSU/kj7mdj8Pbaf1CDzxIlOvY4djSC
+Ia5fscHImRT29r8oIIlTI7JfLwsQaPye03o0AZ++qPhwmlGfspJy1dwYea0eMChl
+CvgSigrS22txh367GZ70hn9lpHIAeuUP85RVVODN3tXokJS5cJNHT4n5lwdItcii
+GDaXUzVx+a1Qio3J/mb/4MvLstCbE1Y4r2nYj2ag5gL1XuLPdqp8icYM6OEPQ2lf
+B6z8OF6uQu0bzXj/m//Rep1bhwRnVjgrTVDzc67+hscq/BswhhAx04+COquTEXxv
+TpHOraax/ZLN31lLQ/3QUIMKUZNvuhWVl2ARQJXtb8hmbPo+zQYkuP+ip8DmD5ny
+wvtHqR04dCCwDEp1VmoPFe3PJy+zQvBHe18OyjyuarokNQNZCVAO0pNfivzibwFm
+m1W/BwqX6Z3QRrQrQtYA
+=LD7E
+-----END PGP SIGNATURE-----
+
+--7iMSBzlTiPOCCT2k--
