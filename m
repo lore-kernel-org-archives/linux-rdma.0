@@ -1,106 +1,78 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Wed, 20 Jun 2018 15:00:36 -0600
-Message-ID: <20180620210036.GA4734@ziepe.ca>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Wed, 20 Jun 2018 15:55:41 -0700
+Message-ID: <151edbf3-66ff-df0c-c1cc-5998de50111e@nvidia.com>
+References: <20180618081258.GB16991@lst.de>
+ <d4817192-6db0-2f3f-7c67-6078b69686d3@nvidia.com>
+ <CAPcyv4iacHYxGmyWokFrVsmxvLj7=phqp2i0tv8z6AT-mYuEEA@mail.gmail.com>
+ <3898ef6b-2fa0-e852-a9ac-d904b47320d5@nvidia.com>
+ <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
+ <0e6053b3-b78c-c8be-4fab-e8555810c732@nvidia.com>
+ <20180619082949.wzoe42wpxsahuitu@quack2.suse.cz>
+ <20180619090255.GA25522@bombadil.infradead.org>
+ <20180619104142.lpilc6esz7w3a54i@quack2.suse.cz>
+ <70001987-3938-d33e-11e0-de5b19ca3bdf@nvidia.com>
+ <20180620120824.bghoklv7qu2z5wgy@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20180620120824.bghoklv7qu2z5wgy@quack2.suse.cz>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <john.hubbard@gmail.com>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 06/20/2018 05:08 AM, Jan Kara wrote:
+> On Tue 19-06-18 11:11:48, John Hubbard wrote:
+>> On 06/19/2018 03:41 AM, Jan Kara wrote:
+>>> On Tue 19-06-18 02:02:55, Matthew Wilcox wrote:
+>>>> On Tue, Jun 19, 2018 at 10:29:49AM +0200, Jan Kara wrote:
+[...]
+>>> I'm also still pondering the idea of inserting a "virtual" VMA into vma
+>>> interval tree in the inode - as the GUP references are IMHO closest to an
+>>> mlocked mapping - and that would achieve all the functionality we need as
+>>> well. I just didn't have time to experiment with it.
+>>
+>> How would this work? Would it have the same virtual address range? And how
+>> does it avoid the problems we've been discussing? Sorry to be a bit slow
+>> here. :)
+> 
+> The range covered by the virtual mapping would be the one sent to
+> get_user_pages() to get page references. And then we would need to teach
+> page_mkclean() to check for these virtual VMAs and block / skip / report
+> (different situations would need different behavior) such page. But this
+> second part is the same regardless how we identify a page that is pinned by
+> get_user_pages().
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi Linus,
+OK. That neatly avoids the need a new page flag, I think. But of course it is 
+somewhat more extensive to implement. Sounds like something to keep in mind,
+in case it has better tradeoffs than the direction I'm heading so far.
 
-First pull request for -rc
+ 
+>>> And then there's the aspect that both these approaches are a bit too
+>>> heavyweight for some get_user_pages_fast() users (e.g. direct IO) - Al Viro
+>>> had an idea to use page lock for that path but e.g. fs/direct-io.c would have
+>>> problems due to lock ordering constraints (filesystem ->get_block would
+>>> suddently get called with the page lock held). But we can probably leave
+>>> performance optimizations for phase two.
+>>
+>>  
+>> So I assume that phase one would be to apply this approach only to
+>> get_user_pages_longterm. (Please let me know if that's wrong.)
+> 
+> No, I meant phase 1 would be to apply this to all get_user_pages() flavors.
+> Then phase 2 is to try to find a way to make get_user_pages_fast() fast
+> again. And then in parallel to that, we also need to find a way for
+> get_user_pages_longterm() to signal to the user pinned pages must be
+> released soon. Because after phase 1 pinned pages will block page
+> writeback and such system won't oops but will become unusable
+> sooner rather than later. And again this problem needs to be solved
+> regardless of a mechanism of identifying pinned pages.
+> 
 
-Here are eight fairly small fixes collected over the last two weeks.
-
-Thanks,
-Jason
-
-The following changes since commit c1191a19fecad92b73c25770a7f47174280ca564:
-
-  RDMA/mlx5: Update SPDX tags to show proper license (2018-06-05 14:04:20 -0600)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-for you to fetch changes up to 375dc53d032fc11e98036b5f228ad13f7c5933f5:
-
-  IB/rxe: Fix missing completion for mem_reg work requests (2018-06-18 11:36:13 -0600)
-
-----------------------------------------------------------------
-4.18-rc
-
-Regression and crashing bug fixes:
-
-- mlx4/5: Fixes for issues found from various checkers
-- A resource tracking and uverbs regression in the core code
-- qedr: NULL pointer regression found during testing
-- rxe: Various small bugs
-
-----------------------------------------------------------------
-Bharat Potnuri (1):
-      RDMA/core: Save kernel caller name when creating CQ using ib_create_cq()
-
-Christophe Jaillet (1):
-      IB/mlx4: Fix an error handling path in 'mlx4_ib_rereg_user_mr()'
-
-Gustavo A. R. Silva (1):
-      IB/mlx5: Fix memory leak in mlx5_ib_create_flow
-
-Jason Gunthorpe (1):
-      IB/uverbs: Fix ordering of ucontext check in ib_uverbs_write
-
-Kalderon, Michal (1):
-      RDMA/qedr: Fix NULL pointer dereference when running over iWARP without RDMA-CM
-
-Vijay Immanuel (1):
-      IB/rxe: Fix missing completion for mem_reg work requests
-
-Zhu Yanjun (1):
-      IB/rxe: avoid double kfree skb
-
-weiyongjun (A) (1):
-      IB/mlx5: Fix return value check in flow_counters_set_data()
-
- drivers/infiniband/core/uverbs_main.c | 14 ++++++++++----
- drivers/infiniband/core/verbs.c       | 14 ++++++++------
- drivers/infiniband/hw/mlx4/mr.c       |  7 +++++--
- drivers/infiniband/hw/mlx5/main.c     | 36 ++++++++++++++++++++---------------
- drivers/infiniband/hw/qedr/verbs.c    |  3 +++
- drivers/infiniband/sw/rxe/rxe_req.c   |  5 ++++-
- include/rdma/ib_verbs.h               | 13 ++++++++-----
- 7 files changed, 59 insertions(+), 33 deletions(-)
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCgAGBQJbKsByAAoJEDht9xV+IJsaH+4QAJNtd1WhZmlurMBMbKUaOqjC
-7IQk9HmsY6F4/DUYBD3Q1naOu4zweWugtk1Dw8Et1kP2WQxF5DJoHK/9dE6rtTZ3
-Wc+KO8BnaGaCJvAVit8IzBowGKW2VX93GC1qawtfZouJFSNAungbgzmNjKnKlWa3
-ruqL/D6BxGlh49zd5ZaMNzCxdiGb3XI1gBjltFL3IdcpZnXmBy4hR9645aKLNXt8
-UySZF5grUzXPxJV1R4esXzOs34UgRArCxrEpwvx1K5r3HcaGkbLgkkT9s9DzmsJ2
-aVJQ6PCXZXmjcarFh3MI8eK5NwgLse3ud7oIJ/14a0QVXBrnFR3BYlThThCqZCrX
-uFVrndDRDk1d08fDsQJRaL7OWIfUXghOuBQg2yIJx54KtXRa1FQ/gH8z3mTWtCwd
-SVOAcY/EEqM3XAvNkf5NsdddHXWqQ95/21foNZByP2EtV7Qlsxz84hjBpaoJ1ybk
-vp/ubFP2pV4Adsz5V1ZnfG0mYOT1rxhGYGw+PMErpPLt5v5fJrvPt10djKRbQW4a
-lrnsEqhyb/5qaqd7wFEZ9pEKoqQXg8Izzu9x1s6YbZnVBwIfNqwfoCTkZzD4BUQV
-KWk45VEKSkMuCxkpdrigJ4e2yYmrMsRtGCj6zh7AmpS5B0tKmsvbpMCBecWq+GBc
-G6aHY3ywIFw+P0wJM1yW
-=l6Gm
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+OK, thanks, that does help. I had the priorities of these get_user_pages*()
+changes all scrambled, but between your and Dan's explanation, I finally 
+understand the preferred ordering of this work.
