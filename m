@@ -1,46 +1,36 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: cx4 sriov problem in stable 4.14.47
-Date: Wed, 20 Jun 2018 18:47:33 +0300
-Message-ID: <CAJ3xEMhBueWttc8d_yi+rBCXgrsVUJQci9wEB-KP=OJ6ixur0Q@mail.gmail.com>
-References: <1ae538be-2699-e0cc-adef-2235489472ab@grimberg.me>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-rc 0/3]
+Date: Wed, 20 Jun 2018 09:28:39 -0700
+Message-ID: <20180620162612.13582.28777.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1ae538be-2699-e0cc-adef-2235489472ab@grimberg.me>
 Sender: stable-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Stable <stable@vger.kernel.org>, Roy Shterman <roys@lightbitslabs.com>
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 20, 2018 at 1:40 PM, Sagi Grimberg <sagi@grimberg.me> wrote:
-> Hey folks,
->
-> Seems that CX4 (Ethernet) sriov ports probe with link down in the latest
-> stable 4.14 kernel. I upgrated firmware but with no luck :(
->
-> Has anyone seen this issue as well?
->
-> Kernel: stable 4.14.47
-> Firmware: 12.22.1002
-> psid: MT_2140110033
->
-> sysfs port state is DOWN and
+Hi Doug and Jason,
 
-do you mean ip link on the pf shows link state down for the vf?
+Here are a couple patches that we'd like to get into 4.18 rc cycle. These fix
+bugs and aren't too complex. One of them is an issue that Dan Carpenter just
+reported recently and is marked for stable.
 
-> phys port state is Disabled.
+---
 
-where do you see it is disabled and what happens if you take the PF
-netdev link up?
-
-We had a bug fix there recently [1] -- but it was for the switchdev
-mode not the legacy mode, are you
-using the switchdev mode? (if not, I recommend going there, the legacy
-mode is not going to last long)
-
-Also, FWIW the whole ethernet sriov upstreaming is done in netdev, not rdma
-
-Or.
+Michael J. Ruhl (3):
+      IB/hfi1: Set in_use_ctxts bits for user ctxts only
+      IB/hfi1: Remove incorrect call to do_interrupt callback
+      IB/hfi1: Fix incorrect mixing of ERR_PTR and NULL return values
 
 
-[1] 84c9c8f net/mlx5e: Don't override vport admin link state in switchdev mode
+ drivers/infiniband/hw/hfi1/chip.c        |   30 +++++++++++++++++-------------
+ drivers/infiniband/hw/hfi1/file_ops.c    |    4 ++++
+ drivers/infiniband/hw/hfi1/init.c        |    1 -
+ drivers/infiniband/hw/hfi1/rc.c          |    2 +-
+ drivers/infiniband/hw/hfi1/uc.c          |    4 ++--
+ drivers/infiniband/hw/hfi1/ud.c          |    4 ++--
+ drivers/infiniband/hw/hfi1/verbs_txreq.c |    4 ++--
+ drivers/infiniband/hw/hfi1/verbs_txreq.h |    4 ++--
+ 8 files changed, 30 insertions(+), 23 deletions(-)
