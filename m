@@ -1,27 +1,27 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc 0/3]
-Date: Wed, 20 Jun 2018 12:43:23 -0600
-Message-ID: <20180620184323.GD27445@ziepe.ca>
-References: <20180620162612.13582.28777.stgit@scvm10.sc.intel.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: cx4 sriov problem in stable 4.14.47
+Date: Thu, 21 Jun 2018 03:44:35 +0900
+Message-ID: <20180620184435.GA32326@kroah.com>
+References: <1ae538be-2699-e0cc-adef-2235489472ab@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180620162612.13582.28777.stgit@scvm10.sc.intel.com>
+In-Reply-To: <1ae538be-2699-e0cc-adef-2235489472ab@grimberg.me>
 Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Stable <stable@vger.kernel.org>, Roy Shterman <roys@lightbitslabs.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 20, 2018 at 09:28:39AM -0700, Dennis Dalessandro wrote:
-> Hi Doug and Jason,
+On Wed, Jun 20, 2018 at 01:40:16PM +0300, Sagi Grimberg wrote:
+> Hey folks,
 > 
-> Here are a couple patches that we'd like to get into 4.18 rc cycle. These fix
-> bugs and aren't too complex. One of them is an issue that Dan Carpenter just
-> reported recently and is marked for stable.
+> Seems that CX4 (Ethernet) sriov ports probe with link down in the latest
+> stable 4.14 kernel. I upgrated firmware but with no luck :(
 
-All of these need Fixes lines for-rc and other than the last one the
-commit messages are not good enough - talk about what user visible
-effect this bug has.
+Did this work on older kernels?  If so, can you use 'git bisect' to
+track down the offending commit?
 
-Jason
+thanks,
+
+greg k-h
