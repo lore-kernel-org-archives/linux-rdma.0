@@ -1,23 +1,32 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: cx4 sriov problem in stable 4.14.47
-Date: Thu, 21 Jun 2018 10:05:13 +0300
-Message-ID: <CAJ3xEMig1qSxcLdnaLkaOoSFgr2zM=iDaWFq6ELO4MJ1mofd2w@mail.gmail.com>
-References: <1ae538be-2699-e0cc-adef-2235489472ab@grimberg.me>
- <CAJ3xEMhBueWttc8d_yi+rBCXgrsVUJQci9wEB-KP=OJ6ixur0Q@mail.gmail.com> <c74ce55f-e793-1bb2-fe4d-bbd815be4ab2@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <c74ce55f-e793-1bb2-fe4d-bbd815be4ab2@grimberg.me>
-Sender: stable-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Stable <stable@vger.kernel.org>, Roy Shterman <roys@lightbitslabs.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 0/2] RoCE ICRC counter
+Date: Thu, 21 Jun 2018 15:37:54 +0300
+Message-ID: <20180621123756.32645-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Talat Batheesh <talatb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 20, 2018 at 8:06 PM, Sagi Grimberg <sagi@grimberg.me> wrote:
+From: Leon Romanovsky <leonro@mellanox.com>
 
-> I'll try switchdev mode.
+Hi,
 
-in switchdev mode you have the take the host side VF representor netdev up
-such that the VF vport link will be enabled. Also in switchdev mode you need
-some host side controller SW to program the e-switch forwarding rule.
-You can make the experiment just to see if the link problem persists.
+This series exposes RoCE ICRC counter through existing RDMA hw_counters
+sysfs interface.
+
+First patch has all HW definitions in mlx5_ifc.h file and second patch is
+actual counter implementation.
+
+Thanks
+
+Talat Batheesh (2):
+  net/mlx5: Add RoCE RX ICRC encapsulated counter
+  IB/mlx5: Support RoCE ICRC encapsulated error counter
+
+ drivers/infiniband/hw/mlx5/cmd.c     | 12 +++++++
+ drivers/infiniband/hw/mlx5/cmd.h     |  1 +
+ drivers/infiniband/hw/mlx5/main.c    | 62 ++++++++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ include/linux/mlx5/mlx5_ifc.h        | 11 +++++--
+ 5 files changed, 81 insertions(+), 6 deletions(-)
