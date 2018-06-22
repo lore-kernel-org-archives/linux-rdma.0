@@ -1,39 +1,106 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH] RDMA/rxe: Set wqe->status correctly if an unexpected response is received
-Date: Fri, 22 Jun 2018 08:19:15 -0700
-Message-ID: <20180622151915.11502-1-bart.vanassche@wdc.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Zhu Yanjun <yanjun.zhu@oracle.com>, Jianchao Wang <jianchao.w.wang@oracle.com>, Yuval Shaia <yuval.shaia@oracle.com>, stable@vger.kernel.org
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [RFC PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 22 Jun 2018 17:24:44 +0200
+Message-ID: <20180622152444.GC10465@dhcp22.suse.cz>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <0aa9f695-5702-6704-9462-7779cbfdb3fd@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <0aa9f695-5702-6704-9462-7779cbfdb3fd@amd.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashut>
 List-Id: linux-rdma@vger.kernel.org
 
-Every function that returns COMPST_ERROR must set wqe->status to
-another value than IB_WC_SUCCESS before returning COMPST_ERROR. Fix
-the only code path for which this is not yet the case.
-
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Zhu Yanjun <yanjun.zhu@oracle.com>
-Cc: Jianchao Wang <jianchao.w.wang@oracle.com>
-Cc: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: <stable@vger.kernel.org>
----
- drivers/infiniband/sw/rxe/rxe_comp.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_comp.c b/drivers/infiniband/sw/rxe/rxe_comp.c
-index 98d470d1f3fc..5bc62c0cc802 100644
---- a/drivers/infiniband/sw/rxe/rxe_comp.c
-+++ b/drivers/infiniband/sw/rxe/rxe_comp.c
-@@ -276,6 +276,9 @@ static inline enum comp_state check_ack(struct rxe_qp *qp,
- 	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
- 		if (wqe->wr.opcode != IB_WR_RDMA_READ &&
- 		    wqe->wr.opcode != IB_WR_RDMA_READ_WITH_INV) {
-+			pr_err("%s: opcode wr %d <> pkt %d\n", __func__,
-+			       wqe->wr.opcode, pkt->opcode);
-+			wqe->status = IB_WC_FATAL_ERR;
- 			return COMPST_ERROR;
- 		}
- 		reset_retry_counters(qp);
--- 
-2.17.1
+T24gRnJpIDIyLTA2LTE4IDE3OjEzOjAyLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+IEhpIE1p
+Y2hhbCwKPiAKPiBbQWRkaW5nIEZlbGl4IGFzIHdlbGxdCj4gCj4gV2VsbCBmaXJzdCBvZiBhbGwg
+eW91IGhhdmUgYSBtaXNjb25jZXB0aW9uIHdoeSBhdCBsZWFzdCB0aGUgQU1EIGdyYXBoaWNzCj4g
+ZHJpdmVyIG5lZWQgdG8gYmUgYWJsZSB0byBzbGVlcCBpbiBhbiBNTVUgbm90aWZpZXI6IFdlIG5l
+ZWQgdG8gc2xlZXAgYmVjYXVzZQo+IHdlIG5lZWQgdG8gd2FpdCBmb3IgaGFyZHdhcmUgb3BlcmF0
+aW9ucyB0byBmaW5pc2ggYW5kICpOT1QqIGJlY2F1c2Ugd2UgbmVlZAo+IHRvIHdhaXQgZm9yIGxv
+Y2tzLgo+IAo+IEknbSBub3Qgc3VyZSBpZiB5b3VyIGZsYWcgbm93IG1lYW5zIHRoYXQgeW91IGdl
+bmVyYWxseSBjYW4ndCBzbGVlcCBpbiBNTVUKPiBub3RpZmllcnMgYW55IG1vcmUsIGJ1dCBpZiB0
+aGF0J3MgdGhlIGNhc2UgYXQgbGVhc3QgQU1EIGhhcmR3YXJlIHdpbGwgYnJlYWsKPiBiYWRseS4g
+SW4gb3VyIGNhc2UgdGhlIGFwcHJvYWNoIG9mIHdhaXRpbmcgZm9yIGEgc2hvcnQgdGltZSBmb3Ig
+dGhlIHByb2Nlc3MKPiB0byBiZSByZWFwZWQgYW5kIHRoZW4gc2VsZWN0IGFub3RoZXIgdmljdGlt
+IGFjdHVhbGx5IHNvdW5kcyBsaWtlIHRoZSByaWdodAo+IHRoaW5nIHRvIGRvLgoKV2VsbCwgSSBk
+byBub3QgbmVlZCB0byBtYWtlIHRoZSBub3RpZmllciBjb2RlIG5vbiBibG9ja2luZyBhbGwgdGhl
+IHRpbWUuCkFsbCBJIG5lZWQgaXMgdG8gZW5zdXJlIHRoYXQgaXQgd29uJ3Qgc2xlZXAgaWYgdGhl
+IGZsYWcgc2F5cyBzbyBhbmQKcmV0dXJuIC1FQUdBSU4gaW5zdGVhZC4KClNvIGhlcmUgaXMgd2hh
+dCBJIGRvIGZvciBhbWRncHU6Cgo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9hbWQv
+YW1kZ3B1L2FtZGdwdV9tbi5jIGIvZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1kZ3B1X21u
+LmMKPiA+IGluZGV4IDgzZTM0NGZiYjUwYS4uZDEzOGE1MjZmZWZmIDEwMDY0NAo+ID4gLS0tIGEv
+ZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1kZ3B1X21uLmMKPiA+ICsrKyBiL2RyaXZlcnMv
+Z3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jCj4gPiBAQCAtMTM2LDEyICsxMzYsMTggQEAg
+dm9pZCBhbWRncHVfbW5fdW5sb2NrKHN0cnVjdCBhbWRncHVfbW4gKm1uKQo+ID4gICAgKgo+ID4g
+ICAgKiBUYWtlIHRoZSBybW4gcmVhZCBzaWRlIGxvY2suCj4gPiAgICAqLwo+ID4gLXN0YXRpYyB2
+b2lkIGFtZGdwdV9tbl9yZWFkX2xvY2soc3RydWN0IGFtZGdwdV9tbiAqcm1uKQo+ID4gK3N0YXRp
+YyBpbnQgYW1kZ3B1X21uX3JlYWRfbG9jayhzdHJ1Y3QgYW1kZ3B1X21uICpybW4sIGJvb2wgYmxv
+Y2thYmxlKQo+ID4gICB7Cj4gPiAtCW11dGV4X2xvY2soJnJtbi0+cmVhZF9sb2NrKTsKPiA+ICsJ
+aWYgKGJsb2NrYWJsZSkKPiA+ICsJCW11dGV4X2xvY2soJnJtbi0+cmVhZF9sb2NrKTsKPiA+ICsJ
+ZWxzZSBpZiAoIW11dGV4X3RyeWxvY2soJnJtbi0+cmVhZF9sb2NrKSkKPiA+ICsJCXJldHVybiAt
+RUFHQUlOOwo+ID4gKwo+ID4gICAJaWYgKGF0b21pY19pbmNfcmV0dXJuKCZybW4tPnJlY3Vyc2lv
+bikgPT0gMSkKPiA+ICAgCQlkb3duX3JlYWRfbm9uX293bmVyKCZybW4tPmxvY2spOwo+ID4gICAJ
+bXV0ZXhfdW5sb2NrKCZybW4tPnJlYWRfbG9jayk7Cj4gPiArCj4gPiArCXJldHVybiAwOwo+ID4g
+ICB9Cj4gPiAgIC8qKgo+ID4gQEAgLTE5NywxMCArMjAzLDExIEBAIHN0YXRpYyB2b2lkIGFtZGdw
+dV9tbl9pbnZhbGlkYXRlX25vZGUoc3RydWN0IGFtZGdwdV9tbl9ub2RlICpub2RlLAo+ID4gICAg
+KiBXZSBibG9jayBmb3IgYWxsIEJPcyBiZXR3ZWVuIHN0YXJ0IGFuZCBlbmQgdG8gYmUgaWRsZSBh
+bmQKPiA+ICAgICogdW5tYXAgdGhlbSBieSBtb3ZlIHRoZW0gaW50byBzeXN0ZW0gZG9tYWluIGFn
+YWluLgo+ID4gICAgKi8KPiA+IC1zdGF0aWMgdm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5n
+ZV9zdGFydF9nZngoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4gPiArc3RhdGljIGludCBhbWRn
+cHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydF9nZngoc3RydWN0IG1tdV9ub3RpZmllciAqbW4s
+Cj4gPiAgIAkJCQkJCSBzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiA+ICAgCQkJCQkJIHVuc2lnbmVk
+IGxvbmcgc3RhcnQsCj4gPiAtCQkJCQkJIHVuc2lnbmVkIGxvbmcgZW5kKQo+ID4gKwkJCQkJCSB1
+bnNpZ25lZCBsb25nIGVuZCwKPiA+ICsJCQkJCQkgYm9vbCBibG9ja2FibGUpCj4gPiAgIHsKPiA+
+ICAgCXN0cnVjdCBhbWRncHVfbW4gKnJtbiA9IGNvbnRhaW5lcl9vZihtbiwgc3RydWN0IGFtZGdw
+dV9tbiwgbW4pOwo+ID4gICAJc3RydWN0IGludGVydmFsX3RyZWVfbm9kZSAqaXQ7Cj4gPiBAQCAt
+MjA4LDcgKzIxNSwxMSBAQCBzdGF0aWMgdm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9z
+dGFydF9nZngoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4gPiAgIAkvKiBub3RpZmljYXRpb24g
+aXMgZXhjbHVzaXZlLCBidXQgaW50ZXJ2YWwgaXMgaW5jbHVzaXZlICovCj4gPiAgIAllbmQgLT0g
+MTsKPiA+IC0JYW1kZ3B1X21uX3JlYWRfbG9jayhybW4pOwo+ID4gKwkvKiBUT0RPIHdlIHNob3Vs
+ZCBiZSBhYmxlIHRvIHNwbGl0IGxvY2tpbmcgZm9yIGludGVydmFsIHRyZWUgYW5kCj4gPiArCSAq
+IGFtZGdwdV9tbl9pbnZhbGlkYXRlX25vZGUKPiA+ICsJICovCj4gPiArCWlmIChhbWRncHVfbW5f
+cmVhZF9sb2NrKHJtbiwgYmxvY2thYmxlKSkKPiA+ICsJCXJldHVybiAtRUFHQUlOOwo+ID4gICAJ
+aXQgPSBpbnRlcnZhbF90cmVlX2l0ZXJfZmlyc3QoJnJtbi0+b2JqZWN0cywgc3RhcnQsIGVuZCk7
+Cj4gPiAgIAl3aGlsZSAoaXQpIHsKPiA+IEBAIC0yMTksNiArMjMwLDggQEAgc3RhdGljIHZvaWQg
+YW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfZ2Z4KHN0cnVjdCBtbXVfbm90aWZpZXIg
+Km1uLAo+ID4gICAJCWFtZGdwdV9tbl9pbnZhbGlkYXRlX25vZGUobm9kZSwgc3RhcnQsIGVuZCk7
+Cj4gPiAgIAl9Cj4gPiArCj4gPiArCXJldHVybiAwOwo+ID4gICB9Cj4gPiAgIC8qKgo+ID4gQEAg
+LTIzMywxMCArMjQ2LDExIEBAIHN0YXRpYyB2b2lkIGFtZGdwdV9tbl9pbnZhbGlkYXRlX3Jhbmdl
+X3N0YXJ0X2dmeChzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwKPiA+ICAgICogbmVjZXNzaXRhdGVz
+IGV2aWN0aW5nIGFsbCB1c2VyLW1vZGUgcXVldWVzIG9mIHRoZSBwcm9jZXNzLiBUaGUgQk9zCj4g
+PiAgICAqIGFyZSByZXN0b3J0ZWQgaW4gYW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2VfZW5kX2hz
+YS4KPiA+ICAgICovCj4gPiAtc3RhdGljIHZvaWQgYW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vf
+c3RhcnRfaHNhKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAo+ID4gK3N0YXRpYyBpbnQgYW1kZ3B1
+X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfaHNhKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAo+
+ID4gICAJCQkJCQkgc3RydWN0IG1tX3N0cnVjdCAqbW0sCj4gPiAgIAkJCQkJCSB1bnNpZ25lZCBs
+b25nIHN0YXJ0LAo+ID4gLQkJCQkJCSB1bnNpZ25lZCBsb25nIGVuZCkKPiA+ICsJCQkJCQkgdW5z
+aWduZWQgbG9uZyBlbmQsCj4gPiArCQkJCQkJIGJvb2wgYmxvY2thYmxlKQo+ID4gICB7Cj4gPiAg
+IAlzdHJ1Y3QgYW1kZ3B1X21uICpybW4gPSBjb250YWluZXJfb2YobW4sIHN0cnVjdCBhbWRncHVf
+bW4sIG1uKTsKPiA+ICAgCXN0cnVjdCBpbnRlcnZhbF90cmVlX25vZGUgKml0Owo+ID4gQEAgLTI0
+NCw3ICsyNTgsOCBAQCBzdGF0aWMgdm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFy
+dF9oc2Eoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4gPiAgIAkvKiBub3RpZmljYXRpb24gaXMg
+ZXhjbHVzaXZlLCBidXQgaW50ZXJ2YWwgaXMgaW5jbHVzaXZlICovCj4gPiAgIAllbmQgLT0gMTsK
+PiA+IC0JYW1kZ3B1X21uX3JlYWRfbG9jayhybW4pOwo+ID4gKwlpZiAoYW1kZ3B1X21uX3JlYWRf
+bG9jayhybW4sIGJsb2NrYWJsZSkpCj4gPiArCQlyZXR1cm4gLUVBR0FJTjsKPiA+ICAgCWl0ID0g
+aW50ZXJ2YWxfdHJlZV9pdGVyX2ZpcnN0KCZybW4tPm9iamVjdHMsIHN0YXJ0LCBlbmQpOwo+ID4g
+ICAJd2hpbGUgKGl0KSB7Cj4gPiBAQCAtMjYyLDYgKzI3Nyw4IEBAIHN0YXRpYyB2b2lkIGFtZGdw
+dV9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0X2hzYShzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwK
+PiA+ICAgCQkJCWFtZGdwdV9hbWRrZmRfZXZpY3RfdXNlcnB0cihtZW0sIG1tKTsKPiA+ICAgCQl9
+Cj4gPiAgIAl9Cj4gPiArCj4gPiArCXJldHVybiAwOwo+ID4gICB9Cj4gPiAgIC8qKgotLSAKTWlj
+aGFsIEhvY2tvClNVU0UgTGFicwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVz
+a3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9p
+bnRlbC1nZngK
