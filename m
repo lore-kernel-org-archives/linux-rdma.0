@@ -1,78 +1,122 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 1/2] net/mlx5: Add RoCE RX ICRC encapsulated
- counter
-Date: Thu, 21 Jun 2018 20:53:17 +0300
-Message-ID: <20180621175317.GM17747@mtr-leonro.mtl.com>
-References: <20180621123756.32645-1-leon@kernel.org>
- <20180621123756.32645-2-leon@kernel.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
+Date: Fri, 22 Jun 2018 09:01:25 -0500
+Message-ID: <20180622140125.GD108993@bhelgaas-glaptop.roam.corp.google.com>
+References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
+ <20180619214346.GD33049@bhelgaas-glaptop.roam.corp.google.com>
+ <2593baec-8a28-a3e7-7ebf-7c21addda0b8@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IpbVkmxF4tDyP/Kb"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180621123756.32645-2-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Talat Batheesh <talatb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <2593baec-8a28-a3e7-7ebf-7c21addda0b8@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, linux-arm-msm@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, open list <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-arm-kernel@lists.infradead.org, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
+[+cc Alex]
 
---IpbVkmxF4tDyP/Kb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Tue, Jun 19, 2018 at 06:21:43PM -0400, Sinan Kaya wrote:
+> On 6/19/2018 5:43 PM, Bjorn Helgaas wrote:
+> >> Hotplug driver removes the device from system when a link down interrupt
+> >> is observed and performs re-enumeration when link up interrupt is observed.
+> >>
+> >> This conflicts with what this code is trying to do. Try secondary bus reset
+> >> only if pci_reset_slot() fails/unsupported.
+> > Hi Sinan,
+> > 
+> > We had a bunch of discussion here but not sure we ever reached a
+> > consensus.  It did seem like we'd like to avoid putting hotplug
+> > knowledge in drivers, though.  What do you think the path forward is?
+> > 
+> 
+> There are multiple issues. 
+> 
+> We discussed the need for a retrain API on this thread. However,
+> retrain API may not be enough for this particular usage as the
+> device might need a full link training sequence following firmware
+> load including a hot reset message. I don't think we can remove the
+> bus reset usage in this code.
+> 
+> I'd like to start with a small one to address your comment here.
+> 
+> "I think my concern is that knowledge about this reset/link
+> down/hotplug issue is leaking out and we'll end up with different
+> reset interfaces that may or may not result in hotplug events.  This
+> seems like a confusing API because it's hard to explain which
+> interface a driver should use."
+> 
+> I'm thinking of removing pci_reset_slot() and pci_try_reset_slot()
+> functions as an exported API and fold them into pci_reset_bus() and
+> pci_try_reset_bus() API respectively.
 
-On Thu, Jun 21, 2018 at 03:37:55PM +0300, Leon Romanovsky wrote:
-> From: Talat Batheesh <talatb@mellanox.com>
->
-> Add capability bit in PCAM register and RoCE ICRC error counter
-> to PPCNT register.
->
-> Signed-off-by: Talat Batheesh <talatb@mellanox.com>
-> Reviewed-by: Mark Bloch <markb@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  include/linux/mlx5/mlx5_ifc.h | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-> index b4302ccb63a6..9e8682489951 100644
-> --- a/include/linux/mlx5/mlx5_ifc.h
-> +++ b/include/linux/mlx5/mlx5_ifc.h
-> @@ -1687,7 +1687,11 @@ struct mlx5_ifc_eth_extended_cntrs_grp_data_layout_bits {
->
->  	u8         rx_buffer_full_low[0x20];
->
-> -	u8         reserved_at_1c0[0x600];
-> +	u8         rx_icrc_encapsulated_high[0x20];
-> +
-> +	u8         rx_icrc_encapsulated_low[0x20];
-> +
-> +	u8         reserved_at_3c0[0x5c0];
+pci_try_reset_slot() and pci_try_reset_bus() are both used by VFIO,
+but I don't see any callers of either pci_reset_slot() or
+pci_reset_bus().
 
-reserved_at_3c0 should be reserved_at_200, fixed and applied to mlx5-next.
+I suspect what happened was that we added pci_reset_slot(), used it
+in VFIO, found a deadlock, added pci_try_reset_slot(), and converted
+VFIO to use pci_try_reset_slot() to fix the deadlock, leaving no
+callers of pci_reset_slot() itself.
 
-Commit 0af5107cd0640ee3424e337b492e4b11b450ce28 in mlx5-next.
+  090a3c5322e9 ("PCI: Add pci_reset_slot() and pci_reset_bus()")
+  8b27ee60bfd6 ("vfio-pci: PCI hot reset interface")
+  61cf16d8bd38 ("PCI: Add pci_try_reset_function(), pci_try_reset_slot(), pci_try_reset_bus()")
+  890ed578df82 ("vfio-pci: Use pci "try" reset interface")
 
-Thanks
+I *think* pci_try_reset_slot() is already equivalent to pci_reset_slot()
+except that it returns -EAGAIN if it can't lock the slot.  But if you
+remove pci_reset_slot(), you could rename pci_try_reset_slot() to
+pci_reset_slot().  It doesn't seem like keeping "try" in the function
+name would be necessary.
 
---IpbVkmxF4tDyP/Kb
-Content-Type: application/pgp-signature; name="signature.asc"
+> This is what happens when you insert a fatal error to a hotplug
+> slot. See multiple link up/down messages.
+> 
+> /_#_[__333.699731]_pcieport_0001:00:00.0:_AER:_Uncorrected_(Fatal)_error_received:_id=0000
+> [  333.748116] pcieport 0001:00:00.0: PCIe Bus Error: severity=Uncorrected (Fatal), type=Transaction Layer, id
+> [  333.816044] pcieport 0001:00:00.0:   device [17cb:0404] error status/mask=00040000/00400000
+> [  333.871581] pcieport 0001:00:00.0:    [18] Malformed TLP          (First)
+> [  333.914675] pcieport 0001:00:00.0:   TLP Header: 40000001 000000ff 00000000 00000000
+> [  333.968397] pciehp 0001:00:00.0:pcie004: Slot(2): Link Down
+> [  334.043234] iommu: Removing device 0001:01:00.4 from group 0
+> [  334.095952] iommu: Removing device 0001:01:00.3 from group 0
+> [  334.144644] iommu: Removing device 0001:01:00.2 from group 0
+> [  334.194653] iommu: Removing device 0001:01:00.1 from group 0
+> [  334.243564] pciehp 0001:00:00.0:pcie004: Slot(2): Link Up
+> [  334.282556] iommu: Removing device 0001:01:00.0 from group 0
+> [  334.330994] pciehp 0001:00:00.0:pcie004: Slot(2): Link Up event queued; currently getting powered off
+> [  334.890587] pciehp 0001:00:00.0:pcie004: Timeout on hotplug command 0x13f1 (issued 282900 msec ago)
+> [  335.070190] pciehp 0001:00:00.0:pcie004: Slot(2): Link Down
+> [  335.106960] pciehp 0001:00:00.0:pcie004: Slot(2): Link Down event queued; currently getting powered on
+> [  335.191119] pcieport 0001:00:00.0: AER: Device recovery failed
+> [  346.590153] pciehp 0001:00:00.0:pcie004: Timeout on hotplug command 0x17f1 (issued 10250 msec ago)
+> 
+> As a suggestion:
+> 
+> 1. If the device belongs to a slot, do slot reset. 
+> 2. Otherwise, do bus reset.
 
------BEGIN PGP SIGNATURE-----
+I assume this refers to pci_try_reset_slot() and pci_try_reset_bus(),
+which are only used by VFIO in vfio_pci_ioctl() and
+vfio_pci_try_bus_reset().
 
-iQIcBAEBAgAGBQJbK+YNAAoJEORje4g2clin9eMP/iLWa+QdGldrPeTBqsKbXFvw
-vu9oiOZ22PIaTllTb2dSwgtCBfcLBqra5IZCfHIT7HFqvkZ+XVlaF4rvzYFfy7dr
-eo4ReOr792Z462qCq317LyNehOBhYrow/v+OtZYkCHLkOr2l6BxeFzG+Fldip+Ec
-IFs8H+h+ZfuQyV5Hqw4iaWs9elIEDNsbAVTpydwqz+lVhJNykHOWPPz20hZqOtOG
-3QHkiy5Vu/I9Zd5lFZNzzo3/9T05XflwEH/blF55RmBxdgipp9kT25xDeRouMubB
-VPbwHZZ1H6Um1u1NJyeMX0A8RWOjoz6ijNoOWoFmIM4L+tP8oU2QASfPVxExnDbT
-XyIOs6Bp7Cz/QpD1gQwggSMxH1C+UPcCiL+a76JMqdCELViUSnQnGSLM3gJcZm4W
-rzvbVEBgdPgCabSBSDv7J4o4qmBw25pAIA7dtE98BLtN+4YBihV+zqS2T/SquLXH
-KpCC3Y6XT6j/rOxEyI4Cg3U8mIwYv0GvPDciw/ynetH1DKZNzyTWami54A8YnQnT
-XrCu3/wA+0bEZ8OylTwbwO7xVOkHUgLotbB4D6ef/agOtX8PiM8rNTobCY6KuWep
-ovSnrbyFSESYOnkob9/O5B0v3wB39eRvFz5lQexFFK/G60Gvl2Em+YThR7AkQHd/
-5F59x46zWcT5kzH5b7j5
-=Oq5q
------END PGP SIGNATURE-----
+Both of those callers use pci_probe_reset_slot() to decide whether to
+use pci_try_reset_slot() or pci_try_reset_bus().  If you're suggesting
+to pull that slot/bus distinction into the PCI core somehow, that
+would be fine with me, although VFIO does use the
+pci_probe_reset_slot() result for other purposes in those functions.
 
---IpbVkmxF4tDyP/Kb--
+> Since Oza's DPC/AER patch to refactor fatal error handling, both
+> hotplug driver and AER/DPC driver will try removing devices and
+> perform enumeration on link events/AER events.
+> 
+> Perfect environment for race condition without a change.
+
+Yeah, this looks like a bit of a mess.  I guess we're getting two
+interrupts (AER interrupt and hotplug interrupt) and we should
+coordinate their handling somehow.  I don't have a proposal.  This
+race could happen independent of the device reset paths, of course.
+
+Bjorn
