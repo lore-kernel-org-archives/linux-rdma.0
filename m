@@ -1,52 +1,99 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH 1/2] IB/hfi1: Try slot reset before secondary bus reset
-Date: Fri, 22 Jun 2018 12:04:02 -0400
-Message-ID: <98c4531b-0b64-b9e1-ef95-562d1613d893@codeaurora.org>
-References: <1524167784-5911-1-git-send-email-okaya@codeaurora.org>
- <20180619214346.GD33049@bhelgaas-glaptop.roam.corp.google.com>
- <2593baec-8a28-a3e7-7ebf-7c21addda0b8@codeaurora.org>
- <20180622140125.GD108993@bhelgaas-glaptop.roam.corp.google.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [Intel-gfx] [RFC PATCH] mm, oom: distinguish blockable mode for
+ mmu notifiers
+Date: Fri, 22 Jun 2018 12:18:46 -0400
+Message-ID: <20180622161845.GA3497@redhat.com>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <152968180950.11773.3374981930722769733@mail.alporthouse.com>
+ <20180622155716.GE10465@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180622140125.GD108993@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, sulrich@codeaurora.org, timur@codeaurora.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, linux-arm-msm@vger.kernel.org, Dennis Dalessandro <dennis.dalessandro@intel.com>, open list <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-arm-kernel@lists.infradead.org, Alex Williamson <alex.williamson@redhat.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20180622155716.GE10465@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Rodrigo@kvack.org, Michal Hocko =?utf-8?B?PG1ob2Nrb0BzdXNlLmNvbT4sIGt2bUB2Z2VyLmtlcm5l?= =?utf-8?B?bC5vcmcsICAiIFJhZGltIEtyxI1tw6HFmSA8cmtyY21hckByZWRoYXQuY29t?= =?utf-8?B?Piw=?= David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Mike@kvack.org, Vivi@kvack.org, Juergen@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, Paolo@kvack.org, Dennis@kvack.org, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Boris@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, Ashutosh@kvack.org, Marciniszyn@kvack.org, Alex@kvack.org, intel-gfx@lists.freedesktop.org, Dalessandro@kvack.org, Deucher@kvack.org, Ostrovsky@kvack.org, Bonzini@kvack.org, LKML <linux-kernel@vger.kernel>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/22/2018 10:01 AM, Bjorn Helgaas wrote:
->> Since Oza's DPC/AER patch to refactor fatal error handling, both
->> hotplug driver and AER/DPC driver will try removing devices and
->> perform enumeration on link events/AER events.
->>
->> Perfect environment for race condition without a change.
-> Yeah, this looks like a bit of a mess.  I guess we're getting two
-> interrupts (AER interrupt and hotplug interrupt) and we should
-> coordinate their handling somehow.  I don't have a proposal.  This
-> race could happen independent of the device reset paths, of course.
-
-I was hoping for pci_reset_slot() to avoid this but it turns out
-the root port does not have any slot pointers set on my system even though
-hotplug is enabled. 
-
-Slot pointer is only set for the child objects.
-
-https://patchwork.kernel.org/patch/10351515/
-
- * A PCI bus may host multiple slots, each slot may support a reset mechanism
- * independent of other slots.  For instance, some slots may support slot power
- * control.  In the case of a 1:1 bus to slot architecture, this function may
- * wrap the bus reset to avoid spurious slot related events such as hotplug.
- * Generally a slot reset should be attempted before a bus reset.  All of the
- * function of the slot and any subordinate buses behind the slot are reset
- * through this function.  PCI config space of all devices in the slot and
- * behind the slot is saved before and restored after reset.
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+T24gRnJpLCBKdW4gMjIsIDIwMTggYXQgMDU6NTc6MTZQTSArMDIwMCwgTWljaGFsIEhvY2tvIHdy
+b3RlOgo+IE9uIEZyaSAyMi0wNi0xOCAxNjozNjo0OSwgQ2hyaXMgV2lsc29uIHdyb3RlOgo+ID4g
+UXVvdGluZyBNaWNoYWwgSG9ja28gKDIwMTgtMDYtMjIgMTY6MDI6NDIpCj4gPiA+IEhpLAo+ID4g
+PiB0aGlzIGlzIGFuIFJGQyBhbmQgbm90IHRlc3RlZCBhdCBhbGwuIEkgYW0gbm90IHZlcnkgZmFt
+aWxpYXIgd2l0aCB0aGUKPiA+ID4gbW11IG5vdGlmaWVycyBzZW1hbnRpY3MgdmVyeSBtdWNoIHNv
+IHRoaXMgaXMgYSBjcnVkZSBhdHRlbXB0IHRvIGFjaGlldmUKPiA+ID4gd2hhdCBJIG5lZWQgYmFz
+aWNhbGx5LiBJdCBtaWdodCBiZSBjb21wbGV0ZWx5IHdyb25nIGJ1dCBJIHdvdWxkIGxpa2UKPiA+
+ID4gdG8gZGlzY3VzcyB3aGF0IHdvdWxkIGJlIGEgYmV0dGVyIHdheSBpZiB0aGF0IGlzIHRoZSBj
+YXNlLgo+ID4gPiAKPiA+ID4gZ2V0X21haW50YWluZXJzIGdhdmUgbWUgcXVpdGUgbGFyZ2UgbGlz
+dCBvZiBwZW9wbGUgdG8gQ0Mgc28gSSBoYWQgdG8gdHJpbQo+ID4gPiBpdCBkb3duLiBJZiB5b3Ug
+dGhpbmsgSSBoYXZlIGZvcmdvdCBzb21lYm9keSwgcGxlYXNlIGxldCBtZSBrbm93Cj4gPiAKPiA+
+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3VzZXJwdHIuYyBi
+L2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3VzZXJwdHIuYwo+ID4gPiBpbmRleCA4NTRi
+ZDUxYjk0NzguLjUyODVkZjkzMzFmYSAxMDA2NDQKPiA+ID4gLS0tIGEvZHJpdmVycy9ncHUvZHJt
+L2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jCj4gPiA+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1
+L2k5MTVfZ2VtX3VzZXJwdHIuYwo+ID4gPiBAQCAtMTEyLDEwICsxMTIsMTEgQEAgc3RhdGljIHZv
+aWQgZGVsX29iamVjdChzdHJ1Y3QgaTkxNV9tbXVfb2JqZWN0ICptbykKPiA+ID4gICAgICAgICBt
+by0+YXR0YWNoZWQgPSBmYWxzZTsKPiA+ID4gIH0KPiA+ID4gIAo+ID4gPiAtc3RhdGljIHZvaWQg
+aTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90
+aWZpZXIgKl9tbiwKPiA+ID4gK3N0YXRpYyBpbnQgaTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlk
+YXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90aWZpZXIgKl9tbiwKPiA+ID4gICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBtbV9z
+dHJ1Y3QgKm1tLAo+ID4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBzdGFydCwKPiA+ID4gLSAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgZW5k
+KQo+ID4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgdW5zaWduZWQgbG9uZyBlbmQsCj4gPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBib29sIGJsb2NrYWJsZSkKPiA+ID4gIHsKPiA+
+ID4gICAgICAgICBzdHJ1Y3QgaTkxNV9tbXVfbm90aWZpZXIgKm1uID0KPiA+ID4gICAgICAgICAg
+ICAgICAgIGNvbnRhaW5lcl9vZihfbW4sIHN0cnVjdCBpOTE1X21tdV9ub3RpZmllciwgbW4pOwo+
+ID4gPiBAQCAtMTI0LDcgKzEyNSw3IEBAIHN0YXRpYyB2b2lkIGk5MTVfZ2VtX3VzZXJwdHJfbW5f
+aW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICpfbW4sCj4gPiA+ICAg
+ICAgICAgTElTVF9IRUFEKGNhbmNlbGxlZCk7Cj4gPiA+ICAKPiA+ID4gICAgICAgICBpZiAoUkJf
+RU1QVFlfUk9PVCgmbW4tPm9iamVjdHMucmJfcm9vdCkpCj4gPiA+IC0gICAgICAgICAgICAgICBy
+ZXR1cm47Cj4gPiA+ICsgICAgICAgICAgICAgICByZXR1cm4gMDsKPiA+IAo+ID4gVGhlIHByaW5j
+aXBsZSB3YWl0IGhlcmUgaXMgZm9yIHRoZSBIVyAoZXZlbiBhZnRlciBmaXhpbmcgYWxsIHRoZSBs
+b2Nrcwo+ID4gdG8gYmUgbm90IHNvIGNvYXJzZSwgd2Ugc3RpbGwgaGF2ZSB0byB3YWl0IGZvciB0
+aGUgSFcgdG8gZmluaXNoIGl0cwo+ID4gYWNjZXNzKS4KPiAKPiBJcyB0aGlzIHdhaXQgYm91bmQg
+b3IgaXQgY2FuIHRha2UgYmFzaWNhbGx5IGFyYml0cmFyeSBhbW91bnQgb2YgdGltZT8KCkFyYml0
+cmFyeSBhbW91bnQgb2YgdGltZSBidXQgaW4gZGVza3RvcCB1c2UgY2FzZSB5b3UgY2FuIGFzc3Vt
+ZSB0aGF0Cml0IHNob3VsZCBuZXZlciBnbyBhYm92ZSAxNm1zIGZvciBhIDYwZnJhbWUgcGVyIHNl
+Y29uZCByZW5kZXJpbmcgb2YKeW91ciBkZXNrdG9wIChpbiBHUFUgY29tcHV0ZSBjYXNlIHRoaXMg
+a2luZCBvZiBhc3N1bXB0aW9uIGRvZXMgbm90CmhvbGQpLiBJcyB0aGUgcHJvY2VzcyBleGl0X3N0
+YXRlIGFscmVhZHkgdXBkYXRlZCBieSB0aGUgdGltZSB0aGlzIG1tdQpub3RpZmllciBjYWxsYmFj
+a3MgaGFwcGVuID8KCj4gCj4gPiBUaGUgZmlyc3QgcGFzcyB3b3VsZCBiZSB0aGVuIHRvIG5vdCBk
+byBhbnl0aGluZyBoZXJlIGlmCj4gPiAhYmxvY2thYmxlLgo+IAo+IHNvbWV0aGluZyBsaWtlIHRo
+aXM/IChpbmNyZW1lbnRhbCBkaWZmKQoKV2hhdCBpIHdhbnRlZCB0byBkbyB3aXRoIEhNTSBhbmQg
+bW11IG5vdGlmaWVyIGlzIHNwbGl0IHRoZSBpbnZhbGlkYXRpb24KaW4gMiBwYXNzLiBGaXJzdCBw
+YXNzIHRlbGwgdGhlIGRyaXZlcnMgdG8gc3RvcC9jYW5jZWwgcGVuZGluZyBqb2JzIHRoYXQKZGVw
+ZW5kcyBvbiB0aGUgcmFuZ2UgYW5kIGludmFsaWRhdGUgaW50ZXJuYWwgZHJpdmVyIHN0YXRlcyAo
+bGlrZSBjbGVhcgpidWZmZXIgb2JqZWN0IHBhZ2VzIGFycmF5IGluIGNhc2Ugb2YgR1BVIGJ1dCBu
+b3QgR1BVIHBhZ2UgdGFibGUpLiBXaGlsZQp0aGUgc2Vjb25kIGNhbGxiYWNrIHdvdWxkIGRvIHRo
+ZSBhY3R1YWwgd2FpdCBvbiB0aGUgR1BVIHRvIGJlIGRvbmUgYW5kCnVwZGF0ZSB0aGUgR1BVIHBh
+Z2UgdGFibGUuCgpOb3cgaW4gdGhpcyBzY2hlbWUgaW4gY2FzZSB0aGUgdGFzayBpcyBhbHJlYWR5
+IGluIHNvbWUgZXhpdCBzdGF0ZSBhbmQKdGhhdCBhbGwgQ1BVIHRocmVhZHMgYXJlIGZyb3plbi9r
+aWxsIHRoZW4gd2UgY2FuIHByb2JhYmx5IGZpbmQgYSB3YXkgdG8KZG8gdGhlIGZpcnN0IHBhdGgg
+bW9zdGx5IGxvY2sgbGVzcy4gQUZBSUNSIG5vciBBTUQgbm9yIEludGVsIGFsbG93IHRvCnNoYXJl
+IHVzZXJwdHIgYm8gaGVuY2UgYSB1cHRyIGJvIHNob3VsZCBvbmx5IGV2ZXIgYmUgYWNjZXNzIHRo
+cm91Z2gKaW9jdGwgc3VibWl0ZWQgYnkgdGhlIHByb2Nlc3MuCgpUaGUgc2Vjb25kIGNhbGwgY2Fu
+IHRoZW4gYmUgZGVsYXllZCBhbmQgcGluZyBmcm9tIHRpbWUgdG8gdGltZSB0byBzZWUKaWYgR1BV
+IGpvYnMgYXJlIGRvbmUuCgoKTm90ZSB0aGF0IHdoYXQgeW91IHByb3Bvc2UgbWlnaHQgc3RpbGwg
+YmUgdXNlZnVsIGFzIGluIGNhc2UgdGhlcmUgaXMKbm8gYnVmZmVyIG9iamVjdCBmb3IgYSByYW5n
+ZSB0aGVuIE9PTSBjYW4gbWFrZSBwcm9ncmVzcyBpbiBmcmVlaW5nIGEKcmFuZ2Ugb2YgbWVtb3J5
+LiBJdCBpcyB2ZXJ5IGxpa2VseSB0aGF0IHNpZ25pZmljYW50IHZpcnR1YWwgYWRkcmVzcwpyYW5n
+ZSBvZiBhIHByb2Nlc3MgYW5kIGJhY2tpbmcgbWVtb3J5IGNhbiBiZSByZWNsYWltIHRoYXQgd2F5
+LiBUaGlzCmFzc3VtZSBPT00gcmVjbGFpbSB2bWEgYnkgdm1hIG9yIGluIHNvbWUgZm9ybSBvZiBn
+cmFudWxhcml0eSBsaWtlCnJlY2xhaW1pbmcgMUdCIGJ5IDFHQi4gT3Igd2UgY291bGQgYWxzbyB1
+cGRhdGUgYmxvY2tpbmcgY2FsbGJhY2sgdG8KcmV0dXJuIHJhbmdlIHRoYXQgYXJlIGJsb2NraW5n
+IHRoYXQgd2F5IE9PTSBjYW4gcmVjbGFpbSBhcm91bmQuCgpDaGVlcnMsCkrDqXLDtG1lCl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
+aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZy
+ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
