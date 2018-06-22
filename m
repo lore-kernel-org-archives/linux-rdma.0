@@ -1,114 +1,277 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [RFC PATCH] mm,
- oom: distinguish blockable mode for mmu notifiers
-Date: Fri, 22 Jun 2018 18:42:43 +0200
-Message-ID: <20180622164243.GB23674@dhcp22.suse.cz>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <152968180950.11773.3374981930722769733@mail.alporthouse.com>
- <20180622155716.GE10465@dhcp22.suse.cz>
- <20180622161845.GA3497@redhat.com>
- <20180622164026.GA23674@dhcp22.suse.cz>
+From: Ken Strandberg <kens-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+Subject: OFA Server access for developers
+Date: Fri, 22 Jun 2018 10:24:14 -0700
+Message-ID: <CAFXU466OkWz7Q=wr+rG2vpC4WA6jm=hebUjTm8dJM+RdmxX_hw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20180622164026.GA23674@dhcp22.suse.cz>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-Cc: kvm@vger.kernel.org, =?us-ascii?B?PT9VVEYtOD9xP1JhZGltPTIwS3I9QzQ9OERtPUMzPUExPUM1PTk5Pz0=?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?us-ascii?B?PT9VVEYtOD9xP0o9QzM9QTlyPUMzPUI0bWU9MjBHbGlzc2U/PQ==?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.daless>
+Content-Type: multipart/mixed; boundary="===============8582476622874348113=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Interop-wg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-W1Jlc25kaW5nIHdpdGggdGhlIENDIGxpc3QgZml4ZWRdCgpPbiBGcmkgMjItMDYtMTggMTg6NDA6
-MjYsIE1pY2hhbCBIb2NrbyB3cm90ZToKPiBPbiBGcmkgMjItMDYtMTggMTI6MTg6NDYsIEplcm9t
-ZSBHbGlzc2Ugd3JvdGU6Cj4gPiBPbiBGcmksIEp1biAyMiwgMjAxOCBhdCAwNTo1NzoxNlBNICsw
-MjAwLCBNaWNoYWwgSG9ja28gd3JvdGU6Cj4gPiA+IE9uIEZyaSAyMi0wNi0xOCAxNjozNjo0OSwg
-Q2hyaXMgV2lsc29uIHdyb3RlOgo+ID4gPiA+IFF1b3RpbmcgTWljaGFsIEhvY2tvICgyMDE4LTA2
-LTIyIDE2OjAyOjQyKQo+ID4gPiA+ID4gSGksCj4gPiA+ID4gPiB0aGlzIGlzIGFuIFJGQyBhbmQg
-bm90IHRlc3RlZCBhdCBhbGwuIEkgYW0gbm90IHZlcnkgZmFtaWxpYXIgd2l0aCB0aGUKPiA+ID4g
-PiA+IG1tdSBub3RpZmllcnMgc2VtYW50aWNzIHZlcnkgbXVjaCBzbyB0aGlzIGlzIGEgY3J1ZGUg
-YXR0ZW1wdCB0byBhY2hpZXZlCj4gPiA+ID4gPiB3aGF0IEkgbmVlZCBiYXNpY2FsbHkuIEl0IG1p
-Z2h0IGJlIGNvbXBsZXRlbHkgd3JvbmcgYnV0IEkgd291bGQgbGlrZQo+ID4gPiA+ID4gdG8gZGlz
-Y3VzcyB3aGF0IHdvdWxkIGJlIGEgYmV0dGVyIHdheSBpZiB0aGF0IGlzIHRoZSBjYXNlLgo+ID4g
-PiA+ID4gCj4gPiA+ID4gPiBnZXRfbWFpbnRhaW5lcnMgZ2F2ZSBtZSBxdWl0ZSBsYXJnZSBsaXN0
-IG9mIHBlb3BsZSB0byBDQyBzbyBJIGhhZCB0byB0cmltCj4gPiA+ID4gPiBpdCBkb3duLiBJZiB5
-b3UgdGhpbmsgSSBoYXZlIGZvcmdvdCBzb21lYm9keSwgcGxlYXNlIGxldCBtZSBrbm93Cj4gPiA+
-ID4gCj4gPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1f
-dXNlcnB0ci5jIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jCj4gPiA+
-ID4gPiBpbmRleCA4NTRiZDUxYjk0NzguLjUyODVkZjkzMzFmYSAxMDA2NDQKPiA+ID4gPiA+IC0t
-LSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3VzZXJwdHIuYwo+ID4gPiA+ID4gKysr
-IGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jCj4gPiA+ID4gPiBAQCAt
-MTEyLDEwICsxMTIsMTEgQEAgc3RhdGljIHZvaWQgZGVsX29iamVjdChzdHJ1Y3QgaTkxNV9tbXVf
-b2JqZWN0ICptbykKPiA+ID4gPiA+ICAgICAgICAgbW8tPmF0dGFjaGVkID0gZmFsc2U7Cj4gPiA+
-ID4gPiAgfQo+ID4gPiA+ID4gIAo+ID4gPiA+ID4gLXN0YXRpYyB2b2lkIGk5MTVfZ2VtX3VzZXJw
-dHJfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICpfbW4sCj4g
-PiA+ID4gPiArc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ID4gPiA+ID4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBtbV9zdHJ1Y3Qg
-Km1tLAo+ID4gPiA+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIHVuc2lnbmVkIGxvbmcgc3RhcnQsCj4gPiA+ID4gPiAtICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBl
-bmQpCj4gPiA+ID4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgdW5zaWduZWQgbG9uZyBlbmQsCj4gPiA+ID4gPiArICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYm9vbCBibG9ja2FibGUpCj4g
-PiA+ID4gPiAgewo+ID4gPiA+ID4gICAgICAgICBzdHJ1Y3QgaTkxNV9tbXVfbm90aWZpZXIgKm1u
-ID0KPiA+ID4gPiA+ICAgICAgICAgICAgICAgICBjb250YWluZXJfb2YoX21uLCBzdHJ1Y3QgaTkx
-NV9tbXVfbm90aWZpZXIsIG1uKTsKPiA+ID4gPiA+IEBAIC0xMjQsNyArMTI1LDcgQEAgc3RhdGlj
-IHZvaWQgaTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBt
-bXVfbm90aWZpZXIgKl9tbiwKPiA+ID4gPiA+ICAgICAgICAgTElTVF9IRUFEKGNhbmNlbGxlZCk7
-Cj4gPiA+ID4gPiAgCj4gPiA+ID4gPiAgICAgICAgIGlmIChSQl9FTVBUWV9ST09UKCZtbi0+b2Jq
-ZWN0cy5yYl9yb290KSkKPiA+ID4gPiA+IC0gICAgICAgICAgICAgICByZXR1cm47Cj4gPiA+ID4g
-PiArICAgICAgICAgICAgICAgcmV0dXJuIDA7Cj4gPiA+ID4gCj4gPiA+ID4gVGhlIHByaW5jaXBs
-ZSB3YWl0IGhlcmUgaXMgZm9yIHRoZSBIVyAoZXZlbiBhZnRlciBmaXhpbmcgYWxsIHRoZSBsb2Nr
-cwo+ID4gPiA+IHRvIGJlIG5vdCBzbyBjb2Fyc2UsIHdlIHN0aWxsIGhhdmUgdG8gd2FpdCBmb3Ig
-dGhlIEhXIHRvIGZpbmlzaCBpdHMKPiA+ID4gPiBhY2Nlc3MpLgo+ID4gPiAKPiA+ID4gSXMgdGhp
-cyB3YWl0IGJvdW5kIG9yIGl0IGNhbiB0YWtlIGJhc2ljYWxseSBhcmJpdHJhcnkgYW1vdW50IG9m
-IHRpbWU/Cj4gPiAKPiA+IEFyYml0cmFyeSBhbW91bnQgb2YgdGltZSBidXQgaW4gZGVza3RvcCB1
-c2UgY2FzZSB5b3UgY2FuIGFzc3VtZSB0aGF0Cj4gPiBpdCBzaG91bGQgbmV2ZXIgZ28gYWJvdmUg
-MTZtcyBmb3IgYSA2MGZyYW1lIHBlciBzZWNvbmQgcmVuZGVyaW5nIG9mCj4gPiB5b3VyIGRlc2t0
-b3AgKGluIEdQVSBjb21wdXRlIGNhc2UgdGhpcyBraW5kIG9mIGFzc3VtcHRpb24gZG9lcyBub3QK
-PiA+IGhvbGQpLiBJcyB0aGUgcHJvY2VzcyBleGl0X3N0YXRlIGFscmVhZHkgdXBkYXRlZCBieSB0
-aGUgdGltZSB0aGlzIG1tdQo+ID4gbm90aWZpZXIgY2FsbGJhY2tzIGhhcHBlbiA/Cj4gCj4gV2hh
-dCBkbyB5b3UgbWVhbj8gVGhlIHByb2Nlc3MgaXMga2lsbGVkIChieSBTSUdLSUxMKSBhdCB0aGUg
-dGltZSBidXQgd2UKPiBkbyBub3Qga25vdyBtdWNoIG1vcmUgdGhhbiB0aGF0LiBUaGUgdGFzayBt
-aWdodCBiZSBzdHVjayBhbnl3aGVyZSBpbiB0aGUKPiBrZXJuZWwgYmVmb3JlIGhhbmRsaW5nIHRo
-YXQgc2lnbmFsLgo+IAo+ID4gPiA+IFRoZSBmaXJzdCBwYXNzIHdvdWxkIGJlIHRoZW4gdG8gbm90
-IGRvIGFueXRoaW5nIGhlcmUgaWYKPiA+ID4gPiAhYmxvY2thYmxlLgo+ID4gPiAKPiA+ID4gc29t
-ZXRoaW5nIGxpa2UgdGhpcz8gKGluY3JlbWVudGFsIGRpZmYpCj4gPiAKPiA+IFdoYXQgaSB3YW50
-ZWQgdG8gZG8gd2l0aCBITU0gYW5kIG1tdSBub3RpZmllciBpcyBzcGxpdCB0aGUgaW52YWxpZGF0
-aW9uCj4gPiBpbiAyIHBhc3MuIEZpcnN0IHBhc3MgdGVsbCB0aGUgZHJpdmVycyB0byBzdG9wL2Nh
-bmNlbCBwZW5kaW5nIGpvYnMgdGhhdAo+ID4gZGVwZW5kcyBvbiB0aGUgcmFuZ2UgYW5kIGludmFs
-aWRhdGUgaW50ZXJuYWwgZHJpdmVyIHN0YXRlcyAobGlrZSBjbGVhcgo+ID4gYnVmZmVyIG9iamVj
-dCBwYWdlcyBhcnJheSBpbiBjYXNlIG9mIEdQVSBidXQgbm90IEdQVSBwYWdlIHRhYmxlKS4gV2hp
-bGUKPiA+IHRoZSBzZWNvbmQgY2FsbGJhY2sgd291bGQgZG8gdGhlIGFjdHVhbCB3YWl0IG9uIHRo
-ZSBHUFUgdG8gYmUgZG9uZSBhbmQKPiA+IHVwZGF0ZSB0aGUgR1BVIHBhZ2UgdGFibGUuCj4gCj4g
-V2hhdCBjYW4geW91IGRvIGFmdGVyIHRoZSBmaXJzdCBwaGFzZT8gQ2FuIEkgdW5tYXAgdGhlIHJh
-bmdlPwo+IAo+ID4gTm93IGluIHRoaXMgc2NoZW1lIGluIGNhc2UgdGhlIHRhc2sgaXMgYWxyZWFk
-eSBpbiBzb21lIGV4aXQgc3RhdGUgYW5kCj4gPiB0aGF0IGFsbCBDUFUgdGhyZWFkcyBhcmUgZnJv
-emVuL2tpbGwgdGhlbiB3ZSBjYW4gcHJvYmFibHkgZmluZCBhIHdheSB0bwo+ID4gZG8gdGhlIGZp
-cnN0IHBhdGggbW9zdGx5IGxvY2sgbGVzcy4gQUZBSUNSIG5vciBBTUQgbm9yIEludGVsIGFsbG93
-IHRvCj4gPiBzaGFyZSB1c2VycHRyIGJvIGhlbmNlIGEgdXB0ciBibyBzaG91bGQgb25seSBldmVy
-IGJlIGFjY2VzcyB0aHJvdWdoCj4gPiBpb2N0bCBzdWJtaXRlZCBieSB0aGUgcHJvY2Vzcy4KPiA+
-IAo+ID4gVGhlIHNlY29uZCBjYWxsIGNhbiB0aGVuIGJlIGRlbGF5ZWQgYW5kIHBpbmcgZnJvbSB0
-aW1lIHRvIHRpbWUgdG8gc2VlCj4gPiBpZiBHUFUgam9icyBhcmUgZG9uZS4KPiA+IAo+ID4gCj4g
-PiBOb3RlIHRoYXQgd2hhdCB5b3UgcHJvcG9zZSBtaWdodCBzdGlsbCBiZSB1c2VmdWwgYXMgaW4g
-Y2FzZSB0aGVyZSBpcwo+ID4gbm8gYnVmZmVyIG9iamVjdCBmb3IgYSByYW5nZSB0aGVuIE9PTSBj
-YW4gbWFrZSBwcm9ncmVzcyBpbiBmcmVlaW5nIGEKPiA+IHJhbmdlIG9mIG1lbW9yeS4gSXQgaXMg
-dmVyeSBsaWtlbHkgdGhhdCBzaWduaWZpY2FudCB2aXJ0dWFsIGFkZHJlc3MKPiA+IHJhbmdlIG9m
-IGEgcHJvY2VzcyBhbmQgYmFja2luZyBtZW1vcnkgY2FuIGJlIHJlY2xhaW0gdGhhdCB3YXkuIFRo
-aXMKPiA+IGFzc3VtZSBPT00gcmVjbGFpbSB2bWEgYnkgdm1hIG9yIGluIHNvbWUgZm9ybSBvZiBn
-cmFudWxhcml0eSBsaWtlCj4gPiByZWNsYWltaW5nIDFHQiBieSAxR0IuIE9yIHdlIGNvdWxkIGFs
-c28gdXBkYXRlIGJsb2NraW5nIGNhbGxiYWNrIHRvCj4gPiByZXR1cm4gcmFuZ2UgdGhhdCBhcmUg
-YmxvY2tpbmcgdGhhdCB3YXkgT09NIGNhbiByZWNsYWltIGFyb3VuZC4KPiAKPiBFeGFjdGx5IG15
-IHBvaW50LiBXaGF0IHdlIGhhdmUgcmlnaHQgbm93IGlzIGFsbCBvciBub3RoaW5nIHdoaWNoIGlz
-Cj4gb2J2aW91c2x5IHRvbyBjb2Fyc2UgdG8gYmUgdXNlZnVsLgoKLS0gCk1pY2hhbCBIb2NrbwpT
-VVNFIExhYnMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-SW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
-dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
+--===============8582476622874348113==
+Content-Type: multipart/alternative; boundary="0000000000009872d3056f3e4d1d"
+
+--0000000000009872d3056f3e4d1d
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+ I'm following up on the user accounts for one final check. If you have not
+been part of the mail thread, I apologize I've missed you somehow. We will
+be migrating the server some time this summer. Since much of OFED has moved
+to github, it's my understanding there are several developers who no longer
+need access to upload and store files on the OFA server. I've tried to
+contact all developers I know about to verify your need for the OFA server
+access. Again, apologies if I've missed you.
+
+Here are three lists. I only need to know if I have INCORRECTLY placed you
+on one of these lists. Apologies if I have misplaced you.
+
+
+
+The following user accounts/directories will be removed. The scm
+directories are being backed up.  If you still need access and need your
+scm directory, please let me know. In an effort to clean up old code in scm
+directories to get our own gitweb (git.openfabrics.org) list up to date,
+I've moved many of the scm directories of these users to an archive
+directory (which can be recovered). Again, I only need to know if you
+should NOT be on this list.  Thanks.
+
+agrover
+alexnetes
+alexschm
+amirv
+boomer
+bvanassche
+ctung
+ddalessa
+deanl
+dledford
+dotanb
+dsharma
+eli
+flatif
+glenn
+grockah
+haggaie
+hestela
+jbecker
+jcoffman
+johann
+jon
+kliteyn
+mmarciniszyn
+mohammads
+monis
+moranp
+ogerlitz
+orenk
+ppandit
+pasha
+perkinjo
+pschulfer
+ralphc
+ramachandrak
+rdreir
+sashak
+sgrimberg
+shamoya
+sshilimkar
+ssmith
+swise
+tomaszc
+tziporet
+vipulp
+ycote
+yishah
+zbenaharon
+
+
+=E2=80=8BThe following user accounts will stay and be migrated. Some of the=
+ files
+in your scm directories are being archived. Everything else will be
+migrated. If there are files you don't need, please remove them in the next
+2 weeks.
+
+vlad
+halr
+jays
+rupertd
+jsquyers
+aditr
+adrianc
+ardavis
+emulex
+tnikolova
+shefty
+iraweiny
+=E2=80=8B
+=E2=80=8BThere are other accounts that will also stay who use the server fo=
+r mail
+or uploading to the downloads directory, etc. You don't need to do
+anything. I may have missed some users.
+
+jryan
+skc
+paulb
+pgrun
+
+
+
+
+Thank you in advance.
+
+--0000000000009872d3056f3e4d1d
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><div class=3D"gmail_default" style=3D"font-size:small;colo=
+r:#000000">
+
+<div class=3D"gmail-gs" style=3D"margin:0px;padding:0px 0px 20px;width:1512=
+px;color:rgb(34,34,34);font-family:Roboto,RobotoDraft,Helvetica,Arial,sans-=
+serif;font-size:medium;background-color:rgb(255,255,255);text-decoration-st=
+yle:initial;text-decoration-color:initial"><div class=3D"gmail-"><div id=3D=
+"gmail-:2g6" class=3D"gmail-ii gmail-gt" style=3D"font-size:12.8px;directio=
+n:ltr;margin:8px 0px 0px;padding:0px"><div id=3D"gmail-:2g7" class=3D"gmail=
+-a3s gmail-aXjCH" style=3D"overflow:hidden;font-style:normal;font-variant:n=
+ormal;font-weight:normal;font-stretch:normal;font-size:13px;line-height:1.5=
+;font-family:sans-serif"><div dir=3D"ltr"><div class=3D"gmail_default" styl=
+e=3D"font-size:small;color:rgb(0,0,0)">I&#39;m following up on the user acc=
+ounts for one final check. If you have not been part of the mail thread, I =
+apologize I&#39;ve missed you somehow. We will be migrating the server some=
+ time this summer. Since much of OFED has moved to github, it&#39;s my unde=
+rstanding there are several developers who no longer need access to upload =
+and store files on the OFA server. I&#39;ve tried to contact all developers=
+ I know about to verify your need for the OFA server access. Again, apologi=
+es if I&#39;ve missed you.=C2=A0</div><div class=3D"gmail_default" style=3D=
+"font-size:small;color:rgb(0,0,0)"><br></div><div class=3D"gmail_default" s=
+tyle=3D"font-size:small;color:rgb(0,0,0)">Here are three lists. I only need=
+ to know if I have INCORRECTLY placed you on one of these lists. Apologies =
+if I have misplaced you.=C2=A0</div><div class=3D"gmail_default" style=3D"f=
+ont-size:small;color:rgb(0,0,0)"><br></div><div class=3D"gmail_default" sty=
+le=3D"font-size:small;color:rgb(0,0,0)"><br></div><div class=3D"gmail_defau=
+lt" style=3D"font-size:small;color:rgb(0,0,0)"><br></div><div class=3D"gmai=
+l_default" style=3D"font-size:small;color:rgb(0,0,0)">The following user ac=
+counts/directories will be removed. The scm directories are being backed up=
+.=C2=A0 If you still need access and need your scm directory, please let me=
+ know. In an effort to clean up old code in scm directories to get our own =
+gitweb (<a href=3D"http://git.openfabrics.org">git.openfabrics.org</a>) lis=
+t up to date, I&#39;ve moved many of the scm directories of these users to =
+an archive directory (which can be recovered). Again, I only need to know i=
+f you should NOT be on this list.=C2=A0 Thanks.</div><div class=3D"gmail_de=
+fault" style=3D"font-size:small;color:rgb(0,0,0)"><br></div><div class=3D"g=
+mail_default" style=3D"font-size:small;color:rgb(0,0,0)">agrover</div><div =
+class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">alexnete=
+s</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,=
+0)">alexschm</div><div class=3D"gmail_default" style=3D"font-size:small;col=
+or:rgb(0,0,0)">amirv</div><div class=3D"gmail_default" style=3D"font-size:s=
+mall;color:rgb(0,0,0)">boomer</div><div class=3D"gmail_default" style=3D"fo=
+nt-size:small;color:rgb(0,0,0)">bvanassche</div><div class=3D"gmail_default=
+" style=3D"font-size:small;color:rgb(0,0,0)">ctung</div><div class=3D"gmail=
+_default" style=3D"font-size:small;color:rgb(0,0,0)">ddalessa</div><div cla=
+ss=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">deanl</div>=
+<div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">dle=
+dford</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(=
+0,0,0)">dotanb</div><div class=3D"gmail_default" style=3D"font-size:small;c=
+olor:rgb(0,0,0)">dsharma</div><div class=3D"gmail_default" style=3D"font-si=
+ze:small;color:rgb(0,0,0)">eli</div><div class=3D"gmail_default" style=3D"f=
+ont-size:small;color:rgb(0,0,0)">flatif</div><div class=3D"gmail_default" s=
+tyle=3D"font-size:small;color:rgb(0,0,0)">glenn</div><div class=3D"gmail_de=
+fault" style=3D"font-size:small;color:rgb(0,0,0)">grockah</div><div class=
+=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">haggaie</div>=
+<div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">hes=
+tela</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0=
+,0,0)">jbecker</div><div class=3D"gmail_default" style=3D"font-size:small;c=
+olor:rgb(0,0,0)">jcoffman</div><div class=3D"gmail_default" style=3D"font-s=
+ize:small;color:rgb(0,0,0)">johann</div><div class=3D"gmail_default" style=
+=3D"font-size:small;color:rgb(0,0,0)">jon</div><div class=3D"gmail_default"=
+ style=3D"font-size:small;color:rgb(0,0,0)">kliteyn</div><div class=3D"gmai=
+l_default" style=3D"font-size:small;color:rgb(0,0,0)">mmarciniszyn</div><di=
+v class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">mohamm=
+ads</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,=
+0,0)">monis</div><div class=3D"gmail_default" style=3D"font-size:small;colo=
+r:rgb(0,0,0)">moranp</div><div class=3D"gmail_default" style=3D"font-size:s=
+mall;color:rgb(0,0,0)">ogerlitz</div><div class=3D"gmail_default" style=3D"=
+font-size:small;color:rgb(0,0,0)">orenk</div><div class=3D"gmail_default" s=
+tyle=3D"font-size:small;color:rgb(0,0,0)">ppandit</div><div class=3D"gmail_=
+default" style=3D"font-size:small;color:rgb(0,0,0)">pasha</div><div class=
+=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">perkinjo</div=
+><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">ps=
+chulfer</div><div class=3D"gmail_default" style=3D"font-size:small;color:rg=
+b(0,0,0)">ralphc</div><div class=3D"gmail_default" style=3D"font-size:small=
+;color:rgb(0,0,0)">ramachandrak</div><div class=3D"gmail_default" style=3D"=
+font-size:small;color:rgb(0,0,0)">rdreir</div><div class=3D"gmail_default" =
+style=3D"font-size:small;color:rgb(0,0,0)">sashak</div><div class=3D"gmail_=
+default" style=3D"font-size:small;color:rgb(0,0,0)">sgrimberg</div><div cla=
+ss=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">shamoya</di=
+v><div class=3D"gmail_default"><font color=3D"#000000" size=3D"2">sshilimka=
+r</font><br></div><div class=3D"gmail_default"><font color=3D"#000000" size=
+=3D"2">ssmith</font></div><div class=3D"gmail_default" style=3D"font-size:s=
+mall;color:rgb(0,0,0)">swise</div><div class=3D"gmail_default" style=3D"fon=
+t-size:small;color:rgb(0,0,0)">tomaszc</div><div class=3D"gmail_default" st=
+yle=3D"font-size:small;color:rgb(0,0,0)">tziporet</div><div class=3D"gmail_=
+default" style=3D"font-size:small;color:rgb(0,0,0)">vipulp</div><div class=
+=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">ycote</div><d=
+iv class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">yisha=
+h</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,=
+0)">zbenaharon</div><div><br></div><div><br></div><div><div class=3D"gmail_=
+default" style=3D"font-size:small;color:rgb(0,0,0)">=E2=80=8BThe following =
+user accounts will stay and be migrated. Some of the files in your scm dire=
+ctories are being archived. Everything else will be migrated. If there are =
+files you don&#39;t need, please remove them in the next 2 weeks.</div><div=
+ class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)"><br></d=
+iv><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">=
+vlad</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0=
+,0,0)">halr</div><div class=3D"gmail_default" style=3D"font-size:small;colo=
+r:rgb(0,0,0)">jays</div><div class=3D"gmail_default" style=3D"font-size:sma=
+ll;color:rgb(0,0,0)">rupertd</div><div class=3D"gmail_default" style=3D"fon=
+t-size:small;color:rgb(0,0,0)">jsquyers</div><div class=3D"gmail_default" s=
+tyle=3D"font-size:small;color:rgb(0,0,0)">aditr</div><div class=3D"gmail_de=
+fault" style=3D"font-size:small;color:rgb(0,0,0)">adrianc</div><div class=
+=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">ardavis</div>=
+<div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,0,0)">emu=
+lex</div><div class=3D"gmail_default" style=3D"font-size:small;color:rgb(0,=
+0,0)">tnikolova</div><div class=3D"gmail_default" style=3D"font-size:small;=
+color:rgb(0,0,0)">shefty</div><div class=3D"gmail_default" style=3D"font-si=
+ze:small;color:rgb(0,0,0)">iraweiny</div><div class=3D"gmail_default" style=
+=3D"font-size:small;color:rgb(0,0,0)">=E2=80=8B</div><div class=3D"gmail_de=
+fault" style=3D"font-size:small;color:rgb(0,0,0)">=E2=80=8BThere are other =
+accounts that will also stay who use the server for mail or uploading to th=
+e downloads directory, etc. You don&#39;t need to do anything. I may have m=
+issed some users.=C2=A0</div><div class=3D"gmail_default" style=3D"font-siz=
+e:small;color:rgb(0,0,0)"><br></div><div class=3D"gmail_default" style=3D"f=
+ont-size:small;color:rgb(0,0,0)">jryan</div><div class=3D"gmail_default" st=
+yle=3D"font-size:small;color:rgb(0,0,0)">skc</div><div class=3D"gmail_defau=
+lt" style=3D"font-size:small;color:rgb(0,0,0)">paulb</div><div class=3D"gma=
+il_default" style=3D"font-size:small;color:rgb(0,0,0)">pgrun</div><div clas=
+s=3D"gmail-yj6qo"></div><div class=3D"gmail-adL"><br></div></div><div class=
+=3D"gmail-adL"><br></div><div class=3D"gmail-adL"><br></div></div><div clas=
+s=3D"gmail-adL"></div></div></div><div class=3D"gmail-hi" style=3D"border-b=
+ottom-left-radius:1px;border-bottom-right-radius:1px;padding:0px;width:auto=
+;background:rgb(242,242,242);margin:0px"></div></div></div><br class=3D"gma=
+il-Apple-interchange-newline">
+
+Thank you in advance.</div><div><br></div></div>
+
+--0000000000009872d3056f3e4d1d--
+
+--===============8582476622874348113==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1haWxp
+bmcgbGlzdApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHA6Ly9saXN0cy5vcGVuZmFicmlj
+cy5vcmcvbWFpbG1hbi9saXN0aW5mby9ld2c=
+
+--===============8582476622874348113==--
