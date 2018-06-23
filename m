@@ -1,112 +1,72 @@
-From: Felix Kuehling <felix.kuehling-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Fri, 22 Jun 2018 16:09:06 -0400
-Message-ID: <dd260800-6457-f3ff-47df-b65ef258f4b7@amd.com>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <0aa9f695-5702-6704-9462-7779cbfdb3fd@amd.com>
- <20180622152444.GC10465@dhcp22.suse.cz>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: Re: [PATCH] infiniband: i40iw, nes: don't use wall time for TCP
+ sequence numbers
+Date: Fri, 22 Jun 2018 19:01:37 -0500
+Message-ID: <20180623000137.GA17264@ssaleem-MOBL4.amr.corp.intel.com>
+References: <20180618144443.137068-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20180622152444.GC10465-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org>
-Content-Language: en-CA
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
-Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180618144443.137068-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Latif, Faisal" <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "David S. Miller" <davem@davemloft.net>, "y2038@lists.linaro.org" <y2038@lists.linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Orosco, Henry" <henry.orosco@intel.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, Yuval Shaia <yuval.shaia@oracle.com>, Bart Van Assche <bart.vanassche@wdc.com>, Kees Cook <keescook@chromium.org>, "Reshetova, Elena" <elena.reshetova@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjAxOC0wNi0yMiAxMToyNCBBTSwgTWljaGFsIEhvY2tvIHdyb3RlOgo+IE9uIEZyaSAyMi0w
-Ni0xOCAxNzoxMzowMiwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPj4gSGkgTWljaGFsLAo+Pgo+
-PiBbQWRkaW5nIEZlbGl4IGFzIHdlbGxdCj4+Cj4+IFdlbGwgZmlyc3Qgb2YgYWxsIHlvdSBoYXZl
-IGEgbWlzY29uY2VwdGlvbiB3aHkgYXQgbGVhc3QgdGhlIEFNRCBncmFwaGljcwo+PiBkcml2ZXIg
-bmVlZCB0byBiZSBhYmxlIHRvIHNsZWVwIGluIGFuIE1NVSBub3RpZmllcjogV2UgbmVlZCB0byBz
-bGVlcCBiZWNhdXNlCj4+IHdlIG5lZWQgdG8gd2FpdCBmb3IgaGFyZHdhcmUgb3BlcmF0aW9ucyB0
-byBmaW5pc2ggYW5kICpOT1QqIGJlY2F1c2Ugd2UgbmVlZAo+PiB0byB3YWl0IGZvciBsb2Nrcy4K
-Pj4KPj4gSSdtIG5vdCBzdXJlIGlmIHlvdXIgZmxhZyBub3cgbWVhbnMgdGhhdCB5b3UgZ2VuZXJh
-bGx5IGNhbid0IHNsZWVwIGluIE1NVQo+PiBub3RpZmllcnMgYW55IG1vcmUsIGJ1dCBpZiB0aGF0
-J3MgdGhlIGNhc2UgYXQgbGVhc3QgQU1EIGhhcmR3YXJlIHdpbGwgYnJlYWsKPj4gYmFkbHkuIElu
-IG91ciBjYXNlIHRoZSBhcHByb2FjaCBvZiB3YWl0aW5nIGZvciBhIHNob3J0IHRpbWUgZm9yIHRo
-ZSBwcm9jZXNzCj4+IHRvIGJlIHJlYXBlZCBhbmQgdGhlbiBzZWxlY3QgYW5vdGhlciB2aWN0aW0g
-YWN0dWFsbHkgc291bmRzIGxpa2UgdGhlIHJpZ2h0Cj4+IHRoaW5nIHRvIGRvLgo+IFdlbGwsIEkg
-ZG8gbm90IG5lZWQgdG8gbWFrZSB0aGUgbm90aWZpZXIgY29kZSBub24gYmxvY2tpbmcgYWxsIHRo
-ZSB0aW1lLgo+IEFsbCBJIG5lZWQgaXMgdG8gZW5zdXJlIHRoYXQgaXQgd29uJ3Qgc2xlZXAgaWYg
-dGhlIGZsYWcgc2F5cyBzbyBhbmQKPiByZXR1cm4gLUVBR0FJTiBpbnN0ZWFkLgo+Cj4gU28gaGVy
-ZSBpcyB3aGF0IEkgZG8gZm9yIGFtZGdwdToKCkluIHRoZSBjYXNlIG9mIEtGRCB3ZSBhbHNvIG5l
-ZWQgdG8gdGFrZSB0aGUgRFFNIGxvY2s6CgphbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFy
-dF9oc2EgLT4gYW1kZ3B1X2FtZGtmZF9ldmljdF91c2VycHRyIC0+CmtnZDJrZmRfcXVpZXNjZV9t
-bSAtPiBrZmRfcHJvY2Vzc19ldmljdF9xdWV1ZXMgLT4gZXZpY3RfcHJvY2Vzc19xdWV1ZXNfY3Bz
-Y2gKClNvIHdlJ2QgbmVlZCB0byBwYXNzIHRoZSBibG9ja2FibGUgcGFyYW1ldGVyIGFsbCB0aGUg
-d2F5IHRocm91Z2ggdGhhdApjYWxsIGNoYWluLgoKUmVnYXJkcywKwqAgRmVsaXgKCj4KPj4+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfbW4uYyBiL2RyaXZl
-cnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jCj4+PiBpbmRleCA4M2UzNDRmYmI1MGEu
-LmQxMzhhNTI2ZmVmZiAxMDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1
-L2FtZGdwdV9tbi5jCj4+PiArKysgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVf
-bW4uYwo+Pj4gQEAgLTEzNiwxMiArMTM2LDE4IEBAIHZvaWQgYW1kZ3B1X21uX3VubG9jayhzdHJ1
-Y3QgYW1kZ3B1X21uICptbikKPj4+ICAgICoKPj4+ICAgICogVGFrZSB0aGUgcm1uIHJlYWQgc2lk
-ZSBsb2NrLgo+Pj4gICAgKi8KPj4+IC1zdGF0aWMgdm9pZCBhbWRncHVfbW5fcmVhZF9sb2NrKHN0
-cnVjdCBhbWRncHVfbW4gKnJtbikKPj4+ICtzdGF0aWMgaW50IGFtZGdwdV9tbl9yZWFkX2xvY2so
-c3RydWN0IGFtZGdwdV9tbiAqcm1uLCBib29sIGJsb2NrYWJsZSkKPj4+ICAgewo+Pj4gLQltdXRl
-eF9sb2NrKCZybW4tPnJlYWRfbG9jayk7Cj4+PiArCWlmIChibG9ja2FibGUpCj4+PiArCQltdXRl
-eF9sb2NrKCZybW4tPnJlYWRfbG9jayk7Cj4+PiArCWVsc2UgaWYgKCFtdXRleF90cnlsb2NrKCZy
-bW4tPnJlYWRfbG9jaykpCj4+PiArCQlyZXR1cm4gLUVBR0FJTjsKPj4+ICsKPj4+ICAgCWlmIChh
-dG9taWNfaW5jX3JldHVybigmcm1uLT5yZWN1cnNpb24pID09IDEpCj4+PiAgIAkJZG93bl9yZWFk
-X25vbl9vd25lcigmcm1uLT5sb2NrKTsKPj4+ICAgCW11dGV4X3VubG9jaygmcm1uLT5yZWFkX2xv
-Y2spOwo+Pj4gKwo+Pj4gKwlyZXR1cm4gMDsKPj4+ICAgfQo+Pj4gICAvKioKPj4+IEBAIC0xOTcs
-MTAgKzIwMywxMSBAQCBzdGF0aWMgdm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9ub2RlKHN0cnVj
-dCBhbWRncHVfbW5fbm9kZSAqbm9kZSwKPj4+ICAgICogV2UgYmxvY2sgZm9yIGFsbCBCT3MgYmV0
-d2VlbiBzdGFydCBhbmQgZW5kIHRvIGJlIGlkbGUgYW5kCj4+PiAgICAqIHVubWFwIHRoZW0gYnkg
-bW92ZSB0aGVtIGludG8gc3lzdGVtIGRvbWFpbiBhZ2Fpbi4KPj4+ICAgICovCj4+PiAtc3RhdGlj
-IHZvaWQgYW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfZ2Z4KHN0cnVjdCBtbXVfbm90
-aWZpZXIgKm1uLAo+Pj4gK3N0YXRpYyBpbnQgYW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3Rh
-cnRfZ2Z4KHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAo+Pj4gICAJCQkJCQkgc3RydWN0IG1tX3N0
-cnVjdCAqbW0sCj4+PiAgIAkJCQkJCSB1bnNpZ25lZCBsb25nIHN0YXJ0LAo+Pj4gLQkJCQkJCSB1
-bnNpZ25lZCBsb25nIGVuZCkKPj4+ICsJCQkJCQkgdW5zaWduZWQgbG9uZyBlbmQsCj4+PiArCQkJ
-CQkJIGJvb2wgYmxvY2thYmxlKQo+Pj4gICB7Cj4+PiAgIAlzdHJ1Y3QgYW1kZ3B1X21uICpybW4g
-PSBjb250YWluZXJfb2YobW4sIHN0cnVjdCBhbWRncHVfbW4sIG1uKTsKPj4+ICAgCXN0cnVjdCBp
-bnRlcnZhbF90cmVlX25vZGUgKml0Owo+Pj4gQEAgLTIwOCw3ICsyMTUsMTEgQEAgc3RhdGljIHZv
-aWQgYW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfZ2Z4KHN0cnVjdCBtbXVfbm90aWZp
-ZXIgKm1uLAo+Pj4gICAJLyogbm90aWZpY2F0aW9uIGlzIGV4Y2x1c2l2ZSwgYnV0IGludGVydmFs
-IGlzIGluY2x1c2l2ZSAqLwo+Pj4gICAJZW5kIC09IDE7Cj4+PiAtCWFtZGdwdV9tbl9yZWFkX2xv
-Y2socm1uKTsKPj4+ICsJLyogVE9ETyB3ZSBzaG91bGQgYmUgYWJsZSB0byBzcGxpdCBsb2NraW5n
-IGZvciBpbnRlcnZhbCB0cmVlIGFuZAo+Pj4gKwkgKiBhbWRncHVfbW5faW52YWxpZGF0ZV9ub2Rl
-Cj4+PiArCSAqLwo+Pj4gKwlpZiAoYW1kZ3B1X21uX3JlYWRfbG9jayhybW4sIGJsb2NrYWJsZSkp
-Cj4+PiArCQlyZXR1cm4gLUVBR0FJTjsKPj4+ICAgCWl0ID0gaW50ZXJ2YWxfdHJlZV9pdGVyX2Zp
-cnN0KCZybW4tPm9iamVjdHMsIHN0YXJ0LCBlbmQpOwo+Pj4gICAJd2hpbGUgKGl0KSB7Cj4+PiBA
-QCAtMjE5LDYgKzIzMCw4IEBAIHN0YXRpYyB2b2lkIGFtZGdwdV9tbl9pbnZhbGlkYXRlX3Jhbmdl
-X3N0YXJ0X2dmeChzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwKPj4+ICAgCQlhbWRncHVfbW5faW52
-YWxpZGF0ZV9ub2RlKG5vZGUsIHN0YXJ0LCBlbmQpOwo+Pj4gICAJfQo+Pj4gKwo+Pj4gKwlyZXR1
-cm4gMDsKPj4+ICAgfQo+Pj4gICAvKioKPj4+IEBAIC0yMzMsMTAgKzI0NiwxMSBAQCBzdGF0aWMg
-dm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydF9nZngoc3RydWN0IG1tdV9ub3Rp
-ZmllciAqbW4sCj4+PiAgICAqIG5lY2Vzc2l0YXRlcyBldmljdGluZyBhbGwgdXNlci1tb2RlIHF1
-ZXVlcyBvZiB0aGUgcHJvY2Vzcy4gVGhlIEJPcwo+Pj4gICAgKiBhcmUgcmVzdG9ydGVkIGluIGFt
-ZGdwdV9tbl9pbnZhbGlkYXRlX3JhbmdlX2VuZF9oc2EuCj4+PiAgICAqLwo+Pj4gLXN0YXRpYyB2
-b2lkIGFtZGdwdV9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0X2hzYShzdHJ1Y3QgbW11X25vdGlm
-aWVyICptbiwKPj4+ICtzdGF0aWMgaW50IGFtZGdwdV9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0
-X2hzYShzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwKPj4+ICAgCQkJCQkJIHN0cnVjdCBtbV9zdHJ1
-Y3QgKm1tLAo+Pj4gICAJCQkJCQkgdW5zaWduZWQgbG9uZyBzdGFydCwKPj4+IC0JCQkJCQkgdW5z
-aWduZWQgbG9uZyBlbmQpCj4+PiArCQkJCQkJIHVuc2lnbmVkIGxvbmcgZW5kLAo+Pj4gKwkJCQkJ
-CSBib29sIGJsb2NrYWJsZSkKPj4+ICAgewo+Pj4gICAJc3RydWN0IGFtZGdwdV9tbiAqcm1uID0g
-Y29udGFpbmVyX29mKG1uLCBzdHJ1Y3QgYW1kZ3B1X21uLCBtbik7Cj4+PiAgIAlzdHJ1Y3QgaW50
-ZXJ2YWxfdHJlZV9ub2RlICppdDsKPj4+IEBAIC0yNDQsNyArMjU4LDggQEAgc3RhdGljIHZvaWQg
-YW1kZ3B1X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfaHNhKHN0cnVjdCBtbXVfbm90aWZpZXIg
-Km1uLAo+Pj4gICAJLyogbm90aWZpY2F0aW9uIGlzIGV4Y2x1c2l2ZSwgYnV0IGludGVydmFsIGlz
-IGluY2x1c2l2ZSAqLwo+Pj4gICAJZW5kIC09IDE7Cj4+PiAtCWFtZGdwdV9tbl9yZWFkX2xvY2so
-cm1uKTsKPj4+ICsJaWYgKGFtZGdwdV9tbl9yZWFkX2xvY2socm1uLCBibG9ja2FibGUpKQo+Pj4g
-KwkJcmV0dXJuIC1FQUdBSU47Cj4+PiAgIAlpdCA9IGludGVydmFsX3RyZWVfaXRlcl9maXJzdCgm
-cm1uLT5vYmplY3RzLCBzdGFydCwgZW5kKTsKPj4+ICAgCXdoaWxlIChpdCkgewo+Pj4gQEAgLTI2
-Miw2ICsyNzcsOCBAQCBzdGF0aWMgdm9pZCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFy
-dF9oc2Eoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4+PiAgIAkJCQlhbWRncHVfYW1ka2ZkX2V2
-aWN0X3VzZXJwdHIobWVtLCBtbSk7Cj4+PiAgIAkJfQo+Pj4gICAJfQo+Pj4gKwo+Pj4gKwlyZXR1
-cm4gMDsKPj4+ICAgfQo+Pj4gICAvKioKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-YW1kLWdmeAo=
+On Mon, Jun 18, 2018 at 08:44:17AM -0600, Arnd Bergmann wrote:
+> The nes infiniband driver uses current_kernel_time() to get a nanosecond
+> granunarity timestamp to initialize its tcp sequence counters. This is
+> one of only a few remaining users of that deprecated function, so we
+> should try to get rid of it.
+> 
+> Aside from using a deprecated API, there are several problems I see here:
+> 
+> - Using a CLOCK_REALTIME based time source makes it predictable in
+>   case the time base is synchronized.
+> - Using a coarse timestamp means it only gets updated once per jiffie,
+>   making it even more predictable in order to avoid having to access
+>   the hardware clock source
+> - The upper 2 bits are always zero because the nanoseconds are at most
+>   999999999.
+> 
+> For the Linux TCP implementation, we use secure_tcp_seq(), which appears
+> to be appropriate here as well, and solves all the above problems.
+> 
+> I'm doing the same change in both versions of the nes driver, with
+> i40iw being a later copy of the same code.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+
+Thanks Arnd for the patch!
+
+[...]
+
+> @@ -2164,7 +2165,6 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
+>  				   struct i40iw_cm_listener *listener)
+>  {
+>  	struct i40iw_cm_node *cm_node;
+> -	struct timespec ts;
+>  	int oldarpindex;
+>  	int arpindex;
+>  	struct net_device *netdev = iwdev->netdev;
+> @@ -2214,8 +2214,10 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
+>  	cm_node->tcp_cntxt.rcv_wscale = I40IW_CM_DEFAULT_RCV_WND_SCALE;
+>  	cm_node->tcp_cntxt.rcv_wnd =
+>  			I40IW_CM_DEFAULT_RCV_WND_SCALED >> I40IW_CM_DEFAULT_RCV_WND_SCALE;
+> -	ts = current_kernel_time();
+> -	cm_node->tcp_cntxt.loc_seq_num = ts.tv_nsec;
+> +	cm_node->tcp_cntxt.loc_seq_num = secure_tcp_seq(htonl(cm_node->loc_addr[0]),
+> +							htonl(cm_node->rem_addr[0]),
+> +							htons(cm_node->loc_port),
+> +							htons(cm_node->rem_port));
+
+Should we not be using secure_tcpv6_seq() when we are ipv6?
+
+Shiraz
+
+>  	cm_node->tcp_cntxt.mss = (cm_node->ipv4) ? (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV4) :
+>  				 (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV6);
+>  
+> 
