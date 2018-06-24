@@ -1,67 +1,35 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 09/12] RDMA/mlx5: Fix shift overflow in
- mlx5_ib_create_wq
-Date: Sun, 24 Jun 2018 13:56:24 -0600
-Message-ID: <20180624195624.GL19151@ziepe.ca>
+Subject: Re: [PATCH rdma-next 06/12] RDMA/uverbs: Don't overwrite NULL
+ pointer with ZERO_SIZE_PTR
+Date: Sun, 24 Jun 2018 13:57:51 -0600
+Message-ID: <20180624195751.GM19151@ziepe.ca>
 References: <20180624082353.16138-1-leon@kernel.org>
- <20180624082353.16138-10-leon@kernel.org>
+ <20180624082353.16138-7-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180624082353.16138-10-leon@kernel.org>
+In-Reply-To: <20180624082353.16138-7-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
 Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 24, 2018 at 11:23:50AM +0300, Leon Romanovsky wrote:
+On Sun, Jun 24, 2018 at 11:23:47AM +0300, Leon Romanovsky wrote:
 > From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> [   61.182439] UBSAN: Undefined behaviour in drivers/infiniband/hw/mlx5/qp.c:5366:34
-> [   61.183673] shift exponent 4294967288 is too large for 32-bit type 'unsigned int'
-> [   61.185530] CPU: 0 PID: 639 Comm: qp Not tainted 4.18.0-rc1-00037-g4aa1d69a9c60-dirty #96
-> [   61.186981] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-2.fc27 04/01/2014
-> [   61.188315] Call Trace:
-> [   61.188661]  dump_stack+0xc7/0x13b
-> [   61.190427]  ubsan_epilogue+0x9/0x49
-> [   61.190899]  __ubsan_handle_shift_out_of_bounds+0x1ea/0x22f
-> [   61.197040]  mlx5_ib_create_wq+0x1c99/0x1d50
-> [   61.206632]  ib_uverbs_ex_create_wq+0x499/0x820
-> [   61.213892]  ib_uverbs_write+0x77e/0xae0
-> [   61.248018]  vfs_write+0x121/0x3b0
-> [   61.249831]  ksys_write+0xa1/0x120
-> [   61.254024]  do_syscall_64+0x7c/0x2a0
-> [   61.256178]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> [   61.259211] RIP: 0033:0x7f54bab70e99
-> [   61.262125] Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89
-> [   61.268678] RSP: 002b:00007ffe1541c318 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> [   61.271076] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f54bab70e99
-> [   61.273795] RDX: 0000000000000070 RSI: 0000000020000240 RDI: 0000000000000003
-> [   61.276982] RBP: 00007ffe1541c330 R08: 00000000200078e0 R09: 0000000000000002
-> [   61.280035] R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004005c0
-> [   61.283279] R13: 00007ffe1541c420 R14: 0000000000000000 R15: 0000000000000000
-> 
-> Cc: <stable@vger.kernel.org> # 4.7
-> Fixes: 79b20a6c3014 ("IB/mlx5: Add receive Work Queue verbs")
-> Cc: syzkaller <syzkaller@googlegroups.com>
-> Reported-by: Noa Osherovich <noaos@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->  drivers/infiniband/hw/mlx5/qp.c | 6 +++++-
->  1 file changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index 6034a670859f..8e40263fd40e 100644
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -5377,7 +5377,11 @@ static int set_user_rq_size(struct mlx5_ib_dev *dev,
->  
->  	rwq->wqe_count = ucmd->rq_wqe_count;
->  	rwq->wqe_shift = ucmd->rq_wqe_shift;
-> -	rwq->buf_size = (rwq->wqe_count << rwq->wqe_shift);
-> +	rwq->buf_size =
-> +		shift_overflow((size_t)rwq->wqe_count, (size_t)rwq->wqe_shift);
+> Number of specs is provided by user and in valid case can be equal to zero.
+> Such argument causes to call to kcalloc() with zero-length request and in
+> return the ZERO_SIZE_PTR is assigned. This pointer is different from NULL
+> and makes various if (..) checks to success.
 
-The casts are redundant, the function argument is already size_t so
-implicit promotion is guaranteed.
+The one seems really weird. There is nothing wrong with ZERO_SIZE_PTR,
+but this description and fix suggest that something did
+
+ptr = kalloc(0);
+ptr[0] = ...;
+
+Which is not allowed of course. Doesn't this mean there is also a
+missing range check someplace?
 
 Jason
