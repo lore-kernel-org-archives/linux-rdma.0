@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 06/12] RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
-Date: Sun, 24 Jun 2018 11:23:47 +0300
-Message-ID: <20180624082353.16138-7-leon@kernel.org>
+Subject: [PATCH mlx5-next 05/12] net/mlx5: Rate limit errors in command interface
+Date: Sun, 24 Jun 2018 11:23:46 +0300
+Message-ID: <20180624082353.16138-6-leon@kernel.org>
 References: <20180624082353.16138-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
@@ -12,40 +12,64 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Number of specs is provided by user and in valid case can be equal to zero.
-Such argument causes to call to kcalloc() with zero-length request and in
-return the ZERO_SIZE_PTR is assigned. This pointer is different from NULL
-and makes various if (..) checks to success.
+Any error status returned by FW will trigger similar
+to the following error message in the dmesg.
 
-Fixes: b6ba4a9aa59f ("IB/uverbs: Add support for flow counters")
+[   55.884355] mlx5_core 0000:00:04.0: mlx5_cmd_check:712:(pid 555):
+ALLOC_UAR(0x802) op_mod(0x0) failed, status limits exceeded(0x8),
+syndrome (0x0)
+
+Those prints are extremely valuable to diagnose issues with running
+system and it is important to keep them. However, not-so-careful user
+can trigger endless number of such prints by depleting HW resources
+and will spam dmesg.
+
+Rate limiting of such messages solves this issue.
+
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c       | 11 ++++-------
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h |  6 ++++++
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 3aba63aa1779..8ed4b674416f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2768,6 +2768,9 @@ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
- 	if (!resources)
- 		return NULL;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 9d03a202abb1..7dd878b00196 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -717,13 +717,10 @@ static int mlx5_cmd_check(struct mlx5_core_dev *dev, void *in, void *out)
+ 	uid    = MLX5_GET(mbox_in, in, uid);
  
-+	if (!num_specs)
-+		goto out;
+ 	if (!uid && opcode != MLX5_CMD_OP_DESTROY_MKEY)
+-		mlx5_core_err(dev,
+-		      "%s(0x%x) op_mod(0x%x) failed, status %s(0x%x), syndrome (0x%x)\n",
+-		      mlx5_command_str(opcode),
+-		      opcode, op_mod,
+-		      cmd_status_str(status),
+-		      status,
+-		      syndrome);
++		mlx5_core_err_rl(dev,
++			"%s(0x%x) op_mod(0x%x) failed, status %s(0x%x), syndrome (0x%x)\n",
++			mlx5_command_str(opcode), opcode, op_mod,
++			cmd_status_str(status), status, syndrome);
+ 	else
+ 		mlx5_core_dbg(dev,
+ 		      "%s(0x%x) op_mod(0x%x) failed, status %s(0x%x), syndrome (0x%x)\n",
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index 023882d9a22e..49955117ae36 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -66,6 +66,12 @@ do {									\
+ 		__func__, __LINE__, current->pid,	\
+ 	       ##__VA_ARGS__)
+ 
++#define mlx5_core_err_rl(__dev, format, ...)				\
++	dev_err_ratelimited(&(__dev)->pdev->dev,			\
++			   "%s:%d:(pid %d): " format,			\
++			   __func__, __LINE__, current->pid,		\
++			   ##__VA_ARGS__)
 +
- 	resources->counters =
- 		kcalloc(num_specs, sizeof(*resources->counters), GFP_KERNEL);
- 	resources->collection =
-@@ -2776,8 +2779,8 @@ static struct ib_uflow_resources *flow_resources_alloc(size_t num_specs)
- 	if (!resources->counters || !resources->collection)
- 		goto err;
- 
-+out:
- 	resources->max = num_specs;
--
- 	return resources;
- 
- err:
+ #define mlx5_core_warn(__dev, format, ...)				\
+ 	dev_warn(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
+ 		 __func__, __LINE__, current->pid,			\
 -- 
 2.14.4
