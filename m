@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 01/12] RDMA/uverbs: Protect from attempts to create flows on unsupported QP
-Date: Sun, 24 Jun 2018 11:23:42 +0300
-Message-ID: <20180624082353.16138-2-leon@kernel.org>
+Subject: [PATCH rdma-next 03/12] RDMA/verbs: Drop kernel variant of create_flow
+Date: Sun, 24 Jun 2018 11:23:44 +0300
+Message-ID: <20180624082353.16138-4-leon@kernel.org>
 References: <20180624082353.16138-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
@@ -12,50 +12,54 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Flows can be created on UD and RAW_PACKET QP types. Attempts to provide
-other QP types as an input causes to various unpredictable failures.
+There are no kernel users of this interface so let's drop it.
 
-The reason to it that in order to support all various types (e.g. XRC),
-we are supposed to use real_qp handle and not qp handle and give to
-driver/FW to fail such (XRC) flows. Being valuable solution, the simpler
-and safer variant is to ban all QP types except UD and RAW_PACKET,
-instead of relying on driver/FW.
-
-Cc: <stable@vger.kernel.org> # 3.11
-Fixes: 436f2ad05a0b ("IB/core: Export ib_create/destroy_flow through uverbs")
-Cc: syzkaller <syzkaller@googlegroups.com>
-Reported-by: Noa Osherovich <noaos@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/verbs.c | 17 -----------------
+ include/rdma/ib_verbs.h         |  2 --
+ 2 files changed, 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 779892b63729..c842a9423fbf 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3553,14 +3553,20 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 		goto err_free_attr;
- 	}
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 9a72b88fea80..5ada09f708f5 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -2275,23 +2275,6 @@ int ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *rwq_ind_table)
+ }
+ EXPORT_SYMBOL(ib_destroy_rwq_ind_table);
  
--	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle, file->ucontext);
-+	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle,
-+			       file->ucontext);
- 	if (!qp) {
- 		err = -EINVAL;
- 		goto err_uobj;
- 	}
+-struct ib_flow *ib_create_flow(struct ib_qp *qp,
+-			       struct ib_flow_attr *flow_attr,
+-			       int domain)
+-{
+-	struct ib_flow *flow_id;
+-	if (!qp->device->create_flow)
+-		return ERR_PTR(-EOPNOTSUPP);
+-
+-	flow_id = qp->device->create_flow(qp, flow_attr, domain, NULL);
+-	if (!IS_ERR(flow_id)) {
+-		atomic_inc(&qp->usecnt);
+-		flow_id->qp = qp;
+-	}
+-	return flow_id;
+-}
+-EXPORT_SYMBOL(ib_create_flow);
+-
+ int ib_destroy_flow(struct ib_flow *flow_id)
+ {
+ 	int err;
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index d1e2f2d91766..a55e1aa808a7 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -3832,8 +3832,6 @@ struct ib_xrcd *__ib_alloc_xrcd(struct ib_device *device, const char *caller);
+  */
+ int ib_dealloc_xrcd(struct ib_xrcd *xrcd);
  
-+	if (qp->qp_type != IB_QPT_UD && qp->qp_type != IB_QPT_RAW_PACKET) {
-+		err = -EINVAL;
-+		goto err_put;
-+	}
-+
- 	flow_attr = kzalloc(struct_size(flow_attr, flows,
--				cmd.flow_attr.num_of_specs), GFP_KERNEL);
-+					cmd.flow_attr.num_of_specs), GFP_KERNEL);
- 	if (!flow_attr) {
- 		err = -ENOMEM;
- 		goto err_put;
+-struct ib_flow *ib_create_flow(struct ib_qp *qp,
+-			       struct ib_flow_attr *flow_attr, int domain);
+ int ib_destroy_flow(struct ib_flow *flow_id);
+ 
+ static inline int ib_check_mr_access(int flags)
 -- 
 2.14.4
