@@ -1,8 +1,10 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
-Date: Sun, 24 Jun 2018 11:23:41 +0300
-Message-ID: <20180624082353.16138-1-leon@kernel.org>
+Subject: [PATCH rdma-next 01/12] RDMA/uverbs: Protect from attempts to create flows on unsupported QP
+Date: Sun, 24 Jun 2018 11:23:42 +0300
+Message-ID: <20180624082353.16138-2-leon@kernel.org>
+References: <20180624082353.16138-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
@@ -10,40 +12,50 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Hi,
+Flows can be created on UD and RAW_PACKET QP types. Attempts to provide
+other QP types as an input causes to various unpredictable failures.
 
-This is bunch of patches trigged by running syzkaller internally.
+The reason to it that in order to support all various types (e.g. XRC),
+we are supposed to use real_qp handle and not qp handle and give to
+driver/FW to fail such (XRC) flows. Being valuable solution, the simpler
+and safer variant is to ban all QP types except UD and RAW_PACKET,
+instead of relying on driver/FW.
 
-I'm sending them based on rdma-next mainly for two reasons:
-1, Most of the patches fix the old issues and it doesn't matter when
-they will hit the Linus's tree: now or later in a couple of weeks
-during merge window.
-2. They interleave with code cleanup, mlx5-next patches and Michael's
-feedback on flow counters series.
+Cc: <stable@vger.kernel.org> # 3.11
+Fixes: 436f2ad05a0b ("IB/core: Export ib_create/destroy_flow through uverbs")
+Cc: syzkaller <syzkaller@googlegroups.com>
+Reported-by: Noa Osherovich <noaos@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-Thanks
-
-Leon Romanovsky (12):
-  RDMA/uverbs: Protect from attempts to create flows on unsupported QP
-  RDMA/uverbs: Check existence of create_flow callback
-  RDMA/verbs: Drop kernel variant of create_flow
-  RDMA/verbs: Drop kernel variant of destroy_flow
-  net/mlx5: Rate limit errors in command interface
-  RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
-  RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
-  overflow.h: Add arithmetic shift helper
-  RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
-  RDMA/mlx5: Reuse existed shift_overlow helper
-  RDMA/uverbs: Remove redundant check
-  RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
-
- drivers/infiniband/core/umem.c                     |  2 +-
- drivers/infiniband/core/uverbs_cmd.c               | 49 ++++++++++++++--------
- drivers/infiniband/core/uverbs_std_types.c         |  9 ++--
- drivers/infiniband/core/verbs.c                    | 29 -------------
- drivers/infiniband/hw/mlx5/qp.c                    | 16 +++++--
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      | 11 ++---
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  6 +++
- include/linux/overflow.h                           | 23 ++++++++++
- include/rdma/ib_verbs.h                            |  4 --
- 9 files changed, 83 insertions(+), 66 deletions(-)
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 779892b63729..c842a9423fbf 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3553,14 +3553,20 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 		goto err_free_attr;
+ 	}
+ 
+-	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle, file->ucontext);
++	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle,
++			       file->ucontext);
+ 	if (!qp) {
+ 		err = -EINVAL;
+ 		goto err_uobj;
+ 	}
+ 
++	if (qp->qp_type != IB_QPT_UD && qp->qp_type != IB_QPT_RAW_PACKET) {
++		err = -EINVAL;
++		goto err_put;
++	}
++
+ 	flow_attr = kzalloc(struct_size(flow_attr, flows,
+-				cmd.flow_attr.num_of_specs), GFP_KERNEL);
++					cmd.flow_attr.num_of_specs), GFP_KERNEL);
+ 	if (!flow_attr) {
+ 		err = -ENOMEM;
+ 		goto err_put;
+-- 
+2.14.4
