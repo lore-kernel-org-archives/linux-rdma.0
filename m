@@ -1,72 +1,108 @@
-From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: Re: [PATCH] infiniband: i40iw, nes: don't use wall time for TCP
- sequence numbers
-Date: Fri, 22 Jun 2018 19:01:37 -0500
-Message-ID: <20180623000137.GA17264@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20180618144443.137068-1-arnd@arndb.de>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [Patch v2 02/15] CIFS: Add support for direct pages in rdata
+Date: Sat, 23 Jun 2018 21:50:20 -0400
+Message-ID: <67b8afe7-f5e0-b36a-fcc1-87f1ae08eaa4@talpey.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-3-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180618144443.137068-1-arnd@arndb.de>
+In-Reply-To: <20180530194807.31657-3-longli@linuxonhyperv.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Latif, Faisal" <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "David S. Miller" <davem@davemloft.net>, "y2038@lists.linaro.org" <y2038@lists.linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Orosco, Henry" <henry.orosco@intel.com>, "Nikolova, Tatyana E" <tatyana.e.nikolova@intel.com>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, Jia-Ju Bai <baijiaju1990@gmail.com>, Yuval Shaia <yuval.shaia@oracle.com>, Bart Van Assche <bart.vanassche@wdc.com>, Kees Cook <keescook@chromium.org>, "Reshetova, Elena" <elena.reshetova@intel.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: longli@microsoft.com, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 18, 2018 at 08:44:17AM -0600, Arnd Bergmann wrote:
-> The nes infiniband driver uses current_kernel_time() to get a nanosecond
-> granunarity timestamp to initialize its tcp sequence counters. This is
-> one of only a few remaining users of that deprecated function, so we
-> should try to get rid of it.
+On 5/30/2018 3:47 PM, Long Li wrote:
+> From: Long Li <longli@microsoft.com>
 > 
-> Aside from using a deprecated API, there are several problems I see here:
+> Add a function to allocate rdata without allocating pages for data
+> transfer. This gives the caller an option to pass a number of pages
+> that point to the data buffer.
 > 
-> - Using a CLOCK_REALTIME based time source makes it predictable in
->   case the time base is synchronized.
-> - Using a coarse timestamp means it only gets updated once per jiffie,
->   making it even more predictable in order to avoid having to access
->   the hardware clock source
-> - The upper 2 bits are always zero because the nanoseconds are at most
->   999999999.
+> rdata is still reponsible for free those pages after it's done.
+
+"Caller" is still responsible? Or is the rdata somehow freeing itself
+via another mechanism?
+
 > 
-> For the Linux TCP implementation, we use secure_tcp_seq(), which appears
-> to be appropriate here as well, and solves all the above problems.
-> 
-> I'm doing the same change in both versions of the nes driver, with
-> i40iw being a later copy of the same code.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Long Li <longli@microsoft.com>
 > ---
+>   fs/cifs/cifsglob.h |  2 +-
+>   fs/cifs/file.c     | 23 ++++++++++++++++++++---
+>   2 files changed, 21 insertions(+), 4 deletions(-)
+> 
+> diff --git a/fs/cifs/cifsglob.h b/fs/cifs/cifsglob.h
+> index 8d16c3e..56864a87 100644
+> --- a/fs/cifs/cifsglob.h
+> +++ b/fs/cifs/cifsglob.h
+> @@ -1179,7 +1179,7 @@ struct cifs_readdata {
+>   	unsigned int			tailsz;
+>   	unsigned int			credits;
+>   	unsigned int			nr_pages;
+> -	struct page			*pages[];
+> +	struct page			**pages;
 
-Thanks Arnd for the patch!
+Technically speaking, these are syntactically equivalent. It may not
+be worth changing this historic definition.
 
-[...]
+Tom.
 
-> @@ -2164,7 +2165,6 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
->  				   struct i40iw_cm_listener *listener)
->  {
->  	struct i40iw_cm_node *cm_node;
-> -	struct timespec ts;
->  	int oldarpindex;
->  	int arpindex;
->  	struct net_device *netdev = iwdev->netdev;
-> @@ -2214,8 +2214,10 @@ static struct i40iw_cm_node *i40iw_make_cm_node(
->  	cm_node->tcp_cntxt.rcv_wscale = I40IW_CM_DEFAULT_RCV_WND_SCALE;
->  	cm_node->tcp_cntxt.rcv_wnd =
->  			I40IW_CM_DEFAULT_RCV_WND_SCALED >> I40IW_CM_DEFAULT_RCV_WND_SCALE;
-> -	ts = current_kernel_time();
-> -	cm_node->tcp_cntxt.loc_seq_num = ts.tv_nsec;
-> +	cm_node->tcp_cntxt.loc_seq_num = secure_tcp_seq(htonl(cm_node->loc_addr[0]),
-> +							htonl(cm_node->rem_addr[0]),
-> +							htons(cm_node->loc_port),
-> +							htons(cm_node->rem_port));
 
-Should we not be using secure_tcpv6_seq() when we are ipv6?
-
-Shiraz
-
->  	cm_node->tcp_cntxt.mss = (cm_node->ipv4) ? (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV4) :
->  				 (iwdev->vsi.mtu - I40IW_MTU_TO_MSS_IPV6);
->  
+>   };
+>   
+>   struct cifs_writedata;
+> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+> index 23fd430..1c98293 100644
+> --- a/fs/cifs/file.c
+> +++ b/fs/cifs/file.c
+> @@ -2880,13 +2880,13 @@ cifs_strict_writev(struct kiocb *iocb, struct iov_iter *from)
+>   }
+>   
+>   static struct cifs_readdata *
+> -cifs_readdata_alloc(unsigned int nr_pages, work_func_t complete)
+> +cifs_readdata_direct_alloc(struct page **pages, work_func_t complete)
+>   {
+>   	struct cifs_readdata *rdata;
+>   
+> -	rdata = kzalloc(sizeof(*rdata) + (sizeof(struct page *) * nr_pages),
+> -			GFP_KERNEL);
+> +	rdata = kzalloc(sizeof(*rdata), GFP_KERNEL);
+>   	if (rdata != NULL) {
+> +		rdata->pages = pages;
+>   		kref_init(&rdata->refcount);
+>   		INIT_LIST_HEAD(&rdata->list);
+>   		init_completion(&rdata->done);
+> @@ -2896,6 +2896,22 @@ cifs_readdata_alloc(unsigned int nr_pages, work_func_t complete)
+>   	return rdata;
+>   }
+>   
+> +static struct cifs_readdata *
+> +cifs_readdata_alloc(unsigned int nr_pages, work_func_t complete)
+> +{
+> +	struct page **pages =
+> +		kzalloc(sizeof(struct page *) * nr_pages, GFP_KERNEL);
+> +	struct cifs_readdata *ret = NULL;
+> +
+> +	if (pages) {
+> +		ret = cifs_readdata_direct_alloc(pages, complete);
+> +		if (!ret)
+> +			kfree(pages);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>   void
+>   cifs_readdata_release(struct kref *refcount)
+>   {
+> @@ -2910,6 +2926,7 @@ cifs_readdata_release(struct kref *refcount)
+>   	if (rdata->cfile)
+>   		cifsFileInfo_put(rdata->cfile);
+>   
+> +	kvfree(rdata->pages);
+>   	kfree(rdata);
+>   }
+>   
 > 
