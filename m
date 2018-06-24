@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 12/12] RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
-Date: Sun, 24 Jun 2018 11:23:53 +0300
-Message-ID: <20180624082353.16138-13-leon@kernel.org>
+Subject: [PATCH rdma-next 09/12] RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
+Date: Sun, 24 Jun 2018 11:23:50 +0300
+Message-ID: <20180624082353.16138-10-leon@kernel.org>
 References: <20180624082353.16138-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
@@ -12,152 +12,55 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-The check of cmd.flow_attr.size should check into account the size of
-reserved field (2 bytes), otherwise user can provide size whihc will
-cause to slab-out-of-bounds warning below.
+[   61.182439] UBSAN: Undefined behaviour in drivers/infiniband/hw/mlx5/qp.c:5366:34
+[   61.183673] shift exponent 4294967288 is too large for 32-bit type 'unsigned int'
+[   61.185530] CPU: 0 PID: 639 Comm: qp Not tainted 4.18.0-rc1-00037-g4aa1d69a9c60-dirty #96
+[   61.186981] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-2.fc27 04/01/2014
+[   61.188315] Call Trace:
+[   61.188661]  dump_stack+0xc7/0x13b
+[   61.190427]  ubsan_epilogue+0x9/0x49
+[   61.190899]  __ubsan_handle_shift_out_of_bounds+0x1ea/0x22f
+[   61.197040]  mlx5_ib_create_wq+0x1c99/0x1d50
+[   61.206632]  ib_uverbs_ex_create_wq+0x499/0x820
+[   61.213892]  ib_uverbs_write+0x77e/0xae0
+[   61.248018]  vfs_write+0x121/0x3b0
+[   61.249831]  ksys_write+0xa1/0x120
+[   61.254024]  do_syscall_64+0x7c/0x2a0
+[   61.256178]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[   61.259211] RIP: 0033:0x7f54bab70e99
+[   61.262125] Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89
+[   61.268678] RSP: 002b:00007ffe1541c318 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+[   61.271076] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f54bab70e99
+[   61.273795] RDX: 0000000000000070 RSI: 0000000020000240 RDI: 0000000000000003
+[   61.276982] RBP: 00007ffe1541c330 R08: 00000000200078e0 R09: 0000000000000002
+[   61.280035] R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004005c0
+[   61.283279] R13: 00007ffe1541c420 R14: 0000000000000000 R15: 0000000000000000
 
-==================================================================
-BUG: KASAN: slab-out-of-bounds in ib_uverbs_ex_create_flow+0x1740/0x1d00
-Read of size 2 at addr ffff880068dff1a6 by task syz-executor775/269
-
-CPU: 0 PID: 269 Comm: syz-executor775 Not tainted 4.18.0-rc1+ #245
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
-rel-1.11.0-0-g63451fca13-prebuilt.qemu-project.org 04/01/2014
-Call Trace:
- dump_stack+0xef/0x17e
- print_address_description+0x83/0x3b0
- kasan_report+0x18d/0x4d0
- ib_uverbs_ex_create_flow+0x1740/0x1d00
- ib_uverbs_write+0x923/0x1010
- __vfs_write+0x10d/0x720
- vfs_write+0x1b0/0x550
- ksys_write+0xc6/0x1a0
- do_syscall_64+0xa7/0x590
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x433899
-Code: fd ff 48 81 c4 80 00 00 00 e9 f1 fe ff ff 0f 1f 00 48 89 f8 48 89
-f7 48 89 d6 48 89 ca 4d 89 c2 4d
-89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 0f 83 3b 91 fd ff c3 66
-2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffc2724db58 EFLAGS: 00000217 ORIG_RAX: 0000000000000001
-RAX: ffffffffffffffda RBX: 0000000020006880 RCX: 0000000000433899
-RDX: 00000000000000e0 RSI: 0000000020002480 RDI: 0000000000000003
-RBP: 00000000006d7018 R08: 00000000004002f8 R09: 00000000004002f8
-R10: 00000000004002f8 R11: 0000000000000217 R12: 0000000000000000
-
-R13: 000000000040cd20 R14: 000000000040cdb0 R15: 0000000000000006
-
-Allocated by task 269:
- kasan_kmalloc+0xa0/0xd0
- __kmalloc+0x1a9/0x510
- ib_uverbs_ex_create_flow+0x26c/0x1d00
- ib_uverbs_write+0x923/0x1010
- __vfs_write+0x10d/0x720
- vfs_write+0x1b0/0x550
- ksys_write+0xc6/0x1a0
- do_syscall_64+0xa7/0x590
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-Freed by task 0:
- __kasan_slab_free+0x12e/0x180
- kfree+0x159/0x630
- detach_buf+0x559/0x7a0
- virtqueue_get_buf_ctx+0x3cc/0xab0
- virtblk_done+0x1eb/0x3d0
- vring_interrupt+0x16d/0x2b0
- __handle_irq_event_percpu+0x10a/0x980
- handle_irq_event_percpu+0x77/0x190
- handle_irq_event+0xc6/0x1a0
- handle_edge_irq+0x211/0xd80
- handle_irq+0x3d/0x60
- do_IRQ+0x9b/0x220
-
-The buggy address belongs to the object at ffff880068dff180
- which belongs to the cache kmalloc-64 of size 64
-The buggy address is located 38 bytes inside of
- 64-byte region [ffff880068dff180, ffff880068dff1c0)
-The buggy address belongs to the page:
-page:ffffea0001a37fc0 count:1 mapcount:0 mapping:ffff88006c401780
-index:0x0
-flags: 0x4000000000000100(slab)
-raw: 4000000000000100 ffffea0001a31100 0000001100000011 ffff88006c401780
-raw: 0000000000000000 00000000802a002a 00000001ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff880068dff080: fb fb fb fb fc fc fc fc fb fb fb fb fb fb fb fb
- ffff880068dff100: fc fc fc fc fb fb fb fb fb fb fb fb fc fc fc fc
->ffff880068dff180: 00 00 00 00 07 fc fc fc fc fc fc fc fb fb fb fb
-                               ^
- ffff880068dff200: fb fb fb fb fc fc fc fc 00 00 00 00 00 00 fc fc
- ffff880068dff280: fc fc fc fc 00 00 00 00 00 00 00 00 fc fc fc fc
-==================================================================
-
-Cc: <stable@vger.kernel.org> # 3.12
-Fixes: f88482743872 ("IB/core: clarify overflow/underflow checks on ib_create/destroy_flow")
+Cc: <stable@vger.kernel.org> # 4.7
+Fixes: 79b20a6c3014 ("IB/mlx5: Add receive Work Queue verbs")
 Cc: syzkaller <syzkaller@googlegroups.com>
 Reported-by: Noa Osherovich <noaos@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 3a0bc4c1b17b..b6bca79fd48b 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3488,8 +3488,8 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 	struct ib_flow_attr		  *flow_attr;
- 	struct ib_qp			  *qp;
- 	struct ib_uflow_resources	  *uflow_res;
-+	struct ib_uverbs_flow_spec_hdr	  *kern_spec;
- 	int err = 0;
--	void *kern_spec;
- 	void *ib_spec;
- 	int i;
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 6034a670859f..8e40263fd40e 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -5377,7 +5377,11 @@ static int set_user_rq_size(struct mlx5_ib_dev *dev,
  
-@@ -3538,8 +3538,8 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 		if (!kern_flow_attr)
- 			return -ENOMEM;
- 
--		memcpy(kern_flow_attr, &cmd.flow_attr, sizeof(*kern_flow_attr));
--		err = ib_copy_from_udata(kern_flow_attr + 1, ucore,
-+		*kern_flow_attr = cmd.flow_attr;
-+		err = ib_copy_from_udata(&kern_flow_attr->flow_specs, ucore,
- 					 cmd.flow_attr.size);
- 		if (err)
- 			goto err_free_attr;
-@@ -3589,21 +3589,22 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
- 	flow_attr->flags = kern_flow_attr->flags;
- 	flow_attr->size = sizeof(*flow_attr);
- 
--	kern_spec = kern_flow_attr + 1;
-+	kern_spec = kern_flow_attr->flow_specs;
- 	ib_spec = flow_attr + 1;
- 	for (i = 0; i < flow_attr->num_of_specs &&
--	     cmd.flow_attr.size > offsetof(struct ib_uverbs_flow_spec, reserved) &&
--	     cmd.flow_attr.size >=
--	     ((struct ib_uverbs_flow_spec *)kern_spec)->size; i++) {
--		err = kern_spec_to_ib_spec(file->ucontext, kern_spec, ib_spec,
--					   uflow_res);
-+			cmd.flow_attr.size > sizeof(*kern_spec) &&
-+			cmd.flow_attr.size >= kern_spec->size;
-+	     i++) {
-+		err = kern_spec_to_ib_spec(
-+				file->ucontext, (struct ib_uverbs_flow_spec *)kern_spec,
-+				ib_spec, uflow_res);
- 		if (err)
- 			goto err_free;
- 
- 		flow_attr->size +=
- 			((union ib_flow_spec *) ib_spec)->size;
--		cmd.flow_attr.size -= ((struct ib_uverbs_flow_spec *)kern_spec)->size;
--		kern_spec += ((struct ib_uverbs_flow_spec *) kern_spec)->size;
-+		cmd.flow_attr.size -= kern_spec->size;
-+		kern_spec = ((void *)kern_spec) + kern_spec->size;
- 		ib_spec += ((union ib_flow_spec *) ib_spec)->size;
- 	}
- 	if (cmd.flow_attr.size || (i != flow_attr->num_of_specs)) {
+ 	rwq->wqe_count = ucmd->rq_wqe_count;
+ 	rwq->wqe_shift = ucmd->rq_wqe_shift;
+-	rwq->buf_size = (rwq->wqe_count << rwq->wqe_shift);
++	rwq->buf_size =
++		shift_overflow((size_t)rwq->wqe_count, (size_t)rwq->wqe_shift);
++	if (rwq->buf_size == SIZE_MAX)
++		return -EINVAL;
++
+ 	rwq->log_rq_stride = rwq->wqe_shift;
+ 	rwq->log_rq_size = ilog2(rwq->wqe_count);
+ 	return 0;
 -- 
 2.14.4
