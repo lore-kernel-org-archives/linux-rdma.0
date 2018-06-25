@@ -1,75 +1,55 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 09/15] CIFS: SMBD: Support page offset in RDMA recv
-Date: Mon, 25 Jun 2018 21:29:17 +0000
-Message-ID: <CY4PR2101MB07221AFF7B75D21C00C60035CE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
-References: <20180530194807.31657-1-longli@linuxonhyperv.com>
- <20180530194807.31657-10-longli@linuxonhyperv.com>
- <1e6b7cb0-98e8-d1fd-cb59-d3344fc70b19@talpey.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
+Date: Mon, 25 Jun 2018 15:34:38 -0600
+Message-ID: <20180625213438.GA19857@ziepe.ca>
+References: <20180624082353.16138-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1e6b7cb0-98e8-d1fd-cb59-d3344fc70b19@talpey.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDA5LzE1XSBDSUZTOiBTTUJEOiBTdXBwb3J0IHBhZ2Ug
-b2Zmc2V0IGluIFJETUEgcmVjdg0KPiANCj4gT24gNS8zMC8yMDE4IDM6NDggUE0sIExvbmcgTGkg
-d3JvdGU6DQo+ID4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4NCj4g
-PiBSRE1BIHJlY3YgZnVuY3Rpb24gbmVlZHMgdG8gcGxhY2UgZGF0YSB0byB0aGUgY29ycmVjdCBw
-bGFjZSBzdGFydGluZw0KPiA+IGF0IHBhZ2Ugb2Zmc2V0Lg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1i
-eTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gLS0tDQo+ID4gICBmcy9jaWZz
-L3NtYmRpcmVjdC5jIHwgMTggKysrKysrKysrKystLS0tLS0tDQo+ID4gICAxIGZpbGUgY2hhbmdl
-ZCwgMTEgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQg
-YS9mcy9jaWZzL3NtYmRpcmVjdC5jIGIvZnMvY2lmcy9zbWJkaXJlY3QuYyBpbmRleA0KPiA+IDYx
-NDFlM2MuLmJhNTNjNTIgMTAwNjQ0DQo+ID4gLS0tIGEvZnMvY2lmcy9zbWJkaXJlY3QuYw0KPiA+
-ICsrKyBiL2ZzL2NpZnMvc21iZGlyZWN0LmMNCj4gPiBAQCAtMjAwNCwxMCArMjAwNCwxMiBAQCBz
-dGF0aWMgaW50IHNtYmRfcmVjdl9idWYoc3RydWN0DQo+IHNtYmRfY29ubmVjdGlvbiAqaW5mbywg
-Y2hhciAqYnVmLA0KPiA+ICAgICogcmV0dXJuIHZhbHVlOiBhY3R1YWwgZGF0YSByZWFkDQo+ID4g
-ICAgKi8NCj4gPiAgIHN0YXRpYyBpbnQgc21iZF9yZWN2X3BhZ2Uoc3RydWN0IHNtYmRfY29ubmVj
-dGlvbiAqaW5mbywNCj4gPiAtCQlzdHJ1Y3QgcGFnZSAqcGFnZSwgdW5zaWduZWQgaW50IHRvX3Jl
-YWQpDQo+ID4gKwkJc3RydWN0IHBhZ2UgKnBhZ2UsIHVuc2lnbmVkIGludCBwYWdlX29mZnNldCwN
-Cj4gPiArCQl1bnNpZ25lZCBpbnQgdG9fcmVhZCkNCj4gPiAgIHsNCj4gPiAgIAlpbnQgcmV0Ow0K
-PiA+ICAgCWNoYXIgKnRvX2FkZHJlc3M7DQo+ID4gKwl2b2lkICpwYWdlX2FkZHJlc3M7DQo+ID4N
-Cj4gPiAgIAkvKiBtYWtlIHN1cmUgd2UgaGF2ZSB0aGUgcGFnZSByZWFkeSBmb3IgcmVhZCAqLw0K
-PiA+ICAgCXJldCA9IHdhaXRfZXZlbnRfaW50ZXJydXB0aWJsZSgNCj4gPiBAQCAtMjAxNSwxNiAr
-MjAxNywxNyBAQCBzdGF0aWMgaW50IHNtYmRfcmVjdl9wYWdlKHN0cnVjdA0KPiBzbWJkX2Nvbm5l
-Y3Rpb24gKmluZm8sDQo+ID4gICAJCWluZm8tPnJlYXNzZW1ibHlfZGF0YV9sZW5ndGggPj0gdG9f
-cmVhZCB8fA0KPiA+ICAgCQkJaW5mby0+dHJhbnNwb3J0X3N0YXR1cyAhPSBTTUJEX0NPTk5FQ1RF
-RCk7DQo+ID4gICAJaWYgKHJldCkNCj4gPiAtCQlyZXR1cm4gMDsNCj4gPiArCQlyZXR1cm4gcmV0
-Ow0KPiA+DQo+ID4gICAJLyogbm93IHdlIGNhbiByZWFkIGZyb20gcmVhc3NlbWJseSBxdWV1ZSBh
-bmQgbm90IHNsZWVwICovDQo+ID4gLQl0b19hZGRyZXNzID0ga21hcF9hdG9taWMocGFnZSk7DQo+
-ID4gKwlwYWdlX2FkZHJlc3MgPSBrbWFwX2F0b21pYyhwYWdlKTsNCj4gPiArCXRvX2FkZHJlc3Mg
-PSAoY2hhciAqKSBwYWdlX2FkZHJlc3MgKyBwYWdlX29mZnNldDsNCj4gPg0KPiA+ICAgCWxvZ19y
-ZWFkKElORk8sICJyZWFkaW5nIGZyb20gcGFnZT0lcCBhZGRyZXNzPSVwIHRvX3JlYWQ9JWRcbiIs
-DQo+ID4gICAJCXBhZ2UsIHRvX2FkZHJlc3MsIHRvX3JlYWQpOw0KPiA+DQo+ID4gICAJcmV0ID0g
-c21iZF9yZWN2X2J1ZihpbmZvLCB0b19hZGRyZXNzLCB0b19yZWFkKTsNCj4gPiAtCWt1bm1hcF9h
-dG9taWModG9fYWRkcmVzcyk7DQo+ID4gKwlrdW5tYXBfYXRvbWljKHBhZ2VfYWRkcmVzcyk7DQo+
-IA0KPiBJcyAicGFnZSIgdHJ1bHkgbm90IG1hcHBlZD8gVGhpcyBrbWFwL2t1bm1hcCBmb3IgZWFj
-aCByZWNlaXZlZCA0S0IgaXMgdmVyeQ0KPiBleHBlbnNpdmUuIElzIHRoZXJlIG5vdCBhIHdheSB0
-byBrZWVwIGEga3ZhIGZvciB0aGUgcmVhc3NlbWJseSBxdWV1ZQ0KPiBzZWdtZW50cz8NCg0KSSB3
-aWxsIGZpbmQgYSB3YXkgdG8gbm90IG1hcCB0aG9zZSB1cHBlciBsYXllciBwYWdlcyB3aGVuIGRv
-aW5nIFJETUEgcmVjZWl2ZS4gVGhlIHJlYXNvbiBmb3IgZG9pbmcgdGhpcyBpcyB0byB1c2UgYSBj
-b21tb24gbGF5ZXIgKHRoYXQgd2lsbCBncmVhdGx5IHNpbXBsaWZpZXMgdGhlIGNvZGUpIGZvciB0
-cmFuc3BvcnQuIEl0J3MgcHJvYmFibHkgYSB3YXN0ZSBvZiB0aW1lIHdoZW4gb25seSBwYWdlcyBh
-cmUgaW52b2x2ZWQsIGFuZCBub3QgbmVlZCB0byBiZSBtYXBwZWQuDQoNCkkgd2lsbCBhZGRyZXNz
-IHRob3NlIGluIGEgc2VwYXJhdGUgcGF0Y2guDQoNCj4gDQo+ID4NCj4gPiAgIAlyZXR1cm4gcmV0
-Ow0KPiA+ICAgfQ0KPiA+IEBAIC0yMDM4LDcgKzIwNDEsNyBAQCBpbnQgc21iZF9yZWN2KHN0cnVj
-dCBzbWJkX2Nvbm5lY3Rpb24gKmluZm8sDQo+IHN0cnVjdCBtc2doZHIgKm1zZykNCj4gPiAgIHsN
-Cj4gPiAgIAljaGFyICpidWY7DQo+ID4gICAJc3RydWN0IHBhZ2UgKnBhZ2U7DQo+ID4gLQl1bnNp
-Z25lZCBpbnQgdG9fcmVhZDsNCj4gPiArCXVuc2lnbmVkIGludCB0b19yZWFkLCBwYWdlX29mZnNl
-dDsNCj4gPiAgIAlpbnQgcmM7DQo+ID4NCj4gPiAgIAlpbmZvLT5zbWJkX3JlY3ZfcGVuZGluZysr
-Ow0KPiA+IEBAIC0yMDUyLDE1ICsyMDU1LDE2IEBAIGludCBzbWJkX3JlY3Yoc3RydWN0IHNtYmRf
-Y29ubmVjdGlvbiAqaW5mbywNCj4gPiBzdHJ1Y3QgbXNnaGRyICptc2cpDQo+ID4NCj4gPiAgIAlj
-YXNlIFJFQUQgfCBJVEVSX0JWRUM6DQo+ID4gICAJCXBhZ2UgPSBtc2ctPm1zZ19pdGVyLmJ2ZWMt
-PmJ2X3BhZ2U7DQo+ID4gKwkJcGFnZV9vZmZzZXQgPSBtc2ctPm1zZ19pdGVyLmJ2ZWMtPmJ2X29m
-ZnNldDsNCj4gPiAgIAkJdG9fcmVhZCA9IG1zZy0+bXNnX2l0ZXIuYnZlYy0+YnZfbGVuOw0KPiA+
-IC0JCXJjID0gc21iZF9yZWN2X3BhZ2UoaW5mbywgcGFnZSwgdG9fcmVhZCk7DQo+ID4gKwkJcmMg
-PSBzbWJkX3JlY3ZfcGFnZShpbmZvLCBwYWdlLCBwYWdlX29mZnNldCwgdG9fcmVhZCk7DQo+ID4g
-ICAJCWJyZWFrOw0KPiA+DQo+ID4gICAJZGVmYXVsdDoNCj4gPiAgIAkJLyogSXQncyBhIGJ1ZyBp
-biB1cHBlciBsYXllciB0byBnZXQgdGhlcmUgKi8NCj4gPiAgIAkJY2lmc19kYmcoVkZTLCAiQ0lG
-UzogaW52YWxpZCBtc2cgdHlwZSAlZFxuIiwNCj4gPiAgIAkJCW1zZy0+bXNnX2l0ZXIudHlwZSk7
-DQo+ID4gLQkJcmMgPSAtRUlPOw0KPiA+ICsJCXJjID0gLUVJTlZBTDsNCj4gPiAgIAl9DQo+ID4N
-Cj4gPiAgIAlpbmZvLT5zbWJkX3JlY3ZfcGVuZGluZy0tOw0KPiA+DQo=
+On Sun, Jun 24, 2018 at 11:23:41AM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Hi,
+> 
+> This is bunch of patches trigged by running syzkaller internally.
+> 
+> I'm sending them based on rdma-next mainly for two reasons:
+> 1, Most of the patches fix the old issues and it doesn't matter when
+> they will hit the Linus's tree: now or later in a couple of weeks
+> during merge window.
+> 2. They interleave with code cleanup, mlx5-next patches and Michael's
+> feedback on flow counters series.
+> 
+> Thanks
+> 
+> Leon Romanovsky (12):
+>   RDMA/uverbs: Protect from attempts to create flows on unsupported QP
+>   RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
+
+I applied these two to for-rc
+
+>   RDMA/uverbs: Check existence of create_flow callback
+>   RDMA/verbs: Drop kernel variant of create_flow
+>   RDMA/verbs: Drop kernel variant of destroy_flow
+>   net/mlx5: Rate limit errors in command interface
+>   RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
+>   RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
+>   RDMA/uverbs: Remove redundant check
+
+These to for-next
+
+>   overflow.h: Add arithmetic shift helper
+>   RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
+>   RDMA/mlx5: Reuse existed shift_overlow helper
+
+And these will have to be respun.
+
+Thanks,
+Jason
