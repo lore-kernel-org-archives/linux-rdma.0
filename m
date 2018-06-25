@@ -1,72 +1,82 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 01/12] RDMA/uverbs: Protect from attempts to
- create flows on unsupported QP
-Date: Mon, 25 Jun 2018 15:14:40 -0600
-Message-ID: <20180625211440.GA29264@ziepe.ca>
-References: <20180624082353.16138-1-leon@kernel.org>
- <20180624082353.16138-2-leon@kernel.org>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 08/15] CIFS: SMBD: Support page offset in RDMA send
+Date: Mon, 25 Jun 2018 21:23:44 +0000
+Message-ID: <CY4PR2101MB07228C8B88784E03A8E9175BCE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-9-longli@linuxonhyperv.com>
+ <ad9b2249-7e26-be0d-997c-c1cc128f70d6@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180624082353.16138-2-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ad9b2249-7e26-be0d-997c-c1cc128f70d6@talpey.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 24, 2018 at 11:23:42AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Flows can be created on UD and RAW_PACKET QP types. Attempts to provide
-> other QP types as an input causes to various unpredictable failures.
-> 
-> The reason to it that in order to support all various types (e.g. XRC),
-> we are supposed to use real_qp handle and not qp handle and give to
-> driver/FW to fail such (XRC) flows. Being valuable solution, the simpler
-> and safer variant is to ban all QP types except UD and RAW_PACKET,
-> instead of relying on driver/FW.
-> 
-> Cc: <stable@vger.kernel.org> # 3.11
-> Fixes: 436f2ad05a0b ("IB/core: Export ib_create/destroy_flow through uverbs")
-> Cc: syzkaller <syzkaller@googlegroups.com>
-> Reported-by: Noa Osherovich <noaos@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++--
->  1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-> index 779892b63729..c842a9423fbf 100644
-> --- a/drivers/infiniband/core/uverbs_cmd.c
-> +++ b/drivers/infiniband/core/uverbs_cmd.c
-> @@ -3553,14 +3553,20 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
->  		goto err_free_attr;
->  	}
->  
-> -	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle, file->ucontext);
-> +	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle,
-> +			       file->ucontext);
-
-This hunk is just whitespace changing
-
->  	if (!qp) {
->  		err = -EINVAL;
->  		goto err_uobj;
->  	}
->  
-> +	if (qp->qp_type != IB_QPT_UD && qp->qp_type != IB_QPT_RAW_PACKET) {
-> +		err = -EINVAL;
-> +		goto err_put;
-> +	}
-> +
->  	flow_attr = kzalloc(struct_size(flow_attr, flows,
-> -				cmd.flow_attr.num_of_specs), GFP_KERNEL);
-> +					cmd.flow_attr.num_of_specs), GFP_KERNEL);
-
-Same here.
-
-I dropped the two hunks and applied this to for-rc since it has
-stable tags.
-
-Jason
+PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDA4LzE1XSBDSUZTOiBTTUJEOiBTdXBwb3J0IHBhZ2Ug
+b2Zmc2V0IGluIFJETUEgc2VuZA0KPiANCj4gT24gNS8zMC8yMDE4IDM6NDggUE0sIExvbmcgTGkg
+d3JvdGU6DQo+ID4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4NCj4g
+PiBUaGUgUkRNQSBzZW5kIGZ1bmN0aW9uIG5lZWRzIHRvIGxvb2sgYXQgb2Zmc2V0IGluIHRoZSBy
+ZXF1ZXN0IHBhZ2VzLA0KPiA+IGFuZCBzZW5kIGRhdGEgc3RhcnRpbmcgZnJvbSB0aGVyZS4NCj4g
+Pg0KPiA+IFNpZ25lZC1vZmYtYnk6IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+
+IC0tLQ0KPiA+ICAgZnMvY2lmcy9zbWJkaXJlY3QuYyB8IDI3ICsrKysrKysrKysrKysrKysrKyst
+LS0tLS0tLQ0KPiA+ICAgMSBmaWxlIGNoYW5nZWQsIDE5IGluc2VydGlvbnMoKyksIDggZGVsZXRp
+b25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZnMvY2lmcy9zbWJkaXJlY3QuYyBiL2ZzL2Np
+ZnMvc21iZGlyZWN0LmMgaW5kZXgNCj4gPiBjNjJmN2M5Li42MTQxZTNjIDEwMDY0NA0KPiA+IC0t
+LSBhL2ZzL2NpZnMvc21iZGlyZWN0LmMNCj4gPiArKysgYi9mcy9jaWZzL3NtYmRpcmVjdC5jDQo+
+ID4gQEAgLTE3LDYgKzE3LDcgQEANCj4gPiAgICNpbmNsdWRlIDxsaW51eC9oaWdobWVtLmg+DQo+
+ID4gICAjaW5jbHVkZSAic21iZGlyZWN0LmgiDQo+ID4gICAjaW5jbHVkZSAiY2lmc19kZWJ1Zy5o
+Ig0KPiA+ICsjaW5jbHVkZSAiY2lmc3Byb3RvLmgiDQo+ID4NCj4gPiAgIHN0YXRpYyBzdHJ1Y3Qg
+c21iZF9yZXNwb25zZSAqZ2V0X2VtcHR5X3F1ZXVlX2J1ZmZlcigNCj4gPiAgIAkJc3RydWN0IHNt
+YmRfY29ubmVjdGlvbiAqaW5mbyk7DQo+ID4gQEAgLTIwODIsNyArMjA4Myw3IEBAIGludCBzbWJk
+X3NlbmQoc3RydWN0IHNtYmRfY29ubmVjdGlvbiAqaW5mbywNCj4gc3RydWN0IHNtYl9ycXN0ICpy
+cXN0KQ0KPiA+ICAgCXN0cnVjdCBrdmVjIHZlYzsNCj4gPiAgIAlpbnQgbnZlY3M7DQo+ID4gICAJ
+aW50IHNpemU7DQo+ID4gLQlpbnQgYnVmbGVuID0gMCwgcmVtYWluaW5nX2RhdGFfbGVuZ3RoOw0K
+PiA+ICsJdW5zaWduZWQgaW50IGJ1ZmxlbiA9IDAsIHJlbWFpbmluZ19kYXRhX2xlbmd0aDsNCj4g
+PiAgIAlpbnQgc3RhcnQsIGksIGo7DQo+ID4gICAJaW50IG1heF9pb3Zfc2l6ZSA9DQo+ID4gICAJ
+CWluZm8tPm1heF9zZW5kX3NpemUgLSBzaXplb2Yoc3RydWN0IHNtYmRfZGF0YV90cmFuc2Zlcik7
+DQo+IEBADQo+ID4gLTIxMTMsMTAgKzIxMTQsMTcgQEAgaW50IHNtYmRfc2VuZChzdHJ1Y3Qgc21i
+ZF9jb25uZWN0aW9uICppbmZvLA0KPiBzdHJ1Y3Qgc21iX3Jxc3QgKnJxc3QpDQo+ID4gICAJCWJ1
+ZmxlbiArPSBpb3ZbaV0uaW92X2xlbjsNCj4gPiAgIAl9DQo+ID4NCj4gPiAtCS8qIGFkZCBpbiB0
+aGUgcGFnZSBhcnJheSBpZiB0aGVyZSBpcyBvbmUgKi8NCj4gPiArCS8qDQo+ID4gKwkgKiBBZGQg
+aW4gdGhlIHBhZ2UgYXJyYXkgaWYgdGhlcmUgaXMgb25lLiBUaGUgY2FsbGVyIG5lZWRzIHRvIHNl
+dA0KPiA+ICsJICogcnFfdGFpbHN6IHRvIFBBR0VfU0laRSB3aGVuIHRoZSBidWZmZXIgaGFzIG11
+bHRpcGxlIHBhZ2VzIGFuZA0KPiA+ICsJICogZW5kcyBhdCBwYWdlIGJvdW5kYXJ5DQo+ID4gKwkg
+Ki8NCj4gPiAgIAlpZiAocnFzdC0+cnFfbnBhZ2VzKSB7DQo+ID4gLQkJYnVmbGVuICs9IHJxc3Qt
+PnJxX3BhZ2VzeiAqIChycXN0LT5ycV9ucGFnZXMgLSAxKTsNCj4gPiAtCQlidWZsZW4gKz0gcnFz
+dC0+cnFfdGFpbHN6Ow0KPiA+ICsJCWlmIChycXN0LT5ycV9ucGFnZXMgPT0gMSkNCj4gPiArCQkJ
+YnVmbGVuICs9IHJxc3QtPnJxX3RhaWxzejsNCj4gPiArCQllbHNlDQo+ID4gKwkJCWJ1ZmxlbiAr
+PSBycXN0LT5ycV9wYWdlc3ogKiAocnFzdC0+cnFfbnBhZ2VzIC0gMSkgLQ0KPiA+ICsJCQkJCXJx
+c3QtPnJxX29mZnNldCArIHJxc3QtPnJxX3RhaWxzejsNCj4gPiAgIAl9DQo+IA0KPiBUaGlzIGNv
+ZGUgaXMgcmVhbGx5IGNvbmZ1c2luZyBhbmQgcmVkdW5kYW50LiBJdCB0ZXN0cyBucGFnZXMgPiAw
+LCB0aGVuIHRlc3RzDQo+IG5wYWdlcyA9PSAxLCB0aGVuIGRvZXMgYW4gZWxzZS4gV2h5IG5vdCBj
+YWxsIHRoZSBoZWxwZXIgbGlrZSB0aGUgZm9sbG93aW5nDQo+IHNtYmRfc2VuZCgpPw0KDQpUaGlz
+IGNvZGUgbmVlZHMgdG8gZ2V0IHRoZSBjb21iaW5lZCBsZW5ndGggb2YgYWxsIHRoZSBwYWdlcyBp
+biB0aGUgcmVxdWVzdCAoYnV0IGV4Y2x1ZGluZyBpb3YsIHRoaXMgaXMgZGlmZmVyZW50IHRvIHRo
+ZSBmdW5jdGlvbiBycXN0X2xlbiBpbiBwYXRjaCAwNSksIGJ1dCB0aGUgZm9sbG93aW5nIGlzIGZv
+ciBnZXR0aW5nIGEgc2luZ2xlIHBhZ2UgZnJvbSB0aGUgcmVxdWVzdC4gDQoNCkkgY2FuIHNpbXBs
+aWZ5IHRoZSBjb2RlIGEgbGl0dGxlIGJpdCBieSBmb2xsb3dpbmcgeW91ciBzdWdnZXN0aW9uIGlu
+IHBhdGNoIDA1Lg0KDQo+IA0KPiBUb20uDQo+IA0KPiA+DQo+ID4gICAJaWYgKGJ1ZmxlbiArIHNp
+emVvZihzdHJ1Y3Qgc21iZF9kYXRhX3RyYW5zZmVyKSA+IEBAIC0yMjEzLDggKzIyMjEsOQ0KPiA+
+IEBAIGludCBzbWJkX3NlbmQoc3RydWN0IHNtYmRfY29ubmVjdGlvbiAqaW5mbywgc3RydWN0IHNt
+Yl9ycXN0ICpycXN0KQ0KPiA+DQo+ID4gICAJLyogbm93IHNlbmRpbmcgcGFnZXMgaWYgdGhlcmUg
+YXJlIGFueSAqLw0KPiA+ICAgCWZvciAoaSA9IDA7IGkgPCBycXN0LT5ycV9ucGFnZXM7IGkrKykg
+ew0KPiA+IC0JCWJ1ZmxlbiA9IChpID09IHJxc3QtPnJxX25wYWdlcy0xKSA/DQo+ID4gLQkJCXJx
+c3QtPnJxX3RhaWxzeiA6IHJxc3QtPnJxX3BhZ2VzejsNCj4gPiArCQl1bnNpZ25lZCBpbnQgb2Zm
+c2V0Ow0KPiA+ICsNCj4gPiArCQlycXN0X3BhZ2VfZ2V0X2xlbmd0aChycXN0LCBpLCAmYnVmbGVu
+LCAmb2Zmc2V0KTsNCj4gPiAgIAkJbnZlY3MgPSAoYnVmbGVuICsgbWF4X2lvdl9zaXplIC0gMSkg
+LyBtYXhfaW92X3NpemU7DQo+ID4gICAJCWxvZ193cml0ZShJTkZPLCAic2VuZGluZyBwYWdlcyBi
+dWZsZW49JWQgbnZlY3M9JWRcbiIsDQo+ID4gICAJCQlidWZsZW4sIG52ZWNzKTsNCj4gPiBAQCAt
+MjIyNSw5ICsyMjM0LDExIEBAIGludCBzbWJkX3NlbmQoc3RydWN0IHNtYmRfY29ubmVjdGlvbiAq
+aW5mbywNCj4gc3RydWN0IHNtYl9ycXN0ICpycXN0KQ0KPiA+ICAgCQkJcmVtYWluaW5nX2RhdGFf
+bGVuZ3RoIC09IHNpemU7DQo+ID4gICAJCQlsb2dfd3JpdGUoSU5GTywgInNlbmRpbmcgcGFnZXMg
+aT0lZCBvZmZzZXQ9JWQNCj4gc2l6ZT0lZCINCj4gPiAgIAkJCQkiIHJlbWFpbmluZ19kYXRhX2xl
+bmd0aD0lZFxuIiwNCj4gPiAtCQkJCWksIGoqbWF4X2lvdl9zaXplLCBzaXplLA0KPiByZW1haW5p
+bmdfZGF0YV9sZW5ndGgpOw0KPiA+ICsJCQkJaSwgaiptYXhfaW92X3NpemUrb2Zmc2V0LCBzaXpl
+LA0KPiA+ICsJCQkJcmVtYWluaW5nX2RhdGFfbGVuZ3RoKTsNCj4gPiAgIAkJCXJjID0gc21iZF9w
+b3N0X3NlbmRfcGFnZSgNCj4gPiAtCQkJCWluZm8sIHJxc3QtPnJxX3BhZ2VzW2ldLCBqKm1heF9p
+b3Zfc2l6ZSwNCj4gPiArCQkJCWluZm8sIHJxc3QtPnJxX3BhZ2VzW2ldLA0KPiA+ICsJCQkJaipt
+YXhfaW92X3NpemUgKyBvZmZzZXQsDQo+ID4gICAJCQkJc2l6ZSwgcmVtYWluaW5nX2RhdGFfbGVu
+Z3RoKTsNCj4gPiAgIAkJCWlmIChyYykNCj4gPiAgIAkJCQlnb3RvIGRvbmU7DQo+ID4NCg==
