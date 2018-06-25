@@ -1,65 +1,72 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 06/15] CIFS: Introduce helper function to get page
- offset and length in smb_rqst
-Date: Mon, 25 Jun 2018 21:14:31 +0000
-Message-ID: <CY4PR2101MB0722840106EDFEFBBA42D45FCE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
-References: <20180530194807.31657-1-longli@linuxonhyperv.com>
- <20180530194807.31657-7-longli@linuxonhyperv.com>
- <a6613388-0dc5-7646-b71f-75b8bec4e4d9@talpey.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 01/12] RDMA/uverbs: Protect from attempts to
+ create flows on unsupported QP
+Date: Mon, 25 Jun 2018 15:14:40 -0600
+Message-ID: <20180625211440.GA29264@ziepe.ca>
+References: <20180624082353.16138-1-leon@kernel.org>
+ <20180624082353.16138-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a6613388-0dc5-7646-b71f-75b8bec4e4d9@talpey.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180624082353.16138-2-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDA2LzE1XSBDSUZTOiBJbnRyb2R1Y2UgaGVscGVyIGZ1
-bmN0aW9uIHRvIGdldCBwYWdlDQo+IG9mZnNldCBhbmQgbGVuZ3RoIGluIHNtYl9ycXN0DQo+IA0K
-PiBPbiA1LzMwLzIwMTggMzo0NyBQTSwgTG9uZyBMaSB3cm90ZToNCj4gPiBGcm9tOiBMb25nIExp
-IDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPg0KPiA+IEludHJvZHVjZSBhIGZ1bmN0aW9uIHJx
-c3RfcGFnZV9nZXRfbGVuZ3RoIHRvIHJldHVybiB0aGUgcGFnZSBvZmZzZXQNCj4gPiBhbmQgbGVu
-Z3RoIGZvciBhIGdpdmVuIHBhZ2UgaW4gc21iX3Jxc3QuIFRoaXMgZnVuY3Rpb24gaXMgdG8gYmUg
-dXNlZA0KPiA+IGJ5IGZvbGxvd2luZyBwYXRjaGVzLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTog
-TG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gLS0tDQo+ID4gICBmcy9jaWZzL2Np
-ZnNwcm90by5oIHwgIDMgKysrDQo+ID4gICBmcy9jaWZzL21pc2MuYyAgICAgIHwgMTcgKysrKysr
-KysrKysrKysrKysNCj4gPiAgIDIgZmlsZXMgY2hhbmdlZCwgMjAgaW5zZXJ0aW9ucygrKQ0KPiA+
-DQo+ID4gZGlmZiAtLWdpdCBhL2ZzL2NpZnMvY2lmc3Byb3RvLmggYi9mcy9jaWZzL2NpZnNwcm90
-by5oIGluZGV4DQo+ID4gNzkzM2M1Zi4uODlkZGExNCAxMDA2NDQNCj4gPiAtLS0gYS9mcy9jaWZz
-L2NpZnNwcm90by5oDQo+ID4gKysrIGIvZnMvY2lmcy9jaWZzcHJvdG8uaA0KPiA+IEBAIC01NTcs
-NCArNTU3LDcgQEAgaW50IGNpZnNfYWxsb2NfaGFzaChjb25zdCBjaGFyICpuYW1lLCBzdHJ1Y3QN
-Cj4gY3J5cHRvX3NoYXNoICoqc2hhc2gsDQo+ID4gICAJCSAgICBzdHJ1Y3Qgc2Rlc2MgKipzZGVz
-Yyk7DQo+ID4gICB2b2lkIGNpZnNfZnJlZV9oYXNoKHN0cnVjdCBjcnlwdG9fc2hhc2ggKipzaGFz
-aCwgc3RydWN0IHNkZXNjDQo+ID4gKipzZGVzYyk7DQo+ID4NCj4gPiArZXh0ZXJuIHZvaWQgcnFz
-dF9wYWdlX2dldF9sZW5ndGgoc3RydWN0IHNtYl9ycXN0ICpycXN0LCB1bnNpZ25lZCBpbnQNCj4g
-cGFnZSwNCj4gPiArCQkJCXVuc2lnbmVkIGludCAqbGVuLCB1bnNpZ25lZCBpbnQgKm9mZnNldCk7
-DQo+ID4gKw0KPiA+ICAgI2VuZGlmCQkJLyogX0NJRlNQUk9UT19IICovDQo+ID4gZGlmZiAtLWdp
-dCBhL2ZzL2NpZnMvbWlzYy5jIGIvZnMvY2lmcy9taXNjLmMgaW5kZXggOTY4NDliNS4uZTk1MTQx
-Nw0KPiA+IDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2NpZnMvbWlzYy5jDQo+ID4gKysrIGIvZnMvY2lm
-cy9taXNjLmMNCj4gPiBAQCAtOTA1LDMgKzkwNSwyMCBAQCBjaWZzX2ZyZWVfaGFzaChzdHJ1Y3Qg
-Y3J5cHRvX3NoYXNoICoqc2hhc2gsDQo+IHN0cnVjdCBzZGVzYyAqKnNkZXNjKQ0KPiA+ICAgCQlj
-cnlwdG9fZnJlZV9zaGFzaCgqc2hhc2gpOw0KPiA+ICAgCSpzaGFzaCA9IE5VTEw7DQo+ID4gICB9
-DQo+ID4gKw0KPiA+ICsvKioNCj4gPiArICogcnFzdF9wYWdlX2dldF9sZW5ndGggLSBvYnRhaW4g
-dGhlIGxlbmd0aCBhbmQgb2Zmc2V0IGZvciBhIHBhZ2UgaW4NCj4gPiArc21iX3Jxc3QNCj4gPiAr
-ICogSW5wdXQ6IHJxc3QgLSBhIHNtYl9ycXN0LCBwYWdlIC0gYSBwYWdlIGluZGV4IGZvciBycXN0
-DQo+ID4gKyAqIE91dHB1dDogKmxlbiAtIHRoZSBsZW5ndGggZm9yIHRoaXMgcGFnZSwgKm9mZnNl
-dCAtIHRoZSBvZmZzZXQgZm9yDQo+ID4gK3RoaXMgcGFnZSAgKi8gdm9pZCBycXN0X3BhZ2VfZ2V0
-X2xlbmd0aChzdHJ1Y3Qgc21iX3Jxc3QgKnJxc3QsDQo+ID4gK3Vuc2lnbmVkIGludCBwYWdlLA0K
-PiA+ICsJCQkJdW5zaWduZWQgaW50ICpsZW4sIHVuc2lnbmVkIGludCAqb2Zmc2V0KSB7DQo+ID4g
-KwkqbGVuID0gcnFzdC0+cnFfcGFnZXN6Ow0KPiA+ICsJKm9mZnNldCA9IChwYWdlID09IDApID8g
-cnFzdC0+cnFfb2Zmc2V0IDogMDsNCj4gDQo+IFJlYWxseT8gUGFnZSAwIGFsd2F5cyBoYXMgYSB6
-ZXJvIG9mZnNldD8/DQoNCkkgdGhpbmsgeW91IGFyZSBtaXNyZWFkaW5nIHRoaXMgbGluZS4gVGhl
-IG9mZnNldCBmb3IgcGFnZSAwIGlzIHJxX29mZnNldCwgdGhlIG9mZnNldCBmb3IgYWxsIHN1YnNl
-cXVlbnQgcGFnZXMgYXJlIDAuDQoNCj4gDQo+ID4gKw0KPiA+ICsJaWYgKHJxc3QtPnJxX25wYWdl
-cyA9PSAxIHx8IHBhZ2UgPT0gcnFzdC0+cnFfbnBhZ2VzLTEpDQo+ID4gKwkJKmxlbiA9IHJxc3Qt
-PnJxX3RhaWxzejsNCj4gPiArCWVsc2UgaWYgKHBhZ2UgPT0gMCkNCj4gPiArCQkqbGVuID0gcnFz
-dC0+cnFfcGFnZXN6IC0gcnFzdC0+cnFfb2Zmc2V0OyB9DQo+ID4NCj4gDQo+IFRoaXMgc3Vicm91
-dGluZSBkb2VzIHdoYXQgcGF0Y2ggNSBkb2VzIGlubGluZS4gV2h5IG5vdCBwdXNoIHRoaXMgcGF0
-Y2ggdXAgaW4NCj4gdGhlIHNlcXVlbmNlIGFuZCB1c2UgdGhlIGhlbHBlcj8NCg0KVGhpcyBpcyBh
-Y3R1YWxseSBhIGxpdHRsZSBkaWZmZXJlbnQuIFRoaXMgZnVuY3Rpb24gcmV0dXJucyB0aGUgbGVu
-Z3RoIGFuZCBvZmZzZXQgZm9yIGEgZ2l2ZW4gcGFnZSBpbiB0aGUgcmVxdWVzdC4gVGhlcmUgbWln
-aHQgYmUgbXVsdGlwbGUgcGFnZXMgaW4gYSByZXF1ZXN0LiANCg0KVGhlIG90aGVyIGZ1bmN0aW9u
-IGNhbGN1bGF0ZXMgdGhlIHRvdGFsIGxlbmd0aCBvZiBhbGwgdGhlIHBhZ2VzIGluIGEgcmVxdWVz
-dC4NCg0KPiANCj4gVG9tLg0K
+On Sun, Jun 24, 2018 at 11:23:42AM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Flows can be created on UD and RAW_PACKET QP types. Attempts to provide
+> other QP types as an input causes to various unpredictable failures.
+> 
+> The reason to it that in order to support all various types (e.g. XRC),
+> we are supposed to use real_qp handle and not qp handle and give to
+> driver/FW to fail such (XRC) flows. Being valuable solution, the simpler
+> and safer variant is to ban all QP types except UD and RAW_PACKET,
+> instead of relying on driver/FW.
+> 
+> Cc: <stable@vger.kernel.org> # 3.11
+> Fixes: 436f2ad05a0b ("IB/core: Export ib_create/destroy_flow through uverbs")
+> Cc: syzkaller <syzkaller@googlegroups.com>
+> Reported-by: Noa Osherovich <noaos@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  drivers/infiniband/core/uverbs_cmd.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+> index 779892b63729..c842a9423fbf 100644
+> --- a/drivers/infiniband/core/uverbs_cmd.c
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -3553,14 +3553,20 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+>  		goto err_free_attr;
+>  	}
+>  
+> -	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle, file->ucontext);
+> +	qp = uobj_get_obj_read(qp, UVERBS_OBJECT_QP, cmd.qp_handle,
+> +			       file->ucontext);
+
+This hunk is just whitespace changing
+
+>  	if (!qp) {
+>  		err = -EINVAL;
+>  		goto err_uobj;
+>  	}
+>  
+> +	if (qp->qp_type != IB_QPT_UD && qp->qp_type != IB_QPT_RAW_PACKET) {
+> +		err = -EINVAL;
+> +		goto err_put;
+> +	}
+> +
+>  	flow_attr = kzalloc(struct_size(flow_attr, flows,
+> -				cmd.flow_attr.num_of_specs), GFP_KERNEL);
+> +					cmd.flow_attr.num_of_specs), GFP_KERNEL);
+
+Same here.
+
+I dropped the two hunks and applied this to for-rc since it has
+stable tags.
+
+Jason
