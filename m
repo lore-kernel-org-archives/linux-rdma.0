@@ -1,77 +1,82 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
-Date: Mon, 25 Jun 2018 12:03:37 -0700
-Message-ID: <d007873c-4454-4c70-4829-b222155be0ff@nvidia.com>
-References: <3898ef6b-2fa0-e852-a9ac-d904b47320d5@nvidia.com>
- <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
- <0e6053b3-b78c-c8be-4fab-e8555810c732@nvidia.com>
- <20180619082949.wzoe42wpxsahuitu@quack2.suse.cz>
- <20180619090255.GA25522@bombadil.infradead.org>
- <20180619104142.lpilc6esz7w3a54i@quack2.suse.cz>
- <70001987-3938-d33e-11e0-de5b19ca3bdf@nvidia.com>
- <20180620120824.bghoklv7qu2z5wgy@quack2.suse.cz>
- <151edbf3-66ff-df0c-c1cc-5998de50111e@nvidia.com>
- <20180621163036.jvdbsv3t2lu34pdl@quack2.suse.cz>
- <20180625152150.jnf5suiubecfppcl@quack2.suse.cz>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 02/15] CIFS: Add support for direct pages in rdata
+Date: Mon, 25 Jun 2018 20:25:52 +0000
+Message-ID: <CY4PR2101MB07229D570089E6057F2C8B4BCE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-3-longli@linuxonhyperv.com>
+ <67b8afe7-f5e0-b36a-fcc1-87f1ae08eaa4@talpey.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180625152150.jnf5suiubecfppcl@quack2.suse.cz>
+In-Reply-To: <67b8afe7-f5e0-b36a-fcc1-87f1ae08eaa4@talpey.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <john.hubbard@gmail.com>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/25/2018 08:21 AM, Jan Kara wrote:
-> On Thu 21-06-18 18:30:36, Jan Kara wrote:
->> On Wed 20-06-18 15:55:41, John Hubbard wrote:
->>> On 06/20/2018 05:08 AM, Jan Kara wrote:
->>>> On Tue 19-06-18 11:11:48, John Hubbard wrote:
->>>>> On 06/19/2018 03:41 AM, Jan Kara wrote:
->>>>>> On Tue 19-06-18 02:02:55, Matthew Wilcox wrote:
->>>>>>> On Tue, Jun 19, 2018 at 10:29:49AM +0200, Jan Kara wrote:
->>> [...]
-> I've spent some time on this. There are two obstacles with my approach of
-> putting special entry into inode's VMA tree:
-> 
-> 1) If I want to place this special entry in inode's VMA tree, I either need
-> to allocate full VMA, somehow initiate it so that it's clear it's a special
-> "pinned" range, not a VMA => uses unnecessarily too much memory, it is
-> ugly. Another solution I was hoping for was that I would factor out some
-> common bits of vm_area_struct (pgoff, rb_node, ..) into a structure common
-> for VMA and the locked range => doable but causes a lot of churn as VMAs
-> are accessed (and modified!) at hundreds of places in the kernel. Some
-> accessor functions would help to reduce the churn a bit but then stuff like
-> vma_set_pgoff(vma, pgoff) isn't exactly beautiful either.
-> 
-> 2) Some users of GUP (e.g. direct IO) get a block of pages and then put
-> references to these pages at different times and in random order -
-> basically when IO for given page is completed, reference is dropped and one
-> GUP call can acquire page references for pages which end up in multiple
-> different bios (we don't know in advance). This makes is difficult to
-> implement counterpart to GUP to 'unpin' a range of pages - we'd either have
-> to support partial unpins (and splitting of pinned ranges and all such fun)
-> or just have to track internally in how many pages are still pinned in the
-> originally pinned range and release the pin once all individual pages are
-> unpinned but then it's difficult to e.g. get to this internal structure
-> from IO completion callback where we only have the bio.
->
-> So I think the Matthew's idea of removing pinned pages from LRU is
-> definitely worth trying to see how complex that would end up being. Did you
-> get to looking into it? If not, I can probably find some time to try that
-> out.
-> 
-
-OK. Even if we remove the pages from the LRU, we still have to insert a "put_gup_page"
-or similarly named call. But it could be a simple replacement for put_page, with
-that approach, so that does make it much much easier.
- 
-I was (and still am) planning on tackling this today, so let me see how far I
-get before yelling for help. :)
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+PiBGcm9tOiBUb20gVGFscGV5IDx0b21AdGFscGV5LmNvbT4NCj4gU2VudDogU2F0dXJkYXksIEp1
+bmUgMjMsIDIwMTggNjo1MCBQTQ0KPiBUbzogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+
+OyBTdGV2ZSBGcmVuY2ggPHNmcmVuY2hAc2FtYmEub3JnPjsNCj4gbGludXgtY2lmc0B2Z2VyLmtl
+cm5lbC5vcmc7IHNhbWJhLXRlY2huaWNhbEBsaXN0cy5zYW1iYS5vcmc7IGxpbnV4LQ0KPiBrZXJu
+ZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0
+OiBSZTogW1BhdGNoIHYyIDAyLzE1XSBDSUZTOiBBZGQgc3VwcG9ydCBmb3IgZGlyZWN0IHBhZ2Vz
+IGluIHJkYXRhDQo+IA0KPiBPbiA1LzMwLzIwMTggMzo0NyBQTSwgTG9uZyBMaSB3cm90ZToNCj4g
+PiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPg0KPiA+IEFkZCBhIGZ1
+bmN0aW9uIHRvIGFsbG9jYXRlIHJkYXRhIHdpdGhvdXQgYWxsb2NhdGluZyBwYWdlcyBmb3IgZGF0
+YQ0KPiA+IHRyYW5zZmVyLiBUaGlzIGdpdmVzIHRoZSBjYWxsZXIgYW4gb3B0aW9uIHRvIHBhc3Mg
+YSBudW1iZXIgb2YgcGFnZXMNCj4gPiB0aGF0IHBvaW50IHRvIHRoZSBkYXRhIGJ1ZmZlci4NCj4g
+Pg0KPiA+IHJkYXRhIGlzIHN0aWxsIHJlcG9uc2libGUgZm9yIGZyZWUgdGhvc2UgcGFnZXMgYWZ0
+ZXIgaXQncyBkb25lLg0KPiANCj4gIkNhbGxlciIgaXMgc3RpbGwgcmVzcG9uc2libGU/IE9yIGlz
+IHRoZSByZGF0YSBzb21laG93IGZyZWVpbmcgaXRzZWxmIHZpYSBhbm90aGVyDQo+IG1lY2hhbmlz
+bT8NCg0KSSBtZWFudCB0byBzYXkgZnJlZSB0aGUgYXJyYXkgInN0cnVjdCBwYWdlICoqcGFnZXMi
+LCBub3QgdGhlIHBhZ2VzIHRoZW1zZWx2ZXMuDQoNCkJlZm9yZSB0aGUgcGF0Y2gsIHRoZSBwYWdl
+IGFycmF5IGlzIGFsbG9jYXRlZCBhdCB0aGUgZW5kIG9mIHRoZSBzdHJ1Y3QgY2lmc19yZWFkZGF0
+YToNCg0KICAgICAgcmRhdGEgPSBremFsbG9jKHNpemVvZigqcmRhdGEpICsgKHNpemVvZihzdHJ1
+Y3QgcGFnZSAqKSAqIG5yX3BhZ2VzKSwNCiAgICAgICAgICAgICAgICAgICAgICAgR0ZQX0tFUk5F
+TCk7DQoNCklmIHRoaXMgaXMgdGhlIGNhc2UsIHRoZXkgYXJlIGF1dG9tYXRpY2FsbHkgZnJlZWQg
+d2hlbiBjaWZzX3JlYWRkYXRhIGlzIGZyZWVkLg0KDQpXaXRoIHRoZSBkaXJlY3QgSS9PIHBhdGNo
+LCB0aGUgcGFnZSBhcnJheSBpcyBoYW5kbGVkIHNlcGFyYXRlbHkuIFNvIHRoZXkgbmVlZCB0byBi
+ZSBmcmVlZCBhZnRlciBiZWluZyB1c2VkLg0KDQo+IA0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTog
+TG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4gLS0tDQo+ID4gICBmcy9jaWZzL2Np
+ZnNnbG9iLmggfCAgMiArLQ0KPiA+ICAgZnMvY2lmcy9maWxlLmMgICAgIHwgMjMgKysrKysrKysr
+KysrKysrKysrKystLS0NCj4gPiAgIDIgZmlsZXMgY2hhbmdlZCwgMjEgaW5zZXJ0aW9ucygrKSwg
+NCBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9mcy9jaWZzL2NpZnNnbG9iLmgg
+Yi9mcy9jaWZzL2NpZnNnbG9iLmggaW5kZXgNCj4gPiA4ZDE2YzNlLi41Njg2NGE4NyAxMDA2NDQN
+Cj4gPiAtLS0gYS9mcy9jaWZzL2NpZnNnbG9iLmgNCj4gPiArKysgYi9mcy9jaWZzL2NpZnNnbG9i
+LmgNCj4gPiBAQCAtMTE3OSw3ICsxMTc5LDcgQEAgc3RydWN0IGNpZnNfcmVhZGRhdGEgew0KPiA+
+ICAgCXVuc2lnbmVkIGludAkJCXRhaWxzejsNCj4gPiAgIAl1bnNpZ25lZCBpbnQJCQljcmVkaXRz
+Ow0KPiA+ICAgCXVuc2lnbmVkIGludAkJCW5yX3BhZ2VzOw0KPiA+IC0Jc3RydWN0IHBhZ2UJCQkq
+cGFnZXNbXTsNCj4gPiArCXN0cnVjdCBwYWdlCQkJKipwYWdlczsNCj4gDQo+IFRlY2huaWNhbGx5
+IHNwZWFraW5nLCB0aGVzZSBhcmUgc3ludGFjdGljYWxseSBlcXVpdmFsZW50LiBJdCBtYXkgbm90
+IGJlIHdvcnRoDQo+IGNoYW5naW5nIHRoaXMgaGlzdG9yaWMgZGVmaW5pdGlvbi4NCj4gDQo+IFRv
+bS4NCj4gDQo+IA0KPiA+ICAgfTsNCj4gPg0KPiA+ICAgc3RydWN0IGNpZnNfd3JpdGVkYXRhOw0K
+PiA+IGRpZmYgLS1naXQgYS9mcy9jaWZzL2ZpbGUuYyBiL2ZzL2NpZnMvZmlsZS5jIGluZGV4IDIz
+ZmQ0MzAuLjFjOTgyOTMNCj4gPiAxMDA2NDQNCj4gPiAtLS0gYS9mcy9jaWZzL2ZpbGUuYw0KPiA+
+ICsrKyBiL2ZzL2NpZnMvZmlsZS5jDQo+ID4gQEAgLTI4ODAsMTMgKzI4ODAsMTMgQEAgY2lmc19z
+dHJpY3Rfd3JpdGV2KHN0cnVjdCBraW9jYiAqaW9jYiwgc3RydWN0DQo+IGlvdl9pdGVyICpmcm9t
+KQ0KPiA+ICAgfQ0KPiA+DQo+ID4gICBzdGF0aWMgc3RydWN0IGNpZnNfcmVhZGRhdGEgKg0KPiA+
+IC1jaWZzX3JlYWRkYXRhX2FsbG9jKHVuc2lnbmVkIGludCBucl9wYWdlcywgd29ya19mdW5jX3Qg
+Y29tcGxldGUpDQo+ID4gK2NpZnNfcmVhZGRhdGFfZGlyZWN0X2FsbG9jKHN0cnVjdCBwYWdlICoq
+cGFnZXMsIHdvcmtfZnVuY190IGNvbXBsZXRlKQ0KPiA+ICAgew0KPiA+ICAgCXN0cnVjdCBjaWZz
+X3JlYWRkYXRhICpyZGF0YTsNCj4gPg0KPiA+IC0JcmRhdGEgPSBremFsbG9jKHNpemVvZigqcmRh
+dGEpICsgKHNpemVvZihzdHJ1Y3QgcGFnZSAqKSAqIG5yX3BhZ2VzKSwNCj4gPiAtCQkJR0ZQX0tF
+Uk5FTCk7DQo+ID4gKwlyZGF0YSA9IGt6YWxsb2Moc2l6ZW9mKCpyZGF0YSksIEdGUF9LRVJORUwp
+Ow0KPiA+ICAgCWlmIChyZGF0YSAhPSBOVUxMKSB7DQo+ID4gKwkJcmRhdGEtPnBhZ2VzID0gcGFn
+ZXM7DQo+ID4gICAJCWtyZWZfaW5pdCgmcmRhdGEtPnJlZmNvdW50KTsNCj4gPiAgIAkJSU5JVF9M
+SVNUX0hFQUQoJnJkYXRhLT5saXN0KTsNCj4gPiAgIAkJaW5pdF9jb21wbGV0aW9uKCZyZGF0YS0+
+ZG9uZSk7DQo+ID4gQEAgLTI4OTYsNiArMjg5NiwyMiBAQCBjaWZzX3JlYWRkYXRhX2FsbG9jKHVu
+c2lnbmVkIGludCBucl9wYWdlcywNCj4gd29ya19mdW5jX3QgY29tcGxldGUpDQo+ID4gICAJcmV0
+dXJuIHJkYXRhOw0KPiA+ICAgfQ0KPiA+DQo+ID4gK3N0YXRpYyBzdHJ1Y3QgY2lmc19yZWFkZGF0
+YSAqDQo+ID4gK2NpZnNfcmVhZGRhdGFfYWxsb2ModW5zaWduZWQgaW50IG5yX3BhZ2VzLCB3b3Jr
+X2Z1bmNfdCBjb21wbGV0ZSkgew0KPiA+ICsJc3RydWN0IHBhZ2UgKipwYWdlcyA9DQo+ID4gKwkJ
+a3phbGxvYyhzaXplb2Yoc3RydWN0IHBhZ2UgKikgKiBucl9wYWdlcywgR0ZQX0tFUk5FTCk7DQo+
+ID4gKwlzdHJ1Y3QgY2lmc19yZWFkZGF0YSAqcmV0ID0gTlVMTDsNCj4gPiArDQo+ID4gKwlpZiAo
+cGFnZXMpIHsNCj4gPiArCQlyZXQgPSBjaWZzX3JlYWRkYXRhX2RpcmVjdF9hbGxvYyhwYWdlcywg
+Y29tcGxldGUpOw0KPiA+ICsJCWlmICghcmV0KQ0KPiA+ICsJCQlrZnJlZShwYWdlcyk7DQo+ID4g
+Kwl9DQo+ID4gKw0KPiA+ICsJcmV0dXJuIHJldDsNCj4gPiArfQ0KPiA+ICsNCj4gPiAgIHZvaWQN
+Cj4gPiAgIGNpZnNfcmVhZGRhdGFfcmVsZWFzZShzdHJ1Y3Qga3JlZiAqcmVmY291bnQpDQo+ID4g
+ICB7DQo+ID4gQEAgLTI5MTAsNiArMjkyNiw3IEBAIGNpZnNfcmVhZGRhdGFfcmVsZWFzZShzdHJ1
+Y3Qga3JlZiAqcmVmY291bnQpDQo+ID4gICAJaWYgKHJkYXRhLT5jZmlsZSkNCj4gPiAgIAkJY2lm
+c0ZpbGVJbmZvX3B1dChyZGF0YS0+Y2ZpbGUpOw0KPiA+DQo+ID4gKwlrdmZyZWUocmRhdGEtPnBh
+Z2VzKTsNCj4gPiAgIAlrZnJlZShyZGF0YSk7DQo+ID4gICB9DQo+ID4NCj4gPg0K
