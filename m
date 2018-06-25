@@ -1,104 +1,94 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 09/12] RDMA/mlx5: Fix shift overflow in
- mlx5_ib_create_wq
-Date: Mon, 25 Jun 2018 11:10:41 +0300
-Message-ID: <20180625081041.GI17747@mtr-leonro.mtl.com>
-References: <20180624082353.16138-1-leon@kernel.org>
- <20180624082353.16138-10-leon@kernel.org>
- <20180624195624.GL19151@ziepe.ca>
+From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Mon, 25 Jun 2018 15:31:57 +0200
+Message-ID: <20180625133157.GL28965@dhcp22.suse.cz>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <0aa9f695-5702-6704-9462-7779cbfdb3fd@amd.com>
+ <20180622152444.GC10465@dhcp22.suse.cz>
+ <dd260800-6457-f3ff-47df-b65ef258f4b7@amd.com>
+ <20180625080103.GB28965@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="dfmC41YZQlborXoK"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180624195624.GL19151@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20180625080103.GB28965-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Felix Kuehling <felix.kuehling-5C7GfCeVMHo@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dennis
 List-Id: linux-rdma@vger.kernel.org
 
-
---dfmC41YZQlborXoK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Sun, Jun 24, 2018 at 01:56:24PM -0600, Jason Gunthorpe wrote:
-> On Sun, Jun 24, 2018 at 11:23:50AM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > [   61.182439] UBSAN: Undefined behaviour in drivers/infiniband/hw/mlx5/qp.c:5366:34
-> > [   61.183673] shift exponent 4294967288 is too large for 32-bit type 'unsigned int'
-> > [   61.185530] CPU: 0 PID: 639 Comm: qp Not tainted 4.18.0-rc1-00037-g4aa1d69a9c60-dirty #96
-> > [   61.186981] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-2.fc27 04/01/2014
-> > [   61.188315] Call Trace:
-> > [   61.188661]  dump_stack+0xc7/0x13b
-> > [   61.190427]  ubsan_epilogue+0x9/0x49
-> > [   61.190899]  __ubsan_handle_shift_out_of_bounds+0x1ea/0x22f
-> > [   61.197040]  mlx5_ib_create_wq+0x1c99/0x1d50
-> > [   61.206632]  ib_uverbs_ex_create_wq+0x499/0x820
-> > [   61.213892]  ib_uverbs_write+0x77e/0xae0
-> > [   61.248018]  vfs_write+0x121/0x3b0
-> > [   61.249831]  ksys_write+0xa1/0x120
-> > [   61.254024]  do_syscall_64+0x7c/0x2a0
-> > [   61.256178]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> > [   61.259211] RIP: 0033:0x7f54bab70e99
-> > [   61.262125] Code: 00 f3 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89
-> > [   61.268678] RSP: 002b:00007ffe1541c318 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> > [   61.271076] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f54bab70e99
-> > [   61.273795] RDX: 0000000000000070 RSI: 0000000020000240 RDI: 0000000000000003
-> > [   61.276982] RBP: 00007ffe1541c330 R08: 00000000200078e0 R09: 0000000000000002
-> > [   61.280035] R10: 0000000000000000 R11: 0000000000000246 R12: 00000000004005c0
-> > [   61.283279] R13: 00007ffe1541c420 R14: 0000000000000000 R15: 0000000000000000
-> >
-> > Cc: <stable@vger.kernel.org> # 4.7
-> > Fixes: 79b20a6c3014 ("IB/mlx5: Add receive Work Queue verbs")
-> > Cc: syzkaller <syzkaller@googlegroups.com>
-> > Reported-by: Noa Osherovich <noaos@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/infiniband/hw/mlx5/qp.c | 6 +++++-
-> >  1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> > index 6034a670859f..8e40263fd40e 100644
-> > +++ b/drivers/infiniband/hw/mlx5/qp.c
-> > @@ -5377,7 +5377,11 @@ static int set_user_rq_size(struct mlx5_ib_dev *dev,
-> >
-> >  	rwq->wqe_count = ucmd->rq_wqe_count;
-> >  	rwq->wqe_shift = ucmd->rq_wqe_shift;
-> > -	rwq->buf_size = (rwq->wqe_count << rwq->wqe_shift);
-> > +	rwq->buf_size =
-> > +		shift_overflow((size_t)rwq->wqe_count, (size_t)rwq->wqe_shift);
->
-> The casts are redundant, the function argument is already size_t so
-> implicit promotion is guaranteed.
-
-rwq->wqe_count and rwq->wqe_shift are declared as u32 and not as size_t.
-
-https://elixir.bootlin.com/linux/latest/source/drivers/infiniband/hw/mlx5/mlx5_ib.h#L296
-
-Thanks
-
->
-> Jason
-
---dfmC41YZQlborXoK
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbMKOBAAoJEORje4g2clin700P/jmZEKYIVoSKKq4+Xh556TCZ
-QA7EOhthIFwornfqGivjuXpfWhp3J/4loWwI8bmO5nP5TgivR0DWsXzQ+FrhRr+b
-DhZC1PmoU6CD5S/fkqStFq99avYxwUnHme9Hp/akXvL1GAkh3Me/eLypGaeuUFXq
-YHRXFu58rTMadm6Xbw0YDSGucusxKqROzZg5QcSAfX1G2c9hwuwIY46y4LrJmBpB
-06lx49s3gpaSBxakc1EQrcVuNU3V92QctYbpQ3whJ0BA5gQgK5y5RhO2xe1H38Qd
-dD1fV0Lfr5+lmH8xtnANJpQ0+Y3UYGeIlNSHijqbTG5twlILhEaBCFmCeOa2pwwj
-QyzU3k0iRE+V9R39jibTd5SZdh+dDvKLeCbeq7Hzf+UeqUcDZQ86d/Gbm2ffM4vh
-bMVhUWtBRJkysfqFCttG+jy316a7WGORCsKjzColk1Dtdav3reSEUNz5xBYpicdo
-Qs4AbTx2+i/b3pM+Bj2bY2x0vUhacnotJ6BzBUdO+qmRJzE7SJ/tHI8H8eqMbtWW
-EoO4oeoA73/mA9bh8rhtynim9S1chgfLxSraXL3tUSMr5DSICPdwnTDP2wdkVIaB
-a52y3RwcSxjUszo1RIDQy6wHXHXUolIaczrgD31uRtn2EK9/zMHhNVTa9G/lTXR8
-34eySfaKtSHGdkrOxWPB
-=0+FM
------END PGP SIGNATURE-----
-
---dfmC41YZQlborXoK--
+T24gTW9uIDI1LTA2LTE4IDEwOjAxOjAzLCBNaWNoYWwgSG9ja28gd3JvdGU6Cj4gT24gRnJpIDIy
+LTA2LTE4IDE2OjA5OjA2LCBGZWxpeCBLdWVobGluZyB3cm90ZToKPiA+IE9uIDIwMTgtMDYtMjIg
+MTE6MjQgQU0sIE1pY2hhbCBIb2NrbyB3cm90ZToKPiA+ID4gT24gRnJpIDIyLTA2LTE4IDE3OjEz
+OjAyLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+ID4gPj4gSGkgTWljaGFsLAo+ID4gPj4KPiA+
+ID4+IFtBZGRpbmcgRmVsaXggYXMgd2VsbF0KPiA+ID4+Cj4gPiA+PiBXZWxsIGZpcnN0IG9mIGFs
+bCB5b3UgaGF2ZSBhIG1pc2NvbmNlcHRpb24gd2h5IGF0IGxlYXN0IHRoZSBBTUQgZ3JhcGhpY3MK
+PiA+ID4+IGRyaXZlciBuZWVkIHRvIGJlIGFibGUgdG8gc2xlZXAgaW4gYW4gTU1VIG5vdGlmaWVy
+OiBXZSBuZWVkIHRvIHNsZWVwIGJlY2F1c2UKPiA+ID4+IHdlIG5lZWQgdG8gd2FpdCBmb3IgaGFy
+ZHdhcmUgb3BlcmF0aW9ucyB0byBmaW5pc2ggYW5kICpOT1QqIGJlY2F1c2Ugd2UgbmVlZAo+ID4g
+Pj4gdG8gd2FpdCBmb3IgbG9ja3MuCj4gPiA+Pgo+ID4gPj4gSSdtIG5vdCBzdXJlIGlmIHlvdXIg
+ZmxhZyBub3cgbWVhbnMgdGhhdCB5b3UgZ2VuZXJhbGx5IGNhbid0IHNsZWVwIGluIE1NVQo+ID4g
+Pj4gbm90aWZpZXJzIGFueSBtb3JlLCBidXQgaWYgdGhhdCdzIHRoZSBjYXNlIGF0IGxlYXN0IEFN
+RCBoYXJkd2FyZSB3aWxsIGJyZWFrCj4gPiA+PiBiYWRseS4gSW4gb3VyIGNhc2UgdGhlIGFwcHJv
+YWNoIG9mIHdhaXRpbmcgZm9yIGEgc2hvcnQgdGltZSBmb3IgdGhlIHByb2Nlc3MKPiA+ID4+IHRv
+IGJlIHJlYXBlZCBhbmQgdGhlbiBzZWxlY3QgYW5vdGhlciB2aWN0aW0gYWN0dWFsbHkgc291bmRz
+IGxpa2UgdGhlIHJpZ2h0Cj4gPiA+PiB0aGluZyB0byBkby4KPiA+ID4gV2VsbCwgSSBkbyBub3Qg
+bmVlZCB0byBtYWtlIHRoZSBub3RpZmllciBjb2RlIG5vbiBibG9ja2luZyBhbGwgdGhlIHRpbWUu
+Cj4gPiA+IEFsbCBJIG5lZWQgaXMgdG8gZW5zdXJlIHRoYXQgaXQgd29uJ3Qgc2xlZXAgaWYgdGhl
+IGZsYWcgc2F5cyBzbyBhbmQKPiA+ID4gcmV0dXJuIC1FQUdBSU4gaW5zdGVhZC4KPiA+ID4KPiA+
+ID4gU28gaGVyZSBpcyB3aGF0IEkgZG8gZm9yIGFtZGdwdToKPiA+IAo+ID4gSW4gdGhlIGNhc2Ug
+b2YgS0ZEIHdlIGFsc28gbmVlZCB0byB0YWtlIHRoZSBEUU0gbG9jazoKPiA+IAo+ID4gYW1kZ3B1
+X21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnRfaHNhIC0+IGFtZGdwdV9hbWRrZmRfZXZpY3RfdXNl
+cnB0ciAtPgo+ID4ga2dkMmtmZF9xdWllc2NlX21tIC0+IGtmZF9wcm9jZXNzX2V2aWN0X3F1ZXVl
+cyAtPiBldmljdF9wcm9jZXNzX3F1ZXVlc19jcHNjaAo+ID4gCj4gPiBTbyB3ZSdkIG5lZWQgdG8g
+cGFzcyB0aGUgYmxvY2thYmxlIHBhcmFtZXRlciBhbGwgdGhlIHdheSB0aHJvdWdoIHRoYXQKPiA+
+IGNhbGwgY2hhaW4uCj4gCj4gVGhhbmtzLCBJIGhhdmUgbWlzc2VkIHRoYXQgcGFydC4gU28gSSBn
+dWVzcyBJIHdpbGwgc3RhcnQgd2l0aCBzb21ldGhpbmcKPiBzaW1pbGFyIHRvIGludGVsLWdmeCBh
+bmQgYmFjayBvZmYgd2hlbiB0aGUgY3VycmVudCByYW5nZSBuZWVkcyBzb21lCj4gdHJlYXRtZW50
+LiBTbyB0aGlzIG9uIHRvcC4gRG9lcyBpdCBsb29rIGNvcnJlY3Q/Cj4gCj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jIGIvZHJpdmVycy9ncHUvZHJt
+L2FtZC9hbWRncHUvYW1kZ3B1X21uLmMKPiBpbmRleCBkMTM4YTUyNmZlZmYuLmUyZDQyMmIzZWIw
+YiAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfbW4uYwo+
+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jCj4gQEAgLTI2Niw2
+ICsyNjYsMTEgQEAgc3RhdGljIGludCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydF9o
+c2Eoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4gIAkJc3RydWN0IGFtZGdwdV9tbl9ub2RlICpu
+b2RlOwo+ICAJCXN0cnVjdCBhbWRncHVfYm8gKmJvOwo+ICAKPiArCQlpZiAoIWJsb2NrYWJsZSkg
+ewo+ICsJCQlhbWRncHVfbW5fcmVhZF91bmxvY2soKTsKPiArCQkJcmV0dXJuIC1FQUdBSU47Cj4g
+KwkJfQo+ICsKPiAgCQlub2RlID0gY29udGFpbmVyX29mKGl0LCBzdHJ1Y3QgYW1kZ3B1X21uX25v
+ZGUsIGl0KTsKPiAgCQlpdCA9IGludGVydmFsX3RyZWVfaXRlcl9uZXh0KGl0LCBzdGFydCwgZW5k
+KTsKCkJsZSwganVzdCBub3RpY2VkIHRoYXQgaGFsZiBvZiB0aGUgY2hhbmdlIGRpZG4ndCBnZXQg
+dG8gZ2l0IGluZGV4Li4uClRoaXMgaXMgd2hhdCBJIGhhdmUKY29tbWl0IGM0NzAxYjM2YWMyODAy
+YjkwM2RiM2QwNWNmNzdjMDMwZmNjY2UzYTgKQXV0aG9yOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0Bz
+dXNlLmNvbT4KRGF0ZTogICBNb24gSnVuIDI1IDE1OjI0OjAzIDIwMTggKzAyMDAKCiAgICBmb2xk
+IG1lCiAgICAKICAgIC0gYW1kIGdwdSBub3RpZmllcnMgY2FuIHNsZWVwIGRlZXBlciBpbiB0aGUg
+Y2FsbGNoYWluIChldmljdF9wcm9jZXNzX3F1ZXVlc19jcHNjaAogICAgICBvbiBhIGxvY2sgYW5k
+IGFtZGdwdV9tbl9pbnZhbGlkYXRlX25vZGUgb24gdW5ib3VuZCB0aW1lb3V0KSBtYWtlIHN1cmUK
+ICAgICAgd2UgYmFpbCBvdXQgd2hlbiB3ZSBoYXZlIGFuIGludGVyc2VjdGluZyByYW5nZSBmb3Ig
+c3RhcnRlcgoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9t
+bi5jIGIvZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1kZ3B1X21uLmMKaW5kZXggZDEzOGE1
+MjZmZWZmLi4zMzk5YTRhOTI3ZmIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1k
+Z3B1L2FtZGdwdV9tbi5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9t
+bi5jCkBAIC0yMjUsNiArMjI1LDExIEBAIHN0YXRpYyBpbnQgYW1kZ3B1X21uX2ludmFsaWRhdGVf
+cmFuZ2Vfc3RhcnRfZ2Z4KHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAogCXdoaWxlIChpdCkgewog
+CQlzdHJ1Y3QgYW1kZ3B1X21uX25vZGUgKm5vZGU7CiAKKwkJaWYgKCFibG9ja2FibGUpIHsKKwkJ
+CWFtZGdwdV9tbl9yZWFkX3VubG9jayhybW4pOworCQkJcmV0dXJuIC1FQUdBSU47CisJCX0KKwog
+CQlub2RlID0gY29udGFpbmVyX29mKGl0LCBzdHJ1Y3QgYW1kZ3B1X21uX25vZGUsIGl0KTsKIAkJ
+aXQgPSBpbnRlcnZhbF90cmVlX2l0ZXJfbmV4dChpdCwgc3RhcnQsIGVuZCk7CiAKQEAgLTI2Niw2
+ICsyNzEsMTEgQEAgc3RhdGljIGludCBhbWRncHVfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydF9o
+c2Eoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCiAJCXN0cnVjdCBhbWRncHVfbW5fbm9kZSAqbm9k
+ZTsKIAkJc3RydWN0IGFtZGdwdV9ibyAqYm87CiAKKwkJaWYgKCFibG9ja2FibGUpIHsKKwkJCWFt
+ZGdwdV9tbl9yZWFkX3VubG9jayhybW4pOworCQkJcmV0dXJuIC1FQUdBSU47CisJCX0KKwogCQlu
+b2RlID0gY29udGFpbmVyX29mKGl0LCBzdHJ1Y3QgYW1kZ3B1X21uX25vZGUsIGl0KTsKIAkJaXQg
+PSBpbnRlcnZhbF90cmVlX2l0ZXJfbmV4dChpdCwgc3RhcnQsIGVuZCk7CiAKLS0gCk1pY2hhbCBI
+b2NrbwpTVVNFIExhYnMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
+aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4Cg==
