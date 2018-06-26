@@ -1,55 +1,45 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
-Date: Mon, 25 Jun 2018 15:34:38 -0600
-Message-ID: <20180625213438.GA19857@ziepe.ca>
-References: <20180624082353.16138-1-leon@kernel.org>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 11/15] CIFS: Pass page offset for calculating signature
+Date: Tue, 26 Jun 2018 04:15:15 +0000
+Message-ID: <DM5PR2101MB0728DDBD53A756B6CEB9EEAECE490@DM5PR2101MB0728.namprd21.prod.outlook.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-12-longli@linuxonhyperv.com>
+ <7a9ee28d-4c18-c4fd-259b-1feeeb3fb83b@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180624082353.16138-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7a9ee28d-4c18-c4fd-259b-1feeeb3fb83b@talpey.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jun 24, 2018 at 11:23:41AM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Hi,
-> 
-> This is bunch of patches trigged by running syzkaller internally.
-> 
-> I'm sending them based on rdma-next mainly for two reasons:
-> 1, Most of the patches fix the old issues and it doesn't matter when
-> they will hit the Linus's tree: now or later in a couple of weeks
-> during merge window.
-> 2. They interleave with code cleanup, mlx5-next patches and Michael's
-> feedback on flow counters series.
-> 
-> Thanks
-> 
-> Leon Romanovsky (12):
->   RDMA/uverbs: Protect from attempts to create flows on unsupported QP
->   RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
-
-I applied these two to for-rc
-
->   RDMA/uverbs: Check existence of create_flow callback
->   RDMA/verbs: Drop kernel variant of create_flow
->   RDMA/verbs: Drop kernel variant of destroy_flow
->   net/mlx5: Rate limit errors in command interface
->   RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
->   RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
->   RDMA/uverbs: Remove redundant check
-
-These to for-next
-
->   overflow.h: Add arithmetic shift helper
->   RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
->   RDMA/mlx5: Reuse existed shift_overlow helper
-
-And these will have to be respun.
-
-Thanks,
-Jason
+PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDExLzE1XSBDSUZTOiBQYXNzIHBhZ2Ugb2Zmc2V0IGZv
+ciBjYWxjdWxhdGluZyBzaWduYXR1cmUNCj4gDQo+IE9uIDUvMzAvMjAxOCAzOjQ4IFBNLCBMb25n
+IExpIHdyb3RlOg0KPiA+IEZyb206IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0KPiA+
+DQo+ID4gV2hlbiBjYWxjdWxhdGluZyBzaWduYXR1cmUgZm9yIHRoZSBwYWNrZXQsIGl0IG5lZWRz
+IHRvIHJlYWQgaW50byB0aGUNCj4gPiBjb3JyZWN0IHBhZ2Ugb2Zmc2V0IGZvciB0aGUgZGF0YS4N
+Cj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IExvbmcgTGkgPGxvbmdsaUBtaWNyb3NvZnQuY29tPg0K
+PiA+IC0tLQ0KPiA+ICAgZnMvY2lmcy9jaWZzZW5jcnlwdC5jIHwgOSArKysrKy0tLS0NCj4gPiAg
+IDEgZmlsZSBjaGFuZ2VkLCA1IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pDQo+ID4NCj4g
+PiBkaWZmIC0tZ2l0IGEvZnMvY2lmcy9jaWZzZW5jcnlwdC5jIGIvZnMvY2lmcy9jaWZzZW5jcnlw
+dC5jIGluZGV4DQo+ID4gYTZlZjA4OC4uZTg4MzAzYyAxMDA2NDQNCj4gPiAtLS0gYS9mcy9jaWZz
+L2NpZnNlbmNyeXB0LmMNCj4gPiArKysgYi9mcy9jaWZzL2NpZnNlbmNyeXB0LmMNCj4gPiBAQCAt
+NjgsMTEgKzY4LDEyIEBAIGludCBfX2NpZnNfY2FsY19zaWduYXR1cmUoc3RydWN0IHNtYl9ycXN0
+ICpycXN0LA0KPiA+DQo+ID4gICAJLyogbm93IGhhc2ggb3ZlciB0aGUgcnFfcGFnZXMgYXJyYXkg
+Ki8NCj4gPiAgIAlmb3IgKGkgPSAwOyBpIDwgcnFzdC0+cnFfbnBhZ2VzOyBpKyspIHsNCj4gPiAt
+CQl2b2lkICprYWRkciA9IGttYXAocnFzdC0+cnFfcGFnZXNbaV0pOw0KPiA+IC0JCXNpemVfdCBs
+ZW4gPSBycXN0LT5ycV9wYWdlc3o7DQo+ID4gKwkJdm9pZCAqa2FkZHI7DQo+ID4gKwkJdW5zaWdu
+ZWQgaW50IGxlbiwgb2Zmc2V0Ow0KPiA+DQo+ID4gLQkJaWYgKGkgPT0gcnFzdC0+cnFfbnBhZ2Vz
+IC0gMSkNCj4gPiAtCQkJbGVuID0gcnFzdC0+cnFfdGFpbHN6Ow0KPiA+ICsJCXJxc3RfcGFnZV9n
+ZXRfbGVuZ3RoKHJxc3QsIGksICZsZW4sICZvZmZzZXQpOw0KPiA+ICsNCj4gPiArCQlrYWRkciA9
+IChjaGFyICopIGttYXAocnFzdC0+cnFfcGFnZXNbaV0pICsgb2Zmc2V0Ow0KPiANCj4gSSBzdXBw
+b3NlIGl0J3MgbW9yZSByb2J1c3QgdG8gbWFwIGEgcGFnZSBhdCBhIHRpbWUsIGJ1dCBpdCdzIHBy
+ZXR0eSBleHBlbnNpdmUuDQo+IElzIHRoaXMgdGhlIG9ubHkgd2F5IHRvIGl0ZXJhdGUgb3ZlciBh
+IHBvdGVudGlhbGx5IHZlcnkgbGFyZ2UgYmxvY2sgb2YgZGF0YT8gRm9yDQo+IGV4YW1wbGUsIGEg
+MU1CIHNlZ21lbnQgbWVhbnMgMjU2IGttYXAva3VubWFwcy4NCg0KSSB3aWxsIGxvb2sgaW50byBu
+b3QgbWFwcGluZyB0aG9zZSBwYWdlcyB3aGlsZSBkb2luZyBJL08uDQoNClRoaXMgY29kZSBwYXRo
+IGlzIGZvciBSRE1BIHNlbmQvcmVjZWl2ZSwgYW5kIGl0J3MgcmFyZWx5IHVzZWQgZm9yIHRyYW5z
+ZmVycmluZyBsYXJnZSBhbW91bnQgb2YgZGF0YS4NCg0KPiANCj4gVG9tLg0KPiANCj4gPg0KPiA+
+ICAgCQljcnlwdG9fc2hhc2hfdXBkYXRlKHNoYXNoLCBrYWRkciwgbGVuKTsNCj4gPg0KPiA+DQo=
