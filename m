@@ -1,95 +1,101 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
-Date: Tue, 26 Jun 2018 07:21:26 +0300
-Message-ID: <20180626042126.GM17747@mtr-leonro.mtl.com>
+Subject: Re: [PATCH rdma-next 08/12] overflow.h: Add arithmetic shift helper
+Date: Tue, 26 Jun 2018 07:24:05 +0300
+Message-ID: <20180626042405.GN17747@mtr-leonro.mtl.com>
 References: <20180624082353.16138-1-leon@kernel.org>
- <20180625213438.GA19857@ziepe.ca>
+ <20180624082353.16138-9-leon@kernel.org>
+ <CAKwiHFhgsyWYD+q+JFb2HJEphnjiiOp=o4Airv3MW031q2jx8w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="EqVOK5mkaJAMmtSx"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="MdEjg5WkSuUg8x46"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180625213438.GA19857@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <CAKwiHFhgsyWYD+q+JFb2HJEphnjiiOp=o4Airv3MW031q2jx8w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Kees Cook <keescook@chromium.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---EqVOK5mkaJAMmtSx
+--MdEjg5WkSuUg8x46
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jun 25, 2018 at 03:34:38PM -0600, Jason Gunthorpe wrote:
-> On Sun, Jun 24, 2018 at 11:23:41AM +0300, Leon Romanovsky wrote:
+On Mon, Jun 25, 2018 at 11:26:05AM +0200, Rasmus Villemoes wrote:
+> On 24 June 2018 at 10:23, Leon Romanovsky <leon@kernel.org> wrote:
+>
 > > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > Hi,
+> > Add shift_overflow() helper to help driver authors to ensure that
+> > shift operand doesn't cause to overflow, which is very common pattern
+> > for RDMA drivers.
 > >
-> > This is bunch of patches trigged by running syzkaller internally.
-> >
-> > I'm sending them based on rdma-next mainly for two reasons:
-> > 1, Most of the patches fix the old issues and it doesn't matter when
-> > they will hit the Linus's tree: now or later in a couple of weeks
-> > during merge window.
-> > 2. They interleave with code cleanup, mlx5-next patches and Michael's
-> > feedback on flow counters series.
-> >
-> > Thanks
-> >
-> > Leon Romanovsky (12):
-> >   RDMA/uverbs: Protect from attempts to create flows on unsupported QP
-> >   RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
 >
-> I applied these two to for-rc
+> Not a huge fan. The other _overflow functions have a different behaviour
+> (in how they return the result and the overflow status) and are
+> type-generic, and I think someone at some point will use such a
+> generically-named helper for stuff other than size_t. At least the
+> array_size and struct_size helpers have size in their name and are
+> specifically about computing the size of something, and are designed to be
+> used directly as arguments to allocators, where SIZE_MAX is a suitable
+> sentinel. I can't see the other patches in this series, so I don't know how
+> you plan on using it, but it should also be usable outside rdma.
 >
-> >   RDMA/uverbs: Check existence of create_flow callback
-> >   RDMA/verbs: Drop kernel variant of create_flow
-> >   RDMA/verbs: Drop kernel variant of destroy_flow
-> >   net/mlx5: Rate limit errors in command interface
-> >   RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
-> >   RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
-> >   RDMA/uverbs: Remove redundant check
+> Aside: why does b have type size_t?
 >
-> These to for-next
+> Does __must_check really make sense for a function without side effects? It
+> doesn't tell gcc to warn if the result is not used in a conditional, it
+> just warns if the result is not used at all, which wouldn't realistically
+> happen for a pure function.
+>
+> I'd much rather see a type-generic check_shift_overflow (we can agree to
+> leave "left" out of the name) with semantics similar to the other
+> check_*_overflow functions. Then, if a size_t-eating, SIZE_MAX-returning
+> helper is more convenient for rdma, that should be easy to implement on top
+> of that. It shouldn't really be that hard to do. Something like
+>
+> check_shift_overflow(a, s, d) {
+>     unsigned _nbits = 8*sizeof(a);
+>     typeof(a) _a = (a);
+>     typeof(s) _s = (s);
+>     typeof(d) _d = (d);
+>
+>     *_d = ((u64)(_a) << (_s & (_nbits-1)));
+>
+>     _s >= _nbits || (_s > 0 && (_a >> (_nbits - _s - is_signed_type(a))) !=
+> 0);
+> }
+>
+> which should also handle shifts of signed types (though it allows << 0 for
+> negative values; that's easy to also disallow). But the exact semantics
+> should be documented via a bunch of tests (hint hint) exercising corner
+> cases.
 
-Jason,
+I'll respin.
 
-We would like to see patch "[PATCH mlx5-next 05/12] net/mlx5:
-Rate limit errors in command interface" in out mlx5-next. Is it possible
-at this point to drop it from for-next, so I'll be able to take it into
-mlx5-next?
-
-Thanks
+Thanks for the feedback.
 
 >
-> >   overflow.h: Add arithmetic shift helper
-> >   RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
-> >   RDMA/mlx5: Reuse existed shift_overlow helper
->
-> And these will have to be respun.
->
-> Thanks,
-> Jason
+> Rasmus
 
---EqVOK5mkaJAMmtSx
+--MdEjg5WkSuUg8x46
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbMb9GAAoJEORje4g2clinbHQP/0RWIMw8eeYRHR3VkApXVHdV
-i+y828vXb0Ez8VZvt5LY2cZ4gcVjSfRWeJaduWNxuRX3QhwFszY3aNLKc6qGEnT3
-mzYdmCweG8Q0xoVu9mMV1b1nt6pUQg/zRittEvEId08ZXFMKiQvG8MhsQVdufz+a
-KKGNghZzf7rJ2BvafmkSKTzfQLlve8v0APwqSfxZpj7WOlJONpSBMrcsN6bmWBQi
-1oxTd8HVKjHNszbHaL7Mdu1Z7CLRua8bX+Po8ASP0ZyEUQC0PIeG89lx0zZl/ZDI
-9Tm4e6ij3ccZs9Yq3N84g1bCJ/AVL3rX707JAd5I6r910svYn03/cNynIKzlACmS
-6lc1CvOqc6iDAK5RMYaNRDJbtxiGeS99gjz0zGGkVSXCJQmHDk56GC/1qnORgOcL
-TKC2meo4d3R+nEIQlVF+P/K4u+5nf+/qkPZKFyTIasSBs9L1muwtpTyjbSK6mJrU
-CF5iSqYdb45BVsFJs0KM0wQiO6eibwD8vC+XdyH2HFyAZ5T3zoUgeAY6nAxJHPyd
-/mZZhqnvU4WrAJ0TXlD6OQQ24JIlSDVL/0HrbnGpeF3Z8RKBLqPYwwGBtDBQe6GW
-enXgmW0oO1gOk82hnPnJr1H9584iOWs8qv2H8Mk+Tlk9cOAwBrqd2FQYK2028vHj
-jN0Y6VdAHySL2TweQhLs
-=P9Mt
+iQIcBAEBAgAGBQJbMb/lAAoJEORje4g2clinA0UP/1wEsqeZqLyxrMn+BKXOTs8R
+QuEQ/Bwcwq9tEEt5dl51NFAqliFIifh6+fdghet0gAo2G/uKxbrIyd/WR3NQVvp/
+8W65VA9Ms1LJHUi8Gx/IloaocXvjlKXK1cqlj4l3VNqxU+7xQ3c51kspih+ND4qW
+aMHk9xK2fzk05vOtuwDtyCxNNPKSTz4et11MdMet2t8z6fAIvYD+zfLtfSq/wbRA
+PYYVa3mFxygrc+NWyKWdlchJEOpAnzCXC6Llu9nyxUrhdZnKcsLAT1fM7LQDnBrH
+zyfqbiUCv7XnkKaG/pkcT2+qC1YqLc/BXjtfjMwUN4FZWDyh1UhTdtDxnGugG8FD
+RhZade6sabLvC1V8NJKgaoHD8L6E/Fk8FpB1ep+CYNydJgcW6YED0myNt2jcFNW1
+t/cpX0D7hm5wz+HWQ7qj7aF/yt66lwCwEqlqf1lpEUAXXusd+b8k6hFJahgT8BPd
+fqkAwHE6Dv2DBfSdiErDSIYMBtH6ZMHw4o8bfsmfrO94VZN3wIlcWYkIkhqV6WD4
+jBDSN/3IHBbETzsBmYLgtIvX/Vo2SlfGepIsR7zRj/fX93gy4xzmOLTFMc0cbJEV
+xWY/x6VYTsE5/8sqZ12ecfpk5VLc2v3zNXe1K3SlPnOdfTC4zoX4+dLsVfk2Pyvw
+3ZD3bb24h3h1zWKSUJqD
+=ySnk
 -----END PGP SIGNATURE-----
 
---EqVOK5mkaJAMmtSx--
+--MdEjg5WkSuUg8x46--
