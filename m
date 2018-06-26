@@ -1,148 +1,108 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v2 14/15] CIFS: Add support for direct I/O write
-Date: Tue, 26 Jun 2018 04:39:43 +0000
-Message-ID: <DM5PR2101MB07285F85A018D8C2EFC2D730CE490@DM5PR2101MB0728.namprd21.prod.outlook.com>
-References: <20180530194807.31657-1-longli@linuxonhyperv.com>
- <20180530194807.31657-15-longli@linuxonhyperv.com>
- <9162de67-fc5d-26e9-5882-26377194a2ff@talpey.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Mon, 25 Jun 2018 23:31:06 -0700
+Message-ID: <550aacd3-cfea-c99a-3b60-563dd1621d5c@nvidia.com>
+References: <3898ef6b-2fa0-e852-a9ac-d904b47320d5@nvidia.com>
+ <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
+ <0e6053b3-b78c-c8be-4fab-e8555810c732@nvidia.com>
+ <20180619082949.wzoe42wpxsahuitu@quack2.suse.cz>
+ <20180619090255.GA25522@bombadil.infradead.org>
+ <20180619104142.lpilc6esz7w3a54i@quack2.suse.cz>
+ <70001987-3938-d33e-11e0-de5b19ca3bdf@nvidia.com>
+ <20180620120824.bghoklv7qu2z5wgy@quack2.suse.cz>
+ <151edbf3-66ff-df0c-c1cc-5998de50111e@nvidia.com>
+ <20180621163036.jvdbsv3t2lu34pdl@quack2.suse.cz>
+ <20180625152150.jnf5suiubecfppcl@quack2.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9162de67-fc5d-26e9-5882-26377194a2ff@talpey.com>
+In-Reply-To: <20180625152150.jnf5suiubecfppcl@quack2.suse.cz>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <john.hubbard@gmail.com>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDE0LzE1XSBDSUZTOiBBZGQgc3VwcG9ydCBmb3IgZGly
-ZWN0IEkvTyB3cml0ZQ0KPiANCj4gT24gNS8zMC8yMDE4IDM6NDggUE0sIExvbmcgTGkgd3JvdGU6
-DQo+ID4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4NCj4gPiBJbXBs
-ZW1lbnQgdGhlIGZ1bmN0aW9uIGZvciBkaXJlY3QgSS9PIHdyaXRlLiBJdCBkb2Vzbid0IHN1cHBv
-cnQgQUlPLA0KPiA+IHdoaWNoIHdpbGwgYmUgaW1wbGVtZW50ZWQgaW4gYSBmb2xsb3cgdXAgcGF0
-Y2guDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNv
-bT4NCj4gPiAtLS0NCj4gPiAgIGZzL2NpZnMvY2lmc2ZzLmggfCAgIDEgKw0KPiA+ICAgZnMvY2lm
-cy9maWxlLmMgICB8IDE2NQ0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrDQo+ID4gICAyIGZpbGVzIGNoYW5nZWQsIDE2NiBpbnNlcnRpb25z
-KCspDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvZnMvY2lmcy9jaWZzZnMuaCBiL2ZzL2NpZnMvY2lm
-c2ZzLmggaW5kZXgNCj4gPiA3ZmJhOWFhLi5lOWM1MTAzIDEwMDY0NA0KPiA+IC0tLSBhL2ZzL2Np
-ZnMvY2lmc2ZzLmgNCj4gPiArKysgYi9mcy9jaWZzL2NpZnNmcy5oDQo+ID4gQEAgLTEwNSw2ICsx
-MDUsNyBAQCBleHRlcm4gc3NpemVfdCBjaWZzX3VzZXJfcmVhZHYoc3RydWN0IGtpb2NiICppb2Ni
-LA0KPiBzdHJ1Y3QgaW92X2l0ZXIgKnRvKTsNCj4gPiAgIGV4dGVybiBzc2l6ZV90IGNpZnNfZGly
-ZWN0X3JlYWR2KHN0cnVjdCBraW9jYiAqaW9jYiwgc3RydWN0IGlvdl9pdGVyICp0byk7DQo+ID4g
-ICBleHRlcm4gc3NpemVfdCBjaWZzX3N0cmljdF9yZWFkdihzdHJ1Y3Qga2lvY2IgKmlvY2IsIHN0
-cnVjdCBpb3ZfaXRlciAqdG8pOw0KPiA+ICAgZXh0ZXJuIHNzaXplX3QgY2lmc191c2VyX3dyaXRl
-dihzdHJ1Y3Qga2lvY2IgKmlvY2IsIHN0cnVjdCBpb3ZfaXRlcg0KPiA+ICpmcm9tKTsNCj4gPiAr
-ZXh0ZXJuIHNzaXplX3QgY2lmc19kaXJlY3Rfd3JpdGV2KHN0cnVjdCBraW9jYiAqaW9jYiwgc3Ry
-dWN0IGlvdl9pdGVyDQo+ID4gKypmcm9tKTsNCj4gPiAgIGV4dGVybiBzc2l6ZV90IGNpZnNfc3Ry
-aWN0X3dyaXRldihzdHJ1Y3Qga2lvY2IgKmlvY2IsIHN0cnVjdCBpb3ZfaXRlciAqZnJvbSk7DQo+
-ID4gICBleHRlcm4gaW50IGNpZnNfbG9jayhzdHJ1Y3QgZmlsZSAqLCBpbnQsIHN0cnVjdCBmaWxl
-X2xvY2sgKik7DQo+ID4gICBleHRlcm4gaW50IGNpZnNfZnN5bmMoc3RydWN0IGZpbGUgKiwgbG9m
-Zl90LCBsb2ZmX3QsIGludCk7IGRpZmYNCj4gPiAtLWdpdCBhL2ZzL2NpZnMvZmlsZS5jIGIvZnMv
-Y2lmcy9maWxlLmMgaW5kZXggZTZlNmYyNC4uOGMzODViMSAxMDA2NDQNCj4gPiAtLS0gYS9mcy9j
-aWZzL2ZpbGUuYw0KPiA+ICsrKyBiL2ZzL2NpZnMvZmlsZS5jDQo+ID4gQEAgLTI0NjEsNiArMjQ2
-MSwzNSBAQCBjaWZzX3VuY2FjaGVkX3dyaXRlZGF0YV9yZWxlYXNlKHN0cnVjdCBrcmVmDQo+ID4g
-KnJlZmNvdW50KQ0KPiA+DQo+ID4gICBzdGF0aWMgdm9pZCBjb2xsZWN0X3VuY2FjaGVkX3dyaXRl
-X2RhdGEoc3RydWN0IGNpZnNfYWlvX2N0eCAqY3R4KTsNCj4gPg0KPiA+ICtzdGF0aWMgdm9pZCBj
-aWZzX2RpcmVjdF93cml0ZWRhdGFfcmVsZWFzZShzdHJ1Y3Qga3JlZiAqcmVmY291bnQpIHsNCj4g
-PiArCWludCBpOw0KPiA+ICsJc3RydWN0IGNpZnNfd3JpdGVkYXRhICp3ZGF0YSA9IGNvbnRhaW5l
-cl9vZihyZWZjb3VudCwNCj4gPiArCQkJCQlzdHJ1Y3QgY2lmc193cml0ZWRhdGEsIHJlZmNvdW50
-KTsNCj4gPiArDQo+ID4gKwlmb3IgKGkgPSAwOyBpIDwgd2RhdGEtPm5yX3BhZ2VzOyBpKyspDQo+
-ID4gKwkJcHV0X3BhZ2Uod2RhdGEtPnBhZ2VzW2ldKTsNCj4gPiArDQo+ID4gKwljaWZzX3dyaXRl
-ZGF0YV9yZWxlYXNlKHJlZmNvdW50KTsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIHZvaWQg
-Y2lmc19kaXJlY3Rfd3JpdGV2X2NvbXBsZXRlKHN0cnVjdCB3b3JrX3N0cnVjdCAqd29yaykgew0K
-PiA+ICsJc3RydWN0IGNpZnNfd3JpdGVkYXRhICp3ZGF0YSA9IGNvbnRhaW5lcl9vZih3b3JrLA0K
-PiA+ICsJCQkJCXN0cnVjdCBjaWZzX3dyaXRlZGF0YSwgd29yayk7DQo+ID4gKwlzdHJ1Y3QgaW5v
-ZGUgKmlub2RlID0gZF9pbm9kZSh3ZGF0YS0+Y2ZpbGUtPmRlbnRyeSk7DQo+ID4gKwlzdHJ1Y3Qg
-Y2lmc0lub2RlSW5mbyAqY2lmc2kgPSBDSUZTX0koaW5vZGUpOw0KPiA+ICsNCj4gPiArCXNwaW5f
-bG9jaygmaW5vZGUtPmlfbG9jayk7DQo+ID4gKwljaWZzX3VwZGF0ZV9lb2YoY2lmc2ksIHdkYXRh
-LT5vZmZzZXQsIHdkYXRhLT5ieXRlcyk7DQo+ID4gKwlpZiAoY2lmc2ktPnNlcnZlcl9lb2YgPiBp
-bm9kZS0+aV9zaXplKQ0KPiA+ICsJCWlfc2l6ZV93cml0ZShpbm9kZSwgY2lmc2ktPnNlcnZlcl9l
-b2YpOw0KPiA+ICsJc3Bpbl91bmxvY2soJmlub2RlLT5pX2xvY2spOw0KPiA+ICsNCj4gPiArCWNv
-bXBsZXRlKCZ3ZGF0YS0+ZG9uZSk7DQo+ID4gKwlrcmVmX3B1dCgmd2RhdGEtPnJlZmNvdW50LCBj
-aWZzX2RpcmVjdF93cml0ZWRhdGFfcmVsZWFzZSk7IH0NCj4gPiArDQo+ID4gICBzdGF0aWMgdm9p
-ZA0KPiA+ICAgY2lmc191bmNhY2hlZF93cml0ZXZfY29tcGxldGUoc3RydWN0IHdvcmtfc3RydWN0
-ICp3b3JrKQ0KPiA+ICAgew0KPiA+IEBAIC0yNzAzLDYgKzI3MzIsMTQyIEBAIHN0YXRpYyB2b2lk
-IGNvbGxlY3RfdW5jYWNoZWRfd3JpdGVfZGF0YShzdHJ1Y3QNCj4gY2lmc19haW9fY3R4ICpjdHgp
-DQo+ID4gICAJCWNvbXBsZXRlKCZjdHgtPmRvbmUpOw0KPiA+ICAgfQ0KPiA+DQo+ID4gK3NzaXpl
-X3QgY2lmc19kaXJlY3Rfd3JpdGV2KHN0cnVjdCBraW9jYiAqaW9jYiwgc3RydWN0IGlvdl9pdGVy
-ICpmcm9tKQ0KPiA+ICt7DQo+ID4gKwlzdHJ1Y3QgZmlsZSAqZmlsZSA9IGlvY2ItPmtpX2ZpbHA7
-DQo+ID4gKwlzc2l6ZV90IHRvdGFsX3dyaXR0ZW4gPSAwOw0KPiA+ICsJc3RydWN0IGNpZnNGaWxl
-SW5mbyAqY2ZpbGU7DQo+ID4gKwlzdHJ1Y3QgY2lmc190Y29uICp0Y29uOw0KPiA+ICsJc3RydWN0
-IGNpZnNfc2JfaW5mbyAqY2lmc19zYjsNCj4gPiArCXN0cnVjdCBUQ1BfU2VydmVyX0luZm8gKnNl
-cnZlcjsNCj4gPiArCXBpZF90IHBpZDsNCj4gPiArCXVuc2lnbmVkIGxvbmcgbnJfcGFnZXM7DQo+
-ID4gKwlsb2ZmX3Qgb2Zmc2V0ID0gaW9jYi0+a2lfcG9zOw0KPiA+ICsJc2l6ZV90IGxlbiA9IGlv
-dl9pdGVyX2NvdW50KGZyb20pOw0KPiA+ICsJaW50IHJjOw0KPiA+ICsJc3RydWN0IGNpZnNfd3Jp
-dGVkYXRhICp3ZGF0YTsNCj4gPiArDQo+ID4gKwkvKg0KPiA+ICsJICogaW92X2l0ZXJfZ2V0X3Bh
-Z2VzX2FsbG9jIGRvZXNuJ3Qgd29yayB3aXRoIElURVJfS1ZFQy4NCj4gPiArCSAqIEluIHRoaXMg
-Y2FzZSwgZmFsbCBiYWNrIHRvIG5vbi1kaXJlY3Qgd3JpdGUgZnVuY3Rpb24uDQo+ID4gKwkgKi8N
-Cj4gPiArCWlmIChmcm9tLT50eXBlICYgSVRFUl9LVkVDKSB7DQo+ID4gKwkJY2lmc19kYmcoRllJ
-LCAidXNlIG5vbi1kaXJlY3QgY2lmc191c2VyX3dyaXRldiBmb3Iga3ZlYw0KPiBJL09cbiIpOw0K
-PiA+ICsJCXJldHVybiBjaWZzX3VzZXJfd3JpdGV2KGlvY2IsIGZyb20pOw0KPiA+ICsJfQ0KPiA+
-ICsNCj4gPiArCXJjID0gZ2VuZXJpY193cml0ZV9jaGVja3MoaW9jYiwgZnJvbSk7DQo+ID4gKwlp
-ZiAocmMgPD0gMCkNCj4gPiArCQlyZXR1cm4gcmM7DQo+ID4gKw0KPiA+ICsJY2lmc19zYiA9IENJ
-RlNfRklMRV9TQihmaWxlKTsNCj4gPiArCWNmaWxlID0gZmlsZS0+cHJpdmF0ZV9kYXRhOw0KPiA+
-ICsJdGNvbiA9IHRsaW5rX3Rjb24oY2ZpbGUtPnRsaW5rKTsNCj4gPiArCXNlcnZlciA9IHRjb24t
-PnNlcy0+c2VydmVyOw0KPiA+ICsNCj4gPiArCWlmICghc2VydmVyLT5vcHMtPmFzeW5jX3dyaXRl
-dikNCj4gPiArCQlyZXR1cm4gLUVOT1NZUzsNCj4gPiArDQo+ID4gKwlpZiAoY2lmc19zYi0+bW50
-X2NpZnNfZmxhZ3MgJiBDSUZTX01PVU5UX1JXUElERk9SV0FSRCkNCj4gPiArCQlwaWQgPSBjZmls
-ZS0+cGlkOw0KPiA+ICsJZWxzZQ0KPiA+ICsJCXBpZCA9IGN1cnJlbnQtPnRnaWQ7DQo+ID4gKw0K
-PiA+ICsJZG8gew0KPiA+ICsJCXVuc2lnbmVkIGludCB3c2l6ZSwgY3JlZGl0czsNCj4gPiArCQlz
-dHJ1Y3QgcGFnZSAqKnBhZ2V2ZWM7DQo+ID4gKwkJc2l6ZV90IHN0YXJ0Ow0KPiA+ICsJCXNzaXpl
-X3QgY3VyX2xlbjsNCj4gPiArDQo+ID4gKwkJcmMgPSBzZXJ2ZXItPm9wcy0+d2FpdF9tdHVfY3Jl
-ZGl0cyhzZXJ2ZXIsIGNpZnNfc2ItPndzaXplLA0KPiA+ICsJCQkJCQkgICAmd3NpemUsICZjcmVk
-aXRzKTsNCj4gPiArCQlpZiAocmMpDQo+ID4gKwkJCWJyZWFrOw0KPiA+ICsNCj4gPiArCQljdXJf
-bGVuID0gaW92X2l0ZXJfZ2V0X3BhZ2VzX2FsbG9jKA0KPiA+ICsJCQkJZnJvbSwgJnBhZ2V2ZWMs
-IHdzaXplLCAmc3RhcnQpOw0KPiA+ICsJCWlmIChjdXJfbGVuIDwgMCkgew0KPiA+ICsJCQljaWZz
-X2RiZyhWRlMsDQo+ID4gKwkJCQkiZGlyZWN0X3dyaXRldiBjb3VsZG4ndCBnZXQgdXNlciBwYWdl
-cyAiDQo+ID4gKwkJCQkiKHJjPSV6ZCkgaXRlciB0eXBlICVkIGlvdl9vZmZzZXQgJWx1IGNvdW50
-Ig0KPiA+ICsJCQkJIiAlbHVcbiIsDQo+ID4gKwkJCQljdXJfbGVuLCBmcm9tLT50eXBlLA0KPiA+
-ICsJCQkJZnJvbS0+aW92X29mZnNldCwgZnJvbS0+Y291bnQpOw0KPiA+ICsJCQlkdW1wX3N0YWNr
-KCk7DQo+ID4gKwkJCWJyZWFrOw0KPiA+ICsJCX0NCj4gPiArCQlpZiAoY3VyX2xlbiA8IDApDQo+
-ID4gKwkJCWJyZWFrOw0KPiANCj4gVGhpcyBjdXJfbGVuIDwgMCB0ZXN0IGlzIHJlZHVuZGFudCB3
-aXRoIHRoZSBwcmlvciBpZigpLCBkZWxldGUuDQo+ID4gKw0KPiA+ICsJCW5yX3BhZ2VzID0gKGN1
-cl9sZW4gKyBzdGFydCArIFBBR0VfU0laRSAtIDEpIC8gUEFHRV9TSVpFOw0KPiANCj4gQW0gSSBt
-aXNyZWFkaW5nLCBvciB3aWxsIHRoaXMgcmV0dXJuIGJlIG9uZSBtb3JlIHBhZ2UgdGhhbiBuZWVk
-ZWQ/IElmIHN0YXJ0DQo+ICh0aGUgZmlyc3QgYnl0ZSBvZmZzZXQpIGlzID4gMCwgbnJfcGFnZXMg
-d2lsbCBhbHJlYWR5IGJlIG9uZS4NCj4gQW5kIGlmIGN1cl9sZW4gaXMgNEtCLCBldmVuIGlmIHN0
-YXJ0IGlzIDAsIG5yX3BhZ2VzIHdpbGwgYmUgdHdvLg0KDQpJIHRoaW5rIHRoZSBjYWxjdWxhdGlv
-biBpcyBjb3JyZWN0LCBhc3N1bWluZyBjdXJfbGVuID4gMC4gKHdoaWNoIHNob3VsZCBiZSB0aGUg
-Y2FzZSBpZiB3ZSByZWFjaCBoZXJlKQ0KDQpJZiBjdXJfbGVuIGlzIDRrYiBhbmQgc3RhcnQgaXMg
-MCwgbnJfcGFnZXMgd2lsbCBiZSAxLg0KDQo+IA0KPiA+ICsNCj4gPiArCQl3ZGF0YSA9IGNpZnNf
-d3JpdGVkYXRhX2RpcmVjdF9hbGxvYyhwYWdldmVjLA0KPiA+ICsJCQkJCSAgICAgY2lmc19kaXJl
-Y3Rfd3JpdGV2X2NvbXBsZXRlKTsNCj4gPiArCQlpZiAoIXdkYXRhKSB7DQo+ID4gKwkJCXJjID0g
-LUVOT01FTTsNCj4gPiArCQkJYWRkX2NyZWRpdHNfYW5kX3dha2VfaWYoc2VydmVyLCBjcmVkaXRz
-LCAwKTsNCj4gPiArCQkJYnJlYWs7DQo+ID4gKwkJfQ0KPiA+ICsNCj4gPiArCQl3ZGF0YS0+bnJf
-cGFnZXMgPSBucl9wYWdlczsNCj4gPiArCQl3ZGF0YS0+cGFnZV9vZmZzZXQgPSBzdGFydDsNCj4g
-PiArCQl3ZGF0YS0+cGFnZXN6ID0gUEFHRV9TSVpFOw0KPiA+ICsJCXdkYXRhLT50YWlsc3ogPQ0K
-PiA+ICsJCQlucl9wYWdlcyA+IDEgPw0KPiA+ICsJCQljdXJfbGVuIC0gKFBBR0VfU0laRSAtIHN0
-YXJ0KSAtDQo+ID4gKwkJCQkobnJfcGFnZXMgLSAyKSAqIFBBR0VfU0laRSA6DQo+ID4gKwkJCWN1
-cl9sZW47DQo+ID4gKw0KPiA+ICsJCXdkYXRhLT5zeW5jX21vZGUgPSBXQl9TWU5DX0FMTDsNCj4g
-PiArCQl3ZGF0YS0+b2Zmc2V0ID0gKF9fdTY0KW9mZnNldDsNCj4gPiArCQl3ZGF0YS0+Y2ZpbGUg
-PSBjaWZzRmlsZUluZm9fZ2V0KGNmaWxlKTsNCj4gPiArCQl3ZGF0YS0+cGlkID0gcGlkOw0KPiA+
-ICsJCXdkYXRhLT5ieXRlcyA9IGN1cl9sZW47DQo+ID4gKwkJd2RhdGEtPmNyZWRpdHMgPSBjcmVk
-aXRzOw0KPiA+ICsNCj4gPiArCQlyYyA9IDA7DQo+ID4gKwkJaWYgKHdkYXRhLT5jZmlsZS0+aW52
-YWxpZEhhbmRsZSkNCj4gPiArCQkJcmMgPSBjaWZzX3Jlb3Blbl9maWxlKHdkYXRhLT5jZmlsZSwg
-ZmFsc2UpOw0KPiA+ICsNCj4gPiArCQlpZiAoIXJjKQ0KPiA+ICsJCQlyYyA9IHNlcnZlci0+b3Bz
-LT5hc3luY193cml0ZXYod2RhdGEsDQo+ID4gKwkJCQkJY2lmc19kaXJlY3Rfd3JpdGVkYXRhX3Jl
-bGVhc2UpOw0KPiA+ICsNCj4gPiArCQlpZiAocmMpIHsNCj4gPiArCQkJYWRkX2NyZWRpdHNfYW5k
-X3dha2VfaWYoc2VydmVyLCB3ZGF0YS0+Y3JlZGl0cywgMCk7DQo+ID4gKwkJCWtyZWZfcHV0KCZ3
-ZGF0YS0+cmVmY291bnQsDQo+ID4gKwkJCQkgY2lmc19kaXJlY3Rfd3JpdGVkYXRhX3JlbGVhc2Up
-Ow0KPiA+ICsJCQlpZiAocmMgPT0gLUVBR0FJTikNCj4gPiArCQkJCWNvbnRpbnVlOw0KPiA+ICsJ
-CQlicmVhazsNCj4gPiArCQl9DQo+IA0KPiBTYW1lIGNvbW1lbnRzIGFzIGZvciBwcmV2aW91cyBw
-YXRjaCByZSB0aGUgaWYgKHJjKSBsYWRkZXIsIGFuZCB0aGUNCj4gYnJlYWsvY29udGludWVzIGJv
-dGggYmVpbmcgYmV0dGVyIGV4cHJlc3NlZCBhcyBjYXJlZnVsIGdvdG8ncy4NCj4gDQo+ID4gKw0K
-PiA+ICsJCXdhaXRfZm9yX2NvbXBsZXRpb24oJndkYXRhLT5kb25lKTsNCj4gPiArCQlpZiAod2Rh
-dGEtPnJlc3VsdCkgew0KPiA+ICsJCQlyYyA9IHdkYXRhLT5yZXN1bHQ7DQo+ID4gKwkJCWtyZWZf
-cHV0KCZ3ZGF0YS0+cmVmY291bnQsDQo+ID4gKwkJCQkJY2lmc19kaXJlY3Rfd3JpdGVkYXRhX3Jl
-bGVhc2UpOw0KPiA+ICsJCQlpZiAocmMgPT0gLUVBR0FJTikNCj4gPiArCQkJCWNvbnRpbnVlOw0K
-PiA+ICsJCQlicmVhazsNCj4gPiArCQl9DQo+ID4gKw0KPiA+ICsJCWtyZWZfcHV0KCZ3ZGF0YS0+
-cmVmY291bnQsIGNpZnNfZGlyZWN0X3dyaXRlZGF0YV9yZWxlYXNlKTsNCj4gPiArDQo+ID4gKwkJ
-aW92X2l0ZXJfYWR2YW5jZShmcm9tLCBjdXJfbGVuKTsNCj4gPiArCQl0b3RhbF93cml0dGVuICs9
-IGN1cl9sZW47DQo+ID4gKwkJb2Zmc2V0ICs9IGN1cl9sZW47DQo+ID4gKwkJbGVuIC09IGN1cl9s
-ZW47DQo+ID4gKwl9IHdoaWxlIChsZW4pOw0KPiA+ICsNCj4gPiArCWlmICh1bmxpa2VseSghdG90
-YWxfd3JpdHRlbikpDQo+ID4gKwkJcmV0dXJuIHJjOw0KPiA+ICsNCj4gPiArCWlvY2ItPmtpX3Bv
-cyArPSB0b3RhbF93cml0dGVuOw0KPiA+ICsJcmV0dXJuIHRvdGFsX3dyaXR0ZW47DQo+ID4gKw0K
-PiA+ICt9DQo+ID4gKw0KPiA+ICAgc3NpemVfdCBjaWZzX3VzZXJfd3JpdGV2KHN0cnVjdCBraW9j
-YiAqaW9jYiwgc3RydWN0IGlvdl9pdGVyICpmcm9tKQ0KPiA+ICAgew0KPiA+ICAgCXN0cnVjdCBm
-aWxlICpmaWxlID0gaW9jYi0+a2lfZmlscDsNCj4gPg0K
+On 06/25/2018 08:21 AM, Jan Kara wrote:
+> On Thu 21-06-18 18:30:36, Jan Kara wrote:
+>> On Wed 20-06-18 15:55:41, John Hubbard wrote:
+>>> On 06/20/2018 05:08 AM, Jan Kara wrote:
+>>>> On Tue 19-06-18 11:11:48, John Hubbard wrote:
+>>>>> On 06/19/2018 03:41 AM, Jan Kara wrote:
+>>>>>> On Tue 19-06-18 02:02:55, Matthew Wilcox wrote:
+>>>>>>> On Tue, Jun 19, 2018 at 10:29:49AM +0200, Jan Kara wrote:
+>>> [...]
+> I've spent some time on this. There are two obstacles with my approach of
+> putting special entry into inode's VMA tree:
+> 
+> 1) If I want to place this special entry in inode's VMA tree, I either need
+> to allocate full VMA, somehow initiate it so that it's clear it's a special
+> "pinned" range, not a VMA => uses unnecessarily too much memory, it is
+> ugly. Another solution I was hoping for was that I would factor out some
+> common bits of vm_area_struct (pgoff, rb_node, ..) into a structure common
+> for VMA and the locked range => doable but causes a lot of churn as VMAs
+> are accessed (and modified!) at hundreds of places in the kernel. Some
+> accessor functions would help to reduce the churn a bit but then stuff like
+> vma_set_pgoff(vma, pgoff) isn't exactly beautiful either.
+> 
+> 2) Some users of GUP (e.g. direct IO) get a block of pages and then put
+> references to these pages at different times and in random order -
+> basically when IO for given page is completed, reference is dropped and one
+> GUP call can acquire page references for pages which end up in multiple
+> different bios (we don't know in advance). This makes is difficult to
+> implement counterpart to GUP to 'unpin' a range of pages - we'd either have
+> to support partial unpins (and splitting of pinned ranges and all such fun)
+> or just have to track internally in how many pages are still pinned in the
+> originally pinned range and release the pin once all individual pages are
+> unpinned but then it's difficult to e.g. get to this internal structure
+> from IO completion callback where we only have the bio.
+> 
+> So I think the Matthew's idea of removing pinned pages from LRU is
+> definitely worth trying to see how complex that would end up being. Did you
+> get to looking into it? If not, I can probably find some time to try that
+> out.
+> 
+ 
+OK, so I looked into this some more.
+
+As you implied in an earlier response, removing a page from LRU is probably the
+easy part. It's *keeping* it off the LRU that worries me. I looked at SetPageLRU()
+uses, there were only 5 call sites, and of those, I think only one might be difficult:
+
+    __pagevec_lru_add()
+
+It seems like the way to avoid __pagevec_lru_add() calls on these pages is to
+first call lru_add_drain_all, then remove the pages from LRU (presumably via
+isolate_page_lru). I think that should do it. But I'm a little concerned that 
+maybe I'm overlooking something.
+
+Here are the 5 search hits and my analysis. This may have mistakes in it, as
+I'm pretty new to this area, which is why I'm spelling it out:
+
+1. mm/memcontrol.c:2082: SetPageLRU(page); 
+
+    This is in unlock_page_lru(). Caller: commit_charge(), and it's conditional on 
+    lrucare, so we can just skip it if the new page flag is set.
+
+2. mm/swap.c:831: SetPageLRU(page_tail);
+    This is in lru_add_page_tail(), which is only called by __split_huge_page_tail, and
+    there, we can also just skip the call for these pages.
+
+3. mm/swap.c:866:  SetPageLRU(page);
+    This is in __pagevec_lru_add_fn (sole caller: __pagevec_lru_add), and is
+    discussed above.
+
+4. mm/vmscan.c:1680: SetPageLRU(page);	
+    This is in putback_inactive_pages(), which I think won't get called unless
+    the page is already on an LRU.
+
+5. mm/vmscan.c:1873: SetPageLRU(page);	//  (N/A)
+    This is in move_active_pages_to_lru(), which I also think won't get called unless 
+    the page is already on an LRU.
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
