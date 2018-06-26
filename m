@@ -1,96 +1,100 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
-Date: Tue, 26 Jun 2018 13:48:10 +0200
-Message-ID: <20180626114810.ahxlfhcgpyyxcwof@quack2.suse.cz>
-References: <0e6053b3-b78c-c8be-4fab-e8555810c732@nvidia.com>
- <20180619082949.wzoe42wpxsahuitu@quack2.suse.cz>
- <20180619090255.GA25522@bombadil.infradead.org>
- <20180619104142.lpilc6esz7w3a54i@quack2.suse.cz>
- <70001987-3938-d33e-11e0-de5b19ca3bdf@nvidia.com>
- <20180620120824.bghoklv7qu2z5wgy@quack2.suse.cz>
- <151edbf3-66ff-df0c-c1cc-5998de50111e@nvidia.com>
- <20180621163036.jvdbsv3t2lu34pdl@quack2.suse.cz>
- <20180625152150.jnf5suiubecfppcl@quack2.suse.cz>
- <550aacd3-cfea-c99a-3b60-563dd1621d5c@nvidia.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [Patch v2 06/15] CIFS: Introduce helper function to get page
+ offset and length in smb_rqst
+Date: Tue, 26 Jun 2018 09:16:54 -0400
+Message-ID: <33a2f951-10fd-fa94-4fb1-cade7f72cd77@talpey.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-7-longli@linuxonhyperv.com>
+ <a6613388-0dc5-7646-b71f-75b8bec4e4d9@talpey.com>
+ <CY4PR2101MB0722840106EDFEFBBA42D45FCE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <550aacd3-cfea-c99a-3b60-563dd1621d5c@nvidia.com>
+In-Reply-To: <CY4PR2101MB0722840106EDFEFBBA42D45FCE4A0@CY4PR2101MB0722.namprd21.prod.outlook.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <john.hubbard@gmail.com>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+To: Long Li <longli@microsoft.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon 25-06-18 23:31:06, John Hubbard wrote:
-> On 06/25/2018 08:21 AM, Jan Kara wrote:
-> > On Thu 21-06-18 18:30:36, Jan Kara wrote:
-> > So I think the Matthew's idea of removing pinned pages from LRU is
-> > definitely worth trying to see how complex that would end up being. Did you
-> > get to looking into it? If not, I can probably find some time to try that
-> > out.
-> > 
->  
-> OK, so I looked into this some more.
+On 6/25/2018 5:14 PM, Long Li wrote:
+>> Subject: Re: [Patch v2 06/15] CIFS: Introduce helper function to get page
+>> offset and length in smb_rqst
+>>
+>> On 5/30/2018 3:47 PM, Long Li wrote:
+>>> From: Long Li <longli@microsoft.com>
+>>>
+>>> Introduce a function rqst_page_get_length to return the page offset
+>>> and length for a given page in smb_rqst. This function is to be used
+>>> by following patches.
+>>>
+>>> Signed-off-by: Long Li <longli@microsoft.com>
+>>> ---
+>>>    fs/cifs/cifsproto.h |  3 +++
+>>>    fs/cifs/misc.c      | 17 +++++++++++++++++
+>>>    2 files changed, 20 insertions(+)
+>>>
+>>> diff --git a/fs/cifs/cifsproto.h b/fs/cifs/cifsproto.h index
+>>> 7933c5f..89dda14 100644
+>>> --- a/fs/cifs/cifsproto.h
+>>> +++ b/fs/cifs/cifsproto.h
+>>> @@ -557,4 +557,7 @@ int cifs_alloc_hash(const char *name, struct
+>> crypto_shash **shash,
+>>>    		    struct sdesc **sdesc);
+>>>    void cifs_free_hash(struct crypto_shash **shash, struct sdesc
+>>> **sdesc);
+>>>
+>>> +extern void rqst_page_get_length(struct smb_rqst *rqst, unsigned int
+>> page,
+>>> +				unsigned int *len, unsigned int *offset);
+>>> +
+>>>    #endif			/* _CIFSPROTO_H */
+>>> diff --git a/fs/cifs/misc.c b/fs/cifs/misc.c index 96849b5..e951417
+>>> 100644
+>>> --- a/fs/cifs/misc.c
+>>> +++ b/fs/cifs/misc.c
+>>> @@ -905,3 +905,20 @@ cifs_free_hash(struct crypto_shash **shash,
+>> struct sdesc **sdesc)
+>>>    		crypto_free_shash(*shash);
+>>>    	*shash = NULL;
+>>>    }
+>>> +
+>>> +/**
+>>> + * rqst_page_get_length - obtain the length and offset for a page in
+>>> +smb_rqst
+>>> + * Input: rqst - a smb_rqst, page - a page index for rqst
+>>> + * Output: *len - the length for this page, *offset - the offset for
+>>> +this page  */ void rqst_page_get_length(struct smb_rqst *rqst,
+>>> +unsigned int page,
+>>> +				unsigned int *len, unsigned int *offset) {
+>>> +	*len = rqst->rq_pagesz;
+>>> +	*offset = (page == 0) ? rqst->rq_offset : 0;
+>>
+>> Really? Page 0 always has a zero offset??
 > 
-> As you implied in an earlier response, removing a page from LRU is
-> probably the easy part. It's *keeping* it off the LRU that worries me. I
-> looked at SetPageLRU() uses, there were only 5 call sites, and of those,
-> I think only one might be difficult:
+> I think you are misreading this line. The offset for page 0 is rq_offset, the offset for all subsequent pages are 0.
+
+Ah, yes, sorry I did read it incorrectly.
+>>> +
+>>> +	if (rqst->rq_npages == 1 || page == rqst->rq_npages-1)
+>>> +		*len = rqst->rq_tailsz;
+>>> +	else if (page == 0)
+>>> +		*len = rqst->rq_pagesz - rqst->rq_offset; }
+>>>
+>>
+>> This subroutine does what patch 5 does inline. Why not push this patch up in
+>> the sequence and use the helper?
 > 
->     __pagevec_lru_add()
-> 
-> It seems like the way to avoid __pagevec_lru_add() calls on these pages
-> is to first call lru_add_drain_all, then remove the pages from LRU
-> (presumably via isolate_page_lru). I think that should do it. But I'm a
-> little concerned that maybe I'm overlooking something.
-> 
-> Here are the 5 search hits and my analysis. This may have mistakes in it,
-> as I'm pretty new to this area, which is why I'm spelling it out:
-> 
-> 1. mm/memcontrol.c:2082: SetPageLRU(page); 
-> 
->     This is in unlock_page_lru(). Caller: commit_charge(), and it's conditional on 
->     lrucare, so we can just skip it if the new page flag is set.
+> This is actually a little different. This function returns the length and offset for a given page in the request. There might be multiple pages in a request.
 
-This is only used to move a page from one LRU list to another one -
-lock_page_lru() removes page from current LRU and unlock_page_lru() places
-it on the target one. And that all happens under lru_lock so we should not
-see our pinned pages in this code if we protect ourselves with the lru_lock
-as well. But probably worth adding VM_BUG_ON()...
- 
-> 2. mm/swap.c:831: SetPageLRU(page_tail);
->     This is in lru_add_page_tail(), which is only called by __split_huge_page_tail, and
->     there, we can also just skip the call for these pages.
+Ok, but I still think there is quite a bit of inline computation of
+this stuff that would more clearly and more robustly be done in a set
+of common functions. If someone ever touches the code to support a
+new upper layer, or even integrate with more complex compounding,
+things will get ugly fast.
 
-This is of no concern as this gets called only when splitting huge page.
-Extra page reference obtained by GUP prevents huge page splitting so this
-code path cannot be executed for pinned pages. Maybe VM_BUG_ON() for
-checking page really is not pinned.
+> The other function calculates the total length of all the pages in a request.
 
-> 3. mm/swap.c:866:  SetPageLRU(page);
->     This is in __pagevec_lru_add_fn (sole caller: __pagevec_lru_add), and is
->     discussed above.
+Again, a great candidate for a common set of subroutines, IMO.
 
-Agreed that here we'll need to update __pagevec_lru_add_fn() to detect
-pinned pages and avoid putting them to LRU.
-
-> 4. mm/vmscan.c:1680: SetPageLRU(page);	
->     This is in putback_inactive_pages(), which I think won't get called unless
->     the page is already on an LRU.
->
-> 5. mm/vmscan.c:1873: SetPageLRU(page);	//  (N/A)
->     This is in move_active_pages_to_lru(), which I also think won't get called unless 
->     the page is already on an LRU.
-
-These two are correct. We just have to be careful about the cases where
-page pinning races with reclaim handling these pages. But when we
-transition the page to the 'pinned' state under lru_lock and remove it from
-any list it is on, we should be safe against all the races with reclaim. We
-just have to be careful to get all the accounting right when moving page to
-the pinned state.
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Tom.
