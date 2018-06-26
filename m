@@ -1,39 +1,68 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc 0/3]
-Date: Tue, 26 Jun 2018 14:41:50 -0600
-Message-ID: <20180626204150.GG5381@ziepe.ca>
-References: <20180620162612.13582.28777.stgit@scvm10.sc.intel.com>
- <20180620184323.GD27445@ziepe.ca>
- <98d77608-5b8d-3a2f-7721-9c3e176d4f0e@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH] IB/srpt: Support HCAs with more than two ports
+Date: Tue, 26 Jun 2018 15:24:48 -0700
+Message-ID: <20180626222448.11411-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <98d77608-5b8d-3a2f-7721-9c3e176d4f0e@intel.com>
 Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, Steve Wise <swise@opengridcomputing.com>, Christoph Hellwig <hch@infradead.org>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 11:20:12AM -0400, Dennis Dalessandro wrote:
-> On 6/20/2018 2:43 PM, Jason Gunthorpe wrote:
-> >On Wed, Jun 20, 2018 at 09:28:39AM -0700, Dennis Dalessandro wrote:
-> >>Hi Doug and Jason,
-> >>
-> >>Here are a couple patches that we'd like to get into 4.18 rc cycle. These fix
-> >>bugs and aren't too complex. One of them is an issue that Dan Carpenter just
-> >>reported recently and is marked for stable.
-> >
-> >All of these need Fixes lines for-rc and other than the last one the
-> >commit messages are not good enough - talk about what user visible
-> >effect this bug has.
-> 
-> I talked to Mike and we are good with pushing the first two off till
-> for-next. We'll make some commit message improvements and send a v2 for
-> those.
+Since there are adapters that have four ports, increase the size of
+the srpt_device.port[] array. This patch avoids that the following
+warning is hit with quad port Chelsio adapters:
 
-They could be OK to go to for-rc, but they need to meet the standard,
-and I can't tell from the commit message. I've dropped them from
-patchworks, so resend V2.
+    WARN_ON(sdev->device->phys_port_cnt > ARRAY_SIZE(sdev->port));
 
-Jason
+Reported-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Steve Wise <swise@opengridcomputing.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 6 +++---
+ drivers/infiniband/ulp/srpt/ib_srpt.h | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 3081c629a7f7..50f4f9806ac6 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2969,10 +2969,12 @@ static void srpt_add_one(struct ib_device *device)
+ 
+ 	pr_debug("device = %p\n", device);
+ 
+-	sdev = kzalloc(sizeof(*sdev), GFP_KERNEL);
++	sdev = kzalloc(sizeof(*sdev) + device->phys_port_cnt *
++		       sizeof(*sdev->port), GFP_KERNEL);
+ 	if (!sdev)
+ 		goto err;
+ 
++	sdev->port = (void *)(sdev + 1);
+ 	sdev->device = device;
+ 	mutex_init(&sdev->sdev_mutex);
+ 
+@@ -3023,8 +3025,6 @@ static void srpt_add_one(struct ib_device *device)
+ 			      srpt_event_handler);
+ 	ib_register_event_handler(&sdev->event_handler);
+ 
+-	WARN_ON(sdev->device->phys_port_cnt > ARRAY_SIZE(sdev->port));
+-
+ 	for (i = 1; i <= sdev->device->phys_port_cnt; i++) {
+ 		sport = &sdev->port[i - 1];
+ 		INIT_LIST_HEAD(&sport->nexus_list);
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h b/drivers/infiniband/ulp/srpt/ib_srpt.h
+index 2361483476a0..b20ad6dbf966 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.h
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
+@@ -410,7 +410,7 @@ struct srpt_device {
+ 	struct mutex		sdev_mutex;
+ 	bool			use_srq;
+ 	struct srpt_recv_ioctx	**ioctx_ring;
+-	struct srpt_port	port[2];
++	struct srpt_port	*port;
+ 	struct ib_event_handler	event_handler;
+ 	struct list_head	list;
+ };
+-- 
+2.17.1
