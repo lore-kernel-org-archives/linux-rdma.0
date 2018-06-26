@@ -1,45 +1,63 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc 3/3] IB/hfi1: Fix incorrect mixing of ERR_PTR and
- NULL return values
-Date: Tue, 26 Jun 2018 14:37:54 -0600
-Message-ID: <20180626203754.GE5381@ziepe.ca>
-References: <20180620162612.13582.28777.stgit@scvm10.sc.intel.com>
- <20180620162904.13582.22527.stgit@scvm10.sc.intel.com>
- <cc4f30ab-3032-4220-ee41-2d547c8856fb@intel.com>
+Subject: Re: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
+Date: Tue, 26 Jun 2018 14:39:21 -0600
+Message-ID: <20180626203921.GF5381@ziepe.ca>
+References: <20180624082353.16138-1-leon@kernel.org>
+ <20180625213438.GA19857@ziepe.ca>
+ <20180626042126.GM17747@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cc4f30ab-3032-4220-ee41-2d547c8856fb@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Kamenee Arumugam <kamenee.arumugam@intel.com>, Dan Carpenter <dan.carpenter@oracle.com>
+In-Reply-To: <20180626042126.GM17747@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 11:19:19AM -0400, Dennis Dalessandro wrote:
-> On 6/20/2018 12:29 PM, Dennis Dalessandro wrote:
-> >From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+On Tue, Jun 26, 2018 at 07:21:26AM +0300, Leon Romanovsky wrote:
+> On Mon, Jun 25, 2018 at 03:34:38PM -0600, Jason Gunthorpe wrote:
+> > On Sun, Jun 24, 2018 at 11:23:41AM +0300, Leon Romanovsky wrote:
+> > > From: Leon Romanovsky <leonro@mellanox.com>
+> > >
+> > > Hi,
+> > >
+> > > This is bunch of patches trigged by running syzkaller internally.
+> > >
+> > > I'm sending them based on rdma-next mainly for two reasons:
+> > > 1, Most of the patches fix the old issues and it doesn't matter when
+> > > they will hit the Linus's tree: now or later in a couple of weeks
+> > > during merge window.
+> > > 2. They interleave with code cleanup, mlx5-next patches and Michael's
+> > > feedback on flow counters series.
+> > >
+> > > Thanks
+> > >
+> > > Leon Romanovsky (12):
+> > >   RDMA/uverbs: Protect from attempts to create flows on unsupported QP
+> > >   RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
 > >
-> >The __get_txreq() function can return a pointer, ERR_PTR(-EBUSY),
-> >or NULL.  All of the relevant call sites look for IS_ERR, so the
-> >NULL return would lead to a NULL pointer exception.
+> > I applied these two to for-rc
 > >
-> >Do not use the ERR_PTR mechanism for this function.
+> > >   RDMA/uverbs: Check existence of create_flow callback
+> > >   RDMA/verbs: Drop kernel variant of create_flow
+> > >   RDMA/verbs: Drop kernel variant of destroy_flow
+> > >   net/mlx5: Rate limit errors in command interface
+> > >   RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
+> > >   RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
+> > >   RDMA/uverbs: Remove redundant check
 > >
-> >Update all call sites to handle the return value correctly.
-> >
-> >Clean up error paths to reflect return value.
-> >
-> >cc: <stable@vger.kernel.org> # 4.9.x+
-> >Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> >Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> >Reviewed-by: Kamenee Arumugam <kamenee.arumugam@intel.com>
-> >Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-> >Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> > These to for-next
 > 
-> Fixes: 45842abbb292 ("staging/rdma/hfi1: move txreq header code")
+> Jason,
+> 
+> We would like to see patch "[PATCH mlx5-next 05/12] net/mlx5:
+> Rate limit errors in command interface" in out mlx5-next. Is it possible
+> at this point to drop it from for-next, so I'll be able to take it into
+> mlx5-next?
 
-Okay, I applied this to for-rc
+Okay, you got to this while it was still 'wip', so it is dropped. Add
+it to the mlx5-next branch and netdev or rdma can pull it next time
+there is some reason to pull the branch..
 
-Thanks,
 Jason
