@@ -1,34 +1,52 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH] IB/srpt: Support HCAs with more than two ports
-Date: Tue, 26 Jun 2018 18:10:41 -0500
-Message-ID: <023901d40da2$e77255c0$b6570140$@opengridcomputing.com>
-References: <20180626222448.11411-1-bart.vanassche@wdc.com>
+From: Long Li <longli@microsoft.com>
+Subject: RE: [Patch v2 02/15] CIFS: Add support for direct pages in rdata
+Date: Wed, 27 Jun 2018 03:21:53 +0000
+Message-ID: <SN4PR2101MB0733CBF80C83C1FA1A4B61E8CE480@SN4PR2101MB0733.namprd21.prod.outlook.com>
+References: <20180530194807.31657-1-longli@linuxonhyperv.com>
+ <20180530194807.31657-3-longli@linuxonhyperv.com>
+ <67b8afe7-f5e0-b36a-fcc1-87f1ae08eaa4@talpey.com>
+ <20180625210132.GB5381@ziepe.ca>
+ <f940d126-237c-963f-f64e-e1eb1e8c6c85@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180626222448.11411-1-bart.vanassche@wdc.com>
-Content-Language: en-us
-Sender: stable-owner@vger.kernel.org
-To: 'Bart Van Assche' <bart.vanassche@wdc.com>, 'Jason Gunthorpe' <jgg@ziepe.ca>
-Cc: 'Doug Ledford' <dledford@redhat.com>, linux-rdma@vger.kernel.org, 'Christoph Hellwig' <hch@infradead.org>, stable@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <f940d126-237c-963f-f64e-e1eb1e8c6c85@talpey.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Talpey <tom@talpey.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH] IB/srpt: Support HCAs with more than two ports
-> 
-> Since there are adapters that have four ports, increase the size of
-> the srpt_device.port[] array. This patch avoids that the following
-> warning is hit with quad port Chelsio adapters:
-> 
->     WARN_ON(sdev->device->phys_port_cnt > ARRAY_SIZE(sdev->port));
-> 
-> Reported-by: Steve Wise <swise@opengridcomputing.com>
-> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-> Cc: Steve Wise <swise@opengridcomputing.com>
-> Cc: Christoph Hellwig <hch@infradead.org>
-> Cc: <stable@vger.kernel.org>
-
-Looks good.
-
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+PiBTdWJqZWN0OiBSZTogW1BhdGNoIHYyIDAyLzE1XSBDSUZTOiBBZGQgc3VwcG9ydCBmb3IgZGly
+ZWN0IHBhZ2VzIGluIHJkYXRhDQo+IA0KPiBPbiA2LzI1LzIwMTggNTowMSBQTSwgSmFzb24gR3Vu
+dGhvcnBlIHdyb3RlOg0KPiA+IE9uIFNhdCwgSnVuIDIzLCAyMDE4IGF0IDA5OjUwOjIwUE0gLTA0
+MDAsIFRvbSBUYWxwZXkgd3JvdGU6DQo+ID4+IE9uIDUvMzAvMjAxOCAzOjQ3IFBNLCBMb25nIExp
+IHdyb3RlOg0KPiA+Pj4gRnJvbTogTG9uZyBMaSA8bG9uZ2xpQG1pY3Jvc29mdC5jb20+DQo+ID4+
+Pg0KPiA+Pj4gQWRkIGEgZnVuY3Rpb24gdG8gYWxsb2NhdGUgcmRhdGEgd2l0aG91dCBhbGxvY2F0
+aW5nIHBhZ2VzIGZvciBkYXRhDQo+ID4+PiB0cmFuc2Zlci4gVGhpcyBnaXZlcyB0aGUgY2FsbGVy
+IGFuIG9wdGlvbiB0byBwYXNzIGEgbnVtYmVyIG9mIHBhZ2VzDQo+ID4+PiB0aGF0IHBvaW50IHRv
+IHRoZSBkYXRhIGJ1ZmZlci4NCj4gPj4+DQo+ID4+PiByZGF0YSBpcyBzdGlsbCByZXBvbnNpYmxl
+IGZvciBmcmVlIHRob3NlIHBhZ2VzIGFmdGVyIGl0J3MgZG9uZS4NCj4gPj4NCj4gPj4gIkNhbGxl
+ciIgaXMgc3RpbGwgcmVzcG9uc2libGU/IE9yIGlzIHRoZSByZGF0YSBzb21laG93IGZyZWVpbmcg
+aXRzZWxmDQo+ID4+IHZpYSBhbm90aGVyIG1lY2hhbmlzbT8NCj4gPj4NCj4gPj4+DQo+ID4+PiBT
+aWduZWQtb2ZmLWJ5OiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPj4+ICAgZnMv
+Y2lmcy9jaWZzZ2xvYi5oIHwgIDIgKy0NCj4gPj4+ICAgZnMvY2lmcy9maWxlLmMgICAgIHwgMjMg
+KysrKysrKysrKysrKysrKysrKystLS0NCj4gPj4+ICAgMiBmaWxlcyBjaGFuZ2VkLCAyMSBpbnNl
+cnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPiA+Pj4NCj4gPj4+IGRpZmYgLS1naXQgYS9mcy9j
+aWZzL2NpZnNnbG9iLmggYi9mcy9jaWZzL2NpZnNnbG9iLmggaW5kZXgNCj4gPj4+IDhkMTZjM2Uu
+LjU2ODY0YTg3IDEwMDY0NA0KPiA+Pj4gKysrIGIvZnMvY2lmcy9jaWZzZ2xvYi5oDQo+ID4+PiBA
+QCAtMTE3OSw3ICsxMTc5LDcgQEAgc3RydWN0IGNpZnNfcmVhZGRhdGEgew0KPiA+Pj4gICAJdW5z
+aWduZWQgaW50CQkJdGFpbHN6Ow0KPiA+Pj4gICAJdW5zaWduZWQgaW50CQkJY3JlZGl0czsNCj4g
+Pj4+ICAgCXVuc2lnbmVkIGludAkJCW5yX3BhZ2VzOw0KPiA+Pj4gLQlzdHJ1Y3QgcGFnZQkJCSpw
+YWdlc1tdOw0KPiA+Pj4gKwlzdHJ1Y3QgcGFnZQkJCSoqcGFnZXM7DQo+ID4+DQo+ID4+IFRlY2hu
+aWNhbGx5IHNwZWFraW5nLCB0aGVzZSBhcmUgc3ludGFjdGljYWxseSBlcXVpdmFsZW50LiBJdCBt
+YXkgbm90DQo+ID4+IGJlIHdvcnRoIGNoYW5naW5nIHRoaXMgaGlzdG9yaWMgZGVmaW5pdGlvbi4N
+Cj4gPg0KPiA+IFtdIGlzIGEgQzk5ICdmbGV4IGFycmF5JywgaXQgaGFzIGEgZGlmZmVyZW50IGFs
+bG9jYXRpb24gYmVoYXZpb3IgdGhhbg0KPiA+ICoqIGFuZCBpcyBub3QgaW50ZXJjaGFuZ2VhYmxl
+Li4NCj4gDQo+IEluIHRoYXQgY2FzZSwgaXQncyBhbiBldmVuIGJldHRlciByZWFzb24gdG8gbm90
+IGNoYW5nZSB0aGUgZGVjbGFyYXRpb24uDQoNCk5vLCBpdCBuZWVkcyB0byBiZSBkZWNsYXJlZCBz
+ZXBhcmF0ZWx5Lg0KDQpXaXRoIERpcmVjdCBJL08sICoqcGFnZXMgYXJlIGFsbG9jYXRlZCBhbmQg
+cmV0dXJuZWQgZnJvbSBpb3ZfaXRlcl9nZXRfcGFnZXNfYWxsb2MoKSB3aGVuIGxvY2tpbmcgdGhv
+c2UgdXNlciBwYWdlcy4gVGhleSBjYW4ndCBiZSBhbGxvY2F0ZWQgYXMgcGFydCBvZiBzdHJ1Y3Qg
+Y2lmc19yZWFkZGF0YS4NCg0K
