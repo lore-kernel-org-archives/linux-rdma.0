@@ -1,100 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 00/12] RDMA fixes 2018-06-24
-Date: Wed, 27 Jun 2018 08:47:14 +0300
-Message-ID: <20180627054714.GG30877@mtr-leonro.mtl.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 05/12] net/mlx5: Rate limit errors in command
+ interface
+Date: Wed, 27 Jun 2018 08:48:11 +0300
+Message-ID: <20180627054811.GH30877@mtr-leonro.mtl.com>
 References: <20180624082353.16138-1-leon@kernel.org>
- <20180625213438.GA19857@ziepe.ca>
- <20180626042126.GM17747@mtr-leonro.mtl.com>
- <20180626203921.GF5381@ziepe.ca>
+ <20180624082353.16138-6-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Bn2rw/3z4jIqBvZU"
+        protocol="application/pgp-signature"; boundary="5G06lTa6Jq83wMTw"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180626203921.GF5381@ziepe.ca>
+In-Reply-To: <20180624082353.16138-6-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Bn2rw/3z4jIqBvZU
+--5G06lTa6Jq83wMTw
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jun 26, 2018 at 02:39:21PM -0600, Jason Gunthorpe wrote:
-> On Tue, Jun 26, 2018 at 07:21:26AM +0300, Leon Romanovsky wrote:
-> > On Mon, Jun 25, 2018 at 03:34:38PM -0600, Jason Gunthorpe wrote:
-> > > On Sun, Jun 24, 2018 at 11:23:41AM +0300, Leon Romanovsky wrote:
-> > > > From: Leon Romanovsky <leonro@mellanox.com>
-> > > >
-> > > > Hi,
-> > > >
-> > > > This is bunch of patches trigged by running syzkaller internally.
-> > > >
-> > > > I'm sending them based on rdma-next mainly for two reasons:
-> > > > 1, Most of the patches fix the old issues and it doesn't matter when
-> > > > they will hit the Linus's tree: now or later in a couple of weeks
-> > > > during merge window.
-> > > > 2. They interleave with code cleanup, mlx5-next patches and Michael's
-> > > > feedback on flow counters series.
-> > > >
-> > > > Thanks
-> > > >
-> > > > Leon Romanovsky (12):
-> > > >   RDMA/uverbs: Protect from attempts to create flows on unsupported QP
-> > > >   RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
-> > >
-> > > I applied these two to for-rc
-> > >
-> > > >   RDMA/uverbs: Check existence of create_flow callback
-> > > >   RDMA/verbs: Drop kernel variant of create_flow
-> > > >   RDMA/verbs: Drop kernel variant of destroy_flow
-> > > >   net/mlx5: Rate limit errors in command interface
-> > > >   RDMA/uverbs: Don't overwrite NULL pointer with ZERO_SIZE_PTR
-> > > >   RDMA/umem: Don't check for negative return value of dma_map_sg_attrs()
-> > > >   RDMA/uverbs: Remove redundant check
-> > >
-> > > These to for-next
-> >
-> > Jason,
-> >
-> > We would like to see patch "[PATCH mlx5-next 05/12] net/mlx5:
-> > Rate limit errors in command interface" in out mlx5-next. Is it possible
-> > at this point to drop it from for-next, so I'll be able to take it into
-> > mlx5-next?
+On Sun, Jun 24, 2018 at 11:23:46AM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 >
-> Okay, you got to this while it was still 'wip', so it is dropped. Add
-> it to the mlx5-next branch and netdev or rdma can pull it next time
-> there is some reason to pull the branch..
-
-Thanks, I cherry-picked that patch from your wip branch, so it includes
-your SOB too. Most probably, the RDMA will pull it in dump_fill_mkey
-series.
-
-Thanks
-
+> Any error status returned by FW will trigger similar
+> to the following error message in the dmesg.
 >
-> Jason
+> [   55.884355] mlx5_core 0000:00:04.0: mlx5_cmd_check:712:(pid 555):
+> ALLOC_UAR(0x802) op_mod(0x0) failed, status limits exceeded(0x8),
+> syndrome (0x0)
+>
+> Those prints are extremely valuable to diagnose issues with running
+> system and it is important to keep them. However, not-so-careful user
+> can trigger endless number of such prints by depleting HW resources
+> and will spam dmesg.
+>
+> Rate limiting of such messages solves this issue.
+>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c       | 11 ++++-------
+>  drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h |  6 ++++++
+>  2 files changed, 10 insertions(+), 7 deletions(-)
+>
 
---Bn2rw/3z4jIqBvZU
+Thanks, applied to mlx5-next.
+
+--5G06lTa6Jq83wMTw
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbMyThAAoJEORje4g2clinHx4QAI/vK3WO2O7ozwHO8L0S1nmE
-aHD6G1tR1WPujlxdpvELjFDLX9yLisPXWWgTlaFnjS6rclpnldigWRtyArHDi895
-XU/Co7POkh9utra3RFWFmqCGEIzxdxItHTvYAp5+OfdmyKvO2wX69w80gdaD4o6O
-3q1qCDEw6SEC0UgokjlI/RBypdovoOiX32wWgTLpKVd9Si5iGPBKH7TA+iFs1LJQ
-r3Cc2txNCHWctwm0faCw55o6NM9wWiSP1AzJvFTzDpLRTSB7Bmv0Thztw3UBp86q
-xeVm/dk7xlMiUqU4U5HjOdqf/7FpvHrUuLX6OZtEDyIn2tqeS1/N9p1GIFOuxb1l
-/wTsESrbGMHCigju5VFmlRQA87856CKxVkFTxaj52GkcJPrmglSgiiTBJG1t5qqL
-VqE0VrBeMKLaBMTtoZsinz65NEjWcfsK6wHmDEkLK5zhivgzH3JVG+WO9x570h7z
-GtOpdSL3ZezqcNVr6RuwFeZL5f6nyedmP7G2lUpztTmLSR1vZmQuE3f5/sfZMUa3
-71VzrPBqXpkxsC/as5mnrh8TmLExoQFUrR/w1W5/xjS7GcQAhyYWf1+7TbyiQKIo
-iE+qE4QgqGAAJLfIZ5nZYVNy8aZcbniNBacwcKoEFxjBMsdAsNCFIQsNFHaSfg1d
-D2t6sEZJuRXZ5h/poI0k
-=yV/R
+iQIcBAEBAgAGBQJbMyUbAAoJEORje4g2clinQcgP/RoSsUOiquE+IANLX0I9N8MF
+RrJQwZwn9MQA3G+AiTNuau32oURzK9msgETMjgzhgxeVp/+n9DIGpV0q1CMFMdlH
++jtgj/hm5bskgiA81xW6SBAuUO262BNCBaU1Gyu1p2MRhRx4eEjGfWq4VRBu/gpp
+tqU1nQC3kcH4/3ubDjeQ2FQBHzJQedJa1IQbhB89NrunSHa6+Ty3AM0g2LmWlZEa
+beAFeD3xcPrg+X1iqFO1rcIJR8HnmYKANJWZ1XJ3n/udoEMASZ1QOrtG/rZrOnnJ
+QyzZ2bCGOLNLSRtCMbMN7b4ha4+vraJM4BatqJN7frbc+CzftgdxPK892N/njE8n
+qwbMtnHq2gDpiL+r+nEw2unJO9AG04Sp0cOchgpyX70L3UDmL6x7vWVhIXQnFM5U
+PV8TdmZnK4frpYsW6WAT6dWASXjmWAgIXF3Yu19vD3ZgeA1OMw+tYFrhM1Ofk40S
+riZtC0yIyKv4LTsLEwsnBDajRwfD+IKmXdqlTS1ibn4T8WjJP0L9PcMFQdrZhhmP
+BR0rHKd7qLDN7fdYHrFnJiE2Efbn4lsA7EXQuuRpVsaw2Xw/LJzvjhrqBVcpXOje
+lmyuh5+vLGk0y9yA5bRarqr4Vw4lUsWCtPcfTKkTdjGarkF0H7Z0+tt7PeNdkwhT
++VP58kIp+geMD65Cc+KD
+=VfG9
 -----END PGP SIGNATURE-----
 
---Bn2rw/3z4jIqBvZU--
+--5G06lTa6Jq83wMTw--
