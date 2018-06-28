@@ -1,125 +1,103 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] vmw_pvrdma: Release netdev when vmxnet3 module is removed
-Date: Thu, 28 Jun 2018 12:59:46 -0600
-Message-ID: <20180628185946.GC379@ziepe.ca>
-References: <20180628135938.19625-1-nhorman@tuxdriver.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Thu, 28 Jun 2018 11:17:43 +0200
+Message-ID: <20180628091743.khhta7nafuwstd3m@quack2.suse.cz>
+References: <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
+ <20180626134757.GY28965@dhcp22.suse.cz>
+ <20180626164825.fz4m2lv6hydbdrds@quack2.suse.cz>
+ <20180627113221.GO32348@dhcp22.suse.cz>
+ <20180627115349.cu2k3ainqqdrrepz@quack2.suse.cz>
+ <20180627115927.GQ32348@dhcp22.suse.cz>
+ <20180627124255.np2a6rxy6rb6v7mm@quack2.suse.cz>
+ <20180627145718.GB20171@ziepe.ca>
+ <20180627170246.qfvucs72seqabaef@quack2.suse.cz>
+ <1f6e79c5-5801-16d2-18a6-66bd0712b5b8@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180628135938.19625-1-nhorman@tuxdriver.com>
+In-Reply-To: <1f6e79c5-5801-16d2-18a6-66bd0712b5b8@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Horman <nhorman@tuxdriver.com>
-Cc: linux-rdma@vger.kernel.org, Adit Ranadive <aditr@vmware.com>, VMware PV-Drivers <pv-drivers@vmware.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Michal Hocko <mhocko@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, John Hubbard <john.hubbard@gmail.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 28, 2018 at 09:59:38AM -0400, Neil Horman wrote:
-> On repeated module load/unload cycles, its possible for the pvrmda
-> driver to encounter this crash:
+On Wed 27-06-18 19:42:01, John Hubbard wrote:
+> On 06/27/2018 10:02 AM, Jan Kara wrote:
+> > On Wed 27-06-18 08:57:18, Jason Gunthorpe wrote:
+> >> On Wed, Jun 27, 2018 at 02:42:55PM +0200, Jan Kara wrote:
+> >>> On Wed 27-06-18 13:59:27, Michal Hocko wrote:
+> >>>> On Wed 27-06-18 13:53:49, Jan Kara wrote:
+> >>>>> On Wed 27-06-18 13:32:21, Michal Hocko wrote:
+> >>>> [...]
+> >>>>>> Appart from that, do we really care about 32b here? Big DIO, IB users
+> >>>>>> seem to be 64b only AFAIU.
+> >>>>>
+> >>>>> IMO it is a bad habit to leave unpriviledged-user-triggerable oops in the
+> >>>>> kernel even for uncommon platforms...
+> >>>>
+> >>>> Absolutely agreed! I didn't mean to keep the blow up for 32b. I just
+> >>>> wanted to say that we can stay with a simple solution for 32b. I thought
+> >>>> the g-u-p-longterm has plugged the most obvious breakage already. But
+> >>>> maybe I just misunderstood.
+> >>>
+> >>> Most yes, but if you try hard enough, you can still trigger the oops e.g.
+> >>> with appropriately set up direct IO when racing with writeback / reclaim.
+> >>
+> >> gup longterm is only different from normal gup if you have DAX and few
+> >> people do, which really means it doesn't help at all.. AFAIK??
+> > 
+> > Right, what I wrote works only for DAX. For non-DAX situation g-u-p
+> > longterm does not currently help at all. Sorry for confusion.
+> > 
 > 
-> ...
-> 297.032448] RIP: 0010:[<ffffffff839e4620>]  [<ffffffff839e4620>] netdev_walk_all_upper_dev_rcu+0x50/0xb0
-> [  297.034078] RSP: 0018:ffff95087780bd08  EFLAGS: 00010286
-> [  297.034986] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff95087a0c0000
-> [  297.036196] RDX: ffff95087a0c0000 RSI: ffffffff839e44e0 RDI: ffff950835d0c000
-> [  297.037421] RBP: ffff95087780bd40 R08: ffff95087a0e0ea0 R09: abddacd03f8e0ea0
-> [  297.038636] R10: abddacd03f8e0ea0 R11: ffffef5901e9dbc0 R12: ffff95087a0c0000
-> [  297.039854] R13: ffffffff839e44e0 R14: ffff95087a0c0000 R15: ffff950835d0c828
-> [  297.041071] FS:  0000000000000000(0000) GS:ffff95087fc00000(0000) knlGS:0000000000000000
-> [  297.042443] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  297.043429] CR2: ffffffffffffffe8 CR3: 000000007a652000 CR4: 00000000003607f0
-> [  297.044674] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  297.045893] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> [  297.047109] Call Trace:
-> [  297.047545]  [<ffffffff839e4698>] netdev_has_upper_dev_all_rcu+0x18/0x20
-> [  297.048691]  [<ffffffffc05d31af>] is_eth_port_of_netdev+0x2f/0xa0 [ib_core]
-> [  297.049886]  [<ffffffffc05d3180>] ? is_eth_active_slave_of_bonding_rcu+0x70/0x70 [ib_core]
-> ...
-> 
-> This occurs because vmw_pvrdma on probe stores a pointer to the netdev
-> that exists on function 0 of the same bus/device/slot (which represents
-> the vmxnet3 ethernet driver).  However, it never removes this pointer if
-> the vmxnet3 module is removed, leading to crashes resulting from use
-> after free dereferencing incidents like the one above.
-> 
-> The fix is pretty straightforward.  vmw_pvrdma should listen for
-> NETDEV_REGISTER and NETDEV_UNREGISTER events in its event listener code
-> block, and update the stored netdev pointer accordingly.  This solution
-> has been tested by myself and the reporter with successful results.
-> This fix also allows the pvrdma driver to find its underlying ethernet
-> device in the event that vmxnet3 is loaded after pvrdma, which it was
-> not able to do before.
-> 
-> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> Reported-by: ruquin@redhat.com
-> CC: Adit Ranadive <aditr@vmware.com>
-> CC: VMware PV-Drivers <pv-drivers@vmware.com>
-> CC: Doug Ledford <dledford@redhat.com>
-> CC: Jason Gunthorpe <jgg@ziepe.ca>
-> CC: linux-kernel@vger.kernel.org
->  .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 25 +++++++++++++++++--
->  1 file changed, 23 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> index 0be33a81bbe6..5b4782078a74 100644
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-> @@ -699,8 +699,12 @@ static int pvrdma_del_gid(const struct ib_gid_attr *attr, void **context)
->  }
->  
->  static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
-> +					  struct net_device *ndev,
->  					  unsigned long event)
->  {
-> +	struct pci_dev *pdev_net;
-> +
-> +
->  	switch (event) {
->  	case NETDEV_REBOOT:
->  	case NETDEV_DOWN:
-> @@ -718,6 +722,21 @@ static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
->  		else
->  			pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
->  		break;
-> +	case NETDEV_UNREGISTER:
-> +		dev_put(dev->netdev);
-> +		dev->netdev = NULL;
-> +		break;
-> +	case NETDEV_REGISTER:
-> +		/* Paired vmxnet3 will have same bus, slot. But func will be 0 */
-> +		pdev_net = pci_get_slot(dev->pdev->bus, PCI_DEVFN(PCI_SLOT(dev->pdev->devfn), 0));
-> +		if ((dev->netdev == NULL) && (pci_get_drvdata(pdev_net) == ndev)) {
-> +			/* this is our netdev */
-> +			dev->netdev = ndev;
-> +			dev_hold(ndev);
-> +		}
-> +		pci_dev_put(pdev_net);
-> +		break;
-> +
->  	default:
->  		dev_dbg(&dev->pdev->dev, "ignore netdevice event %ld on %s\n",
->  			event, dev->ib_dev.name);
-> @@ -734,8 +753,9 @@ static void pvrdma_netdevice_event_work(struct work_struct *work)
->  
->  	mutex_lock(&pvrdma_device_list_lock);
->  	list_for_each_entry(dev, &pvrdma_device_list, device_link) {
-> -		if (dev->netdev == netdev_work->event_netdev) {
-> -			pvrdma_netdevice_event_handle(dev, netdev_work->event);
-> +		if ((netdev_work->event == NETDEV_REGISTER) ||
-> +		    (dev->netdev == netdev_work->event_netdev)) {
-> +			pvrdma_netdevice_event_handle(dev, netdev_work->event_netdev, netdev_work->event);
->  			break;
->  		}
->  	}
-> @@ -962,6 +982,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
->  	}
->  
->  	dev->netdev = pci_get_drvdata(pdev_net);
-> +	dev_hold(dev->netdev);
->  	pci_dev_put(pdev_net);
->  	if (!dev->netdev) {
->  		dev_err(&pdev->dev, "failed to get vmxnet3 device\n");
+> OK, I've got an early version of this up and running, reusing the page->lru
+> fields. I'll clean it up and do some heavier testing, and post as a PATCH v2.
 
-I see a lot of new dev_hold's here, where are the matching
-dev_puts()?
+Cool.
 
-Jason
+> One question though: I'm still vague on the best actions to take in the
+> following functions:
+> 
+>     page_mkclean_one
+>     try_to_unmap_one
+> 
+> At the moment, they are both just doing an evil little early-out:
+> 
+> 	if (PageDmaPinned(page))
+> 		return false;
+> 
+> ...but we talked about maybe waiting for the condition to clear, instead?
+> Thoughts?
+
+What needs to happen in page_mkclean() depends on the caller. Most of the
+callers really need to be sure the page is write-protected once
+page_mkclean() returns. Those are:
+
+  pagecache_isize_extended()
+  fb_deferred_io_work()
+  clear_page_dirty_for_io() if called for data-integrity writeback - which
+    is currently known only in its caller (e.g. write_cache_pages()) where
+    it can be determined as wbc->sync_mode == WB_SYNC_ALL. Getting this
+    information into page_mkclean() will require some plumbing and
+    clear_page_dirty_for_io() has some 50 callers but it's doable.
+
+clear_page_dirty_for_io() for cleaning writeback (wbc->sync_mode !=
+WB_SYNC_ALL) can just skip pinned pages and we probably need to do that as
+otherwise memory cleaning would get stuck on pinned pages until RDMA
+drivers release its pins.
+
+> And if so, does it sound reasonable to refactor wait_on_page_bit_common(),
+> so that it learns how to wait for a bit that, while inside struct page, is
+> not within page->flags?
+
+wait_on_page_bit_common() and associated wait queue handling is a fast path
+so we should not make it slower for such special case as waiting for DMA
+pin. OTOH we could probably refactor most of the infrastructure to take
+pointer to word with flags instead of pointer to page. I'm not sure how the
+result will look like but it's probably worth a try.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
