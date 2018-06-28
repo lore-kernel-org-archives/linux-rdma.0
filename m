@@ -1,65 +1,143 @@
-From: "Calciano, Jess" <jess.calciano@intel.com>
-Subject: iscsi_trx oops in 4.18.0-rc2 and potential patch for percpu_ida.c
-Date: Thu, 28 Jun 2018 19:53:21 +0000
-Message-ID: <E079A211AAA8AD48953B67A89DB71C856E7DBC38@fmsmsx104.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] vmw_pvrdma: Release netdev when vmxnet3 module is removed
+Date: Thu, 28 Jun 2018 14:37:09 -0600
+Message-ID: <20180628203709.GD379@ziepe.ca>
+References: <20180628135938.19625-1-nhorman@tuxdriver.com>
+ <20180628185946.GC379@ziepe.ca>
+ <20180628194526.GA14168@hmswarspite.think-freely.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180628194526.GA14168@hmswarspite.think-freely.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>
-Cc: "bigeasy@linutronix.de" <bigeasy@linutronix.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Neil Horman <nhorman@tuxdriver.com>
+Cc: linux-rdma@vger.kernel.org, Adit Ranadive <aditr@vmware.com>, VMware PV-Drivers <pv-drivers@vmware.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Thu, Jun 28, 2018 at 03:45:26PM -0400, Neil Horman wrote:
+> On Thu, Jun 28, 2018 at 12:59:46PM -0600, Jason Gunthorpe wrote:
+> > On Thu, Jun 28, 2018 at 09:59:38AM -0400, Neil Horman wrote:
+> > > On repeated module load/unload cycles, its possible for the pvrmda
+> > > driver to encounter this crash:
+> > > 
+> > > ...
+> > > 297.032448] RIP: 0010:[<ffffffff839e4620>]  [<ffffffff839e4620>] netdev_walk_all_upper_dev_rcu+0x50/0xb0
+> > > [  297.034078] RSP: 0018:ffff95087780bd08  EFLAGS: 00010286
+> > > [  297.034986] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff95087a0c0000
+> > > [  297.036196] RDX: ffff95087a0c0000 RSI: ffffffff839e44e0 RDI: ffff950835d0c000
+> > > [  297.037421] RBP: ffff95087780bd40 R08: ffff95087a0e0ea0 R09: abddacd03f8e0ea0
+> > > [  297.038636] R10: abddacd03f8e0ea0 R11: ffffef5901e9dbc0 R12: ffff95087a0c0000
+> > > [  297.039854] R13: ffffffff839e44e0 R14: ffff95087a0c0000 R15: ffff950835d0c828
+> > > [  297.041071] FS:  0000000000000000(0000) GS:ffff95087fc00000(0000) knlGS:0000000000000000
+> > > [  297.042443] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > [  297.043429] CR2: ffffffffffffffe8 CR3: 000000007a652000 CR4: 00000000003607f0
+> > > [  297.044674] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> > > [  297.045893] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> > > [  297.047109] Call Trace:
+> > > [  297.047545]  [<ffffffff839e4698>] netdev_has_upper_dev_all_rcu+0x18/0x20
+> > > [  297.048691]  [<ffffffffc05d31af>] is_eth_port_of_netdev+0x2f/0xa0 [ib_core]
+> > > [  297.049886]  [<ffffffffc05d3180>] ? is_eth_active_slave_of_bonding_rcu+0x70/0x70 [ib_core]
+> > > ...
+> > > 
+> > > This occurs because vmw_pvrdma on probe stores a pointer to the netdev
+> > > that exists on function 0 of the same bus/device/slot (which represents
+> > > the vmxnet3 ethernet driver).  However, it never removes this pointer if
+> > > the vmxnet3 module is removed, leading to crashes resulting from use
+> > > after free dereferencing incidents like the one above.
+> > > 
+> > > The fix is pretty straightforward.  vmw_pvrdma should listen for
+> > > NETDEV_REGISTER and NETDEV_UNREGISTER events in its event listener code
+> > > block, and update the stored netdev pointer accordingly.  This solution
+> > > has been tested by myself and the reporter with successful results.
+> > > This fix also allows the pvrdma driver to find its underlying ethernet
+> > > device in the event that vmxnet3 is loaded after pvrdma, which it was
+> > > not able to do before.
+> > > 
+> > > Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+> > > Reported-by: ruquin@redhat.com
+> > > CC: Adit Ranadive <aditr@vmware.com>
+> > > CC: VMware PV-Drivers <pv-drivers@vmware.com>
+> > > CC: Doug Ledford <dledford@redhat.com>
+> > > CC: Jason Gunthorpe <jgg@ziepe.ca>
+> > > CC: linux-kernel@vger.kernel.org
+> > >  .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 25 +++++++++++++++++--
+> > >  1 file changed, 23 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> > > index 0be33a81bbe6..5b4782078a74 100644
+> > > +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
+> > > @@ -699,8 +699,12 @@ static int pvrdma_del_gid(const struct ib_gid_attr *attr, void **context)
+> > >  }
+> > >  
+> > >  static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
+> > > +					  struct net_device *ndev,
+> > >  					  unsigned long event)
+> > >  {
+> > > +	struct pci_dev *pdev_net;
+> > > +
+> > > +
+> > >  	switch (event) {
+> > >  	case NETDEV_REBOOT:
+> > >  	case NETDEV_DOWN:
+> > > @@ -718,6 +722,21 @@ static void pvrdma_netdevice_event_handle(struct pvrdma_dev *dev,
+> > >  		else
+> > >  			pvrdma_dispatch_event(dev, 1, IB_EVENT_PORT_ACTIVE);
+> > >  		break;
+> > > +	case NETDEV_UNREGISTER:
+> > > +		dev_put(dev->netdev);
+> > > +		dev->netdev = NULL;
+> > > +		break;
+> > > +	case NETDEV_REGISTER:
+> > > +		/* Paired vmxnet3 will have same bus, slot. But func will be 0 */
+> > > +		pdev_net = pci_get_slot(dev->pdev->bus, PCI_DEVFN(PCI_SLOT(dev->pdev->devfn), 0));
+> > > +		if ((dev->netdev == NULL) && (pci_get_drvdata(pdev_net) == ndev)) {
+> > > +			/* this is our netdev */
+> > > +			dev->netdev = ndev;
+> > > +			dev_hold(ndev);
+> > > +		}
+> > > +		pci_dev_put(pdev_net);
+> > > +		break;
+> > > +
+> > >  	default:
+> > >  		dev_dbg(&dev->pdev->dev, "ignore netdevice event %ld on %s\n",
+> > >  			event, dev->ib_dev.name);
+> > > @@ -734,8 +753,9 @@ static void pvrdma_netdevice_event_work(struct work_struct *work)
+> > >  
+> > >  	mutex_lock(&pvrdma_device_list_lock);
+> > >  	list_for_each_entry(dev, &pvrdma_device_list, device_link) {
+> > > -		if (dev->netdev == netdev_work->event_netdev) {
+> > > -			pvrdma_netdevice_event_handle(dev, netdev_work->event);
+> > > +		if ((netdev_work->event == NETDEV_REGISTER) ||
+> > > +		    (dev->netdev == netdev_work->event_netdev)) {
+> > > +			pvrdma_netdevice_event_handle(dev, netdev_work->event_netdev, netdev_work->event);
+> > >  			break;
+> > >  		}
+> > >  	}
+> > > @@ -962,6 +982,7 @@ static int pvrdma_pci_probe(struct pci_dev *pdev,
+> > >  	}
+> > >  
+> > >  	dev->netdev = pci_get_drvdata(pdev_net);
+> > > +	dev_hold(dev->netdev);
+> > >  	pci_dev_put(pdev_net);
+> > >  	if (!dev->netdev) {
+> > >  		dev_err(&pdev->dev, "failed to get vmxnet3 device\n");
+> > 
+> > I see a lot of new dev_hold's here, where are the matching
+> > dev_puts()?
+> > 
+> I'm not sure I'd call 2 alot, but sure, there is a new dev_hold in the
+> pvrdma_pci_probe routine, to hold a reference to the netdev that is looked up
+> there.  It is balanced by the NETDEV_UNREGISTER case in
+> pvrdma_netdevice_event_handle.  The UNREGISTER clause is also balancing the
+> NETDEV_REGISTER case of the hanlder that looks up the matching netdev should a
+> new device be registered.  Note that we will only hold a single device at a
+> time, because a given pvrdma device only recongnizes a single vmxnet3 device
+> (the one on function 0 of its own bus/device tuple).
 
-In 4.18.0-rc1 and rc2, we're seeing a kernel oops on the SCSI target host when an initiator issues an "iscsiadm -m discovery" command.
-Stack trace is below.
+I don't see how the dev_hold in pvrdma_pci_probe is undone during
+error unwind (eg goto err_free_cq_ring)
 
-It seems to be the same bug discussed on the target-devel list in this thread: https://www.spinics.net/lists/target-devel/msg16815.html
-...and resolved with the patch posted there: [PATCH] lib/percpu_ida.c: don't do alloc from per-CPU list if there is none
-We tried the patch, and it works to fix the problem in our testing as well.
+And I don't see how it is put when pvrdma_pci_remove() is called.
 
-So although the problem has already been reported, we're wondering if there are any updates on the status of the fix, or if it will be available in an upcoming mainline build.
-
-
-Thanks,
-Jess
-
-
-
-[  278.870830] BUG: unable to handle kernel paging request at ffffc128bfa06b34
-[  278.878629] PGD 85e46d067 P4D 85e46d067 PUD 0
-[  278.883600] Oops: 0000 [#1] SMP PTI
-[  278.887500] CPU: 0 PID: 3331 Comm: iscsi_trx Not tainted 4.18.0-rc2 #1
-[  278.894799] Hardware name: Intel Corporation S2600WT2R/S2600WT2R, BIOS SE5C610.86B.01.01.0016.033120161139 03/31/2016
-[  278.906669] RIP: 0010:percpu_ida_alloc+0x67/0x90
-[  278.911831] Code: 8c 48 89 44 24 18 48 89 44 24 20 65 48 03 1d e8 6e c6 73 48 89 df e8 58 b8 3e 00 8b 4b 04 48 89 c6 48 89 df 8d 51 ff 89 53 04 <8b> 6c 93 08 e8 70 b6 3e 00 48 8b 74 24 28 65 48 33 34 25 28 00 00
-[  278.932933] RSP: 0018:ffffa12cc8e87db0 EFLAGS: 00010046
-[  278.938775] RAX: 0000000000000286 RBX: ffffc124bfa06b30 RCX: 0000000000000000
-[  278.946753] RDX: 00000000ffffffff RSI: 0000000000000286 RDI: ffffc124bfa06b30
-[  278.954730] RBP: ffff90a819b92000 R08: 0000000000000000 R09: 0000000000000030
-[  278.962707] R10: ffff90a016f080c8 R11: 000000000000000c R12: ffffa12cc8e87e58
-[  278.970683] R13: ffff90a01baa8000 R14: ffff90a819b92000 R15: ffff90a8197a62d8
-[  278.979145] FS:  0000000000000000(0000) GS:ffff90a01f200000(0000) knlGS:0000000000000000
-[  278.988606] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  278.995440] CR2: ffffc128bfa06b34 CR3: 000000064220a001 CR4: 00000000003606f0
-[  279.003831] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[  279.012233] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[  279.020609] Call Trace:
-[  279.023746]  ? remove_wait_queue+0x60/0x60
-[  279.028741]  iscsit_allocate_cmd+0x28/0x110 [iscsi_target_mod]
-[  279.035670]  iscsit_get_rx_pdu+0x4bb/0x880 [iscsi_target_mod]
-[  279.042506]  ? pick_next_task_fair+0x291/0x620
-[  279.047888]  ? __switch_to+0xa8/0x480
-[  279.052405]  iscsi_target_rx_thread+0xb5/0xf0 [iscsi_target_mod]
-[  279.059552]  kthread+0xf5/0x130
-[  279.063499]  ? iscsi_target_tx_thread+0x1f0/0x1f0 [iscsi_target_mod]
-[  279.071042]  ? kthread_bind+0x10/0x10
-[  279.075576]  ret_from_fork+0x35/0x40
-[  279.080007] Modules linked in: target_core_user uio tcm_fc libfc scsi_transport_fc tcm_loop target_core_pscsi target_core_iblock target_core_file rpcrdma ib_isert iscsi_target_mod sunrpc target_core_mod rdma_ucm ib_uverbs ib_ipoib dm_mirror ib_iser dm_region_hash ib_umad dm_log rdma_cm libiscsi ib_cm dm_mod iw_cm scsi_transport_iscsi intel_rapl sb_edac x86_pkg_temp_thermal intel_powerclamp coretemp kvm hfi1 irqbypass joydev crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc rdmavt iTCO_wdt mei_me aesni_intel mei iTCO_vendor_support sg lpc_ich ib_core i2c_i801 crypto_simd cryptd glue_helper ipmi_si mxm_wmi ipmi_devintf ipmi_msghandler pcspkr ioatdma acpi_pad wmi acpi_power_meter ip_tables ext4 mbcache jbd2 sd_mod mgag200 drm_kms_helper syscopyarea sysfillrect sysimgblt fb_sys_fops tt
- m drm igb
-[  279.162388]  ahci libahci libata crc32c_intel dca i2c_algo_bit i2c_core
-[  279.170337] CR2: ffffc128bfa06b34
-[  279.174655] ---[ end trace 3b147417c7ae0be8 ]---
+Jason
