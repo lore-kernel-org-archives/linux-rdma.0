@@ -1,84 +1,79 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: Re: [PATCH rdma-next 08/12] overflow.h: Add arithmetic shift helper
-Date: Wed, 27 Jun 2018 23:35:54 +0200
-Message-ID: <118d26e6-7fe4-7001-fe90-da5090579a88@rasmusvillemoes.dk>
-References: <20180624082353.16138-1-leon@kernel.org>
- <20180624082353.16138-9-leon@kernel.org>
- <CAKwiHFhgsyWYD+q+JFb2HJEphnjiiOp=o4Airv3MW031q2jx8w@mail.gmail.com>
- <20180625171157.GE5356@mellanox.com>
- <CAKwiHFiRYbyiJqDYCgKXKZYRr0KjCt8q9AwKwfqoCA1sT2KFyQ@mail.gmail.com>
- <20180626175435.GQ5356@mellanox.com>
- <CAKwiHFgchr+6HYOZ4e4e1vzL9cFabe6eonNNM8NTWZypazcuKA@mail.gmail.com>
- <20180627181012.GM20754@mellanox.com>
- <20180627182220.GV30877@mtr-leonro.mtl.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Wed, 27 Jun 2018 19:42:01 -0700
+Message-ID: <1f6e79c5-5801-16d2-18a6-66bd0712b5b8@nvidia.com>
+References: <CAPcyv4iacHYxGmyWokFrVsmxvLj7=phqp2i0tv8z6AT-mYuEEA@mail.gmail.com>
+ <3898ef6b-2fa0-e852-a9ac-d904b47320d5@nvidia.com>
+ <CAPcyv4iRBzmwWn_9zDvqdfVmTZL_Gn7uA_26A1T-kJib=84tvA@mail.gmail.com>
+ <20180626134757.GY28965@dhcp22.suse.cz>
+ <20180626164825.fz4m2lv6hydbdrds@quack2.suse.cz>
+ <20180627113221.GO32348@dhcp22.suse.cz>
+ <20180627115349.cu2k3ainqqdrrepz@quack2.suse.cz>
+ <20180627115927.GQ32348@dhcp22.suse.cz>
+ <20180627124255.np2a6rxy6rb6v7mm@quack2.suse.cz>
+ <20180627145718.GB20171@ziepe.ca>
+ <20180627170246.qfvucs72seqabaef@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180627182220.GV30877@mtr-leonro.mtl.com>
+In-Reply-To: <20180627170246.qfvucs72seqabaef@quack2.suse.cz>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Kees Cook <keescook@chromium.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Michal Hocko <mhocko@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, John Hubbard <john.hubbard@gmail.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-06-27 20:22, Leon Romanovsky wrote:
-> On Wed, Jun 27, 2018 at 12:10:12PM -0600, Jason Gunthorpe wrote:
->> On Wed, Jun 27, 2018 at 11:36:03AM +0200, Rasmus Villemoes wrote:
->>>    Well, the types you can check at compile-time, the values not, so you
->>>    still have to define the result, i.e. contents of *d, for negative
->>>    values (even if we decide that "overflow" should always be signalled in
->>>    that case).
+On 06/27/2018 10:02 AM, Jan Kara wrote:
+> On Wed 27-06-18 08:57:18, Jason Gunthorpe wrote:
+>> On Wed, Jun 27, 2018 at 02:42:55PM +0200, Jan Kara wrote:
+>>> On Wed 27-06-18 13:59:27, Michal Hocko wrote:
+>>>> On Wed 27-06-18 13:53:49, Jan Kara wrote:
+>>>>> On Wed 27-06-18 13:32:21, Michal Hocko wrote:
+>>>> [...]
+>>>>>> Appart from that, do we really care about 32b here? Big DIO, IB users
+>>>>>> seem to be 64b only AFAIU.
+>>>>>
+>>>>> IMO it is a bad habit to leave unpriviledged-user-triggerable oops in the
+>>>>> kernel even for uncommon platforms...
+>>>>
+>>>> Absolutely agreed! I didn't mean to keep the blow up for 32b. I just
+>>>> wanted to say that we can stay with a simple solution for 32b. I thought
+>>>> the g-u-p-longterm has plugged the most obvious breakage already. But
+>>>> maybe I just misunderstood.
+>>>
+>>> Most yes, but if you try hard enough, you can still trigger the oops e.g.
+>>> with appropriately set up direct IO when racing with writeback / reclaim.
 >>
->> Why do a need to define a 'result' beyond whatever the not-undefined
->> behavior shift expression produces?
+>> gup longterm is only different from normal gup if you have DAX and few
+>> people do, which really means it doesn't help at all.. AFAIK??
+> 
+> Right, what I wrote works only for DAX. For non-DAX situation g-u-p
+> longterm does not currently help at all. Sorry for confusion.
+> 
 
-Well, perhaps you don't, it's just that the other check_*_overflow have
-that behaviour (which they inherit from gcc's builtins), and it's a
-nice-to-have. But I see that it's hard to come up with something
-sensible in all the "doesn't make sense" cases. When writing the tests
-for test_overflow.c, you can of course just omit the comparison to
-the/an expected result in the overflow case.
+OK, I've got an early version of this up and running, reusing the page->lru
+fields. I'll clean it up and do some heavier testing, and post as a PATCH v2.
 
->> /*
->>  * Compute *d = (a << s)
->>  *
->>  * Returns true if '*d' cannot hold the result or 'a << s' doesn't make sense.
->>  * - 'a << s' causes bits to be lost when stored in d
->>  * - 's' is garbage (eg negative) or so large that a << s is guarenteed to be 0
->>  * - 'a' is negative
->>  * - 'a << s' sets the sign bit, if any, in '*d'
->>  * *d is not defined if false is returned.
->>  */
->> #define check_shift_overflow(a, s, d)                                          \
->> 	({                                                                     \
->> 		typeof(a) _a = a;                                              \
->> 		typeof(s) _s = s;                                              \
->> 		typeof(d) _d = d;                                              \
->> 		u64 _a_full = _a;                                              \
->> 		unsigned int _to_shift =                                       \
->> 			_s >= 0 && _s < 8 * sizeof(*d) ? _s : 0;               \
->>                                                                                \
->> 		*_d = (_a_full << _to_shift);                                  \
->>                                                                                \
->> 		(_to_shift != _s || *_d < 0 || _a < 0 ||                       \
->> 		 (*_d >> _to_shift) != a);                                     \
->> 	})
+One question though: I'm still vague on the best actions to take in the following
+functions:
 
-That last a still needs to be _a. Other than that, I don't see anything
-wrong with this version.
+    page_mkclean_one
+    try_to_unmap_one
 
->> int main(int argc, const char *argv[])
->> {
->> 	int32_t s32;
->> 	uint32_t u32;
->>
->> 	assert(check_shift_overflow(1, 0, &s32) == false && s32 == (1 << 0));
-[...]>> 	assert(check_shift_overflow(0xFFFFFFFF, 1, &s32) == true);
+At the moment, they are both just doing an evil little early-out:
 
-Please add these in some form to test_overflow.c, but do also include
-cases where a and *d have different width, e.g. check_shift_overflow(1,
-32, &s64) should be ok, while check_shift_overflow(65432, 0, &s16)
-should not.
+	if (PageDmaPinned(page))
+		return false;
 
-Rasmus
+...but we talked about maybe waiting for the condition to clear, instead? Thoughts?
+
+And if so, does it sound reasonable to refactor wait_on_page_bit_common(),
+so that it learns how to wait for a bit that, while inside struct page, is
+not within page->flags?
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
