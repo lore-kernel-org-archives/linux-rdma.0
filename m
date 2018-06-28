@@ -1,46 +1,40 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: Re: [PATCH v2] RDMA/rxe: Set wqe->status correctly if an unexpected
- response is received
-Date: Thu, 28 Jun 2018 08:47:39 -0700
-Message-ID: <420a0ebb-9b5d-97ee-ccea-f9fdf394daec@wdc.com>
-References: <20180626153936.9576-1-bart.vanassche@wdc.com>
- <20180627163150.GA9553@lap1> <ac7e43f3-f753-caf3-3e09-8041bac017f9@wdc.com>
- <CAG9sBKOsm6Sn9pQ6-WiGx325SLCsONPCnKnkcTk0ZqPZmLbRHw@mail.gmail.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V3 1/6] IB/hfi1: Use pci_try_reset_bus() for initiating pci secondary bus reset
+Date: Thu, 28 Jun 2018 14:28:21 -0400
+Message-ID: <1530210507-9287-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAG9sBKOsm6Sn9pQ6-WiGx325SLCsONPCnKnkcTk0ZqPZmLbRHw@mail.gmail.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Moni Shoua <monis@mellanox.com>
-Cc: Yuval Shaia <yuval.shaia@oracle.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, "yanjun.zhu@oracle.com" <yanjun.zhu@oracle.com>, "jianchao.w.wang@oracle.com" <jianchao.w.wang@oracle.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 06/28/18 01:58, Moni Shoua wrote:
->> wqe->status is already set before the code that you mentioned has been
->> reached.
- >
-> can you be more specific?
-> for instance I didn't find similar behavior for the example below
-> (also in check_ack())
-> 
->          case IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE:
->                  syn = aeth_syn(pkt);
-> 
->                  if ((syn & AETH_TYPE_MASK) != AETH_ACK)
->                          return COMPST_ERROR;
-> 
->                  if (wqe->wr.opcode != IB_WR_ATOMIC_CMP_AND_SWP &&
->                      wqe->wr.opcode != IB_WR_ATOMIC_FETCH_AND_ADD)
->                          return COMPST_ERROR;   <<<<<<<<<<<<<<<<<<<<<<<<<<
->                  reset_retry_counters(qp);
->                  return COMPST_ATOMIC;
+Getting ready to hide pci_reset_bridge_secondary_bus() from the drivers.
+pci_reset_bridge_secondary_bus() should only be used internally by the
+PCI code itself.
 
-Hello Moni,
+Other drivers should rely on higher level pci_try_reset_bus() API.
 
-I may have been wrong when I claimed that all other paths that return 
-COMPST_ERROR already set wqe->status to an error value. However, I only 
-have a test case for the path I modified. Hence my patch.
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/infiniband/hw/hfi1/pcie.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Bart.
+diff --git a/drivers/infiniband/hw/hfi1/pcie.c b/drivers/infiniband/hw/hfi1/pcie.c
+index 4d4371b..4570c4d 100644
+--- a/drivers/infiniband/hw/hfi1/pcie.c
++++ b/drivers/infiniband/hw/hfi1/pcie.c
+@@ -905,9 +905,7 @@ static int trigger_sbr(struct hfi1_devdata *dd)
+ 	 * delay after a reset is required.  Per spec requirements,
+ 	 * the link is either working or not after that point.
+ 	 */
+-	pci_reset_bridge_secondary_bus(dev->bus->self);
+-
+-	return 0;
++	return pci_try_reset_bus(dev->bus);
+ }
+ 
+ /*
+-- 
+2.7.4
