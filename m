@@ -1,53 +1,24 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: Re: [PATCH] vmw_pvrdma: Release netdev when vmxnet3 module is removed
-Date: Thu, 28 Jun 2018 21:15:46 +0000
-Message-ID: <74E5B871-3D33-4C75-8FD4-C5D5BE2182AD@vmware.com>
-References: <20180628135938.19625-1-nhorman@tuxdriver.com>
- <20180628185946.GC379@ziepe.ca>
- <20180628194526.GA14168@hmswarspite.think-freely.org>
- <20180628203709.GD379@ziepe.ca>
+From: "bigeasy@linutronix.de" <bigeasy@linutronix.de>
+Subject: Re: iscsi_trx oops in 4.18.0-rc2 and potential patch for percpu_ida.c
+Date: Fri, 29 Jun 2018 09:49:25 +0200
+Message-ID: <20180629074924.pomscnvmi3l42lbm@linutronix.de>
+References: <E079A211AAA8AD48953B67A89DB71C856E7DBC38@fmsmsx104.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180628203709.GD379@ziepe.ca>
-Content-Language: en-US
-Content-ID: <306B4E0DDF4C6B4EB180D2418741FEA2@namprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <E079A211AAA8AD48953B67A89DB71C856E7DBC38@fmsmsx104.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Neil Horman <nhorman@tuxdriver.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, pv-drivers <pv-drivers@vmware.com>, Doug Ledford <dledford@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Calciano, Jess" <jess.calciano@intel.com>
+Cc: "'linux-rdma@vger.kernel.org'" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNi8yOC8xOCwgMTozNyBQTSwgIkphc29uIEd1bnRob3JwZSIgPGpnZ0B6aWVwZS5jYT4gd3Jv
-dGU6DQo+IE9uIFRodSwgSnVuIDI4LCAyMDE4IGF0IDAzOjQ1OjI2UE0gLTA0MDAsIE5laWwgSG9y
-bWFuIHdyb3RlOg0KPiA+IE9uIFRodSwgSnVuIDI4LCAyMDE4IGF0IDEyOjU5OjQ2UE0gLTA2MDAs
-IEphc29uIEd1bnRob3JwZSB3cm90ZToNCj4gPiA+IE9uIFRodSwgSnVuIDI4LCAyMDE4IGF0IDA5
-OjU5OjM4QU0gLTA0MDAsIE5laWwgSG9ybWFuIHdyb3RlOg0KPiA+ID4gPiBPbiByZXBlYXRlZCBt
-b2R1bGUgbG9hZC91bmxvYWQgY3ljbGVzLCBpdHMgcG9zc2libGUgZm9yIHRoZSBwdnJtZGENCj4g
-PiA+ID4gZHJpdmVyIHRvIGVuY291bnRlciB0aGlzIGNyYXNoOg0KPHNuaXA+DQo+ID4gPiA+IEBA
-IC05NjIsNiArOTgyLDcgQEAgc3RhdGljIGludCBwdnJkbWFfcGNpX3Byb2JlKHN0cnVjdCBwY2lf
-ZGV2ICpwZGV2LA0KPiA+ID4gPiAgCX0NCj4gPiA+ID4gIA0KPiA+ID4gPiAgCWRldi0+bmV0ZGV2
-ID0gcGNpX2dldF9kcnZkYXRhKHBkZXZfbmV0KTsNCj4gPiA+ID4gKwlkZXZfaG9sZChkZXYtPm5l
-dGRldik7DQoNClRoYXQgZG9lc24ndCBzZWVtIHJpZ2h0LiBJZiB0aGUgdm14bmV0MyBkcml2ZXIg
-aXNuJ3QgbG9hZGVkIGF0IGFsbCBvciBmYWlsZWQNCnRvIGNyZWF0ZSBhIG5ldGRldiwgeW91IHdv
-dWxkIGJlIHJlcXVlc3RpbmcgYSBob2xkIG9uIGEgTlVMTCBuZXRkZXYuIFdoYXQgaWYNCnlvdSBt
-b3ZlZCB0aGlzIHRvIGFmdGVyIHRoZSBpZighZGV2LT5uZXRkZXYpIGNoZWNrPw0KDQo+ID4gPiA+
-ICAJcGNpX2Rldl9wdXQocGRldl9uZXQpOw0KPiA+ID4gPiAgCWlmICghZGV2LT5uZXRkZXYpIHsN
-Cj4gPiA+ID4gIAkJZGV2X2VycigmcGRldi0+ZGV2LCAiZmFpbGVkIHRvIGdldCB2bXhuZXQzIGRl
-dmljZVxuIik7DQo+ID4gPiANCj4gPiA+IEkgc2VlIGEgbG90IG9mIG5ldyBkZXZfaG9sZCdzIGhl
-cmUsIHdoZXJlIGFyZSB0aGUgbWF0Y2hpbmcNCj4gPiA+IGRldl9wdXRzKCk/DQo+ID4gPiANCj4g
-SSdtIG5vdCBzdXJlIEknZCBjYWxsIDIgYWxvdCwgYnV0IHN1cmUsIHRoZXJlIGlzIGEgbmV3IGRl
-dl9ob2xkIGluIHRoZQ0KPiBwdnJkbWFfcGNpX3Byb2JlIHJvdXRpbmUsIHRvIGhvbGQgYSByZWZl
-cmVuY2UgdG8gdGhlIG5ldGRldiB0aGF0IGlzIGxvb2tlZCB1cA0KPiB0aGVyZS4gIEl0IGlzIGJh
-bGFuY2VkIGJ5IHRoZSBORVRERVZfVU5SRUdJU1RFUiBjYXNlIGluDQo+IHB2cmRtYV9uZXRkZXZp
-Y2VfZXZlbnRfaGFuZGxlLiAgVGhlIFVOUkVHSVNURVIgY2xhdXNlIGlzIGFsc28gYmFsYW5jaW5n
-IHRoZQ0KPiBORVRERVZfUkVHSVNURVIgY2FzZSBvZiB0aGUgaGFubGRlciB0aGF0IGxvb2tzIHVw
-IHRoZSBtYXRjaGluZyBuZXRkZXYgc2hvdWxkIGENCj4gbmV3IGRldmljZSBiZSByZWdpc3RlcmVk
-LiAgTm90ZSB0aGF0IHdlIHdpbGwgb25seSBob2xkIGEgc2luZ2xlIGRldmljZSBhdCBhDQo+IHRp
-bWUsIGJlY2F1c2UgYSBnaXZlbiBwdnJkbWEgZGV2aWNlIG9ubHkgcmVjb25nbml6ZXMgYSBzaW5n
-bGUgdm14bmV0MyBkZXZpY2UNCj4gKHRoZSBvbmUgb24gZnVuY3Rpb24gMCBvZiBpdHMgb3duIGJ1
-cy9kZXZpY2UgdHVwbGUpLg0KPiANCj4gSSBkb24ndCBzZWUgaG93IHRoZSBkZXZfaG9sZCBpbiBw
-dnJkbWFfcGNpX3Byb2JlIGlzIHVuZG9uZSBkdXJpbmcNCj4gZXJyb3IgdW53aW5kIChlZyBnb3Rv
-IGVycl9mcmVlX2NxX3JpbmcpDQo+IA0KPiBBbmQgSSBkb24ndCBzZWUgaG93IGl0IGlzIHB1dCB3
-aGVuIHB2cmRtYV9wY2lfcmVtb3ZlKCkgaXMgY2FsbGVkLg0KDQpUaGF0J3MgcmlnaHQuIFRoZXNl
-IHNlZW0gbWlzc2luZyBhcyB3ZWxsLiANCg0K
+On 2018-06-28 19:53:21 [+0000], Calciano, Jess wrote:
+> So although the problem has already been reported, we're wondering if there are any updates on the status of the fix, or if it will be available in an upcoming mainline build.
+In Linus' tree:
+4bb6e96ab808 ("lib/percpu_ida.c: don't do alloc from per-CPU list if there is none")
+
+> Thanks,
+> Jess
+
+Sebastian
