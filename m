@@ -1,57 +1,135 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
-Date: Mon, 2 Jul 2018 16:48:27 +0200
-Message-ID: <20180702144827.GC19043@dhcp22.suse.cz>
-References: <20180627115349.cu2k3ainqqdrrepz@quack2.suse.cz>
- <20180627115927.GQ32348@dhcp22.suse.cz>
- <20180627124255.np2a6rxy6rb6v7mm@quack2.suse.cz>
- <20180627145718.GB20171@ziepe.ca>
- <20180627170246.qfvucs72seqabaef@quack2.suse.cz>
- <1f6e79c5-5801-16d2-18a6-66bd0712b5b8@nvidia.com>
- <20180628091743.khhta7nafuwstd3m@quack2.suse.cz>
- <20180702055251.GV3014@mtr-leonro.mtl.com>
- <235a23e3-6e02-234c-3e20-b2dddc93e568@nvidia.com>
- <20180702070227.jj5udrdk3rxzjj4t@quack2.suse.cz>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] IB/hfi1: Fix user context tail allocation for DMA_RTAIL
+Date: Mon, 02 Jul 2018 08:33:25 -0700
+Message-ID: <20180702153323.2598.36535.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180702070227.jj5udrdk3rxzjj4t@quack2.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: John Hubbard <jhubbard@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, John Hubbard <john.hubbard@gmail.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon 02-07-18 09:02:27, Jan Kara wrote:
-> On Sun 01-07-18 23:10:04, John Hubbard wrote:
-[...]
-> > That is an interesting point. 
-> > 
-> > Holding off page writeback of this region does seem like it could cause
-> > problems under memory pressure. Maybe adjusting the watermarks so that we
-> > tell the writeback  system, "all is well, just ignore this region until
-> > we're done with it" might help? Any ideas here are welcome...
-> > 
-> > Longer term, maybe some additional work could allow the kernel to be able
-> > to writeback the gup-pinned pages (while DMA is happening--snapshots), but
-> > that seems like a pretty big overhaul.
-> 
-> We could use bounce pages to safely writeback pinned pages. However I don't
-> think it would buy us anything. From MM point of view these pages are
-> impossible-to-get-rid-of (page refcount is increased) and pernamently-dirty
-> when GUP was for write (we don't know when dirty data arrives there). So
-> let's not just fool MM by pretending we can make them clean. That's going
-> to lead to just more problems down the road.
+commit 1bc0299d976e000ececc6acd76e33b4582646cb7 upstream.
 
-Absolutely agreed! We really need to have means to identify those pages
-first. Only then we can make an educated guess what to do about them.
-Adding kludges here and there is a wrong way about dealing with this
-whole problem. So try to focus on a) a reliable way to detect a longterm
-pin and b) provide an API that would tell the page to be released by its
-current owner (ideally in two modes, async to kick the process in the
-background and continue with something else and sync if there is no
-other way than waiting for the pin.
+The following code fails to allocate a buffer for the
+tail address that the hardware DMAs into when the user
+context DMA_RTAIL is set.
 
--- 
-Michal Hocko
-SUSE Labs
+if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL)) {
+	rcd->rcvhdrtail_kvaddr = dma_zalloc_coherent(
+		&dd->pcidev->dev, PAGE_SIZE, &dma_hdrqtail,
+                gfp_flags);
+	if (!rcd->rcvhdrtail_kvaddr)
+		goto bail_free;
+	rcd->rcvhdrqtailaddr_dma = dma_hdrqtail;
+}
+
+So the rcvhdrtail_kvaddr would then be NULL.
+
+The mmap logic fails to check for a NULL rcvhdrtail_kvaddr.
+
+The fix is to test for both user and kernel DMA_TAIL options
+during the allocation as well as testing for a NULL
+rcvhdrtail_kvaddr during the mmap processing.
+
+Additionally, all downstream testing of the capmask for DMA_RTAIL
+have been eliminated in favor of testing rcvhdrtail_kvaddr.
+
+The patch had to be adjusted for lack of VNIC and interating
+contexts differently in the 4.9 code base.
+
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/hw/hfi1/chip.c     |    8 ++++----
+ drivers/infiniband/hw/hfi1/file_ops.c |    2 +-
+ drivers/infiniband/hw/hfi1/init.c     |    9 ++++-----
+ 3 files changed, 9 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 148b313..d30b3b9 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -6717,7 +6717,7 @@ static void rxe_kernel_unfreeze(struct hfi1_devdata *dd)
+ 	for (i = 0; i < dd->n_krcv_queues; i++) {
+ 		rcvmask = HFI1_RCVCTRL_CTXT_ENB;
+ 		/* HFI1_RCVCTRL_TAILUPD_[ENB|DIS] needs to be set explicitly */
+-		rcvmask |= HFI1_CAP_KGET_MASK(dd->rcd[i]->flags, DMA_RTAIL) ?
++		rcvmask |= dd->rcd[i]->rcvhdrtail_kvaddr ?
+ 			HFI1_RCVCTRL_TAILUPD_ENB : HFI1_RCVCTRL_TAILUPD_DIS;
+ 		hfi1_rcvctrl(dd, rcvmask, i);
+ 	}
+@@ -8211,7 +8211,7 @@ static inline int check_packet_present(struct hfi1_ctxtdata *rcd)
+ 	u32 tail;
+ 	int present;
+ 
+-	if (!HFI1_CAP_IS_KSET(DMA_RTAIL))
++	if (!rcd->rcvhdrtail_kvaddr)
+ 		present = (rcd->seq_cnt ==
+ 				rhf_rcv_seq(rhf_to_cpu(get_rhf_addr(rcd))));
+ 	else /* is RDMA rtail */
+@@ -11550,7 +11550,7 @@ void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt)
+ 		/* reset the tail and hdr addresses, and sequence count */
+ 		write_kctxt_csr(dd, ctxt, RCV_HDR_ADDR,
+ 				rcd->rcvhdrq_dma);
+-		if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL))
++		if (rcd->rcvhdrtail_kvaddr)
+ 			write_kctxt_csr(dd, ctxt, RCV_HDR_TAIL_ADDR,
+ 					rcd->rcvhdrqtailaddr_dma);
+ 		rcd->seq_cnt = 1;
+@@ -11630,7 +11630,7 @@ void hfi1_rcvctrl(struct hfi1_devdata *dd, unsigned int op, int ctxt)
+ 		rcvctrl |= RCV_CTXT_CTRL_INTR_AVAIL_SMASK;
+ 	if (op & HFI1_RCVCTRL_INTRAVAIL_DIS)
+ 		rcvctrl &= ~RCV_CTXT_CTRL_INTR_AVAIL_SMASK;
+-	if (op & HFI1_RCVCTRL_TAILUPD_ENB && rcd->rcvhdrqtailaddr_dma)
++	if ((op & HFI1_RCVCTRL_TAILUPD_ENB) && rcd->rcvhdrtail_kvaddr)
+ 		rcvctrl |= RCV_CTXT_CTRL_TAIL_UPD_SMASK;
+ 	if (op & HFI1_RCVCTRL_TAILUPD_DIS) {
+ 		/* See comment on RcvCtxtCtrl.TailUpd above */
+diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
+index bb72976..d612f9d 100644
+--- a/drivers/infiniband/hw/hfi1/file_ops.c
++++ b/drivers/infiniband/hw/hfi1/file_ops.c
+@@ -609,7 +609,7 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
+ 			ret = -EINVAL;
+ 			goto done;
+ 		}
+-		if (flags & VM_WRITE) {
++		if ((flags & VM_WRITE) || !uctxt->rcvhdrtail_kvaddr) {
+ 			ret = -EPERM;
+ 			goto done;
+ 		}
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index ae1f90d..28f4079 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -1605,7 +1605,6 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 	u64 reg;
+ 
+ 	if (!rcd->rcvhdrq) {
+-		dma_addr_t dma_hdrqtail;
+ 		gfp_t gfp_flags;
+ 
+ 		/*
+@@ -1628,13 +1627,13 @@ int hfi1_create_rcvhdrq(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd)
+ 			goto bail;
+ 		}
+ 
+-		if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL)) {
++		if (HFI1_CAP_KGET_MASK(rcd->flags, DMA_RTAIL) ||
++		    HFI1_CAP_UGET_MASK(rcd->flags, DMA_RTAIL)) {
+ 			rcd->rcvhdrtail_kvaddr = dma_zalloc_coherent(
+-				&dd->pcidev->dev, PAGE_SIZE, &dma_hdrqtail,
+-				gfp_flags);
++				&dd->pcidev->dev, PAGE_SIZE,
++				&rcd->rcvhdrqtailaddr_dma, gfp_flags);
+ 			if (!rcd->rcvhdrtail_kvaddr)
+ 				goto bail_free;
+-			rcd->rcvhdrqtailaddr_dma = dma_hdrqtail;
+ 		}
+ 
+ 		rcd->rcvhdrq_size = amt;
