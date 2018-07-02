@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Subject: [PATCH v2 1/6] mm: get_user_pages: consolidate error handling
-Date: Sun,  1 Jul 2018 17:56:49 -0700
-Message-ID: <20180702005654.20369-2-jhubbard@nvidia.com>
+Subject: [PATCH v2 3/6] mm: introduce zone_gup_lock, for dma-pinned pages
+Date: Sun,  1 Jul 2018 17:56:51 -0700
+Message-ID: <20180702005654.20369-4-jhubbard@nvidia.com>
 References: <20180702005654.20369-1-jhubbard@nvidia.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180702005654.20369-1-jhubbard@nvidia.com>
@@ -12,114 +12,65 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-An upcoming patch requires a way to operate on each page that
-any of the get_user_pages_*() variants returns.
+The page->dma_pinned_flags and _count fields require
+lock protection. A lock at approximately the granularity
+of the zone_lru_lock is called for, but adding to the
+locking contention of zone_lru_lock is undesirable,
+because that is a pre-existing hot spot. Fortunately,
+these new dma_pinned_* fields can use an independent
+lock, so this patch creates an entirely new lock, right
+next to the zone_lru_lock.
 
-In preparation for that, consolidate the error handling for
-__get_user_pages(). This provides a single location (the "out:" label)
-for operating on the collected set of pages that are about to be returned.
+Why "zone_gup_lock"?
 
-As long every use of the "ret" variable is being edited, rename
-"ret" --> "err", so that its name matches its true role.
-This also gets rid of two shadowed variable declarations, as a
-tiny beneficial a side effect.
+Most of the naming refers to "DMA-pinned pages", but
+"zone DMA lock" has other meanings already, so this is
+called zone_gup_lock instead. The "dma pinning" is a result
+of get_user_pages (gup) being called, so the name still
+helps explain its use.
 
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 37 ++++++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ include/linux/mmzone.h | 7 +++++++
+ mm/page_alloc.c        | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index b70d7ba7cc13..73f0b3316fa7 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -660,6 +660,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		struct vm_area_struct **vmas, int *nonblocking)
- {
- 	long i = 0;
-+	int err = 0;
- 	unsigned int page_mask;
- 	struct vm_area_struct *vma = NULL;
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 32699b2dc52a..5b4ceef82657 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -662,6 +662,8 @@ typedef struct pglist_data {
  
-@@ -685,18 +686,19 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		if (!vma || start >= vma->vm_end) {
- 			vma = find_extend_vma(mm, start);
- 			if (!vma && in_gate_area(mm, start)) {
--				int ret;
--				ret = get_gate_page(mm, start & PAGE_MASK,
-+				err = get_gate_page(mm, start & PAGE_MASK,
- 						gup_flags, &vma,
- 						pages ? &pages[i] : NULL);
--				if (ret)
--					return i ? : ret;
-+				if (err)
-+					goto out;
- 				page_mask = 0;
- 				goto next_page;
- 			}
+ 	int kswapd_failures;		/* Number of 'reclaimed == 0' runs */
  
--			if (!vma || check_vma_flags(vma, gup_flags))
--				return i ? : -EFAULT;
-+			if (!vma || check_vma_flags(vma, gup_flags)) {
-+				err = -EFAULT;
-+				goto out;
-+			}
- 			if (is_vm_hugetlb_page(vma)) {
- 				i = follow_hugetlb_page(mm, vma, pages, vmas,
- 						&start, &nr_pages, i,
-@@ -709,23 +711,25 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		 * If we have a pending SIGKILL, don't keep faulting pages and
- 		 * potentially allocating memory.
- 		 */
--		if (unlikely(fatal_signal_pending(current)))
--			return i ? i : -ERESTARTSYS;
-+		if (unlikely(fatal_signal_pending(current))) {
-+			err = -ERESTARTSYS;
-+			goto out;
-+		}
- 		cond_resched();
- 		page = follow_page_mask(vma, start, foll_flags, &page_mask);
- 		if (!page) {
--			int ret;
--			ret = faultin_page(tsk, vma, start, &foll_flags,
-+			err = faultin_page(tsk, vma, start, &foll_flags,
- 					nonblocking);
--			switch (ret) {
-+			switch (err) {
- 			case 0:
- 				goto retry;
- 			case -EFAULT:
- 			case -ENOMEM:
- 			case -EHWPOISON:
--				return i ? i : ret;
-+				goto out;
- 			case -EBUSY:
--				return i;
-+				err = 0;
-+				goto out;
- 			case -ENOENT:
- 				goto next_page;
- 			}
-@@ -737,7 +741,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 			 */
- 			goto next_page;
- 		} else if (IS_ERR(page)) {
--			return i ? i : PTR_ERR(page);
-+			err = PTR_ERR(page);
-+			goto out;
- 		}
- 		if (pages) {
- 			pages[i] = page;
-@@ -757,7 +762,9 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		start += page_increm * PAGE_SIZE;
- 		nr_pages -= page_increm;
- 	} while (nr_pages);
--	return i;
++	spinlock_t pinned_dma_lock;
 +
-+out:
-+	return i ? i : err;
+ #ifdef CONFIG_COMPACTION
+ 	int kcompactd_max_order;
+ 	enum zone_type kcompactd_classzone_idx;
+@@ -740,6 +742,11 @@ static inline spinlock_t *zone_lru_lock(struct zone *zone)
+ 	return &zone->zone_pgdat->lru_lock;
  }
  
- static bool vma_permits_fault(struct vm_area_struct *vma,
++static inline spinlock_t *zone_gup_lock(struct zone *zone)
++{
++	return &zone->zone_pgdat->pinned_dma_lock;
++}
++
+ static inline struct lruvec *node_lruvec(struct pglist_data *pgdat)
+ {
+ 	return &pgdat->lruvec;
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 1521100f1e63..9c493442b57c 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6211,6 +6211,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat)
+ 	int nid = pgdat->node_id;
+ 
+ 	pgdat_resize_init(pgdat);
++	spin_lock_init(&pgdat->pinned_dma_lock);
+ #ifdef CONFIG_NUMA_BALANCING
+ 	spin_lock_init(&pgdat->numabalancing_migrate_lock);
+ 	pgdat->numabalancing_migrate_nr_pages = 0;
 -- 
 2.18.0
