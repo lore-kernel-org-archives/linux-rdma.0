@@ -1,39 +1,56 @@
-From: Tarick Bedeir <tarick@google.com>
-Subject: [PATCH] IB/mlx4: Test port number before querying type.
-Date: Mon,  2 Jul 2018 14:02:34 -0700
-Message-ID: <20180702210234.107361-1-tarick@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: edumazet@google.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tarick Bedeir <tarick@google.com>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH] ib_srpt: Fix a use-after-free in srpt_close_ch()
+Date: Mon,  2 Jul 2018 14:08:18 -0700
+Message-ID: <20180702210818.9075-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-rdma_ah_find_type() can reach into ib_device->port_immutable with a
-potentially out-of-bounds port number, so check that the port number is
-valid first.
+Avoid that KASAN reports the following:
 
-Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
-Signed-off-by: Tarick Bedeir <tarick@google.com>
+BUG: KASAN: use-after-free in srpt_close_ch+0x4f/0x1b0 [ib_srpt]
+Read of size 4 at addr ffff880151180cb8 by task check/4681
+
+CPU: 15 PID: 4681 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+Call Trace:
+ dump_stack+0xa4/0xf5
+ print_address_description+0x6f/0x270
+ kasan_report+0x241/0x360
+ __asan_load4+0x78/0x80
+ srpt_close_ch+0x4f/0x1b0 [ib_srpt]
+ srpt_set_enabled+0xf7/0x1e0 [ib_srpt]
+ srpt_tpg_enable_store+0xb8/0x120 [ib_srpt]
+ configfs_write_file+0x14e/0x1d0 [configfs]
+ __vfs_write+0xd2/0x3b0
+ vfs_write+0x101/0x270
+ ksys_write+0xab/0x120
+ __x64_sys_write+0x43/0x50
+ do_syscall_64+0x77/0x230
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index f045491f2c14..4f1dabecf9a5 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -4034,9 +4034,9 @@ static void to_rdma_ah_attr(struct mlx4_ib_dev *ibdev,
- 	u8 port_num = path->sched_queue & 0x40 ? 2 : 1;
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 3acb0c16b7ac..e42eec20c631 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1834,8 +1834,7 @@ static bool srpt_close_ch(struct srpt_rdma_ch *ch)
+ 	int ret;
  
- 	memset(ah_attr, 0, sizeof(*ah_attr));
--	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, port_num);
- 	if (port_num == 0 || port_num > dev->caps.num_ports)
- 		return;
-+	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, port_num);
+ 	if (!srpt_set_ch_state(ch, CH_DRAINING)) {
+-		pr_debug("%s-%d: already closed\n", ch->sess_name,
+-			 ch->qp->qp_num);
++		pr_debug("%s: already closed\n", ch->sess_name);
+ 		return false;
+ 	}
  
- 	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE)
- 		rdma_ah_set_sl(ah_attr, ((path->sched_queue >> 3) & 0x7) |
 -- 
-2.18.0.399.gad0ab374a1-goog
+2.18.0
