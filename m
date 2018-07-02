@@ -1,55 +1,117 @@
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH] ib_srpt: Fix a use-after-free in __srpt_close_all_ch()
-Date: Mon,  2 Jul 2018 14:08:45 -0700
-Message-ID: <20180702210845.9166-1-bart.vanassche@wdc.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 6/6] mm: page_mkclean, ttu: handle pinned pages
+Date: Mon, 2 Jul 2018 14:07:44 -0700
+Message-ID: <b64bda3d-903d-c3b9-f315-bf7a7302e425@nvidia.com>
+References: <20180702005654.20369-1-jhubbard@nvidia.com>
+ <20180702005654.20369-7-jhubbard@nvidia.com>
+ <20180702101542.fi7ndfkg5fpzodey@quack2.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180702101542.fi7ndfkg5fpzodey@quack2.suse.cz>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-BUG: KASAN: use-after-free in srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
-Read of size 4 at addr ffff8801269d23f8 by task check/29726
+On 07/02/2018 03:15 AM, Jan Kara wrote:
+> On Sun 01-07-18 17:56:54, john.hubbard@gmail.com wrote:
+>> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+>> index 9d142b9b86dc..c4bc8d216746 100644
+>> --- a/mm/memory-failure.c
+>> +++ b/mm/memory-failure.c
+>> @@ -931,6 +931,7 @@ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+>>  	int kill = 1, forcekill;
+>>  	struct page *hpage = *hpagep;
+>>  	bool mlocked = PageMlocked(hpage);
+>> +	bool skip_pinned_pages = false;
+> 
+> I'm not sure we can afford to wait for page pins when handling page
+> poisoning. In an ideal world we should but... But I guess this is for
+> someone understanding memory poisoning better to judge.
 
-CPU: 4 PID: 29726 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-Call Trace:
- dump_stack+0xa4/0xf5
- print_address_description+0x6f/0x270
- kasan_report+0x241/0x360
- __asan_load4+0x78/0x80
- srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
- srpt_tpg_enable_store+0xb8/0x120 [ib_srpt]
- configfs_write_file+0x14e/0x1d0 [configfs]
- __vfs_write+0xd2/0x3b0
- vfs_write+0x101/0x270
- ksys_write+0xab/0x120
- __x64_sys_write+0x43/0x50
- do_syscall_64+0x77/0x230
- entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x7f235cfe6154
 
-Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
-Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: <stable@vger.kernel.org>
----
- drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+OK, then until I hear otherwise, in the next version I'll set 
+skipped_pinned_pages = true here, based on the idea that it's probably
+better to be sure we don't hang while trying to remove a bad page. It's
+hard to achieve perfection in the presence of a memory failure.
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 36d9fab7c998..3acb0c16b7ac 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1941,8 +1941,8 @@ static void __srpt_close_all_ch(struct srpt_port *sport)
- 	list_for_each_entry(nexus, &sport->nexus_list, entry) {
- 		list_for_each_entry(ch, &nexus->ch_list, list) {
- 			if (srpt_disconnect_ch(ch) >= 0)
--				pr_info("Closing channel %s-%d because target %s_%d has been disabled\n",
--					ch->sess_name, ch->qp->qp_num,
-+				pr_info("Closing channel %s because target %s_%d has been disabled\n",
-+					ch->sess_name,
- 					sport->sdev->device->name, sport->port);
- 			srpt_close_ch(ch);
- 		}
+> 
+>> diff --git a/mm/rmap.c b/mm/rmap.c
+>> index 6db729dc4c50..c137c43eb2ad 100644
+>> --- a/mm/rmap.c
+>> +++ b/mm/rmap.c
+>> @@ -879,6 +879,26 @@ int page_referenced(struct page *page,
+>>  	return pra.referenced;
+>>  }
+>>  
+>> +/* Must be called with pinned_dma_lock held. */
+>> +static void wait_for_dma_pinned_to_clear(struct page *page)
+>> +{
+>> +	struct zone *zone = page_zone(page);
+>> +
+>> +	while (PageDmaPinnedFlags(page)) {
+>> +		spin_unlock(zone_gup_lock(zone));
+>> +
+>> +		schedule();
+>> +
+>> +		spin_lock(zone_gup_lock(zone));
+>> +	}
+>> +}
+> 
+> Ouch, we definitely need something better here. Either reuse the
+> page_waitqueue() mechanism or create at least a global wait queue for this
+> (I don't expect too much contention on the waitqueue and even if there
+> eventually is, we can switch to page_waitqueue() when we find it).  But
+> this is a no-go...
+
+Yes, no problem. At one point I had a separate bit waiting queue, which was
+only a few lines of code to do, but I dropped it because I thought that maybe 
+it was overkill. I'll put it back in.
+
+> 
+>> +
+>> +struct page_mkclean_info {
+>> +	int cleaned;
+>> +	int skipped;
+>> +	bool skip_pinned_pages;
+>> +};
+>> +
+>>  static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+>>  			    unsigned long address, void *arg)
+>>  {
+>> @@ -889,7 +909,24 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+>>  		.flags = PVMW_SYNC,
+>>  	};
+>>  	unsigned long start = address, end;
+>> -	int *cleaned = arg;
+>> +	struct page_mkclean_info *mki = (struct page_mkclean_info *)arg;
+>> +	bool is_dma_pinned;
+>> +	struct zone *zone = page_zone(page);
+>> +
+>> +	/* Serialize with get_user_pages: */
+>> +	spin_lock(zone_gup_lock(zone));
+>> +	is_dma_pinned = PageDmaPinned(page);
+> 
+> Hum, why do you do this for each page table this is mapped in? Also the
+> locking is IMHO going to hurt a lot and we need to avoid it.
+> 
+> What I think needs to happen is that in page_mkclean(), after you've
+> cleared all the page tables, you check PageDmaPinned() and wait if needed.
+> Page cannot be faulted in again as we hold page lock and so races with
+> concurrent GUP are fairly limited. So with some careful ordering & memory
+> barriers you should be able to get away without any locking. Ditto for the
+> unmap path...
+> 
+
+I guess I was thinking about this backwards. It would work much better if
+we go ahead and write protect or unmap first, let things drain, and wait later.
+Very nice!
+
+
+thanks,
 -- 
-2.18.0
+John Hubbard
+NVIDIA
