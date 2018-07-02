@@ -1,27 +1,24 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH] ib_srpt: Fix a use-after-free in srpt_close_ch()
-Date: Mon,  2 Jul 2018 14:08:18 -0700
-Message-ID: <20180702210818.9075-1-bart.vanassche@wdc.com>
+Subject: [PATCH] ib_srpt: Fix a use-after-free in __srpt_close_all_ch()
+Date: Mon,  2 Jul 2018 14:08:45 -0700
+Message-ID: <20180702210845.9166-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that KASAN reports the following:
+BUG: KASAN: use-after-free in srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
+Read of size 4 at addr ffff8801269d23f8 by task check/29726
 
-BUG: KASAN: use-after-free in srpt_close_ch+0x4f/0x1b0 [ib_srpt]
-Read of size 4 at addr ffff880151180cb8 by task check/4681
-
-CPU: 15 PID: 4681 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
+CPU: 4 PID: 29726 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
 Call Trace:
  dump_stack+0xa4/0xf5
  print_address_description+0x6f/0x270
  kasan_report+0x241/0x360
  __asan_load4+0x78/0x80
- srpt_close_ch+0x4f/0x1b0 [ib_srpt]
- srpt_set_enabled+0xf7/0x1e0 [ib_srpt]
+ srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
  srpt_tpg_enable_store+0xb8/0x120 [ib_srpt]
  configfs_write_file+0x14e/0x1d0 [configfs]
  __vfs_write+0xd2/0x3b0
@@ -30,27 +27,29 @@ Call Trace:
  __x64_sys_write+0x43/0x50
  do_syscall_64+0x77/0x230
  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x7f235cfe6154
 
 Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
 Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 3acb0c16b7ac..e42eec20c631 100644
+index 36d9fab7c998..3acb0c16b7ac 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1834,8 +1834,7 @@ static bool srpt_close_ch(struct srpt_rdma_ch *ch)
- 	int ret;
- 
- 	if (!srpt_set_ch_state(ch, CH_DRAINING)) {
--		pr_debug("%s-%d: already closed\n", ch->sess_name,
--			 ch->qp->qp_num);
-+		pr_debug("%s: already closed\n", ch->sess_name);
- 		return false;
- 	}
- 
+@@ -1941,8 +1941,8 @@ static void __srpt_close_all_ch(struct srpt_port *sport)
+ 	list_for_each_entry(nexus, &sport->nexus_list, entry) {
+ 		list_for_each_entry(ch, &nexus->ch_list, list) {
+ 			if (srpt_disconnect_ch(ch) >= 0)
+-				pr_info("Closing channel %s-%d because target %s_%d has been disabled\n",
+-					ch->sess_name, ch->qp->qp_num,
++				pr_info("Closing channel %s because target %s_%d has been disabled\n",
++					ch->sess_name,
+ 					sport->sdev->device->name, sport->port);
+ 			srpt_close_ch(ch);
+ 		}
 -- 
 2.18.0
