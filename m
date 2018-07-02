@@ -1,141 +1,58 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v2 1/6] mm: get_user_pages: consolidate error handling
-Date: Mon, 2 Jul 2018 12:17:25 +0200
-Message-ID: <20180702101725.esnjyo4zp3726i3n@quack2.suse.cz>
-References: <20180702005654.20369-1-jhubbard@nvidia.com>
- <20180702005654.20369-2-jhubbard@nvidia.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH 2/2] mm: set PG_dma_pinned on get_user_pages*()
+Date: Mon, 2 Jul 2018 12:36:01 +0200
+Message-ID: <20180702103601.GG19043@dhcp22.suse.cz>
+References: <20180627115927.GQ32348@dhcp22.suse.cz>
+ <20180627124255.np2a6rxy6rb6v7mm@quack2.suse.cz>
+ <20180627145718.GB20171@ziepe.ca>
+ <20180627170246.qfvucs72seqabaef@quack2.suse.cz>
+ <1f6e79c5-5801-16d2-18a6-66bd0712b5b8@nvidia.com>
+ <20180628091743.khhta7nafuwstd3m@quack2.suse.cz>
+ <20180702055251.GV3014@mtr-leonro.mtl.com>
+ <235a23e3-6e02-234c-3e20-b2dddc93e568@nvidia.com>
+ <20180702063403.GX3014@mtr-leonro.mtl.com>
+ <cd6ec2d7-0c19-fb34-e8d3-0459671432b8@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180702005654.20369-2-jhubbard@nvidia.com>
+In-Reply-To: <cd6ec2d7-0c19-fb34-e8d3-0459671432b8@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Christoph Hellwig <hch@lst.de>, John Hubbard <john.hubbard@gmail.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Linux MM <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun 01-07-18 17:56:49, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
+On Sun 01-07-18 23:41:21, John Hubbard wrote:
+> On 07/01/2018 11:34 PM, Leon Romanovsky wrote:
+> > On Sun, Jul 01, 2018 at 11:10:04PM -0700, John Hubbard wrote:
+[...]
+> >>> Sorry for naive question, but won't it create too much dirty pages
+> >>> so writeback will be called "non-stop" to rebalance watermarks without
+> >>> ability to progress?
+> >>>
+> >>
+> >> That is an interesting point.
+> >>
+> >> Holding off page writeback of this region does seem like it could cause
+> >> problems under memory pressure. Maybe adjusting the watermarks so that we
+> >> tell the writeback  system, "all is well, just ignore this region until
+> >> we're done with it" might help? Any ideas here are welcome...
+> > 
+> > AFAIR, it is per-zone, so the solution to count dirty-but-untouchable
+> > number of pages to take them into account for accounting can work, but
+> > it seems like an overkill. Can we create special ZONE for such gup
+> > pages, or this is impossible too?
+> > 
 > 
-> An upcoming patch requires a way to operate on each page that
-> any of the get_user_pages_*() variants returns.
-> 
-> In preparation for that, consolidate the error handling for
-> __get_user_pages(). This provides a single location (the "out:" label)
-> for operating on the collected set of pages that are about to be returned.
-> 
-> As long every use of the "ret" variable is being edited, rename
-> "ret" --> "err", so that its name matches its true role.
-> This also gets rid of two shadowed variable declarations, as a
-> tiny beneficial a side effect.
-> 
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> Let's see what Michal and others prefer. The zone idea intrigues me. 
 
-This looks nice! You can add:
+No new zones please. Pinned pages are essentially mlocked pages, except
+they are worse because they cannot be even migrated. What we really
+needs is a) limit their usage and b) have a way to find out that pins
+are not ephemeral and a special action needs to be taken. What is that
+special action is yet to be decided but please do not add even more
+complexity on top.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
-
-								Honza
-
-> ---
->  mm/gup.c | 37 ++++++++++++++++++++++---------------
->  1 file changed, 22 insertions(+), 15 deletions(-)
-> 
-> diff --git a/mm/gup.c b/mm/gup.c
-> index b70d7ba7cc13..73f0b3316fa7 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -660,6 +660,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  		struct vm_area_struct **vmas, int *nonblocking)
->  {
->  	long i = 0;
-> +	int err = 0;
->  	unsigned int page_mask;
->  	struct vm_area_struct *vma = NULL;
->  
-> @@ -685,18 +686,19 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  		if (!vma || start >= vma->vm_end) {
->  			vma = find_extend_vma(mm, start);
->  			if (!vma && in_gate_area(mm, start)) {
-> -				int ret;
-> -				ret = get_gate_page(mm, start & PAGE_MASK,
-> +				err = get_gate_page(mm, start & PAGE_MASK,
->  						gup_flags, &vma,
->  						pages ? &pages[i] : NULL);
-> -				if (ret)
-> -					return i ? : ret;
-> +				if (err)
-> +					goto out;
->  				page_mask = 0;
->  				goto next_page;
->  			}
->  
-> -			if (!vma || check_vma_flags(vma, gup_flags))
-> -				return i ? : -EFAULT;
-> +			if (!vma || check_vma_flags(vma, gup_flags)) {
-> +				err = -EFAULT;
-> +				goto out;
-> +			}
->  			if (is_vm_hugetlb_page(vma)) {
->  				i = follow_hugetlb_page(mm, vma, pages, vmas,
->  						&start, &nr_pages, i,
-> @@ -709,23 +711,25 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  		 * If we have a pending SIGKILL, don't keep faulting pages and
->  		 * potentially allocating memory.
->  		 */
-> -		if (unlikely(fatal_signal_pending(current)))
-> -			return i ? i : -ERESTARTSYS;
-> +		if (unlikely(fatal_signal_pending(current))) {
-> +			err = -ERESTARTSYS;
-> +			goto out;
-> +		}
->  		cond_resched();
->  		page = follow_page_mask(vma, start, foll_flags, &page_mask);
->  		if (!page) {
-> -			int ret;
-> -			ret = faultin_page(tsk, vma, start, &foll_flags,
-> +			err = faultin_page(tsk, vma, start, &foll_flags,
->  					nonblocking);
-> -			switch (ret) {
-> +			switch (err) {
->  			case 0:
->  				goto retry;
->  			case -EFAULT:
->  			case -ENOMEM:
->  			case -EHWPOISON:
-> -				return i ? i : ret;
-> +				goto out;
->  			case -EBUSY:
-> -				return i;
-> +				err = 0;
-> +				goto out;
->  			case -ENOENT:
->  				goto next_page;
->  			}
-> @@ -737,7 +741,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  			 */
->  			goto next_page;
->  		} else if (IS_ERR(page)) {
-> -			return i ? i : PTR_ERR(page);
-> +			err = PTR_ERR(page);
-> +			goto out;
->  		}
->  		if (pages) {
->  			pages[i] = page;
-> @@ -757,7 +762,9 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  		start += page_increm * PAGE_SIZE;
->  		nr_pages -= page_increm;
->  	} while (nr_pages);
-> -	return i;
-> +
-> +out:
-> +	return i ? i : err;
->  }
->  
->  static bool vma_permits_fault(struct vm_area_struct *vma,
-> -- 
-> 2.18.0
-> 
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Michal Hocko
+SUSE Labs
