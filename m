@@ -1,60 +1,53 @@
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2 4/6] mm/fs: add a sync_mode param for
- clear_page_dirty_for_io()
-Date: Sun, 1 Jul 2018 21:40:22 -0700
-Message-ID: <b98be1bd-89dd-8b76-20f6-8f440dc3ba44@nvidia.com>
-References: <20180702005654.20369-5-jhubbard@nvidia.com>
- <201807020900.J6omiRbx%fengguang.wu@intel.com>
+Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
+Date: Sun, 1 Jul 2018 22:05:49 -0700
+Message-ID: <4eb75815-9246-3185-d77f-7718e02bef7c@nvidia.com>
+References: <20180702005654.20369-6-jhubbard@nvidia.com>
+ <201807021030.EyzuzHW4%fengguang.wu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201807020900.J6omiRbx%fengguang.wu@intel.com>
+In-Reply-To: <201807021030.EyzuzHW4%fengguang.wu@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: kbuild test robot <lkp@intel.com>, john.hubbard@gmail.com
 Cc: kbuild-all@01.org, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/01/2018 07:47 PM, kbuild test robot wrote:
+On 07/01/2018 07:58 PM, kbuild test robot wrote:
 > Hi John,
 > 
-> Thank you for the patch! Yet something to improve:
+> Thank you for the patch! Perhaps something to improve:
 > 
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.18-rc3]
+> [auto build test WARNING on linus/master]
+> [also build test WARNING on v4.18-rc3]
 > [cannot apply to next-20180629]
 > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 > 
 > url:    https://github.com/0day-ci/linux/commits/john-hubbard-gmail-com/mm-fs-gup-don-t-unmap-or-drop-filesystem-buffers/20180702-090125
-> config: i386-randconfig-x075-201826 (attached as .config)
+> config: x86_64-randconfig-x010-201826 (attached as .config)
 > compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
 > reproduce:
 >         # save the attached .config to linux build tree
->         make ARCH=i386 
+>         make ARCH=x86_64 
 > 
-> All errors (new ones prefixed by >>):
+> All warnings (new ones prefixed by >>):
 > 
->    fs/f2fs/dir.c: In function 'f2fs_delete_entry':
->>> fs/f2fs/dir.c:734:33: error: 'WB_SYNC_ALL' undeclared (first use in this function); did you mean 'FS_SYNC_FL'?
->       clear_page_dirty_for_io(page, WB_SYNC_ALL);
->                                     ^~~~~~~~~~~
->                                     FS_SYNC_FL
+>    In file included from arch/x86/include/asm/atomic.h:5:0,
+>                     from include/linux/atomic.h:5,
+>                     from include/linux/page_counter.h:5,
+>                     from mm/memcontrol.c:34:
+>    mm/memcontrol.c: In function 'unlock_page_lru':
+>    mm/memcontrol.c:2087:32: error: 'page_tail' undeclared (first use in this function); did you mean 'page_pool'?
+>       VM_BUG_ON_PAGE(PageDmaPinned(page_tail), page);
+>                                    ^
+Yes, that should have been:
 
-Fixed locally, via:
+        VM_BUG_ON_PAGE(PageDmaPinned(page), page);
 
-diff --git a/fs/f2fs/dir.c b/fs/f2fs/dir.c
-index 258f9dc117f4..ca20c1262582 100644
---- a/fs/f2fs/dir.c
-+++ b/fs/f2fs/dir.c
-@@ -16,6 +16,7 @@
- #include "acl.h"
- #include "xattr.h"
- #include <trace/events/f2fs.h>
-+#include <linux/writeback.h>
- 
- static unsigned long dir_blocks(struct inode *inode)
- {
+Fixed locally...maybe I'll post a v3 right now, as there were half a dozen ridiculous typos that
+snuck in.
 
 
 
