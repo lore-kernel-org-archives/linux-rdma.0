@@ -1,41 +1,79 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V4 4/7] PCI: Unify try slot and bus reset API
-Date: Mon, 2 Jul 2018 16:40:10 -0400
-Message-ID: <9674e845-765c-cc16-654e-21036038f2d5@codeaurora.org>
-References: <1530214274-21139-1-git-send-email-okaya@codeaurora.org>
- <1530214274-21139-4-git-send-email-okaya@codeaurora.org>
- <CAHp75VcYbeRTiggEiQnEV6DKR=F47RxNR0FZ+E-XKPpq8VNpqw@mail.gmail.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
+Date: Mon, 2 Jul 2018 13:43:46 -0700
+Message-ID: <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com>
+References: <20180702005654.20369-1-jhubbard@nvidia.com>
+ <20180702005654.20369-6-jhubbard@nvidia.com>
+ <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcYbeRTiggEiQnEV6DKR=F47RxNR0FZ+E-XKPpq8VNpqw@mail.gmail.com>
+In-Reply-To: <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: linux-pci@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Bjorn Helgaas <bhelgaas@google.com>, Alex Williamson <alex.williamson@redhat.com>, Alexey Kardashevskiy <aik@ozlabs.ru>, Peter Xu <peterx@redhat.com>, Zhenyu Wang <zhenyuw@linux.intel.com>, "open list:HFI1 DRIVER" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:VFIO DRIVER" <kvm@vger.kernel.org>
+To: Jan Kara <jack@suse.cz>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/29/2018 5:43 PM, Andy Shevchenko wrote:
->> +int pci_try_reset_bus(struct pci_dev *pdev)
->> +{
->> +       bool slot = false;
->> +
->> +       if (!pci_probe_reset_slot(pdev->slot))
->> +               slot = true;
->> +
->> +       return slot ? __pci_try_reset_slot(pdev->slot) :
->> +                       __pci_try_reset_bus(pdev->bus);
-> This can be as simple as
+On 07/02/2018 02:53 AM, Jan Kara wrote:
+> On Sun 01-07-18 17:56:53, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
+>>
+> ...
 > 
->   return pci_probe_reset_slot(pdev->slot) ?
->     __pci_try_reset_bus(pdev->slot) : __pci_try_reset_slot(pdev->bus);
+>> @@ -904,12 +907,24 @@ static inline void get_page(struct page *page)
+>>  	 */
+>>  	VM_BUG_ON_PAGE(page_ref_count(page) <= 0, page);
+>>  	page_ref_inc(page);
+>> +
+>> +	if (unlikely(PageDmaPinned(page)))
+>> +		__get_page_for_pinned_dma(page);
+>>  }
+>>  
+>>  static inline void put_page(struct page *page)
+>>  {
+>>  	page = compound_head(page);
+>>  
+>> +	/* Because the page->dma_pinned_* fields are unioned with
+>> +	 * page->lru, there is no way to do classical refcount-style
+>> +	 * decrement-and-test-for-zero. Instead, PageDmaPinned(page) must
+>> +	 * be checked, in order to safely check if we are allowed to decrement
+>> +	 * page->dma_pinned_count at all.
+>> +	 */
+>> +	if (unlikely(PageDmaPinned(page)))
+>> +		__put_page_for_pinned_dma(page);
+>> +
 > 
+> These two are just wrong. You cannot make any page reference for
+> PageDmaPinned() account against a pin count. First, it is just conceptually
+> wrong as these references need not be long term pins, second, you can
+> easily race like:
+> 
+> Pinner				Random process
+> 				get_page(page)
+> pin_page_for_dma()
+> 				put_page(page)
+> 				 -> oops, page gets unpinned too early
 > 
 
-done
+I'll drop this approach, without mentioning any of the locking that is hiding in
+there, since that was probably breaking other rules anyway. :) Thanks for your
+patience in reviewing this.
 
+> So you really have to create counterpart to get_user_pages() - like
+> put_user_page() or whatever... It is inconvenient to have to modify all GUP
+> users but I don't see a way around that. 
+
+OK, there will be a long-ish pause, while I go visit all the gup sites. I count about
+88 callers, which is not nearly as crazy as my first casual grep showed, but still
+quite a chunk, since I have to track down where each one does its put_page call(s).
+
+It's definitely worth the effort, though. These pins just plain need some special
+handling in order to get everything correct.
+
+
+thanks,
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+John Hubbard
+NVIDIA
