@@ -1,48 +1,78 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] ib_srpt: Fix a use-after-free in __srpt_close_all_ch()
-Date: Tue, 3 Jul 2018 14:17:46 -0600
-Message-ID: <20180703201746.GD14418@ziepe.ca>
-References: <20180702210845.9166-1-bart.vanassche@wdc.com>
+Subject: Re: [PATCH v2] vmw_pvrdma: Release netdev when vmxnet3 module is
+ removed
+Date: Tue, 3 Jul 2018 15:53:25 -0600
+Message-ID: <20180703215325.GA29072@ziepe.ca>
+References: <20180628135938.19625-1-nhorman@tuxdriver.com>
+ <20180629115206.18787-1-nhorman@tuxdriver.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180702210845.9166-1-bart.vanassche@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <20180629115206.18787-1-nhorman@tuxdriver.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Neil Horman <nhorman@tuxdriver.com>
+Cc: linux-rdma@vger.kernel.org, Adit Ranadive <aditr@vmware.com>, VMware PV-Drivers <pv-drivers@vmware.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 02, 2018 at 02:08:45PM -0700, Bart Van Assche wrote:
-> BUG: KASAN: use-after-free in srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
-> Read of size 4 at addr ffff8801269d23f8 by task check/29726
+On Fri, Jun 29, 2018 at 07:52:06AM -0400, Neil Horman wrote:
+> On repeated module load/unload cycles, its possible for the pvrmda
+> driver to encounter this crash:
 > 
-> CPU: 4 PID: 29726 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
-> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
-> Call Trace:
->  dump_stack+0xa4/0xf5
->  print_address_description+0x6f/0x270
->  kasan_report+0x241/0x360
->  __asan_load4+0x78/0x80
->  srpt_set_enabled+0x1a9/0x1e0 [ib_srpt]
->  srpt_tpg_enable_store+0xb8/0x120 [ib_srpt]
->  configfs_write_file+0x14e/0x1d0 [configfs]
->  __vfs_write+0xd2/0x3b0
->  vfs_write+0x101/0x270
->  ksys_write+0xab/0x120
->  __x64_sys_write+0x43/0x50
->  do_syscall_64+0x77/0x230
->  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> RIP: 0033:0x7f235cfe6154
+> ...
+> 297.032448] RIP: 0010:[<ffffffff839e4620>]  [<ffffffff839e4620>] netdev_walk_all_upper_dev_rcu+0x50/0xb0
+> [  297.034078] RSP: 0018:ffff95087780bd08  EFLAGS: 00010286
+> [  297.034986] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff95087a0c0000
+> [  297.036196] RDX: ffff95087a0c0000 RSI: ffffffff839e44e0 RDI: ffff950835d0c000
+> [  297.037421] RBP: ffff95087780bd40 R08: ffff95087a0e0ea0 R09: abddacd03f8e0ea0
+> [  297.038636] R10: abddacd03f8e0ea0 R11: ffffef5901e9dbc0 R12: ffff95087a0c0000
+> [  297.039854] R13: ffffffff839e44e0 R14: ffff95087a0c0000 R15: ffff950835d0c828
+> [  297.041071] FS:  0000000000000000(0000) GS:ffff95087fc00000(0000) knlGS:0000000000000000
+> [  297.042443] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  297.043429] CR2: ffffffffffffffe8 CR3: 000000007a652000 CR4: 00000000003607f0
+> [  297.044674] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [  297.045893] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+> [  297.047109] Call Trace:
+> [  297.047545]  [<ffffffff839e4698>] netdev_has_upper_dev_all_rcu+0x18/0x20
+> [  297.048691]  [<ffffffffc05d31af>] is_eth_port_of_netdev+0x2f/0xa0 [ib_core]
+> [  297.049886]  [<ffffffffc05d3180>] ? is_eth_active_slave_of_bonding_rcu+0x70/0x70 [ib_core]
+> ...
 > 
-> Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
-> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-> Cc: <stable@vger.kernel.org>
+> This occurs because vmw_pvrdma on probe stores a pointer to the netdev
+> that exists on function 0 of the same bus/device/slot (which represents
+> the vmxnet3 ethernet driver).  However, it never removes this pointer if
+> the vmxnet3 module is removed, leading to crashes resulting from use
+> after free dereferencing incidents like the one above.
+> 
+> The fix is pretty straightforward.  vmw_pvrdma should listen for
+> NETDEV_REGISTER and NETDEV_UNREGISTER events in its event listener code
+> block, and update the stored netdev pointer accordingly.  This solution
+> has been tested by myself and the reporter with successful results.
+> This fix also allows the pvrdma driver to find its underlying ethernet
+> device in the event that vmxnet3 is loaded after pvrdma, which it was
+> not able to do before.
+> 
+> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+> Reported-by: ruquin@redhat.com
+> CC: Adit Ranadive <aditr@vmware.com>
+> CC: VMware PV-Drivers <pv-drivers@vmware.com>
+> CC: Doug Ledford <dledford@redhat.com>
+> CC: Jason Gunthorpe <jgg@ziepe.ca>
+> CC: linux-kernel@vger.kernel.org
+> Tested-by: Adit Ranadive <aditr@vmware.com>
+> Acked-by: Adit Ranadive <aditr@vmware.com>
 > ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> Change notes
+> 
+> v2)
+>  * Move dev_hold in pvrda_pci_probe to below null check (aditr)
+>  * Add dev_puts to probe error path and pvrda_pci_remove (jgg)
+>  * Cleaned up some checkpatch warnings (nhorman)
+> ---
+>  .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 39 ++++++++++++++++++-
+>  1 file changed, 37 insertions(+), 2 deletions(-)
 
-Applied to for-next
+Appled to for-next
 
 Thanks,
 Jason
