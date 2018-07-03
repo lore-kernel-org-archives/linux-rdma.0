@@ -1,64 +1,78 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
-Date: Mon, 2 Jul 2018 21:30:28 -0700
-Message-ID: <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com>
-References: <20180702005654.20369-1-jhubbard@nvidia.com>
- <20180702005654.20369-6-jhubbard@nvidia.com>
- <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
- <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com>
- <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/mlx4: Test port number before querying type.
+Date: Tue, 3 Jul 2018 09:21:11 +0300
+Message-ID: <20180703062111.GC3014@mtr-leonro.mtl.com>
+References: <20180702210234.107361-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="5dNcufZ4prhark0F"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180702210234.107361-1-tarick@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Jan Kara <jack@suse.cz>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Tarick Bedeir <tarick@google.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, edumazet@google.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/02/2018 05:08 PM, Christopher Lameter wrote:
-> On Mon, 2 Jul 2018, John Hubbard wrote:
-> 
->>>
->>> These two are just wrong. You cannot make any page reference for
->>> PageDmaPinned() account against a pin count. First, it is just conceptually
->>> wrong as these references need not be long term pins, second, you can
->>> easily race like:
->>>
->>> Pinner				Random process
->>> 				get_page(page)
->>> pin_page_for_dma()
->>> 				put_page(page)
->>> 				 -> oops, page gets unpinned too early
->>>
->>
->> I'll drop this approach, without mentioning any of the locking that is hiding in
->> there, since that was probably breaking other rules anyway. :) Thanks for your
->> patience in reviewing this.
-> 
-> Mayb the following would work:
-> 
-> If you establish a reference to a page then increase the page count. If
-> the reference is a dma pin action also then increase the pinned count.
-> 
-> That way you know how many of the references to the page are dma
-> pins and you can correctly manage the state of the page if the dma pins go
-> away.
-> 
 
-I think this sounds like what this patch already does, right? See:
-__put_page_for_pinned_dma(), __get_page_for_pinned_dma(), and 
-pin_page_for_dma(). The locking seems correct to me, but I suspect it's 
-too heavyweight for such a hot path. But without adding a new put_user_page()
-call, that was the best I could come up with.
+--5dNcufZ4prhark0F
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-What I'm hearing now from Jan and Michal is that the desired end result is
-a separate API call, put_user_pages(), so that we can explicitly manage
-these pinned pages.
+On Mon, Jul 02, 2018 at 02:02:34PM -0700, Tarick Bedeir wrote:
+> rdma_ah_find_type() can reach into ib_device->port_immutable with a
+> potentially out-of-bounds port number, so check that the port number is
+> valid first.
+>
+> Fixes: 44c58487d51a ("IB/core: Define 'ib' and 'roce' rdma_ah_attr types")
+> Signed-off-by: Tarick Bedeir <tarick@google.com>
+> ---
+>  drivers/infiniband/hw/mlx4/qp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index f045491f2c14..4f1dabecf9a5 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -4034,9 +4034,9 @@ static void to_rdma_ah_attr(struct mlx4_ib_dev *ibdev,
+>  	u8 port_num = path->sched_queue & 0x40 ? 2 : 1;
+>
+>  	memset(ah_attr, 0, sizeof(*ah_attr));
+> -	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, port_num);
+>  	if (port_num == 0 || port_num > dev->caps.num_ports)
 
-thanks,
--- 
-John Hubbard
-NVIDIA
+Did you get any warning from any checker about out-of-bounds access?
+
+According to the line above, port_num can be 2 or 1 which are valid ports for mlx4
+and the check above doesn't do much.
+
+>  		return;
+> +	ah_attr->type = rdma_ah_find_type(&ibdev->ib_dev, port_num);
+>
+>  	if (ah_attr->type == RDMA_AH_ATTR_TYPE_ROCE)
+>  		rdma_ah_set_sl(ah_attr, ((path->sched_queue >> 3) & 0x7) |
+> --
+> 2.18.0.399.gad0ab374a1-goog
+>
+
+--5dNcufZ4prhark0F
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbOxXXAAoJEORje4g2clinN2MQAJtwK6k9TMWgpNCT/oqmaGSs
+d9z4rXf+s5dv4nbpy8b8bdBsDnT/Z+nDOt0tMhOmcdQN6WZL4fiixLBiEn6uQ0q3
+sY1zbxQrcB7l22WX4eIiGHc/kFMCx/SWqd5tCNRMS7Tt79QJ/yqcilv06MBWjDAW
+Ii7wmIWDjhsz5DvXzvAhDweqGDKa4AyDI6kEflL8iGfQR+vaZ1xEVDXcXd0fF6gD
+cwwecW15wi0lXi+Y3fA4766Vgapfrdbkf94DEhdbuRtMjYDiTmxizHwIpSkyLgA6
++L8guzRUU8kizUvrFnjgq54eUvM6QashIWBgUCn7of4xLndWRU6G5REFPy3YpfBw
+az9MK1MufpW/s/opnoQsB9K3tF1+rZQxfL0ZTbhN5wwx+hb2YkUxrLcQZqYZvfWh
+wt8LojJxvQs2pVcosxhc5Hn0gCKCMPODmZBS7Et5JZierarucCnIRiOxonHF5uky
+CcovlIU2CDsYXHELCq8DJOTA095K08fNYwEuT7Ylksa3j0QKAfdUtbLYbTpAcHjz
+NAa9oahiNLS/lmYFS2djQVdlE1MgXxQv6G1XJIICgTT52d1zTFoAgMBWgGalpNOJ
+gQJQR8fg7G0VOc4BC7pszXjVx+uYJSV+9S+oyNdlohtz8DbiR8EFkL3wpAuAx27Z
+qC/BgfnYDAXDvdtzqt/7
+=Y39f
+-----END PGP SIGNATURE-----
+
+--5dNcufZ4prhark0F--
