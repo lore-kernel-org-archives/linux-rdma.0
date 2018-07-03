@@ -1,62 +1,50 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
-Date: Tue, 3 Jul 2018 11:48:28 -0700
-Message-ID: <2e18c1a3-08a3-abaf-1721-89bc527579ab@nvidia.com>
-References: <20180702005654.20369-1-jhubbard@nvidia.com>
- <20180702005654.20369-6-jhubbard@nvidia.com>
- <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
- <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com>
- <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
- <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com>
- <01000164611dacae-5ac25e48-b845-43ef-9992-fc1047d8e0a0-000000@email.amazonses.com>
- <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com>
- <0100016461425062-724aa9d3-d7c1-4fa2-a87b-dc59cc5f7800-000000@email.amazonses.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] ib_srpt: Fix a use-after-free in srpt_close_ch()
+Date: Tue, 3 Jul 2018 14:17:29 -0600
+Message-ID: <20180703201729.GC14418@ziepe.ca>
+References: <20180702210818.9075-1-bart.vanassche@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0100016461425062-724aa9d3-d7c1-4fa2-a87b-dc59cc5f7800-000000@email.amazonses.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Jan Kara <jack@suse.cz>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180702210818.9075-1-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/03/2018 10:48 AM, Christopher Lameter wrote:
-> On Tue, 3 Jul 2018, John Hubbard wrote:
+On Mon, Jul 02, 2018 at 02:08:18PM -0700, Bart Van Assche wrote:
+> Avoid that KASAN reports the following:
 > 
->> The page->_refcount field is used normally, in addition to the dma_pinned_count.
->> But the problem is that, unless the caller knows what kind of page it is,
->> the page->dma_pinned_count cannot be looked at, because it is unioned with
->> page->lru.prev.  page->dma_pinned_flags, at least starting at bit 1, are
->> safe to look at due to pointer alignment, but now you cannot atomically
->> count...
->>
->> So this seems unsolvable without having the caller specify that it knows the
->> page type, and that it is therefore safe to decrement page->dma_pinned_count.
->> I was hoping I'd found a way, but clearly I haven't. :)
+> BUG: KASAN: use-after-free in srpt_close_ch+0x4f/0x1b0 [ib_srpt]
+> Read of size 4 at addr ffff880151180cb8 by task check/4681
 > 
-> Try to find some way to indicate that the page is pinned by using some of
-> the existing page flags? There is already an MLOCK flag. Maybe some
-> creativity with that can lead to something (but then the MLOCKed pages are
-> on the unevictable LRU....). cgroups used to have something called struct
-> page_ext. Oh its there in linux/mm/page_ext.c.
+> CPU: 15 PID: 4681 Comm: check Not tainted 4.18.0-rc2-dbg+ #4
+> Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.0.0-prebuilt.qemu-project.org 04/01/2014
+> Call Trace:
+>  dump_stack+0xa4/0xf5
+>  print_address_description+0x6f/0x270
+>  kasan_report+0x241/0x360
+>  __asan_load4+0x78/0x80
+>  srpt_close_ch+0x4f/0x1b0 [ib_srpt]
+>  srpt_set_enabled+0xf7/0x1e0 [ib_srpt]
+>  srpt_tpg_enable_store+0xb8/0x120 [ib_srpt]
+>  configfs_write_file+0x14e/0x1d0 [configfs]
+>  __vfs_write+0xd2/0x3b0
+>  vfs_write+0x101/0x270
+>  ksys_write+0xab/0x120
+>  __x64_sys_write+0x43/0x50
+>  do_syscall_64+0x77/0x230
+>  entry_SYSCALL_64_after_hwframe+0x49/0xbe
 > 
+> Fixes: aaf45bd83eba ("IB/srpt: Detect session shutdown reliably")
+> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+> Cc: <stable@vger.kernel.org>
+> ---
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-Yes, that would provide just a touch more cabability: we could both read and
-write a dma-pinned page(_ext) flag safely, instead of only being able to just 
-read.  I'm doubt that that's enough additional information, though. The general
-problem of allowing random put_page() calls to decrement the dma-pinned count (see
-Jan's diagram at the beginning of this thread) cannot be solved by anything less
-than some sort of "who (or which special type of caller, at least) owns this page"
-approach, as far as I can see. The put_user_pages() provides arguably the simplest 
-version of that kind of solution.
+Applied to for-next
 
-Also, even just using a single bit from page extensions would cost some extra memory, 
-because for example on 64-bit systems many configurations do not need the additional 
-flags that page_ext.h provides, so they return "false" from the page_ext_operations.need() 
-callback. Changing get_user_pages to require page extensions would lead to
-*every* configuration requiring page extensions, so 64-bit users would lose some memory
-for sure. On the other hand, it avoids the "take page off of the LRU" complexity that 
-I've got here. But again, I don't think a single flag, or even a count, would actually 
-solve the problem.
+Thanks,
+Jason
