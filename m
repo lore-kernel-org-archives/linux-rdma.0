@@ -1,45 +1,38 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 0/3] Dump and fill MKEY
-Date: Wed, 4 Jul 2018 13:29:48 -0600
-Message-ID: <20180704192948.GE30037@ziepe.ca>
-References: <20180619054724.32677-1-leon@kernel.org>
- <20180704174739.GA9317@ziepe.ca>
- <20180704185459.GQ3014@mtr-leonro.mtl.com>
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: Re: general protection fault in rds_ib_get_mr
+Date: Wed, 4 Jul 2018 14:35:06 -0700
+Message-ID: <20180704213506.GH725@sol.localdomain>
+References: <089e082ce58896ad350567ee4825@google.com>
+ <20180513211058.GE677@sol.localdomain>
+ <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180704185459.GQ3014@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Yonatan Cohen <yonatanc@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 04, 2018 at 09:54:59PM +0300, Leon Romanovsky wrote:
-> On Wed, Jul 04, 2018 at 11:47:39AM -0600, Jason Gunthorpe wrote:
-> > On Tue, Jun 19, 2018 at 08:47:21AM +0300, Leon Romanovsky wrote:
-> > > From: Leon Romanovsky <leonro@mellanox.com>
-> > >
-> > > MLX5 IB HCA offers the memory key, dump_fill_mkey to increase
-> > > performance, when used in a send or receive operations.
-> > >
-> > > It is used to force local HCA operations to skip the PCI bus access,
-> > > while keeping track of the processed length in the ibv_sge handling.
-> > >
-> > > In this three patch series, we expose various bits in our HW
-> > > spec file (mlx5_ifc.h), move unneeded for mlx5_core FW command and
-> > > export such memory key to user space thought our mlx5-abi header file.
-> > >
-> > > Thanks
-> >
-> > This looks fine, can you send a pull request off the mlx5 branch
-> > please?
+On Sun, May 13, 2018 at 10:46:37PM -0700, santosh.shilimkar@oracle.com wrote:
+> On 5/13/18 2:10 PM, Eric Biggers wrote:
+> > On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
 > 
-> Updated mlx5-next with first two commits,
-> b183ee27f5fb net/mlx5: Add hardware definitions for dump_fill_mkey
-> 4d4fb5dc988a net/mlx5: Limit scope of dump_fill_mkey function
+> [...]
+> 
+> 
+> > Still reproducible on Linus' tree (commit 66e1c94db3cd4) and linux-next
+> > (next-20180511).  Here's a simplified reproducer:
+> > 
+> Thanks for the test case !!
+> 
+> Regards,
+> Santosh
 
-Okay, applied to for-next, with the missing 'if (err)' fixed.
+Ping; this RDS bug is still unfixed.  The same reproducer I gave earlier still
+works, even when run as a non-root user.  I tested upstream commit
+fc36def997cfd6 (v4.18-rc3-113-gfc36def997cfd), and linux-next commit
+bce40927669338 (next-20180704).
 
-Thanks,
-Jason
+- Eric
