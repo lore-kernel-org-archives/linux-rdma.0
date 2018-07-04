@@ -1,78 +1,70 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] vmw_pvrdma: Release netdev when vmxnet3 module is
- removed
-Date: Tue, 3 Jul 2018 15:53:25 -0600
-Message-ID: <20180703215325.GA29072@ziepe.ca>
-References: <20180628135938.19625-1-nhorman@tuxdriver.com>
- <20180629115206.18787-1-nhorman@tuxdriver.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
+Date: Wed, 4 Jul 2018 12:43:18 +0200
+Message-ID: <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
+References: <20180702005654.20369-1-jhubbard@nvidia.com>
+ <20180702005654.20369-6-jhubbard@nvidia.com>
+ <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
+ <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com>
+ <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
+ <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com>
+ <01000164611dacae-5ac25e48-b845-43ef-9992-fc1047d8e0a0-000000@email.amazonses.com>
+ <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180629115206.18787-1-nhorman@tuxdriver.com>
+In-Reply-To: <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Neil Horman <nhorman@tuxdriver.com>
-Cc: linux-rdma@vger.kernel.org, Adit Ranadive <aditr@vmware.com>, VMware PV-Drivers <pv-drivers@vmware.com>, Doug Ledford <dledford@redhat.com>, linux-kernel@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Christopher Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 29, 2018 at 07:52:06AM -0400, Neil Horman wrote:
-> On repeated module load/unload cycles, its possible for the pvrmda
-> driver to encounter this crash:
+On Tue 03-07-18 10:36:05, John Hubbard wrote:
+> On 07/03/2018 10:08 AM, Christopher Lameter wrote:
+> > On Mon, 2 Jul 2018, John Hubbard wrote:
+> > 
+> >>> If you establish a reference to a page then increase the page count. If
+> >>> the reference is a dma pin action also then increase the pinned count.
+> >>>
+> >>> That way you know how many of the references to the page are dma
+> >>> pins and you can correctly manage the state of the page if the dma pins go
+> >>> away.
+> >>>
+> >>
+> >> I think this sounds like what this patch already does, right? See:
+> >> __put_page_for_pinned_dma(), __get_page_for_pinned_dma(), and
+> >> pin_page_for_dma(). The locking seems correct to me, but I suspect it's
+> >> too heavyweight for such a hot path. But without adding a new put_user_page()
+> >> call, that was the best I could come up with.
+> > 
+> > When I saw the patch it looked like you were avoiding to increment the
+> > page->count field.
 > 
-> ...
-> 297.032448] RIP: 0010:[<ffffffff839e4620>]  [<ffffffff839e4620>] netdev_walk_all_upper_dev_rcu+0x50/0xb0
-> [  297.034078] RSP: 0018:ffff95087780bd08  EFLAGS: 00010286
-> [  297.034986] RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffff95087a0c0000
-> [  297.036196] RDX: ffff95087a0c0000 RSI: ffffffff839e44e0 RDI: ffff950835d0c000
-> [  297.037421] RBP: ffff95087780bd40 R08: ffff95087a0e0ea0 R09: abddacd03f8e0ea0
-> [  297.038636] R10: abddacd03f8e0ea0 R11: ffffef5901e9dbc0 R12: ffff95087a0c0000
-> [  297.039854] R13: ffffffff839e44e0 R14: ffff95087a0c0000 R15: ffff950835d0c828
-> [  297.041071] FS:  0000000000000000(0000) GS:ffff95087fc00000(0000) knlGS:0000000000000000
-> [  297.042443] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [  297.043429] CR2: ffffffffffffffe8 CR3: 000000007a652000 CR4: 00000000003607f0
-> [  297.044674] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  297.045893] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-> [  297.047109] Call Trace:
-> [  297.047545]  [<ffffffff839e4698>] netdev_has_upper_dev_all_rcu+0x18/0x20
-> [  297.048691]  [<ffffffffc05d31af>] is_eth_port_of_netdev+0x2f/0xa0 [ib_core]
-> [  297.049886]  [<ffffffffc05d3180>] ? is_eth_active_slave_of_bonding_rcu+0x70/0x70 [ib_core]
-> ...
+> Looking at it again, this patch is definitely susceptible to Jan's "page gets
+> dma-unpinnned too soon" problem.  That leaves a window in which the original
+> problem can occur.
 > 
-> This occurs because vmw_pvrdma on probe stores a pointer to the netdev
-> that exists on function 0 of the same bus/device/slot (which represents
-> the vmxnet3 ethernet driver).  However, it never removes this pointer if
-> the vmxnet3 module is removed, leading to crashes resulting from use
-> after free dereferencing incidents like the one above.
+> The page->_refcount field is used normally, in addition to the dma_pinned_count.
+> But the problem is that, unless the caller knows what kind of page it is,
+> the page->dma_pinned_count cannot be looked at, because it is unioned with
+> page->lru.prev.  page->dma_pinned_flags, at least starting at bit 1, are 
+> safe to look at due to pointer alignment, but now you cannot atomically 
+> count...
 > 
-> The fix is pretty straightforward.  vmw_pvrdma should listen for
-> NETDEV_REGISTER and NETDEV_UNREGISTER events in its event listener code
-> block, and update the stored netdev pointer accordingly.  This solution
-> has been tested by myself and the reporter with successful results.
-> This fix also allows the pvrdma driver to find its underlying ethernet
-> device in the event that vmxnet3 is loaded after pvrdma, which it was
-> not able to do before.
-> 
-> Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
-> Reported-by: ruquin@redhat.com
-> CC: Adit Ranadive <aditr@vmware.com>
-> CC: VMware PV-Drivers <pv-drivers@vmware.com>
-> CC: Doug Ledford <dledford@redhat.com>
-> CC: Jason Gunthorpe <jgg@ziepe.ca>
-> CC: linux-kernel@vger.kernel.org
-> Tested-by: Adit Ranadive <aditr@vmware.com>
-> Acked-by: Adit Ranadive <aditr@vmware.com>
-> ---
-> Change notes
-> 
-> v2)
->  * Move dev_hold in pvrda_pci_probe to below null check (aditr)
->  * Add dev_puts to probe error path and pvrda_pci_remove (jgg)
->  * Cleaned up some checkpatch warnings (nhorman)
-> ---
->  .../infiniband/hw/vmw_pvrdma/pvrdma_main.c    | 39 ++++++++++++++++++-
->  1 file changed, 37 insertions(+), 2 deletions(-)
+> So this seems unsolvable without having the caller specify that it knows the
+> page type, and that it is therefore safe to decrement page->dma_pinned_count.
+> I was hoping I'd found a way, but clearly I haven't. :)
 
-Appled to for-next
+Well, I think the misconception is that "pinned" is a fundamental property
+of a page. It is not. "pinned" is a property of a page reference (i.e., a
+kind of reference that can be used for DMA access) and page gets into
+"pinned" state if it has any reference of "pinned" type. And when you
+realize this, it is obvious that you just have to have a special api for
+getting and dropping references of this "pinned" type. For getting we
+already have get_user_pages(), for putting we have to create the api...
 
-Thanks,
-Jason
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
