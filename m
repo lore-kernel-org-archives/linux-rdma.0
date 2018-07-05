@@ -1,44 +1,57 @@
-From: Christopher Lameter <cl@linux.com>
-Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_*
- fields
-Date: Thu, 5 Jul 2018 14:17:19 +0000
-Message-ID: <010001646acdf1d8-0460be04-cc74-4a2d-be89-a337461bd485-000000@email.amazonses.com>
-References: <20180702005654.20369-1-jhubbard@nvidia.com> <20180702005654.20369-6-jhubbard@nvidia.com> <20180702095331.n5zfz35d3invl5al@quack2.suse.cz> <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com> <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
- <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com> <01000164611dacae-5ac25e48-b845-43ef-9992-fc1047d8e0a0-000000@email.amazonses.com> <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com> <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: general protection fault in rds_ib_get_mr
+Date: Thu, 5 Jul 2018 09:09:44 -0700
+Message-ID: <3bb47711-870e-90c6-d404-3fe61f0ab9a0@oracle.com>
+References: <089e082ce58896ad350567ee4825@google.com>
+ <20180513211058.GE677@sol.localdomain>
+ <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
+ <20180704213506.GH725@sol.localdomain>
+ <04c882dc-332e-92d6-fe76-b1dd3bedd71c@oracle.com>
+ <20180705070641.ske6jjvk4zp5kg2f@linux-x5ow.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
+In-Reply-To: <20180705070641.ske6jjvk4zp5kg2f@linux-x5ow.site>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: Eric Biggers <ebiggers3@gmail.com>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 4 Jul 2018, Jan Kara wrote:
-
-> > So this seems unsolvable without having the caller specify that it knows the
-> > page type, and that it is therefore safe to decrement page->dma_pinned_count.
-> > I was hoping I'd found a way, but clearly I haven't. :)
->
-> Well, I think the misconception is that "pinned" is a fundamental property
-> of a page. It is not. "pinned" is a property of a page reference (i.e., a
-> kind of reference that can be used for DMA access) and page gets into
-> "pinned" state if it has any reference of "pinned" type. And when you
-> realize this, it is obvious that you just have to have a special api for
-> getting and dropping references of this "pinned" type. For getting we
-> already have get_user_pages(), for putting we have to create the api...
-
-Maybe we can do something by creating a special "pinned" bit in the pte?
-If it is a RDMA reference then set that pinned bit there.
-
-Thus any of the references could cause a pin. Since the page struct does
-not contain that information we therefore have to scan through the ptes to
-figure out if a page is pinned?
-
-If so then we would not need a special function for dropping the
-reference.
-
-References to a page can also be created from devices mmu. Maybe we could
-at some point start to manage them in a similar way to the page tables of
-the processor? The mmu notifiers are a bit awkward if we need closer mm
-integration.
+On 7/5/2018 12:06 AM, Johannes Thumshirn wrote:
+> On Wed, Jul 04, 2018 at 05:32:20PM -0700, santosh.shilimkar@oracle.com wrote:
+>> On 7/4/18 2:35 PM, Eric Biggers wrote:
+>>> On Sun, May 13, 2018 at 10:46:37PM -0700, santosh.shilimkar@oracle.com wrote:
+>>>> On 5/13/18 2:10 PM, Eric Biggers wrote:
+>>>>> On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
+>>>>
+>>>> [...]
+>>>>
+>>>>
+>>>>> Still reproducible on Linus' tree (commit 66e1c94db3cd4) and linux-next
+>>>>> (next-20180511).  Here's a simplified reproducer:
+>>>>>
+>>>> Thanks for the test case !!
+>>>>
+>>
+>> [...]
+>>
+>>>
+>>> Ping; this RDS bug is still unfixed.  The same reproducer I gave earlier still
+>>> works, even when run as a non-root user.  I tested upstream commit
+>>> fc36def997cfd6 (v4.18-rc3-113-gfc36def997cfd), and linux-next commit
+>>> bce40927669338 (next-20180704).
+>>>
+>> Yeah I haven't sent a fix for this yet. Downstream we have refactored
+>> MR code and I wanted to get that upstream. With that this bug will
+>> also get addressed. I was hoping to get that series but since some
+>> optimisation is still pending investigations its getting delayed.
+>>
+>> Will find out if I can fix this panic in meantime with smaller change.
+>> Thanks for reminder.
+> 
+> Oh please sent bug fixes _before_ refactoring in that area. Otherwise
+> it's a pain for everybody backporting the fix to a stable kernel.
+> 
+OK. we will look into it if an interim fix can be made....
