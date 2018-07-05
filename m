@@ -1,46 +1,44 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] [v2] infiniband: i40iw, nes: don't use wall time for TCP
- sequence numbers
-Date: Thu, 5 Jul 2018 15:15:44 +0200
-Message-ID: <CAK8P3a2B-YOsfgomq_ggAM8kzbCe6jB8_K8wiEe5v4Thjm=YJA@mail.gmail.com>
-References: <20180627132628.915978-1-arnd@arndb.de> <201807010157.h1EBGb0w%fengguang.wu@intel.com>
+From: Christopher Lameter <cl@linux.com>
+Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_*
+ fields
+Date: Thu, 5 Jul 2018 14:17:19 +0000
+Message-ID: <010001646acdf1d8-0460be04-cc74-4a2d-be89-a337461bd485-000000@email.amazonses.com>
+References: <20180702005654.20369-1-jhubbard@nvidia.com> <20180702005654.20369-6-jhubbard@nvidia.com> <20180702095331.n5zfz35d3invl5al@quack2.suse.cz> <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com> <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
+ <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com> <01000164611dacae-5ac25e48-b845-43ef-9992-fc1047d8e0a0-000000@email.amazonses.com> <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com> <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201807010157.h1EBGb0w%fengguang.wu@intel.com>
+In-Reply-To: <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "David S. Miller" <davem@davemloft.net>, Henry Orosco <henry.orosco@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Bart Van Assche <bart.vanassche@wdc.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>
+To: Jan Kara <jack@suse.cz>
+Cc: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jun 30, 2018 at 9:00 PM, kbuild test robot <lkp@intel.com> wrote:
-> Hi Arnd,
->
-> I love your patch! Yet something to improve:
->
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.18-rc2 next-20180629]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Arnd-Bergmann/infiniband-i40iw-nes-don-t-use-wall-time-for-TCP-sequence-numbers/20180627-221142
-> config: x86_64-randconfig-s2-06302231 (attached as .config)
-> compiler: gcc-6 (Debian 6.4.0-9) 6.4.0 20171026
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64
->
-> All errors (new ones prefixed by >>):
->
->    drivers/infiniband/hw/i40iw/i40iw_cm.o: In function `i40iw_make_cm_node':
->>> drivers/infiniband/hw/i40iw/i40iw_cm.c:2232: undefined reference to `secure_tcpv6_seq'
->
+On Wed, 4 Jul 2018, Jan Kara wrote:
 
-Fixed this now by added a
+> > So this seems unsolvable without having the caller specify that it knows the
+> > page type, and that it is therefore safe to decrement page->dma_pinned_count.
+> > I was hoping I'd found a way, but clearly I haven't. :)
+>
+> Well, I think the misconception is that "pinned" is a fundamental property
+> of a page. It is not. "pinned" is a property of a page reference (i.e., a
+> kind of reference that can be used for DMA access) and page gets into
+> "pinned" state if it has any reference of "pinned" type. And when you
+> realize this, it is obvious that you just have to have a special api for
+> getting and dropping references of this "pinned" type. For getting we
+> already have get_user_pages(), for putting we have to create the api...
 
-        depends on IPV6 || !IPV6
+Maybe we can do something by creating a special "pinned" bit in the pte?
+If it is a RDMA reference then set that pinned bit there.
 
-dependency in Kconfig. This ensures that with IPV6=m, i40iw cannot be built-in.
+Thus any of the references could cause a pin. Since the page struct does
+not contain that information we therefore have to scan through the ptes to
+figure out if a page is pinned?
 
-Will send v3 after a little more build testing.
+If so then we would not need a special function for dropping the
+reference.
 
-      Arnd
+References to a page can also be created from devices mmu. Maybe we could
+at some point start to manage them in a similar way to the page tables of
+the processor? The mmu notifiers are a bit awkward if we need closer mm
+integration.
