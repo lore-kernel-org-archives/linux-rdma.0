@@ -1,63 +1,46 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: general protection fault in rds_ib_get_mr
-Date: Thu, 5 Jul 2018 09:06:41 +0200
-Message-ID: <20180705070641.ske6jjvk4zp5kg2f@linux-x5ow.site>
-References: <089e082ce58896ad350567ee4825@google.com>
- <20180513211058.GE677@sol.localdomain>
- <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
- <20180704213506.GH725@sol.localdomain>
- <04c882dc-332e-92d6-fe76-b1dd3bedd71c@oracle.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] [v2] infiniband: i40iw, nes: don't use wall time for TCP
+ sequence numbers
+Date: Thu, 5 Jul 2018 15:15:44 +0200
+Message-ID: <CAK8P3a2B-YOsfgomq_ggAM8kzbCe6jB8_K8wiEe5v4Thjm=YJA@mail.gmail.com>
+References: <20180627132628.915978-1-arnd@arndb.de> <201807010157.h1EBGb0w%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <04c882dc-332e-92d6-fe76-b1dd3bedd71c@oracle.com>
+In-Reply-To: <201807010157.h1EBGb0w%fengguang.wu@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "David S. Miller" <davem@davemloft.net>, Henry Orosco <henry.orosco@intel.com>, Tatyana Nikolova <tatyana.e.nikolova@intel.com>, Mustafa Ismail <mustafa.ismail@intel.com>, Bart Van Assche <bart.vanassche@wdc.com>, Yuval Shaia <yuval.shaia@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 04, 2018 at 05:32:20PM -0700, santosh.shilimkar@oracle.com wrote:
-> On 7/4/18 2:35 PM, Eric Biggers wrote:
-> > On Sun, May 13, 2018 at 10:46:37PM -0700, santosh.shilimkar@oracle.com wrote:
-> > > On 5/13/18 2:10 PM, Eric Biggers wrote:
-> > > > On Wed, Mar 21, 2018 at 09:00:01AM -0700, syzbot wrote:
-> > > 
-> > > [...]
-> > > 
-> > > 
-> > > > Still reproducible on Linus' tree (commit 66e1c94db3cd4) and linux-next
-> > > > (next-20180511).  Here's a simplified reproducer:
-> > > > 
-> > > Thanks for the test case !!
-> > > 
-> 
-> [...]
-> 
-> > 
-> > Ping; this RDS bug is still unfixed.  The same reproducer I gave earlier still
-> > works, even when run as a non-root user.  I tested upstream commit
-> > fc36def997cfd6 (v4.18-rc3-113-gfc36def997cfd), and linux-next commit
-> > bce40927669338 (next-20180704).
-> > 
-> Yeah I haven't sent a fix for this yet. Downstream we have refactored
-> MR code and I wanted to get that upstream. With that this bug will
-> also get addressed. I was hoping to get that series but since some
-> optimisation is still pending investigations its getting delayed.
-> 
-> Will find out if I can fix this panic in meantime with smaller change.
-> Thanks for reminder.
+On Sat, Jun 30, 2018 at 9:00 PM, kbuild test robot <lkp@intel.com> wrote:
+> Hi Arnd,
+>
+> I love your patch! Yet something to improve:
+>
+> [auto build test ERROR on linus/master]
+> [also build test ERROR on v4.18-rc2 next-20180629]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Arnd-Bergmann/infiniband-i40iw-nes-don-t-use-wall-time-for-TCP-sequence-numbers/20180627-221142
+> config: x86_64-randconfig-s2-06302231 (attached as .config)
+> compiler: gcc-6 (Debian 6.4.0-9) 6.4.0 20171026
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=x86_64
+>
+> All errors (new ones prefixed by >>):
+>
+>    drivers/infiniband/hw/i40iw/i40iw_cm.o: In function `i40iw_make_cm_node':
+>>> drivers/infiniband/hw/i40iw/i40iw_cm.c:2232: undefined reference to `secure_tcpv6_seq'
+>
 
-Oh please sent bug fixes _before_ refactoring in that area. Otherwise
-it's a pain for everybody backporting the fix to a stable kernel.
+Fixed this now by added a
 
-Thanks,
-	Johannes
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+        depends on IPV6 || !IPV6
+
+dependency in Kconfig. This ensures that with IPV6=m, i40iw cannot be built-in.
+
+Will send v3 after a little more build testing.
+
+      Arnd
