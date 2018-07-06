@@ -1,13 +1,13 @@
 From: Jann Horn <jannh@google.com>
-Subject: [PATCH net] net/mlx5: fix uaccess beyond "count" in debugfs read handlers
-Date: Fri,  6 Jul 2018 17:20:28 +0200
-Message-ID: <20180706152028.31775-1-jannh@google.com>
+Subject: [PATCH] IB/mlx5: fix uaccess beyond "count" in debugfs read handlers
+Date: Fri,  6 Jul 2018 17:24:49 +0200
+Message-ID: <20180706152449.33415-1-jannh@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, jannh@google.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, jannh@google.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 In general, accessing userspace memory beyond the length of the supplied
@@ -22,114 +22,86 @@ small cleanup.
 
 Fix it by using simple_read_from_buffer() instead of custom logic.
 
+Fixes: 4a2da0b8c078 ("IB/mlx5: Add debug control parameters for congestion control")
 Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
 Signed-off-by: Jann Horn <jannh@google.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 23 +++----------------
- .../net/ethernet/mellanox/mlx5/core/debugfs.c | 22 ++----------------
- 2 files changed, 5 insertions(+), 40 deletions(-)
+ drivers/infiniband/hw/mlx5/cong.c |  9 +--------
+ drivers/infiniband/hw/mlx5/mr.c   | 20 ++------------------
+ 2 files changed, 3 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 384c1fa49081..0a79a4540923 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -1226,21 +1226,12 @@ static ssize_t data_read(struct file *filp, char __user *buf, size_t count,
- {
- 	struct mlx5_core_dev *dev = filp->private_data;
- 	struct mlx5_cmd_debug *dbg = &dev->cmd.dbg;
--	int copy;
--
+diff --git a/drivers/infiniband/hw/mlx5/cong.c b/drivers/infiniband/hw/mlx5/cong.c
+index 985fa2637390..7e4e358a4fd8 100644
+--- a/drivers/infiniband/hw/mlx5/cong.c
++++ b/drivers/infiniband/hw/mlx5/cong.c
+@@ -359,9 +359,6 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
+ 	int ret;
+ 	char lbuf[11];
+ 
 -	if (*pos)
 -		return 0;
+-
+ 	ret = mlx5_ib_get_cc_params(param->dev, param->port_num, offset, &var);
+ 	if (ret)
+ 		return ret;
+@@ -370,11 +367,7 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
+ 	if (ret < 0)
+ 		return ret;
  
- 	if (!dbg->out_msg)
- 		return -ENOMEM;
- 
--	copy = min_t(int, count, dbg->outlen);
--	if (copy_to_user(buf, dbg->out_msg, copy))
+-	if (copy_to_user(buf, lbuf, ret))
 -		return -EFAULT;
 -
--	*pos += copy;
--
--	return copy;
-+	return simple_read_from_buffer(buf, count, pos, dbg->out_msg,
-+				       dbg->outlen);
+-	*pos += ret;
+-	return ret;
++	return simple_read_from_buffer(buf, count, pos, lbuf, ret);
  }
  
- static const struct file_operations dfops = {
-@@ -1258,19 +1249,11 @@ static ssize_t outlen_read(struct file *filp, char __user *buf, size_t count,
- 	char outlen[8];
+ static const struct file_operations dbg_cc_fops = {
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index 90a9c461cedc..37847add6f74 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -310,19 +310,11 @@ static ssize_t size_read(struct file *filp, char __user *buf, size_t count,
+ 	char lbuf[20];
  	int err;
  
 -	if (*pos)
 -		return 0;
 -
- 	err = snprintf(outlen, sizeof(outlen), "%d", dbg->outlen);
+ 	err = snprintf(lbuf, sizeof(lbuf), "%d\n", ent->size);
  	if (err < 0)
  		return err;
  
--	if (copy_to_user(buf, &outlen, err))
+-	if (copy_to_user(buf, lbuf, err))
 -		return -EFAULT;
 -
 -	*pos += err;
 -
 -	return err;
-+	return simple_read_from_buffer(buf, count, pos, outlen, err);
++	return simple_read_from_buffer(buf, count, pos, lbuf, err);
  }
  
- static ssize_t outlen_write(struct file *filp, const char __user *buf,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-index 413080a312a7..90fabd612b6c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/debugfs.c
-@@ -150,22 +150,13 @@ static ssize_t average_read(struct file *filp, char __user *buf, size_t count,
- 	int ret;
- 	char tbuf[22];
+ static const struct file_operations size_fops = {
+@@ -372,19 +364,11 @@ static ssize_t limit_read(struct file *filp, char __user *buf, size_t count,
+ 	char lbuf[20];
+ 	int err;
  
 -	if (*pos)
 -		return 0;
 -
- 	stats = filp->private_data;
- 	spin_lock_irq(&stats->lock);
- 	if (stats->n)
- 		field = div64_u64(stats->sum, stats->n);
- 	spin_unlock_irq(&stats->lock);
- 	ret = snprintf(tbuf, sizeof(tbuf), "%llu\n", field);
--	if (ret > 0) {
--		if (copy_to_user(buf, tbuf, ret))
--			return -EFAULT;
--	}
+ 	err = snprintf(lbuf, sizeof(lbuf), "%d\n", ent->limit);
+ 	if (err < 0)
+ 		return err;
+ 
+-	if (copy_to_user(buf, lbuf, err))
+-		return -EFAULT;
 -
--	*pos += ret;
--	return ret;
-+	return simple_read_from_buffer(buf, count, pos, tbuf, ret);
+-	*pos += err;
+-
+-	return err;
++	return simple_read_from_buffer(buf, count, pos, lbuf, err);
  }
  
- static ssize_t average_write(struct file *filp, const char __user *buf,
-@@ -442,9 +433,6 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 	u64 field;
- 	int ret;
- 
--	if (*pos)
--		return 0;
--
- 	desc = filp->private_data;
- 	d = (void *)(desc - desc->i) - sizeof(*d);
- 	switch (d->type) {
-@@ -470,13 +458,7 @@ static ssize_t dbg_read(struct file *filp, char __user *buf, size_t count,
- 	else
- 		ret = snprintf(tbuf, sizeof(tbuf), "0x%llx\n", field);
- 
--	if (ret > 0) {
--		if (copy_to_user(buf, tbuf, ret))
--			return -EFAULT;
--	}
--
--	*pos += ret;
--	return ret;
-+	return simple_read_from_buffer(buf, count, pos, tbuf, ret);
- }
- 
- static const struct file_operations fops = {
+ static const struct file_operations limit_fops = {
 -- 
 2.18.0.399.gad0ab374a1-goog
