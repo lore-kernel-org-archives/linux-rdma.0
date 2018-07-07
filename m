@@ -1,152 +1,130 @@
-From: Jann Horn <jannh@google.com>
-Subject: [PATCH v2] IB/mlx5: fix uaccess beyond "count" in debugfs read/write handlers
-Date: Fri,  6 Jul 2018 22:48:03 +0200
-Message-ID: <20180706204803.131152-1-jannh@google.com>
+From: Tomas Bortoli <tomasbortoli@gmail.com>
+Subject: [PATCH] KASAN: use-after-free Read in rdma_listen
+Date: Sat, 7 Jul 2018 03:41:30 +0200
+Message-ID: <b7dd13a9-cb0d-7e10-beb2-3fb25214067a@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, jannh@google.com
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: dledford@redhat.com, jgg@ziepe.ca
+Cc: leon@kernel.org, parav@mellanox.com, roland@purestorage.com, swise@opengridcomputing.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, syzkaller@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-In general, accessing userspace memory beyond the length of the supplied
-buffer in VFS read/write handlers can lead to both kernel memory corruption
-(via kernel_read()/kernel_write(), which can e.g. be triggered via
-sys_splice()) and privilege escalation inside userspace.
+Hi,
 
-In this case, the affected files are in debugfs (and should therefore only
-be accessible to root), and the read handlers check that *pos is zero
-(meaning that at least sys_splice() can't trigger kernel memory
-corruption). Because of the root requirement, this is not a security fix,
-but rather a cleanup.
+I spent some time debugging the Syzkaller's found issue at subject:
 
-For the read handlers, fix it by using simple_read_from_buffer() instead of
-custom logic. Add min() calls to the write handlers.
+https://syzkaller.appspot.com/bug?id=3Db8febdb3c7c8c1f1b606fb903cee66b21b=
+2fd02f
 
-changed in v2:
- - also fix write handlers
+And I've backtracked the UAF to the fact that the cma_listen_on_all()
+function adds "id_priv->list" to the global var "listen_any_list" but
+then such element is not removed in the rdma_destroy_id() function
+(though I've seen that the call to cma_release_dev() in
+rdma_destroy_id() should do the removal but doesn't get executed).
 
-Fixes: 4a2da0b8c078 ("IB/mlx5: Add debug control parameters for congestion control")
-Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
-Signed-off-by: Jann Horn <jannh@google.com>
----
- drivers/infiniband/hw/mlx5/cong.c |  9 +--------
- drivers/infiniband/hw/mlx5/mr.c   | 32 ++++++++-----------------------
- 2 files changed, 9 insertions(+), 32 deletions(-)
+Therefore, if a program allocates a "struct rdma_cm_id" (through
+ucma_open + ucma_create_id), then executes cma_listen_on_all(), then
+frees the struct and repeat, during the second execution of
+cma_listen_on_all() the kernel will try to update the references of the
+freed node, triggering the UAF. I was able to fix the UAF with this ugly
+patch:
 
-diff --git a/drivers/infiniband/hw/mlx5/cong.c b/drivers/infiniband/hw/mlx5/cong.c
-index 985fa2637390..7e4e358a4fd8 100644
---- a/drivers/infiniband/hw/mlx5/cong.c
-+++ b/drivers/infiniband/hw/mlx5/cong.c
-@@ -359,9 +359,6 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
- 	int ret;
- 	char lbuf[11];
- 
--	if (*pos)
--		return 0;
--
- 	ret = mlx5_ib_get_cc_params(param->dev, param->port_num, offset, &var);
- 	if (ret)
- 		return ret;
-@@ -370,11 +367,7 @@ static ssize_t get_param(struct file *filp, char __user *buf, size_t count,
- 	if (ret < 0)
- 		return ret;
- 
--	if (copy_to_user(buf, lbuf, ret))
--		return -EFAULT;
--
--	*pos += ret;
--	return ret;
-+	return simple_read_from_buffer(buf, count, pos, lbuf, ret);
- }
- 
- static const struct file_operations dbg_cc_fops = {
-diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
-index 90a9c461cedc..308456d28afb 100644
---- a/drivers/infiniband/hw/mlx5/mr.c
-+++ b/drivers/infiniband/hw/mlx5/mr.c
-@@ -271,16 +271,16 @@ static ssize_t size_write(struct file *filp, const char __user *buf,
- {
- 	struct mlx5_cache_ent *ent = filp->private_data;
- 	struct mlx5_ib_dev *dev = ent->dev;
--	char lbuf[20];
-+	char lbuf[20] = {0};
- 	u32 var;
- 	int err;
- 	int c;
- 
--	if (copy_from_user(lbuf, buf, sizeof(lbuf)))
-+	count = min(count, sizeof(lbuf) - 1);
-+	if (copy_from_user(lbuf, buf, count))
- 		return -EFAULT;
- 
- 	c = order2idx(dev, ent->order);
--	lbuf[sizeof(lbuf) - 1] = 0;
- 
- 	if (sscanf(lbuf, "%u", &var) != 1)
- 		return -EINVAL;
-@@ -310,19 +310,11 @@ static ssize_t size_read(struct file *filp, char __user *buf, size_t count,
- 	char lbuf[20];
- 	int err;
- 
--	if (*pos)
--		return 0;
--
- 	err = snprintf(lbuf, sizeof(lbuf), "%d\n", ent->size);
- 	if (err < 0)
- 		return err;
- 
--	if (copy_to_user(buf, lbuf, err))
--		return -EFAULT;
--
--	*pos += err;
--
--	return err;
-+	return simple_read_from_buffer(buf, count, pos, lbuf, err);
- }
- 
- static const struct file_operations size_fops = {
-@@ -337,16 +329,16 @@ static ssize_t limit_write(struct file *filp, const char __user *buf,
- {
- 	struct mlx5_cache_ent *ent = filp->private_data;
- 	struct mlx5_ib_dev *dev = ent->dev;
--	char lbuf[20];
-+	char lbuf[20] = {0};
- 	u32 var;
- 	int err;
- 	int c;
- 
--	if (copy_from_user(lbuf, buf, sizeof(lbuf)))
-+	count = min(count, sizeof(lbuf) - 1);
-+	if (copy_from_user(lbuf, buf, count))
- 		return -EFAULT;
- 
- 	c = order2idx(dev, ent->order);
--	lbuf[sizeof(lbuf) - 1] = 0;
- 
- 	if (sscanf(lbuf, "%u", &var) != 1)
- 		return -EINVAL;
-@@ -372,19 +364,11 @@ static ssize_t limit_read(struct file *filp, char __user *buf, size_t count,
- 	char lbuf[20];
- 	int err;
- 
--	if (*pos)
--		return 0;
--
- 	err = snprintf(lbuf, sizeof(lbuf), "%d\n", ent->limit);
- 	if (err < 0)
- 		return err;
- 
--	if (copy_to_user(buf, lbuf, err))
--		return -EFAULT;
--
--	*pos += err;
--
--	return err;
-+	return simple_read_from_buffer(buf, count, pos, lbuf, err);
- }
- 
- static const struct file_operations limit_fops = {
--- 
-2.18.0.203.gfac676dfb9-goog
+--- b/drivers/infiniband/core/cma.c=C2=A0=C2=A0 =C2=A02018-07-07 02:28:03=
+=2E214589868 +0200
++++ a/drivers/infiniband/core/cma.c=C2=A0=C2=A0 =C2=A02018-07-07 03:35:44=
+=2E325301216 +0200
+@@ -1678,6 +1678,11 @@ void rdma_destroy_id(struct rdma_cm_id *
+=C2=A0=C2=A0=C2=A0 =C2=A0mutex_lock(&id_priv->handler_mutex);
+=C2=A0=C2=A0=C2=A0 =C2=A0mutex_unlock(&id_priv->handler_mutex);
+=C2=A0
++=C2=A0=C2=A0 =C2=A0mutex_lock(&lock);
++=C2=A0=C2=A0 =C2=A0if(id_priv->list.next!=3D0 && id_priv->list.prev!=3D0=
+)
++=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 =C2=A0list_del(&id_priv->list);
++=C2=A0=C2=A0 =C2=A0mutex_unlock(&lock);
++
+=C2=A0=C2=A0=C2=A0 =C2=A0if (id_priv->cma_dev) {
+=C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 =C2=A0rdma_restrack_del(&id_priv->r=
+es);
+=C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 =C2=A0if (rdma_cap_ib_cm(id_priv->i=
+d.device, 1)) {
+
+Note: I only tested this patch against the shortest reproducer for this
+issue (not any other use of rdma_cm):
+
+https://syzkaller.appspot.com/text?tag=3DReproC&x=3D1334f10f800000
+
+I had to add that "if" in the patch because running the reproducer
+(after several iterations) provoked a NULL-dereference in the added
+list_del() call because for some reason I haven't cleared yet the next
+and prev pointers of the list at issue gets zeroed, sometimes ( by what ?=
+?).
+
+
+Moreover, I noticed that running the reproducer for "long" time exhaust
+all the available memory. To spot the memory leaks I recompiled with:
+
+CONFIG_HAVE_DEBUG_KMEMLEAK=3Dy
+CONFIG_DEBUG_KMEMLEAK=3Dy
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE=3D10000
+
+The reproducer induces, apparently, 2 memory leaks reported by kmemleak:
+
+unreferenced object 0xffff880069f49d40 (size 512):
+=C2=A0 comm "repro", pid 4263, jiffies 4294722196 (age 688.262s)
+=C2=A0 hex dump (first 32 bytes):
+=C2=A0=C2=A0=C2=A0 00 b8 13 5a 00 88 ff ff 40 9d f4 69 00 88 ff ff=C2=A0 =
+=2E..Z....@..i....
+=C2=A0=C2=A0=C2=A0 0a 00 98 a6 00 00 00 00 fe 80 00 00 00 00 00 00=C2=A0 =
+=2E...............
+=C2=A0 backtrace:
+=C2=A0=C2=A0=C2=A0 [<0000000075a2f334>] kmem_cache_alloc_trace+0x1b2/0x3d=
+0
+=C2=A0=C2=A0=C2=A0 [<0000000075fd9fea>] rdma_resolve_ip+0xc0/0x6b0
+=C2=A0=C2=A0=C2=A0 [<0000000033592b0b>] rdma_resolve_addr+0x490/0x2580
+=C2=A0=C2=A0=C2=A0 [<00000000d6f2cd9d>] ucma_resolve_ip+0x193/0x260
+=C2=A0=C2=A0=C2=A0 [<0000000068f1c2b7>] ucma_write+0x2ec/0x3f0
+=C2=A0=C2=A0=C2=A0 [<00000000015692cc>] __vfs_write+0x107/0x920
+=C2=A0=C2=A0=C2=A0 [<000000009528b010>] vfs_write+0x189/0x510
+=C2=A0=C2=A0=C2=A0 [<000000001a5d169b>] ksys_write+0xfa/0x240
+=C2=A0=C2=A0=C2=A0 [<00000000b747746a>] __x64_sys_write+0x73/0xb0
+=C2=A0=C2=A0=C2=A0 [<0000000071590ffb>] do_syscall_64+0x18c/0x760
+=C2=A0=C2=A0=C2=A0 [<000000003c31113f>] entry_SYSCALL_64_after_hwframe+0x=
+49/0xbe
+=C2=A0=C2=A0=C2=A0 [<0000000059247e9d>] 0xffffffffffffffff
+
+
+unreferenced object 0xffff88006c0c0bc0 (size 576):
+=C2=A0 comm "repro", pid 4261, jiffies 4294722191 (age 688.261s)
+=C2=A0 hex dump (first 32 bytes):
+=C2=A0=C2=A0=C2=A0 00 02 00 00 00 00 00 00 80 b8 07 6c 00 88 ff ff=C2=A0 =
+=2E..........l....
+=C2=A0=C2=A0=C2=A0 b0 7d 2c 6b 00 88 ff ff d8 0b 0c 6c 00 88 ff ff=C2=A0 =
+=2E},k.......l....
+=C2=A0 backtrace:
+=C2=A0=C2=A0=C2=A0 [<0000000039511ef2>] kmem_cache_alloc+0x1b2/0x3d0
+=C2=A0=C2=A0=C2=A0 [<00000000106bf668>] radix_tree_node_alloc.constprop.1=
+8+0x5e/0x2e0
+=C2=A0=C2=A0=C2=A0 [<000000005b2f026d>] idr_get_free+0x9f5/0x1000
+=C2=A0=C2=A0=C2=A0 [<00000000445baa5a>] idr_alloc_u32+0x1bc/0x3d0
+=C2=A0=C2=A0=C2=A0 [<000000007fd1b6f4>] idr_alloc+0xfd/0x190
+=C2=A0=C2=A0=C2=A0 [<00000000d706389e>] cma_alloc_port+0xb0/0x170
+=C2=A0=C2=A0=C2=A0 [<000000008f968f9e>] rdma_bind_addr+0x1252/0x1f00
+=C2=A0=C2=A0=C2=A0 [<00000000e3361215>] rdma_resolve_addr+0x39e/0x2580
+=C2=A0=C2=A0=C2=A0 [<00000000d6f2cd9d>] ucma_resolve_ip+0x193/0x260
+=C2=A0=C2=A0=C2=A0 [<0000000068f1c2b7>] ucma_write+0x2ec/0x3f0
+=C2=A0=C2=A0=C2=A0 [<00000000015692cc>] __vfs_write+0x107/0x920
+=C2=A0=C2=A0=C2=A0 [<000000009528b010>] vfs_write+0x189/0x510
+=C2=A0=C2=A0=C2=A0 [<000000001a5d169b>] ksys_write+0xfa/0x240
+=C2=A0=C2=A0=C2=A0 [<00000000b747746a>] __x64_sys_write+0x73/0xb0
+=C2=A0=C2=A0=C2=A0 [<0000000071590ffb>] do_syscall_64+0x18c/0x760
+=C2=A0=C2=A0=C2=A0 [<000000003c31113f>] entry_SYSCALL_64_after_hwframe+0x=
+49/0xbe
+
+I don't have a background on usage or internals of the driver at issue
+but I hope these clues will help in finding the proper fix.
+
+Tomas
