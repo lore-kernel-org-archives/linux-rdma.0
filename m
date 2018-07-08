@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 9/9] IB/mlx5: Expose vendor flow trees
-Date: Sun,  8 Jul 2018 13:24:45 +0300
-Message-ID: <20180708102445.25496-10-leon@kernel.org>
+Subject: [PATCH rdma-next 3/9] IB: Enable uverbs_destroy_def_handler to be used by drivers
+Date: Sun,  8 Jul 2018 13:24:39 +0300
+Message-ID: <20180708102445.25496-4-leon@kernel.org>
 References: <20180708102445.25496-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180708102445.25496-1-leon@kernel.org>
@@ -12,75 +12,105 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Expose mlx5 flow trees to be used by upper layers.
+Enable uverbs_destroy_def_handler to be used by drivers and replace
+current code to use it.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/flow.c    | 9 +++++++++
- drivers/infiniband/hw/mlx5/main.c    | 4 +++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 +++
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/uverbs.h           |  3 ---
+ drivers/infiniband/core/uverbs_std_types.c |  1 +
+ drivers/infiniband/hw/mlx5/devx.c          | 18 ++----------------
+ include/rdma/ib_verbs.h                    |  3 +++
+ 4 files changed, 6 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
-index 7a8018d591a5..3884861123df 100644
---- a/drivers/infiniband/hw/mlx5/flow.c
-+++ b/drivers/infiniband/hw/mlx5/flow.c
-@@ -238,3 +238,12 @@ DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER,
- DECLARE_UVERBS_OBJECT_TREE(flow_objects,
- 			&UVERBS_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER));
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index cbb727f0959f..1d06e6b4e0cd 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -247,9 +247,6 @@ void ib_uverbs_detach_umcast(struct ib_qp *qp,
  
-+int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root)
-+{
-+	int i = 0;
-+
-+	root[i++] = &flow_objects;
-+	root[i++] = &mlx5_ib_fs;
-+
-+	return i;
-+}
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 68c574d8a0ee..d9cf5e41d821 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5528,7 +5528,7 @@ ADD_UVERBS_ATTRIBUTES_SIMPLE(
- 			   UVERBS_ATTR_TYPE(u64),
- 			   UA_MANDATORY));
+ void create_udata(struct uverbs_attr_bundle *ctx, struct ib_udata *udata);
+ long ib_uverbs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+-int uverbs_destroy_def_handler(struct ib_device *ib_dev,
+-			       struct ib_uverbs_file *file,
+-			       struct uverbs_attr_bundle *attrs);
  
--#define NUM_TREES	3
-+#define NUM_TREES	5
- static int populate_specs_root(struct mlx5_ib_dev *dev)
+ struct ib_uverbs_flow_spec {
+ 	union {
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index 912519fda3ba..718c8430d364 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -215,6 +215,7 @@ int uverbs_destroy_def_handler(struct ib_device *ib_dev,
  {
- 	const struct uverbs_object_tree_def *default_root[NUM_TREES + 1] = {
-@@ -5548,6 +5548,8 @@ static int populate_specs_root(struct mlx5_ib_dev *dev)
- 	    !WARN_ON(num_trees >= ARRAY_SIZE(default_root)))
- 		default_root[num_trees++] = mlx5_ib_get_devx_tree();
+ 	return 0;
+ }
++EXPORT_SYMBOL(uverbs_destroy_def_handler);
  
-+	num_trees += mlx5_ib_get_flow_trees(default_root + num_trees);
-+
- 	dev->ib_dev.driver_specs_root =
- 		uverbs_alloc_spec_tree(num_trees, default_root);
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4a66c9f036cc..3147f0ea2e2e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1244,6 +1244,7 @@ struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- 						     int inlen, int dest_id,
- 						     int dest_type);
- bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id, int *dest_type);
-+int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root);
- #else
- static inline int
- mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
-@@ -1261,6 +1262,8 @@ mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- static inline bool
- mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
- 			  int *dest_type) { return false; };
-+static inline int
-+mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root) { return 0; };
- #endif
- static inline void init_query_mad(struct ib_smp *mad)
+ void create_udata(struct uverbs_attr_bundle *ctx, struct ib_udata *udata)
  {
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 192844bf6016..60ac1fbe940e 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -682,13 +682,6 @@ static int devx_obj_cleanup(struct ib_uobject *uobject,
+ 	return ret;
+ }
+ 
+-static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_DESTROY)(struct ib_device *ib_dev,
+-				    struct ib_uverbs_file *file,
+-				    struct uverbs_attr_bundle *attrs)
+-{
+-	return 0;
+-}
+-
+ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(struct ib_device *ib_dev,
+ 				   struct ib_uverbs_file *file,
+ 				   struct uverbs_attr_bundle *attrs)
+@@ -961,13 +954,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_REG)(struct ib_device *ib_dev
+ 	return err;
+ }
+ 
+-static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_DEREG)(struct ib_device *ib_dev,
+-				   struct ib_uverbs_file *file,
+-				   struct uverbs_attr_bundle *attrs)
+-{
+-	return 0;
+-}
+-
+ static int devx_umem_cleanup(struct ib_uobject *uobject,
+ 			     enum rdma_remove_reason why)
+ {
+@@ -1003,7 +989,7 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			    UVERBS_ATTR_TYPE(u32),
+ 			    UA_MANDATORY));
+ 
+-DECLARE_UVERBS_NAMED_METHOD(
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	MLX5_IB_METHOD_DEVX_UMEM_DEREG,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_UMEM_DEREG_HANDLE,
+ 			MLX5_IB_OBJECT_DEVX_UMEM,
+@@ -1056,7 +1042,7 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 		UVERBS_ATTR_MIN_SIZE(MLX5_ST_SZ_BYTES(general_obj_out_cmd_hdr)),
+ 		UA_MANDATORY));
+ 
+-DECLARE_UVERBS_NAMED_METHOD(
++DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	MLX5_IB_METHOD_DEVX_OBJ_DESTROY,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_OBJ_DESTROY_HANDLE,
+ 			MLX5_IB_OBJECT_DEVX_OBJ,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 031d121190fd..01b9d5a54368 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4160,4 +4160,7 @@ void rdma_roce_rescan_device(struct ib_device *ibdev);
+ 
+ struct ib_ucontext *ib_uverbs_get_ucontext(struct ib_uverbs_file *ufile);
+ 
++int uverbs_destroy_def_handler(struct ib_device *ib_dev,
++			       struct ib_uverbs_file *file,
++			       struct uverbs_attr_bundle *attrs);
+ #endif /* IB_VERBS_H */
 -- 
 2.14.4
