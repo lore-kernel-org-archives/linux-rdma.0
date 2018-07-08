@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 2/9] net/mlx5: Add support for flow table destination number
-Date: Sun,  8 Jul 2018 13:24:38 +0300
-Message-ID: <20180708102445.25496-3-leon@kernel.org>
+Subject: [PATCH mlx5-next 1/9] net/mlx5: Add forward compatible support for the FTE match data
+Date: Sun,  8 Jul 2018 13:24:37 +0300
+Message-ID: <20180708102445.25496-2-leon@kernel.org>
 References: <20180708102445.25496-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180708102445.25496-1-leon@kernel.org>
@@ -12,118 +12,126 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add support to set a destination from a flow table number.
-This functionality will be used in downstream patches from this
-series by the DEVX stuff.
+Use the PRM size including the reserved when working with the FTE
+match data.
+
+This comes to support forward compatibility for cases that current
+reserved data will be exposed by the firmware and could be used by an
+application by DEVX without changing the kernel.
+
+Also drop some driver checks around the match criteria leaving the work
+for firmware to enable forward compatibility for future bits there.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../mellanox/mlx5/core/diag/fs_tracepoint.c         |  3 +++
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 21 ++++++++++++++-------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c   |  4 +++-
- include/linux/mlx5/fs.h                             |  1 +
- include/linux/mlx5/mlx5_ifc.h                       |  1 +
- 5 files changed, 22 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 77 +----------------------
+ 1 file changed, 1 insertion(+), 76 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-index b3820a34e773..0f11fff32a9b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-@@ -240,6 +240,9 @@ const char *parse_fs_dst(struct trace_seq *p,
- 	case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
- 		trace_seq_printf(p, "ft=%p\n", dst->ft);
- 		break;
-+	case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-+		trace_seq_printf(p, "ft_num=%u\n", dst->ft_num);
-+		break;
- 	case MLX5_FLOW_DESTINATION_TYPE_TIR:
- 		trace_seq_printf(p, "tir=%u\n", dst->tir_num);
- 		break;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 5a00deff5457..a98584576c2e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -363,17 +363,21 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 
- 		list_for_each_entry(dst, &fte->node.children, node.list) {
- 			unsigned int id;
-+			unsigned int type;
- 
- 			if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
- 				continue;
- 
--			MLX5_SET(dest_format_struct, in_dests, destination_type,
--				 dst->dest_attr.type);
--			if (dst->dest_attr.type ==
--			    MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
-+			type = dst->dest_attr.type;
-+			switch (type) {
-+			case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-+				id = dst->dest_attr.ft_num;
-+				type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-+				break;
-+			case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
- 				id = dst->dest_attr.ft->id;
--			} else if (dst->dest_attr.type ==
--				   MLX5_FLOW_DESTINATION_TYPE_VPORT) {
-+				break;
-+			case MLX5_FLOW_DESTINATION_TYPE_VPORT:
- 				id = dst->dest_attr.vport.num;
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id_valid,
-@@ -381,9 +385,12 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id,
- 					 dst->dest_attr.vport.vhca_id);
--			} else {
-+				break;
-+			default:
- 				id = dst->dest_attr.tir_num;
- 			}
-+
-+			MLX5_SET(dest_format_struct, in_dests, destination_type, type);
- 			MLX5_SET(dest_format_struct, in_dests, destination_id, id);
- 			in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
- 			list_size++;
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index eba113cf1117..69aa298a0b1c 100644
+index 49a75d31185e..eba113cf1117 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1356,7 +1356,9 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
- 		     d1->ft == d2->ft) ||
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
--		     d1->tir_num == d2->tir_num))
-+		     d1->tir_num == d2->tir_num) ||
-+		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM &&
-+		     d1->ft_num == d2->ft_num))
- 			return true;
- 	}
+@@ -309,89 +309,17 @@ static struct fs_prio *find_prio(struct mlx5_flow_namespace *ns,
+ 	return NULL;
+ }
  
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 757b4a30281e..a45febcf6b51 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -89,6 +89,7 @@ struct mlx5_flow_destination {
- 	enum mlx5_flow_destination_type	type;
- 	union {
- 		u32			tir_num;
-+		u32			ft_num;
- 		struct mlx5_flow_table	*ft;
- 		struct mlx5_fc		*counter;
- 		struct {
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 44a6ce01c3bb..fb89cc519703 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1181,6 +1181,7 @@ enum mlx5_flow_destination_type {
+-static bool check_last_reserved(const u32 *match_criteria)
+-{
+-	char *match_criteria_reserved =
+-		MLX5_ADDR_OF(fte_match_param, match_criteria, MLX5_FTE_MATCH_PARAM_RESERVED);
+-
+-	return	!match_criteria_reserved[0] &&
+-		!memcmp(match_criteria_reserved, match_criteria_reserved + 1,
+-			MLX5_FLD_SZ_BYTES(fte_match_param,
+-					  MLX5_FTE_MATCH_PARAM_RESERVED) - 1);
+-}
+-
+-static bool check_valid_mask(u8 match_criteria_enable, const u32 *match_criteria)
+-{
+-	if (match_criteria_enable & ~(
+-		(1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_OUTER_HEADERS)   |
+-		(1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_MISC_PARAMETERS) |
+-		(1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_INNER_HEADERS) |
+-		(1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_MISC_PARAMETERS_2)))
+-		return false;
+-
+-	if (!(match_criteria_enable &
+-	      1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_OUTER_HEADERS)) {
+-		char *fg_type_mask = MLX5_ADDR_OF(fte_match_param,
+-						  match_criteria, outer_headers);
+-
+-		if (fg_type_mask[0] ||
+-		    memcmp(fg_type_mask, fg_type_mask + 1,
+-			   MLX5_ST_SZ_BYTES(fte_match_set_lyr_2_4) - 1))
+-			return false;
+-	}
+-
+-	if (!(match_criteria_enable &
+-	      1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_MISC_PARAMETERS)) {
+-		char *fg_type_mask = MLX5_ADDR_OF(fte_match_param,
+-						  match_criteria, misc_parameters);
+-
+-		if (fg_type_mask[0] ||
+-		    memcmp(fg_type_mask, fg_type_mask + 1,
+-			   MLX5_ST_SZ_BYTES(fte_match_set_misc) - 1))
+-			return false;
+-	}
+-
+-	if (!(match_criteria_enable &
+-	      1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_INNER_HEADERS)) {
+-		char *fg_type_mask = MLX5_ADDR_OF(fte_match_param,
+-						  match_criteria, inner_headers);
+-
+-		if (fg_type_mask[0] ||
+-		    memcmp(fg_type_mask, fg_type_mask + 1,
+-			   MLX5_ST_SZ_BYTES(fte_match_set_lyr_2_4) - 1))
+-			return false;
+-	}
+-
+-	if (!(match_criteria_enable &
+-	      1 << MLX5_CREATE_FLOW_GROUP_IN_MATCH_CRITERIA_ENABLE_MISC_PARAMETERS_2)) {
+-		char *fg_type_mask = MLX5_ADDR_OF(fte_match_param,
+-						  match_criteria, misc_parameters_2);
+-
+-		if (fg_type_mask[0] ||
+-		    memcmp(fg_type_mask, fg_type_mask + 1,
+-			   MLX5_ST_SZ_BYTES(fte_match_set_misc2) - 1))
+-			return false;
+-	}
+-
+-	return check_last_reserved(match_criteria);
+-}
+-
+ static bool check_valid_spec(const struct mlx5_flow_spec *spec)
+ {
+ 	int i;
  
- 	MLX5_FLOW_DESTINATION_TYPE_PORT         = 0x99,
- 	MLX5_FLOW_DESTINATION_TYPE_COUNTER      = 0x100,
-+	MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM = 0x101,
- };
+-	if (!check_valid_mask(spec->match_criteria_enable, spec->match_criteria)) {
+-		pr_warn("mlx5_core: Match criteria given mismatches match_criteria_enable\n");
+-		return false;
+-	}
+-
+ 	for (i = 0; i < MLX5_ST_SZ_DW_MATCH_PARAM; i++)
+ 		if (spec->match_value[i] & ~spec->match_criteria[i]) {
+ 			pr_warn("mlx5_core: match_value differs from match_criteria\n");
+ 			return false;
+ 		}
  
- struct mlx5_ifc_dest_format_struct_bits {
+-	return check_last_reserved(spec->match_value);
++	return true;
+ }
+ 
+ static struct mlx5_flow_root_namespace *find_root(struct fs_node *node)
+@@ -1158,9 +1086,6 @@ struct mlx5_flow_group *mlx5_create_flow_group(struct mlx5_flow_table *ft,
+ 	struct mlx5_flow_group *fg;
+ 	int err;
+ 
+-	if (!check_valid_mask(match_criteria_enable, match_criteria))
+-		return ERR_PTR(-EINVAL);
+-
+ 	if (ft->autogroup.active)
+ 		return ERR_PTR(-EPERM);
+ 
 -- 
 2.14.4
