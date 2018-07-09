@@ -1,56 +1,58 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 8/9] IB/mlx5: Add support for a flow table destination
-Date: Sun,  8 Jul 2018 13:24:44 +0300
-Message-ID: <20180708102445.25496-9-leon@kernel.org>
-References: <20180708102445.25496-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180708102445.25496-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: john.hubbard@gmail.com
+Subject: [PATCH 1/2] mm: introduce put_user_page(), placeholder version
+Date: Mon,  9 Jul 2018 01:05:53 -0700
+Message-ID: <20180709080554.21931-2-jhubbard@nvidia.com>
+References: <20180709080554.21931-1-jhubbard@nvidia.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180709080554.21931-1-jhubbard@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+From: John Hubbard <jhubbard@nvidia.com>
 
-Add support to set a destination that is a flow table, this can come
-from the DEVX destination.
+Introduces put_user_page(), which simply calls put_page().
+This provides a safe way to update all get_user_pages*() callers,
+so that they call put_user_page(), instead of put_page().
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Also adds release_user_pages(), a drop-in replacement for
+release_pages(). This is intended to be easily grep-able,
+for later performance improvements, since release_user_pages
+is not batched like release_pages is, and is significantly
+slower.
+
+Subsequent patches will add functionality to put_user_page().
+
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/mm.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 614d0f69886e..68c574d8a0ee 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3792,9 +3792,6 @@ mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- 	if (fs_matcher->priority > MLX5_IB_FLOW_LAST_PRIO)
- 		return ERR_PTR(-ENOMEM);
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a0fbb9ffe380..db4a211aad79 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -923,6 +923,20 @@ static inline void put_page(struct page *page)
+ 		__put_page(page);
+ }
  
--	if (dest_type != MLX5_FLOW_DESTINATION_TYPE_TIR)
--		return ERR_PTR(-ENOTSUPP);
--
- 	dst = kzalloc(sizeof(*dst), GFP_KERNEL);
- 	if (!dst)
- 		return ERR_PTR(-ENOMEM);
-@@ -3808,8 +3805,14 @@ mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- 		goto unlock;
- 	}
- 
--	dst->type = dest_type;
--	dst->tir_num = dest_id;
-+	if (dest_type == MLX5_FLOW_DESTINATION_TYPE_TIR) {
-+		dst->type = dest_type;
-+		dst->tir_num = dest_id;
-+	} else {
-+		dst->type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM;
-+		dst->ft_num = dest_id;
-+	}
++/* Placeholder version, until all get_user_pages*() callers are updated. */
++static inline void put_user_page(struct page *page)
++{
++	put_page(page);
++}
 +
- 	handler = _create_raw_flow_rule(dev, ft_prio, dst, fs_matcher, cmd_in,
- 					inlen);
- 
++/* A drop-in replacement for release_pages(): */
++static inline void release_user_pages(struct page **pages,
++				      unsigned long npages)
++{
++	while (npages)
++		put_user_page(pages[--npages]);
++}
++
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
 -- 
-2.14.4
+2.18.0
