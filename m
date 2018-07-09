@@ -1,43 +1,35 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/cm: Remove unused and erroneous msg sequence encoding
-Date: Mon, 9 Jul 2018 11:42:17 -0600
-Message-ID: <20180709174217.GA2658@ziepe.ca>
-References: <20180704104801.912482-1-Haakon.Bugge@oracle.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 1/2] mm: introduce put_user_page(), placeholder version
+Date: Mon, 9 Jul 2018 11:48:44 -0700
+Message-ID: <cf746031-b8c7-95de-79cf-b8e5381367c6@nvidia.com>
+References: <20180709080554.21931-2-jhubbard@nvidia.com>
+ <201807091833.xMr1iYDX%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180704104801.912482-1-Haakon.Bugge@oracle.com>
+In-Reply-To: <201807091833.xMr1iYDX%fengguang.wu@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc: Doug Ledford <dledford@redhat.com>, Don Hiatt <don.hiatt@intel.com>, Ira Weiny <ira.weiny@intel.com>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>, john.hubbard@gmail.com
+Cc: kbuild-all@01.org, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 04, 2018 at 12:48:01PM +0200, Håkon Bugge wrote:
-> In cm_form_tid(), a two bit message sequence number is OR'ed into bit
-> 31-30 of the lower TID value.
+On 07/09/2018 03:08 AM, kbuild test robot wrote:
+> Hi John,
 > 
-> After commit f06d26537559 ("IB/cm: Randomize starting comm ID"), the
-> local_id is XOR'ed with a 32-bit random value. Hence, bit 31-30 in the
-> lower TID now has an arbitrarily value and it makes no sense to OR in
-> the message sequence number.
+> Thank you for the patch! Yet something to improve:
 > 
-> Adding to that, the evolution in use of IDR routines in cm_alloc_id()
-> has always had the possibility of returning a value with bit 30 set.
+> [auto build test ERROR on linus/master]
+...
 > 
-> In addition, said bits are never checked.
-> 
-> Hence, remove the encoding and the corresponding enum.
-> 
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-> ---
->  drivers/infiniband/core/cm.c      | 14 ++++++--------
->  drivers/infiniband/core/cm_msgs.h |  7 -------
->  2 files changed, 6 insertions(+), 15 deletions(-)
+>>> drivers/platform//goldfish/goldfish_pipe.c:334:13: error: conflicting types for 'release_user_pages'
+>     static void release_user_pages(struct page **pages, int pages_count,
+>                 ^~~~~~~~~~~~~~~~~~
 
-Applied to for-next, thanks
+Yes. Patches #1 and #2 need to be combined here. I'll do that in the next version, which will probably include several of the easier put_user_page() conversions, as well.
 
-I suspect the bits were probably added long ago for debugging..
-
-Jason
+thanks,
+-- 
+John Hubbard
+NVIDIA
