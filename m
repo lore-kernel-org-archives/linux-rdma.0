@@ -1,59 +1,45 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v2 5/6] mm: track gup pages with page->dma_pinned_* fields
-Date: Mon, 9 Jul 2018 15:49:37 +0200
-Message-ID: <20180709134937.fqk77w2jjw62lw6m@quack2.suse.cz>
-References: <20180702005654.20369-1-jhubbard@nvidia.com>
- <20180702005654.20369-6-jhubbard@nvidia.com>
- <20180702095331.n5zfz35d3invl5al@quack2.suse.cz>
- <bb798475-ebf3-7b02-409f-8c4347fa6674@nvidia.com>
- <010001645d77ee2c-de7fedbd-f52d-4b74-9388-e6435973792b-000000@email.amazonses.com>
- <f01666d5-8da1-7bea-adfb-c3571a54587a@nvidia.com>
- <01000164611dacae-5ac25e48-b845-43ef-9992-fc1047d8e0a0-000000@email.amazonses.com>
- <3c71556f-1d71-873a-6f74-121865568bf7@nvidia.com>
- <20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz>
- <010001646acdf1d8-0460be04-cc74-4a2d-be89-a337461bd485-000000@email.amazonses.com>
+From: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
+Subject: [PATCH] IPoIB: use kvzalloc to allocate an array of bucket pointers
+Date: Mon,  9 Jul 2018 16:51:03 +0300
+Message-ID: <1531144263-24717-1-git-send-email-jan.dakinevich@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <010001646acdf1d8-0460be04-cc74-4a2d-be89-a337461bd485-000000@email.amazonses.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Jan Kara <jack@suse.cz>, John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Yuval Shaia <yuval.shaia@oracle.com>, Alex Vesker <valex@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Kees Cook <keescook@chromium.org>, Evgenii Smirnov <evgenii.smirnov@profitbricks.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>, Jan Dakinevich <jan.dakinevich@virtuozzo.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 05-07-18 14:17:19, Christopher Lameter wrote:
-> On Wed, 4 Jul 2018, Jan Kara wrote:
-> 
-> > > So this seems unsolvable without having the caller specify that it knows the
-> > > page type, and that it is therefore safe to decrement page->dma_pinned_count.
-> > > I was hoping I'd found a way, but clearly I haven't. :)
-> >
-> > Well, I think the misconception is that "pinned" is a fundamental property
-> > of a page. It is not. "pinned" is a property of a page reference (i.e., a
-> > kind of reference that can be used for DMA access) and page gets into
-> > "pinned" state if it has any reference of "pinned" type. And when you
-> > realize this, it is obvious that you just have to have a special api for
-> > getting and dropping references of this "pinned" type. For getting we
-> > already have get_user_pages(), for putting we have to create the api...
-> 
-> Maybe we can do something by creating a special "pinned" bit in the pte?
-> If it is a RDMA reference then set that pinned bit there.
-> 
-> Thus any of the references could cause a pin. Since the page struct does
-> not contain that information we therefore have to scan through the ptes to
-> figure out if a page is pinned?
-> 
-> If so then we would not need a special function for dropping the
-> reference.
+This table by default takes 32KiB which is 3rd memory order. Meanwhile,
+this memory is not aimed for DMA operation and could be safely allocated
+by vmalloc.
 
-I don't really see how a PTE bit would help in getting rid of the special
-function for dropping "pinned" reference. You still need to distinguish
-preexisting page references (and corresponding page ref drops which must
-not unpin the page) from the references acquired after transitioning PTE to
-the pinned state...
+Signed-off-by: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-								Honza
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 26cde95..cb752df 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1526,7 +1526,7 @@ static int ipoib_neigh_hash_init(struct ipoib_dev_priv *priv)
+ 		return -ENOMEM;
+ 	set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+ 	size = roundup_pow_of_two(arp_tbl.gc_thresh3);
+-	buckets = kcalloc(size, sizeof(*buckets), GFP_KERNEL);
++	buckets = kvcalloc(size, sizeof(*buckets), GFP_KERNEL);
+ 	if (!buckets) {
+ 		kfree(htbl);
+ 		return -ENOMEM;
+@@ -1554,7 +1554,7 @@ static void neigh_hash_free_rcu(struct rcu_head *head)
+ 	struct ipoib_neigh __rcu **buckets = htbl->buckets;
+ 	struct ipoib_neigh_table *ntbl = htbl->ntbl;
+ 
+-	kfree(buckets);
++	kvfree(buckets);
+ 	kfree(htbl);
+ 	complete(&ntbl->deleted);
+ }
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.1.4
