@@ -1,78 +1,98 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] ib_srpt: use kvmalloc to allocate ring pointers
-Date: Tue, 10 Jul 2018 18:53:18 +0300
-Message-ID: <20180710155318.GI3014@mtr-leonro.mtl.com>
-References: <1531144268-25361-1-git-send-email-jan.dakinevich@virtuozzo.com>
- <20180710053944.GN3014@mtr-leonro.mtl.com>
- <5196ea6e33825dd5fde58d23b38630afafcb77f1.camel@wdc.com>
+Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 10 Jul 2018 19:20:20 +0300
+Message-ID: <20180710162020.GJ3014@mtr-leonro.mtl.com>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <20180627074421.GF32348@dhcp22.suse.cz>
+ <20180709122908.GJ22049@dhcp22.suse.cz>
+ <20180710134040.GG3014@mtr-leonro.mtl.com>
+ <20180710141410.GP14284@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yuedfix5hmtMJRO4"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5196ea6e33825dd5fde58d23b38630afafcb77f1.camel@wdc.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "jan.dakinevich@virtuozzo.com" <jan.dakinevich@virtuozzo.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "den@virtuozzo.com" <den@virtuozzo.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "khorenko@virtuozzo.com" <khorenko@virtuozzo.com>
+Content-Type: multipart/mixed; boundary="===============1802529003=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180710141410.GP14284@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Felix Kuehling <felix.kuehling@amd.com>, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixi>
 List-Id: linux-rdma@vger.kernel.org
 
 
---yuedfix5hmtMJRO4
+--===============1802529003==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0EphSjNCSB1asamE"
+Content-Disposition: inline
+
+
+--0EphSjNCSB1asamE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jul 10, 2018 at 03:08:38PM +0000, Bart Van Assche wrote:
-> On Tue, 2018-07-10 at 08:39 +0300, Leon Romanovsky wrote:
-> > On Mon, Jul 09, 2018 at 04:51:08PM +0300, Jan Dakinevich wrote:
-> > > An array of pointers to SRPT contexts in ib_device is over 30KiB even
-> > > in default case, in which an amount of contexts is 4095. The patch
-> > > is intended to weed out large contigous allocation for non-DMA memory.
+On Tue, Jul 10, 2018 at 04:14:10PM +0200, Michal Hocko wrote:
+> On Tue 10-07-18 16:40:40, Leon Romanovsky wrote:
+> > On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
+> > > On Wed 27-06-18 09:44:21, Michal Hocko wrote:
+> > > > This is the v2 of RFC based on the feedback I've received so far. The
+> > > > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
+> > > > because I have no idea how.
+> > > >
+> > > > Any further feedback is highly appreciated of course.
+> > >
+> > > Any other feedback before I post this as non-RFC?
 > >
-> > kvmalloc* doesn't "weed out" large contiguous allocations, but tries to
-> > allocate them and gracefully fallback to vmalloc if kmalloc fails.
-> >
-> > More on that, for allocations less than page (64KB for PowerPC), it will
-> > not call to vmalloc at all, which is fine too, because pages granularity.
-> >
-> > If you want to get rid of "contiguous allocations", use vmalloc instead.
+> > From mlx5 perspective, who is primary user of umem_odp.c your change looks ok.
 >
-> vmalloc() has a very significant disadvantage compared to kvmalloc(): with
-> vmalloc() it is guaranteed that memory allocations will be slow. That's not
-> the case for kvmalloc() if the number of bytes that is allocated is small
-> enough.
+> Can I assume your Acked-by?
 
-Bart,
-
-I'm not arguing, just pointing that the commit message doesn't reflect
-actual change.
+I didn't have a chance to test it because it applies on our rdma-next, but
+fails to compile.
 
 Thanks
 
 >
-> Bart.
->
->
->
+> Thanks for your review!
+> --
+> Michal Hocko
+> SUSE Labs
 >
 
---yuedfix5hmtMJRO4
+--0EphSjNCSB1asamE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbRNZuAAoJEORje4g2clinw5cP/0FbpRGJuK+4GFge8yXm1YAj
-gkEFjH+lntodg9luLb8ChrZXEOFJxHhfEHUS1yVk3xTjYrlrVi0er0G9o6mwEPel
-l+ndKGmaP7Uy2tfa0PKy54cSUpYTvBSlPrgJk+EoPqvSGLPpvjduZUOGJEaBChcr
-iWcYIxFgrf/TMOfDT+weJ/J5xtolIXfOhJ1GZAhJsj1kAJ0wu+14CNddiKCgy6pT
-dQoqX1AGdq0mt5YMExVIBiFk8wqeIs9F8fplHOatnCrF1SdsG/e3eSYJm7B4vihl
-we/BmTYe4xnsR5rhovghmwE00pT/mxUc4WYu+re+zh3Z90YIWjp/q1BV2heagBin
-9rL2Z84cZAGVDlfE01Z2hRhQ9aKhOioZD22Dv/TzZNSDDWkkFuIugTf5cudb9lK3
-/p/B6FNMKnhzIvqZdFh2jmM8CMfafLumEsv+Xk9INcB1EpoWioQNldELqxrGG3nM
-ttToQAuJQheOoxJnzBp5RGUoILvVYKXBPN8BRy80+oNLDSscCz2JORUeTynggeMb
-yjYkUAyfcLgshgJlOfrB6DqVOdlZvjVVkLh/3TibOqmFipb0kulNARKrVmCzsNmf
-jkKXqKJdX1itNNr7RIZocBjbOwpYYLg4iz4CDQIo2EoItHYMnyAvpUxTJTR0w6k9
-5noxFnCbhWbtdsKPT6ny
-=5ixS
+iQIcBAEBAgAGBQJbRNzEAAoJEORje4g2clinTRAP/3xbJ66iDSwdQCcVd+3SPmwJ
+NYt2S+UqK7m5inKXFtDVKC9BNIb6WKX5gVPyLMKfr6d+Ru6XVd/TmavJyDTHbBzC
+B5a13HTOqAMPLoRdcU/HqN0yHWXsRtekZ5jnnxLt+mXVq+34Vk6MNFO2OL8opaeP
+1Dznd0rY8jrA9Y3Z6gXBkog9xIFE5h7NouLdApinAqoP8D4/M1quGSGsmSqlkY0z
+NHviSlRW8/cRSgSeS5SQEyj3jz6gsZCYRWwskONf+VWy848aAoessVXzNVgtuLbR
+4eIkAHhb1DTPdIPIZyzxrQ4e7QCaFOb/AFAt6K0E2YmTgmnntKLrpXf76p8GIXFW
+xmxji8Z6R+/124cH67/+GpgSvAFSoqyHsjv8IJkB8XPsLnfN4vqxH6U0U7lO4Z5l
+Pex8wMFs55GgrDsI99dEczCglFesam5u9RRnHLGY1nYYofDoNKTbWiKEAAIQJK7R
+P0fCVmW921et6rtnsPOIM40O/94vJPLP0Wam76GXSCtQFw22xK90XCIvrYLuZIcs
+q7nDB6HzfKUL0Ai1KAhhcqzn785E9xtAxLy6CilgmB4nTqXhaP5cM5RZZiD86jEr
+N8GMXABgUjwgwxV4AFHGY2qeawlN+l2yLNl6r05KNyKTWWyhM2rt0HNnRkLRP51G
+xxL8y7wxClLAZl6dTXFz
+=ETz1
 -----END PGP SIGNATURE-----
 
---yuedfix5hmtMJRO4--
+--0EphSjNCSB1asamE--
+
+--===============1802529003==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1802529003==--
