@@ -1,61 +1,69 @@
-From: Bart Van Assche <Bart.VanAssche@wdc.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
-Date: Tue, 10 Jul 2018 21:02:51 +0000
-Message-ID: <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
+Date: Tue, 10 Jul 2018 15:36:32 -0600
+Message-ID: <20180710213632.GA24930@ziepe.ca>
 References: <20180710173200.19853-1-bart.vanassche@wdc.com>
-         <20180710173200.19853-4-bart.vanassche@wdc.com>
-         <20180710185144.GA11114@kroah.com>
-         <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
-         <20180710204435.GA23028@kroah.com>
+ <20180710173200.19853-4-bart.vanassche@wdc.com>
+ <20180710183823.GD8266@ziepe.ca>
+ <8aebefee907dc858250dfdb47d6f1ca0f9f2db53.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180710204435.GA23028@kroah.com>
-Content-Language: en-US
-Content-ID: <E6AA1DDFDEE26B46985A2986505685E1@namprd04.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <8aebefee907dc858250dfdb47d6f1ca0f9f2db53.camel@wdc.com>
 Sender: stable-owner@vger.kernel.org
-To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTA3LTEwIGF0IDIyOjQ0ICswMjAwLCBncmVna2hAbGludXhmb3VuZGF0aW9u
-Lm9yZyB3cm90ZToNCj4gT24gVHVlLCBKdWwgMTAsIDIwMTggYXQgMDg6MjM6MDFQTSArMDAwMCwg
-QmFydCBWYW4gQXNzY2hlIHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxOC0wNy0xMCBhdCAyMDo1MSAr
-MDIwMCwgR3JlZyBLSCB3cm90ZToNCj4gPiA+IE9uIFR1ZSwgSnVsIDEwLCAyMDE4IGF0IDEwOjMy
-OjAwQU0gLTA3MDAsIEJhcnQgVmFuIEFzc2NoZSB3cm90ZToNCj4gPiA+ID4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMgYi9kcml2ZXJzL2luZmluaWJh
-bmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+ID4gPiA+IGluZGV4IDMyNWJhZTI5ZTkwZC4uNzA1ZjZh
-OTkyZDgyIDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQv
-aWJfc3JwdC5jDQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9z
-cnB0LmMNCj4gPiA+ID4gQEAgLTIxNTIsNiArMjE1Miw3IEBAIHN0YXRpYyBpbnQgc3JwdF9jbV9y
-ZXFfcmVjdihzdHJ1Y3Qgc3JwdF9kZXZpY2UgKmNvbnN0IHNkZXYsDQo+ID4gPiA+ICAJfQ0KPiA+
-ID4gPiAgDQo+ID4gPiA+ICAJa3JlZl9pbml0KCZjaC0+a3JlZik7DQo+ID4gPiA+ICsJa3JlZl9n
-ZXQoJmNoLT5rcmVmKTsNCj4gPiA+IA0KPiA+ID4ga3JlZl9pbml0IHN0YXJ0cyB0aGUgcmVmZXJl
-bmNlIGNvdW50IGF0IGF0IDEsIHNvIHdoeSBkbyB5b3UgbmVlZCB0bw0KPiA+ID4gaW5jcmVtZW50
-IGl0IHJpZ2h0IGF3YXk/ICBUaGF0IGZlZWxzIGxpa2Ugc29tZXRoaW5nIGlzICJvZGQiIGhlcmUs
-IHdoeQ0KPiA+ID4gZG8geW91IHN0YXJ0IHdpdGggMiByZWZlcmVuY2VzIGluIHRoZSBzYW1lIGZ1
-bmN0aW9uPw0KPiA+IA0KPiA+IEFuIGliX3NycHQgUkRNQSBjaGFubmVsIG9iamVjdCAoY2ggaW4g
-dGhlIGFib3ZlIGNvZGUpIG11c3Qgc3RheSBhcm91bmQgYXMgbG9uZw0KPiA+IGFzIHRoZSBhc3Nv
-Y2lhdGVkIHRhcmdldCBjb3JlIHNlc3Npb24gKHNlX3Nlc3MpIGV4aXN0cyBhbmQgYWxzbyBhcyBs
-b25nIGFzIHRoZQ0KPiA+IHRhcmdldCBjb3JlIGhhcyBub3QgeWV0IGNhbGxlZCBzcnB0X2Nsb3Nl
-X3Nlc3Npb24oKS4gSGVuY2UgdGhlIGluaXRpYWxpemF0aW9uIG9mDQo+ID4gY2gtPmtyZWYgdG8g
-MiBqdXN0IGJlZm9yZSBhbiBSRE1BIGNoYW5uZWwgaXMgcmVnaXN0ZXJlZCB3aXRoIHRoZSB0YXJn
-ZXQgY29yZS4NCj4gDQo+IFNob3VsZG4ndCB0aGUgcmVnaXN0cmF0aW9uIGluY3JlbWVudCB0aGUg
-cmVmZXJlbmNlPyAgU3RhcnRpbmcgb3V0IGF0ICIyIg0KPiBmZWVscyB2ZXJ5ICJvZGQiLCBkb24n
-dCB5b3UgYWdyZWU/DQoNCkhlbGxvIEdyZWcsDQoNClRoZSBjb2RlIHRoYXQgcmVnaXN0ZXJzIHRo
-ZSBzZXNzaW9uIHdpdGggdGhlIHRhcmdldCBjb3JlIGlzIGluIGFub3RoZXIgZHJpdmVyDQooU0NT
-SSB0YXJnZXQgY29yZSkgYW5kIHRoYXQgZHJpdmVyIGRvZXNuJ3Qga25vdyBhYm91dCB0aGUgYWJz
-dHJhY3Rpb25zIG1haW50YWluZWQNCmJ5IHRoZSBpYl9zcnB0IGRyaXZlci4gVGhhdCdzIHdoeSB0
-aGUgYWJvdmUga3JlZl9nZXQoKSBjYWxsIGlzIGluIHRoZSBpYl9zcnB0DQpkcml2ZXIgYW5kIG5v
-dCBlLmcuIGluIHRoZSB0YXJnZXRfYWxsb2Nfc2Vzc2lvbigpIGZ1bmN0aW9uLg0KDQpCVFcsIHRo
-ZXJlIGlzIG1vcmUgY29kZSBpbiB0aGUgTGludXgga2VybmVsIHRoYXQgZm9sbG93cyB0aGUgYWJv
-dmUgcGF0dGVybi4NCnRhcmdldF9zdWJtaXRfY21kX21hcF9zZ2xzKCkgaW5pdGlhbGl6ZXMgdGhl
-IHNlX2NtZCByZWZlcmVuY2UgY291bnQgdG8gdHdvIGFzDQpmb2xsb3dzOg0KKiB0cmFuc3BvcnRf
-aW5pdF9zZV9jbWQoKSBpbml0aWFsaXplcyBpdCB0byBvbmUuDQoqIHRhcmdldF9nZXRfc2Vzc19j
-bWQoKSBpbmNyZW1lbnRzIGl0IGZyb20gb25lIHRvIHR3by4NClRoaXMgaXMgYmVjYXVzZSB0d28g
-Y29udGV4dHMga2VlcCBhIHJlZmVyZW5jZSB0byBzZV9jbWQgZGF0YSBzdHJ1Y3R1cmVzLA0KbmFt
-ZWx5IHRoZSB0YXJnZXQgY29yZSBhbmQgdGhlIHRhcmdldCBkcml2ZXIuIEEgU0NTSSB0YXJnZXQg
-Y29tbWFuZCBkYXRhDQpzdHJ1Y3R1cmUgKHNlX2NtZCkgbXVzdCBvbmx5IGJlIGZyZWVkIGFmdGVy
-IGJvdGggY29udGV4dHMgaGF2ZSBmaW5pc2hlZCB0aGVpcg0KcGFydCBvZiB0aGUgY29tbWFuZCBw
-cm9jZXNzaW5nLg0KDQpUaGFua3MsDQoNCkJhcnQuDQoNCg0K
+On Tue, Jul 10, 2018 at 08:19:20PM +0000, Bart Van Assche wrote:
+> On Tue, 2018-07-10 at 12:38 -0600, Jason Gunthorpe wrote:
+> > On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
+> > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > > index 325bae29e90d..705f6a992d82 100644
+> > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > > @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+> > >  	}
+> > > 
+> > >  	kref_init(&ch->kref);
+> > > +	kref_get(&ch->kref);
+> > 
+> > Oh that is ugly, can you put the 'get' closer to the the place that
+> > stores the ch pointer this kref is protecting? Perhaps it is one of
+> > the list_add's in this function?
+> > 
+> > Guessing the kref created kref_init should probably belong to target_core's
+> > 'se_sess->fabric_sess_ptr' ..
+> 
+> Hello Jason,
+> 
+> Can you clarify your second paragraph? The ib_srpt driver has been implemented
+> such that sess->fabric_sess_ptr == ch as long as a session exists.
+
+In my view that means sess->fabric_sess_ptr is the pointer that
+'owns' the kref_init's value - ie the kref_init pairs with the
+kref_put added in your patch.
+
+The question here, is what kref_put does the 2nd kref_get pair with?
+When you identify that, then move the kref_get closer to the
+assignment to the 'owning' pointer.
+
+krefs are very tricky, I find it is best to be very rigorous with
+them, and place some notes about how they pair and what storage is
+'owning' each kref.
+
+eg if you put something in a list, and incr the kref when doing so,
+then place the kref_get near the list_add, and the kref_put near the
+list_del. That gives somebody else a chance to understand that the
+list_head is holding the kref.
+
+And you have to be careful when sharing the stack kref with something
+else - eg if a list_add 'moves' a stack kref into a list then another
+thread can race and do list_del and put, even though the first thread
+is still accessing the memory on its stack. Often times these
+'publish' actions must be last in a function, or more krefs are
+needed.
+
+This is a really annoying bug class with krefs I find from time to time..
+
+Jason
