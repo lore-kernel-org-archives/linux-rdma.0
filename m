@@ -1,45 +1,26 @@
 From: Jan Kara <jack@suse.cz>
 Subject: Re: [PATCH 0/2] mm/fs: put_user_page() proposal
-Date: Tue, 10 Jul 2018 09:51:54 +0200
-Message-ID: <20180710075154.lhaxaf6q35fnvdiq@quack2.suse.cz>
+Date: Tue, 10 Jul 2018 10:21:00 +0200
+Message-ID: <20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz>
 References: <20180709080554.21931-1-jhubbard@nvidia.com>
  <20180709184937.7a70c3aa@roar.ozlabs.ibm.com>
  <20180709160806.xjt2l2pbmyiutbyi@quack2.suse.cz>
  <20180709171651.GE2662@bombadil.infradead.org>
  <20180709194740.rymbt2fzohbdmpye@quack2.suse.cz>
- <20180709195657.GA29026@ziepe.ca>
+ <20180709200049.GA5335@bombadil.infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180709195657.GA29026@ziepe.ca>
+In-Reply-To: <20180709200049.GA5335@bombadil.infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, john.hubbard@gmail.com, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Jan Kara <jack@suse.cz>, Nicholas Piggin <npiggin@gmail.com>, john.hubbard@gmail.com, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon 09-07-18 13:56:57, Jason Gunthorpe wrote:
+On Mon 09-07-18 13:00:49, Matthew Wilcox wrote:
 > On Mon, Jul 09, 2018 at 09:47:40PM +0200, Jan Kara wrote:
 > > On Mon 09-07-18 10:16:51, Matthew Wilcox wrote:
-> > > On Mon, Jul 09, 2018 at 06:08:06PM +0200, Jan Kara wrote:
-> > > > On Mon 09-07-18 18:49:37, Nicholas Piggin wrote:
-> > > > > The problem with blocking in clear_page_dirty_for_io is that the fs is
-> > > > > holding the page lock (or locks) and possibly others too. If you
-> > > > > expect to have a bunch of long term references hanging around on the
-> > > > > page, then there will be hangs and deadlocks everywhere. And if you do
-> > > > > not have such log term references, then page lock (or some similar lock
-> > > > > bit) for the duration of the DMA should be about enough?
-> > > > 
-> > > > There are two separate questions:
-> > > > 
-> > > > 1) How to identify pages pinned for DMA? We have no bit in struct page to
-> > > > use and we cannot reuse page lock as that immediately creates lock
-> > > > inversions e.g. in direct IO code (which could be fixed but then good luck
-> > > > with auditing all the other GUP users). Matthew had an idea and John
-> > > > implemented it based on removing page from LRU and using that space in
-> > > > struct page. So we at least have a way to identify pages that are pinned
-> > > > and can track their pin count.
-> > > > 
 > > > > 2) What to do when some page is pinned but we need to do e.g.
 > > > > clear_page_dirty_for_io(). After some more thinking I agree with you that
 > > > > just blocking waiting for page to unpin will create deadlocks like:
@@ -56,27 +37,42 @@ On Mon 09-07-18 13:56:57, Jason Gunthorpe wrote:
 > > apps will just not handle that correctly. So what else can you do than
 > > block?
 > 
-> I think as a userspace I would expect the 'current content' to be
-> flushed without waiting..
+> I was thinking about writeback, and neglected the fsync case.
 
-Yes but the problem is we cannot generally write out a page whose contents
-is possibly changing (e.g. RAID5 checksums would then be wrong). But maybe
-using bounce pages (and keeping original page still dirty) in such case would
-be worth it - originally I thought using bounce pages would not bring us
-much but now seeing problems with blocking in more detail maybe they are
-worth the trouble after all...
+For memory cleaning writeback skipping is certainly the right thing to do
+and that's what we plan to do.
 
-> If you block fsync() then anyone using a RDMA MR with it will just
-> dead lock. What happens if two processes open the same file and
-> one makes a MR and the other calls fsync()? Sounds bad.
+> For fsync, we could copy the "current" contents of the page to a
+> freshly-allocated page and write _that_ to disc?  As long as we redirty
+> the real page after the pin is dropped, I think we're fine.
 
-Yes, that's one of the reasons why we were discussing revoke mechanisms for
-long term pins. But with bounce pages we could possibly avoid that (except
-for cases like DAX + truncate where it's really unavoidable but there it's
-a new functionality so mandating revoke and returning error otherwise is
-fine I guess).
+So for record, this technique is called "bouncing" in block layer
+terminology and we do have a support for it there (see block/bounce.c). It
+would need some tweaking (e.g. a bio flag to indicate that some page in a
+bio needs bouncing if underlying storage requires stable pages) but that is
+easy to do - we even had support for something similar some years back as
+ext3 needed it to provide guarantee metadata buffer cannot be modified
+while IO is running on it.
+
+I was actually already considering using this some time ago but then
+disregarded it as it seemed it won't buy us much compared to blocking /
+skipping. But now seeing the troubles with blocking, using page bouncing
+for situations where we cannot just skip page writeout looks indeed
+appealing. Thanks for suggesting that!
+
+As a side note I'm not 100% decided whether it is better to keep the
+original page dirty all the time while it is pinned or not. I'm more
+inclined to keeping it dirty all the time as it gives mm more accurate
+information about the amount of really dirty pages, prevents reclaim of
+filesystem's dirtiness / allocation tracking information (buffers or
+whatever it has attached to the page), and generally avoids "surprising"
+set_page_dirty() once page is unpinned (one less dirtying path for
+filesystems to care about). OTOH it would make flusher threads always try
+to writeback these pages only to skip them, fsync(2) would always write
+them, etc...
 
 								Honza
+
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
