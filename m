@@ -1,64 +1,69 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 0/9] Support mlx5 flow steering with RAW data
-Date: Tue, 10 Jul 2018 12:28:54 -0600
-Message-ID: <20180710182854.GA24311@ziepe.ca>
-References: <20180708102445.25496-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180708102445.25496-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: Bart Van Assche <bart.vanassche@wdc.com>
+Subject: [PATCH 3/3] IB/srpt: Fix a use-after-free
+Date: Tue, 10 Jul 2018 10:32:00 -0700
+Message-ID: <20180710173200.19853-4-bart.vanassche@wdc.com>
+References: <20180710173200.19853-1-bart.vanassche@wdc.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180710173200.19853-1-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 08, 2018 at 01:24:36PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> >From Yishai:
-> 
-> This series introduces vendor create and destroy flow methods on the
-> uverbs flow object by using the KABI infra-structure.
-> 
-> It's done in a way that enables the driver to get its specific device
-> attributes in a raw data to match its underlay specification while still
-> using the generic ib_flow object for cleanup and code sharing.
-> 
-> In addition, a specific mlx5 matcher object and its create/destroy
-> methods were introduced. This object matches the underlay flow steering
-> mask specification and is used as part of mlx5 create flow input data.
-> 
-> This series supports IB_QP/TIR as its flow steering destination as
-> applicable today via the ib_create_flow API, however, it adds also an
-> option to work with DEVX object which its destination can be both TIR
-> and flow table.
-> 
-> Few changes were done in the mlx5 core layer to support forward
-> compatible for the device specification raw data and to support flow
-> table when the DEVX destination is used.
-> 
-> As part of this series the default IB destroy handler
-> (i.e. uverbs_destroy_def_handler()) was exposed from IB core to be
-> used by the drivers and existing code was refactored to use it.
-> 
-> Thanks
+Make sure that channel objects continue to exist until the target
+core has called the .close_session() callback function. This patch
+voids that KASAN sporadically reports the following:
 
->   IB: Enable uverbs_destroy_def_handler to be used by drivers
+BUG: KASAN: use-after-free in do_raw_spin_lock+0x1c/0x130
+Read of size 4 at addr ffff8801534b16e4 by task rmdir/14805
+CPU: 16 PID: 14805 Comm: rmdir Not tainted 4.18.0-rc2-dbg+ #5
+Call Trace:
+dump_stack+0xa4/0xf5
+print_address_description+0x6f/0x270
+kasan_report+0x241/0x360
+__asan_load4+0x78/0x80
+do_raw_spin_lock+0x1c/0x130
+_raw_spin_lock_irqsave+0x52/0x60
+srpt_set_ch_state+0x27/0x70 [ib_srpt]
+srpt_disconnect_ch+0x1b/0xc0 [ib_srpt]
+srpt_close_session+0xa8/0x260 [ib_srpt]
+target_shutdown_sessions+0x170/0x180 [target_core_mod]
+core_tpg_del_initiator_node_acl+0xf3/0x200 [target_core_mod]
+target_fabric_nacl_base_release+0x25/0x30 [target_core_mod]
+config_item_release+0x9c/0x110 [configfs]
+config_item_put+0x26/0x30 [configfs]
+configfs_rmdir+0x3b8/0x510 [configfs]
+vfs_rmdir+0xb3/0x1e0
+do_rmdir+0x262/0x2c0
+do_syscall_64+0x77/0x230
+entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-I applied this one
+Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: <stable@vger.kernel.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> Yishai Hadas (9):
->   net/mlx5: Add forward compatible support for the FTE match data
->   net/mlx5: Add support for flow table destination number
->   IB/mlx5: Introduce flow steering matcher object
->   IB: Consider ib_flow creation by the KABI infrastructure
->   IB/mlx5: Introduce vendor create and destroy flow methods
->   IB/mlx5: Support adding flow steering rule by raw data
->   IB/mlx5: Add support for a flow table destination
->   IB/mlx5: Expose vendor flow trees
-
-The rest will need to be resent after the comments are addressed.
-
-Thanks,
-Jason
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index 325bae29e90d..705f6a992d82 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 	}
+ 
+ 	kref_init(&ch->kref);
++	kref_get(&ch->kref);
+ 	ch->pkey = be16_to_cpu(pkey);
+ 	ch->nexus = nexus;
+ 	ch->zw_cqe.done = srpt_zerolength_write_done;
+@@ -3212,6 +3213,7 @@ static void srpt_close_session(struct se_session *se_sess)
+ 	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
+ 
+ 	srpt_disconnect_ch_sync(ch);
++	kref_put(&ch->kref, srpt_free_ch);
+ }
+ 
+ /**
+-- 
+2.18.0
