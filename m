@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 1/3] IB/srpt: Fix srpt_cm_req_recv() error path (1/2)
-Date: Tue, 10 Jul 2018 10:31:58 -0700
-Message-ID: <20180710173200.19853-2-bart.vanassche@wdc.com>
+Subject: [PATCH 2/3] IB/srpt: Fix srpt_cm_req_recv() error path (2/2)
+Date: Tue, 10 Jul 2018 10:31:59 -0700
+Message-ID: <20180710173200.19853-3-bart.vanassche@wdc.com>
 References: <20180710173200.19853-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180710173200.19853-1-bart.vanassche@wdc.com>
@@ -10,72 +10,33 @@ To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Once a target session has been allocated, if an error occurs, the
-session must be freed. Since it is not safe to call blocking code
-from the context of an connection manager callback, trigger target
-session release in this case by calling srpt_close_ch().
+If a login request was received through the RDMA/CM and if an
+error occurs during login, clear rdma_cm_id->context instead of
+ib_cm_id->context.
 
-Fixes: db7683d7deb2 ("IB/srpt: Fix login-related race conditions")
+Fixes: 63cf1a902c9d ("IB/srpt: Add RDMA/CM support")
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
 Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 538b9013e815..e95d0c1c0652 100644
+index e95d0c1c0652..325bae29e90d 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2088,7 +2088,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 		struct rdma_conn_param rdma_cm;
- 		struct ib_cm_rep_param ib_cm;
- 	} *rep_param = NULL;
--	struct srpt_rdma_ch *ch;
-+	struct srpt_rdma_ch *ch = NULL;
- 	char i_port_id[36];
- 	u32 it_iu_len;
- 	int i, ret;
-@@ -2235,13 +2235,15 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 						TARGET_PROT_NORMAL,
- 						i_port_id + 2, ch, NULL);
- 	if (IS_ERR_OR_NULL(ch->sess)) {
-+		WARN_ON_ONCE(ch->sess == NULL);
- 		ret = PTR_ERR(ch->sess);
-+		ch->sess = NULL;
- 		pr_info("Rejected login for initiator %s: ret = %d.\n",
- 			ch->sess_name, ret);
- 		rej->reason = cpu_to_be32(ret == -ENOMEM ?
- 				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES :
- 				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
--		goto reject;
-+		goto destroy_ib;
- 	}
- 
- 	mutex_lock(&sport->mutex);
-@@ -2280,7 +2282,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
- 		pr_err("rejected SRP_LOGIN_REQ because enabling RTR failed (error code = %d)\n",
- 		       ret);
--		goto destroy_ib;
-+		goto reject;
- 	}
- 
- 	pr_debug("Establish connection sess=%p name=%s ch=%p\n", ch->sess,
-@@ -2380,6 +2382,15 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
- 		ib_send_cm_rej(ib_cm_id, IB_CM_REJ_CONSUMER_DEFINED, NULL, 0,
- 			       rej, sizeof(*rej));
- 
-+	if (ch && ch->sess) {
-+		srpt_close_ch(ch);
-+		/*
-+		 * Tell the caller not to free cm_id since
-+		 * srpt_release_channel_work() will do that.
-+		 */
-+		ret = 0;
-+	}
+@@ -2361,8 +2361,11 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+ 			     ch->sport->sdev, ch->rq_size,
+ 			     ch->max_rsp_size, DMA_TO_DEVICE);
 +
- out:
- 	kfree(rep_param);
- 	kfree(rsp);
+ free_ch:
+-	if (ib_cm_id)
++	if (rdma_cm_id)
++		rdma_cm_id->context = NULL;
++	else
+ 		ib_cm_id->context = NULL;
+ 	kfree(ch);
+ 	ch = NULL;
 -- 
 2.18.0
