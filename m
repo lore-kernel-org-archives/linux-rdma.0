@@ -1,7 +1,7 @@
 From: Bart Van Assche <bart.vanassche@wdc.com>
-Subject: [PATCH 3/3] IB/srpt: Fix a use-after-free
-Date: Tue, 10 Jul 2018 10:32:00 -0700
-Message-ID: <20180710173200.19853-4-bart.vanassche@wdc.com>
+Subject: [PATCH 1/3] IB/srpt: Fix srpt_cm_req_recv() error path (1/2)
+Date: Tue, 10 Jul 2018 10:31:58 -0700
+Message-ID: <20180710173200.19853-2-bart.vanassche@wdc.com>
 References: <20180710173200.19853-1-bart.vanassche@wdc.com>
 Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180710173200.19853-1-bart.vanassche@wdc.com>
@@ -10,60 +10,72 @@ To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bart.vanassche@wdc.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make sure that channel objects continue to exist until the target
-core has called the .close_session() callback function. This patch
-voids that KASAN sporadically reports the following:
+Once a target session has been allocated, if an error occurs, the
+session must be freed. Since it is not safe to call blocking code
+from the context of an connection manager callback, trigger target
+session release in this case by calling srpt_close_ch().
 
-BUG: KASAN: use-after-free in do_raw_spin_lock+0x1c/0x130
-Read of size 4 at addr ffff8801534b16e4 by task rmdir/14805
-CPU: 16 PID: 14805 Comm: rmdir Not tainted 4.18.0-rc2-dbg+ #5
-Call Trace:
-dump_stack+0xa4/0xf5
-print_address_description+0x6f/0x270
-kasan_report+0x241/0x360
-__asan_load4+0x78/0x80
-do_raw_spin_lock+0x1c/0x130
-_raw_spin_lock_irqsave+0x52/0x60
-srpt_set_ch_state+0x27/0x70 [ib_srpt]
-srpt_disconnect_ch+0x1b/0xc0 [ib_srpt]
-srpt_close_session+0xa8/0x260 [ib_srpt]
-target_shutdown_sessions+0x170/0x180 [target_core_mod]
-core_tpg_del_initiator_node_acl+0xf3/0x200 [target_core_mod]
-target_fabric_nacl_base_release+0x25/0x30 [target_core_mod]
-config_item_release+0x9c/0x110 [configfs]
-config_item_put+0x26/0x30 [configfs]
-configfs_rmdir+0x3b8/0x510 [configfs]
-vfs_rmdir+0xb3/0x1e0
-do_rmdir+0x262/0x2c0
-do_syscall_64+0x77/0x230
-entry_SYSCALL_64_after_hwframe+0x49/0xbe
-
-Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+Fixes: db7683d7deb2 ("IB/srpt: Fix login-related race conditions")
 Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
 Cc: <stable@vger.kernel.org>
 ---
- drivers/infiniband/ulp/srpt/ib_srpt.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 325bae29e90d..705f6a992d82 100644
+index 538b9013e815..e95d0c1c0652 100644
 --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
 +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+@@ -2088,7 +2088,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 		struct rdma_conn_param rdma_cm;
+ 		struct ib_cm_rep_param ib_cm;
+ 	} *rep_param = NULL;
+-	struct srpt_rdma_ch *ch;
++	struct srpt_rdma_ch *ch = NULL;
+ 	char i_port_id[36];
+ 	u32 it_iu_len;
+ 	int i, ret;
+@@ -2235,13 +2235,15 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 						TARGET_PROT_NORMAL,
+ 						i_port_id + 2, ch, NULL);
+ 	if (IS_ERR_OR_NULL(ch->sess)) {
++		WARN_ON_ONCE(ch->sess == NULL);
+ 		ret = PTR_ERR(ch->sess);
++		ch->sess = NULL;
+ 		pr_info("Rejected login for initiator %s: ret = %d.\n",
+ 			ch->sess_name, ret);
+ 		rej->reason = cpu_to_be32(ret == -ENOMEM ?
+ 				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES :
+ 				SRP_LOGIN_REJ_CHANNEL_LIMIT_REACHED);
+-		goto reject;
++		goto destroy_ib;
  	}
  
- 	kref_init(&ch->kref);
-+	kref_get(&ch->kref);
- 	ch->pkey = be16_to_cpu(pkey);
- 	ch->nexus = nexus;
- 	ch->zw_cqe.done = srpt_zerolength_write_done;
-@@ -3212,6 +3213,7 @@ static void srpt_close_session(struct se_session *se_sess)
- 	struct srpt_rdma_ch *ch = se_sess->fabric_sess_ptr;
+ 	mutex_lock(&sport->mutex);
+@@ -2280,7 +2282,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 		rej->reason = cpu_to_be32(SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+ 		pr_err("rejected SRP_LOGIN_REQ because enabling RTR failed (error code = %d)\n",
+ 		       ret);
+-		goto destroy_ib;
++		goto reject;
+ 	}
  
- 	srpt_disconnect_ch_sync(ch);
-+	kref_put(&ch->kref, srpt_free_ch);
- }
+ 	pr_debug("Establish connection sess=%p name=%s ch=%p\n", ch->sess,
+@@ -2380,6 +2382,15 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+ 		ib_send_cm_rej(ib_cm_id, IB_CM_REJ_CONSUMER_DEFINED, NULL, 0,
+ 			       rej, sizeof(*rej));
  
- /**
++	if (ch && ch->sess) {
++		srpt_close_ch(ch);
++		/*
++		 * Tell the caller not to free cm_id since
++		 * srpt_release_channel_work() will do that.
++		 */
++		ret = 0;
++	}
++
+ out:
+ 	kfree(rep_param);
+ 	kfree(rsp);
 -- 
 2.18.0
