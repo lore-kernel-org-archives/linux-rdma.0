@@ -1,42 +1,36 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Tue, 10 Jul 2018 16:14:10 +0200
-Message-ID: <20180710141410.GP14284@dhcp22.suse.cz>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <20180627074421.GF32348@dhcp22.suse.cz>
- <20180709122908.GJ22049@dhcp22.suse.cz>
- <20180710134040.GG3014@mtr-leonro.mtl.com>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
+Subject: Re: [PATCH] ib_srpt: use kvmalloc to allocate ring pointers
+Date: Tue, 10 Jul 2018 15:08:38 +0000
+Message-ID: <5196ea6e33825dd5fde58d23b38630afafcb77f1.camel@wdc.com>
+References: <1531144268-25361-1-git-send-email-jan.dakinevich@virtuozzo.com>
+         <20180710053944.GN3014@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20180710134040.GG3014@mtr-leonro.mtl.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Felix Kuehling <felix.kuehling@amd.com>, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180710053944.GN3014@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <5319023AC802C94C93A502B3B54131CA@namprd04.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "leon@kernel.org" <leon@kernel.org>, "jan.dakinevich@virtuozzo.com" <jan.dakinevich@virtuozzo.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "den@virtuozzo.com" <den@virtuozzo.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "khorenko@virtuozzo.com" <khorenko@virtuozzo.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlIDEwLTA3LTE4IDE2OjQwOjQwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6Cj4gT24gTW9u
-LCBKdWwgMDksIDIwMTggYXQgMDI6Mjk6MDhQTSArMDIwMCwgTWljaGFsIEhvY2tvIHdyb3RlOgo+
-ID4gT24gV2VkIDI3LTA2LTE4IDA5OjQ0OjIxLCBNaWNoYWwgSG9ja28gd3JvdGU6Cj4gPiA+IFRo
-aXMgaXMgdGhlIHYyIG9mIFJGQyBiYXNlZCBvbiB0aGUgZmVlZGJhY2sgSSd2ZSByZWNlaXZlZCBz
-byBmYXIuIFRoZQo+ID4gPiBjb2RlIGV2ZW4gY29tcGlsZXMgYXMgYSBib251cyA7KSBJIGhhdmVu
-J3QgcnVudGltZSB0ZXN0ZWQgaXQgeWV0LCBtb3N0bHkKPiA+ID4gYmVjYXVzZSBJIGhhdmUgbm8g
-aWRlYSBob3cuCj4gPiA+Cj4gPiA+IEFueSBmdXJ0aGVyIGZlZWRiYWNrIGlzIGhpZ2hseSBhcHBy
-ZWNpYXRlZCBvZiBjb3Vyc2UuCj4gPgo+ID4gQW55IG90aGVyIGZlZWRiYWNrIGJlZm9yZSBJIHBv
-c3QgdGhpcyBhcyBub24tUkZDPwo+IAo+IEZyb20gbWx4NSBwZXJzcGVjdGl2ZSwgd2hvIGlzIHBy
-aW1hcnkgdXNlciBvZiB1bWVtX29kcC5jIHlvdXIgY2hhbmdlIGxvb2tzIG9rLgoKQ2FuIEkgYXNz
-dW1lIHlvdXIgQWNrZWQtYnk/CgpUaGFua3MgZm9yIHlvdXIgcmV2aWV3IQotLSAKTWljaGFsIEhv
-Y2tvClNVU0UgTGFicwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+T24gVHVlLCAyMDE4LTA3LTEwIGF0IDA4OjM5ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIE1vbiwgSnVsIDA5LCAyMDE4IGF0IDA0OjUxOjA4UE0gKzAzMDAsIEphbiBEYWtpbmV2
+aWNoIHdyb3RlOg0KPiA+IEFuIGFycmF5IG9mIHBvaW50ZXJzIHRvIFNSUFQgY29udGV4dHMgaW4g
+aWJfZGV2aWNlIGlzIG92ZXIgMzBLaUIgZXZlbg0KPiA+IGluIGRlZmF1bHQgY2FzZSwgaW4gd2hp
+Y2ggYW4gYW1vdW50IG9mIGNvbnRleHRzIGlzIDQwOTUuIFRoZSBwYXRjaA0KPiA+IGlzIGludGVu
+ZGVkIHRvIHdlZWQgb3V0IGxhcmdlIGNvbnRpZ291cyBhbGxvY2F0aW9uIGZvciBub24tRE1BIG1l
+bW9yeS4NCj4gDQo+IGt2bWFsbG9jKiBkb2Vzbid0ICJ3ZWVkIG91dCIgbGFyZ2UgY29udGlndW91
+cyBhbGxvY2F0aW9ucywgYnV0IHRyaWVzIHRvDQo+IGFsbG9jYXRlIHRoZW0gYW5kIGdyYWNlZnVs
+bHkgZmFsbGJhY2sgdG8gdm1hbGxvYyBpZiBrbWFsbG9jIGZhaWxzLg0KPiANCj4gTW9yZSBvbiB0
+aGF0LCBmb3IgYWxsb2NhdGlvbnMgbGVzcyB0aGFuIHBhZ2UgKDY0S0IgZm9yIFBvd2VyUEMpLCBp
+dCB3aWxsDQo+IG5vdCBjYWxsIHRvIHZtYWxsb2MgYXQgYWxsLCB3aGljaCBpcyBmaW5lIHRvbywg
+YmVjYXVzZSBwYWdlcyBncmFudWxhcml0eS4NCj4gDQo+IElmIHlvdSB3YW50IHRvIGdldCByaWQg
+b2YgImNvbnRpZ3VvdXMgYWxsb2NhdGlvbnMiLCB1c2Ugdm1hbGxvYyBpbnN0ZWFkLg0KDQp2bWFs
+bG9jKCkgaGFzIGEgdmVyeSBzaWduaWZpY2FudCBkaXNhZHZhbnRhZ2UgY29tcGFyZWQgdG8ga3Zt
+YWxsb2MoKTogd2l0aA0Kdm1hbGxvYygpIGl0IGlzIGd1YXJhbnRlZWQgdGhhdCBtZW1vcnkgYWxs
+b2NhdGlvbnMgd2lsbCBiZSBzbG93LiBUaGF0J3Mgbm90DQp0aGUgY2FzZSBmb3Iga3ZtYWxsb2Mo
+KSBpZiB0aGUgbnVtYmVyIG9mIGJ5dGVzIHRoYXQgaXMgYWxsb2NhdGVkIGlzIHNtYWxsDQplbm91
+Z2guDQoNCkJhcnQuDQoNCg0KDQoNCg==
