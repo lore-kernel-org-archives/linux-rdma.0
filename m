@@ -1,67 +1,84 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] ib/mlx4: adjust gfp flags for DMA allocations
-Date: Tue, 10 Jul 2018 13:56:42 +0300
-Message-ID: <20180710105642.GD3014@mtr-leonro.mtl.com>
-References: <1531144273-25959-1-git-send-email-jan.dakinevich@virtuozzo.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 10 Jul 2018 16:40:40 +0300
+Message-ID: <20180710134040.GG3014@mtr-leonro.mtl.com>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <20180627074421.GF32348@dhcp22.suse.cz>
+ <20180709122908.GJ22049@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="UXdImcDs+Jp8Skh3"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1531144273-25959-1-git-send-email-jan.dakinevich@virtuozzo.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>
+Content-Type: multipart/mixed; boundary="===============0734949147=="
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20180709122908.GJ22049-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Felix Kuehling <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>Mike Marciniszyn <mi>
 List-Id: linux-rdma@vger.kernel.org
 
 
---UXdImcDs+Jp8Skh3
-Content-Type: text/plain; charset=us-ascii
+--===============0734949147==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="xugVLPVe/nLWwmIL"
 Content-Disposition: inline
 
-On Mon, Jul 09, 2018 at 04:51:13PM +0300, Jan Dakinevich wrote:
-> For most cases it is enough to use common GFP_KERNEL flag. However,
-> there is one place with defined fallback path on unsuccessful allocation.
-> In this case it would be preferred to append on first allocation attempt
-> __GFP_NOWARN and __GFP_NORETRY flags to suppress possible warnings and
-> to shorten the path to the fallback in a case of memory pressure.
->
-> Signed-off-by: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-> ---
->  drivers/infiniband/hw/mlx4/cq.c            |  2 +-
->  drivers/infiniband/hw/mlx4/qp.c            |  6 ++++--
->  drivers/infiniband/hw/mlx4/srq.c           |  2 +-
->  drivers/net/ethernet/mellanox/mlx4/alloc.c | 12 ++++++------
->  include/linux/mlx4/device.h                |  2 +-
->  5 files changed, 13 insertions(+), 11 deletions(-)
->
 
-Thanks for the patch, however we are working on the patch to avoid
-second call to mlx4_buf_alloc() and it will eliminate the annoying
-WARN splat.
+--xugVLPVe/nLWwmIL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Because it is in latest stages of internal review, NAK.
+On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
+> On Wed 27-06-18 09:44:21, Michal Hocko wrote:
+> > This is the v2 of RFC based on the feedback I've received so far. The
+> > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
+> > because I have no idea how.
+> >
+> > Any further feedback is highly appreciated of course.
+>
+> Any other feedback before I post this as non-RFC?
+
+=46rom mlx5 perspective, who is primary user of umem_odp.c your change look=
+s ok.
 
 Thanks
 
---UXdImcDs+Jp8Skh3
+--xugVLPVe/nLWwmIL
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbRJDqAAoJEORje4g2clinKCwP/isUFdWDQl5E6247HvyTeC3a
-/vG4hTqCcNZ+a2e0FWCtIgPdZ9wfj5b/NBf9a/MMva2X/drKHjaXs6sszBwbLvOu
-c1Fev75rSnzoiKgcBQZHnG7IiRlqZGgk396o3qz4HyBklKf4EaZuLPWV4z8J6IBG
-K+rxZCd8bHvzOJBtzMvi9GeOHh/e1XNmlNQsvTpRf+yK/Fg2KdYWqP0BLgryWLuP
-XQwKx5TuhiuLx2bkV/DaqHZ+wgltxmc1dwYpPwgFkZdUhd2TrByfkMeJp40JPbHo
-lLU57U0QBUEV/8WZaWgua4lmw6U5k5jJ10ZsylW/yH+6BYyuxDObdByssqLU5gDp
-eWULOq41M96rJXbc+idxhABKHMl7kWcvZtQ6WC/w5QVbIMz8dlqJ1QauaynvojN2
-G0ToKMg9Q/+KYcuZf4W1R0lZ7uA4DiGiP08bCh6VSedeE1dyuwoySVs3FnWJEroQ
-tFY2+A72waUm8JpkbpnQkHHkB90XMR0r25srz2qKm19HSlND8u2oSO401JAk0Hau
-cjbG0IAQlko7akGX+ubn+R6MNOJ0UiJ4bsVV9gr+G9Za9mWjG4lE9SzXnBAaQLSS
-yxRrTLmPA7Zf68Ig+S8mcsSP1i5wYYkHx8omYA8eS/F6MyPs8fP0y484tyKTgtcQ
-dr/wJZO7y9sa+8/abuLM
-=A3Y2
+iQIcBAEBAgAGBQJbRLdYAAoJEORje4g2clinszcP/i1ZoA12tkJ+VFRkYqorF+9B
++Z2snjMkSjj9Nz8XeYAzlg1RSNNeiTtFsN7UKrr6X484ccyy7oT//Nj5gGcxyEo3
+qzAxMgRyD+xTbV97YJEVXpo7T6euNyH2ajtBDVwHQo14A6ZK2SIETUh9ssJhCumQ
+9rv/UBFiJ/PjODzYNulmHvhILOt5QQc0UxoC1ApoGddv5bj5eaQeQ1xIBigZ1lZp
+HCr53Z4NZ2WXiwMpHomBcD+Z2ZD2lRPUVWKsUYn8mU7iLzYGWOE3h8Ca0lEK74On
+MAxdJT2ywBGWQ7XaIDEmWPs2xsV18qDKaUj6T/b0V6LD8T6DNrwyrjCUOZg8K08I
+SdoWhHm1JADzOzPDDh2aHBpkPC9oIlWYGnFgGra87G+wXmwvegYIi3wady1d7VzI
+RHSDQzcRiZqhGivXZPCqffXicAC3/PTWaLB2v1sm9LK+s8DoUcxW67RPDQmvB2Jj
+cgqDTLvw+ikvXAhHhI4wfqE3ITAg6sOgQIxo+395/30Y1/sHprvEQDcc1jVm5avw
+ueFriLICm7Kb0pYY/fUH6JxxbqIGEFW8oLC0hqalbMsIKLabWTHbEWmbCLkKj1c0
+z0B2Vo0GLbEKRBwtbelQP9KQcPCG4x0OKMnZQ8jfiDsWPmTXYOu7108rKOf98a6N
+gnaRbmsYcsnBMQtUAzSx
+=Dfrg
 -----END PGP SIGNATURE-----
 
---UXdImcDs+Jp8Skh3--
+--xugVLPVe/nLWwmIL--
+
+--===============0734949147==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBt
+YWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
+cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4Cg==
+
+--===============0734949147==--
