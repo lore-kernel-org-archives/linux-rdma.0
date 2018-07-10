@@ -1,78 +1,69 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 6/9] IB/mlx5: Introduce vendor create and
- destroy flow methods
-Date: Tue, 10 Jul 2018 11:44:17 -0600
-Message-ID: <20180710174417.GC8266@ziepe.ca>
-References: <20180708102445.25496-1-leon@kernel.org>
- <20180708102445.25496-7-leon@kernel.org>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
+Date: Tue, 10 Jul 2018 20:51:44 +0200
+Message-ID: <20180710185144.GA11114@kroah.com>
+References: <20180710173200.19853-1-bart.vanassche@wdc.com>
+ <20180710173200.19853-4-bart.vanassche@wdc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180708102445.25496-7-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20180710173200.19853-4-bart.vanassche@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bart.vanassche@wdc.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 08, 2018 at 01:24:42PM +0300, Leon Romanovsky wrote:
-
-> +static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(struct ib_device *ib_dev,
-> +						      struct ib_uverbs_file *file,
-> +						      struct uverbs_attr_bundle *attrs)
-> +{
-> +	struct mlx5_ib_dev *dev = to_mdev(ib_dev);
-
-Same comment as before, the dev needs to come from uboj->context->device
-
-> -/* Used by drivers to declare a complete parsing tree for a single method that
-> - * differs only in having additional driver specific attributes.
-> +/* Used by drivers to declare a complete parsing tree for new methods
->   */
-> -#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
-> -	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
-> -		_method_id)[] = { __VA_ARGS__ };                               \
-> -	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
-> -		.id = _method_id,                                              \
-> -		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
-> -		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
-> -	};                                                                     \
-> +#define ADD_UVERBS_METHODS(_name, _object_id, ...)                             \
->  	static const struct uverbs_method_def *const UVERBS_OBJECT_METHODS(    \
-> -		_object_id)[] = { &UVERBS_METHOD(_method_id) };                \
-> +		_object_id)[] = { __VA_ARGS__ };                               \
->  	static const struct uverbs_object_def _name##_struct = {               \
->  		.id = _object_id,                                              \
-> -		.num_methods = 1,                                              \
-> +		.num_methods = ARRAY_SIZE(UVERBS_OBJECT_METHODS(_object_id)),  \
->  		.methods = &UVERBS_OBJECT_METHODS(_object_id)                  \
->  	};                                                                     \
->  	static const struct uverbs_object_def *const _name##_ptrs[] = {        \
-> @@ -123,4 +115,17 @@
->  		.objects = &_name##_ptrs,                                      \
+On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
+> Make sure that channel objects continue to exist until the target
+> core has called the .close_session() callback function. This patch
+> voids that KASAN sporadically reports the following:
+> 
+> BUG: KASAN: use-after-free in do_raw_spin_lock+0x1c/0x130
+> Read of size 4 at addr ffff8801534b16e4 by task rmdir/14805
+> CPU: 16 PID: 14805 Comm: rmdir Not tainted 4.18.0-rc2-dbg+ #5
+> Call Trace:
+> dump_stack+0xa4/0xf5
+> print_address_description+0x6f/0x270
+> kasan_report+0x241/0x360
+> __asan_load4+0x78/0x80
+> do_raw_spin_lock+0x1c/0x130
+> _raw_spin_lock_irqsave+0x52/0x60
+> srpt_set_ch_state+0x27/0x70 [ib_srpt]
+> srpt_disconnect_ch+0x1b/0xc0 [ib_srpt]
+> srpt_close_session+0xa8/0x260 [ib_srpt]
+> target_shutdown_sessions+0x170/0x180 [target_core_mod]
+> core_tpg_del_initiator_node_acl+0xf3/0x200 [target_core_mod]
+> target_fabric_nacl_base_release+0x25/0x30 [target_core_mod]
+> config_item_release+0x9c/0x110 [configfs]
+> config_item_put+0x26/0x30 [configfs]
+> configfs_rmdir+0x3b8/0x510 [configfs]
+> vfs_rmdir+0xb3/0x1e0
+> do_rmdir+0x262/0x2c0
+> do_syscall_64+0x77/0x230
+> entry_SYSCALL_64_after_hwframe+0x49/0xbe
+> 
+> Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
+> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
+> Cc: <stable@vger.kernel.org>
+> ---
+>  drivers/infiniband/ulp/srpt/ib_srpt.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> index 325bae29e90d..705f6a992d82 100644
+> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
 >  	}
 >  
-> +/* Used by drivers to declare a complete parsing tree for a single method that
-> + * differs only in having additional driver specific attributes.
-> + */
-> +#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
-> +	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
-> +		_method_id)[] = { __VA_ARGS__ };                               \
-> +	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
-> +		.id = _method_id,                                              \
-> +		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
-> +		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
-> +	};                                                                     \
-> +	ADD_UVERBS_METHODS(_name, _object_id, _method_id)
+>  	kref_init(&ch->kref);
+> +	kref_get(&ch->kref);
 
-Wow. How does that even compile? Oh I see, the only two users are
-passing in a 0 constant which the compiler will understand as NULL
-without a warning.
+kref_init starts the reference count at at 1, so why do you need to
+increment it right away?  That feels like something is "odd" here, why
+do you start with 2 references in the same function?
 
-I guess this is an instant crash at runtime?
+thanks,
 
-Should be:
-
-	ADD_UVERBS_METHODS(_name, _object_id, &UVERBS_METHOD(_method_id)
-
-Jason
+greg k-h
