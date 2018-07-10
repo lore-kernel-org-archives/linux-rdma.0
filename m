@@ -1,48 +1,61 @@
-From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
 Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
-Date: Tue, 10 Jul 2018 22:44:35 +0200
-Message-ID: <20180710204435.GA23028@kroah.com>
+Date: Tue, 10 Jul 2018 21:02:51 +0000
+Message-ID: <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
 References: <20180710173200.19853-1-bart.vanassche@wdc.com>
- <20180710173200.19853-4-bart.vanassche@wdc.com>
- <20180710185144.GA11114@kroah.com>
- <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
+         <20180710173200.19853-4-bart.vanassche@wdc.com>
+         <20180710185144.GA11114@kroah.com>
+         <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
+         <20180710204435.GA23028@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
+In-Reply-To: <20180710204435.GA23028@kroah.com>
+Content-Language: en-US
+Content-ID: <E6AA1DDFDEE26B46985A2986505685E1@namprd04.prod.outlook.com>
 Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
+To: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
 Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 10, 2018 at 08:23:01PM +0000, Bart Van Assche wrote:
-> On Tue, 2018-07-10 at 20:51 +0200, Greg KH wrote:
-> > On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
-> > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > index 325bae29e90d..705f6a992d82 100644
-> > > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
-> > >  	}
-> > >  
-> > >  	kref_init(&ch->kref);
-> > > +	kref_get(&ch->kref);
-> > 
-> > kref_init starts the reference count at at 1, so why do you need to
-> > increment it right away?  That feels like something is "odd" here, why
-> > do you start with 2 references in the same function?
-> 
-> Hi Greg,
-> 
-> An ib_srpt RDMA channel object (ch in the above code) must stay around as long
-> as the associated target core session (se_sess) exists and also as long as the
-> target core has not yet called srpt_close_session(). Hence the initialization of
-> ch->kref to 2 just before an RDMA channel is registered with the target core.
-
-Shouldn't the registration increment the reference?  Starting out at "2"
-feels very "odd", don't you agree?
-
-thanks,
-
-greg k-h
+T24gVHVlLCAyMDE4LTA3LTEwIGF0IDIyOjQ0ICswMjAwLCBncmVna2hAbGludXhmb3VuZGF0aW9u
+Lm9yZyB3cm90ZToNCj4gT24gVHVlLCBKdWwgMTAsIDIwMTggYXQgMDg6MjM6MDFQTSArMDAwMCwg
+QmFydCBWYW4gQXNzY2hlIHdyb3RlOg0KPiA+IE9uIFR1ZSwgMjAxOC0wNy0xMCBhdCAyMDo1MSAr
+MDIwMCwgR3JlZyBLSCB3cm90ZToNCj4gPiA+IE9uIFR1ZSwgSnVsIDEwLCAyMDE4IGF0IDEwOjMy
+OjAwQU0gLTA3MDAsIEJhcnQgVmFuIEFzc2NoZSB3cm90ZToNCj4gPiA+ID4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMgYi9kcml2ZXJzL2luZmluaWJh
+bmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+ID4gPiA+IGluZGV4IDMyNWJhZTI5ZTkwZC4uNzA1ZjZh
+OTkyZDgyIDEwMDY0NA0KPiA+ID4gPiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQv
+aWJfc3JwdC5jDQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9z
+cnB0LmMNCj4gPiA+ID4gQEAgLTIxNTIsNiArMjE1Miw3IEBAIHN0YXRpYyBpbnQgc3JwdF9jbV9y
+ZXFfcmVjdihzdHJ1Y3Qgc3JwdF9kZXZpY2UgKmNvbnN0IHNkZXYsDQo+ID4gPiA+ICAJfQ0KPiA+
+ID4gPiAgDQo+ID4gPiA+ICAJa3JlZl9pbml0KCZjaC0+a3JlZik7DQo+ID4gPiA+ICsJa3JlZl9n
+ZXQoJmNoLT5rcmVmKTsNCj4gPiA+IA0KPiA+ID4ga3JlZl9pbml0IHN0YXJ0cyB0aGUgcmVmZXJl
+bmNlIGNvdW50IGF0IGF0IDEsIHNvIHdoeSBkbyB5b3UgbmVlZCB0bw0KPiA+ID4gaW5jcmVtZW50
+IGl0IHJpZ2h0IGF3YXk/ICBUaGF0IGZlZWxzIGxpa2Ugc29tZXRoaW5nIGlzICJvZGQiIGhlcmUs
+IHdoeQ0KPiA+ID4gZG8geW91IHN0YXJ0IHdpdGggMiByZWZlcmVuY2VzIGluIHRoZSBzYW1lIGZ1
+bmN0aW9uPw0KPiA+IA0KPiA+IEFuIGliX3NycHQgUkRNQSBjaGFubmVsIG9iamVjdCAoY2ggaW4g
+dGhlIGFib3ZlIGNvZGUpIG11c3Qgc3RheSBhcm91bmQgYXMgbG9uZw0KPiA+IGFzIHRoZSBhc3Nv
+Y2lhdGVkIHRhcmdldCBjb3JlIHNlc3Npb24gKHNlX3Nlc3MpIGV4aXN0cyBhbmQgYWxzbyBhcyBs
+b25nIGFzIHRoZQ0KPiA+IHRhcmdldCBjb3JlIGhhcyBub3QgeWV0IGNhbGxlZCBzcnB0X2Nsb3Nl
+X3Nlc3Npb24oKS4gSGVuY2UgdGhlIGluaXRpYWxpemF0aW9uIG9mDQo+ID4gY2gtPmtyZWYgdG8g
+MiBqdXN0IGJlZm9yZSBhbiBSRE1BIGNoYW5uZWwgaXMgcmVnaXN0ZXJlZCB3aXRoIHRoZSB0YXJn
+ZXQgY29yZS4NCj4gDQo+IFNob3VsZG4ndCB0aGUgcmVnaXN0cmF0aW9uIGluY3JlbWVudCB0aGUg
+cmVmZXJlbmNlPyAgU3RhcnRpbmcgb3V0IGF0ICIyIg0KPiBmZWVscyB2ZXJ5ICJvZGQiLCBkb24n
+dCB5b3UgYWdyZWU/DQoNCkhlbGxvIEdyZWcsDQoNClRoZSBjb2RlIHRoYXQgcmVnaXN0ZXJzIHRo
+ZSBzZXNzaW9uIHdpdGggdGhlIHRhcmdldCBjb3JlIGlzIGluIGFub3RoZXIgZHJpdmVyDQooU0NT
+SSB0YXJnZXQgY29yZSkgYW5kIHRoYXQgZHJpdmVyIGRvZXNuJ3Qga25vdyBhYm91dCB0aGUgYWJz
+dHJhY3Rpb25zIG1haW50YWluZWQNCmJ5IHRoZSBpYl9zcnB0IGRyaXZlci4gVGhhdCdzIHdoeSB0
+aGUgYWJvdmUga3JlZl9nZXQoKSBjYWxsIGlzIGluIHRoZSBpYl9zcnB0DQpkcml2ZXIgYW5kIG5v
+dCBlLmcuIGluIHRoZSB0YXJnZXRfYWxsb2Nfc2Vzc2lvbigpIGZ1bmN0aW9uLg0KDQpCVFcsIHRo
+ZXJlIGlzIG1vcmUgY29kZSBpbiB0aGUgTGludXgga2VybmVsIHRoYXQgZm9sbG93cyB0aGUgYWJv
+dmUgcGF0dGVybi4NCnRhcmdldF9zdWJtaXRfY21kX21hcF9zZ2xzKCkgaW5pdGlhbGl6ZXMgdGhl
+IHNlX2NtZCByZWZlcmVuY2UgY291bnQgdG8gdHdvIGFzDQpmb2xsb3dzOg0KKiB0cmFuc3BvcnRf
+aW5pdF9zZV9jbWQoKSBpbml0aWFsaXplcyBpdCB0byBvbmUuDQoqIHRhcmdldF9nZXRfc2Vzc19j
+bWQoKSBpbmNyZW1lbnRzIGl0IGZyb20gb25lIHRvIHR3by4NClRoaXMgaXMgYmVjYXVzZSB0d28g
+Y29udGV4dHMga2VlcCBhIHJlZmVyZW5jZSB0byBzZV9jbWQgZGF0YSBzdHJ1Y3R1cmVzLA0KbmFt
+ZWx5IHRoZSB0YXJnZXQgY29yZSBhbmQgdGhlIHRhcmdldCBkcml2ZXIuIEEgU0NTSSB0YXJnZXQg
+Y29tbWFuZCBkYXRhDQpzdHJ1Y3R1cmUgKHNlX2NtZCkgbXVzdCBvbmx5IGJlIGZyZWVkIGFmdGVy
+IGJvdGggY29udGV4dHMgaGF2ZSBmaW5pc2hlZCB0aGVpcg0KcGFydCBvZiB0aGUgY29tbWFuZCBw
+cm9jZXNzaW5nLg0KDQpUaGFua3MsDQoNCkJhcnQuDQoNCg0K
