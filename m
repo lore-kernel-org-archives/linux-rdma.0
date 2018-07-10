@@ -1,69 +1,44 @@
-From: Greg KH <gregkh@linuxfoundation.org>
+From: Bart Van Assche <Bart.VanAssche@wdc.com>
 Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
-Date: Tue, 10 Jul 2018 20:51:44 +0200
-Message-ID: <20180710185144.GA11114@kroah.com>
+Date: Tue, 10 Jul 2018 20:19:20 +0000
+Message-ID: <8aebefee907dc858250dfdb47d6f1ca0f9f2db53.camel@wdc.com>
 References: <20180710173200.19853-1-bart.vanassche@wdc.com>
- <20180710173200.19853-4-bart.vanassche@wdc.com>
+         <20180710173200.19853-4-bart.vanassche@wdc.com>
+         <20180710183823.GD8266@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180710173200.19853-4-bart.vanassche@wdc.com>
+In-Reply-To: <20180710183823.GD8266@ziepe.ca>
+Content-Language: en-US
+Content-ID: <ACBAB562AFE6D842BDAA536C77BD2420@namprd04.prod.outlook.com>
 Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@wdc.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
-> Make sure that channel objects continue to exist until the target
-> core has called the .close_session() callback function. This patch
-> voids that KASAN sporadically reports the following:
-> 
-> BUG: KASAN: use-after-free in do_raw_spin_lock+0x1c/0x130
-> Read of size 4 at addr ffff8801534b16e4 by task rmdir/14805
-> CPU: 16 PID: 14805 Comm: rmdir Not tainted 4.18.0-rc2-dbg+ #5
-> Call Trace:
-> dump_stack+0xa4/0xf5
-> print_address_description+0x6f/0x270
-> kasan_report+0x241/0x360
-> __asan_load4+0x78/0x80
-> do_raw_spin_lock+0x1c/0x130
-> _raw_spin_lock_irqsave+0x52/0x60
-> srpt_set_ch_state+0x27/0x70 [ib_srpt]
-> srpt_disconnect_ch+0x1b/0xc0 [ib_srpt]
-> srpt_close_session+0xa8/0x260 [ib_srpt]
-> target_shutdown_sessions+0x170/0x180 [target_core_mod]
-> core_tpg_del_initiator_node_acl+0xf3/0x200 [target_core_mod]
-> target_fabric_nacl_base_release+0x25/0x30 [target_core_mod]
-> config_item_release+0x9c/0x110 [configfs]
-> config_item_put+0x26/0x30 [configfs]
-> configfs_rmdir+0x3b8/0x510 [configfs]
-> vfs_rmdir+0xb3/0x1e0
-> do_rmdir+0x262/0x2c0
-> do_syscall_64+0x77/0x230
-> entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> 
-> Fixes: a42d985bd5b2 ("ib_srpt: Initial SRP Target merge for v3.3-rc1")
-> Signed-off-by: Bart Van Assche <bart.vanassche@wdc.com>
-> Cc: <stable@vger.kernel.org>
-> ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 325bae29e90d..705f6a992d82 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
->  	}
->  
->  	kref_init(&ch->kref);
-> +	kref_get(&ch->kref);
-
-kref_init starts the reference count at at 1, so why do you need to
-increment it right away?  That feels like something is "odd" here, why
-do you start with 2 references in the same function?
-
-thanks,
-
-greg k-h
+T24gVHVlLCAyMDE4LTA3LTEwIGF0IDEyOjM4IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFR1ZSwgSnVsIDEwLCAyMDE4IGF0IDEwOjMyOjAwQU0gLTA3MDAsIEJhcnQgVmFuIEFz
+c2NoZSB3cm90ZToNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL3VscC9zcnB0
+L2liX3NycHQuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0LmMNCj4gPiBp
+bmRleCAzMjViYWUyOWU5MGQuLjcwNWY2YTk5MmQ4MiAxMDA2NDQNCj4gPiArKysgYi9kcml2ZXJz
+L2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jDQo+ID4gQEAgLTIxNTIsNiArMjE1Miw3IEBA
+IHN0YXRpYyBpbnQgc3JwdF9jbV9yZXFfcmVjdihzdHJ1Y3Qgc3JwdF9kZXZpY2UgKmNvbnN0IHNk
+ZXYsDQo+ID4gIAl9DQo+ID4gDQo+ID4gIAlrcmVmX2luaXQoJmNoLT5rcmVmKTsNCj4gPiArCWty
+ZWZfZ2V0KCZjaC0+a3JlZik7DQo+IA0KPiBPaCB0aGF0IGlzIHVnbHksIGNhbiB5b3UgcHV0IHRo
+ZSAnZ2V0JyBjbG9zZXIgdG8gdGhlIHRoZSBwbGFjZSB0aGF0DQo+IHN0b3JlcyB0aGUgY2ggcG9p
+bnRlciB0aGlzIGtyZWYgaXMgcHJvdGVjdGluZz8gUGVyaGFwcyBpdCBpcyBvbmUgb2YNCj4gdGhl
+IGxpc3RfYWRkJ3MgaW4gdGhpcyBmdW5jdGlvbj8NCj4gDQo+IEd1ZXNzaW5nIHRoZSBrcmVmIGNy
+ZWF0ZWQga3JlZl9pbml0IHNob3VsZCBwcm9iYWJseSBiZWxvbmcgdG8gdGFyZ2V0X2NvcmUncw0K
+PiAnc2Vfc2Vzcy0+ZmFicmljX3Nlc3NfcHRyJyAuLg0KDQpIZWxsbyBKYXNvbiwNCg0KQ2FuIHlv
+dSBjbGFyaWZ5IHlvdXIgc2Vjb25kIHBhcmFncmFwaD8gVGhlIGliX3NycHQgZHJpdmVyIGhhcyBi
+ZWVuIGltcGxlbWVudGVkDQpzdWNoIHRoYXQgc2Vzcy0+ZmFicmljX3Nlc3NfcHRyID09IGNoIGFz
+IGxvbmcgYXMgYSBzZXNzaW9uIGV4aXN0cy4NCg0KQW4gaWJfc3JwdCBSRE1BIGNoYW5uZWwgb2Jq
+ZWN0IChjaCBpbiB0aGUgYWJvdmUgY29kZSkgbXVzdCBzdGF5IGFyb3VuZCBhcyBsb25nDQphcyB0
+aGUgYXNzb2NpYXRlZCB0YXJnZXQgY29yZSBzZXNzaW9uIChzZV9zZXNzKSBleGlzdHMgYW5kIGFs
+c28gYXMgbG9uZyBhcyB0aGUNCnRhcmdldCBjb3JlIGhhcyBub3QgeWV0IGNhbGxlZCBzcnB0X2Ns
+b3NlX3Nlc3Npb24oKS4gSGVuY2UgdGhlIGluaXRpYWxpemF0aW9uIG9mDQpjaC0+a3JlZiB0byAy
+IGp1c3QgYmVmb3JlIGFuIFJETUEgY2hhbm5lbCBpcyByZWdpc3RlcmVkIHdpdGggdGhlIHRhcmdl
+dCBjb3JlLg0KSGVuY2UgYWxzbyB0aGUga3JlZl9wdXQoKSBjYWxscyBpbiBzcnB0X2Nsb3NlX3Nl
+c3Npb24oKSBhbmQNCnNycHRfcmVsZWFzZV9jaGFubmVsX3dvcmsoKS4NCg0KQmFydC4NCg0KDQoN
+Cg0K
