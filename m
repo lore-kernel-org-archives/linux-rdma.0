@@ -1,98 +1,82 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] ib_srpt: use kvmalloc to allocate ring pointers
-Date: Tue, 10 Jul 2018 08:39:44 +0300
-Message-ID: <20180710053944.GN3014@mtr-leonro.mtl.com>
-References: <1531144268-25361-1-git-send-email-jan.dakinevich@virtuozzo.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/2] mm/fs: put_user_page() proposal
+Date: Tue, 10 Jul 2018 09:51:54 +0200
+Message-ID: <20180710075154.lhaxaf6q35fnvdiq@quack2.suse.cz>
+References: <20180709080554.21931-1-jhubbard@nvidia.com>
+ <20180709184937.7a70c3aa@roar.ozlabs.ibm.com>
+ <20180709160806.xjt2l2pbmyiutbyi@quack2.suse.cz>
+ <20180709171651.GE2662@bombadil.infradead.org>
+ <20180709194740.rymbt2fzohbdmpye@quack2.suse.cz>
+ <20180709195657.GA29026@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="0OOz7ZB592LYQf07"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1531144268-25361-1-git-send-email-jan.dakinevich@virtuozzo.com>
+In-Reply-To: <20180709195657.GA29026@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Bart Van Assche <bart.vanassche@wdc.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, john.hubbard@gmail.com, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon 09-07-18 13:56:57, Jason Gunthorpe wrote:
+> On Mon, Jul 09, 2018 at 09:47:40PM +0200, Jan Kara wrote:
+> > On Mon 09-07-18 10:16:51, Matthew Wilcox wrote:
+> > > On Mon, Jul 09, 2018 at 06:08:06PM +0200, Jan Kara wrote:
+> > > > On Mon 09-07-18 18:49:37, Nicholas Piggin wrote:
+> > > > > The problem with blocking in clear_page_dirty_for_io is that the fs is
+> > > > > holding the page lock (or locks) and possibly others too. If you
+> > > > > expect to have a bunch of long term references hanging around on the
+> > > > > page, then there will be hangs and deadlocks everywhere. And if you do
+> > > > > not have such log term references, then page lock (or some similar lock
+> > > > > bit) for the duration of the DMA should be about enough?
+> > > > 
+> > > > There are two separate questions:
+> > > > 
+> > > > 1) How to identify pages pinned for DMA? We have no bit in struct page to
+> > > > use and we cannot reuse page lock as that immediately creates lock
+> > > > inversions e.g. in direct IO code (which could be fixed but then good luck
+> > > > with auditing all the other GUP users). Matthew had an idea and John
+> > > > implemented it based on removing page from LRU and using that space in
+> > > > struct page. So we at least have a way to identify pages that are pinned
+> > > > and can track their pin count.
+> > > > 
+> > > > 2) What to do when some page is pinned but we need to do e.g.
+> > > > clear_page_dirty_for_io(). After some more thinking I agree with you that
+> > > > just blocking waiting for page to unpin will create deadlocks like:
+> > > 
+> > > Why are we trying to writeback a page that is pinned?  It's presumed to
+> > > be continuously redirtied by its pinner.  We can't evict it.
+> > 
+> > So what should be a result of fsync(file), where some 'file' pages are
+> > pinned e.g. by running direct IO? If we just skip those pages, we'll lie to
+> > userspace that data was committed while it was not (and it's not only about
+> > data that has landed in those pages via DMA, you can have first 1k of a page
+> > modified by normal IO in parallel to DMA modifying second 1k chunk). If
+> > fsync(2) returns error, it would be really unexpected by userspace and most
+> > apps will just not handle that correctly. So what else can you do than
+> > block?
+> 
+> I think as a userspace I would expect the 'current content' to be
+> flushed without waiting..
 
---0OOz7ZB592LYQf07
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes but the problem is we cannot generally write out a page whose contents
+is possibly changing (e.g. RAID5 checksums would then be wrong). But maybe
+using bounce pages (and keeping original page still dirty) in such case would
+be worth it - originally I thought using bounce pages would not bring us
+much but now seeing problems with blocking in more detail maybe they are
+worth the trouble after all...
 
-On Mon, Jul 09, 2018 at 04:51:08PM +0300, Jan Dakinevich wrote:
-> An array of pointers to SRPT contexts in ib_device is over 30KiB even
-> in default case, in which an amount of contexts is 4095. The patch
-> is intended to weed out large contigous allocation for non-DMA memory.
+> If you block fsync() then anyone using a RDMA MR with it will just
+> dead lock. What happens if two processes open the same file and
+> one makes a MR and the other calls fsync()? Sounds bad.
 
-kvmalloc* doesn't "weed out" large contiguous allocations, but tries to
-allocate them and gracefully fallback to vmalloc if kmalloc fails.
+Yes, that's one of the reasons why we were discussing revoke mechanisms for
+long term pins. But with bounce pages we could possibly avoid that (except
+for cases like DAX + truncate where it's really unavoidable but there it's
+a new functionality so mandating revoke and returning error otherwise is
+fine I guess).
 
-More on that, for allocations less than page (64KB for PowerPC), it will
-not call to vmalloc at all, which is fine too, because pages granularity.
-
-If you want to get rid of "contiguous allocations", use vmalloc instead.
-
-Thanks
-
->
-> Signed-off-by: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-> ---
->  drivers/infiniband/ulp/srpt/ib_srpt.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> index 3081c62..de167af 100644
-> --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> @@ -720,7 +720,7 @@ static struct srpt_ioctx **srpt_alloc_ioctx_ring(struct srpt_device *sdev,
->  	WARN_ON(ioctx_size != sizeof(struct srpt_recv_ioctx)
->  		&& ioctx_size != sizeof(struct srpt_send_ioctx));
->
-> -	ring = kmalloc_array(ring_size, sizeof(ring[0]), GFP_KERNEL);
-> +	ring = kvmalloc_array(ring_size, sizeof(ring[0]), GFP_KERNEL);
->  	if (!ring)
->  		goto out;
->  	for (i = 0; i < ring_size; ++i) {
-> @@ -734,7 +734,7 @@ static struct srpt_ioctx **srpt_alloc_ioctx_ring(struct srpt_device *sdev,
->  err:
->  	while (--i >= 0)
->  		srpt_free_ioctx(sdev, ring[i], dma_size, dir);
-> -	kfree(ring);
-> +	kvfree(ring);
->  	ring = NULL;
->  out:
->  	return ring;
-> @@ -759,7 +759,7 @@ static void srpt_free_ioctx_ring(struct srpt_ioctx **ioctx_ring,
->
->  	for (i = 0; i < ring_size; ++i)
->  		srpt_free_ioctx(sdev, ioctx_ring[i], dma_size, dir);
-> -	kfree(ioctx_ring);
-> +	kvfree(ioctx_ring);
->  }
->
->  /**
-> --
-> 2.1.4
->
-
---0OOz7ZB592LYQf07
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbREagAAoJEORje4g2clinc8MP/jEJQeruV+X+Af8kW/TU/Jps
-GF1fuPUL+XTh47Zr6BHbCAspjcHn853TS43o4IQOJFMaCWHfkxBAxx0Qf9dm/FfR
-xrwFmtBdOu5nvMfNG6LAQ9j1RmpsAi+wSii3xZJRgwM3uc7kYHYlkmm+y6fGALKL
-ceQS9bhhI1m9CHTR+u61p5hTesxr3s8fY2mUoYh6vmCEh2RWgPMvUF9U/Gq5u3br
-D9GAhYXd63K2OxIS1C1K9I6+5h6rpFuar/jQgrC1yrWqfOvalnjZCytiIEX1Mz2E
-T2urRf6v/h5RZFCHGkm/ke0XIug9Vig/T58d1Byj6h7tBtwq+kXiue2EHCIKh1UT
-D4T1EbwP24i+64SzYcABz5eLMIATLp6vgEtbP9HeS5HykgE01ct+4d6RT0r0V1Fe
-MyDTpg7Kl3sU4nTF4EV8ZAnG9EvRcu2ZIjb0YqDQ1BbGmPTUjUrZvfU9o8f75Pyf
-qlitI0cig2N2QzfCY12wkDP/SxEBRGaOXaAVhNvnthIQ2uHjBWvRf4lL3dK99qz2
-bq8/mF+SQBqnTHVAI+3Xxh8GQahEDk6T1+nkpa6U7PMaQNEZTqC28IKN5TefI0nD
-GpguPEmBraFCxdeHfVRKPf7pGKrmlAVXp4txyBTEf28vFlt0XhvUD3ZMgCsd9pu2
-YMviGhO3eGg28Gnw53Mb
-=Z3p4
------END PGP SIGNATURE-----
-
---0OOz7ZB592LYQf07--
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
