@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 3/8] IB/mlx5: Introduce flow steering matcher object
-Date: Wed, 11 Jul 2018 14:10:40 +0300
-Message-ID: <20180711111045.6282-4-leon@kernel.org>
+Subject: [PATCH rdma-next v1 5/8] IB/mlx5: Introduce vendor create and destroy flow methods
+Date: Wed, 11 Jul 2018 14:10:42 +0300
+Message-ID: <20180711111045.6282-6-leon@kernel.org>
 References: <20180711111045.6282-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180711111045.6282-1-leon@kernel.org>
@@ -12,289 +12,341 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Introduce flow steering matcher object and its create and destroy
-methods.
+Introduce vendor create and destroy flow methods on the uverbs flow
+object.
 
-This matcher object holds some mlx5 specific driver properties that
-matches the underlay device specification when an mlx5 flow steering
-group is created.
+This enables the driver to get its specific device attributes to match
+the underlay specification while still using the generic ib_flow object
+for cleanup and code sharing.
 
-It will be used in downstream patches to be part of mlx5 specific create
-flow method.
+The IB object's attributes are set via ib_set_flow() helper function.
+
+The specific implementation for the given specification is added in
+downstream patches.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../infiniband/core/uverbs_std_types_flow_action.c |   3 +-
- drivers/infiniband/hw/mlx5/Makefile                |   1 +
- drivers/infiniband/hw/mlx5/flow.c                  | 137 +++++++++++++++++++++
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |  11 ++
- include/rdma/uverbs_ioctl.h                        |   2 +
- include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  33 ++++-
- 6 files changed, 184 insertions(+), 3 deletions(-)
- create mode 100644 drivers/infiniband/hw/mlx5/flow.c
+ drivers/infiniband/hw/mlx5/devx.c        |  22 +++++++
+ drivers/infiniband/hw/mlx5/flow.c        | 108 +++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c        |   9 +++
+ drivers/infiniband/hw/mlx5/mlx5_ib.h     |  15 +++++
+ include/rdma/ib_verbs.h                  |  14 ++++
+ include/rdma/uverbs_named_ioctl.h        |  29 +++++----
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h |  17 +++++
+ 7 files changed, 202 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_flow_action.c b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-index c753a34cd984..adb9209c4710 100644
---- a/drivers/infiniband/core/uverbs_std_types_flow_action.c
-+++ b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-@@ -376,8 +376,7 @@ static const struct uverbs_attr_spec uverbs_flow_action_esp_keymat[] = {
- static const struct uverbs_attr_spec uverbs_flow_action_esp_replay[] = {
- 	[IB_UVERBS_FLOW_ACTION_ESP_REPLAY_NONE] = {
- 		.type = UVERBS_ATTR_TYPE_PTR_IN,
--		/* No need to specify any data */
--		UVERBS_ATTR_SIZE(0, 0),
-+		UVERBS_ATTR_NO_DATA(),
- 	},
- 	[IB_UVERBS_FLOW_ACTION_ESP_REPLAY_BMP] = {
- 		.type = UVERBS_ATTR_TYPE_PTR_IN,
-diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
-index 577e4c418bae..b8e4b15e2674 100644
---- a/drivers/infiniband/hw/mlx5/Makefile
-+++ b/drivers/infiniband/hw/mlx5/Makefile
-@@ -4,3 +4,4 @@ mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o gsi.o ib_vi
- mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
- mlx5_ib-$(CONFIG_MLX5_ESWITCH) += ib_rep.o
- mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o
-+mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += flow.o
-diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
-new file mode 100644
-index 000000000000..f1c16defe7ff
---- /dev/null
-+++ b/drivers/infiniband/hw/mlx5/flow.c
-@@ -0,0 +1,137 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
-+ */
-+
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_verbs.h>
-+#include <rdma/uverbs_types.h>
-+#include <rdma/uverbs_ioctl.h>
-+#include <rdma/mlx5_user_ioctl_cmds.h>
-+#include <rdma/ib_umem.h>
-+#include <linux/mlx5/driver.h>
-+#include <linux/mlx5/fs.h>
-+#include "mlx5_ib.h"
-+
-+#define UVERBS_MODULE_NAME mlx5_ib
-+#include <rdma/uverbs_named_ioctl.h>
-+
-+static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
-+	[MLX5_IB_FLOW_TYPE_NORMAL] = {
-+		.type = UVERBS_ATTR_TYPE_PTR_IN,
-+		.u.ptr = {
-+			.len = sizeof(u16), /* data is priority */
-+			.min_len = sizeof(u16),
-+		}
-+	},
-+	[MLX5_IB_FLOW_TYPE_SNIFFER] = {
-+		.type = UVERBS_ATTR_TYPE_PTR_IN,
-+		UVERBS_ATTR_NO_DATA(),
-+	},
-+	[MLX5_IB_FLOW_TYPE_ALL_DEFAULT] = {
-+		.type = UVERBS_ATTR_TYPE_PTR_IN,
-+		UVERBS_ATTR_NO_DATA(),
-+	},
-+	[MLX5_IB_FLOW_TYPE_MC_DEFAULT] = {
-+		.type = UVERBS_ATTR_TYPE_PTR_IN,
-+		UVERBS_ATTR_NO_DATA(),
-+	},
-+};
-+
-+static int flow_matcher_cleanup(struct ib_uobject *uobject,
-+				enum rdma_remove_reason why)
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 60ac1fbe940e..32c7d8c71d85 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -89,6 +89,28 @@ void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+ 	mlx5_cmd_exec(dev->mdev, in, sizeof(in), out, sizeof(out));
+ }
+ 
++bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id, int *dest_type)
 +{
-+	struct mlx5_ib_flow_matcher *obj = uobject->object;
-+	int ret;
++	struct devx_obj *devx_obj = obj;
++	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, devx_obj->dinbox, opcode);
 +
-+	ret = ib_destroy_usecnt(&obj->usecnt, why, uobject);
-+	if (ret)
-+		return ret;
++	switch (opcode) {
++	case MLX5_CMD_OP_DESTROY_TIR:
++		*dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
++		*dest_id = MLX5_GET(general_obj_in_cmd_hdr, devx_obj->dinbox,
++				    obj_id);
++		return true;
 +
-+	kfree(obj);
-+	return 0;
++	case MLX5_CMD_OP_DESTROY_FLOW_TABLE:
++		*dest_type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
++		*dest_id = MLX5_GET(destroy_flow_table_in, devx_obj->dinbox,
++				    table_id);
++		return true;
++	default:
++		return false;
++	}
 +}
 +
-+static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(struct ib_device *ib_dev,
-+				   struct ib_uverbs_file *file,
-+				   struct uverbs_attr_bundle *attrs)
+ static int devx_is_valid_obj_id(struct devx_obj *obj, const void *in)
+ {
+ 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
+diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+index f1c16defe7ff..76e76b87e5e9 100644
+--- a/drivers/infiniband/hw/mlx5/flow.c
++++ b/drivers/infiniband/hw/mlx5/flow.c
+@@ -38,6 +38,81 @@ static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
+ 	},
+ };
+ 
++static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(struct ib_device *ib_dev,
++						      struct ib_uverbs_file *file,
++						      struct uverbs_attr_bundle *attrs)
 +{
++	struct mlx5_ib_flow_handler *flow_handler;
++	struct mlx5_ib_flow_matcher *fs_matcher;
++	void *devx_obj;
++	int dest_id, dest_type;
++	void *cmd_in;
++	int inlen;
++	bool dest_devx, dest_qp;
++	struct ib_qp *qp = NULL;
 +	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
-+                         MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE);
++                         MLX5_IB_ATTR_CREATE_FLOW_HANDLE);
 +	struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
-+	struct mlx5_ib_flow_matcher *obj;
-+	int err;
 +
-+	obj = kzalloc(sizeof(struct mlx5_ib_flow_matcher), GFP_KERNEL);
-+	if (!obj)
-+		return -ENOMEM;
++	if (!capable(CAP_NET_RAW))
++		return -EPERM;
 +
-+	obj->mask_len = uverbs_attr_get_len(attrs,
-+					    MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK);
-+	err = uverbs_copy_from(obj->matcher_mask.match_params,
-+			       attrs,
-+			       MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK);
-+	if (err)
-+		goto end;
++	dest_devx = uverbs_attr_is_valid(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
++	dest_qp = uverbs_attr_is_valid(attrs,
++				       MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
 +
-+	obj->flow_type = uverbs_attr_get_enum_id(attrs,
-+						 MLX5_IB_ATTR_FLOW_MATCHER_FLOW_TYPE);
++	if ((dest_devx && dest_qp) || (!dest_devx && !dest_qp))
++		return -EINVAL;
 +
-+	if (obj->flow_type == MLX5_IB_FLOW_TYPE_NORMAL) {
-+		err = uverbs_copy_from(&obj->priority,
-+				       attrs,
-+				       MLX5_IB_ATTR_FLOW_MATCHER_FLOW_TYPE);
-+		if (err)
-+			goto end;
++	if (dest_devx) {
++		devx_obj = uverbs_attr_get_obj(attrs, MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX);
++		if (IS_ERR(devx_obj))
++			return PTR_ERR(devx_obj);
++
++		/* Verify that the given DEVX object is a flow
++		 * steering destination.
++		 */
++		if (!mlx5_ib_devx_is_flow_dest(devx_obj, &dest_id, &dest_type))
++			return -EINVAL;
++	} else {
++		struct mlx5_ib_qp *mqp;
++
++		qp = uverbs_attr_get_obj(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
++		if (IS_ERR(qp))
++			return PTR_ERR(qp);
++
++		if (qp->qp_type != IB_QPT_RAW_PACKET)
++			return -EINVAL;
++
++		mqp = to_mqp(qp);
++		if (mqp->flags & MLX5_IB_QP_RSS)
++			dest_id = mqp->rss_qp.tirn;
++		else
++			dest_id = mqp->raw_packet_qp.rq.tirn;
++		dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
 +	}
 +
-+	err = uverbs_copy_from(&obj->match_criteria_enable,
-+			       attrs,
-+			       MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA);
-+	if (err)
-+		goto end;
++	if (dev->rep)
++		return -ENOTSUPP;
 +
-+	uobj->object = obj;
-+	obj->mdev = dev->mdev;
-+	atomic_set(&obj->usecnt, 0);
++	cmd_in = uverbs_attr_get_alloced_ptr(attrs,
++					     MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE);
++	inlen = uverbs_attr_get_len(attrs,
++				    MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE);
++	fs_matcher = uverbs_attr_get_obj(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_MATCHER);
++	flow_handler = mlx5_ib_raw_fs_rule_add(dev, fs_matcher, cmd_in, inlen,
++					       dest_id, dest_type);
++	if (IS_ERR(flow_handler))
++		return PTR_ERR(flow_handler);
++
++	ib_set_flow(uobj, &flow_handler->ibflow, qp, ib_dev);
++
 +	return 0;
-+
-+end:
-+	kfree(obj);
-+	return err;
 +}
 +
+ static int flow_matcher_cleanup(struct ib_uobject *uobject,
+ 				enum rdma_remove_reason why)
+ {
+@@ -101,6 +176,39 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(struct ib_device *
+ 	return err;
+ }
+ 
 +DECLARE_UVERBS_NAMED_METHOD(
-+	MLX5_IB_METHOD_FLOW_MATCHER_CREATE,
-+	UVERBS_ATTR_IDR(MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE,
-+			 MLX5_IB_OBJECT_FLOW_MATCHER,
-+			 UVERBS_ACCESS_NEW,
-+			 UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(
-+		MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK,
-+		UVERBS_ATTR_SIZE(1, sizeof(struct mlx5_ib_match_params)),
-+		UA_MANDATORY),
-+	UVERBS_ATTR_ENUM_IN(
-+		MLX5_IB_ATTR_FLOW_MATCHER_FLOW_TYPE,
-+		mlx5_ib_flow_type,
-+		UA_MANDATORY),
-+	UVERBS_ATTR_PTR_IN(
-+		MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA,
-+		UVERBS_ATTR_TYPE(u8),
-+		UA_MANDATORY));
++	MLX5_IB_METHOD_CREATE_FLOW,
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_HANDLE,
++			UVERBS_OBJECT_FLOW,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE,
++			   UVERBS_ATTR_SIZE(1, sizeof(struct mlx5_ib_match_params)),
++			   UA_MANDATORY,
++			   UA_ALLOC_AND_COPY),
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_MATCHER,
++			MLX5_IB_OBJECT_FLOW_MATCHER,
++			UVERBS_ACCESS_READ,
++			UA_MANDATORY),
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_DEST_QP, UVERBS_OBJECT_QP,
++			UVERBS_ACCESS_READ),
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX,
++			MLX5_IB_OBJECT_DEVX_OBJ,
++			UVERBS_ACCESS_READ));
++
 +
 +DECLARE_UVERBS_NAMED_METHOD_DESTROY(
-+	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
-+	UVERBS_ATTR_IDR(MLX5_IB_ATTR_FLOW_MATCHER_DESTROY_HANDLE,
-+			 MLX5_IB_OBJECT_FLOW_MATCHER,
-+			 UVERBS_ACCESS_DESTROY,
-+			 UA_MANDATORY));
++	MLX5_IB_METHOD_DESTROY_FLOW,
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_HANDLE,
++			UVERBS_OBJECT_FLOW,
++			UVERBS_ACCESS_DESTROY,
++			UA_MANDATORY));
 +
-+DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER,
-+			UVERBS_TYPE_ALLOC_IDR(flow_matcher_cleanup),
-+			&UVERBS_METHOD(MLX5_IB_METHOD_FLOW_MATCHER_CREATE),
-+			&UVERBS_METHOD(MLX5_IB_METHOD_FLOW_MATCHER_DESTROY));
++ADD_UVERBS_METHODS(mlx5_ib_fs,
++		   UVERBS_OBJECT_FLOW,
++		   &UVERBS_METHOD(MLX5_IB_METHOD_CREATE_FLOW),
++		   &UVERBS_METHOD(MLX5_IB_METHOD_DESTROY_FLOW));
 +
-+DECLARE_UVERBS_OBJECT_TREE(flow_objects,
-+			&UVERBS_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER));
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_FLOW_MATCHER_CREATE,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b7f94bc3811a..53e30449477e 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3643,6 +3643,15 @@ static struct ib_flow *mlx5_ib_create_flow(struct ib_qp *qp,
+ 	return ERR_PTR(err);
+ }
+ 
++struct mlx5_ib_flow_handler *
++mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
++			struct mlx5_ib_flow_matcher *fs_matcher,
++			void *cmd_in, int inlen, int dest_id,
++			int dest_type)
++{
++	return ERR_PTR(-EOPNOTSUPP);
++}
 +
+ static u32 mlx5_ib_flow_action_flags_to_accel_xfrm_flags(u32 mlx5_flags)
+ {
+ 	u32 flags = 0;
 diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 67e86c8304a2..3d9544ec996f 100644
+index 3d9544ec996f..7c502052cb87 100644
 --- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
 +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -46,6 +46,7 @@
- #include <rdma/ib_user_verbs.h>
- #include <rdma/mlx5-abi.h>
- #include <rdma/uverbs_ioctl.h>
-+#include <rdma/mlx5_user_ioctl_cmds.h>
+@@ -1236,6 +1236,12 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+ void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+ 			  struct mlx5_ib_ucontext *context);
+ const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
++struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
++						     struct mlx5_ib_flow_matcher *fs_matcher,
++						     void *cmd_in,
++						     int inlen, int dest_id,
++						     int dest_type);
++bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id, int *dest_type);
+ #else
+ static inline int
+ mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+@@ -1244,6 +1250,15 @@ static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+ 					struct mlx5_ib_ucontext *context) {}
+ static inline const struct uverbs_object_tree_def *
+ mlx5_ib_get_devx_tree(void) { return NULL; }
++static inline struct mlx5_ib_flow_handler *
++mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
++			struct mlx5_ib_flow_matcher *fs_matcher,
++			void *cmd_in,
++			int inlen, int dest_id,
++			int dest_type) { return -EOPNOTSUPP; };
++static inline bool
++mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
++			  int *dest_type) { return false; };
+ #endif
+ static inline void init_query_mad(struct ib_smp *mad)
+ {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index d02bbbafbd3c..d360e6f381c8 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -4137,6 +4137,20 @@ ib_get_vector_affinity(struct ib_device *device, int comp_vector)
  
- #define mlx5_ib_dbg(dev, format, arg...)				\
- pr_debug("%s:%s:%d:(pid %d): " format, (dev)->ib_dev.name, __func__,	\
-@@ -179,6 +180,16 @@ struct mlx5_ib_flow_handler {
- 	struct ib_counters		*ibcounters;
- };
+ }
  
-+struct mlx5_ib_flow_matcher {
-+	struct mlx5_ib_match_params matcher_mask;
-+	int			mask_len;
-+	enum mlx5_ib_flow_type	flow_type;
-+	u16			priority;
-+	struct mlx5_core_dev	*mdev;
-+	atomic_t		usecnt;
-+	u8			match_criteria_enable;
-+};
++static inline void ib_set_flow(struct ib_uobject *uobj, struct ib_flow *ibflow,
++			       struct ib_qp *qp, struct ib_device *device)
++{
++	uobj->object = ibflow;
++	ibflow->uobject = uobj;
 +
- struct mlx5_ib_flow_db {
- 	struct mlx5_ib_flow_prio	prios[MLX5_IB_NUM_FLOW_FT];
- 	struct mlx5_ib_flow_prio	sniffer[MLX5_IB_NUM_SNIFFER_FTS];
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 017ccf75890c..7f230d1ec2b8 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -204,6 +204,8 @@ struct uverbs_object_tree_def {
- #define UVERBS_ATTR_SIZE(_min_len, _len)			\
- 	.u.ptr.min_len = _min_len, .u.ptr.len = _len
- 
-+#define UVERBS_ATTR_NO_DATA() UVERBS_ATTR_SIZE(0, 0)
++	if (qp) {
++		atomic_inc(&qp->usecnt);
++		ibflow->qp = qp;
++	}
 +
- /*
-  * Specifies a uapi structure that cannot be extended. The user must always
-  * supply the whole structure and nothing more. The structure must be declared
++	ibflow->device = device;
++}
++
+ /**
+  * rdma_roce_rescan_device - Rescan all of the network devices in the system
+  * and add their gids, as needed, to the relevant RoCE devices.
+diff --git a/include/rdma/uverbs_named_ioctl.h b/include/rdma/uverbs_named_ioctl.h
+index 2eb1767042af..b3b21733cc55 100644
+--- a/include/rdma/uverbs_named_ioctl.h
++++ b/include/rdma/uverbs_named_ioctl.h
+@@ -97,22 +97,14 @@
+ 		.methods = &UVERBS_OBJECT_METHODS(_object_id)                  \
+ 	}
+ 
+-/* Used by drivers to declare a complete parsing tree for a single method that
+- * differs only in having additional driver specific attributes.
++/* Used by drivers to declare a complete parsing tree for new methods
+  */
+-#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
+-	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
+-		_method_id)[] = { __VA_ARGS__ };                               \
+-	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
+-		.id = _method_id,                                              \
+-		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
+-		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
+-	};                                                                     \
++#define ADD_UVERBS_METHODS(_name, _object_id, ...)                             \
+ 	static const struct uverbs_method_def *const UVERBS_OBJECT_METHODS(    \
+-		_object_id)[] = { &UVERBS_METHOD(_method_id) };                \
++		_object_id)[] = { __VA_ARGS__ };                               \
+ 	static const struct uverbs_object_def _name##_struct = {               \
+ 		.id = _object_id,                                              \
+-		.num_methods = 1,                                              \
++		.num_methods = ARRAY_SIZE(UVERBS_OBJECT_METHODS(_object_id)),  \
+ 		.methods = &UVERBS_OBJECT_METHODS(_object_id)                  \
+ 	};                                                                     \
+ 	static const struct uverbs_object_def *const _name##_ptrs[] = {        \
+@@ -123,4 +115,17 @@
+ 		.objects = &_name##_ptrs,                                      \
+ 	}
+ 
++/* Used by drivers to declare a complete parsing tree for a single method that
++ * differs only in having additional driver specific attributes.
++ */
++#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
++	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
++		_method_id)[] = { __VA_ARGS__ };                               \
++	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
++		.id = _method_id,                                              \
++		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
++		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
++	};                                                                     \
++	ADD_UVERBS_METHODS(_name, _object_id, &UVERBS_METHOD(_method_id))
++
+ #endif
 diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 1a05bb4b0b34..233d5d140179 100644
+index 233d5d140179..9c51801b9e64 100644
 --- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -33,6 +33,7 @@
- #ifndef MLX5_USER_IOCTL_CMDS_H
- #define MLX5_USER_IOCTL_CMDS_H
- 
-+#include <linux/types.h>
- #include <rdma/ib_user_ioctl_cmds.h>
- 
- enum mlx5_ib_create_flow_action_attrs {
-@@ -112,10 +113,40 @@ enum mlx5_ib_devx_umem_methods {
- 	MLX5_IB_METHOD_DEVX_UMEM_DEREG,
+@@ -149,4 +149,21 @@ enum mlx5_ib_flow_type {
+ 	MLX5_IB_FLOW_TYPE_MC_DEFAULT,
  };
  
--enum mlx5_ib_devx_objects {
-+enum mlx5_ib_objects {
- 	MLX5_IB_OBJECT_DEVX = (1U << UVERBS_ID_NS_SHIFT),
- 	MLX5_IB_OBJECT_DEVX_OBJ,
- 	MLX5_IB_OBJECT_DEVX_UMEM,
-+	MLX5_IB_OBJECT_FLOW_MATCHER,
++enum mlx5_ib_create_flow_attrs {
++	MLX5_IB_ATTR_CREATE_FLOW_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE,
++	MLX5_IB_ATTR_CREATE_FLOW_DEST_QP,
++	MLX5_IB_ATTR_CREATE_FLOW_DEST_DEVX,
++	MLX5_IB_ATTR_CREATE_FLOW_MATCHER,
 +};
 +
-+enum mlx5_ib_flow_matcher_create_attrs {
-+	MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK,
-+	MLX5_IB_ATTR_FLOW_MATCHER_FLOW_TYPE,
-+	MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA,
++enum mlx5_ib_destoy_flow_attrs {
++	MLX5_IB_ATTR_DESTROY_FLOW_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
 +};
 +
-+enum mlx5_ib_flow_matcher_destroy_attrs {
-+	MLX5_IB_ATTR_FLOW_MATCHER_DESTROY_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++enum mlx5_ib_flow_methods {
++	MLX5_IB_METHOD_CREATE_FLOW = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_METHOD_DESTROY_FLOW,
 +};
 +
-+enum mlx5_ib_flow_matcher_methods {
-+	MLX5_IB_METHOD_FLOW_MATCHER_CREATE = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
-+};
-+
-+#define MLX5_IB_DW_MATCH_PARAM 0x80
-+
-+struct mlx5_ib_match_params {
-+	__u32	match_params[MLX5_IB_DW_MATCH_PARAM];
-+};
-+
-+enum mlx5_ib_flow_type {
-+	MLX5_IB_FLOW_TYPE_NORMAL,
-+	MLX5_IB_FLOW_TYPE_SNIFFER,
-+	MLX5_IB_FLOW_TYPE_ALL_DEFAULT,
-+	MLX5_IB_FLOW_TYPE_MC_DEFAULT,
- };
- 
  #endif
 -- 
 2.14.4
