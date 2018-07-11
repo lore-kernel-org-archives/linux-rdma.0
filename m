@@ -1,49 +1,153 @@
-From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Wed, 11 Jul 2018 11:03:53 +0200
-Message-ID: <20180711090353.GD20050@dhcp22.suse.cz>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <20180627074421.GF32348@dhcp22.suse.cz>
- <20180709122908.GJ22049@dhcp22.suse.cz>
- <20180710134040.GG3014@mtr-leonro.mtl.com>
- <20180710141410.GP14284@dhcp22.suse.cz>
- <20180710162020.GJ3014@mtr-leonro.mtl.com>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH rdma-next 4/9] IB/mlx5: Introduce flow steering matcher
+ object
+Date: Wed, 11 Jul 2018 12:32:56 +0300
+Message-ID: <ba5fca7e-814f-47f0-486e-30b27cd56797@dev.mellanox.co.il>
+References: <20180708102445.25496-1-leon@kernel.org>
+ <20180708102445.25496-5-leon@kernel.org> <20180710173450.GB8266@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180710162020.GJ3014-U/DQcQFIOTAkZy+6dPanYNBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Felix Kuehling <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>Mike Marciniszyn <mi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180710173450.GB8266@ziepe.ca>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>Yishai Hadas <yishaih@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlIDEwLTA3LTE4IDE5OjIwOjIwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6Cj4gT24gVHVl
-LCBKdWwgMTAsIDIwMTggYXQgMDQ6MTQ6MTBQTSArMDIwMCwgTWljaGFsIEhvY2tvIHdyb3RlOgo+
-ID4gT24gVHVlIDEwLTA3LTE4IDE2OjQwOjQwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6Cj4gPiA+
-IE9uIE1vbiwgSnVsIDA5LCAyMDE4IGF0IDAyOjI5OjA4UE0gKzAyMDAsIE1pY2hhbCBIb2NrbyB3
-cm90ZToKPiA+ID4gPiBPbiBXZWQgMjctMDYtMTggMDk6NDQ6MjEsIE1pY2hhbCBIb2NrbyB3cm90
-ZToKPiA+ID4gPiA+IFRoaXMgaXMgdGhlIHYyIG9mIFJGQyBiYXNlZCBvbiB0aGUgZmVlZGJhY2sg
-SSd2ZSByZWNlaXZlZCBzbyBmYXIuIFRoZQo+ID4gPiA+ID4gY29kZSBldmVuIGNvbXBpbGVzIGFz
-IGEgYm9udXMgOykgSSBoYXZlbid0IHJ1bnRpbWUgdGVzdGVkIGl0IHlldCwgbW9zdGx5Cj4gPiA+
-ID4gPiBiZWNhdXNlIEkgaGF2ZSBubyBpZGVhIGhvdy4KPiA+ID4gPiA+Cj4gPiA+ID4gPiBBbnkg
-ZnVydGhlciBmZWVkYmFjayBpcyBoaWdobHkgYXBwcmVjaWF0ZWQgb2YgY291cnNlLgo+ID4gPiA+
-Cj4gPiA+ID4gQW55IG90aGVyIGZlZWRiYWNrIGJlZm9yZSBJIHBvc3QgdGhpcyBhcyBub24tUkZD
-Pwo+ID4gPgo+ID4gPiBGcm9tIG1seDUgcGVyc3BlY3RpdmUsIHdobyBpcyBwcmltYXJ5IHVzZXIg
-b2YgdW1lbV9vZHAuYyB5b3VyIGNoYW5nZSBsb29rcyBvay4KPiA+Cj4gPiBDYW4gSSBhc3N1bWUg
-eW91ciBBY2tlZC1ieT8KPiAKPiBJIGRpZG4ndCBoYXZlIGEgY2hhbmNlIHRvIHRlc3QgaXQgYmVj
-YXVzZSBpdCBhcHBsaWVzIG9uIG91ciByZG1hLW5leHQsIGJ1dAo+IGZhaWxzIHRvIGNvbXBpbGUu
-CgpXaGF0IGlzIHRoZSBjb21waWxhdGlvbiBwcm9ibGVtPyBJcyBpdCBjYXVzZWQgYnkgdGhlIHBh
-dGNoIG9yIHNvbWUgb3RoZXIKdW5yZWxhdGVkIGNoYW5nZWQ/Ci0tIApNaWNoYWwgSG9ja28KU1VT
-RSBMYWJzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmFt
-ZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeAo=
+On 7/10/2018 8:34 PM, Jason Gunthorpe wrote:
+> On Sun, Jul 08, 2018 at 01:24:40PM +0300, Leon Romanovsky wrote:
+>> From: Yishai Hadas <yishaih@mellanox.com>
+>>
+>> Introduce flow steering matcher object and its create and destroy
+>> methods.
+>>
+>> This matcher object holds some mlx5 specific driver properties that
+>> matches the underlay device specification when an mlx5 flow steering
+>> group is created.
+>>
+>> It will be used in downstream patches to be part of mlx5 specific create
+>> flow method.
+>>
+>> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+>> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>>   drivers/infiniband/hw/mlx5/Makefile      |   1 +
+>>   drivers/infiniband/hw/mlx5/flow.c        | 132 +++++++++++++++++++++++++++++++
+>>   drivers/infiniband/hw/mlx5/mlx5_ib.h     |  11 +++
+>>   include/uapi/rdma/mlx5_user_ioctl_cmds.h |  33 +++++++-
+>>   4 files changed, 176 insertions(+), 1 deletion(-)
+>>   create mode 100644 drivers/infiniband/hw/mlx5/flow.c
+>>
+>> diff --git a/drivers/infiniband/hw/mlx5/Makefile b/drivers/infiniband/hw/mlx5/Makefile
+>> index 577e4c418bae..b8e4b15e2674 100644
+>> +++ b/drivers/infiniband/hw/mlx5/Makefile
+>> @@ -4,3 +4,4 @@ mlx5_ib-y :=	main.o cq.o doorbell.o qp.o mem.o srq.o mr.o ah.o mad.o gsi.o ib_vi
+>>   mlx5_ib-$(CONFIG_INFINIBAND_ON_DEMAND_PAGING) += odp.o
+>>   mlx5_ib-$(CONFIG_MLX5_ESWITCH) += ib_rep.o
+>>   mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += devx.o
+>> +mlx5_ib-$(CONFIG_INFINIBAND_USER_ACCESS) += flow.o
+>> diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+>> new file mode 100644
+>> index 000000000000..99409e516c7f
+>> +++ b/drivers/infiniband/hw/mlx5/flow.c
+>> @@ -0,0 +1,132 @@
+>> +// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+>> +/*
+>> + * Copyright (c) 2018, Mellanox Technologies inc.  All rights reserved.
+>> + */
+>> +
+>> +#include <rdma/ib_user_verbs.h>
+>> +#include <rdma/ib_verbs.h>
+>> +#include <rdma/uverbs_types.h>
+>> +#include <rdma/uverbs_ioctl.h>
+>> +#include <rdma/mlx5_user_ioctl_cmds.h>
+>> +#include <rdma/ib_umem.h>
+>> +#include <linux/mlx5/driver.h>
+>> +#include <linux/mlx5/fs.h>
+>> +#include "mlx5_ib.h"
+>> +
+>> +#define UVERBS_MODULE_NAME mlx5_ib
+>> +#include <rdma/uverbs_named_ioctl.h>
+>> +
+>> +static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
+>> +	[MLX5_IB_FLOW_TYPE_NORMAL] = {
+>> +		.type = UVERBS_ATTR_TYPE_PTR_IN,
+>> +		UVERBS_ATTR_TYPE(u16),
+>> +	},
+>> +	[MLX5_IB_FLOW_TYPE_SNIFFER] = {
+>> +		/* No need to specify any data */
+>> +		.type = UVERBS_ATTR_TYPE_PTR_IN,
+> 
+> I think this deserves a macro rather than a repeated
+> comment.. Especially since we now have have a different version in
+> uverbs_flow_action_esp_replay:
+> 
+>                  .type = UVERBS_ATTR_TYPE_PTR_IN,
+>                  /* No need to specify any data */
+>                  UVERBS_ATTR_SIZE(0, 0),
+> 
+> Something simple like:
+> 
+> #define UVERBS_ATTR_NO_DATA() UVERBS_ATTR_SIZE(0, 0)
+
+OK
+
+> 
+>> +static int flow_matcher_cleanup(struct ib_uobject *uobject,
+>> +				enum rdma_remove_reason why)
+>> +{
+>> +	struct mlx5_ib_flow_matcher *obj = uobject->object;
+>> +	int ret = atomic_read(&obj->usecnt) ? -EBUSY : 0;
+>> +
+>> +	if (ib_is_destroy_retryable(ret, why, uobject))
+>> +		return ret;
+> 
+> This is ib_destroy_usecnt() now
+>
+
+OK
+>> +static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(struct ib_device *ib_dev,
+>> +				   struct ib_uverbs_file *file,
+>> +				   struct uverbs_attr_bundle *attrs)
+>> +{
+>> +	struct mlx5_ib_dev *dev = to_mdev(ib_dev);
+> 
+> I have a patch changing these - when working with uobj's the ib_dev
+> argument should not be used, the ib_dev must come from the ucontext
+> instead.
+> 
+
+OK, V1 will take the ib_dev from the uobj.
+
+However, does it mean that you are going to change the signatures of all 
+the handlers to *not* get ib_dev ? can you please clarify why it must 
+come from the uobj->ucontext ?
+
+
+>> +	void *cmd_in = uverbs_attr_get_alloced_ptr(attrs,
+>> +						   MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK);
+>> +	struct ib_uobject *uobj;
+>> +	struct mlx5_ib_flow_matcher *obj;
+>> +	int mask_len;
+>> +	int err;
+> 
+> So this is to be written as
+> 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
+>                           MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE);
+> 	struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
+> 
+>> +
+>> +	obj = kzalloc(sizeof(struct mlx5_ib_flow_matcher), GFP_KERNEL);
+>> +	if (!obj)
+>> +		return -ENOMEM;
+>> +
+>> +	obj->mask_len = uverbs_attr_get_len(attrs,
+>> +					    MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK);
+>> +	memcpy(obj->matcher_mask.match_params, cmd_in, obj->mask_len);
+> 
+> As noted before, memcpying an alloced_ptr doesn't make sense, use the
+> copy from user version instead.
+> 
+
+OK
