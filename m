@@ -1,86 +1,58 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 8/8] IB/mlx5: Expose vendor flow trees
-Date: Wed, 11 Jul 2018 14:10:45 +0300
-Message-ID: <20180711111045.6282-9-leon@kernel.org>
-References: <20180711111045.6282-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180711111045.6282-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Wed, 11 Jul 2018 13:13:18 +0200
+Message-ID: <20180711111318.GL20050@dhcp22.suse.cz>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <20180627074421.GF32348@dhcp22.suse.cz>
+ <20180709122908.GJ22049@dhcp22.suse.cz>
+ <20180710134040.GG3014@mtr-leonro.mtl.com>
+ <20180710141410.GP14284@dhcp22.suse.cz>
+ <20180710162020.GJ3014@mtr-leonro.mtl.com>
+ <20180711090353.GD20050@dhcp22.suse.cz>
+ <20180711101447.GU3014@mtr-leonro.mtl.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180711101447.GU3014@mtr-leonro.mtl.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+On Wed 11-07-18 13:14:47, Leon Romanovsky wrote:
+> On Wed, Jul 11, 2018 at 11:03:53AM +0200, Michal Hocko wrote:
+> > On Tue 10-07-18 19:20:20, Leon Romanovsky wrote:
+> > > On Tue, Jul 10, 2018 at 04:14:10PM +0200, Michal Hocko wrote:
+> > > > On Tue 10-07-18 16:40:40, Leon Romanovsky wrote:
+> > > > > On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
+> > > > > > On Wed 27-06-18 09:44:21, Michal Hocko wrote:
+> > > > > > > This is the v2 of RFC based on the feedback I've received so far. The
+> > > > > > > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
+> > > > > > > because I have no idea how.
+> > > > > > >
+> > > > > > > Any further feedback is highly appreciated of course.
+> > > > > >
+> > > > > > Any other feedback before I post this as non-RFC?
+> > > > >
+> > > > > From mlx5 perspective, who is primary user of umem_odp.c your change looks ok.
+> > > >
+> > > > Can I assume your Acked-by?
+> > >
+> > > I didn't have a chance to test it because it applies on our rdma-next, but
+> > > fails to compile.
+> >
+> > What is the compilation problem? Is it caused by the patch or some other
+> > unrelated changed?
+> 
+> Thanks for pushing me to take a look on it.
+> Your patch needs the following hunk to properly compile at least on my system.
 
-Expose mlx5 flow trees to be used by upper layers.
+I suspect you were trying the original version. I've posted an updated
+patch here http://lkml.kernel.org/r/20180627074421.GF32348@dhcp22.suse.cz
+and all these issues should be fixed there. Including many other fixes.
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/flow.c    | 9 +++++++++
- drivers/infiniband/hw/mlx5/main.c    | 4 +++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 3 +++
- 3 files changed, 15 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
-index 76e76b87e5e9..ff5a02713b87 100644
---- a/drivers/infiniband/hw/mlx5/flow.c
-+++ b/drivers/infiniband/hw/mlx5/flow.c
-@@ -243,3 +243,12 @@ DECLARE_UVERBS_NAMED_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER,
- DECLARE_UVERBS_OBJECT_TREE(flow_objects,
- 			&UVERBS_OBJECT(MLX5_IB_OBJECT_FLOW_MATCHER));
- 
-+int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root)
-+{
-+	int i = 0;
-+
-+	root[i++] = &flow_objects;
-+	root[i++] = &mlx5_ib_fs;
-+
-+	return i;
-+}
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d750562cb2c5..71f3e9677622 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5537,7 +5537,7 @@ ADD_UVERBS_ATTRIBUTES_SIMPLE(
- 			   UVERBS_ATTR_TYPE(u64),
- 			   UA_MANDATORY));
- 
--#define NUM_TREES	3
-+#define NUM_TREES	5
- static int populate_specs_root(struct mlx5_ib_dev *dev)
- {
- 	const struct uverbs_object_tree_def *default_root[NUM_TREES + 1] = {
-@@ -5557,6 +5557,8 @@ static int populate_specs_root(struct mlx5_ib_dev *dev)
- 	    !WARN_ON(num_trees >= ARRAY_SIZE(default_root)))
- 		default_root[num_trees++] = mlx5_ib_get_devx_tree();
- 
-+	num_trees += mlx5_ib_get_flow_trees(default_root + num_trees);
-+
- 	dev->ib_dev.driver_specs_root =
- 		uverbs_alloc_spec_tree(num_trees, default_root);
- 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 7690dc6a897e..623f5d8bd48e 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -1244,6 +1244,7 @@ struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- 						     int inlen, int dest_id,
- 						     int dest_type);
- bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id, int *dest_type);
-+int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root);
- #else
- static inline int
- mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
-@@ -1261,6 +1262,8 @@ mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
- static inline bool
- mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
- 			  int *dest_type) { return false; };
-+static inline int
-+mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root) { return 0; };
- #endif
- static inline void init_query_mad(struct ib_smp *mad)
- {
+Could you have a look at that one please?
 -- 
-2.14.4
+Michal Hocko
+SUSE Labs
