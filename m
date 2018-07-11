@@ -1,155 +1,167 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 2/9] net/mlx5: Add support for flow table
- destination number
-Date: Wed, 11 Jul 2018 12:47:40 +0300
-Message-ID: <2cba029f-111a-eb7e-2f52-4433aecb193c@dev.mellanox.co.il>
-References: <20180708102445.25496-1-leon@kernel.org>
- <20180708102445.25496-3-leon@kernel.org>
- <CALzJLG8sa03Qh5yg+OP1p12po1eWxF6FMYqdcoFLYfK_MnwnZA@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Wed, 11 Jul 2018 13:14:47 +0300
+Message-ID: <20180711101447.GU3014@mtr-leonro.mtl.com>
+References: <20180622150242.16558-1-mhocko@kernel.org>
+ <20180627074421.GF32348@dhcp22.suse.cz>
+ <20180709122908.GJ22049@dhcp22.suse.cz>
+ <20180710134040.GG3014@mtr-leonro.mtl.com>
+ <20180710141410.GP14284@dhcp22.suse.cz>
+ <20180710162020.GJ3014@mtr-leonro.mtl.com>
+ <20180711090353.GD20050@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALzJLG8sa03Qh5yg+OP1p12po1eWxF6FMYqdcoFLYfK_MnwnZA@mail.gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>
+Content-Type: multipart/mixed; boundary="===============1257108436=="
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180711090353.GD20050@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Felix Kuehling <felix.kuehling@amd.com>, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixi>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/11/2018 1:26 AM, Saeed Mahameed wrote:
-> On Sun, Jul 8, 2018 at 3:24 AM, Leon Romanovsky <leon@kernel.org> wrote:
->> From: Yishai Hadas <yishaih@mellanox.com>
->>
->> Add support to set a destination from a flow table number.
->> This functionality will be used in downstream patches from this
->> series by the DEVX stuff.
->>
->> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
->> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->> ---
->>   .../mellanox/mlx5/core/diag/fs_tracepoint.c         |  3 +++
->>   drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 21 ++++++++++++++-------
->>   drivers/net/ethernet/mellanox/mlx5/core/fs_core.c   |  4 +++-
->>   include/linux/mlx5/fs.h                             |  1 +
->>   include/linux/mlx5/mlx5_ifc.h                       |  1 +
->>   5 files changed, 22 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
->> index b3820a34e773..0f11fff32a9b 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
->> @@ -240,6 +240,9 @@ const char *parse_fs_dst(struct trace_seq *p,
->>          case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
->>                  trace_seq_printf(p, "ft=%p\n", dst->ft);
->>                  break;
->> +       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
->> +               trace_seq_printf(p, "ft_num=%u\n", dst->ft_num);
->> +               break;
->>          case MLX5_FLOW_DESTINATION_TYPE_TIR:
->>                  trace_seq_printf(p, "tir=%u\n", dst->tir_num);
->>                  break;
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
->> index 5a00deff5457..a98584576c2e 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
->> @@ -363,17 +363,21 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
->>
->>                  list_for_each_entry(dst, &fte->node.children, node.list) {
->>                          unsigned int id;
->> +                       unsigned int type;
->>
-> 
-> reversed xmas tree, preferably just do:
-> 
->      unsigned int id, type = dst->dest_attr.type;
-> 
->      // use type directly instead of dst->dest_attr.type below ..
-> 
 
-OK, V1 will handle this as you suggested here.
+--===============1257108436==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="bzuizT9vlVVqWfw+"
+Content-Disposition: inline
 
 
->>                          if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
->>                                  continue;
->>
->> -                       MLX5_SET(dest_format_struct, in_dests, destination_type,
->> -                                dst->dest_attr.type);
->> -                       if (dst->dest_attr.type ==
->> -                           MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
->> +                       type = dst->dest_attr.type;
->> +                       switch (type) {
->> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
->> +                               id = dst->dest_attr.ft_num;
->> +                               type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
->> +                               break;
->> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
->>                                  id = dst->dest_attr.ft->id;
->> -                       } else if (dst->dest_attr.type ==
->> -                                  MLX5_FLOW_DESTINATION_TYPE_VPORT) {
->> +                               break;
->> +                       case MLX5_FLOW_DESTINATION_TYPE_VPORT:
->>                                  id = dst->dest_attr.vport.num;
->>                                  MLX5_SET(dest_format_struct, in_dests,
->>                                           destination_eswitch_owner_vhca_id_valid,
->> @@ -381,9 +385,12 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
->>                                  MLX5_SET(dest_format_struct, in_dests,
->>                                           destination_eswitch_owner_vhca_id,
->>                                           dst->dest_attr.vport.vhca_id);
->> -                       } else {
->> +                               break;
->> +                       default:
->>                                  id = dst->dest_attr.tir_num;
->>                          }
->> +
->> +                       MLX5_SET(dest_format_struct, in_dests, destination_type, type);
->>                          MLX5_SET(dest_format_struct, in_dests, destination_id, id);
->>                          in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
->>                          list_size++;
->> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
->> index eba113cf1117..69aa298a0b1c 100644
->> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
->> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
->> @@ -1356,7 +1356,9 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
->>                      (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
->>                       d1->ft == d2->ft) ||
->>                      (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
->> -                    d1->tir_num == d2->tir_num))
->> +                    d1->tir_num == d2->tir_num) ||
->> +                   (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM &&
->> +                    d1->ft_num == d2->ft_num))
->>                          return true;
->>          }
->>
->> diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
->> index 757b4a30281e..a45febcf6b51 100644
->> --- a/include/linux/mlx5/fs.h
->> +++ b/include/linux/mlx5/fs.h
->> @@ -89,6 +89,7 @@ struct mlx5_flow_destination {
->>          enum mlx5_flow_destination_type type;
->>          union {
->>                  u32                     tir_num;
->> +               u32                     ft_num;
->>                  struct mlx5_flow_table  *ft;
->>                  struct mlx5_fc          *counter;
->>                  struct {
->> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
->> index 44a6ce01c3bb..fb89cc519703 100644
->> --- a/include/linux/mlx5/mlx5_ifc.h
->> +++ b/include/linux/mlx5/mlx5_ifc.h
->> @@ -1181,6 +1181,7 @@ enum mlx5_flow_destination_type {
->>
->>          MLX5_FLOW_DESTINATION_TYPE_PORT         = 0x99,
->>          MLX5_FLOW_DESTINATION_TYPE_COUNTER      = 0x100,
->> +       MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM = 0x101,
->>   };
->>
->>   struct mlx5_ifc_dest_format_struct_bits {
->> --
->> 2.14.4
->>
+--bzuizT9vlVVqWfw+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jul 11, 2018 at 11:03:53AM +0200, Michal Hocko wrote:
+> On Tue 10-07-18 19:20:20, Leon Romanovsky wrote:
+> > On Tue, Jul 10, 2018 at 04:14:10PM +0200, Michal Hocko wrote:
+> > > On Tue 10-07-18 16:40:40, Leon Romanovsky wrote:
+> > > > On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
+> > > > > On Wed 27-06-18 09:44:21, Michal Hocko wrote:
+> > > > > > This is the v2 of RFC based on the feedback I've received so far. The
+> > > > > > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
+> > > > > > because I have no idea how.
+> > > > > >
+> > > > > > Any further feedback is highly appreciated of course.
+> > > > >
+> > > > > Any other feedback before I post this as non-RFC?
+> > > >
+> > > > From mlx5 perspective, who is primary user of umem_odp.c your change looks ok.
+> > >
+> > > Can I assume your Acked-by?
+> >
+> > I didn't have a chance to test it because it applies on our rdma-next, but
+> > fails to compile.
+>
+> What is the compilation problem? Is it caused by the patch or some other
+> unrelated changed?
+
+Thanks for pushing me to take a look on it.
+Your patch needs the following hunk to properly compile at least on my system.
+
+I'll take it to our regression.
+
+diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
+index 369867501bed..1f364a157097 100644
+--- a/include/linux/mmu_notifier.h
++++ b/include/linux/mmu_notifier.h
+@@ -155,9 +155,9 @@ struct mmu_notifier_ops {
+ 	 * cannot block, mmu_notifier_ops.flags should have
+ 	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
+ 	 */
+-	void (*invalidate_range_start)(struct mmu_notifier *mn,
++	int (*invalidate_range_start)(struct mmu_notifier *mn,
+ 				       struct mm_struct *mm,
+-				       unsigned long start, unsigned long end);
++				       unsigned long start, unsigned long end, bool blockable);
+ 	void (*invalidate_range_end)(struct mmu_notifier *mn,
+ 				     struct mm_struct *mm,
+ 				     unsigned long start, unsigned long end);
+@@ -229,7 +229,7 @@ extern int __mmu_notifier_test_young(struct mm_struct *mm,
+ 				     unsigned long address);
+ extern void __mmu_notifier_change_pte(struct mm_struct *mm,
+ 				      unsigned long address, pte_t pte);
+-extern void __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
++extern int __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
+ 				  unsigned long start, unsigned long end,
+ 				  bool blockable);
+ extern void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
+diff --git a/include/linux/oom.h b/include/linux/oom.h
+index 6adac113e96d..92f70e4c6252 100644
+--- a/include/linux/oom.h
++++ b/include/linux/oom.h
+@@ -95,7 +95,7 @@ static inline int check_stable_address_space(struct mm_struct *mm)
+ 	return 0;
+ }
+
+-void __oom_reap_task_mm(struct mm_struct *mm);
++bool __oom_reap_task_mm(struct mm_struct *mm);
+
+ extern unsigned long oom_badness(struct task_struct *p,
+ 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
+diff --git a/mm/oom_kill.c b/mm/oom_kill.c
+index 7e0c6e78ae5c..7c7bd6f3298e 100644
+--- a/mm/oom_kill.c
++++ b/mm/oom_kill.c
+@@ -1,6 +1,6 @@
+ /*
+  *  linux/mm/oom_kill.c
+- *
++ *
+  *  Copyright (C)  1998,2000  Rik van Riel
+  *	Thanks go out to Claus Fischer for some serious inspiration and
+  *	for goading me into coding this file...
+@@ -569,7 +569,7 @@ static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
+ 	if (!__oom_reap_task_mm(mm)) {
+ 		up_read(&mm->mmap_sem);
+ 		ret = false;
+-		goto out_unlock;
++		goto unlock_oom;
+ 	}
+
+ 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+
+Thanks
+
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Michal Hocko
+> SUSE Labs
+
+--bzuizT9vlVVqWfw+
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbRdiXAAoJEORje4g2clinNPQP/jvfP8MeILcz9WT7kxNVX7c/
+XpnkJcPys8ZjDS653gbzrRzw+nFz3sfqbSrvKb6MgCGfAGdanoHWjQsNbYz+Ci0m
+jr68xil3AoZsR30dolMGlCjHnsTq3CyJgNPfjm90VkuBV3huxGx52vSLuKBVVYuv
+qp+D/DwaxHKp9iUa4b5y8aXQYNCV++L3sNWgeUCXzaDvFm8WORW5PX/BxJ5a4M3r
+AFyJf0XIHfByd3mBDWJlo4c3mgAxV1hltesZHFCySPs4oLKRuHFiEap1BGNZsn8j
+m61eIRFoH5WVacvq1xHKs/oF9inuoaB9IzQsaeZan4YgOwthfcAibPxcdbcta29p
+IxYQUgjY+e3feJSOiHqFtujW8A3HpsuFUSPC7PHuJFJWqwCIcESxL3qeikBi2goA
+l5HIP6MMdKXv9PgXEsEFlPQJCS+ZsFk52pUOfneLve8t4MBWcuRXZpk0G0qfVLwq
+/2p9ES6m7Lroq7a0RkFZyWMmIdgBk9WjFbxm1ogXkMTWv7cQbmB94t0ut3fF6RCR
+lQfcHf16xm2IM4gNpzahFy4zsXWNWAdj/oVGDQjx3lu5LzvEriYptJZhKOx+lSdO
+lRO+pA/gzHWnbtA32swGX+MaHUNRAuVV8x1lbgRUq/aKwedg8BCpJXokrcpAasTt
++En8/fnNQqxwKFdJw8j+
+=6e5O
+-----END PGP SIGNATURE-----
+
+--bzuizT9vlVVqWfw+--
+
+--===============1257108436==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--===============1257108436==--
