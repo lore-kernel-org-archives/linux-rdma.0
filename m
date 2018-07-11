@@ -1,142 +1,99 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 2/9] net/mlx5: Add support for flow table
- destination number
-Date: Tue, 10 Jul 2018 15:26:28 -0700
-Message-ID: <CALzJLG8sa03Qh5yg+OP1p12po1eWxF6FMYqdcoFLYfK_MnwnZA@mail.gmail.com>
-References: <20180708102445.25496-1-leon@kernel.org> <20180708102445.25496-3-leon@kernel.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next 0/9] Support mlx5 flow steering with RAW data
+Date: Wed, 11 Jul 2018 08:43:15 +0300
+Message-ID: <20180711054315.GL3014@mtr-leonro.mtl.com>
+References: <20180708102445.25496-1-leon@kernel.org>
+ <20180710182854.GA24311@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="K5rlT6r/WqkiQKGB"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180708102445.25496-3-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180710182854.GA24311@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 8, 2018 at 3:24 AM, Leon Romanovsky <leon@kernel.org> wrote:
-> From: Yishai Hadas <yishaih@mellanox.com>
->
-> Add support to set a destination from a flow table number.
-> This functionality will be used in downstream patches from this
-> series by the DEVX stuff.
->
-> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  .../mellanox/mlx5/core/diag/fs_tracepoint.c         |  3 +++
->  drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 21 ++++++++++++++-------
->  drivers/net/ethernet/mellanox/mlx5/core/fs_core.c   |  4 +++-
->  include/linux/mlx5/fs.h                             |  1 +
->  include/linux/mlx5/mlx5_ifc.h                       |  1 +
->  5 files changed, 22 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-> index b3820a34e773..0f11fff32a9b 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-> @@ -240,6 +240,9 @@ const char *parse_fs_dst(struct trace_seq *p,
->         case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
->                 trace_seq_printf(p, "ft=%p\n", dst->ft);
->                 break;
-> +       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-> +               trace_seq_printf(p, "ft_num=%u\n", dst->ft_num);
-> +               break;
->         case MLX5_FLOW_DESTINATION_TYPE_TIR:
->                 trace_seq_printf(p, "tir=%u\n", dst->tir_num);
->                 break;
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-> index 5a00deff5457..a98584576c2e 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-> @@ -363,17 +363,21 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
->
->                 list_for_each_entry(dst, &fte->node.children, node.list) {
->                         unsigned int id;
-> +                       unsigned int type;
->
 
-reversed xmas tree, preferably just do:
+--K5rlT6r/WqkiQKGB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-    unsigned int id, type = dst->dest_attr.type;
+On Tue, Jul 10, 2018 at 12:28:54PM -0600, Jason Gunthorpe wrote:
+> On Sun, Jul 08, 2018 at 01:24:36PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > >From Yishai:
+> >
+> > This series introduces vendor create and destroy flow methods on the
+> > uverbs flow object by using the KABI infra-structure.
+> >
+> > It's done in a way that enables the driver to get its specific device
+> > attributes in a raw data to match its underlay specification while still
+> > using the generic ib_flow object for cleanup and code sharing.
+> >
+> > In addition, a specific mlx5 matcher object and its create/destroy
+> > methods were introduced. This object matches the underlay flow steering
+> > mask specification and is used as part of mlx5 create flow input data.
+> >
+> > This series supports IB_QP/TIR as its flow steering destination as
+> > applicable today via the ib_create_flow API, however, it adds also an
+> > option to work with DEVX object which its destination can be both TIR
+> > and flow table.
+> >
+> > Few changes were done in the mlx5 core layer to support forward
+> > compatible for the device specification raw data and to support flow
+> > table when the DEVX destination is used.
+> >
+> > As part of this series the default IB destroy handler
+> > (i.e. uverbs_destroy_def_handler()) was exposed from IB core to be
+> > used by the drivers and existing code was refactored to use it.
+> >
+> > Thanks
+>
+> >   IB: Enable uverbs_destroy_def_handler to be used by drivers
+>
+> I applied this one
+>
+> > Yishai Hadas (9):
+> >   net/mlx5: Add forward compatible support for the FTE match data
+> >   net/mlx5: Add support for flow table destination number
+> >   IB/mlx5: Introduce flow steering matcher object
+> >   IB: Consider ib_flow creation by the KABI infrastructure
+> >   IB/mlx5: Introduce vendor create and destroy flow methods
+> >   IB/mlx5: Support adding flow steering rule by raw data
+> >   IB/mlx5: Add support for a flow table destination
+> >   IB/mlx5: Expose vendor flow trees
+>
+> The rest will need to be resent after the comments are addressed.
 
-    // use type directly instead of dst->dest_attr.type below ..
+Jason, Saeed
 
+Thanks for the comments, we will fix and resubmit.
 
->                         if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
->                                 continue;
 >
-> -                       MLX5_SET(dest_format_struct, in_dests, destination_type,
-> -                                dst->dest_attr.type);
-> -                       if (dst->dest_attr.type ==
-> -                           MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
-> +                       type = dst->dest_attr.type;
-> +                       switch (type) {
-> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-> +                               id = dst->dest_attr.ft_num;
-> +                               type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-> +                               break;
-> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
->                                 id = dst->dest_attr.ft->id;
-> -                       } else if (dst->dest_attr.type ==
-> -                                  MLX5_FLOW_DESTINATION_TYPE_VPORT) {
-> +                               break;
-> +                       case MLX5_FLOW_DESTINATION_TYPE_VPORT:
->                                 id = dst->dest_attr.vport.num;
->                                 MLX5_SET(dest_format_struct, in_dests,
->                                          destination_eswitch_owner_vhca_id_valid,
-> @@ -381,9 +385,12 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
->                                 MLX5_SET(dest_format_struct, in_dests,
->                                          destination_eswitch_owner_vhca_id,
->                                          dst->dest_attr.vport.vhca_id);
-> -                       } else {
-> +                               break;
-> +                       default:
->                                 id = dst->dest_attr.tir_num;
->                         }
-> +
-> +                       MLX5_SET(dest_format_struct, in_dests, destination_type, type);
->                         MLX5_SET(dest_format_struct, in_dests, destination_id, id);
->                         in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
->                         list_size++;
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-> index eba113cf1117..69aa298a0b1c 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-> @@ -1356,7 +1356,9 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
->                     (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
->                      d1->ft == d2->ft) ||
->                     (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
-> -                    d1->tir_num == d2->tir_num))
-> +                    d1->tir_num == d2->tir_num) ||
-> +                   (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM &&
-> +                    d1->ft_num == d2->ft_num))
->                         return true;
->         }
->
-> diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-> index 757b4a30281e..a45febcf6b51 100644
-> --- a/include/linux/mlx5/fs.h
-> +++ b/include/linux/mlx5/fs.h
-> @@ -89,6 +89,7 @@ struct mlx5_flow_destination {
->         enum mlx5_flow_destination_type type;
->         union {
->                 u32                     tir_num;
-> +               u32                     ft_num;
->                 struct mlx5_flow_table  *ft;
->                 struct mlx5_fc          *counter;
->                 struct {
-> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-> index 44a6ce01c3bb..fb89cc519703 100644
-> --- a/include/linux/mlx5/mlx5_ifc.h
-> +++ b/include/linux/mlx5/mlx5_ifc.h
-> @@ -1181,6 +1181,7 @@ enum mlx5_flow_destination_type {
->
->         MLX5_FLOW_DESTINATION_TYPE_PORT         = 0x99,
->         MLX5_FLOW_DESTINATION_TYPE_COUNTER      = 0x100,
-> +       MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM = 0x101,
->  };
->
->  struct mlx5_ifc_dest_format_struct_bits {
-> --
-> 2.14.4
->
+> Thanks,
+> Jason
+
+--K5rlT6r/WqkiQKGB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbRZjzAAoJEORje4g2clindGYP/iukEV+crr7hVVSAs9FC5RhS
+IDlGpgwgtxr0MlxBnfdfBCUqcx0Rs1bGyZkXBerIHCWjs8yBB70oIPYMiuqMJNKh
+TVqHOHSMl7QaUMFEoUqSJ6eC4gPkTsp+FyeJV6jkzb/B9lJbtDVyLnHaxbz/n/wD
+tNESGg/3r53FHHc8gJjSomyK2fv8v/jZKVnqyKb6w9e4JFwHRZrh1nmkgIAM1aT3
+yJl1kLwjRjsAu7lV2WgidTwOJKXHsOXblhJJexSKqsxstEmlGQdFR9MWppT/pbKl
+JwraOhiFmAxNbNhyZAxUqX46uCpfwQVfXgInnUG/Wye05pCN/l7FewsyHCsCgRYd
+UrJbCs2VeD42+Z1WbVXO2qEVPJtUz5869GblZ/w4HTE1xk9aF1jfI7uUTA3eyCHB
+rGtk20PHzUsknJbxTcBGqdLahrZ5ak5D0F0zUGH0aK7MYrVkuci8R+F/jQ0T4i09
+rYe580XCo3GmdJvhC0Rf/10LiqgOqJy3flnsVKzM9z18WWATT27WfgyBHYi449O3
+Fu2v55ZhDgDiVlB7eVTWaRQiBwreO0I1C2kbKxl5dIES2czED3AumJLdy3XvxzXm
+VM7US4a2k9JexKyJwJ+H+z5GA/npZmSABNB45dLRiDxl8zhDJrWmef/ylpVE9n6o
+KoU8AO7DUYstBIUmxnc8
+=xO5l
+-----END PGP SIGNATURE-----
+
+--K5rlT6r/WqkiQKGB--
