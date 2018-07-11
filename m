@@ -1,96 +1,83 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH rdma-next 6/9] IB/mlx5: Introduce vendor create and
- destroy flow methods
-Date: Wed, 11 Jul 2018 12:44:59 +0300
-Message-ID: <59701e5c-57cc-1e65-ef02-2b72c6ae8734@dev.mellanox.co.il>
-References: <20180708102445.25496-1-leon@kernel.org>
- <20180708102445.25496-7-leon@kernel.org> <20180710174417.GC8266@ziepe.ca>
+From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
+Date: Wed, 11 Jul 2018 11:45:59 +0200
+Message-ID: <20180711094559.GB5492@kroah.com>
+References: <20180710173200.19853-1-bart.vanassche@wdc.com>
+ <20180710173200.19853-4-bart.vanassche@wdc.com>
+ <20180710185144.GA11114@kroah.com>
+ <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
+ <20180710204435.GA23028@kroah.com>
+ <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180710174417.GC8266@ziepe.ca>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>Yishai Hadas <yishaih@mellanox.com>, Majd Dibbiny <majd@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <Bart.VanAssche@wdc.com>
+Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/10/2018 8:44 PM, Jason Gunthorpe wrote:
-> On Sun, Jul 08, 2018 at 01:24:42PM +0300, Leon Romanovsky wrote:
+On Tue, Jul 10, 2018 at 09:02:51PM +0000, Bart Van Assche wrote:
+> On Tue, 2018-07-10 at 22:44 +0200, gregkh@linuxfoundation.org wrote:
+> > On Tue, Jul 10, 2018 at 08:23:01PM +0000, Bart Van Assche wrote:
+> > > On Tue, 2018-07-10 at 20:51 +0200, Greg KH wrote:
+> > > > On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
+> > > > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > > > > index 325bae29e90d..705f6a992d82 100644
+> > > > > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > > > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+> > > > > @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
+> > > > >  	}
+> > > > >  
+> > > > >  	kref_init(&ch->kref);
+> > > > > +	kref_get(&ch->kref);
+> > > > 
+> > > > kref_init starts the reference count at at 1, so why do you need to
+> > > > increment it right away?  That feels like something is "odd" here, why
+> > > > do you start with 2 references in the same function?
+> > > 
+> > > An ib_srpt RDMA channel object (ch in the above code) must stay around as long
+> > > as the associated target core session (se_sess) exists and also as long as the
+> > > target core has not yet called srpt_close_session(). Hence the initialization of
+> > > ch->kref to 2 just before an RDMA channel is registered with the target core.
+> > 
+> > Shouldn't the registration increment the reference?  Starting out at "2"
+> > feels very "odd", don't you agree?
 > 
->> +static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(struct ib_device *ib_dev,
->> +						      struct ib_uverbs_file *file,
->> +						      struct uverbs_attr_bundle *attrs)
->> +{
->> +	struct mlx5_ib_dev *dev = to_mdev(ib_dev);
+> Hello Greg,
 > 
-> Same comment as before, the dev needs to come from uboj->context->device
-> 
+> The code that registers the session with the target core is in another driver
+> (SCSI target core) and that driver doesn't know about the abstractions maintained
+> by the ib_srpt driver.
 
-OK
+Ok, but then that registration shouldn't be dropping a reference either,
+right?
 
->> -/* Used by drivers to declare a complete parsing tree for a single method that
->> - * differs only in having additional driver specific attributes.
->> +/* Used by drivers to declare a complete parsing tree for new methods
->>    */
->> -#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
->> -	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
->> -		_method_id)[] = { __VA_ARGS__ };                               \
->> -	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
->> -		.id = _method_id,                                              \
->> -		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
->> -		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
->> -	};                                                                     \
->> +#define ADD_UVERBS_METHODS(_name, _object_id, ...)                             \
->>   	static const struct uverbs_method_def *const UVERBS_OBJECT_METHODS(    \
->> -		_object_id)[] = { &UVERBS_METHOD(_method_id) };                \
->> +		_object_id)[] = { __VA_ARGS__ };                               \
->>   	static const struct uverbs_object_def _name##_struct = {               \
->>   		.id = _object_id,                                              \
->> -		.num_methods = 1,                                              \
->> +		.num_methods = ARRAY_SIZE(UVERBS_OBJECT_METHODS(_object_id)),  \
->>   		.methods = &UVERBS_OBJECT_METHODS(_object_id)                  \
->>   	};                                                                     \
->>   	static const struct uverbs_object_def *const _name##_ptrs[] = {        \
->> @@ -123,4 +115,17 @@
->>   		.objects = &_name##_ptrs,                                      \
->>   	}
->>   
->> +/* Used by drivers to declare a complete parsing tree for a single method that
->> + * differs only in having additional driver specific attributes.
->> + */
->> +#define ADD_UVERBS_ATTRIBUTES_SIMPLE(_name, _object_id, _method_id, ...)       \
->> +	static const struct uverbs_attr_def *const UVERBS_METHOD_ATTRS(        \
->> +		_method_id)[] = { __VA_ARGS__ };                               \
->> +	static const struct uverbs_method_def UVERBS_METHOD(_method_id) = {    \
->> +		.id = _method_id,                                              \
->> +		.num_attrs = ARRAY_SIZE(UVERBS_METHOD_ATTRS(_method_id)),      \
->> +		.attrs = &UVERBS_METHOD_ATTRS(_method_id),                     \
->> +	};                                                                     \
->> +	ADD_UVERBS_METHODS(_name, _object_id, _method_id)
-> 
-> Wow. How does that even compile? Oh I see, the only two users are
-> passing in a 0 constant which the compiler will understand as NULL
-> without a warning.
-> 
+> That's why the above kref_get() call is in the ib_srpt
+> driver and not e.g. in the target_alloc_session() function.
 
-Yes
+But I still do not understand why you have 2 on the count here.  Why do
+you need that?
 
-> I guess this is an instant crash at runtime?
-> 
+> BTW, there is more code in the Linux kernel that follows the above pattern.
+> target_submit_cmd_map_sgls() initializes the se_cmd reference count to two as
+> follows:
+> * transport_init_se_cmd() initializes it to one.
+> * target_get_sess_cmd() increments it from one to two.
 
-The merger code apparently skipped this method upon merging the trees 
-and EOPNOTSUPP was returned from the parser layer.
-I have double checked it internally with our verification, the DM test 
-was really failed but no crash was introduced.
+That is two different areas of the code, right?  That is not "initialize
+the count to 2 when we first create it".
 
-> Should be:
-> 
-> 	ADD_UVERBS_METHODS(_name, _object_id, &UVERBS_METHOD(_method_id)
-> 
+> This is because two contexts keep a reference to se_cmd data structures,
+> namely the target core and the target driver. A SCSI target command data
+> structure (se_cmd) must only be freed after both contexts have finished their
+> part of the command processing.
 
-Correct, will be part of V1.
+It's your subsytem, I'm just trying to point out that this pattern you
+have created is very odd and is probably wrong.  If you all insist it is
+correct, that's great, but I did warn you :)
 
-Thanks,
-Yishai
+good luck!
+
+greg k-h
