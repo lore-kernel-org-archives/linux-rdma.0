@@ -1,83 +1,155 @@
-From: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 3/3] IB/srpt: Fix a use-after-free
-Date: Wed, 11 Jul 2018 11:45:59 +0200
-Message-ID: <20180711094559.GB5492@kroah.com>
-References: <20180710173200.19853-1-bart.vanassche@wdc.com>
- <20180710173200.19853-4-bart.vanassche@wdc.com>
- <20180710185144.GA11114@kroah.com>
- <76bc5a122c637f9050d9a8d1b4b91e6cb386561f.camel@wdc.com>
- <20180710204435.GA23028@kroah.com>
- <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
+From: Yishai Hadas <yishaih@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next 2/9] net/mlx5: Add support for flow table
+ destination number
+Date: Wed, 11 Jul 2018 12:47:40 +0300
+Message-ID: <2cba029f-111a-eb7e-2f52-4433aecb193c@dev.mellanox.co.il>
+References: <20180708102445.25496-1-leon@kernel.org>
+ <20180708102445.25496-3-leon@kernel.org>
+ <CALzJLG8sa03Qh5yg+OP1p12po1eWxF6FMYqdcoFLYfK_MnwnZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1ab0cbf69675ecd942a77f6f71b9d51359a2df86.camel@wdc.com>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CALzJLG8sa03Qh5yg+OP1p12po1eWxF6FMYqdcoFLYfK_MnwnZA@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 10, 2018 at 09:02:51PM +0000, Bart Van Assche wrote:
-> On Tue, 2018-07-10 at 22:44 +0200, gregkh@linuxfoundation.org wrote:
-> > On Tue, Jul 10, 2018 at 08:23:01PM +0000, Bart Van Assche wrote:
-> > > On Tue, 2018-07-10 at 20:51 +0200, Greg KH wrote:
-> > > > On Tue, Jul 10, 2018 at 10:32:00AM -0700, Bart Van Assche wrote:
-> > > > > diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > > > index 325bae29e90d..705f6a992d82 100644
-> > > > > --- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > > > +++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-> > > > > @@ -2152,6 +2152,7 @@ static int srpt_cm_req_recv(struct srpt_device *const sdev,
-> > > > >  	}
-> > > > >  
-> > > > >  	kref_init(&ch->kref);
-> > > > > +	kref_get(&ch->kref);
-> > > > 
-> > > > kref_init starts the reference count at at 1, so why do you need to
-> > > > increment it right away?  That feels like something is "odd" here, why
-> > > > do you start with 2 references in the same function?
-> > > 
-> > > An ib_srpt RDMA channel object (ch in the above code) must stay around as long
-> > > as the associated target core session (se_sess) exists and also as long as the
-> > > target core has not yet called srpt_close_session(). Hence the initialization of
-> > > ch->kref to 2 just before an RDMA channel is registered with the target core.
-> > 
-> > Shouldn't the registration increment the reference?  Starting out at "2"
-> > feels very "odd", don't you agree?
+On 7/11/2018 1:26 AM, Saeed Mahameed wrote:
+> On Sun, Jul 8, 2018 at 3:24 AM, Leon Romanovsky <leon@kernel.org> wrote:
+>> From: Yishai Hadas <yishaih@mellanox.com>
+>>
+>> Add support to set a destination from a flow table number.
+>> This functionality will be used in downstream patches from this
+>> series by the DEVX stuff.
+>>
+>> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+>> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>> ---
+>>   .../mellanox/mlx5/core/diag/fs_tracepoint.c         |  3 +++
+>>   drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 21 ++++++++++++++-------
+>>   drivers/net/ethernet/mellanox/mlx5/core/fs_core.c   |  4 +++-
+>>   include/linux/mlx5/fs.h                             |  1 +
+>>   include/linux/mlx5/mlx5_ifc.h                       |  1 +
+>>   5 files changed, 22 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+>> index b3820a34e773..0f11fff32a9b 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+>> @@ -240,6 +240,9 @@ const char *parse_fs_dst(struct trace_seq *p,
+>>          case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
+>>                  trace_seq_printf(p, "ft=%p\n", dst->ft);
+>>                  break;
+>> +       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
+>> +               trace_seq_printf(p, "ft_num=%u\n", dst->ft_num);
+>> +               break;
+>>          case MLX5_FLOW_DESTINATION_TYPE_TIR:
+>>                  trace_seq_printf(p, "tir=%u\n", dst->tir_num);
+>>                  break;
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+>> index 5a00deff5457..a98584576c2e 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+>> @@ -363,17 +363,21 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+>>
+>>                  list_for_each_entry(dst, &fte->node.children, node.list) {
+>>                          unsigned int id;
+>> +                       unsigned int type;
+>>
 > 
-> Hello Greg,
+> reversed xmas tree, preferably just do:
 > 
-> The code that registers the session with the target core is in another driver
-> (SCSI target core) and that driver doesn't know about the abstractions maintained
-> by the ib_srpt driver.
+>      unsigned int id, type = dst->dest_attr.type;
+> 
+>      // use type directly instead of dst->dest_attr.type below ..
+> 
 
-Ok, but then that registration shouldn't be dropping a reference either,
-right?
+OK, V1 will handle this as you suggested here.
 
-> That's why the above kref_get() call is in the ib_srpt
-> driver and not e.g. in the target_alloc_session() function.
 
-But I still do not understand why you have 2 on the count here.  Why do
-you need that?
-
-> BTW, there is more code in the Linux kernel that follows the above pattern.
-> target_submit_cmd_map_sgls() initializes the se_cmd reference count to two as
-> follows:
-> * transport_init_se_cmd() initializes it to one.
-> * target_get_sess_cmd() increments it from one to two.
-
-That is two different areas of the code, right?  That is not "initialize
-the count to 2 when we first create it".
-
-> This is because two contexts keep a reference to se_cmd data structures,
-> namely the target core and the target driver. A SCSI target command data
-> structure (se_cmd) must only be freed after both contexts have finished their
-> part of the command processing.
-
-It's your subsytem, I'm just trying to point out that this pattern you
-have created is very odd and is probably wrong.  If you all insist it is
-correct, that's great, but I did warn you :)
-
-good luck!
-
-greg k-h
+>>                          if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
+>>                                  continue;
+>>
+>> -                       MLX5_SET(dest_format_struct, in_dests, destination_type,
+>> -                                dst->dest_attr.type);
+>> -                       if (dst->dest_attr.type ==
+>> -                           MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
+>> +                       type = dst->dest_attr.type;
+>> +                       switch (type) {
+>> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
+>> +                               id = dst->dest_attr.ft_num;
+>> +                               type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
+>> +                               break;
+>> +                       case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
+>>                                  id = dst->dest_attr.ft->id;
+>> -                       } else if (dst->dest_attr.type ==
+>> -                                  MLX5_FLOW_DESTINATION_TYPE_VPORT) {
+>> +                               break;
+>> +                       case MLX5_FLOW_DESTINATION_TYPE_VPORT:
+>>                                  id = dst->dest_attr.vport.num;
+>>                                  MLX5_SET(dest_format_struct, in_dests,
+>>                                           destination_eswitch_owner_vhca_id_valid,
+>> @@ -381,9 +385,12 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+>>                                  MLX5_SET(dest_format_struct, in_dests,
+>>                                           destination_eswitch_owner_vhca_id,
+>>                                           dst->dest_attr.vport.vhca_id);
+>> -                       } else {
+>> +                               break;
+>> +                       default:
+>>                                  id = dst->dest_attr.tir_num;
+>>                          }
+>> +
+>> +                       MLX5_SET(dest_format_struct, in_dests, destination_type, type);
+>>                          MLX5_SET(dest_format_struct, in_dests, destination_id, id);
+>>                          in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
+>>                          list_size++;
+>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+>> index eba113cf1117..69aa298a0b1c 100644
+>> --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+>> @@ -1356,7 +1356,9 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
+>>                      (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
+>>                       d1->ft == d2->ft) ||
+>>                      (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
+>> -                    d1->tir_num == d2->tir_num))
+>> +                    d1->tir_num == d2->tir_num) ||
+>> +                   (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM &&
+>> +                    d1->ft_num == d2->ft_num))
+>>                          return true;
+>>          }
+>>
+>> diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+>> index 757b4a30281e..a45febcf6b51 100644
+>> --- a/include/linux/mlx5/fs.h
+>> +++ b/include/linux/mlx5/fs.h
+>> @@ -89,6 +89,7 @@ struct mlx5_flow_destination {
+>>          enum mlx5_flow_destination_type type;
+>>          union {
+>>                  u32                     tir_num;
+>> +               u32                     ft_num;
+>>                  struct mlx5_flow_table  *ft;
+>>                  struct mlx5_fc          *counter;
+>>                  struct {
+>> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+>> index 44a6ce01c3bb..fb89cc519703 100644
+>> --- a/include/linux/mlx5/mlx5_ifc.h
+>> +++ b/include/linux/mlx5/mlx5_ifc.h
+>> @@ -1181,6 +1181,7 @@ enum mlx5_flow_destination_type {
+>>
+>>          MLX5_FLOW_DESTINATION_TYPE_PORT         = 0x99,
+>>          MLX5_FLOW_DESTINATION_TYPE_COUNTER      = 0x100,
+>> +       MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM = 0x101,
+>>   };
+>>
+>>   struct mlx5_ifc_dest_format_struct_bits {
+>> --
+>> 2.14.4
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
