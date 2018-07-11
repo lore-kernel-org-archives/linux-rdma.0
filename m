@@ -1,167 +1,80 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Wed, 11 Jul 2018 13:14:47 +0300
-Message-ID: <20180711101447.GU3014@mtr-leonro.mtl.com>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <20180627074421.GF32348@dhcp22.suse.cz>
- <20180709122908.GJ22049@dhcp22.suse.cz>
- <20180710134040.GG3014@mtr-leonro.mtl.com>
- <20180710141410.GP14284@dhcp22.suse.cz>
- <20180710162020.GJ3014@mtr-leonro.mtl.com>
- <20180711090353.GD20050@dhcp22.suse.cz>
+Subject: [PATCH rdma-next v1 0/8] Support mlx5 flow steering with RAW data
+Date: Wed, 11 Jul 2018 14:10:37 +0300
+Message-ID: <20180711111045.6282-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1257108436=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180711090353.GD20050@dhcp22.suse.cz>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Felix Kuehling <felix.kuehling@amd.com>, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
---===============1257108436==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bzuizT9vlVVqWfw+"
-Content-Disposition: inline
+Changelog v0->v1:
+ * Fixed ADD_UVERBS_ATTRIBUTES_SIMPLE macro to pass the real address.
+ Â* Replaced UA_ALLOC_AND_COPY to regular copy_from
+ * Added UVERBS_ATTR_NO_DATA new macro for cleaner code.
+ * Used ib_dev from uobj when it exists.
+ * ib_is_destroy_retryable was replaced by ib_destroy_usecnt
 
+-------------------------------------------------------------------------
+>From Yishai:
 
---bzuizT9vlVVqWfw+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This series introduces vendor create and destroy flow methods on the
+uverbs flow object by using the KABI infra-structure.
 
-On Wed, Jul 11, 2018 at 11:03:53AM +0200, Michal Hocko wrote:
-> On Tue 10-07-18 19:20:20, Leon Romanovsky wrote:
-> > On Tue, Jul 10, 2018 at 04:14:10PM +0200, Michal Hocko wrote:
-> > > On Tue 10-07-18 16:40:40, Leon Romanovsky wrote:
-> > > > On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
-> > > > > On Wed 27-06-18 09:44:21, Michal Hocko wrote:
-> > > > > > This is the v2 of RFC based on the feedback I've received so far. The
-> > > > > > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
-> > > > > > because I have no idea how.
-> > > > > >
-> > > > > > Any further feedback is highly appreciated of course.
-> > > > >
-> > > > > Any other feedback before I post this as non-RFC?
-> > > >
-> > > > From mlx5 perspective, who is primary user of umem_odp.c your change looks ok.
-> > >
-> > > Can I assume your Acked-by?
-> >
-> > I didn't have a chance to test it because it applies on our rdma-next, but
-> > fails to compile.
->
-> What is the compilation problem? Is it caused by the patch or some other
-> unrelated changed?
+It's done in a way that enables the driver to get its specific device
+attributes in a raw data to match its underlay specification while still
+using the generic ib_flow object for cleanup and code sharing.
 
-Thanks for pushing me to take a look on it.
-Your patch needs the following hunk to properly compile at least on my system.
+In addition, a specific mlx5 matcher object and its create/destroy
+methods were introduced. This object matches the underlay flow steering
+mask specification and is used as part of mlx5 create flow input data.
 
-I'll take it to our regression.
+This series supports IB_QP/TIR as its flow steering destination as
+applicable today via the ib_create_flow API, however, it adds also an
+option to work with DEVX object which its destination can be both TIR
+and flow table.
 
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index 369867501bed..1f364a157097 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -155,9 +155,9 @@ struct mmu_notifier_ops {
- 	 * cannot block, mmu_notifier_ops.flags should have
- 	 * MMU_INVALIDATE_DOES_NOT_BLOCK set.
- 	 */
--	void (*invalidate_range_start)(struct mmu_notifier *mn,
-+	int (*invalidate_range_start)(struct mmu_notifier *mn,
- 				       struct mm_struct *mm,
--				       unsigned long start, unsigned long end);
-+				       unsigned long start, unsigned long end, bool blockable);
- 	void (*invalidate_range_end)(struct mmu_notifier *mn,
- 				     struct mm_struct *mm,
- 				     unsigned long start, unsigned long end);
-@@ -229,7 +229,7 @@ extern int __mmu_notifier_test_young(struct mm_struct *mm,
- 				     unsigned long address);
- extern void __mmu_notifier_change_pte(struct mm_struct *mm,
- 				      unsigned long address, pte_t pte);
--extern void __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
-+extern int __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end,
- 				  bool blockable);
- extern void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
-diff --git a/include/linux/oom.h b/include/linux/oom.h
-index 6adac113e96d..92f70e4c6252 100644
---- a/include/linux/oom.h
-+++ b/include/linux/oom.h
-@@ -95,7 +95,7 @@ static inline int check_stable_address_space(struct mm_struct *mm)
- 	return 0;
- }
+Few changes were done in the mlx5 core layer to support forward
+compatible for the device specification raw data and to support flow
+table when the DEVX destination is used.
 
--void __oom_reap_task_mm(struct mm_struct *mm);
-+bool __oom_reap_task_mm(struct mm_struct *mm);
-
- extern unsigned long oom_badness(struct task_struct *p,
- 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
-diff --git a/mm/oom_kill.c b/mm/oom_kill.c
-index 7e0c6e78ae5c..7c7bd6f3298e 100644
---- a/mm/oom_kill.c
-+++ b/mm/oom_kill.c
-@@ -1,6 +1,6 @@
- /*
-  *  linux/mm/oom_kill.c
-- *
-+ *
-  *  Copyright (C)  1998,2000  Rik van Riel
-  *	Thanks go out to Claus Fischer for some serious inspiration and
-  *	for goading me into coding this file...
-@@ -569,7 +569,7 @@ static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
- 	if (!__oom_reap_task_mm(mm)) {
- 		up_read(&mm->mmap_sem);
- 		ret = false;
--		goto out_unlock;
-+		goto unlock_oom;
- 	}
-
- 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+As part of this series the default IB destroy handler
+(i.e. uverbs_destroy_def_handler()) was exposed from IB core to be
+used by the drivers and existing code was refactored to use it.
 
 Thanks
 
-> --
-> Michal Hocko
-> SUSE Labs
+Yishai Hadas (8):
+  net/mlx5: Add forward compatible support for the FTE match data
+  net/mlx5: Add support for flow table destination number
+  IB/mlx5: Introduce flow steering matcher object
+  IB: Consider ib_flow creation by the KABI infrastructure
+  IB/mlx5: Introduce vendor create and destroy flow methods
+  IB/mlx5: Support adding flow steering rule by raw data
+  IB/mlx5: Add support for a flow table destination
+  IB/mlx5: Expose vendor flow trees
 
---bzuizT9vlVVqWfw+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbRdiXAAoJEORje4g2clinNPQP/jvfP8MeILcz9WT7kxNVX7c/
-XpnkJcPys8ZjDS653gbzrRzw+nFz3sfqbSrvKb6MgCGfAGdanoHWjQsNbYz+Ci0m
-jr68xil3AoZsR30dolMGlCjHnsTq3CyJgNPfjm90VkuBV3huxGx52vSLuKBVVYuv
-qp+D/DwaxHKp9iUa4b5y8aXQYNCV++L3sNWgeUCXzaDvFm8WORW5PX/BxJ5a4M3r
-AFyJf0XIHfByd3mBDWJlo4c3mgAxV1hltesZHFCySPs4oLKRuHFiEap1BGNZsn8j
-m61eIRFoH5WVacvq1xHKs/oF9inuoaB9IzQsaeZan4YgOwthfcAibPxcdbcta29p
-IxYQUgjY+e3feJSOiHqFtujW8A3HpsuFUSPC7PHuJFJWqwCIcESxL3qeikBi2goA
-l5HIP6MMdKXv9PgXEsEFlPQJCS+ZsFk52pUOfneLve8t4MBWcuRXZpk0G0qfVLwq
-/2p9ES6m7Lroq7a0RkFZyWMmIdgBk9WjFbxm1ogXkMTWv7cQbmB94t0ut3fF6RCR
-lQfcHf16xm2IM4gNpzahFy4zsXWNWAdj/oVGDQjx3lu5LzvEriYptJZhKOx+lSdO
-lRO+pA/gzHWnbtA32swGX+MaHUNRAuVV8x1lbgRUq/aKwedg8BCpJXokrcpAasTt
-+En8/fnNQqxwKFdJw8j+
-=6e5O
------END PGP SIGNATURE-----
-
---bzuizT9vlVVqWfw+--
-
---===============1257108436==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
-
---===============1257108436==--
+ drivers/infiniband/core/uverbs_cmd.c               |   4 +
+ drivers/infiniband/core/uverbs_std_types.c         |   5 +-
+ .../infiniband/core/uverbs_std_types_flow_action.c |   3 +-
+ drivers/infiniband/hw/mlx5/Makefile                |   1 +
+ drivers/infiniband/hw/mlx5/devx.c                  |  22 ++
+ drivers/infiniband/hw/mlx5/flow.c                  | 254 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c                  | 230 +++++++++++++++++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  31 +++
+ .../mellanox/mlx5/core/diag/fs_tracepoint.c        |   3 +
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  23 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  81 +------
+ include/linux/mlx5/fs.h                            |   1 +
+ include/linux/mlx5/mlx5_ifc.h                      |   1 +
+ include/rdma/ib_verbs.h                            |  15 ++
+ include/rdma/uverbs_ioctl.h                        |   2 +
+ include/rdma/uverbs_named_ioctl.h                  |  29 ++-
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  50 +++-
+ 17 files changed, 635 insertions(+), 120 deletions(-)
+ create mode 100644 drivers/infiniband/hw/mlx5/flow.c
