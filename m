@@ -1,99 +1,42 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 13 Jul 2018 11:13:31 -0600
-Message-ID: <20180713171331.GA27807@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="FL5UXtIhxfXey3p5"
+From: Qing Huang <qing.huang@oracle.com>
+Subject: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices repeatedly
+Date: Fri, 13 Jul 2018 16:50:21 -0700
+Message-ID: <20180713235021.18141-1-qing.huang@oracle.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org, gerald.gibson@oracle.com, qing.huang@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
+When a CX5 device is configured in dual-port RoCE mode, after creating
+many VFs against port 1, creating the same number of VFs against port 2
+will flood kernel/syslog with something like
+"mlx5_*:mlx5_ib_bind_slave_port:4266:(pid 5269): port 2 already
+affiliated."
 
---FL5UXtIhxfXey3p5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+So basically, when traversing mlx5_ib_dev_list, mlx5_ib_add_slave_port()
+shouldn't repeatedly attempt to bind the new mpi data unit to every device
+on the list until it finds an unbound device.
 
-Hi Linus,
+Reported-by: Gerald Gibson <gerald.gibson@oracle.com>
+Signed-off-by: Qing Huang <qing.huang@oracle.com>
+---
+ drivers/infiniband/hw/mlx5/main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Second pull request for -rc
-
-Things have been quite slow, only 6 RC patches have been sent to the
-list. Lots of stuff in for-next already though.
-
-The following changes since commit 6f0d349d922ba44e4348a17a78ea51b7135965b1:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2018-06-25 15:58:17 +0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-for you to fetch changes up to d63c46734c545ad0488761059004a65c46efdde3:
-
-  RDMA/mlx5: Fix memory leak in mlx5_ib_create_srq() error path (2018-07-11 14:16:13 -0600)
-
-----------------------------------------------------------------
-Regression, user visible bugs, and crashing fixes:
-
-- cxgb4 could wrongly fail MR creation due to a typo
-
-- Various crashes if the wrong QP type is mixed in with APIs that expect
-  other types
-
-- Syzkaller oops
-
-- Using ERR_PTR and NULL together cases HFI1 to crash in some cases
-
-- mlx5 memory leak in error unwind
-
-----------------------------------------------------------------
-Kamal Heib (1):
-      RDMA/mlx5: Fix memory leak in mlx5_ib_create_srq() error path
-
-Leon Romanovsky (3):
-      RDMA/uverbs: Protect from attempts to create flows on unsupported QP
-      RDMA/uverbs: Fix slab-out-of-bounds in ib_uverbs_ex_create_flow
-      RDMA/uverbs: Don't fail in creation of multiple flows
-
-Michael J. Ruhl (1):
-      IB/hfi1: Fix incorrect mixing of ERR_PTR and NULL return values
-
-Steve Wise (1):
-      iw_cxgb4: correctly enforce the max reg_mr depth
-
- drivers/infiniband/core/uverbs_cmd.c     | 28 +++++++++++++++++-----------
- drivers/infiniband/hw/cxgb4/mem.c        |  2 +-
- drivers/infiniband/hw/hfi1/rc.c          |  2 +-
- drivers/infiniband/hw/hfi1/uc.c          |  4 ++--
- drivers/infiniband/hw/hfi1/ud.c          |  4 ++--
- drivers/infiniband/hw/hfi1/verbs_txreq.c |  4 ++--
- drivers/infiniband/hw/hfi1/verbs_txreq.h |  4 ++--
- drivers/infiniband/hw/mlx5/srq.c         | 18 ++++++++++++------
- 8 files changed, 39 insertions(+), 27 deletions(-)
-
---FL5UXtIhxfXey3p5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCgAGBQJbSN24AAoJEDht9xV+IJsa31gP/26hmxUoeTswL/2tYQ5bA/HN
-PjH3WGG90qPOI2aDxl/eWYuju5xmeE2aCc2s/tJ4PXIcCJwKx6OdJ/fneXMHsuun
-oYT1z5DCk3zlXdsHMQz6XqOoSMVyEdKz3y0WMQn7DJtOIq/6XXRRAvTDIIDpOs4B
-IQGY7VZSn+qjnV8pyQs8L6kDoUU1Sppa9pQlx/zY+HFwXLDom8btgzkBaKF9j8SL
-IZZXi26P+Fku9acDeTRTl66fAYYxieSBdfYUwiJHJmdp3KgMcdqoKamQbhUkrh7V
-hsND5rLh/slQvIm4RCP2uNhT9d7KVAA5VzylurLlfl4+VZisuzmaX0tjkdX9JbGh
-2LL86nBvql6+Kbqs+6jYu+BoDFGR2HrDELWr/PlHqBu7Qe0HJgQGUkwRVSXPzblI
-fEa6OeQGBLDJxsNonvkCk9Q5JtiucNgub1J8iaLq/w/SrK6JZ3UuxiNgOnT8ksck
-fQatESKpSNsBdWRRP8p26HH/4OgyT8KYCYXlwqSl9S0rJFcci+Ov8zupx/DIGAd+
-6wuA7qeqmHY7ix29Y+Bn+kZ/RB6kBD4fhlbj6VKjwxZbN1OWmhNScbshhR40z/Dh
-/3+DrZ+BHYBf2ZrI9ZG9b3bAV2H3J5yXmk7h//1Y2sLt6405GjQnKu0xbzXAv/zI
-9XQcHnM7bwFyvEdRHvdl
-=bcbr
------END PGP SIGNATURE-----
-
---FL5UXtIhxfXey3p5--
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b3ba9a2..1ddd1d3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6068,7 +6068,8 @@ static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev, u8 port_num)
+ 
+ 	mutex_lock(&mlx5_ib_multiport_mutex);
+ 	list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
+-		if (dev->sys_image_guid == mpi->sys_image_guid)
++		if (dev->sys_image_guid == mpi->sys_image_guid &&
++		    !dev->port[mlx5_core_native_port_num(mdev) - 1].mp.mpi)
+ 			bound = mlx5_ib_bind_slave_port(dev, mpi);
+ 
+ 		if (bound) {
+-- 
+2.9.3
