@@ -1,48 +1,64 @@
-From: Yishai Hadas <yishaih@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next v1 1/8] net/mlx5: Add forward compatible support
- for the FTE match data
-Date: Sun, 15 Jul 2018 11:26:52 +0300
-Message-ID: <85cb3c37-a9e3-97cf-eb21-faab8f04c334@dev.mellanox.co.il>
-References: <20180711111045.6282-1-leon@kernel.org>
- <20180711111045.6282-2-leon@kernel.org>
- <CAJ3xEMipJhe0PdsmR7kshrG-dXSqaLJ5xorwbMZyBvdXy0jA0A@mail.gmail.com>
- <84e6a046-881d-65ce-ab58-2ed9691cc864@dev.mellanox.co.il>
- <CAJ3xEMhO_89Fxj3=2=pas_R_9M6sPXOPu0V3saBaqeJ3j+-hkw@mail.gmail.com>
+From: Daniel Jurgens <danielj@mellanox.com>
+Subject: Re: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices
+ repeatedly
+Date: Sun, 15 Jul 2018 14:48:44 -0500
+Message-ID: <dc4d502c-bc3c-46e3-a984-41271951a5f7@mellanox.com>
+References: <20180713235021.18141-1-qing.huang@oracle.com>
+ <CAJ3xEMi5zF83aA_SWfYT+JtWGGhqRhLyTKe-qYwevSBLuiK=cA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMhO_89Fxj3=2=pas_R_9M6sPXOPu0V3saBaqeJ3j+-hkw@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJ3xEMi5zF83aA_SWfYT+JtWGGhqRhLyTKe-qYwevSBLuiK=cA@mail.gmail.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Or Gerlitz <gerlitz.or@gmail.com>, Parav Pandit <parav@mellanox.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, gerald.gibson@oracle.com, Qing Huang <qing.huang@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/15/2018 11:03 AM, Or Gerlitz wrote:
-> On Sun, Jul 15, 2018 at 10:26 AM, Yishai Hadas
-> <yishaih@dev.mellanox.co.il> wrote:
->> On 7/12/2018 11:53 PM, Or Gerlitz wrote:
->>> On Wed, Jul 11, 2018 at 2:10 PM, Leon Romanovsky <leon@kernel.org> wrote:
->>>> From: Yishai Hadas <yishaih@mellanox.com>
-> 
->>>> Use the PRM size including the reserved when working with the FTE
->>>> match data.
-> 
 
-> -- we need a clear memo as part of your change-logs and/or cover-letter/s that
-> explains the overall approach/design for
-> doing-things-without-changing-the-kernel,
-> does this exist? 
-
-Yes, the DEVX series that was previously accepted clearly stated that 
-this is its target as part of its cover-letter [1]. This motivation 
-appears also as part of this specific commit log.
-
- From the cover letter:
-"The main purpose here is to make the user space driver as independent 
-as possible from the kernel so that future device functionality and 
-commands can be activated with minimal to none kernel changes.
-
-[1]
-https://patchwork.ozlabs.org/cover/930449/
+On 7/14/2018 10:57 AM, Or Gerlitz wrote:
+> On Sat, Jul 14, 2018 at 2:50 AM, Qing Huang <qing.huang@oracle.com> wrote:
+>> When a CX5 device is configured in dual-port RoCE mode, after creating
+>> many VFs against port 1, creating the same number of VFs against port 2
+>> will flood kernel/syslog with something like
+>> "mlx5_*:mlx5_ib_bind_slave_port:4266:(pid 5269): port 2 already
+>> affiliated."
+>>
+>> So basically, when traversing mlx5_ib_dev_list, mlx5_ib_add_slave_port()
+>> shouldn't repeatedly attempt to bind the new mpi data unit to every device
+>> on the list until it finds an unbound device.
+> Daniel,
+>
+> What is mpi data unit?
+It's a structure to keep track affiliated port info in dual port RoCE mode, mpi meaning multi-port info. Parav can review this it my absence, otherwise I can take a closer look when I return to the office.
+>
+> Or.
+>
+>> Reported-by: Gerald Gibson <gerald.gibson@oracle.com>
+>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
+>> ---
+>>  drivers/infiniband/hw/mlx5/main.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+>> index b3ba9a2..1ddd1d3 100644
+>> --- a/drivers/infiniband/hw/mlx5/main.c
+>> +++ b/drivers/infiniband/hw/mlx5/main.c
+>> @@ -6068,7 +6068,8 @@ static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev, u8 port_num)
+>>
+>>         mutex_lock(&mlx5_ib_multiport_mutex);
+>>         list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
+>> -               if (dev->sys_image_guid == mpi->sys_image_guid)
+>> +               if (dev->sys_image_guid == mpi->sys_image_guid &&
+>> +                   !dev->port[mlx5_core_native_port_num(mdev) - 1].mp.mpi)
+>>                         bound = mlx5_ib_bind_slave_port(dev, mpi);
+>>
+>>                 if (bound) {
+>> --
+>> 2.9.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
