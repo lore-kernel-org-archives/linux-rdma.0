@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [RFC PATCH rdma-next 12/18] RDMA/mlx5: Enable attaching modify header to steering flows
-Date: Mon, 16 Jul 2018 11:22:59 +0300
-Message-ID: <20180716082305.11744-13-leon@kernel.org>
+Subject: [RFC PATCH rdma-next 18/18] RDMA/mlx5: Enable attaching packet reformat action to steering flows
+Date: Mon, 16 Jul 2018 11:23:05 +0300
+Message-ID: <20180716082305.11744-19-leon@kernel.org>
 References: <20180716082305.11744-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180716082305.11744-1-leon@kernel.org>
@@ -12,31 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-When creating a flow steering rule, allow the user to attach a modify
-header action.
+Any matching rules will be mutated based on the packet reformat context
+which is attached to that given flow rule.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 79b58713c05d..fe4640fe025b 100644
+index fc0492b7ad19..c0e902bf1de6 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2468,6 +2468,14 @@ static int parse_flow_flow_action(const union ib_flow_spec *ib_spec,
- 			MLX5_FLOW_CONTEXT_ACTION_ENCRYPT :
- 			MLX5_FLOW_CONTEXT_ACTION_DECRYPT;
- 		return 0;
-+	case IB_FLOW_ACTION_UNSPECIFIED:
+@@ -2480,6 +2480,13 @@ static int parse_flow_flow_action(const union ib_flow_spec *ib_spec,
+ 			action->action |= MLX5_FLOW_CONTEXT_ACTION_DECAP;
+ 			return 0;
+ 		}
 +		if (maction->flow_action_raw.sub_type ==
-+		    MLX5_IB_FLOW_ACTION_MODIFY_HEADER) {
-+			action->action |= MLX5_FLOW_CONTEXT_ACTION_MOD_HDR;
-+			action->modify_id = maction->flow_action_raw.action_id;
++		    MLX5_IB_FLOW_ACTION_PACKET_REFORMAT) {
++			action->action |=
++				MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID;
++			action->packet_reformat_id = maction->flow_action_raw.action_id;
 +			return 0;
 +		}
-+		/* fall through */
+ 		/* fall through */
  	default:
  		return -EOPNOTSUPP;
- 	}
