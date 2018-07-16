@@ -1,93 +1,81 @@
-From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Mon, 16 Jul 2018 10:59:29 +0300
-Message-ID: <20180716075929.GF3152@mtr-leonro.mtl.com>
-References: <20180622150242.16558-1-mhocko@kernel.org>
- <20180627074421.GF32348@dhcp22.suse.cz>
- <20180709122908.GJ22049@dhcp22.suse.cz>
- <20180710134040.GG3014@mtr-leonro.mtl.com>
- <20180710141410.GP14284@dhcp22.suse.cz>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0407170946=="
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20180710141410.GP14284-2MMpYkNvuYDjFM9bn6wA6Q@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Felix Kuehling <felix.kuehling-5C7GfCeVMHo@public.gmane.org>, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>Mike Marciniszyn <mi>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [RFC PATCH rdma-next 00/18] Flow actions to mutate packets
+Date: Mon, 16 Jul 2018 11:22:47 +0300
+Message-ID: <20180716082305.11744-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
---===============0407170946==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="IpbVkmxF4tDyP/Kb"
-Content-Disposition: inline
+Hi,
 
+This series from Mark is marked as RFC due to the fact that it is under
+final stages of internal review - commit messages, patch reordering and
+internal agreement if "{net, RDMA}/mlx5: Rename encap to reformat packet"
+is needed.
 
---IpbVkmxF4tDyP/Kb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Because the main logic and functionality are not expected to change, we
+would like to post it the mailing list and gather broader feedback than
+we can achieve internally.
 
-On Tue, Jul 10, 2018 at 04:14:10PM +0200, Michal Hocko wrote:
-> On Tue 10-07-18 16:40:40, Leon Romanovsky wrote:
-> > On Mon, Jul 09, 2018 at 02:29:08PM +0200, Michal Hocko wrote:
-> > > On Wed 27-06-18 09:44:21, Michal Hocko wrote:
-> > > > This is the v2 of RFC based on the feedback I've received so far. The
-> > > > code even compiles as a bonus ;) I haven't runtime tested it yet, mostly
-> > > > because I have no idea how.
-> > > >
-> > > > Any further feedback is highly appreciated of course.
-> > >
-> > > Any other feedback before I post this as non-RFC?
-> >
-> > From mlx5 perspective, who is primary user of umem_odp.c your change looks ok.
->
-> Can I assume your Acked-by?
->
-> Thanks for your review!
-
-For mlx and umem_odp pieces,
-Acked-by: Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+We will resubmit it without RFC tag once review will complete.
 
 Thanks
 
---IpbVkmxF4tDyP/Kb
-Content-Type: application/pgp-signature; name="signature.asc"
+------------------------------------------------------------------------
+>From Mark:
+This series exposes the ability to create flow actions which can
+mutate packet headers. We do that by exposing two new verbs:
+ * modify header - can change existing packet headers. packet
+ * reformat - can encapsulate or decapsulate a packet.
+              Once created a flow action must be attached to a steering
+              rule for it to take effect.
 
------BEGIN PGP SIGNATURE-----
+Thanks
 
-iQIcBAEBAgAGBQJbTFBhAAoJEORje4g2clinrPEQAM3K+7WNo+Ro9U49mpUc8xr/
-MGGxTsfNW12jUSp6FCTQU6e53hUr+Xkr7HLA9V2PRM848OAOjQlBUKgCGQ4Mb1hQ
-jaWFDf5PTXMiSwutJGhqJXuaYkFyLiR6oE0hdGoaPFRQ6TDkWeqXmP7MDOvJe9ml
-Ea4dAgif8LEjYjGNOCUGJ6Ur89jJmf4D6EFcWhHyin7XejnD3z4vX0VcRbVwY8tl
-H7w7S/TRXNE9gGUTid8i6eC81IG+p+xOaG0JhLcf95F0/sz7Y2gwWUzHWUScrn7A
-m7mLXJf+hMGM6oVYxE224xTUbKkVXfYjYLzY9BZ7NB9ycKdi6aDL4diB2w+83acB
-SplvTEfXKFVQtSKVyo24NoxEIscZyIHrJu0BaE8d002tvAcE2uiSmgUbQ/grXooe
-8Fl8vyau1974/hx4bP6/Fclol25CUtqCatVw+x4vysEqferddvmFW0xOTzUorpTP
-bI7zb9Ozs3icZ90Hhxk1jBe1Jmw8XIPGTCv06yDQOufFHxi2UnL2qKVxIrPLh/s5
-xkJzguy/TxXk210mWnbWmpmytgKNsUQSMmYqyUEfxtzWlRHYWD3Z6KVUAsPsuy8J
-b/fCbYfHzCTP2X4Vm4eoYTxI7YzByBnyIK/eAz1eKVlYbJb8yXx0bqzRbmn6gizc
-jWDNXsZCJJ8q58BpwivZ
-=YBIL
------END PGP SIGNATURE-----
+Mark Bloch (18):
+  net/mlx5: Add proper NIC TX steering flow tables support
+  net/mlx5: Export modify header alloc/dealloc functions
+  net/mlx5: Add support for more namespaces when allocating modify
+    header
+  net/mlx5: Break encap/decap into two separated flags
+  net/mlx5: Move header encap type to IFC header file
+  {net, RDMA}/mlx5: Rename encap to reformat packet
+  net/mlx5: Expose new packet reformat capabilities
+  net/mlx5: Allow passing a namespace on packet reformat allocation
+  net/mlx5: Export packet reformat alloc/dealloc functions
+  RDMA/mlx5: Add NIC TX steering support
+  RDMA/mlx5: Add a new flow action verb, modify header
+  RDMA/mlx5: Enable attaching modify header to steering flows
+  RDMA/mlx5: Enable decap and packet reformat on flow tables
+  RDMA/uverbs: Add generic function to fill in flow action object
+  RDMA/mlx5: Add new flow action verb, packet reformat
+  RDMA/mlx5: Enable attaching DECAP action to steering flows
+  RDMA/mlx5: Extend packet reformat verbs
+  RDMA/mlx5: Enable attaching packet reformat action to steering flows
 
---IpbVkmxF4tDyP/Kb--
-
---===============0407170946==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBt
-YWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4Cg==
-
---===============0407170946==--
+ .../infiniband/core/uverbs_std_types_flow_action.c |   7 +-
+ drivers/infiniband/hw/mlx5/devx.c                  |   6 +-
+ drivers/infiniband/hw/mlx5/flow.c                  | 280 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c                  |  65 +++--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  14 ++
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   8 +-
+ .../mellanox/mlx5/core/diag/fs_tracepoint.h        |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_rep.h   |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  54 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.h  |   2 +-
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   9 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  87 ++++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  57 +++--
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  11 -
+ include/linux/mlx5/device.h                        |   6 +
+ include/linux/mlx5/fs.h                            |  20 +-
+ include/linux/mlx5/mlx5_ifc.h                      |  71 ++++--
+ include/rdma/uverbs_std_types.h                    |  12 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  18 ++
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h          |  12 +
+ 21 files changed, 591 insertions(+), 154 deletions(-)
