@@ -1,43 +1,63 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] net/rds: void function cannot return -1
-Date: Mon, 16 Jul 2018 09:29:02 -0700
-Message-ID: <df82aa42-133c-9381-ca97-1d80c8c3e3cc@oracle.com>
-References: <20180716130009.1591379-1-Haakon.Bugge@oracle.com>
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Mon, 16 Jul 2018 19:46:05 +0300
+Message-ID: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
+References: <20180716083012.15410-1-leon@kernel.org>
+ <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
+ <20180716103046.GJ3152@mtr-leonro.mtl.com>
+ <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
+ <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180716130009.1591379-1-Haakon.Bugge@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?H=c3=a5kon_Bugge?= <Haakon.Bugge@oracle.com>, "David S . Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
+Content-Language: he
+Sender: netdev-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>, Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/16/2018 6:00 AM, Håkon Bugge wrote:
-> Commit b6fb0df12db6 ("RDS/IB: Make ib_recv_refill return void") did
-> not change the comment accordingly.
-> 
-> Fixes: b6fb0df12db6 ("RDS/IB: Make ib_recv_refill return void")
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-> ---
->   net/rds/ib_recv.c | 2 --
->   1 file changed, 2 deletions(-)
-> 
-> diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-> index b4e421aa9727..e5ce93419263 100644
-> --- a/net/rds/ib_recv.c
-> +++ b/net/rds/ib_recv.c
-> @@ -376,8 +376,6 @@ static void release_refill(struct rds_connection *conn)
->    * This tries to allocate and post unused work requests after making sure that
->    * they have all the allocations they need to queue received fragments into
->    * sockets.
-> - *
-> - * -1 is returned if posting fails due to temporary resource exhaustion.
->    */
->   void rds_ib_recv_refill(struct rds_connection *conn, int prefill, gfp_t gfp)
->   {
-> 
-Yep. Thanks !!
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.ccom>
+
+On 7/16/2018 5:59 PM, Sagi Grimberg wrote:
+> 
+>> Hi,
+>> I've tested this patch and seems problematic at this moment.
+> 
+> Problematic how? what are you seeing?
+
+Connection failures and same error Steve saw:
+
+[Mon Jul 16 16:19:11 2018] nvme nvme0: Connect command failed, error 
+wo/DNR bit: -16402
+[Mon Jul 16 16:19:11 2018] nvme nvme0: failed to connect queue: 2 ret=-18
+
+
+> 
+>> maybe this is because of the bug that Steve mentioned in the NVMe 
+>> mailing list. Sagi mentioned that we should fix it in the NVMe/RDMA 
+>> initiator and I'll run his suggestion as well.
+> 
+> Is your device irq affinity linear?
+
+When it's linear and the balancer is stopped the patch works.
+
+> 
+>> BTW, when I run the blk_mq_map_queues it works for every irq affinity.
+> 
+> But its probably not aligned to the device vector affinity.
+
+but I guess it's better in some cases.
+
+I've checked the situation before Leon's patch and set all the vetcors 
+to CPU 0. In this case (I think that this was the initial report by 
+Steve), we use the affinity_hint (Israel's and Saeed's patches were we 
+use dev->priv.irq_info[vector].mask) and it worked fine.
+
+Steve,
+Can you share your configuration (kernel, HCA, affinity map, connect 
+command, lscpu) ?
+I want to repro it in my lab.
+
+-Max.
