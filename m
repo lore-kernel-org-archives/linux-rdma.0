@@ -1,34 +1,56 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Mon, 16 Jul 2018 17:59:05 +0300
-Message-ID: <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
-References: <20180716083012.15410-1-leon@kernel.org>
- <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
- <20180716103046.GJ3152@mtr-leonro.mtl.com>
- <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
+From: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
+Subject: Re: [PATCH] IPoIB: use kvzalloc to allocate an array of bucket
+ pointers
+Date: Mon, 16 Jul 2018 19:19:53 +0300
+Message-ID: <20180716191953.28b7821d@virtuozzo.com>
+References: <1531144263-24717-1-git-send-email-jan.dakinevich@virtuozzo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-netdev <netdev@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1531144263-24717-1-git-send-email-jan.dakinevich@virtuozzo.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Yuval Shaia <yuval.shaia@oracle.com>, Alex Vesker <valex@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Kees Cook <keescook@chromium.org>, Evgenii Smirnov <evgenii.smirnov@profitbricks.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon,  9 Jul 2018 16:51:03 +0300
+Jan Dakinevich <jan.dakinevich@virtuozzo.com> wrote:
 
-> Hi,
-> I've tested this patch and seems problematic at this moment.
+> This table by default takes 32KiB which is 3rd memory order.
+> Meanwhile, this memory is not aimed for DMA operation and could be
+> safely allocated by vmalloc.
+> 
+> Signed-off-by: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
+> ---
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> b/drivers/infiniband/ulp/ipoib/ipoib_main.c index 26cde95..cb752df
+> 100644 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> @@ -1526,7 +1526,7 @@ static int ipoib_neigh_hash_init(struct
+> ipoib_dev_priv *priv) return -ENOMEM;
+>  	set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+>  	size = roundup_pow_of_two(arp_tbl.gc_thresh3);
+> -	buckets = kcalloc(size, sizeof(*buckets), GFP_KERNEL);
+> +	buckets = kvcalloc(size, sizeof(*buckets), GFP_KERNEL);
+>  	if (!buckets) {
+>  		kfree(htbl);
+>  		return -ENOMEM;
+> @@ -1554,7 +1554,7 @@ static void neigh_hash_free_rcu(struct rcu_head
+> *head) struct ipoib_neigh __rcu **buckets = htbl->buckets;
+>  	struct ipoib_neigh_table *ntbl = htbl->ntbl;
+>  
+> -	kfree(buckets);
+> +	kvfree(buckets);
+>  	kfree(htbl);
+>  	complete(&ntbl->deleted);
+>  }
 
-Problematic how? what are you seeing?
+ping
 
-> maybe this is because of the bug that Steve mentioned in the NVMe 
-> mailing list. Sagi mentioned that we should fix it in the NVMe/RDMA 
-> initiator and I'll run his suggestion as well.
-
-Is your device irq affinity linear?
-
-> BTW, when I run the blk_mq_map_queues it works for every irq affinity.
-
-But its probably not aligned to the device vector affinity.
+-- 
+Best regards
+Jan Dakinevich
