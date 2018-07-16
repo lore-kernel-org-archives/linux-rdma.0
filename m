@@ -1,89 +1,46 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [RFC PATCH mlx5-next 07/18] net/mlx5: Expose new packet reformat capabilities
-Date: Tue, 17 Jul 2018 00:33:06 +0300
-Message-ID: <CAJ3xEMgGaptnS+Bgd4QTEq=P7x52p9mUHgiGMX4-f3Bq3cMzhg@mail.gmail.com>
-References: <20180716082305.11744-1-leon@kernel.org> <20180716082305.11744-8-leon@kernel.org>
+From: Mark Bloch <markb@mellanox.com>
+Subject: RE: [RFC PATCH rdma-next 13/18] RDMA/mlx5: Enable decap and packet
+ reformat on flow tables
+Date: Mon, 16 Jul 2018 21:46:15 +0000
+Message-ID: <AM0PR05MB44032E09426E5E1DB5AD149ED25D0@AM0PR05MB4403.eurprd05.prod.outlook.com>
+References: <20180716082305.11744-1-leon@kernel.org>
+ <20180716082305.11744-14-leon@kernel.org>
+ <CAJ3xEMiLrSZMqZTSySB+PwUsXoHfh99QJZ+_WdQQn4sgA2HYNQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180716082305.11744-8-leon@kernel.org>
+In-Reply-To: <CAJ3xEMiLrSZMqZTSySB+PwUsXoHfh99QJZ+_WdQQn4sgA2HYNQ@mail.gmail.com>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Mark Bloch <markb@mellanox.com>
+To: Or Gerlitz <gerlitz.or@gmail.com>
 Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 16, 2018 at 11:22 AM, Leon Romanovsky <leon@kernel.org> wrote:
-> From: Mark Bloch <markb@mellanox.com>
->
-> Expose new abilities when creating a packet reformat context.
->
-> The new types which can be created are:
-> MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL: Ability to create generic encap
-> opertion to be done by the HW.
-
-opertion -> fix
-
-> MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2: Ability to create generic decap
-> opertion where the inner packet doesn't contain L2.
-
-opertion -> fix
-
->
-> MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL: Ability to create generic encap
-> opertion to be done by the HW. The L2 of the original packet
-
-opertion -> fix
-
-> is dropped.
->
-> Signed-off-by: Mark Bloch <markb@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  include/linux/mlx5/mlx5_ifc.h | 20 +++++++++++++++++---
->  1 file changed, 17 insertions(+), 3 deletions(-)
->
-> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-> index 059ec97e7b32..c71d711d4893 100644
-> --- a/include/linux/mlx5/mlx5_ifc.h
-> +++ b/include/linux/mlx5/mlx5_ifc.h
-> @@ -341,8 +341,13 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
->         u8         reserved_at_9[0x1];
->         u8         pop_vlan[0x1];
->         u8         push_vlan[0x1];
-> -       u8         reserved_at_c[0x14];
-> -
-> +       u8         reserved_at_c[0x3];
-> +       u8         reformat_and_vlan_action[0x1];
-
-unused in downstream patches
-what is this BTW?
-
-> +       u8         reserved_at_10[0x2];
-> +       u8         reformat_l3_tunnel_to_l2[0x1];
-> +       u8         reformat_l2_to_l3_tunnel[0x1];
-> +       u8         reformat_and_modify_action[0x1];
-
-unused in downstream patches
-what is this BTW?
-
-
-
-> +       u8         reserved_at_15[0xb];
->         u8         reserved_at_20[0x2];
->         u8         log_max_ft_size[0x6];
->         u8         log_max_modify_header_context[0x8];
-> @@ -551,7 +556,13 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
->         u8         nic_rx_multi_path_tirs[0x1];
->         u8         nic_rx_multi_path_tirs_fts[0x1];
->         u8         allow_sniffer_and_nic_rx_shared_tir[0x1];
-> -       u8         reserved_at_3[0x1fd];
-> +       u8         reserved_at_3[0x1d];
-> +       u8         encap_general_header[0x1];
-> +       u8         reserved_at_21[0xa];
-> +       u8         log_max_packet_reformat_context[0x5];
-> +       u8         reserved_at_30[0x6];
-> +       u8         max_encap_header_size[0xa];
-> +       u8         reserved_at_40[0x1c0];
-
-we are inconsistent, for some fields the term "encap" remained wheres
-for other fields we moved to use "reformat" or "packet reformat" etc
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IE9yIEdlcmxpdHogW21haWx0
+bzpnZXJsaXR6Lm9yQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdWx5IDE2LCAyMDE4IDI6
+MjQgUE0NCj4gVG86IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4gQ2M6IERvdWcg
+TGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IEphc29uIEd1bnRob3JwZQ0KPiA8amdnQG1l
+bGxhbm94LmNvbT47IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT47IFJETUEN
+Cj4gbWFpbGluZyBsaXN0IDxsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZz47IFNhZWVkIE1haGFt
+ZWVkDQo+IDxzYWVlZG1AbWVsbGFub3guY29tPjsgbGludXgtbmV0ZGV2IDxuZXRkZXZAdmdlci5r
+ZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCByZG1hLW5leHQgMTMvMThdIFJE
+TUEvbWx4NTogRW5hYmxlIGRlY2FwIGFuZA0KPiBwYWNrZXQgcmVmb3JtYXQgb24gZmxvdyB0YWJs
+ZXMNCj4gDQo+IE9uIE1vbiwgSnVsIDE2LCAyMDE4IGF0IDExOjIzIEFNLCBMZW9uIFJvbWFub3Zz
+a3kgPGxlb25Aa2VybmVsLm9yZz4NCj4gd3JvdGU6DQo+ID4gRnJvbTogTWFyayBCbG9jaCA8bWFy
+a2JAbWVsbGFub3guY29tPg0KPiA+DQo+ID4gSWYgTklDIFJYIGZsb3cgdGFibGVzIHN1cHBvcnQg
+ZGVjYXAgb3BlcnRpb24sIGVuYWJsZSBpdCBvbiBjcmVhdGlvbi4NCj4gDQo+IG9wZXJ0aW9uIC0t
+PiBvcGVyYXRpb24NCj4gDQo+ID4gSWYgTklDIFRYIGZsb3cgdGFibGVzIHN1cHBvcnQgcmVmb3Jt
+YXQgb3BlcnRpb24sIGVuYWJsZSBpdCBvbiBjcmVhdGlvbi4NCj4gDQo+IFdoYXQgaXMgdGhlIHRy
+aWdnZXIgdG8gdXNlIHRoZSBkZWNhcCBmbGFnIG9uIFJYIHRhYmxlIG9yIGVuY2FwIGZsYWcgb24N
+Cj4gVFggdGFibGU/DQo+IA0KDQpJdCBoYXMgbm8gcGVyZm9ybWFuY2UgcGVuYWx0eSB0byBhbHdh
+eXMgZW5hYmxlIHRoYXQsIHNvIHRoYXQncyB3aGF0IEkgZG8gaWYgc3VwcG9ydGVkLg0KIA0KPiBQ
+bGVhc2Ugbm90ZSB0aGF0IHdlIGhhdmUgYSBzaG9ydCBibGFua2V0IHcuci50IG11dHVhbCB1c2Fn
+ZSBieQ0KDQpGREIgYW5kIE5JQyBzdGVlcmluZyB0YWJsZXMgaGF2ZSBkaWZmZXJlbnQgbGltaXRh
+dGlvbnMsIHNvIGVuY2FwL2RlY2FwIG9uIE5JQyBzdGVlcmluZw0KaGF2ZSBub3RoaW5nIHRvIGRv
+IHdpdGggdGhlIGxpbWl0YXRpb25zIHRoZSBGREIgaGFzIHdpdGggdGhvc2Ugb3BlcmF0aW9ucy4N
+Cg0KPiBOSUMgdnMgZS1Td2l0Y2ggIHN0ZWVyaW5nLCBkaWQgeW91IGNvbnNpZGVyIHRvIGRvIHRo
+YXQgb24gZGVtYW5kPw0KDQpUaGUgZmxvdyB0YWJsZSBuZWVkcyB0byBiZSBjcmVhdGVkIHdpdGgg
+dGhvc2UgZmxhZ3Mgc2V0IGlmIHdlIHdhbnQgdG8gYXR0YWNoDQpkZWNhcC9wYWNrZXQgcmVmb3Jt
+YXQgYWN0aW9uIHRvIGl0LiBCVFcsIHRoZXJlIGlzIG5vIG1vZGlmeSBhY3Rpb24gZm9yIHRob3Nl
+IGJpdHMNCnNvIHRoYXQncyB3aHkgSSdtIGRvaW5nIGl0IG9uIGNyZWF0aW9uLg0KDQpNYXJrDQo=
