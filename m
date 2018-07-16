@@ -1,88 +1,103 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: RE: [RFC PATCH mlx5-next 07/18] net/mlx5: Expose new packet reformat
- capabilities
-Date: Mon, 16 Jul 2018 21:57:34 +0000
-Message-ID: <AM0PR05MB4403644B420FA89D5A1F6B9CD25D0@AM0PR05MB4403.eurprd05.prod.outlook.com>
-References: <20180716082305.11744-1-leon@kernel.org>
- <20180716082305.11744-8-leon@kernel.org>
- <CAJ3xEMgGaptnS+Bgd4QTEq=P7x52p9mUHgiGMX4-f3Bq3cMzhg@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Mon, 16 Jul 2018 16:12:49 -0700
+Message-ID: <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
+References: <20180716115058.5559-1-mhocko@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMgGaptnS+Bgd4QTEq=P7x52p9mUHgiGMX4-f3Bq3cMzhg@mail.gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180716115058.5559-1-mhocko@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IE9yIEdlcmxpdHogW21haWx0
-bzpnZXJsaXR6Lm9yQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdWx5IDE2LCAyMDE4IDI6
-MzMgUE0NCj4gVG86IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4gQ2M6IERvdWcg
-TGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IEphc29uIEd1bnRob3JwZQ0KPiA8amdnQG1l
-bGxhbm94LmNvbT47IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT47IFJETUEN
-Cj4gbWFpbGluZyBsaXN0IDxsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZz47IFNhZWVkIE1haGFt
-ZWVkDQo+IDxzYWVlZG1AbWVsbGFub3guY29tPjsgbGludXgtbmV0ZGV2IDxuZXRkZXZAdmdlci5r
-ZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1JGQyBQQVRDSCBtbHg1LW5leHQgMDcvMThdIG5l
-dC9tbHg1OiBFeHBvc2UgbmV3IHBhY2tldA0KPiByZWZvcm1hdCBjYXBhYmlsaXRpZXMNCj4gDQo+
-IE9uIE1vbiwgSnVsIDE2LCAyMDE4IGF0IDExOjIyIEFNLCBMZW9uIFJvbWFub3Zza3kgPGxlb25A
-a2VybmVsLm9yZz4NCj4gd3JvdGU6DQo+ID4gRnJvbTogTWFyayBCbG9jaCA8bWFya2JAbWVsbGFu
-b3guY29tPg0KPiA+DQo+ID4gRXhwb3NlIG5ldyBhYmlsaXRpZXMgd2hlbiBjcmVhdGluZyBhIHBh
-Y2tldCByZWZvcm1hdCBjb250ZXh0Lg0KPiA+DQo+ID4gVGhlIG5ldyB0eXBlcyB3aGljaCBjYW4g
-YmUgY3JlYXRlZCBhcmU6DQo+ID4gTUxYNV9SRUZPUk1BVF9UWVBFX0wyX1RPX0wyX1RVTk5FTDog
-QWJpbGl0eSB0byBjcmVhdGUgZ2VuZXJpYw0KPiBlbmNhcA0KPiA+IG9wZXJ0aW9uIHRvIGJlIGRv
-bmUgYnkgdGhlIEhXLg0KPiANCj4gb3BlcnRpb24gLT4gZml4DQo+IA0KPiA+IE1MWDVfUkVGT1JN
-QVRfVFlQRV9MM19UVU5ORUxfVE9fTDI6IEFiaWxpdHkgdG8gY3JlYXRlIGdlbmVyaWMNCj4gZGVj
-YXANCj4gPiBvcGVydGlvbiB3aGVyZSB0aGUgaW5uZXIgcGFja2V0IGRvZXNuJ3QgY29udGFpbiBM
-Mi4NCj4gDQo+IG9wZXJ0aW9uIC0+IGZpeA0KPiANCj4gPg0KPiA+IE1MWDVfUkVGT1JNQVRfVFlQ
-RV9MMl9UT19MM19UVU5ORUw6IEFiaWxpdHkgdG8gY3JlYXRlIGdlbmVyaWMNCj4gZW5jYXANCj4g
-PiBvcGVydGlvbiB0byBiZSBkb25lIGJ5IHRoZSBIVy4gVGhlIEwyIG9mIHRoZSBvcmlnaW5hbCBw
-YWNrZXQNCj4gDQo+IG9wZXJ0aW9uIC0+IGZpeA0KDQpUaHgsIHdpbGwgYmUgZml4ZWQuDQoNCj4g
-DQo+ID4gaXMgZHJvcHBlZC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IE1hcmsgQmxvY2ggPG1h
-cmtiQG1lbGxhbm94LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBMZW9uIFJvbWFub3Zza3kgPGxl
-b25yb0BtZWxsYW5veC5jb20+DQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvbGludXgvbWx4NS9tbHg1
-X2lmYy5oIHwgMjAgKysrKysrKysrKysrKysrKystLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDE3
-IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pDQo+ID4NCj4gPiBkaWZmIC0tZ2l0IGEvaW5j
-bHVkZS9saW51eC9tbHg1L21seDVfaWZjLmggYi9pbmNsdWRlL2xpbnV4L21seDUvbWx4NV9pZmMu
-aA0KPiA+IGluZGV4IDA1OWVjOTdlN2IzMi4uYzcxZDcxMWQ0ODkzIDEwMDY0NA0KPiA+IC0tLSBh
-L2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oDQo+ID4gKysrIGIvaW5jbHVkZS9saW51eC9t
-bHg1L21seDVfaWZjLmgNCj4gPiBAQCAtMzQxLDggKzM0MSwxMyBAQCBzdHJ1Y3QgbWx4NV9pZmNf
-Zmxvd190YWJsZV9wcm9wX2xheW91dF9iaXRzIHsNCj4gPiAgICAgICAgIHU4ICAgICAgICAgcmVz
-ZXJ2ZWRfYXRfOVsweDFdOw0KPiA+ICAgICAgICAgdTggICAgICAgICBwb3BfdmxhblsweDFdOw0K
-PiA+ICAgICAgICAgdTggICAgICAgICBwdXNoX3ZsYW5bMHgxXTsNCj4gPiAtICAgICAgIHU4ICAg
-ICAgICAgcmVzZXJ2ZWRfYXRfY1sweDE0XTsNCj4gPiAtDQo+ID4gKyAgICAgICB1OCAgICAgICAg
-IHJlc2VydmVkX2F0X2NbMHgzXTsNCj4gPiArICAgICAgIHU4ICAgICAgICAgcmVmb3JtYXRfYW5k
-X3ZsYW5fYWN0aW9uWzB4MV07DQo+IA0KPiB1bnVzZWQgaW4gZG93bnN0cmVhbSBwYXRjaGVzDQo+
-IHdoYXQgaXMgdGhpcyBCVFc/DQoNCkl0J3MgbmVlZGVkIGZvciBjb21wZXRlbmNlIGZvciBhbGwg
-dGhlIGJpdHMgdGhhdCBkZWFsIHdpdGggcGFja2V0IHJlZm9ybWF0Lg0KVGhlIGJpdCBpdHNlbGYg
-aW5kaWNhdGVzIHdoYXRldmVyIHRoZSBmbG93IHRhYmxlIHN1cHBvcnRzDQpyZWZvcm1hdCBhY3Rp
-b24gd2l0aCBhIHZsYW4gYWN0aW9uIChwb3AvcHVzaCkgaW4gdGhlIHNhbWUgcnVsZS4NCj4gDQo+
-ID4gKyAgICAgICB1OCAgICAgICAgIHJlc2VydmVkX2F0XzEwWzB4Ml07DQo+ID4gKyAgICAgICB1
-OCAgICAgICAgIHJlZm9ybWF0X2wzX3R1bm5lbF90b19sMlsweDFdOw0KPiA+ICsgICAgICAgdTgg
-ICAgICAgICByZWZvcm1hdF9sMl90b19sM190dW5uZWxbMHgxXTsNCj4gPiArICAgICAgIHU4ICAg
-ICAgICAgcmVmb3JtYXRfYW5kX21vZGlmeV9hY3Rpb25bMHgxXTsNCj4gDQo+IHVudXNlZCBpbiBk
-b3duc3RyZWFtIHBhdGNoZXMNCj4gd2hhdCBpcyB0aGlzIEJUVz8NCg0KQml0cyB0byBpbmRpY2F0
-ZSB3aGF0ZXZlciB0aGUgZmxvdyB0YWJsZSBzdXBwb3J0IHRoZSBuZXcgcGFja2V0IHJlZm9ybWF0
-IG1vZGVzLA0KYW5kIHNldHRpbmcgcmVmb3JtYXQgYWN0aW9uIHdpdGggbW9kaWZ5IGFjdGlvbiBp
-biB0aGUgc2FtZSBydWxlLg0KVGhvc2Ugd2lsbCBiZSB1c2VkIG9uY2UgYSBGVyB3aGljaCBleHBv
-c2UgdGhlbSBpcyBtYWRlIGF2YWlsYWJsZSwgIGJ1dCBhcyBhIGZlYXR1cmUvDQpjYXAgZmxhZ3Mg
-SSB3b3VsZCBsaWtlIHRvIGV4cG9zZSB0aGVtIG5vdy4NCg0KTWFyaw0KDQo+IA0KPiANCj4gDQo+
-ID4gKyAgICAgICB1OCAgICAgICAgIHJlc2VydmVkX2F0XzE1WzB4Yl07DQo+ID4gICAgICAgICB1
-OCAgICAgICAgIHJlc2VydmVkX2F0XzIwWzB4Ml07DQo+ID4gICAgICAgICB1OCAgICAgICAgIGxv
-Z19tYXhfZnRfc2l6ZVsweDZdOw0KPiA+ICAgICAgICAgdTggICAgICAgICBsb2dfbWF4X21vZGlm
-eV9oZWFkZXJfY29udGV4dFsweDhdOw0KPiA+IEBAIC01NTEsNyArNTU2LDEzIEBAIHN0cnVjdCBt
-bHg1X2lmY19mbG93X3RhYmxlX25pY19jYXBfYml0cyB7DQo+ID4gICAgICAgICB1OCAgICAgICAg
-IG5pY19yeF9tdWx0aV9wYXRoX3RpcnNbMHgxXTsNCj4gPiAgICAgICAgIHU4ICAgICAgICAgbmlj
-X3J4X211bHRpX3BhdGhfdGlyc19mdHNbMHgxXTsNCj4gPiAgICAgICAgIHU4ICAgICAgICAgYWxs
-b3dfc25pZmZlcl9hbmRfbmljX3J4X3NoYXJlZF90aXJbMHgxXTsNCj4gPiAtICAgICAgIHU4ICAg
-ICAgICAgcmVzZXJ2ZWRfYXRfM1sweDFmZF07DQo+ID4gKyAgICAgICB1OCAgICAgICAgIHJlc2Vy
-dmVkX2F0XzNbMHgxZF07DQo+ID4gKyAgICAgICB1OCAgICAgICAgIGVuY2FwX2dlbmVyYWxfaGVh
-ZGVyWzB4MV07DQo+ID4gKyAgICAgICB1OCAgICAgICAgIHJlc2VydmVkX2F0XzIxWzB4YV07DQo+
-ID4gKyAgICAgICB1OCAgICAgICAgIGxvZ19tYXhfcGFja2V0X3JlZm9ybWF0X2NvbnRleHRbMHg1
-XTsNCj4gPiArICAgICAgIHU4ICAgICAgICAgcmVzZXJ2ZWRfYXRfMzBbMHg2XTsNCj4gPiArICAg
-ICAgIHU4ICAgICAgICAgbWF4X2VuY2FwX2hlYWRlcl9zaXplWzB4YV07DQo+ID4gKyAgICAgICB1
-OCAgICAgICAgIHJlc2VydmVkX2F0XzQwWzB4MWMwXTsNCj4gDQo+IHdlIGFyZSBpbmNvbnNpc3Rl
-bnQsIGZvciBzb21lIGZpZWxkcyB0aGUgdGVybSAiZW5jYXAiIHJlbWFpbmVkIHdoZXJlcw0KPiBm
-b3Igb3RoZXIgZmllbGRzIHdlIG1vdmVkIHRvIHVzZSAicmVmb3JtYXQiIG9yICJwYWNrZXQgcmVm
-b3JtYXQiIGV0Yw0K
+On Mon, 16 Jul 2018 13:50:58 +0200 Michal Hocko <mhocko@kernel.org> wrote:
+
+> From: Michal Hocko <mhocko@suse.com>
+> 
+> There are several blockable mmu notifiers which might sleep in
+> mmu_notifier_invalidate_range_start and that is a problem for the
+> oom_reaper because it needs to guarantee a forward progress so it cannot
+> depend on any sleepable locks.
+> 
+> Currently we simply back off and mark an oom victim with blockable mmu
+> notifiers as done after a short sleep. That can result in selecting a
+> new oom victim prematurely because the previous one still hasn't torn
+> its memory down yet.
+> 
+> We can do much better though. Even if mmu notifiers use sleepable locks
+> there is no reason to automatically assume those locks are held.
+> Moreover majority of notifiers only care about a portion of the address
+> space and there is absolutely zero reason to fail when we are unmapping an
+> unrelated range. Many notifiers do really block and wait for HW which is
+> harder to handle and we have to bail out though.
+> 
+> This patch handles the low hanging fruid. __mmu_notifier_invalidate_range_start
+> gets a blockable flag and callbacks are not allowed to sleep if the
+> flag is set to false. This is achieved by using trylock instead of the
+> sleepable lock for most callbacks and continue as long as we do not
+> block down the call chain.
+
+I assume device driver developers are wondering "what does this mean
+for me".  As I understand it, the only time they will see
+blockable==false is when their driver is being called in response to an
+out-of-memory condition, yes?  So it is a very rare thing.
+
+Any suggestions regarding how the driver developers can test this code
+path?  I don't think we presently have a way to fake an oom-killing
+event?  Perhaps we should add such a thing, given the problems we're
+having with that feature.
+
+> I think we can improve that even further because there is a common
+> pattern to do a range lookup first and then do something about that.
+> The first part can be done without a sleeping lock in most cases AFAICS.
+> 
+> The oom_reaper end then simply retries if there is at least one notifier
+> which couldn't make any progress in !blockable mode. A retry loop is
+> already implemented to wait for the mmap_sem and this is basically the
+> same thing.
+> 
+> ...
+>
+> +static inline int mmu_notifier_invalidate_range_start_nonblock(struct mm_struct *mm,
+> +				  unsigned long start, unsigned long end)
+> +{
+> +	int ret = 0;
+> +	if (mm_has_notifiers(mm))
+> +		ret = __mmu_notifier_invalidate_range_start(mm, start, end, false);
+> +
+> +	return ret;
+>  }
+
+nit,
+
+{
+	if (mm_has_notifiers(mm))
+		return __mmu_notifier_invalidate_range_start(mm, start, end, false);
+	return 0;
+}
+
+would suffice.
+
+
+> 
+> ...
+>
+> --- a/mm/mmap.c
+> +++ b/mm/mmap.c
+> @@ -3074,7 +3074,7 @@ void exit_mmap(struct mm_struct *mm)
+>  		 * reliably test it.
+>  		 */
+>  		mutex_lock(&oom_lock);
+> -		__oom_reap_task_mm(mm);
+> +		(void)__oom_reap_task_mm(mm);
+>  		mutex_unlock(&oom_lock);
+
+What does this do?
+
+>  		set_bit(MMF_OOM_SKIP, &mm->flags);
+> 
+> ...
+>
