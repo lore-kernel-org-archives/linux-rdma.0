@@ -1,41 +1,39 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
-Subject: [PATCH] net/rds: Remove unnecessary variable
-Date: Mon, 16 Jul 2018 15:06:39 +0200
-Message-ID: <20180716130639.1591990-1-Haakon.Bugge@oracle.com>
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Mon, 16 Jul 2018 17:54:13 +0300
+Message-ID: <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
+References: <20180716083012.15410-1-leon@kernel.org>
+ <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
+ <20180716103046.GJ3152@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180716103046.GJ3152@mtr-leonro.mtl.com>
+Content-Language: he
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>, Sagi Grimberg <sagi@grimberg.me>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
----
- net/rds/ib_recv.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Hi,
+I've tested this patch and seems problematic at this moment.
+maybe this is because of the bug that Steve mentioned in the NVMe 
+mailing list. Sagi mentioned that we should fix it in the NVMe/RDMA 
+initiator and I'll run his suggestion as well.
+BTW, when I run the blk_mq_map_queues it works for every irq affinity.
 
-diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
-index b4e421aa9727..a720583542a1 100644
---- a/net/rds/ib_recv.c
-+++ b/net/rds/ib_recv.c
-@@ -1025,7 +1025,6 @@ int rds_ib_recv_path(struct rds_conn_path *cp)
- {
- 	struct rds_connection *conn = cp->cp_conn;
- 	struct rds_ib_connection *ic = conn->c_transport_data;
--	int ret = 0;
- 
- 	rdsdebug("conn %p\n", conn);
- 	if (rds_conn_up(conn)) {
-@@ -1034,7 +1033,7 @@ int rds_ib_recv_path(struct rds_conn_path *cp)
- 		rds_ib_stats_inc(s_ib_rx_refill_from_thread);
- 	}
- 
--	return ret;
-+	return 0;
- }
- 
- int rds_ib_recv_init(void)
--- 
-2.14.3
+On 7/16/2018 1:30 PM, Leon Romanovsky wrote:
+> On Mon, Jul 16, 2018 at 01:23:24PM +0300, Sagi Grimberg wrote:
+>> Leon, I'd like to see a tested-by tag for this (at least
+>> until I get some time to test it).
+> 
+> Of course.
+> 
+> Thanks
+> 
+>>
+>> The patch itself looks fine to me.
+
+
+-Max.
