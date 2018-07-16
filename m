@@ -1,13 +1,12 @@
 From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [RFC PATCH mlx5-next 04/18] net/mlx5: Break encap/decap into two
- separated flags
-Date: Tue, 17 Jul 2018 00:28:43 +0300
-Message-ID: <CAJ3xEMipNtMX52K1om-e-9YkSYkBqYeBfbBL03NLkC3sXp=bbA@mail.gmail.com>
-References: <20180716082305.11744-1-leon@kernel.org> <20180716082305.11744-5-leon@kernel.org>
+Subject: Re: [RFC PATCH mlx5-next 07/18] net/mlx5: Expose new packet reformat capabilities
+Date: Tue, 17 Jul 2018 00:33:06 +0300
+Message-ID: <CAJ3xEMgGaptnS+Bgd4QTEq=P7x52p9mUHgiGMX4-f3Bq3cMzhg@mail.gmail.com>
+References: <20180716082305.11744-1-leon@kernel.org> <20180716082305.11744-8-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180716082305.11744-5-leon@kernel.org>
+In-Reply-To: <20180716082305.11744-8-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Mark Bloch <markb@mellanox.com>
 Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
@@ -16,9 +15,75 @@ List-Id: linux-rdma@vger.kernel.org
 On Mon, Jul 16, 2018 at 11:22 AM, Leon Romanovsky <leon@kernel.org> wrote:
 > From: Mark Bloch <markb@mellanox.com>
 >
-> Today we are able to attach encap and decap actions only to the FDB.
-> In preparation to enable those actions on the NIC flow tables break
+> Expose new abilities when creating a packet reformat context.
+>
+> The new types which can be created are:
+> MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL: Ability to create generic encap
+> opertion to be done by the HW.
 
-tables break --> tables, break
+opertion -> fix
 
-> the single flag into two.
+> MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2: Ability to create generic decap
+> opertion where the inner packet doesn't contain L2.
+
+opertion -> fix
+
+>
+> MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL: Ability to create generic encap
+> opertion to be done by the HW. The L2 of the original packet
+
+opertion -> fix
+
+> is dropped.
+>
+> Signed-off-by: Mark Bloch <markb@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  include/linux/mlx5/mlx5_ifc.h | 20 +++++++++++++++++---
+>  1 file changed, 17 insertions(+), 3 deletions(-)
+>
+> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+> index 059ec97e7b32..c71d711d4893 100644
+> --- a/include/linux/mlx5/mlx5_ifc.h
+> +++ b/include/linux/mlx5/mlx5_ifc.h
+> @@ -341,8 +341,13 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
+>         u8         reserved_at_9[0x1];
+>         u8         pop_vlan[0x1];
+>         u8         push_vlan[0x1];
+> -       u8         reserved_at_c[0x14];
+> -
+> +       u8         reserved_at_c[0x3];
+> +       u8         reformat_and_vlan_action[0x1];
+
+unused in downstream patches
+what is this BTW?
+
+> +       u8         reserved_at_10[0x2];
+> +       u8         reformat_l3_tunnel_to_l2[0x1];
+> +       u8         reformat_l2_to_l3_tunnel[0x1];
+> +       u8         reformat_and_modify_action[0x1];
+
+unused in downstream patches
+what is this BTW?
+
+
+
+> +       u8         reserved_at_15[0xb];
+>         u8         reserved_at_20[0x2];
+>         u8         log_max_ft_size[0x6];
+>         u8         log_max_modify_header_context[0x8];
+> @@ -551,7 +556,13 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
+>         u8         nic_rx_multi_path_tirs[0x1];
+>         u8         nic_rx_multi_path_tirs_fts[0x1];
+>         u8         allow_sniffer_and_nic_rx_shared_tir[0x1];
+> -       u8         reserved_at_3[0x1fd];
+> +       u8         reserved_at_3[0x1d];
+> +       u8         encap_general_header[0x1];
+> +       u8         reserved_at_21[0xa];
+> +       u8         log_max_packet_reformat_context[0x5];
+> +       u8         reserved_at_30[0x6];
+> +       u8         max_encap_header_size[0xa];
+> +       u8         reserved_at_40[0x1c0];
+
+we are inconsistent, for some fields the term "encap" remained wheres
+for other fields we moved to use "reformat" or "packet reformat" etc
