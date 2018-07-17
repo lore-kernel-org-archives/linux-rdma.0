@@ -1,126 +1,157 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 1/8] net/mlx5: FW tracer, add hardware structures
-Date: Mon, 16 Jul 2018 18:35:30 -0700
-Message-ID: <20180717013537.26411-2-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 3/8] net/mlx5: Add core support for double vlan push/pop steering action
+Date: Mon, 16 Jul 2018 18:35:32 -0700
+Message-ID: <20180717013537.26411-4-saeedm@mellanox.com>
 References: <20180717013537.26411-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180717013537.26411-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jianbo Liu <jianbol@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Feras Daoud <ferasda@mellanox.com>
+From: Jianbo Liu <jianbol@mellanox.com>
 
-This change adds the infrastructure to mlx5 core fw tracer.
-It introduces the following 4 new registers:
-MLX5_REG_MTRC_CAP  - Used to read tracer capabilities
-MLX5_REG_MTRC_CONF - Used to set tracer configurations
-MLX5_REG_MTRC_STDB - Used to query tracer strings database
-MLX5_REG_MTRC_CTRL - Used to control the tracer
+As newer firmware supports double push/pop in a single FTE, we add
+core bits and extend vlan action logic for it.
 
-The capability of the tracing can be checked using mcam access
-register, therefore, the mcam access register interface will expose
-the tracer register.
-
-Signed-off-by: Feras Daoud <ferasda@mellanox.com>
+Signed-off-by: Jianbo Liu <jianbol@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- include/linux/mlx5/driver.h   |  4 +++
- include/linux/mlx5/mlx5_ifc.h | 61 ++++++++++++++++++++++++++++++++++-
- 2 files changed, 64 insertions(+), 1 deletion(-)
+ .../ethernet/mellanox/mlx5/core/diag/fs_tracepoint.h |  2 ++
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c   |  6 +++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c     | 12 +++++++++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c    |  4 +++-
+ include/linux/mlx5/fs.h                              |  4 +++-
+ include/linux/mlx5/mlx5_ifc.h                        | 11 +++++++++--
+ 6 files changed, 29 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 1cb1c0317b77..4a4125b4279d 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -138,6 +138,10 @@ enum {
- 	MLX5_REG_HOST_ENDIANNESS = 0x7004,
- 	MLX5_REG_MCIA		 = 0x9014,
- 	MLX5_REG_MLCR		 = 0x902b,
-+	MLX5_REG_MTRC_CAP	 = 0x9040,
-+	MLX5_REG_MTRC_CONF	 = 0x9041,
-+	MLX5_REG_MTRC_STDB	 = 0x9042,
-+	MLX5_REG_MTRC_CTRL	 = 0x9043,
- 	MLX5_REG_MPCNT		 = 0x9051,
- 	MLX5_REG_MTPPS		 = 0x9053,
- 	MLX5_REG_MTPPSE		 = 0x9054,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.h b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.h
+index 09f178a3fcab..0240aee9189e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.h
+@@ -138,6 +138,8 @@ TRACE_EVENT(mlx5_fs_del_fg,
+ 	{MLX5_FLOW_CONTEXT_ACTION_MOD_HDR,	 "MOD_HDR"},\
+ 	{MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH,	 "VLAN_PUSH"},\
+ 	{MLX5_FLOW_CONTEXT_ACTION_VLAN_POP,	 "VLAN_POP"},\
++	{MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH_2,	 "VLAN_PUSH_2"},\
++	{MLX5_FLOW_CONTEXT_ACTION_VLAN_POP_2,	 "VLAN_POP_2"},\
+ 	{MLX5_FLOW_CONTEXT_ACTION_FWD_NEXT_PRIO, "NEXT_PRIO"}
+ 
+ TRACE_EVENT(mlx5_fs_set_fte,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index cecd201f0b73..8f50ce80ff66 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -70,9 +70,9 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 		flow_act.action &= ~(MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH |
+ 				     MLX5_FLOW_CONTEXT_ACTION_VLAN_POP);
+ 	else if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH) {
+-		flow_act.vlan.ethtype = ntohs(attr->vlan_proto);
+-		flow_act.vlan.vid = attr->vlan_vid;
+-		flow_act.vlan.prio = attr->vlan_prio;
++		flow_act.vlan[0].ethtype = ntohs(attr->vlan_proto);
++		flow_act.vlan[0].vid = attr->vlan_vid;
++		flow_act.vlan[0].prio = attr->vlan_prio;
+ 	}
+ 
+ 	if (flow_act.action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 5a00deff5457..6a62b84e57f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -349,9 +349,15 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+ 
+ 	vlan = MLX5_ADDR_OF(flow_context, in_flow_context, push_vlan);
+ 
+-	MLX5_SET(vlan, vlan, ethtype, fte->action.vlan.ethtype);
+-	MLX5_SET(vlan, vlan, vid, fte->action.vlan.vid);
+-	MLX5_SET(vlan, vlan, prio, fte->action.vlan.prio);
++	MLX5_SET(vlan, vlan, ethtype, fte->action.vlan[0].ethtype);
++	MLX5_SET(vlan, vlan, vid, fte->action.vlan[0].vid);
++	MLX5_SET(vlan, vlan, prio, fte->action.vlan[0].prio);
++
++	vlan = MLX5_ADDR_OF(flow_context, in_flow_context, push_vlan_2);
++
++	MLX5_SET(vlan, vlan, ethtype, fte->action.vlan[1].ethtype);
++	MLX5_SET(vlan, vlan, vid, fte->action.vlan[1].vid);
++	MLX5_SET(vlan, vlan, prio, fte->action.vlan[1].prio);
+ 
+ 	in_match_value = MLX5_ADDR_OF(flow_context, in_flow_context,
+ 				      match_value);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 49a75d31185e..05e7a5112b74 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -1464,7 +1464,9 @@ static bool check_conflicting_actions(u32 action1, u32 action2)
+ 			     MLX5_FLOW_CONTEXT_ACTION_DECAP |
+ 			     MLX5_FLOW_CONTEXT_ACTION_MOD_HDR  |
+ 			     MLX5_FLOW_CONTEXT_ACTION_VLAN_POP |
+-			     MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH))
++			     MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH |
++			     MLX5_FLOW_CONTEXT_ACTION_VLAN_POP_2 |
++			     MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH_2))
+ 		return true;
+ 
+ 	return false;
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 757b4a30281e..c40f2fc68655 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -152,6 +152,8 @@ struct mlx5_fs_vlan {
+         u8  prio;
+ };
+ 
++#define MLX5_FS_VLAN_DEPTH	2
++
+ struct mlx5_flow_act {
+ 	u32 action;
+ 	bool has_flow_tag;
+@@ -159,7 +161,7 @@ struct mlx5_flow_act {
+ 	u32 encap_id;
+ 	u32 modify_id;
+ 	uintptr_t esp_id;
+-	struct mlx5_fs_vlan vlan;
++	struct mlx5_fs_vlan vlan[MLX5_FS_VLAN_DEPTH];
+ 	struct ib_counters *counters;
+ };
+ 
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 1853e7fd6924..bd7b71f54d59 100644
+index 2de5feaeb74a..ae12120ef021 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -8112,7 +8112,9 @@ struct mlx5_ifc_mcam_access_reg_bits {
- 	u8         mcqi[0x1];
- 	u8         reserved_at_1f[0x1];
+@@ -337,7 +337,10 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
+ 	u8         reserved_at_9[0x1];
+ 	u8         pop_vlan[0x1];
+ 	u8         push_vlan[0x1];
+-	u8         reserved_at_c[0x14];
++	u8         reserved_at_c[0x1];
++	u8         pop_vlan_2[0x1];
++	u8         push_vlan_2[0x1];
++	u8         reserved_at_f[0x11];
  
--	u8         regs_95_to_64[0x20];
-+	u8         regs_95_to_68[0x1c];
-+	u8         tracer_registers[0x4];
-+
- 	u8         regs_63_to_32[0x20];
- 	u8         regs_31_to_0[0x20];
- };
-@@ -9187,4 +9189,61 @@ struct mlx5_ifc_create_uctx_in_bits {
- 	struct mlx5_ifc_uctx_bits                     uctx;
+ 	u8         reserved_at_20[0x2];
+ 	u8         log_max_ft_size[0x6];
+@@ -2386,6 +2389,8 @@ enum {
+ 	MLX5_FLOW_CONTEXT_ACTION_MOD_HDR   = 0x40,
+ 	MLX5_FLOW_CONTEXT_ACTION_VLAN_POP  = 0x80,
+ 	MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH = 0x100,
++	MLX5_FLOW_CONTEXT_ACTION_VLAN_POP_2  = 0x400,
++	MLX5_FLOW_CONTEXT_ACTION_VLAN_PUSH_2 = 0x800,
  };
  
-+struct mlx5_ifc_mtrc_string_db_param_bits {
-+	u8         string_db_base_address[0x20];
+ struct mlx5_ifc_vlan_bits {
+@@ -2416,7 +2421,9 @@ struct mlx5_ifc_flow_context_bits {
+ 
+ 	u8         modify_header_id[0x20];
+ 
+-	u8         reserved_at_100[0x100];
++	struct mlx5_ifc_vlan_bits push_vlan_2;
 +
-+	u8         reserved_at_20[0x8];
-+	u8         string_db_size[0x18];
-+};
-+
-+struct mlx5_ifc_mtrc_cap_bits {
-+	u8         trace_owner[0x1];
-+	u8         trace_to_memory[0x1];
-+	u8         reserved_at_2[0x4];
-+	u8         trc_ver[0x2];
-+	u8         reserved_at_8[0x14];
-+	u8         num_string_db[0x4];
-+
-+	u8         first_string_trace[0x8];
-+	u8         num_string_trace[0x8];
-+	u8         reserved_at_30[0x28];
-+
-+	u8         log_max_trace_buffer_size[0x8];
-+
-+	u8         reserved_at_60[0x20];
-+
-+	struct mlx5_ifc_mtrc_string_db_param_bits string_db_param[8];
-+
-+	u8         reserved_at_280[0x180];
-+};
-+
-+struct mlx5_ifc_mtrc_conf_bits {
-+	u8         reserved_at_0[0x1c];
-+	u8         trace_mode[0x4];
-+	u8         reserved_at_20[0x18];
-+	u8         log_trace_buffer_size[0x8];
-+	u8         trace_mkey[0x20];
-+	u8         reserved_at_60[0x3a0];
-+};
-+
-+struct mlx5_ifc_mtrc_stdb_bits {
-+	u8         string_db_index[0x4];
-+	u8         reserved_at_4[0x4];
-+	u8         read_size[0x18];
-+	u8         start_offset[0x20];
-+	u8         string_db_data[0];
-+};
-+
-+struct mlx5_ifc_mtrc_ctrl_bits {
-+	u8         trace_status[0x2];
-+	u8         reserved_at_2[0x2];
-+	u8         arm_event[0x1];
-+	u8         reserved_at_5[0xb];
-+	u8         modify_field_select[0x10];
-+	u8         reserved_at_20[0x2b];
-+	u8         current_timestamp52_32[0x15];
-+	u8         current_timestamp31_0[0x20];
-+	u8         reserved_at_80[0x180];
-+};
-+
- #endif /* MLX5_IFC_H */
++	u8         reserved_at_120[0xe0];
+ 
+ 	struct mlx5_ifc_fte_match_param_bits match_value;
+ 
 -- 
 2.17.0
