@@ -1,56 +1,106 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [RFC PATCH rdma-next 13/18] RDMA/mlx5: Enable decap and packet
- reformat on flow tables
-Date: Tue, 17 Jul 2018 15:47:25 +0300
-Message-ID: <CAJ3xEMjZQ+HNzFpmJG06Wq0T-Qo+sCfJDEhEM5h=8U+kSS76Mg@mail.gmail.com>
-References: <20180716082305.11744-1-leon@kernel.org> <20180716082305.11744-14-leon@kernel.org>
- <CAJ3xEMiLrSZMqZTSySB+PwUsXoHfh99QJZ+_WdQQn4sgA2HYNQ@mail.gmail.com> <AM0PR05MB44032E09426E5E1DB5AD149ED25D0@AM0PR05MB4403.eurprd05.prod.outlook.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Tue, 17 Jul 2018 08:03:45 -0500
+Message-ID: <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
+References: <20180716083012.15410-1-leon@kernel.org> <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me> <20180716103046.GJ3152@mtr-leonro.mtl.com> <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com> <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me> <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com> <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com> <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AM0PR05MB44032E09426E5E1DB5AD149ED25D0@AM0PR05MB4403.eurprd05.prod.outlook.com>
+In-Reply-To: <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
+Content-Language: en-us
 Sender: netdev-owner@vger.kernel.org
-To: Mark Bloch <markb@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: 'Max Gurtovoy' <maxg@mellanox.com>, 'Sagi Grimberg' <sagi@grimberg.me>, 'Leon Romanovsky' <leon@kernel.org>
+Cc: 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@mellanox.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 17, 2018 at 12:46 AM, Mark Bloch <markb@mellanox.com> wrote:
->> From: Or Gerlitz [mailto:gerlitz.or@gmail.com]
 
->> > If NIC RX flow tables support decap opertion, enable it on creation.
->> opertion --> operation
+> On 7/16/2018 8:08 PM, Steve Wise wrote:
+> > Hey Max:
+> >
+> >
+> 
+> Hey,
+> 
+> > On 7/16/2018 11:46 AM, Max Gurtovoy wrote:
+> >>
+> >>
+> >> On 7/16/2018 5:59 PM, Sagi Grimberg wrote:
+> >>>
+> >>>> Hi,
+> >>>> I've tested this patch and seems problematic at this moment.
+> >>>
+> >>> Problematic how? what are you seeing?
+> >>
+> >> Connection failures and same error Steve saw:
+> >>
+> >> [Mon Jul 16 16:19:11 2018] nvme nvme0: Connect command failed, error
+> >> wo/DNR bit: -16402
+> >> [Mon Jul 16 16:19:11 2018] nvme nvme0: failed to connect queue: 2 ret=-
+> 18
+> >>
+> >>
+> >>>
+> >>>> maybe this is because of the bug that Steve mentioned in the NVMe
+> >>>> mailing list. Sagi mentioned that we should fix it in the NVMe/RDMA
+> >>>> initiator and I'll run his suggestion as well.
+> >>>
+> >>> Is your device irq affinity linear?
+> >>
+> >> When it's linear and the balancer is stopped the patch works.
+> >>
+> >>>
+> >>>> BTW, when I run the blk_mq_map_queues it works for every irq
+> affinity.
+> >>>
+> >>> But its probably not aligned to the device vector affinity.
+> >>
+> >> but I guess it's better in some cases.
+> >>
+> >> I've checked the situation before Leon's patch and set all the vetcors
+> >> to CPU 0. In this case (I think that this was the initial report by
+> >> Steve), we use the affinity_hint (Israel's and Saeed's patches were we
+> >> use dev->priv.irq_info[vector].mask) and it worked fine.
+> >>
+> >> Steve,
+> >> Can you share your configuration (kernel, HCA, affinity map, connect
+> >> command, lscpu) ?
+> >> I want to repro it in my lab.
+> >>
+> >
+> > - linux-4.18-rc1 + the nvme/nvmet inline_data_size patches + patches to
+> > enable ib_get_vector_affinity() in cxgb4 + sagi's patch + leon's mlx5
+> > patch so I can change the affinity via procfs.
+> 
+> ohh, now I understand that you where complaining regarding the affinity
+> change reflection to mlx5_ib_get_vector_affinity and not regarding the
+> failures on connecting while the affinity overlaps (that is working good
+> before Leon's patch).
+> So this is a known issue since we used a static hint that never changes
+> from dev->priv.irq_info[vector].mask.
+> 
+> IMO we must fulfil the user wish to connect to N queues and not reduce
+> it because of affinity overlaps. So in order to push Leon's patch we
+> must also fix the blk_mq_rdma_map_queues to do a best effort mapping
+> according the affinity and map the rest in naive way (in that way we
+> will *always* map all the queues).
 
-saw it?
+That is what I would expect also.   For example, in my node, where there are
+16 cpus, and 2 numa nodes, I observe much better nvmf IOPS performance by
+setting up my 16 driver completion event queues such that each is bound to a
+node-local cpu.  So I end up with each nodel-local cpu having 2 queues bound
+to it.   W/O adding support in iw_cxgb4 for ib_get_vector_affinity(), this
+works fine.   I assumed adding ib_get_vector_affinity() would allow this to
+all "just work" by default, but I'm running into this connection failure
+issue. 
 
->> > If NIC TX flow tables support reformat opertion, enable it on creation.
+I don't understand exactly what the blk_mq layer is trying to do, but I
+assume it has ingress event queues and processing that it trying to align
+with the drivers ingress cq event handling, so everybody stays on the same
+cpu (or at least node).   But something else is going on.  Is there
+documentation on how this works somewhere?
 
-opertion --> operation
+Thanks,
 
->> What is the trigger to use the decap flag on RX table or encap flag on
->> TX table?
-
-> It has no performance penalty to always enable that, so that's what I do if supported.
-
-I was not referring to performance, see below
-
->> Please note that we have a short blanket w.r.t mutual usage by
-
-> FDB and NIC steering tables have different limitations, so encap/decap on NIC steering
-> have nothing to do with the limitations the FDB has with those operations.
-
-no! AFAIK it has to do, the FW maintains three states for encap(decap)
-NONE, FDB or NIC
-if the state is NIC, an FDB table can't be created with encap set, and
-the other way around, if the
-state is FDB, NIC TX table can't be created with encap set, etc. This
-is the short blanket I was
-referring too, you can check me.
-
->> NIC vs e-Switch  steering, did you consider to do that on demand?
->
-> The flow table needs to be created with those flags set if we want to attach
-> decap/packet reformat action to it. BTW, there is no modify action for those bits
-> so that's why I'm doing it on creation.
-
-The question was if you can let the application tell you that they want to use
-rules with encap/decap, as we did in the devlink switchdev API (encap enabled)
+Steve
