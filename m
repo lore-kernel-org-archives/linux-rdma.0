@@ -1,85 +1,126 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 0/8] Mellanox, mlx5 updates 2018-07-16
-Date: Mon, 16 Jul 2018 18:35:29 -0700
-Message-ID: <20180717013537.26411-1-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 1/8] net/mlx5: FW tracer, add hardware structures
+Date: Mon, 16 Jul 2018 18:35:30 -0700
+Message-ID: <20180717013537.26411-2-saeedm@mellanox.com>
+References: <20180717013537.26411-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180717013537.26411-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Feras Daoud <ferasda@mellanox.com>
 
-This series includes mlx5 core infrastructure updates and fixes
-aimed for mlx5-next branch.
+This change adds the infrastructure to mlx5 core fw tracer.
+It introduces the following 4 new registers:
+MLX5_REG_MTRC_CAP  - Used to read tracer capabilities
+MLX5_REG_MTRC_CONF - Used to set tracer configurations
+MLX5_REG_MTRC_STDB - Used to query tracer strings database
+MLX5_REG_MTRC_CTRL - Used to control the tracer
 
-In case of no objections, below patches will be applied to mlx5-next branch
-and next mlx5 net-next pull request will start with a merge commit
-pointing to the last patch in this series.
+The capability of the tracing can be checked using mcam access
+register, therefore, the mcam access register interface will expose
+the tracer register.
 
->From Eran:
- - Add MPEGC (Management PCIe General Configuration) registers and btis
- - Fix tristate and description for MLX5 module
+Signed-off-by: Feras Daoud <ferasda@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ include/linux/mlx5/driver.h   |  4 +++
+ include/linux/mlx5/mlx5_ifc.h | 61 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 64 insertions(+), 1 deletion(-)
 
->From Feras:
- - Add hardware structures for the firmware tracer
-
->From Jainbo:
- - Core support for double vlan push/pop steering action
-
->From Max:
- - Add XRQ commands definitions
-
->From Noa:
- - Add missing SET_DRIVER_VERSION command translation
-
->From Roi:
- - Use ERR_CAST() instead of coding it
-
->From Tariq:
- - Better return types for CQE API
-
-Thanks,
-Saeed
-
---- 
-
-Eran Ben Elisha (2):
-  net/mlx5: Expose MPEGC (Management PCIe General Configuration)
-    structures
-  net/mlx5: Fix tristate and description for MLX5 module
-
-Feras Daoud (1):
-  net/mlx5: FW tracer, add hardware structures
-
-Jianbo Liu (1):
-  net/mlx5: Add core support for double vlan push/pop steering action
-
-Max Gurtovoy (1):
-  net/mlx5: Add XRQ commands definitions
-
-Noa Osherovich (1):
-  net/mlx5: Add missing SET_DRIVER_VERSION command translation
-
-Roi Dayan (1):
-  net/mlx5: Use ERR_CAST() instead of coding it
-
-Tariq Toukan (1):
-  net/mlx5: Better return types for CQE API
-
- drivers/infiniband/hw/mlx5/Kconfig            |  2 +-
- .../net/ethernet/mellanox/mlx5/core/Kconfig   |  6 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  9 ++
- .../mellanox/mlx5/core/diag/fs_tracepoint.h   |  2 +
- .../mellanox/mlx5/core/eswitch_offloads.c     |  6 +-
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  | 12 ++-
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |  6 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    |  2 +-
- include/linux/mlx5/device.h                   |  8 +-
- include/linux/mlx5/driver.h                   |  5 +
- include/linux/mlx5/fs.h                       |  4 +-
- include/linux/mlx5/mlx5_ifc.h                 | 93 ++++++++++++++++++-
- 12 files changed, 133 insertions(+), 22 deletions(-)
-
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 1cb1c0317b77..4a4125b4279d 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -138,6 +138,10 @@ enum {
+ 	MLX5_REG_HOST_ENDIANNESS = 0x7004,
+ 	MLX5_REG_MCIA		 = 0x9014,
+ 	MLX5_REG_MLCR		 = 0x902b,
++	MLX5_REG_MTRC_CAP	 = 0x9040,
++	MLX5_REG_MTRC_CONF	 = 0x9041,
++	MLX5_REG_MTRC_STDB	 = 0x9042,
++	MLX5_REG_MTRC_CTRL	 = 0x9043,
+ 	MLX5_REG_MPCNT		 = 0x9051,
+ 	MLX5_REG_MTPPS		 = 0x9053,
+ 	MLX5_REG_MTPPSE		 = 0x9054,
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 1853e7fd6924..bd7b71f54d59 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -8112,7 +8112,9 @@ struct mlx5_ifc_mcam_access_reg_bits {
+ 	u8         mcqi[0x1];
+ 	u8         reserved_at_1f[0x1];
+ 
+-	u8         regs_95_to_64[0x20];
++	u8         regs_95_to_68[0x1c];
++	u8         tracer_registers[0x4];
++
+ 	u8         regs_63_to_32[0x20];
+ 	u8         regs_31_to_0[0x20];
+ };
+@@ -9187,4 +9189,61 @@ struct mlx5_ifc_create_uctx_in_bits {
+ 	struct mlx5_ifc_uctx_bits                     uctx;
+ };
+ 
++struct mlx5_ifc_mtrc_string_db_param_bits {
++	u8         string_db_base_address[0x20];
++
++	u8         reserved_at_20[0x8];
++	u8         string_db_size[0x18];
++};
++
++struct mlx5_ifc_mtrc_cap_bits {
++	u8         trace_owner[0x1];
++	u8         trace_to_memory[0x1];
++	u8         reserved_at_2[0x4];
++	u8         trc_ver[0x2];
++	u8         reserved_at_8[0x14];
++	u8         num_string_db[0x4];
++
++	u8         first_string_trace[0x8];
++	u8         num_string_trace[0x8];
++	u8         reserved_at_30[0x28];
++
++	u8         log_max_trace_buffer_size[0x8];
++
++	u8         reserved_at_60[0x20];
++
++	struct mlx5_ifc_mtrc_string_db_param_bits string_db_param[8];
++
++	u8         reserved_at_280[0x180];
++};
++
++struct mlx5_ifc_mtrc_conf_bits {
++	u8         reserved_at_0[0x1c];
++	u8         trace_mode[0x4];
++	u8         reserved_at_20[0x18];
++	u8         log_trace_buffer_size[0x8];
++	u8         trace_mkey[0x20];
++	u8         reserved_at_60[0x3a0];
++};
++
++struct mlx5_ifc_mtrc_stdb_bits {
++	u8         string_db_index[0x4];
++	u8         reserved_at_4[0x4];
++	u8         read_size[0x18];
++	u8         start_offset[0x20];
++	u8         string_db_data[0];
++};
++
++struct mlx5_ifc_mtrc_ctrl_bits {
++	u8         trace_status[0x2];
++	u8         reserved_at_2[0x2];
++	u8         arm_event[0x1];
++	u8         reserved_at_5[0xb];
++	u8         modify_field_select[0x10];
++	u8         reserved_at_20[0x2b];
++	u8         current_timestamp52_32[0x15];
++	u8         current_timestamp31_0[0x20];
++	u8         reserved_at_80[0x180];
++};
++
+ #endif /* MLX5_IFC_H */
 -- 
 2.17.0
