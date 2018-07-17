@@ -1,98 +1,93 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Tue, 17 Jul 2018 10:12:01 +0200
-Message-ID: <20180717081201.GB16803@dhcp22.suse.cz>
-References: <20180716115058.5559-1-mhocko@kernel.org>
- <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Tue, 17 Jul 2018 11:46:40 +0300
+Message-ID: <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
+References: <20180716083012.15410-1-leon@kernel.org>
+ <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
+ <20180716103046.GJ3152@mtr-leonro.mtl.com>
+ <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
+ <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
+ <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
+ <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Felix Kuehling <felix.kuehling@amd.com>, LKML <linux-kernel@vger.kernel.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christ>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
+Content-Language: he
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, Sagi Grimberg <sagi@grimberg.me>, Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uIDE2LTA3LTE4IDE2OjEyOjQ5LCBBbmRyZXcgTW9ydG9uIHdyb3RlOgo+IE9uIE1vbiwg
-MTYgSnVsIDIwMTggMTM6NTA6NTggKzAyMDAgTWljaGFsIEhvY2tvIDxtaG9ja29Aa2VybmVsLm9y
-Zz4gd3JvdGU6Cj4gCj4gPiBGcm9tOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BzdXNlLmNvbT4KPiA+
-IAo+ID4gVGhlcmUgYXJlIHNldmVyYWwgYmxvY2thYmxlIG1tdSBub3RpZmllcnMgd2hpY2ggbWln
-aHQgc2xlZXAgaW4KPiA+IG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0IGFuZCB0
-aGF0IGlzIGEgcHJvYmxlbSBmb3IgdGhlCj4gPiBvb21fcmVhcGVyIGJlY2F1c2UgaXQgbmVlZHMg
-dG8gZ3VhcmFudGVlIGEgZm9yd2FyZCBwcm9ncmVzcyBzbyBpdCBjYW5ub3QKPiA+IGRlcGVuZCBv
-biBhbnkgc2xlZXBhYmxlIGxvY2tzLgo+ID4gCj4gPiBDdXJyZW50bHkgd2Ugc2ltcGx5IGJhY2sg
-b2ZmIGFuZCBtYXJrIGFuIG9vbSB2aWN0aW0gd2l0aCBibG9ja2FibGUgbW11Cj4gPiBub3RpZmll
-cnMgYXMgZG9uZSBhZnRlciBhIHNob3J0IHNsZWVwLiBUaGF0IGNhbiByZXN1bHQgaW4gc2VsZWN0
-aW5nIGEKPiA+IG5ldyBvb20gdmljdGltIHByZW1hdHVyZWx5IGJlY2F1c2UgdGhlIHByZXZpb3Vz
-IG9uZSBzdGlsbCBoYXNuJ3QgdG9ybgo+ID4gaXRzIG1lbW9yeSBkb3duIHlldC4KPiA+IAo+ID4g
-V2UgY2FuIGRvIG11Y2ggYmV0dGVyIHRob3VnaC4gRXZlbiBpZiBtbXUgbm90aWZpZXJzIHVzZSBz
-bGVlcGFibGUgbG9ja3MKPiA+IHRoZXJlIGlzIG5vIHJlYXNvbiB0byBhdXRvbWF0aWNhbGx5IGFz
-c3VtZSB0aG9zZSBsb2NrcyBhcmUgaGVsZC4KPiA+IE1vcmVvdmVyIG1ham9yaXR5IG9mIG5vdGlm
-aWVycyBvbmx5IGNhcmUgYWJvdXQgYSBwb3J0aW9uIG9mIHRoZSBhZGRyZXNzCj4gPiBzcGFjZSBh
-bmQgdGhlcmUgaXMgYWJzb2x1dGVseSB6ZXJvIHJlYXNvbiB0byBmYWlsIHdoZW4gd2UgYXJlIHVu
-bWFwcGluZyBhbgo+ID4gdW5yZWxhdGVkIHJhbmdlLiBNYW55IG5vdGlmaWVycyBkbyByZWFsbHkg
-YmxvY2sgYW5kIHdhaXQgZm9yIEhXIHdoaWNoIGlzCj4gPiBoYXJkZXIgdG8gaGFuZGxlIGFuZCB3
-ZSBoYXZlIHRvIGJhaWwgb3V0IHRob3VnaC4KPiA+IAo+ID4gVGhpcyBwYXRjaCBoYW5kbGVzIHRo
-ZSBsb3cgaGFuZ2luZyBmcnVpZC4gX19tbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9yYW5nZV9zdGFy
-dAo+ID4gZ2V0cyBhIGJsb2NrYWJsZSBmbGFnIGFuZCBjYWxsYmFja3MgYXJlIG5vdCBhbGxvd2Vk
-IHRvIHNsZWVwIGlmIHRoZQo+ID4gZmxhZyBpcyBzZXQgdG8gZmFsc2UuIFRoaXMgaXMgYWNoaWV2
-ZWQgYnkgdXNpbmcgdHJ5bG9jayBpbnN0ZWFkIG9mIHRoZQo+ID4gc2xlZXBhYmxlIGxvY2sgZm9y
-IG1vc3QgY2FsbGJhY2tzIGFuZCBjb250aW51ZSBhcyBsb25nIGFzIHdlIGRvIG5vdAo+ID4gYmxv
-Y2sgZG93biB0aGUgY2FsbCBjaGFpbi4KPiAKPiBJIGFzc3VtZSBkZXZpY2UgZHJpdmVyIGRldmVs
-b3BlcnMgYXJlIHdvbmRlcmluZyAid2hhdCBkb2VzIHRoaXMgbWVhbgo+IGZvciBtZSIuICBBcyBJ
-IHVuZGVyc3RhbmQgaXQsIHRoZSBvbmx5IHRpbWUgdGhleSB3aWxsIHNlZQo+IGJsb2NrYWJsZT09
-ZmFsc2UgaXMgd2hlbiB0aGVpciBkcml2ZXIgaXMgYmVpbmcgY2FsbGVkIGluIHJlc3BvbnNlIHRv
-IGFuCj4gb3V0LW9mLW1lbW9yeSBjb25kaXRpb24sIHllcz8gIFNvIGl0IGlzIGEgdmVyeSByYXJl
-IHRoaW5nLgoKWWVzLCB0aGlzIGlzIHRoZSBjYXNlIHJpZ2h0IG5vdy4gTWF5YmUgd2Ugd2lsbCBn
-cm93IG90aGVyIHVzZXJzIGluCmZ1dHVyZS4gVGhvc2Ugb3RoZXIgcG90ZW50aWFsIHVzZXJzIGlz
-IHRoZSByZWFzb24gd2h5IEkgdXNlZCBibG9ja2FibGUKcmF0aGVyIHRoYW4gb29tIHBhcmFtZXRl
-ciBuYW1lLgoKPiBBbnkgc3VnZ2VzdGlvbnMgcmVnYXJkaW5nIGhvdyB0aGUgZHJpdmVyIGRldmVs
-b3BlcnMgY2FuIHRlc3QgdGhpcyBjb2RlCj4gcGF0aD8gIEkgZG9uJ3QgdGhpbmsgd2UgcHJlc2Vu
-dGx5IGhhdmUgYSB3YXkgdG8gZmFrZSBhbiBvb20ta2lsbGluZwo+IGV2ZW50PyAgUGVyaGFwcyB3
-ZSBzaG91bGQgYWRkIHN1Y2ggYSB0aGluZywgZ2l2ZW4gdGhlIHByb2JsZW1zIHdlJ3JlCj4gaGF2
-aW5nIHdpdGggdGhhdCBmZWF0dXJlLgoKVGhlIHNpbXBsZXN0IHdheSBpcyB0byB3cmFwIGFuIHVz
-ZXJzcGFjZSBjb2RlIHdoaWNoIHVzZXMgdGhlc2Ugbm90aWZpZXJzCmludG8gYSBtZW1jZyBhbmQg
-c2V0IHRoZSBoYXJkIGxpbWl0IHRvIGhpdCB0aGUgb29tLiBUaGlzIGNhbiBiZSBkb25lCmUuZy4g
-YWZ0ZXIgdGhlIHRlc3QgZmF1bHRzIGluIGFsbCB0aGUgbW11IG5vdGlmaWVyIG1hbmFnZWQgbWVt
-b3J5IGFuZApzZXQgdGhlIGhhcmQgbGltaXQgdG8gc29tZXRoaW5nIHJlYWxseSBzbWFsbC4gVGhl
-biB3ZSBhcmUgbG9va2luZyBmb3IgYQpwcm9wZXIgcHJvY2VzcyB0ZWFyIGRvd24uCgo+ID4gSSB0
-aGluayB3ZSBjYW4gaW1wcm92ZSB0aGF0IGV2ZW4gZnVydGhlciBiZWNhdXNlIHRoZXJlIGlzIGEg
-Y29tbW9uCj4gPiBwYXR0ZXJuIHRvIGRvIGEgcmFuZ2UgbG9va3VwIGZpcnN0IGFuZCB0aGVuIGRv
-IHNvbWV0aGluZyBhYm91dCB0aGF0Lgo+ID4gVGhlIGZpcnN0IHBhcnQgY2FuIGJlIGRvbmUgd2l0
-aG91dCBhIHNsZWVwaW5nIGxvY2sgaW4gbW9zdCBjYXNlcyBBRkFJQ1MuCj4gPiAKPiA+IFRoZSBv
-b21fcmVhcGVyIGVuZCB0aGVuIHNpbXBseSByZXRyaWVzIGlmIHRoZXJlIGlzIGF0IGxlYXN0IG9u
-ZSBub3RpZmllcgo+ID4gd2hpY2ggY291bGRuJ3QgbWFrZSBhbnkgcHJvZ3Jlc3MgaW4gIWJsb2Nr
-YWJsZSBtb2RlLiBBIHJldHJ5IGxvb3AgaXMKPiA+IGFscmVhZHkgaW1wbGVtZW50ZWQgdG8gd2Fp
-dCBmb3IgdGhlIG1tYXBfc2VtIGFuZCB0aGlzIGlzIGJhc2ljYWxseSB0aGUKPiA+IHNhbWUgdGhp
-bmcuCj4gPiAKPiA+IC4uLgo+ID4KPiA+ICtzdGF0aWMgaW5saW5lIGludCBtbXVfbm90aWZpZXJf
-aW52YWxpZGF0ZV9yYW5nZV9zdGFydF9ub25ibG9jayhzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiA+
-ICsJCQkJICB1bnNpZ25lZCBsb25nIHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCkKPiA+ICt7Cj4g
-PiArCWludCByZXQgPSAwOwo+ID4gKwlpZiAobW1faGFzX25vdGlmaWVycyhtbSkpCj4gPiArCQly
-ZXQgPSBfX21tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KG1tLCBzdGFydCwgZW5k
-LCBmYWxzZSk7Cj4gPiArCj4gPiArCXJldHVybiByZXQ7Cj4gPiAgfQo+IAo+IG5pdCwKPiAKPiB7
-Cj4gCWlmIChtbV9oYXNfbm90aWZpZXJzKG1tKSkKPiAJCXJldHVybiBfX21tdV9ub3RpZmllcl9p
-bnZhbGlkYXRlX3JhbmdlX3N0YXJ0KG1tLCBzdGFydCwgZW5kLCBmYWxzZSk7Cj4gCXJldHVybiAw
-Owo+IH0KPiAKPiB3b3VsZCBzdWZmaWNlLgoKU3VyZS4gRml4ZWQKIAo+ID4gCj4gPiAuLi4KPiA+
-Cj4gPiAtLS0gYS9tbS9tbWFwLmMKPiA+ICsrKyBiL21tL21tYXAuYwo+ID4gQEAgLTMwNzQsNyAr
-MzA3NCw3IEBAIHZvaWQgZXhpdF9tbWFwKHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ID4gIAkJICog
-cmVsaWFibHkgdGVzdCBpdC4KPiA+ICAJCSAqLwo+ID4gIAkJbXV0ZXhfbG9jaygmb29tX2xvY2sp
-Owo+ID4gLQkJX19vb21fcmVhcF90YXNrX21tKG1tKTsKPiA+ICsJCSh2b2lkKV9fb29tX3JlYXBf
-dGFza19tbShtbSk7Cj4gPiAgCQltdXRleF91bmxvY2soJm9vbV9sb2NrKTsKPiAKPiBXaGF0IGRv
-ZXMgdGhpcyBkbz8KClRoZXJlIGlzIG5vIGVycm9yIHRvIGJlIHJldHVybmVkIGhlcmUgYXMgdGhl
-IGNvbW1lbnQgYWJvdmUgZXhwbGFpbnMKCQkgKiBOb3RoaW5nIGNhbiBiZSBob2xkaW5nIG1tLT5t
-bWFwX3NlbSBoZXJlIGFuZCB0aGUgYWJvdmUgY2FsbAoJCSAqIHRvIG1tdV9ub3RpZmllcl9yZWxl
-YXNlKG1tKSBlbnN1cmVzIG1tdSBub3RpZmllciBjYWxsYmFja3MgaW4KCQkgKiBfX29vbV9yZWFw
-X3Rhc2tfbW0oKSB3aWxsIG5vdCBibG9jay4KLS0gCk1pY2hhbCBIb2NrbwpTVVNFIExhYnMKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
-aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+
+On 7/16/2018 8:08 PM, Steve Wise wrote:
+> Hey Max:
+> 
+> 
+
+Hey,
+
+> On 7/16/2018 11:46 AM, Max Gurtovoy wrote:
+>>
+>>
+>> On 7/16/2018 5:59 PM, Sagi Grimberg wrote:
+>>>
+>>>> Hi,
+>>>> I've tested this patch and seems problematic at this moment.
+>>>
+>>> Problematic how? what are you seeing?
+>>
+>> Connection failures and same error Steve saw:
+>>
+>> [Mon Jul 16 16:19:11 2018] nvme nvme0: Connect command failed, error
+>> wo/DNR bit: -16402
+>> [Mon Jul 16 16:19:11 2018] nvme nvme0: failed to connect queue: 2 ret=-18
+>>
+>>
+>>>
+>>>> maybe this is because of the bug that Steve mentioned in the NVMe
+>>>> mailing list. Sagi mentioned that we should fix it in the NVMe/RDMA
+>>>> initiator and I'll run his suggestion as well.
+>>>
+>>> Is your device irq affinity linear?
+>>
+>> When it's linear and the balancer is stopped the patch works.
+>>
+>>>
+>>>> BTW, when I run the blk_mq_map_queues it works for every irq affinity.
+>>>
+>>> But its probably not aligned to the device vector affinity.
+>>
+>> but I guess it's better in some cases.
+>>
+>> I've checked the situation before Leon's patch and set all the vetcors
+>> to CPU 0. In this case (I think that this was the initial report by
+>> Steve), we use the affinity_hint (Israel's and Saeed's patches were we
+>> use dev->priv.irq_info[vector].mask) and it worked fine.
+>>
+>> Steve,
+>> Can you share your configuration (kernel, HCA, affinity map, connect
+>> command, lscpu) ?
+>> I want to repro it in my lab.
+>>
+> 
+> - linux-4.18-rc1 + the nvme/nvmet inline_data_size patches + patches to
+> enable ib_get_vector_affinity() in cxgb4 + sagi's patch + leon's mlx5
+> patch so I can change the affinity via procfs.
+
+ohh, now I understand that you where complaining regarding the affinity 
+change reflection to mlx5_ib_get_vector_affinity and not regarding the 
+failures on connecting while the affinity overlaps (that is working good 
+before Leon's patch).
+So this is a known issue since we used a static hint that never changes
+from dev->priv.irq_info[vector].mask.
+
+IMO we must fulfil the user wish to connect to N queues and not reduce 
+it because of affinity overlaps. So in order to push Leon's patch we 
+must also fix the blk_mq_rdma_map_queues to do a best effort mapping 
+according the affinity and map the rest in naive way (in that way we 
+will *always* map all the queues).
+
+-Max.
