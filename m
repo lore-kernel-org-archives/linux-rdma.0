@@ -1,112 +1,98 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH] mm,
- oom: distinguish blockable mode for mmu notifiers
-Date: Tue, 17 Jul 2018 07:03:47 +0300
-Message-ID: <20180717040347.GT3152@mtr-leonro.mtl.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 17 Jul 2018 10:12:01 +0200
+Message-ID: <20180717081201.GB16803@dhcp22.suse.cz>
 References: <20180716115058.5559-1-mhocko@kernel.org>
  <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0478642237=="
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
 In-Reply-To: <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@inte>
+Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Felix Kuehling <felix.kuehling@amd.com>, LKML <linux-kernel@vger.kernel.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christ>
 List-Id: linux-rdma@vger.kernel.org
 
-
---===============0478642237==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cW+P/jduATWpL925"
-Content-Disposition: inline
-
-
---cW+P/jduATWpL925
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Jul 16, 2018 at 04:12:49PM -0700, Andrew Morton wrote:
-> On Mon, 16 Jul 2018 13:50:58 +0200 Michal Hocko <mhocko@kernel.org> wrote:
->
-> > From: Michal Hocko <mhocko@suse.com>
-> >
-> > There are several blockable mmu notifiers which might sleep in
-> > mmu_notifier_invalidate_range_start and that is a problem for the
-> > oom_reaper because it needs to guarantee a forward progress so it cannot
-> > depend on any sleepable locks.
-> >
-> > Currently we simply back off and mark an oom victim with blockable mmu
-> > notifiers as done after a short sleep. That can result in selecting a
-> > new oom victim prematurely because the previous one still hasn't torn
-> > its memory down yet.
-> >
-> > We can do much better though. Even if mmu notifiers use sleepable locks
-> > there is no reason to automatically assume those locks are held.
-> > Moreover majority of notifiers only care about a portion of the address
-> > space and there is absolutely zero reason to fail when we are unmapping an
-> > unrelated range. Many notifiers do really block and wait for HW which is
-> > harder to handle and we have to bail out though.
-> >
-> > This patch handles the low hanging fruid. __mmu_notifier_invalidate_range_start
-> > gets a blockable flag and callbacks are not allowed to sleep if the
-> > flag is set to false. This is achieved by using trylock instead of the
-> > sleepable lock for most callbacks and continue as long as we do not
-> > block down the call chain.
->
-> I assume device driver developers are wondering "what does this mean
-> for me".  As I understand it, the only time they will see
-> blockable==false is when their driver is being called in response to an
-> out-of-memory condition, yes?  So it is a very rare thing.
-
-I can't say for everyone, but at least for me (mlx5), it is not rare event.
-I'm seeing OOM very often while I'm running my tests in low memory VMs.
-
-Thanks
-
->
-> Any suggestions regarding how the driver developers can test this code
-> path?  I don't think we presently have a way to fake an oom-killing
-> event?  Perhaps we should add such a thing, given the problems we're
-> having with that feature.
-
---cW+P/jduATWpL925
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbTWqjAAoJEORje4g2clinGqAP+gKzC/GfmPDn9AVen4vgye2r
-8ZHefQ6uHWv4nJE61TvooYoxviDwWVXtXhUT+MnvEvQ43UMMtfUc4ZyBaHovPPmr
-a6eXZGQP9+08P4l3nl3dPg1H9D1ynkxSqKLJykEM+xSzWy16+F3JYQXUnTcujqrn
-m/eiJ9hHXL2sS2w7Xwj1BLmCmeMJ/e7v6Og0eUkXeCIYHrtBfUziO+XhMwU6BEKE
-uNsyROY/ua4XvzuHWwGmUbM0pT1Pk/qvkHGK8RP1jkBbzS0nlYZoKKtlgH0E3Cot
-ifa7ZfLQT4kG1KttzXX7ZVuwxK+wyKHhykJxlJIRl/uDSbmdEjRcNPFwAwzAsQLG
-ZMjnx2wo9tqlBMSdwlwtZBc8H8MPagM5pLypQTIFdMmvD/lGVGXk2/rwP2dixw/W
-V/j9V5eWAkjkp2hg5KxZLSW0nK7e1bEreZesEejfWb/tZGpEWjOtDfv+F9drZZ8O
-iqvT56/bALDpLSvSDaCTxbfVpZf6wm+eKE4DkwIBzl8cTyRp7136JKnDJ0FVse/Z
-OGqa7WWV1LTVMAHzRsHpX9HrTPpRKxFuZYYB8Z5NTeHa0TVqjsuOYo5uf5SfVsS5
-3BeOAh2ncekLrn5WyVnY78PaXLzJ1vUCtvQGOYMX6fwI15+63z3+BH8t46ulmJed
-MuCRD555f27+kAwtDYmE
-=gzyd
------END PGP SIGNATURE-----
-
---cW+P/jduATWpL925--
-
---===============0478642237==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4
-IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
-
---===============0478642237==--
+T24gTW9uIDE2LTA3LTE4IDE2OjEyOjQ5LCBBbmRyZXcgTW9ydG9uIHdyb3RlOgo+IE9uIE1vbiwg
+MTYgSnVsIDIwMTggMTM6NTA6NTggKzAyMDAgTWljaGFsIEhvY2tvIDxtaG9ja29Aa2VybmVsLm9y
+Zz4gd3JvdGU6Cj4gCj4gPiBGcm9tOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BzdXNlLmNvbT4KPiA+
+IAo+ID4gVGhlcmUgYXJlIHNldmVyYWwgYmxvY2thYmxlIG1tdSBub3RpZmllcnMgd2hpY2ggbWln
+aHQgc2xlZXAgaW4KPiA+IG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0IGFuZCB0
+aGF0IGlzIGEgcHJvYmxlbSBmb3IgdGhlCj4gPiBvb21fcmVhcGVyIGJlY2F1c2UgaXQgbmVlZHMg
+dG8gZ3VhcmFudGVlIGEgZm9yd2FyZCBwcm9ncmVzcyBzbyBpdCBjYW5ub3QKPiA+IGRlcGVuZCBv
+biBhbnkgc2xlZXBhYmxlIGxvY2tzLgo+ID4gCj4gPiBDdXJyZW50bHkgd2Ugc2ltcGx5IGJhY2sg
+b2ZmIGFuZCBtYXJrIGFuIG9vbSB2aWN0aW0gd2l0aCBibG9ja2FibGUgbW11Cj4gPiBub3RpZmll
+cnMgYXMgZG9uZSBhZnRlciBhIHNob3J0IHNsZWVwLiBUaGF0IGNhbiByZXN1bHQgaW4gc2VsZWN0
+aW5nIGEKPiA+IG5ldyBvb20gdmljdGltIHByZW1hdHVyZWx5IGJlY2F1c2UgdGhlIHByZXZpb3Vz
+IG9uZSBzdGlsbCBoYXNuJ3QgdG9ybgo+ID4gaXRzIG1lbW9yeSBkb3duIHlldC4KPiA+IAo+ID4g
+V2UgY2FuIGRvIG11Y2ggYmV0dGVyIHRob3VnaC4gRXZlbiBpZiBtbXUgbm90aWZpZXJzIHVzZSBz
+bGVlcGFibGUgbG9ja3MKPiA+IHRoZXJlIGlzIG5vIHJlYXNvbiB0byBhdXRvbWF0aWNhbGx5IGFz
+c3VtZSB0aG9zZSBsb2NrcyBhcmUgaGVsZC4KPiA+IE1vcmVvdmVyIG1ham9yaXR5IG9mIG5vdGlm
+aWVycyBvbmx5IGNhcmUgYWJvdXQgYSBwb3J0aW9uIG9mIHRoZSBhZGRyZXNzCj4gPiBzcGFjZSBh
+bmQgdGhlcmUgaXMgYWJzb2x1dGVseSB6ZXJvIHJlYXNvbiB0byBmYWlsIHdoZW4gd2UgYXJlIHVu
+bWFwcGluZyBhbgo+ID4gdW5yZWxhdGVkIHJhbmdlLiBNYW55IG5vdGlmaWVycyBkbyByZWFsbHkg
+YmxvY2sgYW5kIHdhaXQgZm9yIEhXIHdoaWNoIGlzCj4gPiBoYXJkZXIgdG8gaGFuZGxlIGFuZCB3
+ZSBoYXZlIHRvIGJhaWwgb3V0IHRob3VnaC4KPiA+IAo+ID4gVGhpcyBwYXRjaCBoYW5kbGVzIHRo
+ZSBsb3cgaGFuZ2luZyBmcnVpZC4gX19tbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9yYW5nZV9zdGFy
+dAo+ID4gZ2V0cyBhIGJsb2NrYWJsZSBmbGFnIGFuZCBjYWxsYmFja3MgYXJlIG5vdCBhbGxvd2Vk
+IHRvIHNsZWVwIGlmIHRoZQo+ID4gZmxhZyBpcyBzZXQgdG8gZmFsc2UuIFRoaXMgaXMgYWNoaWV2
+ZWQgYnkgdXNpbmcgdHJ5bG9jayBpbnN0ZWFkIG9mIHRoZQo+ID4gc2xlZXBhYmxlIGxvY2sgZm9y
+IG1vc3QgY2FsbGJhY2tzIGFuZCBjb250aW51ZSBhcyBsb25nIGFzIHdlIGRvIG5vdAo+ID4gYmxv
+Y2sgZG93biB0aGUgY2FsbCBjaGFpbi4KPiAKPiBJIGFzc3VtZSBkZXZpY2UgZHJpdmVyIGRldmVs
+b3BlcnMgYXJlIHdvbmRlcmluZyAid2hhdCBkb2VzIHRoaXMgbWVhbgo+IGZvciBtZSIuICBBcyBJ
+IHVuZGVyc3RhbmQgaXQsIHRoZSBvbmx5IHRpbWUgdGhleSB3aWxsIHNlZQo+IGJsb2NrYWJsZT09
+ZmFsc2UgaXMgd2hlbiB0aGVpciBkcml2ZXIgaXMgYmVpbmcgY2FsbGVkIGluIHJlc3BvbnNlIHRv
+IGFuCj4gb3V0LW9mLW1lbW9yeSBjb25kaXRpb24sIHllcz8gIFNvIGl0IGlzIGEgdmVyeSByYXJl
+IHRoaW5nLgoKWWVzLCB0aGlzIGlzIHRoZSBjYXNlIHJpZ2h0IG5vdy4gTWF5YmUgd2Ugd2lsbCBn
+cm93IG90aGVyIHVzZXJzIGluCmZ1dHVyZS4gVGhvc2Ugb3RoZXIgcG90ZW50aWFsIHVzZXJzIGlz
+IHRoZSByZWFzb24gd2h5IEkgdXNlZCBibG9ja2FibGUKcmF0aGVyIHRoYW4gb29tIHBhcmFtZXRl
+ciBuYW1lLgoKPiBBbnkgc3VnZ2VzdGlvbnMgcmVnYXJkaW5nIGhvdyB0aGUgZHJpdmVyIGRldmVs
+b3BlcnMgY2FuIHRlc3QgdGhpcyBjb2RlCj4gcGF0aD8gIEkgZG9uJ3QgdGhpbmsgd2UgcHJlc2Vu
+dGx5IGhhdmUgYSB3YXkgdG8gZmFrZSBhbiBvb20ta2lsbGluZwo+IGV2ZW50PyAgUGVyaGFwcyB3
+ZSBzaG91bGQgYWRkIHN1Y2ggYSB0aGluZywgZ2l2ZW4gdGhlIHByb2JsZW1zIHdlJ3JlCj4gaGF2
+aW5nIHdpdGggdGhhdCBmZWF0dXJlLgoKVGhlIHNpbXBsZXN0IHdheSBpcyB0byB3cmFwIGFuIHVz
+ZXJzcGFjZSBjb2RlIHdoaWNoIHVzZXMgdGhlc2Ugbm90aWZpZXJzCmludG8gYSBtZW1jZyBhbmQg
+c2V0IHRoZSBoYXJkIGxpbWl0IHRvIGhpdCB0aGUgb29tLiBUaGlzIGNhbiBiZSBkb25lCmUuZy4g
+YWZ0ZXIgdGhlIHRlc3QgZmF1bHRzIGluIGFsbCB0aGUgbW11IG5vdGlmaWVyIG1hbmFnZWQgbWVt
+b3J5IGFuZApzZXQgdGhlIGhhcmQgbGltaXQgdG8gc29tZXRoaW5nIHJlYWxseSBzbWFsbC4gVGhl
+biB3ZSBhcmUgbG9va2luZyBmb3IgYQpwcm9wZXIgcHJvY2VzcyB0ZWFyIGRvd24uCgo+ID4gSSB0
+aGluayB3ZSBjYW4gaW1wcm92ZSB0aGF0IGV2ZW4gZnVydGhlciBiZWNhdXNlIHRoZXJlIGlzIGEg
+Y29tbW9uCj4gPiBwYXR0ZXJuIHRvIGRvIGEgcmFuZ2UgbG9va3VwIGZpcnN0IGFuZCB0aGVuIGRv
+IHNvbWV0aGluZyBhYm91dCB0aGF0Lgo+ID4gVGhlIGZpcnN0IHBhcnQgY2FuIGJlIGRvbmUgd2l0
+aG91dCBhIHNsZWVwaW5nIGxvY2sgaW4gbW9zdCBjYXNlcyBBRkFJQ1MuCj4gPiAKPiA+IFRoZSBv
+b21fcmVhcGVyIGVuZCB0aGVuIHNpbXBseSByZXRyaWVzIGlmIHRoZXJlIGlzIGF0IGxlYXN0IG9u
+ZSBub3RpZmllcgo+ID4gd2hpY2ggY291bGRuJ3QgbWFrZSBhbnkgcHJvZ3Jlc3MgaW4gIWJsb2Nr
+YWJsZSBtb2RlLiBBIHJldHJ5IGxvb3AgaXMKPiA+IGFscmVhZHkgaW1wbGVtZW50ZWQgdG8gd2Fp
+dCBmb3IgdGhlIG1tYXBfc2VtIGFuZCB0aGlzIGlzIGJhc2ljYWxseSB0aGUKPiA+IHNhbWUgdGhp
+bmcuCj4gPiAKPiA+IC4uLgo+ID4KPiA+ICtzdGF0aWMgaW5saW5lIGludCBtbXVfbm90aWZpZXJf
+aW52YWxpZGF0ZV9yYW5nZV9zdGFydF9ub25ibG9jayhzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiA+
+ICsJCQkJICB1bnNpZ25lZCBsb25nIHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCkKPiA+ICt7Cj4g
+PiArCWludCByZXQgPSAwOwo+ID4gKwlpZiAobW1faGFzX25vdGlmaWVycyhtbSkpCj4gPiArCQly
+ZXQgPSBfX21tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KG1tLCBzdGFydCwgZW5k
+LCBmYWxzZSk7Cj4gPiArCj4gPiArCXJldHVybiByZXQ7Cj4gPiAgfQo+IAo+IG5pdCwKPiAKPiB7
+Cj4gCWlmIChtbV9oYXNfbm90aWZpZXJzKG1tKSkKPiAJCXJldHVybiBfX21tdV9ub3RpZmllcl9p
+bnZhbGlkYXRlX3JhbmdlX3N0YXJ0KG1tLCBzdGFydCwgZW5kLCBmYWxzZSk7Cj4gCXJldHVybiAw
+Owo+IH0KPiAKPiB3b3VsZCBzdWZmaWNlLgoKU3VyZS4gRml4ZWQKIAo+ID4gCj4gPiAuLi4KPiA+
+Cj4gPiAtLS0gYS9tbS9tbWFwLmMKPiA+ICsrKyBiL21tL21tYXAuYwo+ID4gQEAgLTMwNzQsNyAr
+MzA3NCw3IEBAIHZvaWQgZXhpdF9tbWFwKHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ID4gIAkJICog
+cmVsaWFibHkgdGVzdCBpdC4KPiA+ICAJCSAqLwo+ID4gIAkJbXV0ZXhfbG9jaygmb29tX2xvY2sp
+Owo+ID4gLQkJX19vb21fcmVhcF90YXNrX21tKG1tKTsKPiA+ICsJCSh2b2lkKV9fb29tX3JlYXBf
+dGFza19tbShtbSk7Cj4gPiAgCQltdXRleF91bmxvY2soJm9vbV9sb2NrKTsKPiAKPiBXaGF0IGRv
+ZXMgdGhpcyBkbz8KClRoZXJlIGlzIG5vIGVycm9yIHRvIGJlIHJldHVybmVkIGhlcmUgYXMgdGhl
+IGNvbW1lbnQgYWJvdmUgZXhwbGFpbnMKCQkgKiBOb3RoaW5nIGNhbiBiZSBob2xkaW5nIG1tLT5t
+bWFwX3NlbSBoZXJlIGFuZCB0aGUgYWJvdmUgY2FsbAoJCSAqIHRvIG1tdV9ub3RpZmllcl9yZWxl
+YXNlKG1tKSBlbnN1cmVzIG1tdSBub3RpZmllciBjYWxsYmFja3MgaW4KCQkgKiBfX29vbV9yZWFw
+X3Rhc2tfbW0oKSB3aWxsIG5vdCBibG9jay4KLS0gCk1pY2hhbCBIb2NrbwpTVVNFIExhYnMKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
