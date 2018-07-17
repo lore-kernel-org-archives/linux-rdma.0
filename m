@@ -1,103 +1,85 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Mon, 16 Jul 2018 16:12:49 -0700
-Message-ID: <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
-References: <20180716115058.5559-1-mhocko@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180716115058.5559-1-mhocko@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 0/8] Mellanox, mlx5 updates 2018-07-16
+Date: Mon, 16 Jul 2018 18:35:29 -0700
+Message-ID: <20180717013537.26411-1-saeedm@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 16 Jul 2018 13:50:58 +0200 Michal Hocko <mhocko@kernel.org> wrote:
+Hi,
 
-> From: Michal Hocko <mhocko@suse.com>
-> 
-> There are several blockable mmu notifiers which might sleep in
-> mmu_notifier_invalidate_range_start and that is a problem for the
-> oom_reaper because it needs to guarantee a forward progress so it cannot
-> depend on any sleepable locks.
-> 
-> Currently we simply back off and mark an oom victim with blockable mmu
-> notifiers as done after a short sleep. That can result in selecting a
-> new oom victim prematurely because the previous one still hasn't torn
-> its memory down yet.
-> 
-> We can do much better though. Even if mmu notifiers use sleepable locks
-> there is no reason to automatically assume those locks are held.
-> Moreover majority of notifiers only care about a portion of the address
-> space and there is absolutely zero reason to fail when we are unmapping an
-> unrelated range. Many notifiers do really block and wait for HW which is
-> harder to handle and we have to bail out though.
-> 
-> This patch handles the low hanging fruid. __mmu_notifier_invalidate_range_start
-> gets a blockable flag and callbacks are not allowed to sleep if the
-> flag is set to false. This is achieved by using trylock instead of the
-> sleepable lock for most callbacks and continue as long as we do not
-> block down the call chain.
+This series includes mlx5 core infrastructure updates and fixes
+aimed for mlx5-next branch.
 
-I assume device driver developers are wondering "what does this mean
-for me".  As I understand it, the only time they will see
-blockable==false is when their driver is being called in response to an
-out-of-memory condition, yes?  So it is a very rare thing.
+In case of no objections, below patches will be applied to mlx5-next branch
+and next mlx5 net-next pull request will start with a merge commit
+pointing to the last patch in this series.
 
-Any suggestions regarding how the driver developers can test this code
-path?  I don't think we presently have a way to fake an oom-killing
-event?  Perhaps we should add such a thing, given the problems we're
-having with that feature.
+>From Eran:
+ - Add MPEGC (Management PCIe General Configuration) registers and btis
+ - Fix tristate and description for MLX5 module
 
-> I think we can improve that even further because there is a common
-> pattern to do a range lookup first and then do something about that.
-> The first part can be done without a sleeping lock in most cases AFAICS.
-> 
-> The oom_reaper end then simply retries if there is at least one notifier
-> which couldn't make any progress in !blockable mode. A retry loop is
-> already implemented to wait for the mmap_sem and this is basically the
-> same thing.
-> 
-> ...
->
-> +static inline int mmu_notifier_invalidate_range_start_nonblock(struct mm_struct *mm,
-> +				  unsigned long start, unsigned long end)
-> +{
-> +	int ret = 0;
-> +	if (mm_has_notifiers(mm))
-> +		ret = __mmu_notifier_invalidate_range_start(mm, start, end, false);
-> +
-> +	return ret;
->  }
+>From Feras:
+ - Add hardware structures for the firmware tracer
 
-nit,
+>From Jainbo:
+ - Core support for double vlan push/pop steering action
 
-{
-	if (mm_has_notifiers(mm))
-		return __mmu_notifier_invalidate_range_start(mm, start, end, false);
-	return 0;
-}
+>From Max:
+ - Add XRQ commands definitions
 
-would suffice.
+>From Noa:
+ - Add missing SET_DRIVER_VERSION command translation
 
+>From Roi:
+ - Use ERR_CAST() instead of coding it
 
-> 
-> ...
->
-> --- a/mm/mmap.c
-> +++ b/mm/mmap.c
-> @@ -3074,7 +3074,7 @@ void exit_mmap(struct mm_struct *mm)
->  		 * reliably test it.
->  		 */
->  		mutex_lock(&oom_lock);
-> -		__oom_reap_task_mm(mm);
-> +		(void)__oom_reap_task_mm(mm);
->  		mutex_unlock(&oom_lock);
+>From Tariq:
+ - Better return types for CQE API
 
-What does this do?
+Thanks,
+Saeed
 
->  		set_bit(MMF_OOM_SKIP, &mm->flags);
-> 
-> ...
->
+--- 
+
+Eran Ben Elisha (2):
+  net/mlx5: Expose MPEGC (Management PCIe General Configuration)
+    structures
+  net/mlx5: Fix tristate and description for MLX5 module
+
+Feras Daoud (1):
+  net/mlx5: FW tracer, add hardware structures
+
+Jianbo Liu (1):
+  net/mlx5: Add core support for double vlan push/pop steering action
+
+Max Gurtovoy (1):
+  net/mlx5: Add XRQ commands definitions
+
+Noa Osherovich (1):
+  net/mlx5: Add missing SET_DRIVER_VERSION command translation
+
+Roi Dayan (1):
+  net/mlx5: Use ERR_CAST() instead of coding it
+
+Tariq Toukan (1):
+  net/mlx5: Better return types for CQE API
+
+ drivers/infiniband/hw/mlx5/Kconfig            |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/Kconfig   |  6 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  9 ++
+ .../mellanox/mlx5/core/diag/fs_tracepoint.h   |  2 +
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  6 +-
+ .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  | 12 ++-
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c |  6 +-
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  2 +-
+ include/linux/mlx5/device.h                   |  8 +-
+ include/linux/mlx5/driver.h                   |  5 +
+ include/linux/mlx5/fs.h                       |  4 +-
+ include/linux/mlx5/mlx5_ifc.h                 | 93 ++++++++++++++++++-
+ 12 files changed, 133 insertions(+), 22 deletions(-)
+
+-- 
+2.17.0
