@@ -1,76 +1,56 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: RE: [RFC PATCH rdma-next 13/18] RDMA/mlx5: Enable decap and packet
- reformat on flow tables
-Date: Tue, 17 Jul 2018 16:29:35 +0000
-Message-ID: <AM0PR05MB4403FDAFDCA8240E1A2BD4D0D25C0@AM0PR05MB4403.eurprd05.prod.outlook.com>
-References: <20180716082305.11744-1-leon@kernel.org>
- <20180716082305.11744-14-leon@kernel.org>
- <CAJ3xEMiLrSZMqZTSySB+PwUsXoHfh99QJZ+_WdQQn4sgA2HYNQ@mail.gmail.com>
- <AM0PR05MB44032E09426E5E1DB5AD149ED25D0@AM0PR05MB4403.eurprd05.prod.outlook.com>
- <CAJ3xEMjZQ+HNzFpmJG06Wq0T-Qo+sCfJDEhEM5h=8U+kSS76Mg@mail.gmail.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH net-next] net/mlx5: fix an unused-function warning
+Date: Tue, 17 Jul 2018 17:42:25 -0700
+Message-ID: <CALzJLG_r5pkBWGvyE+e7PVtPOnLnXS8oee_ka+=UEAkbqDP-Kg@mail.gmail.com>
+References: <20180717135009.3584984-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMjZQ+HNzFpmJG06Wq0T-Qo+sCfJDEhEM5h=8U+kSS76Mg@mail.gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180717135009.3584984-1-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtcmRtYS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBPciBHZXJsaXR6DQo+IFNlbnQ6IFR1ZXNkYXksIEp1bHkgMTcs
-IDIwMTggNTo0NyBBTQ0KPiBUbzogTWFyayBCbG9jaCA8bWFya2JAbWVsbGFub3guY29tPg0KPiBD
-YzogRG91ZyBMZWRmb3JkIDxkbGVkZm9yZEByZWRoYXQuY29tPjsgSmFzb24gR3VudGhvcnBlDQo+
-IDxqZ2dAbWVsbGFub3guY29tPjsgTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29t
-PjsgUkRNQQ0KPiBtYWlsaW5nIGxpc3QgPGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnPjsgU2Fl
-ZWQgTWFoYW1lZWQNCj4gPHNhZWVkbUBtZWxsYW5veC5jb20+OyBsaW51eC1uZXRkZXYgPG5ldGRl
-dkB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1YmplY3Q6IFJlOiBbUkZDIFBBVENIIHJkbWEtbmV4dCAx
-My8xOF0gUkRNQS9tbHg1OiBFbmFibGUgZGVjYXAgYW5kDQo+IHBhY2tldCByZWZvcm1hdCBvbiBm
-bG93IHRhYmxlcw0KPiANCj4gT24gVHVlLCBKdWwgMTcsIDIwMTggYXQgMTI6NDYgQU0sIE1hcmsg
-QmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4gd3JvdGU6DQo+ID4+IEZyb206IE9yIEdlcmxpdHog
-W21haWx0bzpnZXJsaXR6Lm9yQGdtYWlsLmNvbV0NCj4gDQo+ID4+ID4gSWYgTklDIFJYIGZsb3cg
-dGFibGVzIHN1cHBvcnQgZGVjYXAgb3BlcnRpb24sIGVuYWJsZSBpdCBvbiBjcmVhdGlvbi4NCj4g
-Pj4gb3BlcnRpb24gLS0+IG9wZXJhdGlvbg0KPiANCj4gc2F3IGl0Pw0KDQp5ZXMsIHNvcnJ5IEkg
-ZGlkbid0IHNheSBzbyDwn5iKDQo+IA0KPiA+PiA+IElmIE5JQyBUWCBmbG93IHRhYmxlcyBzdXBw
-b3J0IHJlZm9ybWF0IG9wZXJ0aW9uLCBlbmFibGUgaXQgb24gY3JlYXRpb24uDQo+IA0KPiBvcGVy
-dGlvbiAtLT4gb3BlcmF0aW9uDQo+IA0KPiA+PiBXaGF0IGlzIHRoZSB0cmlnZ2VyIHRvIHVzZSB0
-aGUgZGVjYXAgZmxhZyBvbiBSWCB0YWJsZSBvciBlbmNhcCBmbGFnIG9uDQo+ID4+IFRYIHRhYmxl
-Pw0KPiANCj4gPiBJdCBoYXMgbm8gcGVyZm9ybWFuY2UgcGVuYWx0eSB0byBhbHdheXMgZW5hYmxl
-IHRoYXQsIHNvIHRoYXQncyB3aGF0IEkgZG8gaWYNCj4gc3VwcG9ydGVkLg0KPiANCj4gSSB3YXMg
-bm90IHJlZmVycmluZyB0byBwZXJmb3JtYW5jZSwgc2VlIGJlbG93DQo+IA0KPiA+PiBQbGVhc2Ug
-bm90ZSB0aGF0IHdlIGhhdmUgYSBzaG9ydCBibGFua2V0IHcuci50IG11dHVhbCB1c2FnZSBieQ0K
-PiANCj4gPiBGREIgYW5kIE5JQyBzdGVlcmluZyB0YWJsZXMgaGF2ZSBkaWZmZXJlbnQgbGltaXRh
-dGlvbnMsIHNvIGVuY2FwL2RlY2FwIG9uDQo+IE5JQyBzdGVlcmluZw0KPiA+IGhhdmUgbm90aGlu
-ZyB0byBkbyB3aXRoIHRoZSBsaW1pdGF0aW9ucyB0aGUgRkRCIGhhcyB3aXRoIHRob3NlIG9wZXJh
-dGlvbnMuDQo+IA0KPiBubyEgQUZBSUsgaXQgaGFzIHRvIGRvLCB0aGUgRlcgbWFpbnRhaW5zIHRo
-cmVlIHN0YXRlcyBmb3IgZW5jYXAoZGVjYXApDQo+IE5PTkUsIEZEQiBvciBOSUMNCj4gaWYgdGhl
-IHN0YXRlIGlzIE5JQywgYW4gRkRCIHRhYmxlIGNhbid0IGJlIGNyZWF0ZWQgd2l0aCBlbmNhcCBz
-ZXQsIGFuZA0KPiB0aGUgb3RoZXIgd2F5IGFyb3VuZCwgaWYgdGhlDQo+IHN0YXRlIGlzIEZEQiwg
-TklDIFRYIHRhYmxlIGNhbid0IGJlIGNyZWF0ZWQgd2l0aCBlbmNhcCBzZXQsIGV0Yy4gVGhpcw0K
-PiBpcyB0aGUgc2hvcnQgYmxhbmtldCBJIHdhcw0KPiByZWZlcnJpbmcgdG9vLCB5b3UgY2FuIGNo
-ZWNrIG1lLg0KDQpPciBJJ20gc29ycnksIGp1c3QgcmVhbGl6ZWQgeW91IGRvbid0IHNlZSB0aGUg
-dXBkYXRlZCB2ZXJzaW9uIG9mIHRoZSBwYXRjaCBzZXQuICh3aWxsIGJlIHNlbnQgd2l0aG91dCBS
-RkMgdGFnKQ0KVGhlIHVwZGF0ZWQgb25lIGRvZXNuJ3QgYWxsb3cgVFggc3RlZXJpbmcgdG8gYmUg
-ZG9uZSB3aGVuIGluIHN3aXRjaGRldiBtb2RlIGFzIHRvZGF5DQp3ZSBsYWNrIHRoZSBBUEkgKG9u
-IHRoZSBSRE1BIHNpZGUpIHRvIHNwZWNpZnkgdG8gd2hpY2ggcmVwIHRoZSBydWxlcyBzaG91bGQg
-YmUgYXBwbGllZC4NCg0KQWxzbyBvbmNlIGluIHN3aXRjaGRldiBtb2RlLCB0aGUgRlcgdHVybnMg
-b2ZmIHRoZSBjYXAgZmxhZyBmb3IgZW5jYXAsIHdoaWNoIG1lYW5zIHRoZSBWRnMgd29uJ3QgY3Jl
-YXRlDQphIGZsb3cgdGFibGUgd2l0aCB0aGUgZW5jYXAgZmxhZyBzZXQsIGFuZCBiZWNhdXNlIHdl
-IHJlcXVpcmUgdGhlIFZGcyB3b24ndCBiZSBiaW5kZWQgd2hlbiBtb3ZpbmcgdG8gc3dpdGNoZGV2
-DQptb2RlIHRoZXkgd2lsbCBhbHdheXMgc2VlIHRoZSB1cGRhdGVkIGNhcHMuDQoNCkRvZXMgdGhh
-dCBhZGRyZXNzIHlvdXIgY29uY2VybnM/DQoNCk1hcmsuIA0KDQo+IA0KPiA+PiBOSUMgdnMgZS1T
-d2l0Y2ggIHN0ZWVyaW5nLCBkaWQgeW91IGNvbnNpZGVyIHRvIGRvIHRoYXQgb24gZGVtYW5kPw0K
-PiA+DQo+ID4gVGhlIGZsb3cgdGFibGUgbmVlZHMgdG8gYmUgY3JlYXRlZCB3aXRoIHRob3NlIGZs
-YWdzIHNldCBpZiB3ZSB3YW50IHRvIGF0dGFjaA0KPiA+IGRlY2FwL3BhY2tldCByZWZvcm1hdCBh
-Y3Rpb24gdG8gaXQuIEJUVywgdGhlcmUgaXMgbm8gbW9kaWZ5IGFjdGlvbiBmb3INCj4gdGhvc2Ug
-Yml0cw0KPiA+IHNvIHRoYXQncyB3aHkgSSdtIGRvaW5nIGl0IG9uIGNyZWF0aW9uLg0KPiANCj4g
-VGhlIHF1ZXN0aW9uIHdhcyBpZiB5b3UgY2FuIGxldCB0aGUgYXBwbGljYXRpb24gdGVsbCB5b3Ug
-dGhhdCB0aGV5IHdhbnQgdG8gdXNlDQo+IHJ1bGVzIHdpdGggZW5jYXAvZGVjYXAsIGFzIHdlIGRp
-ZCBpbiB0aGUgZGV2bGluayBzd2l0Y2hkZXYgQVBJIChlbmNhcA0KPiBlbmFibGVkKQ0KPiAtLQ0K
-PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3Jp
-YmUgbGludXgtcmRtYSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2
-Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2Vy
-bmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Tue, Jul 17, 2018 at 6:49 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> These dummy helpers are all intended to be inline functions,
+> but one of them by accident came without the 'inline' keyword,
+> causing a harmless warning:
+>
+> In file included from drivers/net/ethernet/mellanox/mlx5/core/main.c:63:
+> drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h:79:1: error: 'mlx5_accel_tls_add_flow' defined but not used [-Werror=unused-function]
+>  mlx5_accel_tls_add_flow(struct mlx5_core_dev *mdev, void *flow,
+>
+> Fixes: ab412e1dd7db ("net/mlx5: Accel, add TLS rx offload routines")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+
+Dave, you can take this one to net-next.
+
+Thanks!
+
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h b/drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h
+> index 2228c1083528..def4093ebfae 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/accel/tls.h
+> @@ -75,7 +75,7 @@ void mlx5_accel_tls_cleanup(struct mlx5_core_dev *mdev);
+>
+>  #else
+>
+> -static int
+> +static inline int
+>  mlx5_accel_tls_add_flow(struct mlx5_core_dev *mdev, void *flow,
+>                         struct tls_crypto_info *crypto_info,
+>                         u32 start_offload_tcp_sn, u32 *p_swid,
+> --
+> 2.9.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
