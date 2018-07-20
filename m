@@ -1,163 +1,45 @@
-From: Max Gurtovoy <maxg@mellanox.com>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Fri, 20 Jul 2018 04:25:32 +0300
-Message-ID: <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
-References: <20180716083012.15410-1-leon@kernel.org>
- <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
- <20180716103046.GJ3152@mtr-leonro.mtl.com>
- <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
- <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
- <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
- <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
- <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
- <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
- <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
- <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
- <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
- <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
- <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 20 Jul 2018 16:01:25 -0700
+Message-ID: <20180720160125.f3cda46f317a1ff5a2342549@linux-foundation.org>
+References: <20180716115058.5559-1-mhocko@kernel.org>
+ <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
+ <20180717081201.GB16803@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="------------5BF1A9FAA2BF40591A55F150"
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
-Content-Language: he
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagi@grimberg.me>, 'Leon Romanovsky' <leon@kernel.org>
-Cc: 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@mellanox.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20180717081201.GB16803@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Felix Kuehling <felix.kuehling@amd.com>, LKML <linux-kerne>
 List-Id: linux-rdma@vger.kernel.org
 
---------------5BF1A9FAA2BF40591A55F150
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-
-
->>> [ 2032.194376] nvme nvme0: failed to connect queue: 9 ret=-18
->>
->> queue 9 is not mapped (overlap).
->> please try the bellow:
->>
-> 
-> This seems to work.  Here are three mapping cases:  each vector on its
-> own cpu, each vector on 1 cpu within the local numa node, and each
-> vector having all cpus in its numa node.  The 2nd mapping looks kinda
-> funny, but I think it achieved what you wanted?  And all the cases
-> resulted in successful connections.
-> 
-
-Thanks for testing this.
-I slightly improved the setting of the left CPUs and actually used 
-Sagi's initial proposal.
-
-Sagi,
-please review the attached patch and let me know if I should add your 
-signature on it.
-I'll run some perf test early next week on it (meanwhile I run 
-login/logout with different num_queues successfully and irq settings).
-
-Steve,
-It will be great if you can apply the attached in your system and send 
-your findings.
-
-Regards,
-Max,
-
---------------5BF1A9FAA2BF40591A55F150
-Content-Type: text/plain; charset="UTF-8";
-	name="0001-blk-mq-fix-RDMA-queue-cpu-mappings-assignments-for-m.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename*0="0001-blk-mq-fix-RDMA-queue-cpu-mappings-assignments-for-m.pa";
-	filename*1="tch"
-
-RnJvbSA2ZjdiOThmMWM0MzI1MmY0NTk3NzIzOTBjMTc4ZmMzYWQwNDNmYzgyIE1vbiBTZXAg
-MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBNYXggR3VydG92b3kgPG1heGdAbWVsbGFub3guY29t
-PgpEYXRlOiBUaHUsIDE5IEp1bCAyMDE4IDEyOjQyOjAwICswMDAwClN1YmplY3Q6IFtQQVRD
-SCAxLzFdIGJsay1tcTogZml4IFJETUEgcXVldWUvY3B1IG1hcHBpbmdzIGFzc2lnbm1lbnRz
-IGZvciBtcQoKSW4gb3JkZXIgdG8gZnVsZmlsIHRoZSBibG9jayBsYXllciBjcHUgPC0+IHF1
-ZXVlIG1hcHBpbmcsIGFsbCB0aGUKYWxsb2NhdGVkIHF1ZXVlcyBhbmQgYWxsIHRoZSBwb3Nz
-aWJsZSBDUFVzIHNob3VsZCBiZSBtYXBwZWQuIEZpcnN0LAp0cnkgdG8gbWFwIHRoZSBxdWV1
-ZXMgYWNjb3JkaW5nIHRvIHRoZSBhZmZpbml0eSBoaW50IGZyb20gdGhlIHVuZGVybHlpbmcK
-UkRNQSBkZXZpY2UuIFNlY29uZCwgbWFwIGFsbCB0aGUgdW5tYXBwZWQgcXVldWVzIGluIGEg
-bmFpdmUgd2F5IHRvIHVubWFwcGVkCkNQVS4gSW4gY2FzZSB3ZSBzdGlsbCBoYXZlIHVubWFw
-cGVkIENQVXMsIHVzZSB0aGUgZGVmYXVsdCBibGstbXEgbWFwcGluZ3MKdG8gbWFwIHRoZSBy
-ZXN0LiBUaGlzIHdheSB3ZSBndWFyYW50ZWUgdGhhdCBubyBtYXR0ZXIgd2hhdCBpcyB0aGUg
-dW5kZXJseWluZwphZmZpbml0eSwgYWxsIHRoZSBwb3NzaWJsZSBDUFVzIGFuZCBhbGwgdGhl
-IGFsbG9jYXRlZCBibG9jayBxdWV1ZXMgd2lsbCBiZQptYXBwZWQuCgpTaWduZWQtb2ZmLWJ5
-OiBNYXggR3VydG92b3kgPG1heGdAbWVsbGFub3guY29tPgotLS0KIGJsb2NrL2Jsay1tcS1j
-cHVtYXAuYyAgfCA0MSArKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tLS0tLS0t
-LQogYmxvY2svYmxrLW1xLXJkbWEuYyAgICB8IDQ0ICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKy0tCiBpbmNsdWRlL2xpbnV4L2Jsay1tcS5oIHwgIDEgKwog
-MyBmaWxlcyBjaGFuZ2VkLCA2NyBpbnNlcnRpb25zKCspLCAxOSBkZWxldGlvbnMoLSkKCmRp
-ZmYgLS1naXQgYS9ibG9jay9ibGstbXEtY3B1bWFwLmMgYi9ibG9jay9ibGstbXEtY3B1bWFw
-LmMKaW5kZXggM2ViMTY5Zi4uMDJiODg4ZiAxMDA2NDQKLS0tIGEvYmxvY2svYmxrLW1xLWNw
-dW1hcC5jCisrKyBiL2Jsb2NrL2Jsay1tcS1jcHVtYXAuYwpAQCAtMzAsMjkgKzMwLDM2IEBA
-IHN0YXRpYyBpbnQgZ2V0X2ZpcnN0X3NpYmxpbmcodW5zaWduZWQgaW50IGNwdSkKIAlyZXR1
-cm4gY3B1OwogfQogCi1pbnQgYmxrX21xX21hcF9xdWV1ZXMoc3RydWN0IGJsa19tcV90YWdf
-c2V0ICpzZXQpCit2b2lkIGJsa19tcV9tYXBfcXVldWVfdG9fY3B1KHN0cnVjdCBibGtfbXFf
-dGFnX3NldCAqc2V0LCB1bnNpZ25lZCBpbnQgY3B1KQogewogCXVuc2lnbmVkIGludCAqbWFw
-ID0gc2V0LT5tcV9tYXA7CiAJdW5zaWduZWQgaW50IG5yX3F1ZXVlcyA9IHNldC0+bnJfaHdf
-cXVldWVzOwotCXVuc2lnbmVkIGludCBjcHUsIGZpcnN0X3NpYmxpbmc7CisJdW5zaWduZWQg
-aW50IGZpcnN0X3NpYmxpbmc7CiAKLQlmb3JfZWFjaF9wb3NzaWJsZV9jcHUoY3B1KSB7Ci0J
-CS8qCi0JCSAqIEZpcnN0IGRvIHNlcXVlbnRpYWwgbWFwcGluZyBiZXR3ZWVuIENQVXMgYW5k
-IHF1ZXVlcy4KLQkJICogSW4gY2FzZSB3ZSBzdGlsbCBoYXZlIENQVXMgdG8gbWFwLCBhbmQg
-d2UgaGF2ZSBzb21lIG51bWJlciBvZgotCQkgKiB0aHJlYWRzIHBlciBjb3JlcyB0aGVuIG1h
-cCBzaWJsaW5nIHRocmVhZHMgdG8gdGhlIHNhbWUgcXVldWUgZm9yCi0JCSAqIHBlcmZvcm1h
-Y2Ugb3B0aW1pemF0aW9ucy4KLQkJICovCi0JCWlmIChjcHUgPCBucl9xdWV1ZXMpIHsKKwkv
-KgorCSAqIEZpcnN0IGRvIHNlcXVlbnRpYWwgbWFwcGluZyBiZXR3ZWVuIENQVXMgYW5kIHF1
-ZXVlcy4KKwkgKiBJbiBjYXNlIHdlIHN0aWxsIGhhdmUgQ1BVcyB0byBtYXAsIGFuZCB3ZSBo
-YXZlIHNvbWUgbnVtYmVyIG9mCisJICogdGhyZWFkcyBwZXIgY29yZXMgdGhlbiBtYXAgc2li
-bGluZyB0aHJlYWRzIHRvIHRoZSBzYW1lIHF1ZXVlIGZvcgorCSAqIHBlcmZvcm1hY2Ugb3B0
-aW1pemF0aW9ucy4KKwkgKi8KKwlpZiAoY3B1IDwgbnJfcXVldWVzKSB7CisJCW1hcFtjcHVd
-ID0gY3B1X3RvX3F1ZXVlX2luZGV4KG5yX3F1ZXVlcywgY3B1KTsKKwl9IGVsc2UgeworCQlm
-aXJzdF9zaWJsaW5nID0gZ2V0X2ZpcnN0X3NpYmxpbmcoY3B1KTsKKwkJaWYgKGZpcnN0X3Np
-YmxpbmcgPT0gY3B1KQogCQkJbWFwW2NwdV0gPSBjcHVfdG9fcXVldWVfaW5kZXgobnJfcXVl
-dWVzLCBjcHUpOwotCQl9IGVsc2UgewotCQkJZmlyc3Rfc2libGluZyA9IGdldF9maXJzdF9z
-aWJsaW5nKGNwdSk7Ci0JCQlpZiAoZmlyc3Rfc2libGluZyA9PSBjcHUpCi0JCQkJbWFwW2Nw
-dV0gPSBjcHVfdG9fcXVldWVfaW5kZXgobnJfcXVldWVzLCBjcHUpOwotCQkJZWxzZQotCQkJ
-CW1hcFtjcHVdID0gbWFwW2ZpcnN0X3NpYmxpbmddOwotCQl9CisJCWVsc2UKKwkJCW1hcFtj
-cHVdID0gbWFwW2ZpcnN0X3NpYmxpbmddOwogCX0KK30KK0VYUE9SVF9TWU1CT0xfR1BMKGJs
-a19tcV9tYXBfcXVldWVfdG9fY3B1KTsKKworaW50IGJsa19tcV9tYXBfcXVldWVzKHN0cnVj
-dCBibGtfbXFfdGFnX3NldCAqc2V0KQoreworCXVuc2lnbmVkIGludCBjcHU7CisKKwlmb3Jf
-ZWFjaF9wb3NzaWJsZV9jcHUoY3B1KQorCQlibGtfbXFfbWFwX3F1ZXVlX3RvX2NwdShzZXQs
-IGNwdSk7CiAKIAlyZXR1cm4gMDsKIH0KZGlmZiAtLWdpdCBhL2Jsb2NrL2Jsay1tcS1yZG1h
-LmMgYi9ibG9jay9ibGstbXEtcmRtYS5jCmluZGV4IDk5NjE2N2YuLjEwZTRmOGEgMTAwNjQ0
-Ci0tLSBhL2Jsb2NrL2Jsay1tcS1yZG1hLmMKKysrIGIvYmxvY2svYmxrLW1xLXJkbWEuYwpA
-QCAtMzQsMTQgKzM0LDU0IEBAIGludCBibGtfbXFfcmRtYV9tYXBfcXVldWVzKHN0cnVjdCBi
-bGtfbXFfdGFnX3NldCAqc2V0LAogewogCWNvbnN0IHN0cnVjdCBjcHVtYXNrICptYXNrOwog
-CXVuc2lnbmVkIGludCBxdWV1ZSwgY3B1OworCWJvb2wgbWFwcGVkOwogCisJLyogcmVzZXQg
-YWxsIENQVXMgbWFwcGluZyAqLworCWZvcl9lYWNoX3Bvc3NpYmxlX2NwdShjcHUpCisJCXNl
-dC0+bXFfbWFwW2NwdV0gPSBVSU5UX01BWDsKKworCS8qIFRyeSB0byBtYXAgdGhlIHF1ZXVl
-cyBhY2NvcmRpbmcgdG8gYWZmaW5pdHkgKi8KIAlmb3IgKHF1ZXVlID0gMDsgcXVldWUgPCBz
-ZXQtPm5yX2h3X3F1ZXVlczsgcXVldWUrKykgewogCQltYXNrID0gaWJfZ2V0X3ZlY3Rvcl9h
-ZmZpbml0eShkZXYsIGZpcnN0X3ZlYyArIHF1ZXVlKTsKIAkJaWYgKCFtYXNrKQogCQkJZ290
-byBmYWxsYmFjazsKIAotCQlmb3JfZWFjaF9jcHUoY3B1LCBtYXNrKQotCQkJc2V0LT5tcV9t
-YXBbY3B1XSA9IHF1ZXVlOworCQlmb3JfZWFjaF9jcHUoY3B1LCBtYXNrKSB7CisJCQlpZiAo
-c2V0LT5tcV9tYXBbY3B1XSA9PSBVSU5UX01BWCkgeworCQkJCXNldC0+bXFfbWFwW2NwdV0g
-PSBxdWV1ZTsKKwkJCQkvKiBJbml0aWFseSBlYWNoIHF1ZXVlIG1hcHBlZCB0byAxIGNwdSAq
-LworCQkJCWJyZWFrOworCQkJfQorCQl9CisJfQorCisJLyogTWFwIHRoZSB1bm1hcHBlZCBx
-dWV1ZXMgaW4gYSBuYWl2ZSB3YXkgKi8KKwlmb3IgKHF1ZXVlID0gMDsgcXVldWUgPCBzZXQt
-Pm5yX2h3X3F1ZXVlczsgcXVldWUrKykgeworCQltYXBwZWQgPSBmYWxzZTsKKwkJZm9yX2Vh
-Y2hfcG9zc2libGVfY3B1KGNwdSkgeworCQkJaWYgKHNldC0+bXFfbWFwW2NwdV0gPT0gcXVl
-dWUpIHsKKwkJCQltYXBwZWQgPSB0cnVlOworCQkJCWJyZWFrOworCQkJfQorCQl9CisJCWlm
-ICghbWFwcGVkKSB7CisJCQlmb3JfZWFjaF9wb3NzaWJsZV9jcHUoY3B1KSB7CisJCQkJaWYg
-KHNldC0+bXFfbWFwW2NwdV0gPT0gVUlOVF9NQVgpIHsKKwkJCQkJc2V0LT5tcV9tYXBbY3B1
-XSA9IHF1ZXVlOworCQkJCQltYXBwZWQgPSB0cnVlOworCQkJCQlicmVhazsKKwkJCQl9CisJ
-CQl9CisJCX0KKwkJLyogVGhpcyBjYXNlIHNob3VsZCBuZXZlciBoYXBwZW4gKi8KKwkJaWYg
-KFdBUk5fT05fT05DRSghbWFwcGVkKSkKKwkJCWdvdG8gZmFsbGJhY2s7CisJfQorCisJLyog
-c2V0IGFsbCB0aGUgcmVzdCBvZiB0aGUgQ1BVcyAqLworCWZvcl9lYWNoX3Bvc3NpYmxlX2Nw
-dShjcHUpIHsKKwkJaWYgKHNldC0+bXFfbWFwW2NwdV0gPT0gVUlOVF9NQVgpCisJCQlibGtf
-bXFfbWFwX3F1ZXVlX3RvX2NwdShzZXQsIGNwdSk7CiAJfQogCiAJcmV0dXJuIDA7CmRpZmYg
-LS1naXQgYS9pbmNsdWRlL2xpbnV4L2Jsay1tcS5oIGIvaW5jbHVkZS9saW51eC9ibGstbXEu
-aAppbmRleCBlMzE0N2ViLi5kNmNkMTE0IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2Js
-ay1tcS5oCisrKyBiL2luY2x1ZGUvbGludXgvYmxrLW1xLmgKQEAgLTI4Miw2ICsyODIsNyBA
-QCB2b2lkIGJsa19tcV90YWdzZXRfYnVzeV9pdGVyKHN0cnVjdCBibGtfbXFfdGFnX3NldCAq
-dGFnc2V0LAogaW50IGJsa19tcV9mcmVlemVfcXVldWVfd2FpdF90aW1lb3V0KHN0cnVjdCBy
-ZXF1ZXN0X3F1ZXVlICpxLAogCQkJCSAgICAgdW5zaWduZWQgbG9uZyB0aW1lb3V0KTsKIAor
-dm9pZCBibGtfbXFfbWFwX3F1ZXVlX3RvX2NwdShzdHJ1Y3QgYmxrX21xX3RhZ19zZXQgKnNl
-dCwgdW5zaWduZWQgaW50IGNwdSk7CiBpbnQgYmxrX21xX21hcF9xdWV1ZXMoc3RydWN0IGJs
-a19tcV90YWdfc2V0ICpzZXQpOwogdm9pZCBibGtfbXFfdXBkYXRlX25yX2h3X3F1ZXVlcyhz
-dHJ1Y3QgYmxrX21xX3RhZ19zZXQgKnNldCwgaW50IG5yX2h3X3F1ZXVlcyk7CiAKLS0gCjEu
-OC4zLjEKCg==
---------------5BF1A9FAA2BF40591A55F150--
+T24gVHVlLCAxNyBKdWwgMjAxOCAxMDoxMjowMSArMDIwMCBNaWNoYWwgSG9ja28gPG1ob2Nrb0Br
+ZXJuZWwub3JnPiB3cm90ZToKCj4gPiBBbnkgc3VnZ2VzdGlvbnMgcmVnYXJkaW5nIGhvdyB0aGUg
+ZHJpdmVyIGRldmVsb3BlcnMgY2FuIHRlc3QgdGhpcyBjb2RlCj4gPiBwYXRoPyAgSSBkb24ndCB0
+aGluayB3ZSBwcmVzZW50bHkgaGF2ZSBhIHdheSB0byBmYWtlIGFuIG9vbS1raWxsaW5nCj4gPiBl
+dmVudD8gIFBlcmhhcHMgd2Ugc2hvdWxkIGFkZCBzdWNoIGEgdGhpbmcsIGdpdmVuIHRoZSBwcm9i
+bGVtcyB3ZSdyZQo+ID4gaGF2aW5nIHdpdGggdGhhdCBmZWF0dXJlLgo+IAo+IFRoZSBzaW1wbGVz
+dCB3YXkgaXMgdG8gd3JhcCBhbiB1c2Vyc3BhY2UgY29kZSB3aGljaCB1c2VzIHRoZXNlIG5vdGlm
+aWVycwo+IGludG8gYSBtZW1jZyBhbmQgc2V0IHRoZSBoYXJkIGxpbWl0IHRvIGhpdCB0aGUgb29t
+LiBUaGlzIGNhbiBiZSBkb25lCj4gZS5nLiBhZnRlciB0aGUgdGVzdCBmYXVsdHMgaW4gYWxsIHRo
+ZSBtbXUgbm90aWZpZXIgbWFuYWdlZCBtZW1vcnkgYW5kCj4gc2V0IHRoZSBoYXJkIGxpbWl0IHRv
+IHNvbWV0aGluZyByZWFsbHkgc21hbGwuIFRoZW4gd2UgYXJlIGxvb2tpbmcgZm9yIGEKPiBwcm9w
+ZXIgcHJvY2VzcyB0ZWFyIGRvd24uCgpDaGFuY2VzIGFyZSwgc29tZSBvZiB0aGUgaW50ZW5kZWQg
+YXVkaWVuY2UgZG9uJ3Qga25vdyBob3cgdG8gZG8gdGhpcwphbmQgd2lsbCBlaXRoZXIgaGF2ZSB0
+byBodW50IGRvd24gYSBsb3Qgb2YgZG9jdW1lbnRhdGlvbiBvciB3aWxsIGp1c3QKbm90IHRlc3Qg
+aXQuICBCdXQgd2Ugd2FudCB0aGVtIHRvIHRlc3QgaXQsIHNvIGEgbGl0dGxlIHdvcmtlZCBzdGVw
+LWJ5LXN0ZXAKZXhhbXBsZSB3b3VsZCBoZWxwIHRoaW5ncyBhbG9uZyBwbGVhc2UuCl9fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5n
+IGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
+ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
