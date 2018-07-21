@@ -1,45 +1,138 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] mm,
- oom: distinguish blockable mode for mmu notifiers
-Date: Fri, 20 Jul 2018 16:01:25 -0700
-Message-ID: <20180720160125.f3cda46f317a1ff5a2342549@linux-foundation.org>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 20 Jul 2018 17:09:02 -0700
+Message-ID: <20180720170902.d1137060c23802d55426aa03@linux-foundation.org>
 References: <20180716115058.5559-1-mhocko@kernel.org>
- <20180716161249.c76240cd487c070fb271d529@linux-foundation.org>
- <20180717081201.GB16803@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20180717081201.GB16803@dhcp22.suse.cz>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180716115058.5559-1-mhocko@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Michal Hocko <mhocko@kernel.org>
-Cc: kvm@vger.kernel.org, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Felix Kuehling <felix.kuehling@amd.com>, LKML <linux-kerne>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAxNyBKdWwgMjAxOCAxMDoxMjowMSArMDIwMCBNaWNoYWwgSG9ja28gPG1ob2Nrb0Br
-ZXJuZWwub3JnPiB3cm90ZToKCj4gPiBBbnkgc3VnZ2VzdGlvbnMgcmVnYXJkaW5nIGhvdyB0aGUg
-ZHJpdmVyIGRldmVsb3BlcnMgY2FuIHRlc3QgdGhpcyBjb2RlCj4gPiBwYXRoPyAgSSBkb24ndCB0
-aGluayB3ZSBwcmVzZW50bHkgaGF2ZSBhIHdheSB0byBmYWtlIGFuIG9vbS1raWxsaW5nCj4gPiBl
-dmVudD8gIFBlcmhhcHMgd2Ugc2hvdWxkIGFkZCBzdWNoIGEgdGhpbmcsIGdpdmVuIHRoZSBwcm9i
-bGVtcyB3ZSdyZQo+ID4gaGF2aW5nIHdpdGggdGhhdCBmZWF0dXJlLgo+IAo+IFRoZSBzaW1wbGVz
-dCB3YXkgaXMgdG8gd3JhcCBhbiB1c2Vyc3BhY2UgY29kZSB3aGljaCB1c2VzIHRoZXNlIG5vdGlm
-aWVycwo+IGludG8gYSBtZW1jZyBhbmQgc2V0IHRoZSBoYXJkIGxpbWl0IHRvIGhpdCB0aGUgb29t
-LiBUaGlzIGNhbiBiZSBkb25lCj4gZS5nLiBhZnRlciB0aGUgdGVzdCBmYXVsdHMgaW4gYWxsIHRo
-ZSBtbXUgbm90aWZpZXIgbWFuYWdlZCBtZW1vcnkgYW5kCj4gc2V0IHRoZSBoYXJkIGxpbWl0IHRv
-IHNvbWV0aGluZyByZWFsbHkgc21hbGwuIFRoZW4gd2UgYXJlIGxvb2tpbmcgZm9yIGEKPiBwcm9w
-ZXIgcHJvY2VzcyB0ZWFyIGRvd24uCgpDaGFuY2VzIGFyZSwgc29tZSBvZiB0aGUgaW50ZW5kZWQg
-YXVkaWVuY2UgZG9uJ3Qga25vdyBob3cgdG8gZG8gdGhpcwphbmQgd2lsbCBlaXRoZXIgaGF2ZSB0
-byBodW50IGRvd24gYSBsb3Qgb2YgZG9jdW1lbnRhdGlvbiBvciB3aWxsIGp1c3QKbm90IHRlc3Qg
-aXQuICBCdXQgd2Ugd2FudCB0aGVtIHRvIHRlc3QgaXQsIHNvIGEgbGl0dGxlIHdvcmtlZCBzdGVw
-LWJ5LXN0ZXAKZXhhbXBsZSB3b3VsZCBoZWxwIHRoaW5ncyBhbG9uZyBwbGVhc2UuCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5n
-IGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+On Mon, 16 Jul 2018 13:50:58 +0200 Michal Hocko <mhocko@kernel.org> wrote:
+
+> From: Michal Hocko <mhocko@suse.com>
+> 
+> There are several blockable mmu notifiers which might sleep in
+> mmu_notifier_invalidate_range_start and that is a problem for the
+> oom_reaper because it needs to guarantee a forward progress so it cannot
+> depend on any sleepable locks.
+> 
+> ...
+>
+> @@ -571,7 +565,12 @@ static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
+>  
+>  	trace_start_task_reaping(tsk->pid);
+>  
+> -	__oom_reap_task_mm(mm);
+> +	/* failed to reap part of the address space. Try again later */
+> +	if (!__oom_reap_task_mm(mm)) {
+> +		up_read(&mm->mmap_sem);
+> +		ret = false;
+> +		goto unlock_oom;
+> +	}
+
+This function is starting to look a bit screwy.
+
+: static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
+: {
+: 	if (!down_read_trylock(&mm->mmap_sem)) {
+: 		trace_skip_task_reaping(tsk->pid);
+: 		return false;
+: 	}
+: 
+: 	/*
+: 	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
+: 	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
+: 	 * under mmap_sem for reading because it serializes against the
+: 	 * down_write();up_write() cycle in exit_mmap().
+: 	 */
+: 	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
+: 		up_read(&mm->mmap_sem);
+: 		trace_skip_task_reaping(tsk->pid);
+: 		return true;
+: 	}
+: 
+: 	trace_start_task_reaping(tsk->pid);
+: 
+: 	/* failed to reap part of the address space. Try again later */
+: 	if (!__oom_reap_task_mm(mm)) {
+: 		up_read(&mm->mmap_sem);
+: 		return true;
+: 	}
+: 
+: 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+: 			task_pid_nr(tsk), tsk->comm,
+: 			K(get_mm_counter(mm, MM_ANONPAGES)),
+: 			K(get_mm_counter(mm, MM_FILEPAGES)),
+: 			K(get_mm_counter(mm, MM_SHMEMPAGES)));
+: 	up_read(&mm->mmap_sem);
+: 
+: 	trace_finish_task_reaping(tsk->pid);
+: 	return true;
+: }
+
+- Undocumented return value.
+
+- comment "failed to reap part..." is misleading - sounds like it's
+  referring to something which happened in the past, is in fact
+  referring to something which might happen in the future.
+
+- fails to call trace_finish_task_reaping() in one case
+
+- code duplication.
+
+
+I'm thinking it wants to be something like this?
+
+: /*
+:  * Return true if we successfully acquired (then released) mmap_sem
+:  */
+: static bool oom_reap_task_mm(struct task_struct *tsk, struct mm_struct *mm)
+: {
+: 	if (!down_read_trylock(&mm->mmap_sem)) {
+: 		trace_skip_task_reaping(tsk->pid);
+: 		return false;
+: 	}
+: 
+: 	/*
+: 	 * MMF_OOM_SKIP is set by exit_mmap when the OOM reaper can't
+: 	 * work on the mm anymore. The check for MMF_OOM_SKIP must run
+: 	 * under mmap_sem for reading because it serializes against the
+: 	 * down_write();up_write() cycle in exit_mmap().
+: 	 */
+: 	if (test_bit(MMF_OOM_SKIP, &mm->flags)) {
+: 		trace_skip_task_reaping(tsk->pid);
+: 		goto out;
+: 	}
+: 
+: 	trace_start_task_reaping(tsk->pid);
+: 
+: 	if (!__oom_reap_task_mm(mm)) {
+: 		/* Failed to reap part of the address space. Try again later */
+: 		goto finish;
+: 	}
+: 
+: 	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
+: 			task_pid_nr(tsk), tsk->comm,
+: 			K(get_mm_counter(mm, MM_ANONPAGES)),
+: 			K(get_mm_counter(mm, MM_FILEPAGES)),
+: 			K(get_mm_counter(mm, MM_SHMEMPAGES)));
+: finish:
+: 	trace_finish_task_reaping(tsk->pid);
+: out:
+: 	up_read(&mm->mmap_sem);
+: 	return true;
+: }
+
+- Increases mmap_sem hold time a little by moving
+  trace_finish_task_reaping() inside the locked region.  So sue me ;)
+
+- Sharing the finish: path means that the trace event won't
+  distinguish between the two sources of finishing.
+
+Please take a look?
