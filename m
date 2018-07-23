@@ -1,70 +1,50 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices
  repeatedly
-Date: Mon, 23 Jul 2018 08:36:11 -0700
-Message-ID: <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
+Date: Mon, 23 Jul 2018 16:21:28 +0000
+Message-ID: <VI1PR0502MB30082FAAD0D3EB6ACA9C6DF1D1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 References: <20180713235021.18141-1-qing.huang@oracle.com>
  <CAJ3xEMi5zF83aA_SWfYT+JtWGGhqRhLyTKe-qYwevSBLuiK=cA@mail.gmail.com>
  <dc4d502c-bc3c-46e3-a984-41271951a5f7@mellanox.com>
+ <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <dc4d502c-bc3c-46e3-a984-41271951a5f7@mellanox.com>
+In-Reply-To: <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>, Or Gerlitz <gerlitz.or@gmail.com>, Parav Pandit <parav@mellanox.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, gerald.gibson@oracle.com
+To: Qing Huang <qing.huang@oracle.com>, Daniel Jurgens <danielj@mellanox.com>, Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, "gerald.gibson@oracle.com" <gerald.gibson@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 7/15/2018 12:48 PM, Daniel Jurgens wrote:
-> On 7/14/2018 10:57 AM, Or Gerlitz wrote:
->> On Sat, Jul 14, 2018 at 2:50 AM, Qing Huang <qing.huang@oracle.com> wrote:
->>> When a CX5 device is configured in dual-port RoCE mode, after creating
->>> many VFs against port 1, creating the same number of VFs against port 2
->>> will flood kernel/syslog with something like
->>> "mlx5_*:mlx5_ib_bind_slave_port:4266:(pid 5269): port 2 already
->>> affiliated."
->>>
->>> So basically, when traversing mlx5_ib_dev_list, mlx5_ib_add_slave_port()
->>> shouldn't repeatedly attempt to bind the new mpi data unit to every device
->>> on the list until it finds an unbound device.
->> Daniel,
->>
->> What is mpi data unit?
-> It's a structure to keep track affiliated port info in dual port RoCE mode, mpi meaning multi-port info. Parav can review this it my absence, otherwise I can take a closer look when I return to the office.
-Hi Daniel/Parav,
-
-Have you got a chance to review this patch? Thanks!
-
->> Or.
->>
->>> Reported-by: Gerald Gibson <gerald.gibson@oracle.com>
->>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>> ---
->>>   drivers/infiniband/hw/mlx5/main.c | 3 ++-
->>>   1 file changed, 2 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->>> index b3ba9a2..1ddd1d3 100644
->>> --- a/drivers/infiniband/hw/mlx5/main.c
->>> +++ b/drivers/infiniband/hw/mlx5/main.c
->>> @@ -6068,7 +6068,8 @@ static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev, u8 port_num)
->>>
->>>          mutex_lock(&mlx5_ib_multiport_mutex);
->>>          list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
->>> -               if (dev->sys_image_guid == mpi->sys_image_guid)
->>> +               if (dev->sys_image_guid == mpi->sys_image_guid &&
->>> +                   !dev->port[mlx5_core_native_port_num(mdev) - 1].mp.mpi)
->>>                          bound = mlx5_ib_bind_slave_port(dev, mpi);
->>>
->>>                  if (bound) {
->>> --
->>> 2.9.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgUWluZywNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFFpbmcg
+SHVhbmcgW21haWx0bzpxaW5nLmh1YW5nQG9yYWNsZS5jb21dDQo+IFNlbnQ6IE1vbmRheSwgSnVs
+eSAyMywgMjAxOCAxMDozNiBBTQ0KPiBUbzogRGFuaWVsIEp1cmdlbnMgPGRhbmllbGpAbWVsbGFu
+b3guY29tPjsgT3IgR2VybGl0eg0KPiA8Z2VybGl0ei5vckBnbWFpbC5jb20+OyBQYXJhdiBQYW5k
+aXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4gQ2M6IExpbnV4IEtlcm5lbCA8bGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZz47IFJETUEgbWFpbGluZyBsaXN0IDxsaW51eC0NCj4gcmRtYUB2Z2Vy
+Lmtlcm5lbC5vcmc+OyBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT47IERvdWcgTGVkZm9y
+ZA0KPiA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IExlb24gUm9tYW5vdnNreSA8bGVvbkBrZXJuZWwu
+b3JnPjsNCj4gZ2VyYWxkLmdpYnNvbkBvcmFjbGUuY29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hd
+IElCL21seDU6IGF2b2lkIGJpbmRpbmcgYSBuZXcgbXBpIHVuaXQgdG8gdGhlIHNhbWUNCj4gZGV2
+aWNlcyByZXBlYXRlZGx5DQo+IA0KPiANCj4gDQo+IE9uIDcvMTUvMjAxOCAxMjo0OCBQTSwgRGFu
+aWVsIEp1cmdlbnMgd3JvdGU6DQo+ID4gT24gNy8xNC8yMDE4IDEwOjU3IEFNLCBPciBHZXJsaXR6
+IHdyb3RlOg0KPiA+PiBPbiBTYXQsIEp1bCAxNCwgMjAxOCBhdCAyOjUwIEFNLCBRaW5nIEh1YW5n
+IDxxaW5nLmh1YW5nQG9yYWNsZS5jb20+DQo+IHdyb3RlOg0KPiA+Pj4gV2hlbiBhIENYNSBkZXZp
+Y2UgaXMgY29uZmlndXJlZCBpbiBkdWFsLXBvcnQgUm9DRSBtb2RlLCBhZnRlcg0KPiA+Pj4gY3Jl
+YXRpbmcgbWFueSBWRnMgYWdhaW5zdCBwb3J0IDEsIGNyZWF0aW5nIHRoZSBzYW1lIG51bWJlciBv
+ZiBWRnMNCj4gPj4+IGFnYWluc3QgcG9ydCAyIHdpbGwgZmxvb2Qga2VybmVsL3N5c2xvZyB3aXRo
+IHNvbWV0aGluZyBsaWtlDQo+ID4+PiAibWx4NV8qOm1seDVfaWJfYmluZF9zbGF2ZV9wb3J0OjQy
+NjY6KHBpZCA1MjY5KTogcG9ydCAyIGFscmVhZHkNCj4gPj4+IGFmZmlsaWF0ZWQuIg0KPiA+Pj4N
+Cj4gPj4+IFNvIGJhc2ljYWxseSwgd2hlbiB0cmF2ZXJzaW5nIG1seDVfaWJfZGV2X2xpc3QsDQo+
+ID4+PiBtbHg1X2liX2FkZF9zbGF2ZV9wb3J0KCkgc2hvdWxkbid0IHJlcGVhdGVkbHkgYXR0ZW1w
+dCB0byBiaW5kIHRoZQ0KPiA+Pj4gbmV3IG1waSBkYXRhIHVuaXQgdG8gZXZlcnkgZGV2aWNlIG9u
+IHRoZSBsaXN0IHVudGlsIGl0IGZpbmRzIGFuIHVuYm91bmQNCj4gZGV2aWNlLg0KPiA+PiBEYW5p
+ZWwsDQo+ID4+DQo+ID4+IFdoYXQgaXMgbXBpIGRhdGEgdW5pdD8NCj4gPiBJdCdzIGEgc3RydWN0
+dXJlIHRvIGtlZXAgdHJhY2sgYWZmaWxpYXRlZCBwb3J0IGluZm8gaW4gZHVhbCBwb3J0IFJvQ0Ug
+bW9kZSwNCj4gbXBpIG1lYW5pbmcgbXVsdGktcG9ydCBpbmZvLiBQYXJhdiBjYW4gcmV2aWV3IHRo
+aXMgaXQgbXkgYWJzZW5jZSwgb3RoZXJ3aXNlIEkNCj4gY2FuIHRha2UgYSBjbG9zZXIgbG9vayB3
+aGVuIEkgcmV0dXJuIHRvIHRoZSBvZmZpY2UuDQo+IEhpIERhbmllbC9QYXJhdiwNCj4gDQo+IEhh
+dmUgeW91IGdvdCBhIGNoYW5jZSB0byByZXZpZXcgdGhpcyBwYXRjaD8gVGhhbmtzIQ0KRGlkbid0
+IGhhdmUgY2hhbmNlIHlldC4NCldpbGwgZG8gdGhpcyB3ZWVrLiANCg==
