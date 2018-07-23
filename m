@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v2 2/8] net/mlx5: Add support for flow table destination number
-Date: Mon, 23 Jul 2018 15:25:06 +0300
-Message-ID: <20180723122512.20967-3-leon@kernel.org>
+Subject: [PATCH rdma-next v2 4/8] IB: Consider ib_flow creation by the KABI infrastructure
+Date: Mon, 23 Jul 2018 15:25:08 +0300
+Message-ID: <20180723122512.20967-5-leon@kernel.org>
 References: <20180723122512.20967-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180723122512.20967-1-leon@kernel.org>
@@ -12,120 +12,70 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Add support to set a destination from a flow table number.
-This functionality will be used in downstream patches from this
-series by the DEVX stuff.
+This patch considers the case that ib_flow is created by some device
+driver with its specific parameters using the KABI infrastructure.
+
+In that case both QP and ib_uflow_resources might not be applicable.
+Downstream patches from this series use the above functionality.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- .../mellanox/mlx5/core/diag/fs_tracepoint.c        |  3 +++
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   | 24 ++++++++++++++--------
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  4 +++-
- include/linux/mlx5/fs.h                            |  1 +
- include/linux/mlx5/mlx5_ifc.h                      |  1 +
- 5 files changed, 23 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c       | 4 ++++
+ drivers/infiniband/core/uverbs_std_types.c | 5 +++--
+ include/rdma/ib_verbs.h                    | 1 +
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-index b3820a34e773..0f11fff32a9b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
-@@ -240,6 +240,9 @@ const char *parse_fs_dst(struct trace_seq *p,
- 	case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
- 		trace_seq_printf(p, "ft=%p\n", dst->ft);
- 		break;
-+	case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-+		trace_seq_printf(p, "ft_num=%u\n", dst->ft_num);
-+		break;
- 	case MLX5_FLOW_DESTINATION_TYPE_TIR:
- 		trace_seq_printf(p, "tir=%u\n", dst->tir_num);
- 		break;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 5a00deff5457..910d25f84f2f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -362,18 +362,20 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 		int list_size = 0;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index e4c298ac5946..312f9dbec09f 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2771,6 +2771,9 @@ void ib_uverbs_flow_resources_free(struct ib_uflow_resources *uflow_res)
+ {
+ 	unsigned int i;
  
- 		list_for_each_entry(dst, &fte->node.children, node.list) {
--			unsigned int id;
-+			unsigned int id, type = dst->dest_attr.type;
- 
--			if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
-+			if (type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
- 				continue;
- 
--			MLX5_SET(dest_format_struct, in_dests, destination_type,
--				 dst->dest_attr.type);
--			if (dst->dest_attr.type ==
--			    MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
-+			switch (type) {
-+			case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM:
-+				id = dst->dest_attr.ft_num;
-+				type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-+				break;
-+			case MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE:
- 				id = dst->dest_attr.ft->id;
--			} else if (dst->dest_attr.type ==
--				   MLX5_FLOW_DESTINATION_TYPE_VPORT) {
-+				break;
-+			case MLX5_FLOW_DESTINATION_TYPE_VPORT:
- 				id = dst->dest_attr.vport.num;
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id_valid,
-@@ -381,9 +383,13 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id,
- 					 dst->dest_attr.vport.vhca_id);
--			} else {
-+				break;
-+			default:
- 				id = dst->dest_attr.tir_num;
- 			}
++	if (!uflow_res)
++		return;
 +
-+			MLX5_SET(dest_format_struct, in_dests, destination_type,
-+				 type);
- 			MLX5_SET(dest_format_struct, in_dests, destination_id, id);
- 			in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
- 			list_size++;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index eba113cf1117..69aa298a0b1c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1356,7 +1356,9 @@ static bool mlx5_flow_dests_cmp(struct mlx5_flow_destination *d1,
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE &&
- 		     d1->ft == d2->ft) ||
- 		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_TIR &&
--		     d1->tir_num == d2->tir_num))
-+		     d1->tir_num == d2->tir_num) ||
-+		    (d1->type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM &&
-+		     d1->ft_num == d2->ft_num))
- 			return true;
+ 	for (i = 0; i < uflow_res->collection_num; i++)
+ 		atomic_dec(&uflow_res->collection[i]->usecnt);
+ 
+@@ -3590,6 +3593,7 @@ int ib_uverbs_ex_create_flow(struct ib_uverbs_file *file,
+ 	}
+ 	atomic_inc(&qp->usecnt);
+ 	flow_id->qp = qp;
++	flow_id->device = qp->device;
+ 	flow_id->uobject = uobj;
+ 	uobj->object = flow_id;
+ 	uflow = container_of(uobj, typeof(*uflow), uobject);
+diff --git a/drivers/infiniband/core/uverbs_std_types.c b/drivers/infiniband/core/uverbs_std_types.c
+index 718c8430d364..c1e0492cc78a 100644
+--- a/drivers/infiniband/core/uverbs_std_types.c
++++ b/drivers/infiniband/core/uverbs_std_types.c
+@@ -54,9 +54,10 @@ static int uverbs_free_flow(struct ib_uobject *uobject,
+ 	struct ib_qp *qp = flow->qp;
+ 	int ret;
+ 
+-	ret = qp->device->destroy_flow(flow);
++	ret = flow->device->destroy_flow(flow);
+ 	if (!ret) {
+-		atomic_dec(&qp->usecnt);
++		if (qp)
++			atomic_dec(&qp->usecnt);
+ 		ib_uverbs_flow_resources_free(uflow->resources);
  	}
  
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 757b4a30281e..a45febcf6b51 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -89,6 +89,7 @@ struct mlx5_flow_destination {
- 	enum mlx5_flow_destination_type	type;
- 	union {
- 		u32			tir_num;
-+		u32			ft_num;
- 		struct mlx5_flow_table	*ft;
- 		struct mlx5_fc		*counter;
- 		struct {
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 44a6ce01c3bb..fb89cc519703 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1181,6 +1181,7 @@ enum mlx5_flow_destination_type {
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 2696f1d730a1..d02bbbafbd3c 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2079,6 +2079,7 @@ struct ib_flow_attr {
  
- 	MLX5_FLOW_DESTINATION_TYPE_PORT         = 0x99,
- 	MLX5_FLOW_DESTINATION_TYPE_COUNTER      = 0x100,
-+	MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM = 0x101,
+ struct ib_flow {
+ 	struct ib_qp		*qp;
++	struct ib_device	*device;
+ 	struct ib_uobject	*uobject;
  };
  
- struct mlx5_ifc_dest_format_struct_bits {
 -- 
 2.14.4
