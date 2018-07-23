@@ -1,67 +1,104 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices
- repeatedly
-Date: Mon, 23 Jul 2018 11:21:35 -0700
-Message-ID: <175e7c33-c12b-7c37-c5b9-127804e599b5@oracle.com>
-References: <20180713235021.18141-1-qing.huang@oracle.com>
- <CAJ3xEMi5zF83aA_SWfYT+JtWGGhqRhLyTKe-qYwevSBLuiK=cA@mail.gmail.com>
- <dc4d502c-bc3c-46e3-a984-41271951a5f7@mellanox.com>
- <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
- <f2a5d82c-f65c-152d-5545-0d50a4e5e150@mellanox.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next v2 1/8] net/mlx5: Add forward compatible support
+ for the FTE match data
+Date: Mon, 23 Jul 2018 21:05:14 +0000
+Message-ID: <b5ae6e53025953d3aa0bfb4bcacffe7c2f07fcef.camel@mellanox.com>
+References: <20180723122512.20967-1-leon@kernel.org>
+         <20180723122512.20967-2-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f2a5d82c-f65c-152d-5545-0d50a4e5e150@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180723122512.20967-2-leon@kernel.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Daniel Jurgens <danielj@mellanox.com>, Or Gerlitz <gerlitz.or@gmail.com>, Parav Pandit <parav@mellanox.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, gerald.gibson@oracle.com, Sharon Liu <sharon.s.liu@oracle.com>
+Content-ID: <8A816676ACE297409EE19C056C883FC2@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Daniel,
-
-
-On 7/23/2018 11:11 AM, Daniel Jurgens wrote:
->
-> On 7/23/2018 10:36 AM, Qing Huang wrote:
->> Hi Daniel/Parav,
->>
->> Have you got a chance to review this patch? Thanks!
-> Hi Qing, sorry for the delay, I just got back to the office today. I don't agree with the proposed fix, I provided an alternative suggestion below.
->>>> Or.
->>>>
->>>>> Reported-by: Gerald Gibson <gerald.gibson@oracle.com>
->>>>> Signed-off-by: Qing Huang <qing.huang@oracle.com>
->>>>> ---
->>>>>    drivers/infiniband/hw/mlx5/main.c | 3 ++-
->>>>>    1 file changed, 2 insertions(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
->>>>> index b3ba9a2..1ddd1d3 100644
->>>>> --- a/drivers/infiniband/hw/mlx5/main.c
->>>>> +++ b/drivers/infiniband/hw/mlx5/main.c
->>>>> @@ -6068,7 +6068,8 @@ static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev, u8 port_num)
->>>>>
->>>>>           mutex_lock(&mlx5_ib_multiport_mutex);
->>>>>           list_for_each_entry(dev, &mlx5_ib_dev_list, ib_dev_list) {
->>>>> -               if (dev->sys_image_guid == mpi->sys_image_guid)
->>>>> +               if (dev->sys_image_guid == mpi->sys_image_guid &&
->>>>> +                   !dev->port[mlx5_core_native_port_num(mdev) - 1].mp.mpi)
-> You shouldn't check the mpi field that without holding the lock in the mp structure. Prefer you change the print from a warning in mlx5_ib_bind_slave_port to a debug message.
-Thanks for the review. That works for us too. Will resend the patch.
-
-Regards,
-Qing
-
->
->>>>>                           bound = mlx5_ib_bind_slave_port(dev, mpi);
->>>>>
->>>>>                   if (bound) {
->>>>> -- 
->>>>> 2.9.3
->>>>>
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gTW9uLCAyMDE4LTA3LTIzIGF0IDE1OjI1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IEZyb206IFlpc2hhaSBIYWRhcyA8eWlzaGFpaEBtZWxsYW5veC5jb20+DQo+IA0KPiBVc2Ug
+dGhlIFBSTSBzaXplIGluY2x1ZGluZyB0aGUgcmVzZXJ2ZWQgd2hlbiB3b3JraW5nIHdpdGggdGhl
+IEZURQ0KPiBtYXRjaCBkYXRhLg0KPiANCj4gVGhpcyBjb21lcyB0byBzdXBwb3J0IGZvcndhcmQg
+Y29tcGF0aWJpbGl0eSBmb3IgY2FzZXMgdGhhdCBjdXJyZW50DQo+IHJlc2VydmVkIGRhdGEgd2ls
+bCBiZSBleHBvc2VkIGJ5IHRoZSBmaXJtd2FyZSBieSBhbiBhcHBsaWNhdGlvbiB0aGF0DQo+IHVz
+ZXMgdGhlIERFVlggQVBJIHdpdGhvdXQgY2hhbmdpbmcgdGhlIGtlcm5lbC4NCj4gDQo+IEFsc28g
+ZHJvcCBzb21lIGRyaXZlciBjaGVja3MgYXJvdW5kIHRoZSBtYXRjaCBjcml0ZXJpYSBsZWF2aW5n
+IHRoZQ0KPiB3b3JrDQo+IGZvciBmaXJtd2FyZSB0byBlbmFibGUgZm9yd2FyZCBjb21wYXRpYmls
+aXR5IGZvciBmdXR1cmUgYml0cyB0aGVyZS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFlpc2hhaSBI
+YWRhcyA8eWlzaGFpaEBtZWxsYW5veC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5v
+dnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCg0KQWNrZWQtYnk6IFNhZWVkIE1haGFtZWVkIDxz
+YWVlZG1AbWVsbGFub3guY29tPg0KDQo+IC0tLQ0KPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
+bGFub3gvbWx4NS9jb3JlL2ZzX2NvcmUuYyB8IDc3ICstLS0tLS0tLS0tDQo+IC0tLS0tLS0tLS0t
+LQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCA3NiBkZWxldGlvbnMoLSkNCj4g
+DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+ZnNfY29yZS5jDQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2Zz
+X2NvcmUuYw0KPiBpbmRleCA0OWE3NWQzMTE4NWUuLmViYTExM2NmMTExNyAxMDA2NDQNCj4gLS0t
+IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZzX2NvcmUuYw0KPiAr
+KysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY29yZS5jDQo+
+IEBAIC0zMDksODkgKzMwOSwxNyBAQCBzdGF0aWMgc3RydWN0IGZzX3ByaW8gKmZpbmRfcHJpbyhz
+dHJ1Y3QNCj4gbWx4NV9mbG93X25hbWVzcGFjZSAqbnMsDQo+ICAJcmV0dXJuIE5VTEw7DQo+ICB9
+DQo+ICANCj4gLXN0YXRpYyBib29sIGNoZWNrX2xhc3RfcmVzZXJ2ZWQoY29uc3QgdTMyICptYXRj
+aF9jcml0ZXJpYSkNCj4gLXsNCj4gLQljaGFyICptYXRjaF9jcml0ZXJpYV9yZXNlcnZlZCA9DQo+
+IC0JCU1MWDVfQUREUl9PRihmdGVfbWF0Y2hfcGFyYW0sIG1hdGNoX2NyaXRlcmlhLA0KPiBNTFg1
+X0ZURV9NQVRDSF9QQVJBTV9SRVNFUlZFRCk7DQo+IC0NCj4gLQlyZXR1cm4JIW1hdGNoX2NyaXRl
+cmlhX3Jlc2VydmVkWzBdICYmDQo+IC0JCSFtZW1jbXAobWF0Y2hfY3JpdGVyaWFfcmVzZXJ2ZWQs
+DQo+IG1hdGNoX2NyaXRlcmlhX3Jlc2VydmVkICsgMSwNCj4gLQkJCU1MWDVfRkxEX1NaX0JZVEVT
+KGZ0ZV9tYXRjaF9wYXJhbSwNCj4gLQkJCQkJICBNTFg1X0ZURV9NQVRDSF9QQVJBTV9SRVNFUg0K
+PiBWRUQpIC0gMSk7DQo+IC19DQo+IC0NCj4gLXN0YXRpYyBib29sIGNoZWNrX3ZhbGlkX21hc2so
+dTggbWF0Y2hfY3JpdGVyaWFfZW5hYmxlLCBjb25zdCB1MzINCj4gKm1hdGNoX2NyaXRlcmlhKQ0K
+PiAtew0KPiAtCWlmIChtYXRjaF9jcml0ZXJpYV9lbmFibGUgJiB+KA0KPiAtCQkoMSA8PA0KPiBN
+TFg1X0NSRUFURV9GTE9XX0dST1VQX0lOX01BVENIX0NSSVRFUklBX0VOQUJMRV9PVVRFUl9IRUFE
+RVJTKSAgIHwNCj4gLQkJKDEgPDwNCj4gTUxYNV9DUkVBVEVfRkxPV19HUk9VUF9JTl9NQVRDSF9D
+UklURVJJQV9FTkFCTEVfTUlTQ19QQVJBTUVURVJTKSB8DQo+IC0JCSgxIDw8DQo+IE1MWDVfQ1JF
+QVRFX0ZMT1dfR1JPVVBfSU5fTUFUQ0hfQ1JJVEVSSUFfRU5BQkxFX0lOTkVSX0hFQURFUlMpIHwN
+Cj4gLQkJKDEgPDwNCj4gTUxYNV9DUkVBVEVfRkxPV19HUk9VUF9JTl9NQVRDSF9DUklURVJJQV9F
+TkFCTEVfTUlTQ19QQVJBTUVURVJTXzIpKSkNCj4gLQkJcmV0dXJuIGZhbHNlOw0KPiAtDQo+IC0J
+aWYgKCEobWF0Y2hfY3JpdGVyaWFfZW5hYmxlICYNCj4gLQkgICAgICAxIDw8DQo+IE1MWDVfQ1JF
+QVRFX0ZMT1dfR1JPVVBfSU5fTUFUQ0hfQ1JJVEVSSUFfRU5BQkxFX09VVEVSX0hFQURFUlMpKSB7
+DQo+IC0JCWNoYXIgKmZnX3R5cGVfbWFzayA9IE1MWDVfQUREUl9PRihmdGVfbWF0Y2hfcGFyYW0s
+DQo+IC0JCQkJCQkgIG1hdGNoX2NyaXRlcmlhLA0KPiBvdXRlcl9oZWFkZXJzKTsNCj4gLQ0KPiAt
+CQlpZiAoZmdfdHlwZV9tYXNrWzBdIHx8DQo+IC0JCSAgICBtZW1jbXAoZmdfdHlwZV9tYXNrLCBm
+Z190eXBlX21hc2sgKyAxLA0KPiAtCQkJICAgTUxYNV9TVF9TWl9CWVRFUyhmdGVfbWF0Y2hfc2V0
+X2x5cl8yXzQpIC0NCj4gMSkpDQo+IC0JCQlyZXR1cm4gZmFsc2U7DQo+IC0JfQ0KPiAtDQo+IC0J
+aWYgKCEobWF0Y2hfY3JpdGVyaWFfZW5hYmxlICYNCj4gLQkgICAgICAxIDw8DQo+IE1MWDVfQ1JF
+QVRFX0ZMT1dfR1JPVVBfSU5fTUFUQ0hfQ1JJVEVSSUFfRU5BQkxFX01JU0NfUEFSQU1FVEVSUykp
+IHsNCj4gLQkJY2hhciAqZmdfdHlwZV9tYXNrID0gTUxYNV9BRERSX09GKGZ0ZV9tYXRjaF9wYXJh
+bSwNCj4gLQkJCQkJCSAgbWF0Y2hfY3JpdGVyaWEsDQo+IG1pc2NfcGFyYW1ldGVycyk7DQo+IC0N
+Cj4gLQkJaWYgKGZnX3R5cGVfbWFza1swXSB8fA0KPiAtCQkgICAgbWVtY21wKGZnX3R5cGVfbWFz
+aywgZmdfdHlwZV9tYXNrICsgMSwNCj4gLQkJCSAgIE1MWDVfU1RfU1pfQllURVMoZnRlX21hdGNo
+X3NldF9taXNjKSAtDQo+IDEpKQ0KPiAtCQkJcmV0dXJuIGZhbHNlOw0KPiAtCX0NCj4gLQ0KPiAt
+CWlmICghKG1hdGNoX2NyaXRlcmlhX2VuYWJsZSAmDQo+IC0JICAgICAgMSA8PA0KPiBNTFg1X0NS
+RUFURV9GTE9XX0dST1VQX0lOX01BVENIX0NSSVRFUklBX0VOQUJMRV9JTk5FUl9IRUFERVJTKSkg
+ew0KPiAtCQljaGFyICpmZ190eXBlX21hc2sgPSBNTFg1X0FERFJfT0YoZnRlX21hdGNoX3BhcmFt
+LA0KPiAtCQkJCQkJICBtYXRjaF9jcml0ZXJpYSwNCj4gaW5uZXJfaGVhZGVycyk7DQo+IC0NCj4g
+LQkJaWYgKGZnX3R5cGVfbWFza1swXSB8fA0KPiAtCQkgICAgbWVtY21wKGZnX3R5cGVfbWFzaywg
+ZmdfdHlwZV9tYXNrICsgMSwNCj4gLQkJCSAgIE1MWDVfU1RfU1pfQllURVMoZnRlX21hdGNoX3Nl
+dF9seXJfMl80KSAtDQo+IDEpKQ0KPiAtCQkJcmV0dXJuIGZhbHNlOw0KPiAtCX0NCj4gLQ0KPiAt
+CWlmICghKG1hdGNoX2NyaXRlcmlhX2VuYWJsZSAmDQo+IC0JICAgICAgMSA8PA0KPiBNTFg1X0NS
+RUFURV9GTE9XX0dST1VQX0lOX01BVENIX0NSSVRFUklBX0VOQUJMRV9NSVNDX1BBUkFNRVRFUlNf
+MikpIHsNCj4gLQkJY2hhciAqZmdfdHlwZV9tYXNrID0gTUxYNV9BRERSX09GKGZ0ZV9tYXRjaF9w
+YXJhbSwNCj4gLQkJCQkJCSAgbWF0Y2hfY3JpdGVyaWEsDQo+IG1pc2NfcGFyYW1ldGVyc18yKTsN
+Cj4gLQ0KPiAtCQlpZiAoZmdfdHlwZV9tYXNrWzBdIHx8DQo+IC0JCSAgICBtZW1jbXAoZmdfdHlw
+ZV9tYXNrLCBmZ190eXBlX21hc2sgKyAxLA0KPiAtCQkJICAgTUxYNV9TVF9TWl9CWVRFUyhmdGVf
+bWF0Y2hfc2V0X21pc2MyKSAtDQo+IDEpKQ0KPiAtCQkJcmV0dXJuIGZhbHNlOw0KPiAtCX0NCj4g
+LQ0KPiAtCXJldHVybiBjaGVja19sYXN0X3Jlc2VydmVkKG1hdGNoX2NyaXRlcmlhKTsNCj4gLX0N
+Cj4gLQ0KPiAgc3RhdGljIGJvb2wgY2hlY2tfdmFsaWRfc3BlYyhjb25zdCBzdHJ1Y3QgbWx4NV9m
+bG93X3NwZWMgKnNwZWMpDQo+ICB7DQo+ICAJaW50IGk7DQo+ICANCj4gLQlpZiAoIWNoZWNrX3Zh
+bGlkX21hc2soc3BlYy0+bWF0Y2hfY3JpdGVyaWFfZW5hYmxlLCBzcGVjLQ0KPiA+bWF0Y2hfY3Jp
+dGVyaWEpKSB7DQo+IC0JCXByX3dhcm4oIm1seDVfY29yZTogTWF0Y2ggY3JpdGVyaWEgZ2l2ZW4g
+bWlzbWF0Y2hlcw0KPiBtYXRjaF9jcml0ZXJpYV9lbmFibGVcbiIpOw0KPiAtCQlyZXR1cm4gZmFs
+c2U7DQo+IC0JfQ0KPiAtDQo+ICAJZm9yIChpID0gMDsgaSA8IE1MWDVfU1RfU1pfRFdfTUFUQ0hf
+UEFSQU07IGkrKykNCj4gIAkJaWYgKHNwZWMtPm1hdGNoX3ZhbHVlW2ldICYgfnNwZWMtPm1hdGNo
+X2NyaXRlcmlhW2ldKSANCj4gew0KPiAgCQkJcHJfd2FybigibWx4NV9jb3JlOiBtYXRjaF92YWx1
+ZSBkaWZmZXJzIGZyb20NCj4gbWF0Y2hfY3JpdGVyaWFcbiIpOw0KPiAgCQkJcmV0dXJuIGZhbHNl
+Ow0KPiAgCQl9DQo+ICANCj4gLQlyZXR1cm4gY2hlY2tfbGFzdF9yZXNlcnZlZChzcGVjLT5tYXRj
+aF92YWx1ZSk7DQo+ICsJcmV0dXJuIHRydWU7DQo+ICB9DQo+ICANCj4gIHN0YXRpYyBzdHJ1Y3Qg
+bWx4NV9mbG93X3Jvb3RfbmFtZXNwYWNlICpmaW5kX3Jvb3Qoc3RydWN0IGZzX25vZGUNCj4gKm5v
+ZGUpDQo+IEBAIC0xMTU4LDkgKzEwODYsNiBAQCBzdHJ1Y3QgbWx4NV9mbG93X2dyb3VwDQo+ICpt
+bHg1X2NyZWF0ZV9mbG93X2dyb3VwKHN0cnVjdCBtbHg1X2Zsb3dfdGFibGUgKmZ0LA0KPiAgCXN0
+cnVjdCBtbHg1X2Zsb3dfZ3JvdXAgKmZnOw0KPiAgCWludCBlcnI7DQo+ICANCj4gLQlpZiAoIWNo
+ZWNrX3ZhbGlkX21hc2sobWF0Y2hfY3JpdGVyaWFfZW5hYmxlLA0KPiBtYXRjaF9jcml0ZXJpYSkp
+DQo+IC0JCXJldHVybiBFUlJfUFRSKC1FSU5WQUwpOw0KPiAtDQo+ICAJaWYgKGZ0LT5hdXRvZ3Jv
+dXAuYWN0aXZlKQ0KPiAgCQlyZXR1cm4gRVJSX1BUUigtRVBFUk0pOw0KPiAg
