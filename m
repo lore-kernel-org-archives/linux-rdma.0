@@ -1,50 +1,62 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH] IB/mlx5: avoid binding a new mpi unit to the same devices
- repeatedly
-Date: Mon, 23 Jul 2018 16:21:28 +0000
-Message-ID: <VI1PR0502MB30082FAAD0D3EB6ACA9C6DF1D1560@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-References: <20180713235021.18141-1-qing.huang@oracle.com>
- <CAJ3xEMi5zF83aA_SWfYT+JtWGGhqRhLyTKe-qYwevSBLuiK=cA@mail.gmail.com>
- <dc4d502c-bc3c-46e3-a984-41271951a5f7@mellanox.com>
- <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Mon, 23 Jul 2018 10:49:10 -0600
+Message-ID: <20180723164910.GS31540@mellanox.com>
+References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
+ <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
+ <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
+ <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
+ <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
+ <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
+ <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
+ <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
+ <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
+ <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <556984ea-c35f-197d-0e45-16272da3f604@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>, Daniel Jurgens <danielj@mellanox.com>, Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, "gerald.gibson@oracle.com" <gerald.gibson@oracle.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Max Gurtovoy <maxg@mellanox.com>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagi@grimberg.me>, 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgUWluZywNCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFFpbmcg
-SHVhbmcgW21haWx0bzpxaW5nLmh1YW5nQG9yYWNsZS5jb21dDQo+IFNlbnQ6IE1vbmRheSwgSnVs
-eSAyMywgMjAxOCAxMDozNiBBTQ0KPiBUbzogRGFuaWVsIEp1cmdlbnMgPGRhbmllbGpAbWVsbGFu
-b3guY29tPjsgT3IgR2VybGl0eg0KPiA8Z2VybGl0ei5vckBnbWFpbC5jb20+OyBQYXJhdiBQYW5k
-aXQgPHBhcmF2QG1lbGxhbm94LmNvbT4NCj4gQ2M6IExpbnV4IEtlcm5lbCA8bGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZz47IFJETUEgbWFpbGluZyBsaXN0IDxsaW51eC0NCj4gcmRtYUB2Z2Vy
-Lmtlcm5lbC5vcmc+OyBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6aWVwZS5jYT47IERvdWcgTGVkZm9y
-ZA0KPiA8ZGxlZGZvcmRAcmVkaGF0LmNvbT47IExlb24gUm9tYW5vdnNreSA8bGVvbkBrZXJuZWwu
-b3JnPjsNCj4gZ2VyYWxkLmdpYnNvbkBvcmFjbGUuY29tDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hd
-IElCL21seDU6IGF2b2lkIGJpbmRpbmcgYSBuZXcgbXBpIHVuaXQgdG8gdGhlIHNhbWUNCj4gZGV2
-aWNlcyByZXBlYXRlZGx5DQo+IA0KPiANCj4gDQo+IE9uIDcvMTUvMjAxOCAxMjo0OCBQTSwgRGFu
-aWVsIEp1cmdlbnMgd3JvdGU6DQo+ID4gT24gNy8xNC8yMDE4IDEwOjU3IEFNLCBPciBHZXJsaXR6
-IHdyb3RlOg0KPiA+PiBPbiBTYXQsIEp1bCAxNCwgMjAxOCBhdCAyOjUwIEFNLCBRaW5nIEh1YW5n
-IDxxaW5nLmh1YW5nQG9yYWNsZS5jb20+DQo+IHdyb3RlOg0KPiA+Pj4gV2hlbiBhIENYNSBkZXZp
-Y2UgaXMgY29uZmlndXJlZCBpbiBkdWFsLXBvcnQgUm9DRSBtb2RlLCBhZnRlcg0KPiA+Pj4gY3Jl
-YXRpbmcgbWFueSBWRnMgYWdhaW5zdCBwb3J0IDEsIGNyZWF0aW5nIHRoZSBzYW1lIG51bWJlciBv
-ZiBWRnMNCj4gPj4+IGFnYWluc3QgcG9ydCAyIHdpbGwgZmxvb2Qga2VybmVsL3N5c2xvZyB3aXRo
-IHNvbWV0aGluZyBsaWtlDQo+ID4+PiAibWx4NV8qOm1seDVfaWJfYmluZF9zbGF2ZV9wb3J0OjQy
-NjY6KHBpZCA1MjY5KTogcG9ydCAyIGFscmVhZHkNCj4gPj4+IGFmZmlsaWF0ZWQuIg0KPiA+Pj4N
-Cj4gPj4+IFNvIGJhc2ljYWxseSwgd2hlbiB0cmF2ZXJzaW5nIG1seDVfaWJfZGV2X2xpc3QsDQo+
-ID4+PiBtbHg1X2liX2FkZF9zbGF2ZV9wb3J0KCkgc2hvdWxkbid0IHJlcGVhdGVkbHkgYXR0ZW1w
-dCB0byBiaW5kIHRoZQ0KPiA+Pj4gbmV3IG1waSBkYXRhIHVuaXQgdG8gZXZlcnkgZGV2aWNlIG9u
-IHRoZSBsaXN0IHVudGlsIGl0IGZpbmRzIGFuIHVuYm91bmQNCj4gZGV2aWNlLg0KPiA+PiBEYW5p
-ZWwsDQo+ID4+DQo+ID4+IFdoYXQgaXMgbXBpIGRhdGEgdW5pdD8NCj4gPiBJdCdzIGEgc3RydWN0
-dXJlIHRvIGtlZXAgdHJhY2sgYWZmaWxpYXRlZCBwb3J0IGluZm8gaW4gZHVhbCBwb3J0IFJvQ0Ug
-bW9kZSwNCj4gbXBpIG1lYW5pbmcgbXVsdGktcG9ydCBpbmZvLiBQYXJhdiBjYW4gcmV2aWV3IHRo
-aXMgaXQgbXkgYWJzZW5jZSwgb3RoZXJ3aXNlIEkNCj4gY2FuIHRha2UgYSBjbG9zZXIgbG9vayB3
-aGVuIEkgcmV0dXJuIHRvIHRoZSBvZmZpY2UuDQo+IEhpIERhbmllbC9QYXJhdiwNCj4gDQo+IEhh
-dmUgeW91IGdvdCBhIGNoYW5jZSB0byByZXZpZXcgdGhpcyBwYXRjaD8gVGhhbmtzIQ0KRGlkbid0
-IGhhdmUgY2hhbmNlIHlldC4NCldpbGwgZG8gdGhpcyB3ZWVrLiANCg==
+On Fri, Jul 20, 2018 at 04:25:32AM +0300, Max Gurtovoy wrote:
+> 
+> >>>[ 2032.194376] nvme nvme0: failed to connect queue: 9 ret=-18
+> >>
+> >>queue 9 is not mapped (overlap).
+> >>please try the bellow:
+> >>
+> >
+> >This seems to work.  Here are three mapping cases:  each vector on its
+> >own cpu, each vector on 1 cpu within the local numa node, and each
+> >vector having all cpus in its numa node.  The 2nd mapping looks kinda
+> >funny, but I think it achieved what you wanted?  And all the cases
+> >resulted in successful connections.
+> >
+> 
+> Thanks for testing this.
+> I slightly improved the setting of the left CPUs and actually used Sagi's
+> initial proposal.
+> 
+> Sagi,
+> please review the attached patch and let me know if I should add your
+> signature on it.
+> I'll run some perf test early next week on it (meanwhile I run login/logout
+> with different num_queues successfully and irq settings).
+> 
+> Steve,
+> It will be great if you can apply the attached in your system and send your
+> findings.
+> 
+> Regards,
+> Max,
+
+So the conlusion to this thread is that Leon's mlx5 patch needs to wait
+until this block-mq patch is accepted?
+
+Thanks,
+Jason
