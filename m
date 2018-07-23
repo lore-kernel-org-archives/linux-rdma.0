@@ -1,111 +1,47 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next v2 2/8] net/mlx5: Add support for flow table
- destination number
-Date: Mon, 23 Jul 2018 21:05:30 +0000
-Message-ID: <02d20a26291654641e9f1a9032944a5b609576ca.camel@mellanox.com>
-References: <20180723122512.20967-1-leon@kernel.org>
-         <20180723122512.20967-3-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180723122512.20967-3-leon@kernel.org>
-Content-Language: en-US
-Content-ID: <83585D24CBDE8B48A4AAD638AAD8D6FA@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>
+From: Qing Huang <qing.huang@oracle.com>
+Subject: [PATCH v2] IB/mlx5: avoid excessive warning msgs when creating VFs on 2nd port
+Date: Mon, 23 Jul 2018 14:15:08 -0700
+Message-ID: <20180723211508.7078-1-qing.huang@oracle.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: jgg@ziepe.ca, dledford@redhat.com, leon@kernel.org, gerald.gibson@oracle.com, qing.huang@oracle.com, danielj@mellanox.com, sharon.s.liu@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTA3LTIzIGF0IDE1OjI1ICswMzAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IEZyb206IFlpc2hhaSBIYWRhcyA8eWlzaGFpaEBtZWxsYW5veC5jb20+DQo+IA0KPiBBZGQg
-c3VwcG9ydCB0byBzZXQgYSBkZXN0aW5hdGlvbiBmcm9tIGEgZmxvdyB0YWJsZSBudW1iZXIuDQo+
-IFRoaXMgZnVuY3Rpb25hbGl0eSB3aWxsIGJlIHVzZWQgaW4gZG93bnN0cmVhbSBwYXRjaGVzIGZy
-b20gdGhpcw0KPiBzZXJpZXMgYnkgdGhlIERFVlggc3R1ZmYuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5
-OiBZaXNoYWkgSGFkYXMgPHlpc2hhaWhAbWVsbGFub3guY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBM
-ZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IA0KDQpBY2tlZC1ieTogU2Fl
-ZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQoNCj4gLS0tDQo+ICAuLi4vbWVsbGFu
-b3gvbWx4NS9jb3JlL2RpYWcvZnNfdHJhY2Vwb2ludC5jICAgICAgICB8ICAzICsrKw0KPiAgZHJp
-dmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZzX2NtZC5jICAgfCAyNA0KPiAr
-KysrKysrKysrKysrKy0tLS0tLS0tDQo+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9t
-bHg1L2NvcmUvZnNfY29yZS5jICB8ICA0ICsrKy0NCj4gIGluY2x1ZGUvbGludXgvbWx4NS9mcy5o
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDEgKw0KPiAgaW5jbHVkZS9saW51eC9tbHg1
-L21seDVfaWZjLmggICAgICAgICAgICAgICAgICAgICAgfCAgMSArDQo+ICA1IGZpbGVzIGNoYW5n
-ZWQsIDIzIGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdA0K
-PiBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9kaWFnL2ZzX3RyYWNl
-cG9pbnQuYw0KPiBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9kaWFn
-L2ZzX3RyYWNlcG9pbnQuYw0KPiBpbmRleCBiMzgyMGEzNGU3NzMuLjBmMTFmZmYzMmE5YiAxMDA2
-NDQNCj4gLS0tIGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2RpYWcv
-ZnNfdHJhY2Vwb2ludC5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21s
-eDUvY29yZS9kaWFnL2ZzX3RyYWNlcG9pbnQuYw0KPiBAQCAtMjQwLDYgKzI0MCw5IEBAIGNvbnN0
-IGNoYXIgKnBhcnNlX2ZzX2RzdChzdHJ1Y3QgdHJhY2Vfc2VxICpwLA0KPiAgCWNhc2UgTUxYNV9G
-TE9XX0RFU1RJTkFUSU9OX1RZUEVfRkxPV19UQUJMRToNCj4gIAkJdHJhY2Vfc2VxX3ByaW50Zihw
-LCAiZnQ9JXBcbiIsIGRzdC0+ZnQpOw0KPiAgCQlicmVhazsNCj4gKwljYXNlIE1MWDVfRkxPV19E
-RVNUSU5BVElPTl9UWVBFX0ZMT1dfVEFCTEVfTlVNOg0KPiArCQl0cmFjZV9zZXFfcHJpbnRmKHAs
-ICJmdF9udW09JXVcbiIsIGRzdC0+ZnRfbnVtKTsNCj4gKwkJYnJlYWs7DQo+ICAJY2FzZSBNTFg1
-X0ZMT1dfREVTVElOQVRJT05fVFlQRV9USVI6DQo+ICAJCXRyYWNlX3NlcV9wcmludGYocCwgInRp
-cj0ldVxuIiwgZHN0LT50aXJfbnVtKTsNCj4gIAkJYnJlYWs7DQo+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY21kLmMNCj4gYi9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY21kLmMNCj4gaW5kZXggNWEwMGRl
-ZmY1NDU3Li45MTBkMjVmODRmMmYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9mc19jbWQuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5l
-dC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY21kLmMNCj4gQEAgLTM2MiwxOCArMzYyLDIwIEBAIHN0
-YXRpYyBpbnQgbWx4NV9jbWRfc2V0X2Z0ZShzdHJ1Y3QNCj4gbWx4NV9jb3JlX2RldiAqZGV2LA0K
-PiAgCQlpbnQgbGlzdF9zaXplID0gMDsNCj4gIA0KPiAgCQlsaXN0X2Zvcl9lYWNoX2VudHJ5KGRz
-dCwgJmZ0ZS0+bm9kZS5jaGlsZHJlbiwNCj4gbm9kZS5saXN0KSB7DQo+IC0JCQl1bnNpZ25lZCBp
-bnQgaWQ7DQo+ICsJCQl1bnNpZ25lZCBpbnQgaWQsIHR5cGUgPSBkc3QtPmRlc3RfYXR0ci50eXBl
-Ow0KPiAgDQo+IC0JCQlpZiAoZHN0LT5kZXN0X2F0dHIudHlwZSA9PQ0KPiBNTFg1X0ZMT1dfREVT
-VElOQVRJT05fVFlQRV9DT1VOVEVSKQ0KPiArCQkJaWYgKHR5cGUgPT0NCj4gTUxYNV9GTE9XX0RF
-U1RJTkFUSU9OX1RZUEVfQ09VTlRFUikNCj4gIAkJCQljb250aW51ZTsNCj4gIA0KPiAtCQkJTUxY
-NV9TRVQoZGVzdF9mb3JtYXRfc3RydWN0LCBpbl9kZXN0cywNCj4gZGVzdGluYXRpb25fdHlwZSwN
-Cj4gLQkJCQkgZHN0LT5kZXN0X2F0dHIudHlwZSk7DQo+IC0JCQlpZiAoZHN0LT5kZXN0X2F0dHIu
-dHlwZSA9PQ0KPiAtCQkJICAgIE1MWDVfRkxPV19ERVNUSU5BVElPTl9UWVBFX0ZMT1dfVEFCTEUp
-IHsNCj4gKwkJCXN3aXRjaCAodHlwZSkgew0KPiArCQkJY2FzZQ0KPiBNTFg1X0ZMT1dfREVTVElO
-QVRJT05fVFlQRV9GTE9XX1RBQkxFX05VTToNCj4gKwkJCQlpZCA9IGRzdC0+ZGVzdF9hdHRyLmZ0
-X251bTsNCj4gKwkJCQl0eXBlID0NCj4gTUxYNV9GTE9XX0RFU1RJTkFUSU9OX1RZUEVfRkxPV19U
-QUJMRTsNCj4gKwkJCQlicmVhazsNCj4gKwkJCWNhc2UgTUxYNV9GTE9XX0RFU1RJTkFUSU9OX1RZ
-UEVfRkxPV19UQUJMRToNCj4gIAkJCQlpZCA9IGRzdC0+ZGVzdF9hdHRyLmZ0LT5pZDsNCj4gLQkJ
-CX0gZWxzZSBpZiAoZHN0LT5kZXN0X2F0dHIudHlwZSA9PQ0KPiAtCQkJCSAgIE1MWDVfRkxPV19E
-RVNUSU5BVElPTl9UWVBFX1ZQT1JUKQ0KPiB7DQo+ICsJCQkJYnJlYWs7DQo+ICsJCQljYXNlIE1M
-WDVfRkxPV19ERVNUSU5BVElPTl9UWVBFX1ZQT1JUOg0KPiAgCQkJCWlkID0gZHN0LT5kZXN0X2F0
-dHIudnBvcnQubnVtOw0KPiAgCQkJCU1MWDVfU0VUKGRlc3RfZm9ybWF0X3N0cnVjdCwNCj4gaW5f
-ZGVzdHMsDQo+ICAJCQkJCSBkZXN0aW5hdGlvbl9lc3dpdGNoX293bmVyX3YNCj4gaGNhX2lkX3Zh
-bGlkLA0KPiBAQCAtMzgxLDkgKzM4MywxMyBAQCBzdGF0aWMgaW50IG1seDVfY21kX3NldF9mdGUo
-c3RydWN0IG1seDVfY29yZV9kZXYNCj4gKmRldiwNCj4gIAkJCQlNTFg1X1NFVChkZXN0X2Zvcm1h
-dF9zdHJ1Y3QsDQo+IGluX2Rlc3RzLA0KPiAgCQkJCQkgZGVzdGluYXRpb25fZXN3aXRjaF9vd25l
-cl92DQo+IGhjYV9pZCwNCj4gIAkJCQkJIGRzdC0NCj4gPmRlc3RfYXR0ci52cG9ydC52aGNhX2lk
-KTsNCj4gLQkJCX0gZWxzZSB7DQo+ICsJCQkJYnJlYWs7DQo+ICsJCQlkZWZhdWx0Og0KPiAgCQkJ
-CWlkID0gZHN0LT5kZXN0X2F0dHIudGlyX251bTsNCj4gIAkJCX0NCj4gKw0KPiArCQkJTUxYNV9T
-RVQoZGVzdF9mb3JtYXRfc3RydWN0LCBpbl9kZXN0cywNCj4gZGVzdGluYXRpb25fdHlwZSwNCj4g
-KwkJCQkgdHlwZSk7DQo+ICAJCQlNTFg1X1NFVChkZXN0X2Zvcm1hdF9zdHJ1Y3QsIGluX2Rlc3Rz
-LA0KPiBkZXN0aW5hdGlvbl9pZCwgaWQpOw0KPiAgCQkJaW5fZGVzdHMgKz0NCj4gTUxYNV9TVF9T
-Wl9CWVRFUyhkZXN0X2Zvcm1hdF9zdHJ1Y3QpOw0KPiAgCQkJbGlzdF9zaXplKys7DQo+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY29yZS5j
-DQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZzX2NvcmUuYw0K
-PiBpbmRleCBlYmExMTNjZjExMTcuLjY5YWEyOThhMGIxYyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVy
-cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZzX2NvcmUuYw0KPiArKysgYi9kcml2
-ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnNfY29yZS5jDQo+IEBAIC0xMzU2
-LDcgKzEzNTYsOSBAQCBzdGF0aWMgYm9vbCBtbHg1X2Zsb3dfZGVzdHNfY21wKHN0cnVjdA0KPiBt
-bHg1X2Zsb3dfZGVzdGluYXRpb24gKmQxLA0KPiAgCQkgICAgKGQxLT50eXBlID09DQo+IE1MWDVf
-RkxPV19ERVNUSU5BVElPTl9UWVBFX0ZMT1dfVEFCTEUgJiYNCj4gIAkJICAgICBkMS0+ZnQgPT0g
-ZDItPmZ0KSB8fA0KPiAgCQkgICAgKGQxLT50eXBlID09IE1MWDVfRkxPV19ERVNUSU5BVElPTl9U
-WVBFX1RJUiAmJg0KPiAtCQkgICAgIGQxLT50aXJfbnVtID09IGQyLT50aXJfbnVtKSkNCj4gKwkJ
-ICAgICBkMS0+dGlyX251bSA9PSBkMi0+dGlyX251bSkgfHwNCj4gKwkJICAgIChkMS0+dHlwZSA9
-PQ0KPiBNTFg1X0ZMT1dfREVTVElOQVRJT05fVFlQRV9GTE9XX1RBQkxFX05VTSAmJg0KPiArCQkg
-ICAgIGQxLT5mdF9udW0gPT0gZDItPmZ0X251bSkpDQo+ICAJCQlyZXR1cm4gdHJ1ZTsNCj4gIAl9
-DQo+ICANCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWx4NS9mcy5oIGIvaW5jbHVkZS9s
-aW51eC9tbHg1L2ZzLmgNCj4gaW5kZXggNzU3YjRhMzAyODFlLi5hNDVmZWJjZjZiNTEgMTAwNjQ0
-DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvbWx4NS9mcy5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgv
-bWx4NS9mcy5oDQo+IEBAIC04OSw2ICs4OSw3IEBAIHN0cnVjdCBtbHg1X2Zsb3dfZGVzdGluYXRp
-b24gew0KPiAgCWVudW0gbWx4NV9mbG93X2Rlc3RpbmF0aW9uX3R5cGUJdHlwZTsNCj4gIAl1bmlv
-biB7DQo+ICAJCXUzMgkJCXRpcl9udW07DQo+ICsJCXUzMgkJCWZ0X251bTsNCj4gIAkJc3RydWN0
-IG1seDVfZmxvd190YWJsZQkqZnQ7DQo+ICAJCXN0cnVjdCBtbHg1X2ZjCQkqY291bnRlcjsNCj4g
-IAkJc3RydWN0IHsNCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5o
-DQo+IGIvaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgNCj4gaW5kZXggNDRhNmNlMDFjM2Ji
-Li5mYjg5Y2M1MTk3MDMgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lm
-Yy5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oDQo+IEBAIC0xMTgxLDYg
-KzExODEsNyBAQCBlbnVtIG1seDVfZmxvd19kZXN0aW5hdGlvbl90eXBlIHsNCj4gIA0KPiAgCU1M
-WDVfRkxPV19ERVNUSU5BVElPTl9UWVBFX1BPUlQgICAgICAgICA9IDB4OTksDQo+ICAJTUxYNV9G
-TE9XX0RFU1RJTkFUSU9OX1RZUEVfQ09VTlRFUiAgICAgID0gMHgxMDAsDQo+ICsJTUxYNV9GTE9X
-X0RFU1RJTkFUSU9OX1RZUEVfRkxPV19UQUJMRV9OVU0gPSAweDEwMSwNCj4gIH07DQo+ICANCj4g
-IHN0cnVjdCBtbHg1X2lmY19kZXN0X2Zvcm1hdF9zdHJ1Y3RfYml0cyB7
+When a CX5 device is configured in dual-port RoCE mode, after creating
+many VFs against port 1, creating the same number of VFs against port 2
+will flood kernel/syslog with something like
+"mlx5_*:mlx5_ib_bind_slave_port:4266:(pid 5269): port 2 already
+affiliated."
+
+So basically, when traversing mlx5_ib_dev_list, mlx5_ib_add_slave_port()
+repeatedly attempts to bind the new mpi structure to every device
+on the list until it finds an unbound device.
+
+Change the log level from warn to dbg to avoid log flooding as the warning
+should be harmless.
+
+Signed-off-by: Qing Huang <qing.huang@oracle.com>
+---
+  v1 -> v2: change the log level instead
+
+ drivers/infiniband/hw/mlx5/main.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index b3ba9a2..f57b8f7 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5127,8 +5127,8 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 
+ 	spin_lock(&ibdev->port[port_num].mp.mpi_lock);
+ 	if (ibdev->port[port_num].mp.mpi) {
+-		mlx5_ib_warn(ibdev, "port %d already affiliated.\n",
+-			     port_num + 1);
++		mlx5_ib_dbg(ibdev, "port %d already affiliated.\n",
++			    port_num + 1);
+ 		spin_unlock(&ibdev->port[port_num].mp.mpi_lock);
+ 		return false;
+ 	}
+-- 
+2.9.3
