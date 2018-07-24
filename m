@@ -1,110 +1,82 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next v2 0/8] Support mlx5 flow steering with RAW data
-Date: Tue, 24 Jul 2018 08:56:09 +0300
-Message-ID: <20180724055609.GG3189@mtr-leonro.mtl.com>
-References: <20180723122512.20967-1-leon@kernel.org>
- <20180724024236.GA16958@ziepe.ca>
+From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 24 Jul 2018 16:17:47 +0200
+Message-ID: <20180724141747.GP28386@dhcp22.suse.cz>
+References: <20180716115058.5559-1-mhocko@kernel.org>
+ <20180720170902.d1137060c23802d55426aa03@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yH1ZJFh+qWm+VodA"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20180724024236.GA16958@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20180720170902.d1137060c23802d55426aa03-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mike Marciniszyn <mike>
 List-Id: linux-rdma@vger.kernel.org
 
-
---yH1ZJFh+qWm+VodA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Jul 23, 2018 at 08:42:36PM -0600, Jason Gunthorpe wrote:
-> On Mon, Jul 23, 2018 at 03:25:04PM +0300, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Changelog:
-> > v1->v2:
-> >  * Fix matcher to use the correct size.
-> >  * Rephrase commit log of the first patch.
-> > v0->v1:
-> >  * Fixed ADD_UVERBS_ATTRIBUTES_SIMPLE macro to pass the real address.
-> >  ?* Replaced UA_ALLOC_AND_COPY to regular copy_from
-> >  * Added UVERBS_ATTR_NO_DATA new macro for cleaner code.
-> >  * Used ib_dev from uobj when it exists.
-> >  * ib_is_destroy_retryable was replaced by ib_destroy_usecnt
-> >
-> > >From Yishai:
-> >
-> > This series introduces vendor create and destroy flow methods on the
-> > uverbs flow object by using the KABI infra-structure.
-> >
-> > It's done in a way that enables the driver to get its specific device
-> > attributes in a raw data to match its underlay specification while still
-> > using the generic ib_flow object for cleanup and code sharing.
-> >
-> > In addition, a specific mlx5 matcher object and its create/destroy
-> > methods were introduced. This object matches the underlay flow steering
-> > mask specification and is used as part of mlx5 create flow input data.
-> >
-> > This series supports IB_QP/TIR as its flow steering destination as
-> > applicable today via the ib_create_flow API, however, it adds also an
-> > option to work with DEVX object which its destination can be both TIR
-> > and flow table.
-> >
-> > Few changes were done in the mlx5 core layer to support forward
-> > compatible for the device specification raw data and to support flow
-> > table when the DEVX destination is used.
-> >
-> > As part of this series the default IB destroy handler
-> > (i.e. uverbs_destroy_def_handler()) was exposed from IB core to be
-> > used by the drivers and existing code was refactored to use it.
-> >
-> > Thanks
-> >
-> > Yishai Hadas (8):
-> >   net/mlx5: Add forward compatible support for the FTE match data
-> >   net/mlx5: Add support for flow table destination number
-> >   IB/mlx5: Introduce flow steering matcher object
-> >   IB: Consider ib_flow creation by the KABI infrastructure
-> >   IB/mlx5: Introduce vendor create and destroy flow methods
-> >   IB/mlx5: Support adding flow steering rule by raw data
-> >   IB/mlx5: Add support for a flow table destination
-> >   IB/mlx5: Expose vendor flow trees
->
-> This seems fine to me. Can you send the mlx5 shared branch for the
-> first two patches?
-
-I applied two first patches with Acked-by from Saeed to mlx5-next
-
-664000b6bb43 net/mlx5: Add support for flow table destination number
-2aada6c0c96e net/mlx5: Add forward compatible support for the FTE match data
-
-Thanks
-
->
-> Thanks,
-> Jason
-
---yH1ZJFh+qWm+VodA
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbVr95AAoJEORje4g2clinb00P/00uwCl/SNXCtT3/0v4IKwUO
-4xAbwPmB6bElvrKMawfzGLtRxXXNekvHqsJUjMj61uUgz49xALwSYYYoRHOwpqDX
-VnALJ1B8fw4EQaZT6QykpLnsnVlOOCBhFaMje2IrG+I6fGgUgRAtX60cpWkuX8gC
-2No9VDnZW5Uy2dUjm4hYPC5oFy3TbLBJH/+J9kOP2SJSOuIv6O7sDYLiwfCLpWoh
-e0GP/bHVjGl0FrQRp9FFLgsZ1Gj5xFrL40P6yWcQo7+3CCnKjhzq4vJKSKSDlWLd
-geajjGG4eXT1dlRQOuxXkqFtTtDVULhkMmfliUI2/WsUaWd0RkCh2I8CGVLbPDIS
-UIVWJYtp2eNVmzng64diy10lVQ67ur9T23wyT+ETa/RdatXw6xYnuajwX6uhkRkX
-88AiO1ddLiZ+nmwENvkgfD4uPGrg7xq+Ay8AE47kGYW8TOaAuo08nDdIdza+1aoi
-5TC6c/ikyuzERatUYqKlRQQO+GTl3rBHb7f2Oxor+8OSMMTe5ppWK6GPysFdaH/t
-rhmmhz8qnRp9x8irmowlRVoYC2hpxsHjiHgVaYWK/txEtnigLb9PVJvYKw3frhZP
-PxVLtHUUKymEYtPZiWTNi981vF901MKsgYCPyb0oaDvlfObmd7eah5HyEz/Xw45R
-c2fWcL111ouYpyHMBept
-=R2KV
------END PGP SIGNATURE-----
-
---yH1ZJFh+qWm+VodA--
+T24gRnJpIDIwLTA3LTE4IDE3OjA5OjAyLCBBbmRyZXcgTW9ydG9uIHdyb3RlOgpbLi4uXQo+IC0g
+VW5kb2N1bWVudGVkIHJldHVybiB2YWx1ZS4KPiAKPiAtIGNvbW1lbnQgImZhaWxlZCB0byByZWFw
+IHBhcnQuLi4iIGlzIG1pc2xlYWRpbmcgLSBzb3VuZHMgbGlrZSBpdCdzCj4gICByZWZlcnJpbmcg
+dG8gc29tZXRoaW5nIHdoaWNoIGhhcHBlbmVkIGluIHRoZSBwYXN0LCBpcyBpbiBmYWN0Cj4gICBy
+ZWZlcnJpbmcgdG8gc29tZXRoaW5nIHdoaWNoIG1pZ2h0IGhhcHBlbiBpbiB0aGUgZnV0dXJlLgo+
+IAo+IC0gZmFpbHMgdG8gY2FsbCB0cmFjZV9maW5pc2hfdGFza19yZWFwaW5nKCkgaW4gb25lIGNh
+c2UKPiAKPiAtIGNvZGUgZHVwbGljYXRpb24uCj4gCj4gLSBJbmNyZWFzZXMgbW1hcF9zZW0gaG9s
+ZCB0aW1lIGEgbGl0dGxlIGJ5IG1vdmluZwo+ICAgdHJhY2VfZmluaXNoX3Rhc2tfcmVhcGluZygp
+IGluc2lkZSB0aGUgbG9ja2VkIHJlZ2lvbi4gIFNvIHN1ZSBtZSA7KQo+IAo+IC0gU2hhcmluZyB0
+aGUgZmluaXNoOiBwYXRoIG1lYW5zIHRoYXQgdGhlIHRyYWNlIGV2ZW50IHdvbid0Cj4gICBkaXN0
+aW5ndWlzaCBiZXR3ZWVuIHRoZSB0d28gc291cmNlcyBvZiBmaW5pc2hpbmcuCj4gCj4gUGxlYXNl
+IHRha2UgYSBsb29rPwoKb29tX3JlYXBfdGFza19tbSBzaG91bGQgcmV0dXJuIGZhbHNlIHdoZW4g
+X19vb21fcmVhcF90YXNrX21tIHJldHVybgpmYWxzZS4gVGhpcyBpcyB3aGF0IG15IHBhdGNoIGRp
+ZCBidXQgaXQgc2VlbXMgdGhpcyBjaGFuZ2VkIGJ5Cmh0dHA6Ly93d3cub3psYWJzLm9yZy9+YWtw
+bS9tbW90bS9icm9rZW4tb3V0L21tLW9vbS1yZW1vdmUtb29tX2xvY2stZnJvbS1vb21fcmVhcGVy
+LnBhdGNoCnNvIHRoYXQgb25lIHNob3VsZCBiZSBmaXhlZC4KCmRpZmYgLS1naXQgYS9tbS9vb21f
+a2lsbC5jIGIvbW0vb29tX2tpbGwuYwppbmRleCAxMDRlZjRhMDFhNTUuLjg4NjU3ZTAxODcxNCAx
+MDA2NDQKLS0tIGEvbW0vb29tX2tpbGwuYworKysgYi9tbS9vb21fa2lsbC5jCkBAIC01NjUsNyAr
+NTY1LDcgQEAgc3RhdGljIGJvb2wgb29tX3JlYXBfdGFza19tbShzdHJ1Y3QgdGFza19zdHJ1Y3Qg
+KnRzaywgc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJLyogZmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0
+aGUgYWRkcmVzcyBzcGFjZS4gVHJ5IGFnYWluIGxhdGVyICovCiAJaWYgKCFfX29vbV9yZWFwX3Rh
+c2tfbW0obW0pKSB7CiAJCXVwX3JlYWQoJm1tLT5tbWFwX3NlbSk7Ci0JCXJldHVybiB0cnVlOwor
+CQlyZXR1cm4gZmFsc2U7CiAJfQogCiAJcHJfaW5mbygib29tX3JlYXBlcjogcmVhcGVkIHByb2Nl
+c3MgJWQgKCVzKSwgbm93IGFub24tcnNzOiVsdWtCLCBmaWxlLXJzczolbHVrQiwgc2htZW0tcnNz
+OiVsdWtCXG4iLAoKCk9uIHRvcCBvZiB0aGF0IHRoZSBwcm9wb3NlZCBjbGVhbnVwIGxvb2tzIGFz
+IGZvbGxvd3M6CgpkaWZmIC0tZ2l0IGEvbW0vb29tX2tpbGwuYyBiL21tL29vbV9raWxsLmMKaW5k
+ZXggODg2NTdlMDE4NzE0Li40ZTE4NWEyODJiM2QgMTAwNjQ0Ci0tLSBhL21tL29vbV9raWxsLmMK
+KysrIGIvbW0vb29tX2tpbGwuYwpAQCAtNTQxLDggKzU0MSwxNiBAQCBib29sIF9fb29tX3JlYXBf
+dGFza19tbShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIAlyZXR1cm4gcmV0OwogfQogCisvKgorICog
+UmVhcHMgdGhlIGFkZHJlc3Mgc3BhY2Ugb2YgdGhlIGdpdmUgdGFzay4KKyAqCisgKiBSZXR1cm5z
+IHRydWUgb24gc3VjY2VzcyBhbmQgZmFsc2UgaWYgbm9uZSBvciBwYXJ0IG9mIHRoZSBhZGRyZXNz
+IHNwYWNlCisgKiBoYXMgYmVlbiByZWNsYWltZWQgYW5kIHRoZSBjYWxsZXIgc2hvdWxkIHJldHJ5
+IGxhdGVyLgorICovCiBzdGF0aWMgYm9vbCBvb21fcmVhcF90YXNrX21tKHN0cnVjdCB0YXNrX3N0
+cnVjdCAqdHNrLCBzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIHsKKwlib29sIHJldCA9IHRydWU7CisK
+IAlpZiAoIWRvd25fcmVhZF90cnlsb2NrKCZtbS0+bW1hcF9zZW0pKSB7CiAJCXRyYWNlX3NraXBf
+dGFza19yZWFwaW5nKHRzay0+cGlkKTsKIAkJcmV0dXJuIGZhbHNlOwpAQCAtNTU1LDI4ICs1NjMs
+MjggQEAgc3RhdGljIGJvb2wgb29tX3JlYXBfdGFza19tbShzdHJ1Y3QgdGFza19zdHJ1Y3QgKnRz
+aywgc3RydWN0IG1tX3N0cnVjdCAqbW0pCiAJICogZG93bl93cml0ZSgpO3VwX3dyaXRlKCkgY3lj
+bGUgaW4gZXhpdF9tbWFwKCkuCiAJICovCiAJaWYgKHRlc3RfYml0KE1NRl9PT01fU0tJUCwgJm1t
+LT5mbGFncykpIHsKLQkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKIAkJdHJhY2Vfc2tpcF90YXNr
+X3JlYXBpbmcodHNrLT5waWQpOwotCQlyZXR1cm4gdHJ1ZTsKKwkJZ290byBvdXRfdW5sb2NrOwog
+CX0KIAogCXRyYWNlX3N0YXJ0X3Rhc2tfcmVhcGluZyh0c2stPnBpZCk7CiAKIAkvKiBmYWlsZWQg
+dG8gcmVhcCBwYXJ0IG9mIHRoZSBhZGRyZXNzIHNwYWNlLiBUcnkgYWdhaW4gbGF0ZXIgKi8KLQlp
+ZiAoIV9fb29tX3JlYXBfdGFza19tbShtbSkpIHsKLQkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsK
+LQkJcmV0dXJuIGZhbHNlOwotCX0KKwlyZXQgPSBfX29vbV9yZWFwX3Rhc2tfbW0obW0pOworCWlm
+ICghcmV0KQorCQlnb3RvIG91dF9maW5pc2g7CiAKIAlwcl9pbmZvKCJvb21fcmVhcGVyOiByZWFw
+ZWQgcHJvY2VzcyAlZCAoJXMpLCBub3cgYW5vbi1yc3M6JWx1a0IsIGZpbGUtcnNzOiVsdWtCLCBz
+aG1lbS1yc3M6JWx1a0JcbiIsCiAJCQl0YXNrX3BpZF9ucih0c2spLCB0c2stPmNvbW0sCiAJCQlL
+KGdldF9tbV9jb3VudGVyKG1tLCBNTV9BTk9OUEFHRVMpKSwKIAkJCUsoZ2V0X21tX2NvdW50ZXIo
+bW0sIE1NX0ZJTEVQQUdFUykpLAogCQkJSyhnZXRfbW1fY291bnRlcihtbSwgTU1fU0hNRU1QQUdF
+UykpKTsKK291dF9maW5pc2g6CisJdHJhY2VfZmluaXNoX3Rhc2tfcmVhcGluZyh0c2stPnBpZCk7
+CitvdXRfdW5sb2NrOgogCXVwX3JlYWQoJm1tLT5tbWFwX3NlbSk7CiAKLQl0cmFjZV9maW5pc2hf
+dGFza19yZWFwaW5nKHRzay0+cGlkKTsKLQlyZXR1cm4gdHJ1ZTsKKwlyZXR1cm4gcmV0OwogfQog
+CiAjZGVmaW5lIE1BWF9PT01fUkVBUF9SRVRSSUVTIDEwCi0tIApNaWNoYWwgSG9ja28KU1VTRSBM
+YWJzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmFtZC1n
+ZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeAo=
