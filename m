@@ -1,83 +1,61 @@
-From: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
-Subject: [PATCH PATCH net-next 01/18] sched: fix trailing whitespace
-Date: Tue, 24 Jul 2018 12:29:01 -0700
-Message-ID: <20180724192918.31165-2-sthemmin@microsoft.com>
-References: <20180724192918.31165-1-sthemmin@microsoft.com>
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180724192918.31165-1-sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ericvh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rminnich-4OHPYypu0djtX7QSmKvirg@public.gmane.org, lucho-OnYtXJJ0/fesTnJN9+BGXg@public.gmane.org, ralf-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, jreuter-K7Hl1MveuGQ@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org, alex.aring-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, stefan-OrPQZGeq07wqhVmZOOOmNx2eb7JE58TQ@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org, jhs-jkUAjuhPggJWk0Htik3J/w@public.gmane.org, xiyou.wangcong-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jiri-rHqAuBHg3fBzbRFIqnYvSA@public.gmane.org, vyasevich-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, trond.myklebust-F/q8l9xzQnoyLce1RVWEUA@public.gmane.org, anna.schumaker-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org, herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, v9fs-developer-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-hams-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-decnet-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-x25-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Hemminger <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 24 Jul 2018 12:53:07 -0700
+Message-ID: <20180724125307.d6035c447adf46b2d74dfbd7@linux-foundation.org>
+References: <20180716115058.5559-1-mhocko@kernel.org>
+ <20180720170902.d1137060c23802d55426aa03@linux-foundation.org>
+ <20180724141747.GP28386@dhcp22.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20180724141747.GP28386@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?ISO-8859-1?Q?J=E9r=F4me?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Felix Kuehling <felix.kuehling@amd.com>, LKML <linux-kerne>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove trailing whitespace and blank lines at EOF
-
-Signed-off-by: Stephen Hemminger <stephen-OTpzqLSitTUnbdJkjeBofR2eb7JE58TQ@public.gmane.org>
----
- net/sched/Kconfig        | 4 ++--
- net/sched/Makefile       | 2 +-
- net/sched/act_connmark.c | 1 -
- net/sched/act_pedit.c    | 1 -
- net/sched/cls_basic.c    | 1 -
- 5 files changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/net/sched/Kconfig b/net/sched/Kconfig
-index 7af246764a35..bba71225adbd 100644
---- a/net/sched/Kconfig
-+++ b/net/sched/Kconfig
-@@ -1,6 +1,6 @@
- #
- # Traffic control configuration.
--# 
-+#
- 
- menuconfig NET_SCHED
- 	bool "QoS and/or fair queueing"
-@@ -706,7 +706,7 @@ config NET_CLS_ACT
- 
- config NET_ACT_POLICE
- 	tristate "Traffic Policing"
--        depends on NET_CLS_ACT 
-+        depends on NET_CLS_ACT
-         ---help---
- 	  Say Y here if you want to do traffic policing, i.e. strict
- 	  bandwidth limiting. This action replaces the existing policing
-diff --git a/net/sched/Makefile b/net/sched/Makefile
-index 673ee7d26ff2..910ec7463a36 100644
---- a/net/sched/Makefile
-+++ b/net/sched/Makefile
-@@ -33,7 +33,7 @@ obj-$(CONFIG_NET_SCH_HTB)	+= sch_htb.o
- obj-$(CONFIG_NET_SCH_HFSC)	+= sch_hfsc.o
- obj-$(CONFIG_NET_SCH_RED)	+= sch_red.o
- obj-$(CONFIG_NET_SCH_GRED)	+= sch_gred.o
--obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o 
-+obj-$(CONFIG_NET_SCH_INGRESS)	+= sch_ingress.o
- obj-$(CONFIG_NET_SCH_DSMARK)	+= sch_dsmark.o
- obj-$(CONFIG_NET_SCH_SFB)	+= sch_sfb.o
- obj-$(CONFIG_NET_SCH_SFQ)	+= sch_sfq.o
-diff --git a/net/sched/act_connmark.c b/net/sched/act_connmark.c
-index 1e31f0e448e2..2f9bc833d046 100644
---- a/net/sched/act_connmark.c
-+++ b/net/sched/act_connmark.c
-@@ -252,4 +252,3 @@ module_exit(connmark_cleanup_module);
- MODULE_AUTHOR("Felix Fietkau <nbd-p3rKhJxN3npAfugRpC6u6w@public.gmane.org>");
- MODULE_DESCRIPTION("Connection tracking mark restoring");
- MODULE_LICENSE("GPL");
--
-diff --git a/net/sched/act_pedit.c b/net/sched/act_pedit.c
-index cc8ffcd1ddb5..9ab5d81aff1a 100644
---- a/net/sched/act_pedit.c
-+++ b/net/sched/act_pedit.c
-@@ -516,4 +516,3 @@ static void __exit pedit_cleanup_module(void)
- 
- module_init(pedit_init_module);
- module_exit(pedit_cleanup_module);
--
-diff --git a/net/sched/cls_basic.c b/net/sched/cls_basic.c
-index 95367f37098d..6a5dce8baf19 100644
---- a/net/sched/cls_basic.c
-+++ b/net/sched/cls_basic.c
-@@ -324,4 +324,3 @@ static void __exit exit_basic(void)
- module_init(init_basic)
- module_exit(exit_basic)
- MODULE_LICENSE("GPL");
+T24gVHVlLCAyNCBKdWwgMjAxOCAxNjoxNzo0NyArMDIwMCBNaWNoYWwgSG9ja28gPG1ob2Nrb0Br
+ZXJuZWwub3JnPiB3cm90ZToKCj4gT24gRnJpIDIwLTA3LTE4IDE3OjA5OjAyLCBBbmRyZXcgTW9y
+dG9uIHdyb3RlOgo+IFsuLi5dCj4gPiAtIFVuZG9jdW1lbnRlZCByZXR1cm4gdmFsdWUuCj4gPiAK
+PiA+IC0gY29tbWVudCAiZmFpbGVkIHRvIHJlYXAgcGFydC4uLiIgaXMgbWlzbGVhZGluZyAtIHNv
+dW5kcyBsaWtlIGl0J3MKPiA+ICAgcmVmZXJyaW5nIHRvIHNvbWV0aGluZyB3aGljaCBoYXBwZW5l
+ZCBpbiB0aGUgcGFzdCwgaXMgaW4gZmFjdAo+ID4gICByZWZlcnJpbmcgdG8gc29tZXRoaW5nIHdo
+aWNoIG1pZ2h0IGhhcHBlbiBpbiB0aGUgZnV0dXJlLgo+ID4gCj4gPiAtIGZhaWxzIHRvIGNhbGwg
+dHJhY2VfZmluaXNoX3Rhc2tfcmVhcGluZygpIGluIG9uZSBjYXNlCj4gPiAKPiA+IC0gY29kZSBk
+dXBsaWNhdGlvbi4KPiA+IAo+ID4gLSBJbmNyZWFzZXMgbW1hcF9zZW0gaG9sZCB0aW1lIGEgbGl0
+dGxlIGJ5IG1vdmluZwo+ID4gICB0cmFjZV9maW5pc2hfdGFza19yZWFwaW5nKCkgaW5zaWRlIHRo
+ZSBsb2NrZWQgcmVnaW9uLiAgU28gc3VlIG1lIDspCj4gPiAKPiA+IC0gU2hhcmluZyB0aGUgZmlu
+aXNoOiBwYXRoIG1lYW5zIHRoYXQgdGhlIHRyYWNlIGV2ZW50IHdvbid0Cj4gPiAgIGRpc3Rpbmd1
+aXNoIGJldHdlZW4gdGhlIHR3byBzb3VyY2VzIG9mIGZpbmlzaGluZy4KPiA+IAo+ID4gUGxlYXNl
+IHRha2UgYSBsb29rPwo+IAo+IG9vbV9yZWFwX3Rhc2tfbW0gc2hvdWxkIHJldHVybiBmYWxzZSB3
+aGVuIF9fb29tX3JlYXBfdGFza19tbSByZXR1cm4KPiBmYWxzZS4gVGhpcyBpcyB3aGF0IG15IHBh
+dGNoIGRpZCBidXQgaXQgc2VlbXMgdGhpcyBjaGFuZ2VkIGJ5Cj4gaHR0cDovL3d3dy5vemxhYnMu
+b3JnL35ha3BtL21tb3RtL2Jyb2tlbi1vdXQvbW0tb29tLXJlbW92ZS1vb21fbG9jay1mcm9tLW9v
+bV9yZWFwZXIucGF0Y2gKPiBzbyB0aGF0IG9uZSBzaG91bGQgYmUgZml4ZWQuCj4gCj4gZGlmZiAt
+LWdpdCBhL21tL29vbV9raWxsLmMgYi9tbS9vb21fa2lsbC5jCj4gaW5kZXggMTA0ZWY0YTAxYTU1
+Li44ODY1N2UwMTg3MTQgMTAwNjQ0Cj4gLS0tIGEvbW0vb29tX2tpbGwuYwo+ICsrKyBiL21tL29v
+bV9raWxsLmMKPiBAQCAtNTY1LDcgKzU2NSw3IEBAIHN0YXRpYyBib29sIG9vbV9yZWFwX3Rhc2tf
+bW0oc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICAJLyog
+ZmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0aGUgYWRkcmVzcyBzcGFjZS4gVHJ5IGFnYWluIGxhdGVy
+ICovCj4gIAlpZiAoIV9fb29tX3JlYXBfdGFza19tbShtbSkpIHsKPiAgCQl1cF9yZWFkKCZtbS0+
+bW1hcF9zZW0pOwo+IC0JCXJldHVybiB0cnVlOwo+ICsJCXJldHVybiBmYWxzZTsKPiAgCX0KPiAg
+Cj4gIAlwcl9pbmZvKCJvb21fcmVhcGVyOiByZWFwZWQgcHJvY2VzcyAlZCAoJXMpLCBub3cgYW5v
+bi1yc3M6JWx1a0IsIGZpbGUtcnNzOiVsdWtCLCBzaG1lbS1yc3M6JWx1a0JcbiIsCgpPSywgdGhh
+bmtzLCBJIGFkZGVkIHRoYXQuCgo+IAo+IE9uIHRvcCBvZiB0aGF0IHRoZSBwcm9wb3NlZCBjbGVh
+bnVwIGxvb2tzIGFzIGZvbGxvd3M6Cj4gCgpMb29rcyBnb29kIHRvIG1lLiAgU2VlbXMgYSBiaXQg
+c3RyYW5nZSB0aGF0IHdlIG9taXQgdGhlIHByX2luZm8oKQpvdXRwdXQgaWYgdGhlIG1tIHdhcyBw
+YXJ0aWFsbHkgcmVhcGVkIC0gcGVvcGxlIHdvdWxkIHN0aWxsIHdhbnQgdG8ga25vdwp0aGlzPyAg
+IE5vdCB2ZXJ5IGltcG9ydGFudCB0aG91Z2guCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pbnRlbC1nZngK
