@@ -1,92 +1,30 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Tue, 24 Jul 2018 14:07:49 -0700 (PDT)
-Message-ID: <alpine.DEB.2.21.1807241405450.191477@chino.kir.corp.google.com>
-References: <20180716115058.5559-1-mhocko@kernel.org>
- <20180720170902.d1137060c23802d55426aa03@linux-foundation.org>
- <20180724141747.GP28386@dhcp22.suse.cz>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH PATCH net-next 00/18] net whitespace cleanups
+Date: Tue, 24 Jul 2018 14:11:41 -0700 (PDT)
+Message-ID: <20180724.141141.740309584672047092.davem@davemloft.net>
+References: <20180724192918.31165-1-sthemmin@microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20180724141747.GP28386@dhcp22.suse.cz>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: kvm@vger.kernel.org, =?UTF-8?Q?Radim_Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?UTF-8?Q?J=C3=A9r=C3=B4me_Glisse?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.c>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180724192918.31165-1-sthemmin@microsoft.com>
+Sender: netdev-owner@vger.kernel.org
+To: stephen@networkplumber.org
+Cc: ericvh@gmail.com, rminnich@sandia.gov, lucho@ionkov.net, ralf@linux-mips.org, jreuter@yaina.de, pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de, alex.aring@gmail.com, stefan@datenfreihafen.org, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, johannes@sipsolutions.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com, jiri@resnulli.us, vyasevich@gmail.com, nhorman@tuxdriver.com, marcelo.leitner@gmail.com, trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net, linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org, linux-decnet-user@lists.sourceforge.net, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, linux-wpan@vger.kernel.org, linux-s3
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyNCBKdWwgMjAxOCwgTWljaGFsIEhvY2tvIHdyb3RlOgoKPiBvb21fcmVhcF90YXNr
-X21tIHNob3VsZCByZXR1cm4gZmFsc2Ugd2hlbiBfX29vbV9yZWFwX3Rhc2tfbW0gcmV0dXJuCj4g
-ZmFsc2UuIFRoaXMgaXMgd2hhdCBteSBwYXRjaCBkaWQgYnV0IGl0IHNlZW1zIHRoaXMgY2hhbmdl
-ZCBieQo+IGh0dHA6Ly93d3cub3psYWJzLm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L21tLW9v
-bS1yZW1vdmUtb29tX2xvY2stZnJvbS1vb21fcmVhcGVyLnBhdGNoCj4gc28gdGhhdCBvbmUgc2hv
-dWxkIGJlIGZpeGVkLgo+IAo+IGRpZmYgLS1naXQgYS9tbS9vb21fa2lsbC5jIGIvbW0vb29tX2tp
-bGwuYwo+IGluZGV4IDEwNGVmNGEwMWE1NS4uODg2NTdlMDE4NzE0IDEwMDY0NAo+IC0tLSBhL21t
-L29vbV9raWxsLmMKPiArKysgYi9tbS9vb21fa2lsbC5jCj4gQEAgLTU2NSw3ICs1NjUsNyBAQCBz
-dGF0aWMgYm9vbCBvb21fcmVhcF90YXNrX21tKHN0cnVjdCB0YXNrX3N0cnVjdCAqdHNrLCBzdHJ1
-Y3QgbW1fc3RydWN0ICptbSkKPiAgCS8qIGZhaWxlZCB0byByZWFwIHBhcnQgb2YgdGhlIGFkZHJl
-c3Mgc3BhY2UuIFRyeSBhZ2FpbiBsYXRlciAqLwo+ICAJaWYgKCFfX29vbV9yZWFwX3Rhc2tfbW0o
-bW0pKSB7Cj4gIAkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAtCQlyZXR1cm4gdHJ1ZTsKPiAr
-CQlyZXR1cm4gZmFsc2U7Cj4gIAl9Cj4gIAo+ICAJcHJfaW5mbygib29tX3JlYXBlcjogcmVhcGVk
-IHByb2Nlc3MgJWQgKCVzKSwgbm93IGFub24tcnNzOiVsdWtCLCBmaWxlLXJzczolbHVrQiwgc2ht
-ZW0tcnNzOiVsdWtCXG4iLAo+IAo+IAo+IE9uIHRvcCBvZiB0aGF0IHRoZSBwcm9wb3NlZCBjbGVh
-bnVwIGxvb2tzIGFzIGZvbGxvd3M6Cj4gCj4gZGlmZiAtLWdpdCBhL21tL29vbV9raWxsLmMgYi9t
-bS9vb21fa2lsbC5jCj4gaW5kZXggODg2NTdlMDE4NzE0Li40ZTE4NWEyODJiM2QgMTAwNjQ0Cj4g
-LS0tIGEvbW0vb29tX2tpbGwuYwo+ICsrKyBiL21tL29vbV9raWxsLmMKPiBAQCAtNTQxLDggKzU0
-MSwxNiBAQCBib29sIF9fb29tX3JlYXBfdGFza19tbShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiAg
-CXJldHVybiByZXQ7Cj4gIH0KPiAgCj4gKy8qCj4gKyAqIFJlYXBzIHRoZSBhZGRyZXNzIHNwYWNl
-IG9mIHRoZSBnaXZlIHRhc2suCj4gKyAqCj4gKyAqIFJldHVybnMgdHJ1ZSBvbiBzdWNjZXNzIGFu
-ZCBmYWxzZSBpZiBub25lIG9yIHBhcnQgb2YgdGhlIGFkZHJlc3Mgc3BhY2UKPiArICogaGFzIGJl
-ZW4gcmVjbGFpbWVkIGFuZCB0aGUgY2FsbGVyIHNob3VsZCByZXRyeSBsYXRlci4KPiArICovCj4g
-IHN0YXRpYyBib29sIG9vbV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssIHN0
-cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICB7Cj4gKwlib29sIHJldCA9IHRydWU7Cj4gKwo+ICAJaWYg
-KCFkb3duX3JlYWRfdHJ5bG9jaygmbW0tPm1tYXBfc2VtKSkgewo+ICAJCXRyYWNlX3NraXBfdGFz
-a19yZWFwaW5nKHRzay0+cGlkKTsKPiAgCQlyZXR1cm4gZmFsc2U7Cj4gQEAgLTU1NSwyOCArNTYz
-LDI4IEBAIHN0YXRpYyBib29sIG9vbV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0
-c2ssIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICAJICogZG93bl93cml0ZSgpO3VwX3dyaXRlKCkg
-Y3ljbGUgaW4gZXhpdF9tbWFwKCkuCj4gIAkgKi8KPiAgCWlmICh0ZXN0X2JpdChNTUZfT09NX1NL
-SVAsICZtbS0+ZmxhZ3MpKSB7Cj4gLQkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAgCQl0cmFj
-ZV9za2lwX3Rhc2tfcmVhcGluZyh0c2stPnBpZCk7Cj4gLQkJcmV0dXJuIHRydWU7Cj4gKwkJZ290
-byBvdXRfdW5sb2NrOwo+ICAJfQo+ICAKPiAgCXRyYWNlX3N0YXJ0X3Rhc2tfcmVhcGluZyh0c2st
-PnBpZCk7Cj4gIAo+ICAJLyogZmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0aGUgYWRkcmVzcyBzcGFj
-ZS4gVHJ5IGFnYWluIGxhdGVyICovCj4gLQlpZiAoIV9fb29tX3JlYXBfdGFza19tbShtbSkpIHsK
-PiAtCQl1cF9yZWFkKCZtbS0+bW1hcF9zZW0pOwo+IC0JCXJldHVybiBmYWxzZTsKPiAtCX0KPiAr
-CXJldCA9IF9fb29tX3JlYXBfdGFza19tbShtbSk7Cj4gKwlpZiAoIXJldCkKPiArCQlnb3RvIG91
-dF9maW5pc2g7Cj4gIAo+ICAJcHJfaW5mbygib29tX3JlYXBlcjogcmVhcGVkIHByb2Nlc3MgJWQg
-KCVzKSwgbm93IGFub24tcnNzOiVsdWtCLCBmaWxlLXJzczolbHVrQiwgc2htZW0tcnNzOiVsdWtC
-XG4iLAo+ICAJCQl0YXNrX3BpZF9ucih0c2spLCB0c2stPmNvbW0sCj4gIAkJCUsoZ2V0X21tX2Nv
-dW50ZXIobW0sIE1NX0FOT05QQUdFUykpLAo+ICAJCQlLKGdldF9tbV9jb3VudGVyKG1tLCBNTV9G
-SUxFUEFHRVMpKSwKPiAgCQkJSyhnZXRfbW1fY291bnRlcihtbSwgTU1fU0hNRU1QQUdFUykpKTsK
-PiArb3V0X2ZpbmlzaDoKPiArCXRyYWNlX2ZpbmlzaF90YXNrX3JlYXBpbmcodHNrLT5waWQpOwo+
-ICtvdXRfdW5sb2NrOgo+ICAJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAgCj4gLQl0cmFjZV9m
-aW5pc2hfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKPiAtCXJldHVybiB0cnVlOwo+ICsJcmV0dXJu
-IHJldDsKPiAgfQo+ICAKPiAgI2RlZmluZSBNQVhfT09NX1JFQVBfUkVUUklFUyAxMAoKSSB0aGlu
-ayB3ZSBzdGlsbCB3YW50IHRvIHRyYWNlIHdoZW4gcmVhcGluZyB3YXMgc2tpcHBlZCB0byBrbm93
-IHRoYXQgdGhlIApvb20gcmVhcGVyIHdpbGwgcmV0cnkgYWdhaW4gbGF0ZXIuCgoKCm1tL29vbV9r
-aWxsLmM6IGNsZWFuIHVwIG9vbV9yZWFwX3Rhc2tfbW0oKSBmaXgKCmluZGljYXRlIHJlYXBpbmcg
-aGFzIGJlZW4gcGFydGlhbGx5IHNraXBwZWQgc28gd2UgY2FuIGV4cGVjdCBmdXR1cmUgc2tpcHMg
-Cm9yIGFub3RoZXIgc3RhcnQgYmVmb3JlIGZpbmlzaC4KClNpZ25lZC1vZmYtYnk6IERhdmlkIFJp
-ZW50amVzIDxyaWVudGplc0Bnb29nbGUuY29tPgotLS0KIG1tL29vbV9raWxsLmMgfCA2ICsrKyst
-LQogMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9tbS9vb21fa2lsbC5jIGIvbW0vb29tX2tpbGwuYwotLS0gYS9tbS9vb21fa2lsbC5j
-CisrKyBiL21tL29vbV9raWxsLmMKQEAgLTU2OSwxMCArNTY5LDEyIEBAIHN0YXRpYyBib29sIG9v
-bV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssIHN0cnVjdCBtbV9zdHJ1Y3Qg
-Km1tKQogCiAJdHJhY2Vfc3RhcnRfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKIAotCS8qIGZhaWxl
-ZCB0byByZWFwIHBhcnQgb2YgdGhlIGFkZHJlc3Mgc3BhY2UuIFRyeSBhZ2FpbiBsYXRlciAqLwog
-CXJldCA9IF9fb29tX3JlYXBfdGFza19tbShtbSk7Ci0JaWYgKCFyZXQpCisJaWYgKCFyZXQpIHsK
-KwkJLyogRmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0aGUgYWRkcmVzcyBzcGFjZS4gVHJ5IGFnYWlu
-IGxhdGVyICovCisJCXRyYWNlX3NraXBfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKIAkJZ290byBv
-dXRfZmluaXNoOworCX0KIAogCXByX2luZm8oIm9vbV9yZWFwZXI6IHJlYXBlZCBwcm9jZXNzICVk
-ICglcyksIG5vdyBhbm9uLXJzczolbHVrQiwgZmlsZS1yc3M6JWx1a0IsIHNobWVtLXJzczolbHVr
-QlxuIiwKIAkJCXRhc2tfcGlkX25yKHRzayksIHRzay0+Y29tbSwKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+From: Stephen Hemminger <stephen@networkplumber.org>
+Date: Tue, 24 Jul 2018 12:29:00 -0700
+
+> Ran script that I use to check for trailing whitespace and
+> blank lines at end of files across all files in net/ directory.
+> These are errors that checkpatch reports and git flags.
+> 
+> These are the resulting fixes broken up mostly by subsystem.
+
+I skipped 9p, ceph, and sunrpc since those don't go via my tree.
+
+I applied the rest because it's mostly small and won't cause too
+many conflicts in the future.
+
+Thanks.
