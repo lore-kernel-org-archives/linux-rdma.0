@@ -1,168 +1,92 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Tue, 24 Jul 2018 15:52:18 -0500
-Message-ID: <c0caef97-e709-d817-8629-eaaaa60a38a7@opengridcomputing.com>
-References: <20180716083012.15410-1-leon@kernel.org>
- <0cf29652-9034-6283-ef36-95de4588980f@grimberg.me>
- <20180716103046.GJ3152@mtr-leonro.mtl.com>
- <1cb63259-9fb6-59b0-3a34-0659973228ea@mellanox.com>
- <d8f375d7-8a1f-39f5-5fd6-0bdc781f1465@grimberg.me>
- <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
- <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
- <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
- <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
- <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
- <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
- <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
- <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
- <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
- <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
- <e32726b5-fbe5-178c-719e-8a71517977b0@opengridcomputing.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Tue, 24 Jul 2018 14:07:49 -0700 (PDT)
+Message-ID: <alpine.DEB.2.21.1807241405450.191477@chino.kir.corp.google.com>
+References: <20180716115058.5559-1-mhocko@kernel.org>
+ <20180720170902.d1137060c23802d55426aa03@linux-foundation.org>
+ <20180724141747.GP28386@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <e32726b5-fbe5-178c-719e-8a71517977b0@opengridcomputing.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, 'Sagi Grimberg' <sagi@grimberg.me>, 'Leon Romanovsky' <leon@kernel.org>
-Cc: 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@mellanox.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20180724141747.GP28386@dhcp22.suse.cz>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, =?UTF-8?Q?Radim_Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?UTF-8?Q?J=C3=A9r=C3=B4me_Glisse?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.c>
 List-Id: linux-rdma@vger.kernel.org
 
-
-On 7/24/2018 10:24 AM, Steve Wise wrote:
->
-> On 7/19/2018 8:25 PM, Max Gurtovoy wrote:
->>>>> [ 2032.194376] nvme nvme0: failed to connect queue: 9 ret=-18
->>>> queue 9 is not mapped (overlap).
->>>> please try the bellow:
->>>>
->>> This seems to work.  Here are three mapping cases:  each vector on its
->>> own cpu, each vector on 1 cpu within the local numa node, and each
->>> vector having all cpus in its numa node.  The 2nd mapping looks kinda
->>> funny, but I think it achieved what you wanted?  And all the cases
->>> resulted in successful connections.
->>>
->> Thanks for testing this.
->> I slightly improved the setting of the left CPUs and actually used
->> Sagi's initial proposal.
->>
->> Sagi,
->> please review the attached patch and let me know if I should add your
->> signature on it.
->> I'll run some perf test early next week on it (meanwhile I run
->> login/logout with different num_queues successfully and irq settings).
->>
->> Steve,
->> It will be great if you can apply the attached in your system and send
->> your findings.
-> Sorry, I got side tracked.  I'll try and test this today and report back.
->
-> Steve.
-
-
-###  each vector gets a unique cpu, starting with node-local:
-
-[  754.976577] iw_cxgb4: comp_vector 0, irq 203 mask 0x100
-[  754.982378] iw_cxgb4: comp_vector 1, irq 204 mask 0x200
-[  754.988167] iw_cxgb4: comp_vector 2, irq 205 mask 0x400
-[  754.993935] iw_cxgb4: comp_vector 3, irq 206 mask 0x800
-[  754.999686] iw_cxgb4: comp_vector 4, irq 207 mask 0x1000
-[  755.005509] iw_cxgb4: comp_vector 5, irq 208 mask 0x2000
-[  755.011318] iw_cxgb4: comp_vector 6, irq 209 mask 0x4000
-[  755.017124] iw_cxgb4: comp_vector 7, irq 210 mask 0x8000
-[  755.022915] iw_cxgb4: comp_vector 8, irq 211 mask 0x1
-[  755.028437] iw_cxgb4: comp_vector 9, irq 212 mask 0x2
-[  755.033948] iw_cxgb4: comp_vector 10, irq 213 mask 0x4
-[  755.039543] iw_cxgb4: comp_vector 11, irq 214 mask 0x8
-[  755.045135] iw_cxgb4: comp_vector 12, irq 215 mask 0x10
-[  755.050801] iw_cxgb4: comp_vector 13, irq 216 mask 0x20
-[  755.056464] iw_cxgb4: comp_vector 14, irq 217 mask 0x40
-[  755.062117] iw_cxgb4: comp_vector 15, irq 218 mask 0x80
-[  755.067767] blk_mq_rdma_map_queues: set->mq_map[0] queue 8 vector 8
-[  755.067767] blk_mq_rdma_map_queues: set->mq_map[1] queue 9 vector 9
-[  755.067768] blk_mq_rdma_map_queues: set->mq_map[2] queue 10 vector 10
-[  755.067769] blk_mq_rdma_map_queues: set->mq_map[3] queue 11 vector 11
-[  755.067769] blk_mq_rdma_map_queues: set->mq_map[4] queue 12 vector 12
-[  755.067770] blk_mq_rdma_map_queues: set->mq_map[5] queue 13 vector 13
-[  755.067771] blk_mq_rdma_map_queues: set->mq_map[6] queue 14 vector 14
-[  755.067772] blk_mq_rdma_map_queues: set->mq_map[7] queue 15 vector 15
-[  755.067772] blk_mq_rdma_map_queues: set->mq_map[8] queue 0 vector 0
-[  755.067773] blk_mq_rdma_map_queues: set->mq_map[9] queue 1 vector 1
-[  755.067774] blk_mq_rdma_map_queues: set->mq_map[10] queue 2 vector 2
-[  755.067774] blk_mq_rdma_map_queues: set->mq_map[11] queue 3 vector 3
-[  755.067775] blk_mq_rdma_map_queues: set->mq_map[12] queue 4 vector 4
-[  755.067775] blk_mq_rdma_map_queues: set->mq_map[13] queue 5 vector 5
-[  755.067776] blk_mq_rdma_map_queues: set->mq_map[14] queue 6 vector 6
-[  755.067777] blk_mq_rdma_map_queues: set->mq_map[15] queue 7 vector 7
-
-###  each vector gets one cpu within the local node:
-
-[  777.590913] iw_cxgb4: comp_vector 0, irq 203 mask 0x400
-[  777.596588] iw_cxgb4: comp_vector 1, irq 204 mask 0x800
-[  777.602249] iw_cxgb4: comp_vector 2, irq 205 mask 0x1000
-[  777.607984] iw_cxgb4: comp_vector 3, irq 206 mask 0x2000
-[  777.613708] iw_cxgb4: comp_vector 4, irq 207 mask 0x4000
-[  777.619431] iw_cxgb4: comp_vector 5, irq 208 mask 0x8000
-[  777.625142] iw_cxgb4: comp_vector 6, irq 209 mask 0x100
-[  777.630762] iw_cxgb4: comp_vector 7, irq 210 mask 0x200
-[  777.636373] iw_cxgb4: comp_vector 8, irq 211 mask 0x400
-[  777.641982] iw_cxgb4: comp_vector 9, irq 212 mask 0x800
-[  777.647583] iw_cxgb4: comp_vector 10, irq 213 mask 0x1000
-[  777.653353] iw_cxgb4: comp_vector 11, irq 214 mask 0x2000
-[  777.659119] iw_cxgb4: comp_vector 12, irq 215 mask 0x4000
-[  777.664877] iw_cxgb4: comp_vector 13, irq 216 mask 0x8000
-[  777.670628] iw_cxgb4: comp_vector 14, irq 217 mask 0x100
-[  777.676289] iw_cxgb4: comp_vector 15, irq 218 mask 0x200
-[  777.681946] blk_mq_rdma_map_queues: set->mq_map[0] queue 8 vector 8
-[  777.681947] blk_mq_rdma_map_queues: set->mq_map[1] queue 9 vector 9
-[  777.681947] blk_mq_rdma_map_queues: set->mq_map[2] queue 10 vector 10
-[  777.681948] blk_mq_rdma_map_queues: set->mq_map[3] queue 11 vector 11
-[  777.681948] blk_mq_rdma_map_queues: set->mq_map[4] queue 12 vector 12
-[  777.681949] blk_mq_rdma_map_queues: set->mq_map[5] queue 13 vector 13
-[  777.681950] blk_mq_rdma_map_queues: set->mq_map[6] queue 14 vector 14
-[  777.681950] blk_mq_rdma_map_queues: set->mq_map[7] queue 15 vector 15
-[  777.681951] blk_mq_rdma_map_queues: set->mq_map[8] queue 6 vector 6
-[  777.681952] blk_mq_rdma_map_queues: set->mq_map[9] queue 7 vector 7
-[  777.681952] blk_mq_rdma_map_queues: set->mq_map[10] queue 0 vector 0
-[  777.681953] blk_mq_rdma_map_queues: set->mq_map[11] queue 1 vector 1
-[  777.681953] blk_mq_rdma_map_queues: set->mq_map[12] queue 2 vector 2
-[  777.681954] blk_mq_rdma_map_queues: set->mq_map[13] queue 3 vector 3
-[  777.681955] blk_mq_rdma_map_queues: set->mq_map[14] queue 4 vector 4
-[  777.681955] blk_mq_rdma_map_queues: set->mq_map[15] queue 5 vector 5
-
-
-###  each vector gets all cpus within the local node:
-
-[  838.251643] iw_cxgb4: comp_vector 0, irq 203 mask 0xff00
-[  838.257346] iw_cxgb4: comp_vector 1, irq 204 mask 0xff00
-[  838.263038] iw_cxgb4: comp_vector 2, irq 205 mask 0xff00
-[  838.268710] iw_cxgb4: comp_vector 3, irq 206 mask 0xff00
-[  838.274351] iw_cxgb4: comp_vector 4, irq 207 mask 0xff00
-[  838.279985] iw_cxgb4: comp_vector 5, irq 208 mask 0xff00
-[  838.285610] iw_cxgb4: comp_vector 6, irq 209 mask 0xff00
-[  838.291234] iw_cxgb4: comp_vector 7, irq 210 mask 0xff00
-[  838.296865] iw_cxgb4: comp_vector 8, irq 211 mask 0xff00
-[  838.302484] iw_cxgb4: comp_vector 9, irq 212 mask 0xff00
-[  838.308109] iw_cxgb4: comp_vector 10, irq 213 mask 0xff00
-[  838.313827] iw_cxgb4: comp_vector 11, irq 214 mask 0xff00
-[  838.319539] iw_cxgb4: comp_vector 12, irq 215 mask 0xff00
-[  838.325250] iw_cxgb4: comp_vector 13, irq 216 mask 0xff00
-[  838.330963] iw_cxgb4: comp_vector 14, irq 217 mask 0xff00
-[  838.336674] iw_cxgb4: comp_vector 15, irq 218 mask 0xff00
-[  838.342385] blk_mq_rdma_map_queues: set->mq_map[0] queue 8 vector 8
-[  838.342385] blk_mq_rdma_map_queues: set->mq_map[1] queue 9 vector 9
-[  838.342386] blk_mq_rdma_map_queues: set->mq_map[2] queue 10 vector 10
-[  838.342387] blk_mq_rdma_map_queues: set->mq_map[3] queue 11 vector 11
-[  838.342387] blk_mq_rdma_map_queues: set->mq_map[4] queue 12 vector 12
-[  838.342388] blk_mq_rdma_map_queues: set->mq_map[5] queue 13 vector 13
-[  838.342389] blk_mq_rdma_map_queues: set->mq_map[6] queue 14 vector 14
-[  838.342390] blk_mq_rdma_map_queues: set->mq_map[7] queue 15 vector 15
-[  838.342391] blk_mq_rdma_map_queues: set->mq_map[8] queue 0 vector 0
-[  838.342391] blk_mq_rdma_map_queues: set->mq_map[9] queue 1 vector 1
-[  838.342392] blk_mq_rdma_map_queues: set->mq_map[10] queue 2 vector 2
-[  838.342392] blk_mq_rdma_map_queues: set->mq_map[11] queue 3 vector 3
-[  838.342393] blk_mq_rdma_map_queues: set->mq_map[12] queue 4 vector 4
-[  838.342394] blk_mq_rdma_map_queues: set->mq_map[13] queue 5 vector 5
-[  838.342394] blk_mq_rdma_map_queues: set->mq_map[14] queue 6 vector 6
-[  838.342395] blk_mq_rdma_map_queues: set->mq_map[15] queue 7 vector 7
+T24gVHVlLCAyNCBKdWwgMjAxOCwgTWljaGFsIEhvY2tvIHdyb3RlOgoKPiBvb21fcmVhcF90YXNr
+X21tIHNob3VsZCByZXR1cm4gZmFsc2Ugd2hlbiBfX29vbV9yZWFwX3Rhc2tfbW0gcmV0dXJuCj4g
+ZmFsc2UuIFRoaXMgaXMgd2hhdCBteSBwYXRjaCBkaWQgYnV0IGl0IHNlZW1zIHRoaXMgY2hhbmdl
+ZCBieQo+IGh0dHA6Ly93d3cub3psYWJzLm9yZy9+YWtwbS9tbW90bS9icm9rZW4tb3V0L21tLW9v
+bS1yZW1vdmUtb29tX2xvY2stZnJvbS1vb21fcmVhcGVyLnBhdGNoCj4gc28gdGhhdCBvbmUgc2hv
+dWxkIGJlIGZpeGVkLgo+IAo+IGRpZmYgLS1naXQgYS9tbS9vb21fa2lsbC5jIGIvbW0vb29tX2tp
+bGwuYwo+IGluZGV4IDEwNGVmNGEwMWE1NS4uODg2NTdlMDE4NzE0IDEwMDY0NAo+IC0tLSBhL21t
+L29vbV9raWxsLmMKPiArKysgYi9tbS9vb21fa2lsbC5jCj4gQEAgLTU2NSw3ICs1NjUsNyBAQCBz
+dGF0aWMgYm9vbCBvb21fcmVhcF90YXNrX21tKHN0cnVjdCB0YXNrX3N0cnVjdCAqdHNrLCBzdHJ1
+Y3QgbW1fc3RydWN0ICptbSkKPiAgCS8qIGZhaWxlZCB0byByZWFwIHBhcnQgb2YgdGhlIGFkZHJl
+c3Mgc3BhY2UuIFRyeSBhZ2FpbiBsYXRlciAqLwo+ICAJaWYgKCFfX29vbV9yZWFwX3Rhc2tfbW0o
+bW0pKSB7Cj4gIAkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAtCQlyZXR1cm4gdHJ1ZTsKPiAr
+CQlyZXR1cm4gZmFsc2U7Cj4gIAl9Cj4gIAo+ICAJcHJfaW5mbygib29tX3JlYXBlcjogcmVhcGVk
+IHByb2Nlc3MgJWQgKCVzKSwgbm93IGFub24tcnNzOiVsdWtCLCBmaWxlLXJzczolbHVrQiwgc2ht
+ZW0tcnNzOiVsdWtCXG4iLAo+IAo+IAo+IE9uIHRvcCBvZiB0aGF0IHRoZSBwcm9wb3NlZCBjbGVh
+bnVwIGxvb2tzIGFzIGZvbGxvd3M6Cj4gCj4gZGlmZiAtLWdpdCBhL21tL29vbV9raWxsLmMgYi9t
+bS9vb21fa2lsbC5jCj4gaW5kZXggODg2NTdlMDE4NzE0Li40ZTE4NWEyODJiM2QgMTAwNjQ0Cj4g
+LS0tIGEvbW0vb29tX2tpbGwuYwo+ICsrKyBiL21tL29vbV9raWxsLmMKPiBAQCAtNTQxLDggKzU0
+MSwxNiBAQCBib29sIF9fb29tX3JlYXBfdGFza19tbShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiAg
+CXJldHVybiByZXQ7Cj4gIH0KPiAgCj4gKy8qCj4gKyAqIFJlYXBzIHRoZSBhZGRyZXNzIHNwYWNl
+IG9mIHRoZSBnaXZlIHRhc2suCj4gKyAqCj4gKyAqIFJldHVybnMgdHJ1ZSBvbiBzdWNjZXNzIGFu
+ZCBmYWxzZSBpZiBub25lIG9yIHBhcnQgb2YgdGhlIGFkZHJlc3Mgc3BhY2UKPiArICogaGFzIGJl
+ZW4gcmVjbGFpbWVkIGFuZCB0aGUgY2FsbGVyIHNob3VsZCByZXRyeSBsYXRlci4KPiArICovCj4g
+IHN0YXRpYyBib29sIG9vbV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssIHN0
+cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICB7Cj4gKwlib29sIHJldCA9IHRydWU7Cj4gKwo+ICAJaWYg
+KCFkb3duX3JlYWRfdHJ5bG9jaygmbW0tPm1tYXBfc2VtKSkgewo+ICAJCXRyYWNlX3NraXBfdGFz
+a19yZWFwaW5nKHRzay0+cGlkKTsKPiAgCQlyZXR1cm4gZmFsc2U7Cj4gQEAgLTU1NSwyOCArNTYz
+LDI4IEBAIHN0YXRpYyBib29sIG9vbV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0
+c2ssIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICAJICogZG93bl93cml0ZSgpO3VwX3dyaXRlKCkg
+Y3ljbGUgaW4gZXhpdF9tbWFwKCkuCj4gIAkgKi8KPiAgCWlmICh0ZXN0X2JpdChNTUZfT09NX1NL
+SVAsICZtbS0+ZmxhZ3MpKSB7Cj4gLQkJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAgCQl0cmFj
+ZV9za2lwX3Rhc2tfcmVhcGluZyh0c2stPnBpZCk7Cj4gLQkJcmV0dXJuIHRydWU7Cj4gKwkJZ290
+byBvdXRfdW5sb2NrOwo+ICAJfQo+ICAKPiAgCXRyYWNlX3N0YXJ0X3Rhc2tfcmVhcGluZyh0c2st
+PnBpZCk7Cj4gIAo+ICAJLyogZmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0aGUgYWRkcmVzcyBzcGFj
+ZS4gVHJ5IGFnYWluIGxhdGVyICovCj4gLQlpZiAoIV9fb29tX3JlYXBfdGFza19tbShtbSkpIHsK
+PiAtCQl1cF9yZWFkKCZtbS0+bW1hcF9zZW0pOwo+IC0JCXJldHVybiBmYWxzZTsKPiAtCX0KPiAr
+CXJldCA9IF9fb29tX3JlYXBfdGFza19tbShtbSk7Cj4gKwlpZiAoIXJldCkKPiArCQlnb3RvIG91
+dF9maW5pc2g7Cj4gIAo+ICAJcHJfaW5mbygib29tX3JlYXBlcjogcmVhcGVkIHByb2Nlc3MgJWQg
+KCVzKSwgbm93IGFub24tcnNzOiVsdWtCLCBmaWxlLXJzczolbHVrQiwgc2htZW0tcnNzOiVsdWtC
+XG4iLAo+ICAJCQl0YXNrX3BpZF9ucih0c2spLCB0c2stPmNvbW0sCj4gIAkJCUsoZ2V0X21tX2Nv
+dW50ZXIobW0sIE1NX0FOT05QQUdFUykpLAo+ICAJCQlLKGdldF9tbV9jb3VudGVyKG1tLCBNTV9G
+SUxFUEFHRVMpKSwKPiAgCQkJSyhnZXRfbW1fY291bnRlcihtbSwgTU1fU0hNRU1QQUdFUykpKTsK
+PiArb3V0X2ZpbmlzaDoKPiArCXRyYWNlX2ZpbmlzaF90YXNrX3JlYXBpbmcodHNrLT5waWQpOwo+
+ICtvdXRfdW5sb2NrOgo+ICAJdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiAgCj4gLQl0cmFjZV9m
+aW5pc2hfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKPiAtCXJldHVybiB0cnVlOwo+ICsJcmV0dXJu
+IHJldDsKPiAgfQo+ICAKPiAgI2RlZmluZSBNQVhfT09NX1JFQVBfUkVUUklFUyAxMAoKSSB0aGlu
+ayB3ZSBzdGlsbCB3YW50IHRvIHRyYWNlIHdoZW4gcmVhcGluZyB3YXMgc2tpcHBlZCB0byBrbm93
+IHRoYXQgdGhlIApvb20gcmVhcGVyIHdpbGwgcmV0cnkgYWdhaW4gbGF0ZXIuCgoKCm1tL29vbV9r
+aWxsLmM6IGNsZWFuIHVwIG9vbV9yZWFwX3Rhc2tfbW0oKSBmaXgKCmluZGljYXRlIHJlYXBpbmcg
+aGFzIGJlZW4gcGFydGlhbGx5IHNraXBwZWQgc28gd2UgY2FuIGV4cGVjdCBmdXR1cmUgc2tpcHMg
+Cm9yIGFub3RoZXIgc3RhcnQgYmVmb3JlIGZpbmlzaC4KClNpZ25lZC1vZmYtYnk6IERhdmlkIFJp
+ZW50amVzIDxyaWVudGplc0Bnb29nbGUuY29tPgotLS0KIG1tL29vbV9raWxsLmMgfCA2ICsrKyst
+LQogMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYg
+LS1naXQgYS9tbS9vb21fa2lsbC5jIGIvbW0vb29tX2tpbGwuYwotLS0gYS9tbS9vb21fa2lsbC5j
+CisrKyBiL21tL29vbV9raWxsLmMKQEAgLTU2OSwxMCArNTY5LDEyIEBAIHN0YXRpYyBib29sIG9v
+bV9yZWFwX3Rhc2tfbW0oc3RydWN0IHRhc2tfc3RydWN0ICp0c2ssIHN0cnVjdCBtbV9zdHJ1Y3Qg
+Km1tKQogCiAJdHJhY2Vfc3RhcnRfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKIAotCS8qIGZhaWxl
+ZCB0byByZWFwIHBhcnQgb2YgdGhlIGFkZHJlc3Mgc3BhY2UuIFRyeSBhZ2FpbiBsYXRlciAqLwog
+CXJldCA9IF9fb29tX3JlYXBfdGFza19tbShtbSk7Ci0JaWYgKCFyZXQpCisJaWYgKCFyZXQpIHsK
+KwkJLyogRmFpbGVkIHRvIHJlYXAgcGFydCBvZiB0aGUgYWRkcmVzcyBzcGFjZS4gVHJ5IGFnYWlu
+IGxhdGVyICovCisJCXRyYWNlX3NraXBfdGFza19yZWFwaW5nKHRzay0+cGlkKTsKIAkJZ290byBv
+dXRfZmluaXNoOworCX0KIAogCXByX2luZm8oIm9vbV9yZWFwZXI6IHJlYXBlZCBwcm9jZXNzICVk
+ICglcyksIG5vdyBhbm9uLXJzczolbHVrQiwgZmlsZS1yc3M6JWx1a0IsIHNobWVtLXJzczolbHVr
+QlxuIiwKIAkJCXRhc2tfcGlkX25yKHRzayksIHRzay0+Y29tbSwKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
