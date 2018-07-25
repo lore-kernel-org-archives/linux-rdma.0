@@ -1,58 +1,36 @@
-From: Neil Horman <nhorman@tuxdriver.com>
-Subject: Re: [PATCH PATCH net-next 08/18] sctp: whitespace fixes
-Date: Wed, 25 Jul 2018 08:59:49 -0400
-Message-ID: <20180725125949.GB3622@hmswarspite.think-freely.org>
-References: <20180724192918.31165-1-sthemmin@microsoft.com>
- <20180724192918.31165-9-sthemmin@microsoft.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 0/8] Support mlx5 flow steering with RAW data
+Date: Wed, 25 Jul 2018 08:35:17 -0600
+Message-ID: <20180725143517.GU532@ziepe.ca>
+References: <20180723122512.20967-1-leon@kernel.org>
+ <20180724024236.GA16958@ziepe.ca>
+ <20180724055609.GG3189@mtr-leonro.mtl.com>
+ <20180724201300.GQ532@ziepe.ca>
+ <20180725053703.GK3189@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180724192918.31165-9-sthemmin@microsoft.com>
+In-Reply-To: <20180725053703.GK3189@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
-Cc: davem@davemloft.net, ericvh@gmail.com, rminnich@sandia.gov, lucho@ionkov.net, ralf@linux-mips.org, jreuter@yaina.de, pablo@netfilter.org, kadlec@blackhole.kfki.hu, fw@strlen.de, alex.aring@gmail.com, stefan@datenfreihafen.org, kuznet@ms2.inr.ac.ru, yoshfuji@linux-ipv6.org, johannes@sipsolutions.net, jhs@mojatatu.com, xiyou.wangcong@gmail.com, jiri@resnulli.us, vyasevich@gmail.com, marcelo.leitner@gmail.com, trond.myklebust@hammerspace.com, anna.schumaker@netapp.com, steffen.klassert@secunet.com, herbert@gondor.apana.org.au, netdev@vger.kernel.org, v9fs-developer@lists.sourceforge.net, linux-hams@vger.kernel.org, ceph-devel@vger.kernel.org, linux-decnet-user@lists.sourceforge.net, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, linux-wpan@vger.kernel.org, linux-s390
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 24, 2018 at 12:29:08PM -0700, Stephen Hemminger wrote:
-> Remove blank line at EOF and trailing whitespace.
+On Wed, Jul 25, 2018 at 08:37:03AM +0300, Leon Romanovsky wrote:
+
+> > Also, I would like to keep the specs consistently formatted according
+> > to clang-format with 'BinPackParameters: true', so I reflowed them as
+> > well.
 > 
-> Signed-off-by: Stephen Hemminger <stephen@networkplumber.org>
-> ---
->  net/sctp/Kconfig         | 4 ++--
->  net/sctp/sm_sideeffect.c | 1 -
->  2 files changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/sctp/Kconfig b/net/sctp/Kconfig
-> index c740b189d4ba..950ecf6e7439 100644
-> --- a/net/sctp/Kconfig
-> +++ b/net/sctp/Kconfig
-> @@ -41,8 +41,8 @@ config SCTP_DBG_OBJCNT
->  	bool "SCTP: Debug object counts"
->  	depends on PROC_FS
->  	help
-> -	  If you say Y, this will enable debugging support for counting the 
-> -	  type of objects that are currently allocated.  This is useful for 
-> +	  If you say Y, this will enable debugging support for counting the
-> +	  type of objects that are currently allocated.  This is useful for
->  	  identifying memory leaks. This debug information can be viewed by
->  	  'cat /proc/net/sctp/sctp_dbg_objcnt'
->  
-> diff --git a/net/sctp/sm_sideeffect.c b/net/sctp/sm_sideeffect.c
-> index 298112ca8c06..85d393090238 100644
-> --- a/net/sctp/sm_sideeffect.c
-> +++ b/net/sctp/sm_sideeffect.c
-> @@ -1827,4 +1827,3 @@ static int sctp_cmd_interpreter(enum sctp_event event_type,
->  	error = -ENOMEM;
->  	goto out;
->  }
-> -
-> -- 
-> 2.18.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-sctp" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
+> I'm using default VIM clang-format.py without anything in .clang-format.
+> Do you have an extra definitions there, except BinPackParameters?
+
+These days Linux includes a top level .clang-format that does a
+pretty good job.
+
+I have to manually switch BinPackParameters on when working with these
+specs to get the right indenting.. A pain, but maybe there is a better
+way someday..
+
+Jason
