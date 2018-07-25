@@ -1,27 +1,33 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] rds: send: Fix dead code in rds_sendmsg
-Date: Wed, 25 Jul 2018 09:52:45 -0700
-Message-ID: <088b745e-4f59-4283-16c1-755f46890990@oracle.com>
-References: <20180725152227.GA26303@embeddedor.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: [PATCH] drivers: infiniband: core: Remove extra parentheses
+Date: Wed, 25 Jul 2018 20:43:56 +0200
+Message-ID: <20180725184356.3754-1-rvarsha016@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180725152227.GA26303@embeddedor.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Ka-Cheong Poon <ka-cheong.poon@oracle.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Lukas Bulwahn <lukas.bulwahn@gmail.com>, Nicholas Mc Guire <der.herr@hofr.at>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Varsha Rao <rvarsha016@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/25/2018 8:22 AM, Gustavo A. R. Silva wrote:
-> Currently, code at label *out* is unreachable. Fix this by updating
-> variable *ret* with -EINVAL, so the jump to *out* can be properly
-> executed instead of directly returning from function.
-> 
-> Addresses-Coverity-ID: 1472059 ("Structurally dead code")
-> Fixes: 1e2b44e78eea ("rds: Enable RDS IPv6 support")
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
-Looks fine.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Remove unnecessary parentheses to fix the clang warning of extraneous
+parentheses.
+
+Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+---
+ drivers/infiniband/core/cma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index bff10ab141b0..c200a2e748f0 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -4010,7 +4010,7 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
+ 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
+ 	} else if (addr->sa_family == AF_IB) {
+ 		memcpy(mgid, &((struct sockaddr_ib *) addr)->sib_addr, sizeof *mgid);
+-	} else if ((addr->sa_family == AF_INET6)) {
++	} else if (addr->sa_family == AF_INET6) {
+ 		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
+ 		if (id_priv->id.ps == RDMA_PS_UDP)
+ 			mc_map[7] = 0x01;	/* Use RDMA CM signature */
+-- 
+2.17.0
