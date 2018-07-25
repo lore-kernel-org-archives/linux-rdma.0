@@ -1,33 +1,30 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: [PATCH] drivers: infiniband: core: Remove extra parentheses
-Date: Wed, 25 Jul 2018 20:43:56 +0200
-Message-ID: <20180725184356.3754-1-rvarsha016@gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] drivers: infiniband: core: Remove extra parentheses
+Date: Wed, 25 Jul 2018 14:37:33 -0600
+Message-ID: <20180725203733.GA5678@ziepe.ca>
+References: <20180725184356.3754-1-rvarsha016@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180725184356.3754-1-rvarsha016@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Lukas Bulwahn <lukas.bulwahn@gmail.com>, Nicholas Mc Guire <der.herr@hofr.at>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Varsha Rao <rvarsha016@gmail.com>
+To: Varsha Rao <rvarsha016@gmail.com>
+Cc: Doug Ledford <dledford@redhat.com>, Lukas Bulwahn <lukas.bulwahn@gmail.com>, Nicholas Mc Guire <der.herr@hofr.at>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove unnecessary parentheses to fix the clang warning of extraneous
-parentheses.
+On Wed, Jul 25, 2018 at 08:43:56PM +0200, Varsha Rao wrote:
+> Remove unnecessary parentheses to fix the clang warning of extraneous
+> parentheses.
+> 
+> Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+> ---
+>  drivers/infiniband/core/cma.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
----
- drivers/infiniband/core/cma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied to for-next, thanks
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index bff10ab141b0..c200a2e748f0 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -4010,7 +4010,7 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
- 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
- 	} else if (addr->sa_family == AF_IB) {
- 		memcpy(mgid, &((struct sockaddr_ib *) addr)->sib_addr, sizeof *mgid);
--	} else if ((addr->sa_family == AF_INET6)) {
-+	} else if (addr->sa_family == AF_INET6) {
- 		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
- 		if (id_priv->id.ps == RDMA_PS_UDP)
- 			mc_map[7] = 0x01;	/* Use RDMA CM signature */
--- 
-2.17.0
+Curious, what configuration are you using clang with? I'd like to have
+it run here..
+
+Jason
