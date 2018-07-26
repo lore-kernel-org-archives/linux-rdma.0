@@ -1,76 +1,55 @@
-From: Varsha Rao <rvarsha016@gmail.com>
-Subject: Re: [PATCH] drivers: infiniband: core: Remove extra parentheses
-Date: Thu, 26 Jul 2018 14:02:46 +0200
-Message-ID: <CAAFX7JQSpKKPhiV7GL0wCecabgTudE0yN5m+gT1e6MqsJUt2uw@mail.gmail.com>
-References: <20180725184356.3754-1-rvarsha016@gmail.com> <20180725203733.GA5678@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 0/8] Support mlx5 flow steering with RAW data
+Date: Thu, 26 Jul 2018 08:58:09 -0600
+Message-ID: <20180726145809.GB10168@ziepe.ca>
+References: <20180723122512.20967-1-leon@kernel.org>
+ <20180724024236.GA16958@ziepe.ca>
+ <20180724055609.GG3189@mtr-leonro.mtl.com>
+ <20180724201300.GQ532@ziepe.ca>
+ <20180725053703.GK3189@mtr-leonro.mtl.com>
+ <20180725143517.GU532@ziepe.ca>
+ <20180726043549.GZ3189@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/alternative; boundary="000000000000aa2d880571e5c63e"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180725203733.GA5678@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Lukas Bulwahn <lukas.bulwahn@gmail.com>, Nicholas Mc Guire <der.herr@hofr.at>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180726043549.GZ3189@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
---000000000000aa2d880571e5c63e
-Content-Type: text/plain; charset="UTF-8"
-
-Hi Jason,
-
-On Wed, Jul 25, 2018 at 10:37 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
-
-> On Wed, Jul 25, 2018 at 08:43:56PM +0200, Varsha Rao wrote:
-> > Remove unnecessary parentheses to fix the clang warning of extraneous
-> > parentheses.
+On Thu, Jul 26, 2018 at 07:35:49AM +0300, Leon Romanovsky wrote:
+> On Wed, Jul 25, 2018 at 08:35:17AM -0600, Jason Gunthorpe wrote:
+> > On Wed, Jul 25, 2018 at 08:37:03AM +0300, Leon Romanovsky wrote:
 > >
-> > Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
-> > ---
-> >  drivers/infiniband/core/cma.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> Applied to for-next, thanks
->
-> Curious, what configuration are you using clang with? I'd like to have
-> it run here..
->
-> I have the list of warnings from previous kernel build, for which
-compiling with clang was possible. I sent the patch as the warning was
-still valid for the latest kernel too.
+> > > > Also, I would like to keep the specs consistently formatted according
+> > > > to clang-format with 'BinPackParameters: true', so I reflowed them as
+> > > > well.
+> > >
+> > > I'm using default VIM clang-format.py without anything in .clang-format.
+> > > Do you have an extra definitions there, except BinPackParameters?
+> >
+> > These days Linux includes a top level .clang-format that does a
+> > pretty good job.
+> >
+> > I have to manually switch BinPackParameters on when working with these
+> > specs to get the right indenting.. A pain, but maybe there is a better
+> > way someday..
+> 
+> I don't think that it is feasible to ask from people to change some
+> defaults only for patches that touch those specs. Any change in this
+> area will change formatting back.
 
-Thanks,
-Varsha
+Eventually I think we might be able toadd a code comment to tell
+clang-format, but that would be down the road a bit..
 
---000000000000aa2d880571e5c63e
-Content-Type: text/html; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+> Jason, bottom line, I won't use BinPackParameters for my patches.
 
-<div dir=3D"auto"><div dir=3D"ltr">Hi Jason,<br><div class=3D"gmail_extra">=
-<br><div class=3D"gmail_quote">On Wed, Jul 25, 2018 at 10:37 PM, Jason Gunt=
-horpe <span dir=3D"ltr">&lt;<a href=3D"mailto:jgg@ziepe.ca" target=3D"_blan=
-k" rel=3D"noreferrer">jgg@ziepe.ca</a>&gt;</span> wrote:<br><blockquote cla=
-ss=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;pa=
-dding-left:1ex"><span>On Wed, Jul 25, 2018 at 08:43:56PM +0200, Varsha Rao =
-wrote:<br>
-&gt; Remove unnecessary parentheses to fix the clang warning of extraneous<=
-br>
-&gt; parentheses.<br>
-&gt; <br>
-&gt; Signed-off-by: Varsha Rao &lt;<a href=3D"mailto:rvarsha016@gmail.com" =
-target=3D"_blank" rel=3D"noreferrer">rvarsha016@gmail.com</a>&gt;<br>
-&gt; ---<br>
-&gt;=C2=A0 drivers/infiniband/core/cma.c | 2 +-<br>
-&gt;=C2=A0 1 file changed, 1 insertion(+), 1 deletion(-)<br>
-<br>
-</span>Applied to for-next, thanks<br>
-<br>
-Curious, what configuration are you using clang with? I&#39;d like to have<=
-br>
-it run here..<br>
-<span class=3D"m_2450782651544013136HOEnZb"><font color=3D"#888888"><br></f=
-ont></span></blockquote><div>I have the list of warnings from previous kern=
-el build, for which compiling with clang was possible. I sent the patch as =
-the warning was still valid for the latest kernel too.</div><div dir=3D"aut=
-o"><br></div><div dir=3D"auto">Thanks,</div><div dir=3D"auto">Varsha</div><=
-div><br></div></div><br></div></div></div>
+Well, you can make sure the specs macro follows the required
+formatting code style by hand if you prefer..
 
---000000000000aa2d880571e5c63e--
+But, I want to see them in this layout, so they are easier to
+maintain, not the haphazard layout we had before.
+
+Jason
