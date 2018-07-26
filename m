@@ -1,55 +1,35 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next v2 0/8] Support mlx5 flow steering with RAW data
-Date: Thu, 26 Jul 2018 08:58:09 -0600
-Message-ID: <20180726145809.GB10168@ziepe.ca>
-References: <20180723122512.20967-1-leon@kernel.org>
- <20180724024236.GA16958@ziepe.ca>
- <20180724055609.GG3189@mtr-leonro.mtl.com>
- <20180724201300.GQ532@ziepe.ca>
- <20180725053703.GK3189@mtr-leonro.mtl.com>
- <20180725143517.GU532@ziepe.ca>
- <20180726043549.GZ3189@mtr-leonro.mtl.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] RDS: RDMA: Fix the NULL-ptr deref in rds_ib_get_mr
+Date: Thu, 26 Jul 2018 14:04:31 -0700 (PDT)
+Message-ID: <20180726.140431.1980654012533107924.davem@davemloft.net>
+References: <1532489518-27042-1-git-send-email-avinash.repaka@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180726043549.GZ3189@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1532489518-27042-1-git-send-email-avinash.repaka@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: avinash.repaka@oracle.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 26, 2018 at 07:35:49AM +0300, Leon Romanovsky wrote:
-> On Wed, Jul 25, 2018 at 08:35:17AM -0600, Jason Gunthorpe wrote:
-> > On Wed, Jul 25, 2018 at 08:37:03AM +0300, Leon Romanovsky wrote:
-> >
-> > > > Also, I would like to keep the specs consistently formatted according
-> > > > to clang-format with 'BinPackParameters: true', so I reflowed them as
-> > > > well.
-> > >
-> > > I'm using default VIM clang-format.py without anything in .clang-format.
-> > > Do you have an extra definitions there, except BinPackParameters?
-> >
-> > These days Linux includes a top level .clang-format that does a
-> > pretty good job.
-> >
-> > I have to manually switch BinPackParameters on when working with these
-> > specs to get the right indenting.. A pain, but maybe there is a better
-> > way someday..
+From: Avinash Repaka <avinash.repaka@oracle.com>
+Date: Tue, 24 Jul 2018 20:31:58 -0700
+
+> Registration of a memory region(MR) through FRMR/fastreg(unlike FMR)
+> needs a connection/qp. With a proxy qp, this dependency on connection
+> will be removed, but that needs more infrastructure patches, which is a
+> work in progress.
 > 
-> I don't think that it is feasible to ask from people to change some
-> defaults only for patches that touch those specs. Any change in this
-> area will change formatting back.
+> As an intermediate fix, the get_mr returns EOPNOTSUPP when connection
+> details are not populated. The MR registration through sendmsg() will
+> continue to work even with fast registration, since connection in this
+> case is formed upfront.
+> 
+> This patch fixes the following crash:
+ ...
+> Reported-by: syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
 
-Eventually I think we might be able toadd a code comment to tell
-clang-format, but that would be down the road a bit..
-
-> Jason, bottom line, I won't use BinPackParameters for my patches.
-
-Well, you can make sure the specs macro follows the required
-formatting code style by hand if you prefer..
-
-But, I want to see them in this layout, so they are easier to
-maintain, not the haphazard layout we had before.
-
-Jason
+Applied and queued up for -stable, thanks.
