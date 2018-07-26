@@ -1,35 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] RDS: RDMA: Fix the NULL-ptr deref in rds_ib_get_mr
-Date: Thu, 26 Jul 2018 14:04:31 -0700 (PDT)
-Message-ID: <20180726.140431.1980654012533107924.davem@davemloft.net>
-References: <1532489518-27042-1-git-send-email-avinash.repaka@oracle.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v2] IB/mlx5: avoid excessive warning msgs when creating
+ VFs on 2nd port
+Date: Thu, 26 Jul 2018 16:12:14 -0600
+Message-ID: <20180726221214.GA13670@ziepe.ca>
+References: <20180723211508.7078-1-qing.huang@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1532489518-27042-1-git-send-email-avinash.repaka@oracle.com>
+Content-Disposition: inline
+In-Reply-To: <20180723211508.7078-1-qing.huang@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: avinash.repaka@oracle.com
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Qing Huang <qing.huang@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, leon@kernel.org, gerald.gibson@oracle.com, danielj@mellanox.com, sharon.s.liu@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Avinash Repaka <avinash.repaka@oracle.com>
-Date: Tue, 24 Jul 2018 20:31:58 -0700
-
-> Registration of a memory region(MR) through FRMR/fastreg(unlike FMR)
-> needs a connection/qp. With a proxy qp, this dependency on connection
-> will be removed, but that needs more infrastructure patches, which is a
-> work in progress.
+On Mon, Jul 23, 2018 at 02:15:08PM -0700, Qing Huang wrote:
+> When a CX5 device is configured in dual-port RoCE mode, after creating
+> many VFs against port 1, creating the same number of VFs against port 2
+> will flood kernel/syslog with something like
+> "mlx5_*:mlx5_ib_bind_slave_port:4266:(pid 5269): port 2 already
+> affiliated."
 > 
-> As an intermediate fix, the get_mr returns EOPNOTSUPP when connection
-> details are not populated. The MR registration through sendmsg() will
-> continue to work even with fast registration, since connection in this
-> case is formed upfront.
+> So basically, when traversing mlx5_ib_dev_list, mlx5_ib_add_slave_port()
+> repeatedly attempts to bind the new mpi structure to every device
+> on the list until it finds an unbound device.
 > 
-> This patch fixes the following crash:
- ...
-> Reported-by: syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-> Signed-off-by: Avinash Repaka <avinash.repaka@oracle.com>
+> Change the log level from warn to dbg to avoid log flooding as the warning
+> should be harmless.
+> 
+> Signed-off-by: Qing Huang <qing.huang@oracle.com>
+> Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+> ---
+>   v1 -> v2: change the log level instead
 
-Applied and queued up for -stable, thanks.
+Applied to for-next
+
+Thanks,
+Jason
