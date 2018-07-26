@@ -1,47 +1,76 @@
-From: Johannes Thumshirn <jthumshirn@suse.de>
-Subject: Re: general protection fault in rds_ib_get_mr
-Date: Thu, 26 Jul 2018 13:40:11 +0200
-Message-ID: <20180726114011.zm74p7cwi4kjjda3@linux-x5ow.site>
-References: <089e082ce58896ad350567ee4825@google.com>
- <20180513211058.GE677@sol.localdomain>
- <27665604-6a26-36e2-3a58-9c8b3d9eab80@oracle.com>
- <20180704213506.GH725@sol.localdomain>
- <04c882dc-332e-92d6-fe76-b1dd3bedd71c@oracle.com>
- <20180705070641.ske6jjvk4zp5kg2f@linux-x5ow.site>
- <3bb47711-870e-90c6-d404-3fe61f0ab9a0@oracle.com>
- <20180706081113.kwrwcat5l6o7ozar@linux-x5ow.site>
- <a879fe73-1755-8e4c-6f23-203b8d46a373@oracle.com>
+From: Varsha Rao <rvarsha016@gmail.com>
+Subject: Re: [PATCH] drivers: infiniband: core: Remove extra parentheses
+Date: Thu, 26 Jul 2018 14:02:46 +0200
+Message-ID: <CAAFX7JQSpKKPhiV7GL0wCecabgTudE0yN5m+gT1e6MqsJUt2uw@mail.gmail.com>
+References: <20180725184356.3754-1-rvarsha016@gmail.com> <20180725203733.GA5678@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/alternative; boundary="000000000000aa2d880571e5c63e"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a879fe73-1755-8e4c-6f23-203b8d46a373@oracle.com>
+In-Reply-To: <20180725203733.GA5678@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Cc: Eric Biggers <ebiggers3@gmail.com>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, syzbot <syzbot+b51c77ef956678a65834@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, Lukas Bulwahn <lukas.bulwahn@gmail.com>, Nicholas Mc Guire <der.herr@hofr.at>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 24, 2018 at 08:58:43PM -0700, santosh.shilimkar@oracle.com wrote:
-> On 7/6/18 1:11 AM, Johannes Thumshirn wrote:
-> > On Thu, Jul 05, 2018 at 09:09:44AM -0700, Santosh Shilimkar wrote:
-> > > OK. we will look into it if an interim fix can be made....
-> > 
-> > Thanks a lot.
-> > 
-> Intermediate fix is posted here [1]
-> 
-> Regards,
-> Santosh
-> 
-> [1] https://patchwork.ozlabs.org/patch/949010/
+--000000000000aa2d880571e5c63e
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Jason,
+
+On Wed, Jul 25, 2018 at 10:37 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+
+> On Wed, Jul 25, 2018 at 08:43:56PM +0200, Varsha Rao wrote:
+> > Remove unnecessary parentheses to fix the clang warning of extraneous
+> > parentheses.
+> >
+> > Signed-off-by: Varsha Rao <rvarsha016@gmail.com>
+> > ---
+> >  drivers/infiniband/core/cma.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Applied to for-next, thanks
+>
+> Curious, what configuration are you using clang with? I'd like to have
+> it run here..
+>
+> I have the list of warnings from previous kernel build, for which
+compiling with clang was possible. I sent the patch as the warning was
+still valid for the latest kernel too.
 
 Thanks,
-	Johannes
--- 
-Johannes Thumshirn                                          Storage
-jthumshirn@suse.de                                +49 911 74053 689
-SUSE LINUX GmbH, Maxfeldstr. 5, 90409 Nürnberg
-GF: Felix Imendörffer, Jane Smithard, Graham Norton
-HRB 21284 (AG Nürnberg)
-Key fingerprint = EC38 9CAB C2C4 F25D 8600 D0D0 0393 969D 2D76 0850
+Varsha
+
+--000000000000aa2d880571e5c63e
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"auto"><div dir=3D"ltr">Hi Jason,<br><div class=3D"gmail_extra">=
+<br><div class=3D"gmail_quote">On Wed, Jul 25, 2018 at 10:37 PM, Jason Gunt=
+horpe <span dir=3D"ltr">&lt;<a href=3D"mailto:jgg@ziepe.ca" target=3D"_blan=
+k" rel=3D"noreferrer">jgg@ziepe.ca</a>&gt;</span> wrote:<br><blockquote cla=
+ss=3D"gmail_quote" style=3D"margin:0 0 0 .8ex;border-left:1px #ccc solid;pa=
+dding-left:1ex"><span>On Wed, Jul 25, 2018 at 08:43:56PM +0200, Varsha Rao =
+wrote:<br>
+&gt; Remove unnecessary parentheses to fix the clang warning of extraneous<=
+br>
+&gt; parentheses.<br>
+&gt; <br>
+&gt; Signed-off-by: Varsha Rao &lt;<a href=3D"mailto:rvarsha016@gmail.com" =
+target=3D"_blank" rel=3D"noreferrer">rvarsha016@gmail.com</a>&gt;<br>
+&gt; ---<br>
+&gt;=C2=A0 drivers/infiniband/core/cma.c | 2 +-<br>
+&gt;=C2=A0 1 file changed, 1 insertion(+), 1 deletion(-)<br>
+<br>
+</span>Applied to for-next, thanks<br>
+<br>
+Curious, what configuration are you using clang with? I&#39;d like to have<=
+br>
+it run here..<br>
+<span class=3D"m_2450782651544013136HOEnZb"><font color=3D"#888888"><br></f=
+ont></span></blockquote><div>I have the list of warnings from previous kern=
+el build, for which compiling with clang was possible. I sent the patch as =
+the warning was still valid for the latest kernel too.</div><div dir=3D"aut=
+o"><br></div><div dir=3D"auto">Thanks,</div><div dir=3D"auto">Varsha</div><=
+div><br></div></div><br></div></div></div>
+
+--000000000000aa2d880571e5c63e--
