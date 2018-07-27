@@ -1,29 +1,75 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] net/rds/Kconfig: Correct the RDS depends
-Date: Fri, 27 Jul 2018 08:03:42 -0700
-Message-ID: <3872d906-99fe-b310-7d5e-ff0ef31de1e2@gmail.com>
-References: <20180727131849.18488-1-anders.roxell@linaro.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH rdma] IB/cache: Restore compatibility for ib_query_gid
+Date: Fri, 27 Jul 2018 09:54:02 -0600
+Message-ID: <20180727155402.GA15253@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180727131849.18488-1-anders.roxell@linaro.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Anders Roxell <anders.roxell@linaro.org>, santosh.shilimkar@oracle.com, davem@davemloft.net, eric.dumazet@gmail.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Miller <davem@davemloft.net>, Networking <netdev@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Parav Pandit <parav@mellanox.com>, Ursula Braun <ubraun@linux.ibm.com>, Leon Romanovsky <leonro@mellanox.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Code changes in smc have become so complicated this cycle that the RDMA
+patches to remove ib_query_gid in smc create too complex merge conflicts.
+Allow those conflicts to be resolved by using the net/smc hunks by
+providing a compatibility wrapper. During the second phase of the merge
+window this wrapper will be deleted and smc updated to use the new API.
 
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ include/rdma/ib_cache.h | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-On 07/27/2018 06:18 AM, Anders Roxell wrote:
-> Remove prefix 'CONFIG_' from CONFIG_IPV6
-> 
-> Fixes: ba7d7e2677c0 ("net/rds/Kconfig: RDS should depend on IPV6")
-> Reported-by: Eric Dumazet <eric.dumazet@gmail.com>
-> Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
-> ---
+The resolution Stephen had to make is too complicated, I think we
+should go this way instead. Parav can send a patch to DaveM during the
+2nd half of the merge window to safely update SMC and delete this
+wrapper.
 
-SGTM, thanks !
+Parav, can you check this?
 
-Reviewed-by: Eric Dumazet <edumazet@google.com>
+Ursula, this is only for SMC, are you able to test SMC with it? You
+will need to apply it to the RDMA tree here:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=for-next
+
+Thanks,
+Jason
+
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index 1108d422027696..c7e9b42b96e5b8 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -132,4 +132,28 @@ const struct ib_gid_attr *rdma_get_gid_attr(struct ib_device *device,
+ 					    u8 port_num, int index);
+ void rdma_put_gid_attr(const struct ib_gid_attr *attr);
+ void rdma_hold_gid_attr(const struct ib_gid_attr *attr);
++
++/*
++ * This is to be removed. It only exists to make merging rdma and smc simpler.
++ */
++static inline __deprecated int ib_query_gid(struct ib_device *device,
++					    u8 port_num, int index,
++					    union ib_gid *gid,
++					    struct ib_gid_attr *attr_out)
++{
++	const struct ib_gid_attr *attr;
++
++	attr = rdma_get_gid_attr(device,port_num,index);
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
++
++	if (attr->ndev)
++		dev_hold(attr->ndev);
++	*attr_out = *attr;
++
++	rdma_put_gid_attr(attr);
++
++	return 0;
++}
++
+ #endif /* _IB_CACHE_H */
+-- 
+2.18.0
