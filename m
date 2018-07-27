@@ -1,65 +1,55 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the net-next tree with the rdma
- tree
-Date: Fri, 27 Jul 2018 15:09:03 +1000
-Message-ID: <20180727150903.0f2816ba@canb.auug.org.au>
-References: <20180727123301.3ac97ddc@canb.auug.org.au>
-        <20180727024832.GA30023@mellanox.com>
-        <20180727132847.2be8563b@canb.auug.org.au>
-        <VI1PR0502MB3008702AFA64F44DE57DC9F5D12A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] net/rds/Kconfig: RDS should depend on IPV6
+Date: Fri, 27 Jul 2018 04:52:26 -0700
+Message-ID: <68f68676-0d91-125f-5697-31cc459ab24e@gmail.com>
+References: <20180725222008.32186-1-anders.roxell@linaro.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/ag3SSCB8sRIv52EdCbiJq_m"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <VI1PR0502MB3008702AFA64F44DE57DC9F5D12A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+In-Reply-To: <20180725222008.32186-1-anders.roxell@linaro.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, David Miller <davem@davemloft.net>, Networking <netdev@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ursula Braun <ubraun@linux.ibm.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Anders Roxell <anders.roxell@linaro.org>, davem@davemloft.net, santosh.shilimkar@oracle.com, ka-cheong.poon@oracle.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/ag3SSCB8sRIv52EdCbiJq_m
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Parav,
 
-On Fri, 27 Jul 2018 04:57:41 +0000 Parav Pandit <parav@mellanox.com> wrote:
->
-> >  	for (i =3D 0; i < smcibdev->pattr[ibport - 1].gid_tbl_len; i++) {
-> > -		memset(&_gid, 0, SMC_GID_SIZE);
-> > -		memset(&gattr, 0, sizeof(gattr));
-> > -		if (ib_query_gid(smcibdev->ibdev, ibport, i, &_gid, &gattr))
-> > +		gattr =3D rdma_get_gid_attr(smcibdev->ibdev, ibport, i);
-> > +		if (IS_ERR(gattr))
-> >  			continue;
-> > -		if (!gattr.ndev)
-> > +		if (!gattr->ndev)
-> >  			continue; =20
-> This requires a small fix.
-> If (!gattr->ndev {
-> 	rdma_put_gid_attr(gattr);
-> 	continue;
-> }
+On 07/25/2018 03:20 PM, Anders Roxell wrote:
+> Build error, implicit declaration of function __inet6_ehashfn shows up
+> When RDS is enabled but not IPV6.
+> net/rds/connection.c: In function ‘rds_conn_bucket’:
+> net/rds/connection.c:67:9: error: implicit declaration of function ‘__inet6_ehashfn’; did you mean ‘__inet_ehashfn’? [-Werror=implicit-function-declaration]
+>   hash = __inet6_ehashfn(lhash, 0, fhash, 0, rds_hash_secret);
+>          ^~~~~~~~~~~~~~~
+>          __inet_ehashfn
+> 
+> Current code adds IPV6 as a depends on in config RDS.
+> 
+> Fixes: eee2fa6ab322 ("rds: Changing IP address internal representation to struct in6_addr")
+> Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+> ---
+>  net/rds/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/rds/Kconfig b/net/rds/Kconfig
+> index 41f75563b54b..607128f10bcd 100644
+> --- a/net/rds/Kconfig
+> +++ b/net/rds/Kconfig
+> @@ -1,7 +1,7 @@
+>  
+>  config RDS
+>  	tristate "The RDS Protocol"
+> -	depends on INET
+> +	depends on INET && CONFIG_IPV6
 
-Thanks, I have fixed this up for Monday.
---=20
-Cheers,
-Stephen Rothwell
+You probably meant :
 
---Sig_/ag3SSCB8sRIv52EdCbiJq_m
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+        depends on INET && IPV6
 
------BEGIN PGP SIGNATURE-----
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAltaqO8ACgkQAVBC80lX
-0Gxj2gf/cGH4xP5XiC5RN6dQEw44mUZPC9/9aOF2QhcWj/6AmlFYWqdYzqKtlKhg
-UiwaQ0uYQhxYbmbJr4/nvuwemDwwF1H2RmoWBvgxTJIBtjnI1kQm02aKm8ikwYoP
-RkSHlmi9+CESZQ2hFDMs09nD9hZIk1GxVwPZ0XAUQJa4n6emcThqoanEvOeCb00B
-IiA0gS5ETYF6KBxXpTzWHQVtR9sUmBt7927jy2AwsBKBJHTahEO4oOFJrmYZVuBJ
-naa4Fa4zCpzj3f1gwHhxRf9UONYPqIMIcX7P1IlfCaKASuFIRJrbhPehpqvLDD6F
-QurSJ3XodiwHbsvCXHiA8xzYdmx5IA==
-=2BXY
------END PGP SIGNATURE-----
-
---Sig_/ag3SSCB8sRIv52EdCbiJq_m--
+>  	---help---
+>  	  The RDS (Reliable Datagram Sockets) protocol provides reliable,
+>  	  sequenced delivery of datagrams over Infiniband or TCP.
+> 
