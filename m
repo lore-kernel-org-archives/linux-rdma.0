@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 11/27] RDMA/mlx5: Add NIC TX steering support
-Date: Sun, 29 Jul 2018 15:58:49 +0300
-Message-ID: <20180729125905.31989-12-leon@kernel.org>
+Subject: [PATCH rdma-next 12/27] RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
+Date: Sun, 29 Jul 2018 15:58:50 +0300
+Message-ID: <20180729125905.31989-13-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,86 +12,98 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Add support for proper NIC TX (egress) steering with multiple priorities.
-We expose the same number of priorities as the bypass (NIC RX) steering.
+This makes it clear and safe to access constants past in from user space.
+We define a consistent ABI of u64 for all constants, and verify that
+the data passed in can be represented by the type the user supplies.
 
+The expectation is this will always be used with an enum declaring the
+constant values, and the user will use the enum type as input to the
+accessor.
+
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c    | 28 ++++++++++++++++++----------
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
- 2 files changed, 19 insertions(+), 10 deletions(-)
+ drivers/infiniband/core/uverbs_ioctl.c | 21 +++++++++++++++++++++
+ include/rdma/uverbs_ioctl.h            | 30 ++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9011187ca081..b3281e408d2a 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2883,7 +2883,7 @@ is_valid_esp_aes_gcm(struct mlx5_core_dev *mdev,
- 	 * rules would be supported, always return VALID_SPEC_NA.
- 	 */
- 	if (!is_crypto)
--		return egress ? VALID_SPEC_INVALID : VALID_SPEC_NA;
-+		return VALID_SPEC_NA;
- 
- 	return is_crypto && is_ipsec &&
- 		(!egress || (!is_drop && !flow_act->has_flow_tag)) ?
-@@ -3058,21 +3058,26 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 	max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
- 						       log_max_ft_size));
- 	if (flow_attr->type == IB_FLOW_ATTR_NORMAL) {
--		if (ft_type == MLX5_IB_FT_TX)
--			priority = 0;
--		else if (flow_is_multicast_only(flow_attr) &&
--			 !dont_trap)
-+		enum mlx5_flow_namespace_type fn_type;
+diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
+index 23a1777f26e2..3ad3b69e32ab 100644
+--- a/drivers/infiniband/core/uverbs_ioctl.c
++++ b/drivers/infiniband/core/uverbs_ioctl.c
+@@ -537,3 +537,24 @@ int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(uverbs_get_flags32);
 +
-+		if (flow_is_multicast_only(flow_attr) &&
-+		    !dont_trap)
- 			priority = MLX5_IB_FLOW_MCAST_PRIO;
- 		else
- 			priority = ib_prio_to_core_prio(flow_attr->priority,
- 							dont_trap);
--		ns = mlx5_get_flow_namespace(dev->mdev,
--					     ft_type == MLX5_IB_FT_TX ?
--					     MLX5_FLOW_NAMESPACE_EGRESS :
--					     MLX5_FLOW_NAMESPACE_BYPASS);
-+		if (ft_type == MLX5_IB_FT_RX) {
-+			fn_type = MLX5_FLOW_NAMESPACE_BYPASS;
-+			prio = &dev->flow_db->prios[priority];
-+		} else {
-+			max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev,
-+								       log_max_ft_size));
-+			fn_type = MLX5_FLOW_NAMESPACE_EGRESS;
-+			prio = &dev->flow_db->egress_prios[priority];
-+		}
-+		ns = mlx5_get_flow_namespace(dev->mdev, fn_type);
- 		num_entries = MLX5_FS_MAX_ENTRIES;
- 		num_groups = MLX5_FS_MAX_TYPES;
--		prio = &dev->flow_db->prios[priority];
- 	} else if (flow_attr->type == IB_FLOW_ATTR_ALL_DEFAULT ||
- 		   flow_attr->type == IB_FLOW_ATTR_MC_DEFAULT) {
- 		ns = mlx5_get_flow_namespace(dev->mdev,
-@@ -3271,6 +3276,9 @@ static struct mlx5_ib_flow_handler *_create_flow_rule(struct mlx5_ib_dev *dev,
- 	if (!is_valid_attr(dev->mdev, flow_attr))
- 		return ERR_PTR(-EINVAL);
- 
-+	if (dev->rep && is_egress)
-+		return ERR_PTR(-EINVAL);
++int _uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
++		      size_t idx, s64 lower_bound, u64 upper_bound)
 +
- 	spec = kvzalloc(sizeof(*spec), GFP_KERNEL);
- 	handler = kzalloc(sizeof(*handler), GFP_KERNEL);
- 	if (!handler || !spec) {
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 462505c8fa25..01bef4c2d396 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -188,6 +188,7 @@ struct mlx5_ib_flow_matcher {
++{
++	const struct uverbs_attr *attr;
++
++	attr = uverbs_attr_get(attrs_bundle, idx);
++	if (IS_ERR(attr))
++		return PTR_ERR(attr);
++
++	WARN_ON(attr->ptr_attr.len != 8);
++
++	*to = attr->ptr_attr.data;
++
++	if (*to < lower_bound || *to > upper_bound)
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL(_uverbs_get_const);
+diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
+index 19b421d2d82a..f703c8ebbb02 100644
+--- a/include/rdma/uverbs_ioctl.h
++++ b/include/rdma/uverbs_ioctl.h
+@@ -268,6 +268,15 @@ struct uverbs_object_tree_def {
+ 			  __VA_ARGS__ },                                       \
+ 	})
  
- struct mlx5_ib_flow_db {
- 	struct mlx5_ib_flow_prio	prios[MLX5_IB_NUM_FLOW_FT];
-+	struct mlx5_ib_flow_prio	egress_prios[MLX5_IB_NUM_FLOW_FT];
- 	struct mlx5_ib_flow_prio	sniffer[MLX5_IB_NUM_SNIFFER_FTS];
- 	struct mlx5_ib_flow_prio	egress[MLX5_IB_NUM_EGRESS_FTS];
- 	struct mlx5_flow_table		*lag_demux_ft;
++/* An input value that is a member in the enum _enum_type. */
++#define UVERBS_ATTR_CONST_IN(_attr_id, _enum_type, ...)                        \
++	UVERBS_ATTR_PTR_IN(                                                    \
++		_attr_id,                                                      \
++		UVERBS_ATTR_SIZE(sizeof(u64) + BUILD_BUG_ON_ZERO(              \
++						!sizeof(_enum_type)),          \
++				 sizeof(u64)),                                 \
++		__VA_ARGS__)
++
+ /*
+  * An input value that is a bitwise combination of values of _enum_type.
+  * This permits the flag value to be passed as either a u32 or u64, it must
+@@ -536,6 +545,27 @@ int uverbs_get_flags64(u64 *to, const struct uverbs_attr_bundle *attrs_bundle,
+ 		       size_t idx, u64 allowed_bits);
+ int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
+ 		       size_t idx, u64 allowed_bits);
++#if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
++int _uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
++		      size_t idx, s64 lower_bound, u64 upper_bound);
++#else
++static inline int
++_uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
++		  size_t idx, s64 lower_bound, u64 upper_bound)
++{
++	return -EINVAL;
++}
++#endif
++
++#define uverbs_get_const(_to, _attrs_bundle, _idx)                             \
++	({                                                                     \
++		s64 _val;                                                      \
++		int _ret = _uverbs_get_const(&_val, _attrs_bundle, _idx,       \
++					     type_min(typeof(*_to)),           \
++					     type_max(typeof(*_to)));          \
++		(*_to) = _val;                                                 \
++		_ret;                                                          \
++	})
+ 
+ /* =================================================
+  *	 Definitions -> Specs infrastructure
 -- 
 2.14.4
