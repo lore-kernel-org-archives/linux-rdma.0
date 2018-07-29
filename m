@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 16/27] RDMA/uverbs: Add generic function to fill in flow action object
-Date: Sun, 29 Jul 2018 15:58:54 +0300
-Message-ID: <20180729125905.31989-17-leon@kernel.org>
+Subject: [PATCH mlx5-next 08/27] net/mlx5: Expose new packet reformat capabilities
+Date: Sun, 29 Jul 2018 15:58:46 +0300
+Message-ID: <20180729125905.31989-9-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,81 +12,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Refactor the initialization of a flow action object to a common function.
+Expose new abilities when creating a packet reformat context.
+
+The new types which can be created are:
+MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL: Ability to create generic encap
+operation to be done by the HW.
+
+MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2: Ability to create generic decap
+operation where the inner packet doesn't contain L2.
+
+MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL: Ability to create generic encap
+operation to be done by the HW. The L2 of the original packet
+is dropped.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_std_types_flow_action.c |  7 ++-----
- drivers/infiniband/hw/mlx5/flow.c                      |  8 +++-----
- include/rdma/uverbs_std_types.h                        | 12 ++++++++++++
- 3 files changed, 17 insertions(+), 10 deletions(-)
+ include/linux/mlx5/mlx5_ifc.h | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_std_types_flow_action.c b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-index adb9209c4710..8beacfdb9f27 100644
---- a/drivers/infiniband/core/uverbs_std_types_flow_action.c
-+++ b/drivers/infiniband/core/uverbs_std_types_flow_action.c
-@@ -327,11 +327,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_FLOW_ACTION_ESP_CREATE)(struct ib_device
- 	if (IS_ERR(action))
- 		return PTR_ERR(action);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index f83435d749b6..9f26e53677ca 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -344,8 +344,12 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
+ 	u8         reserved_at_c[0x1];
+ 	u8         pop_vlan_2[0x1];
+ 	u8         push_vlan_2[0x1];
+-	u8         reserved_at_f[0x11];
+-
++	u8	   reformat_and_vlan_action[0x1];
++	u8	   reserved_at_10[0x2];
++	u8	   reformat_l3_tunnel_to_l2[0x1];
++	u8	   reformat_l2_to_l3_tunnel[0x1];
++	u8	   reformat_and_modify_action[0x1];
++	u8         reserved_at_14[0xb];
+ 	u8         reserved_at_20[0x2];
+ 	u8         log_max_ft_size[0x6];
+ 	u8         log_max_modify_header_context[0x8];
+@@ -554,7 +558,13 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
+ 	u8         nic_rx_multi_path_tirs[0x1];
+ 	u8         nic_rx_multi_path_tirs_fts[0x1];
+ 	u8         allow_sniffer_and_nic_rx_shared_tir[0x1];
+-	u8         reserved_at_3[0x1fd];
++	u8	   reserved_at_3[0x1d];
++	u8	   encap_general_header[0x1];
++	u8	   reserved_at_21[0xa];
++	u8	   log_max_packet_reformat_context[0x5];
++	u8	   reserved_at_30[0x6];
++	u8	   max_encap_header_size[0xa];
++	u8	   reserved_at_40[0x1c0];
  
--	atomic_set(&action->usecnt, 0);
--	action->device = ib_dev;
--	action->type = IB_FLOW_ACTION_ESP;
--	action->uobject = uobj;
--	uobj->object = action;
-+	uverbs_flow_action_fill_action(action, uobj, ib_dev,
-+				       IB_FLOW_ACTION_ESP);
+ 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_receive;
  
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
-index 2c7d75cb8ade..d0325e468801 100644
---- a/drivers/infiniband/hw/mlx5/flow.c
-+++ b/drivers/infiniband/hw/mlx5/flow.c
-@@ -7,6 +7,7 @@
- #include <rdma/ib_verbs.h>
- #include <rdma/uverbs_types.h>
- #include <rdma/uverbs_ioctl.h>
-+#include <rdma/uverbs_std_types.h>
- #include <rdma/mlx5_user_ioctl_cmds.h>
- #include <rdma/mlx5_user_ioctl_verbs.h>
- #include <rdma/ib_umem.h>
-@@ -277,11 +278,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER)(struc
- 	if (IS_ERR(action))
- 		return PTR_ERR(action);
+@@ -4846,6 +4856,9 @@ struct mlx5_ifc_alloc_packet_reformat_context_out_bits {
+ enum {
+ 	MLX5_REFORMAT_TYPE_L2_TO_VXLAN = 0x0,
+ 	MLX5_REFORMAT_TYPE_L2_TO_NVGRE = 0x1,
++	MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL = 0x2,
++	MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2 = 0x3,
++	MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL = 0x4,
+ };
  
--	atomic_set(&action->usecnt, 0);
--	action->device = uobj->context->device;
--	action->type = IB_FLOW_ACTION_UNSPECIFIED;
--	action->uobject = uobj;
--	uobj->object = action;
-+	uverbs_flow_action_fill_action(action, uobj, uobj->context->device,
-+				       IB_FLOW_ACTION_UNSPECIFIED);
- 
- 	return 0;
- }
-diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
-index 076f085d2dcf..3686da497cf6 100644
---- a/include/rdma/uverbs_std_types.h
-+++ b/include/rdma/uverbs_std_types.h
-@@ -125,5 +125,17 @@ static inline struct ib_uobject *__uobj_alloc(const struct uverbs_obj_type *type
- 
- #define uobj_alloc(_type, _ufile) __uobj_alloc(uobj_get_type(_type), _ufile)
- 
-+static inline void uverbs_flow_action_fill_action(struct ib_flow_action *action,
-+						  struct ib_uobject *uobj,
-+						  struct ib_device *ib_dev,
-+						  enum ib_flow_action_type type)
-+{
-+	atomic_set(&action->usecnt, 0);
-+	action->device = ib_dev;
-+	action->type = type;
-+	action->uobject = uobj;
-+	uobj->object = action;
-+}
-+
- #endif
- 
+ struct mlx5_ifc_alloc_packet_reformat_context_in_bits {
 -- 
 2.14.4
