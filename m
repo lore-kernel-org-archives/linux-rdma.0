@@ -1,408 +1,131 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 05/10] IB/ipoib: Move init code to ndo_init
-Date: Sun, 29 Jul 2018 11:34:55 +0300
-Message-ID: <20180729083500.5352-6-leon@kernel.org>
-References: <20180729083500.5352-1-leon@kernel.org>
+Subject: [PATCH mlx5-next 02/27] net/mlx5: Add proper NIC TX steering flow tables support
+Date: Sun, 29 Jul 2018 15:58:40 +0300
+Message-ID: <20180729125905.31989-3-leon@kernel.org>
+References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180729083500.5352-1-leon@kernel.org>
+In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Denis Drozdov <denisd@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Mark Bloch <markb@mellanox.com>
 
-Now that we have a proper ndo_uninit, move code that naturally pairs
-with the ndo_uninit into ndo_init. This allows the netdev core to natually
-handle ordering.
+Expose the ability to add steering rules to NIC TX flow tables.
+For now, we are only adding TX bypass (egress) which is used by the RDMA
+side. This will allow an administrator to control outgoing traffic and
+tweak it if needed, for example preforming encapsulation or rewriting
+headers.
 
-This fixes the situation where register_netdev can fail before calling
-ndo_init, in which case it wouldn't call ndo_uninit either.
-
-Also move a bunch of duplicated init code that is shared between child
-and parent for clarity. Now the child and parent register functions look
-very similar.
-
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h         |   3 -
- drivers/infiniband/ulp/ipoib/ipoib_main.c    | 193 +++++++++++++++------------
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |   6 -
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c    |  31 +----
- 4 files changed, 114 insertions(+), 119 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 33 +++++++++++++++++------
+ include/linux/mlx5/device.h                       |  6 +++++
+ 3 files changed, 32 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 04fc5ad1b69f..02ad1a60dc80 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -508,8 +508,6 @@ void ipoib_ib_dev_down(struct net_device *dev);
- int ipoib_ib_dev_stop_default(struct net_device *dev);
- void ipoib_pkey_dev_check_presence(struct net_device *dev);
- 
--int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
--
- void ipoib_mcast_join_task(struct work_struct *work);
- void ipoib_mcast_carrier_on_task(struct work_struct *work);
- void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
-@@ -597,7 +595,6 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
- void ipoib_drain_cq(struct net_device *dev);
- 
- void ipoib_set_ethtool_ops(struct net_device *dev);
--void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
- 
- #define IPOIB_FLAGS_RC		0x80
- #define IPOIB_FLAGS_UC		0x40
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index d4e9951dc539..67ab52eec3e9 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1741,13 +1741,11 @@ static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
- 	return priv->rn_ops->ndo_do_ioctl(dev, ifr, cmd);
- }
- 
--int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
-+static int ipoib_dev_init(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 	int ret = -ENOMEM;
- 
--	priv->ca = ca;
--	priv->port = port;
- 	priv->qp = NULL;
- 
- 	/*
-@@ -1763,7 +1761,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
- 	/* create pd, which used both for control and datapath*/
- 	priv->pd = ib_alloc_pd(priv->ca, 0);
- 	if (IS_ERR(priv->pd)) {
--		pr_warn("%s: failed to allocate PD\n", ca->name);
-+		pr_warn("%s: failed to allocate PD\n", priv->ca->name);
- 		goto clean_wq;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 8e01f818021b..28c7301e08f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -760,8 +760,8 @@ const struct mlx5_flow_cmds *mlx5_fs_cmd_get_default(enum fs_flow_table_type typ
+ 	case FS_FT_FDB:
+ 	case FS_FT_SNIFFER_RX:
+ 	case FS_FT_SNIFFER_TX:
+-		return mlx5_fs_cmd_get_fw_cmds();
+ 	case FS_FT_NIC_TX:
++		return mlx5_fs_cmd_get_fw_cmds();
+ 	default:
+ 		return mlx5_fs_cmd_get_stub_cmds();
  	}
- 
-@@ -1837,6 +1835,108 @@ static void ipoib_parent_unregister_pre(struct net_device *ndev)
- 	flush_workqueue(ipoib_workqueue);
- }
- 
-+static void ipoib_set_dev_features(struct ipoib_dev_priv *priv)
-+{
-+	priv->hca_caps = priv->ca->attrs.device_cap_flags;
-+
-+	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
-+		priv->dev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
-+
-+		if (priv->hca_caps & IB_DEVICE_UD_TSO)
-+			priv->dev->hw_features |= NETIF_F_TSO;
-+
-+		priv->dev->features |= priv->dev->hw_features;
-+	}
-+}
-+
-+static int ipoib_parent_init(struct net_device *ndev)
-+{
-+	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
-+	struct ib_port_attr attr;
-+	int result;
-+
-+	result = ib_query_port(priv->ca, priv->port, &attr);
-+	if (result) {
-+		pr_warn("%s: ib_query_port %d failed\n", priv->ca->name,
-+			priv->port);
-+		return result;
-+	}
-+	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
-+
-+	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
-+	if (result) {
-+		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
-+			priv->ca->name, priv->port, result);
-+		return result;
-+	}
-+
-+	result = rdma_query_gid(priv->ca, priv->port, 0, &priv->local_gid);
-+	if (result) {
-+		pr_warn("%s: rdma_query_gid port %d failed (ret = %d)\n",
-+			priv->ca->name, priv->port, result);
-+		return result;
-+	}
-+	memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw,
-+	       sizeof(union ib_gid));
-+
-+	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
-+	priv->dev->dev_id = priv->port - 1;
-+
-+	return 0;
-+}
-+
-+static void ipoib_child_init(struct net_device *ndev)
-+{
-+	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
-+	struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
-+
-+	priv->max_ib_mtu = ppriv->max_ib_mtu;
-+	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
-+	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
-+	memcpy(&priv->local_gid, &ppriv->local_gid, sizeof(priv->local_gid));
-+}
-+
-+static int ipoib_ndo_init(struct net_device *ndev)
-+{
-+	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
-+	int rc;
-+
-+	if (priv->parent) {
-+		ipoib_child_init(ndev);
-+	} else {
-+		rc = ipoib_parent_init(ndev);
-+		if (rc)
-+			return rc;
-+	}
-+
-+	/* MTU will be reset when mcast join happens */
-+	ndev->mtu = IPOIB_UD_MTU(priv->max_ib_mtu);
-+	priv->mcast_mtu = priv->admin_mtu = ndev->mtu;
-+	ndev->max_mtu = IPOIB_CM_MTU;
-+
-+	ndev->neigh_priv_len = sizeof(struct ipoib_neigh);
-+
-+	/*
-+	 * Set the full membership bit, so that we join the right
-+	 * broadcast group, etc.
-+	 */
-+	priv->pkey |= 0x8000;
-+
-+	ndev->broadcast[8] = priv->pkey >> 8;
-+	ndev->broadcast[9] = priv->pkey & 0xff;
-+	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
-+
-+	ipoib_set_dev_features(priv);
-+
-+	rc = ipoib_dev_init(ndev);
-+	if (rc) {
-+		pr_warn("%s: failed to initialize device: %s port %d (ret = %d)\n",
-+			priv->ca->name, priv->dev->name, priv->port, rc);
-+	}
-+
-+	return 0;
-+}
-+
- static void ipoib_ndo_uninit(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev), *cpriv, *tcpriv;
-@@ -1909,6 +2009,7 @@ static const struct header_ops ipoib_header_ops = {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 17bbad8ee882..8243a93e1d6c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -150,6 +150,17 @@ static struct init_tree_node {
+ 	}
  };
  
- static const struct net_device_ops ipoib_netdev_ops_pf = {
-+	.ndo_init		 = ipoib_ndo_init,
- 	.ndo_uninit		 = ipoib_ndo_uninit,
- 	.ndo_open		 = ipoib_open,
- 	.ndo_stop		 = ipoib_stop,
-@@ -1928,6 +2029,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
- };
- 
- static const struct net_device_ops ipoib_netdev_ops_vf = {
-+	.ndo_init		 = ipoib_ndo_init,
- 	.ndo_uninit		 = ipoib_ndo_uninit,
- 	.ndo_open		 = ipoib_open,
- 	.ndo_stop		 = ipoib_stop,
-@@ -2054,6 +2156,9 @@ struct ipoib_dev_priv *ipoib_intf_alloc(struct ib_device *hca, u8 port,
- 	if (!priv)
- 		return NULL;
- 
-+	priv->ca = hca;
-+	priv->port = port;
++static struct init_tree_node egress_root_fs = {
++	.type = FS_TYPE_NAMESPACE,
++	.ar_size = 1,
++	.children = (struct init_tree_node[]) {
++		ADD_PRIO(0, MLX5_BY_PASS_NUM_PRIOS, 0,
++			 FS_CHAINING_CAPS,
++			 ADD_NS(ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
++						  BY_PASS_PRIO_NUM_LEVELS))),
++	}
++};
 +
- 	dev = ipoib_get_netdev(hca, port, name);
- 	if (!dev)
- 		goto free_priv;
-@@ -2201,12 +2306,6 @@ static ssize_t create_child(struct device *dev,
- 	if (pkey <= 0 || pkey > 0xffff || pkey == 0x8000)
- 		return -EINVAL;
+ enum fs_i_lock_class {
+ 	FS_LOCK_GRANDPARENT,
+ 	FS_LOCK_PARENT,
+@@ -2008,8 +2019,10 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
+ 			return &steering->sniffer_tx_root_ns->ns;
+ 		break;
+ 	case MLX5_FLOW_NAMESPACE_EGRESS:
+-		if (steering->egress_root_ns)
+-			return &steering->egress_root_ns->ns;
++		if (steering->egress_root_ns) {
++			steering_ns = steering->egress_root_ns;
++			prio = 0;
++		}
+ 		break;
+ 	default:
+ 		break;
+@@ -2530,16 +2543,20 @@ static int init_ingress_acls_root_ns(struct mlx5_core_dev *dev)
  
--	/*
--	 * Set the full membership bit, so that we join the right
--	 * broadcast group, etc.
--	 */
--	pkey |= 0x8000;
--
- 	ret = ipoib_vlan_add(to_net_dev(dev), pkey);
- 
- 	return ret ? ret : count;
-@@ -2238,86 +2337,17 @@ int ipoib_add_pkey_attr(struct net_device *dev)
- 	return device_create_file(&dev->dev, &dev_attr_pkey);
- }
- 
--void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
--{
--	priv->hca_caps = hca->attrs.device_cap_flags;
--
--	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
--		priv->dev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
--
--		if (priv->hca_caps & IB_DEVICE_UD_TSO)
--			priv->dev->hw_features |= NETIF_F_TSO;
--
--		priv->dev->features |= priv->dev->hw_features;
--	}
--}
--
- static struct net_device *ipoib_add_port(const char *format,
- 					 struct ib_device *hca, u8 port)
+ static int init_egress_root_ns(struct mlx5_flow_steering *steering)
  {
- 	struct ipoib_dev_priv *priv;
--	struct ib_port_attr attr;
- 	struct rdma_netdev *rn;
--	int result = -ENOMEM;
-+	int result;
+-	struct fs_prio *prio;
+-
+ 	steering->egress_root_ns = create_root_ns(steering,
+ 						  FS_FT_NIC_TX);
+ 	if (!steering->egress_root_ns)
+ 		return -ENOMEM;
  
- 	priv = ipoib_intf_alloc(hca, port, format);
- 	if (!priv) {
- 		pr_warn("%s, %d: ipoib_intf_alloc failed\n", hca->name, port);
--		goto alloc_mem_failed;
--	}
--
--	SET_NETDEV_DEV(priv->dev, hca->dev.parent);
--	priv->dev->dev_id = port - 1;
--
--	result = ib_query_port(hca, port, &attr);
--	if (result) {
--		pr_warn("%s: ib_query_port %d failed\n", hca->name, port);
--		goto device_init_failed;
--	}
--
--	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
--
--	/* MTU will be reset when mcast join happens */
--	priv->dev->mtu  = IPOIB_UD_MTU(priv->max_ib_mtu);
--	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
--	priv->dev->max_mtu = IPOIB_CM_MTU;
--
--	priv->dev->neigh_priv_len = sizeof(struct ipoib_neigh);
--
--	result = ib_query_pkey(hca, port, 0, &priv->pkey);
--	if (result) {
--		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
--			hca->name, port, result);
--		goto device_init_failed;
--	}
--
--	ipoib_set_dev_features(priv, hca);
--
--	/*
--	 * Set the full membership bit, so that we join the right
--	 * broadcast group, etc.
--	 */
--	priv->pkey |= 0x8000;
--
--	priv->dev->broadcast[8] = priv->pkey >> 8;
--	priv->dev->broadcast[9] = priv->pkey & 0xff;
--
--	result = rdma_query_gid(hca, port, 0, &priv->local_gid);
--	if (result) {
--		pr_warn("%s: rdma_query_gid port %d failed (ret = %d)\n",
--			hca->name, port, result);
--		goto device_init_failed;
--	}
--
--	memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw,
--	       sizeof(union ib_gid));
--	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
--
--	result = ipoib_dev_init(priv->dev, hca, port);
--	if (result) {
--		pr_warn("%s: failed to initialize port %d (ret = %d)\n",
--			hca->name, port, result);
--		goto device_init_failed;
-+		return ERR_PTR(-ENOMEM);
- 	}
- 
- 	INIT_IB_EVENT_HANDLER(&priv->event_handler,
-@@ -2358,7 +2388,6 @@ static struct net_device *ipoib_add_port(const char *format,
- 	rn->free_rdma_netdev(priv->dev);
- 	kfree(priv);
- 
--alloc_mem_failed:
- 	return ERR_PTR(result);
- }
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-index 3e44087935ae..a86928a80c08 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -125,12 +125,6 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 	if (child_pkey == 0 || child_pkey == 0x8000)
- 		return -EINVAL;
- 
--	/*
--	 * Set the full membership bit, so that we join the right
--	 * broadcast group, etc.
--	 */
--	child_pkey |= 0x8000;
--
- 	err = __ipoib_vlan_add(ppriv, ipoib_priv(dev),
- 			       child_pkey, IPOIB_RTNL_CHILD);
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index b62ab85c8ead..3103729a73fd 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -55,35 +55,14 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- {
- 	int result;
- 
--	priv->max_ib_mtu = ppriv->max_ib_mtu;
--	/* MTU will be reset when mcast join happens */
--	priv->dev->mtu   = IPOIB_UD_MTU(priv->max_ib_mtu);
--	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
- 	priv->parent = ppriv->dev;
--	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
--
--	ipoib_set_dev_features(priv, ppriv->ca);
--
- 	priv->pkey = pkey;
--
--	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
--	memcpy(&priv->local_gid, &ppriv->local_gid, sizeof(priv->local_gid));
--	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
--	priv->dev->broadcast[8] = pkey >> 8;
--	priv->dev->broadcast[9] = pkey & 0xff;
--
--	result = ipoib_dev_init(priv->dev, ppriv->ca, ppriv->port);
--	if (result < 0) {
--		ipoib_warn(ppriv, "failed to initialize subinterface: "
--			   "device %s, port %d",
--			   ppriv->ca->name, ppriv->port);
--		goto err;
--	}
-+	priv->child_type = type;
- 
- 	result = register_netdevice(priv->dev);
- 	if (result) {
- 		ipoib_warn(priv, "failed to initialize; error %i", result);
--		goto err;
-+		return result;
- 	}
- 
- 	/* RTNL childs don't need proprietary sysfs entries */
-@@ -99,17 +78,13 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 			goto sysfs_failed;
- 	}
- 
--	priv->child_type  = type;
- 	list_add_tail(&priv->list, &ppriv->child_intfs);
- 
- 	return 0;
- 
- sysfs_failed:
--	result = -ENOMEM;
- 	unregister_netdevice(priv->dev);
--
--err:
--	return result;
+-	/* create 1 prio*/
+-	prio = fs_create_prio(&steering->egress_root_ns->ns, 0, 1);
+-	return PTR_ERR_OR_ZERO(prio);
++	if (init_root_tree(steering, &egress_root_fs,
++			   &steering->egress_root_ns->ns.node))
++		goto cleanup;
++	set_prio_attrs(steering->egress_root_ns);
++	return 0;
++cleanup:
++	cleanup_root_ns(steering->egress_root_ns);
++	steering->egress_root_ns = NULL;
 +	return -ENOMEM;
  }
  
- int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ int mlx5_init_fs(struct mlx5_core_dev *dev)
+@@ -2607,7 +2624,7 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
+ 			goto err;
+ 	}
+ 
+-	if (MLX5_IPSEC_DEV(dev)) {
++	if (MLX5_IPSEC_DEV(dev) || MLX5_CAP_FLOWTABLE_NIC_TX(dev, ft_support)) {
+ 		err = init_egress_root_ns(steering);
+ 		if (err)
+ 			goto err;
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 0566c6a94805..e9c35eb1cc26 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -1113,6 +1113,12 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP_FLOWTABLE_NIC_RX_MAX(mdev, cap) \
+ 	MLX5_CAP_FLOWTABLE_MAX(mdev, flow_table_properties_nic_receive.cap)
+ 
++#define MLX5_CAP_FLOWTABLE_NIC_TX(mdev, cap) \
++		MLX5_CAP_FLOWTABLE(mdev, flow_table_properties_nic_transmit.cap)
++
++#define MLX5_CAP_FLOWTABLE_NIC_TX_MAX(mdev, cap) \
++		MLX5_CAP_FLOWTABLE_MAX(mdev, flow_table_properties_nic_transmit.cap)
++
+ #define MLX5_CAP_FLOWTABLE_SNIFFER_RX(mdev, cap) \
+ 	MLX5_CAP_FLOWTABLE(mdev, flow_table_properties_nic_receive_sniffer.cap)
+ 
 -- 
 2.14.4
