@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 14/27] RDMA/mlx5: Enable attaching modify header to steering flows
-Date: Sun, 29 Jul 2018 15:58:52 +0300
-Message-ID: <20180729125905.31989-15-leon@kernel.org>
+Subject: [PATCH rdma-next 15/27] RDMA/mlx5: Enable decap and packet reformat on flow tables
+Date: Sun, 29 Jul 2018 15:58:53 +0300
+Message-ID: <20180729125905.31989-16-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,33 +12,81 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-When creating a flow steering rule, allow the user to attach a modify
-header action.
+If NIC RX flow tables support decap operation, enable it on creation.
+If NIC TX flow tables support reformat operation, enable it on creation.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index b56ac6614be6..473c8e5d21a5 100644
+index 473c8e5d21a5..d826d7b21c2e 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2466,6 +2466,14 @@ static int parse_flow_flow_action(const union ib_flow_spec *ib_spec,
- 			MLX5_FLOW_CONTEXT_ACTION_ENCRYPT :
- 			MLX5_FLOW_CONTEXT_ACTION_DECRYPT;
- 		return 0;
-+	case IB_FLOW_ACTION_UNSPECIFIED:
-+		if (maction->flow_action_raw.sub_type ==
-+		    MLX5_IB_FLOW_ACTION_MODIFY_HEADER) {
-+			action->action |= MLX5_FLOW_CONTEXT_ACTION_MOD_HDR;
-+			action->modify_id = maction->flow_action_raw.action_id;
-+			return 0;
-+		}
-+		/* fall through */
- 	default:
- 		return -EOPNOTSUPP;
- 	}
+@@ -3034,14 +3034,15 @@ enum flow_table_type {
+ static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_flow_namespace *ns,
+ 					   struct mlx5_ib_flow_prio *prio,
+ 					   int priority,
+-					   int num_entries, int num_groups)
++					   int num_entries, int num_groups,
++					   u32 flags)
+ {
+ 	struct mlx5_flow_table *ft;
+ 
+ 	ft = mlx5_create_auto_grouped_flow_table(ns, priority,
+ 						 num_entries,
+ 						 num_groups,
+-						 0, 0);
++						 0, flags);
+ 	if (IS_ERR(ft))
+ 		return ERR_CAST(ft);
+ 
+@@ -3061,6 +3062,7 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 	int max_table_size;
+ 	int num_entries;
+ 	int num_groups;
++	u32 flags = 0;
+ 	int priority;
+ 
+ 	max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
+@@ -3077,11 +3079,17 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 		if (ft_type == MLX5_IB_FT_RX) {
+ 			fn_type = MLX5_FLOW_NAMESPACE_BYPASS;
+ 			prio = &dev->flow_db->prios[priority];
++			if (!dev->rep &&
++			    MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, decap))
++				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
+ 		} else {
+ 			max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev,
+ 								       log_max_ft_size));
+ 			fn_type = MLX5_FLOW_NAMESPACE_EGRESS;
+ 			prio = &dev->flow_db->egress_prios[priority];
++			if (!dev->rep && MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev,
++								   reformat))
++				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
+ 		}
+ 		ns = mlx5_get_flow_namespace(dev->mdev, fn_type);
+ 		num_entries = MLX5_FS_MAX_ENTRIES;
+@@ -3117,7 +3125,8 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
+ 
+ 	ft = prio->flow_table;
+ 	if (!ft)
+-		return _get_prio(ns, prio, priority, num_entries, num_groups);
++		return _get_prio(ns, prio, priority, num_entries, num_groups,
++				 flags);
+ 
+ 	return prio;
+ }
+@@ -3695,7 +3704,7 @@ static struct mlx5_ib_flow_prio *_get_flow_table(struct mlx5_ib_dev *dev,
+ 		return prio;
+ 
+ 	return _get_prio(ns, prio, priority, MLX5_FS_MAX_ENTRIES,
+-			 MLX5_FS_MAX_TYPES);
++			 MLX5_FS_MAX_TYPES, 0);
+ }
+ 
+ static struct mlx5_ib_flow_handler *
 -- 
 2.14.4
