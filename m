@@ -1,78 +1,120 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 03/27] net/mlx5: Export modify header alloc/dealloc functions
-Date: Sun, 29 Jul 2018 15:58:41 +0300
-Message-ID: <20180729125905.31989-4-leon@kernel.org>
-References: <20180729125905.31989-1-leon@kernel.org>
+Subject: [PATCH rdma-next 00/27] Flow actions to mutate packets
+Date: Sun, 29 Jul 2018 15:58:38 +0300
+Message-ID: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Those functions will be used by the RDMA side to create modify header
-actions to be attached to flow steering rules via verbs.
+Hi,
 
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 2 ++
- drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 5 -----
- include/linux/mlx5/fs.h                             | 6 ++++++
- 3 files changed, 8 insertions(+), 5 deletions(-)
+This is PATCH variant of RFC posted in previous week to the ML.
+https://patchwork.ozlabs.org/cover/944184/
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 28c7301e08f4..37bea30b68ac 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -702,6 +702,7 @@ int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
- 	kfree(in);
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_modify_header_alloc);
- 
- void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
- {
-@@ -716,6 +717,7 @@ void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
- 
- 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_modify_header_dealloc);
- 
- static const struct mlx5_flow_cmds mlx5_flow_cmds = {
- 	.create_flow_table = mlx5_cmd_create_flow_table,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 49955117ae36..b076ce14c48c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -177,11 +177,6 @@ int mlx5_encap_alloc(struct mlx5_core_dev *dev,
- 		     u32 *encap_id);
- void mlx5_encap_dealloc(struct mlx5_core_dev *dev, u32 encap_id);
- 
--int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
--			     u8 namespace, u8 num_actions,
--			     void *modify_actions, u32 *modify_header_id);
--void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id);
--
- bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv);
- 
- int mlx5_query_mtpps(struct mlx5_core_dev *dev, u32 *mtpps, u32 mtpps_size);
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index af0592400499..245f9e80ef92 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -196,4 +196,10 @@ int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
- int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
- int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
- 
-+int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
-+			     u8 namespace, u8 num_actions,
-+			     void *modify_actions, u32 *modify_header_id);
-+void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev,
-+				u32 modify_header_id);
-+
- #endif
--- 
-2.14.4
+Changelog:
+ RFC -> v0:
+  * Patch 1 a new patch which refactors the logic
+    when getting a flow namespace.
+  * Patch 2 was split into two.
+  * Patch 3: Fixed a typo in commit message
+  * Patch 5: Updated commit message
+  * Patch 7: Updated commit message
+    Renamed:
+      - MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID to
+        MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT
+      - packet_reformat_id to reformat_id in struct mlx5_flow_act
+      - packet_reformat_id to encap_id in struct mlx5_esw_flow_attr
+      - packet_reformat_id to encap_id in struct mlx5e_encap_entry
+      - PACKET_REFORMAT to REFORMAT when printing trace points
+  * Patch 9: Updated commit message
+    Updated function declaration in mlx5_core.h, could of lead
+    to compile error on bisection.
+  * Patch 11: Disallow egress rules insertion when in switchdev mode
+  * Patch 12: A new patch to deal with passing enum values using
+    the IOCTL infrastructure.
+  * Patch 13: Use new enum value attribute when passing enum
+    mlx5_ib_uapi_flow_table_type
+  * Patch 15: Don't set encap flags on flow tables if in switchdev mode
+  * Patch 17: Use new enum value attribute when passing enum
+    mlx5_ib_uapi_flow_table_type and enum
+    mlx5_ib_uapi_flow_action_packet_reformat_type
+  * Patch 19: Allow creation of both
+    MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TO_L3_TUNNEL
+    and MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L3_TUNNEL_TO_L2 packet
+    reformat actions.
+  * Patch 20: A new patch which allows attaching packet reformat
+    actions to flow tables on NIC RX.
+
+Thanks
+
+------------------------------------------------------------------------
+>From Mark:
+This series exposes the ability to create flow actions which can
+mutate packet headers. We do that by exposing two new verbs:
+ * modify header - can change existing packet headers. packet
+ * reformat - can encapsulate or decapsulate a packet.
+              Once created a flow action must be attached to a steering
+              rule for it to take effect.
+
+Thanks
+
+Guy Levi (1):
+  IB/uverbs: Add IDRs array attribute type to ioctl() interface
+
+Mark Bloch (26):
+  net/mlx5: Cleanup flow namespace getter switch logic
+  net/mlx5: Add proper NIC TX steering flow tables support
+  net/mlx5: Export modify header alloc/dealloc functions
+  net/mlx5: Add support for more namespaces when allocating modify
+    header
+  net/mlx5: Break encap/decap into two separated flow table creation
+    flags
+  net/mlx5: Move header encap type to IFC header file
+  {net, RDMA}/mlx5: Rename encap to reformat packet
+  net/mlx5: Expose new packet reformat capabilities
+  net/mlx5: Pass a namespace for packet reformat ID allocation
+  net/mlx5: Export packet reformat alloc/dealloc functions
+  RDMA/mlx5: Add NIC TX steering support
+  RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
+  RDMA/mlx5: Add a new flow action verb, modify header
+  RDMA/mlx5: Enable attaching modify header to steering flows
+  RDMA/mlx5: Enable decap and packet reformat on flow tables
+  RDMA/uverbs: Add generic function to fill in flow action object
+  RDMA/mlx5: Add new flow action verb, packet reformat
+  RDMA/mlx5: Enable attaching DECAP action to steering flows
+  RDMA/mlx5: Extend packet reformat verbs
+  RDMA/mlx5: Enable reformat on NIC RX if supported
+  RDMA/mlx5: Enable attaching packet reformat action to steering flows
+  RDMA/mlx5: Refactor flow action parsing to be more generic
+  RDMA/mlx5: Refactor DEVX flow creation
+  RDMA/mlx5: Add flow actions support to DEVX create flow
+  RDMA/mlx5: Add NIC TX namespace when getting a flow table
+  RDMA/mlx5: Allow creating a matcher for a NIC TX flow table
+
+ drivers/infiniband/core/uverbs_ioctl.c             | 115 ++++++-
+ .../infiniband/core/uverbs_std_types_flow_action.c |   7 +-
+ drivers/infiniband/hw/mlx5/devx.c                  |   6 +-
+ drivers/infiniband/hw/mlx5/flow.c                  | 351 ++++++++++++++++++++-
+ drivers/infiniband/hw/mlx5/main.c                  | 140 +++++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  26 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   8 +-
+ .../mellanox/mlx5/core/diag/fs_tracepoint.h        |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  50 +--
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   9 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  87 +++--
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  57 ++--
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  11 -
+ include/linux/mlx5/device.h                        |   6 +
+ include/linux/mlx5/fs.h                            |  20 +-
+ include/linux/mlx5/mlx5_ifc.h                      |  70 ++--
+ include/rdma/uverbs_ioctl.h                        |  98 +++++-
+ include/rdma/uverbs_std_types.h                    |  12 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  20 ++
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h          |  12 +
+ include/uapi/rdma/rdma_user_ioctl_cmds.h           |   2 +-
+ 22 files changed, 928 insertions(+), 183 deletions(-)
