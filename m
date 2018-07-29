@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 09/10] IB/ipoib: Maintain the child_intfs list from ndo_init/uninit
-Date: Sun, 29 Jul 2018 11:34:59 +0300
-Message-ID: <20180729083500.5352-10-leon@kernel.org>
+Subject: [PATCH rdma-next 10/10] IB/ipoib: Consolidate checking of the proposed child interface
+Date: Sun, 29 Jul 2018 11:35:00 +0300
+Message-ID: <20180729083500.5352-11-leon@kernel.org>
 References: <20180729083500.5352-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729083500.5352-1-leon@kernel.org>
@@ -12,134 +12,165 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-This fixes a bug in the netlink path where the vlan_rwsem was not
-held around __ipoib_vlan_add causing the child_intfs to be manipulated
-unsafely.
-
-In the process this greatly simplifies the vlan_rwsem write side locking
-to only cover a single non-sleeping statement.
-
-This also further increases the safety of the removal ordering by holding
-the netdev of the parent while the child is active to ensure most bugs
-become either an oops on a NULL priv or a deadlock on the netdev refcount.
+Move all the checking for pkey and other validity to the __ipoib_vlan_add
+function. This removes the last difference from the control flow
+of the __ipoib_vlan_add to make the overall design simpler to
+understand.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c    | 16 ++++++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c | 14 --------------
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 12 ------------
- 3 files changed, 16 insertions(+), 26 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_netlink.c |  3 --
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 77 +++++++++++++++++++---------
+ 2 files changed, 52 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index b2fe23d60103..e3d28f9ad9c0 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1890,6 +1890,12 @@ static void ipoib_child_init(struct net_device *ndev)
- 	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
- 	struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
- 
-+	dev_hold(priv->parent);
-+
-+	down_write(&ppriv->vlan_rwsem);
-+	list_add_tail(&priv->list, &ppriv->child_intfs);
-+	up_write(&ppriv->vlan_rwsem);
-+
- 	priv->max_ib_mtu = ppriv->max_ib_mtu;
- 	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
- 	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
-@@ -1959,6 +1965,16 @@ static void ipoib_ndo_uninit(struct net_device *dev)
- 		destroy_workqueue(priv->wq);
- 		priv->wq = NULL;
- 	}
-+
-+	if (priv->parent) {
-+		struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
-+
-+		down_write(&ppriv->vlan_rwsem);
-+		list_del(&priv->list);
-+		up_write(&ppriv->vlan_rwsem);
-+
-+		dev_put(priv->parent);
-+	}
- }
- 
- static int ipoib_set_vf_link_state(struct net_device *dev, int vf, int link_state)
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-index a86928a80c08..7e093b7aad8f 100644
+index 7e093b7aad8f..d4d553a51fa9 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -133,19 +133,6 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 	return err;
- }
+@@ -122,9 +122,6 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
+ 	} else
+ 		child_pkey  = nla_get_u16(data[IFLA_IPOIB_PKEY]);
  
--static void ipoib_unregister_child_dev(struct net_device *dev, struct list_head *head)
--{
--	struct ipoib_dev_priv *priv, *ppriv;
+-	if (child_pkey == 0 || child_pkey == 0x8000)
+-		return -EINVAL;
 -
--	priv = ipoib_priv(dev);
--	ppriv = ipoib_priv(priv->parent);
--
--	down_write(&ppriv->vlan_rwsem);
--	unregister_netdevice_queue(dev, head);
--	list_del(&priv->list);
--	up_write(&ppriv->vlan_rwsem);
--}
--
- static size_t ipoib_get_size(const struct net_device *dev)
- {
- 	return nla_total_size(2) +	/* IFLA_IPOIB_PKEY   */
-@@ -161,7 +148,6 @@ static struct rtnl_link_ops ipoib_link_ops __read_mostly = {
- 	.setup		= ipoib_setup_common,
- 	.newlink	= ipoib_new_child_link,
- 	.changelink	= ipoib_changelink,
--	.dellink	= ipoib_unregister_child_dev,
- 	.get_size	= ipoib_get_size,
- 	.fill_info	= ipoib_fill_info,
- };
+ 	err = __ipoib_vlan_add(ppriv, ipoib_priv(dev),
+ 			       child_pkey, IPOIB_RTNL_CHILD);
+ 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index fa4dfcee2644..ca3a7f6c0998 100644
+index ca3a7f6c0998..341753fbda54 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -106,8 +106,6 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 			goto sysfs_failed;
+@@ -50,6 +50,39 @@ static ssize_t show_parent(struct device *d, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR(parent, S_IRUGO, show_parent, NULL);
+ 
++static bool is_child_unique(struct ipoib_dev_priv *ppriv,
++			    struct ipoib_dev_priv *priv)
++{
++	struct ipoib_dev_priv *tpriv;
++
++	ASSERT_RTNL();
++
++	/*
++	 * Since the legacy sysfs interface uses pkey for deletion it cannot
++	 * support more than one interface with the same pkey, it creates
++	 * ambiguity.  The RTNL interface deletes using the netdev so it does
++	 * not have a problem to support duplicated pkeys.
++	 */
++	if (priv->child_type != IPOIB_LEGACY_CHILD)
++		return true;
++
++	/*
++	 * First ensure this isn't a duplicate. We check the parent device and
++	 * then all of the legacy child interfaces to make sure the Pkey
++	 * doesn't match.
++	 */
++	if (ppriv->pkey == priv->pkey)
++		return false;
++
++	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
++		if (tpriv->pkey == priv->pkey &&
++		    tpriv->child_type == IPOIB_LEGACY_CHILD)
++			return false;
++	}
++
++	return true;
++}
++
+ /*
+  * NOTE: If this function fails then the priv->dev will remain valid, however
+  * priv can have been freed and must not be touched by caller in the error
+@@ -73,10 +106,20 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+ 	 */
+ 	WARN_ON(ppriv->dev->reg_state != NETREG_REGISTERED);
+ 
++	if (pkey == 0 || pkey == 0x8000) {
++		result = -EINVAL;
++		goto out_early;
++	}
++
+ 	priv->parent = ppriv->dev;
+ 	priv->pkey = pkey;
+ 	priv->child_type = type;
+ 
++	if (!is_child_unique(ppriv, priv)) {
++		result = -ENOTUNIQ;
++		goto out_early;
++	}
++
+ 	/* We do not need to touch priv if register_netdevice fails */
+ 	ndev->priv_destructor = ipoib_intf_free;
+ 
+@@ -88,9 +131,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+ 		 * register_netdevice sometimes calls priv_destructor,
+ 		 * sometimes not. Make sure it was done.
+ 		 */
+-		if (ndev->priv_destructor)
+-			ndev->priv_destructor(ndev);
+-		return result;
++		goto out_early;
  	}
  
--	list_add_tail(&priv->list, &ppriv->child_intfs);
--
- 	return 0;
- 
+ 	/* RTNL childs don't need proprietary sysfs entries */
+@@ -111,6 +152,11 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
  sysfs_failed:
-@@ -139,11 +137,6 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 	unregister_netdevice(priv->dev);
+ 	return -ENOMEM;
++
++out_early:
++	if (ndev->priv_destructor)
++		ndev->priv_destructor(ndev);
++	return result;
+ }
+ 
+ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+@@ -118,17 +164,11 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 	struct ipoib_dev_priv *ppriv, *priv;
+ 	char intf_name[IFNAMSIZ];
+ 	struct net_device *ndev;
+-	struct ipoib_dev_priv *tpriv;
+ 	int result;
+ 
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+-	ppriv = ipoib_priv(pdev);
+-
+-	snprintf(intf_name, sizeof(intf_name), "%s.%04x",
+-		 ppriv->dev->name, pkey);
+-
+ 	if (!rtnl_trylock())
+ 		return restart_syscall();
+ 
+@@ -137,23 +177,10 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
  		return -EPERM;
  	}
  
--	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
--		rtnl_unlock();
--		return restart_syscall();
+-	/*
+-	 * First ensure this isn't a duplicate. We check the parent device and
+-	 * then all of the legacy child interfaces to make sure the Pkey
+-	 * doesn't match.
+-	 */
+-	if (ppriv->pkey == pkey) {
+-		result = -ENOTUNIQ;
+-		goto out;
 -	}
--
- 	/*
- 	 * First ensure this isn't a duplicate. We check the parent device and
- 	 * then all of the legacy child interfaces to make sure the Pkey
-@@ -175,7 +168,6 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 		free_netdev(ndev);
++	ppriv = ipoib_priv(pdev);
  
- out:
--	up_write(&ppriv->vlan_rwsem);
- 	rtnl_unlock();
+-	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
+-		if (tpriv->pkey == pkey &&
+-		    tpriv->child_type == IPOIB_LEGACY_CHILD) {
+-			result = -ENOTUNIQ;
+-			goto out;
+-		}
+-	}
++	snprintf(intf_name, sizeof(intf_name), "%s.%04x",
++		 ppriv->dev->name, pkey);
  
- 	return result;
-@@ -209,10 +201,6 @@ static void ipoib_vlan_delete_task(struct work_struct *work)
- 		struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 		struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
- 
--		down_write(&ppriv->vlan_rwsem);
--		list_del(&priv->list);
--		up_write(&ppriv->vlan_rwsem);
--
- 		ipoib_dbg(ppriv, "delete child vlan %s\n", dev->name);
- 		unregister_netdevice(dev);
- 	}
+ 	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
+ 	if (!priv) {
 -- 
 2.14.4
