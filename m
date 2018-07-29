@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 08/27] net/mlx5: Expose new packet reformat capabilities
-Date: Sun, 29 Jul 2018 15:58:46 +0300
-Message-ID: <20180729125905.31989-9-leon@kernel.org>
+Subject: [PATCH rdma-next 18/27] RDMA/mlx5: Enable attaching DECAP action to steering flows
+Date: Sun, 29 Jul 2018 15:58:56 +0300
+Message-ID: <20180729125905.31989-19-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,68 +12,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Expose new abilities when creating a packet reformat context.
-
-The new types which can be created are:
-MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL: Ability to create generic encap
-operation to be done by the HW.
-
-MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2: Ability to create generic decap
-operation where the inner packet doesn't contain L2.
-
-MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL: Ability to create generic encap
-operation to be done by the HW. The L2 of the original packet
-is dropped.
+Any matching flow will be stripped of it's VXLAN tunnel, only the inner
+L2 onward is left.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index f83435d749b6..9f26e53677ca 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -344,8 +344,12 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
- 	u8         reserved_at_c[0x1];
- 	u8         pop_vlan_2[0x1];
- 	u8         push_vlan_2[0x1];
--	u8         reserved_at_f[0x11];
--
-+	u8	   reformat_and_vlan_action[0x1];
-+	u8	   reserved_at_10[0x2];
-+	u8	   reformat_l3_tunnel_to_l2[0x1];
-+	u8	   reformat_l2_to_l3_tunnel[0x1];
-+	u8	   reformat_and_modify_action[0x1];
-+	u8         reserved_at_14[0xb];
- 	u8         reserved_at_20[0x2];
- 	u8         log_max_ft_size[0x6];
- 	u8         log_max_modify_header_context[0x8];
-@@ -554,7 +558,13 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
- 	u8         nic_rx_multi_path_tirs[0x1];
- 	u8         nic_rx_multi_path_tirs_fts[0x1];
- 	u8         allow_sniffer_and_nic_rx_shared_tir[0x1];
--	u8         reserved_at_3[0x1fd];
-+	u8	   reserved_at_3[0x1d];
-+	u8	   encap_general_header[0x1];
-+	u8	   reserved_at_21[0xa];
-+	u8	   log_max_packet_reformat_context[0x5];
-+	u8	   reserved_at_30[0x6];
-+	u8	   max_encap_header_size[0xa];
-+	u8	   reserved_at_40[0x1c0];
- 
- 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_receive;
- 
-@@ -4846,6 +4856,9 @@ struct mlx5_ifc_alloc_packet_reformat_context_out_bits {
- enum {
- 	MLX5_REFORMAT_TYPE_L2_TO_VXLAN = 0x0,
- 	MLX5_REFORMAT_TYPE_L2_TO_NVGRE = 0x1,
-+	MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL = 0x2,
-+	MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2 = 0x3,
-+	MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL = 0x4,
- };
- 
- struct mlx5_ifc_alloc_packet_reformat_context_in_bits {
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index d826d7b21c2e..9c42a1059590 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2473,6 +2473,11 @@ static int parse_flow_flow_action(const union ib_flow_spec *ib_spec,
+ 			action->modify_id = maction->flow_action_raw.action_id;
+ 			return 0;
+ 		}
++		if (maction->flow_action_raw.sub_type ==
++		    MLX5_IB_FLOW_ACTION_DECAP) {
++			action->action |= MLX5_FLOW_CONTEXT_ACTION_DECAP;
++			return 0;
++		}
+ 		/* fall through */
+ 	default:
+ 		return -EOPNOTSUPP;
 -- 
 2.14.4
