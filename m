@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 17/27] RDMA/mlx5: Add new flow action verb, packet reformat
-Date: Sun, 29 Jul 2018 15:58:55 +0300
-Message-ID: <20180729125905.31989-18-leon@kernel.org>
+Subject: [PATCH rdma-next 27/27] RDMA/mlx5: Allow creating a matcher for a NIC TX flow table
+Date: Sun, 29 Jul 2018 15:59:05 +0300
+Message-ID: <20180729125905.31989-28-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,169 +12,188 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-For now, only add L2_TUNNEL_TO_L2 option, for example this can be used
-to decap VXLAN packets.
+Currently a matcher can only be created and attached to a NIC RX flow
+table. Extend it to allow it on NIC TX flow tables as well.
+
+In order to achieve that, We:
+
+1) Expose a new attribute: MLX5_IB_ATTR_FLOW_MATCHER_FLOW_FLAGS.
+   enum ib_flow_flags is used as valid flags. Only
+   IB_FLOW_ATTR_FLAGS_EGRESS is supported.
+
+2) Remove the requirement to have a DEVX or QP destination when creating a
+   flow. A flow added to NIC TX flow table will forward the packet outside
+   of the vport (Wire or E-Switch in the SR-iOV case).
+
+Only a single flow action can be attached to a flow rule at the moment.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/flow.c         | 76 ++++++++++++++++++++++++++++++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h      |  1 +
- include/uapi/rdma/mlx5_user_ioctl_cmds.h  |  7 +++
- include/uapi/rdma/mlx5_user_ioctl_verbs.h |  4 ++
- 4 files changed, 87 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/flow.c        | 62 +++++++++++++++++++++-----------
+ drivers/infiniband/hw/mlx5/main.c        |  5 ++-
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h |  1 +
+ 3 files changed, 46 insertions(+), 22 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
-index d0325e468801..0fea98cb7d42 100644
+index 2422629f48c9..26c5112100e6 100644
 --- a/drivers/infiniband/hw/mlx5/flow.c
 +++ b/drivers/infiniband/hw/mlx5/flow.c
-@@ -202,6 +202,8 @@ void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction)
- 		mlx5_modify_header_dealloc(maction->flow_action_raw.dev->mdev,
- 					   maction->flow_action_raw.action_id);
- 		break;
-+	case MLX5_IB_FLOW_ACTION_DECAP:
-+		break;
- 	default:
- 		WARN_ON(true);
- 		break;
-@@ -284,6 +286,64 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER)(struc
- 	return 0;
- }
+@@ -18,6 +18,22 @@
+ #define UVERBS_MODULE_NAME mlx5_ib
+ #include <rdma/uverbs_named_ioctl.h>
  
-+static bool mlx5_ib_flow_action_packet_reformat_valid(struct mlx5_ib_dev *ibdev,
-+						      u8 packet_reformat_type,
-+						      u8 ft_type)
++static int mlx5_ib_ft_type_to_namespace(u8 table_type, u8 *namespace)
 +{
-+	switch (packet_reformat_type) {
-+	case MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TUNNEL_TO_L2:
-+		if (ft_type == MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX)
-+			return MLX5_CAP_FLOWTABLE_NIC_RX(ibdev->mdev, decap);
++	switch (table_type) {
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX:
++		*namespace = MLX5_FLOW_NAMESPACE_BYPASS;
++		break;
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX:
++		*namespace = MLX5_FLOW_NAMESPACE_EGRESS;
 +		break;
 +	default:
-+		break;
++		return -EINVAL;
 +	}
 +
-+	return false;
-+}
-+
-+static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_PACKET_REFORMAT)(struct ib_device *ib_dev,
-+									     struct ib_uverbs_file *file,
-+									     struct uverbs_attr_bundle *attrs)
-+{
-+	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
-+				       MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_HANDLE);
-+	struct mlx5_ib_dev *mdev = to_mdev(uobj->context->device);
-+	enum mlx5_ib_uapi_flow_action_packet_reformat_type dv_prt;
-+	enum mlx5_ib_uapi_flow_table_type ft_type;
-+	struct mlx5_ib_flow_action *maction;
-+	int ret;
-+
-+	ret = uverbs_get_const(&ft_type, attrs,
-+			       MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_FT_TYPE);
-+	if (ret)
-+		return -EINVAL;
-+
-+	ret = uverbs_get_const(&dv_prt, attrs,
-+			       MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_TYPE);
-+	if (ret)
-+		return -EINVAL;
-+
-+	if (!mlx5_ib_flow_action_packet_reformat_valid(mdev, dv_prt, ft_type))
-+		return -EOPNOTSUPP;
-+
-+	maction = kzalloc(sizeof(*maction), GFP_KERNEL);
-+	if (!maction)
-+		return -ENOMEM;
-+
-+	if (dv_prt ==
-+	    MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TUNNEL_TO_L2) {
-+		maction->flow_action_raw.sub_type =
-+			MLX5_IB_FLOW_ACTION_DECAP;
-+		maction->flow_action_raw.dev = mdev;
-+	}
-+
-+	uverbs_flow_action_fill_action(&maction->ib_action, uobj,
-+				       uobj->context->device,
-+				       IB_FLOW_ACTION_UNSPECIFIED);
 +	return 0;
 +}
 +
- DECLARE_UVERBS_NAMED_METHOD(
- 	MLX5_IB_METHOD_CREATE_FLOW,
- 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_HANDLE,
-@@ -332,9 +392,23 @@ DECLARE_UVERBS_NAMED_METHOD(
- 			     enum mlx5_ib_uapi_flow_table_type,
- 			     UA_MANDATORY));
+ static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
+ 	[MLX5_IB_FLOW_TYPE_NORMAL] = {
+ 		.type = UVERBS_ATTR_TYPE_PTR_IN,
+@@ -69,7 +85,14 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 	dest_qp = uverbs_attr_is_valid(attrs,
+ 				       MLX5_IB_ATTR_CREATE_FLOW_DEST_QP);
  
-+DECLARE_UVERBS_NAMED_METHOD(
-+	MLX5_IB_METHOD_FLOW_ACTION_CREATE_PACKET_REFORMAT,
-+	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_HANDLE,
-+			UVERBS_OBJECT_FLOW_ACTION,
-+			UVERBS_ACCESS_NEW,
-+			UA_MANDATORY),
-+	UVERBS_ATTR_CONST_IN(MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_TYPE,
-+			     enum mlx5_ib_uapi_flow_action_packet_reformat_type,
-+			     UA_MANDATORY),
-+	UVERBS_ATTR_CONST_IN(MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_FT_TYPE,
-+			     enum mlx5_ib_uapi_flow_table_type,
-+			     UA_MANDATORY));
+-	if ((dest_devx && dest_qp) || (!dest_devx && !dest_qp))
++	fs_matcher = uverbs_attr_get_obj(attrs,
++					 MLX5_IB_ATTR_CREATE_FLOW_MATCHER);
++	if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_BYPASS &&
++	    ((dest_devx && dest_qp) || (!dest_devx && !dest_qp)))
++		return -EINVAL;
 +
- ADD_UVERBS_METHODS(mlx5_ib_flow_actions,
- 		   UVERBS_OBJECT_FLOW_ACTION,
--		   &UVERBS_METHOD(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER));
-+		   &UVERBS_METHOD(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER),
-+		   &UVERBS_METHOD(MLX5_IB_METHOD_FLOW_ACTION_CREATE_PACKET_REFORMAT));
++	if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_EGRESS &&
++	    (dest_devx || dest_qp))
+ 		return -EINVAL;
  
- DECLARE_UVERBS_NAMED_METHOD(
- 	MLX5_IB_METHOD_FLOW_MATCHER_CREATE,
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b5dd68114588..856cb389c821 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -153,6 +153,7 @@ struct mlx5_ib_pd {
+ 	if (dest_devx) {
+@@ -83,7 +106,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 		 */
+ 		if (!mlx5_ib_devx_is_flow_dest(devx_obj, &dest_id, &dest_type))
+ 			return -EINVAL;
+-	} else {
++	} else if (dest_qp) {
+ 		struct mlx5_ib_qp *mqp;
  
- enum {
- 	MLX5_IB_FLOW_ACTION_MODIFY_HEADER,
-+	MLX5_IB_FLOW_ACTION_DECAP,
- };
+ 		qp = uverbs_attr_get_obj(attrs,
+@@ -100,6 +123,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 		else
+ 			dest_id = mqp->raw_packet_qp.rq.tirn;
+ 		dest_type = MLX5_FLOW_DESTINATION_TYPE_TIR;
++	} else {
++		dest_type = MLX5_FLOW_DESTINATION_TYPE_PORT;
+ 	}
  
- #define MLX5_IB_FLOW_MCAST_PRIO		(MLX5_BY_PASS_NUM_PRIOS - 1)
+ 	if (dev->rep)
+@@ -109,8 +134,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_CREATE_FLOW)(
+ 		attrs, MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE);
+ 	inlen = uverbs_attr_get_len(attrs,
+ 				    MLX5_IB_ATTR_CREATE_FLOW_MATCH_VALUE);
+-	fs_matcher = uverbs_attr_get_obj(attrs,
+-					 MLX5_IB_ATTR_CREATE_FLOW_MATCHER);
+ 
+ 	len = uverbs_attr_get_uobjs_arr(attrs,
+ 					MLX5_IB_ATTR_CREATE_FLOW_ARR_FLOW_ACTIONS,
+@@ -156,6 +179,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 		attrs, MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE);
+ 	struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
+ 	struct mlx5_ib_flow_matcher *obj;
++	u32 flags;
+ 	int err;
+ 
+ 	obj = kzalloc(sizeof(struct mlx5_ib_flow_matcher), GFP_KERNEL);
+@@ -188,6 +212,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 	if (err)
+ 		goto end;
+ 
++	err = uverbs_get_flags32(&flags, attrs,
++				 MLX5_IB_ATTR_FLOW_MATCHER_FLOW_FLAGS,
++				 IB_FLOW_ATTR_FLAGS_EGRESS);
++	if (!err && flags) {
++		err = mlx5_ib_ft_type_to_namespace(MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX,
++						   &obj->ns_type);
++		if (err)
++			goto end;
++	}
++
+ 	uobj->object = obj;
+ 	obj->mdev = dev->mdev;
+ 	atomic_set(&obj->usecnt, 0);
+@@ -198,22 +232,6 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 	return err;
+ }
+ 
+-static int mlx5_ib_ft_type_to_namespace(u8 table_type, u8 *namespace)
+-{
+-	switch (table_type) {
+-	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX:
+-		*namespace = MLX5_FLOW_NAMESPACE_BYPASS;
+-		break;
+-	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX:
+-		*namespace = MLX5_FLOW_NAMESPACE_EGRESS;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction)
+ {
+ 	switch (maction->flow_action_raw.sub_type) {
+@@ -542,7 +560,9 @@ DECLARE_UVERBS_NAMED_METHOD(
+ 			    UA_MANDATORY),
+ 	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA,
+ 			   UVERBS_ATTR_TYPE(u8),
+-			   UA_MANDATORY));
++			   UA_MANDATORY),
++	UVERBS_ATTR_FLAGS_IN(MLX5_IB_ATTR_FLOW_MATCHER_FLOW_FLAGS,
++			     enum ib_flow_flags));
+ 
+ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ 	MLX5_IB_METHOD_FLOW_MATCHER_DESTROY,
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index ba4bcbc3adb6..08bf16161435 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3866,10 +3866,13 @@ mlx5_ib_raw_fs_rule_add(struct mlx5_ib_dev *dev,
+ 		dst->type = dest_type;
+ 		dst->tir_num = dest_id;
+ 		flow_act->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
+-	} else {
++	} else if (dest_type == MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE) {
+ 		dst->type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE_NUM;
+ 		dst->ft_num = dest_id;
+ 		flow_act->action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST;
++	} else {
++		dst->type = MLX5_FLOW_DESTINATION_TYPE_PORT;
++		flow_act->action |= MLX5_FLOW_CONTEXT_ACTION_ALLOW;
+ 	}
+ 
+ 	handler = _create_raw_flow_rule(dev, ft_prio, dst, fs_matcher, flow_act,
 diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-index 9c83e13c0e89..40db7fca3d0b 100644
+index 91c3d42ebd0f..fb4a8b17cca8 100644
 --- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
 +++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
-@@ -168,6 +168,7 @@ enum mlx5_ib_flow_methods {
- 
- enum mlx5_ib_flow_action_methods {
- 	MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_METHOD_FLOW_ACTION_CREATE_PACKET_REFORMAT,
+@@ -125,6 +125,7 @@ enum mlx5_ib_flow_matcher_create_attrs {
+ 	MLX5_IB_ATTR_FLOW_MATCHER_MATCH_MASK,
+ 	MLX5_IB_ATTR_FLOW_MATCHER_FLOW_TYPE,
+ 	MLX5_IB_ATTR_FLOW_MATCHER_MATCH_CRITERIA,
++	MLX5_IB_ATTR_FLOW_MATCHER_FLOW_FLAGS,
  };
  
- enum mlx5_ib_create_flow_action_create_modify_header_attrs {
-@@ -176,4 +177,10 @@ enum mlx5_ib_create_flow_action_create_modify_header_attrs {
- 	MLX5_IB_ATTR_CREATE_MODIFY_HEADER_FT_TYPE,
- };
- 
-+enum mlx5_ib_create_flow_action_create_packet_reformat_attrs {
-+	MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
-+	MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_TYPE,
-+	MLX5_IB_ATTR_CREATE_PACKET_REFORMAT_FT_TYPE,
-+};
-+
- #endif
-diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
-index ceb6d0d8529a..b5fda0fcd484 100644
---- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
-+++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
-@@ -44,5 +44,9 @@ enum mlx5_ib_uapi_flow_table_type {
- 	MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX	= 0x1,
- };
- 
-+enum mlx5_ib_uapi_flow_action_packet_reformat_type {
-+	MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TUNNEL_TO_L2 = 0x0,
-+};
-+
- #endif
- 
+ enum mlx5_ib_flow_matcher_destroy_attrs {
 -- 
 2.14.4
