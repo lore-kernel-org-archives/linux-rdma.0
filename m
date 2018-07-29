@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 10/10] IB/ipoib: Consolidate checking of the proposed child interface
-Date: Sun, 29 Jul 2018 11:35:00 +0300
-Message-ID: <20180729083500.5352-11-leon@kernel.org>
+Subject: [PATCH rdma-next 05/10] IB/ipoib: Move init code to ndo_init
+Date: Sun, 29 Jul 2018 11:34:55 +0300
+Message-ID: <20180729083500.5352-6-leon@kernel.org>
 References: <20180729083500.5352-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729083500.5352-1-leon@kernel.org>
@@ -12,165 +12,397 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Move all the checking for pkey and other validity to the __ipoib_vlan_add
-function. This removes the last difference from the control flow
-of the __ipoib_vlan_add to make the overall design simpler to
-understand.
+Now that we have a proper ndo_uninit, move code that naturally pairs
+with the ndo_uninit into ndo_init. This allows the netdev core to natually
+handle ordering.
+
+This fixes the situation where register_netdev can fail before calling
+ndo_init, in which case it wouldn't call ndo_uninit either.
+
+Also move a bunch of duplicated init code that is shared between child
+and parent for clarity. Now the child and parent register functions look
+very similar.
 
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_netlink.c |  3 --
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c    | 77 +++++++++++++++++++---------
- 2 files changed, 52 insertions(+), 28 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h         |   3 -
+ drivers/infiniband/ulp/ipoib/ipoib_main.c    | 193 +++++++++++++++------------
+ drivers/infiniband/ulp/ipoib/ipoib_netlink.c |   6 -
+ drivers/infiniband/ulp/ipoib/ipoib_vlan.c    |  31 +----
+ 4 files changed, 114 insertions(+), 119 deletions(-)
 
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 04fc5ad1b69f..02ad1a60dc80 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -508,8 +508,6 @@ void ipoib_ib_dev_down(struct net_device *dev);
+ int ipoib_ib_dev_stop_default(struct net_device *dev);
+ void ipoib_pkey_dev_check_presence(struct net_device *dev);
+ 
+-int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
+-
+ void ipoib_mcast_join_task(struct work_struct *work);
+ void ipoib_mcast_carrier_on_task(struct work_struct *work);
+ void ipoib_mcast_send(struct net_device *dev, u8 *daddr, struct sk_buff *skb);
+@@ -597,7 +595,6 @@ void ipoib_pkey_open(struct ipoib_dev_priv *priv);
+ void ipoib_drain_cq(struct net_device *dev);
+ 
+ void ipoib_set_ethtool_ops(struct net_device *dev);
+-void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca);
+ 
+ #define IPOIB_FLAGS_RC		0x80
+ #define IPOIB_FLAGS_UC		0x40
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index d4e9951dc539..67ab52eec3e9 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1741,13 +1741,11 @@ static int ipoib_ioctl(struct net_device *dev, struct ifreq *ifr,
+ 	return priv->rn_ops->ndo_do_ioctl(dev, ifr, cmd);
+ }
+ 
+-int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
++static int ipoib_dev_init(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+ 	int ret = -ENOMEM;
+ 
+-	priv->ca = ca;
+-	priv->port = port;
+ 	priv->qp = NULL;
+ 
+ 	/*
+@@ -1763,7 +1761,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port)
+ 	/* create pd, which used both for control and datapath*/
+ 	priv->pd = ib_alloc_pd(priv->ca, 0);
+ 	if (IS_ERR(priv->pd)) {
+-		pr_warn("%s: failed to allocate PD\n", ca->name);
++		pr_warn("%s: failed to allocate PD\n", priv->ca->name);
+ 		goto clean_wq;
+ 	}
+ 
+@@ -1837,6 +1835,108 @@ static void ipoib_parent_unregister_pre(struct net_device *ndev)
+ 	flush_workqueue(ipoib_workqueue);
+ }
+ 
++static void ipoib_set_dev_features(struct ipoib_dev_priv *priv)
++{
++	priv->hca_caps = priv->ca->attrs.device_cap_flags;
++
++	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
++		priv->dev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
++
++		if (priv->hca_caps & IB_DEVICE_UD_TSO)
++			priv->dev->hw_features |= NETIF_F_TSO;
++
++		priv->dev->features |= priv->dev->hw_features;
++	}
++}
++
++static int ipoib_parent_init(struct net_device *ndev)
++{
++	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
++	struct ib_port_attr attr;
++	int result;
++
++	result = ib_query_port(priv->ca, priv->port, &attr);
++	if (result) {
++		pr_warn("%s: ib_query_port %d failed\n", priv->ca->name,
++			priv->port);
++		return result;
++	}
++	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
++
++	result = ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey);
++	if (result) {
++		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
++			priv->ca->name, priv->port, result);
++		return result;
++	}
++
++	result = rdma_query_gid(priv->ca, priv->port, 0, &priv->local_gid);
++	if (result) {
++		pr_warn("%s: rdma_query_gid port %d failed (ret = %d)\n",
++			priv->ca->name, priv->port, result);
++		return result;
++	}
++	memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw,
++	       sizeof(union ib_gid));
++
++	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
++	priv->dev->dev_id = priv->port - 1;
++
++	return 0;
++}
++
++static void ipoib_child_init(struct net_device *ndev)
++{
++	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
++	struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
++
++	priv->max_ib_mtu = ppriv->max_ib_mtu;
++	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
++	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
++	memcpy(&priv->local_gid, &ppriv->local_gid, sizeof(priv->local_gid));
++}
++
++static int ipoib_ndo_init(struct net_device *ndev)
++{
++	struct ipoib_dev_priv *priv = ipoib_priv(ndev);
++	int rc;
++
++	if (priv->parent) {
++		ipoib_child_init(ndev);
++	} else {
++		rc = ipoib_parent_init(ndev);
++		if (rc)
++			return rc;
++	}
++
++	/* MTU will be reset when mcast join happens */
++	ndev->mtu = IPOIB_UD_MTU(priv->max_ib_mtu);
++	priv->mcast_mtu = priv->admin_mtu = ndev->mtu;
++	ndev->max_mtu = IPOIB_CM_MTU;
++
++	ndev->neigh_priv_len = sizeof(struct ipoib_neigh);
++
++	/*
++	 * Set the full membership bit, so that we join the right
++	 * broadcast group, etc.
++	 */
++	priv->pkey |= 0x8000;
++
++	ndev->broadcast[8] = priv->pkey >> 8;
++	ndev->broadcast[9] = priv->pkey & 0xff;
++	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
++
++	ipoib_set_dev_features(priv);
++
++	rc = ipoib_dev_init(ndev);
++	if (rc) {
++		pr_warn("%s: failed to initialize device: %s port %d (ret = %d)\n",
++			priv->ca->name, priv->dev->name, priv->port, rc);
++	}
++
++	return 0;
++}
++
+ static void ipoib_ndo_uninit(struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev), *cpriv, *tcpriv;
+@@ -1909,6 +2009,7 @@ static const struct header_ops ipoib_header_ops = {
+ };
+ 
+ static const struct net_device_ops ipoib_netdev_ops_pf = {
++	.ndo_init		 = ipoib_ndo_init,
+ 	.ndo_uninit		 = ipoib_ndo_uninit,
+ 	.ndo_open		 = ipoib_open,
+ 	.ndo_stop		 = ipoib_stop,
+@@ -1928,6 +2029,7 @@ static const struct net_device_ops ipoib_netdev_ops_pf = {
+ };
+ 
+ static const struct net_device_ops ipoib_netdev_ops_vf = {
++	.ndo_init		 = ipoib_ndo_init,
+ 	.ndo_uninit		 = ipoib_ndo_uninit,
+ 	.ndo_open		 = ipoib_open,
+ 	.ndo_stop		 = ipoib_stop,
+@@ -2054,6 +2156,9 @@ struct ipoib_dev_priv *ipoib_intf_alloc(struct ib_device *hca, u8 port,
+ 	if (!priv)
+ 		return NULL;
+ 
++	priv->ca = hca;
++	priv->port = port;
++
+ 	dev = ipoib_get_netdev(hca, port, name);
+ 	if (!dev)
+ 		goto free_priv;
+@@ -2201,12 +2306,6 @@ static ssize_t create_child(struct device *dev,
+ 	if (pkey <= 0 || pkey > 0xffff || pkey == 0x8000)
+ 		return -EINVAL;
+ 
+-	/*
+-	 * Set the full membership bit, so that we join the right
+-	 * broadcast group, etc.
+-	 */
+-	pkey |= 0x8000;
+-
+ 	ret = ipoib_vlan_add(to_net_dev(dev), pkey);
+ 
+ 	return ret ? ret : count;
+@@ -2238,86 +2337,17 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+ 	return device_create_file(&dev->dev, &dev_attr_pkey);
+ }
+ 
+-void ipoib_set_dev_features(struct ipoib_dev_priv *priv, struct ib_device *hca)
+-{
+-	priv->hca_caps = hca->attrs.device_cap_flags;
+-
+-	if (priv->hca_caps & IB_DEVICE_UD_IP_CSUM) {
+-		priv->dev->hw_features |= NETIF_F_IP_CSUM | NETIF_F_RXCSUM;
+-
+-		if (priv->hca_caps & IB_DEVICE_UD_TSO)
+-			priv->dev->hw_features |= NETIF_F_TSO;
+-
+-		priv->dev->features |= priv->dev->hw_features;
+-	}
+-}
+-
+ static struct net_device *ipoib_add_port(const char *format,
+ 					 struct ib_device *hca, u8 port)
+ {
+ 	struct ipoib_dev_priv *priv;
+-	struct ib_port_attr attr;
+ 	struct rdma_netdev *rn;
+-	int result = -ENOMEM;
++	int result;
+ 
+ 	priv = ipoib_intf_alloc(hca, port, format);
+ 	if (!priv) {
+ 		pr_warn("%s, %d: ipoib_intf_alloc failed\n", hca->name, port);
+-		goto alloc_mem_failed;
+-	}
+-
+-	SET_NETDEV_DEV(priv->dev, hca->dev.parent);
+-	priv->dev->dev_id = port - 1;
+-
+-	result = ib_query_port(hca, port, &attr);
+-	if (result) {
+-		pr_warn("%s: ib_query_port %d failed\n", hca->name, port);
+-		goto device_init_failed;
+-	}
+-
+-	priv->max_ib_mtu = ib_mtu_enum_to_int(attr.max_mtu);
+-
+-	/* MTU will be reset when mcast join happens */
+-	priv->dev->mtu  = IPOIB_UD_MTU(priv->max_ib_mtu);
+-	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
+-	priv->dev->max_mtu = IPOIB_CM_MTU;
+-
+-	priv->dev->neigh_priv_len = sizeof(struct ipoib_neigh);
+-
+-	result = ib_query_pkey(hca, port, 0, &priv->pkey);
+-	if (result) {
+-		pr_warn("%s: ib_query_pkey port %d failed (ret = %d)\n",
+-			hca->name, port, result);
+-		goto device_init_failed;
+-	}
+-
+-	ipoib_set_dev_features(priv, hca);
+-
+-	/*
+-	 * Set the full membership bit, so that we join the right
+-	 * broadcast group, etc.
+-	 */
+-	priv->pkey |= 0x8000;
+-
+-	priv->dev->broadcast[8] = priv->pkey >> 8;
+-	priv->dev->broadcast[9] = priv->pkey & 0xff;
+-
+-	result = rdma_query_gid(hca, port, 0, &priv->local_gid);
+-	if (result) {
+-		pr_warn("%s: rdma_query_gid port %d failed (ret = %d)\n",
+-			hca->name, port, result);
+-		goto device_init_failed;
+-	}
+-
+-	memcpy(priv->dev->dev_addr + 4, priv->local_gid.raw,
+-	       sizeof(union ib_gid));
+-	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
+-
+-	result = ipoib_dev_init(priv->dev, hca, port);
+-	if (result) {
+-		pr_warn("%s: failed to initialize port %d (ret = %d)\n",
+-			hca->name, port, result);
+-		goto device_init_failed;
++		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+ 	INIT_IB_EVENT_HANDLER(&priv->event_handler,
+@@ -2358,7 +2388,6 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	rn->free_rdma_netdev(priv->dev);
+ 	kfree(priv);
+ 
+-alloc_mem_failed:
+ 	return ERR_PTR(result);
+ }
+ 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-index 7e093b7aad8f..d4d553a51fa9 100644
+index 3e44087935ae..a86928a80c08 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_netlink.c
-@@ -122,9 +122,6 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
- 	} else
- 		child_pkey  = nla_get_u16(data[IFLA_IPOIB_PKEY]);
+@@ -125,12 +125,6 @@ static int ipoib_new_child_link(struct net *src_net, struct net_device *dev,
+ 	if (child_pkey == 0 || child_pkey == 0x8000)
+ 		return -EINVAL;
  
--	if (child_pkey == 0 || child_pkey == 0x8000)
--		return -EINVAL;
+-	/*
+-	 * Set the full membership bit, so that we join the right
+-	 * broadcast group, etc.
+-	 */
+-	child_pkey |= 0x8000;
 -
  	err = __ipoib_vlan_add(ppriv, ipoib_priv(dev),
  			       child_pkey, IPOIB_RTNL_CHILD);
  
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index ca3a7f6c0998..341753fbda54 100644
+index b62ab85c8ead..3103729a73fd 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -50,6 +50,39 @@ static ssize_t show_parent(struct device *d, struct device_attribute *attr,
- }
- static DEVICE_ATTR(parent, S_IRUGO, show_parent, NULL);
+@@ -55,35 +55,14 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+ {
+ 	int result;
  
-+static bool is_child_unique(struct ipoib_dev_priv *ppriv,
-+			    struct ipoib_dev_priv *priv)
-+{
-+	struct ipoib_dev_priv *tpriv;
-+
-+	ASSERT_RTNL();
-+
-+	/*
-+	 * Since the legacy sysfs interface uses pkey for deletion it cannot
-+	 * support more than one interface with the same pkey, it creates
-+	 * ambiguity.  The RTNL interface deletes using the netdev so it does
-+	 * not have a problem to support duplicated pkeys.
-+	 */
-+	if (priv->child_type != IPOIB_LEGACY_CHILD)
-+		return true;
-+
-+	/*
-+	 * First ensure this isn't a duplicate. We check the parent device and
-+	 * then all of the legacy child interfaces to make sure the Pkey
-+	 * doesn't match.
-+	 */
-+	if (ppriv->pkey == priv->pkey)
-+		return false;
-+
-+	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
-+		if (tpriv->pkey == priv->pkey &&
-+		    tpriv->child_type == IPOIB_LEGACY_CHILD)
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
- /*
-  * NOTE: If this function fails then the priv->dev will remain valid, however
-  * priv can have been freed and must not be touched by caller in the error
-@@ -73,10 +106,20 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 	 */
- 	WARN_ON(ppriv->dev->reg_state != NETREG_REGISTERED);
- 
-+	if (pkey == 0 || pkey == 0x8000) {
-+		result = -EINVAL;
-+		goto out_early;
-+	}
-+
+-	priv->max_ib_mtu = ppriv->max_ib_mtu;
+-	/* MTU will be reset when mcast join happens */
+-	priv->dev->mtu   = IPOIB_UD_MTU(priv->max_ib_mtu);
+-	priv->mcast_mtu  = priv->admin_mtu = priv->dev->mtu;
  	priv->parent = ppriv->dev;
+-	set_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags);
+-
+-	ipoib_set_dev_features(priv, ppriv->ca);
+-
  	priv->pkey = pkey;
- 	priv->child_type = type;
+-
+-	memcpy(priv->dev->dev_addr, ppriv->dev->dev_addr, INFINIBAND_ALEN);
+-	memcpy(&priv->local_gid, &ppriv->local_gid, sizeof(priv->local_gid));
+-	set_bit(IPOIB_FLAG_DEV_ADDR_SET, &priv->flags);
+-	priv->dev->broadcast[8] = pkey >> 8;
+-	priv->dev->broadcast[9] = pkey & 0xff;
+-
+-	result = ipoib_dev_init(priv->dev, ppriv->ca, ppriv->port);
+-	if (result < 0) {
+-		ipoib_warn(ppriv, "failed to initialize subinterface: "
+-			   "device %s, port %d",
+-			   ppriv->ca->name, ppriv->port);
+-		goto err;
+-	}
++	priv->child_type = type;
  
-+	if (!is_child_unique(ppriv, priv)) {
-+		result = -ENOTUNIQ;
-+		goto out_early;
-+	}
-+
- 	/* We do not need to touch priv if register_netdevice fails */
- 	ndev->priv_destructor = ipoib_intf_free;
- 
-@@ -88,9 +131,7 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
- 		 * register_netdevice sometimes calls priv_destructor,
- 		 * sometimes not. Make sure it was done.
- 		 */
--		if (ndev->priv_destructor)
--			ndev->priv_destructor(ndev);
--		return result;
-+		goto out_early;
+ 	result = register_netdevice(priv->dev);
+ 	if (result) {
+ 		ipoib_warn(priv, "failed to initialize; error %i", result);
+-		goto err;
++		return result;
  	}
  
  	/* RTNL childs don't need proprietary sysfs entries */
-@@ -111,6 +152,11 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+@@ -99,17 +78,13 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
+ 			goto sysfs_failed;
+ 	}
+ 
+-	priv->child_type  = type;
+ 	list_add_tail(&priv->list, &ppriv->child_intfs);
+ 
+ 	return 0;
+ 
  sysfs_failed:
+-	result = -ENOMEM;
  	unregister_netdevice(priv->dev);
- 	return -ENOMEM;
-+
-+out_early:
-+	if (ndev->priv_destructor)
-+		ndev->priv_destructor(ndev);
-+	return result;
+-
+-err:
+-	return result;
++	return -ENOMEM;
  }
  
  int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
-@@ -118,17 +164,11 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 	struct ipoib_dev_priv *ppriv, *priv;
- 	char intf_name[IFNAMSIZ];
- 	struct net_device *ndev;
--	struct ipoib_dev_priv *tpriv;
- 	int result;
- 
- 	if (!capable(CAP_NET_ADMIN))
- 		return -EPERM;
- 
--	ppriv = ipoib_priv(pdev);
--
--	snprintf(intf_name, sizeof(intf_name), "%s.%04x",
--		 ppriv->dev->name, pkey);
--
- 	if (!rtnl_trylock())
- 		return restart_syscall();
- 
-@@ -137,23 +177,10 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 		return -EPERM;
- 	}
- 
--	/*
--	 * First ensure this isn't a duplicate. We check the parent device and
--	 * then all of the legacy child interfaces to make sure the Pkey
--	 * doesn't match.
--	 */
--	if (ppriv->pkey == pkey) {
--		result = -ENOTUNIQ;
--		goto out;
--	}
-+	ppriv = ipoib_priv(pdev);
- 
--	list_for_each_entry(tpriv, &ppriv->child_intfs, list) {
--		if (tpriv->pkey == pkey &&
--		    tpriv->child_type == IPOIB_LEGACY_CHILD) {
--			result = -ENOTUNIQ;
--			goto out;
--		}
--	}
-+	snprintf(intf_name, sizeof(intf_name), "%s.%04x",
-+		 ppriv->dev->name, pkey);
- 
- 	priv = ipoib_intf_alloc(ppriv->ca, ppriv->port, intf_name);
- 	if (!priv) {
 -- 
 2.14.4
