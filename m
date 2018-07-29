@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 15/27] RDMA/mlx5: Enable decap and packet reformat on flow tables
-Date: Sun, 29 Jul 2018 15:58:53 +0300
-Message-ID: <20180729125905.31989-16-leon@kernel.org>
+Subject: [PATCH rdma-next 16/27] RDMA/uverbs: Add generic function to fill in flow action object
+Date: Sun, 29 Jul 2018 15:58:54 +0300
+Message-ID: <20180729125905.31989-17-leon@kernel.org>
 References: <20180729125905.31989-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729125905.31989-1-leon@kernel.org>
@@ -12,81 +12,81 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-If NIC RX flow tables support decap operation, enable it on creation.
-If NIC TX flow tables support reformat operation, enable it on creation.
+Refactor the initialization of a flow action object to a common function.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/uverbs_std_types_flow_action.c |  7 ++-----
+ drivers/infiniband/hw/mlx5/flow.c                      |  8 +++-----
+ include/rdma/uverbs_std_types.h                        | 12 ++++++++++++
+ 3 files changed, 17 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 473c8e5d21a5..d826d7b21c2e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3034,14 +3034,15 @@ enum flow_table_type {
- static struct mlx5_ib_flow_prio *_get_prio(struct mlx5_flow_namespace *ns,
- 					   struct mlx5_ib_flow_prio *prio,
- 					   int priority,
--					   int num_entries, int num_groups)
-+					   int num_entries, int num_groups,
-+					   u32 flags)
- {
- 	struct mlx5_flow_table *ft;
+diff --git a/drivers/infiniband/core/uverbs_std_types_flow_action.c b/drivers/infiniband/core/uverbs_std_types_flow_action.c
+index adb9209c4710..8beacfdb9f27 100644
+--- a/drivers/infiniband/core/uverbs_std_types_flow_action.c
++++ b/drivers/infiniband/core/uverbs_std_types_flow_action.c
+@@ -327,11 +327,8 @@ static int UVERBS_HANDLER(UVERBS_METHOD_FLOW_ACTION_ESP_CREATE)(struct ib_device
+ 	if (IS_ERR(action))
+ 		return PTR_ERR(action);
  
- 	ft = mlx5_create_auto_grouped_flow_table(ns, priority,
- 						 num_entries,
- 						 num_groups,
--						 0, 0);
-+						 0, flags);
- 	if (IS_ERR(ft))
- 		return ERR_CAST(ft);
+-	atomic_set(&action->usecnt, 0);
+-	action->device = ib_dev;
+-	action->type = IB_FLOW_ACTION_ESP;
+-	action->uobject = uobj;
+-	uobj->object = action;
++	uverbs_flow_action_fill_action(action, uobj, ib_dev,
++				       IB_FLOW_ACTION_ESP);
  
-@@ -3061,6 +3062,7 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 	int max_table_size;
- 	int num_entries;
- 	int num_groups;
-+	u32 flags = 0;
- 	int priority;
- 
- 	max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
-@@ -3077,11 +3079,17 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 		if (ft_type == MLX5_IB_FT_RX) {
- 			fn_type = MLX5_FLOW_NAMESPACE_BYPASS;
- 			prio = &dev->flow_db->prios[priority];
-+			if (!dev->rep &&
-+			    MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev, decap))
-+				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
- 		} else {
- 			max_table_size = BIT(MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev,
- 								       log_max_ft_size));
- 			fn_type = MLX5_FLOW_NAMESPACE_EGRESS;
- 			prio = &dev->flow_db->egress_prios[priority];
-+			if (!dev->rep && MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev,
-+								   reformat))
-+				flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
- 		}
- 		ns = mlx5_get_flow_namespace(dev->mdev, fn_type);
- 		num_entries = MLX5_FS_MAX_ENTRIES;
-@@ -3117,7 +3125,8 @@ static struct mlx5_ib_flow_prio *get_flow_table(struct mlx5_ib_dev *dev,
- 
- 	ft = prio->flow_table;
- 	if (!ft)
--		return _get_prio(ns, prio, priority, num_entries, num_groups);
-+		return _get_prio(ns, prio, priority, num_entries, num_groups,
-+				 flags);
- 
- 	return prio;
+ 	return 0;
  }
-@@ -3695,7 +3704,7 @@ static struct mlx5_ib_flow_prio *_get_flow_table(struct mlx5_ib_dev *dev,
- 		return prio;
+diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+index 2c7d75cb8ade..d0325e468801 100644
+--- a/drivers/infiniband/hw/mlx5/flow.c
++++ b/drivers/infiniband/hw/mlx5/flow.c
+@@ -7,6 +7,7 @@
+ #include <rdma/ib_verbs.h>
+ #include <rdma/uverbs_types.h>
+ #include <rdma/uverbs_ioctl.h>
++#include <rdma/uverbs_std_types.h>
+ #include <rdma/mlx5_user_ioctl_cmds.h>
+ #include <rdma/mlx5_user_ioctl_verbs.h>
+ #include <rdma/ib_umem.h>
+@@ -277,11 +278,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER)(struc
+ 	if (IS_ERR(action))
+ 		return PTR_ERR(action);
  
- 	return _get_prio(ns, prio, priority, MLX5_FS_MAX_ENTRIES,
--			 MLX5_FS_MAX_TYPES);
-+			 MLX5_FS_MAX_TYPES, 0);
+-	atomic_set(&action->usecnt, 0);
+-	action->device = uobj->context->device;
+-	action->type = IB_FLOW_ACTION_UNSPECIFIED;
+-	action->uobject = uobj;
+-	uobj->object = action;
++	uverbs_flow_action_fill_action(action, uobj, uobj->context->device,
++				       IB_FLOW_ACTION_UNSPECIFIED);
+ 
+ 	return 0;
  }
+diff --git a/include/rdma/uverbs_std_types.h b/include/rdma/uverbs_std_types.h
+index 076f085d2dcf..3686da497cf6 100644
+--- a/include/rdma/uverbs_std_types.h
++++ b/include/rdma/uverbs_std_types.h
+@@ -125,5 +125,17 @@ static inline struct ib_uobject *__uobj_alloc(const struct uverbs_obj_type *type
  
- static struct mlx5_ib_flow_handler *
+ #define uobj_alloc(_type, _ufile) __uobj_alloc(uobj_get_type(_type), _ufile)
+ 
++static inline void uverbs_flow_action_fill_action(struct ib_flow_action *action,
++						  struct ib_uobject *uobj,
++						  struct ib_device *ib_dev,
++						  enum ib_flow_action_type type)
++{
++	atomic_set(&action->usecnt, 0);
++	action->device = ib_dev;
++	action->type = type;
++	action->uobject = uobj;
++	uobj->object = action;
++}
++
+ #endif
+ 
 -- 
 2.14.4
