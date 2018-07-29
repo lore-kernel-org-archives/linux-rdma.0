@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 01/10] IB/ipoib: Get rid of IPOIB_FLAG_GOING_DOWN
-Date: Sun, 29 Jul 2018 11:34:51 +0300
-Message-ID: <20180729083500.5352-2-leon@kernel.org>
+Subject: [PATCH rdma-next 02/10] IB/ipoib: Use cancel_delayed_work_sync for neigh-clean task
+Date: Sun, 29 Jul 2018 11:34:52 +0300
+Message-ID: <20180729083500.5352-3-leon@kernel.org>
 References: <20180729083500.5352-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180729083500.5352-1-leon@kernel.org>
@@ -10,127 +10,62 @@ To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Denis Drozdov <denisd@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Erez Shitrit <erezsh@mellanox.com>
 
-This essentially duplicates the netdev's reg_state, so just use that
-directly. The reg_state is updated under the rntl_lock, and all places
-using GOING_DOWN already acquire the rtnl_lock so checking is safe.
+The neigh_reap_task is self restarting, but so long as we call
+cancel_delayed_work_sync() it will be guaranteed to not be running and
+never start again. Thus we don't need to have the racy
+IPOIB_STOP_NEIGH_GC bit, or the confusing mismatch of places sometimes
+calling flush_workqueue after the cancel.
 
-Since the only place we use GOING_DOWN is for the parent device this
-does not fix any bugs, but it is a step to tidy up the unregister flow
-so that after later patches the flow is uniform and sane.
+This fixes a situation where the GC work could have been left running
+in some rare situations.
 
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Erez Shitrit <erezsh@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h      |  1 -
- drivers/infiniband/ulp/ipoib/ipoib_cm.c   |  9 ++++++---
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  3 ---
- drivers/infiniband/ulp/ipoib/ipoib_vlan.c | 18 ++++++++++++------
- 4 files changed, 18 insertions(+), 13 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index e255a7e5a4c3..9eebb705d994 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -95,7 +95,6 @@ enum {
- 	IPOIB_NEIGH_TBL_FLUSH	  = 12,
- 	IPOIB_FLAG_DEV_ADDR_SET	  = 13,
- 	IPOIB_FLAG_DEV_ADDR_CTRL  = 14,
--	IPOIB_FLAG_GOING_DOWN	  = 15,
- 
- 	IPOIB_MAX_BACKOFF_SECONDS = 16,
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 8b44f33c7ae0..83fa402e5d03 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1516,9 +1516,6 @@ static ssize_t set_mode(struct device *d, struct device_attribute *attr,
- 	int ret;
- 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
- 
--	if (test_bit(IPOIB_FLAG_GOING_DOWN, &priv->flags))
--		return -EPERM;
--
- 	if (!mutex_trylock(&priv->sysfs_mutex))
- 		return restart_syscall();
- 
-@@ -1527,6 +1524,12 @@ static ssize_t set_mode(struct device *d, struct device_attribute *attr,
- 		return restart_syscall();
- 	}
- 
-+	if (dev->reg_state != NETREG_REGISTERED) {
-+		rtnl_unlock();
-+		mutex_unlock(&priv->sysfs_mutex);
-+		return -EPERM;
-+	}
-+
- 	ret = ipoib_set_mode(dev, buf);
- 
- 	/* The assumption is that the function ipoib_set_mode returned
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 82f0e3869b04..7ca9013bf05c 100644
+index 7ca9013bf05c..7cd42619deb2 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2406,9 +2406,6 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
- 		ib_unregister_event_handler(&priv->event_handler);
- 		flush_workqueue(ipoib_workqueue);
+@@ -1661,7 +1661,7 @@ static void ipoib_neigh_hash_uninit(struct net_device *dev)
+ 	/* Stop GC if called at init fail need to cancel work */
+ 	stopped = test_and_set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+ 	if (!stopped)
+-		cancel_delayed_work(&priv->neigh_reap_task);
++		cancel_delayed_work_sync(&priv->neigh_reap_task);
  
--		/* mark interface in the middle of destruction */
--		set_bit(IPOIB_FLAG_GOING_DOWN, &priv->flags);
--
- 		rtnl_lock();
- 		dev_change_flags(priv->dev, priv->dev->flags & ~IFF_UP);
- 		rtnl_unlock();
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-index b067ad5e4c7e..1b7bfd500893 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_vlan.c
-@@ -127,9 +127,6 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
+ 	ipoib_flush_neighs(priv);
  
- 	ppriv = ipoib_priv(pdev);
- 
--	if (test_bit(IPOIB_FLAG_GOING_DOWN, &ppriv->flags))
--		return -EPERM;
--
- 	snprintf(intf_name, sizeof(intf_name), "%s.%04x",
- 		 ppriv->dev->name, pkey);
- 
-@@ -141,6 +138,12 @@ int ipoib_vlan_add(struct net_device *pdev, unsigned short pkey)
- 		return restart_syscall();
+@@ -1837,7 +1837,7 @@ void ipoib_dev_cleanup(struct net_device *dev)
+ 	list_for_each_entry_safe(cpriv, tcpriv, &priv->child_intfs, list) {
+ 		/* Stop GC on child */
+ 		set_bit(IPOIB_STOP_NEIGH_GC, &cpriv->flags);
+-		cancel_delayed_work(&cpriv->neigh_reap_task);
++		cancel_delayed_work_sync(&cpriv->neigh_reap_task);
+ 		unregister_netdevice_queue(cpriv->dev, &head);
  	}
+ 	unregister_netdevice_many(&head);
+@@ -2346,7 +2346,7 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	flush_workqueue(ipoib_workqueue);
+ 	/* Stop GC if started before flush */
+ 	set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+-	cancel_delayed_work(&priv->neigh_reap_task);
++	cancel_delayed_work_sync(&priv->neigh_reap_task);
+ 	flush_workqueue(priv->wq);
+ 	ipoib_dev_cleanup(priv->dev);
  
-+	if (pdev->reg_state != NETREG_REGISTERED) {
-+		rtnl_unlock();
-+		mutex_unlock(&ppriv->sysfs_mutex);
-+		return -EPERM;
-+	}
-+
- 	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
- 		rtnl_unlock();
- 		mutex_unlock(&ppriv->sysfs_mutex);
-@@ -199,9 +202,6 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
+@@ -2412,7 +2412,7 @@ static void ipoib_remove_one(struct ib_device *device, void *client_data)
  
- 	ppriv = ipoib_priv(pdev);
+ 		/* Stop GC */
+ 		set_bit(IPOIB_STOP_NEIGH_GC, &priv->flags);
+-		cancel_delayed_work(&priv->neigh_reap_task);
++		cancel_delayed_work_sync(&priv->neigh_reap_task);
+ 		flush_workqueue(priv->wq);
  
--	if (test_bit(IPOIB_FLAG_GOING_DOWN, &ppriv->flags))
--		return -EPERM;
--
- 	if (!mutex_trylock(&ppriv->sysfs_mutex))
- 		return restart_syscall();
- 
-@@ -210,6 +210,12 @@ int ipoib_vlan_delete(struct net_device *pdev, unsigned short pkey)
- 		return restart_syscall();
- 	}
- 
-+	if (pdev->reg_state != NETREG_REGISTERED) {
-+		rtnl_unlock();
-+		mutex_unlock(&ppriv->sysfs_mutex);
-+		return -EPERM;
-+	}
-+
- 	if (!down_write_trylock(&ppriv->vlan_rwsem)) {
- 		rtnl_unlock();
- 		mutex_unlock(&ppriv->sysfs_mutex);
+ 		/* Wrap rtnl_lock/unlock with mutex to protect sysfs calls */
 -- 
 2.14.4
