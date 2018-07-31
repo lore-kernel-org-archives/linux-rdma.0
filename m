@@ -1,141 +1,90 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: Re: [PATCH rdma-next 00/27] Flow actions to mutate packets
-Date: Mon, 30 Jul 2018 17:37:05 +0000
-Message-ID: <AM0PR05MB44033B0E72CC4FF5B4EE27F0D22F0@AM0PR05MB4403.eurprd05.prod.outlook.com>
-References: <20180729125905.31989-1-leon@kernel.org>
- <20180730170958.GK15118@mellanox.com>
+From: Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Tue, 31 Jul 2018 13:00:26 +0300
+Message-ID: <0d157d91-2bf1-4585-f486-bd05a77e4cd8@mellanox.com>
+References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
+ <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
+ <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
+ <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
+ <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
+ <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
+ <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
+ <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
+ <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
+ <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
+ <20180723164910.GS31540@mellanox.com>
+ <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
+ <ec4ba167-d5a3-adac-3df9-c8b84b7fb821@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
+In-Reply-To: <ec4ba167-d5a3-adac-3df9-c8b84b7fb821@opengridcomputing.com>
+Content-Language: he
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, "Guy Levi(SW)" <guyle@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Steve Wise <swise@opengridcomputing.com>, 'Sagi Grimberg' <sagi@grimberg.me>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/30/2018 10:10 AM, Jason Gunthorpe wrote:=0A=
-> On Sun, Jul 29, 2018 at 03:58:38PM +0300, Leon Romanovsky wrote:=0A=
->> From: Leon Romanovsky <leonro@mellanox.com>=0A=
->>=0A=
->> Hi,=0A=
->>=0A=
->> This is PATCH variant of RFC posted in previous week to the ML.=0A=
->> https://patchwork.ozlabs.org/cover/944184/=0A=
->>=0A=
->> Changelog:=0A=
->>  RFC -> v0:=0A=
->>   * Patch 1 a new patch which refactors the logic=0A=
->>     when getting a flow namespace.=0A=
->>   * Patch 2 was split into two.=0A=
->>   * Patch 3: Fixed a typo in commit message=0A=
->>   * Patch 5: Updated commit message=0A=
->>   * Patch 7: Updated commit message=0A=
->>     Renamed:=0A=
->>       - MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID to=0A=
->>         MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT=0A=
->>       - packet_reformat_id to reformat_id in struct mlx5_flow_act=0A=
->>       - packet_reformat_id to encap_id in struct mlx5_esw_flow_attr=0A=
->>       - packet_reformat_id to encap_id in struct mlx5e_encap_entry=0A=
->>       - PACKET_REFORMAT to REFORMAT when printing trace points=0A=
->>   * Patch 9: Updated commit message=0A=
->>     Updated function declaration in mlx5_core.h, could of lead=0A=
->>     to compile error on bisection.=0A=
->>   * Patch 11: Disallow egress rules insertion when in switchdev mode=0A=
->>   * Patch 12: A new patch to deal with passing enum values using=0A=
->>     the IOCTL infrastructure.=0A=
->>   * Patch 13: Use new enum value attribute when passing enum=0A=
->>     mlx5_ib_uapi_flow_table_type=0A=
->>   * Patch 15: Don't set encap flags on flow tables if in switchdev mode=
-=0A=
->>   * Patch 17: Use new enum value attribute when passing enum=0A=
->>     mlx5_ib_uapi_flow_table_type and enum=0A=
->>     mlx5_ib_uapi_flow_action_packet_reformat_type=0A=
->>   * Patch 19: Allow creation of both=0A=
->>     MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TO_L3_TUNNEL=0A=
->>     and MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L3_TUNNEL_TO_L2 pa=
-cket=0A=
->>     reformat actions.=0A=
->>   * Patch 20: A new patch which allows attaching packet reformat=0A=
->>     actions to flow tables on NIC RX.=0A=
->>=0A=
->> Thanks=0A=
->>=0A=
->> From Mark:=0A=
->> This series exposes the ability to create flow actions which can=0A=
->> mutate packet headers. We do that by exposing two new verbs:=0A=
->>  * modify header - can change existing packet headers. packet=0A=
->>  * reformat - can encapsulate or decapsulate a packet.=0A=
->>               Once created a flow action must be attached to a steering=
-=0A=
->>               rule for it to take effect.=0A=
-> =0A=
-> Mark, this got a bit big in terms of patch count, however most of the=0A=
-> patches fit on one screen and the overall line count isn't too bad.=0A=
-=0A=
-Yes, there is a lot of code refactoring inside mlx5 drivers but overall=0A=
-the code is very simple. The difference from the RFC is mainly renames=0A=
-and commit messages and the last 6 patches which add support for flow actio=
-n=0A=
-to mlx5 create flow, that wasn't posted with the RFC as the mlx5 create flo=
-w=0A=
-code wasn't merged yet.=0A=
-=0A=
-> =0A=
-> Can this be split somehow?=0A=
-> =0A=
-=0A=
-It can be split into 3 series like this:=0A=
-=0A=
-Refactoring mlx5_core + rename + creation of flow actions:=0A=
-patch [01/27]: net/mlx5: Cleanup flow namespace getter switch logic=0A=
-patch [02/27]: net/mlx5: Add proper NIC TX steering flow tables support=0A=
-patch [03/27]: net/mlx5: Export modify header alloc/dealloc functions=0A=
-patch [04/27]: net/mlx5: Add support for more namespaces when allocating mo=
-dify header=0A=
-patch [05/27]: net/mlx5: Break encap/decap into two separated flow table cr=
-eation flags=0A=
-patch [06/27]: net/mlx5: Move header encap type to IFC header file=0A=
-patch [07/27]: {net, RDMA}/mlx5: Rename encap to reformat packet=0A=
-patch [08/27]: net/mlx5: Expose new packet reformat capabilities=0A=
-patch [09/27]: net/mlx5: Pass a namespace for packet reformat ID allocation=
-=0A=
-patch [10/27]: net/mlx5: Export packet reformat alloc/dealloc functions=0A=
-patch [12/27]: RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language=
-=0A=
-patch [13/27]: RDMA/mlx5: Add a new flow action verb, modify header=0A=
-patch [16/27]: RDMA/uverbs: Add generic function to fill in flow action obj=
-ect=0A=
-patch [17/27]: RDMA/mlx5: Add new flow action verb, packet reformat=0A=
-patch [19/27]: RDMA/mlx5: Extend packet reformat verbs=0A=
-=0A=
-Enable attaching modify header and packet reformat flow actions via verbs c=
-reate flow: =0A=
-patch [11/27]: RDMA/mlx5: Add NIC TX steering support=0A=
-patch [14/27]: RDMA/mlx5: Enable attaching modify header to steering flows=
-=0A=
-patch [15/27]: RDMA/mlx5: Enable decap and packet reformat on flow tables=
-=0A=
-patch [18/27]: RDMA/mlx5: Enable attaching DECAP action to steering flows=
-=0A=
-patch [20/27]: RDMA/mlx5: Enable reformat on NIC RX if supported=0A=
-patch [21/27]: RDMA/mlx5: Enable attaching packet reformat action to steeri=
-ng flows=0A=
- =0A=
-Enable attaching modify header and packet reformat flow actions via mlx5 cr=
-eate flow: =0A=
-patch [22/27]: IB/uverbs: Add IDRs array attribute type to ioctl() interfac=
-e=0A=
-patch [23/27]: RDMA/mlx5: Refactor flow action parsing to be more generic=
-=0A=
-patch [24/27]: RDMA/mlx5: Refactor DEVX flow creation=0A=
-patch [25/27]: RDMA/mlx5: Add flow actions support to DEVX create flow=0A=
-patch [26/27]: RDMA/mlx5: Add NIC TX namespace when getting a flow table=0A=
-patch [27/27]: RDMA/mlx5: Allow creating a matcher for a NIC TX flow table=
-=0A=
-=0A=
-> Thanks,=0A=
-> Jason=0A=
-> =0A=
-=0A=
-Mark=0A=
+
+
+On 7/30/2018 6:47 PM, Steve Wise wrote:
+> 
+> 
+> On 7/23/2018 11:53 AM, Max Gurtovoy wrote:
+>>
+>>
+>> On 7/23/2018 7:49 PM, Jason Gunthorpe wrote:
+>>> On Fri, Jul 20, 2018 at 04:25:32AM +0300, Max Gurtovoy wrote:
+>>>>
+>>>>>>> [ 2032.194376] nvme nvme0: failed to connect queue: 9 ret=-18
+>>>>>>
+>>>>>> queue 9 is not mapped (overlap).
+>>>>>> please try the bellow:
+>>>>>>
+>>>>>
+>>>>> This seems to work.  Here are three mapping cases:  each vector on its
+>>>>> own cpu, each vector on 1 cpu within the local numa node, and each
+>>>>> vector having all cpus in its numa node.  The 2nd mapping looks kinda
+>>>>> funny, but I think it achieved what you wanted?  And all the cases
+>>>>> resulted in successful connections.
+>>>>>
+>>>>
+>>>> Thanks for testing this.
+>>>> I slightly improved the setting of the left CPUs and actually used
+>>>> Sagi's
+>>>> initial proposal.
+>>>>
+>>>> Sagi,
+>>>> please review the attached patch and let me know if I should add your
+>>>> signature on it.
+>>>> I'll run some perf test early next week on it (meanwhile I run
+>>>> login/logout
+>>>> with different num_queues successfully and irq settings).
+>>>>
+>>>> Steve,
+>>>> It will be great if you can apply the attached in your system and
+>>>> send your
+>>>> findings.
+>>>>
+>>>> Regards,
+>>>> Max,
+>>>
+>>> So the conlusion to this thread is that Leon's mlx5 patch needs to wait
+>>> until this block-mq patch is accepted?
+>>
+>> Yes, since nvmf is the only user of this function.
+>> Still waiting for comments on the suggested patch :)
+> 
+> Hey Sagi, what do you think of Max's patch?
+> 
+> Max, should you resend this in a form suitable for merging?
+
+Yes, we have already a small improvment of the naive step.
+but first I want to see some feedback from other maintainers as well.
+
+> 
+> Thanks,
+> 
+> Steve.
+> 
