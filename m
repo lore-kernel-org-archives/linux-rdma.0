@@ -1,38 +1,67 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH v2 1/3] overflow.h: Add arithmetic shift helper
-Date: Wed, 1 Aug 2018 11:07:24 +0300
-Message-ID: <20180801080724.2vgzagooda56aypw@mwanda>
-References: <20180801000039.44314-1-keescook@chromium.org>
- <20180801000039.44314-2-keescook@chromium.org>
- <20180801075744.qpppbaywp5dklxul@mwanda>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH rdma-next 08/12] overflow.h: Add arithmetic shift helper
+Date: Wed, 1 Aug 2018 11:36:03 +0200
+Message-ID: <20180801093603.GI2530@hirez.programming.kicks-ass.net>
+References: <20180624082353.16138-1-leon@kernel.org>
+ <20180624082353.16138-9-leon@kernel.org>
+ <CAKwiHFhgsyWYD+q+JFb2HJEphnjiiOp=o4Airv3MW031q2jx8w@mail.gmail.com>
+ <20180625171157.GE5356@mellanox.com>
+ <CAKwiHFiRYbyiJqDYCgKXKZYRr0KjCt8q9AwKwfqoCA1sT2KFyQ@mail.gmail.com>
+ <20180626175435.GQ5356@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180801075744.qpppbaywp5dklxul@mwanda>
+In-Reply-To: <20180626175435.GQ5356@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Kees Cook <keescook@chromium.org>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 01, 2018 at 10:57:44AM +0300, Dan Carpenter wrote:
-> The idea is nice, but I don't like the API.  The "_overflow" feels too
-> specific because maybe we could check for other things in the future.
-> Normally boolean macros should say they are boolean in the name and I
-> would prefer if it returned zero on failure.
+On Tue, Jun 26, 2018 at 11:54:35AM -0600, Jason Gunthorpe wrote:
+
+> What about more like this?
 > 
-> 	if (!checked_shift(dest, mask, shift)) {
-> 	if (!shift_ok(dest, mask, shift)) {
-> 	if (!safe_shift(dest, mask, shift)) {
+>           check_shift_overflow(a, s, d) ({
 
-Huh...  It turns out I put the argument order different as well.
+Should that not be: check_shl_overflow() ? Just 'shift' lacks a
+direction.
 
-If we wanted to keep it returning 1 on failure then some other names
-are:
+> 	      // Shift is always performed on the machine's largest unsigned
+>               u64 _a = a;
+> 	      typeof(s) _s = s;
+>               typeof(d) _d = d;
+> 
+> 	      // Make s safe against UB
+> 	      unsigned int _to_shift = _s >= 0 && _s < 8*sizeof(*d) : _s ? 0;
 
-	if (shift_failed(dest, mask, shift)) {
-	if (shift_error(dest, mask, shift)) {
-	if (shift_overflow(dest, mask, shift)) {
+Should we not do a gcc-plugin or something that fixes that particular
+UB? Shift acting all retarded like that is just annoying. I feel we
+should eliminate UBs from the language where possible, like
+-fno-strict-overflow mandates 2s complement.
 
-regards,
-dan carpenter
+>               *_d = (_a << _to_shift);
+> 
+> 	       // s is malformed
+>               (_to_shift != _s ||
+
+Not strictly an overflow though, just not expected behaviour.
+
+> 	       // d is a signed type and became negative
+> 	       *_d < 0 ||
+
+Only a problem if it wasn't negative to start out with.
+
+> 	       // a is a signed type and was negative
+> 	       _a < 0 ||
+
+Why would that be a problem? You can shift left negative values just
+fine. The only problem is when you run out of sign bits.
+
+> 	       // Not invertable means a was truncated during shifting
+> 	       (*_d >> _to_shift) != a))
+>           })
+
+And I'm not exactly seeing the use case for this macro. What's the point
+of a shift-left if you cannot truncate bits. I suppose it's in the name
+_overflow, but still.
