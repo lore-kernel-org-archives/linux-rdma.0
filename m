@@ -1,86 +1,65 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Wed, 1 Aug 2018 08:12:48 +0300
-Message-ID: <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me>
-References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
- <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
- <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
- <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
- <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
- <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
- <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
- <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
- <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
- <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
- <20180723164910.GS31540@mellanox.com>
- <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the net-next tree with the rdma
+ tree
+Date: Wed, 1 Aug 2018 15:33:45 +1000
+Message-ID: <20180801153345.22692adb@canb.auug.org.au>
+References: <20180727123301.3ac97ddc@canb.auug.org.au>
+        <20180727024832.GA30023@mellanox.com>
+        <20180727132847.2be8563b@canb.auug.org.au>
+        <VI1PR0502MB3008702AFA64F44DE57DC9F5D12A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+        <20180727150903.0f2816ba@canb.auug.org.au>
+        <VI1PR0502MB3008076016496152D4898D8ED12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/dDQdiXnugJklB1/GrWVKH5K"; protocol="application/pgp-signature"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <VI1PR0502MB3008076016496152D4898D8ED12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <parav@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, David Miller <davem@davemloft.net>, Networking <netdev@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ursula Braun <ubraun@linux.ibm.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Max,
+--Sig_/dDQdiXnugJklB1/GrWVKH5K
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> Yes, since nvmf is the only user of this function.
-> Still waiting for comments on the suggested patch :)
-> 
+Hi Parav,
 
-Sorry for the late response (but I'm on vacation so I have
-an excuse ;))
+On Tue, 31 Jul 2018 21:12:00 +0000 Parav Pandit <parav@mellanox.com> wrote:
+>
+> You might want to consider this compatibility patch in Linux-rdma
+> tree to avoid a merge conflict of smc.
+>=20
+> https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=
+=3Dfor-next&id=3D7aaa1807e698f73094b78f0ef25b1a37a4409a55
 
-I'm thinking that we should avoid trying to find an assignment
-when stuff like irqbalance daemon is running and changing
-the affinitization.
+Ok, since commit that is now in the rdma tree, my resolution of the
+original conflicts comes down to dropping all the changes to
+net/smc/smc_core.c net/smc/smc_ib.c that come from the rdma tree and
+adding
 
-This extension was made to apply optimal affinity assignment
-when the device irq affinity is lined up in a vector per
-core.
+#include <rdma/ib_cache.h>
 
-I'm thinking that when we identify this is not the case, we immediately
-fallback to the default mapping.
+to net/smc/smc_ib.c.
 
-1. when we get a mask, if its weight != 1, we fallback.
-2. if a queue was left unmapped, we fallback.
+--=20
+Cheers,
+Stephen Rothwell
 
-Maybe something like the following:
---
-diff --git a/block/blk-mq-rdma.c b/block/blk-mq-rdma.c
-index 996167f1de18..1ada6211c55e 100644
---- a/block/blk-mq-rdma.c
-+++ b/block/blk-mq-rdma.c
-@@ -35,17 +35,26 @@ int blk_mq_rdma_map_queues(struct blk_mq_tag_set *set,
-         const struct cpumask *mask;
-         unsigned int queue, cpu;
+--Sig_/dDQdiXnugJklB1/GrWVKH5K
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-+       /* reset all CPUs mapping */
-+       for_each_possible_cpu(cpu)
-+               set->mq_map[cpu] = UINT_MAX;
-+
-         for (queue = 0; queue < set->nr_hw_queues; queue++) {
-                 mask = ib_get_vector_affinity(dev, first_vec + queue);
-                 if (!mask)
-                         goto fallback;
+-----BEGIN PGP SIGNATURE-----
 
--               for_each_cpu(cpu, mask)
--                       set->mq_map[cpu] = queue;
-+               if (cpumask_weight(mask) != 1)
-+                       goto fallback;
-+
-+               cpu = cpumask_first(mask);
-+               if (set->mq_map[cpu] != UINT_MAX)
-+                       goto fallback;
-+
-+               set->mq_map[cpu] = queue;
-         }
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlthRjkACgkQAVBC80lX
+0GyjwggAk3Mmdj+p/qwxlJS9NnJ8IwCPYvSGfbGVRKNun/AwSGSJO60X57M8Ne00
+KN+8uJrqwwtxSfrfdPlVeTZhODK55vePIIaUbmAxUvcKvOQvNGSwPajCFXzXA1IC
+mJUAV5w2vq5RReJWfKX0dusZZJKf2VvGzDxbu9JEeE05hMNy94A8r4lRJX7zN8cQ
+QPvS22C42D02UbnhjTeBDkQstbZdHvbu4NMkckdajU1p9eXIL73zQVCWtfBPe5op
+zNmHq0jPu9R5GyysqU+By88pbtPqJRnfoA8LriKuEk64Hznc3t82V7Ygbg3VlCRL
+YRysMdLWiLTfc2rXqeCyCGd75Iq0yg==
+=dBjF
+-----END PGP SIGNATURE-----
 
-         return 0;
--
-  fallback:
-         return blk_mq_map_queues(set);
-  }
+--Sig_/dDQdiXnugJklB1/GrWVKH5K--
