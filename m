@@ -1,89 +1,53 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH rdma-next 08/12] overflow.h: Add arithmetic shift helper
-Date: Wed, 1 Aug 2018 10:14:31 -0600
-Message-ID: <20180801161431.GC10665@mellanox.com>
-References: <20180624082353.16138-1-leon@kernel.org>
- <20180624082353.16138-9-leon@kernel.org>
- <CAKwiHFhgsyWYD+q+JFb2HJEphnjiiOp=o4Airv3MW031q2jx8w@mail.gmail.com>
- <20180625171157.GE5356@mellanox.com>
- <CAKwiHFiRYbyiJqDYCgKXKZYRr0KjCt8q9AwKwfqoCA1sT2KFyQ@mail.gmail.com>
- <20180626175435.GQ5356@mellanox.com>
- <20180801093603.GI2530@hirez.programming.kicks-ass.net>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH v3 1/3] overflow.h: Add arithmetic shift helper
+Date: Wed, 1 Aug 2018 09:28:25 -0700
+Message-ID: <0568f73f-c1ff-1e9d-8ef9-04c46eb13d6e@infradead.org>
+References: <20180801060947.16670-1-keescook@chromium.org>
+ <20180801060947.16670-2-keescook@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180801093603.GI2530@hirez.programming.kicks-ass.net>
+In-Reply-To: <20180801060947.16670-2-keescook@chromium.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Kees Cook <keescook@chromium.org>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Hadar Hen Zion <hadarh@mellanox.com>, Matan Barak <matanb@mellanox.com>, Michael J Ruhl <michael.j.ruhl@intel.com>, Noa Osherovich <noaos@mellanox.com>, Raed Salem <raeds@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, linux-kernel@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 01, 2018 at 11:36:03AM +0200, Peter Zijlstra wrote:
-> On Tue, Jun 26, 2018 at 11:54:35AM -0600, Jason Gunthorpe wrote:
+On 07/31/2018 11:09 PM, Kees Cook wrote:
+> From: Jason Gunthorpe <jgg@mellanox.com>
 > 
-> > What about more like this?
-> > 
-> >           check_shift_overflow(a, s, d) ({
+> Add shift_overflow() helper to assist driver authors in ensuring that
+> shift operations don't cause overflows or other odd conditions.
 > 
-> Should that not be: check_shl_overflow() ? Just 'shift' lacks a
-> direction.
-
-Yes, that makes sense.
-
-> > 	      // Shift is always performed on the machine's largest unsigned
-> >               u64 _a = a;
-> > 	      typeof(s) _s = s;
-> >               typeof(d) _d = d;
-> > 
-> > 	      // Make s safe against UB
-> > 	      unsigned int _to_shift = _s >= 0 && _s < 8*sizeof(*d) : _s ? 0;
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> [kees: tweaked comments and commit log, dropped unneeded assignment]
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+>  include/linux/overflow.h | 31 +++++++++++++++++++++++++++++++
+>  1 file changed, 31 insertions(+)
 > 
-> Should we not do a gcc-plugin or something that fixes that particular
-> UB? Shift acting all retarded like that is just annoying. I feel we
-> should eliminate UBs from the language where possible, like
-> -fno-strict-overflow mandates 2s complement.
+> diff --git a/include/linux/overflow.h b/include/linux/overflow.h
+> index 8712ff70995f..69fc366ce865 100644
+> --- a/include/linux/overflow.h
+> +++ b/include/linux/overflow.h
+> @@ -202,6 +202,37 @@
+>  
+>  #endif /* COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
+>  
+> +/** check_shift_overflow() - Calculate a left-shifted value and check overflow
+> + *
+> + * @a: Value to be shifted
+> + * @b: How many bits left to shift
+> + * @d: Pointer to where to store the result
+> + *
+> + * Computes *@d = (@a << @s)
+> + *
 
-No idea, if someone does this they can remove the above overhead..
+missed                     @b [again]
 
-> >               *_d = (_a << _to_shift);
-> > 
-> > 	       // s is malformed
-> >               (_to_shift != _s ||
-> 
-> Not strictly an overflow though, just not expected behaviour.
 
-'overflow' here means the math didn't work, ie
-   C = A << B
-has a C that does not match A << B done on infinite precision. It is
-not limited to checking overflow.
-
-> > 	       // d is a signed type and became negative
-> > 	       *_d < 0 ||
-> 
-> Only a problem if it wasn't negative to start out with.
-
-> > 	       // a is a signed type and was negative
-> > 	       _a < 0 ||
->
-> Why would that be a problem? You can shift left negative values just
-> fine. The only problem is when you run out of sign bits.
-
-These are both a problem because of how the macro is setup, nobody had
-an idea how to make this work with different types and allow for
-negatives to work properly.
-
-You could define this, but since there is no usecase..
-
-> > 	       // Not invertable means a was truncated during shifting
-> > 	       (*_d >> _to_shift) != a))
-> >           })
-> 
-> And I'm not exactly seeing the use case for this macro. What's the point
-> of a shift-left if you cannot truncate bits. I suppose it's in the name
-> _overflow, but still.
-
-It is basically a specialized case of check_mul_overflow where the
-multiply is known to be a power of 2.
-
-Jason
+-- 
+~Randy
