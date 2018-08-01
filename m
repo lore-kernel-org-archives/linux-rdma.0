@@ -1,65 +1,48 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the net-next tree with the rdma
- tree
-Date: Wed, 1 Aug 2018 15:33:45 +1000
-Message-ID: <20180801153345.22692adb@canb.auug.org.au>
-References: <20180727123301.3ac97ddc@canb.auug.org.au>
-        <20180727024832.GA30023@mellanox.com>
-        <20180727132847.2be8563b@canb.auug.org.au>
-        <VI1PR0502MB3008702AFA64F44DE57DC9F5D12A0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
-        <20180727150903.0f2816ba@canb.auug.org.au>
-        <VI1PR0502MB3008076016496152D4898D8ED12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH v2 2/3] test_overflow: Add shift overflow tests
+Date: Tue, 31 Jul 2018 22:51:42 -0700
+Message-ID: <CAGXu5jJ5y_0mJ-ijPX-=mf5sDEqwVh_BaV7GVumi5tpirbp19w@mail.gmail.com>
+References: <20180801000039.44314-1-keescook@chromium.org> <20180801000039.44314-3-keescook@chromium.org>
+ <20180801021353.GA31192@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/dDQdiXnugJklB1/GrWVKH5K"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <VI1PR0502MB3008076016496152D4898D8ED12E0@VI1PR0502MB3008.eurprd05.prod.outlook.com>
+In-Reply-To: <20180801021353.GA31192@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, David Miller <davem@davemloft.net>, Networking <netdev@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Linux-Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ursula Braun <ubraun@linux.ibm.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, linux-rdma <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Sig_/dDQdiXnugJklB1/GrWVKH5K
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-Hi Parav,
-
-On Tue, 31 Jul 2018 21:12:00 +0000 Parav Pandit <parav@mellanox.com> wrote:
+On Tue, Jul 31, 2018 at 7:13 PM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> On Tue, Jul 31, 2018 at 05:00:38PM -0700, Kees Cook wrote:
+>> +     /* Overflow: high bit falls off. */
+>> +     /* 10010110 */
+>> +     err |= TEST_ONE_SHIFT(150, 1, u8, 0, true);
+>> +     /* 1000100010010110 */
+>> +     err |= TEST_ONE_SHIFT(34966, 1, u16, 0, true);
+>> +     /* 10000100000010001000100010010110 */
+>> +     err |= TEST_ONE_SHIFT(2215151766U, 1, u32, 0, true);
+>> +     err |= TEST_ONE_SHIFT(2215151766U, 1, unsigned int, 0, true);
+>> +     /* 1000001000010000010000000100000010000100000010001000100010010110 */
+>> +     err |= TEST_ONE_SHIFT(9372061470395238550ULL, 1, u64, 0, true);
 >
-> You might want to consider this compatibility patch in Linux-rdma
-> tree to avoid a merge conflict of smc.
->=20
-> https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=
-=3Dfor-next&id=3D7aaa1807e698f73094b78f0ef25b1a37a4409a55
+> This same idea should be repeated with signed outputs and check both
+> overflow past the end (<<2) and overflow into the signed bit (<<1)
+>
+>         /* Overflow, high bit falls into the sign bit or off the end */
+>         /* 01001011 */
+>         err |= TEST_ONE_SHIFT(75, 1, s8, 0, true);
+>         err |= TEST_ONE_SHIFT(75, 2, s8, 0, true);
+>
+> And also general type mismatch overflow:
+>
+>         err |= TEST_ONE_SHIFT(0x100, 0, u8, 0, true);
+>         err |= TEST_ONE_SHIFT(0xFF, 0, s8, 0, true);
 
-Ok, since commit that is now in the rdma tree, my resolution of the
-original conflicts comes down to dropping all the changes to
-net/smc/smc_core.c net/smc/smc_ib.c that come from the rdma tree and
-adding
+Ah yes, thanks. I've added these for the next version now.
 
-#include <rdma/ib_cache.h>
+-Kees
 
-to net/smc/smc_ib.c.
-
---=20
-Cheers,
-Stephen Rothwell
-
---Sig_/dDQdiXnugJklB1/GrWVKH5K
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlthRjkACgkQAVBC80lX
-0GyjwggAk3Mmdj+p/qwxlJS9NnJ8IwCPYvSGfbGVRKNun/AwSGSJO60X57M8Ne00
-KN+8uJrqwwtxSfrfdPlVeTZhODK55vePIIaUbmAxUvcKvOQvNGSwPajCFXzXA1IC
-mJUAV5w2vq5RReJWfKX0dusZZJKf2VvGzDxbu9JEeE05hMNy94A8r4lRJX7zN8cQ
-QPvS22C42D02UbnhjTeBDkQstbZdHvbu4NMkckdajU1p9eXIL73zQVCWtfBPe5op
-zNmHq0jPu9R5GyysqU+By88pbtPqJRnfoA8LriKuEk64Hznc3t82V7Ygbg3VlCRL
-YRysMdLWiLTfc2rXqeCyCGd75Iq0yg==
-=dBjF
------END PGP SIGNATURE-----
-
---Sig_/dDQdiXnugJklB1/GrWVKH5K--
+-- 
+Kees Cook
+Pixel Security
