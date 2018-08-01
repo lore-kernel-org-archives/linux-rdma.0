@@ -1,38 +1,45 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH v3 0/3] overflow.h: Add arithmetic shift helper
-Date: Tue, 31 Jul 2018 23:09:44 -0700
-Message-ID: <20180801060947.16670-1-keescook@chromium.org>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next] rds: remove redundant variable 'rds_ibdev'
+Date: Wed, 1 Aug 2018 15:14:07 +0800
+Message-ID: <20180801071407.22044-1-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Kees Cook <keescook@chromium.org>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, santosh.shilimkar@oracle.com
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This adds the shift overflow helper, selftests, and first usage.
+Variable 'rds_ibdev' is being assigned but never used,
+so can be removed.
 
--Kees
+fix this clang warning:
+ net/rds/ib_send.c:762:24: warning: variable ‘rds_ibdev’ set but not used [-Wunused-but-set-variable]
 
-v3:
-- add even more test cases (type mismatches, more signed overflows).
-- fix documentation typo on argument name.
-v2:
-- swap out selftests with framework from Rasmus, add lots more tests.
-- drop double-assignment in helper.
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ net/rds/ib_send.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-
-Jason Gunthorpe (1):
-  overflow.h: Add arithmetic shift helper
-
-Kees Cook (1):
-  test_overflow: Add shift overflow tests
-
-Leon Romanovsky (1):
-  RDMA/mlx5: Fix shift overflow in mlx5_ib_create_wq
-
- drivers/infiniband/hw/mlx5/qp.c |   5 +-
- include/linux/overflow.h        |  31 +++++
- lib/test_overflow.c             | 198 +++++++++++++++++++++++++++++++-
- 3 files changed, 232 insertions(+), 2 deletions(-)
-
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index c4cdfe49..c8dd312 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -759,14 +759,11 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
+ 	struct rds_ib_connection *ic = conn->c_transport_data;
+ 	struct rds_ib_send_work *send = NULL;
+ 	struct ib_send_wr *failed_wr;
+-	struct rds_ib_device *rds_ibdev;
+ 	u32 pos;
+ 	u32 work_alloc;
+ 	int ret;
+ 	int nr_sig = 0;
+ 
+-	rds_ibdev = ib_get_client_data(ic->i_cm_id->device, &rds_ib_client);
+-
+ 	work_alloc = rds_ib_ring_alloc(&ic->i_send_ring, 1, &pos);
+ 	if (work_alloc != 1) {
+ 		rds_ib_stats_inc(s_ib_tx_ring_full);
 -- 
-2.17.1
+2.7.0
