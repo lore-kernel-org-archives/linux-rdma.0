@@ -1,45 +1,27 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH net-next] rds: remove redundant variable 'rds_ibdev'
-Date: Wed, 1 Aug 2018 15:14:07 +0800
-Message-ID: <20180801071407.22044-1-yuehaibing@huawei.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v2 1/3] overflow.h: Add arithmetic shift helper
+Date: Wed, 1 Aug 2018 10:57:44 +0300
+Message-ID: <20180801075744.qpppbaywp5dklxul@mwanda>
+References: <20180801000039.44314-1-keescook@chromium.org>
+ <20180801000039.44314-2-keescook@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180801000039.44314-2-keescook@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, santosh.shilimkar@oracle.com
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, YueHaibing <yuehaibing@huawei.com>
+To: Kees Cook <keescook@chromium.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Variable 'rds_ibdev' is being assigned but never used,
-so can be removed.
+The idea is nice, but I don't like the API.  The "_overflow" feels too
+specific because maybe we could check for other things in the future.
+Normally boolean macros should say they are boolean in the name and I
+would prefer if it returned zero on failure.
 
-fix this clang warning:
- net/rds/ib_send.c:762:24: warning: variable ‘rds_ibdev’ set but not used [-Wunused-but-set-variable]
+	if (!checked_shift(dest, mask, shift)) {
+	if (!shift_ok(dest, mask, shift)) {
+	if (!safe_shift(dest, mask, shift)) {
 
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- net/rds/ib_send.c | 3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
-index c4cdfe49..c8dd312 100644
---- a/net/rds/ib_send.c
-+++ b/net/rds/ib_send.c
-@@ -759,14 +759,11 @@ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op)
- 	struct rds_ib_connection *ic = conn->c_transport_data;
- 	struct rds_ib_send_work *send = NULL;
- 	struct ib_send_wr *failed_wr;
--	struct rds_ib_device *rds_ibdev;
- 	u32 pos;
- 	u32 work_alloc;
- 	int ret;
- 	int nr_sig = 0;
- 
--	rds_ibdev = ib_get_client_data(ic->i_cm_id->device, &rds_ib_client);
--
- 	work_alloc = rds_ib_ring_alloc(&ic->i_send_ring, 1, &pos);
- 	if (work_alloc != 1) {
- 		rds_ib_stats_inc(s_ib_tx_ring_full);
--- 
-2.7.0
+regards,
+dan carpenter
