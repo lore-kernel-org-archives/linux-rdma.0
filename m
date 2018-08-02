@@ -1,246 +1,146 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: [PATCH rdma-next v4 2/3] test_overflow: Add shift overflow tests
-Date: Wed,  1 Aug 2018 14:25:40 -0700
-Message-ID: <20180801212541.22889-3-keescook@chromium.org>
-References: <20180801212541.22889-1-keescook@chromium.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180801212541.22889-1-keescook@chromium.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Kees Cook <keescook@chromium.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [bug report] net/mlx5e: Gather all XDP pre-requisite checks in a
+ single function
+Date: Thu, 2 Aug 2018 15:31:58 +0300
+Message-ID: <20180802123158.GM6123@mtr-leonro.mtl.com>
+References: <20180802085449.hqlo6pqizuzbtliq@kili.mountain>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="AqCDj3hiknadvR6t"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180802085449.hqlo6pqizuzbtliq@kili.mountain>
+Sender: netdev-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: tariqt@mellanox.com, linux-rdma@vger.kernel.org, linux-netdev <netdev@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This adds overflow tests for the new check_shift_overflow() helper to
-validate overflow, signedness glitches, storage glitches, etc.
 
-Co-developed-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Signed-off-by: Kees Cook <keescook@chromium.org>
----
- lib/test_overflow.c | 198 +++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 197 insertions(+), 1 deletion(-)
+--AqCDj3hiknadvR6t
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/lib/test_overflow.c b/lib/test_overflow.c
-index 2278fe05a1b0..fc680562d8b6 100644
---- a/lib/test_overflow.c
-+++ b/lib/test_overflow.c
-@@ -252,7 +252,8 @@ static int __init test_ ## t ## _overflow(void) {			\
- 	int err = 0;							\
- 	unsigned i;							\
- 									\
--	pr_info("%-3s: %zu tests\n", #t, ARRAY_SIZE(t ## _tests));	\
-+	pr_info("%-3s: %zu arithmetic tests\n", #t,			\
-+		ARRAY_SIZE(t ## _tests));				\
- 	for (i = 0; i < ARRAY_SIZE(t ## _tests); ++i)			\
- 		err |= do_test_ ## t(&t ## _tests[i]);			\
- 	return err;							\
-@@ -287,6 +288,200 @@ static int __init test_overflow_calculation(void)
- 	return err;
- }
- 
-+static int __init test_overflow_shift(void)
-+{
-+	int err = 0;
-+
-+/* Args are: value, shift, type, expected result, overflow expected */
-+#define TEST_ONE_SHIFT(a, s, t, expect, of) ({				\
-+	int __failed = 0;						\
-+	typeof(a) __a = (a);						\
-+	typeof(s) __s = (s);						\
-+	t __e = (expect);						\
-+	t __d;								\
-+	bool __of = check_shl_overflow(__a, __s, &__d);			\
-+	if (__of != of) {						\
-+		pr_warn("expected (%s)(%s << %s) to%s overflow\n",	\
-+			#t, #a, #s, of ? "" : " not");			\
-+		__failed = 1;						\
-+	} else if (!__of && __d != __e) {				\
-+		pr_warn("expected (%s)(%s << %s) == %s\n",		\
-+			#t, #a, #s, #expect);				\
-+		if ((t)-1 < 0)						\
-+			pr_warn("got %lld\n", (s64)__d);		\
-+		else							\
-+			pr_warn("got %llu\n", (u64)__d);		\
-+		__failed = 1;						\
-+	}								\
-+	if (!__failed)							\
-+		pr_info("ok: (%s)(%s << %s) == %s\n", #t, #a, #s,	\
-+			of ? "overflow" : #expect);			\
-+	__failed;							\
-+})
-+
-+	/* Sane shifts. */
-+	err |= TEST_ONE_SHIFT(1, 0, u8, 1 << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 4, u8, 1 << 4, false);
-+	err |= TEST_ONE_SHIFT(1, 7, u8, 1 << 7, false);
-+	err |= TEST_ONE_SHIFT(0xF, 4, u8, 0xF << 4, false);
-+	err |= TEST_ONE_SHIFT(1, 0, u16, 1 << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 10, u16, 1 << 10, false);
-+	err |= TEST_ONE_SHIFT(1, 15, u16, 1 << 15, false);
-+	err |= TEST_ONE_SHIFT(0xFF, 8, u16, 0xFF << 8, false);
-+	err |= TEST_ONE_SHIFT(1, 0, int, 1 << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 16, int, 1 << 16, false);
-+	err |= TEST_ONE_SHIFT(1, 30, int, 1 << 30, false);
-+	err |= TEST_ONE_SHIFT(1, 0, s32, 1 << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 16, s32, 1 << 16, false);
-+	err |= TEST_ONE_SHIFT(1, 30, s32, 1 << 30, false);
-+	err |= TEST_ONE_SHIFT(1, 0, unsigned int, 1U << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 20, unsigned int, 1U << 20, false);
-+	err |= TEST_ONE_SHIFT(1, 31, unsigned int, 1U << 31, false);
-+	err |= TEST_ONE_SHIFT(0xFFFFU, 16, unsigned int, 0xFFFFU << 16, false);
-+	err |= TEST_ONE_SHIFT(1, 0, u32, 1U << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 20, u32, 1U << 20, false);
-+	err |= TEST_ONE_SHIFT(1, 31, u32, 1U << 31, false);
-+	err |= TEST_ONE_SHIFT(0xFFFFU, 16, u32, 0xFFFFU << 16, false);
-+	err |= TEST_ONE_SHIFT(1, 0, u64, 1ULL << 0, false);
-+	err |= TEST_ONE_SHIFT(1, 40, u64, 1ULL << 40, false);
-+	err |= TEST_ONE_SHIFT(1, 63, u64, 1ULL << 63, false);
-+	err |= TEST_ONE_SHIFT(0xFFFFFFFFULL, 32, u64,
-+			      0xFFFFFFFFULL << 32, false);
-+
-+	/* Sane shift: start and end with 0, without a too-wide shift. */
-+	err |= TEST_ONE_SHIFT(0, 7, u8, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 15, u16, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 31, unsigned int, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 31, u32, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 63, u64, 0, false);
-+
-+	/* Sane shift: start and end with 0, without reaching signed bit. */
-+	err |= TEST_ONE_SHIFT(0, 6, s8, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 14, s16, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 30, int, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 30, s32, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 62, s64, 0, false);
-+
-+	/* Overflow: shifted the bit off the end. */
-+	err |= TEST_ONE_SHIFT(1, 8, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 16, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 32, unsigned int, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 32, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 64, u64, 0, true);
-+
-+	/* Overflow: shifted into the signed bit. */
-+	err |= TEST_ONE_SHIFT(1, 7, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 15, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 31, int, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 31, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(1, 63, s64, 0, true);
-+
-+	/* Overflow: high bit falls off unsigned types. */
-+	/* 10010110 */
-+	err |= TEST_ONE_SHIFT(150, 1, u8, 0, true);
-+	/* 1000100010010110 */
-+	err |= TEST_ONE_SHIFT(34966, 1, u16, 0, true);
-+	/* 10000100000010001000100010010110 */
-+	err |= TEST_ONE_SHIFT(2215151766U, 1, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(2215151766U, 1, unsigned int, 0, true);
-+	/* 1000001000010000010000000100000010000100000010001000100010010110 */
-+	err |= TEST_ONE_SHIFT(9372061470395238550ULL, 1, u64, 0, true);
-+
-+	/* Overflow: bit shifted into signed bit on signed types. */
-+	/* 01001011 */
-+	err |= TEST_ONE_SHIFT(75, 1, s8, 0, true);
-+	/* 0100010001001011 */
-+	err |= TEST_ONE_SHIFT(17483, 1, s16, 0, true);
-+	/* 01000010000001000100010001001011 */
-+	err |= TEST_ONE_SHIFT(1107575883, 1, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(1107575883, 1, int, 0, true);
-+	/* 0100000100001000001000000010000001000010000001000100010001001011 */
-+	err |= TEST_ONE_SHIFT(4686030735197619275LL, 1, s64, 0, true);
-+
-+	/* Overflow: bit shifted past signed bit on signed types. */
-+	/* 01001011 */
-+	err |= TEST_ONE_SHIFT(75, 2, s8, 0, true);
-+	/* 0100010001001011 */
-+	err |= TEST_ONE_SHIFT(17483, 2, s16, 0, true);
-+	/* 01000010000001000100010001001011 */
-+	err |= TEST_ONE_SHIFT(1107575883, 2, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(1107575883, 2, int, 0, true);
-+	/* 0100000100001000001000000010000001000010000001000100010001001011 */
-+	err |= TEST_ONE_SHIFT(4686030735197619275LL, 2, s64, 0, true);
-+
-+	/* Overflow: values larger than destination type. */
-+	err |= TEST_ONE_SHIFT(0x100, 0, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(0xFF, 0, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(0x10000U, 0, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(0xFFFFU, 0, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(0x100000000ULL, 0, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(0x100000000ULL, 0, unsigned int, 0, true);
-+	err |= TEST_ONE_SHIFT(0xFFFFFFFFUL, 0, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(0xFFFFFFFFUL, 0, int, 0, true);
-+	err |= TEST_ONE_SHIFT(0xFFFFFFFFFFFFFFFFULL, 0, s64, 0, true);
-+
-+	/* Nonsense: negative initial value. */
-+	err |= TEST_ONE_SHIFT(-1, 0, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(-1, 0, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(-5, 0, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(-5, 0, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(-10, 0, int, 0, true);
-+	err |= TEST_ONE_SHIFT(-10, 0, unsigned int, 0, true);
-+	err |= TEST_ONE_SHIFT(-100, 0, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(-100, 0, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(-10000, 0, s64, 0, true);
-+	err |= TEST_ONE_SHIFT(-10000, 0, u64, 0, true);
-+
-+	/* Nonsense: negative shift values. */
-+	err |= TEST_ONE_SHIFT(0, -5, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -5, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -10, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -10, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -15, int, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -15, unsigned int, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -20, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -20, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -30, s64, 0, true);
-+	err |= TEST_ONE_SHIFT(0, -30, u64, 0, true);
-+
-+	/* Overflow: shifted at or beyond entire type's bit width. */
-+	err |= TEST_ONE_SHIFT(0, 8, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 9, u8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 8, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 9, s8, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 16, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 17, u16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 16, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 17, s16, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 32, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 33, u32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 32, int, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 33, int, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 32, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 33, s32, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 64, u64, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 65, u64, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 64, s64, 0, true);
-+	err |= TEST_ONE_SHIFT(0, 65, s64, 0, true);
-+
-+	/*
-+	 * Corner case: for unsigned types, we fail when we've shifted
-+	 * through the entire width of bits. For signed types, we might
-+	 * want to match this behavior, but that would mean noticing if
-+	 * we shift through all but the signed bit, and this is not
-+	 * currently detected (but we'll notice an overflow into the
-+	 * signed bit). So, for now, we will test this condition but
-+	 * mark it as not expected to overflow.
-+	 */
-+	err |= TEST_ONE_SHIFT(0, 7, s8, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 15, s16, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 31, int, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 31, s32, 0, false);
-+	err |= TEST_ONE_SHIFT(0, 63, s64, 0, false);
-+
-+	return err;
-+}
-+
- /*
-  * Deal with the various forms of allocator arguments. See comments above
-  * the DEFINE_TEST_ALLOC() instances for mapping of the "bits".
-@@ -397,6 +592,7 @@ static int __init test_module_init(void)
- 	int err = 0;
- 
- 	err |= test_overflow_calculation();
-+	err |= test_overflow_shift();
- 	err |= test_overflow_allocation();
- 
- 	if (err) {
--- 
-2.17.1
++netdev and Saeed
+
+On Thu, Aug 02, 2018 at 11:54:49AM +0300, Dan Carpenter wrote:
+> Hello Tariq Toukan,
+>
+> The patch 0ec13877ce95: "net/mlx5e: Gather all XDP pre-requisite
+> checks in a single function" from Mar 12, 2018, leads to the
+> following Smatch warning:
+>
+> 	drivers/net/ethernet/mellanox/mlx5/core/en_main.c:4284 mlx5e_xdp_set()
+> 	error: uninitialized symbol 'err'.
+>
+> drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+>   4214  static int mlx5e_xdp_set(struct net_device *netdev, struct bpf_prog *prog)
+>   4215  {
+>   4216          struct mlx5e_priv *priv = netdev_priv(netdev);
+>   4217          struct bpf_prog *old_prog;
+>   4218          bool reset, was_opened;
+>   4219          int err;
+>                 ^^^^^^^
+> I always encourage people to remove unneeded initializers so that GCC
+> can detect uninitialized variables, but it turns out that GCC misses a
+> bunch of bugs?
+>
+>   4220          int i;
+>   4221
+>   4222          mutex_lock(&priv->state_lock);
+>   4223
+>   4224          if (prog) {
+>   4225                  err = mlx5e_xdp_allowed(priv, prog);
+>   4226                  if (err)
+>   4227                          goto unlock;
+>   4228          }
+>   4229
+>   4230          was_opened = test_bit(MLX5E_STATE_OPENED, &priv->state);
+>   4231          /* no need for full reset when exchanging programs */
+>   4232          reset = (!priv->channels.params.xdp_prog || !prog);
+>   4233
+>   4234          if (was_opened && reset)
+>   4235                  mlx5e_close_locked(netdev);
+>   4236          if (was_opened && !reset) {
+>   4237                  /* num_channels is invariant here, so we can take the
+>   4238                   * batched reference right upfront.
+>   4239                   */
+>   4240                  prog = bpf_prog_add(prog, priv->channels.num);
+>   4241                  if (IS_ERR(prog)) {
+>   4242                          err = PTR_ERR(prog);
+>   4243                          goto unlock;
+>   4244                  }
+>   4245          }
+>   4246
+>   4247          /* exchange programs, extra prog reference we got from caller
+>   4248           * as long as we don't fail from this point onwards.
+>   4249           */
+>   4250          old_prog = xchg(&priv->channels.params.xdp_prog, prog);
+>   4251          if (old_prog)
+>   4252                  bpf_prog_put(old_prog);
+>   4253
+>   4254          if (reset) /* change RQ type according to priv->xdp_prog */
+>   4255                  mlx5e_set_rq_type(priv->mdev, &priv->channels.params);
+>   4256
+>   4257          if (was_opened && reset)
+>   4258                  mlx5e_open_locked(netdev);
+>   4259
+>   4260          if (!test_bit(MLX5E_STATE_OPENED, &priv->state) || reset)
+>   4261                  goto unlock;
+>                         ^^^^^^^^^^^
+> In the original code this was a success path.
+>
+>   4262
+>   4263          /* exchanging programs w/o reset, we update ref counts on behalf
+>   4264           * of the channels RQs here.
+>   4265           */
+>   4266          for (i = 0; i < priv->channels.num; i++) {
+>   4267                  struct mlx5e_channel *c = priv->channels.c[i];
+>   4268
+>   4269                  clear_bit(MLX5E_RQ_STATE_ENABLED, &c->rq.state);
+>   4270                  napi_synchronize(&c->napi);
+>   4271                  /* prevent mlx5e_poll_rx_cq from accessing rq->xdp_prog */
+>   4272
+>   4273                  old_prog = xchg(&c->rq.xdp_prog, prog);
+>   4274
+>   4275                  set_bit(MLX5E_RQ_STATE_ENABLED, &c->rq.state);
+>   4276                  /* napi_schedule in case we have missed anything */
+>   4277                  napi_schedule(&c->napi);
+>   4278
+>   4279                  if (old_prog)
+>   4280                          bpf_prog_put(old_prog);
+>   4281          }
+>   4282
+>   4283  unlock:
+>   4284          mutex_unlock(&priv->state_lock);
+>   4285          return err;
+>                 ^^^^^^^^^^
+>   4286  }
+>
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--AqCDj3hiknadvR6t
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbYvm+AAoJEORje4g2clin9EIP/RjgFTPSEruQ15w0F68ta7nN
+1LxD6Fc8rzZ4raPq/+jn5qVDzV33MV9doAeTEesxqYtB140k9zf+teSXADzW2eSV
+gLaGqCdJnSE1qjMcAmNjyYDwvXJ3myIeN79qxLNXWXePJL7fEf+c8hdkB40MOYxC
+nBxT+NIZQU+TlSATJvq9vV40XW0uRQBmkNV6S+DSpQRrd4AGKNctHUr2RApG04o3
+Zo2x9V09p5MCvkL9Ykt3np2+7X9cb394uEd728ty8zzC3nlE0afJYKT+gaKk5641
+uMD49o7C2KEcb1gBpuU0Te+qfS3Q/BlRIRl1nr3rnSMJzazzccNe+0QwD7/rIct1
+hnNpIXEaUDz8+fKtP10f2seg3kJtYButvYgR0PSVFDMcQ6LP0NFVDgseh2qsaMy1
+OAeD53/Savqgijm9kRLj7Qmtwaq8dJzk2gOoCyjLzLzNTwD4znVpz3itKWuaNfge
++NiEmE2FoU4+rpQ5QTcUQoTPP/X1p5ZnCMCKoVU6ranPVqY2CRuc1sxJdcpYj60b
+xxmB+Kk8CwRjwTmMWSHKzUA7tVvBkMexdEAbtbcpHeq4fQHK8jGgkt8XH6HXB3ou
+ngslF+2WYe48J1SD+cAX9aUeJ0JZcVh6eFZjZw8kGtoM2ETewMmvGRy9+97SyNF3
+aqmi7ZtEYqaw6Z34aac3
+=M76Z
+-----END PGP SIGNATURE-----
+
+--AqCDj3hiknadvR6t--
