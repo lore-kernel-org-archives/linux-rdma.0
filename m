@@ -1,73 +1,136 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 3 Aug 2018 10:11:02 -0600
-Message-ID: <20180803161102.GA21002@ziepe.ca>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] IB/hfi1: Fix incorrect mixing of ERR_PTR and NULL return
+ values
+Date: Fri, 03 Aug 2018 09:23:57 -0700
+Message-ID: <20180803162354.21477.41513.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="+HP7ph2BbKc20aGI"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
---+HP7ph2BbKc20aGI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+commit b697d7d8c741f27b728a878fc55852b06d0f6f5e upstream.
 
-Hi Linus,
+The __get_txreq() function can return a pointer, ERR_PTR(-EBUSY),
+or NULL.  All of the relevant call sites look for IS_ERR, so the
+NULL return would lead to a NULL pointer exception.
 
-Third pull request for -rc
+Do not use the ERR_PTR mechanism for this function.
 
-Things are still slow on the RC side, this one patch has been sitting in the
-git tree for a few weeks waiting for some friends. I expect this is the last
-RC pull for this cycle.
+Update all call sites to handle the return value correctly.
 
-The following changes since commit d63c46734c545ad0488761059004a65c46efdde3:
+Clean up error paths to reflect return value.
 
-  RDMA/mlx5: Fix memory leak in mlx5_ib_create_srq() error path (2018-07-11 14:16:13 -0600)
+Adjusted patch for the 4.9.x branch.
 
-are available in the Git repository at:
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Kamenee Arumugam <kamenee.arumugam@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+---
+ drivers/infiniband/hw/hfi1/rc.c          |    2 +-
+ drivers/infiniband/hw/hfi1/uc.c          |    4 ++--
+ drivers/infiniband/hw/hfi1/ud.c          |    4 ++--
+ drivers/infiniband/hw/hfi1/verbs_txreq.c |    4 ++--
+ drivers/infiniband/hw/hfi1/verbs_txreq.h |    4 ++--
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-for you to fetch changes up to addb8a6559f0f8b5a37582b7ca698358445a55bf:
-
-  RDMA/uverbs: Expand primary and alt AV port checks (2018-07-24 15:30:34 -0600)
-
-----------------------------------------------------------------
-One bug for missing user input validation:
-
-- Refuse invalid port numbers in the modify_qp system call
-
-----------------------------------------------------------------
-Jack Morgenstein (1):
-      RDMA/uverbs: Expand primary and alt AV port checks
-
- drivers/infiniband/core/uverbs_cmd.c | 59 +++++++++++++++++++++++++++++++++---
- 1 file changed, 54 insertions(+), 5 deletions(-)
-
---+HP7ph2BbKc20aGI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCgAGBQJbZH6UAAoJEDht9xV+IJsaxb8P/26p16KMWp5DPGTr5Kk/XxSg
-fxkJb0EM2vC2kXmUQROZIIUkYwwkG/tvOYYLuRpu2mKTpPkQnIhI5ksbvOaTqN7m
-+8YrfaD4eSfcQ+KVwW/6/VPHDcSHmeeIhp2ldV4TibYv8i9aE4BRk8vmm61OSPq+
-k4vqAGdj4fhhWxq6+oLebsRarYgk57oXgqKmcMI6x7VQ86lcyj06Msb7xPXVhQCr
-EUyPq5zreRRvgnxAby1yAtt0KV0gtzLRQ5Ko8xMHktxobzgr60fqoy6ZjUClxn8S
-lPzjbL+PxOTtz7JvJ2Fu7bcEC8iAmrhxBlSdLp11Oyy7xKL13YeO0LOQnah7/LnD
-5e20law3Z1K1BSDqT2FV+WZF6DmaaeqSmMkkV5bZLVLvyFLZ8HhY2XfbIy7kZ+Fs
-bOQvovBztVgG3rUZqyvexBx6I7htbaoI3G7951UTR/jA8DKVI1DLobtB57AXEtVj
-8A+qSRIvmnO4/IAG2eMPIxAffXlGVz6u23OYcFD9O43lPME4b1jGYLue8Ak91qdc
-h/VUBsxkxm1/FaW6l2exb1Ybh69CKmtN0C+nBkL5xrAwzTmEnOreGVjn8zPBa/8W
-PzCA5DEk4tWy/d2iese1UIDju781ts4XwHZZdbnphdoipE0BRijcqo0/cxEJ5i7J
-+FSwEerK4XeRMr738IU0
-=dJZp
------END PGP SIGNATURE-----
-
---+HP7ph2BbKc20aGI--
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 613074e..e8e0fa5 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -397,7 +397,7 @@ int hfi1_make_rc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 
+ 	lockdep_assert_held(&qp->s_lock);
+ 	ps->s_txreq = get_txreq(ps->dev, qp);
+-	if (IS_ERR(ps->s_txreq))
++	if (!ps->s_txreq)
+ 		goto bail_no_tx;
+ 
+ 	ohdr = &ps->s_txreq->phdr.hdr.u.oth;
+diff --git a/drivers/infiniband/hw/hfi1/uc.c b/drivers/infiniband/hw/hfi1/uc.c
+index 5e6d1ba..de21128 100644
+--- a/drivers/infiniband/hw/hfi1/uc.c
++++ b/drivers/infiniband/hw/hfi1/uc.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015, 2016 Intel Corporation.
++ * Copyright(c) 2015 - 2018 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -72,7 +72,7 @@ int hfi1_make_uc_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	int middle = 0;
+ 
+ 	ps->s_txreq = get_txreq(ps->dev, qp);
+-	if (IS_ERR(ps->s_txreq))
++	if (!ps->s_txreq)
+ 		goto bail_no_tx;
+ 
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_SEND_OK)) {
+diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
+index 97ae24b..1a7ce1d 100644
+--- a/drivers/infiniband/hw/hfi1/ud.c
++++ b/drivers/infiniband/hw/hfi1/ud.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2015, 2016 Intel Corporation.
++ * Copyright(c) 2015 - 2018 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -285,7 +285,7 @@ int hfi1_make_ud_req(struct rvt_qp *qp, struct hfi1_pkt_state *ps)
+ 	u8 sc5;
+ 
+ 	ps->s_txreq = get_txreq(ps->dev, qp);
+-	if (IS_ERR(ps->s_txreq))
++	if (!ps->s_txreq)
+ 		goto bail_no_tx;
+ 
+ 	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_NEXT_SEND_OK)) {
+diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.c b/drivers/infiniband/hw/hfi1/verbs_txreq.c
+index 094ab82..d8a5bad 100644
+--- a/drivers/infiniband/hw/hfi1/verbs_txreq.c
++++ b/drivers/infiniband/hw/hfi1/verbs_txreq.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2016 Intel Corporation.
++ * Copyright(c) 2016 - 2018 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -94,7 +94,7 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
+ 				struct rvt_qp *qp)
+ 	__must_hold(&qp->s_lock)
+ {
+-	struct verbs_txreq *tx = ERR_PTR(-EBUSY);
++	struct verbs_txreq *tx = NULL;
+ 
+ 	write_seqlock(&dev->iowait_lock);
+ 	if (ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) {
+diff --git a/drivers/infiniband/hw/hfi1/verbs_txreq.h b/drivers/infiniband/hw/hfi1/verbs_txreq.h
+index 5660897..31ded57 100644
+--- a/drivers/infiniband/hw/hfi1/verbs_txreq.h
++++ b/drivers/infiniband/hw/hfi1/verbs_txreq.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright(c) 2016 Intel Corporation.
++ * Copyright(c) 2016 - 2018 Intel Corporation.
+  *
+  * This file is provided under a dual BSD/GPLv2 license.  When using or
+  * redistributing this file, you may do so under either license.
+@@ -82,7 +82,7 @@ struct verbs_txreq *__get_txreq(struct hfi1_ibdev *dev,
+ 	if (unlikely(!tx)) {
+ 		/* call slow path to get the lock */
+ 		tx = __get_txreq(dev, qp);
+-		if (IS_ERR(tx))
++		if (!tx)
+ 			return tx;
+ 	}
+ 	tx->qp = qp;
