@@ -1,147 +1,138 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: Re: [PATCH rdma-next v4 2/3] test_overflow: Add shift overflow tests
-Date: Tue, 7 Aug 2018 00:54:08 +0200
-Message-ID: <c6ca9a92-85fc-3cdf-823c-2260145049b0@rasmusvillemoes.dk>
-References: <20180801212541.22889-1-keescook@chromium.org>
- <20180801212541.22889-3-keescook@chromium.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH v6 1/9] PCI: Check for PCIe downtraining conditions
+Date: Mon,  6 Aug 2018 18:25:35 -0500
+Message-ID: <20180806232600.25694-1-mr.nuke.me@gmail.com>
+References: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180801212541.22889-3-keescook@chromium.org>
-Content-Language: en-US
+In-Reply-To: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-pci@vger.kernel.org, bhelgaas@google.com, jakub.kicinski@netronome.com
+Cc: keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-08-01 23:25, Kees Cook wrote:
-> This adds overflow tests for the new check_shift_overflow() helper to
-> validate overflow, signedness glitches, storage glitches, etc.
-> 
+PCIe downtraining happens when both the device and PCIe port are
+capable of a larger bus width or higher speed than negotiated.
+Downtraining might be indicative of other problems in the system, and
+identifying this from userspace is neither intuitive, nor
+straightforward.
 
-Just a few random comments, not really anything worth a v5 by itself.
-IOW, I can live with this being sent upstream during next merge window.
+The easiest way to detect this is with pcie_print_link_status(),
+since the bottleneck is usually the link that is downtrained. It's not
+a perfect solution, but it works extremely well in most cases.
 
-> Co-developed-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> Signed-off-by: Kees Cook <keescook@chromium.org>
-> ---
-> +static int __init test_overflow_shift(void)
-> +{
-> +	int err = 0;
-> +
-> +/* Args are: value, shift, type, expected result, overflow expected */
-> +#define TEST_ONE_SHIFT(a, s, t, expect, of) ({				\
-> +	int __failed = 0;						\
-> +	typeof(a) __a = (a);						\
-> +	typeof(s) __s = (s);						\
-> +	t __e = (expect);						\
-> +	t __d;								\
-> +	bool __of = check_shl_overflow(__a, __s, &__d);			\
-> +	if (__of != of) {						\
-> +		pr_warn("expected (%s)(%s << %s) to%s overflow\n",	\
-> +			#t, #a, #s, of ? "" : " not");			\
-> +		__failed = 1;						\
-> +	} else if (!__of && __d != __e) {				\
-> +		pr_warn("expected (%s)(%s << %s) == %s\n",		\
-> +			#t, #a, #s, #expect);				\
-> +		if ((t)-1 < 0)						\
-> +			pr_warn("got %lld\n", (s64)__d);		\
-> +		else							\
-> +			pr_warn("got %llu\n", (u64)__d);		\
-> +		__failed = 1;						\
-> +	}								\
-> +	if (!__failed)							\
-> +		pr_info("ok: (%s)(%s << %s) == %s\n", #t, #a, #s,	\
-> +			of ? "overflow" : #expect);			\
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/pci/pci.c   | 22 ++++++++++++++++++----
+ drivers/pci/probe.c | 21 +++++++++++++++++++++
+ include/linux/pci.h |  1 +
+ 3 files changed, 40 insertions(+), 4 deletions(-)
 
-Isn't that a bit much, one pr_info for every test case (especially with
-the number of test cases you've done, and thanks for that btw.)? For the
-others, there's just one "doing nnn tests". It's harder here because we
-can only let the tests count themselves, but we could have
-TEST_ONE_SHIFT do exactly that and then print a pr_info at the end (or
-pr_warn if any failed).
-
-[Or, if we're willing to do something a bit ugly, forward-declaring
-file-scope statics is actually allowed, and can be combined with
-__COUNTER__...
-
-#define foo() printf("test number %d\n", __COUNTER__)
-
-static int start;
-static int end;
-
-static int start = __COUNTER__;
-void t(void)
-{
-	printf("Will do %d tests\n", end - start);
-	foo();
-	foo();
-}
-static int end = __COUNTER__ - 1;
-
-the expansion of TEST_ONE_SHIFT wouldn't have to use __COUNTER__ in any
-meaningful way. This of course goes out the window if
-check_shl_overflow is robustified with UNIQUE_ID. There's even a way to
-work around that, but I'd better stop here.]
-
-
-> +	__failed;							\
-> +})
-> +
-> +	err |= TEST_ONE_SHIFT(1, 0, int, 1 << 0, false);
-> +	err |= TEST_ONE_SHIFT(1, 16, int, 1 << 16, false);
-> +	err |= TEST_ONE_SHIFT(1, 30, int, 1 << 30, false);
-> +	err |= TEST_ONE_SHIFT(1, 0, s32, 1 << 0, false);
-> +	err |= TEST_ONE_SHIFT(1, 16, s32, 1 << 16, false);
-> +	err |= TEST_ONE_SHIFT(1, 30, s32, 1 << 30, false);
-
-I don't see much point in doing both int and s32 as they are AFAIK
-unconditionally the same on all architectures. Similarly for unsigned
-int/u32.
-
-> +
-> +	/* Overflow: shifted at or beyond entire type's bit width. */
-> +	err |= TEST_ONE_SHIFT(0, 8, u8, 0, true);
-> +	err |= TEST_ONE_SHIFT(0, 9, u8, 0, true);
-
-Hmm, seeing these I'd actually rather we didn't base the upper bound for
-the shift count on sizeof(*d) but rather used a fixed 64, since that's
-what we use for the temporary variable, and capping the shift count is
-mostly for avoiding UB in the implementation. For any non-zero input
-value, a shift count greater than 8 would still report overflow because
-of the truncation.
-
-More generally, I think that if the actual C expression
-
-  a << s
-
-doesn't invoke UB (i.e., a is non-negative and s is sane according to
-the type of a), no bits are lots during the shift, and the result fits
-in *d, we should not report overflow. Hence we should not impose
-arbitrary limits on s just because the destination happens to be u8.
-That some shift count/destination type combos then happen to guarantee
-overflow for all but an input of 0 is just the way the math works.
-
-> +
-> +	/*
-> +	 * Corner case: for unsigned types, we fail when we've shifted
-> +	 * through the entire width of bits. For signed types, we might
-> +	 * want to match this behavior, but that would mean noticing if
-> +	 * we shift through all but the signed bit, and this is not
-> +	 * currently detected (but we'll notice an overflow into the
-> +	 * signed bit). So, for now, we will test this condition but
-> +	 * mark it as not expected to overflow.
-> +	 */
-> +	err |= TEST_ONE_SHIFT(0, 7, s8, 0, false);
-> +	err |= TEST_ONE_SHIFT(0, 15, s16, 0, false);
-> +	err |= TEST_ONE_SHIFT(0, 31, int, 0, false);
-> +	err |= TEST_ONE_SHIFT(0, 31, s32, 0, false);
-> +	err |= TEST_ONE_SHIFT(0, 63, s64, 0, false);
-
-I can't really see how this is a "corner case". For an s8 destination
-and a shift count of, say, 4, there happens to be 8 input values that
-won't lead to "overflow". When the shift count is 7, there's 1 input
-value that won't lead to "overflow". So?
-
-Rasmus
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 316496e99da9..414ad7b3abdb 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -5302,14 +5302,15 @@ u32 pcie_bandwidth_capable(struct pci_dev *dev, enum pci_bus_speed *speed,
+ }
+ 
+ /**
+- * pcie_print_link_status - Report the PCI device's link speed and width
++ * __pcie_print_link_status - Report the PCI device's link speed and width
+  * @dev: PCI device to query
++ * @verbose: Be verbose -- print info even when enough bandwidth is available.
+  *
+  * Report the available bandwidth at the device.  If this is less than the
+  * device is capable of, report the device's maximum possible bandwidth and
+  * the upstream link that limits its performance to less than that.
+  */
+-void pcie_print_link_status(struct pci_dev *dev)
++void __pcie_print_link_status(struct pci_dev *dev, bool verbose)
+ {
+ 	enum pcie_link_width width, width_cap;
+ 	enum pci_bus_speed speed, speed_cap;
+@@ -5319,11 +5320,11 @@ void pcie_print_link_status(struct pci_dev *dev)
+ 	bw_cap = pcie_bandwidth_capable(dev, &speed_cap, &width_cap);
+ 	bw_avail = pcie_bandwidth_available(dev, &limiting_dev, &speed, &width);
+ 
+-	if (bw_avail >= bw_cap)
++	if (bw_avail >= bw_cap && verbose)
+ 		pci_info(dev, "%u.%03u Gb/s available PCIe bandwidth (%s x%d link)\n",
+ 			 bw_cap / 1000, bw_cap % 1000,
+ 			 PCIE_SPEED2STR(speed_cap), width_cap);
+-	else
++	else if (bw_avail < bw_cap)
+ 		pci_info(dev, "%u.%03u Gb/s available PCIe bandwidth, limited by %s x%d link at %s (capable of %u.%03u Gb/s with %s x%d link)\n",
+ 			 bw_avail / 1000, bw_avail % 1000,
+ 			 PCIE_SPEED2STR(speed), width,
+@@ -5331,6 +5332,19 @@ void pcie_print_link_status(struct pci_dev *dev)
+ 			 bw_cap / 1000, bw_cap % 1000,
+ 			 PCIE_SPEED2STR(speed_cap), width_cap);
+ }
++
++/**
++ * pcie_print_link_status - Report the PCI device's link speed and width
++ * @dev: PCI device to query
++ *
++ * Report the available bandwidth at the device.  If this is less than the
++ * device is capable of, report the device's maximum possible bandwidth and
++ * the upstream link that limits its performance to less than that.
++ */
++void pcie_print_link_status(struct pci_dev *dev)
++{
++	__pcie_print_link_status(dev, true);
++}
+ EXPORT_SYMBOL(pcie_print_link_status);
+ 
+ /**
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 611adcd9c169..1c8c26dd2cb2 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2205,6 +2205,24 @@ static struct pci_dev *pci_scan_device(struct pci_bus *bus, int devfn)
+ 	return dev;
+ }
+ 
++static void pcie_check_upstream_link(struct pci_dev *dev)
++{
++	if (!pci_is_pcie(dev))
++		return;
++
++	/* Look from the device up to avoid downstream ports with no devices. */
++	if ((pci_pcie_type(dev) != PCI_EXP_TYPE_ENDPOINT) &&
++	    (pci_pcie_type(dev) != PCI_EXP_TYPE_LEG_END) &&
++	    (pci_pcie_type(dev) != PCI_EXP_TYPE_UPSTREAM))
++		return;
++
++	/* Multi-function PCIe share the same link/status. */
++	if (PCI_FUNC(dev->devfn) != 0 || dev->is_virtfn)
++		return;
++
++	__pcie_print_link_status(dev, false);
++}
++
+ static void pci_init_capabilities(struct pci_dev *dev)
+ {
+ 	/* Enhanced Allocation */
+@@ -2240,6 +2258,9 @@ static void pci_init_capabilities(struct pci_dev *dev)
+ 	/* Advanced Error Reporting */
+ 	pci_aer_init(dev);
+ 
++	/* Check link and detect downtrain errors */
++	pcie_check_upstream_link(dev);
++
+ 	if (pci_probe_reset_function(dev) == 0)
+ 		dev->reset_fn = 1;
+ }
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index c133ccfa002e..d212de231259 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1087,6 +1087,7 @@ int pcie_set_mps(struct pci_dev *dev, int mps);
+ u32 pcie_bandwidth_available(struct pci_dev *dev, struct pci_dev **limiting_dev,
+ 			     enum pci_bus_speed *speed,
+ 			     enum pcie_link_width *width);
++void __pcie_print_link_status(struct pci_dev *dev, bool verbose);
+ void pcie_print_link_status(struct pci_dev *dev);
+ int pcie_flr(struct pci_dev *dev);
+ int __pci_reset_function_locked(struct pci_dev *dev);
+-- 
+2.17.1
