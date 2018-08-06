@@ -1,132 +1,147 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Mon, 6 Aug 2018 14:20:37 -0500
-Message-ID: <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomputing.com>
-References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
- <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
- <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
- <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
- <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
- <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
- <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
- <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
- <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
- <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
- <20180723164910.GS31540@mellanox.com>
- <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
- <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me>
- <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: Re: [PATCH rdma-next v4 2/3] test_overflow: Add shift overflow tests
+Date: Tue, 7 Aug 2018 00:54:08 +0200
+Message-ID: <c6ca9a92-85fc-3cdf-823c-2260145049b0@rasmusvillemoes.dk>
+References: <20180801212541.22889-1-keescook@chromium.org>
+ <20180801212541.22889-3-keescook@chromium.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180801212541.22889-3-keescook@chromium.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Max Gurtovoy <maxg@mellanox.com>, Sagi Grimberg <sagi@grimberg.me>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Bart Van Assche <Bart.VanAssche@wdc.com>, Doug Ledford <dledford@redhat.com>, Dan Carpenter <dan.carpenter@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 2018-08-01 23:25, Kees Cook wrote:
+> This adds overflow tests for the new check_shift_overflow() helper to
+> validate overflow, signedness glitches, storage glitches, etc.
+> 
+
+Just a few random comments, not really anything worth a v5 by itself.
+IOW, I can live with this being sent upstream during next merge window.
+
+> Co-developed-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+> +static int __init test_overflow_shift(void)
+> +{
+> +	int err = 0;
+> +
+> +/* Args are: value, shift, type, expected result, overflow expected */
+> +#define TEST_ONE_SHIFT(a, s, t, expect, of) ({				\
+> +	int __failed = 0;						\
+> +	typeof(a) __a = (a);						\
+> +	typeof(s) __s = (s);						\
+> +	t __e = (expect);						\
+> +	t __d;								\
+> +	bool __of = check_shl_overflow(__a, __s, &__d);			\
+> +	if (__of != of) {						\
+> +		pr_warn("expected (%s)(%s << %s) to%s overflow\n",	\
+> +			#t, #a, #s, of ? "" : " not");			\
+> +		__failed = 1;						\
+> +	} else if (!__of && __d != __e) {				\
+> +		pr_warn("expected (%s)(%s << %s) == %s\n",		\
+> +			#t, #a, #s, #expect);				\
+> +		if ((t)-1 < 0)						\
+> +			pr_warn("got %lld\n", (s64)__d);		\
+> +		else							\
+> +			pr_warn("got %llu\n", (u64)__d);		\
+> +		__failed = 1;						\
+> +	}								\
+> +	if (!__failed)							\
+> +		pr_info("ok: (%s)(%s << %s) == %s\n", #t, #a, #s,	\
+> +			of ? "overflow" : #expect);			\
+
+Isn't that a bit much, one pr_info for every test case (especially with
+the number of test cases you've done, and thanks for that btw.)? For the
+others, there's just one "doing nnn tests". It's harder here because we
+can only let the tests count themselves, but we could have
+TEST_ONE_SHIFT do exactly that and then print a pr_info at the end (or
+pr_warn if any failed).
+
+[Or, if we're willing to do something a bit ugly, forward-declaring
+file-scope statics is actually allowed, and can be combined with
+__COUNTER__...
+
+#define foo() printf("test number %d\n", __COUNTER__)
+
+static int start;
+static int end;
+
+static int start = __COUNTER__;
+void t(void)
+{
+	printf("Will do %d tests\n", end - start);
+	foo();
+	foo();
+}
+static int end = __COUNTER__ - 1;
+
+the expansion of TEST_ONE_SHIFT wouldn't have to use __COUNTER__ in any
+meaningful way. This of course goes out the window if
+check_shl_overflow is robustified with UNIQUE_ID. There's even a way to
+work around that, but I'd better stop here.]
 
 
-On 8/1/2018 9:27 AM, Max Gurtovoy wrote:
->
->
-> On 8/1/2018 8:12 AM, Sagi Grimberg wrote:
->> Hi Max,
->
-> Hi,
->
->>
->>> Yes, since nvmf is the only user of this function.
->>> Still waiting for comments on the suggested patch :)
->>>
->>
->> Sorry for the late response (but I'm on vacation so I have
->> an excuse ;))
->
-> NP :) currently the code works..
->
->>
->> I'm thinking that we should avoid trying to find an assignment
->> when stuff like irqbalance daemon is running and changing
->> the affinitization.
->
-> but this is exactly what Steve complained and Leon try to fix (and
-> break the connection establishment).
-> If this is the case and we all agree then we're good without Leon's
-> patch and without our suggestions.
->
+> +	__failed;							\
+> +})
+> +
+> +	err |= TEST_ONE_SHIFT(1, 0, int, 1 << 0, false);
+> +	err |= TEST_ONE_SHIFT(1, 16, int, 1 << 16, false);
+> +	err |= TEST_ONE_SHIFT(1, 30, int, 1 << 30, false);
+> +	err |= TEST_ONE_SHIFT(1, 0, s32, 1 << 0, false);
+> +	err |= TEST_ONE_SHIFT(1, 16, s32, 1 << 16, false);
+> +	err |= TEST_ONE_SHIFT(1, 30, s32, 1 << 30, false);
 
-I don't agree.  Currently setting certain affinity mappings breaks nvme
-connectivity.  I don't think that is desirable.  And mlx5 is broken in
-that it doesn't allow changing the affinity but silently ignores the
-change, which misleads the admin or irqbalance...
- 
+I don't see much point in doing both int and s32 as they are AFAIK
+unconditionally the same on all architectures. Similarly for unsigned
+int/u32.
 
+> +
+> +	/* Overflow: shifted at or beyond entire type's bit width. */
+> +	err |= TEST_ONE_SHIFT(0, 8, u8, 0, true);
+> +	err |= TEST_ONE_SHIFT(0, 9, u8, 0, true);
 
->>
->> This extension was made to apply optimal affinity assignment
->> when the device irq affinity is lined up in a vector per
->> core.
->>
->> I'm thinking that when we identify this is not the case, we immediately
->> fallback to the default mapping.
->>
->> 1. when we get a mask, if its weight != 1, we fallback.
->> 2. if a queue was left unmapped, we fallback.
->>
->> Maybe something like the following:
->
-> did you test it ? I think it will not work since you need to map all
-> the queues and all the CPUs.
->
->> -- 
->> diff --git a/block/blk-mq-rdma.c b/block/blk-mq-rdma.c
->> index 996167f1de18..1ada6211c55e 100644
->> --- a/block/blk-mq-rdma.c
->> +++ b/block/blk-mq-rdma.c
->> @@ -35,17 +35,26 @@ int blk_mq_rdma_map_queues(struct blk_mq_tag_set
->> *set,
->>          const struct cpumask *mask;
->>          unsigned int queue, cpu;
->>
->> +       /* reset all CPUs mapping */
->> +       for_each_possible_cpu(cpu)
->> +               set->mq_map[cpu] = UINT_MAX;
->> +
->>          for (queue = 0; queue < set->nr_hw_queues; queue++) {
->>                  mask = ib_get_vector_affinity(dev, first_vec + queue);
->>                  if (!mask)
->>                          goto fallback;
->>
->> -               for_each_cpu(cpu, mask)
->> -                       set->mq_map[cpu] = queue;
->> +               if (cpumask_weight(mask) != 1)
->> +                       goto fallback;
->> +
->> +               cpu = cpumask_first(mask);
->> +               if (set->mq_map[cpu] != UINT_MAX)
->> +                       goto fallback;
->> +
->> +               set->mq_map[cpu] = queue;
->>          }
->>
->>          return 0;
->> -
->>   fallback:
->>          return blk_mq_map_queues(set);
->>   }
->> -- 
->
-> see attached another algorithem that can improve the mapping (although
-> it's not a short one)...
->
-> it will try to map according to affinity mask, and also in case the
-> mask weight > 1 it will try to be better than the naive mapping I
-> suggest in the previous email.
->
+Hmm, seeing these I'd actually rather we didn't base the upper bound for
+the shift count on sizeof(*d) but rather used a fixed 64, since that's
+what we use for the temporary variable, and capping the shift count is
+mostly for avoiding UB in the implementation. For any non-zero input
+value, a shift count greater than 8 would still report overflow because
+of the truncation.
 
-Let me know if you want me to try this or any particular fix.
+More generally, I think that if the actual C expression
 
-Steve.
+  a << s
+
+doesn't invoke UB (i.e., a is non-negative and s is sane according to
+the type of a), no bits are lots during the shift, and the result fits
+in *d, we should not report overflow. Hence we should not impose
+arbitrary limits on s just because the destination happens to be u8.
+That some shift count/destination type combos then happen to guarantee
+overflow for all but an input of 0 is just the way the math works.
+
+> +
+> +	/*
+> +	 * Corner case: for unsigned types, we fail when we've shifted
+> +	 * through the entire width of bits. For signed types, we might
+> +	 * want to match this behavior, but that would mean noticing if
+> +	 * we shift through all but the signed bit, and this is not
+> +	 * currently detected (but we'll notice an overflow into the
+> +	 * signed bit). So, for now, we will test this condition but
+> +	 * mark it as not expected to overflow.
+> +	 */
+> +	err |= TEST_ONE_SHIFT(0, 7, s8, 0, false);
+> +	err |= TEST_ONE_SHIFT(0, 15, s16, 0, false);
+> +	err |= TEST_ONE_SHIFT(0, 31, int, 0, false);
+> +	err |= TEST_ONE_SHIFT(0, 31, s32, 0, false);
+> +	err |= TEST_ONE_SHIFT(0, 63, s64, 0, false);
+
+I can't really see how this is a "corner case". For an s8 destination
+and a shift count of, say, 4, there happens to be 8 input values that
+won't lead to "overflow". When the shift count is 7, there's 1 input
+value that won't lead to "overflow". So?
+
+Rasmus
