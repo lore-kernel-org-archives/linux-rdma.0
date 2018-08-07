@@ -1,34 +1,37 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH v6 9/9] nfp: Do not call pcie_print_link_status()
-Date: Mon,  6 Aug 2018 18:25:43 -0500
-Message-ID: <20180806232600.25694-9-mr.nuke.me@gmail.com>
-References: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
- <20180806232600.25694-1-mr.nuke.me@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180806232600.25694-1-mr.nuke.me@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org, bhelgaas@google.com, jakub.kicinski@netronome.com
-Cc: keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH net-next] RDS: IB: fix 'passing zero to ERR_PTR()' warning
+Date: Tue, 7 Aug 2018 19:34:16 +0800
+Message-ID: <20180807113416.12680-1-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: santosh.shilimkar@oracle.com, davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is now done by the PCI core to warn of sub-optimal bandwidth.
+Fix a static code checker warning:
+ net/rds/ib_frmr.c:82 rds_ib_alloc_frmr() warn: passing zero to 'ERR_PTR'
 
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+The error path for ib_alloc_mr failure should set err to PTR_ERR.
+
+Fixes: 1659185fb4d0 ("RDS: IB: Support Fastreg MR (FRMR) memory registration mode") 
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 ---
- drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c | 1 -
- 1 file changed, 1 deletion(-)
+ net/rds/ib_frmr.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-index 749655c329b2..0324f99bd1a7 100644
---- a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-+++ b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
-@@ -1324,7 +1324,6 @@ struct nfp_cpp *nfp_cpp_from_nfp6000_pcie(struct pci_dev *pdev)
- 	/*  Finished with card initialization. */
- 	dev_info(&pdev->dev,
- 		 "Netronome Flow Processor NFP4000/NFP6000 PCIe Card Probe\n");
--	pcie_print_link_status(pdev);
+diff --git a/net/rds/ib_frmr.c b/net/rds/ib_frmr.c
+index b371cf0..6431a02 100644
+--- a/net/rds/ib_frmr.c
++++ b/net/rds/ib_frmr.c
+@@ -61,6 +61,7 @@ static struct rds_ib_mr *rds_ib_alloc_frmr(struct rds_ib_device *rds_ibdev,
+ 			 pool->fmr_attr.max_pages);
+ 	if (IS_ERR(frmr->mr)) {
+ 		pr_warn("RDS/IB: %s failed to allocate MR", __func__);
++		err = PTR_ERR(frmr->mr);
+ 		goto out_no_cigar;
+ 	}
  
- 	nfp = kzalloc(sizeof(*nfp), GFP_KERNEL);
- 	if (!nfp) {
 -- 
-2.17.1
+2.7.0
