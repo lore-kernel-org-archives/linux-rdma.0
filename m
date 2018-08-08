@@ -1,27 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/33] net: ethernet: Mark expected switch fall-throughs
-Date: Tue, 07 Aug 2018 17:59:31 -0700 (PDT)
-Message-ID: <20180807.175931.200772329178253653.davem@davemloft.net>
-References: <cover.1533675546.git.gustavo@embeddedor.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v6 8/9] net/mlx5: Do not call pcie_print_link_status()
+Date: Wed, 8 Aug 2018 09:08:48 +0300
+Message-ID: <20180808060848.GQ13378@mtr-leonro.mtl.com>
+References: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
+ <20180806232600.25694-1-mr.nuke.me@gmail.com>
+ <20180806232600.25694-8-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="2hMgfIw2X+zgXrFs"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1533675546.git.gustavo@embeddedor.com>
+Content-Disposition: inline
+In-Reply-To: <20180806232600.25694-8-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: gustavo@embeddedor.com
-Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-net-drivers@solarflare.com, ecree@solarflare.com, bkenward@solarflare.com, jes@trained-monkey.org, linux-acenic@sunsite.dk, michael.chan@broadcom.com, nicolas.ferre@microchip.com, derek.chickles@caviumnetworks.com, satananda.burla@caviumnetworks.com, felix.manlunas@caviumnetworks.com, raghu.vatsavayi@caviumnetworks.com, ganeshgr@chelsio.com, santosh@chelsio.com, sgoutham@cavium.com, rric@kernel.org, linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, sathya.perla@broadcom.com, ajit.khaparde@broadcom.com, sriharsha.basavapatna@broadcom.com, somnath.kotur@broadcom.com, yisen.zhuang@huawei.com, salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, tariqt@mellanox.coml
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, jakub.kicinski@netronome.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Date: Tue, 7 Aug 2018 18:09:00 -0500
 
-> In preparation to enabling -Wimplicit-fallthrough, this patchset aims
-> to add some annotations in order to mark switch cases where we are
-> expecting to fall through.
+--2hMgfIw2X+zgXrFs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Ok, I went through all of these and they look good.
+On Mon, Aug 06, 2018 at 06:25:42PM -0500, Alexandru Gagniuc wrote:
+> This is now done by the PCI core to warn of sub-optimal bandwidth.
+>
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
+>  1 file changed, 4 deletions(-)
+>
 
-If any are not correct we can revert/fix.
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
-Series applied, thanks.
+--2hMgfIw2X+zgXrFs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbaojwAAoJEORje4g2clin/HIP/2W8reNA2ST0qw9ktcqoAtM5
+XQKIgyD8DVxLkj0MjeQ+bzCpWwHzhNzXWMp+roOdvwhZSFav1uW+KyFidPn+r/0Q
+6OR57qkoWv0Z/+35kFu5XWcSXg0g+3AzdukC42x6icE9zJKHzFIOYP5Q4AxUwNG0
+ucAaouLXgioVQEyl64H7LgTzQNaUXPNb4zX8SaEtPBBeE1q0bo1LqBLLfUxRlGb8
+LcgkPpKcDoLM5MKZVWmPGPR2S0imdDgt7K/1d8QvW7obq02dkwCLUG6DRw2qjLdC
+K9heg0zilZlS2/fpzxIgrBTmdrSVxTU3ThEYF6h5PHcJTAZ3QNo8BYOmpG0Htic3
+/QT317O6cM/gEZbySsBxGMJHa/li/5+Btv7e1B1lsoARsIuZsuEYy0giK5c1rqx0
+pgD2miV4TnJdOmqvImtsrLQQF43PE9oemIYvhRIuItEDPWBEU6eElnQoGiH23RXE
+l4X1NVruTJzEpEkirzpkdQ1GdsL82AXeil1QO0iD/f4+4j04mDbzRoVeYFLO/OM1
+qRTZhfvydrbQIzP4zw9yWVqxbqHiRoEMjyY0vfD0lvnhq+8shcWFeFQLzBGOXDSn
+sqFSL7sFxAG3VcnWYwEiBvacuuEr4vSMCgbm9rvhBwXzNFp5XT3v02eYvgQ9P6Lr
+ph6iCl9z86ww3oO/AGmo
+=I8Ry
+-----END PGP SIGNATURE-----
+
+--2hMgfIw2X+zgXrFs--
