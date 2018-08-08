@@ -1,135 +1,48 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v6 8/9] net/mlx5: Do not call pcie_print_link_status()
-Date: Wed, 8 Aug 2018 20:27:36 +0300
-Message-ID: <20180808172736.GB13378@mtr-leonro.mtl.com>
-References: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
- <20180806232600.25694-1-mr.nuke.me@gmail.com>
- <20180806232600.25694-8-mr.nuke.me@gmail.com>
- <20180808060848.GQ13378@mtr-leonro.mtl.com>
- <05056a70-ee78-ea3c-0b9b-6d64a8663b11@mellanox.com>
- <20180808154142.GZ13378@mtr-leonro.mtl.com>
- <5578cd9a-e4f0-85ab-4a86-bfa23eec136c@mellanox.com>
- <79264a38-e3e4-d270-95df-a09047f7a15e@gmail.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH 24/33] net/mlx5e: Mark expected switch fall-throughs
+Date: Wed, 8 Aug 2018 15:26:27 -0700
+Message-ID: <CALzJLG-P9mZfF_kauDTd4R09a0Wq4pPvKTbyNt1KA_1654N9_Q@mail.gmail.com>
+References: <cover.1533675546.git.gustavo@embeddedor.com> <3c523c58a8e3f3d240d4ff9363d672fb977c9d93.1533675546.git.gustavo@embeddedor.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="mXDO3udm/xYWQeMQ"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <79264a38-e3e4-d270-95df-a09047f7a15e@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Alex G." <mr.nuke.me@gmail.com>
-Cc: Tal Gilboa <talgi@mellanox.com>, linux-pci@vger.kernel.org, bhelgaas@google.com, jakub.kicinski@netronome.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3c523c58a8e3f3d240d4ff9363d672fb977c9d93.1533675546.git.gustavo@embeddedor.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: "David S. Miller" <davem@davemloft.net>, Linux Netdev List <netdev@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---mXDO3udm/xYWQeMQ
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Aug 08, 2018 at 11:33:51AM -0500, Alex G. wrote:
+On Tue, Aug 7, 2018 at 4:25 PM, Gustavo A. R. Silva
+<gustavo@embeddedor.com> wrote:
+> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
+> where we are expecting to fall through.
 >
+> Addresses-Coverity-ID: 114808 ("Missing break in switch")
+> Addresses-Coverity-ID: 114802 ("Missing break in switch")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >
-> On 08/08/2018 10:56 AM, Tal Gilboa wrote:
-> > On 8/8/2018 6:41 PM, Leon Romanovsky wrote:
-> > > On Wed, Aug 08, 2018 at 05:23:12PM +0300, Tal Gilboa wrote:
-> > > > On 8/8/2018 9:08 AM, Leon Romanovsky wrote:
-> > > > > On Mon, Aug 06, 2018 at 06:25:42PM -0500, Alexandru Gagniuc wrote:
-> > > > > > This is now done by the PCI core to warn of sub-optimal bandwid=
-th.
-> > > > > >
-> > > > > > Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-> > > > > > ---
-> > > > > > =A0=A0 drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
-> > > > > > =A0=A0 1 file changed, 4 deletions(-)
-> > > > > >
-> > > > >
-> > > > > Thanks,
-> > > > > Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> > > > >
-> > > >
-> > > > Alex,
-> > > > I loaded mlx5 driver with and without these series. The report
-> > > > in dmesg is
-> > > > now missing. From what I understood, the status should be
-> > > > reported at least
-> > > > once, even if everything is in order.
-> > >
-> > > It is not what this series is doing and it removes prints completely =
-if
-> > > fabric can deliver more than card is capable.
-> > >
-> > > > We need this functionality to stay.
-> > >
-> > > I'm not sure that you need this information in driver's dmesg output,
-> > > but most probably something globally visible and accessible per-pci
-> > > device.
-> >
-> > Currently we have users that look for it. If we remove the dmesg print
-> > we need this to be reported elsewhere. Adding it to sysfs for example
-> > should be a valid solution for our case.
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+> index 1881468..ad6d471 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
+> @@ -91,9 +91,11 @@ bool mlx5e_xdp_handle(struct mlx5e_rq *rq, struct mlx5e_dma_info *di,
+>                 return true;
+>         default:
+>                 bpf_warn_invalid_xdp_action(act);
+> +               /* fall through */
+>         case XDP_ABORTED:
+>  xdp_abort:
+>                 trace_xdp_exception(rq->netdev, prog, act);
+> +               /* fall through */
+>         case XDP_DROP:
+>                 rq->stats->xdp_drop++;
+>                 return true;
+> --
+> 2.7.4
 >
-> I think a stop-gap measure is to leave the pcie_print_link_status() call =
-in
-> drivers that really need it for whatever reason. Implementing a reliable
-> reporting through sysfs might take some tinkering, and I don't think it's=
- a
-> sufficient reason to block the heart of this series -- being able to dete=
-ct
-> bottlenecks and link downtraining.
-
-IMHO, you did right change and it is better to replace this print to some
-more generic solution now while you are doing it and don't leave leftovers.
-
-Thanks
-
->
-> Alex
->
-> > >
-> > > >
-> > > > net-next (dmesg output for 07:00.0):
-> > > > [270498.625351] mlx5_core 0000:07:00.0: firmware version: 14.22.4020
-> > > > [270498.632130] mlx5_core 0000:07:00.0: 63.008 Gb/s available
-> > > > PCIe bandwidth
-> > > > (8 GT/s x8 link)
-> > > > [270499.169533] (0000:07:00.0): E-Switch: Total vports 9, per vport=
-: max
-> > > > uc(1024) max mc(16384)
-> > > > [270499.182358] mlx5_core 0000:07:00.0: Port module event:
-> > > > module 0, Cable
-> > > > plugged
-> > > >
-> > > > net-next + patches (dmesg output for 07:00.0):
-> > > > [=A0 331.608472] mlx5_core 0000:07:00.0: firmware version: 14.22.40=
-20
-> > > > [=A0 332.564938] (0000:07:00.0): E-Switch: Total vports 9, per vpor=
-t: max
-> > > > uc(1024) max mc(16384)
-> > > > [=A0 332.616271] mlx5_core 0000:07:00.0: Port module event: module
-> > > > 0, Cable
-> > > > plugged
-> > > >
-> > > >
-
---mXDO3udm/xYWQeMQ
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbaygIAAoJEORje4g2clinD3oP/257jSKTCkI3FUiqmT5G1WqS
-+IMg0/i8ShffFMfKq/MEwYKNHkYHzD2SRRM5sI2OKsA4BaivqsxkASbZSA6jNt6E
-57Or3vwsSZUZvwrkEjyqUduvp6CbZIjNQ4pLJhCOXwMFHyKL/zSKbwwqpueZl6Fa
-KTzzDzidv8gDVjZnd/HohtG7xC9PaCkyQncSOrYq0jPTVsxBUytTPy5t34THMoup
-OP1tct5Ei0R/WegvY+KpaCLSsP2SufytdovkYz3mrrrT1acPBIn5MvxR8VFKT+43
-SSOa5cKs5Q39N0csiL8UvMf7EgF1fNbpL2/oQtU+xAWqEU28w7jqE/FiZcGGzDdT
-Eavb5uy6jfdOeWR3SVGsNIT3F3d7exLCojniCTDdts4TShd2UUAl+3DSZLO8cNlL
-/arWoHrK9DbswSjmXa3R7tXDlVl5hs/mnVU6SPzNC6ApGqMV8jz2w5GVQfyXpQOl
-72brLxicafsMzPjh0vj+6/QjzuTPIFfc71vcSKYpcRitKIltJi1V8fD0RzoPq6lt
-oW2LTBpMKuZnjR06xKtYgoc4QN97jW17n750K+J8jvulRntaH+eZjWsoW60yA/0m
-SsD0352SaRL/5el0jL3917h76T5TH2iiIatklAwco6EgNtciHiIprjZ2ZGvRz24g
-KFBNnSnlL79Snqt0uHMU
-=Eeoq
------END PGP SIGNATURE-----
-
---mXDO3udm/xYWQeMQ--
