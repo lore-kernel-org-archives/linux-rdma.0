@@ -1,43 +1,27 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH 24/33] net/mlx5e: Mark expected switch fall-throughs
-Date: Tue, 7 Aug 2018 18:25:26 -0500
-Message-ID: <3c523c58a8e3f3d240d4ff9363d672fb977c9d93.1533675546.git.gustavo@embeddedor.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/33] net: ethernet: Mark expected switch fall-throughs
+Date: Tue, 07 Aug 2018 17:59:31 -0700 (PDT)
+Message-ID: <20180807.175931.200772329178253653.davem@davemloft.net>
 References: <cover.1533675546.git.gustavo@embeddedor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <cover.1533675546.git.gustavo@embeddedor.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org
+To: gustavo@embeddedor.com
+Cc: netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-net-drivers@solarflare.com, ecree@solarflare.com, bkenward@solarflare.com, jes@trained-monkey.org, linux-acenic@sunsite.dk, michael.chan@broadcom.com, nicolas.ferre@microchip.com, derek.chickles@caviumnetworks.com, satananda.burla@caviumnetworks.com, felix.manlunas@caviumnetworks.com, raghu.vatsavayi@caviumnetworks.com, ganeshgr@chelsio.com, santosh@chelsio.com, sgoutham@cavium.com, rric@kernel.org, linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, sathya.perla@broadcom.com, ajit.khaparde@broadcom.com, sriharsha.basavapatna@broadcom.com, somnath.kotur@broadcom.com, yisen.zhuang@huawei.com, salil.mehta@huawei.com, jeffrey.t.kirsher@intel.com, intel-wired-lan@lists.osuosl.org, tariqt@mellanox.coml
 List-Id: linux-rdma@vger.kernel.org
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Date: Tue, 7 Aug 2018 18:09:00 -0500
 
-Addresses-Coverity-ID: 114808 ("Missing break in switch")
-Addresses-Coverity-ID: 114802 ("Missing break in switch")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c | 2 ++
- 1 file changed, 2 insertions(+)
+> In preparation to enabling -Wimplicit-fallthrough, this patchset aims
+> to add some annotations in order to mark switch cases where we are
+> expecting to fall through.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-index 1881468..ad6d471 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/xdp.c
-@@ -91,9 +91,11 @@ bool mlx5e_xdp_handle(struct mlx5e_rq *rq, struct mlx5e_dma_info *di,
- 		return true;
- 	default:
- 		bpf_warn_invalid_xdp_action(act);
-+		/* fall through */
- 	case XDP_ABORTED:
- xdp_abort:
- 		trace_xdp_exception(rq->netdev, prog, act);
-+		/* fall through */
- 	case XDP_DROP:
- 		rq->stats->xdp_drop++;
- 		return true;
--- 
-2.7.4
+Ok, I went through all of these and they look good.
+
+If any are not correct we can revert/fix.
+
+Series applied, thanks.
