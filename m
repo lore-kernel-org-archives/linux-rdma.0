@@ -1,225 +1,999 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v6 8/9] net/mlx5: Do not call pcie_print_link_status()
-Date: Thu, 9 Aug 2018 09:02:55 -0500
-Message-ID: <20180809140255.GG49411@bhelgaas-glaptop.roam.corp.google.com>
-References: <CAErSpo4PK+SQLNfdkLNt9eLc7bpbxbkZCsa8T-tQpid601n0SQ@mail.gmail.com>
- <20180806232600.25694-1-mr.nuke.me@gmail.com>
- <20180806232600.25694-8-mr.nuke.me@gmail.com>
- <20180808060848.GQ13378@mtr-leonro.mtl.com>
- <05056a70-ee78-ea3c-0b9b-6d64a8663b11@mellanox.com>
- <20180808154142.GZ13378@mtr-leonro.mtl.com>
- <5578cd9a-e4f0-85ab-4a86-bfa23eec136c@mellanox.com>
- <79264a38-e3e4-d270-95df-a09047f7a15e@gmail.com>
- <20180808172736.GB13378@mtr-leonro.mtl.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] RDMA/bnxt_re: QPLIB: Add and use #define dev_fmt(fmt) "QPLIB: " fmt
+Date: Fri, 10 Aug 2018 11:42:46 -0700
+Message-ID: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180808172736.GB13378@mtr-leonro.mtl.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: "Alex G." <mr.nuke.me@gmail.com>, Tal Gilboa <talgi@mellanox.com>, linux-pci@vger.kernel.org, bhelgaas@google.com, jakub.kicinski@netronome.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
+To: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 08, 2018 at 08:27:36PM +0300, Leon Romanovsky wrote:
-> On Wed, Aug 08, 2018 at 11:33:51AM -0500, Alex G. wrote:
-> >
-> >
-> > On 08/08/2018 10:56 AM, Tal Gilboa wrote:
-> > > On 8/8/2018 6:41 PM, Leon Romanovsky wrote:
-> > > > On Wed, Aug 08, 2018 at 05:23:12PM +0300, Tal Gilboa wrote:
-> > > > > On 8/8/2018 9:08 AM, Leon Romanovsky wrote:
-> > > > > > On Mon, Aug 06, 2018 at 06:25:42PM -0500, Alexandru Gagniuc wrote:
-> > > > > > > This is now done by the PCI core to warn of sub-optimal bandwidth.
-> > > > > > >
-> > > > > > > Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-> > > > > > > ---
-> > > > > > >    drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
-> > > > > > >    1 file changed, 4 deletions(-)
-> > > > > > >
-> > > > > >
-> > > > > > Thanks,
-> > > > > > Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> > > > > >
-> > > > >
-> > > > > Alex,
-> > > > > I loaded mlx5 driver with and without these series. The report
-> > > > > in dmesg is
-> > > > > now missing. From what I understood, the status should be
-> > > > > reported at least
-> > > > > once, even if everything is in order.
-> > > >
-> > > > It is not what this series is doing and it removes prints completely if
-> > > > fabric can deliver more than card is capable.
-> > > >
-> > > > > We need this functionality to stay.
-> > > >
-> > > > I'm not sure that you need this information in driver's dmesg output,
-> > > > but most probably something globally visible and accessible per-pci
-> > > > device.
-> > >
-> > > Currently we have users that look for it. If we remove the dmesg print
-> > > we need this to be reported elsewhere. Adding it to sysfs for example
-> > > should be a valid solution for our case.
-> >
-> > I think a stop-gap measure is to leave the pcie_print_link_status() call in
-> > drivers that really need it for whatever reason. Implementing a reliable
-> > reporting through sysfs might take some tinkering, and I don't think it's a
-> > sufficient reason to block the heart of this series -- being able to detect
-> > bottlenecks and link downtraining.
-> 
-> IMHO, you did right change and it is better to replace this print to some
-> more generic solution now while you are doing it and don't leave leftovers.
+Consistently use the "QPLIB: " prefix for dev_<level> logging.
 
-I'd like to make forward progress on this, so I propose we merge only
-the PCI core change (patch 1/9) and drop the individual driver
-changes.  That would mean:
+Miscellanea:
 
-  - We'll get a message from every NIC driver that calls
-    pcie_print_link_status() as before.
+o Add missing newlines to avoid possible message interleaving
+o Coalesce consecutive dev_<level> uses that emit a message header to
+  avoid < 80 column lengths and mistakenly output on multiple lines
+o Reflow modified lines to use 80 columns where appropriate
+o Consistently use "%s: " where __func__ is output
+o QPLIB: is now always output immediately after the dev_<level> header
 
-  - We'll get a new message from the core for every downtrained link.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 130 +++++++++++------------------
+ drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  51 ++++++-----
+ drivers/infiniband/hw/bnxt_re/qplib_res.c  |  29 ++++---
+ drivers/infiniband/hw/bnxt_re/qplib_sp.c   |  57 ++++++-------
+ 4 files changed, 116 insertions(+), 151 deletions(-)
 
-  - If a link leading to the NIC is downtrained, there will be
-    duplicate messages.  Maybe that's overkill but it's not terrible.
-
-I provisionally put the patch below on my pci/enumeration branch.
-Objections?
-
-
-commit c870cc8cbc4d79014f3daa74d1e412f32e42bf1b
-Author: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Date:   Mon Aug 6 18:25:35 2018 -0500
-
-    PCI: Check for PCIe Link downtraining
-    
-    When both ends of a PCIe Link are capable of a higher bandwidth than is
-    currently in use, the Link is said to be "downtrained".  A downtrained Link
-    may indicate hardware or configuration problems in the system, but it's
-    hard to identify such Links from userspace.
-    
-    Refactor pcie_print_link_status() so it continues to always print PCIe
-    bandwidth information, as several NIC drivers desire.
-    
-    Add a new internal __pcie_print_link_status() to emit a message only when a
-    device's bandwidth is constrained by the fabric and call it from the PCI
-    core for all devices, which identifies all downtrained Links.  It also
-    emits messages for a few cases that are technically not downtrained, such
-    as a x4 device in an open-ended x1 slot.
-    
-    Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-    [bhelgaas: changelog, move __pcie_print_link_status() declaration to
-    drivers/pci/, rename pcie_check_upstream_link() to
-    pcie_report_downtraining()]
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 97acba712e4e..a84d341504a5 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -5264,14 +5264,16 @@ u32 pcie_bandwidth_capable(struct pci_dev *dev, enum pci_bus_speed *speed,
- }
- 
- /**
-- * pcie_print_link_status - Report the PCI device's link speed and width
-+ * __pcie_print_link_status - Report the PCI device's link speed and width
-  * @dev: PCI device to query
-+ * @verbose: Print info even when enough bandwidth is available
-  *
-- * Report the available bandwidth at the device.  If this is less than the
-- * device is capable of, report the device's maximum possible bandwidth and
-- * the upstream link that limits its performance to less than that.
-+ * If the available bandwidth at the device is less than the device is
-+ * capable of, report the device's maximum possible bandwidth and the
-+ * upstream link that limits its performance.  If @verbose, always print
-+ * the available bandwidth, even if the device isn't constrained.
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_fp.c b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+index e426b990c1dd..f92605aa42b4 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_fp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_fp.c
+@@ -36,6 +36,8 @@
+  * Description: Fast Path Operators
   */
--void pcie_print_link_status(struct pci_dev *dev)
-+void __pcie_print_link_status(struct pci_dev *dev, bool verbose)
+ 
++#define dev_fmt(fmt) "QPLIB: " fmt
++
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/sched.h>
+@@ -71,8 +73,7 @@ static void __bnxt_qplib_add_flush_qp(struct bnxt_qplib_qp *qp)
+ 
+ 	if (!qp->sq.flushed) {
+ 		dev_dbg(&scq->hwq.pdev->dev,
+-			"QPLIB: FP: Adding to SQ Flush list = %p",
+-			qp);
++			"FP: Adding to SQ Flush list = %p\n", qp);
+ 		bnxt_qplib_cancel_phantom_processing(qp);
+ 		list_add_tail(&qp->sq_flush, &scq->sqf_head);
+ 		qp->sq.flushed = true;
+@@ -80,8 +81,7 @@ static void __bnxt_qplib_add_flush_qp(struct bnxt_qplib_qp *qp)
+ 	if (!qp->srq) {
+ 		if (!qp->rq.flushed) {
+ 			dev_dbg(&rcq->hwq.pdev->dev,
+-				"QPLIB: FP: Adding to RQ Flush list = %p",
+-				qp);
++				"FP: Adding to RQ Flush list = %p\n", qp);
+ 			list_add_tail(&qp->rq_flush, &rcq->rqf_head);
+ 			qp->rq.flushed = true;
+ 		}
+@@ -207,7 +207,7 @@ static int bnxt_qplib_alloc_qp_hdr_buf(struct bnxt_qplib_res *res,
+ 		if (!qp->sq_hdr_buf) {
+ 			rc = -ENOMEM;
+ 			dev_err(&res->pdev->dev,
+-				"QPLIB: Failed to create sq_hdr_buf");
++				"Failed to create sq_hdr_buf\n");
+ 			goto fail;
+ 		}
+ 	}
+@@ -221,7 +221,7 @@ static int bnxt_qplib_alloc_qp_hdr_buf(struct bnxt_qplib_res *res,
+ 		if (!qp->rq_hdr_buf) {
+ 			rc = -ENOMEM;
+ 			dev_err(&res->pdev->dev,
+-				"QPLIB: Failed to create rq_hdr_buf");
++				"Failed to create rq_hdr_buf\n");
+ 			goto fail;
+ 		}
+ 	}
+@@ -277,8 +277,7 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 				num_cqne_processed++;
+ 			else
+ 				dev_warn(&nq->pdev->dev,
+-					 "QPLIB: cqn - type 0x%x not handled",
+-					 type);
++					 "cqn - type 0x%x not handled\n", type);
+ 			spin_unlock_bh(&cq->compl_lock);
+ 			break;
+ 		}
+@@ -298,7 +297,7 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 				num_srqne_processed++;
+ 			else
+ 				dev_warn(&nq->pdev->dev,
+-					 "QPLIB: SRQ event 0x%x not handled",
++					 "SRQ event 0x%x not handled\n",
+ 					 nqsrqe->event);
+ 			break;
+ 		}
+@@ -306,8 +305,7 @@ static void bnxt_qplib_service_nq(unsigned long data)
+ 			break;
+ 		default:
+ 			dev_warn(&nq->pdev->dev,
+-				 "QPLIB: nqe with type = 0x%x not handled",
+-				 type);
++				 "nqe with type = 0x%x not handled\n", type);
+ 			break;
+ 		}
+ 		raw_cons++;
+@@ -396,7 +394,7 @@ int bnxt_qplib_nq_start_irq(struct bnxt_qplib_nq *nq, int nq_indx,
+ 	rc = irq_set_affinity_hint(nq->vector, &nq->mask);
+ 	if (rc) {
+ 		dev_warn(&nq->pdev->dev,
+-			 "QPLIB: set affinity failed; vector: %d nq_idx: %d\n",
++			 "set affinity failed; vector: %d nq_idx: %d\n",
+ 			 nq->vector, nq_indx);
+ 	}
+ 	nq->requested = true;
+@@ -443,7 +441,7 @@ int bnxt_qplib_enable_nq(struct pci_dev *pdev, struct bnxt_qplib_nq *nq,
+ 	rc = bnxt_qplib_nq_start_irq(nq, nq_idx, msix_vector, true);
+ 	if (rc) {
+ 		dev_err(&nq->pdev->dev,
+-			"QPLIB: Failed to request irq for nq-idx %d", nq_idx);
++			"Failed to request irq for nq-idx %d\n", nq_idx);
+ 		goto fail;
+ 	}
+ 
+@@ -662,8 +660,8 @@ int bnxt_qplib_post_srq_recv(struct bnxt_qplib_srq *srq,
+ 
+ 	spin_lock(&srq_hwq->lock);
+ 	if (srq->start_idx == srq->last_idx) {
+-		dev_err(&srq_hwq->pdev->dev, "QPLIB: FP: SRQ (0x%x) is full!",
+-			srq->id);
++		dev_err(&srq_hwq->pdev->dev,
++			"FP: SRQ (0x%x) is full!\n", srq->id);
+ 		rc = -EINVAL;
+ 		spin_unlock(&srq_hwq->lock);
+ 		goto done;
+@@ -1324,7 +1322,7 @@ int bnxt_qplib_query_qp(struct bnxt_qplib_res *res, struct bnxt_qplib_qp *qp)
+ 		}
+ 	}
+ 	if (i == res->sgid_tbl.max)
+-		dev_warn(&res->pdev->dev, "QPLIB: SGID not found??");
++		dev_warn(&res->pdev->dev, "SGID not found??\n");
+ 
+ 	qp->ah.hop_limit = sb->hop_limit;
+ 	qp->ah.traffic_class = sb->traffic_class;
+@@ -1536,7 +1534,7 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
+ 
+ 	if (bnxt_qplib_queue_full(sq)) {
+ 		dev_err(&sq->hwq.pdev->dev,
+-			"QPLIB: prod = %#x cons = %#x qdepth = %#x delta = %#x",
++			"prod = %#x cons = %#x qdepth = %#x delta = %#x\n",
+ 			sq->hwq.prod, sq->hwq.cons, sq->hwq.max_elements,
+ 			sq->q_full_delta);
+ 		rc = -ENOMEM;
+@@ -1561,7 +1559,7 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
+ 		/* Copy the inline data */
+ 		if (wqe->inline_len > BNXT_QPLIB_SWQE_MAX_INLINE_LENGTH) {
+ 			dev_warn(&sq->hwq.pdev->dev,
+-				 "QPLIB: Inline data length > 96 detected");
++				 "Inline data length > 96 detected\n");
+ 			data_len = BNXT_QPLIB_SWQE_MAX_INLINE_LENGTH;
+ 		} else {
+ 			data_len = wqe->inline_len;
+@@ -1776,7 +1774,7 @@ int bnxt_qplib_post_send(struct bnxt_qplib_qp *qp,
+ 			queue_work(qp->scq->nq->cqn_wq, &nq_work->work);
+ 		} else {
+ 			dev_err(&sq->hwq.pdev->dev,
+-				"QPLIB: FP: Failed to allocate SQ nq_work!");
++				"FP: Failed to allocate SQ nq_work!\n");
+ 			rc = -ENOMEM;
+ 		}
+ 	}
+@@ -1815,13 +1813,12 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
+ 	if (qp->state == CMDQ_MODIFY_QP_NEW_STATE_ERR) {
+ 		sch_handler = true;
+ 		dev_dbg(&rq->hwq.pdev->dev,
+-			"%s Error QP. Scheduling for poll_cq\n",
+-			__func__);
++			"%s: Error QP. Scheduling for poll_cq\n", __func__);
+ 		goto queue_err;
+ 	}
+ 	if (bnxt_qplib_queue_full(rq)) {
+ 		dev_err(&rq->hwq.pdev->dev,
+-			"QPLIB: FP: QP (0x%x) RQ is full!", qp->id);
++			"FP: QP (0x%x) RQ is full!\n", qp->id);
+ 		rc = -EINVAL;
+ 		goto done;
+ 	}
+@@ -1870,7 +1867,7 @@ int bnxt_qplib_post_recv(struct bnxt_qplib_qp *qp,
+ 			queue_work(qp->rcq->nq->cqn_wq, &nq_work->work);
+ 		} else {
+ 			dev_err(&rq->hwq.pdev->dev,
+-				"QPLIB: FP: Failed to allocate RQ nq_work!");
++				"FP: Failed to allocate RQ nq_work!\n");
+ 			rc = -ENOMEM;
+ 		}
+ 	}
+@@ -1932,7 +1929,7 @@ int bnxt_qplib_create_cq(struct bnxt_qplib_res *res, struct bnxt_qplib_cq *cq)
+ 
+ 	if (!cq->dpi) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: FP: CREATE_CQ failed due to NULL DPI");
++			"FP: CREATE_CQ failed due to NULL DPI\n");
+ 		return -EINVAL;
+ 	}
+ 	req.dpi = cpu_to_le32(cq->dpi->dpi);
+@@ -2172,7 +2169,7 @@ static int do_wa9060(struct bnxt_qplib_qp *qp, struct bnxt_qplib_cq *cq,
+ 						 *  comes back
+ 						 */
+ 						dev_dbg(&cq->hwq.pdev->dev,
+-							"FP:Got Phantom CQE");
++							"FP: Got Phantom CQE\n");
+ 						sq->condition = false;
+ 						sq->single = true;
+ 						rc = 0;
+@@ -2189,7 +2186,7 @@ static int do_wa9060(struct bnxt_qplib_qp *qp, struct bnxt_qplib_cq *cq,
+ 			peek_raw_cq_cons++;
+ 		}
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"Should not have come here! cq_cons=0x%x qp=0x%x sq cons sw=0x%x hw=0x%x",
++			"Should not have come here! cq_cons=0x%x qp=0x%x sq cons sw=0x%x hw=0x%x\n",
+ 			cq_cons, qp->id, sw_sq_cons, cqe_sq_cons);
+ 		rc = -EINVAL;
+ 	}
+@@ -2213,7 +2210,7 @@ static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
+ 				      le64_to_cpu(hwcqe->qp_handle));
+ 	if (!qp) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: Process Req qp is NULL");
++			"FP: Process Req qp is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 	sq = &qp->sq;
+@@ -2221,16 +2218,14 @@ static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
+ 	cqe_sq_cons = HWQ_CMP(le16_to_cpu(hwcqe->sq_cons_idx), &sq->hwq);
+ 	if (cqe_sq_cons > sq->hwq.max_elements) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: CQ Process req reported ");
+-		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: sq_cons_idx 0x%x which exceeded max 0x%x",
++			"FP: CQ Process req reported sq_cons_idx 0x%x which exceeded max 0x%x\n",
+ 			cqe_sq_cons, sq->hwq.max_elements);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (qp->sq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		goto done;
+ 	}
+ 	/* Require to walk the sq's swq to fabricate CQEs for all previously
+@@ -2262,9 +2257,7 @@ static int bnxt_qplib_cq_process_req(struct bnxt_qplib_cq *cq,
+ 		    hwcqe->status != CQ_REQ_STATUS_OK) {
+ 			cqe->status = hwcqe->status;
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Processed Req ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id[%d] = 0x%llx with status 0x%x",
++				"FP: CQ Processed Req wr_id[%d] = 0x%llx with status 0x%x\n",
+ 				sw_sq_cons, cqe->wr_id, cqe->status);
+ 			cqe++;
+ 			(*budget)--;
+@@ -2330,12 +2323,12 @@ static int bnxt_qplib_cq_process_res_rc(struct bnxt_qplib_cq *cq,
+ 	qp = (struct bnxt_qplib_qp *)((unsigned long)
+ 				      le64_to_cpu(hwcqe->qp_handle));
+ 	if (!qp) {
+-		dev_err(&cq->hwq.pdev->dev, "QPLIB: process_cq RC qp is NULL");
++		dev_err(&cq->hwq.pdev->dev, "process_cq RC qp is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 	if (qp->rq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		goto done;
+ 	}
+ 
+@@ -2356,9 +2349,7 @@ static int bnxt_qplib_cq_process_res_rc(struct bnxt_qplib_cq *cq,
+ 			return -EINVAL;
+ 		if (wr_id_idx >= srq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process RC ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id idx 0x%x exceeded SRQ max 0x%x",
++				"FP: CQ Process RC wr_id idx 0x%x exceeded SRQ max 0x%x\n",
+ 				wr_id_idx, srq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2371,9 +2362,7 @@ static int bnxt_qplib_cq_process_res_rc(struct bnxt_qplib_cq *cq,
+ 		rq = &qp->rq;
+ 		if (wr_id_idx >= rq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process RC ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id idx 0x%x exceeded RQ max 0x%x",
++				"FP: CQ Process RC wr_id idx 0x%x exceeded RQ max 0x%x\n",
+ 				wr_id_idx, rq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2409,12 +2398,12 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 	qp = (struct bnxt_qplib_qp *)((unsigned long)
+ 				      le64_to_cpu(hwcqe->qp_handle));
+ 	if (!qp) {
+-		dev_err(&cq->hwq.pdev->dev, "QPLIB: process_cq UD qp is NULL");
++		dev_err(&cq->hwq.pdev->dev, "process_cq UD qp is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 	if (qp->rq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		goto done;
+ 	}
+ 	cqe = *pcqe;
+@@ -2439,9 +2428,7 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 
+ 		if (wr_id_idx >= srq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process UD ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id idx 0x%x exceeded SRQ max 0x%x",
++				"FP: CQ Process UD wr_id idx 0x%x exceeded SRQ max 0x%x\n",
+ 				wr_id_idx, srq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2454,9 +2441,7 @@ static int bnxt_qplib_cq_process_res_ud(struct bnxt_qplib_cq *cq,
+ 		rq = &qp->rq;
+ 		if (wr_id_idx >= rq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process UD ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id idx 0x%x exceeded RQ max 0x%x",
++				"FP: CQ Process UD wr_id idx 0x%x exceeded RQ max 0x%x\n",
+ 				wr_id_idx, rq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2508,13 +2493,12 @@ static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
+ 	qp = (struct bnxt_qplib_qp *)((unsigned long)
+ 				      le64_to_cpu(hwcqe->qp_handle));
+ 	if (!qp) {
+-		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: process_cq Raw/QP1 qp is NULL");
++		dev_err(&cq->hwq.pdev->dev, "process_cq Raw/QP1 qp is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 	if (qp->rq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		goto done;
+ 	}
+ 	cqe = *pcqe;
+@@ -2543,14 +2527,12 @@ static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
+ 		srq = qp->srq;
+ 		if (!srq) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: SRQ used but not defined??");
++				"FP: SRQ used but not defined??\n");
+ 			return -EINVAL;
+ 		}
+ 		if (wr_id_idx >= srq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process Raw/QP1 ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: wr_id idx 0x%x exceeded SRQ max 0x%x",
++				"FP: CQ Process Raw/QP1 wr_id idx 0x%x exceeded SRQ max 0x%x\n",
+ 				wr_id_idx, srq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2563,9 +2545,7 @@ static int bnxt_qplib_cq_process_res_raweth_qp1(struct bnxt_qplib_cq *cq,
+ 		rq = &qp->rq;
+ 		if (wr_id_idx >= rq->hwq.max_elements) {
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: FP: CQ Process Raw/QP1 RQ wr_id ");
+-			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: ix 0x%x exceeded RQ max 0x%x",
++				"FP: CQ Process Raw/QP1 RQ wr_id idx 0x%x exceeded RQ max 0x%x\n",
+ 				wr_id_idx, rq->hwq.max_elements);
+ 			return -EINVAL;
+ 		}
+@@ -2600,14 +2580,14 @@ static int bnxt_qplib_cq_process_terminal(struct bnxt_qplib_cq *cq,
+ 	/* Check the Status */
+ 	if (hwcqe->status != CQ_TERMINAL_STATUS_OK)
+ 		dev_warn(&cq->hwq.pdev->dev,
+-			 "QPLIB: FP: CQ Process Terminal Error status = 0x%x",
++			 "FP: CQ Process Terminal Error status = 0x%x\n",
+ 			 hwcqe->status);
+ 
+ 	qp = (struct bnxt_qplib_qp *)((unsigned long)
+ 				      le64_to_cpu(hwcqe->qp_handle));
+ 	if (!qp) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: CQ Process terminal qp is NULL");
++			"FP: CQ Process terminal qp is NULL\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2623,16 +2603,14 @@ static int bnxt_qplib_cq_process_terminal(struct bnxt_qplib_cq *cq,
+ 
+ 	if (cqe_cons > sq->hwq.max_elements) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: CQ Process terminal reported ");
+-		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: sq_cons_idx 0x%x which exceeded max 0x%x",
++			"FP: CQ Process terminal reported sq_cons_idx 0x%x which exceeded max 0x%x\n",
+ 			cqe_cons, sq->hwq.max_elements);
+ 		goto do_rq;
+ 	}
+ 
+ 	if (qp->sq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		goto sq_done;
+ 	}
+ 
+@@ -2673,16 +2651,14 @@ static int bnxt_qplib_cq_process_terminal(struct bnxt_qplib_cq *cq,
+ 		goto done;
+ 	} else if (cqe_cons > rq->hwq.max_elements) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: CQ Processed terminal ");
+-		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: reported rq_cons_idx 0x%x exceeds max 0x%x",
++			"FP: CQ Processed terminal reported rq_cons_idx 0x%x exceeds max 0x%x\n",
+ 			cqe_cons, rq->hwq.max_elements);
+ 		goto done;
+ 	}
+ 
+ 	if (qp->rq.flushed) {
+ 		dev_dbg(&cq->hwq.pdev->dev,
+-			"%s: QPLIB: QP in Flush QP = %p\n", __func__, qp);
++			"%s: QP in Flush QP = %p\n", __func__, qp);
+ 		rc = 0;
+ 		goto done;
+ 	}
+@@ -2704,7 +2680,7 @@ static int bnxt_qplib_cq_process_cutoff(struct bnxt_qplib_cq *cq,
+ 	/* Check the Status */
+ 	if (hwcqe->status != CQ_CUTOFF_STATUS_OK) {
+ 		dev_err(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: CQ Process Cutoff Error status = 0x%x",
++			"FP: CQ Process Cutoff Error status = 0x%x\n",
+ 			hwcqe->status);
+ 		return -EINVAL;
+ 	}
+@@ -2724,16 +2700,12 @@ int bnxt_qplib_process_flush_list(struct bnxt_qplib_cq *cq,
+ 
+ 	spin_lock_irqsave(&cq->flush_lock, flags);
+ 	list_for_each_entry(qp, &cq->sqf_head, sq_flush) {
+-		dev_dbg(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: Flushing SQ QP= %p",
+-			qp);
++		dev_dbg(&cq->hwq.pdev->dev, "FP: Flushing SQ QP= %p\n", qp);
+ 		__flush_sq(&qp->sq, qp, &cqe, &budget);
+ 	}
+ 
+ 	list_for_each_entry(qp, &cq->rqf_head, rq_flush) {
+-		dev_dbg(&cq->hwq.pdev->dev,
+-			"QPLIB: FP: Flushing RQ QP= %p",
+-			qp);
++		dev_dbg(&cq->hwq.pdev->dev, "FP: Flushing RQ QP= %p\n", qp);
+ 		__flush_rq(&qp->rq, qp, &cqe, &budget);
+ 	}
+ 	spin_unlock_irqrestore(&cq->flush_lock, flags);
+@@ -2801,7 +2773,7 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ 			goto exit;
+ 		default:
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: process_cq unknown type 0x%lx",
++				"process_cq unknown type 0x%lx\n",
+ 				hw_cqe->cqe_type_toggle &
+ 				CQ_BASE_CQE_TYPE_MASK);
+ 			rc = -EINVAL;
+@@ -2814,7 +2786,7 @@ int bnxt_qplib_poll_cq(struct bnxt_qplib_cq *cq, struct bnxt_qplib_cqe *cqe,
+ 			 * next one
+ 			 */
+ 			dev_err(&cq->hwq.pdev->dev,
+-				"QPLIB: process_cqe error rc = 0x%x", rc);
++				"process_cqe error rc = 0x%x\n", rc);
+ 		}
+ 		raw_cons++;
+ 	}
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+index 2852d350ada1..14105004d258 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_rcfw.c
+@@ -35,6 +35,9 @@
+  *
+  * Description: RDMA Controller HW interface
+  */
++
++#define dev_fmt(fmt) "QPLIB: " fmt
++
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/pci.h>
+@@ -96,14 +99,13 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 	     opcode != CMDQ_BASE_OPCODE_INITIALIZE_FW &&
+ 	     opcode != CMDQ_BASE_OPCODE_QUERY_VERSION)) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: RCFW not initialized, reject opcode 0x%x",
+-			opcode);
++			"RCFW not initialized, reject opcode 0x%x\n", opcode);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (test_bit(FIRMWARE_INITIALIZED_FLAG, &rcfw->flags) &&
+ 	    opcode == CMDQ_BASE_OPCODE_INITIALIZE_FW) {
+-		dev_err(&rcfw->pdev->dev, "QPLIB: RCFW already initialized!");
++		dev_err(&rcfw->pdev->dev, "RCFW already initialized!\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -115,7 +117,7 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 	 */
+ 	spin_lock_irqsave(&cmdq->lock, flags);
+ 	if (req->cmd_size >= HWQ_FREE_SLOTS(cmdq)) {
+-		dev_err(&rcfw->pdev->dev, "QPLIB: RCFW: CMDQ is full!");
++		dev_err(&rcfw->pdev->dev, "RCFW: CMDQ is full!\n");
+ 		spin_unlock_irqrestore(&cmdq->lock, flags);
+ 		return -EAGAIN;
+ 	}
+@@ -154,7 +156,7 @@ static int __send_message(struct bnxt_qplib_rcfw *rcfw, struct cmdq_base *req,
+ 		cmdqe = &cmdq_ptr[get_cmdq_pg(sw_prod)][get_cmdq_idx(sw_prod)];
+ 		if (!cmdqe) {
+ 			dev_err(&rcfw->pdev->dev,
+-				"QPLIB: RCFW request failed with no cmdqe!");
++				"RCFW request failed with no cmdqe!\n");
+ 			goto done;
+ 		}
+ 		/* Copy a segment of the req cmd to the cmdq */
+@@ -210,7 +212,7 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+ 
+ 		if (!retry_cnt || (rc != -EAGAIN && rc != -EBUSY)) {
+ 			/* send failed */
+-			dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x send failed",
++			dev_err(&rcfw->pdev->dev, "cmdq[%#x]=%#x send failed\n",
+ 				cookie, opcode);
+ 			return rc;
+ 		}
+@@ -224,7 +226,7 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+ 		rc = __wait_for_resp(rcfw, cookie);
+ 	if (rc) {
+ 		/* timed out */
+-		dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x timedout (%d)msec",
++		dev_err(&rcfw->pdev->dev, "cmdq[%#x]=%#x timedout (%d)msec\n",
+ 			cookie, opcode, RCFW_CMD_WAIT_TIME_MS);
+ 		set_bit(FIRMWARE_TIMED_OUT, &rcfw->flags);
+ 		return rc;
+@@ -232,7 +234,7 @@ int bnxt_qplib_rcfw_send_message(struct bnxt_qplib_rcfw *rcfw,
+ 
+ 	if (evnt->status) {
+ 		/* failed with status */
+-		dev_err(&rcfw->pdev->dev, "QPLIB: cmdq[%#x]=%#x status %#x",
++		dev_err(&rcfw->pdev->dev, "cmdq[%#x]=%#x status %#x\n",
+ 			cookie, opcode, evnt->status);
+ 		rc = -EFAULT;
+ 	}
+@@ -298,9 +300,9 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 		qp_id = le32_to_cpu(err_event->xid);
+ 		qp = rcfw->qp_tbl[qp_id].qp_handle;
+ 		dev_dbg(&rcfw->pdev->dev,
+-			"QPLIB: Received QP error notification");
++			"Received QP error notification\n");
+ 		dev_dbg(&rcfw->pdev->dev,
+-			"QPLIB: qpid 0x%x, req_err=0x%x, resp_err=0x%x\n",
++			"qpid 0x%x, req_err=0x%x, resp_err=0x%x\n",
+ 			qp_id, err_event->req_err_state_reason,
+ 			err_event->res_err_state_reason);
+ 		if (!qp)
+@@ -323,13 +325,13 @@ static int bnxt_qplib_process_qp_event(struct bnxt_qplib_rcfw *rcfw,
+ 			crsqe->resp = NULL;
+ 		} else {
+ 			dev_err(&rcfw->pdev->dev,
+-				"QPLIB: CMD %s resp->cookie = %#x, evnt->cookie = %#x",
++				"CMD %s resp->cookie = %#x, evnt->cookie = %#x\n",
+ 				crsqe->resp ? "mismatch" : "collision",
+ 				crsqe->resp ? crsqe->resp->cookie : 0, mcookie);
+ 		}
+ 		if (!test_and_clear_bit(cbit, rcfw->cmdq_bitmap))
+ 			dev_warn(&rcfw->pdev->dev,
+-				 "QPLIB: CMD bit %d was not requested", cbit);
++				 "CMD bit %d was not requested\n", cbit);
+ 		cmdq->cons += crsqe->req_size;
+ 		crsqe->req_size = 0;
+ 
+@@ -376,14 +378,13 @@ static void bnxt_qplib_service_creq(unsigned long data)
+ 			    (rcfw, (struct creq_func_event *)creqe))
+ 				rcfw->creq_func_event_processed++;
+ 			else
+-				dev_warn
+-				(&rcfw->pdev->dev, "QPLIB:aeqe:%#x Not handled",
+-				 type);
++				dev_warn(&rcfw->pdev->dev,
++					 "aeqe:%#x Not handled\n", type);
+ 			break;
+ 		default:
+-			dev_warn(&rcfw->pdev->dev, "QPLIB: creqe with ");
+ 			dev_warn(&rcfw->pdev->dev,
+-				 "QPLIB: op_event = 0x%x not handled", type);
++				 "creqe with op_event = 0x%x not handled\n",
++				 type);
+ 			break;
+ 		}
+ 		raw_cons++;
+@@ -551,7 +552,7 @@ int bnxt_qplib_alloc_rcfw_channel(struct pci_dev *pdev,
+ 				      BNXT_QPLIB_CREQE_UNITS, 0, PAGE_SIZE,
+ 				      HWQ_TYPE_L2_CMPL)) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: HW channel CREQ allocation failed");
++			"HW channel CREQ allocation failed\n");
+ 		goto fail;
+ 	}
+ 	rcfw->cmdq.max_elements = BNXT_QPLIB_CMDQE_MAX_CNT;
+@@ -560,7 +561,7 @@ int bnxt_qplib_alloc_rcfw_channel(struct pci_dev *pdev,
+ 				      BNXT_QPLIB_CMDQE_UNITS, 0, PAGE_SIZE,
+ 				      HWQ_TYPE_CTX)) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: HW channel CMDQ allocation failed");
++			"HW channel CMDQ allocation failed\n");
+ 		goto fail;
+ 	}
+ 
+@@ -616,7 +617,7 @@ void bnxt_qplib_disable_rcfw_channel(struct bnxt_qplib_rcfw *rcfw)
+ 	indx = find_first_bit(rcfw->cmdq_bitmap, rcfw->bmap_size);
+ 	if (indx != rcfw->bmap_size)
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: disabling RCFW with pending cmd-bit %lx", indx);
++			"disabling RCFW with pending cmd-bit %lx\n", indx);
+ 	kfree(rcfw->cmdq_bitmap);
+ 	rcfw->bmap_size = 0;
+ 
+@@ -681,8 +682,7 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+ 					      RCFW_COMM_BASE_OFFSET,
+ 					      RCFW_COMM_SIZE);
+ 	if (!rcfw->cmdq_bar_reg_iomem) {
+-		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: CMDQ BAR region %d mapping failed",
++		dev_err(&rcfw->pdev->dev, "CMDQ BAR region %d mapping failed\n",
+ 			rcfw->cmdq_bar_reg);
+ 		return -ENOMEM;
+ 	}
+@@ -697,13 +697,12 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+ 	res_base = pci_resource_start(pdev, rcfw->creq_bar_reg);
+ 	if (!res_base)
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: CREQ BAR region %d resc start is 0!",
++			"CREQ BAR region %d resc start is 0!\n",
+ 			rcfw->creq_bar_reg);
+ 	rcfw->creq_bar_reg_iomem = ioremap_nocache(res_base + cp_bar_reg_off,
+ 						   4);
+ 	if (!rcfw->creq_bar_reg_iomem) {
+-		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: CREQ BAR region %d mapping failed",
++		dev_err(&rcfw->pdev->dev, "CREQ BAR region %d mapping failed\n",
+ 			rcfw->creq_bar_reg);
+ 		return -ENOMEM;
+ 	}
+@@ -717,7 +716,7 @@ int bnxt_qplib_enable_rcfw_channel(struct pci_dev *pdev,
+ 	rc = bnxt_qplib_rcfw_start_irq(rcfw, msix_vector, true);
+ 	if (rc) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: Failed to request IRQ for CREQ rc = 0x%x", rc);
++			"Failed to request IRQ for CREQ rc = 0x%x\n", rc);
+ 		bnxt_qplib_disable_rcfw_channel(rcfw);
+ 		return rc;
+ 	}
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_res.c b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+index 539a5d44e6db..59eeac55626f 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_res.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_res.c
+@@ -36,6 +36,8 @@
+  * Description: QPLib resource manager
+  */
+ 
++#define dev_fmt(fmt) "QPLIB: " fmt
++
+ #include <linux/spinlock.h>
+ #include <linux/pci.h>
+ #include <linux/interrupt.h>
+@@ -68,8 +70,7 @@ static void __free_pbl(struct pci_dev *pdev, struct bnxt_qplib_pbl *pbl,
+ 						  pbl->pg_map_arr[i]);
+ 			else
+ 				dev_warn(&pdev->dev,
+-					 "QPLIB: PBL free pg_arr[%d] empty?!",
+-					 i);
++					 "PBL free pg_arr[%d] empty?!\n", i);
+ 			pbl->pg_arr[i] = NULL;
+ 		}
+ 	}
+@@ -537,7 +538,7 @@ static void bnxt_qplib_free_pkey_tbl(struct bnxt_qplib_res *res,
+ 				     struct bnxt_qplib_pkey_tbl *pkey_tbl)
  {
- 	enum pcie_link_width width, width_cap;
- 	enum pci_bus_speed speed, speed_cap;
-@@ -5281,11 +5283,11 @@ void pcie_print_link_status(struct pci_dev *dev)
- 	bw_cap = pcie_bandwidth_capable(dev, &speed_cap, &width_cap);
- 	bw_avail = pcie_bandwidth_available(dev, &limiting_dev, &speed, &width);
+ 	if (!pkey_tbl->tbl)
+-		dev_dbg(&res->pdev->dev, "QPLIB: PKEY tbl not present");
++		dev_dbg(&res->pdev->dev, "PKEY tbl not present\n");
+ 	else
+ 		kfree(pkey_tbl->tbl);
  
--	if (bw_avail >= bw_cap)
-+	if (bw_avail >= bw_cap && verbose)
- 		pci_info(dev, "%u.%03u Gb/s available PCIe bandwidth (%s x%d link)\n",
- 			 bw_cap / 1000, bw_cap % 1000,
- 			 PCIE_SPEED2STR(speed_cap), width_cap);
--	else
-+	else if (bw_avail < bw_cap)
- 		pci_info(dev, "%u.%03u Gb/s available PCIe bandwidth, limited by %s x%d link at %s (capable of %u.%03u Gb/s with %s x%d link)\n",
- 			 bw_avail / 1000, bw_avail % 1000,
- 			 PCIE_SPEED2STR(speed), width,
-@@ -5293,6 +5295,17 @@ void pcie_print_link_status(struct pci_dev *dev)
- 			 bw_cap / 1000, bw_cap % 1000,
- 			 PCIE_SPEED2STR(speed_cap), width_cap);
- }
-+
-+/**
-+ * pcie_print_link_status - Report the PCI device's link speed and width
-+ * @dev: PCI device to query
-+ *
-+ * Report the available bandwidth at the device.
-+ */
-+void pcie_print_link_status(struct pci_dev *dev)
-+{
-+	__pcie_print_link_status(dev, true);
-+}
- EXPORT_SYMBOL(pcie_print_link_status);
- 
- /**
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 70808c168fb9..ce880dab5bc8 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -263,6 +263,7 @@ enum pci_bus_speed pcie_get_speed_cap(struct pci_dev *dev);
- enum pcie_link_width pcie_get_width_cap(struct pci_dev *dev);
- u32 pcie_bandwidth_capable(struct pci_dev *dev, enum pci_bus_speed *speed,
- 			   enum pcie_link_width *width);
-+void __pcie_print_link_status(struct pci_dev *dev, bool verbose);
- 
- /* Single Root I/O Virtualization */
- struct pci_sriov {
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index bc147c586643..387fc8ac54ec 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2231,6 +2231,25 @@ static struct pci_dev *pci_scan_device(struct pci_bus *bus, int devfn)
- 	return dev;
- }
- 
-+static void pcie_report_downtraining(struct pci_dev *dev)
-+{
-+	if (!pci_is_pcie(dev))
-+		return;
-+
-+	/* Look from the device up to avoid downstream ports with no devices */
-+	if ((pci_pcie_type(dev) != PCI_EXP_TYPE_ENDPOINT) &&
-+	    (pci_pcie_type(dev) != PCI_EXP_TYPE_LEG_END) &&
-+	    (pci_pcie_type(dev) != PCI_EXP_TYPE_UPSTREAM))
-+		return;
-+
-+	/* Multi-function PCIe devices share the same link/status */
-+	if (PCI_FUNC(dev->devfn) != 0 || dev->is_virtfn)
-+		return;
-+
-+	/* Print link status only if the device is constrained by the fabric */
-+	__pcie_print_link_status(dev, false);
-+}
-+
- static void pci_init_capabilities(struct pci_dev *dev)
+@@ -578,7 +579,7 @@ int bnxt_qplib_dealloc_pd(struct bnxt_qplib_res *res,
+ 			  struct bnxt_qplib_pd *pd)
  {
- 	/* Enhanced Allocation */
-@@ -2266,6 +2285,8 @@ static void pci_init_capabilities(struct pci_dev *dev)
- 	/* Advanced Error Reporting */
- 	pci_aer_init(dev);
+ 	if (test_and_set_bit(pd->id, pdt->tbl)) {
+-		dev_warn(&res->pdev->dev, "Freeing an unused PD? pdn = %d",
++		dev_warn(&res->pdev->dev, "Freeing an unused PD? pdn = %d\n",
+ 			 pd->id);
+ 		return -EINVAL;
+ 	}
+@@ -639,11 +640,11 @@ int bnxt_qplib_dealloc_dpi(struct bnxt_qplib_res *res,
+ 			   struct bnxt_qplib_dpi     *dpi)
+ {
+ 	if (dpi->dpi >= dpit->max) {
+-		dev_warn(&res->pdev->dev, "Invalid DPI? dpi = %d", dpi->dpi);
++		dev_warn(&res->pdev->dev, "Invalid DPI? dpi = %d\n", dpi->dpi);
+ 		return -EINVAL;
+ 	}
+ 	if (test_and_set_bit(dpi->dpi, dpit->tbl)) {
+-		dev_warn(&res->pdev->dev, "Freeing an unused DPI? dpi = %d",
++		dev_warn(&res->pdev->dev, "Freeing an unused DPI? dpi = %d\n",
+ 			 dpi->dpi);
+ 		return -EINVAL;
+ 	}
+@@ -673,22 +674,21 @@ static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res     *res,
+ 	u32 dbr_len, bytes;
  
-+	pcie_report_downtraining(dev);
+ 	if (dpit->dbr_bar_reg_iomem) {
+-		dev_err(&res->pdev->dev,
+-			"QPLIB: DBR BAR region %d already mapped", dbr_bar_reg);
++		dev_err(&res->pdev->dev, "DBR BAR region %d already mapped\n",
++			dbr_bar_reg);
+ 		return -EALREADY;
+ 	}
+ 
+ 	bar_reg_base = pci_resource_start(res->pdev, dbr_bar_reg);
+ 	if (!bar_reg_base) {
+-		dev_err(&res->pdev->dev,
+-			"QPLIB: BAR region %d resc start failed", dbr_bar_reg);
++		dev_err(&res->pdev->dev, "BAR region %d resc start failed\n",
++			dbr_bar_reg);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	dbr_len = pci_resource_len(res->pdev, dbr_bar_reg) - dbr_offset;
+ 	if (!dbr_len || ((dbr_len & (PAGE_SIZE - 1)) != 0)) {
+-		dev_err(&res->pdev->dev, "QPLIB: Invalid DBR length %d",
+-			dbr_len);
++		dev_err(&res->pdev->dev, "Invalid DBR length %d\n", dbr_len);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -696,8 +696,7 @@ static int bnxt_qplib_alloc_dpi_tbl(struct bnxt_qplib_res     *res,
+ 						  dbr_len);
+ 	if (!dpit->dbr_bar_reg_iomem) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: FP: DBR BAR region %d mapping failed",
+-			dbr_bar_reg);
++			"FP: DBR BAR region %d mapping failed\n", dbr_bar_reg);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -767,7 +766,7 @@ static int bnxt_qplib_alloc_stats_ctx(struct pci_dev *pdev,
+ 	stats->dma = dma_alloc_coherent(&pdev->dev, stats->size,
+ 					&stats->dma_map, GFP_KERNEL);
+ 	if (!stats->dma) {
+-		dev_err(&pdev->dev, "QPLIB: Stats DMA allocation failed");
++		dev_err(&pdev->dev, "Stats DMA allocation failed\n");
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
+diff --git a/drivers/infiniband/hw/bnxt_re/qplib_sp.c b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+index 4097f3fa25c5..c80f2eaaf1a3 100644
+--- a/drivers/infiniband/hw/bnxt_re/qplib_sp.c
++++ b/drivers/infiniband/hw/bnxt_re/qplib_sp.c
+@@ -36,6 +36,8 @@
+  * Description: Slow Path Operators
+  */
+ 
++#define dev_fmt(fmt) "QPLIB: " fmt
 +
- 	if (pci_probe_reset_function(dev) == 0)
- 		dev->reset_fn = 1;
+ #include <linux/interrupt.h>
+ #include <linux/spinlock.h>
+ #include <linux/sched.h>
+@@ -89,7 +91,7 @@ int bnxt_qplib_get_dev_attr(struct bnxt_qplib_rcfw *rcfw,
+ 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
+ 	if (!sbuf) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: SP: QUERY_FUNC alloc side buffer failed");
++			"SP: QUERY_FUNC alloc side buffer failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -186,8 +188,7 @@ int bnxt_qplib_set_func_resources(struct bnxt_qplib_res *res,
+ 					  (void *)&resp,
+ 					  NULL, 0);
+ 	if (rc) {
+-		dev_err(&res->pdev->dev,
+-			"QPLIB: Failed to set function resources");
++		dev_err(&res->pdev->dev, "Failed to set function resources\n");
+ 	}
+ 	return rc;
  }
+@@ -199,7 +200,7 @@ int bnxt_qplib_get_sgid(struct bnxt_qplib_res *res,
+ {
+ 	if (index >= sgid_tbl->max) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: Index %d exceeded SGID table max (%d)",
++			"Index %d exceeded SGID table max (%d)\n",
+ 			index, sgid_tbl->max);
+ 		return -EINVAL;
+ 	}
+@@ -217,13 +218,12 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 	int index;
+ 
+ 	if (!sgid_tbl) {
+-		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
++		dev_err(&res->pdev->dev, "SGID table not allocated\n");
+ 		return -EINVAL;
+ 	}
+ 	/* Do we need a sgid_lock here? */
+ 	if (!sgid_tbl->active) {
+-		dev_err(&res->pdev->dev,
+-			"QPLIB: SGID table has no active entries");
++		dev_err(&res->pdev->dev, "SGID table has no active entries\n");
+ 		return -ENOMEM;
+ 	}
+ 	for (index = 0; index < sgid_tbl->max; index++) {
+@@ -231,7 +231,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 			break;
+ 	}
+ 	if (index == sgid_tbl->max) {
+-		dev_warn(&res->pdev->dev, "GID not found in the SGID table");
++		dev_warn(&res->pdev->dev, "GID not found in the SGID table\n");
+ 		return 0;
+ 	}
+ 	/* Remove GID from the SGID table */
+@@ -244,7 +244,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 		RCFW_CMD_PREP(req, DELETE_GID, cmd_flags);
+ 		if (sgid_tbl->hw_id[index] == 0xFFFF) {
+ 			dev_err(&res->pdev->dev,
+-				"QPLIB: GID entry contains an invalid HW id");
++				"GID entry contains an invalid HW id\n");
+ 			return -EINVAL;
+ 		}
+ 		req.gid_index = cpu_to_le16(sgid_tbl->hw_id[index]);
+@@ -258,7 +258,7 @@ int bnxt_qplib_del_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 	sgid_tbl->vlan[index] = 0;
+ 	sgid_tbl->active--;
+ 	dev_dbg(&res->pdev->dev,
+-		"QPLIB: SGID deleted hw_id[0x%x] = 0x%x active = 0x%x",
++		"SGID deleted hw_id[0x%x] = 0x%x active = 0x%x\n",
+ 		 index, sgid_tbl->hw_id[index], sgid_tbl->active);
+ 	sgid_tbl->hw_id[index] = (u16)-1;
+ 
+@@ -277,20 +277,19 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 	int i, free_idx;
+ 
+ 	if (!sgid_tbl) {
+-		dev_err(&res->pdev->dev, "QPLIB: SGID table not allocated");
++		dev_err(&res->pdev->dev, "SGID table not allocated\n");
+ 		return -EINVAL;
+ 	}
+ 	/* Do we need a sgid_lock here? */
+ 	if (sgid_tbl->active == sgid_tbl->max) {
+-		dev_err(&res->pdev->dev, "QPLIB: SGID table is full");
++		dev_err(&res->pdev->dev, "SGID table is full\n");
+ 		return -ENOMEM;
+ 	}
+ 	free_idx = sgid_tbl->max;
+ 	for (i = 0; i < sgid_tbl->max; i++) {
+ 		if (!memcmp(&sgid_tbl->tbl[i], gid, sizeof(*gid))) {
+ 			dev_dbg(&res->pdev->dev,
+-				"QPLIB: SGID entry already exist in entry %d!",
+-				i);
++				"SGID entry already exist in entry %d!\n", i);
+ 			*index = i;
+ 			return -EALREADY;
+ 		} else if (!memcmp(&sgid_tbl->tbl[i], &bnxt_qplib_gid_zero,
+@@ -301,7 +300,7 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 	}
+ 	if (free_idx == sgid_tbl->max) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: SGID table is FULL but count is not MAX??");
++			"SGID table is FULL but count is not MAX??\n");
+ 		return -ENOMEM;
+ 	}
+ 	if (update) {
+@@ -348,7 +347,7 @@ int bnxt_qplib_add_sgid(struct bnxt_qplib_sgid_tbl *sgid_tbl,
+ 		sgid_tbl->vlan[free_idx] = 1;
+ 
+ 	dev_dbg(&res->pdev->dev,
+-		"QPLIB: SGID added hw_id[0x%x] = 0x%x active = 0x%x",
++		"SGID added hw_id[0x%x] = 0x%x active = 0x%x\n",
+ 		 free_idx, sgid_tbl->hw_id[free_idx], sgid_tbl->active);
+ 
+ 	*index = free_idx;
+@@ -404,7 +403,7 @@ int bnxt_qplib_get_pkey(struct bnxt_qplib_res *res,
+ 	}
+ 	if (index >= pkey_tbl->max) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: Index %d exceeded PKEY table max (%d)",
++			"Index %d exceeded PKEY table max (%d)\n",
+ 			index, pkey_tbl->max);
+ 		return -EINVAL;
+ 	}
+@@ -419,14 +418,13 @@ int bnxt_qplib_del_pkey(struct bnxt_qplib_res *res,
+ 	int i, rc = 0;
+ 
+ 	if (!pkey_tbl) {
+-		dev_err(&res->pdev->dev, "QPLIB: PKEY table not allocated");
++		dev_err(&res->pdev->dev, "PKEY table not allocated\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Do we need a pkey_lock here? */
+ 	if (!pkey_tbl->active) {
+-		dev_err(&res->pdev->dev,
+-			"QPLIB: PKEY table has no active entries");
++		dev_err(&res->pdev->dev, "PKEY table has no active entries\n");
+ 		return -ENOMEM;
+ 	}
+ 	for (i = 0; i < pkey_tbl->max; i++) {
+@@ -435,8 +433,7 @@ int bnxt_qplib_del_pkey(struct bnxt_qplib_res *res,
+ 	}
+ 	if (i == pkey_tbl->max) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: PKEY 0x%04x not found in the pkey table",
+-			*pkey);
++			"PKEY 0x%04x not found in the pkey table\n", *pkey);
+ 		return -ENOMEM;
+ 	}
+ 	memset(&pkey_tbl->tbl[i], 0, sizeof(*pkey));
+@@ -453,13 +450,13 @@ int bnxt_qplib_add_pkey(struct bnxt_qplib_res *res,
+ 	int i, free_idx, rc = 0;
+ 
+ 	if (!pkey_tbl) {
+-		dev_err(&res->pdev->dev, "QPLIB: PKEY table not allocated");
++		dev_err(&res->pdev->dev, "PKEY table not allocated\n");
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Do we need a pkey_lock here? */
+ 	if (pkey_tbl->active == pkey_tbl->max) {
+-		dev_err(&res->pdev->dev, "QPLIB: PKEY table is full");
++		dev_err(&res->pdev->dev, "PKEY table is full\n");
+ 		return -ENOMEM;
+ 	}
+ 	free_idx = pkey_tbl->max;
+@@ -471,7 +468,7 @@ int bnxt_qplib_add_pkey(struct bnxt_qplib_res *res,
+ 	}
+ 	if (free_idx == pkey_tbl->max) {
+ 		dev_err(&res->pdev->dev,
+-			"QPLIB: PKEY table is FULL but count is not MAX??");
++			"PKEY table is FULL but count is not MAX??\n");
+ 		return -ENOMEM;
+ 	}
+ 	/* Add PKEY to the pkey_tbl */
+@@ -555,8 +552,7 @@ int bnxt_qplib_free_mrw(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mrw)
+ 	int rc;
+ 
+ 	if (mrw->lkey == 0xFFFFFFFF) {
+-		dev_info(&res->pdev->dev,
+-			 "QPLIB: SP: Free a reserved lkey MRW");
++		dev_info(&res->pdev->dev, "SP: Free a reserved lkey MRW\n");
+ 		return 0;
+ 	}
+ 
+@@ -666,9 +662,8 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 			pages++;
+ 
+ 		if (pages > MAX_PBL_LVL_1_PGS) {
+-			dev_err(&res->pdev->dev, "QPLIB: SP: Reg MR pages ");
+ 			dev_err(&res->pdev->dev,
+-				"requested (0x%x) exceeded max (0x%x)",
++				"SP: Reg MR pages requested (0x%x) exceeded max (0x%x)\n",
+ 				pages, MAX_PBL_LVL_1_PGS);
+ 			return -ENOMEM;
+ 		}
+@@ -684,7 +679,7 @@ int bnxt_qplib_reg_mr(struct bnxt_qplib_res *res, struct bnxt_qplib_mrw *mr,
+ 					       HWQ_TYPE_CTX);
+ 		if (rc) {
+ 			dev_err(&res->pdev->dev,
+-				"SP: Reg MR memory allocation failed");
++				"SP: Reg MR memory allocation failed\n");
+ 			return -ENOMEM;
+ 		}
+ 		/* Write to the hwq */
+@@ -795,7 +790,7 @@ int bnxt_qplib_get_roce_stats(struct bnxt_qplib_rcfw *rcfw,
+ 	sbuf = bnxt_qplib_rcfw_alloc_sbuf(rcfw, sizeof(*sb));
+ 	if (!sbuf) {
+ 		dev_err(&rcfw->pdev->dev,
+-			"QPLIB: SP: QUERY_ROCE_STATS alloc side buffer failed");
++			"SP: QUERY_ROCE_STATS alloc side buffer failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-- 
+2.15.0
