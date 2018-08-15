@@ -1,45 +1,42 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: [PATCH v2] net/mlx5: Delete unneeded function argument
-Date: Wed, 15 Aug 2018 18:08:54 +0300
-Message-ID: <20180815150854.30993-1-yuval.shaia@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com, leon@kernel.org, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Yuval Shaia <yuval.shaia@oracle.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] RDMA/bnxt_re: QPLIB: Add and use #define dev_fmt(fmt)
+ "QPLIB: " fmt
+Date: Wed, 15 Aug 2018 15:10:54 -0600
+Message-ID: <20180815211054.GA2538@ziepe.ca>
+References: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-priv argument is not used by the function, delete it.
+On Fri, Aug 10, 2018 at 11:42:46AM -0700, Joe Perches wrote:
+> Consistently use the "QPLIB: " prefix for dev_<level> logging.
+> 
+> Miscellanea:
+> 
+> o Add missing newlines to avoid possible message interleaving
+> o Coalesce consecutive dev_<level> uses that emit a message header to
+>   avoid < 80 column lengths and mistakenly output on multiple lines
+> o Reflow modified lines to use 80 columns where appropriate
+> o Consistently use "%s: " where __func__ is output
+> o QPLIB: is now always output immediately after the dev_<level> header
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 130 +++++++++++------------------
+>  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  51 ++++++-----
+>  drivers/infiniband/hw/bnxt_re/qplib_res.c  |  29 ++++---
+>  drivers/infiniband/hw/bnxt_re/qplib_sp.c   |  57 ++++++-------
+>  4 files changed, 116 insertions(+), 151 deletions(-)
 
-Fixes: a89842811ea98 ("net/mlx5e: Merge per priority stats groups")
-Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
----
-v1 -> v2:
-	* Remove blank line as pointed by Leon.
----
- drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Broadcom: This is a big patch, will you ack it please?
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-index 1646859974ce..4c4d779dafa8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
-@@ -813,7 +813,7 @@ static const struct counter_desc pport_per_prio_traffic_stats_desc[] = {
- 
- #define NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS	ARRAY_SIZE(pport_per_prio_traffic_stats_desc)
- 
--static int mlx5e_grp_per_prio_traffic_get_num_stats(struct mlx5e_priv *priv)
-+static int mlx5e_grp_per_prio_traffic_get_num_stats(void)
- {
- 	return NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS * NUM_PPORT_PRIO;
- }
-@@ -971,7 +971,7 @@ static int mlx5e_grp_per_prio_pfc_fill_stats(struct mlx5e_priv *priv,
- 
- static int mlx5e_grp_per_prio_get_num_stats(struct mlx5e_priv *priv)
- {
--	return mlx5e_grp_per_prio_traffic_get_num_stats(priv) +
-+	return mlx5e_grp_per_prio_traffic_get_num_stats() +
- 		mlx5e_grp_per_prio_pfc_get_num_stats(priv);
- }
- 
--- 
-2.17.1
+https://patchwork.kernel.org/patch/10563083/
+
+Thanks,
+Jason
