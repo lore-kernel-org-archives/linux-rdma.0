@@ -1,7 +1,7 @@
-From: "Aaron S. Knister" <aknister@discover.nccs.nasa.gov>
+From: Aaron Knister <aaron.s.knister@nasa.gov>
 Subject: [PATCH] avoid race condition between start_xmit and cm_rep_handler
-Date: Wed, 15 Aug 2018 20:37:22 -0400
-Message-ID: <1534379842-1215-1-git-send-email-aaron.s.knister@nasa.gov>
+Date: Wed, 15 Aug 2018 21:11:49 -0400
+Message-ID: <1534381909-2219-1-git-send-email-aaron.s.knister@nasa.gov>
 Return-path: <stable-owner@vger.kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-rdma@vger.kernel.org
@@ -51,6 +51,7 @@ lock for the first check attempt to avoid a slowdown from unecessary
 locking for the majority of the packets transmitted during the
 connection's life.
 
+Cc: stable@vger.kernel.org
 Tested-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Aaron Knister <aaron.s.knister@nasa.gov>
 ---
