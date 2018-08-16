@@ -1,66 +1,61 @@
-From: Gal Pressman <pressmangal@gmail.com>
-Subject: Re: [PATCH v2] net/mlx5: Delete unneeded function argument
-Date: Thu, 16 Aug 2018 13:31:21 +0300
-Message-ID: <6e7d5c26-2a21-2bbc-8356-3d23c2bad29d@gmail.com>
-References: <20180815150854.30993-1-yuval.shaia@oracle.com>
- <ebbc0eff-eacf-fd30-bb03-bd7ef9e6c3c0@gmail.com> <20180816090006.GB4318@lap1>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v3] net/mlx5e: Delete unneeded function argument
+Date: Thu, 16 Aug 2018 14:26:40 +0300
+Message-ID: <20180816112640.GG2796@mtr-leonro.mtl.com>
+References: <20180816090220.4537-1-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180816090006.GB4318@lap1>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180816090220.4537-1-yuval.shaia@oracle.com>
 Sender: netdev-owner@vger.kernel.org
 To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: saeedm@mellanox.com, leon@kernel.org, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: saeedm@mellanox.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 16-Aug-18 12:00, Yuval Shaia wrote:
-> On Thu, Aug 16, 2018 at 09:41:34AM +0300, Gal Pressman wrote:
->> On 15-Aug-18 18:08, Yuval Shaia wrote:
->>> priv argument is not used by the function, delete it.
->>>
->>> Fixes: a89842811ea98 ("net/mlx5e: Merge per priority stats groups")
->>> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
->>
->> nit: prefix should be net/mlx5e.
-> 
-> 1. Will do.
-> 2. Why? (asking since dir name is mlx5)
 
-Core related changes use net/mlx5 prefix, Ethernet related changes (en_* files) use net/mlx5e prefix.
-Same thought goes into function names prefix (mlx5_*/mlx5e_*).
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> 
->>
->>> ---
->>> v1 -> v2:
->>> 	* Remove blank line as pointed by Leon.
->>> ---
->>>  drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 4 ++--
->>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
->>> index 1646859974ce..4c4d779dafa8 100644
->>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
->>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
->>> @@ -813,7 +813,7 @@ static const struct counter_desc pport_per_prio_traffic_stats_desc[] = {
->>>  
->>>  #define NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS	ARRAY_SIZE(pport_per_prio_traffic_stats_desc)
->>>  
->>> -static int mlx5e_grp_per_prio_traffic_get_num_stats(struct mlx5e_priv *priv)
->>> +static int mlx5e_grp_per_prio_traffic_get_num_stats(void)
->>>  {
->>>  	return NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS * NUM_PPORT_PRIO;
->>>  }
->>> @@ -971,7 +971,7 @@ static int mlx5e_grp_per_prio_pfc_fill_stats(struct mlx5e_priv *priv,
->>>  
->>>  static int mlx5e_grp_per_prio_get_num_stats(struct mlx5e_priv *priv)
->>>  {
->>> -	return mlx5e_grp_per_prio_traffic_get_num_stats(priv) +
->>> +	return mlx5e_grp_per_prio_traffic_get_num_stats() +
->>>  		mlx5e_grp_per_prio_pfc_get_num_stats(priv);
->>>  }
->>>  
->>>
->>
+On Thu, Aug 16, 2018 at 12:02:20PM +0300, Yuval Shaia wrote:
+> priv argument is not used by the function, delete it.
+>
+> Fixes: a89842811ea98 ("net/mlx5e: Merge per priority stats groups")
+> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+> ---
+> v1 -> v2:
+> 	* Remove blank line as pointed by Leon.
+>
+> v2 -> v3:
+> 	* Change prefix to mlx5e
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+
+Thanks Yuval,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbdV9vAAoJEORje4g2clinaEQP/Aj1O5utU7goVKQbAwC9eLe2
+A03r+/7FvE5BeHIcwGnfHFx07Iyq4B/PQ9XM0yrbFTx65NEgO+EeMnT32mRrMsNL
+DC35Q/1KZwaCXr927tOsWjPKyJLhMPBFWKYIoskQdd/WxmkbtrVA4SgJxz7g0vDb
+S8G+mX1cznSnub80W7WkgVFB3eiirDmPhn/hclpWnJBlpsTfiTuG5FPC11ZXznvN
+1EpzfzGnDsPKS+VDL77tJ0qo8Cdvm6/2Du1vjQsp+yW0EDyftT6slh9putdkWLpE
+Ll+NW2LobaVOtuWwSyKzM6tXqnwY6f/MeARrScIvuu8TPXBSa2JvMWvj3i3EOD1z
+X5gswHIRR1DG4cLdiPGzARMREoMyow6PE0vt72zGO94zBqYkySuyvSOzb2avki1m
+zwy7ZAVEqfHY0NQHrDlmicZdmIJAvb0+OX7o3gwUNFRrWS3NNZFD7ScbJ4oCVEsn
+wbh/W3f1pWGtHEAN6QgHqxLReZ4ShG+xvDMuyMtT/Ht2/FcwrqNPXtx5UWKDPmMZ
+9p0xNXxTw2w/eElyaGG0O+qRWu6GN2c5bMhqchH9ZiqLs2H3U09QJZ0fII9y22g0
+hVlXw1a750UMU+aXlVZjh3eqBjPNYi8oDMpgIa7R5Sl3WFkFE4h0viq/ow9YV/7m
++pnNxuZMSOUsbLXyI1bQ
+=IyQa
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
