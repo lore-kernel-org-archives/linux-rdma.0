@@ -1,61 +1,158 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v3] net/mlx5e: Delete unneeded function argument
-Date: Thu, 16 Aug 2018 14:26:40 +0300
-Message-ID: <20180816112640.GG2796@mtr-leonro.mtl.com>
-References: <20180816090220.4537-1-yuval.shaia@oracle.com>
+From: Aaron Knister <aaron.s.knister@nasa.gov>
+Subject: Re: [PATCH] avoid race condition between start_xmit and
+ cm_rep_handler
+Date: Thu, 16 Aug 2018 09:04:32 -0400
+Message-ID: <9f11633d-1473-d04b-edf2-ad2fdc8b411e@nasa.gov>
+References: <1534381909-2219-1-git-send-email-aaron.s.knister@nasa.gov>
+ <20180816045402.GB4886@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180816090220.4537-1-yuval.shaia@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: saeedm@mellanox.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature";
+        boundary="e6Z7QN5cP3F4fkceYBQ2PNLSRDx4wa8Y1"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180816045402.GB4886@mtr-leonro.mtl.com>
+Sender: stable-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, stable@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, John Fleck <john.fleck@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+--e6Z7QN5cP3F4fkceYBQ2PNLSRDx4wa8Y1
+Content-Type: multipart/mixed; boundary="yeWZVI2tKQRSXhsu3Od0nUeMsjdOq1fVS";
+ protected-headers="v1"
+From: Aaron Knister <aaron.s.knister@nasa.gov>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, stable@vger.kernel.org,
+ Ira Weiny <ira.weiny@intel.com>, John Fleck <john.fleck@intel.com>
+Message-ID: <9f11633d-1473-d04b-edf2-ad2fdc8b411e@nasa.gov>
+Subject: Re: [PATCH] avoid race condition between start_xmit and
+ cm_rep_handler
+References: <1534381909-2219-1-git-send-email-aaron.s.knister@nasa.gov>
+ <20180816045402.GB4886@mtr-leonro.mtl.com>
+In-Reply-To: <20180816045402.GB4886@mtr-leonro.mtl.com>
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+--yeWZVI2tKQRSXhsu3Od0nUeMsjdOq1fVS
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Aug 16, 2018 at 12:02:20PM +0300, Yuval Shaia wrote:
-> priv argument is not used by the function, delete it.
->
-> Fixes: a89842811ea98 ("net/mlx5e: Merge per priority stats groups")
-> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
-> ---
-> v1 -> v2:
-> 	* Remove blank line as pointed by Leon.
->
-> v2 -> v3:
-> 	* Change prefix to mlx5e
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
 
-Thanks Yuval,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---PNTmBPCT7hxwcZjr
+On 8/16/18 12:54 AM, Leon Romanovsky wrote:
+> On Wed, Aug 15, 2018 at 09:11:49PM -0400, Aaron Knister wrote:
+>> Inside of start_xmit() the call to check if the connection is up and t=
+he
+>> queueing of the packets for later transmission is not atomic which
+>> leaves a window where cm_rep_handler can run, set the connection up,
+>> dequeue pending packets and leave the subsequently queued packets by
+>> start_xmit() sitting on neigh->queue until they're dropped when the
+>> connection is torn down. This only applies to connected mode. These
+>> dropped packets can really upset TCP, for example,  and cause
+>> multi-minute delays in transmission for open connections.
+>>
+>> I've got a reproducer available if it's needed.
+>>
+>> Here's the code in start_xmit where we check to see if the connection
+>> is up:
+>>
+>>         if (ipoib_cm_get(neigh)) {
+>>                 if (ipoib_cm_up(neigh)) {
+>>                         ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
+>>                         goto unref;
+>>                 }
+>>         }
+>>
+>> The race occurs if cm_rep_handler execution occurs after the above
+>> connection check (specifically if it gets to the point where it acquir=
+es
+>> priv->lock to dequeue pending skb's) but before the below code snippet=
+
+>> in start_xmit where packets are queued.
+>>
+>>         if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {=
+
+>>                 push_pseudo_header(skb, phdr->hwaddr);
+>>                 spin_lock_irqsave(&priv->lock, flags);
+>>                 __skb_queue_tail(&neigh->queue, skb);
+>>                 spin_unlock_irqrestore(&priv->lock, flags);
+>>         } else {
+>>                 ++dev->stats.tx_dropped;
+>>                 dev_kfree_skb_any(skb);
+>>         }
+>>
+>> The patch re-checks ipoib_cm_up with priv->lock held to avoid this
+>> race condition. Since odds are the conn should be up most of the time
+>> (and thus the connection *not* down most of the time) we don't hold th=
+e
+>> lock for the first check attempt to avoid a slowdown from unecessary
+>> locking for the majority of the packets transmitted during the
+>> connection's life.
+>>
+>> Cc: stable@vger.kernel.org
+>> Tested-by: Ira Weiny <ira.weiny@intel.com>
+>> Signed-off-by: Aaron Knister <aaron.s.knister@nasa.gov>
+>> ---
+>=20
+> Sorry, but no mainly for two reasons:
+> 1. Don't lock/unlock in different functions.
+> 2. Don't create unbalanced number of lock/unlocks.
+>=20
+> Thanks
+>=20
+
+Thanks, Leon. I'm on-board with not locking/unlocking between functions. =
+That felt a little weird, and I think I can work around that. I'm curious=
+, though, about the unbalanced number of lock/unlocks because I don't see=
+ that looking at the patch. Could you help me understand your concern? Ha=
+ving said that, this struck me as appearing unbalanced:
+
++		spin_lock_irqsave(&priv->lock, flags);
++		if (ipoib_cm_up(neigh)) {
++			spin_unlock_irqrestore(&priv->lock, flags);
++			ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
++		} else  {
++			defer_neigh_skb(skb, dev, neigh, phdr, &flags);
++		}
+
+but that call to defer_neigh_skb would call spin_unlock_irqrestore becaus=
+e it passes in &flags to defer_neigh_skb. It's not obvious, though, which=
+ is probably an issue. I'm trying to balance only holding priv->lock wher=
+e absolutely necessary with not typing chunks of code out twice but with =
+subtle differences.
+
+I'll re-work this and re-submit.
+
+-Aaron
+
+--=20
+Aaron Knister
+NASA Center for Climate Simulation (Code 606.2)
+Goddard Space Flight Center
+(301) 286-2776
+
+
+--yeWZVI2tKQRSXhsu3Od0nUeMsjdOq1fVS--
+
+--e6Z7QN5cP3F4fkceYBQ2PNLSRDx4wa8Y1
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
+Comment: GPGTools - https://gpgtools.org
 
-iQIcBAEBAgAGBQJbdV9vAAoJEORje4g2clinaEQP/Aj1O5utU7goVKQbAwC9eLe2
-A03r+/7FvE5BeHIcwGnfHFx07Iyq4B/PQ9XM0yrbFTx65NEgO+EeMnT32mRrMsNL
-DC35Q/1KZwaCXr927tOsWjPKyJLhMPBFWKYIoskQdd/WxmkbtrVA4SgJxz7g0vDb
-S8G+mX1cznSnub80W7WkgVFB3eiirDmPhn/hclpWnJBlpsTfiTuG5FPC11ZXznvN
-1EpzfzGnDsPKS+VDL77tJ0qo8Cdvm6/2Du1vjQsp+yW0EDyftT6slh9putdkWLpE
-Ll+NW2LobaVOtuWwSyKzM6tXqnwY6f/MeARrScIvuu8TPXBSa2JvMWvj3i3EOD1z
-X5gswHIRR1DG4cLdiPGzARMREoMyow6PE0vt72zGO94zBqYkySuyvSOzb2avki1m
-zwy7ZAVEqfHY0NQHrDlmicZdmIJAvb0+OX7o3gwUNFRrWS3NNZFD7ScbJ4oCVEsn
-wbh/W3f1pWGtHEAN6QgHqxLReZ4ShG+xvDMuyMtT/Ht2/FcwrqNPXtx5UWKDPmMZ
-9p0xNXxTw2w/eElyaGG0O+qRWu6GN2c5bMhqchH9ZiqLs2H3U09QJZ0fII9y22g0
-hVlXw1a750UMU+aXlVZjh3eqBjPNYi8oDMpgIa7R5Sl3WFkFE4h0viq/ow9YV/7m
-+pnNxuZMSOUsbLXyI1bQ
-=IyQa
+iQIzBAEBCgAdFiEEeZx9y0IOxOBd7OSzYpKCok98U7QFAlt1dmEACgkQYpKCok98
+U7TcxxAAiXX/I2930qINdLSQcbNYLwO2KNovM0HR2TxABuv/N1qT62x4WAzELXuD
+hldVAkvrGYYdosVrLKY+lwFuGrebwhcJ6grCL/yo/yXSZZzIfuYkkty3PyCLaCPZ
+MQgEsLsrJiA555gtuS7vd0njWURSd/noSn09FEGXEE7ErB/HS5wVrSY/vbnTWHeW
+9czGDo8sA9xfxtpFw/EidMapVp8jJzrvW3fsDreInA0PHpy3xDM1PiIe6WGxxayd
+XLCdZeAvIQGeNumU48BMzbdCOFbIQ14/hP5WYusYg8NX9/EpKMvusa4spnX7MgQS
+XriK3/kJyVzzpbjaKkDblPfqGX1yuTFAfNy4w5oJwaQQe4ENpFobBSq2+hnyRaOx
+D2H73/wT18itat7nUcfQZTNPbT5aLoS9ZyVIrmUUb+jT698LBgskQjTeYQZBdgbI
+d/Qi2CkioULPUBCFyymPNZRGL5HVxSgI6HjrThN7HyxCZgENYXCVtlSjRDvJoU//
+noj7QtsHBDV0wHLLDcehlHpwN4pHTyIvbOQy1rjni8iCgXOZrP/m+zWCqWpiSvp7
+mgU5xJjaFKS8Rqn/E9d7I5T+j6+22Uo8GY1XWuSzoPe8fSr1SOq/4tZLvROL/Z2q
+TUR3gh7/D+Xx+5WolYLdWmKvozAKJACY5yf7sLEEQQnfT8wyVP0=
+=KffR
 -----END PGP SIGNATURE-----
 
---PNTmBPCT7hxwcZjr--
+--e6Z7QN5cP3F4fkceYBQ2PNLSRDx4wa8Y1--
