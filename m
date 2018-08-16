@@ -1,33 +1,66 @@
-From: Selvin Xavier <selvin.xavier@broadcom.com>
-Subject: Re: [PATCH] RDMA/bnxt_re: QPLIB: Add and use #define dev_fmt(fmt)
- "QPLIB: " fmt
-Date: Thu, 16 Aug 2018 16:00:22 +0530
-Message-ID: <CA+sbYW2bHrV_Tx6rMYj1h9f3i_sJ=7zPMDbrfWWx229CNeQc2g@mail.gmail.com>
-References: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
+From: Gal Pressman <pressmangal@gmail.com>
+Subject: Re: [PATCH v2] net/mlx5: Delete unneeded function argument
+Date: Thu, 16 Aug 2018 13:31:21 +0300
+Message-ID: <6e7d5c26-2a21-2bbc-8356-3d23c2bad29d@gmail.com>
+References: <20180815150854.30993-1-yuval.shaia@oracle.com>
+ <ebbc0eff-eacf-fd30-bb03-bd7ef9e6c3c0@gmail.com> <20180816090006.GB4318@lap1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180816090006.GB4318@lap1>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: saeedm@mellanox.com, leon@kernel.org, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 11, 2018 at 12:12 AM Joe Perches <joe@perches.com> wrote:
->
-> Consistently use the "QPLIB: " prefix for dev_<level> logging.
->
-> Miscellanea:
->
-> o Add missing newlines to avoid possible message interleaving
-> o Coalesce consecutive dev_<level> uses that emit a message header to
->   avoid < 80 column lengths and mistakenly output on multiple lines
-> o Reflow modified lines to use 80 columns where appropriate
-> o Consistently use "%s: " where __func__ is output
-> o QPLIB: is now always output immediately after the dev_<level> header
->
-> Signed-off-by: Joe Perches <joe@perches.com>
+On 16-Aug-18 12:00, Yuval Shaia wrote:
+> On Thu, Aug 16, 2018 at 09:41:34AM +0300, Gal Pressman wrote:
+>> On 15-Aug-18 18:08, Yuval Shaia wrote:
+>>> priv argument is not used by the function, delete it.
+>>>
+>>> Fixes: a89842811ea98 ("net/mlx5e: Merge per priority stats groups")
+>>> Signed-off-by: Yuval Shaia <yuval.shaia@oracle.com>
+>>
+>> nit: prefix should be net/mlx5e.
+> 
+> 1. Will do.
+> 2. Why? (asking since dir name is mlx5)
 
-Thanks for the patch, Joe.
+Core related changes use net/mlx5 prefix, Ethernet related changes (en_* files) use net/mlx5e prefix.
+Same thought goes into function names prefix (mlx5_*/mlx5e_*).
 
-Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
+> 
+>>
+>>> ---
+>>> v1 -> v2:
+>>> 	* Remove blank line as pointed by Leon.
+>>> ---
+>>>  drivers/net/ethernet/mellanox/mlx5/core/en_stats.c | 4 ++--
+>>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>>> index 1646859974ce..4c4d779dafa8 100644
+>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+>>> @@ -813,7 +813,7 @@ static const struct counter_desc pport_per_prio_traffic_stats_desc[] = {
+>>>  
+>>>  #define NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS	ARRAY_SIZE(pport_per_prio_traffic_stats_desc)
+>>>  
+>>> -static int mlx5e_grp_per_prio_traffic_get_num_stats(struct mlx5e_priv *priv)
+>>> +static int mlx5e_grp_per_prio_traffic_get_num_stats(void)
+>>>  {
+>>>  	return NUM_PPORT_PER_PRIO_TRAFFIC_COUNTERS * NUM_PPORT_PRIO;
+>>>  }
+>>> @@ -971,7 +971,7 @@ static int mlx5e_grp_per_prio_pfc_fill_stats(struct mlx5e_priv *priv,
+>>>  
+>>>  static int mlx5e_grp_per_prio_get_num_stats(struct mlx5e_priv *priv)
+>>>  {
+>>> -	return mlx5e_grp_per_prio_traffic_get_num_stats(priv) +
+>>> +	return mlx5e_grp_per_prio_traffic_get_num_stats() +
+>>>  		mlx5e_grp_per_prio_pfc_get_num_stats(priv);
+>>>  }
+>>>  
+>>>
+>>
