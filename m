@@ -1,58 +1,46 @@
 From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 17 Aug 2018 14:15:35 -0600
-Message-ID: <20180817201535.GI28676@mellanox.com>
-References: <20180816215726.GA20526@ziepe.ca>
- <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Fri, 17 Aug 2018 14:17:01 -0600
+Message-ID: <20180817201701.GJ28676@mellanox.com>
+References: <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
+ <20180723164910.GS31540@mellanox.com>
+ <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
+ <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me>
+ <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com>
+ <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomputing.com>
+ <4a13541c-db48-beca-4ee7-932528b22986@grimberg.me>
+ <85bba372-049c-2a12-362e-adcb0931cf49@opengridcomputing.com>
+ <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com>
+ <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+In-Reply-To: <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
+Sender: netdev-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: Steve Wise <swise@opengridcomputing.com>, 'Max Gurtovoy' <maxg@mellanox.com>, 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 12:31:00PM -0700, Linus Torvalds wrote:
-> On Thu, Aug 16, 2018 at 2:57 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
-> >
-> > This time there are many merge conflicts, all due to various tree-wide or RDMA
-> > subystem wide changes done by various people. The resolution is tricky, as git
-> > does not highlight two areas that need revision.
+On Fri, Aug 17, 2018 at 01:03:20PM -0700, Sagi Grimberg wrote:
 > 
-> I was confused by this, because there were no merge conflicts.
+> > Hey Sagi,
+> > 
+> > The patch works allowing connections for the various affinity mappings below:
+> > 
+> > One comp_vector per core across all cores, starting with numa-local cores:
 > 
-> Then I looked at the history, and the reason is that you actually
-> pushed the for-next branch into the for-linus branch, and so I got the
-> pre-merged version.
+> Thanks Steve, is this your "Tested by:" tag?
 
-Er, yes, sorry, I made a typo in my email, it should have read "As
-before I've resolved the conflicts in the for-linus tag and provided
-the unmerged tree in the for-linus-unmerged tag"
+The new patchworks doesn't grab patches inlined in messages, so you
+will need to resend it.
 
-> Oh well. I'll look at what the conflicts were, but may end up just
-> taking your resolution.
+Also, can someone remind me what the outcome is here? Does it
+supersede Leon's patch:
 
-We often have merge conflicts with RDMA, how do you prefer to get the
-PR? I'm actually not very clear on this part of the process.
+https://patchwork.kernel.org/patch/10526167/
 
-Historically, when we have conflicts, I've given you a tag
-'for-linus-unmerged', a text description of the conflicts with merge
-diff hunks, and then a tag 'for-linus' which contains the full
-resolution I used and checked (based on linux-next).
-
-In the past you've taken from both tags, I think, depending on how
-the resolution looks?
-
-I generate the 'git request-pull' against the 'for-linus' tag only
-because the diffstat of the resolved branch is closer to what you'll
-actually see during merge. Otherwise there are always misleading
-netdev changes due to the shared branches with netdev.
-
-If you don't care about the diffstat I'll switch to 'for-linus' and
-'for-linus-resolved' tags so you won't accidentally get any resolution
-commit unless you want it.
+?
 
 Thanks,
 Jason
