@@ -1,41 +1,65 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Fri, 17 Aug 2018 13:26:41 -0700
-Message-ID: <ee2d312e-991f-6a63-4152-ed8ecfab1c05@grimberg.me>
-References: <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
- <20180723164910.GS31540@mellanox.com>
- <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
- <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me>
- <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com>
- <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomputing.com>
- <4a13541c-db48-beca-4ee7-932528b22986@grimberg.me>
- <85bba372-049c-2a12-362e-adcb0931cf49@opengridcomputing.com>
- <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com>
- <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
- <20180817201701.GJ28676@mellanox.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+Date: Fri, 17 Aug 2018 13:27:02 -0700
+Message-ID: <CA+55aFzcp=a2sNOVR7DTEY9dehYamXaJ1bpSfF0FZir_9MhsVg@mail.gmail.com>
+References: <20180816215726.GA20526@ziepe.ca> <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
+ <20180817201535.GI28676@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180817201701.GJ28676@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180817201535.GI28676@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, 'Max Gurtovoy' <maxg@mellanox.com>, 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jason,
+On Fri, Aug 17, 2018 at 1:15 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
+>
+> We often have merge conflicts with RDMA, how do you prefer to get the
+> PR? I'm actually not very clear on this part of the process.
 
-> The new patchworks doesn't grab patches inlined in messages, so you
-> will need to resend it.
+I  generally prefer the non-merged version, but with comments about
+the conflicts.
 
-Yes, just wanted to to add Steve's tested by as its going to
-lists that did not follow this thread.
+In fact, the really preferred model is generally to send me a
+non-merged pull request (say "tags/for-linus") but if the conflicts
+look even half-way nasty - or simply because you did the merge anyway
+just to get the proper diffstat because history is complex - mention
+that you have a merged branch for verification (say
+"branch/for-linus-merged").
 
-> Also, can someone remind me what the outcome is here? Does it
-> supersede Leon's patch:
-> 
-> https://patchwork.kernel.org/patch/10526167/
+When I get that kind of pull request, I'll just do the merge
+resolution myself, and after I've done it I'll generally then do
 
-Leon's patch is exposing the breakage so I think it would be
-wise to have it go in after this lands mainline.
+   git checkout -b test-merge
+   git pull <repoaddress> for-linus-merged
+
+and then just compare the end result with my resolution as an extra
+verification step.
+
+I may end up skipping the verification step if everything looks
+entirely trivial (and really, if you have no real reason for the
+pre-merged branch, don't bother even mentioning it even if you did it
+for the diffstat), but in practice whenever somebody does that, I have
+no reason not to just do that simple extra verification.
+
+Most of the time the merges are exactly the same, possibly with
+whitespace or trivial ordering differences (things like Makefiles and
+Kconfig files often have add-add conflicts where the ordering really
+doesn't matter between two config options).
+
+And then sometimes it shows that I missed something in my mmerge.
+
+And sometimes it shows that  I do so many merges that I actually ended
+up noticing something that the submaintainer didn't.
+
+So it can be uninteresting, and when it isn't uninteresting it can go
+either way, but so far for the people who do this, I've never been in
+the situation where I was *sorry* for the double merge and extra
+verification step.
+
+Because when mis-merges happen (they are happily pretty rare) they are
+_so_ annoying and can be so hard to figure out later, that I'd rather
+spend a bit more time on the merge than have a dodgy one.
+
+               Linus
