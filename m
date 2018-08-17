@@ -1,23 +1,41 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 17 Aug 2018 12:44:07 -0700
-Message-ID: <CA+55aFxD-Ua_jrrD1X6Y0Wd2gftP9=UVaa0uS=gi53zEEEAf3w@mail.gmail.com>
-References: <20180816215726.GA20526@ziepe.ca> <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
+From: Sagi Grimberg <sagi@grimberg.me>
+Subject: Re: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Fri, 17 Aug 2018 13:03:20 -0700
+Message-ID: <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
+References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com>
+ <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com>
+ <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com>
+ <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com>
+ <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me>
+ <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com>
+ <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com>
+ <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com>
+ <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com>
+ <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com>
+ <20180723164910.GS31540@mellanox.com>
+ <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com>
+ <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me>
+ <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com>
+ <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomputing.com>
+ <4a13541c-db48-beca-4ee7-932528b22986@grimberg.me>
+ <85bba372-049c-2a12-362e-adcb0931cf49@opengridcomputing.com>
+ <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>, 'Max Gurtovoy' <maxg@mellanox.com>, 'Jason Gunthorpe' <jgg@mellanox.com>
+Cc: 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 12:31 PM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Oh well. I'll look at what the conflicts were, but may end up just
-> taking your resolution.
 
-Ok, everything but the max_sge thing was trivial. I just took yours.
+> Hey Sagi,
+> 
+> The patch works allowing connections for the various affinity mappings below:
+> 
+> One comp_vector per core across all cores, starting with numa-local cores:
 
-            Linus
+Thanks Steve, is this your "Tested by:" tag?
