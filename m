@@ -1,34 +1,140 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
-Date: Fri, 17 Aug 2018 16:28:17 -0500
-Message-ID: <275501d43671$36eaaa20$a4bffe60$@opengridcomputing.com>
-References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com> <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com> <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com> <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com> <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me> <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com> <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com> <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com> <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com> <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com> <20180723164910.GS31540@mellanox.com> <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com> <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me> <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com> <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomp
- uting.com> <4a13541c-db48-beca-4ee7-932528b22986@grimberg.me> <85bba372-049c-2a12-362e-adcb0931cf49@opengridcomputing.com> <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com> <ed1ea546-e
- 7aa-3c17-710b-8c95fe90
-        deea@grimberg.me>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Sagi Grimberg' <sagi@grimberg.me>, 'Max Gurtovoy' <maxg@mellanox.com>, 'Jason Gunthorpe' <jgg@mellanox.com>
-Cc: 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
+From: Aaron Knister <aaron.s.knister@nasa.gov>
+Subject: [PATCH v2] avoid race condition between start_xmit and cm_rep_handler
+Date: Fri, 17 Aug 2018 17:31:26 -0400
+Message-ID: <1534541486-16263-1-git-send-email-aaron.s.knister@nasa.gov>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: stable@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, John Fleck <john.fleck@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> 
-> 
-> > Hey Sagi,
-> >
-> > The patch works allowing connections for the various affinity mappings
-> below:
-> >
-> > One comp_vector per core across all cores, starting with numa-local cores:
-> 
-> Thanks Steve, is this your "Tested by:" tag?
+Inside of start_xmit() the call to check if the connection is up and the
+queueing of the packets for later transmission is not atomic which
+leaves a window where cm_rep_handler can run, set the connection up,
+dequeue pending packets and leave the subsequently queued packets by
+start_xmit() sitting on neigh->queue until they're dropped when the
+connection is torn down. This only applies to connected mode. These
+dropped packets can really upset TCP, for example,  and cause
+multi-minute delays in transmission for open connections.
 
-Sure:
+Here's the code in start_xmit where we check to see if the connection
+is up:
 
-Tested-by: Steve Wise <swise@opengridcomputing.com>
+       if (ipoib_cm_get(neigh)) {
+               if (ipoib_cm_up(neigh)) {
+                       ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
+                       goto unref;
+               }
+       }
+
+The race occurs if cm_rep_handler execution occurs after the above
+connection check (specifically if it gets to the point where it acquires
+priv->lock to dequeue pending skb's) but before the below code snippet
+in start_xmit where packets are queued.
+
+       if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
+               push_pseudo_header(skb, phdr->hwaddr);
+               spin_lock_irqsave(&priv->lock, flags);
+               __skb_queue_tail(&neigh->queue, skb);
+               spin_unlock_irqrestore(&priv->lock, flags);
+       } else {
+               ++dev->stats.tx_dropped;
+               dev_kfree_skb_any(skb);
+       }
+
+The patch re-checks ipoib_cm_up with priv->lock held to avoid this
+race condition. Since odds are the conn should be up most of the time
+(and thus the connection *not* down most of the time) we don't hold the
+lock for the first check attempt to avoid a slowdown from unecessary
+locking for the majority of the packets transmitted during the
+connection's life.
+
+Signed-off-by: Aaron Knister <aaron.s.knister@nasa.gov>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 46 ++++++++++++++++++++++++++-----
+ 1 file changed, 39 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 26cde95b..a950c916 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1093,6 +1093,21 @@ static void unicast_arp_send(struct sk_buff *skb, struct net_device *dev,
+ 	spin_unlock_irqrestore(&priv->lock, flags);
+ }
+ 
++static bool defer_neigh_skb(struct sk_buff *skb,
++			    struct net_device *dev,
++			    struct ipoib_neigh *neigh,
++			    struct ipoib_pseudo_header *phdr)
++{
++	if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
++		push_pseudo_header(skb, phdr->hwaddr);
++		__skb_queue_tail(&neigh->queue, skb);
++		return true;
++	}
++
++	return false;
++}
++
++
+ static netdev_tx_t ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct ipoib_dev_priv *priv = ipoib_priv(dev);
+@@ -1101,6 +1116,7 @@ static netdev_tx_t ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	struct ipoib_pseudo_header *phdr;
+ 	struct ipoib_header *header;
+ 	unsigned long flags;
++	bool deferred_pkt = true;
+ 
+ 	phdr = (struct ipoib_pseudo_header *) skb->data;
+ 	skb_pull(skb, sizeof(*phdr));
+@@ -1160,6 +1176,23 @@ static netdev_tx_t ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 			ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
+ 			goto unref;
+ 		}
++		/*
++		 * Re-check ipoib_cm_up with priv->lock held to avoid
++		 * race condition between start_xmit and skb_dequeue in
++		 * cm_rep_handler. Since odds are the conn should be up
++		 * most of the time, we don't hold the lock for the
++		 * first check above
++		 */
++		spin_lock_irqsave(&priv->lock, flags);
++		if (ipoib_cm_up(neigh)) {
++			spin_unlock_irqrestore(&priv->lock, flags);
++			ipoib_cm_send(dev, skb, ipoib_cm_get(neigh));
++		} else {
++			deferred_pkt = defer_neigh_skb(skb, dev, neigh, phdr);
++			spin_unlock_irqrestore(&priv->lock, flags);
++		}
++
++		goto unref;
+ 	} else if (neigh->ah && neigh->ah->valid) {
+ 		neigh->ah->last_send = rn->send(dev, skb, neigh->ah->ah,
+ 						IPOIB_QPN(phdr->hwaddr));
+@@ -1168,17 +1201,16 @@ static netdev_tx_t ipoib_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ 		neigh_refresh_path(neigh, phdr->hwaddr, dev);
+ 	}
+ 
+-	if (skb_queue_len(&neigh->queue) < IPOIB_MAX_PATH_REC_QUEUE) {
+-		push_pseudo_header(skb, phdr->hwaddr);
+-		spin_lock_irqsave(&priv->lock, flags);
+-		__skb_queue_tail(&neigh->queue, skb);
+-		spin_unlock_irqrestore(&priv->lock, flags);
+-	} else {
++	spin_lock_irqsave(&priv->lock, flags);
++	deferred_pkt = defer_neigh_skb(skb, dev, neigh, phdr);
++	spin_unlock_irqrestore(&priv->lock, flags);
++
++unref:
++	if (!deferred_pkt) {
+ 		++dev->stats.tx_dropped;
+ 		dev_kfree_skb_any(skb);
+ 	}
+ 
+-unref:
+ 	ipoib_neigh_put(neigh);
+ 
+ 	return NETDEV_TX_OK;
+-- 
+2.12.3
