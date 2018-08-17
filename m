@@ -1,65 +1,40 @@
 From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 17 Aug 2018 13:27:02 -0700
-Message-ID: <CA+55aFzcp=a2sNOVR7DTEY9dehYamXaJ1bpSfF0FZir_9MhsVg@mail.gmail.com>
+Date: Fri, 17 Aug 2018 13:50:05 -0700
+Message-ID: <CA+55aFyGLKSzS8O3m4JaE69wUm03tGOf+507jCCViTRQaGBGxw@mail.gmail.com>
 References: <20180816215726.GA20526@ziepe.ca> <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
- <20180817201535.GI28676@mellanox.com>
+ <CA+55aFxD-Ua_jrrD1X6Y0Wd2gftP9=UVaa0uS=gi53zEEEAf3w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180817201535.GI28676@mellanox.com>
+In-Reply-To: <CA+55aFxD-Ua_jrrD1X6Y0Wd2gftP9=UVaa0uS=gi53zEEEAf3w@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
 Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 1:15 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
+On Fri, Aug 17, 2018 at 12:44 PM Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
 >
-> We often have merge conflicts with RDMA, how do you prefer to get the
-> PR? I'm actually not very clear on this part of the process.
+> Ok, everything but the max_sge thing was trivial. I just took yours.
 
-I  generally prefer the non-merged version, but with comments about
-the conflicts.
+Oh, and doing the full test compile, I notice there  are new warnings.
 
-In fact, the really preferred model is generally to send me a
-non-merged pull request (say "tags/for-linus") but if the conflicts
-look even half-way nasty - or simply because you did the merge anyway
-just to get the proper diffstat because history is complex - mention
-that you have a merged branch for verification (say
-"branch/for-linus-merged").
+That is *NOT* ok.
 
-When I get that kind of pull request, I'll just do the merge
-resolution myself, and after I've done it I'll generally then do
+The whole "x is deprecated" is not a useful warning. If you can't
+remove something, making it a reminder for yourself for later is not
+an acceptable excuse for  bothering everybody else with the warning,
+and possibly having other issues hidden because by the time there are
+expected warnings, people will start ignoring the unexpected ones too.
 
-   git checkout -b test-merge
-   git pull <repoaddress> for-linus-merged
+So "__deprecated" is for stuff that really isn't used any more, to
+catch possible new users. People have tried to use it for anything
+else, but it's always  been a much bigger pain than it is worth.
 
-and then just compare the end result with my resolution as an extra
-verification step.
-
-I may end up skipping the verification step if everything looks
-entirely trivial (and really, if you have no real reason for the
-pre-merged branch, don't bother even mentioning it even if you did it
-for the diffstat), but in practice whenever somebody does that, I have
-no reason not to just do that simple extra verification.
-
-Most of the time the merges are exactly the same, possibly with
-whitespace or trivial ordering differences (things like Makefiles and
-Kconfig files often have add-add conflicts where the ordering really
-doesn't matter between two config options).
-
-And then sometimes it shows that I missed something in my mmerge.
-
-And sometimes it shows that  I do so many merges that I actually ended
-up noticing something that the submaintainer didn't.
-
-So it can be uninteresting, and when it isn't uninteresting it can go
-either way, but so far for the people who do this, I've never been in
-the situation where I was *sorry* for the double merge and extra
-verification step.
-
-Because when mis-merges happen (they are happily pretty rare) they are
-_so_ annoying and can be so hard to figure out later, that I'd rather
-spend a bit more time on the merge than have a dodgy one.
+I've considered just removing the whole deprecation infrastructure. It
+has never really worked. Either its used, in which case deprecation
+warnings only hide real issues, or it's not used, in which case the
+function should just be removed.
 
                Linus
