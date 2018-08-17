@@ -1,71 +1,34 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 17 Aug 2018 15:27:22 -0600
-Message-ID: <20180817212722.GB28777@ziepe.ca>
-References: <20180816215726.GA20526@ziepe.ca>
- <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
- <20180817201535.GI28676@mellanox.com>
- <CA+55aFzcp=a2sNOVR7DTEY9dehYamXaJ1bpSfF0FZir_9MhsVg@mail.gmail.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH mlx5-next] RDMA/mlx5: Don't use cached IRQ affinity mask
+Date: Fri, 17 Aug 2018 16:28:17 -0500
+Message-ID: <275501d43671$36eaaa20$a4bffe60$@opengridcomputing.com>
+References: <40d49fe1-c548-31ec-7daa-b19056215d69@mellanox.com> <243215dc-2b06-9c99-a0cb-8a45e0257077@opengridcomputing.com> <3f827784-3089-2375-9feb-b3c1701d7471@mellanox.com> <01cd01d41dce$992f4f30$cb8ded90$@opengridcomputing.com> <0834cae6-33d6-3526-7d85-f5cae18c5487@grimberg.me> <9a4d8d50-19b0-fcaa-d4a3-6cfa2318a973@mellanox.com> <02dc01d41ecd$9cc8a0b0$d659e210$@opengridcomputing.com> <c5362a12-4be6-9f17-7f06-a52aed69e3b6@mellanox.com> <a9c4a70d-d578-0581-09aa-a3a56f3b2c02@opengridcomputing.com> <f936d176-c56b-143e-3311-f6df48f633dd@mellanox.com> <20180723164910.GS31540@mellanox.com> <c079b7b4-bff8-8ffe-0be5-e470c86479b4@mellanox.com> <b0f6a58a-0078-05a2-a7f9-946b2ff21846@grimberg.me> <f1442839-ff32-ab80-9eab-6923456fe272@mellanox.com> <47178d4d-f730-6e59-5c19-58331cc3864a@opengridcomp
+ uting.com> <4a13541c-db48-beca-4ee7-932528b22986@grimberg.me> <85bba372-049c-2a12-362e-adcb0931cf49@opengridcomputing.com> <000001d43645$d0fdbc00$72f93400$@opengridcomputing.com> <ed1ea546-e
+ 7aa-3c17-710b-8c95fe90
+        deea@grimberg.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CA+55aFzcp=a2sNOVR7DTEY9dehYamXaJ1bpSfF0FZir_9MhsVg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <ed1ea546-e7aa-3c17-710b-8c95fe90deea@grimberg.me>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Sagi Grimberg' <sagi@grimberg.me>, 'Max Gurtovoy' <maxg@mellanox.com>, 'Jason Gunthorpe' <jgg@mellanox.com>
+Cc: 'Leon Romanovsky' <leon@kernel.org>, 'Doug Ledford' <dledford@redhat.com>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Saeed Mahameed' <saeedm@mellanox.com>, 'linux-netdev' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 01:27:02PM -0700, Linus Torvalds wrote:
-> On Fri, Aug 17, 2018 at 1:15 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
+> 
+> 
+> > Hey Sagi,
 > >
-> > We often have merge conflicts with RDMA, how do you prefer to get the
-> > PR? I'm actually not very clear on this part of the process.
+> > The patch works allowing connections for the various affinity mappings
+> below:
+> >
+> > One comp_vector per core across all cores, starting with numa-local cores:
 > 
-> I  generally prefer the non-merged version, but with comments about
-> the conflicts.
-> 
-> In fact, the really preferred model is generally to send me a
-> non-merged pull request (say "tags/for-linus") but if the conflicts
-> look even half-way nasty - or simply because you did the merge anyway
-> just to get the proper diffstat because history is complex - mention
-> that you have a merged branch for verification (say
-> "branch/for-linus-merged").
-> 
-> When I get that kind of pull request, I'll just do the merge
-> resolution myself, and after I've done it I'll generally then do
-> 
->    git checkout -b test-merge
->    git pull <repoaddress> for-linus-merged
-> 
-> and then just compare the end result with my resolution as an extra
-> verification step.
-> 
-> I may end up skipping the verification step if everything looks
-> entirely trivial (and really, if you have no real reason for the
-> pre-merged branch, don't bother even mentioning it even if you did it
-> for the diffstat), but in practice whenever somebody does that, I have
-> no reason not to just do that simple extra verification.
-> 
-> Most of the time the merges are exactly the same, possibly with
-> whitespace or trivial ordering differences (things like Makefiles and
-> Kconfig files often have add-add conflicts where the ordering really
-> doesn't matter between two config options).
-> 
-> And then sometimes it shows that I missed something in my mmerge.
-> 
-> And sometimes it shows that  I do so many merges that I actually ended
-> up noticing something that the submaintainer didn't.
-> 
-> So it can be uninteresting, and when it isn't uninteresting it can go
-> either way, but so far for the people who do this, I've never been in
-> the situation where I was *sorry* for the double merge and extra
-> verification step.
-> 
-> Because when mis-merges happen (they are happily pretty rare) they are
-> _so_ annoying and can be so hard to figure out later, that I'd rather
-> spend a bit more time on the merge than have a dodgy one.
+> Thanks Steve, is this your "Tested by:" tag?
 
-Thanks for the explanation. Doug and I will do this in future.
+Sure:
 
-Jason
+Tested-by: Steve Wise <swise@opengridcomputing.com>
