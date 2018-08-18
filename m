@@ -1,29 +1,147 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 17 Aug 2018 16:56:46 -0700
-Message-ID: <CA+55aFyhXDgSVMEhXcEzTSX4oCJEYwKM1vFbjnsOah7F0siGFw@mail.gmail.com>
-References: <20180816215726.GA20526@ziepe.ca> <CA+55aFxgT8Hipm6bDrHMZ-nmdk3KZTP=J6D5k10UHTcajXAEHA@mail.gmail.com>
- <CA+55aFxD-Ua_jrrD1X6Y0Wd2gftP9=UVaa0uS=gi53zEEEAf3w@mail.gmail.com>
- <CA+55aFyGLKSzS8O3m4JaE69wUm03tGOf+507jCCViTRQaGBGxw@mail.gmail.com> <20180817211648.GK28676@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [PATCH] RDMA/smc: Replace ib_query_gid with rdma_get_gid_attr
+Date: Fri, 17 Aug 2018 20:17:07 -0600
+Message-ID: <20180818021707.GA25026@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180817211648.GK28676@mellanox.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Ursula Braun <ubraun@linux.ibm.com>
+Cc: linux-rdma@vger.kernel.org, Parav Pandit <parav@mellanox.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 2:17 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> Would you like a patch to remove that CONFIG option?
+All RDMA ULPs should be using rdma_get_gid_attr instead of
+ib_query_gid. Convert SMC to use the new API.
 
-I've definitely considered it and would almost certainly just apply a
-patch that removed it.
+In the process correct some confusion with gid_type - if attr->ndev is
+!NULL then gid_type can never be IB_GID_TYPE_IB by
+definition. IB_GID_TYPE_ROCE shares the same enum value and is probably
+what was intended here.
 
-We haven't had this issue for a while (because people stopped using
-the deprecated thing), so it ended up not having been an issue lately.
-Yours was the first case of deprecation warnings I've seen in a
-longish while.
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ include/rdma/ib_cache.h | 24 ---------------------
+ net/smc/smc_ib.c        | 48 +++++++++++++++++++++--------------------
+ 2 files changed, 25 insertions(+), 47 deletions(-)
 
-          Linus
+This is intended to go this merge window (ie in the next 4 days) to
+remove the wrong-headed __deprecated warning. If there is no objection
+I'll send it via the rdma tree.
+
+Thanks,
+Jason
+
+diff --git a/include/rdma/ib_cache.h b/include/rdma/ib_cache.h
+index 3e11e7cc60b745..62e990b620aaf7 100644
+--- a/include/rdma/ib_cache.h
++++ b/include/rdma/ib_cache.h
+@@ -133,28 +133,4 @@ const struct ib_gid_attr *rdma_get_gid_attr(struct ib_device *device,
+ void rdma_put_gid_attr(const struct ib_gid_attr *attr);
+ void rdma_hold_gid_attr(const struct ib_gid_attr *attr);
+ 
+-/*
+- * This is to be removed. It only exists to make merging rdma and smc simpler.
+- */
+-static inline __deprecated int ib_query_gid(struct ib_device *device,
+-					    u8 port_num, int index,
+-					    union ib_gid *gid,
+-					    struct ib_gid_attr *attr_out)
+-{
+-	const struct ib_gid_attr *attr;
+-
+-	memset(attr_out, 0, sizeof(*attr_out));
+-	attr = rdma_get_gid_attr(device, port_num, index);
+-	if (IS_ERR(attr))
+-		return PTR_ERR(attr);
+-
+-	if (attr->ndev)
+-		dev_hold(attr->ndev);
+-	*attr_out = *attr;
+-
+-	rdma_put_gid_attr(attr);
+-
+-	return 0;
+-}
+-
+ #endif /* _IB_CACHE_H */
+diff --git a/net/smc/smc_ib.c b/net/smc/smc_ib.c
+index 9bb5274a244e83..e519ef29c0ffcb 100644
+--- a/net/smc/smc_ib.c
++++ b/net/smc/smc_ib.c
+@@ -145,17 +145,21 @@ int smc_ib_ready_link(struct smc_link *lnk)
+ 
+ static int smc_ib_fill_mac(struct smc_ib_device *smcibdev, u8 ibport)
+ {
+-	struct ib_gid_attr gattr;
+-	union ib_gid gid;
+-	int rc;
++	const struct ib_gid_attr *attr;
++	int rc = 0;
+ 
+-	rc = ib_query_gid(smcibdev->ibdev, ibport, 0, &gid, &gattr);
+-	if (rc || !gattr.ndev)
++	attr = rdma_get_gid_attr(smcibdev->ibdev, ibport, 0);
++	if (IS_ERR(attr))
+ 		return -ENODEV;
+ 
+-	memcpy(smcibdev->mac[ibport - 1], gattr.ndev->dev_addr, ETH_ALEN);
+-	dev_put(gattr.ndev);
+-	return 0;
++	if (attr->ndev)
++		memcpy(smcibdev->mac[ibport - 1], attr->ndev->dev_addr,
++		       ETH_ALEN);
++	else
++		rc = -ENODEV;
++
++	rdma_put_gid_attr(attr);
++	return rc;
+ }
+ 
+ /* Create an identifier unique for this instance of SMC-R.
+@@ -180,29 +184,27 @@ bool smc_ib_port_active(struct smc_ib_device *smcibdev, u8 ibport)
+ int smc_ib_determine_gid(struct smc_ib_device *smcibdev, u8 ibport,
+ 			 unsigned short vlan_id, u8 gid[], u8 *sgid_index)
+ {
+-	struct ib_gid_attr gattr;
+-	union ib_gid _gid;
++	const struct ib_gid_attr *attr;
+ 	int i;
+ 
+ 	for (i = 0; i < smcibdev->pattr[ibport - 1].gid_tbl_len; i++) {
+-		memset(&_gid, 0, SMC_GID_SIZE);
+-		memset(&gattr, 0, sizeof(gattr));
+-		if (ib_query_gid(smcibdev->ibdev, ibport, i, &_gid, &gattr))
++		attr = rdma_get_gid_attr(smcibdev->ibdev, ibport, i);
++		if (IS_ERR(attr))
+ 			continue;
+-		if (!gattr.ndev)
+-			continue;
+-		if (((!vlan_id && !is_vlan_dev(gattr.ndev)) ||
+-		     (vlan_id && is_vlan_dev(gattr.ndev) &&
+-		      vlan_dev_vlan_id(gattr.ndev) == vlan_id)) &&
+-		    gattr.gid_type == IB_GID_TYPE_IB) {
++
++		if (attr->ndev &&
++		    ((!vlan_id && !is_vlan_dev(attr->ndev)) ||
++		     (vlan_id && is_vlan_dev(attr->ndev) &&
++		      vlan_dev_vlan_id(attr->ndev) == vlan_id)) &&
++		    attr->gid_type == IB_GID_TYPE_ROCE) {
+ 			if (gid)
+-				memcpy(gid, &_gid, SMC_GID_SIZE);
++				memcpy(gid, &attr->gid, SMC_GID_SIZE);
+ 			if (sgid_index)
+-				*sgid_index = i;
+-			dev_put(gattr.ndev);
++				*sgid_index = attr->index;
++			rdma_put_gid_attr(attr);
+ 			return 0;
+ 		}
+-		dev_put(gattr.ndev);
++		rdma_put_gid_attr(attr);
+ 	}
+ 	return -ENODEV;
+ }
+-- 
+2.18.0
