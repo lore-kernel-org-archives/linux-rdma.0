@@ -1,42 +1,21 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] IB/ucm: fix UCM link error
-Date: Tue, 21 Aug 2018 16:20:44 +0200
-Message-ID: <20180821142100.2250647-1-arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Arnd Bergmann <arnd@arndb.de>, Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Subject: Re: [PATCH] rds: tcp: remove duplicated include from tcp.c
+Date: Tue, 21 Aug 2018 10:33:39 -0400
+Message-ID: <20180821143339.GC25982@oracle.com>
+References: <1534860342-171157-1-git-send-email-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1534860342-171157-1-git-send-email-yuehaibing@huawei.com>
+Sender: netdev-owner@vger.kernel.org
+To: Yue Haibing <yuehaibing@huawei.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Building UCM with CONFIG_INFINIBAND_USER_ACCESS=m results in a
-set of link errors including:
+On (08/21/18 14:05), Yue Haibing wrote:
+> Remove duplicated include.
+> 
+> Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
 
-drivers/infiniband/core/ucm.o: In function `ib_ucm_event_handler':
-ucm.c:(.text+0x6dc): undefined reference to `ib_copy_path_rec_to_user'
-drivers/infiniband/core/ucma.o: In function `ucma_event_handler':
-ucma.c:(.text+0xdc0): undefined reference to `ib_copy_ah_attr_to_user'
-
-To get it to build-test again, this makes the option itself a
-tristate, which lets Kconfig figure out the dependency correctly.
-
-Fixes: 486edfb1039d ("IB/ucm: Fix compiling ucm.c")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/infiniband/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index 1d6f5710d1df..176b943dfec9 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -35,7 +35,7 @@ config INFINIBAND_USER_ACCESS
- 	  rdma-core <https://github.com/linux-rdma/rdma-core>.
- 
- config INFINIBAND_USER_ACCESS_UCM
--	bool "Userspace CM (UCM, DEPRECATED)"
-+	tristate "Userspace CM (UCM, DEPRECATED)"
- 	depends on BROKEN || COMPILE_TEST
- 	depends on INFINIBAND_USER_ACCESS
- 	help
--- 
-2.18.0
+Acked-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
