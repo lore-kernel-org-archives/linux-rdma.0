@@ -1,32 +1,42 @@
-From: Yue Haibing <yuehaibing@huawei.com>
-Subject: [PATCH] rds: tcp: remove duplicated include from tcp.c
-Date: Tue, 21 Aug 2018 14:05:42 +0000
-Message-ID: <1534860342-171157-1-git-send-email-yuehaibing@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>
-Cc: Yue Haibing <yuehaibing@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, kernel-janitors@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] IB/ucm: fix UCM link error
+Date: Tue, 21 Aug 2018 16:20:44 +0200
+Message-ID: <20180821142100.2250647-1-arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Arnd Bergmann <arnd@arndb.de>, Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove duplicated include.
+Building UCM with CONFIG_INFINIBAND_USER_ACCESS=m results in a
+set of link errors including:
 
-Signed-off-by: Yue Haibing <yuehaibing@huawei.com>
+drivers/infiniband/core/ucm.o: In function `ib_ucm_event_handler':
+ucm.c:(.text+0x6dc): undefined reference to `ib_copy_path_rec_to_user'
+drivers/infiniband/core/ucma.o: In function `ucma_event_handler':
+ucma.c:(.text+0xdc0): undefined reference to `ib_copy_ah_attr_to_user'
+
+To get it to build-test again, this makes the option itself a
+tristate, which lets Kconfig figure out the dependency correctly.
+
+Fixes: 486edfb1039d ("IB/ucm: Fix compiling ucm.c")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- net/rds/tcp.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/infiniband/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index 2c7b7c3..b9bbcf3 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -37,7 +37,6 @@
- #include <net/tcp.h>
- #include <net/net_namespace.h>
- #include <net/netns/generic.h>
--#include <net/tcp.h>
- #include <net/addrconf.h>
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 1d6f5710d1df..176b943dfec9 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -35,7 +35,7 @@ config INFINIBAND_USER_ACCESS
+ 	  rdma-core <https://github.com/linux-rdma/rdma-core>.
  
- #include "rds.h"
+ config INFINIBAND_USER_ACCESS_UCM
+-	bool "Userspace CM (UCM, DEPRECATED)"
++	tristate "Userspace CM (UCM, DEPRECATED)"
+ 	depends on BROKEN || COMPILE_TEST
+ 	depends on INFINIBAND_USER_ACCESS
+ 	help
+-- 
+2.18.0
