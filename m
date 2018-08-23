@@ -1,78 +1,64 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [RDMA bug] KASAN: use-after-free Read in __list_del_entry_valid
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RDMA bug] KASAN: use-after-free Read in __list_del_entry_valid
  (4)
-Date: Thu, 23 Aug 2018 17:14:39 +0000
-Message-ID: <VI1PR0501MB2271943461A960624D6E9197D1370@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+Date: Thu, 23 Aug 2018 11:17:32 -0600
+Message-ID: <20180823171732.GC14664@ziepe.ca>
 References: <001a1141551246502d056845782e@google.com>
-         <001a1140f6ac1677460568489287@google.com>
-         <20180823061630.GB736@sol.localdomain> <20180823145458.GC9366@ziepe.ca>
-         <VI1PR0501MB22714BE9A34FA333671A0623D1370@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <1256f66271b31955f6e77c59335f4f75801eacf2.camel@redhat.com>
+ <001a1140f6ac1677460568489287@google.com>
+ <20180823061630.GB736@sol.localdomain>
+ <20180823145458.GC9366@ziepe.ca>
+ <VI1PR0501MB22714BE9A34FA333671A0623D1370@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1256f66271b31955f6e77c59335f4f75801eacf2.camel@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <VI1PR0501MB22714BE9A34FA333671A0623D1370@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Eric Biggers <ebiggers@kernel.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dasaratharaman.chandramouli@intel.com" <dasaratharaman.chandramouli@intel.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Moni Shoua <monis@mellanox.com>, "syzkaller-bugs@googlegroups.com" <syzkaller-bugs@googlegroups.com>, syzbot <syzbot+29ee8f76017ce6cf03da@syzkaller.appspotmail.com>
+To: Parav Pandit <parav@mellanox.com>
+Cc: Eric Biggers <ebiggers@kernel.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dasaratharaman.chandramouli@intel.com" <dasaratharaman.chandramouli@intel.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Moni Shoua <monis@mellanox.com>, "syzkaller-bugs@googlegroups.com" <syzkaller-bugs@googlegroups.com>, syzbot <syzbot+29ee8f76017ce6cf03da@syzkaller.appspotmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgRG91ZywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb3VnIExl
-ZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+IFNlbnQ6IFRodXJzZGF5LCBBdWd1c3QgMjMs
-IDIwMTggMTE6NTYgQU0NCj4gVG86IFBhcmF2IFBhbmRpdCA8cGFyYXZAbWVsbGFub3guY29tPjsg
-SmFzb24gR3VudGhvcnBlIDxqZ2dAemllcGUuY2E+Ow0KPiBFcmljIEJpZ2dlcnMgPGViaWdnZXJz
-QGtlcm5lbC5vcmc+DQo+IENjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgZGFzYXJhdGhh
-cmFtYW4uY2hhbmRyYW1vdWxpQGludGVsLmNvbTsNCj4gTGVvbiBSb21hbm92c2t5IDxsZW9ucm9A
-bWVsbGFub3guY29tPjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsNCj4gTWFyayBCbG9j
-aCA8bWFya2JAbWVsbGFub3guY29tPjsgTW9uaSBTaG91YSA8bW9uaXNAbWVsbGFub3guY29tPjsN
-Cj4gc3l6a2FsbGVyLWJ1Z3NAZ29vZ2xlZ3JvdXBzLmNvbTsgc3l6Ym90DQo+IDxzeXpib3QrMjll
-ZThmNzYwMTdjZTZjZjAzZGFAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbT4NCj4gU3ViamVjdDog
-UmU6IFtSRE1BIGJ1Z10gS0FTQU46IHVzZS1hZnRlci1mcmVlIFJlYWQgaW4gX19saXN0X2RlbF9l
-bnRyeV92YWxpZA0KPiAoNCkNCj4gDQo+IE9uIFRodSwgMjAxOC0wOC0yMyBhdCAxNjozOSArMDAw
-MCwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0N
-Cj4gPiA+IEZyb206IEphc29uIEd1bnRob3JwZSA8amdnQHppZXBlLmNhPg0KPiA+ID4gU2VudDog
-VGh1cnNkYXksIEF1Z3VzdCAyMywgMjAxOCA5OjU1IEFNDQo+ID4gPiBUbzogRXJpYyBCaWdnZXJz
-IDxlYmlnZ2Vyc0BrZXJuZWwub3JnPg0KPiA+ID4gQ2M6IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRA
-cmVkaGF0LmNvbT47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOw0KPiA+ID4gZGFzYXJhdGhh
-cmFtYW4uY2hhbmRyYW1vdWxpQGludGVsLmNvbTsgTGVvbiBSb21hbm92c2t5DQo+ID4gPiA8bGVv
-bnJvQG1lbGxhbm94LmNvbT47IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IE1hcmsgQmxv
-Y2gNCj4gPiA+IDxtYXJrYkBtZWxsYW5veC5jb20+OyBNb25pIFNob3VhIDxtb25pc0BtZWxsYW5v
-eC5jb20+OyBQYXJhdg0KPiBQYW5kaXQNCj4gPiA+IDxwYXJhdkBtZWxsYW5veC5jb20+OyBzeXpr
-YWxsZXItYnVnc0Bnb29nbGVncm91cHMuY29tOyBzeXpib3QNCj4gPiA+IDxzeXpib3QrMjllZThm
-NzYwMTdjZTZjZjAzZGFAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbT4NCj4gPiA+IFN1YmplY3Q6
-IFJlOiBbUkRNQSBidWddIEtBU0FOOiB1c2UtYWZ0ZXItZnJlZSBSZWFkIGluDQo+ID4gPiBfX2xp
-c3RfZGVsX2VudHJ5X3ZhbGlkDQo+ID4gPiAoNCkNCj4gPiA+DQo+ID4gPiBPbiBXZWQsIEF1ZyAy
-MiwgMjAxOCBhdCAxMToxNjozMVBNIC0wNzAwLCBFcmljIEJpZ2dlcnMgd3JvdGU6DQo+ID4gPiA+
-IEhlbGxvIFJETUEgLyBJbmZpbmlCYW5kIG1haW50YWluZXJzLA0KPiA+ID4gPg0KPiA+ID4gPiBU
-aGlzIGlzIGFuIFJETUEgYnVnIGFuZCBpdCBzdGlsbCBvY2N1cnMgb24gTGludXMnIHRyZWUgYXMg
-b2YgdG9kYXkNCj4gPiA+ID4gKGNvbW1pdCA4MTVmMGRkYjM0NmMxOTYwKS4NCj4gPiA+ID4NCj4g
-PiA+ID4gSSd2ZSBhbHNvIHNpbXBsaWZpZWQgdGhlIHJlcHJvZHVjZXIgZm9yIGl0OyBzZWUgYmVs
-b3cgYWZ0ZXIgdGhlIG9yaWdpbmFsDQo+IHJlcG9ydC4NCj4gPiA+ID4gQXBwYXJlbnRseSBpdCBp
-bnZvbHZlcyBhIHJhY2UgYmV0d2VlbiBSRE1BX1VTRVJfQ01fQ01EX1JFU09MVkVfSVANCj4gPiA+
-DQo+ID4gPiBhbmQNCj4gPiA+ID4gUkRNQV9VU0VSX0NNX0NNRF9MSVNURU4uDQo+ID4gPg0KPiA+
-ID4gVGhhdCBpcyBhbiBhbWF6aW5nIHJlcHJvZHVjZXIhDQo+ID4gPg0KPiA+ID4gSSBoYXZlIGEg
-ZmVlbGluZyB0aGlzIGlzIHRoZSBzYW1lIGNhdXNlIGFzIGFsbCB0aGUgb3RoZXIgc3l6a2FsbGVy
-IGJ1Z3MgaW4gdGhpcw0KPiBjb2RlOg0KPiA+ID4gbGFjayBvZiBhbnkgc2FuZSBsb2NraW5nIGF0
-IGFsbCA6XA0KPiA+ID4NCj4gPiA+IFdlJ3ZlIHRhbGtlZCBhYm91dCBjaHVja2luZyBhIGJpZyBs
-b2NrIGFyb3VuZCB0aGlzIHdob2xlIHRoaW5nLCBidXQNCj4gPiA+IG5vYm9keSBoYXMgZG9uZSBp
-dCB5ZXQuLiBJdCBpc24ndCBzbyBzaW1wbGUuDQo+ID4gPg0KPiA+DQo+ID4gSSBoYWQgc29tZSBj
-b2RlIGluIHdoaWNoIHJlZHVjZXMgdGhyZWUgbG9ja3MgKGhhbmRsZXJfbG9jaywgcXBfbXV0ZXgs
-DQo+IGlkX2xvY2spIHRvIHNpbmdsZSBtdXRleCB0byBwcm90ZWN0IHRoZSBjbV9pZCBhbmQgcHJv
-dGVjdHMgZXZlcnkgZXhwb3J0ZWQNCj4gc3ltYm9sIG9mIHJkbWFjbSB3aGljaCB3b3JrcyBvbiBj
-bV9pZC4NCj4gPiBCdXQgbm90IHJlYWR5IGVub3VnaCB0byBwb3N0IGl0IGFzIHBhdGNoIHlldC4g
-TG90IG9mIHRlc3RzIHJlcXVpcmVkIGJlZm9yZSBJIGdldA0KPiB0aGVyZSBhbmQgc29tZSByZWZh
-Y3RvciB0b28gYmVmb3JlIHRoYXQuDQo+IA0KPiBEb2VzIGl0IGZpbmFsbHkgYWRkcmVzcyB0aGUg
-ZmFjdCB0aGF0IHRoZSByZG1hY20gY29kZSB3YXMgd3JpdHRlbiBzbyB0aGF0IGl0IHdhcw0KPiBh
-bHdheXMgc3luY2hyb25vdXMgYnV0IFJvQ0Ugc3JjIGdpZCAoSSB0aGluayB0aGF0J3Mgd2hhdCBp
-dCB3YXMsIEknbSB0eXBpbmcgdGhpcw0KPiBmcm9tIGxvbmcgYWdvIG1lbW9yeSkgbG9va3VwIGJy
-b2tlIHRoYXQgYXNzdW1wdGlvbj8NCj4gDQpJIGFtIG5vdCBzdXJlLiANClRvIG1lIGl0IGlzIHVu
-bGlrZWx5LCBiZWNhdXNlIHJkbWFfcmVzb2x2ZV9yb3V0ZSgpIGZvciBJbmZpbmlCYW5kIGlzIG5v
-dCBzeW5jaHJvbm91cyBlaXRoZXIgd2hpY2ggbmVlZHMgdG8gcXVlcnkgdGhlIFNBLg0KQnV0IHFw
-X211dGV4IGV4aXN0ZWQgbG9uZyBiZWZvcmUgdGhhdCB3aGljaCBkb2Vzbid0IHByb3ZpZGUgYW55
-IHBlcmZvcm1hbmNlIGltcHJvdmVtZW50cy4gKCBieSBzcGxpdHRpbmcgYXMgM3JkIGxvY2sgaW5z
-dGVhZCBvZiBpZF9sb2NrIGFuZCBoYW5kbGVyX2xvY2spIGFuZCBzbyBvbi4NCg0KDQo+IC0tDQo+
-IERvdWcgTGVkZm9yZCA8ZGxlZGZvcmRAcmVkaGF0LmNvbT4NCj4gICAgIEdQRyBLZXlJRDogQjgy
-NkEzMzMwRTU3MkZERA0KPiAgICAgS2V5IGZpbmdlcnByaW50ID0gQUU2QiAxQkRBIDEyMkIgMjNC
-NCAyNjVCICAxMjc0IEI4MjYgQTMzMyAwRTU3IDJGREQNCg==
+On Thu, Aug 23, 2018 at 04:39:29PM +0000, Parav Pandit wrote:
+> 
+> 
+> > From: Jason Gunthorpe <jgg@ziepe.ca>
+> > Sent: Thursday, August 23, 2018 9:55 AM
+> > To: Eric Biggers <ebiggers@kernel.org>
+> > Cc: Doug Ledford <dledford@redhat.com>; linux-rdma@vger.kernel.org;
+> > dasaratharaman.chandramouli@intel.com; Leon Romanovsky
+> > <leonro@mellanox.com>; linux-kernel@vger.kernel.org; Mark Bloch
+> > <markb@mellanox.com>; Moni Shoua <monis@mellanox.com>; Parav Pandit
+> > <parav@mellanox.com>; syzkaller-bugs@googlegroups.com; syzbot
+> > <syzbot+29ee8f76017ce6cf03da@syzkaller.appspotmail.com>
+> > Subject: Re: [RDMA bug] KASAN: use-after-free Read in __list_del_entry_valid
+> > (4)
+> > 
+> > On Wed, Aug 22, 2018 at 11:16:31PM -0700, Eric Biggers wrote:
+> > > Hello RDMA / InfiniBand maintainers,
+> > >
+> > > This is an RDMA bug and it still occurs on Linus' tree as of today
+> > > (commit 815f0ddb346c1960).
+> > >
+> > > I've also simplified the reproducer for it; see below after the original report.
+> > > Apparently it involves a race between RDMA_USER_CM_CMD_RESOLVE_IP
+> > and
+> > > RDMA_USER_CM_CMD_LISTEN.
+> > 
+> > That is an amazing reproducer!
+> > 
+> > I have a feeling this is the same cause as all the other syzkaller bugs in this code:
+> > lack of any sane locking at all :\
+> > 
+> > We've talked about chucking a big lock around this whole thing, but nobody has
+> > done it yet.. It isn't so simple.
+> >
+>
+> I had some code in which reduces three locks (handler_lock,
+> qp_mutex, id_lock) to single mutex to protect the cm_id and protects
+> every exported symbol of rdmacm which works on cm_id.  But not ready
+> enough to post it as patch yet. Lot of tests required before I get
+> there and some refactor too before that.
+
+That does sound promising..
+
+Jason
