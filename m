@@ -1,74 +1,99 @@
-From: Aaron Knister <aaron.s.knister@nasa.gov>
-Subject: Re: [PATCH v2] avoid race condition between start_xmit and
- cm_rep_handler
-Date: Thu, 23 Aug 2018 19:25:33 -0400
-Message-ID: <0e880f0d-ce8d-1cce-efb2-7c832e029569@nasa.gov>
-References: <1534541486-16263-1-git-send-email-aaron.s.knister@nasa.gov>
- <CAAk-MO97rinpQXhyy7VZA6HWNwm94UuWAFnLFOSb4mj1wW4fQw@mail.gmail.com>
- <20180820162800.GA25543@ziepe.ca>
- <8c98f997-54ec-d060-8918-a073663c646f@nasa.gov>
- <5646c41e-cfa2-d9f7-0722-0ddfc4537676@nasa.gov>
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 24 Aug 2018 19:54:19 +0900
+Message-ID: <8cbfb09f-0c5a-8d43-1f5e-f3ff7612e289@I-love.SAKURA.ne.jp>
+References: <20180716115058.5559-1-mhocko@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <5646c41e-cfa2-d9f7-0722-0ddfc4537676@nasa.gov>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180716115058.5559-1-mhocko@kernel.org>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Erez Shitrit <erezsh@dev.mellanox.co.il>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, stable@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, John Fleck <john.fleck@intel.com>, Feras Daoud <ferasda@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky@oracle.c>
 List-Id: linux-rdma@vger.kernel.org
 
-I had a small window to test the v3 patch (applied to the 4.4.120 
-kernel) at scale and it does appear to fix the issue, so that's good. 
-One area of concern, though, is the testing data suggests (and this 
-isn't really scientific at all since there are many variables) the v3 
-patch appears to be 10% slower than the v2 patch. The "organic" test 
-involves creating a large number of empty files in a GPFS filesystem and 
-exacerbating the race condition with GPFS RPC traffic. My sample sizes 
-aren't large, though (26 iterations for the v2 patch and 8 for the v3 
-patch due to time constraints). I don't really have a preference for 
-either approach. What do folks think?
+Two more worries for this patch.
 
--Aaron
 
-On 8/20/18 3:20 PM, Aaron Knister wrote:
-> It seems to fix the issue based on tests with my synthetic reproducer 
-> which consists of two carefully placed sleeps-- one in start_xmit and 
-> another before cm_rep_handler to force open the race window. In order to 
-> test it organically I need to commandeer many hundreds of nodes in our 
-> cluster which can be fairly disruptive to our user community. I'll send 
-> over v3 as an RFC and it would be great to get feedback about whether or 
-> not the patch is acceptable. If it is, I'll work on scheduling an 
-> at-scale test after which I'll submit v3. I think the odds are very low 
-> the synthetic reproducer would indicate this problem as fixed but the 
-> real world test would still experience the problem. I try to be 
-> thorough, though.
-> 
-> -Aaron
-> 
-> On 8/20/18 1:40 PM, Aaron Knister wrote:
->> On 8/20/18 12:28 PM, Jason Gunthorpe wrote:
->>> On Mon, Aug 20, 2018 at 09:36:53AM +0300, Erez Shitrit wrote:
->>>> Hi,
->>>>
->>>> Did you check the option to hold the netif_tx_lock_xxx() in
->>>> ipoib_cm_rep_handler function (over the line
->>>> set_bit(IPOIB_FLAG_OPER_UP)) instead of in the send data path flow?
->>>
->>> That does seem better, then the test_bit in the datapath could become
->>> non-atomic too :)
->>>
->>> Jason
->>
->> Thanks for the feedback! I've not tried that but I certainly can.
->>
->> -Aaron
->>
-> 
 
--- 
-Aaron Knister
-NASA Center for Climate Simulation (Code 606.2)
-Goddard Space Flight Center
-(301) 286-2776
+> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+> @@ -178,12 +178,18 @@ void amdgpu_mn_unlock(struct amdgpu_mn *mn)
+>   *
+>   * @amn: our notifier
+>   */
+> -static void amdgpu_mn_read_lock(struct amdgpu_mn *amn)
+> +static int amdgpu_mn_read_lock(struct amdgpu_mn *amn, bool blockable)
+>  {
+> -       mutex_lock(&amn->read_lock);
+> +       if (blockable)
+> +               mutex_lock(&amn->read_lock);
+> +       else if (!mutex_trylock(&amn->read_lock))
+> +               return -EAGAIN;
+> +
+>         if (atomic_inc_return(&amn->recursion) == 1)
+>                 down_read_non_owner(&amn->lock);
+
+Why don't we need to use trylock here if blockable == false ?
+Want comment why it is safe to use blocking lock here.
+
+>         mutex_unlock(&amn->read_lock);
+> +
+> +       return 0;
+>  }
+> 
+>  /**
+
+
+
+> --- a/mm/hmm.c
+> +++ b/mm/hmm.c
+> @@ -177,16 +177,19 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
+>         up_write(&hmm->mirrors_sem);
+>  }
+> 
+> -static void hmm_invalidate_range_start(struct mmu_notifier *mn,
+> +static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+>                                        struct mm_struct *mm,
+>                                        unsigned long start,
+> -                                      unsigned long end)
+> +                                      unsigned long end,
+> +                                      bool blockable)
+>  {
+>         struct hmm *hmm = mm->hmm;
+> 
+>         VM_BUG_ON(!hmm);
+> 
+>         atomic_inc(&hmm->sequence);
+> +
+> +       return 0;
+>  }
+> 
+>  static void hmm_invalidate_range_end(struct mmu_notifier *mn,
+
+This assumes that hmm_invalidate_range_end() does not have memory
+allocation dependency. But hmm_invalidate_range() from
+hmm_invalidate_range_end() involves
+
+        down_read(&hmm->mirrors_sem);
+        list_for_each_entry(mirror, &hmm->mirrors, list)
+                mirror->ops->sync_cpu_device_pagetables(mirror, action,
+                                                        start, end);
+        up_read(&hmm->mirrors_sem);
+
+sequence. What is surprising is that there is no in-tree user who assigns
+sync_cpu_device_pagetables field.
+
+  $ grep -Fr sync_cpu_device_pagetables *
+  Documentation/vm/hmm.rst:     /* sync_cpu_device_pagetables() - synchronize page tables
+  include/linux/hmm.h: * will get callbacks through sync_cpu_device_pagetables() operation (see
+  include/linux/hmm.h:    /* sync_cpu_device_pagetables() - synchronize page tables
+  include/linux/hmm.h:    void (*sync_cpu_device_pagetables)(struct hmm_mirror *mirror,
+  include/linux/hmm.h: * hmm_mirror_ops.sync_cpu_device_pagetables() callback, so that CPU page
+  mm/hmm.c:               mirror->ops->sync_cpu_device_pagetables(mirror, action,
+
+That is, this API seems to be currently used by only out-of-tree users. Since
+we can't check that nobody has memory allocation dependency, I think that
+hmm_invalidate_range_start() should return -EAGAIN if blockable == false for now.
