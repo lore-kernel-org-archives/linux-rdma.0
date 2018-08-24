@@ -1,99 +1,75 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Fri, 24 Aug 2018 19:54:19 +0900
-Message-ID: <8cbfb09f-0c5a-8d43-1f5e-f3ff7612e289@I-love.SAKURA.ne.jp>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 24 Aug 2018 13:32:48 +0200
+Message-ID: <20180824113248.GH29735@dhcp22.suse.cz>
 References: <20180716115058.5559-1-mhocko@kernel.org>
+ <8cbfb09f-0c5a-8d43-1f5e-f3ff7612e289@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180716115058.5559-1-mhocko@kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, David Airlie <airlied@linux.ie>, Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Dimitri Sivanich <sivanich@sgi.com>, Boris Ostrovsky <boris.ostrovsky@oracle.c>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <8cbfb09f-0c5a-8d43-1f5e-f3ff7612e289@I-love.SAKURA.ne.jp>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Cc: kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, "David (ChunMing) Zhou" <David1.Zhou@amd.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel>
 List-Id: linux-rdma@vger.kernel.org
 
-Two more worries for this patch.
-
-
-
-> --- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-> +++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
-> @@ -178,12 +178,18 @@ void amdgpu_mn_unlock(struct amdgpu_mn *mn)
->   *
->   * @amn: our notifier
->   */
-> -static void amdgpu_mn_read_lock(struct amdgpu_mn *amn)
-> +static int amdgpu_mn_read_lock(struct amdgpu_mn *amn, bool blockable)
->  {
-> -       mutex_lock(&amn->read_lock);
-> +       if (blockable)
-> +               mutex_lock(&amn->read_lock);
-> +       else if (!mutex_trylock(&amn->read_lock))
-> +               return -EAGAIN;
-> +
->         if (atomic_inc_return(&amn->recursion) == 1)
->                 down_read_non_owner(&amn->lock);
-
-Why don't we need to use trylock here if blockable == false ?
-Want comment why it is safe to use blocking lock here.
-
->         mutex_unlock(&amn->read_lock);
-> +
-> +       return 0;
->  }
-> 
->  /**
-
-
-
-> --- a/mm/hmm.c
-> +++ b/mm/hmm.c
-> @@ -177,16 +177,19 @@ static void hmm_release(struct mmu_notifier *mn, struct mm_struct *mm)
->         up_write(&hmm->mirrors_sem);
->  }
-> 
-> -static void hmm_invalidate_range_start(struct mmu_notifier *mn,
-> +static int hmm_invalidate_range_start(struct mmu_notifier *mn,
->                                        struct mm_struct *mm,
->                                        unsigned long start,
-> -                                      unsigned long end)
-> +                                      unsigned long end,
-> +                                      bool blockable)
->  {
->         struct hmm *hmm = mm->hmm;
-> 
->         VM_BUG_ON(!hmm);
-> 
->         atomic_inc(&hmm->sequence);
-> +
-> +       return 0;
->  }
-> 
->  static void hmm_invalidate_range_end(struct mmu_notifier *mn,
-
-This assumes that hmm_invalidate_range_end() does not have memory
-allocation dependency. But hmm_invalidate_range() from
-hmm_invalidate_range_end() involves
-
-        down_read(&hmm->mirrors_sem);
-        list_for_each_entry(mirror, &hmm->mirrors, list)
-                mirror->ops->sync_cpu_device_pagetables(mirror, action,
-                                                        start, end);
-        up_read(&hmm->mirrors_sem);
-
-sequence. What is surprising is that there is no in-tree user who assigns
-sync_cpu_device_pagetables field.
-
-  $ grep -Fr sync_cpu_device_pagetables *
-  Documentation/vm/hmm.rst:     /* sync_cpu_device_pagetables() - synchronize page tables
-  include/linux/hmm.h: * will get callbacks through sync_cpu_device_pagetables() operation (see
-  include/linux/hmm.h:    /* sync_cpu_device_pagetables() - synchronize page tables
-  include/linux/hmm.h:    void (*sync_cpu_device_pagetables)(struct hmm_mirror *mirror,
-  include/linux/hmm.h: * hmm_mirror_ops.sync_cpu_device_pagetables() callback, so that CPU page
-  mm/hmm.c:               mirror->ops->sync_cpu_device_pagetables(mirror, action,
-
-That is, this API seems to be currently used by only out-of-tree users. Since
-we can't check that nobody has memory allocation dependency, I think that
-hmm_invalidate_range_start() should return -EAGAIN if blockable == false for now.
+T24gRnJpIDI0LTA4LTE4IDE5OjU0OjE5LCBUZXRzdW8gSGFuZGEgd3JvdGU6Cj4gVHdvIG1vcmUg
+d29ycmllcyBmb3IgdGhpcyBwYXRjaC4KPiAKPiAKPiAKPiA+IC0tLSBhL2RyaXZlcnMvZ3B1L2Ry
+bS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2Ft
+ZGdwdS9hbWRncHVfbW4uYwo+ID4gQEAgLTE3OCwxMiArMTc4LDE4IEBAIHZvaWQgYW1kZ3B1X21u
+X3VubG9jayhzdHJ1Y3QgYW1kZ3B1X21uICptbikKPiA+ICAgKgo+ID4gICAqIEBhbW46IG91ciBu
+b3RpZmllcgo+ID4gICAqLwo+ID4gLXN0YXRpYyB2b2lkIGFtZGdwdV9tbl9yZWFkX2xvY2soc3Ry
+dWN0IGFtZGdwdV9tbiAqYW1uKQo+ID4gK3N0YXRpYyBpbnQgYW1kZ3B1X21uX3JlYWRfbG9jayhz
+dHJ1Y3QgYW1kZ3B1X21uICphbW4sIGJvb2wgYmxvY2thYmxlKQo+ID4gIHsKPiA+IC0gICAgICAg
+bXV0ZXhfbG9jaygmYW1uLT5yZWFkX2xvY2spOwo+ID4gKyAgICAgICBpZiAoYmxvY2thYmxlKQo+
+ID4gKyAgICAgICAgICAgICAgIG11dGV4X2xvY2soJmFtbi0+cmVhZF9sb2NrKTsKPiA+ICsgICAg
+ICAgZWxzZSBpZiAoIW11dGV4X3RyeWxvY2soJmFtbi0+cmVhZF9sb2NrKSkKPiA+ICsgICAgICAg
+ICAgICAgICByZXR1cm4gLUVBR0FJTjsKPiA+ICsKPiA+ICAgICAgICAgaWYgKGF0b21pY19pbmNf
+cmV0dXJuKCZhbW4tPnJlY3Vyc2lvbikgPT0gMSkKPiA+ICAgICAgICAgICAgICAgICBkb3duX3Jl
+YWRfbm9uX293bmVyKCZhbW4tPmxvY2spOwo+IAo+IFdoeSBkb24ndCB3ZSBuZWVkIHRvIHVzZSB0
+cnlsb2NrIGhlcmUgaWYgYmxvY2thYmxlID09IGZhbHNlID8KPiBXYW50IGNvbW1lbnQgd2h5IGl0
+IGlzIHNhZmUgdG8gdXNlIGJsb2NraW5nIGxvY2sgaGVyZS4KCkhtbSwgSSBhbSBwcmV0dHkgc3Vy
+ZSBJIGhhdmUgY2hlY2tlZCB0aGUgY29kZSBidXQgaXQgd2FzIHF1aXRlIGNvbmZ1c2luZwpzbyBJ
+IG1pZ2h0IGhhdmUgbWlzc2VkIHNvbWV0aGluZy4gRG91YmxlIGNoZWNraW5nIG5vdywgaXQgc2Vl
+bXMgdGhhdAp0aGlzIHJlYWRfbG9jayBpcyBub3QgdXNlZCBhbnl3aGVyZSBlbHNlIGFuZCBpdCBp
+cyBub3QgX3RoZV8gbG9jayB3ZSBhcmUKaW50ZXJlc3RlZCBhYm91dC4gSXQgaXMgdGhlIGFtbi0+
+bG9jayAoYW1kZ3B1X21uX2xvY2spIHdoaWNoIG1hdHRlcnMgYXMKaXQgaXMgdGFrZW4gaW4gZXhj
+bHVzaXZlIG1vZGUgZm9yIGV4cGVuc2l2ZSBvcGVyYXRpb25zLgoKSXMgdGhhdCBjb3JyZWN0IENo
+cmlzdGlhbj8gSWYgdGhpcyBpcyBjb3JyZWN0IHRoZW4gd2UgbmVlZCB0byB1cGRhdGUgdGhlCmxv
+Y2tpbmcgaGVyZS4gSSBhbSBzdHJ1Z2dsaW5nIHRvIGdyYXNwIHRoZSByZWYgY291bnRpbmcgcGFy
+dC4gV2h5IGNhbm5vdAphbGwgcmVhZGVycyBzaW1wbHkgdGFrZSB0aGUgbG9jayByYXRoZXIgdGhh
+biByZWx5IG9uIHNvbWVib2R5IGVsc2UgdG8KdGFrZSBpdD8gMWVkM2QyNTY3YzgwMCBkaWRuJ3Qg
+cmVhbGx5IGhlbHAgbWUgdG8gdW5kZXJzdGFuZCB0aGUgbG9ja2luZwpzY2hlbWUgaGVyZSBzbyBh
+bnkgaGVscCB3b3VsZCBiZSBhcHByZWNpYXRlZC4KCkkgYW0gd29uZGVyaW5nIHdoeSB3ZSBjYW5u
+b3QgZG8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5j
+IGIvZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1kZ3B1X21uLmMKaW5kZXggZTU1NTA4YjM5
+NDk2Li45MzAzNDE3ODY3M2QgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1
+L2FtZGdwdV9tbi5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5j
+CkBAIC0xODAsMTQgKzE4MCwxMSBAQCB2b2lkIGFtZGdwdV9tbl91bmxvY2soc3RydWN0IGFtZGdw
+dV9tbiAqbW4pCiAgKi8KIHN0YXRpYyBpbnQgYW1kZ3B1X21uX3JlYWRfbG9jayhzdHJ1Y3QgYW1k
+Z3B1X21uICphbW4sIGJvb2wgYmxvY2thYmxlKQogewotCWlmIChibG9ja2FibGUpCi0JCW11dGV4
+X2xvY2soJmFtbi0+cmVhZF9sb2NrKTsKLQllbHNlIGlmICghbXV0ZXhfdHJ5bG9jaygmYW1uLT5y
+ZWFkX2xvY2spKQotCQlyZXR1cm4gLUVBR0FJTjsKLQotCWlmIChhdG9taWNfaW5jX3JldHVybigm
+YW1uLT5yZWN1cnNpb24pID09IDEpCi0JCWRvd25fcmVhZF9ub25fb3duZXIoJmFtbi0+bG9jayk7
+Ci0JbXV0ZXhfdW5sb2NrKCZhbW4tPnJlYWRfbG9jayk7CisJaWYgKCFkb3duX3JlYWRfdHJ5bG9j
+aygmYW1uLT5sb2NrKSkgeworCQlpZiAoIWJsb2NrYWJsZSkKKwkJCXJldHVybiAtRUFHQUlOOwor
+CQlkb3duX3JlYWQoYW1uLT5sb2NrKTsKKwl9CiAKIAlyZXR1cm4gMDsKIH0KQEAgLTE5OSw4ICsx
+OTYsNyBAQCBzdGF0aWMgaW50IGFtZGdwdV9tbl9yZWFkX2xvY2soc3RydWN0IGFtZGdwdV9tbiAq
+YW1uLCBib29sIGJsb2NrYWJsZSkKICAqLwogc3RhdGljIHZvaWQgYW1kZ3B1X21uX3JlYWRfdW5s
+b2NrKHN0cnVjdCBhbWRncHVfbW4gKmFtbikKIHsKLQlpZiAoYXRvbWljX2RlY19yZXR1cm4oJmFt
+bi0+cmVjdXJzaW9uKSA9PSAwKQotCQl1cF9yZWFkX25vbl9vd25lcigmYW1uLT5sb2NrKTsKKwl1
+cF9yZWFkKCZhbW4tPmxvY2spOwogfQogCiAvKioKCi0tIApNaWNoYWwgSG9ja28KU1VTRSBMYWJz
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdm
+eCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
