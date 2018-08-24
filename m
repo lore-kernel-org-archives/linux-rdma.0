@@ -1,64 +1,78 @@
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+From: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH] mm, oom: distinguish blockable mode for mmu notifiers
-Date: Fri, 24 Aug 2018 15:28:33 +0200
-Message-ID: <86bd94d5-0ce8-c67f-07a5-ca9ebf399cdd@gmail.com>
-References: <20180824113248.GH29735@dhcp22.suse.cz>
- <b088e382-e90e-df63-a079-19b2ae2b985d@gmail.com>
- <20180824115226.GK29735@dhcp22.suse.cz>
- <a27ad1a3-34bd-6b7d-fd09-7737ec3c888d@gmail.com>
- <20180824120339.GL29735@dhcp22.suse.cz>
- <eb546bcb-9c5f-7d5d-43a7-bfde489f0e7f@amd.com>
- <20180824123341.GN29735@dhcp22.suse.cz>
- <b11df415-baf8-0a41-3c16-60dfe8d32bd3@amd.com>
- <20180824130132.GP29735@dhcp22.suse.cz>
- <23d071d2-82e4-9b78-1000-be44db5f6523@gmail.com>
- <20180824132442.GQ29735@dhcp22.suse.cz>
-Reply-To: christian.koenig@amd.com
+Date: Fri, 24 Aug 2018 15:32:07 +0200
+Message-ID: <20180824133207.GR29735@dhcp22.suse.cz>
+References: <20180716115058.5559-1-mhocko@kernel.org>
+ <8cbfb09f-0c5a-8d43-1f5e-f3ff7612e289@I-love.SAKURA.ne.jp>
+ <20180824113629.GI29735@dhcp22.suse.cz>
+ <103b1b33-1a1d-27a1-dcf8-5c8ad60056a6@i-love.sakura.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180824132442.GQ29735@dhcp22.suse.cz>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>, christian.koenig@amd.com
-Cc: kvm@vger.kernel.org, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, David Airlie <airlied@linux.ie>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <103b1b33-1a1d-27a1-dcf8-5c8ad60056a6-1yMVhJb1mP/7nzcFbJAaVXf5DAMn2ifp@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Tetsuo Handa <penguin-kernel-1yMVhJb1mP/7nzcFbJAaVXf5DAMn2ifp@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, Joonas Lahtinen <joonas.lahtinen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Sudeep Dutt <sudeep.dutt-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Dimitri Sivanich <sivanich-sJ/iWh9BUns@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Rientjes <rientjes-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, intel-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Rodrigo Vivi <rodrigo.vivi-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Boris Ostrovsky <boris.ostrovsky-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Juergen Gross <jgross-IBi9RG/b67k@public.gmane.org>, Mike Marciniszyn <mike>
 List-Id: linux-rdma@vger.kernel.org
 
-Am 24.08.2018 um 15:24 schrieb Michal Hocko:
-> On Fri 24-08-18 15:10:08, Christian König wrote:
->> Am 24.08.2018 um 15:01 schrieb Michal Hocko:
->>> On Fri 24-08-18 14:52:26, Christian König wrote:
->>>> Am 24.08.2018 um 14:33 schrieb Michal Hocko:
->>> [...]
->>>>> Thiking about it some more, I can imagine that a notifier callback which
->>>>> performs an allocation might trigger a memory reclaim and that in turn
->>>>> might trigger a notifier to be invoked and recurse. But notifier
->>>>> shouldn't really allocate memory. They are called from deep MM code
->>>>> paths and this would be extremely deadlock prone. Maybe Jerome can come
->>>>> up some more realistic scenario. If not then I would propose to simplify
->>>>> the locking here. We have lockdep to catch self deadlocks and it is
->>>>> always better to handle a specific issue rather than having a code
->>>>> without a clear indication how it can recurse.
->>>> Well I agree that we should probably fix that, but I have some concerns to
->>>> remove the existing workaround.
->>>>
->>>> See we added that to get rid of a real problem in a customer environment and
->>>> I don't want to that to show up again.
->>> It would really help to know more about that case and fix it properly
->>> rather than workaround it like this. Anyway, let me think how to handle
->>> the non-blocking notifier invocation then. I was not able to come up
->>> with anything remotely sane yet.
->> With avoiding allocating memory in the write lock path I don't see an issue
->> any more with that.
->>
->> All what the write lock path does now is adding items to a linked lists,
->> arrays etc....
-> Can we change it to non-sleepable lock then?
-
-No, the write side doesn't sleep any more, but the read side does.
-
-See amdgpu_mn_invalidate_node() and that is where you actually need to 
-handle the non-blocking flag correctly.
-
-Christian.
+T24gRnJpIDI0LTA4LTE4IDIyOjAyOjIzLCBUZXRzdW8gSGFuZGEgd3JvdGU6Cj4gT24gMjAxOC8w
+OC8yNCAyMDozNiwgTWljaGFsIEhvY2tvIHdyb3RlOgo+ID4+IFRoYXQgaXMsIHRoaXMgQVBJIHNl
+ZW1zIHRvIGJlIGN1cnJlbnRseSB1c2VkIGJ5IG9ubHkgb3V0LW9mLXRyZWUgdXNlcnMuIFNpbmNl
+Cj4gPj4gd2UgY2FuJ3QgY2hlY2sgdGhhdCBub2JvZHkgaGFzIG1lbW9yeSBhbGxvY2F0aW9uIGRl
+cGVuZGVuY3ksIEkgdGhpbmsgdGhhdAo+ID4+IGhtbV9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KCkg
+c2hvdWxkIHJldHVybiAtRUFHQUlOIGlmIGJsb2NrYWJsZSA9PSBmYWxzZSBmb3Igbm93Lgo+ID4g
+Cj4gPiBUaGUgY29kZSBleHBlY3RzIHRoYXQgdGhlIGludmFsaWRhdGVfcmFuZ2VfZW5kIGRvZXNu
+J3QgYmxvY2sgaWYKPiA+IGludmFsaWRhdGVfcmFuZ2Vfc3RhcnQgaGFzbid0IGJsb2NrZWQuIFRo
+YXQgaXMgdGhlIHJlYXNvbiB3aHkgdGhlIGVuZAo+ID4gY2FsbGJhY2sgZG9lc24ndCBoYXZlIGJs
+b2NrYWJsZSBwYXJhbWV0ZXIuIElmIHRoaXMgZG9lc24ndCBob2xkIHRoZW4gdGhlCj4gPiB3aG9s
+ZSBzY2hlbWUgaXMganVzdCBmcmFnaWxlIGJlY2F1c2UgdGhvc2UgdHdvIGNhbGxzIHNob3VsZCBw
+YWlyLgo+ID4gCj4gVGhhdCBpcwo+IAo+ICAgTW9yZSB3b3JyaXNvbWUgcGFydCBpbiB0aGF0IHBh
+dGNoIGlzIHRoYXQgSSBkb24ndCBrbm93IHdoZXRoZXIgdXNpbmcKPiAgIHRyeWxvY2sgaWYgYmxv
+Y2thYmxlID09IGZhbHNlIGF0IGVudHJ5IGlzIHJlYWxseSBzdWZmaWNpZW50Lgo+IAo+IC4gU2lu
+Y2UgdGhvc2UgdHdvIGNhbGxzIHNob3VsZCBwYWlyLCBJIHRoaW5rIHRoYXQgd2UgbmVlZCB0byBk
+ZXRlcm1pbmUgd2hldGhlcgo+IHdlIG5lZWQgdG8gcmV0dXJuIC1FQUdBSU4gYXQgc3RhcnQgY2Fs
+bCBieSBldmFsdWF0aW5nIGJvdGggY2FsbHMuCgpZZXMsIGFuZCBJIGJlbGlldmUgSSBoYXZlIGRv
+bmUgdGhhdCBhdWRpdC4gTW9kdWxlIG15IG1pc3VuZGVyc3RhbmRpbmcgb2YKdGhlIGNvZGUuCgo+
+IExpa2UgbW5faW52bF9yYW5nZV9zdGFydCgpIGludm9sdmVzIHNjaGVkdWxlX2RlbGF5ZWRfd29y
+aygpIHdoaWNoIGNvdWxkIGJlCj4gYmxvY2tlZCBvbiBtZW1vcnkgYWxsb2NhdGlvbiB1bmRlciBP
+T00gc2l0dWF0aW9uLAoKSXQgZG9lc24ndCBiZWNhdXNlIHRoYXQgY29kZSBwYXRoIGlzIG5vdCBp
+bnZva2VkIGZvciB0aGUgIWJsb2NrYWJsZQpjYXNlLgoKPiBJIHdvcnJ5IHRoYXQgKGN1cnJlbnRs
+eQo+IG91dC1vZi10cmVlKSB1c2VycyBvZiB0aGlzIEFQSSBhcmUgaW52b2x2aW5nIHdvcmsgLyBy
+ZWN1cnNpb24uCgpJIGRvIG5vdCBnaXZlIGEgc2xpZ2h0ZXN0IGFib3V0IG91dC1vZi10cmVlIG1v
+ZHVsZXMuIFRoZXkgd2lsbCBoYXZlIHRvCmFjY29tb2RhdGUgdG8gdGhlIG5ldyBBUEkuIEkgaGF2
+ZSBubyBwcm9ibGVtcyB0byBleHRlbmQgdGhlCmRvY3VtZW50YXRpb24gYW5kIGJlIGV4cGxpY2l0
+IGFib3V0IHRoaXMgZXhwZWN0YXRpb24uCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21tdV9u
+b3RpZmllci5oIGIvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaAppbmRleCAxMzNiYTc4ODIw
+ZWUuLjY5OGUzNzFhYWZlMyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIu
+aAorKysgYi9pbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oCkBAIC0xNTMsNyArMTUzLDkgQEAg
+c3RydWN0IG1tdV9ub3RpZmllcl9vcHMgewogCSAqCiAJICogSWYgYmxvY2thYmxlIGFyZ3VtZW50
+IGlzIHNldCB0byBmYWxzZSB0aGVuIHRoZSBjYWxsYmFjayBjYW5ub3QKIAkgKiBzbGVlcCBhbmQg
+aGFzIHRvIHJldHVybiB3aXRoIC1FQUdBSU4uIDAgc2hvdWxkIGJlIHJldHVybmVkCi0JICogb3Ro
+ZXJ3aXNlLgorCSAqIG90aGVyd2lzZS4gUGxlYXNlIG5vdGUgdGhhdCBpZiBpbnZhbGlkYXRlX3Jh
+bmdlX3N0YXJ0IGFwcHJvdmVzCisJICogYSBub24tYmxvY2tpbmcgYmVoYXZpb3IgdGhlbiB0aGUg
+c2FtZSBhcHBsaWVzIHRvCisJICogaW52YWxpZGF0ZV9yYW5nZV9lbmQuCiAJICoKIAkgKi8KIAlp
+bnQgKCppbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KShzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwKCgo+
+IEFuZCBobW1fcmVsZWFzZSgpIHNheXMgdGhhdAo+IAo+IAkvKgo+IAkgKiBEcm9wIG1pcnJvcnNf
+c2VtIHNvIGNhbGxiYWNrIGNhbiB3YWl0IG9uIGFueSBwZW5kaW5nCj4gCSAqIHdvcmsgdGhhdCBt
+aWdodCBpdHNlbGYgdHJpZ2dlciBtbXVfbm90aWZpZXIgY2FsbGJhY2sKPiAJICogYW5kIHRodXMg
+d291bGQgZGVhZGxvY2sgd2l0aCB1cy4KPiAJICovCj4gCj4gYW5kIGtlZXBzICJhbGwgb3BlcmF0
+aW9ucyBwcm90ZWN0ZWQgYnkgaG1tLT5taXJyb3JzX3NlbSBoZWxkIGZvciB3cml0ZSBhcmUKPiBh
+dG9taWMiLiBUaGlzIHN1Z2dlc3RzIHRoYXQgInNvbWUgb3BlcmF0aW9ucyBwcm90ZWN0ZWQgYnkg
+aG1tLT5taXJyb3JzX3NlbSBoZWxkCj4gZm9yIHJlYWQgd2lsbCBzbGVlcCAoYW5kIGluIHRoZSB3
+b3JzdCBjYXNlIGludm9sdmVzIG1lbW9yeSBhbGxvY2F0aW9uCj4gZGVwZW5kZW5jeSkiLgoKWWVz
+IGFuZCBzbyB3aGF0PyBUaGUgY2xlYXIgZXhwZWN0YXRpb24gaXMgdGhhdCBuZWl0aGVyIG9mIHRo
+ZSByYW5nZQpub3RpZmllcnMgZG8gbm90IHNsZWVwIGluICFibG9ja2luZyBtb2RlLiBJIHJlYWxs
+eSBmYWlsIHRvIHNlZSB3aGF0IHlvdQphcmUgdHJ5aW5nIHRvIHNheS4KCi0tIApNaWNoYWwgSG9j
+a28KU1VTRSBMYWJzCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeAo=
