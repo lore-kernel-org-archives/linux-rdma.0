@@ -1,47 +1,53 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: KASAN: use-after-free Read in __rhashtable_lookup (2)
-Date: Fri, 24 Aug 2018 16:50:48 -0700
-Message-ID: <CACT4Y+Y=d_AKpPQ494kVv4vmFMizwzgKFo6Lvit+Zw7TFU_+ng@mail.gmail.com>
-References: <20180824230446.GA16891@oracle.com> <000000000000d8879a05743667a2@google.com>
- <CACT4Y+a6P+q8jtRrd=cAf5hWbqQO4CQdWUaCCX-ygRbGsWHnGQ@mail.gmail.com> <20180824233700.GC31961@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Subject: [PATCH 1/1] net/rds: Use rdma_read_gids to get connection SGID/DGID in IPv6
+Date: Sat, 25 Aug 2018 15:19:05 +0800
+Message-ID: <20180825071905.2749-1-yanjun.zhu@oracle.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180824233700.GC31961@oracle.com>
 Sender: netdev-owner@vger.kernel.org
-To: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: syzbot <syzbot+8967084bcac563795dc6@syzkaller.appspotmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, netdev <netdev@vger.kernel.org>, rds-devel@oss.oracle.com, Santosh Shilimkar <santosh.shilimkar@oracle.com>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: Zhu Yanjun <yanjun.zhu@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 24, 2018 at 4:37 PM, Sowmini Varadhan
-<sowmini.varadhan@oracle.com> wrote:
-> On (08/24/18 16:10), Dmitry Vyukov wrote:
->> You need a colon after dup.
->
-> I see.
->
->> But this can't possibly be a dup of that bug. That bug was fixed in February:
->
-> Apologies, I unknowingly made a mistake in my
-> syzbot-tiquette in that case,
->
-> I did not intend to *close* the bug as a dup, I was
-> merely trying to indicate that this is yet another
-> manifestation of the original report with subject
-> "KASAN: use-after-free Read in rds_find_bound"
->
-> All of these problems are happening because we are missing
-> a synchronize_net() in rds_release.
->
-> A full description of the race conditon can be found in
-> https://www.spinics.net/lists/netdev/msg475074.html
->
-> If rds_release is going to nuke the rds_socket
-> it needs to sychronize_net() with other threads that may be
-> looking up the bind_hash_table. If we dont do that,
-> all of these "use-after-free" races can happen.
-> As long as we dont have the synchronize_net() we are
-> missing a big (and standard) bit of RCU synchronization.
+In IPv4, the newly introduced rdma_read_gids is used to read the SGID/DGID
+for the connection which returns GID correctly for RoCE transport as well.
 
+In IPv6, rdma_read_gids is also used. The following are why rdma_read_gids
+is introduced.
 
-If it's a note for humans, then just a plain English comment will do.
+rdma_addr_get_dgid() for RoCE for client side connections returns MAC
+address, instead of DGID.
+rdma_addr_get_sgid() for RoCE doesn't return correct SGID for IPv6 and
+when more than one IP address is assigned to the netdevice.
+
+So the transport agnostic rdma_read_gids() API is provided by rdma_cm
+module.
+
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+---
+ net/rds/ib.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
+
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index c1d97640c0be..eba75c1ba359 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -341,15 +341,10 @@ static int rds6_ib_conn_info_visitor(struct rds_connection *conn,
+ 
+ 	if (rds_conn_state(conn) == RDS_CONN_UP) {
+ 		struct rds_ib_device *rds_ibdev;
+-		struct rdma_dev_addr *dev_addr;
+ 
+ 		ic = conn->c_transport_data;
+-		dev_addr = &ic->i_cm_id->route.addr.dev_addr;
+-		rdma_addr_get_sgid(dev_addr,
+-				   (union ib_gid *)&iinfo6->src_gid);
+-		rdma_addr_get_dgid(dev_addr,
+-				   (union ib_gid *)&iinfo6->dst_gid);
+-
++		rdma_read_gids(ic->i_cm_id, (union ib_gid *)&iinfo6->src_gid,
++			       (union ib_gid *)&iinfo6->dst_gid);
+ 		rds_ibdev = ic->rds_ibdev;
+ 		iinfo6->max_send_wr = ic->i_send_ring.w_nr;
+ 		iinfo6->max_recv_wr = ic->i_recv_ring.w_nr;
+-- 
+2.17.1
