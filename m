@@ -1,35 +1,89 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH 1/1] net/rds: Use rdma_read_gids to get connection
- SGID/DGID in IPv6
-Date: Sat, 25 Aug 2018 12:24:17 -0700
-Message-ID: <d16d1840-e1d9-716b-715a-9dce1e8630e3@oracle.com>
-References: <20180825071905.2749-1-yanjun.zhu@oracle.com>
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: Re: [PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Sun, 26 Aug 2018 17:40:00 +0900
+Message-ID: <b78f8b3a-7bc6-0dea-6752-5ea798eccb6b@i-love.sakura.ne.jp>
+References: <20180824120339.GL29735@dhcp22.suse.cz>
+ <eb546bcb-9c5f-7d5d-43a7-bfde489f0e7f@amd.com>
+ <20180824123341.GN29735@dhcp22.suse.cz>
+ <b11df415-baf8-0a41-3c16-60dfe8d32bd3@amd.com>
+ <20180824130132.GP29735@dhcp22.suse.cz>
+ <23d071d2-82e4-9b78-1000-be44db5f6523@gmail.com>
+ <20180824132442.GQ29735@dhcp22.suse.cz>
+ <86bd94d5-0ce8-c67f-07a5-ca9ebf399cdd@gmail.com>
+ <20180824134009.GS29735@dhcp22.suse.cz>
+ <735b0a53-5237-8827-d20e-e57fa24d798f@amd.com>
+ <20180824135257.GU29735@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180825071905.2749-1-yanjun.zhu@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20180824135257.GU29735@dhcp22.suse.cz>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Zhu Yanjun <yanjun.zhu@oracle.com>, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Michal Hocko <mhocko@kernel.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Cc: kvm@vger.kernel.org, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixit>
 List-Id: linux-rdma@vger.kernel.org
 
-On 8/25/18 12:19 AM, Zhu Yanjun wrote:
-> In IPv4, the newly introduced rdma_read_gids is used to read the SGID/DGID
-> for the connection which returns GID correctly for RoCE transport as well.
-> 
-> In IPv6, rdma_read_gids is also used. The following are why rdma_read_gids
-> is introduced.
-> 
-> rdma_addr_get_dgid() for RoCE for client side connections returns MAC
-> address, instead of DGID.
-> rdma_addr_get_sgid() for RoCE doesn't return correct SGID for IPv6 and
-> when more than one IP address is assigned to the netdevice.
-> 
-> So the transport agnostic rdma_read_gids() API is provided by rdma_cm
-> module.
-> 
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
-Looks ok.
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+T24gMjAxOC8wOC8yNCAyMjo1MiwgTWljaGFsIEhvY2tvIHdyb3RlOgo+IEBAIC0xODAsMTEgKzE4
+MCwxNSBAQCB2b2lkIGFtZGdwdV9tbl91bmxvY2soc3RydWN0IGFtZGdwdV9tbiAqbW4pCj4gICAq
+Lwo+ICBzdGF0aWMgaW50IGFtZGdwdV9tbl9yZWFkX2xvY2soc3RydWN0IGFtZGdwdV9tbiAqYW1u
+LCBib29sIGJsb2NrYWJsZSkKPiAgewo+IC0JaWYgKGJsb2NrYWJsZSkKPiAtCQltdXRleF9sb2Nr
+KCZhbW4tPnJlYWRfbG9jayk7Cj4gLQllbHNlIGlmICghbXV0ZXhfdHJ5bG9jaygmYW1uLT5yZWFk
+X2xvY2spKQo+IC0JCXJldHVybiAtRUFHQUlOOwo+IC0KPiArCS8qCj4gKwkgKiBXZSBjYW4gdGFr
+ZSBzbGVlcGFibGUgbG9jayBldmVuIG9uICFibG9ja2FibGUgbW9kZSBiZWNhdXNlCj4gKwkgKiBy
+ZWFkX2xvY2sgaXMgb25seSBldmVyIHRha2UgZnJvbSB0aGlzIHBhdGggYW5kIHRoZSBub3RpZmll
+cgo+ICsJICogbG9jayBuZXZlciByZWFsbHkgc2xlZXBzLiBJbiBmYWN0IHRoZSBvbmx5IHJlYXNv
+biB3aHkgdGhlCj4gKwkgKiBsYXRlciBpcyBzbGVlcGFibGUgaXMgYmVjYXVzZSB0aGUgbm90aWZp
+ZXIgaXRzZWxmIG1pZ2h0IHNsZWVwCj4gKwkgKiBpbiBhbWRncHVfbW5faW52YWxpZGF0ZV9ub2Rl
+IGJ1dCBibG9ja2FibGUgbW9kZSBpcyBoYW5kbGVkCj4gKwkgKiBiZWZvcmUgY2FsbGluZyBpbnRv
+IHRoYXQgcGF0aC4KPiArCSAqLwo+ICsJbXV0ZXhfbG9jaygmYW1uLT5yZWFkX2xvY2spOwo+ICAJ
+aWYgKGF0b21pY19pbmNfcmV0dXJuKCZhbW4tPnJlY3Vyc2lvbikgPT0gMSkKPiAgCQlkb3duX3Jl
+YWRfbm9uX293bmVyKCZhbW4tPmxvY2spOwo+ICAJbXV0ZXhfdW5sb2NrKCZhbW4tPnJlYWRfbG9j
+ayk7Cj4gCgpJJ20gbm90IGZvbGxvd2luZy4gV2h5IGRvbid0IHdlIG5lZWQgdG8gZG8gbGlrZSBi
+ZWxvdyAoZ2l2ZW4gdGhhdApub2JvZHkgZXhjZXB0IGFtZGdwdV9tbl9yZWFkX2xvY2soKSBob2xk
+cyAtPnJlYWRfbG9jaykgYmVjYXVzZSBlLmcuCmRybV9zY2hlZF9mZW5jZV9jcmVhdGUoKSBmcm9t
+IGRybV9zY2hlZF9qb2JfaW5pdCgpIGZyb20gYW1kZ3B1X2NzX3N1Ym1pdCgpCmlzIGRvaW5nIEdG
+UF9LRVJORUwgbWVtb3J5IGFsbG9jYXRpb24gd2l0aCAtPmxvY2sgaGVsZCBmb3Igd3JpdGU/Cgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1kZ3B1X21uLmMgYi9kcml2
+ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfbW4uYwppbmRleCBlNTU1MDhiLi5lMWNiMzQ0
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfbW4uYworKysg
+Yi9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfbW4uYwpAQCAtNjQsOCArNjQsNiBA
+QAogICogQG5vZGU6IGhhc2ggdGFibGUgbm9kZSB0byBmaW5kIHN0cnVjdHVyZSBieSBhZGV2IGFu
+ZCBtbgogICogQGxvY2s6IHJ3IHNlbWFwaG9yZSBwcm90ZWN0aW5nIHRoZSBub3RpZmllciBub2Rl
+cwogICogQG9iamVjdHM6IGludGVydmFsIHRyZWUgY29udGFpbmluZyBhbWRncHVfbW5fbm9kZXMK
+LSAqIEByZWFkX2xvY2s6IG11dGV4IGZvciByZWN1cnNpdmUgbG9ja2luZyBvZiBAbG9jawotICog
+QHJlY3Vyc2lvbjogZGVwdGggb2YgcmVjdXJzaW9uCiAgKgogICogRGF0YSBmb3IgZWFjaCBhbWRn
+cHUgZGV2aWNlIGFuZCBwcm9jZXNzIGFkZHJlc3Mgc3BhY2UuCiAgKi8KQEAgLTg1LDggKzgzLDYg
+QEAgc3RydWN0IGFtZGdwdV9tbiB7CiAJLyogb2JqZWN0cyBwcm90ZWN0ZWQgYnkgbG9jayAqLwog
+CXN0cnVjdCByd19zZW1hcGhvcmUJbG9jazsKIAlzdHJ1Y3QgcmJfcm9vdF9jYWNoZWQJb2JqZWN0
+czsKLQlzdHJ1Y3QgbXV0ZXgJCXJlYWRfbG9jazsKLQlhdG9taWNfdAkJcmVjdXJzaW9uOwogfTsK
+IAogLyoqCkBAIC0xODEsMTQgKzE3Nyw5IEBAIHZvaWQgYW1kZ3B1X21uX3VubG9jayhzdHJ1Y3Qg
+YW1kZ3B1X21uICptbikKIHN0YXRpYyBpbnQgYW1kZ3B1X21uX3JlYWRfbG9jayhzdHJ1Y3QgYW1k
+Z3B1X21uICphbW4sIGJvb2wgYmxvY2thYmxlKQogewogCWlmIChibG9ja2FibGUpCi0JCW11dGV4
+X2xvY2soJmFtbi0+cmVhZF9sb2NrKTsKLQllbHNlIGlmICghbXV0ZXhfdHJ5bG9jaygmYW1uLT5y
+ZWFkX2xvY2spKQorCQlkb3duX3JlYWQoJmFtbi0+bG9jayk7CisJZWxzZSBpZiAoIWRvd25fcmVh
+ZF90cnlsb2NrKCZhbW4tPmxvY2spKQogCQlyZXR1cm4gLUVBR0FJTjsKLQotCWlmIChhdG9taWNf
+aW5jX3JldHVybigmYW1uLT5yZWN1cnNpb24pID09IDEpCi0JCWRvd25fcmVhZF9ub25fb3duZXIo
+JmFtbi0+bG9jayk7Ci0JbXV0ZXhfdW5sb2NrKCZhbW4tPnJlYWRfbG9jayk7Ci0KIAlyZXR1cm4g
+MDsKIH0KIApAQCAtMTk5LDggKzE5MCw3IEBAIHN0YXRpYyBpbnQgYW1kZ3B1X21uX3JlYWRfbG9j
+ayhzdHJ1Y3QgYW1kZ3B1X21uICphbW4sIGJvb2wgYmxvY2thYmxlKQogICovCiBzdGF0aWMgdm9p
+ZCBhbWRncHVfbW5fcmVhZF91bmxvY2soc3RydWN0IGFtZGdwdV9tbiAqYW1uKQogewotCWlmIChh
+dG9taWNfZGVjX3JldHVybigmYW1uLT5yZWN1cnNpb24pID09IDApCi0JCXVwX3JlYWRfbm9uX293
+bmVyKCZhbW4tPmxvY2spOworCXVwX3JlYWQoJmFtbi0+bG9jayk7CiB9CiAKIC8qKgpAQCAtNDEw
+LDggKzQwMCw2IEBAIHN0cnVjdCBhbWRncHVfbW4gKmFtZGdwdV9tbl9nZXQoc3RydWN0IGFtZGdw
+dV9kZXZpY2UgKmFkZXYsCiAJYW1uLT50eXBlID0gdHlwZTsKIAlhbW4tPm1uLm9wcyA9ICZhbWRn
+cHVfbW5fb3BzW3R5cGVdOwogCWFtbi0+b2JqZWN0cyA9IFJCX1JPT1RfQ0FDSEVEOwotCW11dGV4
+X2luaXQoJmFtbi0+cmVhZF9sb2NrKTsKLQlhdG9taWNfc2V0KCZhbW4tPnJlY3Vyc2lvbiwgMCk7
+CiAKIAlyID0gX19tbXVfbm90aWZpZXJfcmVnaXN0ZXIoJmFtbi0+bW4sIG1tKTsKIAlpZiAocikK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4
+IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
