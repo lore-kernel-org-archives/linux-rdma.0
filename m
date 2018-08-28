@@ -1,123 +1,168 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 00/15] Flow actions to mutate packets
-Date: Tue, 28 Aug 2018 14:18:39 +0300
-Message-ID: <20180828111854.14367-1-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 02/15] net/mlx5: Add proper NIC TX steering flow tables support
+Date: Tue, 28 Aug 2018 14:18:41 +0300
+Message-ID: <20180828111854.14367-3-leon@kernel.org>
+References: <20180828111854.14367-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Mark Bloch <markb@mellanox.com>
 
->From Mark,
+Extend the ability to add steering rules to NIC TX flow tables.
+For now, we are only adding TX bypass (egress) which is used by the RDMA
+side. This will allow to shape outgoing traffic and tweak it if needed, for
+example performing encapsulation or rewriting headers.
 
-This series exposes the ability to create flow actions which can
-mutate packet headers. We do that by exposing two new verbs:
- * modify header - can change existing packet headers. packet
- * reformat - can encapsulate or decapsulate a packet.
-              Once created a flow action must be attached to a steering
-              rule for it to take effect.
+Signed-off-by: Mark Bloch <markb@mellanox.com>
+Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 51 +++++++++++++++++------
+ include/linux/mlx5/device.h                       |  6 +++
+ 3 files changed, 46 insertions(+), 13 deletions(-)
 
-The first 10 patches refactor mlx5_core code, rename internal structures
-to better reflect their operation and export needed functions so the
-RDMA side can allocate the action.
-
-The last 5 patches expose via the IOCTL infrastructure mlx5_ib methods
-which do the actual allocation of resources and return an handle to the
-user. A user of this API is expected to know how to work with the
-device's spec as the input to those function is HW depended.
-
-An example usage of the modify header action is routing, A user can
-create an action which edits the L2 header and decrease the TTL.
-
-An example usage of the packet reformat action is VXLAN encap/decap
-which is done by the HW.
-
-Changelog:
- v0 -> v1:
-  * Patch 1: Addressed Saeed's comments and simplified the logic.
-  * Patch 2: Changed due to changes in patch 1.
-
- Split the 27 patch series into 3, this is the first one
- which just lets the user create flow action.
- Other than that styling fixes mainly in the RDMA patches
- to make sure 80 chars limit isn't exceeded.
-
- RFC -> v0:
-  * Patch 1 a new patch which refactors the logic
-    when getting a flow namespace.
-  * Patch 2 was split into two.
-  * Patch 3: Fixed a typo in commit message
-  * Patch 5: Updated commit message
-  * Patch 7: Updated commit message
-    Renamed:
-      - MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID to
-        MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT
-      - packet_reformat_id to reformat_id in struct mlx5_flow_act
-      - packet_reformat_id to encap_id in struct mlx5_esw_flow_attr
-      - packet_reformat_id to encap_id in struct mlx5e_encap_entry
-      - PACKET_REFORMAT to REFORMAT when printing trace points
-  * Patch 9: Updated commit message
-    Updated function declaration in mlx5_core.h, could of lead
-    to compile error on bisection.
-  * Patch 11: Disallow egress rules insertion when in switchdev mode
-  * Patch 12: A new patch to deal with passing enum values using
-    the IOCTL infrastructure.
-  * Patch 13: Use new enum value attribute when passing enum
-    mlx5_ib_uapi_flow_table_type
-  * Patch 15: Don't set encap flags on flow tables if in switchdev mode
-  * Patch 17: Use new enum value attribute when passing enum
-    mlx5_ib_uapi_flow_table_type and enum
-    mlx5_ib_uapi_flow_action_packet_reformat_type
-  * Patch 19: Allow creation of both
-    MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TO_L3_TUNNEL
-    and MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L3_TUNNEL_TO_L2
-packet
-    reformat actions.
-  * Patch 20: A new patch which allows attaching packet reformat
-    actions to flow tables on NIC RX.
-
-Thanks
-
-Mark Bloch (15):
-  net/mlx5: Cleanup flow namespace getter switch logic
-  net/mlx5: Add proper NIC TX steering flow tables support
-  net/mlx5: Export modify header alloc/dealloc functions
-  net/mlx5: Add support for more namespaces when allocating modify
-    header
-  net/mlx5: Break encap/decap into two separated flow table creation
-    flags
-  net/mlx5: Move header encap type to IFC header file
-  {net, RDMA}/mlx5: Rename encap to reformat packet
-  net/mlx5: Expose new packet reformat capabilities
-  net/mlx5: Pass a namespace for packet reformat ID allocation
-  net/mlx5: Export packet reformat alloc/dealloc functions
-  RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
-  RDMA/mlx5: Add a new flow action verb - modify header
-  RDMA/uverbs: Add generic function to fill in flow action object
-  RDMA/mlx5: Add new flow action verb - packet reformat
-  RDMA/mlx5: Extend packet reformat verbs
-
- drivers/infiniband/core/uverbs_ioctl.c             |  23 ++
- .../infiniband/core/uverbs_std_types_flow_action.c |   7 +-
- drivers/infiniband/hw/mlx5/devx.c                  |   6 +-
- drivers/infiniband/hw/mlx5/flow.c                  | 301 +++++++++++++++++++++
- drivers/infiniband/hw/mlx5/main.c                  |   3 +
- drivers/infiniband/hw/mlx5/mlx5_ib.h               |  19 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   8 +-
- .../mellanox/mlx5/core/diag/fs_tracepoint.h        |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  51 ++--
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
- .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   9 +-
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  87 +++---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  73 +++--
- .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  12 +-
- include/linux/mlx5/device.h                        |   6 +
- include/linux/mlx5/fs.h                            |  20 +-
- include/linux/mlx5/mlx5_ifc.h                      |  70 +++--
- include/rdma/uverbs_ioctl.h                        |  40 +++
- include/rdma/uverbs_std_types.h                    |  12 +
- include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  18 ++
- include/uapi/rdma/mlx5_user_ioctl_verbs.h          |  12 +
- 21 files changed, 638 insertions(+), 143 deletions(-)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 8e01f818021b..28c7301e08f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -760,8 +760,8 @@ const struct mlx5_flow_cmds *mlx5_fs_cmd_get_default(enum fs_flow_table_type typ
+ 	case FS_FT_FDB:
+ 	case FS_FT_SNIFFER_RX:
+ 	case FS_FT_SNIFFER_TX:
+-		return mlx5_fs_cmd_get_fw_cmds();
+ 	case FS_FT_NIC_TX:
++		return mlx5_fs_cmd_get_fw_cmds();
+ 	default:
+ 		return mlx5_fs_cmd_get_stub_cmds();
+ 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index 5624030d2ed4..b7e7eb3535c7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -76,6 +76,14 @@
+ 					   FS_CAP(flow_table_properties_nic_receive.identified_miss_table_mode), \
+ 					   FS_CAP(flow_table_properties_nic_receive.flow_table_modify))
+ 
++#define FS_CHAINING_CAPS_EGRESS                                                \
++	FS_REQUIRED_CAPS(                                                      \
++		FS_CAP(flow_table_properties_nic_transmit.flow_modify_en),     \
++		FS_CAP(flow_table_properties_nic_transmit.modify_root),        \
++		FS_CAP(flow_table_properties_nic_transmit                      \
++			       .identified_miss_table_mode),                   \
++		FS_CAP(flow_table_properties_nic_transmit.flow_table_modify))
++
+ #define LEFTOVERS_NUM_LEVELS 1
+ #define LEFTOVERS_NUM_PRIOS 1
+ 
+@@ -151,6 +159,17 @@ static struct init_tree_node {
+ 	}
+ };
+ 
++static struct init_tree_node egress_root_fs = {
++	.type = FS_TYPE_NAMESPACE,
++	.ar_size = 1,
++	.children = (struct init_tree_node[]) {
++		ADD_PRIO(0, MLX5_BY_PASS_NUM_PRIOS, 0,
++			 FS_CHAINING_CAPS_EGRESS,
++			 ADD_NS(ADD_MULTIPLE_PRIO(MLX5_BY_PASS_NUM_PRIOS,
++						  BY_PASS_PRIO_NUM_LEVELS))),
++	}
++};
++
+ enum fs_i_lock_class {
+ 	FS_LOCK_GRANDPARENT,
+ 	FS_LOCK_PARENT,
+@@ -1978,7 +1997,7 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
+ {
+ 	struct mlx5_flow_steering *steering = dev->priv.steering;
+ 	struct mlx5_flow_root_namespace *root_ns;
+-	int prio;
++	int prio = 0;
+ 	struct fs_prio *fs_prio;
+ 	struct mlx5_flow_namespace *ns;
+ 
+@@ -1998,16 +2017,17 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
+ 		if (steering->sniffer_tx_root_ns)
+ 			return &steering->sniffer_tx_root_ns->ns;
+ 		return NULL;
+-	case MLX5_FLOW_NAMESPACE_EGRESS:
+-		if (steering->egress_root_ns)
+-			return &steering->egress_root_ns->ns;
+-		return NULL;
+ 	default:
+ 		break;
+ 	}
+ 
+-	root_ns = steering->root_ns;
+-	prio = type;
++	if (type == MLX5_FLOW_NAMESPACE_EGRESS) {
++		root_ns = steering->egress_root_ns;
++	} else { /* Must be NIC RX */
++		root_ns = steering->root_ns;
++		prio = type;
++	}
++
+ 	if (!root_ns)
+ 		return NULL;
+ 
+@@ -2523,16 +2543,23 @@ static int init_ingress_acls_root_ns(struct mlx5_core_dev *dev)
+ 
+ static int init_egress_root_ns(struct mlx5_flow_steering *steering)
+ {
+-	struct fs_prio *prio;
++	int err;
+ 
+ 	steering->egress_root_ns = create_root_ns(steering,
+ 						  FS_FT_NIC_TX);
+ 	if (!steering->egress_root_ns)
+ 		return -ENOMEM;
+ 
+-	/* create 1 prio*/
+-	prio = fs_create_prio(&steering->egress_root_ns->ns, 0, 1);
+-	return PTR_ERR_OR_ZERO(prio);
++	err = init_root_tree(steering, &egress_root_fs,
++			     &steering->egress_root_ns->ns.node);
++	if (err)
++		goto cleanup;
++	set_prio_attrs(steering->egress_root_ns);
++	return 0;
++cleanup:
++	cleanup_root_ns(steering->egress_root_ns);
++	steering->egress_root_ns = NULL;
++	return err;
+ }
+ 
+ int mlx5_init_fs(struct mlx5_core_dev *dev)
+@@ -2600,7 +2627,7 @@ int mlx5_init_fs(struct mlx5_core_dev *dev)
+ 			goto err;
+ 	}
+ 
+-	if (MLX5_IPSEC_DEV(dev)) {
++	if (MLX5_IPSEC_DEV(dev) || MLX5_CAP_FLOWTABLE_NIC_TX(dev, ft_support)) {
+ 		err = init_egress_root_ns(steering);
+ 		if (err)
+ 			goto err;
+diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
+index 11fa4e66afc5..f2281e69ab39 100644
+--- a/include/linux/mlx5/device.h
++++ b/include/linux/mlx5/device.h
+@@ -1120,6 +1120,12 @@ enum mlx5_qcam_feature_groups {
+ #define MLX5_CAP_FLOWTABLE_NIC_RX_MAX(mdev, cap) \
+ 	MLX5_CAP_FLOWTABLE_MAX(mdev, flow_table_properties_nic_receive.cap)
+ 
++#define MLX5_CAP_FLOWTABLE_NIC_TX(mdev, cap) \
++		MLX5_CAP_FLOWTABLE(mdev, flow_table_properties_nic_transmit.cap)
++
++#define MLX5_CAP_FLOWTABLE_NIC_TX_MAX(mdev, cap) \
++	MLX5_CAP_FLOWTABLE_MAX(mdev, flow_table_properties_nic_transmit.cap)
++
+ #define MLX5_CAP_FLOWTABLE_SNIFFER_RX(mdev, cap) \
+ 	MLX5_CAP_FLOWTABLE(mdev, flow_table_properties_nic_receive_sniffer.cap)
+ 
+-- 
+2.14.4
