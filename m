@@ -1,82 +1,123 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] xprtrdma: Fix disconnect regression
-Date: Tue, 28 Aug 2018 07:19:42 +0200
-Message-ID: <20180828051942.GE2107@kroah.com>
-References: <20180827232321.12635.40263.stgit@manet.1015granger.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180827232321.12635.40263.stgit@manet.1015granger.net>
-Sender: stable-owner@vger.kernel.org
-To: Chuck Lever <chuck.lever@oracle.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nfs@vger.kernel.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next v1 00/15] Flow actions to mutate packets
+Date: Tue, 28 Aug 2018 14:18:39 +0300
+Message-ID: <20180828111854.14367-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 27, 2018 at 07:29:27PM -0400, Chuck Lever wrote:
-> I found that injecting disconnects with v4.18-rc resulted in
-> random failures of the multi-threaded git regression test.
-> 
-> The root cause appears to be that, after a reconnect, the
-> RPC/RDMA transport is waking pending RPCs before the transport has
-> posted enough Receive buffers to receive the Replies. If a Reply
-> arrives before enough Receive buffers are posted, the connection
-> is dropped. A few connection drops happen in quick succession as
-> the client and server struggle to regain credit synchronization.
-> 
-> This regression was introduced with commit 7c8d9e7c8863 ("xprtrdma:
-> Move Receive posting to Receive handler"). The client is supposed to
-> post a single Receive when a connection is established because
-> it's not supposed to send more than one RPC Call before it gets
-> a fresh credit grant in the first RPC Reply [RFC 8166, Section
-> 3.3.3].
-> 
-> Unfortunately there appears to be a longstanding bug in the Linux
-> client's credit accounting mechanism. On connect, it simply dumps
-> all pending RPC Calls onto the new connection. It's possible it has
-> done this ever since the RPC/RDMA transport was added to the kernel
-> ten years ago.
-> 
-> Servers have so far been tolerant of this bad behavior. Currently no
-> server implementation ever changes its credit grant over reconnects,
-> and servers always repost enough Receives before connections are
-> fully established.
-> 
-> The Linux client implementation used to post a Receive before each
-> of these Calls. This has covered up the flooding send behavior.
-> 
-> I could try to correct this old bug so that the client sends exactly
-> one RPC Call and waits for a Reply. Since we are so close to the
-> next merge window, I'm going to instead provide a simple patch to
-> post enough Receives before a reconnect completes (based on the
-> number of credits granted to the previous connection).
-> 
-> The spurious disconnects will be gone, but the client will still
-> send multiple RPC Calls immediately after a reconnect.
-> 
-> Addressing the latter problem will wait for a merge window because
-> a) I expect it to be a large change requiring lots of testing, and
-> b) obviously the Linux client has interoperated successfully since
-> day zero while still being broken.
-> 
-> Fixes: 7c8d9e7c8863 ("xprtrdma: Move Receive posting to ... ")
-> Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-> ---
->  net/sunrpc/xprtrdma/verbs.c |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> Hi stable@ -
-> 
-> This fix has been merged into v4.19 as upstream commit 8d4fb8ff427a
-> ("xprtrdma: Fix disconnect regression"). It addresses a regression
-> in v4.18. I expected it to go into late v4.18-rc, which is why there
-> is no "cc: stable" on the original submission.
-> 
-> Could you please apply it to 4.18.y ? Thank you!
+From: Leon Romanovsky <leonro@mellanox.com>
 
-That commit does have a cc: stable in it, it is in my very large queue
-of patches to apply...
+>From Mark,
 
-thanks,
+This series exposes the ability to create flow actions which can
+mutate packet headers. We do that by exposing two new verbs:
+ * modify header - can change existing packet headers. packet
+ * reformat - can encapsulate or decapsulate a packet.
+              Once created a flow action must be attached to a steering
+              rule for it to take effect.
 
-greg k-h
+The first 10 patches refactor mlx5_core code, rename internal structures
+to better reflect their operation and export needed functions so the
+RDMA side can allocate the action.
+
+The last 5 patches expose via the IOCTL infrastructure mlx5_ib methods
+which do the actual allocation of resources and return an handle to the
+user. A user of this API is expected to know how to work with the
+device's spec as the input to those function is HW depended.
+
+An example usage of the modify header action is routing, A user can
+create an action which edits the L2 header and decrease the TTL.
+
+An example usage of the packet reformat action is VXLAN encap/decap
+which is done by the HW.
+
+Changelog:
+ v0 -> v1:
+  * Patch 1: Addressed Saeed's comments and simplified the logic.
+  * Patch 2: Changed due to changes in patch 1.
+
+ Split the 27 patch series into 3, this is the first one
+ which just lets the user create flow action.
+ Other than that styling fixes mainly in the RDMA patches
+ to make sure 80 chars limit isn't exceeded.
+
+ RFC -> v0:
+  * Patch 1 a new patch which refactors the logic
+    when getting a flow namespace.
+  * Patch 2 was split into two.
+  * Patch 3: Fixed a typo in commit message
+  * Patch 5: Updated commit message
+  * Patch 7: Updated commit message
+    Renamed:
+      - MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID to
+        MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT
+      - packet_reformat_id to reformat_id in struct mlx5_flow_act
+      - packet_reformat_id to encap_id in struct mlx5_esw_flow_attr
+      - packet_reformat_id to encap_id in struct mlx5e_encap_entry
+      - PACKET_REFORMAT to REFORMAT when printing trace points
+  * Patch 9: Updated commit message
+    Updated function declaration in mlx5_core.h, could of lead
+    to compile error on bisection.
+  * Patch 11: Disallow egress rules insertion when in switchdev mode
+  * Patch 12: A new patch to deal with passing enum values using
+    the IOCTL infrastructure.
+  * Patch 13: Use new enum value attribute when passing enum
+    mlx5_ib_uapi_flow_table_type
+  * Patch 15: Don't set encap flags on flow tables if in switchdev mode
+  * Patch 17: Use new enum value attribute when passing enum
+    mlx5_ib_uapi_flow_table_type and enum
+    mlx5_ib_uapi_flow_action_packet_reformat_type
+  * Patch 19: Allow creation of both
+    MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TO_L3_TUNNEL
+    and MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L3_TUNNEL_TO_L2
+packet
+    reformat actions.
+  * Patch 20: A new patch which allows attaching packet reformat
+    actions to flow tables on NIC RX.
+
+Thanks
+
+Mark Bloch (15):
+  net/mlx5: Cleanup flow namespace getter switch logic
+  net/mlx5: Add proper NIC TX steering flow tables support
+  net/mlx5: Export modify header alloc/dealloc functions
+  net/mlx5: Add support for more namespaces when allocating modify
+    header
+  net/mlx5: Break encap/decap into two separated flow table creation
+    flags
+  net/mlx5: Move header encap type to IFC header file
+  {net, RDMA}/mlx5: Rename encap to reformat packet
+  net/mlx5: Expose new packet reformat capabilities
+  net/mlx5: Pass a namespace for packet reformat ID allocation
+  net/mlx5: Export packet reformat alloc/dealloc functions
+  RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
+  RDMA/mlx5: Add a new flow action verb - modify header
+  RDMA/uverbs: Add generic function to fill in flow action object
+  RDMA/mlx5: Add new flow action verb - packet reformat
+  RDMA/mlx5: Extend packet reformat verbs
+
+ drivers/infiniband/core/uverbs_ioctl.c             |  23 ++
+ .../infiniband/core/uverbs_std_types_flow_action.c |   7 +-
+ drivers/infiniband/hw/mlx5/devx.c                  |   6 +-
+ drivers/infiniband/hw/mlx5/flow.c                  | 301 +++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c                  |   3 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h               |  19 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   8 +-
+ .../mellanox/mlx5/core/diag/fs_tracepoint.h        |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  51 ++--
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+ .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   9 +-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  87 +++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  73 +++--
+ .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  12 +-
+ include/linux/mlx5/device.h                        |   6 +
+ include/linux/mlx5/fs.h                            |  20 +-
+ include/linux/mlx5/mlx5_ifc.h                      |  70 +++--
+ include/rdma/uverbs_ioctl.h                        |  40 +++
+ include/rdma/uverbs_std_types.h                    |  12 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  18 ++
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h          |  12 +
+ 21 files changed, 638 insertions(+), 143 deletions(-)
