@@ -1,46 +1,41 @@
 From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH 1/3] IB/ipoib: Use dev_port to expose network interface port numbers
-Date: Wed, 29 Aug 2018 00:01:15 +0300
-Message-ID: <20180828210117.6437-2-ar@cs.msu.ru>
-References: <20180828210117.6437-1-ar@cs.msu.ru>
+Subject: [PATCH 0/3] IB/ipoib: Use dev_port to disambiguate port numbers
+Date: Wed, 29 Aug 2018 00:01:14 +0300
+Message-ID: <20180828210117.6437-1-ar@cs.msu.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180828210117.6437-1-ar@cs.msu.ru>
 Sender: netdev-owner@vger.kernel.org
 To: linux-rdma@vger.kernel.org
 Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some InfiniBand network devices have multiple ports on the same PCI
-function. This initializes the `dev_port' sysfs field of those
-network interfaces with their port number.
+Pre-3.15 userspace had trouble distinguishing different ports
+of a NIC on a single PCI bus/device/function. To solve this,
+a sysfs field `dev_port' was introduced quite a while ago
+(commit v3.14-rc3-739-g3f85944fe207), and some relevant device
+drivers were fixed to use it, but not in case of IPoIB.
 
-The use of `dev_id' was considered correct until Linux 3.15,
-when another field, `dev_port', was defined for this particular
-purpose and `dev_id' was reserved for distinguishing stacked ifaces
-(e.g: VLANs) with the same hardware address as their parent device.
+The convention for some reason never got documented in the kernel, but
+was immediately adopted by userspace (notably udev[1][2], biosdevname[3])
 
-Similar fixes to net/mlx4_en and many other drivers, which started
-exporting this information through `dev_id' before 3.15, were accepted
-into the kernel 4 years ago.
-See 76a066f2a2a0268b565459c417b59724b5a3197b, commit message:
-`net/mlx4_en: Expose port number through sysfs'.
+3/3 documents the sysfs field — that's why I'm CC-ing netdev.
 
-Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 +
- 1 file changed, 1 insertion(+)
+This series was tested on and applies to 4.19-rc1.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index e3d28f9ad9c0..fcd69273de91 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1881,6 +1881,7 @@ static int ipoib_parent_init(struct net_device *ndev)
- 
- 	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
- 	priv->dev->dev_id = priv->port - 1;
-+	priv->dev->dev_port = priv->port - 1;
- 
- 	return 0;
- }
+[1] https://lists.freedesktop.org/archives/systemd-devel/2014-June/020788.html
+[2] https://lists.freedesktop.org/archives/systemd-devel/2014-July/020804.html
+[3] https://github.com/CloudAutomationNTools/biosdevname/blob/c795d51dd93a5309652f0d635f12a3ecfabfaa72/src/eths.c#L38
+
+Arseny Maslennikov (3):
+  IB/ipoib: Use dev_port to expose network interface port numbers
+  IB/ipoib: Stop using dev_id to expose port numbers
+  Documentation/ABI: document /sys/class/net/*/dev_port
+
+ Documentation/ABI/testing/sysfs-class-net | 10 ++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+
 -- 
 2.18.0
