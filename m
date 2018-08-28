@@ -1,7 +1,7 @@
 From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH 3/3] Documentation/ABI: document /sys/class/net/*/dev_port
-Date: Wed, 29 Aug 2018 00:01:17 +0300
-Message-ID: <20180828210117.6437-4-ar@cs.msu.ru>
+Subject: [PATCH 2/3] IB/ipoib: Stop using dev_id to expose port numbers
+Date: Wed, 29 Aug 2018 00:01:16 +0300
+Message-ID: <20180828210117.6437-3-ar@cs.msu.ru>
 References: <20180828210117.6437-1-ar@cs.msu.ru>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180828210117.6437-1-ar@cs.msu.ru>
@@ -10,36 +10,39 @@ To: linux-rdma@vger.kernel.org
 Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The sysfs field was introduced 4 years ago along with fixes to various
-drivers that erroneously used `dev_id' for that purpose, but it was not
-properly documented anywhere.
-See commit v3.14-rc3-739-g3f85944fe207.
+Some InfiniBand network devices have multiple ports on the same PCI
+function. Prior to this the kernel erroneously used the `dev_id' sysfs
+field of those network interfaces to convey the port number to userspace.
+
+`dev_id' is currently reserved for distinguishing stacked ifaces
+(e.g: VLANs) with the same hardware address as their parent device.
+
+Similar fixes to net/mlx4_en and many other drivers, which started
+exporting this information through `dev_id' before 3.15, were accepted
+into the kernel 4 years ago.
+See 76a066f2a2a0268b565459c417b59724b5a3197b, commit message:
+`net/mlx4_en: Expose port number through sysfs'.
+
+This commit is separated from the previous one since we may wish to
+preserve backwards compatibility with userspace being already dependent
+on `dev_id' being different.
 
 Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
 ---
- Documentation/ABI/testing/sysfs-class-net | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-class-net b/Documentation/ABI/testing/sysfs-class-net
-index 2f1788111cd9..1593d8997ade 100644
---- a/Documentation/ABI/testing/sysfs-class-net
-+++ b/Documentation/ABI/testing/sysfs-class-net
-@@ -91,6 +91,16 @@ Description:
- 		stacked (e.g: VLAN interfaces) but still have the same MAC
- 		address as their parent device.
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index fcd69273de91..ba16a63ee303 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1880,7 +1880,6 @@ static int ipoib_parent_init(struct net_device *ndev)
+ 	       sizeof(union ib_gid));
  
-+What:		/sys/class/net/<iface>/dev_port
-+Date:		February 2014
-+KernelVersion:	3.15
-+Contact:	netdev@vger.kernel.org
-+Description:
-+		Indicates the port number of this network device, formatted
-+		as a decimal value. Some NICs have multiple independent ports
-+		on the same PCI bus, device and function. This field allows
-+		userspace to distinguish the respective interfaces.
-+
- What:		/sys/class/net/<iface>/dormant
- Date:		March 2006
- KernelVersion:	2.6.17
+ 	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
+-	priv->dev->dev_id = priv->port - 1;
+ 	priv->dev->dev_port = priv->port - 1;
+ 
+ 	return 0;
 -- 
 2.18.0
