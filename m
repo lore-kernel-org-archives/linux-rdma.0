@@ -1,84 +1,88 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v1 10/15] net/mlx5: Export packet reformat alloc/dealloc functions
-Date: Tue, 28 Aug 2018 14:18:49 +0300
-Message-ID: <20180828111854.14367-11-leon@kernel.org>
-References: <20180828111854.14367-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: syzbot <syzbot+4b628fcc748474003457@syzkaller.appspotmail.com>
+Subject: WARNING: bad unlock balance in ucma_destroy_id
+Date: Tue, 28 Aug 2018 08:20:02 -0700
+Message-ID: <0000000000003b9c4b0574806070@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+Hello,
 
-This will allow for the RDMA side to allocate packet reformat context.
+syzbot found the following crash on:
 
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+HEAD commit:    5b394b2ddf03 Linux 4.19-rc1
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=117e0da6400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=49927b422dcf0b29
+dashboard link: https://syzkaller.appspot.com/bug?extid=4b628fcc748474003457
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13351e2e400000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+4b628fcc748474003457@syzkaller.appspotmail.com
+
+IPv6: ADDRCONF(NETDEV_CHANGE): veth1: link becomes ready
+IPv6: ADDRCONF(NETDEV_CHANGE): veth0: link becomes ready
+8021q: adding VLAN 0 to HW filter on device team0
+
+=====================================
+WARNING: bad unlock balance detected!
+4.19.0-rc1+ #211 Not tainted
+-------------------------------------
+syz-executor0/6666 is trying to release lock (&file->mut) at:
+[<ffffffff84c3796b>] ucma_destroy_id+0x2cb/0x550  
+drivers/infiniband/core/ucma.c:624
+but there are no more locks to release!
+
+other info that might help us debug this:
+1 lock held by syz-executor0/6666:
+  #0: 00000000faad4ebe (&file->mut){+.+.}, at: ucma_destroy_id+0x26b/0x550  
+drivers/infiniband/core/ucma.c:622
+
+stack backtrace:
+CPU: 0 PID: 6666 Comm: syz-executor0 Not tainted 4.19.0-rc1+ #211
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+  print_unlock_imbalance_bug.cold.49+0xcc/0xd8 kernel/locking/lockdep.c:3465
+  __lock_release kernel/locking/lockdep.c:3672 [inline]
+  lock_release+0x76e/0x9f0 kernel/locking/lockdep.c:3920
+  __mutex_unlock_slowpath+0x102/0x8c0 kernel/locking/mutex.c:1198
+  mutex_unlock+0xd/0x10 kernel/locking/mutex.c:713
+  ucma_destroy_id+0x2cb/0x550 drivers/infiniband/core/ucma.c:624
+  ucma_write+0x336/0x420 drivers/infiniband/core/ucma.c:1680
+  __vfs_write+0x117/0x9d0 fs/read_write.c:485
+  vfs_write+0x1fc/0x560 fs/read_write.c:549
+  ksys_write+0x101/0x260 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457089
+Code: fd b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 cb b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f3d32b48c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 00007f3d32b496d4 RCX: 0000000000457089
+RDX: 0000000000000018 RSI: 0000000020000480 RDI: 0000000000000005
+RBP: 0000000000930140 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 00000000004d7470 R14: 00000000004c17a8 R15: 0000000000000001
+
+
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 2 ++
- drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 8 --------
- include/linux/mlx5/fs.h                             | 9 +++++++++
- 3 files changed, 11 insertions(+), 8 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index cc9537891e39..dc8d7f6b52c2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -651,6 +651,7 @@ int mlx5_packet_reformat_alloc(struct mlx5_core_dev *dev,
- 	kfree(in);
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_packet_reformat_alloc);
- 
- void mlx5_packet_reformat_dealloc(struct mlx5_core_dev *dev,
- 				  u32 packet_reformat_id)
-@@ -666,6 +667,7 @@ void mlx5_packet_reformat_dealloc(struct mlx5_core_dev *dev,
- 
- 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_packet_reformat_dealloc);
- 
- int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
- 			     u8 namespace, u8 num_actions,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 66a5dd5a6cbe..61a014e3f688 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -170,14 +170,6 @@ struct mlx5_core_dev *mlx5_get_next_phys_dev(struct mlx5_core_dev *dev);
- void mlx5_dev_list_lock(void);
- void mlx5_dev_list_unlock(void);
- int mlx5_dev_list_trylock(void);
--int mlx5_packet_reformat_alloc(struct mlx5_core_dev *dev,
--			       int reformat_type,
--			       size_t size,
--			       void *reformat_data,
--			       enum mlx5_flow_namespace_type namespace,
--			       u32 *packet_reformat_id);
--void mlx5_packet_reformat_dealloc(struct mlx5_core_dev *dev,
--				  u32 packet_reformat_id);
- 
- bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv);
- 
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 37d0c08d0966..b1c026f1c8ba 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -203,4 +203,13 @@ int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
- void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev,
- 				u32 modify_header_id);
- 
-+int mlx5_packet_reformat_alloc(struct mlx5_core_dev *dev,
-+			       int reformat_type,
-+			       size_t size,
-+			       void *reformat_data,
-+			       enum mlx5_flow_namespace_type namespace,
-+			       u32 *packet_reformat_id);
-+void mlx5_packet_reformat_dealloc(struct mlx5_core_dev *dev,
-+				  u32 packet_reformat_id);
-+
- #endif
--- 
-2.14.4
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
