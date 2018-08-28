@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 11/15] RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
-Date: Tue, 28 Aug 2018 14:18:50 +0300
-Message-ID: <20180828111854.14367-12-leon@kernel.org>
+Subject: [PATCH rdma-next v1 12/15] RDMA/mlx5: Add a new flow action verb - modify header
+Date: Tue, 28 Aug 2018 14:18:51 +0300
+Message-ID: <20180828111854.14367-13-leon@kernel.org>
 References: <20180828111854.14367-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
@@ -12,123 +12,296 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-This makes it clear and safe to access constants passed in from user
-space. We define a consistent ABI of u64 for all constants, and verify
-that the data passed in can be represented by the type the user supplies.
+Expose the ability to create a flow action which changes packet
+headers. The data passed from userspace should be modify header actions
+as defined by HW specification.
 
-The expectation is this will always be used with an enum declaring the
-constant values, and the user will use the enum type as input to the
-accessor.
-
-To retrieve the attribute value we introduce two helper calls - one
-standard which may fail if attribute is not valid and one where caller can
-provide a default value which will be used in case the attribute is not
-valid (useful when attribute is optional).
-
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_ioctl.c | 23 +++++++++++++++++++
- include/rdma/uverbs_ioctl.h            | 40 ++++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+)
+ drivers/infiniband/hw/mlx5/flow.c         | 134 ++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/mlx5/main.c         |   3 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h      |  17 +++-
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h  |  10 +++
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h |   5 ++
+ 5 files changed, 168 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/uverbs_ioctl.c b/drivers/infiniband/core/uverbs_ioctl.c
-index 1a6b229e3db3..4bafd4671de2 100644
---- a/drivers/infiniband/core/uverbs_ioctl.c
-+++ b/drivers/infiniband/core/uverbs_ioctl.c
-@@ -611,3 +611,26 @@ int uverbs_copy_to(const struct uverbs_attr_bundle *bundle, size_t idx,
- 	return 0;
- }
- EXPORT_SYMBOL(uverbs_copy_to);
-+
-+int _uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
-+		      size_t idx, s64 lower_bound, u64 upper_bound,
-+		      s64  *def_val)
+diff --git a/drivers/infiniband/hw/mlx5/flow.c b/drivers/infiniband/hw/mlx5/flow.c
+index 1a29f47f836e..60e83b68b89b 100644
+--- a/drivers/infiniband/hw/mlx5/flow.c
++++ b/drivers/infiniband/hw/mlx5/flow.c
+@@ -8,6 +8,7 @@
+ #include <rdma/uverbs_types.h>
+ #include <rdma/uverbs_ioctl.h>
+ #include <rdma/mlx5_user_ioctl_cmds.h>
++#include <rdma/mlx5_user_ioctl_verbs.h>
+ #include <rdma/ib_umem.h>
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/fs.h>
+@@ -16,6 +17,24 @@
+ #define UVERBS_MODULE_NAME mlx5_ib
+ #include <rdma/uverbs_named_ioctl.h>
+ 
++static int
++mlx5_ib_ft_type_to_namespace(enum mlx5_ib_uapi_flow_table_type table_type,
++			     enum mlx5_flow_namespace_type *namespace)
 +{
-+	const struct uverbs_attr *attr;
-+
-+	attr = uverbs_attr_get(attrs_bundle, idx);
-+	if (IS_ERR(attr)) {
-+		if ((PTR_ERR(attr) != -ENOENT) || !def_val)
-+			return PTR_ERR(attr);
-+
-+		*to = *def_val;
-+	} else {
-+		*to = attr->ptr_attr.data;
-+	}
-+
-+	if (*to < lower_bound || (*to > 0 && (u64)*to > upper_bound))
++	switch (table_type) {
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX:
++		*namespace = MLX5_FLOW_NAMESPACE_BYPASS;
++		break;
++	case MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX:
++		*namespace = MLX5_FLOW_NAMESPACE_EGRESS;
++		break;
++	default:
 +		return -EINVAL;
++	}
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(_uverbs_get_const);
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 9e997c3c2f04..d5f3c101635d 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -365,6 +365,15 @@ struct uverbs_object_tree_def {
- 			  __VA_ARGS__ },                                       \
- 	})
- 
-+/* An input value that is a member in the enum _enum_type. */
-+#define UVERBS_ATTR_CONST_IN(_attr_id, _enum_type, ...)                        \
-+	UVERBS_ATTR_PTR_IN(                                                    \
-+		_attr_id,                                                      \
-+		UVERBS_ATTR_SIZE(sizeof(u64) + BUILD_BUG_ON_ZERO(              \
-+						!sizeof(_enum_type)),          \
-+				 sizeof(u64)),                                 \
-+		__VA_ARGS__)
 +
- /*
-  * An input value that is a bitwise combination of values of _enum_type.
-  * This permits the flag value to be passed as either a u32 or u64, it must
-@@ -603,6 +612,9 @@ static inline __malloc void *uverbs_zalloc(struct uverbs_attr_bundle *bundle,
- {
- 	return _uverbs_alloc(bundle, size, GFP_KERNEL | __GFP_ZERO);
+ static const struct uverbs_attr_spec mlx5_ib_flow_type[] = {
+ 	[MLX5_IB_FLOW_TYPE_NORMAL] = {
+ 		.type = UVERBS_ATTR_TYPE_PTR_IN,
+@@ -175,6 +194,100 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_MATCHER_CREATE)(
+ 	return err;
  }
-+int _uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
-+		      size_t idx, s64 lower_bound, u64 upper_bound,
-+		      s64 *def_val);
+ 
++void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction)
++{
++	switch (maction->flow_action_raw.sub_type) {
++	case MLX5_IB_FLOW_ACTION_MODIFY_HEADER:
++		mlx5_modify_header_dealloc(maction->flow_action_raw.dev->mdev,
++					   maction->flow_action_raw.action_id);
++		break;
++	default:
++		break;
++	}
++}
++
++static struct ib_flow_action *
++mlx5_ib_create_modify_header(struct mlx5_ib_dev *dev,
++			     enum mlx5_ib_uapi_flow_table_type ft_type,
++			     u8 num_actions, void *in)
++{
++	enum mlx5_flow_namespace_type namespace;
++	struct mlx5_ib_flow_action *maction;
++	int ret;
++
++	ret = mlx5_ib_ft_type_to_namespace(ft_type, &namespace);
++	if (ret)
++		return ERR_PTR(-EINVAL);
++
++	maction = kzalloc(sizeof(*maction), GFP_KERNEL);
++	if (!maction)
++		return ERR_PTR(-ENOMEM);
++
++	ret = mlx5_modify_header_alloc(dev->mdev, namespace, num_actions, in,
++				       &maction->flow_action_raw.action_id);
++
++	if (ret) {
++		kfree(maction);
++		return ERR_PTR(ret);
++	}
++	maction->flow_action_raw.sub_type =
++		MLX5_IB_FLOW_ACTION_MODIFY_HEADER;
++	maction->flow_action_raw.dev = dev;
++
++	return &maction->ib_action;
++}
++
++static bool mlx5_ib_modify_header_supported(struct mlx5_ib_dev *dev)
++{
++	return MLX5_CAP_FLOWTABLE_NIC_RX(dev->mdev,
++					 max_modify_header_actions) ||
++	       MLX5_CAP_FLOWTABLE_NIC_TX(dev->mdev, max_modify_header_actions);
++}
++
++static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER)(
++	struct ib_uverbs_file *file,
++	struct uverbs_attr_bundle *attrs)
++{
++	struct ib_uobject *uobj = uverbs_attr_get_uobject(
++		attrs, MLX5_IB_ATTR_CREATE_MODIFY_HEADER_HANDLE);
++	struct mlx5_ib_dev *mdev = to_mdev(uobj->context->device);
++	enum mlx5_ib_uapi_flow_table_type ft_type;
++	struct ib_flow_action *action;
++	size_t num_actions;
++	void *in;
++	int len;
++	int ret;
++
++	if (!mlx5_ib_modify_header_supported(mdev))
++		return -EOPNOTSUPP;
++
++	in = uverbs_attr_get_alloced_ptr(attrs,
++		MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM);
++	len = uverbs_attr_get_len(attrs,
++		MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM);
++
++	if (len % MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto))
++		return -EINVAL;
++
++	ret = uverbs_get_const(&ft_type, attrs,
++			       MLX5_IB_ATTR_CREATE_MODIFY_HEADER_FT_TYPE);
++	if (ret)
++		return -EINVAL;
++
++	num_actions = len / MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto),
++	action = mlx5_ib_create_modify_header(mdev, ft_type, num_actions, in);
++	if (IS_ERR(action))
++		return PTR_ERR(action);
++
++	atomic_set(&action->usecnt, 0);
++	action->device = uobj->context->device;
++	action->type = IB_FLOW_ACTION_UNSPECIFIED;
++	action->uobject = uobj;
++	uobj->object = action;
++
++	return 0;
++}
++
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_CREATE_FLOW,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_FLOW_HANDLE,
+@@ -209,6 +322,26 @@ ADD_UVERBS_METHODS(mlx5_ib_fs,
+ 		   &UVERBS_METHOD(MLX5_IB_METHOD_CREATE_FLOW),
+ 		   &UVERBS_METHOD(MLX5_IB_METHOD_DESTROY_FLOW));
+ 
++DECLARE_UVERBS_NAMED_METHOD(
++	MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER,
++	UVERBS_ATTR_IDR(MLX5_IB_ATTR_CREATE_MODIFY_HEADER_HANDLE,
++			UVERBS_OBJECT_FLOW_ACTION,
++			UVERBS_ACCESS_NEW,
++			UA_MANDATORY),
++	UVERBS_ATTR_PTR_IN(MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM,
++		UVERBS_ATTR_MIN_SIZE(
++			MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto)),
++		UA_MANDATORY,
++		UA_ALLOC_AND_COPY),
++	UVERBS_ATTR_CONST_IN(MLX5_IB_ATTR_CREATE_MODIFY_HEADER_FT_TYPE,
++			     enum mlx5_ib_uapi_flow_table_type,
++			     UA_MANDATORY));
++
++ADD_UVERBS_METHODS(
++	mlx5_ib_flow_actions,
++	UVERBS_OBJECT_FLOW_ACTION,
++	&UVERBS_METHOD(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER));
++
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_FLOW_MATCHER_CREATE,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_FLOW_MATCHER_CREATE_HANDLE,
+@@ -247,6 +380,7 @@ int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root)
+ 
+ 	root[i++] = &flow_objects;
+ 	root[i++] = &mlx5_ib_fs;
++	root[i++] = &mlx5_ib_flow_actions;
+ 
+ 	return i;
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 1b167750b8ac..158b71dade34 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -3995,6 +3995,9 @@ static int mlx5_ib_destroy_flow_action(struct ib_flow_action *action)
+ 		 */
+ 		mlx5_accel_esp_destroy_xfrm(maction->esp_aes_gcm.ctx);
+ 		break;
++	case IB_FLOW_ACTION_UNSPECIFIED:
++		mlx5_ib_destroy_flow_action_raw(maction);
++		break;
+ 	default:
+ 		WARN_ON(true);
+ 		break;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 320d4dfe8c2f..c26ea868b4f1 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -151,6 +151,10 @@ struct mlx5_ib_pd {
+ 	u32			pdn;
+ };
+ 
++enum {
++	MLX5_IB_FLOW_ACTION_MODIFY_HEADER,
++};
++
+ #define MLX5_IB_FLOW_MCAST_PRIO		(MLX5_BY_PASS_NUM_PRIOS - 1)
+ #define MLX5_IB_FLOW_LAST_PRIO		(MLX5_BY_PASS_NUM_REGULAR_PRIOS - 1)
+ #if (MLX5_IB_FLOW_LAST_PRIO <= 0)
+@@ -814,6 +818,11 @@ struct mlx5_ib_flow_action {
+ 			u64			    ib_flags;
+ 			struct mlx5_accel_esp_xfrm *ctx;
+ 		} esp_aes_gcm;
++		struct {
++			struct mlx5_ib_dev *dev;
++			u32 sub_type;
++			u32 action_id;
++		} flow_action_raw;
+ 	};
+ };
+ 
+@@ -860,7 +869,7 @@ to_mcounters(struct ib_counters *ibcntrs)
+ 
+ struct mlx5_ib_dev {
+ 	struct ib_device		ib_dev;
+-	const struct uverbs_object_tree_def *driver_trees[6];
++	const struct uverbs_object_tree_def *driver_trees[7];
+ 	struct mlx5_core_dev		*mdev;
+ 	struct mlx5_roce		roce[MLX5_MAX_PORTS];
+ 	int				num_ports;
+@@ -1238,6 +1247,7 @@ struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(
+ 	void *cmd_in, int inlen, int dest_id, int dest_type);
+ bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id, int *dest_type);
+ int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root);
++void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction);
  #else
  static inline int
- uverbs_get_flags64(u64 *to, const struct uverbs_attr_bundle *attrs_bundle,
-@@ -631,6 +643,34 @@ static inline __malloc void *uverbs_zalloc(struct uverbs_attr_bundle *bundle,
+ mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+@@ -1256,6 +1266,11 @@ mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root)
  {
- 	return ERR_PTR(-EINVAL);
+ 	return 0;
  }
-+static inline int
-+_uverbs_get_const(s64 *to, const struct uverbs_attr_bundle *attrs_bundle,
-+		  size_t idx, s64 lower_bound, u64 upper_bound,
-+		  s64 *def_val)
++static inline void
++mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction)
 +{
-+	return -EINVAL;
-+}
++	return;
++};
+ #endif
+ static inline void init_query_mad(struct ib_smp *mad)
+ {
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_cmds.h b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+index 9c51801b9e64..9c83e13c0e89 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_cmds.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_cmds.h
+@@ -166,4 +166,14 @@ enum mlx5_ib_flow_methods {
+ 	MLX5_IB_METHOD_DESTROY_FLOW,
+ };
+ 
++enum mlx5_ib_flow_action_methods {
++	MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER = (1U << UVERBS_ID_NS_SHIFT),
++};
++
++enum mlx5_ib_create_flow_action_create_modify_header_attrs {
++	MLX5_IB_ATTR_CREATE_MODIFY_HEADER_HANDLE = (1U << UVERBS_ID_NS_SHIFT),
++	MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM,
++	MLX5_IB_ATTR_CREATE_MODIFY_HEADER_FT_TYPE,
++};
++
+ #endif
+diff --git a/include/uapi/rdma/mlx5_user_ioctl_verbs.h b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+index 8a2fb33f3ed4..ceb6d0d8529a 100644
+--- a/include/uapi/rdma/mlx5_user_ioctl_verbs.h
++++ b/include/uapi/rdma/mlx5_user_ioctl_verbs.h
+@@ -39,5 +39,10 @@ enum mlx5_ib_uapi_flow_action_flags {
+ 	MLX5_IB_UAPI_FLOW_ACTION_FLAGS_REQUIRE_METADATA	= 1 << 0,
+ };
+ 
++enum mlx5_ib_uapi_flow_table_type {
++	MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_RX     = 0x0,
++	MLX5_IB_UAPI_FLOW_TABLE_TYPE_NIC_TX	= 0x1,
++};
++
  #endif
  
-+#define uverbs_get_const(_to, _attrs_bundle, _idx)                             \
-+	({                                                                     \
-+		s64 _val;                                                      \
-+		int _ret = _uverbs_get_const(&_val, _attrs_bundle, _idx,       \
-+					     type_min(typeof(*_to)),           \
-+					     type_max(typeof(*_to)), NULL);    \
-+		(*_to) = _val;                                                 \
-+		_ret;                                                          \
-+	})
-+
-+#define uverbs_get_const_default(_to, _attrs_bundle, _idx, _default)           \
-+	({                                                                     \
-+		s64 _val;                                                      \
-+		s64 _def_val = _default;                                       \
-+		int _ret =                                                     \
-+			_uverbs_get_const(&_val, _attrs_bundle, _idx,          \
-+					  type_min(typeof(*_to)),              \
-+					  type_max(typeof(*_to)), &_def_val);  \
-+		(*_to) = _val;                                                 \
-+		_ret;                                                          \
-+	})
- #endif
 -- 
 2.14.4
