@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v1 03/15] net/mlx5: Export modify header alloc/dealloc functions
-Date: Tue, 28 Aug 2018 14:18:42 +0300
-Message-ID: <20180828111854.14367-4-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two separated flow table creation flags
+Date: Tue, 28 Aug 2018 14:18:44 +0300
+Message-ID: <20180828111854.14367-6-leon@kernel.org>
 References: <20180828111854.14367-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
@@ -12,68 +12,75 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Those functions will be used by the RDMA side to create modify header
-actions to be attached to flow steering rules via verbs.
+Today we are able to attach encap and decap actions only to the FDB. In
+preparation to enable those actions on the NIC flow tables, break the
+single flag into two. Those flags control whatever a decap or encap
+operations can be attached to the flow table created. For FDB, if
+encapsulation is required, we set both of them.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 2 ++
- drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 5 -----
- include/linux/mlx5/fs.h                             | 6 ++++++
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 3 ++-
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c           | 7 ++++---
+ include/linux/mlx5/fs.h                                    | 3 ++-
  3 files changed, 8 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index f72b5c9dcfe9..ff21807a0c4b 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -529,7 +529,8 @@ static int esw_create_offloads_fast_fdb_table(struct mlx5_eswitch *esw)
+ 		esw_size >>= 1;
+ 
+ 	if (esw->offloads.encap != DEVLINK_ESWITCH_ENCAP_MODE_NONE)
+-		flags |= MLX5_FLOW_TABLE_TUNNEL_EN;
++		flags |= (MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP |
++			  MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+ 
+ 	fdb = mlx5_create_auto_grouped_flow_table(root_ns, FDB_FAST_PATH,
+ 						  esw_size,
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 28c7301e08f4..37bea30b68ac 100644
+index 9ae777e56529..1698f325a21e 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -702,6 +702,7 @@ int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
- 	kfree(in);
- 	return err;
- }
-+EXPORT_SYMBOL(mlx5_modify_header_alloc);
- 
- void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
+@@ -152,7 +152,8 @@ static int mlx5_cmd_create_flow_table(struct mlx5_core_dev *dev,
+ 				      struct mlx5_flow_table *next_ft,
+ 				      unsigned int *table_id, u32 flags)
  {
-@@ -716,6 +717,7 @@ void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
+-	int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
++	int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
++	int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+ 	u32 out[MLX5_ST_SZ_DW(create_flow_table_out)] = {0};
+ 	u32 in[MLX5_ST_SZ_DW(create_flow_table_in)]   = {0};
+ 	int err;
+@@ -169,9 +170,9 @@ static int mlx5_cmd_create_flow_table(struct mlx5_core_dev *dev,
+ 	}
  
- 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
-+EXPORT_SYMBOL(mlx5_modify_header_dealloc);
+ 	MLX5_SET(create_flow_table_in, in, flow_table_context.decap_en,
+-		 en_encap_decap);
++		 en_decap);
+ 	MLX5_SET(create_flow_table_in, in, flow_table_context.encap_en,
+-		 en_encap_decap);
++		 en_encap);
  
- static const struct mlx5_flow_cmds mlx5_flow_cmds = {
- 	.create_flow_table = mlx5_cmd_create_flow_table,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index b4134fa0bba3..649d1bd83a1a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -176,11 +176,6 @@ int mlx5_encap_alloc(struct mlx5_core_dev *dev,
- 		     u32 *encap_id);
- void mlx5_encap_dealloc(struct mlx5_core_dev *dev, u32 encap_id);
- 
--int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
--			     u8 namespace, u8 num_actions,
--			     void *modify_actions, u32 *modify_header_id);
--void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id);
--
- bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv);
- 
- int mlx5_query_mtpps(struct mlx5_core_dev *dev, u32 *mtpps, u32 mtpps_size);
+ 	switch (op_mod) {
+ 	case FS_FT_OP_MOD_NORMAL:
 diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 804516e4f483..0cbf4d5cb1ab 100644
+index 0cbf4d5cb1ab..0194e62ad66a 100644
 --- a/include/linux/mlx5/fs.h
 +++ b/include/linux/mlx5/fs.h
-@@ -196,4 +196,10 @@ int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
- int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
- int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+@@ -45,7 +45,8 @@ enum {
+ };
  
-+int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
-+			     u8 namespace, u8 num_actions,
-+			     void *modify_actions, u32 *modify_header_id);
-+void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev,
-+				u32 modify_header_id);
-+
- #endif
+ enum {
+-	MLX5_FLOW_TABLE_TUNNEL_EN = BIT(0),
++	MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP = BIT(0),
++	MLX5_FLOW_TABLE_TUNNEL_EN_DECAP = BIT(1),
+ };
+ 
+ #define LEFTOVERS_RULE_NUM	 2
 -- 
 2.14.4
