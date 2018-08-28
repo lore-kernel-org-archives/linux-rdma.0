@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v1 08/15] net/mlx5: Expose new packet reformat capabilities
-Date: Tue, 28 Aug 2018 14:18:47 +0300
-Message-ID: <20180828111854.14367-9-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 09/15] net/mlx5: Pass a namespace for packet reformat ID allocation
+Date: Tue, 28 Aug 2018 14:18:48 +0300
+Message-ID: <20180828111854.14367-10-leon@kernel.org>
 References: <20180828111854.14367-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
@@ -12,69 +12,95 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Expose new abilities when creating a packet reformat context.
-
-The new types which can be created are:
-MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL: Ability to create generic encap
-operation to be done by the HW.
-
-MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2: Ability to create generic decap
-operation where the inner packet doesn't contain L2.
-
-MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL: Ability to create generic encap
-operation to be done by the HW. The L2 of the original packet
-is dropped.
+Currently we attach packet reformat actions only to the FDB namespace.
+In preparation to be able to use that for NIC steering, pass the actual
+namespace as a parameter.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c     | 3 +++
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 8 +++++++-
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 2 ++
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index c79eaae28e59..3a4a2e0567e9 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -344,8 +344,12 @@ struct mlx5_ifc_flow_table_prop_layout_bits {
- 	u8         reserved_at_c[0x1];
- 	u8         pop_vlan_2[0x1];
- 	u8         push_vlan_2[0x1];
--	u8         reserved_at_f[0x11];
--
-+	u8	   reformat_and_vlan_action[0x1];
-+	u8	   reserved_at_10[0x2];
-+	u8	   reformat_l3_tunnel_to_l2[0x1];
-+	u8	   reformat_l2_to_l3_tunnel[0x1];
-+	u8	   reformat_and_modify_action[0x1];
-+	u8         reserved_at_14[0xb];
- 	u8         reserved_at_20[0x2];
- 	u8         log_max_ft_size[0x6];
- 	u8         log_max_modify_header_context[0x8];
-@@ -554,7 +558,13 @@ struct mlx5_ifc_flow_table_nic_cap_bits {
- 	u8         nic_rx_multi_path_tirs[0x1];
- 	u8         nic_rx_multi_path_tirs_fts[0x1];
- 	u8         allow_sniffer_and_nic_rx_shared_tir[0x1];
--	u8         reserved_at_3[0x1fd];
-+	u8	   reserved_at_3[0x1d];
-+	u8	   encap_general_header[0x1];
-+	u8	   reserved_at_21[0xa];
-+	u8	   log_max_packet_reformat_context[0x5];
-+	u8	   reserved_at_30[0x6];
-+	u8	   max_encap_header_size[0xa];
-+	u8	   reserved_at_40[0x1c0];
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 3df8f2b90908..8cac8e9c8c63 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -925,6 +925,7 @@ void mlx5e_tc_encap_flows_add(struct mlx5e_priv *priv,
  
- 	struct mlx5_ifc_flow_table_prop_layout_bits flow_table_properties_nic_receive;
+ 	err = mlx5_packet_reformat_alloc(priv->mdev, e->tunnel_type,
+ 					 e->encap_size, e->encap_header,
++					 MLX5_FLOW_NAMESPACE_FDB,
+ 					 &e->encap_id);
+ 	if (err) {
+ 		mlx5_core_warn(priv->mdev, "Failed to offload cached encapsulation header, %d\n",
+@@ -2389,6 +2390,7 @@ static int mlx5e_create_encap_header_ipv4(struct mlx5e_priv *priv,
  
-@@ -4851,6 +4861,9 @@ struct mlx5_ifc_alloc_packet_reformat_context_out_bits {
- enum {
- 	MLX5_REFORMAT_TYPE_L2_TO_VXLAN = 0x0,
- 	MLX5_REFORMAT_TYPE_L2_TO_NVGRE = 0x1,
-+	MLX5_REFORMAT_TYPE_L2_TO_L2_TUNNEL = 0x2,
-+	MLX5_REFORMAT_TYPE_L3_TUNNEL_TO_L2 = 0x3,
-+	MLX5_REFORMAT_TYPE_L2_TO_L3_TUNNEL = 0x4,
- };
+ 	err = mlx5_packet_reformat_alloc(priv->mdev, e->tunnel_type,
+ 					 ipv4_encap_size, encap_header,
++					 MLX5_FLOW_NAMESPACE_FDB,
+ 					 &e->encap_id);
+ 	if (err)
+ 		goto destroy_neigh_entry;
+@@ -2500,6 +2502,7 @@ static int mlx5e_create_encap_header_ipv6(struct mlx5e_priv *priv,
  
- struct mlx5_ifc_alloc_packet_reformat_context_in_bits {
+ 	err = mlx5_packet_reformat_alloc(priv->mdev, e->tunnel_type,
+ 					 ipv6_encap_size, encap_header,
++					 MLX5_FLOW_NAMESPACE_FDB,
+ 					 &e->encap_id);
+ 	if (err)
+ 		goto destroy_neigh_entry;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 4539b709db20..cc9537891e39 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -600,16 +600,22 @@ int mlx5_packet_reformat_alloc(struct mlx5_core_dev *dev,
+ 			       int reformat_type,
+ 			       size_t size,
+ 			       void *reformat_data,
++			       enum mlx5_flow_namespace_type namespace,
+ 			       u32 *packet_reformat_id)
+ {
+-	int max_encap_size = MLX5_CAP_ESW(dev, max_encap_header_size);
+ 	u32 out[MLX5_ST_SZ_DW(alloc_packet_reformat_context_out)];
+ 	void *packet_reformat_context_in;
++	int max_encap_size;
+ 	void *reformat;
+ 	int inlen;
+ 	int err;
+ 	u32 *in;
+ 
++	if (namespace == MLX5_FLOW_NAMESPACE_FDB)
++		max_encap_size = MLX5_CAP_ESW(dev, max_encap_header_size);
++	else
++		max_encap_size = MLX5_CAP_FLOWTABLE(dev, max_encap_header_size);
++
+ 	if (size > max_encap_size) {
+ 		mlx5_core_warn(dev, "encap size %zd too big, max supported is %d\n",
+ 			       size, max_encap_size);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index f3c8f51cc9c2..66a5dd5a6cbe 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -39,6 +39,7 @@
+ #include <linux/if_link.h>
+ #include <linux/firmware.h>
+ #include <linux/mlx5/cq.h>
++#include <linux/mlx5/fs.h>
+ 
+ #define DRIVER_NAME "mlx5_core"
+ #define DRIVER_VERSION "5.0-0"
+@@ -173,6 +174,7 @@ int mlx5_packet_reformat_alloc(struct mlx5_core_dev *dev,
+ 			       int reformat_type,
+ 			       size_t size,
+ 			       void *reformat_data,
++			       enum mlx5_flow_namespace_type namespace,
+ 			       u32 *packet_reformat_id);
+ void mlx5_packet_reformat_dealloc(struct mlx5_core_dev *dev,
+ 				  u32 packet_reformat_id);
 -- 
 2.14.4
