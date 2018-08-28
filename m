@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next v1 01/15] net/mlx5: Cleanup flow namespace getter switch logic
-Date: Tue, 28 Aug 2018 14:18:40 +0300
-Message-ID: <20180828111854.14367-2-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 03/15] net/mlx5: Export modify header alloc/dealloc functions
+Date: Tue, 28 Aug 2018 14:18:42 +0300
+Message-ID: <20180828111854.14367-4-leon@kernel.org>
 References: <20180828111854.14367-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180828111854.14367-1-leon@kernel.org>
@@ -12,65 +12,68 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Refactor the switch logic so it's simpler to follow and understand.
+Those functions will be used by the RDMA side to create modify header
+actions to be attached to flow steering rules via verbs.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 24 ++++++-----------------
- 1 file changed, 6 insertions(+), 18 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c    | 2 ++
+ drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h | 5 -----
+ include/linux/mlx5/fs.h                             | 6 ++++++
+ 3 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index f418541af7cf..5624030d2ed4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -1986,40 +1986,28 @@ struct mlx5_flow_namespace *mlx5_get_flow_namespace(struct mlx5_core_dev *dev,
- 		return NULL;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+index 28c7301e08f4..37bea30b68ac 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
+@@ -702,6 +702,7 @@ int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
+ 	kfree(in);
+ 	return err;
+ }
++EXPORT_SYMBOL(mlx5_modify_header_alloc);
  
- 	switch (type) {
--	case MLX5_FLOW_NAMESPACE_BYPASS:
--	case MLX5_FLOW_NAMESPACE_LAG:
--	case MLX5_FLOW_NAMESPACE_OFFLOADS:
--	case MLX5_FLOW_NAMESPACE_ETHTOOL:
--	case MLX5_FLOW_NAMESPACE_KERNEL:
--	case MLX5_FLOW_NAMESPACE_LEFTOVERS:
--	case MLX5_FLOW_NAMESPACE_ANCHOR:
--		prio = type;
--		break;
- 	case MLX5_FLOW_NAMESPACE_FDB:
- 		if (steering->fdb_root_ns)
- 			return &steering->fdb_root_ns->ns;
--		else
--			return NULL;
-+		return NULL;
- 	case MLX5_FLOW_NAMESPACE_SNIFFER_RX:
- 		if (steering->sniffer_rx_root_ns)
- 			return &steering->sniffer_rx_root_ns->ns;
--		else
--			return NULL;
-+		return NULL;
- 	case MLX5_FLOW_NAMESPACE_SNIFFER_TX:
- 		if (steering->sniffer_tx_root_ns)
- 			return &steering->sniffer_tx_root_ns->ns;
--		else
--			return NULL;
-+		return NULL;
- 	case MLX5_FLOW_NAMESPACE_EGRESS:
- 		if (steering->egress_root_ns)
- 			return &steering->egress_root_ns->ns;
--		else
--			return NULL;
--	default:
- 		return NULL;
-+	default:
-+		break;
- 	}
+ void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
+ {
+@@ -716,6 +717,7 @@ void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id)
  
- 	root_ns = steering->root_ns;
-+	prio = type;
- 	if (!root_ns)
- 		return NULL;
+ 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ }
++EXPORT_SYMBOL(mlx5_modify_header_dealloc);
  
+ static const struct mlx5_flow_cmds mlx5_flow_cmds = {
+ 	.create_flow_table = mlx5_cmd_create_flow_table,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index b4134fa0bba3..649d1bd83a1a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -176,11 +176,6 @@ int mlx5_encap_alloc(struct mlx5_core_dev *dev,
+ 		     u32 *encap_id);
+ void mlx5_encap_dealloc(struct mlx5_core_dev *dev, u32 encap_id);
+ 
+-int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
+-			     u8 namespace, u8 num_actions,
+-			     void *modify_actions, u32 *modify_header_id);
+-void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev, u32 modify_header_id);
+-
+ bool mlx5_lag_intf_add(struct mlx5_interface *intf, struct mlx5_priv *priv);
+ 
+ int mlx5_query_mtpps(struct mlx5_core_dev *dev, u32 *mtpps, u32 mtpps_size);
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 804516e4f483..0cbf4d5cb1ab 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -196,4 +196,10 @@ int mlx5_fc_query(struct mlx5_core_dev *dev, struct mlx5_fc *counter,
+ int mlx5_fs_add_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+ int mlx5_fs_remove_rx_underlay_qpn(struct mlx5_core_dev *dev, u32 underlay_qpn);
+ 
++int mlx5_modify_header_alloc(struct mlx5_core_dev *dev,
++			     u8 namespace, u8 num_actions,
++			     void *modify_actions, u32 *modify_header_id);
++void mlx5_modify_header_dealloc(struct mlx5_core_dev *dev,
++				u32 modify_header_id);
++
+ #endif
 -- 
 2.14.4
