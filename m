@@ -1,42 +1,45 @@
 From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH v2 0/2] IB/ipoib: Use dev_port to disambiguate port numbers
-Date: Thu, 30 Aug 2018 21:22:36 +0300
-Message-ID: <20180830182238.16361-1-ar@cs.msu.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v2 2/2] Documentation/ABI: document /sys/class/net/*/dev_port
+Date: Thu, 30 Aug 2018 21:22:38 +0300
+Message-ID: <20180830182238.16361-3-ar@cs.msu.ru>
+References: <20180830182238.16361-1-ar@cs.msu.ru>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180830182238.16361-1-ar@cs.msu.ru>
 Sender: netdev-owner@vger.kernel.org
 To: linux-rdma@vger.kernel.org
 Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Pre-3.15 userspace had trouble distinguishing different ports
-of a NIC on a single PCI bus/device/function. To solve this,
-a sysfs field `dev_port' was introduced quite a while ago
-(commit v3.14-rc3-739-g3f85944fe207), and some relevant device
-drivers were fixed to use it, but not in case of IPoIB.
+The sysfs field was introduced 4 years ago along with fixes to various
+drivers that erroneously used `dev_id' for that purpose, but it was not
+properly documented anywhere.
+See commit v3.14-rc3-739-g3f85944fe207.
 
-The convention for some reason never got documented in the kernel, but
-was immediately adopted by userspace (notably udev[1][2], biosdevname[3])
-
-3/3 documents the sysfs field — that's why I'm CC-ing netdev.
-
-This series was tested on and applies to 4.19-rc1.
-
-[1] https://lists.freedesktop.org/archives/systemd-devel/2014-June/020788.html
-[2] https://lists.freedesktop.org/archives/systemd-devel/2014-July/020804.html
-[3] https://github.com/CloudAutomationNTools/biosdevname/blob/c795d51dd93a5309652f0d635f12a3ecfabfaa72/src/eths.c#L38
-
-v1->v2: replace a line instead of inserting and then removing.
-
-Arseny Maslennikov (2):
-  IB/ipoib: Use dev_port to expose network interface port numbers
-  Documentation/ABI: document /sys/class/net/*/dev_port
-
+Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+---
  Documentation/ABI/testing/sysfs-class-net | 10 ++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ 1 file changed, 10 insertions(+)
 
+diff --git a/Documentation/ABI/testing/sysfs-class-net b/Documentation/ABI/testing/sysfs-class-net
+index 2f1788111cd9..1593d8997ade 100644
+--- a/Documentation/ABI/testing/sysfs-class-net
++++ b/Documentation/ABI/testing/sysfs-class-net
+@@ -91,6 +91,16 @@ Description:
+ 		stacked (e.g: VLAN interfaces) but still have the same MAC
+ 		address as their parent device.
+ 
++What:		/sys/class/net/<iface>/dev_port
++Date:		February 2014
++KernelVersion:	3.15
++Contact:	netdev@vger.kernel.org
++Description:
++		Indicates the port number of this network device, formatted
++		as a decimal value. Some NICs have multiple independent ports
++		on the same PCI bus, device and function. This field allows
++		userspace to distinguish the respective interfaces.
++
+ What:		/sys/class/net/<iface>/dormant
+ Date:		March 2006
+ KernelVersion:	2.6.17
 -- 
 2.18.0
