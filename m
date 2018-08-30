@@ -1,7 +1,7 @@
 From: Logan Gunthorpe <logang@deltatee.com>
-Subject: [PATCH v5 12/13] nvmet: Introduce helper functions to allocate and free request SGLs
-Date: Thu, 30 Aug 2018 12:53:51 -0600
-Message-ID: <20180830185352.3369-13-logang@deltatee.com>
+Subject: [PATCH v5 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to adjust the bus offset
+Date: Thu, 30 Aug 2018 12:53:42 -0600
+Message-ID: <20180830185352.3369-4-logang@deltatee.com>
 References: <20180830185352.3369-1-logang@deltatee.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
@@ -10,128 +10,114 @@ To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.in
 Cc: Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Add helpers to allocate and free the SGL in a struct nvmet_req:
+The DMA address used when mapping PCI P2P memory must be the PCI bus
+address. Thus, introduce pci_p2pmem_map_sg() to map the correct
+addresses when using P2P memory. Memory mapped in this way does not
+need to be unmapped.
 
-int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-void nvmet_req_free_sgl(struct nvmet_req *req)
-
-This will be expanded in a future patch to implement peer-to-peer
-memory DMAs and should be common with all target drivers. The presently
-unused 'sq' argument in the alloc function will be necessary to
-decide whether to use peer-to-peer memory and obtain the correct
-provider to allocate the memory.
-
-The new helpers are used in nvmet-rdma. Seeing we use req.transfer_len
-as the length of the SGL it is set earlier and cleared on any error.
-It also seems to be unnecessary to accumulate the length as the map_sgl
-functions should only ever be called once per request.
+For this, we assume that an SGL passed to these functions contain all
+P2P memory or no P2P memory.
 
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/nvme/target/core.c  | 18 ++++++++++++++++++
- drivers/nvme/target/nvmet.h |  2 ++
- drivers/nvme/target/rdma.c  | 20 ++++++++++++--------
- 3 files changed, 32 insertions(+), 8 deletions(-)
+ drivers/pci/p2pdma.c       | 43 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/memremap.h   |  1 +
+ include/linux/pci-p2pdma.h |  7 +++++++
+ 3 files changed, 51 insertions(+)
 
-diff --git a/drivers/nvme/target/core.c b/drivers/nvme/target/core.c
-index ebf3e7a6c49e..6a1c8d5f552b 100644
---- a/drivers/nvme/target/core.c
-+++ b/drivers/nvme/target/core.c
-@@ -725,6 +725,24 @@ void nvmet_req_execute(struct nvmet_req *req)
- }
- EXPORT_SYMBOL_GPL(nvmet_req_execute);
+diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
+index 67c1daf1189e..29bd40a87768 100644
+--- a/drivers/pci/p2pdma.c
++++ b/drivers/pci/p2pdma.c
+@@ -191,6 +191,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
+ 	pgmap->res.flags = pci_resource_flags(pdev, bar);
+ 	pgmap->ref = &pdev->p2pdma->devmap_ref;
+ 	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
++	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
++		pci_resource_start(pdev, bar);
  
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq)
-+{
-+	req->sg = sgl_alloc(req->transfer_len, GFP_KERNEL, &req->sg_cnt);
-+	if (!req->sg)
-+		return -ENOMEM;
+ 	addr = devm_memremap_pages(&pdev->dev, pgmap);
+ 	if (IS_ERR(addr)) {
+@@ -813,3 +815,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ 	pdev->p2pdma->p2pmem_published = publish;
+ }
+ EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
 +
++/**
++ * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
++ * @dev: device doing the DMA request
++ * @sg: scatter list to map
++ * @nents: elements in the scatterlist
++ * @dir: DMA direction
++ *
++ * Scatterlists mapped with this function should not be unmapped in any way.
++ *
++ * Returns the number of SG entries mapped or 0 on error.
++ */
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir)
++{
++	struct dev_pagemap *pgmap;
++	struct scatterlist *s;
++	phys_addr_t paddr;
++	int i;
++
++	/*
++	 * p2pdma mappings are not compatible with devices that use
++	 * dma_virt_ops. If the upper layers do the right thing
++	 * this should never happen because it will be prevented
++	 * by the check in pci_p2pdma_add_client()
++	 */
++	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
++			 dev->dma_ops == &dma_virt_ops))
++		return 0;
++
++	for_each_sg(sg, s, nents, i) {
++		pgmap = sg_page(s)->pgmap;
++		paddr = sg_phys(s);
++
++		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
++		sg_dma_len(s) = s->length;
++	}
++
++	return nents;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
+diff --git a/include/linux/memremap.h b/include/linux/memremap.h
+index 9553370ebdad..0ac69ddf5fc4 100644
+--- a/include/linux/memremap.h
++++ b/include/linux/memremap.h
+@@ -125,6 +125,7 @@ struct dev_pagemap {
+ 	struct device *dev;
+ 	void *data;
+ 	enum memory_type type;
++	u64 pci_p2pdma_bus_offset;
+ };
+ 
+ #ifdef CONFIG_ZONE_DEVICE
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index 7b2b0f547528..2f03dbbf5af6 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -36,6 +36,8 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
+ 					 unsigned int *nents, u32 length);
+ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
++int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++		      enum dma_data_direction dir);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -98,5 +100,10 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
+ static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
+ {
+ }
++static inline int pci_p2pdma_map_sg(struct device *dev,
++		struct scatterlist *sg, int nents, enum dma_data_direction dir)
++{
 +	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nvmet_req_alloc_sgl);
-+
-+void nvmet_req_free_sgl(struct nvmet_req *req)
-+{
-+	sgl_free(req->sg);
-+	req->sg = NULL;
-+	req->sg_cnt = 0;
-+}
-+EXPORT_SYMBOL_GPL(nvmet_req_free_sgl);
-+
- static inline bool nvmet_cc_en(u32 cc)
- {
- 	return (cc >> NVME_CC_EN_SHIFT) & 0x1;
-diff --git a/drivers/nvme/target/nvmet.h b/drivers/nvme/target/nvmet.h
-index ec9af4ee03b6..7d6cb61021e4 100644
---- a/drivers/nvme/target/nvmet.h
-+++ b/drivers/nvme/target/nvmet.h
-@@ -336,6 +336,8 @@ bool nvmet_req_init(struct nvmet_req *req, struct nvmet_cq *cq,
- void nvmet_req_uninit(struct nvmet_req *req);
- void nvmet_req_execute(struct nvmet_req *req);
- void nvmet_req_complete(struct nvmet_req *req, u16 status);
-+int nvmet_req_alloc_sgl(struct nvmet_req *req, struct nvmet_sq *sq);
-+void nvmet_req_free_sgl(struct nvmet_req *req);
- 
- void nvmet_cq_setup(struct nvmet_ctrl *ctrl, struct nvmet_cq *cq, u16 qid,
- 		u16 size);
-diff --git a/drivers/nvme/target/rdma.c b/drivers/nvme/target/rdma.c
-index 3533e918ea37..e148dee72ba5 100644
---- a/drivers/nvme/target/rdma.c
-+++ b/drivers/nvme/target/rdma.c
-@@ -489,7 +489,7 @@ static void nvmet_rdma_release_rsp(struct nvmet_rdma_rsp *rsp)
- 	}
- 
- 	if (rsp->req.sg != rsp->cmd->inline_sg)
--		sgl_free(rsp->req.sg);
-+		nvmet_req_free_sgl(&rsp->req);
- 
- 	if (unlikely(!list_empty_careful(&queue->rsp_wr_wait_list)))
- 		nvmet_rdma_process_wr_wait_list(queue);
-@@ -638,24 +638,24 @@ static u16 nvmet_rdma_map_sgl_keyed(struct nvmet_rdma_rsp *rsp,
- {
- 	struct rdma_cm_id *cm_id = rsp->queue->cm_id;
- 	u64 addr = le64_to_cpu(sgl->addr);
--	u32 len = get_unaligned_le24(sgl->length);
- 	u32 key = get_unaligned_le32(sgl->key);
- 	int ret;
- 
-+	rsp->req.transfer_len = get_unaligned_le24(sgl->length);
-+
- 	/* no data command? */
--	if (!len)
-+	if (!rsp->req.transfer_len)
- 		return 0;
- 
--	rsp->req.sg = sgl_alloc(len, GFP_KERNEL, &rsp->req.sg_cnt);
--	if (!rsp->req.sg)
--		return NVME_SC_INTERNAL;
-+	ret = nvmet_req_alloc_sgl(&rsp->req, &rsp->queue->nvme_sq);
-+	if (ret < 0)
-+		goto error_out;
- 
- 	ret = rdma_rw_ctx_init(&rsp->rw, cm_id->qp, cm_id->port_num,
- 			rsp->req.sg, rsp->req.sg_cnt, 0, addr, key,
- 			nvmet_data_dir(&rsp->req));
- 	if (ret < 0)
--		return NVME_SC_INTERNAL;
--	rsp->req.transfer_len += len;
-+		goto error_out;
- 	rsp->n_rdma += ret;
- 
- 	if (invalidate) {
-@@ -664,6 +664,10 @@ static u16 nvmet_rdma_map_sgl_keyed(struct nvmet_rdma_rsp *rsp,
- 	}
- 
- 	return 0;
-+
-+error_out:
-+	rsp->req.transfer_len = 0;
-+	return NVME_SC_INTERNAL;
- }
- 
- static u16 nvmet_rdma_map_sgl(struct nvmet_rdma_rsp *rsp)
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
 -- 
 2.11.0
