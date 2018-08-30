@@ -1,46 +1,37 @@
-From: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v5 00/13] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Thu, 30 Aug 2018 15:20:12 -0400
-Message-ID: <20180830192012.GG3529@redhat.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: KMSAN: uninit-value in rds_connect
+Date: Thu, 30 Aug 2018 12:30:26 -0700
+Message-ID: <d3a92af1-cbdd-b727-bd57-6c1895e72238@oracle.com>
+References: <00000000000005859b0574ab47e5@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180830185352.3369-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <00000000000005859b0574ab47e5@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+0049bebbf3042dbd2e8f@syzkaller.appspotmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 30, 2018 at 12:53:39PM -0600, Logan Gunthorpe wrote:
+On 8/30/2018 11:31 AM, syzbot wrote:
+> Hello,
+> 
+> syzbot found the following crash on:
+> 
+> HEAD commit:    2dca2cbde67a kmsan: fix build warnings with CONFIG_KMSAN=n
+> git tree:       https://github.com/google/kmsan.git/master
+> console output: https://syzkaller.appspot.com/x/log.txt?x=1519734a400000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=820d6393634b55e3
+> dashboard link: 
+> https://syzkaller.appspot.com/bug?extid=0049bebbf3042dbd2e8f
+> compiler:       clang version 8.0.0 (trunk 339414)
+> 
+> Unfortunately, I don't have any reproducer for this crash yet.
+> 
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+0049bebbf3042dbd2e8f@syzkaller.appspotmail.com
+> 
+OK. Will send the fix to address this.
 
-[...]
-
-> =
-
-> When the PCI P2PDMA config option is selected the ACS bits in every
-> bridge port in the system are turned off to allow traffic to
-> pass freely behind the root port. At this time, the bit must be disabled
-> at boot so the IOMMU subsystem can correctly create the groups, though
-> this could be addressed in the future. There is no way to dynamically
-> disable the bit and alter the groups.
-
-Can you provide an example on how to test this ? Like kernel command
-line option, the doc patch does not have any such example. It would be
-nice to add.
-
-Maybe i have miss it in some of the patch. I just skimmed over for
-now.
-
-Cheers,
-J=E9r=F4me
+Regards,
+Santosh
