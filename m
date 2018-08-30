@@ -1,172 +1,94 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v5 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
- attribute helpers
-Date: Thu, 30 Aug 2018 12:53:43 -0600
-Message-ID: <20180830185352.3369-5-logang@deltatee.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: [PATCH v5 11/13] nvme-pci: Add a quirk for a pseudo CMB
+Date: Thu, 30 Aug 2018 12:53:50 -0600
+Message-ID: <20180830185352.3369-12-logang@deltatee.com>
 References: <20180830185352.3369-1-logang@deltatee.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180830185352.3369-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180830185352.3369-1-logang@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Users of the P2PDMA infrastructure will typically need a way for
-the user to tell the kernel to use P2P resources. Typically
-this will be a simple on/off boolean operation but sometimes
-it may be desirable for the user to specify the exact device to
-use for the P2P operation.
+Introduce a quirk to use CMB-like memory on older devices that have
+an exposed BAR but do not advertise support for using CMBLOC and
+CMBSIZE.
 
-Add new helpers for attributes which take a boolean or a PCI device.
-Any boolean, or the word 'auto' turn P2P on or off. Specifying a full
-PCI device name/BDF will select the specific device.
+We'd like to use some of these older cards to test P2P memory.
 
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 ---
- drivers/pci/p2pdma.c       | 83 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/pci-p2pdma.h | 15 +++++++++
- 2 files changed, 98 insertions(+)
+ drivers/nvme/host/nvme.h |  7 +++++++
+ drivers/nvme/host/pci.c  | 24 ++++++++++++++++++++----
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index 29bd40a87768..3da848f3fe72 100644
---- a/drivers/pci/p2pdma.c
-+++ b/drivers/pci/p2pdma.c
-@@ -9,6 +9,7 @@
-  */
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index 4030743c90aa..8e6f3bcfe956 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -90,6 +90,13 @@ enum nvme_quirks {
+ 	 * Set MEDIUM priority on SQ creation
+ 	 */
+ 	NVME_QUIRK_MEDIUM_PRIO_SQ		= (1 << 7),
++
++	/*
++	 * Pseudo CMB Support on BAR 4. For adapters like the Microsemi
++	 * NVRAM that have CMB-like memory on a BAR but does not set
++	 * CMBLOC or CMBSZ.
++	 */
++	NVME_QUIRK_PSEUDO_CMB_BAR4		= (1 << 8),
+ };
  
- #define pr_fmt(fmt) "pci-p2pdma: " fmt
-+#include <linux/ctype.h>
- #include <linux/pci-p2pdma.h>
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -856,3 +857,85 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
- 	return nents;
+ /*
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index bb2120d30e39..f898f2ab1420 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -1636,6 +1636,13 @@ static ssize_t nvme_cmb_show(struct device *dev,
  }
- EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-+
-+/**
-+ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
-+ *		to enable p2pdma
-+ * @page: contents of the value to be stored
-+ * @p2p_dev: returns the PCI device that was selected to be used
-+ *		(if 'auto', 'none or a boolean isn't the store value)
-+ * @use_p2pdma: returns whether to enable p2pdma or not
-+ *
-+ * Parses an attribute value to decide whether to enable p2pdma.
-+ * The value can select a PCI device (using it's full BDF device
-+ * name), a boolean, or 'auto'. 'auto' and a true boolean value
-+ * have the same meaning. A false value disables p2pdma and
-+ * a PCI device enables it to use a specific device as the
-+ * backing provider.
-+ *
-+ * pci_p2pdma_enable_show() should be used as the show operation for
-+ * the attribute.
-+ *
-+ * Returns 0 on success
-+ */
-+int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
-+			    bool *use_p2pdma)
+ static DEVICE_ATTR(cmb, S_IRUGO, nvme_cmb_show, NULL);
+ 
++static u32 nvme_pseudo_cmbsz(struct pci_dev *pdev, int bar)
 +{
-+	struct device *dev;
-+
-+	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
-+	if (dev) {
-+		*use_p2pdma = true;
-+		*p2p_dev = to_pci_dev(dev);
-+
-+		if (!pci_has_p2pmem(*p2p_dev)) {
-+			pr_err("PCI device has no peer-to-peer memory: %s\n",
-+			       page);
-+			pci_dev_put(*p2p_dev);
-+			return -ENODEV;
-+		}
-+
-+		return 0;
-+	} else if (sysfs_streq(page, "auto")) {
-+		*use_p2pdma = true;
-+		return 0;
-+	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
-+		/*
-+		 * If the user enters a PCI device that  doesn't exist
-+		 * like "0000:01:00.1", we don't want strtobool to think
-+		 * it's a '0' when it's clearly not what the user wanted.
-+		 * So we require 0's and 1's to be exactly one character.
-+		 */
-+	} else if (!strtobool(page, use_p2pdma)) {
-+		return 0;
-+	}
-+
-+	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
-+	return -ENODEV;
++	return NVME_CMBSZ_WDS | NVME_CMBSZ_RDS |
++		(((ilog2(SZ_16M) - 12) / 4) << NVME_CMBSZ_SZU_SHIFT) |
++		((pci_resource_len(pdev, bar) / SZ_16M) << NVME_CMBSZ_SZ_SHIFT);
 +}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
 +
-+/**
-+ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
-+ *		whether p2pdma is enabled
-+ * @page: contents of the stored value
-+ * @p2p_dev: the selected p2p device (NULL if no device is selected)
-+ * @use_p2pdma: whether p2pdme has been enabled
-+ *
-+ * Attributes that use pci_p2pdma_enable_store() should use this function
-+ * to show the value of the attribute.
-+ *
-+ * Returns 0 on success
-+ */
-+ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-+			       bool use_p2pdma)
-+{
-+	if (!use_p2pdma)
-+		return sprintf(page, "none\n");
-+
-+	if (!p2p_dev)
-+		return sprintf(page, "auto\n");
-+
-+	return sprintf(page, "%s\n", pci_name(p2p_dev));
-+}
-+EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
-diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-index 2f03dbbf5af6..377de4d73767 100644
---- a/include/linux/pci-p2pdma.h
-+++ b/include/linux/pci-p2pdma.h
-@@ -38,6 +38,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
- void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
- int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
- 		      enum dma_data_direction dir);
-+int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
-+			    bool *use_p2pdma);
-+ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
-+			       bool use_p2pdma);
- #else /* CONFIG_PCI_P2PDMA */
- static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
- 		size_t size, u64 offset)
-@@ -105,5 +109,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
+ static u64 nvme_cmb_size_unit(struct nvme_dev *dev)
  {
- 	return 0;
- }
-+static inline int pci_p2pdma_enable_store(const char *page,
-+		struct pci_dev **p2p_dev, bool *use_p2pdma)
-+{
-+	*use_p2pdma = false;
-+	return 0;
-+}
-+static inline ssize_t pci_p2pdma_enable_show(char *page,
-+		struct pci_dev *p2p_dev, bool use_p2pdma)
-+{
-+	return sprintf(page, "none\n");
-+}
- #endif /* CONFIG_PCI_P2PDMA */
- #endif /* _LINUX_PCI_P2P_H */
+ 	u8 szu = (dev->cmbsz >> NVME_CMBSZ_SZU_SHIFT) & NVME_CMBSZ_SZU_MASK;
+@@ -1655,10 +1662,15 @@ static void nvme_map_cmb(struct nvme_dev *dev)
+ 	struct pci_dev *pdev = to_pci_dev(dev->dev);
+ 	int bar;
+ 
+-	dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
+-	if (!dev->cmbsz)
+-		return;
+-	dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	if (dev->ctrl.quirks & NVME_QUIRK_PSEUDO_CMB_BAR4) {
++		dev->cmbsz = nvme_pseudo_cmbsz(pdev, 4);
++		dev->cmbloc = 4;
++	} else {
++		dev->cmbsz = readl(dev->bar + NVME_REG_CMBSZ);
++		if (!dev->cmbsz)
++			return;
++		dev->cmbloc = readl(dev->bar + NVME_REG_CMBLOC);
++	}
+ 
+ 	size = nvme_cmb_size_unit(dev) * nvme_cmb_size(dev);
+ 	offset = nvme_cmb_size_unit(dev) * NVME_CMB_OFST(dev->cmbloc);
+@@ -2707,6 +2719,10 @@ static const struct pci_device_id nvme_id_table[] = {
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
+ 	{ PCI_DEVICE(0x1d1d, 0x2601),	/* CNEX Granby */
+ 		.driver_data = NVME_QUIRK_LIGHTNVM, },
++	{ PCI_DEVICE(0x11f8, 0xf117),	/* Microsemi NVRAM adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4, },
++	{ PCI_DEVICE(0x1db1, 0x0002),	/* Everspin nvNitro adaptor */
++		.driver_data = NVME_QUIRK_PSEUDO_CMB_BAR4,  },
+ 	{ PCI_DEVICE_CLASS(PCI_CLASS_STORAGE_EXPRESS, 0xffffff) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2001) },
+ 	{ PCI_DEVICE(PCI_VENDOR_ID_APPLE, 0x2003) },
 -- 
 2.11.0
