@@ -1,78 +1,116 @@
-From: syzbot <syzbot+915c9f99f3dbc4bd6cd1@syzkaller.appspotmail.com>
-Subject: KMSAN: uninit-value in rds_bind
-Date: Thu, 30 Aug 2018 11:31:03 -0700
-Message-ID: <000000000000010a4d0574ab4743@google.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
+ pages
+Date: Thu, 30 Aug 2018 14:39:44 -0400
+Message-ID: <20180830183944.GE3529@redhat.com>
+References: <20180827134633.GB3930@redhat.com>
+ <9209043d-3240-105b-72a3-b4cd30f1b1f1@oracle.com>
+ <20180829181424.GB3784@redhat.com>
+ <20180829183906.GF10223@dhcp22.suse.cz>
+ <20180829211106.GC3784@redhat.com>
+ <20180830105616.GD2656@dhcp22.suse.cz>
+ <20180830140825.GA3529@redhat.com>
+ <20180830161800.GJ2656@dhcp22.suse.cz>
+ <20180830165751.GD3529@redhat.com>
+ <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
+Sender: stable-owner@vger.kernel.org
+To: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Thu, Aug 30, 2018 at 11:05:16AM -0700, Mike Kravetz wrote:
+> On 08/30/2018 09:57 AM, Jerome Glisse wrote:
+> > On Thu, Aug 30, 2018 at 06:19:52PM +0200, Michal Hocko wrote:
+> >> On Thu 30-08-18 10:08:25, Jerome Glisse wrote:
+> >>> On Thu, Aug 30, 2018 at 12:56:16PM +0200, Michal Hocko wrote:
+> >>>> On Wed 29-08-18 17:11:07, Jerome Glisse wrote:
+> >>>>> On Wed, Aug 29, 2018 at 08:39:06PM +0200, Michal Hocko wrote:
+> >>>>>> On Wed 29-08-18 14:14:25, Jerome Glisse wrote:
+> >>>>>>> On Wed, Aug 29, 2018 at 10:24:44AM -0700, Mike Kravetz wrote:
+> >>>>>> [...]
+> >>>>>>>> What would be the best mmu notifier interface to use where there are no
+> >>>>>>>> start/end calls?
+> >>>>>>>> Or, is the best solution to add the start/end calls as is done in later
+> >>>>>>>> versions of the code?  If that is the suggestion, has there been any change
+> >>>>>>>> in invalidate start/end semantics that we should take into account?
+> >>>>>>>
+> >>>>>>> start/end would be the one to add, 4.4 seems broken in respect to THP
+> >>>>>>> and mmu notification. Another solution is to fix user of mmu notifier,
+> >>>>>>> they were only a handful back then. For instance properly adjust the
+> >>>>>>> address to match first address covered by pmd or pud and passing down
+> >>>>>>> correct page size to mmu_notifier_invalidate_page() would allow to fix
+> >>>>>>> this easily.
+> >>>>>>>
+> >>>>>>> This is ok because user of try_to_unmap_one() replace the pte/pmd/pud
+> >>>>>>> with an invalid one (either poison, migration or swap) inside the
+> >>>>>>> function. So anyone racing would synchronize on those special entry
+> >>>>>>> hence why it is fine to delay mmu_notifier_invalidate_page() to after
+> >>>>>>> dropping the page table lock.
+> >>>>>>>
+> >>>>>>> Adding start/end might the solution with less code churn as you would
+> >>>>>>> only need to change try_to_unmap_one().
+> >>>>>>
+> >>>>>> What about dependencies? 369ea8242c0fb sounds like it needs work for all
+> >>>>>> notifiers need to be updated as well.
+> >>>>>
+> >>>>> This commit remove mmu_notifier_invalidate_page() hence why everything
+> >>>>> need to be updated. But in 4.4 you can get away with just adding start/
+> >>>>> end and keep around mmu_notifier_invalidate_page() to minimize disruption.
+> >>>>
+> >>>> OK, this is really interesting. I was really worried to change the
+> >>>> semantic of the mmu notifiers in stable kernels because this is really
+> >>>> a hard to review change and high risk for anybody running those old
+> >>>> kernels. If we can keep the mmu_notifier_invalidate_page and wrap them
+> >>>> into the range scope API then this sounds like the best way forward.
+> >>>>
+> >>>> So just to make sure we are at the same page. Does this sounds goo for
+> >>>> stable 4.4. backport? Mike's hugetlb pmd shared fixup can be applied on
+> >>>> top. What do you think?
+> >>>
+> >>> You need to invalidate outside page table lock so before the call to
+> >>> page_check_address(). For instance like below patch, which also only
+> >>> do the range invalidation for huge page which would avoid too much of
+> >>> a behavior change for user of mmu notifier.
+> >>
+> >> Right. I would rather not make this PageHuge special though. So the
+> >> fixed version should be.
+> > 
+> > Why not testing for huge ? Only huge is broken and thus only that
+> > need the extra range invalidation. Doing the double invalidation
+> > for single page is bit overkill.
+> 
+> I am a bit confused, and hope this does not add to any confusion by others.
+> 
+> IIUC, the patch below does not attempt to 'fix' anything.  It is simply
+> there to add the start/end notifiers to the v4.4 version of this routine
+> so that a subsequent patch can use them (with modified ranges) to handle
+> unmapping a shared pmd huge page.  That is the mainline fix which started
+> this thread.
+> 
+> Since we are only/mostly interested in fixing the shared pmd issue in
+> 4.4, how about just adding the start/end notifiers to the very specific
+> case where pmd sharing is possible?
+> 
+> I can see the value in trying to back port dependent patches such as this
+> so that stable releases look more like mainline.  However, I am not sure of
+> the value in this case as this patch was part of a larger set changing
+> notifier semantics.
 
-syzbot found the following crash on:
+For all intents and purposes this is not a backport of the original
+patch so maybe we should just drop the commit reference and just
+explains that it is there to fix mmu notifier in respect to huge page
+migration.
 
-HEAD commit:    2dca2cbde67a kmsan: fix build warnings with CONFIG_KMSAN=n
-git tree:       https://github.com/google/kmsan.git/master
-console output: https://syzkaller.appspot.com/x/log.txt?x=16db895a400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=820d6393634b55e3
-dashboard link: https://syzkaller.appspot.com/bug?extid=915c9f99f3dbc4bd6cd1
-compiler:       clang version 8.0.0 (trunk 339414)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1137bffe400000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1521a7fe400000
+The original patches fix more than this case because newer featurers
+like THP migration, THP swapping, ... added more cases where things
+would have been wrong. But in 4.4 frame there is only huge tlb fs
+migration.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+915c9f99f3dbc4bd6cd1@syzkaller.appspotmail.com
-
-random: sshd: uninitialized urandom read (32 bytes read)
-random: sshd: uninitialized urandom read (32 bytes read)
-random: sshd: uninitialized urandom read (32 bytes read)
-random: sshd: uninitialized urandom read (32 bytes read)
-==================================================================
-BUG: KMSAN: uninit-value in rds_bind+0x1f1/0x2360 net/rds/bind.c:174
-CPU: 1 PID: 4497 Comm: syz-executor098 Not tainted 4.19.0-rc1+ #36
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x14b/0x190 lib/dump_stack.c:113
-  kmsan_report+0x183/0x2b0 mm/kmsan/kmsan.c:956
-  __msan_warning+0x70/0xc0 mm/kmsan/kmsan_instr.c:645
-  rds_bind+0x1f1/0x2360 net/rds/bind.c:174
-  __sys_bind+0x594/0x6f0 net/socket.c:1481
-  __do_sys_bind net/socket.c:1492 [inline]
-  __se_sys_bind net/socket.c:1490 [inline]
-  __x64_sys_bind+0xd8/0x120 net/socket.c:1490
-  do_syscall_64+0x15b/0x220 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x63/0xe7
-RIP: 0033:0x440099
-Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fffb43cf578 EFLAGS: 00000213 ORIG_RAX: 0000000000000031
-RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440099
-RDX: 0000000000000000 RSI: 00000000200001c0 RDI: 0000000000000003
-RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
-R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401920
-R13: 00000000004019b0 R14: 0000000000000000 R15: 0000000000000000
-
-Local variable description: ----address@__sys_bind
-Variable was created at:
-  __sys_bind+0x6a/0x6f0 net/socket.c:1468
-  __do_sys_bind net/socket.c:1492 [inline]
-  __se_sys_bind net/socket.c:1490 [inline]
-  __x64_sys_bind+0xd8/0x120 net/socket.c:1490
-==================================================================
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
-syzbot.
-syzbot can test patches for this bug, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+Cheers,
+Jérôme
