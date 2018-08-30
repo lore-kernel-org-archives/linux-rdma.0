@@ -1,153 +1,86 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
- pages
-Date: Wed, 29 Aug 2018 17:40:13 -0700
-Message-ID: <8689d0ba-1303-9765-4cae-ad24d2a1435b@oracle.com>
-References: <20180823205917.16297-1-mike.kravetz@oracle.com>
- <20180823205917.16297-2-mike.kravetz@oracle.com>
- <20180824084157.GD29735@dhcp22.suse.cz>
- <6063f215-a5c8-2f0c-465a-2c515ddc952d@oracle.com>
- <20180827074645.GB21556@dhcp22.suse.cz> <20180827134633.GB3930@redhat.com>
- <9209043d-3240-105b-72a3-b4cd30f1b1f1@oracle.com>
- <20180829181424.GB3784@redhat.com> <20180829183906.GF10223@dhcp22.suse.cz>
- <20180829211106.GC3784@redhat.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH 0/3] IB/ipoib: Use dev_port to disambiguate port numbers
+Date: Thu, 30 Aug 2018 08:43:30 +0300
+Message-ID: <20180830054330.GC2796@mtr-leonro.mtl.com>
+References: <20180828210117.6437-1-ar@cs.msu.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180829211106.GC3784@redhat.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="63aIh6YiuHX+oBFP"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180828210117.6437-1-ar@cs.msu.ru>
+Sender: netdev-owner@vger.kernel.org
+To: Arseny Maslennikov <ar@cs.msu.ru>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/29/2018 02:11 PM, Jerome Glisse wrote:
-> On Wed, Aug 29, 2018 at 08:39:06PM +0200, Michal Hocko wrote:
->> On Wed 29-08-18 14:14:25, Jerome Glisse wrote:
->>> On Wed, Aug 29, 2018 at 10:24:44AM -0700, Mike Kravetz wrote:
->> [...]
->>>> What would be the best mmu notifier interface to use where there are no
->>>> start/end calls?
->>>> Or, is the best solution to add the start/end calls as is done in later
->>>> versions of the code?  If that is the suggestion, has there been any change
->>>> in invalidate start/end semantics that we should take into account?
->>>
->>> start/end would be the one to add, 4.4 seems broken in respect to THP
->>> and mmu notification. Another solution is to fix user of mmu notifier,
->>> they were only a handful back then. For instance properly adjust the
->>> address to match first address covered by pmd or pud and passing down
->>> correct page size to mmu_notifier_invalidate_page() would allow to fix
->>> this easily.
->>>
->>> This is ok because user of try_to_unmap_one() replace the pte/pmd/pud
->>> with an invalid one (either poison, migration or swap) inside the
->>> function. So anyone racing would synchronize on those special entry
->>> hence why it is fine to delay mmu_notifier_invalidate_page() to after
->>> dropping the page table lock.
->>>
->>> Adding start/end might the solution with less code churn as you would
->>> only need to change try_to_unmap_one().
->>
->> What about dependencies? 369ea8242c0fb sounds like it needs work for all
->> notifiers need to be updated as well.
-> 
-> This commit remove mmu_notifier_invalidate_page() hence why everything
-> need to be updated. But in 4.4 you can get away with just adding start/
-> end and keep around mmu_notifier_invalidate_page() to minimize disruption.
-> 
-> So the new semantic in 369ea8242c0fb is that all page table changes are
-> bracketed with mmu notifier start/end calls and invalidate_range right
-> after tlb flush. This simplify thing and make it more reliable for mmu
-> notifier users like IOMMU or ODP or GPUs drivers.
 
-Here is what I came up with by adding the start/end calls to the 4.4 version
-of try_to_unmap_one.  Note that this assumes/uses the new routine
-adjust_range_if_pmd_sharing_possible to adjust the notifier/flush range if
-huge pmd sharing is possible.  I changed the mmu_notifier_invalidate_page
-to a mmu_notifier_invalidate_range, but am not sure if that needs to happen
-earlier in the routine (like right after tlb flush as you said above).
-Does this look reasonable?
+--63aIh6YiuHX+oBFP
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/mm/rmap.c b/mm/rmap.c
-index b577fbb98d4b..7ba8bfeddb4b 100644
---- a/mm/rmap.c
-+++ b/mm/rmap.c
-@@ -1302,11 +1302,30 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 	pte_t pteval;
- 	spinlock_t *ptl;
- 	int ret = SWAP_AGAIN;
-+	unsigned long start = address, end;
- 	enum ttu_flags flags = (enum ttu_flags)arg;
- 
- 	/* munlock has nothing to gain from examining un-locked vmas */
- 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
--		goto out;
-+		return ret;
-+
-+	/*
-+	 * For THP, we have to assume the worse case ie pmd for invalidation.
-+	 * For hugetlb, it could be much worse if we need to do pud
-+	 * invalidation in the case of pmd sharing.
-+	 *
-+	 * Note that the page can not be free in this function as call of
-+	 * try_to_unmap() must hold a reference on the page.
-+	 */
-+	end = min(vma->vm_end, start + (PAGE_SIZE << compound_order(page)));
-+	if (PageHuge(page)) {
-+		/*
-+		 * If sharing is possible, start and end will be adjusted
-+		 * accordingly.
-+		 */
-+		adjust_range_if_pmd_sharing_possible(vma, &start, &end);
-+	}
-+	mmu_notifier_invalidate_range_start(vma->vm_mm, start, end);
- 
- 	pte = page_check_address(page, mm, address, &ptl, 0);
- 	if (!pte)
-@@ -1334,6 +1353,29 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 		}
-   	}
- 
-+	if (PageHuge(page) && huge_pmd_unshare(mm, &address, pte)) {
-+		/*
-+		 * huge_pmd_unshare unmapped an entire PMD page.  There is
-+		 * no way of knowing exactly which PMDs may be cached for
-+		 * this mm, so flush them all.  start/end were already
-+		 * adjusted to cover this range.
-+		 */
-+		flush_cache_range(vma, start, end);
-+		flush_tlb_range(vma, start, end);
-+
-+		/*
-+		 * The ref count of the PMD page was dropped which is part
-+		 * of the way map counting is done for shared PMDs.  When
-+		 * there is no other sharing, huge_pmd_unshare returns false
-+		 * and we will unmap the actual page and drop map count
-+		 * to zero.
-+		 *
-+		 * Note that huge_pmd_unshare modified address and is likely
-+		 * not what you would expect.
-+		 */
-+		goto out_unmap;
-+	}
-+
- 	/* Nuke the page table entry. */
- 	flush_cache_page(vma, address, page_to_pfn(page));
- 	if (should_defer_flush(mm, flags)) {
-@@ -1424,10 +1466,11 @@ static int try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
- 	page_cache_release(page);
- 
- out_unmap:
--	pte_unmap_unlock(pte, ptl);
- 	if (ret != SWAP_FAIL && ret != SWAP_MLOCK && !(flags & TTU_MUNLOCK))
--		mmu_notifier_invalidate_page(mm, address);
-+		mmu_notifier_invalidate_range(mm, start, end);
-+	pte_unmap_unlock(pte, ptl);
- out:
-+	mmu_notifier_invalidate_range_end(vma->vm_mm, start, end);
- 	return ret;
- }
- 
--- 
-Mike Kravetz
+On Wed, Aug 29, 2018 at 12:01:14AM +0300, Arseny Maslennikov wrote:
+> Pre-3.15 userspace had trouble distinguishing different ports
+> of a NIC on a single PCI bus/device/function. To solve this,
+> a sysfs field `dev_port' was introduced quite a while ago
+> (commit v3.14-rc3-739-g3f85944fe207), and some relevant device
+> drivers were fixed to use it, but not in case of IPoIB.
+>
+> The convention for some reason never got documented in the kernel, but
+> was immediately adopted by userspace (notably udev[1][2], biosdevname[3])
+>
+> 3/3 documents the sysfs field =E2=80=94 that's why I'm CC-ing netdev.
+>
+> This series was tested on and applies to 4.19-rc1.
+>
+> [1] https://lists.freedesktop.org/archives/systemd-devel/2014-June/020788=
+=2Ehtml
+> [2] https://lists.freedesktop.org/archives/systemd-devel/2014-July/020804=
+=2Ehtml
+> [3] https://github.com/CloudAutomationNTools/biosdevname/blob/c795d51dd93=
+a5309652f0d635f12a3ecfabfaa72/src/eths.c#L38
+>
+> Arseny Maslennikov (3):
+>   IB/ipoib: Use dev_port to expose network interface port numbers
+>   IB/ipoib: Stop using dev_id to expose port numbers
+
+I completely agree with previous Yuval's comment, it makes no sense to
+start separate commits for every line.
+
+Please decide what is best and right behavior and do it, instead of
+pushing it up to be the maintainer's problem.
+
+Thanks
+
+>   Documentation/ABI: document /sys/class/net/*/dev_port
+>
+>  Documentation/ABI/testing/sysfs-class-net | 10 ++++++++++
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |  2 +-
+>  2 files changed, 11 insertions(+), 1 deletion(-)
+>
+> --
+> 2.18.0
+>
+
+--63aIh6YiuHX+oBFP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbh4QCAAoJEORje4g2clinQA0QAKtYXKyNu/a3GlqDipZRqLzW
+S8SqPacBsdpZzTX3IoljyG/YI6B6WgJagQItbHgOu4m8ik2B8qPT0TjVl+BCkGRX
+ZC/m/LO/xD78a0R0eQ5JQnkZqAFt22k99L7TnHlmx/sWVTkDDH46Nku0Pb7ie3vl
+56gcCSDJq1lblfOY6oMBJlbVZNMOucfWtcRVFMXl3nitk6cPZoW159fEJ7/ciRDc
+z1gG1pQXXO9d39xwB07zdO3ZK5bnccPBb+6y2dte55bP1jrxXrRX037trzzgPKO1
+FEWECVaLgtvVUgsRKNTmrqwzkDFAqPFTGkh3dutTjHW9TSRh81Y9mxRHHL5Sy8C8
+qbRAHEA4kLOe2PgImH1d3KCp1GUK1VQpE1lmGiz00BHPER8LBtLD5YDBHpBOMyUb
+ZAjnQE7YbJxuKfq2rbdRE1igWjXO04GZpbGr7xLpVpPkNfvoO2doP4oChG2CqyOh
+aSiSFhSoDvX/4ZbH8zDzkxpY7rdJ4rPkjsFzBQRnYbwsKHt5lGuUf6tRh3hW/PtB
+95aUvMWwvVAc1S2Npl5pXujo3dphNWDY9/jpxGEVlvgJbxnqepymVzpwPpLJc7OU
+k9cx/5dA23eRLK9Gt7ncAbUC6XJe59aRIUP9d9x3G5i9b4jyYeY+YJu7tn0owEGB
+Qnkz53d5M+WY+1Oe25nk
+=uIqk
+-----END PGP SIGNATURE-----
+
+--63aIh6YiuHX+oBFP--
