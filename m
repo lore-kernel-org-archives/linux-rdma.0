@@ -1,40 +1,36 @@
 From: Igor Stoppa <igor.stoppa@gmail.com>
-Subject: [PATCH] infiniband: nes: add unlikely() to assert()
-Date: Fri, 31 Aug 2018 22:24:18 +0300
-Message-ID: <20180831192418.12346-1-igor.stoppa@huawei.com>
+Subject: [PATCH] infiniband: scsi: remove unnecessary unlikely()
+Date: Fri, 31 Aug 2018 23:16:45 +0300
+Message-ID: <20180831201645.15611-1-igor.stoppa@huawei.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>
-Cc: igor.stoppa@gmail.com, Igor Stoppa <igor.stoppa@huawei.com>, Chien Tung <chien.tin.tung@intel.com>, Roland Dreier <rolandd@cisco.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: igor.stoppa@gmail.com, Igor Stoppa <igor.stoppa@huawei.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Typically the assert is expected to not fail.
+WARN_ON() already contains an unlikely(), so it's not necessary to
+wrap it into another.
 
 Signed-off-by: Igor Stoppa <igor.stoppa@huawei.com>
-Acked-by: Doug Ledford <dledford@redhat.com>
-Cc: Faisal Latif <faisal.latif@intel.com>
-Cc: Chien Tung <chien.tin.tung@intel.com>
-Cc: Roland Dreier <rolandd@cisco.com>
-Cc: Faisal Latif <faisal.latif@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
+Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+Cc: linux-rdma@vger.kernel.org (open list:SCSI RDMA PROTOCOL (SRP) TARGET)
+Cc: linux-kernel@vger.kernel.org (open list)
 ---
- drivers/infiniband/hw/nes/nes.h | 2 +-
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes.h b/drivers/infiniband/hw/nes/nes.h
-index bedaa02749fb..d2d0098f38e0 100644
---- a/drivers/infiniband/hw/nes/nes.h
-+++ b/drivers/infiniband/hw/nes/nes.h
-@@ -151,7 +151,7 @@ do { \
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index f37cbad022a2..447d21ea479a 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2708,7 +2708,7 @@ static void srpt_queue_response(struct se_cmd *cmd)
+ 		break;
+ 	}
  
- #define assert(expr) \
- do { \
--	if (!(expr)) { \
-+	if (unlikely(!(expr))) { \
- 		printk(KERN_ERR PFX "Assertion failed! %s, %s, %s, line %d\n", \
- 			   #expr, __FILE__, __func__, __LINE__); \
- 	} \
+-	if (unlikely(WARN_ON_ONCE(state == SRPT_STATE_CMD_RSP_SENT)))
++	if (WARN_ON_ONCE(state == SRPT_STATE_CMD_RSP_SENT))
+ 		return;
+ 
+ 	/* For read commands, transfer the data to the initiator. */
 -- 
 2.17.1
