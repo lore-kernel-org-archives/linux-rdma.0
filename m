@@ -1,15 +1,15 @@
 From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v5 12/13] nvmet: Introduce helper functions to allocate
- and free request SGLs
-Date: Thu, 30 Aug 2018 17:14:20 -0700
-Message-ID: <ebfd54ca-d3b2-249e-3927-eaa150b5a7c4@grimberg.me>
+Subject: Re: [PATCH v5 08/13] IB/core: Ensure we map P2P memory correctly in
+ rdma_rw_ctx_[init|destroy]()
+Date: Thu, 30 Aug 2018 17:18:51 -0700
+Message-ID: <f694b476-4db5-85d9-9810-7e82cd160d00@grimberg.me>
 References: <20180830185352.3369-1-logang@deltatee.com>
- <20180830185352.3369-13-logang@deltatee.com>
+ <20180830185352.3369-9-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180830185352.3369-13-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180830185352.3369-9-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -24,4 +24,4 @@ To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kern
 Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
+Reviewed-by: Sagi Grimberg <sai-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
