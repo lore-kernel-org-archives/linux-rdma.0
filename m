@@ -1,121 +1,66 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH v5 06/13] PCI/P2PDMA: Add P2P DMA driver writer's
- documentation
-Date: Thu, 30 Aug 2018 17:34:32 -0700
-Message-ID: <382af881-0ae1-0274-4628-0137071125b1@infradead.org>
-References: <20180830185352.3369-1-logang@deltatee.com>
- <20180830185352.3369-7-logang@deltatee.com>
+From: syzbot <syzbot+0049bebbf3042dbd2e8f@syzkaller.appspotmail.com>
+Subject: Re: KMSAN: uninit-value in rds_connect
+Date: Thu, 30 Aug 2018 18:25:02 -0700
+Message-ID: <000000000000935bfc0574b10f14@google.com>
+References: <00000000000005859b0574ab47e5@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180830185352.3369-7-logang@deltatee.com>
-Content-Language: en-US
+In-Reply-To: <00000000000005859b0574ab47e5@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Jonathan Corbet <corbet@lwn.net>
+To: davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+syzbot has found a reproducer for the following crash on:
 
-I have a few comments below...
+HEAD commit:    25114c64b719 kmsan: unpoison pages moved from iov_iter to ..
+git tree:       https://github.com/google/kmsan.git/master
+console output: https://syzkaller.appspot.com/x/log.txt?x=14465da6400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=3431f03869413153
+dashboard link: https://syzkaller.appspot.com/bug?extid=0049bebbf3042dbd2e8f
+compiler:       clang version 8.0.0 (trunk 339414)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13b8513e400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=10d64e96400000
 
-On 08/30/2018 11:53 AM, Logan Gunthorpe wrote:
-> 
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> ---
->  Documentation/driver-api/pci/index.rst  |   1 +
->  Documentation/driver-api/pci/p2pdma.rst | 170 ++++++++++++++++++++++++++++++++
->  2 files changed, 171 insertions(+)
->  create mode 100644 Documentation/driver-api/pci/p2pdma.rst
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+0049bebbf3042dbd2e8f@syzkaller.appspotmail.com
 
-> diff --git a/Documentation/driver-api/pci/p2pdma.rst b/Documentation/driver-api/pci/p2pdma.rst
-> new file mode 100644
-> index 000000000000..ac857450d53f
-> --- /dev/null
-> +++ b/Documentation/driver-api/pci/p2pdma.rst
-> @@ -0,0 +1,170 @@
-> +.. SPDX-License-Identifier: GPL-2.0
-> +
-> +============================
-> +PCI Peer-to-Peer DMA Support
-> +============================
-> +
-> +The PCI bus has pretty decent support for performing DMA transfers
-> +between two devices on the bus. This type of transaction is henceforth
-> +called Peer-to-Peer (or P2P). However, there are a number of issues that
-> +make P2P transactions tricky to do in a perfectly safe way.
-> +
-> +One of the biggest issues is that PCI doesn't require forwarding
-> +transactions between hierarchy domains, and in PCIe, each Root Port
-> +defines a separate hierarchy domain. To make things worse, there is no
-> +simple way to determine if a given Root Complex supports this or not.
-> +(See PCIe r4.0, sec 1.3.1). Therefore, as of this writing, the kernel
-> +only supports doing P2P when the endpoints involved are all behind the
-> +same PCI bridge, as such devices are all in the same PCI hierarchy
-> +domain, and the spec guarantees that all transacations within the
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+random: sshd: uninitialized urandom read (32 bytes read)
+==================================================================
+BUG: KMSAN: uninit-value in rds_connect+0x213/0x950 net/rds/af_rds.c:511
+CPU: 0 PID: 4780 Comm: syz-executor239 Not tainted 4.19.0-rc1+ #38
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x14b/0x190 lib/dump_stack.c:113
+  kmsan_report+0x183/0x2b0 mm/kmsan/kmsan.c:956
+  __msan_warning+0x70/0xc0 mm/kmsan/kmsan_instr.c:645
+  rds_connect+0x213/0x950 net/rds/af_rds.c:511
+  __sys_connect+0x64e/0x750 net/socket.c:1662
+  __do_sys_connect net/socket.c:1673 [inline]
+  __se_sys_connect net/socket.c:1670 [inline]
+  __x64_sys_connect+0xd8/0x120 net/socket.c:1670
+  do_syscall_64+0x15b/0x220 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x63/0xe7
+RIP: 0033:0x440199
+Code: 18 89 d0 c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 fb 13 fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fff5f41c118 EFLAGS: 00000213 ORIG_RAX: 000000000000002a
+RAX: ffffffffffffffda RBX: 00000000004002c8 RCX: 0000000000440199
+RDX: 0000000000000000 RSI: 0000000020000080 RDI: 0000000000000003
+RBP: 00000000006ca018 R08: 0000000000000000 R09: 00000000004002c8
+R10: 0000000000000000 R11: 0000000000000213 R12: 0000000000401a20
+R13: 0000000000401ab0 R14: 0000000000000000 R15: 0000000000000000
 
-                                            transactions
-
-> +hierarchy will be routable, but it does not require routing
-> +between hierarchies.
-> +
-> +The second issue is that to make use of existing interfaces in Linux,
-> +memory that is used for P2P transactions needs to be backed by struct
-> +pages. However, PCI BARs are not typically cache coherent so there are
-> +a few corner case gotchas with these pages so developers need to
-> +be careful about what they do with them.
-> +
-> +
-> +Driver Writer's Guide
-> +=====================
-> +
-> +In a given P2P implementation there may be three or more different
-> +types of kernel drivers in play:
-> +
-> +* Provider - A driver which provides or publishes P2P resources like
-> +  memory or doorbell registers to other drivers.
-> +* Client - A driver which makes use of a resource by setting up a
-> +  DMA transaction to or from it.
-> +* Orchestrator - A driver which orchestrates the flow of data between
-> +  clients and providers
-
-Might as well end that last one with a period since the other 2 are.
-
-> +
-> +In many cases there could be overlap between these three types (i.e.,
-> +it may be typical for a driver to be both a provider and a client).
-> +
-
-[snip]
-
-> +
-> +Orchestrator Drivers
-> +--------------------
-> +
-> +The first task an orchestrator driver must do is compile a list of
-> +all client devices that will be involved in a given transaction. For
-> +example, the NVMe Target driver creates a list including all NVMe
-> +devices and the RNIC in use. The list is stored as an anonymous struct
-> +list_head which must be initialized with the usual INIT_LIST_HEAD.
-> +The following functions may then be used to add to, remove from and free
-> +the list of clients with the functions :c:func:`pci_p2pdma_add_client()`,
-> +:c:func:`pci_p2pdma_remove_client()` and
-> +:c:func:`pci_p2pdma_client_list_free()`.
-> +
-> +With the client list in hand, the orchestrator may then call> +:c:func:`pci_p2pmem_find()` to obtain a published P2P memory provider
-> +that is supported (behind the same root port) as all the clients. If more
-> +than one provider is supported, the one nearest to all the clients will
-> +be chosen first. If there are more than one provider is an equal distance
-> +away, the one returned will be chosen at random. This function returns the PCI
-
-random or just arbitrarily?
-
-> +device to use for the provider with a reference taken and therefore
-> +when it's no longer needed it should be returned with pci_dev_put().
-
-
-thanks,
--- 
-~Randy
+Local variable description: ----address@__sys_connect
+Variable was created at:
+  __sys_connect+0x6a/0x750 net/socket.c:1645
+  __do_sys_connect net/socket.c:1673 [inline]
+  __se_sys_connect net/socket.c:1670 [inline]
+  __x64_sys_connect+0xd8/0x120 net/socket.c:1670
+==================================================================
