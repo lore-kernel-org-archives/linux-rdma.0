@@ -1,30 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] rds: store socket timestamps as ktime_t
-Date: Fri, 31 Aug 2018 18:04:24 -0700 (PDT)
-Message-ID: <20180831.180424.463682127429889241.davem@davemloft.net>
-References: <20180829154732.844217-1-arnd@arndb.de>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: [PATCH rdma-next] RDMA/qedr: remove set but not used variable 'ctx'
+Date: Sat, 1 Sep 2018 03:53:46 +0000
+Message-ID: <1535774026-160694-1-git-send-email-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180829154732.844217-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: arnd@arndb.de
-Cc: santosh.shilimkar@oracle.com, sowmini.varadhan@oracle.com, willemb@google.com, ka-cheong.poon@oracle.com, s.mesoraca16@gmail.com, avinash.repaka@oracle.com, edumazet@google.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: YueHaibing <yuehaibing@huawei.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 29 Aug 2018 17:47:19 +0200
+Fixes gcc '-Wunused-but-set-variable' warning:
 
-> rds is the last in-kernel user of the old do_gettimeofday()
-> function. Convert it over to ktime_get_real() to make it
-> work more like the generic socket timestamps, and to let
-> us kill off do_gettimeofday().
-> 
-> A follow-up patch will have to change the user space interface
-> to deal better with 32-bit tasks, which may use an incompatible
-> layout for 'struct timespec'.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+drivers/infiniband/hw/qedr/verbs.c: In function 'qedr_create_srq':
+drivers/infiniband/hw/qedr/verbs.c:1450:24: warning:
+ variable 'ctx' set but not used [-Wunused-but-set-variable]
 
-Applied, thanks.
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/infiniband/hw/qedr/verbs.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qedr/verbs.c b/drivers/infiniband/hw/qedr/verbs.c
+index 8cc3df2..9d4d165 100644
+--- a/drivers/infiniband/hw/qedr/verbs.c
++++ b/drivers/infiniband/hw/qedr/verbs.c
+@@ -1447,7 +1447,6 @@ struct ib_srq *qedr_create_srq(struct ib_pd *ibpd,
+ 	u64 pbl_base_addr, phy_prod_pair_addr;
+ 	struct ib_ucontext *ib_ctx = NULL;
+ 	struct qedr_srq_hwq_info *hw_srq;
+-	struct qedr_ucontext *ctx = NULL;
+ 	u32 page_cnt, page_size;
+ 	struct qedr_srq *srq;
+ 	int rc = 0;
+@@ -1473,7 +1472,6 @@ struct ib_srq *qedr_create_srq(struct ib_pd *ibpd,
+ 
+ 	if (udata && ibpd->uobject && ibpd->uobject->context) {
+ 		ib_ctx = ibpd->uobject->context;
+-		ctx = get_qedr_ucontext(ib_ctx);
+ 
+ 		if (ib_copy_from_udata(&ureq, udata, sizeof(ureq))) {
+ 			DP_ERR(dev,
