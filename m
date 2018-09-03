@@ -1,51 +1,62 @@
-From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH v3 2/3] IB/ipoib: Use dev_port to expose network interface port numbers
-Date: Mon,  3 Sep 2018 19:13:15 +0300
-Message-ID: <20180903161316.25121-3-ar@cs.msu.ru>
-References: <20180903161316.25121-1-ar@cs.msu.ru>
+From: Jann Horn <jannh@google.com>
+Subject: [PATCH] RDMA/ucma: check fd type in ucma_migrate_id()
+Date: Mon,  3 Sep 2018 18:54:14 +0200
+Message-ID: <20180903165414.248309-1-jannh@google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180903161316.25121-1-ar@cs.msu.ru>
-Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, jannh@google.com
+Cc: linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some InfiniBand network devices have multiple ports on the same PCI
-function. This initializes the `dev_port' sysfs field of those
-network interfaces with their port number.
+The current code grabs the private_data of whatever file descriptor
+userspace has supplied and implicitly casts it to a `struct ucma_file *`,
+potentially causing a type confusion.
 
-Prior to this the kernel erroneously used the `dev_id' sysfs
-field of those network interfaces to convey the port number to userspace.
+This is probably fine in practice because the pointer is only used for
+comparisons, it is never actually dereferenced; and even in the
+comparisons, it is unlikely that a file from another filesystem would have
+a ->private_data pointer that happens to also be valid in this context.
+But ->private_data is not always guaranteed to be a valid pointer to an
+object owned by the file's filesystem; for example, some filesystems just
+cram numbers in there.
 
-The use of `dev_id' was considered correct until Linux 3.15,
-when another field, `dev_port', was defined for this particular
-purpose and `dev_id' was reserved for distinguishing stacked ifaces
-(e.g: VLANs) with the same hardware address as their parent device.
+Check the type of the supplied file descriptor to be safe, analogous to how
+other places in the kernel do it.
 
-Similar fixes to net/mlx4_en and many other drivers, which started
-exporting this information through `dev_id' before 3.15, were accepted
-into the kernel 4 years ago.
-See 76a066f2a2a0 (`net/mlx4_en: Expose port number through sysfs').
-
-Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+Fixes: 88314e4dda1e ("RDMA/cma: add support for rdma_migrate_id()")
+Signed-off-by: Jann Horn <jannh@google.com>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
- 1 file changed, 2 insertions(+)
+Only compile-tested, because I don't have an environment in which I
+could test this.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index e3d28f9ad9c0..30f840f874b3 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1880,6 +1880,8 @@ static int ipoib_parent_init(struct net_device *ndev)
- 	       sizeof(union ib_gid));
+ drivers/infiniband/core/ucma.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index ec8fb289621f..5f437d1570fb 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -124,6 +124,8 @@ static DEFINE_MUTEX(mut);
+ static DEFINE_IDR(ctx_idr);
+ static DEFINE_IDR(multicast_idr);
  
- 	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
-+	priv->dev->dev_port = priv->port - 1;
-+	/* Let's set this one too for backwards compatibility. */
- 	priv->dev->dev_id = priv->port - 1;
++static const struct file_operations ucma_fops;
++
+ static inline struct ucma_context *_ucma_find_context(int id,
+ 						      struct ucma_file *file)
+ {
+@@ -1581,6 +1583,10 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
+ 	f = fdget(cmd.fd);
+ 	if (!f.file)
+ 		return -ENOENT;
++	if (f.file->f_op != &ucma_fops) {
++		ret = -EINVAL;
++		goto file_put;
++	}
  
- 	return 0;
+ 	/* Validate current fd and prevent destruction of id. */
+ 	ctx = ucma_get_ctx(f.file->private_data, cmd.id);
 -- 
-2.19.0.rc1
+2.19.0.rc1.350.ge57e33dbd1-goog
