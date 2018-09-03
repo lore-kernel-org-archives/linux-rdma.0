@@ -1,7 +1,7 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH 8/9] net/mlx5: Do not call pcie_print_link_status()
-Date: Mon,  3 Sep 2018 13:02:35 -0500
-Message-ID: <20180903180242.14504-9-mr.nuke.me@gmail.com>
+Subject: [PATCH 9/9] nfp: Do not call pcie_print_link_status()
+Date: Mon,  3 Sep 2018 13:02:36 -0500
+Message-ID: <20180903180242.14504-10-mr.nuke.me@gmail.com>
 References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180903180242.14504-1-mr.nuke.me@gmail.com>
@@ -14,23 +14,20 @@ This is now done by the PCI core to warn of sub-optimal bandwidth.
 
 Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index cf3e4a659052..888af98694f8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -1056,10 +1056,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
- 		 fw_rev_min(dev), fw_rev_sub(dev));
+diff --git a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
+index c8d0b1016a64..87dde0f787e9 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
++++ b/drivers/net/ethernet/netronome/nfp/nfpcore/nfp6000_pcie.c
+@@ -1328,7 +1328,6 @@ struct nfp_cpp *nfp_cpp_from_nfp6000_pcie(struct pci_dev *pdev)
+ 	/*  Finished with card initialization. */
+ 	dev_info(&pdev->dev,
+ 		 "Netronome Flow Processor NFP4000/NFP6000 PCIe Card Probe\n");
+-	pcie_print_link_status(pdev);
  
--	/* Only PFs hold the relevant PCIe information for this query */
--	if (mlx5_core_is_pf(dev))
--		pcie_print_link_status(dev->pdev);
--
- 	/* on load removing any previous indication of internal error, device is
- 	 * up
- 	 */
+ 	nfp = kzalloc(sizeof(*nfp), GFP_KERNEL);
+ 	if (!nfp) {
 -- 
 2.17.1
