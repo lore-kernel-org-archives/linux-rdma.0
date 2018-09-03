@@ -1,122 +1,69 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
- pages
-Date: Mon, 3 Sep 2018 07:56:54 +0200
-Message-ID: <20180903055654.GA14951@dhcp22.suse.cz>
-References: <9209043d-3240-105b-72a3-b4cd30f1b1f1@oracle.com>
- <20180829181424.GB3784@redhat.com>
- <20180829183906.GF10223@dhcp22.suse.cz>
- <20180829211106.GC3784@redhat.com>
- <20180830105616.GD2656@dhcp22.suse.cz>
- <20180830140825.GA3529@redhat.com>
- <20180830161800.GJ2656@dhcp22.suse.cz>
- <20180830165751.GD3529@redhat.com>
- <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
- <20180830183944.GE3529@redhat.com>
+From: "Verma, Rahul" <Rahul.Verma@cavium.com>
+Subject: RE: [PATCH rdma-next] RDMA/qedr: remove set but not used variable
+ 'ctx'
+Date: Mon, 3 Sep 2018 09:22:49 +0000
+Message-ID: <CO2PR07MB2709148C026CE62A04804E92910C0@CO2PR07MB2709.namprd07.prod.outlook.com>
+References: <1535774026-160694-1-git-send-email-yuehaibing@huawei.com>
+ <SN6PR07MB50241FB1FF44E657987475A4900D0@SN6PR07MB5024.namprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180830183944.GE3529@redhat.com>
+In-Reply-To: <SN6PR07MB50241FB1FF44E657987475A4900D0@SN6PR07MB5024.namprd07.prod.outlook.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
+To: YueHaibing <yuehaibing@huawei.com>, "Kalderon, Michal" <Michal.Kalderon@cavium.com>, "Elior, Ariel" <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 30-08-18 14:39:44, Jerome Glisse wrote:
-> On Thu, Aug 30, 2018 at 11:05:16AM -0700, Mike Kravetz wrote:
-> > On 08/30/2018 09:57 AM, Jerome Glisse wrote:
-> > > On Thu, Aug 30, 2018 at 06:19:52PM +0200, Michal Hocko wrote:
-> > >> On Thu 30-08-18 10:08:25, Jerome Glisse wrote:
-> > >>> On Thu, Aug 30, 2018 at 12:56:16PM +0200, Michal Hocko wrote:
-> > >>>> On Wed 29-08-18 17:11:07, Jerome Glisse wrote:
-> > >>>>> On Wed, Aug 29, 2018 at 08:39:06PM +0200, Michal Hocko wrote:
-> > >>>>>> On Wed 29-08-18 14:14:25, Jerome Glisse wrote:
-> > >>>>>>> On Wed, Aug 29, 2018 at 10:24:44AM -0700, Mike Kravetz wrote:
-> > >>>>>> [...]
-> > >>>>>>>> What would be the best mmu notifier interface to use where there are no
-> > >>>>>>>> start/end calls?
-> > >>>>>>>> Or, is the best solution to add the start/end calls as is done in later
-> > >>>>>>>> versions of the code?  If that is the suggestion, has there been any change
-> > >>>>>>>> in invalidate start/end semantics that we should take into account?
-> > >>>>>>>
-> > >>>>>>> start/end would be the one to add, 4.4 seems broken in respect to THP
-> > >>>>>>> and mmu notification. Another solution is to fix user of mmu notifier,
-> > >>>>>>> they were only a handful back then. For instance properly adjust the
-> > >>>>>>> address to match first address covered by pmd or pud and passing down
-> > >>>>>>> correct page size to mmu_notifier_invalidate_page() would allow to fix
-> > >>>>>>> this easily.
-> > >>>>>>>
-> > >>>>>>> This is ok because user of try_to_unmap_one() replace the pte/pmd/pud
-> > >>>>>>> with an invalid one (either poison, migration or swap) inside the
-> > >>>>>>> function. So anyone racing would synchronize on those special entry
-> > >>>>>>> hence why it is fine to delay mmu_notifier_invalidate_page() to after
-> > >>>>>>> dropping the page table lock.
-> > >>>>>>>
-> > >>>>>>> Adding start/end might the solution with less code churn as you would
-> > >>>>>>> only need to change try_to_unmap_one().
-> > >>>>>>
-> > >>>>>> What about dependencies? 369ea8242c0fb sounds like it needs work for all
-> > >>>>>> notifiers need to be updated as well.
-> > >>>>>
-> > >>>>> This commit remove mmu_notifier_invalidate_page() hence why everything
-> > >>>>> need to be updated. But in 4.4 you can get away with just adding start/
-> > >>>>> end and keep around mmu_notifier_invalidate_page() to minimize disruption.
-> > >>>>
-> > >>>> OK, this is really interesting. I was really worried to change the
-> > >>>> semantic of the mmu notifiers in stable kernels because this is really
-> > >>>> a hard to review change and high risk for anybody running those old
-> > >>>> kernels. If we can keep the mmu_notifier_invalidate_page and wrap them
-> > >>>> into the range scope API then this sounds like the best way forward.
-> > >>>>
-> > >>>> So just to make sure we are at the same page. Does this sounds goo for
-> > >>>> stable 4.4. backport? Mike's hugetlb pmd shared fixup can be applied on
-> > >>>> top. What do you think?
-> > >>>
-> > >>> You need to invalidate outside page table lock so before the call to
-> > >>> page_check_address(). For instance like below patch, which also only
-> > >>> do the range invalidation for huge page which would avoid too much of
-> > >>> a behavior change for user of mmu notifier.
-> > >>
-> > >> Right. I would rather not make this PageHuge special though. So the
-> > >> fixed version should be.
-> > > 
-> > > Why not testing for huge ? Only huge is broken and thus only that
-> > > need the extra range invalidation. Doing the double invalidation
-> > > for single page is bit overkill.
-> > 
-> > I am a bit confused, and hope this does not add to any confusion by others.
-> > 
-> > IIUC, the patch below does not attempt to 'fix' anything.  It is simply
-> > there to add the start/end notifiers to the v4.4 version of this routine
-> > so that a subsequent patch can use them (with modified ranges) to handle
-> > unmapping a shared pmd huge page.  That is the mainline fix which started
-> > this thread.
-> > 
-> > Since we are only/mostly interested in fixing the shared pmd issue in
-> > 4.4, how about just adding the start/end notifiers to the very specific
-> > case where pmd sharing is possible?
-> > 
-> > I can see the value in trying to back port dependent patches such as this
-> > so that stable releases look more like mainline.  However, I am not sure of
-> > the value in this case as this patch was part of a larger set changing
-> > notifier semantics.
-> 
-> For all intents and purposes this is not a backport of the original
-> patch so maybe we should just drop the commit reference and just
-> explains that it is there to fix mmu notifier in respect to huge page
-> migration.
-> 
-> The original patches fix more than this case because newer featurers
-> like THP migration, THP swapping, ... added more cases where things
-> would have been wrong. But in 4.4 frame there is only huge tlb fs
-> migration.
 
-And THP migration is still a problem with 4.4 AFAICS. All other cases
-simply split the huge page but THP migration keeps it in one piece and
-as such it is theoretically broken as you have explained. So I would
-stick with what I posted with some more clarifications in the changelog
-if you think it is appropriate (suggestions welcome).
--- 
-Michal Hocko
-SUSE Labs
+> -----Original Message-----
+> From: YueHaibing <yuehaibing@huawei.com>
+> Sent: Saturday, September 1, 2018 6:54 AM
+> To: Kalderon, Michal <Michal.Kalderon@cavium.com>; Elior, Ariel
+> <Ariel.Elior@cavium.com>; Doug Ledford <dledford@redhat.com>; Jason
+> Gunthorpe <jgg@ziepe.ca>
+> Cc: YueHaibing <yuehaibing@huawei.com>; linux-rdma@vger.kernel.org;
+> linux-kernel@vger.kernel.org; kernel-janitors@vger.kernel.org
+> Subject: [PATCH rdma-next] RDMA/qedr: remove set but not used variable
+> 'ctx'
+>
+> External Email
+>
+> Fixes gcc '-Wunused-but-set-variable' warning:
+>
+> drivers/infiniband/hw/qedr/verbs.c: In function 'qedr_create_srq':
+> drivers/infiniband/hw/qedr/verbs.c:1450:24: warning:
+>  variable 'ctx' set but not used [-Wunused-but-set-variable]
+>
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> ---
+>  drivers/infiniband/hw/qedr/verbs.c | 2 --
+>  1 file changed, 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/qedr/verbs.c
+> b/drivers/infiniband/hw/qedr/verbs.c
+> index 8cc3df2..9d4d165 100644
+> --- a/drivers/infiniband/hw/qedr/verbs.c
+> +++ b/drivers/infiniband/hw/qedr/verbs.c
+> @@ -1447,7 +1447,6 @@ struct ib_srq *qedr_create_srq(struct ib_pd
+> *ibpd,
+>         u64 pbl_base_addr, phy_prod_pair_addr;
+>         struct ib_ucontext *ib_ctx =3D NULL;
+>         struct qedr_srq_hwq_info *hw_srq;
+> -       struct qedr_ucontext *ctx =3D NULL;
+>         u32 page_cnt, page_size;
+>         struct qedr_srq *srq;
+>         int rc =3D 0;
+> @@ -1473,7 +1472,6 @@ struct ib_srq *qedr_create_srq(struct ib_pd
+> *ibpd,
+>
+>         if (udata && ibpd->uobject && ibpd->uobject->context) {
+>                 ib_ctx =3D ibpd->uobject->context;
+> -               ctx =3D get_qedr_ucontext(ib_ctx);
+>
+>                 if (ib_copy_from_udata(&ureq, udata, sizeof(ureq))) {
+>                         DP_ERR(dev,
+
+Thank Yue.
+Acked-by: Rahul Verma <rahul.verma@cavium.com>=20
