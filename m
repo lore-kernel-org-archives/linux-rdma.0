@@ -1,62 +1,53 @@
-From: Jann Horn <jannh@google.com>
-Subject: [PATCH] RDMA/ucma: check fd type in ucma_migrate_id()
-Date: Mon,  3 Sep 2018 18:54:14 +0200
-Message-ID: <20180903165414.248309-1-jannh@google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, jannh@google.com
-Cc: linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, linux-kernel@vger.kernel.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH mlx5-next] net/mlx5: Add memic command opcode to command checker
+Date: Mon,  3 Sep 2018 20:19:48 +0300
+Message-ID: <20180903171948.19461-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Ariel Levkovich <lariel@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The current code grabs the private_data of whatever file descriptor
-userspace has supplied and implicitly casts it to a `struct ucma_file *`,
-potentially causing a type confusion.
+From: Ariel Levkovich <lariel@mellanox.com>
 
-This is probably fine in practice because the pointer is only used for
-comparisons, it is never actually dereferenced; and even in the
-comparisons, it is unlikely that a file from another filesystem would have
-a ->private_data pointer that happens to also be valid in this context.
-But ->private_data is not always guaranteed to be a valid pointer to an
-object owned by the file's filesystem; for example, some filesystems just
-cram numbers in there.
+Adding the alloc/dealloc memic FW command opcodes to
+avoid "unknown command" prints in the command string
+converter and internal error status handler.
 
-Check the type of the supplied file descriptor to be safe, analogous to how
-other places in the kernel do it.
-
-Fixes: 88314e4dda1e ("RDMA/cma: add support for rdma_migrate_id()")
-Signed-off-by: Jann Horn <jannh@google.com>
+Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
-Only compile-tested, because I don't have an environment in which I
-could test this.
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
- drivers/infiniband/core/ucma.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index ec8fb289621f..5f437d1570fb 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -124,6 +124,8 @@ static DEFINE_MUTEX(mut);
- static DEFINE_IDR(ctx_idr);
- static DEFINE_IDR(multicast_idr);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 853240f5ae82..39750fca371d 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -312,6 +312,7 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ 	case MLX5_CMD_OP_DEALLOC_MODIFY_HEADER_CONTEXT:
+ 	case MLX5_CMD_OP_FPGA_DESTROY_QP:
+ 	case MLX5_CMD_OP_DESTROY_GENERAL_OBJECT:
++	case MLX5_CMD_OP_DEALLOC_MEMIC:
+ 		return MLX5_CMD_STAT_OK;
  
-+static const struct file_operations ucma_fops;
-+
- static inline struct ucma_context *_ucma_find_context(int id,
- 						      struct ucma_file *file)
- {
-@@ -1581,6 +1583,10 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
- 	f = fdget(cmd.fd);
- 	if (!f.file)
- 		return -ENOENT;
-+	if (f.file->f_op != &ucma_fops) {
-+		ret = -EINVAL;
-+		goto file_put;
-+	}
- 
- 	/* Validate current fd and prevent destruction of id. */
- 	ctx = ucma_get_ctx(f.file->private_data, cmd.id);
+ 	case MLX5_CMD_OP_QUERY_HCA_CAP:
+@@ -435,6 +436,7 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ 	case MLX5_CMD_OP_CREATE_GENERAL_OBJECT:
+ 	case MLX5_CMD_OP_MODIFY_GENERAL_OBJECT:
+ 	case MLX5_CMD_OP_QUERY_GENERAL_OBJECT:
++	case MLX5_CMD_OP_ALLOC_MEMIC:
+ 		*status = MLX5_DRIVER_STATUS_ABORTED;
+ 		*synd = MLX5_DRIVER_SYND;
+ 		return -EIO;
+@@ -617,6 +619,8 @@ const char *mlx5_command_str(int command)
+ 	MLX5_COMMAND_STR_CASE(MODIFY_GENERAL_OBJECT);
+ 	MLX5_COMMAND_STR_CASE(QUERY_GENERAL_OBJECT);
+ 	MLX5_COMMAND_STR_CASE(QUERY_MODIFY_HEADER_CONTEXT);
++	MLX5_COMMAND_STR_CASE(ALLOC_MEMIC);
++	MLX5_COMMAND_STR_CASE(DEALLOC_MEMIC);
+ 	default: return "unknown command opcode";
+ 	}
+ }
 -- 
-2.19.0.rc1.350.ge57e33dbd1-goog
+2.14.4
