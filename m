@@ -1,7 +1,7 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH 7/9] net/mlx4: Do not call pcie_print_link_status()
-Date: Mon,  3 Sep 2018 13:02:34 -0500
-Message-ID: <20180903180242.14504-8-mr.nuke.me@gmail.com>
+Subject: [PATCH 8/9] net/mlx5: Do not call pcie_print_link_status()
+Date: Mon,  3 Sep 2018 13:02:35 -0500
+Message-ID: <20180903180242.14504-9-mr.nuke.me@gmail.com>
 References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180903180242.14504-1-mr.nuke.me@gmail.com>
@@ -14,26 +14,23 @@ This is now done by the PCI core to warn of sub-optimal bandwidth.
 
 Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 ---
- drivers/net/ethernet/mellanox/mlx4/main.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
-index d2d59444f562..9902fa3a2c13 100644
---- a/drivers/net/ethernet/mellanox/mlx4/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/main.c
-@@ -3525,13 +3525,6 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
- 		}
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index cf3e4a659052..888af98694f8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1056,10 +1056,6 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
+ 		 fw_rev_min(dev), fw_rev_sub(dev));
  
--	/* check if the device is functioning at its maximum possible speed.
--	 * No return code for this call, just warn the user in case of PCI
--	 * express device capabilities are under-satisfied by the bus.
--	 */
--	if (!mlx4_is_slave(dev))
--		pcie_print_link_status(dev->persist->pdev);
+-	/* Only PFs hold the relevant PCIe information for this query */
+-	if (mlx5_core_is_pf(dev))
+-		pcie_print_link_status(dev->pdev);
 -
- 	/* In master functions, the communication channel must be initialized
- 	 * after obtaining its address from fw */
- 	if (mlx4_is_master(dev)) {
+ 	/* on load removing any previous indication of internal error, device is
+ 	 * up
+ 	 */
 -- 
 2.17.1
