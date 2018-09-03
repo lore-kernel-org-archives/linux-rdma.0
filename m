@@ -1,7 +1,7 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH 6/9] ixgbe: Do not call pcie_print_link_status()
-Date: Mon,  3 Sep 2018 13:02:33 -0500
-Message-ID: <20180903180242.14504-7-mr.nuke.me@gmail.com>
+Subject: [PATCH 7/9] net/mlx4: Do not call pcie_print_link_status()
+Date: Mon,  3 Sep 2018 13:02:34 -0500
+Message-ID: <20180903180242.14504-8-mr.nuke.me@gmail.com>
 References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180903180242.14504-1-mr.nuke.me@gmail.com>
@@ -14,52 +14,26 @@ This is now done by the PCI core to warn of sub-optimal bandwidth.
 
 Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 ---
- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c | 26 -------------------
- 1 file changed, 26 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/main.c | 7 -------
+ 1 file changed, 7 deletions(-)
 
-diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-index 9a23d33a47ed..9663419e0ceb 100644
---- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-+++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
-@@ -241,28 +241,6 @@ static inline bool ixgbe_pcie_from_parent(struct ixgbe_hw *hw)
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index d2d59444f562..9902fa3a2c13 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -3525,13 +3525,6 @@ static int mlx4_load_one(struct pci_dev *pdev, int pci_dev_data,
+ 		}
  	}
- }
  
--static void ixgbe_check_minimum_link(struct ixgbe_adapter *adapter,
--				     int expected_gts)
--{
--	struct ixgbe_hw *hw = &adapter->hw;
--	struct pci_dev *pdev;
--
--	/* Some devices are not connected over PCIe and thus do not negotiate
--	 * speed. These devices do not have valid bus info, and thus any report
--	 * we generate may not be correct.
+-	/* check if the device is functioning at its maximum possible speed.
+-	 * No return code for this call, just warn the user in case of PCI
+-	 * express device capabilities are under-satisfied by the bus.
 -	 */
--	if (hw->bus.type == ixgbe_bus_type_internal)
--		return;
+-	if (!mlx4_is_slave(dev))
+-		pcie_print_link_status(dev->persist->pdev);
 -
--	/* determine whether to use the parent device */
--	if (ixgbe_pcie_from_parent(&adapter->hw))
--		pdev = adapter->pdev->bus->parent->self;
--	else
--		pdev = adapter->pdev;
--
--	pcie_print_link_status(pdev);
--}
--
- static void ixgbe_service_event_schedule(struct ixgbe_adapter *adapter)
- {
- 	if (!test_bit(__IXGBE_DOWN, &adapter->state) &&
-@@ -10792,10 +10770,6 @@ static int ixgbe_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		break;
- 	}
- 
--	/* don't check link if we failed to enumerate functions */
--	if (expected_gts > 0)
--		ixgbe_check_minimum_link(adapter, expected_gts);
--
- 	err = ixgbe_read_pba_string_generic(hw, part_str, sizeof(part_str));
- 	if (err)
- 		strlcpy(part_str, "Unknown", sizeof(part_str));
+ 	/* In master functions, the communication channel must be initialized
+ 	 * after obtaining its address from fw */
+ 	if (mlx4_is_master(dev)) {
 -- 
 2.17.1
