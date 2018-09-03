@@ -1,42 +1,50 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next] net/mlx5: Fix atomic_mode enum values
-Date: Mon,  3 Sep 2018 20:19:28 +0300
-Message-ID: <20180903171928.19348-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Moni Shoua <monis@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH 0/9] Export PCIe bandwidth via sysfs
+Date: Mon,  3 Sep 2018 13:02:27 -0500
+Message-ID: <20180903180242.14504-1-mr.nuke.me@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pci@vger.kernel.org, bhelgaas@google.com
+Cc: keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jakub Kicinski <jakub.kicinski@netronome.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis@mellanox.com>
+This is a follow-on series to
+Commit 2d1ce5ec2117 ("PCI: Check for PCIe Link downtraining")
 
-The field atomic_mode is 4 bits wide and therefore can hold values
-from 0x0 to 0xf. Remove the unnecessary 20 bit shift that made the values
-be incorrect. While that, remove unused enum values.
+The remaining issues was that some pcie drivers print link status directly,
+sometimes resulting in duplicate system log messages with degraded links.
 
-Fixes: 57cda166bbe0 ("net/mlx5: Add DCT command interface")
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/driver.h | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+>From my understanding, the maintainers of these drivers are fine with
+removing the duplicate prints as long as the bandwidth information is
+readily available. sysfs seemed to be the consensus.
 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 66c1170500cf..89caed98ef0b 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -163,10 +163,7 @@ enum mlx5_dcbx_oper_mode {
- };
- 
- enum mlx5_dct_atomic_mode {
--	MLX5_ATOMIC_MODE_DCT_OFF        = 20,
--	MLX5_ATOMIC_MODE_DCT_NONE       = 0 << MLX5_ATOMIC_MODE_DCT_OFF,
--	MLX5_ATOMIC_MODE_DCT_IB_COMP    = 1 << MLX5_ATOMIC_MODE_DCT_OFF,
--	MLX5_ATOMIC_MODE_DCT_CX         = 2 << MLX5_ATOMIC_MODE_DCT_OFF,
-+	MLX5_ATOMIC_MODE_DCT_CX         = 2,
- };
- 
- enum {
+Example:
+
+	$ cat /sys/bus/pci/devices/0000:b1:00.0/available_bandwidth
+	7.876 Gb/s
+
+
+Alexandru Gagniuc (9):
+  PCI: sysfs: Export available PCIe bandwidth
+  bnx2x: Do not call pcie_print_link_status()
+  bnxt_en: Do not call pcie_print_link_status()
+  cxgb4: Do not call pcie_print_link_status()
+  fm10k: Do not call pcie_print_link_status()
+  ixgbe: Do not call pcie_print_link_status()
+  net/mlx4: Do not call pcie_print_link_status()
+  net/mlx5: Do not call pcie_print_link_status()
+  nfp: Do not call pcie_print_link_status()
+
+ .../net/ethernet/broadcom/bnx2x/bnx2x_main.c  |  1 -
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     |  1 -
+ .../net/ethernet/chelsio/cxgb4/cxgb4_main.c   |  3 ---
+ drivers/net/ethernet/intel/fm10k/fm10k_pci.c  |  3 ---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c | 26 -------------------
+ drivers/net/ethernet/mellanox/mlx4/main.c     |  7 -----
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  4 ---
+ .../netronome/nfp/nfpcore/nfp6000_pcie.c      |  1 -
+ drivers/pci/pci-sysfs.c                       | 13 ++++++++++
+ 9 files changed, 13 insertions(+), 46 deletions(-)
+
 -- 
-2.14.4
+2.17.1
