@@ -1,132 +1,90 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
- pages
-Date: Tue, 4 Sep 2018 10:00:36 -0400
-Message-ID: <20180904140035.GA3526@redhat.com>
-References: <20180829181424.GB3784@redhat.com>
- <20180829183906.GF10223@dhcp22.suse.cz>
- <20180829211106.GC3784@redhat.com>
- <20180830105616.GD2656@dhcp22.suse.cz>
- <20180830140825.GA3529@redhat.com>
- <20180830161800.GJ2656@dhcp22.suse.cz>
- <20180830165751.GD3529@redhat.com>
- <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
- <20180830183944.GE3529@redhat.com>
- <20180903055654.GA14951@dhcp22.suse.cz>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v5 10/13] nvme-pci: Add support for P2P memory in requests
+Date: Tue, 4 Sep 2018 09:16:38 -0600
+Message-ID: <20180904151638.GL335@mellanox.com>
+References: <20180830185352.3369-1-logang@deltatee.com>
+ <20180830185352.3369-11-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180903055654.GA14951@dhcp22.suse.cz>
-Sender: stable-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
+In-Reply-To: <20180830185352.3369-11-logang@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 03, 2018 at 07:56:54AM +0200, Michal Hocko wrote:
-> On Thu 30-08-18 14:39:44, Jerome Glisse wrote:
-> > On Thu, Aug 30, 2018 at 11:05:16AM -0700, Mike Kravetz wrote:
-> > > On 08/30/2018 09:57 AM, Jerome Glisse wrote:
-> > > > On Thu, Aug 30, 2018 at 06:19:52PM +0200, Michal Hocko wrote:
-> > > >> On Thu 30-08-18 10:08:25, Jerome Glisse wrote:
-> > > >>> On Thu, Aug 30, 2018 at 12:56:16PM +0200, Michal Hocko wrote:
-> > > >>>> On Wed 29-08-18 17:11:07, Jerome Glisse wrote:
-> > > >>>>> On Wed, Aug 29, 2018 at 08:39:06PM +0200, Michal Hocko wrote:
-> > > >>>>>> On Wed 29-08-18 14:14:25, Jerome Glisse wrote:
-> > > >>>>>>> On Wed, Aug 29, 2018 at 10:24:44AM -0700, Mike Kravetz wrote:
-> > > >>>>>> [...]
-> > > >>>>>>>> What would be the best mmu notifier interface to use where there are no
-> > > >>>>>>>> start/end calls?
-> > > >>>>>>>> Or, is the best solution to add the start/end calls as is done in later
-> > > >>>>>>>> versions of the code?  If that is the suggestion, has there been any change
-> > > >>>>>>>> in invalidate start/end semantics that we should take into account?
-> > > >>>>>>>
-> > > >>>>>>> start/end would be the one to add, 4.4 seems broken in respect to THP
-> > > >>>>>>> and mmu notification. Another solution is to fix user of mmu notifier,
-> > > >>>>>>> they were only a handful back then. For instance properly adjust the
-> > > >>>>>>> address to match first address covered by pmd or pud and passing down
-> > > >>>>>>> correct page size to mmu_notifier_invalidate_page() would allow to fix
-> > > >>>>>>> this easily.
-> > > >>>>>>>
-> > > >>>>>>> This is ok because user of try_to_unmap_one() replace the pte/pmd/pud
-> > > >>>>>>> with an invalid one (either poison, migration or swap) inside the
-> > > >>>>>>> function. So anyone racing would synchronize on those special entry
-> > > >>>>>>> hence why it is fine to delay mmu_notifier_invalidate_page() to after
-> > > >>>>>>> dropping the page table lock.
-> > > >>>>>>>
-> > > >>>>>>> Adding start/end might the solution with less code churn as you would
-> > > >>>>>>> only need to change try_to_unmap_one().
-> > > >>>>>>
-> > > >>>>>> What about dependencies? 369ea8242c0fb sounds like it needs work for all
-> > > >>>>>> notifiers need to be updated as well.
-> > > >>>>>
-> > > >>>>> This commit remove mmu_notifier_invalidate_page() hence why everything
-> > > >>>>> need to be updated. But in 4.4 you can get away with just adding start/
-> > > >>>>> end and keep around mmu_notifier_invalidate_page() to minimize disruption.
-> > > >>>>
-> > > >>>> OK, this is really interesting. I was really worried to change the
-> > > >>>> semantic of the mmu notifiers in stable kernels because this is really
-> > > >>>> a hard to review change and high risk for anybody running those old
-> > > >>>> kernels. If we can keep the mmu_notifier_invalidate_page and wrap them
-> > > >>>> into the range scope API then this sounds like the best way forward.
-> > > >>>>
-> > > >>>> So just to make sure we are at the same page. Does this sounds goo for
-> > > >>>> stable 4.4. backport? Mike's hugetlb pmd shared fixup can be applied on
-> > > >>>> top. What do you think?
-> > > >>>
-> > > >>> You need to invalidate outside page table lock so before the call to
-> > > >>> page_check_address(). For instance like below patch, which also only
-> > > >>> do the range invalidation for huge page which would avoid too much of
-> > > >>> a behavior change for user of mmu notifier.
-> > > >>
-> > > >> Right. I would rather not make this PageHuge special though. So the
-> > > >> fixed version should be.
-> > > > 
-> > > > Why not testing for huge ? Only huge is broken and thus only that
-> > > > need the extra range invalidation. Doing the double invalidation
-> > > > for single page is bit overkill.
-> > > 
-> > > I am a bit confused, and hope this does not add to any confusion by others.
-> > > 
-> > > IIUC, the patch below does not attempt to 'fix' anything.  It is simply
-> > > there to add the start/end notifiers to the v4.4 version of this routine
-> > > so that a subsequent patch can use them (with modified ranges) to handle
-> > > unmapping a shared pmd huge page.  That is the mainline fix which started
-> > > this thread.
-> > > 
-> > > Since we are only/mostly interested in fixing the shared pmd issue in
-> > > 4.4, how about just adding the start/end notifiers to the very specific
-> > > case where pmd sharing is possible?
-> > > 
-> > > I can see the value in trying to back port dependent patches such as this
-> > > so that stable releases look more like mainline.  However, I am not sure of
-> > > the value in this case as this patch was part of a larger set changing
-> > > notifier semantics.
-> > 
-> > For all intents and purposes this is not a backport of the original
-> > patch so maybe we should just drop the commit reference and just
-> > explains that it is there to fix mmu notifier in respect to huge page
-> > migration.
-> > 
-> > The original patches fix more than this case because newer featurers
-> > like THP migration, THP swapping, ... added more cases where things
-> > would have been wrong. But in 4.4 frame there is only huge tlb fs
-> > migration.
+On Thu, Aug 30, 2018 at 12:53:49PM -0600, Logan Gunthorpe wrote:
+> For P2P requests, we must use the pci_p2pmem_map_sg() function
+> instead of the dma_map_sg functions.
 > 
-> And THP migration is still a problem with 4.4 AFAICS. All other cases
-> simply split the huge page but THP migration keeps it in one piece and
-> as such it is theoretically broken as you have explained. So I would
-> stick with what I posted with some more clarifications in the changelog
-> if you think it is appropriate (suggestions welcome).
+> With that, we can then indicate PCI_P2P support in the request queue.
+> For this, we create an NVME_F_PCI_P2P flag which tells the core to
+> set QUEUE_FLAG_PCI_P2P in the request queue.
+> 
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+> Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+>  drivers/nvme/host/core.c |  4 ++++
+>  drivers/nvme/host/nvme.h |  1 +
+>  drivers/nvme/host/pci.c  | 17 +++++++++++++----
+>  3 files changed, 18 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index dd8ec1dd9219..6033ce2fd3e9 100644
+> +++ b/drivers/nvme/host/core.c
+> @@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+>  	ns->queue = blk_mq_init_queue(ctrl->tagset);
+>  	if (IS_ERR(ns->queue))
+>  		goto out_free_ns;
+> +
+>  	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
+> +	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
+> +		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
+> +
+>  	ns->queue->queuedata = ns;
+>  	ns->ctrl = ctrl;
+>  
+> diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+> index bb4a2003c097..4030743c90aa 100644
+> +++ b/drivers/nvme/host/nvme.h
+> @@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
+>  	unsigned int flags;
+>  #define NVME_F_FABRICS			(1 << 0)
+>  #define NVME_F_METADATA_SUPPORTED	(1 << 1)
+> +#define NVME_F_PCI_P2PDMA		(1 << 2)
+>  	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+>  	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+>  	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
+> diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+> index 2902585c6ddf..bb2120d30e39 100644
+> +++ b/drivers/nvme/host/pci.c
+> @@ -737,8 +737,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+>  		goto out;
+>  
+>  	ret = BLK_STS_RESOURCE;
+> -	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+> -			DMA_ATTR_NO_WARN);
+> +
+> +	if (is_pci_p2pdma_page(sg_page(iod->sg)))
+> +		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
+> +					  dma_dir);
+> +	else
+> +		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
+> +					     dma_dir,  DMA_ATTR_NO_WARN);
+>  	if (!nr_mapped)
+>  		goto out;
+>  
+> @@ -780,7 +785,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+>  			DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>  
+>  	if (iod->nents) {
+> -		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
+> +		/* P2PDMA requests do not need to be unmapped */
+> +		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
+> +			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
 
-Reading code there is no THP migration in 4.4 only huge tlb migration.
-Look at handle_mm_fault which do not know how to handle swap pmd, only
-the huge tlb fs fault handler knows how to handle those. Hence why i
-was checking for huge tlb exactly as page_check_address() to only range
-invalidate for huge tlb fs migration.
+This seems like a poor direction, if we add IOMMU hairpin support we
+will need unmapping.
 
-But i am fine with doing the range invalidation with all.
-
-Cheers,
-Jérôme
+Jason
