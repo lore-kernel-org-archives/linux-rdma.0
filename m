@@ -1,43 +1,59 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/ucma: check fd type in ucma_migrate_id()
-Date: Tue, 4 Sep 2018 15:24:25 -0600
-Message-ID: <20180904212425.GD18686@ziepe.ca>
-References: <20180903165414.248309-1-jannh@google.com>
+Subject: Re: [PATCH rdma-next v1 12/15] RDMA/mlx5: Add a new flow action verb
+ - modify header
+Date: Tue, 4 Sep 2018 15:58:23 -0600
+Message-ID: <20180904215823.GA3792@ziepe.ca>
+References: <20180828111854.14367-1-leon@kernel.org>
+ <20180828111854.14367-13-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180903165414.248309-1-jannh@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jann Horn <jannh@google.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Sean Hefty <sean.hefty@intel.com>, linux-kernel@vger.kernel.org
+In-Reply-To: <20180828111854.14367-13-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 03, 2018 at 06:54:14PM +0200, Jann Horn wrote:
-> The current code grabs the private_data of whatever file descriptor
-> userspace has supplied and implicitly casts it to a `struct ucma_file *`,
-> potentially causing a type confusion.
-> 
-> This is probably fine in practice because the pointer is only used for
-> comparisons, it is never actually dereferenced; and even in the
-> comparisons, it is unlikely that a file from another filesystem would have
-> a ->private_data pointer that happens to also be valid in this context.
-> But ->private_data is not always guaranteed to be a valid pointer to an
-> object owned by the file's filesystem; for example, some filesystems just
-> cram numbers in there.
-> 
-> Check the type of the supplied file descriptor to be safe, analogous to how
-> other places in the kernel do it.
-> 
-> Fixes: 88314e4dda1e ("RDMA/cma: add support for rdma_migrate_id()")
-> Signed-off-by: Jann Horn <jannh@google.com>
-> ---
-> Only compile-tested, because I don't have an environment in which I
-> could test this.
-> 
->  drivers/infiniband/core/ucma.c | 6 ++++++
->  1 file changed, 6 insertions(+)
+On Tue, Aug 28, 2018 at 02:18:51PM +0300, Leon Romanovsky wrote:
 
-Yep, this looks right to me also, applied to for-rc, thanks
+> +static int UVERBS_HANDLER(MLX5_IB_METHOD_FLOW_ACTION_CREATE_MODIFY_HEADER)(
+> +	struct ib_uverbs_file *file,
+> +	struct uverbs_attr_bundle *attrs)
+> +{
+> +	struct ib_uobject *uobj = uverbs_attr_get_uobject(
+> +		attrs, MLX5_IB_ATTR_CREATE_MODIFY_HEADER_HANDLE);
+> +	struct mlx5_ib_dev *mdev = to_mdev(uobj->context->device);
+> +	enum mlx5_ib_uapi_flow_table_type ft_type;
+> +	struct ib_flow_action *action;
+> +	size_t num_actions;
+> +	void *in;
+> +	int len;
+> +	int ret;
+> +
+> +	if (!mlx5_ib_modify_header_supported(mdev))
+> +		return -EOPNOTSUPP;
+> +
+> +	in = uverbs_attr_get_alloced_ptr(attrs,
+> +		MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM);
+> +	len = uverbs_attr_get_len(attrs,
+> +		MLX5_IB_ATTR_CREATE_MODIFY_HEADER_ACTIONS_PRM);
+> +
+> +	if (len % MLX5_UN_SZ_BYTES(set_action_in_add_action_in_auto))
+> +		return -EINVAL;
+> +
+> +	ret = uverbs_get_const(&ft_type, attrs,
+> +			       MLX5_IB_ATTR_CREATE_MODIFY_HEADER_FT_TYPE);
+> +	if (ret)
+> +		return -EINVAL;
+
+This should be
+
+	if (ret)
+		return ret;
+
+Every call to uverbs_get_const is wrong in this same way..
+
+I can probably fix it if this is the only thing though..
 
 Jason
