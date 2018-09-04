@@ -1,61 +1,55 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next] net/mlx5: Add memic command opcode to command
- checker
-Date: Tue, 4 Sep 2018 15:06:14 +0300
-Message-ID: <20180904120614.GD2796@mtr-leonro.mtl.com>
-References: <20180903171948.19461-1-leon@kernel.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH 7/9] net/mlx4: Do not call pcie_print_link_status()
+Date: Tue, 4 Sep 2018 15:51:08 +0300
+Message-ID: <20180904125108.GE2796@mtr-leonro.mtl.com>
+References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
+ <20180903180242.14504-8-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ufMBWnG1WFkAvCRz"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="utUizcr4eQAkV3Ky"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180903171948.19461-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Ariel Levkovich <lariel@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20180903180242.14504-8-mr.nuke.me@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
 List-Id: linux-rdma@vger.kernel.org
 
 
---ufMBWnG1WFkAvCRz
+--utUizcr4eQAkV3Ky
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Sep 03, 2018 at 08:19:48PM +0300, Leon Romanovsky wrote:
-> From: Ariel Levkovich <lariel@mellanox.com>
+On Mon, Sep 03, 2018 at 01:02:34PM -0500, Alexandru Gagniuc wrote:
+> This is now done by the PCI core to warn of sub-optimal bandwidth.
 >
-> Adding the alloc/dealloc memic FW command opcodes to
-> avoid "unknown command" prints in the command string
-> converter and internal error status handler.
->
-> Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 > ---
->  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/net/ethernet/mellanox/mlx4/main.c | 7 -------
+>  1 file changed, 7 deletions(-)
 >
 
-Applied to mlx5-next: 09adbb5dd01b net/mlx5: Add memic command opcode to command checker
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
 
-Thanks
-
---ufMBWnG1WFkAvCRz
+--utUizcr4eQAkV3Ky
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbjnU1AAoJEORje4g2clineI4P/3E2krqrAfpypbZjKsm0XYEu
-y/81YFYJKoxzzfTeuKoTqNnpClAi8mrldDU/v0m8ERbsncCYHPMwrwPD2bzMhpXz
-suZkmXbb/XAcT1fxbLwMdXd3HUvzbN+eQygYG6IJ3E9rt2T+gkEew4ob9jsHc7i3
-SVNcOQEy7MitAQpA/0zaYBwm3Kuv7vAcS9OlCUtZScXKV44lY27/hRYv5z/PWzcb
-PAhhnrE3mXXu+QP9uzrFAeveJmUGsW+KoDmsdA2q5+QaDpOt5r0KJoVAt8NHDEWk
-9kiNKhFh9qn5T72yzm75MnECk8n7/oHCbATAUKlBMzQJ6PMHkMAdHnM3H0UKP1JU
-8abKy6cAg/vUNJx51f1Fu7UrLvDq1dRWY/sVBEt9B51NHqwjH6jXha1TMT6nH3At
-VlfD4SW9xgzTj4pK1nrUiWbICecnQiLGQehDJ4Zhy0BBk0FpKpR49ol9mlMmtHGQ
-Jp3pg72XfrBKveb3n/jz+qPH/vN4+o59xm25vyAAw2uY5pRNZXOIR7aDWISxS8aK
-em54/HYgQQ50rQQNuGULYZGP3IEHB7Muzcgc/KSgZkA5JiKnnHSMU1mId/yh1GJF
-H3lIdp2TIUNezrXPLN+k5D2wHxKeJMGSFDwf2UQWWMHrlYM5FAyCjF/Y0faXWg3X
-4kyQfkt9/zualuLcmDMO
-=XVxn
+iQIcBAEBAgAGBQJbjn+8AAoJEORje4g2clinjGkP/jCPp9UzQgvYbqPCf4Gse/bM
+v4sDzUw1p4vsseeu+tUvImwsGaOKBdXLBXh0yyx0DEePtXAnA+Y9l2ZECBAnqRze
+x88FJOZiut8n/OZCXuh34d9UgUuK4nZel9l+R5V6OE1Bw7Hvd5CDN+DELpawQxQS
+RW1CI9A0gyzNZuVaquR8ZIPPH03HJPAvY8xSWum1u7D+mQC1s3PvBAHo/1U+f9tO
+zWYo3ohY5TEC0ug0IENE1Y10PhAMkF8W4W+y9DO2/FYbycbP73rOpmO8k+sWZ9QS
+l02bTVuCEnSzTamZ4s3Rz0uURBCdrq6mjluKRiVbDqArJ2l5APsXjptsjDfP9Dox
+BblZ+oc4LfEOzpb2dYHWhSbFJWzIn9p+DkS9Y4ur/5HXAQsHmE4CkY03U0UE6H0k
+Xn6lOJD6QkZ3hZu6M+y4iU+eZGOX4cH+K93AvLMtReXrQHJIxKd8Iyk14jpNc4JO
+AnDhiDjSURIISQwEBWVx8EselbI7S4o2DzWic4lDJhPjFjYhtDcsH9D65eB1IIVR
+4c+OGQ+lYHgUVxshx+XM+VlTjxev72ZE9vS+tOzZdCND01c2uUDQeCDZTJW6VFnn
+u9B+NQ77G035Yn186RhLQkbIJHBGRF8nvX4KTEjRErry5BD+yqrgKz115P8y6F3X
+PhbXQE6O7fllfTO/Vqe/
+=LxEI
 -----END PGP SIGNATURE-----
 
---ufMBWnG1WFkAvCRz--
+--utUizcr4eQAkV3Ky--
