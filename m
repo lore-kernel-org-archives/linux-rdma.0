@@ -1,62 +1,61 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next] net/mlx5: Fix atomic_mode enum values
-Date: Tue, 4 Sep 2018 15:05:40 +0300
-Message-ID: <20180904120540.GC2796@mtr-leonro.mtl.com>
-References: <20180903171928.19348-1-leon@kernel.org>
+Subject: Re: [PATCH mlx5-next] net/mlx5: Add memic command opcode to command
+ checker
+Date: Tue, 4 Sep 2018 15:06:14 +0300
+Message-ID: <20180904120614.GD2796@mtr-leonro.mtl.com>
+References: <20180903171948.19461-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="rd/3IrB17klb+Ksj"
+        protocol="application/pgp-signature"; boundary="ufMBWnG1WFkAvCRz"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180903171928.19348-1-leon@kernel.org>
+In-Reply-To: <20180903171948.19461-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Moni Shoua <monis@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Cc: Ariel Levkovich <lariel@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---rd/3IrB17klb+Ksj
+--ufMBWnG1WFkAvCRz
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Sep 03, 2018 at 08:19:28PM +0300, Leon Romanovsky wrote:
-> From: Moni Shoua <monis@mellanox.com>
+On Mon, Sep 03, 2018 at 08:19:48PM +0300, Leon Romanovsky wrote:
+> From: Ariel Levkovich <lariel@mellanox.com>
 >
-> The field atomic_mode is 4 bits wide and therefore can hold values
-> from 0x0 to 0xf. Remove the unnecessary 20 bit shift that made the values
-> be incorrect. While that, remove unused enum values.
+> Adding the alloc/dealloc memic FW command opcodes to
+> avoid "unknown command" prints in the command string
+> converter and internal error status handler.
 >
-> Fixes: 57cda166bbe0 ("net/mlx5: Add DCT command interface")
-> Signed-off-by: Moni Shoua <monis@mellanox.com>
-> Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+> Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
 > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 > ---
->  include/linux/mlx5/driver.h | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 >
 
-Applied to mlx5-next: aa7e80b220f3 net/mlx5: Fix atomic_mode enum values
+Applied to mlx5-next: 09adbb5dd01b net/mlx5: Add memic command opcode to command checker
 
 Thanks
 
---rd/3IrB17klb+Ksj
+--ufMBWnG1WFkAvCRz
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbjnUUAAoJEORje4g2clinqT8P/RfV8tQM6Rk34AIJgWH5l70b
-EBnWz6MOgUB+KUz+n3bJR25Cdr1e+7qyDhiBs0BzjH9kpLswLz8TJR5n1jNJOlei
-sLNBbmFopcEQNtFxbrxtYJNkB37AUexPW6UEG3tFN+UfOHxwG4OxSZVosZWX1T09
-Ss2ikH8SIeZI31vxNyHCgy/XlF875HwxDTyQBM1/6ETvSsUKbdfF2WT8E7NFAqE0
-tzKnqEOa5sQJSZ/a5IEC+ePGCChCGIdMuPPVNl4GBsWuXqF0V5nBZeQrn7pS1mq9
-RxPp592Wb3vXa1eGH6h0As/SjVwRLDI2w7oD26qodzamXfqglAGiXsK4bzZkqhK4
-+9DJpaCz83q9D28ovPv16ZiiE3Zm8N9Srj4xSm31QsG8tbJsOsy83luheQSa8VgK
-Q5xHbpH0gNY8fjBS2ew3NwK5wpsU3lWRt7rsAAtbEJEzXxINFjowAP8c0PSH4D7J
-VQshkUPUjTVkbgS9AUWWzvwRePsZ7khztKTxV7C7MX7VYtQ1rTPyb0a+5wpZs/s4
-jhMAruossQ7Z0p9J37RzX0+mk5T2d1L81Rjk2fbx2U8w5rkvJaGAtTqIfSVOD+Gm
-GKiEOj7H7UbErxLLWL/DCTz9qElWt8TBNsBycRsczS1sKz6cS5+kn7Iu6KvSJcvX
-+tOMvjNLxgE1oqj4QK3s
-=KXXA
+iQIcBAEBAgAGBQJbjnU1AAoJEORje4g2clineI4P/3E2krqrAfpypbZjKsm0XYEu
+y/81YFYJKoxzzfTeuKoTqNnpClAi8mrldDU/v0m8ERbsncCYHPMwrwPD2bzMhpXz
+suZkmXbb/XAcT1fxbLwMdXd3HUvzbN+eQygYG6IJ3E9rt2T+gkEew4ob9jsHc7i3
+SVNcOQEy7MitAQpA/0zaYBwm3Kuv7vAcS9OlCUtZScXKV44lY27/hRYv5z/PWzcb
+PAhhnrE3mXXu+QP9uzrFAeveJmUGsW+KoDmsdA2q5+QaDpOt5r0KJoVAt8NHDEWk
+9kiNKhFh9qn5T72yzm75MnECk8n7/oHCbATAUKlBMzQJ6PMHkMAdHnM3H0UKP1JU
+8abKy6cAg/vUNJx51f1Fu7UrLvDq1dRWY/sVBEt9B51NHqwjH6jXha1TMT6nH3At
+VlfD4SW9xgzTj4pK1nrUiWbICecnQiLGQehDJ4Zhy0BBk0FpKpR49ol9mlMmtHGQ
+Jp3pg72XfrBKveb3n/jz+qPH/vN4+o59xm25vyAAw2uY5pRNZXOIR7aDWISxS8aK
+em54/HYgQQ50rQQNuGULYZGP3IEHB7Muzcgc/KSgZkA5JiKnnHSMU1mId/yh1GJF
+H3lIdp2TIUNezrXPLN+k5D2wHxKeJMGSFDwf2UQWWMHrlYM5FAyCjF/Y0faXWg3X
+4kyQfkt9/zualuLcmDMO
+=XVxn
 -----END PGP SIGNATURE-----
 
---rd/3IrB17klb+Ksj--
+--ufMBWnG1WFkAvCRz--
