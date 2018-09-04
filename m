@@ -1,55 +1,132 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 8/9] net/mlx5: Do not call pcie_print_link_status()
-Date: Tue, 4 Sep 2018 15:51:25 +0300
-Message-ID: <20180904125125.GF2796@mtr-leonro.mtl.com>
-References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
- <20180903180242.14504-9-mr.nuke.me@gmail.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
+ pages
+Date: Tue, 4 Sep 2018 10:00:36 -0400
+Message-ID: <20180904140035.GA3526@redhat.com>
+References: <20180829181424.GB3784@redhat.com>
+ <20180829183906.GF10223@dhcp22.suse.cz>
+ <20180829211106.GC3784@redhat.com>
+ <20180830105616.GD2656@dhcp22.suse.cz>
+ <20180830140825.GA3529@redhat.com>
+ <20180830161800.GJ2656@dhcp22.suse.cz>
+ <20180830165751.GD3529@redhat.com>
+ <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
+ <20180830183944.GE3529@redhat.com>
+ <20180903055654.GA14951@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="zKD0QXBepZ0ysD7Q"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180903180242.14504-9-mr.nuke.me@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
+In-Reply-To: <20180903055654.GA14951@dhcp22.suse.cz>
+Sender: stable-owner@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Sep 03, 2018 at 07:56:54AM +0200, Michal Hocko wrote:
+> On Thu 30-08-18 14:39:44, Jerome Glisse wrote:
+> > On Thu, Aug 30, 2018 at 11:05:16AM -0700, Mike Kravetz wrote:
+> > > On 08/30/2018 09:57 AM, Jerome Glisse wrote:
+> > > > On Thu, Aug 30, 2018 at 06:19:52PM +0200, Michal Hocko wrote:
+> > > >> On Thu 30-08-18 10:08:25, Jerome Glisse wrote:
+> > > >>> On Thu, Aug 30, 2018 at 12:56:16PM +0200, Michal Hocko wrote:
+> > > >>>> On Wed 29-08-18 17:11:07, Jerome Glisse wrote:
+> > > >>>>> On Wed, Aug 29, 2018 at 08:39:06PM +0200, Michal Hocko wrote:
+> > > >>>>>> On Wed 29-08-18 14:14:25, Jerome Glisse wrote:
+> > > >>>>>>> On Wed, Aug 29, 2018 at 10:24:44AM -0700, Mike Kravetz wrote:
+> > > >>>>>> [...]
+> > > >>>>>>>> What would be the best mmu notifier interface to use where there are no
+> > > >>>>>>>> start/end calls?
+> > > >>>>>>>> Or, is the best solution to add the start/end calls as is done in later
+> > > >>>>>>>> versions of the code?  If that is the suggestion, has there been any change
+> > > >>>>>>>> in invalidate start/end semantics that we should take into account?
+> > > >>>>>>>
+> > > >>>>>>> start/end would be the one to add, 4.4 seems broken in respect to THP
+> > > >>>>>>> and mmu notification. Another solution is to fix user of mmu notifier,
+> > > >>>>>>> they were only a handful back then. For instance properly adjust the
+> > > >>>>>>> address to match first address covered by pmd or pud and passing down
+> > > >>>>>>> correct page size to mmu_notifier_invalidate_page() would allow to fix
+> > > >>>>>>> this easily.
+> > > >>>>>>>
+> > > >>>>>>> This is ok because user of try_to_unmap_one() replace the pte/pmd/pud
+> > > >>>>>>> with an invalid one (either poison, migration or swap) inside the
+> > > >>>>>>> function. So anyone racing would synchronize on those special entry
+> > > >>>>>>> hence why it is fine to delay mmu_notifier_invalidate_page() to after
+> > > >>>>>>> dropping the page table lock.
+> > > >>>>>>>
+> > > >>>>>>> Adding start/end might the solution with less code churn as you would
+> > > >>>>>>> only need to change try_to_unmap_one().
+> > > >>>>>>
+> > > >>>>>> What about dependencies? 369ea8242c0fb sounds like it needs work for all
+> > > >>>>>> notifiers need to be updated as well.
+> > > >>>>>
+> > > >>>>> This commit remove mmu_notifier_invalidate_page() hence why everything
+> > > >>>>> need to be updated. But in 4.4 you can get away with just adding start/
+> > > >>>>> end and keep around mmu_notifier_invalidate_page() to minimize disruption.
+> > > >>>>
+> > > >>>> OK, this is really interesting. I was really worried to change the
+> > > >>>> semantic of the mmu notifiers in stable kernels because this is really
+> > > >>>> a hard to review change and high risk for anybody running those old
+> > > >>>> kernels. If we can keep the mmu_notifier_invalidate_page and wrap them
+> > > >>>> into the range scope API then this sounds like the best way forward.
+> > > >>>>
+> > > >>>> So just to make sure we are at the same page. Does this sounds goo for
+> > > >>>> stable 4.4. backport? Mike's hugetlb pmd shared fixup can be applied on
+> > > >>>> top. What do you think?
+> > > >>>
+> > > >>> You need to invalidate outside page table lock so before the call to
+> > > >>> page_check_address(). For instance like below patch, which also only
+> > > >>> do the range invalidation for huge page which would avoid too much of
+> > > >>> a behavior change for user of mmu notifier.
+> > > >>
+> > > >> Right. I would rather not make this PageHuge special though. So the
+> > > >> fixed version should be.
+> > > > 
+> > > > Why not testing for huge ? Only huge is broken and thus only that
+> > > > need the extra range invalidation. Doing the double invalidation
+> > > > for single page is bit overkill.
+> > > 
+> > > I am a bit confused, and hope this does not add to any confusion by others.
+> > > 
+> > > IIUC, the patch below does not attempt to 'fix' anything.  It is simply
+> > > there to add the start/end notifiers to the v4.4 version of this routine
+> > > so that a subsequent patch can use them (with modified ranges) to handle
+> > > unmapping a shared pmd huge page.  That is the mainline fix which started
+> > > this thread.
+> > > 
+> > > Since we are only/mostly interested in fixing the shared pmd issue in
+> > > 4.4, how about just adding the start/end notifiers to the very specific
+> > > case where pmd sharing is possible?
+> > > 
+> > > I can see the value in trying to back port dependent patches such as this
+> > > so that stable releases look more like mainline.  However, I am not sure of
+> > > the value in this case as this patch was part of a larger set changing
+> > > notifier semantics.
+> > 
+> > For all intents and purposes this is not a backport of the original
+> > patch so maybe we should just drop the commit reference and just
+> > explains that it is there to fix mmu notifier in respect to huge page
+> > migration.
+> > 
+> > The original patches fix more than this case because newer featurers
+> > like THP migration, THP swapping, ... added more cases where things
+> > would have been wrong. But in 4.4 frame there is only huge tlb fs
+> > migration.
+> 
+> And THP migration is still a problem with 4.4 AFAICS. All other cases
+> simply split the huge page but THP migration keeps it in one piece and
+> as such it is theoretically broken as you have explained. So I would
+> stick with what I posted with some more clarifications in the changelog
+> if you think it is appropriate (suggestions welcome).
 
---zKD0QXBepZ0ysD7Q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reading code there is no THP migration in 4.4 only huge tlb migration.
+Look at handle_mm_fault which do not know how to handle swap pmd, only
+the huge tlb fs fault handler knows how to handle those. Hence why i
+was checking for huge tlb exactly as page_check_address() to only range
+invalidate for huge tlb fs migration.
 
-On Mon, Sep 03, 2018 at 01:02:35PM -0500, Alexandru Gagniuc wrote:
-> This is now done by the PCI core to warn of sub-optimal bandwidth.
->
-> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ----
->  1 file changed, 4 deletions(-)
->
+But i am fine with doing the range invalidation with all.
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
-
---zKD0QXBepZ0ysD7Q
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbjn/NAAoJEORje4g2clinvdIP/1XmGCCJjlghx2pUotnL9h17
-mR3f+K0cueebvFKq6dvEnK7HwzxU0FZ7dLxgkBcNzEGmT2wHU2sqAjOPGQDJAm8j
-i08jEixwBvkt18wJgBaIszwThxDVCqeMIygsdeVKJ1cz5KyWjJ2S3k2S7k3OVP1W
-zJgJx5pYiGgaMDuM/NAgWNn+Vq0Ra/rrVtYVxxcfpZ5P0Pvw0FC+nFqrtpkyra3f
-VROx2cxjIco9QaukhPan65dV6GTVQkVmOjxj7S+4gGuTAFcpWknpKE33QujPprEP
-YIwvql4uaJ1UDitfj6iiKHPH+1BK4uEQycvX5I0XeZQVkY04NcmcQEYi2WJSFmGu
-vqf1W974lKR08cEwsmJSo4FRZSpBtWO51bcuGI9/DsU4KxbjrlX5OvxmsEiStBh4
-fLeaSLRolCfUZD0aEa2/GcYxxmnVcDujt8UeQbUqGY+BkdZZaUTVi/vh2JaSaMis
-SIbR6UN1E0BKutTPmBiG1XWNyr6SDF9rkVZInvTbEfofT/aFsbCxVeSD6QdbysJJ
-cr0ylqouKVWat5m5FgAL86QYyno9NNDfOKgjRI/Q6FdgglHh2G2mYc7jUlgNuvCj
-B7jOdxO12I46ql2DNbnmdyHjlJH/aRgrnGpdTxH6lhtl81Z/GlENm+HIX0PuVmN7
-7DzWa4DghmRtb3Dq/L5A
-=qx2/
------END PGP SIGNATURE-----
-
---zKD0QXBepZ0ysD7Q--
+Cheers,
+Jérôme
