@@ -1,45 +1,62 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
-Date: Mon, 3 Sep 2018 16:26:27 -0600
-Message-ID: <5f79c012-c6e1-56bb-62fd-0689181fb2c9@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
- <20180830185352.3369-8-logang@deltatee.com>
- <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
- <20180901082812.GB670@lst.de>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next] net/mlx5: Fix atomic_mode enum values
+Date: Tue, 4 Sep 2018 15:05:40 +0300
+Message-ID: <20180904120540.GC2796@mtr-leonro.mtl.com>
+References: <20180903171928.19348-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180901082812.GB670-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
-Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="rd/3IrB17klb+Ksj"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180903171928.19348-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Moni Shoua <monis@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--rd/3IrB17klb+Ksj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On 01/09/18 02:28 AM, Christoph Hellwig wrote:
-> On Thu, Aug 30, 2018 at 01:11:18PM -0600, Jens Axboe wrote:
->> I think this belongs in the caller - both the validity check, and
->> passing in NOMERGE for this type of request. I don't want to impose
->> this overhead on everything, for a pretty niche case.
-> 
-> It is just a single branch, which will be predicted as not taken
-> for non-P2P users.  The benefit is that we get proper error checking
-> by doing it in the block code.
+On Mon, Sep 03, 2018 at 08:19:28PM +0300, Leon Romanovsky wrote:
+> From: Moni Shoua <monis@mellanox.com>
+>
+> The field atomic_mode is 4 bits wide and therefore can hold values
+> from 0x0 to 0xf. Remove the unnecessary 20 bit shift that made the values
+> be incorrect. While that, remove unused enum values.
+>
+> Fixes: 57cda166bbe0 ("net/mlx5: Add DCT command interface")
+> Signed-off-by: Moni Shoua <monis@mellanox.com>
+> Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  include/linux/mlx5/driver.h | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
+>
 
-I personally agree with Christoph. But if there's consensus in the other
-direction or this is a real blocker moving this forward, I can remove it
-for the next version.
+Applied to mlx5-next: aa7e80b220f3 net/mlx5: Fix atomic_mode enum values
 
-Logan
+Thanks
+
+--rd/3IrB17klb+Ksj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbjnUUAAoJEORje4g2clinqT8P/RfV8tQM6Rk34AIJgWH5l70b
+EBnWz6MOgUB+KUz+n3bJR25Cdr1e+7qyDhiBs0BzjH9kpLswLz8TJR5n1jNJOlei
+sLNBbmFopcEQNtFxbrxtYJNkB37AUexPW6UEG3tFN+UfOHxwG4OxSZVosZWX1T09
+Ss2ikH8SIeZI31vxNyHCgy/XlF875HwxDTyQBM1/6ETvSsUKbdfF2WT8E7NFAqE0
+tzKnqEOa5sQJSZ/a5IEC+ePGCChCGIdMuPPVNl4GBsWuXqF0V5nBZeQrn7pS1mq9
+RxPp592Wb3vXa1eGH6h0As/SjVwRLDI2w7oD26qodzamXfqglAGiXsK4bzZkqhK4
++9DJpaCz83q9D28ovPv16ZiiE3Zm8N9Srj4xSm31QsG8tbJsOsy83luheQSa8VgK
+Q5xHbpH0gNY8fjBS2ew3NwK5wpsU3lWRt7rsAAtbEJEzXxINFjowAP8c0PSH4D7J
+VQshkUPUjTVkbgS9AUWWzvwRePsZ7khztKTxV7C7MX7VYtQ1rTPyb0a+5wpZs/s4
+jhMAruossQ7Z0p9J37RzX0+mk5T2d1L81Rjk2fbx2U8w5rkvJaGAtTqIfSVOD+Gm
+GKiEOj7H7UbErxLLWL/DCTz9qElWt8TBNsBycRsczS1sKz6cS5+kn7Iu6KvSJcvX
++tOMvjNLxgE1oqj4QK3s
+=KXXA
+-----END PGP SIGNATURE-----
+
+--rd/3IrB17klb+Ksj--
