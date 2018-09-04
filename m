@@ -1,42 +1,64 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v5 10/13] nvme-pci: Add support for P2P memory in requests
-Date: Tue, 4 Sep 2018 09:47:07 -0600
-Message-ID: <d5548f5d-59df-f38e-255d-59b46a17a219@deltatee.com>
-References: <20180830185352.3369-1-logang@deltatee.com>
- <20180830185352.3369-11-logang@deltatee.com>
- <20180904151638.GL335@mellanox.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
+ pages
+Date: Tue, 4 Sep 2018 10:55:54 -0700
+Message-ID: <4b275965-3e6e-2a68-4b39-d09902bbc573@oracle.com>
+References: <20180829181424.GB3784@redhat.com>
+ <20180829183906.GF10223@dhcp22.suse.cz> <20180829211106.GC3784@redhat.com>
+ <20180830105616.GD2656@dhcp22.suse.cz> <20180830140825.GA3529@redhat.com>
+ <20180830161800.GJ2656@dhcp22.suse.cz> <20180830165751.GD3529@redhat.com>
+ <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
+ <20180830183944.GE3529@redhat.com> <20180903055654.GA14951@dhcp22.suse.cz>
+ <20180904140035.GA3526@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180904151638.GL335-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180904140035.GA3526@redhat.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Sender: stable-owner@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 04/09/18 09:16 AM, Jason Gunthorpe wrote:
->>  	if (iod->nents) {
->> -		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
->> +		/* P2PDMA requests do not need to be unmapped */
->> +		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
->> +			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
+On 09/04/2018 07:00 AM, Jerome Glisse wrote:
+> On Mon, Sep 03, 2018 at 07:56:54AM +0200, Michal Hocko wrote:
+>> On Thu 30-08-18 14:39:44, Jerome Glisse wrote:
+>>> For all intents and purposes this is not a backport of the original
+>>> patch so maybe we should just drop the commit reference and just
+>>> explains that it is there to fix mmu notifier in respect to huge page
+>>> migration.
+>>>
+>>> The original patches fix more than this case because newer featurers
+>>> like THP migration, THP swapping, ... added more cases where things
+>>> would have been wrong. But in 4.4 frame there is only huge tlb fs
+>>> migration.
+>>
+>> And THP migration is still a problem with 4.4 AFAICS. All other cases
+>> simply split the huge page but THP migration keeps it in one piece and
+>> as such it is theoretically broken as you have explained. So I would
+>> stick with what I posted with some more clarifications in the changelog
+>> if you think it is appropriate (suggestions welcome).
 > 
-> This seems like a poor direction, if we add IOMMU hairpin support we
-> will need unmapping.
+> Reading code there is no THP migration in 4.4 only huge tlb migration.
+> Look at handle_mm_fault which do not know how to handle swap pmd, only
+> the huge tlb fs fault handler knows how to handle those. Hence why i
+> was checking for huge tlb exactly as page_check_address() to only range
+> invalidate for huge tlb fs migration.
 
-It can always be added later. In any case, you'll have to convince
-Christoph who requested the change; I'm not that invested in this decision.
+I agree with Jérôme that THP migration was added after 4.4.  But, I could
+be missing something.
 
-Logan
+> But i am fine with doing the range invalidation with all.
+
+Since the shared pmd patch which will ultimately go on top of this needs
+the PageHuge checks, my preference would be Jérôme's patch.
+
+However, IMO I am not certain we really need/want a separate patch.  We
+could just add the notifiers to the shared pmd patch.  Back porting the
+shared pmd patch will also require some fixup.
+
+Either would work.  I'll admit I do not know what stable maintainers would
+prefer.
+-- 
+Mike Kravetz
