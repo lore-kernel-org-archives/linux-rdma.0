@@ -1,32 +1,24 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next] RDMA/qedr: remove set but not used variable
- 'ctx'
-Date: Wed, 5 Sep 2018 15:56:18 -0600
-Message-ID: <20180905215618.GA30370@ziepe.ca>
-References: <1535774026-160694-1-git-send-email-yuehaibing@huawei.com>
+Subject: Re: [PATCH] cxgb4: fix abort_req_rss6 struct
+Date: Wed, 5 Sep 2018 16:55:55 -0600
+Message-ID: <20180905225555.GA3775@ziepe.ca>
+References: <1e9f55943699dcc2bc921000ee7ee5353cbf7480.1535742195.git.swise@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1535774026-160694-1-git-send-email-yuehaibing@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <1e9f55943699dcc2bc921000ee7ee5353cbf7480.1535742195.git.swise@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: netdev@vger.kernel.org, dledford@redhat.com, davem@davemloft.net, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 01, 2018 at 03:53:46AM +0000, YueHaibing wrote:
-> Fixes gcc '-Wunused-but-set-variable' warning:
-> 
-> drivers/infiniband/hw/qedr/verbs.c: In function 'qedr_create_srq':
-> drivers/infiniband/hw/qedr/verbs.c:1450:24: warning:
->  variable 'ctx' set but not used [-Wunused-but-set-variable]
-> 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> Acked-by: Rahul Verma <rahul.verma@cavium.com>
-> ---
->  drivers/infiniband/hw/qedr/verbs.c | 2 --
->  1 file changed, 2 deletions(-)
+On Fri, Aug 31, 2018 at 11:52:00AM -0700, Steve Wise wrote:
+> Remove the incorrect WR_HDR field which can cause a misinterpretation
+> of this CPL by ULDs.
 
-Applied to for-next, thanks
+What does that mean?
+
+Is this an -rc patch?
 
 Jason
