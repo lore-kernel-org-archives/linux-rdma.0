@@ -1,58 +1,71 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH net-next] net/mlx5e: Make function
- mlx5i_grp_sw_update_stats() static
-Date: Wed, 5 Sep 2018 14:25:30 +0300
-Message-ID: <20180905112530.GQ2977@mtr-leonro.mtl.com>
-References: <1536146162-132732-1-git-send-email-weiyongjun1@huawei.com>
+Subject: Re: [PATCH v3 2/3] IB/ipoib: Use dev_port to expose network
+ interface port numbers
+Date: Wed, 5 Sep 2018 16:41:03 +0300
+Message-ID: <20180905134103.GS2977@mtr-leonro.mtl.com>
+References: <20180903161316.25121-1-ar@cs.msu.ru>
+ <20180903161316.25121-3-ar@cs.msu.ru>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="vk/v8fjDPiDepTtA"
+        protocol="application/pgp-signature"; boundary="7l042bGvurpep9Wg"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1536146162-132732-1-git-send-email-weiyongjun1@huawei.com>
+In-Reply-To: <20180903161316.25121-3-ar@cs.msu.ru>
 Sender: netdev-owner@vger.kernel.org
-To: Wei Yongjun <weiyongjun1@huawei.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Or Gerlitz <ogerlitz@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Alex Vesker <valex@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Arseny Maslennikov <ar@cs.msu.ru>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---vk/v8fjDPiDepTtA
+--7l042bGvurpep9Wg
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Sep 05, 2018 at 11:16:02AM +0000, Wei Yongjun wrote:
-> Fixes the following sparse warning:
+On Mon, Sep 03, 2018 at 07:13:15PM +0300, Arseny Maslennikov wrote:
+> Some InfiniBand network devices have multiple ports on the same PCI
+> function. This initializes the `dev_port' sysfs field of those
+> network interfaces with their port number.
 >
-> drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c:119:6: warning:
->  symbol 'mlx5i_grp_sw_update_stats' was not declared. Should it be static?
+> Prior to this the kernel erroneously used the `dev_id' sysfs
+> field of those network interfaces to convey the port number to userspace.
 >
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> The use of `dev_id' was considered correct until Linux 3.15,
+> when another field, `dev_port', was defined for this particular
+> purpose and `dev_id' was reserved for distinguishing stacked ifaces
+> (e.g: VLANs) with the same hardware address as their parent device.
+>
+> Similar fixes to net/mlx4_en and many other drivers, which started
+> exporting this information through `dev_id' before 3.15, were accepted
+> into the kernel 4 years ago.
+> See 76a066f2a2a0 (`net/mlx4_en: Expose port number through sysfs').
+>
+> Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
 > ---
->  drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
+>  1 file changed, 2 insertions(+)
 >
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---vk/v8fjDPiDepTtA
+--7l042bGvurpep9Wg
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbj70qAAoJEORje4g2clin5DAP/Ay8Ol1p9QJpOla3jm+sGlEa
-ZZ/lR1DVol4oY9F3mXRXXff0Gx+dvXmaxTzH/qVh9tGeEr3/Bckn3HCX1yan3BSn
-Qi7pfChcwxFMMCrHQT15ZpxPTM7vIDMSkgMmyNyjn2gf9Hri4ybcO48yIi7u/RIP
-7QmxErmZLeYWR7K+xXN3WH1ocd+Rnrv73OJsxwlZviW8C5GcbxiITRu6IqnLjxEW
-8/2nVBG/gGkRY+2HjvhZVeYL5xcywYXW3gdsKd7ckR3AnURVpqlGaMkZhcyJL1Ds
-XuPpgmZ7rMrJm+XqG8BBlfxnJOe8WvAn6jIUfi4BM3gJM47BE9wBEw4oUmNTVmx2
-TE7qR9dVSYXdCEuegp90gbMDTbyqGRunTFcnUPfFKyWi8xuMzOfA/KJRArZAddw6
-2WjVeSKgjj3b5zLD78dPNhgiVVn8pTlWWz5bEhftaPg1tPpSX517ycilF07F3igJ
-wh+cqdqlNdBsQlhS7RKSiF7tH0Y4UFBxLUyT2IB51pbEdtEkvcektqcfEy+a7VhX
-Ce9tmN6l79M3piq1bZ2Rc5LmDoomj3oS8qR7H7YuaF63wqAzLJ8zSBayo3XPVcfT
-d/IJ1pSfAVsVsKGXtbIIYc0qLWCj8aWODqqzQujdBAAkF5SiZmoPfgo0XUQsAJmV
-m7w4a4YfM648XWYDU58B
-=g8pc
+iQIcBAEBAgAGBQJbj9zvAAoJEORje4g2clinbZ0QAKruifVs2BhrMP1qUxJjUL3F
+19nbgH435xStjuL/wYGfptABIhkfub84+S5nJ/yZl6X0WpHs2xsTW17iUNcr/cR3
+Wtnvj+39d9dNO1lRuUzVF+r2fX/VeIXLQkIRZMD8D/Zg1LQZE6A4BUeksrL0EZMp
+6m/JZ3QQnNa72wW8HPR5k5wojSNWPGbrp0eNu+UetVUcMgU9UV+3F9VfSCaf9Zxl
+QQc6+d96sJ4B13Nk8y3NJSFSrnddKK873nyXRWH9CdNMdocni3kqisP+f9dyoew1
+UGx/a4Wig+KQi9PB6rFRaLyErJCHrYwIw168HFdkxgpKe7KUEkq2NezbwJpolA50
+u+Y0mkt63ZS6b7yGZ2iPp6/dUKXw086UwbufpURs2NDQCYGWeLUsa+DFWoaMoz5C
+b4gHOJHiAC+vow3Ba1zyHsZten4pLMEtGDECa23FFLE4x5G12jmZSdAa2X4UoXRt
+f3rhEBGJgJfv6VXRPq5ioAcUd0HshsPBxmg7tvw5SI+Ok7gMfq+/Pq+D+INNg5Iu
+RqgFrMWaUqgUnSwglq+BIRGaZTU8FqFz0qMQarpvUhGTqOwxltT1O5ND8ANsLYZv
+MElzB8yAGh5xtV6OorrX+emVOr2hjbAC+J8i7QW41qOLuSkziSLa8OHOkcIhypTw
+AlZaLdugjLv3thOu9UkU
+=Of19
 -----END PGP SIGNATURE-----
 
---vk/v8fjDPiDepTtA--
+--7l042bGvurpep9Wg--
