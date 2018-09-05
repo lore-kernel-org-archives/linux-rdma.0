@@ -1,38 +1,35 @@
-From: Igor Stoppa <igor.stoppa@gmail.com>
-Subject: Re: [PATCH] infiniband: nes: add unlikely() to assert()
-Date: Wed, 5 Sep 2018 21:54:30 +0300
-Message-ID: <62351491-66cb-0541-85e4-481251433a19@gmail.com>
-References: <20180831192418.12346-1-igor.stoppa@huawei.com>
- <20180905060106.GI2977@mtr-leonro.mtl.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v5 10/13] nvme-pci: Add support for P2P memory in
+ requests
+Date: Wed, 5 Sep 2018 21:22:52 +0200
+Message-ID: <20180905192252.GA888@lst.de>
+References: <20180830185352.3369-1-logang@deltatee.com> <20180830185352.3369-11-logang@deltatee.com> <20180904151638.GL335@mellanox.com> <d5548f5d-59df-f38e-255d-59b46a17a219@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180905060106.GI2977@mtr-leonro.mtl.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <d5548f5d-59df-f38e-255d-59b46a17a219@deltatee.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Faisal Latif <faisal.latif@intel.com>, Igor Stoppa <igor.stoppa@huawei.com>, Chien Tung <chien.tin.tung@intel.com>, Roland Dreier <rolandd@cisco.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 05/09/18 09:01, Leon Romanovsky wrote:
-> On Fri, Aug 31, 2018 at 10:24:18PM +0300, Igor Stoppa wrote:
->> Typically the assert is expected to not fail.
+On Tue, Sep 04, 2018 at 09:47:07AM -0600, Logan Gunthorpe wrote:
 > 
-> This whole assert can be removed.
-
-ok
-
->>
->> Signed-off-by: Igor Stoppa <igor.stoppa@huawei.com>
->> Acked-by: Doug Ledford <dledford@redhat.com>
 > 
-> Most probably that I missed discussion, but anyway, does this
-> "Acked-by" come from internal or external discussion?
+> On 04/09/18 09:16 AM, Jason Gunthorpe wrote:
+> >>  	if (iod->nents) {
+> >> -		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
+> >> +		/* P2PDMA requests do not need to be unmapped */
+> >> +		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
+> >> +			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
+> > 
+> > This seems like a poor direction, if we add IOMMU hairpin support we
+> > will need unmapping.
+> 
+> It can always be added later. In any case, you'll have to convince
+> Christoph who requested the change; I'm not that invested in this decision.
 
-https://lkml.org/lkml/2018/8/31/456
-
---
-igor
+Yes, no point to add dead code here.  In the long run we should
+aim for hiding the p2p address translation behind the normal DMA API
+anyway, but we're not quite ready for it yet.
