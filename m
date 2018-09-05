@@ -1,40 +1,47 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/bnxt_re: QPLIB: Add and use #define dev_fmt(fmt)
- "QPLIB: " fmt
-Date: Wed, 5 Sep 2018 15:37:12 -0600
-Message-ID: <20180905213712.GA17698@ziepe.ca>
-References: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
+ separated flow table creation flags
+Date: Thu, 6 Sep 2018 00:37:17 +0300
+Message-ID: <CAJ3xEMjrrhjCRmnGyD4SYit+pgJpakXLSrF6i35qaZiDfGsAxw@mail.gmail.com>
+References: <20180828111854.14367-1-leon@kernel.org> <20180828111854.14367-6-leon@kernel.org>
+ <20180904220242.GA3895@ziepe.ca> <20180905051025.GC2977@mtr-leonro.mtl.com>
+ <20180905163800.GA21028@ziepe.ca> <20180905181140.GV2977@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <fe07a1dbe1f6699b4a64444505ae2dbacc2155cc.1533926549.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180905181140.GV2977@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 10, 2018 at 11:42:46AM -0700, Joe Perches wrote:
-> Consistently use the "QPLIB: " prefix for dev_<level> logging.
-> 
-> Miscellanea:
-> 
-> o Add missing newlines to avoid possible message interleaving
-> o Coalesce consecutive dev_<level> uses that emit a message header to
->   avoid < 80 column lengths and mistakenly output on multiple lines
-> o Reflow modified lines to use 80 columns where appropriate
-> o Consistently use "%s: " where __func__ is output
-> o QPLIB: is now always output immediately after the dev_<level> header
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> Acked-by: Selvin Xavier <selvin.xavier@broadcom.com>
-> ---
->  drivers/infiniband/hw/bnxt_re/qplib_fp.c   | 130 +++++++++++------------------
->  drivers/infiniband/hw/bnxt_re/qplib_rcfw.c |  51 ++++++-----
->  drivers/infiniband/hw/bnxt_re/qplib_res.c  |  29 ++++---
->  drivers/infiniband/hw/bnxt_re/qplib_sp.c   |  57 ++++++-------
->  4 files changed, 116 insertions(+), 151 deletions(-)
+On Wed, Sep 5, 2018 at 9:11 PM, Leon Romanovsky  wrote:
+> On Wed, Sep 05, 2018 at 10:38:00AM -0600, Jason Gunthorpe wrote:
+>> On Wed, Sep 05, 2018 at 08:10:25AM +0300, Leon Romanovsky wrote:
+>> > > > -       int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
+>> > > > +       int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
+>> > > > +       int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+>> > >
+>> > > Yuk, please don't use !!.
+>> > >
+>> > >   bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
+>> >
+>> > We need to provide en_encap and en_decap as an input to MLX5_SET(...)
+>> > which is passed to FW as 0 or 1.
+>> >
+>> > Boolean type is declared in C as int and treated as zero for false
+>> > and any other value for true,
+>>
+>> No, that isn't right, the kernel uses C99's _Bool intrinsic type, which
+>> is guaranteed to only hold 0 or 1 by the compiler.
+>>
+>> See types.h:
+>>
+>> typedef _Bool                   bool;
+>
+> Exciting, it took me a while to find C99 standard and relevant 6.3.1.2.
+> Anyway, this patch didn't change previous functionality, which used "!!"
+> convention.
 
-Applied to for-next, thanks
-
-Jason
+so? if we didn't do things properly prior to the patch, why not fixing it along
+with the patch? lets fix
