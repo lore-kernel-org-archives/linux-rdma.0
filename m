@@ -1,56 +1,43 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] infiniband: nes: add unlikely() to assert()
-Date: Wed, 5 Sep 2018 09:01:06 +0300
-Message-ID: <20180905060106.GI2977@mtr-leonro.mtl.com>
-References: <20180831192418.12346-1-igor.stoppa@huawei.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH v6 1/2] mm: migration: fix migration of huge PMD shared
+ pages
+Date: Wed, 5 Sep 2018 08:57:46 +0200
+Message-ID: <20180905065746.GY14951@dhcp22.suse.cz>
+References: <20180829183906.GF10223@dhcp22.suse.cz>
+ <20180829211106.GC3784@redhat.com>
+ <20180830105616.GD2656@dhcp22.suse.cz>
+ <20180830140825.GA3529@redhat.com>
+ <20180830161800.GJ2656@dhcp22.suse.cz>
+ <20180830165751.GD3529@redhat.com>
+ <e0c0c966-6706-4ca2-4077-e79322756a9b@oracle.com>
+ <20180830183944.GE3529@redhat.com>
+ <20180903055654.GA14951@dhcp22.suse.cz>
+ <20180904140035.GA3526@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6cMF9JLEeZkfJjkP"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180831192418.12346-1-igor.stoppa@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Igor Stoppa <igor.stoppa@gmail.com>
-Cc: Faisal Latif <faisal.latif@intel.com>, Igor Stoppa <igor.stoppa@huawei.com>, Chien Tung <chien.tin.tung@intel.com>, Roland Dreier <rolandd@cisco.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20180904140035.GA3526@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Vlastimil Babka <vbabka@suse.cz>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation.org>, stable@vger.kernel.org, linux-rdma@vger.kernel.org, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Dimitri Sivanich <sivanich@sgi.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue 04-09-18 10:00:36, Jerome Glisse wrote:
+> On Mon, Sep 03, 2018 at 07:56:54AM +0200, Michal Hocko wrote:
+[...]
+> > And THP migration is still a problem with 4.4 AFAICS. All other cases
+> > simply split the huge page but THP migration keeps it in one piece and
+> > as such it is theoretically broken as you have explained. So I would
+> > stick with what I posted with some more clarifications in the changelog
+> > if you think it is appropriate (suggestions welcome).
+> 
+> Reading code there is no THP migration in 4.4 only huge tlb migration.
 
---6cMF9JLEeZkfJjkP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Meh, you are right. For some reason I misread unmap_and_move_huge_page
+to be also for THP. Sorry for the conusion. My fault!
 
-On Fri, Aug 31, 2018 at 10:24:18PM +0300, Igor Stoppa wrote:
-> Typically the assert is expected to not fail.
-
-This whole assert can be removed.
-
->
-> Signed-off-by: Igor Stoppa <igor.stoppa@huawei.com>
-> Acked-by: Doug Ledford <dledford@redhat.com>
-
-Most probably that I missed discussion, but anyway, does this
-"Acked-by" come from internal or external discussion?
-
-Thanks
-
---6cMF9JLEeZkfJjkP
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbj3EiAAoJEORje4g2clinidUP/Rork9n9fN0ngNcahEEtYG9U
-2qTbEKea5ZwHgXvT+0b8PNCdghqLc3WpaJh15aH7lxs4Faue1qCP8hD5djGu99To
-G5eC6hYPGUdN0fR5TEn91pNls5Wsh+BgHhU1J81zR/9u15h8+QpE8KhqhNTi2VWs
-gvD99s1qEhUvjDxxCbN3wEEVv//Ld9gcZfYK2GaVOaF57qRBFC+bS9xT0kEgOeC+
-5Zm/hwh0Soamzar6jKqT5QakBK6TdxMOyGRY7vLGOgmE7/bS378/VML9pgsdA3ge
-XQLWYgBDNIEb4bvVo8VUp6QzSA1faxgoRPz8g0XTg9NaYnFFokvAatTUZJyBkkwQ
-9jRwjz1GthYMBAWzsx44QVUBs1qc0H2AahZN8dtn4mqI8zkPHQwvis4edfHc/J8S
-f3///vRUhxvYI2OVCPXYpy3scGrG/RapO1asC40ymvWM4tI+9wWK7HZC6u+cXmDS
-kPL/VCaLYStWiCxP65v2MTaHOTZ1kx2fZkGsBctUTB0c+F90GPe2zWcVyaNVuEK9
-n2UPNXR7j2p5htjcZqslqGf/s62ReH1RoiaH+oj+HQhlKGIY6LG54iDaCbWSwV1g
-vL6RiuhSQ6mbagxwuC38J/1WdrpT94/dApGnwuFfqlEVrZiuGYOWRt+ZWU9iFUz2
-2z/lL+2+WvjiwqW8TYDI
-=abR1
------END PGP SIGNATURE-----
-
---6cMF9JLEeZkfJjkP--
+Then it would be indeed safer to use your backport.
+-- 
+Michal Hocko
+SUSE Labs
