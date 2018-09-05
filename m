@@ -1,27 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net/mlx5e: Make function
- mlx5i_grp_sw_update_stats() static
-Date: Wed, 05 Sep 2018 08:06:45 -0700 (PDT)
-Message-ID: <20180905.080645.298013872228567967.davem@davemloft.net>
-References: <1536146162-132732-1-git-send-email-weiyongjun1@huawei.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH v3 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from
+ userspace
+Date: Wed, 5 Sep 2018 16:47:27 +0100
+Message-ID: <20180905164727.3108bce6@shemminger-XPS-13-9360>
+References: <20180903161316.25121-1-ar@cs.msu.ru>
+        <20180903161316.25121-4-ar@cs.msu.ru>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1536146162-132732-1-git-send-email-weiyongjun1@huawei.com>
+In-Reply-To: <20180903161316.25121-4-ar@cs.msu.ru>
 Sender: netdev-owner@vger.kernel.org
-To: weiyongjun1@huawei.com
-Cc: saeedm@mellanox.com, leon@kernel.org, jgg@ziepe.ca, ogerlitz@mellanox.com, tariqt@mellanox.com, ferasda@mellanox.com, valex@mellanox.com, erezsh@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Arseny Maslennikov <ar@cs.msu.ru>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
-Date: Wed, 5 Sep 2018 11:16:02 +0000
+On Mon,  3 Sep 2018 19:13:16 +0300
+Arseny Maslennikov <ar@cs.msu.ru> wrote:
 
-> Fixes the following sparse warning:
-> 
-> drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c:119:6: warning:
->  symbol 'mlx5i_grp_sw_update_stats' was not declared. Should it be static?
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> +	if (ndev->dev_id == ndev->dev_port) {
+> +		netdev_info_once(ndev,
+> +			"\"%s\" wants to know my dev_id. "
+> +			"Should it look at dev_port instead?\n",
+> +			current->comm);
+> +		netdev_info_once(ndev,
+> +			"See Documentation/ABI/testing/sysfs-class-net for more info.\n");
+> +	}
 
-Applied.
+Single line message is sufficient.
+Also don't break strings in messages.
+
+> +	}
+> +
+> +	ret = sprintf(buf, "%#x\n", ndev->dev_id);
+> +
+> +	return ret;
+
+Why not?
+	return sprintf...
