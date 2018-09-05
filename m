@@ -1,8 +1,8 @@
-From: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
  check support for requests
-Date: Wed, 5 Sep 2018 14:36:56 -0600
-Message-ID: <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c@kernel.dk>
+Date: Wed, 5 Sep 2018 15:03:18 -0600
+Message-ID: <c41c802c-9235-5383-2dfa-af9c1553f11b@deltatee.com>
 References: <20180830185352.3369-1-logang@deltatee.com>
  <20180830185352.3369-8-logang@deltatee.com>
  <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
@@ -19,11 +19,12 @@ References: <20180830185352.3369-1-logang@deltatee.com>
  <e3ef26e6-6c8d-25b8-fa64-14594a51263c@deltatee.com>
  <3af4d1d4-da07-c0a6-8464-9ddc1378f2f4@kernel.dk>
  <f9e660cd-b597-bb6e-56a2-82fe71cb3649@deltatee.com>
+ <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c@kernel.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <f9e660cd-b597-bb6e-56a2-82fe71cb3649-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <34d9b2f7-9e6d-4a0a-77e5-ec0e99610f5c-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -34,51 +35,47 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/5/18 2:32 PM, Logan Gunthorpe wrote:
-> 
-> 
-> On 05/09/18 02:19 PM, Jens Axboe wrote:
->> On 9/5/18 2:18 PM, Logan Gunthorpe wrote:
->>>
->>>
->>> On 05/09/18 02:14 PM, Jens Axboe wrote:
->>>> But if the caller must absolutely know where the bio will end up, then
->>>> it seems super redundant. So I'd vote for killing this check, it buys
->>>> us absolutely nothing and isn't even exhaustive in its current form.
->>>
->>>
->>> Ok, I'll remove it for v6.
+
+
+On 05/09/18 02:36 PM, Jens Axboe wrote:
+> On 9/5/18 2:32 PM, Logan Gunthorpe wrote:
 >>
->> Since the drivers needs to know it's doing it right, it might not
->> hurt to add a sanity check helper for that. Just have the driver
->> call it, and don't add it in the normal IO submission path.
+>>
+>> On 05/09/18 02:19 PM, Jens Axboe wrote:
+>>> On 9/5/18 2:18 PM, Logan Gunthorpe wrote:
+>>>>
+>>>>
+>>>> On 05/09/18 02:14 PM, Jens Axboe wrote:
+>>>>> But if the caller must absolutely know where the bio will end up, then
+>>>>> it seems super redundant. So I'd vote for killing this check, it buys
+>>>>> us absolutely nothing and isn't even exhaustive in its current form.
+>>>>
+>>>>
+>>>> Ok, I'll remove it for v6.
+>>>
+>>> Since the drivers needs to know it's doing it right, it might not
+>>> hurt to add a sanity check helper for that. Just have the driver
+>>> call it, and don't add it in the normal IO submission path.
+>>
+>> I'm not sure I really see the value in that. It's the same principle in
+>> asking the driver to do the WARN: if the developer knew enough to use
+>> the special helper, they probably knew well enough to do the rest correctly.
 > 
-> I'm not sure I really see the value in that. It's the same principle in
-> asking the driver to do the WARN: if the developer knew enough to use
-> the special helper, they probably knew well enough to do the rest correctly.
+> I don't agree with that at all. It's a "is my request valid" helper,
+> it's not some obscure and rarely used functionality. You're making up
+> this API right now, if you really want it done for every IO, make it
+> part of the p2p submission process. You could even hide it behind a
+> debug thing, if you like.
 
-I don't agree with that at all. It's a "is my request valid" helper,
-it's not some obscure and rarely used functionality. You're making up
-this API right now, if you really want it done for every IO, make it
-part of the p2p submission process. You could even hide it behind a
-debug thing, if you like.
+There is no special p2p submission process. In the nvme-of case we are
+using the existing process and with the code in blk-core it didn't
+change it's process at all. Creating a helper will create one and I can
+look at making a pci_p2pdma_submit_bio() for v6; but if the developer
+screws up and still calls the regular submit_bio() things will only be
+very subtly broken and that won't be obvious.
 
-> I guess one other thing to point out is that, on x86, if a driver
-> submits P2P pages to a PCI device that doesn't have kernel support,
-> everything will likely just work. Even though the driver isn't doing any
-> of the work correctly and the requests are not being mapped with
-> pci_p2pdma_map() functions. Such code on other arches would likely
-> break. So developers may be lulled into thinking they're doing the
-> correct thing when in fact they are not and the WARN in the common code
-> would prevent that.
-
-If you're adamant about having it in common code, put it in your
-common submission code. Most folks aren't going to care about P2P, let the
-ones that do have the checks.
-
--- 
-Jens Axboe
+Logan
