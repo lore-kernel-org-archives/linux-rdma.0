@@ -1,104 +1,179 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
- separated flow table creation flags
-Date: Wed, 5 Sep 2018 08:10:25 +0300
-Message-ID: <20180905051025.GC2977@mtr-leonro.mtl.com>
+Subject: Re: [PATCH rdma-next v1 00/15] Flow actions to mutate packets
+Date: Wed, 5 Sep 2018 08:14:58 +0300
+Message-ID: <20180905051458.GD2977@mtr-leonro.mtl.com>
 References: <20180828111854.14367-1-leon@kernel.org>
- <20180828111854.14367-6-leon@kernel.org>
- <20180904220242.GA3895@ziepe.ca>
+ <20180904221205.GB3895@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="uQr8t48UFsdbeI+V"
+        protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180904220242.GA3895@ziepe.ca>
+In-Reply-To: <20180904221205.GB3895@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---uQr8t48UFsdbeI+V
+--mvpLiMfbWzRoNl4x
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Sep 04, 2018 at 04:02:42PM -0600, Jason Gunthorpe wrote:
-> On Tue, Aug 28, 2018 at 02:18:44PM +0300, Leon Romanovsky wrote:
-> > From: Mark Bloch <markb@mellanox.com>
+On Tue, Sep 04, 2018 at 04:12:05PM -0600, Jason Gunthorpe wrote:
+> On Tue, Aug 28, 2018 at 02:18:39PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > Today we are able to attach encap and decap actions only to the FDB. In
-> > preparation to enable those actions on the NIC flow tables, break the
-> > single flag into two. Those flags control whatever a decap or encap
-> > operations can be attached to the flow table created. For FDB, if
-> > encapsulation is required, we set both of them.
+> > >From Mark,
 > >
-> > Signed-off-by: Mark Bloch <markb@mellanox.com>
-> > Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
-> > Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 3 ++-
-> >  drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c           | 7 ++++---
-> >  include/linux/mlx5/fs.h                                    | 3 ++-
-> >  3 files changed, 8 insertions(+), 5 deletions(-)
+> > This series exposes the ability to create flow actions which can
+> > mutate packet headers. We do that by exposing two new verbs:
+> >  * modify header - can change existing packet headers. packet
+> >  * reformat - can encapsulate or decapsulate a packet.
+> >               Once created a flow action must be attached to a steering
+> >               rule for it to take effect.
 > >
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > index f72b5c9dcfe9..ff21807a0c4b 100644
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-> > @@ -529,7 +529,8 @@ static int esw_create_offloads_fast_fdb_table(struct mlx5_eswitch *esw)
-> >  		esw_size >>= 1;
+> > The first 10 patches refactor mlx5_core code, rename internal structures
+> > to better reflect their operation and export needed functions so the
+> > RDMA side can allocate the action.
 > >
-> >  	if (esw->offloads.encap != DEVLINK_ESWITCH_ENCAP_MODE_NONE)
-> > -		flags |= MLX5_FLOW_TABLE_TUNNEL_EN;
-> > +		flags |= (MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP |
-> > +			  MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+> > The last 5 patches expose via the IOCTL infrastructure mlx5_ib methods
+> > which do the actual allocation of resources and return an handle to the
+> > user. A user of this API is expected to know how to work with the
+> > device's spec as the input to those function is HW depended.
 > >
-> >  	fdb = mlx5_create_auto_grouped_flow_table(root_ns, FDB_FAST_PATH,
-> >  						  esw_size,
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-> > index 9ae777e56529..1698f325a21e 100644
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-> > @@ -152,7 +152,8 @@ static int mlx5_cmd_create_flow_table(struct mlx5_core_dev *dev,
-> >  				      struct mlx5_flow_table *next_ft,
-> >  				      unsigned int *table_id, u32 flags)
-> >  {
-> > -	int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
-> > +	int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
-> > +	int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+> > An example usage of the modify header action is routing, A user can
+> > create an action which edits the L2 header and decrease the TTL.
+> >
+> > An example usage of the packet reformat action is VXLAN encap/decap
+> > which is done by the HW.
+> >
+> > Changelog:
+> >  v0 -> v1:
+> >   * Patch 1: Addressed Saeed's comments and simplified the logic.
+> >   * Patch 2: Changed due to changes in patch 1.
+> >
+> >  Split the 27 patch series into 3, this is the first one
+> >  which just lets the user create flow action.
+> >  Other than that styling fixes mainly in the RDMA patches
+> >  to make sure 80 chars limit isn't exceeded.
+> >
+> >  RFC -> v0:
+> >   * Patch 1 a new patch which refactors the logic
+> >     when getting a flow namespace.
+> >   * Patch 2 was split into two.
+> >   * Patch 3: Fixed a typo in commit message
+> >   * Patch 5: Updated commit message
+> >   * Patch 7: Updated commit message
+> >     Renamed:
+> >       - MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT_ID to
+> >         MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT
+> >       - packet_reformat_id to reformat_id in struct mlx5_flow_act
+> >       - packet_reformat_id to encap_id in struct mlx5_esw_flow_attr
+> >       - packet_reformat_id to encap_id in struct mlx5e_encap_entry
+> >       - PACKET_REFORMAT to REFORMAT when printing trace points
+> >   * Patch 9: Updated commit message
+> >     Updated function declaration in mlx5_core.h, could of lead
+> >     to compile error on bisection.
+> >   * Patch 11: Disallow egress rules insertion when in switchdev mode
+> >   * Patch 12: A new patch to deal with passing enum values using
+> >     the IOCTL infrastructure.
+> >   * Patch 13: Use new enum value attribute when passing enum
+> >     mlx5_ib_uapi_flow_table_type
+> >   * Patch 15: Don't set encap flags on flow tables if in switchdev mode
+> >   * Patch 17: Use new enum value attribute when passing enum
+> >     mlx5_ib_uapi_flow_table_type and enum
+> >     mlx5_ib_uapi_flow_action_packet_reformat_type
+> >   * Patch 19: Allow creation of both
+> >     MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L2_TO_L3_TUNNEL
+> >     and MLX5_IB_UAPI_FLOW_ACTION_PACKET_REFORMAT_TYPE_L3_TUNNEL_TO_L2
+> > packet
+> >     reformat actions.
+> >   * Patch 20: A new patch which allows attaching packet reformat
+> >     actions to flow tables on NIC RX.
+> >
+> > Thanks
+> >
+> > Mark Bloch (15):
+> >   net/mlx5: Cleanup flow namespace getter switch logic
+> >   net/mlx5: Add proper NIC TX steering flow tables support
+> >   net/mlx5: Export modify header alloc/dealloc functions
+> >   net/mlx5: Add support for more namespaces when allocating modify
+> >     header
+> >   net/mlx5: Break encap/decap into two separated flow table creation
+> >     flags
+> >   net/mlx5: Move header encap type to IFC header file
+> >   {net, RDMA}/mlx5: Rename encap to reformat packet
+> >   net/mlx5: Expose new packet reformat capabilities
+> >   net/mlx5: Pass a namespace for packet reformat ID allocation
+> >   net/mlx5: Export packet reformat alloc/dealloc functions
+> >   RDMA/uverbs: Add UVERBS_ATTR_CONST_IN to the specs language
+> >   RDMA/mlx5: Add a new flow action verb - modify header
+> >   RDMA/uverbs: Add generic function to fill in flow action object
+> >   RDMA/mlx5: Add new flow action verb - packet reformat
+> >   RDMA/mlx5: Extend packet reformat verbs
+> >
+> >  drivers/infiniband/core/uverbs_ioctl.c             |  23 ++
+> >  .../infiniband/core/uverbs_std_types_flow_action.c |   7 +-
+> >  drivers/infiniband/hw/mlx5/devx.c                  |   6 +-
+> >  drivers/infiniband/hw/mlx5/flow.c                  | 301 +++++++++++++++++++++
+> >  drivers/infiniband/hw/mlx5/main.c                  |   3 +
+> >  drivers/infiniband/hw/mlx5/mlx5_ib.h               |  19 +-
+> >  drivers/net/ethernet/mellanox/mlx5/core/cmd.c      |   8 +-
+> >  .../mellanox/mlx5/core/diag/fs_tracepoint.h        |   2 +-
+> >  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c    |  51 ++--
+> >  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c  |   2 +-
+> >  .../ethernet/mellanox/mlx5/core/eswitch_offloads.c |   9 +-
+> >  drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c   |  87 +++---
+> >  drivers/net/ethernet/mellanox/mlx5/core/fs_core.c  |  73 +++--
+> >  .../net/ethernet/mellanox/mlx5/core/mlx5_core.h    |  12 +-
+> >  include/linux/mlx5/device.h                        |   6 +
+> >  include/linux/mlx5/fs.h                            |  20 +-
+> >  include/linux/mlx5/mlx5_ifc.h                      |  70 +++--
+> >  include/rdma/uverbs_ioctl.h                        |  40 +++
+> >  include/rdma/uverbs_std_types.h                    |  12 +
+> >  include/uapi/rdma/mlx5_user_ioctl_cmds.h           |  18 ++
+> >  include/uapi/rdma/mlx5_user_ioctl_verbs.h          |  12 +
+> >  21 files changed, 638 insertions(+), 143 deletions(-)
 >
-> Yuk, please don't use !!.
+> This looks OK to me, can you make the shared commit please?
+
+Thanks, I pushed to mlx5-next
+
+50acec06f392 net/mlx5: Export packet reformat alloc/dealloc functions
+31ca3648f01b net/mlx5: Pass a namespace for packet reformat ID allocation
+bea4e1f6c6c5 net/mlx5: Expose new packet reformat capabilities
+60786f0987c0 {net, RDMA}/mlx5: Rename encap to reformat packet
+e0e7a3861b6c net/mlx5: Move header encap type to IFC header file
+61444b458b01 net/mlx5: Break encap/decap into two separated flow table creation flags
+c3c062f80665 net/mlx5: Add support for more namespaces when allocating modify header
+90c1d1b8da67 net/mlx5: Export modify header alloc/dealloc functions
+8ce78257965e net/mlx5: Add proper NIC TX steering flow tables support
+2226dcb424bf net/mlx5: Cleanup flow namespace getter switch logic
+
+
 >
-> 	bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
-
-We need to provide en_encap and en_decap as an input to MLX5_SET(...)
-which is passed to FW as 0 or 1. Boolean type is declared in C as int
-and treated as zero for false and any other value for true, so we
-can't pass "bool en_decap" without ensuring before that it is 1.
-
-I'm applying this patch as is.
-
-Thanks
-
->
+> Thanks,
 > Jason
 
---uQr8t48UFsdbeI+V
+--mvpLiMfbWzRoNl4x
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbj2VBAAoJEORje4g2clin0fkP/RjQnuXIOP0ZyG6QdrMc9QxD
-PndfbmVW+66OkdmViiyxSyqFo1hxzvYh2PLrzKhReE4V8/ooB9YDNBinqTVDvHYC
-ye9MiY+91cZ3XFSINKBVsGJGcBW1jwr7Sx4x/Nd54GsUvkRoAHwDpVPsUKG158Ku
-OCW4SI5Xx36MdeAQyou/v0rE18FeCoDuss08F4CCnDKcPWhgBglM16nOHa1yiskR
-ZQrgpS35ZafFcwHDZiQZkjyk/T1lVX4hwlH5V/V01HmnZJxYQcKum7rMmZPuk+AI
-PFhREFkE5T8ZS5GG/aPz3KKEXx2qJv2IO9yCdmwmErxtsv9NPl/p11AgWggvQvuu
-DXR3+77D/YckFHNcS3kSk+SSGK6r6Skbr7RiQgHL6Yobj1MW9yBPAGz675NaJuP5
-R3eXLci2x9tU302os8u6w9Y15SiYNmsxa3cw+wjQeTrNHmUS4272OErUAYgcOa6c
-i6PEaX+7eIb1Fj6wDxsdi0i9KunI9lA08mQ3ekxpQWVShHE9E+o6JVkFk+PXbFqm
-zVs1N0zJ7Y3AYw8U4aVfth5wx/TjFNS2HIhvSBorR7knir+zgGsxPtsHJISyZ1ha
-cBWLVQJqJ+QYXh25vPPYAAUdwZXP/ciTWMC9Wj17MybxKqclXdwdqi0GamsQJAen
-uUHGOJco1RsEQEQ/rXV7
-=MWEY
+iQIcBAEBAgAGBQJbj2ZSAAoJEORje4g2clinggIP/3QBoWxQ5FZbo+dAjNspi8E8
+go64SgAliwR9g3uZpR1e9ano63ihfFQ5nxavUEINke2xwJ6R8YI+xQkrMtI34Nt9
+TAzlDwPxsct8/+JP1evquYxGbfOQuLROrke0AfpxtWts72i+TiAPGzzSmmQS1alr
+hqMxbO8x4Ocx3XGjcdJN3fadQmwU08UDBq6XySnx+T09GF1fVhsfFXaNitV2AYKP
+NT3/A0VgDAy0WJQdafoY/ZM0O4EaHiTM/yQygvW8F9asCiSNaooC0/A0MKp3eYJ8
+33qOKnenuWB0OQdmlw1vUOP6Z4LBDZLbtJa6Avyd+wk/btXdUG8lKxfYKsItiM0o
+xvGcQXD2K2myDJ+XePuihpsP4xw+9zvk2lMUUYSx488e3JUMSfuHyqFqP8/aWaH1
+78DKhU6shZ/bZSWYFvX+xCKhlPGJLVnm4FzhuVNp3JiMIYrD5QvkqHOGZKy3BY1W
+d8RvdrgzJUfbYvZl+oPwYH+aAZHudPQ6VNrOJOvNXD5j9OcQuBIbGdxeyFtKFD/e
+IlaD7TBd4kyUpatMQl//VL+Mwl0mE0Vd26tMnf6UaPrJm4E6yphuhxIhowm89HEN
+Hwy0mtaWkBwQ5vdh5I3BbQuyLbefYbW4XW67OquiF3/VESXB6hMmDPpQZPwBSlTy
+bJvgzzghzphzuJh4Xi9h
+=1Wpw
 -----END PGP SIGNATURE-----
 
---uQr8t48UFsdbeI+V--
+--mvpLiMfbWzRoNl4x--
