@@ -1,40 +1,42 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [PATCH v3 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from
- userspace
-Date: Wed, 5 Sep 2018 16:47:27 +0100
-Message-ID: <20180905164727.3108bce6@shemminger-XPS-13-9360>
-References: <20180903161316.25121-1-ar@cs.msu.ru>
-        <20180903161316.25121-4-ar@cs.msu.ru>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
+ separated flow table creation flags
+Date: Wed, 5 Sep 2018 10:38:00 -0600
+Message-ID: <20180905163800.GA21028@ziepe.ca>
+References: <20180828111854.14367-1-leon@kernel.org>
+ <20180828111854.14367-6-leon@kernel.org>
+ <20180904220242.GA3895@ziepe.ca>
+ <20180905051025.GC2977@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180903161316.25121-4-ar@cs.msu.ru>
+Content-Disposition: inline
+In-Reply-To: <20180905051025.GC2977@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Arseny Maslennikov <ar@cs.msu.ru>
-Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon,  3 Sep 2018 19:13:16 +0300
-Arseny Maslennikov <ar@cs.msu.ru> wrote:
+On Wed, Sep 05, 2018 at 08:10:25AM +0300, Leon Romanovsky wrote:
+> > > -	int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
+> > > +	int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
+> > > +	int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+> >
+> > Yuk, please don't use !!.
+> >
+> > 	bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
+> 
+> We need to provide en_encap and en_decap as an input to MLX5_SET(...)
+> which is passed to FW as 0 or 1. 
+>
+> Boolean type is declared in C as int and treated as zero for false
+> and any other value for true,
 
-> +	if (ndev->dev_id == ndev->dev_port) {
-> +		netdev_info_once(ndev,
-> +			"\"%s\" wants to know my dev_id. "
-> +			"Should it look at dev_port instead?\n",
-> +			current->comm);
-> +		netdev_info_once(ndev,
-> +			"See Documentation/ABI/testing/sysfs-class-net for more info.\n");
-> +	}
+No, that isn't right, the kernel uses C99's _Bool intrinsic type, which
+is guaranteed to only hold 0 or 1 by the compiler.
 
-Single line message is sufficient.
-Also don't break strings in messages.
+See types.h:
 
-> +	}
-> +
-> +	ret = sprintf(buf, "%#x\n", ndev->dev_id);
-> +
-> +	return ret;
+typedef _Bool                   bool;
 
-Why not?
-	return sprintf...
+Jason
