@@ -1,33 +1,36 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [PATCH 1/9] PCI: sysfs: Export available PCIe bandwidth
-Date: Wed, 5 Sep 2018 08:26:05 +0100
-Message-ID: <20180905082605.69d9e5a0@shemminger-XPS-13-9360>
-References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
-        <20180903180242.14504-2-mr.nuke.me@gmail.com>
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Subject: [PATCH net-next] net/mlx5e: Make function mlx5i_grp_sw_update_stats() static
+Date: Wed, 5 Sep 2018 11:16:02 +0000
+Message-ID: <1536146162-132732-1-git-send-email-weiyongjun1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180903180242.14504-2-mr.nuke.me@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: linux-pci@vger.kernel.org, bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Ariel Elior <ariel.elior@cavium.com>, everest-linux-l2@cavium.com, "David S. Miller" <davem@davemloft.net>, Michael Chan <michael.chan@broadcom.com>, Ganesh Goudar <ganeshgr@chelsio.com>, Jeff Kirsher <jeffrey.t.kirsher@intel.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jakub Kicinski <jakub.kicinski@netronome.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Or Gerlitz <ogerlitz@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, Feras Daoud <ferasda@mellanox.com>, Alex Vesker <valex@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon,  3 Sep 2018 13:02:28 -0500
-Alexandru Gagniuc <mr.nuke.me@gmail.com> wrote:
+Fixes the following sparse warning:
 
-> For certain bandwidth-critical devices (e.g. multi-port network cards)
-> it is useful to know the available bandwidth to the root complex. This
-> information is only available via the system log, which doesn't
-> account for link degradation after probing.
-> 
-> With a sysfs attribute, we can computes the bandwidth on-demand, and
-> will detect degraded links.
-> 
-> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c:119:6: warning:
+ symbol 'mlx5i_grp_sw_update_stats' was not declared. Should it be static?
 
-In other places (like /sys/class/net/eth0/speed) only the raw value is printed
-without suffix.  The general convention in sysfs is that it should be one value
-per file and in more raw format.  So why not just print it in bits/sec without
-suffix?
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index 48886b3..3dd9f88 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -116,7 +116,7 @@ static void mlx5i_cleanup(struct mlx5e_priv *priv)
+ 	/* Do nothing .. */
+ }
+ 
+-void mlx5i_grp_sw_update_stats(struct mlx5e_priv *priv)
++static void mlx5i_grp_sw_update_stats(struct mlx5e_priv *priv)
+ {
+ 	struct mlx5e_sw_stats s = { 0 };
+ 	int i, j;
