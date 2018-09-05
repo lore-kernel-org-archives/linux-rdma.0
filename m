@@ -1,8 +1,8 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+From: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
 Subject: Re: [PATCH v5 07/13] block: Add PCI P2P flag for request queue and
  check support for requests
-Date: Wed, 5 Sep 2018 14:18:03 -0600
-Message-ID: <e3ef26e6-6c8d-25b8-fa64-14594a51263c@deltatee.com>
+Date: Wed, 5 Sep 2018 14:19:39 -0600
+Message-ID: <3af4d1d4-da07-c0a6-8464-9ddc1378f2f4@kernel.dk>
 References: <20180830185352.3369-1-logang@deltatee.com>
  <20180830185352.3369-8-logang@deltatee.com>
  <b5ab8fa3-34ac-3117-fa0d-5206c3939435@kernel.dk>
@@ -16,11 +16,12 @@ References: <20180830185352.3369-1-logang@deltatee.com>
  <20180905201152.GA1893@lst.de>
  <eb42fb94-9da6-955b-8524-0a0f5ac4bd19@deltatee.com>
  <2a3394bd-5f13-4818-43f4-dfc61f501e05@kernel.dk>
+ <e3ef26e6-6c8d-25b8-fa64-14594a51263c@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <2a3394bd-5f13-4818-43f4-dfc61f501e05-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+In-Reply-To: <e3ef26e6-6c8d-25b8-fa64-14594a51263c-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
@@ -31,18 +32,24 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 9/5/18 2:18 PM, Logan Gunthorpe wrote:
+> 
+> 
+> On 05/09/18 02:14 PM, Jens Axboe wrote:
+>> But if the caller must absolutely know where the bio will end up, then
+>> it seems super redundant. So I'd vote for killing this check, it buys
+>> us absolutely nothing and isn't even exhaustive in its current form.
+> 
+> 
+> Ok, I'll remove it for v6.
 
+Since the drivers needs to know it's doing it right, it might not
+hurt to add a sanity check helper for that. Just have the driver
+call it, and don't add it in the normal IO submission path.
 
-On 05/09/18 02:14 PM, Jens Axboe wrote:
-> But if the caller must absolutely know where the bio will end up, then
-> it seems super redundant. So I'd vote for killing this check, it buys
-> us absolutely nothing and isn't even exhaustive in its current form.
-
-
-Ok, I'll remove it for v6.
-
-Logan
+-- 
+Jens Axboe
