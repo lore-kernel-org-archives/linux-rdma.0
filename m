@@ -1,34 +1,64 @@
 From: Leon Romanovsky <leon@kernel.org>
 Subject: Re: [PATCH v3 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from
  userspace
-Date: Thu, 6 Sep 2018 15:56:12 +0300
-Message-ID: <20180906125612.GI3142@mtr-leonro.mtl.com>
+Date: Thu, 6 Sep 2018 16:03:58 +0300
+Message-ID: <20180906130358.GJ3142@mtr-leonro.mtl.com>
 References: <20180903161316.25121-1-ar@cs.msu.ru>
  <20180903161316.25121-4-ar@cs.msu.ru>
- <20180905164727.3108bce6@shemminger-XPS-13-9360>
- <20180906072656.GB13034@cello>
+ <20180905135035.GT2977@mtr-leonro.mtl.com>
+ <20180906070433.GA13034@cello>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="jCrbxBqMcLqd4mOl"
+        protocol="application/pgp-signature"; boundary="ytoMbUMiTKPMT3hY"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180906072656.GB13034@cello>
+In-Reply-To: <20180906070433.GA13034@cello>
 Sender: netdev-owner@vger.kernel.org
 To: Arseny Maslennikov <ar@cs.msu.ru>
-Cc: Stephen Hemminger <stephen@networkplumber.org>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---jCrbxBqMcLqd4mOl
-Content-Type: text/plain; charset=us-ascii
+--ytoMbUMiTKPMT3hY
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 06, 2018 at 10:26:56AM +0300, Arseny Maslennikov wrote:
-> On Wed, Sep 05, 2018 at 04:47:27PM +0100, Stephen Hemminger wrote:
-> > On Mon,  3 Sep 2018 19:13:16 +0300
-> > Arseny Maslennikov <ar@cs.msu.ru> wrote:
-> >
-> > > +	if (ndev->dev_id == ndev->dev_port) {
+On Thu, Sep 06, 2018 at 10:04:33AM +0300, Arseny Maslennikov wrote:
+> On Wed, Sep 05, 2018 at 04:50:35PM +0300, Leon Romanovsky wrote:
+> > On Mon, Sep 03, 2018 at 07:13:16PM +0300, Arseny Maslennikov wrote:
+> > > Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+> > > ---
+> > >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 38 +++++++++++++++++++++=
+++
+> > >  1 file changed, 38 insertions(+)
+> > >
+> > > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infi=
+niband/ulp/ipoib/ipoib_main.c
+> > > index 30f840f874b3..7386e5bde3d3 100644
+> > > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > > @@ -2386,6 +2386,42 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+> > >  	return device_create_file(&dev->dev, &dev_attr_pkey);
+> > >  }
+> > >
+> > > +/*
+> > > + * We erroneously exposed the iface's port number in the dev_id
+> > > + * sysfs field long after dev_port was introduced for that purpose[1=
+],
+> > > + * and we need to stop everyone from relying on that.
+> > > + * Let's overload the shower routine for the dev_id file here
+> > > + * to gently bring the issue up.
+> > > + *
+> > > + * [1] https://www.spinics.net/lists/netdev/msg272123.html
+> > > + */
+> > > +static ssize_t dev_id_show(struct device *dev,
+> > > +			   struct device_attribute *attr, char *buf)
+> > > +{
+> > > +	struct net_device *ndev =3D to_net_dev(dev);
+> > > +	ssize_t ret =3D -EINVAL;
+> > > +
+> > > +	if (ndev->dev_id =3D=3D ndev->dev_port) {
 > > > +		netdev_info_once(ndev,
 > > > +			"\"%s\" wants to know my dev_id. "
 > > > +			"Should it look at dev_port instead?\n",
@@ -36,61 +66,91 @@ On Thu, Sep 06, 2018 at 10:26:56AM +0300, Arseny Maslennikov wrote:
 > > > +		netdev_info_once(ndev,
 > > > +			"See Documentation/ABI/testing/sysfs-class-net for more info.\n");
 > > > +	}
-> >
-> > Single line message is sufficient.
-> > Also don't break strings in messages.
-> >
->
-> OK, will fix in v4.
->
->
-> (Sorry if the following is too off-topic here)
-> Multi-line messages in separate printk calls can be racy, I get that.
-> But I'd like to hear some reasoning behind the style decision to not
-> break a long string into many string literals. (I'll most certainly not
-> be alone in this, Documentation/process/ does not mention reasons, only
-> the requirements themselves)
->
-> The only drawback I currently see is that breaking a long message into
-> multiple string literals makes it impossible to git grep the kernel tree
-> for the whole message text.
-> However, splitting a long line this way allows us to nicely wrap the
-> code at 80 columns, which is a readability boon.
->
-> Are there any other reasons to avoid that? Except maybe matters of taste. :)
-
-AFAIK "grep" is the reason.
-
->
-> > > +	}
 > > > +
-> > > +	ret = sprintf(buf, "%#x\n", ndev->dev_id);
+> > > +	ret =3D sprintf(buf, "%#x\n", ndev->dev_id);
 > > > +
 > > > +	return ret;
+> > > +}
+> > > +static DEVICE_ATTR_RO(dev_id);
+> > > +
 > >
-> > Why not?
-> > 	return sprintf...
+> > I don't see this field among exposed by IPoIB, why should we expose it =
+now?
+> >
+>
+> To deviate from standard netdev behaviour, which only prints the
+> field out. Doug wanted this to also print a deprecation message, and
+> netdev (obviously) does not do that. See below.
+>
+> > > +int ipoib_intercept_dev_id_attr(struct net_device *dev)
+> > > +{
+> > > +	device_remove_file(&dev->dev, &dev_attr_dev_id);
+> > > +	return device_create_file(&dev->dev, &dev_attr_dev_id);
+> >
+> > Why isn't enough to rely on netdev code?
+> >
+>
+> Netdev code relies on macros around a *static* function 'netdev_show',
+> which is defined in net/core/net-sysfs.c; it is not listed in any header
+> files, and the macros aren't as well. This all leads me to believe it
+> was not really meant to be used from outside net/core/net-sysfs.
+>
+> The only way we could use any netdev code here is to set up our own
+> handler (again), printk() a message, then call netdev_show =E2=80=94 but =
+we have
+> no access to it.
+>
+> Of course, it also may be that I'm terribly missing a clue.
+
+Thanks,
+
+IMHO, the end result of adequate Doug's request is a little bit too much.
+I don't think that it justifies such remove->create construction.
+
+Personal opinion.
+
+>
+> > > +}
+> > > +
+> > >  static struct net_device *ipoib_add_port(const char *format,
+> > >  					 struct ib_device *hca, u8 port)
+> > >  {
+> > > @@ -2427,6 +2463,8 @@ static struct net_device *ipoib_add_port(const =
+char *format,
+> > >  	 */
+> > >  	ndev->priv_destructor =3D ipoib_intf_free;
+> > >
+> > > +	if (ipoib_intercept_dev_id_attr(ndev))
+> > > +		goto sysfs_failed;
+> > >  	if (ipoib_cm_add_mode_attr(ndev))
+> > >  		goto sysfs_failed;
+> > >  	if (ipoib_add_pkey_attr(ndev))
+> > > --
+> > > 2.19.0.rc1
+> > >
+>
+>
 
 
 
---jCrbxBqMcLqd4mOl
+--ytoMbUMiTKPMT3hY
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbkSPsAAoJEORje4g2clin1/QQAKvHZDN6ogUZOlFfymvWtq4t
-SnCDxZCKFXUeuC7KurD5My3CSRkQtapBTg/2QHVLrIIWMy/RWnz1NdXwngT78For
-mAkCpQ8ieCrl7UhW19ugiPy7mSLZqO9U3JG2bjoRDAJG9L2zbWlo1CSPiXQrY8va
-Olk2beFQmIEwvoC/TzXWgVyv0Oz+od6v+0xqXIUY9BG9yLDz352uWqDbvOdPahF5
-hRcZFvHOgAxFD9RjOt1m83WRIsb5ccPa+akUG3EpqNwBZOPJtRV0/nb7+EHCb6Mn
-nG4mIWJ6N3YtgjrZ7VdLbV0vOA2RgI3sfkDb0J7oMn1zMjA8GQnw2SXOj3tx0r+x
-PqOSzDrwZv9UQa6YOJk0BhPKCzRlcWe4M6Y1lbZpIk8M1dW8D+8oUhfPObWpBDqc
-2iTvbkMDKWI3Jptyp9nJvIFjlrRe/jh4xUNwphWprNnK3Olmfy0kvI5TDqoZZAlV
-Fn7JI9dYDowXTdHVbJpX+uMjFjP1+rqnjHY5O4zgRjBvxXcJ25zKZ7oyKqAXcbwf
-IbPMorcLP94Djkb4oafDs0esVEorlezR+QNkGMVeFoNzYuHGIlQ18ip0/R3CbWH+
-V/PeQQE4bAWUyEtZxoar+0br4bczcxLXric+ldXVw43FLlMnMsZr99fI09sh04f3
-ZHqzvfaUOWE00BDX1Dqp
-=vHQA
+iQIcBAEBAgAGBQJbkSW+AAoJEORje4g2clinOM0P/jW2EUmWZmH5AOJhZDUJ2LNg
+MYE7BXv5DluFMLnW4j5g4ehkc89pVOsW8LiX8HQ6Idg/u1BZ1ritc1pc8kAsQ3ua
+HKcv/6Da74hP9vgwEVtKE5DRff2vUEGS3eSOfKvQjBIlBuJNiASUt9RvKy9pke/N
+me4OjJo135uV2sQ2YZyZD8OKKyemhnP3aiLMJ19w20xabmT1T2Zp2LqQm+u5/xKV
+zb9RRV3SzX1Yqpcu47mnNlKAxSl/TUzdnzfyXoxJp0PBncf/LULoGbae6tUDkaeG
+BVkqa5Rje5P76XgMdhT4G+DAfxnKYP5ZujXD9dtFEZe6665R850WUZLDktLJUrL7
+VSfARpo9LPOVpAun9vzjR/sO5F34TfiQSvLq0NtiwrRFa69SXEb3R0ZAxwzcCkTZ
+N9zghEiCNWGupogFj2U1NkAWon7NmoUeC/SjqqeBP9fvLYBoPY/a5Vfin8+AwNSd
+hEZo00LifPQm28UIyRzapl+c3MrMLX+atX6Jp0lz9FD8ih7HPpApJpjToOuru13o
+INwmB8LUTx62GEhRDtcU7q4m+GPQvVoihpWgph52RCZP1D+jhe2BbCS9BfYq9Up+
+jbUVQHxBDksY3T1Jy5N0sUAseWRFwOEPYzVPG7fgB/QDleuiyFH8rEneXmVEIsWW
+T0rRUHh65Uk4zt1lNA+E
+=HYCE
 -----END PGP SIGNATURE-----
 
---jCrbxBqMcLqd4mOl--
+--ytoMbUMiTKPMT3hY--
