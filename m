@@ -1,72 +1,64 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
- separated flow table creation flags
-Date: Thu, 6 Sep 2018 19:13:56 +0300
-Message-ID: <CAJ3xEMjyT_wkAXesdaU2Z_SJbYr8AjrSOir8bVtZ1WxS9+RLUw@mail.gmail.com>
-References: <20180828111854.14367-1-leon@kernel.org> <20180828111854.14367-6-leon@kernel.org>
- <20180904220242.GA3895@ziepe.ca> <20180905051025.GC2977@mtr-leonro.mtl.com>
- <20180905163800.GA21028@ziepe.ca> <20180905181140.GV2977@mtr-leonro.mtl.com>
- <CAJ3xEMjrrhjCRmnGyD4SYit+pgJpakXLSrF6i35qaZiDfGsAxw@mail.gmail.com> <20180906040950.GX2977@mtr-leonro.mtl.com>
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: Re: [PATCH] mm,
+ oom: distinguish blockable mode for mmu notifiers
+Date: Fri, 7 Sep 2018 07:46:09 +0900
+Message-ID: <841ae1fb-bb5a-8b1e-6383-ca2e70b6e759@i-love.sakura.ne.jp>
+References: <20180824120339.GL29735@dhcp22.suse.cz>
+ <eb546bcb-9c5f-7d5d-43a7-bfde489f0e7f@amd.com>
+ <20180824123341.GN29735@dhcp22.suse.cz>
+ <b11df415-baf8-0a41-3c16-60dfe8d32bd3@amd.com>
+ <20180824130132.GP29735@dhcp22.suse.cz>
+ <23d071d2-82e4-9b78-1000-be44db5f6523@gmail.com>
+ <20180824132442.GQ29735@dhcp22.suse.cz>
+ <86bd94d5-0ce8-c67f-07a5-ca9ebf399cdd@gmail.com>
+ <20180824134009.GS29735@dhcp22.suse.cz>
+ <735b0a53-5237-8827-d20e-e57fa24d798f@amd.com>
+ <20180824135257.GU29735@dhcp22.suse.cz>
+ <b78f8b3a-7bc6-0dea-6752-5ea798eccb6b@i-love.sakura.ne.jp>
+ <0e80c531-4e91-fb1d-e7eb-46a7aecc4c9d@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180906040950.GX2977@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <0e80c531-4e91-fb1d-e7eb-46a7aecc4c9d@amd.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Michal Hocko <mhocko@kernel.org>
+Cc: kvm@vger.kernel.org, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, David Airlie <airlied@linux.ie>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Andrea Arcangeli <aarcange@redhat.com>, Dimitri Sivanich <sivanich@sgi.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, intel-gfx@lists.freedesktop.org, Leon Romanovsky <leonro@mellanox.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, LKML <linux-kernel@vger.kernel.org>, Ashutosh Dixit <ashutosh.dixit>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 6, 2018 at 7:09 AM, Leon Romanovsky <leonro@mellanox.com> wrote:
-> On Thu, Sep 06, 2018 at 12:37:17AM +0300, Or Gerlitz wrote:
->> On Wed, Sep 5, 2018 at 9:11 PM, Leon Romanovsky  wrote:
->> > On Wed, Sep 05, 2018 at 10:38:00AM -0600, Jason Gunthorpe wrote:
->> >> On Wed, Sep 05, 2018 at 08:10:25AM +0300, Leon Romanovsky wrote:
->> >> > > > -       int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
->> >> > > > +       int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
->> >> > > > +       int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
->> >> > >
->> >> > > Yuk, please don't use !!.
->> >> > >
->> >> > >   bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
->> >> >
->> >> > We need to provide en_encap and en_decap as an input to MLX5_SET(...)
->> >> > which is passed to FW as 0 or 1.
->> >> >
->> >> > Boolean type is declared in C as int and treated as zero for false
->> >> > and any other value for true,
->> >>
->> >> No, that isn't right, the kernel uses C99's _Bool intrinsic type, which
->> >> is guaranteed to only hold 0 or 1 by the compiler.
->> >>
->> >> See types.h:
->> >>
->> >> typedef _Bool                   bool;
->> >
->> > Exciting, it took me a while to find C99 standard and relevant 6.3.1.2.
->> > Anyway, this patch didn't change previous functionality, which used "!!"
->> > convention.
->>
->> so? if we didn't do things properly prior to the patch, why not fixing it along
->> with the patch? lets fix
->
-> Or,
->
-> What exactly "to fix"? Both code lines:
-> 1. Have correct syntax
-> 2. Implement proper C99
-> 3. Give same compiler code
-> 4. Have same readability
->
-> There is nothing to fix.
->
-> And this patch is already merged, so if you truly care about this,
-> please go ahead and prepare patch for whole driver, or better for
-> whole kernel.
-
-slow down, I was just supporting Jason's suggestion and said there's
-no reason not to follow it.
-
-If you don't agree with Jason, argue with him.
-
->  kernel git:(rdma-next) git grep "\!\!" |wc -l
-> 8125
+T24gMjAxOC8wOC8yNyAxNjo0MSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBBbSAyNi4wOC4y
+MDE4IHVtIDEwOjQwIHNjaHJpZWIgVGV0c3VvIEhhbmRhOgo+PiBJJ20gbm90IGZvbGxvd2luZy4g
+V2h5IGRvbid0IHdlIG5lZWQgdG8gZG8gbGlrZSBiZWxvdyAoZ2l2ZW4gdGhhdAo+PiBub2JvZHkg
+ZXhjZXB0IGFtZGdwdV9tbl9yZWFkX2xvY2soKSBob2xkcyAtPnJlYWRfbG9jaykgYmVjYXVzZSBl
+LmcuCj4+IGRybV9zY2hlZF9mZW5jZV9jcmVhdGUoKSBmcm9tIGRybV9zY2hlZF9qb2JfaW5pdCgp
+IGZyb20gYW1kZ3B1X2NzX3N1Ym1pdCgpCj4+IGlzIGRvaW5nIEdGUF9LRVJORUwgbWVtb3J5IGFs
+bG9jYXRpb24gd2l0aCAtPmxvY2sgaGVsZCBmb3Igd3JpdGU/Cj4gCj4gVGhhdCdzIGEgYnVnIHdo
+aWNoIG5lZWRzIHRvIGJlIGZpeGVkIHNlcGFyYXRlbHkuCj4gCj4gQWxsb2NhdGluZyBtZW1vcnkg
+d2l0aCBHRlBfS0VSTkVMIHdoaWxlIGhvbGRpbmcgYSBsb2NrIHdoaWNoIGlzIGFsc28gdGFrZW4g
+aW4gdGhlIHJlY2xhaW0gY29kZSBwYXRoIGlzIGlsbGVnYWwgbm90IG1hdHRlciB3aGF0IHlvdSBk
+by4KPiAKPiBQYXRjaGVzIHRvIGZpeCB0aGlzIGFyZSBhbHJlYWR5IG9uIHRoZSBhcHByb3ByaWF0
+ZSBtYWlsaW5nIGxpc3QgYW5kIHdpbGwgYmUgcHVzaGVkIHVwc3RyZWFtIHRvZGF5Lgo+IAo+IFJl
+Z2FyZHMsCj4gQ2hyaXN0aWFuLgoKQ29tbWl0IDRhMmRlNTRkYzFkNzY2OGYgKCJkcm0vYW1kZ3B1
+OiBmaXggaG9sZGluZyBtbl9sb2NrIHdoaWxlIGFsbG9jYXRpbmcgbWVtb3J5IikKc2VlbXMgdG8g
+YmUgY2FsbGluZyBhbWRncHVfbW5fdW5sb2NrKCkgd2l0aG91dCBhbWRncHVfbW5fbG9jaygpIHdo
+ZW4KZHJtX3NjaGVkX2pvYl9pbml0KCkgZmFpbGVkLi4uIAoKCgpNaWNoYWwsIHlvdSBhcmUgYXNr
+aW5nIG1lIHRvIGZpeCBhbGwgYnVncyAoaW5jbHVkaW5nIG91dCBvZiB0cmVlIGNvZGUpIGFuZCBw
+cmV2ZW50CmZ1dHVyZSBidWdzIGp1c3QgYmVjYXVzZSB5b3Ugd2FudCB0byBhdm9pZCB1c2luZyB0
+aW1lb3V0IGluIG9yZGVyIHRvIGF2b2lkIE9PTSBsb2NrdXAKKCBodHRwczovL21hcmMuaW5mby8/
+aT01NWEzZmIzNy0zMjQ2LTczZDctMGY0NS01ODM1YTNmNDgzMWNAaS1sb3ZlLnNha3VyYS5uZS5q
+cCApLgpUaGF0IGlzIGEgdG9vIG11Y2ggcmVxdWVzdCB3aGljaCBpcyBpbXBvc3NpYmxlIGZvciBl
+dmVuIHlvdS4gTW9yZSB5b3UgY291bnQgb24KdGhlIE9PTSByZWFwZXIsIHdlIGV4cG9uZW50aWFs
+bHkgY29tcGxpY2F0ZXMgZGVwZW5kZW5jeSBhbmQgbW9yZSBsaWtlbHkgdG8gc3R1bWJsZQpvdmVy
+IHVucmV2aWV3ZWQvdW50ZXN0ZWQgY29kZS4uLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pbnRlbC1nZngK
