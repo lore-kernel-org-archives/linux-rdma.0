@@ -1,7 +1,7 @@
 From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH v4 2/3] IB/ipoib: Use dev_port to expose network interface port numbers
-Date: Thu,  6 Sep 2018 17:51:11 +0300
-Message-ID: <20180906145112.29245-3-ar@cs.msu.ru>
+Subject: [PATCH v4 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from userspace
+Date: Thu,  6 Sep 2018 17:51:12 +0300
+Message-ID: <20180906145112.29245-4-ar@cs.msu.ru>
 References: <20180906145112.29245-1-ar@cs.msu.ru>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,40 +12,65 @@ To: linux-rdma@vger.kernel.org
 Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some InfiniBand network devices have multiple ports on the same PCI
-function. This initializes the `dev_port' sysfs field of those
-network interfaces with their port number.
+Some tools may currently be using only the deprecated attribute;
+let's print an elaborate and clear deprecation notice to kmsg.
 
-Prior to this the kernel erroneously used the `dev_id' sysfs
-field of those network interfaces to convey the port number to userspace.
-
-The use of `dev_id' was considered correct until Linux 3.15,
-when another field, `dev_port', was defined for this particular
-purpose and `dev_id' was reserved for distinguishing stacked ifaces
-(e.g: VLANs) with the same hardware address as their parent device.
-
-Similar fixes to net/mlx4_en and many other drivers, which started
-exporting this information through `dev_id' before 3.15, were accepted
-into the kernel 4 years ago.
-See 76a066f2a2a0 (`net/mlx4_en: Expose port number through sysfs').
+To do that, we have to replace the whole sysfs file, since we inherit
+the original one from netdev.
 
 Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 31 +++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
 diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index e3d28f9ad9c0..30f840f874b3 100644
+index 30f840f874b3..74732726ec6f 100644
 --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
 +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1880,6 +1880,8 @@ static int ipoib_parent_init(struct net_device *ndev)
- 	       sizeof(union ib_gid));
+@@ -2386,6 +2386,35 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+ 	return device_create_file(&dev->dev, &dev_attr_pkey);
+ }
  
- 	SET_NETDEV_DEV(priv->dev, priv->ca->dev.parent);
-+	priv->dev->dev_port = priv->port - 1;
-+	/* Let's set this one too for backwards compatibility. */
- 	priv->dev->dev_id = priv->port - 1;
++/*
++ * We erroneously exposed the iface's port number in the dev_id
++ * sysfs field long after dev_port was introduced for that purpose[1],
++ * and we need to stop everyone from relying on that.
++ * Let's overload the shower routine for the dev_id file here
++ * to gently bring the issue up.
++ *
++ * [1] https://www.spinics.net/lists/netdev/msg272123.html
++ */
++static ssize_t dev_id_show(struct device *dev,
++			   struct device_attribute *attr, char *buf)
++{
++	struct net_device *ndev = to_net_dev(dev);
++
++	if (ndev->dev_id == ndev->dev_port)
++		netdev_info_once(ndev,
++			"\"%s\" wants to know my dev_id. Should it look at dev_port instead? See Documentation/ABI/testing/sysfs-class-net for more info.\n",
++			current->comm);
++
++	return sprintf(buf, "%#x\n", ndev->dev_id);
++}
++static DEVICE_ATTR_RO(dev_id);
++
++int ipoib_intercept_dev_id_attr(struct net_device *dev)
++{
++	device_remove_file(&dev->dev, &dev_attr_dev_id);
++	return device_create_file(&dev->dev, &dev_attr_dev_id);
++}
++
+ static struct net_device *ipoib_add_port(const char *format,
+ 					 struct ib_device *hca, u8 port)
+ {
+@@ -2427,6 +2456,8 @@ static struct net_device *ipoib_add_port(const char *format,
+ 	 */
+ 	ndev->priv_destructor = ipoib_intf_free;
  
- 	return 0;
++	if (ipoib_intercept_dev_id_attr(ndev))
++		goto sysfs_failed;
+ 	if (ipoib_cm_add_mode_attr(ndev))
+ 		goto sysfs_failed;
+ 	if (ipoib_add_pkey_attr(ndev))
 -- 
 2.19.0.rc2
