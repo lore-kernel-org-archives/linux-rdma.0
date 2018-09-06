@@ -1,100 +1,142 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
- separated flow table creation flags
-Date: Thu, 6 Sep 2018 07:09:50 +0300
-Message-ID: <20180906040950.GX2977@mtr-leonro.mtl.com>
-References: <20180828111854.14367-1-leon@kernel.org>
- <20180828111854.14367-6-leon@kernel.org>
- <20180904220242.GA3895@ziepe.ca>
- <20180905051025.GC2977@mtr-leonro.mtl.com>
- <20180905163800.GA21028@ziepe.ca>
- <20180905181140.GV2977@mtr-leonro.mtl.com>
- <CAJ3xEMjrrhjCRmnGyD4SYit+pgJpakXLSrF6i35qaZiDfGsAxw@mail.gmail.com>
+From: Arseny Maslennikov <ar@cs.msu.ru>
+Subject: Re: [PATCH v3 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from
+ userspace
+Date: Thu, 6 Sep 2018 10:04:33 +0300
+Message-ID: <20180906070433.GA13034@cello>
+References: <20180903161316.25121-1-ar@cs.msu.ru>
+ <20180903161316.25121-4-ar@cs.msu.ru>
+ <20180905135035.GT2977@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="E50aLcSU4JxQSj/B"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJ3xEMjrrhjCRmnGyD4SYit+pgJpakXLSrF6i35qaZiDfGsAxw@mail.gmail.com>
+In-Reply-To: <20180905135035.GT2977@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---E50aLcSU4JxQSj/B
-Content-Type: text/plain; charset=us-ascii
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Sep 06, 2018 at 12:37:17AM +0300, Or Gerlitz wrote:
-> On Wed, Sep 5, 2018 at 9:11 PM, Leon Romanovsky  wrote:
-> > On Wed, Sep 05, 2018 at 10:38:00AM -0600, Jason Gunthorpe wrote:
-> >> On Wed, Sep 05, 2018 at 08:10:25AM +0300, Leon Romanovsky wrote:
-> >> > > > -       int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
-> >> > > > +       int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
-> >> > > > +       int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
-> >> > >
-> >> > > Yuk, please don't use !!.
-> >> > >
-> >> > >   bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
-> >> >
-> >> > We need to provide en_encap and en_decap as an input to MLX5_SET(...)
-> >> > which is passed to FW as 0 or 1.
-> >> >
-> >> > Boolean type is declared in C as int and treated as zero for false
-> >> > and any other value for true,
-> >>
-> >> No, that isn't right, the kernel uses C99's _Bool intrinsic type, which
-> >> is guaranteed to only hold 0 or 1 by the compiler.
-> >>
-> >> See types.h:
-> >>
-> >> typedef _Bool                   bool;
+On Wed, Sep 05, 2018 at 04:50:35PM +0300, Leon Romanovsky wrote:
+> On Mon, Sep 03, 2018 at 07:13:16PM +0300, Arseny Maslennikov wrote:
+> > Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+> > ---
+> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 38 +++++++++++++++++++++++
+> >  1 file changed, 38 insertions(+)
 > >
-> > Exciting, it took me a while to find C99 standard and relevant 6.3.1.2.
-> > Anyway, this patch didn't change previous functionality, which used "!!"
-> > convention.
->
-> so? if we didn't do things properly prior to the patch, why not fixing it along
-> with the patch? lets fix
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infini=
+band/ulp/ipoib/ipoib_main.c
+> > index 30f840f874b3..7386e5bde3d3 100644
+> > --- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -2386,6 +2386,42 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+> >  	return device_create_file(&dev->dev, &dev_attr_pkey);
+> >  }
+> >
+> > +/*
+> > + * We erroneously exposed the iface's port number in the dev_id
+> > + * sysfs field long after dev_port was introduced for that purpose[1],
+> > + * and we need to stop everyone from relying on that.
+> > + * Let's overload the shower routine for the dev_id file here
+> > + * to gently bring the issue up.
+> > + *
+> > + * [1] https://www.spinics.net/lists/netdev/msg272123.html
+> > + */
+> > +static ssize_t dev_id_show(struct device *dev,
+> > +			   struct device_attribute *attr, char *buf)
+> > +{
+> > +	struct net_device *ndev =3D to_net_dev(dev);
+> > +	ssize_t ret =3D -EINVAL;
+> > +
+> > +	if (ndev->dev_id =3D=3D ndev->dev_port) {
+> > +		netdev_info_once(ndev,
+> > +			"\"%s\" wants to know my dev_id. "
+> > +			"Should it look at dev_port instead?\n",
+> > +			current->comm);
+> > +		netdev_info_once(ndev,
+> > +			"See Documentation/ABI/testing/sysfs-class-net for more info.\n");
+> > +	}
+> > +
+> > +	ret =3D sprintf(buf, "%#x\n", ndev->dev_id);
+> > +
+> > +	return ret;
+> > +}
+> > +static DEVICE_ATTR_RO(dev_id);
+> > +
+>=20
+> I don't see this field among exposed by IPoIB, why should we expose it no=
+w?
+>=20
 
-Or,
+To deviate from standard netdev behaviour, which only prints the
+field out. Doug wanted this to also print a deprecation message, and
+netdev (obviously) does not do that. See below.
 
-What exactly "to fix"? Both code lines:
-1. Have correct syntax
-2. Implement proper C99
-3. Give same compiler code
-4. Have same readability
+> > +int ipoib_intercept_dev_id_attr(struct net_device *dev)
+> > +{
+> > +	device_remove_file(&dev->dev, &dev_attr_dev_id);
+> > +	return device_create_file(&dev->dev, &dev_attr_dev_id);
+>=20
+> Why isn't enough to rely on netdev code?
+>=20
 
-There is nothing to fix.
+Netdev code relies on macros around a *static* function 'netdev_show',
+which is defined in net/core/net-sysfs.c; it is not listed in any header
+files, and the macros aren't as well. This all leads me to believe it
+was not really meant to be used from outside net/core/net-sysfs.
 
-And this patch is already merged, so if you truly care about this,
-please go ahead and prepare patch for whole driver, or better for
-whole kernel.
+The only way we could use any netdev code here is to set up our own
+handler (again), printk() a message, then call netdev_show =E2=80=94 but we=
+ have
+no access to it.
 
- kernel git:(rdma-next) git grep "\!\!" |wc -l
-8125
+Of course, it also may be that I'm terribly missing a clue.
 
-Thanks
+> > +}
+> > +
+> >  static struct net_device *ipoib_add_port(const char *format,
+> >  					 struct ib_device *hca, u8 port)
+> >  {
+> > @@ -2427,6 +2463,8 @@ static struct net_device *ipoib_add_port(const ch=
+ar *format,
+> >  	 */
+> >  	ndev->priv_destructor =3D ipoib_intf_free;
+> >
+> > +	if (ipoib_intercept_dev_id_attr(ndev))
+> > +		goto sysfs_failed;
+> >  	if (ipoib_cm_add_mode_attr(ndev))
+> >  		goto sysfs_failed;
+> >  	if (ipoib_add_pkey_attr(ndev))
+> > --
+> > 2.19.0.rc1
+> >
 
---E50aLcSU4JxQSj/B
+
+
+--X1bOJ3K7DJ5YkBrT
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJbkKiOAAoJEORje4g2clinocgP/0mxuSnD+RgClhrTcbCQdux+
-X1V0EJmAfErVBk9Ob0840D3jn4CmkhM4A9QohagW4/a5KBOcYhLWsg2kccNtdk05
-lKQ46d7hWrkMo/Vh4Bwq4JuyQ+uo19JOCb0mDIT42tT48QLrPGDGMT6G7Fz5IBIO
-y2PlYRiJ5pnzSyUwDV86SnPasLZ+2Bmgq8IsBGdXRDo/zovAr+Lva8Fvpc7iw+Fa
-d0URWQe74iPwrRnTdJlwbrXuyP3pHIhaQPP7EmzA39QN1Xi+dIu9DWvFyjK5Ae4s
-1RJhEZrrSiH5qYjL7JGDPgkYaqafCFVVsHv/DZbExYAkafs0ECAYyIDwBbU4Vfss
-gy6IpXsN4PT0LRwdsGxXtZrYmlh8zKQETYszj2a7fe+MYIG1FcZGHbZVI3s+8PDo
-UliPdYfuJxBwMLVgjm0Ql83YpaPOXLBJ9hMYHSFAiI7rCEp82eeQWr4+0mazlw8U
-OkFgmRB3eDnHyuBJmwHIDzLHRitwoF1WQ8WmyngAYpvFFq17uHPk4zAiIZf0t5vI
-L8/XVFBMEAey/xneHgNvWb5EDdo8Jh+TI08y5RQbHZgFtDsQvQbHGXXz3cV+TYgE
-o8kQjsz4GWNqTZicIgrwfS98rk6WEOXgYKpGpNkir8WlLd5/1zk9AGSZ1xChe//O
-qZ0+YYQmZMbM0g0mNEAV
-=WYql
+iQIzBAABCgAdFiEE56JD3UKTLEu/ddrm9dQjyAYL01AFAluQ0XsACgkQ9dQjyAYL
+01DTABAAo8JPRLvRrEQGe4m9m2B3ubv/qd2tRXD24ND9+yyOxBT/HcL5ZUIOfnrw
+DJUvg6X/eex6ca9wuKBlbPZUhhlelNUFGlPYDllk4LSckkMjvxRV4iNf0chg8Ilb
+lC1mXYqfnFeQAjZoAXc4BSNffHB4x/NKlnBD0iMCnSRUoc2ee+Bu36otgO2P4F5k
+hyiQ9/eAZI5+TF0HlHtuBIrOP5U++RlXf+WKZnWv98JKMvPC2D4gJwzK3zG0nhKI
+mt85gfb1++o8tCX5SzMky+u8sVOWBE1HOS5EnJRIvWssEDUK/FDmCOR7KK9bRBYq
+M4r/Bez5b8pvAU4eT/R2bq/Ecg4WmhS6MJz7MQmtLAMGVxjuwNyo8x74zM95b0BZ
+LHk3grqBC3K1dJf2/aeihQd8cw4dkx3XLZWdeMAqtpDDxn7y/yRZbhsj12lOY/NH
+hr9PWIjkMy/WJLShs0MsdyWWq0aDAjzy77xgC/A1C+Rp1xykw6G8GGg6HTSdzUzP
+uDl9GhxqGDw8b4EArSBNv1knu/pyNjFhgVh8fmHNMKZxZTP1YcQJUWWlYdvg2Q6l
+PXySDDfM2axJBtqxpSCw4yHEfe/zTx7jvN1+TTPx/JjWmQtzpWnwx2+VZYOjgPrJ
+7cfwhucmtpdc/W5C0Fmbv2Nxu8y3a+3by9vGsBP2FYIlmM8A7E0=
+=T3/S
 -----END PGP SIGNATURE-----
 
---E50aLcSU4JxQSj/B--
+--X1bOJ3K7DJ5YkBrT--
