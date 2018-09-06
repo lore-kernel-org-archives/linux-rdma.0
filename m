@@ -1,55 +1,72 @@
-From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH v4 1/3] Documentation/ABI: document /sys/class/net/*/dev_port
-Date: Thu,  6 Sep 2018 17:51:10 +0300
-Message-ID: <20180906145112.29245-2-ar@cs.msu.ru>
-References: <20180906145112.29245-1-ar@cs.msu.ru>
+From: Or Gerlitz <gerlitz.or@gmail.com>
+Subject: Re: [PATCH mlx5-next v1 05/15] net/mlx5: Break encap/decap into two
+ separated flow table creation flags
+Date: Thu, 6 Sep 2018 19:13:56 +0300
+Message-ID: <CAJ3xEMjyT_wkAXesdaU2Z_SJbYr8AjrSOir8bVtZ1WxS9+RLUw@mail.gmail.com>
+References: <20180828111854.14367-1-leon@kernel.org> <20180828111854.14367-6-leon@kernel.org>
+ <20180904220242.GA3895@ziepe.ca> <20180905051025.GC2977@mtr-leonro.mtl.com>
+ <20180905163800.GA21028@ziepe.ca> <20180905181140.GV2977@mtr-leonro.mtl.com>
+ <CAJ3xEMjrrhjCRmnGyD4SYit+pgJpakXLSrF6i35qaZiDfGsAxw@mail.gmail.com> <20180906040950.GX2977@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180906145112.29245-1-ar@cs.msu.ru>
+In-Reply-To: <20180906040950.GX2977@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org
-Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Mark Bloch <markb@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The sysfs field was introduced 4 years ago along with fixes to various
-drivers that erroneously used `dev_id' for that purpose, but it was not
-properly documented anywhere.
-See commit v3.14-rc3-739-g3f85944fe207.
+On Thu, Sep 6, 2018 at 7:09 AM, Leon Romanovsky <leonro@mellanox.com> wrote:
+> On Thu, Sep 06, 2018 at 12:37:17AM +0300, Or Gerlitz wrote:
+>> On Wed, Sep 5, 2018 at 9:11 PM, Leon Romanovsky  wrote:
+>> > On Wed, Sep 05, 2018 at 10:38:00AM -0600, Jason Gunthorpe wrote:
+>> >> On Wed, Sep 05, 2018 at 08:10:25AM +0300, Leon Romanovsky wrote:
+>> >> > > > -       int en_encap_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN);
+>> >> > > > +       int en_encap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_ENCAP);
+>> >> > > > +       int en_decap = !!(flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP);
+>> >> > >
+>> >> > > Yuk, please don't use !!.
+>> >> > >
+>> >> > >   bool en_decap = flags & MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
+>> >> >
+>> >> > We need to provide en_encap and en_decap as an input to MLX5_SET(...)
+>> >> > which is passed to FW as 0 or 1.
+>> >> >
+>> >> > Boolean type is declared in C as int and treated as zero for false
+>> >> > and any other value for true,
+>> >>
+>> >> No, that isn't right, the kernel uses C99's _Bool intrinsic type, which
+>> >> is guaranteed to only hold 0 or 1 by the compiler.
+>> >>
+>> >> See types.h:
+>> >>
+>> >> typedef _Bool                   bool;
+>> >
+>> > Exciting, it took me a while to find C99 standard and relevant 6.3.1.2.
+>> > Anyway, this patch didn't change previous functionality, which used "!!"
+>> > convention.
+>>
+>> so? if we didn't do things properly prior to the patch, why not fixing it along
+>> with the patch? lets fix
+>
+> Or,
+>
+> What exactly "to fix"? Both code lines:
+> 1. Have correct syntax
+> 2. Implement proper C99
+> 3. Give same compiler code
+> 4. Have same readability
+>
+> There is nothing to fix.
+>
+> And this patch is already merged, so if you truly care about this,
+> please go ahead and prepare patch for whole driver, or better for
+> whole kernel.
 
-Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
----
- Documentation/ABI/testing/sysfs-class-net | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+slow down, I was just supporting Jason's suggestion and said there's
+no reason not to follow it.
 
-diff --git a/Documentation/ABI/testing/sysfs-class-net b/Documentation/ABI/testing/sysfs-class-net
-index 2f1788111cd9..ec2232f6a949 100644
---- a/Documentation/ABI/testing/sysfs-class-net
-+++ b/Documentation/ABI/testing/sysfs-class-net
-@@ -91,6 +91,24 @@ Description:
- 		stacked (e.g: VLAN interfaces) but still have the same MAC
- 		address as their parent device.
- 
-+What:		/sys/class/net/<iface>/dev_port
-+Date:		February 2014
-+KernelVersion:	3.15
-+Contact:	netdev@vger.kernel.org
-+Description:
-+		Indicates the port number of this network device, formatted
-+		as a decimal value. Some NICs have multiple independent ports
-+		on the same PCI bus, device and function. This attribute allows
-+		userspace to distinguish the respective interfaces.
-+
-+		Note: some device drivers started to use 'dev_id' for this
-+		purpose since long before 3.15 and have not adopted the new
-+		attribute ever since. To query the port number, some tools look
-+		exclusively at 'dev_port', while others only consult 'dev_id'.
-+		If a network device has multiple client adapter ports as
-+		described in the previous paragraph and does not set this
-+		attribute to its port number, it's a kernel bug.
-+
- What:		/sys/class/net/<iface>/dormant
- Date:		March 2006
- KernelVersion:	2.6.17
--- 
-2.19.0.rc2
+If you don't agree with Jason, argue with him.
+
+>  kernel git:(rdma-next) git grep "\!\!" |wc -l
+> 8125
