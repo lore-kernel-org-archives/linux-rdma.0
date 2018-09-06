@@ -1,45 +1,55 @@
 From: Arseny Maslennikov <ar@cs.msu.ru>
-Subject: [PATCH v4 0/3] IB/ipoib: Use dev_port to disambiguate port numbers
-Date: Thu,  6 Sep 2018 17:51:09 +0300
-Message-ID: <20180906145112.29245-1-ar@cs.msu.ru>
+Subject: [PATCH v4 1/3] Documentation/ABI: document /sys/class/net/*/dev_port
+Date: Thu,  6 Sep 2018 17:51:10 +0300
+Message-ID: <20180906145112.29245-2-ar@cs.msu.ru>
+References: <20180906145112.29245-1-ar@cs.msu.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180906145112.29245-1-ar@cs.msu.ru>
 Sender: netdev-owner@vger.kernel.org
 To: linux-rdma@vger.kernel.org
 Cc: Arseny Maslennikov <ar@cs.msu.ru>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Pre-3.15 userspace had trouble distinguishing different ports
-of a NIC on a single PCI bus/device/function. To solve this,
-a sysfs field `dev_port' was introduced quite a while ago
-(commit v3.14-rc3-739-g3f85944fe207), and some relevant device
-drivers were fixed to use it, but not in case of IPoIB.
+The sysfs field was introduced 4 years ago along with fixes to various
+drivers that erroneously used `dev_id' for that purpose, but it was not
+properly documented anywhere.
+See commit v3.14-rc3-739-g3f85944fe207.
 
-The convention for some reason never got documented in the kernel, but
-was immediately adopted by userspace (notably udev[1][2], biosdevname[3])
+Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+---
+ Documentation/ABI/testing/sysfs-class-net | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-1/3 documents the sysfs field — that's why I'm CC-ing netdev.
-
-This series was tested on and applies to 4.19-rc2.
-
-[1] https://lists.freedesktop.org/archives/systemd-devel/2014-June/020788.html
-[2] https://lists.freedesktop.org/archives/systemd-devel/2014-July/020804.html
-[3] https://github.com/CloudAutomationNTools/biosdevname/blob/c795d51dd93a5309652f0d635f12a3ecfabfaa72/src/eths.c#L38
-
-v1->v2: replace a line instead of inserting and then removing.
-v2->v3: restore both attributes, output a notice of deprecation to kmsg.
-v3->v4: style adjustments, join the deprecation notice to single line.
-
-Arseny Maslennikov (3):
-  Documentation/ABI: document /sys/class/net/*/dev_port
-  IB/ipoib: Use dev_port to expose network interface port numbers
-  IB/ipoib: Log sysfs 'dev_id' accesses from userspace
-
- Documentation/ABI/testing/sysfs-class-net | 18 +++++++++++++
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 33 +++++++++++++++++++++++
- 2 files changed, 51 insertions(+)
-
+diff --git a/Documentation/ABI/testing/sysfs-class-net b/Documentation/ABI/testing/sysfs-class-net
+index 2f1788111cd9..ec2232f6a949 100644
+--- a/Documentation/ABI/testing/sysfs-class-net
++++ b/Documentation/ABI/testing/sysfs-class-net
+@@ -91,6 +91,24 @@ Description:
+ 		stacked (e.g: VLAN interfaces) but still have the same MAC
+ 		address as their parent device.
+ 
++What:		/sys/class/net/<iface>/dev_port
++Date:		February 2014
++KernelVersion:	3.15
++Contact:	netdev@vger.kernel.org
++Description:
++		Indicates the port number of this network device, formatted
++		as a decimal value. Some NICs have multiple independent ports
++		on the same PCI bus, device and function. This attribute allows
++		userspace to distinguish the respective interfaces.
++
++		Note: some device drivers started to use 'dev_id' for this
++		purpose since long before 3.15 and have not adopted the new
++		attribute ever since. To query the port number, some tools look
++		exclusively at 'dev_port', while others only consult 'dev_id'.
++		If a network device has multiple client adapter ports as
++		described in the previous paragraph and does not set this
++		attribute to its port number, it's a kernel bug.
++
+ What:		/sys/class/net/<iface>/dormant
+ Date:		March 2006
+ KernelVersion:	2.6.17
 -- 
 2.19.0.rc2
