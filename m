@@ -1,130 +1,136 @@
-From: syzbot <syzbot+8967084bcac563795dc6@syzkaller.appspotmail.com>
-Subject: Re: KASAN: use-after-free Read in __rhashtable_lookup (2)
-Date: Sat, 08 Sep 2018 15:07:03 -0700
-Message-ID: <000000000000154f6a05756358eb@google.com>
-References: <00000000000027a1e605741b2afa@google.com>
+From: Arseny Maslennikov <ar@cs.msu.ru>
+Subject: Re: [PATCH v4 3/3] IB/ipoib: Log sysfs 'dev_id' accesses from
+ userspace
+Date: Sun, 9 Sep 2018 21:11:46 +0300
+Message-ID: <20180909181146.GA29632@cello.Dlink>
+References: <20180906145112.29245-1-ar@cs.msu.ru>
+ <20180906145112.29245-4-ar@cs.msu.ru>
+ <20180907154359.GA14627@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <00000000000027a1e605741b2afa@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, dvyukov@google.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, sowmini.varadhan@oracle.com, syzkaller-bugs@googlegroups.com
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="pf9I7BMVVzbSWLtt"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180907154359.GA14627@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-syzbot has found a reproducer for the following crash on:
 
-HEAD commit:    d7b686ebf704 Merge branch 'i2c/for-current' of git://git.k..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=1132d70a400000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8f59875069d721b6
-dashboard link: https://syzkaller.appspot.com/bug?extid=8967084bcac563795dc6
-compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10b67e49400000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11119e49400000
+--pf9I7BMVVzbSWLtt
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+8967084bcac563795dc6@syzkaller.appspotmail.com
+On Fri, Sep 07, 2018 at 09:43:59AM -0600, Jason Gunthorpe wrote:
+> On Thu, Sep 06, 2018 at 05:51:12PM +0300, Arseny Maslennikov wrote:
+> > Some tools may currently be using only the deprecated attribute;
+> > let's print an elaborate and clear deprecation notice to kmsg.
+> >=20
+> > To do that, we have to replace the whole sysfs file, since we inherit
+> > the original one from netdev.
+> >=20
+> > Signed-off-by: Arseny Maslennikov <ar@cs.msu.ru>
+> >  drivers/infiniband/ulp/ipoib/ipoib_main.c | 31 +++++++++++++++++++++++
+> >  1 file changed, 31 insertions(+)
+> >=20
+> > diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infini=
+band/ulp/ipoib/ipoib_main.c
+> > index 30f840f874b3..74732726ec6f 100644
+> > +++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+> > @@ -2386,6 +2386,35 @@ int ipoib_add_pkey_attr(struct net_device *dev)
+> >  	return device_create_file(&dev->dev, &dev_attr_pkey);
+> >  }
+> > =20
+> > +/*
+> > + * We erroneously exposed the iface's port number in the dev_id
+> > + * sysfs field long after dev_port was introduced for that purpose[1],
+> > + * and we need to stop everyone from relying on that.
+> > + * Let's overload the shower routine for the dev_id file here
+> > + * to gently bring the issue up.
+> > + *
+> > + * [1] https://www.spinics.net/lists/netdev/msg272123.html
+> > + */
+> > +static ssize_t dev_id_show(struct device *dev,
+> > +			   struct device_attribute *attr, char *buf)
+> > +{
+> > +	struct net_device *ndev =3D to_net_dev(dev);
+> > +
+> > +	if (ndev->dev_id =3D=3D ndev->dev_port)
+> > +		netdev_info_once(ndev,
+> > +			"\"%s\" wants to know my dev_id. Should it look at dev_port instead=
+? See Documentation/ABI/testing/sysfs-class-net for more info.\n",
+> > +			current->comm);
+> > +
+> > +	return sprintf(buf, "%#x\n", ndev->dev_id);
+> > +}
+> > +static DEVICE_ATTR_RO(dev_id);
+> > +
+> > +int ipoib_intercept_dev_id_attr(struct net_device *dev)
+> > +{
+> > +	device_remove_file(&dev->dev, &dev_attr_dev_id);
+> > +	return device_create_file(&dev->dev, &dev_attr_dev_id);
+> > +}
+>=20
+> Isn't this racey with userspace? Ie what happens if udev is querying
+> the dev_id right here?
 
-==================================================================
-BUG: KASAN: use-after-free in memcmp+0xe3/0x160 lib/string.c:861
-Read of size 1 at addr ffff8801ce73eb70 by task syz-executor383/11736
+udev in particular does not use dev_id at all since 2014, because "why
+would we keep using dev_id if it is not the right thing to use?".
 
-CPU: 1 PID: 11736 Comm: syz-executor383 Not tainted 4.19.0-rc2+ #228
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
-  print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
-  kasan_report_error mm/kasan/report.c:354 [inline]
-  kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
-  __asan_report_load1_noabort+0x14/0x20 mm/kasan/report.c:430
-  memcmp+0xe3/0x160 lib/string.c:861
-  memcmp include/linux/string.h:386 [inline]
-  rhashtable_compare include/linux/rhashtable.h:462 [inline]
-  __rhashtable_lookup.isra.8.constprop.20+0x73a/0xd00  
-include/linux/rhashtable.h:484
-  rhashtable_lookup include/linux/rhashtable.h:516 [inline]
-  rhashtable_lookup_fast include/linux/rhashtable.h:542 [inline]
-  rds_add_bound net/rds/bind.c:117 [inline]
-  rds_bind+0x7d2/0x1520 net/rds/bind.c:238
-  __sys_bind+0x331/0x440 net/socket.c:1481
-  __do_sys_bind net/socket.c:1492 [inline]
-  __se_sys_bind net/socket.c:1490 [inline]
-  __x64_sys_bind+0x73/0xb0 net/socket.c:1490
-  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
-RIP: 0033:0x444e29
-Code: e8 ac e8 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
-48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
-ff 0f 83 2b ce fb ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007ffec4b12988 EFLAGS: 00000217 ORIG_RAX: 0000000000000031
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 0000000000444e29
-RDX: 0000000000000010 RSI: 00000000200002c0 RDI: 0000000000000006
-RBP: 0000000000000000 R08: 00000000004002e0 R09: 00000000004002e0
-R10: 0000000000000004 R11: 0000000000000217 R12: 00000000000333a3
-R13: 0000000000402170 R14: 0000000000000000 R15: 0000000000000000
+>=20
+> Do we know there is no userspace doing this?
+>=20
 
-Allocated by task 11738:
-  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
-  set_track mm/kasan/kasan.c:460 [inline]
-  kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
-  kasan_slab_alloc+0x12/0x20 mm/kasan/kasan.c:490
-  kmem_cache_alloc+0x12e/0x730 mm/slab.c:3554
-  sk_prot_alloc+0x69/0x2e0 net/core/sock.c:1462
-  sk_alloc+0x10d/0x1690 net/core/sock.c:1522
-  rds_create+0x14f/0x740 net/rds/af_rds.c:666
-  __sock_create+0x536/0x930 net/socket.c:1275
-  sock_create net/socket.c:1315 [inline]
-  __sys_socket+0x106/0x260 net/socket.c:1345
-  __do_sys_socket net/socket.c:1354 [inline]
-  __se_sys_socket net/socket.c:1352 [inline]
-  __x64_sys_socket+0x73/0xb0 net/socket.c:1352
-  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+Not for sure.
 
-Freed by task 11738:
-  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
-  set_track mm/kasan/kasan.c:460 [inline]
-  __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
-  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
-  __cache_free mm/slab.c:3498 [inline]
-  kmem_cache_free+0x83/0x290 mm/slab.c:3756
-  sk_prot_free net/core/sock.c:1503 [inline]
-  __sk_destruct+0x766/0xbd0 net/core/sock.c:1587
-  sk_destruct+0x78/0x90 net/core/sock.c:1595
-  __sk_free+0xcf/0x300 net/core/sock.c:1606
-  sk_free+0x42/0x50 net/core/sock.c:1617
-  sock_put include/net/sock.h:1691 [inline]
-  rds_release+0x3e8/0x570 net/rds/af_rds.c:91
-  __sock_release+0xd7/0x250 net/socket.c:579
-  sock_close+0x19/0x20 net/socket.c:1139
-  __fput+0x385/0xa30 fs/file_table.c:278
-  ____fput+0x15/0x20 fs/file_table.c:309
-  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
-  tracehook_notify_resume include/linux/tracehook.h:193 [inline]
-  exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
-  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
-  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
-  do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
-  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+If we move all the sysfs handling stuff we introduce in _add_port():
+ - pkey
+ - umcast
+ - {create,delete}_child
+ - connected/datagram mode
+to _ndo_init(), which is called by register_netdev before it sends
+the netlink message, would that suffice to eliminate the race?
+(Sysfs files for {create,delete}_child go to _parent_init() then).
 
-The buggy address belongs to the object at ffff8801ce73e700
-  which belongs to the cache RDS of size 1608
-The buggy address is located 1136 bytes inside of
-  1608-byte region [ffff8801ce73e700, ffff8801ce73ed48)
-The buggy address belongs to the page:
-page:ffffea000739cf80 count:1 mapcount:0 mapping:ffff8801cb1c0c40 index:0x0
-flags: 0x2fffc0000000100(slab)
-raw: 02fffc0000000100 ffffea00073a5348 ffffea000738ea48 ffff8801cb1c0c40
-raw: 0000000000000000 ffff8801ce73e000 0000000100000002 0000000000000000
-page dumped because: kasan: bad access detected
+> >  static struct net_device *ipoib_add_port(const char *format,
+> >  					 struct ib_device *hca, u8 port)
+> >  {
+> > @@ -2427,6 +2456,8 @@ static struct net_device *ipoib_add_port(const ch=
+ar *format,
+> >  	 */
+> >  	ndev->priv_destructor =3D ipoib_intf_free;
+> > =20
+> > +	if (ipoib_intercept_dev_id_attr(ndev))
+> > +		goto sysfs_failed;
+>=20
+> No device_remove_file needed?
+>=20
 
-Memory state around the buggy address:
-  ffff8801ce73ea00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-  ffff8801ce73ea80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-> ffff8801ce73eb00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                                                              ^
-  ffff8801ce73eb80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-  ffff8801ce73ec00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-==================================================================
+As far as I understand, unregister_netdevice takes care of it
+while destroying the related kobject.
+
+> Jason
+
+--pf9I7BMVVzbSWLtt
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE56JD3UKTLEu/ddrm9dQjyAYL01AFAluVYlwACgkQ9dQjyAYL
+01D0zhAA0xZoVCKGTnvmFlzEJfFMosQzZU2hxLYWp3vZnmpkpyfV4IAGt5qFa8ev
+U6jww1LMNsNGi1ljUQvy0o6crW6ZKIQKudYrD4rzxfEWDN8w5+uM3Z5Nu311DiP1
+4yZNBrEysWeKV5FB7P85kvYBeikKtw7Zxsz4e9rQubfhUP2FAkj703zVhTd0VXVs
+vMmKdzj7I8jGreBvkCIl5mBIElbkwz1fb2qiHce1DcaKby52p4C5MqQK+15s1Mwd
+fuhiFK/ZDY0YE8AiOGuJ8htb+qbWf3wpKIZ7wiHrkBrlxgl1vK4KTb1RBIGBbt/f
+l7Es9Jdazak1sDdKc9WG936P7LtZQq+1/2OuwId6Z9vtLr4gW57pYvbbiiV40TNG
+SEsKVC+lCxPBtcBvRc4wVY6VzWMr3DzLp3EmS9utw01+9sngXa9kK6rVUk7Diw89
+QVXrarXT/LN19fauP+I8B/Yq2904j2z6uwY13PvNdfdfZDozoi2DKSS52og8dDWY
+k6j5ay4YAxqIhrMmTe/yET2IKiKhXDv6kamUEGarIFFqg3hf84ZphQyv84mtHaCu
+p+MhdakWj7rAMgtmeO5Ez+NxP+jZmd3I9Mt4hchSmXDEPCscBT6oVXppIeAQaXOX
+i8MmKVR1Uyg88MzsAR1i2T5a//KnYDD+k8hkNtZMkzMLKpL7lUw=
+=tMMJ
+-----END PGP SIGNATURE-----
+
+--pf9I7BMVVzbSWLtt--
