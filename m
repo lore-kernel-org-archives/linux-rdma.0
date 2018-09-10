@@ -1,29 +1,33 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] RDMA/hns: Fix an error code in hns_roce_v2_init_eq_table()
-Date: Mon, 10 Sep 2018 11:35:11 +0300
-Message-ID: <20180910083511.egoljxb5rr3do6ue@kili.mountain>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-rc 0/2] IB/hfi1: RC patches
+Date: Mon, 10 Sep 2018 07:53:44 -0700
+Message-ID: <20180910143437.10122.50679.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>
-Cc: "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The error code isn't set on this path.
+Hi Doug and Jason,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Here are two patches that should probably land in the RC. The first one ensures
+we don't index beyond the end of an array. The other is more subtle but arguably
+more important. The bug it fixes results in incorrect IRQ bits to be set and the
+result is we do not get an interrupt for an error and have to wait for another
+interrupt to fire to see said error.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 0218c0f8c2a7..b84bfa48371d 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -5125,6 +5125,7 @@ static int hns_roce_v2_init_eq_table(struct hns_roce_dev *hr_dev)
- 		create_singlethread_workqueue("hns_roce_irq_workqueue");
- 	if (!hr_dev->irq_workq) {
- 		dev_err(dev, "Create irq workqueue failed!\n");
-+		ret = -ENOMEM;
- 		goto err_request_irq_fail;
- 	}
- 
+---
+
+Dennis Dalessandro (1):
+      IB/hfi1: Ensure ucast_dlid access doesnt exceed bounds
+
+Michael J. Ruhl (1):
+      IB/hfi1: set_intr_bits uses incorrect source for register modification
+
+
+ drivers/infiniband/hw/hfi1/chip.c                |    2 +-
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
