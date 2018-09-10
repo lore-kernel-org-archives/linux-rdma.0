@@ -1,33 +1,42 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 0/2] IB/hfi1: RC patches
-Date: Mon, 10 Sep 2018 07:53:44 -0700
-Message-ID: <20180910143437.10122.50679.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-rc 1/2] IB/hfi1: Ensure ucast_dlid access doesnt exceed
+ bounds
+Date: Mon, 10 Sep 2018 07:53:55 -0700
+Message-ID: <20180910145349.10122.35039.stgit@scvm10.sc.intel.com>
+References: <20180910143437.10122.50679.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180910143437.10122.50679.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Doug and Jason,
+The dlid assignment made by looking into the u_ucast_dlid array does not do an
+explicit check for the size of the array. The code path to arrive at def_port,
+the index value is long and complicated and its best to just have an explicit
+check here.
 
-Here are two patches that should probably land in the RC. The first one ensures
-we don't index beyond the end of an array. The other is more subtle but arguably
-more important. The bug it fixes results in incorrect IRQ bits to be set and the
-result is we do not get an interrupt for an error and have to wait for another
-interrupt to fire to see said error.
-
+Cc: stable@vger.kernel.org
+Fixes: 7d6f728c677e ("IB/opa-vnic: Virtual Network Interface Controller (VNIC) netdev")
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
-
-Dennis Dalessandro (1):
-      IB/hfi1: Ensure ucast_dlid access doesnt exceed bounds
-
-Michael J. Ruhl (1):
-      IB/hfi1: set_intr_bits uses incorrect source for register modification
-
-
- drivers/infiniband/hw/hfi1/chip.c                |    2 +-
  drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+index 267da82..31cd361 100644
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
++++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_encap.c
+@@ -351,7 +351,8 @@ static uint32_t opa_vnic_get_dlid(struct opa_vnic_adapter *adapter,
+ 			if (unlikely(!dlid))
+ 				v_warn("Null dlid in MAC address\n");
+ 		} else if (def_port != OPA_VNIC_INVALID_PORT) {
+-			dlid = info->vesw.u_ucast_dlid[def_port];
++			if (def_port < OPA_VESW_MAX_NUM_DEF_PORT)
++				dlid = info->vesw.u_ucast_dlid[def_port];
+ 		}
+ 	}
+ 
