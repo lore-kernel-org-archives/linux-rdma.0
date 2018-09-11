@@ -1,27 +1,23 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] infiniband: remove redundant condition check before
- debugfs_remove
-Date: Tue, 11 Sep 2018 09:39:00 -0600
-Message-ID: <20180911153900.GA18253@ziepe.ca>
-References: <1536414571-32675-1-git-send-email-zhongjiang@huawei.com>
+Subject: Re: [PATCH] RDMA/hns: Fix an error code in
+ hns_roce_v2_init_eq_table()
+Date: Tue, 11 Sep 2018 10:03:12 -0600
+Message-ID: <20180911160312.GA23697@ziepe.ca>
+References: <20180910083511.egoljxb5rr3do6ue@kili.mountain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1536414571-32675-1-git-send-email-zhongjiang@huawei.com>
+In-Reply-To: <20180910083511.egoljxb5rr3do6ue@kili.mountain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: zhong jiang <zhongjiang@huawei.com>
-Cc: dledford@redhat.com, benve@cisco.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 08, 2018 at 09:49:31PM +0800, zhong jiang wrote:
-> debugfs_remove has taken the IS_ERR_OR_NULL into account. Just
-> remove the unnecessary condition.
+On Mon, Sep 10, 2018 at 11:35:11AM +0300, Dan Carpenter wrote:
+> The error code isn't set on this path.
 > 
-> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-> ---
->  drivers/infiniband/hw/usnic/usnic_debugfs.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 Applied to for-next, thanks
 
