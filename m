@@ -1,31 +1,28 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] cxgb4: fix abort_req_rss6 struct
-Date: Tue, 11 Sep 2018 09:19:17 -0600
-Message-ID: <20180911151917.GA29370@ziepe.ca>
-References: <1e9f55943699dcc2bc921000ee7ee5353cbf7480.1535742195.git.swise@opengridcomputing.com>
+Subject: Re: [PATCH] infiniband: remove redundant condition check before
+ debugfs_remove
+Date: Tue, 11 Sep 2018 09:39:00 -0600
+Message-ID: <20180911153900.GA18253@ziepe.ca>
+References: <1536414571-32675-1-git-send-email-zhongjiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1e9f55943699dcc2bc921000ee7ee5353cbf7480.1535742195.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: netdev@vger.kernel.org, dledford@redhat.com, davem@davemloft.net, linux-rdma@vger.kernel.org
+In-Reply-To: <1536414571-32675-1-git-send-email-zhongjiang@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: zhong jiang <zhongjiang@huawei.com>
+Cc: dledford@redhat.com, benve@cisco.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 31, 2018 at 11:52:00AM -0700, Steve Wise wrote:
-> Remove the incorrect WR_HDR field which can cause a misinterpretation
-> of this CPL by ULDs.
+On Sat, Sep 08, 2018 at 09:49:31PM +0800, zhong jiang wrote:
+> debugfs_remove has taken the IS_ERR_OR_NULL into account. Just
+> remove the unnecessary condition.
 > 
-> Fixes: a3cdaa69e4ae ("cxgb4: Adds CPL support for Shared Receive Queues")
-> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
 > ---
-> 
-> Dave, Doug, and Jason,
-> 
-> I request this merge through the rdma repo since the only user of this
-> structure is iw_cxgb4.
+>  drivers/infiniband/hw/usnic/usnic_debugfs.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-Applied to for-rc, thanks
+Applied to for-next, thanks
 
 Jason
