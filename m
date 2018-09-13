@@ -1,30 +1,88 @@
-From: Jens Axboe <axboe@kernel.dk>
-Subject: Re: [PATCH v6 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
-Date: Wed, 12 Sep 2018 18:28:50 -0600
-Message-ID: <0118d3d8-a2f5-047f-6627-04ac3d0371ad@kernel.dk>
-References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-8-logang@deltatee.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] ucma: fix a use-after-free in ucma_resolve_ip()
+Date: Thu, 13 Sep 2018 08:49:15 +0300
+Message-ID: <20180913054915.GF5257@mtr-leonro.mtl.com>
+References: <20180912232744.12693-1-xiyou.wangcong@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="XWOWbaMNXpFDWE00"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180913001156.4115-8-logang@deltatee.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180912232744.12693-1-xiyou.wangcong@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
-Cc: Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+To: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/12/18 6:11 PM, Logan Gunthorpe wrote:
-> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-> supports targeting P2P memory.
-> 
-> When a request is submitted we check if PCI P2PDMA memory is assigned
-> to the first page in the bio. If it is, we ensure the queue it's
-> submitted to supports it, and enforce REQ_NOMERGE.
 
-This changelog is no longer accurate.
+--XWOWbaMNXpFDWE00
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
--- 
-Jens Axboe
+On Wed, Sep 12, 2018 at 04:27:44PM -0700, Cong Wang wrote:
+> There is a race condition between ucma_close() and ucma_resolve_ip():
+>
+> CPU0				CPU1
+> ucma_resolve_ip():		ucma_close():
+>
+> ctx = ucma_get_ctx(file, cmd.id);
+>
+>         list_for_each_entry_safe(ctx, tmp, &file->ctx_list, list) {
+>                 mutex_lock(&mut);
+>                 idr_remove(&ctx_idr, ctx->id);
+>                 mutex_unlock(&mut);
+> 		...
+>                 mutex_lock(&mut);
+>                 if (!ctx->closing) {
+>                         mutex_unlock(&mut);
+>                         rdma_destroy_id(ctx->cm_id);
+> 		...
+>                 ucma_free_ctx(ctx);
+>
+> ret = rdma_resolve_addr();
+> ucma_put_ctx(ctx);
+>
+> Before idr_remove(), ucma_get_ctx() could still find the ctx
+> and after rdma_destroy_id(), rdma_resolve_addr() may still
+> access id_priv pointer. Also, ucma_put_ctx() may use ctx after
+> ucma_free_ctx() too.
+>
+> ucma_close() should call ucma_put_ctx() too which tests the
+> refcnt and waits for the last one releasing it. The similar
+> pattern is already used by ucma_destroy_id().
+>
+> Reported-and-tested-by: syzbot+da2591e115d57a9cbb8b@syzkaller.appspotmail.com
+> Reported-by: syzbot+cfe3c1e8ef634ba8964b@syzkaller.appspotmail.com
+> Cc: Jason Gunthorpe <jgg@mellanox.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Leon Romanovsky <leon@kernel.org>
+> Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+> ---
+>  drivers/infiniband/core/ucma.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+
+Thanks,
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+
+--XWOWbaMNXpFDWE00
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbmfpbAAoJEORje4g2clinQaUP/0d6dV3SRWyPjtGDleFGTWZG
+xSFbQte4gMTtF2PODzDPFz8TsNinHYzq/8x7Vxpabx0h9eOPkJiIqp9Wo6oEaysm
+XB63Pw6+3FPRJWpDJyy365N80cNb0TMSQGs1gtbduU+Gpa4x7UapF4swstpSxsrd
+9+2pGr+OcrQhq6kVwVxxrUF9dEiHFXbaA1aUZvcA400ISTjfZYCpoprB39g3DtwQ
+tmBKo6kaKjZaHSEE6Du18FwqTSYB2DU+MlsU5w3AJzEIGfj422dSMBwgeHz9KCJL
+vSfdXXoj3Se02NuVD3ccaxkI+mabscOx/jPUkqRnd29Uc0Y8oJW9xvu63yy4NlX3
+uCeoSmdpA2gmukIFSj0VUyxBIYlaLPjhpuzIg4H1YWl//OlFNHEle4b5JVeL7ley
+lZzmLHY6aYHaat8lUtTZtoaIyam9o6tjgRheA4jK4QhLqdjtDptvJalI0QZWwY7c
+tp0cMEnyNNNNGBV98fg/eXznXdozi/v77XML+i9YjvPWRsfuZECFwXKKt1YC9O2e
+Fpsa5XBlYEc1/upWffiGhORLY5tbjYXDDlD8E6nWHRBG8wkBZUkBbNqLKtdISB+J
+VccJI+9/O7TxW8XSXqLvBzq1VEH1f7K6po0X0wTK5qqdcKXFTs+YWxPl8XidgcXc
+zgp5ff7BE5wDRapJJbYe
+=iuSW
+-----END PGP SIGNATURE-----
+
+--XWOWbaMNXpFDWE00--
