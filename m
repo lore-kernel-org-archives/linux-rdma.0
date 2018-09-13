@@ -1,54 +1,46 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH -next] RDMA: Remove duplicated include from ib_addr.h
-Date: Thu, 13 Sep 2018 18:58:26 +0300
-Message-ID: <20180913155826.GR5257@mtr-leonro.mtl.com>
-References: <20180913134752.22780-1-yuehaibing@huawei.com>
+From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v6 07/13] block: Add PCI P2P flag for request queue and
+ check support for requests
+Date: Thu, 13 Sep 2018 10:14:02 -0600
+Message-ID: <5998a8c3-697e-82ac-91d4-a648455a21e9@deltatee.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
+ <20180913001156.4115-8-logang@deltatee.com>
+ <0118d3d8-a2f5-047f-6627-04ac3d0371ad@kernel.dk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="lkTb+7nhmha7W+c3"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180913134752.22780-1-yuehaibing@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: dledford@redhat.com, jgg@ziepe.ca, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <0118d3d8-a2f5-047f-6627-04ac3d0371ad-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---lkTb+7nhmha7W+c3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-On Thu, Sep 13, 2018 at 09:47:52PM +0800, YueHaibing wrote:
-> Remove duplicated include.
->
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  include/rdma/ib_addr.h | 1 -
->  1 file changed, 1 deletion(-)
->
+On 12/09/18 06:28 PM, Jens Axboe wrote:
+> On 9/12/18 6:11 PM, Logan Gunthorpe wrote:
+>> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+>> supports targeting P2P memory.
+>>
+>> When a request is submitted we check if PCI P2PDMA memory is assigned
+>> to the first page in the bio. If it is, we ensure the queue it's
+>> submitted to supports it, and enforce REQ_NOMERGE.
+> 
+> This changelog is no longer accurate.
+
+
+Oops, I'll fix this for v7.
 
 Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---lkTb+7nhmha7W+c3
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbmokiAAoJEORje4g2clinKZIP/RF+2U27YSoTaPJtXYg+Gqnn
-IbvWW/VZ4fnXmGKgm1k+SXh5rNnBeYVqrXFzHrGj1cJSWqiJ59V0+Rw+HH3mMIbX
-NSBgLpX6LiZpy6m9zJosKG2YsbqBEj6khM03+/qXy2N7BagDvdgCV4dpqKcNv9v2
-1AwCD51KUFIrPKzKdmrRq1dEoh2hGBLAxozZqpjO+J7P/gPkyVVqDqpgi6h7x61f
-URLDV83W95KTXj2z8c9mF9OT5QQTZ8KsD6F8jtGIwjUdYgnkY7C1+5ZuqkpFHJRo
-B3oHhVqJgiX4PjxlQnmUWXj3UlolgGLrvy8eXXJjR1dGCQQWmBx/DwTwYBfol8ns
-IP1RStw/71mpIunzR0rXg4Yp9plD3jB7i0E2Xo+xY7T8qm1xxELQlGfeNcry3Q2L
-XpuwgT6TWDGTIr4Jw5F93XEgAreVk+hdbvHsNlWN4GV9KEaClKko466+rp7/lvzM
-cVXYVH8zDiTpi/2uIJvPHkGi3UQZQpm47DQOPI8jvI6bpIPEPas6Ehxw7IaCzt3n
-7lcR8fAhXO05J2kVVFLUDASSYTwJtkSe8qdD6xtJYjGuv/0G9H01wj27D7Nv45m9
-tRVOD2/E7n6QbMIz2Caw0PwU7V6xxkjcRTP+qgp+MQvTycuv7aun/f6uHrA69Do/
-kQz0eQD9+ftGmDhRdwgs
-=eKEB
------END PGP SIGNATURE-----
-
---lkTb+7nhmha7W+c3--
+Logan
