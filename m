@@ -1,76 +1,37 @@
-From: Qing Huang <qing.huang@oracle.com>
-Subject: Re: [PATCH] net/mlx4_core: print firmware version during driver
- loading
-Date: Fri, 14 Sep 2018 15:36:46 -0700
-Message-ID: <1d4fe3c6-13aa-12a4-8da4-a83374b89fbf@oracle.com>
-References: <c580ad9d-b63d-743b-2278-1c4cf3553186@oracle.com>
- <20180914181718.GD3811@lunn.ch>
- <c332f10a-5ad0-53fd-5111-1964443b3092@oracle.com>
- <20180914.141406.2211638662965115243.davem@davemloft.net>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
+Subject: Re: mutex and rcu list traversal idiosyncrasy
+Date: Fri, 14 Sep 2018 18:46:31 -0500
+Message-ID: <20180914234631.GA20084@ssaleem-MOBL4.amr.corp.intel.com>
+References: <E4626316-0683-45DF-9F09-D602FC982E21@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180914.141406.2211638662965115243.davem@davemloft.net>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <E4626316-0683-45DF-9F09-D602FC982E21@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: andrew@lunn.ch, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, tariqt@mellanox.com
+To: =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
+Cc: "Latif, Faisal" <faisal.latif@intel.com>, OFED mailing list <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, "Hefty, Sean" <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "Singhai, Anjali" <anjali.singhai@intel.com>, Shannon Nelson <shannon.nelson@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 9/14/2018 2:14 PM, David Miller wrote:
-> From: Qing Huang<qing.huang@oracle.com>
-> Date: Fri, 14 Sep 2018 11:33:40 -0700
+On Thu, Sep 13, 2018 at 05:55:44AM -0600, Håkon Bugge wrote:
+> Hi Faisal,
+> 
+> 
+> In commit f27b4746f378 ("i40iw: add connection management code") you have in i40iw_add_mqh_6():
+> 
+> rtnl_lock();
+> for_each_netdev_rcu(...) {
+> 	[]
+> }
+> rtnl_unlock();
+> 
+> Shouldn't this read:
+> rtnl_lock();
+> for_each_netdev(...) {
+> 	[]
+> }
+> rtnl_unlock();
 >
->> On 9/14/2018 11:17 AM, Andrew Lunn wrote:
->>> On Fri, Sep 14, 2018 at 10:15:48AM -0700, Qing Huang wrote:
->>>> The FW version is actually a very crucial piece of information and
->>>> only
->>>> printed once here
->>>> when the driver is loaded. People tend to get confused when switching
->>>> multiple FW files
->>>> back and forth without running separate utility tools, especially at
->>>> customer sites.
->>>> IMHO, this information is very useful and only takes up very little
->>>> log file
->>>> space. :-)
->>> Why not use ethtool -i ?
->>>
->>> $ sudo ethtool -i eth0
->>> driver: r8169
->>> version: 2.3LK-NAPI
->>> firmware-version: rtl8168g-2_0.0.1 02/06/13
->>>
->>>       Andrew
->> Sure. You can also use ibstat or ibv_devinfo tool if they are
->> installed. But it's not very
->> convenient in some cases.
->>
->> E.g.
->> A customer upgrades FW on HCAs and encounters issues. During triage,
->> it's much easier
->> to study customer uploaded log files when remotely testing different
->> FW files.
-> Not a valid argument.  You can print the ethtool output from initramfs
-> if necessary for triage.
->
-> I still stand by the fact that ethtool is the only fully reliable way
-> to obtain this information, the kernel log is not.
 
-This is more for Infiniband mode which depends more on features and 
-functionalities
-provided in firmware and get much more frequent FW bug fixes than 
-typical Ethernet
-devices. This is not meant to replace other ways of getting the 
-information, more like
-an enhancement for checking log history.
-
-This can provide valuable information when tracing through system log 
-history to
-discover what happened with a specific HCA drv ver and fw ver 
-combination in the past.
-
-Regards,
-Qing
+Yes.
