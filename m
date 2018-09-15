@@ -1,110 +1,82 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] net/mlx4_core: print firmware version during driver
- loading
-Date: Sat, 15 Sep 2018 11:50:09 +0300
-Message-ID: <20180915085009.GD5257@mtr-leonro.mtl.com>
-References: <c580ad9d-b63d-743b-2278-1c4cf3553186@oracle.com>
- <20180914181718.GD3811@lunn.ch>
- <c332f10a-5ad0-53fd-5111-1964443b3092@oracle.com>
- <20180914.141406.2211638662965115243.davem@davemloft.net>
- <1d4fe3c6-13aa-12a4-8da4-a83374b89fbf@oracle.com>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [Patch v3 00/16] CIFS: add support for direct I/O
+Date: Sat, 15 Sep 2018 04:28:09 -0500
+Message-ID: <CAH2r5mtaV-avzB0Ygb7CidVoWaSXQ_5E8F5Ed1RQAyGue43jcw@mail.gmail.com>
+References: <20180908021348.19956-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="LiQwW4YX+w4axhAx"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1d4fe3c6-13aa-12a4-8da4-a83374b89fbf@oracle.com>
+In-Reply-To: <20180908021348.19956-1-longli@linuxonhyperv.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Qing Huang <qing.huang@oracle.com>
-Cc: David Miller <davem@davemloft.net>, andrew@lunn.ch, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, tariqt@mellanox.com
+To: Long Li <longli@microsoft.com>
+Cc: Steve French <sfrench@samba.org>, CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---LiQwW4YX+w4axhAx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Sep 14, 2018 at 03:36:46PM -0700, Qing Huang wrote:
+could you rebase these, patch 1 was merged quite a while ago, and
+patch 2 etc. doesn't apply cleanly
+On Fri, Sep 7, 2018 at 9:18 PM Long Li <longli@linuxonhyperv.com> wrote:
+>
+> From: Long Li <longli@microsoft.com>
+>
+> This patch set implements direct I/O.
+>
+> In normal code path (even with cache=none), CIFS copies I/O data from
+> user-space to kernel-space for security reasons of possible protocol
+> required signing and encryption on user data.
+>
+> With this patch set, CIFS passes the I/O data directly from user-space
+> buffer to the transport layer, when file system is mounted with
+> "cache-none".
+>
+> Patch v2 addressed comments from Christoph Hellwig <hch@lst.de> and
+> Tom Talpey <ttalpey@microsoft.com> to implement direct I/O for both
+> socket and RDMA.
+>
+> Patch v3 added support for kernel AIO.
 >
 >
-> On 9/14/2018 2:14 PM, David Miller wrote:
-> > From: Qing Huang<qing.huang@oracle.com>
-> > Date: Fri, 14 Sep 2018 11:33:40 -0700
-> >
-> > > On 9/14/2018 11:17 AM, Andrew Lunn wrote:
-> > > > On Fri, Sep 14, 2018 at 10:15:48AM -0700, Qing Huang wrote:
-> > > > > The FW version is actually a very crucial piece of information and
-> > > > > only
-> > > > > printed once here
-> > > > > when the driver is loaded. People tend to get confused when switching
-> > > > > multiple FW files
-> > > > > back and forth without running separate utility tools, especially at
-> > > > > customer sites.
-> > > > > IMHO, this information is very useful and only takes up very little
-> > > > > log file
-> > > > > space. :-)
-> > > > Why not use ethtool -i ?
-> > > >
-> > > > $ sudo ethtool -i eth0
-> > > > driver: r8169
-> > > > version: 2.3LK-NAPI
-> > > > firmware-version: rtl8168g-2_0.0.1 02/06/13
-> > > >
-> > > >       Andrew
-> > > Sure. You can also use ibstat or ibv_devinfo tool if they are
-> > > installed. But it's not very
-> > > convenient in some cases.
-> > >
-> > > E.g.
-> > > A customer upgrades FW on HCAs and encounters issues. During triage,
-> > > it's much easier
-> > > to study customer uploaded log files when remotely testing different
-> > > FW files.
-> > Not a valid argument.  You can print the ethtool output from initramfs
-> > if necessary for triage.
-> >
-> > I still stand by the fact that ethtool is the only fully reliable way
-> > to obtain this information, the kernel log is not.
+> Long Li (16):
+>   CIFS: Add support for direct pages in rdata
+>   CIFS: Use offset when reading pages
+>   CIFS: Add support for direct pages in wdata
+>   CIFS: pass page offset when issuing SMB write
+>   CIFS: Calculate the correct request length based on page offset and
+>     tail size
+>   CIFS: Introduce helper function to get page offset and length in
+>     smb_rqst
+>   CIFS: When sending data on socket, pass the correct page offset
+>   CIFS: SMBD: Support page offset in RDMA send
+>   CIFS: SMBD: Support page offset in RDMA recv
+>   CIFS: SMBD: Do not call ib_dereg_mr on invalidated memory registration
+>   CIFS: SMBD: Support page offset in memory registration
+>   CIFS: Pass page offset for calculating signature
+>   CIFS: Pass page offset for encrypting
+>   CIFS: Add support for direct I/O read
+>   CIFS: Add support for direct I/O write
+>   CIFS: Add direct I/O functions to file_operations
 >
-> This is more for Infiniband mode which depends more on features and
-> functionalities
-
-For pure infiniband devices you have rdmatool, part of iproute2.
-[leonro@server-14-015 ~]$ rdma dev
-1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455 sys_image_guid 5254:00c0:fe12:3455
-
-> provided in firmware and get much more frequent FW bug fixes than typical
-> Ethernet
-> devices. This is not meant to replace other ways of getting the information,
-> more like
-> an enhancement for checking log history.
+>  fs/cifs/cifsencrypt.c |   9 +-
+>  fs/cifs/cifsfs.c      |  10 +-
+>  fs/cifs/cifsfs.h      |   2 +
+>  fs/cifs/cifsglob.h    |  11 +-
+>  fs/cifs/cifsproto.h   |   9 +-
+>  fs/cifs/cifssmb.c     |  19 +-
+>  fs/cifs/connect.c     |   5 +-
+>  fs/cifs/file.c        | 477 ++++++++++++++++++++++++++++++++++++++++++--------
+>  fs/cifs/misc.c        |  17 ++
+>  fs/cifs/smb2ops.c     |  22 ++-
+>  fs/cifs/smb2pdu.c     |  20 ++-
+>  fs/cifs/smbdirect.c   | 156 ++++++++++-------
+>  fs/cifs/smbdirect.h   |   2 +-
+>  fs/cifs/transport.c   |  34 ++--
+>  14 files changed, 606 insertions(+), 187 deletions(-)
 >
-> This can provide valuable information when tracing through system log
-> history to
-> discover what happened with a specific HCA drv ver and fw ver combination in
-> the past.
+> --
+> 2.7.4
 >
-> Regards,
-> Qing
 
---LiQwW4YX+w4axhAx
-Content-Type: application/pgp-signature; name="signature.asc"
 
------BEGIN PGP SIGNATURE-----
+-- 
+Thanks,
 
-iQIcBAEBAgAGBQJbnMfBAAoJEORje4g2clins2MP/2ahQ8mb69Zi6lmm5NOnF6Jp
-pRNzlNSTPzRZ9Fp2MXZYMU1tGny0099pN0kkUalecGjUjyIL5W3VU1kTKyhZJo9B
-7mi/e1uTXVkT3dEyqsPhXdaig0C7EWv+pQRz6he2oc3QBhc1uUri7jKofjLG7K+q
-o6/j7F2nZ0mIK4AzoQZJErFv4bZ7hXzcx48vNRg4jV6LLgKP//9C5KyNrjZ/GyUf
-YDp3DOQzhbu4EHxQqm7bb08XHKj24SJ0AAaGKIJEcXY1iTrZqmg3LYSOpS0aGLy0
-RV7q6uuKbbm7RiHqF+htAAobgoGqYorAep9ePvl2lvAzwnJh39Fcv25Hbrqly5EG
-fXsCk4SvNROH8RwqLwOQ1j4is08omwVN0LeKGS3y0auIJkdjiTJh6VZMb2/+WKG+
-BaL9mzQnl32Spl/uOQPepf4YSwWVHqpzATamZpm/FVsDp4g0dhkzJmTLvErhEfxu
-b27VRmImB3mnGRhnQ/csRIy4aYlYXr811xbYs+QIFBMnU7Gj8587fAhA7Tpbe03u
-7AusoUmICk5Z+CMaVWjLXsDY3BlwxRuSIzKrSWOy3eYEsNvgcn2750IoSrFF8ytD
-//P2h9BKzUMMwnwlxV6FYne4mTYLLhiD3vAk+eI/Xdsv6TLYr67/e8CL24na83Z+
-1nQgA1BF0TXoZBpShiR0
-=dvjv
------END PGP SIGNATURE-----
-
---LiQwW4YX+w4axhAx--
+Steve
