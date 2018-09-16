@@ -1,70 +1,76 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v3 00/16] CIFS: add support for direct I/O
-Date: Sat, 15 Sep 2018 20:57:33 +0000
-Message-ID: <SN4PR2101MB07330E143E443576FBF08AC8CE180@SN4PR2101MB0733.namprd21.prod.outlook.com>
-References: <20180908021348.19956-1-longli@linuxonhyperv.com>
- <CAH2r5mtaV-avzB0Ygb7CidVoWaSXQ_5E8F5Ed1RQAyGue43jcw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAH2r5mtaV-avzB0Ygb7CidVoWaSXQ_5E8F5Ed1RQAyGue43jcw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <smfrench@gmail.com>
-Cc: Steve French <sfrench@samba.org>, CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-next] rdma: Fix representation of PortInfo CapabilityMask
+Date: Sun, 16 Sep 2018 20:28:13 +0300
+Message-ID: <20180916172814.13022-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBTdGV2ZSBGcmVuY2ggPHNtZnJlbmNoQGdtYWlsLmNvbT4NCj4gU2VudDogU2F0dXJk
-YXksIFNlcHRlbWJlciAxNSwgMjAxOCAyOjI4IEFNDQo+IFRvOiBMb25nIExpIDxsb25nbGlAbWlj
-cm9zb2Z0LmNvbT4NCj4gQ2M6IFN0ZXZlIEZyZW5jaCA8c2ZyZW5jaEBzYW1iYS5vcmc+OyBDSUZT
-IDxsaW51eC1jaWZzQHZnZXIua2VybmVsLm9yZz47DQo+IHNhbWJhLXRlY2huaWNhbCA8c2FtYmEt
-dGVjaG5pY2FsQGxpc3RzLnNhbWJhLm9yZz47IExLTUwgPGxpbnV4LQ0KPiBrZXJuZWxAdmdlci5r
-ZXJuZWwub3JnPjsgbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQ
-YXRjaCB2MyAwMC8xNl0gQ0lGUzogYWRkIHN1cHBvcnQgZm9yIGRpcmVjdCBJL08NCj4gDQo+IGNv
-dWxkIHlvdSByZWJhc2UgdGhlc2UsIHBhdGNoIDEgd2FzIG1lcmdlZCBxdWl0ZSBhIHdoaWxlIGFn
-bywgYW5kIHBhdGNoIDINCj4gZXRjLiBkb2Vzbid0IGFwcGx5IGNsZWFubHkgDQoNClNvcnJ5LCBJ
-IHdpbGwgcmViYXNlIGFuZCByZXNlbmQuDQoNCg0KT24gRnJpLCBTZXAgNywgMjAxOCBhdCA5OjE4
-IFBNIExvbmcgTGkNCj4gPGxvbmdsaUBsaW51eG9uaHlwZXJ2LmNvbT4gd3JvdGU6DQo+ID4NCj4g
-PiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPg0KPiA+IFRoaXMgcGF0
-Y2ggc2V0IGltcGxlbWVudHMgZGlyZWN0IEkvTy4NCj4gPg0KPiA+IEluIG5vcm1hbCBjb2RlIHBh
-dGggKGV2ZW4gd2l0aCBjYWNoZT1ub25lKSwgQ0lGUyBjb3BpZXMgSS9PIGRhdGEgZnJvbQ0KPiA+
-IHVzZXItc3BhY2UgdG8ga2VybmVsLXNwYWNlIGZvciBzZWN1cml0eSByZWFzb25zIG9mIHBvc3Np
-YmxlIHByb3RvY29sDQo+ID4gcmVxdWlyZWQgc2lnbmluZyBhbmQgZW5jcnlwdGlvbiBvbiB1c2Vy
-IGRhdGEuDQo+ID4NCj4gPiBXaXRoIHRoaXMgcGF0Y2ggc2V0LCBDSUZTIHBhc3NlcyB0aGUgSS9P
-IGRhdGEgZGlyZWN0bHkgZnJvbSB1c2VyLXNwYWNlDQo+ID4gYnVmZmVyIHRvIHRoZSB0cmFuc3Bv
-cnQgbGF5ZXIsIHdoZW4gZmlsZSBzeXN0ZW0gaXMgbW91bnRlZCB3aXRoDQo+ID4gImNhY2hlLW5v
-bmUiLg0KPiA+DQo+ID4gUGF0Y2ggdjIgYWRkcmVzc2VkIGNvbW1lbnRzIGZyb20gQ2hyaXN0b3Bo
-IEhlbGx3aWcgPGhjaEBsc3QuZGU+IGFuZA0KPiA+IFRvbSBUYWxwZXkgPHR0YWxwZXlAbWljcm9z
-b2Z0LmNvbT4gdG8gaW1wbGVtZW50IGRpcmVjdCBJL08gZm9yIGJvdGgNCj4gPiBzb2NrZXQgYW5k
-IFJETUEuDQo+ID4NCj4gPiBQYXRjaCB2MyBhZGRlZCBzdXBwb3J0IGZvciBrZXJuZWwgQUlPLg0K
-PiA+DQo+ID4NCj4gPiBMb25nIExpICgxNik6DQo+ID4gICBDSUZTOiBBZGQgc3VwcG9ydCBmb3Ig
-ZGlyZWN0IHBhZ2VzIGluIHJkYXRhDQo+ID4gICBDSUZTOiBVc2Ugb2Zmc2V0IHdoZW4gcmVhZGlu
-ZyBwYWdlcw0KPiA+ICAgQ0lGUzogQWRkIHN1cHBvcnQgZm9yIGRpcmVjdCBwYWdlcyBpbiB3ZGF0
-YQ0KPiA+ICAgQ0lGUzogcGFzcyBwYWdlIG9mZnNldCB3aGVuIGlzc3VpbmcgU01CIHdyaXRlDQo+
-ID4gICBDSUZTOiBDYWxjdWxhdGUgdGhlIGNvcnJlY3QgcmVxdWVzdCBsZW5ndGggYmFzZWQgb24g
-cGFnZSBvZmZzZXQgYW5kDQo+ID4gICAgIHRhaWwgc2l6ZQ0KPiA+ICAgQ0lGUzogSW50cm9kdWNl
-IGhlbHBlciBmdW5jdGlvbiB0byBnZXQgcGFnZSBvZmZzZXQgYW5kIGxlbmd0aCBpbg0KPiA+ICAg
-ICBzbWJfcnFzdA0KPiA+ICAgQ0lGUzogV2hlbiBzZW5kaW5nIGRhdGEgb24gc29ja2V0LCBwYXNz
-IHRoZSBjb3JyZWN0IHBhZ2Ugb2Zmc2V0DQo+ID4gICBDSUZTOiBTTUJEOiBTdXBwb3J0IHBhZ2Ug
-b2Zmc2V0IGluIFJETUEgc2VuZA0KPiA+ICAgQ0lGUzogU01CRDogU3VwcG9ydCBwYWdlIG9mZnNl
-dCBpbiBSRE1BIHJlY3YNCj4gPiAgIENJRlM6IFNNQkQ6IERvIG5vdCBjYWxsIGliX2RlcmVnX21y
-IG9uIGludmFsaWRhdGVkIG1lbW9yeSByZWdpc3RyYXRpb24NCj4gPiAgIENJRlM6IFNNQkQ6IFN1
-cHBvcnQgcGFnZSBvZmZzZXQgaW4gbWVtb3J5IHJlZ2lzdHJhdGlvbg0KPiA+ICAgQ0lGUzogUGFz
-cyBwYWdlIG9mZnNldCBmb3IgY2FsY3VsYXRpbmcgc2lnbmF0dXJlDQo+ID4gICBDSUZTOiBQYXNz
-IHBhZ2Ugb2Zmc2V0IGZvciBlbmNyeXB0aW5nDQo+ID4gICBDSUZTOiBBZGQgc3VwcG9ydCBmb3Ig
-ZGlyZWN0IEkvTyByZWFkDQo+ID4gICBDSUZTOiBBZGQgc3VwcG9ydCBmb3IgZGlyZWN0IEkvTyB3
-cml0ZQ0KPiA+ICAgQ0lGUzogQWRkIGRpcmVjdCBJL08gZnVuY3Rpb25zIHRvIGZpbGVfb3BlcmF0
-aW9ucw0KPiA+DQo+ID4gIGZzL2NpZnMvY2lmc2VuY3J5cHQuYyB8ICAgOSArLQ0KPiA+ICBmcy9j
-aWZzL2NpZnNmcy5jICAgICAgfCAgMTAgKy0NCj4gPiAgZnMvY2lmcy9jaWZzZnMuaCAgICAgIHwg
-ICAyICsNCj4gPiAgZnMvY2lmcy9jaWZzZ2xvYi5oICAgIHwgIDExICstDQo+ID4gIGZzL2NpZnMv
-Y2lmc3Byb3RvLmggICB8ICAgOSArLQ0KPiA+ICBmcy9jaWZzL2NpZnNzbWIuYyAgICAgfCAgMTkg
-Ky0NCj4gPiAgZnMvY2lmcy9jb25uZWN0LmMgICAgIHwgICA1ICstDQo+ID4gIGZzL2NpZnMvZmls
-ZS5jICAgICAgICB8IDQ3Nw0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKystLS0tLS0tLQ0KPiA+ICBmcy9jaWZzL21pc2MuYyAgICAgICAgfCAgMTcgKysNCj4gPiAg
-ZnMvY2lmcy9zbWIyb3BzLmMgICAgIHwgIDIyICsrLQ0KPiA+ICBmcy9jaWZzL3NtYjJwZHUuYyAg
-ICAgfCAgMjAgKystDQo+ID4gIGZzL2NpZnMvc21iZGlyZWN0LmMgICB8IDE1NiArKysrKysrKysr
-LS0tLS0tLQ0KPiA+ICBmcy9jaWZzL3NtYmRpcmVjdC5oICAgfCAgIDIgKy0NCj4gPiAgZnMvY2lm
-cy90cmFuc3BvcnQuYyAgIHwgIDM0ICsrLS0NCj4gPiAgMTQgZmlsZXMgY2hhbmdlZCwgNjA2IGlu
-c2VydGlvbnMoKyksIDE4NyBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IC0tDQo+ID4gMi43LjQNCj4g
-Pg0KPiANCj4gDQo+IC0tDQo+IFRoYW5rcywNCj4gDQo+IFN0ZXZlDQo=
+From: Leon Romanovsky <leonro@mellanox.com>
+
+The port capability mask represents IBTA PortInfo specification,
+but as it is written in description of kernel commit 2f944c0fbf58
+("RDMA: Fix storage of PortInfo CapabilityMask in the kernel"),
+the bit 26 was mistakenly overwritten.
+
+The rdmatool followed it too and mislead users by presenting wrong
+value. Since it never showed proper value, we update the whole
+port_cap_mask to comply with IBTA and show real HW values.
+
+Fixes: da990ab40a92 ("rdma: Add link object")
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ rdma/link.c | 14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/rdma/link.c b/rdma/link.c
+index 7e914c87..7a6d4b7e 100644
+--- a/rdma/link.c
++++ b/rdma/link.c
+@@ -20,6 +20,7 @@ static int link_help(struct rd *rd)
+ static const char *caps_to_str(uint32_t idx)
+ {
+ #define RDMA_PORT_FLAGS(x) \
++	x(RESERVED, 0) \
+ 	x(SM, 1) \
+ 	x(NOTICE, 2) \
+ 	x(TRAP, 3) \
+@@ -32,7 +33,9 @@ static const char *caps_to_str(uint32_t idx)
+ 	x(SM_DISABLED, 10) \
+ 	x(SYS_IMAGE_GUID, 11) \
+ 	x(PKEY_SW_EXT_PORT_TRAP, 12) \
++	x(CABLE_INFO, 13) \
+ 	x(EXTENDED_SPEEDS, 14) \
++	x(CAP_MASK2, 15) \
+ 	x(CM, 16) \
+ 	x(SNMP_TUNNEL, 17) \
+ 	x(REINIT, 18) \
+@@ -43,7 +46,12 @@ static const char *caps_to_str(uint32_t idx)
+ 	x(BOOT_MGMT, 23) \
+ 	x(LINK_LATENCY, 24) \
+ 	x(CLIENT_REG, 25) \
+-	x(IP_BASED_GIDS, 26)
++	x(OTHER_LOCAL_CHANGES, 26) \
++	x(LINK_SPPED_WIDTH, 27) \
++	x(VENDOR_SPECIFIC_MADS, 28) \
++	x(MULT_PKER_TRAP, 29) \
++	x(MULT_FDB, 30) \
++	x(HIERARCHY_INFO, 31)
+ 
+ 	enum { RDMA_PORT_FLAGS(RDMA_BITMAP_ENUM) };
+ 
+@@ -51,9 +59,7 @@ static const char *caps_to_str(uint32_t idx)
+ 		rdma_port_names[] = { RDMA_PORT_FLAGS(RDMA_BITMAP_NAMES) };
+ 	#undef RDMA_PORT_FLAGS
+ 
+-	if (idx < ARRAY_SIZE(rdma_port_names) && rdma_port_names[idx])
+-		return rdma_port_names[idx];
+-	return "UNKNOWN";
++	return rdma_port_names[idx];
+ }
+ 
+ static void link_print_caps(struct rd *rd, struct nlattr **tb)
+-- 
+2.14.4
