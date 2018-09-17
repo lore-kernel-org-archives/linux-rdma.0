@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 23/25] IB/mlx5: Manage device uid for DEVX white list commands
-Date: Mon, 17 Sep 2018 14:04:16 +0300
-Message-ID: <20180917110418.18937-24-leon@kernel.org>
+Subject: [PATCH rdma-next 24/25] IB/mlx5: Enable DEVX white list commands
+Date: Mon, 17 Sep 2018 14:04:17 +0300
+Message-ID: <20180917110418.18937-25-leon@kernel.org>
 References: <20180917110418.18937-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180917110418.18937-1-leon@kernel.org>
@@ -12,165 +12,187 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Manage device uid for DEVX white list commands.
-The created device uid will be used on white list commands if the
-user didn't supply its own uid.
+Enable DEVX white list commands without the need for CAP_NET_RAW.
 
-This will enable the firmware to filter out non privileged functionality
-as of the recognition of the uid.
+DEVX uid must exist from the ucontext or the device so that the firmware
+will mask unprivileged capabilities.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c    | 12 ++++++------
- drivers/infiniband/hw/mlx5/main.c    | 16 ++++++++++++----
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 13 +++++--------
- 3 files changed, 23 insertions(+), 18 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 75 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 60 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 562c7936bbad..97cac57dcb3d 100644
+index 97cac57dcb3d..c11640047f26 100644
 --- a/drivers/infiniband/hw/mlx5/devx.c
 +++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -45,13 +45,14 @@ static struct mlx5_ib_ucontext *devx_ufile2uctx(struct ib_uverbs_file *file)
- 	return to_mucontext(ib_uverbs_get_ucontext(file));
- }
+@@ -61,9 +61,6 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev)
+ 	    !(general_obj_types & MLX5_GENERAL_OBJ_TYPES_CAP_UMEM))
+ 		return -EINVAL;
  
--int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *context)
-+int mlx5_ib_devx_create(struct mlx5_ib_dev *dev)
- {
- 	u32 in[MLX5_ST_SZ_DW(create_uctx_in)] = {0};
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {0};
- 	u64 general_obj_types;
- 	void *hdr;
- 	int err;
-+	u16 uid;
+-	if (!capable(CAP_NET_RAW))
+-		return -EPERM;
+-
+ 	MLX5_SET(general_obj_in_cmd_hdr, hdr, opcode, MLX5_CMD_OP_CREATE_GENERAL_OBJECT);
+ 	MLX5_SET(general_obj_in_cmd_hdr, hdr, obj_type, MLX5_OBJ_TYPE_UCTX);
  
- 	hdr = MLX5_ADDR_OF(create_uctx_in, in, hdr);
- 
-@@ -70,19 +71,18 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *contex
- 	if (err)
- 		return err;
- 
--	context->devx_uid = MLX5_GET(general_obj_out_cmd_hdr, out, obj_id);
--	return 0;
-+	uid = MLX5_GET(general_obj_out_cmd_hdr, out, obj_id);
-+	return uid;
- }
- 
--void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
--			  struct mlx5_ib_ucontext *context)
-+void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid)
- {
- 	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {0};
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {0};
- 
- 	MLX5_SET(general_obj_in_cmd_hdr, in, opcode, MLX5_CMD_OP_DESTROY_GENERAL_OBJECT);
- 	MLX5_SET(general_obj_in_cmd_hdr, in, obj_type, MLX5_OBJ_TYPE_UCTX);
--	MLX5_SET(general_obj_in_cmd_hdr, in, obj_id, context->devx_uid);
-+	MLX5_SET(general_obj_in_cmd_hdr, in, obj_id, uid);
- 
- 	mlx5_cmd_exec(dev->mdev, in, sizeof(in), out, sizeof(out));
- }
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index ac2abfc866a6..8cc285c4da8e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1765,9 +1765,10 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 			goto out_uars;
- 		}
- 
--		err = mlx5_ib_devx_create(dev, context);
--		if (err)
-+		err = mlx5_ib_devx_create(dev);
-+		if (err < 0)
- 			goto out_uars;
-+		context->devx_uid = err;
+@@ -476,12 +473,49 @@ static bool devx_is_obj_query_cmd(const void *in)
  	}
- 
- 	err = mlx5_ib_alloc_transport_domain(dev, &context->tdn,
-@@ -1872,7 +1873,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- 	mlx5_ib_dealloc_transport_domain(dev, context->tdn, context->devx_uid);
- out_devx:
- 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX)
--		mlx5_ib_devx_destroy(dev, context);
-+		mlx5_ib_devx_destroy(dev, context->devx_uid);
- 
- out_uars:
- 	deallocate_uars(dev, context);
-@@ -1899,7 +1900,7 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
- 	mlx5_ib_dealloc_transport_domain(dev, context->tdn, context->devx_uid);
- 
- 	if (context->devx_uid)
--		mlx5_ib_devx_destroy(dev, context);
-+		mlx5_ib_devx_destroy(dev, context->devx_uid);
- 
- 	deallocate_uars(dev, context);
- 	kfree(bfregi->sys_pages);
-@@ -6287,6 +6288,8 @@ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
- 			profile->stage[stage].cleanup(dev);
- 	}
- 
-+	if (dev->devx_whitelist_uid)
-+		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
- 	ib_dealloc_device((struct ib_device *)dev);
  }
  
-@@ -6295,6 +6298,7 @@ void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
++static bool devx_is_whitelist_cmd(void *in)
++{
++	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
++
++	switch (opcode) {
++	case MLX5_CMD_OP_QUERY_HCA_CAP:
++	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
++		return true;
++	default:
++		return false;
++	}
++}
++
++static int devx_get_uid(struct mlx5_ib_ucontext *c, void *cmd_in)
++{
++	if (devx_is_whitelist_cmd(cmd_in)) {
++		struct mlx5_ib_dev *dev;
++
++		if (c->devx_uid)
++			return c->devx_uid;
++
++		dev = to_mdev(c->ibucontext.device);
++		if (dev->devx_whitelist_uid)
++			return dev->devx_whitelist_uid;
++
++		return -EOPNOTSUPP;
++	}
++
++	if (!c->devx_uid)
++		return -EINVAL;
++
++	if (!capable(CAP_NET_RAW))
++		return -EPERM;
++
++	return c->devx_uid;
++}
+ static bool devx_is_general_cmd(void *in)
  {
+ 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
+ 
+ 	switch (opcode) {
+ 	case MLX5_CMD_OP_QUERY_HCA_CAP:
++	case MLX5_CMD_OP_QUERY_HCA_VPORT_CONTEXT:
+ 	case MLX5_CMD_OP_QUERY_VPORT_STATE:
+ 	case MLX5_CMD_OP_QUERY_ADAPTER:
+ 	case MLX5_CMD_OP_QUERY_ISSI:
+@@ -589,14 +623,16 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 					MLX5_IB_ATTR_DEVX_OTHER_CMD_OUT);
+ 	void *cmd_out;
  	int err;
- 	int i;
 +	int uid;
  
- 	printk_once(KERN_INFO "%s", mlx5_version);
+ 	c = devx_ufile2uctx(file);
+ 	if (IS_ERR(c))
+ 		return PTR_ERR(c);
+ 	dev = to_mdev(c->ibucontext.device);
  
-@@ -6306,6 +6310,10 @@ void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
- 		}
- 	}
+-	if (!c->devx_uid)
+-		return -EPERM;
++	uid = devx_get_uid(c, cmd_in);
++	if (uid < 0)
++		return uid;
  
-+	uid = mlx5_ib_devx_create(dev);
-+	if (uid > 0)
-+		dev->devx_whitelist_uid = uid;
+ 	/* Only white list of some general HCA commands are allowed for this method. */
+ 	if (!devx_is_general_cmd(cmd_in))
+@@ -606,7 +642,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OTHER)(
+ 	if (IS_ERR(cmd_out))
+ 		return PTR_ERR(cmd_out);
+ 
+-	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	err = mlx5_cmd_exec(dev->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OTHER_CMD_IN),
+ 			    cmd_out, cmd_out_len);
+@@ -816,9 +852,11 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 	struct mlx5_ib_dev *dev = to_mdev(c->ibucontext.device);
+ 	struct devx_obj *obj;
+ 	int err;
++	int uid;
+ 
+-	if (!c->devx_uid)
+-		return -EPERM;
++	uid = devx_get_uid(c, cmd_in);
++	if (uid < 0)
++		return uid;
+ 
+ 	if (!devx_is_obj_create_cmd(cmd_in))
+ 		return -EINVAL;
+@@ -831,7 +869,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 	if (!obj)
+ 		return -ENOMEM;
+ 
+-	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
+ 
+ 	err = mlx5_cmd_exec(dev->mdev, cmd_in,
+@@ -868,9 +906,11 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	struct devx_obj *obj = uobj->object;
+ 	void *cmd_out;
+ 	int err;
++	int uid;
+ 
+-	if (!c->devx_uid)
+-		return -EPERM;
++	uid = devx_get_uid(c, cmd_in);
++	if (uid < 0)
++		return uid;
+ 
+ 	if (!devx_is_obj_modify_cmd(cmd_in))
+ 		return -EINVAL;
+@@ -882,7 +922,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	if (IS_ERR(cmd_out))
+ 		return PTR_ERR(cmd_out);
+ 
+-	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
+ 
+ 	err = mlx5_cmd_exec(obj->mdev, cmd_in,
+@@ -907,9 +947,11 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	struct devx_obj *obj = uobj->object;
+ 	void *cmd_out;
+ 	int err;
++	int uid;
+ 
+-	if (!c->devx_uid)
+-		return -EPERM;
++	uid = devx_get_uid(c, cmd_in);
++	if (uid < 0)
++		return uid;
+ 
+ 	if (!devx_is_obj_query_cmd(cmd_in))
+ 		return -EINVAL;
+@@ -921,7 +963,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	if (IS_ERR(cmd_out))
+ 		return PTR_ERR(cmd_out);
+ 
+-	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	err = mlx5_cmd_exec(obj->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
+ 			    cmd_out, cmd_out_len);
+@@ -1020,6 +1062,9 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_UMEM_REG)(
+ 	int err;
+ 
+ 	if (!c->devx_uid)
++		return -EINVAL;
 +
- 	dev->profile = profile;
- 	dev->ib_active = true;
++	if (!capable(CAP_NET_RAW))
+ 		return -EPERM;
  
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index f582bd05c180..6a0fbd0286ef 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -934,6 +934,7 @@ struct mlx5_ib_dev {
- 	struct list_head	ib_dev_list;
- 	u64			sys_image_guid;
- 	struct mlx5_memic	memic;
-+	u16			devx_whitelist_uid;
- };
- 
- static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
-@@ -1258,10 +1259,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
- 				  u8 port_num);
- 
- #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
--int mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
--			struct mlx5_ib_ucontext *context);
--void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
--			  struct mlx5_ib_ucontext *context);
-+int mlx5_ib_devx_create(struct mlx5_ib_dev *dev);
-+void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
- const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
- struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(
- 	struct mlx5_ib_dev *dev, struct mlx5_ib_flow_matcher *fs_matcher,
-@@ -1272,10 +1271,8 @@ int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root);
- void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction);
- #else
- static inline int
--mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
--		    struct mlx5_ib_ucontext *context) { return -EOPNOTSUPP; };
--static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
--					struct mlx5_ib_ucontext *context) {}
-+mlx5_ib_devx_create(struct mlx5_ib_dev *dev) { return -EOPNOTSUPP; };
-+static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
- static inline const struct uverbs_object_tree_def *
- mlx5_ib_get_devx_tree(void) { return NULL; }
- static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
+ 	obj = kzalloc(sizeof(struct devx_umem), GFP_KERNEL);
 -- 
 2.14.4
