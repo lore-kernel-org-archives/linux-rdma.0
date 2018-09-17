@@ -1,133 +1,101 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 2/4] RDMA/mlx5: Refactor transport domain bookkeeping logic
-Date: Mon, 17 Sep 2018 13:30:47 +0300
-Message-ID: <20180917103049.18235-3-leon@kernel.org>
-References: <20180917103049.18235-1-leon@kernel.org>
+Subject: [PATCH rdma-next 00/24] Extend DEVX functionality
+Date: Mon, 17 Sep 2018 14:03:53 +0300
+Message-ID: <20180917110418.18937-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180917103049.18235-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-In preparation to enable loopback on a single user context move the logic
-that enables/disables loopback to separate functions and group variables
-under a single struct.
+>From Yishai,
 
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c    | 45 +++++++++++++++++++++++-------------
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 10 +++++---
- 2 files changed, 36 insertions(+), 19 deletions(-)
+This series comes to enable the DEVX functionality in some wider scope,
+specifically,
+- It enables using kernel objects that were created by the verbs
+  API in the DEVX flow.
+- It enables white list commands without DEVX user context.
+- It enables the IB link layer under CAP_NET_RAW capabilities.
+- It exposes the PRM handles for RAW QP (i.e. TIRN, TISN, RQN, SQN)
+  to be used later on directly by the DEVX interface.
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 659af370a961..b64861ba2c42 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1571,6 +1571,32 @@ static void deallocate_uars(struct mlx5_ib_dev *dev,
- 			mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]);
- }
- 
-+static int mlx5_ib_enable_lb(struct mlx5_ib_dev *dev)
-+{
-+	int err = 0;
-+
-+	mutex_lock(&dev->lb.mutex);
-+	dev->lb.user_td++;
-+
-+	if (dev->lb.user_td == 2)
-+		err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
-+
-+	mutex_unlock(&dev->lb.mutex);
-+
-+	return err;
-+}
-+
-+static void mlx5_ib_disable_lb(struct mlx5_ib_dev *dev)
-+{
-+	mutex_lock(&dev->lb.mutex);
-+	dev->lb.user_td--;
-+
-+	if (dev->lb.user_td < 2)
-+		mlx5_nic_vport_update_local_lb(dev->mdev, false);
-+
-+	mutex_unlock(&dev->lb.mutex);
-+}
-+
- static int mlx5_ib_alloc_transport_domain(struct mlx5_ib_dev *dev, u32 *tdn)
- {
- 	int err;
-@@ -1587,14 +1613,7 @@ static int mlx5_ib_alloc_transport_domain(struct mlx5_ib_dev *dev, u32 *tdn)
- 	     !MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
- 		return err;
- 
--	mutex_lock(&dev->lb_mutex);
--	dev->user_td++;
--
--	if (dev->user_td == 2)
--		err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
--
--	mutex_unlock(&dev->lb_mutex);
--	return err;
-+	return mlx5_ib_enable_lb(dev);
- }
- 
- static void mlx5_ib_dealloc_transport_domain(struct mlx5_ib_dev *dev, u32 tdn)
-@@ -1609,13 +1628,7 @@ static void mlx5_ib_dealloc_transport_domain(struct mlx5_ib_dev *dev, u32 tdn)
- 	     !MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
- 		return;
- 
--	mutex_lock(&dev->lb_mutex);
--	dev->user_td--;
--
--	if (dev->user_td < 2)
--		mlx5_nic_vport_update_local_lb(dev->mdev, false);
--
--	mutex_unlock(&dev->lb_mutex);
-+	mlx5_ib_disable_lb(dev);
- }
- 
- static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
-@@ -5970,7 +5983,7 @@ int mlx5_ib_stage_caps_init(struct mlx5_ib_dev *dev)
- 	if ((MLX5_CAP_GEN(dev->mdev, port_type) == MLX5_CAP_PORT_TYPE_ETH) &&
- 	    (MLX5_CAP_GEN(dev->mdev, disable_local_lb_uc) ||
- 	     MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
--		mutex_init(&dev->lb_mutex);
-+		mutex_init(&dev->lb.mutex);
- 
- 	return 0;
- }
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 6c57872fdc4e..7b2af7e719c4 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -878,6 +878,12 @@ to_mcounters(struct ib_counters *ibcntrs)
- int parse_flow_flow_action(struct mlx5_ib_flow_action *maction,
- 			   bool is_egress,
- 			   struct mlx5_flow_act *action);
-+struct mlx5_ib_lb_state {
-+	/* protect the user_td */
-+	struct mutex		mutex;
-+	u32			user_td;
-+};
-+
- struct mlx5_ib_dev {
- 	struct ib_device		ib_dev;
- 	const struct uverbs_object_tree_def *driver_trees[7];
-@@ -919,9 +925,7 @@ struct mlx5_ib_dev {
- 	const struct mlx5_ib_profile	*profile;
- 	struct mlx5_eswitch_rep		*rep;
- 
--	/* protect the user_td */
--	struct mutex		lb_mutex;
--	u32			user_td;
-+	struct mlx5_ib_lb_state		lb;
- 	u8			umr_fence;
- 	struct list_head	ib_dev_list;
- 	u64			sys_image_guid;
--- 
-2.14.4
+In General,
+Each object that is created/destroyed/modified via verbs will be stamped
+with a UID based on its user context. This is already done for DEVX objects
+commands.
+
+This will enable the firmware to enforce the usage of kernel objects
+from the DEVX flow by validating that the same UID is used and the resources are
+really related to the same user.
+
+For example in case a CQ was created with verbs it will be stamped with
+UID and once will be pointed by a DEVX create QP command the firmware will
+validate that the input CQN really belongs to the UID which issues the create QP
+command.
+
+As of the above, all the PRM objects (except of the public ones which
+are managed by the kernel e.g. FLOW, etc.) will have a UID upon their
+create/modify/destroy commands. The detection of UMEM / physical
+addressed in the relevant commands will be done by firmware according to a 'umem
+valid bit' as the UID may be used in both cases.
+
+The series also enables white list commands which don't require a
+specific DEVX context, instead of this a device UID is used so that
+the firmware will mask un-privileged functionality. The IB link layer
+is also enabled once CAP_NET_RAW permission exists.
+
+To enable using the RAW QP underlay objects (e.g. TIRN, RQN, etc.) later
+on by DEVX commands the UHW output for this case was extended to return this
+data when a DEVX context is used.
+
+Thanks
+
+Leon Romanovsky (1):
+  net/mlx5: Update mlx5_ifc with DEVX UID bits
+
+Yishai Hadas (24):
+  net/mlx5: Set uid as part of CQ commands
+  net/mlx5: Set uid as part of QP commands
+  net/mlx5: Set uid as part of RQ commands
+  net/mlx5: Set uid as part of SQ commands
+  net/mlx5: Set uid as part of SRQ commands
+  net/mlx5: Set uid as part of DCT commands
+  IB/mlx5: Set uid as part of CQ creation
+  IB/mlx5: Set uid as part of QP creation
+  IB/mlx5: Set uid as part of RQ commands
+  IB/mlx5: Set uid as part of SQ commands
+  IB/mlx5: Set uid as part of TIR commands
+  IB/mlx5: Set uid as part of TIS commands
+  IB/mlx5: Set uid as part of RQT commands
+  IB/mlx5: Set uid as part of PD commands
+  IB/mlx5: Set uid as part of TD commands
+  IB/mlx5: Set uid as part of SRQ commands
+  IB/mlx5: Set uid as part of DCT commands
+  IB/mlx5: Set uid as part of XRCD commands
+  IB/mlx5: Set uid as part of MCG commands
+  IB/mlx5: Set valid umem bit on DEVX
+  IB/mlx5: Expose RAW QP device handles to user space
+  IB/mlx5: Manage device uid for DEVX white list commands
+  IB/mlx5: Enable DEVX white list commands
+  IB/mlx5: Enable DEVX on IB
+
+ drivers/infiniband/hw/mlx5/cmd.c              | 129 ++++++++++++++++++
+ drivers/infiniband/hw/mlx5/cmd.h              |  14 ++
+ drivers/infiniband/hw/mlx5/cq.c               |   1 +
+ drivers/infiniband/hw/mlx5/devx.c             | 182 +++++++++++++++++++++++---
+ drivers/infiniband/hw/mlx5/main.c             |  80 +++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +--
+ drivers/infiniband/hw/mlx5/qp.c               | 141 +++++++++++++++-----
+ drivers/infiniband/hw/mlx5/srq.c              |   1 +
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c  |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c  |  81 ++++++++----
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c |  30 ++++-
+ include/linux/mlx5/cq.h                       |   1 +
+ include/linux/mlx5/driver.h                   |   1 +
+ include/linux/mlx5/mlx5_ifc.h                 | 135 +++++++++++--------
+ include/linux/mlx5/qp.h                       |   1 +
+ include/linux/mlx5/srq.h                      |   1 +
+ include/uapi/rdma/mlx5-abi.h                  |  13 ++
+ 17 files changed, 657 insertions(+), 173 deletions(-)
