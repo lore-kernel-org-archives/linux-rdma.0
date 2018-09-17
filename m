@@ -1,145 +1,38 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 21/25] IB/mlx5: Set valid umem bit on DEVX
-Date: Mon, 17 Sep 2018 14:04:14 +0300
-Message-ID: <20180917110418.18937-22-leon@kernel.org>
-References: <20180917110418.18937-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180917110418.18937-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
+Subject: [PATCH] RDMA/i40iw: Fix incorrect iterator type
+Date: Mon, 17 Sep 2018 16:07:07 +0200
+Message-ID: <20180917140707.1253738-1-Haakon.Bugge@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, faisal.latif@intel.com, shiraz.saleem@intel.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+Commit f27b4746f378 ("i40iw: add connection management code") uses an
+incorrect rcu iterator, whilst holding the rtnl_lock. Since the
+critical region invokes i40iw_manage_qhash(), which is a sleeping
+function, the rcu locking and traversal cannot be used.
 
-Set valid umem bit on DEVX commands that use umem.
-This will enforce the umem usage by the firmware and not the 'pas' info.
-
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 ---
- drivers/infiniband/hw/mlx5/devx.c | 95 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 95 insertions(+)
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index 25dafa4ff6ca..562c7936bbad 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -264,6 +264,97 @@ static int devx_is_valid_obj_id(struct devx_obj *obj, const void *in)
- 	return false;
- }
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 423818a7d333..771eb6bd0785 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -1689,7 +1689,7 @@ static enum i40iw_status_code i40iw_add_mqh_6(struct i40iw_device *iwdev,
+ 	unsigned long flags;
  
-+static void devx_set_umem_valid(const void *in)
-+{
-+	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
-+
-+	switch (opcode) {
-+	case MLX5_CMD_OP_CREATE_MKEY:
-+		MLX5_SET(create_mkey_in, in, mkey_umem_valid, 1);
-+		break;
-+	case MLX5_CMD_OP_CREATE_CQ:
-+	{
-+		void *cqc;
-+
-+		MLX5_SET(create_cq_in, in, cq_umem_valid, 1);
-+		cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
-+		MLX5_SET(cqc, cqc, dbr_umem_valid, 1);
-+		break;
-+	}
-+	case MLX5_CMD_OP_CREATE_QP:
-+	{
-+		void *qpc;
-+
-+		qpc = MLX5_ADDR_OF(create_qp_in, in, qpc);
-+		MLX5_SET(qpc, qpc, dbr_umem_valid, 1);
-+		MLX5_SET(create_qp_in, in, wq_umem_valid, 1);
-+		break;
-+	}
-+
-+	case MLX5_CMD_OP_CREATE_RQ:
-+	{
-+		void *rqc, *wq;
-+
-+		rqc = MLX5_ADDR_OF(create_rq_in, in, ctx);
-+		wq  = MLX5_ADDR_OF(rqc, rqc, wq);
-+		MLX5_SET(wq, wq, dbr_umem_valid, 1);
-+		MLX5_SET(wq, wq, wq_umem_valid, 1);
-+		break;
-+	}
-+
-+	case MLX5_CMD_OP_CREATE_SQ:
-+	{
-+		void *sqc, *wq;
-+
-+		sqc = MLX5_ADDR_OF(create_sq_in, in, ctx);
-+		wq = MLX5_ADDR_OF(sqc, sqc, wq);
-+		MLX5_SET(wq, wq, dbr_umem_valid, 1);
-+		MLX5_SET(wq, wq, wq_umem_valid, 1);
-+		break;
-+	}
-+
-+	case MLX5_CMD_OP_MODIFY_CQ:
-+		MLX5_SET(modify_cq_in, in, cq_umem_valid, 1);
-+		break;
-+
-+	case MLX5_CMD_OP_CREATE_RMP:
-+	{
-+		void *rmpc, *wq;
-+
-+		rmpc = MLX5_ADDR_OF(create_rmp_in, in, ctx);
-+		wq = MLX5_ADDR_OF(rmpc, rmpc, wq);
-+		MLX5_SET(wq, wq, dbr_umem_valid, 1);
-+		MLX5_SET(wq, wq, wq_umem_valid, 1);
-+		break;
-+	}
-+
-+	case MLX5_CMD_OP_CREATE_XRQ:
-+	{
-+		void *xrqc, *wq;
-+
-+		xrqc = MLX5_ADDR_OF(create_xrq_in, in, xrq_context);
-+		wq = MLX5_ADDR_OF(xrqc, xrqc, wq);
-+		MLX5_SET(wq, wq, dbr_umem_valid, 1);
-+		MLX5_SET(wq, wq, wq_umem_valid, 1);
-+		break;
-+	}
-+
-+	case MLX5_CMD_OP_CREATE_XRC_SRQ:
-+	{
-+		void *xrc_srqc;
-+
-+		MLX5_SET(create_xrc_srq_in, in, xrc_srq_umem_valid, 1);
-+		xrc_srqc = MLX5_ADDR_OF(create_xrc_srq_in, in,
-+					xrc_srq_context_entry);
-+		MLX5_SET(xrc_srqc, xrc_srqc, dbr_umem_valid, 1);
-+		break;
-+	}
-+
-+	default:
-+		return;
-+	}
-+}
-+
- static bool devx_is_obj_create_cmd(const void *in)
- {
- 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
-@@ -741,6 +832,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
- 		return -ENOMEM;
- 
- 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
-+	devx_set_umem_valid(cmd_in);
-+
- 	err = mlx5_cmd_exec(dev->mdev, cmd_in,
- 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_IN),
- 			    cmd_out, cmd_out_len);
-@@ -790,6 +883,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
- 		return PTR_ERR(cmd_out);
- 
- 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
-+	devx_set_umem_valid(cmd_in);
-+
- 	err = mlx5_cmd_exec(obj->mdev, cmd_in,
- 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
- 			    cmd_out, cmd_out_len);
+ 	rtnl_lock();
+-	for_each_netdev_rcu(&init_net, ip_dev) {
++	for_each_netdev(&init_net, ip_dev) {
+ 		if ((((rdma_vlan_dev_vlan_id(ip_dev) < I40IW_NO_VLAN) &&
+ 		      (rdma_vlan_dev_real_dev(ip_dev) == iwdev->netdev)) ||
+ 		     (ip_dev == iwdev->netdev)) && (ip_dev->flags & IFF_UP)) {
 -- 
-2.14.4
+2.14.3
