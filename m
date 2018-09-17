@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 22/25] IB/mlx5: Expose RAW QP device handles to user space
-Date: Mon, 17 Sep 2018 14:04:15 +0300
-Message-ID: <20180917110418.18937-23-leon@kernel.org>
+Subject: [PATCH rdma-next 23/25] IB/mlx5: Manage device uid for DEVX white list commands
+Date: Mon, 17 Sep 2018 14:04:16 +0300
+Message-ID: <20180917110418.18937-24-leon@kernel.org>
 References: <20180917110418.18937-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180917110418.18937-1-leon@kernel.org>
@@ -12,135 +12,165 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Expose RAW QP device handles to user space by extending the UHW part of
-mlx5_ib_create_qp_resp.
+Manage device uid for DEVX white list commands.
+The created device uid will be used on white list commands if the
+user didn't supply its own uid.
 
-This data is returned only when DEVX context is used where it may be
-applicable.
+This will enable the firmware to filter out non privileged functionality
+as of the recognition of the uid.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 38 ++++++++++++++++++++++++++++++++++++--
- include/uapi/rdma/mlx5-abi.h    | 13 +++++++++++++
- 2 files changed, 49 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c    | 12 ++++++------
+ drivers/infiniband/hw/mlx5/main.c    | 16 ++++++++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 13 +++++--------
+ 3 files changed, 23 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 00b36b971ffa..9a04f8b12a75 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1325,7 +1325,9 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 562c7936bbad..97cac57dcb3d 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -45,13 +45,14 @@ static struct mlx5_ib_ucontext *devx_ufile2uctx(struct ib_uverbs_file *file)
+ 	return to_mucontext(ib_uverbs_get_ucontext(file));
+ }
  
- static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 				u32 *in, size_t inlen,
--				struct ib_pd *pd)
-+				struct ib_pd *pd,
-+				struct ib_udata *udata,
-+				struct mlx5_ib_create_qp_resp *resp)
+-int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *context)
++int mlx5_ib_devx_create(struct mlx5_ib_dev *dev)
  {
- 	struct mlx5_ib_raw_packet_qp *raw_packet_qp = &qp->raw_packet_qp;
- 	struct mlx5_ib_sq *sq = &raw_packet_qp->sq;
-@@ -1346,6 +1348,13 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		if (err)
- 			goto err_destroy_tis;
+ 	u32 in[MLX5_ST_SZ_DW(create_uctx_in)] = {0};
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {0};
+ 	u64 general_obj_types;
+ 	void *hdr;
+ 	int err;
++	u16 uid;
  
-+		if (uid) {
-+			resp->tisn = sq->tisn;
-+			resp->comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_TISN;
-+			resp->sqn = sq->base.mqp.qpn;
-+			resp->comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_SQN;
-+		}
-+
- 		sq->base.container_mibqp = qp;
- 		sq->base.mqp.event = mlx5_ib_qp_event;
- 	}
-@@ -1365,13 +1374,26 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 					       uid);
- 		if (err)
- 			goto err_destroy_rq;
-+
-+		if (uid) {
-+			resp->rqn = rq->base.mqp.qpn;
-+			resp->comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_RQN;
-+			resp->tirn = rq->tirn;
-+			resp->comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_TIRN;
-+		}
- 	}
+ 	hdr = MLX5_ADDR_OF(create_uctx_in, in, hdr);
  
- 	qp->trans_qp.base.mqp.qpn = qp->sq.wqe_cnt ? sq->base.mqp.qpn :
- 						     rq->base.mqp.qpn;
- 
-+	err = ib_copy_to_udata(udata, resp, min(udata->outlen, sizeof(*resp)));
-+	if (err)
-+		goto err_destroy_tir;
-+
- 	return 0;
- 
-+err_destroy_tir:
-+	destroy_raw_packet_qp_tir(dev, rq, qp->flags_en, uid);
- err_destroy_rq:
- 	destroy_raw_packet_qp_rq(dev, rq);
- err_destroy_sq:
-@@ -1643,12 +1665,23 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+@@ -70,19 +71,18 @@ int mlx5_ib_devx_create(struct mlx5_ib_dev *dev, struct mlx5_ib_ucontext *contex
  	if (err)
- 		goto err;
+ 		return err;
  
-+	if (mucontext->devx_uid) {
-+		resp.comp_mask |= MLX5_IB_CREATE_QP_RESP_MASK_TIRN;
-+		resp.tirn = qp->rss_qp.tirn;
-+	}
-+
-+	err = ib_copy_to_udata(udata, &resp, min(udata->outlen, sizeof(resp)));
-+	if (err)
-+		goto err_copy;
-+
- 	kvfree(in);
- 	/* qpn is reserved for that QP */
- 	qp->trans_qp.base.mqp.qpn = 0;
- 	qp->flags |= MLX5_IB_QP_RSS;
- 	return 0;
+-	context->devx_uid = MLX5_GET(general_obj_out_cmd_hdr, out, obj_id);
+-	return 0;
++	uid = MLX5_GET(general_obj_out_cmd_hdr, out, obj_id);
++	return uid;
+ }
  
-+err_copy:
-+	mlx5_cmd_destroy_tir(dev->mdev, qp->rss_qp.tirn, mucontext->devx_uid);
- err:
- 	kvfree(in);
- 	return err;
-@@ -2030,7 +2063,8 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	    qp->flags & MLX5_IB_QP_UNDERLAY) {
- 		qp->raw_packet_qp.sq.ubuffer.buf_addr = ucmd.sq_buf_addr;
- 		raw_packet_qp_copy_info(qp, &qp->raw_packet_qp);
--		err = create_raw_packet_qp(dev, qp, in, inlen, pd);
-+		err = create_raw_packet_qp(dev, qp, in, inlen, pd, udata,
-+					   &resp);
- 	} else {
- 		err = mlx5_core_create_qp(dev->mdev, &base->mqp, in, inlen);
+-void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+-			  struct mlx5_ib_ucontext *context)
++void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid)
+ {
+ 	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {0};
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {0};
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, in, opcode, MLX5_CMD_OP_DESTROY_GENERAL_OBJECT);
+ 	MLX5_SET(general_obj_in_cmd_hdr, in, obj_type, MLX5_OBJ_TYPE_UCTX);
+-	MLX5_SET(general_obj_in_cmd_hdr, in, obj_id, context->devx_uid);
++	MLX5_SET(general_obj_in_cmd_hdr, in, obj_id, uid);
+ 
+ 	mlx5_cmd_exec(dev->mdev, in, sizeof(in), out, sizeof(out));
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index ac2abfc866a6..8cc285c4da8e 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -1765,9 +1765,10 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 			goto out_uars;
+ 		}
+ 
+-		err = mlx5_ib_devx_create(dev, context);
+-		if (err)
++		err = mlx5_ib_devx_create(dev);
++		if (err < 0)
+ 			goto out_uars;
++		context->devx_uid = err;
  	}
-diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
-index 3ddb31a0bc47..8fa9f90e2bb1 100644
---- a/include/uapi/rdma/mlx5-abi.h
-+++ b/include/uapi/rdma/mlx5-abi.h
-@@ -352,9 +352,22 @@ struct mlx5_ib_create_qp_rss {
- 	__u32	flags;
- };
  
-+enum mlx5_ib_create_qp_resp_mask {
-+	MLX5_IB_CREATE_QP_RESP_MASK_TIRN = 1UL << 0,
-+	MLX5_IB_CREATE_QP_RESP_MASK_TISN = 1UL << 1,
-+	MLX5_IB_CREATE_QP_RESP_MASK_RQN  = 1UL << 2,
-+	MLX5_IB_CREATE_QP_RESP_MASK_SQN  = 1UL << 3,
-+};
+ 	err = mlx5_ib_alloc_transport_domain(dev, &context->tdn,
+@@ -1872,7 +1873,7 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	mlx5_ib_dealloc_transport_domain(dev, context->tdn, context->devx_uid);
+ out_devx:
+ 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX)
+-		mlx5_ib_devx_destroy(dev, context);
++		mlx5_ib_devx_destroy(dev, context->devx_uid);
+ 
+ out_uars:
+ 	deallocate_uars(dev, context);
+@@ -1899,7 +1900,7 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
+ 	mlx5_ib_dealloc_transport_domain(dev, context->tdn, context->devx_uid);
+ 
+ 	if (context->devx_uid)
+-		mlx5_ib_devx_destroy(dev, context);
++		mlx5_ib_devx_destroy(dev, context->devx_uid);
+ 
+ 	deallocate_uars(dev, context);
+ 	kfree(bfregi->sys_pages);
+@@ -6287,6 +6288,8 @@ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+ 			profile->stage[stage].cleanup(dev);
+ 	}
+ 
++	if (dev->devx_whitelist_uid)
++		mlx5_ib_devx_destroy(dev, dev->devx_whitelist_uid);
+ 	ib_dealloc_device((struct ib_device *)dev);
+ }
+ 
+@@ -6295,6 +6298,7 @@ void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
+ {
+ 	int err;
+ 	int i;
++	int uid;
+ 
+ 	printk_once(KERN_INFO "%s", mlx5_version);
+ 
+@@ -6306,6 +6310,10 @@ void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
+ 		}
+ 	}
+ 
++	uid = mlx5_ib_devx_create(dev);
++	if (uid > 0)
++		dev->devx_whitelist_uid = uid;
 +
- struct mlx5_ib_create_qp_resp {
- 	__u32	bfreg_index;
- 	__u32   reserved;
-+	__u32	comp_mask;
-+	__u32	tirn;
-+	__u32	tisn;
-+	__u32	rqn;
-+	__u32	sqn;
-+	__u32   reserved1;
+ 	dev->profile = profile;
+ 	dev->ib_active = true;
+ 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index f582bd05c180..6a0fbd0286ef 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -934,6 +934,7 @@ struct mlx5_ib_dev {
+ 	struct list_head	ib_dev_list;
+ 	u64			sys_image_guid;
+ 	struct mlx5_memic	memic;
++	u16			devx_whitelist_uid;
  };
  
- struct mlx5_ib_alloc_mw {
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
+@@ -1258,10 +1259,8 @@ void mlx5_ib_put_native_port_mdev(struct mlx5_ib_dev *dev,
+ 				  u8 port_num);
+ 
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+-int mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+-			struct mlx5_ib_ucontext *context);
+-void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+-			  struct mlx5_ib_ucontext *context);
++int mlx5_ib_devx_create(struct mlx5_ib_dev *dev);
++void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid);
+ const struct uverbs_object_tree_def *mlx5_ib_get_devx_tree(void);
+ struct mlx5_ib_flow_handler *mlx5_ib_raw_fs_rule_add(
+ 	struct mlx5_ib_dev *dev, struct mlx5_ib_flow_matcher *fs_matcher,
+@@ -1272,10 +1271,8 @@ int mlx5_ib_get_flow_trees(const struct uverbs_object_tree_def **root);
+ void mlx5_ib_destroy_flow_action_raw(struct mlx5_ib_flow_action *maction);
+ #else
+ static inline int
+-mlx5_ib_devx_create(struct mlx5_ib_dev *dev,
+-		    struct mlx5_ib_ucontext *context) { return -EOPNOTSUPP; };
+-static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev,
+-					struct mlx5_ib_ucontext *context) {}
++mlx5_ib_devx_create(struct mlx5_ib_dev *dev) { return -EOPNOTSUPP; };
++static inline void mlx5_ib_devx_destroy(struct mlx5_ib_dev *dev, u16 uid) {}
+ static inline const struct uverbs_object_tree_def *
+ mlx5_ib_get_devx_tree(void) { return NULL; }
+ static inline bool mlx5_ib_devx_is_flow_dest(void *obj, int *dest_id,
 -- 
 2.14.4
