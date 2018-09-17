@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 14/25] IB/mlx5: Set uid as part of RQT commands
-Date: Mon, 17 Sep 2018 14:04:07 +0300
-Message-ID: <20180917110418.18937-15-leon@kernel.org>
+Subject: [PATCH rdma-next 15/25] IB/mlx5: Set uid as part of PD commands
+Date: Mon, 17 Sep 2018 14:04:08 +0300
+Message-ID: <20180917110418.18937-16-leon@kernel.org>
 References: <20180917110418.18937-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180917110418.18937-1-leon@kernel.org>
@@ -12,92 +12,107 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Set uid as part of RQT commands so that the firmware can manage the
-RQT object in a secured way.
+Set uid as part of PD commands so that the firmware can manage the
+PD object in a secured way.
 
-That will enable using an RQT that was created by verbs application
-to be used by the DEVX flow in case the uid is equal.
+For example when a QP is created its uid must match the CQ uid which it
+uses.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/cmd.c | 11 +++++++++++
- drivers/infiniband/hw/mlx5/cmd.h |  1 +
- drivers/infiniband/hw/mlx5/qp.c  | 11 +++++++++--
- 3 files changed, 21 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/cmd.c     | 10 ++++++++++
+ drivers/infiniband/hw/mlx5/cmd.h     |  1 +
+ drivers/infiniband/hw/mlx5/main.c    | 16 +++++++++++++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ 4 files changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index 8a3623bbca94..347e3912b4bb 100644
+index 347e3912b4bb..5560346102bd 100644
 --- a/drivers/infiniband/hw/mlx5/cmd.c
 +++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -220,3 +220,14 @@ void mlx5_cmd_destroy_tis(struct mlx5_core_dev *dev, u32 tisn, u16 uid)
+@@ -231,3 +231,13 @@ void mlx5_cmd_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn, u16 uid)
  	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
  }
  
-+void mlx5_cmd_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn, u16 uid)
++void mlx5_cmd_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn, u16 uid)
 +{
-+	u32 in[MLX5_ST_SZ_DW(destroy_rqt_in)]   = {0};
-+	u32 out[MLX5_ST_SZ_DW(destroy_rqt_out)] = {0};
++	u32 out[MLX5_ST_SZ_DW(dealloc_pd_out)] = {0};
++	u32 in[MLX5_ST_SZ_DW(dealloc_pd_in)]   = {0};
 +
-+	MLX5_SET(destroy_rqt_in, in, opcode, MLX5_CMD_OP_DESTROY_RQT);
-+	MLX5_SET(destroy_rqt_in, in, rqtn, rqtn);
-+	MLX5_SET(destroy_rqt_in, in, uid, uid);
++	MLX5_SET(dealloc_pd_in, in, opcode, MLX5_CMD_OP_DEALLOC_PD);
++	MLX5_SET(dealloc_pd_in, in, pd, pdn);
++	MLX5_SET(dealloc_pd_in, in, uid, uid);
 +	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
 +}
-+
 diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
-index a55e750591e5..0437190c1b35 100644
+index 0437190c1b35..b47e98b8a53a 100644
 --- a/drivers/infiniband/hw/mlx5/cmd.h
 +++ b/drivers/infiniband/hw/mlx5/cmd.h
-@@ -49,4 +49,5 @@ int mlx5_cmd_alloc_memic(struct mlx5_memic *memic, phys_addr_t *addr,
- int mlx5_cmd_dealloc_memic(struct mlx5_memic *memic, u64 addr, u64 length);
+@@ -50,4 +50,5 @@ int mlx5_cmd_dealloc_memic(struct mlx5_memic *memic, u64 addr, u64 length);
  void mlx5_cmd_destroy_tir(struct mlx5_core_dev *dev, u32 tirn, u16 uid);
  void mlx5_cmd_destroy_tis(struct mlx5_core_dev *dev, u32 tisn, u16 uid);
-+void mlx5_cmd_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn, u16 uid);
+ void mlx5_cmd_destroy_rqt(struct mlx5_core_dev *dev, u32 rqtn, u16 uid);
++void mlx5_cmd_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn, u16 uid);
  #endif /* MLX5_IB_CMD_H */
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 5421857f195e..8fbf17a885b9 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -5702,6 +5702,7 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 	int i;
- 	u32 *in;
- 	void *rqtc;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 75851721d1dc..7e6fd5553ab3 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2355,21 +2355,31 @@ static struct ib_pd *mlx5_ib_alloc_pd(struct ib_device *ibdev,
+ 	struct mlx5_ib_alloc_pd_resp resp;
+ 	struct mlx5_ib_pd *pd;
+ 	int err;
++	u32 out[MLX5_ST_SZ_DW(alloc_pd_out)] = {0};
++	u32 in[MLX5_ST_SZ_DW(alloc_pd_in)]   = {0};
 +	u16 uid;
- 
- 	if (udata->inlen > 0 &&
- 	    !ib_is_udata_cleared(udata, 0,
-@@ -5739,6 +5740,10 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 	for (i = 0; i < sz; i++)
- 		MLX5_SET(rqtc, rqtc, rq_num[i], init_attr->ind_tbl[i]->wq_num);
- 
-+	/* Use the uid from its internal WQ */
-+	uid = to_mucontext(init_attr->ind_tbl[0]->uobject->context)->devx_uid;
-+	MLX5_SET(create_rqt_in, in, uid, uid);
 +
- 	err = mlx5_core_create_rqt(dev->mdev, in, inlen, &rwq_ind_tbl->rqtn);
- 	kvfree(in);
++	uid = context ? to_mucontext(context)->devx_uid : 0;
  
-@@ -5757,7 +5762,7 @@ struct ib_rwq_ind_table *mlx5_ib_create_rwq_ind_table(struct ib_device *device,
- 	return &rwq_ind_tbl->ib_rwq_ind_tbl;
+ 	pd = kmalloc(sizeof(*pd), GFP_KERNEL);
+ 	if (!pd)
+ 		return ERR_PTR(-ENOMEM);
  
- err_copy:
--	mlx5_core_destroy_rqt(dev->mdev, rwq_ind_tbl->rqtn);
-+	mlx5_cmd_destroy_rqt(dev->mdev, rwq_ind_tbl->rqtn, uid);
- err:
- 	kfree(rwq_ind_tbl);
- 	return ERR_PTR(err);
-@@ -5767,8 +5772,10 @@ int mlx5_ib_destroy_rwq_ind_table(struct ib_rwq_ind_table *ib_rwq_ind_tbl)
- {
- 	struct mlx5_ib_rwq_ind_table *rwq_ind_tbl = to_mrwq_ind_table(ib_rwq_ind_tbl);
- 	struct mlx5_ib_dev *dev = to_mdev(ib_rwq_ind_tbl->device);
-+	u16 uid;
+-	err = mlx5_core_alloc_pd(to_mdev(ibdev)->mdev, &pd->pdn);
++	MLX5_SET(alloc_pd_in, in, opcode, MLX5_CMD_OP_ALLOC_PD);
++	MLX5_SET(alloc_pd_in, in, uid, uid);
++	err = mlx5_cmd_exec(to_mdev(ibdev)->mdev, in, sizeof(in),
++			    out, sizeof(out));
+ 	if (err) {
+ 		kfree(pd);
+ 		return ERR_PTR(err);
+ 	}
  
--	mlx5_core_destroy_rqt(dev->mdev, rwq_ind_tbl->rqtn);
-+	uid = to_mucontext(ib_rwq_ind_tbl->uobject->context)->devx_uid;
-+	mlx5_cmd_destroy_rqt(dev->mdev, rwq_ind_tbl->rqtn, uid);
++	pd->pdn = MLX5_GET(alloc_pd_out, out, pd);
++	pd->uid = uid;
+ 	if (context) {
+ 		resp.pdn = pd->pdn;
+ 		if (ib_copy_to_udata(udata, &resp, sizeof(resp))) {
+-			mlx5_core_dealloc_pd(to_mdev(ibdev)->mdev, pd->pdn);
++			mlx5_cmd_dealloc_pd(to_mdev(ibdev)->mdev, pd->pdn, uid);
+ 			kfree(pd);
+ 			return ERR_PTR(-EFAULT);
+ 		}
+@@ -2383,7 +2393,7 @@ static int mlx5_ib_dealloc_pd(struct ib_pd *pd)
+ 	struct mlx5_ib_dev *mdev = to_mdev(pd->device);
+ 	struct mlx5_ib_pd *mpd = to_mpd(pd);
  
- 	kfree(rwq_ind_tbl);
+-	mlx5_core_dealloc_pd(mdev->mdev, mpd->pdn);
++	mlx5_cmd_dealloc_pd(mdev->mdev, mpd->pdn, mpd->uid);
+ 	kfree(mpd);
+ 
  	return 0;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 2508a401a7d9..88ea0df71d94 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -153,6 +153,7 @@ static inline struct mlx5_ib_ucontext *to_mucontext(struct ib_ucontext *ibuconte
+ struct mlx5_ib_pd {
+ 	struct ib_pd		ibpd;
+ 	u32			pdn;
++	u16			uid;
+ };
+ 
+ enum {
 -- 
 2.14.4
