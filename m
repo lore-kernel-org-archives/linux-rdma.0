@@ -1,76 +1,56 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: "Walker, Benjamin" <benjamin.walker@intel.com>
 Subject: Re: [PATCH] rdma: move the ib_wr_opcode enum to include/uapi
-Date: Mon, 17 Sep 2018 15:08:24 -0600
-Message-ID: <20180917210824.GF11367@ziepe.ca>
+Date: Mon, 17 Sep 2018 22:29:18 +0000
+Message-ID: <0df4e4958250fd6cdb978005ace970c877269535.camel@intel.com>
 References: <20180814223303.83556-1-seth.howell@intel.com>
- <20180815225021.GB31799@ziepe.ca>
- <EA913ED399BBA34AA4EAC2EDC24CDD008611724E@FMSMSX105.amr.corp.intel.com>
- <20180816180126.GB10507@ziepe.ca>
- <EA913ED399BBA34AA4EAC2EDC24CDD0086118B12@FMSMSX105.amr.corp.intel.com>
- <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
+         <20180815225021.GB31799@ziepe.ca>
+         <EA913ED399BBA34AA4EAC2EDC24CDD008611724E@FMSMSX105.amr.corp.intel.com>
+         <20180816180126.GB10507@ziepe.ca>
+         <EA913ED399BBA34AA4EAC2EDC24CDD0086118B12@FMSMSX105.amr.corp.intel.com>
+         <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
+         <20180917210824.GF11367@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
+In-Reply-To: <20180917210824.GF11367@ziepe.ca>
+Content-Language: en-US
+Content-ID: <EC10D2F9C618D64C8BE902C1CBC3771D@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Walker, Benjamin" <benjamin.walker@intel.com>
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>
 Cc: "Howell, Seth" <seth.howell@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 17, 2018 at 08:38:16PM +0000, Walker, Benjamin wrote:
-> On Mon, 2018-08-20 at 14:32 -0700, Howell, Seth wrote:
-> > Hi Jason,
-> > 
-> > I apologize for the few days of radio silence on this one. I was able to apply
-> > your patch on my local configuration and can confirm that it fixes the issue
-> > of send with invalidate being improperly mapped between a user-space process
-> > and the kernel rxe driver.
-> > 
-> > Thanks again for your time and help.
-> > 
-> > Seth Howell
-> > 
-> > From: linux-rdma-owner@vger.kernel.org [mailto:
-> > linux-rdma-owner@vger.kernel.org] On Behalf Of Jason Gunthorpe
-> > Sent: Thursday, August 16, 2018 11:01 AM
-> > To: Howell, Seth <seth.howell@intel.com>
-> > Cc: Walker, Benjamin <benjamin.walker@intel.com>; Doug Ledford <
-> > dledford@redhat.com>; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
-> > ; Moni Shoua <monis@mellanox.com>
-> > Subject: Re: [PATCH] rdma: move the ib_wr_opcode enum to include/uapi
-> > 
-> > On Wed, Aug 15, 2018 at 11:27:36PM +0000, Howell, Seth wrote:
-> > 
-> > > Thank you for taking the time to review this issue. The patch you 
-> > > submitted will definitely fix the problem I was facing.
-> > 
-> > Can you test it to be certain?
-> > 
-> > Thanks,
-> > Jason
-> 
-> We've recently run into this same issue on i40iw, which appears to make the same
-> mistake of using the kernel version of the enum instead of the userspace
-> version. 
-
-Confused by this?? i40iw_upost_send does not handle the kernel numbers
-at all, as far as I can see? How does it develop a kernel dependency??
-
-> What's the current status here? Can it be merged? I just checked and
-> do not see it merged to Linux master.
-
-Oh! This apparently got lost, thanks for bringing it up again.
-
-> Running a user-space NVMe-oF target with RDMA and a recent Linux kernel
-> initiator is not currently possible on rxe or i40iw because it requires send
-> with invalidate support.
-
-Okay, but i40iw doesn't seem to support send with invalidate at all in
-userspace?
-
-i40iw_upost_send() swithces on opcode, doesn't handle SEND_INV and
-then blows up in the default clause - how does this patch make any
-difference???
-
-Jason
+T24gTW9uLCAyMDE4LTA5LTE3IGF0IDE1OjA4IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIE1vbiwgU2VwIDE3LCAyMDE4IGF0IDA4OjM4OjE2UE0gKzAwMDAsIFdhbGtlciwgQmVu
+amFtaW4gd3JvdGU6DQo+ID4gV2UndmUgcmVjZW50bHkgcnVuIGludG8gdGhpcyBzYW1lIGlzc3Vl
+IG9uIGk0MGl3LCB3aGljaCBhcHBlYXJzIHRvIG1ha2UgdGhlDQo+ID4gc2FtZQ0KPiA+IG1pc3Rh
+a2Ugb2YgdXNpbmcgdGhlIGtlcm5lbCB2ZXJzaW9uIG9mIHRoZSBlbnVtIGluc3RlYWQgb2YgdGhl
+IHVzZXJzcGFjZQ0KPiA+IHZlcnNpb24uIA0KPiANCj4gQ29uZnVzZWQgYnkgdGhpcz8/IGk0MGl3
+X3Vwb3N0X3NlbmQgZG9lcyBub3QgaGFuZGxlIHRoZSBrZXJuZWwgbnVtYmVycw0KPiBhdCBhbGws
+IGFzIGZhciBhcyBJIGNhbiBzZWU/IEhvdyBkb2VzIGl0IGRldmVsb3AgYSBrZXJuZWwgZGVwZW5k
+ZW5jeT8/DQo+IA0KPiA+IFdoYXQncyB0aGUgY3VycmVudCBzdGF0dXMgaGVyZT8gQ2FuIGl0IGJl
+IG1lcmdlZD8gSSBqdXN0IGNoZWNrZWQgYW5kDQo+ID4gZG8gbm90IHNlZSBpdCBtZXJnZWQgdG8g
+TGludXggbWFzdGVyLg0KPiANCj4gT2ghIFRoaXMgYXBwYXJlbnRseSBnb3QgbG9zdCwgdGhhbmtz
+IGZvciBicmluZ2luZyBpdCB1cCBhZ2Fpbi4NCj4gDQo+ID4gUnVubmluZyBhIHVzZXItc3BhY2Ug
+TlZNZS1vRiB0YXJnZXQgd2l0aCBSRE1BIGFuZCBhIHJlY2VudCBMaW51eCBrZXJuZWwNCj4gPiBp
+bml0aWF0b3IgaXMgbm90IGN1cnJlbnRseSBwb3NzaWJsZSBvbiByeGUgb3IgaTQwaXcgYmVjYXVz
+ZSBpdCByZXF1aXJlcyBzZW5kDQo+ID4gd2l0aCBpbnZhbGlkYXRlIHN1cHBvcnQuDQo+IA0KPiBP
+a2F5LCBidXQgaTQwaXcgZG9lc24ndCBzZWVtIHRvIHN1cHBvcnQgc2VuZCB3aXRoIGludmFsaWRh
+dGUgYXQgYWxsIGluDQo+IHVzZXJzcGFjZT8NCj4gDQo+IGk0MGl3X3Vwb3N0X3NlbmQoKSBzd2l0
+aGNlcyBvbiBvcGNvZGUsIGRvZXNuJ3QgaGFuZGxlIFNFTkRfSU5WIGFuZA0KPiB0aGVuIGJsb3dz
+IHVwIGluIHRoZSBkZWZhdWx0IGNsYXVzZSAtIGhvdyBkb2VzIHRoaXMgcGF0Y2ggbWFrZSBhbnkN
+Cj4gZGlmZmVyZW5jZT8/Pw0KDQpJdCBhcHBlYXJzIEkndmUgcmVhZCB0aGUgZXJyb3IgbWVzc2Fn
+ZSBpbmNvcnJlY3RseSBhbmQgd2FzIGxvb2tpbmcgYXQgdGhlIGtlcm5lbA0KdmVyc2lvbiAoaTQw
+aXdfcG9zdF9zZW5kKSBhcyBvcHBvc2VkIHRvIHRoZSB1c2VyIHZlcnNpb24gKGk0MGl3X3Vwb3N0
+X3NlbmQpLg0KSW5kZWVkLCB0aGUgTklDIGRvZXMgbm90IHN1cHBvcnQgU0VORF9XVElIX0lOVkFM
+IGF0IGFsbCBpbiB0aGF0IGZ1bmN0aW9uLiBUaGUNCk5JQyBkb2VzIHN1cHBvcnQgU0VORF9XSVRI
+X0lOVkFMIGluIHRoZSBrZXJuZWwgaTQwaXdfcG9zdF9zZW5kLg0KDQpXaGF0IGlzIHRoZSBjb3Jy
+ZWN0IHdheSBmb3IgYSB1c2VyIHNwYWNlIGFwcGxpY2F0aW9uIHRvIGNoZWNrIHdoZXRoZXIgYSBO
+SUMNCnN1cHBvcnRzIFNFTkRfV0lUSF9JTlZBTD8gV2UgYXJlIGN1cnJlbnRseSBleGFtaW5pbmcg
+dGhlIGRldmljZV9jYXBfZmxhZ3MgaW4gdGhlDQpzdHJ1Y3R1cmUgcmV0dXJuZWQgYnkgaWJ2X3F1
+ZXJ5X2RldmljZS4gU3BlY2lmaWNhbGx5LCB3ZSdyZSBsb29raW5nIGF0DQpJQlZfREVWSUNFX01F
+TV9NR1RfRVhURU5TSU9OUy4gSG93ZXZlciwgZm9yIGk0MGl3LCB0aGF0IGZsYWcgaXMgc2V0LiBJ
+J20NCmNvbmNlcm5lZCB0aGF0IHRoZSBmZWF0dXJlIHN1cHBvcnQgZmxhZ3MgYXJlIGNvbW1vbiBi
+ZXR3ZWVuIHVzZXIgc3BhY2UgYW5kIHRoZQ0Ka2VybmVsLCBidXQgdGhlIGFjdHVhbCBzdXBwb3J0
+IGRpZmZlcnMgaW4gdGhpcyBjYXNlLg0KDQpUaGFua3MsDQpCZW4NCg0KPiANCj4gSmFzb24NCg0K
