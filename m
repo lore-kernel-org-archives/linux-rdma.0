@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 25/25] IB/mlx5: Enable DEVX on IB
-Date: Mon, 17 Sep 2018 14:04:18 +0300
-Message-ID: <20180917110418.18937-26-leon@kernel.org>
+Subject: [PATCH rdma-next 21/25] IB/mlx5: Set valid umem bit on DEVX
+Date: Mon, 17 Sep 2018 14:04:14 +0300
+Message-ID: <20180917110418.18937-22-leon@kernel.org>
 References: <20180917110418.18937-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180917110418.18937-1-leon@kernel.org>
@@ -12,37 +12,134 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-IB has additional protections with SELinux that cannot be extended to
-the DEVX domain. SELinux can restrict access to pkeys. The first version
-of DEVX blocked IB entirely until this could be understood.
-
-Since DEVX requires CAP_NET_RAW, it supersedes the SELinux restriction
-and allows userspace to form arbitrary packets with arbitrary pkeys.
-
-Thus we enable IB for DEVX when CAP_NET_RAW is given.
+Set valid umem bit on DEVX commands that use umem.
+This will enforce the umem usage by the firmware and not the 'pas' info.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 95 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 95 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 8cc285c4da8e..c31e57bead8e 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -1759,12 +1759,6 @@ static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
- #endif
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 25dafa4ff6ca..562c7936bbad 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -264,6 +264,97 @@ static int devx_is_valid_obj_id(struct devx_obj *obj, const void *in)
+ 	return false;
+ }
  
- 	if (req.flags & MLX5_IB_ALLOC_UCTX_DEVX) {
--		/* Block DEVX on Infiniband as of SELinux */
--		if (mlx5_ib_port_link_layer(ibdev, 1) != IB_LINK_LAYER_ETHERNET) {
--			err = -EPERM;
--			goto out_uars;
--		}
--
- 		err = mlx5_ib_devx_create(dev);
- 		if (err < 0)
- 			goto out_uars;
++static void devx_set_umem_valid(const void *in)
++{
++	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
++
++	switch (opcode) {
++	case MLX5_CMD_OP_CREATE_MKEY:
++		MLX5_SET(create_mkey_in, in, mkey_umem_valid, 1);
++		break;
++	case MLX5_CMD_OP_CREATE_CQ:
++	{
++		void *cqc;
++
++		MLX5_SET(create_cq_in, in, cq_umem_valid, 1);
++		cqc = MLX5_ADDR_OF(create_cq_in, in, cq_context);
++		MLX5_SET(cqc, cqc, dbr_umem_valid, 1);
++		break;
++	}
++	case MLX5_CMD_OP_CREATE_QP:
++	{
++		void *qpc;
++
++		qpc = MLX5_ADDR_OF(create_qp_in, in, qpc);
++		MLX5_SET(qpc, qpc, dbr_umem_valid, 1);
++		MLX5_SET(create_qp_in, in, wq_umem_valid, 1);
++		break;
++	}
++
++	case MLX5_CMD_OP_CREATE_RQ:
++	{
++		void *rqc, *wq;
++
++		rqc = MLX5_ADDR_OF(create_rq_in, in, ctx);
++		wq  = MLX5_ADDR_OF(rqc, rqc, wq);
++		MLX5_SET(wq, wq, dbr_umem_valid, 1);
++		MLX5_SET(wq, wq, wq_umem_valid, 1);
++		break;
++	}
++
++	case MLX5_CMD_OP_CREATE_SQ:
++	{
++		void *sqc, *wq;
++
++		sqc = MLX5_ADDR_OF(create_sq_in, in, ctx);
++		wq = MLX5_ADDR_OF(sqc, sqc, wq);
++		MLX5_SET(wq, wq, dbr_umem_valid, 1);
++		MLX5_SET(wq, wq, wq_umem_valid, 1);
++		break;
++	}
++
++	case MLX5_CMD_OP_MODIFY_CQ:
++		MLX5_SET(modify_cq_in, in, cq_umem_valid, 1);
++		break;
++
++	case MLX5_CMD_OP_CREATE_RMP:
++	{
++		void *rmpc, *wq;
++
++		rmpc = MLX5_ADDR_OF(create_rmp_in, in, ctx);
++		wq = MLX5_ADDR_OF(rmpc, rmpc, wq);
++		MLX5_SET(wq, wq, dbr_umem_valid, 1);
++		MLX5_SET(wq, wq, wq_umem_valid, 1);
++		break;
++	}
++
++	case MLX5_CMD_OP_CREATE_XRQ:
++	{
++		void *xrqc, *wq;
++
++		xrqc = MLX5_ADDR_OF(create_xrq_in, in, xrq_context);
++		wq = MLX5_ADDR_OF(xrqc, xrqc, wq);
++		MLX5_SET(wq, wq, dbr_umem_valid, 1);
++		MLX5_SET(wq, wq, wq_umem_valid, 1);
++		break;
++	}
++
++	case MLX5_CMD_OP_CREATE_XRC_SRQ:
++	{
++		void *xrc_srqc;
++
++		MLX5_SET(create_xrc_srq_in, in, xrc_srq_umem_valid, 1);
++		xrc_srqc = MLX5_ADDR_OF(create_xrc_srq_in, in,
++					xrc_srq_context_entry);
++		MLX5_SET(xrc_srqc, xrc_srqc, dbr_umem_valid, 1);
++		break;
++	}
++
++	default:
++		return;
++	}
++}
++
+ static bool devx_is_obj_create_cmd(const void *in)
+ {
+ 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
+@@ -741,6 +832,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_CREATE)(
+ 		return -ENOMEM;
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	devx_set_umem_valid(cmd_in);
++
+ 	err = mlx5_cmd_exec(dev->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_CREATE_CMD_IN),
+ 			    cmd_out, cmd_out_len);
+@@ -790,6 +883,8 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 		return PTR_ERR(cmd_out);
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, c->devx_uid);
++	devx_set_umem_valid(cmd_in);
++
+ 	err = mlx5_cmd_exec(obj->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
+ 			    cmd_out, cmd_out_len);
 -- 
 2.14.4
