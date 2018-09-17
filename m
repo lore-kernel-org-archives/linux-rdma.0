@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/4] net/mlx5: Rename incorrect naming in IFC file
-Date: Mon, 17 Sep 2018 13:30:46 +0300
-Message-ID: <20180917103049.18235-2-leon@kernel.org>
+Subject: [PATCH rdma-next 3/4] RDMA/mlx5: Allow creating RAW ethernet QP with loopback support
+Date: Mon, 17 Sep 2018 13:30:48 +0300
+Message-ID: <20180917103049.18235-4-leon@kernel.org>
 References: <20180917103049.18235-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180917103049.18235-1-leon@kernel.org>
@@ -12,66 +12,181 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Remove a trailing underscore from the multicast/unicast names.
+Expose two new flags:
+MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC
+MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC
+
+Those flags can be used at creation time in order to allow a QP
+to be able to receive loopback traffic (unicast and multicast).
+We store the state in the QP to be used on the destroy path
+to indicate with which flags the QP was created with.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Reviewed-by: Yishai Hadas <yishaih@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c                     | 4 ++--
- drivers/net/ethernet/mellanox/mlx5/core/en_common.c | 2 +-
- include/linux/mlx5/mlx5_ifc.h                       | 4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ drivers/infiniband/hw/mlx5/qp.c      | 62 ++++++++++++++++++++++++++++--------
+ include/uapi/rdma/mlx5-abi.h         |  2 ++
+ 3 files changed, 52 insertions(+), 14 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 7b2af7e719c4..b258adb93097 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -440,7 +440,7 @@ struct mlx5_ib_qp {
+ 	struct list_head	cq_send_list;
+ 	struct mlx5_rate_limit	rl;
+ 	u32                     underlay_qpn;
+-	bool			tunnel_offload_en;
++	u32			flags_en;
+ 	/* storage for qp sub type when core qp type is IB_QPT_DRIVER */
+ 	enum ib_qp_type		qp_sub_type;
+ };
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1f35ecbefffe..8bada4b94444 100644
+index 8bada4b94444..428e417e01da 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1279,7 +1279,7 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+@@ -1258,8 +1258,9 @@ static bool tunnel_offload_supported(struct mlx5_core_dev *dev)
  
- 	if (dev->rep)
- 		MLX5_SET(tirc, tirc, self_lb_block,
--			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST_);
-+			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST);
+ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+ 				    struct mlx5_ib_rq *rq, u32 tdn,
+-				    bool tunnel_offload_en)
++				    u32 *qp_flags_en)
+ {
++	u8 lb_flag = 0;
+ 	u32 *in;
+ 	void *tirc;
+ 	int inlen;
+@@ -1274,12 +1275,21 @@ static int create_raw_packet_qp_tir(struct mlx5_ib_dev *dev,
+ 	MLX5_SET(tirc, tirc, disp_type, MLX5_TIRC_DISP_TYPE_DIRECT);
+ 	MLX5_SET(tirc, tirc, inline_rqn, rq->base.mqp.qpn);
+ 	MLX5_SET(tirc, tirc, transport_domain, tdn);
+-	if (tunnel_offload_en)
++	if (*qp_flags_en & MLX5_QP_FLAG_TUNNEL_OFFLOADS)
+ 		MLX5_SET(tirc, tirc, tunneled_offload_en, 1);
+ 
+-	if (dev->rep)
+-		MLX5_SET(tirc, tirc, self_lb_block,
+-			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST);
++	if (*qp_flags_en & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC)
++		lb_flag |= MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST;
++
++	if (*qp_flags_en & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC)
++		lb_flag |= MLX5_TIRC_SELF_LB_BLOCK_BLOCK_MULTICAST;
++
++	if (dev->rep) {
++		lb_flag |= MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST;
++		*qp_flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC;
++	}
++
++	MLX5_SET(tirc, tirc, self_lb_block, lb_flag);
  
  	err = mlx5_core_create_tir(dev->mdev, in, inlen, &rq->tirn);
  
-@@ -1582,7 +1582,7 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- create_tir:
- 	if (dev->rep)
- 		MLX5_SET(tirc, tirc, self_lb_block,
--			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST_);
-+			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST);
+@@ -1332,8 +1342,7 @@ static int create_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 			goto err_destroy_sq;
  
+ 
+-		err = create_raw_packet_qp_tir(dev, rq, tdn,
+-					       qp->tunnel_offload_en);
++		err = create_raw_packet_qp_tir(dev, rq, tdn, &qp->flags_en);
+ 		if (err)
+ 			goto err_destroy_rq;
+ 	}
+@@ -1410,6 +1419,7 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	u32 tdn = mucontext->tdn;
+ 	struct mlx5_ib_create_qp_rss ucmd = {};
+ 	size_t required_cmd_sz;
++	u8 lb_flag = 0;
+ 
+ 	if (init_attr->qp_type != IB_QPT_RAW_PACKET)
+ 		return -EOPNOTSUPP;
+@@ -1444,7 +1454,9 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	if (ucmd.flags & ~MLX5_QP_FLAG_TUNNEL_OFFLOADS) {
++	if (ucmd.flags & ~(MLX5_QP_FLAG_TUNNEL_OFFLOADS |
++			   MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC |
++			   MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC)) {
+ 		mlx5_ib_dbg(dev, "invalid flags\n");
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -1461,6 +1473,16 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC || dev->rep) {
++		lb_flag |= MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST;
++		qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC;
++	}
++
++	if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC) {
++		lb_flag |= MLX5_TIRC_SELF_LB_BLOCK_BLOCK_MULTICAST;
++		qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC;
++	}
++
+ 	err = ib_copy_to_udata(udata, &resp, min(udata->outlen, sizeof(resp)));
+ 	if (err) {
+ 		mlx5_ib_dbg(dev, "copy failed\n");
+@@ -1484,6 +1506,8 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	if (ucmd.flags & MLX5_QP_FLAG_TUNNEL_OFFLOADS)
+ 		MLX5_SET(tirc, tirc, tunneled_offload_en, 1);
+ 
++	MLX5_SET(tirc, tirc, self_lb_block, lb_flag);
++
+ 	if (ucmd.rx_hash_fields_mask & MLX5_RX_HASH_INNER)
+ 		hfso = MLX5_ADDR_OF(tirc, tirc, rx_hash_field_selector_inner);
+ 	else
+@@ -1580,10 +1604,6 @@ static int create_rss_raw_qp_tir(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
+ 	MLX5_SET(rx_hash_field_select, hfso, selected_fields, selected_fields);
+ 
+ create_tir:
+-	if (dev->rep)
+-		MLX5_SET(tirc, tirc, self_lb_block,
+-			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST);
+-
  	err = mlx5_core_create_tir(dev->mdev, in, inlen, &qp->rss_qp.tirn);
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_common.c b/drivers/net/ethernet/mellanox/mlx5/core/en_common.c
-index db3278cc052b..3078491cc0d0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_common.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_common.c
-@@ -153,7 +153,7 @@ int mlx5e_refresh_tirs(struct mlx5e_priv *priv, bool enable_uc_lb)
+ 	if (err)
+@@ -1710,7 +1730,23 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 				mlx5_ib_dbg(dev, "Tunnel offload isn't supported\n");
+ 				return -EOPNOTSUPP;
+ 			}
+-			qp->tunnel_offload_en = true;
++			qp->flags_en |= MLX5_QP_FLAG_TUNNEL_OFFLOADS;
++		}
++
++		if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC) {
++			if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
++				mlx5_ib_dbg(dev, "Self-LB UC isn't supported\n");
++				return -EOPNOTSUPP;
++			}
++			qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC;
++		}
++
++		if (ucmd.flags & MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC) {
++			if (init_attr->qp_type != IB_QPT_RAW_PACKET) {
++				mlx5_ib_dbg(dev, "Self-LB UM isn't supported\n");
++				return -EOPNOTSUPP;
++			}
++			qp->flags_en |= MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC;
+ 		}
  
- 	if (enable_uc_lb)
- 		MLX5_SET(modify_tir_in, in, ctx.self_lb_block,
--			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST_);
-+			 MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST);
- 
- 	MLX5_SET(modify_tir_in, in, bitmask.self_lb_en, 1);
- 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 3a4a2e0567e9..4c7a1d25d73b 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -2559,8 +2559,8 @@ enum {
+ 		if (init_attr->create_flags & IB_QP_CREATE_SOURCE_QPN) {
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index addbb9c4529e..e584ba40208e 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -45,6 +45,8 @@ enum {
+ 	MLX5_QP_FLAG_BFREG_INDEX	= 1 << 3,
+ 	MLX5_QP_FLAG_TYPE_DCT		= 1 << 4,
+ 	MLX5_QP_FLAG_TYPE_DCI		= 1 << 5,
++	MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC = 1 << 6,
++	MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC = 1 << 7,
  };
  
  enum {
--	MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST_    = 0x1,
--	MLX5_TIRC_SELF_LB_BLOCK_BLOCK_MULTICAST_  = 0x2,
-+	MLX5_TIRC_SELF_LB_BLOCK_BLOCK_UNICAST    = 0x1,
-+	MLX5_TIRC_SELF_LB_BLOCK_BLOCK_MULTICAST  = 0x2,
- };
- 
- struct mlx5_ifc_tirc_bits {
 -- 
 2.14.4
