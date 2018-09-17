@@ -1,39 +1,34 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <Haakon.Bugge@oracle.com>
-Subject: [PATCH 1/2] IB/mlx4: Enable debug print of SMPs
-Date: Mon, 17 Sep 2018 16:53:08 +0200
-Message-ID: <20180917145309.1255642-2-Haakon.Bugge@oracle.com>
-References: <20180917145309.1255642-1-Haakon.Bugge@oracle.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCHv2 net-next 1/1] net: rds: use memset to optimize the
+ recv
+Date: Mon, 17 Sep 2018 08:21:07 -0700 (PDT)
+Message-ID: <20180917.082107.503155904547300915.davem@davemloft.net>
+References: <20180917024930.22171-1-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180917145309.1255642-1-Haakon.Bugge@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, yishaih@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, jgg@ziepe.ca
-Cc: jackm@dev.mellanox.co.il
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180917024930.22171-1-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: yanjun.zhu@oracle.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-IB Subnet Management Packets (SMPs) were excluded from debug prints.
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Date: Sun, 16 Sep 2018 22:49:30 -0400
 
-Fixed by enabling print even on QP0 MADs.
+> The function rds_inc_init is in recv process. To use memset can optimize
+> the function rds_inc_init.
+> The test result:
+> 
+>      Before:
+>      1) + 24.950 us   |        rds_inc_init [rds]();
+>      After:
+>      1) + 10.990 us   |        rds_inc_init [rds]();
+> 
+> Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
+> V1->V2: a new patch for net-next
 
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
----
- drivers/infiniband/hw/mlx4/mad.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index e5466d786bb1..1718715cc094 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -807,7 +807,7 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
- 	int err;
- 	struct ib_port_attr pattr;
- 
--	if (in_wc && in_wc->qp->qp_num) {
-+	if (in_wc && in_wc->qp) {
- 		pr_debug("received MAD: slid:%d sqpn:%d "
- 			"dlid_bits:%d dqpn:%d wc_flags:0x%x, cls %x, mtd %x, atr %x\n",
- 			in_wc->slid, in_wc->src_qp,
--- 
-2.14.3
+Applied.
