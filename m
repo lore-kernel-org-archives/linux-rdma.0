@@ -1,51 +1,76 @@
-From: "Walker, Benjamin" <benjamin.walker@intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH] rdma: move the ib_wr_opcode enum to include/uapi
-Date: Mon, 17 Sep 2018 20:38:16 +0000
-Message-ID: <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
+Date: Mon, 17 Sep 2018 15:08:24 -0600
+Message-ID: <20180917210824.GF11367@ziepe.ca>
 References: <20180814223303.83556-1-seth.howell@intel.com>
-         <20180815225021.GB31799@ziepe.ca>
-         <EA913ED399BBA34AA4EAC2EDC24CDD008611724E@FMSMSX105.amr.corp.intel.com>
-         <20180816180126.GB10507@ziepe.ca>
-         <EA913ED399BBA34AA4EAC2EDC24CDD0086118B12@FMSMSX105.amr.corp.intel.com>
+ <20180815225021.GB31799@ziepe.ca>
+ <EA913ED399BBA34AA4EAC2EDC24CDD008611724E@FMSMSX105.amr.corp.intel.com>
+ <20180816180126.GB10507@ziepe.ca>
+ <EA913ED399BBA34AA4EAC2EDC24CDD0086118B12@FMSMSX105.amr.corp.intel.com>
+ <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <EA913ED399BBA34AA4EAC2EDC24CDD0086118B12@FMSMSX105.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <4EB06C1CD1EA7E4AABC32B88DFC0AD6E@intel.com>
+Content-Disposition: inline
+In-Reply-To: <11f85f780435a5ded567bc8559d7c770d3bc4464.camel@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Howell, Seth" <seth.howell@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+To: "Walker, Benjamin" <benjamin.walker@intel.com>
+Cc: "Howell, Seth" <seth.howell@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "monis@mellanox.com" <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE4LTA4LTIwIGF0IDE0OjMyIC0wNzAwLCBIb3dlbGwsIFNldGggd3JvdGU6DQo+
-IEhpIEphc29uLA0KPiANCj4gSSBhcG9sb2dpemUgZm9yIHRoZSBmZXcgZGF5cyBvZiByYWRpbyBz
-aWxlbmNlIG9uIHRoaXMgb25lLiBJIHdhcyBhYmxlIHRvIGFwcGx5DQo+IHlvdXIgcGF0Y2ggb24g
-bXkgbG9jYWwgY29uZmlndXJhdGlvbiBhbmQgY2FuIGNvbmZpcm0gdGhhdCBpdCBmaXhlcyB0aGUg
-aXNzdWUNCj4gb2Ygc2VuZCB3aXRoIGludmFsaWRhdGUgYmVpbmcgaW1wcm9wZXJseSBtYXBwZWQg
-YmV0d2VlbiBhIHVzZXItc3BhY2UgcHJvY2Vzcw0KPiBhbmQgdGhlIGtlcm5lbCByeGUgZHJpdmVy
-Lg0KPiANCj4gVGhhbmtzIGFnYWluIGZvciB5b3VyIHRpbWUgYW5kIGhlbHAuDQo+IA0KPiBTZXRo
-IEhvd2VsbA0KPiANCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgt
-cmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzoNCj4gbGludXgtcmRtYS1vd25lckB2
-Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBKYXNvbiBHdW50aG9ycGUNCj4gU2VudDogVGh1
-cnNkYXksIEF1Z3VzdCAxNiwgMjAxOCAxMTowMSBBTQ0KPiBUbzogSG93ZWxsLCBTZXRoIDxzZXRo
-Lmhvd2VsbEBpbnRlbC5jb20+DQo+IENjOiBXYWxrZXIsIEJlbmphbWluIDxiZW5qYW1pbi53YWxr
-ZXJAaW50ZWwuY29tPjsgRG91ZyBMZWRmb3JkIDwNCj4gZGxlZGZvcmRAcmVkaGF0LmNvbT47IGxp
-bnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnDQo+
-IDsgTW9uaSBTaG91YSA8bW9uaXNAbWVsbGFub3guY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENI
-XSByZG1hOiBtb3ZlIHRoZSBpYl93cl9vcGNvZGUgZW51bSB0byBpbmNsdWRlL3VhcGkNCj4gDQo+
-IE9uIFdlZCwgQXVnIDE1LCAyMDE4IGF0IDExOjI3OjM2UE0gKzAwMDAsIEhvd2VsbCwgU2V0aCB3
-cm90ZToNCj4gDQo+ID4gVGhhbmsgeW91IGZvciB0YWtpbmcgdGhlIHRpbWUgdG8gcmV2aWV3IHRo
-aXMgaXNzdWUuIFRoZSBwYXRjaCB5b3UgDQo+ID4gc3VibWl0dGVkIHdpbGwgZGVmaW5pdGVseSBm
-aXggdGhlIHByb2JsZW0gSSB3YXMgZmFjaW5nLg0KPiANCj4gQ2FuIHlvdSB0ZXN0IGl0IHRvIGJl
-IGNlcnRhaW4/DQo+IA0KPiBUaGFua3MsDQo+IEphc29uDQoNCldlJ3ZlIHJlY2VudGx5IHJ1biBp
-bnRvIHRoaXMgc2FtZSBpc3N1ZSBvbiBpNDBpdywgd2hpY2ggYXBwZWFycyB0byBtYWtlIHRoZSBz
-YW1lDQptaXN0YWtlIG9mIHVzaW5nIHRoZSBrZXJuZWwgdmVyc2lvbiBvZiB0aGUgZW51bSBpbnN0
-ZWFkIG9mIHRoZSB1c2Vyc3BhY2UNCnZlcnNpb24uIFRoaXMgcHJvcG9zZWQgcGF0Y2ggd2lsbCBh
-ZGRyZXNzIGl0IHRoZXJlIHRvby4gV2hhdCdzIHRoZSBjdXJyZW50DQpzdGF0dXMgaGVyZT8gQ2Fu
-IGl0IGJlIG1lcmdlZD8gSSBqdXN0IGNoZWNrZWQgYW5kIGRvIG5vdCBzZWUgaXQgbWVyZ2VkIHRv
-IExpbnV4DQptYXN0ZXIuDQoNClJ1bm5pbmcgYSB1c2VyLXNwYWNlIE5WTWUtb0YgdGFyZ2V0IHdp
-dGggUkRNQSBhbmQgYSByZWNlbnQgTGludXgga2VybmVsDQppbml0aWF0b3IgaXMgbm90IGN1cnJl
-bnRseSBwb3NzaWJsZSBvbiByeGUgb3IgaTQwaXcgYmVjYXVzZSBpdCByZXF1aXJlcyBzZW5kDQp3
-aXRoIGludmFsaWRhdGUgc3VwcG9ydC4NCg0KVGhhbmtzLA0KQmVuDQoNCg==
+On Mon, Sep 17, 2018 at 08:38:16PM +0000, Walker, Benjamin wrote:
+> On Mon, 2018-08-20 at 14:32 -0700, Howell, Seth wrote:
+> > Hi Jason,
+> > 
+> > I apologize for the few days of radio silence on this one. I was able to apply
+> > your patch on my local configuration and can confirm that it fixes the issue
+> > of send with invalidate being improperly mapped between a user-space process
+> > and the kernel rxe driver.
+> > 
+> > Thanks again for your time and help.
+> > 
+> > Seth Howell
+> > 
+> > From: linux-rdma-owner@vger.kernel.org [mailto:
+> > linux-rdma-owner@vger.kernel.org] On Behalf Of Jason Gunthorpe
+> > Sent: Thursday, August 16, 2018 11:01 AM
+> > To: Howell, Seth <seth.howell@intel.com>
+> > Cc: Walker, Benjamin <benjamin.walker@intel.com>; Doug Ledford <
+> > dledford@redhat.com>; linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> > ; Moni Shoua <monis@mellanox.com>
+> > Subject: Re: [PATCH] rdma: move the ib_wr_opcode enum to include/uapi
+> > 
+> > On Wed, Aug 15, 2018 at 11:27:36PM +0000, Howell, Seth wrote:
+> > 
+> > > Thank you for taking the time to review this issue. The patch you 
+> > > submitted will definitely fix the problem I was facing.
+> > 
+> > Can you test it to be certain?
+> > 
+> > Thanks,
+> > Jason
+> 
+> We've recently run into this same issue on i40iw, which appears to make the same
+> mistake of using the kernel version of the enum instead of the userspace
+> version. 
+
+Confused by this?? i40iw_upost_send does not handle the kernel numbers
+at all, as far as I can see? How does it develop a kernel dependency??
+
+> What's the current status here? Can it be merged? I just checked and
+> do not see it merged to Linux master.
+
+Oh! This apparently got lost, thanks for bringing it up again.
+
+> Running a user-space NVMe-oF target with RDMA and a recent Linux kernel
+> initiator is not currently possible on rxe or i40iw because it requires send
+> with invalidate support.
+
+Okay, but i40iw doesn't seem to support send with invalidate at all in
+userspace?
+
+i40iw_upost_send() swithces on opcode, doesn't handle SEND_INV and
+then blows up in the default clause - how does this patch make any
+difference???
+
+Jason
