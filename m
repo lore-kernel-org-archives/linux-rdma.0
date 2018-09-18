@@ -1,7 +1,7 @@
 From: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-Subject: [PATCH 3/4] IB/mlx4: move pkeys field aside from mlx4_ib_dev
-Date: Tue, 18 Sep 2018 16:03:45 +0300
-Message-ID: <1537275826-27247-4-git-send-email-jan.dakinevich@virtuozzo.com>
+Subject: [PATCH 2/4] IB/mlx4: move iboe field aside from mlx4_ib_dev
+Date: Tue, 18 Sep 2018 16:03:44 +0300
+Message-ID: <1537275826-27247-3-git-send-email-jan.dakinevich@virtuozzo.com>
 References: <1537275826-27247-1-git-send-email-jan.dakinevich@virtuozzo.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,252 +12,245 @@ To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Yishai H
 Cc: Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>, Jan Dakinevich <jan.dakinevich@virtuozzo.com>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the 2nd patch of 3 of the work for decreasing size
+This is the 1st patch of 3 of the work for decreasing size
 of mlx4_ib_dev.
 
-The field takes about 36K and could be safely allocated with kvzalloc.
+The field takes about 8K and could be safely allocated with kvzalloc.
 
 Signed-off-by: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
 ---
- drivers/infiniband/hw/mlx4/mad.c     | 18 +++++++++---------
- drivers/infiniband/hw/mlx4/main.c    | 11 ++++++++---
- drivers/infiniband/hw/mlx4/mlx4_ib.h |  2 +-
- drivers/infiniband/hw/mlx4/sysfs.c   | 30 +++++++++++++++---------------
- 4 files changed, 33 insertions(+), 28 deletions(-)
+ drivers/infiniband/hw/mlx4/main.c    | 65 ++++++++++++++++++++++--------------
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |  3 +-
+ drivers/infiniband/hw/mlx4/qp.c      |  4 +--
+ 3 files changed, 44 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index e5466d7..3eceb46 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -268,9 +268,9 @@ static void smp_snoop(struct ib_device *ibdev, u8 port_num, const struct ib_mad
- 				pr_debug("PKEY[%d] = x%x\n",
- 					 i + bn*32, be16_to_cpu(base[i]));
- 				if (be16_to_cpu(base[i]) !=
--				    dev->pkeys.phys_pkey_cache[port_num - 1][i + bn*32]) {
-+				    dev->pkeys->phys_pkey_cache[port_num - 1][i + bn*32]) {
- 					pkey_change_bitmap |= (1 << i);
--					dev->pkeys.phys_pkey_cache[port_num - 1][i + bn*32] =
-+					dev->pkeys->phys_pkey_cache[port_num - 1][i + bn*32] =
- 						be16_to_cpu(base[i]);
- 				}
- 			}
-@@ -348,7 +348,7 @@ static void __propagate_pkey_ev(struct mlx4_ib_dev *dev, int port_num,
- 				continue;
- 			for (ix = 0;
- 			     ix < dev->dev->caps.pkey_table_len[port_num]; ix++) {
--				if (dev->pkeys.virt2phys_pkey[slave][port_num - 1]
-+				if (dev->pkeys->virt2phys_pkey[slave][port_num - 1]
- 				    [ix] == i + 32 * block) {
- 					err = mlx4_gen_pkey_eqe(dev->dev, slave, port_num);
- 					pr_debug("propagate_pkey_ev: slave %d,"
-@@ -455,10 +455,10 @@ static int find_slave_port_pkey_ix(struct mlx4_ib_dev *dev, int slave,
- 	unassigned_pkey_ix = dev->dev->phys_caps.pkey_phys_table_len[port] - 1;
- 
- 	for (i = 0; i < dev->dev->caps.pkey_table_len[port]; i++) {
--		if (dev->pkeys.virt2phys_pkey[slave][port - 1][i] == unassigned_pkey_ix)
-+		if (dev->pkeys->virt2phys_pkey[slave][port - 1][i] == unassigned_pkey_ix)
- 			continue;
- 
--		pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][i];
-+		pkey_ix = dev->pkeys->virt2phys_pkey[slave][port - 1][i];
- 
- 		ret = ib_get_cached_pkey(&dev->ib_dev, port, pkey_ix, &slot_pkey);
- 		if (ret)
-@@ -546,7 +546,7 @@ int mlx4_ib_send_to_slave(struct mlx4_ib_dev *dev, int slave, u8 port,
- 			return -EINVAL;
- 		tun_pkey_ix = pkey_ix;
- 	} else
--		tun_pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][0];
-+		tun_pkey_ix = dev->pkeys->virt2phys_pkey[slave][port - 1][0];
- 
- 	dqpn = dev->dev->phys_caps.base_proxy_sqpn + 8 * slave + port + (dest_qpt * 2) - 1;
- 
-@@ -1382,11 +1382,11 @@ int mlx4_ib_send_to_wire(struct mlx4_ib_dev *dev, int slave, u8 port,
- 	if (dest_qpt == IB_QPT_SMI) {
- 		src_qpnum = 0;
- 		sqp = &sqp_ctx->qp[0];
--		wire_pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][0];
-+		wire_pkey_ix = dev->pkeys->virt2phys_pkey[slave][port - 1][0];
- 	} else {
- 		src_qpnum = 1;
- 		sqp = &sqp_ctx->qp[1];
--		wire_pkey_ix = dev->pkeys.virt2phys_pkey[slave][port - 1][pkey_index];
-+		wire_pkey_ix = dev->pkeys->virt2phys_pkey[slave][port - 1][pkey_index];
- 	}
- 
- 	send_qp = sqp->qp;
-@@ -1840,7 +1840,7 @@ static int create_pv_sqp(struct mlx4_ib_demux_pv_ctx *ctx,
- 					      &attr.pkey_index);
- 	if (ret || !create_tun)
- 		attr.pkey_index =
--			to_mdev(ctx->ib_dev)->pkeys.virt2phys_pkey[ctx->slave][ctx->port - 1][0];
-+			to_mdev(ctx->ib_dev)->pkeys->virt2phys_pkey[ctx->slave][ctx->port - 1][0];
- 	attr.qkey = IB_QP1_QKEY;
- 	attr.port_num = ctx->port;
- 	ret = ib_modify_qp(tun_qp->qp, &attr, qp_attr_mask_INIT);
 diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 1e3bb67..8ba0103 100644
+index 0bbeaaa..1e3bb67 100644
 --- a/drivers/infiniband/hw/mlx4/main.c
 +++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -2477,12 +2477,12 @@ static void init_pkeys(struct mlx4_ib_dev *ibdev)
- 				for (i = 0;
- 				     i < ibdev->dev->phys_caps.pkey_phys_table_len[port];
- 				     ++i) {
--					ibdev->pkeys.virt2phys_pkey[slave][port - 1][i] =
-+					ibdev->pkeys->virt2phys_pkey[slave][port - 1][i] =
- 					/* master has the identity virt2phys pkey mapping */
- 						(slave == mlx4_master_func_num(ibdev->dev) || !i) ? i :
- 							ibdev->dev->phys_caps.pkey_phys_table_len[port] - 1;
- 					mlx4_sync_pkey_table(ibdev->dev, slave, port, i,
--							     ibdev->pkeys.virt2phys_pkey[slave][port - 1][i]);
-+							     ibdev->pkeys->virt2phys_pkey[slave][port - 1][i]);
- 				}
- 			}
- 		}
-@@ -2491,7 +2491,7 @@ static void init_pkeys(struct mlx4_ib_dev *ibdev)
- 			for (i = 0;
- 			     i < ibdev->dev->phys_caps.pkey_phys_table_len[port];
- 			     ++i)
--				ibdev->pkeys.phys_pkey_cache[port-1][i] =
-+				ibdev->pkeys->phys_pkey_cache[port-1][i] =
- 					(i) ? 0 : 0xFFFF;
- 		}
- 	}
-@@ -2595,6 +2595,7 @@ static void mlx4_ib_release(struct ib_device *device)
- 						 ib_dev);
+@@ -249,7 +249,7 @@ static int mlx4_ib_update_gids(struct gid_entry *gids,
+ static int mlx4_ib_add_gid(const struct ib_gid_attr *attr, void **context)
+ {
+ 	struct mlx4_ib_dev *ibdev = to_mdev(attr->device);
+-	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_ib_iboe *iboe = ibdev->iboe;
+ 	struct mlx4_port_gid_table   *port_gid_table;
+ 	int free = -1, found = -1;
+ 	int ret = 0;
+@@ -327,7 +327,7 @@ static int mlx4_ib_del_gid(const struct ib_gid_attr *attr, void **context)
+ {
+ 	struct gid_cache_context *ctx = *context;
+ 	struct mlx4_ib_dev *ibdev = to_mdev(attr->device);
+-	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_ib_iboe *iboe = ibdev->iboe;
+ 	struct mlx4_port_gid_table   *port_gid_table;
+ 	int ret = 0;
+ 	int hw_update = 0;
+@@ -382,7 +382,7 @@ static int mlx4_ib_del_gid(const struct ib_gid_attr *attr, void **context)
+ int mlx4_ib_gid_index_to_real_index(struct mlx4_ib_dev *ibdev,
+ 				    const struct ib_gid_attr *attr)
+ {
+-	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_ib_iboe *iboe = ibdev->iboe;
+ 	struct gid_cache_context *ctx = NULL;
+ 	struct mlx4_port_gid_table   *port_gid_table;
+ 	int real_index = -EINVAL;
+@@ -742,7 +742,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ {
  
- 	kvfree(ibdev->iboe);
-+	kvfree(ibdev->pkeys);
+ 	struct mlx4_ib_dev *mdev = to_mdev(ibdev);
+-	struct mlx4_ib_iboe *iboe = &mdev->iboe;
++	struct mlx4_ib_iboe *iboe = mdev->iboe;
+ 	struct net_device *ndev;
+ 	enum ib_mtu tmp;
+ 	struct mlx4_cmd_mailbox *mailbox;
+@@ -1415,11 +1415,11 @@ int mlx4_ib_add_mc(struct mlx4_ib_dev *mdev, struct mlx4_ib_qp *mqp,
+ 	if (!mqp->port)
+ 		return 0;
+ 
+-	spin_lock_bh(&mdev->iboe.lock);
+-	ndev = mdev->iboe.netdevs[mqp->port - 1];
++	spin_lock_bh(&mdev->iboe->lock);
++	ndev = mdev->iboe->netdevs[mqp->port - 1];
+ 	if (ndev)
+ 		dev_hold(ndev);
+-	spin_unlock_bh(&mdev->iboe.lock);
++	spin_unlock_bh(&mdev->iboe->lock);
+ 
+ 	if (ndev) {
+ 		ret = 1;
+@@ -2078,11 +2078,11 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
+ 	mutex_lock(&mqp->mutex);
+ 	ge = find_gid_entry(mqp, gid->raw);
+ 	if (ge) {
+-		spin_lock_bh(&mdev->iboe.lock);
+-		ndev = ge->added ? mdev->iboe.netdevs[ge->port - 1] : NULL;
++		spin_lock_bh(&mdev->iboe->lock);
++		ndev = ge->added ? mdev->iboe->netdevs[ge->port - 1] : NULL;
+ 		if (ndev)
+ 			dev_hold(ndev);
+-		spin_unlock_bh(&mdev->iboe.lock);
++		spin_unlock_bh(&mdev->iboe->lock);
+ 		if (ndev)
+ 			dev_put(ndev);
+ 		list_del(&ge->list);
+@@ -2373,7 +2373,7 @@ static void mlx4_ib_update_qps(struct mlx4_ib_dev *ibdev,
+ 	new_smac = mlx4_mac_to_u64(dev->dev_addr);
+ 	read_unlock(&dev_base_lock);
+ 
+-	atomic64_set(&ibdev->iboe.mac[port - 1], new_smac);
++	atomic64_set(&ibdev->iboe->mac[port - 1], new_smac);
+ 
+ 	/* no need for update QP1 and mac registration in non-SRIOV */
+ 	if (!mlx4_is_mfunc(ibdev->dev))
+@@ -2429,7 +2429,7 @@ static void mlx4_ib_scan_netdevs(struct mlx4_ib_dev *ibdev,
+ 
+ 	ASSERT_RTNL();
+ 
+-	iboe = &ibdev->iboe;
++	iboe = ibdev->iboe;
+ 
+ 	spin_lock_bh(&iboe->lock);
+ 	mlx4_foreach_ib_transport_port(port, ibdev->dev) {
+@@ -2453,13 +2453,13 @@ static int mlx4_ib_netdev_event(struct notifier_block *this,
+ 				unsigned long event, void *ptr)
+ {
+ 	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
+-	struct mlx4_ib_dev *ibdev;
++	struct mlx4_ib_iboe *iboe;
+ 
+ 	if (!net_eq(dev_net(dev), &init_net))
+ 		return NOTIFY_DONE;
+ 
+-	ibdev = container_of(this, struct mlx4_ib_dev, iboe.nb);
+-	mlx4_ib_scan_netdevs(ibdev, dev, event);
++	iboe = container_of(this, struct mlx4_ib_iboe, nb);
++	mlx4_ib_scan_netdevs(iboe->parent, dev, event);
+ 
+ 	return NOTIFY_DONE;
+ }
+@@ -2589,6 +2589,14 @@ static void get_fw_ver_str(struct ib_device *device, char *str)
+ 		 (int) dev->dev->caps.fw_ver & 0xffff);
  }
  
++static void mlx4_ib_release(struct ib_device *device)
++{
++	struct mlx4_ib_dev *ibdev = container_of(device, struct mlx4_ib_dev,
++						 ib_dev);
++
++	kvfree(ibdev->iboe);
++}
++
  static void *mlx4_ib_add(struct mlx4_dev *dev)
-@@ -2636,6 +2637,10 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	ibdev->iboe->parent = ibdev;
- 	iboe = ibdev->iboe;
+ {
+ 	struct mlx4_ib_dev *ibdev;
+@@ -2619,7 +2627,14 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		return NULL;
+ 	}
  
-+	ibdev->pkeys = kvzalloc(sizeof(struct pkey_mgt), GFP_KERNEL);
-+	if (!ibdev->pkeys)
+-	iboe = &ibdev->iboe;
++	ibdev->ib_dev.release		= mlx4_ib_release;
++
++	ibdev->iboe = kvzalloc(sizeof(struct mlx4_ib_iboe), GFP_KERNEL);
++	if (!ibdev->iboe)
 +		goto err_dealloc;
 +
++	ibdev->iboe->parent = ibdev;
++	iboe = ibdev->iboe;
+ 
  	if (mlx4_pd_alloc(dev, &ibdev->priv_pdn))
  		goto err_dealloc;
+@@ -2948,10 +2963,10 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 	return ibdev;
  
+ err_notif:
+-	if (ibdev->iboe.nb.notifier_call) {
+-		if (unregister_netdevice_notifier(&ibdev->iboe.nb))
++	if (ibdev->iboe->nb.notifier_call) {
++		if (unregister_netdevice_notifier(&ibdev->iboe->nb))
+ 			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb.notifier_call = NULL;
++		ibdev->iboe->nb.notifier_call = NULL;
+ 	}
+ 	flush_workqueue(wq);
+ 
+@@ -3073,10 +3088,10 @@ static void mlx4_ib_remove(struct mlx4_dev *dev, void *ibdev_ptr)
+ 	mlx4_ib_mad_cleanup(ibdev);
+ 	ib_unregister_device(&ibdev->ib_dev);
+ 	mlx4_ib_diag_cleanup(ibdev);
+-	if (ibdev->iboe.nb.notifier_call) {
+-		if (unregister_netdevice_notifier(&ibdev->iboe.nb))
++	if (ibdev->iboe->nb.notifier_call) {
++		if (unregister_netdevice_notifier(&ibdev->iboe->nb))
+ 			pr_warn("failure unregistering notifier\n");
+-		ibdev->iboe.nb.notifier_call = NULL;
++		ibdev->iboe->nb.notifier_call = NULL;
+ 	}
+ 
+ 	mlx4_qp_release_range(dev, ibdev->steer_qpn_base,
+@@ -3218,9 +3233,9 @@ static void handle_bonded_port_state_event(struct work_struct *work)
+ 	struct ib_event ibev;
+ 
+ 	kfree(ew);
+-	spin_lock_bh(&ibdev->iboe.lock);
++	spin_lock_bh(&ibdev->iboe->lock);
+ 	for (i = 0; i < MLX4_MAX_PORTS; ++i) {
+-		struct net_device *curr_netdev = ibdev->iboe.netdevs[i];
++		struct net_device *curr_netdev = ibdev->iboe->netdevs[i];
+ 		enum ib_port_state curr_port_state;
+ 
+ 		if (!curr_netdev)
+@@ -3234,7 +3249,7 @@ static void handle_bonded_port_state_event(struct work_struct *work)
+ 		bonded_port_state = (bonded_port_state != IB_PORT_ACTIVE) ?
+ 			curr_port_state : IB_PORT_ACTIVE;
+ 	}
+-	spin_unlock_bh(&ibdev->iboe.lock);
++	spin_unlock_bh(&ibdev->iboe->lock);
+ 
+ 	ibev.device = &ibdev->ib_dev;
+ 	ibev.element.port_num = 1;
 diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index 2996c61..2b5a9b2 100644
+index e10dccc..2996c61 100644
 --- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
 +++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -608,7 +608,7 @@ struct mlx4_ib_dev {
- 	struct kobject	       *ports_parent;
- 	struct kobject	       *dev_ports_parent[MLX4_MFUNC_MAX];
- 	struct mlx4_ib_iov_port	iov_ports[MLX4_MAX_PORTS];
--	struct pkey_mgt		pkeys;
-+	struct pkey_mgt	       *pkeys;
- 	unsigned long *ib_uc_qpns_bitmap;
- 	int steer_qpn_count;
- 	int steer_qpn_base;
-diff --git a/drivers/infiniband/hw/mlx4/sysfs.c b/drivers/infiniband/hw/mlx4/sysfs.c
-index e219093..a5b4592a 100644
---- a/drivers/infiniband/hw/mlx4/sysfs.c
-+++ b/drivers/infiniband/hw/mlx4/sysfs.c
-@@ -447,12 +447,12 @@ static ssize_t show_port_pkey(struct mlx4_port *p, struct port_attribute *attr,
- 		container_of(attr, struct port_table_attribute, attr);
- 	ssize_t ret = -ENODEV;
+@@ -524,6 +524,7 @@ struct mlx4_ib_iboe {
+ 	atomic64_t		mac[MLX4_MAX_PORTS];
+ 	struct notifier_block 	nb;
+ 	struct mlx4_port_gid_table gids[MLX4_MAX_PORTS];
++	struct mlx4_ib_dev     *parent;
+ };
  
--	if (p->dev->pkeys.virt2phys_pkey[p->slave][p->port_num - 1][tab_attr->index] >=
-+	if (p->dev->pkeys->virt2phys_pkey[p->slave][p->port_num - 1][tab_attr->index] >=
- 	    (p->dev->dev->caps.pkey_table_len[p->port_num]))
- 		ret = sprintf(buf, "none\n");
- 	else
- 		ret = sprintf(buf, "%d\n",
--			      p->dev->pkeys.virt2phys_pkey[p->slave]
-+			      p->dev->pkeys->virt2phys_pkey[p->slave]
- 			      [p->port_num - 1][tab_attr->index]);
- 	return ret;
- }
-@@ -476,8 +476,8 @@ static ssize_t store_port_pkey(struct mlx4_port *p, struct port_attribute *attr,
- 		 idx < 0)
- 		return -EINVAL;
+ struct pkey_mgt {
+@@ -600,7 +601,7 @@ struct mlx4_ib_dev {
  
--	p->dev->pkeys.virt2phys_pkey[p->slave][p->port_num - 1]
--				    [tab_attr->index] = idx;
-+	p->dev->pkeys->virt2phys_pkey[p->slave][p->port_num - 1]
-+				     [tab_attr->index] = idx;
- 	mlx4_sync_pkey_table(p->dev->dev, p->slave, p->port_num,
- 			     tab_attr->index, idx);
- 	err = mlx4_gen_pkey_eqe(p->dev->dev, p->slave, p->port_num);
-@@ -687,7 +687,7 @@ static int add_port(struct mlx4_ib_dev *dev, int port_num, int slave)
- 	if (ret)
- 		goto err_free_gid;
+ 	struct mutex		cap_mask_mutex;
+ 	bool			ib_active;
+-	struct mlx4_ib_iboe	iboe;
++	struct mlx4_ib_iboe    *iboe;
+ 	struct mlx4_ib_counters counters_table[MLX4_MAX_PORTS];
+ 	int		       *eq_table;
+ 	struct kobject	       *iov_parent;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 6dd3cd2..853ef6f 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1868,7 +1868,7 @@ static int handle_eth_ud_smac_index(struct mlx4_ib_dev *dev,
+ 	u64 u64_mac;
+ 	int smac_index;
  
--	list_add_tail(&p->kobj.entry, &dev->pkeys.pkey_port_list[slave]);
-+	list_add_tail(&p->kobj.entry, &dev->pkeys->pkey_port_list[slave]);
- 	return 0;
+-	u64_mac = atomic64_read(&dev->iboe.mac[qp->port - 1]);
++	u64_mac = atomic64_read(&dev->iboe->mac[qp->port - 1]);
  
- err_free_gid:
-@@ -716,19 +716,19 @@ static int register_one_pkey_tree(struct mlx4_ib_dev *dev, int slave)
+ 	context->pri_path.sched_queue = MLX4_IB_DEFAULT_SCHED_QUEUE | ((qp->port - 1) << 6);
+ 	if (!qp->pri.smac && !qp->pri.smac_port) {
+@@ -2926,7 +2926,7 @@ static int fill_gid_by_hw_index(struct mlx4_ib_dev *ibdev, u8 port_num,
+ 				int index, union ib_gid *gid,
+ 				enum ib_gid_type *gid_type)
+ {
+-	struct mlx4_ib_iboe *iboe = &ibdev->iboe;
++	struct mlx4_ib_iboe *iboe = ibdev->iboe;
+ 	struct mlx4_port_gid_table *port_gid_table;
+ 	unsigned long flags;
  
- 	get_name(dev, name, slave, sizeof name);
- 
--	dev->pkeys.device_parent[slave] =
-+	dev->pkeys->device_parent[slave] =
- 		kobject_create_and_add(name, kobject_get(dev->iov_parent));
- 
--	if (!dev->pkeys.device_parent[slave]) {
-+	if (!dev->pkeys->device_parent[slave]) {
- 		err = -ENOMEM;
- 		goto fail_dev;
- 	}
- 
--	INIT_LIST_HEAD(&dev->pkeys.pkey_port_list[slave]);
-+	INIT_LIST_HEAD(&dev->pkeys->pkey_port_list[slave]);
- 
- 	dev->dev_ports_parent[slave] =
- 		kobject_create_and_add("ports",
--				       kobject_get(dev->pkeys.device_parent[slave]));
-+				       kobject_get(dev->pkeys->device_parent[slave]));
- 
- 	if (!dev->dev_ports_parent[slave]) {
- 		err = -ENOMEM;
-@@ -748,7 +748,7 @@ static int register_one_pkey_tree(struct mlx4_ib_dev *dev, int slave)
- 
- err_add:
- 	list_for_each_entry_safe(p, t,
--				 &dev->pkeys.pkey_port_list[slave],
-+				 &dev->pkeys->pkey_port_list[slave],
- 				 entry) {
- 		list_del(&p->entry);
- 		mport = container_of(p, struct mlx4_port, kobj);
-@@ -760,9 +760,9 @@ static int register_one_pkey_tree(struct mlx4_ib_dev *dev, int slave)
- 	kobject_put(dev->dev_ports_parent[slave]);
- 
- err_ports:
--	kobject_put(dev->pkeys.device_parent[slave]);
-+	kobject_put(dev->pkeys->device_parent[slave]);
- 	/* extra put for the device_parent create_and_add */
--	kobject_put(dev->pkeys.device_parent[slave]);
-+	kobject_put(dev->pkeys->device_parent[slave]);
- 
- fail_dev:
- 	kobject_put(dev->iov_parent);
-@@ -793,7 +793,7 @@ static void unregister_pkey_tree(struct mlx4_ib_dev *device)
- 
- 	for (slave = device->dev->persist->num_vfs; slave >= 0; --slave) {
- 		list_for_each_entry_safe(p, t,
--					 &device->pkeys.pkey_port_list[slave],
-+					 &device->pkeys->pkey_port_list[slave],
- 					 entry) {
- 			list_del(&p->entry);
- 			port = container_of(p, struct mlx4_port, kobj);
-@@ -804,8 +804,8 @@ static void unregister_pkey_tree(struct mlx4_ib_dev *device)
- 			kobject_put(device->dev_ports_parent[slave]);
- 		}
- 		kobject_put(device->dev_ports_parent[slave]);
--		kobject_put(device->pkeys.device_parent[slave]);
--		kobject_put(device->pkeys.device_parent[slave]);
-+		kobject_put(device->pkeys->device_parent[slave]);
-+		kobject_put(device->pkeys->device_parent[slave]);
- 		kobject_put(device->iov_parent);
- 	}
- }
 -- 
 2.1.4
