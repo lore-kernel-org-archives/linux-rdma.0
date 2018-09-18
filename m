@@ -1,51 +1,39 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: [PATCH] IB/srp: Avoid that sg_reset -d ${srp_device} triggers an infinite loop
-Date: Mon, 17 Sep 2018 18:10:05 -0700
-Message-ID: <20180918011005.8275-1-bvanassche@acm.org>
+From: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
+Subject: [PATCH 0/4] IB: decrease large contigous allocation
+Date: Tue, 18 Sep 2018 16:03:42 +0300
+Message-ID: <1537275826-27247-1-git-send-email-jan.dakinevich@virtuozzo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Mark Bloch <markb@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, Kees Cook <keescook@chromium.org>, Kamal Heib <kamalheib1@gmail.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>, Jan Dakinevich <jan.dakinevich@virtuozzo.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Use different loop variables for the inner and outer loop. This avoids
-that an infinite loop occurs if there are more RDMA channels than
-target->req_ring_size.
+The size of mlx4_ib_device became too large to be allocated as whole contigous 
+block of memory. Currently it takes about 55K. On architecture with 4K page it 
+means 3rd order.
 
-Fixes: d92c0da71a35 ("IB/srp: Add multichannel support")
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-Cc: Max Gurtovoy <maxg@mellanox.com>
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: <stable@vger.kernel.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This patch series makes an attempt to split mlx4_ib_device into several parts 
+and allocate them with less expensive kvzalloc
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 444d16520506..0b34e909505f 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2951,7 +2951,7 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- {
- 	struct srp_target_port *target = host_to_target(scmnd->device->host);
- 	struct srp_rdma_ch *ch;
--	int i;
-+	int i, j;
- 	u8 status;
- 
- 	shost_printk(KERN_ERR, target->scsi_host, "SRP reset_device called\n");
-@@ -2965,8 +2965,8 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- 
- 	for (i = 0; i < target->ch_count; i++) {
- 		ch = &target->ch[i];
--		for (i = 0; i < target->req_ring_size; ++i) {
--			struct srp_request *req = &ch->req_ring[i];
-+		for (j = 0; j < target->req_ring_size; ++j) {
-+			struct srp_request *req = &ch->req_ring[j];
- 
- 			srp_finish_req(ch, req, scmnd->device, DID_RESET << 16);
- 		}
+Jan Dakinevich (4):
+  IB/core: introduce ->release() callback
+  IB/mlx4: move iboe field aside from mlx4_ib_dev
+  IB/mlx4: move pkeys field aside from mlx4_ib_dev
+  IB/mlx4: move sriov field aside from mlx4_ib_dev
+
+ drivers/infiniband/core/device.c        |   2 +
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 192 ++++++++++++++++----------------
+ drivers/infiniband/hw/mlx4/cm.c         |  32 +++---
+ drivers/infiniband/hw/mlx4/mad.c        |  98 ++++++++--------
+ drivers/infiniband/hw/mlx4/main.c       |  93 ++++++++++------
+ drivers/infiniband/hw/mlx4/mcg.c        |   4 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h    |   8 +-
+ drivers/infiniband/hw/mlx4/qp.c         |   8 +-
+ drivers/infiniband/hw/mlx4/sysfs.c      |  40 +++----
+ include/rdma/ib_verbs.h                 |   2 +
+ 10 files changed, 256 insertions(+), 223 deletions(-)
+
 -- 
-2.18.0
+2.1.4
