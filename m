@@ -1,68 +1,83 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 0/4] IB: decrease large contigous allocation
-Date: Wed, 19 Sep 2018 00:23:51 +0300
-Message-ID: <20180918212351.GB3661@mtr-leonro.mtl.com>
-References: <1537275826-27247-1-git-send-email-jan.dakinevich@virtuozzo.com>
- <20180918144623.GI11367@ziepe.ca>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [Patch v7 21/22] CIFS: SMBD: Upper layer performs SMB read via
+ RDMA write through memory registration
+Date: Tue, 18 Sep 2018 22:59:50 -0700
+Message-ID: <9b02dadb-d21b-7a8d-7803-910041f66047@talpey.com>
+References: <20171107085514.12693-1-longli@exchange.microsoft.com>
+ <20171107085514.12693-22-longli@exchange.microsoft.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tDYGg60iReQ7u8wj"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180918144623.GI11367@ziepe.ca>
+In-Reply-To: <20171107085514.12693-22-longli@exchange.microsoft.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jan Dakinevich <jan.dakinevich@virtuozzo.com>, Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, Parav Pandit <parav@mellanox.com>, Mark Bloch <markb@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, Kees Cook <keescook@chromium.org>, Kamal Heib <kamalheib1@gmail.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>
+To: Long Li <longli@exchange.microsoft.com>, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Replying to a very old message, but it's something we
+discussed today at the IOLab event so to capture it:
 
---tDYGg60iReQ7u8wj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On 11/7/2017 12:55 AM, Long Li wrote:
+> From: Long Li <longli@microsoft.com>
+> 
+> ---
+>   fs/cifs/file.c    | 17 +++++++++++++++--
+>   fs/cifs/smb2pdu.c | 45 ++++++++++++++++++++++++++++++++++++++++++++-
+>   2 files changed, 59 insertions(+), 3 deletions(-)
+> ...
+> diff --git a/fs/cifs/smb2pdu.c b/fs/cifs/smb2pdu.c
+> index c8afb83..8a5ff90 100644
+> --- a/fs/cifs/smb2pdu.c
+> +++ b/fs/cifs/smb2pdu.c
+> @@ -2379,7 +2379,40 @@ smb2_new_read_req(void **buf, unsigned int *total_len,
+>   	req->MinimumCount = 0;
+>   	req->Length = cpu_to_le32(io_parms->length);
+>   	req->Offset = cpu_to_le64(io_parms->offset);
+> +#ifdef CONFIG_CIFS_SMB_DIRECT
+> +	/*
+> +	 * If we want to do a RDMA write, fill in and append
+> +	 * smbd_buffer_descriptor_v1 to the end of read request
+> +	 */
+> +	if (server->rdma && rdata &&
+> +		rdata->bytes >= server->smbd_conn->rdma_readwrite_threshold) {
+> +
+> +		struct smbd_buffer_descriptor_v1 *v1;
+> +		bool need_invalidate =
+> +			io_parms->tcon->ses->server->dialect == SMB30_PROT_ID;
+> +
+> +		rdata->mr = smbd_register_mr(
+> +				server->smbd_conn, rdata->pages,
+> +				rdata->nr_pages, rdata->tailsz,
+> +				true, need_invalidate);
+> +		if (!rdata->mr)
+> +			return -ENOBUFS;
+> +
+> +		req->Channel = SMB2_CHANNEL_RDMA_V1_INVALIDATE;
+> +		if (need_invalidate)
+> +			req->Channel = SMB2_CHANNEL_RDMA_V1;
+> +		req->ReadChannelInfoOffset =
+> +			offsetof(struct smb2_read_plain_req, Buffer);
+> +		req->ReadChannelInfoLength =
+> +			sizeof(struct smbd_buffer_descriptor_v1);
+> +		v1 = (struct smbd_buffer_descriptor_v1 *) &req->Buffer[0];
+> +		v1->offset = rdata->mr->mr->iova;
 
-On Tue, Sep 18, 2018 at 08:46:23AM -0600, Jason Gunthorpe wrote:
-> On Tue, Sep 18, 2018 at 04:03:42PM +0300, Jan Dakinevich wrote:
-> > The size of mlx4_ib_device became too large to be allocated as whole contigous
-> > block of memory. Currently it takes about 55K. On architecture with 4K page it
-> > means 3rd order.
-> >
-> > This patch series makes an attempt to split mlx4_ib_device into several parts
-> > and allocate them with less expensive kvzalloc
->
-> Why split it up? Any reason not to just allocate the whole thing with
-> kvzalloc?
+It's unnecessary, and possibly leaking kernel information, to use
+the IOVA as the offset of a memory region which is registered using
+an FRWR. Because such regions are based on the exact bytes targeted
+by the memory handle, the offset can be set to any value, typically
+zero, but nearly arbitrary. As long as the (offset + length) does
+not wrap or otherwise overflow, offset can be set to anything
+convenient.
 
-And before we are rushing to dissect mlx4_ib driver, can you
-explain the rationale behind this change? The mlx4_ib driver
-represents high-performance device which needs enough memory
-resources to operate. Those devices are limited by number
-of PCIs and SRIOV VFs (upto 126) and very rare allocated/deallocated.
+Since SMB reads and writes range up to 8MB, I'd suggest zeroing the
+least significant 23 bits, which should guarantee it. The other 41
+bits, party on. You could randomize them, pass some clever identifier
+such as MID sequence, whatever.
 
-I would like to see real rationale behind such change.
+Tom.
 
-Thanks
-
->
-> Jason
-
---tDYGg60iReQ7u8wj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJboWznAAoJEORje4g2clintC8QAJxerU0oMGgBbDR4HGzsEqz/
-DfJ694zTNs+ol2zSjbTxRHljws2RJ5lExH9LErpMUtzIfFMnABwl2j+2qUmJbwnd
-lB2qSugb2BV6Pnd0TVoWJjklgdx2K37IIESYlNyaT0IYp5jucoAv1yd3c0rhfppu
-WF3d1pgn6ysDh1yypMojpk5O71S6q+Zb/ESzo9AAqKMSoppAKo6GU36T7W3hVbmm
-IyPBn+EogAmrPvEByIlLksMMJTbXnY5Lls5GR41kuLEI38VN/9occQC0iyMlGL8C
-WD+BQf4wIFFEtgpzToJmE7tEwgPZch6R2UNDJ/N56T/EItqgpKpni2BMkJsPJC8B
-4TF8nLywq7i9XM4ygRHag6Fzs3dMAj+GXMLnLhk8Up+KiL3d87gZCpeMlMjYNByO
-0QTJvdL50OOuzxFBRryunOWbKVqMoJlHJ95OhadGSXmT5o5zF5cws0GHW6oNGKy9
-WMH1U48lQrtoYoq0+V6T+PFQ69odYVTQV0NYFWNzWvxrY6OsMahUuRSDjuF2N8W3
-onop1dBfcok7fbR7cUkZi0bo8hwvu9Yin/pFjwn0p6pvSzkoiQnuIKqGjn4qJlVJ
-aytBCfS+WZul+n+Qcwst6Vlxa3EPix1GzuixIW0B74DYMZRz6IySs9+xBDOLKMMr
-HKRytq15Z3d8+kPWTS2B
-=g0eP
------END PGP SIGNATURE-----
-
---tDYGg60iReQ7u8wj--
+> +		v1->token = rdata->mr->mr->rkey;
+> +		v1->length = rdata->mr->mr->length;
