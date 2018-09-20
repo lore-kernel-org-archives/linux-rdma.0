@@ -1,7 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 2/4] IB/hfi1: Invalid user input can result in crash
-Date: Thu, 20 Sep 2018 12:44:24 -0700
-Message-ID: <20180920194420.7072.12102.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 3/4] IB/hfi1: Fix context recovery when PBC has an
+ UnsupportedVL
+Date: Thu, 20 Sep 2018 12:44:34 -0700
+Message-ID: <20180920194429.7072.53594.stgit@scvm10.sc.intel.com>
 References: <20180920193538.7072.71796.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,59 +16,22 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-If the number of packets in a user sdma request does not match
-the actual iovectors being sent, sdma_cleanup can be called on
-an uninitialized request structure, resulting in a crash similar
-to this:
+If a packet stream uses an UnsupportedVL (virtual lane), the send
+engine will not send the packet, and it will not indicate that an
+error has occurred.  This will cause the packet stream to block.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-IP: [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0 [hfi1]
-PGD 8000001044f61067 PUD 1052706067 PMD 0
-Oops: 0000 [#1] SMP
-CPU: 30 PID: 69912 Comm: upsm Kdump: loaded Tainted: G           OE
-------------   3.10.0-862.el7.x86_64 #1
-Hardware name: Intel Corporation S2600KPR/S2600KPR, BIOS
-SE5C610.86B.01.01.0019.101220160604 10/12/2016
-task: ffff8b331c890000 ti: ffff8b2ed1f98000 task.ti: ffff8b2ed1f98000
-RIP: 0010:[<ffffffffc0ae8bb7>]  [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0
-[hfi1]
-RSP: 0018:ffff8b2ed1f9bab0  EFLAGS: 00010286
-RAX: 0000000000008b2b RBX: ffff8b2adf6e0000 RCX: 0000000000000000
-RDX: 00000000000000a0 RSI: ffff8b2e9eedc540 RDI: ffff8b2adf6e0000
-RBP: ffff8b2ed1f9bad8 R08: 0000000000000000 R09: ffffffffc0b04a06
-R10: ffff8b331c890190 R11: ffffe6ed00bf1840 R12: ffff8b3315480000
-R13: ffff8b33154800f0 R14: 00000000fffffff2 R15: ffff8b2e9eedc540
-FS:  00007f035ac47740(0000) GS:ffff8b331e100000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000008 CR3: 0000000c03fe6000 CR4: 00000000001607e0
-Call Trace:
- [<ffffffffc0b0570d>] user_sdma_send_pkts+0xdcd/0x1990 [hfi1]
- [<ffffffff9fe75fb0>] ? gup_pud_range+0x140/0x290
- [<ffffffffc0ad3105>] ? hfi1_mmu_rb_insert+0x155/0x1b0 [hfi1]
- [<ffffffffc0b0777b>] hfi1_user_sdma_process_request+0xc5b/0x11b0 [hfi1]
- [<ffffffffc0ac193a>] hfi1_aio_write+0xba/0x110 [hfi1]
- [<ffffffffa001a2bb>] do_sync_readv_writev+0x7b/0xd0
- [<ffffffffa001bede>] do_readv_writev+0xce/0x260
- [<ffffffffa022b089>] ? tty_ldisc_deref+0x19/0x20
- [<ffffffffa02268c0>] ? n_tty_ioctl+0xe0/0xe0
- [<ffffffffa001c105>] vfs_writev+0x35/0x60
- [<ffffffffa001c2bf>] SyS_writev+0x7f/0x110
- [<ffffffffa051f7d5>] system_call_fastpath+0x1c/0x21
-Code: 06 49 c7 47 18 00 00 00 00 0f 87 89 01 00 00 5b 41 5c 41 5d 41 5e 41 5f
-5d c3 66 2e 0f 1f 84 00 00 00 00 00 48 8b 4e 10 48 89 fb <48> 8b 51 08 49 89 d4
-83 e2 0c 41 81 e4 00 e0 00 00 48 c1 ea 02
-RIP  [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0 [hfi1]
- RSP <ffff8b2ed1f9bab0>
-CR2: 0000000000000008
+HFI has 8 virtual lanes available for packet streams.  Each lane can
+be enabled or disabled using the UnsupportedVL mask.  If a lane is
+disabled, adding a packet to the send context must be disallowed.
 
-There are two exit points from user_sdma_send_pkts().  One (free_tx)
-merely frees the slab entry and one (free_txreq) cleans the sdma_txreq
-prior to freeing the slab entry.   The free_txreq variation can only be
-called after one of the sdma_init*() variations has been called.
+The current mask for determining unsupported VLs defaults to 0 (allow
+all).  This is incorrect.  Only the VLs that are defined should be
+allowed.
 
-In the panic case, the slab entry had been allocated but not inited.
-
-Fix the issue by exiting through free_tx thus avoiding sdma_clean().
+Determine which VLs are disabled (mtu == 0), and set the appropriate
+unsupported bit in the mask.  The correct mask will allow the send
+engine to error on the invalid VL, and error recovery will work
+correctly.
 
 Cc: <stable@vger.kernel.org> # 4.9.x+
 Fixes: 7724105686e7 ("IB/hfi1: add driver files")
@@ -76,19 +40,34 @@ Reviewed-by: Lukasz Odzioba <lukasz.odzioa@intel.com>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/user_sdma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/pio.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
-index a3a7b33..5c88706 100644
---- a/drivers/infiniband/hw/hfi1/user_sdma.c
-+++ b/drivers/infiniband/hw/hfi1/user_sdma.c
-@@ -828,7 +828,7 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
- 			if (READ_ONCE(iovec->offset) == iovec->iov.iov_len) {
- 				if (++req->iov_idx == req->data_iovs) {
- 					ret = -EFAULT;
--					goto free_txreq;
-+					goto free_tx;
- 				}
- 				iovec = &req->iovs[req->iov_idx];
- 				WARN_ON(iovec->offset);
+diff --git a/drivers/infiniband/hw/hfi1/pio.c b/drivers/infiniband/hw/hfi1/pio.c
+index c2c1cba..cd962c9 100644
+--- a/drivers/infiniband/hw/hfi1/pio.c
++++ b/drivers/infiniband/hw/hfi1/pio.c
+@@ -86,6 +86,7 @@ void pio_send_control(struct hfi1_devdata *dd, int op)
+ 	unsigned long flags;
+ 	int write = 1;	/* write sendctrl back */
+ 	int flush = 0;	/* re-read sendctrl to make sure it is flushed */
++	int i;
+ 
+ 	spin_lock_irqsave(&dd->sendctrl_lock, flags);
+ 
+@@ -95,9 +96,13 @@ void pio_send_control(struct hfi1_devdata *dd, int op)
+ 		reg |= SEND_CTRL_SEND_ENABLE_SMASK;
+ 	/* Fall through */
+ 	case PSC_DATA_VL_ENABLE:
++		mask = 0;
++		for (i = 0; i < ARRAY_SIZE(dd->vld); i++)
++			if (!dd->vld[i].mtu)
++				mask |= BIT_ULL(i);
+ 		/* Disallow sending on VLs not enabled */
+-		mask = (((~0ull) << num_vls) & SEND_CTRL_UNSUPPORTED_VL_MASK) <<
+-				SEND_CTRL_UNSUPPORTED_VL_SHIFT;
++		mask = (mask & SEND_CTRL_UNSUPPORTED_VL_MASK) <<
++			SEND_CTRL_UNSUPPORTED_VL_SHIFT;
+ 		reg = (reg & ~SEND_CTRL_UNSUPPORTED_VL_SMASK) | mask;
+ 		break;
+ 	case PSC_GLOBAL_DISABLE:
