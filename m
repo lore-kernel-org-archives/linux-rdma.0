@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 4/5] RDMA/core: Implement IB device rename function
-Date: Thu, 20 Sep 2018 14:22:01 +0300
-Message-ID: <20180920112202.9181-5-leon@kernel.org>
+Subject: [PATCH rdma-next 5/5] RDMA/nldev: Allow IB device rename through RDMA netlink
+Date: Thu, 20 Sep 2018 14:22:02 +0300
+Message-ID: <20180920112202.9181-6-leon@kernel.org>
 References: <20180920112202.9181-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180920112202.9181-1-leon@kernel.org>
@@ -12,57 +12,77 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Generic implementation of IB device rename function.
+Provide an option to rename IB device name through RDMA netlink and
+limit it to users with ADMIN capability only.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    | 23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+)
+ drivers/infiniband/core/nldev.c  | 33 +++++++++++++++++++++++++++++++++
+ include/uapi/rdma/rdma_netlink.h |  3 ++-
+ 2 files changed, 35 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index d7399d5b1cb6..c5881756b799 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -87,6 +87,7 @@ int  ib_device_register_sysfs(struct ib_device *device,
- 			      int (*port_callback)(struct ib_device *,
- 						   u8, struct kobject *));
- void ib_device_unregister_sysfs(struct ib_device *device);
-+int ib_device_rename(struct ib_device *ibdev, const char *name);
-
- typedef void (*roce_netdev_callback)(struct ib_device *device, u8 port,
- 	      struct net_device *idev, void *cookie);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index a9bc2a3f490c..36b79cd6b620 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -178,6 +178,29 @@ void ib_device_get_name(struct ib_device *ibdev, char *name)
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 0385ab438320..64e1d12e9678 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -645,6 +645,35 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return err;
  }
- EXPORT_SYMBOL(ib_device_get_name);
 
-+int ib_device_rename(struct ib_device *ibdev, const char *name)
++static int nldev_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
++			  struct netlink_ext_ack *extack)
 +{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
 +	struct ib_device *device;
-+	int ret = 0;
++	u32 index;
++	int err;
 +
-+	if (!strcmp(name, ibdev->name))
-+		return ret;
++	err = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1, nldev_policy,
++			  extack);
++	if (err || !tb[RDMA_NLDEV_ATTR_DEV_INDEX])
++		return -EINVAL;
 +
-+	mutex_lock(&device_mutex);
-+	list_for_each_entry(device, &device_list, core_list) {
-+		if (!strcmp(name, device->name)) {
-+			ret = -EEXIST;
-+			goto out;
-+		}
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(index);
++	if (!device)
++		return -EINVAL;
++
++	if (tb[RDMA_NLDEV_ATTR_DEV_NAME]) {
++		char name[IB_DEVICE_NAME_MAX] = {};
++
++		nla_strlcpy(name, tb[RDMA_NLDEV_ATTR_DEV_NAME],
++			    IB_DEVICE_NAME_MAX);
++		return ib_device_rename(device, name);
 +	}
 +
-+	strlcpy(ibdev->name, name, IB_DEVICE_NAME_MAX);
-+	ret = device_rename(&ibdev->dev, name);
-+out:
-+	mutex_unlock(&device_mutex);
-+	return ret;
++	return 0;
 +}
 +
- static int alloc_name(char *name)
- {
- 	unsigned long *inuse;
+ static int _nldev_get_dumpit(struct ib_device *device,
+ 			     struct sk_buff *skb,
+ 			     struct netlink_callback *cb,
+@@ -1077,6 +1106,10 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
+ 		.doit = nldev_get_doit,
+ 		.dump = nldev_get_dumpit,
+ 	},
++	[RDMA_NLDEV_CMD_SET] = {
++		.doit = nldev_set_doit,
++		.flags = RDMA_NL_ADMIN_PERM,
++	},
+ 	[RDMA_NLDEV_CMD_PORT_GET] = {
+ 		.doit = nldev_port_get_doit,
+ 		.dump = nldev_port_get_dumpit,
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index edba6351ac13..f9c41bf59efc 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -227,8 +227,9 @@ enum rdma_nldev_command {
+ 	RDMA_NLDEV_CMD_UNSPEC,
+
+ 	RDMA_NLDEV_CMD_GET, /* can dump */
++	RDMA_NLDEV_CMD_SET,
+
+-	/* 2 - 4 are free to use */
++	/* 3 - 4 are free to use */
+
+ 	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
