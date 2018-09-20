@@ -1,84 +1,52 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: Re: [PATCH -next] RDMA/core: Properly return the error code of
- rdma_set_src_addr_rcu
-Date: Thu, 20 Sep 2018 09:13:45 +0800
-Message-ID: <438ee883-31a6-7c9d-fddb-1c3c0f9d654a@huawei.com>
-References: <20180919122838.28184-1-yuehaibing@huawei.com>
- <20180919161426.GC9867@ziepe.ca>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] IB/nes: Remove unnecessary parentheses
+Date: Wed, 19 Sep 2018 20:29:57 -0700
+Message-ID: <20180920032956.14360-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180919161426.GC9867@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, leon@kernel.org, parav@mellanox.com, danielj@mellanox.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018/9/20 0:14, Jason Gunthorpe wrote:
-> On Wed, Sep 19, 2018 at 08:28:38PM +0800, YueHaibing wrote:
->> rdma_set_src_addr_rcu should check copy_src_l2_addr fails,
->> rather than always return 0. Also copy_src_l2_addr should return
->> 'ret' as its return value while rdma_translate_ip fails.
->>
->> Fixes: c31d4b2ddf07 ("RDMA/core: Protect against changing dst->dev during destination resolve")
->> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
->> Reviewed-by: Parav Pandit <parav@mellanox.com>
->> ---
->>  drivers/infiniband/core/addr.c | 9 ++++++---
->>  1 file changed, 6 insertions(+), 3 deletions(-)
-> 
-> Applied to for-next, thanks
-> 
->> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
->> index 7a0356c..8a31b11 100644
->> --- a/drivers/infiniband/core/addr.c
->> +++ b/drivers/infiniband/core/addr.c
->> @@ -468,7 +468,7 @@ static int addr_resolve_neigh(const struct dst_entry *dst,
->>  	return ret;
->>  }
->>  
->> -static void copy_src_l2_addr(struct rdma_dev_addr *dev_addr,
->> +static int copy_src_l2_addr(struct rdma_dev_addr *dev_addr,
->>  			     const struct sockaddr *dst_in,
->>  			     const struct dst_entry *dst,
->>  			     const struct net_device *ndev)
-> 
-> I fixed the indenting as Parav pointed out
-> 
->> @@ -492,6 +492,8 @@ static void copy_src_l2_addr(struct rdma_dev_addr *dev_addr,
->>  						RDMA_NETWORK_IPV6;
->>  	else
->>  		dev_addr->network = RDMA_NETWORK_IB;
->> +
->> +	return ret;
->>  }
->>  
->>  static int rdma_set_src_addr_rcu(struct rdma_dev_addr *dev_addr,
->> @@ -499,6 +501,7 @@ static int rdma_set_src_addr_rcu(struct rdma_dev_addr *dev_addr,
->>  				 const struct sockaddr *dst_in,
->>  				 const struct dst_entry *dst)
->>  {
->> +	int ret;
->>  	struct net_device *ndev = READ_ONCE(dst->dev);
->>  
->>  	*ndev_flags = ndev->flags;
->> @@ -515,8 +518,8 @@ static int rdma_set_src_addr_rcu(struct rdma_dev_addr *dev_addr,
->>  			return -ENODEV;
->>  	}
->>  
->> -	copy_src_l2_addr(dev_addr, dst_in, dst, ndev);
->> -	return 0;
->> +	ret = copy_src_l2_addr(dev_addr, dst_in, dst, ndev);
->> +	return ret;
->>  }
-> 
-> And made this just 'return copy_src_l2_addr' without the ret.
+Clang warns when more than one set of parentheses are used in single
+conditional statements.
 
-Thank you.
+drivers/infiniband/hw/nes/nes_hw.c:1446:27: warning: equality comparison
+with extraneous parentheses [-Wparentheses-equality]
+        } while ((temp_phy_data2 == temp_phy_data));
+                  ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+drivers/infiniband/hw/nes/nes_hw.c:1446:27: note: remove extraneous
+parentheses around the comparison to silence this warning
+        } while ((temp_phy_data2 == temp_phy_data));
+                 ~               ^               ~
+drivers/infiniband/hw/nes/nes_hw.c:1446:27: note: use '=' to turn this
+equality comparison into an assignment
+        } while ((temp_phy_data2 == temp_phy_data));
+                                 ^~
+                                 =
 
-> 
-> Jason
-> 
-> .
-> 
+Remove the unnecessary parentheses to silence this warning.
+
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ drivers/infiniband/hw/nes/nes_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index bd0675d8f298..5517e392bc01 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -1443,7 +1443,7 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
+ 		mdelay(1);
+ 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
+ 		temp_phy_data2 = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+-	} while ((temp_phy_data2 == temp_phy_data));
++	} while (temp_phy_data2 == temp_phy_data);
+ 
+ 	/* wait for tracking */
+ 	counter = 0;
+-- 
+2.19.0
