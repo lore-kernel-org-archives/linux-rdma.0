@@ -1,132 +1,149 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mlx5-next 02/25] net/mlx5: Set uid as part of QP commands
-Date: Thu, 20 Sep 2018 07:51:27 +0300
-Message-ID: <20180920045127.GC3519@mtr-leonro.mtl.com>
+Subject: Re: [PATCH rdma-next 00/24] Extend DEVX functionality
+Date: Thu, 20 Sep 2018 08:01:15 +0300
+Message-ID: <20180920050115.GD3519@mtr-leonro.mtl.com>
 References: <20180917110418.18937-1-leon@kernel.org>
- <20180917110418.18937-3-leon@kernel.org>
- <20180919172731.GM11367@ziepe.ca>
+ <20180919181701.GP11367@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="E/DnYTRukya0zdZ1"
+        protocol="application/pgp-signature"; boundary="DiL7RhKs8rK9YGuF"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180919172731.GM11367@ziepe.ca>
+In-Reply-To: <20180919181701.GP11367@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---E/DnYTRukya0zdZ1
+--DiL7RhKs8rK9YGuF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Sep 19, 2018 at 11:27:31AM -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 17, 2018 at 02:03:55PM +0300, Leon Romanovsky wrote:
-> > From: Yishai Hadas <yishaih@mellanox.com>
+On Wed, Sep 19, 2018 at 12:17:01PM -0600, Jason Gunthorpe wrote:
+> On Mon, Sep 17, 2018 at 02:03:53PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > Set uid as part of QP commands so that the firmware can manage the
-> > QP object in a secured way.
+> > From Yishai,
 > >
-> > That will enable using a QP that was created by verbs application to
-> > be used by the DEVX flow in case the uid is equal.
+> > This series comes to enable the DEVX functionality in some wider scope,
+> > specifically,
+> > - It enables using kernel objects that were created by the verbs
+> >   API in the DEVX flow.
+> > - It enables white list commands without DEVX user context.
+> > - It enables the IB link layer under CAP_NET_RAW capabilities.
+> > - It exposes the PRM handles for RAW QP (i.e. TIRN, TISN, RQN, SQN)
+> >   to be used later on directly by the DEVX interface.
 > >
-> > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/net/ethernet/mellanox/mlx5/core/qp.c | 45 +++++++++++++++++-----------
-> >  include/linux/mlx5/mlx5_ifc.h                | 22 +++++++-------
-> >  include/linux/mlx5/qp.h                      |  1 +
-> >  3 files changed, 39 insertions(+), 29 deletions(-)
+> > In General,
+> > Each object that is created/destroyed/modified via verbs will be stamped
+> > with a UID based on its user context. This is already done for DEVX objects
+> > commands.
 > >
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-> > index 4ca07bfb6b14..04f72a1cdbcc 100644
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-> > @@ -240,6 +240,7 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
-> >  	if (err)
-> >  		return err;
+> > This will enable the firmware to enforce the usage of kernel objects
+> > from the DEVX flow by validating that the same UID is used and the resources are
+> > really related to the same user.
 > >
-> > +	qp->uid = MLX5_GET(create_qp_in, in, uid);
-> >  	qp->qpn = MLX5_GET(create_qp_out, out, qpn);
-> >  	mlx5_core_dbg(dev, "qpn = 0x%x\n", qp->qpn);
+> > For example in case a CQ was created with verbs it will be stamped with
+> > UID and once will be pointed by a DEVX create QP command the firmware will
+> > validate that the input CQN really belongs to the UID which issues the create QP
+> > command.
 > >
-> > @@ -261,6 +262,7 @@ int mlx5_core_create_qp(struct mlx5_core_dev *dev,
-> >  	memset(dout, 0, sizeof(dout));
-> >  	MLX5_SET(destroy_qp_in, din, opcode, MLX5_CMD_OP_DESTROY_QP);
-> >  	MLX5_SET(destroy_qp_in, din, qpn, qp->qpn);
-> > +	MLX5_SET(destroy_qp_in, din, uid, qp->uid);
-> >  	mlx5_cmd_exec(dev, din, sizeof(din), dout, sizeof(dout));
-> >  	return err;
-> >  }
-> > @@ -320,6 +322,7 @@ int mlx5_core_destroy_qp(struct mlx5_core_dev *dev,
+> > As of the above, all the PRM objects (except of the public ones which
+> > are managed by the kernel e.g. FLOW, etc.) will have a UID upon their
+> > create/modify/destroy commands. The detection of UMEM / physical
+> > addressed in the relevant commands will be done by firmware according to a 'umem
+> > valid bit' as the UID may be used in both cases.
 > >
-> >  	MLX5_SET(destroy_qp_in, in, opcode, MLX5_CMD_OP_DESTROY_QP);
-> >  	MLX5_SET(destroy_qp_in, in, qpn, qp->qpn);
-> > +	MLX5_SET(destroy_qp_in, in, uid, qp->uid);
-> >  	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
-> >  	if (err)
-> >  		return err;
-> > @@ -373,7 +376,7 @@ static void mbox_free(struct mbox_info *mbox)
+> > The series also enables white list commands which don't require a
+> > specific DEVX context, instead of this a device UID is used so that
+> > the firmware will mask un-privileged functionality. The IB link layer
+> > is also enabled once CAP_NET_RAW permission exists.
 > >
-> >  static int modify_qp_mbox_alloc(struct mlx5_core_dev *dev, u16 opcode, int qpn,
-> >  				u32 opt_param_mask, void *qpc,
-> > -				struct mbox_info *mbox)
-> > +				struct mbox_info *mbox, u16 uid)
-> >  {
-> >  	mbox->out = NULL;
-> >  	mbox->in = NULL;
-> > @@ -381,26 +384,32 @@ static int modify_qp_mbox_alloc(struct mlx5_core_dev *dev, u16 opcode, int qpn,
-> >  #define MBOX_ALLOC(mbox, typ)  \
-> >  	mbox_alloc(mbox, MLX5_ST_SZ_BYTES(typ##_in), MLX5_ST_SZ_BYTES(typ##_out))
+> > To enable using the RAW QP underlay objects (e.g. TIRN, RQN, etc.) later
+> > on by DEVX commands the UHW output for this case was extended to return this
+> > data when a DEVX context is used.
 > >
-> > -#define MOD_QP_IN_SET(typ, in, _opcode, _qpn) \
-> > -	MLX5_SET(typ##_in, in, opcode, _opcode); \
-> > -	MLX5_SET(typ##_in, in, qpn, _qpn)
-> > -
-> > -#define MOD_QP_IN_SET_QPC(typ, in, _opcode, _qpn, _opt_p, _qpc) \
-> > -	MOD_QP_IN_SET(typ, in, _opcode, _qpn); \
-> > -	MLX5_SET(typ##_in, in, opt_param_mask, _opt_p); \
-> > -	memcpy(MLX5_ADDR_OF(typ##_in, in, qpc), _qpc, MLX5_ST_SZ_BYTES(qpc))
-> > +#define MOD_QP_IN_SET(typ, in, _opcode, _qpn, _uid) \
-> > +	do { \
-> > +		MLX5_SET(typ##_in, in, opcode, _opcode); \
-> > +		MLX5_SET(typ##_in, in, qpn, _qpn); \
-> > +		MLX5_SET(typ##_in, in, uid, _uid); \
-> > +	} while (0)
-> > +
-> > +#define MOD_QP_IN_SET_QPC(typ, in, _opcode, _qpn, _opt_p, _qpc, _uid) \
-> > +	do { \
-> > +		MOD_QP_IN_SET(typ, in, _opcode, _qpn, _uid); \
-> > +		MLX5_SET(typ##_in, in, opt_param_mask, _opt_p); \
-> > +		memcpy(MLX5_ADDR_OF(typ##_in, in, qpc), \
-> > +		       _qpc, MLX5_ST_SZ_BYTES(qpc)); \
-> > +	} while (0)
+> > Thanks
+> >
+> > Leon Romanovsky (1):
+> >   net/mlx5: Update mlx5_ifc with DEVX UID bits
+> >
+> > Yishai Hadas (24):
+> >   net/mlx5: Set uid as part of CQ commands
+> >   net/mlx5: Set uid as part of QP commands
+> >   net/mlx5: Set uid as part of RQ commands
+> >   net/mlx5: Set uid as part of SQ commands
+> >   net/mlx5: Set uid as part of SRQ commands
+> >   net/mlx5: Set uid as part of DCT commands
+> >   IB/mlx5: Set uid as part of CQ creation
+> >   IB/mlx5: Set uid as part of QP creation
+> >   IB/mlx5: Set uid as part of RQ commands
+> >   IB/mlx5: Set uid as part of SQ commands
+> >   IB/mlx5: Set uid as part of TIR commands
+> >   IB/mlx5: Set uid as part of TIS commands
+> >   IB/mlx5: Set uid as part of RQT commands
+> >   IB/mlx5: Set uid as part of PD commands
+> >   IB/mlx5: Set uid as part of TD commands
+> >   IB/mlx5: Set uid as part of SRQ commands
+> >   IB/mlx5: Set uid as part of DCT commands
+> >   IB/mlx5: Set uid as part of XRCD commands
+> >   IB/mlx5: Set uid as part of MCG commands
 >
-> These should get touched by clang-format to follow the usual
-> formatting for macros..
-
-Thanks, we will do.
-
+> This is really too many patches.. They are small and not too hard to
+> review, but it is well beyond the guideline.
 >
-> Jason
+> And I'm not totally happy with the extensive use of ucontext in the IB
+> portions, it is problematic looking into the future, and uboject is
+> really not supposed to be used in the drivers.
+>
+> The driver needs to store the uid in the PD (copied from the ucontext
+> that created it) and use that in all the dependent places, not use
+> pd->uobject->ucontext->devx_uid or some other convoluted way to get
+> to it.
+>
+> The ucontext variable should only be used when creating the PD, CQ and
+> devx objects.
+>
+> This detail becomes quite important, for instance, if we get to the
+> 'shared pd' that has been talked about at conference. In this case
+> when the 'receiver' of the 'shared pd' creates a child object, like a
+> MR, the MR must be stamped with the devx_uid of the PD (ie the
+> originating context's devx_uid), not the dev_uid of its local ufile!
+>
+> If we do that, then the series can be split, so long as pd->devx_uid ==
+> 0 until the entire series is applied. uid tagging is an all-or-nothing
+> thing, as partial tagging will break verbs. So breaking it up also
+> makes it more bi-section safe.
 
---E/DnYTRukya0zdZ1
+There is very simple reason why this series was sent as one piece. The
+basic requirement that the code posted will be as one feature, from the
+beginning till the end, easy to follow, cherry-pick, proper ordering
+and less errors.
+
+However if you want to see three series posted immediately one after
+another and have two of them with dead code, I'll do it.
+
+Thanks
+
+--DiL7RhKs8rK9YGuF
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJboydPAAoJEORje4g2clincdIP/2NawU9Ni/xgmSLmSmuGMD9D
-gvFpLXHqZfWkg7B7H3dLhA0HzQYhawklSM0n7PpALg97tJuPjvSzOePgtea2lQSp
-uRJGJLMInY+/QWhqlopNxKHBfKIFu6n3/KkYBzEuV7rqfF1/1MZIsO8dg2tOh8vz
-46Ok1bRzBD/LIlbQcITmfc2j2b3q00g7U9db1uAou8ZLu62Z1DSaCPv4JpRKgZFn
-54pohFFBfuVk05cTsau6kX/6I0yC0CVrK7cMPkyD5EC0Twaqv3aptOWoML7y3xhD
-CNi0rnzNW+trs7PN2gIHV5xciIe3A9BxGhzxaxm2gyv3FR63PvG9M8APhG0tOV/6
-WnTg0vzllPImE6kYW7bMI8OAE5thmL+FgqFsdVExp09BNI5u2kr/rdDBcwpzto6Z
-oKQ7txtGshG+OZbOKX9QEUEG7QWWUCdyRcBrNpMJGtvHxfmj9BsCRPpZH1ZgqgHa
-i5jIdvs4EI2yPGR96mQEb+0k/7iZkZsLaO/15d8N8VOLY0dNCx/aUP4xHxwivqRl
-q8WQWNBWHRmD+rFD/xLC4xWkRIKMF1/Uj1av8LrW1nvcMAAIkUpEG4djH/Bart9t
-MbZRTVHNeGXwYsCQWDAvQCwOVOsmJYI+WLFGUREadY9u2K5HZ1pNY7IoynSuo6CV
-X0ZTjwaEWCPgM9tiigyF
-=WpQp
+iQIcBAEBAgAGBQJboymbAAoJEORje4g2clinrskQAM7PCOxPRfL0ez9f3n53WFU/
+ubH9ix2H84+DH4eXkv8KwOAkUs2hyxQCrXF2n4oo/e2JBQH0mMGI3q5BDrU1x94N
+ROureq3KXDnR2Kox376m5FPOqtlizPRAKSJ2eDp4VLfRkBRX04yHklBOwAMfLVJm
+WFCntaGe8ApU+Hv3hkEdU9OGKEZsPetPy07r2L45Np5kPBtZG0NcvhTSXEhi2ptt
+J9BFHFaQkHvrD13jET0x4t1bygx55cHvXJZlJa8CBnxVH7R6eXZkcwCkX9UlxhK6
+JJP1X6qIjkYKc/PuJQKUfvxP9dOKJ0bPe0MeP/nfq4uY603OEf0mA1/q67aoojY3
+zWchJlyl0NcVGljC29hZEvlKqjst2WBEKlEZO2js8tKtylNvlq69w/SfRTzTq4Y0
+Tx0tAQe76AV442KyW+hz8ORA6zELR8CSQwinggbbtmryAUTwRfdt7hCH1sqwsfik
+QU/XINFyJFtAi2S5ldwVuSe4pTJIGY3vUPPDlB9Jmviu0GB9o04Lw/4ZIy3giG0Z
+YFq70G5jYqeSns/tSIoyE3/bTd2EzXa8C1LtuRsY21/66FdcCaU6t4EBly6Dp6dl
+1e0FUvjlnSIAG1+WotU4AI2EExnbIlOjp9I7FNyemEXM912BcbFmITqqHz8gSU0T
+ecRyPrAo6FGKYt3JGwTb
+=AgvX
 -----END PGP SIGNATURE-----
 
---E/DnYTRukya0zdZ1--
+--DiL7RhKs8rK9YGuF--
