@@ -1,59 +1,66 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH rdma-next 1/5] RDMA/core: Provide getter and setter to
- access IB device name
-Date: Thu, 20 Sep 2018 10:46:48 -0600
-Message-ID: <20180920164648.GM30219@mellanox.com>
-References: <20180920112202.9181-1-leon@kernel.org>
- <20180920112202.9181-2-leon@kernel.org>
- <20180920151541.GC30219@mellanox.com>
- <20180920164039.GM3519@mtr-leonro.mtl.com>
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: Re: [PATCH] IB/nes: Remove unnecessary parentheses
+Date: Thu, 20 Sep 2018 09:47:45 -0700
+Message-ID: <CAKwvOdnB32mZ900adeMmBpXTa6LjzAOooaGS+w96vkjZR=G_HQ@mail.gmail.com>
+References: <20180920032956.14360-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180920164039.GM3519@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-s390@vger.kernel.org, Ursula Braun <ubraun@linux.ibm.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Selvin Xavier <selvin.xavier@broadcom.com>, Steve Wise <swise@chelsio.com>, Lijun Ou <oulijun@huawei.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Ariel Elior <Ariel.Elior@cavium.com>, Christian Benvenuti <benve@cisco.com>, Adit Ranadive <aditr@vmware.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180920032956.14360-1-natechancellor@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: faisal.latif@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 20, 2018 at 07:40:39PM +0300, Leon Romanovsky wrote:
+On Wed, Sep 19, 2018 at 8:30 PM Nathan Chancellor
+<natechancellor@gmail.com> wrote:
+>
+> Clang warns when more than one set of parentheses are used in single
+> conditional statements.
+>
+> drivers/infiniband/hw/nes/nes_hw.c:1446:27: warning: equality comparison
+> with extraneous parentheses [-Wparentheses-equality]
+>         } while ((temp_phy_data2 == temp_phy_data));
+>                   ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+> drivers/infiniband/hw/nes/nes_hw.c:1446:27: note: remove extraneous
+> parentheses around the comparison to silence this warning
+>         } while ((temp_phy_data2 == temp_phy_data));
+>                  ~               ^               ~
+> drivers/infiniband/hw/nes/nes_hw.c:1446:27: note: use '=' to turn this
+> equality comparison into an assignment
+>         } while ((temp_phy_data2 == temp_phy_data));
+>                                  ^~
+>                                  =
+>
+> Remove the unnecessary parentheses to silence this warning.
+>
+> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> ---
+>  drivers/infiniband/hw/nes/nes_hw.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+> index bd0675d8f298..5517e392bc01 100644
+> --- a/drivers/infiniband/hw/nes/nes_hw.c
+> +++ b/drivers/infiniband/hw/nes/nes_hw.c
+> @@ -1443,7 +1443,7 @@ static int nes_init_2025_phy(struct nes_device *nesdev, u8 phy_type, u8 phy_inde
+>                 mdelay(1);
+>                 nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
+>                 temp_phy_data2 = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+> -       } while ((temp_phy_data2 == temp_phy_data));
+> +       } while (temp_phy_data2 == temp_phy_data);
+>
+>         /* wait for tracking */
+>         counter = 0;
+> --
+> 2.19.0
+>
 
-> > > The protection is done with global device_lock because it is used in
-> > > allocation and deallocation phases. At this stage, this lock is not
-> > > busy and easily can be moved to be per-device, once it will be needed.
-> > >
-> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > >  drivers/infiniband/core/device.c | 24 +++++++++++++++++++++++-
-> > >  include/rdma/ib_verbs.h          |  8 +++++++-
-> > >  2 files changed, 30 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-> > > index 5a680a88aa87..3270cde6d806 100644
-> > > +++ b/drivers/infiniband/core/device.c
-> > > @@ -170,6 +170,14 @@ static struct ib_device *__ib_device_get_by_name(const char *name)
-> > >  	return NULL;
-> > >  }
-> > >
-> > > +void ib_device_get_name(struct ib_device *ibdev, char *name)
-> > > +{
-> > > +	down_read(&lists_rwsem);
-> > > +	strlcpy(name, ibdev->name, IB_DEVICE_NAME_MAX);
-> > > +	up_read(&lists_rwsem);
-> > > +}
-> > > +EXPORT_SYMBOL(ib_device_get_name);
-> >
-> > I think we have to follow netdev and just rely on device_rename()
-> > being 'good enough'.
-> >
-> > Switch everything to use dev_name()/etc rather than try and do
-> > something like this so the responsibility is on the device core to
-> > keep this working, not us.
-> >
-> > Turns out I have a series for that for unrelated reasons..
-> 
-> And what should I do now with this knowledge?
+Nathan, thanks for this patch.
+Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
 
-Maybe I can send it today..
 
-Jason
+-- 
+Thanks,
+~Nick Desaulniers
