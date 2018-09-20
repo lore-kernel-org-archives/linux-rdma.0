@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [RFC PATCH iproute2-next 1/3] rdma: Update kernel include file to support IB device renaming
-Date: Thu, 20 Sep 2018 14:22:30 +0300
-Message-ID: <20180920112232.9602-2-leon@kernel.org>
+Subject: [RFC PATCH iproute2-next 2/3] rdma: Introduce command execution helper with required device name
+Date: Thu, 20 Sep 2018 14:22:31 +0300
+Message-ID: <20180920112232.9602-3-leon@kernel.org>
 References: <20180920112232.9602-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180920112232.9602-1-leon@kernel.org>
@@ -12,25 +12,46 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Bring kernel header file changes upto commit 908b44308eda
-("RDMA/nldev: Allow IB device rename through RDMA netlink")
+In contradiction to various show commands, the set command explicitly
+requires to use device name as an argument. Provide new command
+execution helper which enforces it.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ rdma/rdma.h  |  1 +
+ rdma/utils.c | 10 ++++++++++
+ 2 files changed, 11 insertions(+)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index 6513fb89..e2228c09 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -227,8 +227,9 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_UNSPEC,
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index d4b7ba19..dde9e128 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -90,6 +90,7 @@ int cmd_link(struct rd *rd);
+ int cmd_res(struct rd *rd);
+ int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
+ int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
++int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd));
+ int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
+ void rd_free(struct rd *rd);
+ int rd_set_arg_to_devname(struct rd *rd);
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 4840bf22..61f4aeb1 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -577,6 +577,16 @@ out:
+ 	return ret;
+ }
 
- 	RDMA_NLDEV_CMD_GET, /* can dump */
-+	RDMA_NLDEV_CMD_SET,
-
--	/* 2 - 4 are free to use */
-+	/* 3 - 4 are free to use */
-
- 	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
++int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd))
++{
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide device name.\n");
++		return -EINVAL;
++	}
++
++	return rd_exec_dev(rd, cb);
++}
++
+ int rd_exec_cmd(struct rd *rd, const struct rd_cmd *cmds, const char *str)
+ {
+ 	const struct rd_cmd *c;
