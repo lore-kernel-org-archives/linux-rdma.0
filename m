@@ -1,279 +1,168 @@
-From: Long Li <longli@linuxonhyperv.com>
-Subject: [PATCH V3 (resend) 4/7] CIFS: Add support for direct I/O write
-Date: Thu, 20 Sep 2018 21:18:41 +0000
-Message-ID: <20180920211842.13721-4-longli@linuxonhyperv.com>
-References: <20180920211842.13721-1-longli@linuxonhyperv.com>
-Reply-To: longli@microsoft.com
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
+Date: Thu, 20 Sep 2018 17:38:29 -0500
+Message-ID: <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
+ <20180913001156.4115-2-logang@deltatee.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180920211842.13721-1-longli@linuxonhyperv.com>
+Content-Disposition: inline
+In-Reply-To: <20180913001156.4115-2-logang@deltatee.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Long Li <longli@microsoft.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Jens Axboe <axboe@kernel.dk>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+On Wed, Sep 12, 2018 at 06:11:44PM -0600, Logan Gunthorpe wrote:
+> Some PCI devices may have memory mapped in a BAR space that's
+> intended for use in peer-to-peer transactions. In order to enable
+> such transactions the memory must be registered with ZONE_DEVICE pages
+> so it can be used by DMA interfaces in existing drivers.
+> 
+> Add an interface for other subsystems to find and allocate chunks of P2P
+> memory as necessary to facilitate transfers between two PCI peers:
+> 
+> int pci_p2pdma_add_client();
+> struct pci_dev *pci_p2pmem_find();
+> void *pci_alloc_p2pmem();
+> 
+> The new interface requires a driver to collect a list of client devices
+> involved in the transaction with the pci_p2pmem_add_client*() functions
+> then call pci_p2pmem_find() to obtain any suitable P2P memory. Once
+> this is done the list is bound to the memory and the calling driver is
+> free to add and remove clients as necessary (adding incompatible clients
+> will fail). With a suitable p2pmem device, memory can then be
+> allocated with pci_alloc_p2pmem() for use in DMA transactions.
+> 
+> Depending on hardware, using peer-to-peer memory may reduce the bandwidth
+> of the transfer but can significantly reduce pressure on system memory.
+> This may be desirable in many cases: for example a system could be designed
+> with a small CPU connected to a PCIe switch by a small number of lanes
+> which would maximize the number of lanes available to connect to NVMe
+> devices.
+> 
+> The code is designed to only utilize the p2pmem device if all the devices
+> involved in a transfer are behind the same PCI bridge. This is because we
+> have no way of knowing whether peer-to-peer routing between PCIe Root Ports
+> is supported (PCIe r4.0, sec 1.3.1). Additionally, the benefits of P2P
+> transfers that go through the RC is limited to only reducing DRAM usage
+> and, in some cases, coding convenience. The PCI-SIG may be exploring
+> adding a new capability bit to advertise whether this is possible for
+> future hardware.
+> 
+> This commit includes significant rework and feedback from Christoph
+> Hellwig.
+> 
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
 
-With direct I/O write, user supplied buffers are pinned to the memory and data
-are transferred directly from user buffers to the transport layer.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>  # PCI pieces
 
-Change in v3: add support for kernel AIO
+Mostly trivial comments below.  Thanks for persevering with this!
 
-Signed-off-by: Long Li <longli@microsoft.com>
----
- fs/cifs/cifsfs.h |   1 +
- fs/cifs/file.c   | 196 ++++++++++++++++++++++++++++++++++++++++++++++---------
- 2 files changed, 166 insertions(+), 31 deletions(-)
+> ---
+>  drivers/pci/Kconfig        |  17 +
+>  drivers/pci/Makefile       |   1 +
+>  drivers/pci/p2pdma.c       | 761 +++++++++++++++++++++++++++++++++++++
+>  include/linux/memremap.h   |   5 +
+>  include/linux/mm.h         |  18 +
+>  include/linux/pci-p2pdma.h | 102 +++++
+>  include/linux/pci.h        |   4 +
+>  7 files changed, 908 insertions(+)
+>  create mode 100644 drivers/pci/p2pdma.c
+>  create mode 100644 include/linux/pci-p2pdma.h
 
-diff --git a/fs/cifs/cifsfs.h b/fs/cifs/cifsfs.h
-index ed5479c..cc54051 100644
---- a/fs/cifs/cifsfs.h
-+++ b/fs/cifs/cifsfs.h
-@@ -104,6 +104,7 @@ extern ssize_t cifs_user_readv(struct kiocb *iocb, struct iov_iter *to);
- extern ssize_t cifs_direct_readv(struct kiocb *iocb, struct iov_iter *to);
- extern ssize_t cifs_strict_readv(struct kiocb *iocb, struct iov_iter *to);
- extern ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from);
-+extern ssize_t cifs_direct_writev(struct kiocb *iocb, struct iov_iter *from);
- extern ssize_t cifs_strict_writev(struct kiocb *iocb, struct iov_iter *from);
- extern int cifs_lock(struct file *, int, struct file_lock *);
- extern int cifs_fsync(struct file *, loff_t, loff_t, int);
-diff --git a/fs/cifs/file.c b/fs/cifs/file.c
-index 6a939fa..2a5d209 100644
---- a/fs/cifs/file.c
-+++ b/fs/cifs/file.c
-@@ -2537,6 +2537,8 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
- 	loff_t saved_offset = offset;
- 	pid_t pid;
- 	struct TCP_Server_Info *server;
-+	struct page **pagevec;
-+	size_t start;
- 
- 	if (cifs_sb->mnt_cifs_flags & CIFS_MOUNT_RWPIDFORWARD)
- 		pid = open_file->pid;
-@@ -2553,38 +2555,74 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
- 		if (rc)
- 			break;
- 
--		nr_pages = get_numpages(wsize, len, &cur_len);
--		wdata = cifs_writedata_alloc(nr_pages,
-+		if (ctx->direct_io) {
-+			cur_len = iov_iter_get_pages_alloc(
-+				from, &pagevec, wsize, &start);
-+			if (cur_len < 0) {
-+				cifs_dbg(VFS,
-+					"direct_writev couldn't get user pages "
-+					"(rc=%zd) iter type %d iov_offset %zd count"
-+					" %zd\n",
-+					cur_len, from->type,
-+					from->iov_offset, from->count);
-+				dump_stack();
-+				break;
-+			}
-+			iov_iter_advance(from, cur_len);
-+
-+			nr_pages = (cur_len + start + PAGE_SIZE - 1) / PAGE_SIZE;
-+
-+			wdata = cifs_writedata_direct_alloc(pagevec,
- 					     cifs_uncached_writev_complete);
--		if (!wdata) {
--			rc = -ENOMEM;
--			add_credits_and_wake_if(server, credits, 0);
--			break;
--		}
-+			if (!wdata) {
-+				rc = -ENOMEM;
-+				add_credits_and_wake_if(server, credits, 0);
-+				break;
-+			}
- 
--		rc = cifs_write_allocate_pages(wdata->pages, nr_pages);
--		if (rc) {
--			kfree(wdata);
--			add_credits_and_wake_if(server, credits, 0);
--			break;
--		}
- 
--		num_pages = nr_pages;
--		rc = wdata_fill_from_iovec(wdata, from, &cur_len, &num_pages);
--		if (rc) {
--			for (i = 0; i < nr_pages; i++)
--				put_page(wdata->pages[i]);
--			kfree(wdata);
--			add_credits_and_wake_if(server, credits, 0);
--			break;
--		}
-+			wdata->page_offset = start;
-+			wdata->tailsz =
-+				nr_pages > 1 ?
-+					cur_len - (PAGE_SIZE - start) -
-+					(nr_pages - 2) * PAGE_SIZE :
-+					cur_len;
-+		} else {
-+			nr_pages = get_numpages(wsize, len, &cur_len);
-+			wdata = cifs_writedata_alloc(nr_pages,
-+					     cifs_uncached_writev_complete);
-+			if (!wdata) {
-+				rc = -ENOMEM;
-+				add_credits_and_wake_if(server, credits, 0);
-+				break;
-+			}
- 
--		/*
--		 * Bring nr_pages down to the number of pages we actually used,
--		 * and free any pages that we didn't use.
--		 */
--		for ( ; nr_pages > num_pages; nr_pages--)
--			put_page(wdata->pages[nr_pages - 1]);
-+			rc = cifs_write_allocate_pages(wdata->pages, nr_pages);
-+			if (rc) {
-+				kfree(wdata);
-+				add_credits_and_wake_if(server, credits, 0);
-+				break;
-+			}
-+
-+			num_pages = nr_pages;
-+			rc = wdata_fill_from_iovec(wdata, from, &cur_len, &num_pages);
-+			if (rc) {
-+				for (i = 0; i < nr_pages; i++)
-+					put_page(wdata->pages[i]);
-+				kfree(wdata);
-+				add_credits_and_wake_if(server, credits, 0);
-+				break;
-+			}
-+
-+			/*
-+			 * Bring nr_pages down to the number of pages we actually used,
-+			 * and free any pages that we didn't use.
-+			 */
-+			for ( ; nr_pages > num_pages; nr_pages--)
-+				put_page(wdata->pages[nr_pages - 1]);
-+
-+			wdata->tailsz = cur_len - ((nr_pages - 1) * PAGE_SIZE);
-+		}
- 
- 		wdata->sync_mode = WB_SYNC_ALL;
- 		wdata->nr_pages = nr_pages;
-@@ -2593,7 +2631,6 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
- 		wdata->pid = pid;
- 		wdata->bytes = cur_len;
- 		wdata->pagesz = PAGE_SIZE;
--		wdata->tailsz = cur_len - ((nr_pages - 1) * PAGE_SIZE);
- 		wdata->credits = credits;
- 		wdata->ctx = ctx;
- 		kref_get(&ctx->refcount);
-@@ -2687,8 +2724,9 @@ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx)
- 		kref_put(&wdata->refcount, cifs_uncached_writedata_release);
- 	}
- 
--	for (i = 0; i < ctx->npages; i++)
--		put_page(ctx->bv[i].bv_page);
-+	if (!ctx->direct_io)
-+		for (i = 0; i < ctx->npages; i++)
-+			put_page(ctx->bv[i].bv_page);
- 
- 	cifs_stats_bytes_written(tcon, ctx->total_len);
- 	set_bit(CIFS_INO_INVALID_MAPPING, &CIFS_I(dentry->d_inode)->flags);
-@@ -2703,6 +2741,102 @@ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx)
- 		complete(&ctx->done);
- }
- 
-+ssize_t cifs_direct_writev(struct kiocb *iocb, struct iov_iter *from)
-+{
-+	struct file *file = iocb->ki_filp;
-+	ssize_t total_written = 0;
-+	struct cifsFileInfo *cfile;
-+	struct cifs_tcon *tcon;
-+	struct cifs_sb_info *cifs_sb;
-+	struct TCP_Server_Info *server;
-+	size_t len = iov_iter_count(from);
-+	int rc;
-+	struct cifs_aio_ctx *ctx;
-+
-+	/*
-+	 * iov_iter_get_pages_alloc doesn't work with ITER_KVEC.
-+	 * In this case, fall back to non-direct write function.
-+	 * this could be improved by getting pages directly in ITER_KVEC
-+	 */
-+	if (from->type & ITER_KVEC) {
-+		cifs_dbg(FYI, "use non-direct cifs_user_writev for kvec I/O\n");
-+		return cifs_user_writev(iocb, from);
-+	}
-+
-+	rc = generic_write_checks(iocb, from);
-+	if (rc <= 0)
-+		return rc;
-+
-+	cifs_sb = CIFS_FILE_SB(file);
-+	cfile = file->private_data;
-+	tcon = tlink_tcon(cfile->tlink);
-+	server = tcon->ses->server;
-+
-+	if (!server->ops->async_writev)
-+		return -ENOSYS;
-+
-+	ctx = cifs_aio_ctx_alloc();
-+	if (!ctx)
-+		return -ENOMEM;
-+
-+	ctx->cfile = cifsFileInfo_get(cfile);
-+
-+	if (!is_sync_kiocb(iocb))
-+		ctx->iocb = iocb;
-+
-+	ctx->pos = iocb->ki_pos;
-+
-+	ctx->direct_io = true;
-+	ctx->iter = *from;
-+	ctx->len = len;
-+
-+	/* grab a lock here due to read response handlers can access ctx */
-+	mutex_lock(&ctx->aio_mutex);
-+
-+	rc = cifs_write_from_iter(iocb->ki_pos, ctx->len, from,
-+				  cfile, cifs_sb, &ctx->list, ctx);
-+
-+	/*
-+	 * If at least one write was successfully sent, then discard any rc
-+	 * value from the later writes. If the other write succeeds, then
-+	 * we'll end up returning whatever was written. If it fails, then
-+	 * we'll get a new rc value from that.
-+	 */
-+	if (!list_empty(&ctx->list))
-+		rc = 0;
-+
-+	mutex_unlock(&ctx->aio_mutex);
-+
-+	if (rc) {
-+		kref_put(&ctx->refcount, cifs_aio_ctx_release);
-+		return rc;
-+	}
-+
-+	if (!is_sync_kiocb(iocb)) {
-+		kref_put(&ctx->refcount, cifs_aio_ctx_release);
-+		return -EIOCBQUEUED;
-+	}
-+
-+	rc = wait_for_completion_killable(&ctx->done);
-+	if (rc) {
-+		mutex_lock(&ctx->aio_mutex);
-+		ctx->rc = rc = -EINTR;
-+		total_written = ctx->total_len;
-+		mutex_unlock(&ctx->aio_mutex);
-+	} else {
-+		rc = ctx->rc;
-+		total_written = ctx->total_len;
-+	}
-+
-+	kref_put(&ctx->refcount, cifs_aio_ctx_release);
-+
-+	if (unlikely(!total_written))
-+		return rc;
-+
-+	iocb->ki_pos += total_written;
-+	return total_written;
-+}
-+
- ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from)
- {
- 	struct file *file = iocb->ki_filp;
--- 
-2.7.4
+> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
+
+Is pr_fmt() actually used anywhere?
+
+> + * Check if a PCI bridge has it's ACS redirection bits set to redirect P2P
+
+s/it's/its/
+
+> + * TLPs upstream via ACS. Returns 1 if the packets will be redirected
+> + * upstream, 0 otherwise.
+> + */
+> +static int pci_bridge_has_acs_redir(struct pci_dev *dev)
+
+Most of your code uses "pdev" for a struct pci_dev *.
+
+> +static void seq_buf_print_bus_devfn(struct seq_buf *buf, struct pci_dev *dev)
+> +{
+> +	if (!buf)
+> +		return;
+> +
+> +	seq_buf_printf(buf, "%04x:%02x:%02x.%x;", pci_domain_nr(dev->bus),
+> +		       dev->bus->number, PCI_SLOT(dev->devfn),
+> +		       PCI_FUNC(dev->devfn));
+
+dev vs pdev?
+I think you could use pci_name() here (see pci_setup_device()).
+
+> + * In the case where two devices are connected to different PCIe switches,
+> + * this function will still return a positive distance as long as both
+> + * switches evenutally have a common upstream bridge. Note this covers
+
+s/evenutally/eventually/
+
+> +static int upstream_bridge_distance_warn(struct pci_dev *provider,
+> +					 struct pci_dev *client)
+> +{
+> +	struct seq_buf acs_list;
+> +	int ret;
+> +
+> +	seq_buf_init(&acs_list, kmalloc(PAGE_SIZE, GFP_KERNEL), PAGE_SIZE);
+
+Check for kmalloc() failure here?  Failure would mean acs_list->buffer is
+NULL, but I gave up following the chain to see how that would be handled.
+
+> +
+> +	ret = upstream_bridge_distance(provider, client, &acs_list);
+> +	if (ret == -2) {
+> +		pci_warn(client, "cannot be used for peer-to-peer DMA as ACS redirect is set between the client and provider\n");
+
+Maybe include pci_name(provider) in these messages?
+
+> +		/* Drop final semicolon */
+> +		acs_list.buffer[acs_list.len-1] = 0;
+> +		pci_warn(client, "to disable ACS redirect for this path, add the kernel parameter: pci=disable_acs_redir=%s\n",
+> +			 acs_list.buffer);
+> +
+> +	} else if (ret < 0) {
+> +		pci_warn(client, "cannot be used for peer-to-peer DMA as the client and provider do not share an upstream bridge\n");
+
+> + * pci_p2pdma_assign_provider - Check compatibily (as per pci_p2pdma_distance)
+
+s/compatibily/compatibility/
+
+> +struct pci_dev *pci_p2pmem_find(struct list_head *clients)
+> +{
+> +	struct pci_dev *pdev = NULL;
+> +	struct pci_p2pdma_client *pos;
+> +	int distance;
+> +	int closest_distance = INT_MAX;
+> +	struct pci_dev **closest_pdevs;
+> +	int dev_cnt = 0;
+> +	const int max_devs = PAGE_SIZE / sizeof(*closest_pdevs);
+> +	int i;
+> +
+> +	closest_pdevs = kmalloc(PAGE_SIZE, GFP_KERNEL);
+
+Check for kmalloc() failure?
+
+> +++ b/include/linux/pci-p2pdma.h
+> @@ -0,0 +1,102 @@
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/*
+> + * PCI Peer 2 Peer DMA support.
+> + *
+> + * Copyright (c) 2016-2018, Logan Gunthorpe
+> + * Copyright (c) 2016-2017, Microsemi Corporation
+> + * Copyright (c) 2017, Christoph Hellwig
+> + * Copyright (c) 2018, Eideticom Inc.
+> + *
+
+Spurious blank line.
+
+> + */
