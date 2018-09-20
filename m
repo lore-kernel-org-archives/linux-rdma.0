@@ -1,121 +1,54 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Linux RDMA mini-conf at Plumbers 2018
-Date: Thu, 20 Sep 2018 12:19:23 -0600
-Message-ID: <20180920181923.GA6542@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: Alex Rosenbaum <alexr@mellanox.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Christoph Hellwig <hch@lst.de>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Don Dutile <ddutile@redhat.com>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@mellanox.com>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, Noa Osherovich <noaos@mellanox.com>, Parav Pandit <parav@mellanox.com>, Stephen Bates <sbates@raithlin.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next v1 0/7] Preparation to DevX extension series
+Date: Thu, 20 Sep 2018 21:35:19 +0300
+Message-ID: <20180920183526.13995-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is just a friendly reminder that registration deadlines are
-approaching for this conference. Please see
+From: Leon Romanovsky <leonro@mellanox.com>
 
-https://www.linuxplumbersconf.org/event/2/page/7-attend
+Changelog v0->v1:
+ * Update commit messages
+ * Split DevX series to small sub-series.
+ * Change static initialization from {0} to be {}
 
-For details.
+------- From Yishai,
 
-This year we expect to have close to a day set aside for RDMA related
-topics. Including up to half a day for the thorny general kernel issues
-related to get_user_pages(), particularly as exasperated by RDMA.
+Set uid as part of various IB commands so that the firmware can manage
+the IB object in a secured way.
 
-We have been working on the following concepts for sessions, I've
-roughly marked names based on past participation in related email
-threads. As we get closer to the conference date we will be organizing
-leaders for each section based on these lists, please let us know of
-any changes, or desire to be a leader!
+The firmware should mark this IB object with the given uid so that it
+can be used later on only by objects with the same uid.
 
-RDMA and get_user_pages
-=======================
-  Dan Williams <dan.j.williams@intel.com>
-  Matthew Wilcox <willy@infradead.org>
-  John Hubbard <jhubbard@nvidia.com>
-  Nicholas Piggin <npiggin@gmail.com>
-  Jan Kara <jack@suse.cz>
+Upon DEVX flows that use this objec, the pointed object must have
+the same uid as of the issuer uid command.
 
- RDMA, DAX and persistant memory co-existence.
+When a command is issued with uid=0 it means that the issuer of the
+command is trusted (i.e. kernel), in that case any pointed object
+can be used regardless of its uid.
 
- Explore the limits of what is possible without using On
- Demand Paging Memory Registration. Discuss 'shootdown'
- of userspace MRs
+Thanks
 
- Dirtying pages obtained with get_user_pages() can oops ext4
- discuss open solutions.
+Leon Romanovsky (1):
+  net/mlx5: Update mlx5_ifc with DEVX UID bits
 
-RDMA and PCI peer to peer
-=========================
-  Don Dutile <ddutile@redhat.com>
-  Alex Williamson <alex.williamson@redhat.com>
-  Christoph Hellwig <hch@lst.de>
-  Stephen Bates <sbates@raithlin.com>
-  Logan Gunthorpe <logang@deltatee.com>
-  Jérôme Glisse <jglisse@redhat.com>
-  Christian König <christian.koenig@amd.com>
-  Bjorn Helgaas <bhelgaas@google.com>
+Yishai Hadas (6):
+  net/mlx5: Set uid as part of CQ commands
+  net/mlx5: Set uid as part of QP commands
+  net/mlx5: Set uid as part of RQ commands
+  net/mlx5: Set uid as part of SQ commands
+  net/mlx5: Set uid as part of SRQ commands
+  net/mlx5: Set uid as part of DCT commands
 
- RDMA and PCI peer to peer transactions. IOMMU issues. Integration
- with HMM. How to expose PCI BAR memory to userspace and other
- drivers as a DMA target.
-
-Improving testing of RDMA with syzkaller, RXE and Python
-========================================================
- Noa Osherovich <noaos@mellanox.com>
- Don Dutile <ddutile@redhat.com>
- Jason Gunthorpe <jgg@mellanox.com>
-
- Problem solve RDMA's distinct lack of public tests.
- Provide a better framework for all drivers to test with,
- and a framework for basic testing in userspace.
-
- Worst remaining unfixed syzkaller bugs and how to try to fix them
-
- How to hook syzkaller more deeply into RDMA.
-
-IOCTL conversion and new kABI topics
-====================================
- Jason Gunthorpe <jgg@mellanox.com>
- Alex Rosenbaum <alexr@mellanox.com>
-
- Attempt to close on the remaining tasks to complete the project
-
- Restore fork() support to userspace
-
-Container and namespaces for RDMA topics
-========================================
- Parav Pandit <parav@mellanox.com>
- Doug Ledford <dledford@redhat.com>
-
- Remaining sticky situations with containers
-
- namespaces in sysfs and legacy all-namespace operation
-
- Remaining CM issues
-
- Security isolation problems
-
-Very large Contiguous regions in userspace
-==========================================
- Christopher Lameter <cl@linux.com>
- Parav Pandit <parav@mellanox.com>
-
- Poor performance of get_user_pages on very large virtual ranges
-
- No standardized API to allocate regions to user space
-
- Carry over from last year
-
-As we get closer to the conference date the exact schedule will be
-published on the conference web site. I belive we have the Thursday
-set aside right now.
-
-If there are any last minute topics people would like to see please
-let us know.
-
-See you all in Vancouver!
-
-Thanks,
-Jason & Leon
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c  |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c  |  81 +++++++++++-----
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c |  30 +++++-
+ include/linux/mlx5/cq.h                       |   1 +
+ include/linux/mlx5/driver.h                   |   1 +
+ include/linux/mlx5/mlx5_ifc.h                 | 135 +++++++++++++++-----------
+ include/linux/mlx5/qp.h                       |   1 +
+ include/linux/mlx5/srq.h                      |   1 +
+ 8 files changed, 171 insertions(+), 83 deletions(-)
