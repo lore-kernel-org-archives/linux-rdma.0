@@ -1,166 +1,35 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: Linux RDMA mini-conf at Plumbers 2018
-Date: Thu, 20 Sep 2018 21:54:28 +0300
-Message-ID: <20180920185428.GT3519@mtr-leonro.mtl.com>
-References: <20180920181923.GA6542@mellanox.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-next 0/4] IB/hfi1: Couple more for the RC cycle
+Date: Thu, 20 Sep 2018 12:44:03 -0700
+Message-ID: <20180920193538.7072.71796.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="M0YLxmUXciMpOLPE"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180920181923.GA6542@mellanox.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Alex Rosenbaum <alexr@mellanox.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Christoph Hellwig <hch@lst.de>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Don Dutile <ddutile@redhat.com>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, Noa Osherovich <noaos@mellanox.com>, Parav Pandit <parav@mellanox.com>, Stephen Bates <sbat>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Lukasz Odzioba <lukasz.odzioa@intel.com>, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Doug and Jason,
 
---M0YLxmUXciMpOLPE
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Mike and Ira have identified some fixes that they would like to see land in the
+RC, these are serious problems and are marked as stable.
 
-On Thu, Sep 20, 2018 at 12:19:23PM -0600, Jason Gunthorpe wrote:
-> This is just a friendly reminder that registration deadlines are
-> approaching for this conference. Please see
->
-> https://www.linuxplumbersconf.org/event/2/page/7-attend
->
-> For details.
->
-> This year we expect to have close to a day set aside for RDMA related
-> topics. Including up to half a day for the thorny general kernel issues
-> related to get_user_pages(), particularly as exasperated by RDMA.
->
-> We have been working on the following concepts for sessions, I've
-> roughly marked names based on past participation in related email
-> threads. As we get closer to the conference date we will be organizing
-> leaders for each section based on these lists, please let us know of
-> any changes, or desire to be a leader!
->
-> RDMA and get_user_pages
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->   Dan Williams <dan.j.williams@intel.com>
->   Matthew Wilcox <willy@infradead.org>
->   John Hubbard <jhubbard@nvidia.com>
->   Nicholas Piggin <npiggin@gmail.com>
->   Jan Kara <jack@suse.cz>
->
->  RDMA, DAX and persistant memory co-existence.
->
->  Explore the limits of what is possible without using On
->  Demand Paging Memory Registration. Discuss 'shootdown'
->  of userspace MRs
->
->  Dirtying pages obtained with get_user_pages() can oops ext4
->  discuss open solutions.
->
-> RDMA and PCI peer to peer
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->   Don Dutile <ddutile@redhat.com>
->   Alex Williamson <alex.williamson@redhat.com>
->   Christoph Hellwig <hch@lst.de>
->   Stephen Bates <sbates@raithlin.com>
->   Logan Gunthorpe <logang@deltatee.com>
->   J=E9r=F4me Glisse <jglisse@redhat.com>
->   Christian K=F6nig <christian.koenig@amd.com>
->   Bjorn Helgaas <bhelgaas@google.com>
->
->  RDMA and PCI peer to peer transactions. IOMMU issues. Integration
->  with HMM. How to expose PCI BAR memory to userspace and other
->  drivers as a DMA target.
->
-> Improving testing of RDMA with syzkaller, RXE and Python
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D
->  Noa Osherovich <noaos@mellanox.com>
->  Don Dutile <ddutile@redhat.com>
->  Jason Gunthorpe <jgg@mellanox.com>
->
->  Problem solve RDMA's distinct lack of public tests.
->  Provide a better framework for all drivers to test with,
->  and a framework for basic testing in userspace.
->
->  Worst remaining unfixed syzkaller bugs and how to try to fix them
->
->  How to hook syzkaller more deeply into RDMA.
->
-> IOCTL conversion and new kABI topics
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->  Jason Gunthorpe <jgg@mellanox.com>
->  Alex Rosenbaum <alexr@mellanox.com>
->
->  Attempt to close on the remaining tasks to complete the project
->
->  Restore fork() support to userspace
->
-> Container and namespaces for RDMA topics
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->  Parav Pandit <parav@mellanox.com>
->  Doug Ledford <dledford@redhat.com>
->
->  Remaining sticky situations with containers
->
->  namespaces in sysfs and legacy all-namespace operation
->
->  Remaining CM issues
->
->  Security isolation problems
->
-> Very large Contiguous regions in userspace
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->  Christopher Lameter <cl@linux.com>
->  Parav Pandit <parav@mellanox.com>
->
->  Poor performance of get_user_pages on very large virtual ranges
->
->  No standardized API to allocate regions to user space
->
->  Carry over from last year
->
-> As we get closer to the conference date the exact schedule will be
-> published on the conference web site. I belive we have the Thursday
-> set aside right now.
->
-> If there are any last minute topics people would like to see please
-> let us know.
+---
 
-I want to remind you that Mike wanted to bring the topic of enhancing
-remote page faults during post-copy container migration in CRIU over
-RDMA.
+Ira Weiny (1):
+      IB/hfi1: Fix SL array bounds check
 
-Thanks
+Michael J. Ruhl (3):
+      IB/hfi1: Invalid user input can result in crash
+      IB/hfi1: Fix context recovery when PBC has an UnsupportedVL
+      IB/hfi1: Fix destroy_qp hang after a link down
 
->
-> See you all in Vancouver!
->
-> Thanks,
-> Jason & Leon
->
 
---M0YLxmUXciMpOLPE
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJbo+zkAAoJEORje4g2clinH6IP+wfLFZ7fzsARxS15q/RbnRf1
-fwsHV80uj2xr5fRwGyIvA+zkhOQyzdEyF2Pfo6fK9jtR5lIJDMHv0KLkfkgYhQrB
-YMTkWW9KcczlA2d/d1iOMaK7Xg/o/rids7KgTVTPGY8unyfWxUpYNd+R2kSnmmc0
-7VkS/uciKu4tacsunPxSHdOjOmU4a3FWZk4U2HpQkRaYfsJIDjcUmdZcN5QOZJcr
-4lv3n8xV+u2Hn6O/A0tagh7WWbQay99xQQX6ZEay8Y7Rb+N6sxnsapZf0K3EKK+d
-GFWV9lG1+IisMhAvV58zy7nAdWUHGgudqs9eKxcksMWMG1gd6Kf+lnQxqbaixeiE
-v15SZNF/zGTmbxzgHbpf9XEznSRIUW9WQmmQU1ncZ4mG7GAJK9aErzpj7nJS3/fi
-kk/eRyPeV5mFDZ1uTYV+ppy7azRCmRhVJWhgbHnx6XCBJl3aSXg7RNA7YmzfU3DW
-nneLe7HlEENgN/FQjAI540wFnzey1vS384Y0PgcA2h6RaSUzAMlfJxkkauWmECB7
-90d6S+Fo/wxPe46Tm4Wz/LFwyQ/LTS+RrobRJn7qJNRZZDLP1YOPSsf2rWRfDCP3
-2c7V9p9AVZe7LumdmgO9Te0P6bOZFF8G0/MRSiGL6zxAqqiB6abzFH1DKwI9fRam
-W/AMQ5XL93NxGwA/c9G9
-=LW6p
------END PGP SIGNATURE-----
-
---M0YLxmUXciMpOLPE--
+ drivers/infiniband/hw/hfi1/chip.c      |    6 +++-
+ drivers/infiniband/hw/hfi1/pio.c       |   51 ++++++++++++++++++++++++++------
+ drivers/infiniband/hw/hfi1/pio.h       |    2 +
+ drivers/infiniband/hw/hfi1/user_sdma.c |    2 +
+ drivers/infiniband/hw/hfi1/verbs.c     |    8 ++++-
+ 5 files changed, 56 insertions(+), 13 deletions(-)
