@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [RFC PATCH iproute2-next 2/3] rdma: Introduce command execution helper with required device name
-Date: Thu, 20 Sep 2018 14:22:31 +0300
-Message-ID: <20180920112232.9602-3-leon@kernel.org>
+Subject: [RFC PATCH iproute2-next 3/3] rdma: Add an option to rename IB device interface
+Date: Thu, 20 Sep 2018 14:22:32 +0300
+Message-ID: <20180920112232.9602-4-leon@kernel.org>
 References: <20180920112232.9602-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180920112232.9602-1-leon@kernel.org>
@@ -12,46 +12,76 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-In contradiction to various show commands, the set command explicitly
-requires to use device name as an argument. Provide new command
-execution helper which enforces it.
+Enrich rdmatool with an option to rename IB devices,
+the command interface follows Iproute2 convention:
+"rdma dev set [OLD-DEVNAME] name NEW-DEVNAME"
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/rdma.h  |  1 +
- rdma/utils.c | 10 ++++++++++
- 2 files changed, 11 insertions(+)
+ rdma/dev.c | 35 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
 
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index d4b7ba19..dde9e128 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -90,6 +90,7 @@ int cmd_link(struct rd *rd);
- int cmd_res(struct rd *rd);
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
- int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
-+int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd));
- int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
- void rd_free(struct rd *rd);
- int rd_set_arg_to_devname(struct rd *rd);
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 4840bf22..61f4aeb1 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -577,6 +577,16 @@ out:
- 	return ret;
+diff --git a/rdma/dev.c b/rdma/dev.c
+index e2eafe47..760b7fb3 100644
+--- a/rdma/dev.c
++++ b/rdma/dev.c
+@@ -14,6 +14,7 @@
+ static int dev_help(struct rd *rd)
+ {
+ 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
++	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
+ 	return 0;
  }
 
-+int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd))
+@@ -240,17 +241,51 @@ static int dev_one_show(struct rd *rd)
+ 	return rd_exec_cmd(rd, cmds, "parameter");
+ }
+
++static int dev_set_name(struct rd *rd)
 +{
++	uint32_t seq;
++
 +	if (rd_no_arg(rd)) {
-+		pr_err("Please provide device name.\n");
++		pr_err("Please provide device new name.\n");
 +		return -EINVAL;
 +	}
 +
-+	return rd_exec_dev(rd, cb);
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
++		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
++
++	return rd_send_msg(rd);
 +}
 +
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *cmds, const char *str)
++static int dev_one_set(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		dev_help},
++		{ "name",	dev_set_name},
++		{ 0 }
++	};
++
++	return rd_exec_cmd(rd, cmds, "parameter");
++}
++
+ static int dev_show(struct rd *rd)
  {
- 	const struct rd_cmd *c;
+ 	return rd_exec_dev(rd, dev_one_show);
+ }
+
++static int dev_set(struct rd *rd)
++{
++	return rd_exec_require_dev(rd, dev_one_set);
++}
++
+ int cmd_dev(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		dev_show },
+ 		{ "show",	dev_show },
+ 		{ "list",	dev_show },
++		{ "set",	dev_set },
+ 		{ "help",	dev_help },
+ 		{ 0 }
+ 	};
