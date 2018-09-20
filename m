@@ -1,68 +1,121 @@
-From: Long Li <longli@microsoft.com>
-Subject: RE: [Patch v7 21/22] CIFS: SMBD: Upper layer performs SMB read via
- RDMA write through memory registration
-Date: Thu, 20 Sep 2018 17:01:27 +0000
-Message-ID: <MWHPR2101MB07299688B64A015CC93E0CB0CE130@MWHPR2101MB0729.namprd21.prod.outlook.com>
-References: <20171107085514.12693-1-longli@exchange.microsoft.com>
- <20171107085514.12693-22-longli@exchange.microsoft.com>
- <9b02dadb-d21b-7a8d-7803-910041f66047@talpey.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Linux RDMA mini-conf at Plumbers 2018
+Date: Thu, 20 Sep 2018 12:19:23 -0600
+Message-ID: <20180920181923.GA6542@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9b02dadb-d21b-7a8d-7803-910041f66047@talpey.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, Steve French <sfrench@samba.org>, "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>, "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+To: linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: Alex Rosenbaum <alexr@mellanox.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Christian =?utf-8?B?S8O2bmln?= <christian.koenig@amd.com>, Christoph Hellwig <hch@lst.de>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Don Dutile <ddutile@redhat.com>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@mellanox.com>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, Noa Osherovich <noaos@mellanox.com>, Parav Pandit <parav@mellanox.com>, Stephen Bates <sbates@raithlin.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBTdWJqZWN0OiBSZTogW1BhdGNoIHY3IDIxLzIyXSBDSUZTOiBTTUJEOiBVcHBlciBsYXllciBw
-ZXJmb3JtcyBTTUIgcmVhZCB2aWENCj4gUkRNQSB3cml0ZSB0aHJvdWdoIG1lbW9yeSByZWdpc3Ry
-YXRpb24NCj4gDQo+IFJlcGx5aW5nIHRvIGEgdmVyeSBvbGQgbWVzc2FnZSwgYnV0IGl0J3Mgc29t
-ZXRoaW5nIHdlIGRpc2N1c3NlZCB0b2RheSBhdCB0aGUNCj4gSU9MYWIgZXZlbnQgc28gdG8gY2Fw
-dHVyZSBpdDoNCj4gDQo+IE9uIDExLzcvMjAxNyAxMjo1NSBBTSwgTG9uZyBMaSB3cm90ZToNCj4g
-PiBGcm9tOiBMb25nIExpIDxsb25nbGlAbWljcm9zb2Z0LmNvbT4NCj4gPg0KPiA+IC0tLQ0KPiA+
-ICAgZnMvY2lmcy9maWxlLmMgICAgfCAxNyArKysrKysrKysrKysrKystLQ0KPiA+ICAgZnMvY2lm
-cy9zbWIycGR1LmMgfCA0NQ0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKy0NCj4gPiAgIDIgZmlsZXMgY2hhbmdlZCwgNTkgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
-dGlvbnMoLSkgLi4uDQo+ID4gZGlmZiAtLWdpdCBhL2ZzL2NpZnMvc21iMnBkdS5jIGIvZnMvY2lm
-cy9zbWIycGR1LmMgaW5kZXgNCj4gPiBjOGFmYjgzLi44YTVmZjkwIDEwMDY0NA0KPiA+IC0tLSBh
-L2ZzL2NpZnMvc21iMnBkdS5jDQo+ID4gKysrIGIvZnMvY2lmcy9zbWIycGR1LmMNCj4gPiBAQCAt
-MjM3OSw3ICsyMzc5LDQwIEBAIHNtYjJfbmV3X3JlYWRfcmVxKHZvaWQgKipidWYsIHVuc2lnbmVk
-IGludA0KPiAqdG90YWxfbGVuLA0KPiA+ICAgCXJlcS0+TWluaW11bUNvdW50ID0gMDsNCj4gPiAg
-IAlyZXEtPkxlbmd0aCA9IGNwdV90b19sZTMyKGlvX3Bhcm1zLT5sZW5ndGgpOw0KPiA+ICAgCXJl
-cS0+T2Zmc2V0ID0gY3B1X3RvX2xlNjQoaW9fcGFybXMtPm9mZnNldCk7DQo+ID4gKyNpZmRlZiBD
-T05GSUdfQ0lGU19TTUJfRElSRUNUDQo+ID4gKwkvKg0KPiA+ICsJICogSWYgd2Ugd2FudCB0byBk
-byBhIFJETUEgd3JpdGUsIGZpbGwgaW4gYW5kIGFwcGVuZA0KPiA+ICsJICogc21iZF9idWZmZXJf
-ZGVzY3JpcHRvcl92MSB0byB0aGUgZW5kIG9mIHJlYWQgcmVxdWVzdA0KPiA+ICsJICovDQo+ID4g
-KwlpZiAoc2VydmVyLT5yZG1hICYmIHJkYXRhICYmDQo+ID4gKwkJcmRhdGEtPmJ5dGVzID49IHNl
-cnZlci0+c21iZF9jb25uLQ0KPiA+cmRtYV9yZWFkd3JpdGVfdGhyZXNob2xkKSB7DQo+ID4gKw0K
-PiA+ICsJCXN0cnVjdCBzbWJkX2J1ZmZlcl9kZXNjcmlwdG9yX3YxICp2MTsNCj4gPiArCQlib29s
-IG5lZWRfaW52YWxpZGF0ZSA9DQo+ID4gKwkJCWlvX3Bhcm1zLT50Y29uLT5zZXMtPnNlcnZlci0+
-ZGlhbGVjdCA9PQ0KPiBTTUIzMF9QUk9UX0lEOw0KPiA+ICsNCj4gPiArCQlyZGF0YS0+bXIgPSBz
-bWJkX3JlZ2lzdGVyX21yKA0KPiA+ICsJCQkJc2VydmVyLT5zbWJkX2Nvbm4sIHJkYXRhLT5wYWdl
-cywNCj4gPiArCQkJCXJkYXRhLT5ucl9wYWdlcywgcmRhdGEtPnRhaWxzeiwNCj4gPiArCQkJCXRy
-dWUsIG5lZWRfaW52YWxpZGF0ZSk7DQo+ID4gKwkJaWYgKCFyZGF0YS0+bXIpDQo+ID4gKwkJCXJl
-dHVybiAtRU5PQlVGUzsNCj4gPiArDQo+ID4gKwkJcmVxLT5DaGFubmVsID0gU01CMl9DSEFOTkVM
-X1JETUFfVjFfSU5WQUxJREFURTsNCj4gPiArCQlpZiAobmVlZF9pbnZhbGlkYXRlKQ0KPiA+ICsJ
-CQlyZXEtPkNoYW5uZWwgPSBTTUIyX0NIQU5ORUxfUkRNQV9WMTsNCj4gPiArCQlyZXEtPlJlYWRD
-aGFubmVsSW5mb09mZnNldCA9DQo+ID4gKwkJCW9mZnNldG9mKHN0cnVjdCBzbWIyX3JlYWRfcGxh
-aW5fcmVxLCBCdWZmZXIpOw0KPiA+ICsJCXJlcS0+UmVhZENoYW5uZWxJbmZvTGVuZ3RoID0NCj4g
-PiArCQkJc2l6ZW9mKHN0cnVjdCBzbWJkX2J1ZmZlcl9kZXNjcmlwdG9yX3YxKTsNCj4gPiArCQl2
-MSA9IChzdHJ1Y3Qgc21iZF9idWZmZXJfZGVzY3JpcHRvcl92MSAqKSAmcmVxLT5CdWZmZXJbMF07
-DQo+ID4gKwkJdjEtPm9mZnNldCA9IHJkYXRhLT5tci0+bXItPmlvdmE7DQo+IA0KPiBJdCdzIHVu
-bmVjZXNzYXJ5LCBhbmQgcG9zc2libHkgbGVha2luZyBrZXJuZWwgaW5mb3JtYXRpb24sIHRvIHVz
-ZSB0aGUgSU9WQSBhcw0KPiB0aGUgb2Zmc2V0IG9mIGEgbWVtb3J5IHJlZ2lvbiB3aGljaCBpcyBy
-ZWdpc3RlcmVkIHVzaW5nIGFuIEZSV1IuIEJlY2F1c2UNCj4gc3VjaCByZWdpb25zIGFyZSBiYXNl
-ZCBvbiB0aGUgZXhhY3QgYnl0ZXMgdGFyZ2V0ZWQgYnkgdGhlIG1lbW9yeSBoYW5kbGUsDQo+IHRo
-ZSBvZmZzZXQgY2FuIGJlIHNldCB0byBhbnkgdmFsdWUsIHR5cGljYWxseSB6ZXJvLCBidXQgbmVh
-cmx5IGFyYml0cmFyeS4gQXMgbG9uZw0KPiBhcyB0aGUgKG9mZnNldCArIGxlbmd0aCkgZG9lcyBu
-b3Qgd3JhcCBvciBvdGhlcndpc2Ugb3ZlcmZsb3csIG9mZnNldCBjYW4gYmUNCj4gc2V0IHRvIGFu
-eXRoaW5nIGNvbnZlbmllbnQuDQo+IA0KPiBTaW5jZSBTTUIgcmVhZHMgYW5kIHdyaXRlcyByYW5n
-ZSB1cCB0byA4TUIsIEknZCBzdWdnZXN0IHplcm9pbmcgdGhlIGxlYXN0DQo+IHNpZ25pZmljYW50
-IDIzIGJpdHMsIHdoaWNoIHNob3VsZCBndWFyYW50ZWUgaXQuIFRoZSBvdGhlciA0MSBiaXRzLCBw
-YXJ0eSBvbi4gWW91DQo+IGNvdWxkIHJhbmRvbWl6ZSB0aGVtLCBwYXNzIHNvbWUgY2xldmVyIGlk
-ZW50aWZpZXIgc3VjaCBhcyBNSUQgc2VxdWVuY2UsDQo+IHdoYXRldmVyLg0KPiANCj4gVG9tLg0K
-DQpUaGFua3MgVG9tLiBJIHdpbGwgZml4IHRoaXMuDQoNCj4gDQo+ID4gKwkJdjEtPnRva2VuID0g
-cmRhdGEtPm1yLT5tci0+cmtleTsNCj4gPiArCQl2MS0+bGVuZ3RoID0gcmRhdGEtPm1yLT5tci0+
-bGVuZ3RoOw0K
+This is just a friendly reminder that registration deadlines are
+approaching for this conference. Please see
+
+https://www.linuxplumbersconf.org/event/2/page/7-attend
+
+For details.
+
+This year we expect to have close to a day set aside for RDMA related
+topics. Including up to half a day for the thorny general kernel issues
+related to get_user_pages(), particularly as exasperated by RDMA.
+
+We have been working on the following concepts for sessions, I've
+roughly marked names based on past participation in related email
+threads. As we get closer to the conference date we will be organizing
+leaders for each section based on these lists, please let us know of
+any changes, or desire to be a leader!
+
+RDMA and get_user_pages
+=======================
+  Dan Williams <dan.j.williams@intel.com>
+  Matthew Wilcox <willy@infradead.org>
+  John Hubbard <jhubbard@nvidia.com>
+  Nicholas Piggin <npiggin@gmail.com>
+  Jan Kara <jack@suse.cz>
+
+ RDMA, DAX and persistant memory co-existence.
+
+ Explore the limits of what is possible without using On
+ Demand Paging Memory Registration. Discuss 'shootdown'
+ of userspace MRs
+
+ Dirtying pages obtained with get_user_pages() can oops ext4
+ discuss open solutions.
+
+RDMA and PCI peer to peer
+=========================
+  Don Dutile <ddutile@redhat.com>
+  Alex Williamson <alex.williamson@redhat.com>
+  Christoph Hellwig <hch@lst.de>
+  Stephen Bates <sbates@raithlin.com>
+  Logan Gunthorpe <logang@deltatee.com>
+  Jérôme Glisse <jglisse@redhat.com>
+  Christian König <christian.koenig@amd.com>
+  Bjorn Helgaas <bhelgaas@google.com>
+
+ RDMA and PCI peer to peer transactions. IOMMU issues. Integration
+ with HMM. How to expose PCI BAR memory to userspace and other
+ drivers as a DMA target.
+
+Improving testing of RDMA with syzkaller, RXE and Python
+========================================================
+ Noa Osherovich <noaos@mellanox.com>
+ Don Dutile <ddutile@redhat.com>
+ Jason Gunthorpe <jgg@mellanox.com>
+
+ Problem solve RDMA's distinct lack of public tests.
+ Provide a better framework for all drivers to test with,
+ and a framework for basic testing in userspace.
+
+ Worst remaining unfixed syzkaller bugs and how to try to fix them
+
+ How to hook syzkaller more deeply into RDMA.
+
+IOCTL conversion and new kABI topics
+====================================
+ Jason Gunthorpe <jgg@mellanox.com>
+ Alex Rosenbaum <alexr@mellanox.com>
+
+ Attempt to close on the remaining tasks to complete the project
+
+ Restore fork() support to userspace
+
+Container and namespaces for RDMA topics
+========================================
+ Parav Pandit <parav@mellanox.com>
+ Doug Ledford <dledford@redhat.com>
+
+ Remaining sticky situations with containers
+
+ namespaces in sysfs and legacy all-namespace operation
+
+ Remaining CM issues
+
+ Security isolation problems
+
+Very large Contiguous regions in userspace
+==========================================
+ Christopher Lameter <cl@linux.com>
+ Parav Pandit <parav@mellanox.com>
+
+ Poor performance of get_user_pages on very large virtual ranges
+
+ No standardized API to allocate regions to user space
+
+ Carry over from last year
+
+As we get closer to the conference date the exact schedule will be
+published on the conference web site. I belive we have the Thursday
+set aside right now.
+
+If there are any last minute topics people would like to see please
+let us know.
+
+See you all in Vancouver!
+
+Thanks,
+Jason & Leon
