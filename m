@@ -1,72 +1,51 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] IB/mlx4: Remove unnecessary parentheses
-Date: Thu, 20 Sep 2018 08:03:50 +0300
-Message-ID: <20180920050350.GE3519@mtr-leonro.mtl.com>
-References: <20180920033229.15102-1-natechancellor@gmail.com>
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: [PATCH] RDMA/cxgb4: remove redundant null pointer check before kfree_skb
+Date: Thu, 20 Sep 2018 17:52:42 +0800
+Message-ID: <1537437162-42846-1-git-send-email-zhongjiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="SNIs70sCzqvszXB4"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180920033229.15102-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+To: swise@chelsio.com, dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+kfree_skb has taken the null pointer into account. hence it is safe
+to remove the redundant null pointer check before kfree_skb.
 
---SNIs70sCzqvszXB4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+---
+ drivers/infiniband/hw/cxgb4/cm.c | 3 +--
+ drivers/infiniband/hw/cxgb4/qp.c | 3 +--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-On Wed, Sep 19, 2018 at 08:32:29PM -0700, Nathan Chancellor wrote:
-> Clang warns when more than one set of parentheses are used in single
-> conditional statements.
->
-> drivers/infiniband/hw/mlx4/mcg.c:676:16: warning: equality comparison
-> with extraneous parentheses [-Wparentheses-equality]
->                         if ((method == IB_MGMT_METHOD_GET_RESP)) {
->                              ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
-> drivers/infiniband/hw/mlx4/mcg.c:676:16: note: remove extraneous
-> parentheses around the comparison to silence this warning
->                         if ((method == IB_MGMT_METHOD_GET_RESP)) {
->                             ~       ^                         ~
-> drivers/infiniband/hw/mlx4/mcg.c:676:16: note: use '=' to turn this
-> equality comparison into an assignment
->                         if ((method == IB_MGMT_METHOD_GET_RESP)) {
->                                     ^~
->                                     =
->
-> Remove the unnecessary parentheses to silence this warning.
->
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
->  drivers/infiniband/hw/mlx4/mcg.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-
---SNIs70sCzqvszXB4
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJboyo2AAoJEORje4g2clincQcQAMWuB2aiHb6PR7iy05Iz6o2F
-mtp9JQVFHHuQSfgV1oLHLQWAklD8QjFBhOM+T1dAF5dMdeYMK0EMWocn6uSYSMJF
-vUpzYe7qV7ImLrBhTI2zUGMbZRyDOpLnReT4fFZ32by74ABYJvUd3LjId+GclEdC
-h2sQfi1DsqMM5U/IoQ/aDL9k+cB9DasJegsaEEXcPg8x1SaYwvHX5zN7CzqgGXxJ
-Lx06c5A2/xJR3MWFs8Bts49f5zZV82+jw+JjU+4gsd93awvxw1KnY7LUG8ydf901
-pCKfxGbf7cNxm9XTUk4KFjRYm7o1s4O7zQl+Ii3WtP/oJSAdISHk1CeihT0tDAnO
-XXfaQ2IY9HmMWeKJq19mPz9KVXgI4htXzCDED86VoaNRlanXVZVYV2XVFEKX0UnB
-xp9DsPHK93N+nnXUnh7a1gM6kfCk5GYi1rBFjJ415+1ppzCWIu2sabaV1Nc2WavS
-nUFJSq2voi7i6Yj8BlqVnpUMS+HLIB3KaqiCBcecilNuOxn2oVpmeutZCRGhAGUn
-DKmp6trJrmvhAKd1kWA1lAHJ5mpyv8UIS/QZaRuZRMoxZjY5zfT7t7XmsMiLJQ1U
-FgBZIBTr49ntNanyhzhg+XesIajVTSzKdCyXmgKJpiawzkJbIgH7z1CPiyiB2tWh
-KpSojCk+qHeyv61j7fLY
-=8ZPj
------END PGP SIGNATURE-----
-
---SNIs70sCzqvszXB4--
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 0f83cbe..615413b 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -403,8 +403,7 @@ void _c4iw_free_ep(struct kref *kref)
+ 				 ep->com.local_addr.ss_family);
+ 		dst_release(ep->dst);
+ 		cxgb4_l2t_release(ep->l2t);
+-		if (ep->mpa_skb)
+-			kfree_skb(ep->mpa_skb);
++		kfree_skb(ep->mpa_skb);
+ 	}
+ 	if (!skb_queue_empty(&ep->com.ep_skb_list))
+ 		skb_queue_purge(&ep->com.ep_skb_list);
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 347fe18..e78dd9a 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -2813,8 +2813,7 @@ struct ib_srq *c4iw_create_srq(struct ib_pd *pd, struct ib_srq_init_attr *attrs,
+ 	free_srq_queue(srq, ucontext ? &ucontext->uctx : &rhp->rdev.uctx,
+ 		       srq->wr_waitp);
+ err_free_skb:
+-	if (srq->destroy_skb)
+-		kfree_skb(srq->destroy_skb);
++	kfree_skb(srq->destroy_skb);
+ err_free_srq_idx:
+ 	c4iw_free_srq_idx(&rhp->rdev, srq->idx);
+ err_free_wr_wait:
+-- 
+1.7.12.4
