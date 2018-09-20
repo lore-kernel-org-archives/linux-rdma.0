@@ -1,54 +1,42 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH rdma-next v1 0/7] Preparation to DevX extension series
-Date: Thu, 20 Sep 2018 23:16:01 +0300
-Message-ID: <CAJ3xEMjcB=8QSEg1hXrKd4m8HF11Ttf2Pw_bRP17p9MJEte-GA@mail.gmail.com>
-References: <20180920183526.13995-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180920183526.13995-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+From: Long Li <longli@linuxonhyperv.com>
+Subject: [PATCH V3 (resend) 1/7] CIFS: pass page offsets on SMB1 read/write
+Date: Thu, 20 Sep 2018 21:18:38 +0000
+Message-ID: <20180920211842.13721-1-longli@linuxonhyperv.com>
+Reply-To: longli@microsoft.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 20, 2018 at 9:35 PM, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+From: Long Li <longli@microsoft.com>
 
-> Set uid as part of various IB commands so that the firmware can manage
-> the IB object in a secured way.
+When issuing SMB1 read/write, pass the page offset to transport.
 
-This series deals with FS core and commands used by the Ethernet driver
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ fs/cifs/cifssmb.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
->   net/mlx5: Update mlx5_ifc with DEVX UID bits
->   net/mlx5: Set uid as part of CQ commands
->   net/mlx5: Set uid as part of RQ commands
->   net/mlx5: Set uid as part of SQ commands
-
-such as the life-cycle (create, modify, destroy) of objects like:
-RQ/SQ/CQ/etc --
-saying IB commands is inaccurate, please be more precise
-
-
->
-> The firmware should mark this IB object with the given uid so that it
-> can be used later on only by objects with the same uid.
-
-these are not IB objects, but rather Ethernet objects
-
->
-> Upon DEVX flows that use this objec, the pointed object must have
-> the same uid as of the issuer uid command.
-
-typo - objec --> object
-
->
-> When a command is issued with uid=0 it means that the issuer of the
-> command is trusted (i.e. kernel), in that case any pointed object
-> can be used regardless of its uid.
->
-> Thanks
->
->   net/mlx5: Set uid as part of SRQ commands
->   net/mlx5: Set uid as part of DCT commands
->   net/mlx5: Set uid as part of QP commands
+diff --git a/fs/cifs/cifssmb.c b/fs/cifs/cifssmb.c
+index 41329f4..f82fd34 100644
+--- a/fs/cifs/cifssmb.c
++++ b/fs/cifs/cifssmb.c
+@@ -1607,6 +1607,7 @@ cifs_readv_callback(struct mid_q_entry *mid)
+ 	struct smb_rqst rqst = { .rq_iov = rdata->iov,
+ 				 .rq_nvec = 2,
+ 				 .rq_pages = rdata->pages,
++				 .rq_offset = rdata->page_offset,
+ 				 .rq_npages = rdata->nr_pages,
+ 				 .rq_pagesz = rdata->pagesz,
+ 				 .rq_tailsz = rdata->tailsz };
+@@ -2210,6 +2211,7 @@ cifs_async_writev(struct cifs_writedata *wdata,
+ 	rqst.rq_iov = iov;
+ 	rqst.rq_nvec = 2;
+ 	rqst.rq_pages = wdata->pages;
++	rqst.rq_offset = wdata->page_offset;
+ 	rqst.rq_npages = wdata->nr_pages;
+ 	rqst.rq_pagesz = wdata->pagesz;
+ 	rqst.rq_tailsz = wdata->tailsz;
+-- 
+2.7.4
