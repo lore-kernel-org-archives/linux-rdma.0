@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 1/5] RDMA/core: Provide getter and setter to access IB device name
-Date: Thu, 20 Sep 2018 14:21:58 +0300
-Message-ID: <20180920112202.9181-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/5] net/smc: Use IB device index instead of name
+Date: Thu, 20 Sep 2018 14:21:59 +0300
+Message-ID: <20180920112202.9181-3-leon@kernel.org>
 References: <20180920112202.9181-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20180920112202.9181-1-leon@kernel.org>
@@ -12,91 +12,94 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Prepare IB device name field to rename operation by ensuring that all
-accesses to it are protected with lock and users don't see part of name.
-
-The protection is done with global device_lock because it is used in
-allocation and deallocation phases. At this stage, this lock is not
-busy and easily can be moved to be per-device, once it will be needed.
+IB device name is not stable and will be possible to rename in the
+following patches, update SMC code to use IB index as a stable
+identification.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/device.c | 24 +++++++++++++++++++++++-
- include/rdma/ib_verbs.h          |  8 +++++++-
- 2 files changed, 30 insertions(+), 2 deletions(-)
+ net/smc/smc_diag.c |  6 +++---
+ net/smc/smc_pnet.c | 27 ++++++++++++++++-----------
+ 2 files changed, 19 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 5a680a88aa87..3270cde6d806 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -170,6 +170,14 @@ static struct ib_device *__ib_device_get_by_name(const char *name)
- 	return NULL;
+diff --git a/net/smc/smc_diag.c b/net/smc/smc_diag.c
+index dbf64a93d68a..ba8b5a5671ec 100644
+--- a/net/smc/smc_diag.c
++++ b/net/smc/smc_diag.c
+@@ -156,9 +156,9 @@ static int __smc_diag_dump(struct sock *sk, struct sk_buff *skb,
+ 			.lnk[0].link_id = smc->conn.lgr->lnk[0].link_id,
+ 		};
+
+-		memcpy(linfo.lnk[0].ibname,
+-		       smc->conn.lgr->lnk[0].smcibdev->ibdev->name,
+-		       sizeof(smc->conn.lgr->lnk[0].smcibdev->ibdev->name));
++		ib_device_get_name(smc->conn.lgr->lnk[0].smcibdev->ibdev,
++				   linfo.lnk[0].ibname);
++
+ 		smc_gid_be16_convert(linfo.lnk[0].gid,
+ 				     smc->conn.lgr->lnk[0].gid);
+ 		smc_gid_be16_convert(linfo.lnk[0].peer_gid,
+diff --git a/net/smc/smc_pnet.c b/net/smc/smc_pnet.c
+index 01c6ce042a1c..67aec5ce6112 100644
+--- a/net/smc/smc_pnet.c
++++ b/net/smc/smc_pnet.c
+@@ -70,15 +70,14 @@ struct smc_pnetentry {
+ 	u8 ib_port;
+ };
+
+-/* Check if two RDMA device entries are identical. Use device name and port
++/* Check if two RDMA device entries are identical. Use device index and port
+  * number for comparison.
+  */
+-static bool smc_pnet_same_ibname(struct smc_pnetentry *pnetelem, char *ibname,
+-				 u8 ibport)
++static bool smc_pnet_same_ibindex(struct smc_pnetentry *pnetelem, u32 ibindex,
++				  u8 ibport)
+ {
+ 	return pnetelem->ib_port == ibport &&
+-	       !strncmp(pnetelem->smcibdev->ibdev->name, ibname,
+-			sizeof(pnetelem->smcibdev->ibdev->name));
++	       pnetelem->smcibdev->ibdev->index == ibindex;
  }
 
-+void ib_device_get_name(struct ib_device *ibdev, char *name)
-+{
-+	down_read(&lists_rwsem);
-+	strlcpy(name, ibdev->name, IB_DEVICE_NAME_MAX);
-+	up_read(&lists_rwsem);
-+}
-+EXPORT_SYMBOL(ib_device_get_name);
-+
- static int alloc_name(char *name)
- {
- 	unsigned long *inuse;
-@@ -202,6 +210,21 @@ static int alloc_name(char *name)
- 	return 0;
- }
+ /* Find a pnetid in the pnet table.
+@@ -179,9 +178,9 @@ static int smc_pnet_enter(struct smc_pnetentry *new_pnetelem)
+ 			     sizeof(new_pnetelem->pnet_name)) ||
+ 		    !strncmp(pnetelem->ndev->name, new_pnetelem->ndev->name,
+ 			     sizeof(new_pnetelem->ndev->name)) ||
+-		    smc_pnet_same_ibname(pnetelem,
+-					 new_pnetelem->smcibdev->ibdev->name,
+-					 new_pnetelem->ib_port)) {
++		    smc_pnet_same_ibindex(pnetelem,
++					  new_pnetelem->smcibdev->ibdev->index,
++					  new_pnetelem->ib_port)) {
+ 			dev_put(pnetelem->ndev);
+ 			goto found;
+ 		}
+@@ -227,10 +226,11 @@ static struct smc_ib_device *smc_pnet_find_ib(char *ib_name)
 
-+int ib_device_alloc_name(struct ib_device *ibdev, const char *pattern)
-+{
-+	int ret = 0;
+ 	spin_lock(&smc_ib_devices.lock);
+ 	list_for_each_entry(ibdev, &smc_ib_devices.list, list) {
+-		if (!strncmp(ibdev->ibdev->name, ib_name,
+-			     sizeof(ibdev->ibdev->name))) {
++		char name[IB_DEVICE_NAME_MAX] = {};
 +
-+	mutex_lock(&device_mutex);
-+	strlcpy(ibdev->name, pattern, IB_DEVICE_NAME_MAX);
-+	if (strchr(ibdev->name, '%'))
-+		ret = alloc_name(ibdev->name);
-+
-+	mutex_unlock(&device_mutex);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(ib_device_alloc_name);
-+
- static void ib_device_release(struct device *device)
- {
- 	struct ib_device *dev = container_of(device, struct ib_device, dev);
-@@ -499,7 +522,6 @@ int ib_register_device(struct ib_device *device,
- 		ret = alloc_name(device->name);
- 		if (ret)
++		ib_device_get_name(ibdev->ibdev, name);
++		if (!strncmp(name, ib_name, IB_DEVICE_NAME_MAX))
  			goto out;
--	}
+-		}
+ 	}
+ 	ibdev = NULL;
+ out:
+@@ -267,6 +267,11 @@ static int smc_pnet_fill_entry(struct net *net, struct smc_pnetentry *pnetelem,
+ 		goto error;
 
- 	if (ib_device_check_mandatory(device)) {
- 		ret = -EINVAL;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e764ed1f6025..66660e7b9854 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -2260,6 +2260,11 @@ struct ib_device {
- 	/* Do not access @dma_device directly from ULP nor from HW drivers. */
- 	struct device                *dma_device;
-
-+	/*
-+	 * Do not access @name directly,
-+	 * use ib_device_get_name()/ib_device_alloc_name()
-+	 * and don't assume that it can't change after access.
+ 	rc = -EINVAL;
++	/* NOTE !!!: Sadly enough, but this is part of ABI.
++	 * From day one, the accesses are performed with device names and not
++	 * device indexes for both ETH and IB. It means that this function isn't
++	 * reliable after device renaming.
 +	 */
- 	char                          name[IB_DEVICE_NAME_MAX];
-
- 	struct list_head              event_handler_list;
-@@ -2638,7 +2643,8 @@ struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
-
- void ib_get_device_fw_str(struct ib_device *device, char *str);
--
-+int ib_device_alloc_name(struct ib_device *ibdev, const char *pattern);
-+void ib_device_get_name(struct ib_device *ibdev, char *name);
- int ib_register_device(struct ib_device *device,
- 		       int (*port_callback)(struct ib_device *,
- 					    u8, struct kobject *));
+ 	if (!tb[SMC_PNETID_IBNAME])
+ 		goto error;
+ 	rc = -ENOENT;
