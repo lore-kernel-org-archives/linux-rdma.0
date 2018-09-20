@@ -1,7 +1,7 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 1/4] IB/hfi1: Fix SL array bounds check
-Date: Thu, 20 Sep 2018 12:44:15 -0700
-Message-ID: <20180920194408.7072.55727.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 2/4] IB/hfi1: Invalid user input can result in crash
+Date: Thu, 20 Sep 2018 12:44:24 -0700
+Message-ID: <20180920194420.7072.12102.stgit@scvm10.sc.intel.com>
 References: <20180920193538.7072.71796.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,48 +10,85 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20180920193538.7072.71796.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Lukasz Odzioba <lukasz.odzioa@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-The SL specified by a user needs to be a valid SL.
+If the number of packets in a user sdma request does not match
+the actual iovectors being sent, sdma_cleanup can be called on
+an uninitialized request structure, resulting in a crash similar
+to this:
 
-Add a range check to the user specified SL value which protects from
-running off the end of the SL to SC table.
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+IP: [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0 [hfi1]
+PGD 8000001044f61067 PUD 1052706067 PMD 0
+Oops: 0000 [#1] SMP
+CPU: 30 PID: 69912 Comm: upsm Kdump: loaded Tainted: G           OE
+------------   3.10.0-862.el7.x86_64 #1
+Hardware name: Intel Corporation S2600KPR/S2600KPR, BIOS
+SE5C610.86B.01.01.0019.101220160604 10/12/2016
+task: ffff8b331c890000 ti: ffff8b2ed1f98000 task.ti: ffff8b2ed1f98000
+RIP: 0010:[<ffffffffc0ae8bb7>]  [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0
+[hfi1]
+RSP: 0018:ffff8b2ed1f9bab0  EFLAGS: 00010286
+RAX: 0000000000008b2b RBX: ffff8b2adf6e0000 RCX: 0000000000000000
+RDX: 00000000000000a0 RSI: ffff8b2e9eedc540 RDI: ffff8b2adf6e0000
+RBP: ffff8b2ed1f9bad8 R08: 0000000000000000 R09: ffffffffc0b04a06
+R10: ffff8b331c890190 R11: ffffe6ed00bf1840 R12: ffff8b3315480000
+R13: ffff8b33154800f0 R14: 00000000fffffff2 R15: ffff8b2e9eedc540
+FS:  00007f035ac47740(0000) GS:ffff8b331e100000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000008 CR3: 0000000c03fe6000 CR4: 00000000001607e0
+Call Trace:
+ [<ffffffffc0b0570d>] user_sdma_send_pkts+0xdcd/0x1990 [hfi1]
+ [<ffffffff9fe75fb0>] ? gup_pud_range+0x140/0x290
+ [<ffffffffc0ad3105>] ? hfi1_mmu_rb_insert+0x155/0x1b0 [hfi1]
+ [<ffffffffc0b0777b>] hfi1_user_sdma_process_request+0xc5b/0x11b0 [hfi1]
+ [<ffffffffc0ac193a>] hfi1_aio_write+0xba/0x110 [hfi1]
+ [<ffffffffa001a2bb>] do_sync_readv_writev+0x7b/0xd0
+ [<ffffffffa001bede>] do_readv_writev+0xce/0x260
+ [<ffffffffa022b089>] ? tty_ldisc_deref+0x19/0x20
+ [<ffffffffa02268c0>] ? n_tty_ioctl+0xe0/0xe0
+ [<ffffffffa001c105>] vfs_writev+0x35/0x60
+ [<ffffffffa001c2bf>] SyS_writev+0x7f/0x110
+ [<ffffffffa051f7d5>] system_call_fastpath+0x1c/0x21
+Code: 06 49 c7 47 18 00 00 00 00 0f 87 89 01 00 00 5b 41 5c 41 5d 41 5e 41 5f
+5d c3 66 2e 0f 1f 84 00 00 00 00 00 48 8b 4e 10 48 89 fb <48> 8b 51 08 49 89 d4
+83 e2 0c 41 81 e4 00 e0 00 00 48 c1 ea 02
+RIP  [<ffffffffc0ae8bb7>] __sdma_txclean+0x57/0x1e0 [hfi1]
+ RSP <ffff8b2ed1f9bab0>
+CR2: 0000000000000008
 
-CC: stable@vger.kernel.org
+There are two exit points from user_sdma_send_pkts().  One (free_tx)
+merely frees the slab entry and one (free_txreq) cleans the sdma_txreq
+prior to freeing the slab entry.   The free_txreq variation can only be
+called after one of the sdma_init*() variations has been called.
+
+In the panic case, the slab entry had been allocated but not inited.
+
+Fix the issue by exiting through free_tx thus avoiding sdma_clean().
+
+Cc: <stable@vger.kernel.org> # 4.9.x+
 Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Lukasz Odzioba <lukasz.odzioa@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/verbs.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/hfi1/user_sdma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index 13374c7..a7c586a 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -1582,6 +1582,7 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr)
- 	struct hfi1_pportdata *ppd;
- 	struct hfi1_devdata *dd;
- 	u8 sc5;
-+	u8 sl;
- 
- 	if (hfi1_check_mcast(rdma_ah_get_dlid(ah_attr)) &&
- 	    !(rdma_ah_get_ah_flags(ah_attr) & IB_AH_GRH))
-@@ -1590,8 +1591,13 @@ static int hfi1_check_ah(struct ib_device *ibdev, struct rdma_ah_attr *ah_attr)
- 	/* test the mapping for validity */
- 	ibp = to_iport(ibdev, rdma_ah_get_port_num(ah_attr));
- 	ppd = ppd_from_ibp(ibp);
--	sc5 = ibp->sl_to_sc[rdma_ah_get_sl(ah_attr)];
- 	dd = dd_from_ppd(ppd);
-+
-+	sl = rdma_ah_get_sl(ah_attr);
-+	if (sl >= ARRAY_SIZE(ibp->sl_to_sc))
-+		return -EINVAL;
-+
-+	sc5 = ibp->sl_to_sc[sl];
- 	if (sc_to_vlt(dd, sc5) > num_vls && sc_to_vlt(dd, sc5) != 0xf)
- 		return -EINVAL;
- 	return 0;
+diff --git a/drivers/infiniband/hw/hfi1/user_sdma.c b/drivers/infiniband/hw/hfi1/user_sdma.c
+index a3a7b33..5c88706 100644
+--- a/drivers/infiniband/hw/hfi1/user_sdma.c
++++ b/drivers/infiniband/hw/hfi1/user_sdma.c
+@@ -828,7 +828,7 @@ static int user_sdma_send_pkts(struct user_sdma_request *req, unsigned maxpkts)
+ 			if (READ_ONCE(iovec->offset) == iovec->iov.iov_len) {
+ 				if (++req->iov_idx == req->data_iovs) {
+ 					ret = -EFAULT;
+-					goto free_txreq;
++					goto free_tx;
+ 				}
+ 				iovec = &req->iovs[req->iov_idx];
+ 				WARN_ON(iovec->offset);
