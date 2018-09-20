@@ -1,54 +1,114 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 0/7] Preparation to DevX extension series
-Date: Thu, 20 Sep 2018 21:35:19 +0300
-Message-ID: <20180920183526.13995-1-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 1/7] net/mlx5: Set uid as part of CQ commands
+Date: Thu, 20 Sep 2018 21:35:20 +0300
+Message-ID: <20180920183526.13995-2-leon@kernel.org>
+References: <20180920183526.13995-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180920183526.13995-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
-Changelog v0->v1:
- * Update commit messages
- * Split DevX series to small sub-series.
- * Change static initialization from {0} to be {}
+Set uid as part of CQ commands so that the firmware can manage the CQ
+object in a secured way.
 
-------- From Yishai,
+The firmware should mark this CQ with the given uid so that it can
+be used later on only by objects with the same uid.
 
-Set uid as part of various IB commands so that the firmware can manage
-the IB object in a secured way.
-
-The firmware should mark this IB object with the given uid so that it
-can be used later on only by objects with the same uid.
-
-Upon DEVX flows that use this objec, the pointed object must have
-the same uid as of the issuer uid command.
+Upon DEVX flows that use this CQ (e.g. create QP command), the
+pointed CQ must have the same uid as of the issuer uid command.
 
 When a command is issued with uid=0 it means that the issuer of the
 command is trusted (i.e. kernel), in that case any pointed object
 can be used regardless of its uid.
 
-Thanks
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c | 4 ++++
+ include/linux/mlx5/cq.h                      | 1 +
+ include/linux/mlx5/mlx5_ifc.h                | 6 +++---
+ 3 files changed, 8 insertions(+), 3 deletions(-)
 
-Leon Romanovsky (1):
-  net/mlx5: Update mlx5_ifc with DEVX UID bits
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cq.c b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+index a4179122a279..4b85abb5c9f7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cq.c
+@@ -109,6 +109,7 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 	cq->cons_index = 0;
+ 	cq->arm_sn     = 0;
+ 	cq->eq         = eq;
++	cq->uid = MLX5_GET(create_cq_in, in, uid);
+ 	refcount_set(&cq->refcount, 1);
+ 	init_completion(&cq->free);
+ 	if (!cq->comp)
+@@ -144,6 +145,7 @@ int mlx5_core_create_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 	memset(dout, 0, sizeof(dout));
+ 	MLX5_SET(destroy_cq_in, din, opcode, MLX5_CMD_OP_DESTROY_CQ);
+ 	MLX5_SET(destroy_cq_in, din, cqn, cq->cqn);
++	MLX5_SET(destroy_cq_in, din, uid, cq->uid);
+ 	mlx5_cmd_exec(dev, din, sizeof(din), dout, sizeof(dout));
+ 	return err;
+ }
+@@ -165,6 +167,7 @@ int mlx5_core_destroy_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq)
 
-Yishai Hadas (6):
-  net/mlx5: Set uid as part of CQ commands
-  net/mlx5: Set uid as part of QP commands
-  net/mlx5: Set uid as part of RQ commands
-  net/mlx5: Set uid as part of SQ commands
-  net/mlx5: Set uid as part of SRQ commands
-  net/mlx5: Set uid as part of DCT commands
+ 	MLX5_SET(destroy_cq_in, in, opcode, MLX5_CMD_OP_DESTROY_CQ);
+ 	MLX5_SET(destroy_cq_in, in, cqn, cq->cqn);
++	MLX5_SET(destroy_cq_in, in, uid, cq->uid);
+ 	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ 	if (err)
+ 		return err;
+@@ -196,6 +199,7 @@ int mlx5_core_modify_cq(struct mlx5_core_dev *dev, struct mlx5_core_cq *cq,
+ 	u32 out[MLX5_ST_SZ_DW(modify_cq_out)] = {0};
 
- drivers/net/ethernet/mellanox/mlx5/core/cq.c  |   4 +
- drivers/net/ethernet/mellanox/mlx5/core/qp.c  |  81 +++++++++++-----
- drivers/net/ethernet/mellanox/mlx5/core/srq.c |  30 +++++-
- include/linux/mlx5/cq.h                       |   1 +
- include/linux/mlx5/driver.h                   |   1 +
- include/linux/mlx5/mlx5_ifc.h                 | 135 +++++++++++++++-----------
- include/linux/mlx5/qp.h                       |   1 +
- include/linux/mlx5/srq.h                      |   1 +
- 8 files changed, 171 insertions(+), 83 deletions(-)
+ 	MLX5_SET(modify_cq_in, in, opcode, MLX5_CMD_OP_MODIFY_CQ);
++	MLX5_SET(modify_cq_in, in, uid, cq->uid);
+ 	return mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
+ }
+ EXPORT_SYMBOL(mlx5_core_modify_cq);
+diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+index 0ef6138eca49..31a750570c38 100644
+--- a/include/linux/mlx5/cq.h
++++ b/include/linux/mlx5/cq.h
+@@ -61,6 +61,7 @@ struct mlx5_core_cq {
+ 	int			reset_notify_added;
+ 	struct list_head	reset_notify;
+ 	struct mlx5_eq		*eq;
++	u16 uid;
+ };
+
+
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index a14c4eaff53f..e62a0825d35c 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -5630,7 +5630,7 @@ enum {
+
+ struct mlx5_ifc_modify_cq_in_bits {
+ 	u8         opcode[0x10];
+-	u8         reserved_at_10[0x10];
++	u8         uid[0x10];
+
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+@@ -6405,7 +6405,7 @@ struct mlx5_ifc_destroy_cq_out_bits {
+
+ struct mlx5_ifc_destroy_cq_in_bits {
+ 	u8         opcode[0x10];
+-	u8         reserved_at_10[0x10];
++	u8         uid[0x10];
+
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+@@ -7165,7 +7165,7 @@ struct mlx5_ifc_create_cq_out_bits {
+
+ struct mlx5_ifc_create_cq_in_bits {
+ 	u8         opcode[0x10];
+-	u8         reserved_at_10[0x10];
++	u8         uid[0x10];
+
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
