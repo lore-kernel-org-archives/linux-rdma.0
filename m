@@ -1,87 +1,30 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [RFC PATCH iproute2-next 3/3] rdma: Add an option to rename IB device interface
-Date: Thu, 20 Sep 2018 14:22:32 +0300
-Message-ID: <20180920112232.9602-4-leon@kernel.org>
-References: <20180920112232.9602-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180920112232.9602-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH] RDMA/cxgb4: remove redundant null pointer check before
+ kfree_skb
+Date: Thu, 20 Sep 2018 09:26:28 -0500
+Message-ID: <bed2c4a0-cb14-83cf-ad90-ce4e7def8b1a@opengridcomputing.com>
+References: <1537437162-42846-1-git-send-email-zhongjiang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1537437162-42846-1-git-send-email-zhongjiang@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: zhong jiang <zhongjiang@huawei.com>, swise@chelsio.com, dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-Enrich rdmatool with an option to rename IB devices,
-the command interface follows Iproute2 convention:
-"rdma dev set [OLD-DEVNAME] name NEW-DEVNAME"
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/dev.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+On 9/20/2018 4:52 AM, zhong jiang wrote:
+> kfree_skb has taken the null pointer into account. hence it is safe
+> to remove the redundant null pointer check before kfree_skb.
+> 
+> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+> ---
+>  drivers/infiniband/hw/cxgb4/cm.c | 3 +--
+>  drivers/infiniband/hw/cxgb4/qp.c | 3 +--
+>  2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index e2eafe47..760b7fb3 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -14,6 +14,7 @@
- static int dev_help(struct rd *rd)
- {
- 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
-+	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
- 	return 0;
- }
-
-@@ -240,17 +241,51 @@ static int dev_one_show(struct rd *rd)
- 	return rd_exec_cmd(rd, cmds, "parameter");
- }
-
-+static int dev_set_name(struct rd *rd)
-+{
-+	uint32_t seq;
-+
-+	if (rd_no_arg(rd)) {
-+		pr_err("Please provide device new name.\n");
-+		return -EINVAL;
-+	}
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
-+
-+	return rd_send_msg(rd);
-+}
-+
-+static int dev_one_set(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		dev_help},
-+		{ "name",	dev_set_name},
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
- static int dev_show(struct rd *rd)
- {
- 	return rd_exec_dev(rd, dev_one_show);
- }
-
-+static int dev_set(struct rd *rd)
-+{
-+	return rd_exec_require_dev(rd, dev_one_set);
-+}
-+
- int cmd_dev(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
- 		{ NULL,		dev_show },
- 		{ "show",	dev_show },
- 		{ "list",	dev_show },
-+		{ "set",	dev_set },
- 		{ "help",	dev_help },
- 		{ 0 }
- 	};
+Acked-by: Steve Wise <swise@opengridcomputing.com>
