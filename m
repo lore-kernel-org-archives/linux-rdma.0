@@ -1,55 +1,55 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to
- adjust the bus offset
-Date: Fri, 21 Sep 2018 11:48:13 -0500
-Message-ID: <20180921164813.GJ224714@bhelgaas-glaptop.roam.corp.google.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: Re: [PATCH v6 06/13] PCI/P2PDMA: Add P2P DMA driver writer's
+ documentation
+Date: Fri, 21 Sep 2018 12:03:12 -0600
+Message-ID: <e9739430-b238-2078-a51f-d76bae5342d1@deltatee.com>
 References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-4-logang@deltatee.com>
- <20180921131550.GG224714@bhelgaas-glaptop.roam.corp.google.com>
+ <20180913001156.4115-7-logang@deltatee.com>
+ <20180921164126.GI224714@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180921131550.GG224714-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180921164126.GI224714@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 21, 2018 at 08:15:50AM -0500, Bjorn Helgaas wrote:
-> On Wed, Sep 12, 2018 at 06:11:46PM -0600, Logan Gunthorpe wrote:
-> > The DMA address used when mapping PCI P2P memory must be the PCI bus
-> > address. Thus, introduce pci_p2pmem_map_sg() to map the correct
-> > addresses when using P2P memory. Memory mapped in this way does not
-> > need to be unmapped.
+On 2018-09-21 10:41 AM, Bjorn Helgaas wrote:
+>> +away, the one returned will be chosen at random. This function returns the PCI
 > 
-> I think the use of "map" in this context is slightly confusing because the
-> general expectation is that map/unmap must be balanced.
+> s/the one returned will be chosen at random/one will be chosen
+> arbitrarily/ ?  (I doubt it's really random)
+
+You're the second person to ask this, but yes, we really do it randomly.
+Such that if there are multiple drivers getting resources they should be
+evenly distributed. It's not the ideal solution but if it were to do it
+arbitrarily then the code would likely return the same device all the
+time and any additional devices would not get used.
+
+>> +Struct Page Caveats
+>> +-------------------
+>> +
+>> +Driver writers should be very careful about not passing these special
+>> +struct pages to code that isn't prepared for it. At this time, the kernel
+>> +interfaces do not have any checks for ensuring this. This obviously
+>> +precludes passing these pages to userspace.
 > 
-> I assume it's because the "mapping" consumes no resources, e.g., requires
-> no page table entries.  Possibly there's a better verb than "map", e.g.,
-> "convert", "convert_to_p2pdma", etc?
-> 
-> If you keep "map", maybe add a sentence or two about why there's no
-> corresponding unmap?
+> Sounds like landmines here since the reader probably can't translate
+> "code that isn't prepared for it" into a list of interfaces that are
+> off-limits.  But that's a VM issue that is above my pay grade, so I'm
+> not suggesting any change; just pointing out something that makes me
+> wonder "hmmm..., how would I act on this?"
 
-Another wrinkle is that "map" usually takes an A and gives you back a
-B.  Now the caller has both A and B and both are still valid.
+Yes, these are big landmines. These are the problems we have been
+fighting with trying to get P2P memory into the kernel and the first
+step seems to have settled on the developer using them has to be careful
+and ensure they are only sent to paths that are used correctly. This
+series does these things in the block layer and RDMA interface, but due
+to Jens not wanting to add warnings to the common code, it's still
+possible for a developer to code something that sends these pages to
+block devices that are not prepared for it.
 
-Here we pass in an SGL and the SGL is transformed, so the caller only
-has B and A has been destroyed, i.e., the SGL can no longer be used as
-it was before, and there's no way to get A back.
-
-Maybe this is pointless bikeshedding, so if your color is the best,
-don't change anything.
-
-Bjorn
+Logan
