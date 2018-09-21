@@ -1,17 +1,16 @@
 From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
-Date: Fri, 21 Sep 2018 08:00:10 -0500
-Message-ID: <20180921130010.GE224714@bhelgaas-glaptop.roam.corp.google.com>
+Subject: Re: [PATCH v6 02/13] PCI/P2PDMA: Add sysfs group to display p2pmem
+ stats
+Date: Fri, 21 Sep 2018 08:07:05 -0500
+Message-ID: <20180921130705.GF224714@bhelgaas-glaptop.roam.corp.google.com>
 References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-2-logang@deltatee.com>
- <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
- <ab733346-9518-ed68-492d-e52929586293@deltatee.com>
+ <20180913001156.4115-3-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ab733346-9518-ed68-492d-e52929586293-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20180913001156.4115-3-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -25,13 +24,50 @@ To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 20, 2018 at 04:47:49PM -0600, Logan Gunthorpe wrote:
-> On 2018-09-20 4:38 PM, Bjorn Helgaas wrote:
-> >> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
-> > 
-> > Is pr_fmt() actually used anywhere?
+On Wed, Sep 12, 2018 at 06:11:45PM -0600, Logan Gunthorpe wrote:
+> Add a sysfs group to display statistics about P2P memory that is
+> registered in each PCI device.
 > 
-> It's used in a Patch 4 to print errors in the configfs helpers.
+> Attributes in the group display the total amount of P2P memory, the
+> amount available and whether it is published or not.
+> 
+> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 
-Ideally pr_fmt() would be added in the same patch that uses it, but
-obviously pretty trivial.
+Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+
+> +What:		/sys/bus/pci/devices/.../p2pmem/available
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains the amount of memory that has not been
+> +		allocated (in decimal).
+> +
+> +What:		/sys/bus/pci/devices/.../p2pmem/size
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains the total amount of memory that the device
+> +		provides (in decimal).
+
+Maybe reorder this so the "size" (total amount) is documented before
+"available" (some subset of "size")?
+
+> +
+> +What:		/sys/bus/pci/devices/.../p2pmem/published
+> +Date:		November 2017
+> +Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+> +Description:
+> +		If the device has any Peer-to-Peer memory registered, this
+> +	        file contains a '1' if the memory has been published for
+> +		use inside the kernel or a '0' if it is only intended
+> +		for use within the driver that published it.
+
+It doesn't read quite right to talk about "use within the driver that
+*published* it".  Is it really published in that case?  That sounds more
+like "private".  I expected something like the following (but I don't claim
+to understand the whole use model here):
+
+  ... this file contains a '1' if the memory has been published for use
+  outside the driver that owns the device.
