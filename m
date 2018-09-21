@@ -1,55 +1,78 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH v6 06/13] PCI/P2PDMA: Add P2P DMA driver writer's
- documentation
-Date: Fri, 21 Sep 2018 12:03:12 -0600
-Message-ID: <e9739430-b238-2078-a51f-d76bae5342d1@deltatee.com>
-References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-7-logang@deltatee.com>
- <20180921164126.GI224714@bhelgaas-glaptop.roam.corp.google.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] RDS: IB: Use DEFINE_PER_CPU_SHARED_ALIGNED for rds_ib_stats
+Date: Fri, 21 Sep 2018 11:04:51 -0700
+Message-ID: <20180921180451.18711-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180921164126.GI224714@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Jens Axboe <axboe@kernel.dk>, Jonathan Corbet <corbet@lwn.net>
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-09-21 10:41 AM, Bjorn Helgaas wrote:
->> +away, the one returned will be chosen at random. This function returns the PCI
-> 
-> s/the one returned will be chosen at random/one will be chosen
-> arbitrarily/ ?  (I doubt it's really random)
+Clang warns when two declarations' section attributes don't match.
 
-You're the second person to ask this, but yes, we really do it randomly.
-Such that if there are multiple drivers getting resources they should be
-evenly distributed. It's not the ideal solution but if it were to do it
-arbitrarily then the code would likely return the same device all the
-time and any additional devices would not get used.
+net/rds/ib_stats.c:40:1: warning: section does not match previous
+declaration [-Wsection]
+DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
+^
+./include/linux/percpu-defs.h:142:2: note: expanded from macro
+'DEFINE_PER_CPU_SHARED_ALIGNED'
+        DEFINE_PER_CPU_SECTION(type, name,
+PER_CPU_SHARED_ALIGNED_SECTION) \
+        ^
+./include/linux/percpu-defs.h:93:9: note: expanded from macro
+'DEFINE_PER_CPU_SECTION'
+        extern __PCPU_ATTRS(sec) __typeof__(type) name;
+\
+               ^
+./include/linux/percpu-defs.h:49:26: note: expanded from macro
+'__PCPU_ATTRS'
+        __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
+\
+                                ^
+net/rds/ib.h:446:1: note: previous attribute is here
+DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
+^
+./include/linux/percpu-defs.h:111:2: note: expanded from macro
+'DECLARE_PER_CPU'
+        DECLARE_PER_CPU_SECTION(type, name, "")
+        ^
+./include/linux/percpu-defs.h:87:9: note: expanded from macro
+'DECLARE_PER_CPU_SECTION'
+        extern __PCPU_ATTRS(sec) __typeof__(type) name
+               ^
+./include/linux/percpu-defs.h:49:26: note: expanded from macro
+'__PCPU_ATTRS'
+        __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
+\
+                                ^
+1 warning generated.
 
->> +Struct Page Caveats
->> +-------------------
->> +
->> +Driver writers should be very careful about not passing these special
->> +struct pages to code that isn't prepared for it. At this time, the kernel
->> +interfaces do not have any checks for ensuring this. This obviously
->> +precludes passing these pages to userspace.
-> 
-> Sounds like landmines here since the reader probably can't translate
-> "code that isn't prepared for it" into a list of interfaces that are
-> off-limits.  But that's a VM issue that is above my pay grade, so I'm
-> not suggesting any change; just pointing out something that makes me
-> wonder "hmmm..., how would I act on this?"
+The initial definition was added in commit ec16227e1414 ("RDS/IB:
+Infiniband transport") and the cache aligned definition was added in
+commit e6babe4cc4ce ("RDS/IB: Stats and sysctls") right after. The
+definition probably should have been updated in net/rds/ib.h, which is
+what this patch does.
 
-Yes, these are big landmines. These are the problems we have been
-fighting with trying to get P2P memory into the kernel and the first
-step seems to have settled on the developer using them has to be careful
-and ensure they are only sent to paths that are used correctly. This
-series does these things in the block layer and RDMA interface, but due
-to Jens not wanting to add warnings to the common code, it's still
-possible for a developer to code something that sends these pages to
-block devices that are not prepared for it.
+Link: https://github.com/ClangBuiltLinux/linux/issues/114
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ net/rds/ib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Logan
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 73427ff439f9..fd483760c910 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -443,7 +443,7 @@ int rds_ib_send_grab_credits(struct rds_ib_connection *ic, u32 wanted,
+ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op);
+ 
+ /* ib_stats.c */
+-DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
++DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
+ #define rds_ib_stats_inc(member) rds_stats_inc_which(rds_ib_stats, member)
+ #define rds_ib_stats_add(member, count) \
+ 		rds_stats_add_which(rds_ib_stats, member, count)
+-- 
+2.19.0
