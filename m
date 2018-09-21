@@ -1,69 +1,72 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH] RDS: IB: Use DEFINE_PER_CPU_SHARED_ALIGNED for
- rds_ib_stats
-Date: Fri, 21 Sep 2018 11:17:29 -0700
-Message-ID: <b7e183c1-294e-a98d-8d96-b7c7fcc358c2@oracle.com>
-References: <20180921180451.18711-1-natechancellor@gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH rdma-next 0/4] mlx5 vport loopback
+Date: Fri, 21 Sep 2018 15:14:36 -0400
+Message-ID: <4d9969b9424642dc4c50ca698c57c41654f7006a.camel@redhat.com>
+References: <20180917103049.18235-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-wHdIJD+amcdI2xBwZUah"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180921180451.18711-1-natechancellor@gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180917103049.18235-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/21/2018 11:04 AM, Nathan Chancellor wrote:
-> Clang warns when two declarations' section attributes don't match.
-> 
-> net/rds/ib_stats.c:40:1: warning: section does not match previous
-> declaration [-Wsection]
-> DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
-> ^
-> ./include/linux/percpu-defs.h:142:2: note: expanded from macro
-> 'DEFINE_PER_CPU_SHARED_ALIGNED'
->          DEFINE_PER_CPU_SECTION(type, name,
-> PER_CPU_SHARED_ALIGNED_SECTION) \
->          ^
-> ./include/linux/percpu-defs.h:93:9: note: expanded from macro
-> 'DEFINE_PER_CPU_SECTION'
->          extern __PCPU_ATTRS(sec) __typeof__(type) name;
-> \
->                 ^
-> ./include/linux/percpu-defs.h:49:26: note: expanded from macro
-> '__PCPU_ATTRS'
->          __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
-> \
->                                  ^
-> net/rds/ib.h:446:1: note: previous attribute is here
-> DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
-> ^
-> ./include/linux/percpu-defs.h:111:2: note: expanded from macro
-> 'DECLARE_PER_CPU'
->          DECLARE_PER_CPU_SECTION(type, name, "")
->          ^
-> ./include/linux/percpu-defs.h:87:9: note: expanded from macro
-> 'DECLARE_PER_CPU_SECTION'
->          extern __PCPU_ATTRS(sec) __typeof__(type) name
->                 ^
-> ./include/linux/percpu-defs.h:49:26: note: expanded from macro
-> '__PCPU_ATTRS'
->          __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
-> \
->                                  ^
-> 1 warning generated.
-> 
-> The initial definition was added in commit ec16227e1414 ("RDS/IB:
-> Infiniband transport") and the cache aligned definition was added in
-> commit e6babe4cc4ce ("RDS/IB: Stats and sysctls") right after. The
-> definition probably should have been updated in net/rds/ib.h, which is
-> what this patch does.
-> 
-> Link: https://github.com/ClangBuiltLinux/linux/issues/114
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
-Looks fine. Thanks !!
 
-Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+--=-wHdIJD+amcdI2xBwZUah
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2018-09-17 at 13:30 +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>=20
+> Hi,
+>=20
+> This is short series from Mark which extends handling of loopback
+> traffic. Originally mlx5 IB dynamically enabled/disabled both unicast
+> and multicast based on number of users. However RAW ethernet QPs need
+> more granular access.
+>=20
+> Thanks
+>=20
+> Mark Bloch (4):
+>   net/mlx5: Rename incorrect naming in IFC file
+>   RDMA/mlx5: Refactor transport domain bookkeeping logic
+>   RDMA/mlx5: Allow creating RAW ethernet QP with loopback support
+>   RDMA/mlx5: Enable vport loopback when user context or QP mandate
+
+I've reviewed this series and I'm OK with it, but the first patch is for
+net/mlx5.  How are you expecting the series to be applied?  Are you
+wanting me or Jason to take the entire series, or does the first patch
+need to go through the mlx5 tree and get picked up by Dave and us, and
+then we take the rest?  This is unclear to me...
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-wHdIJD+amcdI2xBwZUah
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlulQx0ACgkQuCajMw5X
+L90mXxAAquVeOQsMNcd3YmVx5O/DFdxvK8gOdXNQfnB+Dm8ajkuUDT4qDZKOdbcf
+Er71h7ulHYd64LLGFPxoxjvOcmwJKgrNTUXpN9+WpTkG3UzO5lgb39Psbk0bOuta
+SZbB5EClGoY37LzVa1rGX4ixcfsmN71vcDqVMuaZlHDxF0IPC/Jw173PEJmIcAwK
+ARPclBSRpO7zWXL7XFcPkbTCsrCRow5cCeWXyV4S+Py9MSdWEXMiQ98hAwrfHdN9
+QTVjtKBBKAIqFjFK13ffNjRaqzoQxfDxCbanbzxheb6V0QMN/3zoRHJPH3EvEK1/
+K2M5p39Tq8WmUmvd0RUx2B3ZsbSdX/wPFwIQNAnmVm2AlucAH/CW+rlN+UETQ13V
+DvGMMAxPnMZnoGjCb9WiJMu6rijJSTk266rmvsubfeJjf0H9UaiIej/w3lh4IzLX
+J5TpRTLoPzUxMhjX0H0eqsHviFT8SRrnL9xzQ1F7DLklQJef7omIsTWwJta4gDzR
+1RyLFjjjEsTaX+iexSJwA2u0s13CakBc4u6qDo8wRWsSpVnXr8xFrlYuqpL8sJCj
+j+EHf+A2WuDdKZGrOCppVTGEOdA9DQDuYIK4Xtimz5dWq3m9L/SHPM9Xo69hkVSh
+0+pF9ud4AVmHASFvpwtbGBfL7qzlEoQmlY03dY/VTQ+UiqBRb5A=
+=Ix/Y
+-----END PGP SIGNATURE-----
+
+--=-wHdIJD+amcdI2xBwZUah--
