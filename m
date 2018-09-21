@@ -1,72 +1,109 @@
-From: Doug Ledford <dledford@redhat.com>
+From: Leon Romanovsky <leon@kernel.org>
 Subject: Re: [PATCH rdma-next 0/4] mlx5 vport loopback
-Date: Fri, 21 Sep 2018 15:14:36 -0400
-Message-ID: <4d9969b9424642dc4c50ca698c57c41654f7006a.camel@redhat.com>
+Date: Fri, 21 Sep 2018 22:33:35 +0300
+Message-ID: <20180921193335.GV3519@mtr-leonro.mtl.com>
 References: <20180917103049.18235-1-leon@kernel.org>
+ <4d9969b9424642dc4c50ca698c57c41654f7006a.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-wHdIJD+amcdI2xBwZUah"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oiL9LJXJsdjS5rzq"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180917103049.18235-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4d9969b9424642dc4c50ca698c57c41654f7006a.camel@redhat.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-wHdIJD+amcdI2xBwZUah
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+--oiL9LJXJsdjS5rzq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Mon, 2018-09-17 at 13:30 +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
->=20
-> Hi,
->=20
-> This is short series from Mark which extends handling of loopback
-> traffic. Originally mlx5 IB dynamically enabled/disabled both unicast
-> and multicast based on number of users. However RAW ethernet QPs need
-> more granular access.
->=20
-> Thanks
->=20
-> Mark Bloch (4):
->   net/mlx5: Rename incorrect naming in IFC file
->   RDMA/mlx5: Refactor transport domain bookkeeping logic
->   RDMA/mlx5: Allow creating RAW ethernet QP with loopback support
->   RDMA/mlx5: Enable vport loopback when user context or QP mandate
+On Fri, Sep 21, 2018 at 03:14:36PM -0400, Doug Ledford wrote:
+> On Mon, 2018-09-17 at 13:30 +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Hi,
+> >
+> > This is short series from Mark which extends handling of loopback
+> > traffic. Originally mlx5 IB dynamically enabled/disabled both unicast
+> > and multicast based on number of users. However RAW ethernet QPs need
+> > more granular access.
+> >
+> > Thanks
+> >
+> > Mark Bloch (4):
+> >   net/mlx5: Rename incorrect naming in IFC file
+> >   RDMA/mlx5: Refactor transport domain bookkeeping logic
+> >   RDMA/mlx5: Allow creating RAW ethernet QP with loopback support
+> >   RDMA/mlx5: Enable vport loopback when user context or QP mandate
+>
+> I've reviewed this series and I'm OK with it, but the first patch is for
+> net/mlx5.  How are you expecting the series to be applied?  Are you
+> wanting me or Jason to take the entire series, or does the first patch
+> need to go through the mlx5 tree and get picked up by Dave and us, and
+> then we take the rest?  This is unclear to me...
 
-I've reviewed this series and I'm OK with it, but the first patch is for
-net/mlx5.  How are you expecting the series to be applied?  Are you
-wanting me or Jason to take the entire series, or does the first patch
-need to go through the mlx5 tree and get picked up by Dave and us, and
-then we take the rest?  This is unclear to me...
+Thanks Doug,
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+The preferable flow for such patches is that I or Saeed will apply
+net/mlx5 patch (mlx5-next) on top of our shared branch after you or Jason
+or Dave ack on whole series.
 
---=-wHdIJD+amcdI2xBwZUah
+The shared branch is located in:
+https://git.kernel.org/pub/scm/linux/kernel/git/mellanox/linux.git/log/?h=mlx5-next
+As you can see, it is clear branch of our shared commits and it is based
+on -rc1 to be sure no pollution of both subsystems will be done.
+
+It ensures that netdev won't get RDMA patches and vice versa.
+
+For RDMA, once we apply such mlx5-next patch, Jason usually merges of
+this branch into his rdma-next and applies on top of it extra non
+mlx5-next patches.
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=for-next&id=af68ccbc1131ddd8dcda65b015cd9919b352485a
+
+For netdev, it is a little bit different, because Saeed works with pull
+requests and he creates merge commit before sending his pull request.
+
+This model allows us to ensure that changes are pulled only when it is
+really needed and there is a chance that Dave won't ever pull this
+mlx5-next branch in this cycle because Saeed won't have any patches
+depend on it.
+
+Hope it makes it clear now.
+
+Are you ok with me/Saeed taking first patch to our branch so you will be
+able to take the rest?
+
+Thanks
+
+>
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+
+
+--oiL9LJXJsdjS5rzq
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlulQx0ACgkQuCajMw5X
-L90mXxAAquVeOQsMNcd3YmVx5O/DFdxvK8gOdXNQfnB+Dm8ajkuUDT4qDZKOdbcf
-Er71h7ulHYd64LLGFPxoxjvOcmwJKgrNTUXpN9+WpTkG3UzO5lgb39Psbk0bOuta
-SZbB5EClGoY37LzVa1rGX4ixcfsmN71vcDqVMuaZlHDxF0IPC/Jw173PEJmIcAwK
-ARPclBSRpO7zWXL7XFcPkbTCsrCRow5cCeWXyV4S+Py9MSdWEXMiQ98hAwrfHdN9
-QTVjtKBBKAIqFjFK13ffNjRaqzoQxfDxCbanbzxheb6V0QMN/3zoRHJPH3EvEK1/
-K2M5p39Tq8WmUmvd0RUx2B3ZsbSdX/wPFwIQNAnmVm2AlucAH/CW+rlN+UETQ13V
-DvGMMAxPnMZnoGjCb9WiJMu6rijJSTk266rmvsubfeJjf0H9UaiIej/w3lh4IzLX
-J5TpRTLoPzUxMhjX0H0eqsHviFT8SRrnL9xzQ1F7DLklQJef7omIsTWwJta4gDzR
-1RyLFjjjEsTaX+iexSJwA2u0s13CakBc4u6qDo8wRWsSpVnXr8xFrlYuqpL8sJCj
-j+EHf+A2WuDdKZGrOCppVTGEOdA9DQDuYIK4Xtimz5dWq3m9L/SHPM9Xo69hkVSh
-0+pF9ud4AVmHASFvpwtbGBfL7qzlEoQmlY03dY/VTQ+UiqBRb5A=
-=Ix/Y
+iQIcBAEBAgAGBQJbpUePAAoJEORje4g2clinD6EP/0zcin/thi2bG2vSNH5pYmU8
+snl2yb3nCHvXXDJB7uBWHZXEocI4lzRz6sqGPMylNamxegPYfeaRAFfkPWyWoq8H
+cGPB2QlgV28k/DPsSuu08nBauK5Mx5TTGF9yGZUaoBkr+akTpbKfYbR3lYFZr0F2
+O2PVldf/pB0YDa2451DMQOBHd3uxc6XZzZJBJlNwrJ2P+JDkJhlmsfsA7KpBJ9No
+7LBp6WU4FmAg5+YcR1wvo4ztokWLeX+V9wfLcLZM85Jz4VfbjK5FoMXcpE5NZUhX
+JujvCJ7MTH1fPrK/f4rZa8hLbmxqJsHpyoot3fleQHwUp/TqlNbp2Iam86+ADAez
+B7eiiJEljXJkEB7D/67PN6UQ9lJLD3INQiJc17Shs4UGz1lhQedYdIoKWggpJzDf
+wD8SThyK8ijXjh7rWe4tcfpqirb5CJyAcJJ6TFxEpzh92RUoBUU2XK4K+x3reFQb
+RGYrmlAd4AKhaRwukWUqiLRJZTH0Nln8Ut+UFbSc4IcQI3GmoEHGdgsZEz3CDkNN
+i7CgcgrY+uJ86OTwzuYtsNn1erFT3LMKHJzLoV5UjjPyK4z6/F+HFfv3jd/r6q5+
+KKER8lt41Lv/h6LHUL7gK4gNMQ8Wuh1T8ge8YBFI9R2BT672EcglCLUHYheuA2A9
+mpm6cOuKVjmYlFsdAsoT
+=SftQ
 -----END PGP SIGNATURE-----
 
---=-wHdIJD+amcdI2xBwZUah--
+--oiL9LJXJsdjS5rzq--
