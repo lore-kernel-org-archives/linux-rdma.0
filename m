@@ -1,39 +1,37 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
-Date: Thu, 20 Sep 2018 16:47:49 -0600
-Message-ID: <ab733346-9518-ed68-492d-e52929586293@deltatee.com>
-References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-2-logang@deltatee.com>
- <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-rc 0/4] IB/hfi1: Couple more for the RC cycle
+Date: Thu, 20 Sep 2018 19:26:26 -0600
+Message-ID: <20180921012626.GA13768@ziepe.ca>
+References: <20180920195649.20625.38869.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180920223829.GD224714-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180920195649.20625.38869.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, stable@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Lukasz Odzioba <lukasz.odzioba@intel.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-09-20 4:38 PM, Bjorn Helgaas wrote:
-> Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>  # PCI pieces
+On Thu, Sep 20, 2018 at 12:58:34PM -0700, Dennis Dalessandro wrote:
+> Hi Doug and Jason,
 > 
-> Mostly trivial comments below.  Thanks for persevering with this!
-
-Thanks Bjorn. I'll make these fixes for v7 next week.
->> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
+> Mike and Ira have identified some fixes that they would like to see land in the
+> RC, these are serious problems and are marked as stable.
 > 
-> Is pr_fmt() actually used anywhere?
+> Changes since v1:
+> Update Lukasz' email address and fix subject tag.
+> 
+> ---
+> 
+> Ira Weiny (1):
+>       IB/hfi1: Fix SL array bounds check
+> 
+> Michael J. Ruhl (3):
+>       IB/hfi1: Invalid user input can result in crash
+>       IB/hfi1: Fix context recovery when PBC has an UnsupportedVL
+>       IB/hfi1: Fix destroy_qp hang after a link down
 
-It's used in a Patch 4 to print errors in the configfs helpers.
+Applied to for-rc, thanks
 
-Logan
+Jason
