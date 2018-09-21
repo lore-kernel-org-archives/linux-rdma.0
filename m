@@ -1,43 +1,73 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
-Date: Fri, 21 Sep 2018 09:37:33 -0600
-Message-ID: <a7e2b2cb-ea35-0a97-498b-1f5753e406aa@deltatee.com>
-References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-2-logang@deltatee.com>
- <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
- <ab733346-9518-ed68-492d-e52929586293@deltatee.com>
- <20180921130010.GE224714@bhelgaas-glaptop.roam.corp.google.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] IB/mlx4: Remove unnecessary parentheses
+Date: Fri, 21 Sep 2018 12:02:56 -0400
+Message-ID: <551884c4290b58a8bdcf5fc02b3b29a7b1ac7844.camel@redhat.com>
+References: <20180920033229.15102-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180921130010.GE224714-1RhO1Y9PlrlHTL0Zs8A6p5iNqAH0jzoTYJqu5kTmcBRl57MIdRCFDg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-CEagSXfSaqMJxZ0kvSCr"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180920033229.15102-1-natechancellor@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>, Yishai Hadas <yishaih@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2018-09-21 7:00 AM, Bjorn Helgaas wrote:
-> On Thu, Sep 20, 2018 at 04:47:49PM -0600, Logan Gunthorpe wrote:
->> On 2018-09-20 4:38 PM, Bjorn Helgaas wrote:
->>>> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
->>>
->>> Is pr_fmt() actually used anywhere?
->>
->> It's used in a Patch 4 to print errors in the configfs helpers.
-> 
-> Ideally pr_fmt() would be added in the same patch that uses it, but
-> obviously pretty trivial.
 
-Hmm, well Christoph asked me to do it this way. ;)
+--=-CEagSXfSaqMJxZ0kvSCr
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Logan
+On Wed, 2018-09-19 at 20:32 -0700, Nathan Chancellor wrote:
+> Clang warns when more than one set of parentheses are used in single
+> conditional statements.
+>=20
+> drivers/infiniband/hw/mlx4/mcg.c:676:16: warning: equality comparison
+> with extraneous parentheses [-Wparentheses-equality]
+>                         if ((method =3D=3D IB_MGMT_METHOD_GET_RESP)) {
+>                              ~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+> drivers/infiniband/hw/mlx4/mcg.c:676:16: note: remove extraneous
+> parentheses around the comparison to silence this warning
+>                         if ((method =3D=3D IB_MGMT_METHOD_GET_RESP)) {
+>                             ~       ^                         ~
+> drivers/infiniband/hw/mlx4/mcg.c:676:16: note: use '=3D' to turn this
+> equality comparison into an assignment
+>                         if ((method =3D=3D IB_MGMT_METHOD_GET_RESP)) {
+>                                     ^~
+>                                     =3D
+>=20
+> Remove the unnecessary parentheses to silence this warning.
+>=20
+> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+
+Applied to for-next, thanks.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-CEagSXfSaqMJxZ0kvSCr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlulFjAACgkQuCajMw5X
+L91FBg/+N9IjWWGLCBrNlJboa98FuGpxWU0/RN1P7N8DPoZ3SecK4eHWFZzpcCQz
+fi1xEdRtZhqTBLOUJzPQUSIJ9k8QwI8Z4vSLEiFn0mZyq4JitzN/yC493/7wTbHk
+J6imJtVrpS7v22wHM4fKzniJJw4JG7oHMkEq2e5+u1PQRHOzdk8xWZG9hr8ip6hD
+xCeKHKWMWr9/CS2JkpTYy5jbpyaAJFV19ee/Ta+LcJVp82tDOvQEGWHAWSrf0xF6
+q3E/Pr7ADspLZOh8Rdvw0EVPQIIv3iDV60hjLhBsooVEFSRVsq1LJO171wJFlQzK
+adD4IoxLOl/ushGOIyTGI413WvA1SMrDPU6cxLvIFMXAMlv7lor2RxumyOX+sARx
+Plv7r4CfWl82z07PbN8vqZP5oyy7QhmHZKazVGnnmRks4kU3m3JG0z3jK+cubN9W
+OTEinmeONgkex9aveal+KEEYpTFjzIotbL26OsrnyGUCs3338Kd320PZ0/vr7yWr
+QiRqOrZcIdU7WhiWGkUh2vlozFC20+eDtcrVAwyB8opmXvodxdgd0Ne2NgCDnXbj
+5x+eyXbFqFjPHG1X2aSqFyWKZhihswRyCXhm0g1Mq1ITHg4uZsVsIRscmc/qa/gf
+xJ4G5QjKavDYNrD7zqulbpyahDcbz0JABEO0hHmkSAqWXNNN9Bs=
+=tPdz
+-----END PGP SIGNATURE-----
+
+--=-CEagSXfSaqMJxZ0kvSCr--
