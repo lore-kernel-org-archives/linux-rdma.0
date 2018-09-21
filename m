@@ -1,48 +1,37 @@
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: [PATCH] net/mlx4: Use cpumask_available for eq->affinity_mask
-Date: Fri, 21 Sep 2018 02:44:12 -0700
-Message-ID: <20180921094412.15547-1-natechancellor@gmail.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 01/13] PCI/P2PDMA: Support peer-to-peer memory
+Date: Fri, 21 Sep 2018 08:00:10 -0500
+Message-ID: <20180921130010.GE224714@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180913001156.4115-1-logang@deltatee.com>
+ <20180913001156.4115-2-logang@deltatee.com>
+ <20180920223829.GD224714@bhelgaas-glaptop.roam.corp.google.com>
+ <ab733346-9518-ed68-492d-e52929586293@deltatee.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ab733346-9518-ed68-492d-e52929586293-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clang warns that the address of a pointer will always evaluated as true
-in a boolean context:
+On Thu, Sep 20, 2018 at 04:47:49PM -0600, Logan Gunthorpe wrote:
+> On 2018-09-20 4:38 PM, Bjorn Helgaas wrote:
+> >> +#define pr_fmt(fmt) "pci-p2pdma: " fmt
+> > 
+> > Is pr_fmt() actually used anywhere?
+> 
+> It's used in a Patch 4 to print errors in the configfs helpers.
 
-drivers/net/ethernet/mellanox/mlx4/eq.c:243:11: warning: address of
-array 'eq->affinity_mask' will always evaluate to 'true'
-[-Wpointer-bool-conversion]
-        if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
-            ~~~~~^~~~~~~~~~~~~
-1 warning generated.
-
-Use cpumask_available, introduced in commit f7e30f01a9e2 ("cpumask: Add
-helper cpumask_available()"), which does the proper checking and avoids
-this warning.
-
-Link: https://github.com/ClangBuiltLinux/linux/issues/86
-Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
----
- drivers/net/ethernet/mellanox/mlx4/eq.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index 1f3372c1802e..2df92dbd38e1 100644
---- a/drivers/net/ethernet/mellanox/mlx4/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -240,7 +240,8 @@ static void mlx4_set_eq_affinity_hint(struct mlx4_priv *priv, int vec)
- 	struct mlx4_dev *dev = &priv->dev;
- 	struct mlx4_eq *eq = &priv->eq_table.eq[vec];
- 
--	if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
-+	if (!cpumask_available(eq->affinity_mask) ||
-+	    cpumask_empty(eq->affinity_mask))
- 		return;
- 
- 	hint_err = irq_set_affinity_hint(eq->irq, eq->affinity_mask);
--- 
-2.19.0
+Ideally pr_fmt() would be added in the same patch that uses it, but
+obviously pretty trivial.
