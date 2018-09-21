@@ -1,152 +1,128 @@
-From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to
- adjust the bus offset
-Date: Fri, 21 Sep 2018 08:15:50 -0500
-Message-ID: <20180921131550.GG224714@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180913001156.4115-1-logang@deltatee.com>
- <20180913001156.4115-4-logang@deltatee.com>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: general protection fault in addr_resolve
+Date: Fri, 21 Sep 2018 13:52:46 +0000
+Message-ID: <VI1PR0501MB22714EAD25134A294431290ED1120@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+References: <0000000000000d23fc05765d8484@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180913001156.4115-4-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0000000000000d23fc05765d8484@google.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: syzbot <syzbot+20c32fa6ff84a2d28c36@syzkaller.appspotmail.com>, Daniel Jurgens <danielj@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "syzkaller-bugs@googlegroups.com" <syzkaller-bugs@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 12, 2018 at 06:11:46PM -0600, Logan Gunthorpe wrote:
-> The DMA address used when mapping PCI P2P memory must be the PCI bus
-> address. Thus, introduce pci_p2pmem_map_sg() to map the correct
-> addresses when using P2P memory. Memory mapped in this way does not
-> need to be unmapped.
-
-I think the use of "map" in this context is slightly confusing because the
-general expectation is that map/unmap must be balanced.
-
-I assume it's because the "mapping" consumes no resources, e.g., requires
-no page table entries.  Possibly there's a better verb than "map", e.g.,
-"convert", "convert_to_p2pdma", etc?
-
-If you keep "map", maybe add a sentence or two about why there's no
-corresponding unmap?
-
-> For this, we assume that an SGL passed to these functions contain all
-> P2P memory or no P2P memory.
-> 
-> Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-
-Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-
-> ---
->  drivers/pci/p2pdma.c       | 43 ++++++++++++++++++++++++++++++++++++++
->  include/linux/memremap.h   |  1 +
->  include/linux/pci-p2pdma.h |  7 +++++++
->  3 files changed, 51 insertions(+)
-> 
-> diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-> index 67c1daf1189e..29bd40a87768 100644
-> --- a/drivers/pci/p2pdma.c
-> +++ b/drivers/pci/p2pdma.c
-> @@ -191,6 +191,8 @@ int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar, size_t size,
->  	pgmap->res.flags = pci_resource_flags(pdev, bar);
->  	pgmap->ref = &pdev->p2pdma->devmap_ref;
->  	pgmap->type = MEMORY_DEVICE_PCI_P2PDMA;
-> +	pgmap->pci_p2pdma_bus_offset = pci_bus_address(pdev, bar) -
-> +		pci_resource_start(pdev, bar);
->  
->  	addr = devm_memremap_pages(&pdev->dev, pgmap);
->  	if (IS_ERR(addr)) {
-> @@ -813,3 +815,44 @@ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
->  	pdev->p2pdma->p2pmem_published = publish;
->  }
->  EXPORT_SYMBOL_GPL(pci_p2pmem_publish);
-> +
-> +/**
-> + * pci_p2pdma_map_sg - map a PCI peer-to-peer scatterlist for DMA
-> + * @dev: device doing the DMA request
-> + * @sg: scatter list to map
-> + * @nents: elements in the scatterlist
-> + * @dir: DMA direction
-> + *
-> + * Scatterlists mapped with this function should not be unmapped in any way.
-> + *
-> + * Returns the number of SG entries mapped or 0 on error.
-> + */
-> +int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-> +		      enum dma_data_direction dir)
-> +{
-> +	struct dev_pagemap *pgmap;
-> +	struct scatterlist *s;
-> +	phys_addr_t paddr;
-> +	int i;
-> +
-> +	/*
-> +	 * p2pdma mappings are not compatible with devices that use
-> +	 * dma_virt_ops. If the upper layers do the right thing
-> +	 * this should never happen because it will be prevented
-> +	 * by the check in pci_p2pdma_add_client()
-> +	 */
-> +	if (WARN_ON_ONCE(IS_ENABLED(CONFIG_DMA_VIRT_OPS) &&
-> +			 dev->dma_ops == &dma_virt_ops))
-> +		return 0;
-> +
-> +	for_each_sg(sg, s, nents, i) {
-> +		pgmap = sg_page(s)->pgmap;
-> +		paddr = sg_phys(s);
-> +
-> +		s->dma_address = paddr - pgmap->pci_p2pdma_bus_offset;
-> +		sg_dma_len(s) = s->length;
-> +	}
-> +
-> +	return nents;
-> +}
-> +EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
-> diff --git a/include/linux/memremap.h b/include/linux/memremap.h
-> index 9553370ebdad..0ac69ddf5fc4 100644
-> --- a/include/linux/memremap.h
-> +++ b/include/linux/memremap.h
-> @@ -125,6 +125,7 @@ struct dev_pagemap {
->  	struct device *dev;
->  	void *data;
->  	enum memory_type type;
-> +	u64 pci_p2pdma_bus_offset;
->  };
->  
->  #ifdef CONFIG_ZONE_DEVICE
-> diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
-> index 7b2b0f547528..2f03dbbf5af6 100644
-> --- a/include/linux/pci-p2pdma.h
-> +++ b/include/linux/pci-p2pdma.h
-> @@ -36,6 +36,8 @@ struct scatterlist *pci_p2pmem_alloc_sgl(struct pci_dev *pdev,
->  					 unsigned int *nents, u32 length);
->  void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
->  void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
-> +int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-> +		      enum dma_data_direction dir);
->  #else /* CONFIG_PCI_P2PDMA */
->  static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
->  		size_t size, u64 offset)
-> @@ -98,5 +100,10 @@ static inline void pci_p2pmem_free_sgl(struct pci_dev *pdev,
->  static inline void pci_p2pmem_publish(struct pci_dev *pdev, bool publish)
->  {
->  }
-> +static inline int pci_p2pdma_map_sg(struct device *dev,
-> +		struct scatterlist *sg, int nents, enum dma_data_direction dir)
-> +{
-> +	return 0;
-> +}
->  #endif /* CONFIG_PCI_P2PDMA */
->  #endif /* _LINUX_PCI_P2P_H */
-> -- 
-> 2.19.0
-> 
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogc3l6Ym90IDxzeXpib3Qr
+MjBjMzJmYTZmZjg0YTJkMjhjMzZAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbT4NCj4gU2VudDog
+RnJpZGF5LCBTZXB0ZW1iZXIgMjEsIDIwMTggMzozNSBBTQ0KPiBUbzogRGFuaWVsIEp1cmdlbnMg
+PGRhbmllbGpAbWVsbGFub3guY29tPjsgZGxlZGZvcmRAcmVkaGF0LmNvbTsNCj4gamdnQHppZXBl
+LmNhOyBsZW9uQGtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4
+LQ0KPiByZG1hQHZnZXIua2VybmVsLm9yZzsgUGFyYXYgUGFuZGl0IDxwYXJhdkBtZWxsYW5veC5j
+b20+OyBzeXprYWxsZXItDQo+IGJ1Z3NAZ29vZ2xlZ3JvdXBzLmNvbQ0KPiBTdWJqZWN0OiBnZW5l
+cmFsIHByb3RlY3Rpb24gZmF1bHQgaW4gYWRkcl9yZXNvbHZlDQo+IA0KPiBIZWxsbywNCj4gDQo+
+IHN5emJvdCBmb3VuZCB0aGUgZm9sbG93aW5nIGNyYXNoIG9uOg0KPiANCj4gSEVBRCBjb21taXQ6
+ICAgIGEwY2IwY2FiZTRiYiBBZGQgbGludXgtbmV4dCBzcGVjaWZpYyBmaWxlcyBmb3IgMjAxODA5
+MjANCj4gZ2l0IHRyZWU6ICAgICAgIGxpbnV4LW5leHQNCj4gY29uc29sZSBvdXRwdXQ6IGh0dHBz
+Oi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvbG9nLnR4dD94PTE0YjE0ZTJhNDAwMDAwDQo+IGtl
+cm5lbCBjb25maWc6ICBodHRwczovL3N5emthbGxlci5hcHBzcG90LmNvbS94Ly5jb25maWc/eD03
+ODYwMDZjNWRhZmJhZGY2DQo+IGRhc2hib2FyZCBsaW5rOg0KPiBodHRwczovL3N5emthbGxlci5h
+cHBzcG90LmNvbS9idWc/ZXh0aWQ9MjBjMzJmYTZmZjg0YTJkMjhjMzYNCj4gY29tcGlsZXI6ICAg
+ICAgIGdjYyAoR0NDKSA4LjAuMSAyMDE4MDQxMyAoZXhwZXJpbWVudGFsKQ0KPiANCj4gVW5mb3J0
+dW5hdGVseSwgSSBkb24ndCBoYXZlIGFueSByZXByb2R1Y2VyIGZvciB0aGlzIGNyYXNoIHlldC4N
+Cj4gDQo+IElNUE9SVEFOVDogaWYgeW91IGZpeCB0aGUgYnVnLCBwbGVhc2UgYWRkIHRoZSBmb2xs
+b3dpbmcgdGFnIHRvIHRoZSBjb21taXQ6DQo+IFJlcG9ydGVkLWJ5OiBzeXpib3QrMjBjMzJmYTZm
+Zjg0YTJkMjhjMzZAc3l6a2FsbGVyLmFwcHNwb3RtYWlsLmNvbQ0KPiANCj4ga2FzYW46IEdQRiBj
+b3VsZCBiZSBjYXVzZWQgYnkgTlVMTC1wdHIgZGVyZWYgb3IgdXNlciBtZW1vcnkgYWNjZXNzIGdl
+bmVyYWwNCj4gcHJvdGVjdGlvbiBmYXVsdDogMDAwMCBbIzFdIFBSRUVNUFQgU01QIEtBU0FODQo+
+IENQVTogMCBQSUQ6IDk3NiBDb21tOiBzeXotZXhlY3V0b3I0IE5vdCB0YWludGVkIDQuMTkuMC1y
+YzQtbmV4dC0yMDE4MDkyMCsNCj4gIzc2DQo+IEhhcmR3YXJlIG5hbWU6IEdvb2dsZSBHb29nbGUg
+Q29tcHV0ZSBFbmdpbmUvR29vZ2xlIENvbXB1dGUgRW5naW5lLA0KPiBCSU9TIEdvb2dsZSAwMS8w
+MS8yMDExDQo+IFJJUDogMDAxMDpjb3B5X3NyY19sMl9hZGRyIGRyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL2FkZHIuYzo0ODkgW2lubGluZV0NCj4gUklQOiAwMDEwOnJkbWFfc2V0X3NyY19hZGRyX3Jj
+dSBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9hZGRyLmM6NTE4IFtpbmxpbmVdDQo+IFJJUDogMDAx
+MDphZGRyX3Jlc29sdmUrMHg3YzQvMHgxYzkwIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2FkZHIu
+Yzo1OTMNCj4gQ29kZTogMGYgODQgZGQgMDEgMDAgMDAgZTggOWIgNmMgZTkgZmIgNDggOGIgODUg
+ZDggZmQgZmYgZmYgNDggOGQgYjggNTQgMDINCj4gMDAgMDAgNDggYjggMDAgMDAgMDAgMDAgMDAg
+ZmMgZmYgZGYgNDggODkgZmEgNDggYzEgZWEgMDMgPDBmPiBiNiAxNCAwMiA0OA0KPiA4OSBmOCA4
+MyBlMCAwNyA4MyBjMCAwMSAzOCBkMCA3YyAwOCA4NCBkMiAwZiA4NSAyNA0KPiBSU1A6IDAwMTg6
+ZmZmZjg4MDFjODYzZjM2MCBFRkxBR1M6IDAwMDEwMjAyDQo+IFJBWDogZGZmZmZjMDAwMDAwMDAw
+MCBSQlg6IGZmZmY4ODAxYzg2M2Y1NzggUkNYOiBmZmZmYzkwMDAzZTc2MDAwDQo+IFJEWDogMDAw
+MDAwMDAwMDAwMDAzZSBSU0k6IGZmZmZmZmZmODU5M2UzNTUgUkRJOiAwMDAwMDAwMDAwMDAwMWYx
+DQo+IFJCUDogZmZmZjg4MDFjODYzZjVhMCBSMDg6IGZmZmY4ODAxZDk1NzIyYzAgUjA5OiBmZmZm
+ZWQwMDNiNTg1YjU3DQo+IFIxMDogZmZmZmVkMDAzYjU4NWI1NyBSMTE6IGZmZmY4ODAxZGFjMmRh
+YmIgUjEyOiBmZmZmODgwMWQ3OGExNTYwDQo+IFIxMzogMDAwMDAwMDAwMDAwMDAwMSBSMTQ6IDAw
+MDAwMDAwMDAwMDAwMGEgUjE1OiAwMDAwMDAwMDAwMDAwMDAwDQo+IGtvYmplY3Q6ICdsb29wNScg
+KDAwMDAwMDAwOWE0YTAzODMpOiBrb2JqZWN0X3VldmVudF9lbnYNCj4gRlM6ICAwMDAwN2ZlZmNl
+OWNhNzAwKDAwMDApIEdTOmZmZmY4ODAxZGFjMDAwMDAoMDAwMCkNCj4ga25sR1M6MDAwMDAwMDAw
+MDAwMDAwMA0KPiBDUzogIDAwMTAgRFM6IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUw
+MDMzDQo+IENSMjogMDAwMDAwMDAwMDcwNjE1OCBDUjM6IDAwMDAwMDAxZDM3MGEwMDAgQ1I0OiAw
+MDAwMDAwMDAwMTQwNmYwDQo+IENhbGwgVHJhY2U6DQo+IGtvYmplY3Q6ICdsb29wNScgKDAwMDAw
+MDAwOWE0YTAzODMpOiBmaWxsX2tvYmpfcGF0aDogcGF0aCA9DQo+ICcvZGV2aWNlcy92aXJ0dWFs
+L2Jsb2NrL2xvb3A1Jw0KPiAgIHJkbWFfcmVzb2x2ZV9pcCsweDQ5OS8weDc5MCBkcml2ZXJzL2lu
+ZmluaWJhbmQvY29yZS9hZGRyLmM6Njk3DQo+ICAgcmRtYV9yZXNvbHZlX2FkZHIrMHgyZDYvMHgy
+ODcwIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jOjI5OTINCj4ga29iamVjdDogJ2xvb3Az
+JyAoMDAwMDAwMDBmMTU4Yzg1OSk6IGtvYmplY3RfdWV2ZW50X2Vudg0KPiBrb2JqZWN0OiAnbG9v
+cDMnICgwMDAwMDAwMGYxNThjODU5KTogZmlsbF9rb2JqX3BhdGg6IHBhdGggPQ0KPiAnL2Rldmlj
+ZXMvdmlydHVhbC9ibG9jay9sb29wMycNCj4gICB1Y21hX3Jlc29sdmVfaXArMHgyNDIvMHgyYTAg
+ZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdWNtYS5jOjcxMw0KPiAgIHVjbWFfd3JpdGUrMHgzMzYv
+MHg0MjAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdWNtYS5jOjE2ODYNCj4gICBfX3Zmc193cml0
+ZSsweDExOS8weDlmMCBmcy9yZWFkX3dyaXRlLmM6NDg1DQo+IGtvYmplY3Q6ICdsb29wMicgKDAw
+MDAwMDAwZWQxYjE5OWQpOiBrb2JqZWN0X3VldmVudF9lbnYNCj4gICB2ZnNfd3JpdGUrMHgxZmMv
+MHg1NjAgZnMvcmVhZF93cml0ZS5jOjU0OQ0KPiBrb2JqZWN0OiAnbG9vcDInICgwMDAwMDAwMGVk
+MWIxOTlkKTogZmlsbF9rb2JqX3BhdGg6IHBhdGggPQ0KPiAnL2RldmljZXMvdmlydHVhbC9ibG9j
+ay9sb29wMicNCj4gICBrc3lzX3dyaXRlKzB4MTAxLzB4MjYwIGZzL3JlYWRfd3JpdGUuYzo1OTgN
+Cj4gICBfX2RvX3N5c193cml0ZSBmcy9yZWFkX3dyaXRlLmM6NjEwIFtpbmxpbmVdDQo+ICAgX19z
+ZV9zeXNfd3JpdGUgZnMvcmVhZF93cml0ZS5jOjYwNyBbaW5saW5lXQ0KPiAgIF9feDY0X3N5c193
+cml0ZSsweDczLzB4YjAgZnMvcmVhZF93cml0ZS5jOjYwNw0KPiAgIGRvX3N5c2NhbGxfNjQrMHgx
+YjkvMHg4MjAgYXJjaC94ODYvZW50cnkvY29tbW9uLmM6MjkwDQo+ICAgZW50cnlfU1lTQ0FMTF82
+NF9hZnRlcl9od2ZyYW1lKzB4NDkvMHhiZQ0KPiBSSVA6IDAwMzM6MHg0NTc2NzkNCj4gQ29kZTog
+MWQgYjQgZmIgZmYgYzMgNjYgMmUgMGYgMWYgODQgMDAgMDAgMDAgMDAgMDAgNjYgOTAgNDggODkg
+ZjggNDggODkgZjcNCj4gNDggODkgZDYgNDggODkgY2EgNGQgODkgYzIgNGQgODkgYzggNGMgOGIg
+NGMgMjQgMDggMGYgMDUgPDQ4PiAzZCAwMSBmMCBmZiBmZiAwZg0KPiA4MyBlYiBiMyBmYiBmZiBj
+MyA2NiAyZSAwZiAxZiA4NCAwMCAwMCAwMCAwMA0KPiBSU1A6IDAwMmI6MDAwMDdmZWZjZTljOWM3
+OCBFRkxBR1M6IDAwMDAwMjQ2IE9SSUdfUkFYOg0KPiAwMDAwMDAwMDAwMDAwMDAxDQo+IFJBWDog
+ZmZmZmZmZmZmZmZmZmZkYSBSQlg6IDAwMDA3ZmVmY2U5Y2E2ZDQgUkNYOiAwMDAwMDAwMDAwNDU3
+Njc5DQo+IFJEWDogMDAwMDAwMDAwMDAwMDA0OCBSU0k6IDAwMDAwMDAwMjAwMDAxMDAgUkRJOiAw
+MDAwMDAwMDAwMDAwMDA0DQo+IFJCUDogMDAwMDAwMDAwMDcyYmYwMCBSMDg6IDAwMDAwMDAwMDAw
+MDAwMDAgUjA5OiAwMDAwMDAwMDAwMDAwMDAwDQo+IFIxMDogMDAwMDAwMDAwMDAwMDAwMCBSMTE6
+IDAwMDAwMDAwMDAwMDAyNDYgUjEyOiAwMDAwMDAwMGZmZmZmZmZmDQo+IFIxMzogMDAwMDAwMDAw
+MDRkOGE0OCBSMTQ6IDAwMDAwMDAwMDA0Y2I2OTggUjE1OiAwMDAwMDAwMDAwMDAwMDAwDQo+IE1v
+ZHVsZXMgbGlua2VkIGluOg0KPiAtLS1bIGVuZCB0cmFjZSA0MTZlMjk5MjRkYmRjMWEwIF0tLS0N
+Cj4gUklQOiAwMDEwOmNvcHlfc3JjX2wyX2FkZHIgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvYWRk
+ci5jOjQ4OSBbaW5saW5lXQ0KPiBSSVA6IDAwMTA6cmRtYV9zZXRfc3JjX2FkZHJfcmN1IGRyaXZl
+cnMvaW5maW5pYmFuZC9jb3JlL2FkZHIuYzo1MTggW2lubGluZV0NCj4gUklQOiAwMDEwOmFkZHJf
+cmVzb2x2ZSsweDdjNC8weDFjOTAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvYWRkci5jOjU5Mw0K
+PiBDb2RlOiAwZiA4NCBkZCAwMSAwMCAwMCBlOCA5YiA2YyBlOSBmYiA0OCA4YiA4NSBkOCBmZCBm
+ZiBmZiA0OCA4ZCBiOCA1NCAwMg0KPiAwMCAwMCA0OCBiOCAwMCAwMCAwMCAwMCAwMCBmYyBmZiBk
+ZiA0OCA4OSBmYSA0OCBjMSBlYSAwMyA8MGY+IGI2IDE0IDAyIDQ4DQo+IDg5IGY4IDgzIGUwIDA3
+IDgzIGMwIDAxIDM4IGQwIDdjIDA4IDg0IGQyIDBmIDg1IDI0DQo+IGtvYmplY3Q6ICdsb29wNScg
+KDAwMDAwMDAwOWE0YTAzODMpOiBrb2JqZWN0X3VldmVudF9lbnYNCj4ga29iamVjdDogJ2xvb3A1
+JyAoMDAwMDAwMDA5YTRhMDM4Myk6IGZpbGxfa29ial9wYXRoOiBwYXRoID0NCj4gJy9kZXZpY2Vz
+L3ZpcnR1YWwvYmxvY2svbG9vcDUnDQo+IFJTUDogMDAxODpmZmZmODgwMWM4NjNmMzYwIEVGTEFH
+UzogMDAwMTAyMDINCj4gUkFYOiBkZmZmZmMwMDAwMDAwMDAwIFJCWDogZmZmZjg4MDFjODYzZjU3
+OCBSQ1g6IGZmZmZjOTAwMDNlNzYwMDANCj4gUkRYOiAwMDAwMDAwMDAwMDAwMDNlIFJTSTogZmZm
+ZmZmZmY4NTkzZTM1NSBSREk6IDAwMDAwMDAwMDAwMDAxZjENCj4gUkJQOiBmZmZmODgwMWM4NjNm
+NWEwIFIwODogZmZmZjg4MDFkOTU3MjJjMCBSMDk6IGZmZmZlZDAwM2I1ODViNTcNCj4gUjEwOiBm
+ZmZmZWQwMDNiNTg1YjU3IFIxMTogZmZmZjg4MDFkYWMyZGFiYiBSMTI6IGZmZmY4ODAxZDc4YTE1
+NjANCj4gUjEzOiAwMDAwMDAwMDAwMDAwMDAxIFIxNDogMDAwMDAwMDAwMDAwMDAwYSBSMTU6IDAw
+MDAwMDAwMDAwMDAwMDANCj4gRlM6ICAwMDAwN2ZlZmNlOWNhNzAwKDAwMDApIEdTOmZmZmY4ODAx
+ZGFjMDAwMDAoMDAwMCkNCj4ga25sR1M6MDAwMDAwMDAwMDAwMDAwMA0KPiBDUzogIDAwMTAgRFM6
+IDAwMDAgRVM6IDAwMDAgQ1IwOiAwMDAwMDAwMDgwMDUwMDMzDQo+IENSMjogZmZmZmZmZmZmZmZm
+ZmZlZiBDUjM6IDAwMDAwMDAxZDM3MGEwMDAgQ1I0OiAwMDAwMDAwMDAwMTQwNmYwDQo+IA0KPiAN
+Cj4gLS0tDQo+IFRoaXMgYnVnIGlzIGdlbmVyYXRlZCBieSBhIGJvdC4gSXQgbWF5IGNvbnRhaW4g
+ZXJyb3JzLg0KPiBTZWUgaHR0cHM6Ly9nb28uZ2wvdHBzbUVKIGZvciBtb3JlIGluZm9ybWF0aW9u
+IGFib3V0IHN5emJvdC4NCj4gc3l6Ym90IGVuZ2luZWVycyBjYW4gYmUgcmVhY2hlZCBhdCBzeXpr
+YWxsZXJAZ29vZ2xlZ3JvdXBzLmNvbS4NCj4gDQo+IHN5emJvdCB3aWxsIGtlZXAgdHJhY2sgb2Yg
+dGhpcyBidWcgcmVwb3J0LiBTZWU6DQo+IGh0dHBzOi8vZ29vLmdsL3Rwc21FSiNidWctc3RhdHVz
+LXRyYWNraW5nIGZvciBob3cgdG8gY29tbXVuaWNhdGUgd2l0aA0KPiBzeXpib3QuDQoNCkkgdGhp
+bmsgdGhlIGZpeCBpcyBiZWxvdy4NCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL2FkZHIuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2FkZHIuYw0KaW5kZXggN2EwMzU2
+Yy4uM2VkZDEwYSAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2FkZHIuYw0K
+KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvYWRkci5jDQpAQCAtNTExLDcgKzUxMSw3IEBA
+IHN0YXRpYyBpbnQgcmRtYV9zZXRfc3JjX2FkZHJfcmN1KHN0cnVjdCByZG1hX2Rldl9hZGRyICpk
+ZXZfYWRkciwNCiAgICAgICAgICAgICAgICAgKiBsb29wYmFjayBJUCBhZGRyZXNzLg0KICAgICAg
+ICAgICAgICAgICAqLw0KICAgICAgICAgICAgICAgIG5kZXYgPSByZG1hX2ZpbmRfbmRldl9mb3Jf
+c3JjX2lwX3JjdShkZXZfbmV0KG5kZXYpLCBkc3RfaW4pOw0KLSAgICAgICAgICAgaWYgKCFuZGV2
+KQ0KKyAgICAgICAgIGlmIChJU19FUlIoZGV2KSkNCiAgICAgICAgICAgICAgICAgICAgICAgIHJl
+dHVybiAtRU5PREVWOw0KICAgICAgICB9DQo=
