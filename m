@@ -1,59 +1,83 @@
-From: Tom Talpey <tom@talpey.com>
-Subject: Re: [Patch v7 21/22] CIFS: SMBD: Upper layer performs SMB read via
- RDMA write through memory registration
-Date: Sat, 22 Sep 2018 10:16:51 -0700
-Message-ID: <699de6ba-201a-fd4f-bcac-234e13f33afc@talpey.com>
-References: <20171107085514.12693-1-longli@exchange.microsoft.com>
- <20171107085514.12693-22-longli@exchange.microsoft.com>
- <9b02dadb-d21b-7a8d-7803-910041f66047@talpey.com>
- <a7680efb-6ecf-0f70-2fde-55c2b69b534b@samba.org>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH v2] RDS: IB: Use DECLARE_PER_CPU_SHARED_ALIGNED for rds_ib_stats
+Date: Sat, 22 Sep 2018 20:29:39 -0700
+Message-ID: <20180923032938.27093-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a7680efb-6ecf-0f70-2fde-55c2b69b534b@samba.org>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stefan Metzmacher <metze@samba.org>, Long Li <longli@exchange.microsoft.com>, Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Tom Talpey <ttalpey@microsoft.com>, Matthew Wilcox <mawilcox@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/21/2018 8:56 PM, Stefan Metzmacher wrote:
-> Hi,
-> 
->>> +        req->Channel = SMB2_CHANNEL_RDMA_V1_INVALIDATE;
->>> +        if (need_invalidate)
->>> +            req->Channel = SMB2_CHANNEL_RDMA_V1;
->>> +        req->ReadChannelInfoOffset =
->>> +            offsetof(struct smb2_read_plain_req, Buffer);
->>> +        req->ReadChannelInfoLength =
->>> +            sizeof(struct smbd_buffer_descriptor_v1);
->>> +        v1 = (struct smbd_buffer_descriptor_v1 *) &req->Buffer[0];
->>> +        v1->offset = rdata->mr->mr->iova;
->>
->> It's unnecessary, and possibly leaking kernel information, to use
->> the IOVA as the offset of a memory region which is registered using
->> an FRWR. Because such regions are based on the exact bytes targeted
->> by the memory handle, the offset can be set to any value, typically
->> zero, but nearly arbitrary. As long as the (offset + length) does
->> not wrap or otherwise overflow, offset can be set to anything
->> convenient.
->>
->> Since SMB reads and writes range up to 8MB, I'd suggest zeroing the
->> least significant 23 bits, which should guarantee it. The other 41
->> bits, party on. You could randomize them, pass some clever identifier
->> such as MID sequence, whatever.
-> 
-> I just tested that setting:
-> 
-> mr->iova &= (PAGE_SIZE - 1);
-> mr->iova |= 0xFFFFFFFF00000000;
-> 
-> after the ib_map_mr_sg() and before doing the IB_WR_REG_MR, seems to work.
+Clang warns when two declarations' section attributes don't match.
 
-Good! As you know, we were concerned about it after seeing that
-the ib_dma_map_sg() code was unconditionally setting it to the
-dma_mapped address. By salting those FFFF's with varying data,
-this should give your FRWR regions stronger integrity in addition
-to not leaking kernel "addresses" to the wire.
+net/rds/ib_stats.c:40:1: warning: section does not match previous
+declaration [-Wsection]
+DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
+^
+./include/linux/percpu-defs.h:142:2: note: expanded from macro
+'DEFINE_PER_CPU_SHARED_ALIGNED'
+        DEFINE_PER_CPU_SECTION(type, name,
+PER_CPU_SHARED_ALIGNED_SECTION) \
+        ^
+./include/linux/percpu-defs.h:93:9: note: expanded from macro
+'DEFINE_PER_CPU_SECTION'
+        extern __PCPU_ATTRS(sec) __typeof__(type) name;
+\
+               ^
+./include/linux/percpu-defs.h:49:26: note: expanded from macro
+'__PCPU_ATTRS'
+        __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
+\
+                                ^
+net/rds/ib.h:446:1: note: previous attribute is here
+DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
+^
+./include/linux/percpu-defs.h:111:2: note: expanded from macro
+'DECLARE_PER_CPU'
+        DECLARE_PER_CPU_SECTION(type, name, "")
+        ^
+./include/linux/percpu-defs.h:87:9: note: expanded from macro
+'DECLARE_PER_CPU_SECTION'
+        extern __PCPU_ATTRS(sec) __typeof__(type) name
+               ^
+./include/linux/percpu-defs.h:49:26: note: expanded from macro
+'__PCPU_ATTRS'
+        __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
+\
+                                ^
+1 warning generated.
 
-Tom.
+The initial definition was added in commit ec16227e1414 ("RDS/IB:
+Infiniband transport") and the cache aligned definition was added in
+commit e6babe4cc4ce ("RDS/IB: Stats and sysctls") right after. The
+definition probably should have been updated in net/rds/ib.h, which is
+what this patch does.
+
+Link: https://github.com/ClangBuiltLinux/linux/issues/114
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+
+v1 -> v2:
+
+Fix reported build error by using DECLARE instead of DEFINE
+
+ net/rds/ib.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/rds/ib.h b/net/rds/ib.h
+index 73427ff439f9..71ff356ee702 100644
+--- a/net/rds/ib.h
++++ b/net/rds/ib.h
+@@ -443,7 +443,7 @@ int rds_ib_send_grab_credits(struct rds_ib_connection *ic, u32 wanted,
+ int rds_ib_xmit_atomic(struct rds_connection *conn, struct rm_atomic_op *op);
+ 
+ /* ib_stats.c */
+-DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
++DECLARE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
+ #define rds_ib_stats_inc(member) rds_stats_inc_which(rds_ib_stats, member)
+ #define rds_ib_stats_add(member, count) \
+ 		rds_stats_add_which(rds_ib_stats, member, count)
+-- 
+2.19.0
