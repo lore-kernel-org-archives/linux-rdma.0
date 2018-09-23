@@ -1,73 +1,57 @@
-From: "santosh.shilimkar@oracle.com" <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH v2] RDS: IB: Use DECLARE_PER_CPU_SHARED_ALIGNED for
- rds_ib_stats
-Date: Sun, 23 Sep 2018 00:39:55 -0700
-Message-ID: <69796f86-8dfb-0c54-94f3-dfe3cdc8def6@oracle.com>
-References: <20180923032938.27093-1-natechancellor@gmail.com>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH] net/mlx4: Use cpumask_available for eq->affinity_mask
+Date: Sun, 23 Sep 2018 10:52:02 +0300
+Message-ID: <70856b54-cb69-d105-d14c-4b0fd7741b21@mellanox.com>
+References: <20180921094412.15547-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180923032938.27093-1-natechancellor@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180921094412.15547-1-natechancellor@gmail.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/22/18 8:29 PM, Nathan Chancellor wrote:
-> Clang warns when two declarations' section attributes don't match.
+
+
+On 21/09/2018 12:44 PM, Nathan Chancellor wrote:
+> Clang warns that the address of a pointer will always evaluated as true
+> in a boolean context:
 > 
-> net/rds/ib_stats.c:40:1: warning: section does not match previous
-> declaration [-Wsection]
-> DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_ib_statistics, rds_ib_stats);
-> ^
-> ./include/linux/percpu-defs.h:142:2: note: expanded from macro
-> 'DEFINE_PER_CPU_SHARED_ALIGNED'
->          DEFINE_PER_CPU_SECTION(type, name,
-> PER_CPU_SHARED_ALIGNED_SECTION) \
->          ^
-> ./include/linux/percpu-defs.h:93:9: note: expanded from macro
-> 'DEFINE_PER_CPU_SECTION'
->          extern __PCPU_ATTRS(sec) __typeof__(type) name;
-> \
->                 ^
-> ./include/linux/percpu-defs.h:49:26: note: expanded from macro
-> '__PCPU_ATTRS'
->          __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
-> \
->                                  ^
-> net/rds/ib.h:446:1: note: previous attribute is here
-> DECLARE_PER_CPU(struct rds_ib_statistics, rds_ib_stats);
-> ^
-> ./include/linux/percpu-defs.h:111:2: note: expanded from macro
-> 'DECLARE_PER_CPU'
->          DECLARE_PER_CPU_SECTION(type, name, "")
->          ^
-> ./include/linux/percpu-defs.h:87:9: note: expanded from macro
-> 'DECLARE_PER_CPU_SECTION'
->          extern __PCPU_ATTRS(sec) __typeof__(type) name
->                 ^
-> ./include/linux/percpu-defs.h:49:26: note: expanded from macro
-> '__PCPU_ATTRS'
->          __percpu __attribute__((section(PER_CPU_BASE_SECTION sec)))
-> \
->                                  ^
+> drivers/net/ethernet/mellanox/mlx4/eq.c:243:11: warning: address of
+> array 'eq->affinity_mask' will always evaluate to 'true'
+> [-Wpointer-bool-conversion]
+>          if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
+>              ~~~~~^~~~~~~~~~~~~
 > 1 warning generated.
 > 
-> The initial definition was added in commit ec16227e1414 ("RDS/IB:
-> Infiniband transport") and the cache aligned definition was added in
-> commit e6babe4cc4ce ("RDS/IB: Stats and sysctls") right after. The
-> definition probably should have been updated in net/rds/ib.h, which is
-> what this patch does.
+> Use cpumask_available, introduced in commit f7e30f01a9e2 ("cpumask: Add
+> helper cpumask_available()"), which does the proper checking and avoids
+> this warning.
 > 
-> Link: https://github.com/ClangBuiltLinux/linux/issues/114
+> Link: https://github.com/ClangBuiltLinux/linux/issues/86
 > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
 > ---
+>   drivers/net/ethernet/mellanox/mlx4/eq.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> v1 -> v2:
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
+> index 1f3372c1802e..2df92dbd38e1 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/eq.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
+> @@ -240,7 +240,8 @@ static void mlx4_set_eq_affinity_hint(struct mlx4_priv *priv, int vec)
+>   	struct mlx4_dev *dev = &priv->dev;
+>   	struct mlx4_eq *eq = &priv->eq_table.eq[vec];
+>   
+> -	if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
+> +	if (!cpumask_available(eq->affinity_mask) ||
+> +	    cpumask_empty(eq->affinity_mask))
+>   		return;
+>   
+>   	hint_err = irq_set_affinity_hint(eq->irq, eq->affinity_mask);
 > 
-> Fix reported build error by using DECLARE instead of DEFINE
-> 
-Thanks for update !!
-Acked-by: Santosh shilimkar <santosh.shilimkar@oracle.com>
+
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+Thanks.
