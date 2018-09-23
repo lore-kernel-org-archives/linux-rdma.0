@@ -1,57 +1,27 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH] net/mlx4: Use cpumask_available for eq->affinity_mask
-Date: Sun, 23 Sep 2018 10:52:02 +0300
-Message-ID: <70856b54-cb69-d105-d14c-4b0fd7741b21@mellanox.com>
-References: <20180921094412.15547-1-natechancellor@gmail.com>
+From: "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Subject: RE: [PATCH] RDMA/i40iw: Fix incorrect iterator type
+Date: Sun, 23 Sep 2018 14:24:12 +0000
+Message-ID: <9DD61F30A802C4429A01CA4200E302A7A2F99554@fmsmsx115.amr.corp.intel.com>
+References: <20180917140707.1253738-1-Haakon.Bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180921094412.15547-1-natechancellor@gmail.com>
+In-Reply-To: <20180917140707.1253738-1-Haakon.Bugge@oracle.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: =?utf-8?B?SMOla29uIEJ1Z2dl?= <Haakon.Bugge@oracle.com>, Doug Ledford <dledford@redhat.com>, "Latif, Faisal" <faisal.latif@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 21/09/2018 12:44 PM, Nathan Chancellor wrote:
-> Clang warns that the address of a pointer will always evaluated as true
-> in a boolean context:
-> 
-> drivers/net/ethernet/mellanox/mlx4/eq.c:243:11: warning: address of
-> array 'eq->affinity_mask' will always evaluate to 'true'
-> [-Wpointer-bool-conversion]
->          if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
->              ~~~~~^~~~~~~~~~~~~
-> 1 warning generated.
-> 
-> Use cpumask_available, introduced in commit f7e30f01a9e2 ("cpumask: Add
-> helper cpumask_available()"), which does the proper checking and avoids
-> this warning.
-> 
-> Link: https://github.com/ClangBuiltLinux/linux/issues/86
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
->   drivers/net/ethernet/mellanox/mlx4/eq.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-> index 1f3372c1802e..2df92dbd38e1 100644
-> --- a/drivers/net/ethernet/mellanox/mlx4/eq.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-> @@ -240,7 +240,8 @@ static void mlx4_set_eq_affinity_hint(struct mlx4_priv *priv, int vec)
->   	struct mlx4_dev *dev = &priv->dev;
->   	struct mlx4_eq *eq = &priv->eq_table.eq[vec];
->   
-> -	if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
-> +	if (!cpumask_available(eq->affinity_mask) ||
-> +	    cpumask_empty(eq->affinity_mask))
->   		return;
->   
->   	hint_err = irq_set_affinity_hint(eq->irq, eq->affinity_mask);
-> 
-
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-Thanks.
+PlN1YmplY3Q6IFtQQVRDSF0gUkRNQS9pNDBpdzogRml4IGluY29ycmVjdCBpdGVyYXRvciB0eXBl
+DQo+DQo+Q29tbWl0IGYyN2I0NzQ2ZjM3OCAoImk0MGl3OiBhZGQgY29ubmVjdGlvbiBtYW5hZ2Vt
+ZW50IGNvZGUiKSB1c2VzIGFuDQo+aW5jb3JyZWN0IHJjdSBpdGVyYXRvciwgd2hpbHN0IGhvbGRp
+bmcgdGhlIHJ0bmxfbG9jay4gU2luY2UgdGhlIGNyaXRpY2FsIHJlZ2lvbiBpbnZva2VzDQo+aTQw
+aXdfbWFuYWdlX3FoYXNoKCksIHdoaWNoIGlzIGEgc2xlZXBpbmcgZnVuY3Rpb24sIHRoZSByY3Ug
+bG9ja2luZyBhbmQNCj50cmF2ZXJzYWwgY2Fubm90IGJlIHVzZWQuDQo+DQo+U2lnbmVkLW9mZi1i
+eTogSMOla29uIEJ1Z2dlIDxoYWFrb24uYnVnZ2VAb3JhY2xlLmNvbT4NCj4tLS0NCj4gZHJpdmVy
+cy9pbmZpbmliYW5kL2h3L2k0MGl3L2k0MGl3X2NtLmMgfCAyICstDQo+IDEgZmlsZSBjaGFuZ2Vk
+LCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KDQpUaGFua3MgZG9pbmcgdGhpcyBIYWtv
+biENCg0KQWNrZWQtYnk6IFNoaXJheiBTYWxlZW0gPHNoaXJhei5zYWxlZW1AaW50ZWwuY29tPg0K
+DQo=
