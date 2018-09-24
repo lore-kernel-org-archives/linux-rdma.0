@@ -1,40 +1,51 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH] iw_cxgb4: Use proper enumerated type in c4iw_bar2_addrs
-Date: Mon, 24 Sep 2018 14:41:26 -0500
-Message-ID: <f1c6aef0-40d4-f0c4-b008-28ca22280d46@opengridcomputing.com>
-References: <20180924192903.16796-1-natechancellor@gmail.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
+Date: Mon, 24 Sep 2018 12:57:16 -0700
+Message-ID: <20180924195716.30848-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180924192903.16796-1-natechancellor@gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Clang warns when one enumerated type is implicitly converted to another.
 
+drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
+from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
+type 'enum ib_qp_create_flags' [-Wenum-conversion]
+                qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
+                                                    ~ ^~~~~~~~~~~~~~~~~~~~~~~
 
-On 9/24/2018 2:29 PM, Nathan Chancellor wrote:
-> Clang warns when one enumerated type is implicitly converted to another.
-> 
-> drivers/infiniband/hw/cxgb4/qp.c:287:8: warning: implicit conversion
-> from enumeration type 'enum t4_bar2_qtype' to different enumeration type
-> 'enum cxgb4_bar2_qtype' [-Wenum-conversion]
->                                                  T4_BAR2_QTYPE_EGRESS,
->                                                  ^~~~~~~~~~~~~~~~~~~~
-> 
-> c4iw_bar2_addrs expects a value from enum cxgb4_bar2_qtype so use the
-> corresponding values from that type so Clang is satisfied without
-> changing the meaning of the code.
-> 
-> T4_BAR2_QTYPE_EGRESS = CXGB4_BAR2_QTYPE_EGRESS = 0
-> T4_BAR2_QTYPE_INGRESS = CXGB4_BAR2_QTYPE_INGRESS = 1
-> 
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
+from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
+type 'enum ib_qp_create_flags' [-Wenum-conversion]
+                qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
+                                                    ~ ^~~~~~~~~~~~~~~~~
 
-Looks correct, Thanks.
+The type mlx4_ib_qp_flags explicitly provides supplemental values to the
+type ib_qp_create_flags. Make that clear to Clang by changing the
+create_flags type to u32.
 
-Acked-by: Steve Wise <swise@opengridcomputing.com>
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ include/rdma/ib_verbs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index e463d3007a35..f6f4d9e3c8ed 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1149,7 +1149,7 @@ struct ib_qp_init_attr {
+ 	struct ib_qp_cap	cap;
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+-	enum ib_qp_create_flags	create_flags;
++	u32			create_flags;
+ 
+ 	/*
+ 	 * Only needed for special QP types, or when using the RW API.
+-- 
+2.19.0
