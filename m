@@ -1,84 +1,98 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
-Date: Mon, 24 Sep 2018 20:37:22 -0600
-Message-ID: <20180925023722.GA32600@ziepe.ca>
-References: <20180924195716.30848-1-natechancellor@gmail.com>
- <CAKwvOdkr+ovYgmqWENHkCcAWMC+xC6NYne6SBycq_KXscpHxEQ@mail.gmail.com>
- <20180924222737.GA26973@flashbox>
- <CAKwvOdkZ-0k4BhXYz0wj3wXNyy95nKFe9aYXxXveLafuviGG2w@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH rdma-next v1 0/7] Preparation to DevX extension series
+Date: Tue, 25 Sep 2018 10:33:07 +0300
+Message-ID: <20180925073307.GB3519@mtr-leonro.mtl.com>
+References: <20180920183526.13995-1-leon@kernel.org>
+ <20180922170207.GA13493@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oJFDFiWc3BlD0xT/"
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKwvOdkZ-0k4BhXYz0wj3wXNyy95nKFe9aYXxXveLafuviGG2w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Nathan Chancellor <natechancellor@gmail.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <20180922170207.GA13493@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 24, 2018 at 03:29:38PM -0700, Nick Desaulniers wrote:
-> On Mon, Sep 24, 2018 at 3:27 PM Nathan Chancellor
-> <natechancellor@gmail.com> wrote:
+
+--oJFDFiWc3BlD0xT/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sat, Sep 22, 2018 at 11:02:07AM -0600, Jason Gunthorpe wrote:
+> On Thu, Sep 20, 2018 at 09:35:19PM +0300, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > On Mon, Sep 24, 2018 at 03:24:36PM -0700, Nick Desaulniers wrote:
-> > > On Mon, Sep 24, 2018 at 12:57 PM Nathan Chancellor
-> > > <natechancellor@gmail.com> wrote:
-> > > >
-> > > > Clang warns when one enumerated type is implicitly converted to another.
-> > > >
-> > > > drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
-> > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
-> > > >                                                     ~ ^~~~~~~~~~~~~~~~~~~~~~~
-> > > >
-> > > > drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
-> > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
-> > > >                                                     ~ ^~~~~~~~~~~~~~~~~
-> > > >
-> > > > The type mlx4_ib_qp_flags explicitly provides supplemental values to the
-> > > > type ib_qp_create_flags. Make that clear to Clang by changing the
-> > > > create_flags type to u32.
-> > > >
-> > > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > > >  include/rdma/ib_verbs.h | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > >
-> > > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > > index e463d3007a35..f6f4d9e3c8ed 100644
-> > > > +++ b/include/rdma/ib_verbs.h
-> > > > @@ -1149,7 +1149,7 @@ struct ib_qp_init_attr {
-> > > >         struct ib_qp_cap        cap;
-> > > >         enum ib_sig_type        sq_sig_type;
-> > > >         enum ib_qp_type         qp_type;
-> > > > -       enum ib_qp_create_flags create_flags;
-> > > > +       u32                     create_flags;
-> > >
-> > > I think it might be better to just have explicit casts at the
-> > > assignment.  What do the maintainers think?
-> > >
+> > Changelog v0->v1:
+> >  * Update commit messages
+> >  * Split DevX series to small sub-series.
+> >  * Change static initialization from {0} to be {}
 > >
-> > That's fine with me, I tend to explicitly cast if it is only one
-> > location but it certainly makes sense in this case as well. I'll
-> > wait for the maintainers to weigh in before sending a v2.
-> 
-> Yeah, I mean my opinion on this might seem arbitrary, but based on the
-> pattern and the comment in ib_qp_create_flags, those enum values are
-> reserved to be "subclassed" in a sense, so they should always be in
-> sync or this code will have bigger problems.
+> >
+> > Set uid as part of various IB commands so that the firmware can manage
+> > the IB object in a secured way.
+> >
+> > The firmware should mark this IB object with the given uid so that it
+> > can be used later on only by objects with the same uid.
+> >
+> > Upon DEVX flows that use this objec, the pointed object must have
+> > the same uid as of the issuer uid command.
+> >
+> > When a command is issued with uid=0 it means that the issuer of the
+> > command is trusted (i.e. kernel), in that case any pointed object
+> > can be used regardless of its uid.
+> >
+> > Thanks
+> >
+> > Leon Romanovsky (1):
+> >   net/mlx5: Update mlx5_ifc with DEVX UID bits
+> >
+> > Yishai Hadas (6):
+> >   net/mlx5: Set uid as part of CQ commands
+> >   net/mlx5: Set uid as part of QP commands
+> >   net/mlx5: Set uid as part of RQ commands
+> >   net/mlx5: Set uid as part of SQ commands
+> >   net/mlx5: Set uid as part of SRQ commands
+> >   net/mlx5: Set uid as part of DCT commands
+>
+> This and the next series look OK to me. Let me know when it is applied
+> to the mlx branch
 
-One should not use an 'enum' type name for bitfield storage, as once
-you start or'ing things together the values no longer fall on the
-enum. Some compilers and tools even give warnings in this case, ie
+Applied after fixing Or's comments (typo and extra description in last patch).
 
-   enum x foo = X_A | X_B;
+bd37197554eb net/mlx5: Update mlx5_ifc with DEVX UID bits
+774ea6eea290 net/mlx5: Set uid as part of DCT commands
+a0d8c0543189 net/mlx5: Set uid as part of SRQ commands
+430ae0d5a3ce net/mlx5: Set uid as part of SQ commands
+d269b3afffcb net/mlx5: Set uid as part of RQ commands
+4ac63ec72587 net/mlx5: Set uid as part of QP commands
+9ba481e2eb3b net/mlx5: Set uid as part of CQ commands
 
-Is an assignment from 'int' to an 'enum x' with an implicit cast.
+Thanks
 
-For this reason, usually bitfield enum declarations should be
-anonymous.
+>
+> Thanks,
+> Jason
 
-Jason
+--oJFDFiWc3BlD0xT/
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbqeSzAAoJEORje4g2clin1OIP/3ZbPa5xIAHdG8D0OwRoe/cU
+y8HKc51imDsNXylQtdEHcSk7FdN3uU/pITlkMDBhBGalLJHLwGd+C9Ui85V8g+af
+QoECX+d4GUt8vFvPu4yLwwxXe+kpXnPmg2KnE+aJjRLxdyRhIQ8aPCNfKI58nJ74
+RbbUpLwbsqJ4f9r60TK01HwDM89It7XYbm8pgvt0Ncd6j9zbfT2Xk/nq6GW1CLXF
+dIpJDRO6v7mgp4+owrAqpl5SQxelRc8hpMUdp+0PCoHsAio3FmMxHz3kdTcJBB3y
+JY8Apn8XEhqAd898DwVMSsVhlBi1ldv+q8+j/LypBN2ZMcDsr5XySDWxPqGSvZS8
+lchtGy53fUBeljWEQTwt4BXix96BidwlUDfSWcCGNj9ra2OSB5nGXzgAWEIHJrXM
+UddMSj1/hr4Ueelwgiy2G31HZgGvzd84gpFtrUXg8QtpAJhoaD/5e6ajbiCxExcZ
+pVAtlMpV+JAS12ZfgapWA+UhQLD9vxh+y5PQrd5Eq38RMITYV5eCKwVwQNgB5lFI
+WEL9z83i2fFKqzesYd9W3GJOgonJ/qi7MV1KpknVbl7l7CGDloBLi3arXG9RamX7
+ylroOL9dK3FGtym92MDLrB4PAT0LCNuR8NG39bcf7mt9Yu0lDlZ0tNoz3aQSy1oh
+r8/vzPDLUZTLaDFUp3Fm
+=ebRx
+-----END PGP SIGNATURE-----
+
+--oJFDFiWc3BlD0xT/--
