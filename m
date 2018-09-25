@@ -1,7 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v7 02/13] PCI/P2PDMA: Add sysfs group to display p2pmem stats
-Date: Tue, 25 Sep 2018 10:22:20 -0600
-Message-ID: <20180925162231.4354-3-logang@deltatee.com>
+Subject: [PATCH v7 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
+ attribute helpers
+Date: Tue, 25 Sep 2018 10:22:22 -0600
+Message-ID: <20180925162231.4354-5-logang@deltatee.com>
 References: <20180925162231.4354-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,132 +22,152 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a sysfs group to display statistics about P2P memory that is
-registered in each PCI device.
+Users of the P2PDMA infrastructure will typically need a way for
+the user to tell the kernel to use P2P resources. Typically
+this will be a simple on/off boolean operation but sometimes
+it may be desirable for the user to specify the exact device to
+use for the P2P operation.
 
-Attributes in the group display the total amount of P2P memory, the
-amount available and whether it is published or not.
+Add new helpers for attributes which take a boolean or a PCI device.
+Any boolean as accepted by strtobool() turn P2P on or off (such as 'y', 'n',
+'1', '0', etc). Specifying a full PCI device name/BDF will select the
+specific device.
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 Acked-by: Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
 ---
- Documentation/ABI/testing/sysfs-bus-pci | 24 +++++++++++
- drivers/pci/p2pdma.c                    | 54 +++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
+ drivers/pci/p2pdma.c       | 82 ++++++++++++++++++++++++++++++++++++++
+ include/linux/pci-p2pdma.h | 15 +++++++
+ 2 files changed, 97 insertions(+)
 
-diff --git a/Documentation/ABI/testing/sysfs-bus-pci b/Documentation/ABI/testing/sysfs-bus-pci
-index 44d4b2be92fd..8bfee557e50e 100644
---- a/Documentation/ABI/testing/sysfs-bus-pci
-+++ b/Documentation/ABI/testing/sysfs-bus-pci
-@@ -323,3 +323,27 @@ Description:
- 
- 		This is similar to /sys/bus/pci/drivers_autoprobe, but
- 		affects only the VFs associated with a specific PF.
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/size
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the total amount of memory that the device
-+		provides (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/available
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains the amount of memory that has not been
-+		allocated (in decimal).
-+
-+What:		/sys/bus/pci/devices/.../p2pmem/published
-+Date:		November 2017
-+Contact:	Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-+Description:
-+		If the device has any Peer-to-Peer memory registered, this
-+	        file contains a '1' if the memory has been published for
-+		use outside the driver that owns the device.
 diff --git a/drivers/pci/p2pdma.c b/drivers/pci/p2pdma.c
-index d9616522c1fc..d61389945da2 100644
+index bbbf86165428..094d2b337c50 100644
 --- a/drivers/pci/p2pdma.c
 +++ b/drivers/pci/p2pdma.c
-@@ -24,6 +24,54 @@ struct pci_p2pdma {
- 	bool p2pmem_published;
- };
+@@ -8,6 +8,8 @@
+  * Copyright (c) 2018, Eideticom Inc.
+  */
  
-+static ssize_t size_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t size = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		size = gen_pool_size(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", size);
-+}
-+static DEVICE_ATTR_RO(size);
-+
-+static ssize_t available_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	size_t avail = 0;
-+
-+	if (pdev->p2pdma->pool)
-+		avail = gen_pool_avail(pdev->p2pdma->pool);
-+
-+	return snprintf(buf, PAGE_SIZE, "%zd\n", avail);
-+}
-+static DEVICE_ATTR_RO(available);
-+
-+static ssize_t published_show(struct device *dev, struct device_attribute *attr,
-+			      char *buf)
-+{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n",
-+			pdev->p2pdma->p2pmem_published);
-+}
-+static DEVICE_ATTR_RO(published);
-+
-+static struct attribute *p2pmem_attrs[] = {
-+	&dev_attr_size.attr,
-+	&dev_attr_available.attr,
-+	&dev_attr_published.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group p2pmem_group = {
-+	.attrs = p2pmem_attrs,
-+	.name = "p2pmem",
-+};
-+
- static void pci_p2pdma_percpu_release(struct percpu_ref *ref)
- {
- 	struct pci_p2pdma *p2p =
-@@ -53,6 +101,7 @@ static void pci_p2pdma_release(void *data)
- 	percpu_ref_exit(&pdev->p2pdma->devmap_ref);
- 
- 	gen_pool_destroy(pdev->p2pdma->pool);
-+	sysfs_remove_group(&pdev->dev.kobj, &p2pmem_group);
- 	pdev->p2pdma = NULL;
++#define pr_fmt(fmt) "pci-p2pdma: " fmt
++#include <linux/ctype.h>
+ #include <linux/pci-p2pdma.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -859,3 +861,83 @@ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 	return nents;
  }
- 
-@@ -83,9 +132,14 @@ static int pci_p2pdma_setup(struct pci_dev *pdev)
- 
- 	pdev->p2pdma = p2p;
- 
-+	error = sysfs_create_group(&pdev->dev.kobj, &p2pmem_group);
-+	if (error)
-+		goto out_pool_destroy;
+ EXPORT_SYMBOL_GPL(pci_p2pdma_map_sg);
 +
++/**
++ * pci_p2pdma_enable_store - parse a configfs/sysfs attribute store
++ *		to enable p2pdma
++ * @page: contents of the value to be stored
++ * @p2p_dev: returns the PCI device that was selected to be used
++ *		(if one was specified in the stored value)
++ * @use_p2pdma: returns whether to enable p2pdma or not
++ *
++ * Parses an attribute value to decide whether to enable p2pdma.
++ * The value can select a PCI device (using it's full BDF device
++ * name) or a boolean (in any format strtobool() accepts). A false
++ * value disables p2pdma, a true value expects the caller
++ * to automatically find a compatible device and specifying a PCI device
++ * expects the caller to use the specific provider.
++ *
++ * pci_p2pdma_enable_show() should be used as the show operation for
++ * the attribute.
++ *
++ * Returns 0 on success
++ */
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma)
++{
++	struct device *dev;
++
++	dev = bus_find_device_by_name(&pci_bus_type, NULL, page);
++	if (dev) {
++		*use_p2pdma = true;
++		*p2p_dev = to_pci_dev(dev);
++
++		if (!pci_has_p2pmem(*p2p_dev)) {
++			pci_err(*p2p_dev,
++				"PCI device has no peer-to-peer memory: %s\n",
++				page);
++			pci_dev_put(*p2p_dev);
++			return -ENODEV;
++		}
++
++		return 0;
++	} else if ((page[0] == '0' || page[0] == '1') && !iscntrl(page[1])) {
++		/*
++		 * If the user enters a PCI device that  doesn't exist
++		 * like "0000:01:00.1", we don't want strtobool to think
++		 * it's a '0' when it's clearly not what the user wanted.
++		 * So we require 0's and 1's to be exactly one character.
++		 */
++	} else if (!strtobool(page, use_p2pdma)) {
++		return 0;
++	}
++
++	pr_err("No such PCI device: %.*s\n", (int)strcspn(page, "\n"), page);
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_store);
++
++/**
++ * pci_p2pdma_enable_show - show a configfs/sysfs attribute indicating
++ *		whether p2pdma is enabled
++ * @page: contents of the stored value
++ * @p2p_dev: the selected p2p device (NULL if no device is selected)
++ * @use_p2pdma: whether p2pdme has been enabled
++ *
++ * Attributes that use pci_p2pdma_enable_store() should use this function
++ * to show the value of the attribute.
++ *
++ * Returns 0 on success
++ */
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma)
++{
++	if (!use_p2pdma)
++		return sprintf(page, "0\n");
++
++	if (!p2p_dev)
++		return sprintf(page, "1\n");
++
++	return sprintf(page, "%s\n", pci_name(p2p_dev));
++}
++EXPORT_SYMBOL_GPL(pci_p2pdma_enable_show);
+diff --git a/include/linux/pci-p2pdma.h b/include/linux/pci-p2pdma.h
+index f039c48990a5..5248540eead2 100644
+--- a/include/linux/pci-p2pdma.h
++++ b/include/linux/pci-p2pdma.h
+@@ -37,6 +37,10 @@ void pci_p2pmem_free_sgl(struct pci_dev *pdev, struct scatterlist *sgl);
+ void pci_p2pmem_publish(struct pci_dev *pdev, bool publish);
+ int pci_p2pdma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+ 		      enum dma_data_direction dir);
++int pci_p2pdma_enable_store(const char *page, struct pci_dev **p2p_dev,
++			    bool *use_p2pdma);
++ssize_t pci_p2pdma_enable_show(char *page, struct pci_dev *p2p_dev,
++			       bool use_p2pdma);
+ #else /* CONFIG_PCI_P2PDMA */
+ static inline int pci_p2pdma_add_resource(struct pci_dev *pdev, int bar,
+ 		size_t size, u64 offset)
+@@ -104,5 +108,16 @@ static inline int pci_p2pdma_map_sg(struct device *dev,
+ {
  	return 0;
- 
- out_pool_destroy:
-+	pdev->p2pdma = NULL;
- 	gen_pool_destroy(p2p->pool);
- out:
- 	devm_kfree(&pdev->dev, p2p);
+ }
++static inline int pci_p2pdma_enable_store(const char *page,
++		struct pci_dev **p2p_dev, bool *use_p2pdma)
++{
++	*use_p2pdma = false;
++	return 0;
++}
++static inline ssize_t pci_p2pdma_enable_show(char *page,
++		struct pci_dev *p2p_dev, bool use_p2pdma)
++{
++	return sprintf(page, "none\n");
++}
+ #endif /* CONFIG_PCI_P2PDMA */
+ #endif /* _LINUX_PCI_P2P_H */
 -- 
 2.19.0
