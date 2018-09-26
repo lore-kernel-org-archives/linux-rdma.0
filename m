@@ -1,43 +1,178 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] IB/mthca: remove redundant inner check of mdev->mthca_flags
-Date: Wed, 26 Sep 2018 13:26:08 +0100
-Message-ID: <20180926122608.29853-1-colin.king@canonical.com>
+From: syzbot <syzbot+5013f86be1187ccf3800@syzkaller.appspotmail.com>
+Subject: KASAN: use-after-free Read in rdma_resolve_addr
+Date: Wed, 26 Sep 2018 07:27:04 -0700
+Message-ID: <0000000000002ad1ad0576c70475@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: danielj@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Hello,
 
-The inner check for mdev->mthca_flags & MTHCA_FLAG_MSI_X is redundant
-as this is already true because of the previous identical check in
-an outer if statement.  Remove it
+syzbot found the following crash on:
 
-Detected by cppcheck:
-(warning) Identical inner 'if' condition is always true.
+HEAD commit:    846e8dd47c26 Merge tag 'scsi-fixes' of git://git.kernel.or..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=113cfbfa400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=dfb440e26f0a6f6f
+dashboard link: https://syzkaller.appspot.com/bug?extid=5013f86be1187ccf3800
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Unfortunately, I don't have any reproducer for this crash yet.
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+5013f86be1187ccf3800@syzkaller.appspotmail.com
+
+binder: 12750:12764 transaction failed 29201/-71, size 0-8 line 2762
+audit: type=1326 audit(1537939130.796:20382): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=228 compat=0  
+ip=0x45a3da code=0x50000
+==================================================================
+BUG: KASAN: use-after-free in rdma_resolve_addr+0x1e97/0x2730  
+drivers/infiniband/core/cma.c:2981
+Read of size 2 at addr ffff88018529b1e0 by task syz-executor2/12772
+
+CPU: 1 PID: 12772 Comm: syz-executor2 Not tainted 4.19.0-rc5+ #254
+audit: type=1326 audit(1537939130.846:20383): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
+  print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+  kasan_report_error mm/kasan/report.c:354 [inline]
+  kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
+  __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:431
+  rdma_resolve_addr+0x1e97/0x2730 drivers/infiniband/core/cma.c:2981
+audit: type=1326 audit(1537939130.846:20384): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=228 compat=0  
+ip=0x45a3da code=0x50000
+  ucma_resolve_ip+0x242/0x2a0 drivers/infiniband/core/ucma.c:713
+  ucma_write+0x336/0x420 drivers/infiniband/core/ucma.c:1686
+audit: type=1326 audit(1537939130.866:20385): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=298 compat=0  
+ip=0x457579 code=0x50000
+  __vfs_write+0x119/0x9f0 fs/read_write.c:485
+audit: type=1326 audit(1537939130.866:20386): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=228 compat=0  
+ip=0x45a3da code=0x50000
+  vfs_write+0x1fc/0x560 fs/read_write.c:549
+  ksys_write+0x101/0x260 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+audit: type=1326 audit(1537939130.876:20387): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x457579
+Code: 1d b4 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 eb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+audit: type=1326 audit(1537939130.876:20388): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+RSP: 002b:00007f451b87cc78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457579
+RDX: 0000000000000048 RSI: 0000000020000240 RDI: 0000000000000009
+RBP: 000000000072bf00 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f451b87d6d4
+R13: 00000000004cb6a0 R14: 00000000004d8cb8 R15: 00000000ffffffff
+
+binder: BINDER_SET_CONTEXT_MGR already set
+Allocated by task 12777:
+  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+  set_track mm/kasan/kasan.c:460 [inline]
+  kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
+  kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+  kmalloc include/linux/slab.h:513 [inline]
+  kzalloc include/linux/slab.h:707 [inline]
+  __rdma_create_id+0xdf/0x790 drivers/infiniband/core/cma.c:784
+  ucma_create_id+0x39b/0x990 drivers/infiniband/core/ucma.c:504
+binder: 12750:12773 ioctl 40046207 0 returned -16
+  ucma_write+0x336/0x420 drivers/infiniband/core/ucma.c:1686
+  __vfs_write+0x119/0x9f0 fs/read_write.c:485
+  vfs_write+0x1fc/0x560 fs/read_write.c:549
+  ksys_write+0x101/0x260 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+audit: type=1326 audit(1537939130.886:20389): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+Freed by task 12770:
+  save_stack+0x43/0xd0 mm/kasan/kasan.c:448
+  set_track mm/kasan/kasan.c:460 [inline]
+  __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+  kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
+  __cache_free mm/slab.c:3498 [inline]
+  kfree+0xcf/0x230 mm/slab.c:3813
+  rdma_destroy_id+0x835/0xcc0 drivers/infiniband/core/cma.c:1739
+  ucma_close+0x100/0x300 drivers/infiniband/core/ucma.c:1765
+  __fput+0x385/0xa30 fs/file_table.c:278
+  ____fput+0x15/0x20 fs/file_table.c:309
+  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+  tracehook_notify_resume include/linux/tracehook.h:193 [inline]
+  exit_to_usermode_loop+0x318/0x380 arch/x86/entry/common.c:166
+audit: type=1326 audit(1537939130.926:20390): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+audit: type=1326 audit(1537939130.926:20391): auid=4294967295 uid=0 gid=0  
+ses=4294967295 subj==unconfined pid=12758 comm="syz-executor4"  
+exe="/root/syz-executor4" sig=0 arch=c000003e syscall=202 compat=0  
+ip=0x457579 code=0x50000
+The buggy address belongs to the object at ffff88018529b1c0
+  which belongs to the cache kmalloc-2048 of size 2048
+The buggy address is located 32 bytes inside of
+  2048-byte region [ffff88018529b1c0, ffff88018529b9c0)
+The buggy address belongs to the page:
+page:ffffea000614a680 count:1 mapcount:0 mapping:ffff8801da800c40  
+index:0xffff88018529a940
+binder: 12750:12764 ERROR: BC_REGISTER_LOOPER called without request
+  compound_mapcount: 0
+flags: 0x2fffc0000008100(slab|head)
+raw: 02fffc0000008100 ffffea00061c4188 ffffea000632af08 ffff8801da800c40
+raw: ffff88018529a940 ffff88018529a0c0 0000000100000002 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff88018529b080: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff88018529b100: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+> ffff88018529b180: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+                                                        ^
+  ffff88018529b200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff88018529b280: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
+kobject: 'loop5' (000000002cf6e86e): kobject_uevent_env
+
+
 ---
- drivers/infiniband/hw/mthca/mthca_main.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
-index f3e80dec1334..f99c7e0b234c 100644
---- a/drivers/infiniband/hw/mthca/mthca_main.c
-+++ b/drivers/infiniband/hw/mthca/mthca_main.c
-@@ -1014,8 +1014,7 @@ static int __mthca_init_one(struct pci_dev *pdev, int hca_type)
- 
- 	err = mthca_setup_hca(mdev);
- 	if (err == -EBUSY && (mdev->mthca_flags & MTHCA_FLAG_MSI_X)) {
--		if (mdev->mthca_flags & MTHCA_FLAG_MSI_X)
--			pci_free_irq_vectors(pdev);
-+		pci_free_irq_vectors(pdev);
- 		mdev->mthca_flags &= ~MTHCA_FLAG_MSI_X;
- 
- 		err = mthca_setup_hca(mdev);
--- 
-2.17.1
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
