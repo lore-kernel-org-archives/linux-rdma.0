@@ -1,43 +1,43 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] iw_cxgb4: Use proper enumerated type in c4iw_bar2_addrs
-Date: Tue, 25 Sep 2018 14:46:47 -0600
-Message-ID: <20180925204647.GB24279@ziepe.ca>
-References: <20180924192903.16796-1-natechancellor@gmail.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/mthca: remove redundant inner check of mdev->mthca_flags
+Date: Wed, 26 Sep 2018 13:26:08 +0100
+Message-ID: <20180926122608.29853-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180924192903.16796-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 24, 2018 at 12:29:03PM -0700, Nathan Chancellor wrote:
-> Clang warns when one enumerated type is implicitly converted to another.
-> 
-> drivers/infiniband/hw/cxgb4/qp.c:287:8: warning: implicit conversion
-> from enumeration type 'enum t4_bar2_qtype' to different enumeration type
-> 'enum cxgb4_bar2_qtype' [-Wenum-conversion]
->                                                  T4_BAR2_QTYPE_EGRESS,
->                                                  ^~~~~~~~~~~~~~~~~~~~
-> 
-> c4iw_bar2_addrs expects a value from enum cxgb4_bar2_qtype so use the
-> corresponding values from that type so Clang is satisfied without
-> changing the meaning of the code.
-> 
-> T4_BAR2_QTYPE_EGRESS = CXGB4_BAR2_QTYPE_EGRESS = 0
-> T4_BAR2_QTYPE_INGRESS = CXGB4_BAR2_QTYPE_INGRESS = 1
-> 
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> Acked-by: Steve Wise <swise@opengridcomputing.com>
-> ---
->  drivers/infiniband/hw/cxgb4/cq.c | 2 +-
->  drivers/infiniband/hw/cxgb4/qp.c | 7 ++++---
->  2 files changed, 5 insertions(+), 4 deletions(-)
+From: Colin Ian King <colin.king@canonical.com>
 
-Applied to for-next
+The inner check for mdev->mthca_flags & MTHCA_FLAG_MSI_X is redundant
+as this is already true because of the previous identical check in
+an outer if statement.  Remove it
 
-Thanks,
-Jason
+Detected by cppcheck:
+(warning) Identical inner 'if' condition is always true.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/hw/mthca/mthca_main.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index f3e80dec1334..f99c7e0b234c 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -1014,8 +1014,7 @@ static int __mthca_init_one(struct pci_dev *pdev, int hca_type)
+ 
+ 	err = mthca_setup_hca(mdev);
+ 	if (err == -EBUSY && (mdev->mthca_flags & MTHCA_FLAG_MSI_X)) {
+-		if (mdev->mthca_flags & MTHCA_FLAG_MSI_X)
+-			pci_free_irq_vectors(pdev);
++		pci_free_irq_vectors(pdev);
+ 		mdev->mthca_flags &= ~MTHCA_FLAG_MSI_X;
+ 
+ 		err = mthca_setup_hca(mdev);
+-- 
+2.17.1
