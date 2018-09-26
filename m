@@ -1,39 +1,34 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA: fix dependencies for rdma_user_mmap_io
-Date: Wed, 26 Sep 2018 13:51:10 -0600
-Message-ID: <20180926195110.GA27233@ziepe.ca>
-References: <20180926193706.2447532-1-arnd@arndb.de>
+Subject: Re: [PATCH] IB/mthca: remove redundant inner check of
+ mdev->mthca_flags
+Date: Wed, 26 Sep 2018 16:34:34 -0600
+Message-ID: <20180926223434.GA12887@ziepe.ca>
+References: <20180926122608.29853-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180926193706.2447532-1-arnd@arndb.de>
+In-Reply-To: <20180926122608.29853-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, Shaobo Xu <xushaobo2@huawei.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Doug Ledford <dledford@redhat.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 26, 2018 at 09:36:52PM +0200, Arnd Bergmann wrote:
-> The mlx4 driver produces a link error when it is configured
-> as built-in while CONFIG_INFINIBAND_USER_ACCESS is set to =m:
+On Wed, Sep 26, 2018 at 01:26:08PM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> drivers/infiniband/hw/mlx4/main.o: In function `mlx4_ib_mmap':
-> main.c:(.text+0x1af4): undefined reference to `rdma_user_mmap_io'
+> The inner check for mdev->mthca_flags & MTHCA_FLAG_MSI_X is redundant
+> as this is already true because of the previous identical check in
+> an outer if statement.  Remove it
 > 
-> The same function is called from mlx5, which already has a
-> dependency to ensure we can call it, and from hns, which
-> appears to suffer from the same problem.
+> Detected by cppcheck:
+> (warning) Identical inner 'if' condition is always true.
 > 
-> This adds the same dependency that mlx5 uses to the other two.
-> 
-> Fixes: 6745d356ab39 ("RDMA/hns: Use rdma_user_mmap_io")
-> Fixes: c282da4109e4 ("RDMA/mlx4: Use rdma_user_mmap_io")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > ---
->  drivers/infiniband/hw/hns/Kconfig  | 1 +
->  drivers/infiniband/hw/mlx4/Kconfig | 1 +
->  2 files changed, 2 insertions(+)
+>  drivers/infiniband/hw/mthca/mthca_main.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-Woops, thanks Arnd, applied to for-next
+Applied to for-next, thanks
 
 Jason
