@@ -1,41 +1,56 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/4] IB: decrease large contigous allocation
-Date: Wed, 26 Sep 2018 11:06:55 -0600
-Message-ID: <20180926170655.GC16163@ziepe.ca>
-References: <1537275826-27247-1-git-send-email-jan.dakinevich@virtuozzo.com>
- <20180918144623.GI11367@ziepe.ca>
- <20180926184809.5d37cdb7@virtuozzo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] RDMA: fix dependencies for rdma_user_mmap_io
+Date: Wed, 26 Sep 2018 21:36:52 +0200
+Message-ID: <20180926193706.2447532-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180926184809.5d37cdb7@virtuozzo.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Dakinevich <jan.dakinevich@virtuozzo.com>
-Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Mark Bloch <markb@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, Kees Cook <keescook@chromium.org>, Kamal Heib <kamalheib1@gmail.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Denis Lunev <den@virtuozzo.com>, Konstantin Khorenko <khorenko@virtuozzo.com>
+To: Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Yishai Hadas <yishaih@mellanox.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Shaobo Xu <xushaobo2@huawei.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 26, 2018 at 06:48:09PM +0300, Jan Dakinevich wrote:
-> On Tue, 18 Sep 2018 08:46:23 -0600
-> Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> 
-> > On Tue, Sep 18, 2018 at 04:03:42PM +0300, Jan Dakinevich wrote:
-> > > The size of mlx4_ib_device became too large to be allocated as
-> > > whole contigous block of memory. Currently it takes about 55K. On
-> > > architecture with 4K page it means 3rd order.
-> > > 
-> > > This patch series makes an attempt to split mlx4_ib_device into
-> > > several parts and allocate them with less expensive kvzalloc
-> > 
-> > Why split it up? Any reason not to just allocate the whole thing with
-> > kvzalloc?
-> > 
-> 
-> To allocate whole ib_device with kvmalloc I will need replace kzalloc()
-> by kvzalloc() in ib_alloc_device() and then review allocation, to make
-> sure that no one uses this memory for DMA.
+The mlx4 driver produces a link error when it is configured
+as built-in while CONFIG_INFINIBAND_USER_ACCESS is set to =m:
 
-I would be shocked if some driver was DMA'ing out of struct ib_device
-memory..
+drivers/infiniband/hw/mlx4/main.o: In function `mlx4_ib_mmap':
+main.c:(.text+0x1af4): undefined reference to `rdma_user_mmap_io'
 
-Jason
+The same function is called from mlx5, which already has a
+dependency to ensure we can call it, and from hns, which
+appears to suffer from the same problem.
+
+This adds the same dependency that mlx5 uses to the other two.
+
+Fixes: 6745d356ab39 ("RDMA/hns: Use rdma_user_mmap_io")
+Fixes: c282da4109e4 ("RDMA/mlx4: Use rdma_user_mmap_io")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/infiniband/hw/hns/Kconfig  | 1 +
+ drivers/infiniband/hw/mlx4/Kconfig | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/infiniband/hw/hns/Kconfig b/drivers/infiniband/hw/hns/Kconfig
+index fddb5fdf92de..21c2100b2ea9 100644
+--- a/drivers/infiniband/hw/hns/Kconfig
++++ b/drivers/infiniband/hw/hns/Kconfig
+@@ -1,6 +1,7 @@
+ config INFINIBAND_HNS
+ 	tristate "HNS RoCE Driver"
+ 	depends on NET_VENDOR_HISILICON
++	depends on INFINIBAND_USER_ACCESS || !INFINIBAND_USER_ACCESS
+ 	depends on ARM64 || (COMPILE_TEST && 64BIT)
+ 	---help---
+ 	  This is a RoCE/RDMA driver for the Hisilicon RoCE engine. The engine
+diff --git a/drivers/infiniband/hw/mlx4/Kconfig b/drivers/infiniband/hw/mlx4/Kconfig
+index db4aa13ebae0..d1de3285fd88 100644
+--- a/drivers/infiniband/hw/mlx4/Kconfig
++++ b/drivers/infiniband/hw/mlx4/Kconfig
+@@ -1,6 +1,7 @@
+ config MLX4_INFINIBAND
+ 	tristate "Mellanox ConnectX HCA support"
+ 	depends on NETDEVICES && ETHERNET && PCI && INET
++	depends on INFINIBAND_USER_ACCESS || !INFINIBAND_USER_ACCESS
+ 	depends on MAY_USE_DEVLINK
+ 	select NET_VENDOR_MELLANOX
+ 	select MLX4_CORE
+-- 
+2.18.0
