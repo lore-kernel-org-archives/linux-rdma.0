@@ -1,104 +1,44 @@
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
-Date: Thu, 27 Sep 2018 15:29:45 -0700
-Message-ID: <CAKwvOdkqcKdGnUdYXpmLhEGBzyxeGvmGAwow868y+sDFE56yFA@mail.gmail.com>
-References: <20180927011820.13608-1-natechancellor@gmail.com> <20180927205557.32026-1-natechancellor@gmail.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
+Date: Thu, 27 Sep 2018 15:33:42 -0700
+Message-ID: <1538087622.226558.8.camel@acm.org>
+References: <20180924195716.30848-1-natechancellor@gmail.com>
+         <CAKwvOdkr+ovYgmqWENHkCcAWMC+xC6NYne6SBycq_KXscpHxEQ@mail.gmail.com>
+         <20180924222737.GA26973@flashbox>
+         <CAKwvOdkZ-0k4BhXYz0wj3wXNyy95nKFe9aYXxXveLafuviGG2w@mail.gmail.com>
+         <20180925023722.GA32600@ziepe.ca> <20180927010803.GA7640@flashbox>
+         <20180927044826.GC24889@ziepe.ca>
+         <CAKwvOdnmg2XY6K-8jTna3EKR1Nx04gOm6ZoywUwQO_CSANR_jg@mail.gmail.com>
+         <20180927202849.GA11120@flashbox>
+         <CAKwvOdnMOcdKPNHwKbcsg8rJX3_hDTgY752Nb4hgMC2D4p5aRg@mail.gmail.com>
+         <20180927222821.GC28301@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="UTF-7"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180927205557.32026-1-natechancellor@gmail.com>
+In-Reply-To: <20180927222821.GC28301@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Michal.Kalderon@cavium.com, Ariel.Elior@cavium.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nathan Chancellor <natechancellor@gmail.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 1:57 PM Nathan Chancellor
-<natechancellor@gmail.com> wrote:
->
-> Clang warns when one enumerated type is explicitly converted to another.
->
-> drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
-> conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
-> different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
->         ll2_tx_pkt.tx_dest = pkt->tx_dest;
->                            ~ ~~~~~^~~~~~~
-> 1 warning generated.
->
-> Turns out that QED_ROCE_LL2_TX_DEST_NW and QED_ROCE_LL2_TX_DEST_LB are
-> only used once in the whole tree and QED_ROCE_LL2_TX_DEST_MAX is used
-> nowhere. Remove them and use the equivalent values from qed_ll2_tx_dest
-> in their place.
->
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
->
-> v1 -> v2:
->
-> * Rather than using an explicit cast, just convert the uses to the
->   appropriate values and delete the duplicated enum.
->
->  drivers/infiniband/hw/qedr/qedr_roce_cm.c |  4 ++--
->  include/linux/qed/qed_rdma_if.h           | 11 +----------
->  2 files changed, 3 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-> index 85578887421b..e1ac2fd60bb1 100644
-> --- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-> +++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
-> @@ -519,9 +519,9 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
->         }
->
->         if (ether_addr_equal(udh.eth.smac_h, udh.eth.dmac_h))
-> -               packet->tx_dest = QED_ROCE_LL2_TX_DEST_LB;
-> +               packet->tx_dest = QED_LL2_TX_DEST_LB;
->         else
-> -               packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
-> +               packet->tx_dest = QED_LL2_TX_DEST_NW;
+On Thu, 2018-09-27 at 16:28 -0600, Jason Gunthorpe wrote:
++AD4 On Thu, Sep 27, 2018 at 01:34:16PM -0700, Nick Desaulniers wrote:
++AD4 
++AD4 +AD4 +AD4 Neither ib+AF8-qp+AF8-create+AF8-flags nor mlx4+AF8-ib+AF8-qp+AF8-flags have negative values, is
++AD4 +AD4 +AD4 signedness necessary?
++AD4 +AD4 
++AD4 +AD4 enums are by default restricted to the range of ints.  
++AD4 
++AD4 That's not quite right, the compiler sizes the enum to be able to fit
++AD4 the largest value contained within, today that is int, but if we added
++AD4 1+ADwAPA-31, then it would become larger.
 
-Yep, looks like these were the only two sites using enum
-qed_roce_ll2_tx_dest in the whole kernel.  The new enum values match
-the previous enum values, so this is no functional change while
-simplifying the code (one less enum to get wrong).
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Hi Jason,
 
->
->         packet->roce_mode = roce_mode;
->         memcpy(packet->header.vaddr, ud_header_buffer, header_size);
-> diff --git a/include/linux/qed/qed_rdma_if.h b/include/linux/qed/qed_rdma_if.h
-> index df4d13f7e191..d15f8e4815e3 100644
-> --- a/include/linux/qed/qed_rdma_if.h
-> +++ b/include/linux/qed/qed_rdma_if.h
-> @@ -39,15 +39,6 @@
->  #include <linux/qed/qed_ll2_if.h>
->  #include <linux/qed/rdma_common.h>
->
-> -enum qed_roce_ll2_tx_dest {
-> -       /* Light L2 TX Destination to the Network */
-> -       QED_ROCE_LL2_TX_DEST_NW,
-> -
-> -       /* Light L2 TX Destination to the Loopback */
-> -       QED_ROCE_LL2_TX_DEST_LB,
-> -       QED_ROCE_LL2_TX_DEST_MAX
-> -};
-> -
->  #define QED_RDMA_MAX_CNQ_SIZE               (0xFFFF)
->
->  /* rdma interface */
-> @@ -581,7 +572,7 @@ struct qed_roce_ll2_packet {
->         int n_seg;
->         struct qed_roce_ll2_buffer payload[RDMA_MAX_SGE_PER_SQ_WQE];
->         int roce_mode;
-> -       enum qed_roce_ll2_tx_dest tx_dest;
-> +       enum qed_ll2_tx_dest tx_dest;
->  };
->
->  enum qed_rdma_type {
-> --
-> 2.19.0
->
+Are you perhaps confusing C and C+-+-? For C+-+-, an enumeration whose underlying
+type is not fixed, the underlying type is an integral type that can represent
+all the enumerator values defined in the enumeration. For C however I think
+that enumeration values are restricted to what fits in an int.
 
-
--- 
-Thanks,
-~Nick Desaulniers
+Bart.
