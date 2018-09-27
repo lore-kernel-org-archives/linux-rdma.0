@@ -1,72 +1,88 @@
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH v2] IB/mlx4: Avoid implicit enumerated type conversion
-Date: Thu, 27 Sep 2018 13:53:48 -0700
-Message-ID: <CAKwvOdncohhariVufRF=S1aZ9H9UJZhksBMGtM+FaU5xmT06JQ@mail.gmail.com>
-References: <20180924195716.30848-1-natechancellor@gmail.com> <20180927204352.19569-1-natechancellor@gmail.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
+Date: Thu, 27 Sep 2018 13:55:58 -0700
+Message-ID: <20180927205557.32026-1-natechancellor@gmail.com>
+References: <20180927011820.13608-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180927204352.19569-1-natechancellor@gmail.com>
+In-Reply-To: <20180927011820.13608-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 1:44 PM Nathan Chancellor
-<natechancellor@gmail.com> wrote:
->
-> Clang warns when one enumerated type is implicitly converted to another.
->
-> drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
-> from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> type 'enum ib_qp_create_flags' [-Wenum-conversion]
->                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
->                                                     ~ ^~~~~~~~~~~~~~~~~~~~~~~
->
-> drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
-> from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> type 'enum ib_qp_create_flags' [-Wenum-conversion]
->                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
->                                                     ~ ^~~~~~~~~~~~~~~~~
->
-> The type mlx4_ib_qp_flags explicitly provides supplemental values to the
-> type ib_qp_create_flags. Make that clear to Clang by changing the
-> create_flags type to int.
->
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> ---
->
-> v1 -> v2:
->
-> * Use int instead of u32 since enums are restricted to this range, as
->   suggested by Nick.
+Clang warns when one enumerated type is explicitly converted to another.
 
-Thank you for making this change.
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
+conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
+different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
+        ll2_tx_pkt.tx_dest = pkt->tx_dest;
+                           ~ ~~~~~^~~~~~~
+1 warning generated.
 
->
->  include/rdma/ib_verbs.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> index 0d822a9db300..e5ec04e844cd 100644
-> --- a/include/rdma/ib_verbs.h
-> +++ b/include/rdma/ib_verbs.h
-> @@ -1151,7 +1151,7 @@ struct ib_qp_init_attr {
->         struct ib_qp_cap        cap;
->         enum ib_sig_type        sq_sig_type;
->         enum ib_qp_type         qp_type;
-> -       enum ib_qp_create_flags create_flags;
-> +       int                     create_flags;
->
->         /*
->          * Only needed for special QP types, or when using the RW API.
-> --
-> 2.19.0
->
+Turns out that QED_ROCE_LL2_TX_DEST_NW and QED_ROCE_LL2_TX_DEST_LB are
+only used once in the whole tree and QED_ROCE_LL2_TX_DEST_MAX is used
+nowhere. Remove them and use the equivalent values from qed_ll2_tx_dest
+in their place.
 
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
 
+v1 -> v2:
+
+* Rather than using an explicit cast, just convert the uses to the
+  appropriate values and delete the duplicated enum.
+
+ drivers/infiniband/hw/qedr/qedr_roce_cm.c |  4 ++--
+ include/linux/qed/qed_rdma_if.h           | 11 +----------
+ 2 files changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+index 85578887421b..e1ac2fd60bb1 100644
+--- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+@@ -519,9 +519,9 @@ static inline int qedr_gsi_build_packet(struct qedr_dev *dev,
+ 	}
+ 
+ 	if (ether_addr_equal(udh.eth.smac_h, udh.eth.dmac_h))
+-		packet->tx_dest = QED_ROCE_LL2_TX_DEST_LB;
++		packet->tx_dest = QED_LL2_TX_DEST_LB;
+ 	else
+-		packet->tx_dest = QED_ROCE_LL2_TX_DEST_NW;
++		packet->tx_dest = QED_LL2_TX_DEST_NW;
+ 
+ 	packet->roce_mode = roce_mode;
+ 	memcpy(packet->header.vaddr, ud_header_buffer, header_size);
+diff --git a/include/linux/qed/qed_rdma_if.h b/include/linux/qed/qed_rdma_if.h
+index df4d13f7e191..d15f8e4815e3 100644
+--- a/include/linux/qed/qed_rdma_if.h
++++ b/include/linux/qed/qed_rdma_if.h
+@@ -39,15 +39,6 @@
+ #include <linux/qed/qed_ll2_if.h>
+ #include <linux/qed/rdma_common.h>
+ 
+-enum qed_roce_ll2_tx_dest {
+-	/* Light L2 TX Destination to the Network */
+-	QED_ROCE_LL2_TX_DEST_NW,
+-
+-	/* Light L2 TX Destination to the Loopback */
+-	QED_ROCE_LL2_TX_DEST_LB,
+-	QED_ROCE_LL2_TX_DEST_MAX
+-};
+-
+ #define QED_RDMA_MAX_CNQ_SIZE               (0xFFFF)
+ 
+ /* rdma interface */
+@@ -581,7 +572,7 @@ struct qed_roce_ll2_packet {
+ 	int n_seg;
+ 	struct qed_roce_ll2_buffer payload[RDMA_MAX_SGE_PER_SQ_WQE];
+ 	int roce_mode;
+-	enum qed_roce_ll2_tx_dest tx_dest;
++	enum qed_ll2_tx_dest tx_dest;
+ };
+ 
+ enum qed_rdma_type {
 -- 
-Thanks,
-~Nick Desaulniers
+2.19.0
