@@ -1,46 +1,41 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] RDMA/hns: fix spelling mistake "reseved" -> "reserved"
-Date: Thu, 27 Sep 2018 14:24:30 +0100
-Message-ID: <20180927132430.25172-1-colin.king@canonical.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] RDMA/ucontext: fix building with CONFIG_MMU=n
+Date: Thu, 27 Sep 2018 10:26:05 -0600
+Message-ID: <20180927162605.GB28301@ziepe.ca>
+References: <20180927101017.990471-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180927101017.990471-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Parav Pandit <parav@mellanox.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Huy Nguyen <huyn@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Thu, Sep 27, 2018 at 12:10:03PM +0200, Arnd Bergmann wrote:
+> The zap_vma_ptes() is declared but not defined on NOMMU kernels,
+> causing a link error for the newly added uverbs code:
+> 
+> drivers/infiniband/core/uverbs_main.o: In function `uverbs_user_mmap_disassociate':
+> uverbs_main.c:(.text+0x114c): undefined reference to `zap_vma_ptes'
+> drivers/infiniband/core/uverbs_main.o: In function `rdma_umap_open':
+> uverbs_main.c:(.text+0x53c): undefined reference to `zap_vma_ptes'
 
-Trivial fix to spelling mistake in dev_err error message
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-index 081aa91fc162..ca05810c92dc 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v1.c
-@@ -731,7 +731,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
- 	cq_init_attr.comp_vector	= 0;
- 	cq = hns_roce_ib_create_cq(&hr_dev->ib_dev, &cq_init_attr, NULL, NULL);
- 	if (IS_ERR(cq)) {
--		dev_err(dev, "Create cq for reseved loop qp failed!");
-+		dev_err(dev, "Create cq for reserved loop qp failed!");
- 		return -ENOMEM;
- 	}
- 	free_mr->mr_free_cq = to_hr_cq(cq);
-@@ -744,7 +744,7 @@ static int hns_roce_v1_rsv_lp_qp(struct hns_roce_dev *hr_dev)
+I'm a bit surprised by this - the code is not new, it just got moved
+out of the drivers, and I don't see any protections there against
+CONFIG_MMU ??
  
- 	pd = hns_roce_alloc_pd(&hr_dev->ib_dev, NULL, NULL);
- 	if (IS_ERR(pd)) {
--		dev_err(dev, "Create pd for reseved loop qp failed!");
-+		dev_err(dev, "Create pd for reserved loop qp failed!");
- 		ret = -ENOMEM;
- 		goto alloc_pd_failed;
- 	}
--- 
-2.17.1
+> To fix this, we can either make uverbs depend on CONFIG_MMU, or try
+> to build it anyway. Since this is the only compile-time dependency,
+> I decided to allow building it with an extra compile-time check for
+> CONFIG_MMU before calling the one function.
+
+Hrm. So this code doesn't work at all on NOMMU, it relies on
+remap_pfn_range, which always fails on those kernels, 
+
+Due to this of this the entirety of INFINIBAND_USER_ACCESS is broken.
+
+I think a kconfig change is the better way to go?
+
+Jason
