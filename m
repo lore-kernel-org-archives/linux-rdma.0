@@ -1,95 +1,46 @@
 From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: Re: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
-Date: Wed, 26 Sep 2018 18:08:03 -0700
-Message-ID: <20180927010803.GA7640@flashbox>
-References: <20180924195716.30848-1-natechancellor@gmail.com>
- <CAKwvOdkr+ovYgmqWENHkCcAWMC+xC6NYne6SBycq_KXscpHxEQ@mail.gmail.com>
- <20180924222737.GA26973@flashbox>
- <CAKwvOdkZ-0k4BhXYz0wj3wXNyy95nKFe9aYXxXveLafuviGG2w@mail.gmail.com>
- <20180925023722.GA32600@ziepe.ca>
+Subject: [PATCH] RDMA/qedr: Explicitly cast pkt->tx_dest to qed_ll2_tx_dest
+Date: Wed, 26 Sep 2018 18:18:20 -0700
+Message-ID: <20180927011820.13608-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180925023722.GA32600@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Nick Desaulniers <ndesaulniers@google.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 24, 2018 at 08:37:22PM -0600, Jason Gunthorpe wrote:
-> On Mon, Sep 24, 2018 at 03:29:38PM -0700, Nick Desaulniers wrote:
-> > On Mon, Sep 24, 2018 at 3:27 PM Nathan Chancellor
-> > <natechancellor@gmail.com> wrote:
-> > >
-> > > On Mon, Sep 24, 2018 at 03:24:36PM -0700, Nick Desaulniers wrote:
-> > > > On Mon, Sep 24, 2018 at 12:57 PM Nathan Chancellor
-> > > > <natechancellor@gmail.com> wrote:
-> > > > >
-> > > > > Clang warns when one enumerated type is implicitly converted to another.
-> > > > >
-> > > > > drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
-> > > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
-> > > > >                                                     ~ ^~~~~~~~~~~~~~~~~~~~~~~
-> > > > >
-> > > > > drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
-> > > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
-> > > > >                                                     ~ ^~~~~~~~~~~~~~~~~
-> > > > >
-> > > > > The type mlx4_ib_qp_flags explicitly provides supplemental values to the
-> > > > > type ib_qp_create_flags. Make that clear to Clang by changing the
-> > > > > create_flags type to u32.
-> > > > >
-> > > > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > > > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > > > >  include/rdma/ib_verbs.h | 2 +-
-> > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > >
-> > > > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > > > index e463d3007a35..f6f4d9e3c8ed 100644
-> > > > > +++ b/include/rdma/ib_verbs.h
-> > > > > @@ -1149,7 +1149,7 @@ struct ib_qp_init_attr {
-> > > > >         struct ib_qp_cap        cap;
-> > > > >         enum ib_sig_type        sq_sig_type;
-> > > > >         enum ib_qp_type         qp_type;
-> > > > > -       enum ib_qp_create_flags create_flags;
-> > > > > +       u32                     create_flags;
-> > > >
-> > > > I think it might be better to just have explicit casts at the
-> > > > assignment.  What do the maintainers think?
-> > > >
-> > >
-> > > That's fine with me, I tend to explicitly cast if it is only one
-> > > location but it certainly makes sense in this case as well. I'll
-> > > wait for the maintainers to weigh in before sending a v2.
-> > 
-> > Yeah, I mean my opinion on this might seem arbitrary, but based on the
-> > pattern and the comment in ib_qp_create_flags, those enum values are
-> > reserved to be "subclassed" in a sense, so they should always be in
-> > sync or this code will have bigger problems.
-> 
-> One should not use an 'enum' type name for bitfield storage, as once
-> you start or'ing things together the values no longer fall on the
-> enum. Some compilers and tools even give warnings in this case, ie
-> 
->    enum x foo = X_A | X_B;
-> 
-> Is an assignment from 'int' to an 'enum x' with an implicit cast.
-> 
-> For this reason, usually bitfield enum declarations should be
-> anonymous.
-> 
-> Jason
+Clang warns when one enumerated type is explicitly converted to another.
 
-Hi Jason,
+drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
+conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
+different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
+        ll2_tx_pkt.tx_dest = pkt->tx_dest;
+                           ~ ~~~~~^~~~~~~
+1 warning generated.
 
-I apologize for not understanding but how should I adjust my patch so
-that it is acceptable? Do you want the explicit casts like Nick
-suggested?
+Avoid this warning by explicitly casting pkt->tx_dest to
+qed_112_tx_dest, which has the expected values from the
+type qed_roce_ll2_tx_dest.
 
-Thanks for the comments,
-Nathan
+Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+index 85578887421b..147e0d69003d 100644
+--- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+@@ -195,7 +195,7 @@ static int qedr_ll2_post_tx(struct qedr_dev *dev,
+ 
+ 	ll2_tx_pkt.num_of_bds = 1 /* hdr */  + pkt->n_seg;
+ 	ll2_tx_pkt.vlan = 0;
+-	ll2_tx_pkt.tx_dest = pkt->tx_dest;
++	ll2_tx_pkt.tx_dest = (enum qed_ll2_tx_dest)pkt->tx_dest;
+ 	ll2_tx_pkt.qed_roce_flavor = roce_flavor;
+ 	ll2_tx_pkt.first_frag = pkt->header.baddr;
+ 	ll2_tx_pkt.first_frag_len = pkt->header.len;
+-- 
+2.19.0
