@@ -1,157 +1,81 @@
 From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH v3] IB/rxe: Remove unnecessary enum values
-Date: Thu, 27 Sep 2018 13:18:20 -0700
-Message-ID: <CAKwvOdm41LdZ3KPO765arTAV99awzR8gPn=_79-UcZ6DWL9Fpg@mail.gmail.com>
-References: <20180927050156.20023-1-natechancellor@gmail.com> <20180927051222.23084-1-natechancellor@gmail.com>
+Subject: Re: [PATCH] RDMA/qedr: Explicitly cast pkt->tx_dest to qed_ll2_tx_dest
+Date: Thu, 27 Sep 2018 13:28:12 -0700
+Message-ID: <CAKwvOd=Oe1AAbQKcR+6K7LtZGne+-=3zREs_xVMnEbXBZJDJTQ@mail.gmail.com>
+References: <20180927011820.13608-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180927051222.23084-1-natechancellor@gmail.com>
+In-Reply-To: <20180927011820.13608-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: monis@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Cc: Michal.Kalderon@cavium.com, Ariel.Elior@cavium.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 26, 2018 at 10:14 PM Nathan Chancellor
+On Wed, Sep 26, 2018 at 6:18 PM Nathan Chancellor
 <natechancellor@gmail.com> wrote:
 >
-> Clang warns when an emumerated type is implicitly converted to another.
+> Clang warns when one enumerated type is explicitly converted to another.
 >
-> drivers/infiniband/sw/rxe/rxe.c:106:27: warning: implicit conversion
-> from enumeration type 'enum rxe_device_param' to different enumeration
-> type 'enum ib_atomic_cap' [-Wenum-conversion]
->         rxe->attr.atomic_cap                    = RXE_ATOMIC_CAP;
->                                                 ~ ^~~~~~~~~~~~~~
-> drivers/infiniband/sw/rxe/rxe.c:131:22: warning: implicit conversion
-> from enumeration type 'enum rxe_port_param' to different enumeration
-> type 'enum ib_port_state' [-Wenum-conversion]
->         port->attr.state                = RXE_PORT_STATE;
->                                         ~ ^~~~~~~~~~~~~~
-> drivers/infiniband/sw/rxe/rxe.c:132:24: warning: implicit conversion
-> from enumeration type 'enum rxe_port_param' to different enumeration
-> type 'enum ib_mtu' [-Wenum-conversion]
->         port->attr.max_mtu              = RXE_PORT_MAX_MTU;
->                                         ~ ^~~~~~~~~~~~~~~~
-> drivers/infiniband/sw/rxe/rxe.c:133:27: warning: implicit conversion
-> from enumeration type 'enum rxe_port_param' to different enumeration
-> type 'enum ib_mtu' [-Wenum-conversion]
->         port->attr.active_mtu           = RXE_PORT_ACTIVE_MTU;
->                                         ~ ^~~~~~~~~~~~~~~~~~~
-> drivers/infiniband/sw/rxe/rxe.c:151:24: warning: implicit conversion
-> from enumeration type 'enum rxe_port_param' to different enumeration
-> type 'enum ib_mtu' [-Wenum-conversion]
->                                 ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
->                                 ~~~~~~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~
-> 5 warnings generated.
+> drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
+> conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
+> different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
+>         ll2_tx_pkt.tx_dest = pkt->tx_dest;
+>                            ~ ~~~~~^~~~~~~
+> 1 warning generated.
 >
-> Use the appropriate values from the expected enumerated type so no
-> conversion needs to happen then remove the unneeded definitions.
+> Avoid this warning by explicitly casting pkt->tx_dest to
+> qed_112_tx_dest, which has the expected values from the
+> type qed_roce_ll2_tx_dest.
+
+But these enums are different lengths, which is problematic for this
+patch.  Is this code broken, or that it's ok for ll2_tx_pkt.tx_dest to
+have a value that's not a valid enumeration value for enum
+qed_ll2_tx_dest? (QED_LL2_TX_DEST_MAX 's value (3) is outside the
+enumeration values of enum qed_roce_ll2_tx_dest).
+
+include/linux/qed/qed_rdma_if.h:
+ 42 enum qed_roce_ll2_tx_dest {
+ 43         /* Light L2 TX Destination to the Network */
+ 44         QED_ROCE_LL2_TX_DEST_NW,
+ 45
+ 46         /* Light L2 TX Destination to the Loopback */
+ 47         QED_ROCE_LL2_TX_DEST_LB,
+ 48         QED_ROCE_LL2_TX_DEST_MAX
+ 49 };
+
+include/linux/qed/qed_ll2_if.h:
+ 64 enum qed_ll2_tx_dest {
+ 65         QED_LL2_TX_DEST_NW, /* Light L2 TX Destination to the
+Network */
+ 66         QED_LL2_TX_DEST_LB, /* Light L2 TX Destination to the
+Loopback */
+ 67         QED_LL2_TX_DEST_DROP, /* Light L2 Drop the TX packet */
+ 68         QED_LL2_TX_DEST_MAX
+ 69 };
+
+Maybe the maintainers can clarify?
+
 >
 > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
 > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-
-Nathan,
-Thanks for taking the time to respond to feedback and send incremental
-revisions to this patch.
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-
 > ---
+>  drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> v1 -> v2:
+> diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> index 85578887421b..147e0d69003d 100644
+> --- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> +++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> @@ -195,7 +195,7 @@ static int qedr_ll2_post_tx(struct qedr_dev *dev,
 >
-> * Don't cast, just use the expecting enumerated value directly, per
->   Jason's request
->
-> v2 -> v3:
->
-> * Convert two spots from RXE_PORT_MAX_MTU to IB_MTU_4096 then remove
->   value definitions.
->
->  drivers/infiniband/sw/rxe/rxe.c       | 13 ++++++-------
->  drivers/infiniband/sw/rxe/rxe_loc.h   |  2 +-
->  drivers/infiniband/sw/rxe/rxe_param.h |  4 ----
->  3 files changed, 7 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/infiniband/sw/rxe/rxe.c b/drivers/infiniband/sw/rxe/rxe.c
-> index 10999fa69281..383e65c7bbc0 100644
-> --- a/drivers/infiniband/sw/rxe/rxe.c
-> +++ b/drivers/infiniband/sw/rxe/rxe.c
-> @@ -103,7 +103,7 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
->         rxe->attr.max_res_rd_atom               = RXE_MAX_RES_RD_ATOM;
->         rxe->attr.max_qp_init_rd_atom           = RXE_MAX_QP_INIT_RD_ATOM;
->         rxe->attr.max_ee_init_rd_atom           = RXE_MAX_EE_INIT_RD_ATOM;
-> -       rxe->attr.atomic_cap                    = RXE_ATOMIC_CAP;
-> +       rxe->attr.atomic_cap                    = IB_ATOMIC_HCA;
->         rxe->attr.max_ee                        = RXE_MAX_EE;
->         rxe->attr.max_rdd                       = RXE_MAX_RDD;
->         rxe->attr.max_mw                        = RXE_MAX_MW;
-> @@ -128,9 +128,9 @@ static void rxe_init_device_param(struct rxe_dev *rxe)
->  /* initialize port attributes */
->  static int rxe_init_port_param(struct rxe_port *port)
->  {
-> -       port->attr.state                = RXE_PORT_STATE;
-> -       port->attr.max_mtu              = RXE_PORT_MAX_MTU;
-> -       port->attr.active_mtu           = RXE_PORT_ACTIVE_MTU;
-> +       port->attr.state                = IB_PORT_DOWN;
-> +       port->attr.max_mtu              = IB_MTU_4096;
-> +       port->attr.active_mtu           = IB_MTU_256;
->         port->attr.gid_tbl_len          = RXE_PORT_GID_TBL_LEN;
->         port->attr.port_cap_flags       = RXE_PORT_PORT_CAP_FLAGS;
->         port->attr.max_msg_sz           = RXE_PORT_MAX_MSG_SZ;
-> @@ -147,8 +147,7 @@ static int rxe_init_port_param(struct rxe_port *port)
->         port->attr.active_width         = RXE_PORT_ACTIVE_WIDTH;
->         port->attr.active_speed         = RXE_PORT_ACTIVE_SPEED;
->         port->attr.phys_state           = RXE_PORT_PHYS_STATE;
-> -       port->mtu_cap                   =
-> -                               ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
-> +       port->mtu_cap                   = ib_mtu_enum_to_int(IB_MTU_256);
->         port->subnet_prefix             = cpu_to_be64(RXE_PORT_SUBNET_PREFIX);
->
->         return 0;
-> @@ -300,7 +299,7 @@ void rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu)
->         mtu = eth_mtu_int_to_enum(ndev_mtu);
->
->         /* Make sure that new MTU in range */
-> -       mtu = mtu ? min_t(enum ib_mtu, mtu, RXE_PORT_MAX_MTU) : IB_MTU_256;
-> +       mtu = mtu ? min_t(enum ib_mtu, mtu, IB_MTU_4096) : IB_MTU_256;
->
->         port->attr.active_mtu = mtu;
->         port->mtu_cap = ib_mtu_enum_to_int(mtu);
-> diff --git a/drivers/infiniband/sw/rxe/rxe_loc.h b/drivers/infiniband/sw/rxe/rxe_loc.h
-> index 8e305422adbb..afd53f57a62b 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_loc.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_loc.h
-> @@ -195,7 +195,7 @@ static inline int qp_mtu(struct rxe_qp *qp)
->         if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
->                 return qp->attr.path_mtu;
->         else
-> -               return RXE_PORT_MAX_MTU;
-> +               return IB_MTU_4096;
->  }
->
->  static inline int rcv_wqe_size(int max_sge)
-> diff --git a/drivers/infiniband/sw/rxe/rxe_param.h b/drivers/infiniband/sw/rxe/rxe_param.h
-> index 4555510d86c4..bdea899a58ac 100644
-> --- a/drivers/infiniband/sw/rxe/rxe_param.h
-> +++ b/drivers/infiniband/sw/rxe/rxe_param.h
-> @@ -90,7 +90,6 @@ enum rxe_device_param {
->         RXE_MAX_RES_RD_ATOM             = 0x3f000,
->         RXE_MAX_QP_INIT_RD_ATOM         = 128,
->         RXE_MAX_EE_INIT_RD_ATOM         = 0,
-> -       RXE_ATOMIC_CAP                  = 1,
->         RXE_MAX_EE                      = 0,
->         RXE_MAX_RDD                     = 0,
->         RXE_MAX_MW                      = 0,
-> @@ -139,9 +138,6 @@ enum rxe_device_param {
->
->  /* default/initial rxe port parameters */
->  enum rxe_port_param {
-> -       RXE_PORT_STATE                  = IB_PORT_DOWN,
-> -       RXE_PORT_MAX_MTU                = IB_MTU_4096,
-> -       RXE_PORT_ACTIVE_MTU             = IB_MTU_256,
->         RXE_PORT_GID_TBL_LEN            = 1024,
->         RXE_PORT_PORT_CAP_FLAGS         = RDMA_CORE_CAP_PROT_ROCE_UDP_ENCAP,
->         RXE_PORT_MAX_MSG_SZ             = 0x800000,
+>         ll2_tx_pkt.num_of_bds = 1 /* hdr */  + pkt->n_seg;
+>         ll2_tx_pkt.vlan = 0;
+> -       ll2_tx_pkt.tx_dest = pkt->tx_dest;
+> +       ll2_tx_pkt.tx_dest = (enum qed_ll2_tx_dest)pkt->tx_dest;
+>         ll2_tx_pkt.qed_roce_flavor = roce_flavor;
+>         ll2_tx_pkt.first_frag = pkt->header.baddr;
+>         ll2_tx_pkt.first_frag_len = pkt->header.len;
 > --
 > 2.19.0
 >
