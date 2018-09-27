@@ -1,131 +1,114 @@
-From: Nathan Chancellor <natechancellor@gmail.com>
-Subject: Re: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
-Date: Thu, 27 Sep 2018 13:36:35 -0700
-Message-ID: <20180927203635.GA15407@flashbox>
-References: <20180924195716.30848-1-natechancellor@gmail.com>
- <CAKwvOdkr+ovYgmqWENHkCcAWMC+xC6NYne6SBycq_KXscpHxEQ@mail.gmail.com>
- <20180924222737.GA26973@flashbox>
- <CAKwvOdkZ-0k4BhXYz0wj3wXNyy95nKFe9aYXxXveLafuviGG2w@mail.gmail.com>
- <20180925023722.GA32600@ziepe.ca>
- <20180927010803.GA7640@flashbox>
- <20180927044826.GC24889@ziepe.ca>
- <CAKwvOdnmg2XY6K-8jTna3EKR1Nx04gOm6ZoywUwQO_CSANR_jg@mail.gmail.com>
- <20180927202849.GA11120@flashbox>
- <CAKwvOdnMOcdKPNHwKbcsg8rJX3_hDTgY752Nb4hgMC2D4p5aRg@mail.gmail.com>
+From: Nick Desaulniers <ndesaulniers@google.com>
+Subject: Re: [PATCH] RDMA/qedr: Explicitly cast pkt->tx_dest to qed_ll2_tx_dest
+Date: Thu, 27 Sep 2018 13:41:30 -0700
+Message-ID: <CAKwvOdkueN6WrQgo9L4BVgDojUNH6v0HC6TE9S7n_dfOt9DvYA@mail.gmail.com>
+References: <20180927011820.13608-1-natechancellor@gmail.com>
+ <CAKwvOd=Oe1AAbQKcR+6K7LtZGne+-=3zREs_xVMnEbXBZJDJTQ@mail.gmail.com> <20180927203500.GA12450@flashbox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKwvOdnMOcdKPNHwKbcsg8rJX3_hDTgY752Nb4hgMC2D4p5aRg@mail.gmail.com>
+In-Reply-To: <20180927203500.GA12450@flashbox>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nick Desaulniers <ndesaulniers@google.com>
-Cc: jgg@ziepe.ca, dledford@redhat.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Michal.Kalderon@cavium.com, Ariel.Elior@cavium.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 01:34:16PM -0700, Nick Desaulniers wrote:
-> On Thu, Sep 27, 2018 at 1:28 PM Nathan Chancellor
-> <natechancellor@gmail.com> wrote:
+On Thu, Sep 27, 2018 at 1:35 PM Nathan Chancellor
+<natechancellor@gmail.com> wrote:
+>
+> On Thu, Sep 27, 2018 at 01:28:12PM -0700, Nick Desaulniers wrote:
+> > On Wed, Sep 26, 2018 at 6:18 PM Nathan Chancellor
+> > <natechancellor@gmail.com> wrote:
+> > >
+> > > Clang warns when one enumerated type is explicitly converted to another.
+> > >
+> > > drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
+> > > conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
+> > > different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
+> > >         ll2_tx_pkt.tx_dest = pkt->tx_dest;
+> > >                            ~ ~~~~~^~~~~~~
+> > > 1 warning generated.
+> > >
+> > > Avoid this warning by explicitly casting pkt->tx_dest to
+> > > qed_112_tx_dest, which has the expected values from the
+> > > type qed_roce_ll2_tx_dest.
 > >
-> > On Thu, Sep 27, 2018 at 01:13:31PM -0700, Nick Desaulniers wrote:
-> > > On Wed, Sep 26, 2018 at 9:48 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > > >
-> > > > On Wed, Sep 26, 2018 at 06:08:03PM -0700, Nathan Chancellor wrote:
-> > > > > On Mon, Sep 24, 2018 at 08:37:22PM -0600, Jason Gunthorpe wrote:
-> > > > > > On Mon, Sep 24, 2018 at 03:29:38PM -0700, Nick Desaulniers wrote:
-> > > > > > > On Mon, Sep 24, 2018 at 3:27 PM Nathan Chancellor
-> > > > > > > <natechancellor@gmail.com> wrote:
-> > > > > > > >
-> > > > > > > > On Mon, Sep 24, 2018 at 03:24:36PM -0700, Nick Desaulniers wrote:
-> > > > > > > > > On Mon, Sep 24, 2018 at 12:57 PM Nathan Chancellor
-> > > > > > > > > <natechancellor@gmail.com> wrote:
-> > > > > > > > > >
-> > > > > > > > > > Clang warns when one enumerated type is implicitly converted to another.
-> > > > > > > > > >
-> > > > > > > > > > drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
-> > > > > > > > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > > > > > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > > > > > > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
-> > > > > > > > > >                                                     ~ ^~~~~~~~~~~~~~~~~~~~~~~
-> > > > > > > > > >
-> > > > > > > > > > drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
-> > > > > > > > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > > > > > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > > > > > > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
-> > > > > > > > > >                                                     ~ ^~~~~~~~~~~~~~~~~
-> > > > > > > > > >
-> > > > > > > > > > The type mlx4_ib_qp_flags explicitly provides supplemental values to the
-> > > > > > > > > > type ib_qp_create_flags. Make that clear to Clang by changing the
-> > > > > > > > > > create_flags type to u32.
-> > > > > > > > > >
-> > > > > > > > > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > > > > > > > > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > > > > > > > > >  include/rdma/ib_verbs.h | 2 +-
-> > > > > > > > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > > > > > > >
-> > > > > > > > > > diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-> > > > > > > > > > index e463d3007a35..f6f4d9e3c8ed 100644
-> > > > > > > > > > +++ b/include/rdma/ib_verbs.h
-> > > > > > > > > > @@ -1149,7 +1149,7 @@ struct ib_qp_init_attr {
-> > > > > > > > > >         struct ib_qp_cap        cap;
-> > > > > > > > > >         enum ib_sig_type        sq_sig_type;
-> > > > > > > > > >         enum ib_qp_type         qp_type;
-> > > > > > > > > > -       enum ib_qp_create_flags create_flags;
-> > > > > > > > > > +       u32                     create_flags;
-> > > > > > > > >
-> > > > > > > > > I think it might be better to just have explicit casts at the
-> > > > > > > > > assignment.  What do the maintainers think?
-> > > > > > > > >
-> > > > > > > >
-> > > > > > > > That's fine with me, I tend to explicitly cast if it is only one
-> > > > > > > > location but it certainly makes sense in this case as well. I'll
-> > > > > > > > wait for the maintainers to weigh in before sending a v2.
-> > > > > > >
-> > > > > > > Yeah, I mean my opinion on this might seem arbitrary, but based on the
-> > > > > > > pattern and the comment in ib_qp_create_flags, those enum values are
-> > > > > > > reserved to be "subclassed" in a sense, so they should always be in
-> > > > > > > sync or this code will have bigger problems.
-> > > > > >
-> > > > > > One should not use an 'enum' type name for bitfield storage, as once
-> > > > > > you start or'ing things together the values no longer fall on the
-> > > > > > enum. Some compilers and tools even give warnings in this case, ie
-> > > > > >
-> > > > > >    enum x foo = X_A | X_B;
-> > > > > >
-> > > > > > Is an assignment from 'int' to an 'enum x' with an implicit cast.
-> > > > > >
-> > > > > > For this reason, usually bitfield enum declarations should be
-> > > > > > anonymous.
-> > > > > >
-> > > > > > Jason
-> > > > >
-> > > > > Hi Jason,
-> > > > >
-> > > > > I apologize for not understanding but how should I adjust my patch so
-> > > > > that it is acceptable? Do you want the explicit casts like Nick
-> > > > > suggested?
-> > > >
-> > > > No, I think your original patch is fine, I was waiting to see if you
-> > > > or Nick disagreed with my assessment on bitfields..
+> > But these enums are different lengths, which is problematic for this
+> > patch.  Is this code broken, or that it's ok for ll2_tx_pkt.tx_dest to
+> > have a value that's not a valid enumeration value for enum
+> > qed_ll2_tx_dest? (QED_LL2_TX_DEST_MAX 's value (3) is outside the
+> > enumeration values of enum qed_roce_ll2_tx_dest).
+> >
+> > include/linux/qed/qed_rdma_if.h:
+> >  42 enum qed_roce_ll2_tx_dest {
+> >  43         /* Light L2 TX Destination to the Network */
+> >  44         QED_ROCE_LL2_TX_DEST_NW,
+> >  45
+> >  46         /* Light L2 TX Destination to the Loopback */
+> >  47         QED_ROCE_LL2_TX_DEST_LB,
+> >  48         QED_ROCE_LL2_TX_DEST_MAX
+> >  49 };
+> >
+> > include/linux/qed/qed_ll2_if.h:
+> >  64 enum qed_ll2_tx_dest {
+> >  65         QED_LL2_TX_DEST_NW, /* Light L2 TX Destination to the
+> > Network */
+> >  66         QED_LL2_TX_DEST_LB, /* Light L2 TX Destination to the
+> > Loopback */
+> >  67         QED_LL2_TX_DEST_DROP, /* Light L2 Drop the TX packet */
+> >  68         QED_LL2_TX_DEST_MAX
+> >  69 };
+> >
+> > Maybe the maintainers can clarify?
+> >
+>
+> My assumption was that if QED_ROCE_LL2_TX_DEST_MAX was used that the
+> packet would be dropped.
+>
+> Turns out that QED_ROCE_LL2_TX_DEST_MAX isn't actually used anywhere in
+> the tree. I suppose that qed_roce_ll2_tx_dest could just be removed and
+> all other instances of those values could be converted to
+> qed_ll2_tx_dest like the rxe patch. I'll test this now and send a patch
+> along if it works out.
+
+Even better.  Sometimes removing code is the correct solution.  Number
+of lines of code and number of bugs are positively correlated, so the
+less code sometimes the better.
+
+>
+> Nathan
+>
 > > >
-> > > It wasn't clear to me whether you were ack'ing or nack'ing the patch.
-> > > If we don't change the patch to explicit casts, shouldn't the change
-> > > be to make create_flags an int? (note: signedness)
+> > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> > > ---
+> > >  drivers/infiniband/hw/qedr/qedr_roce_cm.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
 > > >
+> > > diff --git a/drivers/infiniband/hw/qedr/qedr_roce_cm.c b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> > > index 85578887421b..147e0d69003d 100644
+> > > --- a/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> > > +++ b/drivers/infiniband/hw/qedr/qedr_roce_cm.c
+> > > @@ -195,7 +195,7 @@ static int qedr_ll2_post_tx(struct qedr_dev *dev,
+> > >
+> > >         ll2_tx_pkt.num_of_bds = 1 /* hdr */  + pkt->n_seg;
+> > >         ll2_tx_pkt.vlan = 0;
+> > > -       ll2_tx_pkt.tx_dest = pkt->tx_dest;
+> > > +       ll2_tx_pkt.tx_dest = (enum qed_ll2_tx_dest)pkt->tx_dest;
+> > >         ll2_tx_pkt.qed_roce_flavor = roce_flavor;
+> > >         ll2_tx_pkt.first_frag = pkt->header.baddr;
+> > >         ll2_tx_pkt.first_frag_len = pkt->header.len;
 > > > --
-> > > Thanks,
-> > > ~Nick Desaulniers
+> > > 2.19.0
+> > >
 > >
-> > Neither ib_qp_create_flags nor mlx4_ib_qp_flags have negative values, is
-> > signedness necessary?
-> 
-> enums are by default restricted to the range of ints.  It's not right
-> to tie these "anonymous enums" to a specific width and signedness
-> other than int.
-> 
-> -- 
-> Thanks,
-> ~Nick Desaulniers
+> >
+> > --
+> > Thanks,
+> > ~Nick Desaulniers
 
-Thanks for the clarification, I will go ahead and send a v2 now.
 
-Nathan
+
+-- 
+Thanks,
+~Nick Desaulniers
