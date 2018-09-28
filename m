@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Subject: [PATCH 1/4] mm: get_user_pages: consolidate error handling
-Date: Thu, 27 Sep 2018 22:39:46 -0700
-Message-ID: <20180928053949.5381-2-jhubbard@nvidia.com>
+Subject: [PATCH 2/4] mm: introduce put_user_page(), placeholder version
+Date: Thu, 27 Sep 2018 22:39:48 -0700
+Message-ID: <20180928053949.5381-4-jhubbard@nvidia.com>
 References: <20180928053949.5381-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,115 +14,87 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-An upcoming patch requires a way to operate on each page that
-any of the get_user_pages_*() variants returns.
+Introduces put_user_page(), which simply calls put_page().
+This provides a way to update all get_user_pages*() callers,
+so that they call put_user_page(), instead of put_page().
 
-In preparation for that, consolidate the error handling for
-__get_user_pages(). This provides a single location (the "out:" label)
-for operating on the collected set of pages that are about to be returned.
+Also adds release_user_pages(), a drop-in replacement for
+release_pages(). This is intended to be easily grep-able,
+for later performance improvements, since release_user_pages
+is not batched like release_pages() is, and is significantly
+slower.
 
-As long every use of the "ret" variable is being edited, rename
-"ret" --> "err", so that its name matches its true role.
-This also gets rid of two shadowed variable declarations, as a
-tiny beneficial a side effect.
+Also: rename goldfish_pipe.c's release_user_pages(), in order
+to avoid a naming conflict with the new external function of
+the same name.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+This prepares for eventually fixing the problem described
+in [1], and is following a plan listed in [2].
+
+[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+
+[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+    Proposed steps for fixing get_user_pages() + DMA problems.
+
+CC: Matthew Wilcox <willy@infradead.org>
+CC: Michal Hocko <mhocko@kernel.org>
+CC: Christopher Lameter <cl@linux.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Jan Kara <jack@suse.cz>
+CC: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup.c | 37 ++++++++++++++++++++++---------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ drivers/platform/goldfish/goldfish_pipe.c |  4 ++--
+ include/linux/mm.h                        | 14 ++++++++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 1abc8b4afff6..05ee7c18e59a 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -660,6 +660,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		struct vm_area_struct **vmas, int *nonblocking)
- {
- 	long i = 0;
-+	int err = 0;
- 	unsigned int page_mask;
- 	struct vm_area_struct *vma = NULL;
+diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
+index 2da567540c2d..fad0345376e0 100644
+--- a/drivers/platform/goldfish/goldfish_pipe.c
++++ b/drivers/platform/goldfish/goldfish_pipe.c
+@@ -332,7 +332,7 @@ static int pin_user_pages(unsigned long first_page, unsigned long last_page,
  
-@@ -685,18 +686,19 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		if (!vma || start >= vma->vm_end) {
- 			vma = find_extend_vma(mm, start);
- 			if (!vma && in_gate_area(mm, start)) {
--				int ret;
--				ret = get_gate_page(mm, start & PAGE_MASK,
-+				err = get_gate_page(mm, start & PAGE_MASK,
- 						gup_flags, &vma,
- 						pages ? &pages[i] : NULL);
--				if (ret)
--					return i ? : ret;
-+				if (err)
-+					goto out;
- 				page_mask = 0;
- 				goto next_page;
- 			}
- 
--			if (!vma || check_vma_flags(vma, gup_flags))
--				return i ? : -EFAULT;
-+			if (!vma || check_vma_flags(vma, gup_flags)) {
-+				err = -EFAULT;
-+				goto out;
-+			}
- 			if (is_vm_hugetlb_page(vma)) {
- 				i = follow_hugetlb_page(mm, vma, pages, vmas,
- 						&start, &nr_pages, i,
-@@ -709,23 +711,25 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		 * If we have a pending SIGKILL, don't keep faulting pages and
- 		 * potentially allocating memory.
- 		 */
--		if (unlikely(fatal_signal_pending(current)))
--			return i ? i : -ERESTARTSYS;
-+		if (unlikely(fatal_signal_pending(current))) {
-+			err = -ERESTARTSYS;
-+			goto out;
-+		}
- 		cond_resched();
- 		page = follow_page_mask(vma, start, foll_flags, &page_mask);
- 		if (!page) {
--			int ret;
--			ret = faultin_page(tsk, vma, start, &foll_flags,
-+			err = faultin_page(tsk, vma, start, &foll_flags,
- 					nonblocking);
--			switch (ret) {
-+			switch (err) {
- 			case 0:
- 				goto retry;
- 			case -EFAULT:
- 			case -ENOMEM:
- 			case -EHWPOISON:
--				return i ? i : ret;
-+				goto out;
- 			case -EBUSY:
--				return i;
-+				err = 0;
-+				goto out;
- 			case -ENOENT:
- 				goto next_page;
- 			}
-@@ -737,7 +741,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 			 */
- 			goto next_page;
- 		} else if (IS_ERR(page)) {
--			return i ? i : PTR_ERR(page);
-+			err = PTR_ERR(page);
-+			goto out;
- 		}
- 		if (pages) {
- 			pages[i] = page;
-@@ -757,7 +762,9 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
- 		start += page_increm * PAGE_SIZE;
- 		nr_pages -= page_increm;
- 	} while (nr_pages);
--	return i;
-+
-+out:
-+	return i ? i : err;
  }
  
- static bool vma_permits_fault(struct vm_area_struct *vma,
+-static void release_user_pages(struct page **pages, int pages_count,
++static void __release_user_pages(struct page **pages, int pages_count,
+ 	int is_write, s32 consumed_size)
+ {
+ 	int i;
+@@ -410,7 +410,7 @@ static int transfer_max_buffers(struct goldfish_pipe *pipe,
+ 
+ 	*consumed_size = pipe->command_buffer->rw_params.consumed_size;
+ 
+-	release_user_pages(pages, pages_count, is_write, *consumed_size);
++	__release_user_pages(pages, pages_count, is_write, *consumed_size);
+ 
+ 	mutex_unlock(&pipe->lock);
+ 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index a61ebe8ad4ca..72caf803115f 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -943,6 +943,20 @@ static inline void put_page(struct page *page)
+ 		__put_page(page);
+ }
+ 
++/* Placeholder version, until all get_user_pages*() callers are updated. */
++static inline void put_user_page(struct page *page)
++{
++	put_page(page);
++}
++
++/* A drop-in replacement for release_pages(): */
++static inline void release_user_pages(struct page **pages,
++				      unsigned long npages)
++{
++	while (npages)
++		put_user_page(pages[--npages]);
++}
++
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
 -- 
 2.19.0
