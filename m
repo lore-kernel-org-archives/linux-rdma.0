@@ -1,75 +1,45 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
- call
-Date: Fri, 28 Sep 2018 09:39:22 -0600
-Message-ID: <20180928153922.GA17076@ziepe.ca>
-References: <20180928053949.5381-1-jhubbard@nvidia.com>
- <20180928053949.5381-3-jhubbard@nvidia.com>
+Subject: Re: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
+Date: Fri, 28 Sep 2018 10:14:33 -0600
+Message-ID: <20180928161433.GC24524@ziepe.ca>
+References: <20180927011820.13608-1-natechancellor@gmail.com>
+ <20180927205557.32026-1-natechancellor@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180928053949.5381-3-jhubbard@nvidia.com>
+In-Reply-To: <20180927205557.32026-1-natechancellor@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 10:39:47PM -0700, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
+On Thu, Sep 27, 2018 at 01:55:58PM -0700, Nathan Chancellor wrote:
+> Clang warns when one enumerated type is explicitly converted to another.
 > 
-> For code that retains pages via get_user_pages*(),
-> release those pages via the new put_user_page(),
-> instead of put_page().
+> drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
+> conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
+> different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
+>         ll2_tx_pkt.tx_dest = pkt->tx_dest;
+>                            ~ ~~~~~^~~~~~~
+> 1 warning generated.
 > 
-> This prepares for eventually fixing the problem described
-> in [1], and is following a plan listed in [2].
+> Turns out that QED_ROCE_LL2_TX_DEST_NW and QED_ROCE_LL2_TX_DEST_LB are
+> only used once in the whole tree and QED_ROCE_LL2_TX_DEST_MAX is used
+> nowhere. Remove them and use the equivalent values from qed_ll2_tx_dest
+> in their place.
 > 
-> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+> Acked-by: Michal Kalderon <michal.kalderon@cavium.com>
+> ---
 > 
-> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
->     Proposed steps for fixing get_user_pages() + DMA problems.
+> v1 -> v2:
 > 
-> CC: Doug Ledford <dledford@redhat.com>
-> CC: Jason Gunthorpe <jgg@ziepe.ca>
-> CC: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> CC: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> CC: Christian Benvenuti <benve@cisco.com>
-> 
-> CC: linux-rdma@vger.kernel.org
-> CC: linux-kernel@vger.kernel.org
-> CC: linux-mm@kvack.org
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
->  drivers/infiniband/core/umem.c              | 2 +-
->  drivers/infiniband/core/umem_odp.c          | 2 +-
->  drivers/infiniband/hw/hfi1/user_pages.c     | 2 +-
->  drivers/infiniband/hw/mthca/mthca_memfree.c | 6 +++---
->  drivers/infiniband/hw/qib/qib_user_pages.c  | 2 +-
->  drivers/infiniband/hw/qib/qib_user_sdma.c   | 8 ++++----
->  drivers/infiniband/hw/usnic/usnic_uiom.c    | 2 +-
->  7 files changed, 12 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index a41792dbae1f..9430d697cb9f 100644
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
->  		page = sg_page(sg);
->  		if (!PageDirty(page) && umem->writable && dirty)
->  			set_page_dirty_lock(page);
-> -		put_page(page);
-> +		put_user_page(page);
+> * Rather than using an explicit cast, just convert the uses to the
+>   appropriate values and delete the duplicated enum.
 
-Would it make sense to have a release/put_user_pages_dirtied to absorb
-the set_page_dity pattern too? I notice in this patch there is some
-variety here, I wonder what is the right way?
-
-Also, I'm told this code here is a big performance bottleneck when the
-number of pages becomes very long (think >> GB of memory), so having a
-future path to use some kind of batching/threading sound great.
-
-Otherwise this RDMA part seems fine to me, there might be some minor
-conflicts however. I assume you want to run this through the -mm tree?
-
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+Applied to for-next, thanks
 
 Jason
