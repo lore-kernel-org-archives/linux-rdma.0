@@ -1,49 +1,68 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] RDMA/ucontext: fix building with CONFIG_MMU=n
-Date: Fri, 28 Sep 2018 11:15:16 +0200
-Message-ID: <CAK8P3a0m2WhWKZgMnJuarh5Y3uF-A3Ou228in-0wLg=9bTpMKA@mail.gmail.com>
-References: <20180927101017.990471-1-arnd@arndb.de> <20180927162605.GB28301@ziepe.ca>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH 0/4] get_user_pages*() and RDMA: first steps
+Date: Fri, 28 Sep 2018 11:29:59 -0400
+Message-ID: <20180928152958.GA3321@redhat.com>
+References: <20180928053949.5381-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180927162605.GB28301@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <20180928053949.5381-1-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Parav Pandit <parav@mellanox.com>, xavier.huwei@huawei.com, huyn@mellanox.com, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Christian Benvenuti <benve@cisco.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 6:26 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Thu, Sep 27, 2018 at 12:10:03PM +0200, Arnd Bergmann wrote:
-> > The zap_vma_ptes() is declared but not defined on NOMMU kernels,
-> > causing a link error for the newly added uverbs code:
-> >
-> > drivers/infiniband/core/uverbs_main.o: In function `uverbs_user_mmap_disassociate':
-> > uverbs_main.c:(.text+0x114c): undefined reference to `zap_vma_ptes'
-> > drivers/infiniband/core/uverbs_main.o: In function `rdma_umap_open':
-> > uverbs_main.c:(.text+0x53c): undefined reference to `zap_vma_ptes'
->
-> I'm a bit surprised by this - the code is not new, it just got moved
-> out of the drivers, and I don't see any protections there against
-> CONFIG_MMU ??
+On Thu, Sep 27, 2018 at 10:39:45PM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
+> 
+> Hi,
+> 
+> This short series prepares for eventually fixing the problem described
+> in [1], and is following a plan listed in [2].
+> 
+> I'd like to get the first two patches into the -mm tree.
+> 
+> Patch 1, although not technically critical to do now, is still nice to have,
+> because it's already been reviewed by Jan, and it's just one more thing on the
+> long TODO list here, that is ready to be checked off.
+> 
+> Patch 2 is required in order to allow me (and others, if I'm lucky) to start
+> submitting changes to convert all of the callsites of get_user_pages*() and
+> put_page().  I think this will work a lot better than trying to maintain a
+> massive patchset and submitting all at once.
+> 
+> Patch 3 converts infiniband drivers: put_page() --> put_user_page(). I picked
+> a fairly small and easy example.
+> 
+> Patch 4 converts a small driver from put_page() --> release_user_pages(). This
+> could just as easily have been done as a change from put_page() to
+> put_user_page(). The reason I did it this way is that this provides a small and
+> simple caller of the new release_user_pages() routine. I wanted both of the
+> new routines, even though just placeholders, to have callers.
+> 
+> Once these are all in, then the floodgates can open up to convert the large
+> number of get_user_pages*() callsites.
+> 
+> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+> 
+> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>     Proposed steps for fixing get_user_pages() + DMA problems.
+> 
 
-I think I just never hit those in my randconfig builds. Out of the three
-drivers, one is 64-bit only, and the others depend on PCI. The nommu
-configurations I'm testing in randconfig are all 32-bit without PCI.
+So the solution is to wait (possibly for days, months, years) that the
+RDMA or GPU which did GUP and do not have mmu notifier, release the page
+(or put_user_page()) ?
 
-> > To fix this, we can either make uverbs depend on CONFIG_MMU, or try
-> > to build it anyway. Since this is the only compile-time dependency,
-> > I decided to allow building it with an extra compile-time check for
-> > CONFIG_MMU before calling the one function.
->
-> Hrm. So this code doesn't work at all on NOMMU, it relies on
-> remap_pfn_range, which always fails on those kernels,
->
-> Due to this of this the entirety of INFINIBAND_USER_ACCESS is broken.
->
-> I think a kconfig change is the better way to go?
+This sounds bads. Like i said during LSF/MM there is no way to properly
+fix hardware that can not be preempted/invalidated ... most GPU are fine.
+Few RDMA are fine, most can not ...
 
-Works for me. Can you just commit that yourself with 'Reported-by:
-Arnd Bergmann <arnd@arndb.de>' then?
+If it is just about fixing the set_page_dirty() bug then just looking at
+refcount versus mapcount should already tell you if you can remove the
+buffer head from the page or not. Which would fix the bug without complex
+changes (i still like the put_user_page just for symetry with GUP).
 
-      Arnd
+Cheers,
+Jérôme
