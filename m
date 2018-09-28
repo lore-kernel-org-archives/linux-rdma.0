@@ -1,186 +1,84 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH 3/4] infiniband/mm: convert to the new put_user_page() call
-Date: Thu, 27 Sep 2018 22:39:47 -0700
-Message-ID: <20180928053949.5381-3-jhubbard@nvidia.com>
-References: <20180928053949.5381-1-jhubbard@nvidia.com>
+From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
+Subject: RE: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
+Date: Fri, 28 Sep 2018 08:06:00 +0000
+Message-ID: <BLUPR0701MB1635C34CB86CA111E277CB8C88EC0@BLUPR0701MB1635.namprd07.prod.outlook.com>
+References: <20180927011820.13608-1-natechancellor@gmail.com>
+ <20180927205557.32026-1-natechancellor@gmail.com>
+ <CAKwvOdkqcKdGnUdYXpmLhEGBzyxeGvmGAwow868y+sDFE56yFA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180928053949.5381-1-jhubbard@nvidia.com>
+In-Reply-To: <CAKwvOdkqcKdGnUdYXpmLhEGBzyxeGvmGAwow868y+sDFE56yFA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+To: Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
+Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
-
-For code that retains pages via get_user_pages*(),
-release those pages via the new put_user_page(),
-instead of put_page().
-
-This prepares for eventually fixing the problem described
-in [1], and is following a plan listed in [2].
-
-[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-
-[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
-    Proposed steps for fixing get_user_pages() + DMA problems.
-
-CC: Doug Ledford <dledford@redhat.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Mike Marciniszyn <mike.marciniszyn@intel.com>
-CC: Dennis Dalessandro <dennis.dalessandro@intel.com>
-CC: Christian Benvenuti <benve@cisco.com>
-
-CC: linux-rdma@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-mm@kvack.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/infiniband/core/umem.c              | 2 +-
- drivers/infiniband/core/umem_odp.c          | 2 +-
- drivers/infiniband/hw/hfi1/user_pages.c     | 2 +-
- drivers/infiniband/hw/mthca/mthca_memfree.c | 6 +++---
- drivers/infiniband/hw/qib/qib_user_pages.c  | 2 +-
- drivers/infiniband/hw/qib/qib_user_sdma.c   | 8 ++++----
- drivers/infiniband/hw/usnic/usnic_uiom.c    | 2 +-
- 7 files changed, 12 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index a41792dbae1f..9430d697cb9f 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 		page = sg_page(sg);
- 		if (!PageDirty(page) && umem->writable && dirty)
- 			set_page_dirty_lock(page);
--		put_page(page);
-+		put_user_page(page);
- 	}
- 
- 	sg_free_table(&umem->sg_head);
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 6ec748eccff7..6227b89cf05c 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -717,7 +717,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 					ret = -EFAULT;
- 					break;
- 				}
--				put_page(local_page_list[j]);
-+				put_user_page(local_page_list[j]);
- 				continue;
- 			}
- 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index e341e6dcc388..c7516029af33 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -126,7 +126,7 @@ void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
- 	for (i = 0; i < npages; i++) {
- 		if (dirty)
- 			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
-+		put_user_page(p[i]);
- 	}
- 
- 	if (mm) { /* during close after signal, mm can be NULL */
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index cc9c0c8ccba3..b8b12effd009 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -481,7 +481,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 
- 	ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
- 	if (ret < 0) {
--		put_page(pages[0]);
-+		put_user_page(pages[0]);
- 		goto out;
- 	}
- 
-@@ -489,7 +489,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 				 mthca_uarc_virt(dev, uar, i));
- 	if (ret) {
- 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--		put_page(sg_page(&db_tab->page[i].mem));
-+		put_user_page(sg_page(&db_tab->page[i].mem));
- 		goto out;
- 	}
- 
-@@ -555,7 +555,7 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
- 		if (db_tab->page[i].uvirt) {
- 			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
- 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--			put_page(sg_page(&db_tab->page[i].mem));
-+			put_user_page(sg_page(&db_tab->page[i].mem));
- 		}
- 	}
- 
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 16543d5e80c3..3f8fd42dd7fc 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -45,7 +45,7 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
- 	for (i = 0; i < num_pages; i++) {
- 		if (dirty)
- 			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
-+		put_user_page(p[i]);
- 	}
- }
- 
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index 926f3c8eba69..14f94d823907 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -266,7 +266,7 @@ static void qib_user_sdma_init_frag(struct qib_user_sdma_pkt *pkt,
- 	pkt->addr[i].length = len;
- 	pkt->addr[i].first_desc = first_desc;
- 	pkt->addr[i].last_desc = last_desc;
--	pkt->addr[i].put_page = put_page;
-+	pkt->addr[i].put_page = put_user_page;
- 	pkt->addr[i].dma_mapped = dma_mapped;
- 	pkt->addr[i].page = page;
- 	pkt->addr[i].kvaddr = kvaddr;
-@@ -321,7 +321,7 @@ static int qib_user_sdma_page_to_frags(const struct qib_devdata *dd,
- 		 * the caller can ignore this page.
- 		 */
- 		if (put) {
--			put_page(page);
-+			put_user_page(page);
- 		} else {
- 			/* coalesce case */
- 			kunmap(page);
-@@ -635,7 +635,7 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
- 			kunmap(pkt->addr[i].page);
- 
- 		if (pkt->addr[i].put_page)
--			put_page(pkt->addr[i].page);
-+			put_user_page(pkt->addr[i].page);
- 		else
- 			__free_page(pkt->addr[i].page);
- 	} else if (pkt->addr[i].kvaddr) {
-@@ -710,7 +710,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
- 	/* if error, return all pages not managed by pkt */
- free_pages:
- 	while (i < j)
--		put_page(pages[i++]);
-+		put_user_page(pages[i++]);
- 
- done:
- 	return ret;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 9dd39daa602b..0f607f31c262 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -91,7 +91,7 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
- 			pa = sg_phys(sg);
- 			if (!PageDirty(page) && dirty)
- 				set_page_dirty_lock(page);
--			put_page(page);
-+			put_user_page(page);
- 			usnic_dbg("pa: %pa\n", &pa);
- 		}
- 		kfree(chunk);
--- 
-2.19.0
+PiBGcm9tOiBOaWNrIERlc2F1bG5pZXJzIDxuZGVzYXVsbmllcnNAZ29vZ2xlLmNvbT4NCj4gU2Vu
+dDogRnJpZGF5LCBTZXB0ZW1iZXIgMjgsIDIwMTggMTozMCBBTQ0KPiANCj4gRXh0ZXJuYWwgRW1h
+aWwNCj4gDQo+IE9uIFRodSwgU2VwIDI3LCAyMDE4IGF0IDE6NTcgUE0gTmF0aGFuIENoYW5jZWxs
+b3INCj4gPG5hdGVjaGFuY2VsbG9yQGdtYWlsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBDbGFuZyB3
+YXJucyB3aGVuIG9uZSBlbnVtZXJhdGVkIHR5cGUgaXMgZXhwbGljaXRseSBjb252ZXJ0ZWQgdG8g
+YW5vdGhlci4NCj4gPg0KPiA+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfcm9jZV9j
+bS5jOjE5ODoyODogd2FybmluZzogaW1wbGljaXQNCj4gPiBjb252ZXJzaW9uIGZyb20gZW51bWVy
+YXRpb24gdHlwZSAnZW51bSBxZWRfcm9jZV9sbDJfdHhfZGVzdCcgdG8NCj4gPiBkaWZmZXJlbnQg
+ZW51bWVyYXRpb24gdHlwZSAnZW51bSBxZWRfbGwyX3R4X2Rlc3QnIFstV2VudW0tY29udmVyc2lv
+bl0NCj4gPiAgICAgICAgIGxsMl90eF9wa3QudHhfZGVzdCA9IHBrdC0+dHhfZGVzdDsNCj4gPiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB+IH5+fn5+Xn5+fn5+fg0KPiA+IDEgd2FybmluZyBn
+ZW5lcmF0ZWQuDQo+ID4NCj4gPiBUdXJucyBvdXQgdGhhdCBRRURfUk9DRV9MTDJfVFhfREVTVF9O
+VyBhbmQNCj4gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTEIgYXJlDQo+ID4gb25seSB1c2VkIG9uY2Ug
+aW4gdGhlIHdob2xlIHRyZWUgYW5kIFFFRF9ST0NFX0xMMl9UWF9ERVNUX01BWCBpcw0KPiB1c2Vk
+DQo+ID4gbm93aGVyZS4gUmVtb3ZlIHRoZW0gYW5kIHVzZSB0aGUgZXF1aXZhbGVudCB2YWx1ZXMg
+ZnJvbQ0KPiA+IHFlZF9sbDJfdHhfZGVzdCBpbiB0aGVpciBwbGFjZS4NCj4gPg0KPiA+IFJlcG9y
+dGVkLWJ5OiBOaWNrIERlc2F1bG5pZXJzIDxuZGVzYXVsbmllcnNAZ29vZ2xlLmNvbT4NCj4gPiBT
+aWduZWQtb2ZmLWJ5OiBOYXRoYW4gQ2hhbmNlbGxvciA8bmF0ZWNoYW5jZWxsb3JAZ21haWwuY29t
+Pg0KPiA+IC0tLQ0KPiA+DQo+ID4gdjEgLT4gdjI6DQo+ID4NCj4gPiAqIFJhdGhlciB0aGFuIHVz
+aW5nIGFuIGV4cGxpY2l0IGNhc3QsIGp1c3QgY29udmVydCB0aGUgdXNlcyB0byB0aGUNCj4gPiAg
+IGFwcHJvcHJpYXRlIHZhbHVlcyBhbmQgZGVsZXRlIHRoZSBkdXBsaWNhdGVkIGVudW0uDQo+ID4N
+Cj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvcWVkcl9yb2NlX2NtLmMgfCAgNCArKy0t
+DQo+ID4gIGluY2x1ZGUvbGludXgvcWVkL3FlZF9yZG1hX2lmLmggICAgICAgICAgIHwgMTEgKy0t
+LS0tLS0tLS0NCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEyIGRlbGV0
+aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRy
+L3FlZHJfcm9jZV9jbS5jDQo+ID4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWVkci9xZWRyX3Jv
+Y2VfY20uYw0KPiA+IGluZGV4IDg1NTc4ODg3NDIxYi4uZTFhYzJmZDYwYmIxIDEwMDY0NA0KPiA+
+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfcm9jZV9jbS5jDQo+ID4gKysr
+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvcWVkcl9yb2NlX2NtLmMNCj4gPiBAQCAtNTE5
+LDkgKzUxOSw5IEBAIHN0YXRpYyBpbmxpbmUgaW50IHFlZHJfZ3NpX2J1aWxkX3BhY2tldChzdHJ1
+Y3QNCj4gcWVkcl9kZXYgKmRldiwNCj4gPiAgICAgICAgIH0NCj4gPg0KPiA+ICAgICAgICAgaWYg
+KGV0aGVyX2FkZHJfZXF1YWwodWRoLmV0aC5zbWFjX2gsIHVkaC5ldGguZG1hY19oKSkNCj4gPiAt
+ICAgICAgICAgICAgICAgcGFja2V0LT50eF9kZXN0ID0gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTEI7
+DQo+ID4gKyAgICAgICAgICAgICAgIHBhY2tldC0+dHhfZGVzdCA9IFFFRF9MTDJfVFhfREVTVF9M
+QjsNCj4gPiAgICAgICAgIGVsc2UNCj4gPiAtICAgICAgICAgICAgICAgcGFja2V0LT50eF9kZXN0
+ID0gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTlc7DQo+ID4gKyAgICAgICAgICAgICAgIHBhY2tldC0+
+dHhfZGVzdCA9IFFFRF9MTDJfVFhfREVTVF9OVzsNCj4gDQo+IFllcCwgbG9va3MgbGlrZSB0aGVz
+ZSB3ZXJlIHRoZSBvbmx5IHR3byBzaXRlcyB1c2luZyBlbnVtDQo+IHFlZF9yb2NlX2xsMl90eF9k
+ZXN0IGluIHRoZSB3aG9sZSBrZXJuZWwuICBUaGUgbmV3IGVudW0gdmFsdWVzIG1hdGNoIHRoZQ0K
+PiBwcmV2aW91cyBlbnVtIHZhbHVlcywgc28gdGhpcyBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZSB3
+aGlsZSBzaW1wbGlmeWluZyB0aGUNCj4gY29kZSAob25lIGxlc3MgZW51bSB0byBnZXQgd3Jvbmcp
+Lg0KPiBSZXZpZXdlZC1ieTogTmljayBEZXNhdWxuaWVycyA8bmRlc2F1bG5pZXJzQGdvb2dsZS5j
+b20+DQo+IA0KPiA+DQo+ID4gICAgICAgICBwYWNrZXQtPnJvY2VfbW9kZSA9IHJvY2VfbW9kZTsN
+Cj4gPiAgICAgICAgIG1lbWNweShwYWNrZXQtPmhlYWRlci52YWRkciwgdWRfaGVhZGVyX2J1ZmZl
+ciwgaGVhZGVyX3NpemUpOw0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3FlZC9xZWRf
+cmRtYV9pZi5oDQo+ID4gYi9pbmNsdWRlL2xpbnV4L3FlZC9xZWRfcmRtYV9pZi5oIGluZGV4IGRm
+NGQxM2Y3ZTE5MS4uZDE1ZjhlNDgxNWUzDQo+ID4gMTAwNjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9s
+aW51eC9xZWQvcWVkX3JkbWFfaWYuaA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvcWVkL3FlZF9y
+ZG1hX2lmLmgNCj4gPiBAQCAtMzksMTUgKzM5LDYgQEANCj4gPiAgI2luY2x1ZGUgPGxpbnV4L3Fl
+ZC9xZWRfbGwyX2lmLmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9xZWQvcmRtYV9jb21tb24uaD4N
+Cj4gPg0KPiA+IC1lbnVtIHFlZF9yb2NlX2xsMl90eF9kZXN0IHsNCj4gPiAtICAgICAgIC8qIExp
+Z2h0IEwyIFRYIERlc3RpbmF0aW9uIHRvIHRoZSBOZXR3b3JrICovDQo+ID4gLSAgICAgICBRRURf
+Uk9DRV9MTDJfVFhfREVTVF9OVywNCj4gPiAtDQo+ID4gLSAgICAgICAvKiBMaWdodCBMMiBUWCBE
+ZXN0aW5hdGlvbiB0byB0aGUgTG9vcGJhY2sgKi8NCj4gPiAtICAgICAgIFFFRF9ST0NFX0xMMl9U
+WF9ERVNUX0xCLA0KPiA+IC0gICAgICAgUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTUFYDQo+ID4gLX07
+DQo+ID4gLQ0KPiA+ICAjZGVmaW5lIFFFRF9SRE1BX01BWF9DTlFfU0laRSAgICAgICAgICAgICAg
+ICgweEZGRkYpDQo+ID4NCj4gPiAgLyogcmRtYSBpbnRlcmZhY2UgKi8NCj4gPiBAQCAtNTgxLDcg
+KzU3Miw3IEBAIHN0cnVjdCBxZWRfcm9jZV9sbDJfcGFja2V0IHsNCj4gPiAgICAgICAgIGludCBu
+X3NlZzsNCj4gPiAgICAgICAgIHN0cnVjdCBxZWRfcm9jZV9sbDJfYnVmZmVyIHBheWxvYWRbUkRN
+QV9NQVhfU0dFX1BFUl9TUV9XUUVdOw0KPiA+ICAgICAgICAgaW50IHJvY2VfbW9kZTsNCj4gPiAt
+ICAgICAgIGVudW0gcWVkX3JvY2VfbGwyX3R4X2Rlc3QgdHhfZGVzdDsNCj4gPiArICAgICAgIGVu
+dW0gcWVkX2xsMl90eF9kZXN0IHR4X2Rlc3Q7DQo+ID4gIH07DQo+ID4NCj4gPiAgZW51bSBxZWRf
+cmRtYV90eXBlIHsNCj4gPiAtLQ0KPiA+IDIuMTkuMA0KPiA+DQo+IA0KPiANCj4gLS0NCj4gVGhh
+bmtzLA0KPiB+TmljayBEZXNhdWxuaWVycw0KDQpUaGFua3MsIGRlZmluaXRlbHkgIGxvb2tzIGNs
+ZWFuZXIuIA0KQWNrZWQtYnk6IE1pY2hhbCBLYWxkZXJvbiA8bWljaGFsLmthbGRlcm9uQGNhdml1
+bS5jb20+DQoNCg0K
