@@ -1,84 +1,49 @@
-From: "Kalderon, Michal" <Michal.Kalderon@cavium.com>
-Subject: RE: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
-Date: Fri, 28 Sep 2018 08:06:00 +0000
-Message-ID: <BLUPR0701MB1635C34CB86CA111E277CB8C88EC0@BLUPR0701MB1635.namprd07.prod.outlook.com>
-References: <20180927011820.13608-1-natechancellor@gmail.com>
- <20180927205557.32026-1-natechancellor@gmail.com>
- <CAKwvOdkqcKdGnUdYXpmLhEGBzyxeGvmGAwow868y+sDFE56yFA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH] RDMA/ucontext: fix building with CONFIG_MMU=n
+Date: Fri, 28 Sep 2018 11:15:16 +0200
+Message-ID: <CAK8P3a0m2WhWKZgMnJuarh5Y3uF-A3Ou228in-0wLg=9bTpMKA@mail.gmail.com>
+References: <20180927101017.990471-1-arnd@arndb.de> <20180927162605.GB28301@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAKwvOdkqcKdGnUdYXpmLhEGBzyxeGvmGAwow868y+sDFE56yFA@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180927162605.GB28301@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nick Desaulniers <ndesaulniers@google.com>, Nathan Chancellor <natechancellor@gmail.com>
-Cc: "Elior, Ariel" <Ariel.Elior@cavium.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Matan Barak <matanb@mellanox.com>, Parav Pandit <parav@mellanox.com>, xavier.huwei@huawei.com, huyn@mellanox.com, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGcm9tOiBOaWNrIERlc2F1bG5pZXJzIDxuZGVzYXVsbmllcnNAZ29vZ2xlLmNvbT4NCj4gU2Vu
-dDogRnJpZGF5LCBTZXB0ZW1iZXIgMjgsIDIwMTggMTozMCBBTQ0KPiANCj4gRXh0ZXJuYWwgRW1h
-aWwNCj4gDQo+IE9uIFRodSwgU2VwIDI3LCAyMDE4IGF0IDE6NTcgUE0gTmF0aGFuIENoYW5jZWxs
-b3INCj4gPG5hdGVjaGFuY2VsbG9yQGdtYWlsLmNvbT4gd3JvdGU6DQo+ID4NCj4gPiBDbGFuZyB3
-YXJucyB3aGVuIG9uZSBlbnVtZXJhdGVkIHR5cGUgaXMgZXhwbGljaXRseSBjb252ZXJ0ZWQgdG8g
-YW5vdGhlci4NCj4gPg0KPiA+IGRyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfcm9jZV9j
-bS5jOjE5ODoyODogd2FybmluZzogaW1wbGljaXQNCj4gPiBjb252ZXJzaW9uIGZyb20gZW51bWVy
-YXRpb24gdHlwZSAnZW51bSBxZWRfcm9jZV9sbDJfdHhfZGVzdCcgdG8NCj4gPiBkaWZmZXJlbnQg
-ZW51bWVyYXRpb24gdHlwZSAnZW51bSBxZWRfbGwyX3R4X2Rlc3QnIFstV2VudW0tY29udmVyc2lv
-bl0NCj4gPiAgICAgICAgIGxsMl90eF9wa3QudHhfZGVzdCA9IHBrdC0+dHhfZGVzdDsNCj4gPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB+IH5+fn5+Xn5+fn5+fg0KPiA+IDEgd2FybmluZyBn
-ZW5lcmF0ZWQuDQo+ID4NCj4gPiBUdXJucyBvdXQgdGhhdCBRRURfUk9DRV9MTDJfVFhfREVTVF9O
-VyBhbmQNCj4gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTEIgYXJlDQo+ID4gb25seSB1c2VkIG9uY2Ug
-aW4gdGhlIHdob2xlIHRyZWUgYW5kIFFFRF9ST0NFX0xMMl9UWF9ERVNUX01BWCBpcw0KPiB1c2Vk
-DQo+ID4gbm93aGVyZS4gUmVtb3ZlIHRoZW0gYW5kIHVzZSB0aGUgZXF1aXZhbGVudCB2YWx1ZXMg
-ZnJvbQ0KPiA+IHFlZF9sbDJfdHhfZGVzdCBpbiB0aGVpciBwbGFjZS4NCj4gPg0KPiA+IFJlcG9y
-dGVkLWJ5OiBOaWNrIERlc2F1bG5pZXJzIDxuZGVzYXVsbmllcnNAZ29vZ2xlLmNvbT4NCj4gPiBT
-aWduZWQtb2ZmLWJ5OiBOYXRoYW4gQ2hhbmNlbGxvciA8bmF0ZWNoYW5jZWxsb3JAZ21haWwuY29t
-Pg0KPiA+IC0tLQ0KPiA+DQo+ID4gdjEgLT4gdjI6DQo+ID4NCj4gPiAqIFJhdGhlciB0aGFuIHVz
-aW5nIGFuIGV4cGxpY2l0IGNhc3QsIGp1c3QgY29udmVydCB0aGUgdXNlcyB0byB0aGUNCj4gPiAg
-IGFwcHJvcHJpYXRlIHZhbHVlcyBhbmQgZGVsZXRlIHRoZSBkdXBsaWNhdGVkIGVudW0uDQo+ID4N
-Cj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvcWVkcl9yb2NlX2NtLmMgfCAgNCArKy0t
-DQo+ID4gIGluY2x1ZGUvbGludXgvcWVkL3FlZF9yZG1hX2lmLmggICAgICAgICAgIHwgMTEgKy0t
-LS0tLS0tLS0NCj4gPiAgMiBmaWxlcyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEyIGRlbGV0
-aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRy
-L3FlZHJfcm9jZV9jbS5jDQo+ID4gYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWVkci9xZWRyX3Jv
-Y2VfY20uYw0KPiA+IGluZGV4IDg1NTc4ODg3NDIxYi4uZTFhYzJmZDYwYmIxIDEwMDY0NA0KPiA+
-IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9xZWRyL3FlZHJfcm9jZV9jbS5jDQo+ID4gKysr
-IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3FlZHIvcWVkcl9yb2NlX2NtLmMNCj4gPiBAQCAtNTE5
-LDkgKzUxOSw5IEBAIHN0YXRpYyBpbmxpbmUgaW50IHFlZHJfZ3NpX2J1aWxkX3BhY2tldChzdHJ1
-Y3QNCj4gcWVkcl9kZXYgKmRldiwNCj4gPiAgICAgICAgIH0NCj4gPg0KPiA+ICAgICAgICAgaWYg
-KGV0aGVyX2FkZHJfZXF1YWwodWRoLmV0aC5zbWFjX2gsIHVkaC5ldGguZG1hY19oKSkNCj4gPiAt
-ICAgICAgICAgICAgICAgcGFja2V0LT50eF9kZXN0ID0gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTEI7
-DQo+ID4gKyAgICAgICAgICAgICAgIHBhY2tldC0+dHhfZGVzdCA9IFFFRF9MTDJfVFhfREVTVF9M
-QjsNCj4gPiAgICAgICAgIGVsc2UNCj4gPiAtICAgICAgICAgICAgICAgcGFja2V0LT50eF9kZXN0
-ID0gUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTlc7DQo+ID4gKyAgICAgICAgICAgICAgIHBhY2tldC0+
-dHhfZGVzdCA9IFFFRF9MTDJfVFhfREVTVF9OVzsNCj4gDQo+IFllcCwgbG9va3MgbGlrZSB0aGVz
-ZSB3ZXJlIHRoZSBvbmx5IHR3byBzaXRlcyB1c2luZyBlbnVtDQo+IHFlZF9yb2NlX2xsMl90eF9k
-ZXN0IGluIHRoZSB3aG9sZSBrZXJuZWwuICBUaGUgbmV3IGVudW0gdmFsdWVzIG1hdGNoIHRoZQ0K
-PiBwcmV2aW91cyBlbnVtIHZhbHVlcywgc28gdGhpcyBpcyBubyBmdW5jdGlvbmFsIGNoYW5nZSB3
-aGlsZSBzaW1wbGlmeWluZyB0aGUNCj4gY29kZSAob25lIGxlc3MgZW51bSB0byBnZXQgd3Jvbmcp
-Lg0KPiBSZXZpZXdlZC1ieTogTmljayBEZXNhdWxuaWVycyA8bmRlc2F1bG5pZXJzQGdvb2dsZS5j
-b20+DQo+IA0KPiA+DQo+ID4gICAgICAgICBwYWNrZXQtPnJvY2VfbW9kZSA9IHJvY2VfbW9kZTsN
-Cj4gPiAgICAgICAgIG1lbWNweShwYWNrZXQtPmhlYWRlci52YWRkciwgdWRfaGVhZGVyX2J1ZmZl
-ciwgaGVhZGVyX3NpemUpOw0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L3FlZC9xZWRf
-cmRtYV9pZi5oDQo+ID4gYi9pbmNsdWRlL2xpbnV4L3FlZC9xZWRfcmRtYV9pZi5oIGluZGV4IGRm
-NGQxM2Y3ZTE5MS4uZDE1ZjhlNDgxNWUzDQo+ID4gMTAwNjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9s
-aW51eC9xZWQvcWVkX3JkbWFfaWYuaA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvcWVkL3FlZF9y
-ZG1hX2lmLmgNCj4gPiBAQCAtMzksMTUgKzM5LDYgQEANCj4gPiAgI2luY2x1ZGUgPGxpbnV4L3Fl
-ZC9xZWRfbGwyX2lmLmg+DQo+ID4gICNpbmNsdWRlIDxsaW51eC9xZWQvcmRtYV9jb21tb24uaD4N
-Cj4gPg0KPiA+IC1lbnVtIHFlZF9yb2NlX2xsMl90eF9kZXN0IHsNCj4gPiAtICAgICAgIC8qIExp
-Z2h0IEwyIFRYIERlc3RpbmF0aW9uIHRvIHRoZSBOZXR3b3JrICovDQo+ID4gLSAgICAgICBRRURf
-Uk9DRV9MTDJfVFhfREVTVF9OVywNCj4gPiAtDQo+ID4gLSAgICAgICAvKiBMaWdodCBMMiBUWCBE
-ZXN0aW5hdGlvbiB0byB0aGUgTG9vcGJhY2sgKi8NCj4gPiAtICAgICAgIFFFRF9ST0NFX0xMMl9U
-WF9ERVNUX0xCLA0KPiA+IC0gICAgICAgUUVEX1JPQ0VfTEwyX1RYX0RFU1RfTUFYDQo+ID4gLX07
-DQo+ID4gLQ0KPiA+ICAjZGVmaW5lIFFFRF9SRE1BX01BWF9DTlFfU0laRSAgICAgICAgICAgICAg
-ICgweEZGRkYpDQo+ID4NCj4gPiAgLyogcmRtYSBpbnRlcmZhY2UgKi8NCj4gPiBAQCAtNTgxLDcg
-KzU3Miw3IEBAIHN0cnVjdCBxZWRfcm9jZV9sbDJfcGFja2V0IHsNCj4gPiAgICAgICAgIGludCBu
-X3NlZzsNCj4gPiAgICAgICAgIHN0cnVjdCBxZWRfcm9jZV9sbDJfYnVmZmVyIHBheWxvYWRbUkRN
-QV9NQVhfU0dFX1BFUl9TUV9XUUVdOw0KPiA+ICAgICAgICAgaW50IHJvY2VfbW9kZTsNCj4gPiAt
-ICAgICAgIGVudW0gcWVkX3JvY2VfbGwyX3R4X2Rlc3QgdHhfZGVzdDsNCj4gPiArICAgICAgIGVu
-dW0gcWVkX2xsMl90eF9kZXN0IHR4X2Rlc3Q7DQo+ID4gIH07DQo+ID4NCj4gPiAgZW51bSBxZWRf
-cmRtYV90eXBlIHsNCj4gPiAtLQ0KPiA+IDIuMTkuMA0KPiA+DQo+IA0KPiANCj4gLS0NCj4gVGhh
-bmtzLA0KPiB+TmljayBEZXNhdWxuaWVycw0KDQpUaGFua3MsIGRlZmluaXRlbHkgIGxvb2tzIGNs
-ZWFuZXIuIA0KQWNrZWQtYnk6IE1pY2hhbCBLYWxkZXJvbiA8bWljaGFsLmthbGRlcm9uQGNhdml1
-bS5jb20+DQoNCg0K
+On Thu, Sep 27, 2018 at 6:26 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Thu, Sep 27, 2018 at 12:10:03PM +0200, Arnd Bergmann wrote:
+> > The zap_vma_ptes() is declared but not defined on NOMMU kernels,
+> > causing a link error for the newly added uverbs code:
+> >
+> > drivers/infiniband/core/uverbs_main.o: In function `uverbs_user_mmap_disassociate':
+> > uverbs_main.c:(.text+0x114c): undefined reference to `zap_vma_ptes'
+> > drivers/infiniband/core/uverbs_main.o: In function `rdma_umap_open':
+> > uverbs_main.c:(.text+0x53c): undefined reference to `zap_vma_ptes'
+>
+> I'm a bit surprised by this - the code is not new, it just got moved
+> out of the drivers, and I don't see any protections there against
+> CONFIG_MMU ??
+
+I think I just never hit those in my randconfig builds. Out of the three
+drivers, one is 64-bit only, and the others depend on PCI. The nommu
+configurations I'm testing in randconfig are all 32-bit without PCI.
+
+> > To fix this, we can either make uverbs depend on CONFIG_MMU, or try
+> > to build it anyway. Since this is the only compile-time dependency,
+> > I decided to allow building it with an extra compile-time check for
+> > CONFIG_MMU before calling the one function.
+>
+> Hrm. So this code doesn't work at all on NOMMU, it relies on
+> remap_pfn_range, which always fails on those kernels,
+>
+> Due to this of this the entirety of INFINIBAND_USER_ACCESS is broken.
+>
+> I think a kconfig change is the better way to go?
+
+Works for me. Can you just commit that yourself with 'Reported-by:
+Arnd Bergmann <arnd@arndb.de>' then?
+
+      Arnd
