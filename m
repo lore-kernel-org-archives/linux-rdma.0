@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Subject: [PATCH 4/4] goldfish_pipe/mm: convert to the new release_user_pages() call
-Date: Thu, 27 Sep 2018 22:39:49 -0700
-Message-ID: <20180928053949.5381-5-jhubbard@nvidia.com>
+Subject: [PATCH 3/4] infiniband/mm: convert to the new put_user_page() call
+Date: Thu, 27 Sep 2018 22:39:47 -0700
+Message-ID: <20180928053949.5381-3-jhubbard@nvidia.com>
 References: <20180928053949.5381-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,14 +9,14 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180928053949.5381-1-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
 For code that retains pages via get_user_pages*(),
-release those pages via the new release_user_pages(),
-instead of calling put_page().
+release those pages via the new put_user_page(),
+instead of put_page().
 
 This prepares for eventually fixing the problem described
 in [1], and is following a plan listed in [2].
@@ -26,26 +26,161 @@ in [1], and is following a plan listed in [2].
 [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
     Proposed steps for fixing get_user_pages() + DMA problems.
 
-CC: Al Viro <viro@zeniv.linux.org.uk>
+CC: Doug Ledford <dledford@redhat.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Mike Marciniszyn <mike.marciniszyn@intel.com>
+CC: Dennis Dalessandro <dennis.dalessandro@intel.com>
+CC: Christian Benvenuti <benve@cisco.com>
+
+CC: linux-rdma@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+CC: linux-mm@kvack.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/platform/goldfish/goldfish_pipe.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/umem.c              | 2 +-
+ drivers/infiniband/core/umem_odp.c          | 2 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     | 2 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c | 6 +++---
+ drivers/infiniband/hw/qib/qib_user_pages.c  | 2 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   | 8 ++++----
+ drivers/infiniband/hw/usnic/usnic_uiom.c    | 2 +-
+ 7 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
-index fad0345376e0..1e9455a86698 100644
---- a/drivers/platform/goldfish/goldfish_pipe.c
-+++ b/drivers/platform/goldfish/goldfish_pipe.c
-@@ -340,8 +340,9 @@ static void __release_user_pages(struct page **pages, int pages_count,
- 	for (i = 0; i < pages_count; i++) {
- 		if (!is_write && consumed_size > 0)
- 			set_page_dirty(pages[i]);
--		put_page(pages[i]);
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index a41792dbae1f..9430d697cb9f 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+ 		page = sg_page(sg);
+ 		if (!PageDirty(page) && umem->writable && dirty)
+ 			set_page_dirty_lock(page);
+-		put_page(page);
++		put_user_page(page);
  	}
-+
-+	release_user_pages(pages, pages_count);
+ 
+ 	sg_free_table(&umem->sg_head);
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 6ec748eccff7..6227b89cf05c 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -717,7 +717,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
+ 					ret = -EFAULT;
+ 					break;
+ 				}
+-				put_page(local_page_list[j]);
++				put_user_page(local_page_list[j]);
+ 				continue;
+ 			}
+ 
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index e341e6dcc388..c7516029af33 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -126,7 +126,7 @@ void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
+ 	for (i = 0; i < npages; i++) {
+ 		if (dirty)
+ 			set_page_dirty_lock(p[i]);
+-		put_page(p[i]);
++		put_user_page(p[i]);
+ 	}
+ 
+ 	if (mm) { /* during close after signal, mm can be NULL */
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index cc9c0c8ccba3..b8b12effd009 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -481,7 +481,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 
+ 	ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+ 	if (ret < 0) {
+-		put_page(pages[0]);
++		put_user_page(pages[0]);
+ 		goto out;
+ 	}
+ 
+@@ -489,7 +489,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 				 mthca_uarc_virt(dev, uar, i));
+ 	if (ret) {
+ 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+-		put_page(sg_page(&db_tab->page[i].mem));
++		put_user_page(sg_page(&db_tab->page[i].mem));
+ 		goto out;
+ 	}
+ 
+@@ -555,7 +555,7 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
+ 		if (db_tab->page[i].uvirt) {
+ 			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
+ 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+-			put_page(sg_page(&db_tab->page[i].mem));
++			put_user_page(sg_page(&db_tab->page[i].mem));
+ 		}
+ 	}
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+index 16543d5e80c3..3f8fd42dd7fc 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -45,7 +45,7 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
+ 	for (i = 0; i < num_pages; i++) {
+ 		if (dirty)
+ 			set_page_dirty_lock(p[i]);
+-		put_page(p[i]);
++		put_user_page(p[i]);
+ 	}
  }
  
- /* Populate the call parameters, merging adjacent pages together */
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 926f3c8eba69..14f94d823907 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -266,7 +266,7 @@ static void qib_user_sdma_init_frag(struct qib_user_sdma_pkt *pkt,
+ 	pkt->addr[i].length = len;
+ 	pkt->addr[i].first_desc = first_desc;
+ 	pkt->addr[i].last_desc = last_desc;
+-	pkt->addr[i].put_page = put_page;
++	pkt->addr[i].put_page = put_user_page;
+ 	pkt->addr[i].dma_mapped = dma_mapped;
+ 	pkt->addr[i].page = page;
+ 	pkt->addr[i].kvaddr = kvaddr;
+@@ -321,7 +321,7 @@ static int qib_user_sdma_page_to_frags(const struct qib_devdata *dd,
+ 		 * the caller can ignore this page.
+ 		 */
+ 		if (put) {
+-			put_page(page);
++			put_user_page(page);
+ 		} else {
+ 			/* coalesce case */
+ 			kunmap(page);
+@@ -635,7 +635,7 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
+ 			kunmap(pkt->addr[i].page);
+ 
+ 		if (pkt->addr[i].put_page)
+-			put_page(pkt->addr[i].page);
++			put_user_page(pkt->addr[i].page);
+ 		else
+ 			__free_page(pkt->addr[i].page);
+ 	} else if (pkt->addr[i].kvaddr) {
+@@ -710,7 +710,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
+ 	/* if error, return all pages not managed by pkt */
+ free_pages:
+ 	while (i < j)
+-		put_page(pages[i++]);
++		put_user_page(pages[i++]);
+ 
+ done:
+ 	return ret;
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index 9dd39daa602b..0f607f31c262 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -91,7 +91,7 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
+ 			pa = sg_phys(sg);
+ 			if (!PageDirty(page) && dirty)
+ 				set_page_dirty_lock(page);
+-			put_page(page);
++			put_user_page(page);
+ 			usnic_dbg("pa: %pa\n", &pa);
+ 		}
+ 		kfree(chunk);
 -- 
 2.19.0
