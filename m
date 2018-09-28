@@ -1,45 +1,98 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] RDMA/qedr: Remove enumerated type qed_roce_ll2_tx_dest
-Date: Fri, 28 Sep 2018 10:14:33 -0600
-Message-ID: <20180928161433.GC24524@ziepe.ca>
-References: <20180927011820.13608-1-natechancellor@gmail.com>
- <20180927205557.32026-1-natechancellor@gmail.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 0/4] get_user_pages*() and RDMA: first steps
+Date: Fri, 28 Sep 2018 12:06:12 -0700
+Message-ID: <4c884529-e2ff-3808-9763-eb0e71f5a616@nvidia.com>
+References: <20180928053949.5381-1-jhubbard@nvidia.com>
+ <20180928152958.GA3321@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180927205557.32026-1-natechancellor@gmail.com>
+In-Reply-To: <20180928152958.GA3321@redhat.com>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nathan Chancellor <natechancellor@gmail.com>
-Cc: Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Nick Desaulniers <ndesaulniers@google.com>
+To: Jerome Glisse <jglisse@redhat.com>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 01:55:58PM -0700, Nathan Chancellor wrote:
-> Clang warns when one enumerated type is explicitly converted to another.
+On 9/28/18 8:29 AM, Jerome Glisse wrote:
+> On Thu, Sep 27, 2018 at 10:39:45PM -0700, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
+>>
+>> Hi,
+>>
+>> This short series prepares for eventually fixing the problem described
+>> in [1], and is following a plan listed in [2].
+>>
+>> I'd like to get the first two patches into the -mm tree.
+>>
+>> Patch 1, although not technically critical to do now, is still nice to have,
+>> because it's already been reviewed by Jan, and it's just one more thing on the
+>> long TODO list here, that is ready to be checked off.
+>>
+>> Patch 2 is required in order to allow me (and others, if I'm lucky) to start
+>> submitting changes to convert all of the callsites of get_user_pages*() and
+>> put_page().  I think this will work a lot better than trying to maintain a
+>> massive patchset and submitting all at once.
+>>
+>> Patch 3 converts infiniband drivers: put_page() --> put_user_page(). I picked
+>> a fairly small and easy example.
+>>
+>> Patch 4 converts a small driver from put_page() --> release_user_pages(). This
+>> could just as easily have been done as a change from put_page() to
+>> put_user_page(). The reason I did it this way is that this provides a small and
+>> simple caller of the new release_user_pages() routine. I wanted both of the
+>> new routines, even though just placeholders, to have callers.
+>>
+>> Once these are all in, then the floodgates can open up to convert the large
+>> number of get_user_pages*() callsites.
+>>
+>> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+>>
+>> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>>     Proposed steps for fixing get_user_pages() + DMA problems.
+>>
 > 
-> drivers/infiniband/hw/qedr/qedr_roce_cm.c:198:28: warning: implicit
-> conversion from enumeration type 'enum qed_roce_ll2_tx_dest' to
-> different enumeration type 'enum qed_ll2_tx_dest' [-Wenum-conversion]
->         ll2_tx_pkt.tx_dest = pkt->tx_dest;
->                            ~ ~~~~~^~~~~~~
-> 1 warning generated.
+> So the solution is to wait (possibly for days, months, years) that the
+> RDMA or GPU which did GUP and do not have mmu notifier, release the page
+> (or put_user_page()) ?
 > 
-> Turns out that QED_ROCE_LL2_TX_DEST_NW and QED_ROCE_LL2_TX_DEST_LB are
-> only used once in the whole tree and QED_ROCE_LL2_TX_DEST_MAX is used
-> nowhere. Remove them and use the equivalent values from qed_ll2_tx_dest
-> in their place.
+> This sounds bads. Like i said during LSF/MM there is no way to properly
+> fix hardware that can not be preempted/invalidated ... most GPU are fine.
+> Few RDMA are fine, most can not ...
 > 
-> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-> Acked-by: Michal Kalderon <michal.kalderon@cavium.com>
-> ---
-> 
-> v1 -> v2:
-> 
-> * Rather than using an explicit cast, just convert the uses to the
->   appropriate values and delete the duplicated enum.
 
-Applied to for-next, thanks
+Hi Jerome,
 
-Jason
+Personally, I'm think that this particular design is the best one I've seen
+so far, but if other, better designs show up, than let's do those instead, sure.
+
+I guess your main concern is that this might take longer than other approaches.
+
+As for time frame, perhaps I made it sound worse than it really is. I have patches
+staged already for all of the simpler call sites, and for about half of the more
+complicated ones. The core solution in mm is not large, and we've gone through a 
+few discussion threads about it back in July or so, so it shouldn't take too long
+to perfect it.
+
+So it may be a few months to get it all reviewed and submitted, but I don't
+see "years" by any stretch.
+
+
+> If it is just about fixing the set_page_dirty() bug then just looking at
+> refcount versus mapcount should already tell you if you can remove the
+> buffer head from the page or not. Which would fix the bug without complex
+> changes (i still like the put_user_page just for symetry with GUP).
+> 
+
+It's about more than that. The goal is to make it safe and correct to
+use a non-CPU device to read and write to "pinned" memory, especially when
+that memory is backed by a file system.
+
+I recall there were objections to just narrowly fixing the set_page_dirty()
+bug, because the underlying problem is large and serious. So here we are.
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
