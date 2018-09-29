@@ -1,144 +1,187 @@
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 0/4] get_user_pages*() and RDMA: first steps
-Date: Fri, 28 Sep 2018 19:28:16 -0700
-Message-ID: <dfa6aaef-b97e-ebd4-6cc8-c907a7b3f9bb@nvidia.com>
+Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
+ call
+Date: Fri, 28 Sep 2018 20:12:33 -0700
+Message-ID: <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
 References: <20180928053949.5381-1-jhubbard@nvidia.com>
- <20180928152958.GA3321@redhat.com>
- <4c884529-e2ff-3808-9763-eb0e71f5a616@nvidia.com>
- <20180928214934.GA3265@redhat.com>
+ <20180928053949.5381-3-jhubbard@nvidia.com> <20180928153922.GA17076@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180928214934.GA3265@redhat.com>
+In-Reply-To: <20180928153922.GA17076@ziepe.ca>
 Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/28/18 2:49 PM, Jerome Glisse wrote:
-> On Fri, Sep 28, 2018 at 12:06:12PM -0700, John Hubbard wrote:
->> On 9/28/18 8:29 AM, Jerome Glisse wrote:
->>> On Thu, Sep 27, 2018 at 10:39:45PM -0700, john.hubbard@gmail.com wrote:
->>>> From: John Hubbard <jhubbard@nvidia.com>
+On 9/28/18 8:39 AM, Jason Gunthorpe wrote:
+> On Thu, Sep 27, 2018 at 10:39:47PM -0700, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
 [...]
->>> So the solution is to wait (possibly for days, months, years) that the
->>> RDMA or GPU which did GUP and do not have mmu notifier, release the page
->>> (or put_user_page()) ?
->>>
->>> This sounds bads. Like i said during LSF/MM there is no way to properly
->>> fix hardware that can not be preempted/invalidated ... most GPU are fine.
->>> Few RDMA are fine, most can not ...
->>>
 >>
->> Hi Jerome,
->>
->> Personally, I'm think that this particular design is the best one I've seen
->> so far, but if other, better designs show up, than let's do those instead, sure.
->>
->> I guess your main concern is that this might take longer than other approaches.
->>
->> As for time frame, perhaps I made it sound worse than it really is. I have patches
->> staged already for all of the simpler call sites, and for about half of the more
->> complicated ones. The core solution in mm is not large, and we've gone through a 
->> few discussion threads about it back in July or so, so it shouldn't take too long
->> to perfect it.
->>
->> So it may be a few months to get it all reviewed and submitted, but I don't
->> see "years" by any stretch.
+>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+>> index a41792dbae1f..9430d697cb9f 100644
+>> +++ b/drivers/infiniband/core/umem.c
+>> @@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+>>  		page = sg_page(sg);
+>>  		if (!PageDirty(page) && umem->writable && dirty)
+>>  			set_page_dirty_lock(page);
+>> -		put_page(page);
+>> +		put_user_page(page);
 > 
-> Bit of miss-comprehention there :) By month, years, i am talking about
-> the time it will take for some user to release the pin they have on the
-> page. Not the time to push something upstream.
+> Would it make sense to have a release/put_user_pages_dirtied to absorb
+> the set_page_dity pattern too? I notice in this patch there is some
+> variety here, I wonder what is the right way?
 > 
-> AFAICT RDMA driver do not have any upper bound on how long they can hold
-> a page reference and thus your solution can leave one CPU core stuck for
-> as long as the pin is active. Worst case might lead to all CPU core waiting
-> for something that might never happen.
+> Also, I'm told this code here is a big performance bottleneck when the
+> number of pages becomes very long (think >> GB of memory), so having a
+> future path to use some kind of batching/threading sound great.
 > 
 
-Actually, the latest direction on that discussion was toward periodically
-writing back, even while under RDMA, via bounce buffers:
+Yes. And you asked for this the first time, too. Consistent! :) Sorry for
+being slow to pick it up. It looks like there are several patterns, and
+we have to support both set_page_dirty() and set_page_dirty_lock(). So
+the best combination looks to be adding a few variations of
+release_user_pages*(), but leaving put_user_page() alone, because it's
+the "do it yourself" basic one. Scatter-gather will be stuck with that.
 
-  https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+Here's a differential patch with that, that shows a nice little cleanup in 
+a couple of IB places, and as you point out, it also provides the hooks for 
+performance upgrades (via batching) in the future.
 
-I still think that's viable. Of course, there are other things besides 
-writeback (see below) that might also lead to waiting.
+Does this API look about right?
 
->>> If it is just about fixing the set_page_dirty() bug then just looking at
->>> refcount versus mapcount should already tell you if you can remove the
->>> buffer head from the page or not. Which would fix the bug without complex
->>> changes (i still like the put_user_page just for symetry with GUP).
->>>
->>
->> It's about more than that. The goal is to make it safe and correct to
->> use a non-CPU device to read and write to "pinned" memory, especially when
->> that memory is backed by a file system.
->>
->> I recall there were objections to just narrowly fixing the set_page_dirty()
->> bug, because the underlying problem is large and serious. So here we are.
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index c7516029af33..48afec362c31 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -123,11 +123,7 @@ void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
+ {
+        size_t i;
+ 
+-       for (i = 0; i < npages; i++) {
+-               if (dirty)
+-                       set_page_dirty_lock(p[i]);
+-               put_user_page(p[i]);
+-       }
++       release_user_pages_lock(p, npages, dirty);
+ 
+        if (mm) { /* during close after signal, mm can be NULL */
+                down_write(&mm->mmap_sem);
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+index 3f8fd42dd7fc..c57a3a6730b6 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -40,13 +40,7 @@
+ static void __qib_release_user_pages(struct page **p, size_t num_pages,
+                                     int dirty)
+ {
+-       size_t i;
+-
+-       for (i = 0; i < num_pages; i++) {
+-               if (dirty)
+-                       set_page_dirty_lock(p[i]);
+-               put_user_page(p[i]);
+-       }
++       release_user_pages_lock(p, num_pages, dirty);
+ }
+ 
+ /*
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 72caf803115f..b280d0181e06 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -138,6 +138,9 @@ extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
+ extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
+                                    size_t *, loff_t *);
+ 
++int set_page_dirty(struct page *page);
++int set_page_dirty_lock(struct page *page);
++
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+ /* to align the pointer to the (next) page boundary */
+@@ -949,12 +952,56 @@ static inline void put_user_page(struct page *page)
+        put_page(page);
+ }
+ 
+-/* A drop-in replacement for release_pages(): */
++/* For get_user_pages*()-pinned pages, use these variants instead of
++ * release_pages():
++ */
++static inline void release_user_pages_dirty(struct page **pages,
++                                           unsigned long npages)
++{
++       while (npages) {
++               set_page_dirty(pages[npages]);
++               put_user_page(pages[npages]);
++               --npages;
++       }
++}
++
++static inline void release_user_pages_dirty_lock(struct page **pages,
++                                                unsigned long npages)
++{
++       while (npages) {
++               set_page_dirty_lock(pages[npages]);
++               put_user_page(pages[npages]);
++               --npages;
++       }
++}
++
++static inline void release_user_pages_basic(struct page **pages,
++                                           unsigned long npages)
++{
++       while (npages) {
++               put_user_page(pages[npages]);
++               --npages;
++       }
++}
++
+ static inline void release_user_pages(struct page **pages,
+-                                     unsigned long npages)
++                                     unsigned long npages,
++                                     bool set_dirty)
+ {
+-       while (npages)
+-               put_user_page(pages[--npages]);
++       if (set_dirty)
++               release_user_pages_dirty(pages, npages);
++       else
++               release_user_pages_basic(pages, npages);
++}
++
++static inline void release_user_pages_lock(struct page **pages,
++                                          unsigned long npages,
++                                          bool set_dirty)
++{
++       if (set_dirty)
++               release_user_pages_dirty_lock(pages, npages);
++       else
++               release_user_pages_basic(pages, npages);
+ }
+ 
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+@@ -1548,8 +1595,6 @@ int redirty_page_for_writepage(struct writeback_control *wbc,
+ void account_page_dirtied(struct page *page, struct address_space *mapping);
+ void account_page_cleaned(struct page *page, struct address_space *mapping,
+                          struct bdi_writeback *wb);
+-int set_page_dirty(struct page *page);
+-int set_page_dirty_lock(struct page *page);
+ void __cancel_dirty_page(struct page *page);
+ static inline void cancel_dirty_page(struct page *page)
+ {
+
+
+> Otherwise this RDMA part seems fine to me, there might be some minor
+> conflicts however. I assume you want to run this through the -mm tree?
 > 
-> Except that you can not solve that issue without proper hardware. GPU are
-> fine. RDMA are broken except the mellanox5 hardware which can invalidate
-> at anytime its page table thus allowing to write protect the page at any
-> time.
-
-Today, people are out there using RDMA without page-fault-capable hardware.
-And they are hitting problems, as we've seen. From the discussions so far,
-I don't think it's impossible to solve the problems, even for "lesser", 
-non-fault-capable hardware. Especially once we decide on what is reasonable
-and supported.  Certainly the existing situation needs *something* to 
-change, even if it's (I don't recommend this) "go forth and tell the world
-to stop using RDMA with their current hardware".
-
-> 
-> With the solution put forward here you can potentialy wait _forever_ for
-> the driver that holds a pin to drop it. This was the point i was trying to
-> get accross during LSF/MM. 
-
-I agree that just blocking indefinitely is generally unacceptable for kernel
-code, but we can probably avoid it for many cases (bounce buffers), and
-if we think it is really appropriate (file system unmounting, maybe?) then
-maybe tolerate it in some rare cases.  
-
->You can not fix broken hardware that decided to
-> use GUP to do a feature they can't reliably do because their hardware is
-> not capable to behave.
-> 
-> Because code is easier here is what i was meaning:
-> 
-> https://cgit.freedesktop.org/~glisse/linux/commit/?h=gup&id=a5dbc0fe7e71d347067579f13579df372ec48389
-> https://cgit.freedesktop.org/~glisse/linux/commit/?h=gup&id=01677bc039c791a16d5f82b3ef84917d62fac826
+> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
 > 
 
-While that may work sometimes, I don't think it is reliable enough to trust for
-identifying pages that have been gup-pinned. There's just too much overloading of
-other mechanisms going on there, and if we pile on top with this constraint of "if you
-have +3 refcounts, and this particular combination of page counts and mapcounts, then
-you're definitely a long-term pinned page", I think users will find a lot of corner
-cases for us that break that assumption. 
-
-So I think we agree that the put_user_page() approach, to complement the
-get_user_pages*() call sites, is worth doing regardless of the details of the core
-solution. btw, now that I'm refreshing my memory of our earlier discussions: Jan had an
-interesting point that "long-term pinned" is a property of the call site, rather than
-of the page:
-
-  https://lkml.kernel.org/r/20180704104318.f5pnqtnn3unkwauw@quack2.suse.cz
-
-...which really sounded like a useful way to think about this.
-
-Here's what I think would help:
-
-1) I'll send out a freshened-up RFC for the core implementation (it's hard to talk about
-here without that, although your code above helps), and we can hammer out some answers
-there.
-
-2) I'll work through remaining comments (Jason had some) on this and respin this patchset.
-
-Basically, I'm hearing "Jerome is totally going to ACK this, but maybe disagree about
-some or all of the upcoming RFC". But then again, I hear what I want to hear! :)
+Great, thanks for the ACK.
 
 
 thanks,
