@@ -1,60 +1,26 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
- call
-Date: Mon, 1 Oct 2018 10:35:02 -0400
-Message-ID: <ed9cbf0a-acc9-1b26-a7fc-e8f89f577ce9@intel.com>
-References: <20180928053949.5381-1-jhubbard@nvidia.com>
- <20180928053949.5381-3-jhubbard@nvidia.com> <20180928153922.GA17076@ziepe.ca>
- <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
+From: "Stephen  Bates" <sbates@raithlin.com>
+Subject: Re: Linux RDMA mini-conf at Plumbers 2018
+Date: Mon, 1 Oct 2018 15:17:49 +0000
+Message-ID: <0EFD8B7D-15C2-4314-B099-B7621AECFC4C@raithlin.com>
+References: <20180920181923.GA6542@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
+In-Reply-To: <20180920181923.GA6542@mellanox.com>
 Content-Language: en-US
+Content-ID: <7AC2C04C8000D049B71172CF35C98ED4@CANPRD01.PROD.OUTLOOK.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Christian Benvenuti <benve@cisco.com>
+To: Jason Gunthorpe <jgg@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Alex Rosenbaum <alexr@mellanox.com>, Alex Williamson <alex.williamson@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, Christoph Hellwig <hch@lst.de>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Don Dutile <ddutile@redhat.com>, Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Logan Gunthorpe <logang@deltatee.com>, Matthew Wilcox <willy@infradead.org>, Nicholas Piggin <npiggin@gmail.com>, Noa Osherovich <noaos@mellanox.com>, Parav Pandit <parav@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/28/2018 11:12 PM, John Hubbard wrote:
-> On 9/28/18 8:39 AM, Jason Gunthorpe wrote:
->> On Thu, Sep 27, 2018 at 10:39:47PM -0700, john.hubbard@gmail.com wrote:
->>> From: John Hubbard <jhubbard@nvidia.com>
-> [...]
->>>
->>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
->>> index a41792dbae1f..9430d697cb9f 100644
->>> +++ b/drivers/infiniband/core/umem.c
->>> @@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
->>>   		page = sg_page(sg);
->>>   		if (!PageDirty(page) && umem->writable && dirty)
->>>   			set_page_dirty_lock(page);
->>> -		put_page(page);
->>> +		put_user_page(page);
->>
->> Would it make sense to have a release/put_user_pages_dirtied to absorb
->> the set_page_dity pattern too? I notice in this patch there is some
->> variety here, I wonder what is the right way?
->>
->> Also, I'm told this code here is a big performance bottleneck when the
->> number of pages becomes very long (think >> GB of memory), so having a
->> future path to use some kind of batching/threading sound great.
->>
-> 
-> Yes. And you asked for this the first time, too. Consistent! :) Sorry for
-> being slow to pick it up. It looks like there are several patterns, and
-> we have to support both set_page_dirty() and set_page_dirty_lock(). So
-> the best combination looks to be adding a few variations of
-> release_user_pages*(), but leaving put_user_page() alone, because it's
-> the "do it yourself" basic one. Scatter-gather will be stuck with that.
-> 
-> Here's a differential patch with that, that shows a nice little cleanup in
-> a couple of IB places, and as you point out, it also provides the hooks for
-> performance upgrades (via batching) in the future.
-> 
-> Does this API look about right?
-
-I'm on board with that and the changes to hfi1 and qib.
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+SGkgSmFzb24gYW5kIExlb24NCg0KPiBUaGlzIHllYXIgd2UgZXhwZWN0IHRvIGhhdmUgY2xvc2Ug
+dG8gYSBkYXkgc2V0IGFzaWRlIGZvciBSRE1BIHJlbGF0ZWQNCj4gdG9waWNzLiBJbmNsdWRpbmcg
+dXAgdG8gaGFsZiBhIGRheSBmb3IgdGhlIHRob3JueSBnZW5lcmFsIGtlcm5lbCBpc3N1ZXMNCj4g
+cmVsYXRlZCB0byBnZXRfdXNlcl9wYWdlcygpLCBwYXJ0aWN1bGFybHkgYXMgZXhhc3BlcmF0ZWQg
+YnkgUkRNQS4NCiAgICANCkxvb2tzIGxpa2UgYSBncmVhdCBzZXQgb2YgdG9waWNzLg0KICAgIA0K
+PiBSRE1BIGFuZCBQQ0kgcGVlciB0byBwZWVyDQogDQpJIHdpbGwgaGFwcGlseSBiZSBhIGxlYWRl
+ci9vcmdhbml6ZXIgZm9yIHRoaXMgc2VjdGlvbiBhbmQgY2FuIHByb3ZpZGUgYW4NCm92ZXJ2aWV3
+IG9mIHAycGRtYSB0byBnZXQgdGhlIGJhbGwgcm9sbGluZy4NCg0KQ2hlZXJzDQoNClN0ZXBoZW4N
+Cg0K
