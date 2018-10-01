@@ -1,60 +1,126 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
- call
-Date: Sat, 29 Sep 2018 13:19:14 -0600
-Message-ID: <20180929191914.GA13783@ziepe.ca>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 0/4] get_user_pages*() and RDMA: first steps
+Date: Mon, 1 Oct 2018 16:11:27 +1000
+Message-ID: <20181001061127.GQ31060@dastard>
 References: <20180928053949.5381-1-jhubbard@nvidia.com>
- <20180928053949.5381-3-jhubbard@nvidia.com>
- <20180928153922.GA17076@ziepe.ca>
- <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
- <20180929162117.GA31216@bombadil.infradead.org>
+ <20180928152958.GA3321@redhat.com>
+ <4c884529-e2ff-3808-9763-eb0e71f5a616@nvidia.com>
+ <20180928214934.GA3265@redhat.com>
+ <dfa6aaef-b97e-ebd4-6cc8-c907a7b3f9bb@nvidia.com>
+ <20180929084608.GA3188@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180929162117.GA31216@bombadil.infradead.org>
+In-Reply-To: <20180929084608.GA3188@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Sep 29, 2018 at 09:21:17AM -0700, Matthew Wilcox wrote:
-> On Fri, Sep 28, 2018 at 08:12:33PM -0700, John Hubbard wrote:
-> > >> +++ b/drivers/infiniband/core/umem.c
-> > >> @@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
-> > >>  		page = sg_page(sg);
-> > >>  		if (!PageDirty(page) && umem->writable && dirty)
-> > >>  			set_page_dirty_lock(page);
-> > >> -		put_page(page);
-> > >> +		put_user_page(page);
+On Sat, Sep 29, 2018 at 04:46:09AM -0400, Jerome Glisse wrote:
+> On Fri, Sep 28, 2018 at 07:28:16PM -0700, John Hubbard wrote:
+> > On 9/28/18 2:49 PM, Jerome Glisse wrote:
+> > > On Fri, Sep 28, 2018 at 12:06:12PM -0700, John Hubbard wrote:
+> > >> use a non-CPU device to read and write to "pinned" memory, especially when
+> > >> that memory is backed by a file system.
+
+"backed by a filesystem" is the biggest problem here.
+
+> > >> I recall there were objections to just narrowly fixing the set_page_dirty()
+> > >> bug, because the underlying problem is large and serious. So here we are.
 > > > 
-> > > Would it make sense to have a release/put_user_pages_dirtied to absorb
-> > > the set_page_dity pattern too? I notice in this patch there is some
-> > > variety here, I wonder what is the right way?
-> > > 
-> > > Also, I'm told this code here is a big performance bottleneck when the
-> > > number of pages becomes very long (think >> GB of memory), so having a
-> > > future path to use some kind of batching/threading sound great.
+> > > Except that you can not solve that issue without proper hardware. GPU are
+> > > fine. RDMA are broken except the mellanox5 hardware which can invalidate
+> > > at anytime its page table thus allowing to write protect the page at any
+> > > time.
 > > 
-> > Yes. And you asked for this the first time, too. Consistent! :) Sorry for
-> > being slow to pick it up. It looks like there are several patterns, and
-> > we have to support both set_page_dirty() and set_page_dirty_lock(). So
-> > the best combination looks to be adding a few variations of
-> > release_user_pages*(), but leaving put_user_page() alone, because it's
-> > the "do it yourself" basic one. Scatter-gather will be stuck with that.
-> 
-> I think our current interfaces are wrong.  We should really have a
-> get_user_sg() / put_user_sg() function that will set up / destroy an
-> SG list appropriate for that range of user memory.  This is almost
-> orthogonal to the original intent here, so please don't see this as a
-> "must do first" kind of argument that might derail the whole thing.
+> > Today, people are out there using RDMA without page-fault-capable hardware.
+> > And they are hitting problems, as we've seen. From the discussions so far,
+> > I don't think it's impossible to solve the problems, even for "lesser", 
+> > non-fault-capable hardware.
 
-This would be an excellent API, and it is exactly what this 'umem'
-code in RDMA is trying to do for RDMA drivers..
+This reminds me so much of Linux mmap() in the mid-2000s - mmap()
+worked for ext3 without being aware of page faults, so most mm/
+developers at the time were of the opinion that all the other
+filesystems should work just fine without being aware of page
+faults.
 
-I suspect it could do a much better job if it wasn't hindered by the
-get_user_pages API - ie it could directly stuff huge pages into the SG
-list instead of breaking them up, maybe also avoid the temporary memory
-allocations for page * pointers, etc?
+But some loud-mouthed idiot at SGI kept complaining that mmap()
+could never be fixed for XFS without write fault notification
+because of delayed allocation, unwritten extents and ENOSPC had to
+be handled before mapped writes could be posted.  Eventually
+Christoph Lameter got ->page_mkwrite into the page fault path and
+the loud mouthed idiot finally got mmap() to work correctly on XFS:
 
-Jason
+commit 4f57dbc6b5bae5a3978d429f45ac597ca7a3b8c6
+Author: David Chinner <dgc@sgi.com>
+Date:   Thu Jul 19 16:28:17 2007 +1000
+
+    [XFS] Implement ->page_mkwrite in XFS.
+    
+    Hook XFS up to ->page_mkwrite to ensure that we know about mmap pages
+    being written to. This allows use to do correct delayed allocation and
+    ENOSPC checking as well as remap unwritten extents so that they get
+    converted correctly during writeback. This is done via the generic
+    block_page_mkwrite code.
+    
+    SGI-PV: 940392
+    SGI-Modid: xfs-linux-melb:xfs-kern:29149a
+    
+    Signed-off-by: David Chinner <dgc@sgi.com>
+    Signed-off-by: Christoph Hellwig <hch@infradead.org>
+    Signed-off-by: Tim Shimmin <tes@sgi.com>
+
+Nowdays, ->page_mkwrite is fundamental filesystem functionality -
+copy-on-write filesystems like btrfs simply don't work if they can't
+trigger COW on mapped write accesses. These days all the main linux
+filesystems depend on write fault notifications in some way or
+another for correct operation.
+
+The way RDMA uses GUP to take references to file backed pages to
+'stop them going away' is reminiscent of mmap() back before
+->page_mkwrite(). i.e. it assumes that an initial read of the page
+will populate the page state correctly for all future operations,
+including set_page_dirty() after write accesses.
+
+This is not a valid assumption - filesystems can have different
+private clean vs dirty page state, and may need to perform
+operations to take a page from clean to dirty.  Hence calling
+set_page_dirty() on a file backed mapped page without first having
+called ->page_mkwrite() is a bug.
+
+RDMA does not call ->page_mkwrite on clean file backed pages before it
+writes to them and calls set_page_dirty(), and hence RDMA to file
+backed pages is completely unreliable. I'm not sure this can be
+solved without having page fault capable RDMA hardware....
+
+> > > With the solution put forward here you can potentialy wait _forever_ for
+> > > the driver that holds a pin to drop it. This was the point i was trying to
+> > > get accross during LSF/MM. 
+
+Right, but pinning via GUP is not an option for file backed pages
+because the filesystem is completely unaware of these references.
+i.e. waiting forever isn't an issue here because the filesystem
+never waits on them. Instead, they are a filesystem corruption
+vector because the filesystem can invalidate those mappings and free
+the backing store while they are still in use by RDMA.
+
+Hence for DAX filesystems, this leaves the RDMA app with direct
+access to the physical storage even though the filesystem has freed
+the space it is accessing. This is a use after free of the physical
+storage that the filesystem cannot control, and why DAX+RDMA is
+disabled right now.
+
+We could address these use-after-free situations via forcing RDMA to
+use file layout leases and revoke the lease when we need to modify
+the backing store on leased files. However, this doesn't solve the
+need for filesystems to receive write fault notifications via
+->page_mkwrite.
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
