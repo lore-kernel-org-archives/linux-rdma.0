@@ -1,94 +1,82 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 0/4] get_user_pages*() and RDMA: first steps
-Date: Tue, 2 Oct 2018 11:14:47 +1000
-Message-ID: <20181002011447.GT31060@dastard>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
+ call
+Date: Tue, 2 Oct 2018 22:40:43 -0700
+Message-ID: <e5ffa56e-ae51-6e2c-e6a9-efbdf9317ae0@nvidia.com>
 References: <20180928053949.5381-1-jhubbard@nvidia.com>
- <20180928152958.GA3321@redhat.com>
- <4c884529-e2ff-3808-9763-eb0e71f5a616@nvidia.com>
- <20180928214934.GA3265@redhat.com>
- <dfa6aaef-b97e-ebd4-6cc8-c907a7b3f9bb@nvidia.com>
- <20180929084608.GA3188@redhat.com>
- <20181001061127.GQ31060@dastard>
- <20181001124757.GA26218@infradead.org>
+ <20180928053949.5381-3-jhubbard@nvidia.com> <20180928153922.GA17076@ziepe.ca>
+ <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
+ <ed9cbf0a-acc9-1b26-a7fc-e8f89f577ce9@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181001124757.GA26218@infradead.org>
+In-Reply-To: <ed9cbf0a-acc9-1b26-a7fc-e8f89f577ce9@intel.com>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Jerome Glisse <jglisse@redhat.com>, John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Christian Benvenuti <benve@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 01, 2018 at 05:47:57AM -0700, Christoph Hellwig wrote:
-> On Mon, Oct 01, 2018 at 04:11:27PM +1000, Dave Chinner wrote:
-> > This reminds me so much of Linux mmap() in the mid-2000s - mmap()
-> > worked for ext3 without being aware of page faults,
-> 
-> And "worked" still is a bit of a stretch, as soon as you'd get
-> ENOSPC it would still blow up badly.  Which probably makes it an
-> even better analogy to the current case.
-> 
-> > RDMA does not call ->page_mkwrite on clean file backed pages before it
-> > writes to them and calls set_page_dirty(), and hence RDMA to file
-> > backed pages is completely unreliable. I'm not sure this can be
-> > solved without having page fault capable RDMA hardware....
-> 
-> We can always software prefault at gup time.
+On 10/1/18 7:35 AM, Dennis Dalessandro wrote:
+> On 9/28/2018 11:12 PM, John Hubbard wrote:
+>> On 9/28/18 8:39 AM, Jason Gunthorpe wrote:
+>>> On Thu, Sep 27, 2018 at 10:39:47PM -0700, john.hubbard@gmail.com wrote:
+>>>> From: John Hubbard <jhubbard@nvidia.com>
+>> [...]
+>>>>
+>>>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/=
+umem.c
+>>>> index a41792dbae1f..9430d697cb9f 100644
+>>>> +++ b/drivers/infiniband/core/umem.c
+>>>> @@ -60,7 +60,7 @@ static void __ib_umem_release(struct ib_device *dev,=
+ struct ib_umem *umem, int d
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 page =3D sg_pag=
+e(sg);
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (!PageDirty(=
+page) && umem->writable && dirty)
+>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0 set_page_dirty_lock(page);
+>>>> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 put_page(page);
+>>>> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 put_user_page(page);
+>>>
+>>> Would it make sense to have a release/put_user_pages_dirtied to absorb
+>>> the set_page_dity pattern too? I notice in this patch there is some
+>>> variety here, I wonder what is the right way?
+>>>
+>>> Also, I'm told this code here is a big performance bottleneck when the
+>>> number of pages becomes very long (think >> GB of memory), so having a
+>>> future path to use some kind of batching/threading sound great.
+>>>
+>>
+>> Yes. And you asked for this the first time, too. Consistent! :) Sorry fo=
+r
+>> being slow to pick it up. It looks like there are several patterns, and
+>> we have to support both set_page_dirty() and set_page_dirty_lock(). So
+>> the best combination looks to be adding a few variations of
+>> release_user_pages*(), but leaving put_user_page() alone, because it's
+>> the "do it yourself" basic one. Scatter-gather will be stuck with that.
+>>
+>> Here's a differential patch with that, that shows a nice little cleanup =
+in
+>> a couple of IB places, and as you point out, it also provides the hooks =
+for
+>> performance upgrades (via batching) in the future.
+>>
+>> Does this API look about right?
+>=20
+> I'm on board with that and the changes to hfi1 and qib.
+>=20
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 
-I'm not sure that's sufficient - we've got a series of panics from
-machines running ext4+RDMA where there are no bufferheads on dirty
-pages at writeback time. This was also reproducable on versions of
-XFS that used bufferheads.
+Hi Dennis, thanks for the review!
 
-We suspect that memory reclaim has tripped the bufferhead stripping
-threshold (yeah, that old ext3 hack to avoid writeback deadlocks
-under memory pressure), hence removed the bufferheads from clean
-mapped pages while RDMA has them pinned. And then some time later
-after set_page_dirty() was called on them the filesystem's page
-writeback code crashes and burns....
+I'll add those new routines in and send out a v2 soon, now that it appears,=
+ from=20
+the recent discussion, that this aspect of the approach is still viable.
 
-i.e. just because the page was in a known state at when it was
-pinned, it doesn't mean it will remain in that state until it is
-unpinned....
 
-> And also remember that
-> while RDMA might be the case at least some people care about here it
-> really isn't different from any of the other gup + I/O cases, including
-> doing direct I/O to a mmap area.  The only difference in the various
-> cases is how long the area should be pinned down - some users like RDMA
-> want a long term mapping, while others like direct I/O just need a short
-> transient one.
-
-Yup, now that I'm aware of all those little intricacies with gup I
-always try to consider what impact they have...
-
-> > We could address these use-after-free situations via forcing RDMA to
-> > use file layout leases and revoke the lease when we need to modify
-> > the backing store on leased files. However, this doesn't solve the
-> > need for filesystems to receive write fault notifications via
-> > ->page_mkwrite.
-> 
-> Exactly.   We need three things here:
-> 
->  - notification to the filesystem that a page is (possibly) beeing
->    written to
->  - a way to to block fs operations while the pages are pinned
->  - a way to distinguish between short and long term mappings,
->    and only allow long terms mappings if they can be broken
->    using something like leases
-> 
-> I'm also pretty sure we already explained this a long time ago when the
-> issue came up last year, so I'm not sure why this is even still
-> contentious.
-
-I suspect that it's simply because these discussions have been
-spread across different groups and not everyone is aware of what the
-other groups are discussing...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+thanks,
+--=20
+John Hubbard
+NVIDIA
