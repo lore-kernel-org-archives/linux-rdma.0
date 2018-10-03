@@ -1,79 +1,57 @@
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Re: [PATCH] IB/mlx4: Avoid implicit enumerated type conversion
-Date: Wed, 3 Oct 2018 16:09:10 -0700
-Message-ID: <CAKwvOdmFy1t0MrcD1WKq1pKc0MiV2iTRgAbpvU0sbNUR63P3Zg@mail.gmail.com>
-References: <20180924195716.30848-1-natechancellor@gmail.com>
- <20181003223518.GA8700@ziepe.ca> <CAKwvOdnvXDtBAw_6_MSOEst3DBjbr8w6Pv6b4i=pC50s=gcq3Q@mail.gmail.com>
- <20181003230101.GC3466@ziepe.ca>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 3/4] infiniband/mm: convert to the new put_user_page()
+ call
+Date: Wed, 3 Oct 2018 16:19:38 -0700
+Message-ID: <75712e67-59f1-2057-dc89-779cdf5600ee@nvidia.com>
+References: <20180928053949.5381-1-jhubbard@nvidia.com>
+ <20180928053949.5381-3-jhubbard@nvidia.com> <20180928153922.GA17076@ziepe.ca>
+ <36bc65a3-8c2a-87df-44fc-89a1891b86db@nvidia.com>
+ <20181003162758.GI24030@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181003230101.GC3466@ziepe.ca>
+In-Reply-To: <20181003162758.GI24030@quack2.suse.cz>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: jgg@ziepe.ca
-Cc: Nathan Chancellor <natechancellor@gmail.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Jan Kara <jack@suse.cz>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Al Viro <viro@zeniv.linux.org.uk>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 3, 2018 at 4:01 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
->
-> On Wed, Oct 03, 2018 at 03:53:58PM -0700, Nick Desaulniers wrote:
-> > On Wed, Oct 3, 2018 at 3:35 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > >
-> > > On Mon, Sep 24, 2018 at 12:57:16PM -0700, Nathan Chancellor wrote:
-> > > > Clang warns when one enumerated type is implicitly converted to another.
-> > > >
-> > > > drivers/infiniband/hw/mlx4/mad.c:1811:41: warning: implicit conversion
-> > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_TUNNEL_QP;
-> > > >                                                     ~ ^~~~~~~~~~~~~~~~~~~~~~~
-> > > >
-> > > > drivers/infiniband/hw/mlx4/mad.c:1819:41: warning: implicit conversion
-> > > > from enumeration type 'enum mlx4_ib_qp_flags' to different enumeration
-> > > > type 'enum ib_qp_create_flags' [-Wenum-conversion]
-> > > >                 qp_init_attr.init_attr.create_flags = MLX4_IB_SRIOV_SQP;
-> > > >                                                     ~ ^~~~~~~~~~~~~~~~~
-> > > >
-> > > > The type mlx4_ib_qp_flags explicitly provides supplemental values to the
-> > > > type ib_qp_create_flags. Make that clear to Clang by changing the
-> > > > create_flags type to u32.
-> > > >
-> > > > Reported-by: Nick Desaulniers <ndesaulniers@google.com>
-> > > > Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
-> > > >  include/rdma/ib_verbs.h | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > Applied to for-next, thanks
-> > >
-> > > BTW, how are you compiling with clang?
-> >
-> > https://github.com/ClangBuiltLinux/linux/wiki/Steps-for-compiling-the-kernel-with-Clang
-> > try it out, let us know bugs you find here:
-> > https://github.com/ClangBuiltLinux/linux/issues
->
-> Oh I see, you are doing ARM64!
+On 10/3/18 9:27 AM, Jan Kara wrote:
+> On Fri 28-09-18 20:12:33, John Hubbard wrote:
+>>  static inline void release_user_pages(struct page **pages,
+>> -                                     unsigned long npages)
+>> +                                     unsigned long npages,
+>> +                                     bool set_dirty)
+>>  {
+>> -       while (npages)
+>> -               put_user_page(pages[--npages]);
+>> +       if (set_dirty)
+>> +               release_user_pages_dirty(pages, npages);
+>> +       else
+>> +               release_user_pages_basic(pages, npages);
+>> +}
+> 
+> Is there a good reason to have this with set_dirty argument? Generally bool
+> arguments are not great for readability (or greppability for that matter).
+> Also in this case callers can just as easily do:
+> 	if (set_dirty)
+> 		release_user_pages_dirty(...);
+> 	else
+> 		release_user_pages(...);
+> 
+> And furthermore it makes the code author think more whether he needs
+> set_page_dirty() or set_page_dirty_lock(), rather than just passing 'true'
+> and hoping the function magically does the right thing for him.
+> 
 
-Well, it's the first arch I'm focusing on.  X86_64 and ARM32 are also
-a priority.  Open source contributors are filing bugs against powerpc,
-x86, and even risc-v.  I'm helping them with code review or putting
-them in contact with the relevant parties.
+Ha, I went through *precisely* that argument in my head, too--and then
+got seduced with the idea that it pretties up the existing calling code, 
+because it's a drop-in one-liner at the call sites. But yes, I'll change it 
+back to omit the bool set_dirty argument.
 
-We're going to talk more about this effort at Linux Plumbers
-Conference in November if you're going.
-
->
-> > Still looking into the case you pointed out earlier.  I suspect the
-> > signedness of enums was undefined in c90, then defined as
-> > implementation specific in c99 (though I'm still researching that
-> > book report).  Thanks for your insights!
->
-> C enums details are a topic that seems more confusing every time it
-> gets brought up :(
->
-> Jason
-
-
-
+thanks,
 -- 
-Thanks,
-~Nick Desaulniers
+John Hubbard
+NVIDIA
