@@ -1,91 +1,132 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCHv1] RDMA/core: Check error status of
- rdma_find_ndev_for_src_ip_rcu
-Date: Thu, 4 Oct 2018 03:34:12 +0000
-Message-ID: <VI1PR0501MB2271E20E0F47CB4D00738DC6D1EA0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
-References: <1537542022-4451-1-git-send-email-parav@mellanox.com>
- <VI1PR0501MB2271905AAC309C636C0B63B7D1EA0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <20181004024812.GA18596@ziepe.ca>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 1/9] PCI: sysfs: Export available PCIe bandwidth
+Date: Thu, 4 Oct 2018 15:45:49 -0500
+Message-ID: <20181004204549.GI120535@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
+ <20180903180242.14504-2-mr.nuke.me@gmail.com>
+ <20181003213054.GH120535@bhelgaas-glaptop.roam.corp.google.com>
+ <f9fbc8babbb344eca593a3f8b0d096d9@ausx13mps321.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181004024812.GA18596@ziepe.ca>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <f9fbc8babbb344eca593a3f8b0d096d9@ausx13mps321.AMER.DELL.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, Daniel Jurgens <danielj@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>
+To: Alex_Gagniuc@Dellteam.com
+Cc: mr.nuke.me@gmail.com, linux-pci@vger.kernel.org, bhelgaas@google.com, keith.busch@intel.com, Austin.Bolen@dell.com, Shyam.Iyer@dell.com, ariel.elior@cavium.com, everest-linux-l2@cavium.com, davem@davemloft.net, michael.chan@broadcom.com, ganeshgr@chelsio.com, jeffrey.t.kirsher@intel.com, tariqt@mellanox.com, saeedm@mellanox.com, leon@kernel.org, jakub.kicinski@netronome.com, dirk.vandermerwe@netronome.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com, stephen@networkplumber.org, mj@ucw.cz, Alex Williamson <alex.williamson@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
+[+cc Alex (VC mentioned below)]
 
-
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> owner@vger.kernel.org> On Behalf Of Jason Gunthorpe
-> Sent: Wednesday, October 3, 2018 9:48 PM
-> To: Parav Pandit <parav@mellanox.com>
-> Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org;
-> leon@kernel.org; Daniel Jurgens <danielj@mellanox.com>;
-> dledford@redhat.com
-> Subject: Re: [PATCHv1] RDMA/core: Check error status of
-> rdma_find_ndev_for_src_ip_rcu
->=20
-> On Thu, Oct 04, 2018 at 02:28:54AM +0000, Parav Pandit wrote:
-> > Hi Doug, Jason,
+On Wed, Oct 03, 2018 at 10:00:19PM +0000, Alex_Gagniuc@Dellteam.com wrote:
+> On 10/03/2018 04:31 PM, Bjorn Helgaas wrote:
+> > On Mon, Sep 03, 2018 at 01:02:28PM -0500, Alexandru Gagniuc wrote:
+> >> For certain bandwidth-critical devices (e.g. multi-port network cards)
+> >> it is useful to know the available bandwidth to the root complex. This
+> >> information is only available via the system log, which doesn't
+> >> account for link degradation after probing.
+> >>
+> >> With a sysfs attribute, we can computes the bandwidth on-demand, and
+> >> will detect degraded links.
+> >>
+> >> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> >> ---
+> >>   drivers/pci/pci-sysfs.c | 13 +++++++++++++
+> >>   1 file changed, 13 insertions(+)
+> >>
+> >> diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c
+> >> index 9ecfe13157c0..6658e927b1f5 100644
+> >> --- a/drivers/pci/pci-sysfs.c
+> >> +++ b/drivers/pci/pci-sysfs.c
+> >> @@ -218,6 +218,18 @@ static ssize_t current_link_width_show(struct device *dev,
+> >>   }
+> >>   static DEVICE_ATTR_RO(current_link_width);
+> >>   
+> >> +static ssize_t available_bandwidth_show(struct device *dev,
+> >> +				       struct device_attribute *attr, char *buf)
+> >> +{
+> >> +	struct pci_dev *pci_dev = to_pci_dev(dev);
+> >> +	u32 bw_avail;
+> >> +
+> >> +	bw_avail = pcie_bandwidth_available(pci_dev, NULL, NULL, NULL);
+> >> +
+> >> +	return sprintf(buf, "%u.%03u Gb/s\n", bw_avail / 1000, bw_avail % 1000);
+> >> +}
+> >> +static DEVICE_ATTR_RO(available_bandwidth);
+> > 
+> > Help me understand this.  We already have these sysfs attributes:
+> > 
+> >    max_link_speed          # eg, 16 GT/s
+> >    max_link_width          # eg, 8
+> >    current_link_speed      # eg, 16 GT/s
+> >    current_link_width      # eg, 8
+> > 
+> > so I think the raw materials are already exposed.
 > >
-> > > From: Parav Pandit <parav@mellanox.com>
-> > > Sent: Friday, September 21, 2018 10:00 AM
-> > > To: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org;
-> > > leon@kernel.org; jgg@ziepe.ca; syzkaller-bugs@googlegroups.com;
-> > > Daniel Jurgens <danielj@mellanox.com>; dledford@redhat.com
-> > > Cc: Parav Pandit <parav@mellanox.com>
-> > > Subject: [PATCHv1] RDMA/core: Check error status of
-> > > rdma_find_ndev_for_src_ip_rcu
-> > >
-> > > rdma_find_ndev_for_src_ip_rcu() returns either valid netdev pointer
-> > > or ERR_PTR().
-> > > Instead of checking for NULL, check for error.
-> > >
-> > > Fixes: caf1e3ae9fa6 ("RDMA/core Introduce and use
-> > > rdma_find_ndev_for_src_ip_rcu")
-> > > Reported-by: syzbot+20c32fa6ff84a2d28c36@syzkaller.appspotmail.com
-> > > Signed-off-by: Parav Pandit <parav@mellanox.com>
-> > > drivers/infiniband/core/addr.c | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/core/addr.c
-> > > b/drivers/infiniband/core/addr.c index c2ca9e4..3c07eeb 100644
-> > > +++ b/drivers/infiniband/core/addr.c
-> > > @@ -513,8 +513,8 @@ static int rdma_set_src_addr_rcu(struct
-> > > rdma_dev_addr *dev_addr,
-> > >  		 * loopback IP address.
-> > >  		 */
-> > >  		ndev =3D rdma_find_ndev_for_src_ip_rcu(dev_net(ndev),
-> > > dst_in);
-> > > -		if (!ndev)
-> > > -			return -ENODEV;
-> > > +		if (IS_ERR(ndev))
-> > > +			return PTR_ERR(ndev);
-> > >  	}
-> > >
-> > >  	return copy_src_l2_addr(dev_addr, dst_in, dst, ndev);
-> >
-> > Can you please review this fix?  I got below report from syzbot that
-> > it tested the patch and reproducer didn't trigger.
->=20
-> It is very strange, but this patch does not show up in rdma's patch works=
-.
->=20
-> This happened to Dennis as well for one patch, I'm afraid as a general ru=
-le,
-> people will need to check that patchworks has thier patches, and maybe ta=
-lk
-> to LF IT about why things have gone missing.
->=20
-> I would guess it is some spam filter issue?
-Not sure, may be something wrong in my mail client configuration.
-Most patches are through Leon so I will continue it that way for now.
+> > The benefits I see for this new file are that
+> > 
+> >    - pcie_bandwidth_available() does the work of traversing up the
+> >      tree, doing the computations (link width * speed, reduced by
+> >      encoding overhead), and finding the minimum, and
+> > 
+> >    - it re-traverses the path every time we look at it, while the
+> >      boot-time check is a one-time event.
+> > 
+> > In principle this could all be done in user space with the attributes
+> > that are already exported.  There's some precedent for things like
+> > this in lspci, e.g., "NUMA node" [1], and lspci might even be a more
+> > user-friendly place for users to look for this, as opposed to
+> > searching through sysfs.
+> 
+> Parsing the endpoint to root port bandwidth is, in principle, possible 
+> from userspace. It's just that in practice it's very clumsy to do, and, 
+> as you pointed out, not that reliable.
 
->=20
-> I have applied this patch from my email.
-Thanks a lot.
+I don't remember the reliability issue.  Was that in a previous
+conversation?  AFAICT, using current_link_speed and current_link_width
+should be as reliable as pcie_bandwidth_available() because they're
+both based on reading PCI_EXP_LNKSTA.
+
+This patch exposes only the available bandwidth, not the limiting
+device, link speed, or link width.  Maybe that extra information isn't
+important in this context.  Of course, it's easy to derive using
+current_link_speed and current_link_width, but if we do that, there's
+really no benefit to adding a new file.
+
+Linux doesn't really support Virtual Channels (VC) yet, and I don't
+know much about it, but it seems like Quality-of-Service features like
+VC could affect this idea of available bandwidth.
+
+Since we already expose the necessary information, and we might throw
+additional things like VC into the mix, I'm a little hesitant about
+adding things to sysfs because they're very difficult to change later.  
+
+> I understand it's not information that all users would jump in the air 
+> to know. However, it was important enough for certain use cases, that 
+> the kernel already has a very reliable way to calculate it.
+> 
+> It seems to me that the most elegant way is to let the kernel tell us, 
+> since the kernel already has this facility. To quote one of the texts 
+> under Documentation/, it is an elegant way to "avoid reinventing kernel 
+> wheels in userspace".
+> 
+> Alex
+> 
+> > [1] https://git.kernel.org/pub/scm/utils/pciutils/pciutils.git/commit/?id=90ec4a6d0ae8
+> > 
+> >>   static ssize_t secondary_bus_number_show(struct device *dev,
+> >>   					 struct device_attribute *attr,
+> >>   					 char *buf)
+> >> @@ -786,6 +798,7 @@ static struct attribute *pcie_dev_attrs[] = {
+> >>   	&dev_attr_current_link_width.attr,
+> >>   	&dev_attr_max_link_width.attr,
+> >>   	&dev_attr_max_link_speed.attr,
+> >> +	&dev_attr_available_bandwidth.attr,
+> >>   	NULL,
+> >>   };
+> >>   
+> >> -- 
+> >> 2.17.1
+> >>
+> > 
+> 
