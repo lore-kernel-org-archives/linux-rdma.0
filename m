@@ -1,8 +1,8 @@
 From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v9 08/13] IB/core: Ensure we map P2P memory correctly in
- rdma_rw_ctx_[init|destroy]()
-Date: Thu,  4 Oct 2018 15:27:42 -0600
-Message-ID: <20181004212747.6301-9-logang@deltatee.com>
+Subject: [PATCH v9 07/13] block: Add PCI P2P flag for request queue and check
+ support for requests
+Date: Thu,  4 Oct 2018 15:27:41 -0600
+Message-ID: <20181004212747.6301-8-logang@deltatee.com>
 References: <20181004212747.6301-1-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,55 +22,36 @@ To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY7
 Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to use PCI P2P memory the pci_p2pmem_map_sg() function must be
-called to map the correct PCI bus address.
-
-To do this, check the first page in the scatter list to see if it is P2P
-memory or not. At the moment, scatter lists that contain P2P memory must
-be homogeneous so if the first page is P2P the entire SGL should be P2P.
+QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+supports targeting P2P memory. This will be used by P2P providers and
+orchestrators (in subsequent patches) to ensure block devices can
+support P2P memory before submitting P2P backed pages to submit_bio().
 
 Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Reviewed-by: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Reviewed-by: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
 ---
- drivers/infiniband/core/rw.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/blkdev.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/infiniband/core/rw.c b/drivers/infiniband/core/rw.c
-index 683e6d11a564..d22c4a2ebac6 100644
---- a/drivers/infiniband/core/rw.c
-+++ b/drivers/infiniband/core/rw.c
-@@ -12,6 +12,7 @@
-  */
- #include <linux/moduleparam.h>
- #include <linux/slab.h>
-+#include <linux/pci-p2pdma.h>
- #include <rdma/mr_pool.h>
- #include <rdma/rw.h>
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 6980014357d4..87fb1963b721 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -699,6 +699,7 @@ struct request_queue {
+ #define QUEUE_FLAG_SCSI_PASSTHROUGH 27	/* queue supports SCSI commands */
+ #define QUEUE_FLAG_QUIESCED    28	/* queue has been quiesced */
+ #define QUEUE_FLAG_PREEMPT_ONLY	29	/* only process REQ_PREEMPT requests */
++#define QUEUE_FLAG_PCI_P2PDMA  30	/* device supports pci p2p requests */
  
-@@ -280,7 +281,11 @@ int rdma_rw_ctx_init(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 	struct ib_device *dev = qp->pd->device;
- 	int ret;
+ #define QUEUE_FLAG_DEFAULT	((1 << QUEUE_FLAG_IO_STAT) |		\
+ 				 (1 << QUEUE_FLAG_SAME_COMP)	|	\
+@@ -731,6 +732,8 @@ bool blk_queue_flag_test_and_clear(unsigned int flag, struct request_queue *q);
+ #define blk_queue_dax(q)	test_bit(QUEUE_FLAG_DAX, &(q)->queue_flags)
+ #define blk_queue_scsi_passthrough(q)	\
+ 	test_bit(QUEUE_FLAG_SCSI_PASSTHROUGH, &(q)->queue_flags)
++#define blk_queue_pci_p2pdma(q)	\
++	test_bit(QUEUE_FLAG_PCI_P2PDMA, &(q)->queue_flags)
  
--	ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+	if (is_pci_p2pdma_page(sg_page(sg)))
-+		ret = pci_p2pdma_map_sg(dev->dma_device, sg, sg_cnt, dir);
-+	else
-+		ret = ib_dma_map_sg(dev, sg, sg_cnt, dir);
-+
- 	if (!ret)
- 		return -ENOMEM;
- 	sg_cnt = ret;
-@@ -602,7 +607,9 @@ void rdma_rw_ctx_destroy(struct rdma_rw_ctx *ctx, struct ib_qp *qp, u8 port_num,
- 		break;
- 	}
- 
--	ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
-+	/* P2PDMA contexts do not need to be unmapped */
-+	if (!is_pci_p2pdma_page(sg_page(sg)))
-+		ib_dma_unmap_sg(qp->pd->device, sg, sg_cnt, dir);
- }
- EXPORT_SYMBOL(rdma_rw_ctx_destroy);
- 
+ #define blk_noretry_request(rq) \
+ 	((rq)->cmd_flags & (REQ_FAILFAST_DEV|REQ_FAILFAST_TRANSPORT| \
 -- 
 2.19.0
