@@ -1,92 +1,103 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v9 05/13] docs-rst: Add a new directory for PCI documentation
-Date: Thu,  4 Oct 2018 15:27:39 -0600
-Message-ID: <20181004212747.6301-6-logang@deltatee.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Subject: [PATCH v9 10/13] nvme-pci: Add support for P2P memory in requests
+Date: Thu,  4 Oct 2018 15:27:44 -0600
+Message-ID: <20181004212747.6301-11-logang@deltatee.com>
 References: <20181004212747.6301-1-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181004212747.6301-1-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sagar Dharia <sdharia-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Sanyog Kale <sanyog.r.kale-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181004212747.6301-1-logang@deltatee.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org
+Cc: Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jens Axboe <axboe@kernel.dk>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a new directory in the driver API guide for PCI specific
-documentation.
+For P2P requests, we must use the pci_p2pmem_map_sg() function
+instead of the dma_map_sg functions.
 
-This is in preparation for adding a new PCI P2P DMA driver writers
-guide which will go in this directory.
+With that, we can then indicate PCI_P2P support in the request queue.
+For this, we create an NVME_F_PCI_P2P flag which tells the core to
+set QUEUE_FLAG_PCI_P2P in the request queue.
 
-Signed-off-by: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>
-Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Thierry Reding <treding-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Sanyog Kale <sanyog.r.kale-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sagar Dharia <sdharia-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Keith Busch <keith.busch@intel.com>
 ---
- Documentation/driver-api/index.rst         |  2 +-
- Documentation/driver-api/pci/index.rst     | 20 ++++++++++++++++++++
- Documentation/driver-api/{ => pci}/pci.rst |  0
- 3 files changed, 21 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/driver-api/pci/index.rst
- rename Documentation/driver-api/{ => pci}/pci.rst (100%)
+ drivers/nvme/host/core.c |  4 ++++
+ drivers/nvme/host/nvme.h |  1 +
+ drivers/nvme/host/pci.c  | 17 +++++++++++++----
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/driver-api/index.rst b/Documentation/driver-api/index.rst
-index 6d9f2f9fe20e..e9e7d24169cf 100644
---- a/Documentation/driver-api/index.rst
-+++ b/Documentation/driver-api/index.rst
-@@ -29,7 +29,7 @@ available subsections can be seen below.
-    iio/index
-    input
-    usb/index
--   pci
-+   pci/index
-    spi
-    i2c
-    hsi
-diff --git a/Documentation/driver-api/pci/index.rst b/Documentation/driver-api/pci/index.rst
-new file mode 100644
-index 000000000000..eaf20b24bf7d
---- /dev/null
-+++ b/Documentation/driver-api/pci/index.rst
-@@ -0,0 +1,20 @@
-+.. SPDX-License-Identifier: GPL-2.0
-+============================================
-+The Linux PCI driver implementer's API guide
-+============================================
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index dd8ec1dd9219..6033ce2fd3e9 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -3051,7 +3051,11 @@ static void nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
+ 	ns->queue = blk_mq_init_queue(ctrl->tagset);
+ 	if (IS_ERR(ns->queue))
+ 		goto out_free_ns;
 +
-+.. class:: toc-title
+ 	blk_queue_flag_set(QUEUE_FLAG_NONROT, ns->queue);
++	if (ctrl->ops->flags & NVME_F_PCI_P2PDMA)
++		blk_queue_flag_set(QUEUE_FLAG_PCI_P2PDMA, ns->queue);
 +
-+	   Table of contents
+ 	ns->queue->queuedata = ns;
+ 	ns->ctrl = ctrl;
+ 
+diff --git a/drivers/nvme/host/nvme.h b/drivers/nvme/host/nvme.h
+index bb4a2003c097..4030743c90aa 100644
+--- a/drivers/nvme/host/nvme.h
++++ b/drivers/nvme/host/nvme.h
+@@ -343,6 +343,7 @@ struct nvme_ctrl_ops {
+ 	unsigned int flags;
+ #define NVME_F_FABRICS			(1 << 0)
+ #define NVME_F_METADATA_SUPPORTED	(1 << 1)
++#define NVME_F_PCI_P2PDMA		(1 << 2)
+ 	int (*reg_read32)(struct nvme_ctrl *ctrl, u32 off, u32 *val);
+ 	int (*reg_write32)(struct nvme_ctrl *ctrl, u32 off, u32 val);
+ 	int (*reg_read64)(struct nvme_ctrl *ctrl, u32 off, u64 *val);
+diff --git a/drivers/nvme/host/pci.c b/drivers/nvme/host/pci.c
+index f434706a04e8..0d6c41bc2b35 100644
+--- a/drivers/nvme/host/pci.c
++++ b/drivers/nvme/host/pci.c
+@@ -745,8 +745,13 @@ static blk_status_t nvme_map_data(struct nvme_dev *dev, struct request *req,
+ 		goto out;
+ 
+ 	ret = BLK_STS_RESOURCE;
+-	nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents, dma_dir,
+-			DMA_ATTR_NO_WARN);
 +
-+.. toctree::
-+   :maxdepth: 2
++	if (is_pci_p2pdma_page(sg_page(iod->sg)))
++		nr_mapped = pci_p2pdma_map_sg(dev->dev, iod->sg, iod->nents,
++					  dma_dir);
++	else
++		nr_mapped = dma_map_sg_attrs(dev->dev, iod->sg, iod->nents,
++					     dma_dir,  DMA_ATTR_NO_WARN);
+ 	if (!nr_mapped)
+ 		goto out;
+ 
+@@ -788,7 +793,10 @@ static void nvme_unmap_data(struct nvme_dev *dev, struct request *req)
+ 			DMA_TO_DEVICE : DMA_FROM_DEVICE;
+ 
+ 	if (iod->nents) {
+-		dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
++		/* P2PDMA requests do not need to be unmapped */
++		if (!is_pci_p2pdma_page(sg_page(iod->sg)))
++			dma_unmap_sg(dev->dev, iod->sg, iod->nents, dma_dir);
 +
-+   pci
-+
-+.. only::  subproject and html
-+
-+   Indices
-+   =======
-+
-+   * :ref:`genindex`
-diff --git a/Documentation/driver-api/pci.rst b/Documentation/driver-api/pci/pci.rst
-similarity index 100%
-rename from Documentation/driver-api/pci.rst
-rename to Documentation/driver-api/pci/pci.rst
+ 		if (blk_integrity_rq(req))
+ 			dma_unmap_sg(dev->dev, &iod->meta_sg, 1, dma_dir);
+ 	}
+@@ -2400,7 +2408,8 @@ static int nvme_pci_get_address(struct nvme_ctrl *ctrl, char *buf, int size)
+ static const struct nvme_ctrl_ops nvme_pci_ctrl_ops = {
+ 	.name			= "pcie",
+ 	.module			= THIS_MODULE,
+-	.flags			= NVME_F_METADATA_SUPPORTED,
++	.flags			= NVME_F_METADATA_SUPPORTED |
++				  NVME_F_PCI_P2PDMA,
+ 	.reg_read32		= nvme_pci_reg_read32,
+ 	.reg_write32		= nvme_pci_reg_write32,
+ 	.reg_read64		= nvme_pci_reg_read64,
 -- 
 2.19.0
