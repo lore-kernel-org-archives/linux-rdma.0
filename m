@@ -1,63 +1,92 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v9 13/13] nvmet: Optionally use PCI P2P memory
-Date: Thu, 4 Oct 2018 16:29:19 -0600
-Message-ID: <2bcc0927-83ab-1bf2-d584-aebd5274cefa@deltatee.com>
-References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-14-logang@deltatee.com>
- <a3af4bda-0b73-c964-c7d6-5d59f0710768@grimberg.me>
+From: john.hubbard@gmail.com
+Subject: [PATCH v2 0/3] get_user_pages*() and RDMA: first steps
+Date: Thu,  4 Oct 2018 21:02:22 -0700
+Message-ID: <20181005040225.14292-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <a3af4bda-0b73-c964-c7d6-5d59f0710768-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Content-Language: en-CA
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: John Hubbard <jhubbard@nvidia.com>
 
+Changes since v1:
 
-On 2018-10-04 4:20 p.m., Sagi Grimberg wrote:
->> +static inline struct device *nvmet_ns_dev(struct nvmet_ns *ns)
->> +{
->> +	return disk_to_dev(ns->bdev->bd_disk);
->> +}
-> 
-> This needs to handle non bdev namespaces.
+-- Renamed release_user_pages*() to put_user_pages*(), from Jan's feedback.
 
-As it's coded now the helper never gets called unless ns->bdev is not
-null. But in general, yes you are right, we should probably return NULL
-if ns->bdev is NULL.
+-- Removed the goldfish.c changes, and instead, only included a single
+   user (infiniband) of the new functions. That is because goldfish.c no
+   longer has a name collision (it has a release_user_pages() routine), and
+   also because infiniband exercises both the put_user_page() and
+   put_user_pages*() paths.
 
-> And this?
-> --
-> diff --git a/drivers/nvme/target/fc.c b/drivers/nvme/target/fc.c
-> index ef286b72d958..3d12f5f4568d 100644
-> --- a/drivers/nvme/target/fc.c
-> +++ b/drivers/nvme/target/fc.c
-> @@ -2280,6 +2280,7 @@ nvmet_fc_handle_fcp_rqst(struct nvmet_fc_tgtport 
-> *tgtport,
->          fod->req.cmd = &fod->cmdiubuf.sqe;
->          fod->req.rsp = &fod->rspiubuf.cqe;
->          fod->req.port = tgtport->pe->port;
-> +       fod->req.p2p_client = tgtport->dev;
-> 
->          /* clear any response payload */
->          memset(&fod->rspiubuf, 0, sizeof(fod->rspiubuf));
-> --
+-- Updated links to discussions and plans, so as to be sure to include
+   bounce buffers, thanks to Jerome's feedback.
 
-Sure, I guess that makes sense. I've never tried it with fc hardware but
-I assume there's no reason it wouldn't work.
+Also:
 
-I'll queue these changes up for a v10.
+-- Dennis, thanks for your earlier review, and I have not yet added your
+   Reviewed-by tag, because this revision changes the things that you had
+   previously reviewed, thus potentially requiring another look.
 
-Logan
+This short series prepares for eventually fixing the problem described
+in [1], and is following a plan listed in [2], [3], [4].
+
+I'd like to get the first two patches into the -mm tree.
+
+Patch 1, although not technically critical to do now, is still nice to
+have, because it's already been reviewed by Jan, and it's just one more
+thing on the long TODO list here, that is ready to be checked off.
+
+Patch 2 is required in order to allow me (and others, if I'm lucky) to
+start submitting changes to convert all of the callsites of
+get_user_pages*() and put_page().  I think this will work a lot better
+than trying to maintain a massive patchset and submitting all at once.
+
+Patch 3 converts infiniband drivers: put_page() --> put_user_page(), and
+also exercises put_user_pages_dirty_locked().
+
+Once these are all in, then the floodgates can open up to convert the large
+number of get_user_pages*() callsites.
+
+[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+
+[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+    Proposed steps for fixing get_user_pages() + DMA problems.
+
+[3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+    Bounce buffers (otherwise [2] is not really viable).
+
+[4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
+    Follow-up discussions.
+
+CC: Matthew Wilcox <willy@infradead.org>
+CC: Michal Hocko <mhocko@kernel.org>
+CC: Christopher Lameter <cl@linux.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Jan Kara <jack@suse.cz>
+CC: Al Viro <viro@zeniv.linux.org.uk>
+CC: Jerome Glisse <jglisse@redhat.com>
+CC: Christoph Hellwig <hch@infradead.org>
+
+John Hubbard (3):
+  mm: get_user_pages: consolidate error handling
+  mm: introduce put_user_page[s](), placeholder versions
+  infiniband/mm: convert to the new put_user_page[s]() calls
+
+ drivers/infiniband/core/umem.c              |  2 +-
+ drivers/infiniband/core/umem_odp.c          |  2 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++----
+ drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +--
+ drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++----
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++--
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |  2 +-
+ include/linux/mm.h                          | 42 ++++++++++++++++++++-
+ mm/gup.c                                    | 37 ++++++++++--------
+ 9 files changed, 80 insertions(+), 41 deletions(-)
+
+-- 
+2.19.0
