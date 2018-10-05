@@ -1,66 +1,94 @@
-From: Sagi Grimberg <sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org>
-Subject: Re: [PATCH v9 13/13] nvmet: Optionally use PCI P2P memory
-Date: Fri, 5 Oct 2018 00:34:06 -0700
-Message-ID: <236ae882-34e0-50d8-ac19-ee5dab8db3f2@grimberg.me>
-References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-14-logang@deltatee.com>
- <a3af4bda-0b73-c964-c7d6-5d59f0710768@grimberg.me>
- <2bcc0927-83ab-1bf2-d584-aebd5274cefa@deltatee.com>
- <20181005070720.GA23725@lst.de>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v2 2/3] mm: introduce put_user_page[s](), placeholder
+ versions
+Date: Fri, 5 Oct 2018 09:17:26 -0600
+Message-ID: <20181005151726.GA20776@ziepe.ca>
+References: <20181005040225.14292-1-jhubbard@nvidia.com>
+ <20181005040225.14292-3-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181005070720.GA23725-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181005040225.14292-3-jhubbard@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
->>>> +static inline struct device *nvmet_ns_dev(struct nvmet_ns *ns)
->>>> +{
->>>> +	return disk_to_dev(ns->bdev->bd_disk);
->>>> +}
->>>
->>> This needs to handle non bdev namespaces.
->>
->> As it's coded now the helper never gets called unless ns->bdev is not
->> null. But in general, yes you are right, we should probably return NULL
->> if ns->bdev is NULL.
+On Thu, Oct 04, 2018 at 09:02:24PM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
 > 
-> I'd rather skip that for now.
-
-If there is a v10 I don't see why that cannot be addressed.
-
->>> index ef286b72d958..3d12f5f4568d 100644
->>> --- a/drivers/nvme/target/fc.c
->>> +++ b/drivers/nvme/target/fc.c
->>> @@ -2280,6 +2280,7 @@ nvmet_fc_handle_fcp_rqst(struct nvmet_fc_tgtport
->>> *tgtport,
->>>           fod->req.cmd = &fod->cmdiubuf.sqe;
->>>           fod->req.rsp = &fod->rspiubuf.cqe;
->>>           fod->req.port = tgtport->pe->port;
->>> +       fod->req.p2p_client = tgtport->dev;
->>>
->>>           /* clear any response payload */
->>>           memset(&fod->rspiubuf, 0, sizeof(fod->rspiubuf));
->>> --
->>
->> Sure, I guess that makes sense. I've never tried it with fc hardware but
->> I assume there's no reason it wouldn't work.
->>
->> I'll queue these changes up for a v10.
+> Introduces put_user_page(), which simply calls put_page().
+> This provides a way to update all get_user_pages*() callers,
+> so that they call put_user_page(), instead of put_page().
 > 
-> And I'd wait until someone has actually tested this case.
+> Also introduces put_user_pages(), and a few dirty/locked variations,
+> as a replacement for release_pages(), for the same reasons.
+> These may be used for subsequent performance improvements,
+> via batching of pages to be released.
+> 
+> This prepares for eventually fixing the problem described
+> in [1], and is following a plan listed in [2], [3], [4].
+> 
+> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+> 
+> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>     Proposed steps for fixing get_user_pages() + DMA problems.
+> 
+> [3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+>     Bounce buffers (otherwise [2] is not really viable).
+> 
+> [4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
+>     Follow-up discussions.
+> 
+> CC: Matthew Wilcox <willy@infradead.org>
+> CC: Michal Hocko <mhocko@kernel.org>
+> CC: Christopher Lameter <cl@linux.com>
+> CC: Jason Gunthorpe <jgg@ziepe.ca>
+> CC: Dan Williams <dan.j.williams@intel.com>
+> CC: Jan Kara <jack@suse.cz>
+> CC: Al Viro <viro@zeniv.linux.org.uk>
+> CC: Jerome Glisse <jglisse@redhat.com>
+> CC: Christoph Hellwig <hch@infradead.org>
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+>  include/linux/mm.h | 42 ++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 40 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index a61ebe8ad4ca..1a9aae7c659f 100644
+> +++ b/include/linux/mm.h
+> @@ -137,6 +137,8 @@ extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
+>  				    size_t *, loff_t *);
+>  extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
+>  				    size_t *, loff_t *);
+> +int set_page_dirty(struct page *page);
+> +int set_page_dirty_lock(struct page *page);
+>  
+>  #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+>  
+> @@ -943,6 +945,44 @@ static inline void put_page(struct page *page)
+>  		__put_page(page);
+>  }
+>  
+> +/* Placeholder version, until all get_user_pages*() callers are updated. */
+> +static inline void put_user_page(struct page *page)
+> +{
+> +	put_page(page);
+> +}
+> +
+> +/* For get_user_pages*()-pinned pages, use these variants instead of
+> + * release_pages():
+> + */
+> +static inline void put_user_pages_dirty(struct page **pages,
+> +					unsigned long npages)
+> +{
+> +	while (npages) {
+> +		set_page_dirty(pages[npages]);
+> +		put_user_page(pages[npages]);
+> +		--npages;
+> +	}
+> +}
 
-Oh yes, agreed. Should work though...
+Shouldn't these do the !PageDirty(page) thing?
+
+Jason
