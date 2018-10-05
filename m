@@ -1,56 +1,82 @@
-From: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v9 13/13] nvmet: Optionally use PCI P2P memory
-Date: Fri, 5 Oct 2018 09:42:05 -0600
-Message-ID: <298e6e20-c8b6-de4b-46f5-94d1d3e2445c@deltatee.com>
-References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-14-logang@deltatee.com>
- <a3af4bda-0b73-c964-c7d6-5d59f0710768@grimberg.me>
- <2bcc0927-83ab-1bf2-d584-aebd5274cefa@deltatee.com>
- <20181005070720.GA23725@lst.de>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 2/3] mm: introduce put_user_page[s](), placeholder
+ versions
+Date: Fri, 5 Oct 2018 12:49:06 -0700
+Message-ID: <c6f31004-3a67-880b-47bb-b560dfd85343@nvidia.com>
+References: <20181005040225.14292-1-jhubbard@nvidia.com>
+ <20181005040225.14292-3-jhubbard@nvidia.com>
+ <20181005151726.GA20776@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181005070720.GA23725-jcswGhMUV9g@public.gmane.org>
-Content-Language: en-CA
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181005151726.GA20776@ziepe.ca>
+Content-Language: en-US-large
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2018-10-05 1:07 a.m., Christoph Hellwig wrote:
-> On Thu, Oct 04, 2018 at 04:29:19PM -0600, Logan Gunthorpe wrote:
->>> This needs to handle non bdev namespaces.
+On 10/5/18 8:17 AM, Jason Gunthorpe wrote:
+> On Thu, Oct 04, 2018 at 09:02:24PM -0700, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
 >>
->> As it's coded now the helper never gets called unless ns->bdev is not
->> null. But in general, yes you are right, we should probably return NULL
->> if ns->bdev is NULL.
-> 
-> I'd rather skip that for now.
-
-Ok, if I do a v10 I'll add it but I don't have anything else queued up
-at the moment.
-
-
->> Sure, I guess that makes sense. I've never tried it with fc hardware but
->> I assume there's no reason it wouldn't work.
+>> Introduces put_user_page(), which simply calls put_page().
+>> This provides a way to update all get_user_pages*() callers,
+>> so that they call put_user_page(), instead of put_page().
 >>
->> I'll queue these changes up for a v10.
+>> Also introduces put_user_pages(), and a few dirty/locked variations,
+>> as a replacement for release_pages(), for the same reasons.
+>> These may be used for subsequent performance improvements,
+>> via batching of pages to be released.
+>>
+>> This prepares for eventually fixing the problem described
+>> in [1], and is following a plan listed in [2], [3], [4].
+>>
+>> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+>>
+>> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>>     Proposed steps for fixing get_user_pages() + DMA problems.
+>>
+>> [3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+>>     Bounce buffers (otherwise [2] is not really viable).
+>>
+>> [4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
+>>     Follow-up discussions.
+>>
+[...]
+>>  
+>> +/* Placeholder version, until all get_user_pages*() callers are updated. */
+>> +static inline void put_user_page(struct page *page)
+>> +{
+>> +	put_page(page);
+>> +}
+>> +
+>> +/* For get_user_pages*()-pinned pages, use these variants instead of
+>> + * release_pages():
+>> + */
+>> +static inline void put_user_pages_dirty(struct page **pages,
+>> +					unsigned long npages)
+>> +{
+>> +	while (npages) {
+>> +		set_page_dirty(pages[npages]);
+>> +		put_user_page(pages[npages]);
+>> +		--npages;
+>> +	}
+>> +}
 > 
-> And I'd wait until someone has actually tested this case.
+> Shouldn't these do the !PageDirty(page) thing?
+> 
 
-Agreed.
+Well, not yet. This is the "placeholder" patch, in which I planned to keep
+the behavior the same, while I go to all the get_user_pages call sites and change 
+put_page() and release_pages() over to use these new routines.
 
-Thanks for the review!
+After the call sites are changed, then these routines will be updated to do more.
+[2], above has slightly more detail about that.
 
-Logan
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
