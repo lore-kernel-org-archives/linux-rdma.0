@@ -1,16 +1,16 @@
 From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH v9 03/13] PCI/P2PDMA: Add PCI p2pmem DMA mappings to
- adjust the bus offset
-Date: Fri, 5 Oct 2018 09:08:30 +0200
-Message-ID: <20181005070830.GB23761@lst.de>
+Subject: Re: [PATCH v9 04/13] PCI/P2PDMA: Introduce configfs/sysfs enable
+ attribute helpers
+Date: Fri, 5 Oct 2018 09:08:54 +0200
+Message-ID: <20181005070854.GC23761@lst.de>
 References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-4-logang@deltatee.com>
+ <20181004212747.6301-5-logang@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20181004212747.6301-4-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20181004212747.6301-5-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
