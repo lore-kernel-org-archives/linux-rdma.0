@@ -1,10 +1,12 @@
 From: john.hubbard@gmail.com
-Subject: [PATCH v3 0/3] get_user_pages*() and RDMA: first steps
-Date: Fri,  5 Oct 2018 19:49:46 -0700
-Message-ID: <20181006024949.20691-1-jhubbard@nvidia.com>
+Subject: [PATCH v3 2/3] mm: introduce put_user_page*(), placeholder versions
+Date: Fri,  5 Oct 2018 19:49:48 -0700
+Message-ID: <20181006024949.20691-3-jhubbard@nvidia.com>
+References: <20181006024949.20691-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181006024949.20691-1-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
 Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
@@ -12,51 +14,18 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-Changes since v2:
+Introduces put_user_page(), which simply calls put_page().
+This provides a way to update all get_user_pages*() callers,
+so that they call put_user_page(), instead of put_page().
 
--- Absorbed more dirty page handling logic into the put_user_page*(), and
-   handled some page releasing loops in infiniband more thoroughly, as per
-   Jason Gunthorpe's feedback.
+Also introduces put_user_pages(), and a few dirty/locked variations,
+as a replacement for release_pages(), and also as a replacement
+for open-coded loops that release multiple pages.
+These may be used for subsequent performance improvements,
+via batching of pages to be released.
 
--- Fixed a bug in the put_user_pages*() routines' loops (thanks to
-   Ralph Campbell for spotting it).
-
-Changes since v1:
-
--- Renamed release_user_pages*() to put_user_pages*(), from Jan's feedback.
-
--- Removed the goldfish.c changes, and instead, only included a single
-   user (infiniband) of the new functions. That is because goldfish.c no
-   longer has a name collision (it has a release_user_pages() routine), and
-   also because infiniband exercises both the put_user_page() and
-   put_user_pages*() paths.
-
--- Updated links to discussions and plans, so as to be sure to include
-   bounce buffers, thanks to Jerome's feedback.
-
-Also:
-
--- Dennis, thanks for your earlier review, and I have not yet added your
-   Reviewed-by tag, because this revision changes the things that you had
-   previously reviewed, thus potentially requiring another look.
-
-This short series prepares for eventually fixing the problem described
+This prepares for eventually fixing the problem described
 in [1], and is following a plan listed in [2], [3], [4].
-
-Patch 1, although not technically critical to do now, is still nice to
-have, because it's already been reviewed by Jan, and it's just one more
-thing on the long TODO list here, that is ready to be checked off.
-
-Patch 2 is required in order to allow me (and others, if I'm lucky) to
-start submitting changes to convert all of the callsites of
-get_user_pages*() and put_page().  I think this will work a lot better
-than trying to maintain a massive patchset and submitting all at once.
-
-Patch 3 converts infiniband drivers: put_page() --> put_user_page(), and
-also exercises put_user_pages_dirty_locked().
-
-Once these are all in, then the floodgates can open up to convert the large
-number of get_user_pages*() callsites.
 
 [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
 
@@ -79,22 +48,83 @@ CC: Al Viro <viro@zeniv.linux.org.uk>
 CC: Jerome Glisse <jglisse@redhat.com>
 CC: Christoph Hellwig <hch@infradead.org>
 CC: Ralph Campbell <rcampbell@nvidia.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ include/linux/mm.h | 48 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 46 insertions(+), 2 deletions(-)
 
-John Hubbard (3):
-  mm: get_user_pages: consolidate error handling
-  mm: introduce put_user_page*(), placeholder versions
-  infiniband/mm: convert put_page() to put_user_page*()
-
- drivers/infiniband/core/umem.c              |  7 +--
- drivers/infiniband/core/umem_odp.c          |  2 +-
- drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++---
- drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +--
- drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++---
- drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++--
- drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 +--
- include/linux/mm.h                          | 48 ++++++++++++++++++++-
- mm/gup.c                                    | 37 +++++++++-------
- 9 files changed, 92 insertions(+), 45 deletions(-)
-
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0416a7204be3..305b206e6851 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -137,6 +137,8 @@ extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
+ 				    size_t *, loff_t *);
+ extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
+ 				    size_t *, loff_t *);
++int set_page_dirty(struct page *page);
++int set_page_dirty_lock(struct page *page);
+ 
+ #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+ 
+@@ -943,6 +945,50 @@ static inline void put_page(struct page *page)
+ 		__put_page(page);
+ }
+ 
++/* Pages that were pinned via get_user_pages*() should be released via
++ * either put_user_page(), or one of the put_user_pages*() routines
++ * below.
++ */
++static inline void put_user_page(struct page *page)
++{
++	put_page(page);
++}
++
++static inline void put_user_pages_dirty(struct page **pages,
++					unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++) {
++		if (!PageDirty(pages[index]))
++			set_page_dirty(pages[index]);
++
++		put_user_page(pages[index]);
++	}
++}
++
++static inline void put_user_pages_dirty_lock(struct page **pages,
++					     unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++) {
++		if (!PageDirty(pages[index]))
++			set_page_dirty_lock(pages[index]);
++
++		put_user_page(pages[index]);
++	}
++}
++
++static inline void put_user_pages(struct page **pages,
++				  unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++)
++		put_user_page(pages[index]);
++}
++
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
+@@ -1534,8 +1580,6 @@ int redirty_page_for_writepage(struct writeback_control *wbc,
+ void account_page_dirtied(struct page *page, struct address_space *mapping);
+ void account_page_cleaned(struct page *page, struct address_space *mapping,
+ 			  struct bdi_writeback *wb);
+-int set_page_dirty(struct page *page);
+-int set_page_dirty_lock(struct page *page);
+ void __cancel_dirty_page(struct page *page);
+ static inline void cancel_dirty_page(struct page *page)
+ {
 -- 
 2.19.0
