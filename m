@@ -1,130 +1,57 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH v3 2/3] mm: introduce put_user_page*(), placeholder versions
-Date: Fri,  5 Oct 2018 19:49:48 -0700
-Message-ID: <20181006024949.20691-3-jhubbard@nvidia.com>
-References: <20181006024949.20691-1-jhubbard@nvidia.com>
+From: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
+ generic_compat_ioctl_ptrarg
+Date: Sat, 6 Oct 2018 00:05:21 -0700
+Message-ID: <20181006070521.GM12063@builder>
+References: <20180912150142.157913-1-arnd@arndb.de>
+ <20180912151134.436719-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181006024949.20691-1-jhubbard@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180912151134.436719-1-arnd-r2nGTMty4D4@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+On Wed 12 Sep 08:08 PDT 2018, Arnd Bergmann wrote:
 
-Introduces put_user_page(), which simply calls put_page().
-This provides a way to update all get_user_pages*() callers,
-so that they call put_user_page(), instead of put_page().
+[..]
+> diff --git a/drivers/rpmsg/rpmsg_char.c b/drivers/rpmsg/rpmsg_char.c
+> index a76b963a7e50..02aefb2b2d47 100644
+> --- a/drivers/rpmsg/rpmsg_char.c
+> +++ b/drivers/rpmsg/rpmsg_char.c
+> @@ -285,7 +285,7 @@ static const struct file_operations rpmsg_eptdev_fops = {
+>  	.write = rpmsg_eptdev_write,
+>  	.poll = rpmsg_eptdev_poll,
+>  	.unlocked_ioctl = rpmsg_eptdev_ioctl,
+> -	.compat_ioctl = rpmsg_eptdev_ioctl,
+> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
+>  };
+>  
+>  static ssize_t name_show(struct device *dev, struct device_attribute *attr,
+> @@ -446,7 +446,7 @@ static const struct file_operations rpmsg_ctrldev_fops = {
+>  	.open = rpmsg_ctrldev_open,
+>  	.release = rpmsg_ctrldev_release,
+>  	.unlocked_ioctl = rpmsg_ctrldev_ioctl,
+> -	.compat_ioctl = rpmsg_ctrldev_ioctl,
+> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
+>  };
+>  
 
-Also introduces put_user_pages(), and a few dirty/locked variations,
-as a replacement for release_pages(), and also as a replacement
-for open-coded loops that release multiple pages.
-These may be used for subsequent performance improvements,
-via batching of pages to be released.
+For rpmsg part
 
-This prepares for eventually fixing the problem described
-in [1], and is following a plan listed in [2], [3], [4].
+Acked-by: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
-[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-
-[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
-    Proposed steps for fixing get_user_pages() + DMA problems.
-
-[3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
-    Bounce buffers (otherwise [2] is not really viable).
-
-[4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
-    Follow-up discussions.
-
-CC: Matthew Wilcox <willy@infradead.org>
-CC: Michal Hocko <mhocko@kernel.org>
-CC: Christopher Lameter <cl@linux.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Dan Williams <dan.j.williams@intel.com>
-CC: Jan Kara <jack@suse.cz>
-CC: Al Viro <viro@zeniv.linux.org.uk>
-CC: Jerome Glisse <jglisse@redhat.com>
-CC: Christoph Hellwig <hch@infradead.org>
-CC: Ralph Campbell <rcampbell@nvidia.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- include/linux/mm.h | 48 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 46 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 0416a7204be3..305b206e6851 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -137,6 +137,8 @@ extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
- 				    size_t *, loff_t *);
- extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
- 				    size_t *, loff_t *);
-+int set_page_dirty(struct page *page);
-+int set_page_dirty_lock(struct page *page);
- 
- #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
- 
-@@ -943,6 +945,50 @@ static inline void put_page(struct page *page)
- 		__put_page(page);
- }
- 
-+/* Pages that were pinned via get_user_pages*() should be released via
-+ * either put_user_page(), or one of the put_user_pages*() routines
-+ * below.
-+ */
-+static inline void put_user_page(struct page *page)
-+{
-+	put_page(page);
-+}
-+
-+static inline void put_user_pages_dirty(struct page **pages,
-+					unsigned long npages)
-+{
-+	unsigned long index;
-+
-+	for (index = 0; index < npages; index++) {
-+		if (!PageDirty(pages[index]))
-+			set_page_dirty(pages[index]);
-+
-+		put_user_page(pages[index]);
-+	}
-+}
-+
-+static inline void put_user_pages_dirty_lock(struct page **pages,
-+					     unsigned long npages)
-+{
-+	unsigned long index;
-+
-+	for (index = 0; index < npages; index++) {
-+		if (!PageDirty(pages[index]))
-+			set_page_dirty_lock(pages[index]);
-+
-+		put_user_page(pages[index]);
-+	}
-+}
-+
-+static inline void put_user_pages(struct page **pages,
-+				  unsigned long npages)
-+{
-+	unsigned long index;
-+
-+	for (index = 0; index < npages; index++)
-+		put_user_page(pages[index]);
-+}
-+
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
- #endif
-@@ -1534,8 +1580,6 @@ int redirty_page_for_writepage(struct writeback_control *wbc,
- void account_page_dirtied(struct page *page, struct address_space *mapping);
- void account_page_cleaned(struct page *page, struct address_space *mapping,
- 			  struct bdi_writeback *wb);
--int set_page_dirty(struct page *page);
--int set_page_dirty_lock(struct page *page);
- void __cancel_dirty_page(struct page *page);
- static inline void cancel_dirty_page(struct page *page)
- {
--- 
-2.19.0
+Regards,
+Bjorn
