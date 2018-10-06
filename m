@@ -1,94 +1,38 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2 2/3] mm: introduce put_user_page[s](), placeholder
- versions
-Date: Fri, 5 Oct 2018 17:03:06 -0700
-Message-ID: <25021511-04f8-7b6a-6b15-2c95a3a01745@nvidia.com>
-References: <20181005040225.14292-1-jhubbard@nvidia.com>
- <20181005040225.14292-3-jhubbard@nvidia.com>
- <20181005151726.GA20776@ziepe.ca>
- <c6f31004-3a67-880b-47bb-b560dfd85343@nvidia.com>
- <20181005214826.GD20776@ziepe.ca>
+From: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
+Subject: Re: [PATCH v9 07/13] block: Add PCI P2P flag for request queue and
+ check support for requests
+Date: Fri, 5 Oct 2018 19:16:04 -0600
+Message-ID: <485de371-0e84-6f20-7f3b-cec5635b87fe@kernel.dk>
+References: <20181004212747.6301-1-logang@deltatee.com>
+ <20181004212747.6301-8-logang@deltatee.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181005214826.GD20776@ziepe.ca>
-Content-Language: en-US-large
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20181004212747.6301-8-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/5/18 2:48 PM, Jason Gunthorpe wrote:
-> On Fri, Oct 05, 2018 at 12:49:06PM -0700, John Hubbard wrote:
->> On 10/5/18 8:17 AM, Jason Gunthorpe wrote:
->>> On Thu, Oct 04, 2018 at 09:02:24PM -0700, john.hubbard@gmail.com wrote:
->>>> From: John Hubbard <jhubbard@nvidia.com>
->>>>
->>>> Introduces put_user_page(), which simply calls put_page().
->>>> This provides a way to update all get_user_pages*() callers,
->>>> so that they call put_user_page(), instead of put_page().
->>>>
->>>> Also introduces put_user_pages(), and a few dirty/locked variations,
->>>> as a replacement for release_pages(), for the same reasons.
->>>> These may be used for subsequent performance improvements,
->>>> via batching of pages to be released.
->>>>
->>>> This prepares for eventually fixing the problem described
->>>> in [1], and is following a plan listed in [2], [3], [4].
->>>>
->>>> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
->>>>
->>>> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
->>>>     Proposed steps for fixing get_user_pages() + DMA problems.
->>>>
->>>> [3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
->>>>     Bounce buffers (otherwise [2] is not really viable).
->>>>
->>>> [4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
->>>>     Follow-up discussions.
->>>>
->> [...]
->>>>  
->>>> +/* Placeholder version, until all get_user_pages*() callers are updated. */
->>>> +static inline void put_user_page(struct page *page)
->>>> +{
->>>> +	put_page(page);
->>>> +}
->>>> +
->>>> +/* For get_user_pages*()-pinned pages, use these variants instead of
->>>> + * release_pages():
->>>> + */
->>>> +static inline void put_user_pages_dirty(struct page **pages,
->>>> +					unsigned long npages)
->>>> +{
->>>> +	while (npages) {
->>>> +		set_page_dirty(pages[npages]);
->>>> +		put_user_page(pages[npages]);
->>>> +		--npages;
->>>> +	}
->>>> +}
->>>
->>> Shouldn't these do the !PageDirty(page) thing?
->>>
->>
->> Well, not yet. This is the "placeholder" patch, in which I planned to keep
->> the behavior the same, while I go to all the get_user_pages call sites and change 
->> put_page() and release_pages() over to use these new routines.
-> 
-> Hmm.. Well, if it is the right thing to do here, why not include it and
-> take it out of callers when doing the conversion?
-> 
-> If it is the wrong thing, then let us still take it out of callers
-> when doing the conversion :)
-> 
-> Just seems like things will be in a better place to make future
-> changes if all the call sights are de-duplicated and correct.
-> 
+On 10/4/18 3:27 PM, Logan Gunthorpe wrote:
+> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
+> supports targeting P2P memory. This will be used by P2P providers and
+> orchestrators (in subsequent patches) to ensure block devices can
+> support P2P memory before submitting P2P backed pages to submit_bio().
 
-OK, yes. Let me send out a v3 with that included, then.
+Nit pick, but the subject line still says that it checks support
+for requests. This patch just adds the ability to flag support
+in the queue.
 
-thanks,
 -- 
-John Hubbard
-NVIDIA
+Jens Axboe
