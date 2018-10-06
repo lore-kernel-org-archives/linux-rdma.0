@@ -1,38 +1,128 @@
-From: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
-Subject: Re: [PATCH v9 07/13] block: Add PCI P2P flag for request queue and
- check support for requests
-Date: Fri, 5 Oct 2018 19:16:04 -0600
-Message-ID: <485de371-0e84-6f20-7f3b-cec5635b87fe@kernel.dk>
-References: <20181004212747.6301-1-logang@deltatee.com>
- <20181004212747.6301-8-logang@deltatee.com>
+From: john.hubbard@gmail.com
+Subject: [PATCH v3 1/3] mm: get_user_pages: consolidate error handling
+Date: Fri,  5 Oct 2018 19:49:47 -0700
+Message-ID: <20181006024949.20691-2-jhubbard@nvidia.com>
+References: <20181006024949.20691-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20181004212747.6301-8-logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181006024949.20691-1-jhubbard@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/4/18 3:27 PM, Logan Gunthorpe wrote:
-> QUEUE_FLAG_PCI_P2P is introduced meaning a driver's request queue
-> supports targeting P2P memory. This will be used by P2P providers and
-> orchestrators (in subsequent patches) to ensure block devices can
-> support P2P memory before submitting P2P backed pages to submit_bio().
+From: John Hubbard <jhubbard@nvidia.com>
 
-Nit pick, but the subject line still says that it checks support
-for requests. This patch just adds the ability to flag support
-in the queue.
+An upcoming patch requires a way to operate on each page that
+any of the get_user_pages_*() variants returns.
 
+In preparation for that, consolidate the error handling for
+__get_user_pages(). This provides a single location (the "out:" label)
+for operating on the collected set of pages that are about to be returned.
+
+As long every use of the "ret" variable is being edited, rename
+"ret" --> "err", so that its name matches its true role.
+This also gets rid of two shadowed variable declarations, as a
+tiny beneficial a side effect.
+
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ mm/gup.c | 37 ++++++++++++++++++++++---------------
+ 1 file changed, 22 insertions(+), 15 deletions(-)
+
+diff --git a/mm/gup.c b/mm/gup.c
+index 1abc8b4afff6..05ee7c18e59a 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -660,6 +660,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		struct vm_area_struct **vmas, int *nonblocking)
+ {
+ 	long i = 0;
++	int err = 0;
+ 	unsigned int page_mask;
+ 	struct vm_area_struct *vma = NULL;
+ 
+@@ -685,18 +686,19 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		if (!vma || start >= vma->vm_end) {
+ 			vma = find_extend_vma(mm, start);
+ 			if (!vma && in_gate_area(mm, start)) {
+-				int ret;
+-				ret = get_gate_page(mm, start & PAGE_MASK,
++				err = get_gate_page(mm, start & PAGE_MASK,
+ 						gup_flags, &vma,
+ 						pages ? &pages[i] : NULL);
+-				if (ret)
+-					return i ? : ret;
++				if (err)
++					goto out;
+ 				page_mask = 0;
+ 				goto next_page;
+ 			}
+ 
+-			if (!vma || check_vma_flags(vma, gup_flags))
+-				return i ? : -EFAULT;
++			if (!vma || check_vma_flags(vma, gup_flags)) {
++				err = -EFAULT;
++				goto out;
++			}
+ 			if (is_vm_hugetlb_page(vma)) {
+ 				i = follow_hugetlb_page(mm, vma, pages, vmas,
+ 						&start, &nr_pages, i,
+@@ -709,23 +711,25 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		 * If we have a pending SIGKILL, don't keep faulting pages and
+ 		 * potentially allocating memory.
+ 		 */
+-		if (unlikely(fatal_signal_pending(current)))
+-			return i ? i : -ERESTARTSYS;
++		if (unlikely(fatal_signal_pending(current))) {
++			err = -ERESTARTSYS;
++			goto out;
++		}
+ 		cond_resched();
+ 		page = follow_page_mask(vma, start, foll_flags, &page_mask);
+ 		if (!page) {
+-			int ret;
+-			ret = faultin_page(tsk, vma, start, &foll_flags,
++			err = faultin_page(tsk, vma, start, &foll_flags,
+ 					nonblocking);
+-			switch (ret) {
++			switch (err) {
+ 			case 0:
+ 				goto retry;
+ 			case -EFAULT:
+ 			case -ENOMEM:
+ 			case -EHWPOISON:
+-				return i ? i : ret;
++				goto out;
+ 			case -EBUSY:
+-				return i;
++				err = 0;
++				goto out;
+ 			case -ENOENT:
+ 				goto next_page;
+ 			}
+@@ -737,7 +741,8 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 			 */
+ 			goto next_page;
+ 		} else if (IS_ERR(page)) {
+-			return i ? i : PTR_ERR(page);
++			err = PTR_ERR(page);
++			goto out;
+ 		}
+ 		if (pages) {
+ 			pages[i] = page;
+@@ -757,7 +762,9 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		start += page_increm * PAGE_SIZE;
+ 		nr_pages -= page_increm;
+ 	} while (nr_pages);
+-	return i;
++
++out:
++	return i ? i : err;
+ }
+ 
+ static bool vma_permits_fault(struct vm_area_struct *vma,
 -- 
-Jens Axboe
+2.19.0
