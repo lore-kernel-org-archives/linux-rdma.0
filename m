@@ -1,57 +1,45 @@
-From: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 05/17] compat_ioctl: move more drivers to
- generic_compat_ioctl_ptrarg
-Date: Sat, 6 Oct 2018 00:05:21 -0700
-Message-ID: <20181006070521.GM12063@builder>
-References: <20180912150142.157913-1-arnd@arndb.de>
- <20180912151134.436719-1-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180912151134.436719-1-arnd-r2nGTMty4D4@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-crypto-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 0/4] Scatter to CQE
+Date: Sun,  7 Oct 2018 12:03:33 +0300
+Message-ID: <20181007090337.21037-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Yonatan Cohen <yonatanc@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed 12 Sep 08:08 PDT 2018, Arnd Bergmann wrote:
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[..]
-> diff --git a/drivers/rpmsg/rpmsg_char.c b/drivers/rpmsg/rpmsg_char.c
-> index a76b963a7e50..02aefb2b2d47 100644
-> --- a/drivers/rpmsg/rpmsg_char.c
-> +++ b/drivers/rpmsg/rpmsg_char.c
-> @@ -285,7 +285,7 @@ static const struct file_operations rpmsg_eptdev_fops = {
->  	.write = rpmsg_eptdev_write,
->  	.poll = rpmsg_eptdev_poll,
->  	.unlocked_ioctl = rpmsg_eptdev_ioctl,
-> -	.compat_ioctl = rpmsg_eptdev_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
->  
->  static ssize_t name_show(struct device *dev, struct device_attribute *attr,
-> @@ -446,7 +446,7 @@ static const struct file_operations rpmsg_ctrldev_fops = {
->  	.open = rpmsg_ctrldev_open,
->  	.release = rpmsg_ctrldev_release,
->  	.unlocked_ioctl = rpmsg_ctrldev_ioctl,
-> -	.compat_ioctl = rpmsg_ctrldev_ioctl,
-> +	.compat_ioctl = generic_compat_ioctl_ptrarg,
->  };
->  
+>From Yonatan,
 
-For rpmsg part
+Scatter to CQE is a HW offload feature that saves PCI writes by scattering
+the payload to the CQE.
 
-Acked-by: Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+The feature depends on the CQE size and if the CQE size is 64B, it will work
+for payload smaller than 32. If the CQE size is 128B, it will work for payload
+smaller than 64.
 
-Regards,
-Bjorn
+The feature works for responder and requestor:
+1. For responder, if the payload is small as required above, the data will
+be part of the CQE, and thus we save another PCI transaction the recv buffers.
+2. For requestor, this can be used to get the RDMA_READ response and RDMA_ATOMIC
+response in the CQE. This feature is already supported in upstream.
+
+As part of this series, we are adding support for DC transport type and
+ability to enable the feature (force enable) in the requestor when SQ
+is not configured to signal all WRs.
+
+Thanks
+
+Yonatan Cohen (4):
+  net/mlx5: Expose DC scatter to CQE capability bit
+  IB/mlx5: Support scatter to CQE for DC transport type
+  IB/mlx5: Verify that driver supports user flags
+  IB/mlx5: Allow scatter to CQE without global signaled WRs
+
+ drivers/infiniband/hw/mlx5/cq.c      |  2 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  2 +-
+ drivers/infiniband/hw/mlx5/qp.c      | 91 ++++++++++++++++++++++++++++--------
+ include/linux/mlx5/mlx5_ifc.h        |  3 +-
+ include/uapi/rdma/mlx5-abi.h         |  1 +
+ 5 files changed, 77 insertions(+), 22 deletions(-)
