@@ -1,8 +1,8 @@
-From: Jan Kara <jack@suse.cz>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH v3 3/3] infiniband/mm: convert put_page() to
  put_user_page*()
-Date: Mon, 8 Oct 2018 18:49:34 +0200
-Message-ID: <20181008164934.GB11150@quack2.suse.cz>
+Date: Mon, 8 Oct 2018 13:42:40 -0600
+Message-ID: <20181008194240.GA27639@ziepe.ca>
 References: <20181006024949.20691-1-jhubbard@nvidia.com>
  <20181006024949.20691-4-jhubbard@nvidia.com>
 Mime-Version: 1.0
@@ -12,10 +12,10 @@ Content-Disposition: inline
 In-Reply-To: <20181006024949.20691-4-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 05-10-18 19:49:49, john.hubbard@gmail.com wrote:
+On Fri, Oct 05, 2018 at 07:49:49PM -0700, john.hubbard@gmail.com wrote:
 > From: John Hubbard <jhubbard@nvidia.com>
 > 
 > For code that retains pages via get_user_pages*(),
@@ -46,12 +46,20 @@ On Fri 05-10-18 19:49:49, john.hubbard@gmail.com wrote:
 > CC: linux-kernel@vger.kernel.org
 > CC: linux-mm@kvack.org
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+>  drivers/infiniband/core/umem.c              |  7 ++++---
+>  drivers/infiniband/core/umem_odp.c          |  2 +-
+>  drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
+>  drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
+>  drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
+>  drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++++----
+>  drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
+>  7 files changed, 24 insertions(+), 28 deletions(-)
 
-Looks good to me. You can add:
+I have no issues with this, do you want this series to go through the
+rdma tree? Otherwise:
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Thanks,
+Jason
