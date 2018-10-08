@@ -1,224 +1,167 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH v4 3/3] infiniband/mm: convert put_page() to put_user_page*()
-Date: Mon,  8 Oct 2018 14:16:23 -0700
-Message-ID: <20181008211623.30796-4-jhubbard@nvidia.com>
-References: <20181008211623.30796-1-jhubbard@nvidia.com>
+From: <Alex_Gagniuc@Dellteam.com>
+Subject: Re: [PATCH 1/9] PCI: sysfs: Export available PCIe bandwidth
+Date: Mon, 8 Oct 2018 21:09:46 +0000
+Message-ID: <5446492849dc4b7083b7a1f50a587d92@ausx13mps321.AMER.DELL.COM>
+References: <20180903180242.14504-1-mr.nuke.me@gmail.com>
+ <20180903180242.14504-2-mr.nuke.me@gmail.com>
+ <20181003213054.GH120535@bhelgaas-glaptop.roam.corp.google.com>
+ <f9fbc8babbb344eca593a3f8b0d096d9@ausx13mps321.AMER.DELL.COM>
+ <20181004204549.GI120535@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181008211623.30796-1-jhubbard@nvidia.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+To: helgaas@kernel.org
+Cc: mr.nuke.me@gmail.com, linux-pci@vger.kernel.org, bhelgaas@google.com, keith.busch@intel.com, Austin.Bolen@dell.com, Shyam.Iyer@dell.com, ariel.elior@cavium.com, everest-linux-l2@cavium.com, davem@davemloft.net, michael.chan@broadcom.com, ganeshgr@chelsio.com, jeffrey.t.kirsher@intel.com, tariqt@mellanox.com, saeedm@mellanox.com, leon@kernel.org, jakub.kicinski@netronome.com, dirk.vandermerwe@netronome.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-rdma@vger.kernel.org, oss-drivers@netronome.com, stephen@networkplumber.org, mj@ucw.cz, alex.williamson@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
-
-For code that retains pages via get_user_pages*(),
-release those pages via the new put_user_page(), or
-put_user_pages*(), instead of put_page()
-
-This prepares for eventually fixing the problem described
-in [1], and is following a plan listed in [2], [3], [4].
-
-[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-
-[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
-    Proposed steps for fixing get_user_pages() + DMA problems.
-
-[3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
-    Bounce buffers (otherwise [2] is not really viable).
-
-[4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
-    Follow-up discussions.
-
-CC: Doug Ledford <dledford@redhat.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Mike Marciniszyn <mike.marciniszyn@intel.com>
-CC: Dennis Dalessandro <dennis.dalessandro@intel.com>
-CC: Christian Benvenuti <benve@cisco.com>
-
-CC: linux-rdma@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-mm@kvack.org
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/infiniband/core/umem.c              |  7 ++++---
- drivers/infiniband/core/umem_odp.c          |  2 +-
- drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
- drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
- drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
- drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++++----
- drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
- 7 files changed, 24 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index a41792dbae1f..7ab7a3a35eb4 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -58,9 +58,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
- 
- 		page = sg_page(sg);
--		if (!PageDirty(page) && umem->writable && dirty)
--			set_page_dirty_lock(page);
--		put_page(page);
-+		if (umem->writable && dirty)
-+			put_user_pages_dirty_lock(&page, 1);
-+		else
-+			put_user_page(page);
- 	}
- 
- 	sg_free_table(&umem->sg_head);
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 6ec748eccff7..6227b89cf05c 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -717,7 +717,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 					ret = -EFAULT;
- 					break;
- 				}
--				put_page(local_page_list[j]);
-+				put_user_page(local_page_list[j]);
- 				continue;
- 			}
- 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index e341e6dcc388..99ccc0483711 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -121,13 +121,10 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
- 			     size_t npages, bool dirty)
- {
--	size_t i;
--
--	for (i = 0; i < npages; i++) {
--		if (dirty)
--			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
--	}
-+	if (dirty)
-+		put_user_pages_dirty_lock(p, npages);
-+	else
-+		put_user_pages(p, npages);
- 
- 	if (mm) { /* during close after signal, mm can be NULL */
- 		down_write(&mm->mmap_sem);
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index cc9c0c8ccba3..b8b12effd009 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -481,7 +481,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 
- 	ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
- 	if (ret < 0) {
--		put_page(pages[0]);
-+		put_user_page(pages[0]);
- 		goto out;
- 	}
- 
-@@ -489,7 +489,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 				 mthca_uarc_virt(dev, uar, i));
- 	if (ret) {
- 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--		put_page(sg_page(&db_tab->page[i].mem));
-+		put_user_page(sg_page(&db_tab->page[i].mem));
- 		goto out;
- 	}
- 
-@@ -555,7 +555,7 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
- 		if (db_tab->page[i].uvirt) {
- 			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
- 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--			put_page(sg_page(&db_tab->page[i].mem));
-+			put_user_page(sg_page(&db_tab->page[i].mem));
- 		}
- 	}
- 
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 16543d5e80c3..1a5c64c8695f 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -40,13 +40,10 @@
- static void __qib_release_user_pages(struct page **p, size_t num_pages,
- 				     int dirty)
- {
--	size_t i;
--
--	for (i = 0; i < num_pages; i++) {
--		if (dirty)
--			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
--	}
-+	if (dirty)
-+		put_user_pages_dirty_lock(p, num_pages);
-+	else
-+		put_user_pages(p, num_pages);
- }
- 
- /*
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index 926f3c8eba69..14f94d823907 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -266,7 +266,7 @@ static void qib_user_sdma_init_frag(struct qib_user_sdma_pkt *pkt,
- 	pkt->addr[i].length = len;
- 	pkt->addr[i].first_desc = first_desc;
- 	pkt->addr[i].last_desc = last_desc;
--	pkt->addr[i].put_page = put_page;
-+	pkt->addr[i].put_page = put_user_page;
- 	pkt->addr[i].dma_mapped = dma_mapped;
- 	pkt->addr[i].page = page;
- 	pkt->addr[i].kvaddr = kvaddr;
-@@ -321,7 +321,7 @@ static int qib_user_sdma_page_to_frags(const struct qib_devdata *dd,
- 		 * the caller can ignore this page.
- 		 */
- 		if (put) {
--			put_page(page);
-+			put_user_page(page);
- 		} else {
- 			/* coalesce case */
- 			kunmap(page);
-@@ -635,7 +635,7 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
- 			kunmap(pkt->addr[i].page);
- 
- 		if (pkt->addr[i].put_page)
--			put_page(pkt->addr[i].page);
-+			put_user_page(pkt->addr[i].page);
- 		else
- 			__free_page(pkt->addr[i].page);
- 	} else if (pkt->addr[i].kvaddr) {
-@@ -710,7 +710,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
- 	/* if error, return all pages not managed by pkt */
- free_pages:
- 	while (i < j)
--		put_page(pages[i++]);
-+		put_user_page(pages[i++]);
- 
- done:
- 	return ret;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 9dd39daa602b..9e3615fd05f7 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -89,9 +89,10 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
- 		for_each_sg(chunk->page_list, sg, chunk->nents, i) {
- 			page = sg_page(sg);
- 			pa = sg_phys(sg);
--			if (!PageDirty(page) && dirty)
--				set_page_dirty_lock(page);
--			put_page(page);
-+			if (dirty)
-+				put_user_pages_dirty_lock(&page, 1);
-+			else
-+				put_user_page(page);
- 			usnic_dbg("pa: %pa\n", &pa);
- 		}
- 		kfree(chunk);
--- 
-2.19.0
+On 10/04/2018 03:45 PM, Bjorn Helgaas wrote:=0A=
+> =0A=
+> [EXTERNAL EMAIL]=0A=
+> Please report any suspicious attachments, links, or requests for sensitiv=
+e information.=0A=
+> =0A=
+> =0A=
+> [+cc Alex (VC mentioned below)]=0A=
+> =0A=
+> On Wed, Oct 03, 2018 at 10:00:19PM +0000, Alex_Gagniuc@Dellteam.com wrote=
+:=0A=
+>> On 10/03/2018 04:31 PM, Bjorn Helgaas wrote:=0A=
+>>> On Mon, Sep 03, 2018 at 01:02:28PM -0500, Alexandru Gagniuc wrote:=0A=
+>>>> For certain bandwidth-critical devices (e.g. multi-port network cards)=
+=0A=
+>>>> it is useful to know the available bandwidth to the root complex. This=
+=0A=
+>>>> information is only available via the system log, which doesn't=0A=
+>>>> account for link degradation after probing.=0A=
+>>>>=0A=
+>>>> With a sysfs attribute, we can computes the bandwidth on-demand, and=
+=0A=
+>>>> will detect degraded links.=0A=
+>>>>=0A=
+>>>> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>=0A=
+>>>> ---=0A=
+>>>>    drivers/pci/pci-sysfs.c | 13 +++++++++++++=0A=
+>>>>    1 file changed, 13 insertions(+)=0A=
+>>>>=0A=
+>>>> diff --git a/drivers/pci/pci-sysfs.c b/drivers/pci/pci-sysfs.c=0A=
+>>>> index 9ecfe13157c0..6658e927b1f5 100644=0A=
+>>>> --- a/drivers/pci/pci-sysfs.c=0A=
+>>>> +++ b/drivers/pci/pci-sysfs.c=0A=
+>>>> @@ -218,6 +218,18 @@ static ssize_t current_link_width_show(struct dev=
+ice *dev,=0A=
+>>>>    }=0A=
+>>>>    static DEVICE_ATTR_RO(current_link_width);=0A=
+>>>>    =0A=
+>>>> +static ssize_t available_bandwidth_show(struct device *dev,=0A=
+>>>> +				       struct device_attribute *attr, char *buf)=0A=
+>>>> +{=0A=
+>>>> +	struct pci_dev *pci_dev =3D to_pci_dev(dev);=0A=
+>>>> +	u32 bw_avail;=0A=
+>>>> +=0A=
+>>>> +	bw_avail =3D pcie_bandwidth_available(pci_dev, NULL, NULL, NULL);=0A=
+>>>> +=0A=
+>>>> +	return sprintf(buf, "%u.%03u Gb/s\n", bw_avail / 1000, bw_avail % 10=
+00);=0A=
+>>>> +}=0A=
+>>>> +static DEVICE_ATTR_RO(available_bandwidth);=0A=
+>>>=0A=
+>>> Help me understand this.  We already have these sysfs attributes:=0A=
+>>>=0A=
+>>>     max_link_speed          # eg, 16 GT/s=0A=
+>>>     max_link_width          # eg, 8=0A=
+>>>     current_link_speed      # eg, 16 GT/s=0A=
+>>>     current_link_width      # eg, 8=0A=
+>>>=0A=
+>>> so I think the raw materials are already exposed.=0A=
+>>>=0A=
+>>> The benefits I see for this new file are that=0A=
+>>>=0A=
+>>>     - pcie_bandwidth_available() does the work of traversing up the=0A=
+>>>       tree, doing the computations (link width * speed, reduced by=0A=
+>>>       encoding overhead), and finding the minimum, and=0A=
+>>>=0A=
+>>>     - it re-traverses the path every time we look at it, while the=0A=
+>>>       boot-time check is a one-time event.=0A=
+>>>=0A=
+>>> In principle this could all be done in user space with the attributes=
+=0A=
+>>> that are already exported.  There's some precedent for things like=0A=
+>>> this in lspci, e.g., "NUMA node" [1], and lspci might even be a more=0A=
+>>> user-friendly place for users to look for this, as opposed to=0A=
+>>> searching through sysfs.=0A=
+>>=0A=
+>> Parsing the endpoint to root port bandwidth is, in principle, possible=
+=0A=
+>> from userspace. It's just that in practice it's very clumsy to do, and,=
+=0A=
+>> as you pointed out, not that reliable.=0A=
+> =0A=
+> I don't remember the reliability issue.  Was that in a previous=0A=
+> conversation?  AFAICT, using current_link_speed and current_link_width=0A=
+> should be as reliable as pcie_bandwidth_available() because they're=0A=
+> both based on reading PCI_EXP_LNKSTA.=0A=
+> =0A=
+> This patch exposes only the available bandwidth, not the limiting=0A=
+> device, link speed, or link width.  Maybe that extra information isn't=0A=
+> important in this context.  Of course, it's easy to derive using=0A=
+> current_link_speed and current_link_width, but if we do that, there's=0A=
+> really no benefit to adding a new file.=0A=
+> =0A=
+> Linux doesn't really support Virtual Channels (VC) yet, and I don't=0A=
+> know much about it, but it seems like Quality-of-Service features like=0A=
+> VC could affect this idea of available bandwidth.=0A=
+> =0A=
+> Since we already expose the necessary information, and we might throw=0A=
+> additional things like VC into the mix, I'm a little hesitant about=0A=
+> adding things to sysfs because they're very difficult to change later.=0A=
+=0A=
+I understand your concerns with VC and crazy PCIe outliers. =0A=
+'available_bandwidth' is meant to mean physical bandwidth, rather than =0A=
+"what comcast gives you". I see now the possibility for confusion.=0A=
+My motivation is to save drivers from the hassle of having to call =0A=
+pcie_print_link_status(), and prevent the rare duplicate syslog messages.=
+=0A=
+=0A=
+I prefer re-using the kernel logic over doing it over again from =0A=
+userspace, but I won't insist over your doubts.=0A=
+=0A=
+Alex=0A=
+=0A=
+>> I understand it's not information that all users would jump in the air=
+=0A=
+>> to know. However, it was important enough for certain use cases, that=0A=
+>> the kernel already has a very reliable way to calculate it.=0A=
+>>=0A=
+>> It seems to me that the most elegant way is to let the kernel tell us,=
+=0A=
+>> since the kernel already has this facility. To quote one of the texts=0A=
+>> under Documentation/, it is an elegant way to "avoid reinventing kernel=
+=0A=
+>> wheels in userspace".=0A=
+>>=0A=
+>> Alex=0A=
+>>=0A=
+>>> [1] https://git.kernel.org/pub/scm/utils/pciutils/pciutils.git/commit/?=
+id=3D90ec4a6d0ae8=0A=
+>>>=0A=
+>>>>    static ssize_t secondary_bus_number_show(struct device *dev,=0A=
+>>>>    					 struct device_attribute *attr,=0A=
+>>>>    					 char *buf)=0A=
+>>>> @@ -786,6 +798,7 @@ static struct attribute *pcie_dev_attrs[] =3D {=0A=
+>>>>    	&dev_attr_current_link_width.attr,=0A=
+>>>>    	&dev_attr_max_link_width.attr,=0A=
+>>>>    	&dev_attr_max_link_speed.attr,=0A=
+>>>> +	&dev_attr_available_bandwidth.attr,=0A=
+>>>>    	NULL,=0A=
+>>>>    };=0A=
+>>>>    =0A=
+>>>> -- =0A=
+>>>> 2.17.1=0A=
+>>>>=0A=
+>>>=0A=
+>>=0A=
+> =0A=
+=0A=
