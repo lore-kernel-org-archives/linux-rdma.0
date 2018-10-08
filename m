@@ -1,61 +1,114 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v3 3/3] infiniband/mm: convert put_page() to
- put_user_page*()
-Date: Mon, 8 Oct 2018 13:59:03 -0700
-Message-ID: <b0f469c7-25dd-d86c-315d-149a9a64e231@nvidia.com>
-References: <20181006024949.20691-1-jhubbard@nvidia.com>
- <20181006024949.20691-4-jhubbard@nvidia.com>
- <20181008194240.GA27639@ziepe.ca>
- <15d3daac-ba59-b1c9-873d-1876b58bde9d@nvidia.com>
- <20181008205602.GD27639@ziepe.ca>
+From: john.hubbard@gmail.com
+Subject: [PATCH v4 0/3] get_user_pages*() and RDMA: first steps
+Date: Mon,  8 Oct 2018 14:16:20 -0700
+Message-ID: <20181008211623.30796-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181008205602.GD27639@ziepe.ca>
-Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Christian Benvenuti <benve@cisco.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/8/18 1:56 PM, Jason Gunthorpe wrote:
-> On Mon, Oct 08, 2018 at 01:37:35PM -0700, John Hubbard wrote:
->> On 10/8/18 12:42 PM, Jason Gunthorpe wrote:
->>> On Fri, Oct 05, 2018 at 07:49:49PM -0700, john.hubbard@gmail.com wrote:
->>>> From: John Hubbard <jhubbard@nvidia.com>
->> [...]
->>>>  drivers/infiniband/core/umem.c              |  7 ++++---
->>>>  drivers/infiniband/core/umem_odp.c          |  2 +-
->>>>  drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
->>>>  drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
->>>>  drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
->>>>  drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++++----
->>>>  drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
->>>>  7 files changed, 24 insertions(+), 28 deletions(-)
->>>
->>> I have no issues with this, do you want this series to go through the
->>> rdma tree? Otherwise:
->>>
->>> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
->>>
->>
->> The RDMA tree seems like a good path for this, yes, glad you suggested
->> that.
->>
->> I'll post a v4 with the comment fix and the recent reviewed-by's, which
->> should be ready for that.  It's based on today's linux.git tree at the 
->> moment, but let me know if I should re-apply it to the RDMA tree.
-> 
-> I'm unclear who needs to ack the MM sections for us to take it to
-> RDMA?
-> 
-> Otherwise it is no problem..
-> 
+From: John Hubbard <jhubbard@nvidia.com>
 
-It needs Andrew Morton (+CC) and preferably also Michal Hocko (already on CC).
+Andrew, do you have a preference for which tree (MM or RDMA) this should
+go in? If not, then could you please ACK this so that Jason can pick it
+up for the RDMA tree?
 
-thanks,
+Changes since v3:
+
+-- Picks up Reviewed-by tags from Jan Kara and Dennis Dalessandro.
+
+-- Picks up Acked-by tag from Jason Gunthorpe, in case this ends up *not*
+   going in via the RDMA tree.
+
+-- Fixes formatting of a comment.
+
+Changes since v2:
+
+-- Absorbed more dirty page handling logic into the put_user_page*(), and
+   handled some page releasing loops in infiniband more thoroughly, as per
+   Jason Gunthorpe's feedback.
+
+-- Fixed a bug in the put_user_pages*() routines' loops (thanks to
+   Ralph Campbell for spotting it).
+
+Changes since v1:
+
+-- Renamed release_user_pages*() to put_user_pages*(), from Jan's feedback.
+
+-- Removed the goldfish.c changes, and instead, only included a single
+   user (infiniband) of the new functions. That is because goldfish.c no
+   longer has a name collision (it has a release_user_pages() routine), and
+   also because infiniband exercises both the put_user_page() and
+   put_user_pages*() paths.
+
+-- Updated links to discussions and plans, so as to be sure to include
+   bounce buffers, thanks to Jerome's feedback.
+
+Also:
+
+-- Dennis, thanks for your earlier review, and I have not yet added your
+   Reviewed-by tag, because this revision changes the things that you had
+   previously reviewed, thus potentially requiring another look.
+
+This short series prepares for eventually fixing the problem described
+in [1], and is following a plan listed in [2], [3], [4].
+
+Patch 1, although not technically critical to do now, is still nice to
+have, because it's already been reviewed by Jan, and it's just one more
+thing on the long TODO list here, that is ready to be checked off.
+
+Patch 2 is required in order to allow me (and others, if I'm lucky) to
+start submitting changes to convert all of the callsites of
+get_user_pages*() and put_page().  I think this will work a lot better
+than trying to maintain a massive patchset and submitting all at once.
+
+Patch 3 converts infiniband drivers: put_page() --> put_user_page(), and
+also exercises put_user_pages_dirty_locked().
+
+Once these are all in, then the floodgates can open up to convert the large
+number of get_user_pages*() callsites.
+
+[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+
+[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+    Proposed steps for fixing get_user_pages() + DMA problems.
+
+[3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+    Bounce buffers (otherwise [2] is not really viable).
+
+[4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
+    Follow-up discussions.
+
+CC: Matthew Wilcox <willy@infradead.org>
+CC: Michal Hocko <mhocko@kernel.org>
+CC: Christopher Lameter <cl@linux.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Jan Kara <jack@suse.cz>
+CC: Al Viro <viro@zeniv.linux.org.uk>
+CC: Jerome Glisse <jglisse@redhat.com>
+CC: Christoph Hellwig <hch@infradead.org>
+CC: Ralph Campbell <rcampbell@nvidia.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
+
+John Hubbard (3):
+  mm: get_user_pages: consolidate error handling
+  mm: introduce put_user_page*(), placeholder versions
+  infiniband/mm: convert put_page() to put_user_page*()
+
+ drivers/infiniband/core/umem.c              |  7 +--
+ drivers/infiniband/core/umem_odp.c          |  2 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++---
+ drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +--
+ drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++---
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |  8 ++--
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 +--
+ include/linux/mm.h                          | 49 ++++++++++++++++++++-
+ mm/gup.c                                    | 37 +++++++++-------
+ 9 files changed, 93 insertions(+), 45 deletions(-)
+
 -- 
-John Hubbard
-NVIDIA
+2.19.0
