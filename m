@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 3/4] IB/mlx5: Verify that driver supports user flags
-Date: Tue,  9 Oct 2018 12:05:14 +0300
-Message-ID: <20181009090515.25223-4-leon@kernel.org>
+Subject: [PATCH rdma-next v1 4/4] IB/mlx5: Allow scatter to CQE without global signaled WRs
+Date: Tue,  9 Oct 2018 12:05:15 +0300
+Message-ID: <20181009090515.25223-5-leon@kernel.org>
 References: <20181009090515.25223-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181009090515.25223-1-leon@kernel.org>
@@ -12,48 +12,79 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yonatan Cohen <yonatanc@mellanox.com>
 
-Flags sent down from user might not be supported by
-running driver.
-This might lead to unwanted bugs.
-To solve this, added macro to test for unsupported flags.
+Requester scatter to CQE is restricted to QPs configured to signal
+all WRs.
+
+This patch adds ability to enable scatter to cqe (force enable)
+in the requester without sig_all, for users who do not want all WRs
+signaled but rather just the ones whose data found in the CQE.
 
 Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
+Reviewed-by: Guy Levi <guyle@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/infiniband/hw/mlx5/qp.c | 14 +++++++++++---
+ include/uapi/rdma/mlx5-abi.h    |  1 +
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index bae48bdf281c..73a53a8da9b6 100644
+index 73a53a8da9b6..1a6f34ea2f5d 100644
 --- a/drivers/infiniband/hw/mlx5/qp.c
 +++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1728,6 +1728,11 @@ static void configure_requester_scat_cqe(struct mlx5_ib_dev *dev,
- 		MLX5_SET(qpc, qpc, cs_req, MLX5_REQ_SCAT_DATA32_CQE);
- }
+@@ -1706,15 +1706,20 @@ static void configure_responder_scat_cqe(struct ib_qp_init_attr *init_attr,
  
-+static inline bool check_flags_mask(uint64_t input, uint64_t supported)
-+{
-+	return (input & ~supported) == 0;
-+}
-+
- static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			    struct ib_qp_init_attr *init_attr,
- 			    struct ib_udata *udata, struct mlx5_ib_qp *qp)
-@@ -1825,6 +1830,15 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 			return -EFAULT;
- 		}
+ static void configure_requester_scat_cqe(struct mlx5_ib_dev *dev,
+ 					 struct ib_qp_init_attr *init_attr,
++					 struct mlx5_ib_create_qp *ucmd,
+ 					 void *qpc)
+ {
+ 	enum ib_qp_type qpt = init_attr->qp_type;
+ 	int scqe_sz;
++	bool allow_scat_cqe = 0;
  
-+		if (!check_flags_mask(ucmd.flags,
-+				      MLX5_QP_FLAG_SIGNATURE |
-+					      MLX5_QP_FLAG_SCATTER_CQE |
-+					      MLX5_QP_FLAG_TUNNEL_OFFLOADS |
-+					      MLX5_QP_FLAG_BFREG_INDEX |
-+					      MLX5_QP_FLAG_TYPE_DCT |
-+					      MLX5_QP_FLAG_TYPE_DCI))
-+			return -EINVAL;
+ 	if (qpt == IB_QPT_UC || qpt == IB_QPT_UD)
+ 		return;
+ 
+-	if (init_attr->sq_sig_type != IB_SIGNAL_ALL_WR)
++	if (ucmd)
++		allow_scat_cqe = ucmd->flags & MLX5_QP_FLAG_ALLOW_SCATTER_CQE;
 +
++	if (!allow_scat_cqe && init_attr->sq_sig_type != IB_SIGNAL_ALL_WR)
+ 		return;
+ 
+ 	scqe_sz = mlx5_ib_get_cqe_size(init_attr->send_cq);
+@@ -1836,7 +1841,8 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 					      MLX5_QP_FLAG_TUNNEL_OFFLOADS |
+ 					      MLX5_QP_FLAG_BFREG_INDEX |
+ 					      MLX5_QP_FLAG_TYPE_DCT |
+-					      MLX5_QP_FLAG_TYPE_DCI))
++					      MLX5_QP_FLAG_TYPE_DCI |
++					      MLX5_QP_FLAG_ALLOW_SCATTER_CQE))
+ 			return -EINVAL;
+ 
  		err = get_qp_user_index(to_mucontext(pd->uobject->context),
- 					&ucmd, udata->inlen, &uidx);
- 		if (err)
+@@ -1971,7 +1977,9 @@ static int create_qp_common(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 
+ 	if (qp->scat_cqe && is_connected(init_attr->qp_type)) {
+ 		configure_responder_scat_cqe(init_attr, qpc);
+-		configure_requester_scat_cqe(dev, init_attr, qpc);
++		configure_requester_scat_cqe(dev, init_attr,
++					     (pd && pd->uobject) ? &ucmd : NULL,
++					     qpc);
+ 	}
+ 
+ 	if (qp->rq.wqe_cnt) {
+diff --git a/include/uapi/rdma/mlx5-abi.h b/include/uapi/rdma/mlx5-abi.h
+index 6056625237cf..8fa9f90e2bb1 100644
+--- a/include/uapi/rdma/mlx5-abi.h
++++ b/include/uapi/rdma/mlx5-abi.h
+@@ -47,6 +47,7 @@ enum {
+ 	MLX5_QP_FLAG_TYPE_DCI		= 1 << 5,
+ 	MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_UC = 1 << 6,
+ 	MLX5_QP_FLAG_TIR_ALLOW_SELF_LB_MC = 1 << 7,
++	MLX5_QP_FLAG_ALLOW_SCATTER_CQE	= 1 << 8,
+ };
+ 
+ enum {
 -- 
 2.14.4
