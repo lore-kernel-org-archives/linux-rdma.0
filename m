@@ -1,33 +1,125 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v4 1/3] mm: get_user_pages: consolidate error handling
-Date: Mon, 8 Oct 2018 17:05:25 -0700
-Message-ID: <20181008170525.62d1a910f7811d7c66a8c34c@linux-foundation.org>
+Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
+ versions
+Date: Mon, 8 Oct 2018 17:14:42 -0700
+Message-ID: <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
 References: <20181008211623.30796-1-jhubbard@nvidia.com>
-        <20181008211623.30796-2-jhubbard@nvidia.com>
+        <20181008211623.30796-3-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181008211623.30796-2-jhubbard@nvidia.com>
+In-Reply-To: <20181008211623.30796-3-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon,  8 Oct 2018 14:16:21 -0700 john.hubbard@gmail.com wrote:
+On Mon,  8 Oct 2018 14:16:22 -0700 john.hubbard@gmail.com wrote:
 
-> An upcoming patch requires a way to operate on each page that
-> any of the get_user_pages_*() variants returns.
+> From: John Hubbard <jhubbard@nvidia.com>
 > 
-> In preparation for that, consolidate the error handling for
-> __get_user_pages(). This provides a single location (the "out:" label)
-> for operating on the collected set of pages that are about to be returned.
+> Introduces put_user_page(), which simply calls put_page().
+> This provides a way to update all get_user_pages*() callers,
+> so that they call put_user_page(), instead of put_page().
 > 
-> As long every use of the "ret" variable is being edited, rename
-> "ret" --> "err", so that its name matches its true role.
-> This also gets rid of two shadowed variable declarations, as a
-> tiny beneficial a side effect.
+> Also introduces put_user_pages(), and a few dirty/locked variations,
+> as a replacement for release_pages(), and also as a replacement
+> for open-coded loops that release multiple pages.
+> These may be used for subsequent performance improvements,
+> via batching of pages to be released.
+> 
+> This prepares for eventually fixing the problem described
+> in [1], and is following a plan listed in [2], [3], [4].
+> 
+> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+> 
+> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>     Proposed steps for fixing get_user_pages() + DMA problems.
+> 
+> [3]https://lkml.kernel.org/r/20180710082100.mkdwngdv5kkrcz6n@quack2.suse.cz
+>     Bounce buffers (otherwise [2] is not really viable).
+> 
+> [4] https://lkml.kernel.org/r/20181003162115.GG24030@quack2.suse.cz
+>     Follow-up discussions.
+> 
+> ...
+>
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -137,6 +137,8 @@ extern int overcommit_ratio_handler(struct ctl_table *, int, void __user *,
+>  				    size_t *, loff_t *);
+>  extern int overcommit_kbytes_handler(struct ctl_table *, int, void __user *,
+>  				    size_t *, loff_t *);
+> +int set_page_dirty(struct page *page);
+> +int set_page_dirty_lock(struct page *page);
+>  
+>  #define nth_page(page,n) pfn_to_page(page_to_pfn((page)) + (n))
+>  
+> @@ -943,6 +945,51 @@ static inline void put_page(struct page *page)
+>  		__put_page(page);
+>  }
+>  
+> +/*
+> + * Pages that were pinned via get_user_pages*() should be released via
+> + * either put_user_page(), or one of the put_user_pages*() routines
+> + * below.
+> + */
+> +static inline void put_user_page(struct page *page)
+> +{
+> +	put_page(page);
+> +}
+> +
+> +static inline void put_user_pages_dirty(struct page **pages,
+> +					unsigned long npages)
+> +{
+> +	unsigned long index;
+> +
+> +	for (index = 0; index < npages; index++) {
+> +		if (!PageDirty(pages[index]))
 
-Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Both put_page() and set_page_dirty() handle compound pages.  But
+because of the above statement, put_user_pages_dirty() might misbehave? 
+Or maybe it won't - perhaps the intent here is to skip dirtying the
+head page if the sub page is clean?  Please clarify, explain and add
+comment if so.
 
-`i' is a pretty crappy identifier as well, but we'll live.
+> +			set_page_dirty(pages[index]);
+> +
+> +		put_user_page(pages[index]);
+> +	}
+> +}
+> +
+> +static inline void put_user_pages_dirty_lock(struct page **pages,
+> +					     unsigned long npages)
+> +{
+> +	unsigned long index;
+> +
+> +	for (index = 0; index < npages; index++) {
+> +		if (!PageDirty(pages[index]))
+> +			set_page_dirty_lock(pages[index]);
+
+Ditto.
+
+> +		put_user_page(pages[index]);
+> +	}
+> +}
+> +
+> +static inline void put_user_pages(struct page **pages,
+> +				  unsigned long npages)
+> +{
+> +	unsigned long index;
+> +
+> +	for (index = 0; index < npages; index++)
+> +		put_user_page(pages[index]);
+> +}
+> +
+
+Otherwise looks OK.  Ish.  But it would be nice if that comment were to
+explain *why* get_user_pages() pages must be released with
+put_user_page().
+
+Also, maintainability.  What happens if someone now uses put_page() by
+mistake?  Kernel fails in some mysterious fashion?  How can we prevent
+this from occurring as code evolves?  Is there a cheap way of detecting
+this bug at runtime?
