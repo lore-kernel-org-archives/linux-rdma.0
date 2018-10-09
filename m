@@ -1,86 +1,41 @@
-From: Mathieu Poirier <mathieu.poirier@linaro.org>
-Subject: Re: [PATCH v3 1/2] Driver core: add bus_find_device_by_fwnode
-Date: Tue, 9 Oct 2018 11:48:19 -0600
-Message-ID: <CANLsYkxcUvBBFRFD9Vco559Y5LFw=X0H3Lyzm=nFat6z5yH44g@mail.gmail.com>
-References: <1539080245-25818-1-git-send-email-svellattu@mvista.com>
- <20181009172726.GA2182@xps15> <CAJZ5v0gckkg0jyTc7=JYPpUruQQXL_FhEjm03-0mrFcxH60cHA@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
+ versions
+Date: Tue, 9 Oct 2018 16:20:12 -0700
+Message-ID: <20181009162012.c662ef0b041993557e150035@linux-foundation.org>
+References: <20181008211623.30796-1-jhubbard@nvidia.com>
+        <20181008211623.30796-3-jhubbard@nvidia.com>
+        <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
+        <20181009083025.GE11150@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gckkg0jyTc7=JYPpUruQQXL_FhEjm03-0mrFcxH60cHA@mail.gmail.com>
+In-Reply-To: <20181009083025.GE11150@quack2.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Silesh C V <svellattu@mvista.com>, Greg KH <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-spi@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Salil Mehta <salil.mehta@huawei.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Brown <broonie@kernel.org>, David Miller <davem@>
+To: Jan Kara <jack@suse.cz>
+Cc: john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 9 Oct 2018 at 11:39, Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> On Tue, Oct 9, 2018 at 7:27 PM Mathieu Poirier
-> <mathieu.poirier@linaro.org> wrote:
-> >
-> > Hi Silesh,
-> >
-> > On Tue, Oct 09, 2018 at 03:47:24PM +0530, Silesh C V wrote:
-> > > Some drivers need to find the device on a bus having a specific firmware
-> > > node. Currently, such drivers have their own implementations to do this.
-> > > Provide a helper similar to bus_find_device_by_name so that each driver
-> > > does not have to reinvent this.
-> > >
-> > > Signed-off-by: Silesh C V <svellattu@mvista.com>
-> > > ---
-> > > Changes since v2:
-> > >       - make use of dev_fwnode in match_fwnode.
-> > >
-> > >  drivers/base/bus.c     | 20 ++++++++++++++++++++
-> > >  include/linux/device.h |  3 +++
-> > >  2 files changed, 23 insertions(+)
-> > >
-> > > diff --git a/drivers/base/bus.c b/drivers/base/bus.c
-> > > index 8bfd27e..a2f39db 100644
-> > > --- a/drivers/base/bus.c
-> > > +++ b/drivers/base/bus.c
-> > > @@ -17,6 +17,7 @@
-> > >  #include <linux/string.h>
-> > >  #include <linux/mutex.h>
-> > >  #include <linux/sysfs.h>
-> > > +#include <linux/property.h>
-> > >  #include "base.h"
-> > >  #include "power/power.h"
-> > >
-> > > @@ -373,6 +374,25 @@ struct device *bus_find_device_by_name(struct bus_type *bus,
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(bus_find_device_by_name);
-> > >
-> > > +static int match_fwnode(struct device *dev, void *fwnode)
-> > > +{
-> > > +     return dev_fwnode(dev) == fwnode;
-> > > +}
-> > > +
-> > > +/**
-> > > + * bus_find_device_by_fwnode - device iterator for locating a particular device
-> > > + * having a specific firmware node
-> > > + * @bus: bus type
-> > > + * @start: Device to begin with
-> > > + * @fwnode: firmware node of the device to match
-> > > + */
-> > > +struct device *bus_find_device_by_fwnode(struct bus_type *bus, struct device *start,
-> > > +                                     struct fwnode_handle *fwnode)
-> >
-> > I get the following when running checkpatch on your set:
-> >
-> > mpoirier@xps15:~/work/linaro/coresight/kernel-maint$ ./scripts/checkpatch.pl
-> > 0001-Driver-core-add-bus_find_device_by_fwnode.patch
-> > WARNING: line over 80 characters
->
-> Lines longer than 80 chars often are legitimate.  No need to send
-> extra reports about those cases in general.
+On Tue, 9 Oct 2018 10:30:25 +0200 Jan Kara <jack@suse.cz> wrote:
 
-In this case I don't see a reason not to abide to the guideline.
-Wrapping the function declaration to 80 characters would be easy
-without effecting code readability.
+> > Also, maintainability.  What happens if someone now uses put_page() by
+> > mistake?  Kernel fails in some mysterious fashion?  How can we prevent
+> > this from occurring as code evolves?  Is there a cheap way of detecting
+> > this bug at runtime?
+> 
+> The same will happen as with any other reference counting bug - the special
+> user reference will leak. It will be pretty hard to debug I agree. I was
+> thinking about whether we could provide some type safety against such bugs
+> such as get_user_pages() not returning struct page pointers but rather some
+> other special type but it would result in a big amount of additional churn
+> as we'd have to propagate this different type e.g. through the IO path so
+> that IO completion routines could properly call put_user_pages(). So I'm
+> not sure it's really worth it.
 
-Mathieu
+I'm not really understanding.  Patch 3/3 changes just one infiniband
+driver to use put_user_page().  But the changelogs here imply (to me)
+that every user of get_user_pages() needs to be converted to
+s/put_page/put_user_page/.
 
->
-> Thanks,
-> Rafael
+Methinks a bit more explanation is needed in these changelogs?
