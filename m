@@ -1,222 +1,216 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH v5 3/3] infiniband/mm: convert put_page() to put_user_page*()
-Date: Tue,  9 Oct 2018 21:11:34 -0700
-Message-ID: <20181010041134.14096-4-jhubbard@nvidia.com>
-References: <20181010041134.14096-1-jhubbard@nvidia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181010041134.14096-1-jhubbard@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next] IB/mlx5: Add support for extended atomic operations
+Date: Wed, 10 Oct 2018 09:25:16 +0300
+Message-ID: <20181010062516.5996-1-leon@kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Yonatan Cohen <yonatanc@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+From: Yonatan Cohen <yonatanc@mellanox.com>
 
-For infiniband code that retains pages via get_user_pages*(),
-release those pages via the new put_user_page(), or
-put_user_pages*(), instead of put_page()
+Extended atomic operations cmp&swp and fetch&add is a Mellanox
+feature extending the standard atomic operation to use, varied
+operand sizes, as apposed to normal atomic operation that use
+an 8 byte operand only.
+Extended atomics allows masking the results and arguments.
 
-This is a tiny part of the second step of fixing the problem described
-in [1]. The steps are:
+This patch configures QP to support extended atomic operation
+with the maximum size possible, as exposed by HCA capabilities.
 
-1) Provide put_user_page*() routines, intended to be used
-   for releasing pages that were pinned via get_user_pages*().
-
-2) Convert all of the call sites for get_user_pages*(), to
-   invoke put_user_page*(), instead of put_page(). This involves dozens of
-   call sites, any will take some time.
-
-3) After (2) is complete, use get_user_pages*() and put_user_page*() to
-   implement tracking of these pages. This tracking will be separate from
-   the existing struct page refcounting.
-
-4) Use the tracking and identification of these pages, to implement
-   special handling (especially in writeback paths) when the pages are
-   backed by a filesystem. Again, [1] provides details as to why that is
-   desirable.
-
-[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-
-CC: Doug Ledford <dledford@redhat.com>
-CC: Jason Gunthorpe <jgg@ziepe.ca>
-CC: Mike Marciniszyn <mike.marciniszyn@intel.com>
-CC: Dennis Dalessandro <dennis.dalessandro@intel.com>
-CC: Christian Benvenuti <benve@cisco.com>
-
-CC: linux-rdma@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-CC: linux-mm@kvack.org
-
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
+Reviewed-by: Guy Levi <guyle@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/umem.c              |  7 ++++---
- drivers/infiniband/core/umem_odp.c          |  2 +-
- drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
- drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
- drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
- drivers/infiniband/hw/qib/qib_user_sdma.c   |  6 +++---
- drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
- 7 files changed, 23 insertions(+), 27 deletions(-)
+ drivers/infiniband/hw/mlx5/qp.c | 96 +++++++++++++++++++++++++++++++++++------
+ include/linux/mlx5/driver.h     | 23 +++++-----
+ 2 files changed, 95 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index a41792dbae1f..7ab7a3a35eb4 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -58,9 +58,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
- 	for_each_sg(umem->sg_head.sgl, sg, umem->npages, i) {
- 
- 		page = sg_page(sg);
--		if (!PageDirty(page) && umem->writable && dirty)
--			set_page_dirty_lock(page);
--		put_page(page);
-+		if (umem->writable && dirty)
-+			put_user_pages_dirty_lock(&page, 1);
-+		else
-+			put_user_page(page);
- 	}
- 
- 	sg_free_table(&umem->sg_head);
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 6ec748eccff7..6227b89cf05c 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -717,7 +717,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem *umem, u64 user_virt, u64 bcnt,
- 					ret = -EFAULT;
- 					break;
- 				}
--				put_page(local_page_list[j]);
-+				put_user_page(local_page_list[j]);
- 				continue;
- 			}
- 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index e341e6dcc388..99ccc0483711 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -121,13 +121,10 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
- 			     size_t npages, bool dirty)
- {
--	size_t i;
--
--	for (i = 0; i < npages; i++) {
--		if (dirty)
--			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
--	}
-+	if (dirty)
-+		put_user_pages_dirty_lock(p, npages);
-+	else
-+		put_user_pages(p, npages);
- 
- 	if (mm) { /* during close after signal, mm can be NULL */
- 		down_write(&mm->mmap_sem);
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index cc9c0c8ccba3..b8b12effd009 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -481,7 +481,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 
- 	ret = pci_map_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
- 	if (ret < 0) {
--		put_page(pages[0]);
-+		put_user_page(pages[0]);
- 		goto out;
- 	}
- 
-@@ -489,7 +489,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 				 mthca_uarc_virt(dev, uar, i));
- 	if (ret) {
- 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--		put_page(sg_page(&db_tab->page[i].mem));
-+		put_user_page(sg_page(&db_tab->page[i].mem));
- 		goto out;
- 	}
- 
-@@ -555,7 +555,7 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
- 		if (db_tab->page[i].uvirt) {
- 			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
- 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
--			put_page(sg_page(&db_tab->page[i].mem));
-+			put_user_page(sg_page(&db_tab->page[i].mem));
- 		}
- 	}
- 
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 16543d5e80c3..1a5c64c8695f 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -40,13 +40,10 @@
- static void __qib_release_user_pages(struct page **p, size_t num_pages,
- 				     int dirty)
- {
--	size_t i;
--
--	for (i = 0; i < num_pages; i++) {
--		if (dirty)
--			set_page_dirty_lock(p[i]);
--		put_page(p[i]);
--	}
-+	if (dirty)
-+		put_user_pages_dirty_lock(p, num_pages);
-+	else
-+		put_user_pages(p, num_pages);
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 1a6f34ea2f5d..027697c5b75b 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -1733,6 +1733,53 @@ static void configure_requester_scat_cqe(struct mlx5_ib_dev *dev,
+ 		MLX5_SET(qpc, qpc, cs_req, MLX5_REQ_SCAT_DATA32_CQE);
  }
- 
- /*
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index 926f3c8eba69..4a4b802b011f 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -321,7 +321,7 @@ static int qib_user_sdma_page_to_frags(const struct qib_devdata *dd,
- 		 * the caller can ignore this page.
- 		 */
- 		if (put) {
--			put_page(page);
-+			put_user_page(page);
- 		} else {
- 			/* coalesce case */
- 			kunmap(page);
-@@ -635,7 +635,7 @@ static void qib_user_sdma_free_pkt_frag(struct device *dev,
- 			kunmap(pkt->addr[i].page);
- 
- 		if (pkt->addr[i].put_page)
--			put_page(pkt->addr[i].page);
-+			put_user_page(pkt->addr[i].page);
- 		else
- 			__free_page(pkt->addr[i].page);
- 	} else if (pkt->addr[i].kvaddr) {
-@@ -710,7 +710,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
- 	/* if error, return all pages not managed by pkt */
- free_pages:
- 	while (i < j)
--		put_page(pages[i++]);
-+		put_user_page(pages[i++]);
- 
- done:
- 	return ret;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 9dd39daa602b..9e3615fd05f7 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -89,9 +89,10 @@ static void usnic_uiom_put_pages(struct list_head *chunk_list, int dirty)
- 		for_each_sg(chunk->page_list, sg, chunk->nents, i) {
- 			page = sg_page(sg);
- 			pa = sg_phys(sg);
--			if (!PageDirty(page) && dirty)
--				set_page_dirty_lock(page);
--			put_page(page);
-+			if (dirty)
-+				put_user_pages_dirty_lock(&page, 1);
-+			else
-+				put_user_page(page);
- 			usnic_dbg("pa: %pa\n", &pa);
+
++static int atomic_size_to_mode(int size_mask)
++{
++	/* driver does not support atomic_size > 256B
++	 * and does not know how to translate bigger sizes
++	 */
++	int supported_size_mask = size_mask & 0x1ff;
++	int log_max_size;
++
++	if (!supported_size_mask)
++		return -EOPNOTSUPP;
++
++	log_max_size = __fls(supported_size_mask);
++
++	if (log_max_size > 3)
++		return log_max_size;
++
++	return MLX5_ATOMIC_MODE_8B;
++}
++
++static int get_atomic_mode(struct mlx5_ib_dev *dev,
++			   enum ib_qp_type qp_type)
++{
++	u8 atomic_operations = MLX5_CAP_ATOMIC(dev->mdev, atomic_operations);
++	u8 atomic = MLX5_CAP_GEN(dev->mdev, atomic);
++	int atomic_mode = -EOPNOTSUPP;
++	int atomic_size_mask;
++
++	if (!atomic)
++		return -EOPNOTSUPP;
++
++	if (qp_type == MLX5_IB_QPT_DCT)
++		atomic_size_mask = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_dc);
++	else
++		atomic_size_mask = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_qp);
++
++	if ((atomic_operations & MLX5_ATOMIC_OPS_EXTENDED_CMP_SWAP) ||
++	    (atomic_operations & MLX5_ATOMIC_OPS_EXTENDED_FETCH_ADD))
++		atomic_mode = atomic_size_to_mode(atomic_size_mask);
++
++	if (atomic_mode <= 0 &&
++	    (atomic_operations & MLX5_ATOMIC_OPS_CMP_SWAP &&
++	     atomic_operations & MLX5_ATOMIC_OPS_FETCH_ADD))
++		atomic_mode = MLX5_ATOMIC_MODE_IB_COMP;
++
++	return atomic_mode;
++}
++
+ static inline bool check_flags_mask(uint64_t input, uint64_t supported)
+ {
+ 	return (input & ~supported) == 0;
+@@ -2562,13 +2609,15 @@ int mlx5_ib_destroy_qp(struct ib_qp *qp)
+ 	return 0;
+ }
+
+-static __be32 to_mlx5_access_flags(struct mlx5_ib_qp *qp, const struct ib_qp_attr *attr,
+-				   int attr_mask)
++static int to_mlx5_access_flags(struct mlx5_ib_qp *qp,
++				const struct ib_qp_attr *attr,
++				int attr_mask, __be32 *hw_access_flags)
+ {
+-	u32 hw_access_flags = 0;
+ 	u8 dest_rd_atomic;
+ 	u32 access_flags;
+
++	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
++
+ 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
+ 		dest_rd_atomic = attr->max_dest_rd_atomic;
+ 	else
+@@ -2583,13 +2632,25 @@ static __be32 to_mlx5_access_flags(struct mlx5_ib_qp *qp, const struct ib_qp_att
+ 		access_flags &= IB_ACCESS_REMOTE_WRITE;
+
+ 	if (access_flags & IB_ACCESS_REMOTE_READ)
+-		hw_access_flags |= MLX5_QP_BIT_RRE;
+-	if (access_flags & IB_ACCESS_REMOTE_ATOMIC)
+-		hw_access_flags |= (MLX5_QP_BIT_RAE | MLX5_ATOMIC_MODE_CX);
++		*hw_access_flags |= MLX5_QP_BIT_RRE;
++	if ((access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
++	    qp->ibqp.qp_type == IB_QPT_RC) {
++		int atomic_mode;
++
++		atomic_mode = get_atomic_mode(dev, qp->ibqp.qp_type);
++		if (atomic_mode < 0)
++			return -EOPNOTSUPP;
++
++		*hw_access_flags |= MLX5_QP_BIT_RAE;
++		*hw_access_flags |= atomic_mode << MLX5_ATOMIC_MODE_OFFSET;
++	}
++
+ 	if (access_flags & IB_ACCESS_REMOTE_WRITE)
+-		hw_access_flags |= MLX5_QP_BIT_RWE;
++		*hw_access_flags |= MLX5_QP_BIT_RWE;
++
++	*hw_access_flags = cpu_to_be32(*hw_access_flags);
+
+-	return cpu_to_be32(hw_access_flags);
++	return 0;
+ }
+
+ enum {
+@@ -3287,8 +3348,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 				cpu_to_be32(fls(attr->max_dest_rd_atomic - 1) << 21);
+ 	}
+
+-	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC))
+-		context->params2 |= to_mlx5_access_flags(qp, attr, attr_mask);
++	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC)) {
++		__be32 access_flags = 0;
++
++		err = to_mlx5_access_flags(qp, attr, attr_mask, &access_flags);
++		if (err)
++			goto out;
++
++		context->params2 |= access_flags;
++	}
+
+ 	if (attr_mask & IB_QP_MIN_RNR_TIMER)
+ 		context->rnr_nextrecvpsn |= cpu_to_be32(attr->min_rnr_timer << 24);
+@@ -3504,10 +3572,14 @@ static int mlx5_ib_modify_dct(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 		if (attr->qp_access_flags & IB_ACCESS_REMOTE_WRITE)
+ 			MLX5_SET(dctc, dctc, rwe, 1);
+ 		if (attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC) {
+-			if (!mlx5_ib_dc_atomic_is_supported(dev))
++			int atomic_mode;
++
++			atomic_mode = get_atomic_mode(dev, MLX5_IB_QPT_DCT);
++			if (atomic_mode < 0)
+ 				return -EOPNOTSUPP;
++
++			MLX5_SET(dctc, dctc, atomic_mode, atomic_mode);
+ 			MLX5_SET(dctc, dctc, rae, 1);
+-			MLX5_SET(dctc, dctc, atomic_mode, MLX5_ATOMIC_MODE_DCT_CX);
  		}
- 		kfree(chunk);
--- 
-2.19.1
+ 		MLX5_SET(dctc, dctc, pkey_index, attr->pkey_index);
+ 		MLX5_SET(dctc, dctc, port, attr->port_num);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index e2fa59f98ff8..024668c993f2 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -97,14 +97,15 @@ enum {
+ };
+
+ enum {
+-	MLX5_ATOMIC_MODE_IB_COMP	= 1 << 16,
+-	MLX5_ATOMIC_MODE_CX		= 2 << 16,
+-	MLX5_ATOMIC_MODE_8B		= 3 << 16,
+-	MLX5_ATOMIC_MODE_16B		= 4 << 16,
+-	MLX5_ATOMIC_MODE_32B		= 5 << 16,
+-	MLX5_ATOMIC_MODE_64B		= 6 << 16,
+-	MLX5_ATOMIC_MODE_128B		= 7 << 16,
+-	MLX5_ATOMIC_MODE_256B		= 8 << 16,
++	MLX5_ATOMIC_MODE_OFFSET = 16,
++	MLX5_ATOMIC_MODE_IB_COMP = 1,
++	MLX5_ATOMIC_MODE_CX = 2,
++	MLX5_ATOMIC_MODE_8B = 3,
++	MLX5_ATOMIC_MODE_16B = 4,
++	MLX5_ATOMIC_MODE_32B = 5,
++	MLX5_ATOMIC_MODE_64B = 6,
++	MLX5_ATOMIC_MODE_128B = 7,
++	MLX5_ATOMIC_MODE_256B = 8,
+ };
+
+ enum {
+@@ -162,13 +163,11 @@ enum mlx5_dcbx_oper_mode {
+ 	MLX5E_DCBX_PARAM_VER_OPER_AUTO  = 0x3,
+ };
+
+-enum mlx5_dct_atomic_mode {
+-	MLX5_ATOMIC_MODE_DCT_CX         = 2,
+-};
+-
+ enum {
+ 	MLX5_ATOMIC_OPS_CMP_SWAP	= 1 << 0,
+ 	MLX5_ATOMIC_OPS_FETCH_ADD	= 1 << 1,
++	MLX5_ATOMIC_OPS_EXTENDED_CMP_SWAP = 1 << 2,
++	MLX5_ATOMIC_OPS_EXTENDED_FETCH_ADD = 1 << 3,
+ };
+
+ enum mlx5_page_fault_resume_flags {
