@@ -1,44 +1,112 @@
-From: Logan Gunthorpe <logang@deltatee.com>
-Subject: Re: [PATCH v9 00/13] Copy Offload in NVMe Fabrics with P2P PCI Memory
-Date: Wed, 10 Oct 2018 17:03:33 -0600
-Message-ID: <5c674a1b-2471-33eb-44f4-fe1bb8807a22@deltatee.com>
-References: <20181004212747.6301-1-logang@deltatee.com>
- <20181010201918.GF5906@bhelgaas-glaptop.roam.corp.google.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
+ versions
+Date: Wed, 10 Oct 2018 16:23:35 -0700
+Message-ID: <f5fb98a8-a1dc-6f1d-bc9e-210be14e91b4@nvidia.com>
+References: <20181008211623.30796-1-jhubbard@nvidia.com>
+ <20181008211623.30796-3-jhubbard@nvidia.com>
+ <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
+ <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
+ <20181010085936.GC11507@quack2.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181010201918.GF5906@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-CA
+In-Reply-To: <20181010085936.GC11507@quack2.suse.cz>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-nvme@lists.infradead.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-block@vger.kernel.org, Stephen Bates <sbates@raithlin.com>, Christoph Hellwig <hch@lst.de>, Keith Busch <keith.busch@intel.com>, Sagi Grimberg <sagi@grimberg.me>, Bjorn Helgaas <bhelgaas@google.com>, Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Alex Williamson <alex.williamson@redhat.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Jens Axboe <axboe@kernel.dk>
+To: Jan Kara <jack@suse.cz>
+Cc: Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2018-10-10 2:19 p.m., Bjorn Helgaas wrote:
-> I added the reviewed-by tags from Christoph, Jens' ack on the blkdev.h
-> change, and applied these to pci/peer-to-peer with the intent of
-> merging these for v4.20.
+On 10/10/18 1:59 AM, Jan Kara wrote:
+> On Tue 09-10-18 17:42:09, John Hubbard wrote:
+>> On 10/8/18 5:14 PM, Andrew Morton wrote:
+>>> Also, maintainability.  What happens if someone now uses put_page() by
+>>> mistake?  Kernel fails in some mysterious fashion?  How can we prevent
+>>> this from occurring as code evolves?  Is there a cheap way of detecting
+>>> this bug at runtime?
+>>>
+>>
+>> It might be possible to do a few run-time checks, such as "does page that came 
+>> back to put_user_page() have the correct flags?", but it's harder (without 
+>> having a dedicated page flag) to detect the other direction: "did someone page 
+>> in a get_user_pages page, to put_page?"
+>>
+>> As Jan said in his reply, converting get_user_pages (and put_user_page) to 
+>> work with a new data type that wraps struct pages, would solve it, but that's
+>> an awfully large change. Still...given how much of a mess this can turn into 
+>> if it's wrong, I wonder if it's worth it--maybe? 
 > 
-> I gave up on waiting for an ack for the memremap.h and mm.h changes.
+> I'm certainly not opposed to looking into it. But after looking into this
+> for a while it is not clear to me how to convert e.g. fs/direct-io.c or
+> fs/iomap.c. They pass the reference from gup() via
+> bio->bi_io_vec[]->bv_page and then release it after IO completion.
+> Propagating the new type to ->bv_page is not good as lower layer do not
+> really care how the page is pinned in memory. But we do need to somehow
+> pass the information to the IO completion functions in a robust manner.
 > 
-> I dropped the "nvme-pci: Add a quirk for a pseudo CMB" quirk because
-> of Christoph's objection.  After this is all merged, I won't need to
-> be involved, and you and the NVMe folks can hash that out.
+
+You know, that problem has to be solved in either case: even if we do not
+use a new data type for get_user_pages, we still need to clearly, accurately
+match up the get/put pairs. And for the complicated systems (block IO, and
+GPU DRM layer, especially) one of the things that has caused me concern is 
+the way the pages all end up in a large, complicated pool, and put_page is
+used to free all of them, indiscriminately.
+
+So I'm glad you're looking at ways to disambiguate this for the bio system.
+
+> Hmm, what about the following:
 > 
-> If there are updates to "nvmet: Optionally use PCI P2P memory" based
-> on Sagi's comments, send an incremental patch and I'll fold them in.
+> 1) Make gup() return new type - struct user_page *? In practice that would
+> be just a struct page pointer with 0 bit set so that people are forced to
+> use proper helpers and not just force types (and the setting of bit 0 and
+> masking back would be hidden behind CONFIG_DEBUG_USER_PAGE_REFERENCES for
+> performance reasons). Also the transition would have to be gradual so we'd
+> have to name the function differently and use it from converted code.
 
-Thanks for picking this up. However, I hate to throw a wrench in the
-works, but I had a v10[1] queued up because kbuild found some problems
-with the series over the weekend. I can send v10 off right away if you
-want to just replace it in your branch or, if you'd like, I can generate
-some incremental patches. Let me know which you'd prefer.
+Yes. That seems perfect: it just fades away if you're not debugging, but we
+can catch lots of problems when CONFIG_DEBUG_USER_PAGE_REFERENCES is set. 
 
-Thanks,
+> 
+> 2) Provide helper bio_add_user_page() that will take user_page, convert it
+> to struct page, add it to the bio, and flag the bio as having pages with
+> user references. That code would also make sure the bio is consistent in
+> having only user-referenced pages in that case. IO completion (like
+> bio_check_pages_dirty(), bio_release_pages() etc.) will check the flag and
+> use approprite release function.
 
-Logan
+I'm very new to bio, so I have to ask: can we be sure that the same types of 
+pages are always used, within each bio? Because otherwise, we'll have to plumb 
+it all the way down to bio_vec's--or so it appears, based on my reading of 
+bio_release_pages() and surrounding code.
 
-[1] https://github.com/sbates130272/linux-p2pmem pci-p2p-v10
+> 
+> 3) I have noticed fs/direct-io.c may submit zero page for IO when it needs
+> to clear stuff so we'll probably need a helper function to acquire 'user pin'
+> reference given a page pointer so that that code can be kept reasonably
+> simple and pass user_page references all around.
+>
+
+This only works if we don't set page flags, because if we do set page flags 
+on the single, global zero page, that will break the world. So I'm not sure
+that the zero page usage in fs/directio.c is going to survive the conversion
+to this new approach. :)
+ 
+> So this way we could maintain reasonable confidence that refcounts didn't
+> get mixed up. Thoughts?
+> 
+
+After thinking some more about the complicated situations in bio and DRM,
+and looking into the future (bug reports...), I am leaning toward your 
+struct user_page approach. 
+
+I'm looking forward to hearing other opinions on whether it's worth it to go
+and do this fairly intrusive change, in return for, probably, fewer bugs along
+the way.
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
