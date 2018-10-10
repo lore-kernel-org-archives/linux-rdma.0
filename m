@@ -1,112 +1,52 @@
-From: John Hubbard <jhubbard@nvidia.com>
+From: Andrew Morton <akpm@linux-foundation.org>
 Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
  versions
-Date: Wed, 10 Oct 2018 16:23:35 -0700
-Message-ID: <f5fb98a8-a1dc-6f1d-bc9e-210be14e91b4@nvidia.com>
+Date: Wed, 10 Oct 2018 16:43:59 -0700
+Message-ID: <20181010164359.292d938b51cbd57b38a1bd99@linux-foundation.org>
 References: <20181008211623.30796-1-jhubbard@nvidia.com>
- <20181008211623.30796-3-jhubbard@nvidia.com>
- <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
- <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
- <20181010085936.GC11507@quack2.suse.cz>
+        <20181008211623.30796-3-jhubbard@nvidia.com>
+        <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
+        <20181009083025.GE11150@quack2.suse.cz>
+        <20181009162012.c662ef0b041993557e150035@linux-foundation.org>
+        <62492f47-d51f-5c41-628c-ff17de21829e@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181010085936.GC11507@quack2.suse.cz>
-Content-Language: en-US-large
+In-Reply-To: <62492f47-d51f-5c41-628c-ff17de21829e@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Jan Kara <jack@suse.cz>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/18 1:59 AM, Jan Kara wrote:
-> On Tue 09-10-18 17:42:09, John Hubbard wrote:
->> On 10/8/18 5:14 PM, Andrew Morton wrote:
->>> Also, maintainability.  What happens if someone now uses put_page() by
->>> mistake?  Kernel fails in some mysterious fashion?  How can we prevent
->>> this from occurring as code evolves?  Is there a cheap way of detecting
->>> this bug at runtime?
->>>
->>
->> It might be possible to do a few run-time checks, such as "does page that came 
->> back to put_user_page() have the correct flags?", but it's harder (without 
->> having a dedicated page flag) to detect the other direction: "did someone page 
->> in a get_user_pages page, to put_page?"
->>
->> As Jan said in his reply, converting get_user_pages (and put_user_page) to 
->> work with a new data type that wraps struct pages, would solve it, but that's
->> an awfully large change. Still...given how much of a mess this can turn into 
->> if it's wrong, I wonder if it's worth it--maybe? 
+On Tue, 9 Oct 2018 17:32:16 -0700 John Hubbard <jhubbard@nvidia.com> wrote:
+
+> > I'm not really understanding.  Patch 3/3 changes just one infiniband
+> > driver to use put_user_page().  But the changelogs here imply (to me)
+> > that every user of get_user_pages() needs to be converted to
+> > s/put_page/put_user_page/.
+> > 
+> > Methinks a bit more explanation is needed in these changelogs?
+> > 
 > 
-> I'm certainly not opposed to looking into it. But after looking into this
-> for a while it is not clear to me how to convert e.g. fs/direct-io.c or
-> fs/iomap.c. They pass the reference from gup() via
-> bio->bi_io_vec[]->bv_page and then release it after IO completion.
-> Propagating the new type to ->bv_page is not good as lower layer do not
-> really care how the page is pinned in memory. But we do need to somehow
-> pass the information to the IO completion functions in a robust manner.
+> OK, yes, it does sound like the explanation is falling short. I'll work on something 
+> clearer. Did the proposed steps in the changelogs, such as:
+>   
+> [2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
+>     Proposed steps for fixing get_user_pages() + DMA problems.
 > 
-
-You know, that problem has to be solved in either case: even if we do not
-use a new data type for get_user_pages, we still need to clearly, accurately
-match up the get/put pairs. And for the complicated systems (block IO, and
-GPU DRM layer, especially) one of the things that has caused me concern is 
-the way the pages all end up in a large, complicated pool, and put_page is
-used to free all of them, indiscriminately.
-
-So I'm glad you're looking at ways to disambiguate this for the bio system.
-
-> Hmm, what about the following:
+> help at all, or is it just too many references, and I should write the words
+> directly in the changelog?
 > 
-> 1) Make gup() return new type - struct user_page *? In practice that would
-> be just a struct page pointer with 0 bit set so that people are forced to
-> use proper helpers and not just force types (and the setting of bit 0 and
-> masking back would be hidden behind CONFIG_DEBUG_USER_PAGE_REFERENCES for
-> performance reasons). Also the transition would have to be gradual so we'd
-> have to name the function differently and use it from converted code.
-
-Yes. That seems perfect: it just fades away if you're not debugging, but we
-can catch lots of problems when CONFIG_DEBUG_USER_PAGE_REFERENCES is set. 
-
+> Anyway, patch 3/3 is a just a working example (which we do want to submit, though), and
+> many more conversions will follow. But they don't have to be done all upfront--they
+> can be done in follow up patchsets. 
 > 
-> 2) Provide helper bio_add_user_page() that will take user_page, convert it
-> to struct page, add it to the bio, and flag the bio as having pages with
-> user references. That code would also make sure the bio is consistent in
-> having only user-referenced pages in that case. IO completion (like
-> bio_check_pages_dirty(), bio_release_pages() etc.) will check the flag and
-> use approprite release function.
-
-I'm very new to bio, so I have to ask: can we be sure that the same types of 
-pages are always used, within each bio? Because otherwise, we'll have to plumb 
-it all the way down to bio_vec's--or so it appears, based on my reading of 
-bio_release_pages() and surrounding code.
-
+> The put_user_page*() routines are, at this point, not going to significantly change
+> behavior. 
 > 
-> 3) I have noticed fs/direct-io.c may submit zero page for IO when it needs
-> to clear stuff so we'll probably need a helper function to acquire 'user pin'
-> reference given a page pointer so that that code can be kept reasonably
-> simple and pass user_page references all around.
->
+> I'm working on an RFC that will show what the long-term fix to get_user_pages and
+> put_user_pages will look like. But meanwhile it's good to get started on converting
+> all of the call sites.
 
-This only works if we don't set page flags, because if we do set page flags 
-on the single, global zero page, that will break the world. So I'm not sure
-that the zero page usage in fs/directio.c is going to survive the conversion
-to this new approach. :)
- 
-> So this way we could maintain reasonable confidence that refcounts didn't
-> get mixed up. Thoughts?
-> 
-
-After thinking some more about the complicated situations in bio and DRM,
-and looking into the future (bug reports...), I am leaning toward your 
-struct user_page approach. 
-
-I'm looking forward to hearing other opinions on whether it's worth it to go
-and do this fairly intrusive change, in return for, probably, fewer bugs along
-the way.
-
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+I see.  Yes, please do put all of it into the changelog[s].
