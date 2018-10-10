@@ -1,70 +1,95 @@
 From: John Hubbard <jhubbard@nvidia.com>
 Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
  versions
-Date: Tue, 9 Oct 2018 17:32:16 -0700
-Message-ID: <62492f47-d51f-5c41-628c-ff17de21829e@nvidia.com>
+Date: Tue, 9 Oct 2018 17:42:09 -0700
+Message-ID: <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
 References: <20181008211623.30796-1-jhubbard@nvidia.com>
  <20181008211623.30796-3-jhubbard@nvidia.com>
  <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
- <20181009083025.GE11150@quack2.suse.cz>
- <20181009162012.c662ef0b041993557e150035@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181009162012.c662ef0b041993557e150035@linux-foundation.org>
+In-Reply-To: <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
 Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Jan Kara <jack@suse.cz>
-Cc: john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+To: Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/9/18 4:20 PM, Andrew Morton wrote:
-> On Tue, 9 Oct 2018 10:30:25 +0200 Jan Kara <jack@suse.cz> wrote:
+On 10/8/18 5:14 PM, Andrew Morton wrote:
+> On Mon,  8 Oct 2018 14:16:22 -0700 john.hubbard@gmail.com wrote:
 > 
->>> Also, maintainability.  What happens if someone now uses put_page() by
->>> mistake?  Kernel fails in some mysterious fashion?  How can we prevent
->>> this from occurring as code evolves?  Is there a cheap way of detecting
->>> this bug at runtime?
->>
->> The same will happen as with any other reference counting bug - the special
->> user reference will leak. It will be pretty hard to debug I agree. I was
->> thinking about whether we could provide some type safety against such bugs
->> such as get_user_pages() not returning struct page pointers but rather some
->> other special type but it would result in a big amount of additional churn
->> as we'd have to propagate this different type e.g. through the IO path so
->> that IO completion routines could properly call put_user_pages(). So I'm
->> not sure it's really worth it.
+>> From: John Hubbard <jhubbard@nvidia.com>
+[...]
+>> +/*
+>> + * Pages that were pinned via get_user_pages*() should be released via
+>> + * either put_user_page(), or one of the put_user_pages*() routines
+>> + * below.
+>> + */
+>> +static inline void put_user_page(struct page *page)
+>> +{
+>> +	put_page(page);
+>> +}
+>> +
+>> +static inline void put_user_pages_dirty(struct page **pages,
+>> +					unsigned long npages)
+>> +{
+>> +	unsigned long index;
+>> +
+>> +	for (index = 0; index < npages; index++) {
+>> +		if (!PageDirty(pages[index]))
 > 
-> I'm not really understanding.  Patch 3/3 changes just one infiniband
-> driver to use put_user_page().  But the changelogs here imply (to me)
-> that every user of get_user_pages() needs to be converted to
-> s/put_page/put_user_page/.
+> Both put_page() and set_page_dirty() handle compound pages.  But
+> because of the above statement, put_user_pages_dirty() might misbehave? 
+> Or maybe it won't - perhaps the intent here is to skip dirtying the
+> head page if the sub page is clean?  Please clarify, explain and add
+> comment if so.
 > 
-> Methinks a bit more explanation is needed in these changelogs?
+
+Yes, technically, the accounting is wrong: we normally use the head page to 
+track dirtiness, and here, that is not done. (Nor was it done before this
+patch). However, it's not causing problems in code today because sub pages
+are released at about the same time as head pages, so the head page does get 
+properly checked at some point. And that means that set_page_dirty*() gets
+called if it needs to be called. 
+
+Obviously this is a little fragile, in that it depends on the caller behaving 
+a certain way. And in any case, the long-term fix (coming later) *also* only
+operates on the head page. So actually, instead of a comment, I think it's good 
+to just insert
+
+	page = compound_head(page);
+
+...into these new routines, right now. I'll do that.
+
+[...]
+> 
+> Otherwise looks OK.  Ish.  But it would be nice if that comment were to
+> explain *why* get_user_pages() pages must be released with
+> put_user_page().
 > 
 
-OK, yes, it does sound like the explanation is falling short. I'll work on something 
-clearer. Did the proposed steps in the changelogs, such as:
-  
-[2] https://lkml.kernel.org/r/20180709080554.21931-1-jhubbard@nvidia.com
-    Proposed steps for fixing get_user_pages() + DMA problems.
+Yes, will do.
 
-help at all, or is it just too many references, and I should write the words
-directly in the changelog?
+> Also, maintainability.  What happens if someone now uses put_page() by
+> mistake?  Kernel fails in some mysterious fashion?  How can we prevent
+> this from occurring as code evolves?  Is there a cheap way of detecting
+> this bug at runtime?
+> 
 
-Anyway, patch 3/3 is a just a working example (which we do want to submit, though), and
-many more conversions will follow. But they don't have to be done all upfront--they
-can be done in follow up patchsets. 
+It might be possible to do a few run-time checks, such as "does page that came 
+back to put_user_page() have the correct flags?", but it's harder (without 
+having a dedicated page flag) to detect the other direction: "did someone page 
+in a get_user_pages page, to put_page?"
 
-The put_user_page*() routines are, at this point, not going to significantly change
-behavior. 
-
-I'm working on an RFC that will show what the long-term fix to get_user_pages and
-put_user_pages will look like. But meanwhile it's good to get started on converting
-all of the call sites.
+As Jan said in his reply, converting get_user_pages (and put_user_page) to 
+work with a new data type that wraps struct pages, would solve it, but that's
+an awfully large change. Still...given how much of a mess this can turn into 
+if it's wrong, I wonder if it's worth it--maybe? 
 
 thanks,
 -- 
 John Hubbard
 NVIDIA
+ 
