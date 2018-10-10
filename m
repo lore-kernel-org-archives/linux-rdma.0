@@ -1,216 +1,54 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next] IB/mlx5: Add support for extended atomic operations
-Date: Wed, 10 Oct 2018 09:25:16 +0300
-Message-ID: <20181010062516.5996-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Yonatan Cohen <yonatanc@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH v5 2/3] mm: introduce put_user_page*(), placeholder
+ versions
+Date: Wed, 10 Oct 2018 10:03:26 +0200
+Message-ID: <20181010080326.GB11507@quack2.suse.cz>
+References: <20181010041134.14096-1-jhubbard@nvidia.com>
+ <20181010041134.14096-3-jhubbard@nvidia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181010041134.14096-3-jhubbard@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yonatan Cohen <yonatanc@mellanox.com>
+On Tue 09-10-18 21:11:33, john.hubbard@gmail.com wrote:
+> +/*
+> + * put_user_pages() - for each page in the @pages array, release the page
+> + * using put_user_page().
+> + *
+> + * Please see the put_user_page() documentation for details.
+> + *
+> + * This is just like put_user_pages_dirty(), except that it invokes
+> + * set_page_dirty_lock(), instead of set_page_dirty().
 
-Extended atomic operations cmp&swp and fetch&add is a Mellanox
-feature extending the standard atomic operation to use, varied
-operand sizes, as apposed to normal atomic operation that use
-an 8 byte operand only.
-Extended atomics allows masking the results and arguments.
+This paragraph should be deleted. Other than that the patch looks good.
 
-This patch configures QP to support extended atomic operation
-with the maximum size possible, as exposed by HCA capabilities.
+								Honza
 
-Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
-Reviewed-by: Guy Levi <guyle@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 96 +++++++++++++++++++++++++++++++++++------
- include/linux/mlx5/driver.h     | 23 +++++-----
- 2 files changed, 95 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 1a6f34ea2f5d..027697c5b75b 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -1733,6 +1733,53 @@ static void configure_requester_scat_cqe(struct mlx5_ib_dev *dev,
- 		MLX5_SET(qpc, qpc, cs_req, MLX5_REQ_SCAT_DATA32_CQE);
- }
-
-+static int atomic_size_to_mode(int size_mask)
-+{
-+	/* driver does not support atomic_size > 256B
-+	 * and does not know how to translate bigger sizes
-+	 */
-+	int supported_size_mask = size_mask & 0x1ff;
-+	int log_max_size;
-+
-+	if (!supported_size_mask)
-+		return -EOPNOTSUPP;
-+
-+	log_max_size = __fls(supported_size_mask);
-+
-+	if (log_max_size > 3)
-+		return log_max_size;
-+
-+	return MLX5_ATOMIC_MODE_8B;
-+}
-+
-+static int get_atomic_mode(struct mlx5_ib_dev *dev,
-+			   enum ib_qp_type qp_type)
-+{
-+	u8 atomic_operations = MLX5_CAP_ATOMIC(dev->mdev, atomic_operations);
-+	u8 atomic = MLX5_CAP_GEN(dev->mdev, atomic);
-+	int atomic_mode = -EOPNOTSUPP;
-+	int atomic_size_mask;
-+
-+	if (!atomic)
-+		return -EOPNOTSUPP;
-+
-+	if (qp_type == MLX5_IB_QPT_DCT)
-+		atomic_size_mask = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_dc);
-+	else
-+		atomic_size_mask = MLX5_CAP_ATOMIC(dev->mdev, atomic_size_qp);
-+
-+	if ((atomic_operations & MLX5_ATOMIC_OPS_EXTENDED_CMP_SWAP) ||
-+	    (atomic_operations & MLX5_ATOMIC_OPS_EXTENDED_FETCH_ADD))
-+		atomic_mode = atomic_size_to_mode(atomic_size_mask);
-+
-+	if (atomic_mode <= 0 &&
-+	    (atomic_operations & MLX5_ATOMIC_OPS_CMP_SWAP &&
-+	     atomic_operations & MLX5_ATOMIC_OPS_FETCH_ADD))
-+		atomic_mode = MLX5_ATOMIC_MODE_IB_COMP;
-+
-+	return atomic_mode;
-+}
-+
- static inline bool check_flags_mask(uint64_t input, uint64_t supported)
- {
- 	return (input & ~supported) == 0;
-@@ -2562,13 +2609,15 @@ int mlx5_ib_destroy_qp(struct ib_qp *qp)
- 	return 0;
- }
-
--static __be32 to_mlx5_access_flags(struct mlx5_ib_qp *qp, const struct ib_qp_attr *attr,
--				   int attr_mask)
-+static int to_mlx5_access_flags(struct mlx5_ib_qp *qp,
-+				const struct ib_qp_attr *attr,
-+				int attr_mask, __be32 *hw_access_flags)
- {
--	u32 hw_access_flags = 0;
- 	u8 dest_rd_atomic;
- 	u32 access_flags;
-
-+	struct mlx5_ib_dev *dev = to_mdev(qp->ibqp.device);
-+
- 	if (attr_mask & IB_QP_MAX_DEST_RD_ATOMIC)
- 		dest_rd_atomic = attr->max_dest_rd_atomic;
- 	else
-@@ -2583,13 +2632,25 @@ static __be32 to_mlx5_access_flags(struct mlx5_ib_qp *qp, const struct ib_qp_att
- 		access_flags &= IB_ACCESS_REMOTE_WRITE;
-
- 	if (access_flags & IB_ACCESS_REMOTE_READ)
--		hw_access_flags |= MLX5_QP_BIT_RRE;
--	if (access_flags & IB_ACCESS_REMOTE_ATOMIC)
--		hw_access_flags |= (MLX5_QP_BIT_RAE | MLX5_ATOMIC_MODE_CX);
-+		*hw_access_flags |= MLX5_QP_BIT_RRE;
-+	if ((access_flags & IB_ACCESS_REMOTE_ATOMIC) &&
-+	    qp->ibqp.qp_type == IB_QPT_RC) {
-+		int atomic_mode;
-+
-+		atomic_mode = get_atomic_mode(dev, qp->ibqp.qp_type);
-+		if (atomic_mode < 0)
-+			return -EOPNOTSUPP;
-+
-+		*hw_access_flags |= MLX5_QP_BIT_RAE;
-+		*hw_access_flags |= atomic_mode << MLX5_ATOMIC_MODE_OFFSET;
-+	}
-+
- 	if (access_flags & IB_ACCESS_REMOTE_WRITE)
--		hw_access_flags |= MLX5_QP_BIT_RWE;
-+		*hw_access_flags |= MLX5_QP_BIT_RWE;
-+
-+	*hw_access_flags = cpu_to_be32(*hw_access_flags);
-
--	return cpu_to_be32(hw_access_flags);
-+	return 0;
- }
-
- enum {
-@@ -3287,8 +3348,15 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 				cpu_to_be32(fls(attr->max_dest_rd_atomic - 1) << 21);
- 	}
-
--	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC))
--		context->params2 |= to_mlx5_access_flags(qp, attr, attr_mask);
-+	if (attr_mask & (IB_QP_ACCESS_FLAGS | IB_QP_MAX_DEST_RD_ATOMIC)) {
-+		__be32 access_flags = 0;
-+
-+		err = to_mlx5_access_flags(qp, attr, attr_mask, &access_flags);
-+		if (err)
-+			goto out;
-+
-+		context->params2 |= access_flags;
-+	}
-
- 	if (attr_mask & IB_QP_MIN_RNR_TIMER)
- 		context->rnr_nextrecvpsn |= cpu_to_be32(attr->min_rnr_timer << 24);
-@@ -3504,10 +3572,14 @@ static int mlx5_ib_modify_dct(struct ib_qp *ibqp, struct ib_qp_attr *attr,
- 		if (attr->qp_access_flags & IB_ACCESS_REMOTE_WRITE)
- 			MLX5_SET(dctc, dctc, rwe, 1);
- 		if (attr->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC) {
--			if (!mlx5_ib_dc_atomic_is_supported(dev))
-+			int atomic_mode;
-+
-+			atomic_mode = get_atomic_mode(dev, MLX5_IB_QPT_DCT);
-+			if (atomic_mode < 0)
- 				return -EOPNOTSUPP;
-+
-+			MLX5_SET(dctc, dctc, atomic_mode, atomic_mode);
- 			MLX5_SET(dctc, dctc, rae, 1);
--			MLX5_SET(dctc, dctc, atomic_mode, MLX5_ATOMIC_MODE_DCT_CX);
- 		}
- 		MLX5_SET(dctc, dctc, pkey_index, attr->pkey_index);
- 		MLX5_SET(dctc, dctc, port, attr->port_num);
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index e2fa59f98ff8..024668c993f2 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -97,14 +97,15 @@ enum {
- };
-
- enum {
--	MLX5_ATOMIC_MODE_IB_COMP	= 1 << 16,
--	MLX5_ATOMIC_MODE_CX		= 2 << 16,
--	MLX5_ATOMIC_MODE_8B		= 3 << 16,
--	MLX5_ATOMIC_MODE_16B		= 4 << 16,
--	MLX5_ATOMIC_MODE_32B		= 5 << 16,
--	MLX5_ATOMIC_MODE_64B		= 6 << 16,
--	MLX5_ATOMIC_MODE_128B		= 7 << 16,
--	MLX5_ATOMIC_MODE_256B		= 8 << 16,
-+	MLX5_ATOMIC_MODE_OFFSET = 16,
-+	MLX5_ATOMIC_MODE_IB_COMP = 1,
-+	MLX5_ATOMIC_MODE_CX = 2,
-+	MLX5_ATOMIC_MODE_8B = 3,
-+	MLX5_ATOMIC_MODE_16B = 4,
-+	MLX5_ATOMIC_MODE_32B = 5,
-+	MLX5_ATOMIC_MODE_64B = 6,
-+	MLX5_ATOMIC_MODE_128B = 7,
-+	MLX5_ATOMIC_MODE_256B = 8,
- };
-
- enum {
-@@ -162,13 +163,11 @@ enum mlx5_dcbx_oper_mode {
- 	MLX5E_DCBX_PARAM_VER_OPER_AUTO  = 0x3,
- };
-
--enum mlx5_dct_atomic_mode {
--	MLX5_ATOMIC_MODE_DCT_CX         = 2,
--};
--
- enum {
- 	MLX5_ATOMIC_OPS_CMP_SWAP	= 1 << 0,
- 	MLX5_ATOMIC_OPS_FETCH_ADD	= 1 << 1,
-+	MLX5_ATOMIC_OPS_EXTENDED_CMP_SWAP = 1 << 2,
-+	MLX5_ATOMIC_OPS_EXTENDED_FETCH_ADD = 1 << 3,
- };
-
- enum mlx5_page_fault_resume_flags {
+> + *
+> + * @pages:  array of pages to be marked dirty and released.
+> + * @npages: number of pages in the @pages array.
+> + *
+> + */
+> +void put_user_pages(struct page **pages, unsigned long npages)
+> +{
+> +	unsigned long index;
+> +
+> +	for (index = 0; index < npages; index++)
+> +		put_user_page(pages[index]);
+> +}
+> +EXPORT_SYMBOL(put_user_pages);
+> +
+>  /*
+>   * get_kernel_pages() - pin kernel pages in memory
+>   * @kiov:	An array of struct kvec structures
+> -- 
+> 2.19.1
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
