@@ -1,95 +1,45 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
- versions
-Date: Tue, 9 Oct 2018 17:42:09 -0700
-Message-ID: <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
-References: <20181008211623.30796-1-jhubbard@nvidia.com>
- <20181008211623.30796-3-jhubbard@nvidia.com>
- <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
+From: Silesh C V <svellattu@mvista.com>
+Subject: Re: [PATCH v3 1/2] Driver core: add bus_find_device_by_fwnode
+Date: Wed, 10 Oct 2018 08:19:06 +0530
+Message-ID: <CALabi0EZPOeyvXdw-JUvtnVz2tQQbmhAKKrUXfuc7yzcudFArw@mail.gmail.com>
+References: <1539080245-25818-1-git-send-email-svellattu@mvista.com> <20181009110210.i6xphyuy5jkcfaug@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
-Content-Language: en-US-large
+In-Reply-To: <20181009110210.i6xphyuy5jkcfaug@katana>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, devicetree@vger.kernel.org, linux-spi@vger.kernel.org, Mathieu Poirier <mathieu.poirier@linaro.org>, Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Yisen Zhuang <yisen.zhuang@huawei.com>, Salil Mehta <salil.mehta@huawei.com>, Srinivas Kandagatla <srinivas.kandagatla@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Mark Brown <broonie@kernel.org>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/8/18 5:14 PM, Andrew Morton wrote:
-> On Mon,  8 Oct 2018 14:16:22 -0700 john.hubbard@gmail.com wrote:
-> 
->> From: John Hubbard <jhubbard@nvidia.com>
-[...]
->> +/*
->> + * Pages that were pinned via get_user_pages*() should be released via
->> + * either put_user_page(), or one of the put_user_pages*() routines
->> + * below.
->> + */
->> +static inline void put_user_page(struct page *page)
->> +{
->> +	put_page(page);
->> +}
->> +
->> +static inline void put_user_pages_dirty(struct page **pages,
->> +					unsigned long npages)
->> +{
->> +	unsigned long index;
->> +
->> +	for (index = 0; index < npages; index++) {
->> +		if (!PageDirty(pages[index]))
-> 
-> Both put_page() and set_page_dirty() handle compound pages.  But
-> because of the above statement, put_user_pages_dirty() might misbehave? 
-> Or maybe it won't - perhaps the intent here is to skip dirtying the
-> head page if the sub page is clean?  Please clarify, explain and add
-> comment if so.
-> 
+Hello Wolfram,
 
-Yes, technically, the accounting is wrong: we normally use the head page to 
-track dirtiness, and here, that is not done. (Nor was it done before this
-patch). However, it's not causing problems in code today because sub pages
-are released at about the same time as head pages, so the head page does get 
-properly checked at some point. And that means that set_page_dirty*() gets
-called if it needs to be called. 
+On Tue, Oct 9, 2018 at 4:32 PM Wolfram Sang <wsa@the-dreams.de> wrote:
+>
+> On Tue, Oct 09, 2018 at 03:47:24PM +0530, Silesh C V wrote:
+> > Some drivers need to find the device on a bus having a specific firmware
+> > node. Currently, such drivers have their own implementations to do this.
+> > Provide a helper similar to bus_find_device_by_name so that each driver
+> > does not have to reinvent this.
+> >
+> > Signed-off-by: Silesh C V <svellattu@mvista.com>
+>
+> Looks good in general, however:
+>
+> We recently had this discussion in I2C world about using the parent if
+> the (logical) device has a NULL fw_node [1]. I don't know if the other
+> subsystems you modify use logical devices as well? If no, it seems we
+> need an additional check for the parent in the I2C core only. If yes,
+> this might be considered in your patchset?
 
-Obviously this is a little fragile, in that it depends on the caller behaving 
-a certain way. And in any case, the long-term fix (coming later) *also* only
-operates on the head page. So actually, instead of a comment, I think it's good 
-to just insert
+We can add an additional check for dev_fwnode(dev->parent) if match
+for dev_fwnode(dev) fails in match_fwnode callback. Please correct me
+if I am wrong. But then, we will be doing these two comparisons for
+each device (until a match is found) on a bus for a bus_find_device
+iteration(mostly unnecessarily because I could not find any "match
+node" callbacks (for bus_find_device) currently doing this). So,
+wouldn't it be better to add this check in exceptional cases (like in
+the case of I2C) in the respective subsystems itself ?
 
-	page = compound_head(page);
-
-...into these new routines, right now. I'll do that.
-
-[...]
-> 
-> Otherwise looks OK.  Ish.  But it would be nice if that comment were to
-> explain *why* get_user_pages() pages must be released with
-> put_user_page().
-> 
-
-Yes, will do.
-
-> Also, maintainability.  What happens if someone now uses put_page() by
-> mistake?  Kernel fails in some mysterious fashion?  How can we prevent
-> this from occurring as code evolves?  Is there a cheap way of detecting
-> this bug at runtime?
-> 
-
-It might be possible to do a few run-time checks, such as "does page that came 
-back to put_user_page() have the correct flags?", but it's harder (without 
-having a dedicated page flag) to detect the other direction: "did someone page 
-in a get_user_pages page, to put_page?"
-
-As Jan said in his reply, converting get_user_pages (and put_user_page) to 
-work with a new data type that wraps struct pages, would solve it, but that's
-an awfully large change. Still...given how much of a mess this can turn into 
-if it's wrong, I wonder if it's worth it--maybe? 
-
-thanks,
--- 
-John Hubbard
-NVIDIA
- 
+Thanks,
+Silesh
