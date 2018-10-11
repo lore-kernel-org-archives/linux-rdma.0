@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [net-next 4/7] net/mlx5e: Always initialize update stats delayed work
-Date: Wed, 10 Oct 2018 18:24:41 -0700
-Message-ID: <20181011012444.28194-5-saeedm@mellanox.com>
+Subject: [net-next 3/7] net/mlx5e: Gather common netdev init/cleanup functionality in one place
+Date: Wed, 10 Oct 2018 18:24:40 -0700
+Message-ID: <20181011012444.28194-4-saeedm@mellanox.com>
 References: <20181011012444.28194-1-saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181011012444.28194-1-saeedm@mellanox.com>
@@ -12,78 +12,365 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Feras Daoud <ferasda@mellanox.com>
 
-mlx5e_detach_netdev cancels update_stats work which was not initialized
-in ipoib netdevice profile, as a result, the following assert occurs:
+Introduce a helper init/cleanup function that initializes mlx5e generic
+netdev private structure, and use them from all profiles init/cleanup
+callbacks.
 
-ODEBUG: assert_init not available (active state 0) object type:
-timer_list hint:(null)
+This patch will also be helpful to initialize/cleanup netdevs that are
+not created by mlx5 driver, e.g: accelerated ipoib child netdevs.
 
-This change moves the update stats work to be initialized for all
-mlx5e netdevices.
-
-Fixes: cd565b4b51e5 ("IB/IPoIB: Support acceleration options callbacks")
+Fixes: 26e59d8077a3 ("net/mlx5e: Implement mlx5e interface attach/detach callbacks")
 Signed-off-by: Feras Daoud <ferasda@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en.h      | 1 -
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 5 +++--
- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c  | 2 --
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en.h  |  4 +-
+ .../net/ethernet/mellanox/mlx5/core/en_main.c | 53 ++++++++++++-------
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 25 ++++++---
+ .../ethernet/mellanox/mlx5/core/ipoib/ipoib.c | 28 +++++-----
+ .../ethernet/mellanox/mlx5/core/ipoib/ipoib.h |  9 ++--
+ .../mellanox/mlx5/core/ipoib/ipoib_vlan.c     | 17 +++---
+ 6 files changed, 87 insertions(+), 49 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index 4b2737c613fe..59d07a6fe7c5 100644
+index 1d743bd5d212..4b2737c613fe 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -926,7 +926,6 @@ int mlx5e_create_tises(struct mlx5e_priv *priv);
- void mlx5e_cleanup_nic_tx(struct mlx5e_priv *priv);
- int mlx5e_close(struct net_device *netdev);
- int mlx5e_open(struct net_device *netdev);
--void mlx5e_update_stats_work(struct work_struct *work);
+@@ -698,7 +698,7 @@ struct mlx5e_priv {
+ };
  
- int mlx5e_bits_invert(unsigned long a, int size);
+ struct mlx5e_profile {
+-	void	(*init)(struct mlx5_core_dev *mdev,
++	int	(*init)(struct mlx5_core_dev *mdev,
+ 			struct net_device *netdev,
+ 			const struct mlx5e_profile *profile, void *ppriv);
+ 	void	(*cleanup)(struct mlx5e_priv *priv);
+@@ -962,6 +962,8 @@ int mlx5e_ethtool_flash_device(struct mlx5e_priv *priv,
+ 			       struct ethtool_flash *flash);
  
+ /* mlx5e generic netdev management API */
++int mlx5e_netdev_init(struct net_device *netdev, struct mlx5e_priv *priv);
++void mlx5e_netdev_cleanup(struct net_device *netdev, struct mlx5e_priv *priv);
+ struct net_device*
+ mlx5e_create_netdev(struct mlx5_core_dev *mdev, const struct mlx5e_profile *profile,
+ 		    void *ppriv);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 376197c97e3b..9cf5863b7949 100644
+index bc034958c846..376197c97e3b 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -272,7 +272,7 @@ static void mlx5e_update_ndo_stats(struct mlx5e_priv *priv)
- 			mlx5e_stats_grps[i].update_stats(priv);
+@@ -4749,14 +4749,18 @@ void mlx5e_destroy_q_counters(struct mlx5e_priv *priv)
+ 		mlx5_core_dealloc_q_counter(priv->mdev, priv->drop_rq_q_counter);
  }
  
--void mlx5e_update_stats_work(struct work_struct *work)
-+static void mlx5e_update_stats_work(struct work_struct *work)
+-static void mlx5e_nic_init(struct mlx5_core_dev *mdev,
+-			   struct net_device *netdev,
+-			   const struct mlx5e_profile *profile,
+-			   void *ppriv)
++static int mlx5e_nic_init(struct mlx5_core_dev *mdev,
++			  struct net_device *netdev,
++			  const struct mlx5e_profile *profile,
++			  void *ppriv)
  {
- 	struct delayed_work *dwork = to_delayed_work(work);
- 	struct mlx5e_priv *priv = container_of(dwork, struct mlx5e_priv,
-@@ -4582,7 +4582,6 @@ static void mlx5e_build_nic_netdev_priv(struct mlx5_core_dev *mdev,
- 	INIT_WORK(&priv->update_carrier_work, mlx5e_update_carrier_work);
- 	INIT_WORK(&priv->set_rx_mode_work, mlx5e_set_rx_mode_work);
- 	INIT_WORK(&priv->tx_timeout_work, mlx5e_tx_timeout_work);
--	INIT_DELAYED_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
+ 	struct mlx5e_priv *priv = netdev_priv(netdev);
+ 	int err;
  
- 	mlx5e_timestamp_init(priv);
- }
-@@ -4955,6 +4954,8 @@ int mlx5e_netdev_init(struct net_device *netdev, struct mlx5e_priv *priv)
- {
- 	netif_carrier_off(netdev);
- 
-+	INIT_DELAYED_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
++	err = mlx5e_netdev_init(netdev, priv);
++	if (err)
++		return err;
 +
- 	priv->wq = create_singlethread_workqueue("mlx5e");
- 	if (!priv->wq)
- 		return -ENOMEM;
+ 	mlx5e_build_nic_netdev_priv(mdev, netdev, profile, ppriv);
+ 	err = mlx5e_ipsec_init(priv);
+ 	if (err)
+@@ -4766,12 +4770,15 @@ static void mlx5e_nic_init(struct mlx5_core_dev *mdev,
+ 		mlx5_core_err(mdev, "TLS initialization failed, %d\n", err);
+ 	mlx5e_build_nic_netdev(netdev);
+ 	mlx5e_build_tc2txq_maps(priv);
++
++	return 0;
+ }
+ 
+ static void mlx5e_nic_cleanup(struct mlx5e_priv *priv)
+ {
+ 	mlx5e_tls_cleanup(priv);
+ 	mlx5e_ipsec_cleanup(priv);
++	mlx5e_netdev_cleanup(priv->netdev, priv);
+ }
+ 
+ static int mlx5e_init_nic_rx(struct mlx5e_priv *priv)
+@@ -4943,13 +4950,30 @@ static const struct mlx5e_profile mlx5e_nic_profile = {
+ 
+ /* mlx5e generic netdev management API (move to en_common.c) */
+ 
++/* mlx5e_netdev_init/cleanup must be called from profile->init/cleanup callbacks */
++int mlx5e_netdev_init(struct net_device *netdev, struct mlx5e_priv *priv)
++{
++	netif_carrier_off(netdev);
++
++	priv->wq = create_singlethread_workqueue("mlx5e");
++	if (!priv->wq)
++		return -ENOMEM;
++
++	return 0;
++}
++
++void mlx5e_netdev_cleanup(struct net_device *netdev, struct mlx5e_priv *priv)
++{
++	destroy_workqueue(priv->wq);
++}
++
+ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
+ 				       const struct mlx5e_profile *profile,
+ 				       void *ppriv)
+ {
+ 	int nch = profile->max_nch(mdev);
+ 	struct net_device *netdev;
+-	struct mlx5e_priv *priv;
++	int err;
+ 
+ 	netdev = alloc_etherdev_mqs(sizeof(struct mlx5e_priv),
+ 				    nch * profile->max_tc,
+@@ -4963,21 +4987,15 @@ struct net_device *mlx5e_create_netdev(struct mlx5_core_dev *mdev,
+ 	netdev->rx_cpu_rmap = mdev->rmap;
+ #endif
+ 
+-	profile->init(mdev, netdev, profile, ppriv);
+-
+-	netif_carrier_off(netdev);
+-
+-	priv = netdev_priv(netdev);
+-
+-	priv->wq = create_singlethread_workqueue("mlx5e");
+-	if (!priv->wq)
+-		goto err_cleanup_nic;
++	err = profile->init(mdev, netdev, profile, ppriv);
++	if (err) {
++		mlx5_core_err(mdev, "failed to init mlx5e profile %d\n", err);
++		goto err_free_netdev;
++	}
+ 
+ 	return netdev;
+ 
+-err_cleanup_nic:
+-	if (profile->cleanup)
+-		profile->cleanup(priv);
++err_free_netdev:
+ 	free_netdev(netdev);
+ 
+ 	return NULL;
+@@ -5031,7 +5049,6 @@ void mlx5e_destroy_netdev(struct mlx5e_priv *priv)
+ 	const struct mlx5e_profile *profile = priv->profile;
+ 	struct net_device *netdev = priv->netdev;
+ 
+-	destroy_workqueue(priv->wq);
+ 	if (profile->cleanup)
+ 		profile->cleanup(priv);
+ 	free_netdev(netdev);
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 6176e53c8b83..bd8caac2e572 100644
+index 9264c3332aa6..6176e53c8b83 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -1095,8 +1095,6 @@ static int mlx5e_init_rep(struct mlx5_core_dev *mdev,
- 	if (err)
- 		return err;
+@@ -1078,28 +1078,40 @@ static void mlx5e_build_rep_netdev(struct net_device *netdev)
+ 	netdev->max_mtu = MLX5E_HW2SW_MTU(&priv->channels.params, max_mtu);
+ }
  
--	INIT_DELAYED_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
--
+-static void mlx5e_init_rep(struct mlx5_core_dev *mdev,
+-			   struct net_device *netdev,
+-			   const struct mlx5e_profile *profile,
+-			   void *ppriv)
++static int mlx5e_init_rep(struct mlx5_core_dev *mdev,
++			  struct net_device *netdev,
++			  const struct mlx5e_profile *profile,
++			  void *ppriv)
+ {
+ 	struct mlx5e_priv *priv = netdev_priv(netdev);
++	int err;
+ 
+ 	priv->mdev                         = mdev;
+ 	priv->netdev                       = netdev;
+ 	priv->profile                      = profile;
+ 	priv->ppriv                        = ppriv;
+ 
+-	mutex_init(&priv->state_lock);
++	err = mlx5e_netdev_init(netdev, priv);
++	if (err)
++		return err;
+ 
+ 	INIT_DELAYED_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
+ 
+-	priv->channels.params.num_channels = 1;
++	mutex_init(&priv->state_lock);
++
++	priv->channels.params.num_channels = profile->max_nch(mdev);
+ 
+ 	mlx5e_build_rep_params(mdev, &priv->channels.params, netdev->mtu);
+ 	mlx5e_build_rep_netdev(netdev);
+ 
+ 	mlx5e_timestamp_init(priv);
++
++	return 0;
++}
++
++static void mlx5e_cleanup_rep(struct mlx5e_priv *priv)
++{
++	mlx5e_netdev_cleanup(priv->netdev, priv);
+ }
+ 
+ static int mlx5e_create_rep_ttc_table(struct mlx5e_priv *priv)
+@@ -1224,6 +1236,7 @@ static int mlx5e_init_rep_tx(struct mlx5e_priv *priv)
+ 
+ static const struct mlx5e_profile mlx5e_rep_profile = {
+ 	.init			= mlx5e_init_rep,
++	.cleanup		= mlx5e_cleanup_rep,
+ 	.init_rx		= mlx5e_init_rep_rx,
+ 	.cleanup_rx		= mlx5e_cleanup_rep_rx,
+ 	.init_tx		= mlx5e_init_rep_tx,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+index af1a95f80404..3f544baab9c9 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.c
+@@ -71,13 +71,14 @@ static void mlx5i_build_nic_params(struct mlx5_core_dev *mdev,
+ }
+ 
+ /* Called directly after IPoIB netdevice was created to initialize SW structs */
+-void mlx5i_init(struct mlx5_core_dev *mdev,
+-		struct net_device *netdev,
+-		const struct mlx5e_profile *profile,
+-		void *ppriv)
++int mlx5i_init(struct mlx5_core_dev *mdev,
++	       struct net_device *netdev,
++	       const struct mlx5e_profile *profile,
++	       void *ppriv)
+ {
+ 	struct mlx5e_priv *priv  = mlx5i_epriv(netdev);
+ 	u16 max_mtu;
++	int err;
+ 
+ 	/* priv init */
+ 	priv->mdev        = mdev;
+@@ -87,6 +88,10 @@ void mlx5i_init(struct mlx5_core_dev *mdev,
+ 	priv->max_opened_tc = 1;
  	mutex_init(&priv->state_lock);
  
- 	priv->channels.params.num_channels = profile->max_nch(mdev);
++	err = mlx5e_netdev_init(netdev, priv);
++	if (err)
++		return err;
++
+ 	mlx5_query_port_max_mtu(mdev, &max_mtu, 1);
+ 	netdev->mtu = max_mtu;
+ 
+@@ -108,12 +113,14 @@ void mlx5i_init(struct mlx5_core_dev *mdev,
+ 
+ 	netdev->netdev_ops = &mlx5i_netdev_ops;
+ 	netdev->ethtool_ops = &mlx5i_ethtool_ops;
++
++	return 0;
+ }
+ 
+ /* Called directly before IPoIB netdevice is destroyed to cleanup SW structs */
+-static void mlx5i_cleanup(struct mlx5e_priv *priv)
++void mlx5i_cleanup(struct mlx5e_priv *priv)
+ {
+-	/* Do nothing .. */
++	mlx5e_netdev_cleanup(priv->netdev, priv);
+ }
+ 
+ static void mlx5i_grp_sw_update_stats(struct mlx5e_priv *priv)
+@@ -650,7 +657,6 @@ static void mlx5_rdma_netdev_free(struct net_device *netdev)
+ 
+ 	mlx5e_detach_netdev(priv);
+ 	profile->cleanup(priv);
+-	destroy_workqueue(priv->wq);
+ 
+ 	if (!ipriv->sub_interface) {
+ 		mlx5i_pkey_qpn_ht_cleanup(netdev);
+@@ -683,16 +689,12 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
+ 	ipriv = netdev_priv(netdev);
+ 	epriv = mlx5i_epriv(netdev);
+ 
+-	epriv->wq = create_singlethread_workqueue("mlx5i");
+-	if (!epriv->wq)
+-		return -ENOMEM;
+-
+ 	ipriv->sub_interface = mlx5_is_sub_interface(mdev);
+ 	if (!ipriv->sub_interface) {
+ 		err = mlx5i_pkey_qpn_ht_init(netdev);
+ 		if (err) {
+ 			mlx5_core_warn(mdev, "allocate qpn_to_netdev ht failed\n");
+-			goto destroy_wq;
++			return err;
+ 		}
+ 
+ 		/* This should only be called once per mdev */
+@@ -721,8 +723,6 @@ static int mlx5_rdma_setup_rn(struct ib_device *ibdev, u8 port_num,
+ 
+ destroy_ht:
+ 	mlx5i_pkey_qpn_ht_cleanup(netdev);
+-destroy_wq:
+-	destroy_workqueue(epriv->wq);
+ 	return err;
+ }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.h b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.h
+index 2e7fb829e1b0..5ef3ef0072b4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib.h
+@@ -84,10 +84,11 @@ void mlx5i_dev_cleanup(struct net_device *dev);
+ int mlx5i_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd);
+ 
+ /* Parent profile functions */
+-void mlx5i_init(struct mlx5_core_dev *mdev,
+-		struct net_device *netdev,
+-		const struct mlx5e_profile *profile,
+-		void *ppriv);
++int mlx5i_init(struct mlx5_core_dev *mdev,
++	       struct net_device *netdev,
++	       const struct mlx5e_profile *profile,
++	       void *ppriv);
++void mlx5i_cleanup(struct mlx5e_priv *priv);
+ 
+ /* Get child interface nic profile */
+ const struct mlx5e_profile *mlx5i_pkey_get_profile(void);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
+index e3e8a5f1ac9b..3dbfa532fda1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ipoib/ipoib_vlan.c
+@@ -275,14 +275,17 @@ static int mlx5i_pkey_change_mtu(struct net_device *netdev, int new_mtu)
+ }
+ 
+ /* Called directly after IPoIB netdevice was created to initialize SW structs */
+-static void mlx5i_pkey_init(struct mlx5_core_dev *mdev,
+-			     struct net_device *netdev,
+-			     const struct mlx5e_profile *profile,
+-			     void *ppriv)
++static int mlx5i_pkey_init(struct mlx5_core_dev *mdev,
++			   struct net_device *netdev,
++			   const struct mlx5e_profile *profile,
++			   void *ppriv)
+ {
+ 	struct mlx5e_priv *priv  = mlx5i_epriv(netdev);
++	int err;
+ 
+-	mlx5i_init(mdev, netdev, profile, ppriv);
++	err = mlx5i_init(mdev, netdev, profile, ppriv);
++	if (err)
++		return err;
+ 
+ 	/* Override parent ndo */
+ 	netdev->netdev_ops = &mlx5i_pkey_netdev_ops;
+@@ -292,12 +295,14 @@ static void mlx5i_pkey_init(struct mlx5_core_dev *mdev,
+ 
+ 	/* Use dummy rqs */
+ 	priv->channels.params.log_rq_mtu_frames = MLX5E_PARAMS_MINIMUM_LOG_RQ_SIZE;
++
++	return 0;
+ }
+ 
+ /* Called directly before IPoIB netdevice is destroyed to cleanup SW structs */
+ static void mlx5i_pkey_cleanup(struct mlx5e_priv *priv)
+ {
+-	/* Do nothing .. */
++	mlx5i_cleanup(priv);
+ }
+ 
+ static int mlx5i_pkey_init_tx(struct mlx5e_priv *priv)
 -- 
 2.17.1
