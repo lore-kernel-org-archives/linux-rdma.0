@@ -1,134 +1,52 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [net-next 6/7] net/mlx5e: Use non-delayed work for update stats
-Date: Wed, 10 Oct 2018 18:24:43 -0700
-Message-ID: <20181011012444.28194-7-saeedm@mellanox.com>
-References: <20181011012444.28194-1-saeedm@mellanox.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181011012444.28194-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+From: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v9 00/13] Copy Offload in NVMe Fabrics with P2P PCI Memory
+Date: Wed, 10 Oct 2018 22:18:58 -0500
+Message-ID: <20181011031858.GL5906@bhelgaas-glaptop.roam.corp.google.com>
+References: <20181004212747.6301-1-logang@deltatee.com>
+ <20181010201918.GF5906@bhelgaas-glaptop.roam.corp.google.com>
+ <5c674a1b-2471-33eb-44f4-fe1bb8807a22@deltatee.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5c674a1b-2471-33eb-44f4-fe1bb8807a22-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Logan Gunthorpe <logang-OTvnGxWRz7hWk0Htik3J/w@public.gmane.org>
+Cc: Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Max Gurtovoy <maxg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Convert mlx5e update stats work to a normal work structure, since it is
-never used delayed.
+On Wed, Oct 10, 2018 at 05:03:33PM -0600, Logan Gunthorpe wrote:
+> 
+> 
+> On 2018-10-10 2:19 p.m., Bjorn Helgaas wrote:
+> > I added the reviewed-by tags from Christoph, Jens' ack on the blkdev.h
+> > change, and applied these to pci/peer-to-peer with the intent of
+> > merging these for v4.20.
+> > 
+> > I gave up on waiting for an ack for the memremap.h and mm.h changes.
+> > 
+> > I dropped the "nvme-pci: Add a quirk for a pseudo CMB" quirk because
+> > of Christoph's objection.  After this is all merged, I won't need to
+> > be involved, and you and the NVMe folks can hash that out.
+> > 
+> > If there are updates to "nvmet: Optionally use PCI P2P memory" based
+> > on Sagi's comments, send an incremental patch and I'll fold them in.
+> 
+> Thanks for picking this up. However, I hate to throw a wrench in the
+> works, but I had a v10[1] queued up because kbuild found some problems
+> with the series over the weekend. I can send v10 off right away if you
+> want to just replace it in your branch or, if you'd like, I can generate
+> some incremental patches. Let me know which you'd prefer.
 
-Add a helper function to queue update stats work on demand which checks
-for some conditions and reduce code duplication to have a better
-abstraction.
+I applied the updates from your v10 to my pci/peer-to-peer branch.
 
-Fixes: ed56c5193ad8 ("net/mlx5e: Update NIC HW stats on demand only")
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |  3 ++-
- .../net/ethernet/mellanox/mlx5/core/en_main.c | 24 ++++++++++++-------
- .../net/ethernet/mellanox/mlx5/core/en_rep.c  |  3 +--
- 3 files changed, 19 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-index f6dd0254d103..0fbdd7696ec4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -673,7 +673,7 @@ struct mlx5e_priv {
- 	struct work_struct         update_carrier_work;
- 	struct work_struct         set_rx_mode_work;
- 	struct work_struct         tx_timeout_work;
--	struct delayed_work        update_stats_work;
-+	struct work_struct         update_stats_work;
- 
- 	struct mlx5_core_dev      *mdev;
- 	struct net_device         *netdev;
-@@ -927,6 +927,7 @@ void mlx5e_cleanup_nic_tx(struct mlx5e_priv *priv);
- int mlx5e_close(struct net_device *netdev);
- int mlx5e_open(struct net_device *netdev);
- 
-+void mlx5e_queue_update_stats(struct mlx5e_priv *priv);
- int mlx5e_bits_invert(unsigned long a, int size);
- 
- typedef int (*change_hw_mtu_cb)(struct mlx5e_priv *priv);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index d5a7bd493240..f4b11bdae879 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -274,8 +274,7 @@ static void mlx5e_update_ndo_stats(struct mlx5e_priv *priv)
- 
- static void mlx5e_update_stats_work(struct work_struct *work)
- {
--	struct delayed_work *dwork = to_delayed_work(work);
--	struct mlx5e_priv *priv = container_of(dwork, struct mlx5e_priv,
-+	struct mlx5e_priv *priv = container_of(work, struct mlx5e_priv,
- 					       update_stats_work);
- 
- 	mutex_lock(&priv->state_lock);
-@@ -283,6 +282,17 @@ static void mlx5e_update_stats_work(struct work_struct *work)
- 	mutex_unlock(&priv->state_lock);
- }
- 
-+void mlx5e_queue_update_stats(struct mlx5e_priv *priv)
-+{
-+	if (!priv->profile->update_stats)
-+		return;
-+
-+	if (unlikely(test_bit(MLX5E_STATE_DESTROYING, &priv->state)))
-+		return;
-+
-+	queue_work(priv->wq, &priv->update_stats_work);
-+}
-+
- static void mlx5e_async_event(struct mlx5_core_dev *mdev, void *vpriv,
- 			      enum mlx5_dev_event event, unsigned long param)
- {
-@@ -2957,9 +2967,7 @@ int mlx5e_open_locked(struct net_device *netdev)
- 	if (priv->profile->update_carrier)
- 		priv->profile->update_carrier(priv);
- 
--	if (priv->profile->update_stats)
--		queue_delayed_work(priv->wq, &priv->update_stats_work, 0);
--
-+	mlx5e_queue_update_stats(priv);
- 	return 0;
- 
- err_clear_state_opened_flag:
-@@ -3441,7 +3449,7 @@ mlx5e_get_stats(struct net_device *dev, struct rtnl_link_stats64 *stats)
- 	struct mlx5e_pport_stats *pstats = &priv->stats.pport;
- 
- 	/* update HW stats in background for next time */
--	queue_delayed_work(priv->wq, &priv->update_stats_work, 0);
-+	mlx5e_queue_update_stats(priv);
- 
- 	if (mlx5e_is_uplink_rep(priv)) {
- 		stats->rx_packets = PPORT_802_3_GET(pstats, a_frames_received_ok);
-@@ -4946,7 +4954,7 @@ int mlx5e_netdev_init(struct net_device *netdev,
- 	INIT_WORK(&priv->update_carrier_work, mlx5e_update_carrier_work);
- 	INIT_WORK(&priv->set_rx_mode_work, mlx5e_set_rx_mode_work);
- 	INIT_WORK(&priv->tx_timeout_work, mlx5e_tx_timeout_work);
--	INIT_DELAYED_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
-+	INIT_WORK(&priv->update_stats_work, mlx5e_update_stats_work);
- 
- 	priv->wq = create_singlethread_workqueue("mlx5e");
- 	if (!priv->wq)
-@@ -5037,7 +5045,7 @@ void mlx5e_detach_netdev(struct mlx5e_priv *priv)
- 
- 	profile->cleanup_rx(priv);
- 	profile->cleanup_tx(priv);
--	cancel_delayed_work_sync(&priv->update_stats_work);
-+	cancel_work_sync(&priv->update_stats_work);
- }
- 
- void mlx5e_destroy_netdev(struct mlx5e_priv *priv)
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 1a3efa87f557..1846edb01fd6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -992,8 +992,7 @@ mlx5e_rep_get_stats(struct net_device *dev, struct rtnl_link_stats64 *stats)
- 	struct mlx5e_priv *priv = netdev_priv(dev);
- 
- 	/* update HW stats in background for next time */
--	queue_delayed_work(priv->wq, &priv->update_stats_work, 0);
--
-+	mlx5e_queue_update_stats(priv);
- 	memcpy(stats, &priv->stats.vf_vport, sizeof(*stats));
- }
- 
--- 
-2.17.1
+> [1] https://github.com/sbates130272/linux-p2pmem pci-p2p-v10
