@@ -1,85 +1,192 @@
 From: john.hubbard@gmail.com
-Subject: [PATCH 0/6] RFC: gup+dma: tracking dma-pinned pages
-Date: Thu, 11 Oct 2018 23:00:08 -0700
-Message-ID: <20181012060014.10242-1-jhubbard@nvidia.com>
+Subject: [PATCH 2/6] mm: introduce put_user_page*(), placeholder versions
+Date: Thu, 11 Oct 2018 23:00:10 -0700
+Message-ID: <20181012060014.10242-3-jhubbard@nvidia.com>
+References: <20181012060014.10242-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181012060014.10242-1-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
 
-Here is an updated proposal for tracking pages that have had
-get_user_pages*() called on them. This is in support of fixing the problem
-discussed in [1]. This RFC only shows how to set up a reliable
-PageDmaPinned flag. What to *do* with that flag is left for a later
-discussion.
+Introduces put_user_page(), which simply calls put_page().
+This provides a way to update all get_user_pages*() callers,
+so that they call put_user_page(), instead of put_page().
 
-I'm providing this in order to help the discussion about patches 1-3, which
-I'm hoping to check in first. The sequence would be:
+Also introduces put_user_pages(), and a few dirty/locked variations,
+as a replacement for release_pages(), and also as a replacement
+for open-coded loops that release multiple pages.
+These may be used for subsequent performance improvements,
+via batching of pages to be released.
 
-    -- apply patches 1-3, convert the rest of the subsystems to call
-       put_user_page*(), then
+This is the first step of fixing the problem described in [1]. The steps
+are:
 
-    -- apply patches 4-6, then
+1) (This patch): provide put_user_page*() routines, intended to be used
+   for releasing pages that were pinned via get_user_pages*().
 
-    -- Apply more patches, to actually use the new PageDmaPinned flag.
+2) Convert all of the call sites for get_user_pages*(), to
+   invoke put_user_page*(), instead of put_page(). This involves dozens of
+   call sites, any will take some time.
 
-One question up front is, "how do we ensure that either put_user_page()
-or put_page() are called, depending on whether the page came from
-get_user_pages() or not?". From this series, you can see that:
+3) After (2) is complete, use get_user_pages*() and put_user_page*() to
+   implement tracking of these pages. This tracking will be separate from
+   the existing struct page refcounting.
 
-    -- It's possible to assert within put_user_page(), that we are in the
-       right place.
-
-    -- It's less clear that there is a way to assert within put_page(),
-       because put_page() is called from put_user_page(), and PageDmaPinned
-       may or may not be set--either case is valid.
-
-       Opinions and ideas are welcome there.
-
-This is a lightly tested example (it boots up on x86_64, and just lets the
-dma-pinned pages leak, in all non-infiniband cases...which is all cases, on
-my particular test computer). This series just does the following:
-
-a) Provides the put_user_page*() routines that have been discussed in
-   another thread (patch 2).
-
-b) Provides a single example of converting some code (infiniband) to use
-   those routines (patch 3).
-
-c) Connects up get_user_pages*() to use the new refcounting and flags
-   fieldsj (patches 4-6)
+4) Use the tracking and identification of these pages, to implement
+   special handling (especially in writeback paths) when the pages are
+   backed by a filesystem. Again, [1] provides details as to why that is
+   desirable.
 
 [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
 
-John Hubbard (6):
-  mm: get_user_pages: consolidate error handling
-  mm: introduce put_user_page*(), placeholder versions
-  infiniband/mm: convert put_page() to put_user_page*()
-  mm: introduce page->dma_pinned_flags, _count
-  mm: introduce zone_gup_lock, for dma-pinned pages
-  mm: track gup pages with page->dma_pinned_* fields
+CC: Matthew Wilcox <willy@infradead.org>
+CC: Michal Hocko <mhocko@kernel.org>
+CC: Christopher Lameter <cl@linux.com>
+CC: Jason Gunthorpe <jgg@ziepe.ca>
+CC: Dan Williams <dan.j.williams@intel.com>
+CC: Jan Kara <jack@suse.cz>
+CC: Al Viro <viro@zeniv.linux.org.uk>
+CC: Jerome Glisse <jglisse@redhat.com>
+CC: Christoph Hellwig <hch@infradead.org>
+CC: Ralph Campbell <rcampbell@nvidia.com>
 
- drivers/infiniband/core/umem.c              |   7 +-
- drivers/infiniband/core/umem_odp.c          |   2 +-
- drivers/infiniband/hw/hfi1/user_pages.c     |  11 +-
- drivers/infiniband/hw/mthca/mthca_memfree.c |   6 +-
- drivers/infiniband/hw/qib/qib_user_pages.c  |  11 +-
- drivers/infiniband/hw/qib/qib_user_sdma.c   |   6 +-
- drivers/infiniband/hw/usnic/usnic_uiom.c    |   7 +-
- include/linux/mm.h                          |   9 ++
- include/linux/mm_types.h                    |  22 +++-
- include/linux/mmzone.h                      |   6 +
- include/linux/page-flags.h                  |  47 +++++++
- mm/gup.c                                    |  93 +++++++++++---
- mm/memcontrol.c                             |   7 +
- mm/page_alloc.c                             |   1 +
- mm/swap.c                                   | 134 ++++++++++++++++++++
- 15 files changed, 319 insertions(+), 50 deletions(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ include/linux/mm.h | 20 +++++++++++
+ mm/swap.c          | 83 ++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 103 insertions(+)
 
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0416a7204be3..76d18aada9f8 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -943,6 +943,26 @@ static inline void put_page(struct page *page)
+ 		__put_page(page);
+ }
+ 
++/*
++ * put_user_page() - release a page that had previously been acquired via
++ * a call to one of the get_user_pages*() functions.
++ *
++ * Pages that were pinned via get_user_pages*() must be released via
++ * either put_user_page(), or one of the put_user_pages*() routines
++ * below. This is so that eventually, pages that are pinned via
++ * get_user_pages*() can be separately tracked and uniquely handled. In
++ * particular, interactions with RDMA and filesystems need special
++ * handling.
++ */
++static inline void put_user_page(struct page *page)
++{
++	put_page(page);
++}
++
++void put_user_pages_dirty(struct page **pages, unsigned long npages);
++void put_user_pages_dirty_lock(struct page **pages, unsigned long npages);
++void put_user_pages(struct page **pages, unsigned long npages);
++
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTION_IN_PAGE_FLAGS
+ #endif
+diff --git a/mm/swap.c b/mm/swap.c
+index 26fc9b5f1b6c..efab3a6b6f91 100644
+--- a/mm/swap.c
++++ b/mm/swap.c
+@@ -134,6 +134,89 @@ void put_pages_list(struct list_head *pages)
+ }
+ EXPORT_SYMBOL(put_pages_list);
+ 
++/*
++ * put_user_pages_dirty() - for each page in the @pages array, make
++ * that page (or its head page, if a compound page) dirty, if it was
++ * previously listed as clean. Then, release the page using
++ * put_user_page().
++ *
++ * Please see the put_user_page() documentation for details.
++ *
++ * set_page_dirty(), which does not lock the page, is used here.
++ * Therefore, it is the caller's responsibility to ensure that this is
++ * safe. If not, then put_user_pages_dirty_lock() should be called instead.
++ *
++ * @pages:  array of pages to be marked dirty and released.
++ * @npages: number of pages in the @pages array.
++ *
++ */
++void put_user_pages_dirty(struct page **pages, unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++) {
++		struct page *page = compound_head(pages[index]);
++
++		if (!PageDirty(page))
++			set_page_dirty(page);
++
++		put_user_page(page);
++	}
++}
++EXPORT_SYMBOL(put_user_pages_dirty);
++
++/*
++ * put_user_pages_dirty_lock() - for each page in the @pages array, make
++ * that page (or its head page, if a compound page) dirty, if it was
++ * previously listed as clean. Then, release the page using
++ * put_user_page().
++ *
++ * Please see the put_user_page() documentation for details.
++ *
++ * This is just like put_user_pages_dirty(), except that it invokes
++ * set_page_dirty_lock(), instead of set_page_dirty().
++ *
++ * @pages:  array of pages to be marked dirty and released.
++ * @npages: number of pages in the @pages array.
++ *
++ */
++void put_user_pages_dirty_lock(struct page **pages, unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++) {
++		struct page *page = compound_head(pages[index]);
++
++		if (!PageDirty(page))
++			set_page_dirty_lock(page);
++
++		put_user_page(page);
++	}
++}
++EXPORT_SYMBOL(put_user_pages_dirty_lock);
++
++/*
++ * put_user_pages() - for each page in the @pages array, release the page
++ * using put_user_page().
++ *
++ * Please see the put_user_page() documentation for details.
++ *
++ * This is just like put_user_pages_dirty(), except that it invokes
++ * set_page_dirty_lock(), instead of set_page_dirty().
++ *
++ * @pages:  array of pages to be marked dirty and released.
++ * @npages: number of pages in the @pages array.
++ *
++ */
++void put_user_pages(struct page **pages, unsigned long npages)
++{
++	unsigned long index;
++
++	for (index = 0; index < npages; index++)
++		put_user_page(pages[index]);
++}
++EXPORT_SYMBOL(put_user_pages);
++
+ /*
+  * get_kernel_pages() - pin kernel pages in memory
+  * @kiov:	An array of struct kvec structures
 -- 
 2.19.1
