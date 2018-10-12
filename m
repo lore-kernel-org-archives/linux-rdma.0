@@ -1,85 +1,85 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
- versions
-Date: Thu, 11 Oct 2018 20:53:34 -0700
-Message-ID: <b9899626-9033-348b-6f07-dc90bcd8a468@nvidia.com>
-References: <20181008211623.30796-1-jhubbard@nvidia.com>
- <20181008211623.30796-3-jhubbard@nvidia.com>
- <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
- <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
- <20181010164541.ec4bf53f5a9e4ba6e5b52a21@linux-foundation.org>
- <20181011084929.GB8418@quack2.suse.cz> <20181011132013.GA5968@ziepe.ca>
- <97e89e08-5b94-240a-56e9-ece2b91f6dbc@nvidia.com>
+From: john.hubbard@gmail.com
+Subject: [PATCH 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Thu, 11 Oct 2018 23:00:08 -0700
+Message-ID: <20181012060014.10242-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <97e89e08-5b94-240a-56e9-ece2b91f6dbc@nvidia.com>
-Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+To: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/11/18 6:23 PM, John Hubbard wrote:
-> On 10/11/18 6:20 AM, Jason Gunthorpe wrote:
->> On Thu, Oct 11, 2018 at 10:49:29AM +0200, Jan Kara wrote:
->>
->>>> This is a real worry.  If someone uses a mistaken put_page() then how
->>>> will that bug manifest at runtime?  Under what set of circumstances
->>>> will the kernel trigger the bug?
->>>
->>> At runtime such bug will manifest as a page that can never be evicted from
->>> memory. We could warn in put_page() if page reference count drops below
->>> bare minimum for given user pin count which would be able to catch some
->>> issues but it won't be 100% reliable. So at this point I'm more leaning
->>> towards making get_user_pages() return a different type than just
->>> struct page * to make it much harder for refcount to go wrong...
->>
->> At least for the infiniband code being used as an example here we take
->> the struct page from get_user_pages, then stick it in a sgl, and at
->> put_page time we get the page back out of the sgl via sg_page()
->>
->> So type safety will not help this case... I wonder how many other
->> users are similar? I think this is a pretty reasonable flow for DMA
->> with user pages.
->>
-> 
-> That is true. The infiniband code, fortunately, never mixes the two page
-> types into the same pool (or sg list), so it's actually an easier example
-> than some other subsystems. But, yes, type safety doesn't help there. I can 
-> take a moment to look around at the other areas, to quantify how much a type
-> safety change might help.
-> 
-> Back to page flags again, out of desperation:
-> 
-> How much do we know about the page types that all of these subsystems
-> use? In other words, can we, for example, use bit 1 of page->lru.next (see [1]
-> for context) as the "dma-pinned" page flag, while tracking pages within parts 
-> of the kernel that call a mix of alloc_pages, get_user_pages, and other allocators? 
-> In order for that to work, page->index, page->private, and bit 1 of page->mapping
-> must not be used. I doubt that this is always going to hold, but...does it?
-> 
+From: John Hubbard <jhubbard@nvidia.com>
 
-Oops, pardon me, please ignore that nonsense about page->index and page->private
-and page->mapping, that's actually fine (I was seeing "union", where "struct" was
-written--too much staring at this code). 
+Here is an updated proposal for tracking pages that have had
+get_user_pages*() called on them. This is in support of fixing the problem
+discussed in [1]. This RFC only shows how to set up a reliable
+PageDmaPinned flag. What to *do* with that flag is left for a later
+discussion.
 
-So actually, I think maybe we can just use bit 1 in page->lru.next to sort out
-which pages are dma-pinned, in the calling code, just like we're going to do
-in writeback situations. This should also allow run-time checking that Andrew was 
-hoping for:
+I'm providing this in order to help the discussion about patches 1-3, which
+I'm hoping to check in first. The sequence would be:
 
-    put_user_page(): assert that the page is dma-pinned
-    put_page(): assert that the page is *not* dma-pinned
+    -- apply patches 1-3, convert the rest of the subsystems to call
+       put_user_page*(), then
 
-...both of which depend on that bit being, essentially, available as sort of a
-general page flag. And in fact, if it's not, then the whole approach is dead anyway.
+    -- apply patches 4-6, then
 
-Am I missing anything? This avoids the need to change the get_user_pages interface.
+    -- Apply more patches, to actually use the new PageDmaPinned flag.
 
+One question up front is, "how do we ensure that either put_user_page()
+or put_page() are called, depending on whether the page came from
+get_user_pages() or not?". From this series, you can see that:
 
-thanks,
+    -- It's possible to assert within put_user_page(), that we are in the
+       right place.
+
+    -- It's less clear that there is a way to assert within put_page(),
+       because put_page() is called from put_user_page(), and PageDmaPinned
+       may or may not be set--either case is valid.
+
+       Opinions and ideas are welcome there.
+
+This is a lightly tested example (it boots up on x86_64, and just lets the
+dma-pinned pages leak, in all non-infiniband cases...which is all cases, on
+my particular test computer). This series just does the following:
+
+a) Provides the put_user_page*() routines that have been discussed in
+   another thread (patch 2).
+
+b) Provides a single example of converting some code (infiniband) to use
+   those routines (patch 3).
+
+c) Connects up get_user_pages*() to use the new refcounting and flags
+   fieldsj (patches 4-6)
+
+[1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+
+John Hubbard (6):
+  mm: get_user_pages: consolidate error handling
+  mm: introduce put_user_page*(), placeholder versions
+  infiniband/mm: convert put_page() to put_user_page*()
+  mm: introduce page->dma_pinned_flags, _count
+  mm: introduce zone_gup_lock, for dma-pinned pages
+  mm: track gup pages with page->dma_pinned_* fields
+
+ drivers/infiniband/core/umem.c              |   7 +-
+ drivers/infiniband/core/umem_odp.c          |   2 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |  11 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   6 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |  11 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   6 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   7 +-
+ include/linux/mm.h                          |   9 ++
+ include/linux/mm_types.h                    |  22 +++-
+ include/linux/mmzone.h                      |   6 +
+ include/linux/page-flags.h                  |  47 +++++++
+ mm/gup.c                                    |  93 +++++++++++---
+ mm/memcontrol.c                             |   7 +
+ mm/page_alloc.c                             |   1 +
+ mm/swap.c                                   | 134 ++++++++++++++++++++
+ 15 files changed, 319 insertions(+), 50 deletions(-)
+
 -- 
-John Hubbard
-NVIDIA
+2.19.1
