@@ -1,289 +1,196 @@
-From: Balbir Singh <bsingharora@gmail.com>
-Subject: Re: [PATCH 6/6] mm: track gup pages with page->dma_pinned_* fields
-Date: Fri, 12 Oct 2018 22:07:28 +1100
-Message-ID: <20181012110728.GL8537@350D>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/6] mm: introduce put_user_page*(), placeholder versions
+Date: Fri, 12 Oct 2018 15:31:36 -0700
+Message-ID: <faaac34e-c358-9675-5287-15398bc6828b@nvidia.com>
 References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-7-jhubbard@nvidia.com>
+ <20181012060014.10242-3-jhubbard@nvidia.com> <20181012073521.GJ8537@350D>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181012060014.10242-7-jhubbard@nvidia.com>
+In-Reply-To: <20181012073521.GJ8537@350D>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
+To: Balbir Singh <bsingharora@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 11, 2018 at 11:00:14PM -0700, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
+On 10/12/18 12:35 AM, Balbir Singh wrote:
+> On Thu, Oct 11, 2018 at 11:00:10PM -0700, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
+[...]>> +/*
+>> + * put_user_pages_dirty() - for each page in the @pages array, make
+>> + * that page (or its head page, if a compound page) dirty, if it was
+>> + * previously listed as clean. Then, release the page using
+>> + * put_user_page().
+>> + *
+>> + * Please see the put_user_page() documentation for details.
+>> + *
+>> + * set_page_dirty(), which does not lock the page, is used here.
+>> + * Therefore, it is the caller's responsibility to ensure that this is
+>> + * safe. If not, then put_user_pages_dirty_lock() should be called instead.
+>> + *
+>> + * @pages:  array of pages to be marked dirty and released.
+>> + * @npages: number of pages in the @pages array.
+>> + *
+>> + */
+>> +void put_user_pages_dirty(struct page **pages, unsigned long npages)
+>> +{
+>> +	unsigned long index;
+>> +
+>> +	for (index = 0; index < npages; index++) {
+> Do we need any checks on npages, npages <= (PUD_SHIFT - PAGE_SHIFT)?
 > 
-> This patch sets and restores the new page->dma_pinned_flags and
-> page->dma_pinned_count fields, but does not actually use them for
-> anything yet.
+
+Hi Balbir,
+
+Thanks for combing through this series.
+
+I'd go with "probably not", because the only check that can be done is
+what you showed above: "did someone crazy pass in more pages than are
+possible for this system?". I don't think checking for that helps here,
+as that will show up loud and clear, in other ways.
+
+The release_pages() implementation made the same judgment call to not 
+check npages, which also influenced me.
+
+A VM_BUG_ON could be added but I'd prefer not to, as it seems to have 
+not enough benefit to be worth it.
+
+
+>> +		struct page *page = compound_head(pages[index]);
+>> +
+>> +		if (!PageDirty(page))
+>> +			set_page_dirty(page);
+>> +
+>> +		put_user_page(page);
+>> +	}
+>> +}
+>> +EXPORT_SYMBOL(put_user_pages_dirty);
+>> +
+>> +/*
+>> + * put_user_pages_dirty_lock() - for each page in the @pages array, make
+>> + * that page (or its head page, if a compound page) dirty, if it was
+>> + * previously listed as clean. Then, release the page using
+>> + * put_user_page().
+>> + *
+>> + * Please see the put_user_page() documentation for details.
+>> + *
+>> + * This is just like put_user_pages_dirty(), except that it invokes
+>> + * set_page_dirty_lock(), instead of set_page_dirty().
+>> + *
+>> + * @pages:  array of pages to be marked dirty and released.
+>> + * @npages: number of pages in the @pages array.
+>> + *
+>> + */
+>> +void put_user_pages_dirty_lock(struct page **pages, unsigned long npages)
+>> +{
+>> +	unsigned long index;
+>> +
+>> +	for (index = 0; index < npages; index++) {
+>> +		struct page *page = compound_head(pages[index]);
+>> +
+>> +		if (!PageDirty(page))
+>> +			set_page_dirty_lock(page);
+>> +
+>> +		put_user_page(page);
+>> +	}
+>> +}
+>> +EXPORT_SYMBOL(put_user_pages_dirty_lock);
+>> +
 > 
-> In order to use these fields at all, the page must be removed from
-> any LRU list that it's on. The patch also adds some precautions that
-> prevent the page from getting moved back onto an LRU, once it is
-> in this state.
+> This can be collapsed w.r.t put_user_pages_dirty, a function pointer indirection
+> for the locked vs unlocked case, not sure how that affects function optimization.
 > 
-> This is in preparation to fix some problems that came up when using
-> devices (NICs, GPUs, for example) that set up direct access to a chunk
-> of system (CPU) memory, so that they can DMA to/from that memory.
+
+OK, good point. I initially wanted to avoid the overhead of a function 
+pointer, but considering that there are lots of other operations 
+happening, I think you're right: best to just get rid of the code 
+duplication. If later on we find that changing it back actually helps 
+any benchmarks, that can always be done.
+
+See below for how I'm planning on fixing it, and it is a nice little 
+cleanup, so thanks for pointing that out.
+
+>> +/*
+>> + * put_user_pages() - for each page in the @pages array, release the page
+>> + * using put_user_page().
+>> + *
+>> + * Please see the put_user_page() documentation for details.
+>> + *
+>> + * This is just like put_user_pages_dirty(), except that it invokes
+>> + * set_page_dirty_lock(), instead of set_page_dirty().
 > 
-> CC: Matthew Wilcox <willy@infradead.org>
-> CC: Jan Kara <jack@suse.cz>
-> CC: Dan Williams <dan.j.williams@intel.com>
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> ---
->  include/linux/mm.h | 15 ++-----------
->  mm/gup.c           | 56 ++++++++++++++++++++++++++++++++++++++++++++--
->  mm/memcontrol.c    |  7 ++++++
->  mm/swap.c          | 51 +++++++++++++++++++++++++++++++++++++++++
->  4 files changed, 114 insertions(+), 15 deletions(-)
+> The comment is incorrect.
+
+Yes, it sure is! Jan spotted it before, and I fixed it once, then 
+rebased off of the version right *before* the fix, so now I have to 
+delete that sentence again.  It's hard to kill! :)
+
 > 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 76d18aada9f8..44878d21e27b 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -944,21 +944,10 @@ static inline void put_page(struct page *page)
->  }
->  
->  /*
-> - * put_user_page() - release a page that had previously been acquired via
-> - * a call to one of the get_user_pages*() functions.
-> - *
->   * Pages that were pinned via get_user_pages*() must be released via
-> - * either put_user_page(), or one of the put_user_pages*() routines
-> - * below. This is so that eventually, pages that are pinned via
-> - * get_user_pages*() can be separately tracked and uniquely handled. In
-> - * particular, interactions with RDMA and filesystems need special
-> - * handling.
-> + * one of these put_user_pages*() routines:
->   */
-> -static inline void put_user_page(struct page *page)
-> -{
-> -	put_page(page);
-> -}
-> -
-> +void put_user_page(struct page *page);
->  void put_user_pages_dirty(struct page **pages, unsigned long npages);
->  void put_user_pages_dirty_lock(struct page **pages, unsigned long npages);
->  void put_user_pages(struct page **pages, unsigned long npages);
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 05ee7c18e59a..fddbc30cde89 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -20,6 +20,51 @@
->  
->  #include "internal.h"
->  
-> +static int pin_page_for_dma(struct page *page)
-> +{
-> +	int ret = 0;
-> +	struct zone *zone;
-> +
-> +	page = compound_head(page);
-> +	zone = page_zone(page);
-> +
-> +	spin_lock(zone_gup_lock(zone));
-> +
-> +	if (PageDmaPinned(page)) {
-> +		/* Page was not on an LRU list, because it was DMA-pinned. */
-> +		VM_BUG_ON_PAGE(PageLRU(page), page);
-> +
-> +		atomic_inc(&page->dma_pinned_count);
-> +		goto unlock_out;
-> +	}
-> +
-> +	/*
-> +	 * Note that page->dma_pinned_flags is unioned with page->lru.
-> +	 * Therefore, the rules are: checking if any of the
-> +	 * PAGE_DMA_PINNED_FLAGS bits are set may be done while page->lru
-> +	 * is in use. However, setting those flags requires that
-> +	 * the page is both locked, and also, removed from the LRU.
-> +	 */
-> +	ret = isolate_lru_page(page);
-> +
+>> + *
+>> + * @pages:  array of pages to be marked dirty and released.
+>> + * @npages: number of pages in the @pages array.
+>> + *
+>> + */
+>> +void put_user_pages(struct page **pages, unsigned long npages)
+>> +{
+>> +	unsigned long index;
+>> +
+>> +	for (index = 0; index < npages; index++)
+>> +		put_user_page(pages[index]);
+>> +}
+> 
+> Ditto in terms of code duplication
+> 
 
-isolate_lru_page() can be expensive and in terms of the overall locking order
-sounds like zone_gup_lock is higher in the hierarchy than the locks taken
-inside isolate_lru_page()
-
-> +	if (ret == 0) {
-> +		/* Avoid problems later, when freeing the page: */
-> +		ClearPageActive(page);
-> +		ClearPageUnevictable(page);
-> +
-> +		/* counteract isolate_lru_page's effects: */
-> +		put_page(page);
-
-Can the page get reaped here? What's the expected page count?
-
-> +
-> +		atomic_set(&page->dma_pinned_count, 1);
-> +		SetPageDmaPinned(page);
-> +	}
-> +
-> +unlock_out:
-> +	spin_unlock(zone_gup_lock(zone));
-> +
-> +	return ret;
-> +}
-> +
->  static struct page *no_page_table(struct vm_area_struct *vma,
->  		unsigned int flags)
->  {
-> @@ -659,7 +704,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  		unsigned int gup_flags, struct page **pages,
->  		struct vm_area_struct **vmas, int *nonblocking)
->  {
-> -	long i = 0;
-> +	long i = 0, j;
->  	int err = 0;
->  	unsigned int page_mask;
->  	struct vm_area_struct *vma = NULL;
-> @@ -764,6 +809,10 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->  	} while (nr_pages);
->  
->  out:
-> +	if (pages)
-> +		for (j = 0; j < i; j++)
-> +			pin_page_for_dma(pages[j]);
-> +
-
-Why does get_user_pages() unconditionally pin_page_for_dma?
-
->  	return i ? i : err;
->  }
->  
-> @@ -1841,7 +1890,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
->  			struct page **pages)
->  {
->  	unsigned long addr, len, end;
-> -	int nr = 0, ret = 0;
-> +	int nr = 0, ret = 0, i;
->  
->  	start &= PAGE_MASK;
->  	addr = start;
-> @@ -1862,6 +1911,9 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
->  		ret = nr;
->  	}
->  
-> +	for (i = 0; i < nr; i++)
-> +		pin_page_for_dma(pages[i]);
-
-Why does get_user_pages_fast() unconditionally pin_page_for_dma?
-
-> +
->  	if (nr < nr_pages) {
->  		/* Try to get the remaining pages with get_user_pages */
->  		start += nr << PAGE_SHIFT;
-> diff --git a/mm/memcontrol.c b/mm/memcontrol.c
-> index e79cb59552d9..af9719756081 100644
-> --- a/mm/memcontrol.c
-> +++ b/mm/memcontrol.c
-> @@ -2335,6 +2335,11 @@ static void lock_page_lru(struct page *page, int *isolated)
->  	if (PageLRU(page)) {
->  		struct lruvec *lruvec;
->  
-> +		/* LRU and PageDmaPinned are mutually exclusive: they use the
-> +		 * same fields in struct page, but for different purposes.
-> +		 */
-
-Comment style needs fixing
-
-> +		VM_BUG_ON_PAGE(PageDmaPinned(page), page);
-> +
->  		lruvec = mem_cgroup_page_lruvec(page, zone->zone_pgdat);
->  		ClearPageLRU(page);
->  		del_page_from_lru_list(page, lruvec, page_lru(page));
-> @@ -2352,6 +2357,8 @@ static void unlock_page_lru(struct page *page, int isolated)
->  
->  		lruvec = mem_cgroup_page_lruvec(page, zone->zone_pgdat);
->  		VM_BUG_ON_PAGE(PageLRU(page), page);
-> +		VM_BUG_ON_PAGE(PageDmaPinned(page), page);
-> +
->  		SetPageLRU(page);
->  		add_page_to_lru_list(page, lruvec, page_lru(page));
->  	}
-> diff --git a/mm/swap.c b/mm/swap.c
-> index efab3a6b6f91..6b2b1a958a67 100644
-> --- a/mm/swap.c
-> +++ b/mm/swap.c
-> @@ -134,6 +134,46 @@ void put_pages_list(struct list_head *pages)
->  }
->  EXPORT_SYMBOL(put_pages_list);
->  
-> +/*
-> + * put_user_page() - release a page that had previously been acquired via
-> + * a call to one of the get_user_pages*() functions.
-> + *
-> + * Pages that were pinned via get_user_pages*() must be released via
-> + * either put_user_page(), or one of the put_user_pages*() routines
-> + * below. This is so that eventually, pages that are pinned via
-> + * get_user_pages*() can be separately tracked and uniquely handled. In
-> + * particular, interactions with RDMA and filesystems need special
-> + * handling.
-> + */
-> +void put_user_page(struct page *page)
-> +{
-> +	struct zone *zone = page_zone(page);
-> +
-> +	page = compound_head(page);
-> +
-> +	VM_BUG_ON_PAGE(PageLRU(page), page);
-> +	VM_BUG_ON_PAGE(!PageDmaPinned(page), page);
-> +
-> +	if (atomic_dec_and_test(&page->dma_pinned_count)) {
-> +		spin_lock(zone_gup_lock(zone));
-> +
-> +		/* Re-check while holding the lock, because
-> +		 * pin_page_for_dma() or get_page() may have snuck in right
-> +		 * after the atomic_dec_and_test, and raised the count
-> +		 * above zero again. If so, just leave the flag set. And
-> +		 * because the atomic_dec_and_test above already got the
-> +		 * accounting correct, no other action is required.
-> +		 */
-> +		if (atomic_read(&page->dma_pinned_count) == 0)
-> +			ClearPageDmaPinned(page);
-> +
-> +		spin_unlock(zone_gup_lock(zone));
-> +	}
-> +
-> +	put_page(page);
-> +}
-> +EXPORT_SYMBOL(put_user_page);
-> +
->  /*
->   * put_user_pages_dirty() - for each page in the @pages array, make
->   * that page (or its head page, if a compound page) dirty, if it was
-> @@ -907,6 +947,11 @@ void lru_add_page_tail(struct page *page, struct page *page_tail,
->  	VM_BUG_ON_PAGE(!PageHead(page), page);
->  	VM_BUG_ON_PAGE(PageCompound(page_tail), page);
->  	VM_BUG_ON_PAGE(PageLRU(page_tail), page);
-> +
-> +	/* LRU and PageDmaPinned are mutually exclusive: they use the
-> +	 * same fields in struct page, but for different purposes.
-> +	 */
-> +	VM_BUG_ON_PAGE(PageDmaPinned(page_tail), page);
->  	VM_BUG_ON(NR_CPUS != 1 &&
->  		  !spin_is_locked(&lruvec_pgdat(lruvec)->lru_lock));
->  
-> @@ -946,6 +991,12 @@ static void __pagevec_lru_add_fn(struct page *page, struct lruvec *lruvec,
->  
->  	VM_BUG_ON_PAGE(PageLRU(page), page);
->  
-> +	/* LRU and PageDmaPinned are mutually exclusive: they use the
-> +	 * same fields in struct page, but for different purposes.
-> +	 */
-> +	if (PageDmaPinned(page))
-> +		return;
-> +
->  	SetPageLRU(page);
->  	/*
->  	 * Page becomes evictable in two ways:
-> -- 
-> 2.19.1
+Here, I think you'll find that the end result, is sufficiently 
+de-duplicated, after applying the function pointer above. Here's what it 
+looks like without the comment blocks, below. I don't want to go any 
+further than this, because the only thing left is the "for" loops, and 
+macro-izing such a trivial thing is not really a win:
 
 
-Balbir
+typedef int (*set_dirty_func)(struct page *page);
+
+static void __put_user_pages_dirty(struct page **pages,
+				   unsigned long npages,
+				   set_dirty_func sdf)
+{
+	unsigned long index;
+
+	for (index = 0; index < npages; index++) {
+		struct page *page = compound_head(pages[index]);
+
+		if (!PageDirty(page))
+			sdf(page);
+
+		put_user_page(page);
+	}
+}
+
+void put_user_pages_dirty(struct page **pages, unsigned long npages)
+{
+	__put_user_pages_dirty(pages, npages, set_page_dirty);
+}
+EXPORT_SYMBOL(put_user_pages_dirty);
+
+void put_user_pages_dirty_lock(struct page **pages, unsigned long npages)
+{
+	__put_user_pages_dirty(pages, npages, set_page_dirty_lock);
+}
+EXPORT_SYMBOL(put_user_pages_dirty_lock);
+
+void put_user_pages(struct page **pages, unsigned long npages)
+{
+	unsigned long index;
+
+	for (index = 0; index < npages; index++)
+		put_user_page(pages[index]);
+}
+EXPORT_SYMBOL(put_user_pages);
+
+-- 
+thanks,
+John Hubbard
+NVIDIA
