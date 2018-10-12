@@ -1,221 +1,143 @@
 From: Balbir Singh <bsingharora@gmail.com>
-Subject: Re: [PATCH 2/6] mm: introduce put_user_page*(), placeholder versions
-Date: Fri, 12 Oct 2018 18:35:22 +1100
-Message-ID: <20181012073521.GJ8537@350D>
+Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
+Date: Fri, 12 Oct 2018 21:56:12 +1100
+Message-ID: <20181012105612.GK8537@350D>
 References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-3-jhubbard@nvidia.com>
+ <20181012060014.10242-5-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181012060014.10242-3-jhubbard@nvidia.com>
+In-Reply-To: <20181012060014.10242-5-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: john.hubbard@gmail.com
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 11, 2018 at 11:00:10PM -0700, john.hubbard@gmail.com wrote:
+On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
 > From: John Hubbard <jhubbard@nvidia.com>
 > 
-> Introduces put_user_page(), which simply calls put_page().
-> This provides a way to update all get_user_pages*() callers,
-> so that they call put_user_page(), instead of put_page().
+> Add two struct page fields that, combined, are unioned with
+> struct page->lru. There is no change in the size of
+> struct page. These new fields are for type safety and clarity.
 > 
-> Also introduces put_user_pages(), and a few dirty/locked variations,
-> as a replacement for release_pages(), and also as a replacement
-> for open-coded loops that release multiple pages.
-> These may be used for subsequent performance improvements,
-> via batching of pages to be released.
+> Also add page flag accessors to test, set and clear the new
+> page->dma_pinned_flags field.
 > 
-> This is the first step of fixing the problem described in [1]. The steps
-> are:
+> The page->dma_pinned_count field will be used in upcoming
+> patches
 > 
-> 1) (This patch): provide put_user_page*() routines, intended to be used
->    for releasing pages that were pinned via get_user_pages*().
-> 
-> 2) Convert all of the call sites for get_user_pages*(), to
->    invoke put_user_page*(), instead of put_page(). This involves dozens of
->    call sites, any will take some time.
-> 
-> 3) After (2) is complete, use get_user_pages*() and put_user_page*() to
->    implement tracking of these pages. This tracking will be separate from
->    the existing struct page refcounting.
-> 
-> 4) Use the tracking and identification of these pages, to implement
->    special handling (especially in writeback paths) when the pages are
->    backed by a filesystem. Again, [1] provides details as to why that is
->    desirable.
-> 
-> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-> 
-> CC: Matthew Wilcox <willy@infradead.org>
-> CC: Michal Hocko <mhocko@kernel.org>
-> CC: Christopher Lameter <cl@linux.com>
-> CC: Jason Gunthorpe <jgg@ziepe.ca>
-> CC: Dan Williams <dan.j.williams@intel.com>
-> CC: Jan Kara <jack@suse.cz>
-> CC: Al Viro <viro@zeniv.linux.org.uk>
-> CC: Jerome Glisse <jglisse@redhat.com>
-> CC: Christoph Hellwig <hch@infradead.org>
-> CC: Ralph Campbell <rcampbell@nvidia.com>
-> 
-> Reviewed-by: Jan Kara <jack@suse.cz>
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 > ---
->  include/linux/mm.h | 20 +++++++++++
->  mm/swap.c          | 83 ++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 103 insertions(+)
+>  include/linux/mm_types.h   | 22 +++++++++++++-----
+>  include/linux/page-flags.h | 47 ++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 63 insertions(+), 6 deletions(-)
 > 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 0416a7204be3..76d18aada9f8 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -943,6 +943,26 @@ static inline void put_page(struct page *page)
->  		__put_page(page);
+> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> index 5ed8f6292a53..017ab82e36ca 100644
+> --- a/include/linux/mm_types.h
+> +++ b/include/linux/mm_types.h
+> @@ -78,12 +78,22 @@ struct page {
+>  	 */
+>  	union {
+>  		struct {	/* Page cache and anonymous pages */
+> -			/**
+> -			 * @lru: Pageout list, eg. active_list protected by
+> -			 * zone_lru_lock.  Sometimes used as a generic list
+> -			 * by the page owner.
+> -			 */
+> -			struct list_head lru;
+> +			union {
+> +				/**
+> +				 * @lru: Pageout list, eg. active_list protected
+> +				 * by zone_lru_lock.  Sometimes used as a
+> +				 * generic list by the page owner.
+> +				 */
+> +				struct list_head lru;
+> +				/* Used by get_user_pages*(). Pages may not be
+> +				 * on an LRU while these dma_pinned_* fields
+> +				 * are in use.
+> +				 */
+> +				struct {
+> +					unsigned long dma_pinned_flags;
+> +					atomic_t      dma_pinned_count;
+> +				};
+> +			};
+>  			/* See page-flags.h for PAGE_MAPPING_FLAGS */
+>  			struct address_space *mapping;
+>  			pgoff_t index;		/* Our offset within mapping. */
+> diff --git a/include/linux/page-flags.h b/include/linux/page-flags.h
+> index 74bee8cecf4c..81ed52c3caae 100644
+> --- a/include/linux/page-flags.h
+> +++ b/include/linux/page-flags.h
+> @@ -425,6 +425,53 @@ static __always_inline int __PageMovable(struct page *page)
+>  				PAGE_MAPPING_MOVABLE;
 >  }
 >  
 > +/*
-> + * put_user_page() - release a page that had previously been acquired via
-> + * a call to one of the get_user_pages*() functions.
+> + * Because page->dma_pinned_flags is unioned with page->lru, any page that
+> + * uses these flags must NOT be on an LRU. That's partly enforced by
+> + * ClearPageDmaPinned, which gives the page back to LRU.
 > + *
-> + * Pages that were pinned via get_user_pages*() must be released via
-> + * either put_user_page(), or one of the put_user_pages*() routines
-> + * below. This is so that eventually, pages that are pinned via
-> + * get_user_pages*() can be separately tracked and uniquely handled. In
-> + * particular, interactions with RDMA and filesystems need special
-> + * handling.
+> + * PageDmaPinned also corresponds to PageTail (the 0th bit in the first union
+> + * of struct page), and this flag is checked without knowing whether it is a
+> + * tail page or a PageDmaPinned page. Therefore, start the flags at bit 1 (0x2),
+> + * rather than bit 0.
 > + */
-> +static inline void put_user_page(struct page *page)
-> +{
-> +	put_page(page);
-> +}
-> +
-> +void put_user_pages_dirty(struct page **pages, unsigned long npages);
-> +void put_user_pages_dirty_lock(struct page **pages, unsigned long npages);
-> +void put_user_pages(struct page **pages, unsigned long npages);
-> +
->  #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
->  #define SECTION_IN_PAGE_FLAGS
->  #endif
-> diff --git a/mm/swap.c b/mm/swap.c
-> index 26fc9b5f1b6c..efab3a6b6f91 100644
-> --- a/mm/swap.c
-> +++ b/mm/swap.c
-> @@ -134,6 +134,89 @@ void put_pages_list(struct list_head *pages)
->  }
->  EXPORT_SYMBOL(put_pages_list);
->  
-> +/*
-> + * put_user_pages_dirty() - for each page in the @pages array, make
-> + * that page (or its head page, if a compound page) dirty, if it was
-> + * previously listed as clean. Then, release the page using
-> + * put_user_page().
-> + *
-> + * Please see the put_user_page() documentation for details.
-> + *
-> + * set_page_dirty(), which does not lock the page, is used here.
-> + * Therefore, it is the caller's responsibility to ensure that this is
-> + * safe. If not, then put_user_pages_dirty_lock() should be called instead.
-> + *
-> + * @pages:  array of pages to be marked dirty and released.
-> + * @npages: number of pages in the @pages array.
-> + *
-> + */
-> +void put_user_pages_dirty(struct page **pages, unsigned long npages)
-> +{
-> +	unsigned long index;
-> +
-> +	for (index = 0; index < npages; index++) {
-Do we need any checks on npages, npages <= (PUD_SHIFT - PAGE_SHIFT)?
-
-> +		struct page *page = compound_head(pages[index]);
-> +
-> +		if (!PageDirty(page))
-> +			set_page_dirty(page);
-> +
-> +		put_user_page(page);
-> +	}
-> +}
-> +EXPORT_SYMBOL(put_user_pages_dirty);
-> +
-> +/*
-> + * put_user_pages_dirty_lock() - for each page in the @pages array, make
-> + * that page (or its head page, if a compound page) dirty, if it was
-> + * previously listed as clean. Then, release the page using
-> + * put_user_page().
-> + *
-> + * Please see the put_user_page() documentation for details.
-> + *
-> + * This is just like put_user_pages_dirty(), except that it invokes
-> + * set_page_dirty_lock(), instead of set_page_dirty().
-> + *
-> + * @pages:  array of pages to be marked dirty and released.
-> + * @npages: number of pages in the @pages array.
-> + *
-> + */
-> +void put_user_pages_dirty_lock(struct page **pages, unsigned long npages)
-> +{
-> +	unsigned long index;
-> +
-> +	for (index = 0; index < npages; index++) {
-> +		struct page *page = compound_head(pages[index]);
-> +
-> +		if (!PageDirty(page))
-> +			set_page_dirty_lock(page);
-> +
-> +		put_user_page(page);
-> +	}
-> +}
-> +EXPORT_SYMBOL(put_user_pages_dirty_lock);
+> +#define PAGE_DMA_PINNED		0x2
+> +#define PAGE_DMA_PINNED_FLAGS	(PAGE_DMA_PINNED)
 > +
 
-This can be collapsed w.r.t put_user_pages_dirty, a function pointer indirection
-for the locked vs unlocked case, not sure how that affects function optimization.
-
+This is really subtle, additional changes to compound_head will need to coordinate
+with these flags? Also doesn't this bit need to be unique across all structs in
+the union? I guess that is guaranteed by the fact that page == compound_head(page)
+as per your assertion, but I've forgotten why that is true. Could you please
+add some commentary on that
 
 > +/*
-> + * put_user_pages() - for each page in the @pages array, release the page
-> + * using put_user_page().
-> + *
-> + * Please see the put_user_page() documentation for details.
-> + *
-> + * This is just like put_user_pages_dirty(), except that it invokes
-> + * set_page_dirty_lock(), instead of set_page_dirty().
-
-The comment is incorrect.
-
-> + *
-> + * @pages:  array of pages to be marked dirty and released.
-> + * @npages: number of pages in the @pages array.
-> + *
+> + * Because these flags are read outside of a lock, ensure visibility between
+> + * different threads, by using READ|WRITE_ONCE.
 > + */
-> +void put_user_pages(struct page **pages, unsigned long npages)
+> +static __always_inline int PageDmaPinnedFlags(struct page *page)
 > +{
-> +	unsigned long index;
-> +
-> +	for (index = 0; index < npages; index++)
-> +		put_user_page(pages[index]);
+> +	VM_BUG_ON(page != compound_head(page));
+> +	return (READ_ONCE(page->dma_pinned_flags) & PAGE_DMA_PINNED_FLAGS) != 0;
 > +}
-
-Ditto in terms of code duplication
-
-How about
-
-for_each_page_index(index, npages) {
-	<do the dirty bits if needed>
-	put_user_pages(pages[index]
-}
-
-Then pass what you want the page iterator to do
-
-
-> +EXPORT_SYMBOL(put_user_pages);
 > +
+> +static __always_inline int PageDmaPinned(struct page *page)
+> +{
+> +	VM_BUG_ON(page != compound_head(page));
+> +	return (READ_ONCE(page->dma_pinned_flags) & PAGE_DMA_PINNED) != 0;
+> +}
+> +
+> +static __always_inline void SetPageDmaPinned(struct page *page)
+> +{
+> +	VM_BUG_ON(page != compound_head(page));
+
+VM_BUG_ON(!list_empty(&page->lru))
+
+> +	WRITE_ONCE(page->dma_pinned_flags, PAGE_DMA_PINNED);
+> +}
+> +
+> +static __always_inline void ClearPageDmaPinned(struct page *page)
+> +{
+> +	VM_BUG_ON(page != compound_head(page));
+> +	VM_BUG_ON_PAGE(!PageDmaPinnedFlags(page), page);
+> +
+> +	/* This does a WRITE_ONCE to the lru.next, which is also the
+> +	 * page->dma_pinned_flags field. So in addition to restoring page->lru,
+> +	 * this provides visibility to other threads.
+> +	 */
+> +	INIT_LIST_HEAD(&page->lru);
+
+This assumes certain things about list_head, why not use the correct
+initialization bits.
+
+> +}
+> +
+>  #ifdef CONFIG_KSM
 >  /*
->   * get_kernel_pages() - pin kernel pages in memory
->   * @kiov:	An array of struct kvec structures
+>   * A KSM page is one of those write-protected "shared pages" or "merged pages"
 > -- 
 > 2.19.1
 > 
-
-Balbir Singh.
