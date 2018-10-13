@@ -1,161 +1,79 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 6/6] mm: track gup pages with page->dma_pinned_* fields
-Date: Fri, 12 Oct 2018 17:33:51 -0700
-Message-ID: <af901585-3f9a-da35-81a4-50ea341844c4@nvidia.com>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
+Date: Sat, 13 Oct 2018 14:55:16 +1100
+Message-ID: <20181013035516.GA18822@dastard>
 References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-7-jhubbard@nvidia.com> <20181012110728.GL8537@350D>
+ <20181012060014.10242-5-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181012110728.GL8537@350D>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181012060014.10242-5-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Balbir Singh <bsingharora@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: john.hubbard@gmail.com
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/12/18 4:07 AM, Balbir Singh wrote:
-> On Thu, Oct 11, 2018 at 11:00:14PM -0700, john.hubbard@gmail.com wrote:
->> From: John Hubbard <jhubbard@nvidia.com>
-[...]
->> +static int pin_page_for_dma(struct page *page)
->> +{
->> +	int ret = 0;
->> +	struct zone *zone;
->> +
->> +	page = compound_head(page);
->> +	zone = page_zone(page);
->> +
->> +	spin_lock(zone_gup_lock(zone));
->> +
->> +	if (PageDmaPinned(page)) {
->> +		/* Page was not on an LRU list, because it was DMA-pinned. */
->> +		VM_BUG_ON_PAGE(PageLRU(page), page);
->> +
->> +		atomic_inc(&page->dma_pinned_count);
->> +		goto unlock_out;
->> +	}
->> +
->> +	/*
->> +	 * Note that page->dma_pinned_flags is unioned with page->lru.
->> +	 * Therefore, the rules are: checking if any of the
->> +	 * PAGE_DMA_PINNED_FLAGS bits are set may be done while page->lru
->> +	 * is in use. However, setting those flags requires that
->> +	 * the page is both locked, and also, removed from the LRU.
->> +	 */
->> +	ret = isolate_lru_page(page);
->> +
+On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
 > 
-> isolate_lru_page() can be expensive and in terms of the overall locking order
-> sounds like zone_gup_lock is higher in the hierarchy than the locks taken
-> inside isolate_lru_page()
- 
-As for the expensive part, that is a concern. But I do think we need some lock
-here. The hierarchy shouldn't be a problem, given that this is a new lock. But
-I'm not sure how to make this better. In any case, I think it should work--note that
-the zone_lru_lock, within isolate_lru_page(), is of similar use, and is held
-for a similar duration, so...maybe not really a problem?
-
-
->> +	if (ret == 0) {
->> +		/* Avoid problems later, when freeing the page: */
->> +		ClearPageActive(page);
->> +		ClearPageUnevictable(page);
->> +
->> +		/* counteract isolate_lru_page's effects: */
->> +		put_page(page);
+> Add two struct page fields that, combined, are unioned with
+> struct page->lru. There is no change in the size of
+> struct page. These new fields are for type safety and clarity.
 > 
-> Can the page get reaped here? What's the expected page count?
-
-Nope. The page_count is at least one, because get_user_pages() incremented it.
-
- 
->> +
->> +		atomic_set(&page->dma_pinned_count, 1);
->> +		SetPageDmaPinned(page);
->> +	}
->> +
->> +unlock_out:
->> +	spin_unlock(zone_gup_lock(zone));
->> +
->> +	return ret;
->> +}
->> +
->>  static struct page *no_page_table(struct vm_area_struct *vma,
->>  		unsigned int flags)
->>  {
->> @@ -659,7 +704,7 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->>  		unsigned int gup_flags, struct page **pages,
->>  		struct vm_area_struct **vmas, int *nonblocking)
->>  {
->> -	long i = 0;
->> +	long i = 0, j;
->>  	int err = 0;
->>  	unsigned int page_mask;
->>  	struct vm_area_struct *vma = NULL;
->> @@ -764,6 +809,10 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
->>  	} while (nr_pages);
->>  
->>  out:
->> +	if (pages)
->> +		for (j = 0; j < i; j++)
->> +			pin_page_for_dma(pages[j]);
->> +
+> Also add page flag accessors to test, set and clear the new
+> page->dma_pinned_flags field.
 > 
-> Why does get_user_pages() unconditionally pin_page_for_dma?
-
-That's the grand plan here: get_user_pages() now means "unconditionally pin the page for dma".
-If you didn't want that, then either release it quickly (many callers do), or use a different
-way of pinning or acquiring the page.
-
+> The page->dma_pinned_count field will be used in upcoming
+> patches
 > 
->>  	return i ? i : err;
->>  }
->>  
->> @@ -1841,7 +1890,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
->>  			struct page **pages)
->>  {
->>  	unsigned long addr, len, end;
->> -	int nr = 0, ret = 0;
->> +	int nr = 0, ret = 0, i;
->>  
->>  	start &= PAGE_MASK;
->>  	addr = start;
->> @@ -1862,6 +1911,9 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
->>  		ret = nr;
->>  	}
->>  
->> +	for (i = 0; i < nr; i++)
->> +		pin_page_for_dma(pages[i]);
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+>  include/linux/mm_types.h   | 22 +++++++++++++-----
+>  include/linux/page-flags.h | 47 ++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 63 insertions(+), 6 deletions(-)
 > 
-> Why does get_user_pages_fast() unconditionally pin_page_for_dma?
+> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> index 5ed8f6292a53..017ab82e36ca 100644
+> --- a/include/linux/mm_types.h
+> +++ b/include/linux/mm_types.h
+> @@ -78,12 +78,22 @@ struct page {
+>  	 */
+>  	union {
+>  		struct {	/* Page cache and anonymous pages */
+> -			/**
+> -			 * @lru: Pageout list, eg. active_list protected by
+> -			 * zone_lru_lock.  Sometimes used as a generic list
+> -			 * by the page owner.
+> -			 */
+> -			struct list_head lru;
+> +			union {
+> +				/**
+> +				 * @lru: Pageout list, eg. active_list protected
+> +				 * by zone_lru_lock.  Sometimes used as a
+> +				 * generic list by the page owner.
+> +				 */
+> +				struct list_head lru;
+> +				/* Used by get_user_pages*(). Pages may not be
+> +				 * on an LRU while these dma_pinned_* fields
+> +				 * are in use.
+> +				 */
+> +				struct {
+> +					unsigned long dma_pinned_flags;
+> +					atomic_t      dma_pinned_count;
+> +				};
+> +			};
 
-All of the get_user_pages*() variants need to follow the same rules, so the same 
-explanation as above, applies here also.
+Isn't this broken for mapped file-backed pages? i.e. they may be
+passed as the user buffer to read/write direct IO and so the pages
+passed to gup will be on the active/inactive LRUs. hence I can't see
+how you can have dual use of the LRU list head like this....
 
->> +
->>  	if (nr < nr_pages) {
->>  		/* Try to get the remaining pages with get_user_pages */
->>  		start += nr << PAGE_SHIFT;
->> diff --git a/mm/memcontrol.c b/mm/memcontrol.c
->> index e79cb59552d9..af9719756081 100644
->> --- a/mm/memcontrol.c
->> +++ b/mm/memcontrol.c
->> @@ -2335,6 +2335,11 @@ static void lock_page_lru(struct page *page, int *isolated)
->>  	if (PageLRU(page)) {
->>  		struct lruvec *lruvec;
->>  
->> +		/* LRU and PageDmaPinned are mutually exclusive: they use the
->> +		 * same fields in struct page, but for different purposes.
->> +		 */
-> 
-> Comment style needs fixing
- 
-oops, thanks for spotting those, will fix.
+What am I missing here?
 
+Cheers,
 
+Dave.
 -- 
-thanks,
-John Hubbard
-NVIDIA
+Dave Chinner
+david@fromorbit.com
