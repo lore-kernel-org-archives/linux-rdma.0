@@ -1,44 +1,97 @@
-From: John Hubbard <jhubbard@nvidia.com>
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Sat, 13 Oct 2018 14:19:57 -0700
-Message-ID: <005bc69b-ffa8-ccb4-db0b-3f4c52a54745@nvidia.com>
+Date: Sun, 14 Oct 2018 10:01:24 +1100
+Message-ID: <20181013230124.GB18822@dastard>
 References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com> <20181013035516.GA18822@dastard>
+ <20181012060014.10242-5-jhubbard@nvidia.com>
+ <20181013035516.GA18822@dastard>
  <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
- <20181013164740.GA6593@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181013164740.GA6593@infradead.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/13/18 9:47 AM, Christoph Hellwig wrote:
-> On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
->> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
->> unceremoniously rips the pages out of the LRU, as a prerequisite to using
->> either of the page->dma_pinned_* fields. 
->>
->> The idea is that LRU is not especially useful for this situation anyway,
->> so we'll just make it one or the other: either a page is dma-pinned, and
->> just hanging out doing RDMA most likely (and LRU is less meaningful during that
->> time), or it's possibly on an LRU list.
+On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
+> On 10/12/18 8:55 PM, Dave Chinner wrote:
+> > On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
+> >> From: John Hubbard <jhubbard@nvidia.com>
+> [...]
+> >> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> >> index 5ed8f6292a53..017ab82e36ca 100644
+> >> --- a/include/linux/mm_types.h
+> >> +++ b/include/linux/mm_types.h
+> >> @@ -78,12 +78,22 @@ struct page {
+> >>  	 */
+> >>  	union {
+> >>  		struct {	/* Page cache and anonymous pages */
+> >> -			/**
+> >> -			 * @lru: Pageout list, eg. active_list protected by
+> >> -			 * zone_lru_lock.  Sometimes used as a generic list
+> >> -			 * by the page owner.
+> >> -			 */
+> >> -			struct list_head lru;
+> >> +			union {
+> >> +				/**
+> >> +				 * @lru: Pageout list, eg. active_list protected
+> >> +				 * by zone_lru_lock.  Sometimes used as a
+> >> +				 * generic list by the page owner.
+> >> +				 */
+> >> +				struct list_head lru;
+> >> +				/* Used by get_user_pages*(). Pages may not be
+> >> +				 * on an LRU while these dma_pinned_* fields
+> >> +				 * are in use.
+> >> +				 */
+> >> +				struct {
+> >> +					unsigned long dma_pinned_flags;
+> >> +					atomic_t      dma_pinned_count;
+> >> +				};
+> >> +			};
+> > 
+> > Isn't this broken for mapped file-backed pages? i.e. they may be
+> > passed as the user buffer to read/write direct IO and so the pages
+> > passed to gup will be on the active/inactive LRUs. hence I can't see
+> > how you can have dual use of the LRU list head like this....
+> > 
+> > What am I missing here?
 > 
-> Have you done any benchmarking what this does to direct I/O performance,
-> especially for small I/O directly to a (fast) block device?
+> Hi Dave,
+> 
+> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
+> unceremoniously rips the pages out of the LRU, as a prerequisite to using
+> either of the page->dma_pinned_* fields. 
 
-Not yet. I can go do that now. If you have any particular test suites, benchmarks,
-or just programs to recommend, please let me know. So far, I see
+How is that safe? If you've ripped the page out of the LRU, it's no
+longer being tracked by the page cache aging and reclaim algorithms.
+Patch 6 doesn't appear to put these pages back in the LRU, either,
+so it looks to me like this just dumps them on the ground after the
+gup reference is dropped.  How do we reclaim these page cache pages
+when there is memory pressure if they aren't in the LRU?
 
-   tools/testing/selftests/vm/gup_benchmark.c
+> The idea is that LRU is not especially useful for this situation anyway,
+> so we'll just make it one or the other: either a page is dma-pinned, and
+> just hanging out doing RDMA most likely (and LRU is less meaningful during that
+> time), or it's possibly on an LRU list.
 
+gup isn't just used for RDMA. It's used by direct IO in far, far
+more situations and machines than RDMA is. Please explain why
+ripping pages out of the LRU and not putting them back is safe, has
+no side effects, doesn't adversely impact page cache reclaim, etc.
+Indeed, I'd love to see a description of all the page references and
+where they come and go so we know the changes aren't just leaking
+these pages until the filesystem invalidates them at unmount.
 
+Maybe I'm not seeing why this is safe yet, but seeing as you haven't
+explained why it is safe then, at minimum, the patch descriptions
+are incomplete.
+
+Cheers,
+
+Dave.
 -- 
-thanks,
-John Hubbard
-NVIDIA
- 
+Dave Chinner
+david@fromorbit.com
