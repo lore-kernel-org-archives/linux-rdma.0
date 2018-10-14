@@ -1,97 +1,86 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Sun, 14 Oct 2018 10:01:24 +1100
-Message-ID: <20181013230124.GB18822@dastard>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com>
- <20181013035516.GA18822@dastard>
- <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
+From: syzbot <syzbot+1ed9dfaa984c88cf0ef8@syzkaller.appspotmail.com>
+Subject: Re: WARNING in __put_task_struct (2)
+Date: Sun, 14 Oct 2018 10:12:03 -0700
+Message-ID: <00000000000062cff50578336b0c@google.com>
+References: <000000000000b3d5610577b9e12c@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
+In-Reply-To: <000000000000b3d5610577b9e12c@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: akpm@linux-foundation.org, dledford@redhat.com, dvyukov@google.com, ebiederm@xmission.com, guro@fb.com, jgg@ziepe.ca, keescook@chromium.org, kirill.shutemov@linux.intel.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, luto@amacapital.net, marcos.souza.org@gmail.com, markb@mellanox.com, mhocko@kernel.org, riel@surriel.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com, wad@chromium.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
-> On 10/12/18 8:55 PM, Dave Chinner wrote:
-> > On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
-> >> From: John Hubbard <jhubbard@nvidia.com>
-> [...]
-> >> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> >> index 5ed8f6292a53..017ab82e36ca 100644
-> >> --- a/include/linux/mm_types.h
-> >> +++ b/include/linux/mm_types.h
-> >> @@ -78,12 +78,22 @@ struct page {
-> >>  	 */
-> >>  	union {
-> >>  		struct {	/* Page cache and anonymous pages */
-> >> -			/**
-> >> -			 * @lru: Pageout list, eg. active_list protected by
-> >> -			 * zone_lru_lock.  Sometimes used as a generic list
-> >> -			 * by the page owner.
-> >> -			 */
-> >> -			struct list_head lru;
-> >> +			union {
-> >> +				/**
-> >> +				 * @lru: Pageout list, eg. active_list protected
-> >> +				 * by zone_lru_lock.  Sometimes used as a
-> >> +				 * generic list by the page owner.
-> >> +				 */
-> >> +				struct list_head lru;
-> >> +				/* Used by get_user_pages*(). Pages may not be
-> >> +				 * on an LRU while these dma_pinned_* fields
-> >> +				 * are in use.
-> >> +				 */
-> >> +				struct {
-> >> +					unsigned long dma_pinned_flags;
-> >> +					atomic_t      dma_pinned_count;
-> >> +				};
-> >> +			};
-> > 
-> > Isn't this broken for mapped file-backed pages? i.e. they may be
-> > passed as the user buffer to read/write direct IO and so the pages
-> > passed to gup will be on the active/inactive LRUs. hence I can't see
-> > how you can have dual use of the LRU list head like this....
-> > 
-> > What am I missing here?
-> 
-> Hi Dave,
-> 
-> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
-> unceremoniously rips the pages out of the LRU, as a prerequisite to using
-> either of the page->dma_pinned_* fields. 
+syzbot has found a reproducer for the following crash on:
 
-How is that safe? If you've ripped the page out of the LRU, it's no
-longer being tracked by the page cache aging and reclaim algorithms.
-Patch 6 doesn't appear to put these pages back in the LRU, either,
-so it looks to me like this just dumps them on the ground after the
-gup reference is dropped.  How do we reclaim these page cache pages
-when there is memory pressure if they aren't in the LRU?
+HEAD commit:    774ea0551a29 Add linux-next specific files for 20181012
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=17f71735400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=273e86a7f336b114
+dashboard link: https://syzkaller.appspot.com/bug?extid=1ed9dfaa984c88cf0ef8
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1735d391400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1296a3a1400000
 
-> The idea is that LRU is not especially useful for this situation anyway,
-> so we'll just make it one or the other: either a page is dma-pinned, and
-> just hanging out doing RDMA most likely (and LRU is less meaningful during that
-> time), or it's possibly on an LRU list.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+1ed9dfaa984c88cf0ef8@syzkaller.appspotmail.com
 
-gup isn't just used for RDMA. It's used by direct IO in far, far
-more situations and machines than RDMA is. Please explain why
-ripping pages out of the LRU and not putting them back is safe, has
-no side effects, doesn't adversely impact page cache reclaim, etc.
-Indeed, I'd love to see a description of all the page references and
-where they come and go so we know the changes aren't just leaking
-these pages until the filesystem invalidates them at unmount.
+audit: type=1800 audit(1539536806.030:30): pid=5454 uid=0 auid=4294967295  
+ses=4294967295 subj==unconfined op=collect_data cause=failed(directio)  
+comm="startpar" name="rmnologin" dev="sda1" ino=2423 res=0
+IPVS: ftp: loaded support on port[0] = 21
+WARNING: CPU: 1 PID: 5614 at kernel/fork.c:718  
+__put_task_struct+0x3ef/0x620 kernel/fork.c:718
+Kernel panic - not syncing: panic_on_warn set ...
 
-Maybe I'm not seeing why this is safe yet, but seeing as you haven't
-explained why it is safe then, at minimum, the patch descriptions
-are incomplete.
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+CPU: 1 PID: 5614 Comm: syz-executor338 Not tainted  
+4.19.0-rc7-next-20181012+ #93
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x3ab lib/dump_stack.c:113
+  panic+0x238/0x4e7 kernel/panic.c:184
+  __warn.cold.8+0x163/0x1ba kernel/panic.c:536
+  report_bug+0x254/0x2d0 lib/bug.c:186
+  fixup_bug arch/x86/kernel/traps.c:178 [inline]
+  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+  do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:__put_task_struct+0x3ef/0x620 kernel/fork.c:718
+Code: 4c 89 ee e8 c3 a3 7b 00 e9 a1 fe ff ff e8 69 55 37 00 0f 0b e9 7c fd  
+ff ff e8 5d 55 37 00 0f 0b e9 87 fd ff ff e8 51 55 37 00 <0f> 0b e9 d0 fc  
+ff ff e8 45 55 37 00 49 8d 87 90 05 00 00 31 f6 48
+RSP: 0018:ffff8801d7fcee48 EFLAGS: 00010293
+RAX: ffff8801d7ffe5c0 RBX: ffff8801d82be540 RCX: ffffffff814711cd
+RDX: 0000000000000000 RSI: ffffffff814714ff RDI: 0000000000000005
+RBP: ffff8801d7fcef28 R08: ffff8801d7ffe5c0 R09: ffffed003b057cac
+R10: ffffed003b057cac R11: ffff8801d82be563 R12: 1ffff1003aff9dcc
+R13: 0000000000000000 R14: ffff8801d7fcef00 R15: ffff8801d7f7a9c0
+  put_task_struct include/linux/sched/task.h:96 [inline]
+  rdma_restrack_del+0x2e0/0x3b0 drivers/infiniband/core/restrack.c:243
+  rdma_destroy_id+0x126/0xcc0 drivers/infiniband/core/cma.c:1820
+  ucma_close+0x114/0x310 drivers/infiniband/core/ucma.c:1767
+  __fput+0x3bc/0xa70 fs/file_table.c:279
+  ____fput+0x15/0x20 fs/file_table.c:312
+  task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
+  exit_task_work include/linux/task_work.h:22 [inline]
+  do_exit+0x1ad2/0x2610 kernel/exit.c:867
+  do_group_exit+0x177/0x440 kernel/exit.c:970
+  get_signal+0x8a8/0x1970 kernel/signal.c:2517
+  do_signal+0x9c/0x21c0 arch/x86/kernel/signal.c:816
+  exit_to_usermode_loop+0x2e5/0x380 arch/x86/entry/common.c:162
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x4460a9
+Code: Bad RIP value.
+RSP: 002b:00007f0e9c1a9da8 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: fffffffffffffe00 RBX: 00000000006dbc48 RCX: 00000000004460a9
+RDX: 0000000000000000 RSI: 0000000000000080 RDI: 00000000006dbc48
+RBP: 00000000006dbc40 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000006dbc4c
+R13: 666e692f7665642f R14: 0100000000000000 R15: 0000000000000003
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
