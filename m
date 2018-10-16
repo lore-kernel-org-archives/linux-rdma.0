@@ -1,83 +1,59 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Tue, 16 Oct 2018 10:51:02 +0200
-Message-ID: <20181016085102.GB18918@quack2.suse.cz>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com>
- <20181013035516.GA18822@dastard>
- <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
- <20181013230124.GB18822@dastard>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] IB/ucm: Fix Spectre v1 vulnerability
+Date: Tue, 16 Oct 2018 16:32:40 +0200
+Message-ID: <20181016143240.GA6087@embeddedor.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181013230124.GB18822@dastard>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun 14-10-18 10:01:24, Dave Chinner wrote:
-> On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
-> > On 10/12/18 8:55 PM, Dave Chinner wrote:
-> > > On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
-> > >> From: John Hubbard <jhubbard@nvidia.com>
-> > [...]
-> > >> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
-> > >> index 5ed8f6292a53..017ab82e36ca 100644
-> > >> --- a/include/linux/mm_types.h
-> > >> +++ b/include/linux/mm_types.h
-> > >> @@ -78,12 +78,22 @@ struct page {
-> > >>  	 */
-> > >>  	union {
-> > >>  		struct {	/* Page cache and anonymous pages */
-> > >> -			/**
-> > >> -			 * @lru: Pageout list, eg. active_list protected by
-> > >> -			 * zone_lru_lock.  Sometimes used as a generic list
-> > >> -			 * by the page owner.
-> > >> -			 */
-> > >> -			struct list_head lru;
-> > >> +			union {
-> > >> +				/**
-> > >> +				 * @lru: Pageout list, eg. active_list protected
-> > >> +				 * by zone_lru_lock.  Sometimes used as a
-> > >> +				 * generic list by the page owner.
-> > >> +				 */
-> > >> +				struct list_head lru;
-> > >> +				/* Used by get_user_pages*(). Pages may not be
-> > >> +				 * on an LRU while these dma_pinned_* fields
-> > >> +				 * are in use.
-> > >> +				 */
-> > >> +				struct {
-> > >> +					unsigned long dma_pinned_flags;
-> > >> +					atomic_t      dma_pinned_count;
-> > >> +				};
-> > >> +			};
-> > > 
-> > > Isn't this broken for mapped file-backed pages? i.e. they may be
-> > > passed as the user buffer to read/write direct IO and so the pages
-> > > passed to gup will be on the active/inactive LRUs. hence I can't see
-> > > how you can have dual use of the LRU list head like this....
-> > > 
-> > > What am I missing here?
-> > 
-> > Hi Dave,
-> > 
-> > In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
-> > unceremoniously rips the pages out of the LRU, as a prerequisite to using
-> > either of the page->dma_pinned_* fields. 
-> 
-> How is that safe? If you've ripped the page out of the LRU, it's no
-> longer being tracked by the page cache aging and reclaim algorithms.
-> Patch 6 doesn't appear to put these pages back in the LRU, either,
-> so it looks to me like this just dumps them on the ground after the
-> gup reference is dropped.  How do we reclaim these page cache pages
-> when there is memory pressure if they aren't in the LRU?
+hdr.cmd can be indirectly controlled by user-space, hence leading to
+a potential exploitation of the Spectre variant 1 vulnerability.
 
-Yeah, that's a bug in patch 6/6 (possibly in ClearPageDmaPinned). It should
-return the page to the LRU from put_user_page().
+This issue was detected with the help of Smatch:
 
-								Honza
+drivers/infiniband/core/ucm.c:1127 ib_ucm_write() warn: potential
+spectre issue 'ucm_cmd_table' [r] (local cap)
+
+Fix this by sanitizing hdr.cmd before using it to index
+ucm_cmd_table.
+
+Notice that given that speculation windows are large, the policy is
+to kill the speculation on the first load and not worry if it can be
+completed with a dependent load/store [1].
+
+[1] https://marc.info/?l=linux-kernel&m=152449131114778&w=2
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/infiniband/core/ucm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index faa9e61..73332b9 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -46,6 +46,8 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ 
++#include <linux/nospec.h>
++
+ #include <linux/uaccess.h>
+ 
+ #include <rdma/ib.h>
+@@ -1120,6 +1122,7 @@ static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
+ 
+ 	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
+ 		return -EINVAL;
++	hdr.cmd = array_index_nospec(hdr.cmd, ARRAY_SIZE(ucm_cmd_table));
+ 
+ 	if (hdr.in + sizeof(hdr) > len)
+ 		return -EINVAL;
 -- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+2.7.4
