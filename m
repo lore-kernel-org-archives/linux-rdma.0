@@ -1,26 +1,60 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: rdma-core doesn't install driver.h, broke libibscif
-Date: Wed, 17 Oct 2018 01:54:53 -0700
-Message-ID: <20181017085453.GA30496@infradead.org>
-References: <9C6B67F36DCAFC479B1CF6A967258A8CAB401945@ORSMSX115.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v3] IB/rxe: Remove unnecessary enum values
+Date: Wed, 17 Oct 2018 10:23:32 +0000
+Message-ID: <20181017102331.GA30105@mellanox.com>
+References: <20180927050156.20023-1-natechancellor@gmail.com>
+ <20180927051222.23084-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8CAB401945@ORSMSX115.amr.corp.intel.com>
+In-Reply-To: <20180927051222.23084-1-natechancellor@gmail.com>
+Content-Language: en-US
+Content-ID: <1C4E4211A0EDCB4BB626B705499B4E40@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Woodruff, Robert J" <robert.j.woodruff@intel.com>
-Cc: james harvey <jamespharvey20@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Nikhil Rao <nikhil.rao@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>
+Cc: Moni Shoua <monis@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nick Desaulniers <ndesaulniers@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 15, 2018 at 05:53:44PM +0000, Woodruff, Robert J wrote:
-> James Harvey wrote,
-> 
-> >Short: Is libibscif dead, and should OS repositories remove it?
-> 
-> Libibscif is for an old product,  Intel's KNC, that is no longer sold and the S/W is frozen. The open source libibscif is no longer maintained. 
-> It has already been removed from the latest community OFED distribution. The individual package on the OFA downloads is for archive purposed only.
+On Wed, Sep 26, 2018 at 10:12:23PM -0700, Nathan Chancellor wrote:
+> Clang warns when an emumerated type is implicitly converted to another.
+>=20
+> drivers/infiniband/sw/rxe/rxe.c:106:27: warning: implicit conversion
+> from enumeration type 'enum rxe_device_param' to different enumeration
+> type 'enum ib_atomic_cap' [-Wenum-conversion]
+>         rxe->attr.atomic_cap                    =3D RXE_ATOMIC_CAP;
+>                                                 ~ ^~~~~~~~~~~~~~
+> drivers/infiniband/sw/rxe/rxe.c:131:22: warning: implicit conversion
+> from enumeration type 'enum rxe_port_param' to different enumeration
+> type 'enum ib_port_state' [-Wenum-conversion]
+>         port->attr.state                =3D RXE_PORT_STATE;
+>                                         ~ ^~~~~~~~~~~~~~
+> drivers/infiniband/sw/rxe/rxe.c:132:24: warning: implicit conversion
+> from enumeration type 'enum rxe_port_param' to different enumeration
+> type 'enum ib_mtu' [-Wenum-conversion]
+>         port->attr.max_mtu              =3D RXE_PORT_MAX_MTU;
+>                                         ~ ^~~~~~~~~~~~~~~~
+> drivers/infiniband/sw/rxe/rxe.c:133:27: warning: implicit conversion
+> from enumeration type 'enum rxe_port_param' to different enumeration
+> type 'enum ib_mtu' [-Wenum-conversion]
+>         port->attr.active_mtu           =3D RXE_PORT_ACTIVE_MTU;
+>                                         ~ ^~~~~~~~~~~~~~~~~~~
+> drivers/infiniband/sw/rxe/rxe.c:151:24: warning: implicit conversion
+> from enumeration type 'enum rxe_port_param' to different enumeration
+> type 'enum ib_mtu' [-Wenum-conversion]
+>                                 ib_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
+>                                 ~~~~~~~~~~~~~~~~~~ ^~~~~~~~~~~~~~~~~~~
+> 5 warnings generated.
+>=20
+> Use the appropriate values from the expected enumerated type so no
+> conversion needs to happen then remove the unneeded definitions.
+>=20
+> Reported-by: Nick Desaulniers <ndesaulniers@google.com>
+> Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+> Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+> ---
 
-Does this mean we can kill the kernel scif code as well?  It is a
-pretty horrible codebase that gets in the way a lot (and hasn't really
-seen updates since the initial merge).
+Applied to for-next
+
+Thanks,
+Jason
