@@ -1,99 +1,26 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Tue, 16 Oct 2018 18:48:23 -0700
-Message-ID: <a9f1df2f-da9d-bf7b-b977-d3d3ca710776@nvidia.com>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com> <20181013035516.GA18822@dastard>
- <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
- <20181013230124.GB18822@dastard> <20181016085102.GB18918@quack2.suse.cz>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: rdma-core doesn't install driver.h, broke libibscif
+Date: Wed, 17 Oct 2018 01:54:53 -0700
+Message-ID: <20181017085453.GA30496@infradead.org>
+References: <9C6B67F36DCAFC479B1CF6A967258A8CAB401945@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181016085102.GB18918@quack2.suse.cz>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <9C6B67F36DCAFC479B1CF6A967258A8CAB401945@ORSMSX115.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: "Woodruff, Robert J" <robert.j.woodruff@intel.com>
+Cc: james harvey <jamespharvey20@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Nikhil Rao <nikhil.rao@intel.com>, Ashutosh Dixit <ashutosh.dixit@intel.com>, Sudeep Dutt <sudeep.dutt@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/16/18 1:51 AM, Jan Kara wrote:
-> On Sun 14-10-18 10:01:24, Dave Chinner wrote:
->> On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
->>> On 10/12/18 8:55 PM, Dave Chinner wrote:
->>>> On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
->>>>> From: John Hubbard <jhubbard@nvidia.com>
->>> [...]
->>>>> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
->>>>> index 5ed8f6292a53..017ab82e36ca 100644
->>>>> --- a/include/linux/mm_types.h
->>>>> +++ b/include/linux/mm_types.h
->>>>> @@ -78,12 +78,22 @@ struct page {
->>>>>  	 */
->>>>>  	union {
->>>>>  		struct {	/* Page cache and anonymous pages */
->>>>> -			/**
->>>>> -			 * @lru: Pageout list, eg. active_list protected by
->>>>> -			 * zone_lru_lock.  Sometimes used as a generic list
->>>>> -			 * by the page owner.
->>>>> -			 */
->>>>> -			struct list_head lru;
->>>>> +			union {
->>>>> +				/**
->>>>> +				 * @lru: Pageout list, eg. active_list protected
->>>>> +				 * by zone_lru_lock.  Sometimes used as a
->>>>> +				 * generic list by the page owner.
->>>>> +				 */
->>>>> +				struct list_head lru;
->>>>> +				/* Used by get_user_pages*(). Pages may not be
->>>>> +				 * on an LRU while these dma_pinned_* fields
->>>>> +				 * are in use.
->>>>> +				 */
->>>>> +				struct {
->>>>> +					unsigned long dma_pinned_flags;
->>>>> +					atomic_t      dma_pinned_count;
->>>>> +				};
->>>>> +			};
->>>>
->>>> Isn't this broken for mapped file-backed pages? i.e. they may be
->>>> passed as the user buffer to read/write direct IO and so the pages
->>>> passed to gup will be on the active/inactive LRUs. hence I can't see
->>>> how you can have dual use of the LRU list head like this....
->>>>
->>>> What am I missing here?
->>>
->>> Hi Dave,
->>>
->>> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
->>> unceremoniously rips the pages out of the LRU, as a prerequisite to using
->>> either of the page->dma_pinned_* fields. 
->>
->> How is that safe? If you've ripped the page out of the LRU, it's no
->> longer being tracked by the page cache aging and reclaim algorithms.
->> Patch 6 doesn't appear to put these pages back in the LRU, either,
->> so it looks to me like this just dumps them on the ground after the
->> gup reference is dropped.  How do we reclaim these page cache pages
->> when there is memory pressure if they aren't in the LRU?
+On Mon, Oct 15, 2018 at 05:53:44PM +0000, Woodruff, Robert J wrote:
+> James Harvey wrote,
 > 
-> Yeah, that's a bug in patch 6/6 (possibly in ClearPageDmaPinned). It should
-> return the page to the LRU from put_user_page().
+> >Short: Is libibscif dead, and should OS repositories remove it?
 > 
+> Libibscif is for an old product,  Intel's KNC, that is no longer sold and the S/W is frozen. The open source libibscif is no longer maintained. 
+> It has already been removed from the latest community OFED distribution. The individual package on the OFA downloads is for archive purposed only.
 
-Yes. Ugh, the LRU handling in this series is definitely not all there yet:
-probably need to track (in the page->dma_pinned_flags) which LRU (if any) each 
-page was taken from. 
-
-It's hard to say exactly what the active/inactive/unevictable list should
-be when DMA is done and put_user_page*() is called, because we don't know
-if some device read, wrote, or ignored any of those pages. Although if 
-put_user_pages_dirty() is called, that's an argument for "active", at least.
-
-And maybe this will all be pointless if the DIRECT_IO performance test, that
-Christoph requested, shows that LRU operations are too expensive here, anyway.
-I wonder if we should just limit this to 64-bit arches and find a real
-page flag...well, let's see what the testing shows first I suppose.
-
--- 
-thanks,
-John Hubbard
-NVIDIA
+Does this mean we can kill the kernel scif code as well?  It is a
+pretty horrible codebase that gets in the way a lot (and hasn't really
+seen updates since the initial merge).
