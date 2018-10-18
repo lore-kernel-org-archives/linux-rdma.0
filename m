@@ -1,67 +1,48 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH rdma-next] IB/mlx5: Add support for extended atomic
- operations
-Date: Wed, 17 Oct 2018 11:55:14 -0400
-Message-ID: <e40246fa133a0fac46aefdda80b542877e3f47f4.camel@redhat.com>
-References: <20181010062516.5996-1-leon@kernel.org>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
+Date: Wed, 17 Oct 2018 17:03:03 -0700
+Message-ID: <2367ff26-809c-da94-a8f0-e921bdc4862a@nvidia.com>
+References: <20181012060014.10242-1-jhubbard@nvidia.com>
+ <20181012060014.10242-5-jhubbard@nvidia.com> <20181013035516.GA18822@dastard>
+ <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
+ <20181013230124.GB18822@dastard> <20181016085102.GB18918@quack2.suse.cz>
+ <a9f1df2f-da9d-bf7b-b977-d3d3ca710776@nvidia.com>
+ <20181017110952.GN18839@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Qo9A5BsLInh9O62hBkaX"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181010062516.5996-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Yonatan Cohen <yonatanc@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Guy Levi <guyle@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181017110952.GN18839@dhcp22.suse.cz>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 10/17/18 4:09 AM, Michal Hocko wrote:
+> On Tue 16-10-18 18:48:23, John Hubbard wrote:
+> [...]
+>> It's hard to say exactly what the active/inactive/unevictable list should
+>> be when DMA is done and put_user_page*() is called, because we don't know
+>> if some device read, wrote, or ignored any of those pages. Although if 
+>> put_user_pages_dirty() is called, that's an argument for "active", at least.
+> 
+> Any reason to not use putback_lru_page?
 
---=-Qo9A5BsLInh9O62hBkaX
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+That does help with which LRU to use. I guess I'd still need to track whether
+a page was on an LRU when get_user_pages() was called, because it seems
+that that is not necessarily always the case. And putback_lru_page() definitely
+wants to deal with a page that *was* previously on an LRU.
 
-On Wed, 2018-10-10 at 09:25 +0300, Leon Romanovsky wrote:
-> From: Yonatan Cohen <yonatanc@mellanox.com>
->=20
-> Extended atomic operations cmp&swp and fetch&add is a Mellanox
-> feature extending the standard atomic operation to use, varied
-> operand sizes, as apposed to normal atomic operation that use
-> an 8 byte operand only.
-> Extended atomics allows masking the results and arguments.
->=20
-> This patch configures QP to support extended atomic operation
-> with the maximum size possible, as exposed by HCA capabilities.
->=20
-> Signed-off-by: Yonatan Cohen <yonatanc@mellanox.com>
-> Reviewed-by: Guy Levi <guyle@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Please note I haven't really got through your patches to have a wider
+> picture of the change so this is just hint for the LRU part of the
+> issue.
+> 
 
-Thanks, applied to for-next.
+Understood, and the hints are much appreciated.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
---=-Qo9A5BsLInh9O62hBkaX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlvHW2IACgkQuCajMw5X
-L922CxAAicc72NM2uXoqoU24nN/qCRBfvnLpyIwS5IZoXcdtWPzUoMd7PznyPFCN
-ZnOz+fk1mYwY5LYDrNFM8sZskq9bkznNchsNmJ2gpyPqLa//jBZUARBqGSW2M/gX
-6nB+sxBbcvgQDCCDSeZoH4vOoS/EviVCTyU0YC7ISiPNbl6Q+3d2xBUR2cwtK/25
-Gmn++G6knbvr6HUlJor3tWHLIr/1XO9boP2eqYEYC3VOi++HdEMpr2lT/yNi64uH
-uvNGddCDwaAyttxGnnjdCz3mmlNHOYsptFc7NIrYK0pTNoxEfB+eBCQu5nWj6r53
-mEz8zyzC8EjHmNCEye2Pjql766vOdd3CJaSNM4qUU0DGq9fnUXiKr99IOxpKTNpu
-xct/F+deN9AlDQm/i4+dIbrQWhlE5DtTVrsdjzzcQuaC2Ix9l1sJSkJzH4+kc2bB
-rAW8G9bEaIMQW61Ii3pxWHkdKQ5GzPu1NObQoHMNFXc8sQG7nBpbLMqqXkmRNieV
-9K/C2T/bxH3zSM5UE9krofw0/pKZj7R4828qAWzxvDsDM+ODSW5/chbZ2hv8poMi
-EvlCwfUg3dDe8a+o/BjMJgzbtyVJp05mp6etIvY5kQrpMjUfdOzVIjLgOo4rg+KA
-tK2aS2VE38Q8vxsLdstKsJH0tVraHFATMjvjochIo+9Ou4w5X2k=
-=2mh4
------END PGP SIGNATURE-----
-
---=-Qo9A5BsLInh9O62hBkaX--
+-- 
+thanks,
+John Hubbard
+NVIDIA
