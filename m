@@ -1,90 +1,82 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
- versions
-Date: Thu, 18 Oct 2018 12:19:51 +0200
-Message-ID: <20181018101951.GO23493@quack2.suse.cz>
-References: <20181008211623.30796-1-jhubbard@nvidia.com>
- <20181008211623.30796-3-jhubbard@nvidia.com>
- <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
- <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
- <20181010164541.ec4bf53f5a9e4ba6e5b52a21@linux-foundation.org>
- <20181011084929.GB8418@quack2.suse.cz>
- <20181011132013.GA5968@ziepe.ca>
- <97e89e08-5b94-240a-56e9-ece2b91f6dbc@nvidia.com>
- <b9899626-9033-348b-6f07-dc90bcd8a468@nvidia.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] RDMA/hns: Use 64-bit arithmetic instead of 32-bit
+Date: Thu, 18 Oct 2018 14:01:55 +0300
+Message-ID: <20181018110155.GH5007@mtr-leonro.mtl.com>
+References: <20181018080258.GA1720@embeddedor.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="f2QGlHpHGjS2mn6Y"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <b9899626-9033-348b-6f07-dc90bcd8a468@nvidia.com>
+In-Reply-To: <20181018080258.GA1720@embeddedor.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Lijun Ou <oulijun@huawei.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu 11-10-18 20:53:34, John Hubbard wrote:
-> On 10/11/18 6:23 PM, John Hubbard wrote:
-> > On 10/11/18 6:20 AM, Jason Gunthorpe wrote:
-> >> On Thu, Oct 11, 2018 at 10:49:29AM +0200, Jan Kara wrote:
-> >>
-> >>>> This is a real worry.  If someone uses a mistaken put_page() then how
-> >>>> will that bug manifest at runtime?  Under what set of circumstances
-> >>>> will the kernel trigger the bug?
-> >>>
-> >>> At runtime such bug will manifest as a page that can never be evicted from
-> >>> memory. We could warn in put_page() if page reference count drops below
-> >>> bare minimum for given user pin count which would be able to catch some
-> >>> issues but it won't be 100% reliable. So at this point I'm more leaning
-> >>> towards making get_user_pages() return a different type than just
-> >>> struct page * to make it much harder for refcount to go wrong...
-> >>
-> >> At least for the infiniband code being used as an example here we take
-> >> the struct page from get_user_pages, then stick it in a sgl, and at
-> >> put_page time we get the page back out of the sgl via sg_page()
-> >>
-> >> So type safety will not help this case... I wonder how many other
-> >> users are similar? I think this is a pretty reasonable flow for DMA
-> >> with user pages.
-> >>
-> > 
-> > That is true. The infiniband code, fortunately, never mixes the two page
-> > types into the same pool (or sg list), so it's actually an easier example
-> > than some other subsystems. But, yes, type safety doesn't help there. I can 
-> > take a moment to look around at the other areas, to quantify how much a type
-> > safety change might help.
-> > 
-> > Back to page flags again, out of desperation:
-> > 
-> > How much do we know about the page types that all of these subsystems
-> > use? In other words, can we, for example, use bit 1 of page->lru.next (see [1]
-> > for context) as the "dma-pinned" page flag, while tracking pages within parts 
-> > of the kernel that call a mix of alloc_pages, get_user_pages, and other allocators? 
-> > In order for that to work, page->index, page->private, and bit 1 of page->mapping
-> > must not be used. I doubt that this is always going to hold, but...does it?
-> > 
-> 
-> Oops, pardon me, please ignore that nonsense about page->index and page->private
-> and page->mapping, that's actually fine (I was seeing "union", where "struct" was
-> written--too much staring at this code). 
-> 
-> So actually, I think maybe we can just use bit 1 in page->lru.next to sort out
-> which pages are dma-pinned, in the calling code, just like we're going to do
-> in writeback situations. This should also allow run-time checking that Andrew was 
-> hoping for:
-> 
->     put_user_page(): assert that the page is dma-pinned
->     put_page(): assert that the page is *not* dma-pinned
-> 
-> ...both of which depend on that bit being, essentially, available as sort
-> of a general page flag. And in fact, if it's not, then the whole approach
-> is dead anyway.
 
-Well, put_page() cannot assert page is not dma-pinned as someone can still
-to get_page(), put_page() on dma-pinned page and that must not barf. But
-put_page() could assert that if the page is pinned, refcount is >=
-pincount. That will detect leaked pin references relatively quickly.
+--f2QGlHpHGjS2mn6Y
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+On Thu, Oct 18, 2018 at 10:02:58AM +0200, Gustavo A. R. Silva wrote:
+> Cast *max_num_sg* to u64 in order to give the compiler complete
+> information about the proper arithmetic to use.
+>
+> Notice that such variable is used in a context that expects an
+> expression of type u64 (64 bits, unsigned) and the following
+> expression is currently being evaluated using 32-bit
+> arithmetic:
+
+And what is wrong with that?
+Please fix static analyzer tool instead of fixing proper C code.
+
+Thanks
+
+>
+> length = max_num_sg * page_size;
+>
+> Addresses-Coverity-ID: 1474517 ("Unintentional integer overflow")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  drivers/infiniband/hw/hns/hns_roce_mr.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> index 521ad2a..d479d5e 100644
+> --- a/drivers/infiniband/hw/hns/hns_roce_mr.c
+> +++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+> @@ -1219,7 +1219,7 @@ struct ib_mr *hns_roce_alloc_mr(struct ib_pd *pd, enum ib_mr_type mr_type,
+>  	int ret;
+>
+>  	page_size = 1 << (hr_dev->caps.pbl_buf_pg_sz + PAGE_SHIFT);
+> -	length = max_num_sg * page_size;
+> +	length = (u64)max_num_sg * page_size;
+>
+>  	if (mr_type != IB_MR_TYPE_MEM_REG)
+>  		return ERR_PTR(-EINVAL);
+> --
+> 2.7.4
+>
+
+--f2QGlHpHGjS2mn6Y
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJbyGgjAAoJEORje4g2clinEbgQAMQxaoNws6n8a+P3oQPc32fT
+jdbDLhhgQZYnVRVn4i4kRegae1ipUfHO99CJHioqmtfARMuHIPJY+lISRc3w4YEq
+0CKM6Ej8C9vrORCTeBHxfTER6YeglanT4X4hvqxlbtsyLwqCSa0+uhCTIrmw9gfC
+DDLd43l468YfiNTB0DgoKnqL3DhrzvV4y+LpNautd5nGx+toZh1wTxoCZphuzio/
+zCZhpbrr8HrjLzDreEXLkdhgzHajN2z3t09Dfgr0hVefs3Wjj+v6g6AU5t0d6Cf5
+O+xKjS+fFBejOAhKQ+h9oq/isYrV9PYSrQwydas/53XSf/AnHXJJo7zq0sD41/BH
+dviY6lvJ0awXiRua9A2nzewEYQ7PZThodPlx+IuYj0y49o7+Md4UwNOyngzy7nsd
+6sLU/MDoNBiQyizBRd+VblcuzJ5dLotGHFGuRVZYFZZZztojTpF/i1lYG26qK3Gv
+mYOEakKYXe4iFAfUaiYEIvbAr1cZG43eLYeZuUzWgAtwP7FD9C/Ifj24iyPToqD+
+hgvomTPwGCGfkuXijLDUFVNDbJ95inCVSDS0pF3xHmovH1DGp1TXTQdq0orGKiAm
+uV0UA8kKIsHMt2z7Dk6JKj2nXggfGQJI/IJYjqoumpbNLc3TRWIgmDG5Fo03qzoq
+pXHiJeMR0FXDV6i7FCCE
+=1ivn
+-----END PGP SIGNATURE-----
+
+--f2QGlHpHGjS2mn6Y--
