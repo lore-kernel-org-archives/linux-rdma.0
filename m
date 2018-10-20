@@ -1,44 +1,89 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Fri, 19 Oct 2018 10:11:15 +0200
-Message-ID: <20181019081115.GM18839@dhcp22.suse.cz>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com>
- <20181013035516.GA18822@dastard>
- <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
- <20181013230124.GB18822@dastard>
- <20181016085102.GB18918@quack2.suse.cz>
- <a9f1df2f-da9d-bf7b-b977-d3d3ca710776@nvidia.com>
- <20181017110952.GN18839@dhcp22.suse.cz>
- <2367ff26-809c-da94-a8f0-e921bdc4862a@nvidia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Wenwen Wang <wang6495@umn.edu>
+Subject: [PATCH] iw_cxgb4: fix a missing-check bug
+Date: Sat, 20 Oct 2018 16:59:00 -0500
+Message-ID: <1540072741-18856-1-git-send-email-wang6495@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2367ff26-809c-da94-a8f0-e921bdc4862a@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: Wenwen Wang <wang6495@umn.edu>
+Cc: Kangjie Lu <kjlu@umn.edu>, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "open list:CXGB4 IWARP RNIC DRIVER
+        IW_CXGB4" <linux-rdma@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed 17-10-18 17:03:03, John Hubbard wrote:
-> On 10/17/18 4:09 AM, Michal Hocko wrote:
-> > On Tue 16-10-18 18:48:23, John Hubbard wrote:
-> > [...]
-> >> It's hard to say exactly what the active/inactive/unevictable list should
-> >> be when DMA is done and put_user_page*() is called, because we don't know
-> >> if some device read, wrote, or ignored any of those pages. Although if 
-> >> put_user_pages_dirty() is called, that's an argument for "active", at least.
-> > 
-> > Any reason to not use putback_lru_page?
-> 
-> That does help with which LRU to use. I guess I'd still need to track whether
-> a page was on an LRU when get_user_pages() was called, because it seems
-> that that is not necessarily always the case. And putback_lru_page() definitely
-> wants to deal with a page that *was* previously on an LRU.
+In c4iw_flush_hw_cq, the next CQE is acquired through t4_next_hw_cqe(). In
+t4_next_hw_cqe(), the CQE, i.e., 'cq->queue[cq->cidx]', is checked to see
+whether it is valid through t4_valid_cqe(). If it is valid, the address of
+the CQE is then saved to 'hw_cqe'. Later on, the CQE is copied to the local
+memory in create_read_req_cqe(). The problem here is that the CQE is
+actually in a DMA region allocated by dma_alloc_coherent() in create_cq().
+Given that the device also has the permission to access the DMA region, a
+malicious device controlled by an attacker can modify the CQE in the DMA
+region after the check in t4_next_hw_cqe() but before the copy in
+create_read_req_cqe(). By doing so, the attacker can supply invalid CQE,
+which can cause undefined behavior of the kernel and introduce potential
+security risks.
 
-Well, if you ever g-u-p pages which are never going to go to LRU then
-sure (e.g. hugetlb pages).
+This patch avoids the above issue by saving the CQE to a local variable if
+it is verified to be a valid CQE in t4_next_hw_cqe(). Also, the local
+variable will be used for the copy in create_read_req_ceq().
+
+Signed-off-by: Wenwen Wang <wang6495@umn.edu>
+---
+ drivers/infiniband/hw/cxgb4/cq.c | 8 +++++---
+ drivers/infiniband/hw/cxgb4/t4.h | 4 ++--
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 6d30427..09918ca 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -335,13 +335,15 @@ static void advance_oldest_read(struct t4_wq *wq)
+  */
+ void c4iw_flush_hw_cq(struct c4iw_cq *chp, struct c4iw_qp *flush_qhp)
+ {
+-	struct t4_cqe *hw_cqe, *swcqe, read_cqe;
++	struct t4_cqe hw_cqe_obj;
++	struct t4_cqe *hw_cqe = &hw_cqe_obj;
++	struct t4_cqe *swcqe, read_cqe;
+ 	struct c4iw_qp *qhp;
+ 	struct t4_swsqe *swsqe;
+ 	int ret;
+ 
+ 	pr_debug("cqid 0x%x\n", chp->cq.cqid);
+-	ret = t4_next_hw_cqe(&chp->cq, &hw_cqe);
++	ret = t4_next_hw_cqe(&chp->cq, hw_cqe);
+ 
+ 	/*
+ 	 * This logic is similar to poll_cq(), but not quite the same
+@@ -414,7 +416,7 @@ void c4iw_flush_hw_cq(struct c4iw_cq *chp, struct c4iw_qp *flush_qhp)
+ 		}
+ next_cqe:
+ 		t4_hwcq_consume(&chp->cq);
+-		ret = t4_next_hw_cqe(&chp->cq, &hw_cqe);
++		ret = t4_next_hw_cqe(&chp->cq, hw_cqe);
+ 		if (qhp && flush_qhp != qhp)
+ 			spin_unlock(&qhp->lock);
+ 	}
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index e42021f..9a9eea5 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -791,7 +791,7 @@ static inline int t4_cq_notempty(struct t4_cq *cq)
+ 	return cq->sw_in_use || t4_valid_cqe(cq, &cq->queue[cq->cidx]);
+ }
+ 
+-static inline int t4_next_hw_cqe(struct t4_cq *cq, struct t4_cqe **cqe)
++static inline int t4_next_hw_cqe(struct t4_cq *cq, struct t4_cqe *cqe)
+ {
+ 	int ret;
+ 	u16 prev_cidx;
+@@ -809,7 +809,7 @@ static inline int t4_next_hw_cqe(struct t4_cq *cq, struct t4_cqe **cqe)
+ 
+ 		/* Ensure CQE is flushed to memory */
+ 		rmb();
+-		*cqe = &cq->queue[cq->cidx];
++		*cqe = cq->queue[cq->cidx];
+ 		ret = 0;
+ 	} else
+ 		ret = -ENODATA;
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
