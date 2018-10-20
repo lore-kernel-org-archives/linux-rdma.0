@@ -1,45 +1,44 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH] iw_cxgb4: fix a missing-check bug
-Date: Sat, 20 Oct 2018 18:14:12 -0500
-Message-ID: <038301d468ca$9d30ca90$d7925fb0$@opengridcomputing.com>
-References: <1540072741-18856-1-git-send-email-wang6495@umn.edu>
+From: Wenwen Wang <wang6495@umn.edu>
+Subject: Re: [PATCH] iw_cxgb4: fix a missing-check bug
+Date: Sat, 20 Oct 2018 18:56:02 -0500
+Message-ID: <CAAa=b7fPLM-kF+VyZhhj2tzhzuFNnXpv=gPVJ2mCcfQyToew0Q@mail.gmail.com>
+References: <1540072741-18856-1-git-send-email-wang6495@umn.edu> <038301d468ca$9d30ca90$d7925fb0$@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1540072741-18856-1-git-send-email-wang6495@umn.edu>
-Content-Language: en-us
+In-Reply-To: <038301d468ca$9d30ca90$d7925fb0$@opengridcomputing.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: 'Wenwen Wang' <wang6495@umn.edu>
-Cc: 'Kangjie Lu' <kjlu@umn.edu>, 'Steve Wise' <swise@chelsio.com>, 'Doug Ledford' <dledford@redhat.com>, 'Jason Gunthorpe' <jgg@ziepe.ca>, "'open list:CXGB4 IWARP RNIC DRIVER (IW_CXGB4)'" <linux-rdma@vger.kernel.org>, 'open list' <linux-kernel@vger.kernel.org>
+To: swise@opengridcomputing.com
+Cc: Kangjie Lu <kjlu@umn.edu>, swise@chelsio.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org, open list <linux-kernel@vger.kernel.org>, Wenwen Wang <wang6495@umn.edu>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Wenwen,
+On Sat, Oct 20, 2018 at 6:41 PM Steve Wise <swise@opengridcomputing.com> wrote:
+>
+> Hey Wenwen,
+>
+> > Subject: [PATCH] iw_cxgb4: fix a missing-check bug
+> >
+> > In c4iw_flush_hw_cq, the next CQE is acquired through t4_next_hw_cqe(). In
+> > t4_next_hw_cqe(), the CQE, i.e., 'cq->queue[cq->cidx]', is checked to see
+> > whether it is valid through t4_valid_cqe(). If it is valid, the address of
+> > the CQE is then saved to 'hw_cqe'. Later on, the CQE is copied to the
+> local
+> > memory in create_read_req_cqe(). The problem here is that the CQE is
+> > actually in a DMA region allocated by dma_alloc_coherent() in create_cq().
+> > Given that the device also has the permission to access the DMA region, a
+> > malicious device controlled by an attacker can modify the CQE in the DMA
+> > region after the check in t4_next_hw_cqe() but before the copy in
+> > create_read_req_cqe(). By doing so, the attacker can supply invalid CQE,
+> > which can cause undefined behavior of the kernel and introduce potential
+> > security risks.
+> >
+>
+> If the dma device is malicious, couldn't it just dma some incorrect CQE but
+> still valid in the first place?  I don't think this patch actually solves
+> the issue, and it forces a copy of a 64B CQE in a critical data io path.
 
-> Subject: [PATCH] iw_cxgb4: fix a missing-check bug
-> 
-> In c4iw_flush_hw_cq, the next CQE is acquired through t4_next_hw_cqe(). In
-> t4_next_hw_cqe(), the CQE, i.e., 'cq->queue[cq->cidx]', is checked to see
-> whether it is valid through t4_valid_cqe(). If it is valid, the address of
-> the CQE is then saved to 'hw_cqe'. Later on, the CQE is copied to the
-local
-> memory in create_read_req_cqe(). The problem here is that the CQE is
-> actually in a DMA region allocated by dma_alloc_coherent() in create_cq().
-> Given that the device also has the permission to access the DMA region, a
-> malicious device controlled by an attacker can modify the CQE in the DMA
-> region after the check in t4_next_hw_cqe() but before the copy in
-> create_read_req_cqe(). By doing so, the attacker can supply invalid CQE,
-> which can cause undefined behavior of the kernel and introduce potential
-> security risks.
-> 
+Thanks for your response! If the malicious dma device just dma some
+incorrect CQE, it will not be able to pass the verification in
+t4_valid_cqe().
 
-If the dma device is malicious, couldn't it just dma some incorrect CQE but
-still valid in the first place?  I don't think this patch actually solves
-the issue, and it forces a copy of a 64B CQE in a critical data io path.  
-
-So I must NACK this. 
-
-Thanks,
-
-Steve.
+Wenwen
