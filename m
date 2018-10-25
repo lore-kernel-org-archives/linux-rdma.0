@@ -1,52 +1,33 @@
-From: Steve Wise <swise@chelsio.com>
-Subject: Re: [PATCH] RDMA/cxgb3: Fix unintended sign extension
-Date: Thu, 25 Oct 2018 10:26:57 -0500
-Message-ID: <34f7f28b-5f76-f6d0-d896-9a5550a8e3df@chelsio.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] RDMA/cxgb3: Fix unintended sign extension
+Date: Thu, 25 Oct 2018 16:03:35 +0000
+Message-ID: <25e5b2a5255b42ca92add0177fa4832d@AcuMS.aculab.com>
 References: <20181025143131.4048-1-colin.king@canonical.com>
-Reply-To: swise@chelsio.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181025143131.4048-1-colin.king@canonical.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: 'Colin King' <colin.king@canonical.com>, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 10/25/2018 9:31 AM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> In the expression "utx_len << 28", utx_len starts as u8, but is promoted
-> to a signed int, then sign-extended to u64.  If utx_len is 0xf8 or greater
-> then the sign extension will set all the upper bits of utx_cmd which is
-> probably not what was intended.  Cast to utx_len to u64  to avoid the sign
-> extension.
-> 
-> Detected by CoverityScan, CID#138764 ("Unintended sign extension")
-> 
-> Fixes: b038ced7b370 ("RDMA/cxgb3: Add driver for Chelsio T3 RNIC")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/cxgb3/cxio_hal.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-> index dcb4bba522ba..c5cb80ccc6d6 100644
-> --- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
-> +++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
-> @@ -647,7 +647,7 @@ static int cxio_hal_ctrl_qp_write_mem(struct cxio_rdev *rdev_p, u32 addr,
->  		wqe += (sizeof(struct t3_bypass_wr) >> 3);
->  		utx_cmd = (T3_UTX_MEM_WRITE << 28) | (addr + i * 3);
->  		utx_cmd <<= 32;
-> -		utx_cmd |= (utx_len << 28) | ((utx_len << 2) + 1);
-> +		utx_cmd |= ((u64)utx_len << 28) | ((utx_len << 2) + 1);
->  		*wqe = cpu_to_be64(utx_cmd);
->  		wqe++;
->  		copy_data = (u8 *) data + i * 96;
-> 
-
-Acked-by: Steve Wise <swise@chelsio.com>
+RnJvbTogQ29saW4gS2luZw0KPiBTZW50OiAyNSBPY3RvYmVyIDIwMTggMTU6MzINCj4gDQo+IEZy
+b206IENvbGluIElhbiBLaW5nIDxjb2xpbi5raW5nQGNhbm9uaWNhbC5jb20+DQo+IA0KPiBJbiB0
+aGUgZXhwcmVzc2lvbiAidXR4X2xlbiA8PCAyOCIsIHV0eF9sZW4gc3RhcnRzIGFzIHU4LCBidXQg
+aXMgcHJvbW90ZWQNCj4gdG8gYSBzaWduZWQgaW50LCB0aGVuIHNpZ24tZXh0ZW5kZWQgdG8gdTY0
+LiAgSWYgdXR4X2xlbiBpcyAweGY4IG9yIGdyZWF0ZXINCj4gdGhlbiB0aGUgc2lnbiBleHRlbnNp
+b24gd2lsbCBzZXQgYWxsIHRoZSB1cHBlciBiaXRzIG9mIHV0eF9jbWQgd2hpY2ggaXMNCj4gcHJv
+YmFibHkgbm90IHdoYXQgd2FzIGludGVuZGVkLiAgQ2FzdCB0byB1dHhfbGVuIHRvIHU2NCAgdG8g
+YXZvaWQgdGhlIHNpZ24NCj4gZXh0ZW5zaW9uLg0KDQpSVEZDLi4uDQp1dHhfbGVuIGlzIG9ubHkg
+ZXZlciAxLCAyIG9yIDMuDQpUaGUgJ3Byb2JsZW0nIHdvdWxkIGFyaXNlIGlmIHV0eF9sZW4gPDwg
+Mjggc2V0IHRoZSBoaWdoIGJpdC4NClRoaXMgY2FuIG9ubHkgaGFwcGVuIGlmIHV0eF9sZW4gaXMg
+bW9yZSB0aGFuIDcgKE5GSSB3aGVyZSAweGY4IGNhbWUgZnJvbSkuDQoNCkluIGFueSBjYXNlIHRo
+ZSBiZXN0IGZpeCBpcyB0byB1c2UgJ3Vuc2lnbmVkIGludCcgZm9yIHdyX2xlbiBhbmQgdXR4X2xl
+bi4NClRoZXJlIGlzIG5vIHBvaW50IG1ha2luZyBsb2NhbCB2YXJpYWJsZSAob3IgZnVuY3Rpb25z
+IHBhcmFtZXRlcnMvcmVzdWx0cykNCnNtYWxsZXIgdGhhdCAnaW50JyB1bmxlc3MgeW91IGV4cGxp
+Y2l0bHkgd2FudCB0aGUgYXJpdGhtZXRpYyB0byB3cmFwLg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0
+ZXJlZCBBZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQsIE1vdW50IEZhcm0sIE1pbHRvbiBL
+ZXluZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86IDEzOTczODYgKFdhbGVzKQ0K
