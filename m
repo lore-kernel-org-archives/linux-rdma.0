@@ -1,116 +1,62 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2-next 3/3] rdma: Add an option to rename IB
- device interface
-Date: Mon, 29 Oct 2018 12:30:46 +0200
-Message-ID: <20181029103046.GQ3974@mtr-leonro.mtl.com>
-References: <20181018115120.17893-1-leon@kernel.org>
- <20181018115120.17893-4-leon@kernel.org>
- <c1896e09-2081-858a-70fd-6fe9c998efa0@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="JP+T4n/bALQSJXh8"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c1896e09-2081-858a-70fd-6fe9c998efa0@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+Subject: [PATCH] IB/core: Perform modify QP on real one
+Date: Mon, 29 Oct 2018 17:12:23 +0200
+Message-ID: <20181029151223.15114-1-leon@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, Parav Pandit <parav@mellanox.com>, Jack Morgenstein <jackm@dev.mellanox.co.il>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Parav Pandit <parav@mellanox.com>
 
---JP+T4n/bALQSJXh8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+commit b2bedfb39541a7e14798d066b6f8685d84c8fcf5 upstream
 
-On Sun, Oct 21, 2018 at 10:02:43AM -0600, David Ahern wrote:
-> On 10/18/18 5:51 AM, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Enrich rdmatool with an option to rename IB devices,
-> > the command interface follows Iproute2 convention:
-> > "rdma dev set [OLD-DEVNAME] name NEW-DEVNAME"
-> >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  rdma/dev.c | 35 +++++++++++++++++++++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> >
-> > diff --git a/rdma/dev.c b/rdma/dev.c
-> > index e2eafe47..760b7fb3 100644
-> > --- a/rdma/dev.c
-> > +++ b/rdma/dev.c
-> > @@ -14,6 +14,7 @@
-> >  static int dev_help(struct rd *rd)
-> >  {
-> >  	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
-> > +	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
-> >  	return 0;
-> >  }
-> >
-> > @@ -240,17 +241,51 @@ static int dev_one_show(struct rd *rd)
-> >  	return rd_exec_cmd(rd, cmds, "parameter");
-> >  }
-> >
-> > +static int dev_set_name(struct rd *rd)
-> > +{
-> > +	uint32_t seq;
-> > +
-> > +	if (rd_no_arg(rd)) {
-> > +		pr_err("Please provide device new name.\n");
-> > +		return -EINVAL;
-> > +	}
->
-> This is redundant with rd_exec_require_dev which is the required path to
-> get to this point.
+Currently qp->port stores the port number whenever IB_QP_PORT
+QP attribute mask is set (during QP state transition to INIT state).
+This port number should be stored for the real QP when XRC target QP
+is used.
 
-Sorry for being slow in response, I was on vacation.
-----------
+Follow the ib_modify_qp() implementation and hide the access to ->real_qp.
 
-This print is intended to warn about missing "new name" and it is not
-checked by rd_exec_require_dev()
+This commit is required for proper operation of commit 65be9cbe1224
+("RDMA/uverbs: Expand primary and alt AV port checks") which was added
+to 4.14.61.
 
-To emphasize it:
+Without this commit, XRC qp's do not work.
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index 760b7fb3..468ae686 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -246,6 +246,7 @@ static int dev_set_name(struct rd *rd)
-        uint32_t seq;
+Fixes: a512c2fbef9c ("IB/core: Introduce modify QP operation with udata")
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+Signed-off-by: Leon Romanovsky <leon@kernel.org>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/core/verbs.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-	if (rd_no_arg(rd)) {
-+               pr_err("hello world\n");
-                pr_err("Please provide device new  name.\n");
-		return -EINVAL;
-	}
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index feb80db..6d59af0 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -1285,7 +1285,7 @@ int ib_resolve_eth_dmac(struct ib_device *device,
 
-Produces the following output:
-[leonro@server iproute2]$ ./rdma/rdma dev set mlx5_0 name
-hello world
-Please provide device new name.
+ /**
+  * ib_modify_qp_with_udata - Modifies the attributes for the specified QP.
+- * @qp: The QP to modify.
++ * @ib_qp: The QP to modify.
+  * @attr: On input, specifies the QP attributes to modify. On output,
+  *   the current values of selected QP attributes are returned.
+  * @attr_mask: A bit-mask used to specify which attributes of the QP
+@@ -1294,9 +1294,10 @@ int ib_resolve_eth_dmac(struct ib_device *device,
+  *   are being modified.
+  * It returns 0 on success and returns appropriate error code on error.
+  */
+-int ib_modify_qp_with_udata(struct ib_qp *qp, struct ib_qp_attr *attr,
++int ib_modify_qp_with_udata(struct ib_qp *ib_qp, struct ib_qp_attr *attr,
+ 			    int attr_mask, struct ib_udata *udata)
+ {
++	struct ib_qp *qp = ib_qp->real_qp;
+ 	int ret;
 
-So how will we progress from here? Should I respin?
-
-Thanks
-
---JP+T4n/bALQSJXh8
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJb1uFWAAoJEORje4g2clinxKcQALeH1XeJkqDrdH63fPj66OA+
-5xM21hdHGzs4q6kc53KhTnqH2lc2LthmgzbFeFP2BCXhVBgzh0xIJvz5ocwCbosx
-DTuqRJFgmXuPNjFQyVWmWcNlW4iKkP2dxgWsS94Bn26glA9c+aAxzuiDQ0VSVI9x
-az0toHgDiZpnj1J+S40Z/mirLH+ypP92i5wVyOdqm2b4fBAGertzEEK0tO6KA4dJ
-i1/7urXxKeDUkvmeHMIyhMgHo50Pw3JUjXzJUP6ie+tNYeriT/TAm/wkuW8B2grK
-I3rJRkU86GinojBMkhcviFsz4/XmoivJK472YX0cd04QjidzyfwjGepIDAtXqe1e
-g/AcpXV7JyZ/4Oh9ar8D5WIXyWZFAHMNMJhjhPgcJEaUZQtovlFQkeCyfRFiBfm4
-8H13gXouUGPV90jky/pFjwHmWsk4WfOInBeuPhREl3raMNszQoA7hWGC3MOAlHT3
-0npPfyq+nQGazKPL6LPWjOzvQGIq8oLJeaUVK9qT5hfsYPrtyC4sOR0O2jR7AIfN
-0lZkYRCyhOf4GKoUCXae7EbHTd0KwWb39Vr3gQCAtmWeX5AXYaiHm0Gk739Ywson
-67zG386l7AyKroRNtZvOvAyg4+rYW1LIGuSjqnglrRppA073aA/nfogXHQQFiZUZ
-gR272CnvcNiDdYQoFl+S
-=jKZ2
------END PGP SIGNATURE-----
-
---JP+T4n/bALQSJXh8--
+ 	if (attr_mask & IB_QP_AV) {
