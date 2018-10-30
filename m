@@ -1,33 +1,90 @@
-From: Eric Dumazet <edumazet@google.com>
-Subject: Re: [mainline][bisected 55469b][ppc] build error at drivers/net/ethernet/mellanox/mlx4/en_rx.c
-Date: Tue, 30 Oct 2018 00:05:49 -0700
-Message-ID: <CANn89iJGgCMYRp7h=h+g=o+P9VA+8U+NxFhXP70B_PSG_mp7OQ@mail.gmail.com>
-References: <1540881776.20660.9.camel@abdul.in.ibm.com>
+From: syzbot <syzbot+26de17458aeda9d305d8@syzkaller.appspotmail.com>
+Subject: WARNING in rds_message_alloc_sgs
+Date: Tue, 30 Oct 2018 12:28:04 -0700
+Message-ID: <0000000000003c6b7b0579772ff3@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1540881776.20660.9.camel@abdul.in.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: abdhalee@linux.vnet.ibm.com
-Cc: linuxppc-dev@lists.ozlabs.org, LKML <linux-kernel@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, sachinp@linux.vnet.ibm.com, manvanth@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, brking@linux.vnet.ibm.com, netdev <netdev@vger.kernel.org>, Tariq Toukan <tariqt@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, santosh.shilimkar@oracle.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 29, 2018 at 11:43 PM Abdul Haleem
-<abdhalee@linux.vnet.ibm.com> wrote:
->
-> Greeting's
->
-> mainline build fails on my powerpc with commit 55469b : drivers: net:
-> remove <net/busy_poll.h> inclusion when not needed
->
-> Machine type: PowerPC power 8 bare-metal
-> kernel : 4.19.0
-> gcc :  4.8.5
-> config attached
->
+Hello,
 
-Thanks for the report, but this patch is not in 4.19 kernel ? It is
-scheduled for 4.20 only.
+syzbot found the following crash on:
 
-Anyway, mlx4 needs to include  <net/ip.h> directly, instead of
-assuming it is indirectly included by another file.
+HEAD commit:    6201f31a39f8 Add linux-next specific files for 20181030
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=1397d06d400000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=2a22859d870756c1
+dashboard link: https://syzkaller.appspot.com/bug?extid=26de17458aeda9d305d8
+compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10bb52eb400000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=118bdfc5400000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+26de17458aeda9d305d8@syzkaller.appspotmail.com
+
+WARNING: CPU: 0 PID: 19789 at net/rds/message.c:316  
+rds_message_alloc_sgs+0x10c/0x160 net/rds/message.c:316
+Kernel panic - not syncing: panic_on_warn set ...
+CPU: 0 PID: 19789 Comm: syz-executor827 Not tainted 4.19.0-next-20181030+  
+#101
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x244/0x39d lib/dump_stack.c:113
+  panic+0x2ad/0x55c kernel/panic.c:188
+  __warn.cold.8+0x20/0x45 kernel/panic.c:540
+  report_bug+0x254/0x2d0 lib/bug.c:186
+  fixup_bug arch/x86/kernel/traps.c:178 [inline]
+  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:271
+  do_invalid_op+0x36/0x40 arch/x86/kernel/traps.c:290
+  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:969
+RIP: 0010:rds_message_alloc_sgs+0x10c/0x160 net/rds/message.c:316
+Code: c0 74 04 3c 03 7e 6c 44 01 ab 78 01 00 00 e8 2b 9e 35 fa 4c 89 e0 48  
+83 c4 08 5b 41 5c 41 5d 41 5e 41 5f 5d c3 e8 14 9e 35 fa <0f> 0b 31 ff 44  
+89 ee e8 18 9f 35 fa 45 85 ed 75 1b e8 fe 9d 35 fa
+RSP: 0018:ffff8801c51b7460 EFLAGS: 00010293
+RAX: ffff8801bc412080 RBX: ffff8801d7bf4040 RCX: ffffffff8749c9e6
+RDX: 0000000000000000 RSI: ffffffff8749ca5c RDI: 0000000000000004
+RBP: ffff8801c51b7490 R08: ffff8801bc412080 R09: ffffed003b5c5b67
+R10: ffffed003b5c5b67 R11: ffff8801dae2db3b R12: 0000000000000000
+R13: 000000000007165c R14: 000000000007165c R15: 0000000000000005
+  rds_cmsg_rdma_args+0x82d/0x1510 net/rds/rdma.c:623
+  rds_cmsg_send net/rds/send.c:971 [inline]
+  rds_sendmsg+0x19a2/0x3180 net/rds/send.c:1273
+  sock_sendmsg_nosec net/socket.c:622 [inline]
+  sock_sendmsg+0xd5/0x120 net/socket.c:632
+  ___sys_sendmsg+0x7fd/0x930 net/socket.c:2117
+  __sys_sendmsg+0x11d/0x280 net/socket.c:2155
+  __do_sys_sendmsg net/socket.c:2164 [inline]
+  __se_sys_sendmsg net/socket.c:2162 [inline]
+  __x64_sys_sendmsg+0x78/0xb0 net/socket.c:2162
+  do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x44a859
+Code: e8 dc e6 ff ff 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 6b cb fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f1d4710ada8 EFLAGS: 00000297 ORIG_RAX: 000000000000002e
+RAX: ffffffffffffffda RBX: 00000000006dcc28 RCX: 000000000044a859
+RDX: 0000000000000000 RSI: 0000000020001600 RDI: 0000000000000003
+RBP: 00000000006dcc20 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000297 R12: 00000000006dcc2c
+R13: 646e732f7665642f R14: 00007f1d4710b9c0 R15: 00000000006dcd2c
+Kernel Offset: disabled
+Rebooting in 86400 seconds..
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
