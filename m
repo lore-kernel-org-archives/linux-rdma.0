@@ -1,70 +1,73 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 4/4] rdma: Document IB device renaming option
-Date: Wed, 31 Oct 2018 09:17:58 +0200
-Message-ID: <20181031071758.6178-5-leon@kernel.org>
-References: <20181031071758.6178-1-leon@kernel.org>
+Subject: [PATCH rdma] net/mlx5: Fix XRC SRQ umem valid bits
+Date: Wed, 31 Oct 2018 12:20:28 +0200
+Message-ID: <20181031102028.9142-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181031071758.6178-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
-[leonro@server /]$ lspci |grep -i Ether
-00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
-00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
-[leonro@server /]$ sudo rdma dev
-1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
-sys_image_guid 5254:00c0:fe12:3455
-[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
-[leonro@server /]$ sudo rdma dev
-1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
-sys_image_guid 5254:00c0:fe12:3455
+Adapt XRC SRQ to the latest HW specification with fixed definition
+around umem valid bits. The previous definition relied on a bit which
+was taken for other purposes in legacy FW.
 
+Fixes: bd37197554eb ("net/mlx5: Update mlx5_ifc with DEVX UID bits")
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- man/man8/rdma-dev.8 | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+Hi Doug, Jason
 
-diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-index 461681b6..b2f9964a 100644
---- a/man/man8/rdma-dev.8
-+++ b/man/man8/rdma-dev.8
-@@ -22,6 +22,12 @@ rdmak-dev \- RDMA device configuration
- .B rdma dev show
- .RI "[ " DEV " ]"
- 
-+.ti -8
-+.B rdma dev set
-+.RI "[ " DEV " ]"
-+.BR name
-+.BR NEWNAME
+This commit fixes code sent in this merge window, so I'm not marking it
+with any rdma-rc/rdma-next. It will be better to be sent during this merge
+window if you have extra pull request to issue, or as a -rc material, if
+not.
+
+BTW, we didn't combine reserved fields, because our convention is to align such
+fields to 32 bits for better readability.
+
+Thanks
+---
+ include/linux/mlx5/mlx5_ifc.h | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 0f460fb22c31..248116bc13a8 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -2470,14 +2470,15 @@ struct mlx5_ifc_xrc_srqc_bits {
+
+ 	u8         wq_signature[0x1];
+ 	u8         cont_srq[0x1];
+-	u8         dbr_umem_valid[0x1];
++	u8         reserved_at_22[0x1];
+ 	u8         rlky[0x1];
+ 	u8         basic_cyclic_rcv_wqe[0x1];
+ 	u8         log_rq_stride[0x3];
+ 	u8         xrcd[0x18];
+
+ 	u8         page_offset[0x6];
+-	u8         reserved_at_46[0x2];
++	u8         reserved_at_46[0x1];
++	u8         dbr_umem_valid[0x1];
+ 	u8         cqn[0x18];
+
+ 	u8         reserved_at_60[0x20];
+@@ -6685,9 +6686,12 @@ struct mlx5_ifc_create_xrc_srq_in_bits {
+
+ 	struct mlx5_ifc_xrc_srqc_bits xrc_srq_context_entry;
+
+-	u8         reserved_at_280[0x40];
++	u8         reserved_at_280[0x60];
 +
- .ti -8
- .B rdma dev help
- 
-@@ -33,6 +39,8 @@ rdmak-dev \- RDMA device configuration
- - specifies the RDMA device to show.
- If this argument is omitted all devices are listed.
- 
-+.SS rdma dev set - rename rdma device
+ 	u8         xrc_srq_umem_valid[0x1];
+-	u8         reserved_at_2c1[0x5bf];
++	u8         reserved_at_2e1[0x1f];
 +
- .SH "EXAMPLES"
- .PP
- rdma dev
-@@ -45,6 +53,11 @@ rdma dev show mlx5_3
- Shows the state of specified RDMA device.
- .RE
- .PP
-+rdma dev set mlx5_3 name rdma_0
-+.RS 4
-+Renames the mlx5_3 device to be named rdma_0.
-+.RE
-+.PP
- 
- .SH SEE ALSO
- .BR rdma (8),
--- 
-2.14.4
++	u8         reserved_at_300[0x580];
+
+ 	u8         pas[0][0x40];
+ };
