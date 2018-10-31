@@ -1,10 +1,8 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 2/4] rdma: Introduce command execution helper with required device name
-Date: Wed, 31 Oct 2018 09:17:56 +0200
-Message-ID: <20181031071758.6178-3-leon@kernel.org>
-References: <20181031071758.6178-1-leon@kernel.org>
+Subject: [PATCH iproute2-next v1 0/4] rdma: IB device rename
+Date: Wed, 31 Oct 2018 09:17:54 +0200
+Message-ID: <20181031071758.6178-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181031071758.6178-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: David Ahern <dsahern@gmail.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
@@ -12,49 +10,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-In contradiction to various show commands, the set command explicitly
-requires to use device name as an argument. Provide new command
-execution helper which enforces it.
+Changelog:
+v0->v1:
+ * Added Steve's ROB on first three patches.
+ * Updated manual
+RFC->v0
+ * Dropped RFC tag after kernel part was accepted
+ * Updated commit message of first patch to include correct SHA1
+-----------------------------------------------------------------------
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
----
- rdma/rdma.h  |  1 +
- rdma/utils.c | 10 ++++++++++
- 2 files changed, 11 insertions(+)
+Hi,
 
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index c3b7530b..547bb574 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -90,6 +90,7 @@ int cmd_link(struct rd *rd);
- int cmd_res(struct rd *rd);
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
- int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
-+int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd));
- int rd_exec_link(struct rd *rd, int (*cb)(struct rd *rd), bool strict_port);
- void rd_free(struct rd *rd);
- int rd_set_arg_to_devname(struct rd *rd);
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 4840bf22..61f4aeb1 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -577,6 +577,16 @@ out:
- 	return ret;
- }
- 
-+int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd))
-+{
-+	if (rd_no_arg(rd)) {
-+		pr_err("Please provide device name.\n");
-+		return -EINVAL;
-+	}
-+
-+	return rd_exec_dev(rd, cb);
-+}
-+
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *cmds, const char *str)
- {
- 	const struct rd_cmd *c;
--- 
-2.14.4
+This is comprehensive part of kernel series posted earlier. The kernel
+part is not accepted yet, so first patch will have different commit
+message with different commit SHA1. This is why it is marked as RFC.
+
+An example:
+
+[leonro@server /]$ lspci |grep -i Ether
+00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
+00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
+[leonro@server /]$ sudo rdma dev
+1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455 sys_image_guid 5254:00c0:fe12:3455
+[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
+[leonro@server /]$ sudo rdma dev
+1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455 sys_image_guid 5254:00c0:fe12:3455
+
+Thanks
+
+Leon Romanovsky (4):
+  rdma: Update kernel include file to support IB device renaming
+  rdma: Introduce command execution helper with required device name
+  rdma: Add an option to rename IB device interface
+  rdma: Document IB device renaming option
+
+ man/man8/rdma-dev.8                   | 13 +++++++++++++
+ rdma/dev.c                            | 35 +++++++++++++++++++++++++++++++++++
+ rdma/include/uapi/rdma/rdma_netlink.h |  3 ++-
+ rdma/rdma.h                           |  1 +
+ rdma/utils.c                          | 10 ++++++++++
+ 5 files changed, 61 insertions(+), 1 deletion(-)
