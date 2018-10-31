@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 3/4] rdma: Add an option to rename IB device interface
-Date: Wed, 31 Oct 2018 09:17:57 +0200
-Message-ID: <20181031071758.6178-4-leon@kernel.org>
+Subject: [PATCH iproute2-next v1 4/4] rdma: Document IB device renaming option
+Date: Wed, 31 Oct 2018 09:17:58 +0200
+Message-ID: <20181031071758.6178-5-leon@kernel.org>
 References: <20181031071758.6178-1-leon@kernel.org>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181031071758.6178-1-leon@kernel.org>
@@ -12,79 +12,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Enrich rdmatool with an option to rename IB devices,
-the command interface follows Iproute2 convention:
-"rdma dev set [OLD-DEVNAME] name NEW-DEVNAME"
+[leonro@server /]$ lspci |grep -i Ether
+00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
+00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
+[leonro@server /]$ sudo rdma dev
+1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+sys_image_guid 5254:00c0:fe12:3455
+[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
+[leonro@server /]$ sudo rdma dev
+1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+sys_image_guid 5254:00c0:fe12:3455
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 ---
- rdma/dev.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ man/man8/rdma-dev.8 | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index e2eafe47..760b7fb3 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -14,6 +14,7 @@
- static int dev_help(struct rd *rd)
- {
- 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
-+	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
- 	return 0;
- }
+diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
+index 461681b6..b2f9964a 100644
+--- a/man/man8/rdma-dev.8
++++ b/man/man8/rdma-dev.8
+@@ -22,6 +22,12 @@ rdmak-dev \- RDMA device configuration
+ .B rdma dev show
+ .RI "[ " DEV " ]"
  
-@@ -240,17 +241,51 @@ static int dev_one_show(struct rd *rd)
- 	return rd_exec_cmd(rd, cmds, "parameter");
- }
++.ti -8
++.B rdma dev set
++.RI "[ " DEV " ]"
++.BR name
++.BR NEWNAME
++
+ .ti -8
+ .B rdma dev help
  
-+static int dev_set_name(struct rd *rd)
-+{
-+	uint32_t seq;
-+
-+	if (rd_no_arg(rd)) {
-+		pr_err("Please provide device new name.\n");
-+		return -EINVAL;
-+	}
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
-+
-+	return rd_send_msg(rd);
-+}
-+
-+static int dev_one_set(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		dev_help},
-+		{ "name",	dev_set_name},
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
- static int dev_show(struct rd *rd)
- {
- 	return rd_exec_dev(rd, dev_one_show);
- }
+@@ -33,6 +39,8 @@ rdmak-dev \- RDMA device configuration
+ - specifies the RDMA device to show.
+ If this argument is omitted all devices are listed.
  
-+static int dev_set(struct rd *rd)
-+{
-+	return rd_exec_require_dev(rd, dev_one_set);
-+}
++.SS rdma dev set - rename rdma device
 +
- int cmd_dev(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
- 		{ NULL,		dev_show },
- 		{ "show",	dev_show },
- 		{ "list",	dev_show },
-+		{ "set",	dev_set },
- 		{ "help",	dev_help },
- 		{ 0 }
- 	};
+ .SH "EXAMPLES"
+ .PP
+ rdma dev
+@@ -45,6 +53,11 @@ rdma dev show mlx5_3
+ Shows the state of specified RDMA device.
+ .RE
+ .PP
++rdma dev set mlx5_3 name rdma_0
++.RS 4
++Renames the mlx5_3 device to be named rdma_0.
++.RE
++.PP
+ 
+ .SH SEE ALSO
+ .BR rdma (8),
 -- 
 2.14.4
