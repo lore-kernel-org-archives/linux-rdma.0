@@ -1,73 +1,56 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma] net/mlx5: Fix XRC SRQ umem valid bits
-Date: Wed, 31 Oct 2018 12:20:28 +0200
-Message-ID: <20181031102028.9142-1-leon@kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: WARNING in rds_message_alloc_sgs
+Date: Wed, 31 Oct 2018 09:44:28 -0700
+Message-ID: <1537ebeb-2c03-0068-58f1-6c348a2f718e@oracle.com>
+References: <0000000000003c6b7b0579772ff3@google.com>
+ <a7a834e0-c300-b5b9-67b5-78fa3eba8ebb@oracle.com>
+ <20181031064220.GN3974@mtr-leonro.mtl.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181031064220.GN3974@mtr-leonro.mtl.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: syzbot <syzbot+26de17458aeda9d305d8@syzkaller.appspotmail.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, rds-devel@oss.oracle.com, syzkaller-bugs@googlegroups.com, davem@davemloft.net, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
-
-Adapt XRC SRQ to the latest HW specification with fixed definition
-around umem valid bits. The previous definition relied on a bit which
-was taken for other purposes in legacy FW.
-
-Fixes: bd37197554eb ("net/mlx5: Update mlx5_ifc with DEVX UID bits")
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
-Hi Doug, Jason
-
-This commit fixes code sent in this merge window, so I'm not marking it
-with any rdma-rc/rdma-next. It will be better to be sent during this merge
-window if you have extra pull request to issue, or as a -rc material, if
-not.
-
-BTW, we didn't combine reserved fields, because our convention is to align such
-fields to 32 bits for better readability.
-
-Thanks
----
- include/linux/mlx5/mlx5_ifc.h | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 0f460fb22c31..248116bc13a8 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -2470,14 +2470,15 @@ struct mlx5_ifc_xrc_srqc_bits {
-
- 	u8         wq_signature[0x1];
- 	u8         cont_srq[0x1];
--	u8         dbr_umem_valid[0x1];
-+	u8         reserved_at_22[0x1];
- 	u8         rlky[0x1];
- 	u8         basic_cyclic_rcv_wqe[0x1];
- 	u8         log_rq_stride[0x3];
- 	u8         xrcd[0x18];
-
- 	u8         page_offset[0x6];
--	u8         reserved_at_46[0x2];
-+	u8         reserved_at_46[0x1];
-+	u8         dbr_umem_valid[0x1];
- 	u8         cqn[0x18];
-
- 	u8         reserved_at_60[0x20];
-@@ -6685,9 +6686,12 @@ struct mlx5_ifc_create_xrc_srq_in_bits {
-
- 	struct mlx5_ifc_xrc_srqc_bits xrc_srq_context_entry;
-
--	u8         reserved_at_280[0x40];
-+	u8         reserved_at_280[0x60];
-+
- 	u8         xrc_srq_umem_valid[0x1];
--	u8         reserved_at_2c1[0x5bf];
-+	u8         reserved_at_2e1[0x1f];
-+
-+	u8         reserved_at_300[0x580];
-
- 	u8         pas[0][0x40];
- };
+On 10/30/2018 11:42 PM, Leon Romanovsky wrote:
+> On Tue, Oct 30, 2018 at 12:38:02PM -0700, Santosh Shilimkar wrote:
+>> On 10/30/2018 12:28 PM, syzbot wrote:
+>>> Hello,
+>>>
+>>> syzbot found the following crash on:
+>>>
+>>> HEAD commit:    6201f31a39f8 Add linux-next specific files for 20181030
+>>> git tree:       linux-next
+>>> console output: https://syzkaller.appspot.com/x/log.txt?x=1397d06d400000
+>>> kernel config:  https://syzkaller.appspot.com/x/.config?x=2a22859d870756c1
+>>> dashboard link:
+>>> https://syzkaller.appspot.com/bug?extid=26de17458aeda9d305d8
+>>> compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+>>> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10bb52eb400000
+>>> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=118bdfc5400000
+>>>
+>>> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+>>> Reported-by: syzbot+26de17458aeda9d305d8@syzkaller.appspotmail.com
+>>>
+>>> WARNING: CPU: 0 PID: 19789 at net/rds/message.c:316
+>>> rds_message_alloc_sgs+0x10c/0x160 net/rds/message.c:316
+>>> Kernel panic - not syncing: panic_on_warn set ...
+>> Looks like this kernel build has panic on warn enabled which
+>> triggers panic for " WARN_ON(!nr_pages)" case. Will look into
+>> it. Thanks !!
+> 
+> Please don't forget to remove user triggered WARN_ON.
+> https://lwn.net/Articles/769365/
+> "Greg Kroah-Hartman raised the problem of core kernel API code that will
+> use WARN_ON_ONCE() to complain about bad usage; that will not generate
+> the desired result if WARN_ON_ONCE() is configured to crash the machine.
+> He was told that the code should just call pr_warn() instead, and that
+> the called function should return an error in such situations. It was
+> generally agreed that any WARN_ON() or WARN_ON_ONCE() calls that can be
+> triggered from user space need to be fixed."
+> 
+OK. Thanks for the note !!
