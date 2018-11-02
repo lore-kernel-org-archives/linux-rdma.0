@@ -1,74 +1,45 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v1 4/4] rdma: Document IB device renaming
- option
-Date: Fri, 2 Nov 2018 10:47:16 -0600
-Message-ID: <bb0836d9-6ebb-3383-3d61-8347d0d72561@gmail.com>
-References: <20181031071758.6178-1-leon@kernel.org>
- <20181031071758.6178-5-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] net/mlx5e: fix high stack usage
+Date: Fri, 2 Nov 2018 11:00:20 -0600
+Message-ID: <20181102170020.GB17096@ziepe.ca>
+References: <20181102153316.1492515-1-arnd@arndb.de>
+ <20181102160858.GA17096@ziepe.ca>
+ <CAK8P3a2pvkfR1A6dHAMm8ETd13E1LSxXrEsQHSOFYWbr-7R2Sw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181031071758.6178-5-leon@kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a2pvkfR1A6dHAMm8ETd13E1LSxXrEsQHSOFYWbr-7R2Sw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Tariq Toukan <tariqt@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Ilya Lesokhin <ilyal@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Kamal Heib <kamalh@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/31/18 1:17 AM, Leon Romanovsky wrote:
-> diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-> index 461681b6..b2f9964a 100644
-> --- a/man/man8/rdma-dev.8
-> +++ b/man/man8/rdma-dev.8
-> @@ -22,6 +22,12 @@ rdmak-dev \- RDMA device configuration
->  .B rdma dev show
->  .RI "[ " DEV " ]"
->  
-> +.ti -8
-> +.B rdma dev set
-> +.RI "[ " DEV " ]"
-> +.BR name
-> +.BR NEWNAME
-> +
->  .ti -8
->  .B rdma dev help
->  
-> @@ -33,6 +39,8 @@ rdmak-dev \- RDMA device configuration
->  - specifies the RDMA device to show.
->  If this argument is omitted all devices are listed.
->  
-> +.SS rdma dev set - rename rdma device
-> +
-
-'nroff -u0 -Tlp -man man/man8/rdma-dev.8' shows that you lost the
-spacing between that line and the Examples line.
-
-   rdma dev set - rename rdma device
-EXAMPLES
-       rdma dev
-           Shows the state of all RDMA devices on the system.
-
-...
-
-
->  .SH "EXAMPLES"
->  .PP
->  rdma dev
-> @@ -45,6 +53,11 @@ rdma dev show mlx5_3
->  Shows the state of specified RDMA device.
->  .RE
->  .PP
-> +rdma dev set mlx5_3 name rdma_0
-> +.RS 4
-> +Renames the mlx5_3 device to be named rdma_0.
-
-That does not read well. I suggest dropping the 'be named' to make it
-"Renames the mlx5_3 device to rdma_0."
-
-> +.RE
-> +.PP
->  
->  .SH SEE ALSO
->  .BR rdma (8),
+On Fri, Nov 02, 2018 at 05:23:26PM +0100, Arnd Bergmann wrote:
+> On 11/2/18, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > On Fri, Nov 02, 2018 at 04:33:03PM +0100, Arnd Bergmann wrote:
+> >> A patch that looks harmless causes the stack usage of the
+> >> mlx5e_grp_sw_update_stats()
+> >> function to drastically increase with x86 gcc-4.9 and higher (tested up to
+> >> 8.1):
+> >>
+> >> drivers/net/ethernet/mellanox/mlx5/core/en_stats.c: In function
+> >> ‘mlx5e_grp_sw_update_stats’:
+> >> drivers/net/ethernet/mellanox/mlx5/core/en_stats.c:216:1: warning: the
+> >> frame size of 1276 bytes is larger than 500 bytes [-Wframe-larger-than=]
+> >
+> > Why is the stack size so big here? The mlx5e_sw_stats is < 500 bytes
+> > and all the other on-stack stuff looks pretty small?
 > 
+> I am not entirely sure, but my analysis indicates that gcc tries loop unrolling
+> or some other optimization that leads to two copies on the stack.
+
+Wow how strange
+
+Did you consier adding a
+  __attribute__((optimize("no-unroll-loops"))) 
+
+type macro?
+
+Jason
