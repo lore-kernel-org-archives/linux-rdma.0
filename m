@@ -1,155 +1,59 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Fri, 2 Nov 2018 16:27:19 -0700
-Message-ID: <8a9d3a4e-a5d6-3d2d-008f-dc2d6cfd94ed@nvidia.com>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com> <20181012105612.GK8537@350D>
- <b115b2ce-8fe8-db03-da9c-452511c8ed27@nvidia.com>
- <20181024110031.GM8537@350D>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH] net/mlx5e: fix high stack usage
+Date: Sat, 3 Nov 2018 00:37:53 +0000
+Message-ID: <e8a33848ef4708e36823bcdfa104417f89674c20.camel@mellanox.com>
+References: <20181102153316.1492515-1-arnd@arndb.de>
+         <9f214f12ec89020ceb14c1aec25b3a0d968507aa.camel@mellanox.com>
+         <2727f37b-1742-5532-317e-3be8a984266b@gmail.com>
+         <4ebfc3aeb5335a1f671602f9a906f948c39a30da.camel@mellanox.com>
+         <20181102221552.GC17096@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181024110031.GM8537@350D>
-Content-Language: en-US-large
+In-Reply-To: <20181102221552.GC17096@ziepe.ca>
+Content-Language: en-US
+Content-ID: <B00AAE2A688D9042B6C085081B9EBC74@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Balbir Singh <bsingharora@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Moshe Shemesh <moshe@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Eran Ben Elisha <eranbe@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "eric.dumazet@gmail.com" <eric.dumazet@gmail.com>, "davem@davemloft.net" <davem@davemloft.net>, "arnd@arndb.de" <arnd@arndb.de>, "leon@kernel.org" <leon@kernel.org>, Kamal Heib <kamalh@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/24/18 4:00 AM, Balbir Singh wrote:
-> On Fri, Oct 12, 2018 at 05:15:51PM -0700, John Hubbard wrote:
->> On 10/12/18 3:56 AM, Balbir Singh wrote:
->>> On Thu, Oct 11, 2018 at 11:00:12PM -0700, john.hubbard@gmail.com wrote:
->>>> From: John Hubbard <jhubbard@nvidia.com>
->> [...]
->>>> + * Because page->dma_pinned_flags is unioned with page->lru, any page that
->>>> + * uses these flags must NOT be on an LRU. That's partly enforced by
->>>> + * ClearPageDmaPinned, which gives the page back to LRU.
->>>> + *
->>>> + * PageDmaPinned also corresponds to PageTail (the 0th bit in the first union
->>>> + * of struct page), and this flag is checked without knowing whether it is a
->>>> + * tail page or a PageDmaPinned page. Therefore, start the flags at bit 1 (0x2),
->>>> + * rather than bit 0.
->>>> + */
->>>> +#define PAGE_DMA_PINNED		0x2
->>>> +#define PAGE_DMA_PINNED_FLAGS	(PAGE_DMA_PINNED)
->>>> +
->>>
->>> This is really subtle, additional changes to compound_head will need to coordinate
->>> with these flags? Also doesn't this bit need to be unique across all structs in
->>> the union? I guess that is guaranteed by the fact that page == compound_head(page)
->>> as per your assertion, but I've forgotten why that is true. Could you please
->>> add some commentary on that
->>>
->>
->> Yes, agreed. I've rewritten and augmented that comment block, plus removed the 
->> PAGE_DMA_PINNED_FLAGS (there are no more bits available, so it's just misleading 
->> to even have it). So now it looks like this:
->>
->> /*
->>  * Because page->dma_pinned_flags is unioned with page->lru, any page that
->>  * uses these flags must NOT be on an LRU. That's partly enforced by
->>  * ClearPageDmaPinned, which gives the page back to LRU.
->>  *
->>  * PageDmaPinned is checked without knowing whether it is a tail page or a
->>  * PageDmaPinned page. For that reason, PageDmaPinned avoids PageTail (the 0th
->>  * bit in the first union of struct page), and instead uses bit 1 (0x2),
->>  * rather than bit 0.
->>  *
->>  * PageDmaPinned can only be used if no other systems are using the same bit
->>  * across the first struct page union. In this regard, it is similar to
->>  * PageTail, and in fact, because of PageTail's constraint that bit 0 be left
->>  * alone, bit 1 is also left alone so far: other union elements (ignoring tail
->>  * pages) put pointers there, and pointer alignment leaves the lower two bits
->>  * available.
->>  *
->>  * So, constraints include:
->>  *
->>  *     -- Only use PageDmaPinned on non-tail pages.
->>  *     -- Remove the page from any LRU list first.
->>  */
->> #define PAGE_DMA_PINNED		0x2
->>
->> /*
->>  * Because these flags are read outside of a lock, ensure visibility between
->>  * different threads, by using READ|WRITE_ONCE.
->>  */
->> static __always_inline int PageDmaPinned(struct page *page)
->> {
->> 	VM_BUG_ON(page != compound_head(page));
->> 	return (READ_ONCE(page->dma_pinned_flags) & PAGE_DMA_PINNED) != 0;
->> }
->>
->> [...]
->>>> +static __always_inline void SetPageDmaPinned(struct page *page)
->>>> +{
->>>> +	VM_BUG_ON(page != compound_head(page));
->>>
->>> VM_BUG_ON(!list_empty(&page->lru))
->>
->>
->> There is only one place where we set this flag, and that is when (in patch 6/6)
->> transitioning from a page that might (or might not) have been
->> on an LRU. In that case, the calling code has already corrupted page->lru, by
->> writing to page->dma_pinned_count, which is unions with page->lru:
->>
->> 		atomic_set(&page->dma_pinned_count, 1);
->> 		SetPageDmaPinned(page);
->>
->> ...so it would be inappropriate to call a list function, such as 
->> list_empty(), on that field.  Let's just leave it as-is.
->>
->>
->>>
->>>> +	WRITE_ONCE(page->dma_pinned_flags, PAGE_DMA_PINNED);
->>>> +}
->>>> +
->>>> +static __always_inline void ClearPageDmaPinned(struct page *page)
->>>> +{
->>>> +	VM_BUG_ON(page != compound_head(page));
->>>> +	VM_BUG_ON_PAGE(!PageDmaPinnedFlags(page), page);
->>>> +
->>>> +	/* This does a WRITE_ONCE to the lru.next, which is also the
->>>> +	 * page->dma_pinned_flags field. So in addition to restoring page->lru,
->>>> +	 * this provides visibility to other threads.
->>>> +	 */
->>>> +	INIT_LIST_HEAD(&page->lru);
->>>
->>> This assumes certain things about list_head, why not use the correct
->>> initialization bits.
->>>
->>
->> Yes, OK, changed to:
->>
->> static __always_inline void ClearPageDmaPinned(struct page *page)
->> {
->> 	VM_BUG_ON(page != compound_head(page));
->> 	VM_BUG_ON_PAGE(!PageDmaPinned(page), page);
->>
->> 	/* Provide visibility to other threads: */
->> 	WRITE_ONCE(page->dma_pinned_flags, 0);
->>
->> 	/*
->> 	 * Safety precaution: restore the list head, before possibly returning
->> 	 * the page to other subsystems.
->> 	 */
->> 	INIT_LIST_HEAD(&page->lru);
->> }
->>
->>
-> 
-> Sorry, I've been distracted with other things
-> 
-> This looks better, do we still need the INIT_LIST_HEAD?
-> 
-
-Good point. I guess not. I was getting a little too fancy, and it's better 
-for ClearPageDmaPinned to be true to its name, and just only do that.
-
-(Sorry for the delayed response.)
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+T24gRnJpLCAyMDE4LTExLTAyIGF0IDE2OjE1IC0wNjAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIEZyaSwgTm92IDAyLCAyMDE4IGF0IDEwOjA3OjAyUE0gKzAwMDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IE9uIEZyaSwgMjAxOC0xMS0wMiBhdCAxNDozOSAtMDcwMCwgRXJpYyBE
+dW1hemV0IHdyb3RlOg0KPiA+ID4gDQo+ID4gPiBPbiAxMS8wMi8yMDE4IDAyOjA1IFBNLCBTYWVl
+ZCBNYWhhbWVlZCB3cm90ZToNCj4gPiA+ICANCj4gPiA+ID4gdGVtcCB3aWxsIGJlIG1lbSBjb3Bp
+ZWQgdG8gcHJpdi0+c3RhdHMuc3cgYXQgdGhlIGVuZCwNCj4gPiA+ID4gbWVtY3B5KCZwcml2LT5z
+dGF0cy5zdywgJnMsIHNpemVvZihzKSk7IA0KPiA+ID4gPiANCj4gPiA+ID4gb25lIG90aGVyIHdh
+eSB0byBzb2x2ZSB0aGlzIGFzIHN1Z2dlc3RlZCBieSBBbmRyZXcsIGlzIHRvIGdldA0KPiA+ID4g
+PiByaWQNCj4gPiA+ID4gb2YNCj4gPiA+ID4gdGhlIHRlbXAgdmFyIGFuZCBtYWtlIGl0IHBvaW50
+IGRpcmVjdGx5IHRvIHByaXYtPnN0YXRzLnN3IA0KPiA+ID4gPiANCj4gPiA+IA0KPiA+ID4gV2hh
+dCBhYm91dCBjb25jdXJyZW5jeSA/DQo+ID4gPiANCj4gPiA+IFRoaXMgdGVtcCB2YXJpYWJsZSBp
+cyB0aGVyZSB0byBtYWtlIHN1cmUgY29uY3VycmVudCByZWFkZXJzIG9mDQo+ID4gPiBzdGF0cw0K
+PiA+ID4gbWlnaHQNCj4gPiA+IG5vdCBzZWUgbWFuZ2xlIGRhdGEgKGJlY2F1c2UgYW5vdGhlciAn
+cmVhZGVyJyBqdXN0IGRpZCBhIG1lbXNldCgpDQo+ID4gPiBhbmQNCj4gPiA+IGlzIGRvaW5nIHRo
+ZSBmb2xkaW5nKQ0KPiA+ID4gDQo+ID4gPiANCj4gPiA+IG1seDVlX2dldF9zdGF0cygpIGNhbiBk
+ZWZpbml0ZWx5IGJlIHJ1biBhdCB0aGUgc2FtZSB0aW1lIGJ5DQo+ID4gPiBtdWx0aXBsZQ0KPiA+
+ID4gdGhyZWFkcy4NCj4gPiA+IA0KPiA+IA0KPiA+IGhtbSwgeW91IGFyZSByaWdodCwgaSB3YXMg
+dGhpbmtpbmcgdGhhdCBtbHg1ZV9nZXRfU3RhdHMgd2lsbA0KPiA+IHRyaWdnZXIgYQ0KPiA+IHdv
+cmsgdG8gdXBkYXRlIHN0YXRzIGFuZCBncmFiIHRoZSBzdGF0ZV9sb2NrLCBidXQgZm9yIHN3IHN0
+YXRzIHRoaXMNCj4gPiBpcw0KPiA+IG5vdCB0aGUgY2FzZSBpdCBpcyBkb25lIGluIHBsYWNlLg0K
+PiANCj4gVGhhdCB3YXMgbXkgZ3Vlc3Mgd2hlbiBJIHNhdyB0aGlzLi4gdGhlIGNvbmZ1c2luZyBi
+aXQgaXMgd2h5IGlzIHRoZXJlDQo+IHMgYW5kIHRlbXAsIHdoeSBub3QganVzdCBzPw0KPiANCg0K
+c2lsbHkgY3V0IGFuZCBwYXN0ZSBmcm9tIG1seDQgIQ0KDQo+ID4gQlRXIG1lbWNweSBpdHNlbGYg
+aXMgbm90IHRocmVhZCBzYWZlLg0KPiANCj4gQXQgbGVhc3Qgb24gNjQgYml0IG1lbWNweSB3aWxs
+IGRvID4gOCBieXRlIHN0b3JlcyB3aGVuIGNvcHlpbmcgc28gb24NCj4gbW9zdCBhcmNoaXRlY3R1
+cmVzIGl0IHdpbGwgY2F1c2UgaW5kaXZpZHVhbCBuZXcgb3Igb2xkIHU2NCB0byBiZQ0KPiByZXR1
+cm5lZCBhbmQgbm90IGEgbWVzcy4uDQo+IA0KPiAzMiBiaXQgd2lsbCBhbHdheXMgbWFrZSBhIG1l
+c3MuDQo+IA0KPiBJZiB0aGUgc3RhdHMgZG9uJ3QgdXBkYXRlIHRoYXQgb2Z0ZW4gdGhlbiBrbWFs
+bG9jJ2luZyBhIG5ldyBidWZmZXINCj4gYW5kDQo+IFJDVSdpbmcgaXQgaW50byB2aWV3IG1pZ2h0
+IGJlIGEgcmVhc29uYWJsZSBhbHRlcm5hdGl2ZSB0byB0aGlzPw0KPiANCg0Ka21hbGxvYyBpcyBu
+b3QgYW4gb3B0aW9uLCBzdGF0cyB1cGRhdGUgdG9vIG9mdGVuLCBwcml2LT5zdGF0cy5zdyBpcw0K
+YWxyZWFkeSBhIHRlbXAsIGl0IGlzIG5lZWRlZCBvbmx5IHRvIGFjY3VtdWxhdGUgY2hhbm5lbHMg
+c3RhdHMgaW50byBpdA0KYW5kIHRoZW4gcmVwb3J0IHRoZW0gdG8gZXRodG9vbCBidWZmZXIgb3Ig
+bmRvX2dldF9zdGF0cyAsIGJvdGggd2lsbA0KY29weSB0aGUgcHJpdi0+c3RhdHMuc3cgdG8gdGhl
+aXIgb3duIGJ1ZmZlcnMsIHNvIHRoZXJlIGNhbiBvbmx5IGJlIHR3bw0KdXNlIGNhc2VzICh0d28g
+dGhyZWFkcyksIG1heWJlIGl0IGlzIGJlc3QgaWYgd2UgbWFpbnRhaW4gdHdvIHByaXYtDQo+c3Rh
+dHMuc3cgb25lIGZvciBlYWNoIGNhc2UgYW5kIHVzZSBpdCBhcyBhIHRlbXAgZm9yIGVhY2ggdGhy
+ZWFkLg0KDQo+IEphc29uDQo=
