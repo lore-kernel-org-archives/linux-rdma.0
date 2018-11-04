@@ -1,35 +1,77 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2-next v2] rdma: Document IB device renaming option
-Date: Sun, 4 Nov 2018 21:00:04 +0200
-Message-ID: <20181104190004.GC3638@mtr-leonro.mtl.com>
-References: <20181104115405.9455-1-leon@kernel.org>
- <07ffbccc-916c-25d3-654e-7e457be3c133@gmail.com>
+Subject: [PATCH iproute2-next v3] rdma: Document IB device renaming option
+Date: Sun,  4 Nov 2018 21:11:22 +0200
+Message-ID: <20181104191122.11979-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <07ffbccc-916c-25d3-654e-7e457be3c133@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: David Ahern <dsahern@gmail.com>
-Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 04, 2018 at 07:26:24AM -0700, David Ahern wrote:
-> On 11/4/18 4:54 AM, Leon Romanovsky wrote:
-> > @@ -45,6 +53,11 @@ rdma dev show mlx5_3
-> >  Shows the state of specified RDMA device.
-> >  .RE
-> >  .PP
-> > +rdma dev set mlx5_3 name rdma_0
-> > +.RS 4
-> > +Renames the mlx5_3 device to be named rdma_0.
-> > +.RE
-> > +.PP
->
-> You missed my other comment: Fix the "Renames .... to be named ..."
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Sorry, my bad.
+[leonro@server /]$ lspci |grep -i Ether
+00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
+00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family [ConnectX-4]
+[leonro@server /]$ sudo rdma dev
+1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+sys_image_guid 5254:00c0:fe12:3455
+[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
+[leonro@server /]$ sudo rdma dev
+1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+sys_image_guid 5254:00c0:fe12:3455
 
-I'm resending it right now.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+Changelog:
+v2->v3:
+ * Dropped "to be named" words from example section of man
+---
+ man/man8/rdma-dev.8 | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-Thanks
+diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
+index 461681b6..7c275180 100644
+--- a/man/man8/rdma-dev.8
++++ b/man/man8/rdma-dev.8
+@@ -1,6 +1,6 @@
+ .TH RDMA\-DEV 8 "06 Jul 2017" "iproute2" "Linux"
+ .SH NAME
+-rdmak-dev \- RDMA device configuration
++rdma-dev \- RDMA device configuration
+ .SH SYNOPSIS
+ .sp
+ .ad l
+@@ -22,10 +22,18 @@ rdmak-dev \- RDMA device configuration
+ .B rdma dev show
+ .RI "[ " DEV " ]"
+
++.ti -8
++.B rdma dev set
++.RI "[ " DEV " ]"
++.BR name
++.BR NEWNAME
++
+ .ti -8
+ .B rdma dev help
+
+ .SH "DESCRIPTION"
++.SS rdma dev set - rename rdma device
++
+ .SS rdma dev show - display rdma device attributes
+
+ .PP
+@@ -45,6 +53,11 @@ rdma dev show mlx5_3
+ Shows the state of specified RDMA device.
+ .RE
+ .PP
++rdma dev set mlx5_3 name rdma_0
++.RS 4
++Renames the mlx5_3 device to rdma_0.
++.RE
++.PP
+
+ .SH SEE ALSO
+ .BR rdma (8),
