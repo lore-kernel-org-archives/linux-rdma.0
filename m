@@ -1,67 +1,106 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH] net/mlx5e: fix high stack usage
-Date: Sat, 3 Nov 2018 00:52:12 +0000
-Message-ID: <7d1bb1476459a16343fa0c0846d9181b667ad002.camel@mellanox.com>
-References: <20181102153316.1492515-1-arnd@arndb.de>
-         <9f214f12ec89020ceb14c1aec25b3a0d968507aa.camel@mellanox.com>
-         <2727f37b-1742-5532-317e-3be8a984266b@gmail.com>
-         <4ebfc3aeb5335a1f671602f9a906f948c39a30da.camel@mellanox.com>
-         <CAK8P3a0ybuiu_dBfUDfMYUtKZ=yGdB7An0_wx_ZGhnS5rrD3_w@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH iproute2-next v1 4/4] rdma: Document IB device renaming
+ option
+Date: Sun, 4 Nov 2018 13:12:52 +0200
+Message-ID: <20181104111252.GA3638@mtr-leonro.mtl.com>
+References: <20181031071758.6178-1-leon@kernel.org>
+ <20181031071758.6178-5-leon@kernel.org>
+ <bb0836d9-6ebb-3383-3d61-8347d0d72561@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a0ybuiu_dBfUDfMYUtKZ=yGdB7An0_wx_ZGhnS5rrD3_w@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <5BF94FB26767EF4FAE3024555BC0A094@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "arnd@arndb.de" <arnd@arndb.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Moshe Shemesh <moshe@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, Eran Ben Elisha <eranbe@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "eric.dumazet@gmail.com" <eric.dumazet@gmail.com>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>, Kamal Heib <kamalh@mellanox.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <bb0836d9-6ebb-3383-3d61-8347d0d72561@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE4LTExLTAyIGF0IDIzOjE1ICswMTAwLCBBcm5kIEJlcmdtYW5uIHdyb3RlOg0K
-PiBPbiAxMS8yLzE4LCBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4gd3JvdGU6
-DQo+ID4gT24gRnJpLCAyMDE4LTExLTAyIGF0IDE0OjM5IC0wNzAwLCBFcmljIER1bWF6ZXQgd3Jv
-dGU6DQo+ID4gPiANCj4gPiA+IE9uIDExLzAyLzIwMTggMDI6MDUgUE0sIFNhZWVkIE1haGFtZWVk
-IHdyb3RlOg0KPiA+ID4gDQo+ID4gPiA+IHRlbXAgd2lsbCBiZSBtZW0gY29waWVkIHRvIHByaXYt
-PnN0YXRzLnN3IGF0IHRoZSBlbmQsDQo+ID4gPiA+IG1lbWNweSgmcHJpdi0+c3RhdHMuc3csICZz
-LCBzaXplb2YocykpOw0KPiA+ID4gPiANCj4gPiA+ID4gb25lIG90aGVyIHdheSB0byBzb2x2ZSB0
-aGlzIGFzIHN1Z2dlc3RlZCBieSBBbmRyZXcsIGlzIHRvIGdldA0KPiA+ID4gPiByaWQNCj4gPiA+
-ID4gb2YNCj4gPiA+ID4gdGhlIHRlbXAgdmFyIGFuZCBtYWtlIGl0IHBvaW50IGRpcmVjdGx5IHRv
-IHByaXYtPnN0YXRzLnN3DQo+ID4gPiA+IA0KPiA+ID4gDQo+ID4gPiBXaGF0IGFib3V0IGNvbmN1
-cnJlbmN5ID8NCj4gPiA+IA0KPiA+ID4gVGhpcyB0ZW1wIHZhcmlhYmxlIGlzIHRoZXJlIHRvIG1h
-a2Ugc3VyZSBjb25jdXJyZW50IHJlYWRlcnMgb2YNCj4gPiA+IHN0YXRzDQo+ID4gPiBtaWdodA0K
-PiA+ID4gbm90IHNlZSBtYW5nbGUgZGF0YSAoYmVjYXVzZSBhbm90aGVyICdyZWFkZXInIGp1c3Qg
-ZGlkIGEgbWVtc2V0KCkNCj4gPiA+IGFuZA0KPiA+ID4gaXMgZG9pbmcgdGhlIGZvbGRpbmcpDQo+
-ID4gPiANCj4gPiA+IA0KPiA+ID4gbWx4NWVfZ2V0X3N0YXRzKCkgY2FuIGRlZmluaXRlbHkgYmUg
-cnVuIGF0IHRoZSBzYW1lIHRpbWUgYnkNCj4gPiA+IG11bHRpcGxlDQo+ID4gPiB0aHJlYWRzLg0K
-PiA+ID4gDQo+ID4gDQo+ID4gaG1tLCB5b3UgYXJlIHJpZ2h0LCBpIHdhcyB0aGlua2luZyB0aGF0
-IG1seDVlX2dldF9TdGF0cyB3aWxsDQo+ID4gdHJpZ2dlciBhDQo+ID4gd29yayB0byB1cGRhdGUg
-c3RhdHMgYW5kIGdyYWIgdGhlIHN0YXRlX2xvY2ssIGJ1dCBmb3Igc3cgc3RhdHMgdGhpcw0KPiA+
-IGlzDQo+ID4gbm90IHRoZSBjYXNlIGl0IGlzIGRvbmUgaW4gcGxhY2UuDQo+ID4gDQo+ID4gQlRX
-IG1lbWNweSBpdHNlbGYgaXMgbm90IHRocmVhZCBzYWZlLg0KPiANCj4gQmVmb3JlIGNvbW1pdCA2
-YzYzZWZlNGNmYWIgKCJuZXQvbWx4NWU6IFJlbW92ZSByZWR1bmRhbnQNCj4gYWN0aXZlX2NoYW5u
-ZWxzDQo+IGluZGljYXRpb24iKSwgdGhlcmUgd2FzIGEgcmVhZF9sb2NrKCkgaW4gdGhlIGZ1bmN0
-aW9uIGFwcGFyZW50bHkNCj4gaW50ZW5kZWQgdG8NCj4gbWFkZSBpdCB0aHJlYWQgc2FmZS4gVGhp
-cyBnb3QgcmVtb3ZlZCB3aXRoIHRoZSBjb21tZW50DQo+IA0KPiBjb21taXQgNmM2M2VmZTRjZmFi
-ZjIzMGE4ZWQ0YjFkODgwMjQ5ODc1ZmZkYWMxMw0KPiBBdXRob3I6IEVyYW4gQmVuIEVsaXNoYSA8
-ZXJhbmJlQG1lbGxhbm94LmNvbT4NCj4gRGF0ZTogICBUdWUgTWF5IDI5IDExOjA2OjMxIDIwMTgg
-KzAzMDANCj4gDQo+ICAgICBuZXQvbWx4NWU6IFJlbW92ZSByZWR1bmRhbnQgYWN0aXZlX2NoYW5u
-ZWxzIGluZGljYXRpb24NCj4gDQo+ICAgICBOb3csIHdoZW4gYWxsIGNoYW5uZWxzIHN0YXRzIGFy
-ZSBzYXZlZCByZWdhcmRsZXNzIG9mIHRoZQ0KPiBjaGFubmVsJ3Mgc3RhdGUNCj4gICAgIHtvcGVu
-LCBjbG9zZWR9LCB3ZSBjYW4gc2FmZWx5IHJlbW92ZSB0aGlzIGluZGljYXRpb24gYW5kIHRoZQ0K
-PiBzdGF0cyBzcGluDQo+ICAgICBsb2NrIHdoaWNoIHByb3RlY3RzIGl0Lg0KPiANCj4gICAgIEZp
-eGVzOiA3NmMzODEwYmFkZTMgKCJuZXQvbWx4NWU6IEF2b2lkIHJlc2V0IG5ldGRldiBzdGF0cyBv
-bg0KPiBjb25maWd1cmF0aW9uIGNoYW5nZXMiKQ0KPiANCj4gSSBkb24ndCByZWFsbHkgdW5kZXJz
-dGFuZCB0aGUgcmVhc29uaW5nLCBidXQgbWF5YmUgd2UgY2FuIHJlbW92ZQ0KPiB0aGUgbWVtY3B5
-KCkgaWYgdGhlIGNvZGUgaXMgdGhyZWFkIHNhZmUsIG9yIHdlIG5lZWQgdGhlIGxvY2sgYmFjayBp
-Zg0KPiBpdCdzIG5vdC4NCj4gDQoNCnRoaXMgbG9jayB3YXMgbmVlZGVkIGZvciBhIHdob2xlIGRp
-ZmZlcmVudCBwdXJwb3NlLCBpdCB3YXNuJ3QgbWVhbnQgdG8NCnN5bmNocm9uaXplIGJldHdlZW4g
-dHdvIHJlYWRlciB0aHJlYWRzLCBpdCB3YXMgbWVhbnQgdG8gc3luY2hyb25pemUNCmJldHdlZW4g
-ZHJpdmVyIHJlc3RhcnRzIGFuZCB0aGUgcmVhZGVyIGZvciBsb29wIHdoaWNoIHJhbiBvdmVyIHRo
-ZSBvcGVuDQpjaGFubmVscywgd2hpbGUgdGhleSBjb3VsZCBiZSBnb2luZyB0aHJvdWdoIGEgZGVz
-dHJ1Y3Rpb24gcHJvY2Vzcy4NCg0KSSB0aGluayBhbGwgd2UgbmVlZCBpcyB0byBtYWludGFpbiB0
-d28gcHJpdi0+c3RhdHMuc3cgY29waWVzIGFuZCB1c2UNCnRoZW0gYXMgdGVtcCBmb3IgZWFjaCBy
-ZWFkZXIgdGhyZWFkLCB3aGVuIGNhbiBvbmx5IGhhdmUgdHdvIGNvbmN1cnJlbnQNCnJlYWRlcnMg
-KG1seDVlX2V0aHRvb2xfZ2V0X2V0aHRvb2xfc3RhdHMgYW5kIG5kb19nZXRfc3RhdHM2NCkgLi4g
-DQoNCj4gICAgICAgICAgQXJuZA0K
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Nov 02, 2018 at 10:47:16AM -0600, David Ahern wrote:
+> On 10/31/18 1:17 AM, Leon Romanovsky wrote:
+> > diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
+> > index 461681b6..b2f9964a 100644
+> > --- a/man/man8/rdma-dev.8
+> > +++ b/man/man8/rdma-dev.8
+> > @@ -22,6 +22,12 @@ rdmak-dev \- RDMA device configuration
+> >  .B rdma dev show
+> >  .RI "[ " DEV " ]"
+> >
+> > +.ti -8
+> > +.B rdma dev set
+> > +.RI "[ " DEV " ]"
+> > +.BR name
+> > +.BR NEWNAME
+> > +
+> >  .ti -8
+> >  .B rdma dev help
+> >
+> > @@ -33,6 +39,8 @@ rdmak-dev \- RDMA device configuration
+> >  - specifies the RDMA device to show.
+> >  If this argument is omitted all devices are listed.
+> >
+> > +.SS rdma dev set - rename rdma device
+> > +
+>
+> 'nroff -u0 -Tlp -man man/man8/rdma-dev.8' shows that you lost the
+> spacing between that line and the Examples line.
+>
+>    rdma dev set - rename rdma device
+> EXAMPLES
+>        rdma dev
+>            Shows the state of all RDMA devices on the system.
+
+Thanks, sending v2 now.
+
+>
+> ...
+>
+>
+> >  .SH "EXAMPLES"
+> >  .PP
+> >  rdma dev
+> > @@ -45,6 +53,11 @@ rdma dev show mlx5_3
+> >  Shows the state of specified RDMA device.
+> >  .RE
+> >  .PP
+> > +rdma dev set mlx5_3 name rdma_0
+> > +.RS 4
+> > +Renames the mlx5_3 device to be named rdma_0.
+>
+> That does not read well. I suggest dropping the 'be named' to make it
+> "Renames the mlx5_3 device to rdma_0."
+>
+> > +.RE
+> > +.PP
+> >
+> >  .SH SEE ALSO
+> >  .BR rdma (8),
+> >
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJb3tQ0AAoJEORje4g2clinoxMP/Ro/yPYp/6a0W+rUoidRLvqm
+qSJvS9fONvvNX56pnXyHsS1YakzfPvcniHRt7YEN5cLgskES6rJUk6v3HN3NXkMW
+0d6L6TNZQ+1U6Js1DrToVQ02O2FuSR+Kw+1IbwaH/JSSxQ1zgyGvbtSrMlYnhDBC
+qSUPPMR0plc5wcItZbj7EK3ASk5+u3gokkvDZqXhrLUc9OMf6f1bUzjAA5nmffrO
+c3LDhfEh1xu0vkQNtRed2rJnvg7k5SExcg2J0x3wMYWFk2KtTLk1FrvbL3YMxeOG
+GjIFH4vsh/w5abmqeO11Y2l3VMpGNoR4I+8XbyH6aoyIgLKYFH6DuM27U9L2Nyb/
+wSN/bpi3iE/oCTL1CpJSL4iXEaFMP2trizJ94YZ/lFygntvDD2kH/v80neyNrR4x
+lnJZMdJdXZjS4EjsZHfJSC8m2/B64MwtqIJtO5vFipnPNR6b1AGvqymZWPkQpSsq
+amzRa72+xXhz59SsOdsSXCehLh5xLF5oH5FO6B/tTHBNRBsbI1qCMaA66tZYLR2H
+fA+LPZdJn68Z4iJn4qvkqk+IL3TdAlh0XQgHJ3Dn3w4ytj21L8ZsN9VM3pgNRuWq
+sIlt0WWID15ApP5eUKp+R5iTAvYm0RkaQYuKpEnThB2CCTiWQ1fPhnSulcfIB2gw
+JW9gSyAh4YhJr/XZoPmR
+=tmCc
+-----END PGP SIGNATURE-----
+
+--X1bOJ3K7DJ5YkBrT--
