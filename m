@@ -1,88 +1,179 @@
 From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 2/3] mm: introduce put_user_page*(), placeholder
- versions
-Date: Mon, 5 Nov 2018 09:37:19 +0100
-Message-ID: <20181105083719.GA6953@quack2.suse.cz>
-References: <20181008211623.30796-1-jhubbard@nvidia.com>
- <20181008211623.30796-3-jhubbard@nvidia.com>
- <20181008171442.d3b3a1ea07d56c26d813a11e@linux-foundation.org>
- <5198a797-fa34-c859-ff9d-568834a85a83@nvidia.com>
- <20181010164541.ec4bf53f5a9e4ba6e5b52a21@linux-foundation.org>
- <20181011084929.GB8418@quack2.suse.cz>
- <20181011132013.GA5968@ziepe.ca>
- <97e89e08-5b94-240a-56e9-ece2b91f6dbc@nvidia.com>
- <20181022194329.GG30059@ziepe.ca>
- <532c7ae5-7277-74a7-93f2-afe8b7dc13fc@nvidia.com>
+Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
+Date: Mon, 5 Nov 2018 10:54:47 +0100
+Message-ID: <20181105095447.GE6953@quack2.suse.cz>
+References: <20181012060014.10242-1-jhubbard@nvidia.com>
+ <20181012060014.10242-5-jhubbard@nvidia.com>
+ <20181013035516.GA18822@dastard>
+ <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
+ <20181013164740.GA6593@infradead.org>
+ <84811b54-60bf-2bc3-a58d-6a7925c24aad@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <532c7ae5-7277-74a7-93f2-afe8b7dc13fc@nvidia.com>
+In-Reply-To: <84811b54-60bf-2bc3-a58d-6a7925c24aad@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Jan Kara <jack@suse.cz>, Andrew Morton <akpm@linux-foundation.org>, john.hubbard@gmail.com, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Jerome Glisse <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>, Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun 04-11-18 23:17:58, John Hubbard wrote:
-> On 10/22/18 12:43 PM, Jason Gunthorpe wrote:
-> > On Thu, Oct 11, 2018 at 06:23:24PM -0700, John Hubbard wrote:
-> >> On 10/11/18 6:20 AM, Jason Gunthorpe wrote:
-> >>> On Thu, Oct 11, 2018 at 10:49:29AM +0200, Jan Kara wrote:
-> >>>
-> >>>>> This is a real worry.  If someone uses a mistaken put_page() then how
-> >>>>> will that bug manifest at runtime?  Under what set of circumstances
-> >>>>> will the kernel trigger the bug?
-> >>>>
-> >>>> At runtime such bug will manifest as a page that can never be evicted from
-> >>>> memory. We could warn in put_page() if page reference count drops below
-> >>>> bare minimum for given user pin count which would be able to catch some
-> >>>> issues but it won't be 100% reliable. So at this point I'm more leaning
-> >>>> towards making get_user_pages() return a different type than just
-> >>>> struct page * to make it much harder for refcount to go wrong...
-> >>>
-> >>> At least for the infiniband code being used as an example here we take
-> >>> the struct page from get_user_pages, then stick it in a sgl, and at
-> >>> put_page time we get the page back out of the sgl via sg_page()
-> >>>
-> >>> So type safety will not help this case... I wonder how many other
-> >>> users are similar? I think this is a pretty reasonable flow for DMA
-> >>> with user pages.
-> >>>
+On Sun 04-11-18 23:10:12, John Hubbard wrote:
+> On 10/13/18 9:47 AM, Christoph Hellwig wrote:
+> > On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
+> >> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
+> >> unceremoniously rips the pages out of the LRU, as a prerequisite to using
+> >> either of the page->dma_pinned_* fields. 
 > >>
-> >> That is true. The infiniband code, fortunately, never mixes the two page
-> >> types into the same pool (or sg list), so it's actually an easier example
-> >> than some other subsystems. But, yes, type safety doesn't help there. I can 
-> >> take a moment to look around at the other areas, to quantify how much a type
-> >> safety change might help.
+> >> The idea is that LRU is not especially useful for this situation anyway,
+> >> so we'll just make it one or the other: either a page is dma-pinned, and
+> >> just hanging out doing RDMA most likely (and LRU is less meaningful during that
+> >> time), or it's possibly on an LRU list.
 > > 
-> > Are most (all?) of the places working with SGLs?
+> > Have you done any benchmarking what this does to direct I/O performance,
+> > especially for small I/O directly to a (fast) block device?
+> > 
 > 
-> I finally put together a spreadsheet, in order to answer this sort of thing.
-> Some notes:
+> Hi Christoph,
 > 
-> a) There are around 100 call sites of either get_user_pages*(), or indirect
-> calls via iov_iter_get_pages*().
-
-Quite a bit...
-
-> b) There are only a few SGL users. Most are ad-hoc, instead: some loop that
-> either can be collapsed nicely into the new put_user_pages*() APIs, or...
-> cannot.
+> I'm seeing about 20% slower in one case: lots of reads and writes of size 8192 B,
+> on a fast NVMe device. My put_page() --> put_user_page() conversions are incomplete 
+> and buggy yet, but I've got enough of them done to briefly run the test.
 > 
-> c) The real problem is: around 20+ iov_iter_get_pages*() call sites. I need
-> to change both the  iov_iter system a little bit, and also change the callers
-> so that they don't pile all the gup-pinned pages into the same page** array
-> that also contains other allocation types. This can be done, it just takes
-> time, that's the good news.
+> One thing that occurs to me is that jumping on and off the LRU takes time, and
+> if we limited this to 64-bit platforms, maybe we could use a real page flag? I 
+> know that leaves 32-bit out in the cold, but...maybe use this slower approach
+> for 32-bit, and the pure page flag for 64-bit? uggh, we shouldn't slow down anything
+> by 20%. 
+> 
+> Test program is below. I hope I didn't overlook something obvious, but it's 
+> definitely possible, given my lack of experience with direct IO. 
+> 
+> I'm preparing to send an updated RFC this week, that contains the feedback to date,
+> and also many converted call sites as well, so that everyone can see what the whole
+> (proposed) story would look like in its latest incarnation.
 
-Yes, but looking into iov_iter_get_pages() users, lot of them then end up
-feeding the result either in SGL, SKB (which is basically the same thing,
-just for networking), or BVEC (which is again a very similar thing, just for
-generic block layer). I'm not saying that we must have _sgl() interface as
-untangling all those users might be just too complex but there is certainly
-some space for unification and common interfaces ;)
+Hmm, have you tried larger buffer sizes? Because synchronous 8k IO isn't
+going to max-out NVME iops by far. Can I suggest you install fio [1] (it
+has the advantage that it is pretty much standard for a test like this so
+everyone knows what the test does from a glimpse) and run with it something
+like the following workfile:
+
+[reader]
+direct=1
+ioengine=libaio
+blocksize=4096
+size=1g
+numjobs=1
+rw=read
+iodepth=64
+
+And see how the numbers with and without your patches compare?
 
 								Honza
+
+[1] https://github.com/axboe/fio
+
+
+> 
+> #define _GNU_SOURCE
+> #include <sys/types.h>
+> #include <sys/stat.h>
+> #include <fcntl.h>
+> #include <stdio.h>
+> #include <unistd.h>
+> #include <stdlib.h>
+> #include <stdbool.h>
+> #include <string.h>
+> 
+> const static unsigned BUF_SIZE       = 4096;
+> static const unsigned FULL_DATA_SIZE = 2 * BUF_SIZE;
+> 
+> void read_from_file(int fd, size_t how_much, char * buf)
+> {
+> 	size_t bytes_read;
+> 
+> 	for (size_t index = 0; index < how_much; index += BUF_SIZE) {
+> 		bytes_read = read(fd, buf, BUF_SIZE);
+> 		if (bytes_read != BUF_SIZE) {
+> 			printf("reading file failed: %m\n");
+> 			exit(3);
+> 		}
+> 	}
+> }
+> 
+> void seek_to_start(int fd, char *caller)
+> {
+> 	off_t result = lseek(fd, 0, SEEK_SET);
+> 	if (result == -1) {
+> 		printf("%s: lseek failed: %m\n", caller);
+> 		exit(4);
+> 	}
+> }
+> 
+> void write_to_file(int fd, size_t how_much, char * buf)
+> {
+> 	int result;
+> 	for (size_t index = 0; index < how_much; index += BUF_SIZE) {
+> 		result = write(fd, buf, BUF_SIZE);
+> 		if (result < 0) {
+> 			printf("writing file failed: %m\n");
+> 			exit(3);
+> 		}
+> 	}
+> }
+> 
+> void read_and_write(int fd, size_t how_much, char * buf)
+> {
+> 	seek_to_start(fd, "About to read");
+> 	read_from_file(fd, how_much, buf);
+> 
+> 	memset(buf, 'a', BUF_SIZE);
+> 
+> 	seek_to_start(fd, "About to write");
+> 	write_to_file(fd, how_much, buf);
+> }
+> 
+> int main(int argc, char *argv[])
+> {
+> 	void *buf;
+> 	/*
+> 	 * O_DIRECT requires at least 512 B alighnment, but runs faster
+> 	 * (2.8 sec, vs. 3.5 sec) with 4096 B alignment.
+> 	 */
+> 	unsigned align = 4096;
+> 	posix_memalign(&buf, align, BUF_SIZE );
+> 
+> 	if (argc < 3) {
+> 		printf("Usage: %s <filename> <iterations>\n", argv[0]);
+> 		return 1;
+> 	}
+> 	char *filename = argv[1];
+> 	unsigned iterations = strtoul(argv[2], 0, 0);
+> 
+> 	/* Not using O_SYNC for now, anyway. */
+> 	int fd = open(filename, O_DIRECT | O_RDWR);
+> 	if (fd < 0) {
+> 		printf("Failed to open %s: %m\n", filename);
+> 		return 2;
+> 	}
+> 
+> 	printf("File: %s, data size: %u, interations: %u\n",
+> 		       filename, FULL_DATA_SIZE, iterations);
+> 
+> 	for (int count = 0; count < iterations; count++) {
+> 		read_and_write(fd, FULL_DATA_SIZE, buf);
+> 	}
+> 
+> 	close(fd);
+> 	return 0;
+> }
+> 
+> 
+> thanks,
+> -- 
+> John Hubbard
+> NVIDIA
 -- 
 Jan Kara <jack@suse.com>
 SUSE Labs, CR
