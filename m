@@ -1,41 +1,28 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH] net/mlx5e: fix high stack usage
-Date: Mon, 5 Nov 2018 11:24:06 +0000
-Message-ID: <ee55a08ca81149a598aef8c47367f856@AcuMS.aculab.com>
-References: <20181102153316.1492515-1-arnd@arndb.de>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH iproute2-next] rdma: Refresh help section of resource
+ information
+Date: Mon, 5 Nov 2018 08:40:09 -0800
+Message-ID: <20181105084009.07303f05@xeon-e3>
+References: <20181101083505.25152-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181102153316.1492515-1-arnd@arndb.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: 'Arnd Bergmann' <arnd@arndb.de>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Tariq Toukan <tariqt@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Ilya Lesokhin <ilyal@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Kamal Heib <kamalh@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181101083505.25152-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: David Ahern <dsahern@gmail.com>, Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Steve Wise <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogQXJuZCBCZXJnbWFubg0KPiBTZW50OiAwMiBOb3ZlbWJlciAyMDE4IDE1OjMzDQo+IA0K
-PiBBIHBhdGNoIHRoYXQgbG9va3MgaGFybWxlc3MgY2F1c2VzIHRoZSBzdGFjayB1c2FnZSBvZiB0
-aGUgbWx4NWVfZ3JwX3N3X3VwZGF0ZV9zdGF0cygpDQo+IGZ1bmN0aW9uIHRvIGRyYXN0aWNhbGx5
-IGluY3JlYXNlIHdpdGggeDg2IGdjYy00LjkgYW5kIGhpZ2hlciAodGVzdGVkIHVwIHRvIDguMSk6
-DQo+IA0KPiBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fc3RhdHMu
-YzogSW4gZnVuY3Rpb24g4oCYbWx4NWVfZ3JwX3N3X3VwZGF0ZV9zdGF0c+KAmToNCj4gZHJpdmVy
-cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VuX3N0YXRzLmM6MjE2OjE6IHdhcm5p
-bmc6IHRoZSBmcmFtZSBzaXplIG9mIDEyNzYgYnl0ZXMgaXMNCj4gbGFyZ2VyIHRoYW4gNTAwIGJ5
-dGVzIFstV2ZyYW1lLWxhcmdlci10aGFuPV0NCj4gDQo+IEJ5IHNwbGl0dGluZyBvdXQgdGhlIGxv
-b3AgYm9keSBpbnRvIGEgbm9uLWlubGluZWQgZnVuY3Rpb24sIHRoZSBzdGFjayBzaXplIGdvZXMN
-Cj4gYmFjayBkb3duIHRvIHVuZGVyIDUwMCBieXRlcy4NCg0KSSdkIGxvb2sgYXQgdGhlIGdlbmVy
-YXRlZCBjb2RlIGZvciB0aGUgZnVuY3Rpb24uDQpJdCBtaWdodCBiZSB0cnVseSBob3JyaWQuDQoN
-Ckkgc3VzcGVjdCB0aGF0IGdjYyBhbGxvY2F0ZXMgJ3ZpcnR1YWwgcmVnaXN0ZXJzJyBmb3IgYWxs
-IHRoZQ0Kcy0+dHhfLi4uIG1lbWJlcnMgYW5kIHRoZW4gd3JpdGVzIHRoZW0gdG8gJ3MnIG91dHNp
-ZGUgdGhlIGxvb3AuDQpVbmZvcnR1bmF0ZWx5IHRoZXJlIGFyZW4ndCBlbm91Z2ggcmVhbCByZWdp
-c3RlcnMgc28gYWxsIHRoZQ0KdmlydHVhbCBvbmVzIGdldCBzcGlsbGVkIHRvIHN0YWNrLg0KDQpJ
-J3ZlIHNlZW4gaXQgZG8gc29tZXRoaW5nIHNpbWlsYXIgKGV4dHJhIHNwaWxscyB0byBzdGFjaykg
-aW4gdGhlDQppeGdiZSBieXRlIGFuZCBwYWNrZXQgY291bnRpbmcuDQoNCkkgdGhpbmsgaXQgaXMg
-cmVhbGx5IGEgZ2NjIGJ1Zy4NCg0KLi4uDQo+ICsJZm9yIChqID0gMDsgaiA8IHByaXYtPm1heF9v
-cGVuZWRfdGM7IGorKykgew0KPiArCQlzdHJ1Y3QgbWx4NWVfc3Ffc3RhdHMgKnNxX3N0YXRzID0g
-JmNoYW5uZWxfc3RhdHMtPnNxW2pdOw0KDQpUcnkgYWRkaW5nIGJhcnJpZXIoKSBoZXJlLg0KDQo+
-ICsNCj4gKwkJcy0+dHhfcGFja2V0cwkJKz0gc3Ffc3RhdHMtPnBhY2tldHM7DQoNCglEYXZpZA0K
-DQotDQpSZWdpc3RlcmVkIEFkZHJlc3MgTGFrZXNpZGUsIEJyYW1sZXkgUm9hZCwgTW91bnQgRmFy
-bSwgTWlsdG9uIEtleW5lcywgTUsxIDFQVCwgVUsNClJlZ2lzdHJhdGlvbiBObzogMTM5NzM4NiAo
-V2FsZXMpDQo=
+On Thu,  1 Nov 2018 10:35:05 +0200
+Leon Romanovsky <leon@kernel.org> wrote:
+
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> After commit 4060e4c0d257 ("rdma: Add PD resource tracking
+> information"), the resource information shows PDs and MRs,
+> but help pages didn't fully reflect it.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+
+Applied
