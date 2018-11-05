@@ -1,179 +1,41 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 4/6] mm: introduce page->dma_pinned_flags, _count
-Date: Mon, 5 Nov 2018 10:54:47 +0100
-Message-ID: <20181105095447.GE6953@quack2.suse.cz>
-References: <20181012060014.10242-1-jhubbard@nvidia.com>
- <20181012060014.10242-5-jhubbard@nvidia.com>
- <20181013035516.GA18822@dastard>
- <7c2e3b54-0b1d-6726-a508-804ef8620cfd@nvidia.com>
- <20181013164740.GA6593@infradead.org>
- <84811b54-60bf-2bc3-a58d-6a7925c24aad@nvidia.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] net/mlx5e: fix high stack usage
+Date: Mon, 5 Nov 2018 11:24:06 +0000
+Message-ID: <ee55a08ca81149a598aef8c47367f856@AcuMS.aculab.com>
+References: <20181102153316.1492515-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <84811b54-60bf-2bc3-a58d-6a7925c24aad@nvidia.com>
+In-Reply-To: <20181102153316.1492515-1-arnd@arndb.de>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Michal Hocko <mhocko@kernel.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+To: 'Arnd Bergmann' <arnd@arndb.de>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Tariq Toukan <tariqt@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Boris Pismenny <borisp@mellanox.com>, Ilya Lesokhin <ilyal@mellanox.com>, Moshe Shemesh <moshe@mellanox.com>, Kamal Heib <kamalh@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun 04-11-18 23:10:12, John Hubbard wrote:
-> On 10/13/18 9:47 AM, Christoph Hellwig wrote:
-> > On Sat, Oct 13, 2018 at 12:34:12AM -0700, John Hubbard wrote:
-> >> In patch 6/6, pin_page_for_dma(), which is called at the end of get_user_pages(),
-> >> unceremoniously rips the pages out of the LRU, as a prerequisite to using
-> >> either of the page->dma_pinned_* fields. 
-> >>
-> >> The idea is that LRU is not especially useful for this situation anyway,
-> >> so we'll just make it one or the other: either a page is dma-pinned, and
-> >> just hanging out doing RDMA most likely (and LRU is less meaningful during that
-> >> time), or it's possibly on an LRU list.
-> > 
-> > Have you done any benchmarking what this does to direct I/O performance,
-> > especially for small I/O directly to a (fast) block device?
-> > 
-> 
-> Hi Christoph,
-> 
-> I'm seeing about 20% slower in one case: lots of reads and writes of size 8192 B,
-> on a fast NVMe device. My put_page() --> put_user_page() conversions are incomplete 
-> and buggy yet, but I've got enough of them done to briefly run the test.
-> 
-> One thing that occurs to me is that jumping on and off the LRU takes time, and
-> if we limited this to 64-bit platforms, maybe we could use a real page flag? I 
-> know that leaves 32-bit out in the cold, but...maybe use this slower approach
-> for 32-bit, and the pure page flag for 64-bit? uggh, we shouldn't slow down anything
-> by 20%. 
-> 
-> Test program is below. I hope I didn't overlook something obvious, but it's 
-> definitely possible, given my lack of experience with direct IO. 
-> 
-> I'm preparing to send an updated RFC this week, that contains the feedback to date,
-> and also many converted call sites as well, so that everyone can see what the whole
-> (proposed) story would look like in its latest incarnation.
-
-Hmm, have you tried larger buffer sizes? Because synchronous 8k IO isn't
-going to max-out NVME iops by far. Can I suggest you install fio [1] (it
-has the advantage that it is pretty much standard for a test like this so
-everyone knows what the test does from a glimpse) and run with it something
-like the following workfile:
-
-[reader]
-direct=1
-ioengine=libaio
-blocksize=4096
-size=1g
-numjobs=1
-rw=read
-iodepth=64
-
-And see how the numbers with and without your patches compare?
-
-								Honza
-
-[1] https://github.com/axboe/fio
-
-
-> 
-> #define _GNU_SOURCE
-> #include <sys/types.h>
-> #include <sys/stat.h>
-> #include <fcntl.h>
-> #include <stdio.h>
-> #include <unistd.h>
-> #include <stdlib.h>
-> #include <stdbool.h>
-> #include <string.h>
-> 
-> const static unsigned BUF_SIZE       = 4096;
-> static const unsigned FULL_DATA_SIZE = 2 * BUF_SIZE;
-> 
-> void read_from_file(int fd, size_t how_much, char * buf)
-> {
-> 	size_t bytes_read;
-> 
-> 	for (size_t index = 0; index < how_much; index += BUF_SIZE) {
-> 		bytes_read = read(fd, buf, BUF_SIZE);
-> 		if (bytes_read != BUF_SIZE) {
-> 			printf("reading file failed: %m\n");
-> 			exit(3);
-> 		}
-> 	}
-> }
-> 
-> void seek_to_start(int fd, char *caller)
-> {
-> 	off_t result = lseek(fd, 0, SEEK_SET);
-> 	if (result == -1) {
-> 		printf("%s: lseek failed: %m\n", caller);
-> 		exit(4);
-> 	}
-> }
-> 
-> void write_to_file(int fd, size_t how_much, char * buf)
-> {
-> 	int result;
-> 	for (size_t index = 0; index < how_much; index += BUF_SIZE) {
-> 		result = write(fd, buf, BUF_SIZE);
-> 		if (result < 0) {
-> 			printf("writing file failed: %m\n");
-> 			exit(3);
-> 		}
-> 	}
-> }
-> 
-> void read_and_write(int fd, size_t how_much, char * buf)
-> {
-> 	seek_to_start(fd, "About to read");
-> 	read_from_file(fd, how_much, buf);
-> 
-> 	memset(buf, 'a', BUF_SIZE);
-> 
-> 	seek_to_start(fd, "About to write");
-> 	write_to_file(fd, how_much, buf);
-> }
-> 
-> int main(int argc, char *argv[])
-> {
-> 	void *buf;
-> 	/*
-> 	 * O_DIRECT requires at least 512 B alighnment, but runs faster
-> 	 * (2.8 sec, vs. 3.5 sec) with 4096 B alignment.
-> 	 */
-> 	unsigned align = 4096;
-> 	posix_memalign(&buf, align, BUF_SIZE );
-> 
-> 	if (argc < 3) {
-> 		printf("Usage: %s <filename> <iterations>\n", argv[0]);
-> 		return 1;
-> 	}
-> 	char *filename = argv[1];
-> 	unsigned iterations = strtoul(argv[2], 0, 0);
-> 
-> 	/* Not using O_SYNC for now, anyway. */
-> 	int fd = open(filename, O_DIRECT | O_RDWR);
-> 	if (fd < 0) {
-> 		printf("Failed to open %s: %m\n", filename);
-> 		return 2;
-> 	}
-> 
-> 	printf("File: %s, data size: %u, interations: %u\n",
-> 		       filename, FULL_DATA_SIZE, iterations);
-> 
-> 	for (int count = 0; count < iterations; count++) {
-> 		read_and_write(fd, FULL_DATA_SIZE, buf);
-> 	}
-> 
-> 	close(fd);
-> 	return 0;
-> }
-> 
-> 
-> thanks,
-> -- 
-> John Hubbard
-> NVIDIA
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+RnJvbTogQXJuZCBCZXJnbWFubg0KPiBTZW50OiAwMiBOb3ZlbWJlciAyMDE4IDE1OjMzDQo+IA0K
+PiBBIHBhdGNoIHRoYXQgbG9va3MgaGFybWxlc3MgY2F1c2VzIHRoZSBzdGFjayB1c2FnZSBvZiB0
+aGUgbWx4NWVfZ3JwX3N3X3VwZGF0ZV9zdGF0cygpDQo+IGZ1bmN0aW9uIHRvIGRyYXN0aWNhbGx5
+IGluY3JlYXNlIHdpdGggeDg2IGdjYy00LjkgYW5kIGhpZ2hlciAodGVzdGVkIHVwIHRvIDguMSk6
+DQo+IA0KPiBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fc3RhdHMu
+YzogSW4gZnVuY3Rpb24g4oCYbWx4NWVfZ3JwX3N3X3VwZGF0ZV9zdGF0c+KAmToNCj4gZHJpdmVy
+cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2VuX3N0YXRzLmM6MjE2OjE6IHdhcm5p
+bmc6IHRoZSBmcmFtZSBzaXplIG9mIDEyNzYgYnl0ZXMgaXMNCj4gbGFyZ2VyIHRoYW4gNTAwIGJ5
+dGVzIFstV2ZyYW1lLWxhcmdlci10aGFuPV0NCj4gDQo+IEJ5IHNwbGl0dGluZyBvdXQgdGhlIGxv
+b3AgYm9keSBpbnRvIGEgbm9uLWlubGluZWQgZnVuY3Rpb24sIHRoZSBzdGFjayBzaXplIGdvZXMN
+Cj4gYmFjayBkb3duIHRvIHVuZGVyIDUwMCBieXRlcy4NCg0KSSdkIGxvb2sgYXQgdGhlIGdlbmVy
+YXRlZCBjb2RlIGZvciB0aGUgZnVuY3Rpb24uDQpJdCBtaWdodCBiZSB0cnVseSBob3JyaWQuDQoN
+Ckkgc3VzcGVjdCB0aGF0IGdjYyBhbGxvY2F0ZXMgJ3ZpcnR1YWwgcmVnaXN0ZXJzJyBmb3IgYWxs
+IHRoZQ0Kcy0+dHhfLi4uIG1lbWJlcnMgYW5kIHRoZW4gd3JpdGVzIHRoZW0gdG8gJ3MnIG91dHNp
+ZGUgdGhlIGxvb3AuDQpVbmZvcnR1bmF0ZWx5IHRoZXJlIGFyZW4ndCBlbm91Z2ggcmVhbCByZWdp
+c3RlcnMgc28gYWxsIHRoZQ0KdmlydHVhbCBvbmVzIGdldCBzcGlsbGVkIHRvIHN0YWNrLg0KDQpJ
+J3ZlIHNlZW4gaXQgZG8gc29tZXRoaW5nIHNpbWlsYXIgKGV4dHJhIHNwaWxscyB0byBzdGFjaykg
+aW4gdGhlDQppeGdiZSBieXRlIGFuZCBwYWNrZXQgY291bnRpbmcuDQoNCkkgdGhpbmsgaXQgaXMg
+cmVhbGx5IGEgZ2NjIGJ1Zy4NCg0KLi4uDQo+ICsJZm9yIChqID0gMDsgaiA8IHByaXYtPm1heF9v
+cGVuZWRfdGM7IGorKykgew0KPiArCQlzdHJ1Y3QgbWx4NWVfc3Ffc3RhdHMgKnNxX3N0YXRzID0g
+JmNoYW5uZWxfc3RhdHMtPnNxW2pdOw0KDQpUcnkgYWRkaW5nIGJhcnJpZXIoKSBoZXJlLg0KDQo+
+ICsNCj4gKwkJcy0+dHhfcGFja2V0cwkJKz0gc3Ffc3RhdHMtPnBhY2tldHM7DQoNCglEYXZpZA0K
+DQotDQpSZWdpc3RlcmVkIEFkZHJlc3MgTGFrZXNpZGUsIEJyYW1sZXkgUm9hZCwgTW91bnQgRmFy
+bSwgTWlsdG9uIEtleW5lcywgTUsxIDFQVCwgVUsNClJlZ2lzdHJhdGlvbiBObzogMTM5NzM4NiAo
+V2FsZXMpDQo=
