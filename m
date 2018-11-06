@@ -1,68 +1,52 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH V2] mlx5: Fix formats with line continuation whitespace
-Date: Tue, 06 Nov 2018 16:34:04 -0500
-Message-ID: <ac8361beee5dd80ad6546328dd7457bb6ee1ca5a.camel@redhat.com>
-References: <f14db3287b23ed8af9bdbf8001e2e2fe7ae9e43a.camel@perches.com>
-         <20181101073412.GQ3974@mtr-leonro.mtl.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma] net/mlx5: Fix XRC SRQ umem valid bits
+Date: Tue, 6 Nov 2018 22:02:13 +0000
+Message-ID: <20181106220206.GC30490@mellanox.com>
+References: <20181031102028.9142-1-leon@kernel.org>
+ <cb4d41e3a24c667c5c4e0492d3d3b21a5a165919.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-xF+pCoJdhHQPP7mzVYF8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181101073412.GQ3974@mtr-leonro.mtl.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Joe Perches <joe@perches.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cb4d41e3a24c667c5c4e0492d3d3b21a5a165919.camel@redhat.com>
+Content-Language: en-US
+Content-ID: <7FFD0158A0333846ADDBC1F908141342@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-xF+pCoJdhHQPP7mzVYF8
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2018-11-01 at 09:34 +0200, Leon Romanovsky wrote:
-> On Thu, Nov 01, 2018 at 12:24:08AM -0700, Joe Perches wrote:
-> > The line continuations unintentionally add whitespace so
-> > instead use coalesced formats to remove the whitespace.
+On Tue, Nov 06, 2018 at 04:31:08PM -0500, Doug Ledford wrote:
+> On Wed, 2018-10-31 at 12:20 +0200, Leon Romanovsky wrote:
+> > From: Yishai Hadas <yishaih@mellanox.com>
 > >=20
-> > Signed-off-by: Joe Perches <joe@perches.com>
-> > ---
+> > Adapt XRC SRQ to the latest HW specification with fixed definition
+> > around umem valid bits. The previous definition relied on a bit which
+> > was taken for other purposes in legacy FW.
 > >=20
-> > v2: Remove excess space after %u
+> > Fixes: bd37197554eb ("net/mlx5: Update mlx5_ifc with DEVX UID bits")
+> > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> > Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > Hi Doug, Jason
 > >=20
-> >  drivers/net/ethernet/mellanox/mlx5/core/rl.c | 6 ++----
-> >  1 file changed, 2 insertions(+), 4 deletions(-)
+> > This commit fixes code sent in this merge window, so I'm not marking it
+> > with any rdma-rc/rdma-next. It will be better to be sent during this me=
+rge
+> > window if you have extra pull request to issue, or as a -rc material, i=
+f
+> > not.
 > >=20
+> > BTW, we didn't combine reserved fields, because our convention is to al=
+ign such
+> > fields to 32 bits for better readability.
+> >=20
+> > Thanks
 >=20
-> Thanks,
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> This looks fine.  Let me know when it's in the mlx5-next tree to pull.
 
-Applied, thanks.
+It needs to go to -rc...=20
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+This needs a mlx5-rc branch for this I guess?
 
---=-xF+pCoJdhHQPP7mzVYF8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlviCMwACgkQuCajMw5X
-L90r+g/+Jmdkw3PjfGgZm0CAjbhF0TdDMCc3RnpVCdJmRxQF7kVCHPJCBcX4PDlM
-ODVXyWqgKE9n8itHTL+am85ioG5jxeJwriOLW4ei0OdKzbSQ//eR0DJMJB89EYVl
-rUVGWLCFOjDjqoN3zIUm4U9beZM7/gkgtNE5X9XEE/JkaHvdRTiwPTgyBDmz1r7J
-UgvfU5LLg6AJIrjcRuIxkZ5I2pzkEcUt0Tnh16+81va0mEQAxDZrTXcaiz9lItGS
-FPw86v+I3YkaKC5nuQekmRVn9yHimS7WJZih+F61gCKFmVEBSJAoAp/QL82AIUll
-kdWct31aZF4Dw6FyHxGuAI1NGvaevr0rCmOt+jIfp/cYpyXQKdAJoEPDH3cFTQJm
-NTeKhrMVuIrNFmf2W/CIyETLG6ohLDzQCqfQBdnBpmnr8aDFaQlgL6HXyalqlfxz
-JKzUtWn1QgYVEiQRw+JMrcuPXWthyZgDXrY7RwhO7CH4jNg30TmAXTpO+9WEH6Uv
-Vwk31T6PmXZyrqE5CuQ+fX9HUIYnlPqaNvGAFgqBxeAWOccpVFQLkCxozLykGa5t
-9a2Hs8NsVrVfsxh2JkQvcJksP7XgmXHMKWNhyK2bsMry07bgr6zigolt/yFO+6Cc
-3bRxR6NIAm87Q3CQ0BSWA0LavGTthh1+9bqR1UM1LC05/xoNwzA=
-=1u0t
------END PGP SIGNATURE-----
-
---=-xF+pCoJdhHQPP7mzVYF8--
+Jason=20
