@@ -1,72 +1,62 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma] net/mlx5: Fix XRC SRQ umem valid bits
-Date: Wed, 7 Nov 2018 15:07:32 -0700
-Message-ID: <20181107220732.GB2506@ziepe.ca>
-References: <20181031102028.9142-1-leon@kernel.org>
- <cb4d41e3a24c667c5c4e0492d3d3b21a5a165919.camel@redhat.com>
- <20181106220206.GC30490@mellanox.com>
- <581ad7a59e00c7ee01a65940637df25ad826041c.camel@redhat.com>
- <20181106221153.GG30476@ziepe.ca>
- <20181107073434.GJ9230@mtr-leonro.mtl.com>
+From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
+Subject: [PATCH net-next] i40iw: remove use of VLAN_TAG_PRESENT
+Date: Thu, 08 Nov 2018 18:44:49 +0100
+Message-ID: <af1c14d14054c8a62ffd56487f507b2110d5ed73.1541698641.git.mirq-linux@rere.qmqm.pl>
+References: <cover.1541698641.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181107073434.GJ9230@mtr-leonro.mtl.com>
+In-Reply-To: <cover.1541698641.git.mirq-linux@rere.qmqm.pl>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: netdev@vger.kernel.org
+Cc: Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Claudiu Manoil <claudiu.manoil@nxp.com>, Pravin B Shelar <pshelar@ovn.org>, dev@openvswitch.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 07, 2018 at 09:34:34AM +0200, Leon Romanovsky wrote:
-> On Tue, Nov 06, 2018 at 03:11:53PM -0700, Jason Gunthorpe wrote:
-> > On Tue, Nov 06, 2018 at 05:10:53PM -0500, Doug Ledford wrote:
-> > > On Tue, 2018-11-06 at 22:02 +0000, Jason Gunthorpe wrote:
-> > > > On Tue, Nov 06, 2018 at 04:31:08PM -0500, Doug Ledford wrote:
-> > > > > On Wed, 2018-10-31 at 12:20 +0200, Leon Romanovsky wrote:
-> > > > > > From: Yishai Hadas <yishaih@mellanox.com>
-> > > > > >
-> > > > > > Adapt XRC SRQ to the latest HW specification with fixed definition
-> > > > > > around umem valid bits. The previous definition relied on a bit which
-> > > > > > was taken for other purposes in legacy FW.
-> > > > > >
-> > > > > > Fixes: bd37197554eb ("net/mlx5: Update mlx5_ifc with DEVX UID bits")
-> > > > > > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> > > > > > Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-> > > > > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > > > > > Hi Doug, Jason
-> > > > > >
-> > > > > > This commit fixes code sent in this merge window, so I'm not marking it
-> > > > > > with any rdma-rc/rdma-next. It will be better to be sent during this merge
-> > > > > > window if you have extra pull request to issue, or as a -rc material, if
-> > > > > > not.
-> > > > > >
-> > > > > > BTW, we didn't combine reserved fields, because our convention is to align such
-> > > > > > fields to 32 bits for better readability.
-> > > > > >
-> > > > > > Thanks
-> > > > >
-> > > > > This looks fine.  Let me know when it's in the mlx5-next tree to pull.
-> > > >
-> > > > It needs to go to -rc...
-> > > >
-> > > > This needs a mlx5-rc branch for this I guess?
-> > >
-> > > I don't think so.  As long as it's the first commit in mlx5-next, and
-> > > mlx5-next is 4.20-rc1 based, then pulling this commit into the -rc tree
-> > > will only pull the single commit.  Then when we pull into for-next for
-> > > the first time, we will get this in for-next too.  That seems best to
-> > > me.
-> >
-> > That works too, if Leon is fast :)
-> 
-> Thank you both for suggestion.
-> 
-> I did it.
-> 99b77fef3c6c net/mlx5: Fix XRC SRQ umem valid bits
-> 
-> It is first commit and it is based on -rc1.
+Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
+---
+ drivers/infiniband/hw/i40iw/i40iw_cm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Okay, I put this branch in -rc
-
-Jason
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_cm.c b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+index 771eb6bd0785..4b3999d88c9e 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_cm.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_cm.c
+@@ -404,7 +404,7 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
+ 	if (pdata)
+ 		pd_len = pdata->size;
+ 
+-	if (cm_node->vlan_id < VLAN_TAG_PRESENT)
++	if (cm_node->vlan_id <= VLAN_VID_MASK)
+ 		eth_hlen += 4;
+ 
+ 	if (cm_node->ipv4)
+@@ -433,7 +433,7 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
+ 
+ 		ether_addr_copy(ethh->h_dest, cm_node->rem_mac);
+ 		ether_addr_copy(ethh->h_source, cm_node->loc_mac);
+-		if (cm_node->vlan_id < VLAN_TAG_PRESENT) {
++		if (cm_node->vlan_id <= VLAN_VID_MASK) {
+ 			((struct vlan_ethhdr *)ethh)->h_vlan_proto = htons(ETH_P_8021Q);
+ 			vtag = (cm_node->user_pri << VLAN_PRIO_SHIFT) | cm_node->vlan_id;
+ 			((struct vlan_ethhdr *)ethh)->h_vlan_TCI = htons(vtag);
+@@ -463,7 +463,7 @@ static struct i40iw_puda_buf *i40iw_form_cm_frame(struct i40iw_cm_node *cm_node,
+ 
+ 		ether_addr_copy(ethh->h_dest, cm_node->rem_mac);
+ 		ether_addr_copy(ethh->h_source, cm_node->loc_mac);
+-		if (cm_node->vlan_id < VLAN_TAG_PRESENT) {
++		if (cm_node->vlan_id <= VLAN_VID_MASK) {
+ 			((struct vlan_ethhdr *)ethh)->h_vlan_proto = htons(ETH_P_8021Q);
+ 			vtag = (cm_node->user_pri << VLAN_PRIO_SHIFT) | cm_node->vlan_id;
+ 			((struct vlan_ethhdr *)ethh)->h_vlan_TCI = htons(vtag);
+@@ -3323,7 +3323,7 @@ static void i40iw_init_tcp_ctx(struct i40iw_cm_node *cm_node,
+ 
+ 	tcp_info->flow_label = 0;
+ 	tcp_info->snd_mss = cpu_to_le32(((u32)cm_node->tcp_cntxt.mss));
+-	if (cm_node->vlan_id < VLAN_TAG_PRESENT) {
++	if (cm_node->vlan_id <= VLAN_VID_MASK) {
+ 		tcp_info->insert_vlan_tag = true;
+ 		tcp_info->vlan_tag = cpu_to_le16(((u16)cm_node->user_pri << I40IW_VLAN_PRIO_SHIFT) |
+ 						  cm_node->vlan_id);
+-- 
+2.19.1
