@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 05/10] IB/mlx5: Lock QP during page fault handling
-Date: Thu,  8 Nov 2018 21:10:12 +0200
-Message-ID: <20181108191017.21891-6-leon@kernel.org>
+Subject: [PATCH mlx5-next 07/10] net/mlx5: Use multi threaded workqueue for page fault handling
+Date: Thu,  8 Nov 2018 21:10:14 +0200
+Message-ID: <20181108191017.21891-8-leon@kernel.org>
 References: <20181108191017.21891-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,102 +14,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-When page fault event for a WQE arrives, the event data contains the
-resource (e.g. QP) number which will later be used by the page fault
-handler to retrieve the resource. Meanwhile, another context can destroy
-the resource and cause use-after-free. To avoid that, take a reference on the
-resource when handler starts and release it when it ends.
+Page fault events are processed in a workqueue context. Since each QP
+can have up to two concurrent unrelated page-faults, one for requester
+and one for responder, page-fault handling can be done in parallel.
+Achieve this by changing the workqueue to be multi-threaded.
+The number of threads is the same as the number of command interface
+channels to avoid command interface bottlenecks.
 
-Page fault events for RDMA operations don't need to be protected because
-the driver doesn't need to access the QP in the page fault handler.
+In addition to multi-threads, change the workqueue flags to give it high
+priority.
+
+Stress benchmark shows that before this change 85% of page faults were
+waiting in queue 8 seconds or more while after the change 98% of page
+faults were waiting in queue 64 milliseconds or less. The number of threads
+was chosen as the number of channels to the command interface.
 
 Fixes: d9aaed838765 ("{net,IB}/mlx5: Refactor page fault handling")
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 46 +++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 9 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index b04eb6775326..abce55b8b9ba 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -1016,16 +1016,31 @@ static int mlx5_ib_mr_responder_pfault_handler(
- 	return 0;
- }
-
--static struct mlx5_ib_qp *mlx5_ib_odp_find_qp(struct mlx5_ib_dev *dev,
--					      u32 wq_num)
-+static inline struct mlx5_core_rsc_common *odp_get_rsc(struct mlx5_ib_dev *dev,
-+						       u32 wq_num, int pf_type)
- {
--	struct mlx5_core_qp *mqp = __mlx5_qp_lookup(dev->mdev, wq_num);
-+	enum mlx5_res_type res_type;
-
--	if (!mqp) {
--		mlx5_ib_err(dev, "QPN 0x%6x not found\n", wq_num);
-+	switch (pf_type) {
-+	case MLX5_WQE_PF_TYPE_RMP:
-+		res_type = MLX5_RES_SRQ;
-+		break;
-+	case MLX5_WQE_PF_TYPE_REQ_SEND_OR_WRITE:
-+	case MLX5_WQE_PF_TYPE_RESP:
-+	case MLX5_WQE_PF_TYPE_REQ_READ_OR_ATOMIC:
-+		res_type = MLX5_RES_QP;
-+		break;
-+	default:
- 		return NULL;
- 	}
-
-+	return mlx5_core_res_hold(dev->mdev, wq_num, res_type);
-+}
-+
-+static inline struct mlx5_ib_qp *res_to_qp(struct mlx5_core_rsc_common *res)
-+{
-+	struct mlx5_core_qp *mqp = (struct mlx5_core_qp *)res;
-+
- 	return to_mibqp(mqp);
- }
-
-@@ -1039,18 +1054,30 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
- 	int resume_with_error = 1;
- 	u16 wqe_index = pfault->wqe.wqe_index;
- 	int requestor = pfault->type & MLX5_PFAULT_REQUESTOR;
-+	struct mlx5_core_rsc_common *res;
- 	struct mlx5_ib_qp *qp;
-
-+	res = odp_get_rsc(dev, pfault->wqe.wq_num, pfault->type);
-+	if (!res) {
-+		mlx5_ib_dbg(dev, "wqe page fault for missing resource %d\n", pfault->wqe.wq_num);
-+		return;
-+	}
-+
-+	switch (res->res) {
-+	case MLX5_RES_QP:
-+		qp = res_to_qp(res);
-+		break;
-+	default:
-+		mlx5_ib_err(dev, "wqe page fault for unsupported type %d\n", pfault->type);
-+		goto resolve_page_fault;
-+	}
-+
- 	buffer = (char *)__get_free_page(GFP_KERNEL);
- 	if (!buffer) {
- 		mlx5_ib_err(dev, "Error allocating memory for IO page fault handling.\n");
- 		goto resolve_page_fault;
- 	}
-
--	qp = mlx5_ib_odp_find_qp(dev, pfault->wqe.wq_num);
--	if (!qp)
--		goto resolve_page_fault;
--
- 	ret = mlx5_ib_read_user_wqe(qp, requestor, wqe_index, buffer,
- 				    PAGE_SIZE, &qp->trans_qp.base);
- 	if (ret < 0) {
-@@ -1090,6 +1117,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
- 	mlx5_ib_dbg(dev, "PAGE FAULT completed. QP 0x%x resume_with_error=%d, type: 0x%x\n",
- 		    pfault->wqe.wq_num, resume_with_error,
- 		    pfault->type);
-+	mlx5_core_res_put(res);
- 	free_page((unsigned long)buffer);
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index c1e1a16a9b07..aeab0c4f60f4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -356,8 +356,9 @@ static int init_pf_ctx(struct mlx5_eq_pagefault *pf_ctx, const char *name)
+ 	spin_lock_init(&pf_ctx->lock);
+ 	INIT_WORK(&pf_ctx->work, eq_pf_action);
+ 
+-	pf_ctx->wq = alloc_ordered_workqueue(name,
+-					     WQ_MEM_RECLAIM);
++	pf_ctx->wq = alloc_workqueue(name,
++				     WQ_HIGHPRI | WQ_UNBOUND | WQ_MEM_RECLAIM,
++				     MLX5_NUM_CMD_EQE);
+ 	if (!pf_ctx->wq)
+ 		return -ENOMEM;
+ 
+-- 
+2.19.1
