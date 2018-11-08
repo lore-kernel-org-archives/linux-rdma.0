@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 04/10] net/mlx5: Enumerate page fault types
-Date: Thu,  8 Nov 2018 21:10:11 +0200
-Message-ID: <20181108191017.21891-5-leon@kernel.org>
+Subject: [PATCH mlx5-next 03/10] net/mlx5: Add interface to hold and release core resources
+Date: Thu,  8 Nov 2018 21:10:10 +0200
+Message-ID: <20181108191017.21891-4-leon@kernel.org>
 References: <20181108191017.21891-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,31 +14,56 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-Give meaningful names to type of WQE page faults.
+Sometimes upper layers may want to prevent the destruction of a core
+resource for a period of time while work on that resource is in
+progress.  Add API to support this.
 
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/device.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c | 16 ++++++++++++++++
+ include/linux/mlx5/qp.h                      |  5 +++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index b4c0457fbebd..e326524bafcc 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -212,6 +212,13 @@ enum {
- 	MLX5_PFAULT_SUBTYPE_RDMA = 1,
- };
- 
-+enum wqe_page_fault_type {
-+	MLX5_WQE_PF_TYPE_RMP = 0,
-+	MLX5_WQE_PF_TYPE_REQ_SEND_OR_WRITE = 1,
-+	MLX5_WQE_PF_TYPE_RESP = 2,
-+	MLX5_WQE_PF_TYPE_REQ_READ_OR_ATOMIC = 3,
-+};
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+index 690dc1dd9391..cba4a435043a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
+@@ -670,3 +670,19 @@ int mlx5_core_query_q_counter(struct mlx5_core_dev *dev, u16 counter_id,
+ 	return mlx5_cmd_exec(dev, in, sizeof(in), out, out_size);
+ }
+ EXPORT_SYMBOL_GPL(mlx5_core_query_q_counter);
 +
- enum {
- 	MLX5_PERM_LOCAL_READ	= 1 << 2,
- 	MLX5_PERM_LOCAL_WRITE	= 1 << 3,
++struct mlx5_core_rsc_common *mlx5_core_res_hold(struct mlx5_core_dev *dev,
++						int res_num,
++						enum mlx5_res_type res_type)
++{
++	u32 rsn = res_num | (res_type << MLX5_USER_INDEX_LEN);
++
++	return mlx5_get_rsc(dev, rsn);
++}
++EXPORT_SYMBOL_GPL(mlx5_core_res_hold);
++
++void mlx5_core_res_put(struct mlx5_core_rsc_common *res)
++{
++	mlx5_core_put_rsc(res);
++}
++EXPORT_SYMBOL_GPL(mlx5_core_res_put);
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index fbe322c966bc..b26ea9077384 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -596,6 +596,11 @@ int mlx5_core_dealloc_q_counter(struct mlx5_core_dev *dev, u16 counter_id);
+ int mlx5_core_query_q_counter(struct mlx5_core_dev *dev, u16 counter_id,
+ 			      int reset, void *out, int out_size);
+ 
++struct mlx5_core_rsc_common *mlx5_core_res_hold(struct mlx5_core_dev *dev,
++						int res_num,
++						enum mlx5_res_type res_type);
++void mlx5_core_res_put(struct mlx5_core_rsc_common *res);
++
+ static inline const char *mlx5_qp_type_str(int type)
+ {
+ 	switch (type) {
 -- 
 2.19.1
