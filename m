@@ -1,99 +1,59 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH mlx5-next 08/10] IB/mlx5: Call PAGE_FAULT_RESUME command
- asynchronously
-Date: Thu, 8 Nov 2018 19:49:03 +0000
-Message-ID: <20181108194857.GF5548@mellanox.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/10] Collection of ODP fixes
+Date: Thu, 8 Nov 2018 19:50:53 +0000
+Message-ID: <76d378c8566ad6c775897c08ca49a8c16e95a69e.camel@mellanox.com>
 References: <20181108191017.21891-1-leon@kernel.org>
- <20181108191017.21891-9-leon@kernel.org>
+         <20181108194542.GE5548@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181108191017.21891-9-leon@kernel.org>
+In-Reply-To: <20181108194542.GE5548@mellanox.com>
 Content-Language: en-US
-Content-ID: <333E3EC7DEEA6949A74981A65F964004@eurprd05.prod.outlook.com>
+Content-ID: <A7A63136AC1ACC489099363ED3C89872@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 08, 2018 at 09:10:15PM +0200, Leon Romanovsky wrote:
-> From: Moni Shoua <monis@mellanox.com>
->=20
-> Telling the HCA that page fault handling is done and QP can resume
-> its flow is done in the context of the page fault handler. This blocks
-> the handling of the next work in queue without a need.
-> Call the PAGE_FAULT_RESUME command in an asynchronous manner and free
-> the workqueue to pick the next work item for handling. All tasks that
-> were executed after PAGE_FAULT_RESUME need to be done now
-> in the callback of the asynchronous command mechanism.
->=20
-> Signed-off-by: Moni Shoua <monis@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->  drivers/infiniband/hw/mlx5/odp.c | 110 +++++++++++++++++++++++++------
->  include/linux/mlx5/driver.h      |   3 +
->  2 files changed, 94 insertions(+), 19 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx=
-5/odp.c
-> index abce55b8b9ba..0c4f469cdd5b 100644
-> +++ b/drivers/infiniband/hw/mlx5/odp.c
-> @@ -298,20 +298,78 @@ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_=
-dev *dev)
->  	return;
->  }
-> =20
-> +struct pfault_resume_cb_ctx {
-> +	struct mlx5_ib_dev *dev;
-> +	struct mlx5_core_rsc_common *res;
-> +	struct mlx5_pagefault *pfault;
-> +};
-> +
-> +static void page_fault_resume_callback(int status, void *context)
-> +{
-> +	struct pfault_resume_cb_ctx *ctx =3D context;
-> +	struct mlx5_pagefault *pfault =3D ctx->pfault;
-> +
-> +	if (status)
-> +		mlx5_ib_err(ctx->dev, "Resolve the page fault failed with status %d\n"=
-,
-> +			    status);
-> +
-> +	if (ctx->res)
-> +		mlx5_core_res_put(ctx->res);
-> +	kfree(pfault);
-> +	kfree(ctx);
-> +}
-> +
->  static void mlx5_ib_page_fault_resume(struct mlx5_ib_dev *dev,
-> +				      struct mlx5_core_rsc_common *res,
->  				      struct mlx5_pagefault *pfault,
-> -				      int error)
-> +				      int error,
-> +				      bool async)
->  {
-> +	int ret =3D 0;
-> +	u32 *out =3D pfault->out_pf_resume;
-> +	u32 *in =3D pfault->in_pf_resume;
-> +	u32 token =3D pfault->token;
->  	int wq_num =3D pfault->event_subtype =3D=3D MLX5_PFAULT_SUBTYPE_WQE ?
-> -		     pfault->wqe.wq_num : pfault->token;
-> -	int ret =3D mlx5_core_page_fault_resume(dev->mdev,
-> -					      pfault->token,
-> -					      wq_num,
-> -					      pfault->type,
-> -					      error);
-> -	if (ret)
-> -		mlx5_ib_err(dev, "Failed to resolve the page fault on WQ 0x%x\n",
-> -			    wq_num);
-> +		pfault->wqe.wq_num : pfault->token;
-> +	u8 type =3D pfault->type;
-> +	struct pfault_resume_cb_ctx *ctx =3D NULL;
-> +
-> +	if (async)
-> +		ctx =3D kmalloc(sizeof(*ctx), GFP_KERNEL);
-
-Why not allocate this ctx ast part of the mlx5_pagefault and avoid
-this allocation failure strategy?
-
-Jason
+T24gVGh1LCAyMDE4LTExLTA4IGF0IDE5OjQ1ICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFRodSwgTm92IDA4LCAyMDE4IGF0IDA5OjEwOjA3UE0gKzAyMDAsIExlb24gUm9tYW5v
+dnNreSB3cm90ZToNCj4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5j
+b20+DQo+ID4gDQo+ID4gSGksDQo+ID4gDQo+ID4gVGhpcyBpcyBjb2xsZWN0aW9uIG9mIGZpeGVz
+IHRvIG1seDVfY29yZSBhbmQgbWx4NV9pYiBPRFAgbG9naWMuDQo+ID4gVGhlcmUgYXJlIHR3byBt
+YWluIHJlYXNvbnMgd2h5IHdlIGRlY2lkZWQgdG8gZm9yd2FyZCBpdCB0byBtbHg1LQ0KPiA+IG5l
+eHQNCj4gPiBhbmQgbm90IHRvIHJkbWEtcmMgb3IgbmV0IGxpa2Ugb3VyIG90aGVyIGZpeGVzLg0K
+PiA+IA0KPiA+IDEuIFdlIGhhdmUgbGFyZ2UgbnVtYmVyIG9mIHBhdGNoZXMgZXhhY3RseSBpbiB0
+aGF0IGFyZWEgdGhhdCBhcmUNCj4gPiByZWFkeQ0KPiA+IGZvciBzdWJtaXNzaW9uIGFuZCB3ZSBk
+b24ndCB3YW50IHRvIGNyZWF0ZSBleHRyYSBtZXJnZSB3b3JrIGZvcg0KPiA+IG1haW50YWluZXJz
+IGR1ZSB0byB0aGF0LiBBbW9uZyB0aG9zZSBmdXR1cmUgc2VyaWVzIChhbHJlYWR5IHJlYWR5DQo+
+ID4gYW5kDQo+ID4gdGVzdGVkKTogaW50ZXJuYWwgY2hhbmdlIG9mIG1seDVfY29yZSBwYWdlZmF1
+bHRzIGhhbmRsaW5nLCBtb3ZpbmcNCj4gPiBPRFANCj4gPiBjb2RlIHRvIFJETUEsIGNoYW5nZSBp
+biBFUSBtZWNoYW5pc20sIHNpbXBsaWZpY2F0aW9uIGFuZCBtb3ZpbmcgU1JRDQo+ID4gUVANCj4g
+PiB0byBSRE1BLCBleHRyYSBmaXhlcyB0byBtbHg1X2liIE9EUCBhbmQgT0RQIFNSUSBzdXBwb3J0
+Lg0KPiA+IA0KPiA+IDIuIE1vc3Qgb2YgdGhvc2UgZml4ZXMgYXJlIGZvciBvbGQgYnVncyBhbmQg
+dGhlcmUgaXMgbm8gcnVzaCB0byBmaXgNCj4gPiB0aGVtDQo+ID4gcmlnaHQgbm93IChpbiAtcmMx
+Ly1yYzIpLg0KPiA+IA0KPiA+IFRoYW5rcw0KPiA+IA0KPiA+IE1vbmkgU2hvdWEgKDEwKToNCj4g
+PiAgIG5ldC9tbHg1OiBSZWxlYXNlIHJlc291cmNlIG9uIGVycm9yIGZsb3cNCj4gPiAgIElCL21s
+eDU6IEF2b2lkIGhhbmdzIGR1ZSB0byBhIG1pc3NpbmcgY29tcGxldGlvbg0KPiA+ICAgbmV0L21s
+eDU6IEFkZCBpbnRlcmZhY2UgdG8gaG9sZCBhbmQgcmVsZWFzZSBjb3JlIHJlc291cmNlcw0KPiA+
+ICAgbmV0L21seDU6IEVudW1lcmF0ZSBwYWdlIGZhdWx0IHR5cGVzDQo+ID4gICBJQi9tbHg1OiBM
+b2NrIFFQIGR1cmluZyBwYWdlIGZhdWx0IGhhbmRsaW5nDQo+ID4gICBuZXQvbWx4NTogUmV0dXJu
+IHN1Y2Nlc3MgZm9yIFBBR0VfRkFVTFRfUkVTVU1FIGluIGludGVybmFsIGVycm9yDQo+ID4gc3Rh
+dGUNCj4gPiAgIG5ldC9tbHg1OiBVc2UgbXVsdGkgdGhyZWFkZWQgd29ya3F1ZXVlIGZvciBwYWdl
+IGZhdWx0IGhhbmRsaW5nDQo+ID4gICBJQi9tbHg1OiBDYWxsIFBBR0VfRkFVTFRfUkVTVU1FIGNv
+bW1hbmQgYXN5bmNocm9ub3VzbHkNCj4gPiAgIG5ldC9tbHg1OiBSZW1vdmUgdW51c2VkIGZ1bmN0
+aW9uDQo+ID4gICBJQi9tbHg1OiBJbXByb3ZlIE9EUCBkZWJ1Z2dpbmcgbWVzc2FnZXMNCj4gPiAN
+Cj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdW1lbV9vZHAuYyAgICAgICAgICAgIHwgIDE0
+ICstDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21seDVfaWIuaCAgICAgICAgICB8
+ICAgMSArDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21yLmMgICAgICAgICAgICAg
+ICB8ICAxNSArLQ0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9vZHAuYyAgICAgICAg
+ICAgICAgfCAxNTgNCj4gPiArKysrKysrKysrKysrKy0tLS0NCj4gPiAgZHJpdmVycy9uZXQvZXRo
+ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2NtZC5jIHwgICAyICstDQo+ID4gIGRyaXZlcnMvbmV0
+L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lcS5jICB8ICAyMSArLS0NCj4gPiAgZHJpdmVy
+cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3FwLmMgIHwgIDIwICsrLQ0KPiANCj4g
+dGhlcmUgaXMgYWxvdCBvZiBldGhlcm5ldCBmaWxlcyBoZXJlLCBwYXJ0cyBvZiB0aGlzIHNob3Vs
+ZCBwcm9iYWJseQ0KPiBnbw0KPiB0aHJvdWdoIHRoZSBzaGFyZWQgYnJhbmNoPw0KPiANCg0KQWxs
+IG9mIHRoaXMgc2hvdWxkIGdvIHRvIHRoZSBzaGFyZWQgYnJhbmNoLCANCmFmdGVyIHRoaXMgT0RQ
+IHNlcmllcyB3ZSBoYXZlIGFub3RoZXIgc2VyaWVzIHRoYXQgbW92ZXMgYWxsIHRoZSBPRFANCmxv
+Z2ljIG91dCBvZiBtbHg1X2NvcmUgaW50byBtbHg1X2liLg0KDQo+IEphc29uDQo=
