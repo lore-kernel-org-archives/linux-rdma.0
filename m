@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 10/10] IB/mlx5: Improve ODP debugging messages
-Date: Thu,  8 Nov 2018 21:10:17 +0200
-Message-ID: <20181108191017.21891-11-leon@kernel.org>
+Subject: [PATCH mlx5-next 06/10] net/mlx5: Return success for PAGE_FAULT_RESUME in internal error state
+Date: Thu,  8 Nov 2018 21:10:13 +0200
+Message-ID: <20181108191017.21891-7-leon@kernel.org>
 References: <20181108191017.21891-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,63 +14,38 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-Add and modify debug messages to ODP related error flows.
-In that context, return code EAGAIN is considered less severe and print
-level for it is set debug instead of warn.
+When the device is in internal error state, command interface isn't
+accessible and the driver decides which commands to fail and which to
+pass.
+Move the PAGE_FAULT_RESUME command to the pass list in order to avoid
+redundant failure messages.
 
+Fixes: 89d44f0a6c73 ("net/mlx5_core: Add pci error handlers to mlx5_core driver")
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/umem_odp.c | 14 ++++++++++++--
- drivers/infiniband/hw/mlx5/odp.c   |  4 ++--
- 2 files changed, 14 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 2b4c5e7dd5a1..e334480b56bf 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -655,8 +655,13 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 				flags, local_page_list, NULL, NULL);
- 		up_read(&owning_mm->mmap_sem);
-
--		if (npages < 0)
-+		if (npages < 0) {
-+			if (npages != -EAGAIN)
-+				pr_warn("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
-+			else
-+				pr_debug("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
- 			break;
-+		}
-
- 		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
- 		mutex_lock(&umem_odp->umem_mutex);
-@@ -674,8 +679,13 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 			ret = ib_umem_odp_map_dma_single_page(
- 					umem_odp, k, local_page_list[j],
- 					access_mask, current_seq);
--			if (ret < 0)
-+			if (ret < 0) {
-+				if (ret != -EAGAIN)
-+					pr_warn("ib_umem_odp_map_dma_single_page failed with error %d\n", ret);
-+				else
-+					pr_debug("ib_umem_odp_map_dma_single_page failed with error %d\n", ret);
- 				break;
-+			}
-
- 			p = page_to_phys(local_page_list[j]);
- 			k++;
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 0c4f469cdd5b..7bca1592d811 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -665,8 +665,8 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
- 			if (!wait_for_completion_timeout(
- 					&odp->notifier_completion,
- 					timeout)) {
--				mlx5_ib_warn(dev, "timeout waiting for mmu notifier. seq %d against %d\n",
--					     current_seq, odp->notifiers_seq);
-+				mlx5_ib_warn(dev, "timeout waiting for mmu notifier. seq %d against %d. notifiers_count=%d\n",
-+					     current_seq, odp->notifiers_seq, odp->notifiers_count);
- 			}
- 		} else {
- 			/* The MR is being killed, kill the QP as well. */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index a5a0823e5ada..7b18aff955f1 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -313,6 +313,7 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ 	case MLX5_CMD_OP_FPGA_DESTROY_QP:
+ 	case MLX5_CMD_OP_DESTROY_GENERAL_OBJECT:
+ 	case MLX5_CMD_OP_DEALLOC_MEMIC:
++	case MLX5_CMD_OP_PAGE_FAULT_RESUME:
+ 		return MLX5_CMD_STAT_OK;
+ 
+ 	case MLX5_CMD_OP_QUERY_HCA_CAP:
+@@ -326,7 +327,6 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
+ 	case MLX5_CMD_OP_CREATE_MKEY:
+ 	case MLX5_CMD_OP_QUERY_MKEY:
+ 	case MLX5_CMD_OP_QUERY_SPECIAL_CONTEXTS:
+-	case MLX5_CMD_OP_PAGE_FAULT_RESUME:
+ 	case MLX5_CMD_OP_CREATE_EQ:
+ 	case MLX5_CMD_OP_QUERY_EQ:
+ 	case MLX5_CMD_OP_GEN_EQE:
+-- 
+2.19.1
