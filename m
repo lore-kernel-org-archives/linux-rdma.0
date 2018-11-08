@@ -1,59 +1,34 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 00/10] Collection of ODP fixes
-Date: Thu, 8 Nov 2018 19:50:53 +0000
-Message-ID: <76d378c8566ad6c775897c08ca49a8c16e95a69e.camel@mellanox.com>
-References: <20181108191017.21891-1-leon@kernel.org>
-         <20181108194542.GE5548@mellanox.com>
+From: =?iso-8859-2?Q?Micha=B3_Miros=B3aw?= <mirq-linux@rere.qmqm.pl>
+Subject: Re: [PATCH net-next 0/4] Remove VLAN_TAG_PRESENT from drivers
+Date: Thu, 8 Nov 2018 23:11:45 +0100
+Message-ID: <20181108221145.GA11538@qmqm.qmqm.pl>
+References: <cover.1541698641.git.mirq-linux@rere.qmqm.pl>
+ <20181108185005.GR3695@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-2
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181108194542.GE5548@mellanox.com>
-Content-Language: en-US
-Content-ID: <A7A63136AC1ACC489099363ED3C89872@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <20181108185005.GR3695@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: netdev@vger.kernel.org, Claudiu Manoil <claudiu.manoil@nxp.com>, Faisal Latif <faisal.latif@intel.com>, Pravin B Shelar <pshelar@ovn.org>, Shiraz Saleem <shiraz.saleem@intel.com>, dev@openvswitch.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTExLTA4IGF0IDE5OjQ1ICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFRodSwgTm92IDA4LCAyMDE4IGF0IDA5OjEwOjA3UE0gKzAyMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5j
-b20+DQo+ID4gDQo+ID4gSGksDQo+ID4gDQo+ID4gVGhpcyBpcyBjb2xsZWN0aW9uIG9mIGZpeGVz
-IHRvIG1seDVfY29yZSBhbmQgbWx4NV9pYiBPRFAgbG9naWMuDQo+ID4gVGhlcmUgYXJlIHR3byBt
-YWluIHJlYXNvbnMgd2h5IHdlIGRlY2lkZWQgdG8gZm9yd2FyZCBpdCB0byBtbHg1LQ0KPiA+IG5l
-eHQNCj4gPiBhbmQgbm90IHRvIHJkbWEtcmMgb3IgbmV0IGxpa2Ugb3VyIG90aGVyIGZpeGVzLg0K
-PiA+IA0KPiA+IDEuIFdlIGhhdmUgbGFyZ2UgbnVtYmVyIG9mIHBhdGNoZXMgZXhhY3RseSBpbiB0
-aGF0IGFyZWEgdGhhdCBhcmUNCj4gPiByZWFkeQ0KPiA+IGZvciBzdWJtaXNzaW9uIGFuZCB3ZSBk
-b24ndCB3YW50IHRvIGNyZWF0ZSBleHRyYSBtZXJnZSB3b3JrIGZvcg0KPiA+IG1haW50YWluZXJz
-IGR1ZSB0byB0aGF0LiBBbW9uZyB0aG9zZSBmdXR1cmUgc2VyaWVzIChhbHJlYWR5IHJlYWR5DQo+
-ID4gYW5kDQo+ID4gdGVzdGVkKTogaW50ZXJuYWwgY2hhbmdlIG9mIG1seDVfY29yZSBwYWdlZmF1
-bHRzIGhhbmRsaW5nLCBtb3ZpbmcNCj4gPiBPRFANCj4gPiBjb2RlIHRvIFJETUEsIGNoYW5nZSBp
-biBFUSBtZWNoYW5pc20sIHNpbXBsaWZpY2F0aW9uIGFuZCBtb3ZpbmcgU1JRDQo+ID4gUVANCj4g
-PiB0byBSRE1BLCBleHRyYSBmaXhlcyB0byBtbHg1X2liIE9EUCBhbmQgT0RQIFNSUSBzdXBwb3J0
-Lg0KPiA+IA0KPiA+IDIuIE1vc3Qgb2YgdGhvc2UgZml4ZXMgYXJlIGZvciBvbGQgYnVncyBhbmQg
-dGhlcmUgaXMgbm8gcnVzaCB0byBmaXgNCj4gPiB0aGVtDQo+ID4gcmlnaHQgbm93IChpbiAtcmMx
-Ly1yYzIpLg0KPiA+IA0KPiA+IFRoYW5rcw0KPiA+IA0KPiA+IE1vbmkgU2hvdWEgKDEwKToNCj4g
-PiAgIG5ldC9tbHg1OiBSZWxlYXNlIHJlc291cmNlIG9uIGVycm9yIGZsb3cNCj4gPiAgIElCL21s
-eDU6IEF2b2lkIGhhbmdzIGR1ZSB0byBhIG1pc3NpbmcgY29tcGxldGlvbg0KPiA+ICAgbmV0L21s
-eDU6IEFkZCBpbnRlcmZhY2UgdG8gaG9sZCBhbmQgcmVsZWFzZSBjb3JlIHJlc291cmNlcw0KPiA+
-ICAgbmV0L21seDU6IEVudW1lcmF0ZSBwYWdlIGZhdWx0IHR5cGVzDQo+ID4gICBJQi9tbHg1OiBM
-b2NrIFFQIGR1cmluZyBwYWdlIGZhdWx0IGhhbmRsaW5nDQo+ID4gICBuZXQvbWx4NTogUmV0dXJu
-IHN1Y2Nlc3MgZm9yIFBBR0VfRkFVTFRfUkVTVU1FIGluIGludGVybmFsIGVycm9yDQo+ID4gc3Rh
-dGUNCj4gPiAgIG5ldC9tbHg1OiBVc2UgbXVsdGkgdGhyZWFkZWQgd29ya3F1ZXVlIGZvciBwYWdl
-IGZhdWx0IGhhbmRsaW5nDQo+ID4gICBJQi9tbHg1OiBDYWxsIFBBR0VfRkFVTFRfUkVTVU1FIGNv
-bW1hbmQgYXN5bmNocm9ub3VzbHkNCj4gPiAgIG5ldC9tbHg1OiBSZW1vdmUgdW51c2VkIGZ1bmN0
-aW9uDQo+ID4gICBJQi9tbHg1OiBJbXByb3ZlIE9EUCBkZWJ1Z2dpbmcgbWVzc2FnZXMNCj4gPiAN
-Cj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdW1lbV9vZHAuYyAgICAgICAgICAgIHwgIDE0
-ICstDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21seDVfaWIuaCAgICAgICAgICB8
-ICAgMSArDQo+ID4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg1L21yLmMgICAgICAgICAgICAg
-ICB8ICAxNSArLQ0KPiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9vZHAuYyAgICAgICAg
-ICAgICAgfCAxNTgNCj4gPiArKysrKysrKysrKysrKy0tLS0NCj4gPiAgZHJpdmVycy9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2NtZC5jIHwgICAyICstDQo+ID4gIGRyaXZlcnMvbmV0
-L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lcS5jICB8ICAyMSArLS0NCj4gPiAgZHJpdmVy
-cy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3FwLmMgIHwgIDIwICsrLQ0KPiANCj4g
-dGhlcmUgaXMgYWxvdCBvZiBldGhlcm5ldCBmaWxlcyBoZXJlLCBwYXJ0cyBvZiB0aGlzIHNob3Vs
-ZCBwcm9iYWJseQ0KPiBnbw0KPiB0aHJvdWdoIHRoZSBzaGFyZWQgYnJhbmNoPw0KPiANCg0KQWxs
-IG9mIHRoaXMgc2hvdWxkIGdvIHRvIHRoZSBzaGFyZWQgYnJhbmNoLCANCmFmdGVyIHRoaXMgT0RQ
-IHNlcmllcyB3ZSBoYXZlIGFub3RoZXIgc2VyaWVzIHRoYXQgbW92ZXMgYWxsIHRoZSBPRFANCmxv
-Z2ljIG91dCBvZiBtbHg1X2NvcmUgaW50byBtbHg1X2liLg0KDQo+IEphc29uDQo=
+On Thu, Nov 08, 2018 at 08:50:05PM +0200, Leon Romanovsky wrote:
+> On Thu, Nov 08, 2018 at 06:44:46PM +0100, Micha³ Miros³aw wrote:
+> > This series removes VLAN_TAG_PRESENT use from network drivers in
+> > preparation to removing its special meaning.
+> Can you please give an extra explanation why it is removed?
+> Such series come out-of-blue, for people who are not following
+> netdev mailing list closely (drivers/infiniband/*).
+
+This is one of the steps to remove VLAN_TAG_PRESENT overlap with CFI/DEI
+bit of VLAN tag. Currently this overlap causes Linux kernel to always
+clear CFI/DEI in packets.
+
+There is skb_vlan_tag_present() that drivers should use to check if
+the tag in skb is valid.
+
+Best Regards,
+Micha³ Miros³aw
