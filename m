@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [RFC PATCH 07/10] net: hns3: Add checksum info query function
-Date: Fri, 9 Nov 2018 22:07:40 +0000
-Message-ID: <20181109220743.10264-8-salil.mehta@huawei.com>
+Subject: [RFC PATCH 04/10] net: hns3: Add "promisc mode" config info query function
+Date: Fri, 9 Nov 2018 22:07:37 +0000
+Message-ID: <20181109220743.10264-5-salil.mehta@huawei.com>
 References: <20181109220743.10264-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,157 +14,108 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: liuzhongzhu <liuzhongzhu@huawei.com>
 
-This patch prints checksum config information
-related to various layers of headers.
+This patch prints promiscuous mode status.
 
 debugfs command:
-echo dump checksum > cmd
+echo dump promisc 0 > cmd
 
 Sample Output:
-root@(none)# echo dump checksum > cmd
-hns3 0000:7d:00.0: dump checksum
-hns3 0000:7d:00.0: outer_l3: enable
-hns3 0000:7d:00.0: outer_udp: enable
-hns3 0000:7d:00.0: inner_l3: enable
-hns3 0000:7d:00.0: inner_tcp: enable
-hns3 0000:7d:00.0: inner_udp: enable
-hns3 0000:7d:00.0: inner_sctp: enable
+root@(none)# echo dump promisc 0 > cmd
+hns3 0000:7d:00.0: vf(0) promisc mode
+hns3 0000:7d:00.0: uc: disable
+hns3 0000:7d:00.0: mc: disable
+hns3 0000:7d:00.0: bc: disable
 root@(none)#
 
 Signed-off-by: liuzhongzhu <liuzhongzhu@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
  drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c |  1 +
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  3 ++
- .../ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c | 50 ++++++++++++++++++++++
- .../ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.h | 11 +++++
- 4 files changed, 65 insertions(+)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.h
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c | 53 ++++++++++++++++++++++
+ 2 files changed, 54 insertions(+)
 
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c b/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
-index 4d7be38..27757be 100644
+index 0bc2f59..47afdcd 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
-@@ -132,6 +132,7 @@ static void hns3_dbg_help(struct hnae3_handle *h)
- 	dev_info(&h->pdev->dev, "dump promisc [vf id]\n");
- 	dev_info(&h->pdev->dev, "dump tc\n");
- 	dev_info(&h->pdev->dev, "dump tm\n");
-+	dev_info(&h->pdev->dev, "dump checksum\n");
+@@ -129,6 +129,7 @@ static void hns3_dbg_help(struct hnae3_handle *h)
+ 	dev_info(&h->pdev->dev, "available commands\n");
+ 	dev_info(&h->pdev->dev, "queue info [number]\n");
+ 	dev_info(&h->pdev->dev, "dump fd tcam\n");
++	dev_info(&h->pdev->dev, "dump promisc [vf id]\n");
  }
  
  static ssize_t hns3_dbg_cmd_read(struct file *filp, char __user *buffer,
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-index cc0f214..2c84e39 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-@@ -96,6 +96,9 @@ enum hclge_opcode_type {
- 	HCLGE_OPC_CONFIG_SPEED_DUP	= 0x0309,
- 	HCLGE_OPC_SERDES_LOOPBACK       = 0x0315,
- 
-+	/* check sum command */
-+	HCLGE_OPC_CFG_CHECKSUM_EN       = 0x0601,
-+
- 	/* PFC/Pause commands */
- 	HCLGE_OPC_CFG_MAC_PAUSE_EN      = 0x0701,
- 	HCLGE_OPC_CFG_PFC_PAUSE_EN      = 0x0702,
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
-index 4ada773..4fa546f 100644
+index feaf332..0a12473 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
-@@ -3,6 +3,7 @@
- 
- #include <linux/device.h>
- 
-+#include "hclge_debugfs.h"
- #include "hclge_cmd.h"
+@@ -7,6 +7,57 @@
  #include "hclge_main.h"
- #include "hclge_tm.h"
-@@ -17,6 +18,15 @@ static void hclge_print(struct hclge_dev *hdev, bool flag, char *true_buf,
- 		dev_info(&hdev->pdev->dev, "%s\n", false_buf);
- }
+ #include "hnae3.h"
  
-+static void hclge_title_print(struct hclge_dev *hdev, bool flag,
-+			      char *title_buf, char *true_buf, char *false_buf)
++static void hclge_print(struct hclge_dev *hdev, bool flag, char *true_buf,
++			char *false_buf)
 +{
 +	if (flag)
-+		dev_info(&hdev->pdev->dev, "%s: %s\n", title_buf, true_buf);
++		dev_info(&hdev->pdev->dev, "%s\n", true_buf);
 +	else
-+		dev_info(&hdev->pdev->dev, "%s: %s\n", title_buf, false_buf);
++		dev_info(&hdev->pdev->dev, "%s\n", false_buf);
 +}
 +
- static void hclge_title_idx_print(struct hclge_dev *hdev, bool flag, int index,
- 				  char *title_buf, char *true_buf,
- 				  char *false_buf)
-@@ -293,6 +303,44 @@ static void hclge_dbg_dump_tm(struct hclge_dev *hdev)
- 		cmd, ret);
- }
- 
-+static void hclge_dbg_dump_checksum(struct hclge_dev *hdev)
++static void hclge_dbg_dump_promisc_cfg(struct hclge_dev *hdev, char *cmd_buf)
 +{
-+#define HCLGE_DBG_OUTER_L3_B   BIT(0)
-+#define HCLGE_DBG_OUTER_UDP_B  BIT(1)
-+#define HCLGE_DBG_INNER_L3_B   BIT(0)
-+#define HCLGE_DBG_INNER_TCP_B  BIT(1)
-+#define HCLGE_DBG_INNER_UDP_B  BIT(2)
-+#define HCLGE_DBG_INNER_SCTP_B BIT(3)
++#define HCLGE_DBG_UC_MODE_B BIT(1)
++#define HCLGE_DBG_MC_MODE_B BIT(2)
++#define HCLGE_DBG_BC_MODE_B BIT(3)
 +
-+	struct hclge_checksum_cmd *checksum;
++	struct hclge_promisc_cfg_cmd *req;
 +	struct hclge_desc desc;
++	u16 vf_id;
 +	int ret;
 +
-+	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_CFG_CHECKSUM_EN, true);
++	ret = kstrtou16(&cmd_buf[13], 10, &vf_id);
++	if (ret)
++		vf_id = 0;
 +
-+	ret = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (ret) {
-+		dev_err(&hdev->pdev->dev, "dump checksum fail, status is %d.\n",
-+			ret);
++	if (vf_id >= hdev->num_req_vfs) {
++		dev_err(&hdev->pdev->dev, "vf_id (%u) is out of range(%u)\n",
++			vf_id, hdev->num_req_vfs);
 +		return;
 +	}
 +
-+	checksum = (struct hclge_checksum_cmd *)desc.data;
-+	dev_info(&hdev->pdev->dev, "dump checksum\n");
-+	hclge_title_print(hdev, checksum->outer & HCLGE_DBG_OUTER_L3_B,
-+			  "outer_l3", "enable", "disable");
-+	hclge_title_print(hdev, checksum->outer & HCLGE_DBG_OUTER_UDP_B,
-+			  "outer_udp", "enable", "disable");
-+	hclge_title_print(hdev, checksum->inner & HCLGE_DBG_INNER_L3_B,
-+			  "inner_l3", "enable", "disable");
-+	hclge_title_print(hdev, checksum->inner & HCLGE_DBG_INNER_TCP_B,
-+			  "inner_tcp", "enable", "disable");
-+	hclge_title_print(hdev, checksum->inner & HCLGE_DBG_INNER_UDP_B,
-+			  "inner_udp", "enable", "disable");
-+	hclge_title_print(hdev, checksum->inner & HCLGE_DBG_INNER_SCTP_B,
-+			  "inner_sctp", "enable", "disable");
++	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_CFG_PROMISC_MODE, true);
++	req = (struct hclge_promisc_cfg_cmd *)desc.data;
++	req->vf_id = (u8)vf_id;
++
++	ret = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (ret) {
++		dev_err(&hdev->pdev->dev,
++			"dump promisc mode fail, status is %d.\n", ret);
++		return;
++	}
++
++	dev_info(&hdev->pdev->dev, "vf(%u) promisc mode\n", req->vf_id);
++
++	hclge_print(hdev, req->flag & HCLGE_DBG_UC_MODE_B,
++		    "uc: enable", "uc: disable");
++	hclge_print(hdev, req->flag & HCLGE_DBG_MC_MODE_B,
++		    "mc: enable", "mc: disable");
++	hclge_print(hdev, req->flag & HCLGE_DBG_BC_MODE_B,
++		    "bc: enable", "bc: disable");
 +}
 +
  static void hclge_dbg_fd_tcam_read(struct hclge_dev *hdev, u8 stage,
  				   bool sel_x, u32 loc)
  {
-@@ -360,6 +408,8 @@ int hclge_dbg_run_cmd(struct hnae3_handle *handle, char *cmd_buf)
- 		hclge_dbg_dump_tc(hdev);
- 	} else if (strncmp(cmd_buf, "dump tm", 7) == 0) {
- 		hclge_dbg_dump_tm(hdev);
-+	} else if (strncmp(cmd_buf, "dump checksum", 13) == 0) {
-+		hclge_dbg_dump_checksum(hdev);
+@@ -68,6 +119,8 @@ int hclge_dbg_run_cmd(struct hnae3_handle *handle, char *cmd_buf)
+ 
+ 	if (strncmp(cmd_buf, "dump fd tcam", 12) == 0) {
+ 		hclge_dbg_fd_tcam(hdev);
++	} else if (strncmp(cmd_buf, "dump promisc", 12) == 0) {
++		hclge_dbg_dump_promisc_cfg(hdev, cmd_buf);
  	} else {
  		dev_info(&hdev->pdev->dev, "unknown command\n");
  		return -EINVAL;
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.h
-new file mode 100644
-index 0000000..4ec9ced
---- /dev/null
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.h
-@@ -0,0 +1,11 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+// Copyright (c) 2018-2019 Hisilicon Limited.
-+
-+#ifndef __HCLGE_DEBUGFS_H
-+#define __HCLGE_DEBUGFS_H
-+
-+struct hclge_checksum_cmd {
-+	u8 outer;
-+	u8 inner;
-+};
-+#endif
 -- 
 2.7.4
