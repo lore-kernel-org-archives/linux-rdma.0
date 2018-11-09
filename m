@@ -1,22 +1,25 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/4] Remove VLAN_TAG_PRESENT from drivers
-Date: Thu, 08 Nov 2018 19:49:47 -0800 (PST)
-Message-ID: <20181108.194947.297799344167494081.davem@davemloft.net>
-References: <cover.1541698641.git.mirq-linux@rere.qmqm.pl>
+Subject: Re: [PATCH net-next 0/9] Use __vlan_hwaccel_*() helpers
+Date: Thu, 08 Nov 2018 20:45:23 -0800 (PST)
+Message-ID: <20181108.204523.1353698272847299871.davem@davemloft.net>
+References: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=euc-kr
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1541698641.git.mirq-linux@rere.qmqm.pl>
+In-Reply-To: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
 Sender: netdev-owner@vger.kernel.org
 To: mirq-linux@rere.qmqm.pl
-Cc: netdev@vger.kernel.org, claudiu.manoil@nxp.com, faisal.latif@intel.com, pshelar@ovn.org, shiraz.saleem@intel.com, dev@openvswitch.org, linux-rdma@vger.kernel.org
+Cc: netdev@vger.kernel.org, ajit.khaparde@broadcom.com, kuznet@ms2.inr.ac.ru, bridge@lists.linux-foundation.org, xiyou.wangcong@gmail.com, coreteam@netfilter.org, fw@strlen.de, yoshfuji@linux-ipv6.org, jhs@mojatatu.com, jiri@resnulli.us, kadlec@blackhole.kfki.hu, linux-rdma@vger.kernel.org, mlindner@marvell.com, netfilter-devel@vger.kernel.org, nikolay@cumulusnetworks.com, pablo@netfilter.org, roopa@cumulusnetworks.com, sathya.perla@broadcom.com, somnath.kotur@broadcom.com, sriharsha.basavapatna@broadcom.com, stephen@networkplumber.org, swise@chelsio.com, tariqt@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
 From: Micha©© Miros©©aw <mirq-linux@rere.qmqm.pl>
-Date: Thu, 08 Nov 2018 18:44:46 +0100
+Date: Fri, 09 Nov 2018 00:17:58 +0100
 
-> This series removes VLAN_TAG_PRESENT use from network drivers in
-> preparation to removing its special meaning.
+> This series removes from networking core and driver code an assumption
+> about how VLAN tag presence is stored in an skb. This will allow to free
+> up overloading of VLAN.CFI bit to incidate tag's presence.
 
-Series applied, thank you.
+This looks good, series applied.
+
+Thanks.
