@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [RFC PATCH 03/10] net: hns3: Add "FD flow table" info query function
-Date: Fri, 9 Nov 2018 22:07:36 +0000
-Message-ID: <20181109220743.10264-4-salil.mehta@huawei.com>
+Subject: [RFC PATCH 05/10] net: hns3: Add "tc config" info query function
+Date: Fri, 9 Nov 2018 22:07:38 +0000
+Message-ID: <20181109220743.10264-6-salil.mehta@huawei.com>
 References: <20181109220743.10264-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,198 +14,145 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: liuzhongzhu <liuzhongzhu@huawei.com>
 
-All the Flow Director rules are stored in tcam blocks.
-For each bit of tcam entry, the match value
-depends on two input value(x, y).
+This patch prints tc config information.
 
 debugfs command:
-echo dump fd tcam > cmd
+echo dump tc > cmd
 
-Sample output:
-root@(none)# echo dump fd tcam > cmd
-hns3 0000:7d:00.0: read result tcam key x(31):
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 08000000
-hns3 0000:7d:00.0: 00000600
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: read result tcam key y(31):
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: f7ff0000
-hns3 0000:7d:00.0: 0000f900
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 00000000
-hns3 0000:7d:00.0: 0000fff8
+Sample Output:
+root@(none)# echo dump tc > cmd
+hns3 0000:7d:00.0: weight_offset: 14
+hns3 0000:7d:00.0: tc(0): no sp mode
+hns3 0000:7d:00.0: tc(1): no sp mode
+hns3 0000:7d:00.0: tc(2): no sp mode
+hns3 0000:7d:00.0: tc(3): no sp mode
+hns3 0000:7d:00.0: tc(4): no sp mode
+hns3 0000:7d:00.0: tc(5): no sp mode
+hns3 0000:7d:00.0: tc(6): no sp mode
+hns3 0000:7d:00.0: tc(7): no sp mode
 root@(none)#
 
 Signed-off-by: liuzhongzhu <liuzhongzhu@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns3/hnae3.h        |  1 +
- drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c |  2 +
- .../net/ethernet/hisilicon/hns3/hns3pf/Makefile    |  2 +-
- .../ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c | 77 ++++++++++++++++++++++
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.c    |  1 +
- .../ethernet/hisilicon/hns3/hns3pf/hclge_main.h    |  1 +
- 6 files changed, 83 insertions(+), 1 deletion(-)
- create mode 100644 drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
+ drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c |  1 +
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h |  1 +
+ .../ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c | 40 ++++++++++++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h  |  6 ++++
+ 4 files changed, 48 insertions(+)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-index 994aee1..e7a6361 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-@@ -432,6 +432,7 @@ struct hnae3_ae_ops {
- 				struct ethtool_rxnfc *cmd, u32 *rule_locs);
- 	int (*restore_fd_rules)(struct hnae3_handle *handle);
- 	void (*enable_fd)(struct hnae3_handle *handle, bool enable);
-+	int (*dbg_run_cmd)(struct hnae3_handle *handle, char *cmd_buf);
- 	pci_ers_result_t (*process_hw_error)(struct hnae3_ae_dev *ae_dev);
- 	bool (*get_hw_reset_stat)(struct hnae3_handle *handle);
- 	bool (*ae_dev_resetting)(struct hnae3_handle *handle);
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c b/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
-index ac6a072..0bc2f59 100644
+index 47afdcd..da009f8 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_debugfs.c
-@@ -197,6 +197,8 @@ static ssize_t hns3_dbg_cmd_write(struct file *filp, const char __user *buffer,
+@@ -130,6 +130,7 @@ static void hns3_dbg_help(struct hnae3_handle *h)
+ 	dev_info(&h->pdev->dev, "queue info [number]\n");
+ 	dev_info(&h->pdev->dev, "dump fd tcam\n");
+ 	dev_info(&h->pdev->dev, "dump promisc [vf id]\n");
++	dev_info(&h->pdev->dev, "dump tc\n");
+ }
  
- 	if (strncmp(cmd_buf, "queue info", 10) == 0)
- 		ret = hns3_dbg_queue_info(handle, cmd_buf);
-+	else if (handle->ae_algo->ops->dbg_run_cmd)
-+		ret = handle->ae_algo->ops->dbg_run_cmd(handle, cmd_buf);
+ static ssize_t hns3_dbg_cmd_read(struct file *filp, char __user *buffer,
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
+index 872cd4b..cc0f214 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
+@@ -126,6 +126,7 @@ enum hclge_opcode_type {
+ 	HCLGE_OPC_TM_PRI_SCH_MODE_CFG   = 0x0813,
+ 	HCLGE_OPC_TM_QS_SCH_MODE_CFG    = 0x0814,
+ 	HCLGE_OPC_TM_BP_TO_QSET_MAPPING = 0x0815,
++	HCLGE_OPC_ETS_TC_WEIGHT		= 0x0843,
  
- 	if (ret)
- 		hns3_dbg_help(handle);
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-index 580e817..fffe8c1 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/Makefile
-@@ -6,6 +6,6 @@
- ccflags-y := -Idrivers/net/ethernet/hisilicon/hns3
- 
- obj-$(CONFIG_HNS3_HCLGE) += hclge.o
--hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o hclge_err.o
-+hclge-objs = hclge_main.o hclge_cmd.o hclge_mdio.o hclge_tm.o hclge_mbx.o hclge_err.o  hclge_debugfs.o
- 
- hclge-$(CONFIG_HNS3_DCB) += hclge_dcb.o
+ 	/* Packet buffer allocate commands */
+ 	HCLGE_OPC_TX_BUFF_ALLOC		= 0x0901,
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
-new file mode 100644
-index 0000000..feaf332
---- /dev/null
+index 0a12473..901dc41 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_debugfs.c
-@@ -0,0 +1,77 @@
-+// SPDX-License-Identifier: GPL-2.0+
-+// Copyright (c) 2018-2019 Hisilicon Limited.
-+
-+#include <linux/device.h>
-+
-+#include "hclge_cmd.h"
-+#include "hclge_main.h"
-+#include "hnae3.h"
-+
-+static void hclge_dbg_fd_tcam_read(struct hclge_dev *hdev, u8 stage,
-+				   bool sel_x, u32 loc)
+@@ -5,6 +5,7 @@
+ 
+ #include "hclge_cmd.h"
+ #include "hclge_main.h"
++#include "hclge_tm.h"
+ #include "hnae3.h"
+ 
+ static void hclge_print(struct hclge_dev *hdev, bool flag, char *true_buf,
+@@ -16,6 +17,18 @@ static void hclge_print(struct hclge_dev *hdev, bool flag, char *true_buf,
+ 		dev_info(&hdev->pdev->dev, "%s\n", false_buf);
+ }
+ 
++static void hclge_title_idx_print(struct hclge_dev *hdev, bool flag, int index,
++				  char *title_buf, char *true_buf,
++				  char *false_buf)
 +{
-+	struct hclge_fd_tcam_config_1_cmd *req1;
-+	struct hclge_fd_tcam_config_2_cmd *req2;
-+	struct hclge_fd_tcam_config_3_cmd *req3;
-+	struct hclge_desc desc[3];
-+	int ret, i;
-+	u32 *req;
++	if (flag)
++		dev_info(&hdev->pdev->dev, "%s(%d): %s\n", title_buf, index,
++			 true_buf);
++	else
++		dev_info(&hdev->pdev->dev, "%s(%d): %s\n", title_buf, index,
++			 false_buf);
++}
 +
-+	hclge_cmd_setup_basic_desc(&desc[0], HCLGE_OPC_FD_TCAM_OP, true);
-+	desc[0].flag |= cpu_to_le16(HCLGE_CMD_FLAG_NEXT);
-+	hclge_cmd_setup_basic_desc(&desc[1], HCLGE_OPC_FD_TCAM_OP, true);
-+	desc[1].flag |= cpu_to_le16(HCLGE_CMD_FLAG_NEXT);
-+	hclge_cmd_setup_basic_desc(&desc[2], HCLGE_OPC_FD_TCAM_OP, true);
+ static void hclge_dbg_dump_promisc_cfg(struct hclge_dev *hdev, char *cmd_buf)
+ {
+ #define HCLGE_DBG_UC_MODE_B BIT(1)
+@@ -58,6 +71,31 @@ static void hclge_dbg_dump_promisc_cfg(struct hclge_dev *hdev, char *cmd_buf)
+ 		    "bc: enable", "bc: disable");
+ }
+ 
++static void hclge_dbg_dump_tc(struct hclge_dev *hdev)
++{
++	struct hclge_ets_tc_weight_cmd *ets_weight;
++	struct hclge_desc desc;
++	int i, ret;
 +
-+	req1 = (struct hclge_fd_tcam_config_1_cmd *)desc[0].data;
-+	req2 = (struct hclge_fd_tcam_config_2_cmd *)desc[1].data;
-+	req3 = (struct hclge_fd_tcam_config_3_cmd *)desc[2].data;
++	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_ETS_TC_WEIGHT, true);
 +
-+	req1->stage  = stage;
-+	req1->xy_sel = sel_x ? 1 : 0;
-+	req1->index  = cpu_to_le32(loc);
-+
-+	ret = hclge_cmd_send(&hdev->hw, desc, 3);
-+	if (ret)
++	ret = hclge_cmd_send(&hdev->hw, &desc, 1);
++	if (ret) {
++		dev_err(&hdev->pdev->dev, "dump tc fail, status is %d.\n", ret);
 +		return;
-+
-+	dev_info(&hdev->pdev->dev, " read result tcam key %s(%u):\n",
-+		 sel_x ? "x" : "y", loc);
-+
-+	req = (u32 *)req1->tcam_data;
-+	for (i = 0; i < 2; i++)
-+		dev_info(&hdev->pdev->dev, "%08x\n", *req++);
-+
-+	req = (u32 *)req2->tcam_data;
-+	for (i = 0; i < 6; i++)
-+		dev_info(&hdev->pdev->dev, "%08x\n", *req++);
-+
-+	req = (u32 *)req3->tcam_data;
-+	for (i = 0; i < 5; i++)
-+		dev_info(&hdev->pdev->dev, "%08x\n", *req++);
-+}
-+
-+static void hclge_dbg_fd_tcam(struct hclge_dev *hdev)
-+{
-+	u32 i;
-+
-+	for (i = 0; i < hdev->fd_cfg.rule_num[0]; i++) {
-+		hclge_dbg_fd_tcam_read(hdev, 0, true, i);
-+		hclge_dbg_fd_tcam_read(hdev, 0, false, i);
-+	}
-+}
-+
-+int hclge_dbg_run_cmd(struct hnae3_handle *handle, char *cmd_buf)
-+{
-+	struct hclge_vport *vport = hclge_get_vport(handle);
-+	struct hclge_dev *hdev = vport->back;
-+
-+	if (strncmp(cmd_buf, "dump fd tcam", 12) == 0) {
-+		hclge_dbg_fd_tcam(hdev);
-+	} else {
-+		dev_info(&hdev->pdev->dev, "unknown command\n");
-+		return -EINVAL;
 +	}
 +
-+	return 0;
++	ets_weight = (struct hclge_ets_tc_weight_cmd *)desc.data;
++
++	dev_info(&hdev->pdev->dev, "dump tc\n");
++	dev_info(&hdev->pdev->dev, "weight_offset: %u\n",
++		 ets_weight->weight_offset);
++
++	for (i = 0; i < HNAE3_MAX_TC; i++)
++		hclge_title_idx_print(hdev, ets_weight->tc_weight[i], i,
++				      "tc", "no sp mode", "sp mode");
 +}
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 77980e5..13cebcd 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -7535,6 +7535,7 @@ static const struct hnae3_ae_ops hclge_ops = {
- 	.get_fd_all_rules = hclge_get_all_rules,
- 	.restore_fd_rules = hclge_restore_fd_entries,
- 	.enable_fd = hclge_enable_fd,
-+	.dbg_run_cmd = hclge_dbg_run_cmd,
- 	.process_hw_error = hclge_process_ras_hw_error,
- 	.get_hw_reset_stat = hclge_get_hw_reset_stat,
- 	.ae_dev_resetting = hclge_ae_dev_resetting,
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-index 36f3413..5008d8a 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.h
-@@ -789,4 +789,5 @@ int hclge_reset_tqp(struct hnae3_handle *handle, u16 queue_id);
- void hclge_reset_vf_queue(struct hclge_vport *vport, u16 queue_id);
- int hclge_cfg_flowctrl(struct hclge_dev *hdev);
- int hclge_func_reset_cmd(struct hclge_dev *hdev, int func_id);
-+int hclge_dbg_run_cmd(struct hnae3_handle *handle, char *cmd_buf);
- #endif
++
+ static void hclge_dbg_fd_tcam_read(struct hclge_dev *hdev, u8 stage,
+ 				   bool sel_x, u32 loc)
+ {
+@@ -121,6 +159,8 @@ int hclge_dbg_run_cmd(struct hnae3_handle *handle, char *cmd_buf)
+ 		hclge_dbg_fd_tcam(hdev);
+ 	} else if (strncmp(cmd_buf, "dump promisc", 12) == 0) {
+ 		hclge_dbg_dump_promisc_cfg(hdev, cmd_buf);
++	} else if (strncmp(cmd_buf, "dump tc", 7) == 0) {
++		hclge_dbg_dump_tc(hdev);
+ 	} else {
+ 		dev_info(&hdev->pdev->dev, "unknown command\n");
+ 		return -EINVAL;
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
+index 25eef13..03474d5 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_tm.h
+@@ -55,6 +55,12 @@ struct hclge_qs_weight_cmd {
+ 	u8 dwrr;
+ };
+ 
++struct hclge_ets_tc_weight_cmd {
++	u8 tc_weight[HNAE3_MAX_TC];
++	u8 weight_offset;
++	u8 rsvd[15];
++};
++
+ #define HCLGE_TM_SHAP_IR_B_MSK  GENMASK(7, 0)
+ #define HCLGE_TM_SHAP_IR_B_LSH	0
+ #define HCLGE_TM_SHAP_IR_U_MSK  GENMASK(11, 8)
 -- 
 2.7.4
