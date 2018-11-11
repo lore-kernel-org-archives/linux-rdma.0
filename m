@@ -1,56 +1,29 @@
-From: "mirq-linux@rere.qmqm.pl" <mirq-linux@rere.qmqm.pl>
-Subject: Re: [PATCH net-next 0/9] Use __vlan_hwaccel_*() helpers
-Date: Sun, 11 Nov 2018 17:16:17 +0100
-Message-ID: <20181111161617.GB12849@qmqm.qmqm.pl>
-References: <cover.1541718583.git.mirq-linux@rere.qmqm.pl>
-	<20181108.204523.1353698272847299871.davem@davemloft.net>
-	<28a275b4-4fd5-2c00-217a-c6ab69fb2ad9@mellanox.com>
-	<20181111161243.GA12849@qmqm.qmqm.pl>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [RFC PATCH 00/10] net: hns3: Adds support of debugfs to HNS3
+ driver
+Date: Sun, 11 Nov 2018 17:18:22 +0100
+Message-ID: <20181111161822.GC15953@lunn.ch>
+References: <20181109220743.10264-1-salil.mehta@huawei.com>
+ <20181109224346.GD5259@lunn.ch>
+ <F4CC6FACFEB3C54C9141D49AD221F7F93BF9FC72@FRAEML521-MBS.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: 8bit
-Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181111161243.GA12849@qmqm.qmqm.pl>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
-To: Tariq Toukan <tariqt@mellanox.com>
-Cc: "ajit.khaparde@broadcom.com" <ajit.khaparde@broadcom.com>, "somnath.kotur@broadcom.com" <somnath.kotur@broadcom.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "bridge@lists.linux-foundation.org" <bridge@lists.linux-foundation.org>, "coreteam@netfilter.org" <coreteam@netfilter.org>, "kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>, "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>, "pablo@netfilter.org" <pablo@netfilter.org>, "jiri@resnulli.us" <jiri@resnulli.us>, "swise@chelsio.com" <swise@chelsio.com>, "nikolay@cumulusnetworks.com" <nikolay@cumulusnetworks.com>, "roopa@cumulusnetworks.com" <roopa@cumulusnetworks.com>, "jhs@mojatatu.com" <jhs@mojatatu.com>, "sathya.perla@broadcom.com" <sathya.perla@broadcom.com>, "xiyou.wangcong@gmail.com" <xiyou.wangcong@gmail.com>, "mlindner@marvell.com" <mlindner@marvell.com>, sriharsha.basavapatna@broadcom.com
+In-Reply-To: <F4CC6FACFEB3C54C9141D49AD221F7F93BF9FC72@FRAEML521-MBS.china.huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Salil Mehta <salil.mehta@huawei.com>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "yuvalm@mellanox.com" <yuvalm@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil@opnsrc.net" <mehta.salil@opnsrc.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 11, 2018 at 05:12:43PM +0100, mirq-linux@rere.qmqm.pl wrote:
-> On Sun, Nov 11, 2018 at 03:26:29PM +0000, Tariq Toukan wrote:
-> > On 09/11/2018 6:45 AM, David Miller wrote:
-> > > From: Micha³ Miros³aw <mirq-linux@rere.qmqm.pl>
-> > > Date: Fri, 09 Nov 2018 00:17:58 +0100
-> > >> This series removes from networking core and driver code an assumption
-> > >> about how VLAN tag presence is stored in an skb. This will allow to free
-> > >> up overloading of VLAN.CFI bit to incidate tag's presence.
-> > > 
-> > > This looks good, series applied.
-> > > 
-> > > Thanks.
-> > Hi Michal,
-> > 
-> > We started seeing the compilation errors below, they look related to 
-> > this series.
-> 
-> Do you have the previous series applied that introduced __vlan_hwaccel_clear_tag()?
-> It was applied to net-next before I sent this series.
-> 
-> I did a allmodconfig build of net-next and saw no failures (apart from
-> OVS that is fixed already).
+> Agreed. But what about if we want to expose anything related to
+> firmware to user-space using the debugfs, assuming we are presenting
+> information in structured way and not as a black-box to some user-space
+> application. Is it something which might be discouraged?
 
-The prerequisite commit in net-next is:
+Hi Salil
 
-7025abb2e447b ("Merge branch 'vlan-prepare-for-removal-of-VLAN_TAG_PRESENT'")
+Please take a look at devlink. Mellonex have been adding commands to
+it for dumping firmware states.
 
-Best Regards,
-Micha³ Miros³aw
+   Andrew
