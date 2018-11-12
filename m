@@ -1,64 +1,108 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 1/6] mm/gup: finish consolidating error handling
-Date: Mon, 12 Nov 2018 08:14:46 -0800
-Message-ID: <CAPcyv4j7nqLOFD5dZEe_nBysHDL2pQ-tRO9Crp9oyTUP7RoDHw@mail.gmail.com>
-References: <20181110085041.10071-1-jhubbard@nvidia.com> <20181110085041.10071-2-jhubbard@nvidia.com>
- <20181112154127.GA8247@localhost.localdomain>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/10] Collection of ODP fixes
+Date: Mon, 12 Nov 2018 20:43:15 +0000
+Message-ID: <20181112204310.GI3695@mtr-leonro.mtl.com>
+References: <20181108191017.21891-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181112154127.GA8247@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: John Hubbard <john.hubbard@gmail.com>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dave Hansen <dave.hansen@intel.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="MmQIYbZiCoQ2kDro"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181108191017.21891-1-leon@kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 7:45 AM Keith Busch <keith.busch@intel.com> wrote:
->
-> On Sat, Nov 10, 2018 at 12:50:36AM -0800, john.hubbard@gmail.com wrote:
-> > From: John Hubbard <jhubbard@nvidia.com>
-> >
-> > An upcoming patch wants to be able to operate on each page that
-> > get_user_pages has retrieved. In order to do that, it's best to
-> > have a common exit point from the routine. Most of this has been
-> > taken care of by commit df06b37ffe5a4 ("mm/gup: cache dev_pagemap while
-> > pinning pages"), but there was one case remaining.
-> >
-> > Also, there was still an unnecessary shadow declaration (with a
-> > different type) of the "ret" variable, which this commit removes.
-> >
-> > Cc: Keith Busch <keith.busch@intel.com>
-> > Cc: Dan Williams <dan.j.williams@intel.com>
-> > Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> > Cc: Dave Hansen <dave.hansen@intel.com>
-> > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> > ---
-> >  mm/gup.c | 3 +--
-> >  1 file changed, 1 insertion(+), 2 deletions(-)
-> >
-> > diff --git a/mm/gup.c b/mm/gup.c
-> > index f76e77a2d34b..55a41dee0340 100644
-> > --- a/mm/gup.c
-> > +++ b/mm/gup.c
-> > @@ -696,12 +696,11 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
-> >               if (!vma || start >= vma->vm_end) {
-> >                       vma = find_extend_vma(mm, start);
-> >                       if (!vma && in_gate_area(mm, start)) {
-> > -                             int ret;
-> >                               ret = get_gate_page(mm, start & PAGE_MASK,
-> >                                               gup_flags, &vma,
-> >                                               pages ? &pages[i] : NULL);
-> >                               if (ret)
-> > -                                     return i ? : ret;
-> > +                                     goto out;
-> >                               ctx.page_mask = 0;
-> >                               goto next_page;
-> >                       }
->
-> This also fixes a potentially leaked dev_pagemap reference count if a
-> failure occurs when an iteration crosses a vma boundary. I don't think
-> it's normal to have different vma's on a users mapped zone device memory,
-> but good to fix anyway.
+--MmQIYbZiCoQ2kDro
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Does not sound abnormal to me, we should promote this as a fix for the
-current cycle with an updated changelog.
+On Thu, Nov 08, 2018 at 09:10:07PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi,
+>
+> This is collection of fixes to mlx5_core and mlx5_ib ODP logic.
+> There are two main reasons why we decided to forward it to mlx5-next
+> and not to rdma-rc or net like our other fixes.
+>
+> 1. We have large number of patches exactly in that area that are ready
+> for submission and we don't want to create extra merge work for
+> maintainers due to that. Among those future series (already ready and
+> tested): internal change of mlx5_core pagefaults handling, moving ODP
+> code to RDMA, change in EQ mechanism, simplification and moving SRQ QP
+> to RDMA, extra fixes to mlx5_ib ODP and ODP SRQ support.
+>
+> 2. Most of those fixes are for old bugs and there is no rush to fix them
+> right now (in -rc1/-rc2).
+>
+> Thanks
+>
+> Moni Shoua (10):
+>   net/mlx5: Release resource on error flow
+>   net/mlx5: Add interface to hold and release core resources
+>   net/mlx5: Enumerate page fault types
+>   IB/mlx5: Lock QP during page fault handling
+>   net/mlx5: Return success for PAGE_FAULT_RESUME in internal error state
+>   net/mlx5: Use multi threaded workqueue for page fault handling
+>   IB/mlx5: Improve ODP debugging messages
+
+Applied to mlx5-next
+b02394aa75e3 IB/mlx5: Improve ODP debugging messages
+90290db7669b net/mlx5: Use multi threaded workqueue for page fault handling
+ef90c5e9757d net/mlx5: Return success for PAGE_FAULT_RESUME in internal error state
+032080ab43ac IB/mlx5: Lock QP during page fault handling
+c99fefea2cc9 net/mlx5: Enumerate page fault types
+27e95603f4df net/mlx5: Add interface to hold and release core resources
+698114968a22 net/mlx5: Release resource on error flow
+
+>   IB/mlx5: Avoid hangs due to a missing completion
+>   IB/mlx5: Call PAGE_FAULT_RESUME command asynchronously
+
+Dropped to address feedback.
+
+>   net/mlx5: Remove unused function
+
+Dropped, because it depends on dropped commit.
+
+Thanks
+
+>
+>  drivers/infiniband/core/umem_odp.c            |  14 +-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |   1 +
+>  drivers/infiniband/hw/mlx5/mr.c               |  15 +-
+>  drivers/infiniband/hw/mlx5/odp.c              | 158 ++++++++++++++----
+>  drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   2 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c  |  21 +--
+>  drivers/net/ethernet/mellanox/mlx5/core/qp.c  |  20 ++-
+>  include/linux/mlx5/device.h                   |   7 +
+>  include/linux/mlx5/driver.h                   |   7 +-
+>  include/linux/mlx5/qp.h                       |   5 +
+>  10 files changed, 191 insertions(+), 59 deletions(-)
+>
+> --
+> 2.19.1
+>
+
+--MmQIYbZiCoQ2kDro
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJb6eXeAAoJEORje4g2cliniDAP/1TB70mRlUki+VRCY5tEHISx
+bNQvS3fOcXRSfue8+p9eHT98J37j83REn5upOZTYr0KtPyrThYkavy8FLu/fcyaj
+EWcWw85I32hAEv09gyd2qEOJ5OaL8IFbCMtvFV5xLWWhe+mt79OsIh+QlI+jQFEV
+45PeN8YRlIt7zu2Vxd5dmGOyGK7i6j64R1OoqwWqFZbjHB87U8cx42Qh6T/75I76
+v0pR91ssLsleWIhdTxnMgvlyYpdAV4RmIapIwzUIAPmMRtiG6OjmK0fy91htM6CR
+Gg1os8VR4oMFrXfsJAdf30zCiHphhOITH5nHUmfA0jqpcCr6Vdg0Q9+L1vFXYMoS
+xFqVBdj9iY9HAHClzO4b17QCxpkYgplwurC6bC7Q9GwUFKlDgQFFFI1fEyRKD5zh
+kgWBoVlqKssNh2pRxXFZCVaAghZn0s4EAcilpn7Mgs9Qgbd27MO17qZaOiJrcojj
+NI/sE1MEDD3ahJoPT6aiLypJkdeFtguavEoLFHbd4Q4qSSHGhVunkGFNzm9/C8Ds
+mAQhz9zSRfCiJ2cSUUKHTXh9vSfK9Ks1HsBJFbYp/V/nZ5SNAgy0m4O3i944ekck
+Dh/m5uNks9k8w/WqLxupFymzMEwQEP195Nw3jHrvEn6G3pOJrcsmId6VDBDZoKki
+JLZi2BvBHyM7ekCpQaqa
+=biUK
+-----END PGP SIGNATURE-----
+
+--MmQIYbZiCoQ2kDro--
