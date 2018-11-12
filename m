@@ -1,9 +1,8 @@
-From: Steve Wise <swise@chelsio.com>
+From: Steve Wise <swise@opengridcomputing.com>
 Subject: Re: [PATCH] infiniband/hw/cxgb3/cxio_hal.c: Use dma_zalloc_coherent
-Date: Mon, 12 Nov 2018 09:28:15 -0600
-Message-ID: <64f11e41-1472-e687-7209-0d254f7cc03d@chelsio.com>
+Date: Mon, 12 Nov 2018 09:31:49 -0600
+Message-ID: <aeebe6af-87f2-1006-5c35-95eb49ecc727@opengridcomputing.com>
 References: <5be5bad9.1c69fb81.db750.d226@mx.google.com>
-Reply-To: swise@chelsio.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
