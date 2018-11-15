@@ -1,7 +1,7 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 4/5] net: hns3: Add skb chain when num of RX buf exceeds MAX_SKB_FRAGS
-Date: Thu, 15 Nov 2018 09:29:24 +0000
-Message-ID: <20181115092925.11812-5-salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 5/5] net: hns3: Adds GRO params to SKB for the stack
+Date: Thu, 15 Nov 2018 09:29:25 +0000
+Message-ID: <20181115092925.11812-6-salil.mehta@huawei.com>
 References: <20181115092925.11812-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,115 +14,118 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Peng Li <lipeng321@huawei.com>
 
-MAX_SKB_FRAGS in protocol stack is defined as:
-
-MAX_SKB_FRAGS is 17 when PAGE_SIZE is 4K. If HW enable GRO, it may
-merge small packets and the rx buffer may be more than
-MAX_SKB_FRAGS. So driver will add skb chain when RX buffer num.
-more than MAX_SKB_FRAGS.
+When HW GRO enable, protocol stack will not do GRO again,
+driver should add gro param to the skb for the protocol
+stack..
 
 Signed-off-by: Peng Li <lipeng321@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 37 ++++++++++++++++++-
- .../net/ethernet/hisilicon/hns3/hns3_enet.h   |  2 +
- 2 files changed, 37 insertions(+), 2 deletions(-)
+ .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 43 +++++++++++++++++++
+ .../net/ethernet/hisilicon/hns3/hns3_enet.h   |  9 ++--
+ 2 files changed, 49 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-index 860067898471..7776089b6bc2 100644
+index 7776089b6bc2..22220af92aa9 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-@@ -2361,6 +2361,9 @@ static void hns3_rx_checksum(struct hns3_enet_ring *ring, struct sk_buff *skb,
+@@ -15,6 +15,7 @@
+ #include <linux/vermagic.h>
+ #include <net/gre.h>
+ #include <net/pkt_cls.h>
++#include <net/tcp.h>
+ #include <net/vxlan.h>
  
- static void hns3_rx_skb(struct hns3_enet_ring *ring, struct sk_buff *skb)
- {
-+	if (skb_has_frag_list(skb))
-+		napi_gro_flush(&ring->tqp_vector->napi, false);
+ #include "hnae3.h"
+@@ -2318,6 +2319,12 @@ static void hns3_rx_checksum(struct hns3_enet_ring *ring, struct sk_buff *skb,
+ 	if (!(netdev->features & NETIF_F_RXCSUM))
+ 		return;
+ 
++	/* We MUST enable hardware checksum before enabling hardware GRO */
++	if (skb_shinfo(skb)->gso_size) {
++		skb->ip_summed = CHECKSUM_UNNECESSARY;
++		return;
++	}
 +
- 	napi_gro_receive(&ring->tqp_vector->napi, skb);
+ 	/* check if hardware has done checksum */
+ 	if (!hnae3_get_bit(bd_base_info, HNS3_RXD_L3L4P_B))
+ 		return;
+@@ -2511,6 +2518,39 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
+ 	return 0;
  }
  
-@@ -2417,6 +2420,8 @@ static int hns3_alloc_skb(struct hns3_enet_ring *ring, int length,
- 	prefetchw(skb->data);
- 
- 	ring->pending_buf = 1;
-+	ring->frag_num = 0;
-+	ring->tail_skb = NULL;
- 	if (length <= HNS3_RX_HEAD_SIZE) {
- 		memcpy(__skb_put(skb, length), va, ALIGN(length, sizeof(long)));
- 
-@@ -2435,7 +2440,7 @@ static int hns3_alloc_skb(struct hns3_enet_ring *ring, int length,
- 
- 	ring->pull_len = eth_get_headlen(va, HNS3_RX_HEAD_SIZE);
- 	__skb_put(skb, ring->pull_len);
--	hns3_nic_reuse_page(skb, 0, ring, ring->pull_len,
-+	hns3_nic_reuse_page(skb, ring->frag_num++, ring, ring->pull_len,
- 			    desc_cb);
- 	ring_ptr_move_fw(ring, next_to_clean);
- 
-@@ -2446,6 +2451,8 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
- 			 struct sk_buff **out_skb, bool pending)
++static void hns3_set_gro_param(struct sk_buff *skb, u32 l234info,
++			       u32 bd_base_info)
++{
++	u16 gro_count;
++	u32 l3_type;
++
++	gro_count = hnae3_get_field(l234info, HNS3_RXD_GRO_COUNT_M,
++				    HNS3_RXD_GRO_COUNT_S);
++	/* if there is no HW GRO, do not set gro params */
++	if (!gro_count)
++		return;
++
++	/* tcp_gro_complete() will copy NAPI_GRO_CB(skb)->count
++	 * to skb_shinfo(skb)->gso_segs
++	 */
++	NAPI_GRO_CB(skb)->count = gro_count;
++
++	l3_type = hnae3_get_field(l234info, HNS3_RXD_L3ID_M,
++				  HNS3_RXD_L3ID_S);
++	if (l3_type == HNS3_L3_TYPE_IPV4)
++		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV4;
++	else if (l3_type == HNS3_L3_TYPE_IPV6)
++		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV6;
++	else
++		return;
++
++	skb_shinfo(skb)->gso_size = hnae3_get_field(bd_base_info,
++						    HNS3_RXD_GRO_SIZE_M,
++						    HNS3_RXD_GRO_SIZE_S);
++	if (skb_shinfo(skb)->gso_size)
++		tcp_gro_complete(skb);
++}
++
+ static void hns3_set_rx_skb_rss_type(struct hns3_enet_ring *ring,
+ 				     struct sk_buff *skb)
  {
- 	struct sk_buff *skb = *out_skb;
-+	struct sk_buff *head_skb = *out_skb;
-+	struct sk_buff *new_skb;
- 	struct hns3_desc_cb *desc_cb;
- 	struct hns3_desc *pre_desc;
- 	u32 bd_base_info;
-@@ -2470,7 +2477,33 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
- 		if (!hnae3_get_bit(bd_base_info, HNS3_RXD_VLD_B))
- 			return -ENXIO;
+@@ -2645,6 +2685,9 @@ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
  
--		hns3_nic_reuse_page(skb, ring->pending_buf, ring, 0, desc_cb);
-+		if (unlikely(ring->frag_num >= MAX_SKB_FRAGS)) {
-+			new_skb = napi_alloc_skb(&ring->tqp_vector->napi,
-+						 HNS3_RX_HEAD_SIZE);
-+			if (unlikely(!new_skb)) {
-+				netdev_err(ring->tqp->handle->kinfo.netdev,
-+					   "alloc rx skb frag fail\n");
-+				return -ENXIO;
-+			}
-+			ring->frag_num = 0;
+ 	ring->tqp_vector->rx_group.total_bytes += skb->len;
+ 
++	/* This is needed in order to enable forwarding support */
++	hns3_set_gro_param(skb, l234info, bd_base_info);
 +
-+			if (ring->tail_skb) {
-+				ring->tail_skb->next = new_skb;
-+				ring->tail_skb = new_skb;
-+			} else {
-+				skb_shinfo(skb)->frag_list = new_skb;
-+				ring->tail_skb = new_skb;
-+			}
-+		}
-+
-+		if (ring->tail_skb) {
-+			head_skb->truesize += hnae3_buf_size(ring);
-+			head_skb->data_len += le16_to_cpu(desc->rx.size);
-+			head_skb->len += le16_to_cpu(desc->rx.size);
-+			skb = ring->tail_skb;
-+		}
-+
-+		hns3_nic_reuse_page(skb, ring->frag_num++, ring, 0, desc_cb);
- 		ring_ptr_move_fw(ring, next_to_clean);
- 		ring->pending_buf++;
- 	}
+ 	hns3_rx_checksum(ring, skb, desc);
+ 	*out_skb = skb;
+ 	hns3_set_rx_skb_rss_type(ring, skb);
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-index d8c0998127be..8e56b7e44978 100644
+index 8e56b7e44978..3365c9596983 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-@@ -402,6 +402,7 @@ struct hns3_enet_ring {
- 	int next_to_clean;
+@@ -109,6 +109,10 @@ enum hns3_nic_state {
+ #define HNS3_RXD_DOI_B				21
+ #define HNS3_RXD_OL3E_B				22
+ #define HNS3_RXD_OL4E_B				23
++#define HNS3_RXD_GRO_COUNT_S			24
++#define HNS3_RXD_GRO_COUNT_M			(0x3f << HNS3_RXD_GRO_COUNT_S)
++#define HNS3_RXD_GRO_FIXID_B			30
++#define HNS3_RXD_GRO_ECN_B			31
  
- 	int pull_len; /* head length for current packet */
-+	u32 frag_num;
- 	unsigned char *va; /* first buffer address for current packet */
+ #define HNS3_RXD_ODMAC_S			0
+ #define HNS3_RXD_ODMAC_M			(0x3 << HNS3_RXD_ODMAC_S)
+@@ -135,9 +139,8 @@ enum hns3_nic_state {
+ #define HNS3_RXD_TSIND_S			12
+ #define HNS3_RXD_TSIND_M			(0x7 << HNS3_RXD_TSIND_S)
+ #define HNS3_RXD_LKBK_B				15
+-#define HNS3_RXD_HDL_S				16
+-#define HNS3_RXD_HDL_M				(0x7ff << HNS3_RXD_HDL_S)
+-#define HNS3_RXD_HSIND_B			31
++#define HNS3_RXD_GRO_SIZE_S			16
++#define HNS3_RXD_GRO_SIZE_M			(0x3ff << HNS3_RXD_GRO_SIZE_S)
  
- 	u32 flag;          /* ring attribute */
-@@ -412,6 +413,7 @@ struct hns3_enet_ring {
- 
- 	int pending_buf;
- 	struct sk_buff *skb;
-+	struct sk_buff *tail_skb;
- };
- 
- struct hns_queue;
+ #define HNS3_TXD_L3T_S				0
+ #define HNS3_TXD_L3T_M				(0x3 << HNS3_TXD_L3T_S)
 -- 
 2.17.1
