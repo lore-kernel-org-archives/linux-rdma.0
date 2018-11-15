@@ -1,135 +1,128 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 3/5] net: hns3: Add support for ethtool -K to enable/disable HW GRO
-Date: Thu, 15 Nov 2018 09:29:23 +0000
-Message-ID: <20181115092925.11812-4-salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 4/5] net: hns3: Add skb chain when num of RX buf exceeds MAX_SKB_FRAGS
+Date: Thu, 15 Nov 2018 09:29:24 +0000
+Message-ID: <20181115092925.11812-5-salil.mehta@huawei.com>
 References: <20181115092925.11812-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181115092925.11812-1-salil.mehta@huawei.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil@opnsrc.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 From: Peng Li <lipeng321@huawei.com>
 
-This patch adds support of ethtool -K to enable/disable
-hardware GRO in HNS3 PF/VF driver.
+MAX_SKB_FRAGS in protocol stack is defined as:
+
+MAX_SKB_FRAGS is 17 when PAGE_SIZE is 4K. If HW enable GRO, it may
+merge small packets and the rx buffer may be more than
+MAX_SKB_FRAGS. So driver will add skb chain when RX buffer num.
+more than MAX_SKB_FRAGS.
 
 Signed-off-by: Peng Li <lipeng321@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns3/hnae3.h         |  3 +++
- drivers/net/ethernet/hisilicon/hns3/hns3_enet.c     | 13 ++++++++++++-
- .../net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c |  9 +++++++++
- .../ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c   |  8 ++++++++
- 4 files changed, 32 insertions(+), 1 deletion(-)
+ .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 37 ++++++++++++++++++-
+ .../net/ethernet/hisilicon/hns3/hns3_enet.h   |  2 +
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-index 21d934b7a2a3..1746172ffbf7 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-@@ -305,6 +305,8 @@ struct hnae3_ae_dev {
-  *   Set vlan filter config of vf
-  * enable_hw_strip_rxvtag()
-  *   Enable/disable hardware strip vlan tag of packets received
-+ * set_gro_en
-+ *   Enable/disable HW GRO
-  */
- struct hnae3_ae_ops {
- 	int (*init_ae_dev)(struct hnae3_ae_dev *ae_dev);
-@@ -449,6 +451,7 @@ struct hnae3_ae_ops {
- 	bool (*get_hw_reset_stat)(struct hnae3_handle *handle);
- 	bool (*ae_dev_resetting)(struct hnae3_handle *handle);
- 	unsigned long (*ae_dev_reset_cnt)(struct hnae3_handle *handle);
-+	int (*set_gro_en)(struct hnae3_handle *handle, int enable);
- };
- 
- struct hnae3_dcb_ops {
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-index d8c5e1198670..860067898471 100644
+index 860067898471..7776089b6bc2 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-@@ -1345,6 +1345,15 @@ static int hns3_nic_set_features(struct net_device *netdev,
- 			priv->ops.maybe_stop_tx = hns3_nic_maybe_stop_tx;
- 	}
+@@ -2361,6 +2361,9 @@ static void hns3_rx_checksum(struct hns3_enet_ring *ring, struct sk_buff *skb,
  
-+	if (changed & (NETIF_F_GRO_HW) && h->ae_algo->ops->set_gro_en) {
-+		if (features & NETIF_F_GRO_HW)
-+			ret = h->ae_algo->ops->set_gro_en(h, true);
-+		else
-+			ret = h->ae_algo->ops->set_gro_en(h, false);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	if ((changed & NETIF_F_HW_VLAN_CTAG_FILTER) &&
- 	    h->ae_algo->ops->enable_vlan_filter) {
- 		if (features & NETIF_F_HW_VLAN_CTAG_FILTER)
-@@ -1929,7 +1938,9 @@ static void hns3_set_default_feature(struct net_device *netdev)
- 		NETIF_F_GSO_UDP_TUNNEL_CSUM | NETIF_F_SCTP_CRC;
- 
- 	if (pdev->revision >= 0x21) {
--		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_FILTER;
-+		netdev->hw_features |= NETIF_F_HW_VLAN_CTAG_FILTER |
-+			NETIF_F_GRO_HW;
-+		netdev->features |= NETIF_F_GRO_HW;
- 
- 		if (!(h->flags & HNAE3_SUPPORT_VF)) {
- 			netdev->hw_features |= NETIF_F_NTUPLE;
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 3f8bd11d0824..eb6b6a5f744f 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -7667,6 +7667,14 @@ static void hclge_get_link_mode(struct hnae3_handle *handle,
- 	}
- }
- 
-+static int hclge_gro_en(struct hnae3_handle *handle, int enable)
-+{
-+	struct hclge_vport *vport = hclge_get_vport(handle);
-+	struct hclge_dev *hdev = vport->back;
-+
-+	return hclge_config_gro(hdev, enable);
-+}
-+
- static const struct hnae3_ae_ops hclge_ops = {
- 	.init_ae_dev = hclge_init_ae_dev,
- 	.uninit_ae_dev = hclge_uninit_ae_dev,
-@@ -7738,6 +7746,7 @@ static const struct hnae3_ae_ops hclge_ops = {
- 	.get_hw_reset_stat = hclge_get_hw_reset_stat,
- 	.ae_dev_resetting = hclge_ae_dev_resetting,
- 	.ae_dev_reset_cnt = hclge_ae_dev_reset_cnt,
-+	.set_gro_en = hclge_gro_en,
- };
- 
- static struct hnae3_ae_algo ae_algo = {
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-index 2e889b829976..e27d6fa85a74 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-@@ -2368,6 +2368,13 @@ void hclgevf_update_speed_duplex(struct hclgevf_dev *hdev, u32 speed,
- 	hdev->hw.mac.duplex = duplex;
- }
- 
-+static int hclgevf_gro_en(struct hnae3_handle *handle, int enable)
-+{
-+	struct hclgevf_dev *hdev = hclgevf_ae_get_hdev(handle);
-+
-+	return hclgevf_config_gro(hdev, enable);
-+}
-+
- static void hclgevf_get_media_type(struct hnae3_handle *handle,
- 				  u8 *media_type)
+ static void hns3_rx_skb(struct hns3_enet_ring *ring, struct sk_buff *skb)
  {
-@@ -2442,6 +2449,7 @@ static const struct hnae3_ae_ops hclgevf_ops = {
- 	.get_hw_reset_stat = hclgevf_get_hw_reset_stat,
- 	.ae_dev_resetting = hclgevf_ae_dev_resetting,
- 	.ae_dev_reset_cnt = hclgevf_ae_dev_reset_cnt,
-+	.set_gro_en = hclgevf_gro_en,
++	if (skb_has_frag_list(skb))
++		napi_gro_flush(&ring->tqp_vector->napi, false);
++
+ 	napi_gro_receive(&ring->tqp_vector->napi, skb);
+ }
+ 
+@@ -2417,6 +2420,8 @@ static int hns3_alloc_skb(struct hns3_enet_ring *ring, int length,
+ 	prefetchw(skb->data);
+ 
+ 	ring->pending_buf = 1;
++	ring->frag_num = 0;
++	ring->tail_skb = NULL;
+ 	if (length <= HNS3_RX_HEAD_SIZE) {
+ 		memcpy(__skb_put(skb, length), va, ALIGN(length, sizeof(long)));
+ 
+@@ -2435,7 +2440,7 @@ static int hns3_alloc_skb(struct hns3_enet_ring *ring, int length,
+ 
+ 	ring->pull_len = eth_get_headlen(va, HNS3_RX_HEAD_SIZE);
+ 	__skb_put(skb, ring->pull_len);
+-	hns3_nic_reuse_page(skb, 0, ring, ring->pull_len,
++	hns3_nic_reuse_page(skb, ring->frag_num++, ring, ring->pull_len,
+ 			    desc_cb);
+ 	ring_ptr_move_fw(ring, next_to_clean);
+ 
+@@ -2446,6 +2451,8 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
+ 			 struct sk_buff **out_skb, bool pending)
+ {
+ 	struct sk_buff *skb = *out_skb;
++	struct sk_buff *head_skb = *out_skb;
++	struct sk_buff *new_skb;
+ 	struct hns3_desc_cb *desc_cb;
+ 	struct hns3_desc *pre_desc;
+ 	u32 bd_base_info;
+@@ -2470,7 +2477,33 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
+ 		if (!hnae3_get_bit(bd_base_info, HNS3_RXD_VLD_B))
+ 			return -ENXIO;
+ 
+-		hns3_nic_reuse_page(skb, ring->pending_buf, ring, 0, desc_cb);
++		if (unlikely(ring->frag_num >= MAX_SKB_FRAGS)) {
++			new_skb = napi_alloc_skb(&ring->tqp_vector->napi,
++						 HNS3_RX_HEAD_SIZE);
++			if (unlikely(!new_skb)) {
++				netdev_err(ring->tqp->handle->kinfo.netdev,
++					   "alloc rx skb frag fail\n");
++				return -ENXIO;
++			}
++			ring->frag_num = 0;
++
++			if (ring->tail_skb) {
++				ring->tail_skb->next = new_skb;
++				ring->tail_skb = new_skb;
++			} else {
++				skb_shinfo(skb)->frag_list = new_skb;
++				ring->tail_skb = new_skb;
++			}
++		}
++
++		if (ring->tail_skb) {
++			head_skb->truesize += hnae3_buf_size(ring);
++			head_skb->data_len += le16_to_cpu(desc->rx.size);
++			head_skb->len += le16_to_cpu(desc->rx.size);
++			skb = ring->tail_skb;
++		}
++
++		hns3_nic_reuse_page(skb, ring->frag_num++, ring, 0, desc_cb);
+ 		ring_ptr_move_fw(ring, next_to_clean);
+ 		ring->pending_buf++;
+ 	}
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+index d8c0998127be..8e56b7e44978 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+@@ -402,6 +402,7 @@ struct hns3_enet_ring {
+ 	int next_to_clean;
+ 
+ 	int pull_len; /* head length for current packet */
++	u32 frag_num;
+ 	unsigned char *va; /* first buffer address for current packet */
+ 
+ 	u32 flag;          /* ring attribute */
+@@ -412,6 +413,7 @@ struct hns3_enet_ring {
+ 
+ 	int pending_buf;
+ 	struct sk_buff *skb;
++	struct sk_buff *tail_skb;
  };
  
- static struct hnae3_ae_algo ae_algovf = {
+ struct hns_queue;
 -- 
 2.17.1
