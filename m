@@ -1,131 +1,114 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 5/5] net: hns3: Adds GRO params to SKB for the stack
-Date: Thu, 15 Nov 2018 09:29:25 +0000
-Message-ID: <20181115092925.11812-6-salil.mehta@huawei.com>
-References: <20181115092925.11812-1-salil.mehta@huawei.com>
+Subject: RE: [PATCH net-next 1/5] net: hns3: Enable HW GRO for Rev B(=0x21)
+ HNS3 hardware
+Date: Thu, 15 Nov 2018 09:36:10 +0000
+Message-ID: <F4CC6FACFEB3C54C9141D49AD221F7F93BFB6F3E@FRAEML521-MBX.china.huawei.com>
+References: <20181113101307.6020-1-salil.mehta@huawei.com>
+ <20181113101307.6020-2-salil.mehta@huawei.com>
+ <20181113112446.GC3759@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115092925.11812-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil@opnsrc.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181113112446.GC3759@mtr-leonro.mtl.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "Zhuangyuzeng (Yisen)" <yisen.zhuang@huawei.com>, "lipeng (Y)" <lipeng321@huawei.com>, "mehta.salil@opnsrc.net" <mehta.salil@opnsrc.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Peng Li <lipeng321@huawei.com>
+> From: Leon Romanovsky [mailto:leon@kernel.org]
+> Sent: Tuesday, November 13, 2018 11:25 AM
+> To: Salil Mehta <salil.mehta@huawei.com>
+> Cc: davem@davemloft.net; Zhuangyuzeng (Yisen) <yisen.zhuang@huawei.com>;
+> lipeng (Y) <lipeng321@huawei.com>; mehta.salil@opnsrc.net;
+> netdev@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> rdma@vger.kernel.org; Linuxarm <linuxarm@huawei.com>
+> Subject: Re: [PATCH net-next 1/5] net: hns3: Enable HW GRO for Rev
+> B(=0x21) HNS3 hardware
+> 
+> On Tue, Nov 13, 2018 at 10:13:03AM +0000, Salil Mehta wrote:
+> > From: Peng Li <lipeng321@huawei.com>
+> >
+> > HNS3 hardware Revision B(=0x21) supports Hardware GRO feature. This
+> > patch enables this feature in the HNS3 PF/VF driver.
+> >
+> > Signed-off-by: Peng Li <lipeng321@huawei.com>
+> > Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 
-When HW GRO enable, protocol stack will not do GRO again,
-driver should add gro param to the skb for the protocol
-stack..
 
-Signed-off-by: Peng Li <lipeng321@huawei.com>
-Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
----
- .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 43 +++++++++++++++++++
- .../net/ethernet/hisilicon/hns3/hns3_enet.h   |  9 ++--
- 2 files changed, 49 insertions(+), 3 deletions(-)
+> >
+> > +	ret = hclge_config_gro(hdev, true);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev,
+> > +			"Failed to enable GRO in hardware, ret =%d\n", ret);
+> 
+> You already printed an error in the hclge_config_gro().
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-index 7776089b6bc2..22220af92aa9 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-@@ -15,6 +15,7 @@
- #include <linux/vermagic.h>
- #include <net/gre.h>
- #include <net/pkt_cls.h>
-+#include <net/tcp.h>
- #include <net/vxlan.h>
- 
- #include "hnae3.h"
-@@ -2318,6 +2319,12 @@ static void hns3_rx_checksum(struct hns3_enet_ring *ring, struct sk_buff *skb,
- 	if (!(netdev->features & NETIF_F_RXCSUM))
- 		return;
- 
-+	/* We MUST enable hardware checksum before enabling hardware GRO */
-+	if (skb_shinfo(skb)->gso_size) {
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
-+		return;
-+	}
-+
- 	/* check if hardware has done checksum */
- 	if (!hnae3_get_bit(bd_base_info, HNS3_RXD_L3L4P_B))
- 		return;
-@@ -2511,6 +2518,39 @@ static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
- 	return 0;
- }
- 
-+static void hns3_set_gro_param(struct sk_buff *skb, u32 l234info,
-+			       u32 bd_base_info)
-+{
-+	u16 gro_count;
-+	u32 l3_type;
-+
-+	gro_count = hnae3_get_field(l234info, HNS3_RXD_GRO_COUNT_M,
-+				    HNS3_RXD_GRO_COUNT_S);
-+	/* if there is no HW GRO, do not set gro params */
-+	if (!gro_count)
-+		return;
-+
-+	/* tcp_gro_complete() will copy NAPI_GRO_CB(skb)->count
-+	 * to skb_shinfo(skb)->gso_segs
-+	 */
-+	NAPI_GRO_CB(skb)->count = gro_count;
-+
-+	l3_type = hnae3_get_field(l234info, HNS3_RXD_L3ID_M,
-+				  HNS3_RXD_L3ID_S);
-+	if (l3_type == HNS3_L3_TYPE_IPV4)
-+		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV4;
-+	else if (l3_type == HNS3_L3_TYPE_IPV6)
-+		skb_shinfo(skb)->gso_type = SKB_GSO_TCPV6;
-+	else
-+		return;
-+
-+	skb_shinfo(skb)->gso_size = hnae3_get_field(bd_base_info,
-+						    HNS3_RXD_GRO_SIZE_M,
-+						    HNS3_RXD_GRO_SIZE_S);
-+	if (skb_shinfo(skb)->gso_size)
-+		tcp_gro_complete(skb);
-+}
-+
- static void hns3_set_rx_skb_rss_type(struct hns3_enet_ring *ring,
- 				     struct sk_buff *skb)
- {
-@@ -2645,6 +2685,9 @@ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
- 
- 	ring->tqp_vector->rx_group.total_bytes += skb->len;
- 
-+	/* This is needed in order to enable forwarding support */
-+	hns3_set_gro_param(skb, l234info, bd_base_info);
-+
- 	hns3_rx_checksum(ring, skb, desc);
- 	*out_skb = skb;
- 	hns3_set_rx_skb_rss_type(ring, skb);
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-index 8e56b7e44978..3365c9596983 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
-@@ -109,6 +109,10 @@ enum hns3_nic_state {
- #define HNS3_RXD_DOI_B				21
- #define HNS3_RXD_OL3E_B				22
- #define HNS3_RXD_OL4E_B				23
-+#define HNS3_RXD_GRO_COUNT_S			24
-+#define HNS3_RXD_GRO_COUNT_M			(0x3f << HNS3_RXD_GRO_COUNT_S)
-+#define HNS3_RXD_GRO_FIXID_B			30
-+#define HNS3_RXD_GRO_ECN_B			31
- 
- #define HNS3_RXD_ODMAC_S			0
- #define HNS3_RXD_ODMAC_M			(0x3 << HNS3_RXD_ODMAC_S)
-@@ -135,9 +139,8 @@ enum hns3_nic_state {
- #define HNS3_RXD_TSIND_S			12
- #define HNS3_RXD_TSIND_M			(0x7 << HNS3_RXD_TSIND_S)
- #define HNS3_RXD_LKBK_B				15
--#define HNS3_RXD_HDL_S				16
--#define HNS3_RXD_HDL_M				(0x7ff << HNS3_RXD_HDL_S)
--#define HNS3_RXD_HSIND_B			31
-+#define HNS3_RXD_GRO_SIZE_S			16
-+#define HNS3_RXD_GRO_SIZE_M			(0x3ff << HNS3_RXD_GRO_SIZE_S)
- 
- #define HNS3_TXD_L3T_S				0
- #define HNS3_TXD_L3T_M				(0x3 << HNS3_TXD_L3T_S)
--- 
-2.17.1
+sure. thanks.
+
+> 
+> > +		goto err_mdiobus_unreg;
+> > +	}
+> > +
+> >  	ret = hclge_init_vlan_config(hdev);
+> >  	if (ret) {
+> >  		dev_err(&pdev->dev, "VLAN init fail, ret =%d\n", ret);
+> > @@ -7221,6 +7250,13 @@ static int hclge_reset_ae_dev(struct hnae3_ae_dev *ae_dev)
+> >  		return ret;
+> >  	}
+> >
+> > +	ret = hclge_config_gro(hdev, true);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev,
+> > +			"Failed to enable GRO in hardware, ret =%d\n", ret);
+> 
+> Ditto
+
+ok.
+
+
+> >  static int hclgevf_rss_init_hw(struct hclgevf_dev *hdev)
+> >  {
+> >  	struct hclgevf_rss_cfg *rss_cfg = &hdev->rss_cfg;
+> > @@ -2122,6 +2145,13 @@ static int hclgevf_reset_hdev(struct
+> hclgevf_dev *hdev)
+> >  		return ret;
+> >  	}
+> >
+> > +	ret = hclgevf_config_gro(hdev, true);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev,
+> > +			"failed to enable VF GRO in hardware, ret =%d\n",
+> ret);
+> > +		return ret;
+> 
+> Ditto
+
+sure.
+
+
+> 
+> > +	}
+> > +
+> >  	ret = hclgevf_init_vlan_config(hdev);
+> >  	if (ret) {
+> >  		dev_err(&hdev->pdev->dev,
+> > @@ -2199,6 +2229,13 @@ static int hclgevf_init_hdev(struct hclgevf_dev
+> *hdev)
+> >  		goto err_config;
+> >  	}
+> >
+> > +	ret = hclgevf_config_gro(hdev, true);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev,
+> > +			"Failed to enable VF GRO in hardware, ret =%d\n",
+> ret);
+> 
+> Ditto
+
+Fixed in V2. Thanks Leon.
+
+
+Best regards
+Salil.
