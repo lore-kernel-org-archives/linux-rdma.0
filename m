@@ -1,232 +1,335 @@
 From: Salil Mehta <salil.mehta@huawei.com>
-Subject: [PATCH V2 net-next 1/5] net: hns3: Enable HW GRO for Rev B(=0x21) HNS3 hardware
-Date: Thu, 15 Nov 2018 09:29:21 +0000
-Message-ID: <20181115092925.11812-2-salil.mehta@huawei.com>
+Subject: [PATCH V2 net-next 2/5] net: hns3: Add handling of GRO Pkts not fully RX'ed in NAPI poll
+Date: Thu, 15 Nov 2018 09:29:22 +0000
+Message-ID: <20181115092925.11812-3-salil.mehta@huawei.com>
 References: <20181115092925.11812-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181115092925.11812-1-salil.mehta@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: davem@davemloft.net
 Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil@opnsrc.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
 From: Peng Li <lipeng321@huawei.com>
 
-HNS3 hardware Revision B(=0x21) supports Hardware GRO feature. This
-patch enables this feature in the HNS3 PF/VF driver.
+The "FE bit" in the description means the last description for
+a packets. When HW GRO enable, HW write data to ring every
+packet/buffer, there is greater probability that driver handle
+with the describtion but HW still not set the "FE bit".
+
+When drier handle the packet and HW still not set "FE bit",
+driver stores skb and bd_num in rx ring, and continue to use the
+skb and bd_num in next napi.
 
 Signed-off-by: Peng Li <lipeng321@huawei.com>
 Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
 ---
- drivers/net/ethernet/hisilicon/hns3/hnae3.h   |  4 +++
- .../net/ethernet/hisilicon/hns3/hns3_enet.c   |  4 ++-
- .../hisilicon/hns3/hns3pf/hclge_cmd.h         |  7 +++++
- .../hisilicon/hns3/hns3pf/hclge_main.c        | 30 ++++++++++++++++++
- .../hisilicon/hns3/hns3vf/hclgevf_cmd.h       |  8 +++++
- .../hisilicon/hns3/hns3vf/hclgevf_main.c      | 31 +++++++++++++++++++
- 6 files changed, 83 insertions(+), 1 deletion(-)
+ .../net/ethernet/hisilicon/hns3/hns3_enet.c   | 196 ++++++++++++------
+ .../net/ethernet/hisilicon/hns3/hns3_enet.h   |   6 +
+ 2 files changed, 140 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hnae3.h b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-index f69d39f17bdd..21d934b7a2a3 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hnae3.h
-@@ -52,6 +52,7 @@
- #define HNAE3_UNIC_CLIENT_INITED_B		0x4
- #define HNAE3_ROCE_CLIENT_INITED_B		0x5
- #define HNAE3_DEV_SUPPORT_FD_B			0x6
-+#define HNAE3_DEV_SUPPORT_GRO_B			0x7
- 
- #define HNAE3_DEV_SUPPORT_ROCE_DCB_BITS (BIT(HNAE3_DEV_SUPPORT_DCB_B) |\
- 		BIT(HNAE3_DEV_SUPPORT_ROCE_B))
-@@ -65,6 +66,9 @@
- #define hnae3_dev_fd_supported(hdev) \
- 	hnae3_get_bit((hdev)->ae_dev->flag, HNAE3_DEV_SUPPORT_FD_B)
- 
-+#define hnae3_dev_gro_supported(hdev) \
-+	hnae3_get_bit((hdev)->ae_dev->flag, HNAE3_DEV_SUPPORT_GRO_B)
-+
- #define ring_ptr_move_fw(ring, p) \
- 	((ring)->p = ((ring)->p + 1) % (ring)->desc_num)
- #define ring_ptr_move_bw(ring, p) \
 diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-index 8d07ec668d5d..a510ddfd45a5 100644
+index a510ddfd45a5..d8c5e1198670 100644
 --- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
 +++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.c
-@@ -1714,8 +1714,10 @@ static void hns3_disable_sriov(struct pci_dev *pdev)
- static void hns3_get_dev_capability(struct pci_dev *pdev,
- 				    struct hnae3_ae_dev *ae_dev)
- {
--	if (pdev->revision >= 0x21)
-+	if (pdev->revision >= 0x21) {
- 		hnae3_set_bit(ae_dev->flag, HNAE3_DEV_SUPPORT_FD_B, 1);
-+		hnae3_set_bit(ae_dev->flag, HNAE3_DEV_SUPPORT_GRO_B, 1);
+@@ -2383,6 +2383,90 @@ static bool hns3_parse_vlan_tag(struct hns3_enet_ring *ring,
+ 	}
+ }
+ 
++static int hns3_alloc_skb(struct hns3_enet_ring *ring, int length,
++			  unsigned char *va)
++{
++#define HNS3_NEED_ADD_FRAG	1
++	struct hns3_desc_cb *desc_cb = &ring->desc_cb[ring->next_to_clean];
++	struct net_device *netdev = ring->tqp->handle->kinfo.netdev;
++	struct sk_buff *skb;
++
++	ring->skb = napi_alloc_skb(&ring->tqp_vector->napi, HNS3_RX_HEAD_SIZE);
++	skb = ring->skb;
++	if (unlikely(!skb)) {
++		netdev_err(netdev, "alloc rx skb fail\n");
++
++		u64_stats_update_begin(&ring->syncp);
++		ring->stats.sw_err_cnt++;
++		u64_stats_update_end(&ring->syncp);
++
++		return -ENOMEM;
 +	}
- }
- 
- /* hns3_probe - Device initialization routine
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-index 872cd4bdd70d..aef044d08b11 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_cmd.h
-@@ -152,6 +152,7 @@ enum hclge_opcode_type {
- 
- 	/* TSO command */
- 	HCLGE_OPC_TSO_GENERIC_CONFIG	= 0x0C01,
-+	HCLGE_OPC_GRO_GENERIC_CONFIG    = 0x0C10,
- 
- 	/* RSS commands */
- 	HCLGE_OPC_RSS_GENERIC_CONFIG	= 0x0D01,
-@@ -758,6 +759,12 @@ struct hclge_cfg_tso_status_cmd {
- 	u8 rsv[20];
- };
- 
-+#define HCLGE_GRO_EN_B		0
-+struct hclge_cfg_gro_status_cmd {
-+	__le16 gro_en;
-+	u8 rsv[22];
-+};
 +
- #define HCLGE_TSO_MSS_MIN	256
- #define HCLGE_TSO_MSS_MAX	9668
- 
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-index 43bfc730a62d..3f8bd11d0824 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hclge_main.c
-@@ -921,6 +921,28 @@ static int hclge_config_tso(struct hclge_dev *hdev, int tso_mss_min,
- 	return hclge_cmd_send(&hdev->hw, &desc, 1);
- }
- 
-+static int hclge_config_gro(struct hclge_dev *hdev, bool en)
-+{
-+	struct hclge_cfg_gro_status_cmd *req;
-+	struct hclge_desc desc;
-+	int ret;
++	prefetchw(skb->data);
 +
-+	if (!hnae3_dev_gro_supported(hdev))
++	ring->pending_buf = 1;
++	if (length <= HNS3_RX_HEAD_SIZE) {
++		memcpy(__skb_put(skb, length), va, ALIGN(length, sizeof(long)));
++
++		/* We can reuse buffer as-is, just make sure it is local */
++		if (likely(page_to_nid(desc_cb->priv) == numa_node_id()))
++			desc_cb->reuse_flag = 1;
++		else /* This page cannot be reused so discard it */
++			put_page(desc_cb->priv);
++
++		ring_ptr_move_fw(ring, next_to_clean);
 +		return 0;
++	}
++	u64_stats_update_begin(&ring->syncp);
++	ring->stats.seg_pkt_cnt++;
++	u64_stats_update_end(&ring->syncp);
 +
-+	hclge_cmd_setup_basic_desc(&desc, HCLGE_OPC_GRO_GENERIC_CONFIG, false);
-+	req = (struct hclge_cfg_gro_status_cmd *)desc.data;
++	ring->pull_len = eth_get_headlen(va, HNS3_RX_HEAD_SIZE);
++	__skb_put(skb, ring->pull_len);
++	hns3_nic_reuse_page(skb, 0, ring, ring->pull_len,
++			    desc_cb);
++	ring_ptr_move_fw(ring, next_to_clean);
 +
-+	req->gro_en = cpu_to_le16(en ? 1 : 0);
-+
-+	ret = hclge_cmd_send(&hdev->hw, &desc, 1);
-+	if (ret)
-+		dev_err(&hdev->pdev->dev,
-+			"GRO hardware config cmd failed, ret = %d\n", ret);
-+
-+	return ret;
++	return HNS3_NEED_ADD_FRAG;
 +}
 +
- static int hclge_alloc_tqps(struct hclge_dev *hdev)
++static int hns3_add_frag(struct hns3_enet_ring *ring, struct hns3_desc *desc,
++			 struct sk_buff **out_skb, bool pending)
++{
++	struct sk_buff *skb = *out_skb;
++	struct hns3_desc_cb *desc_cb;
++	struct hns3_desc *pre_desc;
++	u32 bd_base_info;
++	int pre_bd;
++
++	/* if there is pending bd, the SW param next_to_clean has moved
++	 * to next and the next is NULL
++	 */
++	if (pending) {
++		pre_bd = (ring->next_to_clean - 1 + ring->desc_num) %
++			ring->desc_num;
++		pre_desc = &ring->desc[pre_bd];
++		bd_base_info = le32_to_cpu(pre_desc->rx.bd_base_info);
++	} else {
++		bd_base_info = le32_to_cpu(desc->rx.bd_base_info);
++	}
++
++	while (!hnae3_get_bit(bd_base_info, HNS3_RXD_FE_B)) {
++		desc = &ring->desc[ring->next_to_clean];
++		desc_cb = &ring->desc_cb[ring->next_to_clean];
++		bd_base_info = le32_to_cpu(desc->rx.bd_base_info);
++		if (!hnae3_get_bit(bd_base_info, HNS3_RXD_VLD_B))
++			return -ENXIO;
++
++		hns3_nic_reuse_page(skb, ring->pending_buf, ring, 0, desc_cb);
++		ring_ptr_move_fw(ring, next_to_clean);
++		ring->pending_buf++;
++	}
++
++	return 0;
++}
++
+ static void hns3_set_rx_skb_rss_type(struct hns3_enet_ring *ring,
+ 				     struct sk_buff *skb)
  {
- 	struct hclge_tqp *tqp;
-@@ -7090,6 +7112,10 @@ static int hclge_init_ae_dev(struct hnae3_ae_dev *ae_dev)
- 		goto err_mdiobus_unreg;
+@@ -2399,18 +2483,16 @@ static void hns3_set_rx_skb_rss_type(struct hns3_enet_ring *ring,
+ }
+ 
+ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
+-			     struct sk_buff **out_skb, int *out_bnum)
++			     struct sk_buff **out_skb)
+ {
+ 	struct net_device *netdev = ring->tqp->handle->kinfo.netdev;
++	struct sk_buff *skb = ring->skb;
+ 	struct hns3_desc_cb *desc_cb;
+ 	struct hns3_desc *desc;
+-	struct sk_buff *skb;
+-	unsigned char *va;
+ 	u32 bd_base_info;
+-	int pull_len;
+ 	u32 l234info;
+ 	int length;
+-	int bnum;
++	int ret;
+ 
+ 	desc = &ring->desc[ring->next_to_clean];
+ 	desc_cb = &ring->desc_cb[ring->next_to_clean];
+@@ -2422,9 +2504,10 @@ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
+ 
+ 	/* Check valid BD */
+ 	if (unlikely(!hnae3_get_bit(bd_base_info, HNS3_RXD_VLD_B)))
+-		return -EFAULT;
++		return -ENXIO;
+ 
+-	va = (unsigned char *)desc_cb->buf + desc_cb->page_offset;
++	if (!skb)
++		ring->va = (unsigned char *)desc_cb->buf + desc_cb->page_offset;
+ 
+ 	/* Prefetch first cache line of first page
+ 	 * Idea is to cache few bytes of the header of the packet. Our L1 Cache
+@@ -2433,62 +2516,42 @@ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
+ 	 * lines. In such a case, single fetch would suffice to cache in the
+ 	 * relevant part of the header.
+ 	 */
+-	prefetch(va);
++	prefetch(ring->va);
+ #if L1_CACHE_BYTES < 128
+-	prefetch(va + L1_CACHE_BYTES);
++	prefetch(ring->va + L1_CACHE_BYTES);
+ #endif
+ 
+-	skb = *out_skb = napi_alloc_skb(&ring->tqp_vector->napi,
+-					HNS3_RX_HEAD_SIZE);
+-	if (unlikely(!skb)) {
+-		netdev_err(netdev, "alloc rx skb fail\n");
++	if (!skb) {
++		ret = hns3_alloc_skb(ring, length, ring->va);
++		*out_skb = skb = ring->skb;
+ 
+-		u64_stats_update_begin(&ring->syncp);
+-		ring->stats.sw_err_cnt++;
+-		u64_stats_update_end(&ring->syncp);
+-
+-		return -ENOMEM;
+-	}
+-
+-	prefetchw(skb->data);
+-
+-	bnum = 1;
+-	if (length <= HNS3_RX_HEAD_SIZE) {
+-		memcpy(__skb_put(skb, length), va, ALIGN(length, sizeof(long)));
+-
+-		/* We can reuse buffer as-is, just make sure it is local */
+-		if (likely(page_to_nid(desc_cb->priv) == numa_node_id()))
+-			desc_cb->reuse_flag = 1;
+-		else /* This page cannot be reused so discard it */
+-			put_page(desc_cb->priv);
++		if (ret < 0) /* alloc buffer fail */
++			return ret;
++		if (ret > 0) { /* need add frag */
++			ret = hns3_add_frag(ring, desc, &skb, false);
++			if (ret)
++				return ret;
+ 
+-		ring_ptr_move_fw(ring, next_to_clean);
++			/* As the head data may be changed when GRO enable, copy
++			 * the head data in after other data rx completed
++			 */
++			memcpy(skb->data, ring->va,
++			       ALIGN(ring->pull_len, sizeof(long)));
++		}
+ 	} else {
+-		u64_stats_update_begin(&ring->syncp);
+-		ring->stats.seg_pkt_cnt++;
+-		u64_stats_update_end(&ring->syncp);
+-
+-		pull_len = eth_get_headlen(va, HNS3_RX_HEAD_SIZE);
+-
+-		memcpy(__skb_put(skb, pull_len), va,
+-		       ALIGN(pull_len, sizeof(long)));
+-
+-		hns3_nic_reuse_page(skb, 0, ring, pull_len, desc_cb);
+-		ring_ptr_move_fw(ring, next_to_clean);
++		ret = hns3_add_frag(ring, desc, &skb, true);
++		if (ret)
++			return ret;
+ 
+-		while (!hnae3_get_bit(bd_base_info, HNS3_RXD_FE_B)) {
+-			desc = &ring->desc[ring->next_to_clean];
+-			desc_cb = &ring->desc_cb[ring->next_to_clean];
+-			bd_base_info = le32_to_cpu(desc->rx.bd_base_info);
+-			hns3_nic_reuse_page(skb, bnum, ring, 0, desc_cb);
+-			ring_ptr_move_fw(ring, next_to_clean);
+-			bnum++;
+-		}
++		/* As the head data may be changed when GRO enable, copy
++		 * the head data in after other data rx completed
++		 */
++		memcpy(skb->data, ring->va,
++		       ALIGN(ring->pull_len, sizeof(long)));
  	}
  
-+	ret = hclge_config_gro(hdev, true);
-+	if (ret)
-+		goto err_mdiobus_unreg;
-+
- 	ret = hclge_init_vlan_config(hdev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "VLAN init fail, ret =%d\n", ret);
-@@ -7221,6 +7247,10 @@ static int hclge_reset_ae_dev(struct hnae3_ae_dev *ae_dev)
- 		return ret;
- 	}
+-	*out_bnum = bnum;
+-
+ 	l234info = le32_to_cpu(desc->rx.l234_info);
++	bd_base_info = le32_to_cpu(desc->rx.bd_base_info);
  
-+	ret = hclge_config_gro(hdev, true);
-+	if (ret)
-+		return ret;
-+
- 	ret = hclge_init_vlan_config(hdev);
- 	if (ret) {
- 		dev_err(&pdev->dev, "VLAN init fail, ret =%d\n", ret);
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
-index 090541de0c7d..47030b42341f 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_cmd.h
-@@ -87,6 +87,8 @@ enum hclgevf_opcode_type {
- 	HCLGEVF_OPC_QUERY_TX_STATUS	= 0x0B03,
- 	HCLGEVF_OPC_QUERY_RX_STATUS	= 0x0B13,
- 	HCLGEVF_OPC_CFG_COM_TQP_QUEUE	= 0x0B20,
-+	/* GRO command */
-+	HCLGEVF_OPC_GRO_GENERIC_CONFIG  = 0x0C10,
- 	/* RSS cmd */
- 	HCLGEVF_OPC_RSS_GENERIC_CONFIG	= 0x0D01,
- 	HCLGEVF_OPC_RSS_INPUT_TUPLE     = 0x0D02,
-@@ -149,6 +151,12 @@ struct hclgevf_query_res_cmd {
- 	__le16 rsv[7];
- };
+ 	/* Based on hw strategy, the tag offloaded will be stored at
+ 	 * ot_vlan_tag in two layer tag case, and stored at vlan_tag
+@@ -2539,6 +2602,7 @@ static int hns3_handle_rx_bd(struct hns3_enet_ring *ring,
+ 	ring->tqp_vector->rx_group.total_bytes += skb->len;
  
-+#define HCLGEVF_GRO_EN_B               0
-+struct hclgevf_cfg_gro_status_cmd {
-+	__le16 gro_en;
-+	u8 rsv[22];
-+};
-+
- #define HCLGEVF_RSS_DEFAULT_OUTPORT_B	4
- #define HCLGEVF_RSS_HASH_KEY_OFFSET_B	4
- #define HCLGEVF_RSS_HASH_KEY_NUM	16
-diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-index 6b4d1477055f..2e889b829976 100644
---- a/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-+++ b/drivers/net/ethernet/hisilicon/hns3/hns3vf/hclgevf_main.c
-@@ -1655,6 +1655,29 @@ static int hclgevf_init_roce_base_info(struct hclgevf_dev *hdev)
+ 	hns3_rx_checksum(ring, skb, desc);
++	*out_skb = skb;
+ 	hns3_set_rx_skb_rss_type(ring, skb);
+ 
  	return 0;
- }
+@@ -2551,9 +2615,9 @@ int hns3_clean_rx_ring(
+ #define RCB_NOF_ALLOC_RX_BUFF_ONCE 16
+ 	struct net_device *netdev = ring->tqp->handle->kinfo.netdev;
+ 	int recv_pkts, recv_bds, clean_count, err;
+-	int unused_count = hns3_desc_unused(ring);
+-	struct sk_buff *skb = NULL;
+-	int num, bnum = 0;
++	int unused_count = hns3_desc_unused(ring) - ring->pending_buf;
++	struct sk_buff *skb = ring->skb;
++	int num;
  
-+static int hclgevf_config_gro(struct hclgevf_dev *hdev, bool en)
-+{
-+	struct hclgevf_cfg_gro_status_cmd *req;
-+	struct hclgevf_desc desc;
-+	int ret;
-+
-+	if (!hnae3_dev_gro_supported(hdev))
-+		return 0;
-+
-+	hclgevf_cmd_setup_basic_desc(&desc, HCLGEVF_OPC_GRO_GENERIC_CONFIG,
-+				     false);
-+	req = (struct hclgevf_cfg_gro_status_cmd *)desc.data;
-+
-+	req->gro_en = cpu_to_le16(en ? 1 : 0);
-+
-+	ret = hclgevf_cmd_send(&hdev->hw, &desc, 1);
-+	if (ret)
-+		dev_err(&hdev->pdev->dev,
-+			"VF GRO hardware config cmd failed, ret = %d.\n", ret);
-+
-+	return ret;
-+}
-+
- static int hclgevf_rss_init_hw(struct hclgevf_dev *hdev)
- {
- 	struct hclgevf_rss_cfg *rss_cfg = &hdev->rss_cfg;
-@@ -2122,6 +2145,10 @@ static int hclgevf_reset_hdev(struct hclgevf_dev *hdev)
- 		return ret;
+ 	num = readl_relaxed(ring->tqp->io_base + HNS3_RING_RX_RING_FBDNUM_REG);
+ 	rmb(); /* Make sure num taken effect before the other data is touched */
+@@ -2567,24 +2631,32 @@ int hns3_clean_rx_ring(
+ 			hns3_nic_alloc_rx_buffers(ring,
+ 						  clean_count + unused_count);
+ 			clean_count = 0;
+-			unused_count = hns3_desc_unused(ring);
++			unused_count = hns3_desc_unused(ring) -
++					ring->pending_buf;
+ 		}
+ 
+ 		/* Poll one pkt */
+-		err = hns3_handle_rx_bd(ring, &skb, &bnum);
++		err = hns3_handle_rx_bd(ring, &skb);
+ 		if (unlikely(!skb)) /* This fault cannot be repaired */
+ 			goto out;
+ 
+-		recv_bds += bnum;
+-		clean_count += bnum;
+-		if (unlikely(err)) {  /* Do jump the err */
+-			recv_pkts++;
++		if (err == -ENXIO) { /* Do not get FE for the packet */
++			goto out;
++		} else if (unlikely(err)) {  /* Do jump the err */
++			recv_bds += ring->pending_buf;
++			clean_count += ring->pending_buf;
++			ring->skb = NULL;
++			ring->pending_buf = 0;
+ 			continue;
+ 		}
+ 
+ 		/* Do update ip stack process */
+ 		skb->protocol = eth_type_trans(skb, netdev);
+ 		rx_fn(ring, skb);
++		recv_bds += ring->pending_buf;
++		clean_count += ring->pending_buf;
++		ring->skb = NULL;
++		ring->pending_buf = 0;
+ 
+ 		recv_pkts++;
  	}
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+index 10ff18af3cc7..d8c0998127be 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3_enet.h
+@@ -401,11 +401,17 @@ struct hns3_enet_ring {
+ 	 */
+ 	int next_to_clean;
  
-+	ret = hclgevf_config_gro(hdev, true);
-+	if (ret)
-+		return ret;
++	int pull_len; /* head length for current packet */
++	unsigned char *va; /* first buffer address for current packet */
 +
- 	ret = hclgevf_init_vlan_config(hdev);
- 	if (ret) {
- 		dev_err(&hdev->pdev->dev,
-@@ -2199,6 +2226,10 @@ static int hclgevf_init_hdev(struct hclgevf_dev *hdev)
- 		goto err_config;
- 	}
+ 	u32 flag;          /* ring attribute */
+ 	int irq_init_flag;
  
-+	ret = hclgevf_config_gro(hdev, true);
-+	if (ret)
-+		goto err_config;
+ 	int numa_node;
+ 	cpumask_t affinity_mask;
 +
- 	/* Initialize RSS for this VF */
- 	ret = hclgevf_rss_init_hw(hdev);
- 	if (ret) {
++	int pending_buf;
++	struct sk_buff *skb;
+ };
+ 
+ struct hns_queue;
 -- 
 2.17.1
