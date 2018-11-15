@@ -1,49 +1,78 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: [PATCH] iser: set sector for ambiguous mr status errors
-Date: Wed, 14 Nov 2018 10:17:01 -0800
-Message-ID: <20181114181701.26417-1-sagi@grimberg.me>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, stable@vger.kernel.org
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 1/6] mm/gup: finish consolidating error handling
+Date: Wed, 14 Nov 2018 16:45:57 -0800
+Message-ID: <da9907a9-3150-15c3-fb4e-460d63fc5a1f@nvidia.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <20181110085041.10071-2-jhubbard@nvidia.com>
+ <20181112154127.GA8247@localhost.localdomain>
+ <CAPcyv4j7nqLOFD5dZEe_nBysHDL2pQ-tRO9Crp9oyTUP7RoDHw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4j7nqLOFD5dZEe_nBysHDL2pQ-tRO9Crp9oyTUP7RoDHw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
+Cc: John Hubbard <john.hubbard@gmail.com>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-If for some reason we failed to query the mr status, we need to make sure
-to provide sufficient information for an ambiguous error (guard error on
-sector 0).
+On 11/12/18 8:14 AM, Dan Williams wrote:
+> On Mon, Nov 12, 2018 at 7:45 AM Keith Busch <keith.busch@intel.com> wrote:
+>>
+>> On Sat, Nov 10, 2018 at 12:50:36AM -0800, john.hubbard@gmail.com wrote:
+>>> From: John Hubbard <jhubbard@nvidia.com>
+>>>
+>>> An upcoming patch wants to be able to operate on each page that
+>>> get_user_pages has retrieved. In order to do that, it's best to
+>>> have a common exit point from the routine. Most of this has been
+>>> taken care of by commit df06b37ffe5a4 ("mm/gup: cache dev_pagemap while
+>>> pinning pages"), but there was one case remaining.
+>>>
+>>> Also, there was still an unnecessary shadow declaration (with a
+>>> different type) of the "ret" variable, which this commit removes.
+>>>
+>>> Cc: Keith Busch <keith.busch@intel.com>
+>>> Cc: Dan Williams <dan.j.williams@intel.com>
+>>> Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+>>> Cc: Dave Hansen <dave.hansen@intel.com>
+>>> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+>>> ---
+>>>   mm/gup.c | 3 +--
+>>>   1 file changed, 1 insertion(+), 2 deletions(-)
+>>>
+>>> diff --git a/mm/gup.c b/mm/gup.c
+>>> index f76e77a2d34b..55a41dee0340 100644
+>>> --- a/mm/gup.c
+>>> +++ b/mm/gup.c
+>>> @@ -696,12 +696,11 @@ static long __get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+>>>                if (!vma || start >= vma->vm_end) {
+>>>                        vma = find_extend_vma(mm, start);
+>>>                        if (!vma && in_gate_area(mm, start)) {
+>>> -                             int ret;
+>>>                                ret = get_gate_page(mm, start & PAGE_MASK,
+>>>                                                gup_flags, &vma,
+>>>                                                pages ? &pages[i] : NULL);
+>>>                                if (ret)
+>>> -                                     return i ? : ret;
+>>> +                                     goto out;
+>>>                                ctx.page_mask = 0;
+>>>                                goto next_page;
+>>>                        }
+>>
+>> This also fixes a potentially leaked dev_pagemap reference count if a
+>> failure occurs when an iteration crosses a vma boundary. I don't think
+>> it's normal to have different vma's on a users mapped zone device memory,
+>> but good to fix anyway.
+> 
+> Does not sound abnormal to me, we should promote this as a fix for the
+> current cycle with an updated changelog.
+> 
 
-Fixes: 0a7a08ad6f5f ("IB/iser: Implement check_protection")
-Cc: <stable@vger.kernel.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
----
- drivers/infiniband/ulp/iser/iser_verbs.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Andrew, should I send this patch separately, or do you have what you 
+need already?
 
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 946b623ba5eb..ab137bafa8a8 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -1124,7 +1124,9 @@ u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 					 IB_MR_CHECK_SIG_STATUS, &mr_status);
- 		if (ret) {
- 			pr_err("ib_check_mr_status failed, ret %d\n", ret);
--			goto err;
-+			/* Not alot we can do, return ambiguous guard error */
-+			*sector = 0;
-+			return 0x1;
- 		}
- 
- 		if (mr_status.fail_status & IB_MR_CHECK_SIG_STATUS) {
-@@ -1152,9 +1154,6 @@ u8 iser_check_task_pi_status(struct iscsi_iser_task *iser_task,
- 	}
- 
- 	return 0;
--err:
--	/* Not alot we can do here, return ambiguous guard error */
--	return 0x1;
- }
- 
- void iser_err_comp(struct ib_wc *wc, const char *type)
+thanks,
 -- 
-2.17.1
+John Hubbard
+NVIDIA
