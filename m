@@ -1,89 +1,101 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 00/12] mlx5 core generic EQ API for RDMA ODP
-Date: Fri, 16 Nov 2018 13:58:49 -0800
-Message-ID: <20181116215901.5874-1-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 01/12] net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
+Date: Fri, 16 Nov 2018 13:58:50 -0800
+Message-ID: <20181116215901.5874-2-saeedm@mellanox.com>
+References: <20181116215901.5874-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181116215901.5874-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Currently the cpu affinity hint mask for completion EQs is stored and
+read from the wrong place, since reading and storing is done from the
+same index, there is no actual issue with that, but internal irq_info
+for completion EQs stars at MLX5_EQ_VEC_COMP_BASE offset in irq_info
+array, this patch changes the code to use the correct offset to store
+and read the IRQ affinity hint.
 
-This patchset is for mlx5-next shared branch, and will be applied there
-once the review is done.
-
-This patchset introduces mostly refactoring work and EQ related code updates to
-allow moving the ODP rdma only logic from mlx5_core into mlx5 ib where it
-belongs, and will allow future updates and optimizations for the rdma ODP
-(On Demand Paging) feature to go only to rdma tree.
-
-Patch #1: Fixes the offsets of stored irq affinity hints inside mlx5
-irq info array.
-
-Patch #2,3,4: Remove unused fields, code and logic
-
-Patch #5: Move all EQ related logic from main.c to eq.c to allow clear
-and seamless refactoring for creating generic EQ management API.
-
-Patch #6: Create mlx5 core EQs in one place, in order to have one entry
-point to call from main file.
-
-Patch #7,8: Move EQ related structures into eq_table mlx5 structure and
-make eq_table fields and logic private to eq.c file.
-
-Patch #9,10: Create one generic EQ struct and use it in different
-EQ types (usages) e.g. (Async, Command, FW pages, completion and ODP)
-Introduce generic EQ API to allow creating Generic EQs regardless of
-their types, will be uesd to create all mlx5 core EQs in mlx5_core and
-ODP EQ in mlx5_ib.
-
-Patch #11: Move ODP logic out from mlx5_core eq.c into mlx5 rdma driver.
-odp.c file.
-
-Patch #12: Make the trivial EQE access methods inline.
-
-Thanks,
-Saeed.
-
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 ---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++++++------
+ include/linux/mlx5/driver.h                       |  2 +-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 1243edbedc9e..2839c30dd3a0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1760,7 +1760,7 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
  
-Saeed Mahameed (12):
-  net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
-  net/mlx5: EQ, Remove unused fields and structures
-  net/mlx5: EQ, No need to store eq index as a field
-  net/mlx5: EQ, Remove redundant completion EQ list lock
-  net/mlx5: EQ, Move all EQ logic to eq.c
-  net/mlx5: EQ, Create all EQs in one place
-  net/mlx5: EQ, irq_info and rmap belong to eq_table
-  net/mlx5: EQ, Privatize eq_table and friends
-  net/mlx5: EQ, Different EQ types
-  net/mlx5: EQ, Generic EQ
-  {net,IB}/mlx5: Move Page fault EQ and ODP logic to RDMA
-  net/mlx5: EQ, Make EQE access methods inline
-
- drivers/infiniband/hw/mlx5/main.c             |  15 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +-
- drivers/infiniband/hw/mlx5/odp.c              | 281 ++++-
- drivers/net/ethernet/mellanox/mlx5/core/cq.c  |  15 +-
- .../net/ethernet/mellanox/mlx5/core/debugfs.c |  11 +
- drivers/net/ethernet/mellanox/mlx5/core/dev.c |  34 -
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |   3 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |  18 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 968 +++++++++++-------
- .../net/ethernet/mellanox/mlx5/core/eswitch.c |   3 +-
- .../net/ethernet/mellanox/mlx5/core/health.c  |   3 +-
- .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |  93 ++
- .../net/ethernet/mellanox/mlx5/core/main.c    | 287 +-----
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  23 -
- include/linux/mlx5/cq.h                       |   2 +-
- include/linux/mlx5/driver.h                   | 151 +--
- include/linux/mlx5/eq.h                       |  60 ++
- 17 files changed, 1081 insertions(+), 901 deletions(-)
- create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
- create mode 100644 include/linux/mlx5/eq.h
-
+ static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
+ {
+-	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
++	return cpumask_first(priv->mdev->priv.irq_info[ix + MLX5_EQ_VEC_COMP_BASE].mask);
+ }
+ 
+ static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 28132c7dc05f..d5cea0a36e6a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -640,18 +640,19 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
+ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+-	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
++	if (!zalloc_cpumask_var(&priv->irq_info[vecidx].mask, GFP_KERNEL)) {
+ 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
+-			priv->irq_info[i].mask);
++			priv->irq_info[vecidx].mask);
+ 
+ 	if (IS_ENABLED(CONFIG_SMP) &&
+-	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
++	    irq_set_affinity_hint(irq, priv->irq_info[vecidx].mask))
+ 		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
+ 
+ 	return 0;
+@@ -659,11 +660,12 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ 
+ static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+ 	irq_set_affinity_hint(irq, NULL);
+-	free_cpumask_var(priv->irq_info[i].mask);
++	free_cpumask_var(priv->irq_info[vecidx].mask);
+ }
+ 
+ static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index aa5963b5d38e..7d4ed995b4ce 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1309,7 +1309,7 @@ enum {
+ static inline const struct cpumask *
+ mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
+ {
+-	return dev->priv.irq_info[vector].mask;
++	return dev->priv.irq_info[vector + MLX5_EQ_VEC_COMP_BASE].mask;
+ }
+ 
+ #endif /* MLX5_DRIVER_H */
 -- 
 2.19.1
