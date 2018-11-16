@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 03/12] net/mlx5: EQ, No need to store eq index as a field
-Date: Fri, 16 Nov 2018 13:58:52 -0800
-Message-ID: <20181116215901.5874-4-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 02/12] net/mlx5: EQ, Remove unused fields and structures
+Date: Fri, 16 Nov 2018 13:58:51 -0800
+Message-ID: <20181116215901.5874-3-saeedm@mellanox.com>
 References: <20181116215901.5874-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,55 +12,59 @@ To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-eq->index is used only for completion EQs and is assigned to be
-the completion eq index, it is used only when traversing the completion
-eqs list, and it can be calculated dynamically, thus remove the
-eq->index field.
+Some fields and structures are not referenced nor used by the driver,
+remove them.
 
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 4 ++--
- include/linux/mlx5/driver.h                    | 1 -
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c | 11 -----------
+ include/linux/mlx5/driver.h                  |  3 ---
+ 2 files changed, 14 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index d5cea0a36e6a..f5e6d375a8cc 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -702,10 +702,11 @@ int mlx5_vector2eqn(struct mlx5_core_dev *dev, int vector, int *eqn,
- 	struct mlx5_eq_table *table = &dev->priv.eq_table;
- 	struct mlx5_eq *eq, *n;
- 	int err = -ENOENT;
-+	int i = 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index aeab0c4f60f4..fd5926daa0a6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -78,17 +78,6 @@ enum {
+ 			       (1ull << MLX5_EVENT_TYPE_SRQ_LAST_WQE)	    | \
+ 			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT))
  
- 	spin_lock(&table->lock);
- 	list_for_each_entry_safe(eq, n, &table->comp_eqs_list, list) {
--		if (eq->index == vector) {
-+		if (i++ == vector) {
- 			*eqn = eq->eqn;
- 			*irqn = eq->irqn;
- 			err = 0;
-@@ -797,7 +798,6 @@ static int alloc_comp_eqs(struct mlx5_core_dev *dev)
- 			goto clean;
- 		}
- 		mlx5_core_dbg(dev, "allocated completion EQN %d\n", eq->eqn);
--		eq->index = i;
- 		spin_lock(&table->lock);
- 		list_add_tail(&eq->list, &table->comp_eqs_list);
- 		spin_unlock(&table->lock);
+-struct map_eq_in {
+-	u64	mask;
+-	u32	reserved;
+-	u32	unmap_eqn;
+-};
+-
+-struct cre_des_eq {
+-	u8	reserved[15];
+-	u8	eqn;
+-};
+-
+ static int mlx5_cmd_destroy_eq(struct mlx5_core_dev *dev, u8 eqn)
+ {
+ 	u32 out[MLX5_ST_SZ_DW(destroy_eq_out)] = {0};
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 15cf6727a62d..4b62d71825c1 100644
+index 7d4ed995b4ce..15cf6727a62d 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
-@@ -399,7 +399,6 @@ struct mlx5_eq {
+@@ -398,7 +398,6 @@ struct mlx5_eq {
+ 	unsigned int		irqn;
  	u8			eqn;
  	int			nent;
+-	u64			mask;
  	struct list_head	list;
--	int			index;
+ 	int			index;
  	struct mlx5_rsc_debug	*dbg;
- 	enum mlx5_eq_type	type;
- 	union {
+@@ -478,8 +477,6 @@ struct mlx5_core_srq {
+ };
+ 
+ struct mlx5_eq_table {
+-	void __iomem	       *update_ci;
+-	void __iomem	       *update_arm_ci;
+ 	struct list_head	comp_eqs_list;
+ 	struct mlx5_eq		pages_eq;
+ 	struct mlx5_eq		async_eq;
 -- 
 2.19.1
