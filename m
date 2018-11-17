@@ -1,70 +1,103 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 02/12] net/mlx5: EQ, Remove unused fields and structures
-Date: Fri, 16 Nov 2018 13:58:51 -0800
-Message-ID: <20181116215901.5874-3-saeedm@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH mlx5-next 11/12] {net,IB}/mlx5: Move Page fault EQ and ODP
+ logic to RDMA
+Date: Sat, 17 Nov 2018 20:13:53 +0000
+Message-ID: <20181117201347.GA14593@mellanox.com>
 References: <20181116215901.5874-1-saeedm@mellanox.com>
+ <20181116215901.5874-12-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181116215901.5874-1-saeedm@mellanox.com>
+In-Reply-To: <20181116215901.5874-12-saeedm@mellanox.com>
+Content-Language: en-US
+Content-ID: <8A81C8DDC68BF4478A33AB1303FC2C19@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some fields and structures are not referenced nor used by the driver,
-remove them.
+On Fri, Nov 16, 2018 at 01:59:00PM -0800, Saeed Mahameed wrote:
+> Use the new generic EQ API to move all ODP RDMA data structures and logic
+> form mlx5 core driver into mlx5_ib driver.
+>=20
+> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+>  drivers/infiniband/hw/mlx5/main.c             |  10 +-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +-
+>  drivers/infiniband/hw/mlx5/odp.c              | 281 +++++++++++++++++-
+>  drivers/net/ethernet/mellanox/mlx5/core/dev.c |  34 ---
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 252 ----------------
+>  .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |   8 -
+>  .../net/ethernet/mellanox/mlx5/core/main.c    |  17 +-
+>  .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 -
+>  include/linux/mlx5/driver.h                   |  49 ---
+>  include/linux/mlx5/eq.h                       |  21 ++
+>  10 files changed, 308 insertions(+), 381 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
+x5/main.c
+> index 6fbc0cba1bac..fcf4a0328a90 100644
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -6040,6 +6040,11 @@ static int mlx5_ib_stage_odp_init(struct mlx5_ib_d=
+ev *dev)
+>  	return mlx5_ib_odp_init_one(dev);
+>  }
+> =20
+> +void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
+> +{
+> +	mlx5_ib_odp_cleanup_one(dev);
+> +}
+> +
+>  int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
+>  {
+>  	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
+> @@ -6225,7 +6230,7 @@ static const struct mlx5_ib_profile pf_profile =3D =
+{
+>  		     mlx5_ib_stage_dev_res_cleanup),
+>  	STAGE_CREATE(MLX5_IB_STAGE_ODP,
+>  		     mlx5_ib_stage_odp_init,
+> -		     NULL),
+> +		     mlx5_ib_stage_odp_cleanup),
+>  	STAGE_CREATE(MLX5_IB_STAGE_COUNTERS,
+>  		     mlx5_ib_stage_counters_init,
+>  		     mlx5_ib_stage_counters_cleanup),
+> @@ -6395,9 +6400,6 @@ static struct mlx5_interface mlx5_ib_interface =3D =
+{
+>  	.add            =3D mlx5_ib_add,
+>  	.remove         =3D mlx5_ib_remove,
+>  	.event          =3D mlx5_ib_event,
+> -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> -	.pfault		=3D mlx5_ib_pfault,
+> -#endif
+>  	.protocol	=3D MLX5_INTERFACE_PROTOCOL_IB,
+>  };
+> =20
+> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw=
+/mlx5/mlx5_ib.h
+> index b651a7a6fde9..d01af2d829b8 100644
+> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+> @@ -880,6 +880,15 @@ struct mlx5_ib_lb_state {
+>  	bool			enabled;
+>  };
+> =20
+> +struct mlx5_ib_pf_eq {
+> +	struct mlx5_ib_dev      *dev;
+> +	struct mlx5_eq          *core;
+> +	struct work_struct       work;
+> +	spinlock_t               lock; /* Pagefaults spinlock */
+> +	struct workqueue_struct  *wq;
+> +	mempool_t                *pool;
+> +};
 
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/eq.c | 11 -----------
- include/linux/mlx5/driver.h                  |  3 ---
- 2 files changed, 14 deletions(-)
+I know this is being copied, but can we please not do this vertical
+alignment madness in RDMA? It is such a nightmare to maintain this..
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index aeab0c4f60f4..fd5926daa0a6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -78,17 +78,6 @@ enum {
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_LAST_WQE)	    | \
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT))
- 
--struct map_eq_in {
--	u64	mask;
--	u32	reserved;
--	u32	unmap_eqn;
--};
--
--struct cre_des_eq {
--	u8	reserved[15];
--	u8	eqn;
--};
--
- static int mlx5_cmd_destroy_eq(struct mlx5_core_dev *dev, u8 eqn)
- {
- 	u32 out[MLX5_ST_SZ_DW(destroy_eq_out)] = {0};
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 7d4ed995b4ce..15cf6727a62d 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -398,7 +398,6 @@ struct mlx5_eq {
- 	unsigned int		irqn;
- 	u8			eqn;
- 	int			nent;
--	u64			mask;
- 	struct list_head	list;
- 	int			index;
- 	struct mlx5_rsc_debug	*dbg;
-@@ -478,8 +477,6 @@ struct mlx5_core_srq {
- };
- 
- struct mlx5_eq_table {
--	void __iomem	       *update_ci;
--	void __iomem	       *update_arm_ci;
- 	struct list_head	comp_eqs_list;
- 	struct mlx5_eq		pages_eq;
- 	struct mlx5_eq		async_eq;
--- 
-2.19.1
+> +/* mempool_refill() was proposed but unfortunately wasn't accepted
+> + * http://lkml.iu.edu/hypermail/linux/kernel/1512.1/05073.html
+> + * Chip workaround.
+
+'cheap workaround'
+
+Jason
