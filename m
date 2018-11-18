@@ -1,103 +1,151 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH mlx5-next 11/12] {net,IB}/mlx5: Move Page fault EQ and ODP
- logic to RDMA
-Date: Sat, 17 Nov 2018 20:13:53 +0000
-Message-ID: <20181117201347.GA14593@mellanox.com>
-References: <20181116215901.5874-1-saeedm@mellanox.com>
- <20181116215901.5874-12-saeedm@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH iproute2-next v3] rdma: Document IB device renaming option
+Date: Sun, 18 Nov 2018 13:05:35 +0200
+Message-ID: <20181118110535.GJ24359@mtr-leonro.mtl.com>
+References: <20181104191122.11979-1-leon@kernel.org>
+ <14063C7AD467DE4B82DEDB5C278E8663BE61B8E2@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyqLL/JqMvClXZi1"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181116215901.5874-12-saeedm@mellanox.com>
-Content-Language: en-US
-Content-ID: <8A81C8DDC68BF4478A33AB1303FC2C19@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663BE61B8E2@FMSMSX108.amr.corp.intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Cc: David Ahern <dsahern@gmail.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 16, 2018 at 01:59:00PM -0800, Saeed Mahameed wrote:
-> Use the new generic EQ API to move all ODP RDMA data structures and logic
-> form mlx5 core driver into mlx5_ib driver.
->=20
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
->  drivers/infiniband/hw/mlx5/main.c             |  10 +-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +-
->  drivers/infiniband/hw/mlx5/odp.c              | 281 +++++++++++++++++-
->  drivers/net/ethernet/mellanox/mlx5/core/dev.c |  34 ---
->  drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 252 ----------------
->  .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |   8 -
->  .../net/ethernet/mellanox/mlx5/core/main.c    |  17 +-
->  .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 -
->  include/linux/mlx5/driver.h                   |  49 ---
->  include/linux/mlx5/eq.h                       |  21 ++
->  10 files changed, 308 insertions(+), 381 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
-x5/main.c
-> index 6fbc0cba1bac..fcf4a0328a90 100644
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -6040,6 +6040,11 @@ static int mlx5_ib_stage_odp_init(struct mlx5_ib_d=
-ev *dev)
->  	return mlx5_ib_odp_init_one(dev);
->  }
-> =20
-> +void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
-> +{
-> +	mlx5_ib_odp_cleanup_one(dev);
-> +}
-> +
->  int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
->  {
->  	if (MLX5_CAP_GEN(dev->mdev, max_qp_cnt)) {
-> @@ -6225,7 +6230,7 @@ static const struct mlx5_ib_profile pf_profile =3D =
-{
->  		     mlx5_ib_stage_dev_res_cleanup),
->  	STAGE_CREATE(MLX5_IB_STAGE_ODP,
->  		     mlx5_ib_stage_odp_init,
-> -		     NULL),
-> +		     mlx5_ib_stage_odp_cleanup),
->  	STAGE_CREATE(MLX5_IB_STAGE_COUNTERS,
->  		     mlx5_ib_stage_counters_init,
->  		     mlx5_ib_stage_counters_cleanup),
-> @@ -6395,9 +6400,6 @@ static struct mlx5_interface mlx5_ib_interface =3D =
-{
->  	.add            =3D mlx5_ib_add,
->  	.remove         =3D mlx5_ib_remove,
->  	.event          =3D mlx5_ib_event,
-> -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-> -	.pfault		=3D mlx5_ib_pfault,
-> -#endif
->  	.protocol	=3D MLX5_INTERFACE_PROTOCOL_IB,
->  };
-> =20
-> diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw=
-/mlx5/mlx5_ib.h
-> index b651a7a6fde9..d01af2d829b8 100644
-> +++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-> @@ -880,6 +880,15 @@ struct mlx5_ib_lb_state {
->  	bool			enabled;
->  };
-> =20
-> +struct mlx5_ib_pf_eq {
-> +	struct mlx5_ib_dev      *dev;
-> +	struct mlx5_eq          *core;
-> +	struct work_struct       work;
-> +	spinlock_t               lock; /* Pagefaults spinlock */
-> +	struct workqueue_struct  *wq;
-> +	mempool_t                *pool;
-> +};
 
-I know this is being copied, but can we please not do this vertical
-alignment madness in RDMA? It is such a nightmare to maintain this..
+--oyqLL/JqMvClXZi1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> +/* mempool_refill() was proposed but unfortunately wasn't accepted
-> + * http://lkml.iu.edu/hypermail/linux/kernel/1512.1/05073.html
-> + * Chip workaround.
+On Fri, Nov 16, 2018 at 08:10:35PM +0000, Ruhl, Michael J wrote:
+> >-----Original Message-----
+> >From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
+> >owner@vger.kernel.org] On Behalf Of Leon Romanovsky
+> >Sent: Sunday, November 4, 2018 2:11 PM
+> >To: David Ahern <dsahern@gmail.com>
+> >Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
+> ><netdev@vger.kernel.org>; RDMA mailing list <linux-rdma@vger.kernel.org>;
+> >Stephen Hemminger <stephen@networkplumber.org>
+> >Subject: [PATCH iproute2-next v3] rdma: Document IB device renaming
+> >option
+> >
+> >From: Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi Leon,
+>
+> After looking at this and Steve Wise's changes for the ADDLINK/DELLINK,
+> it occurred to me that the driver that handed the name to ib_register_device()
+> might be interested in knowing that this name change occurred.
+>
+> Are there plans to include a some kind of notify mechanism so drivers can
+> find out when things like this occur?
 
-'cheap workaround'
+At least for device rename, I don't see any real need for such event,
+because drivers are not supposed to rely on names.
 
-Jason
+I would say that it is probably driver bug to rely on device name
+during its execution.
+
+>
+> Is this something that should be done?
+
+I think yes, we can extend ib_event to support more events than now,
+but should we?
+
+>
+> Thanks,
+>
+> Mike
+>
+> >[leonro@server /]$ lspci |grep -i Ether
+> >00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
+> >00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family
+> >[ConnectX-4]
+> >[leonro@server /]$ sudo rdma dev
+> >1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+> >sys_image_guid 5254:00c0:fe12:3455
+> >[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
+> >[leonro@server /]$ sudo rdma dev
+> >1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
+> >sys_image_guid 5254:00c0:fe12:3455
+> >
+> >Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> >---
+> >Changelog:
+> >v2->v3:
+> > * Dropped "to be named" words from example section of man
+> >---
+> > man/man8/rdma-dev.8 | 15 ++++++++++++++-
+> > 1 file changed, 14 insertions(+), 1 deletion(-)
+> >
+> >diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
+> >index 461681b6..7c275180 100644
+> >--- a/man/man8/rdma-dev.8
+> >+++ b/man/man8/rdma-dev.8
+> >@@ -1,6 +1,6 @@
+> > .TH RDMA\-DEV 8 "06 Jul 2017" "iproute2" "Linux"
+> > .SH NAME
+> >-rdmak-dev \- RDMA device configuration
+> >+rdma-dev \- RDMA device configuration
+> > .SH SYNOPSIS
+> > .sp
+> > .ad l
+> >@@ -22,10 +22,18 @@ rdmak-dev \- RDMA device configuration
+> > .B rdma dev show
+> > .RI "[ " DEV " ]"
+> >
+> >+.ti -8
+> >+.B rdma dev set
+> >+.RI "[ " DEV " ]"
+> >+.BR name
+> >+.BR NEWNAME
+> >+
+> > .ti -8
+> > .B rdma dev help
+> >
+> > .SH "DESCRIPTION"
+> >+.SS rdma dev set - rename rdma device
+> >+
+> > .SS rdma dev show - display rdma device attributes
+> >
+> > .PP
+> >@@ -45,6 +53,11 @@ rdma dev show mlx5_3
+> > Shows the state of specified RDMA device.
+> > .RE
+> > .PP
+> >+rdma dev set mlx5_3 name rdma_0
+> >+.RS 4
+> >+Renames the mlx5_3 device to rdma_0.
+> >+.RE
+> >+.PP
+> >
+> > .SH SEE ALSO
+> > .BR rdma (8),
+> >--
+> >2.19.1
+>
+
+--oyqLL/JqMvClXZi1
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJb8Ud/AAoJEORje4g2clinjz4P+gLR5lb/kROqgMAiJjjafE1E
+Cnb8H0rmWNpIDOyTtZ4qqSWeB2gunZtcRxfcT5f5utwj3p1/v1g46uCWuAYRxCMt
+OCCK2daM3s3txYgncc696IhOiq+nF2cd/75MM2LR75cdmdKr0br8pVnU6Xb03UCE
+g/clxpP6mhvGeGTDGsbw2tqBpyvRbbCPMUzJV0fJKUezO2scLRkBs/IngWubVvES
+zAZfeeb1VwdLt4FUny7NjSvUqP3VNsGuZzJNGUe5c3AwdHBsqiZLzByHLkU2NDXl
+haOBzWgPb6eT4GXYvu1ewuPurmhfDvTggeeeAJO1WOQLGkQ3c8JIHg+APgoI5inR
+BdQYlZ4jFhkEOI0p89gmDEaZnsqxCh1rGujZK23Y82zuDT+AFQHjzP2NuFIIIyUx
+Ap6DwHZA+DOeSke4FQF1/50OE9z7eCfEK0WCkOCThhY7HP7Wak8zs3o3g37/JbGj
+0e6cRiKOaByCI8Gu2wK40TqhmKlSRwDN3nGy3BFW27+D04MjrAHj6a3/88oKlWr5
+BsyWYWZoL9Bo8uhp4S0tZCCAJBzyAbsqSWkzlUzLF7Y8b24gyQgo+/VJu97BL1kT
+yaoT+Ho6eaoH7LBjycayxPJPAeAXSItUsmqHgiDTwQCTcPdnofyir4H+FLbzqjpV
+iZp20JW8EeHdJ+EiWGpL
+=TDhE
+-----END PGP SIGNATURE-----
+
+--oyqLL/JqMvClXZi1--
