@@ -1,74 +1,93 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Mon, 19 Nov 2018 11:49:54 -0700
-Message-ID: <20181119184954.GB4890@ziepe.ca>
-References: <20181112075807.9291-1-nek.in.cn@gmail.com>
- <20181112075807.9291-2-nek.in.cn@gmail.com>
- <20181113002354.GO3695@mtr-leonro.mtl.com>
- <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
- <20181114160017.GI3759@mtr-leonro.mtl.com>
- <20181115085109.GD157308@Turing-Arch-b>
- <20181115145455.GN3759@mtr-leonro.mtl.com>
- <20181119091405.GE157308@Turing-Arch-b>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 00/12] mlx5 core generic EQ API for RDMA ODP
+Date: Mon, 19 Nov 2018 10:52:30 -0800
+Message-ID: <20181119185242.21961-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181119091405.GE157308@Turing-Arch-b>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kenneth Lee <liguozhu@hisilicon.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia@codeaurora.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 19, 2018 at 05:14:05PM +0800, Kenneth Lee wrote:
- 
-> If the hardware cannot share page table with the CPU, we then need to have
-> some way to change the device page table. This is what happen in ODP. It
-> invalidates the page table in device upon mmu_notifier call back. But this cannot
-> solve the COW problem: if the user process A share a page P with device, and A 
-> forks a new process B, and it continue to write to the page. By COW, the
-> process B will keep the page P, while A will get a new page P'. But you have
-> no way to let the device know it should use P' rather than P.
+Hi,
 
-Is this true? I thought mmu_notifiers covered all these cases.
+This patchset is for mlx5-next shared branch, and will be applied there
+once the review is done.
 
-The mm_notifier for A should fire if B causes the physical address of
-A's pages to change via COW. 
+This patchset introduces mostly refactoring work and EQ related code updates to
+allow moving the ODP rdma only logic from mlx5_core into mlx5 ib where it
+belongs, and will allow future updates and optimizations for the rdma ODP
+(On Demand Paging) feature to go only to rdma tree.
 
-And this causes the device page tables to re-synchronize.
+Patch #1: Fixes the offsets of stored irq affinity hints inside mlx5
+irq info array.
 
-> In WarpDrive/uacce, we make this simple. If you support IOMMU and it support
-> SVM/SVA. Everything will be fine just like ODP implicit mode. And you don't need
-> to write any code for that. Because it has been done by IOMMU framework. If it
+Patch #2,3,4: Remove unused fields, code and logic
 
-Looks like the IOMMU code uses mmu_notifier, so it is identical to
-IB's ODP. The only difference is that IB tends to have the IOMMU page
-table in the device, not in the CPU.
+Patch #5: Move all EQ related logic from main.c to eq.c to allow clear
+and seamless refactoring for creating generic EQ management API.
 
-The only case I know if that is different is the new-fangled CAPI
-stuff where the IOMMU can directly use the CPU's page table and the
-IOMMU page table (in device or CPU) is eliminated.
+Patch #6: Create mlx5 core EQs in one place, in order to have one entry
+point to call from main file.
 
-Anyhow, I don't think a single instance of hardware should justify an
-entire new subsystem. Subsystems are hard to make and without multiple
-hardware examples there is no way to expect that it would cover any
-future use cases.
+Patch #7,8: Move EQ related structures into eq_table mlx5 structure and
+make eq_table fields and logic private to eq.c file.
 
-If all your driver needs is to mmap some PCI bar space, route
-interrupts and do DMA mapping then mediated VFIO is probably a good
-choice. 
+Patch #9,10: Create one generic EQ struct and use it in different
+EQ types (usages) e.g. (Async, Command, FW pages, completion and ODP)
+Introduce generic EQ API to allow creating Generic EQs regardless of
+their types, will be uesd to create all mlx5 core EQs in mlx5_core and
+ODP EQ in mlx5_ib.
 
-If it needs to do a bunch of other stuff, not related to PCI bar
-space, interrupts and DMA mapping (ie special code for compression,
-crypto, AI, whatever) then you should probably do what Jerome said and
-make a drivers/char/hisillicon_foo_bar.c that exposes just what your
-hardware does.
+Patch #11: Move ODP logic out from mlx5_core eq.c into mlx5 rdma driver.
+odp.c file.
 
-If you have networking involved in here then consider RDMA,
-particularly if this functionality is already part of the same
-hardware that the hns infiniband driver is servicing.
+Patch #12: Make the trivial EQE access methods inline.
 
-'computational MRs' are a reasonable approach to a side-car offload of
-already existing RDMA support.
+v1->v2:
+	- Remove vertical alignment
+	- Fix spilling "Chip" -> "Cheap"
 
-Jason
+Thanks,
+Saeed.
+
+---
+
+Saeed Mahameed (12):
+  net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
+  net/mlx5: EQ, Remove unused fields and structures
+  net/mlx5: EQ, No need to store eq index as a field
+  net/mlx5: EQ, Remove redundant completion EQ list lock
+  net/mlx5: EQ, Move all EQ logic to eq.c
+  net/mlx5: EQ, Create all EQs in one place
+  net/mlx5: EQ, irq_info and rmap belong to eq_table
+  net/mlx5: EQ, Privatize eq_table and friends
+  net/mlx5: EQ, Different EQ types
+  net/mlx5: EQ, Generic EQ
+  {net,IB}/mlx5: Move Page fault EQ and ODP logic to RDMA
+  net/mlx5: EQ, Make EQE access methods inline
+
+ drivers/infiniband/hw/mlx5/main.c             |  15 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +-
+ drivers/infiniband/hw/mlx5/odp.c              | 281 ++++-
+ drivers/net/ethernet/mellanox/mlx5/core/cq.c  |  15 +-
+ .../net/ethernet/mellanox/mlx5/core/debugfs.c |  11 +
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c |  34 -
+ drivers/net/ethernet/mellanox/mlx5/core/en.h  |   3 +-
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |  18 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 968 +++++++++++-------
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c |   3 +-
+ .../net/ethernet/mellanox/mlx5/core/health.c  |   3 +-
+ .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |  93 ++
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 287 +-----
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  23 -
+ include/linux/mlx5/cq.h                       |   2 +-
+ include/linux/mlx5/driver.h                   | 151 +--
+ include/linux/mlx5/eq.h                       |  60 ++
+ 17 files changed, 1081 insertions(+), 901 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/lib/eq.h
+ create mode 100644 include/linux/mlx5/eq.h
+
+-- 
+2.19.1
