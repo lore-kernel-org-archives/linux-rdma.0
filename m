@@ -1,151 +1,535 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2-next v3] rdma: Document IB device renaming option
-Date: Sun, 18 Nov 2018 13:05:35 +0200
-Message-ID: <20181118110535.GJ24359@mtr-leonro.mtl.com>
-References: <20181104191122.11979-1-leon@kernel.org>
- <14063C7AD467DE4B82DEDB5C278E8663BE61B8E2@FMSMSX108.amr.corp.intel.com>
+From: Kenneth Lee <liguozhu@hisilicon.com>
+Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+Date: Mon, 19 Nov 2018 17:14:05 +0800
+Message-ID: <20181119091405.GE157308@Turing-Arch-b>
+References: <20181112075807.9291-1-nek.in.cn@gmail.com>
+ <20181112075807.9291-2-nek.in.cn@gmail.com>
+ <20181113002354.GO3695@mtr-leonro.mtl.com>
+ <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
+ <20181114160017.GI3759@mtr-leonro.mtl.com>
+ <20181115085109.GD157308@Turing-Arch-b>
+ <20181115145455.GN3759@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="oyqLL/JqMvClXZi1"
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663BE61B8E2@FMSMSX108.amr.corp.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: David Ahern <dsahern@gmail.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+In-Reply-To: <20181115145455.GN3759@mtr-leonro.mtl.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdha>
 List-Id: linux-rdma@vger.kernel.org
 
-
---oyqLL/JqMvClXZi1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Nov 16, 2018 at 08:10:35PM +0000, Ruhl, Michael J wrote:
-> >-----Original Message-----
-> >From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
-> >owner@vger.kernel.org] On Behalf Of Leon Romanovsky
-> >Sent: Sunday, November 4, 2018 2:11 PM
-> >To: David Ahern <dsahern@gmail.com>
-> >Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
-> ><netdev@vger.kernel.org>; RDMA mailing list <linux-rdma@vger.kernel.org>;
-> >Stephen Hemminger <stephen@networkplumber.org>
-> >Subject: [PATCH iproute2-next v3] rdma: Document IB device renaming
-> >option
+On Thu, Nov 15, 2018 at 04:54:55PM +0200, Leon Romanovsky wrote:
+> Date: Thu, 15 Nov 2018 16:54:55 +0200
+> From: Leon Romanovsky <leon@kernel.org>
+> To: Kenneth Lee <liguozhu@hisilicon.com>
+> CC: Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>,
+>  linux-doc@vger.kernel.org, Alexander Shishkin
+>  <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>,
+>  zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org,
+>  Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin
+>  Schenk <g.schenk@eckelmann.de>, RDMA mailing list
+>  <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Jason
+>  Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Uwe
+>  Kleine-König <u.kleine-koenig@pengutronix.de>, David Kershner
+>  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
+>  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
+>  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
+>  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
+>  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
+>  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
+>  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
+>  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
+> Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+> User-Agent: Mutt/1.10.1 (2018-07-13)
+> Message-ID: <20181115145455.GN3759@mtr-leonro.mtl.com>
+> 
+> On Thu, Nov 15, 2018 at 04:51:09PM +0800, Kenneth Lee wrote:
+> > On Wed, Nov 14, 2018 at 06:00:17PM +0200, Leon Romanovsky wrote:
+> > > Date: Wed, 14 Nov 2018 18:00:17 +0200
+> > > From: Leon Romanovsky <leon@kernel.org>
+> > > To: Kenneth Lee <nek.in.cn@gmail.com>
+> > > CC: Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org,
+> > >  Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
+> > >  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
+> > >  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
+> > >  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
+> > >  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
+> > >  Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, Uwe
+> > >  Kleine-König <u.kleine-koenig@pengutronix.de>, David Kershner
+> > >  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
+> > >  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
+> > >  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
+> > >  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
+> > >  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
+> > >  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
+> > >  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, Kenneth Lee
+> > >  <liguozhu@hisilicon.com>, "David S. Miller" <davem@davemloft.net>,
+> > >  linux-accelerators@lists.ozlabs.org
+> > > Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+> > > User-Agent: Mutt/1.10.1 (2018-07-13)
+> > > Message-ID: <20181114160017.GI3759@mtr-leonro.mtl.com>
+> > >
+> > > On Wed, Nov 14, 2018 at 10:58:09AM +0800, Kenneth Lee wrote:
+> > > >
+> > > > 在 2018/11/13 上午8:23, Leon Romanovsky 写道:
+> > > > > On Mon, Nov 12, 2018 at 03:58:02PM +0800, Kenneth Lee wrote:
+> > > > > > From: Kenneth Lee <liguozhu@hisilicon.com>
+> > > > > >
+> > > > > > WarpDrive is a general accelerator framework for the user application to
+> > > > > > access the hardware without going through the kernel in data path.
+> > > > > >
+> > > > > > The kernel component to provide kernel facility to driver for expose the
+> > > > > > user interface is called uacce. It a short name for
+> > > > > > "Unified/User-space-access-intended Accelerator Framework".
+> > > > > >
+> > > > > > This patch add document to explain how it works.
+> > > > > + RDMA and netdev folks
+> > > > >
+> > > > > Sorry, to be late in the game, I don't see other patches, but from
+> > > > > the description below it seems like you are reinventing RDMA verbs
+> > > > > model. I have hard time to see the differences in the proposed
+> > > > > framework to already implemented in drivers/infiniband/* for the kernel
+> > > > > space and for the https://github.com/linux-rdma/rdma-core/ for the user
+> > > > > space parts.
+> > > >
+> > > > Thanks Leon,
+> > > >
+> > > > Yes, we tried to solve similar problem in RDMA. We also learned a lot from
+> > > > the exist code of RDMA. But we we have to make a new one because we cannot
+> > > > register accelerators such as AI operation, encryption or compression to the
+> > > > RDMA framework:)
+> > >
+> > > Assuming that you did everything right and still failed to use RDMA
+> > > framework, you was supposed to fix it and not to reinvent new exactly
+> > > same one. It is how we develop kernel, by reusing existing code.
 > >
-> >From: Leon Romanovsky <leonro@mellanox.com>
->
-> Hi Leon,
->
-> After looking at this and Steve Wise's changes for the ADDLINK/DELLINK,
-> it occurred to me that the driver that handed the name to ib_register_device()
-> might be interested in knowing that this name change occurred.
->
-> Are there plans to include a some kind of notify mechanism so drivers can
-> find out when things like this occur?
+> > Yes, but we don't force other system such as NIC or GPU into RDMA, do we?
+> 
+> You don't introduce new NIC or GPU, but proposing another interface to
+> directly access HW memory and bypass kernel for the data path. This is
+> whole idea of RDMA and this is why it is already present in the kernel.
+> 
+> Various hardware devices are supported in our stack allow a ton of crazy
+> stuff, including GPUs interconnections and NIC functionalities.
 
-At least for device rename, I don't see any real need for such event,
-because drivers are not supposed to rely on names.
+Yes. We don't want to invent new wheel. That is why we did it behind VFIO in RFC
+v1 and v2. But finally we were persuaded by Mr. Jerome Glisse that VFIO was not
+a good place to solve the problem.
 
-I would say that it is probably driver bug to rely on device name
-during its execution.
+And currently, as you see, IB is bound with devices doing RDMA. The register
+function, ib_register_device() hint that it is a netdev (get_netdev() callback), it know
+about gid, pkey, and Memory Window. IB is not simply a address space management
+framework. And verbs to IB are not transparent. If we start to add
+compression/decompression, AI (RNN, CNN stuff) operations, and encryption/decryption
+to the verbs set. It will become very complexity. Or maybe I misunderstand the
+IB idea? But I don't see compression hardware is integrated in the mainline
+Kernel. Could you directly point out which one I can used as a reference?
 
->
-> Is this something that should be done?
-
-I think yes, we can extend ib_event to support more events than now,
-but should we?
-
->
-> Thanks,
->
-> Mike
->
-> >[leonro@server /]$ lspci |grep -i Ether
-> >00:08.0 Ethernet controller: Red Hat, Inc. Virtio network device
-> >00:09.0 Ethernet controller: Mellanox Technologies MT27700 Family
-> >[ConnectX-4]
-> >[leonro@server /]$ sudo rdma dev
-> >1: mlx5_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
-> >sys_image_guid 5254:00c0:fe12:3455
-> >[leonro@server /]$ sudo rdma dev set mlx5_0 name hfi1_0
-> >[leonro@server /]$ sudo rdma dev
-> >1: hfi1_0: node_type ca fw 3.8.9999 node_guid 5254:00c0:fe12:3455
-> >sys_image_guid 5254:00c0:fe12:3455
+> 
 > >
-> >Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >---
-> >Changelog:
-> >v2->v3:
-> > * Dropped "to be named" words from example section of man
-> >---
-> > man/man8/rdma-dev.8 | 15 ++++++++++++++-
-> > 1 file changed, 14 insertions(+), 1 deletion(-)
+> > I assume you would not agree to register a zip accelerator to infiniband? :)
+> 
+> "infiniband" name in the "drivers/infiniband/" is legacy one and the
+> current code supports IB, RoCE, iWARP and OmniPath as a transport layers.
+> For a lone time, we wanted to rename that folder to be "drivers/rdma",
+> but didn't find enough brave men/women to do it, due to backport mess
+> for such move.
+> 
+> The addition of zip accelerator to RDMA is possible and depends on how
+> you will model such new functionality - new driver, or maybe new ULP.
+> 
 > >
-> >diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-> >index 461681b6..7c275180 100644
-> >--- a/man/man8/rdma-dev.8
-> >+++ b/man/man8/rdma-dev.8
-> >@@ -1,6 +1,6 @@
-> > .TH RDMA\-DEV 8 "06 Jul 2017" "iproute2" "Linux"
-> > .SH NAME
-> >-rdmak-dev \- RDMA device configuration
-> >+rdma-dev \- RDMA device configuration
-> > .SH SYNOPSIS
-> > .sp
-> > .ad l
-> >@@ -22,10 +22,18 @@ rdmak-dev \- RDMA device configuration
-> > .B rdma dev show
-> > .RI "[ " DEV " ]"
-> >
-> >+.ti -8
-> >+.B rdma dev set
-> >+.RI "[ " DEV " ]"
-> >+.BR name
-> >+.BR NEWNAME
-> >+
-> > .ti -8
-> > .B rdma dev help
-> >
-> > .SH "DESCRIPTION"
-> >+.SS rdma dev set - rename rdma device
-> >+
-> > .SS rdma dev show - display rdma device attributes
-> >
-> > .PP
-> >@@ -45,6 +53,11 @@ rdma dev show mlx5_3
-> > Shows the state of specified RDMA device.
-> > .RE
-> > .PP
-> >+rdma dev set mlx5_3 name rdma_0
-> >+.RS 4
-> >+Renames the mlx5_3 device to rdma_0.
-> >+.RE
-> >+.PP
-> >
-> > .SH SEE ALSO
-> > .BR rdma (8),
-> >--
-> >2.19.1
->
+> > Further, I don't think it is wise to break an exist system (RDMA) to fulfill a
+> > totally new scenario. The better choice is to let them run in parallel for some
+> > time and try to merge them accordingly.
+> 
+> Awesome, so please run your code out-of-tree for now and once you are ready
+> for submission let's try to merge it.
 
---oyqLL/JqMvClXZi1
-Content-Type: application/pgp-signature; name="signature.asc"
+Yes, yes. We know trust need time to gain. But the fact is that there is no
+accelerator user driver can be added to mainline kernel. We should raise the
+topic time to time. So to help the communication to fix the gap, right?
 
------BEGIN PGP SIGNATURE-----
+We are also opened to cooperate with IB to do it within the IB framework. But
+please let me know where to start. I feel it is quite wired to make a
+ib_register_device for a zip or RSA accelerator.
 
-iQIcBAEBAgAGBQJb8Ud/AAoJEORje4g2clinjz4P+gLR5lb/kROqgMAiJjjafE1E
-Cnb8H0rmWNpIDOyTtZ4qqSWeB2gunZtcRxfcT5f5utwj3p1/v1g46uCWuAYRxCMt
-OCCK2daM3s3txYgncc696IhOiq+nF2cd/75MM2LR75cdmdKr0br8pVnU6Xb03UCE
-g/clxpP6mhvGeGTDGsbw2tqBpyvRbbCPMUzJV0fJKUezO2scLRkBs/IngWubVvES
-zAZfeeb1VwdLt4FUny7NjSvUqP3VNsGuZzJNGUe5c3AwdHBsqiZLzByHLkU2NDXl
-haOBzWgPb6eT4GXYvu1ewuPurmhfDvTggeeeAJO1WOQLGkQ3c8JIHg+APgoI5inR
-BdQYlZ4jFhkEOI0p89gmDEaZnsqxCh1rGujZK23Y82zuDT+AFQHjzP2NuFIIIyUx
-Ap6DwHZA+DOeSke4FQF1/50OE9z7eCfEK0WCkOCThhY7HP7Wak8zs3o3g37/JbGj
-0e6cRiKOaByCI8Gu2wK40TqhmKlSRwDN3nGy3BFW27+D04MjrAHj6a3/88oKlWr5
-BsyWYWZoL9Bo8uhp4S0tZCCAJBzyAbsqSWkzlUzLF7Y8b24gyQgo+/VJu97BL1kT
-yaoT+Ho6eaoH7LBjycayxPJPAeAXSItUsmqHgiDTwQCTcPdnofyir4H+FLbzqjpV
-iZp20JW8EeHdJ+EiWGpL
-=TDhE
------END PGP SIGNATURE-----
+> 
+> >
+> > >
+> > > >
+> > > > Another problem we tried to address is the way to pin the memory for dma
+> > > > operation. The RDMA way to pin the memory cannot avoid the page lost due to
+> > > > copy-on-write operation during the memory is used by the device. This may
+> > > > not be important to RDMA library. But it is important to accelerator.
+> > >
+> > > Such support exists in drivers/infiniband/ from late 2014 and
+> > > it is called ODP (on demand paging).
+> >
+> > I reviewed ODP and I think it is a solution bound to infiniband. It is part of
+> > MR semantics and required a infiniband specific hook
+> > (ucontext->invalidate_range()). And the hook requires the device to be able to
+> > stop using the page for a while for the copying. It is ok for infiniband
+> > (actually, only mlx5 uses it). I don't think most accelerators can support
+> > this mode. But WarpDrive works fully on top of IOMMU interface, it has no this
+> > limitation.
+> 
+> 1. It has nothing to do with infiniband.
 
---oyqLL/JqMvClXZi1--
+But it must be a ib_dev first.
+
+> 2. MR and uncontext are verbs semantics and needed to ensure that host
+> memory exposed to user is properly protected from security point of view.
+> 3. "stop using the page for a while for the copying" - I'm not fully
+> understand this claim, maybe this article will help you to better
+> describe : https://lwn.net/Articles/753027/
+
+This topic was being discussed in RFCv2. The key problem here is that:
+
+The device need to hold the memory for its own calculation, but the CPU/software
+want to stop it for a while for synchronizing with disk or COW.
+
+If the hardware support SVM/SVA (Shared Virtual Memory/Address), it is easy, the
+device share page table with CPU, the device will raise a page fault when the
+CPU downgrade the PTE to read-only. 
+
+If the hardware cannot share page table with the CPU, we then need to have
+some way to change the device page table. This is what happen in ODP. It
+invalidates the page table in device upon mmu_notifier call back. But this cannot
+solve the COW problem: if the user process A share a page P with device, and A 
+forks a new process B, and it continue to write to the page. By COW, the
+process B will keep the page P, while A will get a new page P'. But you have
+no way to let the device know it should use P' rather than P.
+
+This may be OK for RDMA application. Because RDMA is a big thing and we can ask
+the programmer to avoid the situation. But for a accelerator, I don't think we
+can ask a programmer to care for this when use a zlib.
+
+In WarpDrive/uacce, we make this simple. If you support IOMMU and it support
+SVM/SVA. Everything will be fine just like ODP implicit mode. And you don't need
+to write any code for that. Because it has been done by IOMMU framework. If it
+dose not, you have to use the kernel allocated memory which has the same IOVA as
+the VA in user space. So we can still maintain a unify address space among the
+devices and the applicatin.
+
+> 4. mlx5 supports ODP not because of being partially IB device,
+> but because HW performance oriented implementation is not an easy task.
+> 
+> >
+> > >
+> > > >
+> > > > Hope this can help the understanding.
+> > >
+> > > Yes, it helped me a lot.
+> > > Now, I'm more than before convinced that this whole patchset shouldn't
+> > > exist in the first place.
+> >
+> > Then maybe you can tell me how I can register my accelerator to the user space?
+> 
+> Write kernel driver and write user space part of it.
+> https://github.com/linux-rdma/rdma-core/
+> 
+> I have no doubts that your colleagues who wrote and maintain
+> drivers/infiniband/hw/hns driver know best how to do it.
+> They did it very successfully.
+> 
+> Thanks
+> 
+> >
+> > >
+> > > To be clear, NAK.
+> > >
+> > > Thanks
+> > >
+> > > >
+> > > > Cheers
+> > > >
+> > > > >
+> > > > > Hard NAK from RDMA side.
+> > > > >
+> > > > > Thanks
+> > > > >
+> > > > > > Signed-off-by: Kenneth Lee <liguozhu@hisilicon.com>
+> > > > > > ---
+> > > > > >   Documentation/warpdrive/warpdrive.rst       | 260 +++++++
+> > > > > >   Documentation/warpdrive/wd-arch.svg         | 764 ++++++++++++++++++++
+> > > > > >   Documentation/warpdrive/wd.svg              | 526 ++++++++++++++
+> > > > > >   Documentation/warpdrive/wd_q_addr_space.svg | 359 +++++++++
+> > > > > >   4 files changed, 1909 insertions(+)
+> > > > > >   create mode 100644 Documentation/warpdrive/warpdrive.rst
+> > > > > >   create mode 100644 Documentation/warpdrive/wd-arch.svg
+> > > > > >   create mode 100644 Documentation/warpdrive/wd.svg
+> > > > > >   create mode 100644 Documentation/warpdrive/wd_q_addr_space.svg
+> > > > > >
+> > > > > > diff --git a/Documentation/warpdrive/warpdrive.rst b/Documentation/warpdrive/warpdrive.rst
+> > > > > > new file mode 100644
+> > > > > > index 000000000000..ef84d3a2d462
+> > > > > > --- /dev/null
+> > > > > > +++ b/Documentation/warpdrive/warpdrive.rst
+> > > > > > @@ -0,0 +1,260 @@
+> > > > > > +Introduction of WarpDrive
+> > > > > > +=========================
+> > > > > > +
+> > > > > > +*WarpDrive* is a general accelerator framework for the user application to
+> > > > > > +access the hardware without going through the kernel in data path.
+> > > > > > +
+> > > > > > +It can be used as the quick channel for accelerators, network adaptors or
+> > > > > > +other hardware for application in user space.
+> > > > > > +
+> > > > > > +This may make some implementation simpler.  E.g.  you can reuse most of the
+> > > > > > +*netdev* driver in kernel and just share some ring buffer to the user space
+> > > > > > +driver for *DPDK* [4] or *ODP* [5]. Or you can combine the RSA accelerator with
+> > > > > > +the *netdev* in the user space as a https reversed proxy, etc.
+> > > > > > +
+> > > > > > +*WarpDrive* takes the hardware accelerator as a heterogeneous processor which
+> > > > > > +can share particular load from the CPU:
+> > > > > > +
+> > > > > > +.. image:: wd.svg
+> > > > > > +        :alt: WarpDrive Concept
+> > > > > > +
+> > > > > > +The virtual concept, queue, is used to manage the requests sent to the
+> > > > > > +accelerator. The application send requests to the queue by writing to some
+> > > > > > +particular address, while the hardware takes the requests directly from the
+> > > > > > +address and send feedback accordingly.
+> > > > > > +
+> > > > > > +The format of the queue may differ from hardware to hardware. But the
+> > > > > > +application need not to make any system call for the communication.
+> > > > > > +
+> > > > > > +*WarpDrive* tries to create a shared virtual address space for all involved
+> > > > > > +accelerators. Within this space, the requests sent to queue can refer to any
+> > > > > > +virtual address, which will be valid to the application and all involved
+> > > > > > +accelerators.
+> > > > > > +
+> > > > > > +The name *WarpDrive* is simply a cool and general name meaning the framework
+> > > > > > +makes the application faster. It includes general user library, kernel
+> > > > > > +management module and drivers for the hardware. In kernel, the management
+> > > > > > +module is called *uacce*, meaning "Unified/User-space-access-intended
+> > > > > > +Accelerator Framework".
+> > > > > > +
+> > > > > > +
+> > > > > > +How does it work
+> > > > > > +================
+> > > > > > +
+> > > > > > +*WarpDrive* uses *mmap* and *IOMMU* to play the trick.
+> > > > > > +
+> > > > > > +*Uacce* creates a chrdev for the device registered to it. A "queue" will be
+> > > > > > +created when the chrdev is opened. The application access the queue by mmap
+> > > > > > +different address region of the queue file.
+> > > > > > +
+> > > > > > +The following figure demonstrated the queue file address space:
+> > > > > > +
+> > > > > > +.. image:: wd_q_addr_space.svg
+> > > > > > +        :alt: WarpDrive Queue Address Space
+> > > > > > +
+> > > > > > +The first region of the space, device region, is used for the application to
+> > > > > > +write request or read answer to or from the hardware.
+> > > > > > +
+> > > > > > +Normally, there can be three types of device regions mmio and memory regions.
+> > > > > > +It is recommended to use common memory for request/answer descriptors and use
+> > > > > > +the mmio space for device notification, such as doorbell. But of course, this
+> > > > > > +is all up to the interface designer.
+> > > > > > +
+> > > > > > +There can be two types of device memory regions, kernel-only and user-shared.
+> > > > > > +This will be explained in the "kernel APIs" section.
+> > > > > > +
+> > > > > > +The Static Share Virtual Memory region is necessary only when the device IOMMU
+> > > > > > +does not support "Share Virtual Memory". This will be explained after the
+> > > > > > +*IOMMU* idea.
+> > > > > > +
+> > > > > > +
+> > > > > > +Architecture
+> > > > > > +------------
+> > > > > > +
+> > > > > > +The full *WarpDrive* architecture is represented in the following class
+> > > > > > +diagram:
+> > > > > > +
+> > > > > > +.. image:: wd-arch.svg
+> > > > > > +        :alt: WarpDrive Architecture
+> > > > > > +
+> > > > > > +
+> > > > > > +The user API
+> > > > > > +------------
+> > > > > > +
+> > > > > > +We adopt a polling style interface in the user space: ::
+> > > > > > +
+> > > > > > +        int wd_request_queue(struct wd_queue *q);
+> > > > > > +        void wd_release_queue(struct wd_queue *q);
+> > > > > > +
+> > > > > > +        int wd_send(struct wd_queue *q, void *req);
+> > > > > > +        int wd_recv(struct wd_queue *q, void **req);
+> > > > > > +        int wd_recv_sync(struct wd_queue *q, void **req);
+> > > > > > +        void wd_flush(struct wd_queue *q);
+> > > > > > +
+> > > > > > +wd_recv_sync() is a wrapper to its non-sync version. It will trapped into
+> > > > > > +kernel and waits until the queue become available.
+> > > > > > +
+> > > > > > +If the queue do not support SVA/SVM. The following helper function
+> > > > > > +can be used to create Static Virtual Share Memory: ::
+> > > > > > +
+> > > > > > +        void *wd_preserve_share_memory(struct wd_queue *q, size_t size);
+> > > > > > +
+> > > > > > +The user API is not mandatory. It is simply a suggestion and hint what the
+> > > > > > +kernel interface is supposed to support.
+> > > > > > +
+> > > > > > +
+> > > > > > +The user driver
+> > > > > > +---------------
+> > > > > > +
+> > > > > > +The queue file mmap space will need a user driver to wrap the communication
+> > > > > > +protocol. *UACCE* provides some attributes in sysfs for the user driver to
+> > > > > > +match the right accelerator accordingly.
+> > > > > > +
+> > > > > > +The *UACCE* device attribute is under the following directory:
+> > > > > > +
+> > > > > > +/sys/class/uacce/<dev-name>/params
+> > > > > > +
+> > > > > > +The following attributes is supported:
+> > > > > > +
+> > > > > > +nr_queue_remained (ro)
+> > > > > > +        number of queue remained
+> > > > > > +
+> > > > > > +api_version (ro)
+> > > > > > +        a string to identify the queue mmap space format and its version
+> > > > > > +
+> > > > > > +device_attr (ro)
+> > > > > > +        attributes of the device, see UACCE_DEV_xxx flag defined in uacce.h
+> > > > > > +
+> > > > > > +numa_node (ro)
+> > > > > > +        id of numa node
+> > > > > > +
+> > > > > > +priority (rw)
+> > > > > > +        Priority or the device, bigger is higher
+> > > > > > +
+> > > > > > +(This is not yet implemented in RFC version)
+> > > > > > +
+> > > > > > +
+> > > > > > +The kernel API
+> > > > > > +--------------
+> > > > > > +
+> > > > > > +The *uacce* kernel API is defined in uacce.h. If the hardware support SVM/SVA,
+> > > > > > +The driver need only the following API functions: ::
+> > > > > > +
+> > > > > > +        int uacce_register(uacce);
+> > > > > > +        void uacce_unregister(uacce);
+> > > > > > +        void uacce_wake_up(q);
+> > > > > > +
+> > > > > > +*uacce_wake_up* is used to notify the process who epoll() on the queue file.
+> > > > > > +
+> > > > > > +According to the IOMMU capability, *uacce* categories the devices as follow:
+> > > > > > +
+> > > > > > +UACCE_DEV_NOIOMMU
+> > > > > > +        The device has no IOMMU. The user process cannot use VA on the hardware
+> > > > > > +        This mode is not recommended.
+> > > > > > +
+> > > > > > +UACCE_DEV_SVA (UACCE_DEV_PASID | UACCE_DEV_FAULT_FROM_DEV)
+> > > > > > +        The device has IOMMU which can share the same page table with user
+> > > > > > +        process
+> > > > > > +
+> > > > > > +UACCE_DEV_SHARE_DOMAIN
+> > > > > > +        The device has IOMMU which has no multiple page table and device page
+> > > > > > +        fault support
+> > > > > > +
+> > > > > > +If the device works in mode other than UACCE_DEV_NOIOMMU, *uacce* will set its
+> > > > > > +IOMMU to IOMMU_DOMAIN_UNMANAGED. So the driver must not use any kernel
+> > > > > > +DMA API but the following ones from *uacce* instead: ::
+> > > > > > +
+> > > > > > +        uacce_dma_map(q, va, size, prot);
+> > > > > > +        uacce_dma_unmap(q, va, size, prot);
+> > > > > > +
+> > > > > > +*uacce_dma_map/unmap* is valid only for UACCE_DEV_SVA device. It creates a
+> > > > > > +particular PASID and page table for the kernel in the IOMMU (Not yet
+> > > > > > +implemented in the RFC)
+> > > > > > +
+> > > > > > +For the UACCE_DEV_SHARE_DOMAIN device, uacce_dma_map/unmap is not valid.
+> > > > > > +*Uacce* call back start_queue only when the DUS and DKO region is mmapped. The
+> > > > > > +accelerator driver must use those dma buffer, via uacce_queue->qfrs[], on
+> > > > > > +start_queue call back. The size of the queue file region is defined by
+> > > > > > +uacce->ops->qf_pg_start[].
+> > > > > > +
+> > > > > > +We have to do it this way because most of current IOMMU cannot support the
+> > > > > > +kernel and user virtual address at the same time. So we have to let them both
+> > > > > > +share the same user virtual address space.
+> > > > > > +
+> > > > > > +If the device have to support kernel and user at the same time, both kernel
+> > > > > > +and the user should use these DMA API. This is not convenient. A better
+> > > > > > +solution is to change the future DMA/IOMMU design to let them separate the
+> > > > > > +address space between the user and kernel space. But it is not going to be in
+> > > > > > +a short time.
+> > > > > > +
+> > > > > > +
+> > > > > > +Multiple processes support
+> > > > > > +==========================
+> > > > > > +
+> > > > > > +In the latest mainline kernel (4.19) when this document is written, the IOMMU
+> > > > > > +subsystem do not support multiple process page tables yet.
+> > > > > > +
+> > > > > > +Most IOMMU hardware implementation support multi-process with the concept
+> > > > > > +of PASID. But they may use different name, e.g. it is call sub-stream-id in
+> > > > > > +SMMU of ARM. With PASID or similar design, multi page table can be added to
+> > > > > > +the IOMMU and referred by its PASID.
+> > > > > > +
+> > > > > > +*JPB* has a patchset to enable this[1]_. We have tested it with our hardware
+> > > > > > +(which is known as *D06*). It works well. *WarpDrive* rely on them to support
+> > > > > > +UACCE_DEV_SVA. If it is not enabled, *WarpDrive* can still work. But it
+> > > > > > +support only one process, the device will be set to UACCE_DEV_SHARE_DOMAIN
+> > > > > > +even it is set to UACCE_DEV_SVA initially.
+> > > > > > +
+> > > > > > +Static Share Virtual Memory is mainly used by UACCE_DEV_SHARE_DOMAIN device.
+> > > > > > +
+> > > > > > +
+> > > > > > +Legacy Mode Support
+> > > > > > +===================
+> > > > > > +For the hardware without IOMMU, WarpDrive can still work, the only problem is
+> > > > > > +VA cannot be used in the device. The driver should adopt another strategy for
+> > > > > > +the shared memory. It is only for testing, and not recommended.
+> > > > > > +
+> > > > > > +
+> > > > > > +The Folk Scenario
+> > > > > > +=================
+> > > > > > +For a process with allocated queues and shared memory, what happen if it forks
+> > > > > > +a child?
+> > > > > > +
+> > > > > > +The fd of the queue will be duplicated on folk, so the child can send request
+> > > > > > +to the same queue as its parent. But the requests which is sent from processes
+> > > > > > +except for the one who open the queue will be blocked.
+> > > > > > +
+> > > > > > +It is recommended to add O_CLOEXEC to the queue file.
+> > > > > > +
+> > > > > > +The queue mmap space has a VM_DONTCOPY in its VMA. So the child will lost all
+> > > > > > +those VMAs.
+> > > > > > +
+> > > > > > +This is why *WarpDrive* does not adopt the mode used in *VFIO* and *InfiniBand*.
+> > > > > > +Both solutions can set any user pointer for hardware sharing. But they cannot
+> > > > > > +support fork when the dma is in process. Or the "Copy-On-Write" procedure will
+> > > > > > +make the parent process lost its physical pages.
+> > > > > > +
+> > > > > > +
+> > > > > > +The Sample Code
+> > > > > > +===============
+> > > > > > +There is a sample user land implementation with a simple driver for Hisilicon
+> > > > > > +Hi1620 ZIP Accelerator.
+> > > > > > +
+> > > > > > +To test, do the following in samples/warpdrive (for the case of PC host): ::
+> > > > > > +        ./autogen.sh
+> > > > > > +        ./conf.sh       # or simply ./configure if you build on target system
+> > > > > > +        make
+> > > > > > +
+> > > > > > +Then you can get test_hisi_zip in the test subdirectory. Copy it to the target
+> > > > > > +system and make sure the hisi_zip driver is enabled (the major and minor of
+> > > > > > +the uacce chrdev can be gotten from the dmesg or sysfs), and run: ::
+> > > > > > +        mknod /dev/ua1 c <major> <minior>
+> > > > > > +        test/test_hisi_zip -z < data > data.zip
+> > > > > > +        test/test_hisi_zip -g < data > data.gzip
+> > > > > > +
+> > > > > > +
+> > > > > > +References
+> > > > > > +==========
+> > > > > > +.. [1] https://patchwork.kernel.org/patch/10394851/
+> > > > > > +
+> > > > > > +.. vim: tw=78
+> > [...]
+> > > > > > --
+> > > > > > 2.17.1
+> > > > > >
