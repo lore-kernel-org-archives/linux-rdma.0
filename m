@@ -1,107 +1,74 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Mon, 19 Nov 2018 14:41:10 -0700
-Message-ID: <20181119214110.GJ4890@ziepe.ca>
-References: <20181119182752.GA4890@ziepe.ca>
- <20181119184215.GB4593@redhat.com>
- <20181119185333.GC4890@ziepe.ca>
- <20181119191721.GC4593@redhat.com>
- <20181119192702.GD4890@ziepe.ca>
- <20181119194631.GE4593@redhat.com>
- <20181119201156.GG4890@ziepe.ca>
- <20181119202614.GF4593@redhat.com>
- <20181119212638.GI4890@ziepe.ca>
- <20181119213320.GG4593@redhat.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/10] Collection of ODP fixes
+Date: Mon, 19 Nov 2018 22:25:02 +0000
+Message-ID: <20181119222455.GP3599@mellanox.com>
+References: <20181108191017.21891-1-leon@kernel.org>
+ <20181112204310.GI3695@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181119213320.GG4593@redhat.com>
+In-Reply-To: <20181112204310.GI3695@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <6FCE607F4152004E9FA9BA751BA4A74D@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, Leon Romanovsky <leon@kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Vinod Koul <vkoul@kernel.org>, Doug Ledford <dledford@redhat.com>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Kenneth Lee <nek.in.cn@gmail.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia@codeaurora.org>
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 19, 2018 at 04:33:20PM -0500, Jerome Glisse wrote:
-> On Mon, Nov 19, 2018 at 02:26:38PM -0700, Jason Gunthorpe wrote:
-> > On Mon, Nov 19, 2018 at 03:26:15PM -0500, Jerome Glisse wrote:
-> > > On Mon, Nov 19, 2018 at 01:11:56PM -0700, Jason Gunthorpe wrote:
-> > > > On Mon, Nov 19, 2018 at 02:46:32PM -0500, Jerome Glisse wrote:
-> > > > 
-> > > > > > ?? How can O_DIRECT be fine but RDMA not? They use exactly the same
-> > > > > > get_user_pages flow, right? Can we do what O_DIRECT does in RDMA and
-> > > > > > be fine too?
-> > > > > > 
-> > > > > > AFAIK the only difference is the length of the race window. You'd have
-> > > > > > to fork and fault during the shorter time O_DIRECT has get_user_pages
-> > > > > > open.
-> > > > > 
-> > > > > Well in O_DIRECT case there is only one page table, the CPU
-> > > > > page table and it gets updated during fork() so there is an
-> > > > > ordering there and the race window is small.
-> > > > 
-> > > > Not really, in O_DIRECT case there is another 'page table', we just
-> > > > call it a DMA scatter/gather list and it is sent directly to the block
-> > > > device's DMA HW. The sgl plays exactly the same role as the various HW
-> > > > page list data structures that underly RDMA MRs.
-> > > > 
-> > > > It is not a page table that matters here, it is if the DMA address of
-> > > > the page is active for DMA on HW.
-> > > > 
-> > > > Like you say, the only difference is that the race is hopefully small
-> > > > with O_DIRECT (though that is not really small, NVMeof for instance
-> > > > has windows as large as connection timeouts, if you try hard enough)
-> > > > 
-> > > > So we probably can trigger this trouble with O_DIRECT and fork(), and
-> > > > I would call it a bug :(
-> > > 
-> > > I can not think of any scenario that would be a bug with O_DIRECT.
-> > > Do you have one in mind ? When you fork() and do other syscall that
-> > > affect the memory of your process in another thread you should
-> > > expect non consistant results. Kernel is not here to provide a fully
-> > > safe environement to user, user can shoot itself in the foot and
-> > > that's fine as long as it only affect the process itself and no one
-> > > else. We should not be in the business of making everything baby
-> > > proof :)
-> > 
-> > Sure, I setup AIO with O_DIRECT and launch a read.
-> > 
-> > Then I fork and dirty the READ target memory using the CPU in the
-> > child.
-> > 
-> > As you described in this case the fork will retain the physical page
-> > that is undergoing O_DIRECT DMA, and the parent gets a new copy'd page.
-> > 
-> > The DMA completes, and the child gets the DMA'd to page. The parent
-> > gets an unchanged copy'd page.
-> > 
-> > The parent gets the AIO completion, but can't see the data.
-> > 
-> > I'd call that a bug with O_DIRECT. The only correct outcome is that
-> > the parent will always see the O_DIRECT data. Fork should not cause
-> > the *parent* to malfunction. I agree the child cannot make any
-> > prediction what memory it will see.
-> > 
-> > I assume the same flow is possible using threads and read()..
-> > 
-> > It is really no different than the RDMA bug with fork.
-> > 
-> 
-> Yes and that's expected behavior :) If you fork() and have anything
-> still in flight at time of fork that can change your process address
-> space (including data in it) then all bets are of.
-> 
-> At least this is my reading of fork() syscall.
+On Mon, Nov 12, 2018 at 01:43:15PM -0700, Leon Romanovsky wrote:
+> On Thu, Nov 08, 2018 at 09:10:07PM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Hi,
+> >
+> > This is collection of fixes to mlx5_core and mlx5_ib ODP logic.
+> > There are two main reasons why we decided to forward it to mlx5-next
+> > and not to rdma-rc or net like our other fixes.
+> >
+> > 1. We have large number of patches exactly in that area that are ready
+> > for submission and we don't want to create extra merge work for
+> > maintainers due to that. Among those future series (already ready and
+> > tested): internal change of mlx5_core pagefaults handling, moving ODP
+> > code to RDMA, change in EQ mechanism, simplification and moving SRQ QP
+> > to RDMA, extra fixes to mlx5_ib ODP and ODP SRQ support.
+> >
+> > 2. Most of those fixes are for old bugs and there is no rush to fix the=
+m
+> > right now (in -rc1/-rc2).
+> >
+> > Thanks
+> >
+> > Moni Shoua (10):
+> >   net/mlx5: Release resource on error flow
+> >   net/mlx5: Add interface to hold and release core resources
+> >   net/mlx5: Enumerate page fault types
+> >   IB/mlx5: Lock QP during page fault handling
+> >   net/mlx5: Return success for PAGE_FAULT_RESUME in internal error stat=
+e
+> >   net/mlx5: Use multi threaded workqueue for page fault handling
+> >   IB/mlx5: Improve ODP debugging messages
+>=20
+> Applied to mlx5-next
+> b02394aa75e3 IB/mlx5: Improve ODP debugging messages
+> 90290db7669b net/mlx5: Use multi threaded workqueue for page fault handli=
+ng
+> ef90c5e9757d net/mlx5: Return success for PAGE_FAULT_RESUME in internal e=
+rror state
+> 032080ab43ac IB/mlx5: Lock QP during page fault handling
+> c99fefea2cc9 net/mlx5: Enumerate page fault types
+> 27e95603f4df net/mlx5: Add interface to hold and release core resources
+> 698114968a22 net/mlx5: Release resource on error flow
+>=20
+> >   IB/mlx5: Avoid hangs due to a missing completion
+> >   IB/mlx5: Call PAGE_FAULT_RESUME command asynchronously
+>=20
+> Dropped to address feedback.
+>=20
+> >   net/mlx5: Remove unused function
+>=20
+> Dropped, because it depends on dropped commit.
 
-Not mine.. I can't think of anything else that would have this
-behavior.
-
-All traditional syscalls, will properly dirty the pages of the
-parent. ie if I call read() in a thread and do fork in another thread,
-then not seeing the data after read() completes is clearly a bug. All
-other syscalls are the same.
-
-It is bonkers that opening the file with O_DIRECT would change this
-basic behavior. I'm calling it a bug :)
+Okay, merged into for-next
 
 Jason
