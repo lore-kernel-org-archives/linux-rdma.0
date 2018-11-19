@@ -1,109 +1,73 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Mon, 19 Nov 2018 21:02:29 +0200
-Message-ID: <20181119190229.GB21715@mtr-leonro.mtl.com>
-References: <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
- <20181114160017.GI3759@mtr-leonro.mtl.com>
- <20181115085109.GD157308@Turing-Arch-b>
- <20181115145455.GN3759@mtr-leonro.mtl.com>
- <20181119091405.GE157308@Turing-Arch-b>
- <20181119091910.GF157308@Turing-Arch-b>
- <20181119104801.GF8268@mtr-leonro.mtl.com>
- <20181119164853.GA4593@redhat.com>
- <20181119182752.GA4890@ziepe.ca>
- <20181119184215.GB4593@redhat.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Mon, 19 Nov 2018 13:57:51 -0500
+Message-ID: <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ZGiS0Q5IWpPtfppv"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181119184215.GB4593@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Kenneth Lee <liguozhu@hisilicon.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Kenneth Lee <nek.in.cn@gmail.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181110085041.10071-1-jhubbard@nvidia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
+John, thanks for the discussion at LPC. One of the concerns we
+raised however was the performance test. The numbers below are
+rather obviously tainted. I think we need to get a better baseline
+before concluding anything...
 
---ZGiS0Q5IWpPtfppv
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here's my main concern:
 
-On Mon, Nov 19, 2018 at 01:42:16PM -0500, Jerome Glisse wrote:
-> On Mon, Nov 19, 2018 at 11:27:52AM -0700, Jason Gunthorpe wrote:
-> > On Mon, Nov 19, 2018 at 11:48:54AM -0500, Jerome Glisse wrote:
-> >
-> > > Just to comment on this, any infiniband driver which use umem and do
-> > > not have ODP (here ODP for me means listening to mmu notifier so all
-> > > infiniband driver except mlx5) will be affected by same issue AFAICT.
-> > >
-> > > AFAICT there is no special thing happening after fork() inside any of
-> > > those driver. So if parent create a umem mr before fork() and program
-> > > hardware with it then after fork() the parent might start using new
-> > > page for the umem range while the old memory is use by the child. The
-> > > reverse is also true (parent using old memory and child new memory)
-> > > bottom line you can not predict which memory the child or the parent
-> > > will use for the range after fork().
-> > >
-> > > So no matter what you consider the child or the parent, what the hw
-> > > will use for the mr is unlikely to match what the CPU use for the
-> > > same virtual address. In other word:
-> > >
-> > > Before fork:
-> > >     CPU parent: virtual addr ptr1 -> physical address =3D 0xCAFE
-> > >     HARDWARE:   virtual addr ptr1 -> physical address =3D 0xCAFE
-> > >
-> > > Case 1:
-> > >     CPU parent: virtual addr ptr1 -> physical address =3D 0xCAFE
-> > >     CPU child:  virtual addr ptr1 -> physical address =3D 0xDEAD
-> > >     HARDWARE:   virtual addr ptr1 -> physical address =3D 0xCAFE
-> > >
-> > > Case 2:
-> > >     CPU parent: virtual addr ptr1 -> physical address =3D 0xBEEF
-> > >     CPU child:  virtual addr ptr1 -> physical address =3D 0xCAFE
-> > >     HARDWARE:   virtual addr ptr1 -> physical address =3D 0xCAFE
-> >
-> > IIRC this is solved in IB by automatically calling
-> > madvise(MADV_DONTFORK) before creating the MR.
-> >
-> > MADV_DONTFORK
-> >   .. This is useful to prevent copy-on-write semantics from changing the
-> >   physical location of a page if the parent writes to it after a
-> >   fork(2) ..
->
-> This would work around the issue but this is not transparent ie
-> range marked with DONTFORK no longer behave as expected from the
-> application point of view.
->
-> Also it relies on userspace doing the right thing (which is not
-> something i usualy trust :)).
+On 11/10/2018 3:50 AM, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
+>...
+> ------------------------------------------------------
+> WITHOUT the patch:
+> ------------------------------------------------------
+> reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=64
+> fio-3.3
+> Starting 1 process
+> Jobs: 1 (f=1): [R(1)][100.0%][r=55.5MiB/s,w=0KiB/s][r=14.2k,w=0 IOPS][eta 00m:00s]
+> reader: (groupid=0, jobs=1): err= 0: pid=1750: Tue Nov  6 20:18:06 2018
+>     read: IOPS=13.9k, BW=54.4MiB/s (57.0MB/s)(1024MiB/18826msec)
 
-The good thing that we didn't see anyone who succeeded to run
-IB stack without our user space, which does right thing under
-the hood :).
+~14000 4KB read IOPS is really, really low for an NVMe disk.
+
+>    cpu          : usr=2.39%, sys=95.30%, ctx=669, majf=0, minf=72
+
+CPU is obviously the limiting factor. At these IOPS, it should be far
+less.
+> ------------------------------------------------------
+> OR, here's a better run WITH the patch applied, and you can see that this is nearly as good
+> as the "without" case:
+> ------------------------------------------------------
+> 
+> reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=64
+> fio-3.3
+> Starting 1 process
+> Jobs: 1 (f=1): [R(1)][100.0%][r=53.2MiB/s,w=0KiB/s][r=13.6k,w=0 IOPS][eta 00m:00s]
+> reader: (groupid=0, jobs=1): err= 0: pid=2521: Tue Nov  6 20:01:33 2018
+>     read: IOPS=13.4k, BW=52.5MiB/s (55.1MB/s)(1024MiB/19499msec)
+
+Similar low IOPS.
+
+>    cpu          : usr=3.47%, sys=94.61%, ctx=370, majf=0, minf=73
+
+Similar CPU saturation.
 
 >
-> Cheers,
-> J=E9r=F4me
 
---ZGiS0Q5IWpPtfppv
-Content-Type: application/pgp-signature; name="signature.asc"
+I get nearly 400,000 4KB IOPS on my tiny desktop, which has a 25W
+i7-7500 and a Samsung PM961 128GB NVMe (stock Bionic 4.15 kernel
+and fio version 3.1). Even then, the CPU saturates, so it's not
+necessarily a perfect test. I'd like to see your runs both get to
+"max" IOPS, i.e. CPU < 100%, and compare the CPU numbers. This would
+give the best comparison for making a decision.
 
------BEGIN PGP SIGNATURE-----
+Can you confirm what type of hardware you're running this test on?
+CPU, memory speed and capacity, and NVMe device especially?
 
-iQIcBAEBAgAGBQJb8wjFAAoJEORje4g2clinsgMP/06W7PP/epn/WsbihGFnNzR7
-eSCxWl6pe1bRlT0k3QIUENSn61M04nryTJTErkpGC/Qgk+hDxQMMGk4Rr1sE7PUA
-Ht9AYxBf9+aijIZM8ttCcandwz+RZ8TjtUH+ejXd1XDc1kbkJFgL+9H8TNbfJu+o
-521rbhMoebH+dJnTtGfts82ZrY+/rfyALkXLnRwArh8Hkz7AqTNQEKI/sqaM8jhc
-dPqtU+xlIbwAejMNKhFKQswXRJfzO7MBSXocRf4wSX5L/U8A+p+s2QmknJTokiiG
-061EB/clVZ1u09wuhEBT4IbMQmle2CkRg3m3NtTrTJg3Or1wP6G9lt8NSA73nS6/
-o6OAdsPiool8Hnv0h9wGSgaRLuXTc/TUG2xVbBQWPyRJFXqy7aeXNOW1fS5SFIAy
-kj9PSxrMmpp+gYyEx9DBbpX6oPtJmsv4dvbKmpUQWsqbCIxdtwtKW00gAPTvYbHP
-jz7mEfGCHDRRIPcEcXxmeASta6BIzJRZR94xviAeCPOst5PuS4QUr098hv46Syn9
-gXRYzkcaIIhCjsPhWfsy/mrs+5k+NFPIy7jH4Zb5JE020Qu+Mir8PoY4ml25PiJy
-0SAiHLu0vnYtgbxgpHPXPqMqPxTqZAh8kGE+utcGVZeS6VrxBSysKe5fxSlehifS
-iH8hKkPnI7Z6xPkex8QN
-=EMEz
------END PGP SIGNATURE-----
-
---ZGiS0Q5IWpPtfppv--
+Tom.
