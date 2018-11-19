@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 02/12] net/mlx5: EQ, Remove unused fields and structures
-Date: Mon, 19 Nov 2018 10:52:32 -0800
-Message-ID: <20181119185242.21961-3-saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 01/12] net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
+Date: Mon, 19 Nov 2018 10:52:31 -0800
+Message-ID: <20181119185242.21961-2-saeedm@mellanox.com>
 References: <20181119185242.21961-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,59 +12,90 @@ To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Some fields and structures are not referenced nor used by the driver,
-remove them.
+Currently the cpu affinity hint mask for completion EQs is stored and
+read from the wrong place, since reading and storing is done from the
+same index, there is no actual issue with that, but internal irq_info
+for completion EQs stars at MLX5_EQ_VEC_COMP_BASE offset in irq_info
+array, this patch changes the code to use the correct offset to store
+and read the IRQ affinity hint.
 
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eq.c | 11 -----------
- include/linux/mlx5/driver.h                  |  3 ---
- 2 files changed, 14 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++++++------
+ include/linux/mlx5/driver.h                       |  2 +-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index aeab0c4f60f4..fd5926daa0a6 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -78,17 +78,6 @@ enum {
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_LAST_WQE)	    | \
- 			       (1ull << MLX5_EVENT_TYPE_SRQ_RQ_LIMIT))
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 1243edbedc9e..2839c30dd3a0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1760,7 +1760,7 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
  
--struct map_eq_in {
--	u64	mask;
--	u32	reserved;
--	u32	unmap_eqn;
--};
--
--struct cre_des_eq {
--	u8	reserved[15];
--	u8	eqn;
--};
--
- static int mlx5_cmd_destroy_eq(struct mlx5_core_dev *dev, u8 eqn)
+ static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
  {
- 	u32 out[MLX5_ST_SZ_DW(destroy_eq_out)] = {0};
+-	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
++	return cpumask_first(priv->mdev->priv.irq_info[ix + MLX5_EQ_VEC_COMP_BASE].mask);
+ }
+ 
+ static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 28132c7dc05f..d5cea0a36e6a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -640,18 +640,19 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
+ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+-	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
++	if (!zalloc_cpumask_var(&priv->irq_info[vecidx].mask, GFP_KERNEL)) {
+ 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
+-			priv->irq_info[i].mask);
++			priv->irq_info[vecidx].mask);
+ 
+ 	if (IS_ENABLED(CONFIG_SMP) &&
+-	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
++	    irq_set_affinity_hint(irq, priv->irq_info[vecidx].mask))
+ 		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
+ 
+ 	return 0;
+@@ -659,11 +660,12 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ 
+ static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+ 	irq_set_affinity_hint(irq, NULL);
+-	free_cpumask_var(priv->irq_info[i].mask);
++	free_cpumask_var(priv->irq_info[vecidx].mask);
+ }
+ 
+ static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
 diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 7d4ed995b4ce..15cf6727a62d 100644
+index aa5963b5d38e..7d4ed995b4ce 100644
 --- a/include/linux/mlx5/driver.h
 +++ b/include/linux/mlx5/driver.h
-@@ -398,7 +398,6 @@ struct mlx5_eq {
- 	unsigned int		irqn;
- 	u8			eqn;
- 	int			nent;
--	u64			mask;
- 	struct list_head	list;
- 	int			index;
- 	struct mlx5_rsc_debug	*dbg;
-@@ -478,8 +477,6 @@ struct mlx5_core_srq {
- };
+@@ -1309,7 +1309,7 @@ enum {
+ static inline const struct cpumask *
+ mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
+ {
+-	return dev->priv.irq_info[vector].mask;
++	return dev->priv.irq_info[vector + MLX5_EQ_VEC_COMP_BASE].mask;
+ }
  
- struct mlx5_eq_table {
--	void __iomem	       *update_ci;
--	void __iomem	       *update_arm_ci;
- 	struct list_head	comp_eqs_list;
- 	struct mlx5_eq		pages_eq;
- 	struct mlx5_eq		async_eq;
+ #endif /* MLX5_DRIVER_H */
 -- 
 2.19.1
