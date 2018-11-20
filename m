@@ -1,30 +1,45 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH net-next 0/4] VLAN tag handling cleanup
-Date: Tue, 20 Nov 2018 13:20:30 +0100
-Message-ID: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH V2 mlx5-next 11/12] {net,IB}/mlx5: Move Page fault EQ and
+ ODP logic to RDMA
+Date: Tue, 20 Nov 2018 17:30:38 +0000
+Message-ID: <20181120173031.GI22009@mellanox.com>
+References: <20181119185242.21961-1-saeedm@mellanox.com>
+ <20181119185242.21961-12-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181119185242.21961-12-saeedm@mellanox.com>
+Content-Language: en-US
+Content-ID: <8AA3C9BBC83FB94D96276803CF940E66@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: Ajit Khaparde <ajit.khaparde@broadcom.com>, devel@linuxdriverproject.org, Haiyang Zhang <haiyangz@microsoft.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Sathya Perla <sathya.perla@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Stephen Hemminger <sthemmin@microsoft.com>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a cleanup set after VLAN_TAG_PRESENT removal. The CFI bit
-handling is made similar to how other tag fields are used.
+On Mon, Nov 19, 2018 at 10:52:41AM -0800, Saeed Mahameed wrote:
+> Use the new generic EQ API to move all ODP RDMA data structures and logic
+> form mlx5 core driver into mlx5_ib driver.
+>=20
+> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+> Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c             |  10 +-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  15 +-
+>  drivers/infiniband/hw/mlx5/odp.c              | 281 +++++++++++++++++-
+>  drivers/net/ethernet/mellanox/mlx5/core/dev.c |  34 ---
+>  drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 252 ----------------
+>  .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |   8 -
+>  .../net/ethernet/mellanox/mlx5/core/main.c    |  17 +-
+>  .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 -
+>  include/linux/mlx5/driver.h                   |  49 ---
+>  include/linux/mlx5/eq.h                       |  21 ++
+>  10 files changed, 308 insertions(+), 381 deletions(-)
 
-Michał Mirosław (4):
-  net/vlan: introduce skb_vlan_tag_get_cfi() helper
-  net/hyperv: use skb_vlan_tag_*() helpers
-  benet: use skb_vlan_tag_get_prio()
-  mlx5: use skb_vlan_tag_get_prio()
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
 
- drivers/net/ethernet/emulex/benet/be_main.c     | 2 +-
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c | 2 +-
- drivers/net/hyperv/netvsc_drv.c                 | 9 +++++----
- include/linux/if_vlan.h                         | 3 ++-
- 4 files changed, 9 insertions(+), 7 deletions(-)
+Can you let me know when these land in the shared branch please?
 
--- 
-2.19.1
+Thanks,
+Jason
