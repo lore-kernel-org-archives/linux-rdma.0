@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 05/11] net/mlx5: E-Switch, Use async events chain
-Date: Tue, 20 Nov 2018 14:12:22 -0800
-Message-ID: <20181120221228.18365-6-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 07/11] net/mlx5: CmdIF, Use async events chain
+Date: Tue, 20 Nov 2018 14:12:24 -0800
+Message-ID: <20181120221228.18365-8-saeedm@mellanox.com>
 References: <20181120221228.18365-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,152 +12,199 @@ To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the explicit call to mlx5_eswitch_vport_event on
-MLX5_EVENT_TYPE_NIC_VPORT_CHANGE and let the eswitch register its own
-handler when its ready.
+Remove the explicit call to mlx5_cmd_comp_handler on MLX5_EVENT_TYPE_CMD
+and let command interface to register its own handler when its ready.
 
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c | 48 ++++++++++++++++++-
  drivers/net/ethernet/mellanox/mlx5/core/eq.c  |  4 --
- .../net/ethernet/mellanox/mlx5/core/eswitch.c | 44 +++++++++++--------
- .../net/ethernet/mellanox/mlx5/core/eswitch.h |  3 +-
- 3 files changed, 26 insertions(+), 25 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/health.c  | 25 +---------
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  2 +-
+ include/linux/mlx5/driver.h                   |  2 +
+ 5 files changed, 50 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index e5fcce9ca107..7c8b2d89645b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -409,10 +409,6 @@ static irqreturn_t mlx5_eq_async_int(int irq, void *eq_ptr)
- 			}
- 			break;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+index 7b18aff955f1..8ab636d59edb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
+@@ -40,9 +40,11 @@
+ #include <linux/random.h>
+ #include <linux/io-mapping.h>
+ #include <linux/mlx5/driver.h>
++#include <linux/mlx5/eq.h>
+ #include <linux/debugfs.h>
  
--		case MLX5_EVENT_TYPE_NIC_VPORT_CHANGE:
--			mlx5_eswitch_vport_event(dev->priv.eswitch, eqe);
--			break;
--
- 		case MLX5_EVENT_TYPE_PORT_MODULE_EVENT:
- 			mlx5_port_module_event(dev, eqe);
- 			break;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 2346b6ba3d54..e6a9b19d8626 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -36,6 +36,7 @@
- #include <linux/mlx5/vport.h>
- #include <linux/mlx5/fs.h>
  #include "mlx5_core.h"
 +#include "lib/eq.h"
- #include "eswitch.h"
- #include "fs_core.h"
- #include "lib/eq.h"
-@@ -1568,7 +1569,6 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
- 	/* Mark this vport as disabled to discard new events */
- 	vport->enabled = false;
  
--	mlx5_eq_synchronize_async_irq(esw->dev);
- 	/* Wait for current already scheduled events to complete */
- 	flush_workqueue(esw->work_queue);
- 	/* Disable events from this vport */
-@@ -1594,10 +1594,25 @@ static void esw_disable_vport(struct mlx5_eswitch *esw, int vport_num)
- 	mutex_unlock(&esw->state_lock);
+ enum {
+ 	CMD_IF_REV = 5,
+@@ -805,6 +807,8 @@ static u16 msg_to_opcode(struct mlx5_cmd_msg *in)
+ 	return MLX5_GET(mbox_in, in->first.data, opcode);
  }
  
-+static int eswitch_vport_event(struct notifier_block *nb,
-+			       unsigned long type, void *data)
-+{
-+	struct mlx5_eswitch *esw = mlx5_nb_cof(nb, struct mlx5_eswitch, nb);
-+	struct mlx5_eqe *eqe = data;
-+	struct mlx5_vport *vport;
-+	u16 vport_num;
++static void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced);
 +
-+	vport_num = be16_to_cpu(eqe->data.vport_change.vport_num);
-+	vport = &esw->vports[vport_num];
-+	if (vport->enabled)
-+		queue_work(esw->work_queue, &vport->vport_change_handler);
+ static void cb_timeout_handler(struct work_struct *work)
+ {
+ 	struct delayed_work *dwork = container_of(work, struct delayed_work,
+@@ -1412,14 +1416,32 @@ static void mlx5_cmd_change_mod(struct mlx5_core_dev *dev, int mode)
+ 		up(&cmd->sem);
+ }
+ 
++static int cmd_comp_notifier(struct notifier_block *nb,
++			     unsigned long type, void *data)
++{
++	struct mlx5_core_dev *dev;
++	struct mlx5_cmd *cmd;
++	struct mlx5_eqe *eqe;
++
++	cmd = mlx5_nb_cof(nb, struct mlx5_cmd, nb);
++	dev = container_of(cmd, struct mlx5_core_dev, cmd);
++	eqe = data;
++
++	mlx5_cmd_comp_handler(dev, be32_to_cpu(eqe->data.cmd.vector), false);
 +
 +	return NOTIFY_OK;
 +}
-+
- /* Public E-Switch API */
- #define ESW_ALLOWED(esw) ((esw) && MLX5_ESWITCH_MANAGER((esw)->dev))
- 
--
- int mlx5_eswitch_enable_sriov(struct mlx5_eswitch *esw, int nvfs, int mode)
+ void mlx5_cmd_use_events(struct mlx5_core_dev *dev)
  {
- 	int err;
-@@ -1641,6 +1656,11 @@ int mlx5_eswitch_enable_sriov(struct mlx5_eswitch *esw, int nvfs, int mode)
- 	for (i = 0; i <= nvfs; i++)
- 		esw_enable_vport(esw, i, enabled_events);
- 
-+	if (mode == SRIOV_LEGACY) {
-+		MLX5_NB_INIT(&esw->nb, eswitch_vport_event, NIC_VPORT_CHANGE);
-+		mlx5_eq_notifier_register(esw->dev, &esw->nb);
-+	}
-+
- 	esw_info(esw->dev, "SRIOV enabled: active vports(%d)\n",
- 		 esw->enabled_vports);
- 	return 0;
-@@ -1670,6 +1690,9 @@ void mlx5_eswitch_disable_sriov(struct mlx5_eswitch *esw)
- 	mc_promisc = &esw->mc_promisc;
- 	nvports = esw->enabled_vports;
- 
-+	if (esw->mode == SRIOV_LEGACY)
-+		mlx5_eq_notifier_unregister(esw->dev, &esw->nb);
-+
- 	for (i = 0; i < esw->total_vports; i++)
- 		esw_disable_vport(esw, i);
- 
-@@ -1778,23 +1801,6 @@ void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw)
- 	kfree(esw);
++	MLX5_NB_INIT(&dev->cmd.nb, cmd_comp_notifier, CMD);
++	mlx5_eq_notifier_register(dev, &dev->cmd.nb);
+ 	mlx5_cmd_change_mod(dev, CMD_MODE_EVENTS);
  }
  
--void mlx5_eswitch_vport_event(struct mlx5_eswitch *esw, struct mlx5_eqe *eqe)
+ void mlx5_cmd_use_polling(struct mlx5_core_dev *dev)
+ {
+ 	mlx5_cmd_change_mod(dev, CMD_MODE_POLLING);
++	mlx5_eq_notifier_unregister(dev, &dev->cmd.nb);
+ }
+ 
+ static void free_msg(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *msg)
+@@ -1435,7 +1457,7 @@ static void free_msg(struct mlx5_core_dev *dev, struct mlx5_cmd_msg *msg)
+ 	}
+ }
+ 
+-void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced)
++static void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced)
+ {
+ 	struct mlx5_cmd *cmd = &dev->cmd;
+ 	struct mlx5_cmd_work_ent *ent;
+@@ -1533,7 +1555,29 @@ void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced)
+ 		}
+ 	}
+ }
+-EXPORT_SYMBOL(mlx5_cmd_comp_handler);
++
++void mlx5_cmd_trigger_completions(struct mlx5_core_dev *dev)
++{
++	unsigned long flags;
++	u64 vector;
++
++	/* wait for pending handlers to complete */
++	mlx5_eq_synchronize_cmd_irq(dev);
++	spin_lock_irqsave(&dev->cmd.alloc_lock, flags);
++	vector = ~dev->cmd.bitmask & ((1ul << (1 << dev->cmd.log_sz)) - 1);
++	if (!vector)
++		goto no_trig;
++
++	vector |= MLX5_TRIGGERED_CMD_COMP;
++	spin_unlock_irqrestore(&dev->cmd.alloc_lock, flags);
++
++	mlx5_core_dbg(dev, "vector 0x%llx\n", vector);
++	mlx5_cmd_comp_handler(dev, vector, true);
++	return;
++
++no_trig:
++	spin_unlock_irqrestore(&dev->cmd.alloc_lock, flags);
++}
+ 
+ static int status_to_err(u8 status)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+index 7f6a644700eb..b28869aa1a4e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
+@@ -368,10 +368,6 @@ static irqreturn_t mlx5_eq_async_int(int irq, void *eq_ptr)
+ 			mlx5_srq_event(dev, rsn, eqe->type);
+ 			break;
+ 
+-		case MLX5_EVENT_TYPE_CMD:
+-			mlx5_cmd_comp_handler(dev, be32_to_cpu(eqe->data.cmd.vector), false);
+-			break;
+-
+ 		case MLX5_EVENT_TYPE_PORT_CHANGE:
+ 			port = (eqe->data.port.port >> 4) & 0xf;
+ 			switch (eqe->sub_type) {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+index 066883003aea..4e42bd290959 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+@@ -79,29 +79,6 @@ void mlx5_set_nic_state(struct mlx5_core_dev *dev, u8 state)
+ 		    &dev->iseg->cmdq_addr_l_sz);
+ }
+ 
+-static void trigger_cmd_completions(struct mlx5_core_dev *dev)
 -{
--	struct mlx5_eqe_vport_change *vc_eqe = &eqe->data.vport_change;
--	u16 vport_num = be16_to_cpu(vc_eqe->vport_num);
--	struct mlx5_vport *vport;
+-	unsigned long flags;
+-	u64 vector;
 -
--	if (!esw) {
--		pr_warn("MLX5 E-Switch: vport %d got an event while eswitch is not initialized\n",
--			vport_num);
--		return;
--	}
+-	/* wait for pending handlers to complete */
+-	mlx5_eq_synchronize_cmd_irq(dev);
+-	spin_lock_irqsave(&dev->cmd.alloc_lock, flags);
+-	vector = ~dev->cmd.bitmask & ((1ul << (1 << dev->cmd.log_sz)) - 1);
+-	if (!vector)
+-		goto no_trig;
 -
--	vport = &esw->vports[vport_num];
--	if (vport->enabled)
--		queue_work(esw->work_queue, &vport->vport_change_handler);
+-	vector |= MLX5_TRIGGERED_CMD_COMP;
+-	spin_unlock_irqrestore(&dev->cmd.alloc_lock, flags);
+-
+-	mlx5_core_dbg(dev, "vector 0x%llx\n", vector);
+-	mlx5_cmd_comp_handler(dev, vector, true);
+-	return;
+-
+-no_trig:
+-	spin_unlock_irqrestore(&dev->cmd.alloc_lock, flags);
 -}
 -
- /* Vport Administration */
- #define LEGAL_VPORT(esw, vport) (vport >= 0 && vport < esw->total_vports)
+ static int in_fatal(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_core_health *health = &dev->priv.health;
+@@ -125,7 +102,7 @@ void mlx5_enter_error_state(struct mlx5_core_dev *dev, bool force)
+ 	mlx5_core_err(dev, "start\n");
+ 	if (pci_channel_offline(dev->pdev) || in_fatal(dev) || force) {
+ 		dev->state = MLX5_DEVICE_STATE_INTERNAL_ERROR;
+-		trigger_cmd_completions(dev);
++		mlx5_cmd_trigger_completions(dev);
+ 	}
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-index aaafc9f17115..480ffa294867 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.h
-@@ -181,6 +181,7 @@ struct esw_mc_addr { /* SRIOV only */
+ 	mlx5_core_event(dev, MLX5_DEV_EVENT_SYS_ERROR, 1);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+index e06c6e16ffc9..5dd453e47a04 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
+@@ -127,7 +127,7 @@ int mlx5_destroy_scheduling_element_cmd(struct mlx5_core_dev *dev, u8 hierarchy,
+ int mlx5_wait_for_vf_pages(struct mlx5_core_dev *dev);
+ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev);
  
- struct mlx5_eswitch {
- 	struct mlx5_core_dev    *dev;
-+	struct mlx5_nb          nb;
- 	struct mlx5_eswitch_fdb fdb_table;
- 	struct hlist_head       mc_table[MLX5_L2_ADDR_HASH_SIZE];
- 	struct workqueue_struct *work_queue;
-@@ -211,7 +212,6 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw);
- /* E-Switch API */
- int mlx5_eswitch_init(struct mlx5_core_dev *dev);
- void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw);
--void mlx5_eswitch_vport_event(struct mlx5_eswitch *esw, struct mlx5_eqe *eqe);
- int mlx5_eswitch_enable_sriov(struct mlx5_eswitch *esw, int nvfs, int mode);
- void mlx5_eswitch_disable_sriov(struct mlx5_eswitch *esw);
- int mlx5_eswitch_set_vport_mac(struct mlx5_eswitch *esw,
-@@ -352,7 +352,6 @@ static inline bool mlx5_eswitch_vlan_actions_supported(struct mlx5_core_dev *dev
- /* eswitch API stubs */
- static inline int  mlx5_eswitch_init(struct mlx5_core_dev *dev) { return 0; }
- static inline void mlx5_eswitch_cleanup(struct mlx5_eswitch *esw) {}
--static inline void mlx5_eswitch_vport_event(struct mlx5_eswitch *esw, struct mlx5_eqe *eqe) {}
- static inline int  mlx5_eswitch_enable_sriov(struct mlx5_eswitch *esw, int nvfs, int mode) { return 0; }
- static inline void mlx5_eswitch_disable_sriov(struct mlx5_eswitch *esw) {}
+-void mlx5_cmd_comp_handler(struct mlx5_core_dev *dev, u64 vec, bool forced);
++void mlx5_cmd_trigger_completions(struct mlx5_core_dev *dev);
+ int mlx5_cq_debugfs_init(struct mlx5_core_dev *dev);
+ void mlx5_cq_debugfs_cleanup(struct mlx5_core_dev *dev);
  
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 61088ad33500..a8d638134fc8 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -278,6 +278,8 @@ struct mlx5_cmd_stats {
+ };
+ 
+ struct mlx5_cmd {
++	struct mlx5_nb    nb;
++
+ 	void	       *cmd_alloc_buf;
+ 	dma_addr_t	alloc_dma;
+ 	int		alloc_size;
 -- 
 2.19.1
