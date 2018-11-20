@@ -1,35 +1,113 @@
-From: Haiyang Zhang <haiyangz@microsoft.com>
-Subject: RE: [PATCH net-next 2/4] net/hyperv: use skb_vlan_tag_*() helpers
-Date: Tue, 20 Nov 2018 20:37:17 +0000
-Message-ID: <DM5PR2101MB1013614A5E560CE8B8956EABCAD90@DM5PR2101MB1013.namprd21.prod.outlook.com>
-References: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
- <61f737ec45c9905d5c86fbe8492eaa604bf6549f.1542716156.git.mirq-linux@rere.qmqm.pl>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 00/11] mlx5 core internal firmware events handling improvements
+Date: Tue, 20 Nov 2018 14:12:17 -0800
+Message-ID: <20181120221228.18365-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <61f737ec45c9905d5c86fbe8492eaa604bf6549f.1542716156.git.mirq-linux@rere.qmqm.pl>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: =?utf-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirq-linux@rere.qmqm.pl>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
-Cc: KY Srinivasan <kys@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, Ajit Khaparde <ajit.khaparde@broadcom.com>, Leon Romanovsky <leon@kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Sathya Perla <sathya.perla@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWljaGHFgiBNaXJvc8WC
-YXcgPG1pcnEtbGludXhAcmVyZS5xbXFtLnBsPg0KPiBTZW50OiBUdWVzZGF5LCBOb3ZlbWJlciAy
-MCwgMjAxOCA3OjIxIEFNDQo+IFRvOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnDQo+IENjOiBLWSBT
-cmluaXZhc2FuIDxreXNAbWljcm9zb2Z0LmNvbT47IEhhaXlhbmcgWmhhbmcNCj4gPGhhaXlhbmd6
-QG1pY3Jvc29mdC5jb20+OyBTdGVwaGVuIEhlbW1pbmdlcg0KPiA8c3RoZW1taW5AbWljcm9zb2Z0
-LmNvbT47IGRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmc7IEFqaXQgS2hhcGFyZGUNCj4gPGFq
-aXQua2hhcGFyZGVAYnJvYWRjb20uY29tPjsgTGVvbiBSb21hbm92c2t5IDxsZW9uQGtlcm5lbC5v
-cmc+Ow0KPiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgU2FlZWQgTWFoYW1lZWQgPHNhZWVk
-bUBtZWxsYW5veC5jb20+Ow0KPiBTYXRoeWEgUGVybGEgPHNhdGh5YS5wZXJsYUBicm9hZGNvbS5j
-b20+OyBTb21uYXRoIEtvdHVyDQo+IDxzb21uYXRoLmtvdHVyQGJyb2FkY29tLmNvbT47IFNyaWhh
-cnNoYSBCYXNhdmFwYXRuYQ0KPiA8c3JpaGFyc2hhLmJhc2F2YXBhdG5hQGJyb2FkY29tLmNvbT4N
-Cj4gU3ViamVjdDogW1BBVENIIG5ldC1uZXh0IDIvNF0gbmV0L2h5cGVydjogdXNlIHNrYl92bGFu
-X3RhZ18qKCkgaGVscGVycw0KPiANCj4gUmVwbGFjZSBvcGVuLWNvZGVkIGJpdGZpZWxkIG1hbmlw
-dWxhdGlvbiB3aXRoIHNrYl92bGFuX3RhZ18qKCkgaGVscGVycy4NCj4gVGhpcyBhbHNvIGVuYWJs
-ZXMgY29ycmVjdGx5IHBhc3Npbmcgb2YgVkxBTi5DRkkgYml0Lg0KPiANCj4gU2lnbmVkLW9mZi1i
-eTogTWljaGHFgiBNaXJvc8WCYXcgPG1pcnEtbGludXhAcmVyZS5xbXFtLnBsPg0KPiAtLS0NCg0K
-UmV2aWV3ZWQtYnk6IEhhaXlhbmcgWmhhbmcgPGhhaXlhbmd6QG1pY3Jvc29mdC5jb20+DQpUaGFu
-a3MuDQoNCg==
+Hi
+
+This patchset is for mlx5-next shared branch, and will be applied there
+once the review is done.
+
+The main idea of this change is to define a flexible scalable and
+simpler low level mlx5 core APIs to upper level components for better
+features decoupling and maximum code locality and modularity.
+
+Improve and simplify mlx5 core internal firmware and device async events
+handling and subscription, currently all async firmware events are
+handled in one place (switch case in eq.c) and every time we need to
+update one of the mlx5_core handlers or add new events handling to the
+system, the driver needs to be changed in many places in order to deliver
+the new event to its consumer.
+
+To improve this we will use atomic_notifier_chain to fire firmware events
+at internal mlx5 core components such as eswitch/fpga/clock/FW tracer/etc..,
+this is to avoid explicit calls from low level mlx5_core to upper components
+and to simplify the mlx5_core API for future developments.
+    
+Provide register/unregister notifiers API and call the notifier chain on
+firmware async events.
+    
+Example to subscribe to a FW event:
+
+struct mlx5_nb port_event;
+    
+MLX5_NB_INIT(&port_event, port_event_handler, PORT_CHANGE);
+mlx5_eq_notifier_register(mdev, &port_event);
+    
+Where:
+  - port_event_handler is the notifier block callback.
+  - PORT_EVENT is the suffix of MLX5_EVENT_TYPE_PORT_CHANGE (The event
+    type to subscribe to)
+
+The above will guarantee that port_event_handler will receive all FW
+events of the type MLX5_EVENT_TYPE_PORT_CHANGE.
+    
+To receive all FW/HW events one can subscribe to MLX5_EVENT_TYPE_NOTIFY_ANY.
+ 
+There can be only 128 types of firmware events each has its own 64Byte 
+EQE (Event Queue Element) data, we will have one atomic_notifier_chain
+per event type for maximum performance and verbosity.
+Each handler is going to receive the event_type as unsigned long and
+the event data as void pointer, exactly as defined in the notifier block
+handlers prototype.
+   
+This API is implemented in the first patch of this series all following
+patches are modifying the existing mlx5 components to use the new API to
+subscribe to FW events.
+
+Thanks,
+Saeed.
+
+---
+
+Saeed Mahameed (11):
+  net/mlx5: EQ, Introduce atomic notifier chain subscription API
+  net/mlx5: FWTrace, Use async events chain
+  net/mlx5: FPGA, Use async events chain
+  net/mlx5: Clock, Use async events chain
+  net/mlx5: E-Switch, Use async events chain
+  net/mlx5: FWPage, Use async events chain
+  net/mlx5: CmdIF, Use async events chain
+  net/mlx5: Resource tables, Use async events chain
+  net/mlx5: CQ ERR, Use async events chain
+  net/mlx5: Device events, Use async events chain
+  net/mlx5: Improve core device events handling
+
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  48 ++-
+ .../mellanox/mlx5/core/diag/fw_tracer.c       |  27 +-
+ .../mellanox/mlx5/core/diag/fw_tracer.h       |   2 +-
+ .../ethernet/mellanox/mlx5/core/en_stats.c    |   9 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 322 +++++------------
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c |  44 ++-
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |   3 +-
+ .../net/ethernet/mellanox/mlx5/core/events.c  | 332 ++++++++++++++++++
+ .../ethernet/mellanox/mlx5/core/fpga/core.c   |  38 +-
+ .../ethernet/mellanox/mlx5/core/fpga/core.h   |  11 +-
+ .../net/ethernet/mellanox/mlx5/core/health.c  |  25 +-
+ .../ethernet/mellanox/mlx5/core/lib/clock.c   |  24 +-
+ .../ethernet/mellanox/mlx5/core/lib/clock.h   |   3 -
+ .../net/ethernet/mellanox/mlx5/core/lib/eq.h  |   5 +
+ .../ethernet/mellanox/mlx5/core/lib/mlx5.h    |  34 ++
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  41 ++-
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  13 +-
+ .../ethernet/mellanox/mlx5/core/pagealloc.c   |  44 ++-
+ .../net/ethernet/mellanox/mlx5/core/port.c    |  57 ---
+ drivers/net/ethernet/mellanox/mlx5/core/qp.c  |  68 +++-
+ drivers/net/ethernet/mellanox/mlx5/core/srq.c |  55 ++-
+ include/linux/mlx5/device.h                   |  10 +-
+ include/linux/mlx5/driver.h                   |  46 +--
+ include/linux/mlx5/eq.h                       |  16 +-
+ include/linux/mlx5/port.h                     |   3 -
+ 26 files changed, 811 insertions(+), 471 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/events.c
+
+-- 
+2.19.1
