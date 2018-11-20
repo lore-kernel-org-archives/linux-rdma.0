@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH net-next 2/4] net/hyperv: use skb_vlan_tag_*() helpers
+Subject: [PATCH net-next 3/4] benet: use skb_vlan_tag_get_prio()
 Date: Tue, 20 Nov 2018 13:20:32 +0100
-Message-ID: <61f737ec45c9905d5c86fbe8492eaa604bf6549f.1542716156.git.mirq-linux@rere.qmqm.pl>
+Message-ID: <cf892967db0029389e2d929206f16890e3180c8c.1542716156.git.mirq-linux@rere.qmqm.pl>
 References: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -10,43 +10,26 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
 Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, devel@linuxdriverproject.org, Ajit Khaparde <ajit.khaparde@broadcom.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Sathya Perla <sathya.perla@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>
+Cc: Sathya Perla <sathya.perla@broadcom.com>, Ajit Khaparde <ajit.khaparde@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, devel@linuxdriverproject.org, Haiyang Zhang <haiyangz@microsoft.com>, "K. Y. Srinivasan" <kys@microsoft.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Stephen Hemminger <sthemmin@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
-
-Replace open-coded bitfield manipulation with skb_vlan_tag_*() helpers.
-This also enables correctly passing of VLAN.CFI bit.
 
 Signed-off-by: Michał Mirosław <mirq-linux@rere.qmqm.pl>
 ---
- drivers/net/hyperv/netvsc_drv.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/emulex/benet/be_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/hyperv/netvsc_drv.c b/drivers/net/hyperv/netvsc_drv.c
-index cf36e7ff3191..85936ed9e952 100644
---- a/drivers/net/hyperv/netvsc_drv.c
-+++ b/drivers/net/hyperv/netvsc_drv.c
-@@ -605,9 +605,9 @@ static int netvsc_start_xmit(struct sk_buff *skb, struct net_device *net)
- 				     IEEE_8021Q_INFO);
+diff --git a/drivers/net/ethernet/emulex/benet/be_main.c b/drivers/net/ethernet/emulex/benet/be_main.c
+index 80b2bd3747ce..245abf0d19c0 100644
+--- a/drivers/net/ethernet/emulex/benet/be_main.c
++++ b/drivers/net/ethernet/emulex/benet/be_main.c
+@@ -796,7 +796,7 @@ static inline u16 be_get_tx_vlan_tag(struct be_adapter *adapter,
+ 	u16 vlan_tag;
  
- 		vlan->value = 0;
--		vlan->vlanid = skb->vlan_tci & VLAN_VID_MASK;
--		vlan->pri = (skb->vlan_tci & VLAN_PRIO_MASK) >>
--				VLAN_PRIO_SHIFT;
-+		vlan->vlanid = skb_vlan_tag_get_id(skb);
-+		vlan->cfi = skb_vlan_tag_get_cfi(skb);
-+		vlan->pri = skb_vlan_tag_get_prio(skb);
- 	}
- 
- 	if (skb_is_gso(skb)) {
-@@ -781,7 +781,8 @@ static struct sk_buff *netvsc_alloc_recv_skb(struct net_device *net,
- 	}
- 
- 	if (vlan) {
--		u16 vlan_tci = vlan->vlanid | (vlan->pri << VLAN_PRIO_SHIFT);
-+		u16 vlan_tci = vlan->vlanid | (vlan->pri << VLAN_PRIO_SHIFT) |
-+			(vlan->cfi ? VLAN_CFI_MASK : 0);
- 
- 		__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
- 				       vlan_tci);
+ 	vlan_tag = skb_vlan_tag_get(skb);
+-	vlan_prio = (vlan_tag & VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT;
++	vlan_prio = skb_vlan_tag_get_prio(skb);
+ 	/* If vlan priority provided by OS is NOT in available bmap */
+ 	if (!(adapter->vlan_prio_bmap & (1 << vlan_prio)))
+ 		vlan_tag = (vlan_tag & ~VLAN_PRIO_MASK) |
 -- 
 2.19.1
