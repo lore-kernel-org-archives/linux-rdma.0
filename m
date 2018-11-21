@@ -1,64 +1,132 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH iproute2-next v3] rdma: Document IB device renaming option
-Date: Wed, 21 Nov 2018 08:59:31 -0500
-Message-ID: <591a18e0-0057-0b7e-032f-3357f9566b36@intel.com>
-References: <20181104191122.11979-1-leon@kernel.org>
- <14063C7AD467DE4B82DEDB5C278E8663BE61B8E2@FMSMSX108.amr.corp.intel.com>
- <20181118110535.GJ24359@mtr-leonro.mtl.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Wed, 21 Nov 2018 11:49:33 -0500
+Message-ID: <5159e02f-17f8-df8b-600c-1b09356e46a9@talpey.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+ <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181118110535.GJ24359@mtr-leonro.mtl.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: David Ahern <dsahern@gmail.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/18/2018 6:05 AM, Leon Romanovsky wrote:
-> On Fri, Nov 16, 2018 at 08:10:35PM +0000, Ruhl, Michael J wrote:
->>> -----Original Message-----
->>> From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
->>> owner@vger.kernel.org] On Behalf Of Leon Romanovsky
->>> Sent: Sunday, November 4, 2018 2:11 PM
->>> To: David Ahern <dsahern@gmail.com>
->>> Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
->>> <netdev@vger.kernel.org>; RDMA mailing list <linux-rdma@vger.kernel.org>;
->>> Stephen Hemminger <stephen@networkplumber.org>
->>> Subject: [PATCH iproute2-next v3] rdma: Document IB device renaming
->>> option
->>>
->>> From: Leon Romanovsky <leonro@mellanox.com>
->>
->> Hi Leon,
->>
->> After looking at this and Steve Wise's changes for the ADDLINK/DELLINK,
->> it occurred to me that the driver that handed the name to ib_register_device()
->> might be interested in knowing that this name change occurred.
->>
->> Are there plans to include a some kind of notify mechanism so drivers can
->> find out when things like this occur?
+On 11/21/2018 1:09 AM, John Hubbard wrote:
+> On 11/19/18 10:57 AM, Tom Talpey wrote:
+>> ~14000 4KB read IOPS is really, really low for an NVMe disk.
 > 
-> At least for device rename, I don't see any real need for such event,
-> because drivers are not supposed to rely on names.
-
-It just seems like something they want to know. But agree driver should 
-not rely on a name.
-
-> I would say that it is probably driver bug to rely on device name
-> during its execution.
+> Yes, but Jan Kara's original config file for fio is *intended* to highlight
+> the get_user_pages/put_user_pages changes. It was *not* intended to get max
+> performance,  as you can see by the numjobs and direct IO parameters:
 > 
+> cat fio.conf
+> [reader]
+> direct=1
+> ioengine=libaio
+> blocksize=4096
+> size=1g
+> numjobs=1
+> rw=read
+> iodepth=64
+
+To be clear - I used those identical parameters, on my lower-spec
+machine, and got 400,000 4KB read IOPS. Those results are nearly 30x
+higher than yours!
+
+> So I'm thinking that this is not a "tainted" test, but rather, we're constraining
+> things a lot with these choices. It's hard to find a good test config to run that
+> allows decisions, but so far, I'm not really seeing anything that says "this
+> is so bad that we can't afford to fix the brokenness." I think.
+
+I'm not suggesting we tune the benchmark, I'm suggesting the results
+on your system are not meaningful since they are orders of magnitude
+low. And without meaningful data it's impossible to see the performance
+impact of the change...
+
+>> Can you confirm what type of hardware you're running this test on?
+>> CPU, memory speed and capacity, and NVMe device especially?
 >>
->> Is this something that should be done?
+>> Tom.
 > 
-> I think yes, we can extend ib_event to support more events than now,
-> but should we?
+> Yes, it's a nice new system, I don't expect any strange perf problems:
+> 
+> CPU: Intel(R) Core(TM) i7-7800X CPU @ 3.50GHz
+>      (Intel X299 chipset)
+> Block device: nvme-Samsung_SSD_970_EVO_250GB
+> DRAM: 32 GB
 
-On one hand it make sense to have an event. In case the driver had 
-something it wanted to do with the name but I can't really think of a 
-compelling reason it does. So I'd say we don't worry about it now but if 
-someone finds a use for it then adding it later should be an option that 
-is on the table.
+The Samsung Evo 970 250GB is speced to yield 200,000 random read IOPS
+with a 4KB QD32 workload:
 
--Denny
+ 
+https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-970-evo-nvme-m-2-250gb-mz-v7e250bw/#specs
+
+And the I7-7800X is a 6-core processor (12 hyperthreads).
+
+> So, here's a comparison using 20 threads, direct IO, for the baseline vs.
+> patched kernel (below). Highlights:
+> 
+> 	-- IOPS are similar, around 60k.
+> 	-- BW gets worse, dropping from 290 to 220 MB/s.
+> 	-- CPU is well under 100%.
+> 	-- latency is incredibly long, but...20 threads.
+> 
+> Baseline:
+> 
+> $ ./run.sh
+> fio configuration:
+> [reader]
+> ioengine=libaio
+> blocksize=4096
+> size=1g
+> rw=read
+> group_reporting
+> iodepth=256
+> direct=1
+> numjobs=20
+
+Ouch - 20 threads issuing 256 io's each!? Of course latency skyrockets.
+That's going to cause tremendous queuing, and context switching, far
+outside of the get_user_pages() change.
+
+But even so, it only brings IOPS to 74.2K, which is still far short of
+the device's 200K spec.
+
+Comparing anyway:
+
+
+> Patched:
+> 
+> -------- Running fio:
+> reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
+> ...
+> fio-3.3
+> Starting 20 processes
+> Jobs: 13 (f=8): [_(1),R(1),_(1),f(1),R(2),_(1),f(2),_(1),R(1),f(1),R(1),f(1),R(1),_(2),R(1),_(1),R(1)][97.9%][r=229MiB/s,w=0KiB/s][r=58.5k,w=0 IOPS][eta 00m:02s]
+> reader: (groupid=0, jobs=20): err= 0: pid=2104: Tue Nov 20 22:01:58 2018
+>     read: IOPS=56.8k, BW=222MiB/s (232MB/s)(20.0GiB/92385msec)
+> ...
+> Thoughts?
+
+Concern - the 74.2K IOPS unpatched drops to 56.8K patched!
+
+What I'd really like to see is to go back to the original fio parameters
+(1 thread, 64 iodepth) and try to get a result that gets at least close
+to the speced 200K IOPS of the NVMe device. There seems to be something
+wrong with yours, currently.
+
+Then of course, the result with the patched get_user_pages, and
+compare whichever of IOPS or CPU% changes, and how much.
+
+If these are within a few percent, I agree it's good to go. If it's
+roughly 25% like the result just above, that's a rocky road.
+
+I can try this after the holiday on some basic hardware and might
+be able to scrounge up better. Can you post that github link?
+
+Tom.
