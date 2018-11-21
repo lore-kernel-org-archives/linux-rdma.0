@@ -1,32 +1,22 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] iser: set sector for ambiguous mr status errors
-Date: Wed, 21 Nov 2018 16:02:40 -0700
-Message-ID: <20181121230240.GC29924@ziepe.ca>
-References: <20181114181701.26417-1-sagi@grimberg.me>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 0/4] VLAN tag handling cleanup
+Date: Wed, 21 Nov 2018 15:41:45 -0800 (PST)
+Message-ID: <20181121.154145.1600679435749570425.davem@davemloft.net>
+References: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181114181701.26417-1-sagi@grimberg.me>
-Sender: stable-owner@vger.kernel.org
-To: Sagi Grimberg <sagi@grimberg.me>
-Cc: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, stable@vger.kernel.org
+Content-Type: Text/Plain; charset=euc-kr
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
+Sender: netdev-owner@vger.kernel.org
+To: mirq-linux@rere.qmqm.pl
+Cc: netdev@vger.kernel.org, ajit.khaparde@broadcom.com, devel@linuxdriverproject.org, haiyangz@microsoft.com, kys@microsoft.com, leon@kernel.org, linux-rdma@vger.kernel.org, saeedm@mellanox.com, sathya.perla@broadcom.com, somnath.kotur@broadcom.com, sriharsha.basavapatna@broadcom.com, sthemmin@microsoft.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 14, 2018 at 10:17:01AM -0800, Sagi Grimberg wrote:
-> If for some reason we failed to query the mr status, we need to make sure
-> to provide sufficient information for an ambiguous error (guard error on
-> sector 0).
-> 
-> Fixes: 0a7a08ad6f5f ("IB/iser: Implement check_protection")
-> Cc: <stable@vger.kernel.org>
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
-> ---
->  drivers/infiniband/ulp/iser/iser_verbs.c | 7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
+From: Micha©© Miros©©aw <mirq-linux@rere.qmqm.pl>
+Date: Tue, 20 Nov 2018 13:20:30 +0100
 
-Applied to for-rc
+> This is a cleanup set after VLAN_TAG_PRESENT removal. The CFI bit
+> handling is made similar to how other tag fields are used.
 
-Thanks,
-Jason
+Series applied, thanks.
