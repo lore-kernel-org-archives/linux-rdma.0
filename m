@@ -1,322 +1,210 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 08/11] net/mlx5: Resource tables, Use async events chain
-Date: Tue, 20 Nov 2018 14:12:25 -0800
-Message-ID: <20181120221228.18365-9-saeedm@mellanox.com>
-References: <20181120221228.18365-1-saeedm@mellanox.com>
+From: Kenneth Lee <liguozhu@hisilicon.com>
+Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+Date: Wed, 21 Nov 2018 11:02:45 +0800
+Message-ID: <20181121030245.GI157308@Turing-Arch-b>
+References: <20181112075807.9291-2-nek.in.cn@gmail.com>
+ <20181113002354.GO3695@mtr-leonro.mtl.com>
+ <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
+ <20181114160017.GI3759@mtr-leonro.mtl.com>
+ <20181115085109.GD157308@Turing-Arch-b>
+ <20181115145455.GN3759@mtr-leonro.mtl.com>
+ <20181119091405.GE157308@Turing-Arch-b>
+ <20181119184954.GB4890@ziepe.ca>
+ <20181120030702.GH157308@Turing-Arch-b>
+ <20181120051743.GD25178@mtr-leonro.mtl.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181120221228.18365-1-saeedm@mellanox.com>
+Content-Disposition: inline
+In-Reply-To: <20181120051743.GD25178@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia@codeaurora>
 List-Id: linux-rdma@vger.kernel.org
 
-Remove the explicit call to QP/SRQ resources events handlers on several FW
-events and let resources logic register resources events notifiers via the
-new API.
+On Tue, Nov 20, 2018 at 07:17:44AM +0200, Leon Romanovsky wrote:
+> Date: Tue, 20 Nov 2018 07:17:44 +0200
+> From: Leon Romanovsky <leon@kernel.org>
+> To: Kenneth Lee <liguozhu@hisilicon.com>
+> CC: Jason Gunthorpe <jgg@ziepe.ca>, Kenneth Lee <nek.in.cn@gmail.com>, Tim
+>  Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
+>  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
+>  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
+>  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
+>  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
+>  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
+>  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
+>  <u.kleine-koenig@pengutronix.de>, David Kershner
+>  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
+>  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
+>  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
+>  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
+>  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
+>  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
+>  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
+>  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
+> Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+> User-Agent: Mutt/1.10.1 (2018-07-13)
+> Message-ID: <20181120051743.GD25178@mtr-leonro.mtl.com>
+> 
+> On Tue, Nov 20, 2018 at 11:07:02AM +0800, Kenneth Lee wrote:
+> > On Mon, Nov 19, 2018 at 11:49:54AM -0700, Jason Gunthorpe wrote:
+> > > Date: Mon, 19 Nov 2018 11:49:54 -0700
+> > > From: Jason Gunthorpe <jgg@ziepe.ca>
+> > > To: Kenneth Lee <liguozhu@hisilicon.com>
+> > > CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
+> > >  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
+> > >  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
+> > >  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
+> > >  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
+> > >  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
+> > >  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
+> > >  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
+> > >  <u.kleine-koenig@pengutronix.de>, David Kershner
+> > >  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
+> > >  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
+> > >  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
+> > >  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
+> > >  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
+> > >  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
+> > >  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
+> > >  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
+> > > Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+> > > User-Agent: Mutt/1.9.4 (2018-02-28)
+> > > Message-ID: <20181119184954.GB4890@ziepe.ca>
+> > >
+> > > On Mon, Nov 19, 2018 at 05:14:05PM +0800, Kenneth Lee wrote:
+> > >
+> > > > If the hardware cannot share page table with the CPU, we then need to have
+> > > > some way to change the device page table. This is what happen in ODP. It
+> > > > invalidates the page table in device upon mmu_notifier call back. But this cannot
+> > > > solve the COW problem: if the user process A share a page P with device, and A
+> > > > forks a new process B, and it continue to write to the page. By COW, the
+> > > > process B will keep the page P, while A will get a new page P'. But you have
+> > > > no way to let the device know it should use P' rather than P.
+> > >
+> > > Is this true? I thought mmu_notifiers covered all these cases.
+> > >
+> > > The mm_notifier for A should fire if B causes the physical address of
+> > > A's pages to change via COW.
+> > >
+> > > And this causes the device page tables to re-synchronize.
+> >
+> > I don't see such code. The current do_cow_fault() implemenation has nothing to
+> > do with mm_notifer.
+> >
+> > >
+> > > > In WarpDrive/uacce, we make this simple. If you support IOMMU and it support
+> > > > SVM/SVA. Everything will be fine just like ODP implicit mode. And you don't need
+> > > > to write any code for that. Because it has been done by IOMMU framework. If it
+> > >
+> > > Looks like the IOMMU code uses mmu_notifier, so it is identical to
+> > > IB's ODP. The only difference is that IB tends to have the IOMMU page
+> > > table in the device, not in the CPU.
+> > >
+> > > The only case I know if that is different is the new-fangled CAPI
+> > > stuff where the IOMMU can directly use the CPU's page table and the
+> > > IOMMU page table (in device or CPU) is eliminated.
+> > >
+> >
+> > Yes. We are not focusing on the current implementation. As mentioned in the
+> > cover letter. We are expecting Jean Philips' SVA patch:
+> > git://linux-arm.org/linux-jpb.
+> >
+> > > Anyhow, I don't think a single instance of hardware should justify an
+> > > entire new subsystem. Subsystems are hard to make and without multiple
+> > > hardware examples there is no way to expect that it would cover any
+> > > future use cases.
+> >
+> > Yes. That's our first expectation. We can keep it with our driver. But because
+> > there is no user driver support for any accelerator in mainline kernel. Even the
+> > well known QuickAssit has to be maintained out of tree. So we try to see if
+> > people is interested in working together to solve the problem.
+> >
+> > >
+> > > If all your driver needs is to mmap some PCI bar space, route
+> > > interrupts and do DMA mapping then mediated VFIO is probably a good
+> > > choice.
+> >
+> > Yes. That is what is done in our RFCv1/v2. But we accepted Jerome's opinion and
+> > try not to add complexity to the mm subsystem.
+> >
+> > >
+> > > If it needs to do a bunch of other stuff, not related to PCI bar
+> > > space, interrupts and DMA mapping (ie special code for compression,
+> > > crypto, AI, whatever) then you should probably do what Jerome said and
+> > > make a drivers/char/hisillicon_foo_bar.c that exposes just what your
+> > > hardware does.
+> >
+> > Yes. If no other accelerator driver writer is interested. That is the
+> > expectation:)
+> >
+> > But we really like to have a public solution here. Consider this scenario:
+> >
+> > You create some connections (queues) to NIC, RSA, and AI engine. Then you got
+> > data direct from the NIC and pass the pointer to RSA engine for decryption. The
+> > CPU then finish some data taking or operation and then pass through to the AI
+> > engine for CNN calculation....This will need a place to maintain the same
+> > address space by some means.
+> 
+> You are using NIC terminology, in the documentation, you wrote that it is needed
+> for DPDK use and I don't really understand, why do we need another shiny new
+> interface for DPDK.
+> 
 
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  | 29 --------
- drivers/net/ethernet/mellanox/mlx5/core/qp.c  | 68 +++++++++++++++----
- drivers/net/ethernet/mellanox/mlx5/core/srq.c | 55 +++++++++++++--
- include/linux/mlx5/driver.h                   |  6 +-
- 4 files changed, 108 insertions(+), 50 deletions(-)
+I'm not a DPDK expert. But we had some discussion with LNG of Linaro. They were
+considering to create something similar to simplify the user driver. In most of
+case, we use DPDK or ODP (open data plane) just for faster data plane data flow.
+But many logic such as setting the hardware mode, mac address and so on is not
+necessary. So they were looking for a way to keep the driver in the kernel and
+just the ring buffer of some queues to the user space. This may simplified the
+user space design.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index b28869aa1a4e..0cf448575ebd 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -324,7 +324,6 @@ static irqreturn_t mlx5_eq_async_int(int irq, void *eq_ptr)
- 	struct mlx5_eqe *eqe;
- 	int set_ci = 0;
- 	u32 cqn = -1;
--	u32 rsn;
- 	u8 port;
- 
- 	dev = eq->dev;
-@@ -340,34 +339,6 @@ static irqreturn_t mlx5_eq_async_int(int irq, void *eq_ptr)
- 		mlx5_core_dbg(eq->dev, "eqn %d, eqe type %s\n",
- 			      eq->eqn, eqe_type_str(eqe->type));
- 		switch (eqe->type) {
--		case MLX5_EVENT_TYPE_DCT_DRAINED:
--			rsn = be32_to_cpu(eqe->data.dct.dctn) & 0xffffff;
--			rsn |= (MLX5_RES_DCT << MLX5_USER_INDEX_LEN);
--			mlx5_rsc_event(dev, rsn, eqe->type);
--			break;
--		case MLX5_EVENT_TYPE_PATH_MIG:
--		case MLX5_EVENT_TYPE_COMM_EST:
--		case MLX5_EVENT_TYPE_SQ_DRAINED:
--		case MLX5_EVENT_TYPE_SRQ_LAST_WQE:
--		case MLX5_EVENT_TYPE_WQ_CATAS_ERROR:
--		case MLX5_EVENT_TYPE_PATH_MIG_FAILED:
--		case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
--		case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
--			rsn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
--			rsn |= (eqe->data.qp_srq.type << MLX5_USER_INDEX_LEN);
--			mlx5_core_dbg(dev, "event %s(%d) arrived on resource 0x%x\n",
--				      eqe_type_str(eqe->type), eqe->type, rsn);
--			mlx5_rsc_event(dev, rsn, eqe->type);
--			break;
--
--		case MLX5_EVENT_TYPE_SRQ_RQ_LIMIT:
--		case MLX5_EVENT_TYPE_SRQ_CATAS_ERROR:
--			rsn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
--			mlx5_core_dbg(dev, "SRQ event %s(%d): srqn 0x%x\n",
--				      eqe_type_str(eqe->type), eqe->type, rsn);
--			mlx5_srq_event(dev, rsn, eqe->type);
--			break;
--
- 		case MLX5_EVENT_TYPE_PORT_CHANGE:
- 			port = (eqe->data.port.port >> 4) & 0xf;
- 			switch (eqe->sub_type) {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/qp.c b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-index cba4a435043a..28726c63101f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/qp.c
-@@ -38,11 +38,11 @@
- #include <linux/mlx5/transobj.h>
- 
- #include "mlx5_core.h"
-+#include "lib/eq.h"
- 
--static struct mlx5_core_rsc_common *mlx5_get_rsc(struct mlx5_core_dev *dev,
--						 u32 rsn)
-+static struct mlx5_core_rsc_common *
-+mlx5_get_rsc(struct mlx5_qp_table *table, u32 rsn)
- {
--	struct mlx5_qp_table *table = &dev->priv.qp_table;
- 	struct mlx5_core_rsc_common *common;
- 
- 	spin_lock(&table->lock);
-@@ -53,11 +53,6 @@ static struct mlx5_core_rsc_common *mlx5_get_rsc(struct mlx5_core_dev *dev,
- 
- 	spin_unlock(&table->lock);
- 
--	if (!common) {
--		mlx5_core_warn(dev, "Async event for bogus resource 0x%x\n",
--			       rsn);
--		return NULL;
--	}
- 	return common;
- }
- 
-@@ -120,14 +115,52 @@ static bool is_event_type_allowed(int rsc_type, int event_type)
- 	}
- }
- 
--void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
-+static int rsc_event_notifier(struct notifier_block *nb,
-+			      unsigned long type, void *data)
- {
--	struct mlx5_core_rsc_common *common = mlx5_get_rsc(dev, rsn);
-+	struct mlx5_core_rsc_common *common;
-+	struct mlx5_qp_table *table;
-+	struct mlx5_core_dev *dev;
- 	struct mlx5_core_dct *dct;
-+	u8 event_type = (u8)type;
- 	struct mlx5_core_qp *qp;
-+	struct mlx5_priv *priv;
-+	struct mlx5_eqe *eqe;
-+	u32 rsn;
-+
-+	switch (event_type) {
-+	case MLX5_EVENT_TYPE_DCT_DRAINED:
-+		eqe = data;
-+		rsn = be32_to_cpu(eqe->data.dct.dctn) & 0xffffff;
-+		rsn |= (MLX5_RES_DCT << MLX5_USER_INDEX_LEN);
-+		break;
-+	case MLX5_EVENT_TYPE_PATH_MIG:
-+	case MLX5_EVENT_TYPE_COMM_EST:
-+	case MLX5_EVENT_TYPE_SQ_DRAINED:
-+	case MLX5_EVENT_TYPE_SRQ_LAST_WQE:
-+	case MLX5_EVENT_TYPE_WQ_CATAS_ERROR:
-+	case MLX5_EVENT_TYPE_PATH_MIG_FAILED:
-+	case MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR:
-+	case MLX5_EVENT_TYPE_WQ_ACCESS_ERROR:
-+		eqe = data;
-+		rsn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
-+		rsn |= (eqe->data.qp_srq.type << MLX5_USER_INDEX_LEN);
-+		break;
-+	default:
-+		return NOTIFY_DONE;
-+	}
-+
-+	table = mlx5_nb_cof(nb, struct mlx5_qp_table, nb);
-+	priv  = container_of(table, struct mlx5_priv, qp_table);
-+	dev   = container_of(priv, struct mlx5_core_dev, priv);
- 
--	if (!common)
--		return;
-+	mlx5_core_dbg(dev, "event (%d) arrived on resource 0x%x\n", eqe->type, rsn);
-+
-+	common = mlx5_get_rsc(table, rsn);
-+	if (!common) {
-+		mlx5_core_warn(dev, "Async event for bogus resource 0x%x\n", rsn);
-+		return NOTIFY_OK;
-+	}
- 
- 	if (!is_event_type_allowed((rsn >> MLX5_USER_INDEX_LEN), event_type)) {
- 		mlx5_core_warn(dev, "event 0x%.2x is not allowed on resource 0x%.8x\n",
-@@ -152,6 +185,8 @@ void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type)
- 	}
- out:
- 	mlx5_core_put_rsc(common);
-+
-+	return NOTIFY_OK;
- }
- 
- static int create_resource_common(struct mlx5_core_dev *dev,
-@@ -487,10 +522,16 @@ void mlx5_init_qp_table(struct mlx5_core_dev *dev)
- 	spin_lock_init(&table->lock);
- 	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
- 	mlx5_qp_debugfs_init(dev);
-+
-+	MLX5_NB_INIT(&table->nb, rsc_event_notifier, NOTIFY_ANY);
-+	mlx5_eq_notifier_register(dev, &table->nb);
- }
- 
- void mlx5_cleanup_qp_table(struct mlx5_core_dev *dev)
- {
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
-+
-+	mlx5_eq_notifier_unregister(dev, &table->nb);
- 	mlx5_qp_debugfs_cleanup(dev);
- }
- 
-@@ -676,8 +717,9 @@ struct mlx5_core_rsc_common *mlx5_core_res_hold(struct mlx5_core_dev *dev,
- 						enum mlx5_res_type res_type)
- {
- 	u32 rsn = res_num | (res_type << MLX5_USER_INDEX_LEN);
-+	struct mlx5_qp_table *table = &dev->priv.qp_table;
- 
--	return mlx5_get_rsc(dev, rsn);
-+	return mlx5_get_rsc(table, rsn);
- }
- EXPORT_SYMBOL_GPL(mlx5_core_res_hold);
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-index 6a6fc9be01e6..0563866c13f2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-@@ -36,13 +36,25 @@
- #include <linux/mlx5/cmd.h>
- #include <linux/mlx5/srq.h>
- #include <rdma/ib_verbs.h>
--#include "mlx5_core.h"
- #include <linux/mlx5/transobj.h>
-+#include "mlx5_core.h"
-+#include "lib/eq.h"
- 
--void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
-+static int srq_event_notifier(struct mlx5_srq_table *table,
-+			      unsigned long type, void *data)
- {
--	struct mlx5_srq_table *table = &dev->priv.srq_table;
-+	struct mlx5_core_dev *dev;
- 	struct mlx5_core_srq *srq;
-+	struct mlx5_priv *priv;
-+	struct mlx5_eqe *eqe;
-+	u32 srqn;
-+
-+	priv  = container_of(table, struct mlx5_priv, srq_table);
-+	dev   = container_of(priv, struct mlx5_core_dev, priv);
-+
-+	eqe = data;
-+	srqn = be32_to_cpu(eqe->data.qp_srq.qp_srq_n) & 0xffffff;
-+	mlx5_core_dbg(dev, "SRQ event (%d): srqn 0x%x\n", eqe->type, srqn);
- 
- 	spin_lock(&table->lock);
- 
-@@ -54,13 +66,35 @@ void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type)
- 
- 	if (!srq) {
- 		mlx5_core_warn(dev, "Async event for bogus SRQ 0x%08x\n", srqn);
--		return;
-+		return NOTIFY_OK;
- 	}
- 
--	srq->event(srq, event_type);
-+	srq->event(srq, eqe->type);
- 
- 	if (atomic_dec_and_test(&srq->refcount))
- 		complete(&srq->free);
-+
-+	return NOTIFY_OK;
-+}
-+
-+static int catas_err_notifier(struct notifier_block *nb,
-+			      unsigned long type, void *data)
-+{
-+	struct mlx5_srq_table *table;
-+
-+	table = mlx5_nb_cof(nb, struct mlx5_srq_table, catas_err_nb);
-+	/* type == MLX5_EVENT_TYPE_SRQ_CATAS_ERROR */
-+	return srq_event_notifier(table, type, data);
-+}
-+
-+static int rq_limit_notifier(struct notifier_block *nb,
-+			     unsigned long type, void *data)
-+{
-+	struct mlx5_srq_table *table;
-+
-+	table = mlx5_nb_cof(nb, struct mlx5_srq_table, rq_limit_nb);
-+	/* type == MLX5_EVENT_TYPE_SRQ_RQ_LIMIT */
-+	return srq_event_notifier(table, type, data);
- }
- 
- static int get_pas_size(struct mlx5_srq_attr *in)
-@@ -708,9 +742,18 @@ void mlx5_init_srq_table(struct mlx5_core_dev *dev)
- 	memset(table, 0, sizeof(*table));
- 	spin_lock_init(&table->lock);
- 	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
-+
-+	MLX5_NB_INIT(&table->catas_err_nb, catas_err_notifier, SRQ_CATAS_ERROR);
-+	mlx5_eq_notifier_register(dev, &table->catas_err_nb);
-+
-+	MLX5_NB_INIT(&table->rq_limit_nb, rq_limit_notifier, SRQ_RQ_LIMIT);
-+	mlx5_eq_notifier_register(dev, &table->rq_limit_nb);
- }
- 
- void mlx5_cleanup_srq_table(struct mlx5_core_dev *dev)
- {
--	/* nothing */
-+	struct mlx5_srq_table *table = &dev->priv.srq_table;
-+
-+	mlx5_eq_notifier_unregister(dev, &table->rq_limit_nb);
-+	mlx5_eq_notifier_unregister(dev, &table->catas_err_nb);
- }
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index a8d638134fc8..afba0864f45c 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -464,6 +464,8 @@ struct mlx5_core_health {
- };
- 
- struct mlx5_qp_table {
-+	struct mlx5_nb          nb;
-+
- 	/* protect radix tree
- 	 */
- 	spinlock_t		lock;
-@@ -471,6 +473,8 @@ struct mlx5_qp_table {
- };
- 
- struct mlx5_srq_table {
-+	struct mlx5_nb          catas_err_nb;
-+	struct mlx5_nb          rq_limit_nb;
- 	/* protect radix tree
- 	 */
- 	spinlock_t		lock;
-@@ -978,8 +982,6 @@ void mlx5_unregister_debugfs(void);
- 
- void mlx5_fill_page_array(struct mlx5_frag_buf *buf, __be64 *pas);
- void mlx5_fill_page_frag_array(struct mlx5_frag_buf *frag_buf, __be64 *pas);
--void mlx5_rsc_event(struct mlx5_core_dev *dev, u32 rsn, int event_type);
--void mlx5_srq_event(struct mlx5_core_dev *dev, u32 srqn, int event_type);
- struct mlx5_core_srq *mlx5_core_get_srq(struct mlx5_core_dev *dev, u32 srqn);
- int mlx5_vector2eqn(struct mlx5_core_dev *dev, int vector, int *eqn,
- 		    unsigned int *irqn);
+> >
+> > It is not complex, but it is helpful.
+> >
+> > >
+> > > If you have networking involved in here then consider RDMA,
+> > > particularly if this functionality is already part of the same
+> > > hardware that the hns infiniband driver is servicing.
+> > >
+> > > 'computational MRs' are a reasonable approach to a side-car offload of
+> > > already existing RDMA support.
+> >
+> > OK. Thanks. I will spend some time on it. But personally, I really don't like
+> > RDMA's complexity. I cannot even try one single function without a...some
+> > expensive hardwares and complexity connection in the lab. This is not like a
+> > open source way.
+> 
+> It is not very accurate. We have RXE driver which is virtual RDMA device
+> which is implemented purely in SW. It struggles from bad performance and
+> sporadic failures, but it is enough to try RDMA on your laptop in VM.
+
+Woo. This will be helpful. Thank you very much.
+
+> 
+> Thanks
+> 
+> >
+> > >
+> > > Jason
+> >
+
+
+
 -- 
-2.19.1
+			-Kenneth(Hisilicon)
+
+================================================================================
+本邮件及其附件含有华为公司的保密信息，仅限于发送给上面地址中列出的个人或群组。禁
+止任何其他人以任何形式使用（包括但不限于全部或部分地泄露、复制、或散发）本邮件中
+的信息。如果您错收了本邮件，请您立即电话或邮件通知发件人并删除本邮件！
+This e-mail and its attachments contain confidential information from HUAWEI,
+which is intended only for the person or entity whose address is listed above.
+Any use of the 
+information contained herein in any way (including, but not limited to, total or
+partial disclosure, reproduction, or dissemination) by persons other than the
+intended 
+recipient(s) is prohibited. If you receive this e-mail in error, please notify
+the sender by phone or email immediately and delete it!
