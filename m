@@ -1,7 +1,7 @@
 From: Kenneth Lee <liguozhu@hisilicon.com>
 Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Wed, 21 Nov 2018 11:02:45 +0800
-Message-ID: <20181121030245.GI157308@Turing-Arch-b>
+Date: Wed, 21 Nov 2018 14:08:05 +0800
+Message-ID: <20181121060805.GJ157308@Turing-Arch-b>
 References: <20181112075807.9291-2-nek.in.cn@gmail.com>
  <20181113002354.GO3695@mtr-leonro.mtl.com>
  <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
@@ -11,30 +11,30 @@ References: <20181112075807.9291-2-nek.in.cn@gmail.com>
  <20181119091405.GE157308@Turing-Arch-b>
  <20181119184954.GB4890@ziepe.ca>
  <20181120030702.GH157308@Turing-Arch-b>
- <20181120051743.GD25178@mtr-leonro.mtl.com>
+ <20181120032939.GR4890@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181120051743.GD25178@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia@codeaurora>
+In-Reply-To: <20181120032939.GR4890@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 20, 2018 at 07:17:44AM +0200, Leon Romanovsky wrote:
-> Date: Tue, 20 Nov 2018 07:17:44 +0200
-> From: Leon Romanovsky <leon@kernel.org>
+On Mon, Nov 19, 2018 at 08:29:39PM -0700, Jason Gunthorpe wrote:
+> Date: Mon, 19 Nov 2018 20:29:39 -0700
+> From: Jason Gunthorpe <jgg@ziepe.ca>
 > To: Kenneth Lee <liguozhu@hisilicon.com>
-> CC: Jason Gunthorpe <jgg@ziepe.ca>, Kenneth Lee <nek.in.cn@gmail.com>, Tim
->  Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
+> CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
+>  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
 >  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
 >  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
 >  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
 >  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
 >  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
->  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
+>  Doug Ledford <dledford@redhat.com>, Uwe Kleine-K�nig
 >  <u.kleine-koenig@pengutronix.de>, David Kershner
 >  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
 >  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
@@ -45,8 +45,8 @@ On Tue, Nov 20, 2018 at 07:17:44AM +0200, Leon Romanovsky wrote:
 >  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
 >  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
 > Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-> User-Agent: Mutt/1.10.1 (2018-07-13)
-> Message-ID: <20181120051743.GD25178@mtr-leonro.mtl.com>
+> User-Agent: Mutt/1.9.4 (2018-02-28)
+> Message-ID: <20181120032939.GR4890@ziepe.ca>
 > 
 > On Tue, Nov 20, 2018 at 11:07:02AM +0800, Kenneth Lee wrote:
 > > On Mon, Nov 19, 2018 at 11:49:54AM -0700, Jason Gunthorpe wrote:
@@ -60,7 +60,7 @@ On Tue, Nov 20, 2018 at 07:17:44AM +0200, Leon Romanovsky wrote:
 > > >  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
 > > >  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
 > > >  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
-> > >  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
+> > >  Doug Ledford <dledford@redhat.com>, Uwe Kleine-K�nig
 > > >  <u.kleine-koenig@pengutronix.de>, David Kershner
 > > >  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
 > > >  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
@@ -73,138 +73,134 @@ On Tue, Nov 20, 2018 at 07:17:44AM +0200, Leon Romanovsky wrote:
 > > > Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
 > > > User-Agent: Mutt/1.9.4 (2018-02-28)
 > > > Message-ID: <20181119184954.GB4890@ziepe.ca>
-> > >
+> > > 
 > > > On Mon, Nov 19, 2018 at 05:14:05PM +0800, Kenneth Lee wrote:
-> > >
+> > >  
 > > > > If the hardware cannot share page table with the CPU, we then need to have
 > > > > some way to change the device page table. This is what happen in ODP. It
 > > > > invalidates the page table in device upon mmu_notifier call back. But this cannot
-> > > > solve the COW problem: if the user process A share a page P with device, and A
+> > > > solve the COW problem: if the user process A share a page P with device, and A 
 > > > > forks a new process B, and it continue to write to the page. By COW, the
 > > > > process B will keep the page P, while A will get a new page P'. But you have
 > > > > no way to let the device know it should use P' rather than P.
-> > >
+> > > 
 > > > Is this true? I thought mmu_notifiers covered all these cases.
-> > >
+> > > 
 > > > The mm_notifier for A should fire if B causes the physical address of
-> > > A's pages to change via COW.
-> > >
+> > > A's pages to change via COW. 
+> > > 
 > > > And this causes the device page tables to re-synchronize.
-> >
+> > 
 > > I don't see such code. The current do_cow_fault() implemenation has nothing to
 > > do with mm_notifer.
-> >
-> > >
+> 
+> Well, that sure sounds like it would be a bug in mmu_notifiers..
+
+Yes, it can be taken that way:) But it is going to be a tough bug.
+
+> 
+> But considering Jean's SVA stuff seems based on mmu notifiers, I have
+> a hard time believing that it has any different behavior from RDMA's
+> ODP, and if it does have different behavior, then it is probably just
+> a bug in the ODP implementation.
+
+As Jean has explained, his solution is based on page table sharing. I think ODP
+should also consider this new feature.
+
+> 
 > > > > In WarpDrive/uacce, we make this simple. If you support IOMMU and it support
 > > > > SVM/SVA. Everything will be fine just like ODP implicit mode. And you don't need
 > > > > to write any code for that. Because it has been done by IOMMU framework. If it
-> > >
+> > > 
 > > > Looks like the IOMMU code uses mmu_notifier, so it is identical to
 > > > IB's ODP. The only difference is that IB tends to have the IOMMU page
 > > > table in the device, not in the CPU.
-> > >
+> > > 
 > > > The only case I know if that is different is the new-fangled CAPI
 > > > stuff where the IOMMU can directly use the CPU's page table and the
 > > > IOMMU page table (in device or CPU) is eliminated.
-> > >
 > >
 > > Yes. We are not focusing on the current implementation. As mentioned in the
 > > cover letter. We are expecting Jean Philips' SVA patch:
 > > git://linux-arm.org/linux-jpb.
-> >
+> 
+> This SVA stuff does not look comparable to CAPI as it still requires
+> maintaining seperate IOMMU page tables.
+> 
+> Also, those patches from Jean have a lot of references to
+> mmu_notifiers (ie look at iommu_mmu_notifier).
+> 
+> Are you really sure it is actually any different at all?
+> 
 > > > Anyhow, I don't think a single instance of hardware should justify an
 > > > entire new subsystem. Subsystems are hard to make and without multiple
 > > > hardware examples there is no way to expect that it would cover any
 > > > future use cases.
-> >
+> > 
 > > Yes. That's our first expectation. We can keep it with our driver. But because
 > > there is no user driver support for any accelerator in mainline kernel. Even the
 > > well known QuickAssit has to be maintained out of tree. So we try to see if
 > > people is interested in working together to solve the problem.
-> >
-> > >
+> 
+> Well, you should come with patches ack'ed by these other groups.
+
+Yes, that is what we are doing.
+
+> 
 > > > If all your driver needs is to mmap some PCI bar space, route
 > > > interrupts and do DMA mapping then mediated VFIO is probably a good
-> > > choice.
-> >
+> > > choice. 
+> > 
 > > Yes. That is what is done in our RFCv1/v2. But we accepted Jerome's opinion and
 > > try not to add complexity to the mm subsystem.
-> >
-> > >
+> 
+> Why would a mediated VFIO driver touch the mm subsystem? Sounds like
+> you don't have a VFIO driver if it needs to do stuff like that...
+
+VFIO has no ODP-like solution, and if we want to solve the fork problem, we have
+to make some change to iommu and the fork procedure. Further, VFIO takes every
+queue as a independent device. This create a lot of trouble on resource
+management. For example, you will need a manager process to withdraw the unused
+device and you need to let the user process know about PASID of the queue, and
+so on.
+
+> 
 > > > If it needs to do a bunch of other stuff, not related to PCI bar
 > > > space, interrupts and DMA mapping (ie special code for compression,
 > > > crypto, AI, whatever) then you should probably do what Jerome said and
 > > > make a drivers/char/hisillicon_foo_bar.c that exposes just what your
 > > > hardware does.
-> >
+> > 
 > > Yes. If no other accelerator driver writer is interested. That is the
 > > expectation:)
-> >
-> > But we really like to have a public solution here. Consider this scenario:
-> >
+> 
+> I don't think it matters what other drivers do. 
+> 
+> If your driver does not need any other kernel code then VFIO is
+> sensible. In this kind of world you will probably have a RDMA-like
+> userspace driver that can bring this to a common user space API, even
+> if one driver use VFIO and a different driver uses something else.
+
+Yes, in some way. But in another way, if they don't have the same address space
+logic. It won't be easy to cooperate. In VFIO, you have to use DMA address for
+device while you cannot direct share RDMA-ODP memory to other device.
+WarpDrive/uacce can solve all these problem.
+
+> 
 > > You create some connections (queues) to NIC, RSA, and AI engine. Then you got
 > > data direct from the NIC and pass the pointer to RSA engine for decryption. The
 > > CPU then finish some data taking or operation and then pass through to the AI
 > > engine for CNN calculation....This will need a place to maintain the same
 > > address space by some means.
 > 
-> You are using NIC terminology, in the documentation, you wrote that it is needed
-> for DPDK use and I don't really understand, why do we need another shiny new
-> interface for DPDK.
+> How is this any different from what we have today? 
 > 
+> SVA is not something even remotely new, IB has been doing various
+> versions of it for 20 years.
 
-I'm not a DPDK expert. But we had some discussion with LNG of Linaro. They were
-considering to create something similar to simplify the user driver. In most of
-case, we use DPDK or ODP (open data plane) just for faster data plane data flow.
-But many logic such as setting the hardware mode, mac address and so on is not
-necessary. So they were looking for a way to keep the driver in the kernel and
-just the ring buffer of some queues to the user space. This may simplified the
-user space design.
-
-> >
-> > It is not complex, but it is helpful.
-> >
-> > >
-> > > If you have networking involved in here then consider RDMA,
-> > > particularly if this functionality is already part of the same
-> > > hardware that the hns infiniband driver is servicing.
-> > >
-> > > 'computational MRs' are a reasonable approach to a side-car offload of
-> > > already existing RDMA support.
-> >
-> > OK. Thanks. I will spend some time on it. But personally, I really don't like
-> > RDMA's complexity. I cannot even try one single function without a...some
-> > expensive hardwares and complexity connection in the lab. This is not like a
-> > open source way.
-> 
-> It is not very accurate. We have RXE driver which is virtual RDMA device
-> which is implemented purely in SW. It struggles from bad performance and
-> sporadic failures, but it is enough to try RDMA on your laptop in VM.
-
-Woo. This will be helpful. Thank you very much.
+But now we can have them unified to IOMMU framework.
 
 > 
-> Thanks
-> 
-> >
-> > >
-> > > Jason
-> >
-
-
+> Jason
 
 -- 
-			-Kenneth(Hisilicon)
-
-================================================================================
-本邮件及其附件含有华为公司的保密信息，仅限于发送给上面地址中列出的个人或群组。禁
-止任何其他人以任何形式使用（包括但不限于全部或部分地泄露、复制、或散发）本邮件中
-的信息。如果您错收了本邮件，请您立即电话或邮件通知发件人并删除本邮件！
-This e-mail and its attachments contain confidential information from HUAWEI,
-which is intended only for the person or entity whose address is listed above.
-Any use of the 
-information contained herein in any way (including, but not limited to, total or
-partial disclosure, reproduction, or dissemination) by persons other than the
-intended 
-recipient(s) is prohibited. If you receive this e-mail in error, please notify
-the sender by phone or email immediately and delete it!
