@@ -1,28 +1,32 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] infiniband/hw/cxgb4/qp.c: Use dma_zalloc_coherent
-Date: Wed, 21 Nov 2018 15:59:52 -0700
-Message-ID: <20181121225952.GB29924@ziepe.ca>
-References: <5be99a9e.1c69fb81.87c65.4ec2@mx.google.com>
+Subject: Re: [PATCH] iser: set sector for ambiguous mr status errors
+Date: Wed, 21 Nov 2018 16:02:40 -0700
+Message-ID: <20181121230240.GC29924@ziepe.ca>
+References: <20181114181701.26417-1-sagi@grimberg.me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5be99a9e.1c69fb81.87c65.4ec2@mx.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sabyasachi Gupta <sabyasachi.linux@gmail.com>
-Cc: swise@chelsio.com, dledford@redhat.com, jrdr.linux@gmail.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, brajeswar.linux@gmail.com
+In-Reply-To: <20181114181701.26417-1-sagi@grimberg.me>
+Sender: stable-owner@vger.kernel.org
+To: Sagi Grimberg <sagi@grimberg.me>
+Cc: linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 08:51:59PM +0530, Sabyasachi Gupta wrote:
-> Replaced dma_alloc_coherent + memset with dma_zalloc_coherent
+On Wed, Nov 14, 2018 at 10:17:01AM -0800, Sagi Grimberg wrote:
+> If for some reason we failed to query the mr status, we need to make sure
+> to provide sufficient information for an ambiguous error (guard error on
+> sector 0).
 > 
-> Signed-off-by: Sabyasachi Gupta <sabyasachi.linux@gmail.com>
-> Acked-by: Steve Wise <swise@opengridcomputing.com>
+> Fixes: 0a7a08ad6f5f ("IB/iser: Implement check_protection")
+> Cc: <stable@vger.kernel.org>
+> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Sagi Grimberg <sagi@grimberg.me>
 > ---
->  drivers/infiniband/hw/cxgb4/qp.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
+>  drivers/infiniband/ulp/iser/iser_verbs.c | 7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
 
-Applied to for-next
+Applied to for-rc
 
 Thanks,
 Jason
