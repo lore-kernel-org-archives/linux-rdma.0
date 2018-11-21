@@ -1,206 +1,301 @@
-From: Kenneth Lee <liguozhu@hisilicon.com>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Wed, 21 Nov 2018 14:08:05 +0800
-Message-ID: <20181121060805.GJ157308@Turing-Arch-b>
-References: <20181112075807.9291-2-nek.in.cn@gmail.com>
- <20181113002354.GO3695@mtr-leonro.mtl.com>
- <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
- <20181114160017.GI3759@mtr-leonro.mtl.com>
- <20181115085109.GD157308@Turing-Arch-b>
- <20181115145455.GN3759@mtr-leonro.mtl.com>
- <20181119091405.GE157308@Turing-Arch-b>
- <20181119184954.GB4890@ziepe.ca>
- <20181120030702.GH157308@Turing-Arch-b>
- <20181120032939.GR4890@ziepe.ca>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Tue, 20 Nov 2018 22:09:06 -0800
+Message-ID: <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181120032939.GR4890@ziepe.ca>
+In-Reply-To: <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia>
+To: Tom Talpey <tom@talpey.com>, john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 19, 2018 at 08:29:39PM -0700, Jason Gunthorpe wrote:
-> Date: Mon, 19 Nov 2018 20:29:39 -0700
-> From: Jason Gunthorpe <jgg@ziepe.ca>
-> To: Kenneth Lee <liguozhu@hisilicon.com>
-> CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
->  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
->  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
->  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
->  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
->  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
->  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
->  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
->  <u.kleine-koenig@pengutronix.de>, David Kershner
->  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
->  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
->  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
->  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
->  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
->  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
->  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
->  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
-> Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-> User-Agent: Mutt/1.9.4 (2018-02-28)
-> Message-ID: <20181120032939.GR4890@ziepe.ca>
-> 
-> On Tue, Nov 20, 2018 at 11:07:02AM +0800, Kenneth Lee wrote:
-> > On Mon, Nov 19, 2018 at 11:49:54AM -0700, Jason Gunthorpe wrote:
-> > > Date: Mon, 19 Nov 2018 11:49:54 -0700
-> > > From: Jason Gunthorpe <jgg@ziepe.ca>
-> > > To: Kenneth Lee <liguozhu@hisilicon.com>
-> > > CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
-> > >  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
-> > >  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
-> > >  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
-> > >  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
-> > >  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
-> > >  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
-> > >  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
-> > >  <u.kleine-koenig@pengutronix.de>, David Kershner
-> > >  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
-> > >  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
-> > >  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
-> > >  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
-> > >  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
-> > >  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
-> > >  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
-> > >  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
-> > > Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-> > > User-Agent: Mutt/1.9.4 (2018-02-28)
-> > > Message-ID: <20181119184954.GB4890@ziepe.ca>
-> > > 
-> > > On Mon, Nov 19, 2018 at 05:14:05PM +0800, Kenneth Lee wrote:
-> > >  
-> > > > If the hardware cannot share page table with the CPU, we then need to have
-> > > > some way to change the device page table. This is what happen in ODP. It
-> > > > invalidates the page table in device upon mmu_notifier call back. But this cannot
-> > > > solve the COW problem: if the user process A share a page P with device, and A 
-> > > > forks a new process B, and it continue to write to the page. By COW, the
-> > > > process B will keep the page P, while A will get a new page P'. But you have
-> > > > no way to let the device know it should use P' rather than P.
-> > > 
-> > > Is this true? I thought mmu_notifiers covered all these cases.
-> > > 
-> > > The mm_notifier for A should fire if B causes the physical address of
-> > > A's pages to change via COW. 
-> > > 
-> > > And this causes the device page tables to re-synchronize.
-> > 
-> > I don't see such code. The current do_cow_fault() implemenation has nothing to
-> > do with mm_notifer.
-> 
-> Well, that sure sounds like it would be a bug in mmu_notifiers..
+On 11/19/18 10:57 AM, Tom Talpey wrote:
+> John, thanks for the discussion at LPC. One of the concerns we
+> raised however was the performance test. The numbers below are
+> rather obviously tainted. I think we need to get a better baseline
+> before concluding anything...
+>=20
+> Here's my main concern:
+>=20
 
-Yes, it can be taken that way:) But it is going to be a tough bug.
+Hi Tom,
 
-> 
-> But considering Jean's SVA stuff seems based on mmu notifiers, I have
-> a hard time believing that it has any different behavior from RDMA's
-> ODP, and if it does have different behavior, then it is probably just
-> a bug in the ODP implementation.
+Thanks again for looking at this!
 
-As Jean has explained, his solution is based on page table sharing. I think ODP
-should also consider this new feature.
 
-> 
-> > > > In WarpDrive/uacce, we make this simple. If you support IOMMU and it support
-> > > > SVM/SVA. Everything will be fine just like ODP implicit mode. And you don't need
-> > > > to write any code for that. Because it has been done by IOMMU framework. If it
-> > > 
-> > > Looks like the IOMMU code uses mmu_notifier, so it is identical to
-> > > IB's ODP. The only difference is that IB tends to have the IOMMU page
-> > > table in the device, not in the CPU.
-> > > 
-> > > The only case I know if that is different is the new-fangled CAPI
-> > > stuff where the IOMMU can directly use the CPU's page table and the
-> > > IOMMU page table (in device or CPU) is eliminated.
-> >
-> > Yes. We are not focusing on the current implementation. As mentioned in the
-> > cover letter. We are expecting Jean Philips' SVA patch:
-> > git://linux-arm.org/linux-jpb.
-> 
-> This SVA stuff does not look comparable to CAPI as it still requires
-> maintaining seperate IOMMU page tables.
-> 
-> Also, those patches from Jean have a lot of references to
-> mmu_notifiers (ie look at iommu_mmu_notifier).
-> 
-> Are you really sure it is actually any different at all?
-> 
-> > > Anyhow, I don't think a single instance of hardware should justify an
-> > > entire new subsystem. Subsystems are hard to make and without multiple
-> > > hardware examples there is no way to expect that it would cover any
-> > > future use cases.
-> > 
-> > Yes. That's our first expectation. We can keep it with our driver. But because
-> > there is no user driver support for any accelerator in mainline kernel. Even the
-> > well known QuickAssit has to be maintained out of tree. So we try to see if
-> > people is interested in working together to solve the problem.
-> 
-> Well, you should come with patches ack'ed by these other groups.
+> On 11/10/2018 3:50 AM, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
+>> ...
+>> ------------------------------------------------------
+>> WITHOUT the patch:
+>> ------------------------------------------------------
+>> reader: (g=3D0): rw=3Dread, bs=3D(R) 4096B-4096B, (W) 4096B-4096B, (T) 4=
+096B-4096B, ioengine=3Dlibaio, iodepth=3D64
+>> fio-3.3
+>> Starting 1 process
+>> Jobs: 1 (f=3D1): [R(1)][100.0%][r=3D55.5MiB/s,w=3D0KiB/s][r=3D14.2k,w=3D=
+0 IOPS][eta 00m:00s]
+>> reader: (groupid=3D0, jobs=3D1): err=3D 0: pid=3D1750: Tue Nov=C2=A0 6 2=
+0:18:06 2018
+>> =C2=A0=C2=A0=C2=A0 read: IOPS=3D13.9k, BW=3D54.4MiB/s (57.0MB/s)(1024MiB=
+/18826msec)
+>=20
+> ~14000 4KB read IOPS is really, really low for an NVMe disk.
 
-Yes, that is what we are doing.
+Yes, but Jan Kara's original config file for fio is *intended* to highlight
+the get_user_pages/put_user_pages changes. It was *not* intended to get max
+performance,  as you can see by the numjobs and direct IO parameters:
 
-> 
-> > > If all your driver needs is to mmap some PCI bar space, route
-> > > interrupts and do DMA mapping then mediated VFIO is probably a good
-> > > choice. 
-> > 
-> > Yes. That is what is done in our RFCv1/v2. But we accepted Jerome's opinion and
-> > try not to add complexity to the mm subsystem.
-> 
-> Why would a mediated VFIO driver touch the mm subsystem? Sounds like
-> you don't have a VFIO driver if it needs to do stuff like that...
+cat fio.conf=20
+[reader]
+direct=3D1
+ioengine=3Dlibaio
+blocksize=3D4096
+size=3D1g
+numjobs=3D1
+rw=3Dread
+iodepth=3D64
 
-VFIO has no ODP-like solution, and if we want to solve the fork problem, we have
-to make some change to iommu and the fork procedure. Further, VFIO takes every
-queue as a independent device. This create a lot of trouble on resource
-management. For example, you will need a manager process to withdraw the unused
-device and you need to let the user process know about PASID of the queue, and
-so on.
 
-> 
-> > > If it needs to do a bunch of other stuff, not related to PCI bar
-> > > space, interrupts and DMA mapping (ie special code for compression,
-> > > crypto, AI, whatever) then you should probably do what Jerome said and
-> > > make a drivers/char/hisillicon_foo_bar.c that exposes just what your
-> > > hardware does.
-> > 
-> > Yes. If no other accelerator driver writer is interested. That is the
-> > expectation:)
-> 
-> I don't think it matters what other drivers do. 
-> 
-> If your driver does not need any other kernel code then VFIO is
-> sensible. In this kind of world you will probably have a RDMA-like
-> userspace driver that can bring this to a common user space API, even
-> if one driver use VFIO and a different driver uses something else.
+So I'm thinking that this is not a "tainted" test, but rather, we're constr=
+aining
+things a lot with these choices. It's hard to find a good test config to ru=
+n that
+allows decisions, but so far, I'm not really seeing anything that says "thi=
+s
+is so bad that we can't afford to fix the brokenness." I think.
 
-Yes, in some way. But in another way, if they don't have the same address space
-logic. It won't be easy to cooperate. In VFIO, you have to use DMA address for
-device while you cannot direct share RDMA-ODP memory to other device.
-WarpDrive/uacce can solve all these problem.
+After talking with you and reading this email, I did a bunch more test runs=
+,=20
+varying the following fio parameters:
 
-> 
-> > You create some connections (queues) to NIC, RSA, and AI engine. Then you got
-> > data direct from the NIC and pass the pointer to RSA engine for decryption. The
-> > CPU then finish some data taking or operation and then pass through to the AI
-> > engine for CNN calculation....This will need a place to maintain the same
-> > address space by some means.
-> 
-> How is this any different from what we have today? 
-> 
-> SVA is not something even remotely new, IB has been doing various
-> versions of it for 20 years.
+	-- direct
+	-- numjobs
+	-- iodepth
 
-But now we can have them unified to IOMMU framework.
+...with both the baseline 4.20-rc3 kernel, and with my patches applied. (bt=
+w, if
+anyone cares, I'll post a github link that has a complete, testable patchse=
+t--not
+ready for submission as such, but it works cleanly and will allow others to=
+=20
+attempt to reproduce my results).
 
-> 
-> Jason
+What I'm seeing is that I can get 10x or better improvements in IOPS and BW=
+,
+just by going to 10 threads and turning off direct IO--as expected. So in t=
+he end,
+I increased the number of threads, and also increased iodepth a bit.=20
 
--- 
+
+Test results below...
+
+
+>=20
+>> =C2=A0=C2=A0 cpu=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 :=
+ usr=3D2.39%, sys=3D95.30%, ctx=3D669, majf=3D0, minf=3D72
+>=20
+> CPU is obviously the limiting factor. At these IOPS, it should be far
+> less.
+>> ------------------------------------------------------
+>> OR, here's a better run WITH the patch applied, and you can see that thi=
+s is nearly as good
+>> as the "without" case:
+>> ------------------------------------------------------
+>>
+>> reader: (g=3D0): rw=3Dread, bs=3D(R) 4096B-4096B, (W) 4096B-4096B, (T) 4=
+096B-4096B, ioengine=3Dlibaio, iodepth=3D64
+>> fio-3.3
+>> Starting 1 process
+>> Jobs: 1 (f=3D1): [R(1)][100.0%][r=3D53.2MiB/s,w=3D0KiB/s][r=3D13.6k,w=3D=
+0 IOPS][eta 00m:00s]
+>> reader: (groupid=3D0, jobs=3D1): err=3D 0: pid=3D2521: Tue Nov=C2=A0 6 2=
+0:01:33 2018
+>> =C2=A0=C2=A0=C2=A0 read: IOPS=3D13.4k, BW=3D52.5MiB/s (55.1MB/s)(1024MiB=
+/19499msec)
+>=20
+> Similar low IOPS.
+>=20
+>> =C2=A0=C2=A0 cpu=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 :=
+ usr=3D3.47%, sys=3D94.61%, ctx=3D370, majf=3D0, minf=3D73
+>=20
+> Similar CPU saturation.
+>=20
+>>
+>=20
+> I get nearly 400,000 4KB IOPS on my tiny desktop, which has a 25W
+> i7-7500 and a Samsung PM961 128GB NVMe (stock Bionic 4.15 kernel
+> and fio version 3.1). Even then, the CPU saturates, so it's not
+> necessarily a perfect test. I'd like to see your runs both get to
+> "max" IOPS, i.e. CPU < 100%, and compare the CPU numbers. This would
+> give the best comparison for making a decision.
+
+I can get to CPU < 100% by increasing to 10 or 20 threads, although it
+makes latency ever so much worse.
+
+>=20
+> Can you confirm what type of hardware you're running this test on?
+> CPU, memory speed and capacity, and NVMe device especially?
+>=20
+> Tom.
+
+Yes, it's a nice new system, I don't expect any strange perf problems:
+
+CPU: Intel(R) Core(TM) i7-7800X CPU @ 3.50GHz
+    (Intel X299 chipset)
+Block device: nvme-Samsung_SSD_970_EVO_250GB
+DRAM: 32 GB
+
+So, here's a comparison using 20 threads, direct IO, for the baseline vs.=20
+patched kernel (below). Highlights:
+
+	-- IOPS are similar, around 60k.=20
+	-- BW gets worse, dropping from 290 to 220 MB/s.
+	-- CPU is well under 100%.
+	-- latency is incredibly long, but...20 threads.
+
+Baseline:
+
+$ ./run.sh
+fio configuration:
+[reader]
+ioengine=3Dlibaio
+blocksize=3D4096
+size=3D1g
+rw=3Dread
+group_reporting
+iodepth=3D256
+direct=3D1
+numjobs=3D20
+-------- Running fio:
+reader: (g=3D0): rw=3Dread, bs=3D(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096=
+B-4096B, ioengine=3Dlibaio, iodepth=3D256
+...
+fio-3.3
+Starting 20 processes
+Jobs: 4 (f=3D4): [_(8),R(2),_(2),R(1),_(1),R(1),_(5)][95.9%][r=3D244MiB/s,w=
+=3D0KiB/s][r=3D62.5k,w=3D0 IOPS][eta 00m:03s]
+reader: (groupid=3D0, jobs=3D20): err=3D 0: pid=3D14499: Tue Nov 20 16:20:3=
+5 2018
+   read: IOPS=3D74.2k, BW=3D290MiB/s (304MB/s)(20.0GiB/70644msec)
+    slat (usec): min=3D26, max=3D48167, avg=3D249.27, stdev=3D1200.02
+    clat (usec): min=3D42, max=3D147792, avg=3D67108.56, stdev=3D18062.46
+     lat (usec): min=3D103, max=3D147943, avg=3D67358.10, stdev=3D18109.75
+    clat percentiles (msec):
+     |  1.00th=3D[   21],  5.00th=3D[   40], 10.00th=3D[   41], 20.00th=3D[=
+   47],
+     | 30.00th=3D[   58], 40.00th=3D[   65], 50.00th=3D[   70], 60.00th=3D[=
+   75],
+     | 70.00th=3D[   79], 80.00th=3D[   83], 90.00th=3D[   89], 95.00th=3D[=
+   93],
+     | 99.00th=3D[  104], 99.50th=3D[  109], 99.90th=3D[  121], 99.95th=3D[=
+  125],
+     | 99.99th=3D[  134]
+   bw (  KiB/s): min=3D 9712, max=3D46362, per=3D5.11%, avg=3D15164.99, std=
+ev=3D2242.15, samples=3D2742
+   iops        : min=3D 2428, max=3D11590, avg=3D3790.94, stdev=3D560.53, s=
+amples=3D2742
+  lat (usec)   : 50=3D0.01%, 250=3D0.01%, 500=3D0.01%, 750=3D0.01%, 1000=3D=
+0.01%
+  lat (msec)   : 2=3D0.01%, 4=3D0.01%, 10=3D0.02%, 20=3D0.98%, 50=3D20.44%
+  lat (msec)   : 100=3D76.95%, 250=3D1.61%
+  cpu          : usr=3D1.00%, sys=3D57.65%, ctx=3D158367, majf=3D0, minf=3D=
+5284
+  IO depths    : 1=3D0.1%, 2=3D0.1%, 4=3D0.1%, 8=3D0.1%, 16=3D0.1%, 32=3D0.=
+1%, >=3D64=3D100.0%
+     submit    : 0=3D0.0%, 4=3D100.0%, 8=3D0.0%, 16=3D0.0%, 32=3D0.0%, 64=
+=3D0.0%, >=3D64=3D0.0%
+     complete  : 0=3D0.0%, 4=3D100.0%, 8=3D0.0%, 16=3D0.0%, 32=3D0.0%, 64=
+=3D0.0%, >=3D64=3D0.1%
+     issued rwts: total=3D5242880,0,0,0 short=3D0,0,0,0 dropped=3D0,0,0,0
+     latency   : target=3D0, window=3D0, percentile=3D100.00%, depth=3D256
+
+Run status group 0 (all jobs):
+   READ: bw=3D290MiB/s (304MB/s), 290MiB/s-290MiB/s (304MB/s-304MB/s), io=
+=3D20.0GiB (21.5GB), run=3D70644-70644msec
+
+Disk stats (read/write):
+  nvme0n1: ios=3D5240738/7, merge=3D0/7, ticks=3D1457727/5, in_queue=3D1547=
+139, util=3D100.00%
+
+--------------------------------------------------------------
+Patched:
+
+<redforge> fast_256GB $ ./run.sh=20
+fio configuration:
+[reader]
+ioengine=3Dlibaio
+blocksize=3D4096
+size=3D1g
+rw=3Dread
+group_reporting
+iodepth=3D256
+direct=3D1
+numjobs=3D20
+-------- Running fio:
+reader: (g=3D0): rw=3Dread, bs=3D(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096=
+B-4096B, ioengine=3Dlibaio, iodepth=3D256
+...
+fio-3.3
+Starting 20 processes
+Jobs: 13 (f=3D8): [_(1),R(1),_(1),f(1),R(2),_(1),f(2),_(1),R(1),f(1),R(1),f=
+(1),R(1),_(2),R(1),_(1),R(1)][97.9%][r=3D229MiB/s,w=3D0KiB/s][r=3D58.5k,w=
+=3D0 IOPS][eta 00m:02s]
+reader: (groupid=3D0, jobs=3D20): err=3D 0: pid=3D2104: Tue Nov 20 22:01:58=
+ 2018
+   read: IOPS=3D56.8k, BW=3D222MiB/s (232MB/s)(20.0GiB/92385msec)
+    slat (usec): min=3D26, max=3D50436, avg=3D337.21, stdev=3D1405.14
+    clat (usec): min=3D43, max=3D178839, avg=3D88963.96, stdev=3D21745.31
+     lat (usec): min=3D106, max=3D179041, avg=3D89301.43, stdev=3D21800.43
+    clat percentiles (msec):
+     |  1.00th=3D[   50],  5.00th=3D[   53], 10.00th=3D[   55], 20.00th=3D[=
+   68],
+     | 30.00th=3D[   79], 40.00th=3D[   86], 50.00th=3D[   93], 60.00th=3D[=
+   99],
+     | 70.00th=3D[  103], 80.00th=3D[  108], 90.00th=3D[  114], 95.00th=3D[=
+  121],
+     | 99.00th=3D[  134], 99.50th=3D[  140], 99.90th=3D[  150], 99.95th=3D[=
+  155],
+     | 99.99th=3D[  163]
+   bw (  KiB/s): min=3D 4920, max=3D39733, per=3D5.07%, avg=3D11506.18, std=
+ev=3D1540.18, samples=3D3650
+   iops        : min=3D 1230, max=3D 9933, avg=3D2876.20, stdev=3D385.05, s=
+amples=3D3650
+  lat (usec)   : 50=3D0.01%, 100=3D0.01%, 250=3D0.01%, 500=3D0.01%, 750=3D0=
+.01%
+  lat (usec)   : 1000=3D0.01%
+  lat (msec)   : 2=3D0.01%, 4=3D0.01%, 10=3D0.01%, 20=3D0.23%, 50=3D1.13%
+  lat (msec)   : 100=3D63.04%, 250=3D35.57%
+  cpu          : usr=3D0.65%, sys=3D58.07%, ctx=3D188963, majf=3D0, minf=3D=
+5303
+  IO depths    : 1=3D0.1%, 2=3D0.1%, 4=3D0.1%, 8=3D0.1%, 16=3D0.1%, 32=3D0.=
+1%, >=3D64=3D100.0%
+     submit    : 0=3D0.0%, 4=3D100.0%, 8=3D0.0%, 16=3D0.0%, 32=3D0.0%, 64=
+=3D0.0%, >=3D64=3D0.0%
+     complete  : 0=3D0.0%, 4=3D100.0%, 8=3D0.0%, 16=3D0.0%, 32=3D0.0%, 64=
+=3D0.0%, >=3D64=3D0.1%
+     issued rwts: total=3D5242880,0,0,0 short=3D0,0,0,0 dropped=3D0,0,0,0
+     latency   : target=3D0, window=3D0, percentile=3D100.00%, depth=3D256
+
+Run status group 0 (all jobs):
+   READ: bw=3D222MiB/s (232MB/s), 222MiB/s-222MiB/s (232MB/s-232MB/s), io=
+=3D20.0GiB (21.5GB), run=3D92385-92385msec
+
+Disk stats (read/write):
+  nvme0n1: ios=3D5240550/7, merge=3D0/7, ticks=3D1513681/4, in_queue=3D1636=
+411, util=3D100.00%
+
+
+Thoughts?
+
+
+thanks,
+--=20
+John Hubbard
+NVIDIA
