@@ -1,74 +1,46 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Wed, 21 Nov 2018 19:58:40 -0700
-Message-ID: <20181122025840.GB19938@ziepe.ca>
-References: <20181113002354.GO3695@mtr-leonro.mtl.com>
- <95310df4-b32c-42f0-c750-3ad5eb89b3dd@gmail.com>
- <20181114160017.GI3759@mtr-leonro.mtl.com>
- <20181115085109.GD157308@Turing-Arch-b>
- <20181115145455.GN3759@mtr-leonro.mtl.com>
- <20181119091405.GE157308@Turing-Arch-b>
- <20181119184954.GB4890@ziepe.ca>
- <20181120030702.GH157308@Turing-Arch-b>
- <20181120032939.GR4890@ziepe.ca>
- <20181121060805.GJ157308@Turing-Arch-b>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] cxgb4: use new fw interface to get the VIN
+ and smt index
+Date: Thu, 22 Nov 2018 10:53:49 -0800 (PST)
+Message-ID: <20181122.105349.1035544140286401266.davem@davemloft.net>
+References: <1542787824-4731-1-git-send-email-ganeshgr@chelsio.com>
+        <20181122024624.GA28494@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181121060805.GJ157308@Turing-Arch-b>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kenneth Lee <liguozhu@hisilicon.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia@codeaurora.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181122024624.GA28494@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: jgg@ziepe.ca
+Cc: ganeshgr@chelsio.com, netdev@vger.kernel.org, nirranjan@chelsio.com, indranil@chelsio.com, dt@chelsio.com, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, linux-crypto@vger.kernel.org, atul.gupta@chelsio.com, linux-scsi@vger.kernel.org, varun@chelsio.com, santosh@chelsio.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 21, 2018 at 02:08:05PM +0800, Kenneth Lee wrote:
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Date: Wed, 21 Nov 2018 19:46:24 -0700
 
-> > But considering Jean's SVA stuff seems based on mmu notifiers, I have
-> > a hard time believing that it has any different behavior from RDMA's
-> > ODP, and if it does have different behavior, then it is probably just
-> > a bug in the ODP implementation.
+> On Wed, Nov 21, 2018 at 01:40:24PM +0530, Ganesh Goudar wrote:
+>> From: Santosh Rastapur <santosh@chelsio.com>
+>> 
+>> If the fw supports returning VIN/VIVLD in FW_VI_CMD save it
+>> in port_info structure else retrieve these from viid and save
+>> them  in port_info structure. Do the same for smt_idx from
+>> FW_VI_MAC_CMD
+>> 
+>> Signed-off-by: Santosh Rastapur <santosh@chelsio.com>
+>> Signed-off-by: Ganesh Goudar <ganeshgr@chelsio.com>
+>>  drivers/crypto/chelsio/chtls/chtls_cm.c         |  3 +-
+>>  drivers/infiniband/hw/cxgb4/cm.c                |  6 +--
+>>  drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      | 12 ++++-
+>>  drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 58 ++++++++++++-------------
+>>  drivers/net/ethernet/chelsio/cxgb4/l2t.c        | 13 +++---
+>>  drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      | 46 ++++++++++++++++++--
+>>  drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   | 20 +++++++++
+>>  drivers/scsi/cxgbi/cxgb4i/cxgb4i.c              |  3 +-
+>>  drivers/target/iscsi/cxgbit/cxgbit_cm.c         |  8 ++--
+>>  9 files changed, 114 insertions(+), 55 deletions(-)
 > 
-> As Jean has explained, his solution is based on page table sharing. I think ODP
-> should also consider this new feature.
+> Applied to for-next, but please try to write better commit messages in
+> future, explain what benifit your change is bringing.
 
-Shared page tables would require the HW to walk the page table format
-of the CPU directly, not sure how that would be possible for ODP?
-
-Presumably the implementation for ARM relies on the IOMMU hardware
-doing this?
-
-> > > > If all your driver needs is to mmap some PCI bar space, route
-> > > > interrupts and do DMA mapping then mediated VFIO is probably a good
-> > > > choice. 
-> > > 
-> > > Yes. That is what is done in our RFCv1/v2. But we accepted Jerome's opinion and
-> > > try not to add complexity to the mm subsystem.
-> > 
-> > Why would a mediated VFIO driver touch the mm subsystem? Sounds like
-> > you don't have a VFIO driver if it needs to do stuff like that...
-> 
-> VFIO has no ODP-like solution, and if we want to solve the fork problem, we have
-> to make some change to iommu and the fork procedure. Further, VFIO takes every
-> queue as a independent device. This create a lot of trouble on resource
-> management. For example, you will need a manager process to withdraw the unused
-> device and you need to let the user process know about PASID of the queue, and
-> so on.
-
-Well, I would think you'd add SVA support to the VFIO driver as a
-generic capability - it seems pretty useful for any VFIO user as it
-avoids all the kernel upcalls to do memory pinning and DMA address
-translation.
-
-Once the VFIO driver knows about this as a generic capability then the
-device it exposes to userspace would use CPU addresses instead of DMA
-addresses.
-
-The question is if your driver needs much more than the device
-agnostic generic services VFIO provides.
-
-I'm not sure what you have in mind with resource management.. It is
-hard to revoke resources from userspace, unless you are doing
-kernel syscalls, but then why do all this?
-
-Jason
+The subject line indicates this is targetting my net-next tree, therefore
+why did you apply it to your's?
