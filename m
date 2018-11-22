@@ -1,22 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/4] VLAN tag handling cleanup
-Date: Wed, 21 Nov 2018 15:41:45 -0800 (PST)
-Message-ID: <20181121.154145.1600679435749570425.davem@davemloft.net>
-References: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH net-next] cxgb4: use new fw interface to get the VIN and
+ smt index
+Date: Wed, 21 Nov 2018 19:46:24 -0700
+Message-ID: <20181122024624.GA28494@ziepe.ca>
+References: <1542787824-4731-1-git-send-email-ganeshgr@chelsio.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=euc-kr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1542716156.git.mirq-linux@rere.qmqm.pl>
+Content-Disposition: inline
+In-Reply-To: <1542787824-4731-1-git-send-email-ganeshgr@chelsio.com>
 Sender: netdev-owner@vger.kernel.org
-To: mirq-linux@rere.qmqm.pl
-Cc: netdev@vger.kernel.org, ajit.khaparde@broadcom.com, devel@linuxdriverproject.org, haiyangz@microsoft.com, kys@microsoft.com, leon@kernel.org, linux-rdma@vger.kernel.org, saeedm@mellanox.com, sathya.perla@broadcom.com, somnath.kotur@broadcom.com, sriharsha.basavapatna@broadcom.com, sthemmin@microsoft.com
+To: Ganesh Goudar <ganeshgr@chelsio.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, nirranjan@chelsio.com, indranil@chelsio.com, dt@chelsio.com, linux-rdma@vger.kernel.org, swise@opengridcomputing.com, linux-crypto@vger.kernel.org, atul.gupta@chelsio.com, linux-scsi@vger.kernel.org, varun@chelsio.com, Santosh Rastapur <santosh@chelsio.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Micha©© Miros©©aw <mirq-linux@rere.qmqm.pl>
-Date: Tue, 20 Nov 2018 13:20:30 +0100
+On Wed, Nov 21, 2018 at 01:40:24PM +0530, Ganesh Goudar wrote:
+> From: Santosh Rastapur <santosh@chelsio.com>
+> 
+> If the fw supports returning VIN/VIVLD in FW_VI_CMD save it
+> in port_info structure else retrieve these from viid and save
+> them  in port_info structure. Do the same for smt_idx from
+> FW_VI_MAC_CMD
+> 
+> Signed-off-by: Santosh Rastapur <santosh@chelsio.com>
+> Signed-off-by: Ganesh Goudar <ganeshgr@chelsio.com>
+>  drivers/crypto/chelsio/chtls/chtls_cm.c         |  3 +-
+>  drivers/infiniband/hw/cxgb4/cm.c                |  6 +--
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4.h      | 12 ++++-
+>  drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c | 58 ++++++++++++-------------
+>  drivers/net/ethernet/chelsio/cxgb4/l2t.c        | 13 +++---
+>  drivers/net/ethernet/chelsio/cxgb4/t4_hw.c      | 46 ++++++++++++++++++--
+>  drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h   | 20 +++++++++
+>  drivers/scsi/cxgbi/cxgb4i/cxgb4i.c              |  3 +-
+>  drivers/target/iscsi/cxgbit/cxgbit_cm.c         |  8 ++--
+>  9 files changed, 114 insertions(+), 55 deletions(-)
 
-> This is a cleanup set after VLAN_TAG_PRESENT removal. The CFI bit
-> handling is made similar to how other tag fields are used.
+Applied to for-next, but please try to write better commit messages in
+future, explain what benifit your change is bringing.
 
-Series applied, thanks.
+Jason
