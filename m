@@ -1,42 +1,54 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 0/3] RDMA/hns: Updates for reset process of
- roce device in hip08
-Date: Fri, 23 Nov 2018 13:42:56 -0700
-Message-ID: <20181123204256.GK3395@ziepe.ca>
+Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
+Date: Fri, 23 Nov 2018 13:39:58 -0700
+Message-ID: <20181123203958.GJ3395@ziepe.ca>
 References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
+ <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
+In-Reply-To: <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 23, 2018 at 11:14:22PM +0800, Wei Hu (Xavier) wrote:
-> Hi, Doug and Janson
+On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
+> This patch modifies the name of hns RoCE device's name in order
+> to ensure that the name is consistent before and after reset.
 > 
-> This series mainly include updates for reset process of roce device
-> in hip08.
-> One patch adds support for reset and loading or unloading driver occur
-> simultaneously to ensure work normally, one stops sending mailbox&cmq&
-> doorbell when reset occured or reset is occuring, the last one modifies
-> the name of hns RoCE device's name in order to ensure that the name is
-> consistent before and after reset.
+> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+>  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
+>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
+>  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
+>  3 files changed, 7 insertions(+), 1 deletion(-)
 > 
-> This series relies on the the new interfaces in hns NIC driver those
-> had been accepted by David, the related commit as below:
-> https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git 
-> commit cb7ea80c6dfda472a068d40f4f9755d034b2dfde
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+> index 259977b..a8cfe76 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+> @@ -954,6 +954,7 @@ struct hns_roce_dev {
+>  	struct pci_dev		*pci_dev;
+>  	struct device		*dev;
+>  	struct hns_roce_uar     priv_uar;
+> +	char			name[IB_DEVICE_NAME_MAX];
+>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
+>  	spinlock_t		sm_lock;
+>  	spinlock_t		bt_cmd_lock;
+> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> index 1d639a0..678c7ec 100644
+> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
+>  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
+>  						i + handle->rinfo.base_vector);
+>  
+> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
+> +		 handle->rinfo.netdev->name);
 
-Then you can't send patches to RDMA until the next cycle. Please
-reasend after v4.21-rc1 is out.
+Why is this making up its own driver name? How is this avoiding
+colliding with an existing name?
 
-We can only coordinate with Dave's tree if you are able to setup a
-shared branch like Mellanox does.
-
-Also, I don't even see cb7ea80c6dfda472a068d40f4f9755d034b2dfde in
-that tree???
+This is very dangerous since we now have device renaming, the driver
+could fail to load with no recovery.
 
 Jason
