@@ -1,54 +1,57 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
-Date: Fri, 23 Nov 2018 13:39:58 -0700
-Message-ID: <20181123203958.GJ3395@ziepe.ca>
-References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
- <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
+Date: Fri, 23 Nov 2018 15:44:15 -0800
+Message-ID: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: hverkuil@xs4all.nl, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-block@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, intel-wired-lan@lists.osuosl.org, linux-alpha@vger.kernel.org, dmaengine@vger.kernel.org, sparclinux@vger.kernel.org, jiangqi903@gmail.com, linuxppc-dev@lists.ozlabs.org, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
-> This patch modifies the name of hns RoCE device's name in order
-> to ensure that the name is consistent before and after reset.
-> 
-> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
->  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
->  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
->  3 files changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> index 259977b..a8cfe76 100644
-> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> @@ -954,6 +954,7 @@ struct hns_roce_dev {
->  	struct pci_dev		*pci_dev;
->  	struct device		*dev;
->  	struct hns_roce_uar     priv_uar;
-> +	char			name[IB_DEVICE_NAME_MAX];
->  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
->  	spinlock_t		sm_lock;
->  	spinlock_t		bt_cmd_lock;
-> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> index 1d639a0..678c7ec 100644
-> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
->  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
->  						i + handle->rinfo.base_vector);
->  
-> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
-> +		 handle->rinfo.netdev->name);
-
-Why is this making up its own driver name? How is this avoiding
-colliding with an existing name?
-
-This is very dangerous since we now have device renaming, the driver
-could fail to load with no recovery.
-
-Jason
+T24gRnJpLCAyMyBOb3YgMjAxOCAxNToyNDoxNiArMDUzMCBBbnNodW1hbiBLaGFuZHVhbCA8YW5z
+aHVtYW4ua2hhbmR1YWxAYXJtLmNvbT4gd3JvdGU6Cgo+IEF0IHByZXNlbnQgdGhlcmUgYXJlIG11
+bHRpcGxlIHBsYWNlcyB3aGVyZSBpbnZhbGlkIG5vZGUgbnVtYmVyIGlzIGVuY29kZWQKPiBhcyAt
+MS4gRXZlbiB0aG91Z2ggaW1wbGljaXRseSB1bmRlcnN0b29kIGl0IGlzIGFsd2F5cyBiZXR0ZXIg
+dG8gaGF2ZSBtYWNyb3MKPiBpbiB0aGVyZS4gUmVwbGFjZSB0aGVzZSBvcGVuIGVuY29kaW5ncyBm
+b3IgYW4gaW52YWxpZCBub2RlIG51bWJlciB3aXRoIHRoZQo+IGdsb2JhbCBtYWNybyBOVU1BX05P
+X05PREUuIFRoaXMgaGVscHMgcmVtb3ZlIE5VTUEgcmVsYXRlZCBhc3N1bXB0aW9ucyBsaWtlCj4g
+J2ludmFsaWQgbm9kZScgZnJvbSB2YXJpb3VzIHBsYWNlcyByZWRpcmVjdGluZyB0aGVtIHRvIGEg
+Y29tbW9uIGRlZmluaXRpb24uCj4gCj4gLi4uCj4gCj4gQnVpbGQgdGVzdGVkIHRoaXMgd2l0aCBt
+dWx0aXBsZSBjcm9zcyBjb21waWxlciBvcHRpb25zIGxpa2UgYWxwaGEsIHNwYXJjLAo+IGFybTY0
+LCB4ODYsIHBvd2VycGMsIHBvd2VycGM2NGxlIGV0YyB3aXRoIHRoZWlyIGRlZmF1bHQgY29uZmln
+IHdoaWNoIG1pZ2h0Cj4gbm90IGhhdmUgY29tcGlsZWQgdGVzdGVkIGFsbCBkcml2ZXIgcmVsYXRl
+ZCBjaGFuZ2VzLiBJIHdpbGwgYXBwcmVjaWF0ZQo+IGZvbGtzIGdpdmluZyB0aGlzIGEgdGVzdCBp
+biB0aGVpciByZXNwZWN0aXZlIGJ1aWxkIGVudmlyb25tZW50Lgo+IAo+IEFsbCB0aGVzZSBwbGFj
+ZXMgZm9yIHJlcGxhY2VtZW50IHdlcmUgZm91bmQgYnkgcnVubmluZyB0aGUgZm9sbG93aW5nIGdy
+ZXAKPiBwYXR0ZXJucyBvbiB0aGUgZW50aXJlIGtlcm5lbCBjb2RlLiBQbGVhc2UgbGV0IG1lIGtu
+b3cgaWYgdGhpcyBtaWdodCBoYXZlCj4gbWlzc2VkIHNvbWUgaW5zdGFuY2VzLiBUaGlzIG1pZ2h0
+IGFsc28gaGF2ZSByZXBsYWNlZCBzb21lIGZhbHNlIHBvc2l0aXZlcy4KPiBJIHdpbGwgYXBwcmVj
+aWF0ZSBzdWdnZXN0aW9ucywgaW5wdXRzIGFuZCByZXZpZXcuCj4gCj4gMS4gZ2l0IGdyZXAgIm5p
+ZCA9PSAtMSIKPiAyLiBnaXQgZ3JlcCAibm9kZSA9PSAtMSIKPiAzLiBnaXQgZ3JlcCAibmlkID0g
+LTEiCj4gNC4gZ2l0IGdyZXAgIm5vZGUgPSAtMSIKClRoZSBidWlsZCB0ZXN0aW5nIGlzIGdvb2Qs
+IGJ1dCBJIHdvcnJ5IHRoYXQgc29tZSBvZiB0aGUgYWZmZWN0ZWQgZmlsZXMKZG9uJ3QgY2xlYXJs
+eSBoYXZlIG51bWEuaCBpbiB0aGVpciBpbmNsdWRlIHBhdGhzLCBmb3IgdGhlIE5VTUFfTk9fTk9E
+RQpkZWZpbml0aW9uLgoKVGhlIGZpcnN0IHRoaW5nIEkgbG9va2VkIGl0IGlzIGFyY2gvcG93ZXJw
+Yy9pbmNsdWRlL2FzbS9wY2ktYnJpZGdlLmguIApNYXliZSBpdCBzb21laG93IG1hbmFnZXMgdG8g
+aW5jbHVkZSBudW1hLmggdmlhIHNvbWUgbmVzdGVkIGluY2x1ZGUsIGJ1dAppZiBzbywgaXMgdGhh
+dCByZWxpYWJsZSBhY3Jvc3MgYWxsIGNvbmZpZyBjb21iaW5hdGlvbnMgYW5kIGFzIGNvZGUKZXZv
+bHZlcz8KClNvIEkgdGhpbmsgdGhhdCB0aGUgcGF0Y2ggc2hvdWxkIGhhdmUgYWRkZWQgYW4gZXhw
+bGljaXQgaW5jbHVkZSBvZgpudW1hLmgsIGVzcGVjaWFsbHkgaW4gY2FzZXMgd2hlcmUgdGhlIGFm
+ZmVjdGVkIGZpbGUgcHJldmlvdXNseSBoYWQgbm8KcmVmZXJlbmNlcyB0byBhbnkgb2YgdGhlIHRo
+aW5ncyB3aGljaCBudW1hLmggZGVmaW5lcy4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2RyaS1kZXZlbAo=
