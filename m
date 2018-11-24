@@ -1,57 +1,143 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
-Date: Fri, 23 Nov 2018 15:44:15 -0800
-Message-ID: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
-References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: hverkuil@xs4all.nl, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-block@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, intel-wired-lan@lists.osuosl.org, linux-alpha@vger.kernel.org, dmaengine@vger.kernel.org, sparclinux@vger.kernel.org, jiangqi903@gmail.com, linuxppc-dev@lists.ozlabs.org, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: [PATCH 0/8] net: y2038-safe socket timestamps
+Date: Fri, 23 Nov 2018 18:20:27 -0800
+Message-ID: <20181124022035.17519-1-deepa.kernel@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, viro@zeniv.linux.org.uk, arnd@arndb.de, y2038@lists.linaro.org, chris@zankel.net, fenghua.yu@intel.com, tglx@linutronix.de, schwidefsky@de.ibm.com, linux-ia64@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-s390@vger.kernel.org, deller@gmx.de, dhowells@redhat.com, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org, isdn@linux-pingi.de, ubraun@linux.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMyBOb3YgMjAxOCAxNToyNDoxNiArMDUzMCBBbnNodW1hbiBLaGFuZHVhbCA8YW5z
-aHVtYW4ua2hhbmR1YWxAYXJtLmNvbT4gd3JvdGU6Cgo+IEF0IHByZXNlbnQgdGhlcmUgYXJlIG11
-bHRpcGxlIHBsYWNlcyB3aGVyZSBpbnZhbGlkIG5vZGUgbnVtYmVyIGlzIGVuY29kZWQKPiBhcyAt
-MS4gRXZlbiB0aG91Z2ggaW1wbGljaXRseSB1bmRlcnN0b29kIGl0IGlzIGFsd2F5cyBiZXR0ZXIg
-dG8gaGF2ZSBtYWNyb3MKPiBpbiB0aGVyZS4gUmVwbGFjZSB0aGVzZSBvcGVuIGVuY29kaW5ncyBm
-b3IgYW4gaW52YWxpZCBub2RlIG51bWJlciB3aXRoIHRoZQo+IGdsb2JhbCBtYWNybyBOVU1BX05P
-X05PREUuIFRoaXMgaGVscHMgcmVtb3ZlIE5VTUEgcmVsYXRlZCBhc3N1bXB0aW9ucyBsaWtlCj4g
-J2ludmFsaWQgbm9kZScgZnJvbSB2YXJpb3VzIHBsYWNlcyByZWRpcmVjdGluZyB0aGVtIHRvIGEg
-Y29tbW9uIGRlZmluaXRpb24uCj4gCj4gLi4uCj4gCj4gQnVpbGQgdGVzdGVkIHRoaXMgd2l0aCBt
-dWx0aXBsZSBjcm9zcyBjb21waWxlciBvcHRpb25zIGxpa2UgYWxwaGEsIHNwYXJjLAo+IGFybTY0
-LCB4ODYsIHBvd2VycGMsIHBvd2VycGM2NGxlIGV0YyB3aXRoIHRoZWlyIGRlZmF1bHQgY29uZmln
-IHdoaWNoIG1pZ2h0Cj4gbm90IGhhdmUgY29tcGlsZWQgdGVzdGVkIGFsbCBkcml2ZXIgcmVsYXRl
-ZCBjaGFuZ2VzLiBJIHdpbGwgYXBwcmVjaWF0ZQo+IGZvbGtzIGdpdmluZyB0aGlzIGEgdGVzdCBp
-biB0aGVpciByZXNwZWN0aXZlIGJ1aWxkIGVudmlyb25tZW50Lgo+IAo+IEFsbCB0aGVzZSBwbGFj
-ZXMgZm9yIHJlcGxhY2VtZW50IHdlcmUgZm91bmQgYnkgcnVubmluZyB0aGUgZm9sbG93aW5nIGdy
-ZXAKPiBwYXR0ZXJucyBvbiB0aGUgZW50aXJlIGtlcm5lbCBjb2RlLiBQbGVhc2UgbGV0IG1lIGtu
-b3cgaWYgdGhpcyBtaWdodCBoYXZlCj4gbWlzc2VkIHNvbWUgaW5zdGFuY2VzLiBUaGlzIG1pZ2h0
-IGFsc28gaGF2ZSByZXBsYWNlZCBzb21lIGZhbHNlIHBvc2l0aXZlcy4KPiBJIHdpbGwgYXBwcmVj
-aWF0ZSBzdWdnZXN0aW9ucywgaW5wdXRzIGFuZCByZXZpZXcuCj4gCj4gMS4gZ2l0IGdyZXAgIm5p
-ZCA9PSAtMSIKPiAyLiBnaXQgZ3JlcCAibm9kZSA9PSAtMSIKPiAzLiBnaXQgZ3JlcCAibmlkID0g
-LTEiCj4gNC4gZ2l0IGdyZXAgIm5vZGUgPSAtMSIKClRoZSBidWlsZCB0ZXN0aW5nIGlzIGdvb2Qs
-IGJ1dCBJIHdvcnJ5IHRoYXQgc29tZSBvZiB0aGUgYWZmZWN0ZWQgZmlsZXMKZG9uJ3QgY2xlYXJs
-eSBoYXZlIG51bWEuaCBpbiB0aGVpciBpbmNsdWRlIHBhdGhzLCBmb3IgdGhlIE5VTUFfTk9fTk9E
-RQpkZWZpbml0aW9uLgoKVGhlIGZpcnN0IHRoaW5nIEkgbG9va2VkIGl0IGlzIGFyY2gvcG93ZXJw
-Yy9pbmNsdWRlL2FzbS9wY2ktYnJpZGdlLmguIApNYXliZSBpdCBzb21laG93IG1hbmFnZXMgdG8g
-aW5jbHVkZSBudW1hLmggdmlhIHNvbWUgbmVzdGVkIGluY2x1ZGUsIGJ1dAppZiBzbywgaXMgdGhh
-dCByZWxpYWJsZSBhY3Jvc3MgYWxsIGNvbmZpZyBjb21iaW5hdGlvbnMgYW5kIGFzIGNvZGUKZXZv
-bHZlcz8KClNvIEkgdGhpbmsgdGhhdCB0aGUgcGF0Y2ggc2hvdWxkIGhhdmUgYWRkZWQgYW4gZXhw
-bGljaXQgaW5jbHVkZSBvZgpudW1hLmgsIGVzcGVjaWFsbHkgaW4gY2FzZXMgd2hlcmUgdGhlIGFm
-ZmVjdGVkIGZpbGUgcHJldmlvdXNseSBoYWQgbm8KcmVmZXJlbmNlcyB0byBhbnkgb2YgdGhlIHRo
-aW5ncyB3aGljaCBudW1hLmggZGVmaW5lcy4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2RyaS1kZXZlbAo=
+The series introduces new socket timestamps that are
+y2038 safe.
+
+The time data types used for the existing socket timestamp
+options: SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING
+are not y2038 safe. The series introduces SO_TIMESTAMP_NEW,
+SO_TIMESTAMPNS_NEW and SO_TIMESTAMPING_NEW to replace these.
+These new timestamps can be used on all architectures.
+
+The alternative considered was to extend the sys_setsockopt()
+by using the flags. We did not receive any strong opinions about
+either of the approaches. Hence, this was chosen, as glibc folks
+preferred this.
+
+The series does not deal with updating the internal kernel socket
+calls like rxrpc to make them y2038 safe. This will be dealt
+with separately.
+
+Note that the timestamps behavior already does not match the
+man page specific behavior:
+SIOCGSTAMP
+    This ioctl should only be used if the socket option SO_TIMESTAMP
+	is not set on the socket. Otherwise, it returns the timestamp of
+	the last packet that was received while SO_TIMESTAMP was not set,
+	or it fails if no such packet has been received,
+	(i.e., ioctl(2) returns -1 with errno set to ENOENT).
+	
+The recommendation is to update the man page to remove the above statement.
+
+The overview of the series is as below:
+1. Delete asm specific socket.h when possible.
+2. Support SO/SCM_TIMESTAMP* options only in userspace.
+3. Rename current SO/SCM_TIMESTAMP* to SO/SCM_TIMESTAMP*_OLD.
+3. Alter socket options so that SOCK_RCVTSTAMPNS does
+   not rely on SOCK_RCVTSTAMP.
+4. Introduce y2038 safe types for socket timestamp.
+5. Introduce new y2038 safe socket options SO/SCM_TIMESTAMP*_NEW.
+
+Deepa Dinamani (8):
+  arch: Use asm-generic/socket.h when possible
+  sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+  socket: Disentangle SOCK_RCVTSTAMPNS from SOCK_RCVTSTAMP
+  arch: sparc: Override struct __kernel_old_timeval
+  socket: Use old_timeval types for socket timestamps
+  socket: Add struct sock_timeval
+  socket: Add SO_TIMESTAMP[NS]_NEW
+  socket: Add SO_TIMESTAMPING_NEW
+
+ arch/alpha/include/uapi/asm/socket.h      |  35 ++++--
+ arch/ia64/include/uapi/asm/Kbuild         |   1 +
+ arch/ia64/include/uapi/asm/socket.h       | 120 ------------------
+ arch/mips/include/uapi/asm/socket.h       |  34 ++++--
+ arch/parisc/include/uapi/asm/socket.h     |  34 ++++--
+ arch/s390/include/uapi/asm/Kbuild         |   1 +
+ arch/s390/include/uapi/asm/socket.h       | 117 ------------------
+ arch/sparc/include/uapi/asm/posix_types.h |  10 ++
+ arch/sparc/include/uapi/asm/socket.h      |  36 ++++--
+ arch/x86/include/uapi/asm/Kbuild          |   1 +
+ arch/x86/include/uapi/asm/socket.h        |   1 -
+ arch/xtensa/include/asm/Kbuild            |   1 +
+ arch/xtensa/include/uapi/asm/Kbuild       |   1 +
+ arch/xtensa/include/uapi/asm/socket.h     | 122 -------------------
+ drivers/isdn/mISDN/socket.c               |   2 +-
+ include/linux/skbuff.h                    |  24 +++-
+ include/linux/socket.h                    |   7 ++
+ include/net/sock.h                        |   5 +-
+ include/uapi/asm-generic/socket.h         |  35 ++++--
+ include/uapi/linux/errqueue.h             |   4 +
+ include/uapi/linux/time.h                 |   7 ++
+ net/bluetooth/hci_sock.c                  |   4 +-
+ net/compat.c                              |  12 +-
+ net/core/scm.c                            |  27 ++++
+ net/core/sock.c                           | 142 ++++++++++++++--------
+ net/ipv4/tcp.c                            |  82 ++++++++-----
+ net/rds/af_rds.c                          |  10 +-
+ net/rds/recv.c                            |  18 ++-
+ net/rxrpc/local_object.c                  |   2 +-
+ net/smc/af_smc.c                          |   3 +-
+ net/socket.c                              |  68 +++++++----
+ net/unix/af_unix.c                        |   4 +-
+ 32 files changed, 449 insertions(+), 521 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/socket.h
+ delete mode 100644 arch/s390/include/uapi/asm/socket.h
+ delete mode 100644 arch/x86/include/uapi/asm/socket.h
+ delete mode 100644 arch/xtensa/include/uapi/asm/socket.h
+
+
+base-commit: b124b524bc97868cc2b5656e6ffa21a9b752b7e0
+-- 
+2.17.1
+
+Cc: chris@zankel.net
+Cc: fenghua.yu@intel.com
+Cc: tglx@linutronix.de
+Cc: schwidefsky@de.ibm.com
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-s390@vger.kernel.org
+Cc: deller@gmx.de
+Cc: dhowells@redhat.com
+Cc: jejb@parisc-linux.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: linux-afs@lists.infradead.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: isdn@linux-pingi.de
+Cc: jejb@parisc-linux.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: chris@zankel.net
+Cc: fenghua.yu@intel.com
+Cc: rth@twiddle.net
+Cc: tglx@linutronix.de
+Cc: ubraun@linux.ibm.com
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: sparclinux@vger.kernel.org
