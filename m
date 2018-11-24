@@ -1,526 +1,159 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Fri, 23 Nov 2018 18:20:34 -0800
-Message-ID: <20181124022035.17519-8-deepa.kernel@gmail.com>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181124022035.17519-1-deepa.kernel@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, viro@zeniv.linux.org.uk, arnd@arndb.de, y2038@lists.linaro.org, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+From: Kenneth Lee <liguozhu@hisilicon.com>
+Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+Date: Sat, 24 Nov 2018 12:13:21 +0800
+Message-ID: <20181124041321.GL157308@Turing-Arch-b>
+References: <20181115085109.GD157308@Turing-Arch-b>
+ <20181115145455.GN3759@mtr-leonro.mtl.com>
+ <20181119091405.GE157308@Turing-Arch-b>
+ <20181119184954.GB4890@ziepe.ca>
+ <20181120030702.GH157308@Turing-Arch-b>
+ <20181120032939.GR4890@ziepe.ca>
+ <20181121060805.GJ157308@Turing-Arch-b>
+ <20181122025840.GB19938@ziepe.ca>
+ <20181123080242.GK157308@Turing-Arch-b>
+ <20181123180504.GA3395@ziepe.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181123180504.GA3395@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia>
 List-Id: linux-rdma@vger.kernel.org
 
-Add SO_TIMESTAMP_NEW and SO_TIMESTAMPNS_NEW variants of
-socket timestamp options.
-These are the y2038 safe versions of the SO_TIMESTAMP_OLD
-and SO_TIMESTAMPNS_OLD for all architectures.
+On Fri, Nov 23, 2018 at 11:05:04AM -0700, Jason Gunthorpe wrote:
+> Date: Fri, 23 Nov 2018 11:05:04 -0700
+> From: Jason Gunthorpe <jgg@ziepe.ca>
+> To: Kenneth Lee <liguozhu@hisilicon.com>
+> CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
+>  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
+>  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
+>  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
+>  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
+>  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
+>  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
+>  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
+>  <u.kleine-koenig@pengutronix.de>, David Kershner
+>  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
+>  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
+>  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
+>  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
+>  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
+>  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
+>  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
+>  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
+> Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
+> User-Agent: Mutt/1.9.4 (2018-02-28)
+> Message-ID: <20181123180504.GA3395@ziepe.ca>
+> 
+> On Fri, Nov 23, 2018 at 04:02:42PM +0800, Kenneth Lee wrote:
+> 
+> > It is already part of Jean's patchset. And that's why I built my solution on
+> > VFIO in the first place. But I think the concept of SVA and PASID is not
+> > compatible with the original VFIO concept space. You would not share your whole
+> > address space to a device at all in a virtual machine manager,
+> > wouldn't you?
+> 
+> Why not? That seems to fit VFIO's space just fine to me.. You might
+> need a new upcall to create a full MM registration, but that doesn't
+> seem unsuited.
 
-Note that the format of scm_timestamping.ts[0] is not changed
-in this patch.
+Because the VM manager (such as qemu) do not want to share its whole space to
+the device. It is a security problem.
 
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: jejb@parisc-linux.org
-Cc: ralf@linux-mips.org
-Cc: rth@twiddle.net
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
----
- arch/alpha/include/uapi/asm/socket.h  | 15 ++++++-
- arch/mips/include/uapi/asm/socket.h   | 14 +++++-
- arch/parisc/include/uapi/asm/socket.h | 14 +++++-
- arch/sparc/include/uapi/asm/socket.h  | 14 +++++-
- include/linux/skbuff.h                | 18 ++++++++
- include/net/sock.h                    |  1 +
- include/uapi/asm-generic/socket.h     | 15 ++++++-
- net/core/sock.c                       | 18 ++++++++
- net/ipv4/tcp.c                        | 61 +++++++++++++++++++--------
- net/rds/af_rds.c                      |  8 +++-
- net/rds/recv.c                        | 16 ++++++-
- net/socket.c                          | 47 +++++++++++++++------
- 12 files changed, 197 insertions(+), 44 deletions(-)
+> 
+> Part of the point here is you should try to make sensible revisions to
+> existing subsystems before just inventing a new thing...
+> 
+> VFIO is deeply connected to the IOMMU, so enabling more general IOMMU
+> based approache seems perfectly fine to me..
+> 
+> > > Once the VFIO driver knows about this as a generic capability then the
+> > > device it exposes to userspace would use CPU addresses instead of DMA
+> > > addresses.
+> > > 
+> > > The question is if your driver needs much more than the device
+> > > agnostic generic services VFIO provides.
+> > > 
+> > > I'm not sure what you have in mind with resource management.. It is
+> > > hard to revoke resources from userspace, unless you are doing
+> > > kernel syscalls, but then why do all this?
+> > 
+> > Say, I have 1024 queues in my accelerator. I can get one by opening the device
+> > and attach it with the fd. If the process exit by any means, the queue can be
+> > returned with the release of the fd. But if it is mdev, it will still be there
+> > and some one should tell the allocator it is available again. This is not easy
+> > to design in user space.
+> 
+> ?? why wouldn't the mdev track the queues assigned using the existing
+> open/close/ioctl callbacks?
+> 
+> That is basic flow I would expect:
+> 
+>  open(/dev/vfio)
+>  ioctl(unity map entire process MM to mdev with IOMMU)
+> 
+>  // Create a HQ queue and link the PASID in the HW to this HW queue
+>  struct hw queue[..];
+>  ioctl(create HW queue)
+> 
+>  // Get BAR doorbell memory for the queue
+>  bar = mmap()
+> 
+>  // Submit work to the queue using CPU addresses
+>  queue[0] = ...
+>  writel(bar [..], &queue);
+> 
+>  // Queue, SVA, etc is cleaned up when the VFIO closes
+>  close()
 
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index 00e45c80e574..352e3dc0b3d9 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -3,6 +3,7 @@
- #define _UAPI_ASM_SOCKET_H
- 
- #include <asm/sockios.h>
-+#include <asm/bitsperlong.h>
- 
- /* For setsockopt(2) */
- /*
-@@ -110,12 +111,22 @@
- 
- #define SO_TIMESTAMP_OLD         29
- #define SO_TIMESTAMPNS_OLD       35
-+
- #define SO_TIMESTAMPING_OLD      37
- 
-+#define SO_TIMESTAMP_NEW         62
-+#define SO_TIMESTAMPNS_NEW       63
-+
- #if !defined(__KERNEL__)
- 
--#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
--#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#if __BITS_PER_LONG == 64
-+#define SO_TIMESTAMP		SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
-+#else
-+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-+#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-+#endif
-+
- #define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index b9553f770346..d1752e3f1248 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -11,6 +11,7 @@
- #define _UAPI_ASM_SOCKET_H
- 
- #include <asm/sockios.h>
-+#include <asm/bitsperlong.h>
- 
- /*
-  * For setsockopt(2)
-@@ -123,10 +124,19 @@
- #define SO_TIMESTAMPNS_OLD       35
- #define SO_TIMESTAMPING_OLD      37
- 
-+#define SO_TIMESTAMP_NEW         62
-+#define SO_TIMESTAMPNS_NEW       63
-+
- #if !defined(__KERNEL__)
- 
--#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
--#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#if __BITS_PER_LONG == 64
-+#define SO_TIMESTAMP		SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
-+#else
-+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-+#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-+#endif
-+
- #define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index 37cdfe64bb27..0a45b668abd1 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -3,6 +3,7 @@
- #define _UAPI_ASM_SOCKET_H
- 
- #include <asm/sockios.h>
-+#include <asm/bitsperlong.h>
- 
- /* For setsockopt(2) */
- #define SOL_SOCKET	0xffff
-@@ -104,10 +105,19 @@
- #define SO_TIMESTAMPNS_OLD       0x4013
- #define SO_TIMESTAMPING_OLD      0x4020
- 
-+#define SO_TIMESTAMP_NEW         0x4037
-+#define SO_TIMESTAMPNS_NEW       0x4038
-+
- #if !defined(__KERNEL__)
- 
--#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
--#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#if __BITS_PER_LONG == 64
-+#define SO_TIMESTAMP		SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
-+#else
-+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-+#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-+#endif
-+
- #define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index ca573641fc6c..dc8527cae5a7 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -3,6 +3,7 @@
- #define _ASM_SOCKET_H
- 
- #include <asm/sockios.h>
-+#include <asm/bitsperlong.h>
- 
- /* For setsockopt(2) */
- #define SOL_SOCKET	0xffff
-@@ -105,10 +106,19 @@
- #define SO_TIMESTAMPNS_OLD       0x0021
- #define SO_TIMESTAMPING_OLD      0x0023
- 
-+#define SO_TIMESTAMP_NEW         0x0040
-+#define SO_TIMESTAMPNS_NEW       0x0041
-+
- #if !defined(__KERNEL__)
- 
--#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
--#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#if __BITS_PER_LONG == 64
-+#define SO_TIMESTAMP		SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
-+#else
-+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-+#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-+#endif
-+
- #define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index e2dc01330cb1..1e42c4a2209d 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -3465,12 +3465,30 @@ static inline void skb_get_timestamp(const struct sk_buff *skb,
- 	*stamp = ns_to_kernel_old_timeval(skb->tstamp);
- }
- 
-+static inline void skb_get_new_timestamp(const struct sk_buff *skb,
-+				     struct sock_timeval *stamp)
-+{
-+	struct timespec64 ts = ktime_to_timespec64(skb->tstamp);
-+
-+	stamp->tv_sec = ts.tv_sec;
-+	stamp->tv_usec = ts.tv_nsec / 1000;
-+}
-+
- static inline void skb_get_timestampns(const struct sk_buff *skb,
- 				       struct timespec *stamp)
- {
- 	*stamp = ktime_to_timespec(skb->tstamp);
- }
- 
-+static inline void skb_get_new_timestampns(const struct sk_buff *skb,
-+				       struct __kernel_timespec *stamp)
-+{
-+	struct timespec64 ts = ktime_to_timespec64(skb->tstamp);
-+
-+	stamp->tv_sec = ts.tv_sec;
-+	stamp->tv_nsec = ts.tv_nsec;
-+}
-+
- static inline void __net_timestamp(struct sk_buff *skb)
- {
- 	skb->tstamp = ktime_get_real();
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 8143c4c1a49d..9edf909dc176 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -801,6 +801,7 @@ enum sock_flags {
- 	SOCK_RCU_FREE, /* wait rcu grace period in sk_destruct() */
- 	SOCK_TXTIME,
- 	SOCK_XDP, /* XDP is attached */
-+	SOCK_TSTAMP_NEW, /* Indicates 64 bit timestamps always */
- };
- 
- #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index dc704e41203d..0b0fae6b57a9 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -3,6 +3,7 @@
- #define __ASM_GENERIC_SOCKET_H
- 
- #include <asm/sockios.h>
-+#include <asm/bitsperlong.h>
- 
- /* For setsockopt(2) */
- #define SOL_SOCKET	1
-@@ -107,10 +108,20 @@
- #define SO_TIMESTAMPNS_OLD       35
- #define SO_TIMESTAMPING_OLD      37
- 
-+#define SO_TIMESTAMP_NEW         62
-+#define SO_TIMESTAMPNS_NEW       63
-+
- #if !defined(__KERNEL__)
- 
--#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
--#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
-+/* on 64-bit and x32, avoid the ?: operator */
-+#define SO_TIMESTAMP		SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
-+#else
-+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-+#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-+#endif
-+
- #define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/net/core/sock.c b/net/core/sock.c
-index e60036618205..7b485dfaa400 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -652,15 +652,23 @@ static void setsockopt_timestamp(struct sock *sk, int type, int val)
- 	if (!val) {
- 		sock_reset_flag(sk, SOCK_RCVTSTAMP);
- 		sock_reset_flag(sk, SOCK_RCVTSTAMPNS);
-+		sock_reset_flag(sk, SOCK_TSTAMP_NEW);
- 		return;
- 	}
- 
-+	if (type == SO_TIMESTAMP_NEW || type == SO_TIMESTAMPNS_NEW)
-+		sock_set_flag(sk, SOCK_TSTAMP_NEW);
-+	else
-+		sock_reset_flag(sk, SOCK_TSTAMP_NEW);
-+
- 	switch (type) {
- 	case SO_TIMESTAMP_OLD:
-+	case SO_TIMESTAMP_NEW:
- 		sock_reset_flag(sk, SOCK_RCVTSTAMPNS);
- 		sock_set_flag(sk, SOCK_RCVTSTAMP);
- 		break;
- 	case SO_TIMESTAMPNS_OLD:
-+	case SO_TIMESTAMPNS_NEW:
- 		sock_reset_flag(sk, SOCK_RCVTSTAMP);
- 		sock_set_flag(sk, SOCK_RCVTSTAMPNS);
- 		break;
-@@ -837,7 +845,9 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 		break;
- 
- 	case SO_TIMESTAMP_OLD:
-+	case SO_TIMESTAMP_NEW:
- 	case SO_TIMESTAMPNS_OLD:
-+	case SO_TIMESTAMPNS_NEW:
- 		setsockopt_timestamp(sk, optname, valbool);
- 		break;
- 
-@@ -1202,6 +1212,14 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		v.val = sock_flag(sk, SOCK_RCVTSTAMPNS);
- 		break;
- 
-+	case SO_TIMESTAMP_NEW:
-+		v.val = sock_flag(sk, SOCK_RCVTSTAMP) && sock_flag(sk, SOCK_TSTAMP_NEW);
-+		break;
-+
-+	case SO_TIMESTAMPNS_NEW:
-+		v.val = sock_flag(sk, SOCK_RCVTSTAMPNS) && sock_flag(sk, SOCK_TSTAMP_NEW);
-+		break;
-+
- 	case SO_TIMESTAMPING_OLD:
- 		v.val = sk->sk_tsflags;
- 		break;
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 805d9965a210..b470f470343a 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -1860,30 +1860,57 @@ static void tcp_update_recv_tstamps(struct sk_buff *skb,
- 		tss->ts[2] = (struct timespec) {0};
- }
- 
--/* Similar to __sock_recv_timestamp, but does not require an skb */
--static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
--			       struct scm_timestamping *tss)
-+static void tcp_recv_sw_timestamp(struct msghdr *msg, const struct sock *sk, struct timespec64 *ts)
- {
--	struct __kernel_old_timeval tv;
--	bool has_timestamping = false;
-+	int new_tstamp = sock_flag(sk, SOCK_TSTAMP_NEW);
- 
--	if (tss->ts[0].tv_sec || tss->ts[0].tv_nsec) {
-+	if (ts->tv_sec || ts->tv_nsec) {
- 		if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
--			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
--				 sizeof(tss->ts[0]), &tss->ts[0]);
-+			if (new_tstamp) {
-+				struct __kernel_timespec kts = {ts->tv_sec, ts->tv_nsec};
-+
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_NEW,
-+					 sizeof(kts), &kts);
-+			} else {
-+				struct timespec ts_old = timespec64_to_timespec(*ts);
-+
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
-+					 sizeof(ts), &ts_old);
-+			}
- 		} else if (sock_flag(sk, SOCK_RCVTSTAMP)) {
--			tv.tv_sec = tss->ts[0].tv_sec;
--			tv.tv_usec = tss->ts[0].tv_nsec / 1000;
-+			if (new_tstamp) {
-+				struct sock_timeval stv;
- 
--			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
--				 sizeof(tv), &tv);
--		}
-+				stv.tv_sec = ts->tv_sec;
-+				stv.tv_usec = ts->tv_nsec / 1000;
- 
--		if (sk->sk_tsflags & SOF_TIMESTAMPING_SOFTWARE)
--			has_timestamping = true;
--		else
--			tss->ts[0] = (struct timespec) {0};
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_NEW,
-+					 sizeof(stv), &stv);
-+			} else {
-+				struct __kernel_old_timeval tv;
-+
-+				tv.tv_sec = ts->tv_sec;
-+				tv.tv_usec = ts->tv_nsec / 1000;
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_NEW,
-+					 sizeof(tv), &tv);
-+			}
-+		}
- 	}
-+}
-+
-+/* Similar to __sock_recv_timestamp, but does not require an skb */
-+static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
-+			       struct scm_timestamping *tss)
-+{
-+	bool has_timestamping = false;
-+	struct timespec64 ts = timespec_to_timespec64(tss->ts[0]);
-+
-+	tcp_recv_sw_timestamp(msg, sk, &ts);
-+
-+	if (sk->sk_tsflags & SOF_TIMESTAMPING_SOFTWARE)
-+		has_timestamping = true;
-+	else
-+		tss->ts[0] = (struct timespec) {0};
- 
- 	if (tss->ts[2].tv_sec || tss->ts[2].tv_nsec) {
- 		if (sk->sk_tsflags & SOF_TIMESTAMPING_RAW_HARDWARE)
-diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-index eeb4639adbe5..65571a6273c3 100644
---- a/net/rds/af_rds.c
-+++ b/net/rds/af_rds.c
-@@ -348,7 +348,7 @@ static int rds_set_transport(struct rds_sock *rs, char __user *optval,
- }
- 
- static int rds_enable_recvtstamp(struct sock *sk, char __user *optval,
--				 int optlen)
-+				 int optlen, int optname)
- {
- 	int val, valbool;
- 
-@@ -360,6 +360,9 @@ static int rds_enable_recvtstamp(struct sock *sk, char __user *optval,
- 
- 	valbool = val ? 1 : 0;
- 
-+	if (optname == SO_TIMESTAMP_NEW)
-+		sock_set_flag(sk, SOCK_TSTAMP_NEW);
-+
- 	if (valbool)
- 		sock_set_flag(sk, SOCK_RCVTSTAMP);
- 	else
-@@ -431,8 +434,9 @@ static int rds_setsockopt(struct socket *sock, int level, int optname,
- 		release_sock(sock->sk);
- 		break;
- 	case SO_TIMESTAMP_OLD:
-+	case SO_TIMESTAMP_NEW:
- 		lock_sock(sock->sk);
--		ret = rds_enable_recvtstamp(sock->sk, optval, optlen);
-+		ret = rds_enable_recvtstamp(sock->sk, optval, optlen, optname);
- 		release_sock(sock->sk);
- 		break;
- 	case SO_RDS_MSG_RXPATH_LATENCY:
-diff --git a/net/rds/recv.c b/net/rds/recv.c
-index 435bf2320cd3..4c3fd56dc4ca 100644
---- a/net/rds/recv.c
-+++ b/net/rds/recv.c
-@@ -550,8 +550,20 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
- 	if ((inc->i_rx_tstamp != 0) &&
- 	    sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP)) {
- 		struct __kernel_old_timeval tv = ns_to_kernel_old_timeval(inc->i_rx_tstamp);
--		ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
--			       sizeof(tv), &tv);
-+
-+		if (!sock_flag(rds_rs_to_sk(rs), SOCK_TSTAMP_NEW)) {
-+			ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
-+				       sizeof(tv), &tv);
-+		} else {
-+			struct sock_timeval sk_tv;
-+
-+			sk_tv.tv_sec = tv.tv_sec;
-+			sk_tv.tv_usec = tv.tv_usec;
-+
-+			ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_NEW,
-+				       sizeof(sk_tv), &sk_tv);
-+		}
-+
- 		if (ret)
- 			goto out;
- 	}
-diff --git a/net/socket.c b/net/socket.c
-index d3defba55547..9abeb6bc9cfe 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -699,6 +699,38 @@ static void put_ts_pktinfo(struct msghdr *msg, struct sk_buff *skb)
- 		 sizeof(ts_pktinfo), &ts_pktinfo);
- }
- 
-+static void sock_recv_sw_timestamp(struct msghdr *msg, struct sock *sk,
-+				   struct sk_buff *skb)
-+{
-+	if (sock_flag(sk, SOCK_TSTAMP_NEW)) {
-+		if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-+			struct sock_timeval tv;
-+
-+			skb_get_new_timestamp(skb, &tv);
-+			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_NEW,
-+				 sizeof(tv), &tv);
-+		} else {
-+			struct __kernel_timespec ts;
-+
-+			skb_get_new_timestampns(skb, &ts);
-+			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_NEW,
-+				 sizeof(ts), &ts);
-+		}
-+	}
-+	if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-+		struct __kernel_old_timeval tv;
-+
-+		skb_get_timestamp(skb, &tv);
-+		put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
-+			 sizeof(tv), &tv);
-+	} else {
-+		struct timespec ts;
-+
-+		skb_get_timestampns(skb, &ts);
-+		put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
-+			 sizeof(ts), &ts);
-+	}
-+}
- /*
-  * called from sock_recv_timestamp() if sock_flag(sk, SOCK_RCVTSTAMP)
-  * or sock_flag(sk, SOCK_RCVTSTAMPNS)
-@@ -719,19 +751,8 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
- 		false_tstamp = 1;
- 	}
- 
--	if (need_software_tstamp) {
--		if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
--			struct __kernel_old_timeval tv;
--			skb_get_timestamp(skb, &tv);
--			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
--				 sizeof(tv), &tv);
--		} else {
--			struct timespec ts;
--			skb_get_timestampns(skb, &ts);
--			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
--				 sizeof(ts), &ts);
--		}
--	}
-+	if (need_software_tstamp)
-+		sock_recv_sw_timestamp(msg, sk, skb);
- 
- 	memset(&tss, 0, sizeof(tss));
- 	if ((sk->sk_tsflags & SOF_TIMESTAMPING_SOFTWARE) &&
+This is not the way that you can use mdev. To use mdev, you have to:
+
+1. unbind kernel driver from the device, and rebind it to vfio driver
+2. for 0 to 1204: uuid > /sys/.../the_dev/mdev/create to create all the mdev
+3. a virtual iommu_group will be created in /dev/vfio/* from every mdev
+
+now you can do this in you application (even without considering the pasid) :
+
+	container = open(/dev/vfio);
+	ioctl(container, settting);
+	group = open(/dev/vfio/my_group_for_particular_mdev);
+	ioctl(container, attach_group, group);
+	device = ioctl(group, get_device);
+	mmap(device);
+	ioctl(container, set_dma_operation);
+
+Then you have to make a decision, how can you find a available mdev for use and
+how to return it.
+
+We have considered creating only one mdev and allocating queue when the device
+is openned. But the VFIO maintainer, Alex, did not agree and said it broke the
+VFIO origin idea.
+
+-Kenneth
+> 
+> Presumably the kernel has to handle the PASID and related for security
+> reasons, so they shouldn't go to userspace?
+> 
+> If there is something missing in vfio to do this is it looks pretty
+> small to me..
+> 
+> Jason
+
 -- 
-2.17.1
+			-Kenneth(Hisilicon)
+
+================================================================================
+本邮件及其附件含有华为公司的保密信息，仅限于发送给上面地址中列出的个人或群组。禁
+止任何其他人以任何形式使用（包括但不限于全部或部分地泄露、复制、或散发）本邮件中
+的信息。如果您错收了本邮件，请您立即电话或邮件通知发件人并删除本邮件！
+This e-mail and its attachments contain confidential information from HUAWEI,
+which is intended only for the person or entity whose address is listed above.
+Any use of the 
+information contained herein in any way (including, but not limited to, total or
+partial disclosure, reproduction, or dissemination) by persons other than the
+intended 
+recipient(s) is prohibited. If you receive this e-mail in error, please notify
+the sender by phone or email immediately and delete it!
