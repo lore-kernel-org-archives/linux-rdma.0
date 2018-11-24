@@ -1,159 +1,59 @@
-From: Kenneth Lee <liguozhu@hisilicon.com>
-Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-Date: Sat, 24 Nov 2018 12:13:21 +0800
-Message-ID: <20181124041321.GL157308@Turing-Arch-b>
-References: <20181115085109.GD157308@Turing-Arch-b>
- <20181115145455.GN3759@mtr-leonro.mtl.com>
- <20181119091405.GE157308@Turing-Arch-b>
- <20181119184954.GB4890@ziepe.ca>
- <20181120030702.GH157308@Turing-Arch-b>
- <20181120032939.GR4890@ziepe.ca>
- <20181121060805.GJ157308@Turing-Arch-b>
- <20181122025840.GB19938@ziepe.ca>
- <20181123080242.GK157308@Turing-Arch-b>
- <20181123180504.GA3395@ziepe.ca>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
+Date: Sat, 24 Nov 2018 16:43:15 +0530
+Message-ID: <8e16e9d1-8f64-d2ca-7d06-985ce601f75b@arm.com>
+References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+ <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181123180504.GA3395@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>, Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com, haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>, Doug Ledford <dledford@redhat.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, David Kershner <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia <sdharia>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, jiangqi903@gmail.com, hverkuil@xs4all.nl
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 23, 2018 at 11:05:04AM -0700, Jason Gunthorpe wrote:
-> Date: Fri, 23 Nov 2018 11:05:04 -0700
-> From: Jason Gunthorpe <jgg@ziepe.ca>
-> To: Kenneth Lee <liguozhu@hisilicon.com>
-> CC: Leon Romanovsky <leon@kernel.org>, Kenneth Lee <nek.in.cn@gmail.com>,
->  Tim Sell <timothy.sell@unisys.com>, linux-doc@vger.kernel.org, Alexander
->  Shishkin <alexander.shishkin@linux.intel.com>, Zaibo Xu
->  <xuzaibo@huawei.com>, zhangfei.gao@foxmail.com, linuxarm@huawei.com,
->  haojian.zhuang@linaro.org, Christoph Lameter <cl@linux.com>, Hao Fang
->  <fanghao11@huawei.com>, Gavin Schenk <g.schenk@eckelmann.de>, RDMA mailing
->  list <linux-rdma@vger.kernel.org>, Zhou Wang <wangzhou1@hisilicon.com>,
->  Doug Ledford <dledford@redhat.com>, Uwe Kleine-König
->  <u.kleine-koenig@pengutronix.de>, David Kershner
->  <david.kershner@unisys.com>, Johan Hovold <johan@kernel.org>, Cyrille
->  Pitchen <cyrille.pitchen@free-electrons.com>, Sagar Dharia
->  <sdharia@codeaurora.org>, Jens Axboe <axboe@kernel.dk>,
->  guodong.xu@linaro.org, linux-netdev <netdev@vger.kernel.org>, Randy Dunlap
->  <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, Vinod Koul
->  <vkoul@kernel.org>, linux-crypto@vger.kernel.org, Philippe Ombredanne
->  <pombredanne@nexb.com>, Sanyog Kale <sanyog.r.kale@intel.com>, "David S.
->  Miller" <davem@davemloft.net>, linux-accelerators@lists.ozlabs.org
-> Subject: Re: [RFCv3 PATCH 1/6] uacce: Add documents for WarpDrive/uacce
-> User-Agent: Mutt/1.9.4 (2018-02-28)
-> Message-ID: <20181123180504.GA3395@ziepe.ca>
-> 
-> On Fri, Nov 23, 2018 at 04:02:42PM +0800, Kenneth Lee wrote:
-> 
-> > It is already part of Jean's patchset. And that's why I built my solution on
-> > VFIO in the first place. But I think the concept of SVA and PASID is not
-> > compatible with the original VFIO concept space. You would not share your whole
-> > address space to a device at all in a virtual machine manager,
-> > wouldn't you?
-> 
-> Why not? That seems to fit VFIO's space just fine to me.. You might
-> need a new upcall to create a full MM registration, but that doesn't
-> seem unsuited.
 
-Because the VM manager (such as qemu) do not want to share its whole space to
-the device. It is a security problem.
 
+On 11/24/2018 05:14 AM, Andrew Morton wrote:
+> On Fri, 23 Nov 2018 15:24:16 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
 > 
-> Part of the point here is you should try to make sensible revisions to
-> existing subsystems before just inventing a new thing...
+>> At present there are multiple places where invalid node number is encoded
+>> as -1. Even though implicitly understood it is always better to have macros
+>> in there. Replace these open encodings for an invalid node number with the
+>> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
+>> 'invalid node' from various places redirecting them to a common definition.
+>>
+>> ...
+>>
+>> Build tested this with multiple cross compiler options like alpha, sparc,
+>> arm64, x86, powerpc, powerpc64le etc with their default config which might
+>> not have compiled tested all driver related changes. I will appreciate
+>> folks giving this a test in their respective build environment.
+>>
+>> All these places for replacement were found by running the following grep
+>> patterns on the entire kernel code. Please let me know if this might have
+>> missed some instances. This might also have replaced some false positives.
+>> I will appreciate suggestions, inputs and review.
+>>
+>> 1. git grep "nid == -1"
+>> 2. git grep "node == -1"
+>> 3. git grep "nid = -1"
+>> 4. git grep "node = -1"
 > 
-> VFIO is deeply connected to the IOMMU, so enabling more general IOMMU
-> based approache seems perfectly fine to me..
+> The build testing is good, but I worry that some of the affected files
+> don't clearly have numa.h in their include paths, for the NUMA_NO_NODE
+> definition.
 > 
-> > > Once the VFIO driver knows about this as a generic capability then the
-> > > device it exposes to userspace would use CPU addresses instead of DMA
-> > > addresses.
-> > > 
-> > > The question is if your driver needs much more than the device
-> > > agnostic generic services VFIO provides.
-> > > 
-> > > I'm not sure what you have in mind with resource management.. It is
-> > > hard to revoke resources from userspace, unless you are doing
-> > > kernel syscalls, but then why do all this?
-> > 
-> > Say, I have 1024 queues in my accelerator. I can get one by opening the device
-> > and attach it with the fd. If the process exit by any means, the queue can be
-> > returned with the release of the fd. But if it is mdev, it will still be there
-> > and some one should tell the allocator it is available again. This is not easy
-> > to design in user space.
+> The first thing I looked it is arch/powerpc/include/asm/pci-bridge.h. 
+> Maybe it somehow manages to include numa.h via some nested include, but
+> if so, is that reliable across all config combinations and as code
+> evolves?
 > 
-> ?? why wouldn't the mdev track the queues assigned using the existing
-> open/close/ioctl callbacks?
-> 
-> That is basic flow I would expect:
-> 
->  open(/dev/vfio)
->  ioctl(unity map entire process MM to mdev with IOMMU)
-> 
->  // Create a HQ queue and link the PASID in the HW to this HW queue
->  struct hw queue[..];
->  ioctl(create HW queue)
-> 
->  // Get BAR doorbell memory for the queue
->  bar = mmap()
-> 
->  // Submit work to the queue using CPU addresses
->  queue[0] = ...
->  writel(bar [..], &queue);
-> 
->  // Queue, SVA, etc is cleaned up when the VFIO closes
->  close()
+> So I think that the patch should have added an explicit include of
+> numa.h, especially in cases where the affected file previously had no
+> references to any of the things which numa.h defines.
 
-This is not the way that you can use mdev. To use mdev, you have to:
-
-1. unbind kernel driver from the device, and rebind it to vfio driver
-2. for 0 to 1204: uuid > /sys/.../the_dev/mdev/create to create all the mdev
-3. a virtual iommu_group will be created in /dev/vfio/* from every mdev
-
-now you can do this in you application (even without considering the pasid) :
-
-	container = open(/dev/vfio);
-	ioctl(container, settting);
-	group = open(/dev/vfio/my_group_for_particular_mdev);
-	ioctl(container, attach_group, group);
-	device = ioctl(group, get_device);
-	mmap(device);
-	ioctl(container, set_dma_operation);
-
-Then you have to make a decision, how can you find a available mdev for use and
-how to return it.
-
-We have considered creating only one mdev and allocating queue when the device
-is openned. But the VFIO maintainer, Alex, did not agree and said it broke the
-VFIO origin idea.
-
--Kenneth
-> 
-> Presumably the kernel has to handle the PASID and related for security
-> reasons, so they shouldn't go to userspace?
-> 
-> If there is something missing in vfio to do this is it looks pretty
-> small to me..
-> 
-> Jason
-
--- 
-			-Kenneth(Hisilicon)
-
-================================================================================
-本邮件及其附件含有华为公司的保密信息，仅限于发送给上面地址中列出的个人或群组。禁
-止任何其他人以任何形式使用（包括但不限于全部或部分地泄露、复制、或散发）本邮件中
-的信息。如果您错收了本邮件，请您立即电话或邮件通知发件人并删除本邮件！
-This e-mail and its attachments contain confidential information from HUAWEI,
-which is intended only for the person or entity whose address is listed above.
-Any use of the 
-information contained herein in any way (including, but not limited to, total or
-partial disclosure, reproduction, or dissemination) by persons other than the
-intended 
-recipient(s) is prohibited. If you receive this e-mail in error, please notify
-the sender by phone or email immediately and delete it!
+Fair enough. Will include numa.h in those particular files.
