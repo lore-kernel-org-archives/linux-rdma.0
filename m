@@ -1,15 +1,15 @@
 From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
-Date: Sat, 24 Nov 2018 21:01:19 +0800
-Message-ID: <5BF94B9F.5030409@huawei.com>
+Subject: Re: [PATCH rdma-next 0/3] RDMA/hns: Updates for reset process of roce
+ device in hip08
+Date: Sat, 24 Nov 2018 21:14:58 +0800
+Message-ID: <5BF94ED2.7070701@huawei.com>
 References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
- <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
- <20181123203958.GJ3395@ziepe.ca>
+ <20181123204256.GK3395@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181123203958.GJ3395@ziepe.ca>
+In-Reply-To: <20181123204256.GK3395@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
@@ -17,60 +17,38 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 2018/11/24 4:39, Jason Gunthorpe wrote:
-> On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
->> This patch modifies the name of hns RoCE device's name in order
->> to ensure that the name is consistent before and after reset.
+On 2018/11/24 4:42, Jason Gunthorpe wrote:
+> On Fri, Nov 23, 2018 at 11:14:22PM +0800, Wei Hu (Xavier) wrote:
+>> Hi, Doug and Janson
 >>
->> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
->>  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
->>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
->>  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
->>  3 files changed, 7 insertions(+), 1 deletion(-)
+>> This series mainly include updates for reset process of roce device
+>> in hip08.
+>> One patch adds support for reset and loading or unloading driver occur
+>> simultaneously to ensure work normally, one stops sending mailbox&cmq&
+>> doorbell when reset occured or reset is occuring, the last one modifies
+>> the name of hns RoCE device's name in order to ensure that the name is
+>> consistent before and after reset.
 >>
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
->> index 259977b..a8cfe76 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
->> @@ -954,6 +954,7 @@ struct hns_roce_dev {
->>  	struct pci_dev		*pci_dev;
->>  	struct device		*dev;
->>  	struct hns_roce_uar     priv_uar;
->> +	char			name[IB_DEVICE_NAME_MAX];
->>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
->>  	spinlock_t		sm_lock;
->>  	spinlock_t		bt_cmd_lock;
->> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> index 1d639a0..678c7ec 100644
->> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
->> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
->>  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
->>  						i + handle->rinfo.base_vector);
->>  
->> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
->> +		 handle->rinfo.netdev->name);
-> Why is this making up its own driver name? How is this avoiding
-> colliding with an existing name?
+>> This series relies on the the new interfaces in hns NIC driver those
+>> had been accepted by David, the related commit as below:
+>> https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git 
+>> commit cb7ea80c6dfda472a068d40f4f9755d034b2dfde
+> Then you can't send patches to RDMA until the next cycle. Please
+> reasend after v4.21-rc1 is out.
 >
-> This is very dangerous since we now have device renaming, the driver
-> could fail to load with no recovery.
+> We can only coordinate with Dave's tree if you are able to setup a
+> shared branch like Mellanox does.
+>
+> Also, I don't even see cb7ea80c6dfda472a068d40f4f9755d034b2dfde in
+> that tree???
 Hi, Jason
-       
-    The NIC driver notifies the RoCE driver to perform reset related
-processing by calling the .reset_notify() interface registered by the
-RoCE driver. If the RoCE reset processing fails, .reset_notify()
-returns non-zero, and then hns NIC driver will reschedule the
-reset task again.
-   
-    The current hardware version in hip08 SoC cannot support
-after reset process the application still communicates with the
-resources like QP requested before reset. In RoCE reset process,
-we will release the resources through ib_unregister_device, after
-the hardware reset is completed, driver will re-execute
-ib_register_device.
-   
-    Currently, we find that the ib_device's name after reset
-and the one before reset may be different. We can specify the
-device name to solve this problem.
+
+    Sorry, this is my mistake.
+    The dependent patch of hns NIC driver as below:
+    https://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next.git
+    commit    4d60291b6b53afd246a57817fdae0c61a4655182
+
+    We will try to setup the branch, Thanks.
 
     Best Regards
 Xavier
