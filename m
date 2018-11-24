@@ -1,59 +1,80 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
-Date: Sat, 24 Nov 2018 16:43:15 +0530
-Message-ID: <8e16e9d1-8f64-d2ca-7d06-985ce601f75b@arm.com>
-References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
- <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
+Date: Sat, 24 Nov 2018 21:01:19 +0800
+Message-ID: <5BF94B9F.5030409@huawei.com>
+References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
+ <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
+ <20181123203958.GJ3395@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181123154415.42898a42e28a31488749738a@linux-foundation.org>
-Content-Language: en-US
+In-Reply-To: <20181123203958.GJ3395@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, jiangqi903@gmail.com, hverkuil@xs4all.nl
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 11/24/2018 05:14 AM, Andrew Morton wrote:
-> On Fri, 23 Nov 2018 15:24:16 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
-> 
->> At present there are multiple places where invalid node number is encoded
->> as -1. Even though implicitly understood it is always better to have macros
->> in there. Replace these open encodings for an invalid node number with the
->> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
->> 'invalid node' from various places redirecting them to a common definition.
+On 2018/11/24 4:39, Jason Gunthorpe wrote:
+> On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
+>> This patch modifies the name of hns RoCE device's name in order
+>> to ensure that the name is consistent before and after reset.
 >>
->> ...
+>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
+>>  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
+>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
+>>  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
+>>  3 files changed, 7 insertions(+), 1 deletion(-)
 >>
->> Build tested this with multiple cross compiler options like alpha, sparc,
->> arm64, x86, powerpc, powerpc64le etc with their default config which might
->> not have compiled tested all driver related changes. I will appreciate
->> folks giving this a test in their respective build environment.
->>
->> All these places for replacement were found by running the following grep
->> patterns on the entire kernel code. Please let me know if this might have
->> missed some instances. This might also have replaced some false positives.
->> I will appreciate suggestions, inputs and review.
->>
->> 1. git grep "nid == -1"
->> 2. git grep "node == -1"
->> 3. git grep "nid = -1"
->> 4. git grep "node = -1"
-> 
-> The build testing is good, but I worry that some of the affected files
-> don't clearly have numa.h in their include paths, for the NUMA_NO_NODE
-> definition.
-> 
-> The first thing I looked it is arch/powerpc/include/asm/pci-bridge.h. 
-> Maybe it somehow manages to include numa.h via some nested include, but
-> if so, is that reliable across all config combinations and as code
-> evolves?
-> 
-> So I think that the patch should have added an explicit include of
-> numa.h, especially in cases where the affected file previously had no
-> references to any of the things which numa.h defines.
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> index 259977b..a8cfe76 100644
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
+>> @@ -954,6 +954,7 @@ struct hns_roce_dev {
+>>  	struct pci_dev		*pci_dev;
+>>  	struct device		*dev;
+>>  	struct hns_roce_uar     priv_uar;
+>> +	char			name[IB_DEVICE_NAME_MAX];
+>>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
+>>  	spinlock_t		sm_lock;
+>>  	spinlock_t		bt_cmd_lock;
+>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>> index 1d639a0..678c7ec 100644
+>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+>> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
+>>  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
+>>  						i + handle->rinfo.base_vector);
+>>  
+>> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
+>> +		 handle->rinfo.netdev->name);
+> Why is this making up its own driver name? How is this avoiding
+> colliding with an existing name?
+>
+> This is very dangerous since we now have device renaming, the driver
+> could fail to load with no recovery.
+Hi, Jason
+       
+    The NIC driver notifies the RoCE driver to perform reset related
+processing by calling the .reset_notify() interface registered by the
+RoCE driver. If the RoCE reset processing fails, .reset_notify()
+returns non-zero, and then hns NIC driver will reschedule the
+reset task again.
+   
+    The current hardware version in hip08 SoC cannot support
+after reset process the application still communicates with the
+resources like QP requested before reset. In RoCE reset process,
+we will release the resources through ib_unregister_device, after
+the hardware reset is completed, driver will re-execute
+ib_register_device.
+   
+    Currently, we find that the ib_device's name after reset
+and the one before reset may be different. We can specify the
+device name to solve this problem.
 
-Fair enough. Will include numa.h in those particular files.
+    Best Regards
+Xavier
+> Jason
+>
+> .
+>
