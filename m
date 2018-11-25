@@ -1,53 +1,101 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Sun, 25 Nov 2018 09:38:41 -0500
-Message-ID: <CAF=yD-+ZiBR+VFzDnKOKPBCuNF_wbAe6goNO8KXYQH105Sg=0g@mail.gmail.com>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-8-deepa.kernel@gmail.com> <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
- <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
- <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com> <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
+From: Eric Dumazet <edumazet@google.com>
+Subject: [PATCH net-next] net: remove unsafe skb_insert()
+Date: Sun, 25 Nov 2018 08:26:23 -0800
+Message-ID: <20181125162623.127762-1-edumazet@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S . Miller" <davem@davemloft.net>
+Cc: netdev <netdev@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, Eric Dumazet <eric.dumazet@gmail.com>, Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > > > Same for the tcp case above, really, and in the case of the next patch
-> > > > for SO_TIMESTAMPING_NEW
-> > >
-> > > That naming convention, ..._2038, is not the nicest, of course. That
-> > > is not the relevant bit in the above comment.
->
-> it could be  __sock_recv_timestamp64().
-> But, these timestamps should be doing exactly the same thing as the
-> old ones and I thought it would be nicer to keep the same code path.
-> I can change it to as per above.
+I do not see how one can effectively use skb_insert() without holding
+some kind of lock. Otherwise other cpus could have changed the list
+right before we have a chance of acquiring list->lock.
 
-Please minimize code changes. It breaks git blame and longer patches
-are harder to review.
+Only existing user is in drivers/infiniband/hw/nes/nes_mgt.c and this
+one probably meant to use __skb_insert() since it appears nesqp->pau_list
+is protected by nesqp->pau_lock. This looks like nesqp->pau_lock
+could be removed, since nesqp->pau_list.lock could be used instead.
 
-In this specific case, from a readability point of view, I find new functions
-that map one-to-one onto the new interfaces also more readable than
-deeper nested branches in place.
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Faisal Latif <faisal.latif@intel.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>
+---
+ drivers/infiniband/hw/nes/nes_mgt.c |  4 ++--
+ include/linux/skbuff.h              |  2 --
+ net/core/skbuff.c                   | 22 ----------------------
+ 3 files changed, 2 insertions(+), 26 deletions(-)
 
-> > So we introduce new y2038 safe timestamp options for 32 bit ABIs. We
-> > assume that 32 bit applications will switch to new ABIs at some point,
-> > but leave the older timestamps as is.
-> > I can update the commit text as per above.
->
-> We have been avoiding adding timeval64 timestamps to discourage users
-> from using these types in the interfaces.
-> We want to keep all the uapi time interfaces to use __kernel_*
-> interfaces. And, we already provide __kernel_timespec interface for
-> such instances.
-> But, in this case we do not have an option. So we introduce a type
-> specific to sockets.
-
-This structure just holds a timestamp. It does not seem socket specific.
-I don't mean to bikeshed the naming point too much, but timeval_ll or
-so may be more representative than tying it to a socket.
-
-As for the general naming, xxx64 or xxx2038 are more descriptive than xxx_NEW.
+diff --git a/drivers/infiniband/hw/nes/nes_mgt.c b/drivers/infiniband/hw/nes/nes_mgt.c
+index fc0c191014e908eea32d752f3499295ef143aa0a..abb54d30d35dd53fa983ee437506933eeba72746 100644
+--- a/drivers/infiniband/hw/nes/nes_mgt.c
++++ b/drivers/infiniband/hw/nes/nes_mgt.c
+@@ -551,14 +551,14 @@ static void queue_fpdus(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
+ 
+ 	/* Queue skb by sequence number */
+ 	if (skb_queue_len(&nesqp->pau_list) == 0) {
+-		skb_queue_head(&nesqp->pau_list, skb);
++		__skb_queue_head(&nesqp->pau_list, skb);
+ 	} else {
+ 		skb_queue_walk(&nesqp->pau_list, tmpskb) {
+ 			cb = (struct nes_rskb_cb *)&tmpskb->cb[0];
+ 			if (before(seqnum, cb->seqnum))
+ 				break;
+ 		}
+-		skb_insert(tmpskb, skb, &nesqp->pau_list);
++		__skb_insert(tmpskb, skb, &nesqp->pau_list);
+ 	}
+ 	if (nesqp->pau_state == PAU_READY)
+ 		process_it = true;
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index f17a7452ac7bf47ef4bcf89840bba165cee6f50a..73902acf2b71c8800d81b744a936a7420f33b459 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -1749,8 +1749,6 @@ static inline void skb_queue_head_init_class(struct sk_buff_head *list,
+  *	The "__skb_xxxx()" functions are the non-atomic ones that
+  *	can only be called with interrupts disabled.
+  */
+-void skb_insert(struct sk_buff *old, struct sk_buff *newsk,
+-		struct sk_buff_head *list);
+ static inline void __skb_insert(struct sk_buff *newsk,
+ 				struct sk_buff *prev, struct sk_buff *next,
+ 				struct sk_buff_head *list)
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 9a8a72cefe9b94d3821b9cc5ba5bba647ae51267..02cd7ae3d0fb26ef0a8b006390154fdefd0d292f 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -2990,28 +2990,6 @@ void skb_append(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_head
+ }
+ EXPORT_SYMBOL(skb_append);
+ 
+-/**
+- *	skb_insert	-	insert a buffer
+- *	@old: buffer to insert before
+- *	@newsk: buffer to insert
+- *	@list: list to use
+- *
+- *	Place a packet before a given packet in a list. The list locks are
+- * 	taken and this function is atomic with respect to other list locked
+- *	calls.
+- *
+- *	A buffer cannot be placed on two lists at the same time.
+- */
+-void skb_insert(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_head *list)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&list->lock, flags);
+-	__skb_insert(newsk, old->prev, old, list);
+-	spin_unlock_irqrestore(&list->lock, flags);
+-}
+-EXPORT_SYMBOL(skb_insert);
+-
+ static inline void skb_split_inside_header(struct sk_buff *skb,
+ 					   struct sk_buff* skb1,
+ 					   const u32 len, const int pos)
+-- 
+2.20.0.rc0.387.gc7a69e6b6c-goog
