@@ -1,154 +1,121 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
 Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Sat, 24 Nov 2018 22:59:54 -0500
-Message-ID: <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com> <20181124022035.17519-8-deepa.kernel@gmail.com>
+Date: Sat, 24 Nov 2018 23:17:25 -0500
+Message-ID: <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
+References: <20181124022035.17519-1-deepa.kernel@gmail.com>
+ <20181124022035.17519-8-deepa.kernel@gmail.com>
+ <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181124022035.17519-8-deepa.kernel@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <y2038-bounces@lists.linaro.org>
+In-Reply-To: <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
+List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/y2038/>
+List-Post: <mailto:y2038@lists.linaro.org>
+List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
+List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=subscribe>
+Errors-To: y2038-bounces@lists.linaro.org
+Sender: "Y2038" <y2038-bounces@lists.linaro.org>
 To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ralf@linux-mips.org, jejb@parisc-linux.org, linux-rdma@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, rth@twiddle.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> Add SO_TIMESTAMP_NEW and SO_TIMESTAMPNS_NEW variants of
-> socket timestamp options.
-> These are the y2038 safe versions of the SO_TIMESTAMP_OLD
-> and SO_TIMESTAMPNS_OLD for all architectures.
->
-> Note that the format of scm_timestamping.ts[0] is not changed
-> in this patch.
->
-> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> Cc: jejb@parisc-linux.org
-> Cc: ralf@linux-mips.org
-> Cc: rth@twiddle.net
-> Cc: linux-alpha@vger.kernel.org
-> Cc: linux-mips@linux-mips.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> ---
-
-> diff --git a/include/net/sock.h b/include/net/sock.h
-> index 8143c4c1a49d..9edf909dc176 100644
-> --- a/include/net/sock.h
-> +++ b/include/net/sock.h
-> @@ -801,6 +801,7 @@ enum sock_flags {
->         SOCK_RCU_FREE, /* wait rcu grace period in sk_destruct() */
->         SOCK_TXTIME,
->         SOCK_XDP, /* XDP is attached */
-> +       SOCK_TSTAMP_NEW, /* Indicates 64 bit timestamps always */
-
-sk_flags is getting exhausted. Commit b9f40e21ef42 ("net-timestamp:
-move timestamp flags out of sk_flags") added a new u16 sk_tsflags
-specifically for timestamps. That may be a better choice here, too.
-
-> diff --git a/net/core/sock.c b/net/core/sock.c
-> index e60036618205..7b485dfaa400 100644
-> --- a/net/core/sock.c
-> +++ b/net/core/sock.c
-> @@ -652,15 +652,23 @@ static void setsockopt_timestamp(struct sock *sk, int type, int val)
->         if (!val) {
->                 sock_reset_flag(sk, SOCK_RCVTSTAMP);
->                 sock_reset_flag(sk, SOCK_RCVTSTAMPNS);
-> +               sock_reset_flag(sk, SOCK_TSTAMP_NEW);
->                 return;
->         }
->
-> +       if (type == SO_TIMESTAMP_NEW || type == SO_TIMESTAMPNS_NEW)
-> +               sock_set_flag(sk, SOCK_TSTAMP_NEW);
-> +       else
-> +               sock_reset_flag(sk, SOCK_TSTAMP_NEW);
-> +
-
-if adding a boolean whether the socket uses new or old-style
-timestamps, perhaps fail hard if a process tries to set a new-style
-option while an old-style is already set and vice versa. Also include
-SO_TIMESTAMPING_NEW as it toggles the same option.
-
-> diff --git a/net/socket.c b/net/socket.c
-> index d3defba55547..9abeb6bc9cfe 100644
-> --- a/net/socket.c
-> +++ b/net/socket.c
-> @@ -699,6 +699,38 @@ static void put_ts_pktinfo(struct msghdr *msg, struct sk_buff *skb)
->                  sizeof(ts_pktinfo), &ts_pktinfo);
->  }
->
-> +static void sock_recv_sw_timestamp(struct msghdr *msg, struct sock *sk,
-> +                                  struct sk_buff *skb)
-> +{
-> +       if (sock_flag(sk, SOCK_TSTAMP_NEW)) {
-> +               if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> +                       struct sock_timeval tv;
-> +
-> +                       skb_get_new_timestamp(skb, &tv);
-> +                       put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_NEW,
-> +                                sizeof(tv), &tv);
-> +               } else {
-> +                       struct __kernel_timespec ts;
-> +
-> +                       skb_get_new_timestampns(skb, &ts);
-> +                       put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_NEW,
-> +                                sizeof(ts), &ts);
-> +               }
-> +       }
-> +       if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> +               struct __kernel_old_timeval tv;
-> +
-> +               skb_get_timestamp(skb, &tv);
-> +               put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
-> +                        sizeof(tv), &tv);
-> +       } else {
-> +               struct timespec ts;
-> +
-> +               skb_get_timestampns(skb, &ts);
-> +               put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
-> +                        sizeof(ts), &ts);
-> +       }
-> +}
->  /*
->   * called from sock_recv_timestamp() if sock_flag(sk, SOCK_RCVTSTAMP)
->   * or sock_flag(sk, SOCK_RCVTSTAMPNS)
-> @@ -719,19 +751,8 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
->                 false_tstamp = 1;
->         }
-> -       if (need_software_tstamp) {
-
-Considerably less code churn if adding __sock_recv_timestamp_2038 and
-calling that here:
-
-                   if (sock_flag(sk, SOCK_TSTAMP_NEW))
-                           __sock_recv_timestamp_2038(msg, sk, skb);
-                   else if ...
-
-Same for the tcp case above, really, and in the case of the next patch
-for SO_TIMESTAMPING_NEW
-
-
-> -               if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> -                       struct __kernel_old_timeval tv;
-> -                       skb_get_timestamp(skb, &tv);
-> -                       put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
-> -                                sizeof(tv), &tv);
-> -               } else {
-> -                       struct timespec ts;
-> -                       skb_get_timestampns(skb, &ts);
-> -                       put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
-> -                                sizeof(ts), &ts);
-> -               }
-> -       }
-
-
-> +       if (need_software_tstamp)
-> +               sock_recv_sw_timestamp(msg, sk, skb);
->
->         memset(&tss, 0, sizeof(tss));
->         if ((sk->sk_tsflags & SOF_TIMESTAMPING_SOFTWARE) &&
-> --
-> 2.17.1
->
+T24gU2F0LCBOb3YgMjQsIDIwMTggYXQgMTA6NTkgUE0gV2lsbGVtIGRlIEJydWlqbgo8d2lsbGVt
+ZGVicnVpam4ua2VybmVsQGdtYWlsLmNvbT4gd3JvdGU6Cj4KPiBPbiBTYXQsIE5vdiAyNCwgMjAx
+OCBhdCAzOjU4IEFNIERlZXBhIERpbmFtYW5pIDxkZWVwYS5rZXJuZWxAZ21haWwuY29tPiB3cm90
+ZToKPiA+Cj4gPiBBZGQgU09fVElNRVNUQU1QX05FVyBhbmQgU09fVElNRVNUQU1QTlNfTkVXIHZh
+cmlhbnRzIG9mCj4gPiBzb2NrZXQgdGltZXN0YW1wIG9wdGlvbnMuCj4gPiBUaGVzZSBhcmUgdGhl
+IHkyMDM4IHNhZmUgdmVyc2lvbnMgb2YgdGhlIFNPX1RJTUVTVEFNUF9PTEQKPiA+IGFuZCBTT19U
+SU1FU1RBTVBOU19PTEQgZm9yIGFsbCBhcmNoaXRlY3R1cmVzLgo+ID4KPiA+IE5vdGUgdGhhdCB0
+aGUgZm9ybWF0IG9mIHNjbV90aW1lc3RhbXBpbmcudHNbMF0gaXMgbm90IGNoYW5nZWQKPiA+IGlu
+IHRoaXMgcGF0Y2guCj4gPgo+ID4gU2lnbmVkLW9mZi1ieTogRGVlcGEgRGluYW1hbmkgPGRlZXBh
+Lmtlcm5lbEBnbWFpbC5jb20+Cj4gPiBDYzogamVqYkBwYXJpc2MtbGludXgub3JnCj4gPiBDYzog
+cmFsZkBsaW51eC1taXBzLm9yZwo+ID4gQ2M6IHJ0aEB0d2lkZGxlLm5ldAo+ID4gQ2M6IGxpbnV4
+LWFscGhhQHZnZXIua2VybmVsLm9yZwo+ID4gQ2M6IGxpbnV4LW1pcHNAbGludXgtbWlwcy5vcmcK
+PiA+IENjOiBsaW51eC1wYXJpc2NAdmdlci5rZXJuZWwub3JnCj4gPiBDYzogbGludXgtcmRtYUB2
+Z2VyLmtlcm5lbC5vcmcKPiA+IENjOiBuZXRkZXZAdmdlci5rZXJuZWwub3JnCj4gPiBDYzogc3Bh
+cmNsaW51eEB2Z2VyLmtlcm5lbC5vcmcKPiA+IC0tLQo+Cj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVk
+ZS9uZXQvc29jay5oIGIvaW5jbHVkZS9uZXQvc29jay5oCj4gPiBpbmRleCA4MTQzYzRjMWE0OWQu
+LjllZGY5MDlkYzE3NiAxMDA2NDQKPiA+IC0tLSBhL2luY2x1ZGUvbmV0L3NvY2suaAo+ID4gKysr
+IGIvaW5jbHVkZS9uZXQvc29jay5oCj4gPiBAQCAtODAxLDYgKzgwMSw3IEBAIGVudW0gc29ja19m
+bGFncyB7Cj4gPiAgICAgICAgIFNPQ0tfUkNVX0ZSRUUsIC8qIHdhaXQgcmN1IGdyYWNlIHBlcmlv
+ZCBpbiBza19kZXN0cnVjdCgpICovCj4gPiAgICAgICAgIFNPQ0tfVFhUSU1FLAo+ID4gICAgICAg
+ICBTT0NLX1hEUCwgLyogWERQIGlzIGF0dGFjaGVkICovCj4gPiArICAgICAgIFNPQ0tfVFNUQU1Q
+X05FVywgLyogSW5kaWNhdGVzIDY0IGJpdCB0aW1lc3RhbXBzIGFsd2F5cyAqLwo+Cj4gc2tfZmxh
+Z3MgaXMgZ2V0dGluZyBleGhhdXN0ZWQuIENvbW1pdCBiOWY0MGUyMWVmNDIgKCJuZXQtdGltZXN0
+YW1wOgo+IG1vdmUgdGltZXN0YW1wIGZsYWdzIG91dCBvZiBza19mbGFncyIpIGFkZGVkIGEgbmV3
+IHUxNiBza190c2ZsYWdzCj4gc3BlY2lmaWNhbGx5IGZvciB0aW1lc3RhbXBzLiBUaGF0IG1heSBi
+ZSBhIGJldHRlciBjaG9pY2UgaGVyZSwgdG9vLgo+Cj4gPiBkaWZmIC0tZ2l0IGEvbmV0L2NvcmUv
+c29jay5jIGIvbmV0L2NvcmUvc29jay5jCj4gPiBpbmRleCBlNjAwMzY2MTgyMDUuLjdiNDg1ZGZh
+YTQwMCAxMDA2NDQKPiA+IC0tLSBhL25ldC9jb3JlL3NvY2suYwo+ID4gKysrIGIvbmV0L2NvcmUv
+c29jay5jCj4gPiBAQCAtNjUyLDE1ICs2NTIsMjMgQEAgc3RhdGljIHZvaWQgc2V0c29ja29wdF90
+aW1lc3RhbXAoc3RydWN0IHNvY2sgKnNrLCBpbnQgdHlwZSwgaW50IHZhbCkKPiA+ICAgICAgICAg
+aWYgKCF2YWwpIHsKPiA+ICAgICAgICAgICAgICAgICBzb2NrX3Jlc2V0X2ZsYWcoc2ssIFNPQ0tf
+UkNWVFNUQU1QKTsKPiA+ICAgICAgICAgICAgICAgICBzb2NrX3Jlc2V0X2ZsYWcoc2ssIFNPQ0tf
+UkNWVFNUQU1QTlMpOwo+ID4gKyAgICAgICAgICAgICAgIHNvY2tfcmVzZXRfZmxhZyhzaywgU09D
+S19UU1RBTVBfTkVXKTsKPiA+ICAgICAgICAgICAgICAgICByZXR1cm47Cj4gPiAgICAgICAgIH0K
+PiA+Cj4gPiArICAgICAgIGlmICh0eXBlID09IFNPX1RJTUVTVEFNUF9ORVcgfHwgdHlwZSA9PSBT
+T19USU1FU1RBTVBOU19ORVcpCj4gPiArICAgICAgICAgICAgICAgc29ja19zZXRfZmxhZyhzaywg
+U09DS19UU1RBTVBfTkVXKTsKPiA+ICsgICAgICAgZWxzZQo+ID4gKyAgICAgICAgICAgICAgIHNv
+Y2tfcmVzZXRfZmxhZyhzaywgU09DS19UU1RBTVBfTkVXKTsKPiA+ICsKPgo+IGlmIGFkZGluZyBh
+IGJvb2xlYW4gd2hldGhlciB0aGUgc29ja2V0IHVzZXMgbmV3IG9yIG9sZC1zdHlsZQo+IHRpbWVz
+dGFtcHMsIHBlcmhhcHMgZmFpbCBoYXJkIGlmIGEgcHJvY2VzcyB0cmllcyB0byBzZXQgYSBuZXct
+c3R5bGUKPiBvcHRpb24gd2hpbGUgYW4gb2xkLXN0eWxlIGlzIGFscmVhZHkgc2V0IGFuZCB2aWNl
+IHZlcnNhLiBBbHNvIGluY2x1ZGUKPiBTT19USU1FU1RBTVBJTkdfTkVXIGFzIGl0IHRvZ2dsZXMg
+dGhlIHNhbWUgb3B0aW9uLgo+Cj4gPiBkaWZmIC0tZ2l0IGEvbmV0L3NvY2tldC5jIGIvbmV0L3Nv
+Y2tldC5jCj4gPiBpbmRleCBkM2RlZmJhNTU1NDcuLjlhYmViNmJjOWNmZSAxMDA2NDQKPiA+IC0t
+LSBhL25ldC9zb2NrZXQuYwo+ID4gKysrIGIvbmV0L3NvY2tldC5jCj4gPiBAQCAtNjk5LDYgKzY5
+OSwzOCBAQCBzdGF0aWMgdm9pZCBwdXRfdHNfcGt0aW5mbyhzdHJ1Y3QgbXNnaGRyICptc2csIHN0
+cnVjdCBza19idWZmICpza2IpCj4gPiAgICAgICAgICAgICAgICAgIHNpemVvZih0c19wa3RpbmZv
+KSwgJnRzX3BrdGluZm8pOwo+ID4gIH0KPiA+Cj4gPiArc3RhdGljIHZvaWQgc29ja19yZWN2X3N3
+X3RpbWVzdGFtcChzdHJ1Y3QgbXNnaGRyICptc2csIHN0cnVjdCBzb2NrICpzaywKPiA+ICsgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHNrX2J1ZmYgKnNrYikKPiA+ICt7
+Cj4gPiArICAgICAgIGlmIChzb2NrX2ZsYWcoc2ssIFNPQ0tfVFNUQU1QX05FVykpIHsKPiA+ICsg
+ICAgICAgICAgICAgICBpZiAoIXNvY2tfZmxhZyhzaywgU09DS19SQ1ZUU1RBTVBOUykpIHsKPiA+
+ICsgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBzb2NrX3RpbWV2YWwgdHY7Cj4gPiArCj4g
+PiArICAgICAgICAgICAgICAgICAgICAgICBza2JfZ2V0X25ld190aW1lc3RhbXAoc2tiLCAmdHYp
+Owo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgcHV0X2Ntc2cobXNnLCBTT0xfU09DS0VULCBT
+T19USU1FU1RBTVBfTkVXLAo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc2l6
+ZW9mKHR2KSwgJnR2KTsKPiA+ICsgICAgICAgICAgICAgICB9IGVsc2Ugewo+ID4gKyAgICAgICAg
+ICAgICAgICAgICAgICAgc3RydWN0IF9fa2VybmVsX3RpbWVzcGVjIHRzOwo+ID4gKwo+ID4gKyAg
+ICAgICAgICAgICAgICAgICAgICAgc2tiX2dldF9uZXdfdGltZXN0YW1wbnMoc2tiLCAmdHMpOwo+
+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgcHV0X2Ntc2cobXNnLCBTT0xfU09DS0VULCBTT19U
+SU1FU1RBTVBOU19ORVcsCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzaXpl
+b2YodHMpLCAmdHMpOwo+ID4gKyAgICAgICAgICAgICAgIH0KPiA+ICsgICAgICAgfQo+ID4gKyAg
+ICAgICBpZiAoIXNvY2tfZmxhZyhzaywgU09DS19SQ1ZUU1RBTVBOUykpIHsKPiA+ICsgICAgICAg
+ICAgICAgICBzdHJ1Y3QgX19rZXJuZWxfb2xkX3RpbWV2YWwgdHY7Cj4gPiArCj4gPiArICAgICAg
+ICAgICAgICAgc2tiX2dldF90aW1lc3RhbXAoc2tiLCAmdHYpOwo+ID4gKyAgICAgICAgICAgICAg
+IHB1dF9jbXNnKG1zZywgU09MX1NPQ0tFVCwgU09fVElNRVNUQU1QX09MRCwKPiA+ICsgICAgICAg
+ICAgICAgICAgICAgICAgICBzaXplb2YodHYpLCAmdHYpOwo+ID4gKyAgICAgICB9IGVsc2Ugewo+
+ID4gKyAgICAgICAgICAgICAgIHN0cnVjdCB0aW1lc3BlYyB0czsKPiA+ICsKPiA+ICsgICAgICAg
+ICAgICAgICBza2JfZ2V0X3RpbWVzdGFtcG5zKHNrYiwgJnRzKTsKPiA+ICsgICAgICAgICAgICAg
+ICBwdXRfY21zZyhtc2csIFNPTF9TT0NLRVQsIFNPX1RJTUVTVEFNUE5TX09MRCwKPiA+ICsgICAg
+ICAgICAgICAgICAgICAgICAgICBzaXplb2YodHMpLCAmdHMpOwo+ID4gKyAgICAgICB9Cj4gPiAr
+fQo+ID4gIC8qCj4gPiAgICogY2FsbGVkIGZyb20gc29ja19yZWN2X3RpbWVzdGFtcCgpIGlmIHNv
+Y2tfZmxhZyhzaywgU09DS19SQ1ZUU1RBTVApCj4gPiAgICogb3Igc29ja19mbGFnKHNrLCBTT0NL
+X1JDVlRTVEFNUE5TKQo+ID4gQEAgLTcxOSwxOSArNzUxLDggQEAgdm9pZCBfX3NvY2tfcmVjdl90
+aW1lc3RhbXAoc3RydWN0IG1zZ2hkciAqbXNnLCBzdHJ1Y3Qgc29jayAqc2ssCj4gPiAgICAgICAg
+ICAgICAgICAgZmFsc2VfdHN0YW1wID0gMTsKPiA+ICAgICAgICAgfQo+ID4gLSAgICAgICBpZiAo
+bmVlZF9zb2Z0d2FyZV90c3RhbXApIHsKPgo+IENvbnNpZGVyYWJseSBsZXNzIGNvZGUgY2h1cm4g
+aWYgYWRkaW5nIF9fc29ja19yZWN2X3RpbWVzdGFtcF8yMDM4IGFuZAo+IGNhbGxpbmcgdGhhdCBo
+ZXJlOgo+Cj4gICAgICAgICAgICAgICAgICAgIGlmIChzb2NrX2ZsYWcoc2ssIFNPQ0tfVFNUQU1Q
+X05FVykpCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgX19zb2NrX3JlY3ZfdGltZXN0YW1w
+XzIwMzgobXNnLCBzaywgc2tiKTsKPiAgICAgICAgICAgICAgICAgICAgZWxzZSBpZiAuLi4KPgo+
+IFNhbWUgZm9yIHRoZSB0Y3AgY2FzZSBhYm92ZSwgcmVhbGx5LCBhbmQgaW4gdGhlIGNhc2Ugb2Yg
+dGhlIG5leHQgcGF0Y2gKPiBmb3IgU09fVElNRVNUQU1QSU5HX05FVwoKVGhhdCBuYW1pbmcgY29u
+dmVudGlvbiwgLi4uXzIwMzgsIGlzIG5vdCB0aGUgbmljZXN0LCBvZiBjb3Vyc2UuIFRoYXQKaXMg
+bm90IHRoZSByZWxldmFudCBiaXQgaW4gdGhlIGFib3ZlIGNvbW1lbnQuCgpDb21lIHRvIHRoaW5r
+IG9mIGl0LCBhbmQgcmVsYXRlZCB0byBteSBxdWVzdGlvbiBpbiBwYXRjaCAyIHdoeSB0aGUKbmVl
+ZCB0byByZW5hbWUgYXQgYWxsLCBjb3VsZCBhbGwgbmV3IHN0cnVjdHMsIGNvbnN0YW50cyBhbmQg
+ZnVuY3Rpb25zCmJlIG5hbWVkIGNvbnNpc3RlbnRseSB3aXRoIDY0IHN1ZmZpeD8gX19zb2NrX3Jl
+Y3ZfdGltZXN0YW1wNjQsClNPX1RJTUVTVEFNUElORzY0IGFuZCB0aW1ldmFsNjQgKGluc3RlYWQg
+b2Ygc29ja190aW1ldmFsLAppdCBpc24ndCByZWFsbHkgYSBzb2NrIHNwZWNpZmljIHN0cnVjdCk/
+CgpJIGd1ZXNzIHRoYXQgdGhlcmUgaXMgYSBnb29kIHJlYXNvbiBmb3IgdGhlIHJlbmFtaW5nIGV4
+ZXJjaXNlIGFuZApjb25kaXRpb25hbCBtYXBwaW5nIG9mIFNPX1RJTUVTVEFNUCBvbnRvIG9sZCBv
+ciBuZXcgaW50ZXJmYWNlLgpQbGVhc2UgZWx1Y2lkYXRlIGluIHRoZSBjb21taXQgbWVzc2FnZS4K
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KWTIwMzggbWFp
+bGluZyBsaXN0ClkyMDM4QGxpc3RzLmxpbmFyby5vcmcKaHR0cHM6Ly9saXN0cy5saW5hcm8ub3Jn
+L21haWxtYW4vbGlzdGluZm8veTIwMzgK
