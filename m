@@ -1,38 +1,24 @@
-From: Vinod Koul <vkoul@kernel.org>
-Subject: Re: [PATCH] mm: Replace all open encodings for NUMA_NO_NODE
-Date: Sat, 24 Nov 2018 19:35:54 +0530
-Message-ID: <20181124140554.GG3175@vkoul-mobl.Dlink>
-References: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: Re: [PATCH 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+Date: Sat, 24 Nov 2018 22:58:39 -0500
+Message-ID: <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
+References: <20181124022035.17519-1-deepa.kernel@gmail.com> <20181124022035.17519-3-deepa.kernel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <1542966856-12619-1-git-send-email-anshuman.khandual@arm.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: hverkuil@xs4all.nl, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-block@vger.kernel.org, linux-mm@kvack.org, iommu@lists.linux-foundation.org, intel-wired-lan@lists.osuosl.org, linux-alpha@vger.kernel.org, dmaengine@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, jiangqi903@gmail.com, linuxppc-dev@lists.ozlabs.org, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181124022035.17519-3-deepa.kernel@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, David Howells <dhowells@redhat.com>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjMtMTEtMTgsIDE1OjI0LCBBbnNodW1hbiBLaGFuZHVhbCB3cm90ZToKCj4gLS0tIGEvZHJp
-dmVycy9kbWEvZG1hZW5naW5lLmMKPiArKysgYi9kcml2ZXJzL2RtYS9kbWFlbmdpbmUuYwo+IEBA
-IC0zODYsNyArMzg2LDggQEAgRVhQT1JUX1NZTUJPTChkbWFfaXNzdWVfcGVuZGluZ19hbGwpOwo+
-ICBzdGF0aWMgYm9vbCBkbWFfY2hhbl9pc19sb2NhbChzdHJ1Y3QgZG1hX2NoYW4gKmNoYW4sIGlu
-dCBjcHUpCj4gIHsKPiAgCWludCBub2RlID0gZGV2X3RvX25vZGUoY2hhbi0+ZGV2aWNlLT5kZXYp
-Owo+IC0JcmV0dXJuIG5vZGUgPT0gLTEgfHwgY3B1bWFza190ZXN0X2NwdShjcHUsIGNwdW1hc2tf
-b2Zfbm9kZShub2RlKSk7Cj4gKwlyZXR1cm4gbm9kZSA9PSBOVU1BX05PX05PREUgfHwKPiArCQlj
-cHVtYXNrX3Rlc3RfY3B1KGNwdSwgY3B1bWFza19vZl9ub2RlKG5vZGUpKTsKPiAgfQoKSSBkbyBu
-b3Qgc2VlIGRldl90b19ub2RlIGJlaW5nIHVwZGF0ZWQgZmlyc3QsIHRoYXQgcmV0dXJucyAtMSBz
-byBJIHdvdWxkCnByZWZlciB0byBjaGVjayBmb3IgLTEgdW5sZXNzIGl0IHJldHVybiBOVU1BX05P
-X05PREUKCi0tIAp+Vmlub2QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVsCg==
+On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+>
+> SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
+> way they are currently defined, are not y2038 safe.
+> Subsequent patches in the series add new y2038 safe versions
+> of these options which provide 64 bit timestamps on all
+> architectures uniformly.
+> Hence, rename existing options with OLD tag suffixes.
+
+Why do the existing interfaces have to be renamed when new interfaces are added?
