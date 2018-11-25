@@ -1,114 +1,53 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
 Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Sun, 25 Nov 2018 09:33:07 -0500
-Message-ID: <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
+Date: Sun, 25 Nov 2018 09:38:41 -0500
+Message-ID: <CAF=yD-+ZiBR+VFzDnKOKPBCuNF_wbAe6goNO8KXYQH105Sg=0g@mail.gmail.com>
 References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-8-deepa.kernel@gmail.com>
- <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
+ <20181124022035.17519-8-deepa.kernel@gmail.com> <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
  <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
- <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com>
+ <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com> <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <y2038-bounces@lists.linaro.org>
-In-Reply-To: <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com>
-List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/y2038/>
-List-Post: <mailto:y2038@lists.linaro.org>
-List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
-List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=subscribe>
-Errors-To: y2038-bounces@lists.linaro.org
-Sender: "Y2038" <y2038-bounces@lists.linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CABeXuvr6fi9UPwMvuafx7MwEta-Sx1TLNN0KQ8HQHhn=vAne5Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ralf@linux-mips.org, jejb@parisc-linux.org, linux-rdma@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, rth@twiddle.net
+Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU3VuLCBOb3YgMjUsIDIwMTggYXQgMTI6MjggQU0gRGVlcGEgRGluYW1hbmkgPGRlZXBhLmtl
-cm5lbEBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gPiA+ID4gKyAgICAgICBpZiAodHlwZSA9PSBTT19U
-SU1FU1RBTVBfTkVXIHx8IHR5cGUgPT0gU09fVElNRVNUQU1QTlNfTkVXKQo+ID4gPiA+ICsgICAg
-ICAgICAgICAgICBzb2NrX3NldF9mbGFnKHNrLCBTT0NLX1RTVEFNUF9ORVcpOwo+ID4gPiA+ICsg
-ICAgICAgZWxzZQo+ID4gPiA+ICsgICAgICAgICAgICAgICBzb2NrX3Jlc2V0X2ZsYWcoc2ssIFNP
-Q0tfVFNUQU1QX05FVyk7Cj4gPiA+ID4gKwo+ID4gPgo+ID4gPiBpZiBhZGRpbmcgYSBib29sZWFu
-IHdoZXRoZXIgdGhlIHNvY2tldCB1c2VzIG5ldyBvciBvbGQtc3R5bGUKPiA+ID4gdGltZXN0YW1w
-cywgcGVyaGFwcyBmYWlsIGhhcmQgaWYgYSBwcm9jZXNzIHRyaWVzIHRvIHNldCBhIG5ldy1zdHls
-ZQo+ID4gPiBvcHRpb24gd2hpbGUgYW4gb2xkLXN0eWxlIGlzIGFscmVhZHkgc2V0IGFuZCB2aWNl
-IHZlcnNhLiBBbHNvIGluY2x1ZGUKPiA+ID4gU09fVElNRVNUQU1QSU5HX05FVyBhcyBpdCB0b2dn
-bGVzIHRoZSBzYW1lIG9wdGlvbi4KPgo+IEkgZG8gbm90IHRoaW5rIHRoaXMgaXMgYSBwcm9ibGVt
-Lgo+IENvbnNpZGVyIHRoaXMgZXhhbXBsZSwgaWYgdGhlcmUgaXMgYSB1c2VyIGFwcGxpY2F0aW9u
-IHdpdGggdXBkYXRlZAo+IHNvY2tldCB0aW1lc3RhbXBzIGlzIGxpbmtpbmcgaW50byBhIGxpYnJh
-cnkgdGhhdCBpcyB5ZXQgdG8gYmUgdXBkYXRlZC4KCkFsc28gY29uc2lkZXIgYXBwbGljYXRpb25z
-IHRoYXQgZG8gbm90IHVzZSBsaWJyYXJpZXMuCgo+IEJlc2lkZXMsIHRoZSBvbGQgdGltZXN0YW1w
-cyBzaG91bGQgd29yayBwZXJmZWN0bHkgZmluZSBvbiA2NCBiaXQKPiBhcmNoZXMgZXZlbiBiZXlv
-bmQgMjAzOC4KCkluIHRoYXQgY2FzZSwgY2FuIHdlIHN0cnVjdHVyZSB0aGUgY29kZSB0byBub3Qg
-YWRkIGJyYW5jaGluZyBvbiA2NC1iaXQKcGxhdGZvcm1zLgoKRm9yIGluc3RhbmNlLCBzdHJ1Y3R1
-cmUKCiAgICAgICAgICAgICAgICAgIGlmIChzb2NrX2ZsYWcoc2ssIFNPQ0tfVFNUQU1QX05FVykp
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgIF9fc29ja19yZWN2X3RpbWVzdGFtcF8yMDM4KG1z
-Zywgc2ssIHNrYik7CgppbnN0ZWFkIGFzIGEgYm9vbGVhbiBmdW5jdGlvbiB0aGF0CgogICAgICAg
-ICAgICAgICAgICBpZiAoX19zb2NrX3JlY3ZfdGltZXN0YW1wXzIwMzgobXNnLCBzaywgc2tiKSkK
-CmFuZCBoYXZlIHRoYXQgZnVuY3Rpb24ncyBjb250ZW50cyB3cmFwcGVkIGluIGFuIGlmZGVmIHRo
-YXQgcmVtb3ZlcwppdCBvbiA2NC1iaXQgcGxhdGZvcm1zIGFuZCBzaW1wbHkgcmV0dXJucyBmYWxz
-ZT8KCk9yIG1vcmUgcmlnb3JvdXNseSByZXN0cmljdCB0aGVzZSBleHRlbnNpb25zIHRvIGEgMzIt
-Yml0IGNvbXBhdCBsYXllci4KCj4gU28gZmFpbGluZyBoZXJlIG1lYW5zIGFkZGluZyBhIGJ1bmNo
-IG9mIGlmZGVmJ3MgdG8gdmVyaWZ5IGl0IGlzIG5vdAo+IGV4ZWN1dGluZyBvbiA2NCBiaXQgYXJj
-aCBvciBzb21ldGhpbmcgbGlrZSB4MzIuCgpUaGUgY29kZSBhcyBpcyBhZGRzIGJyYW5jaGVzIG9u
-IHBsYXRmb3JtcyB0aGF0IGRvIG5vdCBuZWVkIGl0LiBJZmRlZnMKYXJlIHVnbHksIGJ1dCBpZiB0
-aGV5IGNhbiBiZSBjb250YWluZWQgdG8gdGhlIGZldyBoZWxwZXIgZnVuY3Rpb25zIG5lZWRlZApm
-b3IgdGhlIF8yMDM4IHZhcmlhbnRzIG9mIGNtc2dfcHV0LCB0aGF0IGlzIGFjY2VwdGFibGUgaW4g
-bXkgb3Bpbmlvbi4KCj4gPiA+ID4gIC8qCj4gPiA+ID4gICAqIGNhbGxlZCBmcm9tIHNvY2tfcmVj
-dl90aW1lc3RhbXAoKSBpZiBzb2NrX2ZsYWcoc2ssIFNPQ0tfUkNWVFNUQU1QKQo+ID4gPiA+ICAg
-KiBvciBzb2NrX2ZsYWcoc2ssIFNPQ0tfUkNWVFNUQU1QTlMpCj4gPiA+ID4gQEAgLTcxOSwxOSAr
-NzUxLDggQEAgdm9pZCBfX3NvY2tfcmVjdl90aW1lc3RhbXAoc3RydWN0IG1zZ2hkciAqbXNnLCBz
-dHJ1Y3Qgc29jayAqc2ssCj4gPiA+ID4gICAgICAgICAgICAgICAgIGZhbHNlX3RzdGFtcCA9IDE7
-Cj4gPiA+ID4gICAgICAgICB9Cj4gPiA+ID4gLSAgICAgICBpZiAobmVlZF9zb2Z0d2FyZV90c3Rh
-bXApIHsKPiA+ID4KPiA+ID4gQ29uc2lkZXJhYmx5IGxlc3MgY29kZSBjaHVybiBpZiBhZGRpbmcg
-X19zb2NrX3JlY3ZfdGltZXN0YW1wXzIwMzggYW5kCj4gPiA+IGNhbGxpbmcgdGhhdCBoZXJlOgo+
-ID4gPgo+ID4gPiAgICAgICAgICAgICAgICAgICAgaWYgKHNvY2tfZmxhZyhzaywgU09DS19UU1RB
-TVBfTkVXKSkKPiA+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgX19zb2NrX3JlY3ZfdGlt
-ZXN0YW1wXzIwMzgobXNnLCBzaywgc2tiKTsKPiA+ID4gICAgICAgICAgICAgICAgICAgIGVsc2Ug
-aWYgLi4uCj4gPiA+Cj4gPiA+IFNhbWUgZm9yIHRoZSB0Y3AgY2FzZSBhYm92ZSwgcmVhbGx5LCBh
-bmQgaW4gdGhlIGNhc2Ugb2YgdGhlIG5leHQgcGF0Y2gKPiA+ID4gZm9yIFNPX1RJTUVTVEFNUElO
-R19ORVcKPiA+Cj4gPiBUaGF0IG5hbWluZyBjb252ZW50aW9uLCAuLi5fMjAzOCwgaXMgbm90IHRo
-ZSBuaWNlc3QsIG9mIGNvdXJzZS4gVGhhdAo+ID4gaXMgbm90IHRoZSByZWxldmFudCBiaXQgaW4g
-dGhlIGFib3ZlIGNvbW1lbnQuCj4gPgo+ID4gQ29tZSB0byB0aGluayBvZiBpdCwgYW5kIHJlbGF0
-ZWQgdG8gbXkgcXVlc3Rpb24gaW4gcGF0Y2ggMiB3aHkgdGhlCj4gPiBuZWVkIHRvIHJlbmFtZSBh
-dCBhbGwsIGNvdWxkIGFsbCBuZXcgc3RydWN0cywgY29uc3RhbnRzIGFuZCBmdW5jdGlvbnMKPiA+
-IGJlIG5hbWVkIGNvbnNpc3RlbnRseSB3aXRoIDY0IHN1ZmZpeD8gX19zb2NrX3JlY3ZfdGltZXN0
-YW1wNjQsCj4gPiBTT19USU1FU1RBTVBJTkc2NCBhbmQgdGltZXZhbDY0IChpbnN0ZWFkIG9mIHNv
-Y2tfdGltZXZhbCwKPiA+IGl0IGlzbid0IHJlYWxseSBhIHNvY2sgc3BlY2lmaWMgc3RydWN0KT8K
-PiA+Cj4gPiBJIGd1ZXNzIHRoYXQgdGhlcmUgaXMgYSBnb29kIHJlYXNvbiBmb3IgdGhlIHJlbmFt
-aW5nIGV4ZXJjaXNlIGFuZAo+ID4gY29uZGl0aW9uYWwgbWFwcGluZyBvZiBTT19USU1FU1RBTVAg
-b250byBvbGQgb3IgbmV3IGludGVyZmFjZS4KPiA+IFBsZWFzZSBlbHVjaWRhdGUgaW4gdGhlIGNv
-bW1pdCBtZXNzYWdlLgo+Cj4gSSB0aGluayB0aGVyZSBpcyBzb21lIGNvbmZ1c2lvbiBoZXJlLgoK
-WWVzLCBJIGtub3cgdGhpcyBzb2NrZXQgdGltZXN0YW1waW5nIGNvZGUsIGJ1dCBhbSBsZXNzIGZh
-bWlsaWFyIHdpdGggdGhlCndpZGVyIGRpc2N1c3NvbiBvbiAyMDM4IHRpbWVzdGFtcCBjb252ZXJz
-aW9uLiBJdCB3b3VsZCBiZSBoZWxwZnVsIGlmIHRoaXMKcGF0Y2hzZXQgY2FuIGJlIHNlbGYtZGVz
-Y3JpYmluZyB3aXRob3V0IHRoYXQgY29udGV4dCBvciBwb2ludCB0byB0aGUKZGlzY3Vzc2lvbiAo
-dW5mb3J0dW5hdGVseSwgSSBoYWQgbWlzcyBBcm5kJ3MgdGFsayBhdCBMUEMpLgoKPiBUaGUgZXhp
-c3RpbmcgdGltZXN0YW1wIG9wdGlvbnM6IFNPX1RJTUVTVEFNUCogZmFpbCB0byBwcm92aWRlIHBy
-b3Blcgo+IHRpbWVzdGFtcHMgYmV5b25kIHllYXIgMjAzOCBvbiAzMiBiaXQgQUJJcy4KPiBCdXQs
-IHRoZXNlIHdvcmsgZmluZSBvbiA2NCBiaXQgbmF0aXZlIEFCSXMuCj4gU28gbm93IHdlIG5lZWQg
-YSB3YXkgb2YgdXBkYXRpbmcgdGhlc2UgdGltZXN0YW1wcyBzbyB0aGF0IHdlIGRvIG5vdAo+IGJy
-ZWFrIGV4aXN0aW5nIHVzZXJzcGFjZTogNjQgYml0IEFCSXMgc2hvdWxkIG5vdCBoYXZlIHRvIGNo
-YW5nZQo+IHVzZXJzcGFjZSwgMzIgYml0IEFCSXMgc2hvdWxkIHdvcmsgYXMgaXMgdW50aWwgMjAz
-OCBhZnRlciB3aGljaCB0aGV5Cj4gaGF2ZSBiYWQgdGltZXN0YW1wcy4KPiBTbyB3ZSBpbnRyb2R1
-Y2UgbmV3IHkyMDM4IHNhZmUgdGltZXN0YW1wIG9wdGlvbnMgZm9yIDMyIGJpdCBBQklzLiBXZQo+
-IGFzc3VtZSB0aGF0IDMyIGJpdCBhcHBsaWNhdGlvbnMgd2lsbCBzd2l0Y2ggdG8gbmV3IEFCSXMg
-YXQgc29tZSBwb2ludCwKPiBidXQgbGVhdmUgdGhlIG9sZGVyIHRpbWVzdGFtcHMgYXMgaXMuCj4g
-SSBjYW4gdXBkYXRlIHRoZSBjb21taXQgdGV4dCBhcyBwZXIgYWJvdmUuCgpTbyBvbiAzMi1iaXQg
-cGxhdGZvcm1zIFNPX1RJTUVTVEFNUF9ORVcgaW50cm9kdWNlcyBhIG5ldyBzdHJ1Y3QKc29ja190
-aW1ldmFsIHdpdGggYm90aCA2NC1iaXQgZmllbGRzLgoKRG9lcyB0aGlzIG5vdCBicmVhayBleGlz
-dGluZyBhcHBsaWNhdGlvbnMgdGhhdCBjb21waWxlIGFnYWluc3QgU09fVElNRVNUQU1QCmFuZCBl
-eHBlY3Qgc3RydWN0IHRpbWV2YWw/IEZvciBvbmUgZXhhbXBsZSwgdGhlIHNlbGZ0ZXN0cyB1bmRl
-ciB0b29scy90ZXN0aW5nLgoKVGhlIGtlcm5lbCB3aWxsIG5vdyBjb252ZXJ0IFNPX1RJTUVTVEFN
-UCAocHJldmlvdXNseSBjb25zdGFudCAyOSkgdG8KZGlmZmVyZW50IFNPX1RJTUVTVEFNUF9ORVcg
-KDYyKSBhbmQgcmV0dXJucyBhIGRpZmZlcmVudCBzdHJ1Y3QuIFBlcmhhcHMKd2l0aCBhIGxpYnJh
-cnkgbGlrZSBsaWJjIGluIHRoZSBtaWRkbGUgdGhpcyBjYW4gYmUgZml4ZWQgdXAKdHJhbnNwYXJl
-bnRseSwgYnV0IGZvcgphcHBsaWNhdGlvbnMgdGhhdCBkb24ndCBoYXZlIGEgbW9yZSByZWNlbnQg
-bGliYyBvciB1c2UgYSBsaWJyYXJ5IGF0CmFsbCwgaXQgYnJlYWtzCnRoZSBBQkkuCgpJIHN1c3Bl
-Y3QgdGhhdCB0aGVzZSBmaW5lciBBQkkgcG9pbnRzIG1heSBoYXZlIGJlZW4gZGlzY3Vzc2VkIG91
-dHNpZGUgdGhlCm5hcnJvdyBjb25maW5lcyBvZiBzb2NrZXQgdGltZXN0YW1waW5nLiBCdXQgb24g
-aXRzIG93biwgdGhpcyBkb2VzIHdvcnJ5IG1lLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpZMjAzOCBtYWlsaW5nIGxpc3QKWTIwMzhAbGlzdHMubGluYXJv
-Lm9yZwpodHRwczovL2xpc3RzLmxpbmFyby5vcmcvbWFpbG1hbi9saXN0aW5mby95MjAzOAo=
+> > > > Same for the tcp case above, really, and in the case of the next patch
+> > > > for SO_TIMESTAMPING_NEW
+> > >
+> > > That naming convention, ..._2038, is not the nicest, of course. That
+> > > is not the relevant bit in the above comment.
+>
+> it could be  __sock_recv_timestamp64().
+> But, these timestamps should be doing exactly the same thing as the
+> old ones and I thought it would be nicer to keep the same code path.
+> I can change it to as per above.
+
+Please minimize code changes. It breaks git blame and longer patches
+are harder to review.
+
+In this specific case, from a readability point of view, I find new functions
+that map one-to-one onto the new interfaces also more readable than
+deeper nested branches in place.
+
+> > So we introduce new y2038 safe timestamp options for 32 bit ABIs. We
+> > assume that 32 bit applications will switch to new ABIs at some point,
+> > but leave the older timestamps as is.
+> > I can update the commit text as per above.
+>
+> We have been avoiding adding timeval64 timestamps to discourage users
+> from using these types in the interfaces.
+> We want to keep all the uapi time interfaces to use __kernel_*
+> interfaces. And, we already provide __kernel_timespec interface for
+> such instances.
+> But, in this case we do not have an option. So we introduce a type
+> specific to sockets.
+
+This structure just holds a timestamp. It does not seem socket specific.
+I don't mean to bikeshed the naming point too much, but timeval_ll or
+so may be more representative than tying it to a socket.
+
+As for the general naming, xxx64 or xxx2038 are more descriptive than xxx_NEW.
