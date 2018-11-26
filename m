@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 2/7] IB/core: Introduce UVERBS_IDR_ANY_OBJECT
-Date: Mon, 26 Nov 2018 08:28:33 +0200
-Message-ID: <20181126062838.5907-3-leon@kernel.org>
+Subject: [PATCH rdma-next 7/7] IB/mlx5: Allow XRC usage via verbs in DEVX context
+Date: Mon, 26 Nov 2018 08:28:38 +0200
+Message-ID: <20181126062838.5907-8-leon@kernel.org>
 References: <20181126062838.5907-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,143 +14,104 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Introduce the UVERBS_IDR_ANY_OBJECT type to match any IDR object.
+Allows XRC usage from the verbs flow in a DEVX context.
+As XRCD is some shared kernel resource between processes it should be
+created with UID=0 to point on that.
 
-Once used, the infrastructure skips checking for the IDR type, it
-becomes the driver handler responsibility.
-
-This enables drivers to get in a given method an object from various of
-types.
+As a result once XRC QP/SRQ are created they must be used as well with
+UID=0 so that firmware will allow the XRCD usage.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/rdma_core.c   | 27 +++++++++++++++++----------
- drivers/infiniband/core/rdma_core.h   | 16 +++++++++++++++-
- drivers/infiniband/core/uverbs_uapi.c |  9 +++++++--
- include/rdma/uverbs_ioctl.h           |  6 ++++++
- 4 files changed, 45 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
+ drivers/infiniband/hw/mlx5/qp.c      | 12 +++++-------
+ drivers/infiniband/hw/mlx5/srq.c     |  2 +-
+ 3 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/rdma_core.c b/drivers/infiniband/core/rdma_core.c
-index efa292489271..d160ed23065e 100644
---- a/drivers/infiniband/core/rdma_core.c
-+++ b/drivers/infiniband/core/rdma_core.c
-@@ -398,16 +398,23 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
- 	struct ib_uobject *uobj;
- 	int ret;
- 
--	if (!obj)
--		return ERR_PTR(-EINVAL);
-+	if (IS_ERR(obj) && PTR_ERR(obj) == -ENOMSG) {
-+		/* must be UVERBS_IDR_ANY_OBJECT, see uapi_get_object() */
-+		uobj = lookup_get_idr_uobject(NULL, ufile, id, mode);
-+		if (IS_ERR(uobj))
-+			return uobj;
-+	} else {
-+		if (IS_ERR(obj))
-+			return ERR_PTR(-EINVAL);
- 
--	uobj = obj->type_class->lookup_get(obj, ufile, id, mode);
--	if (IS_ERR(uobj))
--		return uobj;
-+		uobj = obj->type_class->lookup_get(obj, ufile, id, mode);
-+		if (IS_ERR(uobj))
-+			return uobj;
- 
--	if (uobj->uapi_object != obj) {
--		ret = -EINVAL;
--		goto free;
-+		if (uobj->uapi_object != obj) {
-+			ret = -EINVAL;
-+			goto free;
-+		}
- 	}
- 
- 	/*
-@@ -427,7 +434,7 @@ struct ib_uobject *rdma_lookup_get_uobject(const struct uverbs_api_object *obj,
- 
- 	return uobj;
- free:
--	obj->type_class->lookup_put(uobj, mode);
-+	uobj->uapi_object->type_class->lookup_put(uobj, mode);
- 	uverbs_uobject_put(uobj);
- 	return ERR_PTR(ret);
- }
-@@ -491,7 +498,7 @@ struct ib_uobject *rdma_alloc_begin_uobject(const struct uverbs_api_object *obj,
- {
- 	struct ib_uobject *ret;
- 
--	if (!obj)
-+	if (IS_ERR(obj))
- 		return ERR_PTR(-EINVAL);
- 
- 	/*
-diff --git a/drivers/infiniband/core/rdma_core.h b/drivers/infiniband/core/rdma_core.h
-index bac484d6753a..8aec28037c48 100644
---- a/drivers/infiniband/core/rdma_core.h
-+++ b/drivers/infiniband/core/rdma_core.h
-@@ -162,10 +162,24 @@ struct uverbs_api {
- 	const struct uverbs_api_write_method **write_ex_methods;
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 4d33965369cc..24cb2f793210 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -543,7 +543,6 @@ struct mlx5_ib_srq {
+ struct mlx5_ib_xrcd {
+ 	struct ib_xrcd		ibxrcd;
+ 	u32			xrcdn;
+-	u16			uid;
  };
  
-+/*
-+ * Get an uverbs_api_object that corresponds to the given object_id.
-+ * Note:
-+ * -ENOMSG means that any object is allowed to match during lookup.
-+ */
- static inline const struct uverbs_api_object *
- uapi_get_object(struct uverbs_api *uapi, u16 object_id)
- {
--	return radix_tree_lookup(&uapi->radix, uapi_key_obj(object_id));
-+	const struct uverbs_api_object *res;
-+
-+	if (object_id == UVERBS_IDR_ANY_OBJECT)
-+		return ERR_PTR(-ENOMSG);
-+
-+	res = radix_tree_lookup(&uapi->radix, uapi_key_obj(object_id));
-+	if (!res)
-+		return ERR_PTR(-ENOENT);
-+
-+	return res;
+ enum mlx5_ib_mtt_access_flags {
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 52ffc6af3c20..369db954edbe 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -775,6 +775,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 	__be64 *pas;
+ 	void *qpc;
+ 	int err;
++	u16 uid;
+ 
+ 	err = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
+ 	if (err) {
+@@ -836,7 +837,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
+ 		goto err_umem;
+ 	}
+ 
+-	MLX5_SET(create_qp_in, *in, uid, to_mpd(pd)->uid);
++	uid = (attr->qp_type != IB_QPT_XRC_TGT) ? to_mpd(pd)->uid : 0;
++	MLX5_SET(create_qp_in, *in, uid, uid);
+ 	pas = (__be64 *)MLX5_ADDR_OF(create_qp_in, *in, pas);
+ 	if (ubuffer->umem)
+ 		mlx5_ib_populate_pas(dev, ubuffer->umem, page_shift, pas, 0);
+@@ -5513,7 +5515,6 @@ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+ 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
+ 	struct mlx5_ib_xrcd *xrcd;
+ 	int err;
+-	u16 uid;
+ 
+ 	if (!MLX5_CAP_GEN(dev->mdev, xrc))
+ 		return ERR_PTR(-ENOSYS);
+@@ -5522,14 +5523,12 @@ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
+ 	if (!xrcd)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	uid = context ? to_mucontext(context)->devx_uid : 0;
+-	err = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, uid);
++	err = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, 0);
+ 	if (err) {
+ 		kfree(xrcd);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	xrcd->uid = uid;
+ 	return &xrcd->ibxrcd;
  }
  
- char *uapi_key_format(char *S, unsigned int key);
-diff --git a/drivers/infiniband/core/uverbs_uapi.c b/drivers/infiniband/core/uverbs_uapi.c
-index 19ae4b19b2ef..faac225184a6 100644
---- a/drivers/infiniband/core/uverbs_uapi.c
-+++ b/drivers/infiniband/core/uverbs_uapi.c
-@@ -580,8 +580,13 @@ static void uapi_finalize_disable(struct uverbs_api *uapi)
- 			if (obj_key == UVERBS_API_KEY_ERR)
- 				continue;
- 			tmp_obj = uapi_get_object(uapi, obj_key);
--			if (tmp_obj && !tmp_obj->disabled)
--				continue;
-+			if (IS_ERR(tmp_obj)) {
-+				if (PTR_ERR(tmp_obj) == -ENOMSG)
-+					continue;
-+			} else {
-+				if (!tmp_obj->disabled)
-+					continue;
-+			}
+@@ -5537,10 +5536,9 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ {
+ 	struct mlx5_ib_dev *dev = to_mdev(xrcd->device);
+ 	u32 xrcdn = to_mxrcd(xrcd)->xrcdn;
+-	u16 uid =  to_mxrcd(xrcd)->uid;
+ 	int err;
  
- 			starting_key = iter.index;
- 			uapi_remove_method(
-diff --git a/include/rdma/uverbs_ioctl.h b/include/rdma/uverbs_ioctl.h
-index 7f4ace93e502..2f56844fb7da 100644
---- a/include/rdma/uverbs_ioctl.h
-+++ b/include/rdma/uverbs_ioctl.h
-@@ -524,6 +524,12 @@ struct uapi_definition {
- 			  .u2.objs_arr.max_len = _max_len,                     \
- 			  __VA_ARGS__ } })
+-	err = mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, uid);
++	err = mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, 0);
+ 	if (err)
+ 		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
  
-+/*
-+ * Only for use with UVERBS_ATTR_IDR, allows any uobject type to be accepted,
-+ * the user must validate the type of the uobject instead.
-+ */
-+#define UVERBS_IDR_ANY_OBJECT 0xFFFF
-+
- #define UVERBS_ATTR_IDR(_attr_id, _idr_type, _access, ...)                     \
- 	(&(const struct uverbs_attr_def){                                      \
- 		.id = _attr_id,                                                \
+diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
+index b3aef0eb39cb..0413b10dea71 100644
+--- a/drivers/infiniband/hw/mlx5/srq.c
++++ b/drivers/infiniband/hw/mlx5/srq.c
+@@ -113,7 +113,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 
+ 	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
+ 	in->page_offset = offset;
+-	in->uid = to_mpd(pd)->uid;
++	in->uid = (in->type != IB_SRQT_XRC) ?  to_mpd(pd)->uid : 0;
+ 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
+ 	    in->type != IB_SRQT_BASIC)
+ 		in->user_index = uidx;
 -- 
 2.19.1
