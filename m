@@ -1,37 +1,37 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
-Date: Mon, 26 Nov 2018 19:32:44 +0530
-Message-ID: <20049f8a-b68f-8af2-c4c7-9410781f37fa@arm.com>
-References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
- <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] IB/qib: fix spelling mistake "colescing" -> "coalescing"
+Date: Mon, 26 Nov 2018 16:23:20 +0000
+Message-ID: <20181126162320.27889-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bcf609de-c60a-d6ad-7acb-6c59c412adbc@redhat.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl, vkoul@kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Colin Ian King <colin.king@canonical.com>
 
+There is a spelling mistake in the module description text, fix it.
 
-On 11/26/2018 06:18 PM, David Hildenbrand wrote:
-> On 26.11.18 13:26, Anshuman Khandual wrote:
->> At present there are multiple places where invalid node number is encoded
->> as -1. Even though implicitly understood it is always better to have macros
->> in there. Replace these open encodings for an invalid node number with the
->> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions like
->> 'invalid node' from various places redirecting them to a common definition.
->>
->> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
->> ---
->> Changes in V2:
->>
->> - Added inclusion of 'numa.h' header at various places per Andrew
->> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
-> 
-> Reviewed-by: David Hildenbrand <david@redhat.com>
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/hw/qib/qib_pcie.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks David. My bad, forgot to add your review tag from the earlier version.
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 30595b358d8f..864f2af171f7 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -387,7 +387,7 @@ void qib_pcie_reenable(struct qib_devdata *dd, u16 cmd, u8 iline, u8 cline)
+ 
+ static int qib_pcie_coalesce;
+ module_param_named(pcie_coalesce, qib_pcie_coalesce, int, S_IRUGO);
+-MODULE_PARM_DESC(pcie_coalesce, "tune PCIe colescing on some Intel chipsets");
++MODULE_PARM_DESC(pcie_coalesce, "tune PCIe coalescing on some Intel chipsets");
+ 
+ /*
+  * Enable PCIe completion and data coalescing, on Intel 5x00 and 7300
+-- 
+2.19.1
