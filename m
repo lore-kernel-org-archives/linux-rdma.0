@@ -1,44 +1,72 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH] IB/qib: fix spelling mistake "colescing" -> "coalescing"
-Date: Mon, 26 Nov 2018 16:05:05 -0500
-Message-ID: <d671a718-1267-19c6-0aef-4256a0e6ecfb@intel.com>
-References: <20181126162320.27889-1-colin.king@canonical.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/11] mlx5 core internal firmware events
+ handling improvements
+Date: Mon, 26 Nov 2018 22:16:27 +0000
+Message-ID: <643ea3baec8912db61452cef6c5d9d3c8d39f2e7.camel@mellanox.com>
+References: <20181120221228.18365-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126162320.27889-1-colin.king@canonical.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181120221228.18365-1-saeedm@mellanox.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-ID: <C7C0BE81EFF4A243B1E8550F49120E3C@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/26/2018 11:23 AM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> There is a spelling mistake in the module description text, fix it.
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->   drivers/infiniband/hw/qib/qib_pcie.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-> index 30595b358d8f..864f2af171f7 100644
-> --- a/drivers/infiniband/hw/qib/qib_pcie.c
-> +++ b/drivers/infiniband/hw/qib/qib_pcie.c
-> @@ -387,7 +387,7 @@ void qib_pcie_reenable(struct qib_devdata *dd, u16 cmd, u8 iline, u8 cline)
->   
->   static int qib_pcie_coalesce;
->   module_param_named(pcie_coalesce, qib_pcie_coalesce, int, S_IRUGO);
-> -MODULE_PARM_DESC(pcie_coalesce, "tune PCIe colescing on some Intel chipsets");
-> +MODULE_PARM_DESC(pcie_coalesce, "tune PCIe coalescing on some Intel chipsets");
->   
->   /*
->    * Enable PCIe completion and data coalescing, on Intel 5x00 and 7300
-> 
-
-Thanks!
-
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+T24gVHVlLCAyMDE4LTExLTIwIGF0IDE0OjEyIC0wODAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gSGkNCj4gDQo+IFRoaXMgcGF0Y2hzZXQgaXMgZm9yIG1seDUtbmV4dCBzaGFyZWQgYnJhbmNo
+LCBhbmQgd2lsbCBiZSBhcHBsaWVkDQo+IHRoZXJlDQo+IG9uY2UgdGhlIHJldmlldyBpcyBkb25l
+Lg0KPiANCj4gVGhlIG1haW4gaWRlYSBvZiB0aGlzIGNoYW5nZSBpcyB0byBkZWZpbmUgYSBmbGV4
+aWJsZSBzY2FsYWJsZSBhbmQNCj4gc2ltcGxlciBsb3cgbGV2ZWwgbWx4NSBjb3JlIEFQSXMgdG8g
+dXBwZXIgbGV2ZWwgY29tcG9uZW50cyBmb3IgYmV0dGVyDQo+IGZlYXR1cmVzIGRlY291cGxpbmcg
+YW5kIG1heGltdW0gY29kZSBsb2NhbGl0eSBhbmQgbW9kdWxhcml0eS4NCj4gDQo+IEltcHJvdmUg
+YW5kIHNpbXBsaWZ5IG1seDUgY29yZSBpbnRlcm5hbCBmaXJtd2FyZSBhbmQgZGV2aWNlIGFzeW5j
+DQo+IGV2ZW50cw0KPiBoYW5kbGluZyBhbmQgc3Vic2NyaXB0aW9uLCBjdXJyZW50bHkgYWxsIGFz
+eW5jIGZpcm13YXJlIGV2ZW50cyBhcmUNCj4gaGFuZGxlZCBpbiBvbmUgcGxhY2UgKHN3aXRjaCBj
+YXNlIGluIGVxLmMpIGFuZCBldmVyeSB0aW1lIHdlIG5lZWQgdG8NCj4gdXBkYXRlIG9uZSBvZiB0
+aGUgbWx4NV9jb3JlIGhhbmRsZXJzIG9yIGFkZCBuZXcgZXZlbnRzIGhhbmRsaW5nIHRvDQo+IHRo
+ZQ0KPiBzeXN0ZW0sIHRoZSBkcml2ZXIgbmVlZHMgdG8gYmUgY2hhbmdlZCBpbiBtYW55IHBsYWNl
+cyBpbiBvcmRlciB0bw0KPiBkZWxpdmVyDQo+IHRoZSBuZXcgZXZlbnQgdG8gaXRzIGNvbnN1bWVy
+Lg0KPiANCj4gVG8gaW1wcm92ZSB0aGlzIHdlIHdpbGwgdXNlIGF0b21pY19ub3RpZmllcl9jaGFp
+biB0byBmaXJlIGZpcm13YXJlDQo+IGV2ZW50cw0KPiBhdCBpbnRlcm5hbCBtbHg1IGNvcmUgY29t
+cG9uZW50cyBzdWNoIGFzIGVzd2l0Y2gvZnBnYS9jbG9jay9GVw0KPiB0cmFjZXIvZXRjLi4sDQo+
+IHRoaXMgaXMgdG8gYXZvaWQgZXhwbGljaXQgY2FsbHMgZnJvbSBsb3cgbGV2ZWwgbWx4NV9jb3Jl
+IHRvIHVwcGVyDQo+IGNvbXBvbmVudHMNCj4gYW5kIHRvIHNpbXBsaWZ5IHRoZSBtbHg1X2NvcmUg
+QVBJIGZvciBmdXR1cmUgZGV2ZWxvcG1lbnRzLg0KPiAgICAgDQo+IFByb3ZpZGUgcmVnaXN0ZXIv
+dW5yZWdpc3RlciBub3RpZmllcnMgQVBJIGFuZCBjYWxsIHRoZSBub3RpZmllciBjaGFpbg0KPiBv
+bg0KPiBmaXJtd2FyZSBhc3luYyBldmVudHMuDQo+ICAgICANCj4gRXhhbXBsZSB0byBzdWJzY3Jp
+YmUgdG8gYSBGVyBldmVudDoNCj4gDQo+IHN0cnVjdCBtbHg1X25iIHBvcnRfZXZlbnQ7DQo+ICAg
+ICANCj4gTUxYNV9OQl9JTklUKCZwb3J0X2V2ZW50LCBwb3J0X2V2ZW50X2hhbmRsZXIsIFBPUlRf
+Q0hBTkdFKTsNCj4gbWx4NV9lcV9ub3RpZmllcl9yZWdpc3RlcihtZGV2LCAmcG9ydF9ldmVudCk7
+DQo+ICAgICANCj4gV2hlcmU6DQo+ICAgLSBwb3J0X2V2ZW50X2hhbmRsZXIgaXMgdGhlIG5vdGlm
+aWVyIGJsb2NrIGNhbGxiYWNrLg0KPiAgIC0gUE9SVF9FVkVOVCBpcyB0aGUgc3VmZml4IG9mIE1M
+WDVfRVZFTlRfVFlQRV9QT1JUX0NIQU5HRSAoVGhlDQo+IGV2ZW50DQo+ICAgICB0eXBlIHRvIHN1
+YnNjcmliZSB0bykNCj4gDQo+IFRoZSBhYm92ZSB3aWxsIGd1YXJhbnRlZSB0aGF0IHBvcnRfZXZl
+bnRfaGFuZGxlciB3aWxsIHJlY2VpdmUgYWxsIEZXDQo+IGV2ZW50cyBvZiB0aGUgdHlwZSBNTFg1
+X0VWRU5UX1RZUEVfUE9SVF9DSEFOR0UuDQo+ICAgICANCj4gVG8gcmVjZWl2ZSBhbGwgRlcvSFcg
+ZXZlbnRzIG9uZSBjYW4gc3Vic2NyaWJlIHRvDQo+IE1MWDVfRVZFTlRfVFlQRV9OT1RJRllfQU5Z
+Lg0KPiAgDQo+IFRoZXJlIGNhbiBiZSBvbmx5IDEyOCB0eXBlcyBvZiBmaXJtd2FyZSBldmVudHMg
+ZWFjaCBoYXMgaXRzIG93bg0KPiA2NEJ5dGUgDQo+IEVRRSAoRXZlbnQgUXVldWUgRWxlbWVudCkg
+ZGF0YSwgd2Ugd2lsbCBoYXZlIG9uZQ0KPiBhdG9taWNfbm90aWZpZXJfY2hhaW4NCj4gcGVyIGV2
+ZW50IHR5cGUgZm9yIG1heGltdW0gcGVyZm9ybWFuY2UgYW5kIHZlcmJvc2l0eS4NCj4gRWFjaCBo
+YW5kbGVyIGlzIGdvaW5nIHRvIHJlY2VpdmUgdGhlIGV2ZW50X3R5cGUgYXMgdW5zaWduZWQgbG9u
+ZyBhbmQNCj4gdGhlIGV2ZW50IGRhdGEgYXMgdm9pZCBwb2ludGVyLCBleGFjdGx5IGFzIGRlZmlu
+ZWQgaW4gdGhlIG5vdGlmaWVyDQo+IGJsb2NrDQo+IGhhbmRsZXJzIHByb3RvdHlwZS4NCj4gICAg
+DQo+IFRoaXMgQVBJIGlzIGltcGxlbWVudGVkIGluIHRoZSBmaXJzdCBwYXRjaCBvZiB0aGlzIHNl
+cmllcyBhbGwNCj4gZm9sbG93aW5nDQo+IHBhdGNoZXMgYXJlIG1vZGlmeWluZyB0aGUgZXhpc3Rp
+bmcgbWx4NSBjb21wb25lbnRzIHRvIHVzZSB0aGUgbmV3IEFQSQ0KPiB0bw0KPiBzdWJzY3JpYmUg
+dG8gRlcgZXZlbnRzLg0KPiANCj4gVGhhbmtzLA0KPiBTYWVlZC4NCj4gDQo+IC0tLQ0KPiANCj4g
+U2FlZWQgTWFoYW1lZWQgKDExKToNCj4gICBuZXQvbWx4NTogRVEsIEludHJvZHVjZSBhdG9taWMg
+bm90aWZpZXIgY2hhaW4gc3Vic2NyaXB0aW9uIEFQSQ0KPiAgIG5ldC9tbHg1OiBGV1RyYWNlLCBV
+c2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IEZQR0EsIFVzZSBhc3luYyBldmVu
+dHMgY2hhaW4NCj4gICBuZXQvbWx4NTogQ2xvY2ssIFVzZSBhc3luYyBldmVudHMgY2hhaW4NCj4g
+ICBuZXQvbWx4NTogRS1Td2l0Y2gsIFVzZSBhc3luYyBldmVudHMgY2hhaW4NCj4gICBuZXQvbWx4
+NTogRldQYWdlLCBVc2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IENtZElGLCBV
+c2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IFJlc291cmNlIHRhYmxlcywgVXNl
+IGFzeW5jIGV2ZW50cyBjaGFpbg0KPiAgIG5ldC9tbHg1OiBDUSBFUlIsIFVzZSBhc3luYyBldmVu
+dHMgY2hhaW4NCj4gICBuZXQvbWx4NTogRGV2aWNlIGV2ZW50cywgVXNlIGFzeW5jIGV2ZW50cyBj
+aGFpbg0KPiAgIG5ldC9tbHg1OiBJbXByb3ZlIGNvcmUgZGV2aWNlIGV2ZW50cyBoYW5kbGluZw0K
+PiANCg0KDQpBcHBsaWVkIHRvIG1seDUtbmV4dCBicmFuY2guDQoNClRoYW5rcyENCg0K
