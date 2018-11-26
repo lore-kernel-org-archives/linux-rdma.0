@@ -1,83 +1,52 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
-Date: Sun, 25 Nov 2018 20:13:54 -0700
-Message-ID: <20181126031354.GA15463@ziepe.ca>
-References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
- <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
- <20181123203958.GJ3395@ziepe.ca>
- <5BF94B9F.5030409@huawei.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: remove unsafe skb_insert()
+Date: Sun, 25 Nov 2018 19:52:46 -0800 (PST)
+Message-ID: <20181125.195246.1813633762107745866.davem@davemloft.net>
+References: <20181125162623.127762-1-edumazet@google.com>
+        <20181125.102936.907000798531091562.davem@davemloft.net>
+        <CANn89i+mEYyLWt74jK-0ruUjHafgAPMdFKJGgM37B-iuZzk12g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5BF94B9F.5030409@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CANn89i+mEYyLWt74jK-0ruUjHafgAPMdFKJGgM37B-iuZzk12g@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: edumazet@google.com
+Cc: netdev@vger.kernel.org, eric.dumazet@gmail.com, faisal.latif@intel.com, dledford@redhat.com, jgg@ziepe.ca, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Nov 24, 2018 at 09:01:19PM +0800, Wei Hu (Xavier) wrote:
+From: Eric Dumazet <edumazet@google.com>
+Date: Sun, 25 Nov 2018 15:37:43 -0800
+
+> On Sun, Nov 25, 2018 at 10:29 AM David Miller <davem@davemloft.net> wrote:
+>>
+>> From: Eric Dumazet <edumazet@google.com>
+>> Date: Sun, 25 Nov 2018 08:26:23 -0800
+>>
+>> > I do not see how one can effectively use skb_insert() without holding
+>> > some kind of lock. Otherwise other cpus could have changed the list
+>> > right before we have a chance of acquiring list->lock.
+>> >
+>> > Only existing user is in drivers/infiniband/hw/nes/nes_mgt.c and this
+>> > one probably meant to use __skb_insert() since it appears nesqp->pau_list
+>> > is protected by nesqp->pau_lock. This looks like nesqp->pau_lock
+>> > could be removed, since nesqp->pau_list.lock could be used instead.
+>> >
+>> > Signed-off-by: Eric Dumazet <edumazet@google.com>
+>>
+>> Good find.
+>>
+>> Indeed, any of the queue SKB manipulation functions that take two SKBs
+>> as an argument are suspect in this manner.
+>>
+>> Applied, thanks Eric.
 > 
+> Oh well, this does not build.
 > 
-> On 2018/11/24 4:39, Jason Gunthorpe wrote:
-> > On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
-> >> This patch modifies the name of hns RoCE device's name in order
-> >> to ensure that the name is consistent before and after reset.
-> >>
-> >> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> >>  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
-> >>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
-> >>  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
-> >>  3 files changed, 7 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> >> index 259977b..a8cfe76 100644
-> >> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> >> @@ -954,6 +954,7 @@ struct hns_roce_dev {
-> >>  	struct pci_dev		*pci_dev;
-> >>  	struct device		*dev;
-> >>  	struct hns_roce_uar     priv_uar;
-> >> +	char			name[IB_DEVICE_NAME_MAX];
-> >>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
-> >>  	spinlock_t		sm_lock;
-> >>  	spinlock_t		bt_cmd_lock;
-> >> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >> index 1d639a0..678c7ec 100644
-> >> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
-> >>  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
-> >>  						i + handle->rinfo.base_vector);
-> >>  
-> >> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
-> >> +		 handle->rinfo.netdev->name);
-> > Why is this making up its own driver name? How is this avoiding
-> > colliding with an existing name?
-> >
-> > This is very dangerous since we now have device renaming, the driver
-> > could fail to load with no recovery.
-> Hi, Jason
->        
->     The NIC driver notifies the RoCE driver to perform reset related
-> processing by calling the .reset_notify() interface registered by the
-> RoCE driver. If the RoCE reset processing fails, .reset_notify()
-> returns non-zero, and then hns NIC driver will reschedule the
-> reset task again.
->    
->     The current hardware version in hip08 SoC cannot support
-> after reset process the application still communicates with the
-> resources like QP requested before reset. In RoCE reset process,
-> we will release the resources through ib_unregister_device, after
-> the hardware reset is completed, driver will re-execute
-> ib_register_device.
->    
->     Currently, we find that the ib_device's name after reset
-> and the one before reset may be different. We can specify the
-> device name to solve this problem.
+> Since you have not pushed your tree yet, maybe we can replace this
+> with a version that actually compiles.
+> 
+> Please let me know if a relative patch or a v2 is needed, thanks.
 
-No, now you just have unsolved races.
-
-If you want to reset like this then you will need to do some kind of
-revision to the IB core code to not loose the name assigned to the
-device and not hacks like this.
-
-Jason
+I fixed up the build in your original patch and am about to push that
+out.
