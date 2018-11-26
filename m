@@ -1,71 +1,70 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 0/7] Enrich DEVX support
-Date: Mon, 26 Nov 2018 08:28:31 +0200
-Message-ID: <20181126062838.5907-1-leon@kernel.org>
+Subject: [PATCH mlx5-next 1/7] net/mlx5: Update mlx5_ifc with DEVX UCTX capabilities bits
+Date: Mon, 26 Nov 2018 08:28:32 +0200
+Message-ID: <20181126062838.5907-2-leon@kernel.org>
+References: <20181126062838.5907-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181126062838.5907-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Yishai Hadas <yishaih@mellanox.com>
 
->From Yishai,
------------------------------------
-This series enriches DEVX support in few aspects: it enables interoperability
-between DEVX and verbs and improves mechanism for controlling privileged DEVX
-commands.
+Expose device capabilities for DEVX user context, it includes which caps
+the device is supported and a matching bit to set as part of user
+context creation.
 
-The first patch updates mlx5 ifc file.
+Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ include/linux/mlx5/mlx5_ifc.h | 16 ++++++++++++++--
+ 1 file changed, 14 insertions(+), 2 deletions(-)
 
-Next 3 patches enable modifying and querying verbs objects via the DEVX
-interface.
-
-To achieve that the core layer introduced the 'UVERBS_IDR_ANY_OBJECT' type
-to match any IDR object. Once it's used by some driver's method, the
-infrastructure skips checking for the IDR type and it becomes the driver
-handler responsibility.
-
-The DEVX methods of modify and query were changed to get any object type via
-the 'UVERBS_IDR_ANY_OBJECT' mechanism. The type checking is done per object as
-part of the driver code.
-
-The next 3 patches introduce more robust mechanism for controlling privileged
-DEVX commands. The responsibility to block/allow per command was moved to be
-done in the firmware based on the UID credentials that the driver reports upon
-user context creation. This enables more granularity per command based on the
-device security model and the user credentials.
-
-In addition, by introducing a valid range for 'general commands' we prevent the
-need to touch the driver's code any time that a new future command will be
-added.
-
-The last patch fixes the XRC verbs flow once a DEVX context is used. This is
-needed as XRCD is some shared kernel resource and as such a kernel UID (=0)
-should be used in its related resources.
-
-Thanks
-
-Yishai Hadas (7):
-  net/mlx5: Update mlx5_ifc with DEVX UCTX capabilities bits
-  IB/core: Introduce UVERBS_IDR_ANY_OBJECT
-  IB/core: Enable getting an object type from a given uobject
-  IB/mlx5: Enable modify and query verbs objects via DEVX
-  IB/mlx5: Enforce DEVX privilege by firmware
-  IB/mlx5: Update the supported DEVX commands
-  IB/mlx5: Allow XRC usage via verbs in DEVX context
-
- drivers/infiniband/core/rdma_core.c   |  27 +++--
- drivers/infiniband/core/rdma_core.h   |  21 ++--
- drivers/infiniband/core/uverbs_uapi.c |  10 +-
- drivers/infiniband/hw/mlx5/devx.c     | 142 ++++++++++++++++++++++----
- drivers/infiniband/hw/mlx5/main.c     |   4 +-
- drivers/infiniband/hw/mlx5/mlx5_ib.h  |   6 +-
- drivers/infiniband/hw/mlx5/qp.c       |  12 +--
- drivers/infiniband/hw/mlx5/srq.c      |   2 +-
- include/linux/mlx5/mlx5_ifc.h         |  26 ++++-
- include/rdma/uverbs_ioctl.h           |   6 ++
- include/rdma/uverbs_std_types.h       |  12 +++
- 11 files changed, 215 insertions(+), 53 deletions(-)
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 6f64e814cc10..ece1b606c909 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -883,6 +883,10 @@ enum {
+ 	MLX5_CAP_UMR_FENCE_NONE		= 0x2,
+ };
+ 
++enum {
++	MLX5_UCTX_CAP_RAW_TX = 1UL << 0,
++};
++
+ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         reserved_at_0[0x30];
+ 	u8         vhca_id[0x10];
+@@ -1193,7 +1197,13 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8	   num_vhca_ports[0x8];
+ 	u8	   reserved_at_618[0x6];
+ 	u8	   sw_owner_id[0x1];
+-	u8	   reserved_at_61f[0x1e1];
++	u8         reserved_at_61f[0x1];
++
++	u8         reserved_at_620[0x80];
++
++	u8         uctx_cap[0x20];
++
++	u8	   reserved_at_6c0[0x140];
+ };
+ 
+ enum mlx5_flow_destination_type {
+@@ -9276,7 +9286,9 @@ struct mlx5_ifc_umem_bits {
+ struct mlx5_ifc_uctx_bits {
+ 	u8         modify_field_select[0x40];
+ 
+-	u8         reserved_at_40[0x1c0];
++	u8         cap[0x20];
++
++	u8         reserved_at_60[0x1a0];
+ };
+ 
+ struct mlx5_ifc_create_umem_in_bits {
+-- 
+2.19.1
