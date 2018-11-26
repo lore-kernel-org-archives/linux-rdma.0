@@ -1,101 +1,78 @@
-From: Eric Dumazet <edumazet@google.com>
-Subject: [PATCH v2 net-next] net: remove unsafe skb_insert()
-Date: Sun, 25 Nov 2018 15:49:14 -0800
-Message-ID: <20181125234914.227078-1-edumazet@google.com>
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
+Date: Sun, 25 Nov 2018 19:25:45 -0500
+Message-ID: <CAF=yD-+m=mn9UyB39u_kuRVSsqWFg8ZBW812p_c=h9h=9_6XLA@mail.gmail.com>
+References: <20181124022035.17519-1-deepa.kernel@gmail.com>
+ <20181124022035.17519-8-deepa.kernel@gmail.com> <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
+ <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
+ <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com>
+ <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com> <CAK8P3a2_i=RwcyjeDTn9HrzvPN7FYEYdFuyo3RXSVS_N4sbYeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: "David S . Miller" <davem@davemloft.net>
-Cc: netdev <netdev@vger.kernel.org>, Eric Dumazet <edumazet@google.com>, Eric Dumazet <eric.dumazet@gmail.com>, Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAK8P3a2_i=RwcyjeDTn9HrzvPN7FYEYdFuyo3RXSVS_N4sbYeg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Deepa Dinamani <deepa.kernel@gmail.com>, David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, y2038 Mailman List <y2038@lists.linaro.org>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-alpha@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-I do not see how one can effectively use skb_insert() without holding
-some kind of lock. Otherwise other cpus could have changed the list
-right before we have a chance of acquiring list->lock.
+> > > The existing timestamp options: SO_TIMESTAMP* fail to provide proper
+> > > timestamps beyond year 2038 on 32 bit ABIs.
+> > > But, these work fine on 64 bit native ABIs.
+> > > So now we need a way of updating these timestamps so that we do not
+> > > break existing userspace: 64 bit ABIs should not have to change
+> > > userspace, 32 bit ABIs should work as is until 2038 after which they
+> > > have bad timestamps.
+> > > So we introduce new y2038 safe timestamp options for 32 bit ABIs. We
+> > > assume that 32 bit applications will switch to new ABIs at some point,
+> > > but leave the older timestamps as is.
+> > > I can update the commit text as per above.
+> >
+> > So on 32-bit platforms SO_TIMESTAMP_NEW introduces a new struct
+> > sock_timeval with both 64-bit fields.
+> >
+> > Does this not break existing applications that compile against SO_TIMESTAMP
+> > and expect struct timeval? For one example, the selftests under tools/testing.
+> >
+> > The kernel will now convert SO_TIMESTAMP (previously constant 29) to
+> > different SO_TIMESTAMP_NEW (62) and returns a different struct. Perhaps
+> > with a library like libc in the middle this can be fixed up
+> > transparently, but for
+> > applications that don't have a more recent libc or use a library at
+> > all, it breaks
+> > the ABI.
+> >
+> > I suspect that these finer ABI points may have been discussed outside the
+> > narrow confines of socket timestamping. But on its own, this does worry me.
+>
+> The entire purpose of the complexities in the patch set is to not break
+> the user space ABI after an application gets recompiled with a 64-bit
+> time_t defined by a new libc version:
+>
+> #define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? \
+>             SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
+>
+> This delays the evaluation of SO_TIMESTAMP to the point where
+> it is first used, the assumption being that at this point we have included
+> the libc header file that defines both 'time_t' and 'struct timeval'.
+> [If we have not included that header, we get a compile-time error,
+> which is also necessary because the compiler has no way of deciding
+> whether to use SO_TIMESTAMP_OLD or SO_TIMESTAMP_NEW
+> in that case].
+>
+> If the application is built with a 32-bit time_t, or with on a 64-bit
+> architecture (all of which have 64-bit time_t and __kernel_long_t),
+> or on x32 (which also has 64-bit time_t and __kernel_long_t),
+> the result is SO_TIMESTAMP_OLD, so we tell the kernel
+> to send back a timestamp in the old format, and everything works
+> as it did before.
+>
+> The only thing that changes is 32-bit user space (other than x32) with
+> a 64-bit time_t. In this case, the application expects a structure
+> that corresponds to the new sock_timeval (which is compatible
+> with the user space timeval based on 64-bit time_t), so we must
+> use the new constant in order to tell the kernel which one we want.
 
-Only existing user is in drivers/infiniband/hw/nes/nes_mgt.c and this
-one probably meant to use __skb_insert() since it appears nesqp->pau_list
-is protected by nesqp->pau_lock. This looks like nesqp->pau_lock
-could be removed, since nesqp->pau_list.lock could be used instead.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Faisal Latif <faisal.latif@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma <linux-rdma@vger.kernel.org>
----
- drivers/infiniband/hw/nes/nes_mgt.c |  4 ++--
- include/linux/skbuff.h              |  2 --
- net/core/skbuff.c                   | 22 ----------------------
- 3 files changed, 2 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/infiniband/hw/nes/nes_mgt.c b/drivers/infiniband/hw/nes/nes_mgt.c
-index fc0c191014e908eea32d752f3499295ef143aa0a..cc4dce5c3e5f6d99fc44fcde7334e70ac7a33002 100644
---- a/drivers/infiniband/hw/nes/nes_mgt.c
-+++ b/drivers/infiniband/hw/nes/nes_mgt.c
-@@ -551,14 +551,14 @@ static void queue_fpdus(struct sk_buff *skb, struct nes_vnic *nesvnic, struct ne
- 
- 	/* Queue skb by sequence number */
- 	if (skb_queue_len(&nesqp->pau_list) == 0) {
--		skb_queue_head(&nesqp->pau_list, skb);
-+		__skb_queue_head(&nesqp->pau_list, skb);
- 	} else {
- 		skb_queue_walk(&nesqp->pau_list, tmpskb) {
- 			cb = (struct nes_rskb_cb *)&tmpskb->cb[0];
- 			if (before(seqnum, cb->seqnum))
- 				break;
- 		}
--		skb_insert(tmpskb, skb, &nesqp->pau_list);
-+		__skb_insert(skb, tmpskb->prev, tmpskb, &nesqp->pau_list);
- 	}
- 	if (nesqp->pau_state == PAU_READY)
- 		process_it = true;
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index f17a7452ac7bf47ef4bcf89840bba165cee6f50a..73902acf2b71c8800d81b744a936a7420f33b459 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -1749,8 +1749,6 @@ static inline void skb_queue_head_init_class(struct sk_buff_head *list,
-  *	The "__skb_xxxx()" functions are the non-atomic ones that
-  *	can only be called with interrupts disabled.
-  */
--void skb_insert(struct sk_buff *old, struct sk_buff *newsk,
--		struct sk_buff_head *list);
- static inline void __skb_insert(struct sk_buff *newsk,
- 				struct sk_buff *prev, struct sk_buff *next,
- 				struct sk_buff_head *list)
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 9a8a72cefe9b94d3821b9cc5ba5bba647ae51267..02cd7ae3d0fb26ef0a8b006390154fdefd0d292f 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2990,28 +2990,6 @@ void skb_append(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_head
- }
- EXPORT_SYMBOL(skb_append);
- 
--/**
-- *	skb_insert	-	insert a buffer
-- *	@old: buffer to insert before
-- *	@newsk: buffer to insert
-- *	@list: list to use
-- *
-- *	Place a packet before a given packet in a list. The list locks are
-- * 	taken and this function is atomic with respect to other list locked
-- *	calls.
-- *
-- *	A buffer cannot be placed on two lists at the same time.
-- */
--void skb_insert(struct sk_buff *old, struct sk_buff *newsk, struct sk_buff_head *list)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&list->lock, flags);
--	__skb_insert(newsk, old->prev, old, list);
--	spin_unlock_irqrestore(&list->lock, flags);
--}
--EXPORT_SYMBOL(skb_insert);
--
- static inline void skb_split_inside_header(struct sk_buff *skb,
- 					   struct sk_buff* skb1,
- 					   const u32 len, const int pos)
--- 
-2.20.0.rc0.387.gc7a69e6b6c-goog
+Thanks. That was exactly the context that I was missing. I hadn't
+figured out that the test was based on a libc definition. This all
+makes perfect sense.
