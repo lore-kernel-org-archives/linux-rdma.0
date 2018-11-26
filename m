@@ -1,117 +1,150 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 3/3] RDMA/hns: Modify hns RoCE device's name
-Date: Mon, 26 Nov 2018 10:44:02 -0700
-Message-ID: <20181126174402.GC32083@ziepe.ca>
-References: <1542986065-44265-1-git-send-email-xavier.huwei@huawei.com>
- <1542986065-44265-4-git-send-email-xavier.huwei@huawei.com>
- <20181123203958.GJ3395@ziepe.ca>
- <5BF94B9F.5030409@huawei.com>
- <20181126031354.GA15463@ziepe.ca>
- <5BFBB002.8020703@huawei.com>
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: Re: [Intel-wired-lan] [PATCH V2] mm: Replace all open encodings for
+ NUMA_NO_NODE
+Date: Mon, 26 Nov 2018 09:56:28 -0800
+Message-ID: <c1b8de1a8e9d4d215b56498e2d5b83a02083483a.camel@intel.com>
+References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+Reply-To: jeffrey.t.kirsher@intel.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-w/yFab8vycJu1U8x0saQ"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5BFBB002.8020703@huawei.com>
+In-Reply-To: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, charles.chenxin@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: hverkuil@xs4all.nl, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, vkoul@kernel.org, dri-devel@lists.freedesktop.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, iommu@lists.linux-foundation.org, intel-wired-lan@lists.osuosl.org, linux-alpha@vger.kernel.org, dmaengine@vger.kernel.org, jiangqi903@gmail.com, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 04:34:10PM +0800, Wei Hu (Xavier) wrote:
-> 
-> 
-> On 2018/11/26 11:13, Jason Gunthorpe wrote:
-> > On Sat, Nov 24, 2018 at 09:01:19PM +0800, Wei Hu (Xavier) wrote:
-> >>
-> >> On 2018/11/24 4:39, Jason Gunthorpe wrote:
-> >>> On Fri, Nov 23, 2018 at 11:14:25PM +0800, Wei Hu (Xavier) wrote:
-> >>>> This patch modifies the name of hns RoCE device's name in order
-> >>>> to ensure that the name is consistent before and after reset.
-> >>>>
-> >>>> Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
-> >>>>  drivers/infiniband/hw/hns/hns_roce_device.h | 1 +
-> >>>>  drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 3 +++
-> >>>>  drivers/infiniband/hw/hns/hns_roce_main.c   | 4 +++-
-> >>>>  3 files changed, 7 insertions(+), 1 deletion(-)
-> >>>>
-> >>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-> >>>> index 259977b..a8cfe76 100644
-> >>>> +++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-> >>>> @@ -954,6 +954,7 @@ struct hns_roce_dev {
-> >>>>  	struct pci_dev		*pci_dev;
-> >>>>  	struct device		*dev;
-> >>>>  	struct hns_roce_uar     priv_uar;
-> >>>> +	char			name[IB_DEVICE_NAME_MAX];
-> >>>>  	const char		*irq_names[HNS_ROCE_MAX_IRQ_NUM];
-> >>>>  	spinlock_t		sm_lock;
-> >>>>  	spinlock_t		bt_cmd_lock;
-> >>>> diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >>>> index 1d639a0..678c7ec 100644
-> >>>> +++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-> >>>> @@ -6110,6 +6110,9 @@ static int hns_roce_hw_v2_get_cfg(struct hns_roce_dev *hr_dev,
-> >>>>  		hr_dev->irq[i] = pci_irq_vector(handle->pdev,
-> >>>>  						i + handle->rinfo.base_vector);
-> >>>>  
-> >>>> +	snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
-> >>>> +		 handle->rinfo.netdev->name);
-> >>> Why is this making up its own driver name? How is this avoiding
-> >>> colliding with an existing name?
-> >>>
-> >>> This is very dangerous since we now have device renaming, the driver
-> >>> could fail to load with no recovery.
-> >> Hi, Jason
-> >>        
-> >>     The NIC driver notifies the RoCE driver to perform reset related
-> >> processing by calling the .reset_notify() interface registered by the
-> >> RoCE driver. If the RoCE reset processing fails, .reset_notify()
-> >> returns non-zero, and then hns NIC driver will reschedule the
-> >> reset task again.
-> >>    
-> >>     The current hardware version in hip08 SoC cannot support
-> >> after reset process the application still communicates with the
-> >> resources like QP requested before reset. In RoCE reset process,
-> >> we will release the resources through ib_unregister_device, after
-> >> the hardware reset is completed, driver will re-execute
-> >> ib_register_device.
-> >>    
-> >>     Currently, we find that the ib_device's name after reset
-> >> and the one before reset may be different. We can specify the
-> >> device name to solve this problem.
-> > No, now you just have unsolved races.
-> >
-> > If you want to reset like this then you will need to do some kind of
-> > revision to the IB core code to not loose the name assigned to the
-> > device and not hacks like this.
-> Hi, Jason
-> 
->     In fact, We only specified the name of the ib_device to be generated
-> when
-> calling ib_register_device on the hip08 SoC, and doesn't modify its name
-> during the existence of ib_device.
-> 
->     In this example, if you always use hns_%d when registering, I think that
-> no matter how you modify IB core code, we can't solve this problem. We
-> need to specify the name of the ib_device device when calling
-> ib_register_device, and this name should be unique in the OS.
-> 
->     The NIC and the RoCE hardware engine share the function On the hip08
-> SoC.
-> The NIC driver will execute register_netdev firstly, and then the RoCE
-> driver will
-> execute ib_register_device. In the following statement, where
-> handle->rinfo.netdev->name is the name of the corresponding net_device
-> device,
-> this will ensure the uniqueness of the hnsXXX ib_device's name on the OS.
-> 
->     snprintf(hr_dev->name, IB_DEVICE_NAME_MAX, "hns%s",
->          handle->rinfo.netdev->name);
 
-It does not. We support rename in ib_core now, so users can set device
-names to whatever they like and break these naming assumptions.
+--=-w/yFab8vycJu1U8x0saQ
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The only solution I can see is to make a reset function in IB core
-that retains the name but forces all clients to disconnect and
-reconnect.
+On Mon, 2018-11-26 at 17:56 +0530, Anshuman Khandual wrote:
+> At present there are multiple places where invalid node number is
+> encoded
+> as -1. Even though implicitly understood it is always better to have
+> macros
+> in there. Replace these open encodings for an invalid node number
+> with the
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions
+> like
+> 'invalid node' from various places redirecting them to a common
+> definition.
+>=20
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 
-Jason
+For the 'ixgbe' driver changes.
+
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+
+
+> ---
+> Changes in V2:
+>=20
+> - Added inclusion of 'numa.h' header at various places per Andrew
+> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+>=20
+> Changes in V1: (https://lkml.org/lkml/2018/11/23/485)
+>=20
+> - Dropped OCFS2 changes per Joseph
+> - Dropped media/video drivers changes per Hans
+>=20
+> RFC - https://patchwork.kernel.org/patch/10678035/
+>=20
+> Build tested this with multiple cross compiler options like alpha,
+> sparc,
+> arm64, x86, powerpc, powerpc64le etc with their default config which
+> might
+> not have compiled tested all driver related changes. I will
+> appreciate
+> folks giving this a test in their respective build environment.
+>=20
+> All these places for replacement were found by running the following
+> grep
+> patterns on the entire kernel code. Please let me know if this might
+> have
+> missed some instances. This might also have replaced some false
+> positives.
+> I will appreciate suggestions, inputs and review.
+>=20
+> 1. git grep "nid =3D=3D -1"
+> 2. git grep "node =3D=3D -1"
+> 3. git grep "nid =3D -1"
+> 4. git grep "node =3D -1"
+>=20
+>  arch/alpha/include/asm/topology.h             |  3 ++-
+>  arch/ia64/kernel/numa.c                       |  2 +-
+>  arch/ia64/mm/discontig.c                      |  6 +++---
+>  arch/ia64/sn/kernel/io_common.c               |  3 ++-
+>  arch/powerpc/include/asm/pci-bridge.h         |  3 ++-
+>  arch/powerpc/kernel/paca.c                    |  3 ++-
+>  arch/powerpc/kernel/pci-common.c              |  3 ++-
+>  arch/powerpc/mm/numa.c                        | 14 +++++++-------
+>  arch/powerpc/platforms/powernv/memtrace.c     |  5 +++--
+>  arch/sparc/kernel/auxio_32.c                  |  3 ++-
+>  arch/sparc/kernel/pci_fire.c                  |  3 ++-
+>  arch/sparc/kernel/pci_schizo.c                |  3 ++-
+>  arch/sparc/kernel/pcic.c                      |  7 ++++---
+>  arch/sparc/kernel/psycho_common.c             |  3 ++-
+>  arch/sparc/kernel/sbus.c                      |  3 ++-
+>  arch/sparc/mm/init_64.c                       |  6 +++---
+>  arch/sparc/prom/init_32.c                     |  3 ++-
+>  arch/sparc/prom/init_64.c                     |  5 +++--
+>  arch/sparc/prom/tree_32.c                     | 13 +++++++------
+>  arch/sparc/prom/tree_64.c                     | 19 ++++++++++-------
+> --
+>  arch/x86/include/asm/pci.h                    |  3 ++-
+>  arch/x86/kernel/apic/x2apic_uv_x.c            |  7 ++++---
+>  arch/x86/kernel/smpboot.c                     |  3 ++-
+>  arch/x86/platform/olpc/olpc_dt.c              | 17 +++++++++--------
+>  drivers/block/mtip32xx/mtip32xx.c             |  5 +++--
+>  drivers/dma/dmaengine.c                       |  4 +++-
+>  drivers/infiniband/hw/hfi1/affinity.c         |  3 ++-
+>  drivers/infiniband/hw/hfi1/init.c             |  3 ++-
+>  drivers/iommu/dmar.c                          |  5 +++--
+>  drivers/iommu/intel-iommu.c                   |  3 ++-
+>  drivers/misc/sgi-xp/xpc_uv.c                  |  3 ++-
+>  drivers/net/ethernet/intel/ixgbe/ixgbe_main.c |  5 +++--
+>  include/linux/device.h                        |  2 +-
+>  init/init_task.c                              |  3 ++-
+>  kernel/kthread.c                              |  3 ++-
+>  kernel/sched/fair.c                           | 15 ++++++++-------
+>  lib/cpumask.c                                 |  3 ++-
+>  mm/huge_memory.c                              | 13 +++++++------
+>  mm/hugetlb.c                                  |  3 ++-
+>  mm/ksm.c                                      |  2 +-
+>  mm/memory.c                                   |  7 ++++---
+>  mm/memory_hotplug.c                           | 12 ++++++------
+>  mm/mempolicy.c                                |  2 +-
+>  mm/page_alloc.c                               |  4 ++--
+>  mm/page_ext.c                                 |  2 +-
+>  net/core/pktgen.c                             |  3 ++-
+>  net/qrtr/qrtr.c                               |  3 ++-
+>  tools/perf/bench/numa.c                       |  6 +++---
+>  48 files changed, 146 insertions(+), 108 deletions(-)
+
+
+--=-w/yFab8vycJu1U8x0saQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlv8M8wACgkQ5W/vlVpL
+7c7QNQ/+NU3ikW7p6wkGj8G70RbkJORkKztnANrZvZMGTngn9AOr2IYiWm5l1FX0
+J1AyprX0m4BmLXBgW1BrOiReEiunq9RWtCT+2d7jQD6HxydLdRIbnQhLreHfcFv7
+6pUvyapG9B8a4X/6OzQXJVkRV+iXi/NzVxJ2WvZ6PhifiPMJo9oWab/OJDu/+8Fn
+w9BrPNqJhTdrSQ1E7aeMWUs/GbfQsQ+cm51Yb12KAemw5ocp45GNNeN2Y14g+YFZ
+Yhf7+/ihwBaph/zDYqFRsI+uSLnKIh7vLC/weBglkzU5mNZU9ugRj6M76jDE+OI3
+yqOTMp6DquBqH7qYuGA+yJfWvnsXa/KphTKzISpKXzkcGI4uyhjfWjoUN2CPbLWj
+55+k1mCY0glzACh1K+SFV1EDJ157U0sEx+vGaKDfpEcUFi/SUU7xE/u+4lI12Kec
+fMhcStiYmF5wvVMO8ID6+aPl9F7uNdrAJjPV6psDtLRhi6D+EkFRPG/2sxGNWNBC
+2FfNwyEy9of0UsptOWI3IOt80Oz2usDEwcnC4gAQhykPe/6lNI6Yb1OjsMtUdzw1
+BqoYXFKLnC2JQWxluwLMjJ/ng/Af94RzzYw901pIhtJjlTOx6nYUxO38hLp6JU6B
+qKDxnSxdVo6/2QOJpMCJ2o0tX/Q1MdMWbySfxnCX9il8o/TgOck=
+=I+vR
+-----END PGP SIGNATURE-----
+
+--=-w/yFab8vycJu1U8x0saQ--
