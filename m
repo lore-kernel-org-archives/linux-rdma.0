@@ -1,72 +1,114 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 00/11] mlx5 core internal firmware events
- handling improvements
-Date: Mon, 26 Nov 2018 22:16:27 +0000
-Message-ID: <643ea3baec8912db61452cef6c5d9d3c8d39f2e7.camel@mellanox.com>
-References: <20181120221228.18365-1-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 01/13] net/mlx5: Driver events notifier API
+Date: Mon, 26 Nov 2018 14:38:56 -0800
+Message-ID: <20181126223908.15988-2-saeedm@mellanox.com>
+References: <20181126223908.15988-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181120221228.18365-1-saeedm@mellanox.com>
-Content-Language: en-US
-Content-ID: <C7C0BE81EFF4A243B1E8550F49120E3C@eurprd05.prod.outlook.com>
+In-Reply-To: <20181126223908.15988-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTExLTIwIGF0IDE0OjEyIC0wODAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
-Cj4gSGkNCj4gDQo+IFRoaXMgcGF0Y2hzZXQgaXMgZm9yIG1seDUtbmV4dCBzaGFyZWQgYnJhbmNo
-LCBhbmQgd2lsbCBiZSBhcHBsaWVkDQo+IHRoZXJlDQo+IG9uY2UgdGhlIHJldmlldyBpcyBkb25l
-Lg0KPiANCj4gVGhlIG1haW4gaWRlYSBvZiB0aGlzIGNoYW5nZSBpcyB0byBkZWZpbmUgYSBmbGV4
-aWJsZSBzY2FsYWJsZSBhbmQNCj4gc2ltcGxlciBsb3cgbGV2ZWwgbWx4NSBjb3JlIEFQSXMgdG8g
-dXBwZXIgbGV2ZWwgY29tcG9uZW50cyBmb3IgYmV0dGVyDQo+IGZlYXR1cmVzIGRlY291cGxpbmcg
-YW5kIG1heGltdW0gY29kZSBsb2NhbGl0eSBhbmQgbW9kdWxhcml0eS4NCj4gDQo+IEltcHJvdmUg
-YW5kIHNpbXBsaWZ5IG1seDUgY29yZSBpbnRlcm5hbCBmaXJtd2FyZSBhbmQgZGV2aWNlIGFzeW5j
-DQo+IGV2ZW50cw0KPiBoYW5kbGluZyBhbmQgc3Vic2NyaXB0aW9uLCBjdXJyZW50bHkgYWxsIGFz
-eW5jIGZpcm13YXJlIGV2ZW50cyBhcmUNCj4gaGFuZGxlZCBpbiBvbmUgcGxhY2UgKHN3aXRjaCBj
-YXNlIGluIGVxLmMpIGFuZCBldmVyeSB0aW1lIHdlIG5lZWQgdG8NCj4gdXBkYXRlIG9uZSBvZiB0
-aGUgbWx4NV9jb3JlIGhhbmRsZXJzIG9yIGFkZCBuZXcgZXZlbnRzIGhhbmRsaW5nIHRvDQo+IHRo
-ZQ0KPiBzeXN0ZW0sIHRoZSBkcml2ZXIgbmVlZHMgdG8gYmUgY2hhbmdlZCBpbiBtYW55IHBsYWNl
-cyBpbiBvcmRlciB0bw0KPiBkZWxpdmVyDQo+IHRoZSBuZXcgZXZlbnQgdG8gaXRzIGNvbnN1bWVy
-Lg0KPiANCj4gVG8gaW1wcm92ZSB0aGlzIHdlIHdpbGwgdXNlIGF0b21pY19ub3RpZmllcl9jaGFp
-biB0byBmaXJlIGZpcm13YXJlDQo+IGV2ZW50cw0KPiBhdCBpbnRlcm5hbCBtbHg1IGNvcmUgY29t
-cG9uZW50cyBzdWNoIGFzIGVzd2l0Y2gvZnBnYS9jbG9jay9GVw0KPiB0cmFjZXIvZXRjLi4sDQo+
-IHRoaXMgaXMgdG8gYXZvaWQgZXhwbGljaXQgY2FsbHMgZnJvbSBsb3cgbGV2ZWwgbWx4NV9jb3Jl
-IHRvIHVwcGVyDQo+IGNvbXBvbmVudHMNCj4gYW5kIHRvIHNpbXBsaWZ5IHRoZSBtbHg1X2NvcmUg
-QVBJIGZvciBmdXR1cmUgZGV2ZWxvcG1lbnRzLg0KPiAgICAgDQo+IFByb3ZpZGUgcmVnaXN0ZXIv
-dW5yZWdpc3RlciBub3RpZmllcnMgQVBJIGFuZCBjYWxsIHRoZSBub3RpZmllciBjaGFpbg0KPiBv
-bg0KPiBmaXJtd2FyZSBhc3luYyBldmVudHMuDQo+ICAgICANCj4gRXhhbXBsZSB0byBzdWJzY3Jp
-YmUgdG8gYSBGVyBldmVudDoNCj4gDQo+IHN0cnVjdCBtbHg1X25iIHBvcnRfZXZlbnQ7DQo+ICAg
-ICANCj4gTUxYNV9OQl9JTklUKCZwb3J0X2V2ZW50LCBwb3J0X2V2ZW50X2hhbmRsZXIsIFBPUlRf
-Q0hBTkdFKTsNCj4gbWx4NV9lcV9ub3RpZmllcl9yZWdpc3RlcihtZGV2LCAmcG9ydF9ldmVudCk7
-DQo+ICAgICANCj4gV2hlcmU6DQo+ICAgLSBwb3J0X2V2ZW50X2hhbmRsZXIgaXMgdGhlIG5vdGlm
-aWVyIGJsb2NrIGNhbGxiYWNrLg0KPiAgIC0gUE9SVF9FVkVOVCBpcyB0aGUgc3VmZml4IG9mIE1M
-WDVfRVZFTlRfVFlQRV9QT1JUX0NIQU5HRSAoVGhlDQo+IGV2ZW50DQo+ICAgICB0eXBlIHRvIHN1
-YnNjcmliZSB0bykNCj4gDQo+IFRoZSBhYm92ZSB3aWxsIGd1YXJhbnRlZSB0aGF0IHBvcnRfZXZl
-bnRfaGFuZGxlciB3aWxsIHJlY2VpdmUgYWxsIEZXDQo+IGV2ZW50cyBvZiB0aGUgdHlwZSBNTFg1
-X0VWRU5UX1RZUEVfUE9SVF9DSEFOR0UuDQo+ICAgICANCj4gVG8gcmVjZWl2ZSBhbGwgRlcvSFcg
-ZXZlbnRzIG9uZSBjYW4gc3Vic2NyaWJlIHRvDQo+IE1MWDVfRVZFTlRfVFlQRV9OT1RJRllfQU5Z
-Lg0KPiAgDQo+IFRoZXJlIGNhbiBiZSBvbmx5IDEyOCB0eXBlcyBvZiBmaXJtd2FyZSBldmVudHMg
-ZWFjaCBoYXMgaXRzIG93bg0KPiA2NEJ5dGUgDQo+IEVRRSAoRXZlbnQgUXVldWUgRWxlbWVudCkg
-ZGF0YSwgd2Ugd2lsbCBoYXZlIG9uZQ0KPiBhdG9taWNfbm90aWZpZXJfY2hhaW4NCj4gcGVyIGV2
-ZW50IHR5cGUgZm9yIG1heGltdW0gcGVyZm9ybWFuY2UgYW5kIHZlcmJvc2l0eS4NCj4gRWFjaCBo
-YW5kbGVyIGlzIGdvaW5nIHRvIHJlY2VpdmUgdGhlIGV2ZW50X3R5cGUgYXMgdW5zaWduZWQgbG9u
-ZyBhbmQNCj4gdGhlIGV2ZW50IGRhdGEgYXMgdm9pZCBwb2ludGVyLCBleGFjdGx5IGFzIGRlZmlu
-ZWQgaW4gdGhlIG5vdGlmaWVyDQo+IGJsb2NrDQo+IGhhbmRsZXJzIHByb3RvdHlwZS4NCj4gICAg
-DQo+IFRoaXMgQVBJIGlzIGltcGxlbWVudGVkIGluIHRoZSBmaXJzdCBwYXRjaCBvZiB0aGlzIHNl
-cmllcyBhbGwNCj4gZm9sbG93aW5nDQo+IHBhdGNoZXMgYXJlIG1vZGlmeWluZyB0aGUgZXhpc3Rp
-bmcgbWx4NSBjb21wb25lbnRzIHRvIHVzZSB0aGUgbmV3IEFQSQ0KPiB0bw0KPiBzdWJzY3JpYmUg
-dG8gRlcgZXZlbnRzLg0KPiANCj4gVGhhbmtzLA0KPiBTYWVlZC4NCj4gDQo+IC0tLQ0KPiANCj4g
-U2FlZWQgTWFoYW1lZWQgKDExKToNCj4gICBuZXQvbWx4NTogRVEsIEludHJvZHVjZSBhdG9taWMg
-bm90aWZpZXIgY2hhaW4gc3Vic2NyaXB0aW9uIEFQSQ0KPiAgIG5ldC9tbHg1OiBGV1RyYWNlLCBV
-c2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IEZQR0EsIFVzZSBhc3luYyBldmVu
-dHMgY2hhaW4NCj4gICBuZXQvbWx4NTogQ2xvY2ssIFVzZSBhc3luYyBldmVudHMgY2hhaW4NCj4g
-ICBuZXQvbWx4NTogRS1Td2l0Y2gsIFVzZSBhc3luYyBldmVudHMgY2hhaW4NCj4gICBuZXQvbWx4
-NTogRldQYWdlLCBVc2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IENtZElGLCBV
-c2UgYXN5bmMgZXZlbnRzIGNoYWluDQo+ICAgbmV0L21seDU6IFJlc291cmNlIHRhYmxlcywgVXNl
-IGFzeW5jIGV2ZW50cyBjaGFpbg0KPiAgIG5ldC9tbHg1OiBDUSBFUlIsIFVzZSBhc3luYyBldmVu
-dHMgY2hhaW4NCj4gICBuZXQvbWx4NTogRGV2aWNlIGV2ZW50cywgVXNlIGFzeW5jIGV2ZW50cyBj
-aGFpbg0KPiAgIG5ldC9tbHg1OiBJbXByb3ZlIGNvcmUgZGV2aWNlIGV2ZW50cyBoYW5kbGluZw0K
-PiANCg0KDQpBcHBsaWVkIHRvIG1seDUtbmV4dCBicmFuY2guDQoNClRoYW5rcyENCg0K
+Use atomic notifier chain to fire events to mlx5 core driver
+consumers (mlx5e/mlx5_ib) and provide mlx5 register/unregister notifier
+API.
+
+This API will replace the current mlx5_interface->event callback and all
+the logic around it, especially the delayed events logic introduced by
+commit 97834eba7c19 ("net/mlx5: Delay events till ib registration ends")
+
+Which is not needed anymore with this new API where the mlx5 interface
+can dynamically register/unregister its notifier.
+
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+---
+ .../net/ethernet/mellanox/mlx5/core/events.c  | 25 ++++++++++++++++++-
+ .../ethernet/mellanox/mlx5/core/lib/mlx5.h    |  1 +
+ include/linux/mlx5/driver.h                   |  4 +++
+ 3 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+index 3ad004af37d7..560cc14c55f7 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+@@ -35,7 +35,8 @@ static struct mlx5_nb events_nbs_ref[] = {
+ struct mlx5_events {
+ 	struct mlx5_core_dev *dev;
+ 	struct mlx5_event_nb  notifiers[ARRAY_SIZE(events_nbs_ref)];
+-
++	/* driver notifier chain */
++	struct atomic_notifier_head nh;
+ 	/* port module events stats */
+ 	struct mlx5_pme_stats pme_stats;
+ };
+@@ -300,6 +301,7 @@ int mlx5_events_init(struct mlx5_core_dev *dev)
+ 	if (!events)
+ 		return -ENOMEM;
+ 
++	ATOMIC_INIT_NOTIFIER_HEAD(&events->nh);
+ 	events->dev = dev;
+ 	dev->priv.events = events;
+ 	return 0;
+@@ -330,3 +332,24 @@ void mlx5_events_stop(struct mlx5_core_dev *dev)
+ 	for (i = ARRAY_SIZE(events_nbs_ref) - 1; i >= 0 ; i--)
+ 		mlx5_eq_notifier_unregister(dev, &events->notifiers[i].nb);
+ }
++
++int mlx5_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb)
++{
++	struct mlx5_events *events = dev->priv.events;
++
++	return atomic_notifier_chain_register(&events->nh, nb);
++}
++EXPORT_SYMBOL(mlx5_notifier_register);
++
++int mlx5_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *nb)
++{
++	struct mlx5_events *events = dev->priv.events;
++
++	return atomic_notifier_chain_unregister(&events->nh, nb);
++}
++EXPORT_SYMBOL(mlx5_notifier_unregister);
++
++int mlx5_notifier_call_chain(struct mlx5_events *events, unsigned int event, void *data)
++{
++	return atomic_notifier_call_chain(&events->nh, event, data);
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
+index 23317e328b0b..4d78a459676e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
+@@ -73,5 +73,6 @@ struct mlx5_pme_stats {
+ };
+ 
+ void mlx5_get_pme_stats(struct mlx5_core_dev *dev, struct mlx5_pme_stats *stats);
++int mlx5_notifier_call_chain(struct mlx5_events *events, unsigned int event, void *data);
+ 
+ #endif
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index ba64ecf72478..b96929d0cc9c 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -46,6 +46,7 @@
+ #include <linux/mempool.h>
+ #include <linux/interrupt.h>
+ #include <linux/idr.h>
++#include <linux/notifier.h>
+ 
+ #include <linux/mlx5/device.h>
+ #include <linux/mlx5/doorbell.h>
+@@ -1062,6 +1063,9 @@ struct mlx5_interface {
+ void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol);
+ int mlx5_register_interface(struct mlx5_interface *intf);
+ void mlx5_unregister_interface(struct mlx5_interface *intf);
++int mlx5_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb);
++int mlx5_notifier_unregister(struct mlx5_core_dev *dev, struct notifier_block *nb);
++
+ int mlx5_core_query_vendor_id(struct mlx5_core_dev *mdev, u32 *vendor_id);
+ 
+ int mlx5_cmd_create_vport_lag(struct mlx5_core_dev *dev);
+-- 
+2.19.1
