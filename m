@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 12/13] net/mlx5: Forward SRQ resource events
-Date: Mon, 26 Nov 2018 14:39:07 -0800
-Message-ID: <20181126223908.15988-13-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 13/13] net/mlx5: Debug print for forwarded async events
+Date: Mon, 26 Nov 2018 14:39:08 -0800
+Message-ID: <20181126223908.15988-14-saeedm@mellanox.com>
 References: <20181126223908.15988-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,119 +12,28 @@ To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow forwarding of SRQ events to mlx5_core interfaces, e.g. mlx5_ib.
-Use mlx5_notifier_register/unregister in srq.c in order to allow seamless
-transition of srq.c to infiniband subsystem.
+Print a debug message for every async FW event forwarded to mlx5
+interfaces (mlx5e netdev and mlx5_ib rdma module).
 
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/events.c  |  3 ++
- drivers/net/ethernet/mellanox/mlx5/core/srq.c | 38 +++++--------------
- include/linux/mlx5/driver.h                   |  3 +-
- 3 files changed, 14 insertions(+), 30 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/events.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 201c5f6091ea..9e6e216faac3 100644
+index 9e6e216faac3..e92df7020a26 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -44,6 +44,9 @@ static struct mlx5_nb events_nbs_ref[] = {
- 	{.nb.notifier_call = forward_event,   .event_type = MLX5_EVENT_TYPE_PATH_MIG_FAILED },
- 	{.nb.notifier_call = forward_event,   .event_type = MLX5_EVENT_TYPE_WQ_INVAL_REQ_ERROR },
- 	{.nb.notifier_call = forward_event,   .event_type = MLX5_EVENT_TYPE_WQ_ACCESS_ERROR },
-+	/* SRQ events */
-+	{.nb.notifier_call = forward_event,   .event_type = MLX5_EVENT_TYPE_SRQ_CATAS_ERROR },
-+	{.nb.notifier_call = forward_event,   .event_type = MLX5_EVENT_TYPE_SRQ_RQ_LIMIT },
- };
- 
- struct mlx5_events {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/srq.c b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-index 0563866c13f2..79c5f0d57956 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/srq.c
-@@ -40,15 +40,21 @@
- #include "mlx5_core.h"
- #include "lib/eq.h"
- 
--static int srq_event_notifier(struct mlx5_srq_table *table,
-+static int srq_event_notifier(struct notifier_block *nb,
- 			      unsigned long type, void *data)
+@@ -229,7 +229,10 @@ static int forward_event(struct notifier_block *nb, unsigned long event, void *d
  {
-+	struct mlx5_srq_table *table;
- 	struct mlx5_core_dev *dev;
- 	struct mlx5_core_srq *srq;
- 	struct mlx5_priv *priv;
- 	struct mlx5_eqe *eqe;
- 	u32 srqn;
+ 	struct mlx5_event_nb *event_nb = mlx5_nb_cof(nb, struct mlx5_event_nb, nb);
+ 	struct mlx5_events   *events   = event_nb->ctx;
++	struct mlx5_eqe      *eqe      = data;
  
-+	if (type != MLX5_EVENT_TYPE_SRQ_CATAS_ERROR &&
-+	    type != MLX5_EVENT_TYPE_SRQ_RQ_LIMIT)
-+		return NOTIFY_DONE;
-+
-+	table = container_of(nb, struct mlx5_srq_table, nb);
- 	priv  = container_of(table, struct mlx5_priv, srq_table);
- 	dev   = container_of(priv, struct mlx5_core_dev, priv);
- 
-@@ -77,26 +83,6 @@ static int srq_event_notifier(struct mlx5_srq_table *table,
++	mlx5_core_dbg(events->dev, "Async eqe type %s, subtype (%d) forward to interfaces\n",
++		      eqe_type_str(eqe->type), eqe->sub_type);
+ 	atomic_notifier_call_chain(&events->nh, event, data);
  	return NOTIFY_OK;
  }
- 
--static int catas_err_notifier(struct notifier_block *nb,
--			      unsigned long type, void *data)
--{
--	struct mlx5_srq_table *table;
--
--	table = mlx5_nb_cof(nb, struct mlx5_srq_table, catas_err_nb);
--	/* type == MLX5_EVENT_TYPE_SRQ_CATAS_ERROR */
--	return srq_event_notifier(table, type, data);
--}
--
--static int rq_limit_notifier(struct notifier_block *nb,
--			     unsigned long type, void *data)
--{
--	struct mlx5_srq_table *table;
--
--	table = mlx5_nb_cof(nb, struct mlx5_srq_table, rq_limit_nb);
--	/* type == MLX5_EVENT_TYPE_SRQ_RQ_LIMIT */
--	return srq_event_notifier(table, type, data);
--}
--
- static int get_pas_size(struct mlx5_srq_attr *in)
- {
- 	u32 log_page_size = in->log_page_size + 12;
-@@ -743,17 +729,13 @@ void mlx5_init_srq_table(struct mlx5_core_dev *dev)
- 	spin_lock_init(&table->lock);
- 	INIT_RADIX_TREE(&table->tree, GFP_ATOMIC);
- 
--	MLX5_NB_INIT(&table->catas_err_nb, catas_err_notifier, SRQ_CATAS_ERROR);
--	mlx5_eq_notifier_register(dev, &table->catas_err_nb);
--
--	MLX5_NB_INIT(&table->rq_limit_nb, rq_limit_notifier, SRQ_RQ_LIMIT);
--	mlx5_eq_notifier_register(dev, &table->rq_limit_nb);
-+	table->nb.notifier_call = srq_event_notifier;
-+	mlx5_notifier_register(dev, &table->nb);
- }
- 
- void mlx5_cleanup_srq_table(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_srq_table *table = &dev->priv.srq_table;
- 
--	mlx5_eq_notifier_unregister(dev, &table->rq_limit_nb);
--	mlx5_eq_notifier_unregister(dev, &table->catas_err_nb);
-+	mlx5_notifier_unregister(dev, &table->nb);
- }
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 4f078b7f6620..27a481b159ed 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -465,8 +465,7 @@ struct mlx5_qp_table {
- };
- 
- struct mlx5_srq_table {
--	struct mlx5_nb          catas_err_nb;
--	struct mlx5_nb          rq_limit_nb;
-+	struct notifier_block   nb;
- 	/* protect radix tree
- 	 */
- 	spinlock_t		lock;
 -- 
 2.19.1
