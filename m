@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 7/7] IB/mlx5: Allow XRC usage via verbs in DEVX context
-Date: Mon, 26 Nov 2018 08:28:38 +0200
-Message-ID: <20181126062838.5907-8-leon@kernel.org>
+Subject: [PATCH rdma-next 4/7] IB/mlx5: Enable modify and query verbs objects via DEVX
+Date: Mon, 26 Nov 2018 08:28:35 +0200
+Message-ID: <20181126062838.5907-5-leon@kernel.org>
 References: <20181126062838.5907-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,104 +14,214 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Allows XRC usage from the verbs flow in a DEVX context.
-As XRCD is some shared kernel resource between processes it should be
-created with UID=0 to point on that.
+Enables modify and query verbs objects via the DEVX interface.
+To support this the above DEVX handlers were changed to get any
+object type via the UVERBS_IDR_ANY_OBJECT mechanism.
 
-As a result once XRC QP/SRQ are created they must be used as well with
-UID=0 so that firmware will allow the XRCD usage.
+The type checking and handling is done per object as part of the
+driver code.
 
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
- drivers/infiniband/hw/mlx5/qp.c      | 12 +++++-------
- drivers/infiniband/hw/mlx5/srq.c     |  2 +-
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/mlx5/devx.c | 108 ++++++++++++++++++++++++++----
+ 1 file changed, 96 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index 4d33965369cc..24cb2f793210 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -543,7 +543,6 @@ struct mlx5_ib_srq {
- struct mlx5_ib_xrcd {
- 	struct ib_xrcd		ibxrcd;
- 	u32			xrcdn;
--	u16			uid;
- };
- 
- enum mlx5_ib_mtt_access_flags {
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 52ffc6af3c20..369db954edbe 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -775,6 +775,7 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 	__be64 *pas;
- 	void *qpc;
- 	int err;
-+	u16 uid;
- 
- 	err = ib_copy_from_udata(&ucmd, udata, sizeof(ucmd));
- 	if (err) {
-@@ -836,7 +837,8 @@ static int create_user_qp(struct mlx5_ib_dev *dev, struct ib_pd *pd,
- 		goto err_umem;
- 	}
- 
--	MLX5_SET(create_qp_in, *in, uid, to_mpd(pd)->uid);
-+	uid = (attr->qp_type != IB_QPT_XRC_TGT) ? to_mpd(pd)->uid : 0;
-+	MLX5_SET(create_qp_in, *in, uid, uid);
- 	pas = (__be64 *)MLX5_ADDR_OF(create_qp_in, *in, pas);
- 	if (ubuffer->umem)
- 		mlx5_ib_populate_pas(dev, ubuffer->umem, page_shift, pas, 0);
-@@ -5513,7 +5515,6 @@ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
- 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
- 	struct mlx5_ib_xrcd *xrcd;
- 	int err;
--	u16 uid;
- 
- 	if (!MLX5_CAP_GEN(dev->mdev, xrc))
- 		return ERR_PTR(-ENOSYS);
-@@ -5522,14 +5523,12 @@ struct ib_xrcd *mlx5_ib_alloc_xrcd(struct ib_device *ibdev,
- 	if (!xrcd)
- 		return ERR_PTR(-ENOMEM);
- 
--	uid = context ? to_mucontext(context)->devx_uid : 0;
--	err = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, uid);
-+	err = mlx5_cmd_xrcd_alloc(dev->mdev, &xrcd->xrcdn, 0);
- 	if (err) {
- 		kfree(xrcd);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	xrcd->uid = uid;
- 	return &xrcd->ibxrcd;
+diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
+index 0aa2ee732eaa..f80b78aab4da 100644
+--- a/drivers/infiniband/hw/mlx5/devx.c
++++ b/drivers/infiniband/hw/mlx5/devx.c
+@@ -9,6 +9,7 @@
+ #include <rdma/uverbs_ioctl.h>
+ #include <rdma/mlx5_user_ioctl_cmds.h>
+ #include <rdma/ib_umem.h>
++#include <rdma/uverbs_std_types.h>
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/fs.h>
+ #include "mlx5_ib.h"
+@@ -132,7 +133,7 @@ static u64 get_enc_obj_id(u16 opcode, u32 obj_id)
+ 	return ((u64)opcode << 32) | obj_id;
  }
  
-@@ -5537,10 +5536,9 @@ int mlx5_ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+-static int devx_is_valid_obj_id(struct devx_obj *obj, const void *in)
++static u64 devx_get_obj_id(const void *in)
  {
- 	struct mlx5_ib_dev *dev = to_mdev(xrcd->device);
- 	u32 xrcdn = to_mxrcd(xrcd)->xrcdn;
--	u16 uid =  to_mxrcd(xrcd)->uid;
+ 	u16 opcode = MLX5_GET(general_obj_in_cmd_hdr, in, opcode);
+ 	u64 obj_id;
+@@ -336,13 +337,96 @@ static int devx_is_valid_obj_id(struct devx_obj *obj, const void *in)
+ 					MLX5_GET(arm_xrq_in, in, xrqn));
+ 		break;
+ 	default:
++		obj_id = 0;
++	}
++
++	return obj_id;
++}
++
++static bool devx_is_valid_obj_id(struct ib_uobject *uobj, const void *in)
++{
++	u64 obj_id = devx_get_obj_id(in);
++
++	if (!obj_id)
+ 		return false;
++
++	switch (uobj_get_object_id(uobj)) {
++	case UVERBS_OBJECT_CQ:
++		return get_enc_obj_id(MLX5_CMD_OP_CREATE_CQ,
++				      to_mcq(uobj->object)->mcq.cqn) ==
++				      obj_id;
++
++	case UVERBS_OBJECT_SRQ:
++	{
++		struct mlx5_core_srq *srq = &(to_msrq(uobj->object)->msrq);
++		struct mlx5_ib_dev *dev = to_mdev(uobj->context->device);
++		u16 opcode;
++
++		switch (srq->common.res) {
++		case MLX5_RES_XSRQ:
++			opcode = MLX5_CMD_OP_CREATE_XRC_SRQ;
++			break;
++		case MLX5_RES_XRQ:
++			opcode = MLX5_CMD_OP_CREATE_XRQ;
++			break;
++		default:
++			if (!dev->mdev->issi)
++				opcode = MLX5_CMD_OP_CREATE_SRQ;
++			else
++				opcode = MLX5_CMD_OP_CREATE_RMP;
++		}
++
++		return get_enc_obj_id(opcode,
++				      to_msrq(uobj->object)->msrq.srqn) ==
++				      obj_id;
+ 	}
+ 
+-	if (obj_id == obj->obj_id)
+-		return true;
++	case UVERBS_OBJECT_QP:
++	{
++		struct mlx5_ib_qp *qp = to_mqp(uobj->object);
++		enum ib_qp_type	qp_type = qp->ibqp.qp_type;
++
++		if (qp_type == IB_QPT_RAW_PACKET ||
++		    (qp->flags & MLX5_IB_QP_UNDERLAY)) {
++			struct mlx5_ib_raw_packet_qp *raw_packet_qp =
++							 &qp->raw_packet_qp;
++			struct mlx5_ib_rq *rq = &raw_packet_qp->rq;
++			struct mlx5_ib_sq *sq = &raw_packet_qp->sq;
++
++			return (get_enc_obj_id(MLX5_CMD_OP_CREATE_RQ,
++					       rq->base.mqp.qpn) == obj_id ||
++				get_enc_obj_id(MLX5_CMD_OP_CREATE_SQ,
++					       sq->base.mqp.qpn) == obj_id ||
++				get_enc_obj_id(MLX5_CMD_OP_CREATE_TIR,
++					       rq->tirn) == obj_id ||
++				get_enc_obj_id(MLX5_CMD_OP_CREATE_TIS,
++					       sq->tisn) == obj_id);
++		}
++
++		if (qp_type == MLX5_IB_QPT_DCT)
++			return get_enc_obj_id(MLX5_CMD_OP_CREATE_DCT,
++					      qp->dct.mdct.mqp.qpn) == obj_id;
++
++		return get_enc_obj_id(MLX5_CMD_OP_CREATE_QP,
++				      qp->ibqp.qp_num) == obj_id;
++	}
+ 
+-	return false;
++	case UVERBS_OBJECT_WQ:
++		return get_enc_obj_id(MLX5_CMD_OP_CREATE_RQ,
++				      to_mrwq(uobj->object)->core_qp.qpn) ==
++				      obj_id;
++
++	case UVERBS_OBJECT_RWQ_IND_TBL:
++		return get_enc_obj_id(MLX5_CMD_OP_CREATE_RQT,
++				      to_mrwq_ind_table(uobj->object)->rqtn) ==
++				      obj_id;
++
++	case MLX5_IB_OBJECT_DEVX_OBJ:
++		return ((struct devx_obj *)uobj->object)->obj_id == obj_id;
++
++	default:
++		return false;
++	}
+ }
+ 
+ static void devx_set_umem_valid(const void *in)
+@@ -994,7 +1078,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
+ 							  MLX5_IB_ATTR_DEVX_OBJ_MODIFY_HANDLE);
+ 	struct mlx5_ib_ucontext *c = to_mucontext(uobj->context);
+-	struct devx_obj *obj = uobj->object;
++	struct mlx5_ib_dev *mdev = to_mdev(uobj->context->device);
+ 	void *cmd_out;
  	int err;
+ 	int uid;
+@@ -1006,7 +1090,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	if (!devx_is_obj_modify_cmd(cmd_in))
+ 		return -EINVAL;
  
--	err = mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, uid);
-+	err = mlx5_cmd_xrcd_dealloc(dev->mdev, xrcdn, 0);
+-	if (!devx_is_valid_obj_id(obj, cmd_in))
++	if (!devx_is_valid_obj_id(uobj, cmd_in))
+ 		return -EINVAL;
+ 
+ 	cmd_out = uverbs_zalloc(attrs, cmd_out_len);
+@@ -1016,7 +1100,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_MODIFY)(
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+ 	devx_set_umem_valid(cmd_in);
+ 
+-	err = mlx5_cmd_exec(obj->mdev, cmd_in,
++	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_MODIFY_CMD_IN),
+ 			    cmd_out, cmd_out_len);
  	if (err)
- 		mlx5_ib_warn(dev, "failed to dealloc xrcdn 0x%x\n", xrcdn);
+@@ -1035,10 +1119,10 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	struct ib_uobject *uobj = uverbs_attr_get_uobject(attrs,
+ 							  MLX5_IB_ATTR_DEVX_OBJ_QUERY_HANDLE);
+ 	struct mlx5_ib_ucontext *c = to_mucontext(uobj->context);
+-	struct devx_obj *obj = uobj->object;
+ 	void *cmd_out;
+ 	int err;
+ 	int uid;
++	struct mlx5_ib_dev *mdev = to_mdev(uobj->context->device);
  
-diff --git a/drivers/infiniband/hw/mlx5/srq.c b/drivers/infiniband/hw/mlx5/srq.c
-index b3aef0eb39cb..0413b10dea71 100644
---- a/drivers/infiniband/hw/mlx5/srq.c
-+++ b/drivers/infiniband/hw/mlx5/srq.c
-@@ -113,7 +113,7 @@ static int create_srq_user(struct ib_pd *pd, struct mlx5_ib_srq *srq,
+ 	uid = devx_get_uid(c, cmd_in);
+ 	if (uid < 0)
+@@ -1047,7 +1131,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 	if (!devx_is_obj_query_cmd(cmd_in))
+ 		return -EINVAL;
  
- 	in->log_page_size = page_shift - MLX5_ADAPTER_PAGE_SHIFT;
- 	in->page_offset = offset;
--	in->uid = to_mpd(pd)->uid;
-+	in->uid = (in->type != IB_SRQT_XRC) ?  to_mpd(pd)->uid : 0;
- 	if (MLX5_CAP_GEN(dev->mdev, cqe_version) == MLX5_CQE_VERSION_V1 &&
- 	    in->type != IB_SRQT_BASIC)
- 		in->user_index = uidx;
+-	if (!devx_is_valid_obj_id(obj, cmd_in))
++	if (!devx_is_valid_obj_id(uobj, cmd_in))
+ 		return -EINVAL;
+ 
+ 	cmd_out = uverbs_zalloc(attrs, cmd_out_len);
+@@ -1055,7 +1139,7 @@ static int UVERBS_HANDLER(MLX5_IB_METHOD_DEVX_OBJ_QUERY)(
+ 		return PTR_ERR(cmd_out);
+ 
+ 	MLX5_SET(general_obj_in_cmd_hdr, cmd_in, uid, uid);
+-	err = mlx5_cmd_exec(obj->mdev, cmd_in,
++	err = mlx5_cmd_exec(mdev->mdev, cmd_in,
+ 			    uverbs_attr_get_len(attrs, MLX5_IB_ATTR_DEVX_OBJ_QUERY_CMD_IN),
+ 			    cmd_out, cmd_out_len);
+ 	if (err)
+@@ -1293,7 +1377,7 @@ DECLARE_UVERBS_NAMED_METHOD_DESTROY(
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_DEVX_OBJ_MODIFY,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_OBJ_MODIFY_HANDLE,
+-			MLX5_IB_OBJECT_DEVX_OBJ,
++			UVERBS_IDR_ANY_OBJECT,
+ 			UVERBS_ACCESS_WRITE,
+ 			UA_MANDATORY),
+ 	UVERBS_ATTR_PTR_IN(
+@@ -1309,7 +1393,7 @@ DECLARE_UVERBS_NAMED_METHOD(
+ DECLARE_UVERBS_NAMED_METHOD(
+ 	MLX5_IB_METHOD_DEVX_OBJ_QUERY,
+ 	UVERBS_ATTR_IDR(MLX5_IB_ATTR_DEVX_OBJ_QUERY_HANDLE,
+-			MLX5_IB_OBJECT_DEVX_OBJ,
++			UVERBS_IDR_ANY_OBJECT,
+ 			UVERBS_ACCESS_READ,
+ 			UA_MANDATORY),
+ 	UVERBS_ATTR_PTR_IN(
 -- 
 2.19.1
