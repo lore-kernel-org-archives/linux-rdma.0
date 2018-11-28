@@ -1,37 +1,37 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] RDMA/drivers: fix spelling mistake "initalize" -> "initialize"
-Date: Wed, 28 Nov 2018 15:11:16 +0000
-Message-ID: <20181128151116.13216-1-colin.king@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Benvenuti <benve@cisco.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: [PATCH RFC iproute2-next 0/2] Dynamic rdma link creation
+Date: Wed, 28 Nov 2018 08:25:10 -0800
+Message-ID: <cover.1543422310.git.swise@opengridcomputing.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: dsahern@gmail.com
+Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, leon@kernel.org, BMT@zurich.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+This series adds rdmatool support for creating/deleting rdma links.
+This will be used, mainly, by soft rdma drivers to allow adding/deleting
+rdma links over netdev interfaces.
 
-Fix spelling mistake in usnic_err error message
+I've tagged this as "RFC" to start reviewing it, and because it is
+dependent on kernel changes which are still under review [1].
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/usnic/usnic_ib_main.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please comment!
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 73bd00f8d2c8..413fa5732e2b 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -649,7 +649,7 @@ static int __init usnic_ib_init(void)
- 
- 	err = usnic_uiom_init(DRV_NAME);
- 	if (err) {
--		usnic_err("Unable to initalize umem with err %d\n", err);
-+		usnic_err("Unable to initialize umem with err %d\n", err);
- 		return err;
- 	}
- 
+Thanks,
+
+Steve.
+
+[1] https://www.spinics.net/lists/linux-rdma/msg71469.html
+
+Steve Wise (2):
+  rdma: add 'link add/delete' commands
+  rdma: man page update for link add/delete
+
+ man/man8/rdma-link.8 |  51 +++++++++++++++++++++++++
+ rdma/link.c          | 106 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma/rdma.h          |   1 +
+ rdma/utils.c         |   2 +-
+ 4 files changed, 159 insertions(+), 1 deletion(-)
+
 -- 
-2.19.1
+1.8.3.1
