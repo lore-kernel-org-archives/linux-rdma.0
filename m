@@ -1,31 +1,104 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH] IB/core: Fix for core panic
-Date: Wed, 28 Nov 2018 13:42:59 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC70B9EF75@ORSMSX160.amr.corp.intel.com>
-References: <20181127233541.30944.84676.stgit@scvm10.sc.intel.com>
- <20181128105700.GB1822@kroah.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Wed, 28 Nov 2018 08:59:01 -0500
+Message-ID: <2aa422df-d5df-5ddb-a2e4-c5e5283653b5@talpey.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+ <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
+ <5159e02f-17f8-df8b-600c-1b09356e46a9@talpey.com>
+ <c1ba07d6-ebfa-ddb9-c25e-e5c1bfbecf74@nvidia.com>
+ <15e4a0c0-cadd-e549-962f-8d9aa9fc033a@talpey.com>
+ <313bf82d-cdeb-8c75-3772-7a124ecdfbd5@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181128105700.GB1822@kroah.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <313bf82d-cdeb-8c75-3772-7a124ecdfbd5@nvidia.com>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable-commits@vger.kernel.org" <stable-commits@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-> > Fixes: 523633359224 ("IB/core: Fix the validations of a multicast LID in attach
-> or detach operations")
-> > Cc: stable@kernel.org # 4.9
+On 11/27/2018 9:52 PM, John Hubbard wrote:
+> On 11/27/18 5:21 PM, Tom Talpey wrote:
+>> On 11/21/2018 5:06 PM, John Hubbard wrote:
+>>> On 11/21/18 8:49 AM, Tom Talpey wrote:
+>>>> On 11/21/2018 1:09 AM, John Hubbard wrote:
+>>>>> On 11/19/18 10:57 AM, Tom Talpey wrote:
+> [...]
+>>>>
+>>>> What I'd really like to see is to go back to the original fio parameters
+>>>> (1 thread, 64 iodepth) and try to get a result that gets at least close
+>>>> to the speced 200K IOPS of the NVMe device. There seems to be something
+>>>> wrong with yours, currently.
+>>>
+>>> I'll dig into what has gone wrong with the test. I see fio putting data files
+>>> in the right place, so the obvious "using the wrong drive" is (probably)
+>>> not it. Even though it really feels like that sort of thing. We'll see.
+>>>
+>>>>
+>>>> Then of course, the result with the patched get_user_pages, and
+>>>> compare whichever of IOPS or CPU% changes, and how much.
+>>>>
+>>>> If these are within a few percent, I agree it's good to go. If it's
+>>>> roughly 25% like the result just above, that's a rocky road.
+>>>>
+>>>> I can try this after the holiday on some basic hardware and might
+>>>> be able to scrounge up better. Can you post that github link?
+>>>>
+>>>
+>>> Here:
+>>>
+>>>      git@github.com:johnhubbard/linux (branch: gup_dma_testing)
+>>
+>> I'm super-limited here this week hardware-wise and have not been able
+>> to try testing with the patched kernel.
+>>
+>> I was able to compare my earlier quick test with a Bionic 4.15 kernel
+>> (400K IOPS) against a similar 4.20rc3 kernel, and the rate dropped to
+>> ~_375K_ IOPS. Which I found perhaps troubling. But it was only a quick
+>> test, and without your change.
+>>
 > 
-> Now queued up, thanks.
+> So just to double check (again): you are running fio with these parameters,
+> right?
 > 
-> greg k-h
+> [reader]
+> direct=1
+> ioengine=libaio
+> blocksize=4096
+> size=1g
+> numjobs=1
+> rw=read
+> iodepth=64
 
-Thanks!!   We continuously test long terms and caught this, although not as quickly as I would have liked.
+Correct, I copy/pasted these directly. I also ran with size=10g because
+the 1g provides a really small sample set.
 
-We are not quite sure what happened here, but when Alex made his upstream patch, the fix wasn't required in 4.9.
+There was one other difference, your results indicated fio 3.3 was used.
+My Bionic install has fio 3.1. I don't find that relevant because our
+goal is to compare before/after, which I haven't done yet.
 
-Mike
+Tom.
+
+> 
+> 
+> 
+>> Say, that branch reports it has not had a commit since June 30. Is that
+>> the right one? What about gup_dma_for_lpc_2018?
+>>
+> 
+> That's the right branch, but the AuthorDate for the head commit (only) somehow
+> got stuck in the past. I just now amended that patch with a new date and pushed
+> it, so the head commit now shows Nov 27:
+> 
+>     https://github.com/johnhubbard/linux/commits/gup_dma_testing
+> 
+> 
+> The actual code is the same, though. (It is still based on Nov 19th's f2ce1065e767
+> commit.)
+> 
+> 
+> thanks,
+> 
