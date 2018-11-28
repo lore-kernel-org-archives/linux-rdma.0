@@ -1,100 +1,86 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
-Date: Tue, 27 Nov 2018 18:52:28 -0800
-Message-ID: <313bf82d-cdeb-8c75-3772-7a124ecdfbd5@nvidia.com>
-References: <20181110085041.10071-1-jhubbard@nvidia.com>
- <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
- <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
- <5159e02f-17f8-df8b-600c-1b09356e46a9@talpey.com>
- <c1ba07d6-ebfa-ddb9-c25e-e5c1bfbecf74@nvidia.com>
- <15e4a0c0-cadd-e549-962f-8d9aa9fc033a@talpey.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] IB/core: Fix for core panic
+Date: Wed, 28 Nov 2018 11:57:00 +0100
+Message-ID: <20181128105700.GB1822@kroah.com>
+References: <20181127233541.30944.84676.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <15e4a0c0-cadd-e549-962f-8d9aa9fc033a@talpey.com>
-Content-Language: en-US-large
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, john.hubbard@gmail.com, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181127233541.30944.84676.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/27/18 5:21 PM, Tom Talpey wrote:
-> On 11/21/2018 5:06 PM, John Hubbard wrote:
->> On 11/21/18 8:49 AM, Tom Talpey wrote:
->>> On 11/21/2018 1:09 AM, John Hubbard wrote:
->>>> On 11/19/18 10:57 AM, Tom Talpey wrote:
-[...]
->>>
->>> What I'd really like to see is to go back to the original fio parameter=
-s
->>> (1 thread, 64 iodepth) and try to get a result that gets at least close
->>> to the speced 200K IOPS of the NVMe device. There seems to be something
->>> wrong with yours, currently.
->>
->> I'll dig into what has gone wrong with the test. I see fio putting data =
-files
->> in the right place, so the obvious "using the wrong drive" is (probably)
->> not it. Even though it really feels like that sort of thing. We'll see.
->>
->>>
->>> Then of course, the result with the patched get_user_pages, and
->>> compare whichever of IOPS or CPU% changes, and how much.
->>>
->>> If these are within a few percent, I agree it's good to go. If it's
->>> roughly 25% like the result just above, that's a rocky road.
->>>
->>> I can try this after the holiday on some basic hardware and might
->>> be able to scrounge up better. Can you post that github link?
->>>
->>
->> Here:
->>
->> =C2=A0=C2=A0=C2=A0 git@github.com:johnhubbard/linux (branch: gup_dma_tes=
-ting)
->=20
-> I'm super-limited here this week hardware-wise and have not been able
-> to try testing with the patched kernel.
->=20
-> I was able to compare my earlier quick test with a Bionic 4.15 kernel
-> (400K IOPS) against a similar 4.20rc3 kernel, and the rate dropped to
-> ~_375K_ IOPS. Which I found perhaps troubling. But it was only a quick
-> test, and without your change.
->=20
+On Tue, Nov 27, 2018 at 03:35:43PM -0800, Mike Marciniszyn wrote:
+> From: Alex Estrin <alex.estrin@intel.com>
+> 
+> Upstream commit e6f9bc34d3779cb7b6a337afed5de8be3f0fab77.
+> 
+> Build with the latest patches resulted in panic:
+> 11384.486289] BUG: unable to handle kernel NULL pointer dereference at
+>          (null)
+> [11384.486293] IP:           (null)
+> [11384.486295] PGD 0
+> [11384.486295] P4D 0
+> [11384.486296]
+> [11384.486299] Oops: 0010 [#1] SMP
+> ......... snip ......
+> [11384.486401] CPU: 0 PID: 3389 Comm: kworker/0:2H Not tainted 4.9.136 #1
+> [11384.486402] Hardware name: Intel Corporation S2600WT2R/S2600WT2R,
+> BIOS SE5C610.86B.01.01.0014.121820151719 12/18/2015
+> [11384.486418] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
+> [11384.486419] task: ffff880850579680 task.stack: ffffc90007fec000
+> [11384.486420] RIP: 0010:          (null)
+> [11384.486420] RSP: 0018:ffffc90007fef970 EFLAGS: 00010206
+> [11384.486421] RAX: ffff88084cfe8000 RBX: ffff88084dce4000 RCX: ffffc90007fef978
+> [11384.486422] RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff88084cfe8000
+> [11384.486422] RBP: ffffc90007fefab0 R08: 0000000000000000 R09: ffff88084dce4080
+> [11384.486423] R10: ffffffffa02d7f60 R11: 0000000000000000 R12: ffff88105af65a00
+> [11384.486423] R13: ffff88084dce4000 R14: 000000000000c000 R15: 000000000000c000
+> [11384.486424] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
+> [11384.486425] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [11384.486425] CR2: 0000000000000000 CR3: 0000000001c09000 CR4: 00000000001406f0
+> [11384.486426] Call Trace:
+> [11384.486431]  ? is_valid_mcast_lid.isra.21+0xfb/0x110 [ib_core]
+> [11384.486436]  ib_attach_mcast+0x6f/0xa0 [ib_core]
+> [11384.486441]  ipoib_mcast_attach+0x81/0x190 [ib_ipoib]
+> [11384.486443]  ipoib_mcast_join_complete+0x354/0xb40 [ib_ipoib]
+> [11384.486448]  mcast_work_handler+0x330/0x6c0 [ib_core]
+> [11384.486452]  join_handler+0x101/0x220 [ib_core]
+> [11384.486455]  ib_sa_mcmember_rec_callback+0x54/0x80 [ib_core]
+> [11384.486459]  recv_handler+0x3a/0x60 [ib_core]
+> [11384.486462]  ib_mad_recv_done+0x423/0x9b0 [ib_core]
+> [11384.486466]  __ib_process_cq+0x5d/0xb0 [ib_core]
+> [11384.486469]  ib_cq_poll_work+0x20/0x60 [ib_core]
+> [11384.486472]  process_one_work+0x149/0x360
+> [11384.486474]  worker_thread+0x4d/0x3c0
+> [11384.486487]  kthread+0x109/0x140
+> [11384.486488]  ? rescuer_thread+0x380/0x380
+> [11384.486489]  ? kthread_park+0x60/0x60
+> [11384.486490]  ? kthread_park+0x60/0x60
+> [11384.486493]  ret_from_fork+0x25/0x30
+> [11384.486493] Code:  Bad RIP value.
+> [11384.486493] Code:  Bad RIP value.
+> [11384.486496] RIP:           (null) RSP: ffffc90007fef970
+> [11384.486497] CR2: 0000000000000000
+> [11384.486531] ---[ end trace b1acec6fb4ff6e75 ]---
+> [11384.532133] Kernel panic - not syncing: Fatal exception
+> [11384.536541] Kernel Offset: disabled
+> [11384.969491] ---[ end Kernel panic - not syncing: Fatal exception
+> [11384.976875] sched: Unexpected reschedule of offline CPU#1!
+> [11384.983646] ------------[ cut here ]------------
+> 
+> Rdma device driver may not have implemented (*get_link_layer)()
+> so it can not be called directly. Should use appropriate helper function.
+> 
+> [cherry-picked from the upstream commit]
+> 
+> Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
+> Fixes: 523633359224 ("IB/core: Fix the validations of a multicast LID in attach or detach operations")
+> Cc: stable@kernel.org # 4.9
 
-So just to double check (again): you are running fio with these parameters,
-right?
+Now queued up, thanks.
 
-[reader]
-direct=3D1
-ioengine=3Dlibaio
-blocksize=3D4096
-size=3D1g
-numjobs=3D1
-rw=3Dread
-iodepth=3D64
-
-
-
-> Say, that branch reports it has not had a commit since June 30. Is that
-> the right one? What about gup_dma_for_lpc_2018?
->=20
-
-That's the right branch, but the AuthorDate for the head commit (only) some=
-how
-got stuck in the past. I just now amended that patch with a new date and pu=
-shed=20
-it, so the head commit now shows Nov 27:
-
-   https://github.com/johnhubbard/linux/commits/gup_dma_testing
-
-
-The actual code is the same, though. (It is still based on Nov 19th's f2ce1=
-065e767
-commit.)
-
-
-thanks,
---=20
-John Hubbard
-NVIDIA
+greg k-h
