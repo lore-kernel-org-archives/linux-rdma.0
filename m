@@ -1,110 +1,163 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] IB/core: Fix for core panic
-Date: Tue, 27 Nov 2018 15:35:43 -0800
-Message-ID: <20181127233541.30944.84676.stgit@scvm10.sc.intel.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Tue, 27 Nov 2018 20:21:51 -0500
+Message-ID: <15e4a0c0-cadd-e549-962f-8d9aa9fc033a@talpey.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+ <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
+ <5159e02f-17f8-df8b-600c-1b09356e46a9@talpey.com>
+ <c1ba07d6-ebfa-ddb9-c25e-e5c1bfbecf74@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <c1ba07d6-ebfa-ddb9-c25e-e5c1bfbecf74@nvidia.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Alex Estrin <alex.estrin@intel.com>
+On 11/21/2018 5:06 PM, John Hubbard wrote:
+> On 11/21/18 8:49 AM, Tom Talpey wrote:
+>> On 11/21/2018 1:09 AM, John Hubbard wrote:
+>>> On 11/19/18 10:57 AM, Tom Talpey wrote:
+>>>> ~14000 4KB read IOPS is really, really low for an NVMe disk.
+>>>
+>>> Yes, but Jan Kara's original config file for fio is *intended* to highlight
+>>> the get_user_pages/put_user_pages changes. It was *not* intended to get max
+>>> performance,  as you can see by the numjobs and direct IO parameters:
+>>>
+>>> cat fio.conf
+>>> [reader]
+>>> direct=1
+>>> ioengine=libaio
+>>> blocksize=4096
+>>> size=1g
+>>> numjobs=1
+>>> rw=read
+>>> iodepth=64
+>>
+>> To be clear - I used those identical parameters, on my lower-spec
+>> machine, and got 400,000 4KB read IOPS. Those results are nearly 30x
+>> higher than yours!
+> 
+> OK, then something really is wrong here...
+> 
+>>
+>>> So I'm thinking that this is not a "tainted" test, but rather, we're constraining
+>>> things a lot with these choices. It's hard to find a good test config to run that
+>>> allows decisions, but so far, I'm not really seeing anything that says "this
+>>> is so bad that we can't afford to fix the brokenness." I think.
+>>
+>> I'm not suggesting we tune the benchmark, I'm suggesting the results
+>> on your system are not meaningful since they are orders of magnitude
+>> low. And without meaningful data it's impossible to see the performance
+>> impact of the change...
+>>
+>>>> Can you confirm what type of hardware you're running this test on?
+>>>> CPU, memory speed and capacity, and NVMe device especially?
+>>>>
+>>>> Tom.
+>>>
+>>> Yes, it's a nice new system, I don't expect any strange perf problems:
+>>>
+>>> CPU: Intel(R) Core(TM) i7-7800X CPU @ 3.50GHz
+>>>       (Intel X299 chipset)
+>>> Block device: nvme-Samsung_SSD_970_EVO_250GB
+>>> DRAM: 32 GB
+>>
+>> The Samsung Evo 970 250GB is speced to yield 200,000 random read IOPS
+>> with a 4KB QD32 workload:
+>>
+>>
+>> https://www.samsung.com/us/computing/memory-storage/solid-state-drives/ssd-970-evo-nvme-m-2-250gb-mz-v7e250bw/#specs
+>>
+>> And the I7-7800X is a 6-core processor (12 hyperthreads).
+>>
+>>> So, here's a comparison using 20 threads, direct IO, for the baseline vs.
+>>> patched kernel (below). Highlights:
+>>>
+>>>      -- IOPS are similar, around 60k.
+>>>      -- BW gets worse, dropping from 290 to 220 MB/s.
+>>>      -- CPU is well under 100%.
+>>>      -- latency is incredibly long, but...20 threads.
+>>>
+>>> Baseline:
+>>>
+>>> $ ./run.sh
+>>> fio configuration:
+>>> [reader]
+>>> ioengine=libaio
+>>> blocksize=4096
+>>> size=1g
+>>> rw=read
+>>> group_reporting
+>>> iodepth=256
+>>> direct=1
+>>> numjobs=20
+>>
+>> Ouch - 20 threads issuing 256 io's each!? Of course latency skyrockets.
+>> That's going to cause tremendous queuing, and context switching, far
+>> outside of the get_user_pages() change.
+>>
+>> But even so, it only brings IOPS to 74.2K, which is still far short of
+>> the device's 200K spec.
+>>
+>> Comparing anyway:
+>>
+>>
+>>> Patched:
+>>>
+>>> -------- Running fio:
+>>> reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
+>>> ...
+>>> fio-3.3
+>>> Starting 20 processes
+>>> Jobs: 13 (f=8): [_(1),R(1),_(1),f(1),R(2),_(1),f(2),_(1),R(1),f(1),R(1),f(1),R(1),_(2),R(1),_(1),R(1)][97.9%][r=229MiB/s,w=0KiB/s][r=58.5k,w=0 IOPS][eta 00m:02s]
+>>> reader: (groupid=0, jobs=20): err= 0: pid=2104: Tue Nov 20 22:01:58 2018
+>>>      read: IOPS=56.8k, BW=222MiB/s (232MB/s)(20.0GiB/92385msec)
+>>> ...
+>>> Thoughts?
+>>
+>> Concern - the 74.2K IOPS unpatched drops to 56.8K patched!
+> 
+> ACK. :)
+> 
+>>
+>> What I'd really like to see is to go back to the original fio parameters
+>> (1 thread, 64 iodepth) and try to get a result that gets at least close
+>> to the speced 200K IOPS of the NVMe device. There seems to be something
+>> wrong with yours, currently.
+> 
+> I'll dig into what has gone wrong with the test. I see fio putting data files
+> in the right place, so the obvious "using the wrong drive" is (probably)
+> not it. Even though it really feels like that sort of thing. We'll see.
+> 
+>>
+>> Then of course, the result with the patched get_user_pages, and
+>> compare whichever of IOPS or CPU% changes, and how much.
+>>
+>> If these are within a few percent, I agree it's good to go. If it's
+>> roughly 25% like the result just above, that's a rocky road.
+>>
+>> I can try this after the holiday on some basic hardware and might
+>> be able to scrounge up better. Can you post that github link?
+>>
+> 
+> Here:
+> 
+>     git@github.com:johnhubbard/linux (branch: gup_dma_testing)
 
-Upstream commit e6f9bc34d3779cb7b6a337afed5de8be3f0fab77.
+I'm super-limited here this week hardware-wise and have not been able
+to try testing with the patched kernel.
 
-Build with the latest patches resulted in panic:
-11384.486289] BUG: unable to handle kernel NULL pointer dereference at
-         (null)
-[11384.486293] IP:           (null)
-[11384.486295] PGD 0
-[11384.486295] P4D 0
-[11384.486296]
-[11384.486299] Oops: 0010 [#1] SMP
-......... snip ......
-[11384.486401] CPU: 0 PID: 3389 Comm: kworker/0:2H Not tainted 4.9.136 #1
-[11384.486402] Hardware name: Intel Corporation S2600WT2R/S2600WT2R,
-BIOS SE5C610.86B.01.01.0014.121820151719 12/18/2015
-[11384.486418] Workqueue: ib-comp-wq ib_cq_poll_work [ib_core]
-[11384.486419] task: ffff880850579680 task.stack: ffffc90007fec000
-[11384.486420] RIP: 0010:          (null)
-[11384.486420] RSP: 0018:ffffc90007fef970 EFLAGS: 00010206
-[11384.486421] RAX: ffff88084cfe8000 RBX: ffff88084dce4000 RCX: ffffc90007fef978
-[11384.486422] RDX: 0000000000000000 RSI: 0000000000000001 RDI: ffff88084cfe8000
-[11384.486422] RBP: ffffc90007fefab0 R08: 0000000000000000 R09: ffff88084dce4080
-[11384.486423] R10: ffffffffa02d7f60 R11: 0000000000000000 R12: ffff88105af65a00
-[11384.486423] R13: ffff88084dce4000 R14: 000000000000c000 R15: 000000000000c000
-[11384.486424] FS:  0000000000000000(0000) GS:ffff88085f400000(0000) knlGS:0000000000000000
-[11384.486425] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[11384.486425] CR2: 0000000000000000 CR3: 0000000001c09000 CR4: 00000000001406f0
-[11384.486426] Call Trace:
-[11384.486431]  ? is_valid_mcast_lid.isra.21+0xfb/0x110 [ib_core]
-[11384.486436]  ib_attach_mcast+0x6f/0xa0 [ib_core]
-[11384.486441]  ipoib_mcast_attach+0x81/0x190 [ib_ipoib]
-[11384.486443]  ipoib_mcast_join_complete+0x354/0xb40 [ib_ipoib]
-[11384.486448]  mcast_work_handler+0x330/0x6c0 [ib_core]
-[11384.486452]  join_handler+0x101/0x220 [ib_core]
-[11384.486455]  ib_sa_mcmember_rec_callback+0x54/0x80 [ib_core]
-[11384.486459]  recv_handler+0x3a/0x60 [ib_core]
-[11384.486462]  ib_mad_recv_done+0x423/0x9b0 [ib_core]
-[11384.486466]  __ib_process_cq+0x5d/0xb0 [ib_core]
-[11384.486469]  ib_cq_poll_work+0x20/0x60 [ib_core]
-[11384.486472]  process_one_work+0x149/0x360
-[11384.486474]  worker_thread+0x4d/0x3c0
-[11384.486487]  kthread+0x109/0x140
-[11384.486488]  ? rescuer_thread+0x380/0x380
-[11384.486489]  ? kthread_park+0x60/0x60
-[11384.486490]  ? kthread_park+0x60/0x60
-[11384.486493]  ret_from_fork+0x25/0x30
-[11384.486493] Code:  Bad RIP value.
-[11384.486493] Code:  Bad RIP value.
-[11384.486496] RIP:           (null) RSP: ffffc90007fef970
-[11384.486497] CR2: 0000000000000000
-[11384.486531] ---[ end trace b1acec6fb4ff6e75 ]---
-[11384.532133] Kernel panic - not syncing: Fatal exception
-[11384.536541] Kernel Offset: disabled
-[11384.969491] ---[ end Kernel panic - not syncing: Fatal exception
-[11384.976875] sched: Unexpected reschedule of offline CPU#1!
-[11384.983646] ------------[ cut here ]------------
+I was able to compare my earlier quick test with a Bionic 4.15 kernel
+(400K IOPS) against a similar 4.20rc3 kernel, and the rate dropped to
+~_375K_ IOPS. Which I found perhaps troubling. But it was only a quick
+test, and without your change.
 
-Rdma device driver may not have implemented (*get_link_layer)()
-so it can not be called directly. Should use appropriate helper function.
+Say, that branch reports it has not had a commit since June 30. Is that
+the right one? What about gup_dma_for_lpc_2018?
 
-[cherry-picked from the upstream commit]
-
-Reviewed-by: Yuval Shaia <yuval.shaia@oracle.com>
-Fixes: 523633359224 ("IB/core: Fix the validations of a multicast LID in attach or detach operations")
-Cc: stable@kernel.org # 4.9
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
----
- drivers/infiniband/core/verbs.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index d28c4cf..dc92dc4 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -1522,7 +1522,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
- 	 */
- 	if (!ib_query_qp(qp, &attr, IB_QP_STATE | IB_QP_PORT, &init_attr)) {
- 		if (attr.qp_state >= IB_QPS_INIT) {
--			if (qp->device->get_link_layer(qp->device, attr.port_num) !=
-+			if (rdma_port_get_link_layer(qp->device, attr.port_num) !=
- 			    IB_LINK_LAYER_INFINIBAND)
- 				return true;
- 			goto lid_check;
-@@ -1531,7 +1531,7 @@ static bool is_valid_mcast_lid(struct ib_qp *qp, u16 lid)
- 
- 	/* Can't get a quick answer, iterate over all ports */
- 	for (port = 0; port < qp->device->phys_port_cnt; port++)
--		if (qp->device->get_link_layer(qp->device, port) !=
-+		if (rdma_port_get_link_layer(qp->device, port) !=
- 		    IB_LINK_LAYER_INFINIBAND)
- 			num_eth_ports++;
- 
+Tom.
