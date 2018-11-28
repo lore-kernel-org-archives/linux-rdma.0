@@ -1,20 +1,20 @@
 From: Steve Wise <swise@opengridcomputing.com>
 Subject: Re: [PATCH RFC iproute2-next 1/2] rdma: add 'link add/delete'
  commands
-Date: Wed, 28 Nov 2018 14:23:43 -0600
-Message-ID: <be951bde-9498-7d96-92bf-f6d8280aed68@opengridcomputing.com>
+Date: Wed, 28 Nov 2018 14:18:55 -0600
+Message-ID: <d2aaeece-6491-b5f2-d1af-e6c327590cab@opengridcomputing.com>
 References: <cover.1543422310.git.swise@opengridcomputing.com>
  <7026be07534b14fd74e592c315523c57fde05a0a.1543422310.git.swise@opengridcomputing.com>
  <20181128182645.GJ4559@mtr-leonro.mtl.com>
  <fcc5af3c-4440-93ac-e6b4-212f5d1fbfe0@opengridcomputing.com>
- <a55d4291-7c60-dc64-54ef-5ffaf60ed2e6@opengridcomputing.com>
- <20181128200204.GO4559@mtr-leonro.mtl.com>
- <20181128200844.GQ4559@mtr-leonro.mtl.com>
+ <20181128200412.GP4559@mtr-leonro.mtl.com>
+ <ddbbc8b5-3a32-4eea-cc02-b3211d3d47bb@opengridcomputing.com>
+ <20181128201303.GR4559@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181128200844.GQ4559@mtr-leonro.mtl.com>
+In-Reply-To: <20181128201303.GR4559@mtr-leonro.mtl.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
@@ -23,43 +23,62 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 11/28/2018 2:08 PM, Leon Romanovsky wrote:
-> On Wed, Nov 28, 2018 at 10:02:04PM +0200, Leon Romanovsky wrote:
->> On Wed, Nov 28, 2018 at 01:34:14PM -0600, Steve Wise wrote:
->>> ...
->>>
->>>>>> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
->>>>>> +		       (NLM_F_REQUEST | NLM_F_ACK));
->>>>>> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
->>>>>> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, type);
->>>>>> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, dev);
->>>>>> +	ret = rd_send_msg(rd);
->>>>>> +	if (ret)
->>>>>> +		return ret;
->>>>>> +
->>>>>> +	ret = rd_recv_msg(rd, link_add_parse_cb, rd, seq);
->>>>>> +	if (ret)
->>>>>> +		perror(NULL);
->>>>> Why do you need rd_recv_msg()? I think that it is not needed, at least
->>>>> for rename, I didn't need it.
->>>>> https://git.kernel.org/pub/scm/network/iproute2/iproute2-next.git/tree/rdma/dev.c#n244
->>>> To get the response of if it was successfully added.  It provides the
->>>> errno value.
->>> If I don't do the rd_recv_msg, then adding the same name twice fails
->>> without any error notification.  Ditto for deleting a non-existent
->>> link.  So the rd_recv_msg() allows getting the failure reason (and
->>> detecting the failure). 
->>>
->> Shouldn't extack provide such information as part of NLM_F_ACK flag?
+On 11/28/2018 2:13 PM, Leon Romanovsky wrote:
+> On Wed, Nov 28, 2018 at 02:07:29PM -0600, Steve Wise wrote:
 >>
->> just shooting into the air, will take more close look tomorrow.
-> OK, it was easier than I thought.
->
-> You are right, need both send and receive to get the reason.
->
-> Can you prepare general function and update rename part too?
-> Something like send_receive(...) with dummy callback for receive path.
+>> On 11/28/2018 2:04 PM, Leon Romanovsky wrote:
+>>> On Wed, Nov 28, 2018 at 01:08:05PM -0600, Steve Wise wrote:
+>>>> On 11/28/2018 12:26 PM, Leon Romanovsky wrote:
+>>>>> On Thu, Sep 13, 2018 at 10:19:21AM -0700, Steve Wise wrote:
+>>>>>> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
+>>>>>> device to a netdev interface.
+>>>>>>
+>>>>>> EG:
+>>>>>>
+>>>>>> rdma link add rxe_eth0 type rxe dev eth0
+>>>>>> rdma link delete rxe_eth0
+>>>>>>
+>>>>>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+>>>>>> ---
+>>>>>>  rdma/link.c  | 106 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>>  rdma/rdma.h  |   1 +
+>>>>>>  rdma/utils.c |   2 +-
+>>>>>>  3 files changed, 108 insertions(+), 1 deletion(-)
+>>>>>>
+>>>>>> diff --git a/rdma/link.c b/rdma/link.c
+>>>>>> index 7a6d4b7e356d..d4f76b0ce11f 100644
+>>>>>> --- a/rdma/link.c
+>>>>>> +++ b/rdma/link.c
+>>>>>> @@ -14,6 +14,8 @@
+>>>>>>  static int link_help(struct rd *rd)
+>>>>>>  {
+>>>>>>  	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
+>>>>>> +	pr_out("Usage: %s link add NAME type TYPE dev DEV\n", rd->filename);
+>>>>> I suggest to rename "dev" to be "netdev", because we are using "dev" for
+>>>>> ib devices.
+>>>> Yea ok.
+>>>>
+>>>>>> +	pr_out("Usage: %s link delete NAME type TYPE\n", rd->filename);
+>>>>> Why do you need "type" for "delete" command?
+>>>> Because the type is used in the kernel to find the appropriate link
+>>>> ops.  I could change the kernel side to search all types for the device
+>>>> name to delete? 
+>>> I would say, yes.
+>>> It makes "delete" operation more natural.
+>>>
+>>> Thanks
+>> Perhaps.
+>>
+>> Note: 'ip link delete' takes a type as well...
+> According to man section, yes.
+> According to various guides, no.
+> https://docs.fedoraproject.org/en-US/Fedora/20/html/Networking_Guide/sec-Configure_802_1Q_VLAN_Tagging_ip_Commands.html
 >
 > Thanks
 
-Sure, I'll whip something up for the next version of the patch series...
+It does make sense to not require type.  The name must be unique so that
+should be enough.  I'll have to respin the kernel side though...
+
+Thanks,
+
+Steve.
