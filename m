@@ -1,50 +1,55 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH RFC iproute2-next 1/2] rdma: add 'link add/delete'
- commands
-Date: Wed, 28 Nov 2018 16:51:43 -0600
-Message-ID: <0f14d192-7f3d-33f8-f778-595a8fd9c28d@opengridcomputing.com>
-References: <cover.1543422310.git.swise@opengridcomputing.com>
- <7026be07534b14fd74e592c315523c57fde05a0a.1543422310.git.swise@opengridcomputing.com>
- <20181128182645.GJ4559@mtr-leonro.mtl.com>
- <fcc5af3c-4440-93ac-e6b4-212f5d1fbfe0@opengridcomputing.com>
- <20181128200412.GP4559@mtr-leonro.mtl.com>
- <ddbbc8b5-3a32-4eea-cc02-b3211d3d47bb@opengridcomputing.com>
- <20181128201303.GR4559@mtr-leonro.mtl.com>
- <d2aaeece-6491-b5f2-d1af-e6c327590cab@opengridcomputing.com>
- <20181128221711.GH19914@ziepe.ca>
- <870b87fa-0485-5aee-239a-0312b34a4361@opengridcomputing.com>
- <20181128222558.GI19914@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181128222558.GI19914@ziepe.ca>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, BMT@zurich.ibm.com
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 29/68] net/mlx4_core: Zero out lkey field in SW2HW_MPT fw command
+Date: Thu, 29 Nov 2018 00:55:20 -0500
+Message-ID: <20181129055559.159228-29-sashal@kernel.org>
+References: <20181129055559.159228-1-sashal@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181129055559.159228-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
+[ Upstream commit bd85fbc2038a1bbe84990b23ff69b6fc81a32b2c ]
 
-On 11/28/2018 4:25 PM, Jason Gunthorpe wrote:
-> On Wed, Nov 28, 2018 at 04:21:48PM -0600, Steve Wise wrote:
->
->>>> It does make sense to not require type.  The name must be unique so that
->>>> should be enough.  I'll have to respin the kernel side though...
->>> The delete_link really should be an operation on the ib_device, not
->>> the link_ops thing. 
->>>
->>> That directly prevents mis-matching function callbacks..
->>>
->>> Jason
->> Looking at the rtnetlink newlink/dellink, I see they cache the link_ops
->> ptr in the net_device struct.  So when the link is deleted, then
->> appropriate driver-specific dellink function can be called after finding
->> the device to be deleted.  Should I do something along these lines?  IE
->> add a struct rdma_link_ops pointer to struct ib_device.
-> I don't see a problem with that either..
->
-> Jason
+When re-registering a user mr, the mpt information for the
+existing mr when running SRIOV is obtained via the QUERY_MPT
+fw command. The returned information includes the mpt's lkey.
 
-Ok, I'll respin the kernel and user patches tomorrow.  Thanks!
+This retrieved mpt information is used to move the mpt back
+to hardware ownership in the rereg flow (via the SW2HW_MPT
+fw command when running SRIOV).
+
+The fw API spec states that for SW2HW_MPT, the lkey field
+must be zero. Any ConnectX-3 PF driver which checks for strict spec
+adherence will return failure for SW2HW_MPT if the lkey field is not
+zero (although the fw in practice ignores this field for SW2HW_MPT).
+
+Thus, in order to conform to the fw API spec, set the lkey field to zero
+before invoking SW2HW_MPT when running SRIOV.
+
+Fixes: e630664c8383 ("mlx4_core: Add helper functions to support MR re-registration")
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/mr.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
+index 2e84f10f59ba..1a11bc0e1612 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mr.c
++++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
+@@ -363,6 +363,7 @@ int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
+ 			container_of((void *)mpt_entry, struct mlx4_cmd_mailbox,
+ 				     buf);
+ 
++		(*mpt_entry)->lkey = 0;
+ 		err = mlx4_SW2HW_MPT(dev, mailbox, key);
+ 	}
+ 
+-- 
+2.17.1
