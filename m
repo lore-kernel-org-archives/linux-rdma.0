@@ -1,55 +1,41 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 08/13] net/mlx4_core: Zero out lkey field in SW2HW_MPT fw command
-Date: Thu, 29 Nov 2018 01:04:39 -0500
-Message-ID: <20181129060444.160434-8-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 09/13] net/mlx4_core: Fix uninitialized variable compilation warning
+Date: Thu, 29 Nov 2018 01:04:40 -0500
+Message-ID: <20181129060444.160434-9-sashal@kernel.org>
 References: <20181129060444.160434-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181129060444.160434-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+From: Tariq Toukan <tariqt@mellanox.com>
 
-[ Upstream commit bd85fbc2038a1bbe84990b23ff69b6fc81a32b2c ]
+[ Upstream commit 3ea7e7ea53c9f6ee41cb69a29c375fe9dd9a56a7 ]
 
-When re-registering a user mr, the mpt information for the
-existing mr when running SRIOV is obtained via the QUERY_MPT
-fw command. The returned information includes the mpt's lkey.
+Initialize the uid variable to zero to avoid the compilation warning.
 
-This retrieved mpt information is used to move the mpt back
-to hardware ownership in the rereg flow (via the SW2HW_MPT
-fw command when running SRIOV).
-
-The fw API spec states that for SW2HW_MPT, the lkey field
-must be zero. Any ConnectX-3 PF driver which checks for strict spec
-adherence will return failure for SW2HW_MPT if the lkey field is not
-zero (although the fw in practice ignores this field for SW2HW_MPT).
-
-Thus, in order to conform to the fw API spec, set the lkey field to zero
-before invoking SW2HW_MPT when running SRIOV.
-
-Fixes: e630664c8383 ("mlx4_core: Add helper functions to support MR re-registration")
-Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Fixes: 7a89399ffad7 ("net/mlx4: Add mlx4_bitmap zone allocator")
 Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/mr.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ethernet/mellanox/mlx4/alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-index 93195191f45b..53833c06696f 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-@@ -366,6 +366,7 @@ int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 			container_of((void *)mpt_entry, struct mlx4_cmd_mailbox,
- 				     buf);
- 
-+		(*mpt_entry)->lkey = 0;
- 		err = mlx4_SW2HW_MPT(dev, mailbox, key);
- 	}
- 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index 0c51c69f802f..a4912b11e54f 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -339,7 +339,7 @@ void mlx4_zone_allocator_destroy(struct mlx4_zone_allocator *zone_alloc)
+ static u32 __mlx4_alloc_from_zone(struct mlx4_zone_entry *zone, int count,
+ 				  int align, u32 skip_mask, u32 *puid)
+ {
+-	u32 uid;
++	u32 uid = 0;
+ 	u32 res;
+ 	struct mlx4_zone_allocator *zone_alloc = zone->allocator;
+ 	struct mlx4_zone_entry *curr_node;
 -- 
 2.17.1
