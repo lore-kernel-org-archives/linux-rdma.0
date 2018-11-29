@@ -1,55 +1,53 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 3.18 3/6] net/mlx4_core: Zero out lkey field in SW2HW_MPT fw command
-Date: Thu, 29 Nov 2018 01:05:32 -0500
-Message-ID: <20181129060535.160592-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 3.18 4/6] net/mlx4: Fix UBSAN warning of signed integer overflow
+Date: Thu, 29 Nov 2018 01:05:33 -0500
+Message-ID: <20181129060535.160592-4-sashal@kernel.org>
 References: <20181129060535.160592-1-sashal@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181129060535.160592-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Aya Levin <ayal@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jack Morgenstein <jackm@dev.mellanox.co.il>
+From: Aya Levin <ayal@mellanox.com>
 
-[ Upstream commit bd85fbc2038a1bbe84990b23ff69b6fc81a32b2c ]
+[ Upstream commit a463146e67c848cbab5ce706d6528281b7cded08 ]
 
-When re-registering a user mr, the mpt information for the
-existing mr when running SRIOV is obtained via the QUERY_MPT
-fw command. The returned information includes the mpt's lkey.
+UBSAN: Undefined behavior in
+drivers/net/ethernet/mellanox/mlx4/resource_tracker.c:626:29
+signed integer overflow: 1802201963 + 1802201963 cannot be represented
+in type 'int'
 
-This retrieved mpt information is used to move the mpt back
-to hardware ownership in the rereg flow (via the SW2HW_MPT
-fw command when running SRIOV).
+The union of res_reserved and res_port_rsvd[MLX4_MAX_PORTS] monitors
+granting of reserved resources. The grant operation is calculated and
+protected, thus both members of the union cannot be negative.  Changed
+type of res_reserved and of res_port_rsvd[MLX4_MAX_PORTS] from signed
+int to unsigned int, allowing large value.
 
-The fw API spec states that for SW2HW_MPT, the lkey field
-must be zero. Any ConnectX-3 PF driver which checks for strict spec
-adherence will return failure for SW2HW_MPT if the lkey field is not
-zero (although the fw in practice ignores this field for SW2HW_MPT).
-
-Thus, in order to conform to the fw API spec, set the lkey field to zero
-before invoking SW2HW_MPT when running SRIOV.
-
-Fixes: e630664c8383 ("mlx4_core: Add helper functions to support MR re-registration")
-Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Fixes: 5a0d0a6161ae ("mlx4: Structures and init/teardown for VF resource quotas")
+Signed-off-by: Aya Levin <ayal@mellanox.com>
 Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/mr.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ethernet/mellanox/mlx4/mlx4.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/mr.c b/drivers/net/ethernet/mellanox/mlx4/mr.c
-index b7cdef0aebd6..47c2f7c5703d 100644
---- a/drivers/net/ethernet/mellanox/mlx4/mr.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/mr.c
-@@ -372,6 +372,7 @@ int mlx4_mr_hw_write_mpt(struct mlx4_dev *dev, struct mlx4_mr *mmr,
- 			container_of((void *)mpt_entry, struct mlx4_cmd_mailbox,
- 				     buf);
- 
-+		(*mpt_entry)->lkey = 0;
- 		err = mlx4_SW2HW_MPT(dev, mailbox, key);
- 	}
- 
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4.h b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+index de10dbb2e6ed..4f63915f14be 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4.h
+@@ -516,8 +516,8 @@ struct slave_list {
+ struct resource_allocator {
+ 	spinlock_t alloc_lock; /* protect quotas */
+ 	union {
+-		int res_reserved;
+-		int res_port_rsvd[MLX4_MAX_PORTS];
++		unsigned int res_reserved;
++		unsigned int res_port_rsvd[MLX4_MAX_PORTS];
+ 	};
+ 	union {
+ 		int res_free;
 -- 
 2.17.1
