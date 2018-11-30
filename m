@@ -1,53 +1,37 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Expose packet based credit mode
-Date: Fri, 30 Nov 2018 13:22:04 +0200
-Message-ID: <20181130112206.19870-2-leon@kernel.org>
-References: <20181130112206.19870-1-leon@kernel.org>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: Re: [PATCH 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+Date: Fri, 30 Nov 2018 14:38:27 -0800
+Message-ID: <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
+References: <20181124022035.17519-1-deepa.kernel@gmail.com>
+ <20181124022035.17519-3-deepa.kernel@gmail.com> <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181130112206.19870-1-leon@kernel.org>
+In-Reply-To: <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Danit Goldberg <danitg@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: willemdebruijn.kernel@gmail.com
+Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, David Howells <dhowells@redhat.com>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Danit Goldberg <danitg@mellanox.com>
+On Sat, Nov 24, 2018 at 7:59 PM Willem de Bruijn
+<willemdebruijn.kernel@gmail.com> wrote:
+>
+> On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+> >
+> > SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
+> > way they are currently defined, are not y2038 safe.
+> > Subsequent patches in the series add new y2038 safe versions
+> > of these options which provide 64 bit timestamps on all
+> > architectures uniformly.
+> > Hence, rename existing options with OLD tag suffixes.
+>
+> Why do the existing interfaces have to be renamed when new interfaces are added?
 
-Packet based credit mode bit determines whether the credit mode
-is done per message or packet. Expose the QP creation flag and
-the HCA capability.
+Existing options need to be renamed because of the macro below:
 
-Signed-off-by: Danit Goldberg <danitg@mellanox.com>
-Reviewed-by: Majd Dibbiny <majd@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/mlx5_ifc.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? \
+            SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 171d68663640..52393fbcf3b4 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -1057,7 +1057,8 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8         vector_calc[0x1];
- 	u8         umr_ptr_rlky[0x1];
- 	u8	   imaicl[0x1];
--	u8         reserved_at_232[0x4];
-+	u8	   qp_packet_based[0x1];
-+	u8         reserved_at_233[0x3];
- 	u8         qkv[0x1];
- 	u8         pkv[0x1];
- 	u8         set_deth_sqpn[0x1];
-@@ -2269,7 +2270,8 @@ struct mlx5_ifc_qpc_bits {
- 	u8         st[0x8];
- 	u8         reserved_at_10[0x3];
- 	u8         pm_state[0x2];
--	u8         reserved_at_15[0x3];
-+	u8         reserved_at_15[0x1];
-+	u8         req_e2e_credit_mode[0x2];
- 	u8         offload_type[0x4];
- 	u8         end_padding_mode[0x2];
- 	u8         reserved_at_1e[0x2];
--- 
-2.19.1
+SO_TIMESTAMP is now dependent on size of time_t because of the libc flag.
+
+-Deepa
