@@ -1,48 +1,43 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Fri, 30 Nov 2018 14:43:10 -0800
-Message-ID: <CABeXuvp5OaVetzJJf2L5ZE1BP_KOO2FvvG8EWn5t29eCe-=dtg@mail.gmail.com>
+From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+Subject: Re: [PATCH 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+Date: Fri, 30 Nov 2018 18:33:57 -0500
+Message-ID: <CAF=yD-+DNdGpitd9TABeHjnBFRPcrN4E-AcQNmGMD-Lt9th7mw@mail.gmail.com>
 References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-8-deepa.kernel@gmail.com> <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
- <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
- <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com> <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
+ <20181124022035.17519-3-deepa.kernel@gmail.com> <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
+ <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
+In-Reply-To: <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: willemdebruijn.kernel@gmail.com
-Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
+To: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, David Howells <dhowells@redhat.com>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 25, 2018 at 6:33 AM Willem de Bruijn
-<willemdebruijn.kernel@gmail.com> wrote:
+On Fri, Nov 30, 2018 at 5:38 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
 >
-> On Sun, Nov 25, 2018 at 12:28 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+> On Sat, Nov 24, 2018 at 7:59 PM Willem de Bruijn
+> <willemdebruijn.kernel@gmail.com> wrote:
 > >
-> > > > > +       if (type == SO_TIMESTAMP_NEW || type == SO_TIMESTAMPNS_NEW)
-> > > > > +               sock_set_flag(sk, SOCK_TSTAMP_NEW);
-> > > > > +       else
-> > > > > +               sock_reset_flag(sk, SOCK_TSTAMP_NEW);
-> > > > > +
-> > > >
-> > > > if adding a boolean whether the socket uses new or old-style
-> > > > timestamps, perhaps fail hard if a process tries to set a new-style
-> > > > option while an old-style is already set and vice versa. Also include
-> > > > SO_TIMESTAMPING_NEW as it toggles the same option.
+> > On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+> > >
+> > > SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
+> > > way they are currently defined, are not y2038 safe.
+> > > Subsequent patches in the series add new y2038 safe versions
+> > > of these options which provide 64 bit timestamps on all
+> > > architectures uniformly.
+> > > Hence, rename existing options with OLD tag suffixes.
 > >
-> > I do not think this is a problem.
-> > Consider this example, if there is a user application with updated
-> > socket timestamps is linking into a library that is yet to be updated.
+> > Why do the existing interfaces have to be renamed when new interfaces are added?
 >
-> Also consider applications that do not use libraries.
+> Existing options need to be renamed because of the macro below:
+>
+> #define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? \
+>             SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
+>
+> SO_TIMESTAMP is now dependent on size of time_t because of the libc flag.
 
-Arnd and I talked about this.
-We thought that the new options should behave like the already
-existing options. The patch already does this.
-Eg: Today if we set SO_TIMESTAMP and then try to switch to
-SO_TIMESTAMPNS then there is no fail.
-
-Do you still want a hard fail?
-
--Deepa
+Yes, I understand the mechanism based on libc's definition of time_t
+after Arnd's explanation. Please do capture that in the commit
+message, for possible future readers who stumble upon the code with
+git blame.
