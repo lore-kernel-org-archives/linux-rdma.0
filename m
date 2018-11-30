@@ -1,77 +1,156 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 00/13] Mellanox, mlx5 core driver events API
-Date: Thu, 29 Nov 2018 16:43:59 -0800
-Message-ID: <CALzJLG9X-wn4LiNA8eACRe_FEszA41WgwC3tFE_L9foJtAayQA@mail.gmail.com>
-References: <20181126223908.15988-1-saeedm@mellanox.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 0/6] RFC: gup+dma: tracking dma-pinned pages
+Date: Thu, 29 Nov 2018 17:39:06 -0800
+Message-ID: <7a68b7fc-ff9d-381e-2444-909c9c2f6679@nvidia.com>
+References: <20181110085041.10071-1-jhubbard@nvidia.com>
+ <942cb823-9b18-69e7-84aa-557a68f9d7e9@talpey.com>
+ <97934904-2754-77e0-5fcb-83f2311362ee@nvidia.com>
+ <5159e02f-17f8-df8b-600c-1b09356e46a9@talpey.com>
+ <c1ba07d6-ebfa-ddb9-c25e-e5c1bfbecf74@nvidia.com>
+ <15e4a0c0-cadd-e549-962f-8d9aa9fc033a@talpey.com>
+ <313bf82d-cdeb-8c75-3772-7a124ecdfbd5@nvidia.com>
+ <2aa422df-d5df-5ddb-a2e4-c5e5283653b5@talpey.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181126223908.15988-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2aa422df-d5df-5ddb-a2e4-c5e5283653b5@talpey.com>
+Content-Language: en-US-large
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tom Talpey <tom@talpey.com>, john.hubbard@gmail.com, linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 2:39 PM Saeed Mahameed <saeedm@mellanox.com> wrote:
->
-> Hi,
->
-> This patchset is for mlx5-next shared branch, and will be applied there
-> once the review is done.
->
-> The main idea of this change is to define a flexible scalable and
-> simpler high level mlx5 core APIs to forward device and driver events
-> to upper level interface drivers e.g mlx5_ib and mlx5e netdevice driver.
->
-> Patch #1, Driver events notifier API:
->
-> Use atomic notifier chain to fire events to mlx5 core driver
-> consumers (mlx5e/mlx5_ib) and provide dynamic mlx5 register/unregister
-> notifier API to replace the internal mlx5_interface->event and totally
-> remove it.
->
-> Patch #2, Forward port events via the new notifier chain.
-> Patch #3, Use the mlx5 events API in mlx5e netdevice.
-> Patch #4, Forward all device events sent via mlx5_core_event (old API)
-> to the new notifier chain, this will allow seamless transition to the
-> new AP.
-> Patch #5, Use the new events API in mlx5_IB
-> Patch #6, remove old interface callback, mlx5_interface->event
-> Patch #7,8,9, mlx5_ib to handle raw FW events as is rather than the
-> software version of them, this will remove any need for unnecessary
-> processing of FW events in the low level mlx5_core driver.
-> Patch #10, Remove unnecessary processing of FW events in the low level
-> mlx5_core driver, all events are handled on demand by mlx5_ib and/or
-> mlx5e netdevice.
->
-> patch #11,12, forward QP and SRQ events via the new notifier chain,
-> will be needed by mlx5_ib driver.
->
-> Patch #13, Debug patch for mlx5 events.
->
-> Thanks,
-> Saeed.
->
-> ---
->
-> Saeed Mahameed (13):
->   net/mlx5: Driver events notifier API
->   net/mlx5: Allow port change event to be forwarded to driver notifiers
->     chain
->   net/mlx5e: Use the new mlx5 core notifier API
->   net/mlx5: Forward all mlx5 events to mlx5 notifiers chain
->   IB/mlx5: Use the new mlx5 core notifier API
->   net/mlx5: Remove unused events callback and logic
->   IB/mlx5: Handle raw port change event rather than the software version
->   net/mlx5: Allow forwarding event type general event as is
->   IB/mlx5: Handle raw delay drop general event
->   net/mlx5: Remove all deprecated software versions of FW events
->   net/mlx5: Forward QP/WorkQueues resource events
->   net/mlx5: Forward SRQ resource events
->   net/mlx5: Debug print for forwarded async events
->
+On 11/28/18 5:59 AM, Tom Talpey wrote:
+> On 11/27/2018 9:52 PM, John Hubbard wrote:
+>> On 11/27/18 5:21 PM, Tom Talpey wrote:
+>>> On 11/21/2018 5:06 PM, John Hubbard wrote:
+>>>> On 11/21/18 8:49 AM, Tom Talpey wrote:
+>>>>> On 11/21/2018 1:09 AM, John Hubbard wrote:
+>>>>>> On 11/19/18 10:57 AM, Tom Talpey wrote:
+>> [...]
+>>> I'm super-limited here this week hardware-wise and have not been able
+>>> to try testing with the patched kernel.
+>>>
+>>> I was able to compare my earlier quick test with a Bionic 4.15 kernel
+>>> (400K IOPS) against a similar 4.20rc3 kernel, and the rate dropped to
+>>> ~_375K_ IOPS. Which I found perhaps troubling. But it was only a quick
+>>> test, and without your change.
+>>>
+>>
+>> So just to double check (again): you are running fio with these parameters,
+>> right?
+>>
+>> [reader]
+>> direct=1
+>> ioengine=libaio
+>> blocksize=4096
+>> size=1g
+>> numjobs=1
+>> rw=read
+>> iodepth=64
+> 
+> Correct, I copy/pasted these directly. I also ran with size=10g because
+> the 1g provides a really small sample set.
+> 
+> There was one other difference, your results indicated fio 3.3 was used.
+> My Bionic install has fio 3.1. I don't find that relevant because our
+> goal is to compare before/after, which I haven't done yet.
+> 
 
-Applied to mlx5-next.
+OK, the 50 MB/s was due to my particular .config. I had some expensive debug options
+set in mm, fs and locking subsystems. Turning those off, I'm back up to the rated
+speed of the Samsung NVMe device, so now we should have a clearer picture of the
+performance that real users will see.
 
-Thanks,
-Saeed.
+Continuing on, then: running a before and after test, I don't see any significant 
+difference in the fio results:
+
+fio.conf:
+
+[reader]
+direct=1
+ioengine=libaio
+blocksize=4096
+size=1g
+numjobs=1
+rw=read
+iodepth=64
+
+---------------------------------------------------------
+Baseline 4.20.0-rc3 (commit f2ce1065e767), as before:
+
+$ fio ./experimental-fio.conf 
+reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=64
+fio-3.3
+Starting 1 process
+Jobs: 1 (f=1)
+reader: (groupid=0, jobs=1): err= 0: pid=1738: Thu Nov 29 17:20:07 2018
+   read: IOPS=193k, BW=753MiB/s (790MB/s)(1024MiB/1360msec)
+    slat (nsec): min=1381, max=46469, avg=1649.48, stdev=594.46
+    clat (usec): min=162, max=12247, avg=330.00, stdev=185.55
+     lat (usec): min=165, max=12253, avg=331.68, stdev=185.69
+    clat percentiles (usec):
+     |  1.00th=[  322],  5.00th=[  326], 10.00th=[  326], 20.00th=[  326],
+     | 30.00th=[  326], 40.00th=[  326], 50.00th=[  326], 60.00th=[  326],
+     | 70.00th=[  326], 80.00th=[  326], 90.00th=[  326], 95.00th=[  326],
+     | 99.00th=[  379], 99.50th=[  594], 99.90th=[  603], 99.95th=[  611],
+     | 99.99th=[12125]
+   bw (  KiB/s): min=751640, max=782912, per=99.52%, avg=767276.00, stdev=22112.64, samples=2
+   iops        : min=187910, max=195728, avg=191819.00, stdev=5528.16, samples=2
+  lat (usec)   : 250=0.08%, 500=99.30%, 750=0.59%
+  lat (msec)   : 20=0.02%
+  cpu          : usr=16.26%, sys=48.05%, ctx=251258, majf=0, minf=73
+  IO depths    : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=100.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.1%, >=64=0.0%
+     issued rwts: total=262144,0,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=64
+
+Run status group 0 (all jobs):
+   READ: bw=753MiB/s (790MB/s), 753MiB/s-753MiB/s (790MB/s-790MB/s), io=1024MiB (1074MB), run=1360-1360msec
+
+Disk stats (read/write):
+  nvme0n1: ios=220798/0, merge=0/0, ticks=71481/0, in_queue=71966, util=100.00%
+
+---------------------------------------------------------
+With patches applied:
+
+<redforge> fast_256GB $ fio ./experimental-fio.conf
+reader: (g=0): rw=read, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=64
+fio-3.3
+Starting 1 process
+Jobs: 1 (f=1)
+reader: (groupid=0, jobs=1): err= 0: pid=1738: Thu Nov 29 17:20:07 2018
+   read: IOPS=193k, BW=753MiB/s (790MB/s)(1024MiB/1360msec)
+    slat (nsec): min=1381, max=46469, avg=1649.48, stdev=594.46
+    clat (usec): min=162, max=12247, avg=330.00, stdev=185.55
+     lat (usec): min=165, max=12253, avg=331.68, stdev=185.69
+    clat percentiles (usec):
+     |  1.00th=[  322],  5.00th=[  326], 10.00th=[  326], 20.00th=[  326],
+     | 30.00th=[  326], 40.00th=[  326], 50.00th=[  326], 60.00th=[  326],
+     | 70.00th=[  326], 80.00th=[  326], 90.00th=[  326], 95.00th=[  326],
+     | 99.00th=[  379], 99.50th=[  594], 99.90th=[  603], 99.95th=[  611],
+     | 99.99th=[12125]
+   bw (  KiB/s): min=751640, max=782912, per=99.52%, avg=767276.00, stdev=22112.64, samples=2
+   iops        : min=187910, max=195728, avg=191819.00, stdev=5528.16, samples=2
+  lat (usec)   : 250=0.08%, 500=99.30%, 750=0.59%
+  lat (msec)   : 20=0.02%
+  cpu          : usr=16.26%, sys=48.05%, ctx=251258, majf=0, minf=73
+  IO depths    : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=100.0%
+     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.1%, >=64=0.0%
+     issued rwts: total=262144,0,0,0 short=0,0,0,0 dropped=0,0,0,0
+     latency   : target=0, window=0, percentile=100.00%, depth=64
+
+Run status group 0 (all jobs):
+   READ: bw=753MiB/s (790MB/s), 753MiB/s-753MiB/s (790MB/s-790MB/s), io=1024MiB (1074MB), run=1360-1360msec
+
+Disk stats (read/write):
+  nvme0n1: ios=220798/0, merge=0/0, ticks=71481/0, in_queue=71966, util=100.00%
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
