@@ -1,43 +1,67 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
-Date: Fri, 30 Nov 2018 18:33:57 -0500
-Message-ID: <CAF=yD-+DNdGpitd9TABeHjnBFRPcrN4E-AcQNmGMD-Lt9th7mw@mail.gmail.com>
+Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
+Date: Fri, 30 Nov 2018 18:37:34 -0500
+Message-ID: <CAF=yD-J=yTunQr279x8qb5B0xdAcdmcBj6utyM1gE8QfgorQPw@mail.gmail.com>
 References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-3-deepa.kernel@gmail.com> <CAF=yD-KfxXK=Ta=+a8UYMcmUYzN=UokotfzSno2-xi=JeS6=0g@mail.gmail.com>
- <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
+ <20181124022035.17519-8-deepa.kernel@gmail.com>
+ <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
+ <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
+ <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com>
+ <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
+ <CABeXuvp5OaVetzJJf2L5ZE1BP_KOO2FvvG8EWn5t29eCe-=dtg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABeXuvr7M4z6-7qsnBZqnXQEcGxfgVddGmsoV=iLwA-n=S5VkQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <y2038-bounces@lists.linaro.org>
+In-Reply-To: <CABeXuvp5OaVetzJJf2L5ZE1BP_KOO2FvvG8EWn5t29eCe-=dtg@mail.gmail.com>
+List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/y2038/>
+List-Post: <mailto:y2038@lists.linaro.org>
+List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
+List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=subscribe>
+Errors-To: y2038-bounces@lists.linaro.org
+Sender: "Y2038" <y2038-bounces@lists.linaro.org>
 To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Al Viro <viro@zeniv.linux.org.uk>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, David Howells <dhowells@redhat.com>, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ralf@linux-mips.org, jejb@parisc-linux.org, linux-rdma@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, rth@twiddle.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 30, 2018 at 5:38 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> On Sat, Nov 24, 2018 at 7:59 PM Willem de Bruijn
-> <willemdebruijn.kernel@gmail.com> wrote:
-> >
-> > On Sat, Nov 24, 2018 at 3:58 AM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
-> > >
-> > > SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
-> > > way they are currently defined, are not y2038 safe.
-> > > Subsequent patches in the series add new y2038 safe versions
-> > > of these options which provide 64 bit timestamps on all
-> > > architectures uniformly.
-> > > Hence, rename existing options with OLD tag suffixes.
-> >
-> > Why do the existing interfaces have to be renamed when new interfaces are added?
->
-> Existing options need to be renamed because of the macro below:
->
-> #define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? \
->             SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
->
-> SO_TIMESTAMP is now dependent on size of time_t because of the libc flag.
-
-Yes, I understand the mechanism based on libc's definition of time_t
-after Arnd's explanation. Please do capture that in the commit
-message, for possible future readers who stumble upon the code with
-git blame.
+T24gRnJpLCBOb3YgMzAsIDIwMTggYXQgNTo0MyBQTSBEZWVwYSBEaW5hbWFuaSA8ZGVlcGEua2Vy
+bmVsQGdtYWlsLmNvbT4gd3JvdGU6Cj4KPiBPbiBTdW4sIE5vdiAyNSwgMjAxOCBhdCA2OjMzIEFN
+IFdpbGxlbSBkZSBCcnVpam4KPiA8d2lsbGVtZGVicnVpam4ua2VybmVsQGdtYWlsLmNvbT4gd3Jv
+dGU6Cj4gPgo+ID4gT24gU3VuLCBOb3YgMjUsIDIwMTggYXQgMTI6MjggQU0gRGVlcGEgRGluYW1h
+bmkgPGRlZXBhLmtlcm5lbEBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPgo+ID4gPiA+ID4gPiArICAg
+ICAgIGlmICh0eXBlID09IFNPX1RJTUVTVEFNUF9ORVcgfHwgdHlwZSA9PSBTT19USU1FU1RBTVBO
+U19ORVcpCj4gPiA+ID4gPiA+ICsgICAgICAgICAgICAgICBzb2NrX3NldF9mbGFnKHNrLCBTT0NL
+X1RTVEFNUF9ORVcpOwo+ID4gPiA+ID4gPiArICAgICAgIGVsc2UKPiA+ID4gPiA+ID4gKyAgICAg
+ICAgICAgICAgIHNvY2tfcmVzZXRfZmxhZyhzaywgU09DS19UU1RBTVBfTkVXKTsKPiA+ID4gPiA+
+ID4gKwo+ID4gPiA+ID4KPiA+ID4gPiA+IGlmIGFkZGluZyBhIGJvb2xlYW4gd2hldGhlciB0aGUg
+c29ja2V0IHVzZXMgbmV3IG9yIG9sZC1zdHlsZQo+ID4gPiA+ID4gdGltZXN0YW1wcywgcGVyaGFw
+cyBmYWlsIGhhcmQgaWYgYSBwcm9jZXNzIHRyaWVzIHRvIHNldCBhIG5ldy1zdHlsZQo+ID4gPiA+
+ID4gb3B0aW9uIHdoaWxlIGFuIG9sZC1zdHlsZSBpcyBhbHJlYWR5IHNldCBhbmQgdmljZSB2ZXJz
+YS4gQWxzbyBpbmNsdWRlCj4gPiA+ID4gPiBTT19USU1FU1RBTVBJTkdfTkVXIGFzIGl0IHRvZ2ds
+ZXMgdGhlIHNhbWUgb3B0aW9uLgo+ID4gPgo+ID4gPiBJIGRvIG5vdCB0aGluayB0aGlzIGlzIGEg
+cHJvYmxlbS4KPiA+ID4gQ29uc2lkZXIgdGhpcyBleGFtcGxlLCBpZiB0aGVyZSBpcyBhIHVzZXIg
+YXBwbGljYXRpb24gd2l0aCB1cGRhdGVkCj4gPiA+IHNvY2tldCB0aW1lc3RhbXBzIGlzIGxpbmtp
+bmcgaW50byBhIGxpYnJhcnkgdGhhdCBpcyB5ZXQgdG8gYmUgdXBkYXRlZC4KPiA+Cj4gPiBBbHNv
+IGNvbnNpZGVyIGFwcGxpY2F0aW9ucyB0aGF0IGRvIG5vdCB1c2UgbGlicmFyaWVzLgo+Cj4gQXJu
+ZCBhbmQgSSB0YWxrZWQgYWJvdXQgdGhpcy4KPiBXZSB0aG91Z2h0IHRoYXQgdGhlIG5ldyBvcHRp
+b25zIHNob3VsZCBiZWhhdmUgbGlrZSB0aGUgYWxyZWFkeQo+IGV4aXN0aW5nIG9wdGlvbnMuIFRo
+ZSBwYXRjaCBhbHJlYWR5IGRvZXMgdGhpcy4KPiBFZzogVG9kYXkgaWYgd2Ugc2V0IFNPX1RJTUVT
+VEFNUCBhbmQgdGhlbiB0cnkgdG8gc3dpdGNoIHRvCj4gU09fVElNRVNUQU1QTlMgdGhlbiB0aGVy
+ZSBpcyBubyBmYWlsLgoKPiBEbyB5b3Ugc3RpbGwgd2FudCBhIGhhcmQgZmFpbD8KCkkgZG8gdGhp
+bmsgdGhhdCBpdCBpcyBwcmVmZXJhYmxlLiBJbiBnZW5lcmFsLCBhbmQgaW4gdGhpcyBzcGVjaWZp
+YyBjYXNlLgoKV2UgaGF2ZSBoYWQgaGFkIG1hbnkgYnVnIHJlcG9ydHMgZnJvbSBzeXprYWxsZXIg
+d2hlcmUgdGhlIGZ1enplcgptYW5hZ2VzIHRvIHRyaWdnZXIgdW5leHBlY3RlZCBiZWhhdmlvciBi
+eSBjb21iaW5pbmcgdHdvIEFQSXMKdGhhdCB3ZXJlIG5ldmVyIGludGVuZGVkIHRvIGJlIHVzZWQg
+dG9nZXRoZXIuCgpIb3dldmVyIGluYW5lIHRoZSBjb21iaW5hdGlvbiBtYXkgYmUsIG9uY2UgYW4g
+QVBJIGlzIHB1Ymxpc2hlZCwKd2UgY2Fubm90IHNpbXBseSBhZGQgYW4gRUlOVkFMIGFuZCBzdG9w
+IHN1cHBvcnRpbmcgaXQuIFNvIGl0IGlzIHNhZmVyCnRvIGV4cGxpY2l0bHkgYmxvY2sgdW5zYWZl
+IGNvbWJpbmF0aW9ucyBmcm9tIHRoZSBzdGFydC4gSWYgdGhlcmUgaXMgYQpsZWdpdGltYXRlIHVz
+ZSBpdCBpcyBhbHdheXMgcG9zc2libGUgdG8gbG9vc2VuIHRoYXQgcmVzdHJpY3Rpb24gbGF0ZXIu
+CgpJIGRvbid0IHNlZSBhbnkgc2Vuc2libGUgdXNlIGZvciBtaXhpbmcgYm90aCB0aGUgb2xkIGFu
+ZCB0aGUgbmV3CmludGVyZmFjZSBvbiB0aGUgc2FtZSBzb2NrZXQuCgpUaGF0IHNhaWQsIGp1c3Qg
+YSBzdWdnZXN0aW9uLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpZMjAzOCBtYWlsaW5nIGxpc3QKWTIwMzhAbGlzdHMubGluYXJvLm9yZwpodHRwczovL2xp
+c3RzLmxpbmFyby5vcmcvbWFpbG1hbi9saXN0aW5mby95MjAzOAo=
