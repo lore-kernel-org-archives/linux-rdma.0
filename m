@@ -1,67 +1,75 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH 7/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Fri, 30 Nov 2018 18:37:34 -0500
-Message-ID: <CAF=yD-J=yTunQr279x8qb5B0xdAcdmcBj6utyM1gE8QfgorQPw@mail.gmail.com>
-References: <20181124022035.17519-1-deepa.kernel@gmail.com>
- <20181124022035.17519-8-deepa.kernel@gmail.com>
- <CAF=yD-K=ZLZ_S=Y6YnhvvkfKQS=21ujwiGd7+JB9yDMtiX_9hg@mail.gmail.com>
- <CAF=yD-K3Ga8qojSh5Epa6m4EYn-Lvdo=e38MnFqOKch1128VHw@mail.gmail.com>
- <CABeXuvoDPvT45CCt2L0TReqtb1Q_-E8+toYu6qjiP0cxfdQNdA@mail.gmail.com>
- <CAF=yD-LngkYq23Q2TCJv_0PRiAryznYRWRbqYFaQkNO=U0w9gQ@mail.gmail.com>
- <CABeXuvp5OaVetzJJf2L5ZE1BP_KOO2FvvG8EWn5t29eCe-=dtg@mail.gmail.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH] RDMA/uverbs: fix ptr_ret.cocci warnings
+Date: Mon, 03 Dec 2018 12:23:35 -0500
+Message-ID: <51cb9d8e7b107d37447b9e0d218bb12d8cf49ebb.camel@redhat.com>
+References: <201811280723.DnTk8AXL%fengguang.wu@intel.com>
+         <20181127232130.GA28456@sof-kbuild01> <20181129233721.GA11172@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <y2038-bounces@lists.linaro.org>
-In-Reply-To: <CABeXuvp5OaVetzJJf2L5ZE1BP_KOO2FvvG8EWn5t29eCe-=dtg@mail.gmail.com>
-List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/y2038/>
-List-Post: <mailto:y2038@lists.linaro.org>
-List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
-List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=subscribe>
-Errors-To: y2038-bounces@lists.linaro.org
-Sender: "Y2038" <y2038-bounces@lists.linaro.org>
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, ralf@linux-mips.org, jejb@parisc-linux.org, linux-rdma@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>, rth@twiddle.net
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-/W6v1yMHNaNeUmifzBA5"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181129233721.GA11172@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, kbuild test robot <fengguang.wu@intel.com>
+Cc: kbuild-all@01.org, Leon Romanovsky <leonro@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Mark Bloch <markb@mellanox.com>, Ariel Levkovich <lariel@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCBOb3YgMzAsIDIwMTggYXQgNTo0MyBQTSBEZWVwYSBEaW5hbWFuaSA8ZGVlcGEua2Vy
-bmVsQGdtYWlsLmNvbT4gd3JvdGU6Cj4KPiBPbiBTdW4sIE5vdiAyNSwgMjAxOCBhdCA2OjMzIEFN
-IFdpbGxlbSBkZSBCcnVpam4KPiA8d2lsbGVtZGVicnVpam4ua2VybmVsQGdtYWlsLmNvbT4gd3Jv
-dGU6Cj4gPgo+ID4gT24gU3VuLCBOb3YgMjUsIDIwMTggYXQgMTI6MjggQU0gRGVlcGEgRGluYW1h
-bmkgPGRlZXBhLmtlcm5lbEBnbWFpbC5jb20+IHdyb3RlOgo+ID4gPgo+ID4gPiA+ID4gPiArICAg
-ICAgIGlmICh0eXBlID09IFNPX1RJTUVTVEFNUF9ORVcgfHwgdHlwZSA9PSBTT19USU1FU1RBTVBO
-U19ORVcpCj4gPiA+ID4gPiA+ICsgICAgICAgICAgICAgICBzb2NrX3NldF9mbGFnKHNrLCBTT0NL
-X1RTVEFNUF9ORVcpOwo+ID4gPiA+ID4gPiArICAgICAgIGVsc2UKPiA+ID4gPiA+ID4gKyAgICAg
-ICAgICAgICAgIHNvY2tfcmVzZXRfZmxhZyhzaywgU09DS19UU1RBTVBfTkVXKTsKPiA+ID4gPiA+
-ID4gKwo+ID4gPiA+ID4KPiA+ID4gPiA+IGlmIGFkZGluZyBhIGJvb2xlYW4gd2hldGhlciB0aGUg
-c29ja2V0IHVzZXMgbmV3IG9yIG9sZC1zdHlsZQo+ID4gPiA+ID4gdGltZXN0YW1wcywgcGVyaGFw
-cyBmYWlsIGhhcmQgaWYgYSBwcm9jZXNzIHRyaWVzIHRvIHNldCBhIG5ldy1zdHlsZQo+ID4gPiA+
-ID4gb3B0aW9uIHdoaWxlIGFuIG9sZC1zdHlsZSBpcyBhbHJlYWR5IHNldCBhbmQgdmljZSB2ZXJz
-YS4gQWxzbyBpbmNsdWRlCj4gPiA+ID4gPiBTT19USU1FU1RBTVBJTkdfTkVXIGFzIGl0IHRvZ2ds
-ZXMgdGhlIHNhbWUgb3B0aW9uLgo+ID4gPgo+ID4gPiBJIGRvIG5vdCB0aGluayB0aGlzIGlzIGEg
-cHJvYmxlbS4KPiA+ID4gQ29uc2lkZXIgdGhpcyBleGFtcGxlLCBpZiB0aGVyZSBpcyBhIHVzZXIg
-YXBwbGljYXRpb24gd2l0aCB1cGRhdGVkCj4gPiA+IHNvY2tldCB0aW1lc3RhbXBzIGlzIGxpbmtp
-bmcgaW50byBhIGxpYnJhcnkgdGhhdCBpcyB5ZXQgdG8gYmUgdXBkYXRlZC4KPiA+Cj4gPiBBbHNv
-IGNvbnNpZGVyIGFwcGxpY2F0aW9ucyB0aGF0IGRvIG5vdCB1c2UgbGlicmFyaWVzLgo+Cj4gQXJu
-ZCBhbmQgSSB0YWxrZWQgYWJvdXQgdGhpcy4KPiBXZSB0aG91Z2h0IHRoYXQgdGhlIG5ldyBvcHRp
-b25zIHNob3VsZCBiZWhhdmUgbGlrZSB0aGUgYWxyZWFkeQo+IGV4aXN0aW5nIG9wdGlvbnMuIFRo
-ZSBwYXRjaCBhbHJlYWR5IGRvZXMgdGhpcy4KPiBFZzogVG9kYXkgaWYgd2Ugc2V0IFNPX1RJTUVT
-VEFNUCBhbmQgdGhlbiB0cnkgdG8gc3dpdGNoIHRvCj4gU09fVElNRVNUQU1QTlMgdGhlbiB0aGVy
-ZSBpcyBubyBmYWlsLgoKPiBEbyB5b3Ugc3RpbGwgd2FudCBhIGhhcmQgZmFpbD8KCkkgZG8gdGhp
-bmsgdGhhdCBpdCBpcyBwcmVmZXJhYmxlLiBJbiBnZW5lcmFsLCBhbmQgaW4gdGhpcyBzcGVjaWZp
-YyBjYXNlLgoKV2UgaGF2ZSBoYWQgaGFkIG1hbnkgYnVnIHJlcG9ydHMgZnJvbSBzeXprYWxsZXIg
-d2hlcmUgdGhlIGZ1enplcgptYW5hZ2VzIHRvIHRyaWdnZXIgdW5leHBlY3RlZCBiZWhhdmlvciBi
-eSBjb21iaW5pbmcgdHdvIEFQSXMKdGhhdCB3ZXJlIG5ldmVyIGludGVuZGVkIHRvIGJlIHVzZWQg
-dG9nZXRoZXIuCgpIb3dldmVyIGluYW5lIHRoZSBjb21iaW5hdGlvbiBtYXkgYmUsIG9uY2UgYW4g
-QVBJIGlzIHB1Ymxpc2hlZCwKd2UgY2Fubm90IHNpbXBseSBhZGQgYW4gRUlOVkFMIGFuZCBzdG9w
-IHN1cHBvcnRpbmcgaXQuIFNvIGl0IGlzIHNhZmVyCnRvIGV4cGxpY2l0bHkgYmxvY2sgdW5zYWZl
-IGNvbWJpbmF0aW9ucyBmcm9tIHRoZSBzdGFydC4gSWYgdGhlcmUgaXMgYQpsZWdpdGltYXRlIHVz
-ZSBpdCBpcyBhbHdheXMgcG9zc2libGUgdG8gbG9vc2VuIHRoYXQgcmVzdHJpY3Rpb24gbGF0ZXIu
-CgpJIGRvbid0IHNlZSBhbnkgc2Vuc2libGUgdXNlIGZvciBtaXhpbmcgYm90aCB0aGUgb2xkIGFu
-ZCB0aGUgbmV3CmludGVyZmFjZSBvbiB0aGUgc2FtZSBzb2NrZXQuCgpUaGF0IHNhaWQsIGp1c3Qg
-YSBzdWdnZXN0aW9uLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpZMjAzOCBtYWlsaW5nIGxpc3QKWTIwMzhAbGlzdHMubGluYXJvLm9yZwpodHRwczovL2xp
-c3RzLmxpbmFyby5vcmcvbWFpbG1hbi9saXN0aW5mby95MjAzOAo=
+
+--=-/W6v1yMHNaNeUmifzBA5
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Thu, 2018-11-29 at 16:37 -0700, Jason Gunthorpe wrote:
+> On Wed, Nov 28, 2018 at 07:21:30AM +0800, kbuild test robot wrote:
+> > From: kbuild test robot <fengguang.wu@intel.com>
+> >=20
+> > drivers/infiniband/core/uverbs_cmd.c:1095:1-3: WARNING: PTR_ERR_OR_ZERO=
+ can be used
+> >=20
+> >=20
+> >  Use PTR_ERR_OR_ZERO rather than if(IS_ERR(...)) + PTR_ERR
+> >=20
+> > Generated by: scripts/coccinelle/api/ptr_ret.cocci
+> >=20
+> > Fixes: 7106a9769715 ("RDMA/uverbs: Make write() handlers return 0 on su=
+ccess")
+> > Signed-off-by: kbuild test robot <fengguang.wu@intel.com>
+> > ---
+>=20
+> applied to for-next, thanks
+>=20
+> Jason
+
+This caused a conflict with your make write() handlers use a consistent
+flow series, which I fixed up during git am run.  Just FYI in case you
+want to check out the conflict spot as a double check (but it was a
+simple fixup).
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-/W6v1yMHNaNeUmifzBA5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlwFZpcACgkQuCajMw5X
+L90r8A//RgjH8FiIe5OjfenSnhnuE7WUB8ywlqdXgdcrmqCq9qQpEqF6ODzp3v9B
+ovdAy5xRb8ElgvePDb80d/OWfGa0cvdvm3giKGSPiN0inLxMcaEks4QVDtwre1nm
+Rxhk26TJlHOkMsjosFeL/4P9OMWvxbVUnsTt0ukn4e8nalW5FAocz6TK2TDXBysa
+cPb5wifyzItRZS+ayD1RzKpHcQBbke8+FAZGOxhTIiZ9DDoaXu2WG2U3wWDQFBCG
+h1KigLGf6/7LSMrmx/bUR+sMw7qY9/agKUpxVcujFh/A/3Es7pJMBnvMvG/pfjti
+iXJqZKSlmOP+sxMIW/siYvt/0tRmpwBrOZPRR8Vfrj0AwJVgvcKLMA8GUkVN1Lir
+FWdRdUOazCXipS0L0pZwurtfx6ouh7FCpvhna7wS/oRMm8YuHkaijrdABbe7a+FQ
+o7DXF12+yiwdg/xEbwWmQ5EU5QviDWEYQZtd4+evt1DNLsWyAUeeJj6iiRKUofcQ
+3G/VoXMEZR7qY6zAj7Ge8wbcfvjhQ117F3sbdFwuSWIVSLEdmdusjSBcJiQBIAem
+fM0mcNgTk04foeqjXV3yAH3JO0WuhufvdKI8wZ2s9XBS98vOX8n8Dg0rGSLnmVeB
+QJLRgF7giVdGDuI60B0ZxGZq1jFhYiiIBEzmVlqGPH76zupNfoM=
+=vDNO
+-----END PGP SIGNATURE-----
+
+--=-/W6v1yMHNaNeUmifzBA5--
