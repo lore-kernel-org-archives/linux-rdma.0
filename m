@@ -1,110 +1,97 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH mlx5-next 1/7] net/mlx5: Update mlx5_ifc with DEVX UCTX
- capabilities bits
-Date: Mon, 03 Dec 2018 13:32:45 -0500
-Message-ID: <92d7a16f7c83b870d7c905d9199b28edd5aedbdc.camel@redhat.com>
-References: <20181126062838.5907-1-leon@kernel.org>
-         <20181126062838.5907-2-leon@kernel.org>
+Subject: Re: [PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE
+Date: Mon, 03 Dec 2018 13:59:08 -0500
+Message-ID: <e295bca26fce6408c7265292e81107b04a1a144d.camel@redhat.com>
+References: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-qdr0IpDP8SN/pp6xV3K5"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181126062838.5907-2-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="=-Jgd362xHNNmppwzCQCK+"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1543235202-9075-1-git-send-email-anshuman.khandual@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl, vkoul@kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-qdr0IpDP8SN/pp6xV3K5
+--=-Jgd362xHNNmppwzCQCK+
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2018-11-26 at 08:28 +0200, Leon Romanovsky wrote:
-> From: Yishai Hadas <yishaih@mellanox.com>
+On Mon, 2018-11-26 at 17:56 +0530, Anshuman Khandual wrote:
+> At present there are multiple places where invalid node number is encoded
+> as -1. Even though implicitly understood it is always better to have macr=
+os
+> in there. Replace these open encodings for an invalid node number with th=
+e
+> global macro NUMA_NO_NODE. This helps remove NUMA related assumptions lik=
+e
+> 'invalid node' from various places redirecting them to a common definitio=
+n.
 >=20
-> Expose device capabilities for DEVX user context, it includes which caps
-> the device is supported and a matching bit to set as part of user
-> context creation.
->=20
-> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-
-This looks fine to me.  Is it in mlx5-next yet?
-
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 > ---
->  include/linux/mlx5/mlx5_ifc.h | 16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
+> Changes in V2:
 >=20
-> diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.=
-h
-> index 6f64e814cc10..ece1b606c909 100644
-> --- a/include/linux/mlx5/mlx5_ifc.h
-> +++ b/include/linux/mlx5/mlx5_ifc.h
-> @@ -883,6 +883,10 @@ enum {
->  	MLX5_CAP_UMR_FENCE_NONE		=3D 0x2,
->  };
-> =20
-> +enum {
-> +	MLX5_UCTX_CAP_RAW_TX =3D 1UL << 0,
-> +};
-> +
->  struct mlx5_ifc_cmd_hca_cap_bits {
->  	u8         reserved_at_0[0x30];
->  	u8         vhca_id[0x10];
-> @@ -1193,7 +1197,13 @@ struct mlx5_ifc_cmd_hca_cap_bits {
->  	u8	   num_vhca_ports[0x8];
->  	u8	   reserved_at_618[0x6];
->  	u8	   sw_owner_id[0x1];
-> -	u8	   reserved_at_61f[0x1e1];
-> +	u8         reserved_at_61f[0x1];
-> +
-> +	u8         reserved_at_620[0x80];
-> +
-> +	u8         uctx_cap[0x20];
-> +
-> +	u8	   reserved_at_6c0[0x140];
->  };
-> =20
->  enum mlx5_flow_destination_type {
-> @@ -9276,7 +9286,9 @@ struct mlx5_ifc_umem_bits {
->  struct mlx5_ifc_uctx_bits {
->  	u8         modify_field_select[0x40];
-> =20
-> -	u8         reserved_at_40[0x1c0];
-> +	u8         cap[0x20];
-> +
-> +	u8         reserved_at_60[0x1a0];
->  };
-> =20
->  struct mlx5_ifc_create_umem_in_bits {
+> - Added inclusion of 'numa.h' header at various places per Andrew
+> - Updated 'dev_to_node' to use NUMA_NO_NODE instead per Vinod
+>=20
+> Changes in V1: (https://lkml.org/lkml/2018/11/23/485)
+>=20
+> - Dropped OCFS2 changes per Joseph
+> - Dropped media/video drivers changes per Hans
+>=20
+> RFC - https://patchwork.kernel.org/patch/10678035/
+>=20
+> Build tested this with multiple cross compiler options like alpha, sparc,
+> arm64, x86, powerpc, powerpc64le etc with their default config which migh=
+t
+> not have compiled tested all driver related changes. I will appreciate
+> folks giving this a test in their respective build environment.
+>=20
+> All these places for replacement were found by running the following grep
+> patterns on the entire kernel code. Please let me know if this might have
+> missed some instances. This might also have replaced some false positives=
+.
+> I will appreciate suggestions, inputs and review.
+>=20
+> 1. git grep "nid =3D=3D -1"
+> 2. git grep "node =3D=3D -1"
+> 3. git grep "nid =3D -1"
+> 4. git grep "node =3D -1"
+>=20
+>  drivers/infiniband/hw/hfi1/affinity.c         |  3 ++-
+>  drivers/infiniband/hw/hfi1/init.c             |  3 ++-
+
+For the drivers/infiniband changes,
+
+Acked-by: Doug Ledford <dledford@redhat.com>
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
---=-qdr0IpDP8SN/pp6xV3K5
+--=-Jgd362xHNNmppwzCQCK+
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlwFds0ACgkQuCajMw5X
-L91JZQ/+I3gBT5neimKVomiYqcBR7D07fV4pqrWAgKhQoml47ZrcEdJEj/eIlySb
-CjpRXhVVzCJGcp/xUoUhBJZDo2nu0uH2uSQlGWbHSuw3ad8awQsAK70zADFZV+jE
-YkTuxSV1NxmZ37ZsE9pynF7MFL5pM8A9xa55dh/ZvciKB4Mdx57Lv3PMOGyI7K/8
-wDMzc4+rcf014ejctsGA92Wg5g4W+evUDDI1Fu4cZ81HhApzVGbys3GY7HwNkho0
-M7vuhT+j10aEcNuRkrg4XefNdOxy8G7wmSw4AKjzaRrx1EMYhlD0WnUdwYTU44ON
-HMQWxw3YpEz7IDjTxpth25pvU+WxUeHwWN3cfeBYLMYEB6D7FjHmWA/5dgDjOWGU
-U9jzXMCFQyGdggJ+lq2qctQLFlK0rw2SUaAyvwSZaRluYqhcaR0t0+AbzJaVp57L
-35+qhC2OMNEs61mghOkdnx4sKsQHN5NpPxiYg/aCR+nHGJYO3iuiGWCuw1PhrAqb
-u63RGJRSidOjyzarnJC8N0jMdIvCkgjuZAGGDKHpidXQMRJetA7hjbfkEKRz/MoD
-Hdgf586crXVgnmUjQeM7un4W3ogygsWrjtvbhmhvnRA0ilNApYWrGC42aiYk1p+8
-aWchacpwplTtJ1n+mtOqN6UuC5uskRQwd+/bmWzS9iw/5Ggk+us=
-=9YOe
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlwFfPwACgkQuCajMw5X
+L911nA/+Pq4noh4r/S3RhvajccFUfwzT5+IhZ7V69GHF9EaiPK8E1lka1m7BdNtX
+MlRVfjw6oW1Gs5uQFJfJC2qucbFLzZOm1I25GgzLq/iEq0ItnvUBVC13P2W5bmIa
+OB1zY9MRcBQs3T9W3/rcwFwxzYBIh9YsFNbq+op5uu5iUnKsLYenyPPTnWSVj5qO
+PWFKzPVxp68NmPpc/vPph6SrazSdSChuZFH06PElH0ifHC+Gde6gCuBSiX4dNCm5
+NzODtQz2AqmWPLS7XrgwtN2VGdjN8sPpQBcaYMV9aYOXzXdn5BexsgtoSd5VHdUN
+UZOUZQi/1UwA/i+Ngg86mv7nKWh/sxflS7a+F3u3xR9BoP09Gtt41Yu+zLZ28omr
+NTKrHWhoiv+WFY+iXoCCtPbI8TYjTuqyVhqHOZiMzX9rTxYBZ3wtHMOqmdQl5K69
+nnpJpIJr0uFEehieZvo7Tcvj28D7kDUwYN66HkEJcie71Uu45+lW2HoaIQwURsnY
+ot6h/yf8X2Pu1PY4A9FjXeFbECh4qXjZXevOz6vDaubqVwWtQdpoGl78KPd8WaJ+
+8tCtiT+L99uUE6sZoLaTdYd/EYsABxfbduwcTOdpNWVgxx2bxDXSgWkAd1bk0A0k
+zFoViov/qfs5E2JiGmVcxPeya+X/5gFMM8vJRwIvhMyokGfWRLg=
+=LheN
 -----END PGP SIGNATURE-----
 
---=-qdr0IpDP8SN/pp6xV3K5--
+--=-Jgd362xHNNmppwzCQCK+--
