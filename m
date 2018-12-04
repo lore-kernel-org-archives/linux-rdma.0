@@ -1,47 +1,82 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH 2/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end calls
-Date: Mon, 3 Dec 2018 19:09:12 -0500
-Message-ID: <20181204000911.GB20742@redhat.com>
-References: <20181203201817.10759-1-jglisse@redhat.com>
- <20181203201817.10759-3-jglisse@redhat.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/11] Remove SRQ code from mlx5_core
+Date: Tue, 4 Dec 2018 07:29:51 +0000
+Message-ID: <20181204072947.GR6462@mtr-leonro.mtl.com>
+References: <20181128185343.21669-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181203201817.10759-3-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Christian Koenig <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Xsn3knLL3qrmRbVI"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181128185343.21669-1-leon@kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 03:18:16PM -0500, jglisse@redhat.com wrote:
-> diff --git a/mm/migrate.c b/mm/migrate.c
-> index f7e4bfdc13b7..4896dd9d8b28 100644
-> --- a/mm/migrate.c
-> +++ b/mm/migrate.c
-> @@ -2303,8 +2303,13 @@ static int migrate_vma_collect_pmd(pmd_t *pmdp,
->   */
->  static void migrate_vma_collect(struct migrate_vma *migrate)
->  {
-> +	struct mmu_notifier_range range;
->  	struct mm_walk mm_walk;
->  
-> +	range.start = migrate->start;
-> +	range.end = migrate->end;
-> +	range.mm = mm_walk.mm;
+--Xsn3knLL3qrmRbVI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Andrew can you replace above line by:
+On Wed, Nov 28, 2018 at 08:53:32PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi Doug and Jason,
+>
+> This series is intended to be applied on mlx5-next after Saeed's
+> infrastructure changes series are accepted:
+> https://patchwork.kernel.org/project/linux-rdma/list/?series=47809
+>
+> ----------------------------------------------------------------------
+> The following patchset brings mlx5 SRQ functionality to the module
+> which is actually using it - mlx5_ib. The original code being not used
+> in mlx5_core/mlx5_en, but located there, caused to unneeded maintenance
+> overhead.
+>
+> By moving mlx5 SRQ code to mlx5_ib, we successfully reduced ~200 LOC codes
+> and minimized exports and headers pollution.
+>
+> The proposed patches are divided to three logical groups: move from
+> netdev, fix IB part and cleanup.
+>
+> Thanks
+>
+> Leon Romanovsky (11):
+>   net/mlx5: Align SRQ licenses and copyright information
+>   net/mlx5: Remove dead transobj code
+>   net/mlx5: Remove not-used lib/eq.h header file
+>   net/mlx5: Remove references to local mlx5_core functions
+>   net/mlx5: Move SRQ functions to RDMA part
+>   RDMA/mlx5: Remove SRQ signature global flag
+>   RDMA/mlx5: Use stages for callback to setup and release DEVX
+>   RDMA/mlx5: Update SRQ functions signatures to mlx5_ib format
+>   RDMA/mlx5: Initialize SRQ tables on mlx5_ib
+>   RDMA/mlx5: Unfold create RMP function
+>   RDMA/mlx5: Unfold modify RMP function
+>
 
-+	range.mm = migrate->vma->vm_mm;
+Applied to mlx5-next.
 
-I made a mistake here when i was rebasing before posting. I checked
-the patchset again and i believe this is the only mistake i made.
+Thanks
 
-Do you want me to repost ?
+--Xsn3knLL3qrmRbVI
+Content-Type: application/pgp-signature; name="signature.asc"
 
-Sorry for my stupid mistake.
+-----BEGIN PGP SIGNATURE-----
 
-Cheers,
-Jérôme
+iQIcBAEBAgAGBQJcBizrAAoJEORje4g2clinBZ8QAJXBrrtdu/fNtpsKW+dOlOFs
+klIjZUFv7HbugAKq+X1f64bimzEL+V8R45VqXgbQ7mrcv2X4y08WU0Gq3divZ4vV
+VNARRWmMTBb6jIEPA1boTE6xUQjmvCF32aTVk9q5B23nlRqdPKfmUakiu53Jfhpv
+EB2MdWc+iK5InaktHxAGW9Znr/pfPeD1xiWEAM/TYy3e6KY2Dkdh4Hcvuj/NdzIL
+rVHeEkvXzaoOqNiO+3qilHcJPfvVMK8kJq1uJbIlaVQlMzH6AMcF/G6itXcijOiM
+gWbxzy3dlJORar6FNUVBd6hwQGd8OTygxu2c8A9toscrVZAq6/1Z5WPOdKlKYZYG
+e+FYjA70XJuvRjbqiMYhjpRa/5LE02EaTCXaHW/U0kkc6/JqVhenMJVA6urZqfwN
+VIBjrAnX51QQQ69Xg/MGGIITE1QJ80qDEHTnzraTelAfMBQ8MM1NXsS3iVOF6Pfg
+6vXbJRTu6kOoboBuBaX7t9MgWP6S9WHwN/hMOXvt5nXv35BXiz+zkGQwtwYJTBac
+4q0Efn7iOeif2arh/IIikcD3+I52ZVXFxCuN1sGLZJTh/Z9vwnTO1S8QtR5EjW3e
+kHQs8McGswSV0mU/l4kVD2gYbDNd03BfRScJVQ8Q+vFp2ygt9w9jrUK/JWWofsQs
+rBFpdTllyxUI4yDlYaQG
+=uZRz
+-----END PGP SIGNATURE-----
+
+--Xsn3knLL3qrmRbVI--
