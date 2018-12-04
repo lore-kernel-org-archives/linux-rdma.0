@@ -1,82 +1,107 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 00/11] Remove SRQ code from mlx5_core
-Date: Tue, 4 Dec 2018 07:29:51 +0000
-Message-ID: <20181204072947.GR6462@mtr-leonro.mtl.com>
-References: <20181128185343.21669-1-leon@kernel.org>
+From: "Koenig, Christian" <Christian.Koenig@amd.com>
+Subject: Re: [PATCH 0/3] mmu notifier contextual informations
+Date: Tue, 4 Dec 2018 07:35:22 +0000
+Message-ID: <2c0ed01b-50f9-961b-ff08-de494e00b1b4@amd.com>
+References: <20181203201817.10759-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Xsn3knLL3qrmRbVI"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181128185343.21669-1-leon@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181203201817.10759-1-jglisse@redhat.com>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-ID: <26511A7B4182974B950897019B73A37F@namprd12.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "jglisse@redhat.com" <jglisse@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, "Kuehling, Felix" <Felix.Kuehling@amd.com>, =?utf-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, Ross Zwisler <zwisler@kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
---Xsn3knLL3qrmRbVI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Wed, Nov 28, 2018 at 08:53:32PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
->
-> Hi Doug and Jason,
->
-> This series is intended to be applied on mlx5-next after Saeed's
-> infrastructure changes series are accepted:
-> https://patchwork.kernel.org/project/linux-rdma/list/?series=47809
->
-> ----------------------------------------------------------------------
-> The following patchset brings mlx5 SRQ functionality to the module
-> which is actually using it - mlx5_ib. The original code being not used
-> in mlx5_core/mlx5_en, but located there, caused to unneeded maintenance
-> overhead.
->
-> By moving mlx5 SRQ code to mlx5_ib, we successfully reduced ~200 LOC codes
-> and minimized exports and headers pollution.
->
-> The proposed patches are divided to three logical groups: move from
-> netdev, fix IB part and cleanup.
->
-> Thanks
->
-> Leon Romanovsky (11):
->   net/mlx5: Align SRQ licenses and copyright information
->   net/mlx5: Remove dead transobj code
->   net/mlx5: Remove not-used lib/eq.h header file
->   net/mlx5: Remove references to local mlx5_core functions
->   net/mlx5: Move SRQ functions to RDMA part
->   RDMA/mlx5: Remove SRQ signature global flag
->   RDMA/mlx5: Use stages for callback to setup and release DEVX
->   RDMA/mlx5: Update SRQ functions signatures to mlx5_ib format
->   RDMA/mlx5: Initialize SRQ tables on mlx5_ib
->   RDMA/mlx5: Unfold create RMP function
->   RDMA/mlx5: Unfold modify RMP function
->
-
-Applied to mlx5-next.
-
-Thanks
-
---Xsn3knLL3qrmRbVI
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcBizrAAoJEORje4g2clinBZ8QAJXBrrtdu/fNtpsKW+dOlOFs
-klIjZUFv7HbugAKq+X1f64bimzEL+V8R45VqXgbQ7mrcv2X4y08WU0Gq3divZ4vV
-VNARRWmMTBb6jIEPA1boTE6xUQjmvCF32aTVk9q5B23nlRqdPKfmUakiu53Jfhpv
-EB2MdWc+iK5InaktHxAGW9Znr/pfPeD1xiWEAM/TYy3e6KY2Dkdh4Hcvuj/NdzIL
-rVHeEkvXzaoOqNiO+3qilHcJPfvVMK8kJq1uJbIlaVQlMzH6AMcF/G6itXcijOiM
-gWbxzy3dlJORar6FNUVBd6hwQGd8OTygxu2c8A9toscrVZAq6/1Z5WPOdKlKYZYG
-e+FYjA70XJuvRjbqiMYhjpRa/5LE02EaTCXaHW/U0kkc6/JqVhenMJVA6urZqfwN
-VIBjrAnX51QQQ69Xg/MGGIITE1QJ80qDEHTnzraTelAfMBQ8MM1NXsS3iVOF6Pfg
-6vXbJRTu6kOoboBuBaX7t9MgWP6S9WHwN/hMOXvt5nXv35BXiz+zkGQwtwYJTBac
-4q0Efn7iOeif2arh/IIikcD3+I52ZVXFxCuN1sGLZJTh/Z9vwnTO1S8QtR5EjW3e
-kHQs8McGswSV0mU/l4kVD2gYbDNd03BfRScJVQ8Q+vFp2ygt9w9jrUK/JWWofsQs
-rBFpdTllyxUI4yDlYaQG
-=uZRz
------END PGP SIGNATURE-----
-
---Xsn3knLL3qrmRbVI--
+QW0gMDMuMTIuMTggdW0gMjE6MTggc2NocmllYiBqZ2xpc3NlQHJlZGhhdC5jb206DQo+IEZyb206
+IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPg0KPg0KPiBUaGlzIHBhdGNoc2V0
+IGFkZCBjb250ZXh0dWFsIGluZm9ybWF0aW9uLCB3aHkgYW4gaW52YWxpZGF0aW9uIGlzDQo+IGhh
+cHBlbmluZywgdG8gbW11IG5vdGlmaWVyIGNhbGxiYWNrLiBUaGlzIGlzIG5lY2Vzc2FyeSBmb3Ig
+dXNlcg0KPiBvZiBtbXUgbm90aWZpZXIgdGhhdCB3aXNoIHRvIG1haW50YWlucyB0aGVpciBvd24g
+ZGF0YSBzdHJ1Y3R1cmUNCj4gd2l0aG91dCBoYXZpbmcgdG8gYWRkIG5ldyBmaWVsZHMgdG8gc3Ry
+dWN0IHZtX2FyZWFfc3RydWN0ICh2bWEpLg0KPg0KPiBGb3IgaW5zdGFuY2UgZGV2aWNlIGNhbiBo
+YXZlIHRoZXkgb3duIHBhZ2UgdGFibGUgdGhhdCBtaXJyb3IgdGhlDQo+IHByb2Nlc3MgYWRkcmVz
+cyBzcGFjZS4gV2hlbiBhIHZtYSBpcyB1bm1hcCAobXVubWFwKCkgc3lzY2FsbCkgdGhlDQo+IGRl
+dmljZSBkcml2ZXIgY2FuIGZyZWUgdGhlIGRldmljZSBwYWdlIHRhYmxlIGZvciB0aGUgcmFuZ2Uu
+DQo+DQo+IFRvZGF5IHdlIGRvIG5vdCBoYXZlIGFueSBpbmZvcm1hdGlvbiBvbiB3aHkgYSBtbXUg
+bm90aWZpZXIgY2FsbA0KPiBiYWNrIGlzIGhhcHBlbmluZyBhbmQgdGh1cyBkZXZpY2UgZHJpdmVy
+IGhhdmUgdG8gYXNzdW1lIHRoYXQgaXQNCj4gaXMgYWx3YXlzIGFuIG11bm1hcCgpLiBUaGlzIGlz
+IGluZWZmaWNpZW50IGF0IGl0IG1lYW5zIHRoYXQgaXQNCj4gbmVlZHMgdG8gcmUtYWxsb2NhdGUg
+ZGV2aWNlIHBhZ2UgdGFibGUgb24gbmV4dCBwYWdlIGZhdWx0IGFuZA0KPiByZWJ1aWxkIHRoZSB3
+aG9sZSBkZXZpY2UgZHJpdmVyIGRhdGEgc3RydWN0dXJlIGZvciB0aGUgcmFuZ2UuDQo+DQo+IE90
+aGVyIHVzZSBjYXNlIGJlc2lkZSBtdW5tYXAoKSBhbHNvIGV4aXN0LCBmb3IgaW5zdGFuY2UgaXQg
+aXMNCj4gcG9pbnRsZXNzIGZvciBkZXZpY2UgZHJpdmVyIHRvIGludmFsaWRhdGUgdGhlIGRldmlj
+ZSBwYWdlIHRhYmxlDQo+IHdoZW4gdGhlIGludmFsaWRhdGlvbiBpcyBmb3IgdGhlIHNvZnQgZGly
+dHluZXNzIHRyYWNraW5nLiBPcg0KPiBkZXZpY2UgZHJpdmVyIGNhbiBvcHRpbWl6ZSBhd2F5IG1w
+cm90ZWN0KCkgdGhhdCBjaGFuZ2UgdGhlIHBhZ2UNCj4gdGFibGUgcGVybWlzc2lvbiBhY2Nlc3Mg
+Zm9yIHRoZSByYW5nZS4NCj4NCj4gVGhpcyBwYXRjaHNldCBlbmFibGUgYWxsIHRoaXMgb3B0aW1p
+emF0aW9ucyBmb3IgZGV2aWNlIGRyaXZlci4NCj4gSSBkbyBub3QgaW5jbHVkZSBhbnkgb2YgdGhv
+c2UgaW4gdGhpcyBzZXJpZSBidXQgb3RoZXIgcGF0Y2hzZXQNCj4gaSBhbSBwb3N0aW5nIHdpbGwg
+bGV2ZXJhZ2UgdGhpcy4NCj4NCj4NCj4gIEZyb20gY29kZSBwb2ludCBvZiB2aWV3IHRoZSBwYXRj
+aHNldCBpcyBwcmV0dHkgc2ltcGxlLCB0aGUgZmlyc3QNCj4gdHdvIHBhdGNoZXMgY29uc29saWRh
+dGUgYWxsIG1tdSBub3RpZmllciBhcmd1bWVudHMgaW50byBhIHN0cnVjdA0KPiBzbyB0aGF0IGl0
+IGlzIGVhc2llciB0byBhZGQvY2hhbmdlIGFyZ3VtZW50cy4gVGhlIGxhc3QgcGF0Y2ggYWRkcw0K
+PiB0aGUgY29udGV4dHVhbCBpbmZvcm1hdGlvbiAobXVubWFwLCBwcm90ZWN0aW9uLCBzb2Z0IGRp
+cnR5LCBjbGVhciwNCj4gLi4uKS4NCg0KU2tpbW1pbmcgb3ZlciBpdCBhdCBsZWFzdCB0aGUgcGFy
+dHMgSSdtIGZhbWlsaWFyIHdpdGggbG9vayBjb21wbGV0ZWx5IA0Kc2FuZSB0byBtZS4NCg0KV2hv
+bGUgc2VyaWVzIGlzIEFja2VkLWJ5OiBDaHJpc3RpYW4gS8O2bmlnIDxjaHJpc3RpYW4ua29lbmln
+QGFtZC5jb20+Lg0KDQpSZWdhcmRzLA0KQ2hyaXN0aWFuLg0KDQo+DQo+IENoZWVycywNCj4gSsOp
+csO0bWUNCj4NCj4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+
+DQo+IENjOiBNYXR0aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0LmNvbT4NCj4gQ2M6IFJv
+c3MgWndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPg0KPiBDYzogSmFuIEthcmEgPGphY2tAc3Vz
+ZS5jej4NCj4gQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiBD
+YzogUGFvbG8gQm9uemluaSA8cGJvbnppbmlAcmVkaGF0LmNvbT4NCj4gQ2M6IFJhZGltIEtyxI1t
+w6HFmSA8cmtyY21hckByZWRoYXQuY29tPg0KPiBDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Aa2Vy
+bmVsLm9yZz4NCj4gQ2M6IENocmlzdGlhbiBLb2VuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNv
+bT4NCj4gQ2M6IEZlbGl4IEt1ZWhsaW5nIDxmZWxpeC5rdWVobGluZ0BhbWQuY29tPg0KPiBDYzog
+UmFscGggQ2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPg0KPiBDYzogSm9obiBIdWJiYXJk
+IDxqaHViYmFyZEBudmlkaWEuY29tPg0KPiBDYzoga3ZtQHZnZXIua2VybmVsLm9yZw0KPiBDYzog
+bGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcNCj4gQ2M6IGxpbnV4LWZzZGV2ZWxAdmdlci5rZXJu
+ZWwub3JnDQo+IENjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnDQo+DQo+IErDqXLD
+tG1lIEdsaXNzZSAoMyk6DQo+ICAgIG1tL21tdV9ub3RpZmllcjogdXNlIHN0cnVjdHVyZSBmb3Ig
+aW52YWxpZGF0ZV9yYW5nZV9zdGFydC9lbmQgY2FsbGJhY2sNCj4gICAgbW0vbW11X25vdGlmaWVy
+OiB1c2Ugc3RydWN0dXJlIGZvciBpbnZhbGlkYXRlX3JhbmdlX3N0YXJ0L2VuZCBjYWxscw0KPiAg
+ICBtbS9tbXVfbm90aWZpZXI6IGNvbnRleHR1YWwgaW5mb3JtYXRpb24gZm9yIGV2ZW50IHRyaWdn
+ZXJpbmcNCj4gICAgICBpbnZhbGlkYXRpb24NCj4NCj4gICBkcml2ZXJzL2dwdS9kcm0vYW1kL2Ft
+ZGdwdS9hbWRncHVfbW4uYyAgfCAgNDMgKysrKy0tLS0tDQo+ICAgZHJpdmVycy9ncHUvZHJtL2k5
+MTUvaTkxNV9nZW1fdXNlcnB0ci5jIHwgIDE0ICsrLQ0KPiAgIGRyaXZlcnMvZ3B1L2RybS9yYWRl
+b24vcmFkZW9uX21uLmMgICAgICB8ICAxNiArKy0tDQo+ICAgZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvdW1lbV9vZHAuYyAgICAgIHwgIDIwICsrLS0tDQo+ICAgZHJpdmVycy9pbmZpbmliYW5kL2h3
+L2hmaTEvbW11X3JiLmMgICAgIHwgIDEzICsrLQ0KPiAgIGRyaXZlcnMvbWlzYy9taWMvc2NpZi9z
+Y2lmX2RtYS5jICAgICAgICB8ICAxMSArLS0NCj4gICBkcml2ZXJzL21pc2Mvc2dpLWdydS9ncnV0
+bGJwdXJnZS5jICAgICAgfCAgMTQgKystDQo+ICAgZHJpdmVycy94ZW4vZ250ZGV2LmMgICAgICAg
+ICAgICAgICAgICAgIHwgIDEyICstLQ0KPiAgIGZzL2RheC5jICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICB8ICAxMSArKy0NCj4gICBmcy9wcm9jL3Rhc2tfbW11LmMgICAgICAgICAgICAg
+ICAgICAgICAgfCAgMTAgKystDQo+ICAgaW5jbHVkZS9saW51eC9tbS5oICAgICAgICAgICAgICAg
+ICAgICAgIHwgICA0ICstDQo+ICAgaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaCAgICAgICAg
+ICAgIHwgMTA2ICsrKysrKysrKysrKysrKy0tLS0tLS0NCj4gICBrZXJuZWwvZXZlbnRzL3Vwcm9i
+ZXMuYyAgICAgICAgICAgICAgICAgfCAgMTMgKy0tDQo+ICAgbW0vaG1tLmMgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIHwgIDIzICsrLS0tDQo+ICAgbW0vaHVnZV9tZW1vcnkuYyAgICAg
+ICAgICAgICAgICAgICAgICAgIHwgIDU4ICsrKysrKy0tLS0tLQ0KPiAgIG1tL2h1Z2V0bGIuYyAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA2MyArKysrKysrLS0tLS0tDQo+ICAgbW0va2h1
+Z2VwYWdlZC5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDEzICstLQ0KPiAgIG1tL2tzbS5j
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAyNiArKystLS0NCj4gICBtbS9tYWR2
+aXNlLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMjIgKystLS0NCj4gICBtbS9tZW1v
+cnkuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxMTIgKysrKysrKysrKysrKystLS0t
+LS0tLS0tDQo+ICAgbW0vbWlncmF0ZS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDMw
+ICsrKystLS0NCj4gICBtbS9tbXVfbm90aWZpZXIuYyAgICAgICAgICAgICAgICAgICAgICAgfCAg
+MjIgKysrLS0NCj4gICBtbS9tcHJvdGVjdC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
+MTcgKystLQ0KPiAgIG1tL21yZW1hcC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAx
+NCArLS0NCj4gICBtbS9vb21fa2lsbC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMjAg
+KysrLS0NCj4gICBtbS9ybWFwLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMzQg
+KysrKy0tLQ0KPiAgIHZpcnQva3ZtL2t2bV9tYWluLmMgICAgICAgICAgICAgICAgICAgICB8ICAx
+NCArKy0NCj4gICAyNyBmaWxlcyBjaGFuZ2VkLCA0MjEgaW5zZXJ0aW9ucygrKSwgMzM0IGRlbGV0
+aW9ucygtKQ0KPg0KDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
+ZWwK
