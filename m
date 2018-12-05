@@ -1,59 +1,66 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 2/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end calls
-Date: Wed, 5 Dec 2018 17:28:57 +0100
-Message-ID: <20181205162857.GF30615@quack2.suse.cz>
-References: <20181203201817.10759-1-jglisse@redhat.com>
- <20181203201817.10759-3-jglisse@redhat.com>
- <20181205110416.GE22304@quack2.suse.cz>
- <20181205155357.GA3536@redhat.com>
+From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH net-next 1/8] net: core: dev: Add extack
+ argument to dev_open()
+Date: Wed, 5 Dec 2018 09:32:20 -0700
+Message-ID: <7fae4abf-6c99-fdcc-4f96-b663062788ce@cumulusnetworks.com>
+References: <cover.1544006963.git.petrm@mellanox.com>
+	<58aee6a3c1ecba75a780cc303e5fd6e4d92059be.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20181205155357.GA3536@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <felix.kuehling@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Christian Koenig <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <58aee6a3c1ecba75a780cc303e5fd6e4d92059be.1544006963.git.petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
+List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+To: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org" <linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, "linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org" <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, "linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "_govind-KK0ffGbhmjU@public.gmane.org" <_govind-KK0ffGbhmjU@public.gmane.org>, "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org" <ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, kys <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org" <andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org>, "johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org" <ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org>, "jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org" <jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org" <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, "marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org" <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkIDA1LTEyLTE4IDEwOjUzOjU3LCBKZXJvbWUgR2xpc3NlIHdyb3RlOgo+IE9uIFdlZCwg
-RGVjIDA1LCAyMDE4IGF0IDEyOjA0OjE2UE0gKzAxMDAsIEphbiBLYXJhIHdyb3RlOgo+ID4gSGkg
-SmVyb21lIQo+ID4gCj4gPiBPbiBNb24gMDMtMTItMTggMTU6MTg6MTYsIGpnbGlzc2VAcmVkaGF0
-LmNvbSB3cm90ZToKPiA+ID4gRnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5j
-b20+Cj4gPiA+IAo+ID4gPiBUbyBhdm9pZCBoYXZpbmcgdG8gY2hhbmdlIG1hbnkgY2FsbCBzaXRl
-cyBldmVyeXRpbWUgd2Ugd2FudCB0byBhZGQgYQo+ID4gPiBwYXJhbWV0ZXIgdXNlIGEgc3RydWN0
-dXJlIHRvIGdyb3VwIGFsbCBwYXJhbWV0ZXJzIGZvciB0aGUgbW11X25vdGlmaWVyCj4gPiA+IGlu
-dmFsaWRhdGVfcmFuZ2Vfc3RhcnQvZW5kIGNha2tzLiBObyBmdW5jdGlvbmFsIGNoYW5nZXMgd2l0
-aCB0aGlzCj4gPiA+IHBhdGNoLgo+ID4gCj4gPiBUd28gc3VnZ2VzdGlvbnMgZm9yIHRoZSBwYXRj
-aCBiZWxvdzoKPiA+IAo+ID4gPiBAQCAtNzcyLDcgKzc3NSw4IEBAIHN0YXRpYyB2b2lkIGRheF9l
-bnRyeV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLCBwZ29mZl90IGluZGV4
-LAo+ID4gPiAgCQkgKiBjYWxsIG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KCkg
-b24gb3VyIGJlaGFsZgo+ID4gPiAgCQkgKiBiZWZvcmUgdGFraW5nIGFueSBsb2NrLgo+ID4gPiAg
-CQkgKi8KPiA+ID4gLQkJaWYgKGZvbGxvd19wdGVfcG1kKHZtYS0+dm1fbW0sIGFkZHJlc3MsICZz
-dGFydCwgJmVuZCwgJnB0ZXAsICZwbWRwLCAmcHRsKSkKPiA+ID4gKwkJaWYgKGZvbGxvd19wdGVf
-cG1kKHZtYS0+dm1fbW0sIGFkZHJlc3MsICZyYW5nZSwKPiA+ID4gKwkJCQkgICAmcHRlcCwgJnBt
-ZHAsICZwdGwpKQo+ID4gPiAgCQkJY29udGludWU7Cj4gPiAKPiA+IFRoZSBjaGFuZ2Ugb2YgZm9s
-bG93X3B0ZV9wbWQoKSBhcmd1bWVudHMgbG9va3MgdW5leHBlY3RlZC4gV2h5IHNob3VsZCB0aGF0
-Cj4gPiBjYXJlIGFib3V0IG1tdSBub3RpZmllciByYW5nZT8gSSBzZWUgaXQgbWF5IGJlIGNvbnZl
-bmllbnQgYnV0IGl0IGRvZXNuJ3QgbG9vawo+ID4gbGlrZSBhIGdvb2QgQVBJIHRvIG1lLgo+IAo+
-IFNhZGRseSBpIGRvIG5vdCBzZWUgYSB3YXkgYXJvdW5kIHRoYXQgb25lIHRoaXMgaXMgYmVjYXVz
-ZSBvZiBmcy9kYXguYwo+IHdoaWNoIGRvZXMgdGhlIG1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3Jh
-bmdlX2VuZCB3aGlsZSBmb2xsb3dfcHRlX3BtZAo+IGRvIHRoZSBtbXVfbm90aWZpZXJfaW52YWxp
-ZGF0ZV9yYW5nZV9zdGFydAoKSSBzZWUgc28gdGhpcyBpcyByZWFsbHkgYSBwcmVleGlzdGluZyBw
-cm9ibGVtIHdpdGggZm9sbG93X3B0ZV9wbWQoKSBoYXZpbmcKdWdseSBpbnRlcmZhY2UuIEFmdGVy
-IHNvbWUgdGhvdWdodHMgSSB0aGluayB5b3VyIHBhdGNoIGFjdHVhbGx5IHNsaWdodGx5CmltcHJv
-dmVzIHRoZSBzaXR1YXRpb24gc28gT0suCgoJCQkJCQkJCUhvbnphCi0tIApKYW4gS2FyYSA8amFj
-a0BzdXNlLmNvbT4KU1VTRSBMYWJzLCBDUgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
-cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9kcmktZGV2ZWwK
+On 12/5/18 3:51 AM, Petr Machata wrote:
+> In order to pass extack together with NETDEV_PRE_UP notifications, it's
+> necessary to route the extack to __dev_open() from diverse (possibly
+> indirect) callers. One prominent API through which the notification is
+> invoked is dev_open().
+> 
+> Therefore extend dev_open() with and extra extack argument and update
+> all users. Most of the calls end up just encoding NULL, but bond and
+> team drivers have the extack readily available.
+> 
+> Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+>  drivers/net/bonding/bond_main.c                     | 2 +-
+>  drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c | 2 +-
+>  drivers/net/ethernet/cisco/enic/enic_ethtool.c      | 2 +-
+>  drivers/net/ethernet/hisilicon/hns/hns_ethtool.c    | 2 +-
+>  drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c  | 2 +-
+>  drivers/net/ethernet/sfc/ethtool.c                  | 2 +-
+>  drivers/net/ethernet/sfc/falcon/ethtool.c           | 2 +-
+>  drivers/net/ethernet/stmicro/stmmac/stmmac_main.c   | 2 +-
+>  drivers/net/hyperv/netvsc_drv.c                     | 4 ++--
+>  drivers/net/net_failover.c                          | 8 ++++----
+>  drivers/net/team/team.c                             | 2 +-
+>  drivers/net/wireless/intersil/hostap/hostap_main.c  | 2 +-
+>  drivers/s390/net/qeth_l2_main.c                     | 2 +-
+>  drivers/s390/net/qeth_l3_main.c                     | 2 +-
+>  drivers/staging/fsl-dpaa2/ethsw/ethsw.c             | 2 +-
+>  drivers/staging/unisys/visornic/visornic_main.c     | 2 +-
+>  include/linux/netdevice.h                           | 2 +-
+>  net/bluetooth/6lowpan.c                             | 2 +-
+>  net/core/dev.c                                      | 5 +++--
+>  net/core/netpoll.c                                  | 2 +-
+>  net/ipv4/ipmr.c                                     | 4 ++--
+>  net/ipv6/addrconf.c                                 | 2 +-
+>  net/ipv6/ip6mr.c                                    | 2 +-
+>  23 files changed, 30 insertions(+), 29 deletions(-)
+
+Reviewed-by: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
