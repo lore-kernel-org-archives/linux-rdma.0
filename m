@@ -1,234 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 064/123] RDMA/hns: Bugfix pbl configuration for rereg mr
-Date: Wed,  5 Dec 2018 04:34:56 -0500
-Message-ID: <20181205093555.5386-64-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 076/123] IB/mlx5: Fix page fault handling for MW
+Date: Wed,  5 Dec 2018 04:35:08 -0500
+Message-ID: <20181205093555.5386-76-sashal@kernel.org>
 References: <20181205093555.5386-1-sashal@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yixian Liu <liuyixian@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yixian Liu <liuyixian@huawei.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
 
-[ Upstream commit ca088320a02537f36c243ac21794525d8eabb3bd ]
+[ Upstream commit 75b7b86bdb0df37e08e44b6c1f99010967f81944 ]
 
-Current hns driver assigned the first two PBL page addresses from previous
-registered MR to the hardware when reregister MR changing the memory
-locations occurred. This will lead to PBL addressing error as the PBL has
-already been released. This patch fixes this wrong assignment by using the
-page address from new allocated PBL.
+Memory windows are implemented with an indirect MKey, when a page fault
+event comes for a MW Mkey we need to find the MR at the end of the list of
+the indirect MKeys by iterating on all items from the first to the last.
 
-Fixes: a2c80b7b4119 ("RDMA/hns: Add rereg mr support for hip08")
-Signed-off-by: Yixian Liu <liuyixian@huawei.com>
+The offset calculated during this process has to be zeroed after the first
+iteration or the next iteration will start from a wrong address, resulting
+incorrect ODP faulting behavior.
+
+Fixes: db570d7deafb ("IB/mlx5: Add ODP support to MW")
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Moni Shoua <monis@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 128 ++++++++++-----------
- 1 file changed, 60 insertions(+), 68 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 0218c0f8c2a7..a442b29e7611 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -1661,10 +1661,9 @@ static int hns_roce_v2_set_mac(struct hns_roce_dev *hr_dev, u8 phy_port,
- 	return hns_roce_cmq_send(hr_dev, &desc, 1);
- }
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index d216e0d2921d..9e1cac8cb260 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -724,6 +724,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 			head = frame;
  
--static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
--				  unsigned long mtpt_idx)
-+static int set_mtpt_pbl(struct hns_roce_v2_mpt_entry *mpt_entry,
-+			struct hns_roce_mr *mr)
- {
--	struct hns_roce_v2_mpt_entry *mpt_entry;
- 	struct scatterlist *sg;
- 	u64 page_addr;
- 	u64 *pages;
-@@ -1672,6 +1671,53 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 	int len;
- 	int entry;
+ 			bcnt -= frame->bcnt;
++			offset = 0;
+ 		}
+ 		break;
  
-+	mpt_entry->pbl_size = cpu_to_le32(mr->pbl_size);
-+	mpt_entry->pbl_ba_l = cpu_to_le32(lower_32_bits(mr->pbl_ba >> 3));
-+	roce_set_field(mpt_entry->byte_48_mode_ba,
-+		       V2_MPT_BYTE_48_PBL_BA_H_M, V2_MPT_BYTE_48_PBL_BA_H_S,
-+		       upper_32_bits(mr->pbl_ba >> 3));
-+
-+	pages = (u64 *)__get_free_page(GFP_KERNEL);
-+	if (!pages)
-+		return -ENOMEM;
-+
-+	i = 0;
-+	for_each_sg(mr->umem->sg_head.sgl, sg, mr->umem->nmap, entry) {
-+		len = sg_dma_len(sg) >> PAGE_SHIFT;
-+		for (j = 0; j < len; ++j) {
-+			page_addr = sg_dma_address(sg) +
-+				(j << mr->umem->page_shift);
-+			pages[i] = page_addr >> 6;
-+			/* Record the first 2 entry directly to MTPT table */
-+			if (i >= HNS_ROCE_V2_MAX_INNER_MTPT_NUM - 1)
-+				goto found;
-+			i++;
-+		}
-+	}
-+found:
-+	mpt_entry->pa0_l = cpu_to_le32(lower_32_bits(pages[0]));
-+	roce_set_field(mpt_entry->byte_56_pa0_h, V2_MPT_BYTE_56_PA0_H_M,
-+		       V2_MPT_BYTE_56_PA0_H_S, upper_32_bits(pages[0]));
-+
-+	mpt_entry->pa1_l = cpu_to_le32(lower_32_bits(pages[1]));
-+	roce_set_field(mpt_entry->byte_64_buf_pa1, V2_MPT_BYTE_64_PA1_H_M,
-+		       V2_MPT_BYTE_64_PA1_H_S, upper_32_bits(pages[1]));
-+	roce_set_field(mpt_entry->byte_64_buf_pa1,
-+		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M,
-+		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S,
-+		       mr->pbl_buf_pg_sz + PG_SHIFT_OFFSET);
-+
-+	free_page((unsigned long)pages);
-+
-+	return 0;
-+}
-+
-+static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
-+				  unsigned long mtpt_idx)
-+{
-+	struct hns_roce_v2_mpt_entry *mpt_entry;
-+	int ret;
-+
- 	mpt_entry = mb_buf;
- 	memset(mpt_entry, 0, sizeof(*mpt_entry));
- 
-@@ -1686,7 +1732,6 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 		       mr->pbl_ba_pg_sz + PG_SHIFT_OFFSET);
- 	roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
- 		       V2_MPT_BYTE_4_PD_S, mr->pd);
--	mpt_entry->byte_4_pd_hop_st = cpu_to_le32(mpt_entry->byte_4_pd_hop_st);
- 
- 	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RA_EN_S, 0);
- 	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_R_INV_EN_S, 1);
-@@ -1700,13 +1745,11 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 		     (mr->access & IB_ACCESS_REMOTE_WRITE ? 1 : 0));
- 	roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S,
- 		     (mr->access & IB_ACCESS_LOCAL_WRITE ? 1 : 0));
--	mpt_entry->byte_8_mw_cnt_en = cpu_to_le32(mpt_entry->byte_8_mw_cnt_en);
- 
- 	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_PA_S,
- 		     mr->type == MR_TYPE_MR ? 0 : 1);
- 	roce_set_bit(mpt_entry->byte_12_mw_pa, V2_MPT_BYTE_12_INNER_PA_VLD_S,
- 		     1);
--	mpt_entry->byte_12_mw_pa = cpu_to_le32(mpt_entry->byte_12_mw_pa);
- 
- 	mpt_entry->len_l = cpu_to_le32(lower_32_bits(mr->size));
- 	mpt_entry->len_h = cpu_to_le32(upper_32_bits(mr->size));
-@@ -1717,53 +1760,9 @@ static int hns_roce_v2_write_mtpt(void *mb_buf, struct hns_roce_mr *mr,
- 	if (mr->type == MR_TYPE_DMA)
- 		return 0;
- 
--	mpt_entry->pbl_size = cpu_to_le32(mr->pbl_size);
--
--	mpt_entry->pbl_ba_l = cpu_to_le32(lower_32_bits(mr->pbl_ba >> 3));
--	roce_set_field(mpt_entry->byte_48_mode_ba, V2_MPT_BYTE_48_PBL_BA_H_M,
--		       V2_MPT_BYTE_48_PBL_BA_H_S,
--		       upper_32_bits(mr->pbl_ba >> 3));
--	mpt_entry->byte_48_mode_ba = cpu_to_le32(mpt_entry->byte_48_mode_ba);
--
--	pages = (u64 *)__get_free_page(GFP_KERNEL);
--	if (!pages)
--		return -ENOMEM;
--
--	i = 0;
--	for_each_sg(mr->umem->sg_head.sgl, sg, mr->umem->nmap, entry) {
--		len = sg_dma_len(sg) >> PAGE_SHIFT;
--		for (j = 0; j < len; ++j) {
--			page_addr = sg_dma_address(sg) +
--				    (j << mr->umem->page_shift);
--			pages[i] = page_addr >> 6;
--
--			/* Record the first 2 entry directly to MTPT table */
--			if (i >= HNS_ROCE_V2_MAX_INNER_MTPT_NUM - 1)
--				goto found;
--			i++;
--		}
--	}
-+	ret = set_mtpt_pbl(mpt_entry, mr);
- 
--found:
--	mpt_entry->pa0_l = cpu_to_le32(lower_32_bits(pages[0]));
--	roce_set_field(mpt_entry->byte_56_pa0_h, V2_MPT_BYTE_56_PA0_H_M,
--		       V2_MPT_BYTE_56_PA0_H_S,
--		       upper_32_bits(pages[0]));
--	mpt_entry->byte_56_pa0_h = cpu_to_le32(mpt_entry->byte_56_pa0_h);
--
--	mpt_entry->pa1_l = cpu_to_le32(lower_32_bits(pages[1]));
--	roce_set_field(mpt_entry->byte_64_buf_pa1, V2_MPT_BYTE_64_PA1_H_M,
--		       V2_MPT_BYTE_64_PA1_H_S, upper_32_bits(pages[1]));
--
--	free_page((unsigned long)pages);
--
--	roce_set_field(mpt_entry->byte_64_buf_pa1,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_M,
--		       V2_MPT_BYTE_64_PBL_BUF_PG_SZ_S,
--		       mr->pbl_buf_pg_sz + PG_SHIFT_OFFSET);
--	mpt_entry->byte_64_buf_pa1 = cpu_to_le32(mpt_entry->byte_64_buf_pa1);
--
--	return 0;
-+	return ret;
- }
- 
- static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
-@@ -1772,6 +1771,7 @@ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
- 					u64 size, void *mb_buf)
- {
- 	struct hns_roce_v2_mpt_entry *mpt_entry = mb_buf;
-+	int ret = 0;
- 
- 	if (flags & IB_MR_REREG_PD) {
- 		roce_set_field(mpt_entry->byte_4_pd_hop_st, V2_MPT_BYTE_4_PD_M,
-@@ -1784,14 +1784,14 @@ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
- 			     V2_MPT_BYTE_8_BIND_EN_S,
- 			     (mr_access_flags & IB_ACCESS_MW_BIND ? 1 : 0));
- 		roce_set_bit(mpt_entry->byte_8_mw_cnt_en,
--			   V2_MPT_BYTE_8_ATOMIC_EN_S,
--			   (mr_access_flags & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0));
-+			     V2_MPT_BYTE_8_ATOMIC_EN_S,
-+			     mr_access_flags & IB_ACCESS_REMOTE_ATOMIC ? 1 : 0);
- 		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RR_EN_S,
--			     (mr_access_flags & IB_ACCESS_REMOTE_READ ? 1 : 0));
-+			     mr_access_flags & IB_ACCESS_REMOTE_READ ? 1 : 0);
- 		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_RW_EN_S,
--			    (mr_access_flags & IB_ACCESS_REMOTE_WRITE ? 1 : 0));
-+			     mr_access_flags & IB_ACCESS_REMOTE_WRITE ? 1 : 0);
- 		roce_set_bit(mpt_entry->byte_8_mw_cnt_en, V2_MPT_BYTE_8_LW_EN_S,
--			     (mr_access_flags & IB_ACCESS_LOCAL_WRITE ? 1 : 0));
-+			     mr_access_flags & IB_ACCESS_LOCAL_WRITE ? 1 : 0);
- 	}
- 
- 	if (flags & IB_MR_REREG_TRANS) {
-@@ -1800,21 +1800,13 @@ static int hns_roce_v2_rereg_write_mtpt(struct hns_roce_dev *hr_dev,
- 		mpt_entry->len_l = cpu_to_le32(lower_32_bits(size));
- 		mpt_entry->len_h = cpu_to_le32(upper_32_bits(size));
- 
--		mpt_entry->pbl_size = cpu_to_le32(mr->pbl_size);
--		mpt_entry->pbl_ba_l =
--				cpu_to_le32(lower_32_bits(mr->pbl_ba >> 3));
--		roce_set_field(mpt_entry->byte_48_mode_ba,
--			       V2_MPT_BYTE_48_PBL_BA_H_M,
--			       V2_MPT_BYTE_48_PBL_BA_H_S,
--			       upper_32_bits(mr->pbl_ba >> 3));
--		mpt_entry->byte_48_mode_ba =
--				cpu_to_le32(mpt_entry->byte_48_mode_ba);
--
- 		mr->iova = iova;
- 		mr->size = size;
-+
-+		ret = set_mtpt_pbl(mpt_entry, mr);
- 	}
- 
--	return 0;
-+	return ret;
- }
- 
- static void *get_cqe_v2(struct hns_roce_cq *hr_cq, int n)
 -- 
 2.17.1
