@@ -1,82 +1,123 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 056/123] RDMA/bnxt_re: Avoid accessing the device structure after it is freed
-Date: Wed,  5 Dec 2018 04:34:48 -0500
-Message-ID: <20181205093555.5386-56-sashal@kernel.org>
-References: <20181205093555.5386-1-sashal@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+From: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH net-next 0/8] Pass extack to NETDEV_PRE_UP
+Date: Wed, 5 Dec 2018 10:51:27 +0000
+Message-ID: <cover.1544006963.git.petrm@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
+List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
+	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org" <linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, "linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org" <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, "linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "_govind-KK0ffGbhmjU@public.gmane.org" <_govind-KK0ffGbhmjU@public.gmane.org>, "dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org" <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, "ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org" <ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, kys <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org" <andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org>, "johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org" <ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org>, "jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org" <jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org" <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, marcel@holtma
 List-Id: linux-rdma@vger.kernel.org
 
-From: Selvin Xavier <selvin.xavier@broadcom.com>
+Drivers may need to validate configuration of a device that's about to
+be upped. An example is mlxsw, which needs to check the configuration of
+a VXLAN device attached to an offloaded bridge. Should the validation
+fail, there's currently no way to communicate details of the failure to
+the user, beyond an error number.
 
-[ Upstream commit a6c66d6a08b88cc10aca9d3f65cfae31e7652a99 ]
+Therefore this patch set extends the NETDEV_PRE_UP event to include
+extack, if available.
 
-When bnxt_re_ib_reg returns failure, the device structure gets
-freed. Driver tries to access the device pointer
-after it is freed.
+There are three vectors through which NETDEV_PRE_UP invocation can be
+reached. The two major ones are dev_open() and dev_change_flags(), the
+last is then __dev_change_flags().
 
-[ 4871.034744] Failed to register with netedev: 0xffffffa1
-[ 4871.034765] infiniband (null): Failed to register with IB: 0xffffffea
-[ 4871.046430] ==================================================================
-[ 4871.046437] BUG: KASAN: use-after-free in bnxt_re_task+0x63/0x180 [bnxt_re]
-[ 4871.046439] Write of size 4 at addr ffff880fa8406f48 by task kworker/u48:2/17813
+In patch #1, the first access vector, dev_open() is addressed. An extack
+parameter is added and all users converted to use it.
 
-[ 4871.046443] CPU: 20 PID: 17813 Comm: kworker/u48:2 Kdump: loaded Tainted: G B OE  4.20.0-rc1+ #42
-[ 4871.046444] Hardware name: Dell Inc. PowerEdge R730/0599V5, BIOS 1.0.4 08/28/2014
-[ 4871.046447] Workqueue: bnxt_re bnxt_re_task [bnxt_re]
-[ 4871.046449] Call Trace:
-[ 4871.046454]  dump_stack+0x91/0xeb
-[ 4871.046458]  print_address_description+0x6a/0x2a0
-[ 4871.046461]  kasan_report+0x176/0x2d0
-[ 4871.046463]  ? bnxt_re_task+0x63/0x180 [bnxt_re]
-[ 4871.046466]  bnxt_re_task+0x63/0x180 [bnxt_re]
-[ 4871.046470]  process_one_work+0x216/0x5b0
-[ 4871.046471]  ? process_one_work+0x189/0x5b0
-[ 4871.046475]  worker_thread+0x4e/0x3d0
-[ 4871.046479]  kthread+0x10e/0x140
-[ 4871.046480]  ? process_one_work+0x5b0/0x5b0
-[ 4871.046482]  ? kthread_stop+0x220/0x220
-[ 4871.046486]  ret_from_fork+0x3a/0x50
+Before addressing the second vector, two preparatory patches propagate
+extack argument to the proximity of the dev_change_flags() call in VRF
+and IPVLAN drivers. That happens in patches #2 and #3. Then in patch #4,
+dev_change_flags() is treated similarly to dev_open().
 
-[ 4871.046492] The buggy address belongs to the page:
-[ 4871.046494] page:ffffea003ea10180 count:0 mapcount:0 mapping:0000000000000000 index:0x0
-[ 4871.046495] flags: 0x57ffffc0000000()
-[ 4871.046498] raw: 0057ffffc0000000 0000000000000000 ffffea003ea10188 0000000000000000
-[ 4871.046500] raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
-[ 4871.046501] page dumped because: kasan: bad access detected
+Likewise in patch #5, __dev_change_flags() is extended.
 
-Avoid accessing the device structure once it is freed.
+Then in patches #6 and #7, the extack is finally propagated all the way
+to the point where the notification is emitted.
 
-Fixes: 497158aa5f52 ("RDMA/bnxt_re: Fix the ib_reg failure cleanup")
-Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/bnxt_re/main.c | 2 ++
- 1 file changed, 2 insertions(+)
+This change allows particularly mlxsw (which already has code to
+leverage extack if available) to communicate to the user error messages
+regarding VXLAN configuration. In patch #8, add a test case that
+exercises this code and checks that an error message is propagated.
 
-diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
-index bb3f16273938..22bd9784fa2e 100644
---- a/drivers/infiniband/hw/bnxt_re/main.c
-+++ b/drivers/infiniband/hw/bnxt_re/main.c
-@@ -1462,6 +1462,7 @@ static void bnxt_re_task(struct work_struct *work)
- 				"Failed to register with IB: %#x", rc);
- 			bnxt_re_remove_one(rdev);
- 			bnxt_re_dev_unreg(rdev);
-+			goto exit;
- 		}
- 		break;
- 	case NETDEV_UP:
-@@ -1485,6 +1486,7 @@ static void bnxt_re_task(struct work_struct *work)
- 	}
- 	smp_mb__before_atomic();
- 	atomic_dec(&rdev->sched_count);
-+exit:
- 	kfree(re_work);
- }
- 
+For example:
+
+# ip link add name br1 up type bridge vlan_filtering 0 mcast_snooping 0
+# ip link add name vx1 up type vxlan id 1000 \
+	local 192.0.2.17 remote 192.0.2.18 \
+	dstport 4789 nolearning noudpcsum tos inherit ttl 100
+# ip link set dev vx1 master br1
+# ip link set dev sw1p1 master br1
+# ip link add name br2 up type bridge vlan_filtering 0 mcast_snooping 0
+# ip link add name vx2 up type vxlan id 2000 \
+	local 192.0.2.17 remote 192.0.2.18 \
+	dstport 4789 nolearning noudpcsum tos inherit ttl 100
+# ip link set dev vx2 master br2
+# ip link set dev sw1p2 master br2
+# ip link set dev vx2 down
+# ip link set dev vx2 type vxlan ttl 200
+# ip link set dev vx2 up
+Error: mlxsw_spectrum: Conflicting NVE tunnels configuration.
+
+Petr Machata (8):
+  net: core: dev: Add extack argument to dev_open()
+  net: vrf: cycle_netdev(): Add an extack argument
+  net: ipvlan: ipvlan_set_port_mode(): Add an extack argument
+  net: core: dev: Add extack argument to dev_change_flags()
+  net: core: dev: Add extack argument to __dev_change_flags()
+  net: core: dev: Add call_netdevice_notifiers_extack()
+  net: core: dev: Attach extack to NETDEV_PRE_UP
+  selftests: mlxsw: Add a new test extack.sh
+
+ drivers/infiniband/ulp/ipoib/ipoib_main.c          |  6 +-
+ drivers/net/bonding/bond_main.c                    |  2 +-
+ .../net/ethernet/aquantia/atlantic/aq_ethtool.c    |  2 +-
+ drivers/net/ethernet/cisco/enic/enic_ethtool.c     |  2 +-
+ drivers/net/ethernet/hisilicon/hns/hns_ethtool.c   |  2 +-
+ drivers/net/ethernet/hisilicon/hns3/hns3_ethtool.c |  2 +-
+ drivers/net/ethernet/sfc/ethtool.c                 |  2 +-
+ drivers/net/ethernet/sfc/falcon/ethtool.c          |  2 +-
+ drivers/net/ethernet/stmicro/stmmac/stmmac_main.c  |  2 +-
+ drivers/net/hyperv/netvsc_drv.c                    |  6 +-
+ drivers/net/ipvlan/ipvlan_main.c                   | 19 +++--
+ drivers/net/net_failover.c                         |  8 +--
+ drivers/net/team/team.c                            |  2 +-
+ drivers/net/vrf.c                                  | 11 +--
+ drivers/net/wireless/intersil/hostap/hostap_main.c |  2 +-
+ drivers/s390/net/qeth_l2_main.c                    |  2 +-
+ drivers/s390/net/qeth_l3_main.c                    |  2 +-
+ drivers/staging/fsl-dpaa2/ethsw/ethsw.c            |  2 +-
+ drivers/staging/unisys/visornic/visornic_main.c    |  2 +-
+ include/linux/netdevice.h                          |  8 ++-
+ net/8021q/vlan.c                                   |  4 +-
+ net/bluetooth/6lowpan.c                            |  2 +-
+ net/core/dev.c                                     | 43 +++++++----
+ net/core/dev_ioctl.c                               |  2 +-
+ net/core/net-sysfs.c                               |  2 +-
+ net/core/netpoll.c                                 |  2 +-
+ net/core/rtnetlink.c                               |  6 +-
+ net/ipv4/devinet.c                                 |  2 +-
+ net/ipv4/ipconfig.c                                |  6 +-
+ net/ipv4/ipmr.c                                    |  4 +-
+ net/ipv6/addrconf.c                                |  2 +-
+ net/ipv6/ip6mr.c                                   |  2 +-
+ net/openvswitch/vport-geneve.c                     |  2 +-
+ net/openvswitch/vport-gre.c                        |  2 +-
+ net/openvswitch/vport-vxlan.c                      |  2 +-
+ .../testing/selftests/drivers/net/mlxsw/extack.sh  | 84 ++++++++++++++++++++++
+ 36 files changed, 182 insertions(+), 71 deletions(-)
+ create mode 100755 tools/testing/selftests/drivers/net/mlxsw/extack.sh
+
 -- 
-2.17.1
+2.4.11
