@@ -1,8 +1,8 @@
 From: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 7/8] net: core: dev: Attach extack to
-	NETDEV_PRE_UP
-Date: Wed, 5 Dec 2018 10:52:01 +0000
-Message-ID: <a58682d5b87093bb259748de4ff2a7276c69041c.1544006963.git.petrm@mellanox.com>
+Subject: [PATCH net-next 8/8] selftests: mlxsw: Add a new test
+	extack.sh
+Date: Wed, 5 Dec 2018 10:52:05 +0000
+Message-ID: <f3977aef9b33d590d3254d5850ea25e9bbeab170.1544006963.git.petrm@mellanox.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,63 +23,106 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "_govind-KK0ffGbhmjU@public.gmane.org" <_govind-KK0ffGbhmjU@public.gmane.org>, "dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org" <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, "ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org" <ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, kys <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org" <andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org>, "johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org" <ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org>, "jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org" <jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org" <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, marcel@holtma
 List-Id: linux-rdma@vger.kernel.org
 
-Drivers may need to validate configuration of a device that's about to
-be upped. Should the validation fail, there's currently no way to
-communicate details of the failure to the user, beyond an error number.
-
-To mend that, change __dev_open() to take an extack argument and pass it
-from __dev_change_flags() and dev_open(), where it was propagated in the
-previous patches.
-
-Change __dev_open() to call call_netdevice_notifiers_extack() so that
-the passed-in extack is attached to the NETDEV_PRE_UP notifier.
+Add a testsuite dedicated to testing extack propagation and related
+functionality.
 
 Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/core/dev.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ .../testing/selftests/drivers/net/mlxsw/extack.sh  | 84 ++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
+ create mode 100755 tools/testing/selftests/drivers/net/mlxsw/extack.sh
 
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 4b033af8e6cd..068b60db35ae 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -1364,7 +1364,7 @@ void netdev_notify_peers(struct net_device *dev)
- }
- EXPORT_SYMBOL(netdev_notify_peers);
- 
--static int __dev_open(struct net_device *dev)
-+static int __dev_open(struct net_device *dev, struct netlink_ext_ack *extack)
- {
- 	const struct net_device_ops *ops = dev->netdev_ops;
- 	int ret;
-@@ -1380,7 +1380,7 @@ static int __dev_open(struct net_device *dev)
- 	 */
- 	netpoll_poll_disable(dev);
- 
--	ret = call_netdevice_notifiers(NETDEV_PRE_UP, dev);
-+	ret = call_netdevice_notifiers_extack(NETDEV_PRE_UP, dev, extack);
- 	ret = notifier_to_errno(ret);
- 	if (ret)
- 		return ret;
-@@ -1427,7 +1427,7 @@ int dev_open(struct net_device *dev, struct netlink_ext_ack *extack)
- 	if (dev->flags & IFF_UP)
- 		return 0;
- 
--	ret = __dev_open(dev);
-+	ret = __dev_open(dev, extack);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -7547,7 +7547,7 @@ int __dev_change_flags(struct net_device *dev, unsigned int flags,
- 		if (old_flags & IFF_UP)
- 			__dev_close(dev);
- 		else
--			ret = __dev_open(dev);
-+			ret = __dev_open(dev, extack);
- 	}
- 
- 	if ((flags ^ dev->gflags) & IFF_PROMISC) {
+diff --git a/tools/testing/selftests/drivers/net/mlxsw/extack.sh b/tools/testing/selftests/drivers/net/mlxsw/extack.sh
+new file mode 100755
+index 000000000000..101a5508bdfd
+--- /dev/null
++++ b/tools/testing/selftests/drivers/net/mlxsw/extack.sh
+@@ -0,0 +1,84 @@
++#!/bin/bash
++# SPDX-License-Identifier: GPL-2.0
++#
++# Test operations that we expect to report extended ack.
++
++lib_dir=$(dirname $0)/../../../net/forwarding
++
++ALL_TESTS="
++	netdev_pre_up_test
++"
++NUM_NETIFS=2
++source $lib_dir/lib.sh
++
++setup_prepare()
++{
++	swp1=${NETIFS[p1]}
++	swp2=${NETIFS[p2]}
++
++	ip link set dev $swp1 up
++	ip link set dev $swp2 up
++}
++
++cleanup()
++{
++	pre_cleanup
++
++	ip link set dev $swp2 down
++	ip link set dev $swp1 down
++}
++
++netdev_pre_up_test()
++{
++	RET=0
++
++	ip link add name br1 up type bridge vlan_filtering 0 mcast_snooping 0
++	ip link add name vx1 up type vxlan id 1000 \
++		local 192.0.2.17 remote 192.0.2.18 \
++		dstport 4789 nolearning noudpcsum tos inherit ttl 100
++
++	ip link set dev vx1 master br1
++	check_err $?
++
++	ip link set dev $swp1 master br1
++	check_err $?
++
++	ip link add name br2 up type bridge vlan_filtering 0 mcast_snooping 0
++	ip link add name vx2 up type vxlan id 2000 \
++		local 192.0.2.17 remote 192.0.2.18 \
++		dstport 4789 nolearning noudpcsum tos inherit ttl 100
++
++	ip link set dev vx2 master br2
++	check_err $?
++
++	ip link set dev $swp2 master br2
++	check_err $?
++
++	# Unsupported configuration: mlxsw demands that all offloaded VXLAN
++	# devices have the same TTL.
++	ip link set dev vx2 down
++	ip link set dev vx2 type vxlan ttl 200
++
++	ip link set dev vx2 up &>/dev/null
++	check_fail $?
++
++	ip link set dev vx2 up 2>&1 >/dev/null | grep -q mlxsw_spectrum
++	check_err $?
++
++	log_test "extack - NETDEV_PRE_UP"
++
++	ip link del dev vx2
++	ip link del dev br2
++
++	ip link del dev vx1
++	ip link del dev br1
++}
++
++trap cleanup EXIT
++
++setup_prepare
++setup_wait
++
++tests_run
++
++exit $EXIT_STATUS
 -- 
 2.4.11
