@@ -1,15 +1,15 @@
 From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH net-next 2/8] net: vrf: cycle_netdev(): Add an
- extack argument
-Date: Wed, 5 Dec 2018 09:34:20 -0700
-Message-ID: <041bf6ec-dbaf-88c0-d030-55f674b8ccee@cumulusnetworks.com>
+Subject: Re: [PATCH net-next 4/8] net: core: dev: Add extack
+ argument to dev_change_flags()
+Date: Wed, 5 Dec 2018 09:35:48 -0700
+Message-ID: <9263424f-f8af-0835-0dd0-faa808407b66@cumulusnetworks.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
-	<eb87a73c9e3f48abd7ca7b6ad76924af70cecef1.1544006963.git.petrm@mellanox.com>
+	<a85ca38ac0470f61758d979bcd1b9e3b9e086d1c.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <eb87a73c9e3f48abd7ca7b6ad76924af70cecef1.1544006963.git.petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <a85ca38ac0470f61758d979bcd1b9e3b9e086d1c.1544006963.git.petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
 	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
@@ -25,16 +25,38 @@ Cc: "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@publ
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/5/18 3:51 AM, Petr Machata wrote:
-> A follow-up patch will extend dev_change_flags() with an extack
-> argument. Extend cycle_netdev() to have that argument available for the
-> conversion.
+> In order to pass extack together with NETDEV_PRE_UP notifications, it's
+> necessary to route the extack to __dev_open() from diverse (possibly
+> indirect) callers. One prominent API through which the notification is
+> invoked is dev_change_flags().
+> 
+> Therefore extend dev_change_flags() with and extra extack argument and
+> update all users. Most of the calls end up just encoding NULL, but
+> several sites (VLAN, ipvlan, VRF, rtnetlink) do have extack available.
+> 
+> Since the function declaration line is changed anyway, name the other
+> function arguments to placate checkpatch.
 > 
 > Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
->  drivers/net/vrf.c | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
+>  drivers/infiniband/ulp/ipoib/ipoib_main.c |  6 +++---
+>  drivers/net/hyperv/netvsc_drv.c           |  2 +-
+>  drivers/net/ipvlan/ipvlan_main.c          | 12 ++++++++----
+>  drivers/net/vrf.c                         |  4 ++--
+>  include/linux/netdevice.h                 |  3 ++-
+>  net/8021q/vlan.c                          |  4 +++-
+>  net/core/dev.c                            |  4 +++-
+>  net/core/dev_ioctl.c                      |  2 +-
+>  net/core/net-sysfs.c                      |  2 +-
+>  net/core/rtnetlink.c                      |  3 ++-
+>  net/ipv4/devinet.c                        |  2 +-
+>  net/ipv4/ipconfig.c                       |  6 +++---
+>  net/openvswitch/vport-geneve.c            |  2 +-
+>  net/openvswitch/vport-gre.c               |  2 +-
+>  net/openvswitch/vport-vxlan.c             |  2 +-
+>  15 files changed, 33 insertions(+), 23 deletions(-)
 > 
 
 Reviewed-by: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
