@@ -1,75 +1,71 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 25/69] RDMA/mlx5: Fix fence type for IB_WR_LOCAL_INV WR
-Date: Wed,  5 Dec 2018 04:42:03 -0500
-Message-ID: <20181205094247.6556-25-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 26/69] RDMA/rdmavt: Fix rvt_create_ah function signature
+Date: Wed,  5 Dec 2018 04:42:04 -0500
+Message-ID: <20181205094247.6556-26-sashal@kernel.org>
 References: <20181205094247.6556-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Majd Dibbiny <majd@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Kamal Heib <kamalheib1@gmail.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd@mellanox.com>
+From: Kamal Heib <kamalheib1@gmail.com>
 
-[ Upstream commit 074fca3a18e7e1e0d4d7dcc9d7badc43b90232f4 ]
+[ Upstream commit 4f32fb921b153ae9ea280e02a3e91509fffc03d3 ]
 
-Currently, for IB_WR_LOCAL_INV WR, when the next fence is None, the
-current fence will be SMALL instead of Normal Fence.
+rdmavt uses a crazy system that looses the type checking when assinging
+functions to struct ib_device function pointers. Because of this the
+signature to this function was not changed when the below commit revised
+things.
 
-Without this patch krping doesn't work on CX-5 devices and throws
-following error:
+Fix the signature so we are not calling a function pointer with a
+mismatched signature.
 
-The error messages are from CX5 driver are: (from server side)
-[ 710.434014] mlx5_0:dump_cqe:278:(pid 2712): dump error cqe
-[ 710.434016] 00000000 00000000 00000000 00000000
-[ 710.434016] 00000000 00000000 00000000 00000000
-[ 710.434017] 00000000 00000000 00000000 00000000
-[ 710.434018] 00000000 93003204 100000b8 000524d2
-[ 710.434019] krping: cq completion failed with wr_id 0 status 4 opcode 128 vender_err 32
-
-Fixed the logic to set the correct fence type.
-
-Fixes: 6e8484c5cf07 ("RDMA/mlx5: set UMR wqe fence according to HCA cap")
-Signed-off-by: Majd Dibbiny <majd@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 477864c8fcd9 ("IB/core: Let create_ah return extended response to user")
+Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/infiniband/sw/rdmavt/ah.c | 4 +++-
+ drivers/infiniband/sw/rdmavt/ah.h | 3 ++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index dfc190055167..964c3a0bbf16 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3928,17 +3928,18 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			goto out;
- 		}
+diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
+index ba3639a0d77c..48ea5b8207f0 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.c
++++ b/drivers/infiniband/sw/rdmavt/ah.c
+@@ -91,13 +91,15 @@ EXPORT_SYMBOL(rvt_check_ah);
+  * rvt_create_ah - create an address handle
+  * @pd: the protection domain
+  * @ah_attr: the attributes of the AH
++ * @udata: pointer to user's input output buffer information.
+  *
+  * This may be called from interrupt context.
+  *
+  * Return: newly allocated ah
+  */
+ struct ib_ah *rvt_create_ah(struct ib_pd *pd,
+-			    struct rdma_ah_attr *ah_attr)
++			    struct rdma_ah_attr *ah_attr,
++			    struct ib_udata *udata)
+ {
+ 	struct rvt_ah *ah;
+ 	struct rvt_dev_info *dev = ib_to_rvt(pd->device);
+diff --git a/drivers/infiniband/sw/rdmavt/ah.h b/drivers/infiniband/sw/rdmavt/ah.h
+index 16105af99189..25271b48a683 100644
+--- a/drivers/infiniband/sw/rdmavt/ah.h
++++ b/drivers/infiniband/sw/rdmavt/ah.h
+@@ -51,7 +51,8 @@
+ #include <rdma/rdma_vt.h>
  
--		if (wr->opcode == IB_WR_LOCAL_INV ||
--		    wr->opcode == IB_WR_REG_MR) {
-+		if (wr->opcode == IB_WR_REG_MR) {
- 			fence = dev->umr_fence;
- 			next_fence = MLX5_FENCE_MODE_INITIATOR_SMALL;
--		} else if (wr->send_flags & IB_SEND_FENCE) {
--			if (qp->next_fence)
--				fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
--			else
--				fence = MLX5_FENCE_MODE_FENCE;
--		} else {
--			fence = qp->next_fence;
-+		} else  {
-+			if (wr->send_flags & IB_SEND_FENCE) {
-+				if (qp->next_fence)
-+					fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
-+				else
-+					fence = MLX5_FENCE_MODE_FENCE;
-+			} else {
-+				fence = qp->next_fence;
-+			}
- 		}
- 
- 		switch (ibqp->qp_type) {
+ struct ib_ah *rvt_create_ah(struct ib_pd *pd,
+-			    struct rdma_ah_attr *ah_attr);
++			    struct rdma_ah_attr *ah_attr,
++			    struct ib_udata *udata);
+ int rvt_destroy_ah(struct ib_ah *ibah);
+ int rvt_modify_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr);
+ int rvt_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr);
 -- 
 2.17.1
