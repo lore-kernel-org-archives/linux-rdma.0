@@ -1,15 +1,15 @@
 From: David Ahern <dsa@cumulusnetworks.com>
-Subject: Re: [PATCH net-next 6/8] net: core: dev: Add
- call_netdevice_notifiers_extack()
-Date: Wed, 5 Dec 2018 09:43:10 -0700
-Message-ID: <bb24b41f-d77d-f628-8923-25552940dfe3@cumulusnetworks.com>
+Subject: Re: [PATCH net-next 7/8] net: core: dev: Attach extack to
+ NETDEV_PRE_UP
+Date: Wed, 5 Dec 2018 09:44:37 -0700
+Message-ID: <36cfdf99-3caf-dd8e-ac65-da791e88d7f3@cumulusnetworks.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
- <884365ab9f3d146a2b31a6d66c34de78135bc598.1544006963.git.petrm@mellanox.com>
+ <a58682d5b87093bb259748de4ff2a7276c69041c.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <884365ab9f3d146a2b31a6d66c34de78135bc598.1544006963.git.petrm@mellanox.com>
+In-Reply-To: <a58682d5b87093bb259748de4ff2a7276c69041c.1544006963.git.petrm@mellanox.com>
 Content-Language: en-US
 List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
  <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
@@ -24,17 +24,24 @@ To: Petr Machata <petrm@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@
 Cc: "ioana.ciornei@nxp.com" <ioana.ciornei@nxp.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "_govind@gmx.com" <_govind@gmx.com>, "shrijeet@gmail.com" <shrijeet@gmail.com>, "ecree@solarflare.com" <ecree@solarflare.com>, "shuah@kernel.org" <shuah@kernel.org>, "andy@greyhouse.net" <andy@greyhouse.net>, "johan.hedberg@gmail.com" <johan.hedberg@gmail.com>, "sthemmin@microsoft.com" <sthemmin@microsoft.com>, "jwi@linux.ibm.com" <jwi@linux.ibm.com>, "pshelar@ovn.org" <pshelar@ovn.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "joabreu@synopsys.com" <joabreu@synopsys.com>, "vfalico@gmail.com" <vfalico@gmail.com>, "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "marcel@holtmann.org" <marcel@holtmann.org>, "pkaustub@cisco.com" <pkaustub@cisco.com>, "jiri@resnulli.us" <jiri@resnul>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/5/18 3:51 AM, Petr Machata wrote:
-> In order to propagate extack through NETDEV_PRE_UP, add a new function
-> call_netdevice_notifiers_extack() that primes the extack field of the
-> notifier info. Convert call_netdevice_notifiers() to a simple wrapper
-> around the new function that passes NULL for extack.
+On 12/5/18 3:52 AM, Petr Machata wrote:
+> Drivers may need to validate configuration of a device that's about to
+> be upped. Should the validation fail, there's currently no way to
+> communicate details of the failure to the user, beyond an error number.
+> 
+> To mend that, change __dev_open() to take an extack argument and pass it
+> from __dev_change_flags() and dev_open(), where it was propagated in the
+> previous patches.
+> 
+> Change __dev_open() to call call_netdevice_notifiers_extack() so that
+> the passed-in extack is attached to the NETDEV_PRE_UP notifier.
 > 
 > Signed-off-by: Petr Machata <petrm@mellanox.com>
 > Acked-by: Jiri Pirko <jiri@mellanox.com>
 > Reviewed-by: Ido Schimmel <idosch@mellanox.com>
 > ---
->  net/core/dev.c | 21 ++++++++++++++++-----
->  1 file changed, 16 insertions(+), 5 deletions(-)
+>  net/core/dev.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
 
 Reviewed-by: David Ahern <dsahern@gmail.com>
