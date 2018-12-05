@@ -1,60 +1,75 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 3/4] IB/mlx5: Use helper to get CQE opcode
-Date: Wed, 5 Dec 2018 08:09:20 +0000
-Message-ID: <20181205062304.GF15544@mtr-leonro.mtl.com>
-References: <20181205020303.16318-1-saeedm@mellanox.com>
- <20181205020303.16318-4-saeedm@mellanox.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="mR8QP4gmHujQHb1c"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181205020303.16318-4-saeedm@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 053/123] RDMA/mlx5: Fix fence type for IB_WR_LOCAL_INV WR
+Date: Wed,  5 Dec 2018 04:34:45 -0500
+Message-ID: <20181205093555.5386-53-sashal@kernel.org>
+References: <20181205093555.5386-1-sashal@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Majd Dibbiny <majd@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---mR8QP4gmHujQHb1c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Majd Dibbiny <majd@mellanox.com>
 
-On Tue, Dec 04, 2018 at 06:03:02PM -0800, Saeed Mahameed wrote:
-> From: Tariq Toukan <tariqt@mellanox.com>
->
-> Use the new helper that extracts the opcode
-> from a CQE (completion queue entry) structure.
->
-> Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/cq.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
+[ Upstream commit 074fca3a18e7e1e0d4d7dcc9d7badc43b90232f4 ]
 
-I recommend you to squash this patch into the previous one.
+Currently, for IB_WR_LOCAL_INV WR, when the next fence is None, the
+current fence will be SMALL instead of Normal Fence.
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
+Without this patch krping doesn't work on CX-5 devices and throws
+following error:
 
---mR8QP4gmHujQHb1c
-Content-Type: application/pgp-signature; name="signature.asc"
+The error messages are from CX5 driver are: (from server side)
+[ 710.434014] mlx5_0:dump_cqe:278:(pid 2712): dump error cqe
+[ 710.434016] 00000000 00000000 00000000 00000000
+[ 710.434016] 00000000 00000000 00000000 00000000
+[ 710.434017] 00000000 00000000 00000000 00000000
+[ 710.434018] 00000000 93003204 100000b8 000524d2
+[ 710.434019] krping: cq completion failed with wr_id 0 status 4 opcode 128 vender_err 32
 
------BEGIN PGP SIGNATURE-----
+Fixed the logic to set the correct fence type.
 
-iQIcBAEBAgAGBQJcB27IAAoJEORje4g2clinsR8P/3XKtzLwAxLthz9d4JzZOsu7
-XoQ0k0RK0jNLU4wEYld05fFRoIL5lkMO6lrwBo2AuFqePNo2FD6jvt20kzwY6Mtn
-LaiK/676F/lW+dPqsPUbcr7reRK1/t7xXg7YejOF0hujs2UCocAnSmGEuSj4fcpN
-4PKx1qAQoqEh9g9BlywWEnKey6jsGZPLBi4rUrw2vaQddVA1kzM26VlZdT3b6oIz
-/GcWmKIRvYZz24Bq8xiRgB7pkE/keW3HMmKnGbB+tI1om4R+qV2ctvlieQ/dZT/u
-zGRB5gY6cPLnnHQDHP/NYasvFKinqnZFesl8KtfReaJfUpM7a1LJEz835Yinsgc6
-o9dYf9jiDUB5kR+Is03+EhDawwGlUuP0P0XfsuHeKa4s0VZe4sixW58rbVGugkXD
-+6TpyT8twf6GbljzZWK8SRh3uG4fXr05Fgaiax48xe4lcA/pDMd70v5HfRVUDgi3
-h71hU3VFxSxixtRuNydMzM5FtxkExeb2lLR08u1e2oa1pdM1T/wYwaKv1eAuutrs
-p9CpXQjvEfMpCz/Rw7akNMQN+jZNBtONrmtKOXy0BrEBuQmmjSQP44oc7vx9go94
-nkyMrFwD3g2zqINO8g5F7jmKshIliiBhBPNFS12Me5SxCXWA6h4Evl0lRsPs96Zd
-eUIKjkN7gBxOhygOR3+a
-=TQII
------END PGP SIGNATURE-----
+Fixes: 6e8484c5cf07 ("RDMA/mlx5: set UMR wqe fence according to HCA cap")
+Signed-off-by: Majd Dibbiny <majd@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/mlx5/qp.c | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---mR8QP4gmHujQHb1c--
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index d53d954ac8af..183fe5c8ceb7 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4413,17 +4413,18 @@ static int _mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 			goto out;
+ 		}
+ 
+-		if (wr->opcode == IB_WR_LOCAL_INV ||
+-		    wr->opcode == IB_WR_REG_MR) {
++		if (wr->opcode == IB_WR_REG_MR) {
+ 			fence = dev->umr_fence;
+ 			next_fence = MLX5_FENCE_MODE_INITIATOR_SMALL;
+-		} else if (wr->send_flags & IB_SEND_FENCE) {
+-			if (qp->next_fence)
+-				fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
+-			else
+-				fence = MLX5_FENCE_MODE_FENCE;
+-		} else {
+-			fence = qp->next_fence;
++		} else  {
++			if (wr->send_flags & IB_SEND_FENCE) {
++				if (qp->next_fence)
++					fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
++				else
++					fence = MLX5_FENCE_MODE_FENCE;
++			} else {
++				fence = qp->next_fence;
++			}
+ 		}
+ 
+ 		switch (ibqp->qp_type) {
+-- 
+2.17.1
