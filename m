@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 2/4] net/mlx5: Use helper to get CQE opcode
-Date: Wed,  5 Dec 2018 15:08:08 -0800
-Message-ID: <20181205230810.1886-3-saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 4/4] net/mlx5: Move flow counters data structures from flow steering header
+Date: Wed,  5 Dec 2018 15:08:10 -0800
+Message-ID: <20181205230810.1886-5-saeedm@mellanox.com>
 References: <20181205230810.1886-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,107 +9,105 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181205230810.1886-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@mellanox.com>
+After the following flow counters API refactoring:
+("net/mlx5: Use flow counter IDs and not the wrapping cache object")
+flow counters private data structures mlx5_fc_cache and mlx5_fc are
+redundantly exposed in fs_core.h, they have nothing to do with flow
+steering core and they are private to fs_counter.c, this patch moves them
+to where they belong and reduces their exposure in the driver.
 
-Introduce and use a helper that extracts the opcode
-from a CQE (completion queue entry) structure.
-
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c     | 10 +++++-----
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c     |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c |  2 +-
- include/linux/mlx5/device.h                         |  5 +++++
- 4 files changed, 12 insertions(+), 7 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/fs_core.h | 24 -------------------
+ .../ethernet/mellanox/mlx5/core/fs_counters.c | 24 +++++++++++++++++++
+ 2 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 79638dcbae78..31956ddd394e 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -554,9 +554,9 @@ static inline void mlx5e_poll_ico_single_cqe(struct mlx5e_cq *cq,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+index b51ad217da32..186566b521f9 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.h
+@@ -36,7 +36,6 @@
+ #include <linux/refcount.h>
+ #include <linux/mlx5/fs.h>
+ #include <linux/rhashtable.h>
+-#include <linux/llist.h>
  
- 	mlx5_cqwq_pop(&cq->wq);
+ /* FS_TYPE_PRIO_CHAINS is a PRIO that will have namespaces only,
+  * and those are in parallel to one another when going over them to connect
+@@ -145,29 +144,6 @@ struct mlx5_flow_table {
+ 	struct rhltable			fgs_hash;
+ };
  
--	if (unlikely((cqe->op_own >> 4) != MLX5_CQE_REQ)) {
-+	if (unlikely(get_cqe_opcode(cqe) != MLX5_CQE_REQ)) {
- 		netdev_WARN_ONCE(cq->channel->netdev,
--				 "Bad OP in ICOSQ CQE: 0x%x\n", cqe->op_own);
-+				 "Bad OP in ICOSQ CQE: 0x%x\n", get_cqe_opcode(cqe));
- 		return;
- 	}
+-struct mlx5_fc_cache {
+-	u64 packets;
+-	u64 bytes;
+-	u64 lastuse;
+-};
+-
+-struct mlx5_fc {
+-	struct list_head list;
+-	struct llist_node addlist;
+-	struct llist_node dellist;
+-
+-	/* last{packets,bytes} members are used when calculating the delta since
+-	 * last reading
+-	 */
+-	u64 lastpackets;
+-	u64 lastbytes;
+-
+-	u32 id;
+-	bool aging;
+-
+-	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
+-};
+-
+ struct mlx5_ft_underlay_qp {
+ 	struct list_head list;
+ 	u32 qpn;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+index 32accd6b041b..b2574c28defa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_counters.c
+@@ -33,6 +33,7 @@
+ #include <linux/mlx5/driver.h>
+ #include <linux/mlx5/fs.h>
+ #include <linux/rbtree.h>
++#include <linux/llist.h>
+ #include "mlx5_core.h"
+ #include "fs_core.h"
+ #include "fs_cmd.h"
+@@ -41,6 +42,29 @@
+ /* Max number of counters to query in bulk read is 32K */
+ #define MLX5_SW_MAX_COUNTERS_BULK BIT(15)
  
-@@ -898,7 +898,7 @@ mlx5e_skb_from_cqe_linear(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
- 	prefetchw(va); /* xdp_frame data area */
- 	prefetch(data);
- 
--	if (unlikely((cqe->op_own >> 4) != MLX5_CQE_RESP_SEND)) {
-+	if (unlikely(get_cqe_opcode(cqe) != MLX5_CQE_RESP_SEND)) {
- 		rq->stats->wqe_err++;
- 		return NULL;
- 	}
-@@ -930,7 +930,7 @@ mlx5e_skb_from_cqe_nonlinear(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe,
- 	u16 byte_cnt     = cqe_bcnt - headlen;
- 	struct sk_buff *skb;
- 
--	if (unlikely((cqe->op_own >> 4) != MLX5_CQE_RESP_SEND)) {
-+	if (unlikely(get_cqe_opcode(cqe) != MLX5_CQE_RESP_SEND)) {
- 		rq->stats->wqe_err++;
- 		return NULL;
- 	}
-@@ -1148,7 +1148,7 @@ void mlx5e_handle_rx_cqe_mpwrq(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
- 
- 	wi->consumed_strides += cstrides;
- 
--	if (unlikely((cqe->op_own >> 4) != MLX5_CQE_RESP_SEND)) {
-+	if (unlikely(get_cqe_opcode(cqe) != MLX5_CQE_RESP_SEND)) {
- 		rq->stats->wqe_err++;
- 		goto mpwrq_cqe_out;
- 	}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-index 6dacaeba2fbf..46b5a6914d71 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -507,7 +507,7 @@ bool mlx5e_poll_tx_cq(struct mlx5e_cq *cq, int napi_budget)
- 
- 		wqe_counter = be16_to_cpu(cqe->wqe_counter);
- 
--		if (unlikely(cqe->op_own >> 4 == MLX5_CQE_REQ_ERR)) {
-+		if (unlikely(get_cqe_opcode(cqe) == MLX5_CQE_REQ_ERR)) {
- 			if (!test_and_set_bit(MLX5E_SQ_STATE_RECOVERING,
- 					      &sq->state)) {
- 				mlx5e_dump_error_cqe(sq,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-index 8ca1d1949d93..873541ef4c1b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
-@@ -334,7 +334,7 @@ static void mlx5_fpga_conn_handle_cqe(struct mlx5_fpga_conn *conn,
- {
- 	u8 opcode, status = 0;
- 
--	opcode = cqe->op_own >> 4;
-+	opcode = get_cqe_opcode(cqe);
- 
- 	switch (opcode) {
- 	case MLX5_CQE_REQ_ERR:
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index f7c8bebfe472..c66867c8fc2f 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -781,6 +781,11 @@ static inline u8 mlx5_get_cqe_format(struct mlx5_cqe64 *cqe)
- 	return (cqe->op_own >> 2) & 0x3;
- }
- 
-+static inline u8 get_cqe_opcode(struct mlx5_cqe64 *cqe)
-+{
-+	return cqe->op_own >> 4;
-+}
++struct mlx5_fc_cache {
++	u64 packets;
++	u64 bytes;
++	u64 lastuse;
++};
 +
- static inline u8 get_cqe_lro_tcppsh(struct mlx5_cqe64 *cqe)
- {
- 	return (cqe->lro_tcppsh_abort_dupack >> 6) & 1;
++struct mlx5_fc {
++	struct list_head list;
++	struct llist_node addlist;
++	struct llist_node dellist;
++
++	/* last{packets,bytes} members are used when calculating the delta since
++	 * last reading
++	 */
++	u64 lastpackets;
++	u64 lastbytes;
++
++	u32 id;
++	bool aging;
++
++	struct mlx5_fc_cache cache ____cacheline_aligned_in_smp;
++};
++
+ /* locking scheme:
+  *
+  * It is the responsibility of the user to prevent concurrent calls or bad
 -- 
 2.19.2
