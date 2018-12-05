@@ -1,94 +1,40 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v2 1/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end callback
-Date: Wed, 5 Dec 2018 11:40:52 -0500
-Message-ID: <20181205164052.GE3536@redhat.com>
-References: <20181205053628.3210-1-jglisse@redhat.com>
- <20181205053628.3210-2-jglisse@redhat.com>
- <20181205163520.GG30615@quack2.suse.cz>
+From: David Ahern <dsa@cumulusnetworks.com>
+Subject: Re: [PATCH net-next 6/8] net: core: dev: Add
+ call_netdevice_notifiers_extack()
+Date: Wed, 5 Dec 2018 09:43:10 -0700
+Message-ID: <bb24b41f-d77d-f628-8923-25552940dfe3@cumulusnetworks.com>
+References: <cover.1544006963.git.petrm@mellanox.com>
+ <884365ab9f3d146a2b31a6d66c34de78135bc598.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181205163520.GG30615@quack2.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Christian Koenig <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <884365ab9f3d146a2b31a6d66c34de78135bc598.1544006963.git.petrm@mellanox.com>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Petr Machata <petrm@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>, "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>, "dev@openvswitch.org" <dev@openvswitch.org>, "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>
+Cc: "ioana.ciornei@nxp.com" <ioana.ciornei@nxp.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "_govind@gmx.com" <_govind@gmx.com>, "shrijeet@gmail.com" <shrijeet@gmail.com>, "ecree@solarflare.com" <ecree@solarflare.com>, "shuah@kernel.org" <shuah@kernel.org>, "andy@greyhouse.net" <andy@greyhouse.net>, "johan.hedberg@gmail.com" <johan.hedberg@gmail.com>, "sthemmin@microsoft.com" <sthemmin@microsoft.com>, "jwi@linux.ibm.com" <jwi@linux.ibm.com>, "pshelar@ovn.org" <pshelar@ovn.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "joabreu@synopsys.com" <joabreu@synopsys.com>, "vfalico@gmail.com" <vfalico@gmail.com>, "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "marcel@holtmann.org" <marcel@holtmann.org>, "pkaustub@cisco.com" <pkaustub@cisco.com>, "jiri@resnulli.us" <jiri@resnul>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 05:35:20PM +0100, Jan Kara wrote:
-> On Wed 05-12-18 00:36:26, jglisse@redhat.com wrote:
-> > diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-> > index 5119ff846769..5f6665ae3ee2 100644
-> > --- a/mm/mmu_notifier.c
-> > +++ b/mm/mmu_notifier.c
-> > @@ -178,14 +178,20 @@ int __mmu_notifier_invalidate_range_start(struct mm_struct *mm,
-> >  				  unsigned long start, unsigned long end,
-> >  				  bool blockable)
-> >  {
-> > +	struct mmu_notifier_range _range, *range = &_range;
+On 12/5/18 3:51 AM, Petr Machata wrote:
+> In order to propagate extack through NETDEV_PRE_UP, add a new function
+> call_netdevice_notifiers_extack() that primes the extack field of the
+> notifier info. Convert call_netdevice_notifiers() to a simple wrapper
+> around the new function that passes NULL for extack.
 > 
-> Why these games with two variables?
+> Signed-off-by: Petr Machata <petrm@mellanox.com>
+> Acked-by: Jiri Pirko <jiri@mellanox.com>
+> Reviewed-by: Ido Schimmel <idosch@mellanox.com>
+> ---
+>  net/core/dev.c | 21 ++++++++++++++++-----
+>  1 file changed, 16 insertions(+), 5 deletions(-)
 
-This is a temporary step i dediced to do the convertion in 2 steps,
-first i convert the callback to use the structure so that people
-having mmu notifier callback only have to review this patch and do
-not get distracted by the second step which update all the mm call
-site that trigger invalidation.
-
-In the final result this code disappear. I did it that way to make
-the thing more reviewable. Sorry if that is a bit confusing.
-
-> 
-> >  	struct mmu_notifier *mn;
-> >  	int ret = 0;
-> >  	int id;
-> >  
-> > +	range->blockable = blockable;
-> > +	range->start = start;
-> > +	range->end = end;
-> > +	range->mm = mm;
-> > +
-> 
-> Use your init function for this?
-
-This get remove in the next patch, i can respawn with the init
-function but this is a temporary step like explain above.
-
-> 
-> >  	id = srcu_read_lock(&srcu);
-> >  	hlist_for_each_entry_rcu(mn, &mm->mmu_notifier_mm->list, hlist) {
-> >  		if (mn->ops->invalidate_range_start) {
-> > -			int _ret = mn->ops->invalidate_range_start(mn, mm, start, end, blockable);
-> > +			int _ret = mn->ops->invalidate_range_start(mn, range);
-> >  			if (_ret) {
-> >  				pr_info("%pS callback failed with %d in %sblockable context.\n",
-> >  						mn->ops->invalidate_range_start, _ret,
-> > @@ -205,9 +211,20 @@ void __mmu_notifier_invalidate_range_end(struct mm_struct *mm,
-> >  					 unsigned long end,
-> >  					 bool only_end)
-> >  {
-> > +	struct mmu_notifier_range _range, *range = &_range;
-> >  	struct mmu_notifier *mn;
-> >  	int id;
-> >  
-> > +	/*
-> > +	 * The end call back will never be call if the start refused to go
-> > +	 * through because of blockable was false so here assume that we
-> > +	 * can block.
-> > +	 */
-> > +	range->blockable = true;
-> > +	range->start = start;
-> > +	range->end = end;
-> > +	range->mm = mm;
-> > +
-> 
-> The same as above.
-> 
-> Otherwise the patch looks good to me.
-
-Thank you for reviewing.
-
-Cheers,
-Jérôme
+Reviewed-by: David Ahern <dsahern@gmail.com>
