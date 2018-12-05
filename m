@@ -1,84 +1,50 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 3/3] mm/mmu_notifier: contextual information for event
- triggering invalidation
-Date: Tue, 4 Dec 2018 15:21:37 -0800
-Message-ID: <20181204152137.5e6791987739fd64ce7ea421@linux-foundation.org>
-References: <20181203201817.10759-1-jglisse@redhat.com>
-        <20181203201817.10759-4-jglisse@redhat.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 0/4] mlx5 core CQE API and misc updates
+Date: Tue,  4 Dec 2018 18:02:59 -0800
+Message-ID: <20181205020303.16318-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181203201817.10759-4-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jglisse@redhat.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Christian Koenig <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, dri-devel@lists.freedesktop.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon,  3 Dec 2018 15:18:17 -0500 jglisse@redhat.com wrote:
+Hi
 
-> CPU page table update can happens for many reasons, not only as a result
-> of a syscall (munmap(), mprotect(), mremap(), madvise(), ...) but also
-> as a result of kernel activities (memory compression, reclaim, migration,
-> ...).
-> 
-> Users of mmu notifier API track changes to the CPU page table and take
-> specific action for them. While current API only provide range of virtual
-> address affected by the change, not why the changes is happening.
-> 
-> This patchset adds event information so that users of mmu notifier can
-> differentiate among broad category:
->     - UNMAP: munmap() or mremap()
->     - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
->     - PROTECTION_VMA: change in access protections for the range
->     - PROTECTION_PAGE: change in access protections for page in the range
->     - SOFT_DIRTY: soft dirtyness tracking
-> 
-> Being able to identify munmap() and mremap() from other reasons why the
-> page table is cleared is important to allow user of mmu notifier to
-> update their own internal tracking structure accordingly (on munmap or
-> mremap it is not longer needed to track range of virtual address as it
-> becomes invalid).
-> 
-> ...
->
-> --- a/mm/oom_kill.c
-> +++ b/mm/oom_kill.c
-> @@ -519,6 +519,7 @@ bool __oom_reap_task_mm(struct mm_struct *mm)
->  			struct mmu_notifier_range range;
->  			struct mmu_gather tlb;
->  
-> +			range.event = MMU_NOTIFY_CLEAR;
->  			range.start = vma->vm_start;
->  			range.end = vma->vm_end;
->  			range.mm = mm;
+This patchset is for mlx5-next shared branch, and will be applied there
+once the review is done.
 
-mmu_notifier_range and MMU_NOTIFY_CLEAR aren't defined if
-CONFIG_MMU_NOTIFIER=n.
+Patches 1,2,3 are trivial improvements to CQE API
+1. return CQE pointer instead of void pointer in get_cqe function
+2. helper function for retrieving the CQE opcode, used in rdma and netdev
 
-I'll try a temporary bodge:
+Patch 4, Move flow counters data structures definition to c file.
 
-+++ a/include/linux/mmu_notifier.h
-@@ -10,8 +10,6 @@
- struct mmu_notifier;
- struct mmu_notifier_ops;
- 
--#ifdef CONFIG_MMU_NOTIFIER
--
- /*
-  * The mmu notifier_mm structure is allocated and installed in
-  * mm->mmu_notifier_mm inside the mm_take_all_locks() protected
-@@ -32,6 +30,8 @@ struct mmu_notifier_range {
- 	bool blockable;
- };
- 
-+#ifdef CONFIG_MMU_NOTIFIER
-+
- struct mmu_notifier_ops {
- 	/*
- 	 * Called either by mmu_notifier_unregister or when the mm is
+Thanks,
+Saeed.
 
+---
 
-But this new code should vanish altogether if CONFIG_MMU_NOTIFIER=n,
-please.  Or at least, we shouldn't be unnecessarily initializing .mm
-and .event.  Please take a look at debloating this code.
+Daniel Jurgens (1):
+  net/mlx5: When fetching CQEs return CQE instead of void pointer
+
+Saeed Mahameed (1):
+  net/mlx5: Move flow counters data structures from flow steering header
+
+Tariq Toukan (2):
+  net/mlx5: Use helper to get CQE opcode
+  IB/mlx5: Use helper to get CQE opcode
+
+ drivers/infiniband/hw/mlx5/cq.c               |  8 +++----
+ .../net/ethernet/mellanox/mlx5/core/en_rx.c   | 10 ++++----
+ .../net/ethernet/mellanox/mlx5/core/en_tx.c   |  2 +-
+ .../ethernet/mellanox/mlx5/core/fpga/conn.c   |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/fs_core.h | 23 -------------------
+ .../ethernet/mellanox/mlx5/core/fs_counters.c | 23 +++++++++++++++++++
+ drivers/net/ethernet/mellanox/mlx5/core/wq.h  |  2 +-
+ include/linux/mlx5/device.h                   |  5 ++++
+ 8 files changed, 40 insertions(+), 35 deletions(-)
+
+-- 
+2.19.2
