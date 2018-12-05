@@ -1,36 +1,33 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 4/4] net/mlx5: Move flow counters data
- structures from flow steering header
-Date: Wed, 5 Dec 2018 22:26:26 +0000
-Message-ID: <29c008d0437571d4ce358ffdf5d3530ca8fce23c.camel@mellanox.com>
+Subject: Re: [PATCH mlx5-next 3/4] IB/mlx5: Use helper to get CQE opcode
+Date: Wed, 5 Dec 2018 22:27:12 +0000
+Message-ID: <27bad07b447adecf4668dbad32d9dd31f0580fbe.camel@mellanox.com>
 References: <20181205020303.16318-1-saeedm@mellanox.com>
-         <20181205020303.16318-5-saeedm@mellanox.com>
-         <CAM_iQpX4W4svScQC+49gbx84om4gRLa9L5oKP01-H23ZuQ-PNw@mail.gmail.com>
+         <20181205020303.16318-4-saeedm@mellanox.com>
+         <20181205062304.GF15544@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAM_iQpX4W4svScQC+49gbx84om4gRLa9L5oKP01-H23ZuQ-PNw@mail.gmail.com>
+In-Reply-To: <20181205062304.GF15544@mtr-leonro.mtl.com>
 Content-Language: en-US
-Content-ID: <4634514CDA29984FB59756C7E5D41680@eurprd05.prod.outlook.com>
+Content-ID: <CBABE0C722339C41B99FD86E9E685BE7@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "xiyou.wangcong@gmail.com" <xiyou.wangcong@gmail.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Tariq Toukan <tariqt@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE4LTEyLTA0IGF0IDIxOjA0IC0wODAwLCBDb25nIFdhbmcgd3JvdGU6DQo+IE9u
-IFR1ZSwgRGVjIDQsIDIwMTggYXQgNjowNSBQTSBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxh
-bm94LmNvbT4NCj4gd3JvdGU6DQo+ID4gQWZ0ZXIgdGhlIGZvbGxvd2luZyBmbG93IGNvdW50ZXJz
-IEFQSSByZWZhY3RvcmluZzoNCj4gPiAoIm5ldC9tbHg1OiBVc2UgZmxvdyBjb3VudGVyIElEcyBh
-bmQgbm90IHRoZSB3cmFwcGluZyBjYWNoZQ0KPiA+IG9iamVjdCIpDQo+ID4gZmxvdyBjb3VudGVy
-cyBwcml2YXRlIGRhdGEgc3RydWN0dXJlcyBtbHg1X2ZjX2NhY2hlIGFuZCBtbHg1X2ZjIGFyZQ0K
-PiA+IHJlZHVuZGFudGx5IGV4cG9zZWQgaW4gZnNfY29yZS5oLCB0aGV5IGhhdmUgbm90aGluZyB0
-byBkbyB3aXRoIGZsb3cNCj4gPiBzdGVlcmluZyBjb3JlIGFuZCB0aGV5IGFyZSBwcml2YXRlIHRv
-IGZzX2NvdW50ZXIuYywgdGhpcyBwYXRjaA0KPiA+IG1vdmVzIHRoZW0NCj4gPiB0byB3aGVyZSB0
-aGV5IGJlbG9uZyBhbmQgcmVkdWNlcyB0aGVpciBleHBvc3VyZSBpbiB0aGUgZHJpdmVyLg0KPiA+
-IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29t
-Pg0KPiA+IC0tLQ0KPiA+ICAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9mc19j
-b3JlLmggfCAyMyAtLS0tLS0tLS0tLS0tDQo+ID4gLS0tLS0tDQo+ID4gIC4uLi9ldGhlcm5ldC9t
-ZWxsYW5veC9tbHg1L2NvcmUvZnNfY291bnRlcnMuYyB8IDIzDQo+ID4gKysrKysrKysrKysrKysr
-KysrKw0KPiANCj4gVGhlICNpbmNsdWRlIDxsaW51eC9sbGlzdC5oPiBjYW4gYmUgbW92ZWQgdG9n
-ZXRoZXIgdG9vLg0KDQpzdXJlIHdpbGwgZG8gdGhhdCBpbiBWMg0KdGhhbmtzIENvbmchDQo=
+T24gV2VkLCAyMDE4LTEyLTA1IGF0IDA4OjA5ICswMDAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFR1ZSwgRGVjIDA0LCAyMDE4IGF0IDA2OjAzOjAyUE0gLTA4MDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IEZyb206IFRhcmlxIFRvdWthbiA8dGFyaXF0QG1lbGxhbm94LmNvbT4N
+Cj4gPiANCj4gPiBVc2UgdGhlIG5ldyBoZWxwZXIgdGhhdCBleHRyYWN0cyB0aGUgb3Bjb2RlDQo+
+ID4gZnJvbSBhIENRRSAoY29tcGxldGlvbiBxdWV1ZSBlbnRyeSkgc3RydWN0dXJlLg0KPiA+IA0K
+PiA+IFNpZ25lZC1vZmYtYnk6IFRhcmlxIFRvdWthbiA8dGFyaXF0QG1lbGxhbm94LmNvbT4NCj4g
+PiBTaWduZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCj4g
+PiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDUvY3EuYyB8IDggKysrKy0tLS0N
+Cj4gPiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkNCj4g
+PiANCj4gDQo+IEkgcmVjb21tZW5kIHlvdSB0byBzcXVhc2ggdGhpcyBwYXRjaCBpbnRvIHRoZSBw
+cmV2aW91cyBvbmUuDQo+IA0KPiBUaGFua3MsDQo+IEFja2VkLWJ5OiBMZW9uIFJvbWFub3Zza3kg
+PGxlb25yb0BtZWxsYW5veC5jb20+DQoNClRoYW5rcyBMZW9uLCBJIHdvdWxkIGxpa2UgdG8ga2Vl
+cCBuZXRkZXYgYW5kIHJkbWEgcGF0Y2hlcyBzZXBhcmF0ZWQgYXMNCm11Y2ggYXMgcG9zc2libGUg
+DQo=
