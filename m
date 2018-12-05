@@ -1,62 +1,48 @@
-From: David Ahern <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH net-next 4/8] net: core: dev: Add extack
- argument to dev_change_flags()
-Date: Wed, 5 Dec 2018 09:35:48 -0700
-Message-ID: <9263424f-f8af-0835-0dd0-faa808407b66@cumulusnetworks.com>
+From: David Ahern <dsa@cumulusnetworks.com>
+Subject: Re: [PATCH net-next 5/8] net: core: dev: Add extack argument to
+ __dev_change_flags()
+Date: Wed, 5 Dec 2018 09:38:47 -0700
+Message-ID: <2adabd6e-a3a3-ebeb-c56f-e99d9f069991@cumulusnetworks.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
-	<a85ca38ac0470f61758d979bcd1b9e3b9e086d1c.1544006963.git.petrm@mellanox.com>
+ <6980408947bc34e016f30afba9c5f1444541a2ad.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <a85ca38ac0470f61758d979bcd1b9e3b9e086d1c.1544006963.git.petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <6980408947bc34e016f30afba9c5f1444541a2ad.1544006963.git.petrm@mellanox.com>
 Content-Language: en-US
-List-Unsubscribe: <https://mail.openvswitch.org/mailman/options/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://mail.openvswitch.org/pipermail/ovs-dev/>
-List-Post: <mailto:ovs-dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <https://mail.openvswitch.org/mailman/listinfo/ovs-dev>,
-	<mailto:ovs-dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Sender: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Errors-To: ovs-dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-To: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org" <linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org" <devel-tBiZLqfeLfOHmIFyCCdPziST3g8Odh+X@public.gmane.org>, "linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org" <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, "sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <sparmaintainer-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, "linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org" <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, "linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "_govind-KK0ffGbhmjU@public.gmane.org" <_govind-KK0ffGbhmjU@public.gmane.org>, "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org" <ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, kys <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org" <andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org>, "johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org" <ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org>, "jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org" <jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org" <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, "marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org" <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Petr Machata <petrm@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-stm32@st-md-mailman.stormreply.com" <linux-stm32@st-md-mailman.stormreply.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@linuxdriverproject.org" <devel@linuxdriverproject.org>, "linux-wireless@vger.kernel.org" <linux-wireless@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "sparmaintainer@unisys.com" <sparmaintainer@unisys.com>, "linux-bluetooth@vger.kernel.org" <linux-bluetooth@vger.kernel.org>, "dev@openvswitch.org" <dev@openvswitch.org>, "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>
+Cc: "ioana.ciornei@nxp.com" <ioana.ciornei@nxp.com>, "heiko.carstens@de.ibm.com" <heiko.carstens@de.ibm.com>, "_govind@gmx.com" <_govind@gmx.com>, "shrijeet@gmail.com" <shrijeet@gmail.com>, "ecree@solarflare.com" <ecree@solarflare.com>, "shuah@kernel.org" <shuah@kernel.org>, "andy@greyhouse.net" <andy@greyhouse.net>, "johan.hedberg@gmail.com" <johan.hedberg@gmail.com>, "sthemmin@microsoft.com" <sthemmin@microsoft.com>, "jwi@linux.ibm.com" <jwi@linux.ibm.com>, "pshelar@ovn.org" <pshelar@ovn.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "joabreu@synopsys.com" <joabreu@synopsys.com>, "vfalico@gmail.com" <vfalico@gmail.com>, "kuznet@ms2.inr.ac.ru" <kuznet@ms2.inr.ac.ru>, "yisen.zhuang@huawei.com" <yisen.zhuang@huawei.com>, "marcel@holtmann.org" <marcel@holtmann.org>, "pkaustub@cisco.com" <pkaustub@cisco.com>, "jiri@resnulli.us" <jiri@resnul>
 List-Id: linux-rdma@vger.kernel.org
 
 On 12/5/18 3:51 AM, Petr Machata wrote:
 > In order to pass extack together with NETDEV_PRE_UP notifications, it's
 > necessary to route the extack to __dev_open() from diverse (possibly
-> indirect) callers. One prominent API through which the notification is
-> invoked is dev_change_flags().
+> indirect) callers. The last missing API is __dev_change_flags().
 > 
-> Therefore extend dev_change_flags() with and extra extack argument and
-> update all users. Most of the calls end up just encoding NULL, but
-> several sites (VLAN, ipvlan, VRF, rtnetlink) do have extack available.
+> Therefore extend __dev_change_flags() with and extra extack argument and
+> update the two existing users.
 > 
-> Since the function declaration line is changed anyway, name the other
-> function arguments to placate checkpatch.
+> Since the function declaration line is changed anyway, name the struct
+> net_device argument to placate checkpatch.
 > 
-> Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Petr Machata <petrm@mellanox.com>
+> Acked-by: Jiri Pirko <jiri@mellanox.com>
+> Reviewed-by: Ido Schimmel <idosch@mellanox.com>
 > ---
->  drivers/infiniband/ulp/ipoib/ipoib_main.c |  6 +++---
->  drivers/net/hyperv/netvsc_drv.c           |  2 +-
->  drivers/net/ipvlan/ipvlan_main.c          | 12 ++++++++----
->  drivers/net/vrf.c                         |  4 ++--
->  include/linux/netdevice.h                 |  3 ++-
->  net/8021q/vlan.c                          |  4 +++-
->  net/core/dev.c                            |  4 +++-
->  net/core/dev_ioctl.c                      |  2 +-
->  net/core/net-sysfs.c                      |  2 +-
->  net/core/rtnetlink.c                      |  3 ++-
->  net/ipv4/devinet.c                        |  2 +-
->  net/ipv4/ipconfig.c                       |  6 +++---
->  net/openvswitch/vport-geneve.c            |  2 +-
->  net/openvswitch/vport-gre.c               |  2 +-
->  net/openvswitch/vport-vxlan.c             |  2 +-
->  15 files changed, 33 insertions(+), 23 deletions(-)
+>  include/linux/netdevice.h | 3 ++-
+>  net/core/dev.c            | 5 +++--
+>  net/core/rtnetlink.c      | 3 ++-
+>  3 files changed, 7 insertions(+), 4 deletions(-)
 > 
 
-Reviewed-by: David Ahern <dsahern-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Reviewed-by: David Ahern <dsahern@gmail.com>
