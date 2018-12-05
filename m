@@ -1,62 +1,37 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 2/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end calls
-Date: Wed, 5 Dec 2018 12:04:16 +0100
-Message-ID: <20181205110416.GE22304@quack2.suse.cz>
-References: <20181203201817.10759-1-jglisse@redhat.com>
- <20181203201817.10759-3-jglisse@redhat.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [LKP] [mm] 19717e78a0: stderr.if(target_node==NUMA_NO_NODE){
+Date: Wed, 5 Dec 2018 16:50:57 +0530
+Message-ID: <d75d097f-78a5-865e-a80a-b1e6faeff337@arm.com>
+References: <20181205050057.GB23332@shao2-debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20181203201817.10759-3-jglisse@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: jglisse@redhat.com
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <felix.kuehling@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Christian Koenig <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205050057.GB23332@shao2-debian>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: kernel test robot <rong.a.chen@intel.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, ocfs2-devel@oss.oracle.com, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, netdev@vger.kernel.org, intel-wired-lan@lists.osuosl.org, linux-media@vger.kernel.org, iommu@lists.linux-foundation.org, linux-rdma@vger.kernel.org, dmaengine@vger.kernel.org, linux-block@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, jiangqi903@gmail.com, hverkuil@xs4all.nl, vkoul@kernel.org, lkp@01.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgSmVyb21lIQoKT24gTW9uIDAzLTEyLTE4IDE1OjE4OjE2LCBqZ2xpc3NlQHJlZGhhdC5jb20g
-d3JvdGU6Cj4gRnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+Cj4gCj4g
-VG8gYXZvaWQgaGF2aW5nIHRvIGNoYW5nZSBtYW55IGNhbGwgc2l0ZXMgZXZlcnl0aW1lIHdlIHdh
-bnQgdG8gYWRkIGEKPiBwYXJhbWV0ZXIgdXNlIGEgc3RydWN0dXJlIHRvIGdyb3VwIGFsbCBwYXJh
-bWV0ZXJzIGZvciB0aGUgbW11X25vdGlmaWVyCj4gaW52YWxpZGF0ZV9yYW5nZV9zdGFydC9lbmQg
-Y2Fra3MuIE5vIGZ1bmN0aW9uYWwgY2hhbmdlcyB3aXRoIHRoaXMKPiBwYXRjaC4KClR3byBzdWdn
-ZXN0aW9ucyBmb3IgdGhlIHBhdGNoIGJlbG93OgoKPiBAQCAtNzcyLDcgKzc3NSw4IEBAIHN0YXRp
-YyB2b2lkIGRheF9lbnRyeV9ta2NsZWFuKHN0cnVjdCBhZGRyZXNzX3NwYWNlICptYXBwaW5nLCBw
-Z29mZl90IGluZGV4LAo+ICAJCSAqIGNhbGwgbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoKSBvbiBvdXIgYmVoYWxmCj4gIAkJICogYmVmb3JlIHRha2luZyBhbnkgbG9jay4KPiAg
-CQkgKi8KPiAtCQlpZiAoZm9sbG93X3B0ZV9wbWQodm1hLT52bV9tbSwgYWRkcmVzcywgJnN0YXJ0
-LCAmZW5kLCAmcHRlcCwgJnBtZHAsICZwdGwpKQo+ICsJCWlmIChmb2xsb3dfcHRlX3BtZCh2bWEt
-PnZtX21tLCBhZGRyZXNzLCAmcmFuZ2UsCj4gKwkJCQkgICAmcHRlcCwgJnBtZHAsICZwdGwpKQo+
-ICAJCQljb250aW51ZTsKClRoZSBjaGFuZ2Ugb2YgZm9sbG93X3B0ZV9wbWQoKSBhcmd1bWVudHMg
-bG9va3MgdW5leHBlY3RlZC4gV2h5IHNob3VsZCB0aGF0CmNhcmUgYWJvdXQgbW11IG5vdGlmaWVy
-IHJhbmdlPyBJIHNlZSBpdCBtYXkgYmUgY29udmVuaWVudCBidXQgaXQgZG9lc24ndCBsb29rCmxp
-a2UgYSBnb29kIEFQSSB0byBtZS4KCj4gQEAgLTExMzksMTEgKzExNDAsMTUgQEAgc3RhdGljIHNz
-aXplX3QgY2xlYXJfcmVmc193cml0ZShzdHJ1Y3QgZmlsZSAqZmlsZSwgY29uc3QgY2hhciBfX3Vz
-ZXIgKmJ1ZiwKPiAgCQkJCWRvd25ncmFkZV93cml0ZSgmbW0tPm1tYXBfc2VtKTsKPiAgCQkJCWJy
-ZWFrOwo+ICAJCQl9Cj4gLQkJCW1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KG1t
-LCAwLCAtMSk7Cj4gKwo+ICsJCQlyYW5nZS5zdGFydCA9IDA7Cj4gKwkJCXJhbmdlLmVuZCA9IC0x
-VUw7Cj4gKwkJCXJhbmdlLm1tID0gbW07Cj4gKwkJCW1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3Jh
-bmdlX3N0YXJ0KCZyYW5nZSk7CgpBbHNvIGhvdyBhYm91dCBwcm92aWRpbmcgaW5pdGlhbGl6ZXIg
-Zm9yIHN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2U/IE9yCnNvbWV0aGluZyBsaWtlIERFQ0xBUkVf
-TU1VX05PVElGSUVSX1JBTkdFPyBUaGF0IHdpbGwgbWFrZSBzdXJlIHRoYXQKdW51c2VkIGFyZ3Vt
-ZW50cyBmb3IgcGFydGljdWxhciBub3RpZmljYXRpb24gcGxhY2VzIGhhdmUgZGVmaW5lZCB2YWx1
-ZXMgYW5kCmFsc28gaWYgeW91IGFkZCBhbm90aGVyIG1hbmRhdG9yeSBhcmd1bWVudCAobGlrZSB5
-b3UgZG8gaW4geW91ciB0aGlyZApwYXRjaCksIHlvdSBqdXN0IGFkZCBhbm90aGVyIGFyZ3VtZW50
-IHRvIHRoZSBpbml0aWFsaXplciBhbmQgdGhhdCB3YXkKdGhlIGNvbXBpbGVyIG1ha2VzIHN1cmUg
-eW91IGhhdmVuJ3QgbWlzc2VkIGFueSBwbGFjZS4gRmluYWxseSB0aGUgY29kZSB3aWxsCnJlbWFp
-biBtb3JlIGNvbXBhY3QgdGhhdCB3YXkgKGxlc3MgbGluZXMgbmVlZGVkIHRvIGluaXRpYWxpemUg
-dGhlIHN0cnVjdCkuCgoJCQkJCQkJCUhvbnphCi0tIApKYW4gS2FyYSA8amFja0BzdXNlLmNvbT4K
-U1VTRSBMYWJzLCBDUgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+On 12/05/2018 10:30 AM, kernel test robot wrote:
+> FYI, we noticed the following commit (built with gcc-7):
+> 
+> commit: 19717e78a04d51512cf0e7b9b09c61f06b2af071 ("[PATCH V2] mm: Replace all open encodings for NUMA_NO_NODE")
+> url: https://github.com/0day-ci/linux/commits/Anshuman-Khandual/mm-Replace-all-open-encodings-for-NUMA_NO_NODE/20181126-203831
+> 
+> 
+> in testcase: perf-sanity-tests
+> with following parameters:
+> 
+> 	perf_compiler: gcc
+> 	ucode: 0x7000013
+> 
+> 
+> 
+> on test machine: 16 threads Intel(R) Xeon(R) CPU D-1541 @ 2.10GHz with 8G memory
+> 
+> caused below changes (please refer to attached dmesg/kmsg for entire log/backtrace):
+
+The fix (in Andrew's staging tree) from Stephen Rothwell which adds <linux/numa.h>
+definitions to <tools/include/linux/numa.h> should fix this.
