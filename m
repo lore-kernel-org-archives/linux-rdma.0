@@ -1,8 +1,8 @@
 From: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 6/8] net: core: dev: Add
- call_netdevice_notifiers_extack()
-Date: Wed, 5 Dec 2018 10:51:56 +0000
-Message-ID: <884365ab9f3d146a2b31a6d66c34de78135bc598.1544006963.git.petrm@mellanox.com>
+Subject: [PATCH net-next 7/8] net: core: dev: Attach extack to
+	NETDEV_PRE_UP
+Date: Wed, 5 Dec 2018 10:52:01 +0000
+Message-ID: <a58682d5b87093bb259748de4ff2a7276c69041c.1544006963.git.petrm@mellanox.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -23,63 +23,63 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org" <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, "_govind-KK0ffGbhmjU@public.gmane.org" <_govind-KK0ffGbhmjU@public.gmane.org>, "dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org" <dsa-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, "ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org" <ecree-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>, kys <kys-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org" <andy-QlMahl40kYEqcZcGjlUOXw@public.gmane.org>, "johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ioana.ciornei-3arQi8VN3Tc@public.gmane.org" <ioana.ciornei-3arQi8VN3Tc@public.gmane.org>, "sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org" <sthemmin-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>, "ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org" <ruxandra.radulescu-3arQi8VN3Tc@public.gmane.org>, "jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org" <jwi-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, "jgg-uk2M96/98Pc@public.gmane.org" <jgg-uk2M96/98Pc@public.gmane.org>, "dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org" <joabreu-HKixBCOQz3hWk0Htik3J/w@public.gmane.org>, "vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <vfalico-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org" <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org" <david.kershner-GLv8BlqOqDDQT0dZR+AlfA@public.gmane.org>, marcel@holtma
 List-Id: linux-rdma@vger.kernel.org
 
-In order to propagate extack through NETDEV_PRE_UP, add a new function
-call_netdevice_notifiers_extack() that primes the extack field of the
-notifier info. Convert call_netdevice_notifiers() to a simple wrapper
-around the new function that passes NULL for extack.
+Drivers may need to validate configuration of a device that's about to
+be upped. Should the validation fail, there's currently no way to
+communicate details of the failure to the user, beyond an error number.
+
+To mend that, change __dev_open() to take an extack argument and pass it
+from __dev_change_flags() and dev_open(), where it was propagated in the
+previous patches.
+
+Change __dev_open() to call call_netdevice_notifiers_extack() so that
+the passed-in extack is attached to the NETDEV_PRE_UP notifier.
 
 Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- net/core/dev.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ net/core/dev.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/net/core/dev.c b/net/core/dev.c
-index b37e320def13..4b033af8e6cd 100644
+index 4b033af8e6cd..068b60db35ae 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -162,6 +162,9 @@ static struct list_head offload_base __read_mostly;
- static int netif_rx_internal(struct sk_buff *skb);
- static int call_netdevice_notifiers_info(unsigned long val,
- 					 struct netdev_notifier_info *info);
-+static int call_netdevice_notifiers_extack(unsigned long val,
-+					   struct net_device *dev,
-+					   struct netlink_ext_ack *extack);
- static struct napi_struct *napi_by_id(unsigned int napi_id);
- 
- /*
-@@ -1734,6 +1737,18 @@ static int call_netdevice_notifiers_info(unsigned long val,
- 	return raw_notifier_call_chain(&netdev_chain, val, info);
+@@ -1364,7 +1364,7 @@ void netdev_notify_peers(struct net_device *dev)
  }
+ EXPORT_SYMBOL(netdev_notify_peers);
  
-+static int call_netdevice_notifiers_extack(unsigned long val,
-+					   struct net_device *dev,
-+					   struct netlink_ext_ack *extack)
-+{
-+	struct netdev_notifier_info info = {
-+		.dev = dev,
-+		.extack = extack,
-+	};
-+
-+	return call_netdevice_notifiers_info(val, &info);
-+}
-+
- /**
-  *	call_netdevice_notifiers - call all network notifier blocks
-  *      @val: value passed unmodified to notifier function
-@@ -1745,11 +1760,7 @@ static int call_netdevice_notifiers_info(unsigned long val,
- 
- int call_netdevice_notifiers(unsigned long val, struct net_device *dev)
+-static int __dev_open(struct net_device *dev)
++static int __dev_open(struct net_device *dev, struct netlink_ext_ack *extack)
  {
--	struct netdev_notifier_info info = {
--		.dev = dev,
--	};
--
--	return call_netdevice_notifiers_info(val, &info);
-+	return call_netdevice_notifiers_extack(val, dev, NULL);
- }
- EXPORT_SYMBOL(call_netdevice_notifiers);
+ 	const struct net_device_ops *ops = dev->netdev_ops;
+ 	int ret;
+@@ -1380,7 +1380,7 @@ static int __dev_open(struct net_device *dev)
+ 	 */
+ 	netpoll_poll_disable(dev);
  
+-	ret = call_netdevice_notifiers(NETDEV_PRE_UP, dev);
++	ret = call_netdevice_notifiers_extack(NETDEV_PRE_UP, dev, extack);
+ 	ret = notifier_to_errno(ret);
+ 	if (ret)
+ 		return ret;
+@@ -1427,7 +1427,7 @@ int dev_open(struct net_device *dev, struct netlink_ext_ack *extack)
+ 	if (dev->flags & IFF_UP)
+ 		return 0;
+ 
+-	ret = __dev_open(dev);
++	ret = __dev_open(dev, extack);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -7547,7 +7547,7 @@ int __dev_change_flags(struct net_device *dev, unsigned int flags,
+ 		if (old_flags & IFF_UP)
+ 			__dev_close(dev);
+ 		else
+-			ret = __dev_open(dev);
++			ret = __dev_open(dev, extack);
+ 	}
+ 
+ 	if ((flags ^ dev->gflags) & IFF_PROMISC) {
 -- 
 2.4.11
