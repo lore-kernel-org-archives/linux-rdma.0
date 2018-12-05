@@ -1,75 +1,82 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 15/45] RDMA/mlx5: Fix fence type for IB_WR_LOCAL_INV WR
-Date: Wed,  5 Dec 2018 04:46:36 -0500
-Message-ID: <20181205094706.7225-15-sashal@kernel.org>
-References: <20181205094706.7225-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 056/123] RDMA/bnxt_re: Avoid accessing the device structure after it is freed
+Date: Wed,  5 Dec 2018 04:34:48 -0500
+Message-ID: <20181205093555.5386-56-sashal@kernel.org>
+References: <20181205093555.5386-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205094706.7225-1-sashal@kernel.org>
+In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Majd Dibbiny <majd@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Majd Dibbiny <majd@mellanox.com>
+From: Selvin Xavier <selvin.xavier@broadcom.com>
 
-[ Upstream commit 074fca3a18e7e1e0d4d7dcc9d7badc43b90232f4 ]
+[ Upstream commit a6c66d6a08b88cc10aca9d3f65cfae31e7652a99 ]
 
-Currently, for IB_WR_LOCAL_INV WR, when the next fence is None, the
-current fence will be SMALL instead of Normal Fence.
+When bnxt_re_ib_reg returns failure, the device structure gets
+freed. Driver tries to access the device pointer
+after it is freed.
 
-Without this patch krping doesn't work on CX-5 devices and throws
-following error:
+[ 4871.034744] Failed to register with netedev: 0xffffffa1
+[ 4871.034765] infiniband (null): Failed to register with IB: 0xffffffea
+[ 4871.046430] ==================================================================
+[ 4871.046437] BUG: KASAN: use-after-free in bnxt_re_task+0x63/0x180 [bnxt_re]
+[ 4871.046439] Write of size 4 at addr ffff880fa8406f48 by task kworker/u48:2/17813
 
-The error messages are from CX5 driver are: (from server side)
-[ 710.434014] mlx5_0:dump_cqe:278:(pid 2712): dump error cqe
-[ 710.434016] 00000000 00000000 00000000 00000000
-[ 710.434016] 00000000 00000000 00000000 00000000
-[ 710.434017] 00000000 00000000 00000000 00000000
-[ 710.434018] 00000000 93003204 100000b8 000524d2
-[ 710.434019] krping: cq completion failed with wr_id 0 status 4 opcode 128 vender_err 32
+[ 4871.046443] CPU: 20 PID: 17813 Comm: kworker/u48:2 Kdump: loaded Tainted: G B OE  4.20.0-rc1+ #42
+[ 4871.046444] Hardware name: Dell Inc. PowerEdge R730/0599V5, BIOS 1.0.4 08/28/2014
+[ 4871.046447] Workqueue: bnxt_re bnxt_re_task [bnxt_re]
+[ 4871.046449] Call Trace:
+[ 4871.046454]  dump_stack+0x91/0xeb
+[ 4871.046458]  print_address_description+0x6a/0x2a0
+[ 4871.046461]  kasan_report+0x176/0x2d0
+[ 4871.046463]  ? bnxt_re_task+0x63/0x180 [bnxt_re]
+[ 4871.046466]  bnxt_re_task+0x63/0x180 [bnxt_re]
+[ 4871.046470]  process_one_work+0x216/0x5b0
+[ 4871.046471]  ? process_one_work+0x189/0x5b0
+[ 4871.046475]  worker_thread+0x4e/0x3d0
+[ 4871.046479]  kthread+0x10e/0x140
+[ 4871.046480]  ? process_one_work+0x5b0/0x5b0
+[ 4871.046482]  ? kthread_stop+0x220/0x220
+[ 4871.046486]  ret_from_fork+0x3a/0x50
 
-Fixed the logic to set the correct fence type.
+[ 4871.046492] The buggy address belongs to the page:
+[ 4871.046494] page:ffffea003ea10180 count:0 mapcount:0 mapping:0000000000000000 index:0x0
+[ 4871.046495] flags: 0x57ffffc0000000()
+[ 4871.046498] raw: 0057ffffc0000000 0000000000000000 ffffea003ea10188 0000000000000000
+[ 4871.046500] raw: 0000000000000000 0000000000000000 00000000ffffffff 0000000000000000
+[ 4871.046501] page dumped because: kasan: bad access detected
 
-Fixes: 6e8484c5cf07 ("RDMA/mlx5: set UMR wqe fence according to HCA cap")
-Signed-off-by: Majd Dibbiny <majd@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Avoid accessing the device structure once it is freed.
+
+Fixes: 497158aa5f52 ("RDMA/bnxt_re: Fix the ib_reg failure cleanup")
+Signed-off-by: Selvin Xavier <selvin.xavier@broadcom.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx5/qp.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/bnxt_re/main.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index f8f7a2191b98..f89489b28575 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3888,17 +3888,18 @@ int mlx5_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			goto out;
+diff --git a/drivers/infiniband/hw/bnxt_re/main.c b/drivers/infiniband/hw/bnxt_re/main.c
+index bb3f16273938..22bd9784fa2e 100644
+--- a/drivers/infiniband/hw/bnxt_re/main.c
++++ b/drivers/infiniband/hw/bnxt_re/main.c
+@@ -1462,6 +1462,7 @@ static void bnxt_re_task(struct work_struct *work)
+ 				"Failed to register with IB: %#x", rc);
+ 			bnxt_re_remove_one(rdev);
+ 			bnxt_re_dev_unreg(rdev);
++			goto exit;
  		}
+ 		break;
+ 	case NETDEV_UP:
+@@ -1485,6 +1486,7 @@ static void bnxt_re_task(struct work_struct *work)
+ 	}
+ 	smp_mb__before_atomic();
+ 	atomic_dec(&rdev->sched_count);
++exit:
+ 	kfree(re_work);
+ }
  
--		if (wr->opcode == IB_WR_LOCAL_INV ||
--		    wr->opcode == IB_WR_REG_MR) {
-+		if (wr->opcode == IB_WR_REG_MR) {
- 			fence = dev->umr_fence;
- 			next_fence = MLX5_FENCE_MODE_INITIATOR_SMALL;
--		} else if (wr->send_flags & IB_SEND_FENCE) {
--			if (qp->next_fence)
--				fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
--			else
--				fence = MLX5_FENCE_MODE_FENCE;
--		} else {
--			fence = qp->next_fence;
-+		} else  {
-+			if (wr->send_flags & IB_SEND_FENCE) {
-+				if (qp->next_fence)
-+					fence = MLX5_FENCE_MODE_SMALL_AND_FENCE;
-+				else
-+					fence = MLX5_FENCE_MODE_FENCE;
-+			} else {
-+				fence = qp->next_fence;
-+			}
- 		}
- 
- 		switch (ibqp->qp_type) {
 -- 
 2.17.1
