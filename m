@@ -1,71 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 26/69] RDMA/rdmavt: Fix rvt_create_ah function signature
-Date: Wed,  5 Dec 2018 04:42:04 -0500
-Message-ID: <20181205094247.6556-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 41/69] IB/mlx5: Fix page fault handling for MW
+Date: Wed,  5 Dec 2018 04:42:19 -0500
+Message-ID: <20181205094247.6556-41-sashal@kernel.org>
 References: <20181205094247.6556-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181205094247.6556-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Kamal Heib <kamalheib1@gmail.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalheib1@gmail.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
 
-[ Upstream commit 4f32fb921b153ae9ea280e02a3e91509fffc03d3 ]
+[ Upstream commit 75b7b86bdb0df37e08e44b6c1f99010967f81944 ]
 
-rdmavt uses a crazy system that looses the type checking when assinging
-functions to struct ib_device function pointers. Because of this the
-signature to this function was not changed when the below commit revised
-things.
+Memory windows are implemented with an indirect MKey, when a page fault
+event comes for a MW Mkey we need to find the MR at the end of the list of
+the indirect MKeys by iterating on all items from the first to the last.
 
-Fix the signature so we are not calling a function pointer with a
-mismatched signature.
+The offset calculated during this process has to be zeroed after the first
+iteration or the next iteration will start from a wrong address, resulting
+incorrect ODP faulting behavior.
 
-Fixes: 477864c8fcd9 ("IB/core: Let create_ah return extended response to user")
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Fixes: db570d7deafb ("IB/mlx5: Add ODP support to MW")
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Moni Shoua <monis@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rdmavt/ah.c | 4 +++-
- drivers/infiniband/sw/rdmavt/ah.h | 3 ++-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/sw/rdmavt/ah.c b/drivers/infiniband/sw/rdmavt/ah.c
-index ba3639a0d77c..48ea5b8207f0 100644
---- a/drivers/infiniband/sw/rdmavt/ah.c
-+++ b/drivers/infiniband/sw/rdmavt/ah.c
-@@ -91,13 +91,15 @@ EXPORT_SYMBOL(rvt_check_ah);
-  * rvt_create_ah - create an address handle
-  * @pd: the protection domain
-  * @ah_attr: the attributes of the AH
-+ * @udata: pointer to user's input output buffer information.
-  *
-  * This may be called from interrupt context.
-  *
-  * Return: newly allocated ah
-  */
- struct ib_ah *rvt_create_ah(struct ib_pd *pd,
--			    struct rdma_ah_attr *ah_attr)
-+			    struct rdma_ah_attr *ah_attr,
-+			    struct ib_udata *udata)
- {
- 	struct rvt_ah *ah;
- 	struct rvt_dev_info *dev = ib_to_rvt(pd->device);
-diff --git a/drivers/infiniband/sw/rdmavt/ah.h b/drivers/infiniband/sw/rdmavt/ah.h
-index 16105af99189..25271b48a683 100644
---- a/drivers/infiniband/sw/rdmavt/ah.h
-+++ b/drivers/infiniband/sw/rdmavt/ah.h
-@@ -51,7 +51,8 @@
- #include <rdma/rdma_vt.h>
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 3d701c7a4c91..1ed94b6c0b0a 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -723,6 +723,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 			head = frame;
  
- struct ib_ah *rvt_create_ah(struct ib_pd *pd,
--			    struct rdma_ah_attr *ah_attr);
-+			    struct rdma_ah_attr *ah_attr,
-+			    struct ib_udata *udata);
- int rvt_destroy_ah(struct ib_ah *ibah);
- int rvt_modify_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr);
- int rvt_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr);
+ 			bcnt -= frame->bcnt;
++			offset = 0;
+ 		}
+ 		break;
+ 
 -- 
 2.17.1
