@@ -1,8 +1,8 @@
 From: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH net-next 2/8] net: vrf: cycle_netdev(): Add an
-	extack argument
-Date: Wed, 5 Dec 2018 10:51:37 +0000
-Message-ID: <eb87a73c9e3f48abd7ca7b6ad76924af70cecef1.1544006963.git.petrm@mellanox.com>
+Subject: [PATCH net-next 3/8] net: ipvlan: ipvlan_set_port_mode():
+ Add an extack argument
+Date: Wed, 5 Dec 2018 10:51:42 +0000
+Message-ID: <509242246cdef78dd3d3fabbb0baecc48c8b488e.1544006963.git.petrm@mellanox.com>
 References: <cover.1544006963.git.petrm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -24,47 +24,47 @@ Cc: "shrijeet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <shrijeet-Re5JQEeQqe8Avxt
 List-Id: linux-rdma@vger.kernel.org
 
 A follow-up patch will extend dev_change_flags() with an extack
-argument. Extend cycle_netdev() to have that argument available for the
-conversion.
+argument. Extend ipvlan_set_port_mode() to have that argument available
+for the conversion.
 
 Signed-off-by: Petr Machata <petrm-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Acked-by: Jiri Pirko <jiri-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Ido Schimmel <idosch-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/vrf.c | 7 ++++---
+ drivers/net/ipvlan/ipvlan_main.c | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/vrf.c b/drivers/net/vrf.c
-index 21ad4b1d7f03..1e9f2dc0de07 100644
---- a/drivers/net/vrf.c
-+++ b/drivers/net/vrf.c
-@@ -747,7 +747,8 @@ static int vrf_rtable_create(struct net_device *dev)
- /**************************** device handling ********************/
- 
- /* cycle interface to flush neighbor cache and move routes across tables */
--static void cycle_netdev(struct net_device *dev)
-+static void cycle_netdev(struct net_device *dev,
-+			 struct netlink_ext_ack *extack)
- {
- 	unsigned int flags = dev->flags;
- 	int ret;
-@@ -785,7 +786,7 @@ static int do_vrf_add_slave(struct net_device *dev, struct net_device *port_dev,
- 	if (ret < 0)
- 		goto err;
- 
--	cycle_netdev(port_dev);
-+	cycle_netdev(port_dev, extack);
- 
- 	return 0;
- 
-@@ -815,7 +816,7 @@ static int do_vrf_del_slave(struct net_device *dev, struct net_device *port_dev)
- 	netdev_upper_dev_unlink(port_dev, dev);
- 	port_dev->priv_flags &= ~IFF_L3MDEV_SLAVE;
- 
--	cycle_netdev(port_dev);
-+	cycle_netdev(port_dev, NULL);
- 
- 	return 0;
+diff --git a/drivers/net/ipvlan/ipvlan_main.c b/drivers/net/ipvlan/ipvlan_main.c
+index 4a949569ec4c..14f1cbd3b96f 100644
+--- a/drivers/net/ipvlan/ipvlan_main.c
++++ b/drivers/net/ipvlan/ipvlan_main.c
+@@ -71,7 +71,8 @@ static void ipvlan_unregister_nf_hook(struct net *net)
+ 					ARRAY_SIZE(ipvl_nfops));
  }
+ 
+-static int ipvlan_set_port_mode(struct ipvl_port *port, u16 nval)
++static int ipvlan_set_port_mode(struct ipvl_port *port, u16 nval,
++				struct netlink_ext_ack *extack)
+ {
+ 	struct ipvl_dev *ipvlan;
+ 	struct net_device *mdev = port->dev;
+@@ -498,7 +499,7 @@ static int ipvlan_nl_changelink(struct net_device *dev,
+ 	if (data[IFLA_IPVLAN_MODE]) {
+ 		u16 nmode = nla_get_u16(data[IFLA_IPVLAN_MODE]);
+ 
+-		err = ipvlan_set_port_mode(port, nmode);
++		err = ipvlan_set_port_mode(port, nmode, extack);
+ 	}
+ 
+ 	if (!err && data[IFLA_IPVLAN_FLAGS]) {
+@@ -672,7 +673,7 @@ int ipvlan_link_new(struct net *src_net, struct net_device *dev,
+ 	if (data && data[IFLA_IPVLAN_MODE])
+ 		mode = nla_get_u16(data[IFLA_IPVLAN_MODE]);
+ 
+-	err = ipvlan_set_port_mode(port, mode);
++	err = ipvlan_set_port_mode(port, mode, extack);
+ 	if (err)
+ 		goto unlink_netdev;
+ 
 -- 
 2.4.11
