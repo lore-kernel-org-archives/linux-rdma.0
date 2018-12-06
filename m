@@ -1,76 +1,114 @@
-From: David Gibson <david@gibson.dropbear.id.au>
-Subject: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
-Date: Thu,  6 Dec 2018 15:19:51 +1100
-Message-ID: <20181206041951.22413-1-david@gibson.dropbear.id.au>
+From: Long Li <longli@linuxonhyperv.com>
+Subject: [PATCH] CIFS: Avoid returning EBUSY to upper layer VFS
+Date: Thu,  6 Dec 2018 04:51:06 +0000
+Message-ID: <20181206045106.10307-1-longli@linuxonhyperv.com>
+Reply-To: longli@microsoft.com
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, saeedm@mellanox.com, ogerlitz@mellanox.com, tariqt@mellanox.com, bhelgaas@google.com, leon@kernel.org
-Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, alex.williamson@redhat.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, sbest@redhat.com, paulus@samba.org, benh@kernel.crashing.org, David Gibson <david@gibson.dropbear.id.au>
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Mellanox ConnectX-5 IB cards (MT27800) seem to cause a call trace when
-unbound from their regular driver and attached to vfio-pci in order to pass
-them through to a guest.
+From: Long Li <longli@microsoft.com>
 
-This goes away if the disable_idle_d3 option is used, so it looks like a
-problem with the hardware handling D3 state.  To fix that more permanently,
-use a device quirk to disable D3 state for these devices.
+EBUSY is not handled by VFS, and will be passed to user-mode. This is not
+correct as we need to wait for more credits.
 
-We do this by renaming the existing quirk_no_ata_d3() more generally and
-attaching it to the ConnectX-[45] devices (0x15b3:0x1013).
+This patch also fixes a bug where rsize or wsize is used uninitialized when
+the call to server->ops->wait_mtu_credits() fails.
 
-Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Long Li <longli@microsoft.com>
 ---
- drivers/pci/quirks.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ fs/cifs/file.c | 31 ++++++-------------------------
+ 1 file changed, 6 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-index 4700d24e5d55..add3f516ca12 100644
---- a/drivers/pci/quirks.c
-+++ b/drivers/pci/quirks.c
-@@ -1315,23 +1315,24 @@ static void quirk_ide_samemode(struct pci_dev *pdev)
- }
- DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801CA_10, quirk_ide_samemode);
- 
--/* Some ATA devices break if put into D3 */
--static void quirk_no_ata_d3(struct pci_dev *pdev)
-+/* Some devices (including a number of ATA cards) break if put into D3 */
-+static void quirk_no_d3(struct pci_dev *pdev)
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 74c33d5..c9bc56b 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2541,14 +2541,13 @@ static int
+ cifs_resend_wdata(struct cifs_writedata *wdata, struct list_head *wdata_list,
+ 	struct cifs_aio_ctx *ctx)
  {
- 	pdev->dev_flags |= PCI_DEV_FLAGS_NO_D3;
- }
-+
- /* Quirk the legacy ATA devices only. The AHCI ones are ok */
- DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_ANY_ID,
--				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-+				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
- DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_ATI, PCI_ANY_ID,
--				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-+				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
- /* ALi loses some register settings that we cannot then restore */
- DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_AL, PCI_ANY_ID,
--				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-+				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
- /* VIA comes back fine but we need to keep it alive or ACPI GTM failures
-    occur when mode detecting */
- DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_VIA, PCI_ANY_ID,
--				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-+				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
+-	int wait_retry = 0;
+ 	unsigned int wsize, credits;
+ 	int rc;
+ 	struct TCP_Server_Info *server =
+ 		tlink_tcon(wdata->cfile->tlink)->ses->server;
  
- /*
-  * This was originally an Alpha-specific thing, but it really fits here.
-@@ -3367,6 +3368,10 @@ static void mellanox_check_broken_intx_masking(struct pci_dev *pdev)
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_MELLANOX, PCI_ANY_ID,
- 			mellanox_check_broken_intx_masking);
+ 	/*
+-	 * Try to resend this wdata, waiting for credits up to 3 seconds.
++	 * Wait for credits to resend this wdata.
+ 	 * Note: we are attempting to resend the whole wdata not in segments
+ 	 */
+ 	do {
+@@ -2556,19 +2555,13 @@ cifs_resend_wdata(struct cifs_writedata *wdata, struct list_head *wdata_list,
+ 			server, wdata->bytes, &wsize, &credits);
  
-+/* Mellanox MT27800 (ConnectX-5) IB card seems to break with D3
-+ * In particular this shows up when the device is bound to the vfio-pci driver */
-+DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_MELLANOX, PCI_DEVICE_ID_MELLANOX_CONNECTX4, quirk_no_d3)
-+
- static void quirk_no_bus_reset(struct pci_dev *dev)
+ 		if (rc)
+-			break;
++			goto out;
+ 
+ 		if (wsize < wdata->bytes) {
+ 			add_credits_and_wake_if(server, credits, 0);
+ 			msleep(1000);
+-			wait_retry++;
+ 		}
+-	} while (wsize < wdata->bytes && wait_retry < 3);
+-
+-	if (wsize < wdata->bytes) {
+-		rc = -EBUSY;
+-		goto out;
+-	}
++	} while (wsize < wdata->bytes);
+ 
+ 	rc = -EAGAIN;
+ 	while (rc == -EAGAIN) {
+@@ -3234,14 +3227,13 @@ static int cifs_resend_rdata(struct cifs_readdata *rdata,
+ 			struct list_head *rdata_list,
+ 			struct cifs_aio_ctx *ctx)
  {
- 	dev->dev_flags |= PCI_DEV_FLAGS_NO_BUS_RESET;
+-	int wait_retry = 0;
+ 	unsigned int rsize, credits;
+ 	int rc;
+ 	struct TCP_Server_Info *server =
+ 		tlink_tcon(rdata->cfile->tlink)->ses->server;
+ 
+ 	/*
+-	 * Try to resend this rdata, waiting for credits up to 3 seconds.
++	 * Wait for credits to resend this rdata.
+ 	 * Note: we are attempting to resend the whole rdata not in segments
+ 	 */
+ 	do {
+@@ -3249,24 +3241,13 @@ static int cifs_resend_rdata(struct cifs_readdata *rdata,
+ 						&rsize, &credits);
+ 
+ 		if (rc)
+-			break;
++			goto out;
+ 
+ 		if (rsize < rdata->bytes) {
+ 			add_credits_and_wake_if(server, credits, 0);
+ 			msleep(1000);
+-			wait_retry++;
+ 		}
+-	} while (rsize < rdata->bytes && wait_retry < 3);
+-
+-	/*
+-	 * If we can't find enough credits to send this rdata
+-	 * release the rdata and return failure, this will pass
+-	 * whatever I/O amount we have finished to VFS.
+-	 */
+-	if (rsize < rdata->bytes) {
+-		rc = -EBUSY;
+-		goto out;
+-	}
++	} while (rsize < rdata->bytes);
+ 
+ 	rc = -EAGAIN;
+ 	while (rc == -EAGAIN) {
 -- 
-2.19.2
+2.7.4
