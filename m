@@ -1,21 +1,29 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH 2/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end calls
-Date: Fri, 7 Dec 2018 04:35:52 +0800
-Message-ID: <201812070404.fxW8tSrk%fengguang.wu@intel.com>
-References: <20181203201817.10759-3-jglisse@redhat.com>
+Subject: Re: [PATCH 3/3] mm/mmu_notifier: contextual information for event
+ triggering invalidation
+Date: Fri, 7 Dec 2018 04:53:41 +0800
+Message-ID: <201812070436.Z0VbPbfc%fengguang.wu@intel.com>
+References: <20181203201817.10759-4-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="y0ulUmNC+osPPQO6"
+Content-Type: multipart/mixed; boundary="GvXjxJ+pjyke8COw"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20181203201817.10759-3-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: kbuild-all@01.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Christian Koenig <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org
+In-Reply-To: <20181203201817.10759-4-jglisse@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Christian Koenig <christian.koenig@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, kbuild-all@01.org, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Felix Kuehling <felix.kuehling@amd.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
---y0ulUmNC+osPPQO6
+--GvXjxJ+pjyke8COw
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -39,12 +47,19 @@ reproduce:
 All errors (new ones prefixed by >>):
 
    kernel/events/uprobes.c: In function '__replace_page':
->> kernel/events/uprobes.c:174:28: error: storage size of 'range' isn't known
+   kernel/events/uprobes.c:174:28: error: storage size of 'range' isn't known
      struct mmu_notifier_range range;
                                ^~~~~
+>> kernel/events/uprobes.c:177:16: error: 'MMU_NOTIFY_CLEAR' undeclared (first use in this function); did you mean 'VM_ARCH_CLEAR'?
+     range.event = MMU_NOTIFY_CLEAR;
+                   ^~~~~~~~~~~~~~~~
+                   VM_ARCH_CLEAR
+   kernel/events/uprobes.c:177:16: note: each undeclared identifier is reported only once for each function it appears in
    kernel/events/uprobes.c:174:28: warning: unused variable 'range' [-Wunused-variable]
+     struct mmu_notifier_range range;
+                               ^~~~~
 
-vim +174 kernel/events/uprobes.c
+vim +177 kernel/events/uprobes.c
 
    152	
    153	/**
@@ -71,70 +86,71 @@ vim +174 kernel/events/uprobes.c
  > 174		struct mmu_notifier_range range;
    175		struct mem_cgroup *memcg;
    176	
-   177		range.start = addr;
-   178		range.end = addr + PAGE_SIZE;
-   179		range.mm = mm;
-   180	
-   181		VM_BUG_ON_PAGE(PageTransHuge(old_page), old_page);
-   182	
-   183		err = mem_cgroup_try_charge(new_page, vma->vm_mm, GFP_KERNEL, &memcg,
-   184				false);
-   185		if (err)
-   186			return err;
-   187	
-   188		/* For try_to_free_swap() and munlock_vma_page() below */
-   189		lock_page(old_page);
-   190	
-   191		mmu_notifier_invalidate_range_start(&range);
-   192		err = -EAGAIN;
-   193		if (!page_vma_mapped_walk(&pvmw)) {
-   194			mem_cgroup_cancel_charge(new_page, memcg, false);
-   195			goto unlock;
-   196		}
-   197		VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
-   198	
-   199		get_page(new_page);
-   200		page_add_new_anon_rmap(new_page, vma, addr, false);
-   201		mem_cgroup_commit_charge(new_page, memcg, false, false);
-   202		lru_cache_add_active_or_unevictable(new_page, vma);
-   203	
-   204		if (!PageAnon(old_page)) {
-   205			dec_mm_counter(mm, mm_counter_file(old_page));
-   206			inc_mm_counter(mm, MM_ANONPAGES);
-   207		}
-   208	
-   209		flush_cache_page(vma, addr, pte_pfn(*pvmw.pte));
-   210		ptep_clear_flush_notify(vma, addr, pvmw.pte);
-   211		set_pte_at_notify(mm, addr, pvmw.pte,
-   212				mk_pte(new_page, vma->vm_page_prot));
-   213	
-   214		page_remove_rmap(old_page, false);
-   215		if (!page_mapped(old_page))
-   216			try_to_free_swap(old_page);
-   217		page_vma_mapped_walk_done(&pvmw);
-   218	
-   219		if (vma->vm_flags & VM_LOCKED)
-   220			munlock_vma_page(old_page);
-   221		put_page(old_page);
-   222	
-   223		err = 0;
-   224	 unlock:
-   225		mmu_notifier_invalidate_range_end(&range);
-   226		unlock_page(old_page);
-   227		return err;
-   228	}
-   229	
+ > 177		range.event = MMU_NOTIFY_CLEAR;
+   178		range.start = addr;
+   179		range.end = addr + PAGE_SIZE;
+   180		range.mm = mm;
+   181	
+   182		VM_BUG_ON_PAGE(PageTransHuge(old_page), old_page);
+   183	
+   184		err = mem_cgroup_try_charge(new_page, vma->vm_mm, GFP_KERNEL, &memcg,
+   185				false);
+   186		if (err)
+   187			return err;
+   188	
+   189		/* For try_to_free_swap() and munlock_vma_page() below */
+   190		lock_page(old_page);
+   191	
+   192		mmu_notifier_invalidate_range_start(&range);
+   193		err = -EAGAIN;
+   194		if (!page_vma_mapped_walk(&pvmw)) {
+   195			mem_cgroup_cancel_charge(new_page, memcg, false);
+   196			goto unlock;
+   197		}
+   198		VM_BUG_ON_PAGE(addr != pvmw.address, old_page);
+   199	
+   200		get_page(new_page);
+   201		page_add_new_anon_rmap(new_page, vma, addr, false);
+   202		mem_cgroup_commit_charge(new_page, memcg, false, false);
+   203		lru_cache_add_active_or_unevictable(new_page, vma);
+   204	
+   205		if (!PageAnon(old_page)) {
+   206			dec_mm_counter(mm, mm_counter_file(old_page));
+   207			inc_mm_counter(mm, MM_ANONPAGES);
+   208		}
+   209	
+   210		flush_cache_page(vma, addr, pte_pfn(*pvmw.pte));
+   211		ptep_clear_flush_notify(vma, addr, pvmw.pte);
+   212		set_pte_at_notify(mm, addr, pvmw.pte,
+   213				mk_pte(new_page, vma->vm_page_prot));
+   214	
+   215		page_remove_rmap(old_page, false);
+   216		if (!page_mapped(old_page))
+   217			try_to_free_swap(old_page);
+   218		page_vma_mapped_walk_done(&pvmw);
+   219	
+   220		if (vma->vm_flags & VM_LOCKED)
+   221			munlock_vma_page(old_page);
+   222		put_page(old_page);
+   223	
+   224		err = 0;
+   225	 unlock:
+   226		mmu_notifier_invalidate_range_end(&range);
+   227		unlock_page(old_page);
+   228		return err;
+   229	}
+   230	
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---y0ulUmNC+osPPQO6
+--GvXjxJ+pjyke8COw
 Content-Type: application/gzip
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICECGCVwAAy5jb25maWcAlDzbcuO2ku/5CtXkJadOJfFtPHN2yw8gCEqISIIBQNnyC8vx
+H4sICIGKCVwAAy5jb25maWcAlDzbcuO2ku/5CtXkJadOJfFtPHN2yw8gCEqISIIBQNnyC8vx
 aOa44rFnZfsk+fvtBkgRAJvKbiqVmN2Ne9/R0Pfffb9gb6/PX+9eH+7vHh//WnzZPe32d6+7
 T4vPD4+7/17kalEruxC5tD8Bcfnw9Pbnzw/nHy8XFz+dnfx08uP+/v1ivds/7R4X/Pnp88OX
 N2j+8Pz03fffwb/fA/DrN+hp/1+LL/f3P35Y/JDvfnu4e1p8+OkcWp/+w/8BpFzVhVx2nHfS
@@ -579,4 +595,14 @@ z7qp0GTN54Y/MLLWlwLkODC82968W/R5FwcDfs7jeifYtY3Fw/rj5dLoGYvVsYNqUATCjM4U
 /gJxKah6zwBjNRFaZ+uLdGeC5hX7qWYj/PNjxtawhkrka1D9ZSUD7iu6AnRI4lc1ssOomtga
 1nTqUZw9PABmLW1aP9VGh+Bwjfj/B8tve/+6bgEA
 
---y0ulUmNC+osPPQO6--
+--GvXjxJ+pjyke8COw
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+
+--GvXjxJ+pjyke8COw--
