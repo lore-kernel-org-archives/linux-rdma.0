@@ -1,117 +1,76 @@
-From: "Kuehling, Felix" <Felix.Kuehling@amd.com>
-Subject: Re: [PATCH v2 1/3] mm/mmu_notifier: use structure for
- invalidate_range_start/end callback
-Date: Wed, 5 Dec 2018 23:15:20 +0000
-Message-ID: <be0140a1-a656-2383-4a74-c92bc0f7e568@amd.com>
-References: <20181205053628.3210-1-jglisse@redhat.com>
- <20181205053628.3210-2-jglisse@redhat.com>
- <b76dfbdd-a017-4032-d8a1-860ff62dfb59@amd.com>
- <20181205230413.GN3536@redhat.com>
+From: David Gibson <david@gibson.dropbear.id.au>
+Subject: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
+Date: Thu,  6 Dec 2018 15:19:51 +1100
+Message-ID: <20181206041951.22413-1-david@gibson.dropbear.id.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181205230413.GN3536@redhat.com>
-Content-Language: en-US
-Content-ID: <163F1F45876CBE43B936CDC5DDF1B141@namprd12.prod.outlook.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Dan Williams <dan.j.williams@intel.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net, saeedm@mellanox.com, ogerlitz@mellanox.com, tariqt@mellanox.com, bhelgaas@google.com, leon@kernel.org
+Cc: linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, alex.williamson@redhat.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, sbest@redhat.com, paulus@samba.org, benh@kernel.crashing.org, David Gibson <david@gibson.dropbear.id.au>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjAxOC0xMi0wNSA2OjA0IHAubS4sIEplcm9tZSBHbGlzc2Ugd3JvdGU6DQo+IE9uIFdlZCwg
-RGVjIDA1LCAyMDE4IGF0IDA5OjQyOjQ1UE0gKzAwMDAsIEt1ZWhsaW5nLCBGZWxpeCB3cm90ZToN
-Cj4+IFRoZSBhbWRncHUgcGFydCBsb29rcyBnb29kIHRvIG1lLg0KPj4NCj4+IEEgbWlub3Igbml0
-LXBpY2sgaW4gbW11X25vdGlmaWVyLmMgKGlubGluZSkuDQo+Pg0KPj4gRWl0aGVyIHdheSwgdGhl
-IHNlcmllcyBpcyBBY2tlZC1ieTogRmVsaXggS3VlaGxpbmcgPEZlbGl4Lkt1ZWhsaW5nQGFtZC5j
-b20+DQo+Pg0KPj4gT24gMjAxOC0xMi0wNSAxMjozNiBhLm0uLCBqZ2xpc3NlQHJlZGhhdC5jb20g
-d3JvdGU6DQo+Pj4gRnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+DQo+
-Pj4NCj4+PiBUbyBhdm9pZCBoYXZpbmcgdG8gY2hhbmdlIG1hbnkgY2FsbGJhY2sgZGVmaW5pdGlv
-biBldmVyeXRpbWUgd2Ugd2FudA0KPj4+IHRvIGFkZCBhIHBhcmFtZXRlciB1c2UgYSBzdHJ1Y3R1
-cmUgdG8gZ3JvdXAgYWxsIHBhcmFtZXRlcnMgZm9yIHRoZQ0KPj4+IG1tdV9ub3RpZmllciBpbnZh
-bGlkYXRlX3JhbmdlX3N0YXJ0L2VuZCBjYWxsYmFjay4gTm8gZnVuY3Rpb25hbCBjaGFuZ2VzDQo+
-Pj4gd2l0aCB0aGlzIHBhdGNoLg0KPj4+DQo+Pj4gU2lnbmVkLW9mZi1ieTogSsOpcsO0bWUgR2xp
-c3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+DQo+Pj4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGlu
-dXgtZm91bmRhdGlvbi5vcmc+DQo+Pj4gQ2M6IE1hdHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNy
-b3NvZnQuY29tPg0KPj4+IENjOiBSb3NzIFp3aXNsZXIgPHp3aXNsZXJAa2VybmVsLm9yZz4NCj4+
-PiBDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4NCj4+PiBDYzogRGFuIFdpbGxpYW1zIDxkYW4u
-ai53aWxsaWFtc0BpbnRlbC5jb20+DQo+Pj4gQ2M6IFBhb2xvIEJvbnppbmkgPHBib256aW5pQHJl
-ZGhhdC5jb20+DQo+Pj4gQ2M6IFJhZGltIEtyxI1tw6HFmSA8cmtyY21hckByZWRoYXQuY29tPg0K
-Pj4+IENjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJuZWwub3JnPg0KPj4+IENjOiBDaHJpc3Rp
-YW4gS29lbmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5jb20+DQo+Pj4gQ2M6IEZlbGl4IEt1ZWhs
-aW5nIDxmZWxpeC5rdWVobGluZ0BhbWQuY29tPg0KPj4+IENjOiBSYWxwaCBDYW1wYmVsbCA8cmNh
-bXBiZWxsQG52aWRpYS5jb20+DQo+Pj4gQ2M6IEpvaG4gSHViYmFyZCA8amh1YmJhcmRAbnZpZGlh
-LmNvbT4NCj4+PiBDYzoga3ZtQHZnZXIua2VybmVsLm9yZw0KPj4+IENjOiBkcmktZGV2ZWxAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnDQo+Pj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+
-Pj4gQ2M6IGxpbnV4LWZzZGV2ZWxAdmdlci5rZXJuZWwub3JnDQo+Pj4gLS0tDQo+Pj4gIGRyaXZl
-cnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9tbi5jICB8IDQzICsrKysrKysrKysrLS0tLS0t
-LS0tLS0tLS0NCj4+PiAgZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jIHwg
-MTQgKysrKy0tLS0NCj4+PiAgZHJpdmVycy9ncHUvZHJtL3JhZGVvbi9yYWRlb25fbW4uYyAgICAg
-IHwgMTYgKysrKy0tLS0tDQo+Pj4gIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VtZW1fb2RwLmMg
-ICAgICB8IDIwICsrKysrLS0tLS0tLQ0KPj4+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS9t
-bXVfcmIuYyAgICAgfCAxMyArKystLS0tLQ0KPj4+ICBkcml2ZXJzL21pc2MvbWljL3NjaWYvc2Np
-Zl9kbWEuYyAgICAgICAgfCAxMSArKy0tLS0tDQo+Pj4gIGRyaXZlcnMvbWlzYy9zZ2ktZ3J1L2dy
-dXRsYnB1cmdlLmMgICAgICB8IDE0ICsrKystLS0tDQo+Pj4gIGRyaXZlcnMveGVuL2dudGRldi5j
-ICAgICAgICAgICAgICAgICAgICB8IDEyICsrKy0tLS0NCj4+PiAgaW5jbHVkZS9saW51eC9tbXVf
-bm90aWZpZXIuaCAgICAgICAgICAgIHwgMTQgKysrKystLS0NCj4+PiAgbW0vaG1tLmMgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgMjMgKysrKysrLS0tLS0tLQ0KPj4+ICBtbS9tbXVf
-bm90aWZpZXIuYyAgICAgICAgICAgICAgICAgICAgICAgfCAyMSArKysrKysrKysrLS0NCj4+PiAg
-dmlydC9rdm0va3ZtX21haW4uYyAgICAgICAgICAgICAgICAgICAgIHwgMTQgKysrLS0tLS0NCj4+
-PiAgMTIgZmlsZXMgY2hhbmdlZCwgMTAyIGluc2VydGlvbnMoKyksIDExMyBkZWxldGlvbnMoLSkN
-Cj4+Pg0KPj4gW3NuaXBdDQo+Pj4gZGlmZiAtLWdpdCBhL21tL21tdV9ub3RpZmllci5jIGIvbW0v
-bW11X25vdGlmaWVyLmMNCj4+PiBpbmRleCA1MTE5ZmY4NDY3NjkuLjVmNjY2NWFlM2VlMiAxMDA2
-NDQNCj4+PiAtLS0gYS9tbS9tbXVfbm90aWZpZXIuYw0KPj4+ICsrKyBiL21tL21tdV9ub3RpZmll
-ci5jDQo+Pj4gQEAgLTE3OCwxNCArMTc4LDIwIEBAIGludCBfX21tdV9ub3RpZmllcl9pbnZhbGlk
-YXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbV9zdHJ1Y3QgKm1tLA0KPj4+ICAJCQkJICB1bnNpZ25l
-ZCBsb25nIHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCwNCj4+PiAgCQkJCSAgYm9vbCBibG9ja2Fi
-bGUpDQo+Pj4gIHsNCj4+PiArCXN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2UgX3JhbmdlLCAqcmFu
-Z2UgPSAmX3JhbmdlOw0KPj4gSSdtIG5vdCBzdXJlIHdoeSB5b3UgbmVlZCB0byBhY2Nlc3MgX3Jh
-bmdlIGluZGlyZWN0bHkgdGhyb3VnaCBhIHBvaW50ZXIuDQo+PiBTZWUgYmVsb3cuDQo+Pg0KPj4N
-Cj4+PiAgCXN0cnVjdCBtbXVfbm90aWZpZXIgKm1uOw0KPj4+ICAJaW50IHJldCA9IDA7DQo+Pj4g
-IAlpbnQgaWQ7DQo+Pj4gIA0KPj4+ICsJcmFuZ2UtPmJsb2NrYWJsZSA9IGJsb2NrYWJsZTsNCj4+
-PiArCXJhbmdlLT5zdGFydCA9IHN0YXJ0Ow0KPj4+ICsJcmFuZ2UtPmVuZCA9IGVuZDsNCj4+PiAr
-CXJhbmdlLT5tbSA9IG1tOw0KPj4gVGhpcyBjb3VsZCBqdXN0IGFzc2lnbiBfcmFuZ2UuYmxvY2th
-YmxlLCBfcmFuZ2Uuc3RhcnQsIGV0Yy4gd2l0aG91dCB0aGUNCj4+IGluZGlyZWN0aW9uLiBPciB5
-b3UgY291bGQgZXZlbiB1c2UgYW4gaW5pdGlhbGl6ZXIgaW5zdGVhZDoNCj4+DQo+PiBzdHJ1Y3Qg
-bW11X25vdGlmaWVyX3JhbmdlIHJhbmdlID0gew0KPj4gwqDCoMKgIC5ibG9ja2FibGUgPSBibG9j
-a2FibGUsDQo+PiDCoMKgwqAgLnN0YXJ0ID0gc3RhcnQsDQo+PiDCoMKgwqAgLi4uDQo+PiB9Ow0K
-Pj4NCj4+DQo+Pj4gKw0KPj4+ICAJaWQgPSBzcmN1X3JlYWRfbG9jaygmc3JjdSk7DQo+Pj4gIAlo
-bGlzdF9mb3JfZWFjaF9lbnRyeV9yY3UobW4sICZtbS0+bW11X25vdGlmaWVyX21tLT5saXN0LCBo
-bGlzdCkgew0KPj4+ICAJCWlmIChtbi0+b3BzLT5pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KSB7DQo+
-Pj4gLQkJCWludCBfcmV0ID0gbW4tPm9wcy0+aW52YWxpZGF0ZV9yYW5nZV9zdGFydChtbiwgbW0s
-IHN0YXJ0LCBlbmQsIGJsb2NrYWJsZSk7DQo+Pj4gKwkJCWludCBfcmV0ID0gbW4tPm9wcy0+aW52
-YWxpZGF0ZV9yYW5nZV9zdGFydChtbiwgcmFuZ2UpOw0KPj4gVGhpcyBjb3VsZCBqdXN0IHVzZSAm
-X3JhbmdlIHdpdGhvdXQgdGhlIGluZGlyZWN0aW9uLg0KPj4NCj4+IFNhbWUgaW4gLi4uX2ludmFs
-aWRhdGVfcmFuZ2VfZW5kIGJlbG93Lg0KPiBTbyBleHBsYWluYXRpb24gaXMgdGhhdCB0aGlzIGlz
-IGEgdGVtcG9yYXJ5IHN0ZXAgYWxsIHRoaXMgY29kZSBpcw0KPiByZW1vdmUgaW4gdGhlIHNlY29u
-ZCBwYXRjaC4gSXQgd2FzIGRvbmUgdGhpcyB3YXkgaW4gdGhpcyBwYXRjaCB0bw0KPiBtaW5pbWl6
-ZSB0aGUgZGlmZiB3aXRoaW4gdGhlIG5leHQgcGF0Y2guDQoNCkkgd2FzIGFjdHVhbGx5IGxvb2tp
-bmcgZm9yIHRoYXQgYmVjYXVzZSBJIHN1c3BlY3RlZCB0aGF0IHRoaXMgd291bGQgbWFrZQ0KbW9y
-ZSBzZW5zZSBpbiB0aGUgY29udGV4dCBvZiB0aGUgb3RoZXIgcGF0Y2hlcy4gQnV0IHRoZW4gSSBt
-aXNzZWQgdGhlDQptbXVfbm90aWZpZXIuYyBjaGFuZ2UgaW4gcGF0Y2ggMiBpbiB0aGUgbm9pc2Ug
-b2YgYWxsIHRoZSBvdGhlciBtbQ0KY2hhbmdlcy4gTmV2ZXIgbWluZC4NCg0KDQo+IEkgZGlkIHRo
-aXMgYmVjYXVzZSBpIHdhbnRlZCB0byBkbyB0aGUgY29udmVydGlvbiBpbiAyIHN0ZXBzIHRoZQ0K
-PiBmaXJzdCBzdGVwIGkgY29udmVydCBhbGwgdGhlIGxpc3RlbmVyIG9mIG1tdSBub3RpZmllciBh
-bmQgaW4gdGhlDQo+IHNlY29uZCBzdGVwIGkgY29udmVydCBhbGwgdGhlIGNhbGwgc2l0ZSB0aGF0
-IHRyaWdnZXIgYSBtbXUgbm90aWZlci4NCg0KVGhhdCBwYXJ0IG1ha2VzIHNlbnNlIGFuZCBJIGFw
-cHJlY2lhdGUgdGhhdCBpdCBrZWVwcyB0aGUgcGF0Y2hlcw0KcmVhc29uYWJseSBzZXBhcmF0ZSBm
-b3IgZGlmZmVyZW50IGF1ZGllbmNlcy4NCg0KVGhhbmtzLA0KwqAgRmVsaXgNCg0KDQo+IEkgZGlk
-IHRoYXQgdG8gaGVscCBwZW9wbGUgcmV2aWV3aW5nIG9ubHkgdGhlIHBhcnQgdGhleSBjYXJlIGFi
-b3V0Lg0KPg0KPiBBcHBhcmVudGx5IGl0IGVuZCB1cCBjb25mdXNpbmcgcGVvcGxlIG1vcmUgdGhh
-biBpdCBoZWxwZWQgOikNCj4NCj4gRG8gcGVvcGxlIGhhdmUgc3Ryb25nIGZlZWxpbmcgYWJvdXQg
-Z2V0dGluZyB0aGlzIGNvZGUgdGhhdCBpcw0KPiBkZWxldGVkIGluIHRoZSBzZWNvbmQgcGF0Y2gg
-Zml4IGluIHRoZSBmaXJzdCBwYXRjaCBhbnl3YXkgPw0KPg0KPiBJIGNhbiByZXNwaW4gaWYgc28g
-YnV0IGkgZG9uJ3Qgc2VlIG11Y2ggdmFsdWUgaW4gZm9ybWF0aW5nIGNvZGUNCj4gdGhhdCBpcyBk
-ZWxldGVkIGluIHRoZSBzZXJpZS4NCj4NCj4gVGhhbmsgeW91IGZvciByZXZpZXdpbmcNCj4NCj4g
-Q2hlZXJzLA0KPiBKw6lyw7RtZQ0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVsCg==
+Mellanox ConnectX-5 IB cards (MT27800) seem to cause a call trace when
+unbound from their regular driver and attached to vfio-pci in order to pass
+them through to a guest.
+
+This goes away if the disable_idle_d3 option is used, so it looks like a
+problem with the hardware handling D3 state.  To fix that more permanently,
+use a device quirk to disable D3 state for these devices.
+
+We do this by renaming the existing quirk_no_ata_d3() more generally and
+attaching it to the ConnectX-[45] devices (0x15b3:0x1013).
+
+Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+---
+ drivers/pci/quirks.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
+index 4700d24e5d55..add3f516ca12 100644
+--- a/drivers/pci/quirks.c
++++ b/drivers/pci/quirks.c
+@@ -1315,23 +1315,24 @@ static void quirk_ide_samemode(struct pci_dev *pdev)
+ }
+ DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801CA_10, quirk_ide_samemode);
+ 
+-/* Some ATA devices break if put into D3 */
+-static void quirk_no_ata_d3(struct pci_dev *pdev)
++/* Some devices (including a number of ATA cards) break if put into D3 */
++static void quirk_no_d3(struct pci_dev *pdev)
+ {
+ 	pdev->dev_flags |= PCI_DEV_FLAGS_NO_D3;
+ }
++
+ /* Quirk the legacy ATA devices only. The AHCI ones are ok */
+ DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_ANY_ID,
+-				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
++				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
+ DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_ATI, PCI_ANY_ID,
+-				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
++				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
+ /* ALi loses some register settings that we cannot then restore */
+ DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_AL, PCI_ANY_ID,
+-				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
++				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
+ /* VIA comes back fine but we need to keep it alive or ACPI GTM failures
+    occur when mode detecting */
+ DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_VIA, PCI_ANY_ID,
+-				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
++				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
+ 
+ /*
+  * This was originally an Alpha-specific thing, but it really fits here.
+@@ -3367,6 +3368,10 @@ static void mellanox_check_broken_intx_masking(struct pci_dev *pdev)
+ DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_MELLANOX, PCI_ANY_ID,
+ 			mellanox_check_broken_intx_masking);
+ 
++/* Mellanox MT27800 (ConnectX-5) IB card seems to break with D3
++ * In particular this shows up when the device is bound to the vfio-pci driver */
++DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_MELLANOX, PCI_DEVICE_ID_MELLANOX_CONNECTX4, quirk_no_d3)
++
+ static void quirk_no_bus_reset(struct pci_dev *dev)
+ {
+ 	dev->dev_flags |= PCI_DEV_FLAGS_NO_BUS_RESET;
+-- 
+2.19.2
