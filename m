@@ -1,78 +1,38 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 0/3]  Packet based credit mode
-Date: Fri, 7 Dec 2018 08:04:26 +0200
-Message-ID: <20181207060426.GC3845@mtr-leonro.mtl.com>
-References: <20181130112206.19870-1-leon@kernel.org>
- <20181207032706.GA20134@ziepe.ca>
+From: Tarick Bedeir <tarick@google.com>
+Subject: [PATCH] net/mlx4_core: Correctly set PFC param if global pause is
+ turned off.
+Date: Fri,  7 Dec 2018 00:30:26 -0800
+Message-ID: <20181207083026.173789-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="aT9PWwzfKXlsBJM1"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181207032706.GA20134@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Danit Goldberg <danitg@mellanox.com>, Majd Dibbiny <majd@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Eran Ben Elisha <eranbe@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tarick Bedeir <tarick@google.com>
 List-Id: linux-rdma@vger.kernel.org
 
+rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
 
---aT9PWwzfKXlsBJM1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
+Signed-off-by: Tarick Bedeir <tarick@google.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/en_ethtool.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Thu, Dec 06, 2018 at 08:27:06PM -0700, Jason Gunthorpe wrote:
-> On Fri, Nov 30, 2018 at 01:22:03PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > >From Danit,
-> >
-> > Packet based credit mode is an alternative end-to-end credit mode for QPs
-> > set during their creation. Credits are transported from the responder
-> > to the requester to optimize the use of its receive resources.
-> > In packet-based credit mode, credits are issued on a per packet basis.
-> >
-> > The advantage of this feature comes while sending large RDMA messages
-> > through switches that are short in memory.
-> >
-> > The first commit exposes QP creation flag and the HCA capability. The
-> > second commit adds support for a new DV QP creation flag. The last
-> > commit report packet based credit mode capability via the MLX5DV device
-> > capabilities.
-> >
-> > Thanks
-> >
-> > Danit Goldberg (3):
-> >   net/mlx5: Expose packet based credit mode
-> >   IB/mlx5: Add packet based credit mode support
-> >   IB/mlx5: Report packet based credit mode device capability
->
-> This looks fine to me, can you update the shared branch please
-
-Done, thanks
-3fd3c80acc17 net/mlx5: Expose packet based credit mode
-
->
-> Thanks,
-> Jason
-
---aT9PWwzfKXlsBJM1
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcCg1qAAoJEORje4g2clin3nUP/R+qESfML/vuHO0bYunj+r8o
-EYo3sfEDDafuUqvKXZRnbyWEHDHd+5erlLoot/z3zbciPdGONIGGjWsOHI42wKjM
-qwvhEKs9W7t3d/898ss6IuiyJTVQ8ERciLSgC1kDEsuH/R+Hhxdfvcz4EiiBPYe3
-IVqdJnEErYUZFhGuPEZC0VxCvdHao89mMcyD/FLiSfExEMZfidryFPetS46J2L2E
-8mxBBonL2CCI4bqIFarRJdmdQEssYPy/n9nhfPgQi1DOCVgyKPJlnsEDC1B5jPJ/
-935o4BgSr3XqHxaBitLKf1i1TbyscKONm1yJisxrkIWtFvJn1Zy+KJ0zTCtwIpou
-6MG4nCIASvIiEGKg1jiqA3tBCkV3ei2jrCcnFET5ZVIR0H3iZZeoGVGqoApcGX2p
-Axs6GWffhDp6kSp8ofcmw5p+JvyhNp8POiphABxGVLxI6VFBPiIXhgJYQnu2Mk3W
-Ev7vPCMSEBznlUpUbKUpxD5UktTEiHHe1IhvB0DN4uOIXxrrlUGTsQARVYR3ujxH
-4eThH5oT7akCZyZ9s3P+5fgHuVFZNlQ4Vbyy1AgsuJgjnMoA81jNJ3KoQXeLcPG3
-Q0LJrWRLHKjhpLFw07VdceffQ0s7vgt6wyM//GRUqoFgrx9KT5Mt2bCCybEDmvSA
-E2nmO8uIKvNnaYpXXTYC
-=77Rm
------END PGP SIGNATURE-----
-
---aT9PWwzfKXlsBJM1--
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+index f11b45001cad..d290f0787dfb 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+@@ -1084,8 +1084,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
+ 
+ 	tx_pause = !!(pause->tx_pause);
+ 	rx_pause = !!(pause->rx_pause);
+-	rx_ppp = priv->prof->rx_ppp && !(tx_pause || rx_pause);
+-	tx_ppp = priv->prof->tx_ppp && !(tx_pause || rx_pause);
++	rx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->rx_ppp;
++	tx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->tx_ppp;
+ 
+ 	err = mlx4_SET_PORT_general(mdev->dev, priv->port,
+ 				    priv->rx_skb_size + ETH_FCS_LEN,
+-- 
+2.20.0.rc2.403.gdbc3b29805-goog
