@@ -1,38 +1,77 @@
-From: Tarick Bedeir <tarick@google.com>
-Subject: [PATCH] net/mlx4_core: Correctly set PFC param if global pause is
- turned off.
-Date: Fri,  7 Dec 2018 00:30:26 -0800
-Message-ID: <20181207083026.173789-1-tarick@google.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v2 1/3] mm/mmu_notifier: use structure for
+ invalidate_range_start/end callback
+Date: Fri, 7 Dec 2018 10:32:49 -0500
+Message-ID: <20181207153249.GA3293@redhat.com>
+References: <20181205053628.3210-1-jglisse@redhat.com>
+ <20181205053628.3210-2-jglisse@redhat.com>
+ <20181207033027.GA20236@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Eran Ben Elisha <eranbe@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Tarick Bedeir <tarick@google.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181207033027.GA20236@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Christian Koenig <christian.koenig@amd.com>, Felix Kuehling <felix.kuehling@amd.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
+On Thu, Dec 06, 2018 at 08:30:27PM -0700, Jason Gunthorpe wrote:
+> On Wed, Dec 05, 2018 at 12:36:26AM -0500, jglisse@redhat.com wrote:
+> > From: Jérôme Glisse <jglisse@redhat.com>
+> > 
+> > To avoid having to change many callback definition everytime we want
+> > to add a parameter use a structure to group all parameters for the
+> > mmu_notifier invalidate_range_start/end callback. No functional changes
+> > with this patch.
+> > 
+> > Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+> > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > Cc: Matthew Wilcox <mawilcox@microsoft.com>
+> > Cc: Ross Zwisler <zwisler@kernel.org>
+> > Cc: Jan Kara <jack@suse.cz>
+> > Cc: Dan Williams <dan.j.williams@intel.com>
+> > Cc: Paolo Bonzini <pbonzini@redhat.com>
+> > Cc: Radim Krčmář <rkrcmar@redhat.com>
+> > Cc: Michal Hocko <mhocko@kernel.org>
+> > Cc: Christian Koenig <christian.koenig@amd.com>
+> > Cc: Felix Kuehling <felix.kuehling@amd.com>
+> > Cc: Ralph Campbell <rcampbell@nvidia.com>
+> > Cc: John Hubbard <jhubbard@nvidia.com>
+> > Cc: kvm@vger.kernel.org
+> > Cc: dri-devel@lists.freedesktop.org
+> > Cc: linux-rdma@vger.kernel.org
+> > Cc: linux-fsdevel@vger.kernel.org
+> > ---
+> >  drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c  | 43 +++++++++++--------------
+> >  drivers/gpu/drm/i915/i915_gem_userptr.c | 14 ++++----
+> >  drivers/gpu/drm/radeon/radeon_mn.c      | 16 ++++-----
+> >  drivers/infiniband/core/umem_odp.c      | 20 +++++-------
+> >  drivers/infiniband/hw/hfi1/mmu_rb.c     | 13 +++-----
+> >  drivers/misc/mic/scif/scif_dma.c        | 11 ++-----
+> >  drivers/misc/sgi-gru/grutlbpurge.c      | 14 ++++----
+> >  drivers/xen/gntdev.c                    | 12 +++----
+> >  include/linux/mmu_notifier.h            | 14 +++++---
+> >  mm/hmm.c                                | 23 ++++++-------
+> >  mm/mmu_notifier.c                       | 21 ++++++++++--
+> >  virt/kvm/kvm_main.c                     | 14 +++-----
+> >  12 files changed, 102 insertions(+), 113 deletions(-)
+> 
+> The changes to drivers/infiniband look mechanical and fine to me.
+> 
+> It even looks like this avoids merge conflicts with the other changes
+> to these files :)
+> 
+> For infiniband:
+> 
+> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+> 
+> I assume this will go through the mm tree?
 
-Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
-Signed-off-by: Tarick Bedeir <tarick@google.com>
----
- drivers/net/ethernet/mellanox/mlx4/en_ethtool.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Yes this is my exceptation as in the ends it touch more mm
+stuff than anything else. Andrew already added v1 to its
+patchset.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-index f11b45001cad..d290f0787dfb 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-@@ -1084,8 +1084,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
- 
- 	tx_pause = !!(pause->tx_pause);
- 	rx_pause = !!(pause->rx_pause);
--	rx_ppp = priv->prof->rx_ppp && !(tx_pause || rx_pause);
--	tx_ppp = priv->prof->tx_ppp && !(tx_pause || rx_pause);
-+	rx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->rx_ppp;
-+	tx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->tx_ppp;
- 
- 	err = mlx4_SET_PORT_general(mdev->dev, priv->port,
- 				    priv->rx_skb_size + ETH_FCS_LEN,
--- 
-2.20.0.rc2.403.gdbc3b29805-goog
+Cheers,
+Jérôme
