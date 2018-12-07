@@ -1,25 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net/mlx4_core: Correctly set PFC param if global pause
- is turned off.
-Date: Fri, 07 Dec 2018 12:41:13 -0800 (PST)
-Message-ID: <20181207.124113.261240958376681894.davem@davemloft.net>
-References: <20181207083026.173789-1-tarick@google.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] OFED 4.17-rc2 release is available
+Date: Fri, 7 Dec 2018 23:38:10 +0200
+Message-ID: <87c349f3-73d5-55a1-5804-2af932757e58@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181207083026.173789-1-tarick@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tarick@google.com
-Cc: eranbe@mellanox.com, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tarick Bedeir <tarick@google.com>
-Date: Fri,  7 Dec 2018 00:30:26 -0800
-
-> rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
-> 
-> Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
-> Signed-off-by: Tarick Bedeir <tarick@google.com>
-
-Tariq and co., please review.
+SGksCk9GRUQtNC4xNy1yYzIgaXMgYXZhaWxhYmxlIGF0OgpodHRwczovL29wZW5mYWJyaWNzLm9y
+Zy9kb3dubG9hZHMvT0ZFRC9vZmVkLTQuMTcvT0ZFRC00LjE3LXJjMi50Z3oKClBsZWFzZSByZXBv
+cnQgYW55IGlzc3VlcyBpbiBidWd6aWxsYQpodHRwczovL2J1Z3Mub3BlbmZhYnJpY3Mub3JnLyBm
+b3IgT0ZFRCA0LjE3LXJjMgoKUmVsZWFzZSBub3RlczoKaHR0cHM6Ly9vcGVuZmFicmljcy5vcmcv
+ZG93bmxvYWRzL09GRUQvcmVsZWFzZV9ub3Rlcy9PRkVEXzQuMTctcmMyLXJlbGVhc2Vfbm90ZXMK
+Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KT0ZFRC00LjE3LXJjMiBNYWluIENoYW5nZXMgZnJvbSBP
+RkVELTQuMTctcmMxCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4gY29tcGF0LXJkbWEKLSBGaXhl
+ZCBjbWFfY29uZmlnZnMgYmFja3BvcnQKLSBGaXhlZCBTUlAgYmFja3BvcnQKLSBvcGVuaWJkOiB1
+bmxvYWQgYm54dF9lbiBvbiByZXN0YXJ0L3N0b3AKLSBpNDBpdzogcmVtb3ZlIHN1cHBvcnQgZm9y
+IGliX2dldF92ZWN0b3JfYWZmaW5pdHkKLSBxZWQ6IEZpeCBzaG1lbSBzdHJ1Y3R1cmUgaW5jb25z
+aXN0ZW5jeSBiZXR3ZWVuIGRyaXZlciBhbmQgdGhlIG1mdy4KCjIuIFVwZGF0ZWQgcGFja2FnZXMK
+LSBsaWJmYWJyaWMtMS42LjIKLSBmYWJ0ZXN0cy0xLjYuMgotIHBlcmZ0ZXN0LTQuNC0wLjUuZzFj
+ZWFiNDgKClJlZ2FyZHMsClZsYWRpbWlyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9y
+ZwpodHRwczovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zwo=
