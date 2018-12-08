@@ -1,39 +1,41 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 4.17-rc2 release is available
-Date: Fri, 7 Dec 2018 23:38:10 +0200
-Message-ID: <87c349f3-73d5-55a1-5804-2af932757e58@dev.mellanox.co.il>
+From: Eran Ben Elisha <eranbe@mellanox.com>
+Subject: Re: [PATCH] net/mlx4_core: Correctly set PFC param if global pause is
+ turned off.
+Date: Sat, 8 Dec 2018 08:41:33 +0000
+Message-ID: <cf9b9fb2-89a0-e9f3-9dbf-80d68c1ae361@mellanox.com>
+References: <20181207083026.173789-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181207083026.173789-1-tarick@google.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-ID: <D1678218A18D794A86795FFABFECB95D@eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tarick Bedeir <tarick@google.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGksCk9GRUQtNC4xNy1yYzIgaXMgYXZhaWxhYmxlIGF0OgpodHRwczovL29wZW5mYWJyaWNzLm9y
-Zy9kb3dubG9hZHMvT0ZFRC9vZmVkLTQuMTcvT0ZFRC00LjE3LXJjMi50Z3oKClBsZWFzZSByZXBv
-cnQgYW55IGlzc3VlcyBpbiBidWd6aWxsYQpodHRwczovL2J1Z3Mub3BlbmZhYnJpY3Mub3JnLyBm
-b3IgT0ZFRCA0LjE3LXJjMgoKUmVsZWFzZSBub3RlczoKaHR0cHM6Ly9vcGVuZmFicmljcy5vcmcv
-ZG93bmxvYWRzL09GRUQvcmVsZWFzZV9ub3Rlcy9PRkVEXzQuMTctcmMyLXJlbGVhc2Vfbm90ZXMK
-Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KT0ZFRC00LjE3LXJjMiBNYWluIENoYW5nZXMgZnJvbSBP
-RkVELTQuMTctcmMxCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KMS4gY29tcGF0LXJkbWEKLSBGaXhl
-ZCBjbWFfY29uZmlnZnMgYmFja3BvcnQKLSBGaXhlZCBTUlAgYmFja3BvcnQKLSBvcGVuaWJkOiB1
-bmxvYWQgYm54dF9lbiBvbiByZXN0YXJ0L3N0b3AKLSBpNDBpdzogcmVtb3ZlIHN1cHBvcnQgZm9y
-IGliX2dldF92ZWN0b3JfYWZmaW5pdHkKLSBxZWQ6IEZpeCBzaG1lbSBzdHJ1Y3R1cmUgaW5jb25z
-aXN0ZW5jeSBiZXR3ZWVuIGRyaXZlciBhbmQgdGhlIG1mdy4KCjIuIFVwZGF0ZWQgcGFja2FnZXMK
-LSBsaWJmYWJyaWMtMS42LjIKLSBmYWJ0ZXN0cy0xLjYuMgotIHBlcmZ0ZXN0LTQuNC0wLjUuZzFj
-ZWFiNDgKClJlZ2FyZHMsClZsYWRpbWlyCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmV3ZyBtYWlsaW5nIGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9y
-ZwpodHRwczovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zwo=
+DQoNCk9uIDEyLzcvMjAxOCAxMDozMCBBTSwgVGFyaWNrIEJlZGVpciB3cm90ZToNCj4gcnhfcHBw
+IGFuZCB0eF9wcHAgY2FuIGJlIHNldCBiZXR3ZWVuIDAgYW5kIDI1NSwgc28gZG9uJ3QgY2xhbXAg
+dG8gMS4NCj4gDQo+IEZpeGVzOiA2ZTg4MTRjZWI3ZTggKCJuZXQvbWx4NF9lbjogRml4IG1peGVk
+IFBGQyBhbmQgR2xvYmFsIHBhdXNlIHVzZXIgY29udHJvbCByZXF1ZXN0cyIpDQo+IFNpZ25lZC1v
+ZmYtYnk6IFRhcmljayBCZWRlaXIgPHRhcmlja0Bnb29nbGUuY29tPg0KPiAtLS0NCj4gICBkcml2
+ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX2V0aHRvb2wuYyB8IDQgKystLQ0KPiAg
+IDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29s
+LmMgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX2V0aHRvb2wuYw0KPiBp
+bmRleCBmMTFiNDUwMDFjYWQuLmQyOTBmMDc4N2RmYiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9u
+ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29sLmMNCj4gKysrIGIvZHJpdmVycy9u
+ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29sLmMNCj4gQEAgLTEwODQsOCArMTA4
+NCw4IEBAIHN0YXRpYyBpbnQgbWx4NF9lbl9zZXRfcGF1c2VwYXJhbShzdHJ1Y3QgbmV0X2Rldmlj
+ZSAqZGV2LA0KPiAgIA0KPiAgIAl0eF9wYXVzZSA9ICEhKHBhdXNlLT50eF9wYXVzZSk7DQo+ICAg
+CXJ4X3BhdXNlID0gISEocGF1c2UtPnJ4X3BhdXNlKTsNCj4gLQlyeF9wcHAgPSBwcml2LT5wcm9m
+LT5yeF9wcHAgJiYgISh0eF9wYXVzZSB8fCByeF9wYXVzZSk7DQo+IC0JdHhfcHBwID0gcHJpdi0+
+cHJvZi0+dHhfcHBwICYmICEodHhfcGF1c2UgfHwgcnhfcGF1c2UpOw0KPiArCXJ4X3BwcCA9ICh0
+eF9wYXVzZSB8fCByeF9wYXVzZSkgPyAwIDogcHJpdi0+cHJvZi0+cnhfcHBwOw0KPiArCXR4X3Bw
+cCA9ICh0eF9wYXVzZSB8fCByeF9wYXVzZSkgPyAwIDogcHJpdi0+cHJvZi0+dHhfcHBwOw0KPiAg
+IA0KPiAgIAllcnIgPSBtbHg0X1NFVF9QT1JUX2dlbmVyYWwobWRldi0+ZGV2LCBwcml2LT5wb3J0
+LA0KPiAgIAkJCQkgICAgcHJpdi0+cnhfc2tiX3NpemUgKyBFVEhfRkNTX0xFTiwNCj4gDQoNCnRo
+YW5rcyBmb3IgdGhlIFRhcmljay4NCg0KUmV2aWV3ZWQtYnk6IEVyYW4gQmVuIEVsaXNoYSA8ZXJh
+bmJlQG1lbGxhbm94LmNvbT4NCg==
