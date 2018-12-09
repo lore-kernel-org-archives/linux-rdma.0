@@ -1,25 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net/mlx4_core: Correctly set PFC param if global pause
- is turned off.
-Date: Sat, 08 Dec 2018 21:27:25 -0800 (PST)
-Message-ID: <20181208.212725.171565172090619908.davem@davemloft.net>
-References: <20181207083026.173789-1-tarick@google.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 0/2] Allocate the per-port Q counter
+Date: Sun,  9 Dec 2018 12:52:34 +0200
+Message-ID: <20181209105236.26233-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181207083026.173789-1-tarick@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: tarick@google.com
-Cc: eranbe@mellanox.com, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tarick Bedeir <tarick@google.com>
-Date: Fri,  7 Dec 2018 00:30:26 -0800
+From: Leon Romanovsky <leonro@mellanox.com>
 
-> rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
-> 
-> Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
-> Signed-off-by: Tarick Bedeir <tarick@google.com>
+Hi
 
-Applied and queued up for -stable.
+See commit message for the patch description.
+
+Thanks
+
+Leon Romanovsky (1):
+  net/mlx5: Add shared Q counter bits
+
+Yishai Hadas (1):
+  IB/mlx5: Allocate the per-port Q counter shared when DEVX is supported
+
+ drivers/infiniband/hw/mlx5/cmd.c  | 17 +++++++++++++++++
+ drivers/infiniband/hw/mlx5/cmd.h  |  2 ++
+ drivers/infiniband/hw/mlx5/main.c | 10 ++++++++--
+ include/linux/mlx5/mlx5_ifc.h     |  6 +++++-
+ 4 files changed, 32 insertions(+), 3 deletions(-)
