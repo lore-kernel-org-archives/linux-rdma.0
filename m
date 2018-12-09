@@ -1,41 +1,25 @@
-From: Eran Ben Elisha <eranbe@mellanox.com>
-Subject: Re: [PATCH] net/mlx4_core: Correctly set PFC param if global pause is
- turned off.
-Date: Sat, 8 Dec 2018 08:41:33 +0000
-Message-ID: <cf9b9fb2-89a0-e9f3-9dbf-80d68c1ae361@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net/mlx4_core: Correctly set PFC param if global pause
+ is turned off.
+Date: Sat, 08 Dec 2018 21:27:25 -0800 (PST)
+Message-ID: <20181208.212725.171565172090619908.davem@davemloft.net>
 References: <20181207083026.173789-1-tarick@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181207083026.173789-1-tarick@google.com>
-Content-Language: en-US
-Content-ID: <D1678218A18D794A86795FFABFECB95D@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tarick Bedeir <tarick@google.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: tarick@google.com
+Cc: eranbe@mellanox.com, tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDEyLzcvMjAxOCAxMDozMCBBTSwgVGFyaWNrIEJlZGVpciB3cm90ZToNCj4gcnhfcHBw
-IGFuZCB0eF9wcHAgY2FuIGJlIHNldCBiZXR3ZWVuIDAgYW5kIDI1NSwgc28gZG9uJ3QgY2xhbXAg
-dG8gMS4NCj4gDQo+IEZpeGVzOiA2ZTg4MTRjZWI3ZTggKCJuZXQvbWx4NF9lbjogRml4IG1peGVk
-IFBGQyBhbmQgR2xvYmFsIHBhdXNlIHVzZXIgY29udHJvbCByZXF1ZXN0cyIpDQo+IFNpZ25lZC1v
-ZmYtYnk6IFRhcmljayBCZWRlaXIgPHRhcmlja0Bnb29nbGUuY29tPg0KPiAtLS0NCj4gICBkcml2
-ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX2V0aHRvb2wuYyB8IDQgKystLQ0KPiAg
-IDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+IA0KPiBk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29s
-LmMgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX2V0aHRvb2wuYw0KPiBp
-bmRleCBmMTFiNDUwMDFjYWQuLmQyOTBmMDc4N2RmYiAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9u
-ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29sLmMNCj4gKysrIGIvZHJpdmVycy9u
-ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9ldGh0b29sLmMNCj4gQEAgLTEwODQsOCArMTA4
-NCw4IEBAIHN0YXRpYyBpbnQgbWx4NF9lbl9zZXRfcGF1c2VwYXJhbShzdHJ1Y3QgbmV0X2Rldmlj
-ZSAqZGV2LA0KPiAgIA0KPiAgIAl0eF9wYXVzZSA9ICEhKHBhdXNlLT50eF9wYXVzZSk7DQo+ICAg
-CXJ4X3BhdXNlID0gISEocGF1c2UtPnJ4X3BhdXNlKTsNCj4gLQlyeF9wcHAgPSBwcml2LT5wcm9m
-LT5yeF9wcHAgJiYgISh0eF9wYXVzZSB8fCByeF9wYXVzZSk7DQo+IC0JdHhfcHBwID0gcHJpdi0+
-cHJvZi0+dHhfcHBwICYmICEodHhfcGF1c2UgfHwgcnhfcGF1c2UpOw0KPiArCXJ4X3BwcCA9ICh0
-eF9wYXVzZSB8fCByeF9wYXVzZSkgPyAwIDogcHJpdi0+cHJvZi0+cnhfcHBwOw0KPiArCXR4X3Bw
-cCA9ICh0eF9wYXVzZSB8fCByeF9wYXVzZSkgPyAwIDogcHJpdi0+cHJvZi0+dHhfcHBwOw0KPiAg
-IA0KPiAgIAllcnIgPSBtbHg0X1NFVF9QT1JUX2dlbmVyYWwobWRldi0+ZGV2LCBwcml2LT5wb3J0
-LA0KPiAgIAkJCQkgICAgcHJpdi0+cnhfc2tiX3NpemUgKyBFVEhfRkNTX0xFTiwNCj4gDQoNCnRo
-YW5rcyBmb3IgdGhlIFRhcmljay4NCg0KUmV2aWV3ZWQtYnk6IEVyYW4gQmVuIEVsaXNoYSA8ZXJh
-bmJlQG1lbGxhbm94LmNvbT4NCg==
+From: Tarick Bedeir <tarick@google.com>
+Date: Fri,  7 Dec 2018 00:30:26 -0800
+
+> rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
+> 
+> Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
+> Signed-off-by: Tarick Bedeir <tarick@google.com>
+
+Applied and queued up for -stable.
