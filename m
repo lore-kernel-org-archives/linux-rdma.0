@@ -1,53 +1,48 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 3/9] net/mlx5: Add support for plugged-disabled cable status in PME
-Date: Mon, 10 Dec 2018 13:15:11 -0800
-Message-ID: <20181210211517.3686-4-saeedm@mellanox.com>
-References: <20181210211517.3686-1-saeedm@mellanox.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next 07/10] net/mlx5: E-Switch, Change vhca id valid
+ bool field to bit flag
+Date: Mon, 10 Dec 2018 13:18:38 -0800
+Message-ID: <CALzJLG8V-zKXQhy_UODuNBQNA1SjtnQq+aCJ-Lbu0EmvJ=NOfw@mail.gmail.com>
+References: <20181210030442.7543-1-saeedm@mellanox.com> <20181210030442.7543-8-saeedm@mellanox.com>
+ <20181210161216.GF3459@mellanox.com> <CALzJLG9hD04A1GZwD=oRvMBFm8v1AL8AT-c4gwD8DEuJq3Q0Wg@mail.gmail.com>
+ <CAJ3xEMjyMufKQxCyaHKsiEjCUtL9T7xLz2J_iZ=odu02D7zkNQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181210211517.3686-1-saeedm@mellanox.com>
+In-Reply-To: <CAJ3xEMjyMufKQxCyaHKsiEjCUtL9T7xLz2J_iZ=odu02D7zkNQ@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Mikhael Goikhman <migo@mellanox.com>
+To: Or Gerlitz <gerlitz.or@gmail.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, elibr@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mikhael Goikhman <migo@mellanox.com>
+On Mon, Dec 10, 2018 at 1:05 PM Or Gerlitz <gerlitz.or@gmail.com> wrote:
+>
+> On Mon, Dec 10, 2018 at 10:09 PM Saeed Mahameed
+> <saeedm@dev.mellanox.co.il> wrote:
+> >
+> > On Mon, Dec 10, 2018 at 8:12 AM Jason Gunthorpe <jgg@mellanox.com> wrote:
+> > >
+> > > On Sun, Dec 09, 2018 at 07:04:39PM -0800, Saeed Mahameed wrote:
+> > > > From: Eli Britstein <elibr@mellanox.com>
+> > > >
+> > > > Change the driver flow destination struct to use bit flags with the vhca
+> > > > id valid being the 1st one. Done to avoid bool fields in structs, as
+> > > > warned by static checkers, with no functionality change.
+> > >
+> > > This is a thing now? I thought the warning was not to use bool with
+> > > bitfields for some reason?
+> > >
+> >
+> > Yea, the commit message is kinda silly,
+>
+> hey, sometimes you just want to make your boss happy:
+>
+> CHECK: Avoid using bool structure members because of possible
+> alignment issues - see: https://lkml.org/lkml/2017/11/21/384
+> #99: FILE: include/linux/mlx5/fs.h:99:
+> +                       bool            vhca_id_valid;
+>
+> missed anything?
 
-Support a new hardware module status in port module events:
-- module_status=0x4 (Cable plugged, but disabled)
-
-Signed-off-by: Mikhael Goikhman <migo@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/events.c   | 2 ++
- drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h | 1 +
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index ba9249bcfcba..900fdd235ba0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -166,6 +166,8 @@ static const char *mlx5_pme_status_to_string(enum port_module_event_status_type
- 		return "Cable unplugged";
- 	case MLX5_MODULE_STATUS_ERROR:
- 		return "Cable error";
-+	case MLX5_MODULE_STATUS_DISABLED:
-+		return "Cable disabled";
- 	default:
- 		return "Unknown status";
- 	}
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-index 979970f8fa0f..397a2847867a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-@@ -51,6 +51,7 @@ enum port_module_event_status_type {
- 	MLX5_MODULE_STATUS_PLUGGED   = 0x1,
- 	MLX5_MODULE_STATUS_UNPLUGGED = 0x2,
- 	MLX5_MODULE_STATUS_ERROR     = 0x3,
-+	MLX5_MODULE_STATUS_DISABLED  = 0x4,
- 	MLX5_MODULE_STATUS_NUM,
- };
- 
--- 
-2.19.2
+Looks good ! but this wasn't really the purpose of the patch so the
+commit message didn't have to make a big deal of it.
