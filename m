@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 03/10] net/mlx5: Add support for plugged-disabled cable status in PME
-Date: Sun,  9 Dec 2018 19:04:35 -0800
-Message-ID: <20181210030442.7543-4-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 02/10] net/mlx5: Add support for PCIe power slot exceeded error in PME
+Date: Sun,  9 Dec 2018 19:04:34 -0800
+Message-ID: <20181210030442.7543-3-saeedm@mellanox.com>
 References: <20181210030442.7543-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,8 +14,8 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mikhael Goikhman <migo@mellanox.com>
 
-Support a new hardware module status in port module events:
-- module_status=0x4 (Cable plugged, but disabled)
+Support a new hardware error type in port module events:
+- error_type=0xc (PCIe system power slot exceeded)
 
 Signed-off-by: Mikhael Goikhman <migo@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
@@ -25,28 +25,28 @@ Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
  2 files changed, 3 insertions(+)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index ba9249bcfcba..900fdd235ba0 100644
+index 587d93ec905f..ba9249bcfcba 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -166,6 +166,8 @@ static const char *mlx5_pme_status_to_string(enum port_module_event_status_type
- 		return "Cable unplugged";
- 	case MLX5_MODULE_STATUS_ERROR:
- 		return "Cable error";
-+	case MLX5_MODULE_STATUS_DISABLED:
-+		return "Cable disabled";
+@@ -190,6 +190,8 @@ static const char *mlx5_pme_error_to_string(enum port_module_event_error_type er
+ 		return "High Temperature";
+ 	case MLX5_MODULE_EVENT_ERROR_BAD_CABLE:
+ 		return "Bad or shorted cable/module";
++	case MLX5_MODULE_EVENT_ERROR_PCIE_POWER_SLOT_EXCEEDED:
++		return "One or more network ports have been powered down due to insufficient/unadvertised power on the PCIe slot";
  	default:
- 		return "Unknown status";
+ 		return "Unknown error";
  	}
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-index 979970f8fa0f..397a2847867a 100644
+index af19fa61e9ef..979970f8fa0f 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
-@@ -51,6 +51,7 @@ enum port_module_event_status_type {
- 	MLX5_MODULE_STATUS_PLUGGED   = 0x1,
- 	MLX5_MODULE_STATUS_UNPLUGGED = 0x2,
- 	MLX5_MODULE_STATUS_ERROR     = 0x3,
-+	MLX5_MODULE_STATUS_DISABLED  = 0x4,
- 	MLX5_MODULE_STATUS_NUM,
+@@ -63,6 +63,7 @@ enum  port_module_event_error_type {
+ 	MLX5_MODULE_EVENT_ERROR_UNKNOWN_IDENTIFIER       = 0x5,
+ 	MLX5_MODULE_EVENT_ERROR_HIGH_TEMPERATURE         = 0x6,
+ 	MLX5_MODULE_EVENT_ERROR_BAD_CABLE                = 0x7,
++	MLX5_MODULE_EVENT_ERROR_PCIE_POWER_SLOT_EXCEEDED = 0xc,
+ 	MLX5_MODULE_EVENT_ERROR_NUM,
  };
  
 -- 
