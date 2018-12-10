@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 04/10] net/mlx5: Add monitor commands layout and event data
-Date: Sun,  9 Dec 2018 19:04:36 -0800
-Message-ID: <20181210030442.7543-5-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 05/10] net/mlx5: Revise gre and nvgre key formats
+Date: Sun,  9 Dec 2018 19:04:37 -0800
+Message-ID: <20181210030442.7543-6-saeedm@mellanox.com>
 References: <20181210030442.7543-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,198 +9,93 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181210030442.7543-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Eyal Davidovich <eyald@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eyal Davidovich <eyald@mellanox.com>
+From: Oz Shlomo <ozsh@mellanox.com>
 
-Will be used in downstream patch to monitor counter changes
-by the HCA and report it to the driver by an event.
-The driver will update its counters cached data accordingly.
+GRE RFC defines a 32 bit key field. NVGRE RFC splits the 32 bit
+key field to 24 bit VSID (gre_key_h) and 8 bit flow entropy (gre_key_l).
 
-Signed-off-by: Eyal Davidovich <eyald@mellanox.com>
-Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+Define the two key parsing alternatives in a union, thus enabling both
+access methods.
+
+Signed-off-by: Oz Shlomo <ozsh@mellanox.com>
+Reviewed-by: Eli Britstein <elibr@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  4 +
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  |  3 +
- .../net/ethernet/mellanox/mlx5/core/events.c  |  2 +
- include/linux/mlx5/device.h                   |  1 +
- include/linux/mlx5/mlx5_ifc.h                 | 87 ++++++++++++++++++-
- 5 files changed, 96 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/main.c                   |  4 ++--
+ .../mellanox/mlx5/core/diag/fs_tracepoint.c         |  8 ++++----
+ include/linux/mlx5/mlx5_ifc.h                       | 13 +++++++++++--
+ 3 files changed, 17 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-index 8ab636d59edb..d3125cdf69db 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/cmd.c
-@@ -373,6 +373,8 @@ static int mlx5_internal_err_ret_value(struct mlx5_core_dev *dev, u16 op,
- 	case MLX5_CMD_OP_QUERY_VPORT_COUNTER:
- 	case MLX5_CMD_OP_ALLOC_Q_COUNTER:
- 	case MLX5_CMD_OP_QUERY_Q_COUNTER:
-+	case MLX5_CMD_OP_SET_MONITOR_COUNTER:
-+	case MLX5_CMD_OP_ARM_MONITOR_COUNTER:
- 	case MLX5_CMD_OP_SET_PP_RATE_LIMIT:
- 	case MLX5_CMD_OP_QUERY_RATE_LIMIT:
- 	case MLX5_CMD_OP_CREATE_SCHEDULING_ELEMENT:
-@@ -522,6 +524,8 @@ const char *mlx5_command_str(int command)
- 	MLX5_COMMAND_STR_CASE(ALLOC_Q_COUNTER);
- 	MLX5_COMMAND_STR_CASE(DEALLOC_Q_COUNTER);
- 	MLX5_COMMAND_STR_CASE(QUERY_Q_COUNTER);
-+	MLX5_COMMAND_STR_CASE(SET_MONITOR_COUNTER);
-+	MLX5_COMMAND_STR_CASE(ARM_MONITOR_COUNTER);
- 	MLX5_COMMAND_STR_CASE(SET_PP_RATE_LIMIT);
- 	MLX5_COMMAND_STR_CASE(QUERY_RATE_LIMIT);
- 	MLX5_COMMAND_STR_CASE(CREATE_SCHEDULING_ELEMENT);
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eq.c b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-index 4aa39a1fe23f..ee04aab65a9f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eq.c
-@@ -527,6 +527,9 @@ static u64 gather_async_events_mask(struct mlx5_core_dev *dev)
- 	if (MLX5_CAP_MCAM_REG(dev, tracer_registers))
- 		async_event_mask |= (1ull << MLX5_EVENT_TYPE_DEVICE_TRACER);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 96515a8c9d2c..2560996fce79 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2680,11 +2680,11 @@ static int parse_flow_attr(struct mlx5_core_dev *mdev, u32 *match_c,
+ 			 ntohs(ib_spec->gre.val.protocol));
  
-+	if (MLX5_CAP_GEN(dev, max_num_of_monitor_counters))
-+		async_event_mask |= (1ull << MLX5_EVENT_TYPE_MONITOR_COUNTER);
-+
- 	return async_event_mask;
+ 		memcpy(MLX5_ADDR_OF(fte_match_set_misc, misc_params_c,
+-				    gre_key_h),
++				    gre_key.nvgre.hi),
+ 		       &ib_spec->gre.mask.key,
+ 		       sizeof(ib_spec->gre.mask.key));
+ 		memcpy(MLX5_ADDR_OF(fte_match_set_misc, misc_params_v,
+-				    gre_key_h),
++				    gre_key.nvgre.hi),
+ 		       &ib_spec->gre.val.key,
+ 		       sizeof(ib_spec->gre.val.key));
+ 		break;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+index 0f11fff32a9b..424457ff9759 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/diag/fs_tracepoint.c
+@@ -161,10 +161,10 @@ static void print_misc_parameters_hdrs(struct trace_seq *p,
+ 	PRINT_MASKED_VAL(name, p, format);		   \
  }
+ 	DECLARE_MASK_VAL(u64, gre_key) = {
+-		.m = MLX5_GET(fte_match_set_misc, mask, gre_key_h) << 8 |
+-		     MLX5_GET(fte_match_set_misc, mask, gre_key_l),
+-		.v = MLX5_GET(fte_match_set_misc, value, gre_key_h) << 8 |
+-		     MLX5_GET(fte_match_set_misc, value, gre_key_l)};
++		.m = MLX5_GET(fte_match_set_misc, mask, gre_key.nvgre.hi) << 8 |
++		     MLX5_GET(fte_match_set_misc, mask, gre_key.nvgre.lo),
++		.v = MLX5_GET(fte_match_set_misc, value, gre_key.nvgre.hi) << 8 |
++		     MLX5_GET(fte_match_set_misc, value, gre_key.nvgre.lo)};
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-index 900fdd235ba0..fbc42b7252a9 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
-@@ -117,6 +117,8 @@ static const char *eqe_type_str(u8 type)
- 		return "MLX5_EVENT_TYPE_FPGA_QP_ERROR";
- 	case MLX5_EVENT_TYPE_GENERAL_EVENT:
- 		return "MLX5_EVENT_TYPE_GENERAL_EVENT";
-+	case MLX5_EVENT_TYPE_MONITOR_COUNTER:
-+		return "MLX5_EVENT_TYPE_MONITOR_COUNTER";
- 	case MLX5_EVENT_TYPE_DEVICE_TRACER:
- 		return "MLX5_EVENT_TYPE_DEVICE_TRACER";
- 	default:
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index c66867c8fc2f..4674b9e99f45 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -330,6 +330,7 @@ enum mlx5_event {
- 	MLX5_EVENT_TYPE_TEMP_WARN_EVENT    = 0x17,
- 	MLX5_EVENT_TYPE_REMOTE_CONFIG	   = 0x19,
- 	MLX5_EVENT_TYPE_GENERAL_EVENT	   = 0x22,
-+	MLX5_EVENT_TYPE_MONITOR_COUNTER    = 0x24,
- 	MLX5_EVENT_TYPE_PPS_EVENT          = 0x25,
- 
- 	MLX5_EVENT_TYPE_DB_BF_CONGESTION   = 0x1a,
+ 	PRINT_MASKED_VAL(gre_key, p, "%llu");
+ 	PRINT_MASKED_VAL_MISC(u32, source_sqn, source_sqn, p, "%u");
 diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 91d6e85e3cef..9f7cc26bfb3b 100644
+index 9f7cc26bfb3b..688a549e74f1 100644
 --- a/include/linux/mlx5/mlx5_ifc.h
 +++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -161,6 +161,8 @@ enum {
- 	MLX5_CMD_OP_ALLOC_Q_COUNTER               = 0x771,
- 	MLX5_CMD_OP_DEALLOC_Q_COUNTER             = 0x772,
- 	MLX5_CMD_OP_QUERY_Q_COUNTER               = 0x773,
-+	MLX5_CMD_OP_SET_MONITOR_COUNTER           = 0x774,
-+	MLX5_CMD_OP_ARM_MONITOR_COUNTER           = 0x775,
- 	MLX5_CMD_OP_SET_PP_RATE_LIMIT             = 0x780,
- 	MLX5_CMD_OP_QUERY_RATE_LIMIT              = 0x781,
- 	MLX5_CMD_OP_CREATE_SCHEDULING_ELEMENT      = 0x782,
-@@ -1200,7 +1202,13 @@ struct mlx5_ifc_cmd_hca_cap_bits {
- 	u8	   sw_owner_id[0x1];
- 	u8         reserved_at_61f[0x1];
- 
--	u8         reserved_at_620[0x80];
-+	u8         max_num_of_monitor_counters[0x10];
-+	u8         num_ppcnt_monitor_counters[0x10];
-+
-+	u8         reserved_at_640[0x10];
-+	u8         num_q_monitor_counters[0x10];
-+
-+	u8         reserved_at_660[0x40];
- 
- 	u8         uctx_cap[0x20];
- 
-@@ -3808,6 +3816,83 @@ enum {
- 	MLX5_VPORT_STATE_OP_MOD_ESW_VPORT   = 0x1,
+@@ -423,6 +423,16 @@ struct mlx5_ifc_fte_match_set_lyr_2_4_bits {
+ 	union mlx5_ifc_ipv6_layout_ipv4_layout_auto_bits dst_ipv4_dst_ipv6;
  };
  
-+struct mlx5_ifc_arm_monitor_counter_in_bits {
-+	u8         opcode[0x10];
-+	u8         uid[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x20];
-+
-+	u8         reserved_at_60[0x20];
++struct mlx5_ifc_nvgre_key_bits {
++	u8 hi[0x18];
++	u8 lo[0x8];
 +};
 +
-+struct mlx5_ifc_arm_monitor_counter_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
++union mlx5_ifc_gre_key_bits {
++	struct mlx5_ifc_nvgre_key_bits nvgre;
++	u8 key[0x20];
 +};
 +
-+enum {
-+	MLX5_QUERY_MONITOR_CNT_TYPE_PPCNT     = 0x0,
-+	MLX5_QUERY_MONITOR_CNT_TYPE_Q_COUNTER = 0x1,
-+};
-+
-+enum mlx5_monitor_counter_ppcnt {
-+	MLX5_QUERY_MONITOR_PPCNT_IN_RANGE_LENGTH_ERRORS      = 0X0,
-+	MLX5_QUERY_MONITOR_PPCNT_OUT_OF_RANGE_LENGTH_FIELD   = 0X1,
-+	MLX5_QUERY_MONITOR_PPCNT_FRAME_TOO_LONG_ERRORS       = 0X2,
-+	MLX5_QUERY_MONITOR_PPCNT_FRAME_CHECK_SEQUENCE_ERRORS = 0X3,
-+	MLX5_QUERY_MONITOR_PPCNT_ALIGNMENT_ERRORS            = 0X4,
-+	MLX5_QUERY_MONITOR_PPCNT_IF_OUT_DISCARDS             = 0X5,
-+};
-+
-+enum {
-+	MLX5_QUERY_MONITOR_Q_COUNTER_RX_OUT_OF_BUFFER     = 0X4,
-+};
-+
-+struct mlx5_ifc_monitor_counter_output_bits {
-+	u8         reserved_at_0[0x4];
-+	u8         type[0x4];
-+	u8         reserved_at_8[0x8];
-+	u8         counter[0x10];
-+
-+	u8         counter_group_id[0x20];
-+};
-+
-+#define MLX5_CMD_SET_MONITOR_NUM_PPCNT_COUNTER_SET1 (6)
-+#define MLX5_CMD_SET_MONITOR_NUM_Q_COUNTERS_SET1    (1)
-+#define MLX5_CMD_SET_MONITOR_NUM_COUNTER (MLX5_CMD_SET_MONITOR_NUM_PPCNT_COUNTER_SET1 +\
-+					  MLX5_CMD_SET_MONITOR_NUM_Q_COUNTERS_SET1)
-+
-+struct mlx5_ifc_set_monitor_counter_in_bits {
-+	u8         opcode[0x10];
-+	u8         uid[0x10];
-+
-+	u8         reserved_at_20[0x10];
-+	u8         op_mod[0x10];
-+
-+	u8         reserved_at_40[0x10];
-+	u8         num_of_counters[0x10];
-+
-+	u8         reserved_at_60[0x20];
-+
-+	struct mlx5_ifc_monitor_counter_output_bits monitor_counter[MLX5_CMD_SET_MONITOR_NUM_COUNTER];
-+};
-+
-+struct mlx5_ifc_set_monitor_counter_out_bits {
-+	u8         status[0x8];
-+	u8         reserved_at_8[0x18];
-+
-+	u8         syndrome[0x20];
-+
-+	u8         reserved_at_40[0x40];
-+};
-+
- struct mlx5_ifc_query_vport_state_in_bits {
- 	u8         opcode[0x10];
- 	u8         reserved_at_10[0x10];
+ struct mlx5_ifc_fte_match_set_misc_bits {
+ 	u8         reserved_at_0[0x8];
+ 	u8         source_sqn[0x18];
+@@ -444,8 +454,7 @@ struct mlx5_ifc_fte_match_set_misc_bits {
+ 	u8         reserved_at_64[0xc];
+ 	u8         gre_protocol[0x10];
+ 
+-	u8         gre_key_h[0x18];
+-	u8         gre_key_l[0x8];
++	union mlx5_ifc_gre_key_bits gre_key;
+ 
+ 	u8         vxlan_vni[0x18];
+ 	u8         reserved_at_b8[0x8];
 -- 
 2.19.2
