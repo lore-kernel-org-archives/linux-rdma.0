@@ -1,48 +1,38 @@
 From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 07/10] net/mlx5: E-Switch, Change vhca id valid
- bool field to bit flag
-Date: Mon, 10 Dec 2018 13:18:38 -0800
-Message-ID: <CALzJLG8V-zKXQhy_UODuNBQNA1SjtnQq+aCJ-Lbu0EmvJ=NOfw@mail.gmail.com>
-References: <20181210030442.7543-1-saeedm@mellanox.com> <20181210030442.7543-8-saeedm@mellanox.com>
- <20181210161216.GF3459@mellanox.com> <CALzJLG9hD04A1GZwD=oRvMBFm8v1AL8AT-c4gwD8DEuJq3Q0Wg@mail.gmail.com>
- <CAJ3xEMjyMufKQxCyaHKsiEjCUtL9T7xLz2J_iZ=odu02D7zkNQ@mail.gmail.com>
+Subject: Re: [PATCH V2 mlx5-next 0/9] mlx5 core updates and cleanups
+Date: Mon, 10 Dec 2018 14:01:13 -0800
+Message-ID: <CALzJLG8AyCY_6T0nAMfCgnYfDquPZgZJ=9Pawgu5P=qVCDXkFg@mail.gmail.com>
+References: <20181210211517.3686-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAJ3xEMjyMufKQxCyaHKsiEjCUtL9T7xLz2J_iZ=odu02D7zkNQ@mail.gmail.com>
+In-Reply-To: <20181210211517.3686-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <gerlitz.or@gmail.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, elibr@mellanox.com
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 1:05 PM Or Gerlitz <gerlitz.or@gmail.com> wrote:
+On Mon, Dec 10, 2018 at 1:15 PM Saeed Mahameed <saeedm@mellanox.com> wrote:
 >
-> On Mon, Dec 10, 2018 at 10:09 PM Saeed Mahameed
-> <saeedm@dev.mellanox.co.il> wrote:
-> >
-> > On Mon, Dec 10, 2018 at 8:12 AM Jason Gunthorpe <jgg@mellanox.com> wrote:
-> > >
-> > > On Sun, Dec 09, 2018 at 07:04:39PM -0800, Saeed Mahameed wrote:
-> > > > From: Eli Britstein <elibr@mellanox.com>
-> > > >
-> > > > Change the driver flow destination struct to use bit flags with the vhca
-> > > > id valid being the 1st one. Done to avoid bool fields in structs, as
-> > > > warned by static checkers, with no functionality change.
-> > >
-> > > This is a thing now? I thought the warning was not to use bool with
-> > > bitfields for some reason?
-> > >
-> >
-> > Yea, the commit message is kinda silly,
+> Hi
 >
-> hey, sometimes you just want to make your boss happy:
+> This patchset is for mlx5-next shared branch, and will be applied there
+> once the review is done.
 >
-> CHECK: Avoid using bool structure members because of possible
-> alignment issues - see: https://lkml.org/lkml/2017/11/21/384
-> #99: FILE: include/linux/mlx5/fs.h:99:
-> +                       bool            vhca_id_valid;
+> 1) From Eli Britstein, add mlx5 core support for flow steering extended
+> destination
+> 2) From Mikhael Goikhman, port module events cleanup and support for
+> PCIe power slot exceeded errors and plugged-disabled cable status.
+> 3) Eyal Davidovich adds monitor commands layout and event data.
+> 4) From Or Gerlitz, remove unsed mlx5 interface callback (get_protocol).
+> 5) From Oz Shlomo, Revise gre and nvgre key formats
 >
-> missed anything?
+> v1->v2:
+>  - Improve commit message for "Change vhca id valid bool field to bit flag"
+>  - mlx5_core_warn instead of pr_warn
+>  - drop "IB/mlx5: Simplify netdev unbinding" patch, it can go to rdma only
+>
 
-Looks good ! but this wasn't really the purpose of the patch so the
-commit message didn't have to make a big deal of it.
+Applied to mlx5-next.
+
+Thanks.
