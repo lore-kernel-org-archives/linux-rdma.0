@@ -1,42 +1,73 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH mlx5-next 07/10] net/mlx5: E-Switch, Change vhca id valid
- bool field to bit flag
-Date: Mon, 10 Dec 2018 23:05:25 +0200
-Message-ID: <CAJ3xEMjyMufKQxCyaHKsiEjCUtL9T7xLz2J_iZ=odu02D7zkNQ@mail.gmail.com>
-References: <20181210030442.7543-1-saeedm@mellanox.com> <20181210030442.7543-8-saeedm@mellanox.com>
- <20181210161216.GF3459@mellanox.com> <CALzJLG9hD04A1GZwD=oRvMBFm8v1AL8AT-c4gwD8DEuJq3Q0Wg@mail.gmail.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 0/9] mlx5 core updates and cleanups
+Date: Mon, 10 Dec 2018 13:15:08 -0800
+Message-ID: <20181210211517.3686-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALzJLG9hD04A1GZwD=oRvMBFm8v1AL8AT-c4gwD8DEuJq3Q0Wg@mail.gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Eli Britstein <elibr@mellanox.com>
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 10:09 PM Saeed Mahameed
-<saeedm@dev.mellanox.co.il> wrote:
->
-> On Mon, Dec 10, 2018 at 8:12 AM Jason Gunthorpe <jgg@mellanox.com> wrote:
-> >
-> > On Sun, Dec 09, 2018 at 07:04:39PM -0800, Saeed Mahameed wrote:
-> > > From: Eli Britstein <elibr@mellanox.com>
-> > >
-> > > Change the driver flow destination struct to use bit flags with the vhca
-> > > id valid being the 1st one. Done to avoid bool fields in structs, as
-> > > warned by static checkers, with no functionality change.
-> >
-> > This is a thing now? I thought the warning was not to use bool with
-> > bitfields for some reason?
-> >
->
-> Yea, the commit message is kinda silly,
+Hi
 
-hey, sometimes you just want to make your boss happy:
+This patchset is for mlx5-next shared branch, and will be applied there
+once the review is done.
 
-CHECK: Avoid using bool structure members because of possible
-alignment issues - see: https://lkml.org/lkml/2017/11/21/384
-#99: FILE: include/linux/mlx5/fs.h:99:
-+                       bool            vhca_id_valid;
+1) From Eli Britstein, add mlx5 core support for flow steering extended
+destination
+2) From Mikhael Goikhman, port module events cleanup and support for
+PCIe power slot exceeded errors and plugged-disabled cable status.
+3) Eyal Davidovich adds monitor commands layout and event data.
+4) From Or Gerlitz, remove unsed mlx5 interface callback (get_protocol).
+5) From Oz Shlomo, Revise gre and nvgre key formats
 
-missed anything?
+v1->v2:
+ - Improve commit message for "Change vhca id valid bool field to bit flag"
+ - mlx5_core_warn instead of pr_warn
+ - drop "IB/mlx5: Simplify netdev unbinding" patch, it can go to rdma only
+
+Thanks,
+Saeed.
+
+---
+
+Eli Britstein (3):
+  net/mlx5: Introduce extended destination fields
+  net/mlx5: E-Switch, Change vhca id valid bool field to bit flag
+  net/mlx5: Support extended destination format in flow steering command
+
+Eyal Davidovich (1):
+  net/mlx5: Add monitor commands layout and event data
+
+Mikhael Goikhman (3):
+  net/mlx5: Rework handling of port module events
+  net/mlx5: Add support for PCIe power slot exceeded error in PME
+  net/mlx5: Add support for plugged-disabled cable status in PME
+
+Or Gerlitz (1):
+  net/mlx5: Remove the get protocol device interface entry
+
+Oz Shlomo (1):
+  net/mlx5: Revise gre and nvgre key formats
+
+ drivers/infiniband/hw/mlx5/main.c             |   4 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   4 +
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c |  22 ----
+ .../mellanox/mlx5/core/diag/fs_tracepoint.c   |   8 +-
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |   8 --
+ .../ethernet/mellanox/mlx5/core/en_stats.c    |   8 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   3 +
+ .../mellanox/mlx5/core/eswitch_offloads.c     |   8 +-
+ .../net/ethernet/mellanox/mlx5/core/events.c  |  89 ++++++++-----
+ .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  83 ++++++++++--
+ .../ethernet/mellanox/mlx5/core/lib/mlx5.h    |  21 ++--
+ include/linux/mlx5/device.h                   |   1 +
+ include/linux/mlx5/driver.h                   |   2 -
+ include/linux/mlx5/fs.h                       |   8 +-
+ include/linux/mlx5/mlx5_ifc.h                 | 119 +++++++++++++++++-
+ 15 files changed, 287 insertions(+), 101 deletions(-)
+
+-- 
+2.19.2
