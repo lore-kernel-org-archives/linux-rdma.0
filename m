@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 8/9] net/mlx5: Support extended destination format in flow steering command
-Date: Mon, 10 Dec 2018 13:15:16 -0800
-Message-ID: <20181210211517.3686-9-saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 7/9] net/mlx5: E-Switch, Change vhca id valid bool field to bit flag
+Date: Mon, 10 Dec 2018 13:15:15 -0800
+Message-ID: <20181210211517.3686-8-saeedm@mellanox.com>
 References: <20181210211517.3686-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,175 +14,83 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Eli Britstein <elibr@mellanox.com>
 
-Update the flow steering command formatting according to the extended
-destination API.
-Note that the FW dictates that multi destination FTEs that involve at
-least one encap must use the extended destination format, while single
-destination ones must use the legacy format.
-Using extended destination format requires FW support. Check for its
-capabilities and return error if not supported.
+Change the driver flow destination struct to use bit flags with the vhca
+id valid being the 1st one. The flags field is more extendable and will
+be used in downstream patch.
 
 Signed-off-by: Eli Britstein <elibr@mellanox.com>
 Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
 Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  | 80 +++++++++++++++++--
- include/linux/mlx5/fs.h                       |  2 +
- 2 files changed, 75 insertions(+), 7 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 8 +++++---
+ drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c          | 3 ++-
+ include/linux/mlx5/fs.h                                   | 6 +++++-
+ 3 files changed, 12 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 9eac137790f5..4d7b65df32ef 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -125,8 +125,9 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
+ 				dest[i].vport.num = attr->out_rep[j]->vport;
+ 				dest[i].vport.vhca_id =
+ 					MLX5_CAP_GEN(attr->out_mdev[j], vhca_id);
+-				dest[i].vport.vhca_id_valid =
+-					!!MLX5_CAP_ESW(esw->dev, merged_eswitch);
++				if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
++					dest[i].vport.flags |=
++						MLX5_FLOW_DEST_VPORT_VHCA_ID;
+ 				i++;
+ 			}
+ 		}
+@@ -220,7 +221,8 @@ mlx5_eswitch_add_fwd_rule(struct mlx5_eswitch *esw,
+ 		dest[i].vport.num = attr->out_rep[i]->vport;
+ 		dest[i].vport.vhca_id =
+ 			MLX5_CAP_GEN(attr->out_mdev[i], vhca_id);
+-		dest[i].vport.vhca_id_valid = !!MLX5_CAP_ESW(esw->dev, merged_eswitch);
++		if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
++			dest[i].vport.flags |= MLX5_FLOW_DEST_VPORT_VHCA_ID;
+ 	}
+ 	dest[i].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
+ 	dest[i].ft = fwd_fdb,
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index dda63dedaa49..c44ccb67c4a3 100644
+index 08a891f9aade..dda63dedaa49 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -308,22 +308,68 @@ static int mlx5_cmd_destroy_flow_group(struct mlx5_core_dev *dev,
- 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
- }
- 
-+static int mlx5_set_extended_dest(struct mlx5_core_dev *dev,
-+				  struct fs_fte *fte, bool *extended_dest)
-+{
-+	int fw_log_max_fdb_encap_uplink =
-+		MLX5_CAP_ESW(dev, log_max_fdb_encap_uplink);
-+	int num_fwd_destinations = 0;
-+	struct mlx5_flow_rule *dst;
-+	int num_encap = 0;
-+
-+	*extended_dest = false;
-+	if (!(fte->action.action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST))
-+		return 0;
-+
-+	list_for_each_entry(dst, &fte->node.children, node.list) {
-+		if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_COUNTER)
-+			continue;
-+		if (dst->dest_attr.type == MLX5_FLOW_DESTINATION_TYPE_VPORT &&
-+		    dst->dest_attr.vport.flags & MLX5_FLOW_DEST_VPORT_REFORMAT_ID)
-+			num_encap++;
-+		num_fwd_destinations++;
-+	}
-+	if (num_fwd_destinations > 1 && num_encap > 0)
-+		*extended_dest = true;
-+
-+	if (*extended_dest && !fw_log_max_fdb_encap_uplink) {
-+		mlx5_core_warn(dev, "FW does not support extended destination");
-+		return -EOPNOTSUPP;
-+	}
-+	if (num_encap > (1 << fw_log_max_fdb_encap_uplink)) {
-+		mlx5_core_warn(dev, "FW does not support more than %d encaps",
-+			       1 << fw_log_max_fdb_encap_uplink);
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return 0;
-+}
- static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 			    int opmod, int modify_mask,
- 			    struct mlx5_flow_table *ft,
- 			    unsigned group_id,
- 			    struct fs_fte *fte)
- {
--	unsigned int inlen = MLX5_ST_SZ_BYTES(set_fte_in) +
--		fte->dests_size * MLX5_ST_SZ_BYTES(dest_format_struct);
- 	u32 out[MLX5_ST_SZ_DW(set_fte_out)] = {0};
-+	bool extended_dest = false;
- 	struct mlx5_flow_rule *dst;
- 	void *in_flow_context, *vlan;
- 	void *in_match_value;
-+	unsigned int inlen;
-+	int dst_cnt_size;
- 	void *in_dests;
- 	u32 *in;
- 	int err;
- 
-+	if (mlx5_set_extended_dest(dev, fte, &extended_dest))
-+		return -EOPNOTSUPP;
-+
-+	if (!extended_dest)
-+		dst_cnt_size = MLX5_ST_SZ_BYTES(dest_format_struct);
-+	else
-+		dst_cnt_size = MLX5_ST_SZ_BYTES(extended_dest_format);
-+
-+	inlen = MLX5_ST_SZ_BYTES(set_fte_in) + fte->dests_size * dst_cnt_size;
- 	in = kvzalloc(inlen, GFP_KERNEL);
- 	if (!in)
- 		return -ENOMEM;
-@@ -343,9 +389,20 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 	MLX5_SET(flow_context, in_flow_context, group_id, group_id);
- 
- 	MLX5_SET(flow_context, in_flow_context, flow_tag, fte->action.flow_tag);
--	MLX5_SET(flow_context, in_flow_context, action, fte->action.action);
--	MLX5_SET(flow_context, in_flow_context, packet_reformat_id,
--		 fte->action.reformat_id);
-+	MLX5_SET(flow_context, in_flow_context, extended_destination,
-+		 extended_dest);
-+	if (extended_dest) {
-+		u32 action;
-+
-+		action = fte->action.action &
-+			~MLX5_FLOW_CONTEXT_ACTION_PACKET_REFORMAT;
-+		MLX5_SET(flow_context, in_flow_context, action, action);
-+	} else {
-+		MLX5_SET(flow_context, in_flow_context, action,
-+			 fte->action.action);
-+		MLX5_SET(flow_context, in_flow_context, packet_reformat_id,
-+			 fte->action.reformat_id);
-+	}
- 	MLX5_SET(flow_context, in_flow_context, modify_header_id,
- 		 fte->action.modify_id);
- 
-@@ -392,6 +449,15 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+@@ -387,7 +387,8 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
+ 				id = dst->dest_attr.vport.num;
+ 				MLX5_SET(dest_format_struct, in_dests,
+ 					 destination_eswitch_owner_vhca_id_valid,
+-					 dst->dest_attr.vport.vhca_id_valid);
++					 !!(dst->dest_attr.vport.flags &
++					    MLX5_FLOW_DEST_VPORT_VHCA_ID));
  				MLX5_SET(dest_format_struct, in_dests,
  					 destination_eswitch_owner_vhca_id,
  					 dst->dest_attr.vport.vhca_id);
-+				if (extended_dest) {
-+					MLX5_SET(dest_format_struct, in_dests,
-+						 packet_reformat,
-+						 !!(dst->dest_attr.vport.flags &
-+						    MLX5_FLOW_DEST_VPORT_REFORMAT_ID));
-+					MLX5_SET(extended_dest_format, in_dests,
-+						 packet_reformat_id,
-+						 dst->dest_attr.vport.reformat_id);
-+				}
- 				break;
- 			default:
- 				id = dst->dest_attr.tir_num;
-@@ -400,7 +466,7 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 			MLX5_SET(dest_format_struct, in_dests, destination_type,
- 				 type);
- 			MLX5_SET(dest_format_struct, in_dests, destination_id, id);
--			in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
-+			in_dests += dst_cnt_size;
- 			list_size++;
- 		}
- 
-@@ -421,7 +487,7 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 
- 			MLX5_SET(flow_counter_list, in_dests, flow_counter_id,
- 				 dst->dest_attr.counter_id);
--			in_dests += MLX5_ST_SZ_BYTES(dest_format_struct);
-+			in_dests += dst_cnt_size;
- 			list_size++;
- 		}
- 		if (list_size > max_list_size) {
 diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 25ffd8018b72..9df51da04621 100644
+index 5660f07d3be0..25ffd8018b72 100644
 --- a/include/linux/mlx5/fs.h
 +++ b/include/linux/mlx5/fs.h
-@@ -88,6 +88,7 @@ struct mlx5_flow_spec {
- 
- enum {
- 	MLX5_FLOW_DEST_VPORT_VHCA_ID      = BIT(0),
-+	MLX5_FLOW_DEST_VPORT_REFORMAT_ID  = BIT(1),
+@@ -86,6 +86,10 @@ struct mlx5_flow_spec {
+ 	u32  match_value[MLX5_ST_SZ_DW(fte_match_param)];
  };
  
++enum {
++	MLX5_FLOW_DEST_VPORT_VHCA_ID      = BIT(0),
++};
++
  struct mlx5_flow_destination {
-@@ -100,6 +101,7 @@ struct mlx5_flow_destination {
+ 	enum mlx5_flow_destination_type	type;
+ 	union {
+@@ -96,7 +100,7 @@ struct mlx5_flow_destination {
  		struct {
  			u16		num;
  			u16		vhca_id;
-+			u32		reformat_id;
- 			u8		flags;
+-			bool		vhca_id_valid;
++			u8		flags;
  		} vport;
  	};
+ };
 -- 
 2.19.2
