@@ -1,73 +1,203 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 0/9] mlx5 core updates and cleanups
-Date: Mon, 10 Dec 2018 13:15:08 -0800
-Message-ID: <20181210211517.3686-1-saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 1/9] net/mlx5: Rework handling of port module events
+Date: Mon, 10 Dec 2018 13:15:09 -0800
+Message-ID: <20181210211517.3686-2-saeedm@mellanox.com>
+References: <20181210211517.3686-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181210211517.3686-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Mikhael Goikhman <migo@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi
+From: Mikhael Goikhman <migo@mellanox.com>
 
-This patchset is for mlx5-next shared branch, and will be applied there
-once the review is done.
+Add explicit HW defined error values. For simplicity, keep counters for all
+statuses starting from 0, although currently status=0 is not used.
 
-1) From Eli Britstein, add mlx5 core support for flow steering extended
-destination
-2) From Mikhael Goikhman, port module events cleanup and support for
-PCIe power slot exceeded errors and plugged-disabled cable status.
-3) Eyal Davidovich adds monitor commands layout and event data.
-4) From Or Gerlitz, remove unsed mlx5 interface callback (get_protocol).
-5) From Oz Shlomo, Revise gre and nvgre key formats
+Additionally, when HW signals an unexpected cable status, it is reported
+now rather than ignored. And status counter is now updated on errors.
 
-v1->v2:
- - Improve commit message for "Change vhca id valid bool field to bit flag"
- - mlx5_core_warn instead of pr_warn
- - drop "IB/mlx5: Simplify netdev unbinding" patch, it can go to rdma only
-
-Thanks,
-Saeed.
-
+Signed-off-by: Mikhael Goikhman <migo@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
+ .../ethernet/mellanox/mlx5/core/en_stats.c    |  8 +-
+ .../net/ethernet/mellanox/mlx5/core/events.c  | 83 ++++++++++++-------
+ .../ethernet/mellanox/mlx5/core/lib/mlx5.h    | 19 ++---
+ 3 files changed, 65 insertions(+), 45 deletions(-)
 
-Eli Britstein (3):
-  net/mlx5: Introduce extended destination fields
-  net/mlx5: E-Switch, Change vhca id valid bool field to bit flag
-  net/mlx5: Support extended destination format in flow steering command
-
-Eyal Davidovich (1):
-  net/mlx5: Add monitor commands layout and event data
-
-Mikhael Goikhman (3):
-  net/mlx5: Rework handling of port module events
-  net/mlx5: Add support for PCIe power slot exceeded error in PME
-  net/mlx5: Add support for plugged-disabled cable status in PME
-
-Or Gerlitz (1):
-  net/mlx5: Remove the get protocol device interface entry
-
-Oz Shlomo (1):
-  net/mlx5: Revise gre and nvgre key formats
-
- drivers/infiniband/hw/mlx5/main.c             |   4 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   4 +
- drivers/net/ethernet/mellanox/mlx5/core/dev.c |  22 ----
- .../mellanox/mlx5/core/diag/fs_tracepoint.c   |   8 +-
- .../net/ethernet/mellanox/mlx5/core/en_main.c |   8 --
- .../ethernet/mellanox/mlx5/core/en_stats.c    |   8 +-
- drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   3 +
- .../mellanox/mlx5/core/eswitch_offloads.c     |   8 +-
- .../net/ethernet/mellanox/mlx5/core/events.c  |  89 ++++++++-----
- .../net/ethernet/mellanox/mlx5/core/fs_cmd.c  |  83 ++++++++++--
- .../ethernet/mellanox/mlx5/core/lib/mlx5.h    |  21 ++--
- include/linux/mlx5/device.h                   |   1 +
- include/linux/mlx5/driver.h                   |   2 -
- include/linux/mlx5/fs.h                       |   8 +-
- include/linux/mlx5/mlx5_ifc.h                 | 119 +++++++++++++++++-
- 15 files changed, 287 insertions(+), 101 deletions(-)
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+index 748d23806391..881c54c12e19 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_stats.c
+@@ -1087,13 +1087,13 @@ static void mlx5e_grp_per_prio_update_stats(struct mlx5e_priv *priv)
+ }
+ 
+ static const struct counter_desc mlx5e_pme_status_desc[] = {
+-	{ "module_unplug", 8 },
++	{ "module_unplug",       sizeof(u64) * MLX5_MODULE_STATUS_UNPLUGGED },
+ };
+ 
+ static const struct counter_desc mlx5e_pme_error_desc[] = {
+-	{ "module_bus_stuck", 16 },       /* bus stuck (I2C or data shorted) */
+-	{ "module_high_temp", 48 },       /* high temperature */
+-	{ "module_bad_shorted", 56 },    /* bad or shorted cable/module */
++	{ "module_bus_stuck",    sizeof(u64) * MLX5_MODULE_EVENT_ERROR_BUS_STUCK },
++	{ "module_high_temp",    sizeof(u64) * MLX5_MODULE_EVENT_ERROR_HIGH_TEMPERATURE },
++	{ "module_bad_shorted",  sizeof(u64) * MLX5_MODULE_EVENT_ERROR_BAD_CABLE },
+ };
+ 
+ #define NUM_PME_STATUS_STATS		ARRAY_SIZE(mlx5e_pme_status_desc)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/events.c b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+index e92df7020a26..587d93ec905f 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/events.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/events.c
+@@ -157,23 +157,43 @@ static int temp_warn(struct notifier_block *nb, unsigned long type, void *data)
+ }
+ 
+ /* MLX5_EVENT_TYPE_PORT_MODULE_EVENT */
+-static const char *mlx5_pme_status[MLX5_MODULE_STATUS_NUM] = {
+-	"Cable plugged",   /* MLX5_MODULE_STATUS_PLUGGED    = 0x1 */
+-	"Cable unplugged", /* MLX5_MODULE_STATUS_UNPLUGGED  = 0x2 */
+-	"Cable error",     /* MLX5_MODULE_STATUS_ERROR      = 0x3 */
+-};
++static const char *mlx5_pme_status_to_string(enum port_module_event_status_type status)
++{
++	switch (status) {
++	case MLX5_MODULE_STATUS_PLUGGED:
++		return "Cable plugged";
++	case MLX5_MODULE_STATUS_UNPLUGGED:
++		return "Cable unplugged";
++	case MLX5_MODULE_STATUS_ERROR:
++		return "Cable error";
++	default:
++		return "Unknown status";
++	}
++}
+ 
+-static const char *mlx5_pme_error[MLX5_MODULE_EVENT_ERROR_NUM] = {
+-	"Power budget exceeded",
+-	"Long Range for non MLNX cable",
+-	"Bus stuck(I2C or data shorted)",
+-	"No EEPROM/retry timeout",
+-	"Enforce part number list",
+-	"Unknown identifier",
+-	"High Temperature",
+-	"Bad or shorted cable/module",
+-	"Unknown status",
+-};
++static const char *mlx5_pme_error_to_string(enum port_module_event_error_type error)
++{
++	switch (error) {
++	case MLX5_MODULE_EVENT_ERROR_POWER_BUDGET_EXCEEDED:
++		return "Power budget exceeded";
++	case MLX5_MODULE_EVENT_ERROR_LONG_RANGE_FOR_NON_MLNX:
++		return "Long Range for non MLNX cable";
++	case MLX5_MODULE_EVENT_ERROR_BUS_STUCK:
++		return "Bus stuck (I2C or data shorted)";
++	case MLX5_MODULE_EVENT_ERROR_NO_EEPROM_RETRY_TIMEOUT:
++		return "No EEPROM/retry timeout";
++	case MLX5_MODULE_EVENT_ERROR_ENFORCE_PART_NUMBER_LIST:
++		return "Enforce part number list";
++	case MLX5_MODULE_EVENT_ERROR_UNKNOWN_IDENTIFIER:
++		return "Unknown identifier";
++	case MLX5_MODULE_EVENT_ERROR_HIGH_TEMPERATURE:
++		return "High Temperature";
++	case MLX5_MODULE_EVENT_ERROR_BAD_CABLE:
++		return "Bad or shorted cable/module";
++	default:
++		return "Unknown error";
++	}
++}
+ 
+ /* type == MLX5_EVENT_TYPE_PORT_MODULE_EVENT */
+ static int port_module(struct notifier_block *nb, unsigned long type, void *data)
+@@ -185,6 +205,7 @@ static int port_module(struct notifier_block *nb, unsigned long type, void *data
+ 	enum port_module_event_status_type module_status;
+ 	enum port_module_event_error_type error_type;
+ 	struct mlx5_eqe_port_module *module_event_eqe;
++	const char *status_str, *error_str;
+ 	u8 module_num;
+ 
+ 	module_event_eqe = &eqe->data.port_module;
+@@ -193,28 +214,28 @@ static int port_module(struct notifier_block *nb, unsigned long type, void *data
+ 			PORT_MODULE_EVENT_MODULE_STATUS_MASK;
+ 	error_type = module_event_eqe->error_type &
+ 		     PORT_MODULE_EVENT_ERROR_TYPE_MASK;
+-	if (module_status < MLX5_MODULE_STATUS_ERROR) {
+-		events->pme_stats.status_counters[module_status - 1]++;
+-	} else if (module_status == MLX5_MODULE_STATUS_ERROR) {
+-		if (error_type >= MLX5_MODULE_EVENT_ERROR_UNKNOWN)
+-			/* Unknown error type */
+-			error_type = MLX5_MODULE_EVENT_ERROR_UNKNOWN;
+-		events->pme_stats.error_counters[error_type]++;
++
++	if (module_status < MLX5_MODULE_STATUS_NUM)
++		events->pme_stats.status_counters[module_status]++;
++	status_str = mlx5_pme_status_to_string(module_status);
++
++	if (module_status == MLX5_MODULE_STATUS_ERROR) {
++		if (error_type < MLX5_MODULE_EVENT_ERROR_NUM)
++			events->pme_stats.error_counters[error_type]++;
++		error_str = mlx5_pme_error_to_string(error_type);
+ 	}
+ 
+ 	if (!printk_ratelimit())
+ 		return NOTIFY_OK;
+ 
+-	if (module_status < MLX5_MODULE_STATUS_ERROR)
++	if (module_status == MLX5_MODULE_STATUS_ERROR)
++		mlx5_core_err(events->dev,
++			      "Port module event[error]: module %u, %s, %s\n",
++			      module_num, status_str, error_str);
++	else
+ 		mlx5_core_info(events->dev,
+ 			       "Port module event: module %u, %s\n",
+-			       module_num, mlx5_pme_status[module_status - 1]);
+-
+-	else if (module_status == MLX5_MODULE_STATUS_ERROR)
+-		mlx5_core_info(events->dev,
+-			       "Port module event[error]: module %u, %s, %s\n",
+-			       module_num, mlx5_pme_status[module_status - 1],
+-			       mlx5_pme_error[error_type]);
++			       module_num, status_str);
+ 
+ 	return NOTIFY_OK;
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
+index 4d78a459676e..af19fa61e9ef 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mlx5.h
+@@ -51,19 +51,18 @@ enum port_module_event_status_type {
+ 	MLX5_MODULE_STATUS_PLUGGED   = 0x1,
+ 	MLX5_MODULE_STATUS_UNPLUGGED = 0x2,
+ 	MLX5_MODULE_STATUS_ERROR     = 0x3,
+-	MLX5_MODULE_STATUS_NUM       = 0x3,
++	MLX5_MODULE_STATUS_NUM,
+ };
+ 
+ enum  port_module_event_error_type {
+-	MLX5_MODULE_EVENT_ERROR_POWER_BUDGET_EXCEEDED,
+-	MLX5_MODULE_EVENT_ERROR_LONG_RANGE_FOR_NON_MLNX_CABLE_MODULE,
+-	MLX5_MODULE_EVENT_ERROR_BUS_STUCK,
+-	MLX5_MODULE_EVENT_ERROR_NO_EEPROM_RETRY_TIMEOUT,
+-	MLX5_MODULE_EVENT_ERROR_ENFORCE_PART_NUMBER_LIST,
+-	MLX5_MODULE_EVENT_ERROR_UNKNOWN_IDENTIFIER,
+-	MLX5_MODULE_EVENT_ERROR_HIGH_TEMPERATURE,
+-	MLX5_MODULE_EVENT_ERROR_BAD_CABLE,
+-	MLX5_MODULE_EVENT_ERROR_UNKNOWN,
++	MLX5_MODULE_EVENT_ERROR_POWER_BUDGET_EXCEEDED    = 0x0,
++	MLX5_MODULE_EVENT_ERROR_LONG_RANGE_FOR_NON_MLNX  = 0x1,
++	MLX5_MODULE_EVENT_ERROR_BUS_STUCK                = 0x2,
++	MLX5_MODULE_EVENT_ERROR_NO_EEPROM_RETRY_TIMEOUT  = 0x3,
++	MLX5_MODULE_EVENT_ERROR_ENFORCE_PART_NUMBER_LIST = 0x4,
++	MLX5_MODULE_EVENT_ERROR_UNKNOWN_IDENTIFIER       = 0x5,
++	MLX5_MODULE_EVENT_ERROR_HIGH_TEMPERATURE         = 0x6,
++	MLX5_MODULE_EVENT_ERROR_BAD_CABLE                = 0x7,
+ 	MLX5_MODULE_EVENT_ERROR_NUM,
+ };
+ 
 -- 
 2.19.2
