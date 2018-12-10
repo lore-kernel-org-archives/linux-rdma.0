@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 09/10] IB/mlx5: Simplify netdev unbinding
-Date: Sun,  9 Dec 2018 19:04:41 -0800
-Message-ID: <20181210030442.7543-10-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 10/10] net/mlx5: Remove the get protocol device interface entry
+Date: Sun,  9 Dec 2018 19:04:42 -0800
+Message-ID: <20181210030442.7543-11-saeedm@mellanox.com>
 References: <20181210030442.7543-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,55 +14,92 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Or Gerlitz <ogerlitz@mellanox.com>
 
-When dealing with netdev unregister events, we just need to
-know that this is our currently bounded netdev. There's no
-need to do any further checks/queries.
-
-This patch doesn't change any functionality.
+This isn't used anywhere across the mlx5 driver stack,
+remove it.
 
 Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
+Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c | 22 -------------------
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |  8 -------
+ include/linux/mlx5/driver.h                   |  2 --
+ 3 files changed, 32 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 2560996fce79..fd8cbf58f0bf 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -172,7 +172,6 @@ static int mlx5_netdev_event(struct notifier_block *this,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+index d2ed14bc37c3..ebc046fa97d3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+@@ -256,28 +256,6 @@ void mlx5_reload_interface(struct mlx5_core_dev *mdev, int protocol)
+ 	mutex_unlock(&mlx5_intf_mutex);
+ }
  
- 	switch (event) {
- 	case NETDEV_REGISTER:
--	case NETDEV_UNREGISTER:
- 		write_lock(&roce->netdev_lock);
- 		if (ibdev->rep) {
- 			struct mlx5_eswitch *esw = ibdev->mdev->priv.eswitch;
-@@ -181,15 +180,20 @@ static int mlx5_netdev_event(struct notifier_block *this,
- 			rep_ndev = mlx5_ib_get_rep_netdev(esw,
- 							  ibdev->rep->vport);
- 			if (rep_ndev == ndev)
--				roce->netdev = (event == NETDEV_UNREGISTER) ?
--					NULL : ndev;
-+				roce->netdev = ndev;
- 		} else if (ndev->dev.parent == &mdev->pdev->dev) {
--			roce->netdev = (event == NETDEV_UNREGISTER) ?
--				NULL : ndev;
-+			roce->netdev = ndev;
- 		}
- 		write_unlock(&roce->netdev_lock);
- 		break;
+-void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol)
+-{
+-	struct mlx5_priv *priv = &mdev->priv;
+-	struct mlx5_device_context *dev_ctx;
+-	unsigned long flags;
+-	void *result = NULL;
+-
+-	spin_lock_irqsave(&priv->ctx_lock, flags);
+-
+-	list_for_each_entry(dev_ctx, &mdev->priv.ctx_list, list)
+-		if ((dev_ctx->intf->protocol == protocol) &&
+-		    dev_ctx->intf->get_dev) {
+-			result = dev_ctx->intf->get_dev(dev_ctx->context);
+-			break;
+-		}
+-
+-	spin_unlock_irqrestore(&priv->ctx_lock, flags);
+-
+-	return result;
+-}
+-EXPORT_SYMBOL(mlx5_get_protocol_dev);
+-
+ /* Must be called with intf_mutex held */
+ void mlx5_add_dev_by_protocol(struct mlx5_core_dev *dev, int protocol)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 56bc41b1c31f..a43092de3cc0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -5160,20 +5160,12 @@ static void mlx5e_remove(struct mlx5_core_dev *mdev, void *vpriv)
+ 	kfree(ppriv);
+ }
  
-+	case NETDEV_UNREGISTER:
-+		write_lock(&roce->netdev_lock);
-+		if (roce->netdev == ndev)
-+			roce->netdev = NULL;
-+		write_unlock(&roce->netdev_lock);
-+		break;
-+
- 	case NETDEV_CHANGE:
- 	case NETDEV_UP:
- 	case NETDEV_DOWN: {
+-static void *mlx5e_get_netdev(void *vpriv)
+-{
+-	struct mlx5e_priv *priv = vpriv;
+-
+-	return priv->netdev;
+-}
+-
+ static struct mlx5_interface mlx5e_interface = {
+ 	.add       = mlx5e_add,
+ 	.remove    = mlx5e_remove,
+ 	.attach    = mlx5e_attach,
+ 	.detach    = mlx5e_detach,
+ 	.protocol  = MLX5_INTERFACE_PROTOCOL_ETH,
+-	.get_dev   = mlx5e_get_netdev,
+ };
+ 
+ void mlx5e_init(void)
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 584d8a5df7eb..cc29e880c733 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1004,12 +1004,10 @@ struct mlx5_interface {
+ 	void			(*remove)(struct mlx5_core_dev *dev, void *context);
+ 	int			(*attach)(struct mlx5_core_dev *dev, void *context);
+ 	void			(*detach)(struct mlx5_core_dev *dev, void *context);
+-	void *                  (*get_dev)(void *context);
+ 	int			protocol;
+ 	struct list_head	list;
+ };
+ 
+-void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol);
+ int mlx5_register_interface(struct mlx5_interface *intf);
+ void mlx5_unregister_interface(struct mlx5_interface *intf);
+ int mlx5_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb);
 -- 
 2.19.2
