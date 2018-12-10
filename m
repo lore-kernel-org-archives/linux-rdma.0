@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 7/9] net/mlx5: E-Switch, Change vhca id valid bool field to bit flag
-Date: Mon, 10 Dec 2018 13:15:15 -0800
-Message-ID: <20181210211517.3686-8-saeedm@mellanox.com>
+Subject: [PATCH V2 mlx5-next 9/9] net/mlx5: Remove the get protocol device interface entry
+Date: Mon, 10 Dec 2018 13:15:17 -0800
+Message-ID: <20181210211517.3686-10-saeedm@mellanox.com>
 References: <20181210211517.3686-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,88 +9,97 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181210211517.3686-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Eli Britstein <elibr@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Britstein <elibr@mellanox.com>
+From: Or Gerlitz <ogerlitz@mellanox.com>
 
-Change the driver flow destination struct to use bit flags with the vhca
-id valid being the 1st one. The flags field is more extendable and will
-be used in downstream patch.
+This isn't used anywhere across the mlx5 driver stack,
+remove it.
 
-Signed-off-by: Eli Britstein <elibr@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
+Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 8 +++++---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c          | 3 ++-
- include/linux/mlx5/fs.h                                   | 6 +++++-
- 3 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/dev.c | 22 -------------------
+ .../net/ethernet/mellanox/mlx5/core/en_main.c |  8 -------
+ include/linux/mlx5/driver.h                   |  2 --
+ 3 files changed, 32 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 9eac137790f5..4d7b65df32ef 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -125,8 +125,9 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
- 				dest[i].vport.num = attr->out_rep[j]->vport;
- 				dest[i].vport.vhca_id =
- 					MLX5_CAP_GEN(attr->out_mdev[j], vhca_id);
--				dest[i].vport.vhca_id_valid =
--					!!MLX5_CAP_ESW(esw->dev, merged_eswitch);
-+				if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
-+					dest[i].vport.flags |=
-+						MLX5_FLOW_DEST_VPORT_VHCA_ID;
- 				i++;
- 			}
- 		}
-@@ -220,7 +221,8 @@ mlx5_eswitch_add_fwd_rule(struct mlx5_eswitch *esw,
- 		dest[i].vport.num = attr->out_rep[i]->vport;
- 		dest[i].vport.vhca_id =
- 			MLX5_CAP_GEN(attr->out_mdev[i], vhca_id);
--		dest[i].vport.vhca_id_valid = !!MLX5_CAP_ESW(esw->dev, merged_eswitch);
-+		if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
-+			dest[i].vport.flags |= MLX5_FLOW_DEST_VPORT_VHCA_ID;
- 	}
- 	dest[i].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
- 	dest[i].ft = fwd_fdb,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 08a891f9aade..dda63dedaa49 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -387,7 +387,8 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 				id = dst->dest_attr.vport.num;
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id_valid,
--					 dst->dest_attr.vport.vhca_id_valid);
-+					 !!(dst->dest_attr.vport.flags &
-+					    MLX5_FLOW_DEST_VPORT_VHCA_ID));
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id,
- 					 dst->dest_attr.vport.vhca_id);
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 5660f07d3be0..25ffd8018b72 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -86,6 +86,10 @@ struct mlx5_flow_spec {
- 	u32  match_value[MLX5_ST_SZ_DW(fte_match_param)];
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/dev.c b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+index d2ed14bc37c3..ebc046fa97d3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/dev.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/dev.c
+@@ -256,28 +256,6 @@ void mlx5_reload_interface(struct mlx5_core_dev *mdev, int protocol)
+ 	mutex_unlock(&mlx5_intf_mutex);
+ }
+ 
+-void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol)
+-{
+-	struct mlx5_priv *priv = &mdev->priv;
+-	struct mlx5_device_context *dev_ctx;
+-	unsigned long flags;
+-	void *result = NULL;
+-
+-	spin_lock_irqsave(&priv->ctx_lock, flags);
+-
+-	list_for_each_entry(dev_ctx, &mdev->priv.ctx_list, list)
+-		if ((dev_ctx->intf->protocol == protocol) &&
+-		    dev_ctx->intf->get_dev) {
+-			result = dev_ctx->intf->get_dev(dev_ctx->context);
+-			break;
+-		}
+-
+-	spin_unlock_irqrestore(&priv->ctx_lock, flags);
+-
+-	return result;
+-}
+-EXPORT_SYMBOL(mlx5_get_protocol_dev);
+-
+ /* Must be called with intf_mutex held */
+ void mlx5_add_dev_by_protocol(struct mlx5_core_dev *dev, int protocol)
+ {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 56bc41b1c31f..a43092de3cc0 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -5160,20 +5160,12 @@ static void mlx5e_remove(struct mlx5_core_dev *mdev, void *vpriv)
+ 	kfree(ppriv);
+ }
+ 
+-static void *mlx5e_get_netdev(void *vpriv)
+-{
+-	struct mlx5e_priv *priv = vpriv;
+-
+-	return priv->netdev;
+-}
+-
+ static struct mlx5_interface mlx5e_interface = {
+ 	.add       = mlx5e_add,
+ 	.remove    = mlx5e_remove,
+ 	.attach    = mlx5e_attach,
+ 	.detach    = mlx5e_detach,
+ 	.protocol  = MLX5_INTERFACE_PROTOCOL_ETH,
+-	.get_dev   = mlx5e_get_netdev,
  };
  
-+enum {
-+	MLX5_FLOW_DEST_VPORT_VHCA_ID      = BIT(0),
-+};
-+
- struct mlx5_flow_destination {
- 	enum mlx5_flow_destination_type	type;
- 	union {
-@@ -96,7 +100,7 @@ struct mlx5_flow_destination {
- 		struct {
- 			u16		num;
- 			u16		vhca_id;
--			bool		vhca_id_valid;
-+			u8		flags;
- 		} vport;
- 	};
+ void mlx5e_init(void)
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 584d8a5df7eb..cc29e880c733 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1004,12 +1004,10 @@ struct mlx5_interface {
+ 	void			(*remove)(struct mlx5_core_dev *dev, void *context);
+ 	int			(*attach)(struct mlx5_core_dev *dev, void *context);
+ 	void			(*detach)(struct mlx5_core_dev *dev, void *context);
+-	void *                  (*get_dev)(void *context);
+ 	int			protocol;
+ 	struct list_head	list;
  };
+ 
+-void *mlx5_get_protocol_dev(struct mlx5_core_dev *mdev, int protocol);
+ int mlx5_register_interface(struct mlx5_interface *intf);
+ void mlx5_unregister_interface(struct mlx5_interface *intf);
+ int mlx5_notifier_register(struct mlx5_core_dev *dev, struct notifier_block *nb);
 -- 
 2.19.2
