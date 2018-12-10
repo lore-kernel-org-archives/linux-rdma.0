@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 07/10] net/mlx5: E-Switch, Change vhca id valid bool field to bit flag
-Date: Sun,  9 Dec 2018 19:04:39 -0800
-Message-ID: <20181210030442.7543-8-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 09/10] IB/mlx5: Simplify netdev unbinding
+Date: Sun,  9 Dec 2018 19:04:41 -0800
+Message-ID: <20181210030442.7543-10-saeedm@mellanox.com>
 References: <20181210030442.7543-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,88 +9,60 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181210030442.7543-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Eli Britstein <elibr@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Or Gerlitz <ogerlitz@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eli Britstein <elibr@mellanox.com>
+From: Or Gerlitz <ogerlitz@mellanox.com>
 
-Change the driver flow destination struct to use bit flags with the vhca
-id valid being the 1st one. Done to avoid bool fields in structs, as
-warned by static checkers, with no functionality change.
+When dealing with netdev unregister events, we just need to
+know that this is our currently bounded netdev. There's no
+need to do any further checks/queries.
 
-Signed-off-by: Eli Britstein <elibr@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
-Reviewed-by: Oz Shlomo <ozsh@mellanox.com>
+This patch doesn't change any functionality.
+
+Signed-off-by: Or Gerlitz <ogerlitz@mellanox.com>
+Reviewed-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/eswitch_offloads.c    | 8 +++++---
- drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c          | 3 ++-
- include/linux/mlx5/fs.h                                   | 6 +++++-
- 3 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/mlx5/main.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 9eac137790f5..4d7b65df32ef 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -125,8 +125,9 @@ mlx5_eswitch_add_offloaded_rule(struct mlx5_eswitch *esw,
- 				dest[i].vport.num = attr->out_rep[j]->vport;
- 				dest[i].vport.vhca_id =
- 					MLX5_CAP_GEN(attr->out_mdev[j], vhca_id);
--				dest[i].vport.vhca_id_valid =
--					!!MLX5_CAP_ESW(esw->dev, merged_eswitch);
-+				if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
-+					dest[i].vport.flags |=
-+						MLX5_FLOW_DEST_VPORT_VHCA_ID;
- 				i++;
- 			}
- 		}
-@@ -220,7 +221,8 @@ mlx5_eswitch_add_fwd_rule(struct mlx5_eswitch *esw,
- 		dest[i].vport.num = attr->out_rep[i]->vport;
- 		dest[i].vport.vhca_id =
- 			MLX5_CAP_GEN(attr->out_mdev[i], vhca_id);
--		dest[i].vport.vhca_id_valid = !!MLX5_CAP_ESW(esw->dev, merged_eswitch);
-+		if (MLX5_CAP_ESW(esw->dev, merged_eswitch))
-+			dest[i].vport.flags |= MLX5_FLOW_DEST_VPORT_VHCA_ID;
- 	}
- 	dest[i].type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
- 	dest[i].ft = fwd_fdb,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-index 08a891f9aade..dda63dedaa49 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_cmd.c
-@@ -387,7 +387,8 @@ static int mlx5_cmd_set_fte(struct mlx5_core_dev *dev,
- 				id = dst->dest_attr.vport.num;
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id_valid,
--					 dst->dest_attr.vport.vhca_id_valid);
-+					 !!(dst->dest_attr.vport.flags &
-+					    MLX5_FLOW_DEST_VPORT_VHCA_ID));
- 				MLX5_SET(dest_format_struct, in_dests,
- 					 destination_eswitch_owner_vhca_id,
- 					 dst->dest_attr.vport.vhca_id);
-diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
-index 5660f07d3be0..25ffd8018b72 100644
---- a/include/linux/mlx5/fs.h
-+++ b/include/linux/mlx5/fs.h
-@@ -86,6 +86,10 @@ struct mlx5_flow_spec {
- 	u32  match_value[MLX5_ST_SZ_DW(fte_match_param)];
- };
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2560996fce79..fd8cbf58f0bf 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -172,7 +172,6 @@ static int mlx5_netdev_event(struct notifier_block *this,
  
-+enum {
-+	MLX5_FLOW_DEST_VPORT_VHCA_ID      = BIT(0),
-+};
+ 	switch (event) {
+ 	case NETDEV_REGISTER:
+-	case NETDEV_UNREGISTER:
+ 		write_lock(&roce->netdev_lock);
+ 		if (ibdev->rep) {
+ 			struct mlx5_eswitch *esw = ibdev->mdev->priv.eswitch;
+@@ -181,15 +180,20 @@ static int mlx5_netdev_event(struct notifier_block *this,
+ 			rep_ndev = mlx5_ib_get_rep_netdev(esw,
+ 							  ibdev->rep->vport);
+ 			if (rep_ndev == ndev)
+-				roce->netdev = (event == NETDEV_UNREGISTER) ?
+-					NULL : ndev;
++				roce->netdev = ndev;
+ 		} else if (ndev->dev.parent == &mdev->pdev->dev) {
+-			roce->netdev = (event == NETDEV_UNREGISTER) ?
+-				NULL : ndev;
++			roce->netdev = ndev;
+ 		}
+ 		write_unlock(&roce->netdev_lock);
+ 		break;
+ 
++	case NETDEV_UNREGISTER:
++		write_lock(&roce->netdev_lock);
++		if (roce->netdev == ndev)
++			roce->netdev = NULL;
++		write_unlock(&roce->netdev_lock);
++		break;
 +
- struct mlx5_flow_destination {
- 	enum mlx5_flow_destination_type	type;
- 	union {
-@@ -96,7 +100,7 @@ struct mlx5_flow_destination {
- 		struct {
- 			u16		num;
- 			u16		vhca_id;
--			bool		vhca_id_valid;
-+			u8		flags;
- 		} vport;
- 	};
- };
+ 	case NETDEV_CHANGE:
+ 	case NETDEV_UP:
+ 	case NETDEV_DOWN: {
 -- 
 2.19.2
