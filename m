@@ -1,97 +1,102 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
-Date: Tue, 11 Dec 2018 08:01:43 -0600
-Message-ID: <20181211140143.GD99796@google.com>
-References: <20181206041951.22413-1-david@gibson.dropbear.id.au>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-rc] rdma: Fix broken 32-bit compilation
+Date: Tue, 11 Dec 2018 20:14:28 +0200
+Message-ID: <20181211181428.31094-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181206041951.22413-1-david@gibson.dropbear.id.au>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Gibson <david@gibson.dropbear.id.au>
-Cc: davem@davemloft.net, saeedm@mellanox.com, ogerlitz@mellanox.com, tariqt@mellanox.com, leon@kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, alex.williamson@redhat.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, sbest@redhat.com, paulus@samba.org, benh@kernel.crashing.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: tephen Hemminger <stephen@networkplumber.org>, David Ahern <dsahern@gmail.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi David,
+From: Leon Romanovsky <leonro@mellanox.com>
 
-I see you're still working on this, but if you do end up going this
-direction eventually, would you mind splitting this into two patches:
-1) rename the quirk to make it more generic (but not changing any
-behavior), and 2) add the ConnectX devices to the quirk.  That way
-the ConnectX change is smaller and more easily understood/reverted/etc.
+Allow compilation of rdmatool on 32-bits platforms.
 
-On Thu, Dec 06, 2018 at 03:19:51PM +1100, David Gibson wrote:
-> Mellanox ConnectX-5 IB cards (MT27800) seem to cause a call trace when
-> unbound from their regular driver and attached to vfio-pci in order to pass
-> them through to a guest.
-> 
-> This goes away if the disable_idle_d3 option is used, so it looks like a
-> problem with the hardware handling D3 state.  To fix that more permanently,
-> use a device quirk to disable D3 state for these devices.
-> 
-> We do this by renaming the existing quirk_no_ata_d3() more generally and
-> attaching it to the ConnectX-[45] devices (0x15b3:0x1013).
-> 
-> Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
-> ---
->  drivers/pci/quirks.c | 17 +++++++++++------
->  1 file changed, 11 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/pci/quirks.c b/drivers/pci/quirks.c
-> index 4700d24e5d55..add3f516ca12 100644
-> --- a/drivers/pci/quirks.c
-> +++ b/drivers/pci/quirks.c
-> @@ -1315,23 +1315,24 @@ static void quirk_ide_samemode(struct pci_dev *pdev)
->  }
->  DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_82801CA_10, quirk_ide_samemode);
->  
-> -/* Some ATA devices break if put into D3 */
-> -static void quirk_no_ata_d3(struct pci_dev *pdev)
-> +/* Some devices (including a number of ATA cards) break if put into D3 */
-> +static void quirk_no_d3(struct pci_dev *pdev)
->  {
->  	pdev->dev_flags |= PCI_DEV_FLAGS_NO_D3;
->  }
-> +
->  /* Quirk the legacy ATA devices only. The AHCI ones are ok */
->  DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_SERVERWORKS, PCI_ANY_ID,
-> -				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-> +				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
->  DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_ATI, PCI_ANY_ID,
-> -				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-> +				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
->  /* ALi loses some register settings that we cannot then restore */
->  DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_AL, PCI_ANY_ID,
-> -				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-> +				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
->  /* VIA comes back fine but we need to keep it alive or ACPI GTM failures
->     occur when mode detecting */
->  DECLARE_PCI_FIXUP_CLASS_EARLY(PCI_VENDOR_ID_VIA, PCI_ANY_ID,
-> -				PCI_CLASS_STORAGE_IDE, 8, quirk_no_ata_d3);
-> +				PCI_CLASS_STORAGE_IDE, 8, quirk_no_d3);
->  
->  /*
->   * This was originally an Alpha-specific thing, but it really fits here.
-> @@ -3367,6 +3368,10 @@ static void mellanox_check_broken_intx_masking(struct pci_dev *pdev)
->  DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_MELLANOX, PCI_ANY_ID,
->  			mellanox_check_broken_intx_masking);
->  
-> +/* Mellanox MT27800 (ConnectX-5) IB card seems to break with D3
-> + * In particular this shows up when the device is bound to the vfio-pci driver */
+rdma
+    CC       rdma.o
+    CC       utils.o
+    CC       dev.o
+    CC       link.o
+In file included from rdma.h:26:0,
+                 from dev.c:12:
+dev.c: In function 'dev_caps_tostr':
+../include/utils.h:269:38: warning: left shift count >= width of type [-Wshift-count-overflow]
+ #define BIT(nr)                 (1UL << (nr))
+                                      ^
+rdma.h:32:61: note: in expansion of macro 'BIT'
+ #define RDMA_BITMAP_ENUM(name, bit_no) RDMA_BITMAP_##name = BIT(bit_no),
+                                                             ^~~
 
-Follow usual multiline comment style, i.e.,
+Fixes: 40df8263a0f0 ("rdma: Add dev object")
+Reported-by: Stephen Hemminger <stephen@networkplumber.org>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ rdma/dev.c | 44 +++++++++++++++++++++++++++++++-------------
+ 1 file changed, 31 insertions(+), 13 deletions(-)
 
-  /*
-   * text ...
-   * more text ...
-   */
+diff --git a/rdma/dev.c b/rdma/dev.c
+index 760b7fb3..60ff4b31 100644
+--- a/rdma/dev.c
++++ b/rdma/dev.c
+@@ -20,7 +20,7 @@ static int dev_help(struct rd *rd)
 
-> +DECLARE_PCI_FIXUP_EARLY(PCI_VENDOR_ID_MELLANOX, PCI_DEVICE_ID_MELLANOX_CONNECTX4, quirk_no_d3)
-> +
->  static void quirk_no_bus_reset(struct pci_dev *dev)
->  {
->  	dev->dev_flags |= PCI_DEV_FLAGS_NO_BUS_RESET;
-> -- 
-> 2.19.2
-> 
+ static const char *dev_caps_to_str(uint32_t idx)
+ {
+-#define RDMA_DEV_FLAGS(x) \
++#define RDMA_DEV_FLAGS_LOW(x) \
+ 	x(RESIZE_MAX_WR, 0) \
+ 	x(BAD_PKEY_CNTR, 1) \
+ 	x(BAD_QKEY_CNTR, 2) \
+@@ -50,21 +50,39 @@ static const char *dev_caps_to_str(uint32_t idx)
+ 	x(CROSS_CHANNEL, 27) \
+ 	x(MANAGED_FLOW_STEERING, 29) \
+ 	x(SIGNATURE_HANDOVER, 30) \
+-	x(ON_DEMAND_PAGING, 31) \
+-	x(SG_GAPS_REG, 32) \
+-	x(VIRTUAL_FUNCTION, 33) \
+-	x(RAW_SCATTER_FCS, 34) \
+-	x(RDMA_NETDEV_OPA_VNIC, 35) \
+-	x(PCI_WRITE_END_PADDING, 36)
+-
+-	enum { RDMA_DEV_FLAGS(RDMA_BITMAP_ENUM) };
++	x(ON_DEMAND_PAGING, 31)
++
++#define RDMA_DEV_FLAGS_HIGH(x) \
++	x(SG_GAPS_REG, 0) \
++	x(VIRTUAL_FUNCTION, 1) \
++	x(RAW_SCATTER_FCS, 2) \
++	x(RDMA_NETDEV_OPA_VNIC, 3) \
++	x(PCI_WRITE_END_PADDING, 4)
++
++	/*
++	 * Separation below is needed to allow compilation of rdmatool
++	 * on 32bits systems. On such systems, C-enum is limited to be
++	 * int and can't hold more than 32 bits.
++	 */
++	enum { RDMA_DEV_FLAGS_LOW(RDMA_BITMAP_ENUM) };
++	enum { RDMA_DEV_FLAGS_HIGH(RDMA_BITMAP_ENUM) };
+
+ 	static const char * const
+-		rdma_dev_names[] = { RDMA_DEV_FLAGS(RDMA_BITMAP_NAMES) };
+-	#undef RDMA_DEV_FLAGS
++		rdma_dev_names_low[] = { RDMA_DEV_FLAGS_LOW(RDMA_BITMAP_NAMES) };
++	static const char * const
++		rdma_dev_names_high[] = { RDMA_DEV_FLAGS_HIGH(RDMA_BITMAP_NAMES) };
++	uint32_t high_idx;
++	#undef RDMA_DEV_FLAGS_LOW
++	#undef RDMA_DEV_FLAGS_HIGH
++
++	if (idx < ARRAY_SIZE(rdma_dev_names_low) && rdma_dev_names_low[idx])
++		return rdma_dev_names_low[idx];
++
++	high_idx = idx - ARRAY_SIZE(rdma_dev_names_low);
++	if (high_idx <  ARRAY_SIZE(rdma_dev_names_high) &&
++	    rdma_dev_names_high[high_idx])
++		return rdma_dev_names_high[high_idx];
+
+-	if (idx < ARRAY_SIZE(rdma_dev_names) && rdma_dev_names[idx])
+-		return rdma_dev_names[idx];
+ 	return "UNKNOWN";
+ }
