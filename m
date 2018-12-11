@@ -1,38 +1,32 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH V2 mlx5-next 0/9] mlx5 core updates and cleanups
-Date: Mon, 10 Dec 2018 14:01:13 -0800
-Message-ID: <CALzJLG8AyCY_6T0nAMfCgnYfDquPZgZJ=9Pawgu5P=qVCDXkFg@mail.gmail.com>
-References: <20181210211517.3686-1-saeedm@mellanox.com>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [PATCH V2 mlx5-next 4/9] net/mlx5: Add monitor commands layout
+ and event data
+Date: Mon, 10 Dec 2018 16:48:58 -0800
+Message-ID: <CAM_iQpUN+veKna5rAFvJMLXWsS5BKLCBbuBFCX_Hy_Z36T22JA@mail.gmail.com>
+References: <20181210211517.3686-1-saeedm@mellanox.com> <20181210211517.3686-5-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181210211517.3686-1-saeedm@mellanox.com>
+In-Reply-To: <20181210211517.3686-5-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: leonro@mellanox.com, Linux Kernel Network Developers <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, eyald@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 1:15 PM Saeed Mahameed <saeedm@mellanox.com> wrote:
->
-> Hi
->
-> This patchset is for mlx5-next shared branch, and will be applied there
-> once the review is done.
->
-> 1) From Eli Britstein, add mlx5 core support for flow steering extended
-> destination
-> 2) From Mikhael Goikhman, port module events cleanup and support for
-> PCIe power slot exceeded errors and plugged-disabled cable status.
-> 3) Eyal Davidovich adds monitor commands layout and event data.
-> 4) From Or Gerlitz, remove unsed mlx5 interface callback (get_protocol).
-> 5) From Oz Shlomo, Revise gre and nvgre key formats
->
-> v1->v2:
->  - Improve commit message for "Change vhca id valid bool field to bit flag"
->  - mlx5_core_warn instead of pr_warn
->  - drop "IB/mlx5: Simplify netdev unbinding" patch, it can go to rdma only
->
+On Mon, Dec 10, 2018 at 1:55 PM Saeed Mahameed <saeedm@mellanox.com> wrote:
+> +enum mlx5_monitor_counter_ppcnt {
+> +       MLX5_QUERY_MONITOR_PPCNT_IN_RANGE_LENGTH_ERRORS      = 0X0,
+> +       MLX5_QUERY_MONITOR_PPCNT_OUT_OF_RANGE_LENGTH_FIELD   = 0X1,
+> +       MLX5_QUERY_MONITOR_PPCNT_FRAME_TOO_LONG_ERRORS       = 0X2,
+> +       MLX5_QUERY_MONITOR_PPCNT_FRAME_CHECK_SEQUENCE_ERRORS = 0X3,
+> +       MLX5_QUERY_MONITOR_PPCNT_ALIGNMENT_ERRORS            = 0X4,
+> +       MLX5_QUERY_MONITOR_PPCNT_IF_OUT_DISCARDS             = 0X5,
+> +};
+> +
+> +enum {
+> +       MLX5_QUERY_MONITOR_Q_COUNTER_RX_OUT_OF_BUFFER     = 0X4,
+> +};
 
-Applied to mlx5-next.
+Is there any reason to capitalize these 0X prefixes?
 
 Thanks.
