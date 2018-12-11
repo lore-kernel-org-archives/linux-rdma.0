@@ -1,102 +1,130 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-rc] rdma: Fix broken 32-bit compilation
-Date: Tue, 11 Dec 2018 20:14:28 +0200
-Message-ID: <20181211181428.31094-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Subject: [PATCH v2 0/8] net: y2038-safe socket timestamps
+Date: Tue, 11 Dec 2018 12:25:12 -0800
+Message-ID: <20181211202520.16799-1-deepa.kernel@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: tephen Hemminger <stephen@networkplumber.org>, David Ahern <dsahern@gmail.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, chris@zankel.net, deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com, isdn@linux-pingi.de, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, ubraun@linux.ibm.com, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+The series introduces new socket timestamps that are
+y2038 safe.
 
-Allow compilation of rdmatool on 32-bits platforms.
+The time data types used for the existing socket timestamp
+options: SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING
+are not y2038 safe. The series introduces SO_TIMESTAMP_NEW,
+SO_TIMESTAMPNS_NEW and SO_TIMESTAMPING_NEW to replace these.
+These new timestamps can be used on all architectures.
 
-rdma
-    CC       rdma.o
-    CC       utils.o
-    CC       dev.o
-    CC       link.o
-In file included from rdma.h:26:0,
-                 from dev.c:12:
-dev.c: In function 'dev_caps_tostr':
-../include/utils.h:269:38: warning: left shift count >= width of type [-Wshift-count-overflow]
- #define BIT(nr)                 (1UL << (nr))
-                                      ^
-rdma.h:32:61: note: in expansion of macro 'BIT'
- #define RDMA_BITMAP_ENUM(name, bit_no) RDMA_BITMAP_##name = BIT(bit_no),
-                                                             ^~~
+The alternative considered was to extend the sys_setsockopt()
+by using the flags. We did not receive any strong opinions about
+either of the approaches. Hence, this was chosen, as glibc folks
+preferred this.
 
-Fixes: 40df8263a0f0 ("rdma: Add dev object")
-Reported-by: Stephen Hemminger <stephen@networkplumber.org>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- rdma/dev.c | 44 +++++++++++++++++++++++++++++++-------------
- 1 file changed, 31 insertions(+), 13 deletions(-)
+The series does not deal with updating the internal kernel socket
+calls like rxrpc to make them y2038 safe. This will be dealt
+with separately.
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index 760b7fb3..60ff4b31 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -20,7 +20,7 @@ static int dev_help(struct rd *rd)
+Note that the timestamps behavior already does not match the
+man page specific behavior:
+SIOCGSTAMP
+    This ioctl should only be used if the socket option SO_TIMESTAMP
+	is not set on the socket. Otherwise, it returns the timestamp of
+	the last packet that was received while SO_TIMESTAMP was not set,
+	or it fails if no such packet has been received,
+	(i.e., ioctl(2) returns -1 with errno set to ENOENT).
+	
+The recommendation is to update the man page to remove the above statement.
 
- static const char *dev_caps_to_str(uint32_t idx)
- {
--#define RDMA_DEV_FLAGS(x) \
-+#define RDMA_DEV_FLAGS_LOW(x) \
- 	x(RESIZE_MAX_WR, 0) \
- 	x(BAD_PKEY_CNTR, 1) \
- 	x(BAD_QKEY_CNTR, 2) \
-@@ -50,21 +50,39 @@ static const char *dev_caps_to_str(uint32_t idx)
- 	x(CROSS_CHANNEL, 27) \
- 	x(MANAGED_FLOW_STEERING, 29) \
- 	x(SIGNATURE_HANDOVER, 30) \
--	x(ON_DEMAND_PAGING, 31) \
--	x(SG_GAPS_REG, 32) \
--	x(VIRTUAL_FUNCTION, 33) \
--	x(RAW_SCATTER_FCS, 34) \
--	x(RDMA_NETDEV_OPA_VNIC, 35) \
--	x(PCI_WRITE_END_PADDING, 36)
--
--	enum { RDMA_DEV_FLAGS(RDMA_BITMAP_ENUM) };
-+	x(ON_DEMAND_PAGING, 31)
-+
-+#define RDMA_DEV_FLAGS_HIGH(x) \
-+	x(SG_GAPS_REG, 0) \
-+	x(VIRTUAL_FUNCTION, 1) \
-+	x(RAW_SCATTER_FCS, 2) \
-+	x(RDMA_NETDEV_OPA_VNIC, 3) \
-+	x(PCI_WRITE_END_PADDING, 4)
-+
-+	/*
-+	 * Separation below is needed to allow compilation of rdmatool
-+	 * on 32bits systems. On such systems, C-enum is limited to be
-+	 * int and can't hold more than 32 bits.
-+	 */
-+	enum { RDMA_DEV_FLAGS_LOW(RDMA_BITMAP_ENUM) };
-+	enum { RDMA_DEV_FLAGS_HIGH(RDMA_BITMAP_ENUM) };
+The overview of the series is as below:
+1. Delete asm specific socket.h when possible.
+2. Support SO/SCM_TIMESTAMP* options only in userspace.
+3. Rename current SO/SCM_TIMESTAMP* to SO/SCM_TIMESTAMP*_OLD.
+3. Alter socket options so that SOCK_RCVTSTAMPNS does
+   not rely on SOCK_RCVTSTAMP.
+4. Introduce y2038 safe types for socket timestamp.
+5. Introduce new y2038 safe socket options SO/SCM_TIMESTAMP*_NEW.
 
- 	static const char * const
--		rdma_dev_names[] = { RDMA_DEV_FLAGS(RDMA_BITMAP_NAMES) };
--	#undef RDMA_DEV_FLAGS
-+		rdma_dev_names_low[] = { RDMA_DEV_FLAGS_LOW(RDMA_BITMAP_NAMES) };
-+	static const char * const
-+		rdma_dev_names_high[] = { RDMA_DEV_FLAGS_HIGH(RDMA_BITMAP_NAMES) };
-+	uint32_t high_idx;
-+	#undef RDMA_DEV_FLAGS_LOW
-+	#undef RDMA_DEV_FLAGS_HIGH
-+
-+	if (idx < ARRAY_SIZE(rdma_dev_names_low) && rdma_dev_names_low[idx])
-+		return rdma_dev_names_low[idx];
-+
-+	high_idx = idx - ARRAY_SIZE(rdma_dev_names_low);
-+	if (high_idx <  ARRAY_SIZE(rdma_dev_names_high) &&
-+	    rdma_dev_names_high[high_idx])
-+		return rdma_dev_names_high[high_idx];
+Changes since v1:
+* Dropped the change to disentangle sock flags
+* Renamed sock_timeval to __kernel_sock_timeval
+* Updated a few comments
+* Added documentation changes
 
--	if (idx < ARRAY_SIZE(rdma_dev_names) && rdma_dev_names[idx])
--		return rdma_dev_names[idx];
- 	return "UNKNOWN";
- }
+Deepa Dinamani (8):
+  arch: Use asm-generic/socket.h when possible
+  sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+  arch: sparc: Override struct __kernel_old_timeval
+  socket: Use old_timeval types for socket timestamps
+  socket: Add struct __kernel_sock_timeval
+  socket: Add SO_TIMESTAMP[NS]_NEW
+  socket: Add SO_TIMESTAMPING_NEW
+  socket: Update timestamping Documentation
+
+ Documentation/networking/timestamping.txt |  43 ++++++-
+ arch/alpha/include/uapi/asm/socket.h      |  35 ++++--
+ arch/ia64/include/uapi/asm/Kbuild         |   1 +
+ arch/ia64/include/uapi/asm/socket.h       | 120 -------------------
+ arch/mips/include/uapi/asm/socket.h       |  34 ++++--
+ arch/parisc/include/uapi/asm/socket.h     |  34 ++++--
+ arch/s390/include/uapi/asm/Kbuild         |   1 +
+ arch/s390/include/uapi/asm/socket.h       | 117 ------------------
+ arch/sparc/include/uapi/asm/posix_types.h |  10 ++
+ arch/sparc/include/uapi/asm/socket.h      |  36 ++++--
+ arch/x86/include/uapi/asm/Kbuild          |   1 +
+ arch/x86/include/uapi/asm/socket.h        |   1 -
+ arch/xtensa/include/asm/Kbuild            |   1 +
+ arch/xtensa/include/uapi/asm/Kbuild       |   1 +
+ arch/xtensa/include/uapi/asm/socket.h     | 122 -------------------
+ drivers/isdn/mISDN/socket.c               |   2 +-
+ include/linux/skbuff.h                    |  24 +++-
+ include/linux/socket.h                    |   7 ++
+ include/net/sock.h                        |   1 +
+ include/uapi/asm-generic/socket.h         |  35 ++++--
+ include/uapi/linux/errqueue.h             |   4 +
+ include/uapi/linux/time.h                 |   7 ++
+ net/bluetooth/hci_sock.c                  |   4 +-
+ net/compat.c                              |  12 +-
+ net/core/scm.c                            |  27 +++++
+ net/core/sock.c                           | 138 ++++++++++++++--------
+ net/ipv4/tcp.c                            |  82 ++++++++-----
+ net/rds/af_rds.c                          |  10 +-
+ net/rds/recv.c                            |  18 ++-
+ net/rxrpc/local_object.c                  |   2 +-
+ net/smc/af_smc.c                          |   3 +-
+ net/socket.c                              |  64 +++++++---
+ 32 files changed, 478 insertions(+), 519 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/socket.h
+ delete mode 100644 arch/s390/include/uapi/asm/socket.h
+ delete mode 100644 arch/x86/include/uapi/asm/socket.h
+ delete mode 100644 arch/xtensa/include/uapi/asm/socket.h
+
+
+base-commit: b124b524bc97868cc2b5656e6ffa21a9b752b7e0
+-- 
+2.17.1
+
+Cc: chris@zankel.net
+Cc: deller@gmx.de
+Cc: dhowells@redhat.com
+Cc: fenghua.yu@intel.com
+Cc: isdn@linux-pingi.de
+Cc: jejb@parisc-linux.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: schwidefsky@de.ibm.com
+Cc: tglx@linutronix.de
+Cc: ubraun@linux.ibm.com
+
+Cc: linux-afs@lists.infradead.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: netdev@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
