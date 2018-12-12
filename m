@@ -1,67 +1,55 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH net-next] net/mlx5e: Remove set but not used variable
- 'upriv'
-Date: Wed, 12 Dec 2018 17:10:12 +0200
-Message-ID: <20181212151012.GD3933@mtr-leonro.mtl.com>
-References: <1544603633-170212-1-git-send-email-yuehaibing@huawei.com>
+Subject: Re: [PATCH net-next] net/mlx5: Remove duplicated include from
+ eswitch.c
+Date: Wed, 12 Dec 2018 17:10:42 +0200
+Message-ID: <20181212151042.GE3933@mtr-leonro.mtl.com>
+References: <1544601818-134205-1-git-send-email-yuehaibing@huawei.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Nx8xdmI2KD3LNVVP"
+        protocol="application/pgp-signature"; boundary="9AazSAFPVKSPmRXK"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1544603633-170212-1-git-send-email-yuehaibing@huawei.com>
+In-Reply-To: <1544601818-134205-1-git-send-email-yuehaibing@huawei.com>
 Sender: netdev-owner@vger.kernel.org
 To: YueHaibing <yuehaibing@huawei.com>
 Cc: Saeed Mahameed <saeedm@mellanox.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---Nx8xdmI2KD3LNVVP
+--9AazSAFPVKSPmRXK
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 12, 2018 at 08:33:53AM +0000, YueHaibing wrote:
-> Fixes gcc '-Wunused-but-set-variable' warning:
->
-> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c: In function 'mlx5e_vport_rep_load':
-> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:1490:21: warning:
->  variable 'upriv' set but not used [-Wunused-but-set-variable]
->
-> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c: In function 'mlx5e_vport_rep_unload':
-> drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:1557:21: warning:
->  variable 'upriv' set but not used [-Wunused-but-set-variable]
->
-> It not used any more since commit ef381359e3a8 ("net/mlx5e: Replace egdev with
-> indirect block notifications"). Also remove unused variable 'uplink_rpriv'
-> after this change.
+On Wed, Dec 12, 2018 at 08:03:38AM +0000, YueHaibing wrote:
+> Remove duplicated include.
 >
 > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 > ---
->  drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 10 ----------
->  1 file changed, 10 deletions(-)
+>  drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 1 -
+>  1 file changed, 1 deletion(-)
 >
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---Nx8xdmI2KD3LNVVP
+--9AazSAFPVKSPmRXK
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcESTUAAoJEORje4g2clinQeMQAJoQAMYYHbstWhyARNEiH8W2
-g/6HcJNkXaxvpW8QmxEco0qf3cCBA5ehRZsrsqrIQtDsdPnviatcgugjVJKsRMBI
-u8kUL6hg6VOBK1k9VgYOAl8QBsTyDX5h+db0C+A5CJEA7z8iGjptbunLAekH11vO
-Mz+414C33vG9e3gfKcWntLUt70RxXR/FMUajlUQoHoMP0mIbUc9z/6+DPLhKZUxB
-nY/wdiXIzTfrOrhW1cHMdJUZ6inDz2rAyL24ZIiWFpenJIr/0l8BkPomIepfogJj
-d6m3mmtYaXKWtNNT8C+3lsvyzZQ+N9PKSckzC+vbfcifTqEpQvtt23ZtGsrpNUln
-OiLaC2L8qPRxGlODjYpJ1LxgcKKbJFofUbpAx3eWTMgGbGq99Sajpl3fhgcT+4GE
-Lcxeb0L6iyejoqCw/So9DXBjj7PfQRO4v5RCQfce0as98AnKnShtmC74LelCrkjP
-olD1g23Hjko0DDkrWGxe5GMwfvyD2lQFSxwEMKGEwawhlnaz4zVKt21TgVk4OjU6
-PeHzph8acbIHKInJfVZZnYIN99fm+/nwg67iBePfz4GQo+c0p54W65GSngKoEtGS
-FX6B36DV/OdUzfkuTqg8I2em3kKXDdM8xXC046I0xDR7AjDBzbkvaKy5T1FyyxQL
-/NvFCcGobl/3vkZGHqo6
-=FJDk
+iQIcBAEBAgAGBQJcESTyAAoJEORje4g2clinBBMP/2sB2wGTghrF69ldjECJOFQg
+PjtG2varPBEqLzJIt/0tvAa7rMH5nHd9ji+yp8DWwh5WbAqhWibq70CKykqdrZnh
+NQD6fDt58D796SWbCzQdjNYLb1ECJ+M3XWnriBAkF8JImYoFCVn/mkQ6L3sGb4lt
+lcKCCpaF2uZQ0OQW23blvv1QX66cK6c8ErQzJOhvdkLepoOkKpubZANgALy/6snf
+Ki2f/QmsmAqk0wvb0TE5YCyN34F/fsWTg8/ATdIc7bE+vq3pV6W+s1SV5cClDfct
+GmbBmLOrBotNd/Ko+JwUvQuHhV+D2wBEFpwQPRglYnG/BAnJj8IC7N6ziTZw3C6e
+hhR0iHwy2SsIDfPjwxG+Ys7uIT/PPP5g1OKzyy6IWWLZRXeW0dC/kfh/qIpMLX+S
+cuP6+u/zqinm4rZyOSgosQ+4j651lb5dDZobn6iks7ZtarE86X4CLUiL3D/cjNxt
+eeHGQaL3eGP+yHe3tVKN/RlpnyZz/Gq0RcbITtnrRPz2WlryEmKZFvUTm59ik1we
+Ge5uyr0KRyHa1PrvfGy4UMZ83XynWOkyYNzoN5jkyFc/sj8r3nzm52ReD0Mwa53A
+z5DkmHf4J3sZcjflYakRrD7+pA78ZIddMoAnPkqy64gZqg5yvIzaLpJuMuuRLTTR
+b72EYcDWjOYNJvKpXgUy
+=e8iq
 -----END PGP SIGNATURE-----
 
---Nx8xdmI2KD3LNVVP--
+--9AazSAFPVKSPmRXK--
