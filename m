@@ -1,45 +1,55 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 2/6] IB/mlx5: Unify e-switch representors load
- approach between uplink and VFs
-Date: Thu, 13 Dec 2018 03:41:25 +0000
-Message-ID: <4cb2dd2bf96693e09351cabb2625158281b7e0f4.camel@mellanox.com>
-References: <20181213031141.12783-1-saeedm@mellanox.com>
-         <20181213031141.12783-3-saeedm@mellanox.com>
-         <20181213033701.GB2883@mellanox.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 49/73] net/mlx4_en: Fix build break when CONFIG_INET is off
+Date: Wed, 12 Dec 2018 23:28:14 -0500
+Message-ID: <20181213042838.75160-49-sashal@kernel.org>
+References: <20181213042838.75160-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181213033701.GB2883@mellanox.com>
-Content-Language: en-US
-Content-ID: <C93DE5898CA7824FA913E3B0022D5481@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTEyLTEzIGF0IDAzOjM3ICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFdlZCwgRGVjIDEyLCAyMDE4IGF0IDA3OjExOjM3UE0gLTA4MDAsIFNhZWVkIE1haGFt
-ZWVkIHdyb3RlOg0KPiA+IEZyb206IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4g
-PiANCj4gPiBXaGVuIGluIHN3aXRjaGRldiBtb2RlIGFuZCB0aGUgYWRkIGZ1bmN0aW9uIGlzIGNh
-bGxlZCBieSB0aGUgY29yZQ0KPiA+IGxldmVsIGRyaXZlciwgbWFrZSBzdXJlIHdlIG9ubHkgcmVn
-aXN0ZXIgdGhlIGNhbGxiYWNrcywgYnV0IGRvbid0DQo+ID4gY3JlYXRlIHRoZSBtbHg1IElCIGRl
-dmljZSBvciBpbml0aWFsaXplIGFueXRoaW5nLiBXaXRoIHRoaXMgY2hhbmdlDQo+ID4gYWxsIHRo
-ZSBJQiBkZXZpY2VzIGluIHN3aXRjaGRldiBtb2RlIGFyZSBjcmVhdGVkIG9ubHkgb25jZSB0aGUg
-bG9hZA0KPiA+IGNhbGxiYWNrIGlzIGludm9rZWQgYnkgdGhlIGUtc3dpdGNoIGNvcmUgc3ViLW1v
-ZHVsZS4gVGhpcyBmb2xsb3dzDQo+ID4gdGhlIGRlc2lnbiBwYXJhZGlnbSB1bmRlciB3aGljaCB0
-aGUgYWxsIHRoZSBFdGggcmVwcmVzZW50b3JzIG11c3QNCj4gPiBiZSBsb2FkZWQgYmVmb3JlIGFu
-eSBvZiBJQiByZXBycyBpcyBsb2FkZWQuDQo+ID4gDQo+ID4gU2lnbmVkLW9mZi1ieTogTWFyayBC
-bG9jaCA8bWFya2JAbWVsbGFub3guY29tPg0KPiA+IEFja2VkLWJ5OiBPciBHZXJsaXR6IDxvZ2Vy
-bGl0ekBtZWxsYW5veC5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IExlb24gUm9tYW5vdnNreSA8bGVv
-bnJvQG1lbGxhbm94LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2Fl
-ZWRtQG1lbGxhbm94LmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
-eDUvaWJfcmVwLmMgIHwgMTEgKysrKysrKysrKy0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3
-L21seDUvbWFpbi5jICAgIHwgMjkgKysrKysrKysrLS0tLS0tLS0tLS0tLS0tDQo+ID4gLS0tLQ0K
-PiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tbHg1X2liLmggfCAgMSAtDQo+ID4gIDMg
-ZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pDQo+IA0KPiBX
-aHkgaXMgdGhpcyBnb2luZyBpbiB0aGUgc2hhcmVkIGJyYW5jaD8gVGhpcyBsb29rcyBsaWtlIGFu
-IElCIHBhdGNoPz8NCj4gDQoNClNvbWUgdXBjb21pbmcgY2hhbmdlcyB0byBzdXBwb3J0IHVwbGlu
-ayByZXByZXNlbnRvciB3aWxsIGRlbWFuZCB0aGlzDQpyZWZhY3RvcmluZyBpbiB0aGUgbWx4NSBJ
-QiBkcml2ZXIsIG90aGVyd2lzZSB3ZSB3aWxsIGhhdmUgYSBicm9rZW4gcmRtYQ0KZXN3aXRjaCBy
-ZXByZXNlbnRvcnMgdW50aWxsIHRoZSB0d28gdHJlZXMgYXJlIG1lcmdlZC4NCg0KPiBKYXNvbg0K
+From: Saeed Mahameed <saeedm@mellanox.com>
+
+[ Upstream commit 1b603f9e4313348608f256b564ed6e3d9e67f377 ]
+
+MLX4_EN depends on NETDEVICES, ETHERNET and INET Kconfigs.
+Make sure they are listed in MLX4_EN Kconfig dependencies.
+
+This fixes the following build break:
+
+drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: ‘struct iphdr’ declared inside parameter list [enabled by default]
+struct iphdr *iph)
+^
+drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
+drivers/net/ethernet/mellanox/mlx4/en_rx.c: In function ‘get_fixed_ipv4_csum’:
+drivers/net/ethernet/mellanox/mlx4/en_rx.c:586:20: error: dereferencing pointer to incomplete type
+_u8 ipproto = iph->protocol;
+
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx4/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/Kconfig b/drivers/net/ethernet/mellanox/mlx4/Kconfig
+index 36054e6fb9d3..f200b8c420d5 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/Kconfig
++++ b/drivers/net/ethernet/mellanox/mlx4/Kconfig
+@@ -5,7 +5,7 @@
+ config MLX4_EN
+ 	tristate "Mellanox Technologies 1/10/40Gbit Ethernet support"
+ 	depends on MAY_USE_DEVLINK
+-	depends on PCI
++	depends on PCI && NETDEVICES && ETHERNET && INET
+ 	select MLX4_CORE
+ 	imply PTP_1588_CLOCK
+ 	---help---
+-- 
+2.19.1
