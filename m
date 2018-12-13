@@ -1,14 +1,14 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 23/34] net/mlx4_en: Fix build break when CONFIG_INET is off
-Date: Wed, 12 Dec 2018 23:31:49 -0500
-Message-ID: <20181213043200.76295-23-sashal@kernel.org>
-References: <20181213043200.76295-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 28/41] net/mlx4_en: Fix build break when CONFIG_INET is off
+Date: Wed, 12 Dec 2018 23:30:41 -0500
+Message-ID: <20181213043054.75891-28-sashal@kernel.org>
+References: <20181213043054.75891-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181213043200.76295-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Saeed Mahameed <saeedm@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
@@ -39,7 +39,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx4/Kconfig b/drivers/net/ethernet/mellanox/mlx4/Kconfig
-index 5098e7f21987..a0eb4e4bc525 100644
+index 22b1cc012bc9..c1a39be0dbe7 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/Kconfig
 +++ b/drivers/net/ethernet/mellanox/mlx4/Kconfig
 @@ -5,7 +5,7 @@
@@ -49,7 +49,7 @@ index 5098e7f21987..a0eb4e4bc525 100644
 -	depends on PCI
 +	depends on PCI && NETDEVICES && ETHERNET && INET
  	select MLX4_CORE
- 	select PTP_1588_CLOCK
+ 	imply PTP_1588_CLOCK
  	---help---
 -- 
 2.19.1
