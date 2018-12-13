@@ -1,41 +1,51 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH net-next] net/mlx5e: Remove set but not used variable
- 'upriv'
-Date: Thu, 13 Dec 2018 01:24:06 +0000
-Message-ID: <78a81cd9ded813a3838a6cfcbe87c84d4fd1821b.camel@mellanox.com>
-References: <1544603633-170212-1-git-send-email-yuehaibing@huawei.com>
-         <20181212151012.GD3933@mtr-leonro.mtl.com>
+Subject: [PATCH mlx5-next 0/6] mlx5 updates for shared branch 2018-12-12
+Date: Wed, 12 Dec 2018 19:11:35 -0800
+Message-ID: <20181213031141.12783-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181212151012.GD3933@mtr-leonro.mtl.com>
-Content-Language: en-US
-Content-ID: <0E18D675DBEBAE42810649397E7B2290@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "yuehaibing@huawei.com" <yuehaibing@huawei.com>, "leon@kernel.org" <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTEyLTEyIGF0IDE3OjEwICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFdlZCwgRGVjIDEyLCAyMDE4IGF0IDA4OjMzOjUzQU0gKzAwMDAsIFl1ZUhhaWJpbmcg
-d3JvdGU6DQo+ID4gRml4ZXMgZ2NjICctV3VudXNlZC1idXQtc2V0LXZhcmlhYmxlJyB3YXJuaW5n
-Og0KPiA+IA0KPiA+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9y
-ZXAuYzogSW4gZnVuY3Rpb24NCj4gPiAnbWx4NWVfdnBvcnRfcmVwX2xvYWQnOg0KPiA+IGRyaXZl
-cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9yZXAuYzoxNDkwOjIxOiB3YXJu
-aW5nOg0KPiA+ICB2YXJpYWJsZSAndXByaXYnIHNldCBidXQgbm90IHVzZWQgWy1XdW51c2VkLWJ1
-dC1zZXQtdmFyaWFibGVdDQo+ID4gDQo+ID4gZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
-bWx4NS9jb3JlL2VuX3JlcC5jOiBJbiBmdW5jdGlvbg0KPiA+ICdtbHg1ZV92cG9ydF9yZXBfdW5s
-b2FkJzoNCj4gPiBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fcmVw
-LmM6MTU1NzoyMTogd2FybmluZzoNCj4gPiAgdmFyaWFibGUgJ3Vwcml2JyBzZXQgYnV0IG5vdCB1
-c2VkIFstV3VudXNlZC1idXQtc2V0LXZhcmlhYmxlXQ0KPiA+IA0KPiA+IEl0IG5vdCB1c2VkIGFu
-eSBtb3JlIHNpbmNlIGNvbW1pdCBlZjM4MTM1OWUzYTggKCJuZXQvbWx4NWU6IFJlcGxhY2UNCj4g
-PiBlZ2RldiB3aXRoDQo+ID4gaW5kaXJlY3QgYmxvY2sgbm90aWZpY2F0aW9ucyIpLiBBbHNvIHJl
-bW92ZSB1bnVzZWQgdmFyaWFibGUNCj4gPiAndXBsaW5rX3Jwcml2Jw0KPiA+IGFmdGVyIHRoaXMg
-Y2hhbmdlLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFl1ZUhhaWJpbmcgPHl1ZWhhaWJpbmdA
-aHVhd2VpLmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
-bWx4NS9jb3JlL2VuX3JlcC5jIHwgMTAgLS0tLS0tLS0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwg
-MTAgZGVsZXRpb25zKC0pDQo+ID4gDQo+IA0KPiBUaGFua3MsDQo+IFJldmlld2VkLWJ5OiBMZW9u
-IFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQoNCkFja2VkLWJ5OiBTYWVlZCBNYWhh
-bWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCg0KRGF2ZSBhcyBhZ3JlZWQsIHlvdSBjYW4gYXBw
-bHkgdGhpcyBwYXRjaCB0byBuZXQtbmV4dCBkaXJlY3RseS4NCg0KVGhhbmtzLA0KU2FlZWQuDQo=
+Hi,
+
+This series includes updates to mlx5 core driver for the shared
+mlx5-next branch.
+
+1) From Mark Bloch, Unify e-switch representors load approach in mlx5_ib
+2) From Shahar Klein, Flow counters affinity bits for lag
+3) From Roy Dayan, Lag affinity log and cleanup
+4) From Saeed Mahameed, A cleanup patch for mlx5_ifc.h
+
+Thanks,
+Saeed.
+
+---
+
+Mark Bloch (1):
+  IB/mlx5: Unify e-switch representors load approach between uplink and
+    VFs
+
+Roi Dayan (2):
+  net/mlx5: Split the activate lag function into two routines
+  net/mlx5: Add lag affinity info to log
+
+Saeed Mahameed (1):
+  net/mlx5: Use lowercase 'X' for hex values
+
+Shahar Klein (2):
+  net/mlx5: E-Switch, Introduce flow counter affinity
+  net/mlx5: Fold the modify lag code into function
+
+ drivers/infiniband/hw/mlx5/ib_rep.c           | 11 +++-
+ drivers/infiniband/hw/mlx5/main.c             | 29 +++------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  1 -
+ drivers/net/ethernet/mellanox/mlx5/core/lag.c | 59 +++++++++++++------
+ include/linux/mlx5/mlx5_ifc.h                 | 24 +++++---
+ 5 files changed, 74 insertions(+), 50 deletions(-)
+
+-- 
+2.19.2
