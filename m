@@ -1,55 +1,61 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 28/41] net/mlx4_en: Fix build break when CONFIG_INET is off
-Date: Wed, 12 Dec 2018 23:30:41 -0500
-Message-ID: <20181213043054.75891-28-sashal@kernel.org>
-References: <20181213043054.75891-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 48/73] net/mlx4_en: Change min MTU size to ETH_MIN_MTU
+Date: Wed, 12 Dec 2018 23:28:13 -0500
+Message-ID: <20181213042838.75160-48-sashal@kernel.org>
+References: <20181213042838.75160-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+Sender: netdev-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Eran Ben Elisha <eranbe@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: Eran Ben Elisha <eranbe@mellanox.com>
 
-[ Upstream commit 1b603f9e4313348608f256b564ed6e3d9e67f377 ]
+[ Upstream commit 24be19e47779d604d1492c114459dca9a92acf78 ]
 
-MLX4_EN depends on NETDEVICES, ETHERNET and INET Kconfigs.
-Make sure they are listed in MLX4_EN Kconfig dependencies.
+NIC driver minimal MTU size shall be set to ETH_MIN_MTU, as defined in
+the RFC791 and in the network stack. Remove old mlx4_en only define for
+it, which was set to wrong value.
 
-This fixes the following build break:
-
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: ‘struct iphdr’ declared inside parameter list [enabled by default]
-struct iphdr *iph)
-^
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-drivers/net/ethernet/mellanox/mlx4/en_rx.c: In function ‘get_fixed_ipv4_csum’:
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:586:20: error: dereferencing pointer to incomplete type
-_u8 ipproto = iph->protocol;
-
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Fixes: b80f71f5816f ("ethernet/mellanox: use core min/max MTU checking")
+Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
 Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 4 ++--
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   | 1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/Kconfig b/drivers/net/ethernet/mellanox/mlx4/Kconfig
-index 22b1cc012bc9..c1a39be0dbe7 100644
---- a/drivers/net/ethernet/mellanox/mlx4/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx4/Kconfig
-@@ -5,7 +5,7 @@
- config MLX4_EN
- 	tristate "Mellanox Technologies 1/10/40Gbit Ethernet support"
- 	depends on MAY_USE_DEVLINK
--	depends on PCI
-+	depends on PCI && NETDEVICES && ETHERNET && INET
- 	select MLX4_CORE
- 	imply PTP_1588_CLOCK
- 	---help---
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index fe49384eba48..0d7fd3f043cf 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -3494,8 +3494,8 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 		dev->gso_partial_features = NETIF_F_GSO_UDP_TUNNEL_CSUM;
+ 	}
+ 
+-	/* MTU range: 46 - hw-specific max */
+-	dev->min_mtu = MLX4_EN_MIN_MTU;
++	/* MTU range: 68 - hw-specific max */
++	dev->min_mtu = ETH_MIN_MTU;
+ 	dev->max_mtu = priv->max_mtu;
+ 
+ 	mdev->pndev[port] = dev;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+index c3228b89df46..240f9c9ca943 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -161,7 +161,6 @@
+ #define MLX4_SELFTEST_LB_MIN_MTU (MLX4_LOOPBACK_TEST_PAYLOAD + NET_IP_ALIGN + \
+ 				  ETH_HLEN + PREAMBLE_LEN)
+ 
+-#define MLX4_EN_MIN_MTU		46
+ /* VLAN_HLEN is added twice,to support skb vlan tagged with multiple
+  * headers. (For example: ETH_P_8021Q and ETH_P_8021AD).
+  */
 -- 
 2.19.1
