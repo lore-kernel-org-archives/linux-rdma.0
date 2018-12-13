@@ -1,55 +1,46 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 49/73] net/mlx4_en: Fix build break when CONFIG_INET is off
-Date: Wed, 12 Dec 2018 23:28:14 -0500
-Message-ID: <20181213042838.75160-49-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 73/73] net/mlx4_core: Correctly set PFC param if global pause is turned off.
+Date: Wed, 12 Dec 2018 23:28:38 -0500
+Message-ID: <20181213042838.75160-73-sashal@kernel.org>
 References: <20181213042838.75160-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Tarick Bedeir <tarick@google.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: Tarick Bedeir <tarick@google.com>
 
-[ Upstream commit 1b603f9e4313348608f256b564ed6e3d9e67f377 ]
+[ Upstream commit bd5122cd1e0644d8bd8dd84517c932773e999766 ]
 
-MLX4_EN depends on NETDEVICES, ETHERNET and INET Kconfigs.
-Make sure they are listed in MLX4_EN Kconfig dependencies.
+rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
 
-This fixes the following build break:
-
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: ‘struct iphdr’ declared inside parameter list [enabled by default]
-struct iphdr *iph)
-^
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:582:18: warning: its scope is only this definition or declaration, which is probably not what you want [enabled by default]
-drivers/net/ethernet/mellanox/mlx4/en_rx.c: In function ‘get_fixed_ipv4_csum’:
-drivers/net/ethernet/mellanox/mlx4/en_rx.c:586:20: error: dereferencing pointer to incomplete type
-_u8 ipproto = iph->protocol;
-
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
+Signed-off-by: Tarick Bedeir <tarick@google.com>
+Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx4/en_ethtool.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/Kconfig b/drivers/net/ethernet/mellanox/mlx4/Kconfig
-index 36054e6fb9d3..f200b8c420d5 100644
---- a/drivers/net/ethernet/mellanox/mlx4/Kconfig
-+++ b/drivers/net/ethernet/mellanox/mlx4/Kconfig
-@@ -5,7 +5,7 @@
- config MLX4_EN
- 	tristate "Mellanox Technologies 1/10/40Gbit Ethernet support"
- 	depends on MAY_USE_DEVLINK
--	depends on PCI
-+	depends on PCI && NETDEVICES && ETHERNET && INET
- 	select MLX4_CORE
- 	imply PTP_1588_CLOCK
- 	---help---
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+index f11b45001cad..d290f0787dfb 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
+@@ -1084,8 +1084,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
+ 
+ 	tx_pause = !!(pause->tx_pause);
+ 	rx_pause = !!(pause->rx_pause);
+-	rx_ppp = priv->prof->rx_ppp && !(tx_pause || rx_pause);
+-	tx_ppp = priv->prof->tx_ppp && !(tx_pause || rx_pause);
++	rx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->rx_ppp;
++	tx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->tx_ppp;
+ 
+ 	err = mlx4_SET_PORT_general(mdev->dev, priv->port,
+ 				    priv->rx_skb_size + ETH_FCS_LEN,
 -- 
 2.19.1
