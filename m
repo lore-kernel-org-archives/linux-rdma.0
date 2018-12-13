@@ -1,22 +1,41 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH net-next] net/mlx5: Remove duplicated include from
- eswitch.c
-Date: Thu, 13 Dec 2018 01:17:21 +0000
-Message-ID: <7eb0844a5f1d6c5723ba63f9f87e5813c2170c1b.camel@mellanox.com>
-References: <1544601818-134205-1-git-send-email-yuehaibing@huawei.com>
+Subject: Re: [PATCH net-next] net/mlx5e: Remove set but not used variable
+ 'upriv'
+Date: Thu, 13 Dec 2018 01:24:06 +0000
+Message-ID: <78a81cd9ded813a3838a6cfcbe87c84d4fd1821b.camel@mellanox.com>
+References: <1544603633-170212-1-git-send-email-yuehaibing@huawei.com>
+         <20181212151012.GD3933@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1544601818-134205-1-git-send-email-yuehaibing@huawei.com>
+In-Reply-To: <20181212151012.GD3933@mtr-leonro.mtl.com>
 Content-Language: en-US
-Content-ID: <1EA52787AE1330448D5A2C973459A544@eurprd05.prod.outlook.com>
+Content-ID: <0E18D675DBEBAE42810649397E7B2290@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
 To: "yuehaibing@huawei.com" <yuehaibing@huawei.com>, "leon@kernel.org" <leon@kernel.org>
 Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE4LTEyLTEyIGF0IDA4OjAzICswMDAwLCBZdWVIYWliaW5nIHdyb3RlOg0KPiBS
-ZW1vdmUgZHVwbGljYXRlZCBpbmNsdWRlLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogWXVlSGFpYmlu
-ZyA8eXVlaGFpYmluZ0BodWF3ZWkuY29tPg0KPiANCg0KQXBwbGllZCB0byBtbHg1LW5leHQNCg0K
-VGhhbmtzIQ0KDQo=
+T24gV2VkLCAyMDE4LTEyLTEyIGF0IDE3OjEwICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFdlZCwgRGVjIDEyLCAyMDE4IGF0IDA4OjMzOjUzQU0gKzAwMDAsIFl1ZUhhaWJpbmcg
+d3JvdGU6DQo+ID4gRml4ZXMgZ2NjICctV3VudXNlZC1idXQtc2V0LXZhcmlhYmxlJyB3YXJuaW5n
+Og0KPiA+IA0KPiA+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9y
+ZXAuYzogSW4gZnVuY3Rpb24NCj4gPiAnbWx4NWVfdnBvcnRfcmVwX2xvYWQnOg0KPiA+IGRyaXZl
+cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9yZXAuYzoxNDkwOjIxOiB3YXJu
+aW5nOg0KPiA+ICB2YXJpYWJsZSAndXByaXYnIHNldCBidXQgbm90IHVzZWQgWy1XdW51c2VkLWJ1
+dC1zZXQtdmFyaWFibGVdDQo+ID4gDQo+ID4gZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4NS9jb3JlL2VuX3JlcC5jOiBJbiBmdW5jdGlvbg0KPiA+ICdtbHg1ZV92cG9ydF9yZXBfdW5s
+b2FkJzoNCj4gPiBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fcmVw
+LmM6MTU1NzoyMTogd2FybmluZzoNCj4gPiAgdmFyaWFibGUgJ3Vwcml2JyBzZXQgYnV0IG5vdCB1
+c2VkIFstV3VudXNlZC1idXQtc2V0LXZhcmlhYmxlXQ0KPiA+IA0KPiA+IEl0IG5vdCB1c2VkIGFu
+eSBtb3JlIHNpbmNlIGNvbW1pdCBlZjM4MTM1OWUzYTggKCJuZXQvbWx4NWU6IFJlcGxhY2UNCj4g
+PiBlZ2RldiB3aXRoDQo+ID4gaW5kaXJlY3QgYmxvY2sgbm90aWZpY2F0aW9ucyIpLiBBbHNvIHJl
+bW92ZSB1bnVzZWQgdmFyaWFibGUNCj4gPiAndXBsaW5rX3Jwcml2Jw0KPiA+IGFmdGVyIHRoaXMg
+Y2hhbmdlLg0KPiA+IA0KPiA+IFNpZ25lZC1vZmYtYnk6IFl1ZUhhaWJpbmcgPHl1ZWhhaWJpbmdA
+aHVhd2VpLmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4NS9jb3JlL2VuX3JlcC5jIHwgMTAgLS0tLS0tLS0tLQ0KPiA+ICAxIGZpbGUgY2hhbmdlZCwg
+MTAgZGVsZXRpb25zKC0pDQo+ID4gDQo+IA0KPiBUaGFua3MsDQo+IFJldmlld2VkLWJ5OiBMZW9u
+IFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQoNCkFja2VkLWJ5OiBTYWVlZCBNYWhh
+bWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCg0KRGF2ZSBhcyBhZ3JlZWQsIHlvdSBjYW4gYXBw
+bHkgdGhpcyBwYXRjaCB0byBuZXQtbmV4dCBkaXJlY3RseS4NCg0KVGhhbmtzLA0KU2FlZWQuDQo=
