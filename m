@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 41/41] net/mlx4_core: Correctly set PFC param if global pause is turned off.
-Date: Wed, 12 Dec 2018 23:30:54 -0500
-Message-ID: <20181213043054.75891-41-sashal@kernel.org>
-References: <20181213043054.75891-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 34/34] net/mlx4_core: Correctly set PFC param if global pause is turned off.
+Date: Wed, 12 Dec 2018 23:32:00 -0500
+Message-ID: <20181213043200.76295-34-sashal@kernel.org>
+References: <20181213043200.76295-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181213043200.76295-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tarick Bedeir <tarick@google.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
@@ -28,10 +28,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-index 5fe56dc4cfae..5363cee88a0a 100644
+index 9a4c4f8281bd..8a9a332d78b4 100644
 --- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
 +++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-@@ -1070,8 +1070,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
+@@ -1027,8 +1027,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
  
  	tx_pause = !!(pause->tx_pause);
  	rx_pause = !!(pause->rx_pause);
