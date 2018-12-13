@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 3/6] net/mlx5: E-Switch, Introduce flow counter affinity
-Date: Wed, 12 Dec 2018 19:11:38 -0800
-Message-ID: <20181213031141.12783-4-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 2/6] IB/mlx5: Unify e-switch representors load approach between uplink and VFs
+Date: Wed, 12 Dec 2018 19:11:37 -0800
+Message-ID: <20181213031141.12783-3-saeedm@mellanox.com>
 References: <20181213031141.12783-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,53 +9,143 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20181213031141.12783-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leonro@mellanox.com>, saeedm@mellanox.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Shahar Klein <shahark@mellanox.com>, Roi Dayan <roid@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Mark Bloch <markb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Shahar Klein <shahark@mellanox.com>
+From: Mark Bloch <markb@mellanox.com>
 
-This dictates the device affinity for eswitch flow counters, set by the FW
-according to the HW device capabilities.
+When in switchdev mode and the add function is called by the core
+level driver, make sure we only register the callbacks, but don't
+create the mlx5 IB device or initialize anything. With this change
+all the IB devices in switchdev mode are created only once the load
+callback is invoked by the e-switch core sub-module. This follows
+the design paradigm under which the all the Eth representors must
+be loaded before any of IB reprs is loaded.
 
-Under "source eswitch" affinity, the counter should be allocated on the
-device related to the source vport in the match. This covers both non
-merged e-switch mode as well as old FW that does not advertise this cap.
-
-Under "flow eswitch" affinity, the counter should be allocated on the
-device where the eswitch rule is set.
-
-Signed-off-by: Shahar Klein <shahark@mellanox.com>
-Signed-off-by: Roi Dayan <roid@mellanox.com>
-Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+Signed-off-by: Mark Bloch <markb@mellanox.com>
+Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/ib_rep.c  | 11 ++++++++++-
+ drivers/infiniband/hw/mlx5/main.c    | 29 +++++++++-------------------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
+ 3 files changed, 19 insertions(+), 22 deletions(-)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index a56bd3b1f579..f48d7ee345ff 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -608,13 +608,19 @@ struct mlx5_ifc_flow_table_eswitch_cap_bits {
- 	u8      reserved_at_800[0x7800];
+diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
+index 8a682d86d634..46a9ddc8ca56 100644
+--- a/drivers/infiniband/hw/mlx5/ib_rep.c
++++ b/drivers/infiniband/hw/mlx5/ib_rep.c
+@@ -48,13 +48,21 @@ static const struct mlx5_ib_profile rep_profile = {
+ static int
+ mlx5_ib_nic_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ {
++	struct mlx5_ib_dev *ibdev;
++
++	ibdev = mlx5_ib_rep_to_dev(rep);
++	if (!__mlx5_ib_add(ibdev, ibdev->profile))
++		return -EINVAL;
+ 	return 0;
+ }
+ 
+ static void
+ mlx5_ib_nic_rep_unload(struct mlx5_eswitch_rep *rep)
+ {
+-	rep->rep_if[REP_IB].priv = NULL;
++	struct mlx5_ib_dev *ibdev;
++
++	ibdev = mlx5_ib_rep_to_dev(rep);
++	__mlx5_ib_remove(ibdev, ibdev->profile, MLX5_IB_STAGE_MAX);
+ }
+ 
+ static int
+@@ -89,6 +97,7 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ 	dev = mlx5_ib_rep_to_dev(rep);
+ 	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
+ 	rep->rep_if[REP_IB].priv = NULL;
++	ib_dealloc_device(&dev->ib_dev);
+ }
+ 
+ static void *mlx5_ib_vport_get_proto_dev(struct mlx5_eswitch_rep *rep)
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 2560996fce79..4a4200a88957 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -6214,18 +6214,6 @@ static void mlx5_ib_stage_delay_drop_cleanup(struct mlx5_ib_dev *dev)
+ 	cancel_delay_drop(dev);
+ }
+ 
+-static int mlx5_ib_stage_rep_reg_init(struct mlx5_ib_dev *dev)
+-{
+-	mlx5_ib_register_vport_reps(dev);
+-
+-	return 0;
+-}
+-
+-static void mlx5_ib_stage_rep_reg_cleanup(struct mlx5_ib_dev *dev)
+-{
+-	mlx5_ib_unregister_vport_reps(dev);
+-}
+-
+ static int mlx5_ib_stage_dev_notifier_init(struct mlx5_ib_dev *dev)
+ {
+ 	dev->mdev_events.notifier_call = mlx5_ib_event;
+@@ -6264,8 +6252,6 @@ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
+ 		if (profile->stage[stage].cleanup)
+ 			profile->stage[stage].cleanup(dev);
+ 	}
+-
+-	ib_dealloc_device((struct ib_device *)dev);
+ }
+ 
+ void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
+@@ -6399,9 +6385,6 @@ static const struct mlx5_ib_profile nic_rep_profile = {
+ 	STAGE_CREATE(MLX5_IB_STAGE_POST_IB_REG_UMR,
+ 		     mlx5_ib_stage_post_ib_reg_umr_init,
+ 		     NULL),
+-	STAGE_CREATE(MLX5_IB_STAGE_REP_REG,
+-		     mlx5_ib_stage_rep_reg_init,
+-		     mlx5_ib_stage_rep_reg_cleanup),
  };
  
-+enum {
-+	MLX5_COUNTER_SOURCE_ESWITCH = 0x0,
-+	MLX5_COUNTER_FLOW_ESWITCH   = 0x1,
-+};
+ static void *mlx5_ib_add_slave_port(struct mlx5_core_dev *mdev)
+@@ -6469,8 +6452,9 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
+ 	if (MLX5_ESWITCH_MANAGER(mdev) &&
+ 	    mlx5_ib_eswitch_mode(mdev->priv.eswitch) == SRIOV_OFFLOADS) {
+ 		dev->rep = mlx5_ib_vport_rep(mdev->priv.eswitch, 0);
+-
+-		return __mlx5_ib_add(dev, &nic_rep_profile);
++		dev->profile = &nic_rep_profile;
++		mlx5_ib_register_vport_reps(dev);
++		return dev;
+ 	}
+ 
+ 	return __mlx5_ib_add(dev, &pf_profile);
+@@ -6492,7 +6476,12 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
+ 	}
+ 
+ 	dev = context;
+-	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
++	if (dev->profile == &nic_rep_profile)
++		mlx5_ib_unregister_vport_reps(dev);
++	else
++		__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
 +
- struct mlx5_ifc_e_switch_cap_bits {
- 	u8         vport_svlan_strip[0x1];
- 	u8         vport_cvlan_strip[0x1];
- 	u8         vport_svlan_insert[0x1];
- 	u8         vport_cvlan_insert_if_not_exist[0x1];
- 	u8         vport_cvlan_insert_overwrite[0x1];
--	u8         reserved_at_5[0x18];
-+	u8         reserved_at_5[0x17];
-+	u8         counter_eswitch_affinity[0x1];
- 	u8         merged_eswitch[0x1];
- 	u8         nic_vport_node_guid_modify[0x1];
- 	u8         nic_vport_port_guid_modify[0x1];
++	ib_dealloc_device((struct ib_device *)dev);
+ }
+ 
+ static struct mlx5_interface mlx5_ib_interface = {
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 861b68f2e330..c89b3b44b22e 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -790,7 +790,6 @@ enum mlx5_ib_stages {
+ 	MLX5_IB_STAGE_POST_IB_REG_UMR,
+ 	MLX5_IB_STAGE_DELAY_DROP,
+ 	MLX5_IB_STAGE_CLASS_ATTR,
+-	MLX5_IB_STAGE_REP_REG,
+ 	MLX5_IB_STAGE_MAX,
+ };
+ 
 -- 
 2.19.2
