@@ -1,43 +1,45 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
 Subject: Re: [PATCH mlx5-next 2/6] IB/mlx5: Unify e-switch representors load
  approach between uplink and VFs
-Date: Thu, 13 Dec 2018 03:37:06 +0000
-Message-ID: <20181213033701.GB2883@mellanox.com>
+Date: Thu, 13 Dec 2018 03:41:25 +0000
+Message-ID: <4cb2dd2bf96693e09351cabb2625158281b7e0f4.camel@mellanox.com>
 References: <20181213031141.12783-1-saeedm@mellanox.com>
- <20181213031141.12783-3-saeedm@mellanox.com>
+         <20181213031141.12783-3-saeedm@mellanox.com>
+         <20181213033701.GB2883@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181213031141.12783-3-saeedm@mellanox.com>
+In-Reply-To: <20181213033701.GB2883@mellanox.com>
 Content-Language: en-US
-Content-ID: <144C17A2D044484CB6A1B86BCCEF5CC5@eurprd05.prod.outlook.com>
+Content-ID: <C93DE5898CA7824FA913E3B0022D5481@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 07:11:37PM -0800, Saeed Mahameed wrote:
-> From: Mark Bloch <markb@mellanox.com>
->=20
-> When in switchdev mode and the add function is called by the core
-> level driver, make sure we only register the callbacks, but don't
-> create the mlx5 IB device or initialize anything. With this change
-> all the IB devices in switchdev mode are created only once the load
-> callback is invoked by the e-switch core sub-module. This follows
-> the design paradigm under which the all the Eth representors must
-> be loaded before any of IB reprs is loaded.
->=20
-> Signed-off-by: Mark Bloch <markb@mellanox.com>
-> Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
-> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/ib_rep.c  | 11 ++++++++++-
->  drivers/infiniband/hw/mlx5/main.c    | 29 +++++++++-------------------
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 -
->  3 files changed, 19 insertions(+), 22 deletions(-)
-
-Why is this going in the shared branch? This looks like an IB patch??
-
-Jason
+T24gVGh1LCAyMDE4LTEyLTEzIGF0IDAzOjM3ICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFdlZCwgRGVjIDEyLCAyMDE4IGF0IDA3OjExOjM3UE0gLTA4MDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IEZyb206IE1hcmsgQmxvY2ggPG1hcmtiQG1lbGxhbm94LmNvbT4NCj4g
+PiANCj4gPiBXaGVuIGluIHN3aXRjaGRldiBtb2RlIGFuZCB0aGUgYWRkIGZ1bmN0aW9uIGlzIGNh
+bGxlZCBieSB0aGUgY29yZQ0KPiA+IGxldmVsIGRyaXZlciwgbWFrZSBzdXJlIHdlIG9ubHkgcmVn
+aXN0ZXIgdGhlIGNhbGxiYWNrcywgYnV0IGRvbid0DQo+ID4gY3JlYXRlIHRoZSBtbHg1IElCIGRl
+dmljZSBvciBpbml0aWFsaXplIGFueXRoaW5nLiBXaXRoIHRoaXMgY2hhbmdlDQo+ID4gYWxsIHRo
+ZSBJQiBkZXZpY2VzIGluIHN3aXRjaGRldiBtb2RlIGFyZSBjcmVhdGVkIG9ubHkgb25jZSB0aGUg
+bG9hZA0KPiA+IGNhbGxiYWNrIGlzIGludm9rZWQgYnkgdGhlIGUtc3dpdGNoIGNvcmUgc3ViLW1v
+ZHVsZS4gVGhpcyBmb2xsb3dzDQo+ID4gdGhlIGRlc2lnbiBwYXJhZGlnbSB1bmRlciB3aGljaCB0
+aGUgYWxsIHRoZSBFdGggcmVwcmVzZW50b3JzIG11c3QNCj4gPiBiZSBsb2FkZWQgYmVmb3JlIGFu
+eSBvZiBJQiByZXBycyBpcyBsb2FkZWQuDQo+ID4gDQo+ID4gU2lnbmVkLW9mZi1ieTogTWFyayBC
+bG9jaCA8bWFya2JAbWVsbGFub3guY29tPg0KPiA+IEFja2VkLWJ5OiBPciBHZXJsaXR6IDxvZ2Vy
+bGl0ekBtZWxsYW5veC5jb20+DQo+ID4gUmV2aWV3ZWQtYnk6IExlb24gUm9tYW5vdnNreSA8bGVv
+bnJvQG1lbGxhbm94LmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBTYWVlZCBNYWhhbWVlZCA8c2Fl
+ZWRtQG1lbGxhbm94LmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21s
+eDUvaWJfcmVwLmMgIHwgMTEgKysrKysrKysrKy0NCj4gPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3
+L21seDUvbWFpbi5jICAgIHwgMjkgKysrKysrKysrLS0tLS0tLS0tLS0tLS0tDQo+ID4gLS0tLQ0K
+PiA+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tbHg1X2liLmggfCAgMSAtDQo+ID4gIDMg
+ZmlsZXMgY2hhbmdlZCwgMTkgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pDQo+IA0KPiBX
+aHkgaXMgdGhpcyBnb2luZyBpbiB0aGUgc2hhcmVkIGJyYW5jaD8gVGhpcyBsb29rcyBsaWtlIGFu
+IElCIHBhdGNoPz8NCj4gDQoNClNvbWUgdXBjb21pbmcgY2hhbmdlcyB0byBzdXBwb3J0IHVwbGlu
+ayByZXByZXNlbnRvciB3aWxsIGRlbWFuZCB0aGlzDQpyZWZhY3RvcmluZyBpbiB0aGUgbWx4NSBJ
+QiBkcml2ZXIsIG90aGVyd2lzZSB3ZSB3aWxsIGhhdmUgYSBicm9rZW4gcmRtYQ0KZXN3aXRjaCBy
+ZXByZXNlbnRvcnMgdW50aWxsIHRoZSB0d28gdHJlZXMgYXJlIG1lcmdlZC4NCg0KPiBKYXNvbg0K
