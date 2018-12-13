@@ -1,46 +1,61 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 73/73] net/mlx4_core: Correctly set PFC param if global pause is turned off.
-Date: Wed, 12 Dec 2018 23:28:38 -0500
-Message-ID: <20181213042838.75160-73-sashal@kernel.org>
-References: <20181213042838.75160-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 27/41] net/mlx4_en: Change min MTU size to ETH_MIN_MTU
+Date: Wed, 12 Dec 2018 23:30:40 -0500
+Message-ID: <20181213043054.75891-27-sashal@kernel.org>
+References: <20181213043054.75891-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181213042838.75160-1-sashal@kernel.org>
+In-Reply-To: <20181213043054.75891-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tarick Bedeir <tarick@google.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Eran Ben Elisha <eranbe@mellanox.com>, Tariq Toukan <tariqt@mellanox.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tarick Bedeir <tarick@google.com>
+From: Eran Ben Elisha <eranbe@mellanox.com>
 
-[ Upstream commit bd5122cd1e0644d8bd8dd84517c932773e999766 ]
+[ Upstream commit 24be19e47779d604d1492c114459dca9a92acf78 ]
 
-rx_ppp and tx_ppp can be set between 0 and 255, so don't clamp to 1.
+NIC driver minimal MTU size shall be set to ETH_MIN_MTU, as defined in
+the RFC791 and in the network stack. Remove old mlx4_en only define for
+it, which was set to wrong value.
 
-Fixes: 6e8814ceb7e8 ("net/mlx4_en: Fix mixed PFC and Global pause user control requests")
-Signed-off-by: Tarick Bedeir <tarick@google.com>
-Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+Fixes: b80f71f5816f ("ethernet/mellanox: use core min/max MTU checking")
+Signed-off-by: Eran Ben Elisha <eranbe@mellanox.com>
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/en_ethtool.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 4 ++--
+ drivers/net/ethernet/mellanox/mlx4/mlx4_en.h   | 1 -
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-index f11b45001cad..d290f0787dfb 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_ethtool.c
-@@ -1084,8 +1084,8 @@ static int mlx4_en_set_pauseparam(struct net_device *dev,
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index faa4bd21f148..0fb85d71c11b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -3505,8 +3505,8 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 		dev->gso_partial_features = NETIF_F_GSO_UDP_TUNNEL_CSUM;
+ 	}
  
- 	tx_pause = !!(pause->tx_pause);
- 	rx_pause = !!(pause->rx_pause);
--	rx_ppp = priv->prof->rx_ppp && !(tx_pause || rx_pause);
--	tx_ppp = priv->prof->tx_ppp && !(tx_pause || rx_pause);
-+	rx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->rx_ppp;
-+	tx_ppp = (tx_pause || rx_pause) ? 0 : priv->prof->tx_ppp;
+-	/* MTU range: 46 - hw-specific max */
+-	dev->min_mtu = MLX4_EN_MIN_MTU;
++	/* MTU range: 68 - hw-specific max */
++	dev->min_mtu = ETH_MIN_MTU;
+ 	dev->max_mtu = priv->max_mtu;
  
- 	err = mlx4_SET_PORT_general(mdev->dev, priv->port,
- 				    priv->rx_skb_size + ETH_FCS_LEN,
+ 	mdev->pndev[port] = dev;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+index 09f4764a3f39..bdd87438a354 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
++++ b/drivers/net/ethernet/mellanox/mlx4/mlx4_en.h
+@@ -157,7 +157,6 @@
+ #define HEADER_COPY_SIZE       (128 - NET_IP_ALIGN)
+ #define MLX4_LOOPBACK_TEST_PAYLOAD (HEADER_COPY_SIZE - ETH_HLEN)
+ 
+-#define MLX4_EN_MIN_MTU		46
+ /* VLAN_HLEN is added twice,to support skb vlan tagged with multiple
+  * headers. (For example: ETH_P_8021Q and ETH_P_8021AD).
+  */
 -- 
 2.19.1
