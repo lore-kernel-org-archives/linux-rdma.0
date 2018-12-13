@@ -1,55 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next] net/mlx5e: Remove set but not used variable
- 'upriv'
-Date: Wed, 12 Dec 2018 21:39:35 -0800 (PST)
-Message-ID: <20181212.213935.1380628677390085263.davem@davemloft.net>
-References: <1544603633-170212-1-git-send-email-yuehaibing@huawei.com>
-        <20181212151012.GD3933@mtr-leonro.mtl.com>
-        <78a81cd9ded813a3838a6cfcbe87c84d4fd1821b.camel@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH mlx5-next] net/mlx5: Continue driver initialization despite debugfs failure
+Date: Thu, 13 Dec 2018 13:15:11 +0200
+Message-ID: <20181213111511.27308-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <78a81cd9ded813a3838a6cfcbe87c84d4fd1821b.camel@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: saeedm@mellanox.com
-Cc: yuehaibing@huawei.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, David Miller <davem@davemloft.net>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
-Date: Thu, 13 Dec 2018 01:24:06 +0000
+From: Leon Romanovsky <leonro@mellanox.com>
 
-> On Wed, 2018-12-12 at 17:10 +0200, Leon Romanovsky wrote:
->> On Wed, Dec 12, 2018 at 08:33:53AM +0000, YueHaibing wrote:
->> > Fixes gcc '-Wunused-but-set-variable' warning:
->> > 
->> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c: In function
->> > 'mlx5e_vport_rep_load':
->> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:1490:21: warning:
->> >  variable 'upriv' set but not used [-Wunused-but-set-variable]
->> > 
->> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c: In function
->> > 'mlx5e_vport_rep_unload':
->> > drivers/net/ethernet/mellanox/mlx5/core/en_rep.c:1557:21: warning:
->> >  variable 'upriv' set but not used [-Wunused-but-set-variable]
->> > 
->> > It not used any more since commit ef381359e3a8 ("net/mlx5e: Replace
->> > egdev with
->> > indirect block notifications"). Also remove unused variable
->> > 'uplink_rpriv'
->> > after this change.
->> > 
->> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
->> > ---
->> >  drivers/net/ethernet/mellanox/mlx5/core/en_rep.c | 10 ----------
->> >  1 file changed, 10 deletions(-)
->> > 
->> 
->> Thanks,
->> Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Acked-by: Saeed Mahameed <saeedm@mellanox.com>
-> 
-> Dave as agreed, you can apply this patch to net-next directly.
+The failure to create debugfs entry is unpleasant event, but not enough
+to abort drier initialization. Align the mlx5_core code to debugfs design
+and continue execution whenever debugfs_create_dir() successes or not.
 
-Done, thanks.
+Fixes: e126ba97dba9 ("mlx5: Add driver for Mellanox Connect-IB adapters")
+Reviewed-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+It goes to -next and not to -rc, because this issue was forever.
+---
+ drivers/net/ethernet/mellanox/mlx5/core/main.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 778995573812..93fa48a7eabb 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -661,11 +661,9 @@ static int mlx5_pci_init(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
+
+ 	priv->numa_node = dev_to_node(&dev->pdev->dev);
+
+-	priv->dbg_root = debugfs_create_dir(dev_name(&pdev->dev), mlx5_debugfs_root);
+-	if (!priv->dbg_root) {
+-		dev_err(&pdev->dev, "Cannot create debugfs dir, aborting\n");
+-		return -ENOMEM;
+-	}
++	if (mlx5_debugfs_root)
++		priv->dbg_root =
++			debugfs_create_dir(pci_name(pdev), mlx5_debugfs_root);
+
+ 	err = mlx5_pci_enable_device(dev);
+ 	if (err) {
