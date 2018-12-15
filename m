@@ -1,109 +1,100 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
 Subject: Re: [PATCH v2 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Sat, 15 Dec 2018 10:11:24 -0500
-Message-ID: <CAF=yD-L4xTU-KXsQ=uU36fEKv5St=69mmKqT8sD1mAmT_hfuVQ@mail.gmail.com>
+Date: Sat, 15 Dec 2018 08:50:58 -0800
+Message-ID: <CABeXuvqrZgEDF5RYQEPJ8RyXDg0uvXx_qMq=2ER8Bc9RXFPDGQ@mail.gmail.com>
 References: <20181211202520.16799-1-deepa.kernel@gmail.com>
- <20181211202520.16799-7-deepa.kernel@gmail.com> <CAF=yD-LDWrjxK+XFv-KNAoyP7NCOZiL00n5PkzQ-5aEzq+eCLQ@mail.gmail.com>
+ <20181211202520.16799-7-deepa.kernel@gmail.com>
+ <CAF=yD-LDWrjxK+XFv-KNAoyP7NCOZiL00n5PkzQ-5aEzq+eCLQ@mail.gmail.com>
  <CABeXuvpAZfd6gAdJbKxsOowXnDnwyQQRuYMJ-6LDo9BsRDDj-g@mail.gmail.com>
+ <CAF=yD-L4xTU-KXsQ=uU36fEKv5St=69mmKqT8sD1mAmT_hfuVQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABeXuvpAZfd6gAdJbKxsOowXnDnwyQQRuYMJ-6LDo9BsRDDj-g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <y2038-bounces@lists.linaro.org>
+In-Reply-To: <CAF=yD-L4xTU-KXsQ=uU36fEKv5St=69mmKqT8sD1mAmT_hfuVQ@mail.gmail.com>
+List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
+List-Archive: <http://lists.linaro.org/pipermail/y2038/>
+List-Post: <mailto:y2038@lists.linaro.org>
+List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
+List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
+ <mailto:y2038-request@lists.linaro.org?subject=subscribe>
+Errors-To: y2038-bounces@lists.linaro.org
+Sender: "Y2038" <y2038-bounces@lists.linaro.org>
+To: willemdebruijn.kernel@gmail.com
+Cc: "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, rth@twiddle.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 8:07 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> > > diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-> > > index 00e45c80e574..352e3dc0b3d9 100644
-> > > --- a/arch/alpha/include/uapi/asm/socket.h
-> > > +++ b/arch/alpha/include/uapi/asm/socket.h
-> > > @@ -3,6 +3,7 @@
-> > >  #define _UAPI_ASM_SOCKET_H
-> > >
-> > >  #include <asm/sockios.h>
-> > > +#include <asm/bitsperlong.h>
-> > >
-> > >  /* For setsockopt(2) */
-> > >  /*
-> > > @@ -110,12 +111,22 @@
-> > >
-> > >  #define SO_TIMESTAMP_OLD         29
-> > >  #define SO_TIMESTAMPNS_OLD       35
-> > > +
-> > >  #define SO_TIMESTAMPING_OLD      37
-> > >
-> > > +#define SO_TIMESTAMP_NEW         62
-> > > +#define SO_TIMESTAMPNS_NEW       63
-> > > +
-> > >  #if !defined(__KERNEL__)
-> > >
-> > > -#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
-> > > -#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-> > > +#if __BITS_PER_LONG == 64
-> > > +#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
-> > > +#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-> > > +#else
-> > > +#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-> > > +#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-> > > +#endif
-> > > +
-> >
-> > This is not platform specific. Perhaps it can be deduplicated. The
-> > interface expects callers to include <linux/socket.h>, not
-> > <asm/socket.h> directly. So perhaps it can go there?
->
-> I'm not following what you are saying here.
->
-> Are you talking about in kernel users or userspace interface?
->
-> Userspace should always include sys/socket.h according to the man page.
-> I'm not sure if userspace can even include linux/socket.h directly.
-> On my distribution this includes bits/socket.h which in turn includes
-> asm/socket.h.
-
-I meant include/uapi/linux/socket.h.
-
-But you're right that that is not referenced from sys/socket.h.
-
-I do see a reference to it in my bits/socket.h
-
-    /* Socket level message types.  This must match the definitions in
-       <linux/socket.h>.  */
-
-so perhaps the logic could be both there and in libc bits/socket.h.
-
-> Which file gets installed as asm/socket.h is defined per architecture
-> in the kbuild file such as
-> arch/ia64/include/uapi/asm/Kbuild (without series applied):
->
->  generic-y += poll.h
->  generic-y += sembuf.h
->  generic-y += shmbuf.h
->  generic-y += socket.h
->
-> Also the new timestamp numbers being added are not the same for all
-> architectures.
->
-> So I'm not sure how this can be moved to linux/socket.h.
-
-Does that matter, as long as they are defined? This basic block is the
-same between all archs:
-
-    -#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
-    -#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-    +#if __BITS_PER_LONG == 64
-    +#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
-    +#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-    +#else
-    +#define SO_TIMESTAMP (sizeof(time_t) == sizeof(__kernel_long_t) ?
-SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
-    +#define SO_TIMESTAMPNS (sizeof(time_t) == sizeof(__kernel_long_t)
-? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
-    +#endif
-
-It might be too complex to coordinate changes between kernel and libc
-headers, in which case you're right that this just has to live in
-(each arch's) asm/socket.h directly.
+T24gU2F0LCBEZWMgMTUsIDIwMTggYXQgNzoxMiBBTSBXaWxsZW0gZGUgQnJ1aWpuCjx3aWxsZW1k
+ZWJydWlqbi5rZXJuZWxAZ21haWwuY29tPiB3cm90ZToKPgo+IE9uIEZyaSwgRGVjIDE0LCAyMDE4
+IGF0IDg6MDcgUE0gRGVlcGEgRGluYW1hbmkgPGRlZXBhLmtlcm5lbEBnbWFpbC5jb20+IHdyb3Rl
+Ogo+ID4KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9hbHBoYS9pbmNsdWRlL3VhcGkvYXNtL3Nv
+Y2tldC5oIGIvYXJjaC9hbHBoYS9pbmNsdWRlL3VhcGkvYXNtL3NvY2tldC5oCj4gPiA+ID4gaW5k
+ZXggMDBlNDVjODBlNTc0Li4zNTJlM2RjMGIzZDkgMTAwNjQ0Cj4gPiA+ID4gLS0tIGEvYXJjaC9h
+bHBoYS9pbmNsdWRlL3VhcGkvYXNtL3NvY2tldC5oCj4gPiA+ID4gKysrIGIvYXJjaC9hbHBoYS9p
+bmNsdWRlL3VhcGkvYXNtL3NvY2tldC5oCj4gPiA+ID4gQEAgLTMsNiArMyw3IEBACj4gPiA+ID4g
+ICNkZWZpbmUgX1VBUElfQVNNX1NPQ0tFVF9ICj4gPiA+ID4KPiA+ID4gPiAgI2luY2x1ZGUgPGFz
+bS9zb2NraW9zLmg+Cj4gPiA+ID4gKyNpbmNsdWRlIDxhc20vYml0c3BlcmxvbmcuaD4KPiA+ID4g
+Pgo+ID4gPiA+ICAvKiBGb3Igc2V0c29ja29wdCgyKSAqLwo+ID4gPiA+ICAvKgo+ID4gPiA+IEBA
+IC0xMTAsMTIgKzExMSwyMiBAQAo+ID4gPiA+Cj4gPiA+ID4gICNkZWZpbmUgU09fVElNRVNUQU1Q
+X09MRCAgICAgICAgIDI5Cj4gPiA+ID4gICNkZWZpbmUgU09fVElNRVNUQU1QTlNfT0xEICAgICAg
+IDM1Cj4gPiA+ID4gKwo+ID4gPiA+ICAjZGVmaW5lIFNPX1RJTUVTVEFNUElOR19PTEQgICAgICAz
+Nwo+ID4gPiA+Cj4gPiA+ID4gKyNkZWZpbmUgU09fVElNRVNUQU1QX05FVyAgICAgICAgIDYyCj4g
+PiA+ID4gKyNkZWZpbmUgU09fVElNRVNUQU1QTlNfTkVXICAgICAgIDYzCj4gPiA+ID4gKwo+ID4g
+PiA+ICAjaWYgIWRlZmluZWQoX19LRVJORUxfXykKPiA+ID4gPgo+ID4gPiA+IC0jZGVmaW5lIFNP
+X1RJTUVTVEFNUCAgICAgICAgICAgU09fVElNRVNUQU1QX09MRAo+ID4gPiA+IC0jZGVmaW5lIFNP
+X1RJTUVTVEFNUE5TICAgICAgICAgU09fVElNRVNUQU1QTlNfT0xECj4gPiA+ID4gKyNpZiBfX0JJ
+VFNfUEVSX0xPTkcgPT0gNjQKPiA+ID4gPiArI2RlZmluZSBTT19USU1FU1RBTVAgICAgICAgICAg
+IFNPX1RJTUVTVEFNUF9PTEQKPiA+ID4gPiArI2RlZmluZSBTT19USU1FU1RBTVBOUyAgICAgICAg
+IFNPX1RJTUVTVEFNUE5TX09MRAo+ID4gPiA+ICsjZWxzZQo+ID4gPiA+ICsjZGVmaW5lIFNPX1RJ
+TUVTVEFNUCAoc2l6ZW9mKHRpbWVfdCkgPT0gc2l6ZW9mKF9fa2VybmVsX2xvbmdfdCkgPyBTT19U
+SU1FU1RBTVBfT0xEIDogU09fVElNRVNUQU1QX05FVykKPiA+ID4gPiArI2RlZmluZSBTT19USU1F
+U1RBTVBOUyAoc2l6ZW9mKHRpbWVfdCkgPT0gc2l6ZW9mKF9fa2VybmVsX2xvbmdfdCkgPyBTT19U
+SU1FU1RBTVBOU19PTEQgOiBTT19USU1FU1RBTVBOU19ORVcpCj4gPiA+ID4gKyNlbmRpZgo+ID4g
+PiA+ICsKPiA+ID4KPiA+ID4gVGhpcyBpcyBub3QgcGxhdGZvcm0gc3BlY2lmaWMuIFBlcmhhcHMg
+aXQgY2FuIGJlIGRlZHVwbGljYXRlZC4gVGhlCj4gPiA+IGludGVyZmFjZSBleHBlY3RzIGNhbGxl
+cnMgdG8gaW5jbHVkZSA8bGludXgvc29ja2V0Lmg+LCBub3QKPiA+ID4gPGFzbS9zb2NrZXQuaD4g
+ZGlyZWN0bHkuIFNvIHBlcmhhcHMgaXQgY2FuIGdvIHRoZXJlPwo+ID4KPiA+IEknbSBub3QgZm9s
+bG93aW5nIHdoYXQgeW91IGFyZSBzYXlpbmcgaGVyZS4KPiA+Cj4gPiBBcmUgeW91IHRhbGtpbmcg
+YWJvdXQgaW4ga2VybmVsIHVzZXJzIG9yIHVzZXJzcGFjZSBpbnRlcmZhY2U/Cj4gPgo+ID4gVXNl
+cnNwYWNlIHNob3VsZCBhbHdheXMgaW5jbHVkZSBzeXMvc29ja2V0LmggYWNjb3JkaW5nIHRvIHRo
+ZSBtYW4gcGFnZS4KPiA+IEknbSBub3Qgc3VyZSBpZiB1c2Vyc3BhY2UgY2FuIGV2ZW4gaW5jbHVk
+ZSBsaW51eC9zb2NrZXQuaCBkaXJlY3RseS4KPiA+IE9uIG15IGRpc3RyaWJ1dGlvbiB0aGlzIGlu
+Y2x1ZGVzIGJpdHMvc29ja2V0Lmggd2hpY2ggaW4gdHVybiBpbmNsdWRlcwo+ID4gYXNtL3NvY2tl
+dC5oLgo+Cj4gSSBtZWFudCBpbmNsdWRlL3VhcGkvbGludXgvc29ja2V0LmguCj4KPiBCdXQgeW91
+J3JlIHJpZ2h0IHRoYXQgdGhhdCBpcyBub3QgcmVmZXJlbmNlZCBmcm9tIHN5cy9zb2NrZXQuaC4K
+Pgo+IEkgZG8gc2VlIGEgcmVmZXJlbmNlIHRvIGl0IGluIG15IGJpdHMvc29ja2V0LmgKPgo+ICAg
+ICAvKiBTb2NrZXQgbGV2ZWwgbWVzc2FnZSB0eXBlcy4gIFRoaXMgbXVzdCBtYXRjaCB0aGUgZGVm
+aW5pdGlvbnMgaW4KPiAgICAgICAgPGxpbnV4L3NvY2tldC5oPi4gICovCj4KPiBzbyBwZXJoYXBz
+IHRoZSBsb2dpYyBjb3VsZCBiZSBib3RoIHRoZXJlIGFuZCBpbiBsaWJjIGJpdHMvc29ja2V0Lmgu
+CgpiaXRzL3NvY2tldC5oIGNhbm5vdCBiZSBpbmNsdWRlZCBkaXJlY3RseSwgYW5kIGl0J3MganVz
+dCBob3cgb25lIG9mCnRoZSBsaWJjIGltcGxlbWVudGF0aW9ucyBkZWNpZGVkIHRvIGRvIGl0LgpJ
+dCBkb2Vzbid0IGV2ZW4gaGF2ZSB0byBleGlzdC4KCj4gPiBXaGljaCBmaWxlIGdldHMgaW5zdGFs
+bGVkIGFzIGFzbS9zb2NrZXQuaCBpcyBkZWZpbmVkIHBlciBhcmNoaXRlY3R1cmUKPiA+IGluIHRo
+ZSBrYnVpbGQgZmlsZSBzdWNoIGFzCj4gPiBhcmNoL2lhNjQvaW5jbHVkZS91YXBpL2FzbS9LYnVp
+bGQgKHdpdGhvdXQgc2VyaWVzIGFwcGxpZWQpOgo+ID4KPiA+ICBnZW5lcmljLXkgKz0gcG9sbC5o
+Cj4gPiAgZ2VuZXJpYy15ICs9IHNlbWJ1Zi5oCj4gPiAgZ2VuZXJpYy15ICs9IHNobWJ1Zi5oCj4g
+PiAgZ2VuZXJpYy15ICs9IHNvY2tldC5oCj4gPgo+ID4gQWxzbyB0aGUgbmV3IHRpbWVzdGFtcCBu
+dW1iZXJzIGJlaW5nIGFkZGVkIGFyZSBub3QgdGhlIHNhbWUgZm9yIGFsbAo+ID4gYXJjaGl0ZWN0
+dXJlcy4KPiA+Cj4gPiBTbyBJJ20gbm90IHN1cmUgaG93IHRoaXMgY2FuIGJlIG1vdmVkIHRvIGxp
+bnV4L3NvY2tldC5oLgo+Cj4gRG9lcyB0aGF0IG1hdHRlciwgYXMgbG9uZyBhcyB0aGV5IGFyZSBk
+ZWZpbmVkPyBUaGlzIGJhc2ljIGJsb2NrIGlzIHRoZQo+IHNhbWUgYmV0d2VlbiBhbGwgYXJjaHM6
+CgozIHJlYXNvbnMgZm9yIG5vdCBkb2luZyB0aGlzOgoKMS4gV2UgZG8gbm90IHdhbnQgdG8gYnJl
+YWsgdXNlcnNwYWNlLiBJZiB3ZSBtb3ZlIHRoaXMgdG8KbGludXgvc29ja2V0LmggYWxsIHRoZSB1
+c2Vyc3BhY2UgcHJvZ3JhbXMgbm93IGhhdmUgdG8gaW5jbHVkZQpsaW51eC9zb2NrZXQuaCBvciBn
+ZXQgdGhpcyBkZWZpbml0aW9uIHRocm91Z2ggYSBuZXcgbGliYy4KMi4gQWxsIHRoZSBzb2NrZXQg
+b3B0aW9ucyBhcmUgdG9nZXRoZXIgaW4gdGhlIGZpbGUgYXNtL3NvY2tldC5oLiBJdApkb2Vzbid0
+IHNlZW0gZ29vZCBmb3IgbWFpbnRhaW5hYmlsaXR5IHRvIG1vdmUganVzdCBhIGZldyBiaXRzCmVs
+c2V3aGVyZS4KMy4gVGhlcmUgYXJlIG9ubHkgNCBhcmNoZXMgKGFmdGVyIHRoZSBzZXJpZXMgaXMg
+YXBwbGllZCkgdGhhdCBoYXZlCnRoZWlyIG93biBhc20vc29ja2V0LmguIEFuZCwgdGhpcyBpcyBi
+ZWNhdXNlIHRoZXJlIHNlZW1zIHRvIGJlCnNpZ25pZmljYW50IGRpZmZlcmVuY2VzIHRvIGFzbS1n
+ZW5lcmljL3NvY2tldC5oIHRoYXQgZG9uJ3Qgc2VlbQpsb2dpY2FsbHkgb2J2aW91cyB0byBncm91
+cCBhbmQgZWxpbWluYXRlIHNvbWUgb2YgdGhlIGRlZmluZXMuCgpBbHNvIGZvciB0aGUgb3RoZXIg
+Y29tbWVudC4gVGhlIHJlYXNvbiB0aGUgY29uZGl0aW9uYWxzIHdlcmUgbm90CmNvbnNpc3RlbnQg
+aXMgYmVjYXVzZSB0aGV5IHdlcmUgbm90IGNvbnNpc3RlbnQgdG8gYmVnaW4gd2l0aC4KSSdtIHRy
+eWluZyB0byBmb2xsb3cgeW91ciByZXF1ZXN0IHRvIGtlZXAgY29kZSBjaHVybiB0byBtaW5pbWFs
+LgpJdCdzIGp1c3QgdGhhdCBJIG1vdmVkIHRvIGEgZGlmZmVyZW50IGZ1bmN0aW9uIGFzIHRoYXQg
+c2VlbWVkIGxvZ2ljYWwKdG8gbWUuIERvIHlvdSBwcmVmZXIgbWUgdG8gcmVtb3ZlIHRoYXQgcmVm
+YWN0b3Jpbmc/CgotRGVlcGEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KWTIwMzggbWFpbGluZyBsaXN0ClkyMDM4QGxpc3RzLmxpbmFyby5vcmcKaHR0cHM6
+Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8veTIwMzgK
