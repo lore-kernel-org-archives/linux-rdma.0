@@ -1,93 +1,129 @@
-From: Joey Pabalinas <joeypabalinas@gmail.com>
-Subject: Re: [PATCH] CIFS: use the correct length when pinning memory for
- direct I/O for write
-Date: Sun, 16 Dec 2018 15:10:35 -1000
-Message-ID: <20181217011035.ykal46ixowdqyl7h@gmail.com>
-References: <20181216231704.16761-1-longli@linuxonhyperv.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH v2 09/15] RDMA/srpt: Fix a use-after-free in the channel release code
+Date: Mon, 17 Dec 2018 13:20:40 -0800
+Message-ID: <20181217212046.71017-10-bvanassche@acm.org>
+References: <20181217212046.71017-1-bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="idxsf4dcv7fappfg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181216231704.16761-1-longli@linuxonhyperv.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: longli@microsoft.com
-Cc: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, stable@vger.kernel.org, Joey Pabalinas <joeypabalinas@gmail.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181217212046.71017-1-bvanassche@acm.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Sergey Gorenko <sergeygo@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This patch avoids that KASAN sporadically reports the following:
 
---idxsf4dcv7fappfg
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+BUG: KASAN: use-after-free in rxe_run_task+0x1e/0x60 [rdma_rxe]
+Read of size 1 at addr ffff88801c50d8f4 by task check/24830
 
-On Sun, Dec 16, 2018 at 11:17:04PM +0000, Long Li wrote:
-> From: Long Li <longli@microsoft.com>
->=20
-> The current code attempts to pin memory using the largest possible wsize
-> based on the currect SMB credits. This doesn't cause kernel oops but this=
- is
-> not optimal as we may pin more pages then actually needed.
->=20
-> Fix this by only pinning what are needed for doing this write I/O.
->=20
-> Signed-off-by: Long Li <longli@microsoft.com>
-> Cc: stable@vger.kernel.org
+CPU: 4 PID: 24830 Comm: check Not tainted 4.20.0-rc6-dbg+ #3
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
+Call Trace:
+ dump_stack+0x86/0xca
+ print_address_description+0x71/0x239
+ kasan_report.cold.5+0x242/0x301
+ __asan_load1+0x47/0x50
+ rxe_run_task+0x1e/0x60 [rdma_rxe]
+ rxe_post_send+0x4bd/0x8d0 [rdma_rxe]
+ srpt_zerolength_write+0xe1/0x160 [ib_srpt]
+ srpt_close_ch+0x8b/0xe0 [ib_srpt]
+ srpt_set_enabled+0xe7/0x150 [ib_srpt]
+ srpt_tpg_enable_store+0xc0/0x100 [ib_srpt]
+ configfs_write_file+0x157/0x1d0
+ __vfs_write+0xd7/0x3d0
+ vfs_write+0x102/0x290
+ ksys_write+0xab/0x130
+ __x64_sys_write+0x43/0x50
+ do_syscall_64+0x71/0x210
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-Looks sane to me.
+Allocated by task 13856:
+ save_stack+0x43/0xd0
+ kasan_kmalloc+0xc7/0xe0
+ kasan_slab_alloc+0x11/0x20
+ kmem_cache_alloc+0x105/0x320
+ rxe_alloc+0xff/0x1f0 [rdma_rxe]
+ rxe_create_qp+0x9f/0x160 [rdma_rxe]
+ ib_create_qp+0xf5/0x690 [ib_core]
+ rdma_create_qp+0x6a/0x140 [rdma_cm]
+ srpt_cm_req_recv.cold.59+0x1588/0x237b [ib_srpt]
+ srpt_rdma_cm_req_recv.isra.35+0x1d5/0x220 [ib_srpt]
+ srpt_rdma_cm_handler+0x6f/0x100 [ib_srpt]
+ cma_listen_handler+0x59/0x60 [rdma_cm]
+ cma_ib_req_handler+0xd5b/0x2570 [rdma_cm]
+ cm_process_work+0x2e/0x110 [ib_cm]
+ cm_work_handler+0x2aae/0x502b [ib_cm]
+ process_one_work+0x481/0x9e0
+ worker_thread+0x67/0x5b0
+ kthread+0x1cf/0x1f0
+ ret_from_fork+0x24/0x30
 
-Reviewed-by: Joey Pabalinas <joeypabalinas@gmail.com>
+Freed by task 3440:
+ save_stack+0x43/0xd0
+ __kasan_slab_free+0x139/0x190
+ kasan_slab_free+0xe/0x10
+ kmem_cache_free+0xbc/0x330
+ rxe_elem_release+0x66/0xe0 [rdma_rxe]
+ rxe_destroy_qp+0x3f/0x50 [rdma_rxe]
+ ib_destroy_qp+0x140/0x360 [ib_core]
+ srpt_release_channel_work+0xdc/0x310 [ib_srpt]
+ process_one_work+0x481/0x9e0
+ worker_thread+0x67/0x5b0
+ kthread+0x1cf/0x1f0
+ ret_from_fork+0x24/0x30
 
-> ---
->  fs/cifs/file.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
->=20
-> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
-> index 3467351..c23bf9d 100644
-> --- a/fs/cifs/file.c
-> +++ b/fs/cifs/file.c
-> @@ -2617,11 +2617,13 @@ cifs_write_from_iter(loff_t offset, size_t len, s=
-truct iov_iter *from,
->  		if (rc)
->  			break;
-> =20
-> +		cur_len =3D min_t(const size_t, len, wsize);
-> +
->  		if (ctx->direct_io) {
->  			ssize_t result;
-> =20
->  			result =3D iov_iter_get_pages_alloc(
-> -				from, &pagevec, wsize, &start);
-> +				from, &pagevec, cur_len, &start);
->  			if (result < 0) {
->  				cifs_dbg(VFS,
->  					"direct_writev couldn't get user pages "
-> --=20
-> 2.7.4
->=20
+Cc: Sergey Gorenko <sergeygo@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srpt/ib_srpt.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
---=20
-Cheers,
-Joey Pabalinas
-
---idxsf4dcv7fappfg
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEENpTlWU2hUK/KMvHp2rGdfm9DtVIFAlwW94oACgkQ2rGdfm9D
-tVJDVw//YlX/0LsP6eZyP08m4OT21ajO8bNIkFqd+jLFVEcIlm/Nk0f+gxxcIwiJ
-y+Xt6rSwl3tyypQKvIh2ba6XdgFM+Ti3O7jb/6oiE0guwLhh1WUA4iQhPgDjBPrJ
-rzvsVaEB2LQpXOzPQd7zFcpvx5wJO8S13ZUpeaSUvA8LpbKQTf0Oh2u6WUOf2guo
-gfMJixovSgbl2kpTiUSd8gqh5Bw51zsyLTFsnE8GFx30liXzZ5zxguMXKPu41rQa
-uWfyK0A1LFzniBL9x0aDciYiL2qZZbyCY1BdKJTwqxFqX6VmHGGNlODguLdYAY6V
-mp3wt2EyXbGwt1yYhhkXEwFgYuNsdYYvZOGLhElIrvMBH27QtX52sPW3pIv2+vS2
-8BZpHyOTuCJ/zC9EsOkK3dyHrCdh9wSk6VDycSKrBfNCDSyNSq1FZJaujzOk6TP+
-uFBO0PDpi222KzBf1LuGVlLOZlHGMbrrZZTpIyFZwLnLP4kh/c0qdJCrdXgyMMYd
-biu/SBjt84+zvGIfLyXuq/5uJYUyesWaTpYWatpg1ohJ5QxIfCJb2B2YdniZ6fad
-m5tB2+E4Hy2xM4NeNiMqYm0dP2KgR8fFzoOe86Aqe/A+ufGAEaMYCh/XWieozVXO
-duE7ft8m5IQk/SgbvpCnhW1lYV3zm0K527wSaumYgxCYxcROs0Q=
-=bRcp
------END PGP SIGNATURE-----
-
---idxsf4dcv7fappfg--
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index adc0e91d2bb5..02d9b758e58f 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -2010,6 +2010,14 @@ static void srpt_free_ch(struct kref *kref)
+ 	kfree_rcu(ch, rcu);
+ }
+ 
++/*
++ * Shut down the SCSI target session, tell the connection manager to
++ * disconnect the associated RDMA channel, transition the QP to the error
++ * state and remove the channel from the channel list. This function is
++ * typically called from inside srpt_zerolength_write_done(). Concurrent
++ * srpt_zerolength_write() calls from inside srpt_close_ch() are possible
++ * as long as the channel is on sport->nexus_list.
++ */
+ static void srpt_release_channel_work(struct work_struct *w)
+ {
+ 	struct srpt_rdma_ch *ch;
+@@ -2037,6 +2045,11 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 	else
+ 		ib_destroy_cm_id(ch->ib_cm.cm_id);
+ 
++	sport = ch->sport;
++	mutex_lock(&sport->mutex);
++	list_del_rcu(&ch->list);
++	mutex_unlock(&sport->mutex);
++
+ 	srpt_destroy_ch_ib(ch);
+ 
+ 	srpt_free_ioctx_ring((struct srpt_ioctx **)ch->ioctx_ring,
+@@ -2047,11 +2060,6 @@ static void srpt_release_channel_work(struct work_struct *w)
+ 			     sdev, ch->rq_size,
+ 			     srp_max_req_size, DMA_FROM_DEVICE);
+ 
+-	sport = ch->sport;
+-	mutex_lock(&sport->mutex);
+-	list_del_rcu(&ch->list);
+-	mutex_unlock(&sport->mutex);
+-
+ 	wake_up(&sport->ch_releaseQ);
+ 
+ 	kref_put(&ch->kref, srpt_free_ch);
+-- 
+2.20.0.405.gbc1bbc6f85-goog
