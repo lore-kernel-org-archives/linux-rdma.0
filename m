@@ -1,115 +1,40 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Subject: Re: [PATCH v2 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Tue, 18 Dec 2018 13:27:48 -0800
-Message-ID: <CABeXuvru4uY01DJW-rOCsG3hs6hLmDRuUCGSSPHrNDcAEm7y5Q@mail.gmail.com>
-References: <20181211202520.16799-1-deepa.kernel@gmail.com>
- <20181211202520.16799-7-deepa.kernel@gmail.com> <CAF=yD-LDWrjxK+XFv-KNAoyP7NCOZiL00n5PkzQ-5aEzq+eCLQ@mail.gmail.com>
- <CABeXuvpAZfd6gAdJbKxsOowXnDnwyQQRuYMJ-6LDo9BsRDDj-g@mail.gmail.com>
- <CAF=yD-L4xTU-KXsQ=uU36fEKv5St=69mmKqT8sD1mAmT_hfuVQ@mail.gmail.com>
- <CABeXuvqrZgEDF5RYQEPJ8RyXDg0uvXx_qMq=2ER8Bc9RXFPDGQ@mail.gmail.com>
- <CAF=yD-KFYdXRgL-HpAJLLHuywMcaBGfz7sDL35DBNs0hoq+zxQ@mail.gmail.com> <CAK8P3a0PFQCqo2Ofce7uJeWAgssMbh8u1CNWeAmUk9LzQRn35g@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH rds linux-next v4 0/2] WARNING in rds_message_alloc_sgs
+Date: Tue, 18 Dec 2018 14:57:53 -0800 (PST)
+Message-ID: <20181218.145753.1550590342570044648.davem@davemloft.net>
+References: <20181216070109.6758-1-shamir.rabinovitch@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a0PFQCqo2Ofce7uJeWAgssMbh8u1CNWeAmUk9LzQRn35g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Willem de Bruijn <willemdebruijn.kernel@gmail.com>, David Miller <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Henderson <rth@twiddle.net>, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181216070109.6758-1-shamir.rabinovitch@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: shamir.rabinovitch@oracle.com
+Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org, gerd.rausch@oracle.com, santosh.shilimkar@oracle.com, haakon.bugge@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 18, 2018 at 8:33 AM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Sat, Dec 15, 2018 at 7:52 PM Willem de Bruijn
-> <willemdebruijn.kernel@gmail.com> wrote:
-> >
-> > > 3 reasons for not doing this:
-> > >
-> > > 1. We do not want to break userspace. If we move this to
-> > > linux/socket.h all the userspace programs now have to include
-> > > linux/socket.h or get this definition through a new libc.
-> > > 2. All the socket options are together in the file asm/socket.h. It
-> > > doesn't seem good for maintainability to move just a few bits
-> > > elsewhere.
-> > > 3. There are only 4 arches (after the series is applied) that have
-> > > their own asm/socket.h. And, this is because there seems to be
-> > > significant differences to asm-generic/socket.h that don't seem
-> > > logically obvious to group and eliminate some of the defines.
-> >
-> > Agreed. All good reasons to leave as is.
-> >
-> > > Also for the other comment. The reason the conditionals were not
-> > > consistent is because they were not consistent to begin with.
-> >
-> > The only difference I see is an inversion of the test. Nesting order
-> > is the same:
-> >
-> >         int need_software_tstamp = sock_flag(sk, SOCK_RCVTSTAMP);
-> >         ...
-> >         if (need_software_tstamp) {
-> >                 if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> >                 } else {
-> >                 }
-> >         }
-> >
-> > vs
-> >
-> >                 if (sock_flag(sk, SOCK_RCVTSTAMP)) {
-> >                         if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> >                         } else {
-> >                         }
-> >                 }
-> >
-> > I suggest just adding something like
-> >
-> >         if (need_software_tstamp) {
-> > +              if (sock_uses_new_tstamp(sk) {
-> > +                   __sock_recv_timestamp_new(msg, sk,
-> > ktime_to_timespec64(skb->tstamp));
-> > +              } else if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> > -               if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> >                 } else {
-> >                 }
-> >
-> > and
-> >
-> >                 if (sock_flag(sk, SOCK_RCVTSTAMP)) {
-> > +                      if (sock_uses_new_tstamp(sk) {
-> > +                           __sock_recv_timestamp_new(msg, sk, ts);
-> > +                      else if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> > -                       if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> >                         } else {
-> >                         }
->
-> Generally speaking, I think we want the new time handling
-> to be written as the default case rather than have it hidden away
-> in a separate function. If we didn't have the sparc64 quirk with its
-> unusual timeval definition, we'd only need a special flag for the
-> old 32-bit format, but that doesn't work as long we have to support
-> two different 64-bit formats for 64-bit timeval on sparc64
-> (32 or 64 bit microseconds).
->
-> > Note also (2) tentative helper function sock_uses_new_tstamp(const
-> > struct sock *sk) instead of testing sock_flag(sk, SOCK_TSTAMP_NEW)
-> > directly. Since the .._NEW variants are equivalent to .._OLD on 64-bit,
-> > I wonder if we can just compile out the branch. Something like
-> >
-> >     static inline bool sock_uses_new_tstamp(const struct sock *sk) {
-> >             return (sizeof(time_t) != sizeof(__kernel_long_t)) &&
-> >                        sock_flag(sk, SOCK_TSTAMP_NEW);
-> >     }
->
-> I think that would break compat handling: when we have a 32-bit
-> user space process, the difference between old and new timestamps
-> is meaningful even on 64-bit kernels, but the distinction is only made all
-> the way down in put_cmsg_compat().
+From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Date: Sun, 16 Dec 2018 09:01:07 +0200
 
-As I mentioned previously, I have refrained from adding these
-optimizations for now.
-The old timestamps are as is and the new timestamps are not yet being
-used anywhere as we have not switched any of the architectures to use
-y2038 syscalls and data structures yet.
-So even if these optimizations are needed these can be added as
-separate patches.
-Let me know if this is acceptable for everyone and I can post the update.
+> From: shamir rabinovitch <shamir.rabinovitch@oracle.com>
+> 
+> This patch set fix google syzbot rds bug found in linux-next.
+> The first patch solve the syzbot issue.
+> The second patch fix issue mentioned by Leon Romanovsky that
+> drivers should not call WARN_ON as result from user input.
+> 
+> syzbot bug report can be foud here: https://lkml.org/lkml/2018/10/31/28
+> 
+> v1->v2:
+> - patch 1: make rds_iov_vector fields name more descriptive (Hakon)
+> - patch 1: fix potential mem leak in rds_rm_size if krealloc fail
+>   (Hakon)
+> v2->v3:
+> - patch 2: harden rds_sendmsg for invalid number of sgs (Gerd)
+> v3->v4
+> - Santosh a.b. on both patches + repost to net-dev
 
--Deepa
+Does this bug exist in 'net' too?  It really should target the 'net'
+tree if so, and then we can queue these fixes up for -stable too.
+
+Thank you.
