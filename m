@@ -1,103 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Tue, 18 Dec 2018 17:33:11 +0100
-Message-ID: <CAK8P3a0PFQCqo2Ofce7uJeWAgssMbh8u1CNWeAmUk9LzQRn35g@mail.gmail.com>
-References: <20181211202520.16799-1-deepa.kernel@gmail.com>
- <20181211202520.16799-7-deepa.kernel@gmail.com> <CAF=yD-LDWrjxK+XFv-KNAoyP7NCOZiL00n5PkzQ-5aEzq+eCLQ@mail.gmail.com>
- <CABeXuvpAZfd6gAdJbKxsOowXnDnwyQQRuYMJ-6LDo9BsRDDj-g@mail.gmail.com>
- <CAF=yD-L4xTU-KXsQ=uU36fEKv5St=69mmKqT8sD1mAmT_hfuVQ@mail.gmail.com>
- <CABeXuvqrZgEDF5RYQEPJ8RyXDg0uvXx_qMq=2ER8Bc9RXFPDGQ@mail.gmail.com> <CAF=yD-KFYdXRgL-HpAJLLHuywMcaBGfz7sDL35DBNs0hoq+zxQ@mail.gmail.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [RFC PATCH] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Tue, 18 Dec 2018 10:08:56 -0700
+Message-ID: <498653b9-5006-2153-fa53-3bc217626303@wwwdotorg.org>
+References: <20181214233254.5860-1-swarren@wwwdotorg.org>
+ <20181218163202.GJ21949@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAF=yD-KFYdXRgL-HpAJLLHuywMcaBGfz7sDL35DBNs0hoq+zxQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>, David Miller <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Networking <netdev@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Henderson <rth@twiddle.net>, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181218163202.GJ21949@mellanox.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Dec 15, 2018 at 7:52 PM Willem de Bruijn
-<willemdebruijn.kernel@gmail.com> wrote:
->
-> > 3 reasons for not doing this:
-> >
-> > 1. We do not want to break userspace. If we move this to
-> > linux/socket.h all the userspace programs now have to include
-> > linux/socket.h or get this definition through a new libc.
-> > 2. All the socket options are together in the file asm/socket.h. It
-> > doesn't seem good for maintainability to move just a few bits
-> > elsewhere.
-> > 3. There are only 4 arches (after the series is applied) that have
-> > their own asm/socket.h. And, this is because there seems to be
-> > significant differences to asm-generic/socket.h that don't seem
-> > logically obvious to group and eliminate some of the defines.
->
-> Agreed. All good reasons to leave as is.
->
-> > Also for the other comment. The reason the conditionals were not
-> > consistent is because they were not consistent to begin with.
->
-> The only difference I see is an inversion of the test. Nesting order
-> is the same:
->
->         int need_software_tstamp = sock_flag(sk, SOCK_RCVTSTAMP);
->         ...
->         if (need_software_tstamp) {
->                 if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
->                 } else {
->                 }
->         }
->
-> vs
->
->                 if (sock_flag(sk, SOCK_RCVTSTAMP)) {
->                         if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
->                         } else {
->                         }
->                 }
->
-> I suggest just adding something like
->
->         if (need_software_tstamp) {
-> +              if (sock_uses_new_tstamp(sk) {
-> +                   __sock_recv_timestamp_new(msg, sk,
-> ktime_to_timespec64(skb->tstamp));
-> +              } else if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> -               if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
->                 } else {
->                 }
->
-> and
->
->                 if (sock_flag(sk, SOCK_RCVTSTAMP)) {
-> +                      if (sock_uses_new_tstamp(sk) {
-> +                           __sock_recv_timestamp_new(msg, sk, ts);
-> +                      else if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> -                       if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
->                         } else {
->                         }
+On 12/18/18 9:32 AM, Jason Gunthorpe wrote:
+> On Fri, Dec 14, 2018 at 04:32:54PM -0700, Stephen Warren wrote:
+>> From: Stephen Warren <swarren@nvidia.com>
+>>
+>> This is a port of commit 378efe798ecf ("RDMA/hns: Get rid of page
+>> operation after dma_alloc_coherent") to the mlx4 driver. That change was
+>> described as:
+>>
+>>> In general, dma_alloc_coherent() returns a CPU virtual address and
+>>> a DMA address, and we have no guarantee that the underlying memory
+>>> even has an associated struct page at all.
+>>>
+>>> This patch gets rid of the page operation after dma_alloc_coherent,
+>>> and records the VA returned form dma_alloc_coherent in the struct
+>>> of hem in hns RoCE driver.
+>>
+>> Differences in this port relative to the hns patch:
+>>
+>> 1) The hns patch only needed to fix a dma_alloc_coherent path, but this
+>> patch also needs to fix an alloc_pages path. This appears to be simple
+>> except for the next point.
+>>
+>> 2) The hns patch converted a bunch of code to consistently use
+>> sg_dma_len(mem) rather than a mix of that and mem->length However, it
+>> seems that sg_dma_len(mem) can be modified or zeroed at runtime, and so
+>> using it when calling e.g. __free_pages is problematic.
+> 
+> dma_len should only ever be used when programming a HW device to do
+> DMA. It certainly should never be used for anything else, so I'm not
+> sure why this description veered off into talking about alloc_pages?
+> 
+> If pages were allocated and described in a sg list then the CPU side
+> must use the pages/len part of the SGL to walk that list of pages.
+> 
+> I also don't really see a practical problem with putting the virtual
+> address pointer of DMA coherent memory in the SGL, so long as it is
+> never used in a DMA map operation or otherwise.
+> 
+> .. so again, what is it this is actually trying to fix in mlx4?
 
-Generally speaking, I think we want the new time handling
-to be written as the default case rather than have it hidden away
-in a separate function. If we didn't have the sparc64 quirk with its
-unusual timeval definition, we'd only need a special flag for the
-old 32-bit format, but that doesn't work as long we have to support
-two different 64-bit formats for 64-bit timeval on sparc64
-(32 or 64 bit microseconds).
+The same thing that the original hns patch fixed, and in the exact same 
+way. Namely a crash during driver unload or system shutdown in the path 
+that frees allocated memory contained in the sg list.
 
-> Note also (2) tentative helper function sock_uses_new_tstamp(const
-> struct sock *sk) instead of testing sock_flag(sk, SOCK_TSTAMP_NEW)
-> directly. Since the .._NEW variants are equivalent to .._OLD on 64-bit,
-> I wonder if we can just compile out the branch. Something like
->
->     static inline bool sock_uses_new_tstamp(const struct sock *sk) {
->             return (sizeof(time_t) != sizeof(__kernel_long_t)) &&
->                        sock_flag(sk, SOCK_TSTAMP_NEW);
->     }
+The reason is that the allocation does:
 
-I think that would break compat handling: when we have a 32-bit
-user space process, the difference between old and new timestamps
-is meaningful even on 64-bit kernels, but the distinction is only made all
-the way down in put_cmsg_compat().
+static int mlx4_alloc_icm_coherent(...
+...
+         void *buf = dma_alloc_coherent(dev, PAGE_SIZE << order,
+                                        &sg_dma_address(mem), gfp_mask);
+...
+         sg_set_buf(mem, buf, PAGE_SIZE << order);
+         sg_dma_len(mem) = PAGE_SIZE << order;
 
-      Arnd
+And free does:
+
+static void mlx4_free_icm_coherent(...
+...
+     dma_free_coherent(&dev->persist->pdev->dev,
+                       chunk->mem[i].length,
+                       lowmem_page_address(sg_page(&chunk->mem[i])),
+
+However, there's no guarantee that dma_alloc_coherent() returned memory 
+for which a struct page exists, and hence the call to sg_page() and/or 
+lowmem_page_address() can fail. To fix this, we add a second field to 
+the mlx4 table struct which holds the return value from 
+dma_alloc_coherent() so that value can be passed to dma_free_coherent() 
+directly, rather than trying to re-derive the value in 
+mlx4_free_icm_coherent().
