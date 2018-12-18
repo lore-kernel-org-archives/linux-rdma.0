@@ -1,29 +1,61 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next] net/mlx5: Continue driver initialization
- despite debugfs failure
-Date: Mon, 17 Dec 2018 22:39:10 +0000
-Message-ID: <d47a37f8e484e4356bdd3018db52e197003c1bad.camel@mellanox.com>
-References: <20181213111511.27308-1-leon@kernel.org>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [PATCH] CIFS: use the correct length when pinning memory for
+ direct I/O for write
+Date: Mon, 17 Dec 2018 23:05:48 -0600
+Message-ID: <CAH2r5muQnmCG2qJBfoDSm59x0hfJo4MtCxqOkCLWh46iYdFNNg@mail.gmail.com>
+References: <20181216231704.16761-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181213111511.27308-1-leon@kernel.org>
-Content-Language: en-US
-Content-ID: <20A8554F4546F74A970DB30531976A91@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181216231704.16761-1-longli@linuxonhyperv.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Long Li <longli@microsoft.com>
+Cc: Steve French <sfrench@samba.org>, CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Stable <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTEyLTEzIGF0IDEzOjE1ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IEZyb206IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj4gDQo+IFRo
-ZSBmYWlsdXJlIHRvIGNyZWF0ZSBkZWJ1Z2ZzIGVudHJ5IGlzIHVucGxlYXNhbnQgZXZlbnQsIGJ1
-dCBub3QNCj4gZW5vdWdoDQo+IHRvIGFib3J0IGRyaWVyIGluaXRpYWxpemF0aW9uLiBBbGlnbiB0
-aGUgbWx4NV9jb3JlIGNvZGUgdG8gZGVidWdmcw0KPiBkZXNpZ24NCj4gYW5kIGNvbnRpbnVlIGV4
-ZWN1dGlvbiB3aGVuZXZlciBkZWJ1Z2ZzX2NyZWF0ZV9kaXIoKSBzdWNjZXNzZXMgb3INCj4gbm90
-Lg0KPiANCj4gRml4ZXM6IGUxMjZiYTk3ZGJhOSAoIm1seDU6IEFkZCBkcml2ZXIgZm9yIE1lbGxh
-bm94IENvbm5lY3QtSUINCj4gYWRhcHRlcnMiKQ0KPiBSZXZpZXdlZC1ieTogU2FlZWQgTWFoYW1l
-ZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5vdnNr
-eSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj4gDQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0Lg0KDQpU
-aGFua3MuDQoNCg0K
+merged into cifs-2.6.git for-next
+
+On Sun, Dec 16, 2018 at 5:18 PM Long Li <longli@linuxonhyperv.com> wrote:
+>
+> From: Long Li <longli@microsoft.com>
+>
+> The current code attempts to pin memory using the largest possible wsize
+> based on the currect SMB credits. This doesn't cause kernel oops but this is
+> not optimal as we may pin more pages then actually needed.
+>
+> Fix this by only pinning what are needed for doing this write I/O.
+>
+> Signed-off-by: Long Li <longli@microsoft.com>
+> Cc: stable@vger.kernel.org
+> ---
+>  fs/cifs/file.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+> index 3467351..c23bf9d 100644
+> --- a/fs/cifs/file.c
+> +++ b/fs/cifs/file.c
+> @@ -2617,11 +2617,13 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
+>                 if (rc)
+>                         break;
+>
+> +               cur_len = min_t(const size_t, len, wsize);
+> +
+>                 if (ctx->direct_io) {
+>                         ssize_t result;
+>
+>                         result = iov_iter_get_pages_alloc(
+> -                               from, &pagevec, wsize, &start);
+> +                               from, &pagevec, cur_len, &start);
+>                         if (result < 0) {
+>                                 cifs_dbg(VFS,
+>                                         "direct_writev couldn't get user pages "
+> --
+> 2.7.4
+>
+
+
+-- 
+Thanks,
+
+Steve
