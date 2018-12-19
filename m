@@ -1,48 +1,81 @@
-From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Subject: Re: [PATCH rds linux-next v4 0/2] WARNING in rds_message_alloc_sgs
-Date: Tue, 18 Dec 2018 15:02:24 -0800
-Message-ID: <6f6a4be5-99e8-de34-595d-f5b30c61c7ec@oracle.com>
-References: <20181216070109.6758-1-shamir.rabinovitch@oracle.com>
- <20181218.145753.1550590342570044648.davem@davemloft.net>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V2] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Tue, 18 Dec 2018 17:12:41 -0700
+Message-ID: <5196b89a-0de5-a53e-95c6-6381b4ed0982@wwwdotorg.org>
+References: <20181218190622.13046-1-swarren@wwwdotorg.org>
+ <20181218205649.GA17958@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181218.145753.1550590342570044648.davem@davemloft.net>
+In-Reply-To: <20181218205649.GA17958@lst.de>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, shamir.rabinovitch@oracle.com
-Cc: linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org, gerd.rausch@oracle.com, haakon.bugge@oracle.com
+To: Christoph Hellwig <hch@lst.de>
+Cc: Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/18/2018 2:57 PM, David Miller wrote:
-> From: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
-> Date: Sun, 16 Dec 2018 09:01:07 +0200
-> 
->> From: shamir rabinovitch <shamir.rabinovitch@oracle.com>
->>
->> This patch set fix google syzbot rds bug found in linux-next.
->> The first patch solve the syzbot issue.
->> The second patch fix issue mentioned by Leon Romanovsky that
->> drivers should not call WARN_ON as result from user input.
->>
->> syzbot bug report can be foud here: https://lkml.org/lkml/2018/10/31/28
->>
->> v1->v2:
->> - patch 1: make rds_iov_vector fields name more descriptive (Hakon)
->> - patch 1: fix potential mem leak in rds_rm_size if krealloc fail
->>    (Hakon)
->> v2->v3:
->> - patch 2: harden rds_sendmsg for invalid number of sgs (Gerd)
->> v3->v4
->> - Santosh a.b. on both patches + repost to net-dev
-> 
-> Does this bug exist in 'net' too?  It really should target the 'net'
-> tree if so, and then we can queue these fixes up for -stable too.
-> 
-yes, the bug exist in net too.
+On 12/18/18 1:56 PM, Christoph Hellwig wrote:
+> This goes in the right direction, but I think we need to stop
+> abusing the scatterlist for the coherent mapping entirely.  Something
+> like the patch below (based on yours):
 
-Shamir, please check if these apply cleanly to Dave's 'net' tree.
+Oh, it was simple to get rid of the sg list usage than I thought; I'd 
+assume it would be touched in a bunch of other files.
 
-Regards,
-Santosh
+I had to make the additions shown below to get the adapter to get the 
+driver to probe without errors, but with these changes, ibping, 
+ib_read_bw, and ib_write_bw all work both directions:
+
+(Sorry, this is pasted so the formatting may be broken)
+
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
+> index ee4fde7e465d..d305c9f575e3 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/icm.c
+> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
+> @@ -167,6 +167,7 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
+>  				if (!chunk)
+>  					goto fail;
+>  			}
+> +			chunk->coherent = coherent;
+>  
+>  			if (!coherent)
+>  				sg_init_table(chunk->sg, MLX4_ICM_CHUNK_LEN);
+> diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.h b/drivers/net/ethernet/mellanox/mlx4/icm.h
+> index 5ccf08ac47a3..574f4bcdd090 100644
+> --- a/drivers/net/ethernet/mellanox/mlx4/icm.h
+> +++ b/drivers/net/ethernet/mellanox/mlx4/icm.h
+> @@ -57,6 +57,7 @@ struct mlx4_icm_chunk {
+>  	struct list_head	list;
+>  	int			npages;
+>  	int			nsg;
+> +	int			coherent;
+>  	union {
+>  		struct scatterlist	sg[MLX4_ICM_CHUNK_LEN];
+>  		struct mlx4_icm_buf	buf[MLX4_ICM_CHUNK_LEN];
+> @@ -121,16 +122,20 @@ static inline void mlx4_icm_next(struct mlx4_icm_iter *iter)
+>  	}
+>  }
+>  
+> -/* Note: won't work on coherent tables */
+>  static inline dma_addr_t mlx4_icm_addr(struct mlx4_icm_iter *iter)
+>  {
+> -	return sg_dma_address(&iter->chunk->sg[iter->page_idx]);
+> +	if (iter->chunk->coherent)
+> +		return iter->chunk->buf[iter->page_idx].dma_addr;
+> +	else
+> +		return sg_dma_address(&iter->chunk->sg[iter->page_idx]);
+>  }
+>  
+> -/* Note: won't work on coherent tables */
+>  static inline unsigned long mlx4_icm_size(struct mlx4_icm_iter *iter)
+>  {
+> -	return sg_dma_len(&iter->chunk->sg[iter->page_idx]);
+> +	if (iter->chunk->coherent)
+> +		return iter->chunk->buf[iter->page_idx].size;
+> +	else
+> +		return sg_dma_len(&iter->chunk->sg[iter->page_idx]);
+>  }
+>  
+>  int mlx4_MAP_ICM_AUX(struct mlx4_dev *dev, struct mlx4_icm *icm);
