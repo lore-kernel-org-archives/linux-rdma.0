@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/2] IB/mlx5: Introduce uid as part of alloc/dealloc transport domain
-Date: Wed, 19 Dec 2018 16:28:10 +0200
-Message-ID: <20181219142811.21301-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/2] IB/mlx5: Use uid as part of alloc/dealloc transport domain
+Date: Wed, 19 Dec 2018 16:28:11 +0200
+Message-ID: <20181219142811.21301-3-leon@kernel.org>
 References: <20181219142811.21301-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,37 +14,36 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Yishai Hadas <yishaih@mellanox.com>
 
-Introduce uid as part of alloc/dealloc transport domain to match the
-device specification.
+Use uid as part of alloc/dealloc transport domain to let firmware
+manages the resources correctly.
 
+Fixes: d2d19121ae2f("IB/mlx5: Set uid as part of TD commands)
 Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
 Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx5/cmd.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 15093356a226..61368ec2d295 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -6593,7 +6593,7 @@ struct mlx5_ifc_dealloc_transport_domain_out_bits {
+diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
+index 752c60426a1c..356bccc715ee 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.c
++++ b/drivers/infiniband/hw/mlx5/cmd.c
+@@ -240,6 +240,7 @@ int mlx5_cmd_alloc_transport_domain(struct mlx5_core_dev *dev, u32 *tdn,
  
- struct mlx5_ifc_dealloc_transport_domain_in_bits {
- 	u8         opcode[0x10];
--	u8         reserved_at_10[0x10];
-+	u8         uid[0x10];
+ 	MLX5_SET(alloc_transport_domain_in, in, opcode,
+ 		 MLX5_CMD_OP_ALLOC_TRANSPORT_DOMAIN);
++	MLX5_SET(alloc_transport_domain_in, in, uid, uid);
  
- 	u8         reserved_at_20[0x10];
- 	u8         op_mod[0x10];
-@@ -7446,7 +7446,7 @@ struct mlx5_ifc_alloc_transport_domain_out_bits {
+ 	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ 	if (!err)
+@@ -257,6 +258,7 @@ void mlx5_cmd_dealloc_transport_domain(struct mlx5_core_dev *dev, u32 tdn,
  
- struct mlx5_ifc_alloc_transport_domain_in_bits {
- 	u8         opcode[0x10];
--	u8         reserved_at_10[0x10];
-+	u8         uid[0x10];
- 
- 	u8         reserved_at_20[0x10];
- 	u8         op_mod[0x10];
+ 	MLX5_SET(dealloc_transport_domain_in, in, opcode,
+ 		 MLX5_CMD_OP_DEALLOC_TRANSPORT_DOMAIN);
++	MLX5_SET(dealloc_transport_domain_in, in, uid, uid);
+ 	MLX5_SET(dealloc_transport_domain_in, in, transport_domain, tdn);
+ 	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ }
 -- 
 2.19.1
