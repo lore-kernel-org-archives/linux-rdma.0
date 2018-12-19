@@ -1,70 +1,37 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 0/2] Allocate the per-port Q counter
-Date: Wed, 19 Dec 2018 08:08:21 +0200
-Message-ID: <20181219060821.GP21086@mtr-leonro.mtl.com>
-References: <20181209105236.26233-1-leon@kernel.org>
- <20181219051114.GA26384@ziepe.ca>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH V2] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Wed, 19 Dec 2018 08:25:30 +0100
+Message-ID: <20181219072530.GA27733@lst.de>
+References: <20181218190622.13046-1-swarren@wwwdotorg.org> <20181218205649.GA17958@lst.de> <5196b89a-0de5-a53e-95c6-6381b4ed0982@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="RwGu8mu1E+uYXPWP"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181219051114.GA26384@ziepe.ca>
+In-Reply-To: <5196b89a-0de5-a53e-95c6-6381b4ed0982@wwwdotorg.org>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Christoph Hellwig <hch@lst.de>, Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---RwGu8mu1E+uYXPWP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Dec 18, 2018 at 10:11:14PM -0700, Jason Gunthorpe wrote:
-> On Sun, Dec 09, 2018 at 12:52:34PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Hi
-> >
-> > See commit message for the patch description.
-> >
-> > Thanks
-> >
-> > Leon Romanovsky (1):
-> >   net/mlx5: Add shared Q counter bits
-> >
-> > Yishai Hadas (1):
-> >   IB/mlx5: Allocate the per-port Q counter shared when DEVX is supported
+On Tue, Dec 18, 2018 at 05:12:41PM -0700, Stephen Warren wrote:
+> On 12/18/18 1:56 PM, Christoph Hellwig wrote:
+>> This goes in the right direction, but I think we need to stop
+>> abusing the scatterlist for the coherent mapping entirely.  Something
+>> like the patch below (based on yours):
 >
-> This seems fine, please update the shared branch
-
-Done,
-2acc7957dbc3 net/mlx5: Add shared Q counter bits
-
-Thanks
-
+> Oh, it was simple to get rid of the sg list usage than I thought; I'd 
+> assume it would be touched in a bunch of other files.
 >
-> Thanks,
-> Jason
+> I had to make the additions shown below to get the adapter to get the 
+> driver to probe without errors, but with these changes, ibping, ib_read_bw, 
+> and ib_write_bw all work both directions:
 
---RwGu8mu1E+uYXPWP
-Content-Type: application/pgp-signature; name="signature.asc"
+I think the new coherent flag should probably use a bool instead of int,
+even despite the fact that the old one still uses bool.
 
------BEGIN PGP SIGNATURE-----
+It might also be worth checking if we need the per-chunk and per-table
+coherent flags, or if the per-chunk one is enough.
 
-iQIcBAEBAgAGBQJcGeBVAAoJEORje4g2clinWS0P/0s/oEG3OeXl4BuWxQOeZHqS
-8iMnNkjYnGpQtFHYnIwafOHafYO9aiL9xicdSrePcYxiQKrAvAzWjVfivDVMYN/K
-vebb3xxUQbBPE0RH9xJ06YfrPLd0Ob0WAEfp1V2xORM/5agxyjjbAGklmaF1liVg
-eVpmdp2paRZeWF6kD9iaGYF2oHkNoQn+EkMCztLXjXdRFJIEEHjZsab+K0JgLITB
-+h8I8CwMg7TSTB1OSdP1wbRZHXFKzViyd+lXByZfWFOetsiH1K0drtgdC7qtng0t
-ENQj2hVXsO9Z4AIpF6q+C/Kk7Od+KO6GxdwIXwNtbIRslq5ZjIyygnIQ1TH0wahx
-nXsjoHc8aVtvQ0jtRk1i/sAK7Z+xXpQvSHBadAaGrTePV6qI3KaUeura6uRz8/jY
-tZhPYfsrXsMAkAiveiu+H7PnMd4Cq/phVx4j9gTyvkFOjpNYPmGKP8Oz1Ecz97QE
-9HRLZu212z3fhwItA2uLVaxLzj0rKne3CwU+U6KWgqRwofcfrI7F5tq61La9Vc1E
-8hZW5kLNRU1RMBbm9GTXL10imUOBIA4cRejfQhP0XT/BrVe2D89D/gCXqQKbZRW4
-htCRJbNFhwoFGNVRtZ/pfiaKzgAiVFgkQo88Ho41yuPUMQsJhKtdjcefP0p6XqIH
-4Z6rNYIMh0ElEfLnzT+w
-=+kOm
------END PGP SIGNATURE-----
-
---RwGu8mu1E+uYXPWP--
+Otherwise this looks fine, feel free to resend it under your name as
+you did the original patch and all the analysis and testing.
