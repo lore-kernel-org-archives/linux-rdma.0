@@ -1,58 +1,46 @@
-From: Stephen Warren <swarren@wwwdotorg.org>
-Subject: Re: [PATCH V2] net/mlx4: Get rid of page operation after
- dma_alloc_coherent
-Date: Wed, 19 Dec 2018 10:31:39 -0700
-Message-ID: <3ac7e3b4-8f5c-096d-2423-738997da1844@wwwdotorg.org>
-References: <20181218190622.13046-1-swarren@wwwdotorg.org>
- <20181218205649.GA17958@lst.de>
- <5196b89a-0de5-a53e-95c6-6381b4ed0982@wwwdotorg.org>
- <20181219072530.GA27733@lst.de>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH rds linux-next v4 0/2] WARNING in rds_message_alloc_sgs
+Date: Wed, 19 Dec 2018 10:00:20 -0800
+Message-ID: <b31851d2-46e2-b797-e3eb-823bce4d657e@oracle.com>
+References: <20181216070109.6758-1-shamir.rabinovitch@oracle.com>
+ <20181218.145753.1550590342570044648.davem@davemloft.net>
+ <6f6a4be5-99e8-de34-595d-f5b30c61c7ec@oracle.com>
+ <20181219105438.GA9593@srabinov-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181219072530.GA27733@lst.de>
+In-Reply-To: <20181219105438.GA9593@srabinov-laptop>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Stephen Warren <swarren@nvidia.com>
+To: Shamir Rabinovitch <shamir.rabinovitch@oracle.com>
+Cc: David Miller <davem@davemloft.net>, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org, gerd.rausch@oracle.com, haakon.bugge@oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/19/18 12:25 AM, Christoph Hellwig wrote:
-> On Tue, Dec 18, 2018 at 05:12:41PM -0700, Stephen Warren wrote:
->> On 12/18/18 1:56 PM, Christoph Hellwig wrote:
->>> This goes in the right direction, but I think we need to stop
->>> abusing the scatterlist for the coherent mapping entirely.  Something
->>> like the patch below (based on yours):
+On 12/19/2018 2:54 AM, Shamir Rabinovitch wrote:
+> On Tue, Dec 18, 2018 at 03:02:24PM -0800, Santosh Shilimkar wrote:
+[...]
+
 >>
->> Oh, it was simple to get rid of the sg list usage than I thought; I'd
->> assume it would be touched in a bunch of other files.
+>> Shamir, please check if these apply cleanly to Dave's 'net' tree.
 >>
->> I had to make the additions shown below to get the adapter to get the
->> driver to probe without errors, but with these changes, ibping, ib_read_bw,
->> and ib_write_bw all work both directions:
+
 > 
-> I think the new coherent flag should probably use a bool instead of int,
-> even despite the fact that the old one still uses bool.
+> Santosh,
 > 
-> It might also be worth checking if we need the per-chunk and per-table
-> coherent flags, or if the per-chunk one is enough.
+> The patches apply cleanly on the master branch of
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net.git .
+> 
+> See below the snippet of the log with the patches applied.
+>
+> 8472aa4edfcb (HEAD -> net/master#rds-syzbot-bug) net/rds: remove user triggered WARN_ON in rds_sendmsg
+> 3f8d6b898c5e net/rds: fix warn in rds_message_alloc_sgs
+> 3061169a47ee (net/master) Merge git://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf
+> 78abe3d0dfad net/smc: fix TCP fallback socket release
+> f7db2beb4c2c vxge: ensure data0 is initialized in when fetching firmware version information
+> 
+Great. On patchwork I see the patches marked under review by Dave so
+lets wait for his instruction(s).
 
-So we need to store the value in the table, because the table is created 
-first without any chunks, so we can't store the coherent flag in any 
-chunk, and the coherent flag is a property of the table at that time.
-
-We also need to store it per chunk because part of the code acts on 
-chunks without knowledge of which table they're part of, so can't access 
-the per-table coherent flag.
-
-Instead of duplicating the coherent flag into each chunk, I could 
-instead add a pointer from the chunk to the table, so the code could 
-read chunk->table->coherent. That would avoid duplication at least, even 
-if it does add more pointer chasing. I'm not sure if one way is better 
-than the other?
-
-> Otherwise this looks fine, feel free to resend it under your name as
-> you did the original patch and all the analysis and testing.
-
-Thanks.
+Regards,
+Santosh
