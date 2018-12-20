@@ -1,45 +1,56 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH mlx5-next] IB/mlx5: Prevent allocating UMEM and UCTX as
- some general object
-Date: Thu, 20 Dec 2018 14:01:36 -0700
-Message-ID: <20181220210136.GA10207@ziepe.ca>
-References: <20181219142815.21480-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma-next 2/5] RDMA/core: Don't depend device ODP
+ capabilities on kconfig option
+Date: Thu, 20 Dec 2018 23:22:53 +0000
+Message-ID: <20181220232247.GV29267@mellanox.com>
+References: <20181220092318.32672-1-leon@kernel.org>
+ <20181220092318.32672-3-leon@kernel.org>
+ <20181220172045.GG29267@mellanox.com>
+ <20181220172956.GC3940@mtr-leonro.mtl.com>
+ <20181220173306.GI29267@mellanox.com>
+ <20181220175020.GD3940@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181219142815.21480-1-leon@kernel.org>
+In-Reply-To: <20181220175020.GD3940@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <E3E9D4D56A7A354582A658E189620E79@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Achiad Shochat <achiad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 19, 2018 at 04:28:15PM +0200, Leon Romanovsky wrote:
-> From: Yishai Hadas <yishaih@mellanox.com>
-> 
-> The driver needs to prevent a user space application to create a
-> UMEM and UCTX via the general object command.
-> 
-> The UMEM must go through the kernel UMEM_REG method to prevent the user
-> from setting physical addresses by himself.  The UCTX is some internal
-> kernel object and shouldn't be exposed.
-> 
-> As of not being any more part of the general object the caps bits were
-> moved to be some log_xxx indication in the general HCA caps, 0 means not
-> supported.
-> 
-> The firmware code was adapted as well to match the above.
-> 
-> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> Reviewed-by: Achiad Shochat <achiad@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/infiniband/hw/mlx5/devx.c | 34 ++++++++---------
->  drivers/infiniband/hw/mlx5/main.c |  3 +-
->  include/linux/mlx5/mlx5_ifc.h     | 62 +++++++++++++++++++++----------
->  3 files changed, 58 insertions(+), 41 deletions(-)
+On Thu, Dec 20, 2018 at 07:50:20PM +0200, Leon Romanovsky wrote:
+> > > > > -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> > > > >  	if (MLX5_CAP_GEN(mdev, pg))
+> > > > >  		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
+> > > > >  	props->odp_caps =3D dev->odp_caps;
+> > > > > -#endif
+> > > >
+> > > > But shouldn't this be protected? If the driver has compiled out ODP=
+ it
+> > > > shouldn't set the cap flag...
+> > >
+> > > I see those capabilities as device properties and not as kernel ones.
+> > >
+> > > Current situation looks bad for me, when I have same device which
+> > > reports differently information depends on some compilation flag.
+> >
+> > It is not device capabilities, it is a kernel API capability if the
+> > API is not available the bit should not be set.
+>=20
+> Is it better? Should I resend the series?
 
-Applied to for-next
+Hrm.. I think I'm inclined to keep the the if() in the same place as
+the ifdefs. We can revise it later.
 
-Thanks,
+I noticed other busted up stuff:
+ - IB_DEVICE_ON_DEMAND_PAGING is apparently UAPI but not in a uapi
+   header (grr)
+ - ucontext shouldn't have a driver callback, that should be moved to
+   ops (ie to mlx5_ib_dev_odp_ops)
+ - IB_DEVICE_ON_DEMAND_PAGING should be set in core code based
+   on ops.invalidate_range being present, drivers shouldn't set it..
+
 Jason
