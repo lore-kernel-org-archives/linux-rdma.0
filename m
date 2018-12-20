@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 1/5] RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
-Date: Thu, 20 Dec 2018 11:23:14 +0200
-Message-ID: <20181220092318.32672-2-leon@kernel.org>
+Subject: [PATCH mlx5-next 5/5] RDMA/mlx5: Delete declaration of already removed function
+Date: Thu, 20 Dec 2018 11:23:18 +0200
+Message-ID: <20181220092318.32672-6-leon@kernel.org>
 References: <20181220092318.32672-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,52 +14,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-CONFIG_INFINIBAND_ON_DEMAND_PAGING is used in general structures
-to micro-optimize the memory footprint. Remove it, so it will allow
-us to simplify various ODP device flows.
+The implementation of mlx5_core_page_fault_resume() was removed
+in commit d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and
+ODP logic to RDMA"). This patch removes declaration too.
 
+Fixes: d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and ODP logic to RDMA")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 --
- include/rdma/ib_verbs.h              | 2 --
- 2 files changed, 4 deletions(-)
+ include/linux/mlx5/driver.h | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d531f25a1105..58efcbd596fd 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -911,7 +911,6 @@ struct mlx5_ib_dev {
- 	/* Prevents soft lock on massive reg MRs */
- 	struct mutex			slow_path_mutex;
- 	int				fill_delay;
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index cb1c5b10279c..709446bea72c 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -937,10 +937,6 @@ int mlx5_query_odp_caps(struct mlx5_core_dev *dev,
+ 			struct mlx5_odp_caps *odp_caps);
+ int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
+ 			     u8 port_num, void *out, size_t sz);
 -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	struct ib_odp_caps	odp_caps;
- 	u64			odp_max_size;
- 	struct mlx5_ib_pf_eq	odp_pf_eq;
-@@ -923,7 +922,6 @@ struct mlx5_ib_dev {
- 	struct srcu_struct      mr_srcu;
- 	u32			null_mkey;
- 	struct workqueue_struct *advise_mr_wq;
--#endif
- 	struct mlx5_ib_flow_db	*flow_db;
- 	/* protect resources needed as part of reset flow */
- 	spinlock_t		reset_flow_resource_lock;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a6e57f05410c..67339da6c72d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1504,12 +1504,10 @@ struct ib_ucontext {
- 
- 	bool cleanup_retryable;
- 
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	void (*invalidate_range)(struct ib_umem_odp *umem_odp,
- 				 unsigned long start, unsigned long end);
- 	struct mutex per_mm_list_lock;
- 	struct list_head per_mm_list;
+-int mlx5_core_page_fault_resume(struct mlx5_core_dev *dev, u32 token,
+-				u32 wq_num, u8 type, int error);
 -#endif
  
- 	struct ib_rdmacg_object	cg_obj;
- 	/*
+ int mlx5_init_rl_table(struct mlx5_core_dev *dev);
+ void mlx5_cleanup_rl_table(struct mlx5_core_dev *dev);
 -- 
 2.19.1
