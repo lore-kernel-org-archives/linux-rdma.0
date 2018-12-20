@@ -1,44 +1,72 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 0/5] Cleanup of CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
-Date: Thu, 20 Dec 2018 11:23:13 +0200
-Message-ID: <20181220092318.32672-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH mlx5-next] IB/mlx5: Prevent allocating UMEM and UCTX as
+ some general object
+Date: Thu, 20 Dec 2018 17:02:12 +0000
+Message-ID: <20181220170205.GD29267@mellanox.com>
+References: <20181219142815.21480-1-leon@kernel.org>
+ <20181219191406.GX30567@mellanox.com>
+ <20181220062133.GH13943@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181220062133.GH13943@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <935113F13177AB40B7781C77930CE977@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Achiad Shochat <achiad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
-
-Hi,
-
-As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
-usage, this series cleans mlx5_ib and RDMA/core code and it is based on already
-sent but not yet accepted patch https://patchwork.kernel.org/patch/10735547/
-
-It is under extensive testing now, but I wanted to raise awareness as soon
-as possible for the patch "RDMA/core: Don't depend device ODP capabilities
-on kconfig option", which changes behavior for mlx5 devices with
-CONFIG_INFINIBAND_ON_DEMAND_PAGING set to no.
-
-Thanks
-
-Leon Romanovsky (5):
-  RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
-  RDMA/core: Don't depend device ODP capabilities on kconfig option
-  RDMA/mlx5: Introduce and reuse helper to identify ODP MR
-  RDMA/mlx5: Embed into the code flow the ODP config option
-  RDMA/mlx5: Delete declaration of already removed function
-
- drivers/infiniband/core/uverbs_cmd.c |  8 ++---
- drivers/infiniband/hw/mlx5/main.c    | 37 ++++++++++-------------
- drivers/infiniband/hw/mlx5/mem.c     |  5 +---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 ++++++--
- drivers/infiniband/hw/mlx5/mr.c      | 45 ++++++++--------------------
- drivers/infiniband/hw/mlx5/odp.c     |  6 ++--
- include/linux/mlx5/driver.h          |  4 ---
- include/rdma/ib_umem_odp.h           | 26 ++++++++--------
- include/rdma/ib_verbs.h              |  2 --
- 9 files changed, 58 insertions(+), 87 deletions(-)
+On Thu, Dec 20, 2018 at 08:21:33AM +0200, Leon Romanovsky wrote:
+> On Wed, Dec 19, 2018 at 07:14:12PM +0000, Jason Gunthorpe wrote:
+> > On Wed, Dec 19, 2018 at 04:28:15PM +0200, Leon Romanovsky wrote:
+> > > From: Yishai Hadas <yishaih@mellanox.com>
+> > >
+> > > The driver needs to prevent a user space application to create a
+> > > UMEM and UCTX via the general object command.
+> > >
+> > > The UMEM must go through the kernel UMEM_REG method to prevent the us=
+er
+> > > from setting physical addresses by himself.  The UCTX is some interna=
+l
+> > > kernel object and shouldn't be exposed.
+> > >
+> > > As of not being any more part of the general object the caps bits wer=
+e
+> > > moved to be some log_xxx indication in the general HCA caps, 0 means =
+not
+> > > supported.
+> > >
+> > > The firmware code was adapted as well to match the above.
+> >
+> > This commit message is a bit wonky.. how about
+> >
+> > IB/mlx5: Use the correct commands for UMEM and UCTX allocation
+> >
+> > During testing the command format was changed to close a security
+> > hole. Revise the driver to use the command format that will actually
+> > be supported in GA firmware.
+> >
+> > Both the UMEM and UCTX are intended only for use by the kernel and
+> > cannot be executed using a general command.
+> >
+> > Since the UMEM and CTX are not part of the general object the caps
+> > bits were moved to be some log_xxx location in the general HCA caps.
+>=20
+> I'm fine with this description too.
+>=20
+> >
+> > > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> > > Reviewed-by: Achiad Shochat <achiad@mellanox.com>
+> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Also add a fixes line please, any kernel with the devx needs this
+> > patch to work with GA firmware.
+>=20
+> Fixes: a8b92ca1b0e5 ("IB/mlx5: Introduce DEVX")
+>=20
+> >
+> > >  drivers/infiniband/hw/mlx5/devx.c | 34 ++++++++---------
+> > >  drivers/infiniband/hw/mlx5/main.c |  3 +-
+> > >  include/linux/mlx5/mlx5_ifc.h     | 62 +++++++++++++++++++++--------=
