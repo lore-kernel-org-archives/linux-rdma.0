@@ -1,130 +1,78 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mlx5-next] IB/mlx5: Prevent allocating UMEM and UCTX as
- some general object
-Date: Thu, 20 Dec 2018 19:13:19 +0200
-Message-ID: <20181220171319.GB3940@mtr-leonro.mtl.com>
-References: <20181219142815.21480-1-leon@kernel.org>
- <20181219191406.GX30567@mellanox.com>
- <20181220062133.GH13943@mtr-leonro.mtl.com>
- <20181220170205.GD29267@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH rdma-next 2/5] RDMA/core: Don't depend device ODP
+ capabilities on kconfig option
+Date: Thu, 20 Dec 2018 17:20:51 +0000
+Message-ID: <20181220172045.GG29267@mellanox.com>
+References: <20181220092318.32672-1-leon@kernel.org>
+ <20181220092318.32672-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="mojUlQ0s9EVzWg2t"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181220170205.GD29267@mellanox.com>
+In-Reply-To: <20181220092318.32672-3-leon@kernel.org>
+Content-Language: en-US
+Content-ID: <C71D9E34A2FA184490176122A188AB18@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Achiad Shochat <achiad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Dec 20, 2018 at 11:23:15AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>=20
+> Device capability bits are exposing what specific device supports from
+> HW perspective. Those bits are not dependent on kernel configurations
+> and RDMA/core should ensure that proper interfaces to users will be
+> disabled if CONFIG_INFINIBAND_ON_DEMAND_PAGING is not set.
+>=20
+> Fixes: f4056bfd8ccf ("IB/core: Add on demand paging caps to ib_uverbs_ex_=
+query_device")
+> Fixes: 8cdd312cfed7 ("IB/mlx5: Implement the ODP capability query verb")
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/core/uverbs_cmd.c | 2 --
+>  drivers/infiniband/hw/mlx5/main.c    | 2 --
+>  2 files changed, 4 deletions(-)
+>=20
+> diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/co=
+re/uverbs_cmd.c
+> index 6b12cc5f97b2..549d9eedf62e 100644
+> +++ b/drivers/infiniband/core/uverbs_cmd.c
+> @@ -3609,7 +3609,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_=
+attr_bundle *attrs)
+> =20
+>  	copy_query_dev_fields(ucontext, &resp.base, &attr);
+> =20
+> -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+>  	resp.odp_caps.general_caps =3D attr.odp_caps.general_caps;
+>  	resp.odp_caps.per_transport_caps.rc_odp_caps =3D
+>  		attr.odp_caps.per_transport_caps.rc_odp_caps;
+> @@ -3617,7 +3616,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_=
+attr_bundle *attrs)
+>  		attr.odp_caps.per_transport_caps.uc_odp_caps;
+>  	resp.odp_caps.per_transport_caps.ud_odp_caps =3D
+>  		attr.odp_caps.per_transport_caps.ud_odp_caps;
+> -#endif
 
---mojUlQ0s9EVzWg2t
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This one is maybe OK, assuming the driver fills in 0..
 
-On Thu, Dec 20, 2018 at 05:02:12PM +0000, Jason Gunthorpe wrote:
-> On Thu, Dec 20, 2018 at 08:21:33AM +0200, Leon Romanovsky wrote:
-> > On Wed, Dec 19, 2018 at 07:14:12PM +0000, Jason Gunthorpe wrote:
-> > > On Wed, Dec 19, 2018 at 04:28:15PM +0200, Leon Romanovsky wrote:
-> > > > From: Yishai Hadas <yishaih@mellanox.com>
-> > > >
-> > > > The driver needs to prevent a user space application to create a
-> > > > UMEM and UCTX via the general object command.
-> > > >
-> > > > The UMEM must go through the kernel UMEM_REG method to prevent the =
-user
-> > > > from setting physical addresses by himself.  The UCTX is some inter=
-nal
-> > > > kernel object and shouldn't be exposed.
-> > > >
-> > > > As of not being any more part of the general object the caps bits w=
-ere
-> > > > moved to be some log_xxx indication in the general HCA caps, 0 mean=
-s not
-> > > > supported.
-> > > >
-> > > > The firmware code was adapted as well to match the above.
-> > >
-> > > This commit message is a bit wonky.. how about
-> > >
-> > > IB/mlx5: Use the correct commands for UMEM and UCTX allocation
-> > >
-> > > During testing the command format was changed to close a security
-> > > hole. Revise the driver to use the command format that will actually
-> > > be supported in GA firmware.
-> > >
-> > > Both the UMEM and UCTX are intended only for use by the kernel and
-> > > cannot be executed using a general command.
-> > >
-> > > Since the UMEM and CTX are not part of the general object the caps
-> > > bits were moved to be some log_xxx location in the general HCA caps.
-> >
-> > I'm fine with this description too.
-> >
-> > >
-> > > > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> > > > Reviewed-by: Achiad Shochat <achiad@mellanox.com>
-> > > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > >
-> > > Also add a fixes line please, any kernel with the devx needs this
-> > > patch to work with GA firmware.
-> >
-> > Fixes: a8b92ca1b0e5 ("IB/mlx5: Introduce DEVX")
-> >
-> > >
-> > > >  drivers/infiniband/hw/mlx5/devx.c | 34 ++++++++---------
-> > > >  drivers/infiniband/hw/mlx5/main.c |  3 +-
-> > > >  include/linux/mlx5/mlx5_ifc.h     | 62 +++++++++++++++++++++------=
-----
-> > > >  3 files changed, 58 insertions(+), 41 deletions(-)
-> > >
-> > > Otherwise the patch looks fine, please apply to the shared branch..
-> >
-> > Jason,
-> >
-> > I have procedural question. This patch is based on rdma-next and there
-> > is diversion in both devx.c and main.c in those areas, enough do not
-> > apply cleanly. Will it be easier if you take this patch to rdma-next,
-> > instead me applying different patch to mlx5-next and you hitting merge
-> > conflict later on while trying to merge it into rdma-next?
->
-> Sure, but it has the unsplit _ifc update...
+>  	resp.timestamp_mask =3D attr.timestamp_mask;
+>  	resp.hca_core_clock =3D attr.hca_core_clock;
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/ml=
+x5/main.c
+> index 6584e638387a..d7e5ba5034aa 100644
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -923,11 +923,9 @@ static int mlx5_ib_query_device(struct ib_device *ib=
+dev,
+>  	props->hca_core_clock =3D MLX5_CAP_GEN(mdev, device_frequency_khz);
+>  	props->timestamp_mask =3D 0x7FFFFFFFFFFFFFFFULL;
+> =20
+> -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+>  	if (MLX5_CAP_GEN(mdev, pg))
+>  		props->device_cap_flags |=3D IB_DEVICE_ON_DEMAND_PAGING;
+>  	props->odp_caps =3D dev->odp_caps;
+> -#endif
 
-If it was possible, I wouldn't bother you. This change should be as one
-piece otherwise we will have failed to build patch.
+But shouldn't this be protected? If the driver has compiled out ODP it
+shouldn't set the cap flag...
 
->
-> I think we are at the end of the cycle so this probably won't make a
-> conflict - lets just go in RDMA then.
-
-=46rom what I see in queues, you are right, merge conflict is unlikely to h=
-appen.
-
-Thanks
-
->
-> Jason
-
---mojUlQ0s9EVzWg2t
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcG82vAAoJEORje4g2clinvuEQAID3fGrd1ZwiywBjRUPg76/q
-Zf8KmegZIFMd998SvFpezmrhxwS40gWSF51eWSlFRsB/ufVc7rS+MnaV8YqdVwXr
-ydIK3HLW7Z6OU6gSqt2L4fWVWjLXFyTn5S8MOmCcc7ThWD3YtWnRANWgCD6JpifU
-U1dUMz8Sxrn3FAR8/1YcPfX+0G6HSps0cgLauMaqPe8lRCckNNq6gP06qMtI0FNT
-jFU4UGYtWVnWPiDti5cEOH8re4OxlOLNz76ZGTeoVYT0Ya9+HJ0zJJ+2buearuDl
-HKCET4OUCYKn6JtUEVRZ+e6vdKe423MPCsDRwmwJ5DxAEgCvvFruNn4PBzymm9Kf
-/kQaos9lxGmrjJA+RfUDAJ45gE10leumm7TrYroEEzKXrj+695+cfLsDEwk9y1Y8
-R2nUzY44wVeLJ7xZku3tsrjyxJTca+6+qVHvgsSmUBQ5nxNt1Kjn6v2LMr2nmAg7
-iWIvVkg9hoLswUBa7xGz3JU9fM3vRM//Rhcs60xL8MwXpl+hrgU38EHqGAPhyGvn
-Rsd9M8PIrIBfJSVNEE36x711pkrxyC50D+5uJQwjpoaHHUOpb7WAIznCFE/U1RKW
-WlC4j0MA5BvuWEcOBDFHhOqymH6/IWRUXwT7GX/x5yHz5IGRVeb4hPPOcIFgyzsw
-P6EPy4gfgeEhsrAgJEyN
-=ui/T
------END PGP SIGNATURE-----
-
---mojUlQ0s9EVzWg2t--
+Jason
