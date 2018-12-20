@@ -1,72 +1,109 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 0/2] Fix to mlx5 devx interface
-Date: Thu, 20 Dec 2018 08:11:05 +0200
-Message-ID: <20181220061105.GG13943@mtr-leonro.mtl.com>
-References: <20181219142811.21301-1-leon@kernel.org>
- <20181219191432.GY30567@mellanox.com>
+Subject: Re: [PATCH mlx5-next] IB/mlx5: Prevent allocating UMEM and UCTX as
+ some general object
+Date: Thu, 20 Dec 2018 08:21:33 +0200
+Message-ID: <20181220062133.GH13943@mtr-leonro.mtl.com>
+References: <20181219142815.21480-1-leon@kernel.org>
+ <20181219191406.GX30567@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="CXFpZVxO6m2Ol4tQ"
+        protocol="application/pgp-signature"; boundary="Cgrdyab2wu3Akvjd"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181219191432.GY30567@mellanox.com>
+In-Reply-To: <20181219191406.GX30567@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Achiad Shochat <achiad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---CXFpZVxO6m2Ol4tQ
+--Cgrdyab2wu3Akvjd
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Dec 19, 2018 at 07:14:38PM +0000, Jason Gunthorpe wrote:
-> On Wed, Dec 19, 2018 at 04:28:09PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
+On Wed, Dec 19, 2018 at 07:14:12PM +0000, Jason Gunthorpe wrote:
+> On Wed, Dec 19, 2018 at 04:28:15PM +0200, Leon Romanovsky wrote:
+> > From: Yishai Hadas <yishaih@mellanox.com>
 > >
-> > Hi,
+> > The driver needs to prevent a user space application to create a
+> > UMEM and UCTX via the general object command.
 > >
-> > This small fix to mlx5 devx interface is separated to two, so we can
-> > apply first patch to mlx5-next.
+> > The UMEM must go through the kernel UMEM_REG method to prevent the user
+> > from setting physical addresses by himself.  The UCTX is some internal
+> > kernel object and shouldn't be exposed.
 > >
-> > Thanks
+> > As of not being any more part of the general object the caps bits were
+> > moved to be some log_xxx indication in the general HCA caps, 0 means not
+> > supported.
 > >
-> > Yishai Hadas (2):
-> >   IB/mlx5: Introduce uid as part of alloc/dealloc transport domain
-> >   IB/mlx5: Use uid as part of alloc/dealloc transport domain
-> >
-> >  drivers/infiniband/hw/mlx5/cmd.c | 2 ++
-> >  include/linux/mlx5/mlx5_ifc.h    | 4 ++--
-> >  2 files changed, 4 insertions(+), 2 deletions(-)
+> > The firmware code was adapted as well to match the above.
 >
-> These look fine too, please update the shared branch
+> This commit message is a bit wonky.. how about
+>
+> IB/mlx5: Use the correct commands for UMEM and UCTX allocation
+>
+> During testing the command format was changed to close a security
+> hole. Revise the driver to use the command format that will actually
+> be supported in GA firmware.
+>
+> Both the UMEM and UCTX are intended only for use by the kernel and
+> cannot be executed using a general command.
+>
+> Since the UMEM and CTX are not part of the general object the caps
+> bits were moved to be some log_xxx location in the general HCA caps.
 
-Done, thanks
-71bef2fd583b IB/mlx5: Introduce uid as part of alloc/dealloc transport domain
+I'm fine with this description too.
 
+>
+> > Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
+> > Reviewed-by: Achiad Shochat <achiad@mellanox.com>
+> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>
+> Also add a fixes line please, any kernel with the devx needs this
+> patch to work with GA firmware.
+
+Fixes: a8b92ca1b0e5 ("IB/mlx5: Introduce DEVX")
+
+>
+> >  drivers/infiniband/hw/mlx5/devx.c | 34 ++++++++---------
+> >  drivers/infiniband/hw/mlx5/main.c |  3 +-
+> >  include/linux/mlx5/mlx5_ifc.h     | 62 +++++++++++++++++++++----------
+> >  3 files changed, 58 insertions(+), 41 deletions(-)
+>
+> Otherwise the patch looks fine, please apply to the shared branch..
+
+Jason,
+
+I have procedural question. This patch is based on rdma-next and there
+is diversion in both devx.c and main.c in those areas, enough do not
+apply cleanly. Will it be easier if you take this patch to rdma-next,
+instead me applying different patch to mlx5-next and you hitting merge
+conflict later on while trying to merge it into rdma-next?
+
+Thanks
 
 >
 > Thanks,
 > Jason
 
---CXFpZVxO6m2Ol4tQ
+--Cgrdyab2wu3Akvjd
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcGzJ5AAoJEORje4g2clinhogP/2yAT4a1BibBVym0Pl9vFjjk
-9gU+eFVPOoBVnFGsL7zirYP5j9+OFFTsKQHSkXKqjYHkXfJQNZEedC7FvaLlbIdH
-Tk9W6S6wROWCxDjJP/iZN/CYtTthrUHs4BoYAXzubQW59b3J3IGilb6J5v5AZf1O
-ZngPsRqjqlC6W6dMUoBMsjihtWVJAk4uUIZr6ZCNNWyyrakIP8JrsHEMDH7P3Vv3
-xmbJG9sZrYEPfm1/ahh01pZT+SLkLLvKWwGaAOD2ENCd1w1voZy8buhgvCUkrlh0
-8Eoy1VJEFYy4dDopwy8dgH6MNEs8hPjcF2Rg5kx0BfNOHLtInzIIlP0OD/2RJqWF
-a8r0QrB9Uac6mC5GkbK6l94YLuVgmVaLlCDhNkp8YZ1X1ZOOb/uyu6TRN/GDryaM
-1tVxqQzkavQO0UmVmJxjKWXm+53URhIZqxu0RVYfhBlxuoUBcPDJDHUipMght2rg
-LLgo1OpgobQQlwrpfOoog8uBYrE88TqdEcB3QkbQhxG+u0SJBLV/qGu0vR50Ut0r
-HcUSa94T6W8ZMrNz4QlilQ1SAa4rNMsHXWcPRz1Mk6mFvAqb5cbS0jviwvlFJb/G
-iSG+YjNgyPDXBRGzrRqO/LP5y8lJNGGSewCR7c7JFW181uu4vYjfdXHRmHgyT8aM
-W/Vtxbd3qbtx++ewDQMW
-=SBSn
+iQIcBAEBAgAGBQJcGzTtAAoJEORje4g2clingdEP/RWXyS76u05zM3LESAKs0uy1
+4naes17aTgxS6FTKZyipetDXzlHZ06+y8MTh7nxgylPxd6GBUc6c0ZBf5x+LKTMo
+8kr3Q0hWYTrM/RNm/n+mIwIiFhdlRlkStJohRRS208Zm5qqWSgGpNAAr2syPjVW8
+Poy89XGZak3b7o4yWY8/Uo429XX34/m2fDL3AqnMhgwUppy87KFO7I/eC4G7OyH/
+KdMQAfjjoEDG9ot6SINeRSon7Uj6bnUjZksnmK05qdr7bNMemNpOLCk3Z5k8oYER
+Jm6C0obABZ+MZCzLbeM3zZNK2uETZzkTvLH6/mEN+/j5XvNEodj6o9UZFGGZ3wet
+WRLXyeA8Us3SJiFS/Qh1EyRmg1HOM/owSmxldxkU7A9Uz/ccnLZbECfiKYD5RfbJ
+7HBwrrA2xpq4UFb9Z3C5NySU490PyRbo8EM/SSOAcIeANBJmnkgGpDN57Lkv6uZ3
+hsre++MHG/RdcCAylu8UnQ8KJ0Lagwxmq8wVojTPnD5CqU+lD25rjW895tpSUf9D
+Z0jgvcQfY7MPYqe2rRUdHYBBpKhJRYhLa/Dm4NJwAEYCtqYMTTKiueres5AFzJa7
+7SGx6ifzJHCLQdx6OAO8nIUB776EbK/LDb7082bqZjdPT52igwCpboyaTlh6fxBx
+QnyhviaWMRKblcLIZQPw
+=TJ+h
 -----END PGP SIGNATURE-----
 
---CXFpZVxO6m2Ol4tQ--
+--Cgrdyab2wu3Akvjd--
