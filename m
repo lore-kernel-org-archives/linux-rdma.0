@@ -1,19 +1,17 @@
 From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 02/20] net/mlx5e: drop useless LIST_HEAD
-Date: Sun, 23 Dec 2018 09:56:57 +0100
-Message-ID: <1545555435-24576-3-git-send-email-Julia.Lawall@lip6.fr>
+Subject: [PATCH 19/20] net/mlx4_core: drop useless LIST_HEAD
+Date: Sun, 23 Dec 2018 09:57:14 +0100
+Message-ID: <1545555435-24576-20-git-send-email-Julia.Lawall@lip6.fr>
 References: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: kernel-janitors@vger.kernel.org, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>
+Cc: kernel-janitors@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Drop LIST_HEAD where the variable it declares is never used.
-
-These became useless in 244cd96adb5f ("net_sched: remove list_head
-from tc_action")
+Drop LIST_HEAD where the variable it declares has never
+been used.
 
 The semantic patch that fixes this problem is as follows:
 (http://coccinelle.lip6.fr/)
@@ -26,40 +24,56 @@ identifier x;
   ... when != x
 // </smpl>
 
-Fixes: 244cd96adb5f ("net_sched: remove list_head from tc_action")
+Fixes: c82e9aa0a8bc ("mlx4_core: resource tracking for HCA resources used by guests")
 Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
 ---
 Successfully 0-day tested on 151 configurations.
 
- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/net/ethernet/mellanox/mlx4/resource_tracker.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 4d6c9757afad..cae6c6d48984 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -2183,7 +2183,6 @@ static bool modify_header_match_supported(struct mlx5_flow_spec *spec,
- {
- 	const struct tc_action *a;
- 	bool modify_ip_header;
--	LIST_HEAD(actions);
- 	u8 htype, ip_proto;
- 	void *headers_v;
- 	u16 ethertype;
-@@ -2272,7 +2271,6 @@ static int parse_tc_nic_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
- {
- 	struct mlx5_nic_flow_attr *attr = flow->nic_attr;
- 	const struct tc_action *a;
--	LIST_HEAD(actions);
- 	u32 action = 0;
- 	int err, i;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+index 31bd56727022..eb13d3618162 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
++++ b/drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+@@ -4729,7 +4729,6 @@ static void rem_slave_srqs(struct mlx4_dev *dev, int slave)
+ 	struct res_srq *tmp;
+ 	int state;
+ 	u64 in_param;
+-	LIST_HEAD(tlist);
+ 	int srqn;
+ 	int err;
  
-@@ -2511,7 +2509,6 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
- 	struct mlx5e_rep_priv *rpriv = priv->ppriv;
- 	struct ip_tunnel_info *info = NULL;
- 	const struct tc_action *a;
--	LIST_HEAD(actions);
- 	bool encap = false;
- 	u32 action = 0;
- 	int err, i;
+@@ -4795,7 +4794,6 @@ static void rem_slave_cqs(struct mlx4_dev *dev, int slave)
+ 	struct res_cq *tmp;
+ 	int state;
+ 	u64 in_param;
+-	LIST_HEAD(tlist);
+ 	int cqn;
+ 	int err;
+ 
+@@ -4858,7 +4856,6 @@ static void rem_slave_mrs(struct mlx4_dev *dev, int slave)
+ 	struct res_mpt *tmp;
+ 	int state;
+ 	u64 in_param;
+-	LIST_HEAD(tlist);
+ 	int mptn;
+ 	int err;
+ 
+@@ -4926,7 +4923,6 @@ static void rem_slave_mtts(struct mlx4_dev *dev, int slave)
+ 	struct res_mtt *mtt;
+ 	struct res_mtt *tmp;
+ 	int state;
+-	LIST_HEAD(tlist);
+ 	int base;
+ 	int err;
+ 
+@@ -5115,7 +5111,6 @@ static void rem_slave_eqs(struct mlx4_dev *dev, int slave)
+ 	struct res_eq *tmp;
+ 	int err;
+ 	int state;
+-	LIST_HEAD(tlist);
+ 	int eqn;
+ 
+ 	err = move_all_busy(dev, slave, RES_EQ);
