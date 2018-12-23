@@ -1,32 +1,43 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Subject: Re: rfc: bool structure members (was Re: [PATCH V3] net/mlx4: Get
- rid of page operation after dma_alloc_coherent)
-Date: Sun, 23 Dec 2018 16:53:12 +0000
-Message-ID: <20181223165312.GE2217@ZenIV.linux.org.uk>
-References: <20181219182031.8675-1-swarren@wwwdotorg.org>
- <20181220174318.GA21404@ziepe.ca>
- <20181220174448.GA21149@lst.de>
- <1545328145.185366.500.camel@acm.org>
- <072c2d9d187daf0672bf54ab035e47a05fd1cd1d.camel@perches.com>
- <20181221033159.GF23877@ziepe.ca>
- <b906bec0fd12d25474561263087a26b8b0519fe4.camel@perches.com>
- <20181221235230.GC13168@ziepe.ca>
- <dc6d4923-63bd-e133-310b-7b164b0c92f5@amazon.com>
+From: Tom Psyborg <pozega.tomislav@gmail.com>
+Subject: Re: [PATCH 00/20] drop useless LIST_HEAD
+Date: Sun, 23 Dec 2018 22:49:15 +0100
+Message-ID: <CAKR_QVJefW1vxYb7-qiU8=0YdbFghYo15SK2eGjOC-dntRfyYA@mail.gmail.com>
+References: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <dc6d4923-63bd-e133-310b-7b164b0c92f5@amazon.com>
-Sender: netdev-owner@vger.kernel.org
-To: Gal Pressman <galpress@amazon.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Joe Perches <joe@perches.com>, Bart Van Assche <bvanassche@acm.org>, Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Stephen Warren <swarren@nvidia.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, kernel-janitors@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-scsi@vger.kernel.org, linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-xfs@vger.kernel.org, linux-btrfs@vger.kernel.org, Stefano Stabellini <sstabellini@kernel.org>, xen-devel@lists.xenproject.org, linux-wireless@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 23, 2018 at 06:42:20PM +0200, Gal Pressman wrote:
-> > -17) Don't re-invent the kernel macros
-> > +17) Using bool
-> > +--------------
-> > +
-> > +The Linux kernel uses the C11 standard for the bool type. bool values can only
+Why do you CC this to so many lists?
 
-C99, surely?
+On 23/12/2018, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
+> Drop LIST_HEAD where the variable it declares is never used.
+>
+> ---
+>
+>  drivers/dma/at_hdmac.c                                |    5 -----
+>  drivers/dma/dw/core.c                                 |    1 -
+>  drivers/dma/pl330.c                                   |    1 -
+>  drivers/dma/sa11x0-dma.c                              |    2 --
+>  drivers/dma/st_fdma.c                                 |    3 ---
+>  drivers/infiniband/ulp/ipoib/ipoib_ib.c               |    1 -
+>  drivers/net/ethernet/mellanox/mlx4/resource_tracker.c |    5 -----
+>  drivers/net/ethernet/mellanox/mlx5/core/en_tc.c       |    3 ---
+>  drivers/net/ethernet/mellanox/mlxsw/spectrum.c        |    1 -
+>  drivers/net/wireless/st/cw1200/queue.c                |    1 -
+>  drivers/scsi/lpfc/lpfc_nvme.c                         |    2 --
+>  drivers/scsi/lpfc/lpfc_scsi.c                         |    2 --
+>  drivers/scsi/lpfc/lpfc_sli.c                          |    1 -
+>  drivers/scsi/qla2xxx/qla_init.c                       |    1 -
+>  drivers/xen/xenbus/xenbus_dev_frontend.c              |    2 --
+>  fs/btrfs/relocation.c                                 |    1 -
+>  fs/nfs/nfs4client.c                                   |    1 -
+>  fs/nfsd/nfs4layouts.c                                 |    1 -
+>  fs/xfs/xfs_buf.c                                      |    1 -
+>  fs/xfs/xfs_fsops.c                                    |    1 -
+>  20 files changed, 36 deletions(-)
+>
