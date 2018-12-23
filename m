@@ -1,10 +1,12 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 0/5] Cleanup of CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
-Date: Sun, 23 Dec 2018 11:14:13 +0200
-Message-ID: <20181223091418.26218-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 2/5] RDMA/core: Don't depend device ODP capabilities on kconfig option
+Date: Sun, 23 Dec 2018 11:14:15 +0200
+Message-ID: <20181223091418.26218-3-leon@kernel.org>
+References: <20181223091418.26218-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181223091418.26218-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
@@ -12,37 +14,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog v0->v1:
- * Don't set ODP caps always (patch #2)
- * Set invalidate_range callback based on device_cap only
+Device capability bits are exposing what specific device supports from
+HW perspective. Those bits are not dependent on kernel configurations
+and RDMA/core should ensure that proper interfaces to users will be
+disabled if CONFIG_INFINIBAND_ON_DEMAND_PAGING is not set.
 
--------------------------------------------------------------------------------
+Fixes: f4056bfd8ccf ("IB/core: Add on demand paging caps to ib_uverbs_ex_query_device")
+Fixes: 8cdd312cfed7 ("IB/mlx5: Implement the ODP capability query verb")
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/uverbs_cmd.c |  2 --
+ drivers/infiniband/hw/mlx5/main.c    | 10 +++++-----
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-Hi,
-
-As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
-usage, this series cleans mlx5_ib and RDMA/core code and it is based on accepted
-patch https://patchwork.kernel.org/patch/10735547/
-
-I think that we will see more patches in that area, I would like to
-remove CONFIG_INFINIBAND_ON_DEMAND_PAGING completely.
-
-Thanks
-
-Leon Romanovsky (5):
-  RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
-  RDMA/core: Don't depend device ODP capabilities on kconfig option
-  RDMA/mlx5: Introduce and reuse helper to identify ODP MR
-  RDMA/mlx5: Embed into the code flow the ODP config option
-  RDMA/mlx5: Delete declaration of already removed function
-
- drivers/infiniband/core/uverbs_cmd.c |  5 ---
- drivers/infiniband/hw/mlx5/main.c    | 51 ++++++++++++++--------------
- drivers/infiniband/hw/mlx5/mem.c     |  5 +--
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++--
- drivers/infiniband/hw/mlx5/mr.c      | 45 +++++++-----------------
- drivers/infiniband/hw/mlx5/odp.c     |  6 ++--
- include/linux/mlx5/driver.h          |  4 ---
- include/rdma/ib_umem_odp.h           | 26 +++++++-------
- include/rdma/ib_verbs.h              |  2 --
- 9 files changed, 65 insertions(+), 91 deletions(-)
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6b12cc5f97b2..549d9eedf62e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3609,7 +3609,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
+ 
+ 	copy_query_dev_fields(ucontext, &resp.base, &attr);
+ 
+-#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+ 	resp.odp_caps.general_caps = attr.odp_caps.general_caps;
+ 	resp.odp_caps.per_transport_caps.rc_odp_caps =
+ 		attr.odp_caps.per_transport_caps.rc_odp_caps;
+@@ -3617,7 +3616,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
+ 		attr.odp_caps.per_transport_caps.uc_odp_caps;
+ 	resp.odp_caps.per_transport_caps.ud_odp_caps =
+ 		attr.odp_caps.per_transport_caps.ud_odp_caps;
+-#endif
+ 
+ 	resp.timestamp_mask = attr.timestamp_mask;
+ 	resp.hca_core_clock = attr.hca_core_clock;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index d84b21c95ae5..c98343e50a00 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -923,11 +923,11 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->hca_core_clock = MLX5_CAP_GEN(mdev, device_frequency_khz);
+ 	props->timestamp_mask = 0x7FFFFFFFFFFFFFFFULL;
+ 
+-#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+-	if (MLX5_CAP_GEN(mdev, pg))
+-		props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
+-	props->odp_caps = dev->odp_caps;
+-#endif
++	if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)) {
++		if (MLX5_CAP_GEN(mdev, pg))
++			props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
++		props->odp_caps = dev->odp_caps;
++	}
+ 
+ 	if (MLX5_CAP_GEN(mdev, cd))
+ 		props->device_cap_flags |= IB_DEVICE_CROSS_CHANNEL;
+-- 
+2.19.1
