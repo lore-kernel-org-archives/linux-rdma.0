@@ -1,12 +1,10 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 1/5] RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
-Date: Sun, 23 Dec 2018 11:14:14 +0200
-Message-ID: <20181223091418.26218-2-leon@kernel.org>
-References: <20181223091418.26218-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 0/5] Cleanup of CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
+Date: Sun, 23 Dec 2018 11:14:13 +0200
+Message-ID: <20181223091418.26218-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181223091418.26218-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
@@ -14,52 +12,37 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-CONFIG_INFINIBAND_ON_DEMAND_PAGING is used in general structures
-to micro-optimize the memory footprint. Remove it, so it will allow
-us to simplify various ODP device flows.
+Changelog v0->v1:
+ * Don't set ODP caps always (patch #2)
+ * Set invalidate_range callback based on device_cap only
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 --
- include/rdma/ib_verbs.h              | 2 --
- 2 files changed, 4 deletions(-)
+-------------------------------------------------------------------------------
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index d531f25a1105..58efcbd596fd 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -911,7 +911,6 @@ struct mlx5_ib_dev {
- 	/* Prevents soft lock on massive reg MRs */
- 	struct mutex			slow_path_mutex;
- 	int				fill_delay;
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	struct ib_odp_caps	odp_caps;
- 	u64			odp_max_size;
- 	struct mlx5_ib_pf_eq	odp_pf_eq;
-@@ -923,7 +922,6 @@ struct mlx5_ib_dev {
- 	struct srcu_struct      mr_srcu;
- 	u32			null_mkey;
- 	struct workqueue_struct *advise_mr_wq;
--#endif
- 	struct mlx5_ib_flow_db	*flow_db;
- 	/* protect resources needed as part of reset flow */
- 	spinlock_t		reset_flow_resource_lock;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a6e57f05410c..67339da6c72d 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1504,12 +1504,10 @@ struct ib_ucontext {
- 
- 	bool cleanup_retryable;
- 
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	void (*invalidate_range)(struct ib_umem_odp *umem_odp,
- 				 unsigned long start, unsigned long end);
- 	struct mutex per_mm_list_lock;
- 	struct list_head per_mm_list;
--#endif
- 
- 	struct ib_rdmacg_object	cg_obj;
- 	/*
--- 
-2.19.1
+Hi,
+
+As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
+usage, this series cleans mlx5_ib and RDMA/core code and it is based on accepted
+patch https://patchwork.kernel.org/patch/10735547/
+
+I think that we will see more patches in that area, I would like to
+remove CONFIG_INFINIBAND_ON_DEMAND_PAGING completely.
+
+Thanks
+
+Leon Romanovsky (5):
+  RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
+  RDMA/core: Don't depend device ODP capabilities on kconfig option
+  RDMA/mlx5: Introduce and reuse helper to identify ODP MR
+  RDMA/mlx5: Embed into the code flow the ODP config option
+  RDMA/mlx5: Delete declaration of already removed function
+
+ drivers/infiniband/core/uverbs_cmd.c |  5 ---
+ drivers/infiniband/hw/mlx5/main.c    | 51 ++++++++++++++--------------
+ drivers/infiniband/hw/mlx5/mem.c     |  5 +--
+ drivers/infiniband/hw/mlx5/mlx5_ib.h | 12 +++++--
+ drivers/infiniband/hw/mlx5/mr.c      | 45 +++++++-----------------
+ drivers/infiniband/hw/mlx5/odp.c     |  6 ++--
+ include/linux/mlx5/driver.h          |  4 ---
+ include/rdma/ib_umem_odp.h           | 26 +++++++-------
+ include/rdma/ib_verbs.h              |  2 --
+ 9 files changed, 65 insertions(+), 91 deletions(-)
