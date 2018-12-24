@@ -1,27 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net/mlx5e: fix semicolon.cocci warnings
-Date: Mon, 24 Dec 2018 10:01:22 -0800 (PST)
-Message-ID: <20181224.100122.343912353497935720.davem@davemloft.net>
-References: <201812222032.13tR4nHr%fengguang.wu@intel.com>
-        <20181222120216.GA74933@lkp-hsx03.lkp.intel.com>
-        <20181223070613.GM3940@mtr-leonro.mtl.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181223070613.GM3940@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: leon@kernel.org
-Cc: fengguang.wu@intel.com, gavi@mellanox.com, kbuild-all@01.org, saeedm@mellanox.com, ogerlitz@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Aditya Pakki <pakki001@umn.edu>
+Subject: [PATCH] infiniband/qedr: Potential null ptr dereference of qp
+Date: Mon, 24 Dec 2018 12:24:45 -0600
+Message-ID: <20181224182445.21256-1-pakki001@umn.edu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pakki001@umn.edu
+Cc: kjlu@umn.edu, Michal Kalderon <Michal.Kalderon@cavium.com>, Ariel Elior <Ariel.Elior@cavium.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leon@kernel.org>
-Date: Sun, 23 Dec 2018 09:06:13 +0200
+idr_find() may fail and return a NULL pointer. The fix checks the
+return value of the function and returns an error in case of NULL.
 
-> Can you please apply this small fix?
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+---
+ drivers/infiniband/hw/qedr/qedr_iw_cm.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Sure, I (eventually) will.  I'm just trying to figure out a few procedural
-issues with handling the early net-next pull request before I start tossing
-more changes on top.
-
-Thanks!
+diff --git a/drivers/infiniband/hw/qedr/qedr_iw_cm.c b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+index 505fa3648762..93b16237b767 100644
+--- a/drivers/infiniband/hw/qedr/qedr_iw_cm.c
++++ b/drivers/infiniband/hw/qedr/qedr_iw_cm.c
+@@ -492,6 +492,8 @@ int qedr_iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 	int i;
+ 
+ 	qp = idr_find(&dev->qpidr.idr, conn_param->qpn);
++	if (unlikely(!qp))
++		return -EINVAL;
+ 
+ 	laddr = (struct sockaddr_in *)&cm_id->m_local_addr;
+ 	raddr = (struct sockaddr_in *)&cm_id->m_remote_addr;
+-- 
+2.17.1
