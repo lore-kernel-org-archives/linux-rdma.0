@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 43/97] net/mlx5e: RX, Verify MPWQE stride size is in range
-Date: Wed, 26 Dec 2018 17:35:03 -0500
-Message-ID: <20181226223557.149329-43-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 14/97] IB/core: Fix oops in netdev_next_upper_dev_rcu()
+Date: Wed, 26 Dec 2018 17:34:34 -0500
+Message-ID: <20181226223557.149329-14-sashal@kernel.org>
 References: <20181226223557.149329-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,48 +9,44 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Moshe Shemesh <moshe@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Mark Zhang <markz@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moshe Shemesh <moshe@mellanox.com>
+From: Mark Zhang <markz@mellanox.com>
 
-[ Upstream commit e1c15b62b7015119d3e5915cd2ae3b89d59c2576 ]
+[ Upstream commit 37fbd834b4e492dc41743830cbe435f35120abd8 ]
 
-Add check of MPWQE stride size is within range supported by HW. In case
-calculated MPWQE stride size exceed range, linear SKB can't be used and
-we should use non linear MPWQE instead.
+When support for bonding of RoCE devices was added, there was
+necessarily a link between the RoCE device and the paired netdevice that
+was part of the bond.  If you remove the mlx4_en module, that paired
+association is broken (the RoCE device is still present but the paired
+netdevice has been released).  We need to account for this in
+is_upper_ndev_bond_master_filter() and filter out those links with a
+broken pairing or else we later oops in netdev_next_upper_dev_rcu().
 
-Fixes: 619a8f2a42f1 ("net/mlx5e: Use linear SKB in Striding RQ")
-Signed-off-by: Moshe Shemesh <moshe@mellanox.com>
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Fixes: 408f1242d940 ("IB/core: Delete lower netdevice default GID entries in bonding scenario")
+Signed-off-by: Mark Zhang <markz@mellanox.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Doug Ledford <dledford@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/infiniband/core/roce_gid_mgmt.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index faa84b45e20a..06c3902d1f94 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -128,6 +128,8 @@ static bool mlx5e_rx_is_linear_skb(struct mlx5_core_dev *mdev,
- 	return !params->lro_en && frag_sz <= PAGE_SIZE;
- }
+diff --git a/drivers/infiniband/core/roce_gid_mgmt.c b/drivers/infiniband/core/roce_gid_mgmt.c
+index 25d43c8f1c2a..558de0b9895c 100644
+--- a/drivers/infiniband/core/roce_gid_mgmt.c
++++ b/drivers/infiniband/core/roce_gid_mgmt.c
+@@ -267,6 +267,9 @@ is_upper_ndev_bond_master_filter(struct ib_device *ib_dev, u8 port,
+ 	struct net_device *cookie_ndev = cookie;
+ 	bool match = false;
  
-+#define MLX5_MAX_MPWQE_LOG_WQE_STRIDE_SZ ((BIT(__mlx5_bit_sz(wq, log_wqe_stride_size)) - 1) + \
-+					  MLX5_MPWQE_LOG_STRIDE_SZ_BASE)
- static bool mlx5e_rx_mpwqe_is_linear_skb(struct mlx5_core_dev *mdev,
- 					 struct mlx5e_params *params)
- {
-@@ -138,6 +140,9 @@ static bool mlx5e_rx_mpwqe_is_linear_skb(struct mlx5_core_dev *mdev,
- 	if (!mlx5e_rx_is_linear_skb(mdev, params))
- 		return false;
- 
-+	if (order_base_2(frag_sz) > MLX5_MAX_MPWQE_LOG_WQE_STRIDE_SZ)
++	if (!rdma_ndev)
 +		return false;
 +
- 	if (MLX5_CAP_GEN(mdev, ext_stride_num_range))
- 		return true;
- 
+ 	rcu_read_lock();
+ 	if (netif_is_bond_master(cookie_ndev) &&
+ 	    rdma_is_upper_dev_rcu(rdma_ndev, cookie_ndev))
 -- 
 2.19.1
