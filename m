@@ -1,75 +1,49 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 84/97] net/mlx5e: RX, Fix wrong early return in receive queue poll
-Date: Wed, 26 Dec 2018 17:35:44 -0500
-Message-ID: <20181226223557.149329-84-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 44/97] net/mlx5e: Cancel DIM work on close SQ
+Date: Wed, 26 Dec 2018 17:35:04 -0500
+Message-ID: <20181226223557.149329-44-sashal@kernel.org>
 References: <20181226223557.149329-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Tal Gilboa <talgi@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tariq Toukan <tariqt@mellanox.com>
+From: Tal Gilboa <talgi@mellanox.com>
 
-[ Upstream commit bfc698254ba97b3e3e4ebbfae0ffa1f7e2fa0717 ]
+[ Upstream commit fa2bf86bab4bbc61e5678a42a14e40075093a98f ]
 
-When the completion queue of the RQ is empty, do not immediately return.
-If left-over decompressed CQEs (from the previous cycle) were processed,
-need to go to the finalization part of the poll function.
+TXQ SQ closure is followed by closing the corresponding CQ. A pending
+DIM work would try to modify the now non-existing CQ.
+This would trigger an error:
+[85535.835926] mlx5_core 0000:af:00.0: mlx5_cmd_check:769:(pid 124399):
+MODIFY_CQ(0x403) op_mod(0x0) failed, status bad resource state(0x9), syndrome (0x1d7771)
 
-Bug exists only when CQE compression is turned ON.
+Fix by making sure to cancel any pending DIM work before destroying the SQ.
 
-This solves the following issue:
-mlx5_core 0000:82:00.1: mlx5_eq_int:544:(pid 0): CQ error on CQN 0xc08, syndrome 0x1
-mlx5_core 0000:82:00.1 p4p2: mlx5e_cq_error_event: cqn=0x000c08 event=0x04
-
-Fixes: 4b7dfc992514 ("net/mlx5e: Early-return on empty completion queues")
-Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
-Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+Fixes: cbce4f444798 ("net/mlx5e: Enable adaptive-TX moderation")
+Signed-off-by: Tal Gilboa <talgi@mellanox.com>
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index d543a5cff049..8262f093fec4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -1150,7 +1150,7 @@ void mlx5e_handle_rx_cqe_mpwrq(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
- int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
- {
- 	struct mlx5e_rq *rq = container_of(cq, struct mlx5e_rq, cq);
--	struct mlx5e_xdpsq *xdpsq;
-+	struct mlx5e_xdpsq *xdpsq = &rq->xdpsq;
- 	struct mlx5_cqe64 *cqe;
- 	int work_done = 0;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index 06c3902d1f94..7365899c3ac9 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1388,6 +1388,7 @@ static void mlx5e_close_txqsq(struct mlx5e_txqsq *sq)
+ 	struct mlx5_core_dev *mdev = c->mdev;
+ 	struct mlx5_rate_limit rl = {0};
  
-@@ -1161,10 +1161,11 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
- 		work_done += mlx5e_decompress_cqes_cont(rq, cq, 0, budget);
- 
- 	cqe = mlx5_cqwq_get_cqe(&cq->wq);
--	if (!cqe)
-+	if (!cqe) {
-+		if (unlikely(work_done))
-+			goto out;
- 		return 0;
--
--	xdpsq = &rq->xdpsq;
-+	}
- 
- 	do {
- 		if (mlx5_get_cqe_format(cqe) == MLX5_COMPRESSED) {
-@@ -1179,6 +1180,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
- 		rq->handle_rx_cqe(rq, cqe);
- 	} while ((++work_done < budget) && (cqe = mlx5_cqwq_get_cqe(&cq->wq)));
- 
-+out:
- 	if (xdpsq->doorbell) {
- 		mlx5e_xmit_xdp_doorbell(xdpsq);
- 		xdpsq->doorbell = false;
++	cancel_work_sync(&sq->dim.work);
+ 	mlx5e_destroy_sq(mdev, sq->sqn);
+ 	if (sq->rate_limit) {
+ 		rl.rate = sq->rate_limit;
 -- 
 2.19.1
