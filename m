@@ -1,45 +1,75 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 53/59] net/mlx5: Typo fix in del_sw_hw_rule
-Date: Wed, 26 Dec 2018 17:38:33 -0500
-Message-ID: <20181226223839.150262-53-sashal@kernel.org>
-References: <20181226223839.150262-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 84/97] net/mlx5e: RX, Fix wrong early return in receive queue poll
+Date: Wed, 26 Dec 2018 17:35:44 -0500
+Message-ID: <20181226223557.149329-84-sashal@kernel.org>
+References: <20181226223557.149329-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181226223839.150262-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
+Sender: netdev-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yuval Avnery <yuvalav@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yuval Avnery <yuvalav@mellanox.com>
+From: Tariq Toukan <tariqt@mellanox.com>
 
-[ Upstream commit f0337889147c956721696553ffcc97212b0948fe ]
+[ Upstream commit bfc698254ba97b3e3e4ebbfae0ffa1f7e2fa0717 ]
 
-Expression terminated with "," instead of ";", resulted in
-set_fte getting bad value for modify_enable_mask field.
+When the completion queue of the RQ is empty, do not immediately return.
+If left-over decompressed CQEs (from the previous cycle) were processed,
+need to go to the finalization part of the poll function.
 
-Fixes: bd5251dbf156 ("net/mlx5_core: Introduce flow steering destination of type counter")
-Signed-off-by: Yuval Avnery <yuvalav@mellanox.com>
-Reviewed-by: Daniel Jurgens <danielj@mellanox.com>
+Bug exists only when CQE compression is turned ON.
+
+This solves the following issue:
+mlx5_core 0000:82:00.1: mlx5_eq_int:544:(pid 0): CQ error on CQN 0xc08, syndrome 0x1
+mlx5_core 0000:82:00.1 p4p2: mlx5e_cq_error_event: cqn=0x000c08 event=0x04
+
+Fixes: 4b7dfc992514 ("net/mlx5e: Early-return on empty completion queues")
+Signed-off-by: Tariq Toukan <tariqt@mellanox.com>
+Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-index dd05cf148845..6538b7b943f0 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
-@@ -425,7 +425,7 @@ static void del_rule(struct fs_node *node)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index d543a5cff049..8262f093fec4 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -1150,7 +1150,7 @@ void mlx5e_handle_rx_cqe_mpwrq(struct mlx5e_rq *rq, struct mlx5_cqe64 *cqe)
+ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+ {
+ 	struct mlx5e_rq *rq = container_of(cq, struct mlx5e_rq, cq);
+-	struct mlx5e_xdpsq *xdpsq;
++	struct mlx5e_xdpsq *xdpsq = &rq->xdpsq;
+ 	struct mlx5_cqe64 *cqe;
+ 	int work_done = 0;
  
- 	if ((fte->action & MLX5_FLOW_CONTEXT_ACTION_FWD_DEST) &&
- 	    --fte->dests_size) {
--		modify_mask = BIT(MLX5_SET_FTE_MODIFY_ENABLE_MASK_DESTINATION_LIST),
-+		modify_mask = BIT(MLX5_SET_FTE_MODIFY_ENABLE_MASK_DESTINATION_LIST);
- 		update_fte = true;
- 	}
- out:
+@@ -1161,10 +1161,11 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+ 		work_done += mlx5e_decompress_cqes_cont(rq, cq, 0, budget);
+ 
+ 	cqe = mlx5_cqwq_get_cqe(&cq->wq);
+-	if (!cqe)
++	if (!cqe) {
++		if (unlikely(work_done))
++			goto out;
+ 		return 0;
+-
+-	xdpsq = &rq->xdpsq;
++	}
+ 
+ 	do {
+ 		if (mlx5_get_cqe_format(cqe) == MLX5_COMPRESSED) {
+@@ -1179,6 +1180,7 @@ int mlx5e_poll_rx_cq(struct mlx5e_cq *cq, int budget)
+ 		rq->handle_rx_cqe(rq, cqe);
+ 	} while ((++work_done < budget) && (cqe = mlx5_cqwq_get_cqe(&cq->wq)));
+ 
++out:
+ 	if (xdpsq->doorbell) {
+ 		mlx5e_xmit_xdp_doorbell(xdpsq);
+ 		xdpsq->doorbell = false;
 -- 
 2.19.1
