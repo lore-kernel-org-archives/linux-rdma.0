@@ -1,74 +1,61 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] infiniband: fix a missing check of nla_put
-Date: Wed, 26 Dec 2018 21:50:47 +0200
-Message-ID: <20181226195047.GJ10329@mtr-leonro.mtl.com>
-References: <20181226020549.71446-1-kjlu@umn.edu>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 86/97] net/mlx5e: Remove the false indication of software timestamping support
+Date: Wed, 26 Dec 2018 17:35:46 -0500
+Message-ID: <20181226223557.149329-86-sashal@kernel.org>
+References: <20181226223557.149329-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ZInfyf7laFu/Kiw7"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181226020549.71446-1-kjlu@umn.edu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kangjie Lu <kjlu@umn.edu>
-Cc: pakki001@umn.edu, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Alaa Hleihel <alaa@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Alaa Hleihel <alaa@mellanox.com>
 
---ZInfyf7laFu/Kiw7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[ Upstream commit 4765420439e758bfa4808392d18b0a4cb6f06065 ]
 
-On Tue, Dec 25, 2018 at 08:05:48PM -0600, Kangjie Lu wrote:
-> nla_put() may fail. The fix adds a check for its return value, and
-> returns -EMSGSIZE if it fails.
->
-> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
-> ---
->  drivers/infiniband/core/addr.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+mlx5 driver falsely advertises support of software timestamping.
+Fix it by removing the false indication.
 
-The same comment as on previous patch, lack of netlink cancel.
+Fixes: ef9814deafd0 ("net/mlx5e: Add HW timestamping (TS) support")
+Signed-off-by: Alaa Hleihel <alaa@mellanox.com>
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-Thanks
-
->
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> index 0dce94e3c495..32d033ebaa5b 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -178,7 +178,8 @@ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
->  	/* Construct the family header first */
->  	header = skb_put(skb, NLMSG_ALIGN(sizeof(*header)));
->  	header->ifindex = dev_addr->bound_dev_if;
-> -	nla_put(skb, attrtype, size, daddr);
-> +	if (nla_put(skb, attrtype, size, daddr))
-> +		return -EMSGSIZE;
->
->  	/* Repair the nlmsg header length */
->  	nlmsg_end(skb, nlh);
-> --
-> 2.17.2 (Apple Git-113)
->
-
---ZInfyf7laFu/Kiw7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcI9uXAAoJEORje4g2clinvZQQAK2kFeJEmwUqnAYizaDHkfoZ
-F1u+4N78dylgtkzdrYS/X+/7XzpxjLAI11VMIVkCDn2PYxqQeZe71PWXsdic17Dz
-bbW0E7zAOdhEveuxvLR45Y9q/LTiMX+HbkgozHmsPOjwcs3N4KIJLmMVdxUPpBjz
-I8ymm/pMVzuPrwvgfv3WaKrnplpej+DNXj/I2SSsXfKMpyIFXmJXHHxBjCcMd8ER
-3ROKt+u9jyRNhPDpTmdQku2xRa3lPuGv+xBPxVw3jX4PFHXWSZYxvXTLImFP4AcY
-VPrKLP49MjXzDmG0opQ6hwvxym7DEDJailfzcnUk2q3dh9U6bT14R0/tnHW0GQ4a
-S4rsKOEFs3W6kHP9jTwP2g/x7RVS8NLMYxUHzWBh4QKPsVVF2tKn9XnnE652Ub/Y
-rU1Or/GmBuO0Y5FuJtEpgvSMIgJnnGTRfUc/wtrDqYYBoaRsYWD0GpnqokMO93+N
-RlX01H8Ypg+rpJ2yAFh/wh6hhab34FUnJy6M+XfXdUFLeA4zrolJNiW2xM/N3NCs
-olM5ExtFX3ctvSvo13OITAY/v403pC8p1jBOCsZhalSqNOsyxT1QKUZagixt3coa
-TEa3Bels3rnsaaVMuEKv+RnBz/UA2vR2dHK/Fhs2tHbxye3faAmTdYnqmrZxrnDE
-zL3Xyi6038Xkhk9kLaQt
-=wnZW
------END PGP SIGNATURE-----
-
---ZInfyf7laFu/Kiw7--
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+index 98dd3e0ada72..5e5423076b03 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_ethtool.c
+@@ -1101,11 +1101,6 @@ int mlx5e_ethtool_get_ts_info(struct mlx5e_priv *priv,
+ 			      struct ethtool_ts_info *info)
+ {
+ 	struct mlx5_core_dev *mdev = priv->mdev;
+-	int ret;
+-
+-	ret = ethtool_op_get_ts_info(priv->netdev, info);
+-	if (ret)
+-		return ret;
+ 
+ 	info->phc_index = mlx5_clock_get_ptp_index(mdev);
+ 
+@@ -1113,9 +1108,9 @@ int mlx5e_ethtool_get_ts_info(struct mlx5e_priv *priv,
+ 	    info->phc_index == -1)
+ 		return 0;
+ 
+-	info->so_timestamping |= SOF_TIMESTAMPING_TX_HARDWARE |
+-				 SOF_TIMESTAMPING_RX_HARDWARE |
+-				 SOF_TIMESTAMPING_RAW_HARDWARE;
++	info->so_timestamping = SOF_TIMESTAMPING_TX_HARDWARE |
++				SOF_TIMESTAMPING_RX_HARDWARE |
++				SOF_TIMESTAMPING_RAW_HARDWARE;
+ 
+ 	info->tx_types = BIT(HWTSTAMP_TX_OFF) |
+ 			 BIT(HWTSTAMP_TX_ON);
+-- 
+2.19.1
