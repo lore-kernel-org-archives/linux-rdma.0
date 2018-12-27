@@ -1,59 +1,53 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 10/97] IB/mlx5: Block DEVX umem from the non applicable cases
-Date: Wed, 26 Dec 2018 17:34:30 -0500
-Message-ID: <20181226223557.149329-10-sashal@kernel.org>
-References: <20181226223557.149329-1-sashal@kernel.org>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 00/20] drop useless LIST_HEAD
+Date: Thu, 27 Dec 2018 16:40:55 +0300
+Message-ID: <20181227134055.GA2272@kadam>
+References: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr>
+ <CAKR_QVJefW1vxYb7-qiU8=0YdbFghYo15SK2eGjOC-dntRfyYA@mail.gmail.com>
+ <alpine.DEB.2.21.1812232304130.2940@hadrien>
+ <CAKR_QVLeZBL43W4x1mzcfcakSZyyh9L81vgUMxfnSccKawEfdg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <CAKR_QVLeZBL43W4x1mzcfcakSZyyh9L81vgUMxfnSccKawEfdg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tom Psyborg <pozega.tomislav@gmail.com>
+Cc: linux-wireless@vger.kernel.org, linux-nfs@vger.kernel.org, Stefano Stabellini <sstabellini@kernel.org>, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org, linux-xfs@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>, linux-btrfs@vger.kernel.org, dmaengine@vger.kernel.org, xen-devel@lists.xenproject.org, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+On Tue, Dec 25, 2018 at 11:12:20PM +0100, Tom Psyborg wrote:
+> there was discussion about this just some days ago. CC 4-5 lists is
+> more than enough
+> 
 
-[ Upstream commit 47f07f03b5ee436fe074c4fb1fb28d013c36a0d8 ]
+I don't know who you were discussing this with...
 
-Blocks creating a DEVX UMEM with the non applicable access flags
-as of ODP, MW_BIND, etc.
+You should CC the 0th patch to all the mailinglists.  That much is a
+clear rule.
 
-Specifically when an ODP flag is used below WARN call trace is issued.
+For the rest, Julia's position is the more conservative one.  I was in
+a conversation in RL and they were like, "CC everyone for all the
+patches".  It depends on the context, of course.  If the patches are
+dependent on each other then you *have* to CC everyone for everything.
 
-[ 2510.404131] RIP: 0010:__mlx5_ib_populate_pas+0x207/0x220 [mlx5_ib]
-...
-[ 2510.404143] Call Trace:
-[ 2510.404150]  ? __kmalloc_node+0x1b3/0x280
-[ 2510.404156]  ? _uverbs_alloc+0x63/0x90 [ib_uverbs]
-[ 2510.404158]  ? _uverbs_alloc+0x63/0x90 [ib_uverbs]
-[ 2510.404162]  mlx5_ib_populate_pas+0x53/0x60 [mlx5_ib]
-[ 2510.404167]  mlx5_ib_handler_MLX5_IB_METHOD_DEVX_UMEM_REG+0x273/0x3f0 [mlx5_ib]
+If we really have other clear rules, then it should be encoded into
+get_maintainer.pl so that it's automatic.
 
-Fixes: aeae94579caf ("IB/mlx5: Add DEVX support for memory registration")
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Doug Ledford <dledford@redhat.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/mlx5/devx.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+My other question is why do the linux-arm-kernel@lists.infradead.org
+people feel like they need to be CC'd about every driver???  I always
+remove them from the CC list unless it's an arch/arm issue.
 
-diff --git a/drivers/infiniband/hw/mlx5/devx.c b/drivers/infiniband/hw/mlx5/devx.c
-index f2f11e652dcd..02f36ab72ad4 100644
---- a/drivers/infiniband/hw/mlx5/devx.c
-+++ b/drivers/infiniband/hw/mlx5/devx.c
-@@ -857,7 +857,9 @@ static int devx_umem_get(struct mlx5_ib_dev *dev, struct ib_ucontext *ucontext,
- 
- 	err = uverbs_get_flags32(&access, attrs,
- 				 MLX5_IB_ATTR_DEVX_UMEM_REG_ACCESS,
--				 IB_ACCESS_SUPPORTED);
-+				 IB_ACCESS_LOCAL_WRITE |
-+				 IB_ACCESS_REMOTE_WRITE |
-+				 IB_ACCESS_REMOTE_READ);
- 	if (err)
- 		return err;
- 
--- 
-2.19.1
+regards,
+dan carpenter
+
+PS:  Please, no more top posting.
