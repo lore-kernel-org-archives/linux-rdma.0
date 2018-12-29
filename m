@@ -1,41 +1,24 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next] rdma: Add print of link CapabilityMask2
- flags
-Date: Thu, 27 Dec 2018 18:42:56 -0500
-Message-ID: <b24da4da-1bfa-a9ca-ae18-c9f4cb932c13@gmail.com>
-References: <20181223112419.29157-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181223112419.29157-1-leon@kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Michael Guralnik <michaelgur@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Leon Romanovsky <leonro@mellanox.com>
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+Date: Sat, 29 Dec 2018 01:30:03 +0000
+Message-ID: <20181229013003.17208.11235.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
+References: <20181224221606.GA25780@ziepe.ca>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181224221606.GA25780@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/23/18 6:24 AM, Leon Romanovsky wrote:
-> From: Michael Guralnik <michaelgur@mellanox.com>
-> 
-> CapabilityMask2 is defined in IBTA spec as a member of PortInfo.
-> Add translation to string of new CapabilityMask2 expansion of link caps.
-> 
-> The flags are concatenated to current caps print as seen in this example
-> printing EXT_INFO flag:
-> 
-> root@server-22 $ rdma -d link
-> 1/1: mlx5_0/1: subnet_prefix fe80:0000:0000:0000 lid 2 sm_lid 2 lmc 0
-> 	state ACTIVE physical_state LINK_UP
-> caps: <SM, TRAP, SL_MAP, SYS_IMAGE_GUID, CABLE_INFO, EXTENDED_SPEEDS,
-> 	CAP_MASK2, CM, DEVICE_MGMT, VENDOR_CLASS, CAP_MASK_NOTICE,
-> 	CLIENT_REG, OTHER_LOCAL_CHANGES, MULT_PKER_TRAP, EXT_INFO>
-> 
-> Signed-off-by: Michael Guralnik <michaelgur@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  rdma/link.c | 36 +++++++++++++++++++++++++++++++-----
->  1 file changed, 31 insertions(+), 5 deletions(-)
-> 
+The pull request you sent on Mon, 24 Dec 2018 22:16:14 +0000:
 
-applied to iproute2-next. Thanks
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/5d24ae67a961c51beb255a28c9c417d9710247c2
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
