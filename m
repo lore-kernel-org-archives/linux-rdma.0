@@ -1,49 +1,40 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 00/20] drop useless LIST_HEAD
-Date: Sat, 29 Dec 2018 07:19:35 +0100 (CET)
-Message-ID: <alpine.DEB.2.21.1812290717010.2673@hadrien>
-References: <1545555435-24576-1-git-send-email-Julia.Lawall@lip6.fr> <CAKR_QVJefW1vxYb7-qiU8=0YdbFghYo15SK2eGjOC-dntRfyYA@mail.gmail.com> <alpine.DEB.2.21.1812232304130.2940@hadrien> <CAKR_QVLeZBL43W4x1mzcfcakSZyyh9L81vgUMxfnSccKawEfdg@mail.gmail.com>
- <20181227134055.GA2272@kadam> <20181229052504.GA16315@magnolia>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-rc] rdma: Fix incorrectly handled NLA validation
+Date: Sun, 30 Dec 2018 15:34:09 +0200
+Message-ID: <20181230133409.20446-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20181229052504.GA16315@magnolia>
 Sender: netdev-owner@vger.kernel.org
-To: "Darrick J. Wong" <darrick.wong@oracle.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, Tom Psyborg <pozega.tomislav@gmail.com>, Julia Lawall <julia.lawall@lip6.fr>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, kernel-janitors@vger.kernel.org, dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-scsi@vger.kernel.org, linux-nfs@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-xfs@vger.kernel.org, linux-btrfs@vger.kernel.org, Stefano Stabellini <sstabellini@kernel.org>, xen-devel@lists.xenproject.org, linux-wireless@vger.kernel.org
+To: Stephen Hemminger <stephen@networkplumber.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, David Ahern <dsahern@gmail.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
+mnl_attr_type_valid() receives maximum attribute type, which means that
+we were supposed to supply the latest valid netlink attribute and not
+the number of attributes. Such coding mistake caused to failures while
+NLA attributes were extended.
 
-On Fri, 28 Dec 2018, Darrick J. Wong wrote:
+Fixes: 74bd75c2b68d ("rdma: Add basic infrastructure for RDMA tool")
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ rdma/utils.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> On Thu, Dec 27, 2018 at 04:40:55PM +0300, Dan Carpenter wrote:
-> > On Tue, Dec 25, 2018 at 11:12:20PM +0100, Tom Psyborg wrote:
-> > > there was discussion about this just some days ago. CC 4-5 lists is
-> > > more than enough
-> > >
-> >
-> > I don't know who you were discussing this with...
-> >
-> > You should CC the 0th patch to all the mailinglists.  That much is a
-> > clear rule.
-> >
-> > For the rest, Julia's position is the more conservative one.  I was in
-> > a conversation in RL and they were like, "CC everyone for all the
-> > patches".  It depends on the context, of course.  If the patches are
-> > dependent on each other then you *have* to CC everyone for everything.
->
-> Agreed.  Ms. Lawall, sending "Cover letter + all relevant XFS patches"
-> (as you did) was exactly the right thing for us xfs types. :)
->
-> For that matter, we prefer to receive through linux-xfs more patches
-> than necessary (one can send the entire series if one is unsure) than to
-> go wanting for more context.
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 61f4aeb1..069d44fe 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -425,8 +425,8 @@ int rd_attr_cb(const struct nlattr *attr, void *data)
+ 	const struct nlattr **tb = data;
+ 	int type;
 
-Thanks for the confirmation.  I was planning to ignore the 4-5 advice,
-because there is no way in this case to make a meaningful 4-5 list
-suggestion - it's either all or nothing.  But 20 patches at once is
-perhaps a lot as well.  In this case, I just wanted to get rid of the
-whole issue at once.
+-	if (mnl_attr_type_valid(attr, RDMA_NLDEV_ATTR_MAX) < 0)
+-		/* We received uknown attribute */
++	if (mnl_attr_type_valid(attr, RDMA_NLDEV_ATTR_MAX - 1) < 0)
++		/* We received unknown attribute */
+ 		return MNL_CB_OK;
 
-julia
+ 	type = mnl_attr_get_type(attr);
