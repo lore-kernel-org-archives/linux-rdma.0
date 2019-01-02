@@ -1,131 +1,97 @@
-From: "jianchao.wang" <jianchao.w.wang@oracle.com>
-Subject: Re: [PATCH] net/mlx4_en: ensure rx_desc updating reaches HW before
- prod db updating
-Date: Wed, 2 Jan 2019 09:43:56 +0800
-Message-ID: <61230e99-9b16-e1f2-93cf-637f0280f4df@oracle.com>
-References: <1515728542-3060-1-git-send-email-jianchao.w.wang@oracle.com>
- <20180112163247.GB15974@ziepe.ca> <1515775567.131759.42.camel@gmail.com>
- <a40e44f4-106b-1075-8f92-f7741508372c@oracle.com>
- <af562737-4a3e-0429-1fd6-fc25c3e3f867@mellanox.com>
- <fea0aa1c-b68e-9485-3826-2dfad7824911@oracle.com>
- <53b1ac4d-a294-eb98-149e-65d7954243da@oracle.com>
- <1516376999.3606.39.camel@gmail.com>
- <dfc02a48-7d2a-56da-dc4e-d90a9fcc559c@mellanox.com>
- <339a7156-9ef1-1f3c-30b8-3cc3558d124e@mellanox.com>
- <c8b0955b-a3fc-afe2-2c67-e655ca2ee6f6@oracle.com>
- <532b4d71-e2eb-35f3-894e-1c3288e7bc3f@oracle.com>
- <1516852543.3715.43.camel@gmail.com>
- <89066a75-43db-0f62-f171-70b0abaa8ea0@oracle.com>
- <918db4ec-8c3c-aafa-4be6-0e00a99632e2@mellanox.com>
- <c60ee78e-3cee-c188-7259-e7ad393e6bae@oracle.com>
- <d9883261-e93e-400a-757c-3a81d8b6aca1@mellanox.com>
+From: Stephen Warren <swarren@wwwdotorg.org>
+Subject: Re: [PATCH V3] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Wed, 2 Jan 2019 09:29:30 -0700
+Message-ID: <b283e3ba-6e75-bf86-a29f-100200df9f77@wwwdotorg.org>
+References: <20181219182031.8675-1-swarren@wwwdotorg.org>
+ <20181220174318.GA21404@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d9883261-e93e-400a-757c-3a81d8b6aca1@mellanox.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20181220174318.GA21404@ziepe.ca>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, Eric Dumazet <eric.dumazet@gmail.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "junxiao.bi@oracle.com" <junxiao.bi@oracle.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Christoph Hellwig <hch@lst.de>, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 12/31/18 12:27 AM, Tariq Toukan wrote:
-> 
-> 
-> On 1/27/2018 2:41 PM, jianchao.wang wrote:
->> Hi Tariq
+On 12/20/18 10:43 AM, Jason Gunthorpe wrote:
+> On Wed, Dec 19, 2018 at 11:20:31AM -0700, Stephen Warren wrote:
+>> From: Stephen Warren <swarren@nvidia.com>
 >>
->> Thanks for your kindly response.
->> That's really appreciated.
+>> This patch solves a crash at the time of mlx4 driver unload or system
+>> shutdown. The crash occurs because dma_alloc_coherent() returns one
+>> value in mlx4_alloc_icm_coherent(), but a different value is passed to
+>> dma_free_coherent() in mlx4_free_icm_coherent(). In turn this is because
+>> when allocated, that pointer is passed to sg_set_buf() to record it,
+>> then when freed it is re-calculated by calling
+>> lowmem_page_address(sg_page()) which returns a different value. Solve
+>> this by recording the value that dma_alloc_coherent() returns, and
+>> passing this to dma_free_coherent().
 >>
->> On 01/25/2018 05:54 PM, Tariq Toukan wrote:
->>>
->>>
->>> On 25/01/2018 8:25 AM, jianchao.wang wrote:
->>>> Hi Eric
->>>>
->>>> Thanks for you kindly response and suggestion.
->>>> That's really appreciated.
->>>>
->>>> Jianchao
->>>>
->>>> On 01/25/2018 11:55 AM, Eric Dumazet wrote:
->>>>> On Thu, 2018-01-25 at 11:27 +0800, jianchao.wang wrote:
->>>>>> Hi Tariq
->>>>>>
->>>>>> On 01/22/2018 10:12 AM, jianchao.wang wrote:
->>>>>>>>> On 19/01/2018 5:49 PM, Eric Dumazet wrote:
->>>>>>>>>> On Fri, 2018-01-19 at 23:16 +0800, jianchao.wang wrote:
->>>>>>>>>>> Hi Tariq
->>>>>>>>>>>
->>>>>>>>>>> Very sad that the crash was reproduced again after applied the patch.
->>>>>>>>
->>>>>>>> Memory barriers vary for different Archs, can you please share more details regarding arch and repro steps?
->>>>>>> The hardware is HP ProLiant DL380 Gen9/ProLiant DL380 Gen9, BIOS P89 12/27/2015
->>>>>>> The xen is installed. The crash occurred in DOM0.
->>>>>>> Regarding to the repro steps, it is a customer's test which does heavy disk I/O over NFS storage without any guest.
->>>>>>>
->>>>>>
->>>>>> What is the finial suggestion on this ?
->>>>>> If use wmb there, is the performance pulled down ?
->>>
->>> I want to evaluate this effect.
->>> I agree with Eric, expected impact is restricted, especially after batching the allocations.>
->>>>>
->>>>> Since https://urldefense.proofpoint.com/v2/url?u=https-3A__git.kernel.org_pub_scm_linux_kernel_git_davem_net-2Dnext.git_commit_-3Fid-3Ddad42c3038a59d27fced28ee4ec1d4a891b28155&d=DwICaQ&c=RoP1YumCXCgaWHvlZYR8PZh8Bv7qIrMUB65eapI_JnE&r=7WdAxUBeiTUTCy8v-7zXyr4qk7sx26ATvfo6QSTvZyQ&m=c0oI8duFkyFBILMQYDsqRApHQrOlLY_2uGiz_utcd7s&s=E4_XKmSI0B63qB0DLQ1EX_fj1bOP78ZdeYADBf33B-k&e=
->>>>>
->>>>> we batch allocations, so mlx4_en_refill_rx_buffers() is not called that often.
->>>>>
->>>>> I doubt the additional wmb() will have serious impact there.
->>>>>
->>>
->>> I will test the effect (it'll be beginning of next week).
->>> I'll update so we can make a more confident decision.
->>>
->> I have also sent patches with wmb and batching allocations to customer and let them check whether the performance is impacted.
->> And update here asap when get feedback.
+>> This patch is roughly equivalent to commit 378efe798ecf ("RDMA/hns: Get
+>> rid of page operation after dma_alloc_coherent"). That patch was
+>> described as:
 >>
->>> Thanks,
->>> Tariq
+>>> In general, dma_alloc_coherent() returns a CPU virtual address and
+>>> a DMA address, and we have no guarantee that the underlying memory
+>>> even has an associated struct page at all.
 >>>
+>>> This patch gets rid of the page operation after dma_alloc_coherent,
+>>> and records the VA returned form dma_alloc_coherent in the struct
+>>> of hem in hns RoCE driver.
+>>
+>> However, this patch reworks the code to store all information about
+>> coherent chunks separately from the sg list, since using sg lists for
+>> them doesn't make sense. Hence, the structure of this patch is quite
+>> different compared to the hns patch.
+>>
+>> Based-on-code-from: Christoph Hellwig <hch@lst.de>
+>> Signed-off-by: Stephen Warren <swarren@nvidia.com>
+>> ---
+>> v3:
+>> - Rework chunk data structure to store all data for coherent allocations
+>>    separately from the sg list. Code from Christoph Hellwig with fixes by
+>>    me. Notes:
+>>    - chunk->coherent is an int not a bool since checkpatch complains about
+>>      using bool in structs; see https://lkml.org/lkml/2017/11/21/384.
 > 
-> Hi Jianchao,
+> :( bool is much more readable and there is no performance concern in
+> this struct. I think checkpatch is overzealous here.
 > 
-> I am interested to push this bug fix.
-> Do you want me to submit, or do it yourself?
-> Can you elaborate regarding the arch with the repro?
+>>    - chunk->coherent is used rather than chunk->table->coherent since the
+>>      table pointer isn't available when creating chunks. This duplicates
+>>      data, but simplifies the patch.
+>> v2:
+>> - Rework mlx4_table_find() to explicitly calculate the returned address
+>>    differently depending on wheter the table was allocated using
+>>    dma_alloc_coherent() or alloc_pages(), which in turn allows the
+>>    changes to mlx4_alloc_icm_pages() to be dropped.
+>> - Drop changes to mlx4_alloc/free_icm_pages. This path uses
+>>    pci_map_sg() which can re-write the sg list which in turn would cause
+>>    chunk->mem[] (the sg list) and chunk->buf[] to become inconsistent.
+>> - Enhance commit description.
+>>
+>> Note: I've tested this patch in a downstream 4.14 based kernel (using
+>> ibping, ib_read_bw, and ib_write_bw), but can't test it in mainline
+>> since my system isn't supported there yet. I have compile-tested it in
+>> mainline at least, for ARM64.
+>> ---
+>>   drivers/net/ethernet/mellanox/mlx4/icm.c | 92 ++++++++++++++----------
+>>   drivers/net/ethernet/mellanox/mlx4/icm.h | 22 +++++-
+>>   2 files changed, 75 insertions(+), 39 deletions(-)
 > 
-> This is the patch I suggest:
+> I think this needs an ack from the driver maintainers, and I gather
+> they are all on break for the next two weeks or so.
 > 
-> --- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> +++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-> @@ -161,6 +161,8 @@ static bool mlx4_en_is_ring_empty(const struct 
-> mlx4_en_rx_ring *ring)
+> Lets revisit in January?
 > 
->   static inline void mlx4_en_update_rx_prod_db(struct mlx4_en_rx_ring *ring)
->   {
-> +       /* ensure rx_desc updating reaches HW before prod db updating */
-> +       wmb();
->          *ring->wqres.db.db = cpu_to_be32(ring->prod & 0xffff);
->   }
-> 
+> But at first glance it looks OK to me, though I would tidy the commit
+> message somewhat, your new leading paragraph fully explains the
+> problem, no need for the hns quote - and we can now see that the hns
+> should't have used a sgl either...
 
-Hi Tariq
-
-Happy new year !
-
-The customer provided confused test result for us.
-The fix cannot fix their issue.
-
-And we finally find a upstream fix
-5d70bd5c98d0e655bde2aae2b5251bdd44df5e71
-(net/mlx4_en: fix potential use-after-free with dma_unmap_page)
-and killed the issue during Oct 2018. That's really a long way.
-
-Please go ahead with this patch.
-
-Thanks
-Jianchao
+Tariq, I assume you're back from vacation now/soon. What do you think of 
+this patch, aside from the bool-vs-int issue that I plan to fix up soon. 
+Thanks.
