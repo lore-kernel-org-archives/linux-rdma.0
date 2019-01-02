@@ -1,65 +1,79 @@
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Subject: [PATCH] IB/hfi1: Incorrect sizing of sge for PIO will OOPs
-Date: Wed, 02 Jan 2019 09:59:10 -0800
-Message-ID: <20190102175907.18332.56448.stgit@scvm10.sc.intel.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH -next] IB/qib: Add missing err handle for
+ qib_user_sdma_rb_insert
+Date: Wed, 2 Jan 2019 20:40:50 +0200
+Message-ID: <20190102184050.GI5424@mtr-leonro.mtl.com>
+References: <20181221021938.13784-1-yuehaibing@huawei.com>
+ <20190102171224.GA26765@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: stable@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="rMWmSaSbD7nr+du9"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190102171224.GA26765@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: YueHaibing <yuehaibing@huawei.com>, dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, dledford@redhat.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-Upstream commit dbc2970caef74e8ff41923d302aa6fb5a4812d0e.
+--rMWmSaSbD7nr+du9
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-An incorrect sge sizing in the HFI PIO path will cause an OOPs similar to
-this:
+On Wed, Jan 02, 2019 at 10:12:24AM -0700, Jason Gunthorpe wrote:
+> On Fri, Dec 21, 2018 at 10:19:38AM +0800, YueHaibing wrote:
+> > It should goto err handle if qib_user_sdma_rb_insert fails,
+> > other than success return.
+> >
+> > Fixes: 67810e8c3c01 ("RDMA/qib: Remove all occurrences of BUG_ON()")
+> > Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+> > ---
+> >  drivers/infiniband/hw/qib/qib_user_sdma.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> >
+> > diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> > index 31c523b..e87c0a7 100644
+> > --- a/drivers/infiniband/hw/qib/qib_user_sdma.c
+> > +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> > @@ -237,6 +237,8 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+> >
+> >  		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
+> >  					sdma_rb_node);
+> > +		if (ret == 0)
+> > +			goto err_rb;
+> >  	}
+>
+> This doesn't look right, what about undoing the kmalloc directly
+> above?
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [] hfi1_verbs_send_pio+0x3d8/0x530 [hfi1]
-PGD 0
-Oops: 0000 1 SMP
- Call Trace:
- ? hfi1_verbs_send_dma+0xad0/0xad0 [hfi1]
- hfi1_verbs_send+0xdf/0x250 [hfi1]
- ? make_rc_ack+0xa80/0xa80 [hfi1]
- hfi1_do_send+0x192/0x430 [hfi1]
- hfi1_do_send_from_rvt+0x10/0x20 [hfi1]
- rvt_post_send+0x369/0x820 [rdmavt]
- ib_uverbs_post_send+0x317/0x570 [ib_uverbs]
- ib_uverbs_write+0x26f/0x420 [ib_uverbs]
- ? security_file_permission+0x21/0xa0
- vfs_write+0xbd/0x1e0
- ? mntput+0x24/0x40
- SyS_write+0x7f/0xe0
- system_call_fastpath+0x16/0x1b
+Back then, I came to conclusion that qib_user_sdma_rb_insert() never
+returns 0. Otherwise, Dennis would see that BUG_ON() for a long time
+ago.
 
-Fix by adding the missing sizing check to correctly determine the sge
-length.
+Thanks
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Cc: <stable@vger.kernel.org> # 4.9.x+
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
----
- drivers/infiniband/hw/hfi1/verbs.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> Jason
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index a365089..b7257d7 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -919,6 +919,8 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 
- 				if (slen > len)
- 					slen = len;
-+				if (slen > ss->sge.sge_length)
-+					slen = ss->sge.sge_length;
- 				rvt_update_sge(ss, slen, false);
- 				seg_pio_copy_mid(pbuf, addr, slen);
- 				len -= slen;
+--rMWmSaSbD7nr+du9
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcLQWyAAoJEORje4g2clinTXQP/3g26wJfvgrpjNoC1NKzLBli
+H99XIUi7CD2/1moHI+f/oinbOiVPPAK7oOZPcQ0RZ4V0R8iTC8+1gcskxdvU9ypc
+08CD5mxuzPOfjg8G5/PVmKMx26cPgswxgFc1BbSfuC8LPFa7xqn/DrwXJMEs8CO5
+YJG8ClyaRdED1oEkyh8tpDCiiwRDuzSGzyaF4V9OGzy2h122RTliubmxeT9RkZYt
+GKH1V2cJuxaCd3bnNUFAFMGOXv+DxRBWROBz7y+ECw2TTn23yKojL0bW2nIIZRFM
+IX13iW0+ehUGwAzhzBjOZ3ILw2DfTig36vax1bixYnXmS2sh58CTxrDiZdD/XLee
+GDbLjH4G1lHutpi2qf8T6e4l4s9AuLKaQ2pnKNpR3JEq5GN9plLl3sZX0hrmd8UW
+LgNBu6/iy8F/bDi8YlVqmsjzYpsgA5aPZzxcT0z7JJTjXpu9+A90jBQ9oKkvZRYT
+ZbcqtS1SRS2p+A5N3KocaueLiMyySs5anb5yxKfuycoOjjtlQVpCxUheLlOKJqR8
+XkQD+YBsNQSEF3qpj6Ym4wKWDe+mUFcDllgQD/ExfAYedheY1DU2uvWQC0bdAhdj
+pJ5FMMPGtO5F6wC5bs3NDqcWMYdqq+B/d/boXgMVJ1SDiCBBxqshhYZimvhluvmo
+LQb9xXP4IFBHneNkHtJQ
+=3aEi
+-----END PGP SIGNATURE-----
+
+--rMWmSaSbD7nr+du9--
