@@ -1,65 +1,61 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: Re: [PATCH -next] IB/qib: Add missing err handle for
- qib_user_sdma_rb_insert
-Date: Fri, 4 Jan 2019 14:08:57 +0800
-Message-ID: <ca55a85f-77d2-fd69-8aaf-d3ada07eed75@huawei.com>
-References: <20181221021938.13784-1-yuehaibing@huawei.com>
- <20190102171224.GA26765@ziepe.ca> <20190102184050.GI5424@mtr-leonro.mtl.com>
- <20190102190740.GH26211@ziepe.ca> <20190102192211.GJ5424@mtr-leonro.mtl.com>
+From: Myungho Jung <mhjungk@gmail.com>
+Subject: [PATCH] RDMA/cma: Rollback source IP address if failing to acquire
+ device
+Date: Thu, 3 Jan 2019 22:45:40 -0800
+Message-ID: <20190104064537.GA352@myunghoj-Precision-5530>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190102192211.GJ5424@mtr-leonro.mtl.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, dledford@redhat.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+If cma_acquire_dev_by_src_ip() returns error in addr_handler(), the
+device state changes back to RDMA_CM_ADDR_BOUND but the resolved source
+IP address is still left. After that, if rdma_destroy_id() is called
+after rdma_listen(), the device is freed without removed from
+listen_any_list in cma_cancel_operation(). Revert to the previous IP
+address if acquiring device fails.
 
-On 2019/1/3 3:22, Leon Romanovsky wrote:> On Wed, Jan 02, 2019 at 12:07:40PM -0700, Jason Gunthorpe wrote:
->> On Wed, Jan 02, 2019 at 08:40:50PM +0200, Leon Romanovsky wrote:
->>> On Wed, Jan 02, 2019 at 10:12:24AM -0700, Jason Gunthorpe wrote:
->>>> On Fri, Dec 21, 2018 at 10:19:38AM +0800, YueHaibing wrote:
->>>>> It should goto err handle if qib_user_sdma_rb_insert fails,
->>>>> other than success return.
->>>>>
->>>>> Fixes: 67810e8c3c01 ("RDMA/qib: Remove all occurrences of BUG_ON()")
->>>>> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
->>>>>  drivers/infiniband/hw/qib/qib_user_sdma.c | 2 ++
->>>>>  1 file changed, 2 insertions(+)
->>>>>
->>>>> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
->>>>> index 31c523b..e87c0a7 100644
->>>>> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
->>>>> @@ -237,6 +237,8 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
->>>>>
->>>>>  		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
->>>>>  					sdma_rb_node);
->>>>> +		if (ret == 0)
->>>>> +			goto err_rb;
->>>>>  	}
->>>>
->>>> This doesn't look right, what about undoing the kmalloc directly
->>>> above?
->>>
->>> Back then, I came to conclusion that qib_user_sdma_rb_insert() never
->>> returns 0. Otherwise, Dennis would see that BUG_ON() for a long time
->>> ago.
->>
->> It fails if the index is in the RB tree, which would indicate a
->> programming bug.
-> 
-> I tried to say that this programming bug doesn't exist in the reality.
+Reported-by: syzbot+f3ce716af730c8f96637@syzkaller.appspotmail.com
+Signed-off-by: Myungho Jung <mhjungk@gmail.com>
+---
+ drivers/infiniband/core/cma.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-In view of this, leave it just as this.
-> 
->>
->> The way to replace the BUG_ON is something like:
->>
->> if (WARN_ON(ret == 0)) {
->>     kfree()
->>     goto err_rb;
->> }
->>
->> Jason
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 63a7cc00bae0..d27c3b154e71 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2963,13 +2963,17 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ {
+ 	struct rdma_id_private *id_priv = context;
+ 	struct rdma_cm_event event = {};
++	struct sockaddr *addr;
++	struct sockaddr_storage old_addr;
+ 
+ 	mutex_lock(&id_priv->handler_mutex);
+ 	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_QUERY,
+ 			   RDMA_CM_ADDR_RESOLVED))
+ 		goto out;
+ 
+-	memcpy(cma_src_addr(id_priv), src_addr, rdma_addr_size(src_addr));
++	addr = cma_src_addr(id_priv);
++	memcpy(&old_addr, addr, rdma_addr_size(addr));
++	memcpy(addr, src_addr, rdma_addr_size(src_addr));
+ 	if (!status && !id_priv->cma_dev) {
+ 		status = cma_acquire_dev_by_src_ip(id_priv);
+ 		if (status)
+@@ -2980,6 +2984,8 @@ static void addr_handler(int status, struct sockaddr *src_addr,
+ 	}
+ 
+ 	if (status) {
++		memcpy(addr, &old_addr,
++		       rdma_addr_size((struct sockaddr *)&old_addr));
+ 		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+ 				   RDMA_CM_ADDR_BOUND))
+ 			goto out;
+-- 
+2.17.1
