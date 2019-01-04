@@ -1,53 +1,45 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] IB/core: Use struct_size() in kzalloc()
-Date: Fri, 4 Jan 2019 12:15:58 -0600
-Message-ID: <20190104181558.GA2403@embeddedor>
+From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
+Subject: RE: [PATCH -next] IB/qib: Add missing err handle for
+ qib_user_sdma_rb_insert
+Date: Fri, 4 Jan 2019 18:39:50 +0000
+Message-ID: <32E1700B9017364D9B60AED9960492BC70C11891@fmsmsx120.amr.corp.intel.com>
+References: <20181221021938.13784-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20181221021938.13784-1-yuehaibing@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: YueHaibing <yuehaibing@huawei.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
 List-Id: linux-rdma@vger.kernel.org
 
-One of the more common cases of allocation size calculations is finding the
-size of a structure that has a zero-sized array at the end, along with memory
-for some number of elements for that array. For example:
+> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c
+> b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> index 31c523b..e87c0a7 100644
+> --- a/drivers/infiniband/hw/qib/qib_user_sdma.c
+> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> @@ -237,6 +237,8 @@ qib_user_sdma_queue_create(struct device *dev,
+> int unit, int ctxt, int sctxt)
+> 
+>  		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
+>  					sdma_rb_node);
+> +		if (ret == 0)
+> +			goto err_rb;
+>  	}
+>  	pq->sdma_rb_node = sdma_rb_node;
+> 
+> --
+> 2.7.0
+> 
 
-struct foo {
-    int stuff;
-    void *entry[];
-};
+Thanks!
 
-instance = kzalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
+This patch is ok.
 
-Instead of leaving these open-coded and prone to type mistakes, we can now
-use the new struct_size() helper:
+The NULL returned from this routine will result in an error return up to PSM which will fail.
 
-instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+The bail branch will do the necessary cleanup, including freeing the node that couldn't be added.
 
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/infiniband/core/sa_query.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 97e6d7b69abf..7925e45ea88a 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -2342,9 +2342,7 @@ static void ib_sa_add_one(struct ib_device *device)
- 	s = rdma_start_port(device);
- 	e = rdma_end_port(device);
- 
--	sa_dev = kzalloc(sizeof *sa_dev +
--			 (e - s + 1) * sizeof (struct ib_sa_port),
--			 GFP_KERNEL);
-+	sa_dev = kzalloc(struct_size(sa_dev, port, e - s + 1), GFP_KERNEL);
- 	if (!sa_dev)
- 		return;
- 
--- 
-2.20.1
+Acked-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
