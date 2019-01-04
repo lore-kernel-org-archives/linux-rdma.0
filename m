@@ -1,100 +1,65 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 4 Jan 2019 05:00:10 +0000
-Message-ID: <20190104050001.GA26256@ziepe.ca>
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: Re: [PATCH -next] IB/qib: Add missing err handle for
+ qib_user_sdma_rb_insert
+Date: Fri, 4 Jan 2019 14:08:57 +0800
+Message-ID: <ca55a85f-77d2-fd69-8aaf-d3ada07eed75@huawei.com>
+References: <20181221021938.13784-1-yuehaibing@huawei.com>
+ <20190102171224.GA26765@ziepe.ca> <20190102184050.GI5424@mtr-leonro.mtl.com>
+ <20190102190740.GH26211@ziepe.ca> <20190102192211.GJ5424@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
+In-Reply-To: <20190102192211.GJ5424@mtr-leonro.mtl.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, dledford@redhat.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi Linus,
+On 2019/1/3 3:22, Leon Romanovsky wrote:> On Wed, Jan 02, 2019 at 12:07:40PM -0700, Jason Gunthorpe wrote:
+>> On Wed, Jan 02, 2019 at 08:40:50PM +0200, Leon Romanovsky wrote:
+>>> On Wed, Jan 02, 2019 at 10:12:24AM -0700, Jason Gunthorpe wrote:
+>>>> On Fri, Dec 21, 2018 at 10:19:38AM +0800, YueHaibing wrote:
+>>>>> It should goto err handle if qib_user_sdma_rb_insert fails,
+>>>>> other than success return.
+>>>>>
+>>>>> Fixes: 67810e8c3c01 ("RDMA/qib: Remove all occurrences of BUG_ON()")
+>>>>> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+>>>>>  drivers/infiniband/hw/qib/qib_user_sdma.c | 2 ++
+>>>>>  1 file changed, 2 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+>>>>> index 31c523b..e87c0a7 100644
+>>>>> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+>>>>> @@ -237,6 +237,8 @@ qib_user_sdma_queue_create(struct device *dev, int unit, int ctxt, int sctxt)
+>>>>>
+>>>>>  		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
+>>>>>  					sdma_rb_node);
+>>>>> +		if (ret == 0)
+>>>>> +			goto err_rb;
+>>>>>  	}
+>>>>
+>>>> This doesn't look right, what about undoing the kmalloc directly
+>>>> above?
+>>>
+>>> Back then, I came to conclusion that qib_user_sdma_rb_insert() never
+>>> returns 0. Otherwise, Dennis would see that BUG_ON() for a long time
+>>> ago.
+>>
+>> It fails if the index is in the RB tree, which would indicate a
+>> programming bug.
+> 
+> I tried to say that this programming bug doesn't exist in the reality.
 
-Second merge window pull request
-
-This could also be applied after rc1. It is a small collection of fixes posted
-over the holiday break. The merge error with advise_mr is worth fixing right
-away so the other, more minor, things are coming along for the ride.
-
-The following changes since commit 5d24ae67a961c51beb255a28c9c417d9710247c2:
-
-  Merge tag 'for-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma (2018-12-28 14:57:10 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-for you to fetch changes up to 9c6260de505b63638dd86fcc33849b17f6146d94:
-
-  infiniband/qedr: Potential null ptr dereference of qp (2019-01-02 16:08:38 -0700)
-
-----------------------------------------------------------------
-4.21 merge window 2nd pull request
-
-Over the break a few defects were found, so this is a -rc style pull
-request of various small things that have been posted.
-
-- An attempt to shorten RCU grace period driven delays showed crashes
-  during heavier testing, and has been entirely reverted
-
-- A missed merge/rebase error between the advise_mr and ib_device_ops
-  series
-
-- Some small static analysis driven fixes from Julia and Aditya
-
-- Missed ability to create a XRC_INI in the devx verbs interop series
-
-----------------------------------------------------------------
-Aditya Pakki (2):
-      infiniband: bnxt_re: qplib: Check the return value of send_message
-      infiniband/qedr: Potential null ptr dereference of qp
-
-Julia Lawall (1):
-      IB/ipoib: drop useless LIST_HEAD
-
-Leon Romanovsky (1):
-      Revert "IB/mlx5: Fix long EEH recover time with NVMe offloads"
-
-Moni Shoua (1):
-      IB/core: Add advise_mr to the list of known ops
-
-Yishai Hadas (1):
-      IB/mlx5: Allow XRC INI usage via verbs in DEVX context
-
- drivers/infiniband/core/device.c         |  1 +
- drivers/infiniband/hw/bnxt_re/qplib_sp.c |  5 ++---
- drivers/infiniband/hw/mlx5/mr.c          | 19 +++----------------
- drivers/infiniband/hw/mlx5/qp.c          |  3 ++-
- drivers/infiniband/hw/qedr/qedr_iw_cm.c  |  2 ++
- drivers/infiniband/ulp/ipoib/ipoib_ib.c  |  1 -
- 6 files changed, 10 insertions(+), 21 deletions(-)
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlwu6E8ACgkQOG33FX4g
-mxpEQg/+M3QO0bU1gpZ70aKTJyL2oyOlqI/gJm/8FFkwVzJEIyk0v1fXv/1jgdDm
-fYuhW4HH9dRrDAhckrJYtAvZpmBd62aVbGWwB0e7TZzPRYNpo4b2z2oWVsiMBKb6
-SZTFk2VkRCgbCTo0zPAv4+kKOBGjQ7k1CMCcBWyrPL0sMGdlqOhb89bBqHSTmEAw
-bjHP/5GDjoOH81+S3udQ6XlMkrCBa8szoPPWdzqIsXP5qkXkUejSB4wcp2HA/0TL
-5O0uRE1Mkmx4FfS6+iHUdxEiuVsAzsMHXjuX4WHmnH1MOPxJadCG89zwUwraCj1q
-O3WnZNBiKc1787iYBZtMgh0KrqGy9OAcJmMicsSqQXSTZBDpceRGxC5vJptrwBDC
-j1Bc9qfJIob3hARtxslc/LWHR/GjIBlxg6rMUd2GUHG//bljYp+pbPsVKdT7M0VA
-PkWvHh7n/yrrsiqWQoCpsB9gYKZaBbnR3JOxP3ELw2WCv2eu2curoM4n9Z+3FXYn
-FVOFIhtx/j8rgJsUbR+da3//PoiPaUJcAXAXl3R8qJ5wwwJfK2lZk0aQjbiq+X7M
-3RO6voSKEJdh75Imyc21lbHfOfj8B+vQ+qpWbAv47gNDNAu1HzrOAo/5HastXLmx
-pek8HFzLshDXEa60YC+R4KZ4vTFfwNNfuZEQk4yXENV7vNVE3b0=
-=TqX7
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
+In view of this, leave it just as this.
+> 
+>>
+>> The way to replace the BUG_ON is something like:
+>>
+>> if (WARN_ON(ret == 0)) {
+>>     kfree()
+>>     goto err_rb;
+>> }
+>>
+>> Jason
