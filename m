@@ -1,45 +1,20 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH -next] IB/qib: Add missing err handle for
- qib_user_sdma_rb_insert
-Date: Fri, 4 Jan 2019 18:39:50 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC70C11891@fmsmsx120.amr.corp.intel.com>
-References: <20181221021938.13784-1-yuehaibing@huawei.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v4 1/2] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Fri, 04 Jan 2019 13:42:04 -0800 (PST)
+Message-ID: <20190104.134204.2012051802437781721.davem@davemloft.net>
+References: <20190103172324.21748-1-swarren@wwwdotorg.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181221021938.13784-1-yuehaibing@huawei.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190103172324.21748-1-swarren@wwwdotorg.org>
+Sender: netdev-owner@vger.kernel.org
+To: swarren@wwwdotorg.org
+Cc: tariqt@mellanox.com, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, dledford@redhat.com, jgg@mellanox.com, hch@lst.de, swarren@nvidia.com
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c
-> b/drivers/infiniband/hw/qib/qib_user_sdma.c
-> index 31c523b..e87c0a7 100644
-> --- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-> @@ -237,6 +237,8 @@ qib_user_sdma_queue_create(struct device *dev,
-> int unit, int ctxt, int sctxt)
-> 
->  		ret = qib_user_sdma_rb_insert(&qib_user_sdma_rb_root,
->  					sdma_rb_node);
-> +		if (ret == 0)
-> +			goto err_rb;
->  	}
->  	pq->sdma_rb_node = sdma_rb_node;
-> 
-> --
-> 2.7.0
-> 
 
-Thanks!
+Mellanox folks, these two patches could use some review.
 
-This patch is ok.
-
-The NULL returned from this routine will result in an error return up to PSM which will fail.
-
-The bail branch will do the necessary cleanup, including freeing the node that couldn't be added.
-
-Acked-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Thank you.
