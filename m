@@ -1,59 +1,49 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Sat, 5 Jan 2019 03:21:50 +0000
-Message-ID: <20190105032142.GN28204@mellanox.com>
-References: <20190104223531.GA1705@ziepe.ca>
- <201901051046.ew7HAHfl%fengguang.wu@intel.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] IB/hfi1: Incorrect sizing of sge for PIO will OOPs
+Date: Sat, 5 Jan 2019 09:22:58 +0100
+Message-ID: <20190105082258.GA31491@kroah.com>
+References: <20190102175907.18332.56448.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201901051046.ew7HAHfl%fengguang.wu@intel.com>
-Content-Language: en-US
-Content-ID: <82C95609B764554287F500BCF927501B@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Shiraz Saleem <shiraz.saleem@intel.com>, Imre Deak <imre.deak@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Yong Zhi <yong.zhi@intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Tian Shu Qiu <tian.shu.qiu@intel.com>, Jian Xu Zheng <jian.xu.zheng@intel.com>, Sinclair Yeh <syeh@vmware.com>, Thomas Hellstrom <thellstrom@vmware.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190102175907.18332.56448.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 05, 2019 at 10:37:17AM +0800, kbuild test robot wrote:
-> Hi Jason,
->=20
-> I love your patch! Yet something to improve:
->=20
-> [auto build test ERROR on linus/master]
-> [also build test ERROR on v4.20 next-20190103]
-> [if your patch is applied to the wrong git tree, please drop us a note to=
- help improve the system]
->=20
-> url:    https://github.com/0day-ci/linux/commits/Jason-Gunthorpe/lib-scat=
-terlist-Provide-a-DMA-page-iterator/20190105-081739
-> config: x86_64-randconfig-x017-201900 (attached as .config)
-> compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=3Dx86_64=20
->=20
-> All error/warnings (new ones prefixed by >>):
->=20
->    In file included from lib/scatterlist.c:9:0:
-> >> include/linux/export.h:81:20: error: redefinition of '__kstrtab___sg_p=
-age_iter_next'
->      static const char __kstrtab_##sym[]    \
->                        ^
->    include/linux/export.h:120:25: note: in expansion of macro '___EXPORT_=
-SYMBOL'
->     #define __EXPORT_SYMBOL ___EXPORT_SYMBOL
->                             ^~~~~~~~~~~~~~~~
->    include/linux/export.h:124:2: note: in expansion of macro '__EXPORT_SY=
-MBOL'
->      __EXPORT_SYMBOL(sym, "")
->      ^~~~~~~~~~~~~~~
-> >> lib/scatterlist.c:652:1: note: in expansion of macro 'EXPORT_SYMBOL'
->     EXPORT_SYMBOL(__sg_page_iter_next);
->     ^~~~~~~~~~~~~
+On Wed, Jan 02, 2019 at 09:59:10AM -0800, Mike Marciniszyn wrote:
+> From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> 
+> Upstream commit dbc2970caef74e8ff41923d302aa6fb5a4812d0e.
+> 
+> An incorrect sge sizing in the HFI PIO path will cause an OOPs similar to
+> this:
+> 
+> BUG: unable to handle kernel NULL pointer dereference at (null)
+> IP: [] hfi1_verbs_send_pio+0x3d8/0x530 [hfi1]
+> PGD 0
+> Oops: 0000 1 SMP
+>  Call Trace:
+>  ? hfi1_verbs_send_dma+0xad0/0xad0 [hfi1]
+>  hfi1_verbs_send+0xdf/0x250 [hfi1]
+>  ? make_rc_ack+0xa80/0xa80 [hfi1]
+>  hfi1_do_send+0x192/0x430 [hfi1]
+>  hfi1_do_send_from_rvt+0x10/0x20 [hfi1]
+>  rvt_post_send+0x369/0x820 [rdmavt]
+>  ib_uverbs_post_send+0x317/0x570 [ib_uverbs]
+>  ib_uverbs_write+0x26f/0x420 [ib_uverbs]
+>  ? security_file_permission+0x21/0xa0
+>  vfs_write+0xbd/0x1e0
+>  ? mntput+0x24/0x40
+>  SyS_write+0x7f/0xe0
+>  system_call_fastpath+0x16/0x1b
+> 
+> Fix by adding the missing sizing check to correctly determine the sge
+> length.
+> 
+> Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+> Cc: <stable@vger.kernel.org> # 4.9.x+
 
-Woops, should be __sg_page_dma_iter_next.. Will resend after getting
-some feedback.
-
-Jason
+This fails to apply to 4.9.y :(
