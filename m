@@ -1,109 +1,67 @@
-From: Aditya Pakki <pakki001@umn.edu>
-Subject: [PATCH] [v2]RDMA: add checks for the status of nla_put in ib_nl_send_msg
-Date: Sat,  5 Jan 2019 11:09:26 -0600
-Message-ID: <20190105170928.4086-1-pakki001@umn.edu>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
+Date: Sat, 5 Jan 2019 10:51:16 -0700
+Message-ID: <20190105175116.GB14238@ziepe.ca>
+References: <20181206041951.22413-1-david@gibson.dropbear.id.au>
+ <20181206064509.GM15544@mtr-leonro.mtl.com>
+ <20190104034401.GA2801@umbus.fritz.box>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190104034401.GA2801@umbus.fritz.box>
 Sender: linux-kernel-owner@vger.kernel.org
-To: pakki001@umn.edu
-Cc: kjlu@umn.edu, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Gal Pressman <galpress@amazon.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Gibson <david@gibson.dropbear.id.au>
+Cc: Leon Romanovsky <leon@kernel.org>, davem@davemloft.net, saeedm@mellanox.com, ogerlitz@mellanox.com, tariqt@mellanox.com, bhelgaas@google.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, alex.williamson@redhat.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, sbest@redhat.com, paulus@samba.org, benh@kernel.crashing.org
 List-Id: linux-rdma@vger.kernel.org
 
-The fix inserts multiple checks for nla_put, and changes the return type of
-ib_nl_set_path_rec_attrs() from void to int
+On Fri, Jan 04, 2019 at 02:44:01PM +1100, David Gibson wrote:
+> On Thu, Dec 06, 2018 at 08:45:09AM +0200, Leon Romanovsky wrote:
+> > On Thu, Dec 06, 2018 at 03:19:51PM +1100, David Gibson wrote:
+> > > Mellanox ConnectX-5 IB cards (MT27800) seem to cause a call trace when
+> > > unbound from their regular driver and attached to vfio-pci in order to pass
+> > > them through to a guest.
+> > >
+> > > This goes away if the disable_idle_d3 option is used, so it looks like a
+> > > problem with the hardware handling D3 state.  To fix that more permanently,
+> > > use a device quirk to disable D3 state for these devices.
+> > >
+> > > We do this by renaming the existing quirk_no_ata_d3() more generally and
+> > > attaching it to the ConnectX-[45] devices (0x15b3:0x1013).
+> > >
+> > > Signed-off-by: David Gibson <david@gibson.dropbear.id.au>
+> > >  drivers/pci/quirks.c | 17 +++++++++++------
+> > >  1 file changed, 11 insertions(+), 6 deletions(-)
+> > >
+> > 
+> > Hi David,
+> > 
+> > Thank for your patch,
+> > 
+> > I would like to reproduce the calltrace before moving forward,
+> > but have trouble to reproduce the original issue.
+> > 
+> > I'm working with vfio-pci and CX-4/5 cards on daily basis,
+> > tried manually enter into D3 state now, and it worked for me.
+> 
+> Interesting.  I've investigated this further, though I don't have as
+> many new clues as I'd like.  The problem occurs reliably, at least on
+> one particular type of machine (a POWER8 "Garrison" with ConnectX-4).
+> I don't yet know if it occurs with other machines, I'm having trouble
+> getting access to other machines with a suitable card.  I didn't
+> manage to reproduce it on a different POWER8 machine with a
+> ConnectX-5, but I don't know if it's the difference in machine or
+> difference in card revision that's important.
 
-Signed-off-by: Aditya Pakki <pakki001@umn.edu>
----
- drivers/infiniband/core/sa_query.c | 56 ++++++++++++++++++++----------
- 1 file changed, 38 insertions(+), 18 deletions(-)
+Make sure the card has the latest firmware is always good advice..
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 97e6d7b69abf..5d81158381d5 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -747,8 +747,9 @@ static inline int ib_sa_query_cancelled(struct ib_sa_query *query)
- 	return (query->flags & IB_SA_CANCEL);
- }
- 
--static void ib_nl_set_path_rec_attrs(struct sk_buff *skb,
--				     struct ib_sa_query *query)
-+static int ib_nl_set_path_rec_attrs(struct sk_buff *skb,
-+				     struct ib_sa_query *query,
-+				     struct nlmsghdr *nlh)
- {
- 	struct sa_path_rec *sa_rec = query->mad_buf->context[1];
- 	struct ib_sa_mad *mad = query->mad_buf->mad;
-@@ -775,29 +776,45 @@ static void ib_nl_set_path_rec_attrs(struct sk_buff *skb,
- 	/* Now build the attributes */
- 	if (comp_mask & IB_SA_PATH_REC_SERVICE_ID) {
- 		val64 = be64_to_cpu(sa_rec->service_id);
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_SERVICE_ID,
--			sizeof(val64), &val64);
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_SERVICE_ID,
-+				sizeof(val64), &val64))
-+			goto nla_put_failure;
-+	}
-+	if (comp_mask & IB_SA_PATH_REC_DGID) {
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_DGID,
-+				sizeof(sa_rec->dgid), &sa_rec->dgid))
-+			goto nla_put_failure;
-+	}
-+	if (comp_mask & IB_SA_PATH_REC_SGID) {
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_SGID,
-+				sizeof(sa_rec->sgid), &sa_rec->sgid))
-+			goto nla_put_failure;
-+	}
-+	if (comp_mask & IB_SA_PATH_REC_TRAFFIC_CLASS) {
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_TCLASS,
-+				sizeof(sa_rec->traffic_class),
-+				&sa_rec->traffic_class))
-+			goto nla_put_failure;
- 	}
--	if (comp_mask & IB_SA_PATH_REC_DGID)
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_DGID,
--			sizeof(sa_rec->dgid), &sa_rec->dgid);
--	if (comp_mask & IB_SA_PATH_REC_SGID)
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_SGID,
--			sizeof(sa_rec->sgid), &sa_rec->sgid);
--	if (comp_mask & IB_SA_PATH_REC_TRAFFIC_CLASS)
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_TCLASS,
--			sizeof(sa_rec->traffic_class), &sa_rec->traffic_class);
- 
- 	if (comp_mask & IB_SA_PATH_REC_PKEY) {
- 		val16 = be16_to_cpu(sa_rec->pkey);
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_PKEY,
--			sizeof(val16), &val16);
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_PKEY,
-+				sizeof(val16), &val16))
-+			goto nla_put_failure;
- 	}
-+
- 	if (comp_mask & IB_SA_PATH_REC_QOS_CLASS) {
- 		val16 = be16_to_cpu(sa_rec->qos_class);
--		nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_QOS_CLASS,
--			sizeof(val16), &val16);
-+		if (nla_put(skb, RDMA_NLA_F_MANDATORY | LS_NLA_TYPE_QOS_CLASS,
-+				sizeof(val16), &val16))
-+			goto nla_put_failure;
- 	}
-+	return 0;
-+
-+nla_put_failure:
-+	nlmsg_cancel(skb, nlh);
-+	return -EMSGSIZE;
- }
- 
- static int ib_nl_get_path_rec_attrs_len(ib_sa_comp_mask comp_mask)
-@@ -856,7 +873,10 @@ static int ib_nl_send_msg(struct ib_sa_query *query, gfp_t gfp_mask)
- 	}
- 
- 	/* Add attributes */
--	ib_nl_set_path_rec_attrs(skb, query);
-+	if (ib_nl_set_path_rec_attrs(skb, query, nlh)) {
-+		nlmsg_free(skb);
-+		return -EMSGSIZE;
-+	}
- 
- 	/* Repair the nlmsg header length */
- 	nlmsg_end(skb, nlh);
--- 
-2.17.1
+> So possibilities that occur to me:
+>   * It's something specific about how the vfio-pci driver uses D3
+>     state - have you tried rebinding your device to vfio-pci?
+>   * It's something specific about POWER, either the kernel or the PCI
+>     bridge hardware
+>   * It's something specific about this particular type of machine
+
+Does the EEH indicate what happend to actually trigger it?
+
+Jason
