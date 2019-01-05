@@ -1,49 +1,36 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] IB/hfi1: Incorrect sizing of sge for PIO will OOPs
-Date: Sat, 5 Jan 2019 09:22:58 +0100
-Message-ID: <20190105082258.GA31491@kroah.com>
-References: <20190102175907.18332.56448.stgit@scvm10.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190102175907.18332.56448.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+From: Aditya Pakki <pakki001@umn.edu>
+Subject: [PATCH] [V2] infiniband: fix a missing check of nla_put
+Date: Sat,  5 Jan 2019 10:18:07 -0600
+Message-ID: <20190105161808.3496-1-pakki001@umn.edu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: pakki001@umn.edu
+Cc: kjlu@umn.edu, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 02, 2019 at 09:59:10AM -0800, Mike Marciniszyn wrote:
-> From: Michael J. Ruhl <michael.j.ruhl@intel.com>
-> 
-> Upstream commit dbc2970caef74e8ff41923d302aa6fb5a4812d0e.
-> 
-> An incorrect sge sizing in the HFI PIO path will cause an OOPs similar to
-> this:
-> 
-> BUG: unable to handle kernel NULL pointer dereference at (null)
-> IP: [] hfi1_verbs_send_pio+0x3d8/0x530 [hfi1]
-> PGD 0
-> Oops: 0000 1 SMP
->  Call Trace:
->  ? hfi1_verbs_send_dma+0xad0/0xad0 [hfi1]
->  hfi1_verbs_send+0xdf/0x250 [hfi1]
->  ? make_rc_ack+0xa80/0xa80 [hfi1]
->  hfi1_do_send+0x192/0x430 [hfi1]
->  hfi1_do_send_from_rvt+0x10/0x20 [hfi1]
->  rvt_post_send+0x369/0x820 [rdmavt]
->  ib_uverbs_post_send+0x317/0x570 [ib_uverbs]
->  ib_uverbs_write+0x26f/0x420 [ib_uverbs]
->  ? security_file_permission+0x21/0xa0
->  vfs_write+0xbd/0x1e0
->  ? mntput+0x24/0x40
->  SyS_write+0x7f/0xe0
->  system_call_fastpath+0x16/0x1b
-> 
-> Fix by adding the missing sizing check to correctly determine the sge
-> length.
-> 
-> Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-> Cc: <stable@vger.kernel.org> # 4.9.x+
+nla_put() may fail. The fix adds a check for its return value, and
+returns -EMSGSIZE if it fails, post canceling netlink msg.
 
-This fails to apply to 4.9.y :(
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+---
+ drivers/infiniband/core/addr.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index 0dce94e3c495..e847b34bacd1 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -178,7 +178,10 @@ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
+ 	/* Construct the family header first */
+ 	header = skb_put(skb, NLMSG_ALIGN(sizeof(*header)));
+ 	header->ifindex = dev_addr->bound_dev_if;
+-	nla_put(skb, attrtype, size, daddr);
++	if (nla_put(skb, attrtype, size, daddr)) {
++		nlmsg_cancel(skb, nlh);
++		return -EMSGSIZE;
++	}
+ 
+ 	/* Repair the nlmsg header length */
+ 	nlmsg_end(skb, nlh);
+-- 
+2.17.1
