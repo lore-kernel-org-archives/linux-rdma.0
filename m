@@ -1,23 +1,57 @@
 From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH v4 1/2] net/mlx4: Get rid of page operation after
- dma_alloc_coherent
-Date: Sun, 6 Jan 2019 08:26:51 +0000
-Message-ID: <11163ea1-2834-912b-f567-7e84ad84e5f0@mellanox.com>
+Subject: Re: [PATCH v4 2/2] net/mlx4: replace pci_{,un}map_sg with
+ dma_{,un}map_sg
+Date: Sun, 6 Jan 2019 08:29:56 +0000
+Message-ID: <46ff10e9-dbc5-afb0-f822-2162cec24e9a@mellanox.com>
 References: <20190103172324.21748-1-swarren@wwwdotorg.org>
- <20190104.134204.2012051802437781721.davem@davemloft.net>
+ <20190103172324.21748-2-swarren@wwwdotorg.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190104.134204.2012051802437781721.davem@davemloft.net>
+In-Reply-To: <20190103172324.21748-2-swarren@wwwdotorg.org>
 Content-Language: en-US
-Content-ID: <87DA92799873194FAB71745F3CCE5607@eurprd05.prod.outlook.com>
+Content-ID: <DE653749E6FC154B802E1EA7656664AC@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
-Cc: Tariq Toukan <tariqt@mellanox.com>, "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, "hch@lst.de" <hch@lst.de>, "swarren@nvidia.com" <swarren@nvidia.com>
+To: Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Stephen Warren <swarren@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDEvNC8yMDE5IDExOjQyIFBNLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+IA0KPiBNZWxs
-YW5veCBmb2xrcywgdGhlc2UgdHdvIHBhdGNoZXMgY291bGQgdXNlIHNvbWUgcmV2aWV3Lg0KPiAN
-Cj4gVGhhbmsgeW91Lg0KPiANCg0KU3VyZS4gVGhleSB3ZXJlIHNlbnQgb24gb3VyIHdlZWtlbmQu
-IFJldmlld2luZyBub3cuDQo=
+DQoNCk9uIDEvMy8yMDE5IDc6MjMgUE0sIFN0ZXBoZW4gV2FycmVuIHdyb3RlOg0KPiBGcm9tOiBT
+dGVwaGVuIFdhcnJlbiA8c3dhcnJlbkBudmlkaWEuY29tPg0KPiANCj4gcGNpX3ssdW59bWFwX3Nn
+IGFyZSBkZXByZWNhdGVkIGFuZCByZXBsYWNlZCBieSBkbWFfeyx1bn1tYXBfc2cuIFRoaXMgaXMN
+Cj4gZXNwZWNpYWxseSByZWxldmFudCBzaW5jZSB0aGUgcmVzdCBvZiB0aGUgZHJpdmVyIHVzZXMg
+dGhlIERNQSBBUEkuIEZpeA0KPiB0aGUgZHJpdmVyIHRvIHVzZSB0aGUgcmVwbGFjZW1lbnQgQVBJ
+cy4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IFN0ZXBoZW4gV2FycmVuIDxzd2FycmVuQG52aWRpYS5j
+b20+DQo+IC0tLQ0KPiB2NDogTmV3IHBhdGNoLg0KPiAtLS0NCj4gICBkcml2ZXJzL25ldC9ldGhl
+cm5ldC9tZWxsYW5veC9tbHg0L2ljbS5jIHwgMTUgKysrKysrKy0tLS0tLS0tDQo+ICAgMSBmaWxl
+IGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKSwgOCBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2ljbS5jIGIvZHJpdmVycy9u
+ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9pY20uYw0KPiBpbmRleCA3NmI4NGQwOGEwNTguLmQ4
+OWEzZGE4OWU1YSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4NC9pY20uYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2lj
+bS5jDQo+IEBAIC01Nyw4ICs1Nyw4IEBAIHN0YXRpYyB2b2lkIG1seDRfZnJlZV9pY21fcGFnZXMo
+c3RydWN0IG1seDRfZGV2ICpkZXYsIHN0cnVjdCBtbHg0X2ljbV9jaHVuayAqY2h1DQo+ICAgCWlu
+dCBpOw0KPiAgIA0KPiAgIAlpZiAoY2h1bmstPm5zZyA+IDApDQo+IC0JCXBjaV91bm1hcF9zZyhk
+ZXYtPnBlcnNpc3QtPnBkZXYsIGNodW5rLT5zZywgY2h1bmstPm5wYWdlcywNCj4gLQkJCSAgICAg
+UENJX0RNQV9CSURJUkVDVElPTkFMKTsNCj4gKwkJZG1hX3VubWFwX3NnKCZkZXYtPnBlcnNpc3Qt
+PnBkZXYtPmRldiwgY2h1bmstPnNnLCBjaHVuay0+bnBhZ2VzLA0KPiArCQkJICAgICBETUFfQklE
+SVJFQ1RJT05BTCk7DQo+ICAgDQo+ICAgCWZvciAoaSA9IDA7IGkgPCBjaHVuay0+bnBhZ2VzOyAr
+K2kpDQo+ICAgCQlfX2ZyZWVfcGFnZXMoc2dfcGFnZSgmY2h1bmstPnNnW2ldKSwNCj4gQEAgLTIw
+NCw5ICsyMDQsOSBAQCBzdHJ1Y3QgbWx4NF9pY20gKm1seDRfYWxsb2NfaWNtKHN0cnVjdCBtbHg0
+X2RldiAqZGV2LCBpbnQgbnBhZ2VzLA0KPiAgIAkJaWYgKGNvaGVyZW50KQ0KPiAgIAkJCSsrY2h1
+bmstPm5zZzsNCj4gICAJCWVsc2UgaWYgKGNodW5rLT5ucGFnZXMgPT0gTUxYNF9JQ01fQ0hVTktf
+TEVOKSB7DQo+IC0JCQljaHVuay0+bnNnID0gcGNpX21hcF9zZyhkZXYtPnBlcnNpc3QtPnBkZXYs
+IGNodW5rLT5zZywNCj4gLQkJCQkJCWNodW5rLT5ucGFnZXMsDQo+IC0JCQkJCQlQQ0lfRE1BX0JJ
+RElSRUNUSU9OQUwpOw0KPiArCQkJY2h1bmstPm5zZyA9IGRtYV9tYXBfc2coJmRldi0+cGVyc2lz
+dC0+cGRldi0+ZGV2LA0KPiArCQkJCQkJY2h1bmstPnNnLCBjaHVuay0+bnBhZ2VzLA0KPiArCQkJ
+CQkJRE1BX0JJRElSRUNUSU9OQUwpOw0KPiAgIA0KPiAgIAkJCWlmIChjaHVuay0+bnNnIDw9IDAp
+DQo+ICAgCQkJCWdvdG8gZmFpbDsNCj4gQEAgLTIxOSw5ICsyMTksOCBAQCBzdHJ1Y3QgbWx4NF9p
+Y20gKm1seDRfYWxsb2NfaWNtKHN0cnVjdCBtbHg0X2RldiAqZGV2LCBpbnQgbnBhZ2VzLA0KPiAg
+IAl9DQo+ICAgDQo+ICAgCWlmICghY29oZXJlbnQgJiYgY2h1bmspIHsNCj4gLQkJY2h1bmstPm5z
+ZyA9IHBjaV9tYXBfc2coZGV2LT5wZXJzaXN0LT5wZGV2LCBjaHVuay0+c2csDQo+IC0JCQkJCWNo
+dW5rLT5ucGFnZXMsDQo+IC0JCQkJCVBDSV9ETUFfQklESVJFQ1RJT05BTCk7DQo+ICsJCWNodW5r
+LT5uc2cgPSBkbWFfbWFwX3NnKCZkZXYtPnBlcnNpc3QtPnBkZXYtPmRldiwgY2h1bmstPnNnLA0K
+PiArCQkJCQljaHVuay0+bnBhZ2VzLCBETUFfQklESVJFQ1RJT05BTCk7DQo+ICAgDQo+ICAgCQlp
+ZiAoY2h1bmstPm5zZyA8PSAwKQ0KPiAgIAkJCWdvdG8gZmFpbDsNCj4gDQoNClJldmlld2VkLWJ5
+OiBUYXJpcSBUb3VrYW4gPHRhcmlxdEBtZWxsYW5veC5jb20+DQpUaGFua3MuDQo=
