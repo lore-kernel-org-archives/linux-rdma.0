@@ -1,24 +1,23 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Sun, 06 Jan 2019 02:40:05 +0000
-Message-ID: <20190106024005.13237.95467.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
-References: <20190104050001.GA26256@ziepe.ca>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190104050001.GA26256@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH v4 1/2] net/mlx4: Get rid of page operation after
+ dma_alloc_coherent
+Date: Sun, 6 Jan 2019 08:26:51 +0000
+Message-ID: <11163ea1-2834-912b-f567-7e84ad84e5f0@mellanox.com>
+References: <20190103172324.21748-1-swarren@wwwdotorg.org>
+ <20190104.134204.2012051802437781721.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190104.134204.2012051802437781721.davem@davemloft.net>
+Content-Language: en-US
+Content-ID: <87DA92799873194FAB71745F3CCE5607@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>, "swarren@wwwdotorg.org" <swarren@wwwdotorg.org>
+Cc: Tariq Toukan <tariqt@mellanox.com>, "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, "hch@lst.de" <hch@lst.de>, "swarren@nvidia.com" <swarren@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The pull request you sent on Fri, 4 Jan 2019 05:00:10 +0000:
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/3954e1d0310e30e743431b58918825c4d4fe8812
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+DQoNCk9uIDEvNC8yMDE5IDExOjQyIFBNLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+IA0KPiBNZWxs
+YW5veCBmb2xrcywgdGhlc2UgdHdvIHBhdGNoZXMgY291bGQgdXNlIHNvbWUgcmV2aWV3Lg0KPiAN
+Cj4gVGhhbmsgeW91Lg0KPiANCg0KU3VyZS4gVGhleSB3ZXJlIHNlbnQgb24gb3VyIHdlZWtlbmQu
+IFJldmlld2luZyBub3cuDQo=
