@@ -1,54 +1,46 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] IB/usnic: Use struct_size() in kmalloc()
-Date: Mon, 7 Jan 2019 11:39:54 -0600
-Message-ID: <20190107173953.GA6154@embeddedor>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v1 0/5] Cleanup of
+ CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
+Date: Mon, 7 Jan 2019 11:31:28 -0700
+Message-ID: <20190107183128.GA4613@ziepe.ca>
+References: <20181223091418.26218-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christian Benvenuti <benve@cisco.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+In-Reply-To: <20181223091418.26218-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-One of the more common cases of allocation size calculations is finding
-the size of a structure that has a zero-sized array at the end, along
-with memory for some number of elements for that array. For example:
+On Sun, Dec 23, 2018 at 11:14:13AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Changelog v0->v1:
+>  * Don't set ODP caps always (patch #2)
+>  * Set invalidate_range callback based on device_cap only
+> 
+> -------------------------------------------------------------------------------
+> 
+> Hi,
+> 
+> As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> usage, this series cleans mlx5_ib and RDMA/core code and it is based on accepted
+> patch https://patchwork.kernel.org/patch/10735547/
+> 
+> I think that we will see more patches in that area, I would like to
+> remove CONFIG_INFINIBAND_ON_DEMAND_PAGING completely.
+> 
+> Thanks
+> 
+> Leon Romanovsky (5):
+>   RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
+>   RDMA/core: Don't depend device ODP capabilities on kconfig option
+>   RDMA/mlx5: Introduce and reuse helper to identify ODP MR
+>   RDMA/mlx5: Embed into the code flow the ODP config option
+>   RDMA/mlx5: Delete declaration of already removed function
 
-struct foo {
-    int stuff;
-    void *entry[];
-};
+This doesn't apply anymore, can you resend it please?
 
-instance = kmalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
-
-Instead of leaving these open-coded and prone to type mistakes, we can
-now use the new struct_size() helper:
-
-instance = kmalloc(struct_size(instance, entry, count), GFP_KERNEL);
-
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/infiniband/hw/usnic/usnic_uiom.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 49275a548751..ce01a59fccc4 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -157,9 +157,8 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 		off = 0;
- 
- 		while (ret) {
--			chunk = kmalloc(sizeof(*chunk) +
--					sizeof(struct scatterlist) *
--					min_t(int, ret, USNIC_UIOM_PAGE_CHUNK),
-+			chunk = kmalloc(struct_size(chunk, page_list,
-+					min_t(int, ret, USNIC_UIOM_PAGE_CHUNK)),
- 					GFP_KERNEL);
- 			if (!chunk) {
- 				ret = -ENOMEM;
--- 
-2.20.1
+Jason
