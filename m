@@ -1,66 +1,67 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH v4 1/2] net/mlx4: Get rid of page operation after
- dma_alloc_coherent
-Date: Sun, 6 Jan 2019 08:30:35 +0000
-Message-ID: <ea4800dc-0828-6d3e-b957-74b3595e0fd8@mellanox.com>
-References: <20190103172324.21748-1-swarren@wwwdotorg.org>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] IB/hfi1: Incorrect sizing of sge for PIO will OOPs
+Date: Mon, 07 Jan 2019 06:43:42 -0800
+Message-ID: <20190107144340.5348.90189.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190103172324.21748-1-swarren@wwwdotorg.org>
-Content-Language: en-US
-Content-ID: <B0999CA13DDB874EB56D6824F5A9C9E9@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@lst.de>, Stephen Warren <swarren@nvidia.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDEvMy8yMDE5IDc6MjMgUE0sIFN0ZXBoZW4gV2FycmVuIHdyb3RlOg0KPiBGcm9tOiBT
-dGVwaGVuIFdhcnJlbiA8c3dhcnJlbkBudmlkaWEuY29tPg0KPiANCj4gVGhpcyBwYXRjaCBzb2x2
-ZXMgYSBjcmFzaCBhdCB0aGUgdGltZSBvZiBtbHg0IGRyaXZlciB1bmxvYWQgb3Igc3lzdGVtDQo+
-IHNodXRkb3duLiBUaGUgY3Jhc2ggb2NjdXJzIGJlY2F1c2UgZG1hX2FsbG9jX2NvaGVyZW50KCkg
-cmV0dXJucyBvbmUNCj4gdmFsdWUgaW4gbWx4NF9hbGxvY19pY21fY29oZXJlbnQoKSwgYnV0IGEg
-ZGlmZmVyZW50IHZhbHVlIGlzIHBhc3NlZCB0bw0KPiBkbWFfZnJlZV9jb2hlcmVudCgpIGluIG1s
-eDRfZnJlZV9pY21fY29oZXJlbnQoKS4gSW4gdHVybiB0aGlzIGlzIGJlY2F1c2UNCj4gd2hlbiBh
-bGxvY2F0ZWQsIHRoYXQgcG9pbnRlciBpcyBwYXNzZWQgdG8gc2dfc2V0X2J1ZigpIHRvIHJlY29y
-ZCBpdCwNCj4gdGhlbiB3aGVuIGZyZWVkIGl0IGlzIHJlLWNhbGN1bGF0ZWQgYnkgY2FsbGluZw0K
-PiBsb3dtZW1fcGFnZV9hZGRyZXNzKHNnX3BhZ2UoKSkgd2hpY2ggcmV0dXJucyBhIGRpZmZlcmVu
-dCB2YWx1ZS4gU29sdmUNCj4gdGhpcyBieSByZWNvcmRpbmcgdGhlIHZhbHVlIHRoYXQgZG1hX2Fs
-bG9jX2NvaGVyZW50KCkgcmV0dXJucywgYW5kDQo+IHBhc3NpbmcgdGhpcyB0byBkbWFfZnJlZV9j
-b2hlcmVudCgpLg0KPiANCj4gVGhpcyBwYXRjaCBpcyByb3VnaGx5IGVxdWl2YWxlbnQgdG8gY29t
-bWl0IDM3OGVmZTc5OGVjZiAoIlJETUEvaG5zOiBHZXQNCj4gcmlkIG9mIHBhZ2Ugb3BlcmF0aW9u
-IGFmdGVyIGRtYV9hbGxvY19jb2hlcmVudCIpLg0KPiANCj4gQmFzZWQtb24tY29kZS1mcm9tOiBD
-aHJpc3RvcGggSGVsbHdpZyA8aGNoQGxzdC5kZT4NCj4gU2lnbmVkLW9mZi1ieTogU3RlcGhlbiBX
-YXJyZW4gPHN3YXJyZW5AbnZpZGlhLmNvbT4NCj4gLS0tDQo+IHY0IChKYW4gMyk6DQo+IC0gU2hv
-cnRlbmVkIGNvbW1pdCBkZXNjcmlwdGlvbi4NCj4gLSBVc2UgYm9vbCBub3QgaW50IGluIHN0cnVj
-dCBtbHg0X2ljbV9jaHVuay4NCj4gLSBUYXJpcSBzYWlkICJUaGFua3MgZm9yIHlvdXIgcGF0Y2gu
-IEl0IGxvb2tzIGdvb2QgdG8gbWUuIiBmb3IgdjMuDQo+IHYzIChEZWMgMTkpOg0KPiAtIFJld29y
-ayBjaHVuayBkYXRhIHN0cnVjdHVyZSB0byBzdG9yZSBhbGwgZGF0YSBmb3IgY29oZXJlbnQgYWxs
-b2NhdGlvbnMNCj4gICAgc2VwYXJhdGVseSBmcm9tIHRoZSBzZyBsaXN0LiBDb2RlIGZyb20gQ2hy
-aXN0b3BoIEhlbGx3aWcgd2l0aCBmaXhlcyBieQ0KPiAgICBtZS4gTm90ZXM6DQo+ICAgIC0gY2h1
-bmstPmNvaGVyZW50IGlzIGFuIGludCBub3QgYSBib29sIHNpbmNlIGNoZWNrcGF0Y2ggY29tcGxh
-aW5zIGFib3V0DQo+ICAgICAgdXNpbmcgYm9vbCBpbiBzdHJ1Y3RzOyBzZWUgaHR0cHM6Ly9sa21s
-Lm9yZy9sa21sLzIwMTcvMTEvMjEvMzg0Lg0KPiAgICAtIGNodW5rLT5jb2hlcmVudCBpcyB1c2Vk
-IHJhdGhlciB0aGFuIGNodW5rLT50YWJsZS0+Y29oZXJlbnQgc2luY2UgdGhlDQo+ICAgICAgdGFi
-bGUgcG9pbnRlciBpc24ndCBhdmFpbGFibGUgd2hlbiBjcmVhdGluZyBjaHVua3MuIFRoaXMgZHVw
-bGljYXRlcw0KPiAgICAgIGRhdGEsIGJ1dCBzaW1wbGlmaWVzIHRoZSBwYXRjaC4NCj4gdjI6DQo+
-IC0gUmV3b3JrIG1seDRfdGFibGVfZmluZCgpIHRvIGV4cGxpY2l0bHkgY2FsY3VsYXRlIHRoZSBy
-ZXR1cm5lZCBhZGRyZXNzDQo+ICAgIGRpZmZlcmVudGx5IGRlcGVuZGluZyBvbiB3aGV0ZXIgdGhl
-IHRhYmxlIHdhcyBhbGxvY2F0ZWQgdXNpbmcNCj4gICAgZG1hX2FsbG9jX2NvaGVyZW50KCkgb3Ig
-YWxsb2NfcGFnZXMoKSwgd2hpY2ggaW4gdHVybiBhbGxvd3MgdGhlDQo+ICAgIGNoYW5nZXMgdG8g
-bWx4NF9hbGxvY19pY21fcGFnZXMoKSB0byBiZSBkcm9wcGVkLg0KPiAtIERyb3AgY2hhbmdlcyB0
-byBtbHg0X2FsbG9jL2ZyZWVfaWNtX3BhZ2VzLiBUaGlzIHBhdGggdXNlcw0KPiAgICBwY2lfbWFw
-X3NnKCkgd2hpY2ggY2FuIHJlLXdyaXRlIHRoZSBzZyBsaXN0IHdoaWNoIGluIHR1cm4gd291bGQg
-Y2F1c2UNCj4gICAgY2h1bmstPm1lbVtdICh0aGUgc2cgbGlzdCkgYW5kIGNodW5rLT5idWZbXSB0
-byBiZWNvbWUgaW5jb25zaXN0ZW50Lg0KPiAtIEVuaGFuY2UgY29tbWl0IGRlc2NyaXB0aW9uLg0K
-PiANCj4gTm90ZTogSSd2ZSB0ZXN0ZWQgdGhpcyBwYXRjaCBpbiBhIGRvd25zdHJlYW0gNC4xNCBi
-YXNlZCBrZXJuZWwgKHVzaW5nDQo+IGlicGluZywgaWJfcmVhZF9idywgYW5kIGliX3dyaXRlX2J3
-KSwgYnV0IGNhbid0IHRlc3QgaXQgaW4gbWFpbmxpbmUNCj4gc2luY2UgbXkgc3lzdGVtIGlzbid0
-IHN1cHBvcnRlZCB0aGVyZSB5ZXQuIEkgaGF2ZSBjb21waWxlLXRlc3RlZCBpdCBpbg0KPiBtYWlu
-bGluZSBhdCBsZWFzdCwgZm9yIEFSTTY0Lg0KPiAtLS0NCj4gICBkcml2ZXJzL25ldC9ldGhlcm5l
-dC9tZWxsYW5veC9tbHg0L2ljbS5jIHwgOTIgKysrKysrKysrKysrKystLS0tLS0tLS0tDQo+ICAg
-ZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9pY20uaCB8IDIyICsrKysrLQ0KPiAg
-IDIgZmlsZXMgY2hhbmdlZCwgNzUgaW5zZXJ0aW9ucygrKSwgMzkgZGVsZXRpb25zKC0pDQo+IA0K
-DQpSZXZpZXdlZC1ieTogVGFyaXEgVG91a2FuIDx0YXJpcXRAbWVsbGFub3guY29tPg0KVGhhbmtz
-Lg0K
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+
+Upstream commit dbc2970caef74e8ff41923d302aa6fb5a4812d0e.
+
+An incorrect sge sizing in the HFI PIO path will cause an OOPs similar to
+this:
+
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [] hfi1_verbs_send_pio+0x3d8/0x530 [hfi1]
+PGD 0
+Oops: 0000 1 SMP
+ Call Trace:
+ ? hfi1_verbs_send_dma+0xad0/0xad0 [hfi1]
+ hfi1_verbs_send+0xdf/0x250 [hfi1]
+ ? make_rc_ack+0xa80/0xa80 [hfi1]
+ hfi1_do_send+0x192/0x430 [hfi1]
+ hfi1_do_send_from_rvt+0x10/0x20 [hfi1]
+ rvt_post_send+0x369/0x820 [rdmavt]
+ ib_uverbs_post_send+0x317/0x570 [ib_uverbs]
+ ib_uverbs_write+0x26f/0x420 [ib_uverbs]
+ ? security_file_permission+0x21/0xa0
+ vfs_write+0xbd/0x1e0
+ ? mntput+0x24/0x40
+ SyS_write+0x7f/0xe0
+ system_call_fastpath+0x16/0x1b
+
+Fix by adding the missing sizing check to correctly determine the sge
+length.
+
+[adjusted path for different update_sge]
+
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Cc: <stable@vger.kernel.org> # 4.9.x
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/hw/hfi1/verbs.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
+index 14ddb75..d9c7175 100644
+--- a/drivers/infiniband/hw/hfi1/verbs.c
++++ b/drivers/infiniband/hw/hfi1/verbs.c
+@@ -1088,6 +1088,8 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
+ 
+ 				if (slen > len)
+ 					slen = len;
++				if (slen > ss->sge.sge_length)
++					slen = ss->sge.sge_length;
+ 				update_sge(ss, slen);
+ 				seg_pio_copy_mid(pbuf, addr, slen);
+ 				len -= slen;
