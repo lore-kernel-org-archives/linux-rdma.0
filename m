@@ -1,60 +1,57 @@
-From: Adit Ranadive <aditr@vmware.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
 Subject: Re: [PATCH for-rc] RDMA/vmw_pvrdma: Return the correct opcode when
  creating WR
-Date: Mon, 7 Jan 2019 19:08:36 +0000
-Message-ID: <7015989d-38ae-a4fb-5ca9-a88837774738@vmware.com>
+Date: Mon, 7 Jan 2019 19:17:23 +0000
+Message-ID: <20190107191716.GE27929@mellanox.com>
 References: <1546887183-1238-1-git-send-email-aditr@vmware.com>
  <20190107185906.GD27929@mellanox.com>
+ <7015989d-38ae-a4fb-5ca9-a88837774738@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190107185906.GD27929@mellanox.com>
+In-Reply-To: <7015989d-38ae-a4fb-5ca9-a88837774738@vmware.com>
 Content-Language: en-US
-Content-ID: <C3AA1C8A00F31B47B5CD44F1D5048C3C@namprd05.prod.outlook.com>
+Content-ID: <3F4D33F7232D5C429ACB49BBC55BED05@eurprd05.prod.outlook.com>
 Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
+To: Adit Ranadive <aditr@vmware.com>
 Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMS83LzE5IDEwOjU5IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+IE9uIE1vbiwgSmFu
-IDA3LCAyMDE5IGF0IDA2OjUzOjI0UE0gKzAwMDAsIEFkaXQgUmFuYWRpdmUgd3JvdGU6DQo+PiBG
-cm9tOiBBZGl0IFJhbmFkaXZlIDxhZGl0ckB2bXdhcmUuY29tPg0KPj4NCj4+IFNpbmNlIHRoZSBJ
-Ql9XUl9SRUdfTVIgb3Bjb2RlIHZhbHVlIGNoYW5nZWQsIHNldCBzb21lIG9mIHRoZSBQVlJETUEg
-ZGV2aWNlDQo+PiBvcGNvZGVzIGV4cGxpY2l0bHkuDQo+Pg0KPj4gUmVwb3J0ZWQtYnk6IFJ1aXNo
-dWFuZyBXYW5nIDxydWlzaHVhbmd3QHZtd2FyZS5jb20+DQo+PiBGaXhlczogOWE1OTczOWJkMDFm
-ICgiSUIvcnhlOiBSZXZpc2UgdGhlIGliX3dyX29wY29kZSBlbnVtIikNCj4+IENjOiBzdGFibGVA
-dmdlci5rZXJuZWwub3JnDQo+PiBSZXZpZXdlZC1ieTogQnJ5YW4gVGFuIDxicnlhbnRhbkB2bXdh
-cmUuY29tPg0KPj4gUmV2aWV3ZWQtYnk6IFJ1aXNodWFuZyBXYW5nIDxydWlzaHVhbmd3QHZtd2Fy
-ZS5jb20+DQo+PiBSZXZpZXdlZC1ieTogVmlzaG51IERhc2EgPHZkYXNhQHZtd2FyZS5jb20+DQo+
-PiBTaWduZWQtb2ZmLWJ5OiBBZGl0IFJhbmFkaXZlIDxhZGl0ckB2bXdhcmUuY29tPg0KPj4gLS0t
-DQo+PiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hLmggfCAyMSArKysr
-KysrKysrKysrKysrKysrKy0NCj4+ICAxIGZpbGUgY2hhbmdlZCwgMjAgaW5zZXJ0aW9ucygrKSwg
-MSBkZWxldGlvbigtKQ0KPiANCj4gU28gbmF1Z2h0eSEhIEhvdyBtYW55IG90aGVyIHBsYWNlcyBp
-biB0aGlzIGRyaXZlciBhcmUgYXNzdW1pbmcgdGhlDQo+IGludGVuYWwgSUIgY29uc3RhbnRzIGFy
-ZSBzdGFibGU/DQo+IA0KPiBEaWQgeW91IGF1ZGl0IGZvciBvdGhlciBjYXNlcz8NCg0KTG90cyBv
-ZiBwbGFjZXMuIFRob3VnaCBpdHMgdGhlIHZhbHVlcyBzaGFyZWQgd2l0aCB1c2Vyc3BhY2UsIGxp
-a2UgUVAgdHlwZXMsDQpJQiBNVFVzLCBldGMuIFVubGVzcyB5b3UgZm9yZXNlZSBjaGFuZ2VzIHRv
-IHRob3NlIC4uIA0KDQo+ICANCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcv
-dm13X3B2cmRtYS9wdnJkbWEuaCBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2
-cmRtYS5oDQo+PiBpbmRleCA0MmI4Njg1Yzk5N2UuLmMyZWQwOWU2NmQyYiAxMDA2NDQNCj4+IC0t
-LSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYS5oDQo+PiArKysgYi9k
-cml2ZXJzL2luZmluaWJhbmQvaHcvdm13X3B2cmRtYS9wdnJkbWEuaA0KPj4gQEAgLTQyNyw3ICs0
-MjcsMjYgQEAgc3RhdGljIGlubGluZSBlbnVtIGliX3FwX3N0YXRlIHB2cmRtYV9xcF9zdGF0ZV90
-b19pYihlbnVtIHB2cmRtYV9xcF9zdGF0ZSBzdGF0ZSkNCj4+ICANCj4+ICBzdGF0aWMgaW5saW5l
-IGVudW0gcHZyZG1hX3dyX29wY29kZSBpYl93cl9vcGNvZGVfdG9fcHZyZG1hKGVudW0gaWJfd3Jf
-b3Bjb2RlIG9wKQ0KPj4gIHsNCj4+IC0JcmV0dXJuIChlbnVtIHB2cmRtYV93cl9vcGNvZGUpb3A7
-DQo+PiArCXN3aXRjaCAob3ApIHsNCj4+ICsJY2FzZSBJQl9XUl9MU086DQo+PiArCQlyZXR1cm4g
-UFZSRE1BX1dSX0xTTzsNCj4+ICsJY2FzZSBJQl9XUl9TRU5EX1dJVEhfSU5WOg0KPj4gKwkJcmV0
-dXJuIFBWUkRNQV9XUl9TRU5EX1dJVEhfSU5WOw0KPj4gKwljYXNlIElCX1dSX1JETUFfUkVBRF9X
-SVRIX0lOVjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfUkRNQV9SRUFEX1dJVEhfSU5WOw0KPj4g
-KwljYXNlIElCX1dSX0xPQ0FMX0lOVjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfTE9DQUxfSU5W
-Ow0KPj4gKwljYXNlIElCX1dSX1JFR19NUjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfRkFTVF9S
-RUdfTVI7DQo+PiArCWNhc2UgSUJfV1JfTUFTS0VEX0FUT01JQ19DTVBfQU5EX1NXUDoNCj4+ICsJ
-CXJldHVybiBQVlJETUFfV1JfTUFTS0VEX0FUT01JQ19DTVBfQU5EX1NXUDsNCj4+ICsJY2FzZSBJ
-Ql9XUl9NQVNLRURfQVRPTUlDX0ZFVENIX0FORF9BREQ6DQo+PiArCQlyZXR1cm4gUFZSRE1BX1dS
-X01BU0tFRF9BVE9NSUNfRkVUQ0hfQU5EX0FERDsNCj4+ICsJY2FzZSBJQl9XUl9SRUdfU0lHX01S
-Og0KPj4gKwkJcmV0dXJuIFBWUkRNQV9XUl9SRUdfU0lHX01SOw0KPj4gKwlkZWZhdWx0Og0KPj4g
-KwkJcmV0dXJuIChlbnVtIHB2cmRtYV93cl9vcGNvZGUpb3A7DQo+IA0KPiBObyBkZWZhdWx0LCBs
-ZXRzIHdyaXRlIHRoZW0gYWxsIG91dCBwbGVhc2UuDQoNCkZhaXIgZW5vdWdoLg0KDQo+IA0KPiBK
-YXNvbg0KPiANCg0K
+On Mon, Jan 07, 2019 at 07:08:36PM +0000, Adit Ranadive wrote:
+> On 1/7/19 10:59 AM, Jason Gunthorpe wrote:
+> > On Mon, Jan 07, 2019 at 06:53:24PM +0000, Adit Ranadive wrote:
+> >> From: Adit Ranadive <aditr@vmware.com>
+> >>
+> >> Since the IB_WR_REG_MR opcode value changed, set some of the PVRDMA de=
+vice
+> >> opcodes explicitly.
+> >>
+> >> Reported-by: Ruishuang Wang <ruishuangw@vmware.com>
+> >> Fixes: 9a59739bd01f ("IB/rxe: Revise the ib_wr_opcode enum")
+> >> Cc: stable@vger.kernel.org
+> >> Reviewed-by: Bryan Tan <bryantan@vmware.com>
+> >> Reviewed-by: Ruishuang Wang <ruishuangw@vmware.com>
+> >> Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
+> >> Signed-off-by: Adit Ranadive <aditr@vmware.com>
+> >>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h | 21 ++++++++++++++++++++-
+> >>  1 file changed, 20 insertions(+), 1 deletion(-)
+> >=20
+> > So naughty!! How many other places in this driver are assuming the
+> > intenal IB constants are stable?
+> >=20
+> > Did you audit for other cases?
+>=20
+> Lots of places. Though its the values shared with userspace, like QP type=
+s,
+> IB MTUs, etc. Unless you foresee changes to those ..=20
+
+Constants declared in the include/uapi header should be OK, but you
+still need to check that the constants you are using are actually in
+that header and either recode them or move them into uapi, as
+appropriate.
+
+When constants get moved we may find more mistakes like this that
+cause the kernel view to change.
+
+Jason
