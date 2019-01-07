@@ -1,46 +1,42 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next v1 0/5] Cleanup of
- CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
-Date: Mon, 7 Jan 2019 11:31:28 -0700
-Message-ID: <20190107183128.GA4613@ziepe.ca>
-References: <20181223091418.26218-1-leon@kernel.org>
+Subject: Re: [PATCH] IB/cm: Use struct_size() in kmalloc()
+Date: Mon, 7 Jan 2019 11:48:46 -0700
+Message-ID: <20190107184846.GA18875@ziepe.ca>
+References: <20190107172616.GA3099@embeddedor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181223091418.26218-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20190107172616.GA3099@embeddedor>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Dec 23, 2018 at 11:14:13AM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+On Mon, Jan 07, 2019 at 11:26:16AM -0600, Gustavo A. R. Silva wrote:
+> One of the more common cases of allocation size calculations is finding
+> the size of a structure that has a zero-sized array at the end, along
+> with memory for some number of elements for that array. For example:
 > 
-> Changelog v0->v1:
->  * Don't set ODP caps always (patch #2)
->  * Set invalidate_range callback based on device_cap only
+> struct foo {
+>     int stuff;
+>     void *entry[];
+> };
 > 
-> -------------------------------------------------------------------------------
+> instance = kmalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
 > 
-> Hi,
+> Instead of leaving these open-coded and prone to type mistakes, we can
+> now use the new struct_size() helper:
 > 
-> As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
-> usage, this series cleans mlx5_ib and RDMA/core code and it is based on accepted
-> patch https://patchwork.kernel.org/patch/10735547/
+> instance = kmalloc(struct_size(instance, entry, count), GFP_KERNEL);
 > 
-> I think that we will see more patches in that area, I would like to
-> remove CONFIG_INFINIBAND_ON_DEMAND_PAGING completely.
+> This code was detected with the help of Coccinelle.
 > 
-> Thanks
-> 
-> Leon Romanovsky (5):
->   RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
->   RDMA/core: Don't depend device ODP capabilities on kconfig option
->   RDMA/mlx5: Introduce and reuse helper to identify ODP MR
->   RDMA/mlx5: Embed into the code flow the ODP config option
->   RDMA/mlx5: Delete declaration of already removed function
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  drivers/infiniband/core/cm.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-This doesn't apply anymore, can you resend it please?
+Applied to for-next thanks
 
 Jason
