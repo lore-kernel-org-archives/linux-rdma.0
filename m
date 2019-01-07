@@ -1,13 +1,13 @@
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] IB/cm: Use struct_size() in kmalloc()
-Date: Mon, 7 Jan 2019 11:26:16 -0600
-Message-ID: <20190107172616.GA3099@embeddedor>
+Subject: [PATCH] IB/usnic: Use struct_size() in kmalloc()
+Date: Mon, 7 Jan 2019 11:39:54 -0600
+Message-ID: <20190107173953.GA6154@embeddedor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+To: Christian Benvenuti <benve@cisco.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
@@ -31,22 +31,24 @@ This code was detected with the help of Coccinelle.
 
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- drivers/infiniband/core/cm.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_uiom.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index edb2cb758be7..af7f74faa448 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -4052,8 +4052,7 @@ static void cm_recv_handler(struct ib_mad_agent *mad_agent,
- 	atomic_long_inc(&port->counter_group[CM_RECV].
- 			counter[attr_id - CM_ATTR_ID_OFFSET]);
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index 49275a548751..ce01a59fccc4 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -157,9 +157,8 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
+ 		off = 0;
  
--	work = kmalloc(sizeof(*work) + sizeof(struct sa_path_rec) * paths,
--		       GFP_KERNEL);
-+	work = kmalloc(struct_size(work, path, paths), GFP_KERNEL);
- 	if (!work) {
- 		ib_free_recv_mad(mad_recv_wc);
- 		return;
+ 		while (ret) {
+-			chunk = kmalloc(sizeof(*chunk) +
+-					sizeof(struct scatterlist) *
+-					min_t(int, ret, USNIC_UIOM_PAGE_CHUNK),
++			chunk = kmalloc(struct_size(chunk, page_list,
++					min_t(int, ret, USNIC_UIOM_PAGE_CHUNK)),
+ 					GFP_KERNEL);
+ 			if (!chunk) {
+ 				ret = -ENOMEM;
 -- 
 2.20.1
