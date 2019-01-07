@@ -1,66 +1,91 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH v3] coding-style: Clarify the expectations around bool
-Date: Mon, 07 Jan 2019 14:50:30 -0800
-Message-ID: <1546901430.83374.28.camel@acm.org>
-References: <20190107211117.GA24142@ziepe.ca>
-         <8ec3603317f477fe9923b87499a33da7a2cf81ff.camel@perches.com>
+From: Adit Ranadive <aditr@vmware.com>
+Subject: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Return the correct opcode when
+ creating WR
+Date: Mon, 7 Jan 2019 23:23:05 +0000
+Message-ID: <1546903346-15461-1-git-send-email-aditr@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-7"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8ec3603317f477fe9923b87499a33da7a2cf81ff.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>, Jason Gunthorpe <jgg@ziepe.ca>, Gal Pressman <galpress@amazon.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Stephen Warren <swarren@nvidia.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <stable-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: "jgg@mellanox.com" <jgg@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: Adit Ranadive <aditr@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2019-01-07 at 14:10 -0800, Joe Perches wrote:
-+AD4 On Mon, 2019-01-07 at 14:11 -0700, Jason Gunthorpe wrote:
-+AD4 +AD4 There has been some confusion since checkpatch started warning about bool
-+AD4 +AD4 use in structures, and people have been avoiding using it.
-+AD4 +AD4 
-+AD4 +AD4 Many people feel there is still a legitimate place for bool in structures,
-+AD4 +AD4 so provide some guidance on bool usage derived from the entire thread that
-+AD4 +AD4 spawned the checkpatch warning.
-+AD4 
-+AD4 Thanks Jason.
-+AD4 
-+AD4 It'd be nice to combine this with some better
-+AD4 checkpatch warning or even a removal of that
-+AD4 misleading warning from checkpatch altogether.
-+AD4 
-+AD4 With a couple minor nits below and and Ack if
-+AD4 you want one:
-+AD4 
-+AD4 Acked-by: Joe Perches +ADw-joe+AEA-perches.com+AD4
-+AD4 
-+AD4 +AD4 diff --git a/Documentation/process/coding-style.rst b/Documentation/process/coding-style.rst
-+AD4 
-+AD4 +AFsAXQ
-+AD4 +AD4 +AEAAQA -921,7 +-921,37 +AEAAQA result.  Typical examples would be functions that return pointers+ADs they use
-+AD4 +AD4  NULL or the ERR+AF8-PTR mechanism to report failure.
-+AD4 +AD4  
-+AD4 +AD4  
-+AD4 +AD4 -17) Don't re-invent the kernel macros
-+AD4 +AD4 +-17) Using bool
-+AD4 +AD4 +---------------
-+AD4 +AD4 +-
-+AD4 +AD4 +-The Linux kernel uses the C99 standard for the bool type. bool values can only
-+AD4 
-+AD4 Maybe
-+AD4 
-+AD4 The Linux kernel bool type is the C99 +AF8-Bool type.
+From: Adit Ranadive <aditr@vmware.com>
 
-Or maybe +ACI-The Linux kernel bool type is an alias for the C99 +AF8-Bool type.+ACI
+Since the IB_WR_REG_MR opcode value changed, let's set the PVRDMA
+device opcodes explicitly.
 
-+AD4 +AD4 +-evaluate to 0 or 1, and implicit or explicit conversion to bool automatically
-+AD4 +AD4 +-converts the value to true or false. When using bool types the +ACEAIQ construction
-+AD4 +AD4 +-is not needed, which eliminates a class of bugs.
-+AD4 +AD4 +-
-+AD4 +AD4 +-When working with bool values the true and false labels should be used instead
-+AD4 
-+AD4 true and false are not labels but +ACM-defines
+Reported-by: Ruishuang Wang <ruishuangw@vmware.com>
+Fixes: 9a59739bd01f ("IB/rxe: Revise the ib_wr_opcode enum")
+Cc: stable@vger.kernel.org
+Reviewed-by: Bryan Tan <bryantan@vmware.com>
+Reviewed-by: Ruishuang Wang <ruishuangw@vmware.com>
+Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
+Signed-off-by: Adit Ranadive <aditr@vmware.com>
+---
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma.h | 43 +++++++++++++++++++++++++++=
+++++
+ 1 file changed, 43 insertions(+)
 
-With these refinements, feel free to add:
-
-Reviewed-by: Bart Van Assche +ADw-bvanassche+AEA-acm.org+AD4
+diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband=
+/hw/vmw_pvrdma/pvrdma.h
+index 42b8685c997e..a85d7ba96d55 100644
+--- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
++++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+@@ -427,6 +427,49 @@ static inline enum ib_qp_state pvrdma_qp_state_to_ib(e=
+num pvrdma_qp_state state)
+=20
+ static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opco=
+de op)
+ {
++	switch (op) {
++	case IB_WR_RDMA_WRITE:
++		return PVRDMA_WR_RDMA_WRITE;
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		return PVRDMA_WR_RDMA_WRITE_WITH_IMM;
++	case IB_WR_SEND:
++		return PVRDMA_WR_SEND;
++	case IB_WR_SEND_WITH_IMM:
++		return PVRDMA_WR_SEND_WITH_IMM;
++	case IB_WR_RDMA_READ:
++		return PVRDMA_WR_RDMA_READ;
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++		return PVRDMA_WR_ATOMIC_CMP_AND_SWP;
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		return PVRDMA_WR_ATOMIC_FETCH_AND_ADD;
++	case IB_WR_LSO:
++		return PVRDMA_WR_LSO;
++	case IB_WR_SEND_WITH_INV:
++		return PVRDMA_WR_SEND_WITH_INV;
++	case IB_WR_RDMA_READ_WITH_INV:
++		return PVRDMA_WR_RDMA_READ_WITH_INV;
++	case IB_WR_LOCAL_INV:
++		return PVRDMA_WR_LOCAL_INV;
++	case IB_WR_REG_MR:
++		return PVRDMA_WR_FAST_REG_MR;
++	case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
++		return PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP;
++	case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
++		return PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD;
++	case IB_WR_REG_SIG_MR:
++		return PVRDMA_WR_REG_SIG_MR;
++	case IB_WR_RESERVED1:
++	case IB_WR_RESERVED2:
++	case IB_WR_RESERVED3:
++	case IB_WR_RESERVED4:
++	case IB_WR_RESERVED5:
++	case IB_WR_RESERVED6:
++	case IB_WR_RESERVED7:
++	case IB_WR_RESERVED8:
++	case IB_WR_RESERVED9:
++	case IB_WR_RESERVED10:
++		return (enum pvrdma_wr_opcode)op;
++	}
+ 	return (enum pvrdma_wr_opcode)op;
+ }
+=20
+--=20
+1.8.3.1
