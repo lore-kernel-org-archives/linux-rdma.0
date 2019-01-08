@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 11/36] rxe: IB_WR_REG_MR does not capture MR's iova field
-Date: Tue,  8 Jan 2019 14:33:23 -0500
-Message-ID: <20190108193348.123880-11-sashal@kernel.org>
-References: <20190108193348.123880-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 14/53] rxe: IB_WR_REG_MR does not capture MR's iova field
+Date: Tue,  8 Jan 2019 14:31:42 -0500
+Message-ID: <20190108193222.123316-14-sashal@kernel.org>
+References: <20190108193222.123316-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190108193348.123880-1-sashal@kernel.org>
+In-Reply-To: <20190108193222.123316-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Chuck Lever <chuck.lever@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
@@ -42,10 +42,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 47219ebd8ff2..0f9fe2ca2a91 100644
+index de853bcc2384..08ae4f3a6a37 100644
 --- a/drivers/infiniband/sw/rxe/rxe_req.c
 +++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -643,6 +643,7 @@ int rxe_requester(void *arg)
+@@ -640,6 +640,7 @@ int rxe_requester(void *arg)
  			rmr->access = wqe->wr.wr.reg.access;
  			rmr->lkey = wqe->wr.wr.reg.key;
  			rmr->rkey = wqe->wr.wr.reg.key;
