@@ -1,94 +1,87 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Adit Ranadive <aditr@vmware.com>
 Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Return the correct opcode when
  creating WR
-Date: Mon, 7 Jan 2019 23:28:22 +0000
-Message-ID: <20190107232815.GP27929@mellanox.com>
+Date: Tue, 8 Jan 2019 00:02:42 +0000
+Message-ID: <ccacbd86-8d35-06a4-fe04-0144405d4638@vmware.com>
 References: <1546903346-15461-1-git-send-email-aditr@vmware.com>
+ <20190107232815.GP27929@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1546903346-15461-1-git-send-email-aditr@vmware.com>
+In-Reply-To: <20190107232815.GP27929@mellanox.com>
 Content-Language: en-US
-Content-ID: <1718D116A1DBD545BEC1A1439517F5C2@eurprd05.prod.outlook.com>
+Content-ID: <82C5A46C74EF814A8B1EA93482C6F8D7@namprd05.prod.outlook.com>
 Sender: stable-owner@vger.kernel.org
-To: Adit Ranadive <aditr@vmware.com>
+To: Jason Gunthorpe <jgg@mellanox.com>
 Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 07, 2019 at 11:23:05PM +0000, Adit Ranadive wrote:
-> From: Adit Ranadive <aditr@vmware.com>
->=20
-> Since the IB_WR_REG_MR opcode value changed, let's set the PVRDMA
-> device opcodes explicitly.
->=20
-> Reported-by: Ruishuang Wang <ruishuangw@vmware.com>
-> Fixes: 9a59739bd01f ("IB/rxe: Revise the ib_wr_opcode enum")
-> Cc: stable@vger.kernel.org
-> Reviewed-by: Bryan Tan <bryantan@vmware.com>
-> Reviewed-by: Ruishuang Wang <ruishuangw@vmware.com>
-> Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
-> Signed-off-by: Adit Ranadive <aditr@vmware.com>
->  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h | 43 +++++++++++++++++++++++++=
-++++++
->  1 file changed, 43 insertions(+)
->=20
-> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniba=
-nd/hw/vmw_pvrdma/pvrdma.h
-> index 42b8685c997e..a85d7ba96d55 100644
-> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-> @@ -427,6 +427,49 @@ static inline enum ib_qp_state pvrdma_qp_state_to_ib=
-(enum pvrdma_qp_state state)
-> =20
->  static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_op=
-code op)
->  {
-> +	switch (op) {
-> +	case IB_WR_RDMA_WRITE:
-> +		return PVRDMA_WR_RDMA_WRITE;
-> +	case IB_WR_RDMA_WRITE_WITH_IMM:
-> +		return PVRDMA_WR_RDMA_WRITE_WITH_IMM;
-> +	case IB_WR_SEND:
-> +		return PVRDMA_WR_SEND;
-> +	case IB_WR_SEND_WITH_IMM:
-> +		return PVRDMA_WR_SEND_WITH_IMM;
-> +	case IB_WR_RDMA_READ:
-> +		return PVRDMA_WR_RDMA_READ;
-> +	case IB_WR_ATOMIC_CMP_AND_SWP:
-> +		return PVRDMA_WR_ATOMIC_CMP_AND_SWP;
-> +	case IB_WR_ATOMIC_FETCH_AND_ADD:
-> +		return PVRDMA_WR_ATOMIC_FETCH_AND_ADD;
-> +	case IB_WR_LSO:
-> +		return PVRDMA_WR_LSO;
-> +	case IB_WR_SEND_WITH_INV:
-> +		return PVRDMA_WR_SEND_WITH_INV;
-> +	case IB_WR_RDMA_READ_WITH_INV:
-> +		return PVRDMA_WR_RDMA_READ_WITH_INV;
-> +	case IB_WR_LOCAL_INV:
-> +		return PVRDMA_WR_LOCAL_INV;
-> +	case IB_WR_REG_MR:
-> +		return PVRDMA_WR_FAST_REG_MR;
-> +	case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
-> +		return PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP;
-> +	case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
-> +		return PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD;
-> +	case IB_WR_REG_SIG_MR:
-> +		return PVRDMA_WR_REG_SIG_MR;
-> +	case IB_WR_RESERVED1:
-> +	case IB_WR_RESERVED2:
-> +	case IB_WR_RESERVED3:
-> +	case IB_WR_RESERVED4:
-> +	case IB_WR_RESERVED5:
-> +	case IB_WR_RESERVED6:
-> +	case IB_WR_RESERVED7:
-> +	case IB_WR_RESERVED8:
-> +	case IB_WR_RESERVED9:
-> +	case IB_WR_RESERVED10:
-> +		return (enum pvrdma_wr_opcode)op;
-> +	}
->  	return (enum pvrdma_wr_opcode)op;
-
-I ment it should always translate, not cast like this - if no
-translation is available then it should be a posting failure.
-
-Jason
+T24gMS83LzE5IDM6MjggUE0sIEphc29uIEd1bnRob3JwZSB3cm90ZToNCj4gT24gTW9uLCBKYW4g
+MDcsIDIwMTkgYXQgMTE6MjM6MDVQTSArMDAwMCwgQWRpdCBSYW5hZGl2ZSB3cm90ZToNCj4+IEZy
+b206IEFkaXQgUmFuYWRpdmUgPGFkaXRyQHZtd2FyZS5jb20+DQo+Pg0KPj4gU2luY2UgdGhlIElC
+X1dSX1JFR19NUiBvcGNvZGUgdmFsdWUgY2hhbmdlZCwgbGV0J3Mgc2V0IHRoZSBQVlJETUENCj4+
+IGRldmljZSBvcGNvZGVzIGV4cGxpY2l0bHkuDQo+Pg0KPj4gUmVwb3J0ZWQtYnk6IFJ1aXNodWFu
+ZyBXYW5nIDxydWlzaHVhbmd3QHZtd2FyZS5jb20+DQo+PiBGaXhlczogOWE1OTczOWJkMDFmICgi
+SUIvcnhlOiBSZXZpc2UgdGhlIGliX3dyX29wY29kZSBlbnVtIikNCj4+IENjOiBzdGFibGVAdmdl
+ci5rZXJuZWwub3JnDQo+PiBSZXZpZXdlZC1ieTogQnJ5YW4gVGFuIDxicnlhbnRhbkB2bXdhcmUu
+Y29tPg0KPj4gUmV2aWV3ZWQtYnk6IFJ1aXNodWFuZyBXYW5nIDxydWlzaHVhbmd3QHZtd2FyZS5j
+b20+DQo+PiBSZXZpZXdlZC1ieTogVmlzaG51IERhc2EgPHZkYXNhQHZtd2FyZS5jb20+DQo+PiBT
+aWduZWQtb2ZmLWJ5OiBBZGl0IFJhbmFkaXZlIDxhZGl0ckB2bXdhcmUuY29tPg0KPj4gIGRyaXZl
+cnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRtYS5oIHwgNDMgKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKw0KPj4gIDEgZmlsZSBjaGFuZ2VkLCA0MyBpbnNlcnRpb25zKCspDQo+
+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody92bXdfcHZyZG1hL3B2cmRt
+YS5oIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hLmgNCj4+IGluZGV4
+IDQyYjg2ODVjOTk3ZS4uYTg1ZDdiYTk2ZDU1IDEwMDY0NA0KPj4gKysrIGIvZHJpdmVycy9pbmZp
+bmliYW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hLmgNCj4+IEBAIC00MjcsNiArNDI3LDQ5IEBAIHN0
+YXRpYyBpbmxpbmUgZW51bSBpYl9xcF9zdGF0ZSBwdnJkbWFfcXBfc3RhdGVfdG9faWIoZW51bSBw
+dnJkbWFfcXBfc3RhdGUgc3RhdGUpDQo+PiAgDQo+PiAgc3RhdGljIGlubGluZSBlbnVtIHB2cmRt
+YV93cl9vcGNvZGUgaWJfd3Jfb3Bjb2RlX3RvX3B2cmRtYShlbnVtIGliX3dyX29wY29kZSBvcCkN
+Cj4+ICB7DQo+PiArCXN3aXRjaCAob3ApIHsNCj4+ICsJY2FzZSBJQl9XUl9SRE1BX1dSSVRFOg0K
+Pj4gKwkJcmV0dXJuIFBWUkRNQV9XUl9SRE1BX1dSSVRFOw0KPj4gKwljYXNlIElCX1dSX1JETUFf
+V1JJVEVfV0lUSF9JTU06DQo+PiArCQlyZXR1cm4gUFZSRE1BX1dSX1JETUFfV1JJVEVfV0lUSF9J
+TU07DQo+PiArCWNhc2UgSUJfV1JfU0VORDoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfU0VORDsN
+Cj4+ICsJY2FzZSBJQl9XUl9TRU5EX1dJVEhfSU1NOg0KPj4gKwkJcmV0dXJuIFBWUkRNQV9XUl9T
+RU5EX1dJVEhfSU1NOw0KPj4gKwljYXNlIElCX1dSX1JETUFfUkVBRDoNCj4+ICsJCXJldHVybiBQ
+VlJETUFfV1JfUkRNQV9SRUFEOw0KPj4gKwljYXNlIElCX1dSX0FUT01JQ19DTVBfQU5EX1NXUDoN
+Cj4+ICsJCXJldHVybiBQVlJETUFfV1JfQVRPTUlDX0NNUF9BTkRfU1dQOw0KPj4gKwljYXNlIElC
+X1dSX0FUT01JQ19GRVRDSF9BTkRfQUREOg0KPj4gKwkJcmV0dXJuIFBWUkRNQV9XUl9BVE9NSUNf
+RkVUQ0hfQU5EX0FERDsNCj4+ICsJY2FzZSBJQl9XUl9MU086DQo+PiArCQlyZXR1cm4gUFZSRE1B
+X1dSX0xTTzsNCj4+ICsJY2FzZSBJQl9XUl9TRU5EX1dJVEhfSU5WOg0KPj4gKwkJcmV0dXJuIFBW
+UkRNQV9XUl9TRU5EX1dJVEhfSU5WOw0KPj4gKwljYXNlIElCX1dSX1JETUFfUkVBRF9XSVRIX0lO
+VjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfUkRNQV9SRUFEX1dJVEhfSU5WOw0KPj4gKwljYXNl
+IElCX1dSX0xPQ0FMX0lOVjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfTE9DQUxfSU5WOw0KPj4g
+KwljYXNlIElCX1dSX1JFR19NUjoNCj4+ICsJCXJldHVybiBQVlJETUFfV1JfRkFTVF9SRUdfTVI7
+DQo+PiArCWNhc2UgSUJfV1JfTUFTS0VEX0FUT01JQ19DTVBfQU5EX1NXUDoNCj4+ICsJCXJldHVy
+biBQVlJETUFfV1JfTUFTS0VEX0FUT01JQ19DTVBfQU5EX1NXUDsNCj4+ICsJY2FzZSBJQl9XUl9N
+QVNLRURfQVRPTUlDX0ZFVENIX0FORF9BREQ6DQo+PiArCQlyZXR1cm4gUFZSRE1BX1dSX01BU0tF
+RF9BVE9NSUNfRkVUQ0hfQU5EX0FERDsNCj4+ICsJY2FzZSBJQl9XUl9SRUdfU0lHX01SOg0KPj4g
+KwkJcmV0dXJuIFBWUkRNQV9XUl9SRUdfU0lHX01SOw0KPj4gKwljYXNlIElCX1dSX1JFU0VSVkVE
+MToNCj4+ICsJY2FzZSBJQl9XUl9SRVNFUlZFRDI6DQo+PiArCWNhc2UgSUJfV1JfUkVTRVJWRUQz
+Og0KPj4gKwljYXNlIElCX1dSX1JFU0VSVkVENDoNCj4+ICsJY2FzZSBJQl9XUl9SRVNFUlZFRDU6
+DQo+PiArCWNhc2UgSUJfV1JfUkVTRVJWRUQ2Og0KPj4gKwljYXNlIElCX1dSX1JFU0VSVkVENzoN
+Cj4+ICsJY2FzZSBJQl9XUl9SRVNFUlZFRDg6DQo+PiArCWNhc2UgSUJfV1JfUkVTRVJWRUQ5Og0K
+Pj4gKwljYXNlIElCX1dSX1JFU0VSVkVEMTA6DQo+PiArCQlyZXR1cm4gKGVudW0gcHZyZG1hX3dy
+X29wY29kZSlvcDsNCj4+ICsJfQ0KPj4gIAlyZXR1cm4gKGVudW0gcHZyZG1hX3dyX29wY29kZSlv
+cDsNCj4gDQo+IEkgbWVudCBpdCBzaG91bGQgYWx3YXlzIHRyYW5zbGF0ZSwgbm90IGNhc3QgbGlr
+ZSB0aGlzIC0gaWYgbm8NCj4gdHJhbnNsYXRpb24gaXMgYXZhaWxhYmxlIHRoZW4gaXQgc2hvdWxk
+IGJlIGEgcG9zdGluZyBmYWlsdXJlLg0KPiANCj4gSmFzb24NCj4gDQoNCk5vdCBzdXJlIGlmIEkg
+Zm9sbG93IHlvdS4gV2UgY2FuIHBvc3QgYSBmYWlsdXJlIGJ1dCB0aGF0IHdvdWxkIGJlIA0KaW4g
+cHZyZG1hX3FwLmMgd2hlbiBpdCBsb29rcyBhdCB0aGUgb3Bjb2RlIHJldHVybmVkIGZyb20gaGVy
+ZS4gV2UgDQp3b3VsZCBoYXZlIHRvIGhhbmRsZSBhbGwgdGhlIElCIGVudW1zIGhlcmUgdGhvdWdo
+IGlmIHlvdSBkb24ndCB3YW50IA0KYSBkZWZhdWx0IGNhc2UgKHlvdSB3b3VsZCBnZXQgY29tcGls
+ZXIgd2FybmluZ3Mgb3RoZXJ3aXNlKS4gIA0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmli
+YW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hX3FwLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvdm13
+X3B2cmRtYS9wdnJkbWFfcXAuYw0KaW5kZXggM2FjZjc0Y2JlMjY2Li5lZWI5ZTllZjQ2NTUgMTAw
+NjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvdm13X3B2cmRtYS9wdnJkbWFfcXAuYw0K
+KysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L3Ztd19wdnJkbWEvcHZyZG1hX3FwLmMNCkBAIC03
+MjEsNiArNzIxLDEyIEBAIGludCBwdnJkbWFfcG9zdF9zZW5kKHN0cnVjdCBpYl9xcCAqaWJxcCwg
+Y29uc3Qgc3RydWN0IGliX3NlbmRfd3IgKndyLA0KICAgICAgICAgICAgICAgICAgICB3ci0+b3Bj
+b2RlID09IElCX1dSX1JETUFfV1JJVEVfV0lUSF9JTU0pDQogICAgICAgICAgICAgICAgICAgICAg
+ICB3cWVfaGRyLT5leC5pbW1fZGF0YSA9IHdyLT5leC5pbW1fZGF0YTsNCg0KKyAgICAgICAgICAg
+ICAgIGlmICh3cWVfaGRyLT5vcGNvZGUgPiBQVlJETUFfV1JfUkVHX1NJR19NUikgew0KKyAgICAg
+ICAgICAgICAgICAgICAgICAgKmJhZF93ciA9IHdyOw0KKyAgICAgICAgICAgICAgICAgICAgICAg
+cmV0ID0gLUVJTlZBTDsNCisgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gb3V0Ow0KKyAgICAg
+ICAgICAgICAgIH0NCisNCiAgICAgICAgICAgICAgICBzd2l0Y2ggKHFwLT5pYnFwLnFwX3R5cGUp
+IHsNCiAgICAgICAgICAgICAgICBjYXNlIElCX1FQVF9HU0k6DQogICAgICAgICAgICAgICAgY2Fz
+ZSBJQl9RUFRfVUQ6DQoNCg0K
