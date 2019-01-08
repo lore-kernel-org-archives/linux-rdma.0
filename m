@@ -1,68 +1,44 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH v3 0/8] net: y2038-safe socket timestamps
-Date: Tue, 8 Jan 2019 08:53:03 -0500
-Message-ID: <CAF=yD-LvYLA0u+HCzZv3++7=0bcNJyPv+SDAJENQYVBqEToBeA@mail.gmail.com>
-References: <20190108032657.8331-1-deepa.kernel@gmail.com>
- <CAF=yD-JuXHnp-5TvPSq87PDvHD1hkrUEWHQ9Uxwhbsd08vszHw@mail.gmail.com>
+Subject: Re: [PATCH v3 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
+Date: Tue, 8 Jan 2019 09:03:04 -0500
+Message-ID: <CAF=yD-L_KbVEbMaY6-3uA4Sp7gDMPEcF7+74J4TzukXb33t55w@mail.gmail.com>
+References: <20190108032657.8331-1-deepa.kernel@gmail.com> <20190108032657.8331-7-deepa.kernel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <y2038-bounces@lists.linaro.org>
-In-Reply-To: <CAF=yD-JuXHnp-5TvPSq87PDvHD1hkrUEWHQ9Uxwhbsd08vszHw@mail.gmail.com>
-List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/y2038/>
-List-Post: <mailto:y2038@lists.linaro.org>
-List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
-List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=subscribe>
-Errors-To: y2038-bounces@lists.linaro.org
-Sender: "Y2038" <y2038-bounces@lists.linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190108032657.8331-7-deepa.kernel@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, linux-ia64@vger.kernel.org, linux-xtensa@linux-xtensa.org, David Howells <dhowells@redhat.com>, sparclinux <sparclinux@vger.kernel.org>, linux-afs@lists.infradead.org, linux-arch@vger.kernel.org, linux-s390 <linux-s390@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <jejb@parisc-linux.org>, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, ubraun@linux.ibm.com, Thomas Gleixner <tglx@linutronix.de>, rth@twiddle.net, Chris Zankel <chris@zankel.net>, isdn@linux-pingi.de, Parisc List <linux-parisc@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, linux-rdma@vger.kernel.org, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, David Miller <davem@davemlof>
+Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBKYW4gOCwgMjAxOSBhdCA4OjM3IEFNIFdpbGxlbSBkZSBCcnVpam4KPHdpbGxlbWRl
-YnJ1aWpuLmtlcm5lbEBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gT24gTW9uLCBKYW4gNywgMjAxOSBh
-dCAxMDoyOSBQTSBEZWVwYSBEaW5hbWFuaSA8ZGVlcGEua2VybmVsQGdtYWlsLmNvbT4gd3JvdGU6
-Cj4gPgo+ID4gVGhlIHNlcmllcyBpbnRyb2R1Y2VzIG5ldyBzb2NrZXQgdGltZXN0YW1wcyB0aGF0
-IGFyZQo+ID4geTIwMzggc2FmZS4KPiA+Cj4gPiBUaGUgdGltZSBkYXRhIHR5cGVzIHVzZWQgZm9y
-IHRoZSBleGlzdGluZyBzb2NrZXQgdGltZXN0YW1wCj4gPiBvcHRpb25zOiBTT19USU1FU1RBTVAs
-IFNPX1RJTUVTVEFNUE5TIGFuZCBTT19USU1FU1RBTVBJTkcKPiA+IGFyZSBub3QgeTIwMzggc2Fm
-ZS4gVGhlIHNlcmllcyBpbnRyb2R1Y2VzIFNPX1RJTUVTVEFNUF9ORVcsCj4gPiBTT19USU1FU1RB
-TVBOU19ORVcgYW5kIFNPX1RJTUVTVEFNUElOR19ORVcgdG8gcmVwbGFjZSB0aGVzZS4KPiA+IFRo
-ZXNlIG5ldyB0aW1lc3RhbXBzIGNhbiBiZSB1c2VkIG9uIGFsbCBhcmNoaXRlY3R1cmVzLgo+ID4K
-PiA+IFRoZSBhbHRlcm5hdGl2ZSBjb25zaWRlcmVkIHdhcyB0byBleHRlbmQgdGhlIHN5c19zZXRz
-b2Nrb3B0KCkKPiA+IGJ5IHVzaW5nIHRoZSBmbGFncy4gV2UgZGlkIG5vdCByZWNlaXZlIGFueSBz
-dHJvbmcgb3BpbmlvbnMgYWJvdXQKPiA+IGVpdGhlciBvZiB0aGUgYXBwcm9hY2hlcy4gSGVuY2Us
-IHRoaXMgd2FzIGNob3NlbiwgYXMgZ2xpYmMgZm9sa3MKPiA+IHByZWZlcnJlZCB0aGlzLgo+ID4K
-PiA+IFRoZSBzZXJpZXMgZG9lcyBub3QgZGVhbCB3aXRoIHVwZGF0aW5nIHRoZSBpbnRlcm5hbCBr
-ZXJuZWwgc29ja2V0Cj4gPiBjYWxscyBsaWtlIHJ4cnBjIHRvIG1ha2UgdGhlbSB5MjAzOCBzYWZl
-LiBUaGlzIHdpbGwgYmUgZGVhbHQKPiA+IHdpdGggc2VwYXJhdGVseS4KPiA+Cj4gPiBOb3RlIHRo
-YXQgdGhlIHRpbWVzdGFtcHMgYmVoYXZpb3IgYWxyZWFkeSBkb2VzIG5vdCBtYXRjaCB0aGUKPiA+
-IG1hbiBwYWdlIHNwZWNpZmljIGJlaGF2aW9yOgo+ID4gU0lPQ0dTVEFNUAo+ID4gICAgIFRoaXMg
-aW9jdGwgc2hvdWxkIG9ubHkgYmUgdXNlZCBpZiB0aGUgc29ja2V0IG9wdGlvbiBTT19USU1FU1RB
-TVAKPiA+ICAgICAgICAgaXMgbm90IHNldCBvbiB0aGUgc29ja2V0LiBPdGhlcndpc2UsIGl0IHJl
-dHVybnMgdGhlIHRpbWVzdGFtcCBvZgo+ID4gICAgICAgICB0aGUgbGFzdCBwYWNrZXQgdGhhdCB3
-YXMgcmVjZWl2ZWQgd2hpbGUgU09fVElNRVNUQU1QIHdhcyBub3Qgc2V0LAo+ID4gICAgICAgICBv
-ciBpdCBmYWlscyBpZiBubyBzdWNoIHBhY2tldCBoYXMgYmVlbiByZWNlaXZlZCwKPiA+ICAgICAg
-ICAgKGkuZS4sIGlvY3RsKDIpIHJldHVybnMgLTEgd2l0aCBlcnJubyBzZXQgdG8gRU5PRU5UKS4K
-PiA+Cj4gPiBUaGUgcmVjb21tZW5kYXRpb24gaXMgdG8gdXBkYXRlIHRoZSBtYW4gcGFnZSB0byBy
-ZW1vdmUgdGhlIGFib3ZlIHN0YXRlbWVudC4KPiA+Cj4gPiBUaGUgb3ZlcnZpZXcgb2YgdGhlIHNl
-cmllcyBpcyBhcyBiZWxvdzoKPiA+IDEuIERlbGV0ZSBhc20gc3BlY2lmaWMgc29ja2V0Lmggd2hl
-biBwb3NzaWJsZS4KPiA+IDIuIFN1cHBvcnQgU08vU0NNX1RJTUVTVEFNUCogb3B0aW9ucyBvbmx5
-IGluIHVzZXJzcGFjZS4KPiA+IDMuIFJlbmFtZSBjdXJyZW50IFNPL1NDTV9USU1FU1RBTVAqIHRv
-IFNPL1NDTV9USU1FU1RBTVAqX09MRC4KPiA+IDMuIEFsdGVyIHNvY2tldCBvcHRpb25zIHNvIHRo
-YXQgU09DS19SQ1ZUU1RBTVBOUyBkb2VzCj4gPiAgICBub3QgcmVseSBvbiBTT0NLX1JDVlRTVEFN
-UC4KPiA+IDQuIEludHJvZHVjZSB5MjAzOCBzYWZlIHR5cGVzIGZvciBzb2NrZXQgdGltZXN0YW1w
-Lgo+ID4gNS4gSW50cm9kdWNlIG5ldyB5MjAzOCBzYWZlIHNvY2tldCBvcHRpb25zIFNPL1NDTV9U
-SU1FU1RBTVAqX05FVy4KPiA+Cj4gPiBDaGFuZ2VzIHNpbmNlIHYyOgo+ID4gKiBSZW1vdmVkIGV4
-dHJhIGZ1bmN0aW9ucyB0byByZWR1Y2UgZGlmZiBjaHVybiBhcyBwZXIgY29kZSByZXZpZXcKPgo+
-IFRoYW5rcywgRGVlcGEuIFRoaXMgc2V0IGxvb2tzIGdyZWF0IHRvIG1lLgo+Cj4gT25lIGlzc3Vl
-LCBpdCBkb2VzIG5vdCBhcHBseSBjbGVhbmx5IHRvIGN1cnJlbnQgZGF2ZW0tbmV0LW5leHQvbWFz
-dGVyCj4gZm9yIG1lLiBBIGNvbmZsaWN0IG9uIHBhdGNoIDcuIEl0IGRvZXMgYXBwbHkgY2xlYW5s
-eSBvbiBkYXZlbS1uZXQKPiBtYXN0ZXIuIFBsZWFzZSByZWJhc2UgYW5kIGFsc28gc2VuZCB3aXRo
-IFtQQVRDSCBuZXQtbmV4dF0uCgp0byBiZSBjbGVhciwgd2l0aCB0aGUgdmVyc2lvbiwgc28gdGhp
-cyB3aWxsIGJlIFtQQVRDSCBuZXQtbmV4dCB2NF0uCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fClkyMDM4IG1haWxpbmcgbGlzdApZMjAzOEBsaXN0cy5saW5h
-cm8ub3JnCmh0dHBzOi8vbGlzdHMubGluYXJvLm9yZy9tYWlsbWFuL2xpc3RpbmZvL3kyMDM4Cg==
+On Mon, Jan 7, 2019 at 10:29 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
+>
+> Add SO_TIMESTAMP_NEW and SO_TIMESTAMPNS_NEW variants of
+> socket timestamp options.
+> These are the y2038 safe versions of the SO_TIMESTAMP_OLD
+> and SO_TIMESTAMPNS_OLD for all architectures.
+>
+> Note that the format of scm_timestamping.ts[0] is not changed
+> in this patch.
+>
+> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+> Cc: jejb@parisc-linux.org
+> Cc: ralf@linux-mips.org
+> Cc: rth@twiddle.net
+> Cc: linux-alpha@vger.kernel.org
+> Cc: linux-mips@linux-mips.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
+
+> @@ -1864,20 +1864,39 @@ static void tcp_update_recv_tstamps(struct sk_buff *skb,
+>  static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
+>                                struct scm_timestamping *tss)
+>  {
+> -       struct __kernel_old_timeval tv;
+>         bool has_timestamping = false;
+> +       int new_tstamp = sock_flag(sk, SOCK_TSTAMP_NEW);
+
+nit: move above has_timestamping to maintain reverse christmas tree ordering
