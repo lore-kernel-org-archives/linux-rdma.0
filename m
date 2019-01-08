@@ -1,57 +1,73 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 31/97] rxe: IB_WR_REG_MR does not capture MR's iova field
-Date: Tue,  8 Jan 2019 14:28:40 -0500
-Message-ID: <20190108192949.122407-31-sashal@kernel.org>
-References: <20190108192949.122407-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 102/117] IB/usnic: Fix potential deadlock
+Date: Tue,  8 Jan 2019 14:26:10 -0500
+Message-ID: <20190108192628.121270-102-sashal@kernel.org>
+References: <20190108192628.121270-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190108192949.122407-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Chuck Lever <chuck.lever@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Parvi Kaustubhi <pkaustub@cisco.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Chuck Lever <chuck.lever@oracle.com>
+From: Parvi Kaustubhi <pkaustub@cisco.com>
 
-[ Upstream commit b024dd0eba6e6d568f69d63c5e3153aba94c23e3 ]
+[ Upstream commit 8036e90f92aae2784b855a0007ae2d8154d28b3c ]
 
-FRWR memory registration is done with a series of calls and WRs.
-1. ULP invokes ib_dma_map_sg()
-2. ULP invokes ib_map_mr_sg()
-3. ULP posts an IB_WR_REG_MR on the Send queue
+Acquiring the rtnl lock while holding usdev_lock could result in a
+deadlock.
 
-Step 2 generates an iova. It is permissible for ULPs to change this
-iova (with certain restrictions) between steps 2 and 3.
+For example:
 
-rxe_map_mr_sg captures the MR's iova but later when rxe processes the
-REG_MR WR, it ignores the MR's iova field. If a ULP alters the MR's iova
-after step 2 but before step 3, rxe never captures that change.
+usnic_ib_query_port()
+| mutex_lock(&us_ibdev->usdev_lock)
+ | ib_get_eth_speed()
+  | rtnl_lock()
 
-When the remote sends an RDMA Read targeting that MR, rxe looks up the
-R_key, but the altered iova does not match the iova stored in the MR,
-causing the RDMA Read request to fail.
+rtnl_lock()
+| usnic_ib_netdevice_event()
+ | mutex_lock(&us_ibdev->usdev_lock)
 
-Reported-by: Anna Schumaker <schumaker.anna@gmail.com>
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
+This commit moves the usdev_lock acquisition after the rtnl lock has been
+released.
+
+This is safe to do because usdev_lock is not protecting anything being
+accessed in ib_get_eth_speed(). Hence, the correct order of holding locks
+(rtnl -> usdev_lock) is not violated.
+
+Signed-off-by: Parvi Kaustubhi <pkaustub@cisco.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/sw/rxe/rxe_req.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 8be27238a86e..fa98a5279647 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -640,6 +640,7 @@ int rxe_requester(void *arg)
- 			rmr->access = wqe->wr.wr.reg.access;
- 			rmr->lkey = wqe->wr.wr.reg.key;
- 			rmr->rkey = wqe->wr.wr.reg.key;
-+			rmr->iova = wqe->wr.wr.reg.mr->iova;
- 			wqe->state = wqe_state_done;
- 			wqe->status = IB_WC_SUCCESS;
- 		} else {
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 0b91ff36768a..598e23cf01fc 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -336,13 +336,16 @@ int usnic_ib_query_port(struct ib_device *ibdev, u8 port,
+ 
+ 	usnic_dbg("\n");
+ 
+-	mutex_lock(&us_ibdev->usdev_lock);
+ 	if (ib_get_eth_speed(ibdev, port, &props->active_speed,
+-			     &props->active_width)) {
+-		mutex_unlock(&us_ibdev->usdev_lock);
++			     &props->active_width))
+ 		return -EINVAL;
+-	}
+ 
++	/*
++	 * usdev_lock is acquired after (and not before) ib_get_eth_speed call
++	 * because acquiring rtnl_lock in ib_get_eth_speed, while holding
++	 * usdev_lock could lead to a deadlock.
++	 */
++	mutex_lock(&us_ibdev->usdev_lock);
+ 	/* props being zeroed by the caller, avoid zeroing it here */
+ 
+ 	props->lid = 0;
 -- 
 2.19.1
