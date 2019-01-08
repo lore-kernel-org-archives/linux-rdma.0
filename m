@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 1/5] RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
-Date: Tue,  8 Jan 2019 08:16:41 +0200
-Message-ID: <20190108061645.25226-2-leon@kernel.org>
+Subject: [PATCH rdma-next v2 2/5] RDMA/core: Don't depend device ODP capabilities on kconfig option
+Date: Tue,  8 Jan 2019 08:16:42 +0200
+Message-ID: <20190108061645.25226-3-leon@kernel.org>
 References: <20190108061645.25226-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,52 +14,59 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-CONFIG_INFINIBAND_ON_DEMAND_PAGING is used in general structures
-to micro-optimize the memory footprint. Remove it, so it will allow
-us to simplify various ODP device flows.
+Device capability bits are exposing what specific device supports from
+HW perspective. Those bits are not dependent on kernel configurations
+and RDMA/core should ensure that proper interfaces to users will be
+disabled if CONFIG_INFINIBAND_ON_DEMAND_PAGING is not set.
 
+Fixes: f4056bfd8ccf ("IB/core: Add on demand paging caps to ib_uverbs_ex_query_device")
+Fixes: 8cdd312cfed7 ("IB/mlx5: Implement the ODP capability query verb")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/mlx5_ib.h | 2 --
- include/rdma/ib_verbs.h              | 2 --
- 2 files changed, 4 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c |  2 --
+ drivers/infiniband/hw/mlx5/main.c    | 10 +++++-----
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-index b06d3b1efea8..93c288a4de2b 100644
---- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
-+++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
-@@ -911,7 +911,6 @@ struct mlx5_ib_dev {
- 	/* Prevents soft lock on massive reg MRs */
- 	struct mutex			slow_path_mutex;
- 	int				fill_delay;
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	struct ib_odp_caps	odp_caps;
- 	u64			odp_max_size;
- 	struct mlx5_ib_pf_eq	odp_pf_eq;
-@@ -923,7 +922,6 @@ struct mlx5_ib_dev {
- 	struct srcu_struct      mr_srcu;
- 	u32			null_mkey;
- 	struct workqueue_struct *advise_mr_wq;
--#endif
- 	struct mlx5_ib_flow_db	*flow_db;
- 	/* protect resources needed as part of reset flow */
- 	spinlock_t		reset_flow_resource_lock;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index a3ceed3a040a..3ddd199ba602 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1504,12 +1504,10 @@ struct ib_ucontext {
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6b12cc5f97b2..549d9eedf62e 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3609,7 +3609,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
  
- 	bool cleanup_retryable;
+ 	copy_query_dev_fields(ucontext, &resp.base, &attr);
  
 -#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- 	void (*invalidate_range)(struct ib_umem_odp *umem_odp,
- 				 unsigned long start, unsigned long end);
- 	struct mutex per_mm_list_lock;
- 	struct list_head per_mm_list;
+ 	resp.odp_caps.general_caps = attr.odp_caps.general_caps;
+ 	resp.odp_caps.per_transport_caps.rc_odp_caps =
+ 		attr.odp_caps.per_transport_caps.rc_odp_caps;
+@@ -3617,7 +3616,6 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
+ 		attr.odp_caps.per_transport_caps.uc_odp_caps;
+ 	resp.odp_caps.per_transport_caps.ud_odp_caps =
+ 		attr.odp_caps.per_transport_caps.ud_odp_caps;
 -#endif
  
- 	struct ib_rdmacg_object	cg_obj;
- 	/*
+ 	resp.timestamp_mask = attr.timestamp_mask;
+ 	resp.hca_core_clock = attr.hca_core_clock;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 94fe253d4956..06ee1f0cb22d 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -923,11 +923,11 @@ static int mlx5_ib_query_device(struct ib_device *ibdev,
+ 	props->hca_core_clock = MLX5_CAP_GEN(mdev, device_frequency_khz);
+ 	props->timestamp_mask = 0x7FFFFFFFFFFFFFFFULL;
+ 
+-#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+-	if (MLX5_CAP_GEN(mdev, pg))
+-		props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
+-	props->odp_caps = dev->odp_caps;
+-#endif
++	if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING)) {
++		if (MLX5_CAP_GEN(mdev, pg))
++			props->device_cap_flags |= IB_DEVICE_ON_DEMAND_PAGING;
++		props->odp_caps = dev->odp_caps;
++	}
+ 
+ 	if (MLX5_CAP_GEN(mdev, cd))
+ 		props->device_cap_flags |= IB_DEVICE_CROSS_CHANNEL;
 -- 
 2.19.1
