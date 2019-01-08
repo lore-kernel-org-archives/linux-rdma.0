@@ -1,57 +1,55 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 040/117] rxe: IB_WR_REG_MR does not capture MR's iova field
-Date: Tue,  8 Jan 2019 14:25:08 -0500
-Message-ID: <20190108192628.121270-40-sashal@kernel.org>
-References: <20190108192628.121270-1-sashal@kernel.org>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH] IB/srp: Use struct_size() in kzalloc()
+Date: Tue, 08 Jan 2019 12:32:57 -0800
+Message-ID: <1546979577.83374.30.camel@acm.org>
+References: <20190108160805.GA22698@embeddedor>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Chuck Lever <chuck.lever@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="UTF-7"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190108160805.GA22698@embeddedor>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Chuck Lever <chuck.lever@oracle.com>
+On Tue, 2019-01-08 at 10:08 -0600, Gustavo A. R. Silva wrote:
++AD4 One of the more common cases of allocation size calculations is finding the
++AD4 size of a structure that has a zero-sized array at the end, along with memory
++AD4 for some number of elements for that array. For example:
++AD4 
++AD4 struct foo +AHs
++AD4     int stuff+ADs
++AD4     void +ACo-entry+AFsAXQA7
++AD4 +AH0AOw
++AD4 
++AD4 instance +AD0 kzalloc(sizeof(struct foo) +- sizeof(void +ACo) +ACo count, GFP+AF8-KERNEL)+ADs
++AD4 
++AD4 Instead of leaving these open-coded and prone to type mistakes, we can now
++AD4 use the new struct+AF8-size() helper:
++AD4 
++AD4 instance +AD0 kzalloc(struct+AF8-size(instance, entry, count), GFP+AF8-KERNEL)+ADs
++AD4 
++AD4 This code was detected with the help of Coccinelle.
++AD4 
++AD4 Signed-off-by: Gustavo A. R. Silva +ADw-gustavo+AEA-embeddedor.com+AD4
++AD4 ---
++AD4  drivers/infiniband/ulp/srp/ib+AF8-srp.c +AHw 3 +---
++AD4  1 file changed, 1 insertion(+-), 2 deletions(-)
++AD4 
++AD4 diff --git a/drivers/infiniband/ulp/srp/ib+AF8-srp.c b/drivers/infiniband/ulp/srp/ib+AF8-srp.c
++AD4 index 31d91538bbf4..0f855294ff3f 100644
++AD4 --- a/drivers/infiniband/ulp/srp/ib+AF8-srp.c
++AD4 +-+-+- b/drivers/infiniband/ulp/srp/ib+AF8-srp.c
++AD4 +AEAAQA -443,8 +-443,7 +AEAAQA static struct srp+AF8-fr+AF8-pool +ACo-srp+AF8-create+AF8-fr+AF8-pool(struct ib+AF8-device +ACo-device,
++AD4  	if (pool+AF8-size +ADwAPQ 0)
++AD4  		goto err+ADs
++AD4  	ret +AD0 -ENOMEM+ADs
++AD4 -	pool +AD0 kzalloc(sizeof(struct srp+AF8-fr+AF8-pool) +-
++AD4 -		       pool+AF8-size +ACo sizeof(struct srp+AF8-fr+AF8-desc), GFP+AF8-KERNEL)+ADs
++AD4 +-	pool +AD0 kzalloc(struct+AF8-size(pool, desc, pool+AF8-size), GFP+AF8-KERNEL)+ADs
++AD4  	if (+ACE-pool)
++AD4  		goto err+ADs
++AD4  	pool-+AD4-size +AD0 pool+AF8-size+ADs
 
-[ Upstream commit b024dd0eba6e6d568f69d63c5e3153aba94c23e3 ]
-
-FRWR memory registration is done with a series of calls and WRs.
-1. ULP invokes ib_dma_map_sg()
-2. ULP invokes ib_map_mr_sg()
-3. ULP posts an IB_WR_REG_MR on the Send queue
-
-Step 2 generates an iova. It is permissible for ULPs to change this
-iova (with certain restrictions) between steps 2 and 3.
-
-rxe_map_mr_sg captures the MR's iova but later when rxe processes the
-REG_MR WR, it ignores the MR's iova field. If a ULP alters the MR's iova
-after step 2 but before step 3, rxe never captures that change.
-
-When the remote sends an RDMA Read targeting that MR, rxe looks up the
-R_key, but the altered iova does not match the iova stored in the MR,
-causing the RDMA Read request to fail.
-
-Reported-by: Anna Schumaker <schumaker.anna@gmail.com>
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/sw/rxe/rxe_req.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
-index 6c361d70d7cd..46f62f71cd28 100644
---- a/drivers/infiniband/sw/rxe/rxe_req.c
-+++ b/drivers/infiniband/sw/rxe/rxe_req.c
-@@ -643,6 +643,7 @@ int rxe_requester(void *arg)
- 			rmr->access = wqe->wr.wr.reg.access;
- 			rmr->lkey = wqe->wr.wr.reg.key;
- 			rmr->rkey = wqe->wr.wr.reg.key;
-+			rmr->iova = wqe->wr.wr.reg.mr->iova;
- 			wqe->state = wqe_state_done;
- 			wqe->status = IB_WC_SUCCESS;
- 		} else {
--- 
-2.19.1
+Reviewed-by: Bart Van Assche +ADw-bvanassche+AEA-acm.org+AD4-
