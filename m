@@ -1,23 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v3 0/8] net: y2038-safe socket timestamps
-Date: Tue, 08 Jan 2019 13:49:04 -0800 (PST)
-Message-ID: <20190108.134904.797789678341389884.davem@davemloft.net>
-References: <20190108032657.8331-1-deepa.kernel@gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/srp: Use struct_size() in kzalloc()
+Date: Tue, 8 Jan 2019 15:47:36 -0700
+Message-ID: <20190108224736.GA4368@ziepe.ca>
+References: <20190108160805.GA22698@embeddedor>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190108032657.8331-1-deepa.kernel@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190108160805.GA22698@embeddedor>
 Sender: linux-kernel-owner@vger.kernel.org
-To: deepa.kernel@gmail.com
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, chris@zankel.net, deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com, isdn@linux-pingi.de, jejb@parisc-linux.org, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org, linux-xtensa@linux-xtensa.org, ralf@linux-mips.org, rth@twiddle.net, schwidefsky@de.ibm.com, sparclinux@vger.kernel.org, tglx@linutronix.de, ubraun@linux.ibm.com
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Bart Van Assche <bvanassche@acm.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Mon,  7 Jan 2019 19:26:49 -0800
+On Tue, Jan 08, 2019 at 10:08:05AM -0600, Gustavo A. R. Silva wrote:
+> One of the more common cases of allocation size calculations is finding the
+> size of a structure that has a zero-sized array at the end, along with memory
+> for some number of elements for that array. For example:
+> 
+> struct foo {
+>     int stuff;
+>     void *entry[];
+> };
+> 
+> instance = kzalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
+> 
+> Instead of leaving these open-coded and prone to type mistakes, we can now
+> use the new struct_size() helper:
+> 
+> instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+> 
+> This code was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+> ---
+>  drivers/infiniband/ulp/srp/ib_srp.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-> The series introduces new socket timestamps that are
-> y2038 safe.
+Applied to for-next
 
-Great discussion, but this is definitely net-next material and the net-next
-tree is not open at this time.
+Thanks,
+Jason
