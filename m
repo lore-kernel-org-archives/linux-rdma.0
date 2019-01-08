@@ -1,44 +1,52 @@
-From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Subject: Re: [PATCH v3 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Date: Tue, 8 Jan 2019 09:03:04 -0500
-Message-ID: <CAF=yD-L_KbVEbMaY6-3uA4Sp7gDMPEcF7+74J4TzukXb33t55w@mail.gmail.com>
-References: <20190108032657.8331-1-deepa.kernel@gmail.com> <20190108032657.8331-7-deepa.kernel@gmail.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH] IB/srp: Use struct_size() in kzalloc()
+Date: Tue, 8 Jan 2019 10:08:05 -0600
+Message-ID: <20190108160805.GA22698@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190108032657.8331-7-deepa.kernel@gmail.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: David Miller <davem@davemloft.net>, LKML <linux-kernel@vger.kernel.org>, Network Development <netdev@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, "James E.J. Bottomley" <jejb@parisc-linux.org>, Ralf Baechle <ralf@linux-mips.org>, rth@twiddle.net, linux-alpha@vger.kernel.org, "open list:RALINK MIPS ARCHITECTURE" <linux-mips@linux-mips.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-rdma@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>
+To: Bart Van Assche <bvanassche@acm.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 10:29 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> Add SO_TIMESTAMP_NEW and SO_TIMESTAMPNS_NEW variants of
-> socket timestamp options.
-> These are the y2038 safe versions of the SO_TIMESTAMP_OLD
-> and SO_TIMESTAMPNS_OLD for all architectures.
->
-> Note that the format of scm_timestamping.ts[0] is not changed
-> in this patch.
->
-> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> Cc: jejb@parisc-linux.org
-> Cc: ralf@linux-mips.org
-> Cc: rth@twiddle.net
-> Cc: linux-alpha@vger.kernel.org
-> Cc: linux-mips@linux-mips.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: netdev@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
+One of the more common cases of allocation size calculations is finding the
+size of a structure that has a zero-sized array at the end, along with memory
+for some number of elements for that array. For example:
 
-> @@ -1864,20 +1864,39 @@ static void tcp_update_recv_tstamps(struct sk_buff *skb,
->  static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
->                                struct scm_timestamping *tss)
->  {
-> -       struct __kernel_old_timeval tv;
->         bool has_timestamping = false;
-> +       int new_tstamp = sock_flag(sk, SOCK_TSTAMP_NEW);
+struct foo {
+    int stuff;
+    void *entry[];
+};
 
-nit: move above has_timestamping to maintain reverse christmas tree ordering
+instance = kzalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
+
+Instead of leaving these open-coded and prone to type mistakes, we can now
+use the new struct_size() helper:
+
+instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+
+This code was detected with the help of Coccinelle.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 31d91538bbf4..0f855294ff3f 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -443,8 +443,7 @@ static struct srp_fr_pool *srp_create_fr_pool(struct ib_device *device,
+ 	if (pool_size <= 0)
+ 		goto err;
+ 	ret = -ENOMEM;
+-	pool = kzalloc(sizeof(struct srp_fr_pool) +
+-		       pool_size * sizeof(struct srp_fr_desc), GFP_KERNEL);
++	pool = kzalloc(struct_size(pool, desc, pool_size), GFP_KERNEL);
+ 	if (!pool)
+ 		goto err;
+ 	pool->size = pool_size;
+-- 
+2.20.1
