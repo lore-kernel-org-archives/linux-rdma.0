@@ -1,68 +1,57 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 053/117] IB/hfi1: Incorrect sizing of sge for PIO will OOPs
-Date: Tue,  8 Jan 2019 14:25:21 -0500
-Message-ID: <20190108192628.121270-53-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 040/117] rxe: IB_WR_REG_MR does not capture MR's iova field
+Date: Tue,  8 Jan 2019 14:25:08 -0500
+Message-ID: <20190108192628.121270-40-sashal@kernel.org>
 References: <20190108192628.121270-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190108192628.121270-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Chuck Lever <chuck.lever@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
+From: Chuck Lever <chuck.lever@oracle.com>
 
-[ Upstream commit dbc2970caef74e8ff41923d302aa6fb5a4812d0e ]
+[ Upstream commit b024dd0eba6e6d568f69d63c5e3153aba94c23e3 ]
 
-An incorrect sge sizing in the HFI PIO path will cause an OOPs similar to
-this:
+FRWR memory registration is done with a series of calls and WRs.
+1. ULP invokes ib_dma_map_sg()
+2. ULP invokes ib_map_mr_sg()
+3. ULP posts an IB_WR_REG_MR on the Send queue
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [] hfi1_verbs_send_pio+0x3d8/0x530 [hfi1]
-PGD 0
-Oops: 0000 1 SMP
- Call Trace:
- ? hfi1_verbs_send_dma+0xad0/0xad0 [hfi1]
- hfi1_verbs_send+0xdf/0x250 [hfi1]
- ? make_rc_ack+0xa80/0xa80 [hfi1]
- hfi1_do_send+0x192/0x430 [hfi1]
- hfi1_do_send_from_rvt+0x10/0x20 [hfi1]
- rvt_post_send+0x369/0x820 [rdmavt]
- ib_uverbs_post_send+0x317/0x570 [ib_uverbs]
- ib_uverbs_write+0x26f/0x420 [ib_uverbs]
- ? security_file_permission+0x21/0xa0
- vfs_write+0xbd/0x1e0
- ? mntput+0x24/0x40
- SyS_write+0x7f/0xe0
- system_call_fastpath+0x16/0x1b
+Step 2 generates an iova. It is permissible for ULPs to change this
+iova (with certain restrictions) between steps 2 and 3.
 
-Fix by adding the missing sizing check to correctly determine the sge
-length.
+rxe_map_mr_sg captures the MR's iova but later when rxe processes the
+REG_MR WR, it ignores the MR's iova field. If a ULP alters the MR's iova
+after step 2 but before step 3, rxe never captures that change.
 
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+When the remote sends an RDMA Read targeting that MR, rxe looks up the
+R_key, but the altered iova does not match the iova stored in the MR,
+causing the RDMA Read request to fail.
+
+Reported-by: Anna Schumaker <schumaker.anna@gmail.com>
+Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
+Reviewed-by: Sagi Grimberg <sagi@grimberg.me>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/verbs.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/sw/rxe/rxe_req.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/infiniband/hw/hfi1/verbs.c b/drivers/infiniband/hw/hfi1/verbs.c
-index a365089a9305..b7257d7dd925 100644
---- a/drivers/infiniband/hw/hfi1/verbs.c
-+++ b/drivers/infiniband/hw/hfi1/verbs.c
-@@ -919,6 +919,8 @@ int hfi1_verbs_send_pio(struct rvt_qp *qp, struct hfi1_pkt_state *ps,
- 
- 				if (slen > len)
- 					slen = len;
-+				if (slen > ss->sge.sge_length)
-+					slen = ss->sge.sge_length;
- 				rvt_update_sge(ss, slen, false);
- 				seg_pio_copy_mid(pbuf, addr, slen);
- 				len -= slen;
+diff --git a/drivers/infiniband/sw/rxe/rxe_req.c b/drivers/infiniband/sw/rxe/rxe_req.c
+index 6c361d70d7cd..46f62f71cd28 100644
+--- a/drivers/infiniband/sw/rxe/rxe_req.c
++++ b/drivers/infiniband/sw/rxe/rxe_req.c
+@@ -643,6 +643,7 @@ int rxe_requester(void *arg)
+ 			rmr->access = wqe->wr.wr.reg.access;
+ 			rmr->lkey = wqe->wr.wr.reg.key;
+ 			rmr->rkey = wqe->wr.wr.reg.key;
++			rmr->iova = wqe->wr.wr.reg.mr->iova;
+ 			wqe->state = wqe_state_done;
+ 			wqe->status = IB_WC_SUCCESS;
+ 		} else {
 -- 
 2.19.1
