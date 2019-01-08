@@ -1,41 +1,79 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 5/5] RDMA/mlx5: Delete declaration of already removed function
-Date: Tue,  8 Jan 2019 08:16:45 +0200
-Message-ID: <20190108061645.25226-6-leon@kernel.org>
-References: <20190108061645.25226-1-leon@kernel.org>
+Subject: Re: [PATCH rdma-next v1 0/5] Cleanup of
+ CONFIG_INFINIBAND_ON_DEMAND_PAGING usage
+Date: Tue, 8 Jan 2019 08:18:05 +0200
+Message-ID: <20190108061805.GI3632@mtr-leonro.mtl.com>
+References: <20181223091418.26218-1-leon@kernel.org>
+ <20190107183128.GA4613@ziepe.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="QWpDgw58+k1mSFBj"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190108061645.25226-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190107183128.GA4613@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-The implementation of mlx5_core_page_fault_resume() was removed
-in commit d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and
-ODP logic to RDMA"). This patch removes declaration too.
+--QWpDgw58+k1mSFBj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Fixes: d5d284b829a6 ("{net,IB}/mlx5: Move Page fault EQ and ODP logic to RDMA")
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- include/linux/mlx5/driver.h | 4 ----
- 1 file changed, 4 deletions(-)
+On Mon, Jan 07, 2019 at 11:31:28AM -0700, Jason Gunthorpe wrote:
+> On Sun, Dec 23, 2018 at 11:14:13AM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
+> >
+> > Changelog v0->v1:
+> >  * Don't set ODP caps always (patch #2)
+> >  * Set invalidate_range callback based on device_cap only
+> >
+> > -------------------------------------------------------------------------------
+> >
+> > Hi,
+> >
+> > As a followup to Jason's request to rethink CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> > usage, this series cleans mlx5_ib and RDMA/core code and it is based on accepted
+> > patch https://patchwork.kernel.org/patch/10735547/
+> >
+> > I think that we will see more patches in that area, I would like to
+> > remove CONFIG_INFINIBAND_ON_DEMAND_PAGING completely.
+> >
+> > Thanks
+> >
+> > Leon Romanovsky (5):
+> >   RDMA: Clean structures from CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> >   RDMA/core: Don't depend device ODP capabilities on kconfig option
+> >   RDMA/mlx5: Introduce and reuse helper to identify ODP MR
+> >   RDMA/mlx5: Embed into the code flow the ODP config option
+> >   RDMA/mlx5: Delete declaration of already removed function
+>
+> This doesn't apply anymore, can you resend it please?
 
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 54299251d40d..b6f5839f129a 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -939,10 +939,6 @@ int mlx5_query_odp_caps(struct mlx5_core_dev *dev,
- 			struct mlx5_odp_caps *odp_caps);
- int mlx5_core_query_ib_ppcnt(struct mlx5_core_dev *dev,
- 			     u8 port_num, void *out, size_t sz);
--#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
--int mlx5_core_page_fault_resume(struct mlx5_core_dev *dev, u32 token,
--				u32 wq_num, u8 type, int error);
--#endif
+Done, thanks
 
- int mlx5_init_rl_table(struct mlx5_core_dev *dev);
- void mlx5_cleanup_rl_table(struct mlx5_core_dev *dev);
+>
+> Jason
+
+--QWpDgw58+k1mSFBj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcNECdAAoJEORje4g2clinKoYP/2XMxJYu01Pkq4WHuV8sbHcT
+3kyGikjRHNtZv1aiFa9lcEv6mJJONg2Vh953ixW0LWnrfB1MhAQmyV3wlj49Axq1
+oBiK5nkWX0/OxIUwSutetvBXrwyU7giO4Bx3MtDYVHe1ewSaoIelHF1yxLcNI8n5
+iI2k6bLcV0HvGtDQrY+uypOrD7TBPiBMwljyoC74oFhLlZ5NcPi2WVb0YUz8Mprn
+Vgw+kdHYS7DO6A/hI0OWgUUg2wa5+tDmf4m3fJhMNS0SxnjsArHmu5ZH/zYtP0Ew
+PvUMqdLxdU9W9aT4w+J4bAEGeK38qbvCh/jKzxUFJZmaMeG45LFdt6mO2qkKsMMt
+Yzmc556olBDeQfy8Wk1UHyWK6hn9Asy0q41YhqW6jiQUJ1KPt1tixIwQauw2Smiw
+17V301TWQWuM8XoLTowSwM+MJax/2q70sQtIVgEnHSIpi8D0ypokJa/io1aT5eck
+aCCgGmC0kDL18p3CcD0Vb9987J3IKcKLmbDUO4ItvKE+AOXZ6iGk3dvRHFsqoTSi
+3jbThdRIjF6/cWkHZXcykDj1/b3Ri+aBQX7ARrR+Nd0TzKYxS5Q8o2OF8wR+Gkr1
+csxHc71/qulYqcPErLn2eakgP/oH4uN65vcQdH6XDIEYTZv6HR3L9v/aPUZcj5rz
+GofEreHZcUpnX+bYHRVC
+=t9A5
+-----END PGP SIGNATURE-----
+
+--QWpDgw58+k1mSFBj--
