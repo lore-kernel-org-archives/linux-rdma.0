@@ -1,64 +1,107 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v3] coding-style: Clarify the expectations around bool
-Date: Mon, 07 Jan 2019 16:38:50 -0800
-Message-ID: <9bc80bb861899633ba93e6c81d36d2201b05936b.camel@perches.com>
-References: <20190107211117.GA24142@ziepe.ca>
-         <8ec3603317f477fe9923b87499a33da7a2cf81ff.camel@perches.com>
-         <20190107232513.GA5336@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Return the correct opcode
+ when creating WR
+Date: Mon, 7 Jan 2019 20:10:51 -0700
+Message-ID: <20190108031051.GC5336@ziepe.ca>
+References: <1546903346-15461-1-git-send-email-aditr@vmware.com>
+ <20190107232815.GP27929@mellanox.com>
+ <ccacbd86-8d35-06a4-fe04-0144405d4638@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190107232513.GA5336@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Gal Pressman <galpress@amazon.com>, Bart Van Assche <bvanassche@acm.org>, Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Stephen Warren <swarren@nvidia.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ccacbd86-8d35-06a4-fe04-0144405d4638@vmware.com>
+Sender: stable-owner@vger.kernel.org
+To: Adit Ranadive <aditr@vmware.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2019-01-07 at 16:25 -0700, Jason Gunthorpe wrote:
-> On Mon, Jan 07, 2019 at 02:10:22PM -0800, Joe Perches wrote:
-> > On Mon, 2019-01-07 at 14:11 -0700, Jason Gunthorpe wrote:
-> > > There has been some confusion since checkpatch started warning about bool
-> > > use in structures, and people have been avoiding using it.
-> > > 
-> > > Many people feel there is still a legitimate place for bool in structures,
-> > > so provide some guidance on bool usage derived from the entire thread that
-> > > spawned the checkpatch warning.
+On Tue, Jan 08, 2019 at 12:02:42AM +0000, Adit Ranadive wrote:
+> On 1/7/19 3:28 PM, Jason Gunthorpe wrote:
+> > On Mon, Jan 07, 2019 at 11:23:05PM +0000, Adit Ranadive wrote:
+> >> From: Adit Ranadive <aditr@vmware.com>
+> >>
+> >> Since the IB_WR_REG_MR opcode value changed, let's set the PVRDMA
+> >> device opcodes explicitly.
+> >>
+> >> Reported-by: Ruishuang Wang <ruishuangw@vmware.com>
+> >> Fixes: 9a59739bd01f ("IB/rxe: Revise the ib_wr_opcode enum")
+> >> Cc: stable@vger.kernel.org
+> >> Reviewed-by: Bryan Tan <bryantan@vmware.com>
+> >> Reviewed-by: Ruishuang Wang <ruishuangw@vmware.com>
+> >> Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
+> >> Signed-off-by: Adit Ranadive <aditr@vmware.com>
+> >>  drivers/infiniband/hw/vmw_pvrdma/pvrdma.h | 43 +++++++++++++++++++++++++++++++
+> >>  1 file changed, 43 insertions(+)
+> >>
+> >> diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> >> index 42b8685c997e..a85d7ba96d55 100644
+> >> +++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
+> >> @@ -427,6 +427,49 @@ static inline enum ib_qp_state pvrdma_qp_state_to_ib(enum pvrdma_qp_state state)
+> >>  
+> >>  static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opcode op)
+> >>  {
+> >> +	switch (op) {
+> >> +	case IB_WR_RDMA_WRITE:
+> >> +		return PVRDMA_WR_RDMA_WRITE;
+> >> +	case IB_WR_RDMA_WRITE_WITH_IMM:
+> >> +		return PVRDMA_WR_RDMA_WRITE_WITH_IMM;
+> >> +	case IB_WR_SEND:
+> >> +		return PVRDMA_WR_SEND;
+> >> +	case IB_WR_SEND_WITH_IMM:
+> >> +		return PVRDMA_WR_SEND_WITH_IMM;
+> >> +	case IB_WR_RDMA_READ:
+> >> +		return PVRDMA_WR_RDMA_READ;
+> >> +	case IB_WR_ATOMIC_CMP_AND_SWP:
+> >> +		return PVRDMA_WR_ATOMIC_CMP_AND_SWP;
+> >> +	case IB_WR_ATOMIC_FETCH_AND_ADD:
+> >> +		return PVRDMA_WR_ATOMIC_FETCH_AND_ADD;
+> >> +	case IB_WR_LSO:
+> >> +		return PVRDMA_WR_LSO;
+> >> +	case IB_WR_SEND_WITH_INV:
+> >> +		return PVRDMA_WR_SEND_WITH_INV;
+> >> +	case IB_WR_RDMA_READ_WITH_INV:
+> >> +		return PVRDMA_WR_RDMA_READ_WITH_INV;
+> >> +	case IB_WR_LOCAL_INV:
+> >> +		return PVRDMA_WR_LOCAL_INV;
+> >> +	case IB_WR_REG_MR:
+> >> +		return PVRDMA_WR_FAST_REG_MR;
+> >> +	case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
+> >> +		return PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP;
+> >> +	case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
+> >> +		return PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD;
+> >> +	case IB_WR_REG_SIG_MR:
+> >> +		return PVRDMA_WR_REG_SIG_MR;
+> >> +	case IB_WR_RESERVED1:
+> >> +	case IB_WR_RESERVED2:
+> >> +	case IB_WR_RESERVED3:
+> >> +	case IB_WR_RESERVED4:
+> >> +	case IB_WR_RESERVED5:
+> >> +	case IB_WR_RESERVED6:
+> >> +	case IB_WR_RESERVED7:
+> >> +	case IB_WR_RESERVED8:
+> >> +	case IB_WR_RESERVED9:
+> >> +	case IB_WR_RESERVED10:
+> >> +		return (enum pvrdma_wr_opcode)op;
+> >> +	}
+> >>  	return (enum pvrdma_wr_opcode)op;
 > > 
-> > Thanks Jason.
+> > I ment it should always translate, not cast like this - if no
+> > translation is available then it should be a posting failure.
 > > 
-> > It'd be nice to combine this with some better checkpatch warning or
-> > even a removal of that misleading warning from checkpatch
-> > altogether.
+> > Jason
+> > 
 > 
-> Okay, do you have a preference?
+> Not sure if I follow you. We can post a failure but that would be 
+> in pvrdma_qp.c when it looks at the opcode returned from here. We 
+> would have to handle all the IB enums here though if you don't want 
+> a default case (you would get compiler warnings otherwise).  
 
-Yes.
----
- scripts/checkpatch.pl | 13 -------------
- 1 file changed, 13 deletions(-)
+You'd do something like
 
-diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
-index 155fa9305166..cfe0396c9845 100755
---- a/scripts/checkpatch.pl
-+++ b/scripts/checkpatch.pl
-@@ -6370,19 +6370,6 @@ sub process {
- 			}
- 		}
- 
--# check for bool bitfields
--		if ($sline =~ /^.\s+bool\s*$Ident\s*:\s*\d+\s*;/) {
--			WARN("BOOL_BITFIELD",
--			     "Avoid using bool as bitfield.  Prefer bool bitfields as unsigned int or u<8|16|32>\n" . $herecurr);
--		}
--
--# check for bool use in .h files
--		if ($realfile =~ /\.h$/ &&
--		    $sline =~ /^.\s+bool\s*$Ident\s*(?::\s*d+\s*)?;/) {
--			CHK("BOOL_MEMBER",
--			    "Avoid using bool structure members because of possible alignment issues - see: https://lkml.org/lkml/2017/11/21/384\n" . $herecurr);
--		}
--
- # check for semaphores initialized locked
- 		if ($line =~ /^.\s*sema_init.+,\W?0\W?\)/) {
- 			WARN("CONSIDER_COMPLETION",
+default:
+   return PVRDMA_WR_ERROR;
+
+And something, somewhere, should fail the posting.
+
+Jason
