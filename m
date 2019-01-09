@@ -1,85 +1,94 @@
-From: Alexey Kardashevskiy <aik@ozlabs.ru>
-Subject: Re: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
-Date: Wed, 9 Jan 2019 19:20:43 +1100
-Message-ID: <0c8a9f73-82e7-2d8d-e490-2b6539c531ee@ozlabs.ru>
-References: <20181206041951.22413-1-david@gibson.dropbear.id.au>
- <20181206064509.GM15544@mtr-leonro.mtl.com>
- <20190104034401.GA2801@umbus.fritz.box> <20190105175116.GB14238@ziepe.ca>
- <c1296ee9120a6a04dc75d0fdb2a641c722cb65d6.camel@kernel.crashing.org>
- <06c4612c-8409-ea7d-4f7c-4c010d8ecc01@ozlabs.ru>
- <f06efdd89b418ad831ee3a5da766f3f0a584050c.camel@kernel.crashing.org>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH] RDMA/cma: Rollback source IP address if failing to
+ acquire device
+Date: Wed, 9 Jan 2019 13:28:34 +0000
+Message-ID: <VI1PR0501MB2271AA04707AE880E8362933D18B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+References: <20190104064537.GA352@myunghoj-Precision-5530>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <f06efdd89b418ad831ee3a5da766f3f0a584050c.camel@kernel.crashing.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190104064537.GA352@myunghoj-Precision-5530>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Jason Gunthorpe <jgg@ziepe.ca>, David Gibson <david@gibson.dropbear.id.au>
-Cc: Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, sbest@redhat.com, saeedm@mellanox.com, alex.williamson@redhat.com, paulus@samba.org, linux-pci@vger.kernel.org, bhelgaas@google.com, ogerlitz@mellanox.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net, tariqt@mellanox.com
+Sender: linux-kernel-owner@vger.kernel.org
+To: Myungho Jung <mhjungk@gmail.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-On 09/01/2019 18:24, Benjamin Herrenschmidt wrote:
-> On Wed, 2019-01-09 at 15:53 +1100, Alexey Kardashevskiy wrote:
->> "A PCI completion timeout occurred for an outstanding PCI-E transaction"
->> it is.
->>
->> This is how I bind the device to vfio:
->>
->> echo vfio-pci > '/sys/bus/pci/devices/0000:01:00.0/driver_override'
->> echo vfio-pci > '/sys/bus/pci/devices/0000:01:00.1/driver_override'
->> echo '0000:01:00.0' > '/sys/bus/pci/devices/0000:01:00.0/driver/unbind'
->> echo '0000:01:00.1' > '/sys/bus/pci/devices/0000:01:00.1/driver/unbind'
->> echo '0000:01:00.0' > /sys/bus/pci/drivers/vfio-pci/bind
->> echo '0000:01:00.1' > /sys/bus/pci/drivers/vfio-pci/bind
->>
->>
->> and I noticed that EEH only happens with the last command. The order
->> (.0,.1  or .1,.0) does not matter, it seems that putting one function to
->> D3 is fine but putting another one when the first one is already in D3 -
->> produces EEH. And I do not recall ever seeing this on the firestone
->> machine. Weird.
-> 
-> Putting all functions into D3 is what allows the device to actually go
-> into D3.
-> 
-> Does it work with other devices ?
+> -----Original Message-----
+> From: linux-rdma-owner@vger.kernel.org <linux-rdma-
+> owner@vger.kernel.org> On Behalf Of Myungho Jung
+> Sent: Friday, January 4, 2019 12:46 AM
+> To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] RDMA/cma: Rollback source IP address if failing to acqui=
+re
+> device
+>=20
+> If cma_acquire_dev_by_src_ip() returns error in addr_handler(), the devic=
+e
+> state changes back to RDMA_CM_ADDR_BOUND but the resolved source IP
+> address is still left. After that, if rdma_destroy_id() is called after
+> rdma_listen(), the device is freed without removed from listen_any_list i=
+n
+> cma_cancel_operation(). Revert to the previous IP address if acquiring de=
+vice
+> fails.
+>=20
+> Reported-by: syzbot+f3ce716af730c8f96637@syzkaller.appspotmail.com
+> Signed-off-by: Myungho Jung <mhjungk@gmail.com>
+> ---
+>  drivers/infiniband/core/cma.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.=
+c
+> index 63a7cc00bae0..d27c3b154e71 100644
+> --- a/drivers/infiniband/core/cma.c
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -2963,13 +2963,17 @@ static void addr_handler(int status, struct
+> sockaddr *src_addr,  {
+>  	struct rdma_id_private *id_priv =3D context;
+>  	struct rdma_cm_event event =3D {};
+> +	struct sockaddr *addr;
+> +	struct sockaddr_storage old_addr;
+>=20
+>  	mutex_lock(&id_priv->handler_mutex);
+>  	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_QUERY,
+>  			   RDMA_CM_ADDR_RESOLVED))
+>  		goto out;
+>=20
+> -	memcpy(cma_src_addr(id_priv), src_addr,
+> rdma_addr_size(src_addr));
+> +	addr =3D cma_src_addr(id_priv);
+> +	memcpy(&old_addr, addr, rdma_addr_size(addr));
+Please add a comment here in the patch, why we need to store the old src ad=
+dress and restore back.
+/*
+  * Store the previous src address, so that if we fail to acquire matching =
+rdma device,
+  * old address can be restored back, which helps to cancel the cma listen =
+operation
+  * correctly.
+  */
+> +	memcpy(addr, src_addr, rdma_addr_size(src_addr));
+>  	if (!status && !id_priv->cma_dev) {
+>  		status =3D cma_acquire_dev_by_src_ip(id_priv);
+>  		if (status)
+> @@ -2980,6 +2984,8 @@ static void addr_handler(int status, struct sockadd=
+r
+> *src_addr,
+>  	}
+>=20
+>  	if (status) {
+> +		memcpy(addr, &old_addr,
+> +		       rdma_addr_size((struct sockaddr *)&old_addr));
+>  		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+>  				   RDMA_CM_ADDR_BOUND))
+>  			goto out;
+> --
+> 2.17.1
 
-Works fine with on the very same garrison:
-
-0009:07:00.0 Ethernet controller: Broadcom Corporation NetXtreme BCM5719
-Gigabit Ethernet PCIe (rev 01)
-0009:07:00.1 Ethernet controller: Broadcom Corporation NetXtreme BCM5719
-Gigabit Ethernet PCIe (rev 01)
-
-Bizarre.
-
-> We do have that bug on early P9
-> revisions where the attempt of bringing the link to L1 as part of the
-> D3 process fails in horrible ways, I thought P8 would be ok but maybe
-> not ...
-
-> Otherwise, it might be that our timeouts are too low (you may want to
-> talk to our PCIe guys internally)
-
-This increases "Outbound non-posted transactions timeout configuration"
-from 16ms to 1s and does not help anyway:
-
-
-diff --git a/hw/phb3.c b/hw/phb3.c
-index 38b8f46..cb14909 100644
---- a/hw/phb3.c
-+++ b/hw/phb3.c
-@@ -4065,7 +4065,7 @@ static void phb3_init_utl(struct phb3 *p)
-        /* Init_82: PCI Express port control
-         * SW283991: Set Outbound Non-Posted request timeout to 16ms (RTOS).
-         */
--       out_be64(p->regs + UTL_PCIE_PORT_CONTROL,
-0x8588007000000000);
-+       out_be64(p->regs + UTL_PCIE_PORT_CONTROL,
-0x858800d000000000);
-
--- 
-Alexey
+Reviewed-by: Parav Pandit <parav@mellanox.com>
