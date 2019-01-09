@@ -1,94 +1,44 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH] RDMA/cma: Rollback source IP address if failing to
- acquire device
-Date: Wed, 9 Jan 2019 13:28:34 +0000
-Message-ID: <VI1PR0501MB2271AA04707AE880E8362933D18B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
-References: <20190104064537.GA352@myunghoj-Precision-5530>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] PCI: Add no-D3 quirk for Mellanox ConnectX-[45]
+Date: Wed, 9 Jan 2019 08:27:49 -0700
+Message-ID: <20190109152749.GA6890@ziepe.ca>
+References: <20181206041951.22413-1-david@gibson.dropbear.id.au>
+ <20181206064509.GM15544@mtr-leonro.mtl.com>
+ <20190104034401.GA2801@umbus.fritz.box>
+ <20190105175116.GB14238@ziepe.ca>
+ <c1296ee9120a6a04dc75d0fdb2a641c722cb65d6.camel@kernel.crashing.org>
+ <20190108040129.GE5336@ziepe.ca>
+ <012d24d58a542ed44c8af9f517f1bd61ab912037.camel@kernel.crashing.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190104064537.GA352@myunghoj-Precision-5530>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <012d24d58a542ed44c8af9f517f1bd61ab912037.camel@kernel.crashing.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Myungho Jung <mhjungk@gmail.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Gibson <david@gibson.dropbear.id.au>, Leon Romanovsky <leon@kernel.org>, davem@davemloft.net, saeedm@mellanox.com, ogerlitz@mellanox.com, tariqt@mellanox.com, bhelgaas@google.com, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, alex.williamson@redhat.com, linux-pci@vger.kernel.org, linux-rdma@vger.kernel.org, sbest@redhat.com, paulus@samba.org, Alexey Kardashevskiy <aik@au1.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jan 09, 2019 at 04:09:02PM +1100, Benjamin Herrenschmidt wrote:
 
+> > POWER 8 firmware is good? If the link does eventually come back, is
+> > the POWER8's D3 resumption timeout long enough?
+> > 
+> > If this doesn't lead to an obvious conclusion you'll probably need to
+> > connect to IBM's Mellanox support team to get more information from
+> > the card side.
+> 
+> We are IBM :-) So far, it seems to be that the card is doing something
+> not quite right, but we don't know what. We might need to engage
+> Mellanox themselves.
 
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> owner@vger.kernel.org> On Behalf Of Myungho Jung
-> Sent: Friday, January 4, 2019 12:46 AM
-> To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] RDMA/cma: Rollback source IP address if failing to acqui=
-re
-> device
->=20
-> If cma_acquire_dev_by_src_ip() returns error in addr_handler(), the devic=
-e
-> state changes back to RDMA_CM_ADDR_BOUND but the resolved source IP
-> address is still left. After that, if rdma_destroy_id() is called after
-> rdma_listen(), the device is freed without removed from listen_any_list i=
-n
-> cma_cancel_operation(). Revert to the previous IP address if acquiring de=
-vice
-> fails.
->=20
-> Reported-by: syzbot+f3ce716af730c8f96637@syzkaller.appspotmail.com
-> Signed-off-by: Myungho Jung <mhjungk@gmail.com>
-> ---
->  drivers/infiniband/core/cma.c | 8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.=
-c
-> index 63a7cc00bae0..d27c3b154e71 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -2963,13 +2963,17 @@ static void addr_handler(int status, struct
-> sockaddr *src_addr,  {
->  	struct rdma_id_private *id_priv =3D context;
->  	struct rdma_cm_event event =3D {};
-> +	struct sockaddr *addr;
-> +	struct sockaddr_storage old_addr;
->=20
->  	mutex_lock(&id_priv->handler_mutex);
->  	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_QUERY,
->  			   RDMA_CM_ADDR_RESOLVED))
->  		goto out;
->=20
-> -	memcpy(cma_src_addr(id_priv), src_addr,
-> rdma_addr_size(src_addr));
-> +	addr =3D cma_src_addr(id_priv);
-> +	memcpy(&old_addr, addr, rdma_addr_size(addr));
-Please add a comment here in the patch, why we need to store the old src ad=
-dress and restore back.
-/*
-  * Store the previous src address, so that if we fail to acquire matching =
-rdma device,
-  * old address can be restored back, which helps to cancel the cma listen =
-operation
-  * correctly.
-  */
-> +	memcpy(addr, src_addr, rdma_addr_size(src_addr));
->  	if (!status && !id_priv->cma_dev) {
->  		status =3D cma_acquire_dev_by_src_ip(id_priv);
->  		if (status)
-> @@ -2980,6 +2984,8 @@ static void addr_handler(int status, struct sockadd=
-r
-> *src_addr,
->  	}
->=20
->  	if (status) {
-> +		memcpy(addr, &old_addr,
-> +		       rdma_addr_size((struct sockaddr *)&old_addr));
->  		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
->  				   RDMA_CM_ADDR_BOUND))
->  			goto out;
-> --
-> 2.17.1
+Sorry, it was unclear, I ment the support team for IBM inside Mellanox
+..
 
-Reviewed-by: Parav Pandit <parav@mellanox.com>
+There might be internal debugging available that can show if the card
+is detecting the beacon, how far it gets in renegotiation, etc.
+
+>From all the mails it really has the feel of a PCI-E interop problem between
+these two specific chips..
+
+Jason
