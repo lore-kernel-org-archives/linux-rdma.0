@@ -1,42 +1,29 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v1 for-rc] RDMA/vmw_pvrdma: Return the correct opcode
- when creating WR
-Date: Tue, 8 Jan 2019 16:48:57 -0700
-Message-ID: <20190108234857.GC30436@ziepe.ca>
-References: <1546903346-15461-1-git-send-email-aditr@vmware.com>
- <20190107232815.GP27929@mellanox.com>
- <ccacbd86-8d35-06a4-fe04-0144405d4638@vmware.com>
- <20190108031051.GC5336@ziepe.ca>
- <01aef10a-8b54-5ff5-0f90-d74d8c4c70cc@vmware.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] packet: Do not leak dev refcounts on error exit
+Date: Tue, 08 Jan 2019 18:59:30 -0800 (PST)
+Message-ID: <20190108.185930.1694064159905466574.davem@davemloft.net>
+References: <20190108232658.GA1911@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <01aef10a-8b54-5ff5-0f90-d74d8c4c70cc@vmware.com>
-Sender: stable-owner@vger.kernel.org
-To: Adit Ranadive <aditr@vmware.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190108232658.GA1911@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: jgg@mellanox.com
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, willemb@google.com, leonro@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 08, 2019 at 06:39:02PM +0000, Adit Ranadive wrote:
+From: Jason Gunthorpe <jgg@mellanox.com>
+Date: Tue, 8 Jan 2019 23:27:06 +0000
 
-> >> Not sure if I follow you. We can post a failure but that would be 
-> >> in pvrdma_qp.c when it looks at the opcode returned from here. We 
-> >> would have to handle all the IB enums here though if you don't want 
-> >> a default case (you would get compiler warnings otherwise).  
-> > 
-> > You'd do something like
-> > 
-> > default:
-> >    return PVRDMA_WR_ERROR;
-> > 
-> > And something, somewhere, should fail the posting.
-> > 
-> > Jason
-> > 
+> 'dev' is non NULL when the addr_len check triggers so it must goto a label
+> that does the dev_put otherwise dev will have a leaked refcount.
 > 
-> Okay. So maybe something like this, would work:
+> This bug causes the ib_ipoib module to become unloadable when using
+> systemd-network as it triggers this check on InfiniBand links.
+> 
+> Fixes: 99137b7888f4 ("packet: validate address length")
+> Reported-by: Leon Romanovsky <leonro@mellanox.com>
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 
-Yes, this is what I was thinking, please send a patch
-
-Jason
+Applied and queued up for -stable, thanks.
