@@ -1,117 +1,93 @@
-From: Adit Ranadive <aditr@vmware.com>
-Subject: [PATCH v2 for-rc] RDMA/vmw_pvrdma: Return the correct opcode when
- creating WR
-Date: Wed, 9 Jan 2019 23:08:49 +0000
-Message-ID: <1547075310-8751-1-git-send-email-aditr@vmware.com>
+From: Myungho Jung <mhjungk@gmail.com>
+Subject: Re: [PATCH] RDMA/cma: Rollback source IP address if failing to
+ acquire device
+Date: Wed, 9 Jan 2019 22:03:25 -0800
+Message-ID: <20190110060324.GA25523@myunghoj-Precision-5530>
+References: <20190104064537.GA352@myunghoj-Precision-5530>
+ <VI1PR0501MB2271AA04707AE880E8362933D18B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <stable-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "jgg@mellanox.com" <jgg@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>
-Cc: Adit Ranadive <aditr@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Pv-drivers <Pv-drivers@vmware.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <VI1PR0501MB2271AA04707AE880E8362933D18B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Parav Pandit <parav@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Adit Ranadive <aditr@vmware.com>
+On Wed, Jan 09, 2019 at 01:28:34PM +0000, Parav Pandit wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: linux-rdma-owner@vger.kernel.org <linux-rdma-
+> > owner@vger.kernel.org> On Behalf Of Myungho Jung
+> > Sent: Friday, January 4, 2019 12:46 AM
+> > To: Doug Ledford <dledford@redhat.com>; Jason Gunthorpe <jgg@ziepe.ca>
+> > Cc: linux-rdma@vger.kernel.org; linux-kernel@vger.kernel.org
+> > Subject: [PATCH] RDMA/cma: Rollback source IP address if failing to acquire
+> > device
+> > 
+> > If cma_acquire_dev_by_src_ip() returns error in addr_handler(), the device
+> > state changes back to RDMA_CM_ADDR_BOUND but the resolved source IP
+> > address is still left. After that, if rdma_destroy_id() is called after
+> > rdma_listen(), the device is freed without removed from listen_any_list in
+> > cma_cancel_operation(). Revert to the previous IP address if acquiring device
+> > fails.
+> > 
+> > Reported-by: syzbot+f3ce716af730c8f96637@syzkaller.appspotmail.com
+> > Signed-off-by: Myungho Jung <mhjungk@gmail.com>
+> > ---
+> >  drivers/infiniband/core/cma.c | 8 +++++++-
+> >  1 file changed, 7 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> > index 63a7cc00bae0..d27c3b154e71 100644
+> > --- a/drivers/infiniband/core/cma.c
+> > +++ b/drivers/infiniband/core/cma.c
+> > @@ -2963,13 +2963,17 @@ static void addr_handler(int status, struct
+> > sockaddr *src_addr,  {
+> >  	struct rdma_id_private *id_priv = context;
+> >  	struct rdma_cm_event event = {};
+> > +	struct sockaddr *addr;
+> > +	struct sockaddr_storage old_addr;
+> > 
+> >  	mutex_lock(&id_priv->handler_mutex);
+> >  	if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_QUERY,
+> >  			   RDMA_CM_ADDR_RESOLVED))
+> >  		goto out;
+> > 
+> > -	memcpy(cma_src_addr(id_priv), src_addr,
+> > rdma_addr_size(src_addr));
+> > +	addr = cma_src_addr(id_priv);
+> > +	memcpy(&old_addr, addr, rdma_addr_size(addr));
+> Please add a comment here in the patch, why we need to store the old src address and restore back.
+> /*
+>   * Store the previous src address, so that if we fail to acquire matching rdma device,
+>   * old address can be restored back, which helps to cancel the cma listen operation
+>   * correctly.
+>   */
+> > +	memcpy(addr, src_addr, rdma_addr_size(src_addr));
+> >  	if (!status && !id_priv->cma_dev) {
+> >  		status = cma_acquire_dev_by_src_ip(id_priv);
+> >  		if (status)
+> > @@ -2980,6 +2984,8 @@ static void addr_handler(int status, struct sockaddr
+> > *src_addr,
+> >  	}
+> > 
+> >  	if (status) {
+> > +		memcpy(addr, &old_addr,
+> > +		       rdma_addr_size((struct sockaddr *)&old_addr));
+> >  		if (!cma_comp_exch(id_priv, RDMA_CM_ADDR_RESOLVED,
+> >  				   RDMA_CM_ADDR_BOUND))
+> >  			goto out;
+> > --
+> > 2.17.1
+> 
+> Reviewed-by: Parav Pandit <parav@mellanox.com>
 
-Since the IB_WR_REG_MR opcode value changed, let's set the PVRDMA
-device opcodes explicitly.
+Hi Parav,
 
-Reported-by: Ruishuang Wang <ruishuangw@vmware.com>
-Fixes: 9a59739bd01f ("IB/rxe: Revise the ib_wr_opcode enum")
-Cc: stable@vger.kernel.org
-Reviewed-by: Bryan Tan <bryantan@vmware.com>
-Reviewed-by: Ruishuang Wang <ruishuangw@vmware.com>
-Reviewed-by: Vishnu Dasa <vdasa@vmware.com>
-Signed-off-by: Adit Ranadive <aditr@vmware.com>
----
- drivers/infiniband/hw/vmw_pvrdma/pvrdma.h    | 35 ++++++++++++++++++++++++=
-+++-
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c |  6 +++++
- include/uapi/rdma/vmw_pvrdma-abi.h           |  1 +
- 3 files changed, 41 insertions(+), 1 deletion(-)
+Thanks for review. Let me update and resubmit patch.
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h b/drivers/infiniband=
-/hw/vmw_pvrdma/pvrdma.h
-index 42b8685c997e..3c633ab58052 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma.h
-@@ -427,7 +427,40 @@ static inline enum ib_qp_state pvrdma_qp_state_to_ib(e=
-num pvrdma_qp_state state)
-=20
- static inline enum pvrdma_wr_opcode ib_wr_opcode_to_pvrdma(enum ib_wr_opco=
-de op)
- {
--	return (enum pvrdma_wr_opcode)op;
-+	switch (op) {
-+	case IB_WR_RDMA_WRITE:
-+		return PVRDMA_WR_RDMA_WRITE;
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		return PVRDMA_WR_RDMA_WRITE_WITH_IMM;
-+	case IB_WR_SEND:
-+		return PVRDMA_WR_SEND;
-+	case IB_WR_SEND_WITH_IMM:
-+		return PVRDMA_WR_SEND_WITH_IMM;
-+	case IB_WR_RDMA_READ:
-+		return PVRDMA_WR_RDMA_READ;
-+	case IB_WR_ATOMIC_CMP_AND_SWP:
-+		return PVRDMA_WR_ATOMIC_CMP_AND_SWP;
-+	case IB_WR_ATOMIC_FETCH_AND_ADD:
-+		return PVRDMA_WR_ATOMIC_FETCH_AND_ADD;
-+	case IB_WR_LSO:
-+		return PVRDMA_WR_LSO;
-+	case IB_WR_SEND_WITH_INV:
-+		return PVRDMA_WR_SEND_WITH_INV;
-+	case IB_WR_RDMA_READ_WITH_INV:
-+		return PVRDMA_WR_RDMA_READ_WITH_INV;
-+	case IB_WR_LOCAL_INV:
-+		return PVRDMA_WR_LOCAL_INV;
-+	case IB_WR_REG_MR:
-+		return PVRDMA_WR_FAST_REG_MR;
-+	case IB_WR_MASKED_ATOMIC_CMP_AND_SWP:
-+		return PVRDMA_WR_MASKED_ATOMIC_CMP_AND_SWP;
-+	case IB_WR_MASKED_ATOMIC_FETCH_AND_ADD:
-+		return PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD;
-+	case IB_WR_REG_SIG_MR:
-+		return PVRDMA_WR_REG_SIG_MR;
-+	default:
-+		return PVRDMA_WR_ERROR;
-+	}
- }
-=20
- static inline enum ib_wc_status pvrdma_wc_status_to_ib(
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c b/drivers/infinib=
-and/hw/vmw_pvrdma/pvrdma_qp.c
-index 3acf74cbe266..1ec3646087ba 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_qp.c
-@@ -721,6 +721,12 @@ int pvrdma_post_send(struct ib_qp *ibqp, const struct =
-ib_send_wr *wr,
- 		    wr->opcode =3D=3D IB_WR_RDMA_WRITE_WITH_IMM)
- 			wqe_hdr->ex.imm_data =3D wr->ex.imm_data;
-=20
-+		if (unlikely(wqe_hdr->opcode =3D=3D PVRDMA_WR_ERROR)) {
-+			*bad_wr =3D wr;
-+			ret =3D -EINVAL;
-+			goto out;
-+		}
-+
- 		switch (qp->ibqp.qp_type) {
- 		case IB_QPT_GSI:
- 		case IB_QPT_UD:
-diff --git a/include/uapi/rdma/vmw_pvrdma-abi.h b/include/uapi/rdma/vmw_pvr=
-dma-abi.h
-index d13fd490b66d..6e73f0274e41 100644
---- a/include/uapi/rdma/vmw_pvrdma-abi.h
-+++ b/include/uapi/rdma/vmw_pvrdma-abi.h
-@@ -78,6 +78,7 @@ enum pvrdma_wr_opcode {
- 	PVRDMA_WR_MASKED_ATOMIC_FETCH_AND_ADD,
- 	PVRDMA_WR_BIND_MW,
- 	PVRDMA_WR_REG_SIG_MR,
-+	PVRDMA_WR_ERROR,
- };
-=20
- enum pvrdma_wc_status {
---=20
-1.8.3.1
+Thanks,
+Myungho
