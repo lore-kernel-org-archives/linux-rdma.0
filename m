@@ -1,59 +1,109 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
 Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Sat, 12 Jan 2019 18:37:58 +0000
-Message-ID: <20190112183752.GC16457@mellanox.com>
+Date: Sat, 12 Jan 2019 13:03:05 -0600
+Message-ID: <20190112190305.GA19436@ssaleem-MOBL4.amr.corp.intel.com>
 References: <20190104223531.GA1705@ziepe.ca>
  <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
+ <20190112183752.GC16457@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
-Content-Language: en-US
-Content-ID: <DAC65A5B3277C34FAF842AB1917DE54E@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, Imre Deak <imre.deak@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Yong Zhi <yong.zhi@intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Tian Shu Qiu <tian.shu.qiu@intel.com>, Jian Xu Zheng <jian.xu.zheng@intel.com>, Sinclair Yeh <syeh@vmware.com>, Thomas Hellstrom <thellstrom@vmware.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190112183752.GC16457@mellanox.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>, Sinclair Yeh <syeh@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jian Xu Zheng <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Yong Zhi <yong.zhi@intel.com>, Christoph Hellwig <hch@lst.de>, Tian Shu Qiu <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 12, 2019 at 12:27:05PM -0600, Shiraz Saleem wrote:
-> On Fri, Jan 04, 2019 at 10:35:43PM +0000, Jason Gunthorpe wrote:
-> > Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w=
-/o
-> > backing pages") introduced the sg_page_iter_dma_address() function with=
-out
-> > providing a way to use it in the general case. If the sg_dma_len is not
-> > equal to the dma_length callers cannot safely use the
-> > for_each_sg_page/sg_page_iter_dma_address combination.
-> >=20
-> > Resolve this API mistake by providing a DMA specific iterator,
-> > for_each_sg_dma_page(), that uses the right length so
-> > sg_page_iter_dma_address() works as expected with all sglists. A new
-> > iterator type is introduced to provide compile-time safety against wron=
-gly
-> > mixing accessors and iterators.
-> [..]
->=20
-> > =20
-> > +/*
-> > + * sg page iterator for DMA addresses
-> > + *
-> > + * This is the same as sg_page_iter however you can call
-> > + * sg_page_iter_dma_address(@dma_iter) to get the page's DMA
-> > + * address. sg_page_iter_page() cannot be called on this iterator.
-> > + */
-> Does it make sense to have a variant of sg_page_iter_page() to get the
-> page descriptor with this dma_iter? This can be used when walking DMA-map=
-ped
-> SG lists with for_each_sg_dma_page.
-
-I think that would be a complicated cacluation to find the right
-offset into the page sg list to get the page pointer back. We can't
-just naively use the existing iterator location.
-
-Probably places that need this are better to run with two iterators,
-less computationally expensive.
-
-Did you find a need for this?=20
-
-Jason
+T24gU2F0LCBKYW4gMTIsIDIwMTkgYXQgMDY6Mzc6NThQTSArMDAwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0IDEyOjI3OjA1UE0gLTA2MDAsIFNoaXJh
+eiBTYWxlZW0gd3JvdGU6Cj4gPiBPbiBGcmksIEphbiAwNCwgMjAxOSBhdCAxMDozNTo0M1BNICsw
+MDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gPiA+IENvbW1pdCAyZGI3NmQ3YzNjNmQgKCJs
+aWIvc2NhdHRlcmxpc3Q6IHNnX3BhZ2VfaXRlcjogc3VwcG9ydCBzZyBsaXN0cyB3L28KPiA+ID4g
+YmFja2luZyBwYWdlcyIpIGludHJvZHVjZWQgdGhlIHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygp
+IGZ1bmN0aW9uIHdpdGhvdXQKPiA+ID4gcHJvdmlkaW5nIGEgd2F5IHRvIHVzZSBpdCBpbiB0aGUg
+Z2VuZXJhbCBjYXNlLiBJZiB0aGUgc2dfZG1hX2xlbiBpcyBub3QKPiA+ID4gZXF1YWwgdG8gdGhl
+IGRtYV9sZW5ndGggY2FsbGVycyBjYW5ub3Qgc2FmZWx5IHVzZSB0aGUKPiA+ID4gZm9yX2VhY2hf
+c2dfcGFnZS9zZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MgY29tYmluYXRpb24uCj4gPiA+IAo+ID4g
+PiBSZXNvbHZlIHRoaXMgQVBJIG1pc3Rha2UgYnkgcHJvdmlkaW5nIGEgRE1BIHNwZWNpZmljIGl0
+ZXJhdG9yLAo+ID4gPiBmb3JfZWFjaF9zZ19kbWFfcGFnZSgpLCB0aGF0IHVzZXMgdGhlIHJpZ2h0
+IGxlbmd0aCBzbwo+ID4gPiBzZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MoKSB3b3JrcyBhcyBleHBl
+Y3RlZCB3aXRoIGFsbCBzZ2xpc3RzLiBBIG5ldwo+ID4gPiBpdGVyYXRvciB0eXBlIGlzIGludHJv
+ZHVjZWQgdG8gcHJvdmlkZSBjb21waWxlLXRpbWUgc2FmZXR5IGFnYWluc3Qgd3JvbmdseQo+ID4g
+PiBtaXhpbmcgYWNjZXNzb3JzIGFuZCBpdGVyYXRvcnMuCj4gPiBbLi5dCj4gPiAKPiA+ID4gIAo+
+ID4gPiArLyoKPiA+ID4gKyAqIHNnIHBhZ2UgaXRlcmF0b3IgZm9yIERNQSBhZGRyZXNzZXMKPiA+
+ID4gKyAqCj4gPiA+ICsgKiBUaGlzIGlzIHRoZSBzYW1lIGFzIHNnX3BhZ2VfaXRlciBob3dldmVy
+IHlvdSBjYW4gY2FsbAo+ID4gPiArICogc2dfcGFnZV9pdGVyX2RtYV9hZGRyZXNzKEBkbWFfaXRl
+cikgdG8gZ2V0IHRoZSBwYWdlJ3MgRE1BCj4gPiA+ICsgKiBhZGRyZXNzLiBzZ19wYWdlX2l0ZXJf
+cGFnZSgpIGNhbm5vdCBiZSBjYWxsZWQgb24gdGhpcyBpdGVyYXRvci4KPiA+ID4gKyAqLwo+ID4g
+RG9lcyBpdCBtYWtlIHNlbnNlIHRvIGhhdmUgYSB2YXJpYW50IG9mIHNnX3BhZ2VfaXRlcl9wYWdl
+KCkgdG8gZ2V0IHRoZQo+ID4gcGFnZSBkZXNjcmlwdG9yIHdpdGggdGhpcyBkbWFfaXRlcj8gVGhp
+cyBjYW4gYmUgdXNlZCB3aGVuIHdhbGtpbmcgRE1BLW1hcHBlZAo+ID4gU0cgbGlzdHMgd2l0aCBm
+b3JfZWFjaF9zZ19kbWFfcGFnZS4KPiAKPiBJIHRoaW5rIHRoYXQgd291bGQgYmUgYSBjb21wbGlj
+YXRlZCBjYWNsdWF0aW9uIHRvIGZpbmQgdGhlIHJpZ2h0Cj4gb2Zmc2V0IGludG8gdGhlIHBhZ2Ug
+c2cgbGlzdCB0byBnZXQgdGhlIHBhZ2UgcG9pbnRlciBiYWNrLiBXZSBjYW4ndAo+IGp1c3QgbmFp
+dmVseSB1c2UgdGhlIGV4aXN0aW5nIGl0ZXJhdG9yIGxvY2F0aW9uLgo+IAo+IFByb2JhYmx5IHBs
+YWNlcyB0aGF0IG5lZWQgdGhpcyBhcmUgYmV0dGVyIHRvIHJ1biB3aXRoIHR3byBpdGVyYXRvcnMs
+Cj4gbGVzcyBjb21wdXRhdGlvbmFsbHkgZXhwZW5zaXZlLgo+IAo+IERpZCB5b3UgZmluZCBhIG5l
+ZWQgZm9yIHRoaXM/IAo+IAoKV2VsbCBJIHdhcyB0cnlpbmcgY29udmVydCB0aGUgUkRNQSBkcml2
+ZXJzIHRvIHVzZSB5b3VyIG5ldyBpdGVyYXRvciB2YXJpYW50CmFuZCBzYXcgdGhlIG5lZWQgZm9y
+IGl0IGluIGxvY2F0aW9ucyB3aGVyZSB3ZSBuZWVkIHZpcnR1YWwgYWRkcmVzcyBvZiB0aGUgcGFn
+ZXMKY29udGFpbmVkIGluIHRoZSBTR0VzLgoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFu
+ZC9ody9ibnh0X3JlL3FwbGliX3Jlcy5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2JueHRfcmUv
+cXBsaWJfcmVzLmMKaW5kZXggNTllZWFjNS4uN2QyNjkwMyAxMDA2NDQKLS0tIGEvZHJpdmVycy9p
+bmZpbmliYW5kL2h3L2JueHRfcmUvcXBsaWJfcmVzLmMKKysrIGIvZHJpdmVycy9pbmZpbmliYW5k
+L2h3L2JueHRfcmUvcXBsaWJfcmVzLmMKQEAgLTg1LDcgKzg1LDcgQEAgc3RhdGljIHZvaWQgX19m
+cmVlX3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmws
+CiBzdGF0aWMgaW50IF9fYWxsb2NfcGJsKHN0cnVjdCBwY2lfZGV2ICpwZGV2LCBzdHJ1Y3QgYm54
+dF9xcGxpYl9wYmwgKnBibCwKICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgc2NhdHRlcmxp
+c3QgKnNnaGVhZCwgdTMyIHBhZ2VzLCB1MzIgcGdfc2l6ZSkKIHsKLSAgICAgICBzdHJ1Y3Qgc2Nh
+dHRlcmxpc3QgKnNnOworICAgICAgIHN0cnVjdCBzZ19kbWFfcGFnZV9pdGVyIHNnX2l0ZXI7CiAg
+ICAgICAgYm9vbCBpc191bWVtID0gZmFsc2U7CiAgICAgICAgaW50IGk7CgpAQCAtMTE2LDEyICsx
+MTYsMTMgQEAgc3RhdGljIGludCBfX2FsbG9jX3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3Ry
+dWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAg
+IGkgPSAwOwogICAgICAgICAgICAgICAgaXNfdW1lbSA9IHRydWU7Ci0gICAgICAgICAgICAgICBm
+b3JfZWFjaF9zZyhzZ2hlYWQsIHNnLCBwYWdlcywgaSkgewotICAgICAgICAgICAgICAgICAgICAg
+ICBwYmwtPnBnX21hcF9hcnJbaV0gPSBzZ19kbWFfYWRkcmVzcyhzZyk7Ci0gICAgICAgICAgICAg
+ICAgICAgICAgIHBibC0+cGdfYXJyW2ldID0gc2dfdmlydChzZyk7CisgICAgICAgICAgICAgICBm
+b3JfZWFjaF9zZ19kbWFfcGFnZShzZ2hlYWQsICZzZ19pdGVyLCBwYWdlcywgMCkgeworICAgICAg
+ICAgICAgICAgICAgICAgICBwYmwtPnBnX21hcF9hcnJbaV0gPSBzZ19wYWdlX2l0ZXJfZG1hX2Fk
+ZHJlc3MoJnNnX2l0ZXIpOworICAgICAgICAgICAgICAgICAgICAgICBwYmwtPnBnX2FycltpXSA9
+IHBhZ2VfYWRkcmVzcyhzZ19wYWdlX2l0ZXJfcGFnZSgmc2dfaXRlci5iYXNlKSk7ID8/PwoJCQkJ
+CV5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eCgogICAgICAgICAgICAgICAgICAgICAgICBp
+ZiAoIXBibC0+cGdfYXJyW2ldKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8g
+ZmFpbDsKCisgICAgICAgICAgICAgICAgICAgICAgIGkrKzsKICAgICAgICAgICAgICAgICAgICAg
+ICAgcGJsLT5wZ19jb3VudCsrOwogICAgICAgICAgICAgICAgfQogICAgICAgIH0KLS0KCkBAIC0x
+OTEsMTYgKzE5MCwxNiBAQCBpbnQgcnhlX21lbV9pbml0X3VzZXIoc3RydWN0IHJ4ZV9wZCAqcGQs
+IHU2NCBzdGFydCwKICAgICAgICAgICAgICAgIGdvdG8gZXJyMTsKICAgICAgICB9CgotICAgICAg
+IG1lbS0+cGFnZV9zaGlmdCAgICAgICAgID0gdW1lbS0+cGFnZV9zaGlmdDsKLSAgICAgICBtZW0t
+PnBhZ2VfbWFzayAgICAgICAgICA9IEJJVCh1bWVtLT5wYWdlX3NoaWZ0KSAtIDE7CisgICAgICAg
+bWVtLT5wYWdlX3NoaWZ0ICAgICAgICAgPSBQQUdFX1NISUZUOworICAgICAgIG1lbS0+cGFnZV9t
+YXNrICAgICAgICAgID0gUEFHRV9TSVpFIC0gMTsKCiAgICAgICAgbnVtX2J1ZiAgICAgICAgICAg
+ICAgICAgPSAwOwogICAgICAgIG1hcCAgICAgICAgICAgICAgICAgICAgID0gbWVtLT5tYXA7CiAg
+ICAgICAgaWYgKGxlbmd0aCA+IDApIHsKICAgICAgICAgICAgICAgIGJ1ZiA9IG1hcFswXS0+YnVm
+OwoKLSAgICAgICAgICAgICAgIGZvcl9lYWNoX3NnKHVtZW0tPnNnX2hlYWQuc2dsLCBzZywgdW1l
+bS0+bm1hcCwgZW50cnkpIHsKLSAgICAgICAgICAgICAgICAgICAgICAgdmFkZHIgPSBwYWdlX2Fk
+ZHJlc3Moc2dfcGFnZShzZykpOworICAgICAgICAgICAgICAgZm9yX2VhY2hfc2dfZG1hX3BhZ2Uo
+dW1lbS0+c2dfaGVhZC5zZ2wsICZzZ19pdGVyLCB1bWVtLT5ubWFwLCAwKSB7CisgICAgICAgICAg
+ICAgICAgICAgICAgIHZhZGRyID0gcGFnZV9hZGRyZXNzKHNnX3BhZ2VfaXRlcl9wYWdlKCZzZ19p
+dGVyLmJhc2UpKTsgICA/Pz8/PwoJCQkJXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5e
+Xl5eXl5eXgoKCiAgICAgICAgICAgICAgICAgICAgICAgIGlmICghdmFkZHIpIHsKICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBwcl93YXJuKCJudWxsIHZhZGRyXG4iKTsKICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBlcnIgPSAtRU5PTUVNOwpAQCAtMjA4LDcgKzIwNyw3IEBA
+IGludCByeGVfbWVtX2luaXRfdXNlcihzdHJ1Y3QgcnhlX3BkICpwZCwgdTY0IHN0YXJ0LAogICAg
+ICAgICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgICAgICAgICBidWYtPmFkZHIg
+PSAodWludHB0cl90KXZhZGRyOwotICAgICAgICAgICAgICAgICAgICAgICBidWYtPnNpemUgPSBC
+SVQodW1lbS0+cGFnZV9zaGlmdCk7CisgICAgICAgICAgICAgICAgICAgICAgIGJ1Zi0+c2l6ZSA9
+IFBBR0VfU0laRTsKCjEuOC4zLjEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
+c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
+ZHJpLWRldmVsCg==
