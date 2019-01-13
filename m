@@ -1,104 +1,186 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 3/3] IB/mlx5: Add support for ODP for DEVX indirection mkey
-Date: Sun, 13 Jan 2019 16:01:18 +0200
-Message-ID: <20190113140118.10204-4-leon@kernel.org>
-References: <20190113140118.10204-1-leon@kernel.org>
+From: Federico Vaga <federico.vaga@vaga.pv.it>
+Subject: Re: [PATCH v4] coding-style: Clarify the expectations around bool
+Date: Sun, 13 Jan 2019 17:01:39 +0100
+Message-ID: <d09397d56df116e0d2b8e1a56ace0a37@vaga.pv.it>
+References: <20190110234805.GN6890@ziepe.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190113140118.10204-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190110234805.GN6890@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Joe Perches <joe@perches.com>, Gal Pressman <galpress@amazon.com>, Bart Van Assche <bvanassche@acm.org>, Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, xavier.huwei@huawei.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Stephen Warren <swarren@nvidia.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, linux-doc@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Yishai Hadas <yishaih@mellanox.com>
+On 2019-01-11 00:48, Jason Gunthorpe wrote:
+> There has been some confusion since checkpatch started warning about 
+> bool
+> use in structures, and people have been avoiding using it.
+> 
+> Many people feel there is still a legitimate place for bool in 
+> structures,
+> so provide some guidance on bool usage derived from the entire thread 
+> that
+> spawned the checkpatch warning.
+> 
+> Link:
+> https://lkml.kernel.org/r/CA+55aFwVZk1OfB9T2v014PTAKFhtVan_Zj2dOjnCy3x6E4UJfA@mail.gmail.com
+> Signed-off-by: Joe Perches <joe@perches.com>
+> Acked-by: Joe Perches <joe@perches.com>
+> Reviewed-by: Bart Van Assche <bvanassche@acm.org>
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> ---
+>  Documentation/process/coding-style.rst | 38 +++++++++++++++++++++++---
+>  scripts/checkpatch.pl                  | 13 ---------
+>  2 files changed, 34 insertions(+), 17 deletions(-)
+> 
+> v4:
+> - Describe true/false as definitions [Joe]
+> - Use clearer language for the _Bool explanation [Bart]
+> - Delete the checkpatch tests [Joe]
+> 
+> diff --git a/Documentation/process/coding-style.rst
+> b/Documentation/process/coding-style.rst
+> index b78dd680c03809..db3e030d0df908 100644
+> --- a/Documentation/process/coding-style.rst
+> +++ b/Documentation/process/coding-style.rst
+> @@ -921,7 +921,37 @@ result.  Typical examples would be functions that
+> return pointers; they use
+>  NULL or the ERR_PTR mechanism to report failure.
+> 
+> 
+> -17) Don't re-invent the kernel macros
+> +17) Using bool
+> +--------------
+> +
+> +The Linux kernel bool type is an alias for the C99 _Bool type. bool 
+> values can
+> +only evaluate to 0 or 1, and implicit or explicit conversion to bool
+> +automatically converts the value to true or false. When using bool 
+> types the
+> +!! construction is not needed, which eliminates a class of bugs.
+> +
+> +When working with bool values the true and false definitions should be 
+> used
+> +instead of 0 and 1.
 
-Add support for ODP for DEVX indirection mkey, it includes:
-- Recognizing its type as part of the radix tree lookup.
-- Use similar flow as done for the MW MKEY type.
+A very minor thing. I would suggest to keep consistent, in the 
+statement, the mapping
+between definitions ("true and false [...]") and their correspondent 
+integer values
+("[...] instead of 1 and 0").
 
-Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-Reviewed-by: Artemy Kovalyov <artemyko@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/odp.c | 26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+In few words, I propose to change "0 and 1" into "1 and 0".
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 8d46b1dc5658..82ac6cdc7130 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -685,6 +685,21 @@ struct pf_frame {
- 	int depth;
- };
- 
-+static int get_indirect_num_descs(struct mlx5_core_mkey *mmkey)
-+{
-+	struct mlx5_ib_mw *mw;
-+	struct mlx5_ib_devx_mr *devx_mr;
-+
-+	if (mmkey->type == MLX5_MKEY_MW) {
-+		mw = container_of(mmkey, struct mlx5_ib_mw, mmkey);
-+		return mw->ndescs;
-+	}
-+
-+	devx_mr = container_of(mmkey, struct mlx5_ib_devx_mr,
-+			       mmkey);
-+	return devx_mr->ndescs;
-+}
-+
- /*
-  * Handle a single data segment in a page-fault WQE or RDMA region.
-  *
-@@ -705,11 +720,11 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
- 	bool prefetch = flags & MLX5_PF_FLAGS_PREFETCH;
- 	struct pf_frame *head = NULL, *frame;
- 	struct mlx5_core_mkey *mmkey;
--	struct mlx5_ib_mw *mw;
- 	struct mlx5_ib_mr *mr;
- 	struct mlx5_klm *pklm;
- 	u32 *out = NULL;
- 	size_t offset;
-+	int ndescs;
- 
- 	srcu_key = srcu_read_lock(&dev->mr_srcu);
- 
-@@ -762,7 +777,8 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
- 		break;
- 
- 	case MLX5_MKEY_MW:
--		mw = container_of(mmkey, struct mlx5_ib_mw, mmkey);
-+	case MLX5_MKEY_INDIRECT_DEVX:
-+		ndescs = get_indirect_num_descs(mmkey);
- 
- 		if (depth >= MLX5_CAP_GEN(dev->mdev, max_indirection)) {
- 			mlx5_ib_dbg(dev, "indirection level exceeded\n");
-@@ -771,7 +787,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
- 		}
- 
- 		outlen = MLX5_ST_SZ_BYTES(query_mkey_out) +
--			sizeof(*pklm) * (mw->ndescs - 2);
-+			sizeof(*pklm) * (ndescs - 2);
- 
- 		if (outlen > cur_outlen) {
- 			kfree(out);
-@@ -786,14 +802,14 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
- 		pklm = (struct mlx5_klm *)MLX5_ADDR_OF(query_mkey_out, out,
- 						       bsf0_klm0_pas_mtt0_1);
- 
--		ret = mlx5_core_query_mkey(dev->mdev, &mw->mmkey, out, outlen);
-+		ret = mlx5_core_query_mkey(dev->mdev, mmkey, out, outlen);
- 		if (ret)
- 			goto srcu_unlock;
- 
- 		offset = io_virt - MLX5_GET64(query_mkey_out, out,
- 					      memory_key_mkey_entry.start_addr);
- 
--		for (i = 0; bcnt && i < mw->ndescs; i++, pklm++) {
-+		for (i = 0; bcnt && i < ndescs; i++, pklm++) {
- 			if (offset >= be32_to_cpu(pklm->bcount)) {
- 				offset -= be32_to_cpu(pklm->bcount);
- 				continue;
+> +
+> +bool function return types and stack variables are always fine to use 
+> whenever
+> +appropriate. Use of bool is encouraged to improve readability and is 
+> often a
+> +better option than 'int' for storing boolean values.
+> +
+> +Do not use bool if cache line layout or size of the value matters, its 
+> size
+> +and alignment varies based on the compiled architecture. Structures 
+> that are
+> +optimized for alignment and size should not use bool.
+> +
+> +If a structure has many true/false values, consider consolidating them 
+> into a
+> +bitfield with 1 bit members, or using an appropriate fixed width type, 
+> such as
+> +u8.
+> +
+> +Similarly for function arguments, many true/false values can be 
+> consolidated
+> +into a single bitwise 'flags' argument and 'flags' can often a more 
+> readable
+> +alternative if the call-sites have naked true/false constants.
+
+Of course, English is not my primary language, but it looks to me that 
+here a "be"
+is missing: "[...] and 'flags' can often a more readable alternative 
+[...]".
+
+> +
+> +Otherwise limited use of bool in structures and arguments can improve
+> +readability.
+
+I'm going to update the Italian translations for this. Do you want me to 
+contribute
+directly to this patch? Otherwise I will send a dedicated patch later 
+when this one
+get accepted.
+
+Thanks
+
+> +18) Don't re-invent the kernel macros
+>  -------------------------------------
+> 
+>  The header file include/linux/kernel.h contains a number of macros 
+> that
+> @@ -944,7 +974,7 @@ need them.  Feel free to peruse that header file
+> to see what else is already
+>  defined that you shouldn't reproduce in your code.
+> 
+> 
+> -18) Editor modelines and other cruft
+> +19) Editor modelines and other cruft
+>  ------------------------------------
+> 
+>  Some editors can interpret configuration information embedded in 
+> source files,
+> @@ -978,7 +1008,7 @@ own custom mode, or may have some other magic
+> method for making indentation
+>  work correctly.
+> 
+> 
+> -19) Inline assembly
+> +20) Inline assembly
+>  -------------------
+> 
+>  In architecture-specific code, you may need to use inline assembly to 
+> interface
+> @@ -1010,7 +1040,7 @@ the next instruction in the assembly output:
+>  	     : /* outputs */ : /* inputs */ : /* clobbers */);
+> 
+> 
+> -20) Conditional Compilation
+> +21) Conditional Compilation
+>  ---------------------------
+> 
+>  Wherever possible, don't use preprocessor conditionals (#if, #ifdef) 
+> in .c
+> diff --git a/scripts/checkpatch.pl b/scripts/checkpatch.pl
+> index b737ca9d720441..d62abd032885a1 100755
+> --- a/scripts/checkpatch.pl
+> +++ b/scripts/checkpatch.pl
+> @@ -6368,19 +6368,6 @@ sub process {
+>  			}
+>  		}
+> 
+> -# check for bool bitfields
+> -		if ($sline =~ /^.\s+bool\s*$Ident\s*:\s*\d+\s*;/) {
+> -			WARN("BOOL_BITFIELD",
+> -			     "Avoid using bool as bitfield.  Prefer bool bitfields as
+> unsigned int or u<8|16|32>\n" . $herecurr);
+> -		}
+> -
+> -# check for bool use in .h files
+> -		if ($realfile =~ /\.h$/ &&
+> -		    $sline =~ /^.\s+bool\s*$Ident\s*(?::\s*d+\s*)?;/) {
+> -			CHK("BOOL_MEMBER",
+> -			    "Avoid using bool structure members because of possible
+> alignment issues - see: https://lkml.org/lkml/2017/11/21/384\n" .
+> $herecurr);
+> -		}
+> -
+>  # check for semaphores initialized locked
+>  		if ($line =~ /^.\s*sema_init.+,\W?0\W?\)/) {
+>  			WARN("CONSIDER_COMPLETION",
+
 -- 
-2.19.1
+Federico Vaga
+http://www.federicovaga.it/
