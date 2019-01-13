@@ -1,109 +1,246 @@
-From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Sat, 12 Jan 2019 13:03:05 -0600
-Message-ID: <20190112190305.GA19436@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20190104223531.GA1705@ziepe.ca>
- <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
- <20190112183752.GC16457@mellanox.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH mlx5-next] RDMA/mad: Reduce MAD scope to mlx5_ib only
+Date: Sun, 13 Jan 2019 15:57:04 +0200
+Message-ID: <20190113135704.10032-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190112183752.GC16457@mellanox.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>, Sinclair Yeh <syeh@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jian Xu Zheng <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Yong Zhi <yong.zhi@intel.com>, Christoph Hellwig <hch@lst.de>, Tian Shu Qiu <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU2F0LCBKYW4gMTIsIDIwMTkgYXQgMDY6Mzc6NThQTSArMDAwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0IDEyOjI3OjA1UE0gLTA2MDAsIFNoaXJh
-eiBTYWxlZW0gd3JvdGU6Cj4gPiBPbiBGcmksIEphbiAwNCwgMjAxOSBhdCAxMDozNTo0M1BNICsw
-MDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gPiA+IENvbW1pdCAyZGI3NmQ3YzNjNmQgKCJs
-aWIvc2NhdHRlcmxpc3Q6IHNnX3BhZ2VfaXRlcjogc3VwcG9ydCBzZyBsaXN0cyB3L28KPiA+ID4g
-YmFja2luZyBwYWdlcyIpIGludHJvZHVjZWQgdGhlIHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygp
-IGZ1bmN0aW9uIHdpdGhvdXQKPiA+ID4gcHJvdmlkaW5nIGEgd2F5IHRvIHVzZSBpdCBpbiB0aGUg
-Z2VuZXJhbCBjYXNlLiBJZiB0aGUgc2dfZG1hX2xlbiBpcyBub3QKPiA+ID4gZXF1YWwgdG8gdGhl
-IGRtYV9sZW5ndGggY2FsbGVycyBjYW5ub3Qgc2FmZWx5IHVzZSB0aGUKPiA+ID4gZm9yX2VhY2hf
-c2dfcGFnZS9zZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MgY29tYmluYXRpb24uCj4gPiA+IAo+ID4g
-PiBSZXNvbHZlIHRoaXMgQVBJIG1pc3Rha2UgYnkgcHJvdmlkaW5nIGEgRE1BIHNwZWNpZmljIGl0
-ZXJhdG9yLAo+ID4gPiBmb3JfZWFjaF9zZ19kbWFfcGFnZSgpLCB0aGF0IHVzZXMgdGhlIHJpZ2h0
-IGxlbmd0aCBzbwo+ID4gPiBzZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MoKSB3b3JrcyBhcyBleHBl
-Y3RlZCB3aXRoIGFsbCBzZ2xpc3RzLiBBIG5ldwo+ID4gPiBpdGVyYXRvciB0eXBlIGlzIGludHJv
-ZHVjZWQgdG8gcHJvdmlkZSBjb21waWxlLXRpbWUgc2FmZXR5IGFnYWluc3Qgd3JvbmdseQo+ID4g
-PiBtaXhpbmcgYWNjZXNzb3JzIGFuZCBpdGVyYXRvcnMuCj4gPiBbLi5dCj4gPiAKPiA+ID4gIAo+
-ID4gPiArLyoKPiA+ID4gKyAqIHNnIHBhZ2UgaXRlcmF0b3IgZm9yIERNQSBhZGRyZXNzZXMKPiA+
-ID4gKyAqCj4gPiA+ICsgKiBUaGlzIGlzIHRoZSBzYW1lIGFzIHNnX3BhZ2VfaXRlciBob3dldmVy
-IHlvdSBjYW4gY2FsbAo+ID4gPiArICogc2dfcGFnZV9pdGVyX2RtYV9hZGRyZXNzKEBkbWFfaXRl
-cikgdG8gZ2V0IHRoZSBwYWdlJ3MgRE1BCj4gPiA+ICsgKiBhZGRyZXNzLiBzZ19wYWdlX2l0ZXJf
-cGFnZSgpIGNhbm5vdCBiZSBjYWxsZWQgb24gdGhpcyBpdGVyYXRvci4KPiA+ID4gKyAqLwo+ID4g
-RG9lcyBpdCBtYWtlIHNlbnNlIHRvIGhhdmUgYSB2YXJpYW50IG9mIHNnX3BhZ2VfaXRlcl9wYWdl
-KCkgdG8gZ2V0IHRoZQo+ID4gcGFnZSBkZXNjcmlwdG9yIHdpdGggdGhpcyBkbWFfaXRlcj8gVGhp
-cyBjYW4gYmUgdXNlZCB3aGVuIHdhbGtpbmcgRE1BLW1hcHBlZAo+ID4gU0cgbGlzdHMgd2l0aCBm
-b3JfZWFjaF9zZ19kbWFfcGFnZS4KPiAKPiBJIHRoaW5rIHRoYXQgd291bGQgYmUgYSBjb21wbGlj
-YXRlZCBjYWNsdWF0aW9uIHRvIGZpbmQgdGhlIHJpZ2h0Cj4gb2Zmc2V0IGludG8gdGhlIHBhZ2Ug
-c2cgbGlzdCB0byBnZXQgdGhlIHBhZ2UgcG9pbnRlciBiYWNrLiBXZSBjYW4ndAo+IGp1c3QgbmFp
-dmVseSB1c2UgdGhlIGV4aXN0aW5nIGl0ZXJhdG9yIGxvY2F0aW9uLgo+IAo+IFByb2JhYmx5IHBs
-YWNlcyB0aGF0IG5lZWQgdGhpcyBhcmUgYmV0dGVyIHRvIHJ1biB3aXRoIHR3byBpdGVyYXRvcnMs
-Cj4gbGVzcyBjb21wdXRhdGlvbmFsbHkgZXhwZW5zaXZlLgo+IAo+IERpZCB5b3UgZmluZCBhIG5l
-ZWQgZm9yIHRoaXM/IAo+IAoKV2VsbCBJIHdhcyB0cnlpbmcgY29udmVydCB0aGUgUkRNQSBkcml2
-ZXJzIHRvIHVzZSB5b3VyIG5ldyBpdGVyYXRvciB2YXJpYW50CmFuZCBzYXcgdGhlIG5lZWQgZm9y
-IGl0IGluIGxvY2F0aW9ucyB3aGVyZSB3ZSBuZWVkIHZpcnR1YWwgYWRkcmVzcyBvZiB0aGUgcGFn
-ZXMKY29udGFpbmVkIGluIHRoZSBTR0VzLgoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFu
-ZC9ody9ibnh0X3JlL3FwbGliX3Jlcy5jIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2JueHRfcmUv
-cXBsaWJfcmVzLmMKaW5kZXggNTllZWFjNS4uN2QyNjkwMyAxMDA2NDQKLS0tIGEvZHJpdmVycy9p
-bmZpbmliYW5kL2h3L2JueHRfcmUvcXBsaWJfcmVzLmMKKysrIGIvZHJpdmVycy9pbmZpbmliYW5k
-L2h3L2JueHRfcmUvcXBsaWJfcmVzLmMKQEAgLTg1LDcgKzg1LDcgQEAgc3RhdGljIHZvaWQgX19m
-cmVlX3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmws
-CiBzdGF0aWMgaW50IF9fYWxsb2NfcGJsKHN0cnVjdCBwY2lfZGV2ICpwZGV2LCBzdHJ1Y3QgYm54
-dF9xcGxpYl9wYmwgKnBibCwKICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgc2NhdHRlcmxp
-c3QgKnNnaGVhZCwgdTMyIHBhZ2VzLCB1MzIgcGdfc2l6ZSkKIHsKLSAgICAgICBzdHJ1Y3Qgc2Nh
-dHRlcmxpc3QgKnNnOworICAgICAgIHN0cnVjdCBzZ19kbWFfcGFnZV9pdGVyIHNnX2l0ZXI7CiAg
-ICAgICAgYm9vbCBpc191bWVtID0gZmFsc2U7CiAgICAgICAgaW50IGk7CgpAQCAtMTE2LDEyICsx
-MTYsMTMgQEAgc3RhdGljIGludCBfX2FsbG9jX3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3Ry
-dWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAg
-IGkgPSAwOwogICAgICAgICAgICAgICAgaXNfdW1lbSA9IHRydWU7Ci0gICAgICAgICAgICAgICBm
-b3JfZWFjaF9zZyhzZ2hlYWQsIHNnLCBwYWdlcywgaSkgewotICAgICAgICAgICAgICAgICAgICAg
-ICBwYmwtPnBnX21hcF9hcnJbaV0gPSBzZ19kbWFfYWRkcmVzcyhzZyk7Ci0gICAgICAgICAgICAg
-ICAgICAgICAgIHBibC0+cGdfYXJyW2ldID0gc2dfdmlydChzZyk7CisgICAgICAgICAgICAgICBm
-b3JfZWFjaF9zZ19kbWFfcGFnZShzZ2hlYWQsICZzZ19pdGVyLCBwYWdlcywgMCkgeworICAgICAg
-ICAgICAgICAgICAgICAgICBwYmwtPnBnX21hcF9hcnJbaV0gPSBzZ19wYWdlX2l0ZXJfZG1hX2Fk
-ZHJlc3MoJnNnX2l0ZXIpOworICAgICAgICAgICAgICAgICAgICAgICBwYmwtPnBnX2FycltpXSA9
-IHBhZ2VfYWRkcmVzcyhzZ19wYWdlX2l0ZXJfcGFnZSgmc2dfaXRlci5iYXNlKSk7ID8/PwoJCQkJ
-CV5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eCgogICAgICAgICAgICAgICAgICAgICAgICBp
-ZiAoIXBibC0+cGdfYXJyW2ldKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8g
-ZmFpbDsKCisgICAgICAgICAgICAgICAgICAgICAgIGkrKzsKICAgICAgICAgICAgICAgICAgICAg
-ICAgcGJsLT5wZ19jb3VudCsrOwogICAgICAgICAgICAgICAgfQogICAgICAgIH0KLS0KCkBAIC0x
-OTEsMTYgKzE5MCwxNiBAQCBpbnQgcnhlX21lbV9pbml0X3VzZXIoc3RydWN0IHJ4ZV9wZCAqcGQs
-IHU2NCBzdGFydCwKICAgICAgICAgICAgICAgIGdvdG8gZXJyMTsKICAgICAgICB9CgotICAgICAg
-IG1lbS0+cGFnZV9zaGlmdCAgICAgICAgID0gdW1lbS0+cGFnZV9zaGlmdDsKLSAgICAgICBtZW0t
-PnBhZ2VfbWFzayAgICAgICAgICA9IEJJVCh1bWVtLT5wYWdlX3NoaWZ0KSAtIDE7CisgICAgICAg
-bWVtLT5wYWdlX3NoaWZ0ICAgICAgICAgPSBQQUdFX1NISUZUOworICAgICAgIG1lbS0+cGFnZV9t
-YXNrICAgICAgICAgID0gUEFHRV9TSVpFIC0gMTsKCiAgICAgICAgbnVtX2J1ZiAgICAgICAgICAg
-ICAgICAgPSAwOwogICAgICAgIG1hcCAgICAgICAgICAgICAgICAgICAgID0gbWVtLT5tYXA7CiAg
-ICAgICAgaWYgKGxlbmd0aCA+IDApIHsKICAgICAgICAgICAgICAgIGJ1ZiA9IG1hcFswXS0+YnVm
-OwoKLSAgICAgICAgICAgICAgIGZvcl9lYWNoX3NnKHVtZW0tPnNnX2hlYWQuc2dsLCBzZywgdW1l
-bS0+bm1hcCwgZW50cnkpIHsKLSAgICAgICAgICAgICAgICAgICAgICAgdmFkZHIgPSBwYWdlX2Fk
-ZHJlc3Moc2dfcGFnZShzZykpOworICAgICAgICAgICAgICAgZm9yX2VhY2hfc2dfZG1hX3BhZ2Uo
-dW1lbS0+c2dfaGVhZC5zZ2wsICZzZ19pdGVyLCB1bWVtLT5ubWFwLCAwKSB7CisgICAgICAgICAg
-ICAgICAgICAgICAgIHZhZGRyID0gcGFnZV9hZGRyZXNzKHNnX3BhZ2VfaXRlcl9wYWdlKCZzZ19p
-dGVyLmJhc2UpKTsgICA/Pz8/PwoJCQkJXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5e
-Xl5eXl5eXgoKCiAgICAgICAgICAgICAgICAgICAgICAgIGlmICghdmFkZHIpIHsKICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBwcl93YXJuKCJudWxsIHZhZGRyXG4iKTsKICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBlcnIgPSAtRU5PTUVNOwpAQCAtMjA4LDcgKzIwNyw3IEBA
-IGludCByeGVfbWVtX2luaXRfdXNlcihzdHJ1Y3QgcnhlX3BkICpwZCwgdTY0IHN0YXJ0LAogICAg
-ICAgICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgICAgICAgICBidWYtPmFkZHIg
-PSAodWludHB0cl90KXZhZGRyOwotICAgICAgICAgICAgICAgICAgICAgICBidWYtPnNpemUgPSBC
-SVQodW1lbS0+cGFnZV9zaGlmdCk7CisgICAgICAgICAgICAgICAgICAgICAgIGJ1Zi0+c2l6ZSA9
-IFBBR0VfU0laRTsKCjEuOC4zLjEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVsCg==
+From: Leon Romanovsky <leonro@mellanox.com>
+
+Management Datagram Interface (MAD) is applicable
+only when physical port is Infiniband. It makes MAD
+command logic to be completely unrelated to eth/core
+parts of mlx5.
+
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/hw/mlx5/cmd.c              | 37 +++++++++
+ drivers/infiniband/hw/mlx5/cmd.h              |  2 +
+ drivers/infiniband/hw/mlx5/mad.c              | 11 ++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  3 -
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/mad.c | 75 -------------------
+ include/linux/mlx5/driver.h                   |  2 -
+ 7 files changed, 47 insertions(+), 85 deletions(-)
+ delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
+
+diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
+index 356bccc715ee..6bcc63aaa50b 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.c
++++ b/drivers/infiniband/hw/mlx5/cmd.c
+@@ -345,3 +345,40 @@ int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
+ 				       counter_set_id);
+ 	return err;
+ }
++
++int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
++		     u16 opmod, u8 port)
++{
++	int outlen = MLX5_ST_SZ_BYTES(mad_ifc_out);
++	int inlen = MLX5_ST_SZ_BYTES(mad_ifc_in);
++	int err = -ENOMEM;
++	void *data;
++	void *resp;
++	u32 *out;
++	u32 *in;
++
++	in = kzalloc(inlen, GFP_KERNEL);
++	out = kzalloc(outlen, GFP_KERNEL);
++	if (!in || !out)
++		goto out;
++
++	MLX5_SET(mad_ifc_in, in, opcode, MLX5_CMD_OP_MAD_IFC);
++	MLX5_SET(mad_ifc_in, in, op_mod, opmod);
++	MLX5_SET(mad_ifc_in, in, port, port);
++
++	data = MLX5_ADDR_OF(mad_ifc_in, in, mad);
++	memcpy(data, inb, MLX5_FLD_SZ_BYTES(mad_ifc_in, mad));
++
++	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
++	if (err)
++		goto out;
++
++	resp = MLX5_ADDR_OF(mad_ifc_out, out, response_mad_packet);
++	memcpy(outb, resp,
++	       MLX5_FLD_SZ_BYTES(mad_ifc_out, response_mad_packet));
++
++out:
++	kfree(out);
++	kfree(in);
++	return err;
++}
+diff --git a/drivers/infiniband/hw/mlx5/cmd.h b/drivers/infiniband/hw/mlx5/cmd.h
+index 1e76dc67a369..923a7b93f507 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.h
++++ b/drivers/infiniband/hw/mlx5/cmd.h
+@@ -63,4 +63,6 @@ int mlx5_cmd_xrcd_alloc(struct mlx5_core_dev *dev, u32 *xrcdn, u16 uid);
+ int mlx5_cmd_xrcd_dealloc(struct mlx5_core_dev *dev, u32 xrcdn, u16 uid);
+ int mlx5_cmd_alloc_q_counter(struct mlx5_core_dev *dev, u16 *counter_id,
+ 			     u16 uid);
++int mlx5_cmd_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
++		     u16 opmod, u8 port);
+ #endif /* MLX5_IB_CMD_H */
+diff --git a/drivers/infiniband/hw/mlx5/mad.c b/drivers/infiniband/hw/mlx5/mad.c
+index 558638468edb..6c529e6f3a01 100644
+--- a/drivers/infiniband/hw/mlx5/mad.c
++++ b/drivers/infiniband/hw/mlx5/mad.c
+@@ -36,6 +36,7 @@
+ #include <rdma/ib_smi.h>
+ #include <rdma/ib_pma.h>
+ #include "mlx5_ib.h"
++#include "cmd.h"
+ 
+ enum {
+ 	MLX5_IB_VENDOR_CLASS1 = 0x9,
+@@ -51,9 +52,10 @@ static bool can_do_mad_ifc(struct mlx5_ib_dev *dev, u8 port_num,
+ 	return dev->mdev->port_caps[port_num - 1].has_smi;
+ }
+ 
+-int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+-		 u8 port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+-		 const void *in_mad, void *response_mad)
++static int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey,
++			int ignore_bkey, u8 port, const struct ib_wc *in_wc,
++			const struct ib_grh *in_grh, const void *in_mad,
++			void *response_mad)
+ {
+ 	u8 op_modifier = 0;
+ 
+@@ -68,7 +70,8 @@ int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+ 	if (ignore_bkey || !in_wc)
+ 		op_modifier |= 0x2;
+ 
+-	return mlx5_core_mad_ifc(dev->mdev, in_mad, response_mad, op_modifier, port);
++	return mlx5_cmd_mad_ifc(dev->mdev, in_mad, response_mad, op_modifier,
++				port);
+ }
+ 
+ static int process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 819207190343..cead0f97a7b1 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1050,9 +1050,6 @@ void mlx5_ib_db_unmap_user(struct mlx5_ib_ucontext *context, struct mlx5_db *db)
+ void __mlx5_ib_cq_clean(struct mlx5_ib_cq *cq, u32 qpn, struct mlx5_ib_srq *srq);
+ void mlx5_ib_cq_clean(struct mlx5_ib_cq *cq, u32 qpn, struct mlx5_ib_srq *srq);
+ void mlx5_ib_free_srq_wqe(struct mlx5_ib_srq *srq, int wqe_index);
+-int mlx5_MAD_IFC(struct mlx5_ib_dev *dev, int ignore_mkey, int ignore_bkey,
+-		 u8 port, const struct ib_wc *in_wc, const struct ib_grh *in_grh,
+-		 const void *in_mad, void *response_mad);
+ struct ib_ah *mlx5_ib_create_ah(struct ib_pd *pd, struct rdma_ah_attr *ah_attr,
+ 				u32 flags, struct ib_udata *udata);
+ int mlx5_ib_query_ah(struct ib_ah *ibah, struct rdma_ah_attr *ah_attr);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/Makefile b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+index 9de9abacf7f6..0257731e6d42 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/Makefile
++++ b/drivers/net/ethernet/mellanox/mlx5/core/Makefile
+@@ -13,7 +13,7 @@ obj-$(CONFIG_MLX5_CORE) += mlx5_core.o
+ #
+ mlx5_core-y :=	main.o cmd.o debugfs.o fw.o eq.o uar.o pagealloc.o \
+ 		health.o mcg.o cq.o alloc.o qp.o port.o mr.o pd.o \
+-		mad.o transobj.o vport.o sriov.o fs_cmd.o fs_core.o \
++		transobj.o vport.o sriov.o fs_cmd.o fs_core.o \
+ 		fs_counters.o rl.o lag.o dev.o events.o wq.o lib/gid.o \
+ 		lib/devcom.o diag/fs_tracepoint.o diag/fw_tracer.o
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mad.c b/drivers/net/ethernet/mellanox/mlx5/core/mad.c
+deleted file mode 100644
+index 3a3b0005fd2b..000000000000
+--- a/drivers/net/ethernet/mellanox/mlx5/core/mad.c
++++ /dev/null
+@@ -1,75 +0,0 @@
+-/*
+- * Copyright (c) 2013-2015, Mellanox Technologies. All rights reserved.
+- *
+- * This software is available to you under a choice of one of two
+- * licenses.  You may choose to be licensed under the terms of the GNU
+- * General Public License (GPL) Version 2, available from the file
+- * COPYING in the main directory of this source tree, or the
+- * OpenIB.org BSD license below:
+- *
+- *     Redistribution and use in source and binary forms, with or
+- *     without modification, are permitted provided that the following
+- *     conditions are met:
+- *
+- *      - Redistributions of source code must retain the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer.
+- *
+- *      - Redistributions in binary form must reproduce the above
+- *        copyright notice, this list of conditions and the following
+- *        disclaimer in the documentation and/or other materials
+- *        provided with the distribution.
+- *
+- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+- * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+- * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+- * SOFTWARE.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/module.h>
+-#include <linux/mlx5/driver.h>
+-#include <linux/mlx5/cmd.h>
+-#include "mlx5_core.h"
+-
+-int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+-		      u16 opmod, u8 port)
+-{
+-	int outlen = MLX5_ST_SZ_BYTES(mad_ifc_out);
+-	int inlen = MLX5_ST_SZ_BYTES(mad_ifc_in);
+-	int err = -ENOMEM;
+-	void *data;
+-	void *resp;
+-	u32 *out;
+-	u32 *in;
+-
+-	in = kzalloc(inlen, GFP_KERNEL);
+-	out = kzalloc(outlen, GFP_KERNEL);
+-	if (!in || !out)
+-		goto out;
+-
+-	MLX5_SET(mad_ifc_in, in, opcode, MLX5_CMD_OP_MAD_IFC);
+-	MLX5_SET(mad_ifc_in, in, op_mod, opmod);
+-	MLX5_SET(mad_ifc_in, in, port, port);
+-
+-	data = MLX5_ADDR_OF(mad_ifc_in, in, mad);
+-	memcpy(data, inb, MLX5_FLD_SZ_BYTES(mad_ifc_in, mad));
+-
+-	err = mlx5_cmd_exec(dev, in, inlen, out, outlen);
+-	if (err)
+-		goto out;
+-
+-	resp = MLX5_ADDR_OF(mad_ifc_out, out, response_mad_packet);
+-	memcpy(outb, resp,
+-	       MLX5_FLD_SZ_BYTES(mad_ifc_out, response_mad_packet));
+-
+-out:
+-	kfree(out);
+-	kfree(in);
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(mlx5_core_mad_ifc);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 619d6fee96a1..22712c6b3940 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -898,8 +898,6 @@ int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey,
+ 			 u32 *out, int outlen);
+ int mlx5_core_alloc_pd(struct mlx5_core_dev *dev, u32 *pdn);
+ int mlx5_core_dealloc_pd(struct mlx5_core_dev *dev, u32 pdn);
+-int mlx5_core_mad_ifc(struct mlx5_core_dev *dev, const void *inb, void *outb,
+-		      u16 opmod, u8 port);
+ int mlx5_pagealloc_init(struct mlx5_core_dev *dev);
+ void mlx5_pagealloc_cleanup(struct mlx5_core_dev *dev);
+ void mlx5_pagealloc_start(struct mlx5_core_dev *dev);
+-- 
+2.19.1
