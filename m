@@ -1,42 +1,64 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Mon, 14 Jan 2019 10:48:56 +0100
-Message-ID: <20190114094856.GB29604@lst.de>
-References: <20190104223531.GA1705@ziepe.ca> <20190110234218.GM6890@ziepe.ca>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v4] coding-style: Clarify the expectations around bool
+Date: Mon, 14 Jan 2019 17:20:49 +0000
+Message-ID: <20190114172044.GE22875@mellanox.com>
+References: <20190110234805.GN6890@ziepe.ca>
+ <20190111172940.zufmrhvukqo5hkat@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190110234218.GM6890@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>, Sinclair Yeh <syeh@vmware.com>, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Jian Xu Zheng <jian.xu.zheng@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Yong Zhi <yong.zhi@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Christoph Hellwig <hch@lst.de>, Tian Shu Qiu <tian.shu.qiu@intel.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190111172940.zufmrhvukqo5hkat@gmail.com>
+Content-Language: en-US
+Content-ID: <420A43F343C15F47AEEDD50D202BF142@eurprd05.prod.outlook.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joey Pabalinas <joeypabalinas@gmail.com>, Joe Perches <joe@perches.com>, Gal Pressman <galpress@amazon.com>, Bart Van Assche <bvanassche@acm.org>, Stephen Warren <swarren@wwwdotorg.org>, Tariq Toukan <tariqt@mellanox.com>, "xavier.huwei@huawei.com" <xavier.huwei@huawei.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Stephen Warren <swarren@nvidia.com>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBKYW4gMTAsIDIwMTkgYXQgMDQ6NDI6MThQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+ID4gQ2hhbmdlcyBzaW5jZSB0aGUgUkZDOgo+ID4gLSBSZXdvcmsgdm13Z2Z4IHRv
-byBbQ0hdCj4gPiAtIFVzZSBhIGRpc3RpbmN0IHR5cGUgZm9yIHRoZSBETUEgcGFnZSBpdGVyYXRv
-ciBbQ0hdCj4gPiAtIERvIG5vdCBoYXZlIGEgI2lmZGVmIFtDSF0KPiAKPiBDaHJpc3RvcGhIOiBX
-aWxsIHlvdSBhY2s/CgpUaGlzIGxvb2tzIGdlbmVyYWxseSBmaW5lLgoKPiAKPiBBcmUgeW91IHN0
-aWxsIE9LIHdpdGggdGhlIHZtd2dmeCByZXdvcmtpbmcsIG9yIHNob3VsZCB3ZSBnbyBiYWNrIHRv
-Cj4gdGhlIG9yaWdpbmFsIHZlcnNpb24gdGhhdCBkaWRuJ3QgaGF2ZSB0aGUgdHlwZSBzYWZldHkg
-c28gdGhpcyBkcml2ZXIKPiBjYW4gYmUgbGVmdCBicm9rZW4/CgpJIHRoaW5rIHRoZSBtYXAgbWV0
-aG9kIGluIHZtZ2Z4IHRoYXQganVzdCBkb2VzIHZpcnRfdG9fcGh5cyBpcwpwcmV0dHkgYnJva2Vu
-LiAgVGhvbWFzLCBjYW4geW91IGNoZWNrIGlmIHlvdSBzZWUgYW55IHBlcmZvcm1hbmNlCmRpZmZl
-cmVuY2Ugd2l0aCBqdXN0IGRvaW5nIHRoZSBwcm9wZXIgZG1hIG1hcHBpbmcsIGFzIHRoYXQgZ2V0
-cyB0aGUKZHJpdmVyIG91dCBvZiBpbnRlcmZhY2UgYWJ1c2UgbGFuZD8KCldoaWxlIHdlJ3JlIGF0
-IGl0IEkgdGhpbmsgd2UgbmVlZCB0byBtZXJnZSBteSBzZXJpZXMgaW4gdGhpcyBhcmVhCmZvciA1
-LjAsIGJlY2F1c2Ugd2l0aG91dCB0aGF0IHRoZSBkcml2ZXIgaXMgYWxyZWFkeSBicm9rZW4uICBX
-aGVyZQpzaG91bGQgd2UgbWVyZ2UgaXQ/Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbAo=
+On Fri, Jan 11, 2019 at 07:29:40AM -1000, Joey Pabalinas wrote:
+> On Thu, Jan 10, 2019 at 11:48:13PM +0000, Jason Gunthorpe wrote:
+> > There has been some confusion since checkpatch started warning about bo=
+ol
+> > use in structures, and people have been avoiding using it.
+> >=20
+> > Many people feel there is still a legitimate place for bool in structur=
+es,
+> > so provide some guidance on bool usage derived from the entire thread t=
+hat
+> > spawned the checkpatch warning.
+>=20
+> Hey Jason,
+>=20
+> I very much agree that the bool expectations could be much clearer, and t=
+his
+> patch is a nice step in that direction! Just a couple small nitpicks:
+>=20
+> > +Do not use bool if cache line layout or size of the value matters, its=
+ size
+> > +and alignment varies based on the compiled architecture. Structures th=
+at are
+> > +optimized for alignment and size should not use bool.
+>=20
+> +Do not use bool if cache line layout or size of the value matters, as it=
+s size
+>                                                                     ^
+>                                                                     |
+> Adding an "as" makes the sentence flow a bit cleaner: --------------
+>=20
+> > +into a single bitwise 'flags' argument and 'flags' can often a more re=
+adable
+> > +alternative if the call-sites have naked true/false constants.
+>=20
+> +into a single bitwise 'flags' argument and 'flags' can often be a more r=
+eadable
+>                                                               ^
+>                                                               |
+> Missing a "be" here: -----------------------------------------
+>=20
+> Ack from me after those two corrections.
+>=20
+> Reviewed-by: Joey Pabalinas <joeypabalinas@gmail.com>
+
+done, thanks
+
+Jason
