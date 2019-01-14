@@ -1,40 +1,27 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH mlx5-next] RDMA/mad: Reduce MAD scope to mlx5_ib only
-Date: Mon, 14 Jan 2019 19:56:23 +0000
-Message-ID: <20190114195615.GV22875@mellanox.com>
-References: <20190113135704.10032-1-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] [V2] infiniband: fix a missing check of nla_put
+Date: Mon, 14 Jan 2019 14:04:54 -0700
+Message-ID: <20190114210454.GA13422@ziepe.ca>
+References: <20190105161808.3496-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190113135704.10032-1-leon@kernel.org>
-Content-Language: en-US
-Content-ID: <2F27D62D99F11241A651F5BFE9D49DFA@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190105161808.3496-1-pakki001@umn.edu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Aditya Pakki <pakki001@umn.edu>
+Cc: kjlu@umn.edu, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 13, 2019 at 03:57:04PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
->=20
-> Management Datagram Interface (MAD) is applicable
-> only when physical port is Infiniband. It makes MAD
-> command logic to be completely unrelated to eth/core
-> parts of mlx5.
-=20
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+On Sat, Jan 05, 2019 at 10:18:07AM -0600, Aditya Pakki wrote:
+> nla_put() may fail. The fix adds a check for its return value, and
+> returns -EMSGSIZE if it fails, post canceling netlink msg.
+> 
+> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
 > ---
->  drivers/infiniband/hw/mlx5/cmd.c              | 37 +++++++++
->  drivers/infiniband/hw/mlx5/cmd.h              |  2 +
->  drivers/infiniband/hw/mlx5/mad.c              | 11 ++-
->  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  3 -
->  .../net/ethernet/mellanox/mlx5/core/Makefile  |  2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/mad.c | 75 -------------------
->  include/linux/mlx5/driver.h                   |  2 -
->  7 files changed, 47 insertions(+), 85 deletions(-)
->  delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
+>  drivers/infiniband/core/addr.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 
-Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+Leon?
 
 Jason
