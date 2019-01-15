@@ -1,62 +1,83 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Tue, 15 Jan 2019 14:25:01 -0700
-Message-ID: <20190115212501.GE22045@ziepe.ca>
-References: <20190104223531.GA1705@ziepe.ca>
- <20190110234218.GM6890@ziepe.ca>
- <20190114094856.GB29604@lst.de>
- <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+Subject: Re: [PATCH rdma-rc 1/3] RDMA/hns: Fix the Oops during rmmod or
+ insmod ko when reset occurs
+Date: Tue, 15 Jan 2019 15:02:59 -0700
+Message-ID: <20190115220259.GH22045@ziepe.ca>
+References: <1547128663-69220-1-git-send-email-xavier.huwei@huawei.com>
+ <1547128663-69220-2-git-send-email-xavier.huwei@huawei.com>
+ <20190111213411.GA22310@ziepe.ca>
+ <5C399D73.5000902@huawei.com>
+ <20190114220655.GD1208@ziepe.ca>
+ <5C3D3BD1.4000508@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+In-Reply-To: <5C3D3BD1.4000508@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Hellstrom <thellstrom@vmware.com>
-Cc: "hch@lst.de" <hch@lst.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "syeh@vmware.com" <syeh@vmware.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "imre.deak@intel.com" <imre.deak@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 15, 2019 at 02:17:26PM +0000, Thomas Hellstrom wrote:
-> Hi, Christoph,
+On Tue, Jan 15, 2019 at 09:48:01AM +0800, Wei Hu (Xavier) wrote:
 > 
-> On Mon, 2019-01-14 at 10:48 +0100, Christoph Hellwig wrote:
-> > On Thu, Jan 10, 2019 at 04:42:18PM -0700, Jason Gunthorpe wrote:
-> > > > Changes since the RFC:
-> > > > - Rework vmwgfx too [CH]
-> > > > - Use a distinct type for the DMA page iterator [CH]
-> > > > - Do not have a #ifdef [CH]
-> > > 
-> > > ChristophH: Will you ack?
-> > 
-> > This looks generally fine.
-> > 
-> > > Are you still OK with the vmwgfx reworking, or should we go back to
-> > > the original version that didn't have the type safety so this
-> > > driver
-> > > can be left broken?
-> > 
-> > I think the map method in vmgfx that just does virt_to_phys is
-> > pretty broken.  Thomas, can you check if you see any performance
-> > difference with just doing the proper dma mapping, as that gets the
-> > driver out of interface abuse land?
 > 
-> The performance difference is not really the main problem here. The
-> problem is that even though we utilize the streaming DMA interface, we
-> use it only since we have to for DMA-Remapping and assume that the
-> memory is coherent. To be able to be as compliant as possible and ditch
-> the virt-to-phys mode, we *need* a DMA interface flag that tells us
-> when the dma_sync_for_xxx are no-ops. If they aren't we'll refuse to
-> load for now. I'm not sure, but I think also nouveau and radeon suffer
-> from the same issue.
+> On 2019/1/15 6:06, Jason Gunthorpe wrote:
+> > On Sat, Jan 12, 2019 at 03:55:31PM +0800, Wei Hu (Xavier) wrote:
+> >>
+> >> On 2019/1/12 5:34, Jason Gunthorpe wrote:
+> >>> On Thu, Jan 10, 2019 at 09:57:41PM +0800, Wei Hu (Xavier) wrote:
+> >>>> +	/* Check the status of the current software reset process, if in
+> >>>> +	 * software reset process, wait until software reset process finished,
+> >>>> +	 * in order to ensure that reset process and this function will not call
+> >>>> +	 * __hns_roce_hw_v2_uninit_instance at the same time.
+> >>>> +	 * If a timeout occurs, it indicates that the network subsystem has
+> >>>> +	 * encountered a serious error and cannot be recovered from the reset
+> >>>> +	 * processing.
+> >>>> +	 */
+> >>>> +	if (ops->ae_dev_resetting(handle)) {
+> >>>> +		dev_warn(dev, "Device is busy in resetting state. waiting.\n");
+> >>>> +		end = msecs_to_jiffies(HNS_ROCE_V2_RST_PRC_MAX_TIME) + jiffies;
+> >>>> +		while (ops->ae_dev_resetting(handle) &&
+> >>>> +		       time_before(jiffies, end))
+> >>>> +			msleep(20);
+> >>> Really? Does this have to be so ugly? Why isn't there just a simple
+> >>> lock someplace that is held during reset?
+> >>>
+> >>> I'm skeptical that all this strange looking stuff is properly locked
+> >>> and concurrency safe.
+> >> Hi, Jason
+> >>
+> >> The hns3 NIC driver notifies the hns RoCE driver to perform
+> >> reset related processing by calling the .reset_notify() interface
+> >> registered by the RoCE driver.
+> >>
+> >> There is a constraint on the hip08 chip, the NIC driver needs to
+> >> stop the flow before hardware startup reset, otherwise the chip
+> >> may hang up.
+> >>
+> >> We've also thought about using locks, but found using locks can
+> >> lead to more serious problems because of that restriction of the
+> >> chip.
+> >> If using locks here, reset processing may wait for uninstallation
+> >> to complete, this may lead that NIC driver fails to stop the flow
+> >> in time in the reset process, thus causing the chip to hang up.
+> > If you are sleeping then I'm sure a lock can be used instead, how
+> > would it be any different?
+> Hi, Jason
+>     If using locks here, reset process may wait until uninstallation to
+> complete,
+>         it may trigger the chip constraint, causing chip to hang up.
+>     But if using sleeping here, there will notthe case that reset
+> process wait until
+>        uninstallation to complete, then will not trigger the chip
+> constraint.
 
-RDMA needs something similar as well, in this case drivers take a
-struct page * from get_user_pages() and need to have the DMA map fail
-if the platform can't DMA map in a way that does not require any
-additional DMA API calls to ensure coherence. (think Userspace RDMA
-MR's)
+But how is this even right? If ops->ae_dev_resetting can change at any
+time, and you need to wait for it here, without locks can't it just
+change instantly after the if statement?
 
-Today we just do the normal DMA map and when it randomly doesn't work
-and corrupts data tell those people their platforms don't support RDMA
-- it would be nice to have a safer API base solution..
+I think it shows the concurrancy & locking is not done right when I
+see loops reading shared data and spinning on them with msleep.
 
 Jason
