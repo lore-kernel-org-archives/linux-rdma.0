@@ -1,74 +1,70 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] [V2] infiniband: fix a missing check of nla_put
-Date: Tue, 15 Jan 2019 20:14:29 +0200
-Message-ID: <20190115181429.GP15600@mtr-leonro.mtl.com>
-References: <20190105161808.3496-1-pakki001@umn.edu>
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: Re: [PATCH -next 0/6] mm: make pinned_vm atomic and simplify users
+Date: Tue, 15 Jan 2019 10:18:31 -0800
+Message-ID: <20190115181831.4zgrvyfjy2re7t43@linux-r8p5>
+References: <20190115181300.27547-1-dave@stgolabs.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="poJSiGMzRSvrLGLs"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190105161808.3496-1-pakki001@umn.edu>
+In-Reply-To: <20190115181300.27547-1-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aditya Pakki <pakki001@umn.edu>
-Cc: kjlu@umn.edu, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Parav Pandit <parav@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: akpm@linux-foundation.org
+Cc: dledford@redhat.com, jgg@mellanox.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+Also Ccing lkml, sorry.
 
---poJSiGMzRSvrLGLs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Tue, 15 Jan 2019, Davidlohr Bueso wrote:
 
-On Sat, Jan 05, 2019 at 10:18:07AM -0600, Aditya Pakki wrote:
-> nla_put() may fail. The fix adds a check for its return value, and
-> returns -EMSGSIZE if it fails, post canceling netlink msg.
+>Hi,
 >
-> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
-> ---
->  drivers/infiniband/core/addr.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+>The following patches aim to provide cleanups to users that pin pages
+>(mostly infiniband) by converting the counter to atomic -- note that
+>Daniel Jordan also has patches[1] for the locked_vm counterpart and vfio.
 >
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-> index 0dce94e3c495..e847b34bacd1 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -178,7 +178,10 @@ static int ib_nl_ip_send_msg(struct rdma_dev_addr *dev_addr,
->  	/* Construct the family header first */
->  	header = skb_put(skb, NLMSG_ALIGN(sizeof(*header)));
->  	header->ifindex = dev_addr->bound_dev_if;
-> -	nla_put(skb, attrtype, size, daddr);
-> +	if (nla_put(skb, attrtype, size, daddr)) {
-> +		nlmsg_cancel(skb, nlh);
-
-It should be nlmsg_free() and not nlmsg_cancel()
-
-> +		return -EMSGSIZE;
-> +	}
+>Apart from removing a source of mmap_sem writer, we benefit in that
+>we can get rid of a lot of code that defers work when the lock cannot
+>be acquired, as well as drivers avoiding mmap_sem altogether by also
+>converting gup to gup_fast() and letting the mm handle it. Users
+>that do the gup_longterm() remain of course under at least reader mmap_sem.
 >
->  	/* Repair the nlmsg header length */
->  	nlmsg_end(skb, nlh);
-> --
-> 2.17.1
+>Everything has been compile-tested _only_ so I hope I didn't do anything
+>too stupid. Please consider for v5.1.
 >
-
---poJSiGMzRSvrLGLs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcPiMFAAoJEORje4g2clinqWYP/Ra8NEt0GVIJEra8OE+ynSCx
-P2fXTH947KwgDcFbc+eu2aEiLm3v3yFjWjkE5Ut1uBqaeqiUCphSRVdpQ1OPQWC3
-cUdqOB21Qr77T47bgoRDvgZGz/+ch5z4nWMQ1I+yZwLj4wmSLP63ZvNaSD2STFxE
-SONQ/5N9Dr4sJo7+9WS4SJlud9cgE17ovEfTfeniYUbwDWrkgNnNjXvqtv4a+5Nl
-WSrJkxbJxwPQBw8E+Y1oOcWxw42EaSSGVm9DNqcSp60X/gOvuedPx4WvIVp+u8yY
-jHbQNUsa6sK8vnmhNW4N0KCO5ROQsXBEvpGtUX9xATyONi8c887xbKYNE+Bm3D6v
-jlcaa3XIgDB2l8EEqnaYb+35TEU66YjfUthYR93PQDK+F+T/qfIbQ4+sAHWbdIy3
-GUuh7dEGsVJPkqazVcVWF+zZks3P8lhKOa/SUdDPqzLKFpiysutNB/foAyoFTt9/
-PBNGgyNnWRah52EjLMRSGoYujs2xoJvaRF9BC1rPlmqL+dP9mhKbavRsyBim9d2h
-3AU8DI6ZHRiw4ozm3ykXBPCvkmEvwo9kntuMdcm+jtrdncQsgplZ8b78GSG69/WD
-n980swMGW9BpT5pUSy7nU9VfFNU+1jGRdiyQe5kcaUy08A7KpBUpIkzOISNr6nnM
-ArXmvtveScB5pHR8/H/w
-=L/zf
------END PGP SIGNATURE-----
-
---poJSiGMzRSvrLGLs--
+>On a similar topic and potential follow up, it would be nice to resurrect
+>Peter's VM_PINNED idea in that the broken semantics that occurred after
+>bc3e53f682 ("mm: distinguish between mlocked and pinned pages") are still
+>present. Also encapsulating internal mm logic via mm[un]pin() instead of
+>drivers having to know about internals and playing nice with compaction are
+>all wins.
+>
+>Thanks!
+>
+>[1] https://lkml.org/lkml/2018/11/5/854
+>
+>Davidlohr Bueso (6):
+>  mm: make mm->pinned_vm an atomic counter
+>  mic/scif: do not use mmap_sem
+>  drivers/IB,qib: do not use mmap_sem
+>  drivers/IB,hfi1: do not se mmap_sem
+>  drivers/IB,usnic: reduce scope of mmap_sem
+>  drivers/IB,core: reduce scope of mmap_sem
+>
+> drivers/infiniband/core/umem.c              | 47 +++-----------------
+> drivers/infiniband/hw/hfi1/user_pages.c     | 12 ++---
+> drivers/infiniband/hw/qib/qib_user_pages.c  | 69 ++++++++++-------------------
+> drivers/infiniband/hw/usnic/usnic_ib_main.c |  2 -
+> drivers/infiniband/hw/usnic/usnic_uiom.c    | 56 +++--------------------
+> drivers/infiniband/hw/usnic/usnic_uiom.h    |  1 -
+> drivers/misc/mic/scif/scif_rma.c            | 38 +++++-----------
+> fs/proc/task_mmu.c                          |  2 +-
+> include/linux/mm_types.h                    |  2 +-
+> kernel/events/core.c                        |  8 ++--
+> kernel/fork.c                               |  2 +-
+> mm/debug.c                                  |  3 +-
+> 12 files changed, 57 insertions(+), 185 deletions(-)
+>
+>-- 
+>2.16.4
+>
