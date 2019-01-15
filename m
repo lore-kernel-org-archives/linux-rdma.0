@@ -1,74 +1,63 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mlx5-next] RDMA/mad: Reduce MAD scope to mlx5_ib only
-Date: Tue, 15 Jan 2019 10:05:01 +0200
-Message-ID: <20190115080501.GH15600@mtr-leonro.mtl.com>
-References: <20190113135704.10032-1-leon@kernel.org>
- <20190114195615.GV22875@mellanox.com>
+Subject: Re: [PATCH] RDMA/mlx5: Replace kzalloc with kcalloc
+Date: Tue, 15 Jan 2019 12:39:07 +0200
+Message-ID: <20190115103907.GI15600@mtr-leonro.mtl.com>
+References: <20190115060048.GA9911@embeddedor>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yEPQxsgoJgBvi8ip"
-Return-path: <netdev-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="qjNfmADvan18RZcF"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190114195615.GV22875@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20190115060048.GA9911@embeddedor>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---yEPQxsgoJgBvi8ip
+--qjNfmADvan18RZcF
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Mon, Jan 14, 2019 at 07:56:23PM +0000, Jason Gunthorpe wrote:
-> On Sun, Jan 13, 2019 at 03:57:04PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Management Datagram Interface (MAD) is applicable
-> > only when physical port is Infiniband. It makes MAD
-> > command logic to be completely unrelated to eth/core
-> > parts of mlx5.
+On Tue, Jan 15, 2019 at 12:00:48AM -0600, Gustavo A. R. Silva wrote:
+> Replace kzalloc() function with its 2-factor argument form, kcalloc().
 >
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  drivers/infiniband/hw/mlx5/cmd.c              | 37 +++++++++
-> >  drivers/infiniband/hw/mlx5/cmd.h              |  2 +
-> >  drivers/infiniband/hw/mlx5/mad.c              | 11 ++-
-> >  drivers/infiniband/hw/mlx5/mlx5_ib.h          |  3 -
-> >  .../net/ethernet/mellanox/mlx5/core/Makefile  |  2 +-
-> >  drivers/net/ethernet/mellanox/mlx5/core/mad.c | 75 -------------------
-> >  include/linux/mlx5/driver.h                   |  2 -
-> >  7 files changed, 47 insertions(+), 85 deletions(-)
-> >  delete mode 100644 drivers/net/ethernet/mellanox/mlx5/core/mad.c
+> This patch replaces cases of:
 >
-> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-
-Thanks, applied to mlx5-next, which is based on -rc2.
-
-73f5a82bb3c9 RDMA/mad: Reduce MAD scope to mlx5_ib only
-
-
+> 	kzalloc(a * b, gfp)
 >
-> Jason
+> with:
+> 	kcalloc(a, b, gfp)
+>
+> This code was detected with the help of Coccinelle.
+>
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  drivers/infiniband/hw/mlx5/main.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
---yEPQxsgoJgBvi8ip
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--qjNfmADvan18RZcF
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcPZQtAAoJEORje4g2clinDbsP/iGjwivklUQI9QvTQnrxpt8O
-d45rNXzzLAfWK5sLSCShxTzPSSpDUEAa/Auzze3wrDc7W9xMwsxL3eTD102uh7Ba
-m0gO4zm+28SmZDDMYs2qaXLgH226nQSYzpSZJX9+6fTYYxtgXa1cZOent2NJkh+L
-GSfHsjOtCufXqiI1hJ1LhVgN5WHlDwF7mKS2ru1LX5eP2qhAsg8xmeP8yPEppmU3
-vbe1Z5Yb/moOmbRLjEY/Pn9lo0LugrFufAiyYwC3e12Bbu0kRisNGBK06C1yrB3K
-YC57HtHrgytOvw9+bjVZ9GS6flCKAip45wdun5v5oM2sTR7ObKueGmDQw07QpooC
-OnxQbB59kGeEQO8IGgQxUMEk1YNAEP2Koxa5+4Cr8YICMXv2dZZKEKxfVvqzw3ZA
-szfUrk7lJIDHsolgKsDbS2NnI5xMUBeUjP2BK5pL2n7EdoNV0PZPf51m6jRKPLBN
-t3YlJVrkeFpkc+HILEBYcMhSWppTuI2zMQAUmPaGsnzRh2g5RnZTZkrEe8SPbGGq
-HJ9wnZh8NudhdZNMkJP8rhJEhqvpPI0dR5R2D8idYYDrTA1CkA893gjDMrEWAZYX
-OrVWvUM/kPPVJoVugt4HC2mRyKvcRO7o0irVoRvPYh3kzjABCr+Ukb60Us1UnWgB
-gP+QiNOgIbk3ORnOo72w
-=7vFv
+iQIcBAEBAgAGBQJcPbhLAAoJEORje4g2cliniacQAKa27GuwRv6bwOSYLFEEo2FW
+9F/qhfIjupxHk3BWle8XXPFrYiRNlYoL0nO35tFHL6ViXu7o3+seq1/SQk42xBOE
+1A2zU5R5fqfpqyLxCPuuEr4ax4Y/lARi55sv9AUVfbNnQvgWgKa99JPq5C4VqM1r
+x7unh4Xusi21huqIwOYIeFYKh974r8BneVRkbQjKF/sM9RNPEH5kFTI6Maj37Lcm
+NfjN/Rm4aKnbtPeIPBF2CIdS+U9J3x2PGKrrZkjOa3aWXaMMMjqlyjscDd9KTxPB
+Plpyf19pLpFa3qRHqCjPs4w5aRj/SMh9Q8O7pD99L4fECh6ujPmL6OihOfvdVjld
+pPyZuABuc3GCr4w+BoDjAeXl2xvifoBOYQx3nAVH/JOe7q3xBNDUIRcH9K6lDdNU
+cybYso3NBlZb78GoT+55flpjpFFNC3r6ybH6bMrNdaNlCNYK0Mok/4y1nacn4CKn
+aU8eoEziIwj778teTkK0nHohsy6pVcMyqv/9SK32Oe3Xu2rAwdg8EWG7gd2U3c0m
+5Pkq4iEw1Gut4E2r17tE++RrET1+it2i6c2JHlG9Oz3NlymFkQigKUaLrSdiaUFC
+/rk+GNvDx/h49d2XgZAMrZA2x4k6fY0SViBFvFhTAZlSrNUwIFzgPFM7GKjzQir3
+O+PSSEVJd/0YuUp0qbX1
+=z5kD
 -----END PGP SIGNATURE-----
 
---yEPQxsgoJgBvi8ip--
+--qjNfmADvan18RZcF--
