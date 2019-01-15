@@ -1,63 +1,58 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH] RDMA/mlx5: Replace kzalloc with kcalloc
-Date: Tue, 15 Jan 2019 12:39:07 +0200
-Message-ID: <20190115103907.GI15600@mtr-leonro.mtl.com>
-References: <20190115060048.GA9911@embeddedor>
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Date: Tue, 15 Jan 2019 14:17:26 +0000
+Message-ID: <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+References: <20190104223531.GA1705@ziepe.ca>	 <20190110234218.GM6890@ziepe.ca>
+ <20190114094856.GB29604@lst.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qjNfmADvan18RZcF"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190115060048.GA9911@embeddedor>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190114094856.GB29604@lst.de>
+Content-Language: en-US
+Content-ID: <08354190753F9248B70A9EE8CA12BF44@namprd05.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "hch@lst.de" <hch@lst.de>, "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: "syeh@vmware.com" <syeh@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---qjNfmADvan18RZcF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Jan 15, 2019 at 12:00:48AM -0600, Gustavo A. R. Silva wrote:
-> Replace kzalloc() function with its 2-factor argument form, kcalloc().
->
-> This patch replaces cases of:
->
-> 	kzalloc(a * b, gfp)
->
-> with:
-> 	kcalloc(a, b, gfp)
->
-> This code was detected with the help of Coccinelle.
->
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
->  drivers/infiniband/hw/mlx5/main.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
-
---qjNfmADvan18RZcF
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcPbhLAAoJEORje4g2cliniacQAKa27GuwRv6bwOSYLFEEo2FW
-9F/qhfIjupxHk3BWle8XXPFrYiRNlYoL0nO35tFHL6ViXu7o3+seq1/SQk42xBOE
-1A2zU5R5fqfpqyLxCPuuEr4ax4Y/lARi55sv9AUVfbNnQvgWgKa99JPq5C4VqM1r
-x7unh4Xusi21huqIwOYIeFYKh974r8BneVRkbQjKF/sM9RNPEH5kFTI6Maj37Lcm
-NfjN/Rm4aKnbtPeIPBF2CIdS+U9J3x2PGKrrZkjOa3aWXaMMMjqlyjscDd9KTxPB
-Plpyf19pLpFa3qRHqCjPs4w5aRj/SMh9Q8O7pD99L4fECh6ujPmL6OihOfvdVjld
-pPyZuABuc3GCr4w+BoDjAeXl2xvifoBOYQx3nAVH/JOe7q3xBNDUIRcH9K6lDdNU
-cybYso3NBlZb78GoT+55flpjpFFNC3r6ybH6bMrNdaNlCNYK0Mok/4y1nacn4CKn
-aU8eoEziIwj778teTkK0nHohsy6pVcMyqv/9SK32Oe3Xu2rAwdg8EWG7gd2U3c0m
-5Pkq4iEw1Gut4E2r17tE++RrET1+it2i6c2JHlG9Oz3NlymFkQigKUaLrSdiaUFC
-/rk+GNvDx/h49d2XgZAMrZA2x4k6fY0SViBFvFhTAZlSrNUwIFzgPFM7GKjzQir3
-O+PSSEVJd/0YuUp0qbX1
-=z5kD
------END PGP SIGNATURE-----
-
---qjNfmADvan18RZcF--
+SGksIENocmlzdG9waCwNCg0KT24gTW9uLCAyMDE5LTAxLTE0IGF0IDEwOjQ4ICswMTAwLCBDaHJp
+c3RvcGggSGVsbHdpZyB3cm90ZToNCj4gT24gVGh1LCBKYW4gMTAsIDIwMTkgYXQgMDQ6NDI6MThQ
+TSAtMDcwMCwgSmFzb24gR3VudGhvcnBlIHdyb3RlOg0KPiA+ID4gQ2hhbmdlcyBzaW5jZSB0aGUg
+UkZDOg0KPiA+ID4gLSBSZXdvcmsgdm13Z2Z4IHRvbyBbQ0hdDQo+ID4gPiAtIFVzZSBhIGRpc3Rp
+bmN0IHR5cGUgZm9yIHRoZSBETUEgcGFnZSBpdGVyYXRvciBbQ0hdDQo+ID4gPiAtIERvIG5vdCBo
+YXZlIGEgI2lmZGVmIFtDSF0NCj4gPiANCj4gPiBDaHJpc3RvcGhIOiBXaWxsIHlvdSBhY2s/DQo+
+IA0KPiBUaGlzIGxvb2tzIGdlbmVyYWxseSBmaW5lLg0KPiANCj4gPiBBcmUgeW91IHN0aWxsIE9L
+IHdpdGggdGhlIHZtd2dmeCByZXdvcmtpbmcsIG9yIHNob3VsZCB3ZSBnbyBiYWNrIHRvDQo+ID4g
+dGhlIG9yaWdpbmFsIHZlcnNpb24gdGhhdCBkaWRuJ3QgaGF2ZSB0aGUgdHlwZSBzYWZldHkgc28g
+dGhpcw0KPiA+IGRyaXZlcg0KPiA+IGNhbiBiZSBsZWZ0IGJyb2tlbj8NCj4gDQo+IEkgdGhpbmsg
+dGhlIG1hcCBtZXRob2QgaW4gdm1nZnggdGhhdCBqdXN0IGRvZXMgdmlydF90b19waHlzIGlzDQo+
+IHByZXR0eSBicm9rZW4uICBUaG9tYXMsIGNhbiB5b3UgY2hlY2sgaWYgeW91IHNlZSBhbnkgcGVy
+Zm9ybWFuY2UNCj4gZGlmZmVyZW5jZSB3aXRoIGp1c3QgZG9pbmcgdGhlIHByb3BlciBkbWEgbWFw
+cGluZywgYXMgdGhhdCBnZXRzIHRoZQ0KPiBkcml2ZXIgb3V0IG9mIGludGVyZmFjZSBhYnVzZSBs
+YW5kPw0KDQpUaGUgcGVyZm9ybWFuY2UgZGlmZmVyZW5jZSBpcyBub3QgcmVhbGx5IHRoZSBtYWlu
+IHByb2JsZW0gaGVyZS4gVGhlDQpwcm9ibGVtIGlzIHRoYXQgZXZlbiB0aG91Z2ggd2UgdXRpbGl6
+ZSB0aGUgc3RyZWFtaW5nIERNQSBpbnRlcmZhY2UsIHdlDQp1c2UgaXQgb25seSBzaW5jZSB3ZSBo
+YXZlIHRvIGZvciBETUEtUmVtYXBwaW5nIGFuZCBhc3N1bWUgdGhhdCB0aGUNCm1lbW9yeSBpcyBj
+b2hlcmVudC4gVG8gYmUgYWJsZSB0byBiZSBhcyBjb21wbGlhbnQgYXMgcG9zc2libGUgYW5kIGRp
+dGNoDQp0aGUgdmlydC10by1waHlzIG1vZGUsIHdlICpuZWVkKiBhIERNQSBpbnRlcmZhY2UgZmxh
+ZyB0aGF0IHRlbGxzIHVzDQp3aGVuIHRoZSBkbWFfc3luY19mb3JfeHh4IGFyZSBuby1vcHMuIElm
+IHRoZXkgYXJlbid0IHdlJ2xsIHJlZnVzZSB0bw0KbG9hZCBmb3Igbm93LiBJJ20gbm90IHN1cmUs
+IGJ1dCBJIHRoaW5rIGFsc28gbm91dmVhdSBhbmQgcmFkZW9uIHN1ZmZlcg0KZnJvbSB0aGUgc2Ft
+ZSBpc3N1ZS4NCg0KPiANCj4gV2hpbGUgd2UncmUgYXQgaXQgSSB0aGluayB3ZSBuZWVkIHRvIG1l
+cmdlIG15IHNlcmllcyBpbiB0aGlzIGFyZWENCj4gZm9yIDUuMCwgYmVjYXVzZSB3aXRob3V0IHRo
+YXQgdGhlIGRyaXZlciBpcyBhbHJlYWR5IGJyb2tlbi4gIFdoZXJlDQo+IHNob3VsZCB3ZSBtZXJn
+ZSBpdD8NCg0KSSBjYW4gbWVyZ2UgaXQgdGhyb3VnaCB2bXdnZngvZHJtLWZpeGVzLiBUaGVyZSBp
+cyBhbiBvdXRzdGFuZGluZyBpc3N1ZQ0Kd2l0aCBwYXRjaCAzLiBEbyB5b3Ugd2FudCBtZSB0byBm
+aXggdGhhdCB1cD8NCg0KVGhhbmtzLA0KVGhvbWFzDQoNCg0KX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
+ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
