@@ -1,45 +1,87 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: Re: [PATCH] RDMA/mlx5: Replace kzalloc with kcalloc
-Date: Tue, 15 Jan 2019 17:03:48 -0600
-Message-ID: <699ab063-64d3-0c9d-f3eb-8e38aa9c5f5d@embeddedor.com>
-References: <20190115060048.GA9911@embeddedor>
- <20190115225403.GA18581@ziepe.ca>
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
+Date: Wed, 16 Jan 2019 07:09:37 +0000
+Message-ID: <01e5522bf88549bfdaea1430fece23cb3d1a1a55.camel@vmware.com>
+References: <20190104223531.GA1705@ziepe.ca>	 <20190110234218.GM6890@ziepe.ca>
+ <20190114094856.GB29604@lst.de>
+ <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
+ <2b440a3b-ed2f-8fd6-a21e-97ca0b2f5db9@gmail.com>
+ <20190115152029.GB2325@lst.de>
+ <41d0616e95fb48942404fb54d82249f5700affb1.camel@vmware.com>
+ <20190115183133.GA12350@lst.de>
+ <c82076aa-a6ee-5ba2-a8d8-935fdbb7d5ca@amd.com>
+ <20190115205801.GA15432@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190115225403.GA18581@ziepe.ca>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190115205801.GA15432@lst.de>
+Content-Language: en-US
+Content-ID: <D690E4E5CF448546A269A54CCF741A1D@namprd05.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "hch@lst.de" <hch@lst.de>, "Christian.Koenig@amd.com" <Christian.Koenig@amd.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 1/15/19 4:54 PM, Jason Gunthorpe wrote:
-> On Tue, Jan 15, 2019 at 12:00:48AM -0600, Gustavo A. R. Silva wrote:
->> Replace kzalloc() function with its 2-factor argument form, kcalloc().
->>
->> This patch replaces cases of:
->>
->> 	kzalloc(a * b, gfp)
->>
->> with:
->> 	kcalloc(a, b, gfp)
->>
->> This code was detected with the help of Coccinelle.
->>
->> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->> Acked-by: Leon Romanovsky <leonro@mellanox.com>
->> ---
->>  drivers/infiniband/hw/mlx5/main.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> Applied to for-next
-> 
-
-Thank you both, Leon and Jason.
-
---
-Gustavo
+T24gVHVlLCAyMDE5LTAxLTE1IGF0IDIxOjU4ICswMTAwLCBoY2hAbHN0LmRlIHdyb3RlOg0KPiBP
+biBUdWUsIEphbiAxNSwgMjAxOSBhdCAwNzoxMzoxMVBNICswMDAwLCBLb2VuaWcsIENocmlzdGlh
+biB3cm90ZToNCj4gPiBUaG9tYXMgaXMgY29ycmVjdCB0aGF0IHRoZSBpbnRlcmZhY2UgeW91IHBy
+b3Bvc2UgaGVyZSBkb2Vzbid0IHdvcmsNCj4gPiBhdCANCj4gPiBhbGwgZm9yIEdQVXMuDQo+ID4g
+DQo+ID4gVGhlIGtlcm5lbCBkcml2ZXIgaXMgbm90IGluZm9ybWVkIG9mIGZsdXNoL3N5bmMsIGJ1
+dCByYXRoZXIganVzdA0KPiA+IHNldHVwcyANCj4gPiBjb2hlcmVudCBtYXBwaW5ncyBiZXR3ZWVu
+IHN5c3RlbSBtZW1vcnkgYW5kIGRldmljZXMuDQo+ID4gDQo+ID4gSW4gb3RoZXIgd29yZHMgeW91
+IGhhdmUgYW4gYXJyYXkgb2Ygc3RydWN0IHBhZ2VzIGFuZCBuZWVkIHRvIG1hcA0KPiA+IHRoYXQg
+dG8gDQo+ID4gYSBzcGVjaWZpYyBkZXZpY2UgYW5kIHNvIGNyZWF0ZSBkbWFfYWRkcmVzc2VzIGZv
+ciB0aGUgbWFwcGluZ3MuDQo+IA0KPiBJZiB5b3Ugd2FudCBhIGNvaGVyZW50IG1hcHBpbmcgeW91
+IG5lZWQgdG8gdXNlIGRtYV9hbGxvY19jb2hlcmVudA0KPiBhbmQgZG1hX21tYXBfY29oZXJlbnQg
+YW5kIHlvdSBhcmUgZG9uZSwgdGhhdCBpcyBub3QgdGhlIHByb2JsZW0uDQo+IFRoYXQgYWN0dWFs
+bHkgaXMgb25lIG9mIHRoZSB2bWdmeCBtb2Rlcywgc28gSSBkb24ndCB1bmRlcnN0YW5kIHdoYXQN
+Cj4gcHJvYmxlbSB3ZSBhcmUgdHJ5aW5nIHRvIHNvbHZlIGlmIHlvdSBkb24ndCBhY3R1YWxseSB3
+YW50IGEgbm9uLQ0KPiBjb2hlcmVudCBtYXBwaW5nLiANCg0KRm9yIHZtd2dmeCwgbm90IG1ha2lu
+ZyBkbWFfYWxsb2NfY29oZXJlbnQgZGVmYXVsdCBoYXMgYSBjb3VwbGUgb2YNCnJlYXNvbnM6DQox
+KSBNZW1vcnkgaXMgYXNzb2NpYXRlZCB3aXRoIGEgc3RydWN0IGRldmljZS4gSXQgaGFzIG5vdCBi
+ZWVuIGNsZWFyDQp0aGF0IGl0IGlzIGV4cG9ydGFibGUgdG8gb3RoZXIgZGV2aWNlcy4NCjIpIFRo
+ZXJlIHNlZW1zIHRvIGJlIHJlc3RyaWN0aW9ucyBpbiB0aGUgc3lzdGVtIHBhZ2VzIGFsbG93YWJs
+ZS4gR1BVcw0KZ2VuZXJhbGx5IHByZWZlciBoaWdobWVtIHBhZ2VzIGJ1dCBkbWFfYWxsb2NfY29o
+ZXJlbnQgcmV0dXJucyBhIHZpcnR1YWwNCmFkZHJlc3MgaW1wbHlpbmcgR0ZQX0tFUk5FTD8gV2hp
+bGUgbm90IHVzZWQgYnkgdm13Z2Z4LCBUVE0gdHlwaWNhbGx5DQpwcmVmZXJzIEhJR0hNRU0gcGFn
+ZXMgdG8gZmFjaWxpdGF0ZSBjYWNoaW5nIG1vZGUgc3dpdGNoaW5nIHdpdGhvdXQNCmhhdmluZyB0
+byB0b3VjaCB0aGUga2VybmVsIG1hcC4gDQozKSBIaXN0b3JpY2FsbHkgd2UgaGFkIEFQSXMgdG8g
+YWxsb3cgY29oZXJlbnQgYWNjZXNzIHRvIHVzZXItc3BhY2UNCmRlZmluZWQgcGFnZXMuIFRoYXQg
+aGFzIGdvbmUgYXdheSBub3QgYnV0IHRoZSBpbmZyYXN0cnVjdHVyZSB3YXMgYnVpbHQNCmFyb3Vu
+ZCBpdC4NCg0KZG1hX21tYXBfY29oZXJlbnQgaXNuJ3QgdXNlIGJlY2F1c2UgYXMgdGhlIGRhdGEg
+bW92ZXMgYmV0d2VlbiBzeXN0ZW0NCm1lbW9yeSwgc3dhcCBhbmQgVlJBTSwgUFRFcyBvZiB1c2Vy
+LXNwYWNlIG1hcHBpbmdzIGFyZSBhZGp1c3RlZA0KYWNjb3JkaW5nbHksIG1lYW5pbmcgdXNlci1z
+cGFjZSBkb2Vzbid0IGhhdmUgdG8gdW5tYXAgd2hlbiBhbiBvcGVyYXRpb24NCmlzIGluaXRpYXRl
+ZCB0aGF0IG1pZ2h0IG1lYW4gdGhlIGRhdGEgaXMgbW92ZWQuDQoNCg0KPiBBbHRob3VnaCBsYXN0
+IHRpbWUgSSBoYWQgdGhhdCBkaXNjdXNzaW9uIHdpdGggRGFuaWVsIFZldHRlcg0KPiBJIHdhcyB1
+bmRlciB0aGUgaW1wcmVzc2lvbnMgdGhhdCBHUFVzIHJlYWxseSB3YW50ZWQgbm9uLWNvaGVyZW50
+DQo+IG1hcHBpbmdzLg0KDQpJbnRlbCBoaXN0b3JpY2FsbHkgaGFzIGRvbmUgdGhpbmdzIGEgYml0
+IGRpZmZlcmVudGx5LiBBbmQgaXQncyBhbHNvDQpwb3NzaWJsZSB0aGF0IGVtYmVkZGVkIHBsYXRm
+b3JtcyBhbmQgQVJNIHByZWZlciB0aGlzIG1vZGUgb2Ygb3BlcmF0aW9uLA0KYnV0IEkgaGF2ZW4n
+dCBjYXVnaHQgdXAgb24gdGhhdCBkaXNjdXNzaW9uLg0KDQo+IA0KPiBCdXQgaWYgeW91IHdhbnQg
+YSBjb2hlcmVudCBtYXBwaW5nIHlvdSBjYW4ndCBnbyB0byBhIHN0cnVjdCBwYWdlLA0KPiBiZWNh
+dXNlIG9uIG1hbnkgc3lzdGVtcyB5b3UgY2FuJ3QganVzdCBtYXAgYXJiaXRyYXJ5IG1lbW9yeSBh
+cw0KPiB1bmNhY2hhYmxlLiAgSXQgbWlnaHQgZWl0aGVyIGNvbWUgZnJvbSB2ZXJ5IHNwZWNpYWwg
+bGltaXRlZCBwb29scywNCj4gb3IgbWlnaHQgbmVlZCBvdGhlciBtYWdpYyBhcHBsaWVkIHRvIGl0
+IHNvIHRoYXQgaXQgaXMgbm90IHZpc2libGUNCj4gaW4gdGhlIG5vcm1hbCBkaXJlY3QgbWFwcGlu
+Zywgb3IgYXQgbGVhc3Qgbm90IGFjY2VzcyB0aHJvdWdoIGl0Lg0KDQoNClRoZSBUVE0gc3Vic3lz
+dGVtIGhhcyBiZWVuIHJlbGllZCBvbiB0byBwcm92aWRlIGNvaGVyZW50IG1lbW9yeSB3aXRoDQp0
+aGUgb3B0aW9uIHRvIHN3aXRjaCBjYWNoaW5nIG1vZGUgb2YgcGFnZXMuIEJ1dCBvbmx5IG9uIHNl
+bGVjdGVkIGFuZA0Kd2VsbCB0ZXN0ZWQgcGxhdGZvcm1zLiBPbiBvdGhlciBwbGF0Zm9ybXMgd2Ug
+c2ltcGx5IGRvIG5vdCBsb2FkLCBhbmQNCnRoYXQncyBmaW5lIGZvciBub3cuDQoNCkJ1dCBhcyBt
+ZW50aW9uZWQgbXVsdGlwbGUgdGltZXMsIHRvIG1ha2UgR1BVIGRyaXZlcnMgbW9yZSBjb21wbGlh
+bnQsDQp3ZSdkIHJlYWxseSB3YW50IHRoYXQNCg0KYm9vbCBkbWFfc3RyZWFtaW5nX2lzX2NvaGVy
+ZW50KGNvbnN0IHN0cnVjdCBkZXZpY2UgKikNCg0KQVBJIHRvIGhlbHAgdXMgZGVjaWRlIHdoZW4g
+dG8gbG9hZCBvciBub3QuDQoNClRoYW5rcywNClRob21hcw0KDQoNCg0KDQoNCg0KDQpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
+ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
