@@ -1,71 +1,113 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Shiraz Saleem <shiraz.saleem@intel.com>
 Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Wed, 16 Jan 2019 10:24:36 -0700
-Message-ID: <20190116172436.GM22045@ziepe.ca>
+Date: Wed, 16 Jan 2019 11:32:30 -0600
+Message-ID: <20190116173230.GA14716@ssaleem-MOBL4.amr.corp.intel.com>
 References: <20190104223531.GA1705@ziepe.ca>
- <20190110234218.GM6890@ziepe.ca>
- <20190114094856.GB29604@lst.de>
- <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
- <20190115212501.GE22045@ziepe.ca>
- <20190116161134.GA29041@lst.de>
+ <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
+ <20190112183752.GC16457@mellanox.com>
+ <20190112190305.GA19436@ssaleem-MOBL4.amr.corp.intel.com>
+ <20190114221654.GE1208@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20190116161134.GA29041@lst.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "hch@lst.de" <hch@lst.de>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "syeh@vmware.com" <syeh@vmware.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "imre.deak@intel.com" <imre.deak@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+In-Reply-To: <20190114221654.GE1208@ziepe.ca>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Devesh Sharma <devesh.sharma@broadcom.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>, Sinclair Yeh <syeh@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jian Xu Zheng <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Yong Zhi <yong.zhi@intel.com>, Christoph Hellwig <hch@lst.de>, Tian Shu Qiu <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 16, 2019 at 05:11:34PM +0100, hch@lst.de wrote:
-> On Tue, Jan 15, 2019 at 02:25:01PM -0700, Jason Gunthorpe wrote:
-> > RDMA needs something similar as well, in this case drivers take a
-> > struct page * from get_user_pages() and need to have the DMA map fail
-> > if the platform can't DMA map in a way that does not require any
-> > additional DMA API calls to ensure coherence. (think Userspace RDMA
-> > MR's)
-> 
-> Any time you dma map pages you need to do further DMA API calls to
-> ensure coherent, that is the way it is implemented.  These calls
-> just happen to be no-ops sometimes.
-> 
-> > Today we just do the normal DMA map and when it randomly doesn't work
-> > and corrupts data tell those people their platforms don't support RDMA
-> > - it would be nice to have a safer API base solution..
-> 
-> Now that all these drivers are consolidated in rdma-core you can fix
-> the code to actually do the right thing.  It isn't that userspace DMA
-> coherent is any harder than in-kernel DMA coherenence.  It just is
-> that no one bothered to do it properly.
-
-If I recall we actually can't.. libverbs presents an API to the user
-that does not consider this possibility. 
-
-ie consider post_recv - the driver has no idea what user buffers
-received data and can't possibly flush them transparently. The user
-would have to call some special DMA syncing API, which we don't have.
-
-It is the same reason the kernel API makes the ULP handle dma sync,
-not the driver.
-
-The fact is there is 0 industry interest in using RDMA on platforms
-that can't do HW DMA cache coherency - the kernel syscalls required to
-do the cache flushing on the IO path would just destroy performance to
-the point of making RDMA pointless. Better to use netdev on those
-platforms.
-
-VFIO is in a similar boat. Their user API can't handle cache syncing
-either, so they would use the same API too.
-
-.. and the GPU-compute systems (ie OpenCL/CUDA) are like verbs, they
-were never designed with incoherent DMA in mind, and don't have the
-API design to support it.
-
-The reality is that *all* the subsytems doing DMA kernel bypass are
-ignoring the DMA mapping rules, I think we should support this better,
-and just accept that user space DMA will not be using syncing. Block
-access in cases when this is required, otherwise let it work as is
-today.
-
-Jason
+T24gTW9uLCBKYW4gMTQsIDIwMTkgYXQgMDM6MTY6NTRQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
+IHdyb3RlOgo+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0IDAxOjAzOjA1UE0gLTA2MDAsIFNoaXJh
+eiBTYWxlZW0gd3JvdGU6Cj4gPiBPbiBTYXQsIEphbiAxMiwgMjAxOSBhdCAwNjozNzo1OFBNICsw
+MDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gPiA+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0
+IDEyOjI3OjA1UE0gLTA2MDAsIFNoaXJheiBTYWxlZW0gd3JvdGU6Cj4gPiA+ID4gT24gRnJpLCBK
+YW4gMDQsIDIwMTkgYXQgMTA6MzU6NDNQTSArMDAwMCwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+
+ID4gPiA+ID4gQ29tbWl0IDJkYjc2ZDdjM2M2ZCAoImxpYi9zY2F0dGVybGlzdDogc2dfcGFnZV9p
+dGVyOiBzdXBwb3J0IHNnIGxpc3RzIHcvbwo+ID4gPiA+ID4gYmFja2luZyBwYWdlcyIpIGludHJv
+ZHVjZWQgdGhlIHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygpIGZ1bmN0aW9uIHdpdGhvdXQKPiA+
+ID4gPiA+IHByb3ZpZGluZyBhIHdheSB0byB1c2UgaXQgaW4gdGhlIGdlbmVyYWwgY2FzZS4gSWYg
+dGhlIHNnX2RtYV9sZW4gaXMgbm90Cj4gPiA+ID4gPiBlcXVhbCB0byB0aGUgZG1hX2xlbmd0aCBj
+YWxsZXJzIGNhbm5vdCBzYWZlbHkgdXNlIHRoZQo+ID4gPiA+ID4gZm9yX2VhY2hfc2dfcGFnZS9z
+Z19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MgY29tYmluYXRpb24uCj4gPiA+ID4gPiAKPiA+ID4gPiA+
+IFJlc29sdmUgdGhpcyBBUEkgbWlzdGFrZSBieSBwcm92aWRpbmcgYSBETUEgc3BlY2lmaWMgaXRl
+cmF0b3IsCj4gPiA+ID4gPiBmb3JfZWFjaF9zZ19kbWFfcGFnZSgpLCB0aGF0IHVzZXMgdGhlIHJp
+Z2h0IGxlbmd0aCBzbwo+ID4gPiA+ID4gc2dfcGFnZV9pdGVyX2RtYV9hZGRyZXNzKCkgd29ya3Mg
+YXMgZXhwZWN0ZWQgd2l0aCBhbGwgc2dsaXN0cy4gQSBuZXcKPiA+ID4gPiA+IGl0ZXJhdG9yIHR5
+cGUgaXMgaW50cm9kdWNlZCB0byBwcm92aWRlIGNvbXBpbGUtdGltZSBzYWZldHkgYWdhaW5zdCB3
+cm9uZ2x5Cj4gPiA+ID4gPiBtaXhpbmcgYWNjZXNzb3JzIGFuZCBpdGVyYXRvcnMuCj4gPiA+ID4g
+Wy4uXQo+ID4gPiA+IAo+ID4gPiA+ID4gIAo+ID4gPiA+ID4gKy8qCj4gPiA+ID4gPiArICogc2cg
+cGFnZSBpdGVyYXRvciBmb3IgRE1BIGFkZHJlc3Nlcwo+ID4gPiA+ID4gKyAqCj4gPiA+ID4gPiAr
+ICogVGhpcyBpcyB0aGUgc2FtZSBhcyBzZ19wYWdlX2l0ZXIgaG93ZXZlciB5b3UgY2FuIGNhbGwK
+PiA+ID4gPiA+ICsgKiBzZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MoQGRtYV9pdGVyKSB0byBnZXQg
+dGhlIHBhZ2UncyBETUEKPiA+ID4gPiA+ICsgKiBhZGRyZXNzLiBzZ19wYWdlX2l0ZXJfcGFnZSgp
+IGNhbm5vdCBiZSBjYWxsZWQgb24gdGhpcyBpdGVyYXRvci4KPiA+ID4gPiA+ICsgKi8KPiA+ID4g
+PiBEb2VzIGl0IG1ha2Ugc2Vuc2UgdG8gaGF2ZSBhIHZhcmlhbnQgb2Ygc2dfcGFnZV9pdGVyX3Bh
+Z2UoKSB0byBnZXQgdGhlCj4gPiA+ID4gcGFnZSBkZXNjcmlwdG9yIHdpdGggdGhpcyBkbWFfaXRl
+cj8gVGhpcyBjYW4gYmUgdXNlZCB3aGVuIHdhbGtpbmcgRE1BLW1hcHBlZAo+ID4gPiA+IFNHIGxp
+c3RzIHdpdGggZm9yX2VhY2hfc2dfZG1hX3BhZ2UuCj4gPiA+IAo+ID4gPiBJIHRoaW5rIHRoYXQg
+d291bGQgYmUgYSBjb21wbGljYXRlZCBjYWNsdWF0aW9uIHRvIGZpbmQgdGhlIHJpZ2h0Cj4gPiA+
+IG9mZnNldCBpbnRvIHRoZSBwYWdlIHNnIGxpc3QgdG8gZ2V0IHRoZSBwYWdlIHBvaW50ZXIgYmFj
+ay4gV2UgY2FuJ3QKPiA+ID4ganVzdCBuYWl2ZWx5IHVzZSB0aGUgZXhpc3RpbmcgaXRlcmF0b3Ig
+bG9jYXRpb24uCj4gPiA+IAo+ID4gPiBQcm9iYWJseSBwbGFjZXMgdGhhdCBuZWVkIHRoaXMgYXJl
+IGJldHRlciB0byBydW4gd2l0aCB0d28gaXRlcmF0b3JzLAo+ID4gPiBsZXNzIGNvbXB1dGF0aW9u
+YWxseSBleHBlbnNpdmUuCj4gPiA+IAo+ID4gPiBEaWQgeW91IGZpbmQgYSBuZWVkIGZvciB0aGlz
+PyAKPiA+ID4gCj4gPiAKPiA+IFdlbGwgSSB3YXMgdHJ5aW5nIGNvbnZlcnQgdGhlIFJETUEgZHJp
+dmVycyB0byB1c2UgeW91ciBuZXcgaXRlcmF0b3IgdmFyaWFudAo+ID4gYW5kIHNhdyB0aGUgbmVl
+ZCBmb3IgaXQgaW4gbG9jYXRpb25zIHdoZXJlIHdlIG5lZWQgdmlydHVhbCBhZGRyZXNzIG9mIHRo
+ZSBwYWdlcwo+ID4gY29udGFpbmVkIGluIHRoZSBTR0VzLgo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9pbmZpbmliYW5kL2h3L2JueHRfcmUvcXBsaWJfcmVzLmMgYi9kcml2ZXJzL2luZmlu
+aWJhbmQvaHcvYm54dF9yZS9xcGxpYl9yZXMuYwo+ID4gaW5kZXggNTllZWFjNS4uN2QyNjkwMyAx
+MDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9ibnh0X3JlL3FwbGliX3Jlcy5j
+Cj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvYm54dF9yZS9xcGxpYl9yZXMuYwo+ID4g
+QEAgLTg1LDcgKzg1LDcgQEAgc3RhdGljIHZvaWQgX19mcmVlX3BibChzdHJ1Y3QgcGNpX2RldiAq
+cGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4gPiAgc3RhdGljIGludCBfX2FsbG9j
+X3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4g
+PiAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBzY2F0dGVybGlzdCAqc2doZWFkLCB1MzIg
+cGFnZXMsIHUzMiBwZ19zaXplKQo+ID4gIHsKPiA+IC0gICAgICAgc3RydWN0IHNjYXR0ZXJsaXN0
+ICpzZzsKPiA+ICsgICAgICAgc3RydWN0IHNnX2RtYV9wYWdlX2l0ZXIgc2dfaXRlcjsKPiA+ICAg
+ICAgICAgYm9vbCBpc191bWVtID0gZmFsc2U7Cj4gPiAgICAgICAgIGludCBpOwo+ID4gCj4gPiBA
+QCAtMTE2LDEyICsxMTYsMTMgQEAgc3RhdGljIGludCBfX2FsbG9jX3BibChzdHJ1Y3QgcGNpX2Rl
+diAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4gPiAgICAgICAgIH0gZWxzZSB7
+Cj4gPiAgICAgICAgICAgICAgICAgaSA9IDA7Cj4gPiAgICAgICAgICAgICAgICAgaXNfdW1lbSA9
+IHRydWU7Cj4gPiAtICAgICAgICAgICAgICAgZm9yX2VhY2hfc2coc2doZWFkLCBzZywgcGFnZXMs
+IGkpIHsKPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHBibC0+cGdfbWFwX2FycltpXSA9IHNn
+X2RtYV9hZGRyZXNzKHNnKTsKPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHBibC0+cGdfYXJy
+W2ldID0gc2dfdmlydChzZyk7Cj4gPiArICAgICAgICAgICAgICAgZm9yX2VhY2hfc2dfZG1hX3Bh
+Z2Uoc2doZWFkLCAmc2dfaXRlciwgcGFnZXMsIDApIHsKPiA+ICsgICAgICAgICAgICAgICAgICAg
+ICAgIHBibC0+cGdfbWFwX2FycltpXSA9IHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygmc2dfaXRl
+cik7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICBwYmwtPnBnX2FycltpXSA9IHBhZ2VfYWRk
+cmVzcyhzZ19wYWdlX2l0ZXJfcGFnZSgmc2dfaXRlci5iYXNlKSk7ID8/Pwo+ID4gCQkJCQleXl5e
+Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXgo+IAo+IEkgY29uY3VyIHdpdGggQ0gsIHBnX2FyciBv
+bmx5IGxvb2tzIHVzZWQgaW4gdGhlICF1bWVtIGNhc2UsIHNvIHNldCB0bwo+IE5VTEwgaGVyZS4g
+Q2hlY2sgd2l0aCBTZWx2aW4gJiBEZXZlc2ggPwoKVGhhdCBtYWtlcyBzZW5zZSB0byBtZS4gQW55
+IGNvbmNlcm5zIHdpdGggdGhhdCBEZXZlc2g/CiAKPiA+IEBAIC0xOTEsMTYgKzE5MCwxNiBAQCBp
+bnQgcnhlX21lbV9pbml0X3VzZXIoc3RydWN0IHJ4ZV9wZCAqcGQsIHU2NCBzdGFydCwKPiA+ICAg
+ICAgICAgICAgICAgICBnb3RvIGVycjE7Cj4gPiAgICAgICAgIH0KPiA+IAo+ID4gLSAgICAgICBt
+ZW0tPnBhZ2Vfc2hpZnQgICAgICAgICA9IHVtZW0tPnBhZ2Vfc2hpZnQ7Cj4gPiAtICAgICAgIG1l
+bS0+cGFnZV9tYXNrICAgICAgICAgID0gQklUKHVtZW0tPnBhZ2Vfc2hpZnQpIC0gMTsKPiA+ICsg
+ICAgICAgbWVtLT5wYWdlX3NoaWZ0ICAgICAgICAgPSBQQUdFX1NISUZUOwo+ID4gKyAgICAgICBt
+ZW0tPnBhZ2VfbWFzayAgICAgICAgICA9IFBBR0VfU0laRSAtIDE7Cj4gPiAKPiA+ICAgICAgICAg
+bnVtX2J1ZiAgICAgICAgICAgICAgICAgPSAwOwo+ID4gICAgICAgICBtYXAgICAgICAgICAgICAg
+ICAgICAgICA9IG1lbS0+bWFwOwo+ID4gICAgICAgICBpZiAobGVuZ3RoID4gMCkgewo+ID4gICAg
+ICAgICAgICAgICAgIGJ1ZiA9IG1hcFswXS0+YnVmOwo+ID4gCj4gPiAtICAgICAgICAgICAgICAg
+Zm9yX2VhY2hfc2codW1lbS0+c2dfaGVhZC5zZ2wsIHNnLCB1bWVtLT5ubWFwLCBlbnRyeSkgewo+
+ID4gLSAgICAgICAgICAgICAgICAgICAgICAgdmFkZHIgPSBwYWdlX2FkZHJlc3Moc2dfcGFnZShz
+ZykpOwo+ID4gKyAgICAgICAgICAgICAgIGZvcl9lYWNoX3NnX2RtYV9wYWdlKHVtZW0tPnNnX2hl
+YWQuc2dsLCAmc2dfaXRlciwgdW1lbS0+bm1hcCwgMCkgewo+ID4gKyAgICAgICAgICAgICAgICAg
+ICAgICAgdmFkZHIgPSBwYWdlX2FkZHJlc3Moc2dfcGFnZV9pdGVyX3BhZ2UoJnNnX2l0ZXIuYmFz
+ZSkpOyAgID8/Pz8/Cj4gPiAJCQkJXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5e
+Xl5eXgo+IAo+IHJ4ZSBkb2Vzbid0IHVzZSBETUEgYWRkcmVzZXMsIHNvIGp1c3QgbGVhdmUgYXMg
+Zm9yX2VhY2hfc2dfcGFnZQo+IAoKT0suCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
+ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
