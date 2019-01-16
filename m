@@ -1,57 +1,71 @@
-From: Daniel Stone <daniel@fooishbar.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Wed, 16 Jan 2019 16:36:33 +0000
-Message-ID: <CAPj87rNAhGsGwNWRM1iO4rruVjQ+Yu=bDXS39Om9rL6PesuQYg@mail.gmail.com>
-References: <20190114094856.GB29604@lst.de>
+Date: Wed, 16 Jan 2019 10:24:36 -0700
+Message-ID: <20190116172436.GM22045@ziepe.ca>
+References: <20190104223531.GA1705@ziepe.ca>
+ <20190110234218.GM6890@ziepe.ca>
+ <20190114094856.GB29604@lst.de>
  <1fb20ab4b171b281e9994b6c55734c120958530b.camel@vmware.com>
- <2b440a3b-ed2f-8fd6-a21e-97ca0b2f5db9@gmail.com>
- <20190115152029.GB2325@lst.de>
- <41d0616e95fb48942404fb54d82249f5700affb1.camel@vmware.com>
- <20190115183133.GA12350@lst.de> <c82076aa-a6ee-5ba2-a8d8-935fdbb7d5ca@amd.com>
- <20190115205801.GA15432@lst.de>
- <01e5522bf88549bfdaea1430fece23cb3d1a1a55.camel@vmware.com>
- <8aadac80-da9b-b52a-a4bf-066406127117@amd.com> <20190116160639.GA28619@lst.de>
+ <20190115212501.GE22045@ziepe.ca>
+ <20190116161134.GA29041@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190116160639.GA28619@lst.de>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190116161134.GA29041@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "hch@lst.de" <hch@lst.de>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "Koenig,
- Christian" <Christian.Koenig@amd.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "yong.zhi@intel.com" <yong.zhi@intel.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "syeh@vmware.com" <syeh@vmware.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "imre.deak@intel.com" <imre.deak@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "jian.xu.zheng@intel.com" <jian.xu.zheng@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAxNiBKYW4gMjAxOSBhdCAxNjowNiwgaGNoQGxzdC5kZSA8aGNoQGxzdC5kZT4gd3Jv
-dGU6Cj4gT24gV2VkLCBKYW4gMTYsIDIwMTkgYXQgMDc6Mjg6MTNBTSArMDAwMCwgS29lbmlnLCBD
-aHJpc3RpYW4gd3JvdGU6Cj4gPiBUbyBzdW1tYXJpemUgb25jZSBtb3JlOiBXZSBoYXZlIGFuIGFy
-cmF5IG9mIHN0cnVjdCBwYWdlcyBhbmQgd2FudCB0bwo+ID4gY29oZXJlbnRseSBtYXAgdGhhdCB0
-byBhIGRldmljZS4KPgo+IEFuZCB0aGUgYW5zd2VyIHRvIHRoYXQgaXMgdmVyeSBzaW1wbGU6IHlv
-dSBjYW4ndC4gIFdoYXQgaXMgc28gaGFyZAo+IHRvIHVuZGVyc3RhbmQgYWJvdXQ/ICBJZiB5b3Ug
-d2FudCB0byBtYXAgYXJiaXRyYXJ5IG1lbW9yeSBpdCBzaW1wbHkKPiBjYW4ndCBiZSBkb25lIGlu
-IGEgY29oZXJlbnQgd2F5IG9uIGFib3V0IGhhbGYgb2Ygb3VyIHBsYXRmb3Jtcy4KPgo+ID4gSWYg
-dGhhdCBpcyBub3QgcG9zc2libGUgYmVjYXVzZSBvZiB3aGF0ZXZlciByZWFzb24gd2Ugd2FudCB0
-byBnZXQgYW4KPiA+IGVycm9yIGNvZGUgb3IgZXZlbiBub3QgbG9hZCB0aGUgZHJpdmVyIGZyb20g
-dGhlIGJlZ2lubmluZy4KPgo+IFRoYXQgaXMgYSBidWxsc2hpdCBhdHRpdHVkZS4gIEp1c3QgbGlr
-ZSBldmVyeW9uZSBlbHNlIG1ha2VzIHRoZWlyCj4gZHJpdmVycyB3b3JrIHlvdSBzaG91bGQgbm90
-IGJlIGxhenkuCgpDYW4geW91IG5vdCB0YWxrIHRvIHBlb3BsZSBsaWtlIHRoYXQ/IEV2ZW4gaWYg
-eW91IHRoaW5rIHRoYXQgaXMgYW4gT0sKd2F5IHRvIHRyZWF0IGFueW9uZSAtIHdoaWNoIGl0IGlz
-bid0LCBjZXJ0YWlubHkgbm90IG9uIGRyaS1kZXZlbEAgd2l0aAp0aGUgZmQubyBDb2RlIG9mIENv
-bmR1Y3QsIGFuZCBub3QgYWNjb3JkaW5nIHRvIHRoZSBrZXJuZWwncyBlaXRoZXIgLSBJCmhhdmUg
-YWJzb2x1dGVseSBubyBpZGVhIGhvdyB5b3UgY2FuIGxvb2sgYXQgdGhlIHdvcmsgdGhlIEFNRCBw
-ZW9wbGUKaGF2ZSBwdXQgaW4gb3ZlciBtYW55IHllYXJzIGFuZCBjb25jbHVkZSB0aGF0IHRoZXkn
-cmUgJ2xhenknLgoKSWYgdGhpcyBtYWtlcyB5b3Ugc28gYW5ncnksIHN0ZXAgYmFjayBmcm9tIHRo
-ZSBrZXlib2FyZCBmb3IgYSBmZXcKbWludXRlcywgYW5kIGlmIHlvdSBzdGlsbCBjYW4ndCBwYXJ0
-aWNpcGF0ZSBpbiByZWFzb25hYmxlIGRpc2N1c3Npb24KbGlrZSBhbiBhZHVsdCwgbWF5YmUgc3Rl
-cCBvdXQgb2YgdGhlIHRocmVhZCBlbnRpcmVseS4KX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vZHJpLWRldmVsCg==
+On Wed, Jan 16, 2019 at 05:11:34PM +0100, hch@lst.de wrote:
+> On Tue, Jan 15, 2019 at 02:25:01PM -0700, Jason Gunthorpe wrote:
+> > RDMA needs something similar as well, in this case drivers take a
+> > struct page * from get_user_pages() and need to have the DMA map fail
+> > if the platform can't DMA map in a way that does not require any
+> > additional DMA API calls to ensure coherence. (think Userspace RDMA
+> > MR's)
+> 
+> Any time you dma map pages you need to do further DMA API calls to
+> ensure coherent, that is the way it is implemented.  These calls
+> just happen to be no-ops sometimes.
+> 
+> > Today we just do the normal DMA map and when it randomly doesn't work
+> > and corrupts data tell those people their platforms don't support RDMA
+> > - it would be nice to have a safer API base solution..
+> 
+> Now that all these drivers are consolidated in rdma-core you can fix
+> the code to actually do the right thing.  It isn't that userspace DMA
+> coherent is any harder than in-kernel DMA coherenence.  It just is
+> that no one bothered to do it properly.
+
+If I recall we actually can't.. libverbs presents an API to the user
+that does not consider this possibility. 
+
+ie consider post_recv - the driver has no idea what user buffers
+received data and can't possibly flush them transparently. The user
+would have to call some special DMA syncing API, which we don't have.
+
+It is the same reason the kernel API makes the ULP handle dma sync,
+not the driver.
+
+The fact is there is 0 industry interest in using RDMA on platforms
+that can't do HW DMA cache coherency - the kernel syscalls required to
+do the cache flushing on the IO path would just destroy performance to
+the point of making RDMA pointless. Better to use netdev on those
+platforms.
+
+VFIO is in a similar boat. Their user API can't handle cache syncing
+either, so they would use the same API too.
+
+.. and the GPU-compute systems (ie OpenCL/CUDA) are like verbs, they
+were never designed with incoherent DMA in mind, and don't have the
+API design to support it.
+
+The reality is that *all* the subsytems doing DMA kernel bypass are
+ignoring the DMA mapping rules, I think we should support this better,
+and just accept that user space DMA will not be using syncing. Block
+access in cases when this is required, otherwise let it work as is
+today.
+
+Jason
