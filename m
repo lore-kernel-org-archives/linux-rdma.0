@@ -1,55 +1,165 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH net-next] net/mlx4: remove unneeded semicolon
-Date: Thu, 17 Jan 2019 17:01:56 +0200
-Message-ID: <20190117150156.GE15600@mtr-leonro.mtl.com>
-References: <20190117130356.13652-1-yuehaibing@huawei.com>
+Subject: [PATCH iproute2-next] clang-format: add configuration file
+Date: Thu, 17 Jan 2019 17:08:01 +0200
+Message-ID: <20190117150801.25191-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tjOMJDssiV0CZSJH"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190117130356.13652-1-yuehaibing@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: davem@davemloft.net, tariqt@mellanox.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
---tjOMJDssiV0CZSJH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The codebase of iproute2 follows Linux kernel coding style,
+so it will be very helpful to reuse existing clang configuration
+file to reliably format code.
 
-On Thu, Jan 17, 2019 at 09:03:56PM +0800, YueHaibing wrote:
-> Remove unneeded semicolon.
->
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx4/cmd.c | 2 +-
->  drivers/net/ethernet/mellanox/mlx4/eq.c  | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
->
+For more information see kernel commit d4ef8d3ff005
+("clang-format: add configuration file").
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Updated upto commit v5.0-rc1 with small number of ForEachMacros.
 
---tjOMJDssiV0CZSJH
-Content-Type: application/pgp-signature; name="signature.asc"
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ .clang-format | 130 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 130 insertions(+)
+ create mode 100644 .clang-format
 
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcQJjkAAoJEORje4g2clinJjQQALdXCpK68tJIVbV8fFTiyRR9
-PkmOMSwDNmy+2rrvJ3Lxen9U64T053Wmm3JeremEeuRHMHG7WcVLe/9ecpuItcys
-T7YDJQBcAwPNuG68xh3hUVieuAHCrhuJv105syV3yaM8IbJadSNOLNvpwp+d+T5l
-G3NVECR37u9w8z69vDw5D5egedIKHzqPBS6EV+oxFgv0EJ5Tpz+zAOEd/1KM5oqX
-P9zaiOMdemxuX8EFP0Ytys0isMRjWvf2quQyVrVx3WpDHhquaQfpDyAWHHlV4JnQ
-Lvwn5yeqoNUxF5Fh5htcEKv4842c6OWg842osamVNet2ROT/CMG/K4xLYPjSzVLN
-9HGDjIIKXVopyJHZlouGvfbzhzARriIt4qx4fPMFdwlKeT+lf4PM1iAjjPKPW0OB
-0GST+J07FDfIXz84IvjoIuEIbnAxddGxFKTf+jt5hFYMYcUWmrYOibbAYzMsMlNX
-9IiNe8VfwylsMH8Js5Oj5iqxmrxerG8fGDka6/ySK2PfAEFQYIvVBw99ZPbDekeW
-+ABwyzi+FbeDMUnyhg+HB6cfptcKnJyLn+65/tncUNeALhKbX2wOVnQfXa2uNoOA
-4l5v1yFI3Pavo2ds9oRcVXOqPlkevYr7yYTNsjsDt6dmgtunAF31XYABBRQIrwv7
-8QCoKbMxEwyu4GYngrKH
-=ZWsK
------END PGP SIGNATURE-----
-
---tjOMJDssiV0CZSJH--
+diff --git a/.clang-format b/.clang-format
+new file mode 100644
+index 00000000..901467bd
+--- /dev/null
++++ b/.clang-format
+@@ -0,0 +1,130 @@
++# SPDX-License-Identifier: GPL-2.0
++#
++# clang-format configuration file. Intended for clang-format >= 4.
++#
++# For more information, see:
++#
++#   Documentation/process/clang-format.rst
++#   https://clang.llvm.org/docs/ClangFormat.html
++#   https://clang.llvm.org/docs/ClangFormatStyleOptions.html
++#
++---
++AccessModifierOffset: -4
++AlignAfterOpenBracket: Align
++AlignConsecutiveAssignments: false
++AlignConsecutiveDeclarations: false
++#AlignEscapedNewlines: Left # Unknown to clang-format-4.0
++AlignOperands: true
++AlignTrailingComments: false
++AllowAllParametersOfDeclarationOnNextLine: false
++AllowShortBlocksOnASingleLine: false
++AllowShortCaseLabelsOnASingleLine: false
++AllowShortFunctionsOnASingleLine: None
++AllowShortIfStatementsOnASingleLine: false
++AllowShortLoopsOnASingleLine: false
++AlwaysBreakAfterDefinitionReturnType: None
++AlwaysBreakAfterReturnType: None
++AlwaysBreakBeforeMultilineStrings: false
++AlwaysBreakTemplateDeclarations: false
++BinPackArguments: true
++BinPackParameters: true
++BraceWrapping:
++  AfterClass: false
++  AfterControlStatement: false
++  AfterEnum: false
++  AfterFunction: true
++  AfterNamespace: true
++  AfterObjCDeclaration: false
++  AfterStruct: false
++  AfterUnion: false
++  #AfterExternBlock: false # Unknown to clang-format-5.0
++  BeforeCatch: false
++  BeforeElse: false
++  IndentBraces: false
++  #SplitEmptyFunction: true # Unknown to clang-format-4.0
++  #SplitEmptyRecord: true # Unknown to clang-format-4.0
++  #SplitEmptyNamespace: true # Unknown to clang-format-4.0
++BreakBeforeBinaryOperators: None
++BreakBeforeBraces: Custom
++#BreakBeforeInheritanceComma: false # Unknown to clang-format-4.0
++BreakBeforeTernaryOperators: false
++BreakConstructorInitializersBeforeComma: false
++#BreakConstructorInitializers: BeforeComma # Unknown to clang-format-4.0
++BreakAfterJavaFieldAnnotations: false
++BreakStringLiterals: false
++ColumnLimit: 80
++CommentPragmas: '^ IWYU pragma:'
++#CompactNamespaces: false # Unknown to clang-format-4.0
++ConstructorInitializerAllOnOneLineOrOnePerLine: false
++ConstructorInitializerIndentWidth: 8
++ContinuationIndentWidth: 8
++Cpp11BracedListStyle: false
++DerivePointerAlignment: false
++DisableFormat: false
++ExperimentalAutoDetectBinPacking: false
++#FixNamespaceComments: false # Unknown to clang-format-4.0
++
++# Taken from:
++#   git grep -h '^#define [^[:space:]]*for_each[^[:space:]]*(' include/ \
++#   | sed "s,^#define \([^[:space:]]*for_each[^[:space:]]*\)(.*$,  - '\1'," \
++#   | sort | uniq
++ForEachMacros:
++  - 'list_for_each_entry'
++  - 'list_for_each_entry_safe'
++  - 'mnl_attr_for_each_nested'
++  - 'hlist_for_each'
++  - 'hlist_for_each_safe'
++  - 'hlist_for_each_entry'
++
++#IncludeBlocks: Preserve # Unknown to clang-format-5.0
++IncludeCategories:
++  - Regex: '.*'
++    Priority: 1
++IncludeIsMainRegex: '(Test)?$'
++IndentCaseLabels: false
++#IndentPPDirectives: None # Unknown to clang-format-5.0
++IndentWidth: 8
++IndentWrappedFunctionNames: false
++JavaScriptQuotes: Leave
++JavaScriptWrapImports: true
++KeepEmptyLinesAtTheStartOfBlocks: false
++MacroBlockBegin: ''
++MacroBlockEnd: ''
++MaxEmptyLinesToKeep: 1
++NamespaceIndentation: Inner
++#ObjCBinPackProtocolList: Auto # Unknown to clang-format-5.0
++ObjCBlockIndentWidth: 8
++ObjCSpaceAfterProperty: true
++ObjCSpaceBeforeProtocolList: true
++
++# Taken from git's rules
++#PenaltyBreakAssignment: 10 # Unknown to clang-format-4.0
++PenaltyBreakBeforeFirstCallParameter: 30
++PenaltyBreakComment: 10
++PenaltyBreakFirstLessLess: 0
++PenaltyBreakString: 10
++PenaltyExcessCharacter: 100
++PenaltyReturnTypeOnItsOwnLine: 60
++
++PointerAlignment: Right
++ReflowComments: false
++SortIncludes: false
++#SortUsingDeclarations: false # Unknown to clang-format-4.0
++SpaceAfterCStyleCast: false
++SpaceAfterTemplateKeyword: true
++SpaceBeforeAssignmentOperators: true
++#SpaceBeforeCtorInitializerColon: true # Unknown to clang-format-5.0
++#SpaceBeforeInheritanceColon: true # Unknown to clang-format-5.0
++SpaceBeforeParens: ControlStatements
++#SpaceBeforeRangeBasedForLoopColon: true # Unknown to clang-format-5.0
++SpaceInEmptyParentheses: false
++SpacesBeforeTrailingComments: 1
++SpacesInAngles: false
++SpacesInContainerLiterals: false
++SpacesInCStyleCastParentheses: false
++SpacesInParentheses: false
++SpacesInSquareBrackets: false
++Standard: Cpp03
++TabWidth: 8
++UseTab: Always
++...
