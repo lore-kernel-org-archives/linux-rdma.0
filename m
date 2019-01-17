@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 6/7] IB/hfi1: Remove overly conservative VM_EXEC flag
- check
-Date: Thu, 17 Jan 2019 12:42:04 -0800
-Message-ID: <20190117204159.30826.92063.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-rc 7/7] IB/hfi1: Add limit test for RC/UC send via
+ loopback
+Date: Thu, 17 Jan 2019 12:42:16 -0800
+Message-ID: <20190117204209.30826.62040.stgit@scvm10.sc.intel.com>
 References: <20190117203920.30826.76720.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -11,53 +11,52 @@ Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190117203920.30826.76720.stgit@scvm10.sc.intel.com>
 Sender: stable-owner@vger.kernel.org
 To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Ira Weiny <ira.weiny@intel.com>, stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michael J. Ruhl <michael.j.ruhl@intel.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-Applications that use the stack for execution purposes cause
-PSM jobs to fail during mmap().
+Fix potential memory corruption and panic in loopback for
+IB_WR_SEND variants.
 
-Both Fortran (non-standard format parsing) and C (callback
-functions located in the stack) applications can be written
-such that stack execution is required.
+The code blindly assumes the posted length will fit in the
+fetched rwqe, which is not a valid assumption.
 
-Because of this the EXECSTACK bit can be automatically set at link
-time for any application.
+Fix by adding a limit test, and triggering the appropriate
+send completion and putting the QP in an error state.  This
+mimics the handling for non-loopback QPs.
 
-On application load, the ELF loader evaluates the EXECSTACK bit
-for the application and it's linked libraries.  It will set the
-process VM flags to allow the stack to include the VM_EXEC bit
-if the EXECSTACK bit is set.  This flag is propagated to the
-driver during the mmap() call in the vma flag bits.
-
-Checking for this bit and failing the request with EPERM is overly
-conservative and will break any PSM application that has the bit set.
-
-Remove the VM_EXEC flag from the check.
-
-Cc: <stable@vger.kernel.org> #v4.14+
-Fixes: 12220267645c ("IB/hfi: Protect against writable mmap")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Fixes: 15703461533a ("IB/{hfi1, qib, rdmavt}: Move ruc_loopback to rdmavt")
+Cc: <stable@vger.kernel.org> #v4.20+
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/hw/hfi1/file_ops.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/file_ops.c b/drivers/infiniband/hw/hfi1/file_ops.c
-index 0ba0cf5..68c397a 100644
---- a/drivers/infiniband/hw/hfi1/file_ops.c
-+++ b/drivers/infiniband/hw/hfi1/file_ops.c
-@@ -488,7 +488,7 @@ static int hfi1_file_mmap(struct file *fp, struct vm_area_struct *vma)
- 		vmf = 1;
+diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
+index a1bd8cf..c6cc3e4 100644
+--- a/drivers/infiniband/sw/rdmavt/qp.c
++++ b/drivers/infiniband/sw/rdmavt/qp.c
+@@ -2910,6 +2910,8 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 			goto op_err;
+ 		if (!ret)
+ 			goto rnr_nak;
++		if (wqe->length > qp->r_len)
++			goto inv_err;
  		break;
- 	case STATUS:
--		if (flags & (unsigned long)(VM_WRITE | VM_EXEC)) {
-+		if (flags & VM_WRITE) {
- 			ret = -EPERM;
- 			goto done;
- 		}
+ 
+ 	case IB_WR_RDMA_WRITE_WITH_IMM:
+@@ -3078,7 +3080,10 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 	goto err;
+ 
+ inv_err:
+-	send_status = IB_WC_REM_INV_REQ_ERR;
++	send_status =
++		sqp->ibqp.qp_type == IB_QPT_RC ?
++			IB_WC_REM_INV_REQ_ERR :
++			IB_WC_SUCCESS;
+ 	wc.status = IB_WC_LOC_QP_OP_ERR;
+ 	goto err;
+ 
