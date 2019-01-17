@@ -1,113 +1,88 @@
-From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: Re: [PATCH] lib/scatterlist: Provide a DMA page iterator
-Date: Wed, 16 Jan 2019 11:32:30 -0600
-Message-ID: <20190116173230.GA14716@ssaleem-MOBL4.amr.corp.intel.com>
-References: <20190104223531.GA1705@ziepe.ca>
- <20190112182704.GA15320@ssaleem-MOBL4.amr.corp.intel.com>
- <20190112183752.GC16457@mellanox.com>
- <20190112190305.GA19436@ssaleem-MOBL4.amr.corp.intel.com>
- <20190114221654.GE1208@ziepe.ca>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH 2/2] RDMA/srp: Rework SCSI device reset handling
+Date: Wed, 16 Jan 2019 16:27:17 -0800
+Message-ID: <20190117002717.84686-3-bvanassche@acm.org>
+References: <20190117002717.84686-1-bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190114221654.GE1208@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>, Devesh Sharma <devesh.sharma@broadcom.com>
-Cc: Thomas Hellstrom <thellstrom@vmware.com>, Sinclair Yeh <syeh@vmware.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jian Xu Zheng <jian.xu.zheng@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Bingbu Cao <bingbu.cao@intel.com>, Yong Zhi <yong.zhi@intel.com>, Christoph Hellwig <hch@lst.de>, Tian Shu Qiu <tian.shu.qiu@intel.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190117002717.84686-1-bvanassche@acm.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Sergey Gorenko <sergeygo@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCBKYW4gMTQsIDIwMTkgYXQgMDM6MTY6NTRQTSAtMDcwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0IDAxOjAzOjA1UE0gLTA2MDAsIFNoaXJh
-eiBTYWxlZW0gd3JvdGU6Cj4gPiBPbiBTYXQsIEphbiAxMiwgMjAxOSBhdCAwNjozNzo1OFBNICsw
-MDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gPiA+IE9uIFNhdCwgSmFuIDEyLCAyMDE5IGF0
-IDEyOjI3OjA1UE0gLTA2MDAsIFNoaXJheiBTYWxlZW0gd3JvdGU6Cj4gPiA+ID4gT24gRnJpLCBK
-YW4gMDQsIDIwMTkgYXQgMTA6MzU6NDNQTSArMDAwMCwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+
-ID4gPiA+ID4gQ29tbWl0IDJkYjc2ZDdjM2M2ZCAoImxpYi9zY2F0dGVybGlzdDogc2dfcGFnZV9p
-dGVyOiBzdXBwb3J0IHNnIGxpc3RzIHcvbwo+ID4gPiA+ID4gYmFja2luZyBwYWdlcyIpIGludHJv
-ZHVjZWQgdGhlIHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygpIGZ1bmN0aW9uIHdpdGhvdXQKPiA+
-ID4gPiA+IHByb3ZpZGluZyBhIHdheSB0byB1c2UgaXQgaW4gdGhlIGdlbmVyYWwgY2FzZS4gSWYg
-dGhlIHNnX2RtYV9sZW4gaXMgbm90Cj4gPiA+ID4gPiBlcXVhbCB0byB0aGUgZG1hX2xlbmd0aCBj
-YWxsZXJzIGNhbm5vdCBzYWZlbHkgdXNlIHRoZQo+ID4gPiA+ID4gZm9yX2VhY2hfc2dfcGFnZS9z
-Z19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MgY29tYmluYXRpb24uCj4gPiA+ID4gPiAKPiA+ID4gPiA+
-IFJlc29sdmUgdGhpcyBBUEkgbWlzdGFrZSBieSBwcm92aWRpbmcgYSBETUEgc3BlY2lmaWMgaXRl
-cmF0b3IsCj4gPiA+ID4gPiBmb3JfZWFjaF9zZ19kbWFfcGFnZSgpLCB0aGF0IHVzZXMgdGhlIHJp
-Z2h0IGxlbmd0aCBzbwo+ID4gPiA+ID4gc2dfcGFnZV9pdGVyX2RtYV9hZGRyZXNzKCkgd29ya3Mg
-YXMgZXhwZWN0ZWQgd2l0aCBhbGwgc2dsaXN0cy4gQSBuZXcKPiA+ID4gPiA+IGl0ZXJhdG9yIHR5
-cGUgaXMgaW50cm9kdWNlZCB0byBwcm92aWRlIGNvbXBpbGUtdGltZSBzYWZldHkgYWdhaW5zdCB3
-cm9uZ2x5Cj4gPiA+ID4gPiBtaXhpbmcgYWNjZXNzb3JzIGFuZCBpdGVyYXRvcnMuCj4gPiA+ID4g
-Wy4uXQo+ID4gPiA+IAo+ID4gPiA+ID4gIAo+ID4gPiA+ID4gKy8qCj4gPiA+ID4gPiArICogc2cg
-cGFnZSBpdGVyYXRvciBmb3IgRE1BIGFkZHJlc3Nlcwo+ID4gPiA+ID4gKyAqCj4gPiA+ID4gPiAr
-ICogVGhpcyBpcyB0aGUgc2FtZSBhcyBzZ19wYWdlX2l0ZXIgaG93ZXZlciB5b3UgY2FuIGNhbGwK
-PiA+ID4gPiA+ICsgKiBzZ19wYWdlX2l0ZXJfZG1hX2FkZHJlc3MoQGRtYV9pdGVyKSB0byBnZXQg
-dGhlIHBhZ2UncyBETUEKPiA+ID4gPiA+ICsgKiBhZGRyZXNzLiBzZ19wYWdlX2l0ZXJfcGFnZSgp
-IGNhbm5vdCBiZSBjYWxsZWQgb24gdGhpcyBpdGVyYXRvci4KPiA+ID4gPiA+ICsgKi8KPiA+ID4g
-PiBEb2VzIGl0IG1ha2Ugc2Vuc2UgdG8gaGF2ZSBhIHZhcmlhbnQgb2Ygc2dfcGFnZV9pdGVyX3Bh
-Z2UoKSB0byBnZXQgdGhlCj4gPiA+ID4gcGFnZSBkZXNjcmlwdG9yIHdpdGggdGhpcyBkbWFfaXRl
-cj8gVGhpcyBjYW4gYmUgdXNlZCB3aGVuIHdhbGtpbmcgRE1BLW1hcHBlZAo+ID4gPiA+IFNHIGxp
-c3RzIHdpdGggZm9yX2VhY2hfc2dfZG1hX3BhZ2UuCj4gPiA+IAo+ID4gPiBJIHRoaW5rIHRoYXQg
-d291bGQgYmUgYSBjb21wbGljYXRlZCBjYWNsdWF0aW9uIHRvIGZpbmQgdGhlIHJpZ2h0Cj4gPiA+
-IG9mZnNldCBpbnRvIHRoZSBwYWdlIHNnIGxpc3QgdG8gZ2V0IHRoZSBwYWdlIHBvaW50ZXIgYmFj
-ay4gV2UgY2FuJ3QKPiA+ID4ganVzdCBuYWl2ZWx5IHVzZSB0aGUgZXhpc3RpbmcgaXRlcmF0b3Ig
-bG9jYXRpb24uCj4gPiA+IAo+ID4gPiBQcm9iYWJseSBwbGFjZXMgdGhhdCBuZWVkIHRoaXMgYXJl
-IGJldHRlciB0byBydW4gd2l0aCB0d28gaXRlcmF0b3JzLAo+ID4gPiBsZXNzIGNvbXB1dGF0aW9u
-YWxseSBleHBlbnNpdmUuCj4gPiA+IAo+ID4gPiBEaWQgeW91IGZpbmQgYSBuZWVkIGZvciB0aGlz
-PyAKPiA+ID4gCj4gPiAKPiA+IFdlbGwgSSB3YXMgdHJ5aW5nIGNvbnZlcnQgdGhlIFJETUEgZHJp
-dmVycyB0byB1c2UgeW91ciBuZXcgaXRlcmF0b3IgdmFyaWFudAo+ID4gYW5kIHNhdyB0aGUgbmVl
-ZCBmb3IgaXQgaW4gbG9jYXRpb25zIHdoZXJlIHdlIG5lZWQgdmlydHVhbCBhZGRyZXNzIG9mIHRo
-ZSBwYWdlcwo+ID4gY29udGFpbmVkIGluIHRoZSBTR0VzLgo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9pbmZpbmliYW5kL2h3L2JueHRfcmUvcXBsaWJfcmVzLmMgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvaHcvYm54dF9yZS9xcGxpYl9yZXMuYwo+ID4gaW5kZXggNTllZWFjNS4uN2QyNjkwMyAx
-MDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9ibnh0X3JlL3FwbGliX3Jlcy5j
-Cj4gPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvYm54dF9yZS9xcGxpYl9yZXMuYwo+ID4g
-QEAgLTg1LDcgKzg1LDcgQEAgc3RhdGljIHZvaWQgX19mcmVlX3BibChzdHJ1Y3QgcGNpX2RldiAq
-cGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4gPiAgc3RhdGljIGludCBfX2FsbG9j
-X3BibChzdHJ1Y3QgcGNpX2RldiAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4g
-PiAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBzY2F0dGVybGlzdCAqc2doZWFkLCB1MzIg
-cGFnZXMsIHUzMiBwZ19zaXplKQo+ID4gIHsKPiA+IC0gICAgICAgc3RydWN0IHNjYXR0ZXJsaXN0
-ICpzZzsKPiA+ICsgICAgICAgc3RydWN0IHNnX2RtYV9wYWdlX2l0ZXIgc2dfaXRlcjsKPiA+ICAg
-ICAgICAgYm9vbCBpc191bWVtID0gZmFsc2U7Cj4gPiAgICAgICAgIGludCBpOwo+ID4gCj4gPiBA
-QCAtMTE2LDEyICsxMTYsMTMgQEAgc3RhdGljIGludCBfX2FsbG9jX3BibChzdHJ1Y3QgcGNpX2Rl
-diAqcGRldiwgc3RydWN0IGJueHRfcXBsaWJfcGJsICpwYmwsCj4gPiAgICAgICAgIH0gZWxzZSB7
-Cj4gPiAgICAgICAgICAgICAgICAgaSA9IDA7Cj4gPiAgICAgICAgICAgICAgICAgaXNfdW1lbSA9
-IHRydWU7Cj4gPiAtICAgICAgICAgICAgICAgZm9yX2VhY2hfc2coc2doZWFkLCBzZywgcGFnZXMs
-IGkpIHsKPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHBibC0+cGdfbWFwX2FycltpXSA9IHNn
-X2RtYV9hZGRyZXNzKHNnKTsKPiA+IC0gICAgICAgICAgICAgICAgICAgICAgIHBibC0+cGdfYXJy
-W2ldID0gc2dfdmlydChzZyk7Cj4gPiArICAgICAgICAgICAgICAgZm9yX2VhY2hfc2dfZG1hX3Bh
-Z2Uoc2doZWFkLCAmc2dfaXRlciwgcGFnZXMsIDApIHsKPiA+ICsgICAgICAgICAgICAgICAgICAg
-ICAgIHBibC0+cGdfbWFwX2FycltpXSA9IHNnX3BhZ2VfaXRlcl9kbWFfYWRkcmVzcygmc2dfaXRl
-cik7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICBwYmwtPnBnX2FycltpXSA9IHBhZ2VfYWRk
-cmVzcyhzZ19wYWdlX2l0ZXJfcGFnZSgmc2dfaXRlci5iYXNlKSk7ID8/Pwo+ID4gCQkJCQleXl5e
-Xl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXgo+IAo+IEkgY29uY3VyIHdpdGggQ0gsIHBnX2FyciBv
-bmx5IGxvb2tzIHVzZWQgaW4gdGhlICF1bWVtIGNhc2UsIHNvIHNldCB0bwo+IE5VTEwgaGVyZS4g
-Q2hlY2sgd2l0aCBTZWx2aW4gJiBEZXZlc2ggPwoKVGhhdCBtYWtlcyBzZW5zZSB0byBtZS4gQW55
-IGNvbmNlcm5zIHdpdGggdGhhdCBEZXZlc2g/CiAKPiA+IEBAIC0xOTEsMTYgKzE5MCwxNiBAQCBp
-bnQgcnhlX21lbV9pbml0X3VzZXIoc3RydWN0IHJ4ZV9wZCAqcGQsIHU2NCBzdGFydCwKPiA+ICAg
-ICAgICAgICAgICAgICBnb3RvIGVycjE7Cj4gPiAgICAgICAgIH0KPiA+IAo+ID4gLSAgICAgICBt
-ZW0tPnBhZ2Vfc2hpZnQgICAgICAgICA9IHVtZW0tPnBhZ2Vfc2hpZnQ7Cj4gPiAtICAgICAgIG1l
-bS0+cGFnZV9tYXNrICAgICAgICAgID0gQklUKHVtZW0tPnBhZ2Vfc2hpZnQpIC0gMTsKPiA+ICsg
-ICAgICAgbWVtLT5wYWdlX3NoaWZ0ICAgICAgICAgPSBQQUdFX1NISUZUOwo+ID4gKyAgICAgICBt
-ZW0tPnBhZ2VfbWFzayAgICAgICAgICA9IFBBR0VfU0laRSAtIDE7Cj4gPiAKPiA+ICAgICAgICAg
-bnVtX2J1ZiAgICAgICAgICAgICAgICAgPSAwOwo+ID4gICAgICAgICBtYXAgICAgICAgICAgICAg
-ICAgICAgICA9IG1lbS0+bWFwOwo+ID4gICAgICAgICBpZiAobGVuZ3RoID4gMCkgewo+ID4gICAg
-ICAgICAgICAgICAgIGJ1ZiA9IG1hcFswXS0+YnVmOwo+ID4gCj4gPiAtICAgICAgICAgICAgICAg
-Zm9yX2VhY2hfc2codW1lbS0+c2dfaGVhZC5zZ2wsIHNnLCB1bWVtLT5ubWFwLCBlbnRyeSkgewo+
-ID4gLSAgICAgICAgICAgICAgICAgICAgICAgdmFkZHIgPSBwYWdlX2FkZHJlc3Moc2dfcGFnZShz
-ZykpOwo+ID4gKyAgICAgICAgICAgICAgIGZvcl9lYWNoX3NnX2RtYV9wYWdlKHVtZW0tPnNnX2hl
-YWQuc2dsLCAmc2dfaXRlciwgdW1lbS0+bm1hcCwgMCkgewo+ID4gKyAgICAgICAgICAgICAgICAg
-ICAgICAgdmFkZHIgPSBwYWdlX2FkZHJlc3Moc2dfcGFnZV9pdGVyX3BhZ2UoJnNnX2l0ZXIuYmFz
-ZSkpOyAgID8/Pz8/Cj4gPiAJCQkJXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5e
-Xl5eXgo+IAo+IHJ4ZSBkb2Vzbid0IHVzZSBETUEgYWRkcmVzZXMsIHNvIGp1c3QgbGVhdmUgYXMg
-Zm9yX2VhY2hfc2dfcGFnZQo+IAoKT0suCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbAo=
+Since .scsi_done() must only be called after scsi_queue_rq() has
+finished, make sure that the SRP initiator driver does not call
+.scsi_done() while scsi_queue_rq() is in progress. Although
+invoking sg_reset -d while I/O is in progress works fine with kernel
+v4.20 and before, that is not the case with kernel v5.0-rc1. This
+patch avoids that the following crash is triggered with kernel
+v5.0-rc1:
+
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000138
+CPU: 0 PID: 360 Comm: kworker/0:1H Tainted: G    B             5.0.0-rc1-dbg+ #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
+Workqueue: kblockd blk_mq_run_work_fn
+RIP: 0010:blk_mq_dispatch_rq_list+0x116/0xb10
+Call Trace:
+ blk_mq_sched_dispatch_requests+0x2f7/0x300
+ __blk_mq_run_hw_queue+0xd6/0x180
+ blk_mq_run_work_fn+0x27/0x30
+ process_one_work+0x4f1/0xa20
+ worker_thread+0x67/0x5b0
+ kthread+0x1cf/0x1f0
+ ret_from_fork+0x24/0x30
+
+Cc: Sergey Gorenko <sergeygo@mellanox.com>
+Cc: Max Gurtovoy <maxg@mellanox.com>
+Cc: Laurence Oberman <loberman@redhat.com>
+Cc: <stable@vger.kernel.org>
+Fixes: 94a9174c630c ("IB/srp: reduce lock coverage of command completion") # v2.6.38
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 20 +++++++++-----------
+ 1 file changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 23e5c9afb8fb..f7ccbb07321b 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3036,9 +3036,11 @@ static int srp_abort(struct scsi_cmnd *scmnd)
+ 
+ static int srp_reset_device(struct scsi_cmnd *scmnd)
+ {
+-	struct srp_target_port *target = host_to_target(scmnd->device->host);
++	struct scsi_device *sdev = scmnd->device;
++	struct srp_target_port *target = host_to_target(sdev->host);
+ 	struct srp_rdma_ch *ch;
+-	int i, j;
++	struct request_queue *q = sdev->request_queue;
++	int time_left;
+ 	u8 status;
+ 
+ 	shost_printk(KERN_ERR, target->scsi_host, "SRP reset_device called\n");
+@@ -3050,16 +3052,12 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
+ 	if (status)
+ 		return FAILED;
+ 
+-	for (i = 0; i < target->ch_count; i++) {
+-		ch = &target->ch[i];
+-		for (j = 0; j < target->req_ring_size; ++j) {
+-			struct srp_request *req = &ch->req_ring[j];
+-
+-			srp_finish_req(ch, req, scmnd->device, DID_RESET << 16);
+-		}
+-	}
++	/* Check whether all requests have finished. */
++	blk_freeze_queue_start(q);
++	time_left = blk_mq_freeze_queue_wait_timeout(q, 1 * HZ);
++	blk_mq_unfreeze_queue(q);
+ 
+-	return SUCCESS;
++	return time_left > 0 ? SUCCESS : FAILED;
+ }
+ 
+ static int srp_reset_host(struct scsi_cmnd *scmnd)
+-- 
+2.20.1.97.g81188d93c3-goog
