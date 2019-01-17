@@ -1,154 +1,36 @@
-From: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Subject: RE: [PATCH for-rc 5/7] IB/hfi1: Close race condition on user
- context disable and close
-Date: Thu, 17 Jan 2019 21:32:44 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663BE653986@FMSMSX108.amr.corp.intel.com>
-References: <20190117203920.30826.76720.stgit@scvm10.sc.intel.com>
- <20190117204148.30826.53799.stgit@scvm10.sc.intel.com>
- <20190117211223.GG9629@ziepe.ca>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH iproute2-next] clang-format: add configuration file
+Date: Thu, 17 Jan 2019 14:42:46 -0700
+Message-ID: <a424ecb7-2e04-5e5a-cdea-7f7e1f07aa6e@gmail.com>
+References: <20190117150801.25191-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190117211223.GG9629@ziepe.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190117150801.25191-1-leon@kernel.org>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
->-----Original Message-----
->From: Jason Gunthorpe [mailto:jgg@ziepe.ca]
->Sent: Thursday, January 17, 2019 4:12 PM
->To: Dalessandro, Dennis <dennis.dalessandro@intel.com>
->Cc: dledford@redhat.com; linux-rdma@vger.kernel.org; Ruhl, Michael J
-><michael.j.ruhl@intel.com>; Marciniszyn, Mike
-><mike.marciniszyn@intel.com>; stable@vger.kernel.org
->Subject: Re: [PATCH for-rc 5/7] IB/hfi1: Close race condition on user context
->disable and close
->
->On Thu, Jan 17, 2019 at 12:41:54PM -0800, Dennis Dalessandro wrote:
->> From: Michael J. Ruhl <michael.j.ruhl@intel.com>
->>
->> When disabling and removing a receive context, it is possible for an
->> asynchronous event (i.e IRQ) to occur.  Because of this there is a
->> race between cleaning up the context, and the context being used by
->> the asynchronous event.
->>
->> cpu 0  (context cleanup)
->>     rc->ref_count-- (ref_count == 0)
->>     hfi1_rcd_free()
->> cpu 1  (IRQ (with rcd index))
->> 	rcd_get_by_index()
->> 	lock
->> 	ref_count+++     <-- reference count race (WARNING)
->> 	return rcd
->> 	unlock
->> cpu 0
->>     hfi1_free_ctxtdata() <-- incorrect free location
->>     lock
->>     remove rcd from array
->>     unlock
->>     free rcd
->>
->> This race will cause the following WARNING trace:
->>
->> WARNING: CPU: 0 PID: 175027 at include/linux/kref.h:52
->hfi1_rcd_get_by_index+0x84/0xa0 [hfi1]
->> CPU: 0 PID: 175027 Comm: IMB-MPI1 Kdump: loaded Tainted: G OE -----------
->- 3.10.0-957.el7.x86_64 #1
->> Hardware name: Intel Corporation S2600KP/S2600KP, BIOS
->SE5C610.86B.11.01.0076.C4.111920150602 11/19/2015
->> Call Trace:
->>   dump_stack+0x19/0x1b
->>   __warn+0xd8/0x100
->>   warn_slowpath_null+0x1d/0x20
->>   hfi1_rcd_get_by_index+0x84/0xa0 [hfi1]
->>   is_rcv_urgent_int+0x24/0x90 [hfi1]
->>   general_interrupt+0x1b6/0x210 [hfi1]
->>   __handle_irq_event_percpu+0x44/0x1c0
->>   handle_irq_event_percpu+0x32/0x80
->>   handle_irq_event+0x3c/0x60
->>   handle_edge_irq+0x7f/0x150
->>   handle_irq+0xe4/0x1a0
->>   do_IRQ+0x4d/0xf0
->>   common_interrupt+0x162/0x162
->>
->> The race can also lead to a use after free which could be similar
->> to:
->>
->> general protection fault: 0000 1 SMP
->> CPU: 71 PID: 177147 Comm: IMB-MPI1 Kdump: loaded Tainted: G W OE ------
->------ 3.10.0-957.el7.x86_64 #1
->> Hardware name: Intel Corporation S2600KP/S2600KP, BIOS
->SE5C610.86B.11.01.0076.C4.111920150602 11/19/2015
->> task: ffff9962a8098000 ti: ffff99717a508000 task.ti: ffff99717a508000
->__kmalloc+0x94/0x230
->> Call Trace:
->>   ? hfi1_user_sdma_process_request+0x9c8/0x1250 [hfi1]
->>   hfi1_user_sdma_process_request+0x9c8/0x1250 [hfi1]
->>   hfi1_aio_write+0xba/0x110 [hfi1]
->>   do_sync_readv_writev+0x7b/0xd0
->>   do_readv_writev+0xce/0x260
->>   ? handle_mm_fault+0x39d/0x9b0
->>   ? pick_next_task_fair+0x5f/0x1b0
->>   ? sched_clock_cpu+0x85/0xc0
->>   ? __schedule+0x13a/0x890
->>   vfs_writev+0x35/0x60
->>   SyS_writev+0x7f/0x110
->>   system_call_fastpath+0x22/0x27
->>
->> Introduce a context enable flag to indicate if the context is enabled.
->>
->> Reorder context cleanup to ensure context removal before cleanup
->> occurs correctly.
->>
->> Cc: stable@vger.kernel.org # v4.14.0+
->> Fixes: f683c80ca68e ("IB/hfi1: Resolve kernel panics by reference counting
->receive contexts")
->> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
->> Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
->> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
->>  drivers/infiniband/hw/hfi1/file_ops.c |    2 ++
->>  drivers/infiniband/hw/hfi1/hfi.h      |    3 ++-
->>  drivers/infiniband/hw/hfi1/init.c     |    8 +++++---
->>  3 files changed, 9 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/infiniband/hw/hfi1/file_ops.c
->b/drivers/infiniband/hw/hfi1/file_ops.c
->> index c22ebc7..0ba0cf5 100644
->> +++ b/drivers/infiniband/hw/hfi1/file_ops.c
->> @@ -671,6 +671,8 @@ static int hfi1_file_close(struct inode *inode, struct
->file *fp)
->>  	}
->>  	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
->>
->> +	uctxt->del_pend = 1;
->
->Not going to get good results if you update shared data outside the
->lock that is reading it..
+On 1/17/19 8:08 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> The codebase of iproute2 follows Linux kernel coding style,
+> so it will be very helpful to reuse existing clang configuration
+> file to reliably format code.
+> 
+> For more information see kernel commit d4ef8d3ff005
+> ("clang-format: add configuration file").
+> 
+> Updated upto commit v5.0-rc1 with small number of ForEachMacros.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  .clang-format | 130 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 130 insertions(+)
+>  create mode 100644 .clang-format
+> 
 
-
->> @@ -326,7 +325,10 @@ struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct
->hfi1_devdata *dd, u16 ctxt)
->>  	spin_lock_irqsave(&dd->uctxt_lock, flags);
->>  	if (dd->rcd[ctxt]) {
->>  		rcd = dd->rcd[ctxt];
->> -		hfi1_rcd_get(rcd);
->> +		if (rcd->del_pend)
->> +			rcd = NULL;
->> +		else
->> +			hfi1_rcd_get(rcd);
->
->This probably wants to be kref_get_not_zero() - why add a confusing
->del_pend?
-
-kref_get_unless_zero()?
-
-/sigh.  I missed that function completely.
-
-I will examine this some more and work up a new patch.
-
-M
-
->Jason
+applied to iproute2-next. Thanks
