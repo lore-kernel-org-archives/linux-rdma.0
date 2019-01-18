@@ -1,94 +1,34 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH rdma-rc 1/3] RDMA/hns: Fix the Oops during rmmod or insmod
- ko when reset occurs
-Date: Fri, 18 Jan 2019 20:58:11 +0800
-Message-ID: <5C41CD63.60506@huawei.com>
-References: <1547128663-69220-1-git-send-email-xavier.huwei@huawei.com>
- <1547128663-69220-2-git-send-email-xavier.huwei@huawei.com>
- <20190111213411.GA22310@ziepe.ca> <5C399D73.5000902@huawei.com>
- <20190114220655.GD1208@ziepe.ca> <5C3D3BD1.4000508@huawei.com>
- <20190115220259.GH22045@ziepe.ca>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH rdma-next] IB/core: Simplify rdma cgroup registration
+Date: Fri, 18 Jan 2019 08:16:06 -0800
+Message-ID: <20190118161606.GD50184@devbig004.ftw2.facebook.com>
+References: <20190117181415.28566-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190115220259.GH22045@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <20190117181415.28566-1-leon@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Li Zefan <lizefan@huawei.com>, Johannes Weiner <hannes@cmpxchg.org>, Parav Pandit <parav@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, cgroups <cgroups@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jan 17, 2019 at 08:14:15PM +0200, Leon Romanovsky wrote:
+> From: Parav Pandit <parav@mellanox.com>
+> 
+> RDMA cgroup registration routine always returns success,
+> so simplify function to be void and run clang formatter
+> over whole CONFIG_CGROUP_RDMA art of core_priv.h.
+> 
+> This reduces unwinding error path for regular registration and
+> future net namespace change functionality for rdma device.
+> 
+> Signed-off-by: Parav Pandit <parav@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 
+Acked-by: Tejun Heo <tj@kernel.org>
 
-On 2019/1/16 6:02, Jason Gunthorpe wrote:
-> On Tue, Jan 15, 2019 at 09:48:01AM +0800, Wei Hu (Xavier) wrote:
->>
->> On 2019/1/15 6:06, Jason Gunthorpe wrote:
->>> On Sat, Jan 12, 2019 at 03:55:31PM +0800, Wei Hu (Xavier) wrote:
->>>> On 2019/1/12 5:34, Jason Gunthorpe wrote:
->>>>> On Thu, Jan 10, 2019 at 09:57:41PM +0800, Wei Hu (Xavier) wrote:
->>>>>> +	/* Check the status of the current software reset process, if in
->>>>>> +	 * software reset process, wait until software reset process finished,
->>>>>> +	 * in order to ensure that reset process and this function will not call
->>>>>> +	 * __hns_roce_hw_v2_uninit_instance at the same time.
->>>>>> +	 * If a timeout occurs, it indicates that the network subsystem has
->>>>>> +	 * encountered a serious error and cannot be recovered from the reset
->>>>>> +	 * processing.
->>>>>> +	 */
->>>>>> +	if (ops->ae_dev_resetting(handle)) {
->>>>>> +		dev_warn(dev, "Device is busy in resetting state. waiting.\n");
->>>>>> +		end = msecs_to_jiffies(HNS_ROCE_V2_RST_PRC_MAX_TIME) + jiffies;
->>>>>> +		while (ops->ae_dev_resetting(handle) &&
->>>>>> +		       time_before(jiffies, end))
->>>>>> +			msleep(20);
->>>>> Really? Does this have to be so ugly? Why isn't there just a simple
->>>>> lock someplace that is held during reset?
->>>>>
->>>>> I'm skeptical that all this strange looking stuff is properly locked
->>>>> and concurrency safe.
->>>> Hi, Jason
->>>>
->>>> The hns3 NIC driver notifies the hns RoCE driver to perform
->>>> reset related processing by calling the .reset_notify() interface
->>>> registered by the RoCE driver.
->>>>
->>>> There is a constraint on the hip08 chip, the NIC driver needs to
->>>> stop the flow before hardware startup reset, otherwise the chip
->>>> may hang up.
->>>>
->>>> We've also thought about using locks, but found using locks can
->>>> lead to more serious problems because of that restriction of the
->>>> chip.
->>>> If using locks here, reset processing may wait for uninstallation
->>>> to complete, this may lead that NIC driver fails to stop the flow
->>>> in time in the reset process, thus causing the chip to hang up.
->>> If you are sleeping then I'm sure a lock can be used instead, how
->>> would it be any different?
->> Hi, Jason
->>     If using locks here, reset process may wait until uninstallation to
->> complete,
->>         it may trigger the chip constraint, causing chip to hang up.
->>     But if using sleeping here, there will notthe case that reset
->> process wait until
->>        uninstallation to complete, then will not trigger the chip
->> constraint.
-> But how is this even right? If ops->ae_dev_resetting can change at any
-> time, and you need to wait for it here, without locks can't it just
-> change instantly after the if statement?
->
-> I think it shows the concurrancy & locking is not done right when I
-> see loops reading shared data and spinning on them with msleep.
-Hi, Jason
+Thanks.
 
-    Thanks for your comments,
-    We will modify the related process in hns NIC driver and delete checking
-    whether in the reset state and waiting for the reset to complete in
-    hns_roce_hw_v2_uninit_instance function, and will send patch V2 for
-    rdma-next branch. Thanks
-
-    Regards
-Xavier
-> Jason
->
-> .
->
+-- 
+tejun
