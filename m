@@ -1,24 +1,23 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 18 Jan 2019 05:35:02 +0000
-Message-ID: <154778970212.389.14339322718283306779.pr-tracker-bot@kernel.org>
-References: <20190118035637.GA19600@ziepe.ca>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190118035637.GA19600@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net/mlx4: remove unneeded semicolon
+Date: Thu, 17 Jan 2019 22:05:56 -0800 (PST)
+Message-ID: <20190117.220556.1310108926244658257.davem@davemloft.net>
+References: <20190117130356.13652-1-yuehaibing@huawei.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190117130356.13652-1-yuehaibing@huawei.com>
+Sender: netdev-owner@vger.kernel.org
+To: yuehaibing@huawei.com
+Cc: tariqt@mellanox.com, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pull request you sent on Fri, 18 Jan 2019 03:56:44 +0000:
+From: YueHaibing <yuehaibing@huawei.com>
+Date: Thu, 17 Jan 2019 21:03:56 +0800
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+> Remove unneeded semicolon.
+> 
+> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/d7393226d15add056285c8fc86723d54d7e0c77d
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Applied.
