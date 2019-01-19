@@ -1,315 +1,186 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused by sending mailbox&CMQ during reset
-Date: Sat, 19 Jan 2019 11:36:06 +0800
-Message-ID: <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
-References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 4/4] net/mlx5: Remove spinlock support from
+ mlx5_write64
+Date: Sat, 19 Jan 2019 07:43:14 +0000
+Message-ID: <20190119074308.GH15600@mtr-leonro.mtl.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com>
+ <20190119003313.16711-5-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-rdma@vger.kernel.org, xavier.huwei@huawei.com, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="G6ArjEZjY3m60389"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190119003313.16711-5-saeedm@mellanox.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Maxim Mikityanskiy <maximmi@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On hi08 chip, There is a possibility of chip hanging and
-some errors when sending mailbox & doorbell during reset.
-We can fix it by prohibiting mailbox and doorbell during
-reset and reset occurred to ensure that hardware can work
-normally.
+--G6ArjEZjY3m60389
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Fixes: a04ff739f2a9 ("RDMA/hns: Add command queue support for hip08 RoCE driver")
-Signed-off-by: Wei Hu (Xavier) <xavier.huwei@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_cmd.c    |  32 ++++--
- drivers/infiniband/hw/hns/hns_roce_device.h |   7 ++
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c  | 154 +++++++++++++++++++++++++++-
- drivers/infiniband/hw/hns/hns_roce_hw_v2.h  |   2 +
- 4 files changed, 182 insertions(+), 13 deletions(-)
+On Fri, Jan 18, 2019 at 04:33:13PM -0800, Saeed Mahameed wrote:
+> From: Maxim Mikityanskiy <maximmi@mellanox.com>
+>
+> As there is no user of mlx5_write64 that passes a spinlock to
+> mlx5_write64, remove this functionality and simplify the function.
+>
+> Signed-off-by: Maxim Mikityanskiy <maximmi@mellanox.com>
+> Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> ---
+>  drivers/infiniband/hw/mlx5/qp.c               |  2 +-
+>  drivers/net/ethernet/mellanox/mlx5/core/en.h  |  2 +-
+>  .../ethernet/mellanox/mlx5/core/fpga/conn.c   |  2 +-
+>  include/linux/mlx5/cq.h                       |  2 +-
+>  include/linux/mlx5/doorbell.h                 | 28 ++++---------------
+>  5 files changed, 9 insertions(+), 27 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+> index dd2ae640bc84..816c34ee91cf 100644
+> --- a/drivers/infiniband/hw/mlx5/qp.c
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+> @@ -5015,7 +5015,7 @@ static int _mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+>  		wmb();
+>
+>  		/* currently we support only regular doorbells */
+> -		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset, NULL);
+> +		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
+>  		/* Make sure doorbells don't leak out of SQ spinlock
+>  		 * and reach the HCA out of order.
+>  		 */
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> index 8fa8fdd30b85..2623d3fb6b96 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> @@ -916,7 +916,7 @@ void mlx5e_notify_hw(struct mlx5_wq_cyc *wq, u16 pc,
+>  	 */
+>  	wmb();
+>
+> -	mlx5_write64((__be32 *)ctrl, uar_map, NULL);
+> +	mlx5_write64((__be32 *)ctrl, uar_map);
+>  }
+>
+>  static inline void mlx5e_cq_arm(struct mlx5e_cq *cq)
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> index 873541ef4c1b..ca2296a2f9ee 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> @@ -135,7 +135,7 @@ static void mlx5_fpga_conn_notify_hw(struct mlx5_fpga_conn *conn, void *wqe)
+>  	*conn->qp.wq.sq.db = cpu_to_be32(conn->qp.sq.pc);
+>  	/* Make sure that doorbell record is visible before ringing */
+>  	wmb();
+> -	mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET, NULL);
+> +	mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET);
+>  }
+>
+>  static void mlx5_fpga_conn_post_send(struct mlx5_fpga_conn *conn,
+> diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+> index 612c8c2f2466..769326ea1d9b 100644
+> --- a/include/linux/mlx5/cq.h
+> +++ b/include/linux/mlx5/cq.h
+> @@ -170,7 +170,7 @@ static inline void mlx5_cq_arm(struct mlx5_core_cq *cq, u32 cmd,
+>  	doorbell[0] = cpu_to_be32(sn << 28 | cmd | ci);
+>  	doorbell[1] = cpu_to_be32(cq->cqn);
+>
+> -	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL, NULL);
+> +	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL);
+>  }
+>
+>  static inline void mlx5_cq_hold(struct mlx5_core_cq *cq)
+> diff --git a/include/linux/mlx5/doorbell.h b/include/linux/mlx5/doorbell.h
+> index 9ef3f9d00154..c12523cc8102 100644
+> --- a/include/linux/mlx5/doorbell.h
+> +++ b/include/linux/mlx5/doorbell.h
+> @@ -36,38 +36,20 @@
+>  #define MLX5_BF_OFFSET	      0x800
+>  #define MLX5_CQ_DOORBELL      0x20
+>
+> -#if BITS_PER_LONG == 64
+>  /* Assume that we can just write a 64-bit doorbell atomically.  s390
+>   * actually doesn't have writeq() but S/390 systems don't even have
+> - * PCI so we won't worry about it.
+> + * PCI so we won't worry about it. Note that the write is not atomic
+> + * on 32-bit systems.
+>   */
+>
+> -static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+> -				spinlock_t *doorbell_lock)
+> +static inline void mlx5_write64(__be32 val[2], void __iomem *dest)
+>  {
+> +#if BITS_PER_LONG == 64
+>  	__raw_writeq(*(u64 *)val, dest);
+> -}
+> -
+>  #else
+> -
+> -/* Just fall back to a spinlock to protect the doorbell if
+> - * BITS_PER_LONG is 32 -- there's no portable way to do atomic 64-bit
+> - * MMIO writes.
+> - */
+> -
+> -static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+> -				spinlock_t *doorbell_lock)
+> -{
+> -	unsigned long flags;
+> -
+> -	if (doorbell_lock)
+> -		spin_lock_irqsave(doorbell_lock, flags);
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_cmd.c b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-index a0ba19d..2acf946 100644
---- a/drivers/infiniband/hw/hns/hns_roce_cmd.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_cmd.c
-@@ -176,17 +176,33 @@ int hns_roce_cmd_mbox(struct hns_roce_dev *hr_dev, u64 in_param, u64 out_param,
- 		      unsigned long in_modifier, u8 op_modifier, u16 op,
- 		      unsigned long timeout)
- {
--	if (hr_dev->is_reset)
--		return 0;
-+	int ret;
-+
-+	if (hr_dev->hw->rst_prc_mbox) {
-+		ret = hr_dev->hw->rst_prc_mbox(hr_dev);
-+		if (ret == CMD_RST_PRC_SUCCESS)
-+			return 0;
-+		else if (ret == CMD_RST_PRC_EBUSY)
-+			return -EBUSY;
-+	}
- 
- 	if (hr_dev->cmd.use_events)
--		return hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
--					      in_modifier, op_modifier, op,
--					      timeout);
-+		ret = hns_roce_cmd_mbox_wait(hr_dev, in_param, out_param,
-+					     in_modifier, op_modifier, op,
-+					     timeout);
- 	else
--		return hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param,
--					      in_modifier, op_modifier, op,
--					      timeout);
-+		ret = hns_roce_cmd_mbox_poll(hr_dev, in_param, out_param,
-+					     in_modifier, op_modifier, op,
-+					     timeout);
-+
-+	if (ret == CMD_RST_PRC_EBUSY)
-+		return -EBUSY;
-+
-+	if (ret && (hr_dev->hw->rst_prc_mbox &&
-+		    hr_dev->hw->rst_prc_mbox(hr_dev) == CMD_RST_PRC_SUCCESS))
-+		return 0;
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(hns_roce_cmd_mbox);
- 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_device.h b/drivers/infiniband/hw/hns/hns_roce_device.h
-index 0f3fe90..65eb4bc 100644
---- a/drivers/infiniband/hw/hns/hns_roce_device.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_device.h
-@@ -237,6 +237,12 @@ enum {
- 	HNS_ROCE_RST_DIRECT_RETURN		= 0,
- };
- 
-+enum {
-+	CMD_RST_PRC_OTHERS,
-+	CMD_RST_PRC_SUCCESS,
-+	CMD_RST_PRC_EBUSY,
-+};
-+
- #define HNS_ROCE_CMD_SUCCESS			1
- 
- #define HNS_ROCE_PORT_DOWN			0
-@@ -874,6 +880,7 @@ struct hns_roce_hw {
- 			 u64 out_param, u32 in_modifier, u8 op_modifier, u16 op,
- 			 u16 token, int event);
- 	int (*chk_mbox)(struct hns_roce_dev *hr_dev, unsigned long timeout);
-+	int (*rst_prc_mbox)(struct hns_roce_dev *hr_dev);
- 	int (*set_gid)(struct hns_roce_dev *hr_dev, u8 port, int gid_index,
- 		       const union ib_gid *gid, const struct ib_gid_attr *attr);
- 	int (*set_mac)(struct hns_roce_dev *hr_dev, u8 phy_port, u8 *addr);
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 575a233..811e186 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -712,6 +712,125 @@ static int hns_roce_v2_post_recv(struct ib_qp *ibqp,
- 	return ret;
- }
- 
-+static int hns_roce_v2_cmd_hw_reseted(struct hns_roce_dev *hr_dev,
-+				      unsigned long instance_stage,
-+				      unsigned long reset_stage)
-+{
-+	/* When hardware reset has been completed once or more, we should stop
-+	 * sending mailbox&cmq to hardware. If now in .init_instance()
-+	 * function, we should exit with error. If now at HNAE3_INIT_CLIENT
-+	 * stage of soft reset process, we should exit with error, and then
-+	 * HNAE3_INIT_CLIENT related process can rollback the operation like
-+	 * notifing hardware to free resources, HNAE3_INIT_CLIENT related
-+	 * process will exit with error to notify NIC driver to reschedule soft
-+	 * reset process once again.
-+	 */
-+	hr_dev->is_reset = true;
-+
-+	if (reset_stage == HNS_ROCE_STATE_RST_INIT ||
-+	    instance_stage == HNS_ROCE_STATE_INIT)
-+		return CMD_RST_PRC_EBUSY;
-+
-+	return CMD_RST_PRC_SUCCESS;
-+}
-+
-+static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
-+					unsigned long instance_stage,
-+					unsigned long reset_stage)
-+{
-+	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
-+	struct hnae3_handle *handle = priv->handle;
-+	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
-+	unsigned long end;
-+
-+	/* When hardware reset is detected, we should stop sending mailbox&cmq
-+	 * to hardware, and wait until hardware reset finished. If now
-+	 * in .init_instance() function, we should exit with error. If now at
-+	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
-+	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
-+	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
-+	 * related process will exit with error to notify NIC driver to
-+	 * reschedule soft reset process once again.
-+	 */
-+	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
-+	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
-+		udelay(1);
-+
-+	if (!ops->get_hw_reset_stat(handle))
-+		hr_dev->is_reset = true;
-+	else
-+		dev_warn(hr_dev->dev, "hw_resetting!\n");
-+
-+	if (!hr_dev->is_reset || reset_stage == HNS_ROCE_STATE_RST_INIT ||
-+	    instance_stage == HNS_ROCE_STATE_INIT)
-+		return CMD_RST_PRC_EBUSY;
-+
-+	return CMD_RST_PRC_SUCCESS;
-+}
-+
-+static int hns_roce_v2_cmd_sw_resetting(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
-+	struct hnae3_handle *handle = priv->handle;
-+	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
-+	unsigned long end;
-+
-+	/* When software reset is detected at .init_instance() function, we
-+	 * should stop sending mailbox&cmq to hardware, and
-+	 * wait until hardware reset finished, we should exit with error.
-+	 */
-+	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
-+	while (ops->ae_dev_reset_cnt(handle) == hr_dev->reset_cnt &&
-+	       time_before(jiffies, end))
-+		udelay(1);
-+
-+	if (ops->ae_dev_reset_cnt(handle) != hr_dev->reset_cnt)
-+		hr_dev->is_reset = true;
-+	else
-+		dev_warn(hr_dev->dev, "reset_cnt no change!\n");
-+
-+	return CMD_RST_PRC_EBUSY;
-+}
-+
-+static int hns_roce_v2_rst_process_cmd(struct hns_roce_dev *hr_dev)
-+{
-+	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
-+	struct hnae3_handle *handle = priv->handle;
-+	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
-+	unsigned long instance_stage;	/* the current instance stage */
-+	unsigned long reset_stage;	/* the current reset stage */
-+	unsigned long reset_cnt;
-+	bool sw_resetting;
-+	bool hw_resetting;
-+
-+	if (hr_dev->is_reset)
-+		return CMD_RST_PRC_SUCCESS;
-+
-+	/* Get information about reset from NIC driver or RoCE driver itself,
-+	 * the meaning of the following variables from NIC driver are described
-+	 * as below:
-+	 * reset_cnt -- The count value of completed hardware reset.
-+	 * hw_resetting -- Whether hardware device is resetting now.
-+	 * sw_resetting -- Whether NIC's software reset process is running now.
-+	 */
-+	instance_stage = handle->rinfo.instance_state;
-+	reset_stage = handle->rinfo.reset_state;
-+	reset_cnt = ops->ae_dev_reset_cnt(handle);
-+	hw_resetting = ops->get_hw_reset_stat(handle);
-+	sw_resetting = ops->ae_dev_resetting(handle);
-+
-+	if (reset_cnt != hr_dev->reset_cnt)
-+		return hns_roce_v2_cmd_hw_reseted(hr_dev, instance_stage,
-+						  reset_stage);
-+	else if (hw_resetting)
-+		return hns_roce_v2_cmd_hw_resetting(hr_dev, instance_stage,
-+						    reset_stage);
-+	else if (sw_resetting && instance_stage == HNS_ROCE_STATE_INIT)
-+		return hns_roce_v2_cmd_sw_resetting(hr_dev);
-+
-+	return 0;
-+}
-+
- static int hns_roce_cmq_space(struct hns_roce_v2_cmq_ring *ring)
- {
- 	int ntu = ring->next_to_use;
-@@ -892,8 +1011,8 @@ static int hns_roce_cmq_csq_clean(struct hns_roce_dev *hr_dev)
- 	return clean;
- }
- 
--static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
--			     struct hns_roce_cmq_desc *desc, int num)
-+static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
-+			       struct hns_roce_cmq_desc *desc, int num)
- {
- 	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
- 	struct hns_roce_v2_cmq_ring *csq = &priv->cmq.csq;
-@@ -905,9 +1024,6 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	int ret = 0;
- 	int ntc;
- 
--	if (hr_dev->is_reset)
--		return 0;
--
- 	spin_lock_bh(&csq->lock);
- 
- 	if (num > hns_roce_cmq_space(csq)) {
-@@ -982,6 +1098,30 @@ static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
- 	return ret;
- }
- 
-+int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
-+			     struct hns_roce_cmq_desc *desc, int num)
-+{
-+	int retval;
-+	int ret;
-+
-+	ret = hns_roce_v2_rst_process_cmd(hr_dev);
-+	if (ret == CMD_RST_PRC_SUCCESS)
-+		return 0;
-+	if (ret == CMD_RST_PRC_EBUSY)
-+		return ret;
-+
-+	ret = __hns_roce_cmq_send(hr_dev, desc, num);
-+	if (ret) {
-+		retval = hns_roce_v2_rst_process_cmd(hr_dev);
-+		if (retval == CMD_RST_PRC_SUCCESS)
-+			return 0;
-+		else if (retval == CMD_RST_PRC_EBUSY)
-+			return retval;
-+	}
-+
-+	return ret;
-+}
-+
- static int hns_roce_cmq_query_hw_info(struct hns_roce_dev *hr_dev)
- {
- 	struct hns_roce_query_version *resp;
-@@ -1857,6 +1997,9 @@ static int hns_roce_v2_chk_mbox(struct hns_roce_dev *hr_dev,
- 
- 	status = hns_roce_v2_cmd_complete(hr_dev);
- 	if (status != 0x1) {
-+		if (status == CMD_RST_PRC_EBUSY)
-+			return status;
-+
- 		dev_err(dev, "mailbox status 0x%x!\n", status);
- 		return -EBUSY;
- 	}
-@@ -5978,6 +6121,7 @@ static int hns_roce_v2_post_srq_recv(struct ib_srq *ibsrq,
- 	.hw_exit = hns_roce_v2_exit,
- 	.post_mbox = hns_roce_v2_post_mbox,
- 	.chk_mbox = hns_roce_v2_chk_mbox,
-+	.rst_prc_mbox = hns_roce_v2_rst_process_cmd,
- 	.set_gid = hns_roce_v2_set_gid,
- 	.set_mac = hns_roce_v2_set_mac,
- 	.write_mtpt = hns_roce_v2_write_mtpt,
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-index 938d36a..f22094e 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.h
-@@ -96,6 +96,8 @@
- #define HNS_ROCE_V2_UC_RC_SGE_NUM_IN_WQE	2
- #define HNS_ROCE_V2_RSV_QPS			8
- 
-+#define HNS_ROCE_V2_HW_RST_TIMEOUT             1000
-+
- #define HNS_ROCE_CONTEXT_HOP_NUM		1
- #define HNS_ROCE_SCCC_HOP_NUM			1
- #define HNS_ROCE_MTT_HOP_NUM			1
--- 
-1.9.1
+Saeed, Maxim
+
+It is incomplete change. In your patch 3, you removed declaration
+of spinlock from 32bits compiles and made this write completely
+unsafe.
+
+You need to do one of two things:
+1. Require CONFIG_64BIT and delete this 32bit code.
+2. Declare global mlx5 DB spinlock and use on 32bit systems, something
+like this:
+#if BITS_PER_LONG == 64
+ __raw_writeq(*(u64 *)val, dest);
+#else
+  spin_lock_irqsave(doorbell_lock, flags);
+  __raw_writel((__force u32) val[0], dest);
+  __raw_writel((__force u32) val[1], dest + 4);
+   spin_unlock_irqrestore(doorbell_lock, flags);
+#endif
+
+Thanks
+
+>  	__raw_writel((__force u32) val[0], dest);
+>  	__raw_writel((__force u32) val[1], dest + 4);
+> -	if (doorbell_lock)
+> -		spin_unlock_irqrestore(doorbell_lock, flags);
+> -}
+> -
+>  #endif
+> +}
+>
+>  #endif /* MLX5_DOORBELL_H */
+> --
+> 2.20.1
+>
+
+--G6ArjEZjY3m60389
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcQtUMAAoJEORje4g2clinTYIP/3HATgJm3bmqhKMzs18YZ4Qv
+2XLk6B7ExFm4A9MCq5AO2D47OqFLFdPipE5UWNRxt94+vgX9F0MhPeztIZdBn2/3
+0HkdrJLKpDfvYoaClyj48BrOf82CYc9pFe+lqVGEgsAp/k19cvTBTGN+x8PuFdbW
+ql1FXqFnPZXxTgeNQg8Qnhe2B+b7ZUnhftqpPVe1bAQ8HiDWoZX39/pR7znNcZUH
+JPuJSLqKrQHQKqMg1iPlN+iFST+ovf+AVdHuasVwnY8UJkPp8qjImQuWDbvLoO+i
+F9k/ccoKgzsV1/kZLEpChEz77MbqdDYuFCS9dFq3ibjyhWOGdv2cYwjukVmfu9Nw
+7xCmM3iqhmRmfwjbSTfXgkgBXGZbgzqho8aQmqjmOO+2FPgnzxAv/7uRVyM6gmqW
+N5NZXfU9xd2iRrfVbk1Wh0nsrLYO0ae+gYU9nY2CPjUbmndXdEoJvmzP3VFNdLju
+lvnB6gpUIDUFPh6K2At1hAtjpSefZRsZM3PHutRmaswzzBXnwMDEInzSEvSZgje1
+Hu+Z1+SVTt+v2lK/LVULy+Mfz90/l8CsEUY5HgHr5sCUMLYzKIWj08LpZzDv+02f
+OtevFQMY7Q0W8ygFvDj1CNbjQimMtw0dGrXTdriOwFZYPxXIbYCfRxc2Fx1VsHq/
+QRrpxbvhcFVWOZB03zYj
+=B2WR
+-----END PGP SIGNATURE-----
+
+--G6ArjEZjY3m60389--
