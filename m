@@ -1,161 +1,176 @@
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH 5/6] drivers/IB,usnic: reduce scope of mmap_sem
-Date: Mon, 21 Jan 2019 09:42:19 -0800
-Message-ID: <20190121174220.10583-6-dave@stgolabs.net>
-References: <20190121174220.10583-1-dave@stgolabs.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190121174220.10583-1-dave@stgolabs.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: akpm@linux-foundation.org
-Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, benve@cisco.com, neescoba@cisco.com, pkaustub@cisco.com, Davidlohr Bueso <dbueso@suse.de>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next 4/4] net/mlx5: Remove spinlock support from mlx5_write64
+Date: Mon, 21 Jan 2019 10:12:14 -0800
+Message-ID: <CALzJLG-WkXdoOQy7HyZa2kJwHwuDQ0WQnPKjNk0V4MgWTumbFw@mail.gmail.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com> <20190119003313.16711-5-saeedm@mellanox.com>
+ <20190119074308.GH15600@mtr-leonro.mtl.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190119074308.GH15600@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Maxim Mikityanskiy <maximmi@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-usnic_uiom_get_pages() uses gup_longterm() so we cannot really
-get rid of mmap_sem altogether in the driver, but we can get
-rid of some complexity that mmap_sem brings with only pinned_vm.
-We can get rid of the wq altogether as we no longer need to
-defer work to unpin pages as the counter is now atomic.
+On Fri, Jan 18, 2019 at 11:43 PM Leon Romanovsky <leonro@mellanox.com> wrote:
+>
+> On Fri, Jan 18, 2019 at 04:33:13PM -0800, Saeed Mahameed wrote:
+> > From: Maxim Mikityanskiy <maximmi@mellanox.com>
+> >
+> > As there is no user of mlx5_write64 that passes a spinlock to
+> > mlx5_write64, remove this functionality and simplify the function.
+> >
+> > Signed-off-by: Maxim Mikityanskiy <maximmi@mellanox.com>
+> > Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+> > Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+> > ---
+> >  drivers/infiniband/hw/mlx5/qp.c               |  2 +-
+> >  drivers/net/ethernet/mellanox/mlx5/core/en.h  |  2 +-
+> >  .../ethernet/mellanox/mlx5/core/fpga/conn.c   |  2 +-
+> >  include/linux/mlx5/cq.h                       |  2 +-
+> >  include/linux/mlx5/doorbell.h                 | 28 ++++---------------
+> >  5 files changed, 9 insertions(+), 27 deletions(-)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+> > index dd2ae640bc84..816c34ee91cf 100644
+> > --- a/drivers/infiniband/hw/mlx5/qp.c
+> > +++ b/drivers/infiniband/hw/mlx5/qp.c
+> > @@ -5015,7 +5015,7 @@ static int _mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+> >               wmb();
+> >
+> >               /* currently we support only regular doorbells */
+> > -             mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset, NULL);
+> > +             mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
+> >               /* Make sure doorbells don't leak out of SQ spinlock
+> >                * and reach the HCA out of order.
+> >                */
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> > index 8fa8fdd30b85..2623d3fb6b96 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+> > @@ -916,7 +916,7 @@ void mlx5e_notify_hw(struct mlx5_wq_cyc *wq, u16 pc,
+> >        */
+> >       wmb();
+> >
+> > -     mlx5_write64((__be32 *)ctrl, uar_map, NULL);
+> > +     mlx5_write64((__be32 *)ctrl, uar_map);
+> >  }
+> >
+> >  static inline void mlx5e_cq_arm(struct mlx5e_cq *cq)
+> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> > index 873541ef4c1b..ca2296a2f9ee 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+> > @@ -135,7 +135,7 @@ static void mlx5_fpga_conn_notify_hw(struct mlx5_fpga_conn *conn, void *wqe)
+> >       *conn->qp.wq.sq.db = cpu_to_be32(conn->qp.sq.pc);
+> >       /* Make sure that doorbell record is visible before ringing */
+> >       wmb();
+> > -     mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET, NULL);
+> > +     mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET);
+> >  }
+> >
+> >  static void mlx5_fpga_conn_post_send(struct mlx5_fpga_conn *conn,
+> > diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+> > index 612c8c2f2466..769326ea1d9b 100644
+> > --- a/include/linux/mlx5/cq.h
+> > +++ b/include/linux/mlx5/cq.h
+> > @@ -170,7 +170,7 @@ static inline void mlx5_cq_arm(struct mlx5_core_cq *cq, u32 cmd,
+> >       doorbell[0] = cpu_to_be32(sn << 28 | cmd | ci);
+> >       doorbell[1] = cpu_to_be32(cq->cqn);
+> >
+> > -     mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL, NULL);
+> > +     mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL);
+> >  }
+> >
+> >  static inline void mlx5_cq_hold(struct mlx5_core_cq *cq)
+> > diff --git a/include/linux/mlx5/doorbell.h b/include/linux/mlx5/doorbell.h
+> > index 9ef3f9d00154..c12523cc8102 100644
+> > --- a/include/linux/mlx5/doorbell.h
+> > +++ b/include/linux/mlx5/doorbell.h
+> > @@ -36,38 +36,20 @@
+> >  #define MLX5_BF_OFFSET             0x800
+> >  #define MLX5_CQ_DOORBELL      0x20
+> >
+> > -#if BITS_PER_LONG == 64
+> >  /* Assume that we can just write a 64-bit doorbell atomically.  s390
+> >   * actually doesn't have writeq() but S/390 systems don't even have
+> > - * PCI so we won't worry about it.
+> > + * PCI so we won't worry about it. Note that the write is not atomic
+> > + * on 32-bit systems.
+> >   */
+> >
+> > -static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+> > -                             spinlock_t *doorbell_lock)
+> > +static inline void mlx5_write64(__be32 val[2], void __iomem *dest)
+> >  {
+> > +#if BITS_PER_LONG == 64
+> >       __raw_writeq(*(u64 *)val, dest);
+> > -}
+> > -
+> >  #else
+> > -
+> > -/* Just fall back to a spinlock to protect the doorbell if
+> > - * BITS_PER_LONG is 32 -- there's no portable way to do atomic 64-bit
+> > - * MMIO writes.
+> > - */
+> > -
+> > -static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+> > -                             spinlock_t *doorbell_lock)
+> > -{
+> > -     unsigned long flags;
+> > -
+> > -     if (doorbell_lock)
+> > -             spin_lock_irqsave(doorbell_lock, flags);
+>
+> Saeed, Maxim
+>
+> It is incomplete change. In your patch 3, you removed declaration
+> of spinlock from 32bits compiles and made this write completely
+> unsafe.
+>
+> You need to do one of two things:
+> 1. Require CONFIG_64BIT and delete this 32bit code.
 
-Cc: benve@cisco.com
-Cc: neescoba@cisco.com
-Cc: pkaustub@cisco.com
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
----
- drivers/infiniband/hw/usnic/usnic_ib_main.c |  2 --
- drivers/infiniband/hw/usnic/usnic_uiom.c    | 54 +++--------------------------
- drivers/infiniband/hw/usnic/usnic_uiom.h    |  1 -
- 3 files changed, 4 insertions(+), 53 deletions(-)
+Not required, if something did compile for 32bit, why stop it now ?
+it compiles today and it doesn't function, there is a big warning in
+the code and no one is using a spinlock in 32bit arch,
+so this is just an API cleanup for unused code path.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 3201dd1899c7..1d363b706314 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -691,7 +691,6 @@ static int __init usnic_ib_init(void)
- out_pci_unreg:
- 	pci_unregister_driver(&usnic_ib_pci_driver);
- out_umem_fini:
--	usnic_uiom_fini();
- 
- 	return err;
- }
-@@ -704,7 +703,6 @@ static void __exit usnic_ib_destroy(void)
- 	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- 	pci_unregister_driver(&usnic_ib_pci_driver);
--	usnic_uiom_fini();
- }
- 
- MODULE_DESCRIPTION("Cisco VIC (usNIC) Verbs Driver");
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 854436a2b437..505252298b52 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -47,8 +47,6 @@
- #include "usnic_uiom.h"
- #include "usnic_uiom_interval_tree.h"
- 
--static struct workqueue_struct *usnic_uiom_wq;
--
- #define USNIC_UIOM_PAGE_CHUNK						\
- 	((PAGE_SIZE - offsetof(struct usnic_uiom_chunk, page_list))	/\
- 	((void *) &((struct usnic_uiom_chunk *) 0)->page_list[1] -	\
-@@ -129,7 +127,7 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	uiomr->owning_mm = mm = current->mm;
- 	down_write(&mm->mmap_sem);
- 
--	locked = npages + atomic64_read(&current->mm->pinned_vm);
-+	locked = atomic64_add_return(npages, &current->mm->pinned_vm);
- 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
- 
- 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
-@@ -184,12 +182,11 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	}
- 
- out:
--	if (ret < 0)
-+	if (ret < 0) {
- 		usnic_uiom_put_pages(chunk_list, 0);
--	else {
--		atomic64_set(&mm->pinned_vm, locked);
-+		atomic64_sub(npages, &current->mm->pinned_vm);
-+	} else
- 		mmgrab(uiomr->owning_mm);
--	}
- 
- 	up_write(&mm->mmap_sem);
- 	free_page((unsigned long) page_list);
-@@ -435,43 +432,12 @@ static inline size_t usnic_uiom_num_pages(struct usnic_uiom_reg *uiomr)
- 	return PAGE_ALIGN(uiomr->length + uiomr->offset) >> PAGE_SHIFT;
- }
- 
--static void usnic_uiom_release_defer(struct work_struct *work)
--{
--	struct usnic_uiom_reg *uiomr =
--		container_of(work, struct usnic_uiom_reg, work);
--
--	down_write(&uiomr->owning_mm->mmap_sem);
--	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
--	up_write(&uiomr->owning_mm->mmap_sem);
--
--	__usnic_uiom_release_tail(uiomr);
--}
--
- void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr,
- 			    struct ib_ucontext *context)
- {
- 	__usnic_uiom_reg_release(uiomr->pd, uiomr, 1);
- 
--	/*
--	 * We may be called with the mm's mmap_sem already held.  This
--	 * can happen when a userspace munmap() is the call that drops
--	 * the last reference to our file and calls our release
--	 * method.  If there are memory regions to destroy, we'll end
--	 * up here and not be able to take the mmap_sem.  In that case
--	 * we defer the vm_locked accounting to a workqueue.
--	 */
--	if (context->closing) {
--		if (!down_write_trylock(&uiomr->owning_mm->mmap_sem)) {
--			INIT_WORK(&uiomr->work, usnic_uiom_release_defer);
--			queue_work(usnic_uiom_wq, &uiomr->work);
--			return;
--		}
--	} else {
--		down_write(&uiomr->owning_mm->mmap_sem);
--	}
- 	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
--	up_write(&uiomr->owning_mm->mmap_sem);
--
- 	__usnic_uiom_release_tail(uiomr);
- }
- 
-@@ -600,17 +566,5 @@ int usnic_uiom_init(char *drv_name)
- 		return -EPERM;
- 	}
- 
--	usnic_uiom_wq = create_workqueue(drv_name);
--	if (!usnic_uiom_wq) {
--		usnic_err("Unable to alloc wq for drv %s\n", drv_name);
--		return -ENOMEM;
--	}
--
- 	return 0;
- }
--
--void usnic_uiom_fini(void)
--{
--	flush_workqueue(usnic_uiom_wq);
--	destroy_workqueue(usnic_uiom_wq);
--}
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.h b/drivers/infiniband/hw/usnic/usnic_uiom.h
-index b86a9731071b..c88cfa087e3a 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.h
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.h
-@@ -93,5 +93,4 @@ struct usnic_uiom_reg *usnic_uiom_reg_get(struct usnic_uiom_pd *pd,
- void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr,
- 			    struct ib_ucontext *ucontext);
- int usnic_uiom_init(char *drv_name);
--void usnic_uiom_fini(void);
- #endif /* USNIC_UIOM_H_ */
--- 
-2.16.4
+> 2. Declare global mlx5 DB spinlock and use on 32bit systems, something
+> like this:
+> #if BITS_PER_LONG == 64
+>  __raw_writeq(*(u64 *)val, dest);
+> #else
+>   spin_lock_irqsave(doorbell_lock, flags);
+>   __raw_writel((__force u32) val[0], dest);
+>   __raw_writel((__force u32) val[1], dest + 4);
+>    spin_unlock_irqrestore(doorbell_lock, flags);
+> #endif
+>
+
+I would rather keep it broken than adding some global spinlock.
+
+Every time we touch this code someone gets sensitive about it, this is
+Just a cleanup patch !!
+Bottom line, 32bit doesn't work, we are cleaning up API, don't make a
+big deal out of it,
+Please don't mix two different things, 32bit support is not related to
+this patch at all.
+if you want to fix 32bit, you can do it on top of this patch.
+
+> Thanks
+>
+> >       __raw_writel((__force u32) val[0], dest);
+> >       __raw_writel((__force u32) val[1], dest + 4);
+> > -     if (doorbell_lock)
+> > -             spin_unlock_irqrestore(doorbell_lock, flags);
+> > -}
+> > -
+> >  #endif
+> > +}
+> >
+> >  #endif /* MLX5_DOORBELL_H */
+> > --
+> > 2.20.1
+> >
