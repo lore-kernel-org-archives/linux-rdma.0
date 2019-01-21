@@ -1,127 +1,110 @@
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH 3/6] drivers/IB,qib: do not use mmap_sem
-Date: Mon, 21 Jan 2019 09:42:17 -0800
-Message-ID: <20190121174220.10583-4-dave@stgolabs.net>
+Subject: [PATCH 6/6] drivers/IB,core: reduce scope of mmap_sem
+Date: Mon, 21 Jan 2019 09:42:20 -0800
+Message-ID: <20190121174220.10583-7-dave@stgolabs.net>
 References: <20190121174220.10583-1-dave@stgolabs.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190121174220.10583-1-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
 To: akpm@linux-foundation.org
-Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, Davidlohr Bueso <dbueso@suse.de>
+Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver uses mmap_sem for both pinned_vm accounting and
-get_user_pages(). By using gup_fast() and letting the mm handle
-the lock if needed, we can no longer rely on the semaphore and
-simplify the whole thing as the pinning is decoupled from the lock.
+ib_umem_get() uses gup_longterm() and relies on the lock to
+stabilze the vma_list, so we cannot really get rid of mmap_sem
+altogether, but now that the counter is atomic, we can get of
+some complexity that mmap_sem brings with only pinned_vm.
 
-This also fixes a bug that __qib_get_user_pages was not taking into
-account the current value of pinned_vm.
-
-Cc: dennis.dalessandro@intel.com
-Cc: mike.marciniszyn@intel.com
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 ---
- drivers/infiniband/hw/qib/qib_user_pages.c | 67 ++++++++++--------------------
- 1 file changed, 22 insertions(+), 45 deletions(-)
+ drivers/infiniband/core/umem.c | 41 ++---------------------------------------
+ 1 file changed, 2 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index 602387bf98e7..e4114aad4a2f 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -49,43 +49,6 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 678abe1afcba..b69d3efa8712 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -165,15 +165,12 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ 
+ 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+ 
+-	down_write(&mm->mmap_sem);
+-	new_pinned = atomic64_read(&mm->pinned_vm) + npages;
++	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
+ 	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
+-		up_write(&mm->mmap_sem);
++		atomic64_sub(npages, &mm->pinned_vm);
+ 		ret = -ENOMEM;
+ 		goto out;
  	}
+-	atomic64_set(&mm->pinned_vm, new_pinned);
+-	up_write(&mm->mmap_sem);
+ 
+ 	cur_base = addr & PAGE_MASK;
+ 
+@@ -233,9 +230,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ umem_release:
+ 	__ib_umem_release(context->device, umem, 0);
+ vma:
+-	down_write(&mm->mmap_sem);
+ 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
+-	up_write(&mm->mmap_sem);
+ out:
+ 	if (vma_list)
+ 		free_page((unsigned long) vma_list);
+@@ -258,25 +253,12 @@ static void __ib_umem_release_tail(struct ib_umem *umem)
+ 		kfree(umem);
  }
  
--/*
-- * Call with current->mm->mmap_sem held.
-- */
--static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
--				struct page **p)
+-static void ib_umem_release_defer(struct work_struct *work)
 -{
--	unsigned long lock_limit;
--	size_t got;
--	int ret;
+-	struct ib_umem *umem = container_of(work, struct ib_umem, work);
 -
--	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+-	down_write(&umem->owning_mm->mmap_sem);
+-	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+-	up_write(&umem->owning_mm->mmap_sem);
 -
--	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
--		ret = -ENOMEM;
--		goto bail;
--	}
--
--	for (got = 0; got < num_pages; got += ret) {
--		ret = get_user_pages(start_page + got * PAGE_SIZE,
--				     num_pages - got,
--				     FOLL_WRITE | FOLL_FORCE,
--				     p + got, NULL);
--		if (ret < 0)
--			goto bail_release;
--	}
--
--	atomic64_add(num_pages, &current->mm->pinned_vm);
--
--	ret = 0;
--	goto bail;
--
--bail_release:
--	__qib_release_user_pages(p, got, 0);
--bail:
--	return ret;
+-	__ib_umem_release_tail(umem);
 -}
 -
  /**
-  * qib_map_page - a safety wrapper around pci_map_page()
-  *
-@@ -137,26 +100,40 @@ int qib_map_page(struct pci_dev *hwdev, struct page *page, dma_addr_t *daddr)
- int qib_get_user_pages(unsigned long start_page, size_t num_pages,
- 		       struct page **p)
+  * ib_umem_release - release memory pinned with ib_umem_get
+  * @umem: umem struct to release
+  */
+ void ib_umem_release(struct ib_umem *umem)
  {
-+	unsigned long locked, lock_limit;
-+	size_t got;
- 	int ret;
- 
--	down_write(&current->mm->mmap_sem);
-+	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
-+	locked = atomic64_add_return(num_pages, &current->mm->pinned_vm);
- 
--	ret = __qib_get_user_pages(start_page, num_pages, p);
-+	if (locked > lock_limit && !capable(CAP_IPC_LOCK)) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
- 
--	up_write(&current->mm->mmap_sem);
-+	for (got = 0; got < num_pages; got += ret) {
-+		ret = get_user_pages_fast(start_page + got * PAGE_SIZE,
-+				     num_pages - got,
-+				     FOLL_WRITE | FOLL_FORCE,
-+				     p + got);
-+		if (ret < 0)
-+			goto bail_release;
-+	}
- 
-+	return 0;
-+bail_release:
-+	__qib_release_user_pages(p, got, 0);
-+bail:
-+	atomic64_sub(num_pages, &current->mm->pinned_vm);
- 	return ret;
- }
- 
- void qib_release_user_pages(struct page **p, size_t num_pages)
- {
--	if (current->mm) /* during close after signal, mm can be NULL */
--		down_write(&current->mm->mmap_sem);
+-	struct ib_ucontext *context = umem->context;
 -
- 	__qib_release_user_pages(p, num_pages, 1);
+ 	if (umem->is_odp) {
+ 		ib_umem_odp_release(to_ib_umem_odp(umem));
+ 		__ib_umem_release_tail(umem);
+@@ -285,26 +267,7 @@ void ib_umem_release(struct ib_umem *umem)
  
--	if (current->mm) {
-+	if (current->mm) { /* during close after signal, mm can be NULL */
- 		atomic64_sub(num_pages, &current->mm->pinned_vm);
--		up_write(&current->mm->mmap_sem);
- 	}
+ 	__ib_umem_release(umem->context->device, umem, 1);
+ 
+-	/*
+-	 * We may be called with the mm's mmap_sem already held.  This
+-	 * can happen when a userspace munmap() is the call that drops
+-	 * the last reference to our file and calls our release
+-	 * method.  If there are memory regions to destroy, we'll end
+-	 * up here and not be able to take the mmap_sem.  In that case
+-	 * we defer the vm_locked accounting a workqueue.
+-	 */
+-	if (context->closing) {
+-		if (!down_write_trylock(&umem->owning_mm->mmap_sem)) {
+-			INIT_WORK(&umem->work, ib_umem_release_defer);
+-			queue_work(ib_wq, &umem->work);
+-			return;
+-		}
+-	} else {
+-		down_write(&umem->owning_mm->mmap_sem);
+-	}
+ 	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+-	up_write(&umem->owning_mm->mmap_sem);
+-
+ 	__ib_umem_release_tail(umem);
  }
+ EXPORT_SYMBOL(ib_umem_release);
 -- 
 2.16.4
