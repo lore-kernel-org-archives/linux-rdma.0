@@ -1,127 +1,322 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 12/12] net/mlx5: Set ODP SRQ support in firmware
-Date: Tue, 22 Jan 2019 08:48:51 +0200
-Message-ID: <20190122064851.6032-13-leon@kernel.org>
-References: <20190122064851.6032-1-leon@kernel.org>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 1/6] mm: make mm->pinned_vm an atomic64 counter
+Date: Tue, 22 Jan 2019 10:56:16 +0100
+Message-ID: <20190122095616.GA13149@quack2.suse.cz>
+References: <20190121174220.10583-1-dave@stgolabs.net>
+ <20190121174220.10583-2-dave@stgolabs.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190122064851.6032-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190121174220.10583-2-dave@stgolabs.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: akpm@linux-foundation.org, dledford@redhat.com, jgg@mellanox.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis@mellanox.com>
+On Mon 21-01-19 09:42:15, Davidlohr Bueso wrote:
+> Taking a sleeping lock to _only_ increment a variable is quite the
+> overkill, and pretty much all users do this. Furthermore, some drivers
+> (ie: infiniband and scif) that need pinned semantics can go to quite
+> some trouble to actually delay via workqueue (un)accounting for pinned
+> pages when not possible to acquire it.
+> 
+> By making the counter atomic we no longer need to hold the mmap_sem
+> and can simply some code around it for pinned_vm users. The counter
+> is 64-bit such that we need not worry about overflows such as rdma
+> user input controlled from userspace.
+> 
+> Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 
-To avoid compatibility issue with older kernels the firmware doesn't
-allow SRQ to work with ODP unless kernel asks for it.
+The patch looks good to me. You can add:
 
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Reviewed-by: Majd Dibbiny <majd@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- .../net/ethernet/mellanox/mlx5/core/main.c    | 53 +++++++++++++++++++
- include/linux/mlx5/device.h                   |  3 ++
- include/linux/mlx5/mlx5_ifc.h                 |  1 +
- 3 files changed, 57 insertions(+)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index be81b319b0dc..b3a76df0cf6c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -459,6 +459,53 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
- 	return err;
- }
- 
-+static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
-+{
-+	void *set_ctx;
-+	void *set_hca_cap;
-+	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
-+	int err;
-+
-+	if (!MLX5_CAP_GEN(dev, pg))
-+		return 0;
-+
-+	err = mlx5_core_get_caps(dev, MLX5_CAP_ODP);
-+	if (err)
-+		return err;
-+
-+	/**
-+	 * If all bits are cleared we shouldn't try to set it
-+	 * or we might fail while trying to access a reserved bit.
-+	 */
-+	if (!(MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive) ||
-+	      MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive) ||
-+	      MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive)))
-+		return 0;
-+
-+	set_ctx = kzalloc(set_sz, GFP_KERNEL);
-+	if (!set_ctx)
-+		return -ENOMEM;
-+
-+	set_hca_cap = MLX5_ADDR_OF(set_hca_cap_in, set_ctx, capability);
-+	memcpy(set_hca_cap, dev->caps.hca_cur[MLX5_CAP_ODP],
-+	       MLX5_ST_SZ_BYTES(odp_cap));
-+
-+	/* set ODP SRQ support for RC/UD and XRC transports */
-+	MLX5_SET(odp_cap, set_hca_cap, ud_odp_caps.srq_receive,
-+		 (MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive)));
-+
-+	MLX5_SET(odp_cap, set_hca_cap, rc_odp_caps.srq_receive,
-+		 (MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive)));
-+
-+	MLX5_SET(odp_cap, set_hca_cap, xrc_odp_caps.srq_receive,
-+		 (MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive)));
-+
-+	err = set_caps(dev, set_ctx, set_sz, MLX5_SET_HCA_CAP_OP_MOD_ODP);
-+
-+	kfree(set_ctx);
-+	return err;
-+}
-+
- static int handle_hca_cap(struct mlx5_core_dev *dev)
- {
- 	void *set_ctx = NULL;
-@@ -926,6 +973,12 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto reclaim_boot_pages;
- 	}
- 
-+	err = handle_hca_cap_odp(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
-+		goto reclaim_boot_pages;
-+	}
-+
- 	err = mlx5_satisfy_startup_pages(dev, 0);
- 	if (err) {
- 		dev_err(&pdev->dev, "failed to allocate init pages\n");
-diff --git a/include/linux/mlx5/device.h b/include/linux/mlx5/device.h
-index 8c4a820bd4c1..0845a227a7b2 100644
---- a/include/linux/mlx5/device.h
-+++ b/include/linux/mlx5/device.h
-@@ -1201,6 +1201,9 @@ enum mlx5_qcam_feature_groups {
- #define MLX5_CAP_ODP(mdev, cap)\
- 	MLX5_GET(odp_cap, mdev->caps.hca_cur[MLX5_CAP_ODP], cap)
- 
-+#define MLX5_CAP_ODP_MAX(mdev, cap)\
-+	MLX5_GET(odp_cap, mdev->caps.hca_max[MLX5_CAP_ODP], cap)
-+
- #define MLX5_CAP_VECTOR_CALC(mdev, cap) \
- 	MLX5_GET(vector_calc_cap, \
- 		 mdev->caps.hca_cur[MLX5_CAP_VECTOR_CALC], cap)
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 5407db8ba8e1..c5c679390fbd 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -72,6 +72,7 @@ enum {
- 
- enum {
- 	MLX5_SET_HCA_CAP_OP_MOD_GENERAL_DEVICE        = 0x0,
-+	MLX5_SET_HCA_CAP_OP_MOD_ODP                   = 0x2,
- 	MLX5_SET_HCA_CAP_OP_MOD_ATOMIC                = 0x3,
- };
- 
+and I really like the cleanups allowed by this in the drivers :)
+
+								Honza
+
+> ---
+>  drivers/infiniband/core/umem.c             | 12 ++++++------
+>  drivers/infiniband/hw/hfi1/user_pages.c    |  6 +++---
+>  drivers/infiniband/hw/qib/qib_user_pages.c |  4 ++--
+>  drivers/infiniband/hw/usnic/usnic_uiom.c   |  8 ++++----
+>  drivers/misc/mic/scif/scif_rma.c           |  6 +++---
+>  fs/proc/task_mmu.c                         |  2 +-
+>  include/linux/mm_types.h                   |  2 +-
+>  kernel/events/core.c                       |  8 ++++----
+>  kernel/fork.c                              |  2 +-
+>  mm/debug.c                                 |  3 ++-
+>  10 files changed, 27 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> index 1efe0a74e06b..678abe1afcba 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -166,13 +166,13 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+>  	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+>  
+>  	down_write(&mm->mmap_sem);
+> -	if (check_add_overflow(mm->pinned_vm, npages, &new_pinned) ||
+> -	    (new_pinned > lock_limit && !capable(CAP_IPC_LOCK))) {
+> +	new_pinned = atomic64_read(&mm->pinned_vm) + npages;
+> +	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
+>  		up_write(&mm->mmap_sem);
+>  		ret = -ENOMEM;
+>  		goto out;
+>  	}
+> -	mm->pinned_vm = new_pinned;
+> +	atomic64_set(&mm->pinned_vm, new_pinned);
+>  	up_write(&mm->mmap_sem);
+>  
+>  	cur_base = addr & PAGE_MASK;
+> @@ -234,7 +234,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+>  	__ib_umem_release(context->device, umem, 0);
+>  vma:
+>  	down_write(&mm->mmap_sem);
+> -	mm->pinned_vm -= ib_umem_num_pages(umem);
+> +	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
+>  	up_write(&mm->mmap_sem);
+>  out:
+>  	if (vma_list)
+> @@ -263,7 +263,7 @@ static void ib_umem_release_defer(struct work_struct *work)
+>  	struct ib_umem *umem = container_of(work, struct ib_umem, work);
+>  
+>  	down_write(&umem->owning_mm->mmap_sem);
+> -	umem->owning_mm->pinned_vm -= ib_umem_num_pages(umem);
+> +	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+>  	up_write(&umem->owning_mm->mmap_sem);
+>  
+>  	__ib_umem_release_tail(umem);
+> @@ -302,7 +302,7 @@ void ib_umem_release(struct ib_umem *umem)
+>  	} else {
+>  		down_write(&umem->owning_mm->mmap_sem);
+>  	}
+> -	umem->owning_mm->pinned_vm -= ib_umem_num_pages(umem);
+> +	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+>  	up_write(&umem->owning_mm->mmap_sem);
+>  
+>  	__ib_umem_release_tail(umem);
+> diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+> index e341e6dcc388..40a6e434190f 100644
+> --- a/drivers/infiniband/hw/hfi1/user_pages.c
+> +++ b/drivers/infiniband/hw/hfi1/user_pages.c
+> @@ -92,7 +92,7 @@ bool hfi1_can_pin_pages(struct hfi1_devdata *dd, struct mm_struct *mm,
+>  	size = DIV_ROUND_UP(size, PAGE_SIZE);
+>  
+>  	down_read(&mm->mmap_sem);
+> -	pinned = mm->pinned_vm;
+> +	pinned = atomic64_read(&mm->pinned_vm);
+>  	up_read(&mm->mmap_sem);
+>  
+>  	/* First, check the absolute limit against all pinned pages. */
+> @@ -112,7 +112,7 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+>  		return ret;
+>  
+>  	down_write(&mm->mmap_sem);
+> -	mm->pinned_vm += ret;
+> +	atomic64_add(ret, &mm->pinned_vm);
+>  	up_write(&mm->mmap_sem);
+>  
+>  	return ret;
+> @@ -131,7 +131,7 @@ void hfi1_release_user_pages(struct mm_struct *mm, struct page **p,
+>  
+>  	if (mm) { /* during close after signal, mm can be NULL */
+>  		down_write(&mm->mmap_sem);
+> -		mm->pinned_vm -= npages;
+> +		atomic64_sub(npages, &mm->pinned_vm);
+>  		up_write(&mm->mmap_sem);
+>  	}
+>  }
+> diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+> index 16543d5e80c3..602387bf98e7 100644
+> --- a/drivers/infiniband/hw/qib/qib_user_pages.c
+> +++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+> @@ -75,7 +75,7 @@ static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
+>  			goto bail_release;
+>  	}
+>  
+> -	current->mm->pinned_vm += num_pages;
+> +	atomic64_add(num_pages, &current->mm->pinned_vm);
+>  
+>  	ret = 0;
+>  	goto bail;
+> @@ -156,7 +156,7 @@ void qib_release_user_pages(struct page **p, size_t num_pages)
+>  	__qib_release_user_pages(p, num_pages, 1);
+>  
+>  	if (current->mm) {
+> -		current->mm->pinned_vm -= num_pages;
+> +		atomic64_sub(num_pages, &current->mm->pinned_vm);
+>  		up_write(&current->mm->mmap_sem);
+>  	}
+>  }
+> diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> index ce01a59fccc4..854436a2b437 100644
+> --- a/drivers/infiniband/hw/usnic/usnic_uiom.c
+> +++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+> @@ -129,7 +129,7 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
+>  	uiomr->owning_mm = mm = current->mm;
+>  	down_write(&mm->mmap_sem);
+>  
+> -	locked = npages + current->mm->pinned_vm;
+> +	locked = npages + atomic64_read(&current->mm->pinned_vm);
+>  	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+>  
+>  	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
+> @@ -187,7 +187,7 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
+>  	if (ret < 0)
+>  		usnic_uiom_put_pages(chunk_list, 0);
+>  	else {
+> -		mm->pinned_vm = locked;
+> +		atomic64_set(&mm->pinned_vm, locked);
+>  		mmgrab(uiomr->owning_mm);
+>  	}
+>  
+> @@ -441,7 +441,7 @@ static void usnic_uiom_release_defer(struct work_struct *work)
+>  		container_of(work, struct usnic_uiom_reg, work);
+>  
+>  	down_write(&uiomr->owning_mm->mmap_sem);
+> -	uiomr->owning_mm->pinned_vm -= usnic_uiom_num_pages(uiomr);
+> +	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
+>  	up_write(&uiomr->owning_mm->mmap_sem);
+>  
+>  	__usnic_uiom_release_tail(uiomr);
+> @@ -469,7 +469,7 @@ void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr,
+>  	} else {
+>  		down_write(&uiomr->owning_mm->mmap_sem);
+>  	}
+> -	uiomr->owning_mm->pinned_vm -= usnic_uiom_num_pages(uiomr);
+> +	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
+>  	up_write(&uiomr->owning_mm->mmap_sem);
+>  
+>  	__usnic_uiom_release_tail(uiomr);
+> diff --git a/drivers/misc/mic/scif/scif_rma.c b/drivers/misc/mic/scif/scif_rma.c
+> index 749321eb91ae..2448368f181e 100644
+> --- a/drivers/misc/mic/scif/scif_rma.c
+> +++ b/drivers/misc/mic/scif/scif_rma.c
+> @@ -285,7 +285,7 @@ __scif_dec_pinned_vm_lock(struct mm_struct *mm,
+>  	} else {
+>  		down_write(&mm->mmap_sem);
+>  	}
+> -	mm->pinned_vm -= nr_pages;
+> +	atomic64_sub(nr_pages, &mm->pinned_vm);
+>  	up_write(&mm->mmap_sem);
+>  	return 0;
+>  }
+> @@ -299,7 +299,7 @@ static inline int __scif_check_inc_pinned_vm(struct mm_struct *mm,
+>  		return 0;
+>  
+>  	locked = nr_pages;
+> -	locked += mm->pinned_vm;
+> +	locked += atomic64_read(&mm->pinned_vm);
+>  	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+>  	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
+>  		dev_err(scif_info.mdev.this_device,
+> @@ -307,7 +307,7 @@ static inline int __scif_check_inc_pinned_vm(struct mm_struct *mm,
+>  			locked, lock_limit);
+>  		return -ENOMEM;
+>  	}
+> -	mm->pinned_vm = locked;
+> +	atomic64_set(&mm->pinned_vm, locked);
+>  	return 0;
+>  }
+>  
+> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+> index 6976e17dba68..640ae8a47c73 100644
+> --- a/fs/proc/task_mmu.c
+> +++ b/fs/proc/task_mmu.c
+> @@ -59,7 +59,7 @@ void task_mem(struct seq_file *m, struct mm_struct *mm)
+>  	SEQ_PUT_DEC("VmPeak:\t", hiwater_vm);
+>  	SEQ_PUT_DEC(" kB\nVmSize:\t", total_vm);
+>  	SEQ_PUT_DEC(" kB\nVmLck:\t", mm->locked_vm);
+> -	SEQ_PUT_DEC(" kB\nVmPin:\t", mm->pinned_vm);
+> +	SEQ_PUT_DEC(" kB\nVmPin:\t", atomic64_read(&mm->pinned_vm));
+>  	SEQ_PUT_DEC(" kB\nVmHWM:\t", hiwater_rss);
+>  	SEQ_PUT_DEC(" kB\nVmRSS:\t", total_rss);
+>  	SEQ_PUT_DEC(" kB\nRssAnon:\t", anon);
+> diff --git a/include/linux/mm_types.h b/include/linux/mm_types.h
+> index 6312b02d65ed..0c8be6f9c92d 100644
+> --- a/include/linux/mm_types.h
+> +++ b/include/linux/mm_types.h
+> @@ -404,7 +404,7 @@ struct mm_struct {
+>  
+>  		unsigned long total_vm;	   /* Total pages mapped */
+>  		unsigned long locked_vm;   /* Pages that have PG_mlocked set */
+> -		unsigned long pinned_vm;   /* Refcount permanently increased */
+> +		atomic64_t    pinned_vm;   /* Refcount permanently increased */
+>  		unsigned long data_vm;	   /* VM_WRITE & ~VM_SHARED & ~VM_STACK */
+>  		unsigned long exec_vm;	   /* VM_EXEC & ~VM_WRITE & ~VM_STACK */
+>  		unsigned long stack_vm;	   /* VM_STACK */
+> diff --git a/kernel/events/core.c b/kernel/events/core.c
+> index 3cd13a30f732..8df0b77a4687 100644
+> --- a/kernel/events/core.c
+> +++ b/kernel/events/core.c
+> @@ -5459,7 +5459,7 @@ static void perf_mmap_close(struct vm_area_struct *vma)
+>  
+>  		/* now it's safe to free the pages */
+>  		atomic_long_sub(rb->aux_nr_pages, &mmap_user->locked_vm);
+> -		vma->vm_mm->pinned_vm -= rb->aux_mmap_locked;
+> +		atomic64_sub(rb->aux_mmap_locked, &vma->vm_mm->pinned_vm);
+>  
+>  		/* this has to be the last one */
+>  		rb_free_aux(rb);
+> @@ -5532,7 +5532,7 @@ static void perf_mmap_close(struct vm_area_struct *vma)
+>  	 */
+>  
+>  	atomic_long_sub((size >> PAGE_SHIFT) + 1, &mmap_user->locked_vm);
+> -	vma->vm_mm->pinned_vm -= mmap_locked;
+> +	atomic64_sub(mmap_locked, &vma->vm_mm->pinned_vm);
+>  	free_uid(mmap_user);
+>  
+>  out_put:
+> @@ -5680,7 +5680,7 @@ static int perf_mmap(struct file *file, struct vm_area_struct *vma)
+>  
+>  	lock_limit = rlimit(RLIMIT_MEMLOCK);
+>  	lock_limit >>= PAGE_SHIFT;
+> -	locked = vma->vm_mm->pinned_vm + extra;
+> +	locked = atomic64_read(&vma->vm_mm->pinned_vm) + extra;
+>  
+>  	if ((locked > lock_limit) && perf_paranoid_tracepoint_raw() &&
+>  		!capable(CAP_IPC_LOCK)) {
+> @@ -5721,7 +5721,7 @@ static int perf_mmap(struct file *file, struct vm_area_struct *vma)
+>  unlock:
+>  	if (!ret) {
+>  		atomic_long_add(user_extra, &user->locked_vm);
+> -		vma->vm_mm->pinned_vm += extra;
+> +		atomic64_add(extra, &vma->vm_mm->pinned_vm);
+>  
+>  		atomic_inc(&event->mmap_count);
+>  	} else if (rb) {
+> diff --git a/kernel/fork.c b/kernel/fork.c
+> index c48e9e244a89..a68de9032ced 100644
+> --- a/kernel/fork.c
+> +++ b/kernel/fork.c
+> @@ -981,7 +981,7 @@ static struct mm_struct *mm_init(struct mm_struct *mm, struct task_struct *p,
+>  	mm_pgtables_bytes_init(mm);
+>  	mm->map_count = 0;
+>  	mm->locked_vm = 0;
+> -	mm->pinned_vm = 0;
+> +	atomic64_set(&mm->pinned_vm, 0);
+>  	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
+>  	spin_lock_init(&mm->page_table_lock);
+>  	spin_lock_init(&mm->arg_lock);
+> diff --git a/mm/debug.c b/mm/debug.c
+> index 0abb987dad9b..bcf70e365a77 100644
+> --- a/mm/debug.c
+> +++ b/mm/debug.c
+> @@ -166,7 +166,8 @@ void dump_mm(const struct mm_struct *mm)
+>  		mm_pgtables_bytes(mm),
+>  		mm->map_count,
+>  		mm->hiwater_rss, mm->hiwater_vm, mm->total_vm, mm->locked_vm,
+> -		mm->pinned_vm, mm->data_vm, mm->exec_vm, mm->stack_vm,
+> +		atomic64_read(&mm->pinned_vm),
+> +		mm->data_vm, mm->exec_vm, mm->stack_vm,
+>  		mm->start_code, mm->end_code, mm->start_data, mm->end_data,
+>  		mm->start_brk, mm->brk, mm->start_stack,
+>  		mm->arg_start, mm->arg_end, mm->env_start, mm->env_end,
+> -- 
+> 2.16.4
+> 
 -- 
-2.19.1
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
