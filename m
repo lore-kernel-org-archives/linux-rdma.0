@@ -1,56 +1,75 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 2/2] RDMA/srp: Rework SCSI device reset handling
-Date: Tue, 22 Jan 2019 08:04:26 -0800
-Message-ID: <1548173066.9266.47.camel@acm.org>
-References: <20190117002717.84686-3-bvanassche@acm.org>
-         <20190122155559.D1DD9217D6@mail.kernel.org>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH 1/8] infiniband: cxgb4: no need to check return value of
+ debugfs_create functions
+Date: Tue, 22 Jan 2019 10:22:59 -0600
+Message-ID: <dbf27d3d-ff19-4054-9495-80bcb5a10485@opengridcomputing.com>
+References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
+ <20190122151800.15092-2-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-7"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190122155559.D1DD9217D6@mail.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Sasha Levin <sashal@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Sergey Gorenko <sergeygo@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190122151800.15092-2-gregkh@linuxfoundation.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2019-01-22 at 15:55 +-0000, Sasha Levin wrote:
-+AD4 +AFs-This is an automated email+AF0
-+AD4 
-+AD4 This commit has been processed because it contains a +ACI-Fixes:+ACI tag,
-+AD4 fixing commit: 94a9174c630c IB/srp: reduce lock coverage of command completion.
-+AD4 
-+AD4 The bot has tested the following trees: v4.20.3, v4.19.16, v4.14.94, v4.9.151, v4.4.171, v3.18.132.
-+AD4 
-+AD4 v4.20.3: Build OK+ACE
-+AD4 v4.19.16: Build OK+ACE
-+AD4 v4.14.94: Build OK+ACE
-+AD4 v4.9.151: Build failed+ACE Errors:
-+AD4     drivers/infiniband/ulp/srp/ib+AF8-srp.c:2657:2: error: implicit declaration of function +IBg-blk+AF8-freeze+AF8-queue+AF8-start+IBkAOw did you mean +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-start+IBk? +AFs--Werror+AD0-implicit-function-declaration+AF0
-+AD4     drivers/infiniband/ulp/srp/ib+AF8-srp.c:2658:14: error: implicit declaration of function +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-wait+AF8-timeout+IBkAOw did you mean +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-start+IBk? +AFs--Werror+AD0-implicit-function-
-+AD4 declaration+AF0
-+AD4 
-+AD4 v4.4.171: Build failed+ACE Errors:
-+AD4     drivers/infiniband/ulp/srp/ib+AF8-srp.c:2612:2: error: implicit declaration of function +IBg-blk+AF8-freeze+AF8-queue+AF8-start+IBkAOw did you mean +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-start+IBk? +AFs--Werror+AD0-implicit-function-declaration+AF0
-+AD4     drivers/infiniband/ulp/srp/ib+AF8-srp.c:2613:14: error: implicit declaration of function +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-wait+AF8-timeout+IBkAOw did you mean +IBg-blk+AF8-mq+AF8-freeze+AF8-queue+AF8-start+IBk? +AFs--Werror+AD0-implicit-function-
-+AD4 declaration+AF0
-+AD4 
-+AD4 v3.18.132: Failed to apply+ACE Possible dependencies:
-+AD4     205619f2f824 (+ACI-IB/srp: Remove stale connection retry mechanism+ACI)
-+AD4     34aa654ecb8e (+ACI-IB/srp: Avoid that I/O hangs due to a cable pull during LUN scanning+ACI)
-+AD4     394c595ee8c3 (+ACI-IB/srp: Move ib+AF8-destroy+AF8-cm+AF8-id() call into srp+AF8-free+AF8-ch+AF8-ib()+ACI)
-+AD4     509c07bc1850 (+ACI-IB/srp: Separate target and channel variables+ACI)
-+AD4     747fe000ef38 (+ACI-IB/srp: Introduce two new srp+AF8-target+AF8-port member variables+ACI)
-+AD4     77f2c1a40e6f (+ACI-IB/srp: Use block layer tags+ACI)
-+AD4     d92c0da71a35 (+ACI-IB/srp: Add multichannel support+ACI)
-+AD4 
-+AD4 
-+AD4 How should we proceed with this patch?
+Hey Greg,
 
-Hi Sasha,
+On 1/22/2019 9:17 AM, Greg Kroah-Hartman wrote:
+> When calling debugfs functions, there is no need to ever check the
+> return value.  The function can work or not, but the code logic should
+> never do something different based on this.
+> 
+> Cc: Steve Wise <swise@chelsio.com>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: linux-rdma@vger.kernel.org
+> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> ---
+>  drivers/infiniband/hw/cxgb4/device.c | 8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+> index c13c0ba30f63..9c10fff6dcfb 100644
+> --- a/drivers/infiniband/hw/cxgb4/device.c
+> +++ b/drivers/infiniband/hw/cxgb4/device.c
+> @@ -720,11 +720,8 @@ static const struct file_operations ep_debugfs_fops = {
+>  	.read    = debugfs_read,
+>  };
+>  
+> -static int setup_debugfs(struct c4iw_dev *devp)
+> +static void setup_debugfs(struct c4iw_dev *devp)
+>  {
+> -	if (!devp->debugfs_root)
+> -		return -1;
+> -
+>  	debugfs_create_file_size("qps", S_IWUSR, devp->debugfs_root,
+>  				 (void *)devp, &qp_debugfs_fops, 4096);
+>  
+> @@ -740,7 +737,6 @@ static int setup_debugfs(struct c4iw_dev *devp)
+>  	if (c4iw_wr_log)
+>  		debugfs_create_file_size("wr_log", S_IWUSR, devp->debugfs_root,
+>  					 (void *)devp, &wr_log_debugfs_fops, 4096);
+> -	return 0;
+>  }
+>  
+>  void c4iw_release_dev_ucontext(struct c4iw_rdev *rdev,
+> @@ -1553,8 +1549,6 @@ static int __init c4iw_init_module(void)
+>  		return err;
+>  
+>  	c4iw_debugfs_root = debugfs_create_dir(DRV_NAME, NULL);
+> -	if (!c4iw_debugfs_root)
+> -		pr_warn("could not create debugfs entry, continuing\n");
+>  
+>  	reg_workq = create_singlethread_workqueue("Register_iWARP_device");
+>  	if (!reg_workq) {
+> 
 
-Patch 2/2 does not have a +ACI-Cc: stable+ACI tag because it definitely should NOT be
-backported to older kernels. This patch only works for blk-mq which is fine with
-kernel v5.0. Older kernels however support both the legacy block layer and blk-mq.
+So it is not a problem to call debugfs_create_file_size() when
+devp->debugfs_root is NULL?
 
-Bart.
+
+Acked-by: Steve Wise <swise@opengridcomputing.com>
