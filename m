@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 10/19] rdma: Properly mark RDMAtool license
-Date: Tue, 22 Jan 2019 20:31:16 +0200
-Message-ID: <20190122183125.15920-11-leon@kernel.org>
+Subject: [PATCH iproute2-next 14/19] rdma: Separate MR code
+Date: Tue, 22 Jan 2019 20:31:20 +0200
+Message-ID: <20190122183125.15920-15-leon@kernel.org>
 References: <20190122183125.15920-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,131 +14,210 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-RDMA subsystem is dual-licensed with "GPL-2.0 OR Linux-OpenIB" proper
-license and Mellanox submission are supposed to have this type of license.
-
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/Makefile | 2 +-
- rdma/dev.c    | 7 +------
- rdma/link.c   | 7 +------
- rdma/rdma.c   | 7 +------
- rdma/rdma.h   | 7 +------
- rdma/res.c    | 7 +------
- rdma/utils.c  | 7 +------
- 7 files changed, 7 insertions(+), 37 deletions(-)
+ rdma/res-mr.c | 178 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 90 insertions(+), 88 deletions(-)
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index ad7f4177..6a424234 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -1,4 +1,4 @@
--# SPDX-License-Identifier: GPL-2.0
-+# SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- include ../config.mk
+diff --git a/rdma/res-mr.c b/rdma/res-mr.c
+index e373035a..36993b5e 100644
+--- a/rdma/res-mr.c
++++ b/rdma/res-mr.c
+@@ -7,11 +7,96 @@
+ #include "res.h"
+ #include <inttypes.h>
  
- TARGETS :=
-diff --git a/rdma/dev.c b/rdma/dev.c
-index 60ff4b31..954e0015 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -1,11 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-  * dev.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
++static int res_mr_line(struct rd *rd, const char *name, int idx,
++		       struct nlattr *nla_entry)
++{
++	struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
++	uint32_t rkey = 0, lkey = 0;
++	uint64_t iova = 0, mrlen;
++	char *comm = NULL;
++	uint32_t pdn = 0;
++	uint32_t mrn = 0;
++	uint32_t pid = 0;
++	int err;
++
++	err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
++	if (err != MNL_CB_OK)
++		return MNL_CB_ERROR;
++
++	if (!nla_line[RDMA_NLDEV_ATTR_RES_MRLEN] ||
++	    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
++	     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
++		return MNL_CB_ERROR;
++	}
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
++		rkey = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RKEY]);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
++		lkey = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LKEY]);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
++		iova = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_IOVA]);
++
++	mrlen = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_MRLEN]);
++	if (rd_check_is_filtered(rd, "mrlen", mrlen))
++		goto out;
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
++		pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
++		comm = get_task_name(pid);
++	}
++
++	if (rd_check_is_filtered(rd, "pid", pid))
++		goto out;
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++		mrn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
++	if (rd_check_is_filtered(rd, "mrn", mrn))
++		goto out;
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++		pdn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
++	if (rd_check_is_filtered(rd, "pdn", pdn))
++		goto out;
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
++		/* discard const from mnl_attr_get_str */
++		comm = (char *)mnl_attr_get_str(
++			nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
++
++	if (rd->json_output)
++		jsonw_start_array(rd->jw);
++
++	print_dev(rd, idx, name);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
++		print_key(rd, "rkey", rkey);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
++		print_key(rd, "lkey", lkey);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
++		print_key(rd, "iova", iova);
++	res_print_uint(rd, "mrlen", mrlen);
++	res_print_uint(rd, "pid", pid);
++	print_comm(rd, comm, nla_line);
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++		res_print_uint(rd, "mrn", mrn);
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++		res_print_uint(rd, "pdn", pdn);
++
++	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
++	newline(rd);
++
++out:
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
++		free(comm);
++	return MNL_CB_OK;
++}
+ int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
+ 	struct nlattr *nla_table, *nla_entry;
+ 	struct rd *rd = data;
++	int ret = MNL_CB_OK;
+ 	const char *name;
+ 	uint32_t idx;
  
-diff --git a/rdma/link.c b/rdma/link.c
-index c064be62..89e81b84 100644
---- a/rdma/link.c
-+++ b/rdma/link.c
-@@ -1,11 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-  * link.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
+@@ -25,93 +110,10 @@ int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	nla_table = tb[RDMA_NLDEV_ATTR_RES_MR];
  
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index 010e9837..676e03c2 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -1,11 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-  * rdma.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
- 
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 547bb574..d2559e7c 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -1,11 +1,6 @@
-+/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
- /*
-  * rdma.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
- #ifndef _RDMA_TOOL_H_
-diff --git a/rdma/res.c b/rdma/res.c
-index 6d4da38c..f621afa8 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -1,11 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-  * res.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
- 
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 069d44fe..bce052d5 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -1,11 +1,6 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
- /*
-  * utils.c	RDMA tool
-- *
-- *              This program is free software; you can redistribute it and/or
-- *              modify it under the terms of the GNU General Public License
-- *              as published by the Free Software Foundation; either version
-- *              2 of the License, or (at your option) any later version.
-- *
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
- 
+ 	mnl_attr_for_each_nested(nla_entry, nla_table) {
+-		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
+-		uint32_t rkey = 0, lkey = 0;
+-		uint64_t iova = 0, mrlen;
+-		char *comm = NULL;
+-		uint32_t pdn = 0;
+-		uint32_t mrn = 0;
+-		uint32_t pid = 0;
+-		int err;
+-
+-		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
+-		if (err != MNL_CB_OK)
+-			return MNL_CB_ERROR;
+-
+-		if (!nla_line[RDMA_NLDEV_ATTR_RES_MRLEN] ||
+-		    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
+-		     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
+-			return MNL_CB_ERROR;
+-		}
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
+-			rkey = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_RKEY]);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
+-			lkey = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_LKEY]);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
+-			iova = mnl_attr_get_u64(
+-				nla_line[RDMA_NLDEV_ATTR_RES_IOVA]);
+-
+-		mrlen = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_MRLEN]);
+-		if (rd_check_is_filtered(rd, "mrlen", mrlen))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
+-			pid = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_PID]);
+-			comm = get_task_name(pid);
+-		}
+-
+-		if (rd_check_is_filtered(rd, "pid", pid)) {
+-			free(comm);
+-			continue;
+-		}
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
+-			mrn = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
+-		if (rd_check_is_filtered(rd, "mrn", mrn))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
+-			pdn = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
+-		if (rd_check_is_filtered(rd, "pdn", pdn))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+-			/* discard const from mnl_attr_get_str */
+-			comm = (char *)mnl_attr_get_str(
+-				nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
+-
+-		if (rd->json_output)
+-			jsonw_start_array(rd->jw);
+-
+-		print_dev(rd, idx, name);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
+-			print_key(rd, "rkey", rkey);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
+-			print_key(rd, "lkey", lkey);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
+-			print_key(rd, "iova", iova);
+-		res_print_uint(rd, "mrlen", mrlen);
+-		res_print_uint(rd, "pid", pid);
+-		print_comm(rd, comm, nla_line);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
+-			res_print_uint(rd, "mrn", mrn);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
+-			res_print_uint(rd, "pdn", pdn);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+-			free(comm);
+-
+-		print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
+-		newline(rd);
++		ret = res_mr_line(rd, name, idx, nla_entry);
++
++		if (ret != MNL_CB_OK)
++			break;
+ 	}
+-	return MNL_CB_OK;
++	return ret;
+ }
+-
 -- 
 2.19.1
