@@ -1,7 +1,7 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 2/8] infiniband: hfi1: drop crazy DEBUGFS_SEQ_FILE_CREATE() macro
-Date: Tue, 22 Jan 2019 16:17:54 +0100
-Message-ID: <20190122151800.15092-3-gregkh@linuxfoundation.org>
+Subject: [PATCH 5/8] infiniband: mlx5: no need to check return value of debugfs_create functions
+Date: Tue, 22 Jan 2019 16:17:57 +0100
+Message-ID: <20190122151800.15092-6-gregkh@linuxfoundation.org>
 References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,156 +9,231 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Leon Romanovsky <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The macro was just making things harder to follow, and audit, so remove
-it and call debugfs_create_file() directly.  Also, the macro did not
-need to warn about the call failing as no one should ever care about any
-debugfs functions failing.
+When calling debugfs functions, there is no need to ever check the
+return value.  The function can work or not, but the code logic should
+never do something different based on this.
 
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Leon Romanovsky <leon@kernel.org>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/infiniband/hw/hfi1/debugfs.c | 50 ++++++++++++----------------
- drivers/infiniband/hw/hfi1/debugfs.h | 12 -------
- drivers/infiniband/hw/hfi1/fault.c   |  3 +-
- 3 files changed, 24 insertions(+), 41 deletions(-)
+ drivers/infiniband/hw/mlx5/cong.c    | 15 +++-----
+ drivers/infiniband/hw/mlx5/main.c    |  8 ++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  8 +----
+ drivers/infiniband/hw/mlx5/mr.c      | 51 +++++-----------------------
+ 4 files changed, 18 insertions(+), 64 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.c b/drivers/infiniband/hw/hfi1/debugfs.c
-index 0a557795563c..52c00c67056f 100644
---- a/drivers/infiniband/hw/hfi1/debugfs.c
-+++ b/drivers/infiniband/hw/hfi1/debugfs.c
-@@ -1167,6 +1167,7 @@ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
- 	char link[10];
- 	struct hfi1_devdata *dd = dd_from_dev(ibd);
- 	struct hfi1_pportdata *ppd;
-+	struct dentry *root;
- 	int unit = dd->unit;
- 	int i, j;
- 
-@@ -1174,31 +1175,26 @@ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
- 		return;
- 	snprintf(name, sizeof(name), "%s_%d", class_name(), unit);
- 	snprintf(link, sizeof(link), "%d", unit);
--	ibd->hfi1_ibdev_dbg = debugfs_create_dir(name, hfi1_dbg_root);
--	if (!ibd->hfi1_ibdev_dbg) {
--		pr_warn("create of %s failed\n", name);
--		return;
--	}
-+	root = debugfs_create_dir(name, hfi1_dbg_root);
-+	ibd->hfi1_ibdev_dbg = root;
-+
- 	ibd->hfi1_ibdev_link =
- 		debugfs_create_symlink(link, hfi1_dbg_root, name);
--	if (!ibd->hfi1_ibdev_link) {
--		pr_warn("create of %s symlink failed\n", name);
--		return;
--	}
--	DEBUGFS_SEQ_FILE_CREATE(opcode_stats, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(tx_opcode_stats, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(ctx_stats, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(qp_stats, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(sdes, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(rcds, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(pios, ibd->hfi1_ibdev_dbg, ibd);
--	DEBUGFS_SEQ_FILE_CREATE(sdma_cpu_list, ibd->hfi1_ibdev_dbg, ibd);
-+
-+	debugfs_create_file("opcode_stats", 0444, root, ibd, &_opcode_stats_file_ops);
-+	debugfs_create_file("tx_opcode_stats", 0444, root, ibd, &_tx_opcode_stats_file_ops);
-+	debugfs_create_file("ctx_stats", 0444, root, ibd, &_ctx_stats_file_ops);
-+	debugfs_create_file("qp_stats", 0444, root, ibd, &_qp_stats_file_ops);
-+	debugfs_create_file("sdes", 0444, root, ibd, &_sdes_file_ops);
-+	debugfs_create_file("rcds", 0444, root, ibd, &_rcds_file_ops);
-+	debugfs_create_file("pios", 0444, root, ibd, &_pios_file_ops);
-+	debugfs_create_file("sdma_cpu_list", 0444, root, ibd, &_sdma_cpu_list_file_ops);
-+
- 	/* dev counter files */
- 	for (i = 0; i < ARRAY_SIZE(cntr_ops); i++)
--		DEBUGFS_FILE_CREATE(cntr_ops[i].name,
--				    ibd->hfi1_ibdev_dbg,
--				    dd,
--				    &cntr_ops[i].ops, S_IRUGO);
-+		debugfs_create_file(cntr_ops[i].name, 0444, root, dd,
-+				    &cntr_ops[i].ops);
-+
- 	/* per port files */
- 	for (ppd = dd->pport, j = 0; j < dd->num_pports; j++, ppd++)
- 		for (i = 0; i < ARRAY_SIZE(port_cntr_ops); i++) {
-@@ -1206,12 +1202,10 @@ void hfi1_dbg_ibdev_init(struct hfi1_ibdev *ibd)
- 				 sizeof(name),
- 				 port_cntr_ops[i].name,
- 				 j + 1);
--			DEBUGFS_FILE_CREATE(name,
--					    ibd->hfi1_ibdev_dbg,
--					    ppd,
--					    &port_cntr_ops[i].ops,
-+			debugfs_create_file(name,
- 					    !port_cntr_ops[i].ops.write ?
--					    S_IRUGO : S_IRUGO | S_IWUSR);
-+					    S_IRUGO : S_IRUGO | S_IWUSR,
-+					    root, ppd, &port_cntr_ops[i].ops);
- 		}
- 
- 	hfi1_fault_init_debugfs(ibd);
-@@ -1343,8 +1337,8 @@ void hfi1_dbg_init(void)
- 	hfi1_dbg_root  = debugfs_create_dir(DRIVER_NAME, NULL);
- 	if (!hfi1_dbg_root)
- 		pr_warn("init of debugfs failed\n");
--	DEBUGFS_SEQ_FILE_CREATE(driver_stats_names, hfi1_dbg_root, NULL);
--	DEBUGFS_SEQ_FILE_CREATE(driver_stats, hfi1_dbg_root, NULL);
-+	debugfs_create_file("driver_stats_names", 0444, hfi1_dbg_root, NULL, &_driver_stats_names_file_ops);
-+	debugfs_create_file("driver_stats", 0444, hfi1_dbg_root, NULL, &_driver_stats_file_ops);
+diff --git a/drivers/infiniband/hw/mlx5/cong.c b/drivers/infiniband/hw/mlx5/cong.c
+index 7e4e358a4fd8..8ba439fabf7f 100644
+--- a/drivers/infiniband/hw/mlx5/cong.c
++++ b/drivers/infiniband/hw/mlx5/cong.c
+@@ -389,19 +389,19 @@ void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ 	dev->port[port_num].dbg_cc_params = NULL;
  }
  
- void hfi1_dbg_exit(void)
-diff --git a/drivers/infiniband/hw/hfi1/debugfs.h b/drivers/infiniband/hw/hfi1/debugfs.h
-index d5d824459fcc..57e582caa5eb 100644
---- a/drivers/infiniband/hw/hfi1/debugfs.h
-+++ b/drivers/infiniband/hw/hfi1/debugfs.h
-@@ -49,16 +49,6 @@
+-int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
++void mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ {
+ 	struct mlx5_ib_dbg_cc_params *dbg_cc_params;
+ 	struct mlx5_core_dev *mdev;
+ 	int i;
  
- struct hfi1_ibdev;
+ 	if (!mlx5_debugfs_root)
+-		goto out;
++		return;
  
--#define DEBUGFS_FILE_CREATE(name, parent, data, ops, mode)	\
--do { \
--	struct dentry *ent; \
--	const char *__name = name; \
--	ent = debugfs_create_file(__name, mode, parent, \
--		data, ops); \
--	if (!ent) \
--		pr_warn("create of %s failed\n", __name); \
--} while (0)
--
- #define DEBUGFS_SEQ_FILE_OPS(name) \
- static const struct seq_operations _##name##_seq_ops = { \
- 	.start = _##name##_seq_start, \
-@@ -89,8 +79,6 @@ static const struct file_operations _##name##_file_ops = { \
- 	.release = seq_release \
- }
+ 	/* Takes a 1-based port number */
+ 	mdev = mlx5_ib_get_native_port_mdev(dev, port_num + 1, NULL);
+ 	if (!mdev)
+-		goto out;
++		return;
  
--#define DEBUGFS_SEQ_FILE_CREATE(name, parent, data) \
--	DEBUGFS_FILE_CREATE(#name, parent, data, &_##name##_file_ops, 0444)
+ 	if (!MLX5_CAP_GEN(mdev, cc_query_allowed) ||
+ 	    !MLX5_CAP_GEN(mdev, cc_modify_allowed))
+@@ -415,8 +415,6 @@ int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
  
- ssize_t hfi1_seq_read(struct file *file, char __user *buf, size_t size,
- 		      loff_t *ppos);
-diff --git a/drivers/infiniband/hw/hfi1/fault.c b/drivers/infiniband/hw/hfi1/fault.c
-index e2290f32c8d9..dd09b8544568 100644
---- a/drivers/infiniband/hw/hfi1/fault.c
-+++ b/drivers/infiniband/hw/hfi1/fault.c
-@@ -278,7 +278,8 @@ int hfi1_fault_init_debugfs(struct hfi1_ibdev *ibd)
- 		return -ENOENT;
+ 	dbg_cc_params->root = debugfs_create_dir("cc_params",
+ 						 mdev->priv.dbg_root);
+-	if (!dbg_cc_params->root)
+-		goto err;
+ 
+ 	for (i = 0; i < MLX5_IB_DBG_CC_MAX; i++) {
+ 		dbg_cc_params->params[i].offset = i;
+@@ -427,14 +425,11 @@ int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ 					    0600, dbg_cc_params->root,
+ 					    &dbg_cc_params->params[i],
+ 					    &dbg_cc_fops);
+-		if (!dbg_cc_params->params[i].dentry)
+-			goto err;
  	}
  
--	DEBUGFS_SEQ_FILE_CREATE(fault_stats, ibd->fault->dir, ibd);
-+	debugfs_create_file("fault_stats", 0444, ibd->fault->dir, ibd,
-+			    &_fault_stats_file_ops);
- 	if (!debugfs_create_bool("enable", 0600, ibd->fault->dir,
- 				 &ibd->fault->enable))
- 		goto fail;
+ put_mdev:
+ 	mlx5_ib_put_native_port_mdev(dev, port_num + 1);
+-out:
+-	return 0;
++	return;
+ 
+ err:
+ 	mlx5_ib_warn(dev, "cong debugfs failure\n");
+@@ -445,5 +440,5 @@ int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num)
+ 	 * We don't want to fail driver if debugfs failed to initialize,
+ 	 * so we are not forwarding error to the user.
+ 	 */
+-	return 0;
++	return;
+ }
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 94fe253d4956..58e9adc94984 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -5508,9 +5508,7 @@ static bool mlx5_ib_bind_slave_port(struct mlx5_ib_dev *ibdev,
+ 	mpi->mdev_events.notifier_call = mlx5_ib_event_slave_port;
+ 	mlx5_notifier_register(mpi->mdev, &mpi->mdev_events);
+ 
+-	err = mlx5_ib_init_cong_debugfs(ibdev, port_num);
+-	if (err)
+-		goto unbind;
++	mlx5_ib_init_cong_debugfs(ibdev, port_num);
+ 
+ 	return true;
+ 
+@@ -6183,8 +6181,8 @@ void mlx5_ib_stage_counters_cleanup(struct mlx5_ib_dev *dev)
+ 
+ static int mlx5_ib_stage_cong_debugfs_init(struct mlx5_ib_dev *dev)
+ {
+-	return mlx5_ib_init_cong_debugfs(dev,
+-					 mlx5_core_native_port_num(dev->mdev) - 1);
++	mlx5_ib_init_cong_debugfs(dev, mlx5_core_native_port_num(dev->mdev) - 1);
++	return 0;
+ }
+ 
+ static void mlx5_ib_stage_cong_debugfs_cleanup(struct mlx5_ib_dev *dev)
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b06d3b1efea8..b75afc4dd5f6 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -623,7 +623,6 @@ struct mlx5_cache_ent {
+ 	spinlock_t		lock;
+ 
+ 
+-	struct dentry	       *dir;
+ 	char                    name[4];
+ 	u32                     order;
+ 	u32			xlt;
+@@ -635,11 +634,6 @@ struct mlx5_cache_ent {
+ 	u32                     miss;
+ 	u32			limit;
+ 
+-	struct dentry          *fsize;
+-	struct dentry          *fcur;
+-	struct dentry          *fmiss;
+-	struct dentry          *flimit;
+-
+ 	struct mlx5_ib_dev     *dev;
+ 	struct work_struct	work;
+ 	struct delayed_work	dwork;
+@@ -1254,7 +1248,7 @@ __be16 mlx5_get_roce_udp_sport(struct mlx5_ib_dev *dev,
+ 			       const struct ib_gid_attr *attr);
+ 
+ void mlx5_ib_cleanup_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
+-int mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
++void mlx5_ib_init_cong_debugfs(struct mlx5_ib_dev *dev, u8 port_num);
+ 
+ /* GSI QP helper functions */
+ struct ib_qp *mlx5_ib_gsi_create_qp(struct ib_pd *pd,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index fd6ea1f75085..7832da4971b0 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -610,52 +610,27 @@ static void mlx5_mr_cache_debugfs_cleanup(struct mlx5_ib_dev *dev)
+ 	dev->cache.root = NULL;
+ }
+ 
+-static int mlx5_mr_cache_debugfs_init(struct mlx5_ib_dev *dev)
++static void mlx5_mr_cache_debugfs_init(struct mlx5_ib_dev *dev)
+ {
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent;
++	struct dentry *dir;
+ 	int i;
+ 
+ 	if (!mlx5_debugfs_root || dev->rep)
+-		return 0;
++		return;
+ 
+ 	cache->root = debugfs_create_dir("mr_cache", dev->mdev->priv.dbg_root);
+-	if (!cache->root)
+-		return -ENOMEM;
+ 
+ 	for (i = 0; i < MAX_MR_CACHE_ENTRIES; i++) {
+ 		ent = &cache->ent[i];
+ 		sprintf(ent->name, "%d", ent->order);
+-		ent->dir = debugfs_create_dir(ent->name,  cache->root);
+-		if (!ent->dir)
+-			goto err;
+-
+-		ent->fsize = debugfs_create_file("size", 0600, ent->dir, ent,
+-						 &size_fops);
+-		if (!ent->fsize)
+-			goto err;
+-
+-		ent->flimit = debugfs_create_file("limit", 0600, ent->dir, ent,
+-						  &limit_fops);
+-		if (!ent->flimit)
+-			goto err;
+-
+-		ent->fcur = debugfs_create_u32("cur", 0400, ent->dir,
+-					       &ent->cur);
+-		if (!ent->fcur)
+-			goto err;
+-
+-		ent->fmiss = debugfs_create_u32("miss", 0600, ent->dir,
+-						&ent->miss);
+-		if (!ent->fmiss)
+-			goto err;
++		dir = debugfs_create_dir(ent->name, cache->root);
++		debugfs_create_file("size", 0600, dir, ent, &size_fops);
++		debugfs_create_file("limit", 0600, dir, ent, &limit_fops);
++		debugfs_create_u32("cur", 0400, dir, &ent->cur);
++		debugfs_create_u32("miss", 0600, dir, &ent->miss);
+ 	}
+-
+-	return 0;
+-err:
+-	mlx5_mr_cache_debugfs_cleanup(dev);
+-
+-	return -ENOMEM;
+ }
+ 
+ static void delay_time_func(struct timer_list *t)
+@@ -669,7 +644,6 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+ {
+ 	struct mlx5_mr_cache *cache = &dev->cache;
+ 	struct mlx5_cache_ent *ent;
+-	int err;
+ 	int i;
+ 
+ 	mutex_init(&dev->slow_path_mutex);
+@@ -713,14 +687,7 @@ int mlx5_mr_cache_init(struct mlx5_ib_dev *dev)
+ 		queue_work(cache->wq, &ent->work);
+ 	}
+ 
+-	err = mlx5_mr_cache_debugfs_init(dev);
+-	if (err)
+-		mlx5_ib_warn(dev, "cache debugfs failure\n");
+-
+-	/*
+-	 * We don't want to fail driver if debugfs failed to initialize,
+-	 * so we are not forwarding error to the user.
+-	 */
++	mlx5_mr_cache_debugfs_init(dev);
+ 
+ 	return 0;
+ }
 -- 
 2.20.1
