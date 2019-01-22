@@ -1,48 +1,49 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 0/3] Indirect MKEY over DEVX
-Date: Mon, 21 Jan 2019 20:08:00 -0700
-Message-ID: <20190122030800.GA18299@ziepe.ca>
-References: <20190113140118.10204-1-leon@kernel.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 00/12] Add SRQ and XRC support for ODP MRs
+Date: Tue, 22 Jan 2019 08:48:39 +0200
+Message-ID: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190113140118.10204-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 13, 2019 at 04:01:15PM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> Hi,
-> 
-> >From Yishai,
-> 
-> This series enables using indirect mkey over DEVX.
-> 
-> The first patch recognizes the creation of an indirect mkey as part of
-> DEVX object creation, in that case the umem valid bit shouldn't be set as
-> this mkey doesn't really hold a umem.
-> 
-> The next two patches manage indirection mkey upon DEVX flow to support ODP.
-> 
-> To support a page fault event on an indirection mkey it needs to be part
-> of the device mkey radix tree. Both the creation and the deletion flows for a
-> DEVX object which is indirection mkey were adapted to handle that.
-> 
-> In addition, the page fault flow was adapted to support indirect mkey type,
-> it's handled in a similar flow as of the memory window mkey type.
-> 
-> Yishai
-> 
-> Yishai Hadas (3):
->   IB/mlx5: DEVX handling for indirection MKEY
->   IB/mlx5: Manage indirection mkey upon DEVX flow for ODP
->   IB/mlx5: Add support for ODP for DEVX indirection mkey
+From: Leon Romanovsky <leonro@mellanox.com>
 
-applied to for-next
+Hi,
 
-Thanks,
-Jason
+This series extend ODP to work with SRQ and XRC. Being both per-operation
+(e.g. RDMA write, RDMA read and atomic) and per-transport (e.g. RC, UD and XRC),
+we extend IB/core and mlx5 driver to provide needed information to user space.
+
+Thanks
+
+Moni Shoua (12):
+  IB/mlx5: Fix locking SRQ object in ODP event
+  IB/core: Allocate bit for SRQ ODP support
+  IB/uverbs: Expose XRC ODP device capabilities
+  IB/mlx5: Remove useless check in ODP handler
+  IB/mlx5: Clean mlx5_ib_mr_responder_pfault_handler() signature
+  IB/mlx5: Add XRC initiator ODP support
+  IB/mlx5: Let read user wqe also from SRQ buffer
+  IB/mlx5: Add ODP SRQ support
+  IB/mlx5: Advertise SRQ ODP support for supported transports
+  net/mlx5: Add XRC transport to ODP device capabilities layout
+  IB/mlx5: Advertise XRC ODP support
+  net/mlx5: Set ODP SRQ support in firmware
+
+ drivers/infiniband/core/uverbs_cmd.c          |   1 +
+ drivers/infiniband/hw/mlx5/cq.c               |   4 +-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |   9 +-
+ drivers/infiniband/hw/mlx5/odp.c              | 138 ++++++++++---
+ drivers/infiniband/hw/mlx5/qp.c               | 192 +++++++++++++-----
+ drivers/infiniband/hw/mlx5/srq.h              |   2 -
+ drivers/infiniband/hw/mlx5/srq_cmd.c          |  16 +-
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  53 +++++
+ include/linux/mlx5/device.h                   |   3 +
+ include/linux/mlx5/mlx5_ifc.h                 |   5 +-
+ include/rdma/ib_verbs.h                       |   2 +
+ include/uapi/rdma/ib_user_verbs.h             |   2 +
+ 12 files changed, 331 insertions(+), 96 deletions(-)
