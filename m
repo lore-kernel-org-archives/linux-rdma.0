@@ -1,75 +1,65 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH 1/8] infiniband: cxgb4: no need to check return value of
- debugfs_create functions
-Date: Tue, 22 Jan 2019 10:22:59 -0600
-Message-ID: <dbf27d3d-ff19-4054-9495-80bcb5a10485@opengridcomputing.com>
-References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
- <20190122151800.15092-2-gregkh@linuxfoundation.org>
+From: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Subject: RE: [PATCH for-rc 5/7] IB/hfi1: Close race condition on user
+ context disable and close
+Date: Tue, 22 Jan 2019 16:24:11 +0000
+Message-ID: <14063C7AD467DE4B82DEDB5C278E8663BE655904@FMSMSX108.amr.corp.intel.com>
+References: <20190117204148.30826.53799.stgit@scvm10.sc.intel.com>
+ <20190122155611.B55A0217F9@mail.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122151800.15092-2-gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190122155611.B55A0217F9@mail.kernel.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
+To: Sasha Levin <sashal@kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Greg,
+Hi,
 
-On 1/22/2019 9:17 AM, Greg Kroah-Hartman wrote:
-> When calling debugfs functions, there is no need to ever check the
-> return value.  The function can work or not, but the code logic should
-> never do something different based on this.
-> 
-> Cc: Steve Wise <swise@chelsio.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: linux-rdma@vger.kernel.org
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  drivers/infiniband/hw/cxgb4/device.c | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index c13c0ba30f63..9c10fff6dcfb 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -720,11 +720,8 @@ static const struct file_operations ep_debugfs_fops = {
->  	.read    = debugfs_read,
->  };
->  
-> -static int setup_debugfs(struct c4iw_dev *devp)
-> +static void setup_debugfs(struct c4iw_dev *devp)
->  {
-> -	if (!devp->debugfs_root)
-> -		return -1;
-> -
->  	debugfs_create_file_size("qps", S_IWUSR, devp->debugfs_root,
->  				 (void *)devp, &qp_debugfs_fops, 4096);
->  
-> @@ -740,7 +737,6 @@ static int setup_debugfs(struct c4iw_dev *devp)
->  	if (c4iw_wr_log)
->  		debugfs_create_file_size("wr_log", S_IWUSR, devp->debugfs_root,
->  					 (void *)devp, &wr_log_debugfs_fops, 4096);
-> -	return 0;
->  }
->  
->  void c4iw_release_dev_ucontext(struct c4iw_rdev *rdev,
-> @@ -1553,8 +1549,6 @@ static int __init c4iw_init_module(void)
->  		return err;
->  
->  	c4iw_debugfs_root = debugfs_create_dir(DRV_NAME, NULL);
-> -	if (!c4iw_debugfs_root)
-> -		pr_warn("could not create debugfs entry, continuing\n");
->  
->  	reg_workq = create_singlethread_workqueue("Register_iWARP_device");
->  	if (!reg_workq) {
-> 
+This patch needs to be redone.
 
-So it is not a problem to call debugfs_create_file_size() when
-devp->debugfs_root is NULL?
+Please drop.
 
+Thanks,
 
-Acked-by: Steve Wise <swise@opengridcomputing.com>
+Mike
+
+>-----Original Message-----
+>From: Sasha Levin [mailto:sashal@kernel.org]
+>Sent: Tuesday, January 22, 2019 10:56 AM
+>To: Sasha Levin <sashal@kernel.org>; Dalessandro, Dennis
+><dennis.dalessandro@intel.com>; Ruhl, Michael J
+><michael.j.ruhl@intel.com>; jgg@ziepe.ca; dledford@redhat.com
+>Cc: linux-rdma@vger.kernel.org; stable@vger.kernel.org
+>Subject: Re: [PATCH for-rc 5/7] IB/hfi1: Close race condition on user context
+>disable and close
+>
+>Hi,
+>
+>[This is an automated email]
+>
+>This commit has been processed because it contains a "Fixes:" tag,
+>fixing commit: f683c80ca68e IB/hfi1: Resolve kernel panics by reference
+>counting receive contexts.
+>
+>The bot has tested the following trees: v4.20.3, v4.19.16, v4.14.94.
+>
+>v4.20.3: Build OK!
+>v4.19.16: Build OK!
+>v4.14.94: Failed to apply! Possible dependencies:
+>    071e4fec8e4d ("IB/hfi1: Reorg ctxtdata and rightsize fields")
+>    1b311f8931cf ("IB/hfi1: Add tx_opcode_stats like the opcode_stats")
+>    40442b30aad0 ("IB/hfi1: Move rhf_offset from devdata to ctxtdata")
+>    b0ba3c18d6bf ("IB/hfi1: Move normal functions from hfi1_devdata to const
+>array")
+>    c8314811f9b2 ("IB/hfi1: Cleanup of exp_rcv")
+>    ed71e86a8d66 ("IB/hfi1: Rename exp_lock to exp_mutex")
+>
+>
+>How should we proceed with this patch?
+>
+>--
+>Thanks,
+>Sasha
