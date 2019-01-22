@@ -1,7 +1,7 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 8/8] infiniband: ipoib: no need to check return value of debugfs_create functions
-Date: Tue, 22 Jan 2019 16:18:00 +0100
-Message-ID: <20190122151800.15092-9-gregkh@linuxfoundation.org>
+Subject: [PATCH 7/8] infiniband: usnic: no need to check return value of debugfs_create functions
+Date: Tue, 22 Jan 2019 16:17:59 +0100
+Message-ID: <20190122151800.15092-8-gregkh@linuxfoundation.org>
 References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,99 +9,82 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Leon Romanovsky <leon@kernel.org>, Kamal Heib <kamalheib1@gmail.com>, Denis Drozdov <denisd@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Alaa Hleihel <alaa@mellanox.com>, Parav Pandit <parav@mellanox.com>, Kees Cook <keescook@chromium.org>, Arseny Maslennikov <ar@cs.msu.ru>, Evgenii Smirnov <evgenii.smirnov@profitbricks.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Christian Benvenuti <benve@cisco.com>, Nelson Escobar <neescoba@cisco.com>, Parvi Kaustubhi <pkaustub@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
 When calling debugfs functions, there is no need to ever check the
 return value.  The function can work or not, but the code logic should
 never do something different based on this.
 
+Cc: Christian Benvenuti <benve@cisco.com>
+Cc: Nelson Escobar <neescoba@cisco.com>
+Cc: Parvi Kaustubhi <pkaustub@cisco.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Kamal Heib <kamalheib1@gmail.com>
-Cc: Denis Drozdov <denisd@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Erez Shitrit <erezsh@mellanox.com>
-Cc: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: Alaa Hleihel <alaa@mellanox.com>
-Cc: Parav Pandit <parav@mellanox.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Arseny Maslennikov <ar@cs.msu.ru>
-Cc: Evgenii Smirnov <evgenii.smirnov@profitbricks.com>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib.h      | 4 ++--
- drivers/infiniband/ulp/ipoib/ipoib_fs.c   | 7 +------
- drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 +---
- 3 files changed, 4 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/usnic/usnic_debugfs.c | 26 ---------------------
+ 1 file changed, 26 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index 1da119d901a9..5941d660add1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -781,12 +781,12 @@ static inline void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *w
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
- void ipoib_create_debug_files(struct net_device *dev);
- void ipoib_delete_debug_files(struct net_device *dev);
--int ipoib_register_debugfs(void);
-+void ipoib_register_debugfs(void);
- void ipoib_unregister_debugfs(void);
- #else
- static inline void ipoib_create_debug_files(struct net_device *dev) { }
- static inline void ipoib_delete_debug_files(struct net_device *dev) { }
--static inline int ipoib_register_debugfs(void) { return 0; }
-+static inline void ipoib_register_debugfs(void) { }
- static inline void ipoib_unregister_debugfs(void) { }
- #endif
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_fs.c b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-index 178488028734..64c19f6fa931 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-@@ -267,14 +267,10 @@ void ipoib_create_debug_files(struct net_device *dev)
- 	snprintf(name, sizeof(name), "%s_mcg", dev->name);
- 	priv->mcg_dentry = debugfs_create_file(name, S_IFREG | S_IRUGO,
- 					       ipoib_root, dev, &ipoib_mcg_fops);
--	if (!priv->mcg_dentry)
--		ipoib_warn(priv, "failed to create mcg debug file\n");
- 
- 	snprintf(name, sizeof(name), "%s_path", dev->name);
- 	priv->path_dentry = debugfs_create_file(name, S_IFREG | S_IRUGO,
- 						ipoib_root, dev, &ipoib_path_fops);
--	if (!priv->path_dentry)
--		ipoib_warn(priv, "failed to create path debug file\n");
- }
- 
- void ipoib_delete_debug_files(struct net_device *dev)
-@@ -286,10 +282,9 @@ void ipoib_delete_debug_files(struct net_device *dev)
- 	priv->mcg_dentry = priv->path_dentry = NULL;
- }
- 
--int ipoib_register_debugfs(void)
-+void ipoib_register_debugfs(void)
+diff --git a/drivers/infiniband/hw/usnic/usnic_debugfs.c b/drivers/infiniband/hw/usnic/usnic_debugfs.c
+index a3115709fb03..e5a3f02fb078 100644
+--- a/drivers/infiniband/hw/usnic/usnic_debugfs.c
++++ b/drivers/infiniband/hw/usnic/usnic_debugfs.c
+@@ -113,42 +113,21 @@ static const struct file_operations flowinfo_ops = {
+ void usnic_debugfs_init(void)
  {
- 	ipoib_root = debugfs_create_dir("ipoib", NULL);
--	return ipoib_root ? 0 : -ENOMEM;
+ 	debugfs_root = debugfs_create_dir(DRV_NAME, NULL);
+-	if (IS_ERR(debugfs_root)) {
+-		usnic_err("Failed to create debugfs root dir, check if debugfs is enabled in kernel configuration\n");
+-		goto out_clear_root;
+-	}
+ 
+ 	flows_dentry = debugfs_create_dir("flows", debugfs_root);
+-	if (IS_ERR_OR_NULL(flows_dentry)) {
+-		usnic_err("Failed to create debugfs flow dir with err %ld\n",
+-				PTR_ERR(flows_dentry));
+-		goto out_free_root;
+-	}
+ 
+ 	debugfs_create_file("build-info", S_IRUGO, debugfs_root,
+ 				NULL, &usnic_debugfs_buildinfo_ops);
+-	return;
+-
+-out_free_root:
+-	debugfs_remove_recursive(debugfs_root);
+-out_clear_root:
+-	debugfs_root = NULL;
  }
  
- void ipoib_unregister_debugfs(void)
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index d932f99201d1..45ef3b0f03c5 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -2577,9 +2577,7 @@ static int __init ipoib_init_module(void)
- 	 */
- 	BUILD_BUG_ON(IPOIB_CM_COPYBREAK > IPOIB_CM_HEAD_SIZE);
+ void usnic_debugfs_exit(void)
+ {
+-	if (!debugfs_root)
+-		return;
+-
+ 	debugfs_remove_recursive(debugfs_root);
+ 	debugfs_root = NULL;
+ }
  
--	ret = ipoib_register_debugfs();
--	if (ret)
--		return ret;
-+	ipoib_register_debugfs();
+ void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_flow *qp_flow)
+ {
+-	if (IS_ERR_OR_NULL(flows_dentry))
+-		return;
+-
+ 	scnprintf(qp_flow->dentry_name, sizeof(qp_flow->dentry_name),
+ 			"%u", qp_flow->flow->flow_id);
+ 	qp_flow->dbgfs_dentry = debugfs_create_file(qp_flow->dentry_name,
+@@ -156,11 +135,6 @@ void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_flow *qp_flow)
+ 							flows_dentry,
+ 							qp_flow,
+ 							&flowinfo_ops);
+-	if (IS_ERR_OR_NULL(qp_flow->dbgfs_dentry)) {
+-		usnic_err("Failed to create dbg fs entry for flow %u with error %ld\n",
+-				qp_flow->flow->flow_id,
+-				PTR_ERR(qp_flow->dbgfs_dentry));
+-	}
+ }
  
- 	/*
- 	 * We create a global workqueue here that is used for all flush
+ void usnic_debugfs_flow_remove(struct usnic_ib_qp_grp_flow *qp_flow)
 -- 
 2.20.1
