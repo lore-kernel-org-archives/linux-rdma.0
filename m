@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 02/12] IB/core: Allocate bit for SRQ ODP support
-Date: Tue, 22 Jan 2019 08:48:41 +0200
-Message-ID: <20190122064851.6032-3-leon@kernel.org>
+Subject: [PATCH rdma-next 03/12] IB/uverbs: Expose XRC ODP device capabilities
+Date: Tue, 22 Jan 2019 08:48:42 +0200
+Message-ID: <20190122064851.6032-4-leon@kernel.org>
 References: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,30 +14,53 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-ODP support matrix is per operation and per transport. The support for
-each transport (RC, UD, etc.)  is described with a bit field.
-
-ODP for SRQ WQEs is considered a different kind of support from ODP for
-RQ WQs and therefore need a different capability bit.
+Expose XRC ODP capabilities as part of the extended device capabilities.
 
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/rdma/ib_verbs.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/core/uverbs_cmd.c | 1 +
+ include/rdma/ib_verbs.h              | 1 +
+ include/uapi/rdma/ib_user_verbs.h    | 2 ++
+ 3 files changed, 4 insertions(+)
 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 4e40a04d1857..b3430c7c67f3 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -3613,6 +3613,7 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
+ 		attr.odp_caps.per_transport_caps.uc_odp_caps;
+ 	resp.odp_caps.per_transport_caps.ud_odp_caps =
+ 		attr.odp_caps.per_transport_caps.ud_odp_caps;
++	resp.xrc_odp_caps = attr.odp_caps.per_transport_caps.xrc_odp_caps;
+ 
+ 	resp.timestamp_mask = attr.timestamp_mask;
+ 	resp.hca_core_clock = attr.hca_core_clock;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index d6e0a7d35097..38438561b648 100644
+index 38438561b648..d54c87640f89 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -268,6 +268,7 @@ enum ib_odp_transport_cap_bits {
- 	IB_ODP_SUPPORT_WRITE	= 1 << 2,
- 	IB_ODP_SUPPORT_READ	= 1 << 3,
- 	IB_ODP_SUPPORT_ATOMIC	= 1 << 4,
-+	IB_ODP_SUPPORT_SRQ_RECV	= 1 << 5,
+@@ -277,6 +277,7 @@ struct ib_odp_caps {
+ 		uint32_t  rc_odp_caps;
+ 		uint32_t  uc_odp_caps;
+ 		uint32_t  ud_odp_caps;
++		uint32_t  xrc_odp_caps;
+ 	} per_transport_caps;
  };
  
- struct ib_odp_caps {
+diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
+index 480d9a60b68e..0474c7400268 100644
+--- a/include/uapi/rdma/ib_user_verbs.h
++++ b/include/uapi/rdma/ib_user_verbs.h
+@@ -270,6 +270,8 @@ struct ib_uverbs_ex_query_device_resp {
+ 	struct ib_uverbs_tm_caps tm_caps;
+ 	struct ib_uverbs_cq_moderation_caps cq_moderation_caps;
+ 	__aligned_u64 max_dm_size;
++	__u32 xrc_odp_caps;
++	__u32 reserved;
+ };
+ 
+ struct ib_uverbs_query_port {
 -- 
 2.19.1
