@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 10/12] net/mlx5: Add XRC transport to ODP device capabilities layout
-Date: Tue, 22 Jan 2019 08:48:49 +0200
-Message-ID: <20190122064851.6032-11-leon@kernel.org>
+Subject: [PATCH rdma-next 11/12] IB/mlx5: Advertise XRC ODP support
+Date: Tue, 22 Jan 2019 08:48:50 +0200
+Message-ID: <20190122064851.6032-12-leon@kernel.org>
 References: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,30 +14,44 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-The device capabilities for ODP structure was missing the field for XRC
-transport so add it here.
+Query all per transport caps for XRC and set the appropriate bits in the
+per transport field of the advertised struct.
 
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- include/linux/mlx5/mlx5_ifc.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/odp.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
-index 35fe5217b244..5407db8ba8e1 100644
---- a/include/linux/mlx5/mlx5_ifc.h
-+++ b/include/linux/mlx5/mlx5_ifc.h
-@@ -831,7 +831,9 @@ struct mlx5_ifc_odp_cap_bits {
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index 6d2ed8c6ed17..d3fdc0853b4b 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -336,6 +336,24 @@ void mlx5_ib_internal_fill_odp_caps(struct mlx5_ib_dev *dev)
+ 	if (MLX5_CAP_ODP(dev->mdev, rc_odp_caps.srq_receive))
+ 		caps->per_transport_caps.rc_odp_caps |= IB_ODP_SUPPORT_SRQ_RECV;
  
- 	struct mlx5_ifc_odp_per_transport_service_cap_bits ud_odp_caps;
- 
--	u8         reserved_at_e0[0x720];
-+	struct mlx5_ifc_odp_per_transport_service_cap_bits xrc_odp_caps;
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.send))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_SEND;
 +
-+	u8         reserved_at_100[0x700];
- };
- 
- struct mlx5_ifc_calc_op {
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.receive))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_RECV;
++
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.write))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_WRITE;
++
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.read))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_READ;
++
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.atomic))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_ATOMIC;
++
++	if (MLX5_CAP_ODP(dev->mdev, xrc_odp_caps.srq_receive))
++		caps->per_transport_caps.xrc_odp_caps |= IB_ODP_SUPPORT_SRQ_RECV;
++
+ 	if (MLX5_CAP_GEN(dev->mdev, fixed_buffer_size) &&
+ 	    MLX5_CAP_GEN(dev->mdev, null_mkey) &&
+ 	    MLX5_CAP_GEN(dev->mdev, umr_extended_translation_offset))
 -- 
 2.19.1
