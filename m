@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 03/12] IB/uverbs: Expose XRC ODP device capabilities
-Date: Tue, 22 Jan 2019 08:48:42 +0200
-Message-ID: <20190122064851.6032-4-leon@kernel.org>
+Subject: [PATCH rdma-next 04/12] IB/mlx5: Remove useless check in ODP handler
+Date: Tue, 22 Jan 2019 08:48:43 +0200
+Message-ID: <20190122064851.6032-5-leon@kernel.org>
 References: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,53 +14,57 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-Expose XRC ODP capabilities as part of the extended device capabilities.
+When handling an ODP event for a revive WQE in SRQ the target QP
+is unknown. Therefore, it is wrong to ask if QP has a SRQ in
+the page-fault handler.
 
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 1 +
- include/rdma/ib_verbs.h              | 1 +
- include/uapi/rdma/ib_user_verbs.h    | 2 ++
- 3 files changed, 4 insertions(+)
+ drivers/infiniband/hw/mlx5/odp.c | 9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 4e40a04d1857..b3430c7c67f3 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -3613,6 +3613,7 @@ static int ib_uverbs_ex_query_device(struct uverbs_attr_bundle *attrs)
- 		attr.odp_caps.per_transport_caps.uc_odp_caps;
- 	resp.odp_caps.per_transport_caps.ud_odp_caps =
- 		attr.odp_caps.per_transport_caps.ud_odp_caps;
-+	resp.xrc_odp_caps = attr.odp_caps.per_transport_caps.xrc_odp_caps;
+diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
+index beff8c8908b5..d2e8e74e24c9 100644
+--- a/drivers/infiniband/hw/mlx5/odp.c
++++ b/drivers/infiniband/hw/mlx5/odp.c
+@@ -869,7 +869,6 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
+ /**
+  * Parse a series of data segments for page fault handling.
+  *
+- * @qp the QP on which the fault occurred.
+  * @pfault contains page fault information.
+  * @wqe points at the first data segment in the WQE.
+  * @wqe_end points after the end of the WQE.
+@@ -886,7 +885,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
+  */
+ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
+ 				   struct mlx5_pagefault *pfault,
+-				   struct mlx5_ib_qp *qp, void *wqe,
++				   void *wqe,
+ 				   void *wqe_end, u32 *bytes_mapped,
+ 				   u32 *total_wqe_bytes, int receive_queue)
+ {
+@@ -897,10 +896,6 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
+ 	size_t bcnt;
+ 	int inline_segment;
  
- 	resp.timestamp_mask = attr.timestamp_mask;
- 	resp.hca_core_clock = attr.hca_core_clock;
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 38438561b648..d54c87640f89 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -277,6 +277,7 @@ struct ib_odp_caps {
- 		uint32_t  rc_odp_caps;
- 		uint32_t  uc_odp_caps;
- 		uint32_t  ud_odp_caps;
-+		uint32_t  xrc_odp_caps;
- 	} per_transport_caps;
- };
+-	/* Skip SRQ next-WQE segment. */
+-	if (receive_queue && qp->ibqp.srq)
+-		wqe += sizeof(struct mlx5_wqe_srq_next_seg);
+-
+ 	if (bytes_mapped)
+ 		*bytes_mapped = 0;
+ 	if (total_wqe_bytes)
+@@ -1200,7 +1195,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
+ 		goto resolve_page_fault;
+ 	}
  
-diff --git a/include/uapi/rdma/ib_user_verbs.h b/include/uapi/rdma/ib_user_verbs.h
-index 480d9a60b68e..0474c7400268 100644
---- a/include/uapi/rdma/ib_user_verbs.h
-+++ b/include/uapi/rdma/ib_user_verbs.h
-@@ -270,6 +270,8 @@ struct ib_uverbs_ex_query_device_resp {
- 	struct ib_uverbs_tm_caps tm_caps;
- 	struct ib_uverbs_cq_moderation_caps cq_moderation_caps;
- 	__aligned_u64 max_dm_size;
-+	__u32 xrc_odp_caps;
-+	__u32 reserved;
- };
- 
- struct ib_uverbs_query_port {
+-	ret = pagefault_data_segments(dev, pfault, qp, wqe, wqe_end,
++	ret = pagefault_data_segments(dev, pfault, wqe, wqe_end,
+ 				      &bytes_mapped, &total_wqe_bytes,
+ 				      !requestor);
+ 	if (ret == -EAGAIN) {
 -- 
 2.19.1
