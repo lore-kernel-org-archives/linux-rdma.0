@@ -1,90 +1,37 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 7/8] infiniband: usnic: no need to check return value of debugfs_create functions
-Date: Tue, 22 Jan 2019 16:17:59 +0100
-Message-ID: <20190122151800.15092-8-gregkh@linuxfoundation.org>
-References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
+From: Daniel Jordan <daniel.m.jordan@oracle.com>
+Subject: Re: [PATCH 1/6] mm: make mm->pinned_vm an atomic64 counter
+Date: Tue, 22 Jan 2019 10:45:33 -0500
+Message-ID: <20190122154533.qivmjnburamqi4ut@ca-dmjordan1.us.oracle.com>
+References: <20190121174220.10583-1-dave@stgolabs.net>
+ <20190121174220.10583-2-dave@stgolabs.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122151800.15092-1-gregkh@linuxfoundation.org>
+Content-Disposition: inline
+In-Reply-To: <20190121174220.10583-2-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Christian Benvenuti <benve@cisco.com>, Nelson Escobar <neescoba@cisco.com>, Parvi Kaustubhi <pkaustub@cisco.com>
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: akpm@linux-foundation.org, dledford@redhat.com, jgg@mellanox.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-When calling debugfs functions, there is no need to ever check the
-return value.  The function can work or not, but the code logic should
-never do something different based on this.
+On Mon, Jan 21, 2019 at 09:42:15AM -0800, Davidlohr Bueso wrote:
+> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+> index 6976e17dba68..640ae8a47c73 100644
+> --- a/fs/proc/task_mmu.c
+> +++ b/fs/proc/task_mmu.c
+> @@ -59,7 +59,7 @@ void task_mem(struct seq_file *m, struct mm_struct *mm)
+>  	SEQ_PUT_DEC("VmPeak:\t", hiwater_vm);
+>  	SEQ_PUT_DEC(" kB\nVmSize:\t", total_vm);
+>  	SEQ_PUT_DEC(" kB\nVmLck:\t", mm->locked_vm);
+> -	SEQ_PUT_DEC(" kB\nVmPin:\t", mm->pinned_vm);
+> +	SEQ_PUT_DEC(" kB\nVmPin:\t", atomic64_read(&mm->pinned_vm));
+>  	SEQ_PUT_DEC(" kB\nVmHWM:\t", hiwater_rss);
+>  	SEQ_PUT_DEC(" kB\nVmRSS:\t", total_rss);
+>  	SEQ_PUT_DEC(" kB\nRssAnon:\t", anon);
 
-Cc: Christian Benvenuti <benve@cisco.com>
-Cc: Nelson Escobar <neescoba@cisco.com>
-Cc: Parvi Kaustubhi <pkaustub@cisco.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-rdma@vger.kernel.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/infiniband/hw/usnic/usnic_debugfs.c | 26 ---------------------
- 1 file changed, 26 deletions(-)
+This is signed on 64b but printed as unsigned, so if some bug made pinned_vm go
+negative, it would appear as an obviously wrong, gigantic number.  Seems ok.
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_debugfs.c b/drivers/infiniband/hw/usnic/usnic_debugfs.c
-index a3115709fb03..e5a3f02fb078 100644
---- a/drivers/infiniband/hw/usnic/usnic_debugfs.c
-+++ b/drivers/infiniband/hw/usnic/usnic_debugfs.c
-@@ -113,42 +113,21 @@ static const struct file_operations flowinfo_ops = {
- void usnic_debugfs_init(void)
- {
- 	debugfs_root = debugfs_create_dir(DRV_NAME, NULL);
--	if (IS_ERR(debugfs_root)) {
--		usnic_err("Failed to create debugfs root dir, check if debugfs is enabled in kernel configuration\n");
--		goto out_clear_root;
--	}
- 
- 	flows_dentry = debugfs_create_dir("flows", debugfs_root);
--	if (IS_ERR_OR_NULL(flows_dentry)) {
--		usnic_err("Failed to create debugfs flow dir with err %ld\n",
--				PTR_ERR(flows_dentry));
--		goto out_free_root;
--	}
- 
- 	debugfs_create_file("build-info", S_IRUGO, debugfs_root,
- 				NULL, &usnic_debugfs_buildinfo_ops);
--	return;
--
--out_free_root:
--	debugfs_remove_recursive(debugfs_root);
--out_clear_root:
--	debugfs_root = NULL;
- }
- 
- void usnic_debugfs_exit(void)
- {
--	if (!debugfs_root)
--		return;
--
- 	debugfs_remove_recursive(debugfs_root);
- 	debugfs_root = NULL;
- }
- 
- void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_flow *qp_flow)
- {
--	if (IS_ERR_OR_NULL(flows_dentry))
--		return;
--
- 	scnprintf(qp_flow->dentry_name, sizeof(qp_flow->dentry_name),
- 			"%u", qp_flow->flow->flow_id);
- 	qp_flow->dbgfs_dentry = debugfs_create_file(qp_flow->dentry_name,
-@@ -156,11 +135,6 @@ void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_flow *qp_flow)
- 							flows_dentry,
- 							qp_flow,
- 							&flowinfo_ops);
--	if (IS_ERR_OR_NULL(qp_flow->dbgfs_dentry)) {
--		usnic_err("Failed to create dbg fs entry for flow %u with error %ld\n",
--				qp_flow->flow->flow_id,
--				PTR_ERR(qp_flow->dbgfs_dentry));
--	}
- }
- 
- void usnic_debugfs_flow_remove(struct usnic_ib_qp_grp_flow *qp_flow)
--- 
-2.20.1
+For this patch, you can add
+
+Reviewed-by: Daniel Jordan <daniel.m.jordan@oracle.com>
