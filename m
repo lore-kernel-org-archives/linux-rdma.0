@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 04/12] IB/mlx5: Remove useless check in ODP handler
-Date: Tue, 22 Jan 2019 08:48:43 +0200
-Message-ID: <20190122064851.6032-5-leon@kernel.org>
+Subject: [PATCH rdma-next 06/12] IB/mlx5: Add XRC initiator ODP support
+Date: Tue, 22 Jan 2019 08:48:45 +0200
+Message-ID: <20190122064851.6032-7-leon@kernel.org>
 References: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,57 +14,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Moni Shoua <monis@mellanox.com>
 
-When handling an ODP event for a revive WQE in SRQ the target QP
-is unknown. Therefore, it is wrong to ask if QP has a SRQ in
-the page-fault handler.
+Skip XRC segment in the beginning of a send WQE and fetch ODP XRC
+capabilities when QP type is IB_QPT_XRC_INI. The rest of the handling is
+the same as in RC QP.
 
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/mlx5/odp.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index beff8c8908b5..d2e8e74e24c9 100644
+index 71f543d3b70e..cc01d92490cc 100644
 --- a/drivers/infiniband/hw/mlx5/odp.c
 +++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -869,7 +869,6 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
- /**
-  * Parse a series of data segments for page fault handling.
-  *
-- * @qp the QP on which the fault occurred.
-  * @pfault contains page fault information.
-  * @wqe points at the first data segment in the WQE.
-  * @wqe_end points after the end of the WQE.
-@@ -886,7 +885,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev, u32 key,
-  */
- static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 				   struct mlx5_pagefault *pfault,
--				   struct mlx5_ib_qp *qp, void *wqe,
-+				   void *wqe,
- 				   void *wqe_end, u32 *bytes_mapped,
- 				   u32 *total_wqe_bytes, int receive_queue)
- {
-@@ -897,10 +896,6 @@ static int pagefault_data_segments(struct mlx5_ib_dev *dev,
- 	size_t bcnt;
- 	int inline_segment;
+@@ -1020,6 +1020,10 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 		 MLX5_WQE_CTRL_OPCODE_MASK;
  
--	/* Skip SRQ next-WQE segment. */
--	if (receive_queue && qp->ibqp.srq)
--		wqe += sizeof(struct mlx5_wqe_srq_next_seg);
--
- 	if (bytes_mapped)
- 		*bytes_mapped = 0;
- 	if (total_wqe_bytes)
-@@ -1200,7 +1195,7 @@ static void mlx5_ib_mr_wqe_pfault_handler(struct mlx5_ib_dev *dev,
- 		goto resolve_page_fault;
+ 	switch (qp->ibqp.qp_type) {
++	case IB_QPT_XRC_INI:
++		*wqe += sizeof(struct mlx5_wqe_xrc_seg);
++		transport_caps = dev->odp_caps.per_transport_caps.xrc_odp_caps;
++		break;
+ 	case IB_QPT_RC:
+ 		transport_caps = dev->odp_caps.per_transport_caps.rc_odp_caps;
+ 		break;
+@@ -1039,7 +1043,7 @@ static int mlx5_ib_mr_initiator_pfault_handler(
+ 		return -EFAULT;
  	}
  
--	ret = pagefault_data_segments(dev, pfault, qp, wqe, wqe_end,
-+	ret = pagefault_data_segments(dev, pfault, wqe, wqe_end,
- 				      &bytes_mapped, &total_wqe_bytes,
- 				      !requestor);
- 	if (ret == -EAGAIN) {
+-	if (qp->ibqp.qp_type != IB_QPT_RC) {
++	if (qp->ibqp.qp_type == IB_QPT_UD) {
+ 		av = *wqe;
+ 		if (av->dqp_dct & cpu_to_be32(MLX5_EXTENDED_UD_AV))
+ 			*wqe += sizeof(struct mlx5_av);
 -- 
 2.19.1
