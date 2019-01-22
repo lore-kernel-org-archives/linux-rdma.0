@@ -1,7 +1,7 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 6/8] infiniband: ocrdma: no need to check return value of debugfs_create functions
-Date: Tue, 22 Jan 2019 16:17:58 +0100
-Message-ID: <20190122151800.15092-7-gregkh@linuxfoundation.org>
+Subject: [PATCH 8/8] infiniband: ipoib: no need to check return value of debugfs_create functions
+Date: Tue, 22 Jan 2019 16:18:00 +0100
+Message-ID: <20190122151800.15092-9-gregkh@linuxfoundation.org>
 References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,139 +9,99 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190122151800.15092-1-gregkh@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Leon Romanovsky <leon@kernel.org>, Yuval Shaia <yuval.shaia@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Leon Romanovsky <leon@kernel.org>, Kamal Heib <kamalheib1@gmail.com>, Denis Drozdov <denisd@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Erez Shitrit <erezsh@mellanox.com>, Yuval Shaia <yuval.shaia@oracle.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Alaa Hleihel <alaa@mellanox.com>, Parav Pandit <parav@mellanox.com>, Kees Cook <keescook@chromium.org>, Arseny Maslennikov <ar@cs.msu.ru>, Evgenii Smirnov <evgenii.smirnov@profitbricks.com>
 List-Id: linux-rdma@vger.kernel.org
 
 When calling debugfs functions, there is no need to ever check the
 return value.  The function can work or not, but the code logic should
 never do something different based on this.
 
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>
-Cc: Devesh Sharma <devesh.sharma@broadcom.com>
 Cc: Doug Ledford <dledford@redhat.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Kamal Heib <kamalheib1@gmail.com>
+Cc: Denis Drozdov <denisd@mellanox.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>
+Cc: Erez Shitrit <erezsh@mellanox.com>
 Cc: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Alaa Hleihel <alaa@mellanox.com>
+Cc: Parav Pandit <parav@mellanox.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Arseny Maslennikov <ar@cs.msu.ru>
+Cc: Evgenii Smirnov <evgenii.smirnov@profitbricks.com>
 Cc: linux-rdma@vger.kernel.org
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- drivers/infiniband/hw/ocrdma/ocrdma_stats.c | 67 +++++++--------------
- 1 file changed, 22 insertions(+), 45 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h      | 4 ++--
+ drivers/infiniband/ulp/ipoib/ipoib_fs.c   | 7 +------
+ drivers/infiniband/ulp/ipoib/ipoib_main.c | 4 +---
+ 3 files changed, 4 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-index 6be0ea109138..a902942adb5d 100644
---- a/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-+++ b/drivers/infiniband/hw/ocrdma/ocrdma_stats.c
-@@ -767,88 +767,65 @@ void ocrdma_add_port_stats(struct ocrdma_dev *dev)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 1da119d901a9..5941d660add1 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -781,12 +781,12 @@ static inline void ipoib_cm_handle_tx_wc(struct net_device *dev, struct ib_wc *w
+ #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
+ void ipoib_create_debug_files(struct net_device *dev);
+ void ipoib_delete_debug_files(struct net_device *dev);
+-int ipoib_register_debugfs(void);
++void ipoib_register_debugfs(void);
+ void ipoib_unregister_debugfs(void);
+ #else
+ static inline void ipoib_create_debug_files(struct net_device *dev) { }
+ static inline void ipoib_delete_debug_files(struct net_device *dev) { }
+-static inline int ipoib_register_debugfs(void) { return 0; }
++static inline void ipoib_register_debugfs(void) { }
+ static inline void ipoib_unregister_debugfs(void) { }
+ #endif
  
- 	/* Create post stats base dir */
- 	dev->dir = debugfs_create_dir(pci_name(pdev), ocrdma_dbgfs_dir);
--	if (!dev->dir)
--		goto err;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_fs.c b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+index 178488028734..64c19f6fa931 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
+@@ -267,14 +267,10 @@ void ipoib_create_debug_files(struct net_device *dev)
+ 	snprintf(name, sizeof(name), "%s_mcg", dev->name);
+ 	priv->mcg_dentry = debugfs_create_file(name, S_IFREG | S_IRUGO,
+ 					       ipoib_root, dev, &ipoib_mcg_fops);
+-	if (!priv->mcg_dentry)
+-		ipoib_warn(priv, "failed to create mcg debug file\n");
  
- 	dev->rsrc_stats.type = OCRDMA_RSRC_STATS;
- 	dev->rsrc_stats.dev = dev;
--	if (!debugfs_create_file("resource_stats", S_IRUSR, dev->dir,
--				 &dev->rsrc_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("resource_stats", S_IRUSR, dev->dir,
-+			    &dev->rsrc_stats, &ocrdma_dbg_ops);
- 
- 	dev->rx_stats.type = OCRDMA_RXSTATS;
- 	dev->rx_stats.dev = dev;
--	if (!debugfs_create_file("rx_stats", S_IRUSR, dev->dir,
--				 &dev->rx_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("rx_stats", S_IRUSR, dev->dir, &dev->rx_stats,
-+			    &ocrdma_dbg_ops);
- 
- 	dev->wqe_stats.type = OCRDMA_WQESTATS;
- 	dev->wqe_stats.dev = dev;
--	if (!debugfs_create_file("wqe_stats", S_IRUSR, dev->dir,
--				 &dev->wqe_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("wqe_stats", S_IRUSR, dev->dir, &dev->wqe_stats,
-+			    &ocrdma_dbg_ops);
- 
- 	dev->tx_stats.type = OCRDMA_TXSTATS;
- 	dev->tx_stats.dev = dev;
--	if (!debugfs_create_file("tx_stats", S_IRUSR, dev->dir,
--				 &dev->tx_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("tx_stats", S_IRUSR, dev->dir, &dev->tx_stats,
-+			    &ocrdma_dbg_ops);
- 
- 	dev->db_err_stats.type = OCRDMA_DB_ERRSTATS;
- 	dev->db_err_stats.dev = dev;
--	if (!debugfs_create_file("db_err_stats", S_IRUSR, dev->dir,
--				 &dev->db_err_stats, &ocrdma_dbg_ops))
--		goto err;
--
-+	debugfs_create_file("db_err_stats", S_IRUSR, dev->dir,
-+			    &dev->db_err_stats, &ocrdma_dbg_ops);
- 
- 	dev->tx_qp_err_stats.type = OCRDMA_TXQP_ERRSTATS;
- 	dev->tx_qp_err_stats.dev = dev;
--	if (!debugfs_create_file("tx_qp_err_stats", S_IRUSR, dev->dir,
--				 &dev->tx_qp_err_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("tx_qp_err_stats", S_IRUSR, dev->dir,
-+			    &dev->tx_qp_err_stats, &ocrdma_dbg_ops);
- 
- 	dev->rx_qp_err_stats.type = OCRDMA_RXQP_ERRSTATS;
- 	dev->rx_qp_err_stats.dev = dev;
--	if (!debugfs_create_file("rx_qp_err_stats", S_IRUSR, dev->dir,
--				 &dev->rx_qp_err_stats, &ocrdma_dbg_ops))
--		goto err;
--
-+	debugfs_create_file("rx_qp_err_stats", S_IRUSR, dev->dir,
-+			    &dev->rx_qp_err_stats, &ocrdma_dbg_ops);
- 
- 	dev->tx_dbg_stats.type = OCRDMA_TX_DBG_STATS;
- 	dev->tx_dbg_stats.dev = dev;
--	if (!debugfs_create_file("tx_dbg_stats", S_IRUSR, dev->dir,
--				 &dev->tx_dbg_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("tx_dbg_stats", S_IRUSR, dev->dir,
-+			    &dev->tx_dbg_stats, &ocrdma_dbg_ops);
- 
- 	dev->rx_dbg_stats.type = OCRDMA_RX_DBG_STATS;
- 	dev->rx_dbg_stats.dev = dev;
--	if (!debugfs_create_file("rx_dbg_stats", S_IRUSR, dev->dir,
--				 &dev->rx_dbg_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("rx_dbg_stats", S_IRUSR, dev->dir,
-+			    &dev->rx_dbg_stats, &ocrdma_dbg_ops);
- 
- 	dev->driver_stats.type = OCRDMA_DRV_STATS;
- 	dev->driver_stats.dev = dev;
--	if (!debugfs_create_file("driver_dbg_stats", S_IRUSR, dev->dir,
--					&dev->driver_stats, &ocrdma_dbg_ops))
--		goto err;
-+	debugfs_create_file("driver_dbg_stats", S_IRUSR, dev->dir,
-+			    &dev->driver_stats, &ocrdma_dbg_ops);
- 
- 	dev->reset_stats.type = OCRDMA_RESET_STATS;
- 	dev->reset_stats.dev = dev;
--	if (!debugfs_create_file("reset_stats", 0200, dev->dir,
--				&dev->reset_stats, &ocrdma_dbg_ops))
--		goto err;
--
--
--	return;
--err:
--	debugfs_remove_recursive(dev->dir);
--	dev->dir = NULL;
-+	debugfs_create_file("reset_stats", 0200, dev->dir, &dev->reset_stats,
-+			    &ocrdma_dbg_ops);
+ 	snprintf(name, sizeof(name), "%s_path", dev->name);
+ 	priv->path_dentry = debugfs_create_file(name, S_IFREG | S_IRUGO,
+ 						ipoib_root, dev, &ipoib_path_fops);
+-	if (!priv->path_dentry)
+-		ipoib_warn(priv, "failed to create path debug file\n");
  }
  
- void ocrdma_rem_port_stats(struct ocrdma_dev *dev)
+ void ipoib_delete_debug_files(struct net_device *dev)
+@@ -286,10 +282,9 @@ void ipoib_delete_debug_files(struct net_device *dev)
+ 	priv->mcg_dentry = priv->path_dentry = NULL;
+ }
+ 
+-int ipoib_register_debugfs(void)
++void ipoib_register_debugfs(void)
  {
--	if (!dev->dir)
--		return;
- 	debugfs_remove_recursive(dev->dir);
+ 	ipoib_root = debugfs_create_dir("ipoib", NULL);
+-	return ipoib_root ? 0 : -ENOMEM;
  }
  
+ void ipoib_unregister_debugfs(void)
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index d932f99201d1..45ef3b0f03c5 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -2577,9 +2577,7 @@ static int __init ipoib_init_module(void)
+ 	 */
+ 	BUILD_BUG_ON(IPOIB_CM_COPYBREAK > IPOIB_CM_HEAD_SIZE);
+ 
+-	ret = ipoib_register_debugfs();
+-	if (ret)
+-		return ret;
++	ipoib_register_debugfs();
+ 
+ 	/*
+ 	 * We create a global workqueue here that is used for all flush
 -- 
 2.20.1
