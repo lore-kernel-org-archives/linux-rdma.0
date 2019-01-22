@@ -1,65 +1,67 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH 5/8] infiniband: mlx5: no need to check return value of
- debugfs_create functions
-Date: Tue, 22 Jan 2019 19:42:54 +0200
-Message-ID: <20190122174254.GE3604@mtr-leonro.mtl.com>
-References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
- <20190122151800.15092-6-gregkh@linuxfoundation.org>
+Subject: [PATCH iproute2-next 00/19] Export object IDs to users
+Date: Tue, 22 Jan 2019 20:31:06 +0200
+Message-ID: <20190122183125.15920-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190122151800.15092-6-gregkh@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Hi,
 
-On Tue, Jan 22, 2019 at 04:17:57PM +0100, Greg Kroah-Hartman wrote:
-> When calling debugfs functions, there is no need to ever check the
-> return value.  The function can work or not, but the code logic should
-> never do something different based on this.
->
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: linux-rdma@vger.kernel.org
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  drivers/infiniband/hw/mlx5/cong.c    | 15 +++-----
->  drivers/infiniband/hw/mlx5/main.c    |  8 ++---
->  drivers/infiniband/hw/mlx5/mlx5_ib.h |  8 +----
->  drivers/infiniband/hw/mlx5/mr.c      | 51 +++++-----------------------
->  4 files changed, 18 insertions(+), 64 deletions(-)
->
+This is complementary part of two RDMA kernel series (not accepted yet).
+https://patchwork.kernel.org/project/linux-rdma/list/?series=69901
+https://patchwork.kernel.org/project/linux-rdma/list/?series=69903
 
-Thanks,
-Acked-by: Leon Romanovsky <leonro@mellanox.com>
+This series add those IDs, refactor code and unifies "resource" command
+implementation.
 
---6TrnltStXW4iwmi0
-Content-Type: application/pgp-signature; name="signature.asc"
+Thanks
 
------BEGIN PGP SIGNATURE-----
+Leon Romanovsky (19):
+  rdma: update uapi headers
+  rdma: Remove duplicated print code
+  rdma: Provide unique indexes for all visible objects
+  rdma: Provide parent context index for all objects except CM_ID
+  rdma: Move resource PD logic to separate file
+  rdma: Refactor out resource MR logic to separate file
+  rdma: Move out resource CQ logic to separate file
+  rdma: Move out resource CM-ID logic to separate file
+  rdma: Move resource PD logic to separate file
+  rdma: Properly mark RDMAtool license
+  rdma: Simplify code to reuse existing functions
+  rdma: Simplify CM_ID print code
+  rdma: Refactor CQ prints
+  rdma: Separate MR code
+  rdma: Separate PD code
+  rdma: Move QP code to separate function
+  rdma: Unify netlink attribute checks prior to prints
+  rdma: Perform single .doit call to query specific objects
+  rdma: Provide and reuse filter functions
 
-iQIcBAEBAgAGBQJcR1YeAAoJEORje4g2clinHPAP/A7jQ7mZ7g718Tan+qeF6TDu
-s9RE2ISUf3M4c9GDplyR2dB4vSRQYc0HT2uYCEXfBQlLGlwR+Twxgq8SMU9tggXX
-rFsvYGAwjEu0AUBWFl3xDht4oeo+yGYeDRKmP7Hn/U4S3VwCBPSUpiHhnQ0Fe+Mt
-IvZZMLf1VSHJvqat+xGtGujZ6HbMHWoNCSFUJaR0vtsIONd7zL5vj+39gLwWNc/q
-TleLp19nEDTefnrmL4eMAqXcQ7xX789P2SLDPMg3msrQimE1yi65vVPCtzTEiIfK
-pH1LAgD1nL/N0YQG2cXAU0ekhh8pIbvWEDVdrFeAwMFfURXiY5JWevxB2vlv9Aei
-ErelGBMHYBvA+dc306tqi96rYuLZe7tvNQg9XGpKMv70Mcn8F07jCb8i5C4sOfET
-C4VFhivP3imDilBkBOYSlKpnGkwqaFA8nBxCe4Acy2KqX+tuWLGJLKqmrK026rIU
-xRCU9mit4mvXss4QscQs3Uhp9XDwe+e0eZMmQkjW4Tn+nX311Zt1CJDrr/sodBR+
-s24TPVxqYOXo/eqzTuc3tlVJvap2RLC65uajcS8EWu6+Bge33ea+hqsjfVLTIDG1
-nbDYniuZURoIe6oKmblJTwB3YXGfthhk4MtcEUQGMRucEE7vxQbHX/3F6QiYwQIl
-6Jq/Eqw2PMqrHVbpS6zL
-=cVsM
------END PGP SIGNATURE-----
-
---6TrnltStXW4iwmi0--
+ rdma/Makefile                         |   5 +-
+ rdma/dev.c                            |   7 +-
+ rdma/include/uapi/rdma/rdma_netlink.h |  10 +
+ rdma/link.c                           |   7 +-
+ rdma/rdma.c                           |   7 +-
+ rdma/rdma.h                           |  24 +-
+ rdma/res-cmid.c                       | 275 ++++++++
+ rdma/res-cq.c                         | 160 +++++
+ rdma/res-mr.c                         | 133 ++++
+ rdma/res-pd.c                         | 136 ++++
+ rdma/res-qp.c                         | 240 +++++++
+ rdma/res.c                            | 932 ++------------------------
+ rdma/res.h                            | 148 ++++
+ rdma/utils.c                          |  53 +-
+ 14 files changed, 1217 insertions(+), 920 deletions(-)
+ create mode 100644 rdma/res-cmid.c
+ create mode 100644 rdma/res-cq.c
+ create mode 100644 rdma/res-mr.c
+ create mode 100644 rdma/res-pd.c
+ create mode 100644 rdma/res-qp.c
+ create mode 100644 rdma/res.h
