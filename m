@@ -1,33 +1,53 @@
-From: David Miller <davem@davemloft.net>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 Subject: Re: [PATCH net-next] net/mlx4: Mark expected switch fall-through
-Date: Wed, 23 Jan 2019 09:08:03 -0800 (PST)
-Message-ID: <20190123.090803.438719975498577995.davem@davemloft.net>
+Date: Wed, 23 Jan 2019 12:09:07 -0600
+Message-ID: <e27972ea-dc6a-569d-638f-293067c95059@embeddedor.com>
 References: <20190123080511.GA32528@embeddedor>
+ <20190123.090803.438719975498577995.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-7
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190123080511.GA32528@embeddedor>
+In-Reply-To: <20190123.090803.438719975498577995.davem@davemloft.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: gustavo@embeddedor.com
+To: David Miller <davem@davemloft.net>
 Cc: tariqt@mellanox.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogIkd1c3Rhdm8gQS4gUi4gU2lsdmEiIDxndXN0YXZvQGVtYmVkZGVkb3IuY29tPg0KRGF0
-ZTogV2VkLCAyMyBKYW4gMjAxOSAwMjowNToxMSAtMDYwMA0KDQo+IEluIHByZXBhcmF0aW9uIHRv
-IGVuYWJsaW5nIC1XaW1wbGljaXQtZmFsbHRocm91Z2gsIG1hcmsgc3dpdGNoIGNhc2VzDQo+IHdo
-ZXJlIHdlIGFyZSBleHBlY3RpbmcgdG8gZmFsbCB0aHJvdWdoLg0KPiANCj4gVGhpcyBwYXRjaCBm
-aXhlcyB0aGUgZm9sbG93aW5nIHdhcm5pbmc6DQo+IA0KPiBkcml2ZXJzL25ldC9ldGhlcm5ldC9t
-ZWxsYW5veC9tbHg0L2VxLmM6IEluIGZ1bmN0aW9uIKFtbHg0X2VxX2ludKI6DQo+IGRyaXZlcnMv
-bmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvbWx4NC5oOjIxOTo1OiB3YXJuaW5nOiB0aGlzIHN0
-YXRlbWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0LWZhbGx0aHJvdWdoPV0NCj4gICBp
-ZiAobWx4NF9kZWJ1Z19sZXZlbCkgICAgICBcDQo+ICAgICAgXg0KPiBkcml2ZXJzL25ldC9ldGhl
-cm5ldC9tZWxsYW5veC9tbHg0L2VxLmM6NTU4OjQ6IG5vdGU6IGluIGV4cGFuc2lvbiBvZiBtYWNy
-byChbWx4NF9kYmeiDQo+ICAgICBtbHg0X2RiZyhkZXYsICIlczogTUxYNF9FVkVOVF9UWVBFX1NS
-UV9MSU1JVC4gc3JxX25vPTB4JXgsIGVxIDB4JXhcbiIsDQo+ICAgICBefn5+fn5+fg0KPiBkcml2
-ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmM6NTYxOjM6IG5vdGU6IGhlcmUNCj4g
-ICAgY2FzZSBNTFg0X0VWRU5UX1RZUEVfU1JRX0NBVEFTX0VSUk9SOg0KPiAgICBefn5+DQo+IA0K
-PiBXYXJuaW5nIGxldmVsIDMgd2FzIHVzZWQ6IC1XaW1wbGljaXQtZmFsbHRocm91Z2g9Mw0KPiAN
-Cj4gVGhpcyBwYXRjaCBpcyBwYXJ0IG9mIHRoZSBvbmdvaW5nIGVmZm9ydHMgdG8gZW5hYmxpbmcN
-Cj4gLVdpbXBsaWNpdC1mYWxsdGhyb3VnaC4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEd1c3Rhdm8g
-QS4gUi4gU2lsdmEgPGd1c3Rhdm9AZW1iZWRkZWRvci5jb20+DQoNCkFwcGxpZWQuDQo=
+
+
+On 1/23/19 11:08 AM, David Miller wrote:
+> From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+> Date: Wed, 23 Jan 2019 02:05:11 -0600
+> 
+>> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
+>> where we are expecting to fall through.
+>>
+>> This patch fixes the following warning:
+>>
+>> drivers/net/ethernet/mellanox/mlx4/eq.c: In function ¡mlx4_eq_int¢:
+>> drivers/net/ethernet/mellanox/mlx4/mlx4.h:219:5: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>>   if (mlx4_debug_level)      \
+>>      ^
+>> drivers/net/ethernet/mellanox/mlx4/eq.c:558:4: note: in expansion of macro ¡mlx4_dbg¢
+>>     mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
+>>     ^~~~~~~~
+>> drivers/net/ethernet/mellanox/mlx4/eq.c:561:3: note: here
+>>    case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
+>>    ^~~~
+>>
+>> Warning level 3 was used: -Wimplicit-fallthrough=3
+>>
+>> This patch is part of the ongoing efforts to enabling
+>> -Wimplicit-fallthrough.
+>>
+>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> 
+> Applied.
+> 
+
+Thank you both, Tariq and David.
+
+--
+Gustavo
