@@ -1,48 +1,33 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH RFC] iw_cxgb4: drop check - dead code
-Date: Wed, 23 Jan 2019 11:30:08 -0700
-Message-ID: <20190123183008.GA15698@ziepe.ca>
-References: <1547947633-10515-1-git-send-email-hofrat@osadl.org>
+Subject: Re: [PATCH 1/6] mm: make mm->pinned_vm an atomic64 counter
+Date: Wed, 23 Jan 2019 11:33:53 -0700
+Message-ID: <20190123183353.GA15768@ziepe.ca>
+References: <20190121174220.10583-1-dave@stgolabs.net>
+ <20190121174220.10583-2-dave@stgolabs.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1547947633-10515-1-git-send-email-hofrat@osadl.org>
+In-Reply-To: <20190121174220.10583-2-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nicholas Mc Guire <hofrat@osadl.org>
-Cc: Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Raju Rangoju <rajur@chelsio.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: akpm@linux-foundation.org, dledford@redhat.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>, Christoph Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Daniel Jordan <daniel.m.jordan@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jan 20, 2019 at 02:27:13AM +0100, Nicholas Mc Guire wrote:
-> The kmalloc is called with  | __GFP_NOFAIL  so there is no point in
-> checking the return value - it either returns valid storage or it would
-> hang/terminate there. But it is not possible to say if the use of
-> __GFP_NOFAIL is really needed and the check should be removed or
-> vice-versa (use of __GFP_NOFAIL should be only in exceptional
-> cases as I understand it and alloc_srq_queue() is called in quite
-> a few places)
-> In either way it would need fixing.
+On Mon, Jan 21, 2019 at 09:42:15AM -0800, Davidlohr Bueso wrote:
+> Taking a sleeping lock to _only_ increment a variable is quite the
+> overkill, and pretty much all users do this. Furthermore, some drivers
+> (ie: infiniband and scif) that need pinned semantics can go to quite
+> some trouble to actually delay via workqueue (un)accounting for pinned
+> pages when not possible to acquire it.
 > 
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> Fixes: 6a0b6174d35a ("rdma/cxgb4: Add support for kernel mode SRQ's")
-> ---
+> By making the counter atomic we no longer need to hold the mmap_sem
+> and can simply some code around it for pinned_vm users. The counter
+> is 64-bit such that we need not worry about overflows such as rdma
+> user input controlled from userspace.
 
-Steve? It seems weird to have NOFAIL and then have an error unwind
-path, what is the deal here?
+I see a number of MM people Reviewed-by this so are we good to take
+this in the RDMA tree now?
 
-> diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-> index 917ce5c..c2a12ba 100644
-> --- a/drivers/infiniband/hw/cxgb4/qp.c
-> +++ b/drivers/infiniband/hw/cxgb4/qp.c
-> @@ -2597,8 +2597,6 @@ static int alloc_srq_queue(struct c4iw_srq *srq, struct c4iw_dev_ucontext *uctx,
->  	wr_len = sizeof(*res_wr) + sizeof(*res);
->  
->  	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-> -	if (!skb)
-> -		goto err_free_queue;
->  	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
->  
->  	res_wr = (struct fw_ri_res_wr *)__skb_put(skb, wr_len);
-> -- 
-> 2.1.4
-> 
+Regards,
+Jason
