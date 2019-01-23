@@ -1,10 +1,9 @@
-From: Steve Wise <swise@chelsio.com>
+From: Steve Wise <swise@opengridcomputing.com>
 Subject: Re: [PATCH RFC] iw_cxgb4: drop check - dead code
-Date: Wed, 23 Jan 2019 12:43:15 -0600
-Message-ID: <762bd516-b357-fb51-510e-ccce6215e281@chelsio.com>
+Date: Wed, 23 Jan 2019 12:45:11 -0600
+Message-ID: <91af1982-e309-476e-cfa4-2f6ef1ee598b@opengridcomputing.com>
 References: <1547947633-10515-1-git-send-email-hofrat@osadl.org>
  <20190123183008.GA15698@ziepe.ca>
-Reply-To: swise@chelsio.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
@@ -57,7 +56,10 @@ The other queue allocations in qp.c don't use __GFP_NOFAIL.  So either
 leave it and remove the error check as per this patch, or remove the
 NOFAIL and leave the check.
 
-I suggest you remove the __GFP_NOFAIL.
+I suggest you remove the __GFP_NOFAIL, since I have a recollection that
+using it was frowned upon.  In this case, if there is no memory
+available it is reasonable to return that error to the user creating the
+srq...
 
 
 Steve.
