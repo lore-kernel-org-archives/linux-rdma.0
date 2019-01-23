@@ -1,54 +1,49 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH net-next] net/mlx4: Mark expected switch fall-through
-Date: Wed, 23 Jan 2019 02:05:11 -0600
-Message-ID: <20190123080511.GA32528@embeddedor>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH net-next] net/mlx4: Mark expected switch fall-through
+Date: Wed, 23 Jan 2019 12:29:13 +0000
+Message-ID: <1598bfeb-0061-1d52-6b10-a3740ee25f46@mellanox.com>
+References: <20190123080511.GA32528@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20190123080511.GA32528@embeddedor>
+Content-Language: en-US
+Content-ID: <DF27542629F5864D91EF9F3C2D9E1F1C@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-where we are expecting to fall through.
-
-This patch fixes the following warning:
-
-drivers/net/ethernet/mellanox/mlx4/eq.c: In function ‘mlx4_eq_int’:
-drivers/net/ethernet/mellanox/mlx4/mlx4.h:219:5: warning: this statement may fall through [-Wimplicit-fallthrough=]
-  if (mlx4_debug_level)      \
-     ^
-drivers/net/ethernet/mellanox/mlx4/eq.c:558:4: note: in expansion of macro ‘mlx4_dbg’
-    mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
-    ^~~~~~~~
-drivers/net/ethernet/mellanox/mlx4/eq.c:561:3: note: here
-   case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
-   ^~~~
-
-Warning level 3 was used: -Wimplicit-fallthrough=3
-
-This patch is part of the ongoing efforts to enabling
--Wimplicit-fallthrough.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/net/ethernet/mellanox/mlx4/eq.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
-index 4953c852c247..2f4201023836 100644
---- a/drivers/net/ethernet/mellanox/mlx4/eq.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
-@@ -558,6 +558,7 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
- 			mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
- 				 __func__, be32_to_cpu(eqe->event.srq.srqn),
- 				 eq->eqn);
-+			/* fall through */
- 		case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
- 			if (mlx4_is_master(dev)) {
- 				/* forward only to slave owning the SRQ */
--- 
-2.20.1
+DQoNCk9uIDEvMjMvMjAxOSAxMDowNSBBTSwgR3VzdGF2byBBLiBSLiBTaWx2YSB3cm90ZToNCj4g
+SW4gcHJlcGFyYXRpb24gdG8gZW5hYmxpbmcgLVdpbXBsaWNpdC1mYWxsdGhyb3VnaCwgbWFyayBz
+d2l0Y2ggY2FzZXMNCj4gd2hlcmUgd2UgYXJlIGV4cGVjdGluZyB0byBmYWxsIHRocm91Z2guDQo+
+IA0KPiBUaGlzIHBhdGNoIGZpeGVzIHRoZSBmb2xsb3dpbmcgd2FybmluZzoNCj4gDQo+IGRyaXZl
+cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvZXEuYzogSW4gZnVuY3Rpb24g4oCYbWx4NF9l
+cV9pbnTigJk6DQo+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvbWx4NC5oOjIx
+OTo1OiB3YXJuaW5nOiB0aGlzIHN0YXRlbWVudCBtYXkgZmFsbCB0aHJvdWdoIFstV2ltcGxpY2l0
+LWZhbGx0aHJvdWdoPV0NCj4gICAgaWYgKG1seDRfZGVidWdfbGV2ZWwpICAgICAgXA0KPiAgICAg
+ICBeDQo+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvZXEuYzo1NTg6NDogbm90
+ZTogaW4gZXhwYW5zaW9uIG9mIG1hY3JvIOKAmG1seDRfZGJn4oCZDQo+ICAgICAgbWx4NF9kYmco
+ZGV2LCAiJXM6IE1MWDRfRVZFTlRfVFlQRV9TUlFfTElNSVQuIHNycV9ubz0weCV4LCBlcSAweCV4
+XG4iLA0KPiAgICAgIF5+fn5+fn5+DQo+IGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21s
+eDQvZXEuYzo1NjE6Mzogbm90ZTogaGVyZQ0KPiAgICAgY2FzZSBNTFg0X0VWRU5UX1RZUEVfU1JR
+X0NBVEFTX0VSUk9SOg0KPiAgICAgXn5+fg0KPiANCj4gV2FybmluZyBsZXZlbCAzIHdhcyB1c2Vk
+OiAtV2ltcGxpY2l0LWZhbGx0aHJvdWdoPTMNCj4gDQo+IFRoaXMgcGF0Y2ggaXMgcGFydCBvZiB0
+aGUgb25nb2luZyBlZmZvcnRzIHRvIGVuYWJsaW5nDQo+IC1XaW1wbGljaXQtZmFsbHRocm91Z2gu
+DQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBHdXN0YXZvIEEuIFIuIFNpbHZhIDxndXN0YXZvQGVtYmVk
+ZGVkb3IuY29tPg0KPiAtLS0NCj4gICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0
+L2VxLmMgfCAxICsNCj4gICAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykNCj4gDQo+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMgYi9kcml2
+ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VxLmMNCj4gaW5kZXggNDk1M2M4NTJjMjQ3
+Li4yZjQyMDEwMjM4MzYgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
+bm94L21seDQvZXEuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0
+L2VxLmMNCj4gQEAgLTU1OCw2ICs1NTgsNyBAQCBzdGF0aWMgaW50IG1seDRfZXFfaW50KHN0cnVj
+dCBtbHg0X2RldiAqZGV2LCBzdHJ1Y3QgbWx4NF9lcSAqZXEpDQo+ICAgCQkJbWx4NF9kYmcoZGV2
+LCAiJXM6IE1MWDRfRVZFTlRfVFlQRV9TUlFfTElNSVQuIHNycV9ubz0weCV4LCBlcSAweCV4XG4i
+LA0KPiAgIAkJCQkgX19mdW5jX18sIGJlMzJfdG9fY3B1KGVxZS0+ZXZlbnQuc3JxLnNycW4pLA0K
+PiAgIAkJCQkgZXEtPmVxbik7DQo+ICsJCQkvKiBmYWxsIHRocm91Z2ggKi8NCj4gICAJCWNhc2Ug
+TUxYNF9FVkVOVF9UWVBFX1NSUV9DQVRBU19FUlJPUjoNCj4gICAJCQlpZiAobWx4NF9pc19tYXN0
+ZXIoZGV2KSkgew0KPiAgIAkJCQkvKiBmb3J3YXJkIG9ubHkgdG8gc2xhdmUgb3duaW5nIHRoZSBT
+UlEgKi8NCj4gDQoNCg0KUmV2aWV3ZWQtYnk6IFRhcmlxIFRvdWthbiA8dGFyaXF0QG1lbGxhbm94
+LmNvbT4NClRoYW5rcyBmb3IgeW91ciBwYXRjaC4NCg==
