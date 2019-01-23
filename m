@@ -1,152 +1,110 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Jerome Glisse <jglisse@redhat.com>
 Subject: Re: [PATCH v4 0/9] mmu notifier provide context informations
-Date: Wed, 23 Jan 2019 14:54:40 -0800
-Message-ID: <CAPcyv4i9_T9779ZyaYt2T3b20-wQTaWA4P63+49TM=a=twtDVw@mail.gmail.com>
+Date: Wed, 23 Jan 2019 18:04:47 -0500
+Message-ID: <20190123230447.GC1257@redhat.com>
 References: <20190123222315.1122-1-jglisse@redhat.com>
+ <CAPcyv4i9_T9779ZyaYt2T3b20-wQTaWA4P63+49TM=a=twtDVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190123222315.1122-1-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>
-Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Jan Kara <jack@suse.cz>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.o>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4i9_T9779ZyaYt2T3b20-wQTaWA4P63+49TM=a=twtDVw@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, KVM list <kvm@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 23, 2019 at 2:23 PM <jglisse@redhat.com> wrote:
->
-> From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
->
-> Hi Andrew, i see that you still have my event patch in you queue [1].
-> This patchset replace that single patch and is broken down in further
-> step so that it is easier to review and ascertain that no mistake were
-> made during mechanical changes. Here are the step:
->
->     Patch 1 - add the enum values
->     Patch 2 - coccinelle semantic patch to convert all call site of
->               mmu_notifier_range_init to default enum value and also
->               to passing down the vma when it is available
->     Patch 3 - update many call site to more accurate enum values
->     Patch 4 - add the information to the mmu_notifier_range struct
->     Patch 5 - helper to test if a range is updated to read only
->
-> All the remaining patches are update to various driver to demonstrate
-> how this new information get use by device driver. I build tested
-> with make all and make all minus everything that enable mmu notifier
-> ie building with MMU_NOTIFIER=3Dno. Also tested with some radeon,amd
-> gpu and intel gpu.
->
-> If they are no objections i believe best plan would be to merge the
-> the first 5 patches (all mm changes) through your queue for 5.1 and
-> then to delay driver update to each individual driver tree for 5.2.
-> This will allow each individual device driver maintainer time to more
-> thouroughly test this more then my own testing.
->
-> Note that i also intend to use this feature further in nouveau and
-> HMM down the road. I also expect that other user like KVM might be
-> interested into leveraging this new information to optimize some of
-> there secondary page table invalidation.
-
-"Down the road" users should introduce the functionality they want to
-consume. The common concern with preemptively including
-forward-looking infrastructure is realizing later that the
-infrastructure is not needed, or needs changing. If it has no current
-consumer, leave it out.
-
->
-> Here is an explaination on the rational for this patchset:
->
->
-> CPU page table update can happens for many reasons, not only as a result
-> of a syscall (munmap(), mprotect(), mremap(), madvise(), ...) but also
-> as a result of kernel activities (memory compression, reclaim, migration,
-> ...).
->
-> This patch introduce a set of enums that can be associated with each of
-> the events triggering a mmu notifier. Latter patches take advantages of
-> those enum values.
->
-> - UNMAP: munmap() or mremap()
-> - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
-> - PROTECTION_VMA: change in access protections for the range
-> - PROTECTION_PAGE: change in access protections for page in the range
-> - SOFT_DIRTY: soft dirtyness tracking
->
-> Being able to identify munmap() and mremap() from other reasons why the
-> page table is cleared is important to allow user of mmu notifier to
-> update their own internal tracking structure accordingly (on munmap or
-> mremap it is not longer needed to track range of virtual address as it
-> becomes invalid).
-
-The only context information consumed in this patch set is
-MMU_NOTIFY_PROTECTION_VMA.
-
-What is the practical benefit of these "optimize out the case when a
-range is updated to read only" optimizations? Any numbers to show this
-is worth the code thrash?
-
->
-> [1] https://www.ozlabs.org/~akpm/mmotm/broken-out/mm-mmu_notifier-context=
-ual-information-for-event-triggering-invalidation-v2.patch
->
-> Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-> Cc: Jason Gunthorpe <jgg@mellanox.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Matthew Wilcox <mawilcox@microsoft.com>
-> Cc: Ross Zwisler <zwisler@kernel.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Paolo Bonzini <pbonzini@redhat.com>
-> Cc: Radim Kr=C4=8Dm=C3=A1=C5=99 <rkrcmar@redhat.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Ralph Campbell <rcampbell@nvidia.com>
-> Cc: John Hubbard <jhubbard@nvidia.com>
-> Cc: kvm@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-fsdevel@vger.kernel.org
-> Cc: Arnd Bergmann <arnd@arndb.de>
->
-> J=C3=A9r=C3=B4me Glisse (9):
->   mm/mmu_notifier: contextual information for event enums
->   mm/mmu_notifier: contextual information for event triggering
->     invalidation
->   mm/mmu_notifier: use correct mmu_notifier events for each invalidation
->   mm/mmu_notifier: pass down vma and reasons why mmu notifier is
->     happening
->   mm/mmu_notifier: mmu_notifier_range_update_to_read_only() helper
->   gpu/drm/radeon: optimize out the case when a range is updated to read
->     only
->   gpu/drm/amdgpu: optimize out the case when a range is updated to read
->     only
->   gpu/drm/i915: optimize out the case when a range is updated to read
->     only
->   RDMA/umem_odp: optimize out the case when a range is updated to read
->     only
->
->  drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c  | 13 ++++++++
->  drivers/gpu/drm/i915/i915_gem_userptr.c | 16 ++++++++++
->  drivers/gpu/drm/radeon/radeon_mn.c      | 13 ++++++++
->  drivers/infiniband/core/umem_odp.c      | 22 +++++++++++--
->  fs/proc/task_mmu.c                      |  3 +-
->  include/linux/mmu_notifier.h            | 42 ++++++++++++++++++++++++-
->  include/rdma/ib_umem_odp.h              |  1 +
->  kernel/events/uprobes.c                 |  3 +-
->  mm/huge_memory.c                        | 14 +++++----
->  mm/hugetlb.c                            | 11 ++++---
->  mm/khugepaged.c                         |  3 +-
->  mm/ksm.c                                |  6 ++--
->  mm/madvise.c                            |  3 +-
->  mm/memory.c                             | 25 +++++++++------
->  mm/migrate.c                            |  5 ++-
->  mm/mmu_notifier.c                       | 10 ++++++
->  mm/mprotect.c                           |  4 ++-
->  mm/mremap.c                             |  3 +-
->  mm/oom_kill.c                           |  3 +-
->  mm/rmap.c                               |  6 ++--
->  20 files changed, 171 insertions(+), 35 deletions(-)
->
-> --
-> 2.17.2
->
+T24gV2VkLCBKYW4gMjMsIDIwMTkgYXQgMDI6NTQ6NDBQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdy
+b3RlOgo+IE9uIFdlZCwgSmFuIDIzLCAyMDE5IGF0IDI6MjMgUE0gPGpnbGlzc2VAcmVkaGF0LmNv
+bT4gd3JvdGU6Cj4gPgo+ID4gRnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5j
+b20+Cj4gPgo+ID4gSGkgQW5kcmV3LCBpIHNlZSB0aGF0IHlvdSBzdGlsbCBoYXZlIG15IGV2ZW50
+IHBhdGNoIGluIHlvdSBxdWV1ZSBbMV0uCj4gPiBUaGlzIHBhdGNoc2V0IHJlcGxhY2UgdGhhdCBz
+aW5nbGUgcGF0Y2ggYW5kIGlzIGJyb2tlbiBkb3duIGluIGZ1cnRoZXIKPiA+IHN0ZXAgc28gdGhh
+dCBpdCBpcyBlYXNpZXIgdG8gcmV2aWV3IGFuZCBhc2NlcnRhaW4gdGhhdCBubyBtaXN0YWtlIHdl
+cmUKPiA+IG1hZGUgZHVyaW5nIG1lY2hhbmljYWwgY2hhbmdlcy4gSGVyZSBhcmUgdGhlIHN0ZXA6
+Cj4gPgo+ID4gICAgIFBhdGNoIDEgLSBhZGQgdGhlIGVudW0gdmFsdWVzCj4gPiAgICAgUGF0Y2gg
+MiAtIGNvY2NpbmVsbGUgc2VtYW50aWMgcGF0Y2ggdG8gY29udmVydCBhbGwgY2FsbCBzaXRlIG9m
+Cj4gPiAgICAgICAgICAgICAgIG1tdV9ub3RpZmllcl9yYW5nZV9pbml0IHRvIGRlZmF1bHQgZW51
+bSB2YWx1ZSBhbmQgYWxzbwo+ID4gICAgICAgICAgICAgICB0byBwYXNzaW5nIGRvd24gdGhlIHZt
+YSB3aGVuIGl0IGlzIGF2YWlsYWJsZQo+ID4gICAgIFBhdGNoIDMgLSB1cGRhdGUgbWFueSBjYWxs
+IHNpdGUgdG8gbW9yZSBhY2N1cmF0ZSBlbnVtIHZhbHVlcwo+ID4gICAgIFBhdGNoIDQgLSBhZGQg
+dGhlIGluZm9ybWF0aW9uIHRvIHRoZSBtbXVfbm90aWZpZXJfcmFuZ2Ugc3RydWN0Cj4gPiAgICAg
+UGF0Y2ggNSAtIGhlbHBlciB0byB0ZXN0IGlmIGEgcmFuZ2UgaXMgdXBkYXRlZCB0byByZWFkIG9u
+bHkKPiA+Cj4gPiBBbGwgdGhlIHJlbWFpbmluZyBwYXRjaGVzIGFyZSB1cGRhdGUgdG8gdmFyaW91
+cyBkcml2ZXIgdG8gZGVtb25zdHJhdGUKPiA+IGhvdyB0aGlzIG5ldyBpbmZvcm1hdGlvbiBnZXQg
+dXNlIGJ5IGRldmljZSBkcml2ZXIuIEkgYnVpbGQgdGVzdGVkCj4gPiB3aXRoIG1ha2UgYWxsIGFu
+ZCBtYWtlIGFsbCBtaW51cyBldmVyeXRoaW5nIHRoYXQgZW5hYmxlIG1tdSBub3RpZmllcgo+ID4g
+aWUgYnVpbGRpbmcgd2l0aCBNTVVfTk9USUZJRVI9bm8uIEFsc28gdGVzdGVkIHdpdGggc29tZSBy
+YWRlb24sYW1kCj4gPiBncHUgYW5kIGludGVsIGdwdS4KPiA+Cj4gPiBJZiB0aGV5IGFyZSBubyBv
+YmplY3Rpb25zIGkgYmVsaWV2ZSBiZXN0IHBsYW4gd291bGQgYmUgdG8gbWVyZ2UgdGhlCj4gPiB0
+aGUgZmlyc3QgNSBwYXRjaGVzIChhbGwgbW0gY2hhbmdlcykgdGhyb3VnaCB5b3VyIHF1ZXVlIGZv
+ciA1LjEgYW5kCj4gPiB0aGVuIHRvIGRlbGF5IGRyaXZlciB1cGRhdGUgdG8gZWFjaCBpbmRpdmlk
+dWFsIGRyaXZlciB0cmVlIGZvciA1LjIuCj4gPiBUaGlzIHdpbGwgYWxsb3cgZWFjaCBpbmRpdmlk
+dWFsIGRldmljZSBkcml2ZXIgbWFpbnRhaW5lciB0aW1lIHRvIG1vcmUKPiA+IHRob3Vyb3VnaGx5
+IHRlc3QgdGhpcyBtb3JlIHRoZW4gbXkgb3duIHRlc3RpbmcuCj4gPgo+ID4gTm90ZSB0aGF0IGkg
+YWxzbyBpbnRlbmQgdG8gdXNlIHRoaXMgZmVhdHVyZSBmdXJ0aGVyIGluIG5vdXZlYXUgYW5kCj4g
+PiBITU0gZG93biB0aGUgcm9hZC4gSSBhbHNvIGV4cGVjdCB0aGF0IG90aGVyIHVzZXIgbGlrZSBL
+Vk0gbWlnaHQgYmUKPiA+IGludGVyZXN0ZWQgaW50byBsZXZlcmFnaW5nIHRoaXMgbmV3IGluZm9y
+bWF0aW9uIHRvIG9wdGltaXplIHNvbWUgb2YKPiA+IHRoZXJlIHNlY29uZGFyeSBwYWdlIHRhYmxl
+IGludmFsaWRhdGlvbi4KPiAKPiAiRG93biB0aGUgcm9hZCIgdXNlcnMgc2hvdWxkIGludHJvZHVj
+ZSB0aGUgZnVuY3Rpb25hbGl0eSB0aGV5IHdhbnQgdG8KPiBjb25zdW1lLiBUaGUgY29tbW9uIGNv
+bmNlcm4gd2l0aCBwcmVlbXB0aXZlbHkgaW5jbHVkaW5nCj4gZm9yd2FyZC1sb29raW5nIGluZnJh
+c3RydWN0dXJlIGlzIHJlYWxpemluZyBsYXRlciB0aGF0IHRoZQo+IGluZnJhc3RydWN0dXJlIGlz
+IG5vdCBuZWVkZWQsIG9yIG5lZWRzIGNoYW5naW5nLiBJZiBpdCBoYXMgbm8gY3VycmVudAo+IGNv
+bnN1bWVyLCBsZWF2ZSBpdCBvdXQuCgpUaGlzIHBhdGNoc2V0IGFscmVhZHkgc2hvdyB0aGF0IHRo
+aXMgaXMgdXNlZnVsLCB3aGF0IG1vcmUgY2FuIGkgZG8gPwpJIGtub3cgaSB3aWxsIHVzZSB0aGlz
+IGluZm9ybWF0aW9uLCBpbiBub3V2ZWF1IGZvciBtZW1vcnkgcG9saWN5IHdlCmFsbG9jYXRlIG91
+ciBvd24gc3RydWN0dXJlIGZvciBldmVyeSB2bWEgdGhlIEdQVSBldmVyIGFjY2Vzc2VkIG9yIHRo
+YXQKdXNlcnNwYWNlIGhpbnRlZCB3ZSBzaG91bGQgc2V0IGEgcG9saWN5IGZvci4gUmlnaHQgbm93
+IHdpdGggZXhpc3RpbmcKbW11IG5vdGlmaWVyIGkgX211c3RfIGZyZWUgdGhvc2Ugc3RydWN0dXJl
+IGJlY2F1c2UgaSBkbyBub3Qga25vdyBpZgp0aGUgaW52YWxpZGF0aW9uIGlzIGFuIG11bm1hcCBv
+ciBzb21ldGhpbmcgZWxzZS4gU28gaSBhbSBsb29zaW5nCmltcG9ydGFudCBpbmZvcm1hdGlvbnMg
+YW5kIHVuZWNlc3Nhcmx5IGZyZWUgc3RydWN0IHRoYXQgaSB3aWxsIGhhdmUKdG8gcmUtYWxsb2Nh
+dGUganVzdCBjb3VwbGUgamlmZmllcyBsYXR0ZXIuIFRoYXQncyBvbmUgd2F5IGkgYW0gdXNpbmcK
+dGhpcy4gVGhlIG90aGVyIHdheSBpcyB0byBvcHRpbWl6ZSBHUFUgcGFnZSB0YWJsZSB1cGRhdGUg
+anVzdCBsaWtlIGkKYW0gZG9pbmcgd2l0aCBhbGwgdGhlIHBhdGNoZXMgdG8gUkRNQS9PRFAgYW5k
+IHZhcmlvdXMgR1BVIGRyaXZlcnMuCgoKPiA+IEhlcmUgaXMgYW4gZXhwbGFpbmF0aW9uIG9uIHRo
+ZSByYXRpb25hbCBmb3IgdGhpcyBwYXRjaHNldDoKPiA+Cj4gPgo+ID4gQ1BVIHBhZ2UgdGFibGUg
+dXBkYXRlIGNhbiBoYXBwZW5zIGZvciBtYW55IHJlYXNvbnMsIG5vdCBvbmx5IGFzIGEgcmVzdWx0
+Cj4gPiBvZiBhIHN5c2NhbGwgKG11bm1hcCgpLCBtcHJvdGVjdCgpLCBtcmVtYXAoKSwgbWFkdmlz
+ZSgpLCAuLi4pIGJ1dCBhbHNvCj4gPiBhcyBhIHJlc3VsdCBvZiBrZXJuZWwgYWN0aXZpdGllcyAo
+bWVtb3J5IGNvbXByZXNzaW9uLCByZWNsYWltLCBtaWdyYXRpb24sCj4gPiAuLi4pLgo+ID4KPiA+
+IFRoaXMgcGF0Y2ggaW50cm9kdWNlIGEgc2V0IG9mIGVudW1zIHRoYXQgY2FuIGJlIGFzc29jaWF0
+ZWQgd2l0aCBlYWNoIG9mCj4gPiB0aGUgZXZlbnRzIHRyaWdnZXJpbmcgYSBtbXUgbm90aWZpZXIu
+IExhdHRlciBwYXRjaGVzIHRha2UgYWR2YW50YWdlcyBvZgo+ID4gdGhvc2UgZW51bSB2YWx1ZXMu
+Cj4gPgo+ID4gLSBVTk1BUDogbXVubWFwKCkgb3IgbXJlbWFwKCkKPiA+IC0gQ0xFQVI6IHBhZ2Ug
+dGFibGUgaXMgY2xlYXJlZCAobWlncmF0aW9uLCBjb21wYWN0aW9uLCByZWNsYWltLCAuLi4pCj4g
+PiAtIFBST1RFQ1RJT05fVk1BOiBjaGFuZ2UgaW4gYWNjZXNzIHByb3RlY3Rpb25zIGZvciB0aGUg
+cmFuZ2UKPiA+IC0gUFJPVEVDVElPTl9QQUdFOiBjaGFuZ2UgaW4gYWNjZXNzIHByb3RlY3Rpb25z
+IGZvciBwYWdlIGluIHRoZSByYW5nZQo+ID4gLSBTT0ZUX0RJUlRZOiBzb2Z0IGRpcnR5bmVzcyB0
+cmFja2luZwo+ID4KPiA+IEJlaW5nIGFibGUgdG8gaWRlbnRpZnkgbXVubWFwKCkgYW5kIG1yZW1h
+cCgpIGZyb20gb3RoZXIgcmVhc29ucyB3aHkgdGhlCj4gPiBwYWdlIHRhYmxlIGlzIGNsZWFyZWQg
+aXMgaW1wb3J0YW50IHRvIGFsbG93IHVzZXIgb2YgbW11IG5vdGlmaWVyIHRvCj4gPiB1cGRhdGUg
+dGhlaXIgb3duIGludGVybmFsIHRyYWNraW5nIHN0cnVjdHVyZSBhY2NvcmRpbmdseSAob24gbXVu
+bWFwIG9yCj4gPiBtcmVtYXAgaXQgaXMgbm90IGxvbmdlciBuZWVkZWQgdG8gdHJhY2sgcmFuZ2Ug
+b2YgdmlydHVhbCBhZGRyZXNzIGFzIGl0Cj4gPiBiZWNvbWVzIGludmFsaWQpLgo+IAo+IFRoZSBv
+bmx5IGNvbnRleHQgaW5mb3JtYXRpb24gY29uc3VtZWQgaW4gdGhpcyBwYXRjaCBzZXQgaXMKPiBN
+TVVfTk9USUZZX1BST1RFQ1RJT05fVk1BLgo+IAo+IFdoYXQgaXMgdGhlIHByYWN0aWNhbCBiZW5l
+Zml0IG9mIHRoZXNlICJvcHRpbWl6ZSBvdXQgdGhlIGNhc2Ugd2hlbiBhCj4gcmFuZ2UgaXMgdXBk
+YXRlZCB0byByZWFkIG9ubHkiIG9wdGltaXphdGlvbnM/IEFueSBudW1iZXJzIHRvIHNob3cgdGhp
+cwo+IGlzIHdvcnRoIHRoZSBjb2RlIHRocmFzaD8KCkl0IGRlcGVuZHMgb24gdGhlIHdvcmtsb2Fk
+IGZvciBpbnN0YW5jZSBpZiB5b3UgbWFwIHRvIFJETUEgYSBmaWxlCnJlYWQgb25seSBsaWtlIGEg
+bG9nIGZpbGUgZm9yIGV4cG9ydCwgYWxsIHdyaXRlIGJhY2sgdGhhdCB3b3VsZApkaXNydXB0IHRo
+ZSBSRE1BIG1hcHBpbmcgY2FuIGJlIG9wdGltaXplZCBvdXQuCgpTZWUgYWJvdmUgZm9yIG1vcmUg
+cmVhc29ucyB3aHkgaXQgaXMgYmVuZWZpY2lhbCAoa25vd2luZyB3aGVuIGl0IGlzCmFuIG11bm1h
+cC9tcmVtYXAgdmVyc3VzIHNvbWV0aGluZyBlbHNlKS4KCkkgd291bGQgaGF2ZSBub3QgdGhvdWdo
+dCB0aGF0IHBhc3NpbmcgZG93biBpbmZvcm1hdGlvbiBhcyBzb21ldGhpbmcKdGhhdCBjb250cm92
+ZXJzaWFsLiBIb3BlcyB0aGlzIGhlbHAgeW91IHNlZSB0aGUgYmVuZWZpdCBvZiB0aGlzLgoKQ2hl
+ZXJzLApKw6lyw7RtZQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
+ZWwK
