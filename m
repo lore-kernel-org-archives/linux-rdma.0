@@ -1,108 +1,54 @@
-From: "Parvi Kaustubhi (pkaustub)" <pkaustub@cisco.com>
-Subject: Re: [PATCH 7/8] infiniband: usnic: no need to check return value of
- debugfs_create functions
-Date: Wed, 23 Jan 2019 00:16:53 +0000
-Message-ID: <A20ACC86-F6C9-4C38-8D63-535BB8CC42F9@cisco.com>
-References: <20190122151800.15092-1-gregkh@linuxfoundation.org>
- <20190122151800.15092-8-gregkh@linuxfoundation.org>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: [PATCH net-next] net/mlx4: Mark expected switch fall-through
+Date: Wed, 23 Jan 2019 02:05:11 -0600
+Message-ID: <20190123080511.GA32528@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190122151800.15092-8-gregkh@linuxfoundation.org>
-Content-Language: en-US
-Content-ID: <ECB2F791956F1D4A98417EA95093D4D1@emea.cisco.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Christian Benvenuti (benve)" <benve@cisco.com>, "Nelson Escobar (neescoba)" <neescoba@cisco.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 List-Id: linux-rdma@vger.kernel.org
 
-usnic driver was tested with this change.
+In preparation to enabling -Wimplicit-fallthrough, mark switch cases
+where we are expecting to fall through.
 
-Acked-by: Parvi Kaustubhi <pkaustub@cisco.com>
+This patch fixes the following warning:
 
-> On Jan 22, 2019, at 7:17 AM, Greg Kroah-Hartman <gregkh@linuxfoundation.o=
-rg> wrote:
->=20
-> When calling debugfs functions, there is no need to ever check the
-> return value.  The function can work or not, but the code logic should
-> never do something different based on this.
->=20
-> Cc: Christian Benvenuti <benve@cisco.com>
-> Cc: Nelson Escobar <neescoba@cisco.com>
-> Cc: Parvi Kaustubhi <pkaustub@cisco.com>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: linux-rdma@vger.kernel.org
-> Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
-> drivers/infiniband/hw/usnic/usnic_debugfs.c | 26 ---------------------
-> 1 file changed, 26 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/usnic/usnic_debugfs.c b/drivers/infini=
-band/hw/usnic/usnic_debugfs.c
-> index a3115709fb03..e5a3f02fb078 100644
-> --- a/drivers/infiniband/hw/usnic/usnic_debugfs.c
-> +++ b/drivers/infiniband/hw/usnic/usnic_debugfs.c
-> @@ -113,42 +113,21 @@ static const struct file_operations flowinfo_ops =
-=3D {
-> void usnic_debugfs_init(void)
-> {
-> 	debugfs_root =3D debugfs_create_dir(DRV_NAME, NULL);
-> -	if (IS_ERR(debugfs_root)) {
-> -		usnic_err("Failed to create debugfs root dir, check if debugfs is enab=
-led in kernel configuration\n");
-> -		goto out_clear_root;
-> -	}
->=20
-> 	flows_dentry =3D debugfs_create_dir("flows", debugfs_root);
-> -	if (IS_ERR_OR_NULL(flows_dentry)) {
-> -		usnic_err("Failed to create debugfs flow dir with err %ld\n",
-> -				PTR_ERR(flows_dentry));
-> -		goto out_free_root;
-> -	}
->=20
-> 	debugfs_create_file("build-info", S_IRUGO, debugfs_root,
-> 				NULL, &usnic_debugfs_buildinfo_ops);
-> -	return;
-> -
-> -out_free_root:
-> -	debugfs_remove_recursive(debugfs_root);
-> -out_clear_root:
-> -	debugfs_root =3D NULL;
-> }
->=20
-> void usnic_debugfs_exit(void)
-> {
-> -	if (!debugfs_root)
-> -		return;
-> -
-> 	debugfs_remove_recursive(debugfs_root);
-> 	debugfs_root =3D NULL;
-> }
->=20
-> void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_flow *qp_flow)
-> {
-> -	if (IS_ERR_OR_NULL(flows_dentry))
-> -		return;
-> -
-> 	scnprintf(qp_flow->dentry_name, sizeof(qp_flow->dentry_name),
-> 			"%u", qp_flow->flow->flow_id);
-> 	qp_flow->dbgfs_dentry =3D debugfs_create_file(qp_flow->dentry_name,
-> @@ -156,11 +135,6 @@ void usnic_debugfs_flow_add(struct usnic_ib_qp_grp_f=
-low *qp_flow)
-> 							flows_dentry,
-> 							qp_flow,
-> 							&flowinfo_ops);
-> -	if (IS_ERR_OR_NULL(qp_flow->dbgfs_dentry)) {
-> -		usnic_err("Failed to create dbg fs entry for flow %u with error %ld\n"=
-,
-> -				qp_flow->flow->flow_id,
-> -				PTR_ERR(qp_flow->dbgfs_dentry));
-> -	}
-> }
->=20
-> void usnic_debugfs_flow_remove(struct usnic_ib_qp_grp_flow *qp_flow)
-> --=20
-> 2.20.1
->=20
+drivers/net/ethernet/mellanox/mlx4/eq.c: In function ‘mlx4_eq_int’:
+drivers/net/ethernet/mellanox/mlx4/mlx4.h:219:5: warning: this statement may fall through [-Wimplicit-fallthrough=]
+  if (mlx4_debug_level)      \
+     ^
+drivers/net/ethernet/mellanox/mlx4/eq.c:558:4: note: in expansion of macro ‘mlx4_dbg’
+    mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
+    ^~~~~~~~
+drivers/net/ethernet/mellanox/mlx4/eq.c:561:3: note: here
+   case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
+   ^~~~
+
+Warning level 3 was used: -Wimplicit-fallthrough=3
+
+This patch is part of the ongoing efforts to enabling
+-Wimplicit-fallthrough.
+
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/eq.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx4/eq.c b/drivers/net/ethernet/mellanox/mlx4/eq.c
+index 4953c852c247..2f4201023836 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/eq.c
++++ b/drivers/net/ethernet/mellanox/mlx4/eq.c
+@@ -558,6 +558,7 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
+ 			mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
+ 				 __func__, be32_to_cpu(eqe->event.srq.srqn),
+ 				 eq->eqn);
++			/* fall through */
+ 		case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
+ 			if (mlx4_is_master(dev)) {
+ 				/* forward only to slave owning the SRQ */
+-- 
+2.20.1
