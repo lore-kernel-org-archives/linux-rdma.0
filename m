@@ -1,81 +1,125 @@
 From: jglisse@redhat.com
-Subject: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range is
- updated to read only
-Date: Wed, 23 Jan 2019 17:23:14 -0500
-Message-ID: <20190123222315.1122-9-jglisse@redhat.com>
+Subject: [PATCH v4 9/9] RDMA/umem_odp: optimize out the case when a range is updated to read only
+Date: Wed, 23 Jan 2019 17:23:15 -0500
+Message-ID: <20190123222315.1122-10-jglisse@redhat.com>
 References: <20190123222315.1122-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190123222315.1122-1-jglisse@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-mm@kvack.org
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Jan Kara <jack@suse.cz>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpXaGVuIHJhbmdlIG9m
-IHZpcnR1YWwgYWRkcmVzcyBpcyB1cGRhdGVkIHJlYWQgb25seSBhbmQgY29ycmVzcG9uZGluZwp1
-c2VyIHB0ciBvYmplY3QgYXJlIGFscmVhZHkgcmVhZCBvbmx5IGl0IGlzIHBvaW50bGVzcyB0byBk
-byBhbnl0aGluZy4KT3B0aW1pemUgdGhpcyBjYXNlIG91dC4KClNpZ25lZC1vZmYtYnk6IErDqXLD
-tG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgpDYzogQ2hyaXN0aWFuIEvDtm5pZyA8Y2hy
-aXN0aWFuLmtvZW5pZ0BhbWQuY29tPgpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KQ2M6IEZl
-bGl4IEt1ZWhsaW5nIDxGZWxpeC5LdWVobGluZ0BhbWQuY29tPgpDYzogSmFzb24gR3VudGhvcnBl
-IDxqZ2dAbWVsbGFub3guY29tPgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0
-aW9uLm9yZz4KQ2M6IE1hdHRoZXcgV2lsY294IDxtYXdpbGNveEBtaWNyb3NvZnQuY29tPgpDYzog
-Um9zcyBad2lzbGVyIDx6d2lzbGVyQGtlcm5lbC5vcmc+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5q
-LndpbGxpYW1zQGludGVsLmNvbT4KQ2M6IFBhb2xvIEJvbnppbmkgPHBib256aW5pQHJlZGhhdC5j
-b20+CkNjOiBSYWRpbSBLcsSNbcOhxZkgPHJrcmNtYXJAcmVkaGF0LmNvbT4KQ2M6IE1pY2hhbCBI
-b2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+CkNjOiBSYWxwaCBDYW1wYmVsbCA8cmNhbXBiZWxsQG52
-aWRpYS5jb20+CkNjOiBKb2huIEh1YmJhcmQgPGpodWJiYXJkQG52aWRpYS5jb20+CkNjOiBrdm1A
-dmdlci5rZXJuZWwub3JnCkNjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCkNjOiBs
-aW51eC1yZG1hQHZnZXIua2VybmVsLm9yZwpDYzogbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5v
-cmcKQ2M6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+Ci0tLQogZHJpdmVycy9ncHUvZHJt
-L2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jIHwgMTYgKysrKysrKysrKysrKysrKwogMSBmaWxlIGNo
-YW5nZWQsIDE2IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkx
-NS9pOTE1X2dlbV91c2VycHRyLmMgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2Vy
-cHRyLmMKaW5kZXggOTU1ODU4MmMxMDVlLi4yMzMzMGFjM2Q3ZWEgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3VzZXJwdHIuYworKysgYi9kcml2ZXJzL2dwdS9kcm0v
-aTkxNS9pOTE1X2dlbV91c2VycHRyLmMKQEAgLTU5LDYgKzU5LDcgQEAgc3RydWN0IGk5MTVfbW11
-X29iamVjdCB7CiAJc3RydWN0IGludGVydmFsX3RyZWVfbm9kZSBpdDsKIAlzdHJ1Y3QgbGlzdF9o
-ZWFkIGxpbms7CiAJc3RydWN0IHdvcmtfc3RydWN0IHdvcms7CisJYm9vbCByZWFkX29ubHk7CiAJ
-Ym9vbCBhdHRhY2hlZDsKIH07CiAKQEAgLTExOSw2ICsxMjAsNyBAQCBzdGF0aWMgaW50IGk5MTVf
-Z2VtX3VzZXJwdHJfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVy
-ICpfbW4sCiAJCWNvbnRhaW5lcl9vZihfbW4sIHN0cnVjdCBpOTE1X21tdV9ub3RpZmllciwgbW4p
-OwogCXN0cnVjdCBpOTE1X21tdV9vYmplY3QgKm1vOwogCXN0cnVjdCBpbnRlcnZhbF90cmVlX25v
-ZGUgKml0OworCWJvb2wgdXBkYXRlX3RvX3JlYWRfb25seTsKIAlMSVNUX0hFQUQoY2FuY2VsbGVk
-KTsKIAl1bnNpZ25lZCBsb25nIGVuZDsKIApAQCAtMTI4LDYgKzEzMCw4IEBAIHN0YXRpYyBpbnQg
-aTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90
-aWZpZXIgKl9tbiwKIAkvKiBpbnRlcnZhbCByYW5nZXMgYXJlIGluY2x1c2l2ZSwgYnV0IGludmFs
-aWRhdGUgcmFuZ2UgaXMgZXhjbHVzaXZlICovCiAJZW5kID0gcmFuZ2UtPmVuZCAtIDE7CiAKKwl1
-cGRhdGVfdG9fcmVhZF9vbmx5ID0gbW11X25vdGlmaWVyX3JhbmdlX3VwZGF0ZV90b19yZWFkX29u
-bHkocmFuZ2UpOworCiAJc3Bpbl9sb2NrKCZtbi0+bG9jayk7CiAJaXQgPSBpbnRlcnZhbF90cmVl
-X2l0ZXJfZmlyc3QoJm1uLT5vYmplY3RzLCByYW5nZS0+c3RhcnQsIGVuZCk7CiAJd2hpbGUgKGl0
-KSB7CkBAIC0xNDUsNiArMTQ5LDE3IEBAIHN0YXRpYyBpbnQgaTkxNV9nZW1fdXNlcnB0cl9tbl9p
-bnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBtbXVfbm90aWZpZXIgKl9tbiwKIAkJICogb2Jq
-ZWN0IGlmIGl0IGlzIG5vdCBpbiB0aGUgcHJvY2VzcyBvZiBiZWluZyBkZXN0cm95ZWQuCiAJCSAq
-LwogCQltbyA9IGNvbnRhaW5lcl9vZihpdCwgc3RydWN0IGk5MTVfbW11X29iamVjdCwgaXQpOwor
-CisJCS8qCisJCSAqIElmIGl0IGlzIGFscmVhZHkgcmVhZCBvbmx5IGFuZCB3ZSBhcmUgdXBkYXRp
-bmcgdG8KKwkJICogcmVhZCBvbmx5IHRoZW4gd2UgZG8gbm90IG5lZWQgdG8gY2hhbmdlIGFueXRo
-aW5nLgorCQkgKiBTbyBzYXZlIHRpbWUgYW5kIHNraXAgdGhpcyBvbmUuCisJCSAqLworCQlpZiAo
-dXBkYXRlX3RvX3JlYWRfb25seSAmJiBtby0+cmVhZF9vbmx5KSB7CisJCQlpdCA9IGludGVydmFs
-X3RyZWVfaXRlcl9uZXh0KGl0LCByYW5nZS0+c3RhcnQsIGVuZCk7CisJCQljb250aW51ZTsKKwkJ
-fQorCiAJCWlmIChrcmVmX2dldF91bmxlc3NfemVybygmbW8tPm9iai0+YmFzZS5yZWZjb3VudCkp
-CiAJCQlxdWV1ZV93b3JrKG1uLT53cSwgJm1vLT53b3JrKTsKIApAQCAtMjcwLDYgKzI4NSw3IEBA
-IGk5MTVfZ2VtX3VzZXJwdHJfaW5pdF9fbW11X25vdGlmaWVyKHN0cnVjdCBkcm1faTkxNV9nZW1f
-b2JqZWN0ICpvYmosCiAJbW8tPm1uID0gbW47CiAJbW8tPm9iaiA9IG9iajsKIAltby0+aXQuc3Rh
-cnQgPSBvYmotPnVzZXJwdHIucHRyOworCW1vLT5yZWFkX29ubHkgPSBpOTE1X2dlbV9vYmplY3Rf
-aXNfcmVhZG9ubHkob2JqKTsKIAltby0+aXQubGFzdCA9IG9iai0+dXNlcnB0ci5wdHIgKyBvYmot
-PmJhc2Uuc2l6ZSAtIDE7CiAJSU5JVF9XT1JLKCZtby0+d29yaywgY2FuY2VsX3VzZXJwdHIpOwog
-Ci0tIAoyLjE3LjIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bAo=
+From: Jérôme Glisse <jglisse@redhat.com>
+
+When range of virtual address is updated read only and corresponding
+user ptr object are already read only it is pointless to do anything.
+Optimize this case out.
+
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Matthew Wilcox <mawilcox@microsoft.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: kvm@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/infiniband/core/umem_odp.c | 22 +++++++++++++++++++---
+ include/rdma/ib_umem_odp.h         |  1 +
+ 2 files changed, 20 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index a4ec43093cb3..fa4e7fdcabfc 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -140,8 +140,15 @@ static void ib_umem_notifier_release(struct mmu_notifier *mn,
+ static int invalidate_range_start_trampoline(struct ib_umem_odp *item,
+ 					     u64 start, u64 end, void *cookie)
+ {
++	bool update_to_read_only = *((bool *)cookie);
++
+ 	ib_umem_notifier_start_account(item);
+-	item->umem.context->invalidate_range(item, start, end);
++	/*
++	 * If it is already read only and we are updating to read only then we
++	 * do not need to change anything. So save time and skip this one.
++	 */
++	if (!update_to_read_only || !item->read_only)
++		item->umem.context->invalidate_range(item, start, end);
+ 	return 0;
+ }
+ 
+@@ -150,6 +157,7 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ {
+ 	struct ib_ucontext_per_mm *per_mm =
+ 		container_of(mn, struct ib_ucontext_per_mm, mn);
++	bool update_to_read_only;
+ 
+ 	if (range->blockable)
+ 		down_read(&per_mm->umem_rwsem);
+@@ -166,10 +174,13 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ 		return 0;
+ 	}
+ 
++	update_to_read_only = mmu_notifier_range_update_to_read_only(range);
++
+ 	return rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
+ 					     range->end,
+ 					     invalidate_range_start_trampoline,
+-					     range->blockable, NULL);
++					     range->blockable,
++					     &update_to_read_only);
+ }
+ 
+ static int invalidate_range_end_trampoline(struct ib_umem_odp *item, u64 start,
+@@ -363,6 +374,9 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
+ 		goto out_odp_data;
+ 	}
+ 
++	/* Assume read only at first, each time GUP is call this is updated. */
++	odp_data->read_only = true;
++
+ 	odp_data->dma_list =
+ 		vzalloc(array_size(pages, sizeof(*odp_data->dma_list)));
+ 	if (!odp_data->dma_list) {
+@@ -619,8 +633,10 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 		goto out_put_task;
+ 	}
+ 
+-	if (access_mask & ODP_WRITE_ALLOWED_BIT)
++	if (access_mask & ODP_WRITE_ALLOWED_BIT) {
++		umem_odp->read_only = false;
+ 		flags |= FOLL_WRITE;
++	}
+ 
+ 	start_idx = (user_virt - ib_umem_start(umem)) >> page_shift;
+ 	k = start_idx;
+diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+index 0b1446fe2fab..8256668c6170 100644
+--- a/include/rdma/ib_umem_odp.h
++++ b/include/rdma/ib_umem_odp.h
+@@ -76,6 +76,7 @@ struct ib_umem_odp {
+ 	struct completion	notifier_completion;
+ 	int			dying;
+ 	struct work_struct	work;
++	bool read_only;
+ };
+ 
+ static inline struct ib_umem_odp *to_ib_umem_odp(struct ib_umem *umem)
+-- 
+2.17.2
