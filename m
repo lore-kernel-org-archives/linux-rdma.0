@@ -1,124 +1,63 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range
- is updated to read only
-Date: Thu, 24 Jan 2019 10:30:32 -0500
-Message-ID: <20190124153032.GA5030@redhat.com>
-References: <20190123222315.1122-1-jglisse@redhat.com>
- <20190123222315.1122-9-jglisse@redhat.com>
- <154833175216.4120.925061299171157938@jlahtine-desk.ger.corp.intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused
+ by sending mailbox&CMQ during reset
+Date: Thu, 24 Jan 2019 11:31:20 -0700
+Message-ID: <20190124183120.GD17167@ziepe.ca>
+References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
+ <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
+ <20190123224041.GA11605@ziepe.ca>
+ <5C492D59.8030707@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <154833175216.4120.925061299171157938@jlahtine-desk.ger.corp.intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@mellanox.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+In-Reply-To: <5C492D59.8030707@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBKYW4gMjQsIDIwMTkgYXQgMDI6MDk6MTJQTSArMDIwMCwgSm9vbmFzIExhaHRpbmVu
-IHdyb3RlOgo+IEhpIEplcm9tZSwKPiAKPiBUaGlzIHBhdGNoIHNlZW1zIHRvIGhhdmUgcGxlbnR5
-IG9mIENjOnMsIGJ1dCBub25lIG9mIHRoZSByaWdodCBvbmVzIDopCgpTbyBzb3JyeSwgaSBhbSBi
-YWQgd2l0aCBnaXQgY29tbWFuZHMuCgo+IEZvciBmdXJ0aGVyIGl0ZXJhdGlvbnMsIEkgZ3Vlc3Mg
-eW91IGNvdWxkIHVzZSBnaXQgb3B0aW9uIC0tY2MgdG8gbWFrZQo+IHN1cmUgZXZlcnlvbmUgZ2V0
-cyB0aGUgd2hvbGUgc2VyaWVzLCBhbmQgc3RpbGwga2VlcCB0aGUgQ2M6cyBpbiB0aGUKPiBwYXRj
-aGVzIHRoZW1zZWx2ZXMgcmVsZXZhbnQgdG8gc3Vic3lzdGVtcy4KCldpbGwgZG8uCgo+IFRoaXMg
-ZG9lc24ndCBzZWVtIHRvIGJlIG9uIHRvcCBvZiBkcm0tdGlwLCBidXQgb24gdG9wIG9mIHlvdXIg
-cHJldmlvdXMKPiBwYXRjaGVzKD8pIHRoYXQgSSBoYWQgc29tZSBjb21tZW50cyBhYm91dC4gQ291
-bGQgeW91IHRha2UgYSBtb21lbnQgdG8KPiBmaXJzdCBhZGRyZXNzIHRoZSBjb3VwbGUgb2YgcXVl
-c3Rpb24gSSBoYWQsIGJlZm9yZSBwcm9jZWVkaW5nIHRvIGRpc2N1c3MKPiB3aGF0IGlzIGJ1aWx0
-IG9uIHRvcCBvZiB0aGF0IGJhc2UuCgpJdCBpcyBvbiB0b3Agb2YgTGludXMgdHJlZSBzbyByb3Vn
-aGx5IH4gcmMzIGl0IGRvZXMgbm90IGRlcGVuZCBvbiBhbnkKb2YgdGhlIHByZXZpb3VzIHBhdGNo
-IGkgcG9zdGVkLiBJIHN0aWxsIGludGVuZGVkIHRvIHByb3Bvc2UgdG8gcmVtb3ZlCkdVUCBmcm9t
-IGk5MTUgb25jZSBpIGdldCBhcm91bmQgdG8gaW1wbGVtZW50IHRoZSBlcXVpdmFsZW50IG9mIEdV
-UF9mYXN0CmZvciBITU0gYW5kIG90aGVyIGJvbnVzIGNvb2tpZXMgd2l0aCBpdC4KClRoZSBwbGFu
-IGlzIG9uY2UgaSBoYXZlIGFsbCBtbSBiaXRzIHByb3Blcmx5IHVwc3RyZWFtIHRoZW4gaSBjYW4g
-cHJvcG9zZQpwYXRjaGVzIHRvIGluZGl2aWR1YWwgZHJpdmVyIGFnYWluc3QgdGhlIHByb3BlciBk
-cml2ZXIgdHJlZSBpZSBmb2xsb3dpbmcKcnVsZXMgb2YgZWFjaCBpbmRpdmlkdWFsIGRldmljZSBk
-cml2ZXIgc3ViLXN5c3RlbSBhbmQgQ2Mgb25seSBwZW9wbGUKdGhlcmUgdG8gYXZvaWQgc3BhbW1p
-bmcgdGhlIG1tIGZvbGtzIDopCgoKPiAKPiBNeSByZXBseSdzIE1lc3NhZ2UtSUQgaXM6Cj4gMTU0
-Mjg5NTE4OTk0LjE5NDAyLjM0ODE4Mzg1NDgwMjgwNjgyMTNAamxhaHRpbmUtZGVzay5nZXIuY29y
-cC5pbnRlbC5jb20KPiAKPiBSZWdhcmRzLCBKb29uYXMKPiAKPiBQUy4gUGxlYXNlIGtlZXAgbWUg
-Q2M6ZCBpbiB0aGUgZm9sbG93aW5nIHBhdGNoZXMsIEknbSBrZWVuIG9uCj4gdW5kZXJzdGFuZGlu
-ZyB0aGUgbW90aXZlIGFuZCBiZW5lZml0cy4KPiAKPiBRdW90aW5nIGpnbGlzc2VAcmVkaGF0LmNv
-bSAoMjAxOS0wMS0yNCAwMDoyMzoxNCkKPiA+IEZyb206IErDqXLDtG1lIEdsaXNzZSA8amdsaXNz
-ZUByZWRoYXQuY29tPgo+ID4gCj4gPiBXaGVuIHJhbmdlIG9mIHZpcnR1YWwgYWRkcmVzcyBpcyB1
-cGRhdGVkIHJlYWQgb25seSBhbmQgY29ycmVzcG9uZGluZwo+ID4gdXNlciBwdHIgb2JqZWN0IGFy
-ZSBhbHJlYWR5IHJlYWQgb25seSBpdCBpcyBwb2ludGxlc3MgdG8gZG8gYW55dGhpbmcuCj4gPiBP
-cHRpbWl6ZSB0aGlzIGNhc2Ugb3V0Lgo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBKw6lyw7RtZSBH
-bGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KPiA+IENjOiBDaHJpc3RpYW4gS8O2bmlnIDxjaHJp
-c3RpYW4ua29lbmlnQGFtZC5jb20+Cj4gPiBDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KPiA+
-IENjOiBGZWxpeCBLdWVobGluZyA8RmVsaXguS3VlaGxpbmdAYW1kLmNvbT4KPiA+IENjOiBKYXNv
-biBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+Cj4gPiBDYzogQW5kcmV3IE1vcnRvbiA8YWtw
-bUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KPiA+IENjOiBNYXR0aGV3IFdpbGNveCA8bWF3aWxjb3hA
-bWljcm9zb2Z0LmNvbT4KPiA+IENjOiBSb3NzIFp3aXNsZXIgPHp3aXNsZXJAa2VybmVsLm9yZz4K
-PiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiA+IENjOiBQ
-YW9sbyBCb256aW5pIDxwYm9uemluaUByZWRoYXQuY29tPgo+ID4gQ2M6IFJhZGltIEtyxI1tw6HF
-mSA8cmtyY21hckByZWRoYXQuY29tPgo+ID4gQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5l
-bC5vcmc+Cj4gPiBDYzogUmFscGggQ2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPgo+ID4g
-Q2M6IEpvaG4gSHViYmFyZCA8amh1YmJhcmRAbnZpZGlhLmNvbT4KPiA+IENjOiBrdm1Admdlci5r
-ZXJuZWwub3JnCj4gPiBDYzogZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+ID4gQ2M6
-IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCj4gPiBDYzogbGludXgtZnNkZXZlbEB2Z2VyLmtl
-cm5lbC5vcmcKPiA+IENjOiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgo+ID4gLS0tCj4g
-PiAgZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jIHwgMTYgKysrKysrKysr
-KysrKysrKwo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxNiBpbnNlcnRpb25zKCspCj4gPiAKPiA+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMgYi9kcml2
-ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiA+IGluZGV4IDk1NTg1ODJjMTA1
-ZS4uMjMzMzBhYzNkN2VhIDEwMDY0NAo+ID4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkx
-NV9nZW1fdXNlcnB0ci5jCj4gPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91
-c2VycHRyLmMKPiA+IEBAIC01OSw2ICs1OSw3IEBAIHN0cnVjdCBpOTE1X21tdV9vYmplY3Qgewo+
-ID4gICAgICAgICBzdHJ1Y3QgaW50ZXJ2YWxfdHJlZV9ub2RlIGl0Owo+ID4gICAgICAgICBzdHJ1
-Y3QgbGlzdF9oZWFkIGxpbms7Cj4gPiAgICAgICAgIHN0cnVjdCB3b3JrX3N0cnVjdCB3b3JrOwo+
-ID4gKyAgICAgICBib29sIHJlYWRfb25seTsKPiA+ICAgICAgICAgYm9vbCBhdHRhY2hlZDsKPiA+
-ICB9Owo+ID4gIAo+ID4gQEAgLTExOSw2ICsxMjAsNyBAQCBzdGF0aWMgaW50IGk5MTVfZ2VtX3Vz
-ZXJwdHJfbW5faW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICpfbW4s
-Cj4gPiAgICAgICAgICAgICAgICAgY29udGFpbmVyX29mKF9tbiwgc3RydWN0IGk5MTVfbW11X25v
-dGlmaWVyLCBtbik7Cj4gPiAgICAgICAgIHN0cnVjdCBpOTE1X21tdV9vYmplY3QgKm1vOwo+ID4g
-ICAgICAgICBzdHJ1Y3QgaW50ZXJ2YWxfdHJlZV9ub2RlICppdDsKPiA+ICsgICAgICAgYm9vbCB1
-cGRhdGVfdG9fcmVhZF9vbmx5Owo+ID4gICAgICAgICBMSVNUX0hFQUQoY2FuY2VsbGVkKTsKPiA+
-ICAgICAgICAgdW5zaWduZWQgbG9uZyBlbmQ7Cj4gPiAgCj4gPiBAQCAtMTI4LDYgKzEzMCw4IEBA
-IHN0YXRpYyBpbnQgaTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0
-cnVjdCBtbXVfbm90aWZpZXIgKl9tbiwKPiA+ICAgICAgICAgLyogaW50ZXJ2YWwgcmFuZ2VzIGFy
-ZSBpbmNsdXNpdmUsIGJ1dCBpbnZhbGlkYXRlIHJhbmdlIGlzIGV4Y2x1c2l2ZSAqLwo+ID4gICAg
-ICAgICBlbmQgPSByYW5nZS0+ZW5kIC0gMTsKPiA+ICAKPiA+ICsgICAgICAgdXBkYXRlX3RvX3Jl
-YWRfb25seSA9IG1tdV9ub3RpZmllcl9yYW5nZV91cGRhdGVfdG9fcmVhZF9vbmx5KHJhbmdlKTsK
-PiA+ICsKPiA+ICAgICAgICAgc3Bpbl9sb2NrKCZtbi0+bG9jayk7Cj4gPiAgICAgICAgIGl0ID0g
-aW50ZXJ2YWxfdHJlZV9pdGVyX2ZpcnN0KCZtbi0+b2JqZWN0cywgcmFuZ2UtPnN0YXJ0LCBlbmQp
-Owo+ID4gICAgICAgICB3aGlsZSAoaXQpIHsKPiA+IEBAIC0xNDUsNiArMTQ5LDE3IEBAIHN0YXRp
-YyBpbnQgaTkxNV9nZW1fdXNlcnB0cl9tbl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBt
-bXVfbm90aWZpZXIgKl9tbiwKPiA+ICAgICAgICAgICAgICAgICAgKiBvYmplY3QgaWYgaXQgaXMg
-bm90IGluIHRoZSBwcm9jZXNzIG9mIGJlaW5nIGRlc3Ryb3llZC4KPiA+ICAgICAgICAgICAgICAg
-ICAgKi8KPiA+ICAgICAgICAgICAgICAgICBtbyA9IGNvbnRhaW5lcl9vZihpdCwgc3RydWN0IGk5
-MTVfbW11X29iamVjdCwgaXQpOwo+ID4gKwo+ID4gKyAgICAgICAgICAgICAgIC8qCj4gPiArICAg
-ICAgICAgICAgICAgICogSWYgaXQgaXMgYWxyZWFkeSByZWFkIG9ubHkgYW5kIHdlIGFyZSB1cGRh
-dGluZyB0bwo+ID4gKyAgICAgICAgICAgICAgICAqIHJlYWQgb25seSB0aGVuIHdlIGRvIG5vdCBu
-ZWVkIHRvIGNoYW5nZSBhbnl0aGluZy4KPiA+ICsgICAgICAgICAgICAgICAgKiBTbyBzYXZlIHRp
-bWUgYW5kIHNraXAgdGhpcyBvbmUuCj4gPiArICAgICAgICAgICAgICAgICovCj4gPiArICAgICAg
-ICAgICAgICAgaWYgKHVwZGF0ZV90b19yZWFkX29ubHkgJiYgbW8tPnJlYWRfb25seSkgewo+ID4g
-KyAgICAgICAgICAgICAgICAgICAgICAgaXQgPSBpbnRlcnZhbF90cmVlX2l0ZXJfbmV4dChpdCwg
-cmFuZ2UtPnN0YXJ0LCBlbmQpOwo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgY29udGludWU7
-Cj4gPiArICAgICAgICAgICAgICAgfQo+ID4gKwo+ID4gICAgICAgICAgICAgICAgIGlmIChrcmVm
-X2dldF91bmxlc3NfemVybygmbW8tPm9iai0+YmFzZS5yZWZjb3VudCkpCj4gPiAgICAgICAgICAg
-ICAgICAgICAgICAgICBxdWV1ZV93b3JrKG1uLT53cSwgJm1vLT53b3JrKTsKPiA+ICAKPiA+IEBA
-IC0yNzAsNiArMjg1LDcgQEAgaTkxNV9nZW1fdXNlcnB0cl9pbml0X19tbXVfbm90aWZpZXIoc3Ry
-dWN0IGRybV9pOTE1X2dlbV9vYmplY3QgKm9iaiwKPiA+ICAgICAgICAgbW8tPm1uID0gbW47Cj4g
-PiAgICAgICAgIG1vLT5vYmogPSBvYmo7Cj4gPiAgICAgICAgIG1vLT5pdC5zdGFydCA9IG9iai0+
-dXNlcnB0ci5wdHI7Cj4gPiArICAgICAgIG1vLT5yZWFkX29ubHkgPSBpOTE1X2dlbV9vYmplY3Rf
-aXNfcmVhZG9ubHkob2JqKTsKPiA+ICAgICAgICAgbW8tPml0Lmxhc3QgPSBvYmotPnVzZXJwdHIu
-cHRyICsgb2JqLT5iYXNlLnNpemUgLSAxOwo+ID4gICAgICAgICBJTklUX1dPUksoJm1vLT53b3Jr
-LCBjYW5jZWxfdXNlcnB0cik7Cj4gPiAgCj4gPiAtLSAKPiA+IDIuMTcuMgo+ID4gCj4gPiBfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+ID4gZHJpLWRldmVs
-IG1haWxpbmcgbGlzdAo+ID4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+ID4gaHR0
-cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
-aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Thu, Jan 24, 2019 at 11:13:29AM +0800, Wei Hu (Xavier) wrote:
+> 
+> 
+> On 2019/1/24 6:40, Jason Gunthorpe wrote:
+> > On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
+> >
+> >> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
+> >> +					unsigned long instance_stage,
+> >> +					unsigned long reset_stage)
+> >> +{
+> >> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
+> >> +	struct hnae3_handle *handle = priv->handle;
+> >> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
+> >> +	unsigned long end;
+> >> +
+> >> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
+> >> +	 * to hardware, and wait until hardware reset finished. If now
+> >> +	 * in .init_instance() function, we should exit with error. If now at
+> >> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
+> >> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
+> >> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
+> >> +	 * related process will exit with error to notify NIC driver to
+> >> +	 * reschedule soft reset process once again.
+> >> +	 */
+> >> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
+> >> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
+> >> +		udelay(1);
+> > I thought you were getting rid of these loops?
+> Hi, Jason
+> 
+>     Upper applications maybe notify driver to issue mailbox or CMD
+>     commands to hardware, some commands used to cancel resources,
+>     destory bt/destory cq/unreg mr/destory qp etc. when such
+>     commands are executed successfully, the hardware engine will
+>     no longer access some memory registered by the driver.
+> 
+>     When reset occurs, it is possible for upper applications notify driver
+>     to issue mailbox or CMD commands, we need to wait until hardware
+>     reset finished to ensure that hardware no longer accesses related
+> memory.
+
+You should not wait for things using loops like the above.
+
+Jason
