@@ -1,75 +1,79 @@
 From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH rdma-next 00/12] Add SRQ and XRC support for ODP MRs
-Date: Thu, 24 Jan 2019 12:25:12 +0000
-Message-ID: <20190124122509.GR3604@mtr-leonro.mtl.com>
-References: <20190122064851.6032-1-leon@kernel.org>
+Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
+Date: Thu, 24 Jan 2019 12:30:43 +0000
+Message-ID: <20190124123041.GS3604@mtr-leonro.mtl.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Qo8f1a4rgWw9S/zY"
+        protocol="application/pgp-signature"; boundary="9JSHP372f+2dzJ8X"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190122064851.6032-1-leon@kernel.org>
+In-Reply-To: <20190119003313.16711-1-saeedm@mellanox.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Saeed Mahameed <saeedm@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
---Qo8f1a4rgWw9S/zY
+--9JSHP372f+2dzJ8X
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Jan 22, 2019 at 08:48:39AM +0200, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
+On Fri, Jan 18, 2019 at 04:33:09PM -0800, Saeed Mahameed wrote:
+> Hi all,
 >
-> Hi,
+> This series includes updates to mlx5-next shared branch.
 >
-> This series extend ODP to work with SRQ and XRC. Being both per-operation
-> (e.g. RDMA write, RDMA read and atomic) and per-transport (e.g. RC, UD and XRC),
-> we extend IB/core and mlx5 driver to provide needed information to user space.
+> 1) from Jason, improve mlx5_cmd_exec_cb async API to be safer
+> 2) from Maxim Mikityanskiy, cleanups for mlx5_write64 doorbell API
+> 3) from Michael Guralnik, Add pci AtomicOps request
 >
-> Thanks
+> Thanks,
+> Saeed.
 >
-> Moni Shoua (12):
->   IB/mlx5: Fix locking SRQ object in ODP event
->   IB/core: Allocate bit for SRQ ODP support
->   IB/uverbs: Expose XRC ODP device capabilities
->   IB/mlx5: Remove useless check in ODP handler
->   IB/mlx5: Clean mlx5_ib_mr_responder_pfault_handler() signature
->   IB/mlx5: Add XRC initiator ODP support
->   IB/mlx5: Let read user wqe also from SRQ buffer
->   IB/mlx5: Add ODP SRQ support
->   IB/mlx5: Advertise SRQ ODP support for supported transports
->   net/mlx5: Add XRC transport to ODP device capabilities layout
->   IB/mlx5: Advertise XRC ODP support
->   net/mlx5: Set ODP SRQ support in firmware
+> ---
+>
+> Jason Gunthorpe (1):
+>   net/mlx5: Make mlx5_cmd_exec_cb() a safe API
+>
+> Michael Guralnik (1):
+>   net/mlx5: Add pci AtomicOps request
 
+Those two were applied to mlx5-next branch.
 
-Doug, Jason,
+ce4eee5340a9 (mlx5-next) net/mlx5: Add pci AtomicOps request
+e355477ed9e4 net/mlx5: Make mlx5_cmd_exec_cb() a safe API
 
-Please pay attention that patches below should go to shared branch:
-net/mlx5: Add XRC transport to ODP device capabilities layout
-net/mlx5: Set ODP SRQ support in firmware
+> Maxim Mikityanskiy (2):
+>   net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
+>   net/mlx5: Remove spinlock support from mlx5_write64
+
+Those two needs extra work,
 
 Thanks
 
---Qo8f1a4rgWw9S/zY
+>
+> --
+> 2.20.1
+>
+
+--9JSHP372f+2dzJ8X
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcSa6lAAoJEORje4g2clinMgwQAKFZvRh+fscAAyxr24npqTiH
-3+V7fdKxPAyx6nZLvbrr7gWmG3wLBVWBSZMFtBPeZLIMymIrHkoyfL7IcLlfCBGT
-dDbuQl7+qFeyrJgMUznCdQwC40Un2Uyd3uoEL/Mmyth+FxaKh19Q9XTEcr9B8bTf
-caBt3gPv44x4KdRxc92FQWfGakpIIja7frCuA2NvHJZIt17rubyJzcjXKaCQILBl
-6oepIvVhLONwYyQKxJTViMkx8P6AJrwdZ1kAE1XLlNU+eJ4Da8y0CgXtJ1i41qBt
-gTSyK1k9BIJ84ASp/RZ/BKCyeaoQOcJp58fQuRRc8QV4+xJVGAa9std0ufUokMxx
-YQxVcZMj4/vUOVHgJqdPaoZ3WsRiTfKVKk1IHiNwpKfusMi5LrQbrXGovUqycdIN
-83ObhI90cp9usU9/8w47xo0ibCvF1Y75sdRsMe9wusWDPA9fFbjT0WywuFUVMhlS
-YVFmTVEnAuTiw5LErtbHgh4HUqnaq1OEcw3S2Yz2G22USN69lTc2IoqF72Z+AaID
-twMdpqn0FVhlVQ1M/6P48mqzLeB8kEJmW6/x4cji/0JH3mPINQSk8RBygXad0+YF
-ZvX8YvO1jrcXQ0y0QvwTDg/OiJH+P8bBUWe1wz8DBbHc8kHQAB27Tv1nKRV4chDB
-gpfG+aEODXtW8LHzDmOK
-=Wyzd
+iQIcBAEBAgAGBQJcSa/wAAoJEORje4g2clin71wP/2uC/dRvKbZLlT+1a1W1wfJt
+w/IMoDx5sX87o2fm0K+4/J5bfLBOkZjcOW9Tg9qVlqUspu3W20lc1o572BImy6hU
+CfglTy7CPKxZq+AThozzoqlTMzPvlh6Ce/FT3FsV8Z/Rt4O8l8wRUA5z5TmJ7iG3
+ayH9NfJ1sodIXK6SaAg9i7yUwF3NADD6oDVL+m021sHXWtxz+rD8+FgOFIfh3hyw
+5B0TpRLyuTxhMdqijuVmzMbbxNMkojY5v6s8cLFjBy3rqBvaXgn81jZchAn33Ey6
+CzpnM4dcm9kLVa34iqXXkviWlGn3eDKBcjrcxUwxO5lk5zAVeQV2rN3Gjc8+2+PA
+PYz/JEcP9QuAe+MTeGoKwQ9ujxNzaEYdPXVGOKumubhI4oQh5rZbkmUAhljvIED3
+NL7/2M24w8NEsAa3Zm59HE1aMS+RhML7vowiHWF60laQAivhCO5XbWvqbuSt15iL
+uUx+ijlP76FUiH9EthJHpLX8Tm7zP2jbjZw5tfSDOenKX4WULDsmXOlYxxHmLea9
+YLzWwG24jIKOAoPjoGtwNL+634IKo5fIwejfJrcvVXfYgWJy4r5nUmv6MzAGQFPB
+6aKUcCrkxrGAmNdk/GekJ8wLVyNqwjeSJuagzFuyRKj8camUhVRV9V400yizCs9g
+7CDYISVfvkjiVj/Gq2zh
+=DdaC
 -----END PGP SIGNATURE-----
 
---Qo8f1a4rgWw9S/zY--
+--9JSHP372f+2dzJ8X--
