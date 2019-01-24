@@ -1,121 +1,71 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v4 0/9] mmu notifier provide context informations
-Date: Wed, 23 Jan 2019 16:00:37 -0800
-Message-ID: <CAPcyv4iJGLqh6-Wio_3408tRa62z-Ug_8BV6PuQV=ZAGcXo5TA@mail.gmail.com>
-References: <20190123222315.1122-1-jglisse@redhat.com>
- <CAPcyv4i9_T9779ZyaYt2T3b20-wQTaWA4P63+49TM=a=twtDVw@mail.gmail.com>
- <20190123230447.GC1257@redhat.com>
+From: Nicholas Mc Guire <der.herr@hofr.at>
+Subject: Re: [PATCH RFC] iw_cxgb4: drop check - dead code
+Date: Thu, 24 Jan 2019 02:53:52 +0100
+Message-ID: <20190124015352.GA30939@osadl.at>
+References: <1547947633-10515-1-git-send-email-hofrat@osadl.org>
+ <20190123183008.GA15698@ziepe.ca>
+ <91af1982-e309-476e-cfa4-2f6ef1ee598b@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190123230447.GC1257@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, KVM list <kvm@vger.kernel.org>, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma <linux-rdma@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <91af1982-e309-476e-cfa4-2f6ef1ee598b@opengridcomputing.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Nicholas Mc Guire <hofrat@osadl.org>, Doug Ledford <dledford@redhat.com>, Raju Rangoju <rajur@chelsio.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBKYW4gMjMsIDIwMTkgYXQgMzowNSBQTSBKZXJvbWUgR2xpc3NlIDxqZ2xpc3NlQHJl
-ZGhhdC5jb20+IHdyb3RlOgo+Cj4gT24gV2VkLCBKYW4gMjMsIDIwMTkgYXQgMDI6NTQ6NDBQTSAt
-MDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+ID4gT24gV2VkLCBKYW4gMjMsIDIwMTkgYXQgMjoy
-MyBQTSA8amdsaXNzZUByZWRoYXQuY29tPiB3cm90ZToKPiA+ID4KPiA+ID4gRnJvbTogSsOpcsO0
-bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+Cj4gPiA+Cj4gPiA+IEhpIEFuZHJldywgaSBz
-ZWUgdGhhdCB5b3Ugc3RpbGwgaGF2ZSBteSBldmVudCBwYXRjaCBpbiB5b3UgcXVldWUgWzFdLgo+
-ID4gPiBUaGlzIHBhdGNoc2V0IHJlcGxhY2UgdGhhdCBzaW5nbGUgcGF0Y2ggYW5kIGlzIGJyb2tl
-biBkb3duIGluIGZ1cnRoZXIKPiA+ID4gc3RlcCBzbyB0aGF0IGl0IGlzIGVhc2llciB0byByZXZp
-ZXcgYW5kIGFzY2VydGFpbiB0aGF0IG5vIG1pc3Rha2Ugd2VyZQo+ID4gPiBtYWRlIGR1cmluZyBt
-ZWNoYW5pY2FsIGNoYW5nZXMuIEhlcmUgYXJlIHRoZSBzdGVwOgo+ID4gPgo+ID4gPiAgICAgUGF0
-Y2ggMSAtIGFkZCB0aGUgZW51bSB2YWx1ZXMKPiA+ID4gICAgIFBhdGNoIDIgLSBjb2NjaW5lbGxl
-IHNlbWFudGljIHBhdGNoIHRvIGNvbnZlcnQgYWxsIGNhbGwgc2l0ZSBvZgo+ID4gPiAgICAgICAg
-ICAgICAgIG1tdV9ub3RpZmllcl9yYW5nZV9pbml0IHRvIGRlZmF1bHQgZW51bSB2YWx1ZSBhbmQg
-YWxzbwo+ID4gPiAgICAgICAgICAgICAgIHRvIHBhc3NpbmcgZG93biB0aGUgdm1hIHdoZW4gaXQg
-aXMgYXZhaWxhYmxlCj4gPiA+ICAgICBQYXRjaCAzIC0gdXBkYXRlIG1hbnkgY2FsbCBzaXRlIHRv
-IG1vcmUgYWNjdXJhdGUgZW51bSB2YWx1ZXMKPiA+ID4gICAgIFBhdGNoIDQgLSBhZGQgdGhlIGlu
-Zm9ybWF0aW9uIHRvIHRoZSBtbXVfbm90aWZpZXJfcmFuZ2Ugc3RydWN0Cj4gPiA+ICAgICBQYXRj
-aCA1IC0gaGVscGVyIHRvIHRlc3QgaWYgYSByYW5nZSBpcyB1cGRhdGVkIHRvIHJlYWQgb25seQo+
-ID4gPgo+ID4gPiBBbGwgdGhlIHJlbWFpbmluZyBwYXRjaGVzIGFyZSB1cGRhdGUgdG8gdmFyaW91
-cyBkcml2ZXIgdG8gZGVtb25zdHJhdGUKPiA+ID4gaG93IHRoaXMgbmV3IGluZm9ybWF0aW9uIGdl
-dCB1c2UgYnkgZGV2aWNlIGRyaXZlci4gSSBidWlsZCB0ZXN0ZWQKPiA+ID4gd2l0aCBtYWtlIGFs
-bCBhbmQgbWFrZSBhbGwgbWludXMgZXZlcnl0aGluZyB0aGF0IGVuYWJsZSBtbXUgbm90aWZpZXIK
-PiA+ID4gaWUgYnVpbGRpbmcgd2l0aCBNTVVfTk9USUZJRVI9bm8uIEFsc28gdGVzdGVkIHdpdGgg
-c29tZSByYWRlb24sYW1kCj4gPiA+IGdwdSBhbmQgaW50ZWwgZ3B1Lgo+ID4gPgo+ID4gPiBJZiB0
-aGV5IGFyZSBubyBvYmplY3Rpb25zIGkgYmVsaWV2ZSBiZXN0IHBsYW4gd291bGQgYmUgdG8gbWVy
-Z2UgdGhlCj4gPiA+IHRoZSBmaXJzdCA1IHBhdGNoZXMgKGFsbCBtbSBjaGFuZ2VzKSB0aHJvdWdo
-IHlvdXIgcXVldWUgZm9yIDUuMSBhbmQKPiA+ID4gdGhlbiB0byBkZWxheSBkcml2ZXIgdXBkYXRl
-IHRvIGVhY2ggaW5kaXZpZHVhbCBkcml2ZXIgdHJlZSBmb3IgNS4yLgo+ID4gPiBUaGlzIHdpbGwg
-YWxsb3cgZWFjaCBpbmRpdmlkdWFsIGRldmljZSBkcml2ZXIgbWFpbnRhaW5lciB0aW1lIHRvIG1v
-cmUKPiA+ID4gdGhvdXJvdWdobHkgdGVzdCB0aGlzIG1vcmUgdGhlbiBteSBvd24gdGVzdGluZy4K
-PiA+ID4KPiA+ID4gTm90ZSB0aGF0IGkgYWxzbyBpbnRlbmQgdG8gdXNlIHRoaXMgZmVhdHVyZSBm
-dXJ0aGVyIGluIG5vdXZlYXUgYW5kCj4gPiA+IEhNTSBkb3duIHRoZSByb2FkLiBJIGFsc28gZXhw
-ZWN0IHRoYXQgb3RoZXIgdXNlciBsaWtlIEtWTSBtaWdodCBiZQo+ID4gPiBpbnRlcmVzdGVkIGlu
-dG8gbGV2ZXJhZ2luZyB0aGlzIG5ldyBpbmZvcm1hdGlvbiB0byBvcHRpbWl6ZSBzb21lIG9mCj4g
-PiA+IHRoZXJlIHNlY29uZGFyeSBwYWdlIHRhYmxlIGludmFsaWRhdGlvbi4KPiA+Cj4gPiAiRG93
-biB0aGUgcm9hZCIgdXNlcnMgc2hvdWxkIGludHJvZHVjZSB0aGUgZnVuY3Rpb25hbGl0eSB0aGV5
-IHdhbnQgdG8KPiA+IGNvbnN1bWUuIFRoZSBjb21tb24gY29uY2VybiB3aXRoIHByZWVtcHRpdmVs
-eSBpbmNsdWRpbmcKPiA+IGZvcndhcmQtbG9va2luZyBpbmZyYXN0cnVjdHVyZSBpcyByZWFsaXpp
-bmcgbGF0ZXIgdGhhdCB0aGUKPiA+IGluZnJhc3RydWN0dXJlIGlzIG5vdCBuZWVkZWQsIG9yIG5l
-ZWRzIGNoYW5naW5nLiBJZiBpdCBoYXMgbm8gY3VycmVudAo+ID4gY29uc3VtZXIsIGxlYXZlIGl0
-IG91dC4KPgo+IFRoaXMgcGF0Y2hzZXQgYWxyZWFkeSBzaG93IHRoYXQgdGhpcyBpcyB1c2VmdWws
-IHdoYXQgbW9yZSBjYW4gaSBkbyA/Cj4gSSBrbm93IGkgd2lsbCB1c2UgdGhpcyBpbmZvcm1hdGlv
-biwgaW4gbm91dmVhdSBmb3IgbWVtb3J5IHBvbGljeSB3ZQo+IGFsbG9jYXRlIG91ciBvd24gc3Ry
-dWN0dXJlIGZvciBldmVyeSB2bWEgdGhlIEdQVSBldmVyIGFjY2Vzc2VkIG9yIHRoYXQKPiB1c2Vy
-c3BhY2UgaGludGVkIHdlIHNob3VsZCBzZXQgYSBwb2xpY3kgZm9yLiBSaWdodCBub3cgd2l0aCBl
-eGlzdGluZwo+IG1tdSBub3RpZmllciBpIF9tdXN0XyBmcmVlIHRob3NlIHN0cnVjdHVyZSBiZWNh
-dXNlIGkgZG8gbm90IGtub3cgaWYKPiB0aGUgaW52YWxpZGF0aW9uIGlzIGFuIG11bm1hcCBvciBz
-b21ldGhpbmcgZWxzZS4gU28gaSBhbSBsb29zaW5nCj4gaW1wb3J0YW50IGluZm9ybWF0aW9ucyBh
-bmQgdW5lY2Vzc2FybHkgZnJlZSBzdHJ1Y3QgdGhhdCBpIHdpbGwgaGF2ZQo+IHRvIHJlLWFsbG9j
-YXRlIGp1c3QgY291cGxlIGppZmZpZXMgbGF0dGVyLiBUaGF0J3Mgb25lIHdheSBpIGFtIHVzaW5n
-Cj4gdGhpcy4KClVuZGVyc3Rvb2QsIGJ1dCB0aGF0IHN0aWxsIHNlZW1zIHRvIHNheSBzdGFnZSB0
-aGUgY29yZSBzdXBwb3J0IHdoZW4KdGhlIG5vdXZlYXUgZW5hYmxpbmcgaXMgcmVhZHkuCgo+IFRo
-ZSBvdGhlciB3YXkgaXMgdG8gb3B0aW1pemUgR1BVIHBhZ2UgdGFibGUgdXBkYXRlIGp1c3QgbGlr
-ZSBpCj4gYW0gZG9pbmcgd2l0aCBhbGwgdGhlIHBhdGNoZXMgdG8gUkRNQS9PRFAgYW5kIHZhcmlv
-dXMgR1BVIGRyaXZlcnMuCgpZZXMuCgo+Cj4KPiA+ID4gSGVyZSBpcyBhbiBleHBsYWluYXRpb24g
-b24gdGhlIHJhdGlvbmFsIGZvciB0aGlzIHBhdGNoc2V0Ogo+ID4gPgo+ID4gPgo+ID4gPiBDUFUg
-cGFnZSB0YWJsZSB1cGRhdGUgY2FuIGhhcHBlbnMgZm9yIG1hbnkgcmVhc29ucywgbm90IG9ubHkg
-YXMgYSByZXN1bHQKPiA+ID4gb2YgYSBzeXNjYWxsIChtdW5tYXAoKSwgbXByb3RlY3QoKSwgbXJl
-bWFwKCksIG1hZHZpc2UoKSwgLi4uKSBidXQgYWxzbwo+ID4gPiBhcyBhIHJlc3VsdCBvZiBrZXJu
-ZWwgYWN0aXZpdGllcyAobWVtb3J5IGNvbXByZXNzaW9uLCByZWNsYWltLCBtaWdyYXRpb24sCj4g
-PiA+IC4uLikuCj4gPiA+Cj4gPiA+IFRoaXMgcGF0Y2ggaW50cm9kdWNlIGEgc2V0IG9mIGVudW1z
-IHRoYXQgY2FuIGJlIGFzc29jaWF0ZWQgd2l0aCBlYWNoIG9mCj4gPiA+IHRoZSBldmVudHMgdHJp
-Z2dlcmluZyBhIG1tdSBub3RpZmllci4gTGF0dGVyIHBhdGNoZXMgdGFrZSBhZHZhbnRhZ2VzIG9m
-Cj4gPiA+IHRob3NlIGVudW0gdmFsdWVzLgo+ID4gPgo+ID4gPiAtIFVOTUFQOiBtdW5tYXAoKSBv
-ciBtcmVtYXAoKQo+ID4gPiAtIENMRUFSOiBwYWdlIHRhYmxlIGlzIGNsZWFyZWQgKG1pZ3JhdGlv
-biwgY29tcGFjdGlvbiwgcmVjbGFpbSwgLi4uKQo+ID4gPiAtIFBST1RFQ1RJT05fVk1BOiBjaGFu
-Z2UgaW4gYWNjZXNzIHByb3RlY3Rpb25zIGZvciB0aGUgcmFuZ2UKPiA+ID4gLSBQUk9URUNUSU9O
-X1BBR0U6IGNoYW5nZSBpbiBhY2Nlc3MgcHJvdGVjdGlvbnMgZm9yIHBhZ2UgaW4gdGhlIHJhbmdl
-Cj4gPiA+IC0gU09GVF9ESVJUWTogc29mdCBkaXJ0eW5lc3MgdHJhY2tpbmcKPiA+ID4KPiA+ID4g
-QmVpbmcgYWJsZSB0byBpZGVudGlmeSBtdW5tYXAoKSBhbmQgbXJlbWFwKCkgZnJvbSBvdGhlciBy
-ZWFzb25zIHdoeSB0aGUKPiA+ID4gcGFnZSB0YWJsZSBpcyBjbGVhcmVkIGlzIGltcG9ydGFudCB0
-byBhbGxvdyB1c2VyIG9mIG1tdSBub3RpZmllciB0bwo+ID4gPiB1cGRhdGUgdGhlaXIgb3duIGlu
-dGVybmFsIHRyYWNraW5nIHN0cnVjdHVyZSBhY2NvcmRpbmdseSAob24gbXVubWFwIG9yCj4gPiA+
-IG1yZW1hcCBpdCBpcyBub3QgbG9uZ2VyIG5lZWRlZCB0byB0cmFjayByYW5nZSBvZiB2aXJ0dWFs
-IGFkZHJlc3MgYXMgaXQKPiA+ID4gYmVjb21lcyBpbnZhbGlkKS4KPiA+Cj4gPiBUaGUgb25seSBj
-b250ZXh0IGluZm9ybWF0aW9uIGNvbnN1bWVkIGluIHRoaXMgcGF0Y2ggc2V0IGlzCj4gPiBNTVVf
-Tk9USUZZX1BST1RFQ1RJT05fVk1BLgo+ID4KPiA+IFdoYXQgaXMgdGhlIHByYWN0aWNhbCBiZW5l
-Zml0IG9mIHRoZXNlICJvcHRpbWl6ZSBvdXQgdGhlIGNhc2Ugd2hlbiBhCj4gPiByYW5nZSBpcyB1
-cGRhdGVkIHRvIHJlYWQgb25seSIgb3B0aW1pemF0aW9ucz8gQW55IG51bWJlcnMgdG8gc2hvdyB0
-aGlzCj4gPiBpcyB3b3J0aCB0aGUgY29kZSB0aHJhc2g/Cj4KPiBJdCBkZXBlbmRzIG9uIHRoZSB3
-b3JrbG9hZCBmb3IgaW5zdGFuY2UgaWYgeW91IG1hcCB0byBSRE1BIGEgZmlsZQo+IHJlYWQgb25s
-eSBsaWtlIGEgbG9nIGZpbGUgZm9yIGV4cG9ydCwgYWxsIHdyaXRlIGJhY2sgdGhhdCB3b3VsZAo+
-IGRpc3J1cHQgdGhlIFJETUEgbWFwcGluZyBjYW4gYmUgb3B0aW1pemVkIG91dC4KPgo+IFNlZSBh
-Ym92ZSBmb3IgbW9yZSByZWFzb25zIHdoeSBpdCBpcyBiZW5lZmljaWFsIChrbm93aW5nIHdoZW4g
-aXQgaXMKPiBhbiBtdW5tYXAvbXJlbWFwIHZlcnN1cyBzb21ldGhpbmcgZWxzZSkuCj4KPiBJIHdv
-dWxkIGhhdmUgbm90IHRob3VnaHQgdGhhdCBwYXNzaW5nIGRvd24gaW5mb3JtYXRpb24gYXMgc29t
-ZXRoaW5nCj4gdGhhdCBjb250cm92ZXJzaWFsLiBIb3BlcyB0aGlzIGhlbHAgeW91IHNlZSB0aGUg
-YmVuZWZpdCBvZiB0aGlzLgoKSSdtIG5vdCBhc3NlcnRpbmcgdGhhdCBpdCBpcyBjb250cm92ZXJz
-aWFsLiBJIGFtIGFzc2VydGluZyB0aGF0CndoZW5ldmVyIGEgY2hhbmdlbG9nIHNheXMgIm9wdGlt
-aXplIiBpdCBhbHNvIGluY2x1ZGVzIGNvbmNyZXRlIGRhdGEKYWJvdXQgdGhlIG9wdGltaXphdGlv
-biBzY2VuYXJpby4gTWF5YmUgdGhlIHNjZW5hcmlvcyB5b3UgaGF2ZQpvcHRpbWl6ZWQgYXJlIGNs
-ZWFyIHRvIHRoZSBkcml2ZXIgb3duZXJzLCB0aGV5IGp1c3Qgd2VyZW4ndAppbW1lZGlhdGVseSBj
-bGVhciB0byBtZS4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-Cg==
+On Wed, Jan 23, 2019 at 12:45:11PM -0600, Steve Wise wrote:
+> 
+> 
+> On 1/23/2019 12:30 PM, Jason Gunthorpe wrote:
+> > On Sun, Jan 20, 2019 at 02:27:13AM +0100, Nicholas Mc Guire wrote:
+> >> The kmalloc is called with  | __GFP_NOFAIL  so there is no point in
+> >> checking the return value - it either returns valid storage or it would
+> >> hang/terminate there. But it is not possible to say if the use of
+> >> __GFP_NOFAIL is really needed and the check should be removed or
+> >> vice-versa (use of __GFP_NOFAIL should be only in exceptional
+> >> cases as I understand it and alloc_srq_queue() is called in quite
+> >> a few places)
+> >> In either way it would need fixing.
+> >>
+> >> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+> >> Fixes: 6a0b6174d35a ("rdma/cxgb4: Add support for kernel mode SRQ's")
+> >> ---
+> > 
+> > Steve? It seems weird to have NOFAIL and then have an error unwind
+> > path, what is the deal here?
+> > 
+> >> diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+> >> index 917ce5c..c2a12ba 100644
+> >> --- a/drivers/infiniband/hw/cxgb4/qp.c
+> >> +++ b/drivers/infiniband/hw/cxgb4/qp.c
+> >> @@ -2597,8 +2597,6 @@ static int alloc_srq_queue(struct c4iw_srq *srq, struct c4iw_dev_ucontext *uctx,
+> >>  	wr_len = sizeof(*res_wr) + sizeof(*res);
+> >>  
+> >>  	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
+> >> -	if (!skb)
+> >> -		goto err_free_queue;
+> >>  	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+> >>  
+> >>  	res_wr = (struct fw_ri_res_wr *)__skb_put(skb, wr_len);
+> >> -- 
+> >> 2.1.4
+> >>
+> 
+> The other queue allocations in qp.c don't use __GFP_NOFAIL.  So either
+> leave it and remove the error check as per this patch, or remove the
+> NOFAIL and leave the check.
+> 
+> I suggest you remove the __GFP_NOFAIL, since I have a recollection that
+> using it was frowned upon.  In this case, if there is no memory
+> available it is reasonable to return that error to the user creating the
+> srq...
+>
+thanks for taking care of this - I simply did not have enough
+context to decide if there would be some special reason
+for this allocation to need __GFP_NOFAIL - keeping its use
+to a minimum though is the best solution.
+
+thx!
+hofrat
