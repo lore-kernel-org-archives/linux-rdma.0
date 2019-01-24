@@ -1,107 +1,75 @@
-From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Subject: Re: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range is
- updated to read only
-Date: Thu, 24 Jan 2019 14:09:12 +0200
-Message-ID: <154833175216.4120.925061299171157938@jlahtine-desk.ger.corp.intel.com>
-References: <20190123222315.1122-1-jglisse@redhat.com>
- <20190123222315.1122-9-jglisse@redhat.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH rdma-next 00/12] Add SRQ and XRC support for ODP MRs
+Date: Thu, 24 Jan 2019 12:25:12 +0000
+Message-ID: <20190124122509.GR3604@mtr-leonro.mtl.com>
+References: <20190122064851.6032-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190123222315.1122-9-jglisse@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: linux-mm@kvack.org
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, =?utf-8?b?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, =?utf-8?b?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Qo8f1a4rgWw9S/zY"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190122064851.6032-1-leon@kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgSmVyb21lLAoKVGhpcyBwYXRjaCBzZWVtcyB0byBoYXZlIHBsZW50eSBvZiBDYzpzLCBidXQg
-bm9uZSBvZiB0aGUgcmlnaHQgb25lcyA6KQoKRm9yIGZ1cnRoZXIgaXRlcmF0aW9ucywgSSBndWVz
-cyB5b3UgY291bGQgdXNlIGdpdCBvcHRpb24gLS1jYyB0byBtYWtlCnN1cmUgZXZlcnlvbmUgZ2V0
-cyB0aGUgd2hvbGUgc2VyaWVzLCBhbmQgc3RpbGwga2VlcCB0aGUgQ2M6cyBpbiB0aGUKcGF0Y2hl
-cyB0aGVtc2VsdmVzIHJlbGV2YW50IHRvIHN1YnN5c3RlbXMuCgpUaGlzIGRvZXNuJ3Qgc2VlbSB0
-byBiZSBvbiB0b3Agb2YgZHJtLXRpcCwgYnV0IG9uIHRvcCBvZiB5b3VyIHByZXZpb3VzCnBhdGNo
-ZXMoPykgdGhhdCBJIGhhZCBzb21lIGNvbW1lbnRzIGFib3V0LiBDb3VsZCB5b3UgdGFrZSBhIG1v
-bWVudCB0bwpmaXJzdCBhZGRyZXNzIHRoZSBjb3VwbGUgb2YgcXVlc3Rpb24gSSBoYWQsIGJlZm9y
-ZSBwcm9jZWVkaW5nIHRvIGRpc2N1c3MKd2hhdCBpcyBidWlsdCBvbiB0b3Agb2YgdGhhdCBiYXNl
-LgoKTXkgcmVwbHkncyBNZXNzYWdlLUlEIGlzOgoxNTQyODk1MTg5OTQuMTk0MDIuMzQ4MTgzODU0
-ODAyODA2ODIxM0BqbGFodGluZS1kZXNrLmdlci5jb3JwLmludGVsLmNvbQoKUmVnYXJkcywgSm9v
-bmFzCgpQUy4gUGxlYXNlIGtlZXAgbWUgQ2M6ZCBpbiB0aGUgZm9sbG93aW5nIHBhdGNoZXMsIEkn
-bSBrZWVuIG9uCnVuZGVyc3RhbmRpbmcgdGhlIG1vdGl2ZSBhbmQgYmVuZWZpdHMuCgpRdW90aW5n
-IGpnbGlzc2VAcmVkaGF0LmNvbSAoMjAxOS0wMS0yNCAwMDoyMzoxNCkKPiBGcm9tOiBKw6lyw7Rt
-ZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KPiAKPiBXaGVuIHJhbmdlIG9mIHZpcnR1YWwg
-YWRkcmVzcyBpcyB1cGRhdGVkIHJlYWQgb25seSBhbmQgY29ycmVzcG9uZGluZwo+IHVzZXIgcHRy
-IG9iamVjdCBhcmUgYWxyZWFkeSByZWFkIG9ubHkgaXQgaXMgcG9pbnRsZXNzIHRvIGRvIGFueXRo
-aW5nLgo+IE9wdGltaXplIHRoaXMgY2FzZSBvdXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogSsOpcsO0
-bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+Cj4gQ2M6IENocmlzdGlhbiBLw7ZuaWcgPGNo
-cmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KPiBDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KPiBD
-YzogRmVsaXggS3VlaGxpbmcgPEZlbGl4Lkt1ZWhsaW5nQGFtZC5jb20+Cj4gQ2M6IEphc29uIEd1
-bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiBDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51
-eC1mb3VuZGF0aW9uLm9yZz4KPiBDYzogTWF0dGhldyBXaWxjb3ggPG1hd2lsY294QG1pY3Jvc29m
-dC5jb20+Cj4gQ2M6IFJvc3MgWndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPgo+IENjOiBEYW4g
-V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiBDYzogUGFvbG8gQm9uemluaSA8
-cGJvbnppbmlAcmVkaGF0LmNvbT4KPiBDYzogUmFkaW0gS3LEjW3DocWZIDxya3JjbWFyQHJlZGhh
-dC5jb20+Cj4gQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+Cj4gQ2M6IFJhbHBo
-IENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KPiBDYzogSm9obiBIdWJiYXJkIDxqaHVi
-YmFyZEBudmlkaWEuY29tPgo+IENjOiBrdm1Admdlci5rZXJuZWwub3JnCj4gQ2M6IGRyaS1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcK
-PiBDYzogbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogQXJuZCBCZXJnbWFubiA8
-YXJuZEBhcm5kYi5kZT4KPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNl
-cnB0ci5jIHwgMTYgKysrKysrKysrKysrKysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0
-aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91
-c2VycHRyLmMgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiBpbmRl
-eCA5NTU4NTgyYzEwNWUuLjIzMzMwYWMzZDdlYSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9k
-cm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9p
-OTE1X2dlbV91c2VycHRyLmMKPiBAQCAtNTksNiArNTksNyBAQCBzdHJ1Y3QgaTkxNV9tbXVfb2Jq
-ZWN0IHsKPiAgICAgICAgIHN0cnVjdCBpbnRlcnZhbF90cmVlX25vZGUgaXQ7Cj4gICAgICAgICBz
-dHJ1Y3QgbGlzdF9oZWFkIGxpbms7Cj4gICAgICAgICBzdHJ1Y3Qgd29ya19zdHJ1Y3Qgd29yazsK
-PiArICAgICAgIGJvb2wgcmVhZF9vbmx5Owo+ICAgICAgICAgYm9vbCBhdHRhY2hlZDsKPiAgfTsK
-PiAgCj4gQEAgLTExOSw2ICsxMjAsNyBAQCBzdGF0aWMgaW50IGk5MTVfZ2VtX3VzZXJwdHJfbW5f
-aW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICpfbW4sCj4gICAgICAg
-ICAgICAgICAgIGNvbnRhaW5lcl9vZihfbW4sIHN0cnVjdCBpOTE1X21tdV9ub3RpZmllciwgbW4p
-Owo+ICAgICAgICAgc3RydWN0IGk5MTVfbW11X29iamVjdCAqbW87Cj4gICAgICAgICBzdHJ1Y3Qg
-aW50ZXJ2YWxfdHJlZV9ub2RlICppdDsKPiArICAgICAgIGJvb2wgdXBkYXRlX3RvX3JlYWRfb25s
-eTsKPiAgICAgICAgIExJU1RfSEVBRChjYW5jZWxsZWQpOwo+ICAgICAgICAgdW5zaWduZWQgbG9u
-ZyBlbmQ7Cj4gIAo+IEBAIC0xMjgsNiArMTMwLDggQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2Vy
-cHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+
-ICAgICAgICAgLyogaW50ZXJ2YWwgcmFuZ2VzIGFyZSBpbmNsdXNpdmUsIGJ1dCBpbnZhbGlkYXRl
-IHJhbmdlIGlzIGV4Y2x1c2l2ZSAqLwo+ICAgICAgICAgZW5kID0gcmFuZ2UtPmVuZCAtIDE7Cj4g
-IAo+ICsgICAgICAgdXBkYXRlX3RvX3JlYWRfb25seSA9IG1tdV9ub3RpZmllcl9yYW5nZV91cGRh
-dGVfdG9fcmVhZF9vbmx5KHJhbmdlKTsKPiArCj4gICAgICAgICBzcGluX2xvY2soJm1uLT5sb2Nr
-KTsKPiAgICAgICAgIGl0ID0gaW50ZXJ2YWxfdHJlZV9pdGVyX2ZpcnN0KCZtbi0+b2JqZWN0cywg
-cmFuZ2UtPnN0YXJ0LCBlbmQpOwo+ICAgICAgICAgd2hpbGUgKGl0KSB7Cj4gQEAgLTE0NSw2ICsx
-NDksMTcgQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ICAgICAgICAgICAgICAgICAgKiBvYmpl
-Y3QgaWYgaXQgaXMgbm90IGluIHRoZSBwcm9jZXNzIG9mIGJlaW5nIGRlc3Ryb3llZC4KPiAgICAg
-ICAgICAgICAgICAgICovCj4gICAgICAgICAgICAgICAgIG1vID0gY29udGFpbmVyX29mKGl0LCBz
-dHJ1Y3QgaTkxNV9tbXVfb2JqZWN0LCBpdCk7Cj4gKwo+ICsgICAgICAgICAgICAgICAvKgo+ICsg
-ICAgICAgICAgICAgICAgKiBJZiBpdCBpcyBhbHJlYWR5IHJlYWQgb25seSBhbmQgd2UgYXJlIHVw
-ZGF0aW5nIHRvCj4gKyAgICAgICAgICAgICAgICAqIHJlYWQgb25seSB0aGVuIHdlIGRvIG5vdCBu
-ZWVkIHRvIGNoYW5nZSBhbnl0aGluZy4KPiArICAgICAgICAgICAgICAgICogU28gc2F2ZSB0aW1l
-IGFuZCBza2lwIHRoaXMgb25lLgo+ICsgICAgICAgICAgICAgICAgKi8KPiArICAgICAgICAgICAg
-ICAgaWYgKHVwZGF0ZV90b19yZWFkX29ubHkgJiYgbW8tPnJlYWRfb25seSkgewo+ICsgICAgICAg
-ICAgICAgICAgICAgICAgIGl0ID0gaW50ZXJ2YWxfdHJlZV9pdGVyX25leHQoaXQsIHJhbmdlLT5z
-dGFydCwgZW5kKTsKPiArICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsKPiArICAgICAg
-ICAgICAgICAgfQo+ICsKPiAgICAgICAgICAgICAgICAgaWYgKGtyZWZfZ2V0X3VubGVzc196ZXJv
-KCZtby0+b2JqLT5iYXNlLnJlZmNvdW50KSkKPiAgICAgICAgICAgICAgICAgICAgICAgICBxdWV1
-ZV93b3JrKG1uLT53cSwgJm1vLT53b3JrKTsKPiAgCj4gQEAgLTI3MCw2ICsyODUsNyBAQCBpOTE1
-X2dlbV91c2VycHRyX2luaXRfX21tdV9ub3RpZmllcihzdHJ1Y3QgZHJtX2k5MTVfZ2VtX29iamVj
-dCAqb2JqLAo+ICAgICAgICAgbW8tPm1uID0gbW47Cj4gICAgICAgICBtby0+b2JqID0gb2JqOwo+
-ICAgICAgICAgbW8tPml0LnN0YXJ0ID0gb2JqLT51c2VycHRyLnB0cjsKPiArICAgICAgIG1vLT5y
-ZWFkX29ubHkgPSBpOTE1X2dlbV9vYmplY3RfaXNfcmVhZG9ubHkob2JqKTsKPiAgICAgICAgIG1v
-LT5pdC5sYXN0ID0gb2JqLT51c2VycHRyLnB0ciArIG9iai0+YmFzZS5zaXplIC0gMTsKPiAgICAg
-ICAgIElOSVRfV09SSygmbW8tPndvcmssIGNhbmNlbF91c2VycHRyKTsKPiAgCj4gLS0gCj4gMi4x
-Ny4yCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
-PiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-Zwo+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
-dmVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
-ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+--Qo8f1a4rgWw9S/zY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jan 22, 2019 at 08:48:39AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi,
+>
+> This series extend ODP to work with SRQ and XRC. Being both per-operation
+> (e.g. RDMA write, RDMA read and atomic) and per-transport (e.g. RC, UD and XRC),
+> we extend IB/core and mlx5 driver to provide needed information to user space.
+>
+> Thanks
+>
+> Moni Shoua (12):
+>   IB/mlx5: Fix locking SRQ object in ODP event
+>   IB/core: Allocate bit for SRQ ODP support
+>   IB/uverbs: Expose XRC ODP device capabilities
+>   IB/mlx5: Remove useless check in ODP handler
+>   IB/mlx5: Clean mlx5_ib_mr_responder_pfault_handler() signature
+>   IB/mlx5: Add XRC initiator ODP support
+>   IB/mlx5: Let read user wqe also from SRQ buffer
+>   IB/mlx5: Add ODP SRQ support
+>   IB/mlx5: Advertise SRQ ODP support for supported transports
+>   net/mlx5: Add XRC transport to ODP device capabilities layout
+>   IB/mlx5: Advertise XRC ODP support
+>   net/mlx5: Set ODP SRQ support in firmware
+
+
+Doug, Jason,
+
+Please pay attention that patches below should go to shared branch:
+net/mlx5: Add XRC transport to ODP device capabilities layout
+net/mlx5: Set ODP SRQ support in firmware
+
+Thanks
+
+--Qo8f1a4rgWw9S/zY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcSa6lAAoJEORje4g2clinMgwQAKFZvRh+fscAAyxr24npqTiH
+3+V7fdKxPAyx6nZLvbrr7gWmG3wLBVWBSZMFtBPeZLIMymIrHkoyfL7IcLlfCBGT
+dDbuQl7+qFeyrJgMUznCdQwC40Un2Uyd3uoEL/Mmyth+FxaKh19Q9XTEcr9B8bTf
+caBt3gPv44x4KdRxc92FQWfGakpIIja7frCuA2NvHJZIt17rubyJzcjXKaCQILBl
+6oepIvVhLONwYyQKxJTViMkx8P6AJrwdZ1kAE1XLlNU+eJ4Da8y0CgXtJ1i41qBt
+gTSyK1k9BIJ84ASp/RZ/BKCyeaoQOcJp58fQuRRc8QV4+xJVGAa9std0ufUokMxx
+YQxVcZMj4/vUOVHgJqdPaoZ3WsRiTfKVKk1IHiNwpKfusMi5LrQbrXGovUqycdIN
+83ObhI90cp9usU9/8w47xo0ibCvF1Y75sdRsMe9wusWDPA9fFbjT0WywuFUVMhlS
+YVFmTVEnAuTiw5LErtbHgh4HUqnaq1OEcw3S2Yz2G22USN69lTc2IoqF72Z+AaID
+twMdpqn0FVhlVQ1M/6P48mqzLeB8kEJmW6/x4cji/0JH3mPINQSk8RBygXad0+YF
+ZvX8YvO1jrcXQ0y0QvwTDg/OiJH+P8bBUWe1wz8DBbHc8kHQAB27Tv1nKRV4chDB
+gpfG+aEODXtW8LHzDmOK
+=Wyzd
+-----END PGP SIGNATURE-----
+
+--Qo8f1a4rgWw9S/zY--
