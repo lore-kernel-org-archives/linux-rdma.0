@@ -1,64 +1,107 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused by
- sending mailbox&CMQ during reset
-Date: Thu, 24 Jan 2019 11:13:29 +0800
-Message-ID: <5C492D59.8030707@huawei.com>
-References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
- <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
- <20190123224041.GA11605@ziepe.ca>
+From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Subject: Re: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range is
+ updated to read only
+Date: Thu, 24 Jan 2019 14:09:12 +0200
+Message-ID: <154833175216.4120.925061299171157938@jlahtine-desk.ger.corp.intel.com>
+References: <20190123222315.1122-1-jglisse@redhat.com>
+ <20190123222315.1122-9-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190123224041.GA11605@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190123222315.1122-9-jglisse@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-mm@kvack.org
+Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, =?utf-8?b?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, =?utf-8?b?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 2019/1/24 6:40, Jason Gunthorpe wrote:
-> On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
->
->> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
->> +					unsigned long instance_stage,
->> +					unsigned long reset_stage)
->> +{
->> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
->> +	struct hnae3_handle *handle = priv->handle;
->> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
->> +	unsigned long end;
->> +
->> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
->> +	 * to hardware, and wait until hardware reset finished. If now
->> +	 * in .init_instance() function, we should exit with error. If now at
->> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
->> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
->> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
->> +	 * related process will exit with error to notify NIC driver to
->> +	 * reschedule soft reset process once again.
->> +	 */
->> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
->> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
->> +		udelay(1);
-> I thought you were getting rid of these loops?
-Hi, Jason
-
-    Upper applications maybe notify driver to issue mailbox or CMD
-    commands to hardware, some commands used to cancel resources,
-    destory bt/destory cq/unreg mr/destory qp etc. when such
-    commands are executed successfully, the hardware engine will
-    no longer access some memory registered by the driver.
-
-    When reset occurs, it is possible for upper applications notify driver
-    to issue mailbox or CMD commands, we need to wait until hardware
-    reset finished to ensure that hardware no longer accesses related
-memory.
-   
-    Regards
-Xavier
-> Jason
->
-> .
->
+SGkgSmVyb21lLAoKVGhpcyBwYXRjaCBzZWVtcyB0byBoYXZlIHBsZW50eSBvZiBDYzpzLCBidXQg
+bm9uZSBvZiB0aGUgcmlnaHQgb25lcyA6KQoKRm9yIGZ1cnRoZXIgaXRlcmF0aW9ucywgSSBndWVz
+cyB5b3UgY291bGQgdXNlIGdpdCBvcHRpb24gLS1jYyB0byBtYWtlCnN1cmUgZXZlcnlvbmUgZ2V0
+cyB0aGUgd2hvbGUgc2VyaWVzLCBhbmQgc3RpbGwga2VlcCB0aGUgQ2M6cyBpbiB0aGUKcGF0Y2hl
+cyB0aGVtc2VsdmVzIHJlbGV2YW50IHRvIHN1YnN5c3RlbXMuCgpUaGlzIGRvZXNuJ3Qgc2VlbSB0
+byBiZSBvbiB0b3Agb2YgZHJtLXRpcCwgYnV0IG9uIHRvcCBvZiB5b3VyIHByZXZpb3VzCnBhdGNo
+ZXMoPykgdGhhdCBJIGhhZCBzb21lIGNvbW1lbnRzIGFib3V0LiBDb3VsZCB5b3UgdGFrZSBhIG1v
+bWVudCB0bwpmaXJzdCBhZGRyZXNzIHRoZSBjb3VwbGUgb2YgcXVlc3Rpb24gSSBoYWQsIGJlZm9y
+ZSBwcm9jZWVkaW5nIHRvIGRpc2N1c3MKd2hhdCBpcyBidWlsdCBvbiB0b3Agb2YgdGhhdCBiYXNl
+LgoKTXkgcmVwbHkncyBNZXNzYWdlLUlEIGlzOgoxNTQyODk1MTg5OTQuMTk0MDIuMzQ4MTgzODU0
+ODAyODA2ODIxM0BqbGFodGluZS1kZXNrLmdlci5jb3JwLmludGVsLmNvbQoKUmVnYXJkcywgSm9v
+bmFzCgpQUy4gUGxlYXNlIGtlZXAgbWUgQ2M6ZCBpbiB0aGUgZm9sbG93aW5nIHBhdGNoZXMsIEkn
+bSBrZWVuIG9uCnVuZGVyc3RhbmRpbmcgdGhlIG1vdGl2ZSBhbmQgYmVuZWZpdHMuCgpRdW90aW5n
+IGpnbGlzc2VAcmVkaGF0LmNvbSAoMjAxOS0wMS0yNCAwMDoyMzoxNCkKPiBGcm9tOiBKw6lyw7Rt
+ZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KPiAKPiBXaGVuIHJhbmdlIG9mIHZpcnR1YWwg
+YWRkcmVzcyBpcyB1cGRhdGVkIHJlYWQgb25seSBhbmQgY29ycmVzcG9uZGluZwo+IHVzZXIgcHRy
+IG9iamVjdCBhcmUgYWxyZWFkeSByZWFkIG9ubHkgaXQgaXMgcG9pbnRsZXNzIHRvIGRvIGFueXRo
+aW5nLgo+IE9wdGltaXplIHRoaXMgY2FzZSBvdXQuCj4gCj4gU2lnbmVkLW9mZi1ieTogSsOpcsO0
+bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+Cj4gQ2M6IENocmlzdGlhbiBLw7ZuaWcgPGNo
+cmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KPiBDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KPiBD
+YzogRmVsaXggS3VlaGxpbmcgPEZlbGl4Lkt1ZWhsaW5nQGFtZC5jb20+Cj4gQ2M6IEphc29uIEd1
+bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiBDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51
+eC1mb3VuZGF0aW9uLm9yZz4KPiBDYzogTWF0dGhldyBXaWxjb3ggPG1hd2lsY294QG1pY3Jvc29m
+dC5jb20+Cj4gQ2M6IFJvc3MgWndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPgo+IENjOiBEYW4g
+V2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4KPiBDYzogUGFvbG8gQm9uemluaSA8
+cGJvbnppbmlAcmVkaGF0LmNvbT4KPiBDYzogUmFkaW0gS3LEjW3DocWZIDxya3JjbWFyQHJlZGhh
+dC5jb20+Cj4gQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+Cj4gQ2M6IFJhbHBo
+IENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KPiBDYzogSm9obiBIdWJiYXJkIDxqaHVi
+YmFyZEBudmlkaWEuY29tPgo+IENjOiBrdm1Admdlci5rZXJuZWwub3JnCj4gQ2M6IGRyaS1kZXZl
+bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcK
+PiBDYzogbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogQXJuZCBCZXJnbWFubiA8
+YXJuZEBhcm5kYi5kZT4KPiAtLS0KPiAgZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNl
+cnB0ci5jIHwgMTYgKysrKysrKysrKysrKysrKwo+ICAxIGZpbGUgY2hhbmdlZCwgMTYgaW5zZXJ0
+aW9ucygrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91
+c2VycHRyLmMgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiBpbmRl
+eCA5NTU4NTgyYzEwNWUuLjIzMzMwYWMzZDdlYSAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2dwdS9k
+cm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9p
+OTE1X2dlbV91c2VycHRyLmMKPiBAQCAtNTksNiArNTksNyBAQCBzdHJ1Y3QgaTkxNV9tbXVfb2Jq
+ZWN0IHsKPiAgICAgICAgIHN0cnVjdCBpbnRlcnZhbF90cmVlX25vZGUgaXQ7Cj4gICAgICAgICBz
+dHJ1Y3QgbGlzdF9oZWFkIGxpbms7Cj4gICAgICAgICBzdHJ1Y3Qgd29ya19zdHJ1Y3Qgd29yazsK
+PiArICAgICAgIGJvb2wgcmVhZF9vbmx5Owo+ICAgICAgICAgYm9vbCBhdHRhY2hlZDsKPiAgfTsK
+PiAgCj4gQEAgLTExOSw2ICsxMjAsNyBAQCBzdGF0aWMgaW50IGk5MTVfZ2VtX3VzZXJwdHJfbW5f
+aW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICpfbW4sCj4gICAgICAg
+ICAgICAgICAgIGNvbnRhaW5lcl9vZihfbW4sIHN0cnVjdCBpOTE1X21tdV9ub3RpZmllciwgbW4p
+Owo+ICAgICAgICAgc3RydWN0IGk5MTVfbW11X29iamVjdCAqbW87Cj4gICAgICAgICBzdHJ1Y3Qg
+aW50ZXJ2YWxfdHJlZV9ub2RlICppdDsKPiArICAgICAgIGJvb2wgdXBkYXRlX3RvX3JlYWRfb25s
+eTsKPiAgICAgICAgIExJU1RfSEVBRChjYW5jZWxsZWQpOwo+ICAgICAgICAgdW5zaWduZWQgbG9u
+ZyBlbmQ7Cj4gIAo+IEBAIC0xMjgsNiArMTMwLDggQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2Vy
+cHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+
+ICAgICAgICAgLyogaW50ZXJ2YWwgcmFuZ2VzIGFyZSBpbmNsdXNpdmUsIGJ1dCBpbnZhbGlkYXRl
+IHJhbmdlIGlzIGV4Y2x1c2l2ZSAqLwo+ICAgICAgICAgZW5kID0gcmFuZ2UtPmVuZCAtIDE7Cj4g
+IAo+ICsgICAgICAgdXBkYXRlX3RvX3JlYWRfb25seSA9IG1tdV9ub3RpZmllcl9yYW5nZV91cGRh
+dGVfdG9fcmVhZF9vbmx5KHJhbmdlKTsKPiArCj4gICAgICAgICBzcGluX2xvY2soJm1uLT5sb2Nr
+KTsKPiAgICAgICAgIGl0ID0gaW50ZXJ2YWxfdHJlZV9pdGVyX2ZpcnN0KCZtbi0+b2JqZWN0cywg
+cmFuZ2UtPnN0YXJ0LCBlbmQpOwo+ICAgICAgICAgd2hpbGUgKGl0KSB7Cj4gQEAgLTE0NSw2ICsx
+NDksMTcgQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vf
+c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ICAgICAgICAgICAgICAgICAgKiBvYmpl
+Y3QgaWYgaXQgaXMgbm90IGluIHRoZSBwcm9jZXNzIG9mIGJlaW5nIGRlc3Ryb3llZC4KPiAgICAg
+ICAgICAgICAgICAgICovCj4gICAgICAgICAgICAgICAgIG1vID0gY29udGFpbmVyX29mKGl0LCBz
+dHJ1Y3QgaTkxNV9tbXVfb2JqZWN0LCBpdCk7Cj4gKwo+ICsgICAgICAgICAgICAgICAvKgo+ICsg
+ICAgICAgICAgICAgICAgKiBJZiBpdCBpcyBhbHJlYWR5IHJlYWQgb25seSBhbmQgd2UgYXJlIHVw
+ZGF0aW5nIHRvCj4gKyAgICAgICAgICAgICAgICAqIHJlYWQgb25seSB0aGVuIHdlIGRvIG5vdCBu
+ZWVkIHRvIGNoYW5nZSBhbnl0aGluZy4KPiArICAgICAgICAgICAgICAgICogU28gc2F2ZSB0aW1l
+IGFuZCBza2lwIHRoaXMgb25lLgo+ICsgICAgICAgICAgICAgICAgKi8KPiArICAgICAgICAgICAg
+ICAgaWYgKHVwZGF0ZV90b19yZWFkX29ubHkgJiYgbW8tPnJlYWRfb25seSkgewo+ICsgICAgICAg
+ICAgICAgICAgICAgICAgIGl0ID0gaW50ZXJ2YWxfdHJlZV9pdGVyX25leHQoaXQsIHJhbmdlLT5z
+dGFydCwgZW5kKTsKPiArICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsKPiArICAgICAg
+ICAgICAgICAgfQo+ICsKPiAgICAgICAgICAgICAgICAgaWYgKGtyZWZfZ2V0X3VubGVzc196ZXJv
+KCZtby0+b2JqLT5iYXNlLnJlZmNvdW50KSkKPiAgICAgICAgICAgICAgICAgICAgICAgICBxdWV1
+ZV93b3JrKG1uLT53cSwgJm1vLT53b3JrKTsKPiAgCj4gQEAgLTI3MCw2ICsyODUsNyBAQCBpOTE1
+X2dlbV91c2VycHRyX2luaXRfX21tdV9ub3RpZmllcihzdHJ1Y3QgZHJtX2k5MTVfZ2VtX29iamVj
+dCAqb2JqLAo+ICAgICAgICAgbW8tPm1uID0gbW47Cj4gICAgICAgICBtby0+b2JqID0gb2JqOwo+
+ICAgICAgICAgbW8tPml0LnN0YXJ0ID0gb2JqLT51c2VycHRyLnB0cjsKPiArICAgICAgIG1vLT5y
+ZWFkX29ubHkgPSBpOTE1X2dlbV9vYmplY3RfaXNfcmVhZG9ubHkob2JqKTsKPiAgICAgICAgIG1v
+LT5pdC5sYXN0ID0gb2JqLT51c2VycHRyLnB0ciArIG9iai0+YmFzZS5zaXplIC0gMTsKPiAgICAg
+ICAgIElOSVRfV09SSygmbW8tPndvcmssIGNhbmNlbF91c2VycHRyKTsKPiAgCj4gLS0gCj4gMi4x
+Ny4yCj4gCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+PiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
+Zwo+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRl
+dmVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1k
+ZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
+L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
