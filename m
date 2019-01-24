@@ -1,71 +1,64 @@
-From: Nicholas Mc Guire <der.herr@hofr.at>
-Subject: Re: [PATCH RFC] iw_cxgb4: drop check - dead code
-Date: Thu, 24 Jan 2019 02:53:52 +0100
-Message-ID: <20190124015352.GA30939@osadl.at>
-References: <1547947633-10515-1-git-send-email-hofrat@osadl.org>
- <20190123183008.GA15698@ziepe.ca>
- <91af1982-e309-476e-cfa4-2f6ef1ee598b@opengridcomputing.com>
+From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused by
+ sending mailbox&CMQ during reset
+Date: Thu, 24 Jan 2019 11:13:29 +0800
+Message-ID: <5C492D59.8030707@huawei.com>
+References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
+ <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
+ <20190123224041.GA11605@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <91af1982-e309-476e-cfa4-2f6ef1ee598b@opengridcomputing.com>
+In-Reply-To: <20190123224041.GA11605@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Nicholas Mc Guire <hofrat@osadl.org>, Doug Ledford <dledford@redhat.com>, Raju Rangoju <rajur@chelsio.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 23, 2019 at 12:45:11PM -0600, Steve Wise wrote:
-> 
-> 
-> On 1/23/2019 12:30 PM, Jason Gunthorpe wrote:
-> > On Sun, Jan 20, 2019 at 02:27:13AM +0100, Nicholas Mc Guire wrote:
-> >> The kmalloc is called with  | __GFP_NOFAIL  so there is no point in
-> >> checking the return value - it either returns valid storage or it would
-> >> hang/terminate there. But it is not possible to say if the use of
-> >> __GFP_NOFAIL is really needed and the check should be removed or
-> >> vice-versa (use of __GFP_NOFAIL should be only in exceptional
-> >> cases as I understand it and alloc_srq_queue() is called in quite
-> >> a few places)
-> >> In either way it would need fixing.
-> >>
-> >> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> >> Fixes: 6a0b6174d35a ("rdma/cxgb4: Add support for kernel mode SRQ's")
-> >> ---
-> > 
-> > Steve? It seems weird to have NOFAIL and then have an error unwind
-> > path, what is the deal here?
-> > 
-> >> diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-> >> index 917ce5c..c2a12ba 100644
-> >> --- a/drivers/infiniband/hw/cxgb4/qp.c
-> >> +++ b/drivers/infiniband/hw/cxgb4/qp.c
-> >> @@ -2597,8 +2597,6 @@ static int alloc_srq_queue(struct c4iw_srq *srq, struct c4iw_dev_ucontext *uctx,
-> >>  	wr_len = sizeof(*res_wr) + sizeof(*res);
-> >>  
-> >>  	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
-> >> -	if (!skb)
-> >> -		goto err_free_queue;
-> >>  	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
-> >>  
-> >>  	res_wr = (struct fw_ri_res_wr *)__skb_put(skb, wr_len);
-> >> -- 
-> >> 2.1.4
-> >>
-> 
-> The other queue allocations in qp.c don't use __GFP_NOFAIL.  So either
-> leave it and remove the error check as per this patch, or remove the
-> NOFAIL and leave the check.
-> 
-> I suggest you remove the __GFP_NOFAIL, since I have a recollection that
-> using it was frowned upon.  In this case, if there is no memory
-> available it is reasonable to return that error to the user creating the
-> srq...
->
-thanks for taking care of this - I simply did not have enough
-context to decide if there would be some special reason
-for this allocation to need __GFP_NOFAIL - keeping its use
-to a minimum though is the best solution.
 
-thx!
-hofrat
+
+On 2019/1/24 6:40, Jason Gunthorpe wrote:
+> On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
+>
+>> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
+>> +					unsigned long instance_stage,
+>> +					unsigned long reset_stage)
+>> +{
+>> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
+>> +	struct hnae3_handle *handle = priv->handle;
+>> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
+>> +	unsigned long end;
+>> +
+>> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
+>> +	 * to hardware, and wait until hardware reset finished. If now
+>> +	 * in .init_instance() function, we should exit with error. If now at
+>> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
+>> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
+>> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
+>> +	 * related process will exit with error to notify NIC driver to
+>> +	 * reschedule soft reset process once again.
+>> +	 */
+>> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
+>> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
+>> +		udelay(1);
+> I thought you were getting rid of these loops?
+Hi, Jason
+
+    Upper applications maybe notify driver to issue mailbox or CMD
+    commands to hardware, some commands used to cancel resources,
+    destory bt/destory cq/unreg mr/destory qp etc. when such
+    commands are executed successfully, the hardware engine will
+    no longer access some memory registered by the driver.
+
+    When reset occurs, it is possible for upper applications notify driver
+    to issue mailbox or CMD commands, we need to wait until hardware
+    reset finished to ensure that hardware no longer accesses related
+memory.
+   
+    Regards
+Xavier
+> Jason
+>
+> .
+>
