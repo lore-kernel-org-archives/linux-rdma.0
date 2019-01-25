@@ -1,56 +1,55 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
-Date: Fri, 25 Jan 2019 10:08:00 -0800
-Message-ID: <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
-References: <20190119003313.16711-1-saeedm@mellanox.com> <20190124123041.GS3604@mtr-leonro.mtl.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 4/4] net/mlx5: Remove spinlock support from
+ mlx5_write64
+Date: Fri, 25 Jan 2019 18:16:31 +0000
+Message-ID: <593be2dbe31c07ab124dd0df0fa087ae2cdda35f.camel@mellanox.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com>
+         <20190119003313.16711-5-saeedm@mellanox.com>
+         <20190119074308.GH15600@mtr-leonro.mtl.com>
+         <20190121164551.GF25149@mellanox.com>
+         <CALzJLG9Lr4VcOpYLXKNHmHLzjxDCMN6AvaTRjW7ZZEMukPdZ4w@mail.gmail.com>
+         <20190121182200.GI25149@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190124123041.GS3604@mtr-leonro.mtl.com>
+In-Reply-To: <20190121182200.GI25149@mellanox.com>
+Content-Language: en-US
+Content-ID: <87FC926D8FE5A44FAC4C0EC4F46FA668@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
+To: Jason Gunthorpe <jgg@mellanox.com>, "saeedm@dev.mellanox.co.il" <saeedm@dev.mellanox.co.il>
+Cc: Eran Ben Elisha <eranbe@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Maxim Mikityanskiy <maximmi@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 24, 2019 at 4:30 AM Leon Romanovsky <leonro@mellanox.com> wrote:
->
-> On Fri, Jan 18, 2019 at 04:33:09PM -0800, Saeed Mahameed wrote:
-> > Hi all,
-> >
-> > This series includes updates to mlx5-next shared branch.
-> >
-> > 1) from Jason, improve mlx5_cmd_exec_cb async API to be safer
-> > 2) from Maxim Mikityanskiy, cleanups for mlx5_write64 doorbell API
-> > 3) from Michael Guralnik, Add pci AtomicOps request
-> >
-> > Thanks,
-> > Saeed.
-> >
-> > ---
-> >
-> > Jason Gunthorpe (1):
-> >   net/mlx5: Make mlx5_cmd_exec_cb() a safe API
-> >
-> > Michael Guralnik (1):
-> >   net/mlx5: Add pci AtomicOps request
->
-> Those two were applied to mlx5-next branch.
->
-> ce4eee5340a9 (mlx5-next) net/mlx5: Add pci AtomicOps request
-> e355477ed9e4 net/mlx5: Make mlx5_cmd_exec_cb() a safe API
->
-> > Maxim Mikityanskiy (2):
-> >   net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
-> >   net/mlx5: Remove spinlock support from mlx5_write64
->
-> Those two needs extra work,
-
-What extra work ?
-
->
-> Thanks
->
-> >
-> > --
-> > 2.20.1
-> >
+T24gTW9uLCAyMDE5LTAxLTIxIGF0IDE4OjIyICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIE1vbiwgSmFuIDIxLCAyMDE5IGF0IDEwOjEyOjU4QU0gLTA4MDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IE9uIE1vbiwgSmFuIDIxLCAyMDE5IGF0IDg6NDYgQU0gSmFzb24gR3Vu
+dGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPg0KPiA+IHdyb3RlOg0KPiA+ID4gT24gU2F0LCBKYW4g
+MTksIDIwMTkgYXQgMTI6NDM6MTRBTSAtMDcwMCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiA+
+ID4gPiBZb3UgbmVlZCB0byBkbyBvbmUgb2YgdHdvIHRoaW5nczoNCj4gPiA+ID4gMS4gUmVxdWly
+ZSBDT05GSUdfNjRCSVQgYW5kIGRlbGV0ZSB0aGlzIDMyYml0IGNvZGUuDQo+ID4gPiA+IDIuIERl
+Y2xhcmUgZ2xvYmFsIG1seDUgREIgc3BpbmxvY2sgYW5kIHVzZSBvbiAzMmJpdCBzeXN0ZW1zLA0K
+PiA+ID4gPiBzb21ldGhpbmcNCj4gPiA+ID4gbGlrZSB0aGlzOg0KPiA+ID4gPiAjaWYgQklUU19Q
+RVJfTE9ORyA9PSA2NA0KPiA+ID4gPiAgX19yYXdfd3JpdGVxKCoodTY0ICopdmFsLCBkZXN0KTsN
+Cj4gPiA+ID4gI2Vsc2UNCj4gPiA+ID4gICBzcGluX2xvY2tfaXJxc2F2ZShkb29yYmVsbF9sb2Nr
+LCBmbGFncyk7DQo+ID4gPiA+ICAgX19yYXdfd3JpdGVsKChfX2ZvcmNlIHUzMikgdmFsWzBdLCBk
+ZXN0KTsNCj4gPiA+ID4gICBfX3Jhd193cml0ZWwoKF9fZm9yY2UgdTMyKSB2YWxbMV0sIGRlc3Qg
+KyA0KTsNCj4gPiA+ID4gICAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZShkb29yYmVsbF9sb2NrLCBm
+bGFncyk7DQo+ID4gPiA+ICNlbmRpZg0KPiA+ID4gDQo+ID4gPiBBbmQgd2h5IGlzIHRoaXMgY29k
+ZSB1c2luZyB0aGUgX19yYXdfIHZlcnNpb25zPyBTZWVtcyB3cm9uZw0KPiA+ID4gdG9vLi4uDQo+
+ID4gPiANCj4gPiANCj4gPiBmb3IgNjQgYW5kIDMyIGFzIHdlbGw/DQo+IA0KPiB5ZXMNCj4gDQo+
+ID4gd2hhdCBpcyB3cm9uZyB3aXRoIHRoZSByYXcgdmVyc2lvbiA/DQo+IA0KPiBJdCBzaG91bGQg
+b25seSBiZSB1c2VkIGJ5IGFyY2ggY29kZSAob3IgaW4gZHJpdmVycyBsaW5rZWQgdG8gYQ0KPiBz
+cGVjaWZpYyBhcmNoKS4gVGhlIGFjdHVhbCBwcm9wZXJ0aWVzIG9mIHRoZSAncmF3JyB2ZXJzaW9u
+IGFyZSBhcmNoDQo+IHNwZWNpZmljIGFuZCBtYWtlIGl0IGhhcmQgdG8ga25vdyBpZiB0aGUgZHJp
+dmVyIHdpbGwgd29yayBvbg0KPiBkaWZmZXJlbnQNCj4gYXJjaHMuIGllIHNvbWUgYXJjaGVzIG1h
+eSBub3QgYnl0ZSBzd2FwIHRoZWlyIHJhdyBhY2Nlc3NvcnMsIG9yIG1heQ0KPiBvbWl0IGJhcnJp
+ZXJzLg0KPiANCj4gTW9zdCBsaWtlbHkgdGhpcyBqdXN0IHdhbnRzIHRvIGJlIHdyaXRlcSBmb3Ig
+NjQgYml0IGFuZA0KPiB3cml0ZWxfcmVsYXhlZCgpICYgd3JpdGVsKCkgZm9yIDMyIGJpdCAtIHVu
+bGVzcyB0aGVyZSB3YXMgc29tZSByZWFzb24NCj4gdG8gaGF2ZSB1c2VkIF9fcmF3IHZlcnNpb25z
+IGluIHRoZSBmaXJzdCBwbGFjZSAoaW4gd2hpY2ggY2FzZSBhDQo+IGNvbW1lbnQgaXMgbWlzc2lu
+ZykuDQoNCk9rLCBhZnRlciBzb21lIGludGVybmFsIGRpc2N1c3Npb24gaXQgc2VlbXMgdGhhdA0K
+e3JlYWQsd3JpdGV9e2IsdyxsLHF9X3JlbGF4ZWQoKSBjYW4gYmUgdXNlZCBpbnN0ZWFkIG9mIHRo
+ZSBfX3JhdyBBUEkNCmN1cnJlbnRseSB1c2VkIGluIHRoZSBkcml2ZXIsIEFkZGluZyBhcyBhIGZ1
+dHVyZSB0YXNrLg0KDQpUaGlzIGhhcyBub3RoaW5nIHRvIGRvIHRoZSB0aGUgY3VycmVudCBjbGVh
+bnVwIHBhdGNoLg0KDQpUaGFua3MsDQpTYWVlZC4NCg0KPiANCj4gSmFzb24NCg==
