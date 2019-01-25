@@ -1,141 +1,79 @@
-From: "Parvi Kaustubhi (pkaustub)" <pkaustub@cisco.com>
-Subject: Re: [PATCH 2/2] infiniband: prefix header search paths with
- $(srctree)/
-Date: Fri, 25 Jan 2019 21:35:07 +0000
-Message-ID: <DAD82200-BFAE-43C7-B668-7D1AED5D5C15@cisco.com>
-References: <1548391171-6407-1-git-send-email-yamada.masahiro@socionext.com>
- <1548391171-6407-3-git-send-email-yamada.masahiro@socionext.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused
+ by sending mailbox&CMQ during reset
+Date: Fri, 25 Jan 2019 14:50:18 -0700
+Message-ID: <20190125215018.GF23001@ziepe.ca>
+References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
+ <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
+ <20190123224041.GA11605@ziepe.ca>
+ <5C492D59.8030707@huawei.com>
+ <20190124183120.GD17167@ziepe.ca>
+ <5C4A714C.2070109@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1548391171-6407-3-git-send-email-yamada.masahiro@socionext.com>
-Content-Language: en-US
-Content-ID: <CC49761C65E12C43B53365F6DEFC97CA@emea.cisco.com>
+Content-Disposition: inline
+In-Reply-To: <5C4A714C.2070109@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Somnath Kotur <somnath.kotur@broadcom.com>, "Christian Benvenuti (benve)" <benve@cisco.com>, "Nelson Escobar (neescoba)" <neescoba@cisco.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Lijun Ou <oulijun@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Steve Wise <swise@chelsio.com>, Faisal Latif <faisal.latif@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>, Selvin Xavier <selvin.xavier@broadcom.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Devesh Sharma <devesh.sharma@broadcom.com>
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks,
+On Fri, Jan 25, 2019 at 10:15:40AM +0800, Wei Hu (Xavier) wrote:
+> 
+> 
+> On 2019/1/25 2:31, Jason Gunthorpe wrote:
+> > On Thu, Jan 24, 2019 at 11:13:29AM +0800, Wei Hu (Xavier) wrote:
+> >>
+> >> On 2019/1/24 6:40, Jason Gunthorpe wrote:
+> >>> On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
+> >>>
+> >>>> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
+> >>>> +					unsigned long instance_stage,
+> >>>> +					unsigned long reset_stage)
+> >>>> +{
+> >>>> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
+> >>>> +	struct hnae3_handle *handle = priv->handle;
+> >>>> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
+> >>>> +	unsigned long end;
+> >>>> +
+> >>>> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
+> >>>> +	 * to hardware, and wait until hardware reset finished. If now
+> >>>> +	 * in .init_instance() function, we should exit with error. If now at
+> >>>> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
+> >>>> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
+> >>>> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
+> >>>> +	 * related process will exit with error to notify NIC driver to
+> >>>> +	 * reschedule soft reset process once again.
+> >>>> +	 */
+> >>>> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
+> >>>> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
+> >>>> +		udelay(1);
+> >>> I thought you were getting rid of these loops?
+> >> Hi, Jason
+> >>
+> >>     Upper applications maybe notify driver to issue mailbox or CMD
+> >>     commands to hardware, some commands used to cancel resources,
+> >>     destory bt/destory cq/unreg mr/destory qp etc. when such
+> >>     commands are executed successfully, the hardware engine will
+> >>     no longer access some memory registered by the driver.
+> >>
+> >>     When reset occurs, it is possible for upper applications notify driver
+> >>     to issue mailbox or CMD commands, we need to wait until hardware
+> >>     reset finished to ensure that hardware no longer accesses related
+> >> memory.
+> > You should not wait for things using loops like the above.
+> Hi, Jason
+> 
+>     Are your comments foucsing on udelay? If not, thanks for your detail
+> information.
+>     In hns3 RoCE driver, some CMQ/mailbox operation are called inside
+> the lock,
+>     we can't use msleep in the lock, otherwise it will cause deadlock.
+>     When reset occurs, RDMA service cannot be provided normally, I think
+> in this
+>     case using udelay will not have a great impact.
 
-Acked-by: Parvi Kaustubhi <pkaustub@cisco.com>
+You should not use any kind of sleep call in a loop like this.
 
-> On Jan 24, 2019, at 8:39 PM, Masahiro Yamada <yamada.masahiro@socionext.c=
-om> wrote:
->=20
-> Currently, the Kbuild core manipulates header search paths in a crazy
-> way [1].
->=20
-> To fix this mess, I want all Makefiles to add explicit $(srctree)/ to
-> the search paths in the srctree. Some Makefiles are already written in
-> that way, but not all. The goal of this work is to make the notation
-> consistent, and finally get rid of the gross hacks.
->=20
-> Having whitespaces after -I does not matter since commit 48f6e3cf5bc6
-> ("kbuild: do not drop -I without parameter").
->=20
-> [1]: https://patchwork.kernel.org/patch/9632347/
->=20
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> ---
->=20
-> drivers/infiniband/hw/bnxt_re/Makefile | 2 +-
-> drivers/infiniband/hw/cxgb3/Makefile   | 2 +-
-> drivers/infiniband/hw/cxgb4/Makefile   | 4 ++--
-> drivers/infiniband/hw/hns/Makefile     | 2 +-
-> drivers/infiniband/hw/i40iw/Makefile   | 2 +-
-> drivers/infiniband/hw/ocrdma/Makefile  | 2 +-
-> drivers/infiniband/hw/usnic/Makefile   | 2 +-
-> 7 files changed, 8 insertions(+), 8 deletions(-)
->=20
-> diff --git a/drivers/infiniband/hw/bnxt_re/Makefile b/drivers/infiniband/=
-hw/bnxt_re/Makefile
-> index 6e3bc25..ee9bb1b 100644
-> --- a/drivers/infiniband/hw/bnxt_re/Makefile
-> +++ b/drivers/infiniband/hw/bnxt_re/Makefile
-> @@ -1,6 +1,6 @@
-> # SPDX-License-Identifier: GPL-2.0
->=20
-> -ccflags-y :=3D -Idrivers/net/ethernet/broadcom/bnxt
-> +ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/broadcom/bnxt
-> obj-$(CONFIG_INFINIBAND_BNXT_RE) +=3D bnxt_re.o
-> bnxt_re-y :=3D main.o ib_verbs.o \
-> 	     qplib_res.o qplib_rcfw.o	\
-> diff --git a/drivers/infiniband/hw/cxgb3/Makefile b/drivers/infiniband/hw=
-/cxgb3/Makefile
-> index 66fe091..34bb86a 100644
-> --- a/drivers/infiniband/hw/cxgb3/Makefile
-> +++ b/drivers/infiniband/hw/cxgb3/Makefile
-> @@ -1,5 +1,5 @@
-> # SPDX-License-Identifier: GPL-2.0
-> -ccflags-y :=3D -Idrivers/net/ethernet/chelsio/cxgb3
-> +ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/chelsio/cxgb3
->=20
-> obj-$(CONFIG_INFINIBAND_CXGB3) +=3D iw_cxgb3.o
->=20
-> diff --git a/drivers/infiniband/hw/cxgb4/Makefile b/drivers/infiniband/hw=
-/cxgb4/Makefile
-> index 9edd920..31a87d9 100644
-> --- a/drivers/infiniband/hw/cxgb4/Makefile
-> +++ b/drivers/infiniband/hw/cxgb4/Makefile
-> @@ -1,5 +1,5 @@
-> -ccflags-y :=3D -Idrivers/net/ethernet/chelsio/cxgb4
-> -ccflags-y +=3D -Idrivers/net/ethernet/chelsio/libcxgb
-> +ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/chelsio/cxgb4
-> +ccflags-y +=3D -I $(srctree)/drivers/net/ethernet/chelsio/libcxgb
->=20
-> obj-$(CONFIG_INFINIBAND_CXGB4) +=3D iw_cxgb4.o
->=20
-> diff --git a/drivers/infiniband/hw/hns/Makefile b/drivers/infiniband/hw/h=
-ns/Makefile
-> index 004c88b..e2a7f14 100644
-> --- a/drivers/infiniband/hw/hns/Makefile
-> +++ b/drivers/infiniband/hw/hns/Makefile
-> @@ -2,7 +2,7 @@
-> # Makefile for the Hisilicon RoCE drivers.
-> #
->=20
-> -ccflags-y :=3D  -Idrivers/net/ethernet/hisilicon/hns3
-> +ccflags-y :=3D  -I $(srctree)/drivers/net/ethernet/hisilicon/hns3
->=20
-> obj-$(CONFIG_INFINIBAND_HNS) +=3D hns-roce.o
-> hns-roce-objs :=3D hns_roce_main.o hns_roce_cmd.o hns_roce_pd.o \
-> diff --git a/drivers/infiniband/hw/i40iw/Makefile b/drivers/infiniband/hw=
-/i40iw/Makefile
-> index 5a8a7a3..8942f82 100644
-> --- a/drivers/infiniband/hw/i40iw/Makefile
-> +++ b/drivers/infiniband/hw/i40iw/Makefile
-> @@ -1,5 +1,5 @@
-> # SPDX-License-Identifier: GPL-2.0
-> -ccflags-y :=3D  -Idrivers/net/ethernet/intel/i40e
-> +ccflags-y :=3D  -I $(srctree)/drivers/net/ethernet/intel/i40e
->=20
-> obj-$(CONFIG_INFINIBAND_I40IW) +=3D i40iw.o
->=20
-> diff --git a/drivers/infiniband/hw/ocrdma/Makefile b/drivers/infiniband/h=
-w/ocrdma/Makefile
-> index d1bfd4f..e3f20ca 100644
-> --- a/drivers/infiniband/hw/ocrdma/Makefile
-> +++ b/drivers/infiniband/hw/ocrdma/Makefile
-> @@ -1,4 +1,4 @@
-> -ccflags-y :=3D -Idrivers/net/ethernet/emulex/benet
-> +ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/emulex/benet
->=20
-> obj-$(CONFIG_INFINIBAND_OCRDMA)	+=3D ocrdma.o
->=20
-> diff --git a/drivers/infiniband/hw/usnic/Makefile b/drivers/infiniband/hw=
-/usnic/Makefile
-> index 94ae7a1..f12a493 100644
-> --- a/drivers/infiniband/hw/usnic/Makefile
-> +++ b/drivers/infiniband/hw/usnic/Makefile
-> @@ -1,5 +1,5 @@
-> # SPDX-License-Identifier: GPL-2.0
-> -ccflags-y :=3D -Idrivers/net/ethernet/cisco/enic
-> +ccflags-y :=3D -I $(srctree)/drivers/net/ethernet/cisco/enic
->=20
-> obj-$(CONFIG_INFINIBAND_USNIC)+=3D usnic_verbs.o
->=20
-> --=20
-> 2.7.4
->=20
+Jason
