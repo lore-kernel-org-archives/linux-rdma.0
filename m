@@ -1,38 +1,39 @@
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Subject: [PATCH 1/2] infiniband: remove unneeded header search paths
-Date: Fri, 25 Jan 2019 13:39:30 +0900
-Message-ID: <1548391171-6407-2-git-send-email-yamada.masahiro@socionext.com>
-References: <1548391171-6407-1-git-send-email-yamada.masahiro@socionext.com>
+Subject: [PATCH 0/2] infiniband: trivial header search path fixups
+Date: Fri, 25 Jan 2019 13:39:29 +0900
+Message-ID: <1548391171-6407-1-git-send-email-yamada.masahiro@socionext.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1548391171-6407-1-git-send-email-yamada.masahiro@socionext.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Jason Gunthorpe <jgg@ziepe.ca>, Sagi Grimberg <sagi@grimberg.me>, linux-kernel@vger.kernel.org, target-devel@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Jason Gunthorpe <jgg@ziepe.ca>, Somnath Kotur <somnath.kotur@broadcom.com>, Sagi Grimberg <sagi@grimberg.me>, Nelson Escobar <neescoba@cisco.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Parvi Kaustubhi <pkaustub@cisco.com>, linux-kernel@vger.kernel.org, Lijun Ou <oulijun@huawei.com>, Steve Wise <swise@chelsio.com>, target-devel@vger.kernel.org, Christian Benvenuti <benve@cisco.com>, Faisal Latif <faisal.latif@intel.com>, Bart Van Assche <bvanassche@acm.org>, Shiraz Saleem <shiraz.saleem@intel.com>, Selvin Xavier <selvin.xavier@broadcom.com>, "Wei Hu(Xavier)" <xavier.huwei@huawei.com>, Devesh Sharma <devesh.sharma@broadcom.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The included headers are located in include/target/. I was able to
-build these drivers without the extra header search paths.
+My main motivation is to get rid of crappy header search path manipulation
+from Kbuild core.
 
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
+Before that, I want to do as many treewide cleanups as possible.
 
- drivers/infiniband/ulp/isert/Makefile | 1 -
- drivers/infiniband/ulp/srpt/Makefile  | 1 -
- 2 files changed, 2 deletions(-)
+If you are interested in the big picture of this work,
+the full patch set is available at:
 
-diff --git a/drivers/infiniband/ulp/isert/Makefile b/drivers/infiniband/ulp/isert/Makefile
-index c8bf242..a4a4766 100644
---- a/drivers/infiniband/ulp/isert/Makefile
-+++ b/drivers/infiniband/ulp/isert/Makefile
-@@ -1,2 +1 @@
--ccflags-y		:= -Idrivers/target -Idrivers/target/iscsi
- obj-$(CONFIG_INFINIBAND_ISERT)	+= ib_isert.o
-diff --git a/drivers/infiniband/ulp/srpt/Makefile b/drivers/infiniband/ulp/srpt/Makefile
-index e3ee4bd..43fbde4 100644
---- a/drivers/infiniband/ulp/srpt/Makefile
-+++ b/drivers/infiniband/ulp/srpt/Makefile
-@@ -1,2 +1 @@
--ccflags-y			:= -Idrivers/target
- obj-$(CONFIG_INFINIBAND_SRPT)	+= ib_srpt.o
+git://git.kernel.org/pub/scm/linux/kernel/git/masahiroy/linux-kbuild.git build-test
+
+
+
+Masahiro Yamada (2):
+  infiniband: remove unneeded header search paths
+  infiniband: prefix header search paths with $(srctree)/
+
+ drivers/infiniband/hw/bnxt_re/Makefile | 2 +-
+ drivers/infiniband/hw/cxgb3/Makefile   | 2 +-
+ drivers/infiniband/hw/cxgb4/Makefile   | 4 ++--
+ drivers/infiniband/hw/hns/Makefile     | 2 +-
+ drivers/infiniband/hw/i40iw/Makefile   | 2 +-
+ drivers/infiniband/hw/ocrdma/Makefile  | 2 +-
+ drivers/infiniband/hw/usnic/Makefile   | 2 +-
+ drivers/infiniband/ulp/isert/Makefile  | 1 -
+ drivers/infiniband/ulp/srpt/Makefile   | 1 -
+ 9 files changed, 8 insertions(+), 10 deletions(-)
+
 -- 
 2.7.4
