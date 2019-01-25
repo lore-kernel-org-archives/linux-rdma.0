@@ -1,31 +1,56 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next 05/19] rdma: Move resource PD logic to
- separate file
-Date: Fri, 25 Jan 2019 10:19:22 -0700
-Message-ID: <0ad0319f-194c-d574-e7f7-eca71c7a008a@gmail.com>
-References: <20190122183125.15920-1-leon@kernel.org>
- <20190122183125.15920-6-leon@kernel.org>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
+Date: Fri, 25 Jan 2019 10:08:00 -0800
+Message-ID: <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com> <20190124123041.GS3604@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190122183125.15920-6-leon@kernel.org>
-Content-Language: en-US
+In-Reply-To: <20190124123041.GS3604@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 1/22/19 11:31 AM, Leon Romanovsky wrote:
-> +static const
-> +struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-> +	{ .name = "dev", .is_number = false },
-> +	{ .name = "users", .is_number = true },
-> +	{ .name = "pid", .is_number = true },
-> +	{ .name = "ctxn", .is_number = true },
-> +	{ .name = "pdn", .is_number = true },
-> +	{ .name = "ctxn", .is_number = true }
-> +};
+On Thu, Jan 24, 2019 at 4:30 AM Leon Romanovsky <leonro@mellanox.com> wrote:
+>
+> On Fri, Jan 18, 2019 at 04:33:09PM -0800, Saeed Mahameed wrote:
+> > Hi all,
+> >
+> > This series includes updates to mlx5-next shared branch.
+> >
+> > 1) from Jason, improve mlx5_cmd_exec_cb async API to be safer
+> > 2) from Maxim Mikityanskiy, cleanups for mlx5_write64 doorbell API
+> > 3) from Michael Guralnik, Add pci AtomicOps request
+> >
+> > Thanks,
+> > Saeed.
+> >
+> > ---
+> >
+> > Jason Gunthorpe (1):
+> >   net/mlx5: Make mlx5_cmd_exec_cb() a safe API
+> >
+> > Michael Guralnik (1):
+> >   net/mlx5: Add pci AtomicOps request
+>
+> Those two were applied to mlx5-next branch.
+>
+> ce4eee5340a9 (mlx5-next) net/mlx5: Add pci AtomicOps request
+> e355477ed9e4 net/mlx5: Make mlx5_cmd_exec_cb() a safe API
+>
+> > Maxim Mikityanskiy (2):
+> >   net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
+> >   net/mlx5: Remove spinlock support from mlx5_write64
+>
+> Those two needs extra work,
 
-These should not be in a header file. Looks like you have done this in
-other patches as well.
+What extra work ?
+
+>
+> Thanks
+>
+> >
+> > --
+> > 2.20.1
+> >
