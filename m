@@ -1,106 +1,98 @@
-From: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused by
- sending mailbox&CMQ during reset
-Date: Sat, 26 Jan 2019 11:27:57 +0800
-Message-ID: <5C4BD3BD.2080601@huawei.com>
-References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
- <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
- <20190123224041.GA11605@ziepe.ca> <5C492D59.8030707@huawei.com>
- <20190124183120.GD17167@ziepe.ca> <5C4A714C.2070109@huawei.com>
- <20190125215018.GF23001@ziepe.ca> <5C4BBC3E.2000004@huawei.com>
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
+Date: Sun, 27 Jan 2019 07:51:11 +0000
+Message-ID: <20190127075109.GY3604@mtr-leonro.mtl.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com>
+ <20190124123041.GS3604@mtr-leonro.mtl.com>
+ <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5C4BBC3E.2000004@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: lijun_nudt@163.com, linux-rdma@vger.kernel.org, xavier_huwei@163.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, dledford@redhat.com
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="l8yJEXo8J9fv7OFY"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
+--l8yJEXo8J9fv7OFY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Fri, Jan 25, 2019 at 10:08:00AM -0800, Saeed Mahameed wrote:
+> On Thu, Jan 24, 2019 at 4:30 AM Leon Romanovsky <leonro@mellanox.com> wrote:
+> >
+> > On Fri, Jan 18, 2019 at 04:33:09PM -0800, Saeed Mahameed wrote:
+> > > Hi all,
+> > >
+> > > This series includes updates to mlx5-next shared branch.
+> > >
+> > > 1) from Jason, improve mlx5_cmd_exec_cb async API to be safer
+> > > 2) from Maxim Mikityanskiy, cleanups for mlx5_write64 doorbell API
+> > > 3) from Michael Guralnik, Add pci AtomicOps request
+> > >
+> > > Thanks,
+> > > Saeed.
+> > >
+> > > ---
+> > >
+> > > Jason Gunthorpe (1):
+> > >   net/mlx5: Make mlx5_cmd_exec_cb() a safe API
+> > >
+> > > Michael Guralnik (1):
+> > >   net/mlx5: Add pci AtomicOps request
+> >
+> > Those two were applied to mlx5-next branch.
+> >
+> > ce4eee5340a9 (mlx5-next) net/mlx5: Add pci AtomicOps request
+> > e355477ed9e4 net/mlx5: Make mlx5_cmd_exec_cb() a safe API
+> >
+> > > Maxim Mikityanskiy (2):
+> > >   net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
+> > >   net/mlx5: Remove spinlock support from mlx5_write64
+> >
+> > Those two needs extra work,
+>
+> What extra work ?
 
-On 2019/1/26 9:47, Wei Hu (Xavier) wrote:
->
-> On 2019/1/26 5:50, Jason Gunthorpe wrote:
->> On Fri, Jan 25, 2019 at 10:15:40AM +0800, Wei Hu (Xavier) wrote:
->>> On 2019/1/25 2:31, Jason Gunthorpe wrote:
->>>> On Thu, Jan 24, 2019 at 11:13:29AM +0800, Wei Hu (Xavier) wrote:
->>>>> On 2019/1/24 6:40, Jason Gunthorpe wrote:
->>>>>> On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
->>>>>>
->>>>>>> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
->>>>>>> +					unsigned long instance_stage,
->>>>>>> +					unsigned long reset_stage)
->>>>>>> +{
->>>>>>> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
->>>>>>> +	struct hnae3_handle *handle = priv->handle;
->>>>>>> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
->>>>>>> +	unsigned long end;
->>>>>>> +
->>>>>>> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
->>>>>>> +	 * to hardware, and wait until hardware reset finished. If now
->>>>>>> +	 * in .init_instance() function, we should exit with error. If now at
->>>>>>> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
->>>>>>> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
->>>>>>> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
->>>>>>> +	 * related process will exit with error to notify NIC driver to
->>>>>>> +	 * reschedule soft reset process once again.
->>>>>>> +	 */
->>>>>>> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
->>>>>>> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
->>>>>>> +		udelay(1);
->>>>>> I thought you were getting rid of these loops?
->>>>> Hi, Jason
->>>>>
->>>>>     Upper applications maybe notify driver to issue mailbox or CMD
->>>>>     commands to hardware, some commands used to cancel resources,
->>>>>     destory bt/destory cq/unreg mr/destory qp etc. when such
->>>>>     commands are executed successfully, the hardware engine will
->>>>>     no longer access some memory registered by the driver.
->>>>>
->>>>>     When reset occurs, it is possible for upper applications notify driver
->>>>>     to issue mailbox or CMD commands, we need to wait until hardware
->>>>>     reset finished to ensure that hardware no longer accesses related
->>>>> memory.
->>>> You should not wait for things using loops like the above.
->>> Hi, Jason
->>>
->>>     Are your comments foucsing on udelay? If not, thanks for your detail
->>> information.
->>>     In hns3 RoCE driver, some CMQ/mailbox operation are called inside
->>> the lock,
->>>     we can't use msleep in the lock, otherwise it will cause deadlock.
->>>     When reset occurs, RDMA service cannot be provided normally, I think
->>> in this
->>>     case using udelay will not have a great impact.
->> You should not use any kind of sleep call in a loop like this.
-> Hi, Jason
->
->     OK, I got your opinion and will modify it in v3 patch as below:   
->
->     end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
->     while (time_before(jiffies, end))
->         if (!ops->get_hw_reset_stat(handle))
->             break;           
->    
-Hi, Jason
-    Thanks for your comments, I have modified them and send patch V3.
-    Thanks.
+You got two comments for area you are touching:
+1. Replace _rww writes to something else.
+2. Protect with spinlock 32-bits writes instead of ignoring it.
 
-    Regards
-Xavier
->     Regards
-> Xavier
->> Jason
->>
->> .
->>
+Both of those changes will touch the same 2-4 lines and there
+is very little benefit in creating more than one-two patches
+just for that.
+
+Thanks
+
 >
-> _______________________________________________
-> Linuxarm mailing list
-> Linuxarm@huawei.com
-> http://hulk.huawei.com/mailman/listinfo/linuxarm
->
-> .
->
+> >
+> > Thanks
+> >
+> > >
+> > > --
+> > > 2.20.1
+> > >
+
+--l8yJEXo8J9fv7OFY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcTWLtAAoJEORje4g2clin2EIQAIlsDxTcUaul4OAHMflt9Ofk
+A98hv5+GK1djH/DB1PYDvegHEiRAUKKhbuI0AXSQvFgANqO0lNF96y+3zqidXVRV
+K5hX4cBc19ymqdzxqqnCuD2wTisb1r1BEGy12YIqAUpPF2s5jchJuYlFEUqVDfmm
+PaZXWKqQmhH/vPZHeZKTK75sct8Pjva/lsHBbwPAMxybERP7TC52carmn4lh2vZj
+sQCl4c1xBu15gq8Zjxk+87NkPbxykvRqq09Kz3OreY0Gkia4H/VlDzl7lGXq9po4
+pCapW57aOpU7wPi7QII9Lpjq41XhgrEkGYlJDGeyBOs5q5REuRVnPSpzVABcbuS2
+sRXiniNWHhvF87nT4Rv7mC3Wx7OTXixcBBcVCFYUXOKJ3NhTX3ZYubRoQVVBp/p/
+iyKMgvGWmzK+84g1my1GprPq9cDMbeh1jfO5wg7+PgxHQg10eRKKCtAbMb+uETcn
+YqAN7B3fqMZkPvMPyt4R2JpDIOnQ1QsRG9KEt7mfX0xygVGbhd77w4tEXjL/d78x
+4Xb4xN7cL1cdyfdoAqJsav7345s3Tkyb/ljRF0jH+g16oUqn90tjq0MiYwqjvZqd
+WEGrwGY+BvjMzdyNifHJSPbyLYMmBSuu+DMrJJ+icHn26JL4tR1Z5JDhcJjqx0RC
+Ni4CvGCzaFXLxflgCdn4
+=Zro/
+-----END PGP SIGNATURE-----
+
+--l8yJEXo8J9fv7OFY--
