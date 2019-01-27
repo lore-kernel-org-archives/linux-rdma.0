@@ -1,98 +1,69 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
-Date: Sun, 27 Jan 2019 07:51:11 +0000
-Message-ID: <20190127075109.GY3604@mtr-leonro.mtl.com>
-References: <20190119003313.16711-1-saeedm@mellanox.com>
- <20190124123041.GS3604@mtr-leonro.mtl.com>
- <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH iproute2-next 05/19] rdma: Move resource PD logic to
+ separate file
+Date: Sun, 27 Jan 2019 10:29:57 +0200
+Message-ID: <20190127082957.GB3604@mtr-leonro.mtl.com>
+References: <20190122183125.15920-1-leon@kernel.org>
+ <20190122183125.15920-6-leon@kernel.org>
+ <0ad0319f-194c-d574-e7f7-eca71c7a008a@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="l8yJEXo8J9fv7OFY"
+        protocol="application/pgp-signature"; boundary="s9pXJW6w71JX4l3T"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <0ad0319f-194c-d574-e7f7-eca71c7a008a@gmail.com>
 Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Cc: Saeed Mahameed <saeedm@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>
+To: David Ahern <dsahern@gmail.com>
+Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
---l8yJEXo8J9fv7OFY
+
+--s9pXJW6w71JX4l3T
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Fri, Jan 25, 2019 at 10:08:00AM -0800, Saeed Mahameed wrote:
-> On Thu, Jan 24, 2019 at 4:30 AM Leon Romanovsky <leonro@mellanox.com> wrote:
-> >
-> > On Fri, Jan 18, 2019 at 04:33:09PM -0800, Saeed Mahameed wrote:
-> > > Hi all,
-> > >
-> > > This series includes updates to mlx5-next shared branch.
-> > >
-> > > 1) from Jason, improve mlx5_cmd_exec_cb async API to be safer
-> > > 2) from Maxim Mikityanskiy, cleanups for mlx5_write64 doorbell API
-> > > 3) from Michael Guralnik, Add pci AtomicOps request
-> > >
-> > > Thanks,
-> > > Saeed.
-> > >
-> > > ---
-> > >
-> > > Jason Gunthorpe (1):
-> > >   net/mlx5: Make mlx5_cmd_exec_cb() a safe API
-> > >
-> > > Michael Guralnik (1):
-> > >   net/mlx5: Add pci AtomicOps request
-> >
-> > Those two were applied to mlx5-next branch.
-> >
-> > ce4eee5340a9 (mlx5-next) net/mlx5: Add pci AtomicOps request
-> > e355477ed9e4 net/mlx5: Make mlx5_cmd_exec_cb() a safe API
-> >
-> > > Maxim Mikityanskiy (2):
-> > >   net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
-> > >   net/mlx5: Remove spinlock support from mlx5_write64
-> >
-> > Those two needs extra work,
+On Fri, Jan 25, 2019 at 10:19:22AM -0700, David Ahern wrote:
+> On 1/22/19 11:31 AM, Leon Romanovsky wrote:
+> > +static const
+> > +struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+> > +	{ .name = "dev", .is_number = false },
+> > +	{ .name = "users", .is_number = true },
+> > +	{ .name = "pid", .is_number = true },
+> > +	{ .name = "ctxn", .is_number = true },
+> > +	{ .name = "pdn", .is_number = true },
+> > +	{ .name = "ctxn", .is_number = true }
+> > +};
 >
-> What extra work ?
+> These should not be in a header file. Looks like you have done this in
+> other patches as well.
 
-You got two comments for area you are touching:
-1. Replace _rww writes to something else.
-2. Protect with spinlock 32-bits writes instead of ignoring it.
+This is the outcome of how we build command line with single struct *rd,
+see res_show(). While I refactored the code, I saw your comment is coming,
+but decided to proceed anyway to make this series a little bit sane.
 
-Both of those changes will touch the same 2-4 lines and there
-is very little benefit in creating more than one-two patches
-just for that.
+I'll definitely continue to refactor it, but for now, there is a need to see
+valid_filters structure in RES_FUNC() macro.
 
 Thanks
 
->
-> >
-> > Thanks
-> >
-> > >
-> > > --
-> > > 2.20.1
-> > >
-
---l8yJEXo8J9fv7OFY
+--s9pXJW6w71JX4l3T
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcTWLtAAoJEORje4g2clin2EIQAIlsDxTcUaul4OAHMflt9Ofk
-A98hv5+GK1djH/DB1PYDvegHEiRAUKKhbuI0AXSQvFgANqO0lNF96y+3zqidXVRV
-K5hX4cBc19ymqdzxqqnCuD2wTisb1r1BEGy12YIqAUpPF2s5jchJuYlFEUqVDfmm
-PaZXWKqQmhH/vPZHeZKTK75sct8Pjva/lsHBbwPAMxybERP7TC52carmn4lh2vZj
-sQCl4c1xBu15gq8Zjxk+87NkPbxykvRqq09Kz3OreY0Gkia4H/VlDzl7lGXq9po4
-pCapW57aOpU7wPi7QII9Lpjq41XhgrEkGYlJDGeyBOs5q5REuRVnPSpzVABcbuS2
-sRXiniNWHhvF87nT4Rv7mC3Wx7OTXixcBBcVCFYUXOKJ3NhTX3ZYubRoQVVBp/p/
-iyKMgvGWmzK+84g1my1GprPq9cDMbeh1jfO5wg7+PgxHQg10eRKKCtAbMb+uETcn
-YqAN7B3fqMZkPvMPyt4R2JpDIOnQ1QsRG9KEt7mfX0xygVGbhd77w4tEXjL/d78x
-4Xb4xN7cL1cdyfdoAqJsav7345s3Tkyb/ljRF0jH+g16oUqn90tjq0MiYwqjvZqd
-WEGrwGY+BvjMzdyNifHJSPbyLYMmBSuu+DMrJJ+icHn26JL4tR1Z5JDhcJjqx0RC
-Ni4CvGCzaFXLxflgCdn4
-=Zro/
+iQIcBAEBAgAGBQJcTWwFAAoJEORje4g2clin7ZMP/jIC35Z1RGmjXUbCcAOq2vh4
+9qaGWt3azDRRIASX/6u308c1lLBra1R8kTnlKwW3GC7hmGGH1mt1I56Rq+gnebt4
+oxXS+Z7MrzqK0P61tFz+zf5xORPvDm8+8ht81mI/sfW3tFBdBMNBaPMjD+Zwm6VN
+bHxNb17ijJz+X0iGlkfXd0Ih6kNPaB1N8jKJHCLmMT+jFCy4rVTSDfGCqi/XTdrD
+fvPekuEO0jtcXsGw79HCt/wYcuHHHvXSW+7P40hA1dfeifiJLj/9r91a/ma4rAT8
+Hp2/fXmBaJq/rB9DUQQPHVKbZFFKO/53dOtmISv8hDSyUCCO9WIEngO+CzX0GDio
+eVpM3ad7XDXbPGDIpNP+DkBa522ISVVf1yUDGo5sbBh3Np9eR4o814IOKUaLNqmK
+wdfFon2Xj36t4BMkfd05E5vS8kwHmEMUPEDl4gNrwkvDjSrorHc4G0ni5Fuuu6aF
+kD2AX2KexZ/Hc2Ko33s0bvi1s45bDvVXn6SheYD/4pBp7R7+VTExos8yutKvT1Tr
+vZuT2rUQTSOxhvTxxi45erDei+Cz95TDBwmdludwESHLA8WYxe3sAfQjOVMKJ5r9
+q4Hpf17yfcEhu3Ji7jzTUszIE/AmcAnHdhdLwR/sU7A65oCJ3XFdd+5tr3/lY4CF
+eHY1QC0KGzy5BCSh8f9e
+=a+vJ
 -----END PGP SIGNATURE-----
 
---l8yJEXo8J9fv7OFY--
+--s9pXJW6w71JX4l3T--
