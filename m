@@ -1,93 +1,56 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH V2 rdma-next 2/3] RDMA/hns: Fix the chip hanging caused
- by sending mailbox&CMQ during reset
-Date: Mon, 28 Jan 2019 11:27:59 -0700
-Message-ID: <20190128182759.GA25106@ziepe.ca>
-References: <1547868967-115951-1-git-send-email-xavier.huwei@huawei.com>
- <1547868967-115951-3-git-send-email-xavier.huwei@huawei.com>
- <20190123224041.GA11605@ziepe.ca>
- <5C492D59.8030707@huawei.com>
- <20190124183120.GD17167@ziepe.ca>
- <5C4A714C.2070109@huawei.com>
- <20190125215018.GF23001@ziepe.ca>
- <5C4BBC3E.2000004@huawei.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
+Date: Mon, 28 Jan 2019 19:11:01 +0000
+Message-ID: <812ce9a19d55ed16af677622a39ee484eb9c508f.camel@mellanox.com>
+References: <20190119003313.16711-1-saeedm@mellanox.com>
+         <20190124123041.GS3604@mtr-leonro.mtl.com>
+         <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
+         <20190127075109.GY3604@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5C4BBC3E.2000004@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190127075109.GY3604@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <45D9F6FAC174844CAC46EA3F593685B5@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>, "saeedm@dev.mellanox.co.il" <saeedm@dev.mellanox.co.il>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 26, 2019 at 09:47:42AM +0800, Wei Hu (Xavier) wrote:
-> 
-> 
-> On 2019/1/26 5:50, Jason Gunthorpe wrote:
-> > On Fri, Jan 25, 2019 at 10:15:40AM +0800, Wei Hu (Xavier) wrote:
-> >>
-> >> On 2019/1/25 2:31, Jason Gunthorpe wrote:
-> >>> On Thu, Jan 24, 2019 at 11:13:29AM +0800, Wei Hu (Xavier) wrote:
-> >>>> On 2019/1/24 6:40, Jason Gunthorpe wrote:
-> >>>>> On Sat, Jan 19, 2019 at 11:36:06AM +0800, Wei Hu (Xavier) wrote:
-> >>>>>
-> >>>>>> +static int hns_roce_v2_cmd_hw_resetting(struct hns_roce_dev *hr_dev,
-> >>>>>> +					unsigned long instance_stage,
-> >>>>>> +					unsigned long reset_stage)
-> >>>>>> +{
-> >>>>>> +	struct hns_roce_v2_priv *priv = (struct hns_roce_v2_priv *)hr_dev->priv;
-> >>>>>> +	struct hnae3_handle *handle = priv->handle;
-> >>>>>> +	const struct hnae3_ae_ops *ops = handle->ae_algo->ops;
-> >>>>>> +	unsigned long end;
-> >>>>>> +
-> >>>>>> +	/* When hardware reset is detected, we should stop sending mailbox&cmq
-> >>>>>> +	 * to hardware, and wait until hardware reset finished. If now
-> >>>>>> +	 * in .init_instance() function, we should exit with error. If now at
-> >>>>>> +	 * HNAE3_INIT_CLIENT stage of soft reset process, we should exit with
-> >>>>>> +	 * error, and then HNAE3_INIT_CLIENT related process can rollback the
-> >>>>>> +	 * operation like notifing hardware to free resources, HNAE3_INIT_CLIENT
-> >>>>>> +	 * related process will exit with error to notify NIC driver to
-> >>>>>> +	 * reschedule soft reset process once again.
-> >>>>>> +	 */
-> >>>>>> +	end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
-> >>>>>> +	while (ops->get_hw_reset_stat(handle) && time_before(jiffies, end))
-> >>>>>> +		udelay(1);
-> >>>>> I thought you were getting rid of these loops?
-> >>>> Hi, Jason
-> >>>>
-> >>>>     Upper applications maybe notify driver to issue mailbox or CMD
-> >>>>     commands to hardware, some commands used to cancel resources,
-> >>>>     destory bt/destory cq/unreg mr/destory qp etc. when such
-> >>>>     commands are executed successfully, the hardware engine will
-> >>>>     no longer access some memory registered by the driver.
-> >>>>
-> >>>>     When reset occurs, it is possible for upper applications notify driver
-> >>>>     to issue mailbox or CMD commands, we need to wait until hardware
-> >>>>     reset finished to ensure that hardware no longer accesses related
-> >>>> memory.
-> >>> You should not wait for things using loops like the above.
-> >> Hi, Jason
-> >>
-> >>     Are your comments foucsing on udelay? If not, thanks for your detail
-> >> information.
-> >>     In hns3 RoCE driver, some CMQ/mailbox operation are called inside
-> >> the lock,
-> >>     we can't use msleep in the lock, otherwise it will cause deadlock.
-> >>     When reset occurs, RDMA service cannot be provided normally, I think
-> >> in this
-> >>     case using udelay will not have a great impact.
-> > You should not use any kind of sleep call in a loop like this.
-> Hi, Jason
-> 
->     OK, I got your opinion and will modify it in v3 patch as below:   
-> 
->     end = msecs_to_jiffies(HNS_ROCE_V2_HW_RST_TIMEOUT) + jiffies;
->     while (time_before(jiffies, end))
->         if (!ops->get_hw_reset_stat(handle))
->             break;           
-
-You shouldn't be looping like this at all, a busy loop is worse, don't
-try and open code spinlocks.
-
-Jason
+T24gU3VuLCAyMDE5LTAxLTI3IGF0IDA3OjUxICswMDAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIEZyaSwgSmFuIDI1LCAyMDE5IGF0IDEwOjA4OjAwQU0gLTA4MDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IE9uIFRodSwgSmFuIDI0LCAyMDE5IGF0IDQ6MzAgQU0gTGVvbiBSb21h
+bm92c2t5IDwNCj4gPiBsZW9ucm9AbWVsbGFub3guY29tPiB3cm90ZToNCj4gPiA+IE9uIEZyaSwg
+SmFuIDE4LCAyMDE5IGF0IDA0OjMzOjA5UE0gLTA4MDAsIFNhZWVkIE1haGFtZWVkIHdyb3RlOg0K
+PiA+ID4gPiBIaSBhbGwsDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIHNlcmllcyBpbmNsdWRlcyB1
+cGRhdGVzIHRvIG1seDUtbmV4dCBzaGFyZWQgYnJhbmNoLg0KPiA+ID4gPiANCj4gPiA+ID4gMSkg
+ZnJvbSBKYXNvbiwgaW1wcm92ZSBtbHg1X2NtZF9leGVjX2NiIGFzeW5jIEFQSSB0byBiZSBzYWZl
+cg0KPiA+ID4gPiAyKSBmcm9tIE1heGltIE1pa2l0eWFuc2tpeSwgY2xlYW51cHMgZm9yIG1seDVf
+d3JpdGU2NCBkb29yYmVsbA0KPiA+ID4gPiBBUEkNCj4gPiA+ID4gMykgZnJvbSBNaWNoYWVsIEd1
+cmFsbmlrLCBBZGQgcGNpIEF0b21pY09wcyByZXF1ZXN0DQo+ID4gPiA+IA0KPiA+ID4gPiBUaGFu
+a3MsDQo+ID4gPiA+IFNhZWVkLg0KPiA+ID4gPiANCj4gPiA+ID4gLS0tDQo+ID4gPiA+IA0KPiA+
+ID4gPiBKYXNvbiBHdW50aG9ycGUgKDEpOg0KPiA+ID4gPiAgIG5ldC9tbHg1OiBNYWtlIG1seDVf
+Y21kX2V4ZWNfY2IoKSBhIHNhZmUgQVBJDQo+ID4gPiA+IA0KPiA+ID4gPiBNaWNoYWVsIEd1cmFs
+bmlrICgxKToNCj4gPiA+ID4gICBuZXQvbWx4NTogQWRkIHBjaSBBdG9taWNPcHMgcmVxdWVzdA0K
+PiA+ID4gDQo+ID4gPiBUaG9zZSB0d28gd2VyZSBhcHBsaWVkIHRvIG1seDUtbmV4dCBicmFuY2gu
+DQo+ID4gPiANCj4gPiA+IGNlNGVlZTUzNDBhOSAobWx4NS1uZXh0KSBuZXQvbWx4NTogQWRkIHBj
+aSBBdG9taWNPcHMgcmVxdWVzdA0KPiA+ID4gZTM1NTQ3N2VkOWU0IG5ldC9tbHg1OiBNYWtlIG1s
+eDVfY21kX2V4ZWNfY2IoKSBhIHNhZmUgQVBJDQo+ID4gPiANCj4gPiA+ID4gTWF4aW0gTWlraXR5
+YW5za2l5ICgyKToNCj4gPiA+ID4gICBuZXQvbWx4NTogUmVtb3ZlIHVudXNlZCBNTFg1XypfRE9P
+UkJFTExfTE9DSyBtYWNyb3MNCj4gPiA+ID4gICBuZXQvbWx4NTogUmVtb3ZlIHNwaW5sb2NrIHN1
+cHBvcnQgZnJvbSBtbHg1X3dyaXRlNjQNCj4gPiA+IA0KPiA+ID4gVGhvc2UgdHdvIG5lZWRzIGV4
+dHJhIHdvcmssDQo+ID4gDQo+ID4gV2hhdCBleHRyYSB3b3JrID8NCj4gDQo+IFlvdSBnb3QgdHdv
+IGNvbW1lbnRzIGZvciBhcmVhIHlvdSBhcmUgdG91Y2hpbmc6DQo+IDEuIFJlcGxhY2UgX3J3dyB3
+cml0ZXMgdG8gc29tZXRoaW5nIGVsc2UuDQoNCk5vdCByZWxhdGVkIHRvIHRoaXMgY2xlYW51cCBw
+YXRjaHNldC4NCg0KPiAyLiBQcm90ZWN0IHdpdGggc3BpbmxvY2sgMzItYml0cyB3cml0ZXMgaW5z
+dGVhZCBvZiBpZ25vcmluZyBpdC4NCg0KU2FtZSBhcyBhYm92ZSwgSSBhbHJlYWR5IGV4cGxhaW5l
+ZCB0aGlzLg0KDQo+IA0KPiBCb3RoIG9mIHRob3NlIGNoYW5nZXMgd2lsbCB0b3VjaCB0aGUgc2Ft
+ZSAyLTQgbGluZXMgYW5kIHRoZXJlDQo+IGlzIHZlcnkgbGl0dGxlIGJlbmVmaXQgaW4gY3JlYXRp
+bmcgbW9yZSB0aGFuIG9uZS10d28gcGF0Y2hlcw0KPiBqdXN0IGZvciB0aGF0Lg0KPiANCg0KRnV0
+dXJlIHdvcmssIGFzIGl0IG5lZWRzIHZlcmlmaWNhdGlvbiBhbmQgY2FyZWZ1bCB0ZXN0aW5nLg0K
+DQpMZW9uIEkgd291bGQgbGlrZSB0byBtb3ZlIG9uIHdpdGggdGhvc2UgMiBzbWFsbCBjbGVhbnVw
+IHBhdGNoZXMsIG5vDQpmdW5jdGlvbmFsaXR5IGNoYW5nZSBoZXJlLCBwbGVhc2UgY29uZmlybSB5
+b3UgYXJlIG9rIHdpdGggdGhlbS4NCg0KVGhhbmtzLA0KU2FlZWQuDQoNCj4gVGhhbmtzDQo+IA0K
+PiA+ID4gVGhhbmtzDQo+ID4gPiANCj4gPiA+ID4gLS0NCj4gPiA+ID4gMi4yMC4xDQo+ID4gPiA+
+IA0K
