@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 070/304] RDMA/core: Sync unregistration with netlink commands
-Date: Mon, 28 Jan 2019 10:39:47 -0500
-Message-ID: <20190128154341.47195-70-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 134/304] IB/hfi1: Unreserve a reserved request when it is completed
+Date: Mon, 28 Jan 2019 10:40:51 -0500
+Message-ID: <20190128154341.47195-134-sashal@kernel.org>
 References: <20190128154341.47195-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,266 +9,48 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Parav Pandit <parav@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Parav Pandit <parav@mellanox.com>
+From: Kaike Wan <kaike.wan@intel.com>
 
-[ Upstream commit 01b671170d7f82b959dad6d5dbb44d7a915e647d ]
+[ Upstream commit ca95f802ef5139722acc8d30aeaab6fe5bbe939e ]
 
-When the rdma device is getting removed, get resource info can race with
-device removal, as below:
+Currently, When a reserved operation is completed, its entry in the send
+queue will not be unreserved, which leads to the miscalculation of
+qp->s_avail and thus the triggering of a WARN_ON call trace. This patch
+fixes the problem by unreserving the reserved operation when it is
+completed.
 
-      CPU-0                                  CPU-1
-    --------                               --------
-    rdma_nl_rcv_msg()
-       nldev_res_get_cq_dumpit()
-          mutex_lock(device_lock);
-          get device reference
-          mutex_unlock(device_lock);        [..]
-                                            ib_unregister_device()
-                                            /* Valid reference to
-                                             * device->dev exists.
-                                             */
-                                             ib_dealloc_device()
-
-          [..]
-          provider->fill_res_entry();
-
-Even though device object is not freed, fill_res_entry() can get called on
-device which doesn't have a driver anymore. Kernel core device reference
-count is not sufficient, as this only keeps the structure valid, and
-doesn't guarantee the driver is still loaded.
-
-Similar race can occur with device renaming and device removal, where
-device_rename() tries to rename a unregistered device. While this is fine
-for devices of a class which are not net namespace aware, but it is
-incorrect for net namespace aware class coming in subsequent series.  If a
-class is net namespace aware, then the below [1] call trace is observed in
-above situation.
-
-Therefore, to avoid the race, keep a reference count and let device
-unregistration wait until all netlink users drop the reference.
-
-[1] Call trace:
-kernfs: ns required in 'infiniband' for 'mlx5_0'
-WARNING: CPU: 18 PID: 44270 at fs/kernfs/dir.c:842 kernfs_find_ns+0x104/0x120
-libahci i2c_core mlxfw libata dca [last unloaded: devlink]
-RIP: 0010:kernfs_find_ns+0x104/0x120
-Call Trace:
-kernfs_find_and_get_ns+0x2e/0x50
-sysfs_rename_link_ns+0x40/0xb0
-device_rename+0xb2/0xf0
-ib_device_rename+0xb3/0x100 [ib_core]
-nldev_set_doit+0x165/0x190 [ib_core]
-rdma_nl_rcv_msg+0x249/0x250 [ib_core]
-? netlink_deliver_tap+0x8f/0x3e0
-rdma_nl_rcv+0xd6/0x120 [ib_core]
-netlink_unicast+0x17c/0x230
-netlink_sendmsg+0x2f0/0x3e0
-sock_sendmsg+0x30/0x40
-__sys_sendto+0xdc/0x160
-
-Fixes: da5c85078215 ("RDMA/nldev: add driver-specific resource tracking")
-Signed-off-by: Parav Pandit <parav@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 856cc4c237ad ("IB/hfi1: Add the capability for reserved operations")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/core_priv.h |  1 +
- drivers/infiniband/core/device.c    | 26 ++++++++++++++++++++++----
- drivers/infiniband/core/nldev.c     | 20 ++++++++++----------
- include/rdma/ib_verbs.h             |  8 +++++++-
- 4 files changed, 40 insertions(+), 15 deletions(-)
+ drivers/infiniband/hw/hfi1/rc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index bb9007a0cca7..d97d39a7537c 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -296,6 +296,7 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
- #endif
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index 188aa4f686a0..ea3aac264df9 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -1157,6 +1157,7 @@ void hfi1_rc_send_complete(struct rvt_qp *qp, struct hfi1_opa_header *opah)
+ 		if (cmp_psn(wqe->lpsn, qp->s_sending_psn) >= 0 &&
+ 		    cmp_psn(qp->s_sending_psn, qp->s_sending_hpsn) <= 0)
+ 			break;
++		rvt_qp_wqe_unreserve(qp, wqe);
+ 		s_last = qp->s_last;
+ 		trace_hfi1_qp_send_completion(qp, wqe, s_last);
+ 		if (++s_last >= qp->s_size)
+@@ -1209,6 +1210,7 @@ static struct rvt_swqe *do_rc_completion(struct rvt_qp *qp,
+ 		u32 s_last;
  
- struct ib_device *ib_device_get_by_index(u32 ifindex);
-+void ib_device_put(struct ib_device *device);
- /* RDMA device netlink */
- void nldev_init(void);
- void nldev_exit(void);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index 87eb4f2cdd7d..0027b0d79b09 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -145,7 +145,8 @@ static struct ib_device *__ib_device_get_by_index(u32 index)
- }
- 
- /*
-- * Caller is responsible to return refrerence count by calling put_device()
-+ * Caller must perform ib_device_put() to return the device reference count
-+ * when ib_device_get_by_index() returns valid device pointer.
-  */
- struct ib_device *ib_device_get_by_index(u32 index)
- {
-@@ -153,13 +154,21 @@ struct ib_device *ib_device_get_by_index(u32 index)
- 
- 	down_read(&lists_rwsem);
- 	device = __ib_device_get_by_index(index);
--	if (device)
--		get_device(&device->dev);
--
-+	if (device) {
-+		/* Do not return a device if unregistration has started. */
-+		if (!refcount_inc_not_zero(&device->refcount))
-+			device = NULL;
-+	}
- 	up_read(&lists_rwsem);
- 	return device;
- }
- 
-+void ib_device_put(struct ib_device *device)
-+{
-+	if (refcount_dec_and_test(&device->refcount))
-+		complete(&device->unreg_completion);
-+}
-+
- static struct ib_device *__ib_device_get_by_name(const char *name)
- {
- 	struct ib_device *device;
-@@ -293,6 +302,8 @@ struct ib_device *ib_alloc_device(size_t size)
- 	rwlock_init(&device->client_data_lock);
- 	INIT_LIST_HEAD(&device->client_data_list);
- 	INIT_LIST_HEAD(&device->port_list);
-+	refcount_set(&device->refcount, 1);
-+	init_completion(&device->unreg_completion);
- 
- 	return device;
- }
-@@ -641,6 +652,13 @@ void ib_unregister_device(struct ib_device *device)
- 	struct ib_client_data *context, *tmp;
- 	unsigned long flags;
- 
-+	/*
-+	 * Wait for all netlink command callers to finish working on the
-+	 * device.
-+	 */
-+	ib_device_put(device);
-+	wait_for_completion(&device->unreg_completion);
-+
- 	mutex_lock(&device_mutex);
- 
- 	down_write(&lists_rwsem);
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index ff6468e7fe79..77a0f1e1576f 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -632,13 +632,13 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 
- 	nlmsg_end(msg, nlh);
- 
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
- 
- err_free:
- 	nlmsg_free(msg);
- err:
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return err;
- }
- 
-@@ -668,7 +668,7 @@ static int nldev_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		err = ib_device_rename(device, name);
- 	}
- 
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return err;
- }
- 
-@@ -752,14 +752,14 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto err_free;
- 
- 	nlmsg_end(msg, nlh);
--	put_device(&device->dev);
-+	ib_device_put(device);
- 
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
- 
- err_free:
- 	nlmsg_free(msg);
- err:
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return err;
- }
- 
-@@ -816,7 +816,7 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
- 	}
- 
- out:
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	cb->args[0] = idx;
- 	return skb->len;
- }
-@@ -855,13 +855,13 @@ static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto err_free;
- 
- 	nlmsg_end(msg, nlh);
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
- 
- err_free:
- 	nlmsg_free(msg);
- err:
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return ret;
- }
- 
-@@ -1054,7 +1054,7 @@ next:		idx++;
- 	if (!filled)
- 		goto err;
- 
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return skb->len;
- 
- res_err:
-@@ -1065,7 +1065,7 @@ err:
- 	nlmsg_cancel(skb, nlh);
- 
- err_index:
--	put_device(&device->dev);
-+	ib_device_put(device);
- 	return ret;
- }
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 9c0c2132a2d6..64626b32107b 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -56,7 +56,7 @@
- #include <linux/string.h>
- #include <linux/slab.h>
- #include <linux/netdevice.h>
--
-+#include <linux/refcount.h>
- #include <linux/if_link.h>
- #include <linux/atomic.h>
- #include <linux/mmu_notifier.h>
-@@ -2605,6 +2605,12 @@ struct ib_device {
- 
- 	const struct uverbs_object_tree_def *const *driver_specs;
- 	enum rdma_driver_id		driver_id;
-+	/*
-+	 * Provides synchronization between device unregistration and netlink
-+	 * commands on a device. To be used only by core.
-+	 */
-+	refcount_t refcount;
-+	struct completion unreg_completion;
- };
- 
- struct ib_client {
+ 		rvt_put_swqe(wqe);
++		rvt_qp_wqe_unreserve(qp, wqe);
+ 		s_last = qp->s_last;
+ 		trace_hfi1_qp_send_completion(qp, wqe, s_last);
+ 		if (++s_last >= qp->s_size)
 -- 
 2.19.1
