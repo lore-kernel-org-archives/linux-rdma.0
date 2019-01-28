@@ -1,107 +1,274 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 058/304] net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
-Date: Mon, 28 Jan 2019 10:39:35 -0500
-Message-ID: <20190128154341.47195-58-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 070/304] RDMA/core: Sync unregistration with netlink commands
+Date: Mon, 28 Jan 2019 10:39:47 -0500
+Message-ID: <20190128154341.47195-70-sashal@kernel.org>
 References: <20190128154341.47195-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Parav Pandit <parav@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: Parav Pandit <parav@mellanox.com>
 
-[ Upstream commit 1e86ace4c140fd5a693e266c9b23409358f25381 ]
+[ Upstream commit 01b671170d7f82b959dad6d5dbb44d7a915e647d ]
 
-Currently the cpu affinity hint mask for completion EQs is stored and
-read from the wrong place, since reading and storing is done from the
-same index, there is no actual issue with that, but internal irq_info
-for completion EQs stars at MLX5_EQ_VEC_COMP_BASE offset in irq_info
-array, this patch changes the code to use the correct offset to store
-and read the IRQ affinity hint.
+When the rdma device is getting removed, get resource info can race with
+device removal, as below:
 
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+      CPU-0                                  CPU-1
+    --------                               --------
+    rdma_nl_rcv_msg()
+       nldev_res_get_cq_dumpit()
+          mutex_lock(device_lock);
+          get device reference
+          mutex_unlock(device_lock);        [..]
+                                            ib_unregister_device()
+                                            /* Valid reference to
+                                             * device->dev exists.
+                                             */
+                                             ib_dealloc_device()
+
+          [..]
+          provider->fill_res_entry();
+
+Even though device object is not freed, fill_res_entry() can get called on
+device which doesn't have a driver anymore. Kernel core device reference
+count is not sufficient, as this only keeps the structure valid, and
+doesn't guarantee the driver is still loaded.
+
+Similar race can occur with device renaming and device removal, where
+device_rename() tries to rename a unregistered device. While this is fine
+for devices of a class which are not net namespace aware, but it is
+incorrect for net namespace aware class coming in subsequent series.  If a
+class is net namespace aware, then the below [1] call trace is observed in
+above situation.
+
+Therefore, to avoid the race, keep a reference count and let device
+unregistration wait until all netlink users drop the reference.
+
+[1] Call trace:
+kernfs: ns required in 'infiniband' for 'mlx5_0'
+WARNING: CPU: 18 PID: 44270 at fs/kernfs/dir.c:842 kernfs_find_ns+0x104/0x120
+libahci i2c_core mlxfw libata dca [last unloaded: devlink]
+RIP: 0010:kernfs_find_ns+0x104/0x120
+Call Trace:
+kernfs_find_and_get_ns+0x2e/0x50
+sysfs_rename_link_ns+0x40/0xb0
+device_rename+0xb2/0xf0
+ib_device_rename+0xb3/0x100 [ib_core]
+nldev_set_doit+0x165/0x190 [ib_core]
+rdma_nl_rcv_msg+0x249/0x250 [ib_core]
+? netlink_deliver_tap+0x8f/0x3e0
+rdma_nl_rcv+0xd6/0x120 [ib_core]
+netlink_unicast+0x17c/0x230
+netlink_sendmsg+0x2f0/0x3e0
+sock_sendmsg+0x30/0x40
+__sys_sendto+0xdc/0x160
+
+Fixes: da5c85078215 ("RDMA/nldev: add driver-specific resource tracking")
+Signed-off-by: Parav Pandit <parav@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++++++------
- include/linux/mlx5/driver.h                       |  2 +-
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/infiniband/core/core_priv.h |  1 +
+ drivers/infiniband/core/device.c    | 26 ++++++++++++++++++++++----
+ drivers/infiniband/core/nldev.c     | 20 ++++++++++----------
+ include/rdma/ib_verbs.h             |  8 +++++++-
+ 4 files changed, 40 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index b70cb6fd164c..9577d0657839 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1771,7 +1771,7 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
+diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
+index bb9007a0cca7..d97d39a7537c 100644
+--- a/drivers/infiniband/core/core_priv.h
++++ b/drivers/infiniband/core/core_priv.h
+@@ -296,6 +296,7 @@ static inline int ib_mad_enforce_security(struct ib_mad_agent_private *map,
+ #endif
  
- static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
- {
--	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
-+	return cpumask_first(priv->mdev->priv.irq_info[ix + MLX5_EQ_VEC_COMP_BASE].mask);
+ struct ib_device *ib_device_get_by_index(u32 ifindex);
++void ib_device_put(struct ib_device *device);
+ /* RDMA device netlink */
+ void nldev_init(void);
+ void nldev_exit(void);
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index 87eb4f2cdd7d..0027b0d79b09 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -145,7 +145,8 @@ static struct ib_device *__ib_device_get_by_index(u32 index)
  }
  
- static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 28132c7dc05f..d5cea0a36e6a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -640,18 +640,19 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
- static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ /*
+- * Caller is responsible to return refrerence count by calling put_device()
++ * Caller must perform ib_device_put() to return the device reference count
++ * when ib_device_get_by_index() returns valid device pointer.
+  */
+ struct ib_device *ib_device_get_by_index(u32 index)
  {
- 	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
-+	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
-+	int irq = pci_irq_vector(mdev->pdev, vecidx);
+@@ -153,13 +154,21 @@ struct ib_device *ib_device_get_by_index(u32 index)
  
--	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
-+	if (!zalloc_cpumask_var(&priv->irq_info[vecidx].mask, GFP_KERNEL)) {
- 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
- 		return -ENOMEM;
+ 	down_read(&lists_rwsem);
+ 	device = __ib_device_get_by_index(index);
+-	if (device)
+-		get_device(&device->dev);
+-
++	if (device) {
++		/* Do not return a device if unregistration has started. */
++		if (!refcount_inc_not_zero(&device->refcount))
++			device = NULL;
++	}
+ 	up_read(&lists_rwsem);
+ 	return device;
+ }
+ 
++void ib_device_put(struct ib_device *device)
++{
++	if (refcount_dec_and_test(&device->refcount))
++		complete(&device->unreg_completion);
++}
++
+ static struct ib_device *__ib_device_get_by_name(const char *name)
+ {
+ 	struct ib_device *device;
+@@ -293,6 +302,8 @@ struct ib_device *ib_alloc_device(size_t size)
+ 	rwlock_init(&device->client_data_lock);
+ 	INIT_LIST_HEAD(&device->client_data_list);
+ 	INIT_LIST_HEAD(&device->port_list);
++	refcount_set(&device->refcount, 1);
++	init_completion(&device->unreg_completion);
+ 
+ 	return device;
+ }
+@@ -641,6 +652,13 @@ void ib_unregister_device(struct ib_device *device)
+ 	struct ib_client_data *context, *tmp;
+ 	unsigned long flags;
+ 
++	/*
++	 * Wait for all netlink command callers to finish working on the
++	 * device.
++	 */
++	ib_device_put(device);
++	wait_for_completion(&device->unreg_completion);
++
+ 	mutex_lock(&device_mutex);
+ 
+ 	down_write(&lists_rwsem);
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index ff6468e7fe79..77a0f1e1576f 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -632,13 +632,13 @@ static int nldev_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 
+ 	nlmsg_end(msg, nlh);
+ 
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
+ 
+ err_free:
+ 	nlmsg_free(msg);
+ err:
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return err;
+ }
+ 
+@@ -668,7 +668,7 @@ static int nldev_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		err = ib_device_rename(device, name);
  	}
  
- 	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
--			priv->irq_info[i].mask);
-+			priv->irq_info[vecidx].mask);
- 
- 	if (IS_ENABLED(CONFIG_SMP) &&
--	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
-+	    irq_set_affinity_hint(irq, priv->irq_info[vecidx].mask))
- 		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
- 
- 	return 0;
-@@ -659,11 +660,12 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
- 
- static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
- {
-+	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
- 	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
-+	int irq = pci_irq_vector(mdev->pdev, vecidx);
- 
- 	irq_set_affinity_hint(irq, NULL);
--	free_cpumask_var(priv->irq_info[i].mask);
-+	free_cpumask_var(priv->irq_info[vecidx].mask);
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return err;
  }
  
- static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index aa5963b5d38e..7d4ed995b4ce 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1309,7 +1309,7 @@ enum {
- static inline const struct cpumask *
- mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
- {
--	return dev->priv.irq_info[vector].mask;
-+	return dev->priv.irq_info[vector + MLX5_EQ_VEC_COMP_BASE].mask;
+@@ -752,14 +752,14 @@ static int nldev_port_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		goto err_free;
+ 
+ 	nlmsg_end(msg, nlh);
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 
+ 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
+ 
+ err_free:
+ 	nlmsg_free(msg);
+ err:
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return err;
  }
  
- #endif /* MLX5_DRIVER_H */
+@@ -816,7 +816,7 @@ static int nldev_port_get_dumpit(struct sk_buff *skb,
+ 	}
+ 
+ out:
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	cb->args[0] = idx;
+ 	return skb->len;
+ }
+@@ -855,13 +855,13 @@ static int nldev_res_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 		goto err_free;
+ 
+ 	nlmsg_end(msg, nlh);
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
+ 
+ err_free:
+ 	nlmsg_free(msg);
+ err:
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return ret;
+ }
+ 
+@@ -1054,7 +1054,7 @@ next:		idx++;
+ 	if (!filled)
+ 		goto err;
+ 
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return skb->len;
+ 
+ res_err:
+@@ -1065,7 +1065,7 @@ err:
+ 	nlmsg_cancel(skb, nlh);
+ 
+ err_index:
+-	put_device(&device->dev);
++	ib_device_put(device);
+ 	return ret;
+ }
+ 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 9c0c2132a2d6..64626b32107b 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -56,7 +56,7 @@
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/netdevice.h>
+-
++#include <linux/refcount.h>
+ #include <linux/if_link.h>
+ #include <linux/atomic.h>
+ #include <linux/mmu_notifier.h>
+@@ -2605,6 +2605,12 @@ struct ib_device {
+ 
+ 	const struct uverbs_object_tree_def *const *driver_specs;
+ 	enum rdma_driver_id		driver_id;
++	/*
++	 * Provides synchronization between device unregistration and netlink
++	 * commands on a device. To be used only by core.
++	 */
++	refcount_t refcount;
++	struct completion unreg_completion;
+ };
+ 
+ struct ib_client {
 -- 
 2.19.1
