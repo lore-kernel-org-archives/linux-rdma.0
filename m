@@ -1,35 +1,68 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/6] mm: make mm->pinned_vm an atomic64 counter
-Date: Mon, 28 Jan 2019 13:10:56 -0800
-Message-ID: <20190128131056.101a126f222929318bb2ea83@linux-foundation.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 3/6] drivers/IB,qib: do not use mmap_sem
+Date: Mon, 28 Jan 2019 16:31:40 -0700
+Message-ID: <20190128233140.GA12530@ziepe.ca>
 References: <20190121174220.10583-1-dave@stgolabs.net>
-        <20190121174220.10583-2-dave@stgolabs.net>
-        <20190123183353.GA15768@ziepe.ca>
+ <20190121174220.10583-4-dave@stgolabs.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190123183353.GA15768@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <20190121174220.10583-4-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Davidlohr Bueso <dave@stgolabs.net>, dledford@redhat.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>, Christoph Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Daniel Jordan <daniel.m.jordan@oracle.com>
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: akpm@linux-foundation.org, dledford@redhat.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 23 Jan 2019 11:33:53 -0700 Jason Gunthorpe <jgg@ziepe.ca> wrote:
-
-> On Mon, Jan 21, 2019 at 09:42:15AM -0800, Davidlohr Bueso wrote:
-> > Taking a sleeping lock to _only_ increment a variable is quite the
-> > overkill, and pretty much all users do this. Furthermore, some drivers
-> > (ie: infiniband and scif) that need pinned semantics can go to quite
-> > some trouble to actually delay via workqueue (un)accounting for pinned
-> > pages when not possible to acquire it.
-> > 
-> > By making the counter atomic we no longer need to hold the mmap_sem
-> > and can simply some code around it for pinned_vm users. The counter
-> > is 64-bit such that we need not worry about overflows such as rdma
-> > user input controlled from userspace.
+On Mon, Jan 21, 2019 at 09:42:17AM -0800, Davidlohr Bueso wrote:
+> The driver uses mmap_sem for both pinned_vm accounting and
+> get_user_pages(). By using gup_fast() and letting the mm handle
+> the lock if needed, we can no longer rely on the semaphore and
+> simplify the whole thing as the pinning is decoupled from the lock.
 > 
-> I see a number of MM people Reviewed-by this so are we good to take
-> this in the RDMA tree now?
+> This also fixes a bug that __qib_get_user_pages was not taking into
+> account the current value of pinned_vm.
+> 
+> Cc: dennis.dalessandro@intel.com
+> Cc: mike.marciniszyn@intel.com
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+> ---
+>  drivers/infiniband/hw/qib/qib_user_pages.c | 67 ++++++++++--------------------
+>  1 file changed, 22 insertions(+), 45 deletions(-)
 
-Please do.
+I need you to respin this patch/series against the latest rdma tree:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+
+branch for-next
+
+> diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+> -static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
+> -				struct page **p)
+> -{
+> -	unsigned long lock_limit;
+> -	size_t got;
+> -	int ret;
+> -
+> -	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+> -
+> -	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
+> -		ret = -ENOMEM;
+> -		goto bail;
+> -	}
+> -
+> -	for (got = 0; got < num_pages; got += ret) {
+> -		ret = get_user_pages(start_page + got * PAGE_SIZE,
+> -				     num_pages - got,
+> -				     FOLL_WRITE | FOLL_FORCE,
+> -				     p + got, NULL);
+
+As this has been rightly changed to get_user_pages_longterm, and I
+think the right answer to solve the conflict is to discard some of
+this patch?
+
+Since Andrew is OK with this I can move this ahead once this is
+resolved, thanks.
+
+Jason
