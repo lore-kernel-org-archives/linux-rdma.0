@@ -1,56 +1,35 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 0/4] mlx5 next misc updates
-Date: Mon, 28 Jan 2019 19:11:01 +0000
-Message-ID: <812ce9a19d55ed16af677622a39ee484eb9c508f.camel@mellanox.com>
-References: <20190119003313.16711-1-saeedm@mellanox.com>
-         <20190124123041.GS3604@mtr-leonro.mtl.com>
-         <CALzJLG9hjOZ=+pommPcjP0He_mBSUMK5+q3F9k8qGGhJvmJPQw@mail.gmail.com>
-         <20190127075109.GY3604@mtr-leonro.mtl.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 1/6] mm: make mm->pinned_vm an atomic64 counter
+Date: Mon, 28 Jan 2019 13:10:56 -0800
+Message-ID: <20190128131056.101a126f222929318bb2ea83@linux-foundation.org>
+References: <20190121174220.10583-1-dave@stgolabs.net>
+        <20190121174220.10583-2-dave@stgolabs.net>
+        <20190123183353.GA15768@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190127075109.GY3604@mtr-leonro.mtl.com>
-Content-Language: en-US
-Content-ID: <45D9F6FAC174844CAC46EA3F593685B5@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>, "saeedm@dev.mellanox.co.il" <saeedm@dev.mellanox.co.il>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190123183353.GA15768@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Davidlohr Bueso <dave@stgolabs.net>, dledford@redhat.com, jack@suse.de, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Davidlohr Bueso <dbueso@suse.de>, Christoph Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Daniel Jordan <daniel.m.jordan@oracle.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gU3VuLCAyMDE5LTAxLTI3IGF0IDA3OjUxICswMDAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIEZyaSwgSmFuIDI1LCAyMDE5IGF0IDEwOjA4OjAwQU0gLTA4MDAsIFNhZWVkIE1haGFt
-ZWVkIHdyb3RlOg0KPiA+IE9uIFRodSwgSmFuIDI0LCAyMDE5IGF0IDQ6MzAgQU0gTGVvbiBSb21h
-bm92c2t5IDwNCj4gPiBsZW9ucm9AbWVsbGFub3guY29tPiB3cm90ZToNCj4gPiA+IE9uIEZyaSwg
-SmFuIDE4LCAyMDE5IGF0IDA0OjMzOjA5UE0gLTA4MDAsIFNhZWVkIE1haGFtZWVkIHdyb3RlOg0K
-PiA+ID4gPiBIaSBhbGwsDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIHNlcmllcyBpbmNsdWRlcyB1
-cGRhdGVzIHRvIG1seDUtbmV4dCBzaGFyZWQgYnJhbmNoLg0KPiA+ID4gPiANCj4gPiA+ID4gMSkg
-ZnJvbSBKYXNvbiwgaW1wcm92ZSBtbHg1X2NtZF9leGVjX2NiIGFzeW5jIEFQSSB0byBiZSBzYWZl
-cg0KPiA+ID4gPiAyKSBmcm9tIE1heGltIE1pa2l0eWFuc2tpeSwgY2xlYW51cHMgZm9yIG1seDVf
-d3JpdGU2NCBkb29yYmVsbA0KPiA+ID4gPiBBUEkNCj4gPiA+ID4gMykgZnJvbSBNaWNoYWVsIEd1
-cmFsbmlrLCBBZGQgcGNpIEF0b21pY09wcyByZXF1ZXN0DQo+ID4gPiA+IA0KPiA+ID4gPiBUaGFu
-a3MsDQo+ID4gPiA+IFNhZWVkLg0KPiA+ID4gPiANCj4gPiA+ID4gLS0tDQo+ID4gPiA+IA0KPiA+
-ID4gPiBKYXNvbiBHdW50aG9ycGUgKDEpOg0KPiA+ID4gPiAgIG5ldC9tbHg1OiBNYWtlIG1seDVf
-Y21kX2V4ZWNfY2IoKSBhIHNhZmUgQVBJDQo+ID4gPiA+IA0KPiA+ID4gPiBNaWNoYWVsIEd1cmFs
-bmlrICgxKToNCj4gPiA+ID4gICBuZXQvbWx4NTogQWRkIHBjaSBBdG9taWNPcHMgcmVxdWVzdA0K
-PiA+ID4gDQo+ID4gPiBUaG9zZSB0d28gd2VyZSBhcHBsaWVkIHRvIG1seDUtbmV4dCBicmFuY2gu
-DQo+ID4gPiANCj4gPiA+IGNlNGVlZTUzNDBhOSAobWx4NS1uZXh0KSBuZXQvbWx4NTogQWRkIHBj
-aSBBdG9taWNPcHMgcmVxdWVzdA0KPiA+ID4gZTM1NTQ3N2VkOWU0IG5ldC9tbHg1OiBNYWtlIG1s
-eDVfY21kX2V4ZWNfY2IoKSBhIHNhZmUgQVBJDQo+ID4gPiANCj4gPiA+ID4gTWF4aW0gTWlraXR5
-YW5za2l5ICgyKToNCj4gPiA+ID4gICBuZXQvbWx4NTogUmVtb3ZlIHVudXNlZCBNTFg1XypfRE9P
-UkJFTExfTE9DSyBtYWNyb3MNCj4gPiA+ID4gICBuZXQvbWx4NTogUmVtb3ZlIHNwaW5sb2NrIHN1
-cHBvcnQgZnJvbSBtbHg1X3dyaXRlNjQNCj4gPiA+IA0KPiA+ID4gVGhvc2UgdHdvIG5lZWRzIGV4
-dHJhIHdvcmssDQo+ID4gDQo+ID4gV2hhdCBleHRyYSB3b3JrID8NCj4gDQo+IFlvdSBnb3QgdHdv
-IGNvbW1lbnRzIGZvciBhcmVhIHlvdSBhcmUgdG91Y2hpbmc6DQo+IDEuIFJlcGxhY2UgX3J3dyB3
-cml0ZXMgdG8gc29tZXRoaW5nIGVsc2UuDQoNCk5vdCByZWxhdGVkIHRvIHRoaXMgY2xlYW51cCBw
-YXRjaHNldC4NCg0KPiAyLiBQcm90ZWN0IHdpdGggc3BpbmxvY2sgMzItYml0cyB3cml0ZXMgaW5z
-dGVhZCBvZiBpZ25vcmluZyBpdC4NCg0KU2FtZSBhcyBhYm92ZSwgSSBhbHJlYWR5IGV4cGxhaW5l
-ZCB0aGlzLg0KDQo+IA0KPiBCb3RoIG9mIHRob3NlIGNoYW5nZXMgd2lsbCB0b3VjaCB0aGUgc2Ft
-ZSAyLTQgbGluZXMgYW5kIHRoZXJlDQo+IGlzIHZlcnkgbGl0dGxlIGJlbmVmaXQgaW4gY3JlYXRp
-bmcgbW9yZSB0aGFuIG9uZS10d28gcGF0Y2hlcw0KPiBqdXN0IGZvciB0aGF0Lg0KPiANCg0KRnV0
-dXJlIHdvcmssIGFzIGl0IG5lZWRzIHZlcmlmaWNhdGlvbiBhbmQgY2FyZWZ1bCB0ZXN0aW5nLg0K
-DQpMZW9uIEkgd291bGQgbGlrZSB0byBtb3ZlIG9uIHdpdGggdGhvc2UgMiBzbWFsbCBjbGVhbnVw
-IHBhdGNoZXMsIG5vDQpmdW5jdGlvbmFsaXR5IGNoYW5nZSBoZXJlLCBwbGVhc2UgY29uZmlybSB5
-b3UgYXJlIG9rIHdpdGggdGhlbS4NCg0KVGhhbmtzLA0KU2FlZWQuDQoNCj4gVGhhbmtzDQo+IA0K
-PiA+ID4gVGhhbmtzDQo+ID4gPiANCj4gPiA+ID4gLS0NCj4gPiA+ID4gMi4yMC4xDQo+ID4gPiA+
-IA0K
+On Wed, 23 Jan 2019 11:33:53 -0700 Jason Gunthorpe <jgg@ziepe.ca> wrote:
+
+> On Mon, Jan 21, 2019 at 09:42:15AM -0800, Davidlohr Bueso wrote:
+> > Taking a sleeping lock to _only_ increment a variable is quite the
+> > overkill, and pretty much all users do this. Furthermore, some drivers
+> > (ie: infiniband and scif) that need pinned semantics can go to quite
+> > some trouble to actually delay via workqueue (un)accounting for pinned
+> > pages when not possible to acquire it.
+> > 
+> > By making the counter atomic we no longer need to hold the mmap_sem
+> > and can simply some code around it for pinned_vm users. The counter
+> > is 64-bit such that we need not worry about overflows such as rdma
+> > user input controlled from userspace.
+> 
+> I see a number of MM people Reviewed-by this so are we good to take
+> this in the RDMA tree now?
+
+Please do.
