@@ -1,107 +1,64 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 051/258] net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
-Date: Mon, 28 Jan 2019 10:55:57 -0500
-Message-ID: <20190128155924.51521-51-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 198/258] mlx5: update timecounter at least twice per counter overflow
+Date: Mon, 28 Jan 2019 10:58:24 -0500
+Message-ID: <20190128155924.51521-198-sashal@kernel.org>
 References: <20190128155924.51521-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190128155924.51521-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Miroslav Lichvar <mlichvar@redhat.com>, Richard Cochran <richardcochran@gmail.com>, Ariel Levkovich <lariel@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: Miroslav Lichvar <mlichvar@redhat.com>
 
-[ Upstream commit 1e86ace4c140fd5a693e266c9b23409358f25381 ]
+[ Upstream commit 5d8678365c90b9ce1fd2243ff5ea562609f6cec1 ]
 
-Currently the cpu affinity hint mask for completion EQs is stored and
-read from the wrong place, since reading and storing is done from the
-same index, there is no actual issue with that, but internal irq_info
-for completion EQs stars at MLX5_EQ_VEC_COMP_BASE offset in irq_info
-array, this patch changes the code to use the correct offset to store
-and read the IRQ affinity hint.
+The timecounter needs to be updated at least once in half of the
+cyclecounter interval to prevent timecounter_cyc2time() interpreting a
+new timestamp as an old value and causing a backward jump.
 
+This would be an issue if the timecounter multiplier was so small that
+the update interval would not be limited by the 64-bit overflow in
+multiplication.
+
+Shorten the calculated interval to make sure the timecounter is updated
+in time even when the system clock is slowed down by up to 10%, the
+multiplier is increased by up to 10%, and the scheduled overflow check
+is late by 15%.
+
+Cc: Richard Cochran <richardcochran@gmail.com>
+Cc: Ariel Levkovich <lariel@mellanox.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Miroslav Lichvar <mlichvar@redhat.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
- drivers/net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++++++------
- include/linux/mlx5/driver.h                       |  2 +-
- 3 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-index 7365899c3ac9..944f21f99d43 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -1758,7 +1758,7 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+index 3f767cde4c1d..54f1a40a68ed 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/clock.c
+@@ -511,14 +511,14 @@ void mlx5_init_clock(struct mlx5_core_dev *mdev)
+ 			 ktime_to_ns(ktime_get_real()));
  
- static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
- {
--	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
-+	return cpumask_first(priv->mdev->priv.irq_info[ix + MLX5_EQ_VEC_COMP_BASE].mask);
- }
+ 	/* Calculate period in seconds to call the overflow watchdog - to make
+-	 * sure counter is checked at least once every wrap around.
++	 * sure counter is checked at least twice every wrap around.
+ 	 * The period is calculated as the minimum between max HW cycles count
+ 	 * (The clock source mask) and max amount of cycles that can be
+ 	 * multiplied by clock multiplier where the result doesn't exceed
+ 	 * 64bits.
+ 	 */
+ 	overflow_cycles = div64_u64(~0ULL >> 1, clock->cycles.mult);
+-	overflow_cycles = min(overflow_cycles, clock->cycles.mask >> 1);
++	overflow_cycles = min(overflow_cycles, div_u64(clock->cycles.mask, 3));
  
- static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index b5e9f664fc66..563ce3fedab4 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -640,18 +640,19 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
- static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
- {
- 	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
-+	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
-+	int irq = pci_irq_vector(mdev->pdev, vecidx);
- 
--	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
-+	if (!zalloc_cpumask_var(&priv->irq_info[vecidx].mask, GFP_KERNEL)) {
- 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
- 		return -ENOMEM;
- 	}
- 
- 	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
--			priv->irq_info[i].mask);
-+			priv->irq_info[vecidx].mask);
- 
- 	if (IS_ENABLED(CONFIG_SMP) &&
--	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
-+	    irq_set_affinity_hint(irq, priv->irq_info[vecidx].mask))
- 		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
- 
- 	return 0;
-@@ -659,11 +660,12 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
- 
- static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
- {
-+	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
- 	struct mlx5_priv *priv  = &mdev->priv;
--	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
-+	int irq = pci_irq_vector(mdev->pdev, vecidx);
- 
- 	irq_set_affinity_hint(irq, NULL);
--	free_cpumask_var(priv->irq_info[i].mask);
-+	free_cpumask_var(priv->irq_info[vecidx].mask);
- }
- 
- static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
-diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
-index 88a041b73abf..bbcfe2e5fd91 100644
---- a/include/linux/mlx5/driver.h
-+++ b/include/linux/mlx5/driver.h
-@@ -1321,7 +1321,7 @@ enum {
- static inline const struct cpumask *
- mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
- {
--	return dev->priv.irq_info[vector].mask;
-+	return dev->priv.irq_info[vector + MLX5_EQ_VEC_COMP_BASE].mask;
- }
- 
- #endif /* MLX5_DRIVER_H */
+ 	ns = cyclecounter_cyc2ns(&clock->cycles, overflow_cycles,
+ 				 frac, &frac);
 -- 
 2.19.1
