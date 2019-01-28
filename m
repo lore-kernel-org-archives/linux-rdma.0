@@ -1,69 +1,107 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH iproute2-next 05/19] rdma: Move resource PD logic to
- separate file
-Date: Sun, 27 Jan 2019 10:29:57 +0200
-Message-ID: <20190127082957.GB3604@mtr-leonro.mtl.com>
-References: <20190122183125.15920-1-leon@kernel.org>
- <20190122183125.15920-6-leon@kernel.org>
- <0ad0319f-194c-d574-e7f7-eca71c7a008a@gmail.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 058/304] net/mlx5: EQ, Use the right place to store/read IRQ affinity hint
+Date: Mon, 28 Jan 2019 10:39:35 -0500
+Message-ID: <20190128154341.47195-58-sashal@kernel.org>
+References: <20190128154341.47195-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="s9pXJW6w71JX4l3T"
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <0ad0319f-194c-d574-e7f7-eca71c7a008a@gmail.com>
+In-Reply-To: <20190128154341.47195-1-sashal@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>
-Cc: netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Saeed Mahameed <saeedm@mellanox.com>
 
---s9pXJW6w71JX4l3T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[ Upstream commit 1e86ace4c140fd5a693e266c9b23409358f25381 ]
 
-On Fri, Jan 25, 2019 at 10:19:22AM -0700, David Ahern wrote:
-> On 1/22/19 11:31 AM, Leon Romanovsky wrote:
-> > +static const
-> > +struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-> > +	{ .name = "dev", .is_number = false },
-> > +	{ .name = "users", .is_number = true },
-> > +	{ .name = "pid", .is_number = true },
-> > +	{ .name = "ctxn", .is_number = true },
-> > +	{ .name = "pdn", .is_number = true },
-> > +	{ .name = "ctxn", .is_number = true }
-> > +};
->
-> These should not be in a header file. Looks like you have done this in
-> other patches as well.
+Currently the cpu affinity hint mask for completion EQs is stored and
+read from the wrong place, since reading and storing is done from the
+same index, there is no actual issue with that, but internal irq_info
+for completion EQs stars at MLX5_EQ_VEC_COMP_BASE offset in irq_info
+array, this patch changes the code to use the correct offset to store
+and read the IRQ affinity hint.
 
-This is the outcome of how we build command line with single struct *rd,
-see res_show(). While I refactored the code, I saw your comment is coming,
-but decided to proceed anyway to make this series a little bit sane.
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++++++------
+ include/linux/mlx5/driver.h                       |  2 +-
+ 3 files changed, 10 insertions(+), 8 deletions(-)
 
-I'll definitely continue to refactor it, but for now, there is a need to see
-valid_filters structure in RES_FUNC() macro.
-
-Thanks
-
---s9pXJW6w71JX4l3T
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcTWwFAAoJEORje4g2clin7ZMP/jIC35Z1RGmjXUbCcAOq2vh4
-9qaGWt3azDRRIASX/6u308c1lLBra1R8kTnlKwW3GC7hmGGH1mt1I56Rq+gnebt4
-oxXS+Z7MrzqK0P61tFz+zf5xORPvDm8+8ht81mI/sfW3tFBdBMNBaPMjD+Zwm6VN
-bHxNb17ijJz+X0iGlkfXd0Ih6kNPaB1N8jKJHCLmMT+jFCy4rVTSDfGCqi/XTdrD
-fvPekuEO0jtcXsGw79HCt/wYcuHHHvXSW+7P40hA1dfeifiJLj/9r91a/ma4rAT8
-Hp2/fXmBaJq/rB9DUQQPHVKbZFFKO/53dOtmISv8hDSyUCCO9WIEngO+CzX0GDio
-eVpM3ad7XDXbPGDIpNP+DkBa522ISVVf1yUDGo5sbBh3Np9eR4o814IOKUaLNqmK
-wdfFon2Xj36t4BMkfd05E5vS8kwHmEMUPEDl4gNrwkvDjSrorHc4G0ni5Fuuu6aF
-kD2AX2KexZ/Hc2Ko33s0bvi1s45bDvVXn6SheYD/4pBp7R7+VTExos8yutKvT1Tr
-vZuT2rUQTSOxhvTxxi45erDei+Cz95TDBwmdludwESHLA8WYxe3sAfQjOVMKJ5r9
-q4Hpf17yfcEhu3Ji7jzTUszIE/AmcAnHdhdLwR/sU7A65oCJ3XFdd+5tr3/lY4CF
-eHY1QC0KGzy5BCSh8f9e
-=a+vJ
------END PGP SIGNATURE-----
-
---s9pXJW6w71JX4l3T--
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index b70cb6fd164c..9577d0657839 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -1771,7 +1771,7 @@ static void mlx5e_close_cq(struct mlx5e_cq *cq)
+ 
+ static int mlx5e_get_cpu(struct mlx5e_priv *priv, int ix)
+ {
+-	return cpumask_first(priv->mdev->priv.irq_info[ix].mask);
++	return cpumask_first(priv->mdev->priv.irq_info[ix + MLX5_EQ_VEC_COMP_BASE].mask);
+ }
+ 
+ static int mlx5e_open_tx_cqs(struct mlx5e_channel *c,
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 28132c7dc05f..d5cea0a36e6a 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -640,18 +640,19 @@ u64 mlx5_read_internal_timer(struct mlx5_core_dev *dev)
+ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+-	if (!zalloc_cpumask_var(&priv->irq_info[i].mask, GFP_KERNEL)) {
++	if (!zalloc_cpumask_var(&priv->irq_info[vecidx].mask, GFP_KERNEL)) {
+ 		mlx5_core_warn(mdev, "zalloc_cpumask_var failed");
+ 		return -ENOMEM;
+ 	}
+ 
+ 	cpumask_set_cpu(cpumask_local_spread(i, priv->numa_node),
+-			priv->irq_info[i].mask);
++			priv->irq_info[vecidx].mask);
+ 
+ 	if (IS_ENABLED(CONFIG_SMP) &&
+-	    irq_set_affinity_hint(irq, priv->irq_info[i].mask))
++	    irq_set_affinity_hint(irq, priv->irq_info[vecidx].mask))
+ 		mlx5_core_warn(mdev, "irq_set_affinity_hint failed, irq 0x%.4x", irq);
+ 
+ 	return 0;
+@@ -659,11 +660,12 @@ static int mlx5_irq_set_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ 
+ static void mlx5_irq_clear_affinity_hint(struct mlx5_core_dev *mdev, int i)
+ {
++	int vecidx = MLX5_EQ_VEC_COMP_BASE + i;
+ 	struct mlx5_priv *priv  = &mdev->priv;
+-	int irq = pci_irq_vector(mdev->pdev, MLX5_EQ_VEC_COMP_BASE + i);
++	int irq = pci_irq_vector(mdev->pdev, vecidx);
+ 
+ 	irq_set_affinity_hint(irq, NULL);
+-	free_cpumask_var(priv->irq_info[i].mask);
++	free_cpumask_var(priv->irq_info[vecidx].mask);
+ }
+ 
+ static int mlx5_irq_set_affinity_hints(struct mlx5_core_dev *mdev)
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index aa5963b5d38e..7d4ed995b4ce 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -1309,7 +1309,7 @@ enum {
+ static inline const struct cpumask *
+ mlx5_get_vector_affinity_hint(struct mlx5_core_dev *dev, int vector)
+ {
+-	return dev->priv.irq_info[vector].mask;
++	return dev->priv.irq_info[vector + MLX5_EQ_VEC_COMP_BASE].mask;
+ }
+ 
+ #endif /* MLX5_DRIVER_H */
+-- 
+2.19.1
