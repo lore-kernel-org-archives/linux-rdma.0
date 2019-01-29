@@ -1,140 +1,161 @@
-From: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Subject: Re: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range is
- updated to read only
-Date: Tue, 29 Jan 2019 16:20:00 +0200
-Message-ID: <154877159986.4387.16328989441685542244@jlahtine-desk.ger.corp.intel.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v4 8/9] gpu/drm/i915: optimize out the case when a range
+ is updated to read only
+Date: Tue, 29 Jan 2019 11:21:13 -0500
+Message-ID: <20190129162112.GA3194@redhat.com>
 References: <20190123222315.1122-1-jglisse@redhat.com>
  <20190123222315.1122-9-jglisse@redhat.com>
  <154833175216.4120.925061299171157938@jlahtine-desk.ger.corp.intel.com>
  <20190124153032.GA5030@redhat.com>
+ <154877159986.4387.16328989441685542244@jlahtine-desk.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190124153032.GA5030@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, =?utf-8?b?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@mellanox.com>, =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <154877159986.4387.16328989441685542244@jlahtine-desk.ger.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: linux-mm@kvack.org, Ralph Campbell <rcampbell@nvidia.com>, Jan Kara <jack@suse.cz>, Arnd Bergmann <arnd@arndb.de>, kvm@vger.kernel.org, Matthew Wilcox <mawilcox@microsoft.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Dan Williams <dan.j.williams@intel.com>, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-UXVvdGluZyBKZXJvbWUgR2xpc3NlICgyMDE5LTAxLTI0IDE3OjMwOjMyKQo+IE9uIFRodSwgSmFu
-IDI0LCAyMDE5IGF0IDAyOjA5OjEyUE0gKzAyMDAsIEpvb25hcyBMYWh0aW5lbiB3cm90ZToKPiA+
-IEhpIEplcm9tZSwKPiA+IAo+ID4gVGhpcyBwYXRjaCBzZWVtcyB0byBoYXZlIHBsZW50eSBvZiBD
-YzpzLCBidXQgbm9uZSBvZiB0aGUgcmlnaHQgb25lcyA6KQo+IAo+IFNvIHNvcnJ5LCBpIGFtIGJh
-ZCB3aXRoIGdpdCBjb21tYW5kcy4KPiAKPiA+IEZvciBmdXJ0aGVyIGl0ZXJhdGlvbnMsIEkgZ3Vl
-c3MgeW91IGNvdWxkIHVzZSBnaXQgb3B0aW9uIC0tY2MgdG8gbWFrZQo+ID4gc3VyZSBldmVyeW9u
-ZSBnZXRzIHRoZSB3aG9sZSBzZXJpZXMsIGFuZCBzdGlsbCBrZWVwIHRoZSBDYzpzIGluIHRoZQo+
-ID4gcGF0Y2hlcyB0aGVtc2VsdmVzIHJlbGV2YW50IHRvIHN1YnN5c3RlbXMuCj4gCj4gV2lsbCBk
-by4KPiAKPiA+IFRoaXMgZG9lc24ndCBzZWVtIHRvIGJlIG9uIHRvcCBvZiBkcm0tdGlwLCBidXQg
-b24gdG9wIG9mIHlvdXIgcHJldmlvdXMKPiA+IHBhdGNoZXMoPykgdGhhdCBJIGhhZCBzb21lIGNv
-bW1lbnRzIGFib3V0LiBDb3VsZCB5b3UgdGFrZSBhIG1vbWVudCB0bwo+ID4gZmlyc3QgYWRkcmVz
-cyB0aGUgY291cGxlIG9mIHF1ZXN0aW9uIEkgaGFkLCBiZWZvcmUgcHJvY2VlZGluZyB0byBkaXNj
-dXNzCj4gPiB3aGF0IGlzIGJ1aWx0IG9uIHRvcCBvZiB0aGF0IGJhc2UuCj4gCj4gSXQgaXMgb24g
-dG9wIG9mIExpbnVzIHRyZWUgc28gcm91Z2hseSB+IHJjMyBpdCBkb2VzIG5vdCBkZXBlbmQgb24g
-YW55Cj4gb2YgdGhlIHByZXZpb3VzIHBhdGNoIGkgcG9zdGVkLgoKWW91IGFjdHVhbGx5IG1hbmFn
-ZWQgdG8gcmFjZSBhIHBvaW50IGluIHRpbWUganVzdCB3aGVuIENocmlzIHJld3JvdGUgbXVjaApv
-ZiB0aGUgdXNlcnB0ciBjb2RlIGluIGRybS10aXAsIHdoaWNoIEkgZGlkbid0IHJlbWVtYmVyIG9m
-LiBNeSBiYWQuCgpTdGlsbCBpbnRlcmVzdGVkIHRvIGhlYXJpbmcgcmVwbGllcyB0byBteSBxdWVz
-dGlvbnMgaW4gdGhlIHByZXZpb3VzCnRocmVhZCwgaWYgdGhlIHNlcmllcyBpcyBzdGlsbCByZWxl
-dmFudC4gVHJ5aW5nIHRvIGdldCBteSBoZWFkIGFyb3VuZApob3cgdGhlIGRpZmZlcmVudCBhc3Bl
-Y3RzIG9mIEhNTSBwYW4gb3V0IGZvciBkZXZpY2VzIHdpdGhvdXQgZmF1bHQgaGFuZGxpbmcuCgo+
-IEkgc3RpbGwgaW50ZW5kZWQgdG8gcHJvcG9zZSB0byByZW1vdmUKPiBHVVAgZnJvbSBpOTE1IG9u
-Y2UgaSBnZXQgYXJvdW5kIHRvIGltcGxlbWVudCB0aGUgZXF1aXZhbGVudCBvZiBHVVBfZmFzdAo+
-IGZvciBITU0gYW5kIG90aGVyIGJvbnVzIGNvb2tpZXMgd2l0aCBpdC4KPiAKPiBUaGUgcGxhbiBp
-cyBvbmNlIGkgaGF2ZSBhbGwgbW0gYml0cyBwcm9wZXJseSB1cHN0cmVhbSB0aGVuIGkgY2FuIHBy
-b3Bvc2UKPiBwYXRjaGVzIHRvIGluZGl2aWR1YWwgZHJpdmVyIGFnYWluc3QgdGhlIHByb3BlciBk
-cml2ZXIgdHJlZSBpZSBmb2xsb3dpbmcKPiBydWxlcyBvZiBlYWNoIGluZGl2aWR1YWwgZGV2aWNl
-IGRyaXZlciBzdWItc3lzdGVtIGFuZCBDYyBvbmx5IHBlb3BsZQo+IHRoZXJlIHRvIGF2b2lkIHNw
-YW1taW5nIHRoZSBtbSBmb2xrcyA6KQoKTWFrZXMgc2Vuc2UsIGFzIHdlJ3JlIGhhdmluZyB0b25z
-IG9mIGNoYW5nZXMgaW4gdGhpcyBmaWVsZCBpbiBpOTE1LCB0aGUKY2h1cm4gdG8gcmViYXNlIG9u
-IHRvcCBvZiB0aGVtIHdpbGwgYmUgc3Vic3RhbnRpYWwuCgpSZWdhcmRzLCBKb29uYXMKClBTLiBB
-cmUgeW91IGJ5IGFueSBjaGFuY2UgYXR0ZW5kaW5nIEZPU0RFTT8gV291bGQgYmUgbmljZSB0byBj
-aGF0IGFib3V0CnRoaXMuCgo+IAo+IAo+ID4gCj4gPiBNeSByZXBseSdzIE1lc3NhZ2UtSUQgaXM6
-Cj4gPiAxNTQyODk1MTg5OTQuMTk0MDIuMzQ4MTgzODU0ODAyODA2ODIxM0BqbGFodGluZS1kZXNr
-Lmdlci5jb3JwLmludGVsLmNvbQo+ID4gCj4gPiBSZWdhcmRzLCBKb29uYXMKPiA+IAo+ID4gUFMu
-IFBsZWFzZSBrZWVwIG1lIENjOmQgaW4gdGhlIGZvbGxvd2luZyBwYXRjaGVzLCBJJ20ga2VlbiBv
-bgo+ID4gdW5kZXJzdGFuZGluZyB0aGUgbW90aXZlIGFuZCBiZW5lZml0cy4KPiA+IAo+ID4gUXVv
-dGluZyBqZ2xpc3NlQHJlZGhhdC5jb20gKDIwMTktMDEtMjQgMDA6MjM6MTQpCj4gPiA+IEZyb206
-IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgo+ID4gPiAKPiA+ID4gV2hlbiBy
-YW5nZSBvZiB2aXJ0dWFsIGFkZHJlc3MgaXMgdXBkYXRlZCByZWFkIG9ubHkgYW5kIGNvcnJlc3Bv
-bmRpbmcKPiA+ID4gdXNlciBwdHIgb2JqZWN0IGFyZSBhbHJlYWR5IHJlYWQgb25seSBpdCBpcyBw
-b2ludGxlc3MgdG8gZG8gYW55dGhpbmcuCj4gPiA+IE9wdGltaXplIHRoaXMgY2FzZSBvdXQuCj4g
-PiA+IAo+ID4gPiBTaWduZWQtb2ZmLWJ5OiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0
-LmNvbT4KPiA+ID4gQ2M6IENocmlzdGlhbiBLw7ZuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNv
-bT4KPiA+ID4gQ2M6IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+Cj4gPiA+IENjOiBGZWxpeCBLdWVo
-bGluZyA8RmVsaXguS3VlaGxpbmdAYW1kLmNvbT4KPiA+ID4gQ2M6IEphc29uIEd1bnRob3JwZSA8
-amdnQG1lbGxhbm94LmNvbT4KPiA+ID4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91
-bmRhdGlvbi5vcmc+Cj4gPiA+IENjOiBNYXR0aGV3IFdpbGNveCA8bWF3aWxjb3hAbWljcm9zb2Z0
-LmNvbT4KPiA+ID4gQ2M6IFJvc3MgWndpc2xlciA8endpc2xlckBrZXJuZWwub3JnPgo+ID4gPiBD
-YzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Cj4gPiA+IENjOiBQYW9s
-byBCb256aW5pIDxwYm9uemluaUByZWRoYXQuY29tPgo+ID4gPiBDYzogUmFkaW0gS3LEjW3DocWZ
-IDxya3JjbWFyQHJlZGhhdC5jb20+Cj4gPiA+IENjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJu
-ZWwub3JnPgo+ID4gPiBDYzogUmFscGggQ2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPgo+
-ID4gPiBDYzogSm9obiBIdWJiYXJkIDxqaHViYmFyZEBudmlkaWEuY29tPgo+ID4gPiBDYzoga3Zt
-QHZnZXIua2VybmVsLm9yZwo+ID4gPiBDYzogZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-Zwo+ID4gPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcKPiA+ID4gQ2M6IGxpbnV4LWZz
-ZGV2ZWxAdmdlci5rZXJuZWwub3JnCj4gPiA+IENjOiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRi
-LmRlPgo+ID4gPiAtLS0KPiA+ID4gIGRyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3VzZXJw
-dHIuYyB8IDE2ICsrKysrKysrKysrKysrKysKPiA+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxNiBpbnNl
-cnRpb25zKCspCj4gPiA+IAo+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL2k5MTUv
-aTkxNV9nZW1fdXNlcnB0ci5jIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0
-ci5jCj4gPiA+IGluZGV4IDk1NTg1ODJjMTA1ZS4uMjMzMzBhYzNkN2VhIDEwMDY0NAo+ID4gPiAt
-LS0gYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV91c2VycHRyLmMKPiA+ID4gKysrIGIv
-ZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW1fdXNlcnB0ci5jCj4gPiA+IEBAIC01OSw2ICs1
-OSw3IEBAIHN0cnVjdCBpOTE1X21tdV9vYmplY3Qgewo+ID4gPiAgICAgICAgIHN0cnVjdCBpbnRl
-cnZhbF90cmVlX25vZGUgaXQ7Cj4gPiA+ICAgICAgICAgc3RydWN0IGxpc3RfaGVhZCBsaW5rOwo+
-ID4gPiAgICAgICAgIHN0cnVjdCB3b3JrX3N0cnVjdCB3b3JrOwo+ID4gPiArICAgICAgIGJvb2wg
-cmVhZF9vbmx5Owo+ID4gPiAgICAgICAgIGJvb2wgYXR0YWNoZWQ7Cj4gPiA+ICB9Owo+ID4gPiAg
-Cj4gPiA+IEBAIC0xMTksNiArMTIwLDcgQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21u
-X2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ID4gPiAg
-ICAgICAgICAgICAgICAgY29udGFpbmVyX29mKF9tbiwgc3RydWN0IGk5MTVfbW11X25vdGlmaWVy
-LCBtbik7Cj4gPiA+ICAgICAgICAgc3RydWN0IGk5MTVfbW11X29iamVjdCAqbW87Cj4gPiA+ICAg
-ICAgICAgc3RydWN0IGludGVydmFsX3RyZWVfbm9kZSAqaXQ7Cj4gPiA+ICsgICAgICAgYm9vbCB1
-cGRhdGVfdG9fcmVhZF9vbmx5Owo+ID4gPiAgICAgICAgIExJU1RfSEVBRChjYW5jZWxsZWQpOwo+
-ID4gPiAgICAgICAgIHVuc2lnbmVkIGxvbmcgZW5kOwo+ID4gPiAgCj4gPiA+IEBAIC0xMjgsNiAr
-MTMwLDggQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21uX2ludmFsaWRhdGVfcmFuZ2Vf
-c3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ID4gPiAgICAgICAgIC8qIGludGVydmFs
-IHJhbmdlcyBhcmUgaW5jbHVzaXZlLCBidXQgaW52YWxpZGF0ZSByYW5nZSBpcyBleGNsdXNpdmUg
-Ki8KPiA+ID4gICAgICAgICBlbmQgPSByYW5nZS0+ZW5kIC0gMTsKPiA+ID4gIAo+ID4gPiArICAg
-ICAgIHVwZGF0ZV90b19yZWFkX29ubHkgPSBtbXVfbm90aWZpZXJfcmFuZ2VfdXBkYXRlX3RvX3Jl
-YWRfb25seShyYW5nZSk7Cj4gPiA+ICsKPiA+ID4gICAgICAgICBzcGluX2xvY2soJm1uLT5sb2Nr
-KTsKPiA+ID4gICAgICAgICBpdCA9IGludGVydmFsX3RyZWVfaXRlcl9maXJzdCgmbW4tPm9iamVj
-dHMsIHJhbmdlLT5zdGFydCwgZW5kKTsKPiA+ID4gICAgICAgICB3aGlsZSAoaXQpIHsKPiA+ID4g
-QEAgLTE0NSw2ICsxNDksMTcgQEAgc3RhdGljIGludCBpOTE1X2dlbV91c2VycHRyX21uX2ludmFs
-aWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqX21uLAo+ID4gPiAgICAgICAg
-ICAgICAgICAgICogb2JqZWN0IGlmIGl0IGlzIG5vdCBpbiB0aGUgcHJvY2VzcyBvZiBiZWluZyBk
-ZXN0cm95ZWQuCj4gPiA+ICAgICAgICAgICAgICAgICAgKi8KPiA+ID4gICAgICAgICAgICAgICAg
-IG1vID0gY29udGFpbmVyX29mKGl0LCBzdHJ1Y3QgaTkxNV9tbXVfb2JqZWN0LCBpdCk7Cj4gPiA+
-ICsKPiA+ID4gKyAgICAgICAgICAgICAgIC8qCj4gPiA+ICsgICAgICAgICAgICAgICAgKiBJZiBp
-dCBpcyBhbHJlYWR5IHJlYWQgb25seSBhbmQgd2UgYXJlIHVwZGF0aW5nIHRvCj4gPiA+ICsgICAg
-ICAgICAgICAgICAgKiByZWFkIG9ubHkgdGhlbiB3ZSBkbyBub3QgbmVlZCB0byBjaGFuZ2UgYW55
-dGhpbmcuCj4gPiA+ICsgICAgICAgICAgICAgICAgKiBTbyBzYXZlIHRpbWUgYW5kIHNraXAgdGhp
-cyBvbmUuCj4gPiA+ICsgICAgICAgICAgICAgICAgKi8KPiA+ID4gKyAgICAgICAgICAgICAgIGlm
-ICh1cGRhdGVfdG9fcmVhZF9vbmx5ICYmIG1vLT5yZWFkX29ubHkpIHsKPiA+ID4gKyAgICAgICAg
-ICAgICAgICAgICAgICAgaXQgPSBpbnRlcnZhbF90cmVlX2l0ZXJfbmV4dChpdCwgcmFuZ2UtPnN0
-YXJ0LCBlbmQpOwo+ID4gPiArICAgICAgICAgICAgICAgICAgICAgICBjb250aW51ZTsKPiA+ID4g
-KyAgICAgICAgICAgICAgIH0KPiA+ID4gKwo+ID4gPiAgICAgICAgICAgICAgICAgaWYgKGtyZWZf
-Z2V0X3VubGVzc196ZXJvKCZtby0+b2JqLT5iYXNlLnJlZmNvdW50KSkKPiA+ID4gICAgICAgICAg
-ICAgICAgICAgICAgICAgcXVldWVfd29yayhtbi0+d3EsICZtby0+d29yayk7Cj4gPiA+ICAKPiA+
-ID4gQEAgLTI3MCw2ICsyODUsNyBAQCBpOTE1X2dlbV91c2VycHRyX2luaXRfX21tdV9ub3RpZmll
-cihzdHJ1Y3QgZHJtX2k5MTVfZ2VtX29iamVjdCAqb2JqLAo+ID4gPiAgICAgICAgIG1vLT5tbiA9
-IG1uOwo+ID4gPiAgICAgICAgIG1vLT5vYmogPSBvYmo7Cj4gPiA+ICAgICAgICAgbW8tPml0LnN0
-YXJ0ID0gb2JqLT51c2VycHRyLnB0cjsKPiA+ID4gKyAgICAgICBtby0+cmVhZF9vbmx5ID0gaTkx
-NV9nZW1fb2JqZWN0X2lzX3JlYWRvbmx5KG9iaik7Cj4gPiA+ICAgICAgICAgbW8tPml0Lmxhc3Qg
-PSBvYmotPnVzZXJwdHIucHRyICsgb2JqLT5iYXNlLnNpemUgLSAxOwo+ID4gPiAgICAgICAgIElO
-SVRfV09SSygmbW8tPndvcmssIGNhbmNlbF91c2VycHRyKTsKPiA+ID4gIAo+ID4gPiAtLSAKPiA+
-ID4gMi4xNy4yCj4gPiA+IAo+ID4gPiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwo+ID4gPiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gPiA+IGRyaS1kZXZl
-bEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiA+ID4gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vZHJpLWRldmVsCg==
+On Tue, Jan 29, 2019 at 04:20:00PM +0200, Joonas Lahtinen wrote:
+> Quoting Jerome Glisse (2019-01-24 17:30:32)
+> > On Thu, Jan 24, 2019 at 02:09:12PM +0200, Joonas Lahtinen wrote:
+> > > Hi Jerome,
+> > > 
+> > > This patch seems to have plenty of Cc:s, but none of the right ones :)
+> > 
+> > So sorry, i am bad with git commands.
+> > 
+> > > For further iterations, I guess you could use git option --cc to make
+> > > sure everyone gets the whole series, and still keep the Cc:s in the
+> > > patches themselves relevant to subsystems.
+> > 
+> > Will do.
+> > 
+> > > This doesn't seem to be on top of drm-tip, but on top of your previous
+> > > patches(?) that I had some comments about. Could you take a moment to
+> > > first address the couple of question I had, before proceeding to discuss
+> > > what is built on top of that base.
+> > 
+> > It is on top of Linus tree so roughly ~ rc3 it does not depend on any
+> > of the previous patch i posted.
+> 
+> You actually managed to race a point in time just when Chris rewrote much
+> of the userptr code in drm-tip, which I didn't remember of. My bad.
+> 
+> Still interested to hearing replies to my questions in the previous
+> thread, if the series is still relevant. Trying to get my head around
+> how the different aspects of HMM pan out for devices without fault handling.
+
+HMM mirror does not need page fault handling for everything and in fact
+for user ptr you can use HMM mirror without page fault support in hardware.
+Page fault requirement is more like a __very__ nice to have feature.
+
+So sorry i missed that mail i must had it in a middle of bugzilla spam
+and deleted it. So here is a paste of it and answer. This was for a
+patch to convert i915 to use HMM mirror instead of having i915 does it
+own thing with GUP (get_user_page).
+
+> Bit late reply, but here goes :)
+>
+> We're working quite hard to avoid pinning any pages unless they're in
+> the GPU page tables. And when they are in the GPU page tables, they must
+> be pinned for whole of that duration, for the reason that our GPUs can
+> not take a fault. And to avoid thrashing GPU page tables, we do leave
+> objects in page tables with the expectation that smart userspace
+> recycles buffers.
+
+You do not need to pin the page because you obey to mmu notifier ie
+it is perfectly fine for you to keep the page map into the GPU until
+you get an mmu notifier call back for the range of virtual address.
+
+The pin from GUP in fact does not protect you from anything. GUP is
+really misleading, by the time GUP return the page you get might not
+correspond to the memory backing the virtual address.
+
+In i915 code this is not an issue because you synchronize against
+mmu notifier call back.
+
+So my intention in converting GPU driver from GUP to HMM mirror is
+just to avoid the useless page pin. As long as you obey the mmu
+notifier call back (or HMM sync page table call back) then you are
+fine.
+
+> So what I understand of your proposal, it wouldn't really make a
+> difference for us in the amount of pinned pages (which I agree,
+> we'd love to see going down). When we're unable to take a fault,
+> the first use effectively forces us to pin any pages and keep them
+> pinned to avoid thrashing GPU page tables.
+
+With HMM there is no pin, we never pin the page ie we never increment
+the refcount on the page as it is useless to do so if you abide by
+mmu notifier. Again the pin GUP take is misleading it does not block
+mm event.
+
+However Without pin and still abiding to mmu notifier you will not
+see any difference in thrashing ie number of time you will get a mmu
+notifier call back. As really those call back happens for good reasons.
+For instance running out of memory and kernel trying to reclaim or
+because userspace did a syscall that affect the range of virtual address.
+
+This should not happen in regular workload and when they happen the pin
+from GUP will not inhibit those either. In the end you will get the exact
+same amount of trashing but you will inhibit thing like memory compaction
+or migration while HMM does not block those (ie HMM is a good citizen ;)
+while GUP user are not).
+
+Also we are in the process of changing GUP and GUP will now have more
+profound impact to filesystem and mm (inhibiting and breaking some of
+the filesystem behavior). Converting GPU driver to HMM will avoid those
+adverse impact and it is one of the motivation behind my crusade to
+convert all GUP user that abide by mmu notifier to use HMM instead.
+
+
+> So from i915 perspective, it just seems to be mostly an exchange of
+> an API to an another for getting the pages. You already mentioned
+> the fast path is being worked on, which is an obvious difference.
+> But is there some other improvement one would be expecting, beyond
+> the page pinning?
+
+So for HMM i have a bunch of further optimization and new feature.
+Using HMM would make it easier for i915 to leverage those.
+
+> Also, is the requirement for a single non-file-backed VMA in the
+> plans of being eliminated or is that inherent restriction of the
+> HMM_MIRROR feature? We're currently not imposing such a limitation.
+
+HMM does not have that limitation, never did. It seems that i915
+unlike other driver does allow GUP on file back page, while other
+GPU driver do not. So i made the assumption the i915 did have that
+limitation without checking the code.
+
+
+> > I still intended to propose to remove
+> > GUP from i915 once i get around to implement the equivalent of GUP_fast
+> > for HMM and other bonus cookies with it.
+> > 
+> > The plan is once i have all mm bits properly upstream then i can propose
+> > patches to individual driver against the proper driver tree ie following
+> > rules of each individual device driver sub-system and Cc only people
+> > there to avoid spamming the mm folks :)
+> 
+> Makes sense, as we're having tons of changes in this field in i915, the
+> churn to rebase on top of them will be substantial.
+
+I am posting more HMM bits today for 5.1, i will probably post another i915
+patchset in coming weeks. I will try to base it on for-5.1-drm tree as i am
+not only doing i915 but amd too and it is easier if i can do all of them in
+just one tree so i only have to switch GPU not kernel too for testing :)
+
+> 
+> Regards, Joonas
+> 
+> PS. Are you by any chance attending FOSDEM? Would be nice to chat about
+> this.
+
+No i am not going to fosdem :(
+
+Cheers,
+Jérôme
