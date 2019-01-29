@@ -1,7 +1,7 @@
 From: Joel Nider <joeln@il.ibm.com>
-Subject: [PATCH 4/5] RDMA/uverbs: add owner parameter to ib_umem_odp_get
-Date: Tue, 29 Jan 2019 15:26:25 +0200
-Message-ID: <1548768386-28289-5-git-send-email-joeln@il.ibm.com>
+Subject: [PATCH 2/5] RDMA/uverbs: add owner parameter to reg_user_mr
+Date: Tue, 29 Jan 2019 15:26:23 +0200
+Message-ID: <1548768386-28289-3-git-send-email-joeln@il.ibm.com>
 References: <1548768386-28289-1-git-send-email-joeln@il.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -13,231 +13,324 @@ To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Mike Rapoport <rppt@linux.ibm.com>, Joel Nider <joeln@il.ibm.com>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Propagate the change of adding the owner parameter to several internal
-core functions, as well as the ib_umem_odp_get() kernel interface
-function. The mm of the address space that owns the memory region is
-saved in the per_mm struct, which is then used by
-ib_umem_odp_map_dma_pages() when resolving a page fault from ODP.
+Add a new parameter 'owner' to the reg_user_mr function. The owner
+parameter specifies the owning process of the memory for which the
+MR is being registered. Until now, the function assumed that the
+process calling the function is also the owner. This patch relaxes
+that assumption, and allows for the caller and registree to be
+different processes, which is required for the reg_remote_mr verb
+implemented in the following patches. No functional changes in
+these files.
 
 Signed-off-by: Joel Nider <joeln@il.ibm.com>
 ---
- drivers/infiniband/core/umem.c     |  4 +--
- drivers/infiniband/core/umem_odp.c | 50 ++++++++++++++++++--------------------
- drivers/infiniband/hw/mlx5/odp.c   |  6 ++++-
- include/rdma/ib_umem_odp.h         |  6 +++--
- 4 files changed, 35 insertions(+), 31 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c         | 2 +-
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c     | 1 +
+ drivers/infiniband/hw/bnxt_re/ib_verbs.h     | 1 +
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  | 3 ++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h       | 1 +
+ drivers/infiniband/hw/cxgb4/mem.c            | 3 ++-
+ drivers/infiniband/hw/i40iw/i40iw_verbs.c    | 1 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h         | 1 +
+ drivers/infiniband/hw/mlx4/mr.c              | 1 +
+ drivers/infiniband/hw/mlx5/mlx5_ib.h         | 4 +++-
+ drivers/infiniband/hw/mlx5/mr.c              | 2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c | 3 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c        | 2 +-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.c  | 3 ++-
+ drivers/infiniband/hw/ocrdma/ocrdma_verbs.h  | 3 ++-
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.c | 1 +
+ drivers/infiniband/hw/usnic/usnic_ib_verbs.h | 1 +
+ drivers/infiniband/sw/rdmavt/mr.c            | 1 +
+ drivers/infiniband/sw/rdmavt/mr.h            | 1 +
+ drivers/infiniband/sw/rxe/rxe_verbs.c        | 4 +++-
+ include/rdma/ib_verbs.h                      | 1 +
+ 21 files changed, 30 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 9646cee..77874e5 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -142,7 +142,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 	mmgrab(mm);
- 
- 	if (access & IB_ACCESS_ON_DEMAND) {
--		ret = ib_umem_odp_get(to_ib_umem_odp(umem), access);
-+		ret = ib_umem_odp_get(to_ib_umem_odp(umem), access, owner);
- 		if (ret)
- 			goto umem_kfree;
- 		return umem;
-@@ -200,7 +200,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
- 				     mm, cur_base,
- 				     min_t(unsigned long, npages,
- 				     PAGE_SIZE / sizeof(struct page *)),
--				     gup_flags, page_list, vma_list, NULL);
-+				     gup_flags, page_list, vma_list);
- 		if (ret < 0) {
- 			up_read(&mm->mmap_sem);
- 			goto umem_release;
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index a4ec430..49826070 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -227,7 +227,8 @@ static void remove_umem_from_per_mm(struct ib_umem_odp *umem_odp)
- }
- 
- static struct ib_ucontext_per_mm *alloc_per_mm(struct ib_ucontext *ctx,
--					       struct mm_struct *mm)
-+					       struct mm_struct *mm,
-+					       struct pid *owner)
- {
- 	struct ib_ucontext_per_mm *per_mm;
- 	int ret;
-@@ -241,12 +242,8 @@ static struct ib_ucontext_per_mm *alloc_per_mm(struct ib_ucontext *ctx,
- 	per_mm->umem_tree = RB_ROOT_CACHED;
- 	init_rwsem(&per_mm->umem_rwsem);
- 	per_mm->active = ctx->invalidate_range;
--
--	rcu_read_lock();
--	per_mm->tgid = get_task_pid(current->group_leader, PIDTYPE_PID);
--	rcu_read_unlock();
--
--	WARN_ON(mm != current->mm);
-+	per_mm->tgid = owner;
-+	mmgrab(per_mm->mm);
- 
- 	per_mm->mn.ops = &ib_umem_notifiers;
- 	ret = mmu_notifier_register(&per_mm->mn, per_mm->mm);
-@@ -265,7 +262,7 @@ static struct ib_ucontext_per_mm *alloc_per_mm(struct ib_ucontext *ctx,
- 	return ERR_PTR(ret);
- }
- 
--static int get_per_mm(struct ib_umem_odp *umem_odp)
-+static int get_per_mm(struct ib_umem_odp *umem_odp, struct pid *owner)
- {
- 	struct ib_ucontext *ctx = umem_odp->umem.context;
- 	struct ib_ucontext_per_mm *per_mm;
-@@ -280,7 +277,7 @@ static int get_per_mm(struct ib_umem_odp *umem_odp)
- 			goto found;
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 6b12cc5..034d595 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -724,7 +724,7 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
  	}
  
--	per_mm = alloc_per_mm(ctx, umem_odp->umem.owning_mm);
-+	per_mm = alloc_per_mm(ctx, umem_odp->umem.owning_mm, owner);
- 	if (IS_ERR(per_mm)) {
- 		mutex_unlock(&ctx->per_mm_list_lock);
- 		return PTR_ERR(per_mm);
-@@ -333,7 +330,8 @@ void put_per_mm(struct ib_umem_odp *umem_odp)
+ 	mr = pd->device->ops.reg_user_mr(pd, cmd.start, cmd.length, cmd.hca_va,
+-					 cmd.access_flags,
++					 cmd.access_flags, NULL,
+ 					 &attrs->driver_udata);
+ 	if (IS_ERR(mr)) {
+ 		ret = PTR_ERR(mr);
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 1e2515e..0828f27 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3557,6 +3557,7 @@ static int fill_umem_pbl_tbl(struct ib_umem *umem, u64 *pbl_tbl_orig,
+ /* uverbs */
+ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *ib_pd, u64 start, u64 length,
+ 				  u64 virt_addr, int mr_access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata)
+ {
+ 	struct bnxt_re_pd *pd = container_of(ib_pd, struct bnxt_re_pd, ib_pd);
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.h b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+index c4af726..5af76f6 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.h
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.h
+@@ -215,6 +215,7 @@ struct ib_mw *bnxt_re_alloc_mw(struct ib_pd *ib_pd, enum ib_mw_type type,
+ int bnxt_re_dealloc_mw(struct ib_mw *mw);
+ struct ib_mr *bnxt_re_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int mr_access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata);
+ struct ib_ucontext *bnxt_re_alloc_ucontext(struct ib_device *ibdev,
+ 					   struct ib_udata *udata);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index b34b1a1..54d8b38 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -519,7 +519,8 @@ static struct ib_mr *iwch_get_dma_mr(struct ib_pd *pd, int acc)
  }
  
- struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
--				      unsigned long addr, size_t size)
-+				      unsigned long addr, size_t size,
-+				      struct mm_struct *owner_mm)
+ static struct ib_mr *iwch_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-				      u64 virt, int acc, struct ib_udata *udata)
++				      u64 virt, int acc, struct pid *owner,
++				      struct ib_udata *udata)
  {
- 	struct ib_ucontext *ctx = per_mm->context;
- 	struct ib_umem_odp *odp_data;
-@@ -345,12 +343,14 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
- 	if (!odp_data)
- 		return ERR_PTR(-ENOMEM);
- 	umem = &odp_data->umem;
-+
- 	umem->context    = ctx;
- 	umem->length     = size;
- 	umem->address    = addr;
- 	umem->page_shift = PAGE_SHIFT;
- 	umem->writable   = 1;
- 	umem->is_odp = 1;
-+	umem->owning_mm = owner_mm;
- 	odp_data->per_mm = per_mm;
- 
- 	mutex_init(&odp_data->umem_mutex);
-@@ -389,13 +389,9 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
+ 	__be64 *pages;
+ 	int shift, n, len;
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index f0fcead..8d382fe 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -1059,6 +1059,7 @@ struct ib_mw *c4iw_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+ 			    struct ib_udata *udata);
+ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start,
+ 					   u64 length, u64 virt, int acc,
++					   struct pid *owner,
+ 					   struct ib_udata *udata);
+ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc);
+ int c4iw_dereg_mr(struct ib_mr *ib_mr);
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index 7b76e6f..ec9b0b4 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -499,7 +499,8 @@ struct ib_mr *c4iw_get_dma_mr(struct ib_pd *pd, int acc)
  }
- EXPORT_SYMBOL(ib_alloc_odp_umem);
  
--int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access)
-+int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access, struct pid *owner)
+ struct ib_mr *c4iw_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-			       u64 virt, int acc, struct ib_udata *udata)
++			       u64 virt, int acc, struct pid *owner,
++			       struct ib_udata *udata)
  {
- 	struct ib_umem *umem = &umem_odp->umem;
--	/*
--	 * NOTE: This must called in a process context where umem->owning_mm
--	 * == current->mm
--	 */
- 	struct mm_struct *mm = umem->owning_mm;
- 	int ret_val;
+ 	__be64 *pages;
+ 	int shift, n, len;
+diff --git a/drivers/infiniband/hw/i40iw/i40iw_verbs.c b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+index 0b675b0..fc2e6c8 100644
+--- a/drivers/infiniband/hw/i40iw/i40iw_verbs.c
++++ b/drivers/infiniband/hw/i40iw/i40iw_verbs.c
+@@ -1827,6 +1827,7 @@ static struct ib_mr *i40iw_reg_user_mr(struct ib_pd *pd,
+ 				       u64 length,
+ 				       u64 virt,
+ 				       int acc,
++				       struct pid *owner,
+ 				       struct ib_udata *udata)
+ {
+ 	struct i40iw_pd *iwpd = to_iwpd(pd);
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index e491f3e..80bb83c 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -731,6 +731,7 @@ int mlx4_ib_umem_write_mtt(struct mlx4_ib_dev *dev, struct mlx4_mtt *mtt,
+ 			   struct ib_umem *umem);
+ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata);
+ int mlx4_ib_dereg_mr(struct ib_mr *mr);
+ struct ib_mw *mlx4_ib_alloc_mw(struct ib_pd *pd, enum ib_mw_type type,
+diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/mlx4/mr.c
+index c7c85c2..76fa83c 100644
+--- a/drivers/infiniband/hw/mlx4/mr.c
++++ b/drivers/infiniband/hw/mlx4/mr.c
+@@ -403,6 +403,7 @@ static struct ib_umem *mlx4_get_umem_mr(struct ib_ucontext *context, u64 start,
  
-@@ -437,7 +433,7 @@ int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access)
- 		}
- 	}
- 
--	ret_val = get_per_mm(umem_odp);
-+	ret_val = get_per_mm(umem_odp, owner);
- 	if (ret_val)
- 		goto out_dma_list;
- 	add_umem_to_per_mm(umem_odp);
-@@ -574,8 +570,8 @@ static int ib_umem_odp_map_dma_single_page(
-  *        the return value.
-  * @access_mask: bit mask of the requested access permissions for the given
-  *               range.
-- * @current_seq: the MMU notifiers sequance value for synchronization with
-- *               invalidations. the sequance number is read from
-+ * @current_seq: the MMU notifiers sequence value for synchronization with
-+ *               invalidations. the sequence number is read from
-  *               umem_odp->notifiers_seq before calling this function
+ struct ib_mr *mlx4_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata)
+ {
+ 	struct mlx4_ib_dev *dev = to_mdev(pd->device);
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index b06d3b1..4060461 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -1085,6 +1085,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata);
+ struct ib_mr *mlx5_ib_get_dma_mr(struct ib_pd *pd, int acc);
+ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata);
+ int mlx5_ib_advise_mr(struct ib_pd *pd,
+ 		      enum ib_uverbs_advise_mr_advice advice,
+@@ -1098,7 +1099,8 @@ int mlx5_ib_dealloc_mw(struct ib_mw *mw);
+ int mlx5_ib_update_xlt(struct mlx5_ib_mr *mr, u64 idx, int npages,
+ 		       int page_shift, int flags);
+ struct mlx5_ib_mr *mlx5_ib_alloc_implicit_mr(struct mlx5_ib_pd *pd,
+-					     int access_flags);
++					     int access_flags,
++					     struct pid *owner);
+ void mlx5_ib_free_implicit_mr(struct mlx5_ib_mr *mr);
+ int mlx5_ib_rereg_user_mr(struct ib_mr *ib_mr, int flags, u64 start,
+ 			  u64 length, u64 virt_addr, int access_flags,
+diff --git a/drivers/infiniband/hw/mlx5/mr.c b/drivers/infiniband/hw/mlx5/mr.c
+index fd6ea1f7..6add486 100644
+--- a/drivers/infiniband/hw/mlx5/mr.c
++++ b/drivers/infiniband/hw/mlx5/mr.c
+@@ -30,7 +30,6 @@
+  * SOFTWARE.
   */
- int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
-@@ -584,7 +580,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 
+-
+ #include <linux/kref.h>
+ #include <linux/random.h>
+ #include <linux/debugfs.h>
+@@ -1313,6 +1312,7 @@ struct ib_mr *mlx5_ib_reg_dm_mr(struct ib_pd *pd, struct ib_dm *dm,
+ 
+ struct ib_mr *mlx5_ib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				  u64 virt_addr, int access_flags,
++				  struct pid *owner,
+ 				  struct ib_udata *udata)
  {
- 	struct ib_umem *umem = &umem_odp->umem;
- 	struct task_struct *owning_process  = NULL;
--	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
-+	struct mm_struct *owning_mm;
- 	struct page       **local_page_list = NULL;
- 	u64 page_mask, off;
- 	int j, k, ret = 0, start_idx, npages = 0, page_shift;
-@@ -609,12 +605,13 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 	bcnt += off; /* Charge for the first page offset as well. */
+ 	struct mlx5_ib_dev *dev = to_mdev(pd->device);
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 82cb6b7..77e678e 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -904,7 +904,8 @@ static struct ib_mr *mthca_get_dma_mr(struct ib_pd *pd, int acc)
+ }
  
- 	/*
--	 * owning_process is allowed to be NULL, this means somehow the mm is
--	 * existing beyond the lifetime of the originating process.. Presumably
-+	 * owning_process may be NULL, because the mm can
-+	 * exist independently of the originating process.
- 	 * mmget_not_zero will fail in this case.
- 	 */
- 	owning_process = get_pid_task(umem_odp->per_mm->tgid, PIDTYPE_PID);
--	if (WARN_ON(!mmget_not_zero(umem_odp->umem.owning_mm))) {
-+	owning_mm = umem_odp->per_mm->mm;
-+	if (WARN_ON(!mmget_not_zero(owning_mm))) {
- 		ret = -EINVAL;
- 		goto out_put_task;
- 	}
-@@ -632,15 +629,16 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ static struct ib_mr *mthca_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-				       u64 virt, int acc, struct ib_udata *udata)
++				       u64 virt, int acc, struct pid *owner,
++				       struct ib_udata *udata)
+ {
+ 	struct mthca_dev *dev = to_mdev(pd->device);
+ 	struct scatterlist *sg;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 4e7f08e..e07cb02 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2097,7 +2097,7 @@ static struct ib_mr *nes_get_dma_mr(struct ib_pd *pd, int acc)
+  * nes_reg_user_mr
+  */
+ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+-		u64 virt, int acc, struct ib_udata *udata)
++		u64 virt, int acc, struct pid *owner, struct ib_udata *udata)
+ {
+ 	u64 iova_start;
+ 	__le64 *pbl;
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+index 287c332..01d076a 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.c
+@@ -900,7 +900,8 @@ static void build_user_pbes(struct ocrdma_dev *dev, struct ocrdma_mr *mr,
+ }
  
- 		down_read(&owning_mm->mmap_sem);
- 		/*
--		 * Note: this might result in redundent page getting. We can
-+		 * Note: this might result in redundant page getting. We can
- 		 * avoid this by checking dma_list to be 0 before calling
--		 * get_user_pages. However, this make the code much more
-+		 * get_user_pages. However, this makes the code much more
- 		 * complex (and doesn't gain us much performance in most use
- 		 * cases).
- 		 */
--		npages = get_user_pages_remote(owning_process, owning_mm,
-+		npages = get_user_pages_remote_longterm(owning_process,
-+				owning_mm,
- 				user_virt, gup_num_pages,
--				flags, local_page_list, NULL, NULL);
-+				flags, local_page_list, NULL);
- 		up_read(&owning_mm->mmap_sem);
+ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *ibpd, u64 start, u64 len,
+-				 u64 usr_addr, int acc, struct ib_udata *udata)
++				 u64 usr_addr, int acc, struct pid *owner,
++				 struct ib_udata *udata)
+ {
+ 	int status = -ENOMEM;
+ 	struct ocrdma_dev *dev = get_ocrdma_dev(ibpd->device);
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+index b69cfdce..75ea82f 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_verbs.h
+@@ -106,7 +106,8 @@ int ocrdma_post_srq_recv(struct ib_srq *, const struct ib_recv_wr *,
+ int ocrdma_dereg_mr(struct ib_mr *);
+ struct ib_mr *ocrdma_get_dma_mr(struct ib_pd *, int acc);
+ struct ib_mr *ocrdma_reg_user_mr(struct ib_pd *, u64 start, u64 length,
+-				 u64 virt, int acc, struct ib_udata *);
++				 u64 virt, int acc, struct pid *owner,
++				 struct ib_udata *);
+ struct ib_mr *ocrdma_alloc_mr(struct ib_pd *pd,
+ 			      enum ib_mr_type mr_type,
+ 			      u32 max_num_sg);
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+index 1d4abef..2c8fe13 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.c
+@@ -638,6 +638,7 @@ int usnic_ib_destroy_cq(struct ib_cq *cq)
  
- 		if (npages < 0) {
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index c317e18..1abc917 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -439,8 +439,12 @@ static struct ib_umem_odp *implicit_mr_get_data(struct mlx5_ib_mr *mr,
- 		if (nentries)
- 			nentries++;
- 	} else {
-+		struct mm_struct *owner_mm = current->mm;
-+
-+		if (mr->umem->owning_mm)
-+			owner_mm = mr->umem->owning_mm;
- 		odp = ib_alloc_odp_umem(odp_mr->per_mm, addr,
--					MLX5_IMR_MTT_SIZE);
-+					MLX5_IMR_MTT_SIZE, owner_mm);
- 		if (IS_ERR(odp)) {
- 			mutex_unlock(&odp_mr->umem_mutex);
- 			return ERR_CAST(odp);
-diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-index 0b1446f..28099e6 100644
---- a/include/rdma/ib_umem_odp.h
-+++ b/include/rdma/ib_umem_odp.h
-@@ -102,9 +102,11 @@ struct ib_ucontext_per_mm {
- 	struct rcu_head rcu;
- };
- 
--int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access);
-+int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access,
-+		     struct pid *owner);
- struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
--				      unsigned long addr, size_t size);
-+				      unsigned long addr, size_t size,
-+				      struct mm_struct *owner_mm);
- void ib_umem_odp_release(struct ib_umem_odp *umem_odp);
- 
- /*
+ struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
+ 					u64 virt_addr, int access_flags,
++					struct pid *owner,
+ 					struct ib_udata *udata)
+ {
+ 	struct usnic_ib_mr *mr;
+diff --git a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+index e331442..4eb42c9 100644
+--- a/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
++++ b/drivers/infiniband/hw/usnic/usnic_ib_verbs.h
+@@ -68,6 +68,7 @@ struct ib_cq *usnic_ib_create_cq(struct ib_device *ibdev,
+ int usnic_ib_destroy_cq(struct ib_cq *cq);
+ struct ib_mr *usnic_ib_reg_mr(struct ib_pd *pd, u64 start, u64 length,
+ 				u64 virt_addr, int access_flags,
++				struct pid *owner,
+ 				struct ib_udata *udata);
+ int usnic_ib_dereg_mr(struct ib_mr *ibmr);
+ struct ib_ucontext *usnic_ib_alloc_ucontext(struct ib_device *ibdev,
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 49c9541..2bc95c9 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -377,6 +377,7 @@ struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc)
+  */
+ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			      u64 virt_addr, int mr_access_flags,
++			      struct pid *owner,
+ 			      struct ib_udata *udata)
+ {
+ 	struct rvt_mr *mr;
+diff --git a/drivers/infiniband/sw/rdmavt/mr.h b/drivers/infiniband/sw/rdmavt/mr.h
+index 132800e..8e6add0 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.h
++++ b/drivers/infiniband/sw/rdmavt/mr.h
+@@ -77,6 +77,7 @@ void rvt_mr_exit(struct rvt_dev_info *rdi);
+ struct ib_mr *rvt_get_dma_mr(struct ib_pd *pd, int acc);
+ struct ib_mr *rvt_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			      u64 virt_addr, int mr_access_flags,
++			      struct pid *owner,
+ 			      struct ib_udata *udata);
+ int rvt_dereg_mr(struct ib_mr *ibmr);
+ struct ib_mr *rvt_alloc_mr(struct ib_pd *pd,
+diff --git a/drivers/infiniband/sw/rxe/rxe_verbs.c b/drivers/infiniband/sw/rxe/rxe_verbs.c
+index b20e6e0..188e038 100644
+--- a/drivers/infiniband/sw/rxe/rxe_verbs.c
++++ b/drivers/infiniband/sw/rxe/rxe_verbs.c
+@@ -982,7 +982,9 @@ static struct ib_mr *rxe_reg_user_mr(struct ib_pd *ibpd,
+ 				     u64 start,
+ 				     u64 length,
+ 				     u64 iova,
+-				     int access, struct ib_udata *udata)
++				     int access,
++				     struct pid *owner,
++				     struct ib_udata *udata)
+ {
+ 	int err;
+ 	struct rxe_dev *rxe = to_rdev(ibpd->device);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index a3ceed3..3432404 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2408,6 +2408,7 @@ struct ib_device_ops {
+ 	struct ib_mr *(*get_dma_mr)(struct ib_pd *pd, int mr_access_flags);
+ 	struct ib_mr *(*reg_user_mr)(struct ib_pd *pd, u64 start, u64 length,
+ 				     u64 virt_addr, int mr_access_flags,
++				     struct pid *owner,
+ 				     struct ib_udata *udata);
+ 	int (*rereg_user_mr)(struct ib_mr *mr, int flags, u64 start, u64 length,
+ 			     u64 virt_addr, int mr_access_flags,
 -- 
 2.7.4
