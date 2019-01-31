@@ -1,98 +1,43 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
-Subject: [PATCH] mlx4_ib: Increase the timeout for CM cache
-Date: Thu, 31 Jan 2019 18:09:51 +0100
-Message-ID: <20190131170951.178676-1-haakon.bugge@oracle.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v4 0/9] mmu notifier provide context informations
+Date: Thu, 31 Jan 2019 11:55:35 -0800
+Message-ID: <20190131115535.7eeecf501615f8bad2f139eb@linux-foundation.org>
+References: <20190123222315.1122-1-jglisse@redhat.com>
+        <20190131161006.GA16593@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190131161006.GA16593@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "David S . Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Jan Kara <jack@suse.cz>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-rdma@vger.kernel.org
 
-Using CX-3 virtual functions, either from a bare-metal machine or
-pass-through from a VM, MAD packets are proxied through the PF driver.
+On Thu, 31 Jan 2019 11:10:06 -0500 Jerome Glisse <jglisse@redhat.com> wrote:
 
-Since the VMs have separate name spaces for MAD Transaction Ids
-(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
-in a cache.
+> Andrew what is your plan for this ? I had a discussion with Peter Xu
+> and Andrea about change_pte() and kvm. Today the change_pte() kvm
+> optimization is effectively disabled because of invalidate_range
+> calls. With a minimal couple lines patch on top of this patchset
+> we can bring back the kvm change_pte optimization and we can also
+> optimize some other cases like for instance when write protecting
+> after fork (but i am not sure this is something qemu does often so
+> it might not help for real kvm workload).
+> 
+> I will be posting a the extra patch as an RFC, but in the meantime
+> i wanted to know what was the status for this.
 
-Following the RDMA CM protocol, it is clear when an entry has to
-evicted form the cache. But life is not perfect, remote peers may die
-or be rebooted. Hence, it's a timeout to wipe out a cache entry, when
-the PF driver assumes the remote peer has gone.
+The various drm patches appear to be headed for collisions with drm
+tree development so we'll need to figure out how to handle that and in
+what order things happen.
 
-We have experienced excessive amount of DREQ retries during fail-over
-testing, when running with eight VMs per database server.
+It's quite unclear from the v4 patchset's changelogs that this has
+anything to do with KVM and "the change_pte() kvm optimization" hasn't
+been described anywhere(?).
 
-The problem has been reproduced in a bare-metal system using one VM
-per physical node. In this environment, running 256 processes in each
-VM, each process uses RDMA CM to create an RC QP between himself and
-all (256) remote processes. All in all 16K QPs.
+So..  I expect the thing to do here is to get everything finished, get
+the changelogs completed with this new information and do a resend.
 
-When tearing down these 16K QPs, excessive DREQ retries (and
-duplicates) are observed. With some cat/paste/awk wizardry on the
-infiniband_cm sysfs, we observe:
-
-      dreq:       5007
-cm_rx_msgs:
-      drep:       3838
-      dreq:      13018
-       rep:       8128
-       req:       8256
-       rtu:       8256
-cm_tx_msgs:
-      drep:       8011
-      dreq:      68856
-       rep:       8256
-       req:       8128
-       rtu:       8128
-cm_tx_retries:
-      dreq:      60483
-
-Note that the active/passive side is distributed.
-
-Enabling pr_debug in cm.c gives tons of:
-
-[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
-1,sl_cm_id: 0xd393089f} is NULL!
-
-By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
-tear-down phase of the application is reduced from 113 to 67
-seconds. Retries/duplicates are also significantly reduced:
-
-cm_rx_duplicates:
-      dreq:       7726
-[]
-cm_tx_retries:
-      drep:          1
-      dreq:       7779
-
-Increasing the timeout further didn't help, as these duplicates and
-retries stem from a too short CMA timeout, which was 20 (~4 seconds)
-on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
-numbers fell down to about one hundred for both of them.
-
-Adjustment of the CMA timeout is _not_ part of this commit.
-
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
----
- drivers/infiniband/hw/mlx4/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index fedaf8260105..8c79a480f2b7 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -39,7 +39,7 @@
- 
- #include "mlx4_ib.h"
- 
--#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
-+#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
- 
- struct id_map_entry {
- 	struct rb_node node;
--- 
-2.20.1
+Can we omit the drm and rdma patches for now?  Feed them in via the
+subsystem maintainers when the dust has settled?
