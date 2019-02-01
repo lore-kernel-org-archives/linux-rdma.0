@@ -1,24 +1,13 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [RFC net-next 07/13] bnxt: Handle SWITCHDEV_PORT_ATTR_GET event
-Date: Fri,  1 Feb 2019 14:06:51 -0800
-Message-ID: <20190201220657.30170-8-f.fainelli@gmail.com>
+Subject: [RFC net-next 09/13] mlxsw: switchx2: Handle SWITCHDEV_PORT_ATTR_GET event
+Date: Fri,  1 Feb 2019 14:06:53 -0800
+Message-ID: <20190201220657.30170-10-f.fainelli@gmail.com>
 References: <20190201220657.30170-1-f.fainelli@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190201220657.30170-1-f.fainelli@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: netdev@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, "Francois H. Theron" <francois.theron@netronome.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Vivien Didelot <vivien.didelot@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Daniel Borkmann <daniel@iogearbox.net>, Simon Horman <simon.horman@netronome.com>, Satanand Burla <sburla@marvell.com>, Ido Schimmel <idosch@mellanox.com>, Jiri Pirko <jiri@>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Michael Chan <michael.chan@broadcom.com>, "David S. Miller" <davem@davemloft.net>, Derek Chickles <dchickles@marvell.com>, Satanand Burla <sburla@marvell.com>, Felix Manlunas <fmanlunas@marvell.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, Ioana Radulescu <ruxandra.radulescu@nxp.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ivan Vecera <ivecera@redhat.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <viv>
 List-Id: linux-rdma@vger.kernel.org
 
 Following patches will change the way we communicate getting or setting
@@ -29,25 +18,23 @@ SWITCHDEV_PORT_ATTR_GET and simply translate that into the existing
 switchdev_ops::switchdev_port_attr_get operation.
 
 We register a single blocking switchdev notifier for the entire driver
-instance and we differentiate a PF from a VF by comparing the network
-device's netdev_ops with the ones that this driver manages.
+instance and check that thet network device maps to the one that
+switchx2 manages.
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 58 ++++++++++++++++++-
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c |  4 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.h |  8 +++
- 3 files changed, 67 insertions(+), 3 deletions(-)
+ .../net/ethernet/mellanox/mlxsw/switchx2.c    | 43 ++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 6a512871176b..c3178ca4a004 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -10045,6 +10045,45 @@ static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_get_phys_port_name = bnxt_get_phys_port_name
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+index 2d4f213e154d..82fb8f1bb6e9 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+@@ -923,6 +923,36 @@ static const struct switchdev_ops mlxsw_sx_port_switchdev_ops = {
+ 	.switchdev_port_attr_get	= mlxsw_sx_port_attr_get,
  };
  
-+static int bnxt_swdev_port_attr_event(unsigned long event,
++static int mlxsw_sx_port_attr_event(unsigned long event,
 +		struct net_device *dev,
 +		struct switchdev_notifier_port_attr_info *port_attr_info)
 +{
@@ -56,112 +43,73 @@ index 6a512871176b..c3178ca4a004 100644
 +	if (event != SWITCHDEV_PORT_ATTR_GET)
 +		return NOTIFY_DONE;
 +
-+	if (bnxt_dev_is_vf_rep(dev))
-+		rc = bnxt_vf_rep_port_attr_get(dev, port_attr_info->attr);
-+	else
-+		rc = bnxt_port_attr_get(netdev_priv(dev), port_attr_info->attr);
-+
++	rc = mlxsw_sx_port_attr_get(dev, port_attr_info->attr);
 +	port_attr_info->handled = true;
 +	return notifier_from_errno(rc);
 +}
 +
-+static int bnxt_switchdev_blocking_event(struct notifier_block *nb,
++static int mlxsw_sx_swdev_blocking_event(struct notifier_block *nb,
 +					 unsigned long event, void *ptr)
 +{
 +	struct net_device *dev = switchdev_notifier_info_to_dev(ptr);
 +
-+	if (dev->netdev_ops != &bnxt_netdev_ops &&
-+	    !bnxt_dev_is_vf_rep(dev))
++	if (dev->netdev_ops != &mlxsw_sx_port_netdev_ops)
 +		return NOTIFY_DONE;
 +
 +	switch (event) {
 +	case SWITCHDEV_PORT_ATTR_GET:
-+		return bnxt_swdev_port_attr_event(event, dev, ptr);
++		return mlxsw_sx_port_attr_event(event, dev, ptr);
 +	}
 +
 +	return NOTIFY_DONE;
 +}
 +
-+static struct notifier_block bnxt_swdev_blocking_nb = {
-+	.notifier_call = bnxt_switchdev_blocking_event,
+ static int mlxsw_sx_hw_id_get(struct mlxsw_sx *mlxsw_sx)
+ {
+ 	char spad_pl[MLXSW_REG_SPAD_LEN] = {0};
+@@ -1638,6 +1668,10 @@ static void mlxsw_sx_fini(struct mlxsw_core *mlxsw_core)
+ 	mlxsw_sx_ports_remove(mlxsw_sx);
+ }
+ 
++static struct notifier_block mlxsw_sx_swdev_nb = {
++	.notifier_call	= mlxsw_sx_swdev_blocking_event,
 +};
 +
- static void bnxt_remove_one(struct pci_dev *pdev)
+ static const struct mlxsw_config_profile mlxsw_sx_config_profile = {
+ 	.used_max_vepa_channels		= 1,
+ 	.max_vepa_channels		= 0,
+@@ -1698,10 +1732,14 @@ static int __init mlxsw_sx_module_init(void)
  {
- 	struct net_device *dev = pci_get_drvdata(pdev);
-@@ -10817,8 +10856,24 @@ static struct pci_driver bnxt_pci_driver = {
+ 	int err;
  
- static int __init bnxt_init(void)
- {
-+	int rc;
+-	err = mlxsw_core_driver_register(&mlxsw_sx_driver);
++	err = register_switchdev_blocking_notifier(&mlxsw_sx_swdev_nb);
+ 	if (err)
+ 		return err;
+ 
++	err = mlxsw_core_driver_register(&mlxsw_sx_driver);
++	if (err)
++		goto err_unregister_notifier;
 +
- 	bnxt_debug_init();
--	return pci_register_driver(&bnxt_pci_driver);
-+	rc = register_switchdev_blocking_notifier(&bnxt_swdev_blocking_nb);
-+	if (rc)
-+		goto err_debug;
-+
-+	rc = pci_register_driver(&bnxt_pci_driver);
-+	if (rc)
-+		goto err_unreg_notifier;
-+
-+	return rc;
-+
-+err_unreg_notifier:
-+	unregister_switchdev_notifier(&bnxt_swdev_blocking_nb);
-+err_debug:
-+	bnxt_debug_exit();
-+	return rc;
+ 	err = mlxsw_pci_driver_register(&mlxsw_sx_pci_driver);
+ 	if (err)
+ 		goto err_pci_driver_register;
+@@ -1710,6 +1748,8 @@ static int __init mlxsw_sx_module_init(void)
+ 
+ err_pci_driver_register:
+ 	mlxsw_core_driver_unregister(&mlxsw_sx_driver);
++err_unregister_notifier:
++	unregister_switchdev_blocking_notifier(&mlxsw_sx_swdev_nb);
+ 	return err;
  }
  
- static void __exit bnxt_exit(void)
-@@ -10826,6 +10881,7 @@ static void __exit bnxt_exit(void)
- 	pci_unregister_driver(&bnxt_pci_driver);
- 	if (bnxt_pf_wq)
- 		destroy_workqueue(bnxt_pf_wq);
-+	unregister_switchdev_notifier(&bnxt_swdev_blocking_nb);
- 	bnxt_debug_exit();
- }
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-index 9a25c05aa571..a06f93b49dd5 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-@@ -237,8 +237,8 @@ static void bnxt_vf_rep_get_drvinfo(struct net_device *dev,
- 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
- }
- 
--static int bnxt_vf_rep_port_attr_get(struct net_device *dev,
--				     struct switchdev_attr *attr)
-+int bnxt_vf_rep_port_attr_get(struct net_device *dev,
-+			      struct switchdev_attr *attr)
+@@ -1717,6 +1757,7 @@ static void __exit mlxsw_sx_module_exit(void)
  {
- 	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.h b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.h
-index d7287651422f..ba24ac222182 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.h
-@@ -32,6 +32,8 @@ bool bnxt_dev_is_vf_rep(struct net_device *dev);
- int bnxt_dl_eswitch_mode_get(struct devlink *devlink, u16 *mode);
- int bnxt_dl_eswitch_mode_set(struct devlink *devlink, u16 mode,
- 			     struct netlink_ext_ack *extack);
-+int bnxt_vf_rep_port_attr_get(struct net_device *dev,
-+			      struct switchdev_attr *attr);
- 
- #else
- 
-@@ -61,5 +63,11 @@ static inline bool bnxt_dev_is_vf_rep(struct net_device *dev)
- {
- 	return false;
+ 	mlxsw_pci_driver_unregister(&mlxsw_sx_pci_driver);
+ 	mlxsw_core_driver_unregister(&mlxsw_sx_driver);
++	unregister_switchdev_blocking_notifier(&mlxsw_sx_swdev_nb);
  }
-+
-+static inline int bnxt_vf_rep_port_attr_get(struct net_device *dev,
-+					    struct switchdev_attr *attr)
-+{
-+	return -EOPNOTSUPP;
-+}
- #endif /* CONFIG_BNXT_SRIOV */
- #endif /* BNXT_VFR_H */
+ 
+ module_init(mlxsw_sx_module_init);
 -- 
 2.17.1
