@@ -1,64 +1,68 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [RFC net-next 01/13] switchdev: Add SWITCHDEV_PORT_ATTR_SET,
- SWITCHDEV_PORT_ATTR_GET
-Date: Fri,  1 Feb 2019 14:06:45 -0800
-Message-ID: <20190201220657.30170-2-f.fainelli@gmail.com>
+Subject: [RFC net-next 03/13] net: dsa: Handle SWITCHDEV_PORT_ATTR_GET/SET
+Date: Fri,  1 Feb 2019 14:06:47 -0800
+Message-ID: <20190201220657.30170-4-f.fainelli@gmail.com>
 References: <20190201220657.30170-1-f.fainelli@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190201220657.30170-1-f.fainelli@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: netdev@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, "Francois H. Theron" <francois.theron@netronome.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Vivien Didelot <vivien.didelot@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Daniel Borkmann <daniel@iogearbox.net>, Simon Horman <simon.horman@netronome.com>, Satanand Burla <sburla@marvell.com>, Ido Schimmel <idosch@mellanox.com>, Jiri Pirko <jiri@>
+Cc: Florian Fainelli <f.fainelli@gmail.com>, Michael Chan <michael.chan@broadcom.com>, "David S. Miller" <davem@davemloft.net>, Derek Chickles <dchickles@marvell.com>, Satanand Burla <sburla@marvell.com>, Felix Manlunas <fmanlunas@marvell.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, Ioana Radulescu <ruxandra.radulescu@nxp.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ivan Vecera <ivecera@redhat.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <viv>
 List-Id: linux-rdma@vger.kernel.org
 
-In preparation for allowing switchdev enabled drivers to veto specific
-attribute settings from within the context of the caller, introduce a
-new switchdev notifier type for port attributes.
+Following patches will change the way we communicate getting or setting
+a port's attribute and use a blocking notifier to perform those tasks.
 
-Suggested-by: Ido Schimmel <idosch@mellanox.com>
+Prepare DSA to support receiving notifier events targeting
+SWITCHDEV_PORT_ATTR_GET/SET and simply translate that into the existing
+dsa_slave_port_attr_{set,get} calls.
+
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- include/net/switchdev.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/dsa/slave.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/include/net/switchdev.h b/include/net/switchdev.h
-index 63843ae5dc81..e62fb2693e00 100644
---- a/include/net/switchdev.h
-+++ b/include/net/switchdev.h
-@@ -145,6 +145,9 @@ enum switchdev_notifier_type {
- 	SWITCHDEV_VXLAN_FDB_ADD_TO_DEVICE,
- 	SWITCHDEV_VXLAN_FDB_DEL_TO_DEVICE,
- 	SWITCHDEV_VXLAN_FDB_OFFLOADED,
-+
-+	SWITCHDEV_PORT_ATTR_SET, /* Blocking. */
-+	SWITCHDEV_PORT_ATTR_GET, /* Blocking. */
- };
+diff --git a/net/dsa/slave.c b/net/dsa/slave.c
+index 91de3a663226..bc7d5092a1c7 100644
+--- a/net/dsa/slave.c
++++ b/net/dsa/slave.c
+@@ -1549,6 +1549,27 @@ dsa_slave_switchdev_port_obj_event(unsigned long event,
+ 	return notifier_from_errno(err);
+ }
  
- struct switchdev_notifier_info {
-@@ -167,6 +170,13 @@ struct switchdev_notifier_port_obj_info {
- 	bool handled;
- };
- 
-+struct switchdev_notifier_port_attr_info {
-+	struct switchdev_notifier_info info; /* must be first */
-+	struct switchdev_attr *attr;
-+	struct switchdev_trans *trans;
-+	bool handled;
-+};
++static int
++dsa_slave_switchdev_port_attr_event(unsigned long event,
++		struct net_device *netdev,
++		struct switchdev_notifier_port_attr_info *port_attr_info)
++{
++	int err = -EOPNOTSUPP;
 +
- static inline struct net_device *
- switchdev_notifier_info_to_dev(const struct switchdev_notifier_info *info)
++	switch (event) {
++	case SWITCHDEV_PORT_ATTR_SET:
++		err = dsa_slave_port_attr_set(netdev, port_attr_info->attr,
++					      port_attr_info->trans);
++		break;
++	case SWITCHDEV_PORT_ATTR_GET:
++		err = dsa_slave_port_attr_get(netdev, port_attr_info->attr);
++		break;
++	}
++
++	port_attr_info->handled = true;
++	return notifier_from_errno(err);
++}
++
+ static int dsa_slave_switchdev_blocking_event(struct notifier_block *unused,
+ 					      unsigned long event, void *ptr)
  {
+@@ -1561,6 +1582,9 @@ static int dsa_slave_switchdev_blocking_event(struct notifier_block *unused,
+ 	case SWITCHDEV_PORT_OBJ_ADD: /* fall through */
+ 	case SWITCHDEV_PORT_OBJ_DEL:
+ 		return dsa_slave_switchdev_port_obj_event(event, dev, ptr);
++	case SWITCHDEV_PORT_ATTR_SET: /* fallthrough */
++	case SWITCHDEV_PORT_ATTR_GET:
++		return dsa_slave_switchdev_port_attr_event(event, dev, ptr);
+ 	}
+ 
+ 	return NOTIFY_DONE;
 -- 
 2.17.1
