@@ -1,7 +1,7 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [RFC net-next 04/13] mlxsw: spectrum_switchdev: Handle SWITCHDEV_PORT_ATTR_GET/SET
-Date: Fri,  1 Feb 2019 14:06:48 -0800
-Message-ID: <20190201220657.30170-5-f.fainelli@gmail.com>
+Subject: [RFC net-next 05/13] net: mscc: ocelot: Handle SWITCHDEV_PORT_ATTR_GET/SET
+Date: Fri,  1 Feb 2019 14:06:49 -0800
+Message-ID: <20190201220657.30170-6-f.fainelli@gmail.com>
 References: <20190201220657.30170-1-f.fainelli@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190201220657.30170-1-f.fainelli@gmail.com>
@@ -13,36 +13,37 @@ List-Id: linux-rdma@vger.kernel.org
 Following patches will change the way we communicate getting or setting
 a port's attribute and use a blocking notifier to perform those tasks.
 
-Prepare mlxsw to support receiving notifier events targeting
+Prepare ocelot to support receiving notifier events targeting
 SWITCHDEV_PORT_ATTR_GET/SET and simply translate that into the existing
-mlxsw_sp_port_attr_{set,get} calls.
+ocelot_port_attr_{set,get} calls.
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- .../mellanox/mlxsw/spectrum_switchdev.c       | 23 +++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/net/ethernet/mscc/ocelot.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-index 0f4e68d31cc3..7c0df736587c 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_switchdev.c
-@@ -3442,6 +3442,26 @@ mlxsw_sp_switchdev_handle_vxlan_obj_del(struct net_device *vxlan_dev,
- 	}
- }
+diff --git a/drivers/net/ethernet/mscc/ocelot.c b/drivers/net/ethernet/mscc/ocelot.c
+index c6a575eb0ff5..8043347a1ed4 100644
+--- a/drivers/net/ethernet/mscc/ocelot.c
++++ b/drivers/net/ethernet/mscc/ocelot.c
+@@ -1589,6 +1589,27 @@ struct notifier_block ocelot_netdevice_nb __read_mostly = {
+ };
+ EXPORT_SYMBOL(ocelot_netdevice_nb);
  
 +static int
-+mlxsw_sp_switchdev_port_attr_event(unsigned long event, struct net_device *dev,
++ocelot_switchdev_port_attr_event(unsigned long event,
++		struct net_device *netdev,
 +		struct switchdev_notifier_port_attr_info *port_attr_info)
 +{
 +	int err = -EOPNOTSUPP;
 +
 +	switch (event) {
 +	case SWITCHDEV_PORT_ATTR_SET:
-+		err = mlxsw_sp_port_attr_set(dev, port_attr_info->attr,
-+					     port_attr_info->trans);
++		err = ocelot_port_attr_set(netdev, port_attr_info->attr,
++					   port_attr_info->trans);
 +		break;
 +	case SWITCHDEV_PORT_ATTR_GET:
-+		err = mlxsw_sp_port_attr_get(dev, port_attr_info->attr);
++		err = ocelot_port_attr_get(netdev, port_attr_info->attr);
 +		break;
 +	}
 +
@@ -50,16 +51,16 @@ index 0f4e68d31cc3..7c0df736587c 100644
 +	return notifier_from_errno(err);
 +}
 +
- static int mlxsw_sp_switchdev_blocking_event(struct notifier_block *unused,
- 					     unsigned long event, void *ptr)
+ static int ocelot_switchdev_blocking_event(struct notifier_block *unused,
+ 					   unsigned long event, void *ptr)
  {
-@@ -3465,6 +3485,9 @@ static int mlxsw_sp_switchdev_blocking_event(struct notifier_block *unused,
- 							mlxsw_sp_port_dev_check,
- 							mlxsw_sp_port_obj_del);
+@@ -1607,6 +1628,9 @@ static int ocelot_switchdev_blocking_event(struct notifier_block *unused,
+ 						    ocelot_netdevice_dev_check,
+ 						    ocelot_port_obj_del);
  		return notifier_from_errno(err);
 +	case SWITCHDEV_PORT_ATTR_SET:
 +	case SWITCHDEV_PORT_ATTR_GET:
-+		return mlxsw_sp_switchdev_port_attr_event(event, dev, ptr);
++		return ocelot_switchdev_port_attr_event(event, dev, ptr);
  	}
  
  	return NOTIFY_DONE;
