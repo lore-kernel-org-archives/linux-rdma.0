@@ -1,137 +1,51 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [RFC net-next 11/13] nfp: Handle SWITCHDEV_PORT_ATTR_GET event
-Date: Fri,  1 Feb 2019 14:06:55 -0800
-Message-ID: <20190201220657.30170-12-f.fainelli@gmail.com>
+Subject: [RFC net-next 12/13] netdevsim: Handle SWITCHDEV_PORT_ATTR_GET event
+Date: Fri,  1 Feb 2019 14:06:56 -0800
+Message-ID: <20190201220657.30170-13-f.fainelli@gmail.com>
 References: <20190201220657.30170-1-f.fainelli@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-Reply-To: <20190201220657.30170-1-f.fainelli@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: netdev@vger.kernel.org
-Cc: Florian Fainelli <f.fainelli@gmail.com>, Michael Chan <michael.chan@broadcom.com>, "David S. Miller" <davem@davemloft.net>, Derek Chickles <dchickles@marvell.com>, Satanand Burla <sburla@marvell.com>, Felix Manlunas <fmanlunas@marvell.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, Ioana Radulescu <ruxandra.radulescu@nxp.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ivan Vecera <ivecera@redhat.com>, Andrew Lunn <andrew@lunn.ch>, Vivien Didelot <viv>
+Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, "Francois H. Theron" <francois.theron@netronome.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Vivien Didelot <vivien.didelot@gmail.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Daniel Borkmann <daniel@iogearbox.net>, Simon Horman <simon.horman@netronome.com>, Satanand Burla <sburla@marvell.com>, Ido Schimmel <idosch@mellanox.com>, Jiri Pirko <jiri@>
 List-Id: linux-rdma@vger.kernel.org
 
 Following patches will change the way we communicate getting or setting
 a port's attribute and use a blocking notifier to perform those tasks.
 
-Prepare nfp to support receiving notifier events targeting
+Prepare netdevsim to support receiving notifier events targeting
 SWITCHDEV_PORT_ATTR_GET and simply translate that into the existing
 switchdev_ops::switchdev_port_attr_get operation.
 
 We register a single blocking switchdev notifier for the entire driver
-instance and we differentiate a "net" from a "repr" by comparing the
-network device's netdev_ops with the ones that this driver manages.
+instance.
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/netronome/nfp/nfp_main.c   | 14 +++++++++++++-
- drivers/net/ethernet/netronome/nfp/nfp_net.h    |  3 +++
- .../net/ethernet/netronome/nfp/nfp_net_common.c | 17 +++++++++++++++++
- drivers/net/ethernet/netronome/nfp/nfp_port.c   | 15 +++++++++++++++
- drivers/net/ethernet/netronome/nfp/nfp_port.h   |  5 ++++-
- 5 files changed, 52 insertions(+), 2 deletions(-)
+ drivers/net/netdevsim/netdev.c | 43 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 42 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/netronome/nfp/nfp_main.c b/drivers/net/ethernet/netronome/nfp/nfp_main.c
-index 6c10e8d119e4..50c111280cd4 100644
---- a/drivers/net/ethernet/netronome/nfp/nfp_main.c
-+++ b/drivers/net/ethernet/netronome/nfp/nfp_main.c
-@@ -17,6 +17,7 @@
- #include <linux/vermagic.h>
- #include <linux/vmalloc.h>
- #include <net/devlink.h>
-+#include <net/switchdev.h>
- 
- #include "nfpcore/nfp.h"
- #include "nfpcore/nfp_cpp.h"
-@@ -708,6 +709,10 @@ static void nfp_pci_remove(struct pci_dev *pdev)
- 	pci_disable_device(pdev);
- }
- 
-+static struct notifier_block nfp_swdev_blocking_nb = {
-+	.notifier_call	= nfp_switchdev_blocking_event,
-+};
-+
- static struct pci_driver nfp_pci_driver = {
- 	.name			= nfp_driver_name,
- 	.id_table		= nfp_pci_device_ids,
-@@ -725,9 +730,13 @@ static int __init nfp_main_init(void)
- 
- 	nfp_net_debugfs_create();
- 
-+	err = register_switchdev_blocking_notifier(&nfp_swdev_blocking_nb);
-+	if (err)
-+		goto err_destroy_debugfs;
-+
- 	err = pci_register_driver(&nfp_pci_driver);
- 	if (err < 0)
--		goto err_destroy_debugfs;
-+		goto err_unreg_notifier;
- 
- 	err = pci_register_driver(&nfp_netvf_pci_driver);
- 	if (err)
-@@ -737,6 +746,8 @@ static int __init nfp_main_init(void)
- 
- err_unreg_pf:
- 	pci_unregister_driver(&nfp_pci_driver);
-+err_unreg_notifier:
-+	unregister_switchdev_blocking_notifier(&nfp_swdev_blocking_nb);
- err_destroy_debugfs:
- 	nfp_net_debugfs_destroy();
- 	return err;
-@@ -746,6 +757,7 @@ static void __exit nfp_main_exit(void)
- {
- 	pci_unregister_driver(&nfp_netvf_pci_driver);
- 	pci_unregister_driver(&nfp_pci_driver);
-+	unregister_switchdev_blocking_notifier(&nfp_swdev_blocking_nb);
- 	nfp_net_debugfs_destroy();
- }
- 
-diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net.h b/drivers/net/ethernet/netronome/nfp/nfp_net.h
-index be37c2d6151c..57f7d6d634ea 100644
---- a/drivers/net/ethernet/netronome/nfp/nfp_net.h
-+++ b/drivers/net/ethernet/netronome/nfp/nfp_net.h
-@@ -915,4 +915,7 @@ static inline void nfp_net_debugfs_dir_clean(struct dentry **dir)
- }
- #endif /* CONFIG_NFP_DEBUG */
- 
-+int nfp_switchdev_blocking_event(struct notifier_block *nb,
-+				 unsigned long event, void *ptr);
-+
- #endif /* _NFP_NET_H_ */
-diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
-index 7d2d4241498f..c2c5e7e3aab0 100644
---- a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
-+++ b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
-@@ -3955,3 +3955,20 @@ void nfp_net_clean(struct nfp_net *nn)
- 	unregister_netdev(nn->dp.netdev);
- 	nfp_net_reconfig_wait_posted(nn);
- }
-+
-+int nfp_switchdev_blocking_event(struct notifier_block *nb,
-+				 unsigned long event, void *ptr)
-+{
-+	struct net_device *dev = switchdev_notifier_info_to_dev(ptr);
-+
-+	if (!nfp_netdev_is_nfp_repr(dev) &&
-+	    !nfp_netdev_is_nfp_net(dev))
-+		return NOTIFY_DONE;
-+
-+	switch (event) {
-+	case SWITCHDEV_PORT_ATTR_GET:
-+		return nfp_port_switchdev_attr_event(event, dev, ptr);
-+	}
-+
-+	return NOTIFY_DONE;
-+}
-diff --git a/drivers/net/ethernet/netronome/nfp/nfp_port.c b/drivers/net/ethernet/netronome/nfp/nfp_port.c
-index 86bc149ca231..578477242ae9 100644
---- a/drivers/net/ethernet/netronome/nfp/nfp_port.c
-+++ b/drivers/net/ethernet/netronome/nfp/nfp_port.c
-@@ -59,6 +59,21 @@ const struct switchdev_ops nfp_port_switchdev_ops = {
- 	.switchdev_port_attr_get	= nfp_port_attr_get,
+diff --git a/drivers/net/netdevsim/netdev.c b/drivers/net/netdevsim/netdev.c
+index 8d8e2b3f263e..817d94cec90f 100644
+--- a/drivers/net/netdevsim/netdev.c
++++ b/drivers/net/netdevsim/netdev.c
+@@ -168,6 +168,20 @@ static const struct switchdev_ops nsim_switchdev_ops = {
+ 	.switchdev_port_attr_get	= nsim_port_attr_get,
  };
  
-+int nfp_port_switchdev_attr_event(unsigned long event,
-+		struct net_device *netdev,
++static int nsim_switchdev_port_attr_event(unsigned long event,
++		struct net_device *dev,
 +		struct switchdev_notifier_port_attr_info *port_attr_info)
 +{
 +	int rc;
@@ -139,37 +53,73 @@ index 86bc149ca231..578477242ae9 100644
 +	if (event != SWITCHDEV_PORT_ATTR_GET)
 +		return NOTIFY_DONE;
 +
-+	rc = nfp_port_attr_get(netdev, port_attr_info->attr);
++	rc = nsim_port_attr_get(dev, port_attr_info->attr);
 +	port_attr_info->handled = true;
-+
 +	return notifier_from_errno(rc);
 +}
 +
- int nfp_port_setup_tc(struct net_device *netdev, enum tc_setup_type type,
- 		      void *type_data)
+ static int nsim_init(struct net_device *dev)
  {
-diff --git a/drivers/net/ethernet/netronome/nfp/nfp_port.h b/drivers/net/ethernet/netronome/nfp/nfp_port.h
-index b2479a2a49e5..35342f88f715 100644
---- a/drivers/net/ethernet/netronome/nfp/nfp_port.h
-+++ b/drivers/net/ethernet/netronome/nfp/nfp_port.h
-@@ -10,6 +10,7 @@ struct net_device;
- struct nfp_app;
- struct nfp_pf;
- struct nfp_port;
-+struct switchdev_notifier_port_attr_info;
- 
- /**
-  * enum nfp_port_type - type of port NFP can switch traffic to
-@@ -90,7 +91,9 @@ struct nfp_port {
+ 	char sdev_ddir_name[10], sdev_link_name[32];
+@@ -495,6 +509,26 @@ static const struct net_device_ops nsim_netdev_ops = {
+ 	.ndo_bpf		= nsim_bpf,
  };
  
- extern const struct ethtool_ops nfp_port_ethtool_ops;
--extern const struct switchdev_ops nfp_port_switchdev_ops;
++static int nsim_swdev_blocking_event(struct notifier_block *nb,
++				     unsigned long event, void *ptr)
++{
++	struct net_device *dev = switchdev_notifier_info_to_dev(ptr);
 +
-+int nfp_port_switchdev_attr_event(unsigned long event, struct net_device *dev,
-+		struct switchdev_notifier_port_attr_info *port_attr_info);
++	if (dev->netdev_ops != &nsim_netdev_ops)
++		return NOTIFY_DONE;
++
++	switch (event) {
++	case SWITCHDEV_PORT_ATTR_GET:
++		return nsim_switchdev_port_attr_event(event, dev, ptr);
++	}
++
++	return NOTIFY_DONE;
++}
++
++static struct notifier_block nsim_swdev_blocking_nb = {
++	.notifier_call = nsim_swdev_blocking_event,
++};
++
+ static void nsim_setup(struct net_device *dev)
+ {
+ 	ether_setup(dev);
+@@ -583,10 +617,14 @@ static int __init nsim_module_init(void)
+ 		goto err_debugfs_destroy;
+ 	}
  
- __printf(2, 3) u8 *nfp_pr_et(u8 *data, const char *fmt, ...);
+-	err = bus_register(&nsim_bus);
++	err = register_switchdev_blocking_notifier(&nsim_swdev_blocking_nb);
+ 	if (err)
+ 		goto err_sdir_destroy;
  
++	err = bus_register(&nsim_bus);
++	if (err)
++		goto err_unreg_notifier;
++
+ 	err = nsim_devlink_init();
+ 	if (err)
+ 		goto err_unreg_bus;
+@@ -601,6 +639,8 @@ static int __init nsim_module_init(void)
+ 	nsim_devlink_exit();
+ err_unreg_bus:
+ 	bus_unregister(&nsim_bus);
++err_unreg_notifier:
++	unregister_switchdev_blocking_notifier(&nsim_swdev_blocking_nb);
+ err_sdir_destroy:
+ 	debugfs_remove_recursive(nsim_sdev_ddir);
+ err_debugfs_destroy:
+@@ -613,6 +653,7 @@ static void __exit nsim_module_exit(void)
+ 	rtnl_link_unregister(&nsim_link_ops);
+ 	nsim_devlink_exit();
+ 	bus_unregister(&nsim_bus);
++	unregister_switchdev_blocking_notifier(&nsim_swdev_blocking_nb);
+ 	debugfs_remove_recursive(nsim_sdev_ddir);
+ 	debugfs_remove_recursive(nsim_ddir);
+ }
 -- 
 2.17.1
