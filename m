@@ -1,92 +1,91 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mlx5-next 12/12] net/mlx5: Set ODP SRQ support in firmware
-Date: Sun, 3 Feb 2019 11:03:11 +0200
-Message-ID: <20190203090311.GD3634@mtr-leonro.mtl.com>
+Subject: Re: [PATCH rdma-next 00/12] Add SRQ and XRC support for ODP MRs
+Date: Sun, 3 Feb 2019 12:54:30 +0200
+Message-ID: <20190203105430.GF3634@mtr-leonro.mtl.com>
 References: <20190122064851.6032-1-leon@kernel.org>
- <20190122064851.6032-13-leon@kernel.org>
- <20190131232843.GA15062@ziepe.ca>
+ <20190131232739.GA13446@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="11Y7aswkeuHtSBEs"
+        protocol="application/pgp-signature"; boundary="kA1LkgxZ0NN7Mz3A"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190131232843.GA15062@ziepe.ca>
+In-Reply-To: <20190131232739.GA13446@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---11Y7aswkeuHtSBEs
+--kA1LkgxZ0NN7Mz3A
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Thu, Jan 31, 2019 at 04:28:44PM -0700, Jason Gunthorpe wrote:
-> On Tue, Jan 22, 2019 at 08:48:51AM +0200, Leon Romanovsky wrote:
-> > From: Moni Shoua <monis@mellanox.com>
+On Thu, Jan 31, 2019 at 04:27:39PM -0700, Jason Gunthorpe wrote:
+> On Tue, Jan 22, 2019 at 08:48:39AM +0200, Leon Romanovsky wrote:
+> > From: Leon Romanovsky <leonro@mellanox.com>
 > >
-> > To avoid compatibility issue with older kernels the firmware doesn't
-> > allow SRQ to work with ODP unless kernel asks for it.
+> > Hi,
 > >
-> > Signed-off-by: Moni Shoua <monis@mellanox.com>
-> > Reviewed-by: Majd Dibbiny <majd@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  .../net/ethernet/mellanox/mlx5/core/main.c    | 53 +++++++++++++++++++
-> >  include/linux/mlx5/device.h                   |  3 ++
-> >  include/linux/mlx5/mlx5_ifc.h                 |  1 +
-> >  3 files changed, 57 insertions(+)
+> > This series extend ODP to work with SRQ and XRC. Being both per-operation
+> > (e.g. RDMA write, RDMA read and atomic) and per-transport (e.g. RC, UD and XRC),
+> > we extend IB/core and mlx5 driver to provide needed information to user space.
 > >
-> > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> > index be81b319b0dc..b3a76df0cf6c 100644
-> > +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-> > @@ -459,6 +459,53 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
-> >  	return err;
-> >  }
+> > Thanks
 > >
-> > +static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
-> > +{
-> > +	void *set_ctx;
-> > +	void *set_hca_cap;
-> > +	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
-> > +	int err;
-> > +
-> > +	if (!MLX5_CAP_GEN(dev, pg))
-> > +		return 0;
+> > Moni Shoua (12):
+> >   IB/mlx5: Fix locking SRQ object in ODP event
+> >   IB/core: Allocate bit for SRQ ODP support
+> >   IB/uverbs: Expose XRC ODP device capabilities
+> >   IB/mlx5: Remove useless check in ODP handler
+> >   IB/mlx5: Clean mlx5_ib_mr_responder_pfault_handler() signature
+> >   IB/mlx5: Add XRC initiator ODP support
+> >   IB/mlx5: Let read user wqe also from SRQ buffer
+> >   IB/mlx5: Add ODP SRQ support
+> >   IB/mlx5: Advertise SRQ ODP support for supported transports
 >
-> Should a
+> I applied these patches to for-next
 >
->     if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING))
->              return 0;
+> >   net/mlx5: Add XRC transport to ODP device capabilities layout
+> >   IB/mlx5: Advertise XRC ODP support
+> >   net/mlx5: Set ODP SRQ support in firmware
 >
-> Be here?
+> This might need some re-organizing - the last patch could be split
+> (possibly merge with the first) so the header changes can go to the
+> shared branch, but the handle_hca_cap_odp() stuff must only be applied
+> to the rdma tree.
+>
+> I'm fine either way, if you don't want to split it send a commit ID
+> for the first patch on mlx5-next.
 
-We had similar discussion in mlx5_ib main.c, but here we are talking
-about mlx5_core code, which from my point of view should represent the
-real HW capabilities without relation to kernel compilation mode.
+I applied two following patches,
+
+46861e3e88be net/mlx5: Set ODP SRQ support in firmware
+dda7a817f287 net/mlx5: Add XRC transport to ODP device capabilities layout
 
 Thanks
 
 >
+> Thanks,
 > Jason
 
---11Y7aswkeuHtSBEs
+--kA1LkgxZ0NN7Mz3A
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcVq5PAAoJEORje4g2clinqgMP/j+yFs8h/HxtiXSp4e2EV7Op
-yW2N76UKOi2dkSl3UVCxbiHJpq4nauG/V8RhLL+Ed/kJ5cOUg6Smbr4EaLgF7Yip
-CLAPtjka6ig+hD16h/G4BICWfs8/rExiwmWNs9cUe3Twfhhm6q53cZ9IHuPOXkll
-o4sfuL0BJ9FyyZ2UpkQVBqVGk66fpkq5nOhICvBgCfaMf5R7kXDzpCQ0XlycTT4x
-6bGOp8Xvv7Z99GJgqwb8ktmZ3yGl/I0wcx1c6yAYgnwBoL6r6fuuhXWLojWAXwZY
-TOMOKInlsoioMcyNTabh74FOlDBPHiAwbr3q5+/vzHgI2n1sfxJujH1Txchga8D3
-WCBR9uKd01aAM0tno58YCkP6xAV4adt2aa1mWZU04S+RjG0dCa4eOY2DzgL6Z98U
-faakuc0Urzo48i3EP/ZDym9iDRxfsJKmMJ2wtnMeh+Ed5OHFE2gHev4H1QFpsbZT
-pZUshlO83+BeZ7HviB7hkxfmnlIugv+5TFniFs/KrdG/H2anKKGM8XZ4Sxhz5cQZ
-KsMacZ3aXHIV00+E8Lr83uitD/lem9GRoJypz8wWoQ3EkEaSFrxUtLMdoj0vf7e0
-V99HHtOZt82UEIxW4dtJgfxvgJlHDPIpjjMpvvTxDZaXK7ssEAZZs3Le83An4gEZ
-IlFRcl9+E+kCfhe2y0cT
-=9+1L
+iQIcBAEBAgAGBQJcVshmAAoJEORje4g2clinpXQP/jytoqy2h5YgWqnB9HsAXG63
+Ltgr4kd9qQZFmC7mQrUrZ6ZTeImDeVIYAYkOLvTLG90isVRCy8XkI+2V/hr7Owwi
+aHG3ReaNdnXYmpEmkdmrYLJaSG6Q0LJlLL6a7Bvugn0hjArw4l7CGFYdPoPq4gGd
+DQSJ33mLhyj5XHf+oZlfdOBHsN+AxDYvm1Ei+QGB59elWM9vXQea01QANEWzaScD
+c9BVnGjg6GdFbjrrXzU93VACklMgkOIlF4GnqA77VcCRB6IV7bXiO5LIAxq04aia
+igb92SFdRB9baJ9NCekQzWQAGr5odOI4QHKkX1MUKid8BrKUh0Vu70hL5Asyd0bO
+A+/2/lkbKN9oPC4JtW3y2ghoDIyeLVCvQvzBXgMxuv/JM97s3xADNsAbBhSKnVtk
+A/RjfxWy79muGilhCneNYJjpbJf5Xj5uf3rcYyPv7W4m6lZMTrwnSD/WxcP0N2bf
+jjUZvCPChGVrv4twTvIM4VJAsyszUyQXu3v25vQm6HDTgngylWMJEDLXHsv59PIq
+6wcbKgJH0swZvHMMU3t80Fw3asijnDoRYwgeqxvRnQ2hdFxAdGKHmKvJFN5nlFit
+cC69Wrh/ilZOLD6Ke1hdZOS/zKIWexKuzORZAVyKY2UEs/N1YOTA09jK9rysGybS
+7hAmIHhwzAU1bfel9psb
+=2uRC
 -----END PGP SIGNATURE-----
 
---11Y7aswkeuHtSBEs--
+--kA1LkgxZ0NN7Mz3A--
