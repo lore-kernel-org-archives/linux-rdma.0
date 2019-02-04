@@ -1,7 +1,7 @@
 From: Ursula Braun <ubraun@linux.ibm.com>
-Subject: [PATCH net 4/4] net/smc: correct state change for peer closing
-Date: Mon,  4 Feb 2019 13:44:47 +0100
-Message-ID: <20190204124447.39816-5-ubraun@linux.ibm.com>
+Subject: [PATCH net 2/4] net/smc: fix sender_free computation
+Date: Mon,  4 Feb 2019 13:44:45 +0100
+Message-ID: <20190204124447.39816-3-ubraun@linux.ibm.com>
 References: <20190204124447.39816-1-ubraun@linux.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190204124447.39816-1-ubraun@linux.ibm.com>
@@ -10,38 +10,113 @@ To: davem@davemloft.net
 Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.ibm.com, ubraun@linux.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-If some kind of closing is received from the peer while still in
-state SMC_INIT, it means the peer has had an active connection and
-closed the socket quickly before listen_work finished. This should
-not result in a shortcut from state SMC_INIT to state SMC_CLOSED.
-This patch adds the socket to the accept queue in state
-SMC_APPCLOSEWAIT1. The socket reaches state SMC_CLOSED once being
-accepted and closed with smc_release().
+In some scenarios a separate consumer cursor update is necessary.
+The decision is made in smc_tx_consumer_cursor_update(). The
+sender_free computation could be wrong:
 
+The rx confirmed cursor is always smaller than or equal to the
+rx producer cursor. The parameters in the smc_curs_diff() call
+have to be exchanged, otherwise sender_free might even be negative.
+
+And if more data arrives local_rx_ctrl.prod might be updated, enabling
+a cursor difference between local_rx_ctrl.prod and rx confirmed cursor
+larger than the RMB size. This case is not covered by smc_curs_diff().
+Thus function smc_curs_diff_large() is introduced here.
+
+If a recvmsg() is processed in parallel, local_tx_ctrl.cons might
+change during smc_cdc_msg_send. Make sure rx_curs_confirmed is updated
+with the actually sent local_tx_ctrl.cons value.
+
+Fixes: e82f2e31f559 ("net/smc: optimize consumer cursor updates")
 Signed-off-by: Ursula Braun <ubraun@linux.ibm.com>
 ---
- net/smc/smc_close.c | 9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ net/smc/smc_cdc.c |  5 +++--
+ net/smc/smc_cdc.h | 26 +++++++++++++++++++++++++-
+ net/smc/smc_tx.c  |  3 ++-
+ 3 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/net/smc/smc_close.c b/net/smc/smc_close.c
-index ea2b87f29469..e39cadda1bf5 100644
---- a/net/smc/smc_close.c
-+++ b/net/smc/smc_close.c
-@@ -345,14 +345,7 @@ static void smc_close_passive_work(struct work_struct *work)
+diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
+index b80ef104ab4e..a712c9f8699b 100644
+--- a/net/smc/smc_cdc.c
++++ b/net/smc/smc_cdc.c
+@@ -91,6 +91,7 @@ int smc_cdc_msg_send(struct smc_connection *conn,
+ 		     struct smc_wr_buf *wr_buf,
+ 		     struct smc_cdc_tx_pend *pend)
+ {
++	union smc_host_cursor cfed;
+ 	struct smc_link *link;
+ 	int rc;
  
- 	switch (sk->sk_state) {
- 	case SMC_INIT:
--		if (atomic_read(&conn->bytes_to_rcv) ||
--		    (rxflags->peer_done_writing &&
--		     !smc_cdc_rxed_any_close(conn))) {
--			sk->sk_state = SMC_APPCLOSEWAIT1;
--		} else {
--			sk->sk_state = SMC_CLOSED;
--			sock_put(sk); /* passive closing */
--		}
-+		sk->sk_state = SMC_APPCLOSEWAIT1;
- 		break;
- 	case SMC_ACTIVE:
- 		sk->sk_state = SMC_APPCLOSEWAIT1;
+@@ -102,10 +103,10 @@ int smc_cdc_msg_send(struct smc_connection *conn,
+ 	conn->local_tx_ctrl.seqno = conn->tx_cdc_seq;
+ 	smc_host_msg_to_cdc((struct smc_cdc_msg *)wr_buf,
+ 			    &conn->local_tx_ctrl, conn);
++	smc_curs_copy(&cfed, &((struct smc_host_cdc_msg *)wr_buf)->cons, conn);
+ 	rc = smc_wr_tx_send(link, (struct smc_wr_tx_pend_priv *)pend);
+ 	if (!rc)
+-		smc_curs_copy(&conn->rx_curs_confirmed,
+-			      &conn->local_tx_ctrl.cons, conn);
++		smc_curs_copy(&conn->rx_curs_confirmed, &cfed, conn);
+ 
+ 	return rc;
+ }
+diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
+index 2148da7a26b1..271e2524dc8f 100644
+--- a/net/smc/smc_cdc.h
++++ b/net/smc/smc_cdc.h
+@@ -160,7 +160,9 @@ static inline void smcd_curs_copy(union smcd_cdc_cursor *tgt,
+ #endif
+ }
+ 
+-/* calculate cursor difference between old and new, where old <= new */
++/* calculate cursor difference between old and new, where old <= new and
++ * difference cannot exceed size
++ */
+ static inline int smc_curs_diff(unsigned int size,
+ 				union smc_host_cursor *old,
+ 				union smc_host_cursor *new)
+@@ -185,6 +187,28 @@ static inline int smc_curs_comp(unsigned int size,
+ 	return smc_curs_diff(size, old, new);
+ }
+ 
++/* calculate cursor difference between old and new, where old <= new and
++ * difference may exceed size
++ */
++static inline int smc_curs_diff_large(unsigned int size,
++				      union smc_host_cursor *old,
++				      union smc_host_cursor *new)
++{
++	if (old->wrap < new->wrap)
++		return min_t(int,
++			     (size - old->count) + new->count +
++			     (new->wrap - old->wrap - 1) * size,
++			     size);
++
++	if (old->wrap > new->wrap) /* wrap has switched from 0xffff to 0x0000 */
++		return min_t(int,
++			     (size - old->count) + new->count +
++			     (new->wrap + 0xffff - old->wrap) * size,
++			     size);
++
++	return max_t(int, 0, (new->count - old->count));
++}
++
+ static inline void smc_host_cursor_to_cdc(union smc_cdc_cursor *peer,
+ 					  union smc_host_cursor *local,
+ 					  struct smc_connection *conn)
+diff --git a/net/smc/smc_tx.c b/net/smc/smc_tx.c
+index 2fdfaff60cf9..f93f3580c100 100644
+--- a/net/smc/smc_tx.c
++++ b/net/smc/smc_tx.c
+@@ -595,7 +595,8 @@ void smc_tx_consumer_update(struct smc_connection *conn, bool force)
+ 	if (to_confirm > conn->rmbe_update_limit) {
+ 		smc_curs_copy(&prod, &conn->local_rx_ctrl.prod, conn);
+ 		sender_free = conn->rmb_desc->len -
+-			      smc_curs_diff(conn->rmb_desc->len, &prod, &cfed);
++			      smc_curs_diff_large(conn->rmb_desc->len,
++						  &cfed, &prod);
+ 	}
+ 
+ 	if (conn->local_rx_ctrl.prod_flags.cons_curs_upd_req ||
 -- 
 2.16.4
