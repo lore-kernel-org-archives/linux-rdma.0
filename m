@@ -1,31 +1,25 @@
-From: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Subject: RE: [PATCH] IB/{hfi1,qib}: Add limit test for RC/UC send via
- loopback
-Date: Mon, 4 Feb 2019 16:25:38 +0000
-Message-ID: <32E1700B9017364D9B60AED9960492BC70C49CCA@fmsmsx120.amr.corp.intel.com>
-References: <20190204153639.2555.41856.stgit@scvm10.sc.intel.com>
- <20190204154454.GB14330@kroah.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net 0/4] net/smc: fixes 2019-02-04
+Date: Mon, 04 Feb 2019 09:11:39 -0800 (PST)
+Message-ID: <20190204.091139.1980676827901450509.davem@davemloft.net>
+References: <20190204124447.39816-1-ubraun@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190204154454.GB14330@kroah.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable-commits@vger.kernel.org" <stable-commits@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190204124447.39816-1-ubraun@linux.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+To: ubraun@linux.ibm.com
+Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.ibm.com
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: Re: [PATCH] IB/{hfi1,qib}: Add limit test for RC/UC send via loopback
-> 
-> What stable kernel(s) is this backport for?
-> 
-> thanks,
-> 
-> greg k-h
+From: Ursula Braun <ubraun@linux.ibm.com>
+Date: Mon,  4 Feb 2019 13:44:43 +0100
 
-The original patch has already been backported to 4.20.
+> here are more fixes in the smc code for the net tree:
+> Patch 1 fixes an IB-related problem with SMCR.
+> Patch 2 fixes a cursor problem for one-way traffic.
+> Patch 3 fixes a problem with RMB-reusage.
+> Patch 4 fixes a closing issue.
 
-The kernels that require the ported patch are older ones: 4.19.x, 4.14.x, and 4.9.x.
-
-Mike
+Series applied, thanks.
