@@ -1,53 +1,89 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] RDMA/srp: Rework SCSI device reset handling
-Date: Mon, 4 Feb 2019 16:31:58 -0700
-Message-ID: <20190204233158.GA14895@ziepe.ca>
-References: <20190130220555.8949-1-bvanassche@acm.org>
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH 00/12] net: Introduce ndo_get_port_parent_id()
+Date: Mon,  4 Feb 2019 15:36:21 -0800
+Message-ID: <20190204233633.20421-1-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190130220555.8949-1-bvanassche@acm.org>
-Sender: stable-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Sergey Gorenko <sergeygo@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: netdev@vger.kernel.org
+Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Tyler Hicks <tyhicks@canonical.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, Amritha Nambiar <amritha.nambiar@intel.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Petr Machata <petrm@mellanox.com>, Vivien Didelot <vivien.didelot@gmail.com>, Alexander Duyck <alexander.h.duyck@intel.com>, open list:S
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 30, 2019 at 02:05:55PM -0800, Bart Van Assche wrote:
-> Since .scsi_done() must only be called after scsi_queue_rq() has
-> finished, make sure that the SRP initiator driver does not call
-> .scsi_done() while scsi_queue_rq() is in progress. Although
-> invoking sg_reset -d while I/O is in progress works fine with kernel
-> v4.20 and before, that is not the case with kernel v5.0-rc1. This
-> patch avoids that the following crash is triggered with kernel
-> v5.0-rc1:
-> 
-> BUG: unable to handle kernel NULL pointer dereference at 0000000000000138
-> CPU: 0 PID: 360 Comm: kworker/0:1H Tainted: G    B             5.0.0-rc1-dbg+ #1
-> Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.10.2-1 04/01/2014
-> Workqueue: kblockd blk_mq_run_work_fn
-> RIP: 0010:blk_mq_dispatch_rq_list+0x116/0xb10
-> Call Trace:
->  blk_mq_sched_dispatch_requests+0x2f7/0x300
->  __blk_mq_run_hw_queue+0xd6/0x180
->  blk_mq_run_work_fn+0x27/0x30
->  process_one_work+0x4f1/0xa20
->  worker_thread+0x67/0x5b0
->  kthread+0x1cf/0x1f0
->  ret_from_fork+0x24/0x30
-> 
-> Cc: Sergey Gorenko <sergeygo@mellanox.com>
-> Cc: Max Gurtovoy <maxg@mellanox.com>
-> Cc: Laurence Oberman <loberman@redhat.com>
-> Cc: <stable@vger.kernel.org>
-> Fixes: 94a9174c630c ("IB/srp: reduce lock coverage of command completion") # v2.6.38
-> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-> ---
-> 
-> Changes compared to v1: left out the code that waits until in-progress requests
->   have finished.
+Hi all,
 
-Applied to for-rc
+Based on discussion with Ido and feedback from Jakub there are clearly
+two classes of users that implement SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
 
-Thanks,
-Jason
+- PF/VF drivers which typically only implement return the port's parent
+  ID, yet have to implement switchdev_port_attr_get() just for that
+
+- Ethernet switch drivers: mlxsw, ocelot, DSA, etc. which implement more
+  attributes which we want to be able to eventually veto in the context
+  of the caller, thus making them candidates for using a blocking notifier
+  chain
+
+Changes from RFC:
+
+- introduce a ndo_get_port_parent_id() and convert all relevant drivers
+  to use it
+
+- get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+A subsequent set of patches will convert switchdev_port_attr_set() to
+use a blocking notifier call, and still get rid of
+switchdev_port_attr_get() altogether.
+
+Florian Fainelli (12):
+  net: Introduce ndo_get_port_parent_id()
+  bnxt: Implement ndo_get_port_parent_id()
+  liquidio: Implement ndo_get_port_parent_id()
+  net/mlx5e: Implement ndo_get_port_parent_id()
+  mlxsw: Implement ndo_get_port_parent_id()
+  mscc: ocelot: Implement ndo_get_port_parent_id()
+  nfp: Implement ndo_get_port_parent_id()
+  rocker: Implement ndo_get_port_parent_id()
+  netdevsim: Implement ndo_get_port_parent_id()
+  staging: fsl-dpaa2: ethsw: Implement ndo_get_port_parent_id()
+  net: dsa: Implement ndo_get_port_parent_id()
+  net: Get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 +++++----------
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +--
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  1 +
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 +++----
+ .../net/ethernet/cavium/liquidio/lio_main.c   | 22 +++---------
+ .../net/ethernet/cavium/liquidio/lio_vf_rep.c | 25 ++++---------
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 ++++++----------
+ .../net/ethernet/mellanox/mlxsw/spectrum.c    | 13 +++++++
+ .../mellanox/mlxsw/spectrum_switchdev.c       |  5 ---
+ .../net/ethernet/mellanox/mlxsw/switchx2.c    | 36 +++++++------------
+ drivers/net/ethernet/mscc/ocelot.c            | 33 +++++++----------
+ .../ethernet/netronome/nfp/nfp_net_common.c   |  4 +--
+ .../net/ethernet/netronome/nfp/nfp_net_repr.c |  4 +--
+ drivers/net/ethernet/netronome/nfp/nfp_port.c | 23 ++++--------
+ drivers/net/ethernet/netronome/nfp/nfp_port.h |  4 ++-
+ drivers/net/ethernet/rocker/rocker_main.c     | 17 ++++++---
+ drivers/net/netdevsim/netdev.c                | 22 ++++--------
+ drivers/staging/fsl-dpaa2/ethsw/ethsw.c       | 17 ++++++---
+ include/linux/netdevice.h                     |  6 ++++
+ include/net/switchdev.h                       |  2 --
+ net/bridge/br_switchdev.c                     | 11 +++---
+ net/core/net-sysfs.c                          | 14 +++-----
+ net/core/rtnetlink.c                          | 16 ++++-----
+ net/dsa/slave.c                               | 18 ++++++----
+ net/ipv4/ipmr.c                               | 14 ++++----
+ net/switchdev/switchdev.c                     | 20 +++++------
+ 26 files changed, 169 insertions(+), 233 deletions(-)
+
+-- 
+2.17.1
