@@ -1,238 +1,93 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH 12/12] net: Get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
-Date: Mon,  4 Feb 2019 15:36:33 -0800
-Message-ID: <20190204233633.20421-13-f.fainelli@gmail.com>
-References: <20190204233633.20421-1-f.fainelli@gmail.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 12/12] net/mlx5: Set ODP SRQ support in firmware
+Date: Mon, 4 Feb 2019 23:47:23 +0000
+Message-ID: <19e67f214aca4424e0e373d782c4c7e6bc25dcef.camel@mellanox.com>
+References: <20190122064851.6032-1-leon@kernel.org>
+         <20190122064851.6032-13-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20190204233633.20421-1-f.fainelli@gmail.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: netdev@vger.kernel.org
-Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Tyler Hicks <tyhicks@canonical.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, Amritha Nambiar <amritha.nambiar@intel.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Petr Machata <petrm@mellanox.com>, Vivien Didelot <vivien.didelot@gmail.com>, Alexander Duyck <alexander.h.duyck@intel.com>, open list:S
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190122064851.6032-13-leon@kernel.org>
+Content-Language: en-US
+Content-ID: <0E3B610F33FDD942943ED77E8DA6C53B@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Cc: Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Now that we have a dedicated NDO for getting a port's parent ID, get rid
-of SWITCHDEV_ATTR_ID_PORT_PARENT_ID and convert all callers to use the
-NDO exclusively. This is a preliminary change to getting rid of
-switchdev_ops eventually.
-
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
----
- include/net/switchdev.h   |  2 --
- net/bridge/br_switchdev.c | 11 +++--------
- net/core/net-sysfs.c      | 14 +++-----------
- net/core/rtnetlink.c      | 16 ++++------------
- net/ipv4/ipmr.c           | 14 ++++----------
- net/switchdev/switchdev.c | 20 +++++++++-----------
- 6 files changed, 23 insertions(+), 54 deletions(-)
-
-diff --git a/include/net/switchdev.h b/include/net/switchdev.h
-index 63843ae5dc81..e1a5e8bc24b8 100644
---- a/include/net/switchdev.h
-+++ b/include/net/switchdev.h
-@@ -43,7 +43,6 @@ static inline bool switchdev_trans_ph_commit(struct switchdev_trans *trans)
- 
- enum switchdev_attr_id {
- 	SWITCHDEV_ATTR_ID_UNDEFINED,
--	SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
- 	SWITCHDEV_ATTR_ID_PORT_STP_STATE,
- 	SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS,
- 	SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS_SUPPORT,
-@@ -61,7 +60,6 @@ struct switchdev_attr {
- 	void *complete_priv;
- 	void (*complete)(struct net_device *dev, int err, void *priv);
- 	union {
--		struct netdev_phys_item_id ppid;	/* PORT_PARENT_ID */
- 		u8 stp_state;				/* PORT_STP_STATE */
- 		unsigned long brport_flags;		/* PORT_BRIDGE_FLAGS */
- 		unsigned long brport_flags_support;	/* PORT_BRIDGE_FLAGS_SUPPORT */
-diff --git a/net/bridge/br_switchdev.c b/net/bridge/br_switchdev.c
-index 501a4221220a..620fd645f6f1 100644
---- a/net/bridge/br_switchdev.c
-+++ b/net/bridge/br_switchdev.c
-@@ -24,18 +24,13 @@ static int br_switchdev_mark_get(struct net_bridge *br, struct net_device *dev)
- int nbp_switchdev_mark_set(struct net_bridge_port *p)
- {
- 	const struct net_device_ops *ops = p->dev->netdev_ops;
--	struct switchdev_attr attr = {
--		.orig_dev = p->dev,
--		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--	};
--	int err;
-+	struct netdev_phys_item_id ppid = { };
-+	int err = -EOPNOTSUPP;
- 
- 	ASSERT_RTNL();
- 
- 	if (ops->ndo_get_port_parent_id)
--		err = ops->ndo_get_port_parent_id(p->dev, &attr.u.ppid);
--	else
--		err = switchdev_port_attr_get(p->dev, &attr);
-+		err = ops->ndo_get_port_parent_id(p->dev, &ppid);
- 	if (err) {
- 		if (err == -EOPNOTSUPP)
- 			return 0;
-diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
-index cc05e8b72657..1d2d76930afd 100644
---- a/net/core/net-sysfs.c
-+++ b/net/core/net-sysfs.c
-@@ -12,7 +12,6 @@
- #include <linux/capability.h>
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
--#include <net/switchdev.h>
- #include <linux/if_arp.h>
- #include <linux/slab.h>
- #include <linux/sched/signal.h>
-@@ -502,19 +501,12 @@ static ssize_t phys_switch_id_show(struct device *dev,
- 		return restart_syscall();
- 
- 	if (dev_isalive(netdev)) {
--		struct switchdev_attr attr = {
--			.orig_dev = netdev,
--			.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--			.flags = SWITCHDEV_F_NO_RECURSE,
--		};
-+		struct netdev_phys_item_id ppid = { };
- 
- 		if (ops->ndo_get_port_parent_id)
--			ret = ops->ndo_get_port_parent_id(netdev, &attr.u.ppid);
--		else
--			ret = switchdev_port_attr_get(netdev, &attr);
-+			ret = ops->ndo_get_port_parent_id(netdev, &ppid);
- 		if (!ret)
--			ret = sprintf(buf, "%*phN\n", attr.u.ppid.id_len,
--				      attr.u.ppid.id);
-+			ret = sprintf(buf, "%*phN\n", ppid.id_len, ppid.id);
- 	}
- 	rtnl_unlock();
- 
-diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
-index ed8564eb97c8..27bccf68538e 100644
---- a/net/core/rtnetlink.c
-+++ b/net/core/rtnetlink.c
-@@ -46,7 +46,6 @@
- 
- #include <linux/inet.h>
- #include <linux/netdevice.h>
--#include <net/switchdev.h>
- #include <net/ip.h>
- #include <net/protocol.h>
- #include <net/arp.h>
-@@ -1147,25 +1146,18 @@ static int rtnl_phys_port_name_fill(struct sk_buff *skb, struct net_device *dev)
- static int rtnl_phys_switch_id_fill(struct sk_buff *skb, struct net_device *dev)
- {
- 	const struct net_device_ops *ops = dev->netdev_ops;
--	int err;
--	struct switchdev_attr attr = {
--		.orig_dev = dev,
--		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--		.flags = SWITCHDEV_F_NO_RECURSE,
--	};
-+	struct netdev_phys_item_id ppid = { };
-+	int err = -EOPNOTSUPP;
- 
- 	if (ops->ndo_get_port_parent_id)
--		err = ops->ndo_get_port_parent_id(dev, &attr.u.ppid);
--	else
--		err = switchdev_port_attr_get(dev, &attr);
-+		err = ops->ndo_get_port_parent_id(dev, &ppid);
- 	if (err) {
- 		if (err == -EOPNOTSUPP)
- 			return 0;
- 		return err;
- 	}
- 
--	if (nla_put(skb, IFLA_PHYS_SWITCH_ID, attr.u.ppid.id_len,
--		    attr.u.ppid.id))
-+	if (nla_put(skb, IFLA_PHYS_SWITCH_ID, ppid.id_len, ppid.id))
- 		return -EMSGSIZE;
- 
- 	return 0;
-diff --git a/net/ipv4/ipmr.c b/net/ipv4/ipmr.c
-index 9f67394b6691..ac592bd07be1 100644
---- a/net/ipv4/ipmr.c
-+++ b/net/ipv4/ipmr.c
-@@ -67,7 +67,6 @@
- #include <net/fib_rules.h>
- #include <linux/netconf.h>
- #include <net/nexthop.h>
--#include <net/switchdev.h>
- 
- #include <linux/nospec.h>
- 
-@@ -837,11 +836,9 @@ static void ipmr_update_thresholds(struct mr_table *mrt, struct mr_mfc *cache,
- static int vif_add(struct net *net, struct mr_table *mrt,
- 		   struct vifctl *vifc, int mrtsock)
- {
-+	struct netdev_phys_item_id ppid = { };
- 	const struct net_device_ops *ops;
- 	int vifi = vifc->vifc_vifi;
--	struct switchdev_attr attr = {
--		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--	};
- 	struct vif_device *v = &mrt->vif_table[vifi];
- 	struct net_device *dev;
- 	struct in_device *in_dev;
-@@ -923,12 +920,9 @@ static int vif_add(struct net *net, struct mr_table *mrt,
- 	attr.orig_dev = dev;
- 	ops = dev->netdev_ops;
- 	if (ops->ndo_get_port_parent_id &&
--	    !ops->ndo_get_port_parent_id(dev, &attr.ppid)) {
--		memcpy(v->dev_parent_id.id, attr.u.ppid.id, attr.u.ppid.id_len);
--		v->dev_parent_id.id_len = attr.u.ppid.id_len;
--	} else if (!switchdev_port_attr_get(dev, &attr)) {
--		memcpy(v->dev_parent_id.id, attr.u.ppid.id, attr.u.ppid.id_len);
--		v->dev_parent_id.id_len = attr.u.ppid.id_len;
-+	    !ops->ndo_get_port_parent_id(dev, &ppid)) {
-+		memcpy(v->dev_parent_id.id, ppid.id, ppid.id_len);
-+		v->dev_parent_id.id_len = ppid.id_len;
- 	} else {
- 		v->dev_parent_id.id_len = 0;
- 	}
-diff --git a/net/switchdev/switchdev.c b/net/switchdev/switchdev.c
-index cd78253de31d..57e0bfde67b4 100644
---- a/net/switchdev/switchdev.c
-+++ b/net/switchdev/switchdev.c
-@@ -595,20 +595,18 @@ EXPORT_SYMBOL_GPL(call_switchdev_blocking_notifiers);
- bool switchdev_port_same_parent_id(struct net_device *a,
- 				   struct net_device *b)
- {
--	struct switchdev_attr a_attr = {
--		.orig_dev = a,
--		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--	};
--	struct switchdev_attr b_attr = {
--		.orig_dev = b,
--		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
--	};
-+	struct netdev_phys_item_id id_a = { };
-+	struct netdev_phys_item_id id_b = { };
-+
-+	if (!a->netdev_ops->ndo_get_port_parent_id ||
-+	    !b->netdev_ops->ndo_get_port_parent_id)
-+		return -EOPNOTSUPP;
- 
--	if (switchdev_port_attr_get(a, &a_attr) ||
--	    switchdev_port_attr_get(b, &b_attr))
-+	if (a->netdev_ops->ndo_get_port_parent_id(a, &id_a) ||
-+	    b->netdev_ops->ndo_get_port_parent_id(b, &id_b))
- 		return false;
- 
--	return netdev_phys_item_id_same(&a_attr.u.ppid, &b_attr.u.ppid);
-+	return netdev_phys_item_id_same(&id_a, &id_b);
- }
- EXPORT_SYMBOL_GPL(switchdev_port_same_parent_id);
- 
--- 
-2.17.1
+T24gVHVlLCAyMDE5LTAxLTIyIGF0IDA4OjQ4ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IEZyb206IE1vbmkgU2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4NCj4gDQo+IFRvIGF2b2lk
+IGNvbXBhdGliaWxpdHkgaXNzdWUgd2l0aCBvbGRlciBrZXJuZWxzIHRoZSBmaXJtd2FyZSBkb2Vz
+bid0DQo+IGFsbG93IFNSUSB0byB3b3JrIHdpdGggT0RQIHVubGVzcyBrZXJuZWwgYXNrcyBmb3Ig
+aXQuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBNb25pIFNob3VhIDxtb25pc0BtZWxsYW5veC5jb20+
+DQo+IFJldmlld2VkLWJ5OiBNYWpkIERpYmJpbnkgPG1hamRAbWVsbGFub3guY29tPg0KPiBTaWdu
+ZWQtb2ZmLWJ5OiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+IC0tLQ0K
+PiAgLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbWFpbi5jICAgIHwgNTMNCj4g
+KysrKysrKysrKysrKysrKysrKw0KPiAgaW5jbHVkZS9saW51eC9tbHg1L2RldmljZS5oICAgICAg
+ICAgICAgICAgICAgIHwgIDMgKysNCj4gIGluY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oICAg
+ICAgICAgICAgICAgICB8ICAxICsNCj4gIDMgZmlsZXMgY2hhbmdlZCwgNTcgaW5zZXJ0aW9ucygr
+KQ0KPiANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUv
+Y29yZS9tYWluLmMNCj4gYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+bWFpbi5jDQo+IGluZGV4IGJlODFiMzE5YjBkYy4uYjNhNzZkZjBjZjZjIDEwMDY0NA0KPiAtLS0g
+YS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbWFpbi5jDQo+ICsrKyBi
+L2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9tYWluLmMNCj4gQEAgLTQ1
+OSw2ICs0NTksNTMgQEAgc3RhdGljIGludCBoYW5kbGVfaGNhX2NhcF9hdG9taWMoc3RydWN0DQo+
+IG1seDVfY29yZV9kZXYgKmRldikNCj4gIAlyZXR1cm4gZXJyOw0KPiAgfQ0KPiAgDQo+ICtzdGF0
+aWMgaW50IGhhbmRsZV9oY2FfY2FwX29kcChzdHJ1Y3QgbWx4NV9jb3JlX2RldiAqZGV2KQ0KPiAr
+ew0KPiArCXZvaWQgKnNldF9jdHg7DQo+ICsJdm9pZCAqc2V0X2hjYV9jYXA7DQo+ICsJaW50IHNl
+dF9zeiA9IE1MWDVfU1RfU1pfQllURVMoc2V0X2hjYV9jYXBfaW4pOw0KPiArCWludCBlcnI7DQo+
+ICsNCg0KcmV2ZXJzZWQgeG1hcyB0cmVlLg0KDQo+ICsJaWYgKCFNTFg1X0NBUF9HRU4oZGV2LCBw
+ZykpDQo+ICsJCXJldHVybiAwOw0KPiArDQo+ICsJZXJyID0gbWx4NV9jb3JlX2dldF9jYXBzKGRl
+diwgTUxYNV9DQVBfT0RQKTsNCj4gKwlpZiAoZXJyKQ0KPiArCQlyZXR1cm4gZXJyOw0KPiArDQo+
+ICsJLyoqDQo+ICsJICogSWYgYWxsIGJpdHMgYXJlIGNsZWFyZWQgd2Ugc2hvdWxkbid0IHRyeSB0
+byBzZXQgaXQNCj4gKwkgKiBvciB3ZSBtaWdodCBmYWlsIHdoaWxlIHRyeWluZyB0byBhY2Nlc3Mg
+YSByZXNlcnZlZCBiaXQuDQo+ICsJICovDQoNCiJzZXQgdGhlbSIgbm90ICJzZXQgaXQiID8gDQoN
+CnRvIG1lIHRoaXMgaXMgYSByZWR1bmRhbnQgY29tbWVudCwgdGhlIGNvZGUgaXMgc2VsZiBleHBs
+YW5hdG9yeS4NCg0KPiArCWlmICghKE1MWDVfQ0FQX09EUF9NQVgoZGV2LCB1ZF9vZHBfY2Fwcy5z
+cnFfcmVjZWl2ZSkgfHwNCj4gKwkgICAgICBNTFg1X0NBUF9PRFBfTUFYKGRldiwgcmNfb2RwX2Nh
+cHMuc3JxX3JlY2VpdmUpIHx8DQo+ICsJICAgICAgTUxYNV9DQVBfT0RQX01BWChkZXYsIHhyY19v
+ZHBfY2Fwcy5zcnFfcmVjZWl2ZSkpKQ0KPiArCQlyZXR1cm4gMDsNCj4gKw0KPiArCXNldF9jdHgg
+PSBremFsbG9jKHNldF9zeiwgR0ZQX0tFUk5FTCk7DQo+ICsJaWYgKCFzZXRfY3R4KQ0KPiArCQly
+ZXR1cm4gLUVOT01FTTsNCj4gKw0KPiArCXNldF9oY2FfY2FwID0gTUxYNV9BRERSX09GKHNldF9o
+Y2FfY2FwX2luLCBzZXRfY3R4LA0KPiBjYXBhYmlsaXR5KTsNCj4gKwltZW1jcHkoc2V0X2hjYV9j
+YXAsIGRldi0+Y2Fwcy5oY2FfY3VyW01MWDVfQ0FQX09EUF0sDQo+ICsJICAgICAgIE1MWDVfU1Rf
+U1pfQllURVMob2RwX2NhcCkpOw0KPiArDQo+ICsJLyogc2V0IE9EUCBTUlEgc3VwcG9ydCBmb3Ig
+UkMvVUQgYW5kIFhSQyB0cmFuc3BvcnRzICovDQo+ICsJTUxYNV9TRVQob2RwX2NhcCwgc2V0X2hj
+YV9jYXAsIHVkX29kcF9jYXBzLnNycV9yZWNlaXZlLA0KPiArCQkgKE1MWDVfQ0FQX09EUF9NQVgo
+ZGV2LCB1ZF9vZHBfY2Fwcy5zcnFfcmVjZWl2ZSkpKTsNCj4gKw0KPiArCU1MWDVfU0VUKG9kcF9j
+YXAsIHNldF9oY2FfY2FwLCByY19vZHBfY2Fwcy5zcnFfcmVjZWl2ZSwNCj4gKwkJIChNTFg1X0NB
+UF9PRFBfTUFYKGRldiwgcmNfb2RwX2NhcHMuc3JxX3JlY2VpdmUpKSk7DQo+ICsNCj4gKwlNTFg1
+X1NFVChvZHBfY2FwLCBzZXRfaGNhX2NhcCwgeHJjX29kcF9jYXBzLnNycV9yZWNlaXZlLA0KPiAr
+CQkgKE1MWDVfQ0FQX09EUF9NQVgoZGV2LCB4cmNfb2RwX2NhcHMuc3JxX3JlY2VpdmUpKSk7DQo+
+ICsNCg0KUmVkdW5kYW50IHBhcmVudGhlc2VzIGFyb3VuZCB0aGUgM3JkIHBhcmFtZXRlci4gDQoN
+Cj4gKwllcnIgPSBzZXRfY2FwcyhkZXYsIHNldF9jdHgsIHNldF9zeiwNCj4gTUxYNV9TRVRfSENB
+X0NBUF9PUF9NT0RfT0RQKTsNCj4gKw0KPiArCWtmcmVlKHNldF9jdHgpOw0KPiArCXJldHVybiBl
+cnI7DQo+ICt9DQo+ICsNCj4gIHN0YXRpYyBpbnQgaGFuZGxlX2hjYV9jYXAoc3RydWN0IG1seDVf
+Y29yZV9kZXYgKmRldikNCj4gIHsNCj4gIAl2b2lkICpzZXRfY3R4ID0gTlVMTDsNCj4gQEAgLTky
+Niw2ICs5NzMsMTIgQEAgc3RhdGljIGludCBtbHg1X2xvYWRfb25lKHN0cnVjdCBtbHg1X2NvcmVf
+ZGV2DQo+ICpkZXYsIHN0cnVjdCBtbHg1X3ByaXYgKnByaXYsDQo+ICAJCWdvdG8gcmVjbGFpbV9i
+b290X3BhZ2VzOw0KPiAgCX0NCj4gIA0KPiArCWVyciA9IGhhbmRsZV9oY2FfY2FwX29kcChkZXYp
+Ow0KPiArCWlmIChlcnIpIHsNCj4gKwkJZGV2X2VycigmcGRldi0+ZGV2LCAiaGFuZGxlX2hjYV9j
+YXBfb2RwIGZhaWxlZFxuIik7DQo+ICsJCWdvdG8gcmVjbGFpbV9ib290X3BhZ2VzOw0KPiArCX0N
+Cj4gKw0KPiAgCWVyciA9IG1seDVfc2F0aXNmeV9zdGFydHVwX3BhZ2VzKGRldiwgMCk7DQo+ICAJ
+aWYgKGVycikgew0KPiAgCQlkZXZfZXJyKCZwZGV2LT5kZXYsICJmYWlsZWQgdG8gYWxsb2NhdGUg
+aW5pdCBwYWdlc1xuIik7DQo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21seDUvZGV2aWNl
+LmgNCj4gYi9pbmNsdWRlL2xpbnV4L21seDUvZGV2aWNlLmgNCj4gaW5kZXggOGM0YTgyMGJkNGMx
+Li4wODQ1YTIyN2E3YjIgMTAwNjQ0DQo+IC0tLSBhL2luY2x1ZGUvbGludXgvbWx4NS9kZXZpY2Uu
+aA0KPiArKysgYi9pbmNsdWRlL2xpbnV4L21seDUvZGV2aWNlLmgNCj4gQEAgLTEyMDEsNiArMTIw
+MSw5IEBAIGVudW0gbWx4NV9xY2FtX2ZlYXR1cmVfZ3JvdXBzIHsNCj4gICNkZWZpbmUgTUxYNV9D
+QVBfT0RQKG1kZXYsIGNhcClcDQo+ICAJTUxYNV9HRVQob2RwX2NhcCwgbWRldi0+Y2Fwcy5oY2Ff
+Y3VyW01MWDVfQ0FQX09EUF0sIGNhcCkNCj4gIA0KPiArI2RlZmluZSBNTFg1X0NBUF9PRFBfTUFY
+KG1kZXYsIGNhcClcDQo+ICsJTUxYNV9HRVQob2RwX2NhcCwgbWRldi0+Y2Fwcy5oY2FfbWF4W01M
+WDVfQ0FQX09EUF0sIGNhcCkNCj4gKw0KPiAgI2RlZmluZSBNTFg1X0NBUF9WRUNUT1JfQ0FMQyht
+ZGV2LCBjYXApIFwNCj4gIAlNTFg1X0dFVCh2ZWN0b3JfY2FsY19jYXAsIFwNCj4gIAkJIG1kZXYt
+PmNhcHMuaGNhX2N1cltNTFg1X0NBUF9WRUNUT1JfQ0FMQ10sIGNhcCkNCj4gZGlmZiAtLWdpdCBh
+L2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oDQo+IGIvaW5jbHVkZS9saW51eC9tbHg1L21s
+eDVfaWZjLmgNCj4gaW5kZXggNTQwN2RiOGJhOGUxLi5jNWM2NzkzOTBmYmQgMTAwNjQ0DQo+IC0t
+LSBhL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oDQo+ICsrKyBiL2luY2x1ZGUvbGludXgv
+bWx4NS9tbHg1X2lmYy5oDQo+IEBAIC03Miw2ICs3Miw3IEBAIGVudW0gew0KPiAgDQo+ICBlbnVt
+IHsNCj4gIAlNTFg1X1NFVF9IQ0FfQ0FQX09QX01PRF9HRU5FUkFMX0RFVklDRSAgICAgICAgPSAw
+eDAsDQo+ICsJTUxYNV9TRVRfSENBX0NBUF9PUF9NT0RfT0RQICAgICAgICAgICAgICAgICAgID0g
+MHgyLA0KPiAgCU1MWDVfU0VUX0hDQV9DQVBfT1BfTU9EX0FUT01JQyAgICAgICAgICAgICAgICA9
+IDB4MywNCj4gIH07DQo+ICANCg==
