@@ -1,33 +1,32 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH -next] RDMA/hns: Make some function static
-Date: Mon, 4 Feb 2019 15:34:20 -0700
-Message-ID: <20190204223420.GA23292@ziepe.ca>
-References: <20190201031104.15064-1-yuehaibing@huawei.com>
+Subject: Re: [PATCH V4 rdma-next 0/3] RDMA/hns: Some fixes for hns RoCE driver
+Date: Mon, 4 Feb 2019 16:22:56 -0700
+Message-ID: <20190204232256.GA3731@ziepe.ca>
+References: <1549197795-23118-1-git-send-email-xavier.huwei@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190201031104.15064-1-yuehaibing@huawei.com>
+In-Reply-To: <1549197795-23118-1-git-send-email-xavier.huwei@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: YueHaibing <yuehaibing@huawei.com>
-Cc: oulijun@huawei.com, xavier.huwei@huawei.com, dledford@redhat.com, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+To: "Wei Hu (Xavier)" <xavier.huwei@huawei.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, lijun_nudt@163.com, oulijun@huawei.com, liudongdong3@huawei.com, liuyixian@huawei.com, zhangxiping3@huawei.com, linuxarm@huawei.com, linux-kernel@vger.kernel.org, xavier_huwei@163.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 01, 2019 at 11:11:04AM +0800, YueHaibing wrote:
-> Fixes the following sparse warnings:
+On Sun, Feb 03, 2019 at 08:43:12PM +0800, Wei Hu (Xavier) wrote:
+> Hi, Jason and Doug
 > 
-> drivers/infiniband/hw/hns/hns_roce_hw_v2.c:5822:5: warning:
->  symbol 'hns_roce_v2_query_srq' was not declared. Should it be static?
-> drivers/infiniband/hw/hns/hns_roce_srq.c:158:6: warning:
->  symbol 'hns_roce_srq_free' was not declared. Should it be static?
-> drivers/infiniband/hw/hns/hns_roce_srq.c:81:5: warning:
->  symbol 'hns_roce_srq_alloc' was not declared. Should it be static?
+> This patch series includes three bugfixes for reset related operations
+> and are maked based on wip/jgg-for-next branch.
 > 
-> Signed-off-by: YueHaibing <yuehaibing@huawei.com>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
->  drivers/infiniband/hw/hns/hns_roce_srq.c   | 9 +++++----
->  2 files changed, 6 insertions(+), 5 deletions(-)
+> Best Regards
+> Xavier
+> 
+> Wei Hu (Xavier) (3):
+>   RDMA/hns: Fix the Oops during rmmod or insmod ko when reset occurs
+>   RDMA/hns: Fix the chip hanging caused by sending mailbox&CMQ during
+>     reset
+>   RDMA/hns: Fix the chip hanging caused by sending doorbell during reset
 
 Applied to for-next
 
