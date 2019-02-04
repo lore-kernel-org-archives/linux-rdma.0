@@ -1,25 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net 0/4] net/smc: fixes 2019-02-04
-Date: Mon, 04 Feb 2019 09:11:39 -0800 (PST)
-Message-ID: <20190204.091139.1980676827901450509.davem@davemloft.net>
-References: <20190204124447.39816-1-ubraun@linux.ibm.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH mlx5-next 12/12] net/mlx5: Set ODP SRQ support in firmware
+Date: Mon, 4 Feb 2019 14:23:19 -0700
+Message-ID: <20190204212319.GE10237@ziepe.ca>
+References: <20190122064851.6032-1-leon@kernel.org>
+ <20190122064851.6032-13-leon@kernel.org>
+ <20190131232843.GA15062@ziepe.ca>
+ <20190203090311.GD3634@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190204124447.39816-1-ubraun@linux.ibm.com>
+Content-Disposition: inline
+In-Reply-To: <20190203090311.GD3634@mtr-leonro.mtl.com>
 Sender: netdev-owner@vger.kernel.org
-To: ubraun@linux.ibm.com
-Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.ibm.com
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ursula Braun <ubraun@linux.ibm.com>
-Date: Mon,  4 Feb 2019 13:44:43 +0100
 
-> here are more fixes in the smc code for the net tree:
-> Patch 1 fixes an IB-related problem with SMCR.
-> Patch 2 fixes a cursor problem for one-way traffic.
-> Patch 3 fixes a problem with RMB-reusage.
-> Patch 4 fixes a closing issue.
+On Sun, Feb 03, 2019 at 11:03:11AM +0200, Leon Romanovsky wrote:
+> On Thu, Jan 31, 2019 at 04:28:44PM -0700, Jason Gunthorpe wrote:
+> > On Tue, Jan 22, 2019 at 08:48:51AM +0200, Leon Romanovsky wrote:
+> > > From: Moni Shoua <monis@mellanox.com>
+> > >
+> > > To avoid compatibility issue with older kernels the firmware doesn't
+> > > allow SRQ to work with ODP unless kernel asks for it.
+> > >
+> > > Signed-off-by: Moni Shoua <monis@mellanox.com>
+> > > Reviewed-by: Majd Dibbiny <majd@mellanox.com>
+> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > >  .../net/ethernet/mellanox/mlx5/core/main.c    | 53 +++++++++++++++++++
+> > >  include/linux/mlx5/device.h                   |  3 ++
+> > >  include/linux/mlx5/mlx5_ifc.h                 |  1 +
+> > >  3 files changed, 57 insertions(+)
+> > >
+> > > diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> > > index be81b319b0dc..b3a76df0cf6c 100644
+> > > +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> > > @@ -459,6 +459,53 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
+> > >  	return err;
+> > >  }
+> > >
+> > > +static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
+> > > +{
+> > > +	void *set_ctx;
+> > > +	void *set_hca_cap;
+> > > +	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
+> > > +	int err;
+> > > +
+> > > +	if (!MLX5_CAP_GEN(dev, pg))
+> > > +		return 0;
+> >
+> > Should a
+> >
+> >     if (IS_ENABLED(CONFIG_INFINIBAND_ON_DEMAND_PAGING))
+> >              return 0;
+> >
+> > Be here?
+> 
+> We had similar discussion in mlx5_ib main.c, but here we are talking
+> about mlx5_core code, which from my point of view should represent the
+> real HW capabilities without relation to kernel compilation mode.
 
-Series applied, thanks.
+This switch is to tell the FW that the mlx5_ib module supports the new
+protocol - so having it in core code at all is really weird. I assume
+there is some startup sequence reason?
+
+Since the modularity is already wrecked it seems like an odd
+reason not to add the if..
+
+Jason
