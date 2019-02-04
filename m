@@ -1,43 +1,86 @@
-From: Ursula Braun <ubraun@linux.ibm.com>
-Subject: [PATCH net 3/4] net/smc: delete rkey first before switching to unused
-Date: Mon,  4 Feb 2019 13:44:46 +0100
-Message-ID: <20190204124447.39816-4-ubraun@linux.ibm.com>
-References: <20190204124447.39816-1-ubraun@linux.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190204124447.39816-1-ubraun@linux.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.ibm.com, ubraun@linux.ibm.com
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Subject: [PATCH] IB/{hfi1,qib}: Add limit test for RC/UC send via loopback
+Date: Mon, 04 Feb 2019 07:36:42 -0800
+Message-ID: <20190204153639.2555.41856.stgit@scvm10.sc.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Once RMBs are flagged as unused they are candidates for reuse.
-Thus the LLC DELETE RKEY operaton should be made before flagging
-the RMB as unused.
+Upstream commit 09ce351dff8e7636af0beb72cd4a86c3904a0500.
 
-Fixes: c7674c001b11 ("net/smc: unregister rkeys of unused buffer")
-Signed-off-by: Ursula Braun <ubraun@linux.ibm.com>
+Fix potential memory corruption and panic in loopback for
+IB_WR_SEND varaiants.
+
+The code blindly assumes the posted length will fit in the
+fetched rwqe, which is not a valid assumption.
+
+Fix by adding a limit test, and triggering the appropriate
+send completion and putting the QP in an error state.  This
+mimics the handling for non-loopback QPs.
+
+[ported to older kernels where the loopback was in each driver]
+
+Cc: <stable@vger.kernel.org> #v4.9+
+Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 ---
- net/smc/smc_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi1/ruc.c    |    7 ++++++-
+ drivers/infiniband/hw/qib/qib_ruc.c |    7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/net/smc/smc_core.c b/net/smc/smc_core.c
-index 097c798983ca..aa1c551cee81 100644
---- a/net/smc/smc_core.c
-+++ b/net/smc/smc_core.c
-@@ -302,13 +302,13 @@ static void smc_buf_unuse(struct smc_connection *conn,
- 		conn->sndbuf_desc->used = 0;
- 	if (conn->rmb_desc) {
- 		if (!conn->rmb_desc->regerr) {
--			conn->rmb_desc->used = 0;
- 			if (!lgr->is_smcd) {
- 				/* unregister rmb with peer */
- 				smc_llc_do_delete_rkey(
- 						&lgr->lnk[SMC_SINGLE_LINK],
- 						conn->rmb_desc);
- 			}
-+			conn->rmb_desc->used = 0;
- 		} else {
- 			/* buf registration failed, reuse not possible */
- 			write_lock_bh(&lgr->rmbs_lock);
--- 
-2.16.4
+diff --git a/drivers/infiniband/hw/hfi1/ruc.c b/drivers/infiniband/hw/hfi1/ruc.c
+index 5f56f3c..62a3832 100644
+--- a/drivers/infiniband/hw/hfi1/ruc.c
++++ b/drivers/infiniband/hw/hfi1/ruc.c
+@@ -278,6 +278,8 @@ static void ruc_loopback(struct rvt_qp *sqp)
+ 			goto op_err;
+ 		if (!ret)
+ 			goto rnr_nak;
++		if (wqe->length > qp->r_len)
++			goto inv_err;
+ 		break;
+ 
+ 	case IB_WR_RDMA_WRITE_WITH_IMM:
+@@ -445,7 +447,10 @@ static void ruc_loopback(struct rvt_qp *sqp)
+ 	goto err;
+ 
+ inv_err:
+-	send_status = IB_WC_REM_INV_REQ_ERR;
++	send_status =
++		sqp->ibqp.qp_type == IB_QPT_RC ?
++			IB_WC_REM_INV_REQ_ERR :
++			IB_WC_SUCCESS;
+ 	wc.status = IB_WC_LOC_QP_OP_ERR;
+ 	goto err;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+index f8a7de7..563f71e 100644
+--- a/drivers/infiniband/hw/qib/qib_ruc.c
++++ b/drivers/infiniband/hw/qib/qib_ruc.c
+@@ -274,6 +274,8 @@ static void qib_ruc_loopback(struct rvt_qp *sqp)
+ 			goto op_err;
+ 		if (!ret)
+ 			goto rnr_nak;
++		if (wqe->length > qp->r_len)
++			goto inv_err;
+ 		break;
+ 
+ 	case IB_WR_RDMA_WRITE_WITH_IMM:
+@@ -434,7 +436,10 @@ static void qib_ruc_loopback(struct rvt_qp *sqp)
+ 	goto err;
+ 
+ inv_err:
+-	send_status = IB_WC_REM_INV_REQ_ERR;
++	send_status =
++		sqp->ibqp.qp_type == IB_QPT_RC ?
++			IB_WC_REM_INV_REQ_ERR :
++			IB_WC_SUCCESS;
+ 	wc.status = IB_WC_LOC_QP_OP_ERR;
+ 	goto err;
+ 
