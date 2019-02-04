@@ -1,7 +1,7 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH 04/12] net/mlx5e: Implement ndo_get_port_parent_id()
-Date: Mon,  4 Feb 2019 15:36:25 -0800
-Message-ID: <20190204233633.20421-5-f.fainelli@gmail.com>
+Subject: [PATCH 07/12] nfp: Implement ndo_get_port_parent_id()
+Date: Mon,  4 Feb 2019 15:36:28 -0800
+Message-ID: <20190204233633.20421-8-f.fainelli@gmail.com>
 References: <20190204233633.20421-1-f.fainelli@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,92 +21,149 @@ To: netdev@vger.kernel.org
 Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, Jakub Kicinski <jakub.kicinski@netronome.com>, John Hurley <john.hurley@netronome.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Tyler Hicks <tyhicks@canonical.com>, Ivan Vecera <ivecera@redhat.com>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, Amritha Nambiar <amritha.nambiar@intel.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Petr Machata <petrm@mellanox.com>, Vivien Didelot <vivien.didelot@gmail.com>, Alexander Duyck <alexander.h.duyck@intel.com>, open list:S
 List-Id: linux-rdma@vger.kernel.org
 
-mlx5e only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
+NFP only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
 great candidate to be converted to use the ndo_get_port_parent_id() NDO
 instead of implementing switchdev_port_attr_get().
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 +++++++------------
- 1 file changed, 11 insertions(+), 20 deletions(-)
+ .../ethernet/netronome/nfp/nfp_net_common.c   |  4 +---
+ .../net/ethernet/netronome/nfp/nfp_net_repr.c |  4 +---
+ drivers/net/ethernet/netronome/nfp/nfp_port.c | 23 +++++--------------
+ drivers/net/ethernet/netronome/nfp/nfp_port.h |  4 +++-
+ 4 files changed, 11 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 5d2e0c2f6624..0b1988b330f3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -381,7 +381,8 @@ static const struct ethtool_ops mlx5e_uplink_rep_ethtool_ops = {
- 	.set_pauseparam    = mlx5e_uplink_rep_set_pauseparam,
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+index 7d2d4241498f..776f6c07701b 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+@@ -36,7 +36,6 @@
+ #include <linux/vmalloc.h>
+ #include <linux/ktime.h>
+ 
+-#include <net/switchdev.h>
+ #include <net/vxlan.h>
+ 
+ #include "nfpcore/nfp_nsp.h"
+@@ -3531,6 +3530,7 @@ const struct net_device_ops nfp_net_netdev_ops = {
+ 	.ndo_udp_tunnel_add	= nfp_net_add_vxlan_port,
+ 	.ndo_udp_tunnel_del	= nfp_net_del_vxlan_port,
+ 	.ndo_bpf		= nfp_net_xdp,
++	.ndo_get_port_parent_id	= nfp_port_get_port_parent_id,
  };
  
--static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
-+static int mlx5e_rep_get_port_parent_id(struct net_device *dev,
-+					struct netdev_phys_item_id *ppid)
+ /**
+@@ -3815,8 +3815,6 @@ static void nfp_net_netdev_init(struct nfp_net *nn)
+ 	netdev->netdev_ops = &nfp_net_netdev_ops;
+ 	netdev->watchdog_timeo = msecs_to_jiffies(5 * 1000);
+ 
+-	SWITCHDEV_SET_OPS(netdev, &nfp_port_switchdev_ops);
+-
+ 	/* MTU range: 68 - hw-specific max */
+ 	netdev->min_mtu = ETH_MIN_MTU;
+ 	netdev->max_mtu = nn->max_mtu;
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_net_repr.c b/drivers/net/ethernet/netronome/nfp/nfp_net_repr.c
+index 69d7aebda09b..62839807e21e 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_net_repr.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_net_repr.c
+@@ -5,7 +5,6 @@
+ #include <linux/io-64-nonatomic-hi-lo.h>
+ #include <linux/lockdep.h>
+ #include <net/dst_metadata.h>
+-#include <net/switchdev.h>
+ 
+ #include "nfpcore/nfp_cpp.h"
+ #include "nfpcore/nfp_nsp.h"
+@@ -273,6 +272,7 @@ const struct net_device_ops nfp_repr_netdev_ops = {
+ 	.ndo_fix_features	= nfp_repr_fix_features,
+ 	.ndo_set_features	= nfp_port_set_features,
+ 	.ndo_set_mac_address    = eth_mac_addr,
++	.ndo_get_port_parent_id	= nfp_port_get_port_parent_id,
+ };
+ 
+ void
+@@ -336,8 +336,6 @@ int nfp_repr_init(struct nfp_app *app, struct net_device *netdev,
+ 
+ 	netdev->max_mtu = pf_netdev->max_mtu;
+ 
+-	SWITCHDEV_SET_OPS(netdev, &nfp_port_switchdev_ops);
+-
+ 	/* Set features the lower device can support with representors */
+ 	if (repr_cap & NFP_NET_CFG_CTRL_LIVE_ADDR)
+ 		netdev->priv_flags |= IFF_LIVE_ADDR_CHANGE;
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_port.c b/drivers/net/ethernet/netronome/nfp/nfp_port.c
+index 86bc149ca231..b9aa7eb99067 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_port.c
++++ b/drivers/net/ethernet/netronome/nfp/nfp_port.c
+@@ -31,34 +31,23 @@ struct nfp_port *nfp_port_from_netdev(struct net_device *netdev)
+ 	return NULL;
+ }
+ 
+-static int
+-nfp_port_attr_get(struct net_device *netdev, struct switchdev_attr *attr)
++int nfp_port_get_port_parent_id(struct net_device *netdev,
++				struct netdev_phys_item_id *ppid)
  {
- 	struct mlx5e_priv *priv = netdev_priv(dev);
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
-@@ -398,20 +399,14 @@ static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
- 		uplink_priv = netdev_priv(uplink_dev);
- 	}
+ 	struct nfp_port *port;
++	const u8 *serial;
+ 
+ 	port = nfp_port_from_netdev(netdev);
+ 	if (!port)
+ 		return -EOPNOTSUPP;
  
 -	switch (attr->id) {
--	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = ETH_ALEN;
--		if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
--			ether_addr_copy(attr->u.ppid.id, uplink_upper->dev_addr);
--		} else {
--			struct mlx5e_rep_priv *rpriv = priv->ppriv;
--			struct mlx5_eswitch_rep *rep = rpriv->rep;
-+	ppid->id_len = ETH_ALEN;
-+	if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
-+		ether_addr_copy(ppid->id, uplink_upper->dev_addr);
-+	} else {
-+		struct mlx5e_rep_priv *rpriv = priv->ppriv;
-+		struct mlx5_eswitch_rep *rep = rpriv->rep;
- 
--			ether_addr_copy(attr->u.ppid.id, rep->hw_id);
--		}
+-	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID: {
+-		const u8 *serial;
+-		/* N.B: attr->u.ppid.id is binary data */
+-		attr->u.ppid.id_len = nfp_cpp_serial(port->app->cpp, &serial);
+-		memcpy(&attr->u.ppid.id, serial, attr->u.ppid.id_len);
 -		break;
+-	}
 -	default:
 -		return -EOPNOTSUPP;
-+		ether_addr_copy(ppid->id, rep->hw_id);
- 	}
+-	}
++	/* N.B: attr->u.ppid.id is binary data */
++	ppid->id_len = nfp_cpp_serial(port->app->cpp, &serial);
++	memcpy(&ppid->id, serial, ppid->id_len);
  
- 	return 0;
-@@ -1284,10 +1279,6 @@ static int mlx5e_uplink_rep_set_vf_vlan(struct net_device *dev, int vf, u16 vlan
  	return 0;
  }
  
--static const struct switchdev_ops mlx5e_rep_switchdev_ops = {
--	.switchdev_port_attr_get	= mlx5e_attr_get,
+-const struct switchdev_ops nfp_port_switchdev_ops = {
+-	.switchdev_port_attr_get	= nfp_port_attr_get,
 -};
 -
- static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
- 	.ndo_open                = mlx5e_vf_rep_open,
- 	.ndo_stop                = mlx5e_vf_rep_close,
-@@ -1298,6 +1289,7 @@ static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
- 	.ndo_has_offload_stats	 = mlx5e_rep_has_offload_stats,
- 	.ndo_get_offload_stats	 = mlx5e_rep_get_offload_stats,
- 	.ndo_change_mtu          = mlx5e_vf_rep_change_mtu,
-+	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
+ int nfp_port_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+ 		      void *type_data)
+ {
+diff --git a/drivers/net/ethernet/netronome/nfp/nfp_port.h b/drivers/net/ethernet/netronome/nfp/nfp_port.h
+index b2479a2a49e5..90ae053f5c07 100644
+--- a/drivers/net/ethernet/netronome/nfp/nfp_port.h
++++ b/drivers/net/ethernet/netronome/nfp/nfp_port.h
+@@ -7,6 +7,7 @@
+ #include <net/devlink.h>
+ 
+ struct net_device;
++struct netdev_phys_item_id;
+ struct nfp_app;
+ struct nfp_pf;
+ struct nfp_port;
+@@ -90,7 +91,6 @@ struct nfp_port {
  };
  
- static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
-@@ -1319,6 +1311,7 @@ static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
- 	.ndo_get_vf_config       = mlx5e_get_vf_config,
- 	.ndo_get_vf_stats        = mlx5e_get_vf_stats,
- 	.ndo_set_vf_vlan         = mlx5e_uplink_rep_set_vf_vlan,
-+	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
- };
+ extern const struct ethtool_ops nfp_port_ethtool_ops;
+-extern const struct switchdev_ops nfp_port_switchdev_ops;
  
- bool mlx5e_eswitch_rep(struct net_device *netdev)
-@@ -1393,8 +1386,6 @@ static void mlx5e_build_rep_netdev(struct net_device *netdev)
- 	netdev->watchdog_timeo    = 15 * HZ;
+ __printf(2, 3) u8 *nfp_pr_et(u8 *data, const char *fmt, ...);
  
+@@ -106,6 +106,8 @@ int
+ nfp_port_set_features(struct net_device *netdev, netdev_features_t features);
  
--	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
--
- 	netdev->features	 |= NETIF_F_HW_TC | NETIF_F_NETNS_LOCAL;
- 	netdev->hw_features      |= NETIF_F_HW_TC;
- 
+ struct nfp_port *nfp_port_from_netdev(struct net_device *netdev);
++int nfp_port_get_port_parent_id(struct net_device *netdev,
++				struct netdev_phys_item_id *ppid);
+ struct nfp_port *
+ nfp_port_from_id(struct nfp_pf *pf, enum nfp_port_type type, unsigned int id);
+ struct nfp_eth_table_port *__nfp_port_get_eth_port(struct nfp_port *port);
 -- 
 2.17.1
