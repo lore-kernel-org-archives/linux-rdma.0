@@ -1,182 +1,162 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next v2 02/12] bnxt: Implement ndo_get_port_parent_id()
-Date: Tue,  5 Feb 2019 14:13:01 -0800
-Message-ID: <20190205221311.18476-3-f.fainelli@gmail.com>
+Subject: [PATCH net-next v2 03/12] liquidio: Implement ndo_get_port_parent_id()
+Date: Tue,  5 Feb 2019 14:13:02 -0800
+Message-ID: <20190205221311.18476-4-f.fainelli@gmail.com>
 References: <20190205221311.18476-1-f.fainelli@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190205221311.18476-1-f.fainelli@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
 Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-BNXT only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
-great candidate to be converted to use the ndo_get_port_parent_id() NDO
-instead of implementing switchdev_port_attr_get(). The conversion is
-straight forward here since the PF and VF code use the same getter.
-
-Since bnxt makes uses of switchdev_port_same_parent_id() convert it to
-use netdev_port_same_parent_id().
+Liquidio only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it
+a great candidate to be converted to use the ndo_get_port_parent_id()
+NDO instead of implementing switchdev_port_attr_get().
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 ++++++-------------
- drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +--
- drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  3 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 +++-----
- 4 files changed, 16 insertions(+), 31 deletions(-)
+ .../net/ethernet/cavium/liquidio/lio_main.c   | 22 ++++------------
+ .../net/ethernet/cavium/liquidio/lio_vf_rep.c | 25 ++++++-------------
+ 2 files changed, 12 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 6a512871176b..1c2987c3d708 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -9981,8 +9981,11 @@ static int bnxt_get_phys_port_name(struct net_device *dev, char *buf,
- 	return 0;
- }
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_main.c b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+index 3d24133e5e49..e97e6754ee09 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_main.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+@@ -21,7 +21,6 @@
+ #include <linux/firmware.h>
+ #include <net/vxlan.h>
+ #include <linux/kthread.h>
+-#include <net/switchdev.h>
+ #include "liquidio_common.h"
+ #include "octeon_droq.h"
+ #include "octeon_iq.h"
+@@ -3184,7 +3183,8 @@ static const struct devlink_ops liquidio_devlink_ops = {
+ };
  
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
-+int bnxt_get_port_parent_id(struct net_device *dev,
+ static int
+-lio_pf_switchdev_attr_get(struct net_device *dev, struct switchdev_attr *attr)
++liquidio_get_port_parent_id(struct net_device *dev,
 +			    struct netdev_phys_item_id *ppid)
  {
-+	struct bnxt *bp = netdev_priv(dev);
-+
- 	if (bp->eswitch_mode != DEVLINK_ESWITCH_MODE_SWITCHDEV)
- 		return -EOPNOTSUPP;
- 
-@@ -9990,27 +9993,12 @@ int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
- 	if (!BNXT_PF(bp))
+ 	struct lio *lio = GET_LIO(dev);
+ 	struct octeon_device *oct = lio->oct_dev;
+@@ -3192,24 +3192,12 @@ lio_pf_switchdev_attr_get(struct net_device *dev, struct switchdev_attr *attr)
+ 	if (oct->eswitch_mode != DEVLINK_ESWITCH_MODE_SWITCHDEV)
  		return -EOPNOTSUPP;
  
 -	switch (attr->id) {
 -	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = sizeof(bp->switch_id);
--		memcpy(attr->u.ppid.id, bp->switch_id, attr->u.ppid.id_len);
+-		attr->u.ppid.id_len = ETH_ALEN;
+-		ether_addr_copy(attr->u.ppid.id,
+-				(void *)&lio->linfo.hw_addr + 2);
 -		break;
+-
 -	default:
 -		return -EOPNOTSUPP;
 -	}
--	return 0;
--}
-+	ppid->id_len = sizeof(bp->switch_id);
-+	memcpy(ppid->id, bp->switch_id, ppid->id_len);
++	ppid->id_len = ETH_ALEN;
++	ether_addr_copy(ppid->id, (void *)&lio->linfo.hw_addr + 2);
  
--static int bnxt_swdev_port_attr_get(struct net_device *dev,
--				    struct switchdev_attr *attr)
--{
--	return bnxt_port_attr_get(netdev_priv(dev), attr);
-+	return 0;
+ 	return 0;
  }
  
--static const struct switchdev_ops bnxt_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_swdev_port_attr_get
+-static const struct switchdev_ops lio_pf_switchdev_ops = {
+-	.switchdev_port_attr_get = lio_pf_switchdev_attr_get,
 -};
 -
- static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_open		= bnxt_open,
- 	.ndo_start_xmit		= bnxt_start_xmit,
-@@ -10042,6 +10030,7 @@ static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_bpf		= bnxt_xdp,
- 	.ndo_bridge_getlink	= bnxt_bridge_getlink,
- 	.ndo_bridge_setlink	= bnxt_bridge_setlink,
-+	.ndo_get_port_parent_id	= bnxt_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_get_phys_port_name
- };
- 
-@@ -10400,7 +10389,6 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	dev->netdev_ops = &bnxt_netdev_ops;
- 	dev->watchdog_timeo = BNXT_TX_TIMEOUT;
- 	dev->ethtool_ops = &bnxt_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_switchdev_ops);
- 	pci_set_drvdata(pdev, dev);
- 
- 	rc = bnxt_alloc_hwrm_resources(bp);
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 5c886a700bcc..17554d4be651 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -22,7 +22,6 @@
- #include <linux/rhashtable.h>
- #include <net/devlink.h>
- #include <net/dst_metadata.h>
--#include <net/switchdev.h>
- #include <net/xdp.h>
- #include <linux/net_dim.h>
- 
-@@ -1795,7 +1794,8 @@ int bnxt_check_rings(struct bnxt *bp, int tx, int rx, bool sh, int tcs,
- int bnxt_setup_mq_tc(struct net_device *dev, u8 tc);
- int bnxt_get_max_rings(struct bnxt *, int *, int *, bool);
- int bnxt_restore_pf_fw_resources(struct bnxt *bp);
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr);
-+int bnxt_get_port_parent_id(struct net_device *dev,
-+			    struct netdev_phys_item_id *ppid);
- void bnxt_dim_work(struct work_struct *work);
- int bnxt_hwrm_set_ring_coal(struct bnxt *bp, struct bnxt_napi *bnapi);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-index c683b5e96b1d..170d2fbbb91b 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-@@ -12,6 +12,7 @@
- #include <linux/if_vlan.h>
- #include <net/flow_dissector.h>
- #include <net/pkt_cls.h>
-+#include <net/switchdev.h>
- #include <net/tc_act/tc_gact.h>
- #include <net/tc_act/tc_skbedit.h>
- #include <net/tc_act/tc_mirred.h>
-@@ -45,7 +46,7 @@ static u16 bnxt_flow_get_dst_fid(struct bnxt *pf_bp, struct net_device *dev)
- 	struct bnxt *bp;
- 
- 	/* check if dev belongs to the same switch */
--	if (!switchdev_port_same_parent_id(pf_bp->dev, dev)) {
-+	if (!netdev_port_same_parent_id(pf_bp->dev, dev)) {
- 		netdev_info(pf_bp->dev, "dev(ifindex=%d) not on same switch",
- 			    dev->ifindex);
- 		return BNXT_FID_INVALID;
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-index 9a25c05aa571..2bdd2da9aac7 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-@@ -237,21 +237,17 @@ static void bnxt_vf_rep_get_drvinfo(struct net_device *dev,
- 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
- }
- 
--static int bnxt_vf_rep_port_attr_get(struct net_device *dev,
--				     struct switchdev_attr *attr)
-+static int bnxt_vf_rep_get_port_parent_id(struct net_device *dev,
-+					  struct netdev_phys_item_id *ppid)
+ static int liquidio_get_vf_stats(struct net_device *netdev, int vfidx,
+ 				 struct ifla_vf_stats *vf_stats)
  {
- 	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
+@@ -3259,6 +3247,7 @@ static const struct net_device_ops lionetdevops = {
+ 	.ndo_set_vf_trust	= liquidio_set_vf_trust,
+ 	.ndo_set_vf_link_state  = liquidio_set_vf_link_state,
+ 	.ndo_get_vf_stats	= liquidio_get_vf_stats,
++	.ndo_get_port_parent_id	= liquidio_get_port_parent_id,
+ };
  
- 	/* as only PORT_PARENT_ID is supported currently use common code
- 	 * between PF and VF-rep for now.
- 	 */
--	return bnxt_port_attr_get(vf_rep->bp, attr);
-+	return bnxt_get_port_parent_id(vf_rep->bp->dev, ppid);
+ /** \brief Entry point for the liquidio module
+@@ -3534,7 +3523,6 @@ static int setup_nic_devices(struct octeon_device *octeon_dev)
+ 		 * netdev tasks.
+ 		 */
+ 		netdev->netdev_ops = &lionetdevops;
+-		SWITCHDEV_SET_OPS(netdev, &lio_pf_switchdev_ops);
+ 
+ 		retval = netif_set_real_num_rx_queues(netdev, num_oqueues);
+ 		if (retval) {
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c b/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
+index de61060721c4..f3f2e71431ac 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
+@@ -25,7 +25,6 @@
+ #include "octeon_nic.h"
+ #include "octeon_main.h"
+ #include "octeon_network.h"
+-#include <net/switchdev.h>
+ #include "lio_vf_rep.h"
+ 
+ static int lio_vf_rep_open(struct net_device *ndev);
+@@ -38,6 +37,8 @@ static int lio_vf_rep_phys_port_name(struct net_device *dev,
+ static void lio_vf_rep_get_stats64(struct net_device *dev,
+ 				   struct rtnl_link_stats64 *stats64);
+ static int lio_vf_rep_change_mtu(struct net_device *ndev, int new_mtu);
++static int lio_vf_get_port_parent_id(struct net_device *dev,
++				     struct netdev_phys_item_id *ppid);
+ 
+ static const struct net_device_ops lio_vf_rep_ndev_ops = {
+ 	.ndo_open = lio_vf_rep_open,
+@@ -47,6 +48,7 @@ static const struct net_device_ops lio_vf_rep_ndev_ops = {
+ 	.ndo_get_phys_port_name = lio_vf_rep_phys_port_name,
+ 	.ndo_get_stats64 = lio_vf_rep_get_stats64,
+ 	.ndo_change_mtu = lio_vf_rep_change_mtu,
++	.ndo_get_port_parent_id = lio_vf_get_port_parent_id,
+ };
+ 
+ static int
+@@ -443,31 +445,19 @@ lio_vf_rep_pkt_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	return NETDEV_TX_OK;
  }
  
--static const struct switchdev_ops bnxt_vf_rep_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_vf_rep_port_attr_get
+-static int
+-lio_vf_rep_attr_get(struct net_device *dev, struct switchdev_attr *attr)
++static int lio_vf_get_port_parent_id(struct net_device *dev,
++				     struct netdev_phys_item_id *ppid)
+ {
+ 	struct lio_vf_rep_desc *vf_rep = netdev_priv(dev);
+ 	struct net_device *parent_ndev = vf_rep->parent_ndev;
+ 	struct lio *lio = GET_LIO(parent_ndev);
+ 
+-	switch (attr->id) {
+-	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
+-		attr->u.ppid.id_len = ETH_ALEN;
+-		ether_addr_copy(attr->u.ppid.id,
+-				(void *)&lio->linfo.hw_addr + 2);
+-		break;
+-
+-	default:
+-		return -EOPNOTSUPP;
+-	}
++	ppid->id_len = ETH_ALEN;
++	ether_addr_copy(ppid->id, (void *)&lio->linfo.hw_addr + 2);
+ 
+ 	return 0;
+ }
+ 
+-static const struct switchdev_ops lio_vf_rep_switchdev_ops = {
+-	.switchdev_port_attr_get        = lio_vf_rep_attr_get,
 -};
 -
- static const struct ethtool_ops bnxt_vf_rep_ethtool_ops = {
- 	.get_drvinfo		= bnxt_vf_rep_get_drvinfo
- };
-@@ -262,6 +258,7 @@ static const struct net_device_ops bnxt_vf_rep_netdev_ops = {
- 	.ndo_start_xmit		= bnxt_vf_rep_xmit,
- 	.ndo_get_stats64	= bnxt_vf_rep_get_stats64,
- 	.ndo_setup_tc		= bnxt_vf_rep_setup_tc,
-+	.ndo_get_port_parent_id	= bnxt_vf_rep_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_vf_rep_get_phys_port_name
- };
+ static void
+ lio_vf_rep_fetch_stats(struct work_struct *work)
+ {
+@@ -524,7 +514,6 @@ lio_vf_rep_create(struct octeon_device *oct)
+ 		ndev->min_mtu = LIO_MIN_MTU_SIZE;
+ 		ndev->max_mtu = LIO_MAX_MTU_SIZE;
+ 		ndev->netdev_ops = &lio_vf_rep_ndev_ops;
+-		SWITCHDEV_SET_OPS(ndev, &lio_vf_rep_switchdev_ops);
  
-@@ -392,7 +389,6 @@ static void bnxt_vf_rep_netdev_init(struct bnxt *bp, struct bnxt_vf_rep *vf_rep,
- 
- 	dev->netdev_ops = &bnxt_vf_rep_netdev_ops;
- 	dev->ethtool_ops = &bnxt_vf_rep_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_vf_rep_switchdev_ops);
- 	/* Just inherit all the featues of the parent PF as the VF-R
- 	 * uses the RX/TX rings of the parent PF
- 	 */
+ 		vf_rep = netdev_priv(ndev);
+ 		memset(vf_rep, 0, sizeof(*vf_rep));
 -- 
 2.17.1
