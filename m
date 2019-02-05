@@ -1,65 +1,38 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 12/12] net/mlx5: Set ODP SRQ support in firmware
-Date: Mon, 4 Feb 2019 23:54:25 +0000
-Message-ID: <d12fbdb2358883150d1d37690e3e3f1015266ef7.camel@mellanox.com>
-References: <20190122064851.6032-1-leon@kernel.org>
-         <20190122064851.6032-13-leon@kernel.org> <20190131232843.GA15062@ziepe.ca>
-         <20190203090311.GD3634@mtr-leonro.mtl.com>
-         <20190204212319.GE10237@ziepe.ca>
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: Re: [PATCH 07/12] nfp: Implement ndo_get_port_parent_id()
+Date: Mon, 4 Feb 2019 19:49:25 -0800
+Message-ID: <20190204194925.7c1f56e2@cakuba.netronome.com>
+References: <20190204233633.20421-1-f.fainelli@gmail.com>
+ <20190204233633.20421-8-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190204212319.GE10237@ziepe.ca>
-Content-Language: en-US
-Content-ID: <50D1B8DE29912D4E84E7C133BB89A329@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
-Cc: Majd Dibbiny <majd@mellanox.com>, Moni Shoua <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20190204233633.20421-8-f.fainelli@gmail.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Alexandre Belloni <alexandre.belloni@bootlin.com>, John Hurley <john.hurley@netronome.com>, "open
+ list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, Eric Dumazet <edumazet@google.com>, Ioana Ciornei <ioana.ciornei@nxp.com>, Tyler Hicks <tyhicks@canonical.com>, Ivan Vecera <ivecera@redhat.com>, David Ahern <dsahern@gmail.com>, "open
+ list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated
+ list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, Amritha Nambiar <amritha.nambiar@intel.com>, Saeed Mahameed <saeedm@mellanox.com>, Dirk van der Merwe <dirk.vandermerwe@netronome.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Petr Machata <petrm@mellanox.com>, Vivien Didelot <vivien.didelot@gmail.com>, Alexander Duyck <alexander.h.duyck@intel.com>, "open
+ list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Daniel
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTAyLTA0IGF0IDE0OjIzIC0wNzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFN1biwgRmViIDAzLCAyMDE5IGF0IDExOjAzOjExQU0gKzAyMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBPbiBUaHUsIEphbiAzMSwgMjAxOSBhdCAwNDoyODo0NFBNIC0wNzAw
-LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBPbiBUdWUsIEphbiAyMiwgMjAxOSBhdCAw
-ODo0ODo1MUFNICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiA+IEZyb206IE1v
-bmkgU2hvdWEgPG1vbmlzQG1lbGxhbm94LmNvbT4NCj4gPiA+ID4gDQo+ID4gPiA+IFRvIGF2b2lk
-IGNvbXBhdGliaWxpdHkgaXNzdWUgd2l0aCBvbGRlciBrZXJuZWxzIHRoZSBmaXJtd2FyZQ0KPiA+
-ID4gPiBkb2Vzbid0DQo+ID4gPiA+IGFsbG93IFNSUSB0byB3b3JrIHdpdGggT0RQIHVubGVzcyBr
-ZXJuZWwgYXNrcyBmb3IgaXQuDQo+ID4gPiA+IA0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBNb25p
-IFNob3VhIDxtb25pc0BtZWxsYW5veC5jb20+DQo+ID4gPiA+IFJldmlld2VkLWJ5OiBNYWpkIERp
-YmJpbnkgPG1hamRAbWVsbGFub3guY29tPg0KPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBMZW9uIFJv
-bWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+ID4gPiA+ICAuLi4vbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9tYWluLmMgICAgfCA1Mw0KPiA+ID4gPiArKysrKysrKysrKysr
-KysrKysrDQo+ID4gPiA+ICBpbmNsdWRlL2xpbnV4L21seDUvZGV2aWNlLmggICAgICAgICAgICAg
-ICAgICAgfCAgMyArKw0KPiA+ID4gPiAgaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmggICAg
-ICAgICAgICAgICAgIHwgIDEgKw0KPiA+ID4gPiAgMyBmaWxlcyBjaGFuZ2VkLCA1NyBpbnNlcnRp
-b25zKCspDQo+ID4gPiA+IA0KPiA+ID4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJu
-ZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4uYw0KPiA+ID4gPiBiL2RyaXZlcnMvbmV0L2V0aGVy
-bmV0L21lbGxhbm94L21seDUvY29yZS9tYWluLmMNCj4gPiA+ID4gaW5kZXggYmU4MWIzMTliMGRj
-Li5iM2E3NmRmMGNmNmMgMTAwNjQ0DQo+ID4gPiA+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9tYWluLmMNCj4gPiA+ID4gQEAgLTQ1OSw2ICs0NTksNTMgQEAg
-c3RhdGljIGludCBoYW5kbGVfaGNhX2NhcF9hdG9taWMoc3RydWN0DQo+ID4gPiA+IG1seDVfY29y
-ZV9kZXYgKmRldikNCj4gPiA+ID4gIAlyZXR1cm4gZXJyOw0KPiA+ID4gPiAgfQ0KPiA+ID4gPiAN
-Cj4gPiA+ID4gK3N0YXRpYyBpbnQgaGFuZGxlX2hjYV9jYXBfb2RwKHN0cnVjdCBtbHg1X2NvcmVf
-ZGV2ICpkZXYpDQo+ID4gPiA+ICt7DQo+ID4gPiA+ICsJdm9pZCAqc2V0X2N0eDsNCj4gPiA+ID4g
-Kwl2b2lkICpzZXRfaGNhX2NhcDsNCj4gPiA+ID4gKwlpbnQgc2V0X3N6ID0gTUxYNV9TVF9TWl9C
-WVRFUyhzZXRfaGNhX2NhcF9pbik7DQo+ID4gPiA+ICsJaW50IGVycjsNCj4gPiA+ID4gKw0KPiA+
-ID4gPiArCWlmICghTUxYNV9DQVBfR0VOKGRldiwgcGcpKQ0KPiA+ID4gPiArCQlyZXR1cm4gMDsN
-Cj4gPiA+IA0KPiA+ID4gU2hvdWxkIGENCj4gPiA+IA0KPiA+ID4gICAgIGlmIChJU19FTkFCTEVE
-KENPTkZJR19JTkZJTklCQU5EX09OX0RFTUFORF9QQUdJTkcpKQ0KPiA+ID4gICAgICAgICAgICAg
-IHJldHVybiAwOw0KPiA+ID4gDQo+ID4gPiBCZSBoZXJlPw0KPiA+IA0KPiA+IFdlIGhhZCBzaW1p
-bGFyIGRpc2N1c3Npb24gaW4gbWx4NV9pYiBtYWluLmMsIGJ1dCBoZXJlIHdlIGFyZQ0KPiA+IHRh
-bGtpbmcNCj4gPiBhYm91dCBtbHg1X2NvcmUgY29kZSwgd2hpY2ggZnJvbSBteSBwb2ludCBvZiB2
-aWV3IHNob3VsZCByZXByZXNlbnQNCj4gPiB0aGUNCj4gPiByZWFsIEhXIGNhcGFiaWxpdGllcyB3
-aXRob3V0IHJlbGF0aW9uIHRvIGtlcm5lbCBjb21waWxhdGlvbiBtb2RlLg0KPiANCj4gVGhpcyBz
-d2l0Y2ggaXMgdG8gdGVsbCB0aGUgRlcgdGhhdCB0aGUgbWx4NV9pYiBtb2R1bGUgc3VwcG9ydHMg
-dGhlDQo+IG5ldw0KPiBwcm90b2NvbCAtIHNvIGhhdmluZyBpdCBpbiBjb3JlIGNvZGUgYXQgYWxs
-IGlzIHJlYWxseSB3ZWlyZC4gSSBhc3N1bWUNCj4gdGhlcmUgaXMgc29tZSBzdGFydHVwIHNlcXVl
-bmNlIHJlYXNvbj8NCj4gDQoNClllcywgc2FkbHkgdGhpcyBtdXN0IGJlIGluIHN0YXJ0dXAsIHNl
-dF9oY2FfY2FwIHJlcXVlc3RzIG11c3QgY29tZQ0KcHJpb3IgdG8gaW5pdF9oY2EgY29tbWFuZC4N
-Cg0KPiBTaW5jZSB0aGUgbW9kdWxhcml0eSBpcyBhbHJlYWR5IHdyZWNrZWQgaXQgc2VlbXMgbGlr
-ZSBhbiBvZGQNCj4gcmVhc29uIG5vdCB0byBhZGQgdGhlIGlmLi4NCj4gDQoNCkFncmVlLCBldmVu
-IGJldHRlciwgbGV0J3MgY29tcGlsZSBvdXQgdGhlIHdob2xlIGZ1bmN0aW9uLiBJIHdvdWxkIGV2
-ZW4NCmNvbnNpZGVyIGhhdmluZyBhIHNlcGFyYXRlIGZpbGUgaW4gbWx4NS9jb3JlIGZvciBJQiBy
-ZWxhdGVkIHN0YXJ0LXVwDQpwcm9jZWR1cmVzIDopLg0KDQo+IEphc29uDQo=
+On Mon,  4 Feb 2019 15:36:28 -0800, Florian Fainelli wrote:
+> NFP only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
+> great candidate to be converted to use the ndo_get_port_parent_id() NDO
+> instead of implementing switchdev_port_attr_get().
+> 
+> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+
+Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+
+Very nice!!  Hopefully nobody hates this approach :)
