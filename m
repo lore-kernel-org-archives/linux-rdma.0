@@ -1,80 +1,105 @@
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: Re: [PATCH net-next v2 10/12] staging: fsl-dpaa2: ethsw: Implement
- ndo_get_port_parent_id()
-Date: Tue, 5 Feb 2019 14:18:03 -0800
-Message-ID: <32de3be2-7e6a-f34e-9e04-3e3d39989317@gmail.com>
-References: <20190205221311.18476-1-f.fainelli@gmail.com>
- <20190205221311.18476-11-f.fainelli@gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] mlx4_ib: Increase the timeout for CM cache
+Date: Tue, 5 Feb 2019 15:36:08 -0700
+Message-ID: <20190205223608.GA23110@ziepe.ca>
+References: <20190131170951.178676-1-haakon.bugge@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190205221311.18476-11-f.fainelli@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190131170951.178676-1-haakon.bugge@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/5/19 2:13 PM, Florian Fainelli wrote:
-> ethsw implements SWITCHDEV_ATTR_ID_PORT_PARENT_ID and we want to get rid
-> of switchdev_ops eventually, ease that migration by implementing a
-> ndo_get_port_parent_id() function which returns what
-> switchdev_port_attr_get() would do.
+On Thu, Jan 31, 2019 at 06:09:51PM +0100, Håkon Bugge wrote:
+> Using CX-3 virtual functions, either from a bare-metal machine or
+> pass-through from a VM, MAD packets are proxied through the PF driver.
 > 
-> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+> Since the VMs have separate name spaces for MAD Transaction Ids
+> (TIDs), the PF driver has to re-map the TIDs and keep the book keeping
+> in a cache.
+> 
+> Following the RDMA CM protocol, it is clear when an entry has to
+> evicted form the cache. But life is not perfect, remote peers may die
+> or be rebooted. Hence, it's a timeout to wipe out a cache entry, when
+> the PF driver assumes the remote peer has gone.
+> 
+> We have experienced excessive amount of DREQ retries during fail-over
+> testing, when running with eight VMs per database server.
+> 
+> The problem has been reproduced in a bare-metal system using one VM
+> per physical node. In this environment, running 256 processes in each
+> VM, each process uses RDMA CM to create an RC QP between himself and
+> all (256) remote processes. All in all 16K QPs.
+> 
+> When tearing down these 16K QPs, excessive DREQ retries (and
+> duplicates) are observed. With some cat/paste/awk wizardry on the
+> infiniband_cm sysfs, we observe:
+> 
+>       dreq:       5007
+> cm_rx_msgs:
+>       drep:       3838
+>       dreq:      13018
+>        rep:       8128
+>        req:       8256
+>        rtu:       8256
+> cm_tx_msgs:
+>       drep:       8011
+>       dreq:      68856
+>        rep:       8256
+>        req:       8128
+>        rtu:       8128
+> cm_tx_retries:
+>       dreq:      60483
+> 
+> Note that the active/passive side is distributed.
+> 
+> Enabling pr_debug in cm.c gives tons of:
+> 
+> [171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
+> 1,sl_cm_id: 0xd393089f} is NULL!
+> 
+> By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
+> tear-down phase of the application is reduced from 113 to 67
+> seconds. Retries/duplicates are also significantly reduced:
+> 
+> cm_rx_duplicates:
+>       dreq:       7726
+> []
+> cm_tx_retries:
+>       drep:          1
+>       dreq:       7779
+> 
+> Increasing the timeout further didn't help, as these duplicates and
+> retries stem from a too short CMA timeout, which was 20 (~4 seconds)
+> on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
+> numbers fell down to about one hundred for both of them.
+> 
+> Adjustment of the CMA timeout is _not_ part of this commit.
+> 
+> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
 > ---
->  drivers/staging/fsl-dpaa2/ethsw/ethsw.c | 17 ++++++++++++-----
->  1 file changed, 12 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/fsl-dpaa2/ethsw/ethsw.c b/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-> index daabaceeea52..622f32377b91 100644
-> --- a/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-> +++ b/drivers/staging/fsl-dpaa2/ethsw/ethsw.c
-> @@ -505,6 +505,17 @@ static netdev_tx_t port_dropframe(struct sk_buff *skb,
->  	return NETDEV_TX_OK;
->  }
->  
-> +static int swdev_get_port_parent_id(struct net_device *dev,
-> +				    struct netdev_phys_item_id *ppid)
-> +{
-> +	struct ethsw_port_priv *port_priv = netdev_priv(dev);
-> +
-> +	ppid->id_len = 1;
-> +	ppid->id[0] = port_priv->ethsw_data->dev_id;
-> +
-> +	return 0;
-> +}
-> +
->  static const struct net_device_ops ethsw_port_ops = {
->  	.ndo_open		= port_open,
->  	.ndo_stop		= port_stop,
-> @@ -515,6 +526,7 @@ static const struct net_device_ops ethsw_port_ops = {
->  	.ndo_get_offload_stats	= port_get_offload_stats,
->  
->  	.ndo_start_xmit		= port_dropframe,
-> +	.ndo_get_port_parent_id	= swdev_get_port_parent_id,
->  };
->  
->  static void ethsw_links_state_update(struct ethsw_core *ethsw)
-> @@ -634,10 +646,6 @@ static int swdev_port_attr_get(struct net_device *netdev,
->  	struct ethsw_port_priv *port_priv = netdev_priv(netdev);
->  
->  	switch (attr->id) {
-> -	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
-> -		attr->u.ppid.id_len = 1;
-> -		attr->u.ppid.id[0] = port_priv->ethsw_data->dev_id;
-> -		break;
->  	case SWITCHDEV_ATTR_ID_PORT_BRIDGE_FLAGS:
->  		attr->u.brport_flags =
->  			(port_priv->ethsw_data->learning ? BR_LEARNING : 0) |
-> @@ -1434,7 +1442,6 @@ static int ethsw_probe_port(struct ethsw_core *ethsw, u16 port_idx)
->  	SET_NETDEV_DEV(port_netdev, dev);
->  	port_netdev->netdev_ops = &ethsw_port_ops;
->  	port_netdev->ethtool_ops = &ethsw_port_ethtool_ops;
-> -	port_netdev->switchdev_ops = &ethsw_port_switchdev_ops;
+>  drivers/infiniband/hw/mlx4/cm.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-This hunk should not be removed, I will respin a new version after
-getting feedback.
--- 
-Florian
+Jack? What do you think?
+
+> diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+> index fedaf8260105..8c79a480f2b7 100644
+> --- a/drivers/infiniband/hw/mlx4/cm.c
+> +++ b/drivers/infiniband/hw/mlx4/cm.c
+> @@ -39,7 +39,7 @@
+>  
+>  #include "mlx4_ib.h"
+>  
+> -#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
+> +#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
+>  
+>  struct id_map_entry {
+>  	struct rb_node node;
+> -- 
+> 2.20.1
+> 
