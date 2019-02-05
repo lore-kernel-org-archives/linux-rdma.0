@@ -1,74 +1,89 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Tue, 5 Feb 2019 10:01:20 -0800
-Message-ID: <20190205180120.GC21617@iweiny-DESK2.sc.intel.com>
-References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH net-next v2 00/12] net: Introduce ndo_get_port_parent_id()
+Date: Tue,  5 Feb 2019 14:12:59 -0800
+Message-ID: <20190205221311.18476-1-f.fainelli@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
-Cc: John Hubbard <jhubbard@nvidia.com>, Jan Kara <jack@suse.cz>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
+To: netdev@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I had an old invalid address for Jason Gunthorpe in my address book...  
+Hi all,
 
-Correcting his email in the thread.
+Based on discussion with Ido and feedback from Jakub there are clearly
+two classes of users that implement SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
 
-On Tue, Feb 05, 2019 at 09:50:59AM -0800, 'Ira Weiny' wrote:
-> 
-> The problem: Once we have pages marked as GUP-pinned how should various
-> subsystems work with those markings.
-> 
-> The current work for John Hubbards proposed solutions (part 1 and 2) is
-> progressing.[1]  But the final part (3) of his solution is also going to take
-> some work.
-> 
-> In Johns presentation he lists 3 alternatives for gup-pinned pages:
-> 
-> 1) Hold off try_to_unmap
-> 2) Allow writeback while pinned (via bounce buffers)
-> 	[Note this will not work for DAX]
-> 3) Use a "revocable reservation" (or lease) on those pages
-> 4) Pin the blocks as busy in the FS allocator
-> 
-> The problem with lease's on pages used by RDMA is that the references to
-> these pages is not local to the machine.  Once the user has been given access
-> to the page they, through the use of a remote tokens, give a reference to that
-> page to remote nodes.  This is the core essence of RDMA, and like it or not,
-> something which is increasingly used by major Linux users.
-> 
-> Therefore we need to discuss the extent by which leases are appropriate and
-> what happens should a lease be revoked which a user does not respond to.
-> 
-> As John Hubbard put it:
-> 
-> "Other filesystem features that need to replace the page with a new one can
-> be inhibited for pages that are GUP-pinned. This will, however, alter and
-> limit some of those filesystem features. The only fix for that would be to
-> require GUP users monitor and respond to CPU page table updates. Subsystems
-> such as ODP and HMM do this, for example. This aspect of the problem is
-> still under discussion."
-> 
-> 	-- John Hubbard[2]
-> 
-> The following people have been involved in previous conversations and would be key to
-> the face to face discussion.
-> 
-> John Hubbard
-> Jan Kara
-> Dave Chinner
-> Michal Hocko
-> Dan Williams
-> Matthew Wilcox
-> Jason Gunthorpe
-> 
-> Thank you,
-> Ira Weiny
-> 
-> [1] https://linuxplumbersconf.org/event/2/contributions/126/attachments/136/168/LPC_2018_gup_dma.pdf
-> [2] https://lkml.org/lkml/2019/2/4/7
-> 
+- PF/VF drivers which typically only implement return the port's parent
+  ID, yet have to implement switchdev_port_attr_get() just for that
+
+- Ethernet switch drivers: mlxsw, ocelot, DSA, etc. which implement more
+  attributes which we want to be able to eventually veto in the context
+  of the caller, thus making them candidates for using a blocking notifier
+  chain
+
+Changes in v2:
+
+- resolved build failures spotted by kbuild test robot
+- added helpers functions into the core network device layer:
+  dev_get_port_parent_id() and netdev_port_same_parent_id();
+- added support for recursion to lower devices
+
+Changes from RFC:
+
+- introduce a ndo_get_port_parent_id() and convert all relevant drivers
+  to use it
+
+- get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+A subsequent set of patches will convert switchdev_port_attr_set() to
+use a blocking notifier call, and still get rid of
+switchdev_port_attr_get() altogether.
+
+Florian Fainelli (12):
+  net: Introduce ndo_get_port_parent_id()
+  bnxt: Implement ndo_get_port_parent_id()
+  liquidio: Implement ndo_get_port_parent_id()
+  net/mlx5e: Implement ndo_get_port_parent_id()
+  mlxsw: Implement ndo_get_port_parent_id()
+  mscc: ocelot: Implement ndo_get_port_parent_id()
+  nfp: Implement ndo_get_port_parent_id()
+  rocker: Implement ndo_get_port_parent_id()
+  netdevsim: Implement ndo_get_port_parent_id()
+  staging: fsl-dpaa2: ethsw: Implement ndo_get_port_parent_id()
+  net: dsa: Implement ndo_get_port_parent_id()
+  net: Get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 +++------
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  3 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 ++--
+ .../net/ethernet/cavium/liquidio/lio_main.c   | 22 ++-----
+ .../net/ethernet/cavium/liquidio/lio_vf_rep.c | 25 +++-----
+ .../ethernet/mellanox/mlx5/core/en/tc_tun.c   |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 ++++------
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  5 +-
+ .../net/ethernet/mellanox/mlxsw/spectrum.c    | 13 +++++
+ .../mellanox/mlxsw/spectrum_switchdev.c       |  5 --
+ .../net/ethernet/mellanox/mlxsw/switchx2.c    | 36 +++++-------
+ drivers/net/ethernet/mscc/ocelot.c            | 33 +++++------
+ .../ethernet/netronome/nfp/flower/action.c    |  3 +-
+ .../ethernet/netronome/nfp/nfp_net_common.c   |  4 +-
+ .../net/ethernet/netronome/nfp/nfp_net_repr.c |  4 +-
+ drivers/net/ethernet/netronome/nfp/nfp_port.c | 23 ++------
+ drivers/net/ethernet/netronome/nfp/nfp_port.h |  4 +-
+ drivers/net/ethernet/rocker/rocker_main.c     | 17 ++++--
+ drivers/net/netdevsim/netdev.c                | 22 ++-----
+ drivers/staging/fsl-dpaa2/ethsw/ethsw.c       | 17 ++++--
+ include/linux/netdevice.h                     |  9 +++
+ include/net/switchdev.h                       | 11 ----
+ net/bridge/br_switchdev.c                     | 11 ++--
+ net/core/dev.c                                | 57 +++++++++++++++++++
+ net/core/net-sysfs.c                          | 12 +---
+ net/core/rtnetlink.c                          | 14 ++---
+ net/dsa/slave.c                               | 18 ++++--
+ net/ipv4/ipmr.c                               | 14 ++---
+ net/switchdev/switchdev.c                     | 20 -------
+ 30 files changed, 219 insertions(+), 260 deletions(-)
+
+-- 
+2.17.1
