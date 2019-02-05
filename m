@@ -1,105 +1,95 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] mlx4_ib: Increase the timeout for CM cache
-Date: Tue, 5 Feb 2019 15:36:08 -0700
-Message-ID: <20190205223608.GA23110@ziepe.ca>
-References: <20190131170951.178676-1-haakon.bugge@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Florian Fainelli <f.fainelli@gmail.com>
+Subject: [PATCH net-next v3 00/12] net: Introduce ndo_get_port_parent_id()
+Date: Tue,  5 Feb 2019 15:53:14 -0800
+Message-ID: <20190205235326.14600-1-f.fainelli@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190131170951.178676-1-haakon.bugge@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
-Cc: "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>
+To: netdev@vger.kernel.org
+Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 31, 2019 at 06:09:51PM +0100, Håkon Bugge wrote:
-> Using CX-3 virtual functions, either from a bare-metal machine or
-> pass-through from a VM, MAD packets are proxied through the PF driver.
-> 
-> Since the VMs have separate name spaces for MAD Transaction Ids
-> (TIDs), the PF driver has to re-map the TIDs and keep the book keeping
-> in a cache.
-> 
-> Following the RDMA CM protocol, it is clear when an entry has to
-> evicted form the cache. But life is not perfect, remote peers may die
-> or be rebooted. Hence, it's a timeout to wipe out a cache entry, when
-> the PF driver assumes the remote peer has gone.
-> 
-> We have experienced excessive amount of DREQ retries during fail-over
-> testing, when running with eight VMs per database server.
-> 
-> The problem has been reproduced in a bare-metal system using one VM
-> per physical node. In this environment, running 256 processes in each
-> VM, each process uses RDMA CM to create an RC QP between himself and
-> all (256) remote processes. All in all 16K QPs.
-> 
-> When tearing down these 16K QPs, excessive DREQ retries (and
-> duplicates) are observed. With some cat/paste/awk wizardry on the
-> infiniband_cm sysfs, we observe:
-> 
->       dreq:       5007
-> cm_rx_msgs:
->       drep:       3838
->       dreq:      13018
->        rep:       8128
->        req:       8256
->        rtu:       8256
-> cm_tx_msgs:
->       drep:       8011
->       dreq:      68856
->        rep:       8256
->        req:       8128
->        rtu:       8128
-> cm_tx_retries:
->       dreq:      60483
-> 
-> Note that the active/passive side is distributed.
-> 
-> Enabling pr_debug in cm.c gives tons of:
-> 
-> [171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
-> 1,sl_cm_id: 0xd393089f} is NULL!
-> 
-> By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
-> tear-down phase of the application is reduced from 113 to 67
-> seconds. Retries/duplicates are also significantly reduced:
-> 
-> cm_rx_duplicates:
->       dreq:       7726
-> []
-> cm_tx_retries:
->       drep:          1
->       dreq:       7779
-> 
-> Increasing the timeout further didn't help, as these duplicates and
-> retries stem from a too short CMA timeout, which was 20 (~4 seconds)
-> on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
-> numbers fell down to about one hundred for both of them.
-> 
-> Adjustment of the CMA timeout is _not_ part of this commit.
-> 
-> Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-> ---
->  drivers/infiniband/hw/mlx4/cm.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+Hi all,
 
-Jack? What do you think?
+Based on discussion with Ido and feedback from Jakub there are clearly
+two classes of users that implement SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
 
-> diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-> index fedaf8260105..8c79a480f2b7 100644
-> --- a/drivers/infiniband/hw/mlx4/cm.c
-> +++ b/drivers/infiniband/hw/mlx4/cm.c
-> @@ -39,7 +39,7 @@
->  
->  #include "mlx4_ib.h"
->  
-> -#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
-> +#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
->  
->  struct id_map_entry {
->  	struct rb_node node;
-> -- 
-> 2.20.1
-> 
+- PF/VF drivers which typically only implement return the port's parent
+  ID, yet have to implement switchdev_port_attr_get() just for that
+
+- Ethernet switch drivers: mlxsw, ocelot, DSA, etc. which implement more
+  attributes which we want to be able to eventually veto in the context
+  of the caller, thus making them candidates for using a blocking notifier
+  chain
+
+Changes in v3:
+
+- keep ethsw's switchdev_ops assignment
+- remove inclusion of net/switchdev.h in netdevsim which is no longer
+  necesary
+
+Changes in v2:
+
+- resolved build failures spotted by kbuild test robot
+- added helpers functions into the core network device layer:
+  dev_get_port_parent_id() and netdev_port_same_parent_id();
+- added support for recursion to lower devices
+
+Changes from RFC:
+
+- introduce a ndo_get_port_parent_id() and convert all relevant drivers
+  to use it
+
+- get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+A subsequent set of patches will convert switchdev_port_attr_set() to
+use a blocking notifier call, and still get rid of
+switchdev_port_attr_get() altogether.
+
+Florian Fainelli (12):
+  net: Introduce ndo_get_port_parent_id()
+  bnxt: Implement ndo_get_port_parent_id()
+  liquidio: Implement ndo_get_port_parent_id()
+  net/mlx5e: Implement ndo_get_port_parent_id()
+  mlxsw: Implement ndo_get_port_parent_id()
+  mscc: ocelot: Implement ndo_get_port_parent_id()
+  nfp: Implement ndo_get_port_parent_id()
+  rocker: Implement ndo_get_port_parent_id()
+  netdevsim: Implement ndo_get_port_parent_id()
+  staging: fsl-dpaa2: ethsw: Implement ndo_get_port_parent_id()
+  net: dsa: Implement ndo_get_port_parent_id()
+  net: Get rid of SWITCHDEV_ATTR_ID_PORT_PARENT_ID
+
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 +++------
+ drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  3 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 ++--
+ .../net/ethernet/cavium/liquidio/lio_main.c   | 22 ++-----
+ .../net/ethernet/cavium/liquidio/lio_vf_rep.c | 25 +++-----
+ .../ethernet/mellanox/mlx5/core/en/tc_tun.c   |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 ++++------
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  5 +-
+ .../net/ethernet/mellanox/mlxsw/spectrum.c    | 13 +++++
+ .../mellanox/mlxsw/spectrum_switchdev.c       |  5 --
+ .../net/ethernet/mellanox/mlxsw/switchx2.c    | 36 +++++-------
+ drivers/net/ethernet/mscc/ocelot.c            | 33 +++++------
+ .../ethernet/netronome/nfp/flower/action.c    |  3 +-
+ .../ethernet/netronome/nfp/nfp_net_common.c   |  4 +-
+ .../net/ethernet/netronome/nfp/nfp_net_repr.c |  4 +-
+ drivers/net/ethernet/netronome/nfp/nfp_port.c | 23 ++------
+ drivers/net/ethernet/netronome/nfp/nfp_port.h |  4 +-
+ drivers/net/ethernet/rocker/rocker_main.c     | 17 ++++--
+ drivers/net/netdevsim/netdev.c                | 23 ++------
+ drivers/staging/fsl-dpaa2/ethsw/ethsw.c       | 16 ++++--
+ include/linux/netdevice.h                     |  9 +++
+ include/net/switchdev.h                       | 11 ----
+ net/bridge/br_switchdev.c                     | 11 ++--
+ net/core/dev.c                                | 57 +++++++++++++++++++
+ net/core/net-sysfs.c                          | 12 +---
+ net/core/rtnetlink.c                          | 14 ++---
+ net/dsa/slave.c                               | 18 ++++--
+ net/ipv4/ipmr.c                               | 14 ++---
+ net/switchdev/switchdev.c                     | 20 -------
+ 30 files changed, 219 insertions(+), 260 deletions(-)
+
+-- 
+2.17.1
