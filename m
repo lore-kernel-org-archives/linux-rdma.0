@@ -1,182 +1,88 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next v3 02/12] bnxt: Implement ndo_get_port_parent_id()
-Date: Tue,  5 Feb 2019 15:53:16 -0800
-Message-ID: <20190205235326.14600-3-f.fainelli@gmail.com>
+Subject: [PATCH net-next v3 06/12] mscc: ocelot: Implement ndo_get_port_parent_id()
+Date: Tue,  5 Feb 2019 15:53:20 -0800
+Message-ID: <20190205235326.14600-7-f.fainelli@gmail.com>
 References: <20190205235326.14600-1-f.fainelli@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190205235326.14600-1-f.fainelli@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 To: netdev@vger.kernel.org
 Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-BNXT only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
-great candidate to be converted to use the ndo_get_port_parent_id() NDO
-instead of implementing switchdev_port_attr_get(). The conversion is
-straight forward here since the PF and VF code use the same getter.
-
-Since bnxt makes uses of switchdev_port_same_parent_id() convert it to
-use netdev_port_same_parent_id().
+Ocelot only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID as a valid
+switchdev attribute getter, convert it to use ndo_get_port_parent_id()
+and get rid of the switchdev_ops::switchdev_port_attr_get altogether.
 
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 ++++++-------------
- drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +--
- drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  3 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 +++-----
- 4 files changed, 16 insertions(+), 31 deletions(-)
+ drivers/net/ethernet/mscc/ocelot.c | 33 ++++++++++++------------------
+ 1 file changed, 13 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 6a512871176b..1c2987c3d708 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -9981,8 +9981,11 @@ static int bnxt_get_phys_port_name(struct net_device *dev, char *buf,
+diff --git a/drivers/net/ethernet/mscc/ocelot.c b/drivers/net/ethernet/mscc/ocelot.c
+index c6a575eb0ff5..195306d05bcd 100644
+--- a/drivers/net/ethernet/mscc/ocelot.c
++++ b/drivers/net/ethernet/mscc/ocelot.c
+@@ -916,6 +916,18 @@ static int ocelot_set_features(struct net_device *dev,
  	return 0;
  }
  
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
-+int bnxt_get_port_parent_id(struct net_device *dev,
-+			    struct netdev_phys_item_id *ppid)
- {
-+	struct bnxt *bp = netdev_priv(dev);
++static int ocelot_get_port_parent_id(struct net_device *dev,
++				     struct netdev_phys_item_id *ppid)
++{
++	struct ocelot_port *ocelot_port = netdev_priv(dev);
++	struct ocelot *ocelot = ocelot_port->ocelot;
 +
- 	if (bp->eswitch_mode != DEVLINK_ESWITCH_MODE_SWITCHDEV)
- 		return -EOPNOTSUPP;
++	ppid->id_len = sizeof(ocelot->base_mac);
++	memcpy(&ppid->id, &ocelot->base_mac, ppid->id_len);
++
++	return 0;
++}
++
+ static const struct net_device_ops ocelot_port_netdev_ops = {
+ 	.ndo_open			= ocelot_port_open,
+ 	.ndo_stop			= ocelot_port_stop,
+@@ -930,6 +942,7 @@ static const struct net_device_ops ocelot_port_netdev_ops = {
+ 	.ndo_vlan_rx_add_vid		= ocelot_vlan_rx_add_vid,
+ 	.ndo_vlan_rx_kill_vid		= ocelot_vlan_rx_kill_vid,
+ 	.ndo_set_features		= ocelot_set_features,
++	.ndo_get_port_parent_id		= ocelot_get_port_parent_id,
+ };
  
-@@ -9990,27 +9993,12 @@ int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
- 	if (!BNXT_PF(bp))
- 		return -EOPNOTSUPP;
+ static void ocelot_get_strings(struct net_device *netdev, u32 sset, u8 *data)
+@@ -1013,25 +1026,6 @@ static const struct ethtool_ops ocelot_ethtool_ops = {
+ 	.set_link_ksettings	= phy_ethtool_set_link_ksettings,
+ };
  
+-static int ocelot_port_attr_get(struct net_device *dev,
+-				struct switchdev_attr *attr)
+-{
+-	struct ocelot_port *ocelot_port = netdev_priv(dev);
+-	struct ocelot *ocelot = ocelot_port->ocelot;
+-
 -	switch (attr->id) {
 -	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = sizeof(bp->switch_id);
--		memcpy(attr->u.ppid.id, bp->switch_id, attr->u.ppid.id_len);
+-		attr->u.ppid.id_len = sizeof(ocelot->base_mac);
+-		memcpy(&attr->u.ppid.id, &ocelot->base_mac,
+-		       attr->u.ppid.id_len);
 -		break;
 -	default:
 -		return -EOPNOTSUPP;
 -	}
+-
 -	return 0;
 -}
-+	ppid->id_len = sizeof(bp->switch_id);
-+	memcpy(ppid->id, bp->switch_id, ppid->id_len);
- 
--static int bnxt_swdev_port_attr_get(struct net_device *dev,
--				    struct switchdev_attr *attr)
--{
--	return bnxt_port_attr_get(netdev_priv(dev), attr);
-+	return 0;
- }
- 
--static const struct switchdev_ops bnxt_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_swdev_port_attr_get
--};
 -
- static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_open		= bnxt_open,
- 	.ndo_start_xmit		= bnxt_start_xmit,
-@@ -10042,6 +10030,7 @@ static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_bpf		= bnxt_xdp,
- 	.ndo_bridge_getlink	= bnxt_bridge_getlink,
- 	.ndo_bridge_setlink	= bnxt_bridge_setlink,
-+	.ndo_get_port_parent_id	= bnxt_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_get_phys_port_name
- };
- 
-@@ -10400,7 +10389,6 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	dev->netdev_ops = &bnxt_netdev_ops;
- 	dev->watchdog_timeo = BNXT_TX_TIMEOUT;
- 	dev->ethtool_ops = &bnxt_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_switchdev_ops);
- 	pci_set_drvdata(pdev, dev);
- 
- 	rc = bnxt_alloc_hwrm_resources(bp);
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 5c886a700bcc..17554d4be651 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -22,7 +22,6 @@
- #include <linux/rhashtable.h>
- #include <net/devlink.h>
- #include <net/dst_metadata.h>
--#include <net/switchdev.h>
- #include <net/xdp.h>
- #include <linux/net_dim.h>
- 
-@@ -1795,7 +1794,8 @@ int bnxt_check_rings(struct bnxt *bp, int tx, int rx, bool sh, int tcs,
- int bnxt_setup_mq_tc(struct net_device *dev, u8 tc);
- int bnxt_get_max_rings(struct bnxt *, int *, int *, bool);
- int bnxt_restore_pf_fw_resources(struct bnxt *bp);
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr);
-+int bnxt_get_port_parent_id(struct net_device *dev,
-+			    struct netdev_phys_item_id *ppid);
- void bnxt_dim_work(struct work_struct *work);
- int bnxt_hwrm_set_ring_coal(struct bnxt *bp, struct bnxt_napi *bnapi);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-index c683b5e96b1d..170d2fbbb91b 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-@@ -12,6 +12,7 @@
- #include <linux/if_vlan.h>
- #include <net/flow_dissector.h>
- #include <net/pkt_cls.h>
-+#include <net/switchdev.h>
- #include <net/tc_act/tc_gact.h>
- #include <net/tc_act/tc_skbedit.h>
- #include <net/tc_act/tc_mirred.h>
-@@ -45,7 +46,7 @@ static u16 bnxt_flow_get_dst_fid(struct bnxt *pf_bp, struct net_device *dev)
- 	struct bnxt *bp;
- 
- 	/* check if dev belongs to the same switch */
--	if (!switchdev_port_same_parent_id(pf_bp->dev, dev)) {
-+	if (!netdev_port_same_parent_id(pf_bp->dev, dev)) {
- 		netdev_info(pf_bp->dev, "dev(ifindex=%d) not on same switch",
- 			    dev->ifindex);
- 		return BNXT_FID_INVALID;
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-index 9a25c05aa571..2bdd2da9aac7 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-@@ -237,21 +237,17 @@ static void bnxt_vf_rep_get_drvinfo(struct net_device *dev,
- 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
+ static int ocelot_port_attr_stp_state_set(struct ocelot_port *ocelot_port,
+ 					  struct switchdev_trans *trans,
+ 					  u8 state)
+@@ -1331,7 +1325,6 @@ static int ocelot_port_obj_del(struct net_device *dev,
  }
  
--static int bnxt_vf_rep_port_attr_get(struct net_device *dev,
--				     struct switchdev_attr *attr)
-+static int bnxt_vf_rep_get_port_parent_id(struct net_device *dev,
-+					  struct netdev_phys_item_id *ppid)
- {
- 	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
- 
- 	/* as only PORT_PARENT_ID is supported currently use common code
- 	 * between PF and VF-rep for now.
- 	 */
--	return bnxt_port_attr_get(vf_rep->bp, attr);
-+	return bnxt_get_port_parent_id(vf_rep->bp->dev, ppid);
- }
- 
--static const struct switchdev_ops bnxt_vf_rep_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_vf_rep_port_attr_get
--};
--
- static const struct ethtool_ops bnxt_vf_rep_ethtool_ops = {
- 	.get_drvinfo		= bnxt_vf_rep_get_drvinfo
- };
-@@ -262,6 +258,7 @@ static const struct net_device_ops bnxt_vf_rep_netdev_ops = {
- 	.ndo_start_xmit		= bnxt_vf_rep_xmit,
- 	.ndo_get_stats64	= bnxt_vf_rep_get_stats64,
- 	.ndo_setup_tc		= bnxt_vf_rep_setup_tc,
-+	.ndo_get_port_parent_id	= bnxt_vf_rep_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_vf_rep_get_phys_port_name
+ static const struct switchdev_ops ocelot_port_switchdev_ops = {
+-	.switchdev_port_attr_get	= ocelot_port_attr_get,
+ 	.switchdev_port_attr_set	= ocelot_port_attr_set,
  };
  
-@@ -392,7 +389,6 @@ static void bnxt_vf_rep_netdev_init(struct bnxt *bp, struct bnxt_vf_rep *vf_rep,
- 
- 	dev->netdev_ops = &bnxt_vf_rep_netdev_ops;
- 	dev->ethtool_ops = &bnxt_vf_rep_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_vf_rep_switchdev_ops);
- 	/* Just inherit all the featues of the parent PF as the VF-R
- 	 * uses the RX/TX rings of the parent PF
- 	 */
 -- 
 2.17.1
