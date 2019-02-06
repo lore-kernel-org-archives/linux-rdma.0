@@ -1,63 +1,48 @@
-From: Raju Rangoju <rajur@chelsio.com>
-Subject: [PATCH 3/3] iw_cxgb4: fix srqidx leak during connection abort
-Date: Wed,  6 Feb 2019 22:54:44 +0530
-Message-ID: <20190206172444.21997-4-rajur@chelsio.com>
-References: <20190206172444.21997-1-rajur@chelsio.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190206172444.21997-1-rajur@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: jgg@mellanox.com, davem@davemloft.net, linux-rdma@vger.kernel.org
-Cc: netdev@vger.kernel.org, swise@opengridcomputing.com, rajur@chelsio.com
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Wed, 6 Feb 2019 10:31:14 -0700
+Message-ID: <20190206173114.GB12227@ziepe.ca>
+References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
+ <20190206095000.GA12006@quack2.suse.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190206095000.GA12006@quack2.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jan Kara <jack@suse.cz>
+Cc: Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When an application aborts the connection by moving QP from RTS to
-ERROR, then iw_cxgb4's modify_rc_qp() RTS->ERROR logic sets the
-*srqidxp to 0 via t4_set_wq_in_error(&qhp->wq, 0), and aborts the
-connection by calling c4iw_ep_disconnect().
+On Wed, Feb 06, 2019 at 10:50:00AM +0100, Jan Kara wrote:
 
-c4iw_ep_disconnect() does the following:
- 1. sends up a close_complete_upcall(ep, -ECONNRESET) to libcxgb4.
- 2. sends abort request CPL to hw.
+> MM/FS asks for lease to be revoked. The revoke handler agrees with the
+> other side on cancelling RDMA or whatever and drops the page pins. 
 
-But, since the close_complete_upcall() is sent before sending the
-ABORT_REQ to hw, libcxgb4 would fail to release the srqidx if the
-connection holds one. Because, the srqidx is passed up to libcxgb4
-only after corresponding ABORT_RPL is processed by kernel in
-abort_rpl().
+This takes a trip through userspace since the communication protocol
+is entirely managed in userspace.
 
-This patch handle the corner-case by moving the call to
-close_complete_upcall() from c4iw_ep_disconnect() to abort_rpl().
-So that libcxgb4 is notified about the -ECONNRESET only after
-abort_rpl(), and libcxgb4 can relinquish the srqidx properly.
+Most existing communication protocols don't have a 'cancel operation'.
 
-Signed-off-by: Raju Rangoju <rajur@chelsio.com>
----
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> Now I understand there can be HW / communication failures etc. in
+> which case the driver could either block waiting or make sure future
+> IO will fail and drop the pins. 
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 7aca5d73c19e..f45044d8de4d 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1941,8 +1941,10 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	mutex_unlock(&ep->com.mutex);
- 
--	if (release)
-+	if (release) {
-+		close_complete_upcall(ep, -ECONNRESET);
- 		release_ep_resources(ep);
-+	}
- 	c4iw_put_ep(&ep->com);
- 	return 0;
- }
-@@ -3675,7 +3677,6 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 	if (close) {
- 		if (abrupt) {
- 			set_bit(EP_DISC_ABORT, &ep->com.history);
--			close_complete_upcall(ep, -ECONNRESET);
- 			ret = send_abort(ep);
- 		} else {
- 			set_bit(EP_DISC_CLOSE, &ep->com.history);
--- 
-2.13.0
+We can always rip things away from the userspace.. However..
+
+> But under normal conditions there should be a way to revoke the
+> access. And if the HW/driver cannot support this, then don't let it
+> anywhere near DAX filesystem.
+
+I think the general observation is that people who want to do DAX &
+RDMA want it to actually work, without data corruption, random process
+kills or random communication failures.
+
+Really, few users would actually want to run in a system where revoke
+can be triggered.
+
+So.. how can the FS/MM side provide a guarantee to the user that
+revoke won't happen under a certain system design?
+
+Jason
