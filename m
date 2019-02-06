@@ -1,99 +1,88 @@
-From: Doug Ledford <dledford@redhat.com>
+From: Dave Chinner <david@fromorbit.com>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Wed, 06 Feb 2019 16:12:06 -0500
-Message-ID: <b3a0702baa3477748c3c243fa9d1c94f7b1954d6.camel@redhat.com>
+Date: Thu, 7 Feb 2019 08:31:47 +1100
+Message-ID: <20190206213147.GA6173@dastard>
 References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
-         <20190206095000.GA12006@quack2.suse.cz> <20190206173114.GB12227@ziepe.ca>
-         <20190206175233.GN21860@bombadil.infradead.org>
-         <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
-         <20190206183503.GO21860@bombadil.infradead.org>
-         <20190206185233.GE12227@ziepe.ca>
-         <CAPcyv4j4gDNHu836N4RfgQsE+eZU9Wt0N9Y09KQ43zV+4mK-eg@mail.gmail.com>
-         <671e7ebc8e125d1ebd71de9943868183e27f052b.camel@redhat.com>
-         <CAPcyv4id2rzJVUZw98PfJ-k05BvD-opwj0XhOWPKZQicmhXJ=g@mail.gmail.com>
+ <20190205180120.GC21617@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-Wt2EcFKp3kDyEr43gL+b"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4id2rzJVUZw98PfJ-k05BvD-opwj0XhOWPKZQicmhXJ=g@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190205180120.GC21617@iweiny-DESK2.sc.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dave Chinner <david@fromorbit.com>, Michal Hocko <mhocko@kernel.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jan Kara <jack@suse.cz>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Doug Ledford <dledford@redhat.com>, Michal Hocko <mhocko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Feb 05, 2019 at 10:01:20AM -0800, Ira Weiny wrote:
+> I had an old invalid address for Jason Gunthorpe in my address book...  
+> 
+> Correcting his email in the thread.
 
---=-Wt2EcFKp3kDyEr43gL+b
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Probably should have cc'd linux-fsdevel, too, but it's too late for
+that now....
 
-On Wed, 2019-02-06 at 13:04 -0800, Dan Williams wrote:
-> On Wed, Feb 6, 2019 at 12:14 PM Doug Ledford <dledford@redhat.com> wrote:
-> > On Wed, 2019-02-06 at 11:45 -0800, Dan Williams wrote:
-> > > On Wed, Feb 6, 2019 at 10:52 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> > > > On Wed, Feb 06, 2019 at 10:35:04AM -0800, Matthew Wilcox wrote:
-> > > >=20
-> > > > > > Admittedly, I'm coming in late to this conversation, but did I =
-miss the
-> > > > > > portion where that alternative was ruled out?
-> > > > >=20
-> > > > > That's my preferred option too, but the preponderance of opinion =
-leans
-> > > > > towards "We can't give people a way to make files un-truncatable"=
-.
-> > > >=20
-> > > > I haven't heard an explanation why blocking ftruncate is worse than
-> > > > giving people a way to break RDMA using process by calling ftruncat=
-e??
-> > > >=20
-> > > > Isn't it exactly the same argument the other way?
-> > >=20
-> > > If the
-> > > RDMA application doesn't want it to happen, arrange for it by
-> > > permissions or other coordination to prevent truncation,
-> >=20
-> > I just argued the *exact* same thing, except from the other side: if yo=
-u
-> > want a guaranteed ability to truncate, then arrange the perms so the
-> > RDMA or DAX capable things can't use the file.
->=20
-> That doesn't make sense. All we have to work with is rwx bits. It's
-> possible to prevents writes / truncates. There's no permission bit for
-> mmap, O_DIRECT and RDMA mappings, hence leases.
+> On Tue, Feb 05, 2019 at 09:50:59AM -0800, 'Ira Weiny' wrote:
+> > 
+> > The problem: Once we have pages marked as GUP-pinned how should various
+> > subsystems work with those markings.
+> > 
+> > The current work for John Hubbards proposed solutions (part 1 and 2) is
+> > progressing.[1]  But the final part (3) of his solution is also going to take
+> > some work.
+> > 
+> > In Johns presentation he lists 3 alternatives for gup-pinned pages:
+> > 
+> > 1) Hold off try_to_unmap
+> > 2) Allow writeback while pinned (via bounce buffers)
+> > 	[Note this will not work for DAX]
+> > 3) Use a "revocable reservation" (or lease) on those pages
+> > 4) Pin the blocks as busy in the FS allocator
+> > 
+> > The problem with lease's on pages used by RDMA is that the references to
+> > these pages is not local to the machine.  Once the user has been given access
+> > to the page they, through the use of a remote tokens, give a reference to that
+> > page to remote nodes.  This is the core essence of RDMA, and like it or not,
+> > something which is increasingly used by major Linux users.
+> > 
+> > Therefore we need to discuss the extent by which leases are appropriate and
+> > what happens should a lease be revoked which a user does not respond to.
+> > 
+> > As John Hubbard put it:
+> > 
+> > "Other filesystem features that need to replace the page with a new one can
+> > be inhibited for pages that are GUP-pinned. This will, however, alter and
+> > limit some of those filesystem features. The only fix for that would be to
+> > require GUP users monitor and respond to CPU page table updates. Subsystems
+> > such as ODP and HMM do this, for example. This aspect of the problem is
+> > still under discussion."
+> > 
+> > 	-- John Hubbard[2]
+> > 
+> > The following people have been involved in previous conversations and would be key to
+> > the face to face discussion.
+> > 
+> > John Hubbard
+> > Jan Kara
+> > Dave Chinner
 
-There's ownership.  What you can't open, you can't mmap or O_DIRECT or
-whatever...
+Just FYI, I won't be at LSFMM.
 
-Regardless though, this is mostly moot as Dave's email makes it clear
-the underlying issue that is the problem is not ftruncate, but other
-things.
-> >=20
+Puerto Rico is about as physically far away from me as you can get
+on this planet. There's 40 hours in transit from airport to airport,
+and that doesn't include the 5 hours of travel the day before (and
+hence overnight stay) to be able to get to the first airport in time
+for the first flight. I'm looking at a transit time - if all goes
+well - of over 60 hours just to get to the conference.
 
---=20
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+And it's looks like it will be just as bad on the way back.
 
---=-Wt2EcFKp3kDyEr43gL+b
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+6 days travel for a 2 day conference makes no sense at all.
 
------BEGIN PGP SIGNATURE-----
+Cheers,
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlxbTaYACgkQuCajMw5X
-L91UVRAAxQypVAaB7i52h2wDJpx5+mYhH6IiQWrtqd8xa0l2UZ2VHrRkdsn4wzGt
-BQFhIJZKPh3b7yzsYKzhe9HicMCXRIXPKw/KmgJLDcDmi1hU1QCMHKohniWUbJ6G
-g0IfJrLoPmMhNKn0Cm7J4s5jsP2QW6/CUn6/CGOQhWG1GtcuyFL6fCl5Bn0FFn9s
-cfKDGgJ9Wy4wiguackEO+W6XUN9YFz9P4K9HMqVwXfHXXiZR2Z9H6xHQOZkafylA
-KhjP2h8o0Jip4HDKOMJoP9AbmFFXK3ualefeiDoginb6D7tVs0/sbyImBTfTLzbt
-7GBSNa/9Ue8qi7ZU6/ppjQILfn0mbnxV0JRV/nBOXfLeZeO1mbD2EDuPSOL+kXX4
-Z4uvFWA7UxIkBTh4lwQY8g9uan3578jtdF4SNe//GBAA+pPTV9oXzzbTX+UXYE/U
-MmmQjk2S+ax7PINhTZhBbkGWqVLG95Pb3UtmxPSG1uFlxdkv/DSJqkm9qeNuHZu5
-Tf1Zxl648P1g7Jk6c+1hlqpe/Rt7vsjU/1gQKYMyR4ViBrvlyiwkEokrqHdN2wnK
-YaJ8HcFQazJK8BwNFYmbMgWpvBN107gSh3yd3jnRm0PyxcWXNW+OfQ4X6xrgaLTQ
-m6lMl9vg0O/rHaf7P53MHmweNKEOLTcH7jp1/BQ1AM5zHMN5QOA=
-=Ct0f
------END PGP SIGNATURE-----
-
---=-Wt2EcFKp3kDyEr43gL+b--
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
