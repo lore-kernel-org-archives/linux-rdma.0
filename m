@@ -1,143 +1,263 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next v4 04/12] net/mlx5e: Implement ndo_get_port_parent_id()
-Date: Wed,  6 Feb 2019 09:45:38 -0800
-Message-ID: <20190206174546.23597-5-f.fainelli@gmail.com>
+Subject: [PATCH net-next v4 01/12] net: Introduce ndo_get_port_parent_id()
+Date: Wed,  6 Feb 2019 09:45:35 -0800
+Message-ID: <20190206174546.23597-2-f.fainelli@gmail.com>
 References: <20190206174546.23597-1-f.fainelli@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 In-Reply-To: <20190206174546.23597-1-f.fainelli@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: netdev@vger.kernel.org
-Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
+Cc: "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, open list <linux-kernel@vger.kernel.org>, Ido Schimmel <idosch@mellanox.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-mlx5e only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
-great candidate to be converted to use the ndo_get_port_parent_id() NDO
-instead of implementing switchdev_port_attr_get().
+In preparation for getting rid of switchdev_ops, create a dedicated NDO
+operation for getting the port's parent identifier. There are
+essentially two classes of drivers that need to implement getting the
+port's parent ID which are VF/PF drivers with a built-in switch, and
+pure switchdev drivers such as mlxsw, ocelot, dsa etc.
 
-Since mlx5e makes use of switchdev_port_parent_id() convert it to use
-netdev_port_same_parent_id().
+We introduce a helper function: dev_get_port_parent_id() which supports
+recursion into the lower devices to obtain the first port's parent ID.
+
+Convert the bridge, core and ipv4 multicast routing code to check for
+such ndo_get_port_parent_id() and call the helper function when valid
+before falling back to switchdev_port_attr_get(). This will allow us to
+convert all relevant drivers in one go instead of having to implement
+both switchdev_port_attr_get() and ndo_get_port_parent_id() operations,
+then get rid of switchdev_port_attr_get().
 
 Acked-by: Jiri Pirko <jiri@mellanox.com>
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- .../ethernet/mellanox/mlx5/core/en/tc_tun.c   |  2 +-
- .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 +++++++------------
- .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  5 ++-
- 3 files changed, 14 insertions(+), 24 deletions(-)
+ include/linux/netdevice.h |  9 +++++++
+ net/bridge/br_switchdev.c |  9 +++++--
+ net/core/dev.c            | 57 +++++++++++++++++++++++++++++++++++++++
+ net/core/net-sysfs.c      |  7 ++++-
+ net/core/rtnetlink.c      |  6 ++++-
+ net/ipv4/ipmr.c           |  8 +++++-
+ 6 files changed, 91 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-index 046948ead152..19dc4a963b90 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
-@@ -25,7 +25,7 @@ static int get_route_and_out_devs(struct mlx5e_priv *priv,
- 	/* if the egress device isn't on the same HW e-switch or
- 	 * it's a LAG device, use the uplink
- 	 */
--	if (!switchdev_port_same_parent_id(priv->netdev, dev) ||
-+	if (!netdev_port_same_parent_id(priv->netdev, dev) ||
- 	    dst_is_lag_dev) {
- 		*route_dev = uplink_dev;
- 		*out_dev = *route_dev;
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 5d2e0c2f6624..0b1988b330f3 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -381,7 +381,8 @@ static const struct ethtool_ops mlx5e_uplink_rep_ethtool_ops = {
- 	.set_pauseparam    = mlx5e_uplink_rep_set_pauseparam,
- };
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index ba57d0ba425e..1d95e634f3fe 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1188,6 +1188,10 @@ struct dev_ifalias {
+  *	not implement this, it is assumed that the hw is not able to have
+  *	multiple net devices on single physical port.
+  *
++ * int (*ndo_get_port_parent_id)(struct net_device *dev,
++ *				 struct netdev_phys_item_id *ppid)
++ *	Called to get the parent ID of the physical port of this device.
++ *
+  * void (*ndo_udp_tunnel_add)(struct net_device *dev,
+  *			      struct udp_tunnel_info *ti);
+  *	Called by UDP tunnel to notify a driver about the UDP port and socket
+@@ -1412,6 +1416,8 @@ struct net_device_ops {
+ 						      bool new_carrier);
+ 	int			(*ndo_get_phys_port_id)(struct net_device *dev,
+ 							struct netdev_phys_item_id *ppid);
++	int			(*ndo_get_port_parent_id)(struct net_device *dev,
++							  struct netdev_phys_item_id *ppid);
+ 	int			(*ndo_get_phys_port_name)(struct net_device *dev,
+ 							  char *name, size_t len);
+ 	void			(*ndo_udp_tunnel_add)(struct net_device *dev,
+@@ -3651,6 +3657,9 @@ int dev_get_phys_port_id(struct net_device *dev,
+ 			 struct netdev_phys_item_id *ppid);
+ int dev_get_phys_port_name(struct net_device *dev,
+ 			   char *name, size_t len);
++int dev_get_port_parent_id(struct net_device *dev,
++			   struct netdev_phys_item_id *ppid, bool recurse);
++bool netdev_port_same_parent_id(struct net_device *a, struct net_device *b);
+ int dev_change_proto_down(struct net_device *dev, bool proto_down);
+ struct sk_buff *validate_xmit_skb_list(struct sk_buff *skb, struct net_device *dev, bool *again);
+ struct sk_buff *dev_hard_start_xmit(struct sk_buff *skb, struct net_device *dev,
+diff --git a/net/bridge/br_switchdev.c b/net/bridge/br_switchdev.c
+index 4d2b9eb7604a..06b0ae44585f 100644
+--- a/net/bridge/br_switchdev.c
++++ b/net/bridge/br_switchdev.c
+@@ -14,7 +14,8 @@ static int br_switchdev_mark_get(struct net_bridge *br, struct net_device *dev)
  
--static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
-+static int mlx5e_rep_get_port_parent_id(struct net_device *dev,
-+					struct netdev_phys_item_id *ppid)
+ 	/* dev is yet to be added to the port list. */
+ 	list_for_each_entry(p, &br->port_list, list) {
+-		if (switchdev_port_same_parent_id(dev, p->dev))
++		if (netdev_port_same_parent_id(dev, p->dev) ||
++		    switchdev_port_same_parent_id(dev, p->dev))
+ 			return p->offload_fwd_mark;
+ 	}
+ 
+@@ -23,6 +24,7 @@ static int br_switchdev_mark_get(struct net_bridge *br, struct net_device *dev)
+ 
+ int nbp_switchdev_mark_set(struct net_bridge_port *p)
  {
- 	struct mlx5e_priv *priv = netdev_priv(dev);
- 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
-@@ -398,20 +399,14 @@ static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
- 		uplink_priv = netdev_priv(uplink_dev);
- 	}
++	const struct net_device_ops *ops = p->dev->netdev_ops;
+ 	struct switchdev_attr attr = {
+ 		.orig_dev = p->dev,
+ 		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
+@@ -31,7 +33,10 @@ int nbp_switchdev_mark_set(struct net_bridge_port *p)
  
--	switch (attr->id) {
--	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = ETH_ALEN;
--		if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
--			ether_addr_copy(attr->u.ppid.id, uplink_upper->dev_addr);
--		} else {
--			struct mlx5e_rep_priv *rpriv = priv->ppriv;
--			struct mlx5_eswitch_rep *rep = rpriv->rep;
-+	ppid->id_len = ETH_ALEN;
-+	if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
-+		ether_addr_copy(ppid->id, uplink_upper->dev_addr);
-+	} else {
-+		struct mlx5e_rep_priv *rpriv = priv->ppriv;
-+		struct mlx5_eswitch_rep *rep = rpriv->rep;
+ 	ASSERT_RTNL();
  
--			ether_addr_copy(attr->u.ppid.id, rep->hw_id);
--		}
--		break;
--	default:
--		return -EOPNOTSUPP;
-+		ether_addr_copy(ppid->id, rep->hw_id);
- 	}
- 
- 	return 0;
-@@ -1284,10 +1279,6 @@ static int mlx5e_uplink_rep_set_vf_vlan(struct net_device *dev, int vf, u16 vlan
- 	return 0;
+-	err = switchdev_port_attr_get(p->dev, &attr);
++	if (ops->ndo_get_port_parent_id)
++		err = dev_get_port_parent_id(p->dev, &attr.u.ppid, true);
++	else
++		err = switchdev_port_attr_get(p->dev, &attr);
+ 	if (err) {
+ 		if (err == -EOPNOTSUPP)
+ 			return 0;
+diff --git a/net/core/dev.c b/net/core/dev.c
+index bfa4be42afff..8c6d5cf8a308 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -7877,6 +7877,63 @@ int dev_get_phys_port_name(struct net_device *dev,
  }
+ EXPORT_SYMBOL(dev_get_phys_port_name);
  
--static const struct switchdev_ops mlx5e_rep_switchdev_ops = {
--	.switchdev_port_attr_get	= mlx5e_attr_get,
--};
--
- static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
- 	.ndo_open                = mlx5e_vf_rep_open,
- 	.ndo_stop                = mlx5e_vf_rep_close,
-@@ -1298,6 +1289,7 @@ static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
- 	.ndo_has_offload_stats	 = mlx5e_rep_has_offload_stats,
- 	.ndo_get_offload_stats	 = mlx5e_rep_get_offload_stats,
- 	.ndo_change_mtu          = mlx5e_vf_rep_change_mtu,
-+	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
- };
++/**
++ *	dev_get_port_parent_id - Get the device's port parent identifier
++ *	@dev: network device
++ *	@ppid: pointer to a storage for the port's parent identifier
++ *	@recurse: allow/disallow recursion to lower devices
++ *
++ *	Get the devices's port parent identifier
++ */
++int dev_get_port_parent_id(struct net_device *dev,
++			   struct netdev_phys_item_id *ppid,
++			   bool recurse)
++{
++	const struct net_device_ops *ops = dev->netdev_ops;
++	struct netdev_phys_item_id first = { };
++	struct net_device *lower_dev;
++	struct list_head *iter;
++	int err = -EOPNOTSUPP;
++
++	if (ops->ndo_get_port_parent_id)
++		return ops->ndo_get_port_parent_id(dev, ppid);
++
++	if (!recurse)
++		return err;
++
++	netdev_for_each_lower_dev(dev, lower_dev, iter) {
++		err = dev_get_port_parent_id(lower_dev, ppid, recurse);
++		if (err)
++			break;
++		if (!first.id_len)
++			first = *ppid;
++		else if (memcmp(&first, ppid, sizeof(*ppid)))
++			return -ENODATA;
++	}
++
++	return err;
++}
++EXPORT_SYMBOL(dev_get_port_parent_id);
++
++/**
++ *	netdev_port_same_parent_id - Indicate if two network devices have
++ *	the same port parent identifier
++ *	@a: first network device
++ *	@b: second network device
++ */
++bool netdev_port_same_parent_id(struct net_device *a, struct net_device *b)
++{
++	struct netdev_phys_item_id a_id = { };
++	struct netdev_phys_item_id b_id = { };
++
++	if (dev_get_port_parent_id(a, &a_id, true) ||
++	    dev_get_port_parent_id(b, &b_id, true))
++		return false;
++
++	return netdev_phys_item_id_same(&a_id, &b_id);
++}
++EXPORT_SYMBOL(netdev_port_same_parent_id);
++
+ /**
+  *	dev_change_proto_down - update protocol port state information
+  *	@dev: device
+diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
+index ff9fd2bb4ce4..4eace9f1dcf9 100644
+--- a/net/core/net-sysfs.c
++++ b/net/core/net-sysfs.c
+@@ -495,6 +495,7 @@ static ssize_t phys_switch_id_show(struct device *dev,
+ 				   struct device_attribute *attr, char *buf)
+ {
+ 	struct net_device *netdev = to_net_dev(dev);
++	const struct net_device_ops *ops = netdev->netdev_ops;
+ 	ssize_t ret = -EINVAL;
  
- static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
-@@ -1319,6 +1311,7 @@ static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
- 	.ndo_get_vf_config       = mlx5e_get_vf_config,
- 	.ndo_get_vf_stats        = mlx5e_get_vf_stats,
- 	.ndo_set_vf_vlan         = mlx5e_uplink_rep_set_vf_vlan,
-+	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
- };
+ 	if (!rtnl_trylock())
+@@ -507,7 +508,11 @@ static ssize_t phys_switch_id_show(struct device *dev,
+ 			.flags = SWITCHDEV_F_NO_RECURSE,
+ 		};
  
- bool mlx5e_eswitch_rep(struct net_device *netdev)
-@@ -1393,8 +1386,6 @@ static void mlx5e_build_rep_netdev(struct net_device *netdev)
- 	netdev->watchdog_timeo    = 15 * HZ;
+-		ret = switchdev_port_attr_get(netdev, &attr);
++		if (ops->ndo_get_port_parent_id)
++			ret = dev_get_port_parent_id(netdev, &attr.u.ppid,
++						     false);
++		else
++			ret = switchdev_port_attr_get(netdev, &attr);
+ 		if (!ret)
+ 			ret = sprintf(buf, "%*phN\n", attr.u.ppid.id_len,
+ 				      attr.u.ppid.id);
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index f5a98082ac7a..90dd02c1f561 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -1146,6 +1146,7 @@ static int rtnl_phys_port_name_fill(struct sk_buff *skb, struct net_device *dev)
  
+ static int rtnl_phys_switch_id_fill(struct sk_buff *skb, struct net_device *dev)
+ {
++	const struct net_device_ops *ops = dev->netdev_ops;
+ 	int err;
+ 	struct switchdev_attr attr = {
+ 		.orig_dev = dev,
+@@ -1153,7 +1154,10 @@ static int rtnl_phys_switch_id_fill(struct sk_buff *skb, struct net_device *dev)
+ 		.flags = SWITCHDEV_F_NO_RECURSE,
+ 	};
  
--	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
--
- 	netdev->features	 |= NETIF_F_HW_TC | NETIF_F_NETNS_LOCAL;
- 	netdev->hw_features      |= NETIF_F_HW_TC;
+-	err = switchdev_port_attr_get(dev, &attr);
++	if (ops->ndo_get_port_parent_id)
++		err = dev_get_port_parent_id(dev, &attr.u.ppid, false);
++	else
++		err = switchdev_port_attr_get(dev, &attr);
+ 	if (err) {
+ 		if (err == -EOPNOTSUPP)
+ 			return 0;
+diff --git a/net/ipv4/ipmr.c b/net/ipv4/ipmr.c
+index fb99002c3d4e..c71bcc42d66d 100644
+--- a/net/ipv4/ipmr.c
++++ b/net/ipv4/ipmr.c
+@@ -837,6 +837,7 @@ static void ipmr_update_thresholds(struct mr_table *mrt, struct mr_mfc *cache,
+ static int vif_add(struct net *net, struct mr_table *mrt,
+ 		   struct vifctl *vifc, int mrtsock)
+ {
++	const struct net_device_ops *ops;
+ 	int vifi = vifc->vifc_vifi;
+ 	struct switchdev_attr attr = {
+ 		.id = SWITCHDEV_ATTR_ID_PORT_PARENT_ID,
+@@ -920,7 +921,12 @@ static int vif_add(struct net *net, struct mr_table *mrt,
+ 			(VIFF_TUNNEL | VIFF_REGISTER));
  
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-index 74159d39dd66..098b28feba0c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
-@@ -38,7 +38,6 @@
- #include <linux/mlx5/fs.h>
- #include <linux/mlx5/device.h>
- #include <linux/rhashtable.h>
--#include <net/switchdev.h>
- #include <net/tc_act/tc_mirred.h>
- #include <net/tc_act/tc_vlan.h>
- #include <net/tc_act/tc_tunnel_key.h>
-@@ -2569,8 +2568,8 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
- 
- 			action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST |
- 				  MLX5_FLOW_CONTEXT_ACTION_COUNT;
--			if (switchdev_port_same_parent_id(priv->netdev,
--							  out_dev) ||
-+			if (netdev_port_same_parent_id(priv->netdev,
-+						       out_dev) ||
- 			    is_merged_eswitch_dev(priv, out_dev)) {
- 				struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
- 				struct net_device *uplink_dev = mlx5_eswitch_uplink_get_proto_dev(esw, REP_ETH);
+ 	attr.orig_dev = dev;
+-	if (!switchdev_port_attr_get(dev, &attr)) {
++	ops = dev->netdev_ops;
++	if (ops->ndo_get_port_parent_id &&
++	    !dev_get_port_parent_id(dev, &attr.u.ppid, true)) {
++		memcpy(v->dev_parent_id.id, attr.u.ppid.id, attr.u.ppid.id_len);
++		v->dev_parent_id.id_len = attr.u.ppid.id_len;
++	} else if (!switchdev_port_attr_get(dev, &attr)) {
+ 		memcpy(v->dev_parent_id.id, attr.u.ppid.id, attr.u.ppid.id_len);
+ 		v->dev_parent_id.id_len = attr.u.ppid.id_len;
+ 	} else {
 -- 
 2.17.1
