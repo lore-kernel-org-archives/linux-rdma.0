@@ -1,39 +1,25 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH net-next v3 05/12] mlxsw: Implement
+Subject: Re: [PATCH net-next v3 06/12] mscc: ocelot: Implement
  ndo_get_port_parent_id()
-Date: Wed, 6 Feb 2019 14:14:38 +0100
-Message-ID: <20190206131438.GF2189@nanopsycho>
+Date: Wed, 6 Feb 2019 14:16:19 +0100
+Message-ID: <20190206131619.GG2189@nanopsycho>
 References: <20190205235326.14600-1-f.fainelli@gmail.com>
- <20190205235326.14600-6-f.fainelli@gmail.com>
+ <20190205235326.14600-7-f.fainelli@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190205235326.14600-6-f.fainelli@gmail.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20190205235326.14600-7-f.fainelli@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Fainelli <f.fainelli@gmail.com>
 Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Wed, Feb 06, 2019 at 12:53:19AM CET, f.fainelli@gmail.com wrote:
->mlxsw implements SWITCHDEV_ATTR_ID_PORT_PARENT_ID and we want to get rid
->of switchdev_ops eventually, ease that migration by implementing a
->ndo_get_port_parent_id() function which returns what
->switchdev_port_attr_get() would do.
+Wed, Feb 06, 2019 at 12:53:20AM CET, f.fainelli@gmail.com wrote:
+>Ocelot only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID as a valid
+>switchdev attribute getter, convert it to use ndo_get_port_parent_id()
+>and get rid of the switchdev_ops::switchdev_port_attr_get altogether.
 >
 >Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 
-[...]
-
->diff --git a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
->index 2d4f213e154d..3814ba8af517 100644
->--- a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
->+++ b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
-
-Please remove net/switchdev.h inclusion from this file, you don't need
-it any longer.
-
-Otherwise, looks fine.
 Acked-by: Jiri Pirko <jiri@mellanox.com>
-
-[...]
