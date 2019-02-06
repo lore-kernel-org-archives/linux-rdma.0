@@ -1,7 +1,7 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next v4 02/12] bnxt: Implement ndo_get_port_parent_id()
-Date: Wed,  6 Feb 2019 09:45:36 -0800
-Message-ID: <20190206174546.23597-3-f.fainelli@gmail.com>
+Subject: [PATCH net-next v4 04/12] net/mlx5e: Implement ndo_get_port_parent_id()
+Date: Wed,  6 Feb 2019 09:45:38 -0800
+Message-ID: <20190206174546.23597-5-f.fainelli@gmail.com>
 References: <20190206174546.23597-1-f.fainelli@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190206174546.23597-1-f.fainelli@gmail.com>
@@ -10,166 +10,134 @@ To: netdev@vger.kernel.org
 Cc: Florian Fainelli <f.fainelli@gmail.com>, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-BNXT only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
+mlx5e only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
 great candidate to be converted to use the ndo_get_port_parent_id() NDO
-instead of implementing switchdev_port_attr_get(). The conversion is
-straight forward here since the PF and VF code use the same getter.
+instead of implementing switchdev_port_attr_get().
 
-Since bnxt makes uses of switchdev_port_same_parent_id() convert it to
-use netdev_port_same_parent_id().
+Since mlx5e makes use of switchdev_port_parent_id() convert it to use
+netdev_port_same_parent_id().
 
 Acked-by: Jiri Pirko <jiri@mellanox.com>
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/broadcom/bnxt/bnxt.c     | 28 ++++++-------------
- drivers/net/ethernet/broadcom/bnxt/bnxt.h     |  4 +--
- drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c  |  2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c | 12 +++-----
- 4 files changed, 15 insertions(+), 31 deletions(-)
+ .../ethernet/mellanox/mlx5/core/en/tc_tun.c   |  2 +-
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  | 31 +++++++------------
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |  5 ++-
+ 3 files changed, 14 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 6a512871176b..1c2987c3d708 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -9981,8 +9981,11 @@ static int bnxt_get_phys_port_name(struct net_device *dev, char *buf,
- 	return 0;
- }
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+index 046948ead152..19dc4a963b90 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+@@ -25,7 +25,7 @@ static int get_route_and_out_devs(struct mlx5e_priv *priv,
+ 	/* if the egress device isn't on the same HW e-switch or
+ 	 * it's a LAG device, use the uplink
+ 	 */
+-	if (!switchdev_port_same_parent_id(priv->netdev, dev) ||
++	if (!netdev_port_same_parent_id(priv->netdev, dev) ||
+ 	    dst_is_lag_dev) {
+ 		*route_dev = uplink_dev;
+ 		*out_dev = *route_dev;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+index 5d2e0c2f6624..0b1988b330f3 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+@@ -381,7 +381,8 @@ static const struct ethtool_ops mlx5e_uplink_rep_ethtool_ops = {
+ 	.set_pauseparam    = mlx5e_uplink_rep_set_pauseparam,
+ };
  
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
-+int bnxt_get_port_parent_id(struct net_device *dev,
-+			    struct netdev_phys_item_id *ppid)
+-static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
++static int mlx5e_rep_get_port_parent_id(struct net_device *dev,
++					struct netdev_phys_item_id *ppid)
  {
-+	struct bnxt *bp = netdev_priv(dev);
-+
- 	if (bp->eswitch_mode != DEVLINK_ESWITCH_MODE_SWITCHDEV)
- 		return -EOPNOTSUPP;
- 
-@@ -9990,27 +9993,12 @@ int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr)
- 	if (!BNXT_PF(bp))
- 		return -EOPNOTSUPP;
+ 	struct mlx5e_priv *priv = netdev_priv(dev);
+ 	struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+@@ -398,20 +399,14 @@ static int mlx5e_attr_get(struct net_device *dev, struct switchdev_attr *attr)
+ 		uplink_priv = netdev_priv(uplink_dev);
+ 	}
  
 -	switch (attr->id) {
 -	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = sizeof(bp->switch_id);
--		memcpy(attr->u.ppid.id, bp->switch_id, attr->u.ppid.id_len);
+-		attr->u.ppid.id_len = ETH_ALEN;
+-		if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
+-			ether_addr_copy(attr->u.ppid.id, uplink_upper->dev_addr);
+-		} else {
+-			struct mlx5e_rep_priv *rpriv = priv->ppriv;
+-			struct mlx5_eswitch_rep *rep = rpriv->rep;
++	ppid->id_len = ETH_ALEN;
++	if (uplink_upper && mlx5_lag_is_sriov(uplink_priv->mdev)) {
++		ether_addr_copy(ppid->id, uplink_upper->dev_addr);
++	} else {
++		struct mlx5e_rep_priv *rpriv = priv->ppriv;
++		struct mlx5_eswitch_rep *rep = rpriv->rep;
+ 
+-			ether_addr_copy(attr->u.ppid.id, rep->hw_id);
+-		}
 -		break;
 -	default:
 -		return -EOPNOTSUPP;
--	}
--	return 0;
--}
-+	ppid->id_len = sizeof(bp->switch_id);
-+	memcpy(ppid->id, bp->switch_id, ppid->id_len);
++		ether_addr_copy(ppid->id, rep->hw_id);
+ 	}
  
--static int bnxt_swdev_port_attr_get(struct net_device *dev,
--				    struct switchdev_attr *attr)
--{
--	return bnxt_port_attr_get(netdev_priv(dev), attr);
-+	return 0;
+ 	return 0;
+@@ -1284,10 +1279,6 @@ static int mlx5e_uplink_rep_set_vf_vlan(struct net_device *dev, int vf, u16 vlan
+ 	return 0;
  }
  
--static const struct switchdev_ops bnxt_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_swdev_port_attr_get
+-static const struct switchdev_ops mlx5e_rep_switchdev_ops = {
+-	.switchdev_port_attr_get	= mlx5e_attr_get,
 -};
 -
- static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_open		= bnxt_open,
- 	.ndo_start_xmit		= bnxt_start_xmit,
-@@ -10042,6 +10030,7 @@ static const struct net_device_ops bnxt_netdev_ops = {
- 	.ndo_bpf		= bnxt_xdp,
- 	.ndo_bridge_getlink	= bnxt_bridge_getlink,
- 	.ndo_bridge_setlink	= bnxt_bridge_setlink,
-+	.ndo_get_port_parent_id	= bnxt_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_get_phys_port_name
+ static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
+ 	.ndo_open                = mlx5e_vf_rep_open,
+ 	.ndo_stop                = mlx5e_vf_rep_close,
+@@ -1298,6 +1289,7 @@ static const struct net_device_ops mlx5e_netdev_ops_vf_rep = {
+ 	.ndo_has_offload_stats	 = mlx5e_rep_has_offload_stats,
+ 	.ndo_get_offload_stats	 = mlx5e_rep_get_offload_stats,
+ 	.ndo_change_mtu          = mlx5e_vf_rep_change_mtu,
++	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
  };
  
-@@ -10400,7 +10389,6 @@ static int bnxt_init_one(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	dev->netdev_ops = &bnxt_netdev_ops;
- 	dev->watchdog_timeo = BNXT_TX_TIMEOUT;
- 	dev->ethtool_ops = &bnxt_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_switchdev_ops);
- 	pci_set_drvdata(pdev, dev);
+ static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
+@@ -1319,6 +1311,7 @@ static const struct net_device_ops mlx5e_netdev_ops_uplink_rep = {
+ 	.ndo_get_vf_config       = mlx5e_get_vf_config,
+ 	.ndo_get_vf_stats        = mlx5e_get_vf_stats,
+ 	.ndo_set_vf_vlan         = mlx5e_uplink_rep_set_vf_vlan,
++	.ndo_get_port_parent_id	 = mlx5e_rep_get_port_parent_id,
+ };
  
- 	rc = bnxt_alloc_hwrm_resources(bp);
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.h b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-index 5c886a700bcc..17554d4be651 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.h
-@@ -22,7 +22,6 @@
+ bool mlx5e_eswitch_rep(struct net_device *netdev)
+@@ -1393,8 +1386,6 @@ static void mlx5e_build_rep_netdev(struct net_device *netdev)
+ 	netdev->watchdog_timeo    = 15 * HZ;
+ 
+ 
+-	netdev->switchdev_ops = &mlx5e_rep_switchdev_ops;
+-
+ 	netdev->features	 |= NETIF_F_HW_TC | NETIF_F_NETNS_LOCAL;
+ 	netdev->hw_features      |= NETIF_F_HW_TC;
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+index 74159d39dd66..098b28feba0c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -38,7 +38,6 @@
+ #include <linux/mlx5/fs.h>
+ #include <linux/mlx5/device.h>
  #include <linux/rhashtable.h>
- #include <net/devlink.h>
- #include <net/dst_metadata.h>
 -#include <net/switchdev.h>
- #include <net/xdp.h>
- #include <linux/net_dim.h>
+ #include <net/tc_act/tc_mirred.h>
+ #include <net/tc_act/tc_vlan.h>
+ #include <net/tc_act/tc_tunnel_key.h>
+@@ -2569,8 +2568,8 @@ static int parse_tc_fdb_actions(struct mlx5e_priv *priv, struct tcf_exts *exts,
  
-@@ -1795,7 +1794,8 @@ int bnxt_check_rings(struct bnxt *bp, int tx, int rx, bool sh, int tcs,
- int bnxt_setup_mq_tc(struct net_device *dev, u8 tc);
- int bnxt_get_max_rings(struct bnxt *, int *, int *, bool);
- int bnxt_restore_pf_fw_resources(struct bnxt *bp);
--int bnxt_port_attr_get(struct bnxt *bp, struct switchdev_attr *attr);
-+int bnxt_get_port_parent_id(struct net_device *dev,
-+			    struct netdev_phys_item_id *ppid);
- void bnxt_dim_work(struct work_struct *work);
- int bnxt_hwrm_set_ring_coal(struct bnxt *bp, struct bnxt_napi *bnapi);
- 
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-index c683b5e96b1d..86950f70de1f 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_tc.c
-@@ -45,7 +45,7 @@ static u16 bnxt_flow_get_dst_fid(struct bnxt *pf_bp, struct net_device *dev)
- 	struct bnxt *bp;
- 
- 	/* check if dev belongs to the same switch */
--	if (!switchdev_port_same_parent_id(pf_bp->dev, dev)) {
-+	if (!netdev_port_same_parent_id(pf_bp->dev, dev)) {
- 		netdev_info(pf_bp->dev, "dev(ifindex=%d) not on same switch",
- 			    dev->ifindex);
- 		return BNXT_FID_INVALID;
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-index 9a25c05aa571..2bdd2da9aac7 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
-@@ -237,21 +237,17 @@ static void bnxt_vf_rep_get_drvinfo(struct net_device *dev,
- 	strlcpy(info->version, DRV_MODULE_VERSION, sizeof(info->version));
- }
- 
--static int bnxt_vf_rep_port_attr_get(struct net_device *dev,
--				     struct switchdev_attr *attr)
-+static int bnxt_vf_rep_get_port_parent_id(struct net_device *dev,
-+					  struct netdev_phys_item_id *ppid)
- {
- 	struct bnxt_vf_rep *vf_rep = netdev_priv(dev);
- 
- 	/* as only PORT_PARENT_ID is supported currently use common code
- 	 * between PF and VF-rep for now.
- 	 */
--	return bnxt_port_attr_get(vf_rep->bp, attr);
-+	return bnxt_get_port_parent_id(vf_rep->bp->dev, ppid);
- }
- 
--static const struct switchdev_ops bnxt_vf_rep_switchdev_ops = {
--	.switchdev_port_attr_get	= bnxt_vf_rep_port_attr_get
--};
--
- static const struct ethtool_ops bnxt_vf_rep_ethtool_ops = {
- 	.get_drvinfo		= bnxt_vf_rep_get_drvinfo
- };
-@@ -262,6 +258,7 @@ static const struct net_device_ops bnxt_vf_rep_netdev_ops = {
- 	.ndo_start_xmit		= bnxt_vf_rep_xmit,
- 	.ndo_get_stats64	= bnxt_vf_rep_get_stats64,
- 	.ndo_setup_tc		= bnxt_vf_rep_setup_tc,
-+	.ndo_get_port_parent_id	= bnxt_vf_rep_get_port_parent_id,
- 	.ndo_get_phys_port_name = bnxt_vf_rep_get_phys_port_name
- };
- 
-@@ -392,7 +389,6 @@ static void bnxt_vf_rep_netdev_init(struct bnxt *bp, struct bnxt_vf_rep *vf_rep,
- 
- 	dev->netdev_ops = &bnxt_vf_rep_netdev_ops;
- 	dev->ethtool_ops = &bnxt_vf_rep_ethtool_ops;
--	SWITCHDEV_SET_OPS(dev, &bnxt_vf_rep_switchdev_ops);
- 	/* Just inherit all the featues of the parent PF as the VF-R
- 	 * uses the RX/TX rings of the parent PF
- 	 */
+ 			action |= MLX5_FLOW_CONTEXT_ACTION_FWD_DEST |
+ 				  MLX5_FLOW_CONTEXT_ACTION_COUNT;
+-			if (switchdev_port_same_parent_id(priv->netdev,
+-							  out_dev) ||
++			if (netdev_port_same_parent_id(priv->netdev,
++						       out_dev) ||
+ 			    is_merged_eswitch_dev(priv, out_dev)) {
+ 				struct mlx5_eswitch *esw = priv->mdev->priv.eswitch;
+ 				struct net_device *uplink_dev = mlx5_eswitch_uplink_get_proto_dev(esw, REP_ETH);
 -- 
 2.17.1
