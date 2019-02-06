@@ -1,53 +1,134 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Wed, 6 Feb 2019 09:52:33 -0800
-Message-ID: <20190206175233.GN21860@bombadil.infradead.org>
-References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
- <20190206095000.GA12006@quack2.suse.cz>
- <20190206173114.GB12227@ziepe.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: [PATCH 3/6] drivers/IB,qib: optimize mmap_sem usage
+Date: Wed,  6 Feb 2019 09:59:17 -0800
+Message-ID: <20190206175920.31082-4-dave@stgolabs.net>
+References: <20190206175920.31082-1-dave@stgolabs.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190206173114.GB12227@ziepe.ca>
+In-Reply-To: <20190206175920.31082-1-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: jgg@ziepe.ca, akpm@linux-foundation.org
+Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, dennis.dalessandro@intel.com, mike.marciniszyn@intel.com, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 06, 2019 at 10:31:14AM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 06, 2019 at 10:50:00AM +0100, Jan Kara wrote:
-> 
-> > MM/FS asks for lease to be revoked. The revoke handler agrees with the
-> > other side on cancelling RDMA or whatever and drops the page pins. 
-> 
-> This takes a trip through userspace since the communication protocol
-> is entirely managed in userspace.
-> 
-> Most existing communication protocols don't have a 'cancel operation'.
-> 
-> > Now I understand there can be HW / communication failures etc. in
-> > which case the driver could either block waiting or make sure future
-> > IO will fail and drop the pins. 
-> 
-> We can always rip things away from the userspace.. However..
-> 
-> > But under normal conditions there should be a way to revoke the
-> > access. And if the HW/driver cannot support this, then don't let it
-> > anywhere near DAX filesystem.
-> 
-> I think the general observation is that people who want to do DAX &
-> RDMA want it to actually work, without data corruption, random process
-> kills or random communication failures.
-> 
-> Really, few users would actually want to run in a system where revoke
-> can be triggered.
-> 
-> So.. how can the FS/MM side provide a guarantee to the user that
-> revoke won't happen under a certain system design?
+The driver uses mmap_sem for both pinned_vm accounting and
+get_user_pages(). Because rdma drivers might want to use
+gup_longterm() in the future we still need some sort of
+mmap_sem serialization (as opposed to removing it entirely
+by using gup_fast()). Now that pinned_vm is atomic the
+writer lock can therefore be converted to reader.
 
-Most of the cases we want revoke for are things like truncate().
-Shouldn't happen with a sane system, but we're trying to avoid users
-doing awful things like being able to DMA to pages that are now part of
-a different file.
+This also fixes a bug that __qib_get_user_pages was not
+taking into account the current value of pinned_vm.
+
+Cc: dennis.dalessandro@intel.com
+Cc: mike.marciniszyn@intel.com
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+---
+ drivers/infiniband/hw/qib/qib_user_pages.c | 73 +++++++++++-------------------
+ 1 file changed, 27 insertions(+), 46 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+index c6c81022d313..ef8bcf366ddc 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -49,43 +49,6 @@ static void __qib_release_user_pages(struct page **p, size_t num_pages,
+ 	}
+ }
+ 
+-/*
+- * Call with current->mm->mmap_sem held.
+- */
+-static int __qib_get_user_pages(unsigned long start_page, size_t num_pages,
+-				struct page **p)
+-{
+-	unsigned long lock_limit;
+-	size_t got;
+-	int ret;
+-
+-	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+-
+-	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
+-		ret = -ENOMEM;
+-		goto bail;
+-	}
+-
+-	for (got = 0; got < num_pages; got += ret) {
+-		ret = get_user_pages_longterm(start_page + got * PAGE_SIZE,
+-					      num_pages - got,
+-					      FOLL_WRITE | FOLL_FORCE,
+-					      p + got, NULL);
+-		if (ret < 0)
+-			goto bail_release;
+-	}
+-
+-	atomic64_add(num_pages, &current->mm->pinned_vm);
+-
+-	ret = 0;
+-	goto bail;
+-
+-bail_release:
+-	__qib_release_user_pages(p, got, 0);
+-bail:
+-	return ret;
+-}
+-
+ /**
+  * qib_map_page - a safety wrapper around pci_map_page()
+  *
+@@ -137,26 +100,44 @@ int qib_map_page(struct pci_dev *hwdev, struct page *page, dma_addr_t *daddr)
+ int qib_get_user_pages(unsigned long start_page, size_t num_pages,
+ 		       struct page **p)
+ {
++	unsigned long locked, lock_limit;
++	size_t got;
+ 	int ret;
+ 
+-	down_write(&current->mm->mmap_sem);
++	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
++	locked = atomic64_add_return(num_pages, &current->mm->pinned_vm);
+ 
+-	ret = __qib_get_user_pages(start_page, num_pages, p);
++	if (num_pages > lock_limit && !capable(CAP_IPC_LOCK)) {
++		ret = -ENOMEM;
++		goto bail;
++	}
+ 
+-	up_write(&current->mm->mmap_sem);
++	down_read(&current->mm->mmap_sem);
++	for (got = 0; got < num_pages; got += ret) {
++		ret = get_user_pages_longterm(start_page + got * PAGE_SIZE,
++					      num_pages - got,
++					      FOLL_WRITE | FOLL_FORCE,
++					      p + got, NULL);
++		if (ret < 0) {
++			up_read(&current->mm->mmap_sem);
++			goto bail_release;
++		}
++	}
++	up_read(&current->mm->mmap_sem);
+ 
++	return 0;
++bail_release:
++	__qib_release_user_pages(p, got, 0);
++bail:
++	atomic64_sub(num_pages, &current->mm->pinned_vm);
+ 	return ret;
+ }
+ 
+ void qib_release_user_pages(struct page **p, size_t num_pages)
+ {
+-	if (current->mm) /* during close after signal, mm can be NULL */
+-		down_write(&current->mm->mmap_sem);
+-
+ 	__qib_release_user_pages(p, num_pages, 1);
+ 
+-	if (current->mm) {
++	/* during close after signal, mm can be NULL */
++	if (current->mm)
+ 		atomic64_sub(num_pages, &current->mm->pinned_vm);
+-		up_write(&current->mm->mmap_sem);
+-	}
+ }
+-- 
+2.16.4
