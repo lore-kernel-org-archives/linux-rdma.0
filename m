@@ -1,28 +1,39 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH net-next v3 04/12] net/mlx5e: Implement
+Subject: Re: [PATCH net-next v3 05/12] mlxsw: Implement
  ndo_get_port_parent_id()
-Date: Wed, 6 Feb 2019 14:12:00 +0100
-Message-ID: <20190206131200.GE2189@nanopsycho>
+Date: Wed, 6 Feb 2019 14:14:38 +0100
+Message-ID: <20190206131438.GF2189@nanopsycho>
 References: <20190205235326.14600-1-f.fainelli@gmail.com>
- <20190205235326.14600-5-f.fainelli@gmail.com>
+ <20190205235326.14600-6-f.fainelli@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190205235326.14600-5-f.fainelli@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20190205235326.14600-6-f.fainelli@gmail.com>
+Sender: netdev-owner@vger.kernel.org
 To: Florian Fainelli <f.fainelli@gmail.com>
 Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Wed, Feb 06, 2019 at 12:53:18AM CET, f.fainelli@gmail.com wrote:
->mlx5e only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
->great candidate to be converted to use the ndo_get_port_parent_id() NDO
->instead of implementing switchdev_port_attr_get().
->
->Since mlx5e makes use of switchdev_port_parent_id() convert it to use
->netdev_port_same_parent_id().
+Wed, Feb 06, 2019 at 12:53:19AM CET, f.fainelli@gmail.com wrote:
+>mlxsw implements SWITCHDEV_ATTR_ID_PORT_PARENT_ID and we want to get rid
+>of switchdev_ops eventually, ease that migration by implementing a
+>ndo_get_port_parent_id() function which returns what
+>switchdev_port_attr_get() would do.
 >
 >Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 
+[...]
+
+>diff --git a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+>index 2d4f213e154d..3814ba8af517 100644
+>--- a/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+>+++ b/drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+
+Please remove net/switchdev.h inclusion from this file, you don't need
+it any longer.
+
+Otherwise, looks fine.
 Acked-by: Jiri Pirko <jiri@mellanox.com>
+
+[...]
