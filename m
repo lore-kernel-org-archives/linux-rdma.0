@@ -1,117 +1,87 @@
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH 5/6] drivers/IB,usnic: reduce scope of mmap_sem
-Date: Wed,  6 Feb 2019 09:59:19 -0800
-Message-ID: <20190206175920.31082-6-dave@stgolabs.net>
+Subject: [PATCH 6/6] drivers/IB,core: reduce scope of mmap_sem
+Date: Wed,  6 Feb 2019 09:59:20 -0800
+Message-ID: <20190206175920.31082-7-dave@stgolabs.net>
 References: <20190206175920.31082-1-dave@stgolabs.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190206175920.31082-1-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
 To: jgg@ziepe.ca, akpm@linux-foundation.org
-Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, benve@cisco.com, neescoba@cisco.com, Davidlohr Bueso <dbueso@suse.de>
+Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, Davidlohr Bueso <dbueso@suse.de>
 List-Id: linux-rdma@vger.kernel.org
 
-usnic_uiom_get_pages() uses gup_longterm() so we cannot really
-get rid of mmap_sem altogether in the driver, but we can get
-rid of some complexity that mmap_sem brings with only pinned_vm.
-We can get rid of the wq altogether as we no longer need to
-defer work to unpin pages as the counter is now atomic. We
-also share the lock.
+ib_umem_get() uses gup_longterm() and relies on the lock to
+stabilze the vma_list, so we cannot really get rid of mmap_sem
+altogether, but now that the counter is atomic, we can get of
+some complexity that mmap_sem brings with only pinned_vm.
 
-Cc: benve@cisco.com
-Cc: neescoba@cisco.com
-Acked-by: Parvi Kaustubhi <pkaustub@cisco.com>
 Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 ---
- drivers/infiniband/hw/usnic/usnic_ib_main.c |  2 -
- drivers/infiniband/hw/usnic/usnic_uiom.c    | 58 +++--------------------------
- drivers/infiniband/hw/usnic/usnic_uiom.h    |  1 -
- 3 files changed, 6 insertions(+), 55 deletions(-)
+ drivers/infiniband/core/umem.c | 41 ++---------------------------------------
+ 1 file changed, 2 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/infiniband/hw/usnic/usnic_ib_main.c b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-index 3201dd1899c7..1d363b706314 100644
---- a/drivers/infiniband/hw/usnic/usnic_ib_main.c
-+++ b/drivers/infiniband/hw/usnic/usnic_ib_main.c
-@@ -691,7 +691,6 @@ static int __init usnic_ib_init(void)
- out_pci_unreg:
- 	pci_unregister_driver(&usnic_ib_pci_driver);
- out_umem_fini:
--	usnic_uiom_fini();
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 678abe1afcba..b69d3efa8712 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -165,15 +165,12 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
  
- 	return err;
- }
-@@ -704,7 +703,6 @@ static void __exit usnic_ib_destroy(void)
- 	unregister_inetaddr_notifier(&usnic_ib_inetaddr_notifier);
- 	unregister_netdevice_notifier(&usnic_ib_netdevice_notifier);
- 	pci_unregister_driver(&usnic_ib_pci_driver);
--	usnic_uiom_fini();
- }
- 
- MODULE_DESCRIPTION("Cisco VIC (usNIC) Verbs Driver");
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 854436a2b437..06862a6af185 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -47,8 +47,6 @@
- #include "usnic_uiom.h"
- #include "usnic_uiom_interval_tree.h"
- 
--static struct workqueue_struct *usnic_uiom_wq;
--
- #define USNIC_UIOM_PAGE_CHUNK						\
- 	((PAGE_SIZE - offsetof(struct usnic_uiom_chunk, page_list))	/\
- 	((void *) &((struct usnic_uiom_chunk *) 0)->page_list[1] -	\
-@@ -127,9 +125,9 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	npages = PAGE_ALIGN(size + (addr & ~PAGE_MASK)) >> PAGE_SHIFT;
- 
- 	uiomr->owning_mm = mm = current->mm;
--	down_write(&mm->mmap_sem);
-+	down_read(&mm->mmap_sem);
- 
--	locked = npages + atomic64_read(&current->mm->pinned_vm);
-+	locked = atomic64_add_return(npages, &current->mm->pinned_vm);
  	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
  
- 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
-@@ -184,14 +182,13 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
+-	down_write(&mm->mmap_sem);
+-	new_pinned = atomic64_read(&mm->pinned_vm) + npages;
++	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
+ 	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
+-		up_write(&mm->mmap_sem);
++		atomic64_sub(npages, &mm->pinned_vm);
+ 		ret = -ENOMEM;
+ 		goto out;
  	}
- 
- out:
--	if (ret < 0)
-+	if (ret < 0) {
- 		usnic_uiom_put_pages(chunk_list, 0);
--	else {
--		atomic64_set(&mm->pinned_vm, locked);
-+		atomic64_sub(npages, &current->mm->pinned_vm);
-+	} else
- 		mmgrab(uiomr->owning_mm);
--	}
- 
+-	atomic64_set(&mm->pinned_vm, new_pinned);
 -	up_write(&mm->mmap_sem);
-+	up_read(&mm->mmap_sem);
- 	free_page((unsigned long) page_list);
- 	return ret;
- }
-@@ -435,43 +432,12 @@ static inline size_t usnic_uiom_num_pages(struct usnic_uiom_reg *uiomr)
- 	return PAGE_ALIGN(uiomr->length + uiomr->offset) >> PAGE_SHIFT;
+ 
+ 	cur_base = addr & PAGE_MASK;
+ 
+@@ -233,9 +230,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
+ umem_release:
+ 	__ib_umem_release(context->device, umem, 0);
+ vma:
+-	down_write(&mm->mmap_sem);
+ 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
+-	up_write(&mm->mmap_sem);
+ out:
+ 	if (vma_list)
+ 		free_page((unsigned long) vma_list);
+@@ -258,25 +253,12 @@ static void __ib_umem_release_tail(struct ib_umem *umem)
+ 		kfree(umem);
  }
  
--static void usnic_uiom_release_defer(struct work_struct *work)
+-static void ib_umem_release_defer(struct work_struct *work)
 -{
--	struct usnic_uiom_reg *uiomr =
--		container_of(work, struct usnic_uiom_reg, work);
+-	struct ib_umem *umem = container_of(work, struct ib_umem, work);
 -
--	down_write(&uiomr->owning_mm->mmap_sem);
--	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
--	up_write(&uiomr->owning_mm->mmap_sem);
+-	down_write(&umem->owning_mm->mmap_sem);
+-	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+-	up_write(&umem->owning_mm->mmap_sem);
 -
--	__usnic_uiom_release_tail(uiomr);
+-	__ib_umem_release_tail(umem);
 -}
 -
- void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr,
- 			    struct ib_ucontext *context)
+ /**
+  * ib_umem_release - release memory pinned with ib_umem_get
+  * @umem: umem struct to release
+  */
+ void ib_umem_release(struct ib_umem *umem)
  {
- 	__usnic_uiom_reg_release(uiomr->pd, uiomr, 1);
+-	struct ib_ucontext *context = umem->context;
+-
+ 	if (umem->is_odp) {
+ 		ib_umem_odp_release(to_ib_umem_odp(umem));
+ 		__ib_umem_release_tail(umem);
+@@ -285,26 +267,7 @@ void ib_umem_release(struct ib_umem *umem)
+ 
+ 	__ib_umem_release(umem->context->device, umem, 1);
  
 -	/*
 -	 * We may be called with the mm's mmap_sem already held.  This
@@ -119,50 +89,22 @@ index 854436a2b437..06862a6af185 100644
 -	 * the last reference to our file and calls our release
 -	 * method.  If there are memory regions to destroy, we'll end
 -	 * up here and not be able to take the mmap_sem.  In that case
--	 * we defer the vm_locked accounting to a workqueue.
+-	 * we defer the vm_locked accounting a workqueue.
 -	 */
 -	if (context->closing) {
--		if (!down_write_trylock(&uiomr->owning_mm->mmap_sem)) {
--			INIT_WORK(&uiomr->work, usnic_uiom_release_defer);
--			queue_work(usnic_uiom_wq, &uiomr->work);
+-		if (!down_write_trylock(&umem->owning_mm->mmap_sem)) {
+-			INIT_WORK(&umem->work, ib_umem_release_defer);
+-			queue_work(ib_wq, &umem->work);
 -			return;
 -		}
 -	} else {
--		down_write(&uiomr->owning_mm->mmap_sem);
+-		down_write(&umem->owning_mm->mmap_sem);
 -	}
- 	atomic64_sub(usnic_uiom_num_pages(uiomr), &uiomr->owning_mm->pinned_vm);
--	up_write(&uiomr->owning_mm->mmap_sem);
+ 	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
+-	up_write(&umem->owning_mm->mmap_sem);
 -
- 	__usnic_uiom_release_tail(uiomr);
+ 	__ib_umem_release_tail(umem);
  }
- 
-@@ -600,17 +566,5 @@ int usnic_uiom_init(char *drv_name)
- 		return -EPERM;
- 	}
- 
--	usnic_uiom_wq = create_workqueue(drv_name);
--	if (!usnic_uiom_wq) {
--		usnic_err("Unable to alloc wq for drv %s\n", drv_name);
--		return -ENOMEM;
--	}
--
- 	return 0;
- }
--
--void usnic_uiom_fini(void)
--{
--	flush_workqueue(usnic_uiom_wq);
--	destroy_workqueue(usnic_uiom_wq);
--}
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.h b/drivers/infiniband/hw/usnic/usnic_uiom.h
-index b86a9731071b..c88cfa087e3a 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.h
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.h
-@@ -93,5 +93,4 @@ struct usnic_uiom_reg *usnic_uiom_reg_get(struct usnic_uiom_pd *pd,
- void usnic_uiom_reg_release(struct usnic_uiom_reg *uiomr,
- 			    struct ib_ucontext *ucontext);
- int usnic_uiom_init(char *drv_name);
--void usnic_uiom_fini(void);
- #endif /* USNIC_UIOM_H_ */
+ EXPORT_SYMBOL(ib_umem_release);
 -- 
 2.16.4
