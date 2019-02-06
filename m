@@ -1,35 +1,29 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Wed, 6 Feb 2019 11:52:33 -0700
-Message-ID: <20190206185233.GE12227@ziepe.ca>
-References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
- <20190206095000.GA12006@quack2.suse.cz>
- <20190206173114.GB12227@ziepe.ca>
- <20190206175233.GN21860@bombadil.infradead.org>
- <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
- <20190206183503.GO21860@bombadil.infradead.org>
+From: Ido Schimmel <idosch@mellanox.com>
+Subject: Re: [PATCH net-next v4 05/12] mlxsw: Implement
+ ndo_get_port_parent_id()
+Date: Wed, 6 Feb 2019 19:04:41 +0000
+Message-ID: <20190206190434.GA14340@splinter>
+References: <20190206174546.23597-1-f.fainelli@gmail.com>
+ <20190206174546.23597-6-f.fainelli@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190206183503.GO21860@bombadil.infradead.org>
+In-Reply-To: <20190206174546.23597-6-f.fainelli@gmail.com>
+Content-Language: en-US
+Content-ID: <E4EC5A764CE1EA4D9DF8CA9C5BBB1C95@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Michal Hocko <mhocko@kernel.org>
+To: Florian Fainelli <f.fainelli@gmail.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 06, 2019 at 10:35:04AM -0800, Matthew Wilcox wrote:
+On Wed, Feb 06, 2019 at 09:45:39AM -0800, Florian Fainelli wrote:
+> mlxsw implements SWITCHDEV_ATTR_ID_PORT_PARENT_ID and we want to get rid
+> of switchdev_ops eventually, ease that migration by implementing a
+> ndo_get_port_parent_id() function which returns what
+> switchdev_port_attr_get() would do.
+>=20
+> Acked-by: Jiri Pirko <jiri@mellanox.com>
+> Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 
-> > Admittedly, I'm coming in late to this conversation, but did I miss the
-> > portion where that alternative was ruled out?
-> 
-> That's my preferred option too, but the preponderance of opinion leans
-> towards "We can't give people a way to make files un-truncatable".
-
-I haven't heard an explanation why blocking ftruncate is worse than
-giving people a way to break RDMA using process by calling ftruncate??
-
-Isn't it exactly the same argument the other way?
-
-Jason
+Reviewed-by: Ido Schimmel <idosch@mellanox.com>
