@@ -1,131 +1,124 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH 1/1] RDMA/odp: convert to use HMM for ODP
-Date: Wed, 6 Feb 2019 08:44:26 +0000
-Message-ID: <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
-References: <20190129165839.4127-1-jglisse@redhat.com>
- <20190129165839.4127-2-jglisse@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190129165839.4127-2-jglisse@redhat.com>
-Content-Language: en-US
-Content-ID: <BAC279C652EA7940BD3C957E72761F73@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "jglisse@redhat.com" <jglisse@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Aviad Yehezkel <aviadye@mellanox.com>
+From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Subject: Re: [PATCH] mlx4_ib: Increase the timeout for CM cache
+Date: Wed, 6 Feb 2019 09:50:56 +0100
+Message-ID: <13750147-482A-4F90-976A-033C52DCF85E@oracle.com>
+References: <20190131170951.178676-1-haakon.bugge@oracle.com>
+ <20190205223608.GA23110@ziepe.ca>
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190205223608.GA23110@ziepe.ca>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Jack Morgenstein <jackm@dev.mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMS8yOS8yMDE5IDY6NTggUE0sIGpnbGlzc2VAcmVkaGF0LmNvbSB3cm90ZToNCiA+IENvbnZl
-cnQgT0RQIHRvIHVzZSBITU0gc28gdGhhdCB3ZSBjYW4gYnVpbGQgb24gY29tbW9uIGluZnJhc3Ry
-dWN0dXJlDQogPiBmb3IgZGlmZmVyZW50IGNsYXNzIG9mIGRldmljZXMgdGhhdCB3YW50IHRvIG1p
-cnJvciBhIHByb2Nlc3MgYWRkcmVzcw0KID4gc3BhY2UgaW50byBhIGRldmljZS4gVGhlcmUgaXMg
-bm8gZnVuY3Rpb25hbCBjaGFuZ2VzLg0KDQpUaGFua3MgZm9yIHNlbmRpbmcgdGhpcyBwYXRjaC4g
-SSB0aGluayBpbiBnZW5lcmFsIGl0IGlzIGEgZ29vZCBpZGVhIHRvIA0KdXNlIGEgY29tbW9uIGlu
-ZnJhc3RydWN0dXJlIGZvciBPRFAuDQoNCkkgaGF2ZSBhIGNvdXBsZSBvZiBxdWVzdGlvbnMgYmVs
-b3cuDQoNCj4gLXN0YXRpYyB2b2lkIGliX3VtZW1fbm90aWZpZXJfaW52YWxpZGF0ZV9yYW5nZV9l
-bmQoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sDQo+IC0JCQkJY29uc3Qgc3RydWN0IG1tdV9ub3Rp
-Zmllcl9yYW5nZSAqcmFuZ2UpDQo+IC17DQo+IC0Jc3RydWN0IGliX3Vjb250ZXh0X3Blcl9tbSAq
-cGVyX21tID0NCj4gLQkJY29udGFpbmVyX29mKG1uLCBzdHJ1Y3QgaWJfdWNvbnRleHRfcGVyX21t
-LCBtbik7DQo+IC0NCj4gLQlpZiAodW5saWtlbHkoIXBlcl9tbS0+YWN0aXZlKSkNCj4gLQkJcmV0
-dXJuOw0KPiAtDQo+IC0JcmJ0X2liX3VtZW1fZm9yX2VhY2hfaW5fcmFuZ2UoJnBlcl9tbS0+dW1l
-bV90cmVlLCByYW5nZS0+c3RhcnQsDQo+IC0JCQkJICAgICAgcmFuZ2UtPmVuZCwNCj4gLQkJCQkg
-ICAgICBpbnZhbGlkYXRlX3JhbmdlX2VuZF90cmFtcG9saW5lLCB0cnVlLCBOVUxMKTsNCj4gICAJ
-dXBfcmVhZCgmcGVyX21tLT51bWVtX3J3c2VtKTsNCj4gKwlyZXR1cm4gcmV0Ow0KPiAgIH0NClBy
-ZXZpb3VzbHkgdGhlIGNvZGUgaGVsZCB0aGUgdW1lbV9yd3NlbSBiZXR3ZWVuIHJhbmdlX3N0YXJ0
-IGFuZCANCnJhbmdlX2VuZCBjYWxscy4gSSBndWVzcyB0aGF0IHdhcyBpbiBvcmRlciB0byBndWFy
-YW50ZWUgdGhhdCBubyBkZXZpY2UgDQpwYWdlIGZhdWx0cyB0YWtlIHJlZmVyZW5jZSB0byB0aGUg
-cGFnZXMgYmVpbmcgaW52YWxpZGF0ZWQgd2hpbGUgdGhlIA0KaW52YWxpZGF0aW9uIGlzIG9uZ29p
-bmcuIEkgYXNzdW1lIHRoaXMgaXMgbm93IGhhbmRsZWQgYnkgaG1tIGluc3RlYWQsIA0KY29ycmVj
-dD8NCg0KPiArDQo+ICtzdGF0aWMgdWludDY0X3Qgb2RwX2htbV9mbGFnc1tITU1fUEZOX0ZMQUdf
-TUFYXSA9IHsNCj4gKwlPRFBfUkVBRF9CSVQsCS8qIEhNTV9QRk5fVkFMSUQgKi8NCj4gKwlPRFBf
-V1JJVEVfQklULAkvKiBITU1fUEZOX1dSSVRFICovDQo+ICsJT0RQX0RFVklDRV9CSVQsCS8qIEhN
-TV9QRk5fREVWSUNFX1BSSVZBVEUgKi8NCkl0IHNlZW1zIHRoYXQgdGhlIG1seDVfaWIgY29kZSBp
-biB0aGlzIHBhdGNoIGN1cnJlbnRseSBpZ25vcmVzIHRoZSANCk9EUF9ERVZJQ0VfQklUIChlLmcu
-LCBpbiB1bWVtX2RtYV90b19tdHQpLiBJcyB0aGF0IG9rYXk/IE9yIGlzIGl0IA0KaGFuZGxlZCBp
-bXBsaWNpdGx5IGJ5IHRoZSBITU1fUEZOX1NQRUNJQUwgY2FzZT8NCg0KDQo+IEBAIC0zMjcsOSAr
-Mjg3LDEwIEBAIHZvaWQgcHV0X3Blcl9tbShzdHJ1Y3QgaWJfdW1lbV9vZHAgKnVtZW1fb2RwKQ0K
-PiAgCXVwX3dyaXRlKCZwZXJfbW0tPnVtZW1fcndzZW0pOw0KPiAgDQo+ICAJV0FSTl9PTighUkJf
-RU1QVFlfUk9PVCgmcGVyX21tLT51bWVtX3RyZWUucmJfcm9vdCkpOw0KPiAtCW1tdV9ub3RpZmll
-cl91bnJlZ2lzdGVyX25vX3JlbGVhc2UoJnBlcl9tbS0+bW4sIHBlcl9tbS0+bW0pOw0KPiArCWht
-bV9taXJyb3JfdW5yZWdpc3RlcigmcGVyX21tLT5taXJyb3IpOw0KPiAgCXB1dF9waWQocGVyX21t
-LT50Z2lkKTsNCj4gLQltbXVfbm90aWZpZXJfY2FsbF9zcmN1KCZwZXJfbW0tPnJjdSwgZnJlZV9w
-ZXJfbW0pOw0KPiArDQo+ICsJa2ZyZWUocGVyX21tKTsNCj4gIH0NClByZXZpb3VzbHkgdGhlIHBl
-cl9tbSBzdHJ1Y3Qgd2FzIHJlbGVhc2VkIHRocm91Z2ggY2FsbCBzcmN1LCBidXQgbm93IGl0IA0K
-aXMgcmVsZWFzZWQgaW1tZWRpYXRlbHkuIElzIGl0IHNhZmU/IEkgc2F3IHRoYXQgaG1tX21pcnJv
-cl91bnJlZ2lzdGVyIA0KY2FsbHMgbW11X25vdGlmaWVyX3VucmVnaXN0ZXJfbm9fcmVsZWFzZSwg
-c28gSSBkb24ndCB1bmRlcnN0YW5kIHdoYXQgDQpwcmV2ZW50cyBjb25jdXJyZW50bHkgcnVubmlu
-ZyBpbnZhbGlkYXRpb25zIGZyb20gYWNjZXNzaW5nIHRoZSByZWxlYXNlZCANCnBlcl9tbSBzdHJ1
-Y3QuDQoNCj4gQEAgLTU3OCwxMSArNTc4LDI3IEBAIHN0YXRpYyBpbnQgcGFnZWZhdWx0X21yKHN0
-cnVjdCBtbHg1X2liX2RldiAqZGV2LCBzdHJ1Y3QgbWx4NV9pYl9tciAqbXIsDQo+ICANCj4gIG5l
-eHRfbXI6DQo+ICAJc2l6ZSA9IG1pbl90KHNpemVfdCwgYmNudCwgaWJfdW1lbV9lbmQoJm9kcC0+
-dW1lbSkgLSBpb192aXJ0KTsNCj4gLQ0KPiAgCXBhZ2Vfc2hpZnQgPSBtci0+dW1lbS0+cGFnZV9z
-aGlmdDsNCj4gIAlwYWdlX21hc2sgPSB+KEJJVChwYWdlX3NoaWZ0KSAtIDEpOw0KPiArCW9mZiA9
-IChpb192aXJ0ICYgKH5wYWdlX21hc2spKTsNCj4gKwlzaXplICs9IChpb192aXJ0ICYgKH5wYWdl
-X21hc2spKTsNCj4gKwlpb192aXJ0ID0gaW9fdmlydCAmIHBhZ2VfbWFzazsNCj4gKwlvZmYgKz0g
-KHNpemUgJiAofnBhZ2VfbWFzaykpOw0KPiArCXNpemUgPSBBTElHTihzaXplLCAxVUwgPDwgcGFn
-ZV9zaGlmdCk7DQo+ICsNCj4gKwlpZiAoaW9fdmlydCA8IGliX3VtZW1fc3RhcnQoJm9kcC0+dW1l
-bSkpDQo+ICsJCXJldHVybiAtRUlOVkFMOw0KPiArDQo+ICAJc3RhcnRfaWR4ID0gKGlvX3ZpcnQg
-LSAobXItPm1ta2V5LmlvdmEgJiBwYWdlX21hc2spKSA+PiBwYWdlX3NoaWZ0Ow0KPiAgDQo+ICsJ
-aWYgKG9kcF9tci0+cGVyX21tID09IE5VTEwgfHwgb2RwX21yLT5wZXJfbW0tPm1tID09IE5VTEwp
-DQo+ICsJCXJldHVybiAtRU5PRU5UOw0KPiArDQo+ICsJcmV0ID0gaG1tX3JhbmdlX3JlZ2lzdGVy
-KCZyYW5nZSwgb2RwX21yLT5wZXJfbW0tPm1tLA0KPiArCQkJCSBpb192aXJ0LCBpb192aXJ0ICsg
-c2l6ZSwgcGFnZV9zaGlmdCk7DQo+ICsJaWYgKHJldCkNCj4gKwkJcmV0dXJuIHJldDsNCj4gKw0K
-PiAgCWlmIChwcmVmZXRjaCAmJiAhZG93bmdyYWRlICYmICFtci0+dW1lbS0+d3JpdGFibGUpIHsN
-Cj4gIAkJLyogcHJlZmV0Y2ggd2l0aCB3cml0ZS1hY2Nlc3MgbXVzdA0KPiAgCQkgKiBiZSBzdXBw
-b3J0ZWQgYnkgdGhlIE1SDQpJc24ndCB0aGVyZSBhIG1pc3Rha2UgaW4gdGhlIGNhbGN1bGF0aW9u
-IG9mIHRoZSB2YXJpYWJsZSBzaXplPyBJdGlzIA0KZmlyc3Qgc2V0IHRvIHRoZSBzaXplIG9mIHRo
-ZSBwYWdlIGZhdWx0IHJhbmdlLCBidXQgdGhlbiB5b3UgYWRkIHRoZSANCnZpcnR1YWwgYWRkcmVz
-cywgc28gSSBndWVzcyBpdCBpcyBhY3R1YWxseSB0aGUgcmFuZ2UgZW5kLiBUaGVuIHlvdSBwYXNz
-IA0KaW9fdmlydCArIHNpemUgdG8gaG1tX3JhbmdlX3JlZ2lzdGVyLiBEb2Vzbid0IGl0IGRvdWJs
-ZSB0aGUgc2l6ZSBvZiB0aGUgDQpyYW5nZQ0KDQo+IC12b2lkIGliX3VtZW1fb2RwX3VubWFwX2Rt
-YV9wYWdlcyhzdHJ1Y3QgaWJfdW1lbV9vZHAgKnVtZW1fb2RwLCB1NjQgdmlydCwNCj4gLQkJCQkg
-dTY0IGJvdW5kKQ0KPiArdm9pZCBpYl91bWVtX29kcF91bm1hcF9kbWFfcGFnZXMoc3RydWN0IGli
-X3VtZW1fb2RwICp1bWVtX29kcCwNCj4gKwkJCQkgdTY0IHZpcnQsIHU2NCBib3VuZCkNCj4gIHsN
-Cj4gKwlzdHJ1Y3QgZGV2aWNlICpkZXZpY2UgPSB1bWVtX29kcC0+dW1lbS5jb250ZXh0LT5kZXZp
-Y2UtPmRtYV9kZXZpY2U7DQo+ICAJc3RydWN0IGliX3VtZW0gKnVtZW0gPSAmdW1lbV9vZHAtPnVt
-ZW07DQo+IC0JaW50IGlkeDsNCj4gLQl1NjQgYWRkcjsNCj4gLQlzdHJ1Y3QgaWJfZGV2aWNlICpk
-ZXYgPSB1bWVtLT5jb250ZXh0LT5kZXZpY2U7DQo+ICsJdW5zaWduZWQgbG9uZyBpZHgsIHBhZ2Vf
-bWFzazsNCj4gKwlzdHJ1Y3QgaG1tX3JhbmdlIHJhbmdlOw0KPiArCWxvbmcgcmV0Ow0KPiArDQo+
-ICsJaWYgKCF1bWVtLT5ucGFnZXMpDQo+ICsJCXJldHVybjsNCj4gKw0KPiArCWJvdW5kID0gQUxJ
-R04oYm91bmQsIDFVTCA8PCB1bWVtLT5wYWdlX3NoaWZ0KTsNCj4gKwlwYWdlX21hc2sgPSB+KEJJ
-VCh1bWVtLT5wYWdlX3NoaWZ0KSAtIDEpOw0KPiArCXZpcnQgJj0gcGFnZV9tYXNrOw0KPiAgDQo+
-ICAJdmlydCAgPSBtYXhfdCh1NjQsIHZpcnQsICBpYl91bWVtX3N0YXJ0KHVtZW0pKTsNCj4gIAli
-b3VuZCA9IG1pbl90KHU2NCwgYm91bmQsIGliX3VtZW1fZW5kKHVtZW0pKTsNCj4gLQkvKiBOb3Rl
-IHRoYXQgZHVyaW5nIHRoZSBydW4gb2YgdGhpcyBmdW5jdGlvbiwgdGhlDQo+IC0JICogbm90aWZp
-ZXJzX2NvdW50IG9mIHRoZSBNUiBpcyA+IDAsIHByZXZlbnRpbmcgYW55IHJhY2luZw0KPiAtCSAq
-IGZhdWx0cyBmcm9tIGNvbXBsZXRpb24uIFdlIG1pZ2h0IGJlIHJhY2luZyB3aXRoIG90aGVyDQo+
-IC0JICogaW52YWxpZGF0aW9ucywgc28gd2UgbXVzdCBtYWtlIHN1cmUgd2UgZnJlZSBlYWNoIHBh
-Z2Ugb25seQ0KPiAtCSAqIG9uY2UuICovDQo+ICsNCj4gKwlpZHggPSAoKHVuc2lnbmVkIGxvbmcp
-dmlydCAtIGliX3VtZW1fc3RhcnQodW1lbSkpID4+IFBBR0VfU0hJRlQ7DQo+ICsNCj4gKwlyYW5n
-ZS5wYWdlX3NoaWZ0ID0gdW1lbS0+cGFnZV9zaGlmdDsNCj4gKwlyYW5nZS5wZm5zID0gJnVtZW1f
-b2RwLT5wZm5zW2lkeF07DQo+ICsJcmFuZ2UucGZuX3NoaWZ0ID0gT0RQX0ZMQUdTX0JJVFM7DQo+
-ICsJcmFuZ2UudmFsdWVzID0gb2RwX2htbV92YWx1ZXM7DQo+ICsJcmFuZ2UuZmxhZ3MgPSBvZHBf
-aG1tX2ZsYWdzOw0KPiArCXJhbmdlLnN0YXJ0ID0gdmlydDsNCj4gKwlyYW5nZS5lbmQgPSBib3Vu
-ZDsNCj4gKw0KPiAgCW11dGV4X2xvY2soJnVtZW1fb2RwLT51bWVtX211dGV4KTsNCj4gLQlmb3Ig
-KGFkZHIgPSB2aXJ0OyBhZGRyIDwgYm91bmQ7IGFkZHIgKz0gQklUKHVtZW0tPnBhZ2Vfc2hpZnQp
-KSB7DQo+IC0JCWlkeCA9IChhZGRyIC0gaWJfdW1lbV9zdGFydCh1bWVtKSkgPj4gdW1lbS0+cGFn
-ZV9zaGlmdDsNCj4gLQkJaWYgKHVtZW1fb2RwLT5wYWdlX2xpc3RbaWR4XSkgew0KPiAtCQkJc3Ry
-dWN0IHBhZ2UgKnBhZ2UgPSB1bWVtX29kcC0+cGFnZV9saXN0W2lkeF07DQo+IC0JCQlkbWFfYWRk
-cl90IGRtYSA9IHVtZW1fb2RwLT5kbWFfbGlzdFtpZHhdOw0KPiAtCQkJZG1hX2FkZHJfdCBkbWFf
-YWRkciA9IGRtYSAmIE9EUF9ETUFfQUREUl9NQVNLOw0KPiAtDQo+IC0JCQlXQVJOX09OKCFkbWFf
-YWRkcik7DQo+IC0NCj4gLQkJCWliX2RtYV91bm1hcF9wYWdlKGRldiwgZG1hX2FkZHIsIFBBR0Vf
-U0laRSwNCj4gLQkJCQkJICBETUFfQklESVJFQ1RJT05BTCk7DQo+IC0JCQlpZiAoZG1hICYgT0RQ
-X1dSSVRFX0FMTE9XRURfQklUKSB7DQo+IC0JCQkJc3RydWN0IHBhZ2UgKmhlYWRfcGFnZSA9IGNv
-bXBvdW5kX2hlYWQocGFnZSk7DQo+IC0JCQkJLyoNCj4gLQkJCQkgKiBzZXRfcGFnZV9kaXJ0eSBw
-cmVmZXJzIGJlaW5nIGNhbGxlZCB3aXRoDQo+IC0JCQkJICogdGhlIHBhZ2UgbG9jay4gSG93ZXZl
-ciwgTU1VIG5vdGlmaWVycyBhcmUNCj4gLQkJCQkgKiBjYWxsZWQgc29tZXRpbWVzIHdpdGggYW5k
-IHNvbWV0aW1lcyB3aXRob3V0DQo+IC0JCQkJICogdGhlIGxvY2suIFdlIHJlbHkgb24gdGhlIHVt
-ZW1fbXV0ZXggaW5zdGVhZA0KPiAtCQkJCSAqIHRvIHByZXZlbnQgb3RoZXIgbW11IG5vdGlmaWVy
-cyBmcm9tDQo+IC0JCQkJICogY29udGludWluZyBhbmQgYWxsb3dpbmcgdGhlIHBhZ2UgbWFwcGlu
-ZyB0bw0KPiAtCQkJCSAqIGJlIHJlbW92ZWQuDQo+IC0JCQkJICovDQo+IC0JCQkJc2V0X3BhZ2Vf
-ZGlydHkoaGVhZF9wYWdlKTsNCj4gLQkJCX0NCj4gLQkJCS8qIG9uIGRlbWFuZCBwaW5uaW5nIHN1
-cHBvcnQgKi8NCj4gLQkJCWlmICghdW1lbS0+Y29udGV4dC0+aW52YWxpZGF0ZV9yYW5nZSkNCj4g
-LQkJCQlwdXRfcGFnZShwYWdlKTsNCj4gLQkJCXVtZW1fb2RwLT5wYWdlX2xpc3RbaWR4XSA9IE5V
-TEw7DQo+IC0JCQl1bWVtX29kcC0+ZG1hX2xpc3RbaWR4XSA9IDA7DQo+IC0JCQl1bWVtLT5ucGFn
-ZXMtLTsNCj4gLQkJfQ0KPiAtCX0NCj4gKwlyZXQgPSBobW1fcmFuZ2VfZG1hX3VubWFwKCZyYW5n
-ZSwgTlVMTCwgZGV2aWNlLA0KPiArCQkmdW1lbV9vZHAtPmRtYV9saXN0W2lkeF0sIHRydWUpOw0K
-PiArCWlmIChyZXQgPiAwKQ0KPiArCQl1bWVtLT5ucGFnZXMgLT0gcmV0Ow0KQ2FuIGhtbV9yYW5n
-ZV9kbWFfdW5tYXAgZmFpbD8gSWYgaXQgZG9lcywgd2UgZG8gd2Ugc2ltcGx5IGxlYWsgdGhlIERN
-QSANCm1hcHBpbmdzPw0KPiAgCW11dGV4X3VubG9jaygmdW1lbV9vZHAtPnVtZW1fbXV0ZXgpOw0K
-PiAgfQ0KDQpSZWdhcmRzLA0KSGFnZ2FpDQo=
+
+
+> On 5 Feb 2019, at 23:36, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>=20
+> On Thu, Jan 31, 2019 at 06:09:51PM +0100, H=C3=A5kon Bugge wrote:
+>> Using CX-3 virtual functions, either from a bare-metal machine or
+>> pass-through from a VM, MAD packets are proxied through the PF =
+driver.
+>>=20
+>> Since the VMs have separate name spaces for MAD Transaction Ids
+>> (TIDs), the PF driver has to re-map the TIDs and keep the book =
+keeping
+>> in a cache.
+>>=20
+>> Following the RDMA CM protocol, it is clear when an entry has to
+>> evicted form the cache. But life is not perfect, remote peers may die
+>> or be rebooted. Hence, it's a timeout to wipe out a cache entry, when
+>> the PF driver assumes the remote peer has gone.
+>>=20
+>> We have experienced excessive amount of DREQ retries during fail-over
+>> testing, when running with eight VMs per database server.
+>>=20
+>> The problem has been reproduced in a bare-metal system using one VM
+>> per physical node. In this environment, running 256 processes in each
+>> VM, each process uses RDMA CM to create an RC QP between himself and
+>> all (256) remote processes. All in all 16K QPs.
+>>=20
+>> When tearing down these 16K QPs, excessive DREQ retries (and
+>> duplicates) are observed. With some cat/paste/awk wizardry on the
+>> infiniband_cm sysfs, we observe:
+>>=20
+>>      dreq:       5007
+>> cm_rx_msgs:
+>>      drep:       3838
+>>      dreq:      13018
+>>       rep:       8128
+>>       req:       8256
+>>       rtu:       8256
+>> cm_tx_msgs:
+>>      drep:       8011
+>>      dreq:      68856
+>>       rep:       8256
+>>       req:       8128
+>>       rtu:       8128
+>> cm_tx_retries:
+>>      dreq:      60483
+>>=20
+>> Note that the active/passive side is distributed.
+>>=20
+>> Enabling pr_debug in cm.c gives tons of:
+>>=20
+>> [171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
+>> 1,sl_cm_id: 0xd393089f} is NULL!
+>>=20
+>> By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
+>> tear-down phase of the application is reduced from 113 to 67
+>> seconds. Retries/duplicates are also significantly reduced:
+>>=20
+>> cm_rx_duplicates:
+>>      dreq:       7726
+>> []
+>> cm_tx_retries:
+>>      drep:          1
+>>      dreq:       7779
+>>=20
+>> Increasing the timeout further didn't help, as these duplicates and
+>> retries stem from a too short CMA timeout, which was 20 (~4 seconds)
+>> on the systems. By increasing the CMA timeout to 22 (~17 seconds), =
+the
+>> numbers fell down to about one hundred for both of them.
+>>=20
+>> Adjustment of the CMA timeout is _not_ part of this commit.
+>>=20
+>> Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+>> ---
+>> drivers/infiniband/hw/mlx4/cm.c | 2 +-
+>> 1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> Jack? What do you think?
+
+I am tempted to send a v2 making this a sysctl tuneable. This because, =
+full-rack testing using 8 servers, each with 8 VMs, only showed 33% =
+reduction in the occurrences of "mlx4_ib_multiplex_cm_handler: =
+id{slave:1,sl_cm_id: 0xd393089f} is NULL" with this commit.
+
+But sure, Jack's opinion matters.
+
+
+Thxs, H=C3=A5kon
+
+>=20
+>> diff --git a/drivers/infiniband/hw/mlx4/cm.c =
+b/drivers/infiniband/hw/mlx4/cm.c
+>> index fedaf8260105..8c79a480f2b7 100644
+>> --- a/drivers/infiniband/hw/mlx4/cm.c
+>> +++ b/drivers/infiniband/hw/mlx4/cm.c
+>> @@ -39,7 +39,7 @@
+>>=20
+>> #include "mlx4_ib.h"
+>>=20
+>> -#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
+>> +#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
+>>=20
+>> struct id_map_entry {
+>> 	struct rb_node node;
+>> --=20
+>> 2.20.1
