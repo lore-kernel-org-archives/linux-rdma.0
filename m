@@ -1,110 +1,61 @@
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH 6/6] drivers/IB,core: reduce scope of mmap_sem
-Date: Wed,  6 Feb 2019 09:59:20 -0800
-Message-ID: <20190206175920.31082-7-dave@stgolabs.net>
-References: <20190206175920.31082-1-dave@stgolabs.net>
+From: jackm <jackm@dev.mellanox.co.il>
+Subject: Re: [PATCH] mlx4_ib: Increase the timeout for CM cache
+Date: Wed, 6 Feb 2019 20:02:29 +0200
+Message-ID: <20190206200229.00002e2f@dev.mellanox.co.il>
+References: <20190131170951.178676-1-haakon.bugge@oracle.com>
+        <20190205223608.GA23110@ziepe.ca>
+        <13750147-482A-4F90-976A-033C52DCF85E@oracle.com>
+        <FF460501-80BA-44B9-AD59-84F64A338D67@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190206175920.31082-1-dave@stgolabs.net>
+In-Reply-To: <FF460501-80BA-44B9-AD59-84F64A338D67@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jgg@ziepe.ca, akpm@linux-foundation.org
-Cc: dledford@redhat.com, jgg@mellanox.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, dave@stgolabs.net, Davidlohr Bueso <dbueso@suse.de>
+To: =?ISO-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, netdev@vger.kernel.org, OFED mailing list <linux-rdma@vger.kernel.org>, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-ib_umem_get() uses gup_longterm() and relies on the lock to
-stabilze the vma_list, so we cannot really get rid of mmap_sem
-altogether, but now that the counter is atomic, we can get of
-some complexity that mmap_sem brings with only pinned_vm.
+On Wed, 6 Feb 2019 16:40:14 +0100
+H=E5kon Bugge <haakon.bugge@oracle.com> wrote:
 
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
----
- drivers/infiniband/core/umem.c | 41 ++---------------------------------------
- 1 file changed, 2 insertions(+), 39 deletions(-)
+> Jack,
+>=20
+> A major contributor to the long processing time in the PF driver
+> proxying QP1 packets is:
+>=20
+> create_pv_resources
+>    -> ib_create_cq(ctx->ib_dev, mlx4_ib_tunnel_comp_handler, =20
+>                                NULL, ctx, cq_size, 0);
+>=20
+> That is, comp_vector is zero.
+>=20
+> Due to commit 6ba1eb776461 ("IB/mlx4: Scatter CQs to different EQs"),
+> the zero comp_vector has the intent of let the mlx4_core driver
+> select the least used vector.
+>=20
+> But, in mlx4_ib_create_cq(), we have:
+>=20
+>         pr_info("eq_table: %p\n", dev->eq_table);
+>         if (dev->eq_table) {
+> 		vector =3D dev->eq_table[mlx4_choose_vector(dev->dev,
+> vector, ibdev->num_comp_vectors)];
+>         }
+>=20
+>         cq->vector =3D vector;
+>=20
+> and dev->eq_table is NULL, so all the CQs for the proxy QPs get
+> comp_vector zero.
+>=20
+> I have to make some reservations, as this analysis is based on uek4,
+> but I think the code here is equal upstream, but need to double check.
+>=20
+>=20
+> Thxs, H=E5kon
+>=20
+Hi Hakon and Jason,
+I was ill today (bad cold, took antihistamines all day, which knocked
+me out).
+I'll get to this tomorrow.
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index 678abe1afcba..b69d3efa8712 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -165,15 +165,12 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
- 
- 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
- 
--	down_write(&mm->mmap_sem);
--	new_pinned = atomic64_read(&mm->pinned_vm) + npages;
-+	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
- 	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
--		up_write(&mm->mmap_sem);
-+		atomic64_sub(npages, &mm->pinned_vm);
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	atomic64_set(&mm->pinned_vm, new_pinned);
--	up_write(&mm->mmap_sem);
- 
- 	cur_base = addr & PAGE_MASK;
- 
-@@ -233,9 +230,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
- umem_release:
- 	__ib_umem_release(context->device, umem, 0);
- vma:
--	down_write(&mm->mmap_sem);
- 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
--	up_write(&mm->mmap_sem);
- out:
- 	if (vma_list)
- 		free_page((unsigned long) vma_list);
-@@ -258,25 +253,12 @@ static void __ib_umem_release_tail(struct ib_umem *umem)
- 		kfree(umem);
- }
- 
--static void ib_umem_release_defer(struct work_struct *work)
--{
--	struct ib_umem *umem = container_of(work, struct ib_umem, work);
--
--	down_write(&umem->owning_mm->mmap_sem);
--	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
--	up_write(&umem->owning_mm->mmap_sem);
--
--	__ib_umem_release_tail(umem);
--}
--
- /**
-  * ib_umem_release - release memory pinned with ib_umem_get
-  * @umem: umem struct to release
-  */
- void ib_umem_release(struct ib_umem *umem)
- {
--	struct ib_ucontext *context = umem->context;
--
- 	if (umem->is_odp) {
- 		ib_umem_odp_release(to_ib_umem_odp(umem));
- 		__ib_umem_release_tail(umem);
-@@ -285,26 +267,7 @@ void ib_umem_release(struct ib_umem *umem)
- 
- 	__ib_umem_release(umem->context->device, umem, 1);
- 
--	/*
--	 * We may be called with the mm's mmap_sem already held.  This
--	 * can happen when a userspace munmap() is the call that drops
--	 * the last reference to our file and calls our release
--	 * method.  If there are memory regions to destroy, we'll end
--	 * up here and not be able to take the mmap_sem.  In that case
--	 * we defer the vm_locked accounting a workqueue.
--	 */
--	if (context->closing) {
--		if (!down_write_trylock(&umem->owning_mm->mmap_sem)) {
--			INIT_WORK(&umem->work, ib_umem_release_defer);
--			queue_work(ib_wq, &umem->work);
--			return;
--		}
--	} else {
--		down_write(&umem->owning_mm->mmap_sem);
--	}
- 	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
--	up_write(&umem->owning_mm->mmap_sem);
--
- 	__ib_umem_release_tail(umem);
- }
- EXPORT_SYMBOL(ib_umem_release);
--- 
-2.16.4
+-Jack
