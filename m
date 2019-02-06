@@ -1,25 +1,24 @@
 From: Jiri Pirko <jiri@resnulli.us>
-Subject: Re: [PATCH net-next v3 08/12] rocker: Implement
+Subject: Re: [PATCH net-next v3 09/12] netdevsim: Implement
  ndo_get_port_parent_id()
-Date: Wed, 6 Feb 2019 14:23:53 +0100
-Message-ID: <20190206132353.GI2189@nanopsycho>
+Date: Wed, 6 Feb 2019 14:24:20 +0100
+Message-ID: <20190206132420.GJ2189@nanopsycho>
 References: <20190205235326.14600-1-f.fainelli@gmail.com>
- <20190205235326.14600-9-f.fainelli@gmail.com>
+ <20190205235326.14600-10-f.fainelli@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190205235326.14600-9-f.fainelli@gmail.com>
+In-Reply-To: <20190205235326.14600-10-f.fainelli@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Florian Fainelli <f.fainelli@gmail.com>
 Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Ido Schimmel <idosch@mellanox.com>, open list <linux-kernel@vger.kernel.org>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Wed, Feb 06, 2019 at 12:53:22AM CET, f.fainelli@gmail.com wrote:
->mlxsw implements SWITCHDEV_ATTR_ID_PORT_PARENT_ID and we want to get rid
->of switchdev_ops eventually, ease that migration by implementing a
->ndo_get_port_parent_id() function which returns what
->switchdev_port_attr_get() would do.
+Wed, Feb 06, 2019 at 12:53:23AM CET, f.fainelli@gmail.com wrote:
+>netdevsim only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it a
+>great candidate to be converted to use the ndo_get_port_parent_id() NDO
+>instead of implementing switchdev_port_attr_get().
 >
 >Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 
