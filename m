@@ -1,8 +1,7 @@
 From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: [PATCH net-next v4 06/12] mscc: ocelot: Implement
- ndo_get_port_parent_id()
-Date: Wed,  6 Feb 2019 09:45:40 -0800
-Message-ID: <20190206174546.23597-7-f.fainelli@gmail.com>
+Subject: [PATCH net-next v4 03/12] liquidio: Implement ndo_get_port_parent_id()
+Date: Wed,  6 Feb 2019 09:45:37 -0800
+Message-ID: <20190206174546.23597-4-f.fainelli@gmail.com>
 References: <20190206174546.23597-1-f.fainelli@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,80 +21,154 @@ To: netdev@vger.kernel.org
 Cc: "open list:STAGING SUBSYSTEM" <devel@driverdev.osuosl.org>, Florian Fainelli <f.fainelli@gmail.com>, "open list:MELLANOX MLX5 core VPI driver" <linux-rdma@vger.kernel.org>, "moderated list:ETHERNET BRIDGE" <bridge@lists.linux-foundation.org>, open list <linux-kernel@vger.kernel.org>, Ido Schimmel <idosch@mellanox.com>, "open list:NETRONOME ETHERNET DRIVERS" <oss-drivers@netronome.com>, "David S. Miller" <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-Ocelot only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID as a valid
-switchdev attribute getter, convert it to use ndo_get_port_parent_id()
-and get rid of the switchdev_ops::switchdev_port_attr_get altogether.
+Liquidio only supports SWITCHDEV_ATTR_ID_PORT_PARENT_ID, which makes it
+a great candidate to be converted to use the ndo_get_port_parent_id()
+NDO instead of implementing switchdev_port_attr_get().
 
 Acked-by: Jiri Pirko <jiri@mellanox.com>
 Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
 ---
- drivers/net/ethernet/mscc/ocelot.c | 33 ++++++++++++------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+ .../net/ethernet/cavium/liquidio/lio_main.c   | 22 ++++------------
+ .../net/ethernet/cavium/liquidio/lio_vf_rep.c | 25 ++++++-------------
+ 2 files changed, 12 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/net/ethernet/mscc/ocelot.c b/drivers/net/ethernet/mscc/ocelot.c
-index c6a575eb0ff5..195306d05bcd 100644
---- a/drivers/net/ethernet/mscc/ocelot.c
-+++ b/drivers/net/ethernet/mscc/ocelot.c
-@@ -916,6 +916,18 @@ static int ocelot_set_features(struct net_device *dev,
- 	return 0;
- }
- 
-+static int ocelot_get_port_parent_id(struct net_device *dev,
-+				     struct netdev_phys_item_id *ppid)
-+{
-+	struct ocelot_port *ocelot_port = netdev_priv(dev);
-+	struct ocelot *ocelot = ocelot_port->ocelot;
-+
-+	ppid->id_len = sizeof(ocelot->base_mac);
-+	memcpy(&ppid->id, &ocelot->base_mac, ppid->id_len);
-+
-+	return 0;
-+}
-+
- static const struct net_device_ops ocelot_port_netdev_ops = {
- 	.ndo_open			= ocelot_port_open,
- 	.ndo_stop			= ocelot_port_stop,
-@@ -930,6 +942,7 @@ static const struct net_device_ops ocelot_port_netdev_ops = {
- 	.ndo_vlan_rx_add_vid		= ocelot_vlan_rx_add_vid,
- 	.ndo_vlan_rx_kill_vid		= ocelot_vlan_rx_kill_vid,
- 	.ndo_set_features		= ocelot_set_features,
-+	.ndo_get_port_parent_id		= ocelot_get_port_parent_id,
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_main.c b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+index 3d24133e5e49..e97e6754ee09 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_main.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_main.c
+@@ -21,7 +21,6 @@
+ #include <linux/firmware.h>
+ #include <net/vxlan.h>
+ #include <linux/kthread.h>
+-#include <net/switchdev.h>
+ #include "liquidio_common.h"
+ #include "octeon_droq.h"
+ #include "octeon_iq.h"
+@@ -3184,7 +3183,8 @@ static const struct devlink_ops liquidio_devlink_ops = {
  };
  
- static void ocelot_get_strings(struct net_device *netdev, u32 sset, u8 *data)
-@@ -1013,25 +1026,6 @@ static const struct ethtool_ops ocelot_ethtool_ops = {
- 	.set_link_ksettings	= phy_ethtool_set_link_ksettings,
- };
+ static int
+-lio_pf_switchdev_attr_get(struct net_device *dev, struct switchdev_attr *attr)
++liquidio_get_port_parent_id(struct net_device *dev,
++			    struct netdev_phys_item_id *ppid)
+ {
+ 	struct lio *lio = GET_LIO(dev);
+ 	struct octeon_device *oct = lio->oct_dev;
+@@ -3192,24 +3192,12 @@ lio_pf_switchdev_attr_get(struct net_device *dev, struct switchdev_attr *attr)
+ 	if (oct->eswitch_mode != DEVLINK_ESWITCH_MODE_SWITCHDEV)
+ 		return -EOPNOTSUPP;
  
--static int ocelot_port_attr_get(struct net_device *dev,
--				struct switchdev_attr *attr)
--{
--	struct ocelot_port *ocelot_port = netdev_priv(dev);
--	struct ocelot *ocelot = ocelot_port->ocelot;
--
 -	switch (attr->id) {
 -	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
--		attr->u.ppid.id_len = sizeof(ocelot->base_mac);
--		memcpy(&attr->u.ppid.id, &ocelot->base_mac,
--		       attr->u.ppid.id_len);
+-		attr->u.ppid.id_len = ETH_ALEN;
+-		ether_addr_copy(attr->u.ppid.id,
+-				(void *)&lio->linfo.hw_addr + 2);
 -		break;
+-
 -	default:
 -		return -EOPNOTSUPP;
 -	}
--
--	return 0;
--}
--
- static int ocelot_port_attr_stp_state_set(struct ocelot_port *ocelot_port,
- 					  struct switchdev_trans *trans,
- 					  u8 state)
-@@ -1331,7 +1325,6 @@ static int ocelot_port_obj_del(struct net_device *dev,
++	ppid->id_len = ETH_ALEN;
++	ether_addr_copy(ppid->id, (void *)&lio->linfo.hw_addr + 2);
+ 
+ 	return 0;
  }
  
- static const struct switchdev_ops ocelot_port_switchdev_ops = {
--	.switchdev_port_attr_get	= ocelot_port_attr_get,
- 	.switchdev_port_attr_set	= ocelot_port_attr_set,
+-static const struct switchdev_ops lio_pf_switchdev_ops = {
+-	.switchdev_port_attr_get = lio_pf_switchdev_attr_get,
+-};
+-
+ static int liquidio_get_vf_stats(struct net_device *netdev, int vfidx,
+ 				 struct ifla_vf_stats *vf_stats)
+ {
+@@ -3259,6 +3247,7 @@ static const struct net_device_ops lionetdevops = {
+ 	.ndo_set_vf_trust	= liquidio_set_vf_trust,
+ 	.ndo_set_vf_link_state  = liquidio_set_vf_link_state,
+ 	.ndo_get_vf_stats	= liquidio_get_vf_stats,
++	.ndo_get_port_parent_id	= liquidio_get_port_parent_id,
  };
  
+ /** \brief Entry point for the liquidio module
+@@ -3534,7 +3523,6 @@ static int setup_nic_devices(struct octeon_device *octeon_dev)
+ 		 * netdev tasks.
+ 		 */
+ 		netdev->netdev_ops = &lionetdevops;
+-		SWITCHDEV_SET_OPS(netdev, &lio_pf_switchdev_ops);
+ 
+ 		retval = netif_set_real_num_rx_queues(netdev, num_oqueues);
+ 		if (retval) {
+diff --git a/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c b/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
+index de61060721c4..f3f2e71431ac 100644
+--- a/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
++++ b/drivers/net/ethernet/cavium/liquidio/lio_vf_rep.c
+@@ -25,7 +25,6 @@
+ #include "octeon_nic.h"
+ #include "octeon_main.h"
+ #include "octeon_network.h"
+-#include <net/switchdev.h>
+ #include "lio_vf_rep.h"
+ 
+ static int lio_vf_rep_open(struct net_device *ndev);
+@@ -38,6 +37,8 @@ static int lio_vf_rep_phys_port_name(struct net_device *dev,
+ static void lio_vf_rep_get_stats64(struct net_device *dev,
+ 				   struct rtnl_link_stats64 *stats64);
+ static int lio_vf_rep_change_mtu(struct net_device *ndev, int new_mtu);
++static int lio_vf_get_port_parent_id(struct net_device *dev,
++				     struct netdev_phys_item_id *ppid);
+ 
+ static const struct net_device_ops lio_vf_rep_ndev_ops = {
+ 	.ndo_open = lio_vf_rep_open,
+@@ -47,6 +48,7 @@ static const struct net_device_ops lio_vf_rep_ndev_ops = {
+ 	.ndo_get_phys_port_name = lio_vf_rep_phys_port_name,
+ 	.ndo_get_stats64 = lio_vf_rep_get_stats64,
+ 	.ndo_change_mtu = lio_vf_rep_change_mtu,
++	.ndo_get_port_parent_id = lio_vf_get_port_parent_id,
+ };
+ 
+ static int
+@@ -443,31 +445,19 @@ lio_vf_rep_pkt_xmit(struct sk_buff *skb, struct net_device *ndev)
+ 	return NETDEV_TX_OK;
+ }
+ 
+-static int
+-lio_vf_rep_attr_get(struct net_device *dev, struct switchdev_attr *attr)
++static int lio_vf_get_port_parent_id(struct net_device *dev,
++				     struct netdev_phys_item_id *ppid)
+ {
+ 	struct lio_vf_rep_desc *vf_rep = netdev_priv(dev);
+ 	struct net_device *parent_ndev = vf_rep->parent_ndev;
+ 	struct lio *lio = GET_LIO(parent_ndev);
+ 
+-	switch (attr->id) {
+-	case SWITCHDEV_ATTR_ID_PORT_PARENT_ID:
+-		attr->u.ppid.id_len = ETH_ALEN;
+-		ether_addr_copy(attr->u.ppid.id,
+-				(void *)&lio->linfo.hw_addr + 2);
+-		break;
+-
+-	default:
+-		return -EOPNOTSUPP;
+-	}
++	ppid->id_len = ETH_ALEN;
++	ether_addr_copy(ppid->id, (void *)&lio->linfo.hw_addr + 2);
+ 
+ 	return 0;
+ }
+ 
+-static const struct switchdev_ops lio_vf_rep_switchdev_ops = {
+-	.switchdev_port_attr_get        = lio_vf_rep_attr_get,
+-};
+-
+ static void
+ lio_vf_rep_fetch_stats(struct work_struct *work)
+ {
+@@ -524,7 +514,6 @@ lio_vf_rep_create(struct octeon_device *oct)
+ 		ndev->min_mtu = LIO_MIN_MTU_SIZE;
+ 		ndev->max_mtu = LIO_MAX_MTU_SIZE;
+ 		ndev->netdev_ops = &lio_vf_rep_ndev_ops;
+-		SWITCHDEV_SET_OPS(ndev, &lio_vf_rep_switchdev_ops);
+ 
+ 		vf_rep = netdev_priv(ndev);
+ 		memset(vf_rep, 0, sizeof(*vf_rep));
 -- 
 2.17.1
