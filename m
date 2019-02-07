@@ -1,77 +1,64 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3 0/6] mm: make pinned_vm atomic and simplify users
-Date: Thu, 7 Feb 2019 13:12:52 -0700
-Message-ID: <20190207201252.GA29842@ziepe.ca>
-References: <20190206175920.31082-1-dave@stgolabs.net>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Thu, 7 Feb 2019 16:31:53 -0500
+Message-ID: <93012d17-d3f9-76d5-e6e0-ea39198db5a9@talpey.com>
+References: <20190206175233.GN21860@bombadil.infradead.org>
+ <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
+ <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
+ <20190206210356.GZ6173@dastard> <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <20190207035258.GD6173@dastard> <20190207052310.GA22726@ziepe.ca>
+ <CC414509-F046-49E3-9D0C-F66FD488AC64@oracle.com>
+ <6b260348-966a-bc95-162b-44ae8265cf03@talpey.com>
+ <20190207165740.GB29531@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190206175920.31082-1-dave@stgolabs.net>
+In-Reply-To: <20190207165740.GB29531@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Davidlohr Bueso <dave@stgolabs.net>
-Cc: akpm@linux-foundation.org, dledford@redhat.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-mm@kvack.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 06, 2019 at 09:59:14AM -0800, Davidlohr Bueso wrote:
-> Changes from v2 (https://patchwork.kernel.org/cover/10774255/):
->  - Added more reviews for patch 1 and also fixed mm/debug.c to
->    use llx insted of lx so gcc doesn't complain.
+On 2/7/2019 11:57 AM, Ira Weiny wrote:
+> On Thu, Feb 07, 2019 at 10:28:05AM -0500, Tom Talpey wrote:
+>> On 2/7/2019 10:04 AM, Chuck Lever wrote:
+>>>
+>>>
+>>>> On Feb 7, 2019, at 12:23 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>>>>
+>>>> On Thu, Feb 07, 2019 at 02:52:58PM +1100, Dave Chinner wrote:
+>>>>
+>>>>> Requiring ODP capable hardware and applications that control RDMA
+>>>>> access to use file leases and be able to cancel/recall client side
+>>>>> delegations (like NFS is already able to do!) seems like a pretty
+>>>>
+>>>> So, what happens on NFS if the revoke takes too long?
+>>>
+>>> NFS distinguishes between "recall" and "revoke". Dave used "recall"
+>>> here, it means that the server recalls the client's delegation. If
+>>> the client doesn't respond, the server revokes the delegation
+>>> unilaterally and other users are allowed to proceed.
+>>
+>> The SMB3 protocol has a similar "lease break" mechanism, btw.
+>>
+>> SMB3 "push mode" has long-expected to allow DAX mapping of files
+>> only when an exclusive lease is held by the requesting client.
+>> The server may recall the lease if the DAX mapping needs to change.
+>>
+>> Once local (MMU) and remote (RDMA) mappings are dropped, the
+>> client may re-request that the server reestablish them. No
+>> connection or process is terminated, and no data is silently lost.
 > 
->  - Re did patch 3 (qib rdma) such that we still have to take
->    mmap_sem as it now uses gup_longterm(). gup_fast() conversion
->    remains for patch 2 which is not infiniband.
-> 
->  - Rebased for rdma tree.
->  
-> Changes from v1 (https://patchwork.kernel.org/cover/10764923/):
->  - Converted pinned_vm to atomic64 instead of atomic_long such that
->    infiniband need not worry about overflows.
-> 
->  - Rebased patch 1 and added Ira's reviews as well as Parvi's review
->    for patch 5 (thanks!).
->    
-> --------
-> 
-> Hi,
-> 
-> The following patches aim to provide cleanups to users that pin pages
-> (mostly infiniband) by converting the counter to atomic -- note that
-> Daniel Jordan also has patches[1] for the locked_vm counterpart and vfio.
-> 
-> Apart from removing a source of mmap_sem writer, we benefit in that
-> we can get rid of a lot of code that defers work when the lock cannot
-> be acquired, as well as drivers avoiding mmap_sem altogether by also
-> converting gup to gup_fast() and letting the mm handle it. Users
-> that do the gup_longterm() remain of course under at least reader mmap_sem.
-> 
-> Everything has been compile-tested _only_ so I hope I didn't do anything
-> too stupid. Please consider for v5.1.
-> 
-> On a similar topic and potential follow up, it would be nice to resurrect
-> Peter's VM_PINNED idea in that the broken semantics that occurred after
-> bc3e53f682 ("mm: distinguish between mlocked and pinned pages") are still
-> present. Also encapsulating internal mm logic via mm[un]pin() instead of
-> drivers having to know about internals and playing nice with compaction are
-> all wins.
-> 
-> Applies against rdma's for-next branch.
-> 
-> Thanks!
-> 
-> [1] https://lkml.org/lkml/2018/11/5/854
-> 
-> Davidlohr Bueso (6):
->   mm: make mm->pinned_vm an atomic64 counter
->   drivers/mic/scif: do not use mmap_sem
->   drivers/IB,qib: optimize mmap_sem usage
->   drivers/IB,hfi1: do not se mmap_sem
->   drivers/IB,usnic: reduce scope of mmap_sem
->   drivers/IB,core: reduce scope of mmap_sem
+> How long does one wait for these remote mappings to be dropped?
 
-The surprise 7th patch was mangled, but I recreated it by hand
+The recall process depends on several things, but it certainly takes a
+network round trip.
 
-Otherwise applied to rdma for-next
+If recall fails, the file protocols allow the server to revoke. However,
+since this results in loss of data, it's a last resort.
 
-Thanks,
-Jason
+Tom.
