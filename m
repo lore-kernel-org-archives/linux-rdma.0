@@ -1,79 +1,44 @@
-From: Ursula Braun <ubraun@linux.ibm.com>
-Subject: [PATCH net 1/1] net/smc: fix byte_order for rx_curs_confirmed
-Date: Thu,  7 Feb 2019 14:52:54 +0100
-Message-ID: <20190207135254.5799-1-ubraun@linux.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, raspl@linux.ibm.com, ubraun@linux.ibm.com
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Thu, 7 Feb 2019 10:04:55 -0500
+Message-ID: <CC414509-F046-49E3-9D0C-F66FD488AC64@oracle.com>
+References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
+ <20190206095000.GA12006@quack2.suse.cz> <20190206173114.GB12227@ziepe.ca>
+ <20190206175233.GN21860@bombadil.infradead.org>
+ <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
+ <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
+ <20190206210356.GZ6173@dastard> <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <20190207035258.GD6173@dastard> <20190207052310.GA22726@ziepe.ca>
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190207052310.GA22726@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, linux-mm@kvack.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The recent change in the rx_curs_confirmed assignment disregards
-byte order, which causes problems on little endian architectures.
-This patch fixes it.
 
-Fixes: b8649efad879 ("net/smc: fix sender_free computation") (net-tree)
-Signed-off-by: Ursula Braun <ubraun@linux.ibm.com>
----
- net/smc/smc_cdc.c |  4 +---
- net/smc/smc_cdc.h | 19 ++++++++++---------
- 2 files changed, 11 insertions(+), 12 deletions(-)
 
-diff --git a/net/smc/smc_cdc.c b/net/smc/smc_cdc.c
-index a712c9f8699b..fb07ad8d69a6 100644
---- a/net/smc/smc_cdc.c
-+++ b/net/smc/smc_cdc.c
-@@ -101,9 +101,7 @@ int smc_cdc_msg_send(struct smc_connection *conn,
- 
- 	conn->tx_cdc_seq++;
- 	conn->local_tx_ctrl.seqno = conn->tx_cdc_seq;
--	smc_host_msg_to_cdc((struct smc_cdc_msg *)wr_buf,
--			    &conn->local_tx_ctrl, conn);
--	smc_curs_copy(&cfed, &((struct smc_host_cdc_msg *)wr_buf)->cons, conn);
-+	smc_host_msg_to_cdc((struct smc_cdc_msg *)wr_buf, conn, &cfed);
- 	rc = smc_wr_tx_send(link, (struct smc_wr_tx_pend_priv *)pend);
- 	if (!rc)
- 		smc_curs_copy(&conn->rx_curs_confirmed, &cfed, conn);
-diff --git a/net/smc/smc_cdc.h b/net/smc/smc_cdc.h
-index 271e2524dc8f..f1cdde9d4b89 100644
---- a/net/smc/smc_cdc.h
-+++ b/net/smc/smc_cdc.h
-@@ -211,26 +211,27 @@ static inline int smc_curs_diff_large(unsigned int size,
- 
- static inline void smc_host_cursor_to_cdc(union smc_cdc_cursor *peer,
- 					  union smc_host_cursor *local,
-+					  union smc_host_cursor *save,
- 					  struct smc_connection *conn)
- {
--	union smc_host_cursor temp;
--
--	smc_curs_copy(&temp, local, conn);
--	peer->count = htonl(temp.count);
--	peer->wrap = htons(temp.wrap);
-+	smc_curs_copy(save, local, conn);
-+	peer->count = htonl(save->count);
-+	peer->wrap = htons(save->wrap);
- 	/* peer->reserved = htons(0); must be ensured by caller */
- }
- 
- static inline void smc_host_msg_to_cdc(struct smc_cdc_msg *peer,
--				       struct smc_host_cdc_msg *local,
--				       struct smc_connection *conn)
-+				       struct smc_connection *conn,
-+				       union smc_host_cursor *save)
- {
-+	struct smc_host_cdc_msg *local = &conn->local_tx_ctrl;
-+
- 	peer->common.type = local->common.type;
- 	peer->len = local->len;
- 	peer->seqno = htons(local->seqno);
- 	peer->token = htonl(local->token);
--	smc_host_cursor_to_cdc(&peer->prod, &local->prod, conn);
--	smc_host_cursor_to_cdc(&peer->cons, &local->cons, conn);
-+	smc_host_cursor_to_cdc(&peer->prod, &local->prod, save, conn);
-+	smc_host_cursor_to_cdc(&peer->cons, &local->cons, save, conn);
- 	peer->prod_flags = local->prod_flags;
- 	peer->conn_state_flags = local->conn_state_flags;
- }
--- 
-2.16.4
+> On Feb 7, 2019, at 12:23 AM, Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> 
+> On Thu, Feb 07, 2019 at 02:52:58PM +1100, Dave Chinner wrote:
+> 
+>> Requiring ODP capable hardware and applications that control RDMA
+>> access to use file leases and be able to cancel/recall client side
+>> delegations (like NFS is already able to do!) seems like a pretty
+> 
+> So, what happens on NFS if the revoke takes too long?
+
+NFS distinguishes between "recall" and "revoke". Dave used "recall"
+here, it means that the server recalls the client's delegation. If
+the client doesn't respond, the server revokes the delegation
+unilaterally and other users are allowed to proceed.
+
+
+--
+Chuck Lever
