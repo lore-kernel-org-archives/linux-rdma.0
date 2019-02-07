@@ -1,53 +1,43 @@
-From: Jan Kara <jack@suse.cz>
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Thu, 7 Feb 2019 17:48:36 +0100
-Message-ID: <20190207164836.GL3597@quack2.suse.cz>
-References: <20190205175059.GB21617@iweiny-DESK2.sc.intel.com>
- <20190206095000.GA12006@quack2.suse.cz>
+Date: Thu, 7 Feb 2019 08:54:08 -0800
+Message-ID: <20190207165407.GA29531@iweiny-DESK2.sc.intel.com>
+References: <20190206095000.GA12006@quack2.suse.cz>
  <20190206173114.GB12227@ziepe.ca>
  <20190206175233.GN21860@bombadil.infradead.org>
  <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
  <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
- <20190206194055.GP21860@bombadil.infradead.org>
- <a9df9be75966f34f55f843a3cd7e1ee7d497c7fa.camel@redhat.com>
- <20190206202021.GQ21860@bombadil.infradead.org>
- <a5b976cad6a578f0a6e6573acbf547ceb9dad6c7.camel@redhat.com>
+ <20190206210356.GZ6173@dastard>
+ <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <20190207035258.GD6173@dastard>
+ <20190207052310.GA22726@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <a5b976cad6a578f0a6e6573acbf547ceb9dad6c7.camel@redhat.com>
+In-Reply-To: <20190207052310.GA22726@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Christopher Lameter <cl@linux.com>, Jason Gunthorpe <jgg@ziepe.ca>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Michal Hocko <mhocko@kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, lsf-pc@lists.linux-foundation.org, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed 06-02-19 15:54:01, Doug Ledford wrote:
-> On Wed, 2019-02-06 at 12:20 -0800, Matthew Wilcox wrote:
-> > On Wed, Feb 06, 2019 at 03:16:02PM -0500, Doug Ledford wrote:
-> > > On Wed, 2019-02-06 at 11:40 -0800, Matthew Wilcox wrote:
-> > > > On Wed, Feb 06, 2019 at 07:16:21PM +0000, Christopher Lameter wrote:
-> > > > > though? If we only allow this use case then we may not have to worry about
-> > > > > long term GUP because DAX mapped files will stay in the physical location
-> > > > > regardless.
-> > > > 
-> > > > ... except for truncate.  And now that I think about it, there was a
-> > > > desire to support hot-unplug which also needed revoke.
-> > > 
-> > > We already support hot unplug of RDMA devices.  But it is extreme.  How
-> > > does hot unplug deal with a program running from the device (something
-> > > that would have returned ETXTBSY)?
-> > 
-> > Not hot-unplugging the RDMA device but hot-unplugging an NV-DIMM.
+On Wed, Feb 06, 2019 at 10:23:10PM -0700, Jason Gunthorpe wrote:
+> On Thu, Feb 07, 2019 at 02:52:58PM +1100, Dave Chinner wrote:
 > 
-> Is an NV-DIMM the only thing we use DAX on?
+> > Requiring ODP capable hardware and applications that control RDMA
+> > access to use file leases and be able to cancel/recall client side
+> > delegations (like NFS is already able to do!) seems like a pretty
+> 
+> So, what happens on NFS if the revoke takes too long?
 
-Currently yes. However KVM people are soon going to use it for their
-purposes as well (essentially directly sharing host page cache between
-guests).
+This is the fundamental issue with RDMA revoke.  With RDMA and some hardware
+you are going to end up killing processes.  If the decision is that only
+processes on non-ODP hardware get killed and the user basically "should not
+have done that" then I'm ok with that.  However, then we really need to
+prevented them from registering the memory in the first place.  Which means we
+leave in the "longterm" GUP registration and fail those registrations can't be
+supported.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Ira
