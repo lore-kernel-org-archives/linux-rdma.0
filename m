@@ -1,49 +1,77 @@
-From: Christopher Lameter <cl@linux.com>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving longterm-GUP
- usage by RDMA
-Date: Thu, 7 Feb 2019 18:17:46 +0000
-Message-ID: <01000168c92e1220-36386b5d-66f7-4ba5-ba0e-d314b1d26cf8-000000@email.amazonses.com>
-References: <20190206173114.GB12227@ziepe.ca> <20190206175233.GN21860@bombadil.infradead.org> <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com> <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com> <20190206210356.GZ6173@dastard>
- <20190206220828.GJ12227@ziepe.ca> <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com> <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com> <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com> <20190207173504.GD29531@iweiny-DESK2.sc.intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v3 0/6] mm: make pinned_vm atomic and simplify users
+Date: Thu, 7 Feb 2019 13:12:52 -0700
+Message-ID: <20190207201252.GA29842@ziepe.ca>
+References: <20190206175920.31082-1-dave@stgolabs.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190207173504.GD29531@iweiny-DESK2.sc.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20190206175920.31082-1-dave@stgolabs.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Doug Ledford <dledford@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Davidlohr Bueso <dave@stgolabs.net>
+Cc: akpm@linux-foundation.org, dledford@redhat.com, jack@suse.cz, willy@infradead.org, ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 7 Feb 2019, Ira Weiny wrote:
+On Wed, Feb 06, 2019 at 09:59:14AM -0800, Davidlohr Bueso wrote:
+> Changes from v2 (https://patchwork.kernel.org/cover/10774255/):
+>  - Added more reviews for patch 1 and also fixed mm/debug.c to
+>    use llx insted of lx so gcc doesn't complain.
+> 
+>  - Re did patch 3 (qib rdma) such that we still have to take
+>    mmap_sem as it now uses gup_longterm(). gup_fast() conversion
+>    remains for patch 2 which is not infiniband.
+> 
+>  - Rebased for rdma tree.
+>  
+> Changes from v1 (https://patchwork.kernel.org/cover/10764923/):
+>  - Converted pinned_vm to atomic64 instead of atomic_long such that
+>    infiniband need not worry about overflows.
+> 
+>  - Rebased patch 1 and added Ira's reviews as well as Parvi's review
+>    for patch 5 (thanks!).
+>    
+> --------
+> 
+> Hi,
+> 
+> The following patches aim to provide cleanups to users that pin pages
+> (mostly infiniband) by converting the counter to atomic -- note that
+> Daniel Jordan also has patches[1] for the locked_vm counterpart and vfio.
+> 
+> Apart from removing a source of mmap_sem writer, we benefit in that
+> we can get rid of a lot of code that defers work when the lock cannot
+> be acquired, as well as drivers avoiding mmap_sem altogether by also
+> converting gup to gup_fast() and letting the mm handle it. Users
+> that do the gup_longterm() remain of course under at least reader mmap_sem.
+> 
+> Everything has been compile-tested _only_ so I hope I didn't do anything
+> too stupid. Please consider for v5.1.
+> 
+> On a similar topic and potential follow up, it would be nice to resurrect
+> Peter's VM_PINNED idea in that the broken semantics that occurred after
+> bc3e53f682 ("mm: distinguish between mlocked and pinned pages") are still
+> present. Also encapsulating internal mm logic via mm[un]pin() instead of
+> drivers having to know about internals and playing nice with compaction are
+> all wins.
+> 
+> Applies against rdma's for-next branch.
+> 
+> Thanks!
+> 
+> [1] https://lkml.org/lkml/2018/11/5/854
+> 
+> Davidlohr Bueso (6):
+>   mm: make mm->pinned_vm an atomic64 counter
+>   drivers/mic/scif: do not use mmap_sem
+>   drivers/IB,qib: optimize mmap_sem usage
+>   drivers/IB,hfi1: do not se mmap_sem
+>   drivers/IB,usnic: reduce scope of mmap_sem
+>   drivers/IB,core: reduce scope of mmap_sem
 
-> On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
-> > One approach that may be a clean way to solve this:
-> >
-> > 1. Long term GUP usage requires the virtual mapping to the pages be fixed
-> >    for the duration of the GUP Map. There never has been a way to break
-> >    the pinnning and thus this needs to be preserved.
->
-> How does this fit in with the changes John is making?
->
-> >
-> > 2. Page Cache Long term pins are not allowed since regular filesystems
-> >    depend on COW and other tricks which are incompatible with a long term
-> >    pin.
->
-> Unless the hardware supports ODP or equivalent functionality.  Right?
+The surprise 7th patch was mangled, but I recreated it by hand
 
-Ok we could make an exception there. But that is not required as a first
-step and only some hardware would support it.
+Otherwise applied to rdma for-next
 
-> > 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
-> >    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
-> >    on the longterm pinned range until the long term pin is removed.
-> >    Hardware may do its job (like for persistent memory) but no data
-> >    consistency on the NVDIMM medium is guaranteed until the long term pin
-> >    is removed  and the filesystems regains control over the area.
->
-> I believe Dan attempted something like this and it became pretty difficult.
-
-What is difficult about leaving things alone that are pinned? We already
-have to do that currently because the refcount is elevated.
+Thanks,
+Jason
