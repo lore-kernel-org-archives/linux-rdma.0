@@ -1,8 +1,8 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Thu, 7 Feb 2019 10:26:22 -0700
-Message-ID: <20190207172622.GF22726@ziepe.ca>
+Date: Thu, 7 Feb 2019 09:35:04 -0800
+Message-ID: <20190207173504.GD29531@iweiny-DESK2.sc.intel.com>
 References: <20190206173114.GB12227@ziepe.ca>
  <20190206175233.GN21860@bombadil.infradead.org>
  <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
@@ -12,47 +12,63 @@ References: <20190206173114.GB12227@ziepe.ca>
  <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
  <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
  <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <20190207172405.GY21860@bombadil.infradead.org>
+ <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190207172405.GY21860@bombadil.infradead.org>
+In-Reply-To: <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Doug Ledford <dledford@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Christopher Lameter <cl@linux.com>
+Cc: Doug Ledford <dledford@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 07, 2019 at 09:24:05AM -0800, Matthew Wilcox wrote:
-> On Thu, Feb 07, 2019 at 11:25:35AM -0500, Doug Ledford wrote:
-> > * Really though, as I said in my email to Tom Talpey, this entire
-> > situation is simply screaming that we are doing DAX networking wrong. 
-> > We shouldn't be writing the networking code once in every single
-> > application that wants to do this.  If we had a memory segment that we
-> > shared from server to client(s), and in that memory segment we
-> > implemented a clustered filesystem, then applications would simply mmap
-> > local files and be done with it.  If the file needed to move, the kernel
-> > would update the mmap in the application, done.  If you ask me, it is
-> > the attempt to do this the wrong way that is resulting in all this
-> > heartache.  That said, for today, my recommendation would be to require
-> > ODP hardware for XFS filesystem with the DAX option, but allow ext2
-> > filesystems to mount DAX filesystems on non-ODP hardware, and go in and
-> > modify the ext2 filesystem so that on DAX mounts, it disables hole punch
-> > and ftrunctate any time they would result in the forced removal of an
-> > established mmap.
+On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
+> One approach that may be a clean way to solve this:
 > 
-> I agree that something's wrong, but I think the fundamental problem is
-> that there's no concept in RDMA of having an STag for storage rather
-> than for memory.
+> 1. Long term GUP usage requires the virtual mapping to the pages be fixed
+>    for the duration of the GUP Map. There never has been a way to break
+>    the pinnning and thus this needs to be preserved.
+
+How does this fit in with the changes John is making?
+
 > 
-> Imagine if we could associate an STag with a file descriptor on the
-> server.  The client could then perform an RDMA to that STag.  On the
-> server, we'd need lots of smarts in the card and in the OS to know how
-> to treat that packet on arrival -- depending on what the file descriptor
-> referred to, it might only have to write into the page cache, or it
-> might set up an NVMe DMA, or it might resolve the underlying physical
-> address and DMA directly to an NV-DIMM.
+> 2. Page Cache Long term pins are not allowed since regular filesystems
+>    depend on COW and other tricks which are incompatible with a long term
+>    pin.
 
-I think you just described ODP MRs.
+Unless the hardware supports ODP or equivalent functionality.  Right?
 
-Jason
+> 
+> 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
+>    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
+>    on the longterm pinned range until the long term pin is removed.
+>    Hardware may do its job (like for persistent memory) but no data
+>    consistency on the NVDIMM medium is guaranteed until the long term pin
+>    is removed  and the filesystems regains control over the area.
+
+I believe Dan attempted something like this and it became pretty difficult.
+
+> 
+> 4. Long term pin means that the mapped sections are an actively used part
+>    of the file (like a filesystem write) and it cannot be truncated for
+>    the duration of the pin. It can be thought of as if the truncate is
+>    immediate followed by a write extending the file again. The mapping
+>    by RDMA implies after all that remote writes can occur at anytime
+>    within the area pinned long term.
+>
+
+This is a very interesting idea.  I've never quite thought of it that way.
+
+That would be essentially like failing the truncate but without actually
+failing it...  sneaky.  ;-)
+
+What if user space then writes to the end of the file?  Does that write end
+up at the point they truncated to or off the end of the mmaped area (old
+length)?
+
+I can see the behavior being defined either way.  But one interferes with the
+RDMA data and the other does not.  Not sure which is easier for the FS to
+handle either.
+
+Ira
