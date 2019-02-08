@@ -1,59 +1,75 @@
-From: Dave Chinner <david@fromorbit.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Fri, 8 Feb 2019 15:43:02 +1100
-Message-ID: <20190208044302.GA20493@dastard>
-References: <20190206173114.GB12227@ziepe.ca>
- <20190206175233.GN21860@bombadil.infradead.org>
- <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
+Date: Thu, 7 Feb 2019 22:19:50 -0700
+Message-ID: <20190208051950.GA4283@ziepe.ca>
+References: <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
  <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
  <20190206210356.GZ6173@dastard>
  <20190206220828.GJ12227@ziepe.ca>
  <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
- <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
- <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
+ <20190207035258.GD6173@dastard>
+ <20190207052310.GA22726@ziepe.ca>
+ <CAPcyv4jd4gxvt3faYYRbv5gkc6NGOKjY_Z-P0Ph=ss=gWZw7sA@mail.gmail.com>
+ <20190207171736.GD22726@ziepe.ca>
+ <CAPcyv4hsHeCGjcJNEmMg_6FYEsQ_8Z=bvx+WmO1v_LmoXbJrxA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
+In-Reply-To: <CAPcyv4hsHeCGjcJNEmMg_6FYEsQ_8Z=bvx+WmO1v_LmoXbJrxA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Doug Ledford <dledford@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
-> One approach that may be a clean way to solve this:
-> 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
->    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
->    on the longterm pinned range until the long term pin is removed.
+On Thu, Feb 07, 2019 at 03:54:58PM -0800, Dan Williams wrote:
 
-So, ummm, how do we do block allocation then, which is done on
-demand during writes?
+> > The only production worthy way is to have the FS be a partner in
+> > making this work without requiring revoke, so the critical RDMA
+> > traffic can operate safely.
+> 
+> ...belies a path forward. Just swap out "FS be a partner" with "system
+> administrator be a partner". In other words, If the RDMA stack can't
+> tolerate an MR being disabled then the administrator needs to actively
+> disable the paths that would trigger it. Turn off reflink, don't
+> truncate, avoid any future FS feature that might generate unwanted
+> lease breaks. 
 
-IOWs, this requires the application to set up the file in the
-correct state for the filesystem to lock it down so somebody else
-can write to it.  That means the file can't be sparse, it can't be
-preallocated (i.e. can't contain unwritten extents), it must have zeroes
-written to it's full size before being shared because otherwise it
-exposes stale data to the remote client (secure sites are going to
-love that!), they can't be extended, etc.
+This is what I suggested already, except with explicit kernel aid, not
+left as some gordian riddle for the administrator to unravel.
 
-IOWs, once the file is prepped and leased out for RDMA, it becomes
-an immutable for the purposes of local access.
+You already said it is too hard for expert FS developers to maintain a
+mode switch, it seems like a really big stretch to think application
+and systems architects will have any hope to do better.
 
-Which, essentially we can already do. Prep the file, map it
-read/write, mark it immutable, then pin it via the longterm gup
-interface which can do the necessary checks.
+It makes much more sense for the admin to flip some kind of bit and
+the FS guarentees the safety that you are asking the admin to create.
 
-Simple to implement, the reasons for errors trying to modify the
-file are already documented and queriable, and it's hard for
-applications to get wrong.
+> We would need to make sure that lease notifications include the
+> information to identify the lease breaker to debug escapes that
+> might happen, but it is a solution that can be qualified to not
+> lease break. 
 
-Cheers,
+I think building a complicated lease framework and then telling
+everyone in user space to design around it so it never gets used would
+be very hard to explain and justify.
 
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Never mind the security implications if some seemingly harmless future
+filesystem change causes unexpected lease revokes across something
+like a tenant boundary.
+
+> In any event, this lets end users pick their filesystem
+> (modulo RDMA incompatible features), provides an enumeration of
+> lease break sources in the kernel, and opens up FS-DAX to a wider
+> array of RDMA adapters. In general this is what Linux has
+> historically done, give end users technology freedom.
+
+I think this is not the Linux model. The kernel should not allow
+unpriv user space to do an operation that could be unsafe.
+
+I continue to think this is is the best idea that has come up - but
+only if the filesystem is involved and expressly tells the kernel
+layers that this combination of DAX & filesystem is safe.
+
+Jason
