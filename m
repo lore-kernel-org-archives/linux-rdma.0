@@ -1,38 +1,59 @@
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Subject: Re: [PATCH v2] lib/scatterlist: Provide a DMA page iterator
-Date: Fri, 8 Feb 2019 05:31:55 +0100
-Message-ID: <CANiq72=qfNHf5zd8c8VkmrhE8U5_kH6yg3z4JD1N5yEfL727tA@mail.gmail.com>
-References: <20190207222647.GA30974@ziepe.ca>
+From: Dave Chinner <david@fromorbit.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Fri, 8 Feb 2019 15:43:02 +1100
+Message-ID: <20190208044302.GA20493@dastard>
+References: <20190206173114.GB12227@ziepe.ca>
+ <20190206175233.GN21860@bombadil.infradead.org>
+ <47820c4d696aee41225854071ec73373a273fd4a.camel@redhat.com>
+ <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
+ <20190206210356.GZ6173@dastard>
+ <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
+ <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
+ <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190207222647.GA30974@ziepe.ca>
+Content-Disposition: inline
+In-Reply-To: <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Daniel Stone <daniel@fooishbar.org>, "hch@lst.de" <hch@lst.de>, "Koenig, Christian" <Christian.Koenig@amd.com>, Thomas Hellstrom <thellstrom@vmware.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
+To: Christopher Lameter <cl@linux.com>
+Cc: Doug Ledford <dledford@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 7, 2019 at 11:28 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
-> backing pages") introduced the sg_page_iter_dma_address() function without
-> providing a way to use it in the general case. If the sg_dma_len() is not
-> equal to the sg length callers cannot safely use the
-> for_each_sg_page/sg_page_iter_dma_address combination.
->
-> Resolve this API mistake by providing a DMA specific iterator,
-> for_each_sg_dma_page(), that uses the right length so
-> sg_page_iter_dma_address() works as expected with all sglists.
->
-> A new iterator type is introduced to provide compile-time safety against
-> wrongly mixing accessors and iterators.
->
-> Acked-by: Christoph Hellwig <hch@lst.de> (for scatterlist)
-> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-> ---
->  .clang-format                              |  1 +
+On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
+> One approach that may be a clean way to solve this:
+> 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
+>    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
+>    on the longterm pinned range until the long term pin is removed.
 
-Thanks for updating the .clang-format, Jason! :-)
+So, ummm, how do we do block allocation then, which is done on
+demand during writes?
+
+IOWs, this requires the application to set up the file in the
+correct state for the filesystem to lock it down so somebody else
+can write to it.  That means the file can't be sparse, it can't be
+preallocated (i.e. can't contain unwritten extents), it must have zeroes
+written to it's full size before being shared because otherwise it
+exposes stale data to the remote client (secure sites are going to
+love that!), they can't be extended, etc.
+
+IOWs, once the file is prepped and leased out for RDMA, it becomes
+an immutable for the purposes of local access.
+
+Which, essentially we can already do. Prep the file, map it
+read/write, mark it immutable, then pin it via the longterm gup
+interface which can do the necessary checks.
+
+Simple to implement, the reasons for errors trying to modify the
+file are already documented and queriable, and it's hard for
+applications to get wrong.
 
 Cheers,
-Miguel
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
