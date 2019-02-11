@@ -1,41 +1,63 @@
-From: "Weiny, Ira" <ira.weiny@intel.com>
-Subject: RE: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 21:14:56 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E79BCF04C@CRSMSX101.amr.corp.intel.com>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211204049.GB2771@ziepe.ca>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Mon, 11 Feb 2019 13:22:11 -0800
+Message-ID: <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com>
+References: <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
+ <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
+ <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
+ <20190208044302.GA20493@dastard> <20190208111028.GD6353@quack2.suse.cz>
+ <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+ <20190211102402.GF19029@quack2.suse.cz>
+ <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+ <20190211180654.GB24692@ziepe.ca>
+ <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211204049.GB2771@ziepe.ca>
-Content-Language: en-US
+In-Reply-To: <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/11/19 10:19 AM, Ira Weiny wrote:
+> On Mon, Feb 11, 2019 at 11:06:54AM -0700, Jason Gunthorpe wrote:
+>> On Mon, Feb 11, 2019 at 09:22:58AM -0800, Dan Williams wrote:
+[...]
+> John's patches will indicate to the FS that the page is gup pinned.  But they
+> will not indicate longterm vs not "shorterm".  A shortterm pin could be handled
+> as a "real truncate".  So, are we back to needing a longterm "bit" in struct
+> page to indicate a longterm pin and allow the FS to perform this "virtual
+> write" after truncate?
 > 
-> On Mon, Feb 11, 2019 at 12:16:40PM -0800, ira.weiny@intel.com wrote:
-> > From: Ira Weiny <ira.weiny@intel.com>
-> >
-> > NOTE: This series depends on my clean up patch to remove the write
-> > parameter from gup_fast_permitted()[1]
-> >
-> > HFI1 uses get_user_pages_fast() due to it performance advantages.
-> > Like RDMA,
-> > HFI1 pages can be held for a significant time.  But
-> > get_user_pages_fast() does not protect against mapping of FS DAX pages.
+> Or is it safe to consider all gup pinned pages this way?
 > 
-> If HFI1 can use the _fast varient, can't all the general RDMA stuff use it too?
+> Ira
 > 
-> What is the guidance on when fast vs not fast should be use?
 
-Right now it can't because it holds mmap_sem across the call.  Once Shiraz's patches are accepted removing the umem->hugetlb flag I think we can change  umem.c.
+I mentioned this in another thread, but I'm not great at email threading. :)
+Anyway, it seems better to just drop the entire "longterm" concept from the 
+internal APIs, and just deal in "it's either gup-pinned *at the moment*, or 
+it's not". And let the filesystem respond appropriately. So for a pinned page 
+that hits clear_page_dirty_for_io or whatever else care about pinned pages:
 
-Also, it specifies FOLL_FORCE which can't currently be specified with gup fast.  One idea I had was to change get_user_pages_fast() to use gup_flags instead of a single write flag.  But that proved to be a very big cosmetic change across a lot of callers so I went this way.
+-- fire mmu notifiers, revoke leases, generally do everything as if it were a
+long term gup pin
 
-Ira
+-- if it's long term, then you've taken the right actions.
 
-> 
-> Jason
+-- if the pin really is short term, everything works great anyway.
+
+
+The only way that breaks is if longterm pins imply an irreversible action, such
+as blocking and waiting in a way that you can't back out of or get interrupted
+out of. And the design doesn't seem to be going in that direction, right?
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
