@@ -1,115 +1,42 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Mon, 11 Feb 2019 09:22:58 -0800
-Message-ID: <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
-References: <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
- <20190206210356.GZ6173@dastard> <20190206220828.GJ12227@ziepe.ca>
+Date: Mon, 11 Feb 2019 11:06:54 -0700
+Message-ID: <20190211180654.GB24692@ziepe.ca>
+References: <20190206220828.GJ12227@ziepe.ca>
  <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
  <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
  <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
  <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
- <20190208044302.GA20493@dastard> <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com> <20190211102402.GF19029@quack2.suse.cz>
+ <20190208044302.GA20493@dastard>
+ <20190208111028.GD6353@quack2.suse.cz>
+ <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+ <20190211102402.GF19029@quack2.suse.cz>
+ <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211102402.GF19029@quack2.suse.cz>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 2:24 AM Jan Kara <jack@suse.cz> wrote:
->
-> On Fri 08-02-19 12:50:37, Dan Williams wrote:
-> > On Fri, Feb 8, 2019 at 3:11 AM Jan Kara <jack@suse.cz> wrote:
-> > >
-> > > On Fri 08-02-19 15:43:02, Dave Chinner wrote:
-> > > > On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
-> > > > > One approach that may be a clean way to solve this:
-> > > > > 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
-> > > > >    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
-> > > > >    on the longterm pinned range until the long term pin is removed.
-> > > >
-> > > > So, ummm, how do we do block allocation then, which is done on
-> > > > demand during writes?
-> > > >
-> > > > IOWs, this requires the application to set up the file in the
-> > > > correct state for the filesystem to lock it down so somebody else
-> > > > can write to it.  That means the file can't be sparse, it can't be
-> > > > preallocated (i.e. can't contain unwritten extents), it must have zeroes
-> > > > written to it's full size before being shared because otherwise it
-> > > > exposes stale data to the remote client (secure sites are going to
-> > > > love that!), they can't be extended, etc.
-> > > >
-> > > > IOWs, once the file is prepped and leased out for RDMA, it becomes
-> > > > an immutable for the purposes of local access.
-> > > >
-> > > > Which, essentially we can already do. Prep the file, map it
-> > > > read/write, mark it immutable, then pin it via the longterm gup
-> > > > interface which can do the necessary checks.
-> > >
-> > > Hum, and what will you do if the immutable file that is target for RDMA
-> > > will be a source of reflink? That seems to be currently allowed for
-> > > immutable files but RDMA store would be effectively corrupting the data of
-> > > the target inode. But we could treat it similarly as swapfiles - those also
-> > > have to deal with writes to blocks beyond filesystem control. In fact the
-> > > similarity seems to be quite large there. What do you think?
-> >
-> > This sounds so familiar...
-> >
-> >     https://lwn.net/Articles/726481/
-> >
-> > I'm not opposed to trying again, but leases was what crawled out
-> > smoking crater when this last proposal was nuked.
->
-> Umm, don't think this is that similar to daxctl() discussion. We are not
-> speaking about providing any new userspace API for this.
+On Mon, Feb 11, 2019 at 09:22:58AM -0800, Dan Williams wrote:
 
-I thought explicit userspace API was one of the outcomes, i.e. that we
-can't depend on this behavior being an implicit side effect of a page
-pin?
+> I honestly don't like the idea that random subsystems can pin down
+> file blocks as a side effect of gup on the result of mmap. Recall that
+> it's not just RDMA that wants this guarantee. It seems safer to have
+> the file be in an explicit block-allocation-immutable-mode so that the
+> fallocate man page can describe this error case. Otherwise how would
+> you describe the scenarios under which FALLOC_FL_PUNCH_HOLE fails?
 
-> Also I think the
-> situation about leases has somewhat cleared up with this discussion - ODP
-> hardware does not need leases since it can use MMU notifiers, for non-ODP
-> hardware it is difficult to handle leases as such hardware has only one big
-> kill-everything call and using that would effectively mean lot of work on
-> the userspace side to resetup everything to make things useful if workable
-> at all.
->
-> So my proposal would be:
->
-> 1) ODP hardward uses gup_fast() like direct IO and uses MMU notifiers to do
-> its teardown when fs needs it.
->
-> 2) Hardware not capable of tearing down pins from MMU notifiers will have
-> to use gup_longterm() (we may actually rename it to a more suitable name).
-> FS may just refuse such calls (for normal page cache backed file, it will
-> just return success but for DAX file it will do sanity checks whether the
-> file is fully allocated etc. like we currently do for swapfiles) but if
-> gup_longterm() returns success, it will provide the same guarantees as for
-> swapfiles. So the only thing that we need is some call from gup_longterm()
-> to a filesystem callback to tell it - this file is going to be used by a
-> third party as an IO buffer, don't touch it. And we can (and should)
-> probably refactor the handling to be shared between swapfiles and
-> gup_longterm().
+I rather liked CL's version of this - ftruncate/etc is simply racing
+with a parallel pwrite - and it doesn't fail.
 
-Yes, lets pursue this. At the risk of "arguing past 'yes'" this is a
-solution I thought we dax folks walked away from in the original
-MAP_DIRECT discussion [1]. Here is where leases were the response to
-MAP_DIRECT [2]. ...and here is where we had tame discussions about
-implications of notifying memory-registrations of lease break events
-[3].
+But it also doesnt' trucate/create a hole. Another thread wrote to it
+right away and the 'hole' was essentially instantly reallocated. This
+is an inherent, pre-existing, race in the ftrucate/etc APIs.
 
-I honestly don't like the idea that random subsystems can pin down
-file blocks as a side effect of gup on the result of mmap. Recall that
-it's not just RDMA that wants this guarantee. It seems safer to have
-the file be in an explicit block-allocation-immutable-mode so that the
-fallocate man page can describe this error case. Otherwise how would
-you describe the scenarios under which FALLOC_FL_PUNCH_HOLE fails?
-
-[1]: https://lwn.net/Articles/736333/
-[2]: https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg06437.html
-[3]: https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg06499.html
+Jason
