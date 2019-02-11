@@ -1,44 +1,55 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Mon, 11 Feb 2019 15:12:47 -0700
-Message-ID: <20190211221247.GI24692@ziepe.ca>
-References: <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
- <20190208044302.GA20493@dastard>
- <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
- <20190211102402.GF19029@quack2.suse.cz>
- <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
- <20190211180654.GB24692@ziepe.ca>
- <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
- <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com>
+Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
+Date: Mon, 11 Feb 2019 15:22:08 -0700
+Message-ID: <20190211222208.GJ24692@ziepe.ca>
+References: <20190211201643.7599-1-ira.weiny@intel.com>
+ <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
+ <20190211204710.GE24692@ziepe.ca>
+ <20190211214257.GA7891@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com>
+In-Reply-To: <20190211214257.GA7891@iweiny-DESK2.sc.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 01:22:11PM -0800, John Hubbard wrote:
+On Mon, Feb 11, 2019 at 01:42:57PM -0800, Ira Weiny wrote:
+> On Mon, Feb 11, 2019 at 01:47:10PM -0700, Jason Gunthorpe wrote:
+> > On Mon, Feb 11, 2019 at 12:34:17PM -0800, Davidlohr Bueso wrote:
+> > > On Mon, 11 Feb 2019, ira.weiny@intel.com wrote:
+> > > > Ira Weiny (3):
+> > > >  mm/gup: Change "write" parameter to flags
+> > > >  mm/gup: Introduce get_user_pages_fast_longterm()
+> > > >  IB/HFI1: Use new get_user_pages_fast_longterm()
+> > > 
+> > > Out of curiosity, are you planning on having all rdma drivers
+> > > use get_user_pages_fast_longterm()? Ie:
+> > > 
+> > > hw/mthca/mthca_memfree.c:       ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
+> > 
+> > This one is certainly a mistake - this should be done with a umem.
+> 
+> It looks like this is mapping a page allocated by user space for a
+> doorbell?!?!
 
-> The only way that breaks is if longterm pins imply an irreversible action, such
-> as blocking and waiting in a way that you can't back out of or get interrupted
-> out of. And the design doesn't seem to be going in that direction, right?
+Many drivers do this, the 'doorbell' is a PCI -> CPU thing of some sort
 
-RDMA, vfio, etc will always have 'long term' pins that are
-irreversible on demand. It is part of the HW capability.
+> This does not seem to be allocating memory regions.  Jason, do you
+> want a patch to just convert these calls and consider it legacy
+> code?
 
-I think the flag is badly named, it is really more of a
-GUP_LOCK_PHYSICAL_ADDRESSES flag.
+It needs to use umem like all the other drivers on this path.
+Otherwise it doesn't get the page pinning logic right
 
-ie indicate to the FS that is should not attempt to remap physical
-memory addresses backing this VMA. If the FS can't do that it must
-fail.
+There is also something else rotten with these longterm callsites,
+they seem to have very different ideas how to handle RLIMIT_MEMLOCK.
 
-Short term GUP doesn't need that kind of lock.
+ie vfio doesn't even touch pinned_vm.. and rdma is applying
+RLIMIT_MEMLOCK to mm->pinned_vm, while vfio is using locked_vm.. No
+idea which is right, but they should be the same, and this pattern
+should probably be in core code someplace.
 
 Jason
