@@ -1,9 +1,10 @@
-From: "Weiny, Ira" <ira.weiny@intel.com>
-Subject: RE: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
-Date: Mon, 11 Feb 2019 23:04:48 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E79BCF467@CRSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
+Date: Mon, 11 Feb 2019 16:25:10 -0700
+Message-ID: <20190211232510.GP24692@ziepe.ca>
 References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211201643.7599-3-ira.weiny@intel.com> <20190211203916.GA2771@ziepe.ca>
+ <20190211201643.7599-3-ira.weiny@intel.com>
+ <20190211203916.GA2771@ziepe.ca>
  <bcc03ee1-4c42-48c3-bc67-942c0f04875e@nvidia.com>
  <20190211212652.GA7790@iweiny-DESK2.sc.intel.com>
  <fc9c880b-24f8-7063-6094-00175bc27f7d@nvidia.com>
@@ -11,77 +12,51 @@ References: <20190211201643.7599-1-ira.weiny@intel.com>
  <20190211220658.GH24692@ziepe.ca>
  <CAPcyv4htDHmH7PVm_=HOWwRKtpcKTPSjrHPLqhwp2vhBUWL4-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <CAPcyv4htDHmH7PVm_=HOWwRKtpcKTPSjrHPLqhwp2vhBUWL4-w@mail.gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, Netdev <netdev@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, John Hubbard <jhubbard@nvidia.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, Netdev <netdev@vger.kernel.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiANCj4gT24gTW9uLCBGZWIgMTEsIDIwMTkgYXQgMjowNyBQTSBKYXNvbiBHdW50aG9ycGUgPGpn
-Z0B6aWVwZS5jYT4gd3JvdGU6DQo+ID4NCj4gPiBPbiBNb24sIEZlYiAxMSwgMjAxOSBhdCAwMTo1
-MjozOFBNIC0wODAwLCBJcmEgV2Vpbnkgd3JvdGU6DQo+ID4gPiBPbiBNb24sIEZlYiAxMSwgMjAx
-OSBhdCAwMTozOToxMlBNIC0wODAwLCBKb2huIEh1YmJhcmQgd3JvdGU6DQo+ID4gPiA+IE9uIDIv
-MTEvMTkgMToyNiBQTSwgSXJhIFdlaW55IHdyb3RlOg0KPiA+ID4gPiA+IE9uIE1vbiwgRmViIDEx
-LCAyMDE5IGF0IDAxOjEzOjU2UE0gLTA4MDAsIEpvaG4gSHViYmFyZCB3cm90ZToNCj4gPiA+ID4g
-Pj4gT24gMi8xMS8xOSAxMjozOSBQTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOg0KPiA+ID4gPiA+
-Pj4gT24gTW9uLCBGZWIgMTEsIDIwMTkgYXQgMTI6MTY6NDJQTSAtMDgwMCwgaXJhLndlaW55QGlu
-dGVsLmNvbQ0KPiB3cm90ZToNCj4gPiA+ID4gPj4+PiBGcm9tOiBJcmEgV2VpbnkgPGlyYS53ZWlu
-eUBpbnRlbC5jb20+DQo+ID4gPiA+ID4+IFsuLi5dDQo+ID4gPiA+ID4+IEl0IHNlZW1zIHRvIG1l
-IHRoYXQgdGhlIGxvbmd0ZXJtIHZzLiBzaG9ydC10ZXJtIGlzIG9mIHF1ZXN0aW9uYWJsZQ0KPiB2
-YWx1ZS4NCj4gPiA+ID4gPg0KPiA+ID4gPiA+IFRoaXMgaXMgZXhhY3RseSB3aHkgSSBkaWQgbm90
-IHBvc3QgdGhpcyBiZWZvcmUuICBJJ3ZlIGJlZW4NCj4gPiA+ID4gPiB3YWl0aW5nIG91ciBvdGhl
-ciBkaXNjdXNzaW9ucyBvbiBob3cgR1VQIHBpbnMgYXJlIGdvaW5nIHRvIGJlDQo+ID4gPiA+ID4g
-aGFuZGxlZCB0byBwbGF5IG91dC4gIEJ1dCB3aXRoIHRoZSBuZXRkZXYgdGhyZWFkIHRvZGF5WzFd
-IGl0DQo+ID4gPiA+ID4gc2VlbXMgbGlrZSB3ZSBuZWVkIHRvIG1ha2Ugc3VyZSB3ZSBoYXZlIGEg
-InNhZmUiIGZhc3QgdmFyaWFudA0KPiA+ID4gPiA+IGZvciBhIHdoaWxlLiAgSW50cm9kdWNpbmcg
-Rk9MTF9MT05HVEVSTSBzZWVtZWQgbGlrZSB0aGUgY2xlYW5lc3QNCj4gPiA+ID4gPiB3YXkgdG8g
-ZG8gdGhhdCBldmVuIGlmIHdlIHdpbGwgbm90IG5lZWQgdGhlIGRpc3RpbmN0aW9uIGluIHRoZQ0K
-PiA+ID4gPiA+IGZ1dHVyZS4uLiAgOi0oDQo+ID4gPiA+DQo+ID4gPiA+IFllcywgSSBhZ3JlZS4g
-QmVsb3cuLi4NCj4gPiA+ID4NCj4gPiA+ID4gPiBbLi4uXQ0KPiA+ID4gPiA+IFRoaXMgaXMgYWxz
-byB3aHkgSSBkaWQgbm90IGNoYW5nZSB0aGUgZ2V0X3VzZXJfcGFnZXNfbG9uZ3Rlcm0NCj4gPiA+
-ID4gPiBiZWNhdXNlIHdlIGNvdWxkIGJlIHJpcHBpbmcgdGhpcyBhbGwgb3V0IGJ5IHRoZSBlbmQg
-b2YgdGhlDQo+ID4gPiA+ID4geWVhci4uLiAgKEkgaG9wZS4gOi0pDQo+ID4gPiA+ID4NCj4gPiA+
-ID4gPiBTbyB3aGlsZSB0aGlzIGRvZXMgInBvbGx1dGUiIHRoZSBHVVAgZmFtaWx5IG9mIGNhbGxz
-IEknbSBob3BpbmcNCj4gPiA+ID4gPiBpdCBpcyBub3QgZm9yZXZlci4NCj4gPiA+ID4gPg0KPiA+
-ID4gPiA+IElyYQ0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gWzFdIGh0dHBzOi8vbGttbC5vcmcvbGtt
-bC8yMDE5LzIvMTEvMTc4OQ0KPiA+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFllcywgYW5kIHRv
-IGJlIGNsZWFyLCBJIHRoaW5rIHlvdXIgcGF0Y2hzZXQgaGVyZSBpcyBmaW5lLiBJdCBpcw0KPiA+
-ID4gPiBlYXN5IHRvIGZpbmQgdGhlIEZPTExfTE9OR1RFUk0gY2FsbGVycyBpZiBhbmQgd2hlbiB3
-ZSB3YW50IHRvDQo+ID4gPiA+IGNoYW5nZSBhbnl0aGluZy4gSSBqdXN0IHRoaW5rIGFsc28gaXQn
-cyBhcHBvcHJpYXRlIHRvIGdvIGEgYml0IGZ1cnRoZXIsIGFuZA0KPiB1c2UgRk9MTF9MT05HVEVS
-TSBhbGwgYnkgaXRzZWxmLg0KPiA+ID4gPg0KPiA+ID4gPiBUaGF0J3MgYmVjYXVzZSBpbiBlaXRo
-ZXIgZGVzaWduIG91dGNvbWUsIGl0J3MgYmV0dGVyIHRoYXQgd2F5Og0KPiA+ID4gPg0KPiA+ID4g
-PiBpcyBqdXN0IHJpZ2h0LiBUaGUgZ3VwIEFQSSBhbHJlYWR5IGhhcyBfZmFzdCBhbmQgbm9uLWZh
-c3QNCj4gPiA+ID4gdmFyaWFudHMsIGFuZCBvbmNlIHlvdSBnZXQgcGFzdCBhIGNvdXBsZSwgeW91
-IGVuZCB1cCB3aXRoIGENCj4gPiA+ID4gbXVsdGlwbGljYXRpb24gb2YgbmFtZXMgdGhhdCByZWFs
-bHkgd29yayBiZXR0ZXIgYXMgZmxhZ3MuIFdlJ3JlIHRoZXJlLg0KPiA+ID4gPg0KPiA+ID4gPiB0
-aGUgX2xvbmd0ZXJtIEFQSSB2YXJpYW50cy4NCj4gPiA+DQo+ID4gPiBGYWlyIGVub3VnaC4gICBC
-dXQgdG8gZG8gdGhhdCBjb3JyZWN0bHkgSSB0aGluayB3ZSB3aWxsIG5lZWQgdG8gY29udmVydA0K
-PiA+ID4gZ2V0X3VzZXJfcGFnZXNfZmFzdCgpIHRvIHVzZSBmbGFncyBhcyB3ZWxsLiAgSSBoYXZl
-IGEgdmVyc2lvbiBvZg0KPiA+ID4gdGhpcyBzZXJpZXMgd2hpY2ggaW5jbHVkZXMgYSBwYXRjaCBk
-b2VzIHRoaXMsIGJ1dCB0aGUgcGF0Y2ggdG91Y2hlZA0KPiA+ID4gYSBsb3Qgb2Ygc3Vic3lzdGVt
-cyBhbmQgYSBjb3VwbGUgb2YgZGlmZmVyZW50IGFyY2hpdGVjdHVyZXMuLi5bMV0NCj4gPg0KPiA+
-IEkgdGhpbmsgdGhpcyBzaG91bGQgYmUgZG9uZSBhbnlob3csIGl0IGlzIHRyb3VibGUgdGhlIHR3
-byBiYXNpY2FsbHkNCj4gPiBpZGVudGljYWwgaW50ZXJmYWNlcyBoYXZlIGRpZmZlcmVudCBzaWdu
-YXR1cmVzLiBUaGlzIGFscmVhZHkgY2F1c2VkIGENCj4gPiBidWcgaW4gdmZpby4uDQo+ID4NCj4g
-PiBJIGFsc28gd29uZGVyIGlmIHNvbWVvbmUgc2hvdWxkIHRoaW5rIGFib3V0IG1ha2luZyBmYXN0
-IGludG8gYSBmbGFnDQo+ID4gdG9vLi4NCj4gPg0KPiA+IEJ1dCBJJ20gbm90IHN1cmUgd2hlbiBm
-YXN0IHNob3VsZCBiZSB1c2VkIHZzIHdoZW4gaXQgc2hvdWxkbid0IDooDQo+IA0KPiBFZmZlY3Rp
-dmVseSBmYXN0IHNob3VsZCBhbHdheXMgYmUgdXNlZCBqdXN0IGluIGNhc2UgdGhlIHVzZXIgY2Fy
-ZXMgYWJvdXQNCj4gcGVyZm9ybWFuY2UuIEl0J3MganVzdCB0aGF0IGl0IG1heSBmYWlsIGFuZCBu
-ZWVkIHRvIGZhbGwgYmFjayB0byByZXF1aXJpbmcgdGhlDQo+IHZtYS4NCj4gDQo+IFBlcnNvbmFs
-bHkgSSB0aG91Z2h0IFJETUEgbWVtb3J5IHJlZ2lzdHJhdGlvbiBpcyBhIG9uZS10aW1lIC8gdXBm
-cm9udCBzbG93DQo+IHBhdGggc28gdGhhdCBub24tZmFzdC1HVVAgaXMgdG9sZXJhYmxlLg0KPiAN
-Cj4gVGhlIHdvcmtsb2FkcyB0aGF0ICpuZWVkKiBpdCBhcmUgT19ESVJFQ1QgdXNlcnMgdGhhdCBj
-YW4ndCB0b2xlcmF0ZSBhIHZtYQ0KPiBsb29rdXAgb24gZXZlcnkgSS9PLg0KDQpUaGVyZSBhcmUg
-c29tZSB1c2VycyB3aG8gbmVlZCB0byBbdW5dcmVnaXN0ZXIgbWVtb3J5IG1vcmUgb2Z0ZW4uICBX
-aGlsZSBub3QgaW4gdGhlIHN0cmljdCBmYXN0IHBhdGggdGhlc2UgdXNlcnMgd291bGQgbGlrZSB0
-aGUgcmVnaXN0cmF0aW9ucyB0byBvY2N1ciBhcyBmYXN0IGFzIHBvc3NpYmxlLiAgSSBkb24ndCBw
-ZXJzb25hbGx5IGhhdmUgdGhlIHJlc3VsdHMgYnV0IG91ciBPUEEgdGVhbSBkaWQgZG8gcGVyZm9y
-bWFuY2UgdGVzdHMgb24gdGhlIEdVUCB2cyBHVVAgZmFzdCBhbmQgZm9yIHRoZSBoZmkxIGNhc2Ug
-ZmFzdCB3YXMgYmV0dGVyLiAgSSBkb24ndCBoYXZlIGFueSByZWFzb24gdG8gYmVsaWV2ZSB0aGF0
-IHJlZ3VsYXIgUkRNQSB1c2VycyB3b3VsZCBub3QgYWxzbyBiZW5lZml0Lg0KDQpJcmENCg0K
+On Mon, Feb 11, 2019 at 02:55:10PM -0800, Dan Williams wrote:
+
+> > I also wonder if someone should think about making fast into a flag
+> > too..
+> >
+> > But I'm not sure when fast should be used vs when it shouldn't :(
+> 
+> Effectively fast should always be used just in case the user cares
+> about performance. It's just that it may fail and need to fall back to
+> requiring the vma.
+
+But the fall back / slow path is hidden inside the API, so when should
+the caller care? 
+
+ie when should the caller care to use gup_fast vs gup_unlocked? (the
+comments say they are the same, but this seems to be a mistake)
+
+Based on some of the comments in the code it looks like this API is
+trying to convert itself into:
+
+long get_user_pages_locked(struct task_struct *tsk, struct mm_struct *mm,
+                           unsigned long start, unsigned long nr_pages,
+			   unsigned int gup_flags, struct page **pages,
+			   struct vm_area_struct **vmas, bool *locked)
+
+long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+                             unsigned long start, unsigned long nr_pages,
+			     unsigned int gup_flags, struct page **pages)
+
+(and maybe a FOLL_FAST if there is some reason we have _fast and
+_unlocked)
+
+The reason I ask, is that if there is no reason for fast vs unlocked
+then maybe Ira should convert HFI to use gup_unlocked and move the
+'fast' code into unlocked?
+
+ie move incrementally closer to the desired end-state here.
+
+Jason
