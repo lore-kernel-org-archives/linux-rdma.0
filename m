@@ -1,81 +1,84 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next 2/2] net/mlx5: Factor out HCA capabilities
- functions
-Date: Mon, 11 Feb 2019 22:52:00 +0000
-Message-ID: <edf070349f92cdbf993017cb0056b80d74bdcf76.camel@mellanox.com>
-References: <20190211115608.22677-1-leon@kernel.org>
-         <20190211115608.22677-3-leon@kernel.org>
-         <20190211195050.GL24706@mellanox.com>
-         <20190211200207.GD21447@mtr-leonro.mtl.com>
-         <20190211203154.GM24706@mellanox.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
+Date: Mon, 11 Feb 2019 14:55:10 -0800
+Message-ID: <CAPcyv4htDHmH7PVm_=HOWwRKtpcKTPSjrHPLqhwp2vhBUWL4-w@mail.gmail.com>
+References: <20190211201643.7599-1-ira.weiny@intel.com> <20190211201643.7599-3-ira.weiny@intel.com>
+ <20190211203916.GA2771@ziepe.ca> <bcc03ee1-4c42-48c3-bc67-942c0f04875e@nvidia.com>
+ <20190211212652.GA7790@iweiny-DESK2.sc.intel.com> <fc9c880b-24f8-7063-6094-00175bc27f7d@nvidia.com>
+ <20190211215238.GA23825@iweiny-DESK2.sc.intel.com> <20190211220658.GH24692@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190211203154.GM24706@mellanox.com>
-Content-Language: en-US
-Content-ID: <32D8B47D9395D24B808279DEFD408976@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190211220658.GH24692@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Ira Weiny <ira.weiny@intel.com>, John Hubbard <jhubbard@nvidia.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, Netdev <netdev@vger.kernel.org>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTAyLTExIGF0IDIwOjMyICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIE1vbiwgRmViIDExLCAyMDE5IGF0IDEwOjAyOjA3UE0gKzAyMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBPbiBNb24sIEZlYiAxMSwgMjAxOSBhdCAwNzo1MDo1NVBNICswMDAw
-LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBPbiBNb24sIEZlYiAxMSwgMjAxOSBhdCAw
-MTo1NjowOFBNICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiA+IEZyb206IExl
-b24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj4gPiA+ID4gDQo+ID4gPiA+IENv
-bWJpbmUgYWxsIEhDQSBjYXBhYmlsaXRpZXMgc2V0dGVycyB1bmRlciBvbmUgZnVuY3Rpb24NCj4g
-PiA+ID4gYW5kIGNvbXBpbGUgb3V0IHRoZSBPRFAgcmVsYXRlZCBmdW5jdGlvbiBpbiBjYXNlIGtl
-cm5lbA0KPiA+ID4gPiB3YXMgY29tcGlsZWQgd2l0aG91dCBPRFAgc3VwcG9ydC4NCj4gPiA+ID4g
-DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94
-LmNvbT4NCj4gPiA+ID4gIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4u
-YyAgICB8IDQ3DQo+ID4gPiA+ICsrKysrKysrKysrKystLS0tLS0NCj4gPiA+ID4gIDEgZmlsZSBj
-aGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspLCAxNCBkZWxldGlvbnMoLSkNCj4gPiA+ID4gDQo+ID4g
-PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
-bWFpbi5jDQo+ID4gPiA+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
-L21haW4uYw0KPiA+ID4gPiBpbmRleCA2ZDQ1NTE4ZWRiZGMuLmQ3MTQ1YWI2MTA1ZCAxMDA2NDQN
-Cj4gPiA+ID4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21h
-aW4uYw0KPiA+ID4gPiBAQCAtNDU5LDYgKzQ1OSw3IEBAIHN0YXRpYyBpbnQgaGFuZGxlX2hjYV9j
-YXBfYXRvbWljKHN0cnVjdA0KPiA+ID4gPiBtbHg1X2NvcmVfZGV2ICpkZXYpDQo+ID4gPiA+ICAJ
-cmV0dXJuIGVycjsNCj4gPiA+ID4gIH0NCj4gPiA+ID4gDQo+ID4gPiA+ICsjaWZkZWYgQ09ORklH
-X0lORklOSUJBTkRfT05fREVNQU5EX1BBR0lORw0KPiA+ID4gPiAgc3RhdGljIGludCBoYW5kbGVf
-aGNhX2NhcF9vZHAoc3RydWN0IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gIHsNCj4gPiA+
-ID4gIAl2b2lkICpzZXRfaGNhX2NhcDsNCj4gPiA+ID4gQEAgLTUwMiw2ICs1MDMsNyBAQCBzdGF0
-aWMgaW50IGhhbmRsZV9oY2FfY2FwX29kcChzdHJ1Y3QNCj4gPiA+ID4gbWx4NV9jb3JlX2RldiAq
-ZGV2KQ0KPiA+ID4gPiAgCWtmcmVlKHNldF9jdHgpOw0KPiA+ID4gPiAgCXJldHVybiBlcnI7DQo+
-ID4gPiA+ICB9DQo+ID4gPiA+ICsjZW5kaWYNCj4gPiA+ID4gDQo+ID4gPiA+ICBzdGF0aWMgaW50
-IGhhbmRsZV9oY2FfY2FwKHN0cnVjdCBtbHg1X2NvcmVfZGV2ICpkZXYpDQo+ID4gPiA+ICB7DQo+
-ID4gPiA+IEBAIC01NzYsNiArNTc4LDM1IEBAIHN0YXRpYyBpbnQgaGFuZGxlX2hjYV9jYXAoc3Ry
-dWN0DQo+ID4gPiA+IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gIAlyZXR1cm4gZXJyOw0K
-PiA+ID4gPiAgfQ0KPiA+ID4gPiANCj4gPiA+ID4gK3N0YXRpYyBpbnQgc2V0X2hjYV9jYXAoc3Ry
-dWN0IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gK3sNCj4gPiA+ID4gKwlzdHJ1Y3QgcGNp
-X2RldiAqcGRldiA9IGRldi0+cGRldjsNCj4gPiA+ID4gKwlpbnQgZXJyOw0KPiA+ID4gPiArDQo+
-ID4gPiA+ICsJZXJyID0gaGFuZGxlX2hjYV9jYXAoZGV2KTsNCj4gPiA+ID4gKwlpZiAoZXJyKSB7
-DQo+ID4gPiA+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgImhhbmRsZV9oY2FfY2FwIGZhaWxlZFxu
-Iik7DQo+ID4gPiA+ICsJCWdvdG8gb3V0Ow0KPiA+ID4gPiArCX0NCj4gPiA+ID4gKw0KPiA+ID4g
-PiArCWVyciA9IGhhbmRsZV9oY2FfY2FwX2F0b21pYyhkZXYpOw0KPiA+ID4gPiArCWlmIChlcnIp
-IHsNCj4gPiA+ID4gKwkJZGV2X2VycigmcGRldi0+ZGV2LCAiaGFuZGxlX2hjYV9jYXBfYXRvbWlj
-DQo+ID4gPiA+IGZhaWxlZFxuIik7DQo+ID4gPiA+ICsJCWdvdG8gb3V0Ow0KPiA+ID4gPiArCX0N
-Cj4gPiA+ID4gKw0KPiA+ID4gPiArI2lmZGVmIENPTkZJR19JTkZJTklCQU5EX09OX0RFTUFORF9Q
-QUdJTkcNCj4gPiA+ID4gKwllcnIgPSBoYW5kbGVfaGNhX2NhcF9vZHAoZGV2KTsNCj4gPiA+ID4g
-KwlpZiAoZXJyKSB7DQo+ID4gPiA+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgImhhbmRsZV9oY2Ff
-Y2FwX29kcA0KPiA+ID4gPiBmYWlsZWRcbiIpOw0KPiA+ID4gPiArCQlnb3RvIG91dDsNCj4gPiA+
-ID4gKwl9DQo+ID4gPiA+ICsjZW5kaWYNCj4gPiA+IA0KPiA+ID4gQWRkaW5nDQo+ID4gPiAgIGlm
-IChJU19FTkFCTEVELi4pDQo+ID4gPiAgICAgcmV0dXJuIDA7DQo+ID4gPiANCj4gPiA+IFRvIHRo
-ZSB0b3Agb2YgaGFuZGxlX2hjYV9jYXBfb2RwIGlzIGFsb3QgYmV0dGVyLg0KPiA+IA0KPiA+IFNh
-ZWVkIGdhdmUgY29tbWVudCB0aGF0IGhlIHByZWZlcnMgY29kZSB0byBiZSBjb21waWxlZC1vdXQg
-aW4gY2FzZQ0KPiA+IGNvbmZpZyBpcyBub3Qgc2V0LiBJbiB5b3Ugc3VnZ2VzdGlvbiwgdGhlIGNv
-ZGUgd2lsbCBleGlzdCBhbmQgb25seQ0KPiA+IHdpdGggc29tZSBvcHRpbWl6YXRpb25zIGVuYWJs
-ZWQgaXQgd2lsbCBiZSB0aHJvd24uDQo+IA0KPiB0aGUga2VybmVsIGFsd2F5cyBjb21waWxlcyB3
-aXRoIG9wdGltaXphdGlvbnMgdGhhdCB3aWxsIHRocm93IGF3YXkNCj4gdGhpcyBjb2RlLCBpdCBp
-cyBhIHdpZGVseSB1c2VkIHBhdHRlcm4uDQo+IA0KPiAjaWZkZWYgY3JlYXRlcyBhIGNvbXBpbGF0
-aW9uIHRlc3QgbWF0cml4IHRoYXQgaXMgdmVyeSB1bmRlc2lyZWQuDQo+IA0KDQpJdCBpcyBtb3Jl
-IGFib3V0IGNvZGUgc2VwYXJhdGlvbiBhbmQgcmVhZGFiaWxpdHkgcmF0aGVyIHRoYW4gY29tcGls
-ZXINCm9wdGltaXphdGlvbnMsIG9wdGltYWxseSBpIHdhbnQgdG8gaGF2ZSBhIGZpbGUocykgdGhh
-dCB3aWxsIGluY2x1ZGUgYWxsDQpJQiBzdHVmZiBhbmQgY29tcGlsZSBvdXQgIGRpcmVjdGx5IGZy
-b20gTWFrZWZpbGUsIG9mIGNvdXJzZSB3ZSBzdGlsbA0KbmVlZCBzdHViIGZ1bmN0aW9ucyBpbiBh
-IGhlYWRlciBmaWxlIHdoaWNoIHdpbGwgeWllbGQgdGhlIHNhbWUNCmNvbXBpbGF0aW9uIHRlc3Qg
-bWF0cml4LCBidXQgY29kZSByZWFkYWJpbGl0eSBhbmQgc2VwYXJhdGlvbiB3aWxsDQpiZWNvbWUg
-bW9yZSBjbGVhci4NCg0KLVNhZWVkLg0KDQo+IEphc29uDQo=
+On Mon, Feb 11, 2019 at 2:07 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+>
+> On Mon, Feb 11, 2019 at 01:52:38PM -0800, Ira Weiny wrote:
+> > On Mon, Feb 11, 2019 at 01:39:12PM -0800, John Hubbard wrote:
+> > > On 2/11/19 1:26 PM, Ira Weiny wrote:
+> > > > On Mon, Feb 11, 2019 at 01:13:56PM -0800, John Hubbard wrote:
+> > > >> On 2/11/19 12:39 PM, Jason Gunthorpe wrote:
+> > > >>> On Mon, Feb 11, 2019 at 12:16:42PM -0800, ira.weiny@intel.com wrote:
+> > > >>>> From: Ira Weiny <ira.weiny@intel.com>
+> > > >> [...]
+> > > >> It seems to me that the longterm vs. short-term is of questionable value.
+> > > >
+> > > > This is exactly why I did not post this before.  I've been waiting our other
+> > > > discussions on how GUP pins are going to be handled to play out.  But with the
+> > > > netdev thread today[1] it seems like we need to make sure we have a "safe" fast
+> > > > variant for a while.  Introducing FOLL_LONGTERM seemed like the cleanest way to
+> > > > do that even if we will not need the distinction in the future...  :-(
+> > >
+> > > Yes, I agree. Below...
+> > >
+> > > > [...]
+> > > > This is also why I did not change the get_user_pages_longterm because we could
+> > > > be ripping this all out by the end of the year...  (I hope. :-)
+> > > >
+> > > > So while this does "pollute" the GUP family of calls I'm hoping it is not
+> > > > forever.
+> > > >
+> > > > Ira
+> > > >
+> > > > [1] https://lkml.org/lkml/2019/2/11/1789
+> > > >
+> > >
+> > > Yes, and to be clear, I think your patchset here is fine. It is easy to find
+> > > the FOLL_LONGTERM callers if and when we want to change anything. I just think
+> > > also it's appopriate to go a bit further, and use FOLL_LONGTERM all by itself.
+> > >
+> > > That's because in either design outcome, it's better that way:
+> > >
+> > > is just right. The gup API already has _fast and non-fast variants, and once
+> > > you get past a couple, you end up with a multiplication of names that really
+> > > work better as flags. We're there.
+> > >
+> > > the _longterm API variants.
+> >
+> > Fair enough.   But to do that correctly I think we will need to convert
+> > get_user_pages_fast() to use flags as well.  I have a version of this series
+> > which includes a patch does this, but the patch touched a lot of subsystems and
+> > a couple of different architectures...[1]
+>
+> I think this should be done anyhow, it is trouble the two basically
+> identical interfaces have different signatures. This already caused a
+> bug in vfio..
+>
+> I also wonder if someone should think about making fast into a flag
+> too..
+>
+> But I'm not sure when fast should be used vs when it shouldn't :(
+
+Effectively fast should always be used just in case the user cares
+about performance. It's just that it may fail and need to fall back to
+requiring the vma.
+
+Personally I thought RDMA memory registration is a one-time / upfront
+slow path so that non-fast-GUP is tolerable.
+
+The workloads that *need* it are O_DIRECT users that can't tolerate a
+vma lookup on every I/O.
