@@ -1,49 +1,42 @@
-From: Devesh Sharma <devesh.sharma@broadcom.com>
-Subject: Re: [PATCH][next] RDMA/bnxt_re: fix or'ing of data into an
- uninitialized struct member
-Date: Mon, 11 Feb 2019 19:11:31 +0530
-Message-ID: <CANjDDBj=kzvaWZfwe6rrJki9crfCGxUaBi2Pc+Cb3+MSWYtAVA@mail.gmail.com>
-References: <20190211133415.9020-1-colin.king@canonical.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH] IB/{hfi1,qib}: Add limit test for RC/UC send via loopback
+Date: Mon, 11 Feb 2019 14:42:54 +0100
+Message-ID: <20190211134254.GF17709@kroah.com>
+References: <20190204153639.2555.41856.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190211133415.9020-1-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Selvin Xavier <selvin.xavier@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma <linux-rdma@vger.kernel.org>, kernel-janitors@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190204153639.2555.41856.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 7:04 PM Colin King <colin.king@canonical.com> wrote:
->
-> From: Colin Ian King <colin.king@canonical.com>
->
-> The struct member comp_mask has not been initialized however a bit
-> pattern is being bitwise or'd into the member and hence other bit
-> fields in comp_mask may contain any garbage from the stack. Fix this
-> by making the bitwise or into an assignment.
->
-> Fixes: 95b86d1c91ad ("RDMA/bnxt_re: Update kernel user abi to pass chip context")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+On Mon, Feb 04, 2019 at 07:36:42AM -0800, Mike Marciniszyn wrote:
+> Upstream commit 09ce351dff8e7636af0beb72cd4a86c3904a0500.
+> 
+> Fix potential memory corruption and panic in loopback for
+> IB_WR_SEND varaiants.
+> 
+> The code blindly assumes the posted length will fit in the
+> fetched rwqe, which is not a valid assumption.
+> 
+> Fix by adding a limit test, and triggering the appropriate
+> send completion and putting the QP in an error state.  This
+> mimics the handling for non-loopback QPs.
+> 
+> [ported to older kernels where the loopback was in each driver]
+> 
+> Cc: <stable@vger.kernel.org> #v4.9+
+> Fixes: 7724105686e7 ("IB/hfi1: add driver files")
+> Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 > ---
->  drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> index 1d7469e23cde..de5cb9a61a78 100644
-> --- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> +++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
-> @@ -3720,7 +3720,7 @@ struct ib_ucontext *bnxt_re_alloc_ucontext(struct ib_device *ibdev,
->         }
->         spin_lock_init(&uctx->sh_lock);
->
-> -       resp.comp_mask |= BNXT_RE_UCNTX_CMASK_HAVE_CCTX;
-> +       resp.comp_mask = BNXT_RE_UCNTX_CMASK_HAVE_CCTX;
->         chip_met_rev_num = rdev->chip_ctx.chip_num;
->         chip_met_rev_num |= ((u32)rdev->chip_ctx.chip_rev & 0xFF) <<
->                              BNXT_RE_CHIP_ID0_CHIP_REV_SFT;
-> --
-> 2.20.1
->
-Thanks  that was missed!
+>  drivers/infiniband/hw/hfi1/ruc.c    |    7 ++++++-
+>  drivers/infiniband/hw/qib/qib_ruc.c |    7 ++++++-
+>  2 files changed, 12 insertions(+), 2 deletions(-)
 
-Acked-By: Devesh Sharma <devesh.sharma@broadcom.com>
+Now queued up, thanks.
+
+greg k-h
