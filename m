@@ -1,73 +1,65 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Mon, 11 Feb 2019 14:09:56 -0700
-Message-ID: <20190211210956.GG24692@ziepe.ca>
-References: <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
- <20190211102402.GF19029@quack2.suse.cz>
- <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
- <20190211180654.GB24692@ziepe.ca>
- <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
- <20190211182649.GD24692@ziepe.ca>
- <20190211184040.GF12668@bombadil.infradead.org>
- <CAPcyv4j71WZiXWjMPtDJidAqQiBcHUbcX=+aw11eEQ5C6sA8hQ@mail.gmail.com>
- <20190211204945.GF24692@ziepe.ca>
- <CAPcyv4jHjeJxmHMyrbRhg9oeaLK5WbZm-qu1HywjY7bF2DwiDg@mail.gmail.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
+Date: Mon, 11 Feb 2019 13:13:56 -0800
+Message-ID: <bcc03ee1-4c42-48c3-bc67-942c0f04875e@nvidia.com>
+References: <20190211201643.7599-1-ira.weiny@intel.com>
+ <20190211201643.7599-3-ira.weiny@intel.com> <20190211203916.GA2771@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jHjeJxmHMyrbRhg9oeaLK5WbZm-qu1HywjY7bF2DwiDg@mail.gmail.com>
+In-Reply-To: <20190211203916.GA2771@ziepe.ca>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, ira.weiny@intel.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 01:02:37PM -0800, Dan Williams wrote:
-> On Mon, Feb 11, 2019 at 12:49 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
-> >
-> > On Mon, Feb 11, 2019 at 11:58:47AM -0800, Dan Williams wrote:
-> > > On Mon, Feb 11, 2019 at 10:40 AM Matthew Wilcox <willy@infradead.org> wrote:
-> > > >
-> > > > On Mon, Feb 11, 2019 at 11:26:49AM -0700, Jason Gunthorpe wrote:
-> > > > > On Mon, Feb 11, 2019 at 10:19:22AM -0800, Ira Weiny wrote:
-> > > > > > What if user space then writes to the end of the file with a regular write?
-> > > > > > Does that write end up at the point they truncated to or off the end of the
-> > > > > > mmaped area (old length)?
-> > > > >
-> > > > > IIRC it depends how the user does the write..
-> > > > >
-> > > > > pwrite() with a given offset will write to that offset, re-extending
-> > > > > the file if needed
-> > > > >
-> > > > > A file opened with O_APPEND and a write done with write() should
-> > > > > append to the new end
-> > > > >
-> > > > > A normal file with a normal write should write to the FD's current
-> > > > > seek pointer.
-> > > > >
-> > > > > I'm not sure what happens if you write via mmap/msync.
-> > > > >
-> > > > > RDMA is similar to pwrite() and mmap.
-> > > >
-> > > > A pertinent point that you didn't mention is that ftruncate() does not change
-> > > > the file offset.  So there's no user-visible change in behaviour.
-> > >
-> > > ...but there is. The blocks you thought you freed, especially if the
-> > > system was under -ENOSPC pressure, won't actually be free after the
-> > > successful ftruncate().
-> >
-> > They won't be free after something dirties the existing mmap either.
-> >
-> > Blocks also won't be free if you unlink a file that is currently still
-> > open.
-> >
-> > This isn't really new behavior for a FS.
+On 2/11/19 12:39 PM, Jason Gunthorpe wrote:
+> On Mon, Feb 11, 2019 at 12:16:42PM -0800, ira.weiny@intel.com wrote:
+>> From: Ira Weiny <ira.weiny@intel.com>
+[...]
+>> +static inline int get_user_pages_fast_longterm(unsigned long start, int nr_pages,
+>> +					       bool write, struct page **pages)
+>> +{
+>> +	return get_user_pages_fast(start, nr_pages, write, pages);
+>> +}
+>>  #endif /* CONFIG_FS_DAX */
+>>  
+>>  int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+>> @@ -2615,6 +2622,7 @@ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+>>  #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
+>>  #define FOLL_COW	0x4000	/* internal GUP flag */
+>>  #define FOLL_ANON	0x8000	/* don't do file mappings */
+>> +#define FOLL_LONGTERM	0x10000	/* mapping is intended for a long term pin */
 > 
-> An mmap write after a fault due to a hole punch is free to trigger
-> SIGBUS if the subsequent page allocation fails.
+> If we are adding a new flag, maybe we should get rid of the 'longterm'
+> entry points and just rely on the callers to pass the flag?
+> 
+> Jason
+> 
 
-Isn't that already racy? If the mmap user is fast enough can't it
-prevent the page from becoming freed in the first place today?
++1, I agree that the overall get_user_pages*() API family will be cleaner
+*without* get_user_pages_longterm*() calls. And this new flag makes that possible.
+So I'd like to see the "longerm" call replaced with just passing this flag. Maybe
+even as part of this patchset, but either way.
 
-Jason
+Taking a moment to reflect on where I think this might go eventually (the notes
+below do not need to affect your patchset here, but this seems like a good place
+to mention this):
+
+It seems to me that the longterm vs. short-term is of questionable value.
+It's actually better to just call get_user_pages(), and then if it really is
+long-term enough to matter internally, we'll see the pages marked as gup-pinned.
+If the gup pages are released before anyone (filesystem, that is) notices, then
+it must have been short term.
+
+Doing it that way is self-maintaining. Of course, this assumes that we end up with
+a design that doesn't require being told, by the call sites, that a given gup
+call is intended for "long term" use. So I could be wrong about this direction, but
+let's please consider the possibility.
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
