@@ -1,48 +1,88 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v4 0/9] mmu notifier provide context informations
-Date: Mon, 11 Feb 2019 13:54:45 -0500
-Message-ID: <20190211185445.GA3838@redhat.com>
-References: <20190123222315.1122-1-jglisse@redhat.com>
- <20190131161006.GA16593@redhat.com>
- <20190201210230.GA11643@quack2.suse.cz>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH mlx5-next 2/2] net/mlx5: Factor out HCA capabilities
+ functions
+Date: Mon, 11 Feb 2019 19:50:55 +0000
+Message-ID: <20190211195050.GL24706@mellanox.com>
+References: <20190211115608.22677-1-leon@kernel.org>
+ <20190211115608.22677-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190201210230.GA11643@quack2.suse.cz>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Matthew Wilcox <mawilcox@microsoft.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190211115608.22677-3-leon@kernel.org>
+Content-Language: en-US
+Content-ID: <598CB911B890F242AD7490A70F39A831@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 01, 2019 at 10:02:30PM +0100, Jan Kara wrote:
-> On Thu 31-01-19 11:10:06, Jerome Glisse wrote:
-> > 
-> > Andrew what is your plan for this ? I had a discussion with Peter Xu
-> > and Andrea about change_pte() and kvm. Today the change_pte() kvm
-> > optimization is effectively disabled because of invalidate_range
-> > calls. With a minimal couple lines patch on top of this patchset
-> > we can bring back the kvm change_pte optimization and we can also
-> > optimize some other cases like for instance when write protecting
-> > after fork (but i am not sure this is something qemu does often so
-> > it might not help for real kvm workload).
-> > 
-> > I will be posting a the extra patch as an RFC, but in the meantime
-> > i wanted to know what was the status for this.
-> > 
-> > Jan, Christian does your previous ACK still holds for this ?
-> 
-> Yes, I still think the approach makes sense. Dan's concern about in tree
-> users is valid but it seems you have those just not merged yet, right?
+On Mon, Feb 11, 2019 at 01:56:08PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>=20
+> Combine all HCA capabilities setters under one function
+> and compile out the ODP related function in case kernel
+> was compiled without ODP support.
+>=20
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  .../net/ethernet/mellanox/mlx5/core/main.c    | 47 +++++++++++++------
+>  1 file changed, 33 insertions(+), 14 deletions(-)
+>=20
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net=
+/ethernet/mellanox/mlx5/core/main.c
+> index 6d45518edbdc..d7145ab6105d 100644
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+> @@ -459,6 +459,7 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev=
+ *dev)
+>  	return err;
+>  }
+> =20
+> +#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+>  static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
+>  {
+>  	void *set_hca_cap;
+> @@ -502,6 +503,7 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *d=
+ev)
+>  	kfree(set_ctx);
+>  	return err;
+>  }
+> +#endif
+> =20
+>  static int handle_hca_cap(struct mlx5_core_dev *dev)
+>  {
+> @@ -576,6 +578,35 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+>  	return err;
+>  }
+> =20
+> +static int set_hca_cap(struct mlx5_core_dev *dev)
+> +{
+> +	struct pci_dev *pdev =3D dev->pdev;
+> +	int err;
+> +
+> +	err =3D handle_hca_cap(dev);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "handle_hca_cap failed\n");
+> +		goto out;
+> +	}
+> +
+> +	err =3D handle_hca_cap_atomic(dev);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
+> +		goto out;
+> +	}
+> +
+> +#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
+> +	err =3D handle_hca_cap_odp(dev);
+> +	if (err) {
+> +		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
+> +		goto out;
+> +	}
+> +#endif
 
-(Catching up on email)
+Adding=20
+  if (IS_ENABLED..)=20
+    return 0;
 
-This version included some of the first users for this but i do not
-want to merge them through Andrew but through the individual driver
-project tree. Also in the meantime i found a use for this with kvm
-and i expect few others users of mmu notifier will leverage this
-extra informations.
+To the top of handle_hca_cap_odp is alot better.
 
-Cheers,
-Jérôme
+Jason
