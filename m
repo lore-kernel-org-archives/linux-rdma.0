@@ -1,68 +1,81 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 15:50:52 -0700
-Message-ID: <20190211225052.GL24692@ziepe.ca>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
- <20190211204710.GE24692@ziepe.ca>
- <20190211214257.GA7891@iweiny-DESK2.sc.intel.com>
- <20190211222208.GJ24692@ziepe.ca>
- <2807E5FD2F6FDA4886F6618EAC48510E79BCF37B@CRSMSX101.amr.corp.intel.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 2/2] net/mlx5: Factor out HCA capabilities
+ functions
+Date: Mon, 11 Feb 2019 22:52:00 +0000
+Message-ID: <edf070349f92cdbf993017cb0056b80d74bdcf76.camel@mellanox.com>
+References: <20190211115608.22677-1-leon@kernel.org>
+         <20190211115608.22677-3-leon@kernel.org>
+         <20190211195050.GL24706@mellanox.com>
+         <20190211200207.GD21447@mtr-leonro.mtl.com>
+         <20190211203154.GM24706@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E79BCF37B@CRSMSX101.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Weiny, Ira" <ira.weiny@intel.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190211203154.GM24706@mellanox.com>
+Content-Language: en-US
+Content-ID: <32D8B47D9395D24B808279DEFD408976@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 10:40:02PM +0000, Weiny, Ira wrote:
-
-> > Many drivers do this, the 'doorbell' is a PCI -> CPU thing of some sort
-> 
-> My surprise is why does _userspace_ allocate this memory?
-
-Well, userspace needs to read the memory, so either userpace allocates
-it and the kernel GUP's it, or userspace mmap's a kernel page which
-was DMA mapped.
-
-The GUP version lets the doorbells have lower alignment than a PAGE,
-and thes RDMA drivers hard requires GUP->DMA to function..
-
-So why not use a umem here? It already has to work.
-
-> > > This does not seem to be allocating memory regions.  Jason, do you
-> > > want a patch to just convert these calls and consider it legacy code?
-> > 
-> > It needs to use umem like all the other drivers on this path.
-> > Otherwise it doesn't get the page pinning logic right
->
-> Not sure what you mean regarding the pinning logic?
-
-The RLIMIT_MEMLOCK stuff and so on.
-
-> > There is also something else rotten with these longterm callsites,
-> > they seem to have very different ideas how to handle
-> > RLIMIT_MEMLOCK.
-> > 
-> > ie vfio doesn't even touch pinned_vm.. and rdma is applying
-> > RLIMIT_MEMLOCK to mm->pinned_vm, while vfio is using locked_vm.. No
-> > idea which is right, but they should be the same, and this pattern should
-> > probably be in core code someplace.
-> 
-> Neither do I.  But AFAIK pinned_vm is a subset of locked_vm.
-
-I thought so..
-
-> So should we be accounting both of the counters?
-
-Someone should check :)
-
-Since we don't increment locked_vm when we increment pinned_vm and
-vfio only checke RLIMIT_MEMLOCK against locked_vm one can certainly
-exceed the limit by mixing and matching RDMA and VFIO pins in the same
-process. Sure seems like there is a bug somewhere here.
-
-Jason
+T24gTW9uLCAyMDE5LTAyLTExIGF0IDIwOjMyICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIE1vbiwgRmViIDExLCAyMDE5IGF0IDEwOjAyOjA3UE0gKzAyMDAsIExlb24gUm9tYW5v
+dnNreSB3cm90ZToNCj4gPiBPbiBNb24sIEZlYiAxMSwgMjAxOSBhdCAwNzo1MDo1NVBNICswMDAw
+LCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPiBPbiBNb24sIEZlYiAxMSwgMjAxOSBhdCAw
+MTo1NjowOFBNICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6DQo+ID4gPiA+IEZyb206IExl
+b24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCj4gPiA+ID4gDQo+ID4gPiA+IENv
+bWJpbmUgYWxsIEhDQSBjYXBhYmlsaXRpZXMgc2V0dGVycyB1bmRlciBvbmUgZnVuY3Rpb24NCj4g
+PiA+ID4gYW5kIGNvbXBpbGUgb3V0IHRoZSBPRFAgcmVsYXRlZCBmdW5jdGlvbiBpbiBjYXNlIGtl
+cm5lbA0KPiA+ID4gPiB3YXMgY29tcGlsZWQgd2l0aG91dCBPRFAgc3VwcG9ydC4NCj4gPiA+ID4g
+DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IExlb24gUm9tYW5vdnNreSA8bGVvbnJvQG1lbGxhbm94
+LmNvbT4NCj4gPiA+ID4gIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4u
+YyAgICB8IDQ3DQo+ID4gPiA+ICsrKysrKysrKysrKystLS0tLS0NCj4gPiA+ID4gIDEgZmlsZSBj
+aGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspLCAxNCBkZWxldGlvbnMoLSkNCj4gPiA+ID4gDQo+ID4g
+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+bWFpbi5jDQo+ID4gPiA+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
+L21haW4uYw0KPiA+ID4gPiBpbmRleCA2ZDQ1NTE4ZWRiZGMuLmQ3MTQ1YWI2MTA1ZCAxMDA2NDQN
+Cj4gPiA+ID4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21h
+aW4uYw0KPiA+ID4gPiBAQCAtNDU5LDYgKzQ1OSw3IEBAIHN0YXRpYyBpbnQgaGFuZGxlX2hjYV9j
+YXBfYXRvbWljKHN0cnVjdA0KPiA+ID4gPiBtbHg1X2NvcmVfZGV2ICpkZXYpDQo+ID4gPiA+ICAJ
+cmV0dXJuIGVycjsNCj4gPiA+ID4gIH0NCj4gPiA+ID4gDQo+ID4gPiA+ICsjaWZkZWYgQ09ORklH
+X0lORklOSUJBTkRfT05fREVNQU5EX1BBR0lORw0KPiA+ID4gPiAgc3RhdGljIGludCBoYW5kbGVf
+aGNhX2NhcF9vZHAoc3RydWN0IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gIHsNCj4gPiA+
+ID4gIAl2b2lkICpzZXRfaGNhX2NhcDsNCj4gPiA+ID4gQEAgLTUwMiw2ICs1MDMsNyBAQCBzdGF0
+aWMgaW50IGhhbmRsZV9oY2FfY2FwX29kcChzdHJ1Y3QNCj4gPiA+ID4gbWx4NV9jb3JlX2RldiAq
+ZGV2KQ0KPiA+ID4gPiAgCWtmcmVlKHNldF9jdHgpOw0KPiA+ID4gPiAgCXJldHVybiBlcnI7DQo+
+ID4gPiA+ICB9DQo+ID4gPiA+ICsjZW5kaWYNCj4gPiA+ID4gDQo+ID4gPiA+ICBzdGF0aWMgaW50
+IGhhbmRsZV9oY2FfY2FwKHN0cnVjdCBtbHg1X2NvcmVfZGV2ICpkZXYpDQo+ID4gPiA+ICB7DQo+
+ID4gPiA+IEBAIC01NzYsNiArNTc4LDM1IEBAIHN0YXRpYyBpbnQgaGFuZGxlX2hjYV9jYXAoc3Ry
+dWN0DQo+ID4gPiA+IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gIAlyZXR1cm4gZXJyOw0K
+PiA+ID4gPiAgfQ0KPiA+ID4gPiANCj4gPiA+ID4gK3N0YXRpYyBpbnQgc2V0X2hjYV9jYXAoc3Ry
+dWN0IG1seDVfY29yZV9kZXYgKmRldikNCj4gPiA+ID4gK3sNCj4gPiA+ID4gKwlzdHJ1Y3QgcGNp
+X2RldiAqcGRldiA9IGRldi0+cGRldjsNCj4gPiA+ID4gKwlpbnQgZXJyOw0KPiA+ID4gPiArDQo+
+ID4gPiA+ICsJZXJyID0gaGFuZGxlX2hjYV9jYXAoZGV2KTsNCj4gPiA+ID4gKwlpZiAoZXJyKSB7
+DQo+ID4gPiA+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgImhhbmRsZV9oY2FfY2FwIGZhaWxlZFxu
+Iik7DQo+ID4gPiA+ICsJCWdvdG8gb3V0Ow0KPiA+ID4gPiArCX0NCj4gPiA+ID4gKw0KPiA+ID4g
+PiArCWVyciA9IGhhbmRsZV9oY2FfY2FwX2F0b21pYyhkZXYpOw0KPiA+ID4gPiArCWlmIChlcnIp
+IHsNCj4gPiA+ID4gKwkJZGV2X2VycigmcGRldi0+ZGV2LCAiaGFuZGxlX2hjYV9jYXBfYXRvbWlj
+DQo+ID4gPiA+IGZhaWxlZFxuIik7DQo+ID4gPiA+ICsJCWdvdG8gb3V0Ow0KPiA+ID4gPiArCX0N
+Cj4gPiA+ID4gKw0KPiA+ID4gPiArI2lmZGVmIENPTkZJR19JTkZJTklCQU5EX09OX0RFTUFORF9Q
+QUdJTkcNCj4gPiA+ID4gKwllcnIgPSBoYW5kbGVfaGNhX2NhcF9vZHAoZGV2KTsNCj4gPiA+ID4g
+KwlpZiAoZXJyKSB7DQo+ID4gPiA+ICsJCWRldl9lcnIoJnBkZXYtPmRldiwgImhhbmRsZV9oY2Ff
+Y2FwX29kcA0KPiA+ID4gPiBmYWlsZWRcbiIpOw0KPiA+ID4gPiArCQlnb3RvIG91dDsNCj4gPiA+
+ID4gKwl9DQo+ID4gPiA+ICsjZW5kaWYNCj4gPiA+IA0KPiA+ID4gQWRkaW5nDQo+ID4gPiAgIGlm
+IChJU19FTkFCTEVELi4pDQo+ID4gPiAgICAgcmV0dXJuIDA7DQo+ID4gPiANCj4gPiA+IFRvIHRo
+ZSB0b3Agb2YgaGFuZGxlX2hjYV9jYXBfb2RwIGlzIGFsb3QgYmV0dGVyLg0KPiA+IA0KPiA+IFNh
+ZWVkIGdhdmUgY29tbWVudCB0aGF0IGhlIHByZWZlcnMgY29kZSB0byBiZSBjb21waWxlZC1vdXQg
+aW4gY2FzZQ0KPiA+IGNvbmZpZyBpcyBub3Qgc2V0LiBJbiB5b3Ugc3VnZ2VzdGlvbiwgdGhlIGNv
+ZGUgd2lsbCBleGlzdCBhbmQgb25seQ0KPiA+IHdpdGggc29tZSBvcHRpbWl6YXRpb25zIGVuYWJs
+ZWQgaXQgd2lsbCBiZSB0aHJvd24uDQo+IA0KPiB0aGUga2VybmVsIGFsd2F5cyBjb21waWxlcyB3
+aXRoIG9wdGltaXphdGlvbnMgdGhhdCB3aWxsIHRocm93IGF3YXkNCj4gdGhpcyBjb2RlLCBpdCBp
+cyBhIHdpZGVseSB1c2VkIHBhdHRlcm4uDQo+IA0KPiAjaWZkZWYgY3JlYXRlcyBhIGNvbXBpbGF0
+aW9uIHRlc3QgbWF0cml4IHRoYXQgaXMgdmVyeSB1bmRlc2lyZWQuDQo+IA0KDQpJdCBpcyBtb3Jl
+IGFib3V0IGNvZGUgc2VwYXJhdGlvbiBhbmQgcmVhZGFiaWxpdHkgcmF0aGVyIHRoYW4gY29tcGls
+ZXINCm9wdGltaXphdGlvbnMsIG9wdGltYWxseSBpIHdhbnQgdG8gaGF2ZSBhIGZpbGUocykgdGhh
+dCB3aWxsIGluY2x1ZGUgYWxsDQpJQiBzdHVmZiBhbmQgY29tcGlsZSBvdXQgIGRpcmVjdGx5IGZy
+b20gTWFrZWZpbGUsIG9mIGNvdXJzZSB3ZSBzdGlsbA0KbmVlZCBzdHViIGZ1bmN0aW9ucyBpbiBh
+IGhlYWRlciBmaWxlIHdoaWNoIHdpbGwgeWllbGQgdGhlIHNhbWUNCmNvbXBpbGF0aW9uIHRlc3Qg
+bWF0cml4LCBidXQgY29kZSByZWFkYWJpbGl0eSBhbmQgc2VwYXJhdGlvbiB3aWxsDQpiZWNvbWUg
+bW9yZSBjbGVhci4NCg0KLVNhZWVkLg0KDQo+IEphc29uDQo=
