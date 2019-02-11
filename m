@@ -1,44 +1,99 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/3] iw_cxgb4: add support for completing cached SRQ
- buffers
-Date: Fri, 8 Feb 2019 17:04:01 -0700
-Message-ID: <20190209000401.GA7673@ziepe.ca>
-References: <20190206172444.21997-1-rajur@chelsio.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Mon, 11 Feb 2019 11:24:02 +0100
+Message-ID: <20190211102402.GF19029@quack2.suse.cz>
+References: <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
+ <20190206210356.GZ6173@dastard>
+ <20190206220828.GJ12227@ziepe.ca>
+ <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
+ <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
+ <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
+ <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
+ <20190208044302.GA20493@dastard>
+ <20190208111028.GD6353@quack2.suse.cz>
+ <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190206172444.21997-1-rajur@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: Raju Rangoju <rajur@chelsio.com>
-Cc: davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, swise@opengridcomputing.com
+In-Reply-To: <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 06, 2019 at 10:54:41PM +0530, Raju Rangoju wrote:
-> This series adds support for completing the SRQ buffers that were
-> fetched but could not be completed by hw due to connection aborts,
-> also fixes the potential srqidx leak during the connection abort.
+On Fri 08-02-19 12:50:37, Dan Williams wrote:
+> On Fri, Feb 8, 2019 at 3:11 AM Jan Kara <jack@suse.cz> wrote:
+> >
+> > On Fri 08-02-19 15:43:02, Dave Chinner wrote:
+> > > On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
+> > > > One approach that may be a clean way to solve this:
+> > > > 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
+> > > >    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
+> > > >    on the longterm pinned range until the long term pin is removed.
+> > >
+> > > So, ummm, how do we do block allocation then, which is done on
+> > > demand during writes?
+> > >
+> > > IOWs, this requires the application to set up the file in the
+> > > correct state for the filesystem to lock it down so somebody else
+> > > can write to it.  That means the file can't be sparse, it can't be
+> > > preallocated (i.e. can't contain unwritten extents), it must have zeroes
+> > > written to it's full size before being shared because otherwise it
+> > > exposes stale data to the remote client (secure sites are going to
+> > > love that!), they can't be extended, etc.
+> > >
+> > > IOWs, once the file is prepped and leased out for RDMA, it becomes
+> > > an immutable for the purposes of local access.
+> > >
+> > > Which, essentially we can already do. Prep the file, map it
+> > > read/write, mark it immutable, then pin it via the longterm gup
+> > > interface which can do the necessary checks.
+> >
+> > Hum, and what will you do if the immutable file that is target for RDMA
+> > will be a source of reflink? That seems to be currently allowed for
+> > immutable files but RDMA store would be effectively corrupting the data of
+> > the target inode. But we could treat it similarly as swapfiles - those also
+> > have to deal with writes to blocks beyond filesystem control. In fact the
+> > similarity seems to be quite large there. What do you think?
 > 
-> This series has both net(cxgb4) and rdma(iw_cxgb4) changes,
-> and I would request this merge via rdma repo.
+> This sounds so familiar...
 > 
-> I have made sure this series applies cleanly on both net-next
-> and rdma-for-next and doesn't cause any merge conflicts.
+>     https://lwn.net/Articles/726481/
 > 
-> Raju Rangoju (3):
->   cxgb4: add tcb flags and tcb rpl struct
->   iw_cxgb4: complete the cached SRQ buffers
->   iw_cxgb4: fix srqidx leak during connection abort
-> 
->  drivers/infiniband/hw/cxgb4/cm.c            | 166 ++++++++++++++++++++++++++--
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |   3 +
->  drivers/infiniband/hw/cxgb4/t4.h            |   1 +
->  drivers/net/ethernet/chelsio/cxgb4/t4_msg.h |   8 ++
->  drivers/net/ethernet/chelsio/cxgb4/t4_tcb.h |  12 ++
->  5 files changed, 180 insertions(+), 10 deletions(-)
+> I'm not opposed to trying again, but leases was what crawled out
+> smoking crater when this last proposal was nuked.
 
-Since this is mostly rdma code let's go through the rdma tree.
+Umm, don't think this is that similar to daxctl() discussion. We are not
+speaking about providing any new userspace API for this. Also I think the
+situation about leases has somewhat cleared up with this discussion - ODP
+hardware does not need leases since it can use MMU notifiers, for non-ODP
+hardware it is difficult to handle leases as such hardware has only one big
+kill-everything call and using that would effectively mean lot of work on
+the userspace side to resetup everything to make things useful if workable
+at all.
 
-Applied to for-next, thanks
+So my proposal would be:
 
-Jason 
+1) ODP hardward uses gup_fast() like direct IO and uses MMU notifiers to do
+its teardown when fs needs it.
+
+2) Hardware not capable of tearing down pins from MMU notifiers will have
+to use gup_longterm() (we may actually rename it to a more suitable name).
+FS may just refuse such calls (for normal page cache backed file, it will
+just return success but for DAX file it will do sanity checks whether the
+file is fully allocated etc. like we currently do for swapfiles) but if
+gup_longterm() returns success, it will provide the same guarantees as for
+swapfiles. So the only thing that we need is some call from gup_longterm()
+to a filesystem callback to tell it - this file is going to be used by a
+third party as an IO buffer, don't touch it. And we can (and should)
+probably refactor the handling to be shared between swapfiles and
+gup_longterm().
+
+								Honza
+
+
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
