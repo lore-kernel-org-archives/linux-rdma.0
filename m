@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/2] net/mlx5: Align ODP capability function with netdev coding style
-Date: Mon, 11 Feb 2019 13:56:07 +0200
-Message-ID: <20190211115608.22677-2-leon@kernel.org>
+Subject: [PATCH mlx5-next 2/2] net/mlx5: Factor out HCA capabilities functions
+Date: Mon, 11 Feb 2019 13:56:08 +0200
+Message-ID: <20190211115608.22677-3-leon@kernel.org>
 References: <20190211115608.22677-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,64 +14,94 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Update newly introduced function to be aligned to netdev coding style.
+Combine all HCA capabilities setters under one function
+and compile out the ODP related function in case kernel
+was compiled without ODP support.
 
-Fixes: 46861e3e88be ("net/mlx5: Set ODP SRQ support in firmware")
-Reported-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/main.c | 15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 47 +++++++++++++------
+ 1 file changed, 33 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index e38aa206ab6d..6d45518edbdc 100644
+index 6d45518edbdc..d7145ab6105d 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -461,9 +461,9 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
+@@ -459,6 +459,7 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
+ 	return err;
+ }
  
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
  static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
  {
--	void *set_ctx;
  	void *set_hca_cap;
--	int set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
-+	void *set_ctx;
-+	int set_sz;
- 	int err;
+@@ -502,6 +503,7 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
+ 	kfree(set_ctx);
+ 	return err;
+ }
++#endif
  
- 	if (!MLX5_CAP_GEN(dev, pg))
-@@ -473,15 +473,12 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 	if (err)
- 		return err;
+ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ {
+@@ -576,6 +578,35 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
+ 	return err;
+ }
  
--	/**
--	 * If all bits are cleared we shouldn't try to set it
--	 * or we might fail while trying to access a reserved bit.
--	 */
- 	if (!(MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive) ||
- 	      MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive) ||
- 	      MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive)))
- 		return 0;
++static int set_hca_cap(struct mlx5_core_dev *dev)
++{
++	struct pci_dev *pdev = dev->pdev;
++	int err;
++
++	err = handle_hca_cap(dev);
++	if (err) {
++		dev_err(&pdev->dev, "handle_hca_cap failed\n");
++		goto out;
++	}
++
++	err = handle_hca_cap_atomic(dev);
++	if (err) {
++		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
++		goto out;
++	}
++
++#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
++	err = handle_hca_cap_odp(dev);
++	if (err) {
++		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
++		goto out;
++	}
++#endif
++
++out:
++	return err;
++}
++
+ static int set_hca_ctrl(struct mlx5_core_dev *dev)
+ {
+ 	struct mlx5_reg_host_endianness he_in;
+@@ -963,21 +994,9 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 		goto reclaim_boot_pages;
+ 	}
  
-+	set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
- 	set_ctx = kzalloc(set_sz, GFP_KERNEL);
- 	if (!set_ctx)
- 		return -ENOMEM;
-@@ -492,13 +489,13 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 
- 	/* set ODP SRQ support for RC/UD and XRC transports */
- 	MLX5_SET(odp_cap, set_hca_cap, ud_odp_caps.srq_receive,
--		 (MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive)));
-+		 MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive));
- 
- 	MLX5_SET(odp_cap, set_hca_cap, rc_odp_caps.srq_receive,
--		 (MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive)));
-+		 MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive));
- 
- 	MLX5_SET(odp_cap, set_hca_cap, xrc_odp_caps.srq_receive,
--		 (MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive)));
-+		 MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive));
- 
- 	err = set_caps(dev, set_ctx, set_sz, MLX5_SET_HCA_CAP_OP_MOD_ODP);
+-	err = handle_hca_cap(dev);
++	err = set_hca_cap(dev);
+ 	if (err) {
+-		dev_err(&pdev->dev, "handle_hca_cap failed\n");
+-		goto reclaim_boot_pages;
+-	}
+-
+-	err = handle_hca_cap_atomic(dev);
+-	if (err) {
+-		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
+-		goto reclaim_boot_pages;
+-	}
+-
+-	err = handle_hca_cap_odp(dev);
+-	if (err) {
+-		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
++		dev_err(&pdev->dev, "set_hca_cap failed\n");
+ 		goto reclaim_boot_pages;
+ 	}
  
 -- 
 2.19.1
