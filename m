@@ -1,99 +1,26 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Mon, 11 Feb 2019 11:24:02 +0100
-Message-ID: <20190211102402.GF19029@quack2.suse.cz>
-References: <01000168c43d594c-7979fcf8-b9c1-4bda-b29a-500efe001d66-000000@email.amazonses.com>
- <20190206210356.GZ6173@dastard>
- <20190206220828.GJ12227@ziepe.ca>
- <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
- <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
- <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
- <20190208044302.GA20493@dastard>
- <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 0/2] Followup changes to mlx5-next branch
+Date: Mon, 11 Feb 2019 13:56:06 +0200
+Message-ID: <20190211115608.22677-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri 08-02-19 12:50:37, Dan Williams wrote:
-> On Fri, Feb 8, 2019 at 3:11 AM Jan Kara <jack@suse.cz> wrote:
-> >
-> > On Fri 08-02-19 15:43:02, Dave Chinner wrote:
-> > > On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
-> > > > One approach that may be a clean way to solve this:
-> > > > 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
-> > > >    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
-> > > >    on the longterm pinned range until the long term pin is removed.
-> > >
-> > > So, ummm, how do we do block allocation then, which is done on
-> > > demand during writes?
-> > >
-> > > IOWs, this requires the application to set up the file in the
-> > > correct state for the filesystem to lock it down so somebody else
-> > > can write to it.  That means the file can't be sparse, it can't be
-> > > preallocated (i.e. can't contain unwritten extents), it must have zeroes
-> > > written to it's full size before being shared because otherwise it
-> > > exposes stale data to the remote client (secure sites are going to
-> > > love that!), they can't be extended, etc.
-> > >
-> > > IOWs, once the file is prepped and leased out for RDMA, it becomes
-> > > an immutable for the purposes of local access.
-> > >
-> > > Which, essentially we can already do. Prep the file, map it
-> > > read/write, mark it immutable, then pin it via the longterm gup
-> > > interface which can do the necessary checks.
-> >
-> > Hum, and what will you do if the immutable file that is target for RDMA
-> > will be a source of reflink? That seems to be currently allowed for
-> > immutable files but RDMA store would be effectively corrupting the data of
-> > the target inode. But we could treat it similarly as swapfiles - those also
-> > have to deal with writes to blocks beyond filesystem control. In fact the
-> > similarity seems to be quite large there. What do you think?
-> 
-> This sounds so familiar...
-> 
->     https://lwn.net/Articles/726481/
-> 
-> I'm not opposed to trying again, but leases was what crawled out
-> smoking crater when this last proposal was nuked.
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Umm, don't think this is that similar to daxctl() discussion. We are not
-speaking about providing any new userspace API for this. Also I think the
-situation about leases has somewhat cleared up with this discussion - ODP
-hardware does not need leases since it can use MMU notifiers, for non-ODP
-hardware it is difficult to handle leases as such hardware has only one big
-kill-everything call and using that would effectively mean lot of work on
-the userspace side to resetup everything to make things useful if workable
-at all.
+Hi,
 
-So my proposal would be:
+There are two small cleanups needed after prefetch MR code was merged.
 
-1) ODP hardward uses gup_fast() like direct IO and uses MMU notifiers to do
-its teardown when fs needs it.
+Thanks
 
-2) Hardware not capable of tearing down pins from MMU notifiers will have
-to use gup_longterm() (we may actually rename it to a more suitable name).
-FS may just refuse such calls (for normal page cache backed file, it will
-just return success but for DAX file it will do sanity checks whether the
-file is fully allocated etc. like we currently do for swapfiles) but if
-gup_longterm() returns success, it will provide the same guarantees as for
-swapfiles. So the only thing that we need is some call from gup_longterm()
-to a filesystem callback to tell it - this file is going to be used by a
-third party as an IO buffer, don't touch it. And we can (and should)
-probably refactor the handling to be shared between swapfiles and
-gup_longterm().
+Leon Romanovsky (2):
+  net/mlx5: Align ODP capability function with netdev coding style
+  net/mlx5: Factor out HCA capabilities functions
 
-								Honza
-
-
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 62 ++++++++++++-------
+ 1 file changed, 39 insertions(+), 23 deletions(-)
