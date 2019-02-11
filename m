@@ -1,38 +1,67 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 13:29:14 -0800
-Message-ID: <20190211212914.GB7790@iweiny-DESK2.sc.intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
+Date: Mon, 11 Feb 2019 13:39:12 -0800
+Message-ID: <fc9c880b-24f8-7063-6094-00175bc27f7d@nvidia.com>
 References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
+ <20190211201643.7599-3-ira.weiny@intel.com> <20190211203916.GA2771@ziepe.ca>
+ <bcc03ee1-4c42-48c3-bc67-942c0f04875e@nvidia.com>
+ <20190211212652.GA7790@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
+In-Reply-To: <20190211212652.GA7790@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US-large
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 12:34:17PM -0800, Davidlohr Bueso wrote:
-> On Mon, 11 Feb 2019, ira.weiny@intel.com wrote:
-> > Ira Weiny (3):
-> >  mm/gup: Change "write" parameter to flags
-> >  mm/gup: Introduce get_user_pages_fast_longterm()
-> >  IB/HFI1: Use new get_user_pages_fast_longterm()
+On 2/11/19 1:26 PM, Ira Weiny wrote:
+> On Mon, Feb 11, 2019 at 01:13:56PM -0800, John Hubbard wrote:
+>> On 2/11/19 12:39 PM, Jason Gunthorpe wrote:
+>>> On Mon, Feb 11, 2019 at 12:16:42PM -0800, ira.weiny@intel.com wrote:
+>>>> From: Ira Weiny <ira.weiny@intel.com>
+>> [...]
+>> It seems to me that the longterm vs. short-term is of questionable value.
 > 
-> Out of curiosity, are you planning on having all rdma drivers
-> use get_user_pages_fast_longterm()? Ie:
+> This is exactly why I did not post this before.  I've been waiting our other
+> discussions on how GUP pins are going to be handled to play out.  But with the
+> netdev thread today[1] it seems like we need to make sure we have a "safe" fast
+> variant for a while.  Introducing FOLL_LONGTERM seemed like the cleanest way to
+> do that even if we will not need the distinction in the future...  :-(
+
+Yes, I agree. Below...
+
+> [...]
+> This is also why I did not change the get_user_pages_longterm because we could
+> be ripping this all out by the end of the year...  (I hope. :-)
 > 
-> hw/mthca/mthca_memfree.c:       ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
-> hw/qib/qib_user_sdma.c:         ret = get_user_pages_fast(addr, j, 0, pages);
-
-I missed that when I change the other qib call to longterm...  :-(
-
-Yes both of these should be changed.  Although I need to look into Jasons
-comment WRT the mthca call.
-
-Ira
-
+> So while this does "pollute" the GUP family of calls I'm hoping it is not
+> forever.
 > 
-> Thanks,
-> Davidlohr
+> Ira
+> 
+> [1] https://lkml.org/lkml/2019/2/11/1789
+> 
+
+Yes, and to be clear, I think your patchset here is fine. It is easy to find
+the FOLL_LONGTERM callers if and when we want to change anything. I just think
+also it's appopriate to go a bit further, and use FOLL_LONGTERM all by itself.
+
+That's because in either design outcome, it's better that way:
+
+-- If we keep the concept of "I'm a long-term gup call site", then FOLL_LONGTERM
+is just right. The gup API already has _fast and non-fast variants, and once
+you get past a couple, you end up with a multiplication of names that really
+work better as flags. We're there.
+
+-- If we drop the concept, then you've already done part of the work, by removing
+the _longterm API variants.
+
+
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
