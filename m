@@ -1,50 +1,42 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 15:23:35 -0700
-Message-ID: <20190211222335.GK24692@ziepe.ca>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211204049.GB2771@ziepe.ca>
- <2807E5FD2F6FDA4886F6618EAC48510E79BCF04C@CRSMSX101.amr.corp.intel.com>
+Subject: Re: [PATCH v2] lib/scatterlist: Provide a DMA page iterator
+Date: Mon, 11 Feb 2019 15:26:54 -0700
+Message-ID: <20190211222654.GA15746@ziepe.ca>
+References: <20190207222647.GA30974@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E79BCF04C@CRSMSX101.amr.corp.intel.com>
+In-Reply-To: <20190207222647.GA30974@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Weiny, Ira" <ira.weiny@intel.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
+To: Daniel Stone <daniel@fooishbar.org>, "hch@lst.de" <hch@lst.de>, "Koenig, Christian" <Christian.Koenig@amd.com>, Thomas Hellstrom <thellstrom@vmware.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "yong.zhi@intel.com" <yong.zhi@intel.com>, "daniel.vetter@ffwll.ch" <daniel.vetter@ffwll.ch>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "bingbu.cao@intel.com" <bingbu.cao@intel.com>, "tian.shu.qiu@intel.com" <tian.shu.qiu@intel.com>, "shiraz.saleem@intel.com" <shiraz.saleem@intel.com>, "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 09:14:56PM +0000, Weiny, Ira wrote:
-> > 
-> > On Mon, Feb 11, 2019 at 12:16:40PM -0800, ira.weiny@intel.com wrote:
-> > > From: Ira Weiny <ira.weiny@intel.com>
-> > >
-> > > NOTE: This series depends on my clean up patch to remove the write
-> > > parameter from gup_fast_permitted()[1]
-> > >
-> > > HFI1 uses get_user_pages_fast() due to it performance advantages.
-> > > Like RDMA,
-> > > HFI1 pages can be held for a significant time.  But
-> > > get_user_pages_fast() does not protect against mapping of FS DAX pages.
-> > 
-> > If HFI1 can use the _fast varient, can't all the general RDMA stuff use it too?
-> > 
-> > What is the guidance on when fast vs not fast should be use?
+On Thu, Feb 07, 2019 at 10:26:52PM +0000, Jason Gunthorpe wrote:
+> Commit 2db76d7c3c6d ("lib/scatterlist: sg_page_iter: support sg lists w/o
+> backing pages") introduced the sg_page_iter_dma_address() function without
+> providing a way to use it in the general case. If the sg_dma_len() is not
+> equal to the sg length callers cannot safely use the
+> for_each_sg_page/sg_page_iter_dma_address combination.
 > 
-> Right now it can't because it holds mmap_sem across the call.  Once
-> Shiraz's patches are accepted removing the umem->hugetlb flag I
-> think we can change umem.c.
+> Resolve this API mistake by providing a DMA specific iterator,
+> for_each_sg_dma_page(), that uses the right length so
+> sg_page_iter_dma_address() works as expected with all sglists.
+> 
+> A new iterator type is introduced to provide compile-time safety against
+> wrongly mixing accessors and iterators.
+> 
+> Acked-by: Christoph Hellwig <hch@lst.de> (for scatterlist)
+> Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+> Acked-by: Thomas Hellstrom <thellstrom@vmware.com>
+> ---
+>  .clang-format                              |  1 +
+>  drivers/gpu/drm/vmwgfx/vmwgfx_ttm_buffer.c |  8 +++-
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c   |  4 +-
+>  include/linux/scatterlist.h                | 49 ++++++++++++++++++----
+>  lib/scatterlist.c                          | 26 ++++++++++++
+>  5 files changed, 76 insertions(+), 12 deletions(-)
 
-Okay, that make sense, we should change it when Shiraz's patches are
-merged
- 
-> Also, it specifies FOLL_FORCE which can't currently be specified
-> with gup fast.  One idea I had was to change get_user_pages_fast()
-> to use gup_flags instead of a single write flag.  But that proved to
-> be a very big cosmetic change across a lot of callers so I went this
-> way.
-
-I think you should do it.. :)
+Applied to rdma.git's for-next, thanks everyone.
 
 Jason
