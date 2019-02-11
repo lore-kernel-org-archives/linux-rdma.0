@@ -1,30 +1,64 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 13:47:10 -0700
-Message-ID: <20190211204710.GE24692@ziepe.ca>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Mon, 11 Feb 2019 13:49:45 -0700
+Message-ID: <20190211204945.GF24692@ziepe.ca>
+References: <20190208044302.GA20493@dastard>
+ <20190208111028.GD6353@quack2.suse.cz>
+ <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+ <20190211102402.GF19029@quack2.suse.cz>
+ <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+ <20190211180654.GB24692@ziepe.ca>
+ <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
+ <20190211182649.GD24692@ziepe.ca>
+ <20190211184040.GF12668@bombadil.infradead.org>
+ <CAPcyv4j71WZiXWjMPtDJidAqQiBcHUbcX=+aw11eEQ5C6sA8hQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
-Sender: netdev-owner@vger.kernel.org
-To: ira.weiny@intel.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <CAPcyv4j71WZiXWjMPtDJidAqQiBcHUbcX=+aw11eEQ5C6sA8hQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 12:34:17PM -0800, Davidlohr Bueso wrote:
-> On Mon, 11 Feb 2019, ira.weiny@intel.com wrote:
-> > Ira Weiny (3):
-> >  mm/gup: Change "write" parameter to flags
-> >  mm/gup: Introduce get_user_pages_fast_longterm()
-> >  IB/HFI1: Use new get_user_pages_fast_longterm()
+On Mon, Feb 11, 2019 at 11:58:47AM -0800, Dan Williams wrote:
+> On Mon, Feb 11, 2019 at 10:40 AM Matthew Wilcox <willy@infradead.org> wrote:
+> >
+> > On Mon, Feb 11, 2019 at 11:26:49AM -0700, Jason Gunthorpe wrote:
+> > > On Mon, Feb 11, 2019 at 10:19:22AM -0800, Ira Weiny wrote:
+> > > > What if user space then writes to the end of the file with a regular write?
+> > > > Does that write end up at the point they truncated to or off the end of the
+> > > > mmaped area (old length)?
+> > >
+> > > IIRC it depends how the user does the write..
+> > >
+> > > pwrite() with a given offset will write to that offset, re-extending
+> > > the file if needed
+> > >
+> > > A file opened with O_APPEND and a write done with write() should
+> > > append to the new end
+> > >
+> > > A normal file with a normal write should write to the FD's current
+> > > seek pointer.
+> > >
+> > > I'm not sure what happens if you write via mmap/msync.
+> > >
+> > > RDMA is similar to pwrite() and mmap.
+> >
+> > A pertinent point that you didn't mention is that ftruncate() does not change
+> > the file offset.  So there's no user-visible change in behaviour.
 > 
-> Out of curiosity, are you planning on having all rdma drivers
-> use get_user_pages_fast_longterm()? Ie:
-> 
-> hw/mthca/mthca_memfree.c:       ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
+> ...but there is. The blocks you thought you freed, especially if the
+> system was under -ENOSPC pressure, won't actually be free after the
+> successful ftruncate().
 
-This one is certainly a mistake - this should be done with a umem.
+They won't be free after something dirties the existing mmap either.
+
+Blocks also won't be free if you unlink a file that is currently still
+open.
+
+This isn't really new behavior for a FS.
 
 Jason
