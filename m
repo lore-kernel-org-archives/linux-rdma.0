@@ -1,78 +1,44 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 2/3] mm/gup: Introduce get_user_pages_fast_longterm()
-Date: Mon, 11 Feb 2019 15:06:58 -0700
-Message-ID: <20190211220658.GH24692@ziepe.ca>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211201643.7599-3-ira.weiny@intel.com>
- <20190211203916.GA2771@ziepe.ca>
- <bcc03ee1-4c42-48c3-bc67-942c0f04875e@nvidia.com>
- <20190211212652.GA7790@iweiny-DESK2.sc.intel.com>
- <fc9c880b-24f8-7063-6094-00175bc27f7d@nvidia.com>
- <20190211215238.GA23825@iweiny-DESK2.sc.intel.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Mon, 11 Feb 2019 15:12:47 -0700
+Message-ID: <20190211221247.GI24692@ziepe.ca>
+References: <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
+ <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
+ <20190208044302.GA20493@dastard>
+ <20190208111028.GD6353@quack2.suse.cz>
+ <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
+ <20190211102402.GF19029@quack2.suse.cz>
+ <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+ <20190211180654.GB24692@ziepe.ca>
+ <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
+ <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190211215238.GA23825@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 01:52:38PM -0800, Ira Weiny wrote:
-> On Mon, Feb 11, 2019 at 01:39:12PM -0800, John Hubbard wrote:
-> > On 2/11/19 1:26 PM, Ira Weiny wrote:
-> > > On Mon, Feb 11, 2019 at 01:13:56PM -0800, John Hubbard wrote:
-> > >> On 2/11/19 12:39 PM, Jason Gunthorpe wrote:
-> > >>> On Mon, Feb 11, 2019 at 12:16:42PM -0800, ira.weiny@intel.com wrote:
-> > >>>> From: Ira Weiny <ira.weiny@intel.com>
-> > >> [...]
-> > >> It seems to me that the longterm vs. short-term is of questionable value.
-> > > 
-> > > This is exactly why I did not post this before.  I've been waiting our other
-> > > discussions on how GUP pins are going to be handled to play out.  But with the
-> > > netdev thread today[1] it seems like we need to make sure we have a "safe" fast
-> > > variant for a while.  Introducing FOLL_LONGTERM seemed like the cleanest way to
-> > > do that even if we will not need the distinction in the future...  :-(
-> > 
-> > Yes, I agree. Below...
-> > 
-> > > [...]
-> > > This is also why I did not change the get_user_pages_longterm because we could
-> > > be ripping this all out by the end of the year...  (I hope. :-)
-> > > 
-> > > So while this does "pollute" the GUP family of calls I'm hoping it is not
-> > > forever.
-> > > 
-> > > Ira
-> > > 
-> > > [1] https://lkml.org/lkml/2019/2/11/1789
-> > > 
-> > 
-> > Yes, and to be clear, I think your patchset here is fine. It is easy to find
-> > the FOLL_LONGTERM callers if and when we want to change anything. I just think
-> > also it's appopriate to go a bit further, and use FOLL_LONGTERM all by itself.
-> > 
-> > That's because in either design outcome, it's better that way:
-> > 
-> > is just right. The gup API already has _fast and non-fast variants, and once
-> > you get past a couple, you end up with a multiplication of names that really
-> > work better as flags. We're there.
-> > 
-> > the _longterm API variants.
-> 
-> Fair enough.   But to do that correctly I think we will need to convert
-> get_user_pages_fast() to use flags as well.  I have a version of this series
-> which includes a patch does this, but the patch touched a lot of subsystems and
-> a couple of different architectures...[1]
+On Mon, Feb 11, 2019 at 01:22:11PM -0800, John Hubbard wrote:
 
-I think this should be done anyhow, it is trouble the two basically
-identical interfaces have different signatures. This already caused a
-bug in vfio..
+> The only way that breaks is if longterm pins imply an irreversible action, such
+> as blocking and waiting in a way that you can't back out of or get interrupted
+> out of. And the design doesn't seem to be going in that direction, right?
 
-I also wonder if someone should think about making fast into a flag
-too..
+RDMA, vfio, etc will always have 'long term' pins that are
+irreversible on demand. It is part of the HW capability.
 
-But I'm not sure when fast should be used vs when it shouldn't :(
+I think the flag is badly named, it is really more of a
+GUP_LOCK_PHYSICAL_ADDRESSES flag.
+
+ie indicate to the FS that is should not attempt to remap physical
+memory addresses backing this VMA. If the FS can't do that it must
+fail.
+
+Short term GUP doesn't need that kind of lock.
 
 Jason
