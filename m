@@ -1,55 +1,50 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH 0/3] Add gup fast + longterm and use it in HFI1
-Date: Mon, 11 Feb 2019 15:22:08 -0700
-Message-ID: <20190211222208.GJ24692@ziepe.ca>
+Date: Mon, 11 Feb 2019 15:23:35 -0700
+Message-ID: <20190211222335.GK24692@ziepe.ca>
 References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190211203417.a2c2kbmjai43flyz@linux-r8p5>
- <20190211204710.GE24692@ziepe.ca>
- <20190211214257.GA7891@iweiny-DESK2.sc.intel.com>
+ <20190211204049.GB2771@ziepe.ca>
+ <2807E5FD2F6FDA4886F6618EAC48510E79BCF04C@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190211214257.GA7891@iweiny-DESK2.sc.intel.com>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E79BCF04C@CRSMSX101.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Daniel Borkmann <daniel@iogearbox.net>, netdev@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: "Weiny, Ira" <ira.weiny@intel.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Daniel Borkmann <daniel@iogearbox.net>, Davidlohr Bueso <dave@stgolabs.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 11, 2019 at 01:42:57PM -0800, Ira Weiny wrote:
-> On Mon, Feb 11, 2019 at 01:47:10PM -0700, Jason Gunthorpe wrote:
-> > On Mon, Feb 11, 2019 at 12:34:17PM -0800, Davidlohr Bueso wrote:
-> > > On Mon, 11 Feb 2019, ira.weiny@intel.com wrote:
-> > > > Ira Weiny (3):
-> > > >  mm/gup: Change "write" parameter to flags
-> > > >  mm/gup: Introduce get_user_pages_fast_longterm()
-> > > >  IB/HFI1: Use new get_user_pages_fast_longterm()
-> > > 
-> > > Out of curiosity, are you planning on having all rdma drivers
-> > > use get_user_pages_fast_longterm()? Ie:
-> > > 
-> > > hw/mthca/mthca_memfree.c:       ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
+On Mon, Feb 11, 2019 at 09:14:56PM +0000, Weiny, Ira wrote:
 > > 
-> > This one is certainly a mistake - this should be done with a umem.
+> > On Mon, Feb 11, 2019 at 12:16:40PM -0800, ira.weiny@intel.com wrote:
+> > > From: Ira Weiny <ira.weiny@intel.com>
+> > >
+> > > NOTE: This series depends on my clean up patch to remove the write
+> > > parameter from gup_fast_permitted()[1]
+> > >
+> > > HFI1 uses get_user_pages_fast() due to it performance advantages.
+> > > Like RDMA,
+> > > HFI1 pages can be held for a significant time.  But
+> > > get_user_pages_fast() does not protect against mapping of FS DAX pages.
+> > 
+> > If HFI1 can use the _fast varient, can't all the general RDMA stuff use it too?
+> > 
+> > What is the guidance on when fast vs not fast should be use?
 > 
-> It looks like this is mapping a page allocated by user space for a
-> doorbell?!?!
+> Right now it can't because it holds mmap_sem across the call.  Once
+> Shiraz's patches are accepted removing the umem->hugetlb flag I
+> think we can change umem.c.
 
-Many drivers do this, the 'doorbell' is a PCI -> CPU thing of some sort
+Okay, that make sense, we should change it when Shiraz's patches are
+merged
+ 
+> Also, it specifies FOLL_FORCE which can't currently be specified
+> with gup fast.  One idea I had was to change get_user_pages_fast()
+> to use gup_flags instead of a single write flag.  But that proved to
+> be a very big cosmetic change across a lot of callers so I went this
+> way.
 
-> This does not seem to be allocating memory regions.  Jason, do you
-> want a patch to just convert these calls and consider it legacy
-> code?
-
-It needs to use umem like all the other drivers on this path.
-Otherwise it doesn't get the page pinning logic right
-
-There is also something else rotten with these longterm callsites,
-they seem to have very different ideas how to handle RLIMIT_MEMLOCK.
-
-ie vfio doesn't even touch pinned_vm.. and rdma is applying
-RLIMIT_MEMLOCK to mm->pinned_vm, while vfio is using locked_vm.. No
-idea which is right, but they should be the same, and this pattern
-should probably be in core code someplace.
+I think you should do it.. :)
 
 Jason
