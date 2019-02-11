@@ -1,107 +1,41 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 2/2] net/mlx5: Factor out HCA capabilities functions
-Date: Mon, 11 Feb 2019 13:56:08 +0200
-Message-ID: <20190211115608.22677-3-leon@kernel.org>
-References: <20190211115608.22677-1-leon@kernel.org>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next] RDMA/bnxt_re: fix or'ing of data into an uninitialized struct member
+Date: Mon, 11 Feb 2019 13:34:15 +0000
+Message-ID: <20190211133415.9020-1-colin.king@canonical.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190211115608.22677-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Selvin Xavier <selvin.xavier@broadcom.com>, Devesh Sharma <devesh.sharma@broadcom.com>, Somnath Kotur <somnath.kotur@broadcom.com>, Sriharsha Basavapatna <sriharsha.basavapatna@broadcom.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Colin Ian King <colin.king@canonical.com>
 
-Combine all HCA capabilities setters under one function
-and compile out the ODP related function in case kernel
-was compiled without ODP support.
+The struct member comp_mask has not been initialized however a bit
+pattern is being bitwise or'd into the member and hence other bit
+fields in comp_mask may contain any garbage from the stack. Fix this
+by making the bitwise or into an assignment.
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 95b86d1c91ad ("RDMA/bnxt_re: Update kernel user abi to pass chip context")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/main.c    | 47 +++++++++++++------
- 1 file changed, 33 insertions(+), 14 deletions(-)
+ drivers/infiniband/hw/bnxt_re/ib_verbs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 6d45518edbdc..d7145ab6105d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -459,6 +459,7 @@ static int handle_hca_cap_atomic(struct mlx5_core_dev *dev)
- 	return err;
- }
- 
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
- static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- {
- 	void *set_hca_cap;
-@@ -502,6 +503,7 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 	kfree(set_ctx);
- 	return err;
- }
-+#endif
- 
- static int handle_hca_cap(struct mlx5_core_dev *dev)
- {
-@@ -576,6 +578,35 @@ static int handle_hca_cap(struct mlx5_core_dev *dev)
- 	return err;
- }
- 
-+static int set_hca_cap(struct mlx5_core_dev *dev)
-+{
-+	struct pci_dev *pdev = dev->pdev;
-+	int err;
-+
-+	err = handle_hca_cap(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap failed\n");
-+		goto out;
-+	}
-+
-+	err = handle_hca_cap_atomic(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
-+		goto out;
-+	}
-+
-+#ifdef CONFIG_INFINIBAND_ON_DEMAND_PAGING
-+	err = handle_hca_cap_odp(dev);
-+	if (err) {
-+		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
-+		goto out;
-+	}
-+#endif
-+
-+out:
-+	return err;
-+}
-+
- static int set_hca_ctrl(struct mlx5_core_dev *dev)
- {
- 	struct mlx5_reg_host_endianness he_in;
-@@ -963,21 +994,9 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
- 		goto reclaim_boot_pages;
+diff --git a/drivers/infiniband/hw/bnxt_re/ib_verbs.c b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+index 1d7469e23cde..de5cb9a61a78 100644
+--- a/drivers/infiniband/hw/bnxt_re/ib_verbs.c
++++ b/drivers/infiniband/hw/bnxt_re/ib_verbs.c
+@@ -3720,7 +3720,7 @@ struct ib_ucontext *bnxt_re_alloc_ucontext(struct ib_device *ibdev,
  	}
+ 	spin_lock_init(&uctx->sh_lock);
  
--	err = handle_hca_cap(dev);
-+	err = set_hca_cap(dev);
- 	if (err) {
--		dev_err(&pdev->dev, "handle_hca_cap failed\n");
--		goto reclaim_boot_pages;
--	}
--
--	err = handle_hca_cap_atomic(dev);
--	if (err) {
--		dev_err(&pdev->dev, "handle_hca_cap_atomic failed\n");
--		goto reclaim_boot_pages;
--	}
--
--	err = handle_hca_cap_odp(dev);
--	if (err) {
--		dev_err(&pdev->dev, "handle_hca_cap_odp failed\n");
-+		dev_err(&pdev->dev, "set_hca_cap failed\n");
- 		goto reclaim_boot_pages;
- 	}
- 
+-	resp.comp_mask |= BNXT_RE_UCNTX_CMASK_HAVE_CCTX;
++	resp.comp_mask = BNXT_RE_UCNTX_CMASK_HAVE_CCTX;
+ 	chip_met_rev_num = rdev->chip_ctx.chip_num;
+ 	chip_met_rev_num |= ((u32)rdev->chip_ctx.chip_rev & 0xFF) <<
+ 			     BNXT_RE_CHIP_ID0_CHIP_REV_SFT;
 -- 
-2.19.1
+2.20.1
