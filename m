@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RFC 09/19] RDMA/irdma: Add QoS definitions
-Date: Tue, 12 Feb 2019 15:43:52 -0600
-Message-ID: <20190212214402.23284-10-shiraz.saleem@intel.com>
+Subject: [RFC 07/19] RDMA/irdma: Add HMC backing store setup functions
+Date: Tue, 12 Feb 2019 15:43:50 -0600
+Message-ID: <20190212214402.23284-8-shiraz.saleem@intel.com>
 References: <20190212214402.23284-1-shiraz.saleem@intel.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190212214402.23284-1-shiraz.saleem@intel.com>
@@ -12,29 +12,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mustafa Ismail <mustafa.ismail@intel.com>
 
-Add definitions for managing the RDMA HW work scheduler (WS) tree.
+HW uses host memory as a backing store for a number of
+protocol context objects and queue state tracking.
+The Host Memory Cache (HMC) is a component responsible for
+managing these objects stored in host memory.
 
-A WS node is created via a control QP operation with the bandwidth
-allocation, arbitration scheme, and traffic class of the QP specified.
-The Qset handle returned associates the QoS parameters for the QP.
-The Qset is registered with the LAN and a equivalent node is created
-in the LAN packet scheduler tree.
+Add the functions and data structures to manage the allocation
+of backing pages used by the HMC for the various objects
 
 Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/ws.c | 449 +++++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/ws.h |  40 ++++
- 2 files changed, 489 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/ws.c
- create mode 100644 drivers/infiniband/hw/irdma/ws.h
+ drivers/infiniband/hw/irdma/hmc.c | 716 ++++++++++++++++++++++++++++++++++++++
+ drivers/infiniband/hw/irdma/hmc.h | 221 ++++++++++++
+ 2 files changed, 937 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.c
+ create mode 100644 drivers/infiniband/hw/irdma/hmc.h
 
-diff --git a/drivers/infiniband/hw/irdma/ws.c b/drivers/infiniband/hw/irdma/ws.c
+diff --git a/drivers/infiniband/hw/irdma/hmc.c b/drivers/infiniband/hw/irdma/hmc.c
 new file mode 100644
-index 0000000..f9c0beb
+index 0000000..c896e44
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.c
-@@ -0,0 +1,449 @@
++++ b/drivers/infiniband/hw/irdma/hmc.c
+@@ -0,0 +1,716 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
 +/* Copyright (c) 2019, Intel Corporation. */
 +
@@ -45,490 +45,938 @@ index 0000000..f9c0beb
 +#include "type.h"
 +#include "protos.h"
 +
-+#include "ws.h"
++/**
++ * irdma_find_sd_index_limit - finds segment descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @type: type of HMC resources we're searching
++ * @index: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @sd_idx: pointer to return index of the segment descriptor in question
++ * @sd_limit: pointer to return the maximum number of segment descriptors
++ *
++ * This function calculates the segment descriptor index and index limit
++ * for the resource defined by irdma_hmc_rsrc_type.
++ */
++
++static void irdma_find_sd_index_limit(struct irdma_hmc_info *hmc_info,
++				      u32 type,
++				      u32 idx,
++				      u32 cnt,
++				      u32 *sd_idx,
++				      u32 *sd_limit)
++{
++	u64 fpm_addr, fpm_limit;
++
++	fpm_addr = hmc_info->hmc_obj[(type)].base +
++		   hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_addr + hmc_info->hmc_obj[type].size * cnt;
++	*sd_idx = (u32)(fpm_addr / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit = (u32)((fpm_limit - 1) / IRDMA_HMC_DIRECT_BP_SIZE);
++	*sd_limit += 1;
++}
 +
 +/**
-+ * irdma_alloc_node - Allocate a WS node and init
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ * @node_type: Type of node, leaf or parent
-+ * @parent: parent node pointer
++ * irdma_find_pd_index_limit - finds page descriptor index limit
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @type: HMC resource type we're examining
++ * @idx: starting index for the object
++ * @cnt: number of objects we're trying to create
++ * @pd_index: pointer to return page descriptor index
++ * @pd_limit: pointer to return page descriptor index limit
++ *
++ * Calculates the page descriptor index and index limit for the resource
++ * defined by irdma_hmc_rsrc_type.
 + */
-+static struct irdma_ws_node *irdma_alloc_node(struct irdma_sc_vsi *vsi,
-+					      u8 user_pri,
-+					      enum irdma_ws_node_type node_type,
-+					      struct irdma_ws_node *parent)
++
++static void irdma_find_pd_index_limit(struct irdma_hmc_info *hmc_info,
++				      u32 type,
++				      u32 idx,
++				      u32 cnt,
++				      u32 *pd_idx,
++				      u32 *pd_limit)
 +{
-+	struct irdma_virt_mem ws_mem;
-+	struct irdma_ws_node *node;
-+	u16 node_index = 0;
++	u64 fpm_adr, fpm_limit;
 +
-+	if (irdma_allocate_virt_mem(vsi->dev->hw, &ws_mem,
-+				    sizeof(struct irdma_ws_node)))
-+		return NULL;
++	fpm_adr = hmc_info->hmc_obj[type].base +
++		  hmc_info->hmc_obj[type].size * idx;
++	fpm_limit = fpm_adr + (hmc_info)->hmc_obj[(type)].size * (cnt);
++	*(pd_idx) = (u32)(fpm_adr / IRDMA_HMC_PAGED_BP_SIZE);
++	*(pd_limit) = (u32)((fpm_limit - 1) / IRDMA_HMC_PAGED_BP_SIZE);
++	*(pd_limit) += 1;
++}
 +
-+	if (parent || vsi->vm_vf_type == IRDMA_VF_TYPE) {
-+		node_index = irdma_alloc_ws_node_id(vsi->dev);
-+		if (node_index == IRDMA_WS_NODE_INVALID) {
-+			irdma_free_virt_mem(vsi->dev->hw, &ws_mem);
-+			return NULL;
++/**
++ * irdma_set_sd_entry - setup entry for sd programming
++ * @pa: physical addr
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
++ */
++static void irdma_set_sd_entry(u64 pa,
++			       u32 idx,
++			       enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
++{
++	entry->data = pa | (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S) |
++		      (1 << IRDMA_PFHMC_SDDATALOW_PMSDVALID_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
++
++/**
++ * irdma_clr_sd_entry - setup entry for sd clear
++ * @idx: sd index
++ * @type: paged or direct sd
++ * @entry: sd entry ptr
++ */
++static void irdma_clr_sd_entry(u32 idx,
++			       enum irdma_sd_entry_type type,
++			       struct irdma_update_sd_entry *entry)
++{
++	entry->data = (IRDMA_HMC_MAX_BP_COUNT << IRDMA_PFHMC_SDDATALOW_PMSDBPCOUNT_S) |
++		      (((type == IRDMA_SD_TYPE_PAGED) ? 0 : 1) << IRDMA_PFHMC_SDDATALOW_PMSDTYPE_S);
++	entry->cmd = (idx | (1 << IRDMA_PFHMC_SDCMD_PMSDWR_S) | (1 << 15));
++}
++
++/**
++ * irdma_hmc_sd_one - setup 1 sd entry for cqp
++ * @dev: pointer to the device structure
++ * @hmc_fn_id: hmc's function id
++ * @pa: physical addr
++ * @sd_idx: sd index
++ * @type: paged or direct sd
++ * @setsd: flag to set or clear sd
++ */
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev,
++					u8 hmc_fn_id,
++					u64 pa, u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd)
++{
++	struct irdma_update_sds_info sdinfo;
++
++	sdinfo.cnt = 1;
++	sdinfo.hmc_fn_id = hmc_fn_id;
++	if (setsd)
++		irdma_set_sd_entry(pa, sd_idx, type, sdinfo.entry);
++	else
++		irdma_clr_sd_entry(sd_idx, type, sdinfo.entry);
++	return dev->cqp->process_cqp_sds(dev, &sdinfo);
++}
++
++/**
++ * irdma_hmc_sd_grp - setup group od sd entries for cqp
++ * @dev: pointer to the device structure
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: sd index
++ * @sd_cnt: number of sd entries
++ * @setsd: flag to set or clear sd
++ */
++static enum irdma_status_code irdma_hmc_sd_grp(struct irdma_sc_dev *dev,
++					       struct irdma_hmc_info *hmc_info,
++					       u32 sd_index,
++					       u32 sd_cnt,
++					       bool setsd)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	struct irdma_update_sds_info sdinfo = {};
++	u64 pa;
++	u32 i;
++	enum irdma_status_code ret_code = 0;
++
++	sdinfo.hmc_fn_id = hmc_info->hmc_fn_id;
++	for (i = sd_index; i < sd_index + sd_cnt; i++) {
++		sd_entry = &hmc_info->sd_table.sd_entry[i];
++		if (!sd_entry ||
++		    (!sd_entry->valid && setsd) ||
++		    (sd_entry->valid && !setsd))
++			continue;
++		if (setsd) {
++			pa = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++			    sd_entry->u.pd_table.pd_page_addr.pa :
++			    sd_entry->u.bp.addr.pa;
++			irdma_set_sd_entry(pa, i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		} else {
++			irdma_clr_sd_entry(i, sd_entry->entry_type,
++					   &sdinfo.entry[sdinfo.cnt]);
++		}
++		sdinfo.cnt++;
++		if (sdinfo.cnt == IRDMA_MAX_SD_ENTRIES) {
++			ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++			if (ret_code) {
++				irdma_debug(dev, IRDMA_DEBUG_HMC,
++					    "sd_programming failed err=%d\n",
++					    ret_code);
++				return ret_code;
++			}
++
++			sdinfo.cnt = 0;
++		}
++	}
++	if (sdinfo.cnt)
++		ret_code = dev->cqp->process_cqp_sds(dev, &sdinfo);
++
++	return ret_code;
++}
++
++/**
++ * irdma_hmc_finish_add_sd_reg - program sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: create obj info
++ */
++static enum irdma_status_code
++irdma_hmc_finish_add_sd_reg(struct irdma_sc_dev *dev,
++			    struct irdma_hmc_create_obj_info *info)
++{
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++			info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++
++	if (!info->add_sd_cnt)
++		return 0;
++	return irdma_hmc_sd_grp(dev, info->hmc_info,
++				 info->hmc_info->sd_indexes[0],
++				 info->add_sd_cnt, true);
++}
++
++/**
++ * irdma_create_iw_hmc_obj - allocate backing store for hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_iw_create_obj_info struct
++ *
++ * This will allocate memory for PDs and backing pages and populate
++ * the sd and pd entries.
++ */
++enum irdma_status_code
++irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++			struct irdma_hmc_create_obj_info *info)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx = 0, pd_lmt = 0;
++	u32 pd_idx1 = 0, pd_lmt1 = 0;
++	u32 i, j;
++	bool pd_error = false;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt)
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		irdma_debug(dev, IRDMA_DEBUG_HMC,
++			    "error type %u, start = %u, req cnt %u, cnt = %u\n",
++			    info->rsrc_type, info->start_idx, info->count,
++			    info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++	}
++
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count,
++				  &sd_idx, &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		return IRDMA_ERR_INVALID_SD_INDEX;
++	}
++
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count,
++				  &pd_idx, &pd_lmt);
++
++	for (j = sd_idx; j < sd_lmt; j++) {
++		ret_code = irdma_add_sd_table_entry(dev->hw,
++						    info->hmc_info,
++						    j,
++						    info->entry_type,
++						    IRDMA_HMC_DIRECT_BP_SIZE);
++		if (ret_code)
++			goto exit_sd_error;
++
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j];
++		if (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED &&
++		    (dev->hmc_info == info->hmc_info &&
++		     info->rsrc_type != IRDMA_HMC_IW_PBLE)) {
++			pd_idx1 = max(pd_idx, (j * IRDMA_HMC_MAX_BP_COUNT));
++			pd_lmt1 = min(pd_lmt,
++				      (j + 1) * IRDMA_HMC_MAX_BP_COUNT);
++			for (i = pd_idx1; i < pd_lmt1; i++) {
++				/* update the pd table entry */
++				ret_code = irdma_add_pd_table_entry(dev,
++								    info->hmc_info,
++								    i,
++								    NULL);
++				if (ret_code) {
++					pd_error = true;
++					break;
++				}
++			}
++			if (pd_error) {
++				while (i && (i > pd_idx1)) {
++					irdma_remove_pd_bp(dev, info->hmc_info,
++							   i - 1);
++					i--;
++				}
++			}
++		}
++		if (sd_entry->valid)
++			continue;
++
++		info->hmc_info->sd_indexes[info->add_sd_cnt] = (u16)j;
++		info->add_sd_cnt++;
++		sd_entry->valid = true;
++	}
++	return irdma_hmc_finish_add_sd_reg(dev, info);
++
++exit_sd_error:
++	while (j && (j > sd_idx)) {
++		sd_entry = &info->hmc_info->sd_table.sd_entry[j - 1];
++		switch (sd_entry->entry_type) {
++		case IRDMA_SD_TYPE_PAGED:
++			pd_idx1 = max(pd_idx,
++				      (j - 1) * IRDMA_HMC_MAX_BP_COUNT);
++			pd_lmt1 = min(pd_lmt, (j * IRDMA_HMC_MAX_BP_COUNT));
++			for (i = pd_idx1; i < pd_lmt1; i++)
++				irdma_prep_remove_pd_page(info->hmc_info, i);
++			break;
++		case IRDMA_SD_TYPE_DIRECT:
++			irdma_prep_remove_pd_page(info->hmc_info, (j - 1));
++			break;
++		default:
++			ret_code = IRDMA_ERR_INVALID_SD_TYPE;
++			break;
++		}
++		j--;
++	}
++
++	return ret_code;
++}
++
++/**
++ * irdma_finish_del_sd_reg - delete sd entries for objects
++ * @dev: pointer to the device structure
++ * @info: dele obj info
++ * @reset: true if called before reset
++ */
++static enum irdma_status_code
++irdma_finish_del_sd_reg(struct irdma_sc_dev *dev,
++			struct irdma_hmc_del_obj_info *info,
++			bool reset)
++{
++	struct irdma_hmc_sd_entry *sd_entry;
++	enum irdma_status_code ret_code = 0;
++	u32 i, sd_idx;
++	struct irdma_dma_mem *mem;
++
++	if (dev->is_pf && !reset)
++		ret_code = irdma_hmc_sd_grp(dev, info->hmc_info,
++					    info->hmc_info->sd_indexes[0],
++					    info->del_sd_cnt, false);
++
++	if (ret_code)
++		irdma_debug(dev, IRDMA_DEBUG_HMC, "error cqp sd sd_grp\n");
++	for (i = 0; i < info->del_sd_cnt; i++) {
++		sd_idx = info->hmc_info->sd_indexes[i];
++		sd_entry = &info->hmc_info->sd_table.sd_entry[sd_idx];
++		if (!sd_entry)
++			continue;
++		mem = (sd_entry->entry_type == IRDMA_SD_TYPE_PAGED) ?
++			&sd_entry->u.pd_table.pd_page_addr :
++			&sd_entry->u.bp.addr;
++
++		if (!mem || !mem->va)
++			irdma_debug(dev, IRDMA_DEBUG_HMC, "error cqp sd mem\n");
++		else
++			irdma_free_dma_mem(dev->hw, mem);
++	}
++
++	return ret_code;
++}
++
++/**
++ * irdma_del_iw_hmc_obj - remove pe hmc objects
++ * @dev: pointer to the device structure
++ * @info: pointer to irdma_hmc_del_obj_info struct
++ * @reset: true if called before reset
++ *
++ * This will de-populate the SDs and PDs.  It frees
++ * the memory for PDS and backing storage.  After this function is returned,
++ * caller should deallocate memory allocated previously for
++ * book-keeping information about PDs and backing storage.
++ */
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset)
++{
++	struct irdma_hmc_pd_table *pd_table;
++	u32 sd_idx, sd_lmt;
++	u32 pd_idx, pd_lmt, rel_pd_idx;
++	u32 i, j;
++	enum irdma_status_code ret_code = 0;
++
++	if (info->start_idx >= info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		irdma_debug(dev, IRDMA_DEBUG_HMC,
++			    "error start_idx[%04d]  >= [type %04d].cnt[%04d]\n",
++			    info->start_idx, info->rsrc_type,
++			    info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_INDEX;
++	}
++
++	if ((info->start_idx + info->count) >
++	    info->hmc_info->hmc_obj[info->rsrc_type].cnt) {
++		irdma_debug(dev, IRDMA_DEBUG_HMC,
++			    "error start_idx[%04d] + count %04d  >= [type %04d].cnt[%04d]\n",
++			    info->start_idx, info->count,
++			    info->rsrc_type,
++			    info->hmc_info->hmc_obj[info->rsrc_type].cnt);
++		return IRDMA_ERR_INVALID_HMC_OBJ_COUNT;
++	}
++
++	irdma_find_pd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count,
++				  &pd_idx, &pd_lmt);
++
++	for (j = pd_idx; j < pd_lmt; j++) {
++		sd_idx = j / IRDMA_HMC_PD_CNT_IN_SD;
++
++		if (!info->hmc_info->sd_table.sd_entry[sd_idx].valid)
++			continue;
++
++		if (info->hmc_info->sd_table.sd_entry[sd_idx].entry_type !=
++		    IRDMA_SD_TYPE_PAGED)
++			continue;
++
++		rel_pd_idx = j % IRDMA_HMC_PD_CNT_IN_SD;
++		pd_table = &info->hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++		if (pd_table->pd_entry && pd_table->pd_entry[rel_pd_idx].valid) {
++			ret_code = irdma_remove_pd_bp(dev, info->hmc_info, j);
++			if (ret_code) {
++				irdma_debug(dev, IRDMA_DEBUG_HMC, "remove_pd_bp error\n");
++				return ret_code;
++			}
 +		}
 +	}
 +
-+	node = (struct irdma_ws_node *)ws_mem.va;
-+	node->index = node_index;
-+	node->vsi_index = vsi->vsi_idx;
-+	INIT_LIST_HEAD(&node->siblings);
-+	node->first_child = NULL;
-+	if (node_type == WS_NODE_TYPE_LEAF) {
-+		node->type_leaf = true;
-+		node->traffic_class = vsi->qos[user_pri].traffic_class;
-+		node->user_pri = user_pri;
-+		node->rel_bw =
-+			vsi->qos[user_pri].rel_bw;
-+		node->lan_qs_handle =
-+			vsi->qos[user_pri].lan_qos_handle;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
-+	} else {
-+		node->rel_bw = 1;
-+		node->prio_type = IRDMA_PRIO_WEIGHTED_RR;
++	irdma_find_sd_index_limit(info->hmc_info, info->rsrc_type,
++				  info->start_idx, info->count,
++				  &sd_idx, &sd_lmt);
++	if (sd_idx >= info->hmc_info->sd_table.sd_cnt ||
++	    sd_lmt > info->hmc_info->sd_table.sd_cnt) {
++		irdma_debug(dev, IRDMA_DEBUG_HMC, "invalid sd_idx\n");
++		return IRDMA_ERR_INVALID_SD_INDEX;
 +	}
 +
-+	node->parent = parent;
++	for (i = sd_idx; i < sd_lmt; i++) {
++		pd_table = &info->hmc_info->sd_table.sd_entry[i].u.pd_table;
++		if (!info->hmc_info->sd_table.sd_entry[i].valid)
++			continue;
++		switch (info->hmc_info->sd_table.sd_entry[i].entry_type) {
++		case IRDMA_SD_TYPE_DIRECT:
++			ret_code = irdma_prep_remove_sd_bp(info->hmc_info, i);
++			if (!ret_code) {
++				info->hmc_info->sd_indexes[info->del_sd_cnt] = (u16)i;
++				info->del_sd_cnt++;
++			}
++			break;
++		case IRDMA_SD_TYPE_PAGED:
++			ret_code = irdma_prep_remove_pd_page(info->hmc_info, i);
++			if (ret_code)
++				break;
++			if (dev->hmc_info != info->hmc_info &&
++			    info->rsrc_type == IRDMA_HMC_IW_PBLE &&
++			    pd_table->pd_entry) {
++				irdma_free_virt_mem(dev->hw,
++						    &pd_table->pd_entry_virt_mem);
++				pd_table->pd_entry = NULL;
++			}
++			info->hmc_info->sd_indexes[info->del_sd_cnt] = (u16)i;
++			info->del_sd_cnt++;
++			break;
++		default:
++			break;
++		}
++	}
 +
-+	return node;
++	return irdma_finish_del_sd_reg(dev, info, reset);
 +}
 +
 +/**
-+ * irdma_free_node - Free a WS node
-+ * @node: Pointer to node to free
++ * irdma_add_sd_table_entry - Adds a segment descriptor to the table
++ * @hw: pointer to our hw struct
++ * @hmc_info: pointer to the HMC configuration information struct
++ * @sd_index: segment descriptor index to manipulate
++ * @type: what type of segment descriptor we're manipulating
++ * @direct_mode_sz: size to alloc in direct mode
 + */
-+static void irdma_free_node(struct irdma_sc_vsi *vsi,
-+			    struct irdma_ws_node *node)
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz)
 +{
-+	struct irdma_virt_mem ws_mem;
++	enum irdma_status_code ret_code = 0;
++	struct irdma_hmc_sd_entry *sd_entry;
++	bool dma_mem_alloc_done = false;
++	struct irdma_dma_mem mem;
++	u64 alloc_len;
 +
-+	if (node->index)
-+		irdma_free_ws_node_id(vsi->dev, node->index);
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_index];
++	if (!sd_entry->valid) {
++		if (type == IRDMA_SD_TYPE_PAGED)
++			alloc_len = IRDMA_HMC_PAGED_BP_SIZE;
++		else
++			alloc_len = direct_mode_sz;
 +
-+	ws_mem.va = node;
-+	ws_mem.size = sizeof(struct irdma_ws_node);
-+	irdma_free_virt_mem(vsi->dev->hw, &ws_mem);
++		/* allocate a 4K pd page or 2M backing page */
++		ret_code = irdma_allocate_dma_mem(hw, &mem, alloc_len,
++						  IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++		if (ret_code)
++			goto exit;
++
++		dma_mem_alloc_done = true;
++		if (type == IRDMA_SD_TYPE_PAGED) {
++			ret_code = irdma_allocate_virt_mem(hw,
++							   &sd_entry->u.pd_table.pd_entry_virt_mem,
++							   sizeof(struct irdma_hmc_pd_entry) * 512);
++			if (ret_code)
++				goto exit;
++			sd_entry->u.pd_table.pd_entry = (struct irdma_hmc_pd_entry *)
++							sd_entry->u.pd_table.pd_entry_virt_mem.va;
++
++			memcpy(&sd_entry->u.pd_table.pd_page_addr, &mem,
++			       sizeof(sd_entry->u.pd_table.pd_page_addr));
++		} else {
++			memcpy(&sd_entry->u.bp.addr, &mem,
++			       sizeof(sd_entry->u.bp.addr));
++
++			    sd_entry->u.bp.sd_pd_index = sd_index;
++		}
++
++		hmc_info->sd_table.sd_entry[sd_index].entry_type = type;
++		IRDMA_INC_SD_REFCNT(&hmc_info->sd_table);
++	}
++	if (sd_entry->entry_type == IRDMA_SD_TYPE_DIRECT)
++		IRDMA_INC_BP_REFCNT(&sd_entry->u.bp);
++exit:
++	if (ret_code)
++		if (dma_mem_alloc_done)
++			irdma_free_dma_mem(hw, &mem);
++
++	return ret_code;
 +}
 +
 +/**
-+ * irdma_ws_cqp_cmd - Post CQP work scheduler node cmd
-+ * @vsi: vsi pointer
-+ * @node: pointer to node
-+ * @cmd: add, remove or modify
-+ * @user_pri: User priority for a leaf node
++ * irdma_add_pd_table_entry - Adds page descriptor to the specified table
++ * @hw: pointer to our HW structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @pd_index: which page descriptor index to manipulate
++ * @rsrc_pg: if not NULL, use preallocated page instead of allocating new one.
++ *
++ * This function:
++ *	1. Initializes the pd entry
++ *	2. Adds pd_entry in the pd_table
++ *	3. Mark the entry valid in irdma_hmc_pd_entry structure
++ *	4. Initializes the pd_entry's ref count to 1
++ * assumptions:
++ *	1. The memory for pd should be pinned down, physically contiguous and
++ *	   aligned on 4K boundary and zeroed memory.
++ *	2. It should be 4K in size.
 + */
-+static enum irdma_status_code
-+irdma_ws_cqp_cmd(struct irdma_sc_vsi *vsi,
-+		 struct irdma_ws_node *node,
-+		 u8 cmd)
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg)
 +{
-+	struct irdma_ws_node_info node_info = {};
++	enum irdma_status_code ret_code = 0;
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_dma_mem mem;
++	struct irdma_dma_mem *page = &mem;
++	u32 sd_idx, rel_pd_idx;
++	u64 *pd_addr;
++	u64 page_desc;
 +
-+	node_info.id = node->index;
-+	node_info.vsi = node->vsi_index;
-+	if (node->parent)
-+		node_info.parent_id = node->parent->index;
-+	else
-+		node_info.parent_id = node_info.id;
++	if (pd_index / IRDMA_HMC_PD_CNT_IN_SD >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
 +
-+	node_info.weight = node->rel_bw;
-+	node_info.tc = node->traffic_class;
-+	node_info.prio_type = node->prio_type;
-+	node_info.type_leaf = node->type_leaf;
-+	node_info.enable = node->enable;
-+	if (irdma_cqp_ws_node_cmd(vsi->dev, cmd, &node_info)) {
-+		irdma_debug(vsi->dev, IRDMA_DEBUG_WS, "CQP WS CMD failed\n");
-+		return IRDMA_ERR_NO_MEMORY;
++	sd_idx = (pd_index / IRDMA_HMC_PD_CNT_IN_SD);
++	if (hmc_info->sd_table.sd_entry[sd_idx].entry_type != IRDMA_SD_TYPE_PAGED)
++		return 0;
++
++	rel_pd_idx = (pd_index % IRDMA_HMC_PD_CNT_IN_SD);
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	if (!pd_entry->valid) {
++		if (rsrc_pg) {
++			pd_entry->rsrc_pg = true;
++			page = rsrc_pg;
++		} else {
++			ret_code = irdma_allocate_dma_mem(dev->hw, page,
++							  IRDMA_HMC_PAGED_BP_SIZE,
++							  IRDMA_HMC_PD_BP_BUF_ALIGNMENT);
++			if (ret_code)
++				return ret_code;
++			pd_entry->rsrc_pg = false;
++		}
++
++		memcpy(&pd_entry->bp.addr, page, sizeof(pd_entry->bp.addr));
++		pd_entry->bp.sd_pd_index = pd_index;
++		pd_entry->bp.entry_type = IRDMA_SD_TYPE_PAGED;
++		page_desc = page->pa | 0x1;
++		pd_addr = (u64 *)pd_table->pd_page_addr.va;
++		pd_addr += rel_pd_idx;
++		memcpy(pd_addr, &page_desc, sizeof(*pd_addr));
++		pd_entry->sd_index = sd_idx;
++		pd_entry->valid = true;
++		IRDMA_INC_PD_REFCNT(pd_table);
++		if (hmc_info->hmc_fn_id < dev->hw_attrs.first_hw_vf_fpm_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, rel_pd_idx);
++		else if (dev->hw->hmc.hmc_fn_id != hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, rel_pd_idx,
++						   hmc_info->hmc_fn_id);
 +	}
-+
-+	if (node->type_leaf && cmd == IRDMA_OP_WS_ADD_NODE) {
-+		node->qs_handle = node_info.qs_handle;
-+		vsi->qos[node->user_pri].qs_handle = node_info.qs_handle;
-+	}
++	IRDMA_INC_BP_REFCNT(&pd_entry->bp);
 +
 +	return 0;
 +}
 +
 +/**
-+ * irdma_node_from_entry - Given entry, get pointer to ws node struct
-+ * @entry: Points to sibling list of a node
++ * irdma_remove_pd_bp - remove a backing page from a page descriptor
++ * @hw: pointer to our HW structure
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
++ *
++ * This function:
++ *	1. Marks the entry in pd table (for paged address mode) or in sd table
++ *	   (for direct address mode) invalid.
++ *	2. Write to register PMPDINV to invalidate the backing page in FV cache
++ *	3. Decrement the ref count for the pd _entry
++ * assumptions:
++ *	1. Caller can deallocate the memory used by backing storage after this
++ *	   function returns.
 + */
-+static struct irdma_ws_node *irdma_node_from_entry(struct list_head *entry)
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx)
 +{
-+	if (entry)
-+		return (struct irdma_ws_node *)((char *)entry
-+				- offsetof(struct irdma_ws_node, siblings));
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_hmc_pd_table *pd_table;
++	struct irdma_hmc_sd_entry *sd_entry;
++	u32 sd_idx, rel_pd_idx;
++	struct irdma_dma_mem *mem;
++	u64 *pd_addr;
 +
-+	return NULL;
-+}
++	sd_idx = idx / IRDMA_HMC_PD_CNT_IN_SD;
++	rel_pd_idx = idx % IRDMA_HMC_PD_CNT_IN_SD;
++	if (sd_idx >= hmc_info->sd_table.sd_cnt)
++		return IRDMA_ERR_INVALID_PAGE_DESC_INDEX;
 +
-+/**
-+ * ws_find_node - Find SC WS node based on VSI id or TC
-+ * @node: pointer to first node in level corresponding to VSI/TC
-+ */
-+static struct irdma_ws_node *ws_find_node(struct irdma_ws_node *root,
-+					  u16 match_val,
-+					  enum irdma_ws_match_type type)
-+{
-+	struct irdma_ws_node *node = root;
-+	struct list_head *entry;
++	sd_entry = &hmc_info->sd_table.sd_entry[sd_idx];
++	if (sd_entry->entry_type != IRDMA_SD_TYPE_PAGED)
++		return IRDMA_ERR_INVALID_SD_TYPE;
 +
-+	if (!root)
-+		return NULL;
++	pd_table = &hmc_info->sd_table.sd_entry[sd_idx].u.pd_table;
++	pd_entry = &pd_table->pd_entry[rel_pd_idx];
++	IRDMA_DEC_BP_REFCNT(&pd_entry->bp);
++	if (pd_entry->bp.ref_cnt)
++		return 0;
 +
-+	switch (type) {
-+	case WS_MATCH_TYPE_VSI:
-+		while (node && node->vsi_index != match_val) {
-+			entry = node->siblings.next;
-+			node = irdma_node_from_entry(entry);
-+			if (node == root)
-+				return NULL;
-+		}
-+		break;
-+	case WS_MATCH_TYPE_TC:
-+		while (node && node->traffic_class != match_val) {
-+			entry = node->siblings.next;
-+			node = irdma_node_from_entry(entry);
-+			if (node == root)
-+				return NULL;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return node;
-+}
-+
-+/**
-+ * ws_tree_del_node - Delete node from SW WS tree structure
-+ * @node: shared code node pointer
-+ */
-+static void ws_tree_del_node(struct irdma_ws_node *node)
-+{
-+	struct irdma_ws_node *parent = node->parent;
-+	struct irdma_ws_node *next_entry;
-+
-+	if (parent) {
-+		if (parent->first_child == node && list_empty(&node->siblings)) {
-+			parent->first_child = NULL;
-+		} else if (parent->first_child == node) {
-+			next_entry = irdma_node_from_entry(node->siblings.next);
-+			list_del(&node->siblings);
-+			parent->first_child = next_entry;
-+		} else {
-+			list_del(&node->siblings);
-+		}
-+	}
-+}
-+
-+/**
-+ * irdma_tc_in_use - Checks to see if a leaf node is in use
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static bool irdma_tc_in_use(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&vsi->qos[user_pri].lock, flags);
-+	if (!list_empty(&vsi->qos[user_pri].qplist)) {
-+		spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+		return true;
-+	}
-+
-+	/* Check if the traffic class associated with the given user priority
-+	 * is in use by any other user priority. If so, nothing left to do
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == vsi->qos[user_pri].traffic_class &&
-+		    !list_empty(&vsi->qos[i].qplist)) {
-+			spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+			return true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&vsi->qos[user_pri].lock, flags);
-+
-+	return false;
-+}
-+
-+/**
-+ * irdma_remove_leaf - Remove leaf node unconditionally
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+static void irdma_remove_leaf(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root, *vsi_node, *tc_node;
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root)
-+		return;
-+
-+	vsi_node = ws_find_node(ws_tree_root->first_child, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+	if (!vsi_node)
-+		return;
-+
-+	tc_node = ws_find_node(vsi_node->first_child,
-+			       vsi->qos[user_pri].traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node)
-+		return;
-+
-+	irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_DELETE_NODE);
-+	irdma_lan_unregister_qset(vsi, tc_node);
-+	ws_tree_del_node(tc_node);
-+	irdma_free_node(vsi, tc_node);
-+	/* Check if VSI node can be freed */
-+	if (!vsi_node->first_child) {
-+		irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE);
-+		ws_tree_del_node(vsi_node);
-+		irdma_free_node(vsi, vsi_node);
-+		/* Free head node there are no remaining VSI nodes */
-+		if (!ws_tree_root->first_child) {
-+			irdma_ws_cqp_cmd(vsi, ws_tree_root,
-+					 IRDMA_OP_WS_DELETE_NODE);
-+			irdma_free_node(vsi, ws_tree_root);
-+			vsi->dev->ws_tree_root = NULL;
-+		}
-+	}
-+}
-+
-+/**
-+ * irdma_ws_add - Build work scheduler tree, set RDMA qs_handle
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
-+ */
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri)
-+{
-+	struct irdma_ws_node *ws_tree_root;
-+	struct irdma_ws_node *vsi_node;
-+	struct irdma_ws_node *tc_node;
-+	u16 traffic_class;
-+	enum irdma_status_code ret = 0;
-+	int i;
-+
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (vsi->tc_change_pending) {
-+		mutex_unlock(&vsi->dev->ws_mutex);
-+		return IRDMA_ERR_NOT_READY;
-+	}
-+
-+	ws_tree_root = vsi->dev->ws_tree_root;
-+	if (!ws_tree_root) {
-+		irdma_debug(vsi->dev, IRDMA_DEBUG_WS, "Creating root node\n");
-+		ws_tree_root = irdma_alloc_node(vsi, user_pri,
-+						WS_NODE_TYPE_PARENT, NULL);
-+		if (!ws_tree_root) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto exit;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, ws_tree_root, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, ws_tree_root);
-+			goto exit;
-+		}
-+
-+		vsi->dev->ws_tree_root = ws_tree_root;
-+	}
-+
-+	/* Find a second tier node that matches the VSI */
-+	vsi_node = ws_find_node(ws_tree_root->first_child, vsi->vsi_idx,
-+				WS_MATCH_TYPE_VSI);
-+
-+	/* If VSI node doesn't exist, add one */
-+	if (!vsi_node) {
-+		irdma_debug(vsi->dev, IRDMA_DEBUG_WS,
-+			    "Node not found matching VSI %d\n", vsi->vsi_idx);
-+		vsi_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_PARENT,
-+					    ws_tree_root);
-+		if (!vsi_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto vsi_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, vsi_node);
-+			goto vsi_add_err;
-+		}
-+
-+		if (ws_tree_root->first_child)
-+			list_add(&vsi_node->siblings,
-+				 &ws_tree_root->first_child->siblings);
-+		else /* Connect to head node if this is the first VSI node */
-+			ws_tree_root->first_child = vsi_node;
-+	}
-+
-+	irdma_debug(vsi->dev, IRDMA_DEBUG_WS,
-+		    "Using node %d which represents VSI %d\n",
-+		    vsi_node->index, vsi->vsi_idx);
-+	traffic_class = vsi->qos[user_pri].traffic_class;
-+	tc_node = ws_find_node(vsi_node->first_child, traffic_class,
-+			       WS_MATCH_TYPE_TC);
-+	if (!tc_node) {
-+		/* Add leaf node */
-+		irdma_debug(vsi->dev, IRDMA_DEBUG_WS,
-+			    "Node not found matching VSI %d and TC %d\n",
-+			    vsi->vsi_idx, traffic_class);
-+		tc_node = irdma_alloc_node(vsi, user_pri, WS_NODE_TYPE_LEAF,
-+					   vsi_node);
-+		if (!tc_node) {
-+			ret = IRDMA_ERR_NO_MEMORY;
-+			goto leaf_add_err;
-+		}
-+
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_ADD_NODE);
-+		if (ret) {
-+			irdma_free_node(vsi, tc_node);
-+			goto leaf_add_err;
-+		}
-+
-+		if (vsi_node->first_child)
-+			list_add(&tc_node->siblings,
-+				 &vsi_node->first_child->siblings);
++	pd_entry->valid = false;
++	IRDMA_DEC_PD_REFCNT(pd_table);
++	pd_addr = (u64 *)pd_table->pd_page_addr.va;
++	pd_addr += rel_pd_idx;
++	memset(pd_addr, 0, sizeof(u64));
++	if (dev->is_pf) {
++		if (dev->hmc_fn_id == hmc_info->hmc_fn_id)
++			IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, idx);
 +		else
-+			vsi_node->first_child = tc_node;
-+
-+		/*
-+		 * callback to LAN to update the LAN tree with our node
-+		 */
-+		ret = irdma_lan_register_qset(vsi, tc_node);
-+		if (ret)
-+			goto reg_err;
-+
-+		tc_node->enable = true;
-+		ret = irdma_ws_cqp_cmd(vsi, tc_node, IRDMA_OP_WS_MODIFY_NODE);
-+		if (ret)
-+			goto reg_err;
-+	}
-+	irdma_debug(vsi->dev, IRDMA_DEBUG_WS,
-+		    "Using node %d which represents VSI %d TC %d\n",
-+		    tc_node->index, vsi->vsi_idx, traffic_class);
-+	/*
-+	 * Iterate through other UPs and update the QS handle if they have
-+	 * a matching traffic class.
-+	 */
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-+		if (vsi->qos[i].traffic_class == traffic_class) {
-+			vsi->qos[i].qs_handle = tc_node->qs_handle;
-+			vsi->qos[i].lan_qos_handle = tc_node->lan_qs_handle;
-+			vsi->qos[i].l2_sched_node_id = tc_node->l2_sched_node_id;
-+		}
-+	}
-+	goto exit;
-+
-+leaf_add_err:
-+	if (!vsi_node->first_child) {
-+		if (irdma_ws_cqp_cmd(vsi, vsi_node, IRDMA_OP_WS_DELETE_NODE))
-+			goto exit;
-+		ws_tree_del_node(vsi_node);
-+		irdma_free_node(vsi, vsi_node);
++			IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, idx,
++						   hmc_info->hmc_fn_id);
 +	}
 +
-+vsi_add_err:
-+	/* Free head node there are no remaining VSI nodes */
-+	if (!ws_tree_root->first_child) {
-+		irdma_ws_cqp_cmd(vsi, ws_tree_root,
-+				 IRDMA_OP_WS_DELETE_NODE);
-+		vsi->dev->ws_tree_root = NULL;
-+		ws_tree_del_node(ws_tree_root);
-+		irdma_free_node(vsi, ws_tree_root);
++	if (!pd_entry->rsrc_pg) {
++		mem = &pd_entry->bp.addr;
++		if (!mem || !mem->va)
++			return IRDMA_ERR_PARAM;
++
++		irdma_free_dma_mem(dev->hw, mem);
 +	}
++	if (!pd_table->ref_cnt)
++		irdma_free_virt_mem(dev->hw, &pd_table->pd_entry_virt_mem);
 +
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	return ret;
-+
-+reg_err:
-+	mutex_unlock(&vsi->dev->ws_mutex);
-+	irdma_ws_remove(vsi, user_pri);
-+	return ret;
++	return 0;
 +}
 +
 +/**
-+ * irdma_ws_remove - Free WS scheduler node, update WS tree
-+ * @vsi: vsi pointer
-+ * @user_pri: user priority
++ * irdma_prep_remove_sd_bp - Prepares to remove a backing page from a sd entry
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: the page index
 + */
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri)
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx)
 +{
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	if (irdma_tc_in_use(vsi, user_pri))
-+		goto exit;
++	struct irdma_hmc_sd_entry *sd_entry;
 +
-+	irdma_remove_leaf(vsi, user_pri);
-+exit:
-+	mutex_unlock(&vsi->dev->ws_mutex);
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++	IRDMA_DEC_BP_REFCNT(&sd_entry->u.bp);
++	if (sd_entry->u.bp.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++	sd_entry->valid = false;
++
++	return 0;
 +}
 +
 +/**
-+ * irdma_ws_reset - Reset entire WS tree
-+ * @vsi: vsi pointer
++ * irdma_prep_remove_pd_page - Prepares to remove a PD page from sd entry.
++ * @hmc_info: pointer to the HMC configuration information structure
++ * @idx: segment descriptor index to find the relevant page descriptor
 + */
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi)
++enum irdma_status_code
++irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info, u32 idx)
 +{
-+	u8 i;
++	struct irdma_hmc_sd_entry *sd_entry;
 +
-+	mutex_lock(&vsi->dev->ws_mutex);
-+	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; ++i)
-+		irdma_remove_leaf(vsi, i);
-+	mutex_unlock(&vsi->dev->ws_mutex);
++	sd_entry = &hmc_info->sd_table.sd_entry[idx];
++
++	if (sd_entry->u.pd_table.ref_cnt)
++		return IRDMA_ERR_NOT_READY;
++
++	sd_entry->valid = false;
++	IRDMA_DEC_SD_REFCNT(&hmc_info->sd_table);
++
++	return 0;
 +}
-diff --git a/drivers/infiniband/hw/irdma/ws.h b/drivers/infiniband/hw/irdma/ws.h
+diff --git a/drivers/infiniband/hw/irdma/hmc.h b/drivers/infiniband/hw/irdma/hmc.h
 new file mode 100644
-index 0000000..fe0474d
+index 0000000..25c8a02
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/ws.h
-@@ -0,0 +1,40 @@
++++ b/drivers/infiniband/hw/irdma/hmc.h
+@@ -0,0 +1,221 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
 +/* Copyright (c) 2019, Intel Corporation. */
 +
-+#ifndef IRDMA_WS_H
-+#define IRDMA_WS_H
++#ifndef IRDMA_HMC_H
++#define IRDMA_HMC_H
 +
-+#include "osdep.h"
++#include "defs.h"
 +
-+enum irdma_ws_node_type {
-+	WS_NODE_TYPE_PARENT,
-+	WS_NODE_TYPE_LEAF,
++#define IRDMA_HMC_MAX_BP_COUNT			512
++#define IRDMA_MAX_SD_ENTRIES			11
++#define IRDMA_HW_DBG_HMC_INVALID_BP_MARK	0xca
++#define IRDMA_HMC_INFO_SIGNATURE		0x484d5347
++#define IRDMA_HMC_PD_CNT_IN_SD			512
++#define IRDMA_HMC_DIRECT_BP_SIZE		0x200000
++#define IRDMA_HMC_MAX_SD_COUNT			4096
++#define IRDMA_HMC_PAGED_BP_SIZE			4096
++#define IRDMA_HMC_PD_BP_BUF_ALIGNMENT		4096
++#define IRDMA_FIRST_VF_FPM_ID			8
++#define FPM_MULTIPLIER				1024
++
++#define IRDMA_INC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt++)
++#define IRDMA_INC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt++)
++#define IRDMA_INC_BP_REFCNT(bp)		((bp)->ref_cnt++)
++
++#define IRDMA_DEC_SD_REFCNT(sd_table)	((sd_table)->ref_cnt--)
++#define IRDMA_DEC_PD_REFCNT(pd_table)	((pd_table)->ref_cnt--)
++#define IRDMA_DEC_BP_REFCNT(bp)		((bp)->ref_cnt--)
++
++/**
++ * IRDMA_INVALIDATE_PF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ */
++#define IRDMA_INVALIDATE_PF_HMC_PD(dev, sd_idx, pd_idx)			\
++	wr32((dev)->hw, (dev)->hw_regs[IRDMA_PFHMC_PDINV],		\
++		(((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++		(0x1 << IRDMA_PFHMC_PDINV_PMSDPARTSEL_S) |		\
++		((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)))
++
++/**
++ * IRDMA_INVALIDATE_VF_HMC_PD - Invalidates the pd cache in the hardware
++ * @hw: pointer to our hw struct
++ * @sd_idx: segment descriptor index
++ * @pd_idx: page descriptor index
++ * @hmc_fn_id: VF's function id
++ */
++#define IRDMA_INVALIDATE_VF_HMC_PD(dev, sd_idx, pd_idx, hmc_fn_id)	\
++	wr32((dev)->hw,							\
++	     (dev)->hw_regs[IRDMA_GLHMC_VFPDINV] +			\
++	     4 * ((hmc_fn_id) - (dev)->hw_attrs.first_hw_vf_fpm_id),	\
++	     (((sd_idx) << IRDMA_PFHMC_PDINV_PMSDIDX_S) |		\
++	      ((pd_idx) << IRDMA_PFHMC_PDINV_PMPDIDX_S)))
++
++enum irdma_hmc_rsrc_type {
++	IRDMA_HMC_IW_QP = 0,
++	IRDMA_HMC_IW_CQ = 1,
++	IRDMA_HMC_IW_RESERVED = 2,
++	IRDMA_HMC_IW_HTE = 3,
++	IRDMA_HMC_IW_ARP = 4,
++	IRDMA_HMC_IW_APBVT_ENTRY = 5,
++	IRDMA_HMC_IW_MR = 6,
++	IRDMA_HMC_IW_XF = 7,
++	IRDMA_HMC_IW_XFFL = 8,
++	IRDMA_HMC_IW_Q1 = 9,
++	IRDMA_HMC_IW_Q1FL = 10,
++	IRDMA_HMC_IW_TIMER = 11,
++	IRDMA_HMC_IW_FSIMC = 12,
++	IRDMA_HMC_IW_FSIAV = 13,
++	IRDMA_HMC_IW_PBLE = 14,
++	IRDMA_HMC_IW_RRF = 15,
++	IRDMA_HMC_IW_RRFFL = 16,
++	IRDMA_HMC_IW_HDR = 17,
++	IRDMA_HMC_IW_MD = 18,
++	IRDMA_HMC_IW_OOISC = 19,
++	IRDMA_HMC_IW_OOISCFFL = 20,
++	IRDMA_HMC_IW_MAX, /* Must be last entry */
 +};
 +
-+enum irdma_ws_match_type {
-+	WS_MATCH_TYPE_VSI,
-+	WS_MATCH_TYPE_TC,
++enum irdma_sd_entry_type {
++	IRDMA_SD_TYPE_INVALID = 0,
++	IRDMA_SD_TYPE_PAGED = 1,
++	IRDMA_SD_TYPE_DIRECT = 2,
 +};
 +
-+struct irdma_ws_node {
-+	struct list_head siblings;
-+	struct irdma_ws_node *first_child;
-+	struct irdma_ws_node *parent;
-+	u64 lan_qs_handle;	  /* opaque handle used by LAN */
-+	u32 l2_sched_node_id;
-+	u16 index;
-+	u16 qs_handle;
-+	u16 vsi_index;
-+	u8 traffic_class;
-+	u8 user_pri;
-+	u8 rel_bw;
-+	u8 abstraction_layer; /* used for splitting a TC */
-+	u8 prio_type;
-+	bool type_leaf;
-+	bool enable;
++struct irdma_hmc_obj_info {
++	u64 base;
++	u32 max_cnt;
++	u32 cnt;
++	u64 size;
 +};
 +
-+enum irdma_status_code irdma_ws_add(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_remove(struct irdma_sc_vsi *vsi, u8 user_pri);
-+void irdma_ws_reset(struct irdma_sc_vsi *vsi);
-+#endif  /* IRDMA_WS_H */
++struct irdma_hmc_bp {
++	enum irdma_sd_entry_type entry_type;
++	struct irdma_dma_mem addr;
++	u32 sd_pd_index;
++	u32 ref_cnt;
++};
++
++struct irdma_hmc_pd_entry {
++	struct irdma_hmc_bp bp;
++	u32 sd_index;
++	bool rsrc_pg;
++	bool valid;
++};
++
++struct irdma_hmc_pd_table {
++	struct irdma_dma_mem pd_page_addr;
++	struct irdma_hmc_pd_entry *pd_entry;
++	struct irdma_virt_mem pd_entry_virt_mem;
++	u32 ref_cnt;
++	u32 sd_index;
++};
++
++struct irdma_hmc_sd_entry {
++	enum irdma_sd_entry_type entry_type;
++	bool valid;
++	union {
++		struct irdma_hmc_pd_table pd_table;
++		struct irdma_hmc_bp bp;
++	} u;
++};
++
++struct irdma_hmc_sd_table {
++	struct irdma_virt_mem addr;
++	u32 sd_cnt;
++	u32 ref_cnt;
++	struct irdma_hmc_sd_entry *sd_entry;
++};
++
++struct irdma_hmc_info {
++	u32 signature;
++	u8 hmc_fn_id;
++	u16 first_sd_index;
++	struct irdma_hmc_obj_info *hmc_obj;
++	struct irdma_virt_mem hmc_obj_virt_mem;
++	struct irdma_hmc_sd_table sd_table;
++	u16 sd_indexes[IRDMA_HMC_MAX_SD_COUNT];
++};
++
++struct irdma_update_sd_entry {
++	u64 cmd;
++	u64 data;
++};
++
++struct irdma_update_sds_info {
++	u32 cnt;
++	u8 hmc_fn_id;
++	struct irdma_update_sd_entry entry[IRDMA_MAX_SD_ENTRIES];
++};
++
++struct irdma_ccq_cqe_info;
++struct irdma_hmc_fcn_info {
++	void (*callback_fcn)(struct irdma_sc_dev *dev, void *cqp_callback_param,
++			     struct irdma_ccq_cqe_info *ccq_cqe_info);
++	void *cqp_callback_param;
++	u32 vf_id;
++	u16 iw_vf_idx;
++	bool free_fcn;
++};
++
++struct irdma_hmc_create_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem add_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 add_sd_cnt;
++	enum irdma_sd_entry_type entry_type;
++	bool is_pf;
++};
++
++struct irdma_hmc_del_obj_info {
++	struct irdma_hmc_info *hmc_info;
++	struct irdma_virt_mem del_sd_virt_mem;
++	u32 rsrc_type;
++	u32 start_idx;
++	u32 count;
++	u32 del_sd_cnt;
++	bool is_pf;
++};
++
++enum irdma_status_code irdma_copy_dma_mem(struct irdma_hw *hw,
++					  void *dest_buf,
++					  struct irdma_dma_mem *src_mem,
++					  u64 src_offset,
++					  u64 size);
++enum irdma_status_code irdma_sc_create_hmc_obj(struct irdma_sc_dev *dev,
++					       struct irdma_hmc_create_obj_info *info);
++enum irdma_status_code irdma_sc_del_hmc_obj(struct irdma_sc_dev *dev,
++					    struct irdma_hmc_del_obj_info *info,
++					    bool reset);
++enum irdma_status_code irdma_hmc_sd_one(struct irdma_sc_dev *dev,
++					u8 hmc_fn_id,
++					u64 pa,
++					u32 sd_idx,
++					enum irdma_sd_entry_type type,
++					bool setsd);
++enum irdma_status_code irdma_update_sds_noccq(struct irdma_sc_dev *dev,
++					      struct irdma_update_sds_info *info);
++struct irdma_vfdev *irdma_vfdev_from_fpm(struct irdma_sc_dev *dev,
++					 u8 hmc_fn_id);
++struct irdma_hmc_info *irdma_vf_hmcinfo_from_fpm(struct irdma_sc_dev *dev,
++						 u8 hmc_fn_id);
++enum irdma_status_code irdma_add_sd_table_entry(struct irdma_hw *hw,
++						struct irdma_hmc_info *hmc_info,
++						u32 sd_index,
++						enum irdma_sd_entry_type type,
++						u64 direct_mode_sz);
++enum irdma_status_code irdma_add_pd_table_entry(struct irdma_sc_dev *dev,
++						struct irdma_hmc_info *hmc_info,
++						u32 pd_index,
++						struct irdma_dma_mem *rsrc_pg);
++enum irdma_status_code irdma_remove_pd_bp(struct irdma_sc_dev *dev,
++					  struct irdma_hmc_info *hmc_info,
++					  u32 idx);
++enum irdma_status_code irdma_prep_remove_sd_bp(struct irdma_hmc_info *hmc_info,
++					       u32 idx);
++enum irdma_status_code irdma_prep_remove_pd_page(struct irdma_hmc_info *hmc_info,
++						 u32 idx);
++#endif /* IRDMA_HMC_H */
 -- 
 1.8.3.1
