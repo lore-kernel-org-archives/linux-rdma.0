@@ -1,7 +1,7 @@
 From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RFC 17/19] RDMA/irdma: Add ABI definitions
-Date: Tue, 12 Feb 2019 15:44:00 -0600
-Message-ID: <20190212214402.23284-18-shiraz.saleem@intel.com>
+Subject: [RFC 18/19] RDMA/irdma: Add Kconfig and Makefile
+Date: Tue, 12 Feb 2019 15:44:01 -0600
+Message-ID: <20190212214402.23284-19-shiraz.saleem@intel.com>
 References: <20190212214402.23284-1-shiraz.saleem@intel.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190212214402.23284-1-shiraz.saleem@intel.com>
@@ -10,162 +10,95 @@ To: dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net
 Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com, Shiraz Saleem <shiraz.saleem@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+Add Kconfig and Makefile to build irdma driver
 
-Add ABI definitions for irdma.
-
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- include/uapi/rdma/irdma-abi.h | 140 ++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 140 insertions(+)
- create mode 100644 include/uapi/rdma/irdma-abi.h
+ drivers/infiniband/Kconfig           |  1 +
+ drivers/infiniband/hw/Makefile       |  1 +
+ drivers/infiniband/hw/irdma/Kconfig  | 11 +++++++++++
+ drivers/infiniband/hw/irdma/Makefile | 31 +++++++++++++++++++++++++++++++
+ 4 files changed, 44 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/Kconfig
+ create mode 100644 drivers/infiniband/hw/irdma/Makefile
 
-diff --git a/include/uapi/rdma/irdma-abi.h b/include/uapi/rdma/irdma-abi.h
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index a1fb840d..a841a07 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -95,6 +95,7 @@ source "drivers/infiniband/hw/qib/Kconfig"
+ source "drivers/infiniband/hw/cxgb3/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/i40iw/Kconfig"
++source "drivers/infiniband/hw/irdma/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+ source "drivers/infiniband/hw/mlx5/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
+diff --git a/drivers/infiniband/hw/Makefile b/drivers/infiniband/hw/Makefile
+index e4f31c1..bc79ef3 100644
+--- a/drivers/infiniband/hw/Makefile
++++ b/drivers/infiniband/hw/Makefile
+@@ -4,6 +4,7 @@ obj-$(CONFIG_INFINIBAND_QIB)		+= qib/
+ obj-$(CONFIG_INFINIBAND_CXGB3)		+= cxgb3/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= cxgb4/
+ obj-$(CONFIG_INFINIBAND_I40IW)		+= i40iw/
++obj-$(CONFIG_INFINIBAND_IRDMA)		+= irdma/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= mlx4/
+ obj-$(CONFIG_MLX5_INFINIBAND)		+= mlx5/
+ obj-$(CONFIG_INFINIBAND_NES)		+= nes/
+diff --git a/drivers/infiniband/hw/irdma/Kconfig b/drivers/infiniband/hw/irdma/Kconfig
 new file mode 100644
-index 0000000..04ce5c2
+index 0000000..652f5f9
 --- /dev/null
-+++ b/include/uapi/rdma/irdma-abi.h
-@@ -0,0 +1,140 @@
-+/*
-+ * Copyright (c) 2006 - 2019 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2005 Topspin Communications.  All rights reserved.
-+ * Copyright (c) 2005 Cisco Systems.  All rights reserved.
-+ * Copyright (c) 2005 Open Grid Computing, Inc. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ *
-+ */
++++ b/drivers/infiniband/hw/irdma/Kconfig
+@@ -0,0 +1,11 @@
++config INFINIBAND_IRDMA
++       tristate "Intel(R) Ethernet Connection RDMA Driver"
++       depends on INET && (I40E || ICE)
++       depends on IPV6 || !IPV6
++       depends on PCI
++       select GENERIC_ALLOCATOR
++       ---help---
++       This is an Ethernet RDMA driver that supports E810 (iWARP/RoCE)
++       and X722 (iWARP) network devices.
++       To compile this driver as a module, choose M here. The module
++       will be called irdma.
+diff --git a/drivers/infiniband/hw/irdma/Makefile b/drivers/infiniband/hw/irdma/Makefile
+new file mode 100644
+index 0000000..cfc8126
+--- /dev/null
++++ b/drivers/infiniband/hw/irdma/Makefile
+@@ -0,0 +1,31 @@
++# SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++# Copyright (c) 2019, Intel Corporation.
 +
-+#ifndef IRDMA_ABI_H
-+#define IRDMA_ABI_H
++#
++# Makefile for the Intel(R) Ethernet Connection RDMA Linux Driver
++#
 +
-+#include <linux/types.h>
++ccflags-y := -I $(srctree)/drivers/net/ethernet/intel/i40e
++ccflags-y += -I $(srctree)/drivers/net/ethernet/intel/ice
 +
-+#define IRDMA_ABI_VER	6
++obj-$(CONFIG_INFINIBAND_IRDMA) += irdma.o
 +
-+enum irdma_memreg_type {
-+	IW_MEMREG_TYPE_MEM  = 0,
-+	IW_MEMREG_TYPE_QP   = 1,
-+	IW_MEMREG_TYPE_CQ   = 2,
-+	IW_MEMREG_TYPE_RSVD = 3,
-+	IW_MEMREG_TYPE_MW   = 4,
-+};
++irdma-objs := main.o      \
++             i40iw_if.o  \
++             i40iw_hw.o  \
++             irdma_if.o  \
++             hw.o        \
++             icrdma_hw.o \
++             cm.o        \
++             ctrl.o      \
++             hmc.o       \
++             pble.o      \
++             puda.o      \
++             uk.o        \
++             utils.o     \
++             verbs.o     \
++             uda.o       \
++             ws.o        \
++             trace.o     \
 +
-+struct irdma_alloc_ucontext_req {
-+	__u32 rsvd32;
-+	__u8 userspace_ver;
-+	__u8 rsvd8[3];
-+};
-+
-+struct irdma_alloc_ucontext_resp {
-+	__u8 kernel_ver;
-+	__u8 rsvd[7];
-+	struct irdma_hw_attrs hw_attrs;
-+};
-+
-+struct i40iw_alloc_ucontext_resp {
-+	__u32 max_pds;		/* maximum pds allowed for this user process */
-+	__u32 max_qps;		/* maximum qps allowed for this user process */
-+	__u32 wq_size;		/* size of the WQs (sq+rq) allocated to the mmaped area */
-+	__u8 kernel_ver;
-+	__u8 reserved[3];
-+};
-+
-+struct irdma_alloc_pd_resp {
-+	__u32 pd_id;
-+	__u8 rsvd[4];
-+};
-+
-+struct irdma_create_cq_req {
-+	__aligned_u64 user_cq_buf;
-+	__aligned_u64 user_shadow_area;
-+};
-+
-+struct irdma_create_qp_req {
-+	__u64 user_wqe_bufs;
-+	__u64 user_compl_ctx;
-+};
-+
-+struct i40iw_create_qp_req {
-+	__aligned_u64 user_wqe_buffers;
-+	__aligned_u64 user_compl_ctx;
-+
-+	/* UDA QP PHB */
-+	__aligned_u64 user_sq_phb;	/* place for VA of the sq phb buff */
-+	__aligned_u64 user_rq_phb;	/* place for VA of the rq phb buff */
-+};
-+
-+struct irdma_mem_reg_req {
-+	__u16 reg_type;	 /* Memory, QP or CQ */
-+	__u16 cq_pages;
-+	__u16 rq_pages;
-+	__u16 sq_pages;
-+};
-+
-+struct irdma_create_cq_resp {
-+	__u32 cq_id;
-+	__u32 cq_size;
-+};
-+
-+struct i40iw_create_cq_resp {
-+	__u32 cq_id;
-+	__u32 cq_size;
-+	__u32 mmap_db_index;
-+	__u32 reserved;
-+};
-+
-+struct irdma_create_qp_resp {
-+	__u32 qp_id;
-+	__u32 actual_sq_size;
-+	__u32 actual_rq_size;
-+	__u32 irdma_drv_opt;
-+	__u16 push_idx;
-+	__u8  lsmm;
-+	__u8  rsvd;
-+	__u32 qp_caps;
-+};
-+
-+struct i40iw_create_qp_resp {
-+	__u32 qp_id;
-+	__u32 actual_sq_size;
-+	__u32 actual_rq_size;
-+	__u32 i40iw_drv_opt;
-+	__u16 push_idx;
-+	__u8  lsmm;
-+	__u8  rsvd2;
-+};
-+
-+struct irdma_create_ah_resp {
-+	__u32 ah_id;
-+	__u32 rsvd[4];
-+};
-+#endif /* IRDMA_ABI_H */
++CFLAGS_trace.o = -I$(src)
 -- 
 1.8.3.1
