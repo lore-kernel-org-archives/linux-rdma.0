@@ -1,143 +1,244 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Tue, 12 Feb 2019 17:07:07 +0100
-Message-ID: <20190212160707.GA19076@quack2.suse.cz>
-References: <20190206220828.GJ12227@ziepe.ca>
- <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
- <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
- <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
- <20190208044302.GA20493@dastard>
- <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
- <20190211102402.GF19029@quack2.suse.cz>
- <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH 1/1] RDMA/odp: convert to use HMM for ODP
+Date: Tue, 12 Feb 2019 11:11:24 -0500
+Message-ID: <20190212161123.GA4629@redhat.com>
+References: <20190129165839.4127-1-jglisse@redhat.com>
+ <20190129165839.4127-2-jglisse@redhat.com>
+ <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+In-Reply-To: <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Aviad Yehezkel <aviadye@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon 11-02-19 09:22:58, Dan Williams wrote:
-> On Mon, Feb 11, 2019 at 2:24 AM Jan Kara <jack@suse.cz> wrote:
-> >
-> > On Fri 08-02-19 12:50:37, Dan Williams wrote:
-> > > On Fri, Feb 8, 2019 at 3:11 AM Jan Kara <jack@suse.cz> wrote:
-> > > >
-> > > > On Fri 08-02-19 15:43:02, Dave Chinner wrote:
-> > > > > On Thu, Feb 07, 2019 at 04:55:37PM +0000, Christopher Lameter wrote:
-> > > > > > One approach that may be a clean way to solve this:
-> > > > > > 3. Filesystems that allow bypass of the page cache (like XFS / DAX) will
-> > > > > >    provide the virtual mapping when the PIN is done and DO NO OPERATIONS
-> > > > > >    on the longterm pinned range until the long term pin is removed.
-> > > > >
-> > > > > So, ummm, how do we do block allocation then, which is done on
-> > > > > demand during writes?
-> > > > >
-> > > > > IOWs, this requires the application to set up the file in the
-> > > > > correct state for the filesystem to lock it down so somebody else
-> > > > > can write to it.  That means the file can't be sparse, it can't be
-> > > > > preallocated (i.e. can't contain unwritten extents), it must have zeroes
-> > > > > written to it's full size before being shared because otherwise it
-> > > > > exposes stale data to the remote client (secure sites are going to
-> > > > > love that!), they can't be extended, etc.
-> > > > >
-> > > > > IOWs, once the file is prepped and leased out for RDMA, it becomes
-> > > > > an immutable for the purposes of local access.
-> > > > >
-> > > > > Which, essentially we can already do. Prep the file, map it
-> > > > > read/write, mark it immutable, then pin it via the longterm gup
-> > > > > interface which can do the necessary checks.
-> > > >
-> > > > Hum, and what will you do if the immutable file that is target for RDMA
-> > > > will be a source of reflink? That seems to be currently allowed for
-> > > > immutable files but RDMA store would be effectively corrupting the data of
-> > > > the target inode. But we could treat it similarly as swapfiles - those also
-> > > > have to deal with writes to blocks beyond filesystem control. In fact the
-> > > > similarity seems to be quite large there. What do you think?
-> > >
-> > > This sounds so familiar...
-> > >
-> > >     https://lwn.net/Articles/726481/
-> > >
-> > > I'm not opposed to trying again, but leases was what crawled out
-> > > smoking crater when this last proposal was nuked.
-> >
-> > Umm, don't think this is that similar to daxctl() discussion. We are not
-> > speaking about providing any new userspace API for this.
+On Wed, Feb 06, 2019 at 08:44:26AM +0000, Haggai Eran wrote:
+> On 1/29/2019 6:58 PM, jglisse@redhat.com wrote:
+>  > Convert ODP to use HMM so that we can build on common infrastructure
+>  > for different class of devices that want to mirror a process address
+>  > space into a device. There is no functional changes.
 > 
-> I thought explicit userspace API was one of the outcomes, i.e. that we
-> can't depend on this behavior being an implicit side effect of a page
-> pin?
-
-I was thinking an implicit sideeffect of gup_longterm() call. Similarly as
-swapon(2) does not require the file to be marked in any special way. But
-OTOH I agree that RDMA is a less controlled usage than swapon so it is
-questionable. I'd still require something like CAP_LINUX_IMMUTABLE at least
-for gup_longterm() calls that end up pinning the file.
-
-Inspired by Christoph's idea you reference in [2], maybe gup_longterm()
-will succeed only if there is FL_LAYOUT lease for the range being pinned
-and we don't allow the lease to be released until there's a pinned page in
-the range. And we make the file protected (i.e. treat it like swapfile) if
-there's any such lease in it. But this is just a rough sketch and needs more
-thinking.
-
-> > Also I think the
-> > situation about leases has somewhat cleared up with this discussion - ODP
-> > hardware does not need leases since it can use MMU notifiers, for non-ODP
-> > hardware it is difficult to handle leases as such hardware has only one big
-> > kill-everything call and using that would effectively mean lot of work on
-> > the userspace side to resetup everything to make things useful if workable
-> > at all.
-> >
-> > So my proposal would be:
-> >
-> > 1) ODP hardward uses gup_fast() like direct IO and uses MMU notifiers to do
-> > its teardown when fs needs it.
-> >
-> > 2) Hardware not capable of tearing down pins from MMU notifiers will have
-> > to use gup_longterm() (we may actually rename it to a more suitable name).
-> > FS may just refuse such calls (for normal page cache backed file, it will
-> > just return success but for DAX file it will do sanity checks whether the
-> > file is fully allocated etc. like we currently do for swapfiles) but if
-> > gup_longterm() returns success, it will provide the same guarantees as for
-> > swapfiles. So the only thing that we need is some call from gup_longterm()
-> > to a filesystem callback to tell it - this file is going to be used by a
-> > third party as an IO buffer, don't touch it. And we can (and should)
-> > probably refactor the handling to be shared between swapfiles and
-> > gup_longterm().
+> Thanks for sending this patch. I think in general it is a good idea to 
+> use a common infrastructure for ODP.
 > 
-> Yes, lets pursue this. At the risk of "arguing past 'yes'" this is a
-> solution I thought we dax folks walked away from in the original
-> MAP_DIRECT discussion [1]. Here is where leases were the response to
-> MAP_DIRECT [2]. ...and here is where we had tame discussions about
-> implications of notifying memory-registrations of lease break events
-> [3].
+> I have a couple of questions below.
+> 
+> > -static void ib_umem_notifier_invalidate_range_end(struct mmu_notifier *mn,
+> > -				const struct mmu_notifier_range *range)
+> > -{
+> > -	struct ib_ucontext_per_mm *per_mm =
+> > -		container_of(mn, struct ib_ucontext_per_mm, mn);
+> > -
+> > -	if (unlikely(!per_mm->active))
+> > -		return;
+> > -
+> > -	rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
+> > -				      range->end,
+> > -				      invalidate_range_end_trampoline, true, NULL);
+> >   	up_read(&per_mm->umem_rwsem);
+> > +	return ret;
+> >   }
+> Previously the code held the umem_rwsem between range_start and 
+> range_end calls. I guess that was in order to guarantee that no device 
+> page faults take reference to the pages being invalidated while the 
+> invalidation is ongoing. I assume this is now handled by hmm instead, 
+> correct?
 
-Yeah, thanks for the references.
+It is a mix of HMM and driver in pagefault_mr() mlx5/odp.c
+    mutex_lock(&odp->umem_mutex);
+    if (hmm_vma_range_done(range)) {
+    ...
 
-> I honestly don't like the idea that random subsystems can pin down
-> file blocks as a side effect of gup on the result of mmap. Recall that
-> it's not just RDMA that wants this guarantee. It seems safer to have
-> the file be in an explicit block-allocation-immutable-mode so that the
-> fallocate man page can describe this error case. Otherwise how would
-> you describe the scenarios under which FALLOC_FL_PUNCH_HOLE fails?
+This is what serialize programming the hw and any concurrent CPU page
+table invalidation. This is also one of the thing i want to improve
+long term as mlx5_ib_update_xlt() can do memory allocation and i would
+like to avoid that ie make mlx5_ib_update_xlt() and its sub-functions
+as small and to the points as possible so that they could only fail if
+the hardware is in bad state not because of memory allocation issues.
 
-So with requiring lease for gup_longterm() to succeed (and the
-FALLOC_FL_PUNCH_HOLE failure being keyed from the existence of such lease),
-does it look more reasonable to you?
 
-> [1]: https://lwn.net/Articles/736333/
-> [2]: https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg06437.html
-> [3]: https://www.mail-archive.com/linux-nvdimm@lists.01.org/msg06499.html
+> 
+> > +
+> > +static uint64_t odp_hmm_flags[HMM_PFN_FLAG_MAX] = {
+> > +	ODP_READ_BIT,	/* HMM_PFN_VALID */
+> > +	ODP_WRITE_BIT,	/* HMM_PFN_WRITE */
+> > +	ODP_DEVICE_BIT,	/* HMM_PFN_DEVICE_PRIVATE */
+> It seems that the mlx5_ib code in this patch currently ignores the 
+> ODP_DEVICE_BIT (e.g., in umem_dma_to_mtt). Is that okay? Or is it 
+> handled implicitly by the HMM_PFN_SPECIAL case?
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+This is because HMM except a bit for device memory as same API is
+use for GPU which have device memory. I can add a comment explaining
+that it is not use for ODP but there just to comply with HMM API.
+
+> 
+> > @@ -327,9 +287,10 @@ void put_per_mm(struct ib_umem_odp *umem_odp)
+> >  	up_write(&per_mm->umem_rwsem);
+> >  
+> >  	WARN_ON(!RB_EMPTY_ROOT(&per_mm->umem_tree.rb_root));
+> > -	mmu_notifier_unregister_no_release(&per_mm->mn, per_mm->mm);
+> > +	hmm_mirror_unregister(&per_mm->mirror);
+> >  	put_pid(per_mm->tgid);
+> > -	mmu_notifier_call_srcu(&per_mm->rcu, free_per_mm);
+> > +
+> > +	kfree(per_mm);
+> >  }
+> Previously the per_mm struct was released through call srcu, but now it 
+> is released immediately. Is it safe? I saw that hmm_mirror_unregister 
+> calls mmu_notifier_unregister_no_release, so I don't understand what 
+> prevents concurrently running invalidations from accessing the released 
+> per_mm struct.
+
+Yes it is safe, the hmm struct has its own refcount and mirror holds a
+reference on it, the mm struct itself has a reference on the mm struct.
+So no structure can vanish before the other. However once release call-
+back happens you can no longer fault anything it will -EFAULT if you
+try to (not to mention that by then all the vma have been tear down).
+So even if some kernel thread race with destruction it will not be able
+to fault anything or use mirror struct in any meaning full way.
+
+Note that in a regular tear down the ODP put_per_mm() will happen before
+the release callback as iirc file including device file get close before
+the mm is teardown. But in anycase it would work no matter what the order
+is.
+
+> 
+> > @@ -578,11 +578,27 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+> >  
+> >  next_mr:
+> >  	size = min_t(size_t, bcnt, ib_umem_end(&odp->umem) - io_virt);
+> > -
+> >  	page_shift = mr->umem->page_shift;
+> >  	page_mask = ~(BIT(page_shift) - 1);
+> > +	off = (io_virt & (~page_mask));
+> > +	size += (io_virt & (~page_mask));
+> > +	io_virt = io_virt & page_mask;
+> > +	off += (size & (~page_mask));
+> > +	size = ALIGN(size, 1UL << page_shift);
+> > +
+> > +	if (io_virt < ib_umem_start(&odp->umem))
+> > +		return -EINVAL;
+> > +
+> >  	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
+> >  
+> > +	if (odp_mr->per_mm == NULL || odp_mr->per_mm->mm == NULL)
+> > +		return -ENOENT;
+> > +
+> > +	ret = hmm_range_register(&range, odp_mr->per_mm->mm,
+> > +				 io_virt, io_virt + size, page_shift);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> >  	if (prefetch && !downgrade && !mr->umem->writable) {
+> >  		/* prefetch with write-access must
+> >  		 * be supported by the MR
+> Isn't there a mistake in the calculation of the variable size? Itis 
+> first set to the size of the page fault range, but then you add the 
+> virtual address, so I guess it is actually the range end. Then you pass 
+> io_virt + size to hmm_range_register. Doesn't it double the size of the 
+> range
+
+No i think it is correct, bcnt is the byte count we are ask to fault,
+we align that on the maximum size the current mr covers (min_t above)
+then we align with the page size so that fault address is page align.
+hmm_range_register() takes start address and end address which is the
+start address + size.
+
+off is the offset ie the number of extra byte we are faulting to align
+start on page size. If there is a bug this might be:
+     off += (size & (~page_mask));
+
+I need to review before and after to double check that again.
+
+> 
+> > -void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp, u64 virt,
+> > -				 u64 bound)
+> > +void ib_umem_odp_unmap_dma_pages(struct ib_umem_odp *umem_odp,
+> > +				 u64 virt, u64 bound)
+> >  {
+> > +	struct device *device = umem_odp->umem.context->device->dma_device;
+> >  	struct ib_umem *umem = &umem_odp->umem;
+> > -	int idx;
+> > -	u64 addr;
+> > -	struct ib_device *dev = umem->context->device;
+> > +	unsigned long idx, page_mask;
+> > +	struct hmm_range range;
+> > +	long ret;
+> > +
+> > +	if (!umem->npages)
+> > +		return;
+> > +
+> > +	bound = ALIGN(bound, 1UL << umem->page_shift);
+> > +	page_mask = ~(BIT(umem->page_shift) - 1);
+> > +	virt &= page_mask;
+> >  
+> >  	virt  = max_t(u64, virt,  ib_umem_start(umem));
+> >  	bound = min_t(u64, bound, ib_umem_end(umem));
+> > -	/* Note that during the run of this function, the
+> > -	 * notifiers_count of the MR is > 0, preventing any racing
+> > -	 * faults from completion. We might be racing with other
+> > -	 * invalidations, so we must make sure we free each page only
+> > -	 * once. */
+> > +
+> > +	idx = ((unsigned long)virt - ib_umem_start(umem)) >> PAGE_SHIFT;
+> > +
+> > +	range.page_shift = umem->page_shift;
+> > +	range.pfns = &umem_odp->pfns[idx];
+> > +	range.pfn_shift = ODP_FLAGS_BITS;
+> > +	range.values = odp_hmm_values;
+> > +	range.flags = odp_hmm_flags;
+> > +	range.start = virt;
+> > +	range.end = bound;
+> > +
+> >  	mutex_lock(&umem_odp->umem_mutex);
+> > -	for (addr = virt; addr < bound; addr += BIT(umem->page_shift)) {
+> > -		idx = (addr - ib_umem_start(umem)) >> umem->page_shift;
+> > -		if (umem_odp->page_list[idx]) {
+> > -			struct page *page = umem_odp->page_list[idx];
+> > -			dma_addr_t dma = umem_odp->dma_list[idx];
+> > -			dma_addr_t dma_addr = dma & ODP_DMA_ADDR_MASK;
+> > -
+> > -			WARN_ON(!dma_addr);
+> > -
+> > -			ib_dma_unmap_page(dev, dma_addr, PAGE_SIZE,
+> > -					  DMA_BIDIRECTIONAL);
+> > -			if (dma & ODP_WRITE_ALLOWED_BIT) {
+> > -				struct page *head_page = compound_head(page);
+> > -				/*
+> > -				 * set_page_dirty prefers being called with
+> > -				 * the page lock. However, MMU notifiers are
+> > -				 * called sometimes with and sometimes without
+> > -				 * the lock. We rely on the umem_mutex instead
+> > -				 * to prevent other mmu notifiers from
+> > -				 * continuing and allowing the page mapping to
+> > -				 * be removed.
+> > -				 */
+> > -				set_page_dirty(head_page);
+> > -			}
+> > -			/* on demand pinning support */
+> > -			if (!umem->context->invalidate_range)
+> > -				put_page(page);
+> > -			umem_odp->page_list[idx] = NULL;
+> > -			umem_odp->dma_list[idx] = 0;
+> > -			umem->npages--;
+> > -		}
+> > -	}
+> > +	ret = hmm_range_dma_unmap(&range, NULL, device,
+> > +		&umem_odp->dma_list[idx], true);
+> > +	if (ret > 0)
+> > +		umem->npages -= ret;
+> Can hmm_range_dma_unmap fail? If it does, we do we simply leak the DMA 
+> mappings?
+
+It can only fails if you provide bogus range structure (like end address
+before start address). This is just a safety next really. It also returns
+the number of page that have been unmap just like hmm_range_dma_map()
+returns the number of page that have been map. So you can keep a count of
+the number of pages map with umem->npages
+
+Cheers,
+Jérôme
