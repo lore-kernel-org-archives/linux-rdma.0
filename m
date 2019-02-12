@@ -1,37 +1,44 @@
-From: Christopher Lameter <cl@linux.com>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving longterm-GUP
- usage by RDMA
-Date: Tue, 12 Feb 2019 16:39:43 +0000
-Message-ID: <01000168e29418ba-81301f56-9370-4555-b70c-3ad51be84543-000000@email.amazonses.com>
-References: <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com> <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com> <20190208044302.GA20493@dastard> <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com> <20190211102402.GF19029@quack2.suse.cz> <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com> <20190211180654.GB24692@ziepe.ca> <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
- <fb507b56-7f8f-cf2c-285c-bae3b2d72c4f@nvidia.com> <20190211221247.GI24692@ziepe.ca> <018c1a05-5fd8-886a-573b-42649949bba8@nvidia.com>
+From: Jan Kara <jack@suse.cz>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Tue, 12 Feb 2019 17:44:52 +0100
+Message-ID: <20190212164452.GF19076@quack2.suse.cz>
+References: <20190211102402.GF19029@quack2.suse.cz>
+ <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+ <20190211180654.GB24692@ziepe.ca>
+ <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
+ <20190211182649.GD24692@ziepe.ca>
+ <20190211184040.GF12668@bombadil.infradead.org>
+ <CAPcyv4j71WZiXWjMPtDJidAqQiBcHUbcX=+aw11eEQ5C6sA8hQ@mail.gmail.com>
+ <20190211204945.GF24692@ziepe.ca>
+ <CAPcyv4jHjeJxmHMyrbRhg9oeaLK5WbZm-qu1HywjY7bF2DwiDg@mail.gmail.com>
+ <01000168e2913f2e-56010847-a10b-407e-b4eb-7730164267de-000000@email.amazonses.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <018c1a05-5fd8-886a-573b-42649949bba8@nvidia.com>
+Content-Disposition: inline
+In-Reply-To: <01000168e2913f2e-56010847-a10b-407e-b4eb-7730164267de-000000@email.amazonses.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+To: Christopher Lameter <cl@linux.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Doug Ledford <dledford@redhat.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 11 Feb 2019, John Hubbard wrote:
+On Tue 12-02-19 16:36:36, Christopher Lameter wrote:
+> On Mon, 11 Feb 2019, Dan Williams wrote:
+> 
+> > An mmap write after a fault due to a hole punch is free to trigger
+> > SIGBUS if the subsequent page allocation fails. So no, I don't see
+> > them as the same unless you're allowing for the holder of the MR to
+> > receive a re-fault failure.
+> 
+> Order 0 page allocation failures are generally not possible in that path.
+> System will reclaim and OOM before that happens.
 
-> But anyway, Jan's proposal a bit earlier today [1] is finally sinking into
-> my head--if we actually go that way, and prevent the caller from setting up
-> a problematic gup pin in the first place, then that may make this point sort
-> of moot.
+But also block allocation can fail in the filesystem or you can have memcgs
+set up that make the page allocation fail, can't you? So in principle Dan
+is right. Page faults can and do fail...
 
-Ok well can be document how we think it would work somewhere? Long term
-mapping a page cache page could a problem and we need to explain that
-somewhere.
-
-> > ie indicate to the FS that is should not attempt to remap physical
-> > memory addresses backing this VMA. If the FS can't do that it must
-> > fail.
-> >
->
-> Yes. Duration is probably less important than the fact that the page
-> is specially treated.
-
-Yup.
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
