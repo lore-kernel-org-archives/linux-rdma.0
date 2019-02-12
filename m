@@ -1,48 +1,81 @@
 From: Jan Kara <jack@suse.cz>
 Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
  longterm-GUP usage by RDMA
-Date: Tue, 12 Feb 2019 17:28:32 +0100
-Message-ID: <20190212162832.GC19076@quack2.suse.cz>
-References: <0c868bc615a60c44d618fb0183fcbe0c418c7c83.camel@redhat.com>
- <CAPcyv4hqya1iKCfHJRXQJRD4qXZa3VjkoKGw6tEvtWNkKVbP+A@mail.gmail.com>
- <bfe0fdd5400d41d223d8d30142f56a9c8efc033d.camel@redhat.com>
- <01000168c8e2de6b-9ab820ed-38ad-469c-b210-60fcff8ea81c-000000@email.amazonses.com>
- <20190208044302.GA20493@dastard>
- <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
- <20190211102402.GF19029@quack2.suse.cz>
+Date: Tue, 12 Feb 2019 17:34:33 +0100
+Message-ID: <20190212163433.GD19076@quack2.suse.cz>
+References: <20190211102402.GF19029@quack2.suse.cz>
  <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
  <20190211180654.GB24692@ziepe.ca>
+ <20190211181921.GA5526@iweiny-DESK2.sc.intel.com>
+ <20190211182649.GD24692@ziepe.ca>
+ <20190211184040.GF12668@bombadil.infradead.org>
+ <CAPcyv4j71WZiXWjMPtDJidAqQiBcHUbcX=+aw11eEQ5C6sA8hQ@mail.gmail.com>
+ <20190211204945.GF24692@ziepe.ca>
+ <CAPcyv4jHjeJxmHMyrbRhg9oeaLK5WbZm-qu1HywjY7bF2DwiDg@mail.gmail.com>
+ <20190211210956.GG24692@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190211180654.GB24692@ziepe.ca>
+In-Reply-To: <20190211210956.GG24692@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>, Matthew Wilcox <willy@infradead.org>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Dave Chinner <david@fromorbit.com>, Christopher Lameter <cl@linux.com>, Doug Ledford <dledford@redhat.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jerome Glisse <jglisse@redhat.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon 11-02-19 11:06:54, Jason Gunthorpe wrote:
-> On Mon, Feb 11, 2019 at 09:22:58AM -0800, Dan Williams wrote:
+On Mon 11-02-19 14:09:56, Jason Gunthorpe wrote:
+> On Mon, Feb 11, 2019 at 01:02:37PM -0800, Dan Williams wrote:
+> > On Mon, Feb 11, 2019 at 12:49 PM Jason Gunthorpe <jgg@ziepe.ca> wrote:
+> > >
+> > > On Mon, Feb 11, 2019 at 11:58:47AM -0800, Dan Williams wrote:
+> > > > On Mon, Feb 11, 2019 at 10:40 AM Matthew Wilcox <willy@infradead.org> wrote:
+> > > > >
+> > > > > On Mon, Feb 11, 2019 at 11:26:49AM -0700, Jason Gunthorpe wrote:
+> > > > > > On Mon, Feb 11, 2019 at 10:19:22AM -0800, Ira Weiny wrote:
+> > > > > > > What if user space then writes to the end of the file with a regular write?
+> > > > > > > Does that write end up at the point they truncated to or off the end of the
+> > > > > > > mmaped area (old length)?
+> > > > > >
+> > > > > > IIRC it depends how the user does the write..
+> > > > > >
+> > > > > > pwrite() with a given offset will write to that offset, re-extending
+> > > > > > the file if needed
+> > > > > >
+> > > > > > A file opened with O_APPEND and a write done with write() should
+> > > > > > append to the new end
+> > > > > >
+> > > > > > A normal file with a normal write should write to the FD's current
+> > > > > > seek pointer.
+> > > > > >
+> > > > > > I'm not sure what happens if you write via mmap/msync.
+> > > > > >
+> > > > > > RDMA is similar to pwrite() and mmap.
+> > > > >
+> > > > > A pertinent point that you didn't mention is that ftruncate() does not change
+> > > > > the file offset.  So there's no user-visible change in behaviour.
+> > > >
+> > > > ...but there is. The blocks you thought you freed, especially if the
+> > > > system was under -ENOSPC pressure, won't actually be free after the
+> > > > successful ftruncate().
+> > >
+> > > They won't be free after something dirties the existing mmap either.
+> > >
+> > > Blocks also won't be free if you unlink a file that is currently still
+> > > open.
+> > >
+> > > This isn't really new behavior for a FS.
+> > 
+> > An mmap write after a fault due to a hole punch is free to trigger
+> > SIGBUS if the subsequent page allocation fails.
 > 
-> > I honestly don't like the idea that random subsystems can pin down
-> > file blocks as a side effect of gup on the result of mmap. Recall that
-> > it's not just RDMA that wants this guarantee. It seems safer to have
-> > the file be in an explicit block-allocation-immutable-mode so that the
-> > fallocate man page can describe this error case. Otherwise how would
-> > you describe the scenarios under which FALLOC_FL_PUNCH_HOLE fails?
-> 
-> I rather liked CL's version of this - ftruncate/etc is simply racing
-> with a parallel pwrite - and it doesn't fail.
+> Isn't that already racy? If the mmap user is fast enough can't it
+> prevent the page from becoming freed in the first place today?
 
-The problem is page pins are not really like pwrite(). They are more like
-mmap access. And that will just SIGBUS after truncate. So from user point
-of view I agree the result may not be that surprising (it would seem just
-as if somebody did additional pwrite) but from filesystem point of view it
-is very different and it would mean a special handling in lots of places.
-So I think that locking down the file before allowing gup_longterm() looks
-like a more viable alternative.
+No, it cannot. We block page faulting for the file (via a lock), tear down
+page tables, free pages and blocks. Then we resume faults and return
+SIGBUS (if the page ends up being after the new end of file in case of
+truncate) or do new page fault and fresh block allocation (which can end
+with SIGBUS if the filesystem cannot allocate new block to back the page).
 
 								Honza
 -- 
