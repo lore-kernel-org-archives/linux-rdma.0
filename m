@@ -1,33 +1,39 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH][next] RDMA: fix allocation failure on pointer pd
-Date: Tue, 12 Feb 2019 11:29:42 +0000
-Message-ID: <20190212112940.GN21447@mtr-leonro.mtl.com>
-References: <20190212112233.25667-1-colin.king@canonical.com>
+From: Josh Boyer <jwboyer@kernel.org>
+Subject: Re: [PATCH 1/1] bnx2x: Add FW 7.13.11.0.
+Date: Tue, 12 Feb 2019 07:37:23 -0500
+Message-ID: <CA+5PVA4-VWwMTj4NYaAjUZ=11LFVD02isqB4KkXBBKgSAGp8vg@mail.gmail.com>
+References: <20190208085704.26959-1-rahul.verma@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190212112233.25667-1-colin.king@canonical.com>
-Content-Language: en-US
-Content-ID: <6973099414FE5A43BD7A7EFBBBFD0477@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190208085704.26959-1-rahul.verma@cavium.com>
+Sender: netdev-owner@vger.kernel.org
+To: Rahul Verma <rahul.verma@cavium.com>
+Cc: Kyle McMartin <kyle@kernel.org>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, Linux Firmware <linux-firmware@kernel.org>, Ben Hutchings <ben@decadent.org.uk>, ariel.elior@cavium.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 12, 2019 at 11:22:33AM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Sat, Feb 9, 2019 at 11:06 PM Rahul Verma <rahul.verma@cavium.com> wrote:
 >
-> The null check on an allocation failure on pd is currently checking
-> if pd is non-null rather than null. Fix this by adding the missing !
-> operator.
+> From: Rahul Verma <Rahul.Verma@cavium.com>
 >
-> Fixes: 21a428a019c9 ("RDMA: Handle PD allocations by IB/core")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> This patch adds new FW for bnx2x, which adds the following:
+>  - TX VLAN filtering support.
+>  - Enable TPA only for packets without VLAN.
 >
+> It also addresses few critical issues,
+>  - Fairness algorithm misbehaviour when minimum bandwidth configured
+>    for all PFs.
+>  - Error recovery issue on TAPE devices.
+>  - FW not discarding FIP frames that are not designated to PF.
+>  - Kernel driver initialization failure after preboot driver.
+>  - VxLAN stops working after sending inner IP fragmented traffic.
+>  - Issues in the following FW flows:
+>     SD VLAN update, TX packet drop, packet padding flow, vlan add/remove.
+>
+> Signed-off-by: Sudarsana Reddy Kalluru <Sudarsana.Kalluru@cavium.com>
+> Signed-off-by: Ariel Elior <Ariel.Elior@cavium.com>
+> Signed-off-by: Rahul Verma <Rahul.Verma@cavium.com>
 
-Thanks a lot,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Applied and pushed out.
+
+josh
