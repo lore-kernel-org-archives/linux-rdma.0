@@ -1,145 +1,90 @@
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: Re: [PATCH 1/1] RDMA/odp: convert to use HMM for ODP
-Date: Wed, 13 Feb 2019 06:28:05 +0000
-Message-ID: <804b8721-70dd-646f-0b9e-cffad859170b@mellanox.com>
-References: <20190129165839.4127-1-jglisse@redhat.com>
- <20190129165839.4127-2-jglisse@redhat.com>
- <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
- <20190212161123.GA4629@redhat.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 00/15] mlx5-next updates (ECPF & 50Gbps per lane)
+Date: Tue, 12 Feb 2019 22:55:31 -0800
+Message-ID: <20190213065546.3013-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190212161123.GA4629@redhat.com>
-Content-Language: en-US
-Content-ID: <6F3C99886DA22448A6BC48B588A6701E@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Aviad Yehezkel <aviadye@mellanox.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMi8xMi8yMDE5IDY6MTEgUE0sIEplcm9tZSBHbGlzc2Ugd3JvdGU6DQo+IE9uIFdlZCwgRmVi
-IDA2LCAyMDE5IGF0IDA4OjQ0OjI2QU0gKzAwMDAsIEhhZ2dhaSBFcmFuIHdyb3RlOg0KPj4gT24g
-MS8yOS8yMDE5IDY6NTggUE0sIGpnbGlzc2VAcmVkaGF0LmNvbSB3cm90ZToNCj4+ICAgPiBDb252
-ZXJ0IE9EUCB0byB1c2UgSE1NIHNvIHRoYXQgd2UgY2FuIGJ1aWxkIG9uIGNvbW1vbiBpbmZyYXN0
-cnVjdHVyZQ0KPj4gICA+IGZvciBkaWZmZXJlbnQgY2xhc3Mgb2YgZGV2aWNlcyB0aGF0IHdhbnQg
-dG8gbWlycm9yIGEgcHJvY2VzcyBhZGRyZXNzDQo+PiAgID4gc3BhY2UgaW50byBhIGRldmljZS4g
-VGhlcmUgaXMgbm8gZnVuY3Rpb25hbCBjaGFuZ2VzLg0KPj4NCj4+IFRoYW5rcyBmb3Igc2VuZGlu
-ZyB0aGlzIHBhdGNoLiBJIHRoaW5rIGluIGdlbmVyYWwgaXQgaXMgYSBnb29kIGlkZWEgdG8NCj4+
-IHVzZSBhIGNvbW1vbiBpbmZyYXN0cnVjdHVyZSBmb3IgT0RQLg0KPj4NCj4+IEkgaGF2ZSBhIGNv
-dXBsZSBvZiBxdWVzdGlvbnMgYmVsb3cuDQo+Pg0KPj4+IC1zdGF0aWMgdm9pZCBpYl91bWVtX25v
-dGlmaWVyX2ludmFsaWRhdGVfcmFuZ2VfZW5kKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLA0KPj4+
-IC0JCQkJY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqcmFuZ2UpDQo+Pj4gLXsNCj4+
-PiAtCXN0cnVjdCBpYl91Y29udGV4dF9wZXJfbW0gKnBlcl9tbSA9DQo+Pj4gLQkJY29udGFpbmVy
-X29mKG1uLCBzdHJ1Y3QgaWJfdWNvbnRleHRfcGVyX21tLCBtbik7DQo+Pj4gLQ0KPj4+IC0JaWYg
-KHVubGlrZWx5KCFwZXJfbW0tPmFjdGl2ZSkpDQo+Pj4gLQkJcmV0dXJuOw0KPj4+IC0NCj4+PiAt
-CXJidF9pYl91bWVtX2Zvcl9lYWNoX2luX3JhbmdlKCZwZXJfbW0tPnVtZW1fdHJlZSwgcmFuZ2Ut
-PnN0YXJ0LA0KPj4+IC0JCQkJICAgICAgcmFuZ2UtPmVuZCwNCj4+PiAtCQkJCSAgICAgIGludmFs
-aWRhdGVfcmFuZ2VfZW5kX3RyYW1wb2xpbmUsIHRydWUsIE5VTEwpOw0KPj4+ICAgIAl1cF9yZWFk
-KCZwZXJfbW0tPnVtZW1fcndzZW0pOw0KPj4+ICsJcmV0dXJuIHJldDsNCj4+PiAgICB9DQo+PiBQ
-cmV2aW91c2x5IHRoZSBjb2RlIGhlbGQgdGhlIHVtZW1fcndzZW0gYmV0d2VlbiByYW5nZV9zdGFy
-dCBhbmQNCj4+IHJhbmdlX2VuZCBjYWxscy4gSSBndWVzcyB0aGF0IHdhcyBpbiBvcmRlciB0byBn
-dWFyYW50ZWUgdGhhdCBubyBkZXZpY2UNCj4+IHBhZ2UgZmF1bHRzIHRha2UgcmVmZXJlbmNlIHRv
-IHRoZSBwYWdlcyBiZWluZyBpbnZhbGlkYXRlZCB3aGlsZSB0aGUNCj4+IGludmFsaWRhdGlvbiBp
-cyBvbmdvaW5nLiBJIGFzc3VtZSB0aGlzIGlzIG5vdyBoYW5kbGVkIGJ5IGhtbSBpbnN0ZWFkLA0K
-Pj4gY29ycmVjdD8NCj4gDQo+IEl0IGlzIGEgbWl4IG9mIEhNTSBhbmQgZHJpdmVyIGluIHBhZ2Vm
-YXVsdF9tcigpIG1seDUvb2RwLmMNCj4gICAgICBtdXRleF9sb2NrKCZvZHAtPnVtZW1fbXV0ZXgp
-Ow0KPiAgICAgIGlmIChobW1fdm1hX3JhbmdlX2RvbmUocmFuZ2UpKSB7DQo+ICAgICAgLi4uDQo+
-IA0KPiBUaGlzIGlzIHdoYXQgc2VyaWFsaXplIHByb2dyYW1taW5nIHRoZSBodyBhbmQgYW55IGNv
-bmN1cnJlbnQgQ1BVIHBhZ2UNCj4gdGFibGUgaW52YWxpZGF0aW9uLiBUaGlzIGlzIGFsc28gb25l
-IG9mIHRoZSB0aGluZyBpIHdhbnQgdG8gaW1wcm92ZQ0KPiBsb25nIHRlcm0gYXMgbWx4NV9pYl91
-cGRhdGVfeGx0KCkgY2FuIGRvIG1lbW9yeSBhbGxvY2F0aW9uIGFuZCBpIHdvdWxkDQo+IGxpa2Ug
-dG8gYXZvaWQgdGhhdCBpZSBtYWtlIG1seDVfaWJfdXBkYXRlX3hsdCgpIGFuZCBpdHMgc3ViLWZ1
-bmN0aW9ucw0KPiBhcyBzbWFsbCBhbmQgdG8gdGhlIHBvaW50cyBhcyBwb3NzaWJsZSBzbyB0aGF0
-IHRoZXkgY291bGQgb25seSBmYWlsIGlmDQo+IHRoZSBoYXJkd2FyZSBpcyBpbiBiYWQgc3RhdGUg
-bm90IGJlY2F1c2Ugb2YgbWVtb3J5IGFsbG9jYXRpb24gaXNzdWVzLg0KSSB3b25kZXIgaWYgaXQg
-d291bGQgYmUgcG9zc2libGUgdG8gbWFrZSB1c2Ugb2YgdGhlIG1lbW9yeSB0aGF0IGlzIA0KYWxy
-ZWFkeSBhbGxvY2F0ZWQgKGliX3VtZW1fb2RwLT5kbWFfbGlzdCkgZm9yIHRoYXQgcHVycG9zZS4g
-VGhpcyB3b3VsZCANCnByb2JhYmx5IG1lYW4gdGhhdCB0aGlzIGFyZWEgd2lsbCBuZWVkIHRvIGJl
-IGZvcm1hdHRlZCBhY2NvcmRpbmcgdG8gdGhlIA0KZGV2aWNlIGhhcmR3YXJlIHJlcXVpcmVtZW50
-cyAoZS5nLiwgYmlnIGVuZGlhbiksIGFuZCB0aGVuIHlvdSBjYW4gDQppbnN0cnVjdCB0aGUgZGV2
-aWNlIHRvIERNQSB0aGUgdXBkYXRlZCB0cmFuc2xhdGlvbnMgZGlyZWN0bHkgZnJvbSB0aGVpci4N
-Cg0KPiANCj4gDQo+Pg0KPj4+ICsNCj4+PiArc3RhdGljIHVpbnQ2NF90IG9kcF9obW1fZmxhZ3Nb
-SE1NX1BGTl9GTEFHX01BWF0gPSB7DQo+Pj4gKwlPRFBfUkVBRF9CSVQsCS8qIEhNTV9QRk5fVkFM
-SUQgKi8NCj4+PiArCU9EUF9XUklURV9CSVQsCS8qIEhNTV9QRk5fV1JJVEUgKi8NCj4+PiArCU9E
-UF9ERVZJQ0VfQklULAkvKiBITU1fUEZOX0RFVklDRV9QUklWQVRFICovDQo+PiBJdCBzZWVtcyB0
-aGF0IHRoZSBtbHg1X2liIGNvZGUgaW4gdGhpcyBwYXRjaCBjdXJyZW50bHkgaWdub3JlcyB0aGUN
-Cj4+IE9EUF9ERVZJQ0VfQklUIChlLmcuLCBpbiB1bWVtX2RtYV90b19tdHQpLiBJcyB0aGF0IG9r
-YXk/IE9yIGlzIGl0DQo+PiBoYW5kbGVkIGltcGxpY2l0bHkgYnkgdGhlIEhNTV9QRk5fU1BFQ0lB
-TCBjYXNlPw0KPiANCj4gVGhpcyBpcyBiZWNhdXNlIEhNTSBleGNlcHQgYSBiaXQgZm9yIGRldmlj
-ZSBtZW1vcnkgYXMgc2FtZSBBUEkgaXMNCj4gdXNlIGZvciBHUFUgd2hpY2ggaGF2ZSBkZXZpY2Ug
-bWVtb3J5LiBJIGNhbiBhZGQgYSBjb21tZW50IGV4cGxhaW5pbmcNCj4gdGhhdCBpdCBpcyBub3Qg
-dXNlIGZvciBPRFAgYnV0IHRoZXJlIGp1c3QgdG8gY29tcGx5IHdpdGggSE1NIEFQSS4NCj4gDQo+
-Pg0KPj4+IEBAIC0zMjcsOSArMjg3LDEwIEBAIHZvaWQgcHV0X3Blcl9tbShzdHJ1Y3QgaWJfdW1l
-bV9vZHAgKnVtZW1fb2RwKQ0KPj4+ICAgCXVwX3dyaXRlKCZwZXJfbW0tPnVtZW1fcndzZW0pOw0K
-Pj4+ICAgDQo+Pj4gICAJV0FSTl9PTighUkJfRU1QVFlfUk9PVCgmcGVyX21tLT51bWVtX3RyZWUu
-cmJfcm9vdCkpOw0KPj4+IC0JbW11X25vdGlmaWVyX3VucmVnaXN0ZXJfbm9fcmVsZWFzZSgmcGVy
-X21tLT5tbiwgcGVyX21tLT5tbSk7DQo+Pj4gKwlobW1fbWlycm9yX3VucmVnaXN0ZXIoJnBlcl9t
-bS0+bWlycm9yKTsNCj4+PiAgIAlwdXRfcGlkKHBlcl9tbS0+dGdpZCk7DQo+Pj4gLQltbXVfbm90
-aWZpZXJfY2FsbF9zcmN1KCZwZXJfbW0tPnJjdSwgZnJlZV9wZXJfbW0pOw0KPj4+ICsNCj4+PiAr
-CWtmcmVlKHBlcl9tbSk7DQo+Pj4gICB9DQo+PiBQcmV2aW91c2x5IHRoZSBwZXJfbW0gc3RydWN0
-IHdhcyByZWxlYXNlZCB0aHJvdWdoIGNhbGwgc3JjdSwgYnV0IG5vdyBpdA0KPj4gaXMgcmVsZWFz
-ZWQgaW1tZWRpYXRlbHkuIElzIGl0IHNhZmU/IEkgc2F3IHRoYXQgaG1tX21pcnJvcl91bnJlZ2lz
-dGVyDQo+PiBjYWxscyBtbXVfbm90aWZpZXJfdW5yZWdpc3Rlcl9ub19yZWxlYXNlLCBzbyBJIGRv
-bid0IHVuZGVyc3RhbmQgd2hhdA0KPj4gcHJldmVudHMgY29uY3VycmVudGx5IHJ1bm5pbmcgaW52
-YWxpZGF0aW9ucyBmcm9tIGFjY2Vzc2luZyB0aGUgcmVsZWFzZWQNCj4+IHBlcl9tbSBzdHJ1Y3Qu
-DQo+IA0KPiBZZXMgaXQgaXMgc2FmZSwgdGhlIGhtbSBzdHJ1Y3QgaGFzIGl0cyBvd24gcmVmY291
-bnQgYW5kIG1pcnJvciBob2xkcyBhDQo+IHJlZmVyZW5jZSBvbiBpdCwgdGhlIG1tIHN0cnVjdCBp
-dHNlbGYgaGFzIGEgcmVmZXJlbmNlIG9uIHRoZSBtbSBzdHJ1Y3QuDQo+IFNvIG5vIHN0cnVjdHVy
-ZSBjYW4gdmFuaXNoIGJlZm9yZSB0aGUgb3RoZXIuIEhvd2V2ZXIgb25jZSByZWxlYXNlIGNhbGwt
-DQo+IGJhY2sgaGFwcGVucyB5b3UgY2FuIG5vIGxvbmdlciBmYXVsdCBhbnl0aGluZyBpdCB3aWxs
-IC1FRkFVTFQgaWYgeW91DQo+IHRyeSB0byAobm90IHRvIG1lbnRpb24gdGhhdCBieSB0aGVuIGFs
-bCB0aGUgdm1hIGhhdmUgYmVlbiB0ZWFyIGRvd24pLg0KPiBTbyBldmVuIGlmIHNvbWUga2VybmVs
-IHRocmVhZCByYWNlIHdpdGggZGVzdHJ1Y3Rpb24gaXQgd2lsbCBub3QgYmUgYWJsZQ0KPiB0byBm
-YXVsdCBhbnl0aGluZyBvciB1c2UgbWlycm9yIHN0cnVjdCBpbiBhbnkgbWVhbmluZyBmdWxsIHdh
-eS4NCj4gDQo+IE5vdGUgdGhhdCBpbiBhIHJlZ3VsYXIgdGVhciBkb3duIHRoZSBPRFAgcHV0X3Bl
-cl9tbSgpIHdpbGwgaGFwcGVuIGJlZm9yZQ0KPiB0aGUgcmVsZWFzZSBjYWxsYmFjayBhcyBpaXJj
-IGZpbGUgaW5jbHVkaW5nIGRldmljZSBmaWxlIGdldCBjbG9zZSBiZWZvcmUNCj4gdGhlIG1tIGlz
-IHRlYXJkb3duLiBCdXQgaW4gYW55Y2FzZSBpdCB3b3VsZCB3b3JrIG5vIG1hdHRlciB3aGF0IHRo
-ZSBvcmRlcg0KPiBpcy4NCkkgc2VlLiBJIHdhcyB3b3JyaWVkIGFib3V0IGNvbmN1cnJlbnQgaW52
-YWxpZGF0aW9ucyBhbmQgaWJ2X2RlcmVnX21yLCANCmJ1dCBJIHVuZGVyc3RhbmQgaG1tIHByb3Rl
-Y3RzIGFnYWluc3QgdGhhdCBpbnRlcm5hbGx5IHRocm91Z2ggdGhlIA0KbWlycm9yc19zZW0gc2Vt
-YXBob3JlLg0KDQo+IA0KPj4NCj4+PiBAQCAtNTc4LDExICs1NzgsMjcgQEAgc3RhdGljIGludCBw
-YWdlZmF1bHRfbXIoc3RydWN0IG1seDVfaWJfZGV2ICpkZXYsIHN0cnVjdCBtbHg1X2liX21yICpt
-ciwNCj4+PiAgIA0KPj4+ICAgbmV4dF9tcjoNCj4+PiAgIAlzaXplID0gbWluX3Qoc2l6ZV90LCBi
-Y250LCBpYl91bWVtX2VuZCgmb2RwLT51bWVtKSAtIGlvX3ZpcnQpOw0KPj4+IC0NCj4+PiAgIAlw
-YWdlX3NoaWZ0ID0gbXItPnVtZW0tPnBhZ2Vfc2hpZnQ7DQo+Pj4gICAJcGFnZV9tYXNrID0gfihC
-SVQocGFnZV9zaGlmdCkgLSAxKTsNCj4+PiArCW9mZiA9IChpb192aXJ0ICYgKH5wYWdlX21hc2sp
-KTsNCj4+PiArCXNpemUgKz0gKGlvX3ZpcnQgJiAofnBhZ2VfbWFzaykpOw0KPj4+ICsJaW9fdmly
-dCA9IGlvX3ZpcnQgJiBwYWdlX21hc2s7DQo+Pj4gKwlvZmYgKz0gKHNpemUgJiAofnBhZ2VfbWFz
-aykpOw0KPj4+ICsJc2l6ZSA9IEFMSUdOKHNpemUsIDFVTCA8PCBwYWdlX3NoaWZ0KTsNCj4+PiAr
-DQo+Pj4gKwlpZiAoaW9fdmlydCA8IGliX3VtZW1fc3RhcnQoJm9kcC0+dW1lbSkpDQo+Pj4gKwkJ
-cmV0dXJuIC1FSU5WQUw7DQo+Pj4gKw0KPj4+ICAgCXN0YXJ0X2lkeCA9IChpb192aXJ0IC0gKG1y
-LT5tbWtleS5pb3ZhICYgcGFnZV9tYXNrKSkgPj4gcGFnZV9zaGlmdDsNCj4+PiAgIA0KPj4+ICsJ
-aWYgKG9kcF9tci0+cGVyX21tID09IE5VTEwgfHwgb2RwX21yLT5wZXJfbW0tPm1tID09IE5VTEwp
-DQo+Pj4gKwkJcmV0dXJuIC1FTk9FTlQ7DQo+Pj4gKw0KPj4+ICsJcmV0ID0gaG1tX3JhbmdlX3Jl
-Z2lzdGVyKCZyYW5nZSwgb2RwX21yLT5wZXJfbW0tPm1tLA0KPj4+ICsJCQkJIGlvX3ZpcnQsIGlv
-X3ZpcnQgKyBzaXplLCBwYWdlX3NoaWZ0KTsNCj4+PiArCWlmIChyZXQpDQo+Pj4gKwkJcmV0dXJu
-IHJldDsNCj4+PiArDQo+Pj4gICAJaWYgKHByZWZldGNoICYmICFkb3duZ3JhZGUgJiYgIW1yLT51
-bWVtLT53cml0YWJsZSkgew0KPj4+ICAgCQkvKiBwcmVmZXRjaCB3aXRoIHdyaXRlLWFjY2VzcyBt
-dXN0DQo+Pj4gICAJCSAqIGJlIHN1cHBvcnRlZCBieSB0aGUgTVINCj4+IElzbid0IHRoZXJlIGEg
-bWlzdGFrZSBpbiB0aGUgY2FsY3VsYXRpb24gb2YgdGhlIHZhcmlhYmxlIHNpemU/IEl0aXMNCj4+
-IGZpcnN0IHNldCB0byB0aGUgc2l6ZSBvZiB0aGUgcGFnZSBmYXVsdCByYW5nZSwgYnV0IHRoZW4g
-eW91IGFkZCB0aGUNCj4+IHZpcnR1YWwgYWRkcmVzcywgc28gSSBndWVzcyBpdCBpcyBhY3R1YWxs
-eSB0aGUgcmFuZ2UgZW5kLiBUaGVuIHlvdSBwYXNzDQo+PiBpb192aXJ0ICsgc2l6ZSB0byBobW1f
-cmFuZ2VfcmVnaXN0ZXIuIERvZXNuJ3QgaXQgZG91YmxlIHRoZSBzaXplIG9mIHRoZQ0KPj4gcmFu
-Z2UNCj4gDQo+IE5vIGkgdGhpbmsgaXQgaXMgY29ycmVjdCwgYmNudCBpcyB0aGUgYnl0ZSBjb3Vu
-dCB3ZSBhcmUgYXNrIHRvIGZhdWx0LA0KPiB3ZSBhbGlnbiB0aGF0IG9uIHRoZSBtYXhpbXVtIHNp
-emUgdGhlIGN1cnJlbnQgbXIgY292ZXJzIChtaW5fdCBhYm92ZSkNCj4gdGhlbiB3ZSBhbGlnbiB3
-aXRoIHRoZSBwYWdlIHNpemUgc28gdGhhdCBmYXVsdCBhZGRyZXNzIGlzIHBhZ2UgYWxpZ24uDQpU
-aGVyZSBhcmUgdGhyZWUgbGluZXMgdGhhdCB1cGRhdGUgc2l6ZSBhYm92ZSwgbm90IHR3bzoNCiA+
-Pj4gICAJc2l6ZSA9IG1pbl90KHNpemVfdCwgYmNudCwgaWJfdW1lbV9lbmQoJm9kcC0+dW1lbSkg
-LSBpb192aXJ0KTsNCiA+Pj4gKwlzaXplICs9IChpb192aXJ0ICYgKH5wYWdlX21hc2spKTsNCiA+
-Pj4gKwlzaXplID0gQUxJR04oc2l6ZSwgMVVMIDw8IHBhZ2Vfc2hpZnQpOw0KQXMgeW91IHNhaWQs
-IHRoZSBmaXJzdCBvbmUgYWxpZ25zIHRvIHRoZSBlbmQgb2YgdGhlIE1SLCB0aGUgdGhpcmQgb25l
-IA0KYWxpZ25zIHRvIHBhZ2Ugc2l6ZSwgYnV0IHRoZSBtaWRkbGUgb25lIHNlZW1zIHRvIGFkZCB0
-aGUgc3RhcnQuDQoNCj4gaG1tX3JhbmdlX3JlZ2lzdGVyKCkgdGFrZXMgc3RhcnQgYWRkcmVzcyBh
-bmQgZW5kIGFkZHJlc3Mgd2hpY2ggaXMgdGhlDQo+IHN0YXJ0IGFkZHJlc3MgKyBzaXplLg0KPiAN
-Cj4gb2ZmIGlzIHRoZSBvZmZzZXQgaWUgdGhlIG51bWJlciBvZiBleHRyYSBieXRlIHdlIGFyZSBm
-YXVsdGluZyB0byBhbGlnbg0KPiBzdGFydCBvbiBwYWdlIHNpemUuIElmIHRoZXJlIGlzIGEgYnVn
-IHRoaXMgbWlnaHQgYmU6DQo+ICAgICAgIG9mZiArPSAoc2l6ZSAmICh+cGFnZV9tYXNrKSk7DQoN
-Cm9mZiBpcyB1c2VkIG9ubHkgdG8gY2FsY3VsYXRlIHRoZSBudW1iZXIgb2YgYnl0ZXMgbWFwcGVk
-IGluIG9yZGVyIHRvIA0KcHJvY2VlZCB3aXRoIHRoZSBuZXh0IE1SIGluIHRoZSBwYWdlIGZhdWx0
-IHdpdGggYW4gdXBkYXRlZCBieXRlIGNvdW50LiBJIA0KdGhpbmsgaXQgc2hvdWxkIGJlDQoJb2Zm
-ID0gc3RhcnQgJiB+cGFnZV9tYXNrOw0KbWVhbmluZyBpdCBzaG91bGRuJ3QgYWxzbyBhZGQgaW4g
-KGVuZCAmIH5wYWdlX21hc2spLg0KDQpSZWdhcmRzLA0KSGFnZ2FpDQo=
+Hi All,
+
+This series from Bodong and Aya provides two low level updates to mlx5
+core driver that are required for both mlx5e netdev and mlx5_ib drivers.
+
+>From Bodong Wang:
+1) Introduction of ECPF (Embedded CPU Physical Function), and low level
+bits for mlx5 SmartNic capabilities support. 
+2) Vport enumeration refactoring that affect mlx5_ib and mlx5_core
+
+>From Aya Levin,
+3) Add support for 50Gbps per lane link modes in the Port Type and Speed
+register (PTYS)
+4) Refactor low level query functions for PTYS register
+5) Add support for 50Gbps per lane link modes to mlx5_ib
+
+Thanks,
+Saeed.
+
+---
+
+Aya Levin (4):
+  net/mlx5: Refactor queries to speed fields in Port Type and Speed
+    register
+  net/mlx5: Add new fields to Port Type and Speed register
+  net/mlx5: Add support to ext_* fields introduced in Port Type and
+    Speed register
+  IB/mlx5: Add support for 50Gbps per lane link modes
+
+Bodong Wang (11):
+  net/mlx5: Use void pointer as the type in address_of macro
+  net/mlx5: Use consistent vport num argument type
+  IB/mlx5: Use unified register/load function for uplink and VF vports
+  net/mlx5: Introduce Mellanox SmartNIC and modify page management logic
+  net/mlx5: Update enable HCA dependency
+  net/mlx5: Add query host params command
+  net/mlx5: Add host params change event
+  net/mlx5: Provide an alternative VF upper bound for ECPF
+  net/mlx5: E-Switch, Normalize the name of uplink vport number
+  net/mlx5: Relocate vport macros to the vport header file
+  net/mlx5: E-Switch, Avoid magic numbers when initializing offloads
+    mode
+
+ drivers/infiniband/hw/mlx5/ib_rep.c           |  73 +++------
+ drivers/infiniband/hw/mlx5/ib_rep.h           |  10 +-
+ drivers/infiniband/hw/mlx5/main.c             |  95 +++++++++---
+ .../net/ethernet/mellanox/mlx5/core/Makefile  |   2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/cmd.c |   2 +
+ .../net/ethernet/mellanox/mlx5/core/ecpf.c    | 112 ++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/ecpf.h    |  33 ++++
+ .../net/ethernet/mellanox/mlx5/core/en/port.c | 142 +++++++++++++++---
+ .../net/ethernet/mellanox/mlx5/core/en/port.h |  16 +-
+ .../ethernet/mellanox/mlx5/core/en_ethtool.c  |  28 ++--
+ .../net/ethernet/mellanox/mlx5/core/en_rep.c  |  22 +--
+ .../net/ethernet/mellanox/mlx5/core/en_tc.c   |   6 +-
+ drivers/net/ethernet/mellanox/mlx5/core/eq.c  |   4 +
+ .../net/ethernet/mellanox/mlx5/core/eswitch.c |  42 +++---
+ .../net/ethernet/mellanox/mlx5/core/eswitch.h |   2 -
+ .../mellanox/mlx5/core/eswitch_offloads.c     |  39 ++---
+ .../net/ethernet/mellanox/mlx5/core/events.c  |   2 +
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c |   1 +
+ .../net/ethernet/mellanox/mlx5/core/main.c    |  16 ++
+ .../ethernet/mellanox/mlx5/core/mlx5_core.h   |   2 +-
+ .../ethernet/mellanox/mlx5/core/pagealloc.c   |  54 +++++--
+ .../net/ethernet/mellanox/mlx5/core/port.c    | 106 -------------
+ .../net/ethernet/mellanox/mlx5/core/sriov.c   |   2 +-
+ .../net/ethernet/mellanox/mlx5/core/vport.c   |   8 +-
+ include/linux/mlx5/device.h                   |   6 +-
+ include/linux/mlx5/driver.h                   |  27 +++-
+ include/linux/mlx5/mlx5_ifc.h                 |  71 +++++++--
+ include/linux/mlx5/port.h                     |  30 ++--
+ include/linux/mlx5/vport.h                    |  21 ++-
+ 29 files changed, 641 insertions(+), 333 deletions(-)
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/ecpf.c
+ create mode 100644 drivers/net/ethernet/mellanox/mlx5/core/ecpf.h
+
+-- 
+2.20.1
