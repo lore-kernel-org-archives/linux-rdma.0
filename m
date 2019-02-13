@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 33/34] net/mlx5e: Fix wrong (zero) TX drop counter indication for representor
-Date: Tue, 12 Feb 2019 21:39:51 -0500
-Message-ID: <20190213023952.21311-33-sashal@kernel.org>
-References: <20190213023952.21311-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 82/83] net/mlx5e: Fix wrong (zero) TX drop counter indication for representor
+Date: Tue, 12 Feb 2019 21:37:00 -0500
+Message-ID: <20190213023701.20286-82-sashal@kernel.org>
+References: <20190213023701.20286-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023952.21311-1-sashal@kernel.org>
+In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
@@ -27,10 +27,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-index 281911698f72..e69674d38f16 100644
+index c9cc9747d21d..701624a63d2f 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
-@@ -125,6 +125,7 @@ static void mlx5e_rep_update_sw_counters(struct mlx5e_priv *priv)
+@@ -144,6 +144,7 @@ static void mlx5e_rep_update_sw_counters(struct mlx5e_priv *priv)
  
  			s->tx_packets		+= sq_stats->packets;
  			s->tx_bytes		+= sq_stats->bytes;
