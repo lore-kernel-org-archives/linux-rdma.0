@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 03/15] IB/mlx5: Use unified register/load function for uplink and VF vports
-Date: Tue, 12 Feb 2019 22:55:34 -0800
-Message-ID: <20190213065546.3013-4-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 05/15] net/mlx5: Update enable HCA dependency
+Date: Tue, 12 Feb 2019 22:55:36 -0800
+Message-ID: <20190213065546.3013-6-saeedm@mellanox.com>
 References: <20190213065546.3013-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,250 +9,211 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190213065546.3013-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Bodong Wang <bodong@mellanox.com>, Mark Bloch <markb@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Bodong Wang <bodong@mellanox.com>, Eli Cohen <eli@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Bodong Wang <bodong@mellanox.com>
 
-IB driver maintains different registration and load function calls
-for uplink and VF vports. This is not necessary as they only differ
-with each other on their profiles.
+With the introduction of ECPF, we require that the ECPF driver will
+aways call enable/disable HCA for that PF in the same way a PF does
+this for its VFs. The PF is still responsible for calling enable and
+disable HCA for its VFs.
 
-This patch doesn't change any functionality.
+To distinguish between the ECPF executing enable/disable HCA for
+itself or for the PF, it sets the embedded CPU function bit in the
+input params struct of these commands. When the bit is cleared and
+function ID is zero, it refers to the peer PF.
 
 Signed-off-by: Bodong Wang <bodong@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
+Signed-off-by: Eli Cohen <eli@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/ib_rep.c | 73 +++++++----------------------
- drivers/infiniband/hw/mlx5/ib_rep.h | 10 ++--
- drivers/infiniband/hw/mlx5/main.c   | 26 +++++-----
- 3 files changed, 37 insertions(+), 72 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/ecpf.c    | 76 +++++++++++++++++++
+ .../net/ethernet/mellanox/mlx5/core/ecpf.h    |  4 +
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 14 ++++
+ include/linux/mlx5/mlx5_ifc.h                 |  6 +-
+ 4 files changed, 98 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index 46a9ddc8ca56..3fb22967c098 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.c
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -6,7 +6,7 @@
- #include "ib_rep.h"
- #include "srq.h"
- 
--static const struct mlx5_ib_profile rep_profile = {
-+static const struct mlx5_ib_profile vf_rep_profile = {
- 	STAGE_CREATE(MLX5_IB_STAGE_INIT,
- 		     mlx5_ib_stage_init_init,
- 		     mlx5_ib_stage_init_cleanup),
-@@ -45,31 +45,18 @@ static const struct mlx5_ib_profile rep_profile = {
- 		     NULL),
- };
- 
--static int
--mlx5_ib_nic_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
--{
--	struct mlx5_ib_dev *ibdev;
--
--	ibdev = mlx5_ib_rep_to_dev(rep);
--	if (!__mlx5_ib_add(ibdev, ibdev->profile))
--		return -EINVAL;
--	return 0;
--}
--
--static void
--mlx5_ib_nic_rep_unload(struct mlx5_eswitch_rep *rep)
--{
--	struct mlx5_ib_dev *ibdev;
--
--	ibdev = mlx5_ib_rep_to_dev(rep);
--	__mlx5_ib_remove(ibdev, ibdev->profile, MLX5_IB_STAGE_MAX);
--}
--
- static int
- mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ecpf.c b/drivers/net/ethernet/mellanox/mlx5/core/ecpf.c
+index 28b8c5c5c8c7..1bcf8b8f9713 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ecpf.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ecpf.c
+@@ -7,3 +7,79 @@ bool mlx5_read_embedded_cpu(struct mlx5_core_dev *dev)
  {
-+#define FDB_UPLINK_VPORT 0xffff
-+	const struct mlx5_ib_profile *profile;
- 	struct mlx5_ib_dev *ibdev;
- 
-+	if (rep->vport == FDB_UPLINK_VPORT)
-+		profile = &uplink_rep_profile;
-+	else
-+		profile = &vf_rep_profile;
+ 	return (ioread32be(&dev->iseg->initializing) >> MLX5_ECPU_BIT_NUM) & 1;
+ }
 +
- 	ibdev = (struct mlx5_ib_dev *)ib_alloc_device(sizeof(*ibdev));
- 	if (!ibdev)
- 		return -ENOMEM;
-@@ -78,7 +65,7 @@ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 	ibdev->mdev = dev;
- 	ibdev->num_ports = max(MLX5_CAP_GEN(dev, num_ports),
- 			       MLX5_CAP_GEN(dev, num_vhca_ports));
--	if (!__mlx5_ib_add(ibdev, &rep_profile))
-+	if (!__mlx5_ib_add(ibdev, profile))
- 		return -EINVAL;
- 
- 	rep->rep_if[REP_IB].priv = ibdev;
-@@ -105,15 +92,14 @@ static void *mlx5_ib_vport_get_proto_dev(struct mlx5_eswitch_rep *rep)
- 	return mlx5_ib_rep_to_dev(rep);
- }
- 
--static void mlx5_ib_rep_register_vf_vports(struct mlx5_ib_dev *dev)
-+void mlx5_ib_register_vport_reps(struct mlx5_core_dev *mdev)
- {
--	struct mlx5_eswitch *esw   = dev->mdev->priv.eswitch;
--	int total_vfs = MLX5_TOTAL_VPORTS(dev->mdev);
-+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
-+	int total_vports = MLX5_TOTAL_VPORTS(mdev);
-+	struct mlx5_eswitch_rep_if rep_if = {};
- 	int vport;
- 
--	for (vport = 1; vport < total_vfs; vport++) {
--		struct mlx5_eswitch_rep_if rep_if = {};
--
-+	for (vport = 0; vport < total_vports; vport++) {
- 		rep_if.load = mlx5_ib_vport_rep_load;
- 		rep_if.unload = mlx5_ib_vport_rep_unload;
- 		rep_if.get_proto_dev = mlx5_ib_vport_get_proto_dev;
-@@ -121,39 +107,16 @@ static void mlx5_ib_rep_register_vf_vports(struct mlx5_ib_dev *dev)
- 	}
- }
- 
--static void mlx5_ib_rep_unregister_vf_vports(struct mlx5_ib_dev *dev)
-+void mlx5_ib_unregister_vport_reps(struct mlx5_core_dev *mdev)
- {
--	struct mlx5_eswitch *esw   = dev->mdev->priv.eswitch;
--	int total_vfs = MLX5_TOTAL_VPORTS(dev->mdev);
-+	struct mlx5_eswitch *esw = mdev->priv.eswitch;
-+	int total_vports = MLX5_TOTAL_VPORTS(mdev);
- 	int vport;
- 
--	for (vport = 1; vport < total_vfs; vport++)
-+	for (vport = total_vports - 1; vport >= 0; vport--)
- 		mlx5_eswitch_unregister_vport_rep(esw, vport, REP_IB);
- }
- 
--void mlx5_ib_register_vport_reps(struct mlx5_ib_dev *dev)
--{
--	struct mlx5_eswitch *esw = dev->mdev->priv.eswitch;
--	struct mlx5_eswitch_rep_if rep_if = {};
--
--	rep_if.load = mlx5_ib_nic_rep_load;
--	rep_if.unload = mlx5_ib_nic_rep_unload;
--	rep_if.get_proto_dev = mlx5_ib_vport_get_proto_dev;
--	rep_if.priv = dev;
--
--	mlx5_eswitch_register_vport_rep(esw, 0, &rep_if, REP_IB);
--
--	mlx5_ib_rep_register_vf_vports(dev);
--}
--
--void mlx5_ib_unregister_vport_reps(struct mlx5_ib_dev *dev)
--{
--	struct mlx5_eswitch *esw   = dev->mdev->priv.eswitch;
--
--	mlx5_ib_rep_unregister_vf_vports(dev); /* VFs vports */
--	mlx5_eswitch_unregister_vport_rep(esw, 0, REP_IB); /* UPLINK PF*/
--}
--
- u8 mlx5_ib_eswitch_mode(struct mlx5_eswitch *esw)
- {
- 	return mlx5_eswitch_mode(esw);
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.h b/drivers/infiniband/hw/mlx5/ib_rep.h
-index 2ba73636a2fb..798d41e61fb4 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.h
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.h
-@@ -10,14 +10,16 @@
- #include "mlx5_ib.h"
- 
- #ifdef CONFIG_MLX5_ESWITCH
-+extern const struct mlx5_ib_profile uplink_rep_profile;
++static int mlx5_peer_pf_enable_hca(struct mlx5_core_dev *dev)
++{
++	u32 out[MLX5_ST_SZ_DW(enable_hca_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(enable_hca_in)]   = {};
 +
- u8 mlx5_ib_eswitch_mode(struct mlx5_eswitch *esw);
- struct mlx5_ib_dev *mlx5_ib_get_rep_ibdev(struct mlx5_eswitch *esw,
- 					  int vport_index);
- struct mlx5_ib_dev *mlx5_ib_get_uplink_ibdev(struct mlx5_eswitch *esw);
- struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
- 					   int vport_index);
--void mlx5_ib_register_vport_reps(struct mlx5_ib_dev *dev);
--void mlx5_ib_unregister_vport_reps(struct mlx5_ib_dev *dev);
-+void mlx5_ib_register_vport_reps(struct mlx5_core_dev *mdev);
-+void mlx5_ib_unregister_vport_reps(struct mlx5_core_dev *mdev);
- int create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
- 			      struct mlx5_ib_sq *sq);
- struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
-@@ -48,8 +50,8 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
- 	return NULL;
- }
- 
--static inline void mlx5_ib_register_vport_reps(struct mlx5_ib_dev *dev) {}
--static inline void mlx5_ib_unregister_vport_reps(struct mlx5_ib_dev *dev) {}
-+static inline void mlx5_ib_register_vport_reps(struct mlx5_core_dev *mdev) {}
-+static inline void mlx5_ib_unregister_vport_reps(struct mlx5_core_dev *mdev) {}
- static inline int create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
- 					    struct mlx5_ib_sq *sq)
- {
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 94fe253d4956..87ce62e44898 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6386,7 +6386,7 @@ static const struct mlx5_ib_profile pf_profile = {
- 		     mlx5_ib_stage_delay_drop_cleanup),
- };
- 
--static const struct mlx5_ib_profile nic_rep_profile = {
-+const struct mlx5_ib_profile uplink_rep_profile = {
- 	STAGE_CREATE(MLX5_IB_STAGE_INIT,
- 		     mlx5_ib_stage_init_init,
- 		     mlx5_ib_stage_init_cleanup),
-@@ -6479,6 +6479,12 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 
- 	printk_once(KERN_INFO "%s", mlx5_version);
- 
-+	if (MLX5_ESWITCH_MANAGER(mdev) &&
-+	    mlx5_ib_eswitch_mode(mdev->priv.eswitch) == SRIOV_OFFLOADS) {
-+		mlx5_ib_register_vport_reps(mdev);
-+		return mdev;
-+	}
++	MLX5_SET(enable_hca_in, in, opcode, MLX5_CMD_OP_ENABLE_HCA);
++	MLX5_SET(enable_hca_in, in, function_id, 0);
++	MLX5_SET(enable_hca_in, in, embedded_cpu_function, 0);
++	return mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
++}
 +
- 	port_type_cap = MLX5_CAP_GEN(mdev, port_type);
- 	ll = mlx5_port_type_cap_to_rdma_ll(port_type_cap);
- 
-@@ -6493,14 +6499,6 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
- 	dev->num_ports = max(MLX5_CAP_GEN(mdev, num_ports),
- 			     MLX5_CAP_GEN(mdev, num_vhca_ports));
- 
--	if (MLX5_ESWITCH_MANAGER(mdev) &&
--	    mlx5_ib_eswitch_mode(mdev->priv.eswitch) == SRIOV_OFFLOADS) {
--		dev->rep = mlx5_ib_vport_rep(mdev->priv.eswitch, 0);
--		dev->profile = &nic_rep_profile;
--		mlx5_ib_register_vport_reps(dev);
--		return dev;
--	}
--
- 	return __mlx5_ib_add(dev, &pf_profile);
- }
- 
-@@ -6509,6 +6507,11 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- 	struct mlx5_ib_multiport_info *mpi;
- 	struct mlx5_ib_dev *dev;
- 
-+	if (MLX5_ESWITCH_MANAGER(mdev) && context == mdev) {
-+		mlx5_ib_unregister_vport_reps(mdev);
++static int mlx5_peer_pf_disable_hca(struct mlx5_core_dev *dev)
++{
++	u32 out[MLX5_ST_SZ_DW(disable_hca_out)] = {};
++	u32 in[MLX5_ST_SZ_DW(disable_hca_in)]   = {};
++
++	MLX5_SET(disable_hca_in, in, opcode, MLX5_CMD_OP_DISABLE_HCA);
++	MLX5_SET(disable_hca_in, in, function_id, 0);
++	MLX5_SET(enable_hca_in, in, embedded_cpu_function, 0);
++	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
++}
++
++static int mlx5_peer_pf_init(struct mlx5_core_dev *dev)
++{
++	int err;
++
++	err = mlx5_peer_pf_enable_hca(dev);
++	if (err)
++		mlx5_core_err(dev, "Failed to enable peer PF HCA err(%d)\n",
++			      err);
++
++	return err;
++}
++
++static void mlx5_peer_pf_cleanup(struct mlx5_core_dev *dev)
++{
++	int err;
++
++	err = mlx5_peer_pf_disable_hca(dev);
++	if (err) {
++		mlx5_core_err(dev, "Failed to disable peer PF HCA err(%d)\n",
++			      err);
 +		return;
 +	}
 +
- 	if (mlx5_core_is_mp_slave(mdev)) {
- 		mpi = context;
- 		mutex_lock(&mlx5_ib_multiport_mutex);
-@@ -6520,10 +6523,7 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
++	err = mlx5_wait_for_pages(dev, &dev->priv.peer_pf_pages);
++	if (err)
++		mlx5_core_warn(dev, "Timeout reclaiming peer PF pages err(%d)\n",
++			       err);
++}
++
++int mlx5_ec_init(struct mlx5_core_dev *dev)
++{
++	int err = 0;
++
++	if (!mlx5_core_is_ecpf(dev))
++		return 0;
++
++	/* ECPF shall enable HCA for peer PF in the same way a PF
++	 * does this for its VFs.
++	 */
++	err = mlx5_peer_pf_init(dev);
++	if (err)
++		return err;
++
++	return 0;
++}
++
++void mlx5_ec_cleanup(struct mlx5_core_dev *dev)
++{
++	if (!mlx5_core_is_ecpf(dev))
++		return;
++
++	mlx5_peer_pf_cleanup(dev);
++}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/ecpf.h b/drivers/net/ethernet/mellanox/mlx5/core/ecpf.h
+index 8b684f0ab48f..d3d7a00a02ac 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/ecpf.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/ecpf.h
+@@ -14,11 +14,15 @@ enum {
+ };
+ 
+ bool mlx5_read_embedded_cpu(struct mlx5_core_dev *dev);
++int mlx5_ec_init(struct mlx5_core_dev *dev);
++void mlx5_ec_cleanup(struct mlx5_core_dev *dev);
+ 
+ #else  /* CONFIG_MLX5_ESWITCH */
+ 
+ static inline bool
+ mlx5_read_embedded_cpu(struct mlx5_core_dev *dev) { return false; }
++static inline int mlx5_ec_init(struct mlx5_core_dev *dev) { return 0; }
++static inline void mlx5_ec_cleanup(struct mlx5_core_dev *dev) {}
+ 
+ #endif /* CONFIG_MLX5_ESWITCH */
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index bf810fd91454..772dc460cfe6 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -615,6 +615,8 @@ int mlx5_core_enable_hca(struct mlx5_core_dev *dev, u16 func_id)
+ 
+ 	MLX5_SET(enable_hca_in, in, opcode, MLX5_CMD_OP_ENABLE_HCA);
+ 	MLX5_SET(enable_hca_in, in, function_id, func_id);
++	MLX5_SET(enable_hca_in, in, embedded_cpu_function,
++		 dev->caps.embedded_cpu);
+ 	return mlx5_cmd_exec(dev, &in, sizeof(in), &out, sizeof(out));
+ }
+ 
+@@ -625,6 +627,8 @@ int mlx5_core_disable_hca(struct mlx5_core_dev *dev, u16 func_id)
+ 
+ 	MLX5_SET(disable_hca_in, in, opcode, MLX5_CMD_OP_DISABLE_HCA);
+ 	MLX5_SET(disable_hca_in, in, function_id, func_id);
++	MLX5_SET(enable_hca_in, in, embedded_cpu_function,
++		 dev->caps.embedded_cpu);
+ 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+ }
+ 
+@@ -1074,6 +1078,12 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 		goto err_sriov;
  	}
  
- 	dev = context;
--	if (dev->profile == &nic_rep_profile)
--		mlx5_ib_unregister_vport_reps(dev);
--	else
--		__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
-+	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
++	err = mlx5_ec_init(dev);
++	if (err) {
++		dev_err(&pdev->dev, "Failed to init embedded CPU\n");
++		goto err_ec;
++	}
++
+ 	if (mlx5_device_registered(dev)) {
+ 		mlx5_attach_device(dev);
+ 	} else {
+@@ -1091,6 +1101,9 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 	return 0;
  
- 	ib_dealloc_device((struct ib_device *)dev);
- }
+ err_reg_dev:
++	mlx5_ec_cleanup(dev);
++
++err_ec:
+ 	mlx5_sriov_detach(dev);
+ 
+ err_sriov:
+@@ -1165,6 +1178,7 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
+ 	if (mlx5_device_registered(dev))
+ 		mlx5_detach_device(dev);
+ 
++	mlx5_ec_cleanup(dev);
+ 	mlx5_sriov_detach(dev);
+ 	mlx5_cleanup_fs(dev);
+ 	mlx5_accel_ipsec_cleanup(dev);
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 46799b4c8859..1b6d5a563a3a 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -6061,7 +6061,8 @@ struct mlx5_ifc_enable_hca_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x10];
++	u8         embedded_cpu_function[0x1];
++	u8         reserved_at_41[0xf];
+ 	u8         function_id[0x10];
+ 
+ 	u8         reserved_at_60[0x20];
+@@ -6105,7 +6106,8 @@ struct mlx5_ifc_disable_hca_in_bits {
+ 	u8         reserved_at_20[0x10];
+ 	u8         op_mod[0x10];
+ 
+-	u8         reserved_at_40[0x10];
++	u8         embedded_cpu_function[0x1];
++	u8         reserved_at_41[0xf];
+ 	u8         function_id[0x10];
+ 
+ 	u8         reserved_at_60[0x20];
 -- 
 2.20.1
