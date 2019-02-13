@@ -1,90 +1,66 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: [RFC 03/19] net/ice: Add support for ice peer devices and
- drivers
-Date: Wed, 13 Feb 2019 07:40:15 -0800
-Message-ID: <8612b6c404633f930de5ceb090647ae0910644b2.camel@intel.com>
-References: <20190212214402.23284-1-shiraz.saleem@intel.com>
-         <20190212214402.23284-4-shiraz.saleem@intel.com>
-         <20190213034104.GA8751@ziepe.ca>
-Reply-To: jeffrey.t.kirsher@intel.com
+From: Leon Romanovsky <leonro@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/2] Followup changes to mlx5-next branch
+Date: Wed, 13 Feb 2019 17:53:33 +0000
+Message-ID: <20190213175331.GK21447@mtr-leonro.mtl.com>
+References: <20190211115608.22677-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-gywrvZWrBrW6eIhRnBov"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="x1F0m3RQhDZyj8sd"
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190213034104.GA8751@ziepe.ca>
+In-Reply-To: <20190211115608.22677-1-leon@kernel.org>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: dledford@redhat.com, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, Anirudh Venkataramanan <anirudh.venkataramanan@intel.com>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: RDMA mailing list <linux-rdma@vger.kernel.org>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+--x1F0m3RQhDZyj8sd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---=-gywrvZWrBrW6eIhRnBov
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Mon, Feb 11, 2019 at 01:56:06PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+>
+> Hi,
+>
+> There are two small cleanups needed after prefetch MR code was merged.
+>
+> Thanks
+>
+> Leon Romanovsky (2):
+>   net/mlx5: Align ODP capability function with netdev coding style
 
-On Tue, 2019-02-12 at 20:41 -0700, Jason Gunthorpe wrote:
-> On Tue, Feb 12, 2019 at 03:43:46PM -0600, Shiraz Saleem wrote:
-> > From: Anirudh Venkataramanan <anirudh.venkataramanan@intel.com>
-> >=20
-> > The E800 series of Ethernet devices has multiple hardware blocks,
-> > of
-> > which RDMA is one. The RDMA block isn't interfaced directly to PCI
-> > or any other bus. The RDMA driver (irdma) thus depends on the ice
-> > driver to provide access to the RDMA hardware block.
-> >=20
-> > The ice driver first creates a pseudo bus and then creates and
-> > attaches
-> > a new device to the pseudo bus using device_register(). This new
-> > device
-> > is referred to as a "peer device" and the associated driver (i.e.
-> > irdma)
-> > is a "peer driver" to ice. Once the peer driver loads, it can call
-> > ice driver functions exposed to it via struct ice_ops. Similarly,
-> > ice can
-> > call peer driver functions exposed to it via struct ice_peer_ops.
->=20
-> This seems quite big for this straightforward description..
-> =20
-> I was going to say I like the idea of using the driver model to
-> connect the drivers, but if it takes so much code ...
+This patch was applied.
 
-Part of the reason why the ice driver patches are much larger than the
-i40e patch is because currently there is zero RDMA support for our ice
-driver.  The ice developers wanted to wait for the new RDMA interface
-implementation before adding the RDMA support to the ice driver.
+>   net/mlx5: Factor out HCA capabilities functions
 
->=20
-> > +     /* check for reset in progress before proceeding */
-> > +     pf =3D pci_get_drvdata(peer_dev->pdev);
-> > +     for (i =3D 0; i < ICE_MAX_RESET_WAIT; i++) {
-> > +             if (!ice_is_reset_in_progress(pf->state))
-> > +                     break;
-> > +             msleep(100);
-> > +     }
->=20
-> Use proper locking, not loops with sleeps.
+This will be resent.
+>
+>  .../net/ethernet/mellanox/mlx5/core/main.c    | 62 ++++++++++++-------
+>  1 file changed, 39 insertions(+), 23 deletions(-)
+>
+> --
+> 2.19.1
+>
 
-
---=-gywrvZWrBrW6eIhRnBov
+--x1F0m3RQhDZyj8sd
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEEiTyZWz+nnTrOJ1LZ5W/vlVpL7c4FAlxkOl8ACgkQ5W/vlVpL
-7c6w5Q//ZO+C7Ns4jwHTBW+xJQdT3BHMtGZZTNPZh6u94wWS+1+5kBlgkVvzsWCP
-xMayPkqX2vjcFdsTKC5mQec2cve64wTyGIqpkFMP6LtrET16qer4zv8d6lFK0Dbu
-i41GkMHvahSngIqQJgTzZ8mxbZlJQllilqv3tm2DoYODsnaLgqXJn3zH+osLGr/M
-5thgItsvl4zg1YVhejWBnMiT51DfErhu2Yu5PgDCLugii+n0UhGdQacutpi40N0M
-xiZrCzFE9cWX6t+DJlVAa1+K6Tr2CMWwDLMAnZBPgfnhHFmCEjpZXmuHkHuWmjit
-BR37fB0IxicMMd9jyyk+r5GpXldfW7XhPKs4PNPTthQ0jyGz1tZ/y29L1Y4ilRh6
-BlJmeSFYTKPOtZaklU/N3NgstLyl3JE+cJZlC4NFSID6+X6CHyWwTpxHKyAtvFa/
-4LMzcqJy7JuPNhveKXrkGgeZCKuz2hKvODRNXmzzeQCvt+ssXFgbF3/AaQxFL+FT
-UsSo5i8dgzPU3j2Pih5ytN+Q3iqczBKyo4rCr0a3ktVuY5BKf9yKTJQveqq/5TXi
-tydqQXkT/3paSDeJXCe8Cz/45N4NdF7NaCqiVeesBauziKr4oZotVBEX1iHRj5X+
-+j7ntjHAn/dlkSVwPjC0+/5XP/EEGamDCc+GmzWcBusfuU9hnY8=
-=AlWg
+iQIcBAEBAgAGBQJcZFmbAAoJEORje4g2clin02MP/ROl4l/QQA9/l9fofsEBEp0g
+FZx2zQp6RXOou+9pEDM7VezJsC/TWIFKl1cLZUIMySeA7DFXv9YBfzwMIz+ZzRYH
+RbEiJko4BVj1Iv0Xv7sBPmTa8JoLr/LEE5A/SHastKokwThuPWXVjZJX2XDqZ/DJ
+VvNKkSniC+Obxfyuq0wNs/sDEm2DGnczy7R/R5ZyCQBqsIHVT0Gnpfzn6bmURdtZ
+3+VP6XsJLlF7pvzA0U2zz+NTGMe/3pQZV2MEUbyBLXxMUrLNjYe3SxM8aE2i/QLl
+0yxXqJuXoosWNqrWSiV9e9EDza5Zw/qh+moBWpRcgQh/B1dvkaINuL5bQTscsRd6
+f0iHzUQbfWd+SRdrq+azFH9+WpbuEtcaL/O2WOSvIGljofIqTT8buVs6asi3RSCr
+QxCYQ3HY9hSeDwpRPxFOh8wrUY5W+yoAugP4vLtLU8gs42U/n1NCESh+lRvi0OoP
+WOBJTSo0XwxBj10wqhyNuh3xzdLiGExYIB9A6yHCpuvmXsyIBokRPfbu27J/WbV3
+HkgD9Jt8wQgdoeLrQ+SDMHNEgw2WXB1mFHUAmbpfDkCfVpSMzs4m6236rnG6frXq
+TbAlr1H0YKsyYnkFOwTJKVBTSCdry78+sdZTGRoJvpRsB+dV/y7yWxDh7sS61xMi
+VGOwnJIwceU0UgmFJJGj
+=Ud7U
 -----END PGP SIGNATURE-----
 
---=-gywrvZWrBrW6eIhRnBov--
+--x1F0m3RQhDZyj8sd--
