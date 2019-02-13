@@ -1,283 +1,79 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 032/105] net/mlx4: Get rid of page operation after dma_alloc_coherent
-Date: Tue, 12 Feb 2019 21:32:23 -0500
-Message-ID: <20190213023336.19019-32-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 050/105] RDMA/mthca: Clear QP objects during their allocation
+Date: Tue, 12 Feb 2019 21:32:41 -0500
+Message-ID: <20190213023336.19019-50-sashal@kernel.org>
 References: <20190213023336.19019-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Stephen Warren <swarren@nvidia.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Leon Romanovsky <leonro@mellanox.com>, Parav Pandit <parav@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Stephen Warren <swarren@nvidia.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit f65e192af35058e5c82da9e90871b472d24912bc ]
+[ Upstream commit 9d9f59b4204bc41896c866b3e5856e5b416aa199 ]
 
-This patch solves a crash at the time of mlx4 driver unload or system
-shutdown. The crash occurs because dma_alloc_coherent() returns one
-value in mlx4_alloc_icm_coherent(), but a different value is passed to
-dma_free_coherent() in mlx4_free_icm_coherent(). In turn this is because
-when allocated, that pointer is passed to sg_set_buf() to record it,
-then when freed it is re-calculated by calling
-lowmem_page_address(sg_page()) which returns a different value. Solve
-this by recording the value that dma_alloc_coherent() returns, and
-passing this to dma_free_coherent().
+As part of audit process to update drivers to use rdma_restrack_add()
+ensure that QP objects is cleared before access. Such change fixes the
+crash observed with uninitialized non zero sgid attr accessed by
+ib_destroy_qp().
 
-This patch is roughly equivalent to commit 378efe798ecf ("RDMA/hns: Get
-rid of page operation after dma_alloc_coherent").
+CPU: 3 PID: 74 Comm: kworker/u16:1 Not tainted 4.19.10-300.fc29.x86_64
+Workqueue: ipoib_wq ipoib_cm_tx_reap [ib_ipoib]
+RIP: 0010:rdma_put_gid_attr+0x9/0x30 [ib_core]
+RSP: 0018:ffffb7ad819dbde8 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: ffff8d1bdf5a2e00 RCX: 0000000000002699
+RDX: 206c656e72656af8 RSI: ffff8d1bf7ae6160 RDI: 206c656e72656b20
+RBP: 0000000000000000 R08: 0000000000026160 R09: ffffffffc06b45bf
+R10: ffffe849887da000 R11: 0000000000000002 R12: ffff8d1be30cb400
+R13: ffff8d1bdf681800 R14: ffff8d1be2272400 R15: ffff8d1be30ca000
+FS:  0000000000000000(0000) GS:ffff8d1bf7ac0000(0000)
+knlGS:0000000000000000
+Trace:
+ ib_destroy_qp+0xc9/0x240 [ib_core]
+ ipoib_cm_tx_reap+0x1f9/0x4e0 [ib_ipoib]
+ process_one_work+0x1a1/0x3a0
+ worker_thread+0x30/0x380
+ ? pwq_unbound_release_workfn+0xd0/0xd0
+ kthread+0x112/0x130
+ ? kthread_create_worker_on_cpu+0x70/0x70
+ ret_from_fork+0x22/0x40
 
-Based-on-code-from: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
-Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+Reported-by: Alexander Murashkin <AlexanderMurashkin@msn.com>
+Tested-by: Alexander Murashkin <AlexanderMurashkin@msn.com>
+Fixes: 1a1f460ff151 ("RDMA: Hold the sgid_attr inside the struct ib_ah/qp")
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx4/icm.c | 92 ++++++++++++++----------
- drivers/net/ethernet/mellanox/mlx4/icm.h | 22 +++++-
- 2 files changed, 75 insertions(+), 39 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_provider.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.c b/drivers/net/ethernet/mellanox/mlx4/icm.c
-index 4b4351141b94..76b84d08a058 100644
---- a/drivers/net/ethernet/mellanox/mlx4/icm.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/icm.c
-@@ -57,12 +57,12 @@ static void mlx4_free_icm_pages(struct mlx4_dev *dev, struct mlx4_icm_chunk *chu
- 	int i;
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 691c6f048938..2428c7d89c6b 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -533,7 +533,7 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	{
+ 		struct mthca_ucontext *context;
  
- 	if (chunk->nsg > 0)
--		pci_unmap_sg(dev->persist->pdev, chunk->mem, chunk->npages,
-+		pci_unmap_sg(dev->persist->pdev, chunk->sg, chunk->npages,
- 			     PCI_DMA_BIDIRECTIONAL);
+-		qp = kmalloc(sizeof *qp, GFP_KERNEL);
++		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
  
- 	for (i = 0; i < chunk->npages; ++i)
--		__free_pages(sg_page(&chunk->mem[i]),
--			     get_order(chunk->mem[i].length));
-+		__free_pages(sg_page(&chunk->sg[i]),
-+			     get_order(chunk->sg[i].length));
- }
+@@ -599,7 +599,7 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 		if (pd->uobject)
+ 			return ERR_PTR(-EINVAL);
  
- static void mlx4_free_icm_coherent(struct mlx4_dev *dev, struct mlx4_icm_chunk *chunk)
-@@ -71,9 +71,9 @@ static void mlx4_free_icm_coherent(struct mlx4_dev *dev, struct mlx4_icm_chunk *
+-		qp = kmalloc(sizeof (struct mthca_sqp), GFP_KERNEL);
++		qp = kzalloc(sizeof(struct mthca_sqp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
  
- 	for (i = 0; i < chunk->npages; ++i)
- 		dma_free_coherent(&dev->persist->pdev->dev,
--				  chunk->mem[i].length,
--				  lowmem_page_address(sg_page(&chunk->mem[i])),
--				  sg_dma_address(&chunk->mem[i]));
-+				  chunk->buf[i].size,
-+				  chunk->buf[i].addr,
-+				  chunk->buf[i].dma_addr);
- }
- 
- void mlx4_free_icm(struct mlx4_dev *dev, struct mlx4_icm *icm, int coherent)
-@@ -111,22 +111,21 @@ static int mlx4_alloc_icm_pages(struct scatterlist *mem, int order,
- 	return 0;
- }
- 
--static int mlx4_alloc_icm_coherent(struct device *dev, struct scatterlist *mem,
--				    int order, gfp_t gfp_mask)
-+static int mlx4_alloc_icm_coherent(struct device *dev, struct mlx4_icm_buf *buf,
-+				   int order, gfp_t gfp_mask)
- {
--	void *buf = dma_alloc_coherent(dev, PAGE_SIZE << order,
--				       &sg_dma_address(mem), gfp_mask);
--	if (!buf)
-+	buf->addr = dma_alloc_coherent(dev, PAGE_SIZE << order,
-+				       &buf->dma_addr, gfp_mask);
-+	if (!buf->addr)
- 		return -ENOMEM;
- 
--	if (offset_in_page(buf)) {
--		dma_free_coherent(dev, PAGE_SIZE << order,
--				  buf, sg_dma_address(mem));
-+	if (offset_in_page(buf->addr)) {
-+		dma_free_coherent(dev, PAGE_SIZE << order, buf->addr,
-+				  buf->dma_addr);
- 		return -ENOMEM;
- 	}
- 
--	sg_set_buf(mem, buf, PAGE_SIZE << order);
--	sg_dma_len(mem) = PAGE_SIZE << order;
-+	buf->size = PAGE_SIZE << order;
- 	return 0;
- }
- 
-@@ -159,21 +158,21 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
- 
- 	while (npages > 0) {
- 		if (!chunk) {
--			chunk = kmalloc_node(sizeof(*chunk),
-+			chunk = kzalloc_node(sizeof(*chunk),
- 					     gfp_mask & ~(__GFP_HIGHMEM |
- 							  __GFP_NOWARN),
- 					     dev->numa_node);
- 			if (!chunk) {
--				chunk = kmalloc(sizeof(*chunk),
-+				chunk = kzalloc(sizeof(*chunk),
- 						gfp_mask & ~(__GFP_HIGHMEM |
- 							     __GFP_NOWARN));
- 				if (!chunk)
- 					goto fail;
- 			}
-+			chunk->coherent = coherent;
- 
--			sg_init_table(chunk->mem, MLX4_ICM_CHUNK_LEN);
--			chunk->npages = 0;
--			chunk->nsg    = 0;
-+			if (!coherent)
-+				sg_init_table(chunk->sg, MLX4_ICM_CHUNK_LEN);
- 			list_add_tail(&chunk->list, &icm->chunk_list);
- 		}
- 
-@@ -186,10 +185,10 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
- 
- 		if (coherent)
- 			ret = mlx4_alloc_icm_coherent(&dev->persist->pdev->dev,
--						      &chunk->mem[chunk->npages],
--						      cur_order, mask);
-+						&chunk->buf[chunk->npages],
-+						cur_order, mask);
- 		else
--			ret = mlx4_alloc_icm_pages(&chunk->mem[chunk->npages],
-+			ret = mlx4_alloc_icm_pages(&chunk->sg[chunk->npages],
- 						   cur_order, mask,
- 						   dev->numa_node);
- 
-@@ -205,7 +204,7 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
- 		if (coherent)
- 			++chunk->nsg;
- 		else if (chunk->npages == MLX4_ICM_CHUNK_LEN) {
--			chunk->nsg = pci_map_sg(dev->persist->pdev, chunk->mem,
-+			chunk->nsg = pci_map_sg(dev->persist->pdev, chunk->sg,
- 						chunk->npages,
- 						PCI_DMA_BIDIRECTIONAL);
- 
-@@ -220,7 +219,7 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
- 	}
- 
- 	if (!coherent && chunk) {
--		chunk->nsg = pci_map_sg(dev->persist->pdev, chunk->mem,
-+		chunk->nsg = pci_map_sg(dev->persist->pdev, chunk->sg,
- 					chunk->npages,
- 					PCI_DMA_BIDIRECTIONAL);
- 
-@@ -320,7 +319,7 @@ void *mlx4_table_find(struct mlx4_icm_table *table, u32 obj,
- 	u64 idx;
- 	struct mlx4_icm_chunk *chunk;
- 	struct mlx4_icm *icm;
--	struct page *page = NULL;
-+	void *addr = NULL;
- 
- 	if (!table->lowmem)
- 		return NULL;
-@@ -336,28 +335,49 @@ void *mlx4_table_find(struct mlx4_icm_table *table, u32 obj,
- 
- 	list_for_each_entry(chunk, &icm->chunk_list, list) {
- 		for (i = 0; i < chunk->npages; ++i) {
-+			dma_addr_t dma_addr;
-+			size_t len;
-+
-+			if (table->coherent) {
-+				len = chunk->buf[i].size;
-+				dma_addr = chunk->buf[i].dma_addr;
-+				addr = chunk->buf[i].addr;
-+			} else {
-+				struct page *page;
-+
-+				len = sg_dma_len(&chunk->sg[i]);
-+				dma_addr = sg_dma_address(&chunk->sg[i]);
-+
-+				/* XXX: we should never do this for highmem
-+				 * allocation.  This function either needs
-+				 * to be split, or the kernel virtual address
-+				 * return needs to be made optional.
-+				 */
-+				page = sg_page(&chunk->sg[i]);
-+				addr = lowmem_page_address(page);
-+			}
-+
- 			if (dma_handle && dma_offset >= 0) {
--				if (sg_dma_len(&chunk->mem[i]) > dma_offset)
--					*dma_handle = sg_dma_address(&chunk->mem[i]) +
--						dma_offset;
--				dma_offset -= sg_dma_len(&chunk->mem[i]);
-+				if (len > dma_offset)
-+					*dma_handle = dma_addr + dma_offset;
-+				dma_offset -= len;
- 			}
-+
- 			/*
- 			 * DMA mapping can merge pages but not split them,
- 			 * so if we found the page, dma_handle has already
- 			 * been assigned to.
- 			 */
--			if (chunk->mem[i].length > offset) {
--				page = sg_page(&chunk->mem[i]);
-+			if (len > offset)
- 				goto out;
--			}
--			offset -= chunk->mem[i].length;
-+			offset -= len;
- 		}
- 	}
- 
-+	addr = NULL;
- out:
- 	mutex_unlock(&table->mutex);
--	return page ? lowmem_page_address(page) + offset : NULL;
-+	return addr ? addr + offset : NULL;
- }
- 
- int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
-diff --git a/drivers/net/ethernet/mellanox/mlx4/icm.h b/drivers/net/ethernet/mellanox/mlx4/icm.h
-index c9169a490557..d199874b1c07 100644
---- a/drivers/net/ethernet/mellanox/mlx4/icm.h
-+++ b/drivers/net/ethernet/mellanox/mlx4/icm.h
-@@ -47,11 +47,21 @@ enum {
- 	MLX4_ICM_PAGE_SIZE	= 1 << MLX4_ICM_PAGE_SHIFT,
- };
- 
-+struct mlx4_icm_buf {
-+	void			*addr;
-+	size_t			size;
-+	dma_addr_t		dma_addr;
-+};
-+
- struct mlx4_icm_chunk {
- 	struct list_head	list;
- 	int			npages;
- 	int			nsg;
--	struct scatterlist	mem[MLX4_ICM_CHUNK_LEN];
-+	bool			coherent;
-+	union {
-+		struct scatterlist	sg[MLX4_ICM_CHUNK_LEN];
-+		struct mlx4_icm_buf	buf[MLX4_ICM_CHUNK_LEN];
-+	};
- };
- 
- struct mlx4_icm {
-@@ -114,12 +124,18 @@ static inline void mlx4_icm_next(struct mlx4_icm_iter *iter)
- 
- static inline dma_addr_t mlx4_icm_addr(struct mlx4_icm_iter *iter)
- {
--	return sg_dma_address(&iter->chunk->mem[iter->page_idx]);
-+	if (iter->chunk->coherent)
-+		return iter->chunk->buf[iter->page_idx].dma_addr;
-+	else
-+		return sg_dma_address(&iter->chunk->sg[iter->page_idx]);
- }
- 
- static inline unsigned long mlx4_icm_size(struct mlx4_icm_iter *iter)
- {
--	return sg_dma_len(&iter->chunk->mem[iter->page_idx]);
-+	if (iter->chunk->coherent)
-+		return iter->chunk->buf[iter->page_idx].size;
-+	else
-+		return sg_dma_len(&iter->chunk->sg[iter->page_idx]);
- }
- 
- int mlx4_MAP_ICM_AUX(struct mlx4_dev *dev, struct mlx4_icm *icm);
 -- 
 2.19.1
