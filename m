@@ -1,76 +1,79 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 103/105] net/mlx5e: Force CHECKSUM_UNNECESSARY for short ethernet frames
-Date: Tue, 12 Feb 2019 21:33:34 -0500
-Message-ID: <20190213023336.19019-103-sashal@kernel.org>
-References: <20190213023336.19019-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 42/83] RDMA/mthca: Clear QP objects during their allocation
+Date: Tue, 12 Feb 2019 21:36:20 -0500
+Message-ID: <20190213023701.20286-42-sashal@kernel.org>
+References: <20190213023701.20286-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190213023336.19019-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190213023701.20286-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Cong Wang <xiyou.wangcong@gmail.com>, Eric Dumazet <edumazet@google.com>, Tariq Toukan <tariqt@mellanox.com>, Nikola Ciprich <nikola.ciprich@linuxbox.cz>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Leon Romanovsky <leonro@mellanox.com>, Parav Pandit <parav@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Cong Wang <xiyou.wangcong@gmail.com>
+From: Leon Romanovsky <leonro@mellanox.com>
 
-[ Upstream commit e8c8b53ccaff568fef4c13a6ccaf08bf241aa01a ]
+[ Upstream commit 9d9f59b4204bc41896c866b3e5856e5b416aa199 ]
 
-When an ethernet frame is padded to meet the minimum ethernet frame
-size, the padding octets are not covered by the hardware checksum.
-Fortunately the padding octets are usually zero's, which don't affect
-checksum. However, we have a switch which pads non-zero octets, this
-causes kernel hardware checksum fault repeatedly.
+As part of audit process to update drivers to use rdma_restrack_add()
+ensure that QP objects is cleared before access. Such change fixes the
+crash observed with uninitialized non zero sgid attr accessed by
+ib_destroy_qp().
 
-Prior to:
-commit '88078d98d1bb ("net: pskb_trim_rcsum() and CHECKSUM_COMPLETE ...")'
-skb checksum was forced to be CHECKSUM_NONE when padding is detected.
-After it, we need to keep skb->csum updated, like what we do for RXFCS.
-However, fixing up CHECKSUM_COMPLETE requires to verify and parse IP
-headers, it is not worthy the effort as the packets are so small that
-CHECKSUM_COMPLETE can't save anything.
+CPU: 3 PID: 74 Comm: kworker/u16:1 Not tainted 4.19.10-300.fc29.x86_64
+Workqueue: ipoib_wq ipoib_cm_tx_reap [ib_ipoib]
+RIP: 0010:rdma_put_gid_attr+0x9/0x30 [ib_core]
+RSP: 0018:ffffb7ad819dbde8 EFLAGS: 00010202
+RAX: 0000000000000000 RBX: ffff8d1bdf5a2e00 RCX: 0000000000002699
+RDX: 206c656e72656af8 RSI: ffff8d1bf7ae6160 RDI: 206c656e72656b20
+RBP: 0000000000000000 R08: 0000000000026160 R09: ffffffffc06b45bf
+R10: ffffe849887da000 R11: 0000000000000002 R12: ffff8d1be30cb400
+R13: ffff8d1bdf681800 R14: ffff8d1be2272400 R15: ffff8d1be30ca000
+FS:  0000000000000000(0000) GS:ffff8d1bf7ac0000(0000)
+knlGS:0000000000000000
+Trace:
+ ib_destroy_qp+0xc9/0x240 [ib_core]
+ ipoib_cm_tx_reap+0x1f9/0x4e0 [ib_ipoib]
+ process_one_work+0x1a1/0x3a0
+ worker_thread+0x30/0x380
+ ? pwq_unbound_release_workfn+0xd0/0xd0
+ kthread+0x112/0x130
+ ? kthread_create_worker_on_cpu+0x70/0x70
+ ret_from_fork+0x22/0x40
 
-Fixes: 88078d98d1bb ("net: pskb_trim_rcsum() and CHECKSUM_COMPLETE are friends"),
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Tariq Toukan <tariqt@mellanox.com>
-Cc: Nikola Ciprich <nikola.ciprich@linuxbox.cz>
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Reported-by: Alexander Murashkin <AlexanderMurashkin@msn.com>
+Tested-by: Alexander Murashkin <AlexanderMurashkin@msn.com>
+Fixes: 1a1f460ff151 ("RDMA: Hold the sgid_attr inside the struct ib_ah/qp")
+Signed-off-by: Parav Pandit <parav@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/infiniband/hw/mthca/mthca_provider.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-index 0b5ef6d4e815..7185f0dd58eb 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
-@@ -732,6 +732,8 @@ static u8 get_ip_proto(struct sk_buff *skb, int network_depth, __be16 proto)
- 					    ((struct ipv6hdr *)ip_p)->nexthdr;
- }
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 0d3473b4596e..21f4239022c7 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -533,7 +533,7 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 	{
+ 		struct mthca_ucontext *context;
  
-+#define short_frame(size) ((size) <= ETH_ZLEN + ETH_FCS_LEN)
-+
- static inline void mlx5e_handle_csum(struct net_device *netdev,
- 				     struct mlx5_cqe64 *cqe,
- 				     struct mlx5e_rq *rq,
-@@ -754,6 +756,17 @@ static inline void mlx5e_handle_csum(struct net_device *netdev,
- 	if (unlikely(test_bit(MLX5E_RQ_STATE_NO_CSUM_COMPLETE, &rq->state)))
- 		goto csum_unnecessary;
+-		qp = kmalloc(sizeof *qp, GFP_KERNEL);
++		qp = kzalloc(sizeof(*qp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
  
-+	/* CQE csum doesn't cover padding octets in short ethernet
-+	 * frames. And the pad field is appended prior to calculating
-+	 * and appending the FCS field.
-+	 *
-+	 * Detecting these padded frames requires to verify and parse
-+	 * IP headers, so we simply force all those small frames to be
-+	 * CHECKSUM_UNNECESSARY even if they are not padded.
-+	 */
-+	if (short_frame(skb->len))
-+		goto csum_unnecessary;
-+
- 	if (likely(is_last_ethertype_ip(skb, &network_depth, &proto))) {
- 		if (unlikely(get_ip_proto(skb, network_depth, proto) == IPPROTO_SCTP))
- 			goto csum_unnecessary;
+@@ -599,7 +599,7 @@ static struct ib_qp *mthca_create_qp(struct ib_pd *pd,
+ 		if (pd->uobject)
+ 			return ERR_PTR(-EINVAL);
+ 
+-		qp = kmalloc(sizeof (struct mthca_sqp), GFP_KERNEL);
++		qp = kzalloc(sizeof(struct mthca_sqp), GFP_KERNEL);
+ 		if (!qp)
+ 			return ERR_PTR(-ENOMEM);
+ 
 -- 
 2.19.1
