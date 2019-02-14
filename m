@@ -1,55 +1,37 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [rdma-rc PATCH 1/2] cxgb4: export sge_host_page_size to ulds
-Date: Thu, 14 Feb 2019 17:51:34 +0200
-Message-ID: <20190214155134.GS21447@mtr-leonro.mtl.com>
+From: Raju Rangoju <rajur@chelsio.com>
+Subject: Re: [rdma-rc PATCH 2/2] iw_cxgb4: cq/qp mask depends on bar2 pages
+ in a host page
+Date: Thu, 14 Feb 2019 22:58:02 +0530
+Message-ID: <20190214172801.GA12408@chelsio.com>
 References: <20190214121054.11693-1-rajur@chelsio.com>
- <20190214121054.11693-2-rajur@chelsio.com>
+ <20190214121054.11693-3-rajur@chelsio.com>
+ <20190214154127.GD1725@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="eWbcAUUbgrfSEG1c"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190214121054.11693-2-rajur@chelsio.com>
+In-Reply-To: <20190214154127.GD1725@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: Raju Rangoju <rajur@chelsio.com>
-Cc: jgg@mellanox.com, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, swise@opengridcomputing.com
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>
 List-Id: linux-rdma@vger.kernel.org
 
-
---eWbcAUUbgrfSEG1c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Feb 14, 2019 at 05:40:53PM +0530, Raju Rangoju wrote:
-> Export the sge_host_page_size field to ULDs via
-> cxgb4_lld_info, so that iw_cxgb4 can make use of
-> this in calculating the correct qp/cq mask.
+On Thursday, February 02/14/19, 2019 at 15:41:34 +0000, Jason Gunthorpe wrote:
+> On Thu, Feb 14, 2019 at 05:40:54PM +0530, Raju Rangoju wrote:
+> > Adjust the cq/qp mask based on no.of bar2 pages in a host page.
+> > 
+> > For user-mode rdma, the granularity of the BAR2 memory mapped
+> > to a user rdma process during queue allocation must be based
+> > on the host page size. The lld attributes udb_density and
+> > ucq_density are used to figure out how many sge contexts are
+> > in a bar2 page. So the rdev->qpmask and rdev->cqmask in
+> > iw_cxgb4 need to now be adjusted based on how many sge bar2
+> > pages are in a host page.
+> 
+> Why is this rc? Do certain arches fail to work or something?
 >
-> Fixes: 2391b0030e ("cxgb4: Remove SGE_HOST_PAGE_SIZE dependency on page
-> size")
 
-Please don't break Fixes line.
+Yes, this series fixes a regression that was introduced by commit
+2391b0030e (v5.0-rc1~129^2~272)
 
-Thanks
-
---eWbcAUUbgrfSEG1c
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcZY6GAAoJEORje4g2clinmEYP/3+emoNf2q1spLkFU0pu8jnT
-waMz9ERBe4h9FDs9k9FcfdExmgb1spGRVr/sfcR2GxPDAEGVSZ3+ncXnmMwSrjiP
-HfzGdicNW8KuWbnP1QsGBzy8XL2dEBrxLadHNIrbK/K98vN//L208yFTO++qaT+t
-mS/qdccmJdA3L1zSNM5A+SaXhRK3b9y1dZSXSOtrbHZzfcZVUUGCjYCzx0r2wUlf
-lBNkdtPXZZMH8wWWjLspUnnxdWna0y7f52eg8BIZ/n/bXRWFfUwmFDO44Vah54se
-m3HZXSi5cM6qcJZJo2DBpP2HmMlTb6kVIMxZn3ycANcWM6ibZ9OGCZIAviUsQXM4
-NS90ZoaPinGZe15XND4Snhw/WGnWhT7WdtUnChUwB4rLPcJALBiS7kRgeywuRfzd
-5fTrstqR+y4RBnGdROro1SAiiB+yZmUEY22CJQpY8gAvetVbh+9QAMb3yZfg67d1
-9fVWpyuKO4meEUNl2Fm3TwpAi/HL9mfY/uUJGIMjCmipi5kUw4fYSGGARsJ05frE
-BPRcjJRac1+93aVFwhgxX3eKRWOLSVLQ5NmUbsYjEl4ppAr8brQSxQCYXnrCpd9U
-irGrk4Ru/LCW1+MsAzFJ2b19ELuXeUY1seByH5Yqkx8L55DLf/hDTiUw3QUcUZJ6
-DFXdI0oslBnQjRXKr+yt
-=2bjL
------END PGP SIGNATURE-----
-
---eWbcAUUbgrfSEG1c--
+> Jason
