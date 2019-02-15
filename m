@@ -1,229 +1,201 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFC v1 12/19] RDMA/irdma: Implement device supported verb APIs
-Date: Fri, 15 Feb 2019 10:35:39 -0700
-Message-ID: <20190215173539.GD30706@ziepe.ca>
+Subject: Re: [RFC v1 15/19] RDMA/irdma: Add miscellaneous utility definitions
+Date: Fri, 15 Feb 2019 10:47:14 -0700
+Message-ID: <20190215174714.GE30706@ziepe.ca>
 References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-13-shiraz.saleem@intel.com>
+ <20190215171107.6464-16-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190215171107.6464-13-shiraz.saleem@intel.com>
+In-Reply-To: <20190215171107.6464-16-shiraz.saleem@intel.com>
 Sender: netdev-owner@vger.kernel.org
 To: Shiraz Saleem <shiraz.saleem@intel.com>
 Cc: dledford@redhat.com, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 15, 2019 at 11:10:59AM -0600, Shiraz Saleem wrote:
-
-> +static int irdma_alloc_pd(struct ib_pd *pd,
-> +			  struct ib_ucontext *context,
-> +			  struct ib_udata *udata)
-> +{
-> +	struct irdma_pd *iwpd = to_iwpd(pd);
-> +	struct irdma_device *iwdev = to_iwdev(pd->device);
-> +	struct irdma_sc_dev *dev = &iwdev->rf->sc_dev;
-> +	struct irdma_pci_f *rf = iwdev->rf;
-> +	struct irdma_alloc_pd_resp uresp = {};
-> +	struct irdma_sc_pd *sc_pd;
-> +	struct irdma_ucontext *ucontext;
-> +	u32 pd_id = 0;
-> +	int err;
+On Fri, Feb 15, 2019 at 11:11:02AM -0600, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail@intel.com>
+> 
+> Add miscellaneous utility functions and headers.
+> 
+> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+>  drivers/infiniband/hw/irdma/osdep.h  |  153 ++
+>  drivers/infiniband/hw/irdma/protos.h |  118 ++
+>  drivers/infiniband/hw/irdma/status.h |   70 +
+>  drivers/infiniband/hw/irdma/utils.c  | 2565 ++++++++++++++++++++++++++++++++++
+>  4 files changed, 2906 insertions(+)
+>  create mode 100644 drivers/infiniband/hw/irdma/osdep.h
+>  create mode 100644 drivers/infiniband/hw/irdma/protos.h
+>  create mode 100644 drivers/infiniband/hw/irdma/status.h
+>  create mode 100644 drivers/infiniband/hw/irdma/utils.c
+> 
+> diff --git a/drivers/infiniband/hw/irdma/osdep.h b/drivers/infiniband/hw/irdma/osdep.h
+> new file mode 100644
+> index 0000000..ade5536
+> +++ b/drivers/infiniband/hw/irdma/osdep.h
+> @@ -0,0 +1,153 @@
+> +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
+> +/* Copyright (c) 2019, Intel Corporation. */
 > +
-> +	if (iwdev->closing)
-> +		return -ENODEV;
+> +#ifndef IRDMA_OSDEP_H
+> +#define IRDMA_OSDEP_H
+> +
+> +#include <linux/version.h>
+> +#include <linux/kernel.h>
+> +#include <linux/vmalloc.h>
+> +#include <linux/string.h>
+> +#include <linux/bitops.h>
+> +#include <linux/pci.h>
+> +#include <net/tcp.h>
+> +#include <crypto/hash.h>
+> +/* get readq/writeq support for 32 bit kernels, use the low-first version */
+> +#include <linux/io-64-nonatomic-lo-hi.h>
+> +
+> +#define STATS_TIMER_DELAY	60000
+> +#define MAKEMASK(m, s)		((m) << (s))
+> +
+> +#define irdma_pr_err(fmt, args ...)				\
+> +	pr_err("%s: "fmt, __func__, ## args)
+> +
+> +#define irdma_pr_info(fmt, args ...)				\
+> +	pr_info("%s: " fmt, __func__, ## args)
+> +
+> +#define irdma_pr_warn(fmt, args ...)				\
+> +	pr_warn("%s: " fmt, __func__, ## args)
+> +
+> +#define irdma_dev_err(dev, fmt, args ...)			\
+> +	dev_err(to_device(dev), "%s: "fmt, __func__, ## args)
+> +
+> +#define irdma_dev_info(dev, fmt, args ...)			\
+> +	dev_info(to_device(dev), "%s: "fmt, __func__, ## args)
+> +
+> +#define irdma_dev_warn(dev, fmt, args ...)			\
+> +	dev_warn(to_device(dev), "%s: "fmt, __func__, ## args)
 
-No crazy unlocked 'closing' flags. The core code takes care of
-everything a driver needs to worry about if you use it properly.
+Does every driver really have to define these macros?
+
+> +#define to_device(ptr)						\
+> +	(&((struct pci_dev *)((ptr)->hw->dev_context))->dev)
+
+?? Seems like this wants to be container_of??
 
 > +/**
-> + * irdma_create_cq - create cq
-> + * @ibdev: device pointer from stack
-> + * @attr: attributes for cq
-> + * @context: user context created during alloc
-> + * @udata: user data
+> + * irdma_insert_wqe_hdr - write wqe header
+> + * @wqe: cqp wqe for header
+> + * @header: header for the cqp wqe
 > + */
-> +static struct ib_cq *irdma_create_cq(struct ib_device *ibdev,
-> +				     const struct ib_cq_init_attr *attr,
-> +				     struct ib_ucontext *context,
-> +				     struct ib_udata *udata)
+> +static inline void irdma_insert_wqe_hdr(__le64 *wqe, u64 hdr)
 > +{
-> +	struct irdma_device *iwdev = to_iwdev(ibdev);
-> +	struct irdma_pci_f *rf = iwdev->rf;
-> +	struct irdma_cq *iwcq;
-> +	struct irdma_pbl *iwpbl;
-> +	u32 cq_num = 0;
-> +	struct irdma_sc_cq *cq;
-> +	struct irdma_sc_dev *dev = &rf->sc_dev;
-> +	struct irdma_cq_init_info info = {};
-> +	enum irdma_status_code status;
-> +	struct irdma_cqp_request *cqp_request;
-> +	struct cqp_cmds_info *cqp_info;
-> +	struct irdma_cq_uk_init_info *ukinfo = &info.cq_uk_init_info;
-> +	unsigned long flags;
-> +	int err_code;
-> +	int entries = attr->cqe;
-> +
-> +	if (iwdev->closing)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	if (entries > rf->max_cqe)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	iwcq = kzalloc(sizeof(*iwcq), GFP_KERNEL);
-> +	if (!iwcq)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	err_code = irdma_alloc_rsrc(rf, rf->allocated_cqs,
-> +				    rf->max_cq, &cq_num,
-> +				    &rf->next_cq);
-> +	if (err_code)
-> +		goto error;
-> +
-> +	cq = &iwcq->sc_cq;
-> +	cq->back_cq = (void *)iwcq;
-> +	spin_lock_init(&iwcq->lock);
-> +	info.dev = dev;
-> +	ukinfo->cq_size = max(entries, 4);
-> +	ukinfo->cq_id = cq_num;
-> +	iwcq->ibcq.cqe = info.cq_uk_init_info.cq_size;
-> +	if (attr->comp_vector < rf->ceqs_count)
-> +		info.ceq_id = attr->comp_vector;
-> +	info.ceq_id_valid = true;
-> +	info.ceqe_mask = 1;
-> +	info.type = IRDMA_CQ_TYPE_IWARP;
-> +	info.vsi = &iwdev->vsi;
-> +
-> +	if (context) {
+> +	wmb();   /* make sure WQE is populated before polarity is set */
+> +	set_64bit_val(wqe, 24, hdr);
 
-Drivers should rarely write 'if context'. The test for userspaceness
-is 'if (udata)' - and in this case context is guarenteed. Lots of
-places with this wrong..
-
-Also this will need to be rebased as this all changed.
-
-> +	return (struct ib_cq *)iwcq;
-
-And don't write casts like that, &iwcq->ib_qp or something. 
-
-Find and fix them all please.
+Generally don't like seeing wmbs in drivers.. Are you sure this isn't
+supposed to be smp_store_release(), or dma_wmb() perhaps?
 
 > +/**
-> + * irdma_set_page - populate pbl list for fmr
-> + * @ibmr: ib mem to access iwarp mr pointer
-> + * @addr: page dma address fro pbl list
+> + * irdma_inetaddr_event - system notifier for ipv4 addr events
+> + * @notfier: not used
+> + * @event: event for notifier
+> + * @ptr: if address
 > + */
-> +static int irdma_set_page(struct ib_mr *ibmr,
-> +			  u64 addr)
+> +int irdma_inetaddr_event(struct notifier_block *notifier,
+> +			 unsigned long event,
+> +			 void *ptr)
+> +{
+> +	struct in_ifaddr *ifa = ptr;
+> +	struct net_device *event_netdev = ifa->ifa_dev->dev;
+> +	struct net_device *netdev;
+> +	struct net_device *upper_dev;
+> +	struct irdma_device *iwdev;
+> +	u32 local_ipaddr;
+> +
+> +	iwdev = irdma_find_netdev(event_netdev);
 
-Can you please read through this giant driver and hit various places
-with wonky formatting with clang-format? We don't need to start out a
-new driver with bonkers indentation.
-> +
-> +static const struct ib_device_ops irdma_roce_dev_ops = {
-> +	.get_link_layer = irdma_get_link_layer,
-> +	.query_ah = irdma_query_ah,
-> +	.attach_mcast = irdma_attach_mcast,
-> +	.detach_mcast = irdma_detach_mcast,
-> +	.query_gid = irdma_query_gid_roce,
-> +	.modify_qp = irdma_modify_qp_roce,
-> +};
-> +
-> +static const struct ib_device_ops irdma_iw_dev_ops = {
-> +	.query_gid = irdma_query_gid,
-> +	.modify_qp = irdma_modify_qp,
-> +};
-> +
-> +static const struct ib_device_ops irdma_dev_ops = {
-> +	.get_port_immutable = irdma_port_immutable,
-> +	.get_netdev = irdma_get_netdev,
-> +	.query_port = irdma_query_port,
-> +	.modify_port = irdma_modify_port,
-> +	.query_pkey = irdma_query_pkey,
-> +	.alloc_ucontext = irdma_alloc_ucontext,
-> +	.dealloc_ucontext = irdma_dealloc_ucontext,
-> +	.mmap = irdma_mmap,
-> +	.alloc_pd = irdma_alloc_pd,
-> +	.dealloc_pd = irdma_dealloc_pd,
-> +	.create_qp = irdma_create_qp,
-> +	.query_qp = irdma_query_qp,
-> +	.destroy_qp = irdma_destroy_qp,
-> +	.create_cq = irdma_create_cq,
-> +	.destroy_cq = irdma_destroy_cq,
-> +	.get_dma_mr = irdma_get_dma_mr,
-> +	.reg_user_mr = irdma_reg_user_mr,
-> +	.dereg_mr = irdma_dereg_mr,
-> +	.alloc_mw = irdma_alloc_mw,
-> +	.dealloc_mw = irdma_dealloc_mw,
-> +	.alloc_hw_stats = irdma_alloc_hw_stats,
-> +	.get_hw_stats = irdma_get_hw_stats,
-> +	.query_device = irdma_query_device,
-> +	.create_ah = irdma_create_ah,
-> +	.destroy_ah = irdma_destroy_ah,
-> +	.drain_sq = irdma_drain_sq,
-> +	.drain_rq = irdma_drain_rq,
-> +	.alloc_mr = irdma_alloc_mr,
-> +	.map_mr_sg = irdma_map_mr_sg,
-> +	.get_dev_fw_str = irdma_get_dev_fw_str,
-> +	.poll_cq = irdma_poll_cq,
-> +	.req_notify_cq = irdma_req_notify_cq,
-> +	.post_send = irdma_post_send,
-> +	.post_recv = irdma_post_recv,
-> +	.disassociate_ucontext = irdma_disassociate_ucontext,
-> +	INIT_RDMA_OBJ_SIZE(ib_pd, irdma_pd, ibpd),
-> +};
+This is all being changed too (and is probably wrongly locked here)
 
-All lists of things should be sorted. I saw many examples of unsorted
-lists.
+A new driver must not maintain their own list of devices. 
+
+> +	if (iwdev->init_state < IP_ADDR_REGISTERED || iwdev->closing)
+> +		return NOTIFY_DONE;
+> +
+> +	netdev = iwdev->netdev;
+> +	upper_dev = netdev_master_upper_dev_get(netdev);
+> +	if (netdev != event_netdev)
+> +		return NOTIFY_DONE;
+
+What is all this? Does the driver support bonding?
+
+You have to fix this to work in the new style - and you might need to
+add more core code to sanely support bonding.
+
+Look here:
+https://patchwork.kernel.org/project/linux-rdma/list/?series=79299
 
 > +/**
-> + * irdma_init_roce_device - initialization of iwarp rdma device
-> + * @iwibdev: irdma ib device
+> + * irdma_add_devusecount - add dev refcount
+> + * @iwdev: dev for refcount
 > + */
-> +static int irdma_init_iw_device(struct irdma_ib_device *iwibdev)
+> +void irdma_add_devusecount(struct irdma_device *iwdev)
 > +{
-> +	struct net_device *netdev = iwibdev->iwdev->netdev;
+> +	atomic64_inc(&iwdev->use_count);
+> +}
 > +
-> +	iwibdev->ibdev.node_type = RDMA_NODE_RNIC;
-> +	ether_addr_copy((u8 *)&iwibdev->ibdev.node_guid, netdev->dev_addr);
-> +	iwibdev->ibdev.iwcm = kzalloc(sizeof(*iwibdev->ibdev.iwcm), GFP_KERNEL);
-> +	if (!iwibdev->ibdev.iwcm)
-> +		return -ENOMEM;
+> +/**
+> + * irdma_rem_devusecount - decrement refcount for dev
+> + * @iwdev: device
+> + */
+> +void irdma_rem_devusecount(struct irdma_device *iwdev)
+> +{
+> +	if (!atomic64_dec_and_test(&iwdev->use_count))
+> +		return;
+> +	wake_up(&iwdev->close_wq);
+> +}
 > +
-> +	iwibdev->ibdev.iwcm->add_ref = irdma_add_ref;
-> +	iwibdev->ibdev.iwcm->rem_ref = irdma_rem_ref;
-> +	iwibdev->ibdev.iwcm->get_qp = irdma_get_qp;
-> +	iwibdev->ibdev.iwcm->connect = irdma_connect;
-> +	iwibdev->ibdev.iwcm->accept = irdma_accept;
-> +	iwibdev->ibdev.iwcm->reject = irdma_reject;
-> +	iwibdev->ibdev.iwcm->create_listen = irdma_create_listen;
-> +	iwibdev->ibdev.iwcm->destroy_listen = irdma_destroy_listen;
+> +/**
+> + * irdma_add_pdusecount - add pd refcount
+> + * @iwpd: pd for refcount
+> + */
+> +void irdma_add_pdusecount(struct irdma_pd *iwpd)
+> +{
+> +	atomic_inc(&iwpd->usecount);
+> +}
 
-Huh. These should probably be moved into the ops structure too.
+Why do we have these wrappers? Don't like wrappers liket his.
+
+Are you sure this should be an atomic, not a kref, refcount, etc? 
+
+Very concerning to refcounting of HW object structures like
+this.. Most often when I see this in IB drivers it comes along with
+concurrency bugs in the destroy path.
 
 > +/**
-> + * irdma_register_rdma_device - register iwarp device to IB
-> + * @iwdev: iwarp device
+> + * irdma_allocate_dma_mem - Memory alloc helper fn
+> + * @hw:   pointer to the HW structure
+> + * @mem:  ptr to mem struct to fill out
+> + * @size: size of memory requested
+> + * @alignment: what to align the allocation to
 > + */
-> +int irdma_register_rdma_device(struct irdma_device *iwdev)
+> +enum irdma_status_code irdma_allocate_dma_mem(struct irdma_hw *hw,
+> +					      struct irdma_dma_mem *mem,
+> +					      u64 size,
+> +					      u32 alignment)
 > +{
-> +	int ret;
-> +	struct irdma_ib_device *iwibdev;
+> +	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
 > +
-> +	ret = irdma_init_rdma_device(iwdev);
-> +	if (ret)
-> +		return ret;
+> +	if (!mem)
+> +		return IRDMA_ERR_PARAM;
 > +
-> +	iwibdev = iwdev->iwibdev;
-> +	rdma_set_device_sysfs_group(&iwibdev->ibdev, &irdma_attr_group);
-> +	if (iwdev->rf->sc_dev.hw_attrs.hw_rev == IRDMA_GEN_1)
-> +		/* backward compat with old user-space libi40iw */
-> +		iwibdev->ibdev.driver_id = RDMA_DRIVER_I40IW;
+> +	mem->size = ALIGN(size, alignment);
+> +	mem->va = dma_alloc_coherent(&pcidev->dev, mem->size,
+> +				     (dma_addr_t *)&mem->pa, GFP_KERNEL);
+> +	if (!mem->va)
+> +		return IRDMA_ERR_NO_MEMORY;
+> +
+> +	return 0;
+> +}
 
-Really? Then what is the problem in rdma-core? 
-
-Why are we getting a replacement driver instead of fixing the old one?
-
-This is very long, I didn't read it super closely :(
+More wrappers? Why?
 
 Jason
