@@ -1,49 +1,31 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
- longterm-GUP usage by RDMA
-Date: Fri, 15 Feb 2019 10:08:52 -0800
-Message-ID: <20190215180852.GJ12668@bombadil.infradead.org>
-References: <20190208111028.GD6353@quack2.suse.cz>
- <CAPcyv4iVtBfO8zWZU3LZXLqv-dha1NSG+2+7MvgNy9TibCy4Cw@mail.gmail.com>
- <20190211102402.GF19029@quack2.suse.cz>
- <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
- <20190211180654.GB24692@ziepe.ca>
- <20190214202622.GB3420@redhat.com>
- <20190214205049.GC12668@bombadil.infradead.org>
- <20190214213922.GD3420@redhat.com>
- <20190215011921.GS20493@dastard>
- <01000168f1d25e3a-2857236c-a7cc-44b8-a5f3-f51c2cfe6ce4-000000@email.amazonses.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH mlx5-next 00/15] mlx5-next updates (ECPF & 50Gbps per
+ lane)
+Date: Fri, 15 Feb 2019 18:17:27 +0000
+Message-ID: <7a1304f1eb474420e08bb72eeac0224d4c79d394.camel@mellanox.com>
+References: <20190213065546.3013-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <01000168f1d25e3a-2857236c-a7cc-44b8-a5f3-f51c2cfe6ce4-000000@email.amazonses.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christopher Lameter <cl@linux.com>
-Cc: Dave Chinner <david@fromorbit.com>, Jerome Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Doug Ledford <dledford@redhat.com>, Ira Weiny <ira.weiny@intel.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190213065546.3013-1-saeedm@mellanox.com>
+Content-Language: en-US
+Content-ID: <EDC2CC3D09D8094F838D1AD9DCEEBA1A@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 15, 2019 at 03:42:02PM +0000, Christopher Lameter wrote:
-> On Fri, 15 Feb 2019, Dave Chinner wrote:
-> 
-> > Which tells us filesystem people that the applications are doing
-> > something that _will_ cause data corruption and hence not to spend
-> > any time triaging data corruption reports because it's not a
-> > filesystem bug that caused it.
-> >
-> > See open(2):
-> >
-> > 	Applications should avoid mixing O_DIRECT and normal I/O to
-> > 	the same file, and especially to overlapping byte regions in
-> > 	the same file.  Even when the filesystem correctly handles
-> > 	the coherency issues in this situation, overall I/O
-> > 	throughput is likely to be slower than using either mode
-> > 	alone.  Likewise, applications should avoid mixing mmap(2)
-> > 	of files with direct I/O to the same files.
-> 
-> Since RDMA is something similar: Can we say that a file that is used for
-> RDMA should not use the page cache?
-
-That makes no sense.  The page cache is the standard synchronisation point
-for filesystems and processes.  The only problems come in for the things
-which bypass the page cache like O_DIRECT and DAX.
+T24gVHVlLCAyMDE5LTAyLTEyIGF0IDIyOjU1IC0wODAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gSGkgQWxsLA0KPiANCj4gVGhpcyBzZXJpZXMgZnJvbSBCb2RvbmcgYW5kIEF5YSBwcm92aWRl
+cyB0d28gbG93IGxldmVsIHVwZGF0ZXMgdG8NCj4gbWx4NQ0KPiBjb3JlIGRyaXZlciB0aGF0IGFy
+ZSByZXF1aXJlZCBmb3IgYm90aCBtbHg1ZSBuZXRkZXYgYW5kIG1seDVfaWINCj4gZHJpdmVycy4N
+Cj4gDQo+IEZyb20gQm9kb25nIFdhbmc6DQo+IDEpIEludHJvZHVjdGlvbiBvZiBFQ1BGIChFbWJl
+ZGRlZCBDUFUgUGh5c2ljYWwgRnVuY3Rpb24pLCBhbmQgbG93DQo+IGxldmVsDQo+IGJpdHMgZm9y
+IG1seDUgU21hcnROaWMgY2FwYWJpbGl0aWVzIHN1cHBvcnQuIA0KPiAyKSBWcG9ydCBlbnVtZXJh
+dGlvbiByZWZhY3RvcmluZyB0aGF0IGFmZmVjdCBtbHg1X2liIGFuZCBtbHg1X2NvcmUNCj4gDQo+
+IEZyb20gQXlhIExldmluLA0KPiAzKSBBZGQgc3VwcG9ydCBmb3IgNTBHYnBzIHBlciBsYW5lIGxp
+bmsgbW9kZXMgaW4gdGhlIFBvcnQgVHlwZSBhbmQNCj4gU3BlZWQNCj4gcmVnaXN0ZXIgKFBUWVMp
+DQo+IDQpIFJlZmFjdG9yIGxvdyBsZXZlbCBxdWVyeSBmdW5jdGlvbnMgZm9yIFBUWVMgcmVnaXN0
+ZXINCj4gNSkgQWRkIHN1cHBvcnQgZm9yIDUwR2JwcyBwZXIgbGFuZSBsaW5rIG1vZGVzIHRvIG1s
+eDVfaWINCj4gDQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0LA0KDQpUaGFua3MuDQo=
