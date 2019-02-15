@@ -1,935 +1,624 @@
 From: Shiraz Saleem <shiraz.saleem@intel.com>
-Subject: [RFC v1 13/19] RDMA/irdma: Add RoCEv2 UD OP support
-Date: Fri, 15 Feb 2019 11:11:00 -0600
-Message-ID: <20190215171107.6464-14-shiraz.saleem@intel.com>
+Subject: [RFC v1 16/19] RDMA/irdma: Add dynamic tracing for CM
+Date: Fri, 15 Feb 2019 11:11:03 -0600
+Message-ID: <20190215171107.6464-17-shiraz.saleem@intel.com>
 References: <20190215171107.6464-1-shiraz.saleem@intel.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190215171107.6464-1-shiraz.saleem@intel.com>
 Sender: netdev-owner@vger.kernel.org
 To: dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com, Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Shiraz Saleem <shiraz.saleem@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mustafa Ismail <mustafa.ismail@intel.com>
+From: "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 
-Add the header, data structures and functions
-to populate the WQE descriptors and issue the
-Control QP commands that support RoCEv2 UD operations.
+Add dynamic tracing functionality to debug connection
+management issues.
 
-Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
 ---
- drivers/infiniband/hw/irdma/uda.c   | 416 ++++++++++++++++++++++++++++++++++++
- drivers/infiniband/hw/irdma/uda.h   |  87 ++++++++
- drivers/infiniband/hw/irdma/uda_d.h | 383 +++++++++++++++++++++++++++++++++
- 3 files changed, 886 insertions(+)
- create mode 100644 drivers/infiniband/hw/irdma/uda.c
- create mode 100644 drivers/infiniband/hw/irdma/uda.h
- create mode 100644 drivers/infiniband/hw/irdma/uda_d.h
+ drivers/infiniband/hw/irdma/trace.c    | 113 ++++++++
+ drivers/infiniband/hw/irdma/trace.h    |   4 +
+ drivers/infiniband/hw/irdma/trace_cm.h | 459 +++++++++++++++++++++++++++++++++
+ 3 files changed, 576 insertions(+)
+ create mode 100644 drivers/infiniband/hw/irdma/trace.c
+ create mode 100644 drivers/infiniband/hw/irdma/trace.h
+ create mode 100644 drivers/infiniband/hw/irdma/trace_cm.h
 
-diff --git a/drivers/infiniband/hw/irdma/uda.c b/drivers/infiniband/hw/irdma/uda.c
+diff --git a/drivers/infiniband/hw/irdma/trace.c b/drivers/infiniband/hw/irdma/trace.c
 new file mode 100644
-index 0000000..af0a8f3
+index 0000000..0b6fbdb
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.c
-@@ -0,0 +1,416 @@
++++ b/drivers/infiniband/hw/irdma/trace.c
+@@ -0,0 +1,113 @@
 +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
 +/* Copyright (c) 2019, Intel Corporation. */
 +
-+#include "osdep.h"
-+#include "status.h"
-+#include "hmc.h"
-+#include "defs.h"
-+#include "type.h"
-+#include "protos.h"
-+#include "uda.h"
-+#include "uda_d.h"
++#define CREATE_TRACE_POINTS
++#include "trace.h"
 +
-+/**
-+ * irdma_sc_ah_init - initialize sc ah struct
-+ * @dev: sc device struct
-+ * @ah: sc ah ptr
-+ * @ah_id: ah_id for allocated ah
-+ */
-+static void irdma_sc_init_ah(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah)
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ipv4)
 +{
-+	ah->dev = dev;
-+}
++	const char *ret = trace_seq_buffer_ptr(p);
 +
-+/**
-+ * irdma_sc_access_ah() - Create, modify or delete AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @op: Operation
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_access_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u32 op,
-+						 u64 scratch)
-+{
-+	__le64 *wqe;
-+	u64 qw1, qw2;
++	if (ipv4) {
++		u32 myaddr = ntohl(*addr);
 +
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe)
-+		return IRDMA_ERR_RING_FULL;
-+
-+	set_64bit_val(wqe, 0, LS_64_1(info->mac_addr[5], 16) |
-+					 LS_64_1(info->mac_addr[4], 24) |
-+					 LS_64_1(info->mac_addr[3], 32) |
-+					 LS_64_1(info->mac_addr[2], 40) |
-+					 LS_64_1(info->mac_addr[1], 48) |
-+					 LS_64_1(info->mac_addr[0], 56));
-+
-+	qw1 = LS_64(info->pd_idx, IRDMA_UDA_CQPSQ_MAV_PDINDEXLO) |
-+	      LS_64(info->tc_tos, IRDMA_UDA_CQPSQ_MAV_TC) |
-+	      LS_64(info->vlan_tag, IRDMA_UDAQPC_VLANTAG);
-+
-+	qw2 = LS_64(info->dst_arpindex, IRDMA_UDA_CQPSQ_MAV_ARPINDEX) |
-+	      LS_64(info->flow_label, IRDMA_UDA_CQPSQ_MAV_FLOWLABEL) |
-+	      LS_64(info->hop_ttl, IRDMA_UDA_CQPSQ_MAV_HOPLIMIT) |
-+	      LS_64(info->pd_idx >> 16, IRDMA_UDA_CQPSQ_MAV_PDINDEXHI);
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe,
-+			      40,
-+			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
-+			      LS_64(info->dest_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
-+		set_64bit_val(wqe,
-+			      32,
-+			      LS_64(info->dest_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
-+			      LS_64(info->dest_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
-+
-+		set_64bit_val(wqe,
-+			      56,
-+			      LS_64(info->src_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
-+			      LS_64(info->src_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
-+		set_64bit_val(wqe,
-+			      48,
-+			      LS_64(info->src_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
-+			      LS_64(info->src_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++		trace_seq_printf(p, "%pI4:%d", &myaddr, ntohs(port));
 +	} else {
-+		set_64bit_val(wqe, 32,
-+			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++		trace_seq_printf(p, "%pI6:%d", addr, ntohs(port));
++	}
++	trace_seq_putc(p, 0);
 +
-+		set_64bit_val(wqe,
-+			      48,
-+			      LS_64(info->src_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
++	return ret;
++}
++
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type)
++{
++	switch (iw_type) {
++	case IW_CM_EVENT_CONNECT_REQUEST:
++		return "IwRequest";
++	case IW_CM_EVENT_CONNECT_REPLY:
++		return "IwReply";
++	case IW_CM_EVENT_ESTABLISHED:
++		return "IwEstablished";
++	case IW_CM_EVENT_DISCONNECT:
++		return "IwDisconnect";
++	case IW_CM_EVENT_CLOSE:
++		return "IwClose";
 +	}
 +
-+	set_64bit_val(wqe, 8, qw1);
-+	set_64bit_val(wqe, 16, qw2);
-+
-+	wmb(); /* need write block before writing WQE header */
-+
-+	set_64bit_val(wqe, 24,
-+		      LS_64(cqp->polarity, IRDMA_UDA_CQPSQ_MAV_WQEVALID) |
-+		      LS_64(op, IRDMA_UDA_CQPSQ_MAV_OPCODE) |
-+		      LS_64(info->do_lpbk, IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK) |
-+		      LS_64(info->ipv4_valid, IRDMA_UDA_CQPSQ_MAV_IPV4VALID) |
-+		      LS_64(info->ah_idx, IRDMA_UDA_CQPSQ_MAV_AVIDX) |
-+		      LS_64(info->insert_vlan_tag, IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG));
-+
-+	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MANAGE_AH WQE",
-+			wqe, IRDMA_CQP_WQE_SIZE * 8);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
++	return "Unknown";
 +}
 +
-+/**
-+ * irdma_sc_create_ah() - Create AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_create_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u64 scratch)
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type)
 +{
-+	return irdma_sc_access_ah(cqp,
-+				  info,
-+				  IRDMA_CQP_OP_CREATE_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * irdma_sc_modify_ah() - Modify AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_modify_ah(struct irdma_sc_cqp *cqp,
-+						 struct irdma_ah_info *info,
-+						 u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp,
-+				  info,
-+				  IRDMA_CQP_OP_MODIFY_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * irdma_sc_destroy_ah() - Delete AH
-+ * @cqp: struct for cqp hw
-+ * @info: ah information
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code irdma_sc_destroy_ah(struct irdma_sc_cqp *cqp,
-+						  struct irdma_ah_info *info,
-+						  u64 scratch)
-+{
-+	return irdma_sc_access_ah(cqp,
-+				  info,
-+				  IRDMA_CQP_OP_DESTROY_ADDR_HANDLE,
-+				  scratch);
-+}
-+
-+/**
-+ * create_mg_ctx() - create a mcg context
-+ * @info: multicast group context info
-+ */
-+static enum irdma_status_code irdma_create_mg_ctx(struct irdma_mcast_grp_info *info)
-+{
-+	struct irdma_mcast_grp_ctx_entry_info *entry_info = NULL;
-+	u8 idx = 0;	/* index in the array */
-+	u8 ctx_idx = 0;	/* index in the MG context */
-+
-+	memset(info->dma_mem_mc.va, 0, IRDMA_MAX_MGS_PER_CTX * sizeof(u64));
-+
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		entry_info = &info->mg_ctx_info[idx];
-+		if (entry_info->valid_entry) {
-+			set_64bit_val((__le64 *)info->dma_mem_mc.va,
-+				      ctx_idx * sizeof(u64),
-+				      LS_64(entry_info->dest_port, IRDMA_UDA_MGCTX_DESTPORT) |
-+				      LS_64(entry_info->valid_entry, IRDMA_UDA_MGCTX_VALIDENT) |
-+				      LS_64(entry_info->qp_id, IRDMA_UDA_MGCTX_QPID));
-+			ctx_idx++;
-+		}
++	switch (cm_type) {
++	case IRDMA_CM_EVENT_ESTABLISHED:
++		return "CmEstablished";
++	case IRDMA_CM_EVENT_MPA_REQ:
++		return "CmMPA_REQ";
++	case IRDMA_CM_EVENT_MPA_CONNECT:
++		return "CmMPA_CONNECT";
++	case IRDMA_CM_EVENT_MPA_ACCEPT:
++		return "CmMPA_ACCEPT";
++	case IRDMA_CM_EVENT_MPA_REJECT:
++		return "CmMPA_REJECT";
++	case IRDMA_CM_EVENT_MPA_ESTABLISHED:
++		return "CmMPA_ESTABLISHED";
++	case IRDMA_CM_EVENT_CONNECTED:
++		return "CmConnected";
++	case IRDMA_CM_EVENT_RESET:
++		return "CmReset";
++	case IRDMA_CM_EVENT_ABORTED:
++		return "CmAborted";
++	case IRDMA_CM_EVENT_UNKNOWN:
++		return "none";
 +	}
-+
-+	return 0;
++	return "Unknown";
 +}
 +
-+/**
-+ * irdma_access_mcast_grp() - Access mcast group based on op
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @op: operation to perform
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_access_mcast_grp(struct irdma_sc_cqp *cqp,
-+		       struct irdma_mcast_grp_info *info,
-+		       u32 op,
-+		       u64 scratch)
++const char *parse_cm_state(enum irdma_cm_node_state state)
 +{
-+	__le64 *wqe;
-+	enum irdma_status_code ret_code = 0;
-+
-+	if (info->mg_id >= IRDMA_UDA_MAX_FSI_MGS) {
-+		irdma_debug(cqp->dev, IRDMA_DEBUG_WQE, "mg_id out of range\n");
-+		return IRDMA_ERR_PARAM;
++	switch (state) {
++	case IRDMA_CM_STATE_UNKNOWN:
++		return "UNKNOWN";
++	case IRDMA_CM_STATE_INITED:
++		return "INITED";
++	case IRDMA_CM_STATE_LISTENING:
++		return "LISTENING";
++	case IRDMA_CM_STATE_SYN_RCVD:
++		return "SYN_RCVD";
++	case IRDMA_CM_STATE_SYN_SENT:
++		return "SYN_SENT";
++	case IRDMA_CM_STATE_ONE_SIDE_ESTABLISHED:
++		return "ONE_SIDE_ESTABLISHED";
++	case IRDMA_CM_STATE_ESTABLISHED:
++		return "ESTABLISHED";
++	case IRDMA_CM_STATE_ACCEPTING:
++		return "ACCEPTING";
++	case IRDMA_CM_STATE_MPAREQ_SENT:
++		return "MPAREQ_SENT";
++	case IRDMA_CM_STATE_MPAREQ_RCVD:
++		return "MPAREQ_RCVD";
++	case IRDMA_CM_STATE_MPAREJ_RCVD:
++		return "MPAREJ_RECVD";
++	case IRDMA_CM_STATE_OFFLOADED:
++		return "OFFLOADED";
++	case IRDMA_CM_STATE_FIN_WAIT1:
++		return "FIN_WAIT1";
++	case IRDMA_CM_STATE_FIN_WAIT2:
++		return "FIN_WAIT2";
++	case IRDMA_CM_STATE_CLOSE_WAIT:
++		return "CLOSE_WAIT";
++	case IRDMA_CM_STATE_TIME_WAIT:
++		return "TIME_WAIT";
++	case IRDMA_CM_STATE_LAST_ACK:
++		return "LAST_ACK";
++	case IRDMA_CM_STATE_CLOSING:
++		return "CLOSING";
++	case IRDMA_CM_STATE_LISTENER_DESTROYED:
++		return "LISTENER_DESTROYED";
++	case IRDMA_CM_STATE_CLOSED:
++		return "CLOSED";
 +	}
-+
-+	wqe = irdma_sc_cqp_get_next_send_wqe(cqp, scratch);
-+	if (!wqe) {
-+		irdma_debug(cqp->dev, IRDMA_DEBUG_WQE, "ring full\n");
-+		return IRDMA_ERR_RING_FULL;
-+	}
-+
-+	ret_code = irdma_create_mg_ctx(info);
-+	if (ret_code)
-+		return ret_code;
-+
-+	set_64bit_val(wqe, 32, info->dma_mem_mc.pa);
-+	set_64bit_val(wqe,
-+		      16,
-+		      LS_64(info->vlan_id, IRDMA_UDA_CQPSQ_MG_VLANID) |
-+		      LS_64(info->qs_handle, IRDMA_UDA_CQPSQ_QS_HANDLE));
-+	set_64bit_val(wqe, 0, LS_64_1(info->dest_mac_addr[5], 0) |
-+					 LS_64_1(info->dest_mac_addr[4], 8) |
-+					 LS_64_1(info->dest_mac_addr[3], 16) |
-+					 LS_64_1(info->dest_mac_addr[2], 24) |
-+					 LS_64_1(info->dest_mac_addr[1], 32) |
-+					 LS_64_1(info->dest_mac_addr[0], 40));
-+	set_64bit_val(wqe, 8,
-+		      LS_64(info->hmc_fcn_id, IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID));
-+
-+	if (!info->ipv4_valid) {
-+		set_64bit_val(wqe, 56,
-+			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR0) |
-+			      LS_64(info->dest_ip_addr[1], IRDMA_UDA_CQPSQ_MAV_ADDR1));
-+		set_64bit_val(wqe, 48,
-+			      LS_64(info->dest_ip_addr[2], IRDMA_UDA_CQPSQ_MAV_ADDR2) |
-+			      LS_64(info->dest_ip_addr[3], IRDMA_UDA_CQPSQ_MAV_ADDR3));
-+	} else {
-+		set_64bit_val(wqe, 48,
-+			      LS_64(info->dest_ip_addr[0], IRDMA_UDA_CQPSQ_MAV_ADDR3));
-+	}
-+
-+	wmb(); /* need write memory block before writing the WQE header. */
-+
-+	set_64bit_val(wqe, 24,
-+		      LS_64(cqp->polarity, IRDMA_UDA_CQPSQ_MG_WQEVALID) |
-+		      LS_64(op, IRDMA_UDA_CQPSQ_MG_OPCODE) |
-+		      LS_64(info->mg_id, IRDMA_UDA_CQPSQ_MG_MGIDX) |
-+		      LS_64(info->vlan_valid, IRDMA_UDA_CQPSQ_MG_VLANVALID) |
-+		      LS_64(info->ipv4_valid, IRDMA_UDA_CQPSQ_MG_IPV4VALID));
-+
-+	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MANAGE_MCG WQE",
-+			wqe, IRDMA_CQP_WQE_SIZE * 8);
-+	irdma_debug_buf(cqp->dev, IRDMA_DEBUG_WQE, "MCG_HOST CTX WQE",
-+			info->dma_mem_mc.va, IRDMA_MAX_MGS_PER_CTX * 8);
-+	irdma_sc_cqp_post_sq(cqp);
-+
-+	return 0;
++	return ("Bad state");
 +}
-+
-+/**
-+ * irdma_sc_create_mcast_grp() - Create mcast group.
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_create_mcast_grp(struct irdma_sc_cqp *cqp,
-+			  struct irdma_mcast_grp_info *info,
-+			  u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp,
-+				      info,
-+				      IRDMA_CQP_OP_CREATE_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_sc_modify_mcast_grp() - Modify mcast group
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_modify_mcast_grp(struct irdma_sc_cqp *cqp,
-+			  struct irdma_mcast_grp_info *info,
-+			  u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp,
-+				      info,
-+				      IRDMA_CQP_OP_MODIFY_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_sc_destroy_mcast_grp() - Destroys mcast group
-+ * @cqp: Control QP
-+ * @info: multicast group context info
-+ * @scratch: u64 saved to be used during cqp completion
-+ */
-+static enum irdma_status_code
-+irdma_sc_destroy_mcast_grp(struct irdma_sc_cqp *cqp,
-+			   struct irdma_mcast_grp_info *info,
-+			   u64 scratch)
-+{
-+	return irdma_access_mcast_grp(cqp,
-+				      info,
-+				      IRDMA_CQP_OP_DESTROY_MCAST_GRP,
-+				      scratch);
-+}
-+
-+/**
-+ * irdma_compare_mgs - Compares two multicast group structures
-+ * @entry1: Multcast group info
-+ * @entry2: Multcast group info in context
-+ */
-+static bool irdma_compare_mgs(struct irdma_mcast_grp_ctx_entry_info *entry1,
-+			      struct irdma_mcast_grp_ctx_entry_info *entry2)
-+{
-+	if (entry1->dest_port == entry2->dest_port &&
-+	    entry1->qp_id == entry2->qp_id)
-+		return true;
-+	else
-+		return false;
-+}
-+
-+/**
-+ * irdma_sc_add_mcast_grp - Allocates mcast group entry in ctx
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ */
-+static enum irdma_status_code
-+irdma_sc_add_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+		       struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+	enum irdma_status_code ret_code = IRDMA_ERR_NO_MEMORY;
-+	bool free_entry_found = false;
-+	u32 free_entry_idx = 0;
-+
-+	/* find either an identical or a free entry for a multicast group */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (ctx->mg_ctx_info[idx].valid_entry) {
-+			if (irdma_compare_mgs(&ctx->mg_ctx_info[idx], mg)) {
-+				ctx->mg_ctx_info[idx].use_cnt++;
-+				return 0;
-+			}
-+			continue;
-+		}
-+		if (!free_entry_found) {
-+			free_entry_found = true;
-+			free_entry_idx = idx;
-+		}
-+	}
-+
-+	if (free_entry_found) {
-+		ctx->mg_ctx_info[free_entry_idx] = *mg;
-+		ctx->mg_ctx_info[free_entry_idx].valid_entry = true;
-+		ctx->mg_ctx_info[free_entry_idx].use_cnt = 1;
-+		ctx->no_of_mgs++;
-+		ret_code = 0;
-+	}
-+
-+	return ret_code;
-+}
-+
-+/**
-+ * irdma_sc_del_mcast_grp - Delete mcast group
-+ * @ctx: Multcast group context
-+ * @mg: Multcast group info
-+ *
-+ * Finds and removes a specific mulicast group from context, all
-+ * parameters must match to remove a multicast group.
-+ */
-+static enum irdma_status_code
-+irdma_sc_del_mcast_grp(struct irdma_mcast_grp_info *ctx,
-+		       struct irdma_mcast_grp_ctx_entry_info *mg)
-+{
-+	u32 idx;
-+	enum irdma_status_code ret_code = IRDMA_ERR_PARAM;
-+
-+	/* find an entry in multicast group context */
-+	for (idx = 0; idx < IRDMA_MAX_MGS_PER_CTX; idx++) {
-+		if (!ctx->mg_ctx_info[idx].valid_entry)
-+			continue;
-+
-+		if (irdma_compare_mgs(mg, &ctx->mg_ctx_info[idx])) {
-+			ctx->mg_ctx_info[idx].use_cnt--;
-+
-+			if (ctx->mg_ctx_info[idx].use_cnt == 0) {
-+				ctx->mg_ctx_info[idx].valid_entry = false;
-+				ctx->no_of_mgs--;
-+				/* Remove gap if element was not the last */
-+				if (idx != ctx->no_of_mgs &&
-+				    ctx->no_of_mgs > 0) {
-+					memcpy(&ctx->mg_ctx_info[idx],
-+					       &ctx->mg_ctx_info[ctx->no_of_mgs - 1],
-+					       sizeof(ctx->mg_ctx_info[idx]));
-+					ctx->mg_ctx_info[ctx->no_of_mgs - 1].valid_entry = false;
-+				}
-+			}
-+
-+			ret_code = 0;
-+			goto exit;
-+		}
-+	}
-+exit:
-+	return ret_code;
-+}
-+
-+struct irdma_uda_ops irdma_uda_ops = {
-+	.init_ah = irdma_sc_init_ah,
-+	.create_ah = irdma_sc_create_ah,
-+	.modify_ah = irdma_sc_modify_ah,
-+	.destroy_ah = irdma_sc_destroy_ah,
-+	.mcast_grp_create = irdma_sc_create_mcast_grp,
-+	.mcast_grp_modify = irdma_sc_modify_mcast_grp,
-+	.mcast_grp_destroy = irdma_sc_destroy_mcast_grp,
-+	.mcast_grp_add = irdma_sc_add_mcast_grp,
-+	.mcast_grp_del = irdma_sc_del_mcast_grp,
-+};
-diff --git a/drivers/infiniband/hw/irdma/uda.h b/drivers/infiniband/hw/irdma/uda.h
+diff --git a/drivers/infiniband/hw/irdma/trace.h b/drivers/infiniband/hw/irdma/trace.h
 new file mode 100644
-index 0000000..3a0477e
+index 0000000..40cd65e
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda.h
-@@ -0,0 +1,87 @@
++++ b/drivers/infiniband/hw/irdma/trace.h
+@@ -0,0 +1,4 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
 +/* Copyright (c) 2019, Intel Corporation. */
 +
-+#ifndef IRDMA_UDA_H
-+#define IRDMA_UDA_H
-+
-+extern struct irdma_uda_ops irdma_uda_ops;
-+
-+#define IRDMA_UDA_MAX_FSI_MGS	4096
-+#define IRDMA_UDA_MAX_PFS	16
-+#define IRDMA_UDA_MAX_VFS	128
-+#define IRDMA_MAX_MGS_PER_CTX	8
-+
-+struct irdma_sc_cqp;
-+
-+struct irdma_ah_info {
-+	struct irdma_sc_ah *ah;
-+	struct irdma_sc_vsi *vsi;
-+	u32 pd_idx;
-+	u32 dst_arpindex;
-+	u32 dest_ip_addr[4];
-+	u32 src_ip_addr[4];
-+	u32 flow_label;
-+	u32 ah_idx;
-+	bool ipv4_valid;
-+	bool do_lpbk;
-+	u16 vlan_tag;
-+	u8 insert_vlan_tag;
-+	u8 tc_tos;
-+	u8 hop_ttl;
-+	u8 mac_addr[ETH_ALEN];
-+	bool ah_valid;
-+};
-+
-+struct irdma_sc_ah {
-+	struct irdma_sc_dev *dev;
-+	struct irdma_ah_info ah_info;
-+};
-+
-+struct irdma_mcast_grp_ctx_entry_info {
-+	u32 qp_id;
-+	bool valid_entry;
-+	u16 dest_port;
-+	u32 use_cnt;
-+};
-+
-+struct irdma_mcast_grp_info {
-+	u8 dest_mac_addr[ETH_ALEN];
-+	u16 vlan_id;
-+	u8 hmc_fcn_id;
-+	bool ipv4_valid;
-+	bool vlan_valid;
-+	u16 mg_id;
-+	u32 no_of_mgs;
-+	u32 dest_ip_addr[4];
-+	u16 qs_handle;
-+	struct irdma_dma_mem dma_mem_mc;
-+	struct irdma_mcast_grp_ctx_entry_info mg_ctx_info[IRDMA_MAX_MGS_PER_CTX];
-+};
-+
-+struct irdma_uda_ops {
-+	void (*init_ah)(struct irdma_sc_dev *dev, struct irdma_sc_ah *ah);
-+	enum irdma_status_code (*create_ah)(struct irdma_sc_cqp *cqp,
-+					    struct irdma_ah_info *info,
-+					    u64 scratch);
-+	enum irdma_status_code (*modify_ah)(struct irdma_sc_cqp *cqp,
-+					    struct irdma_ah_info *info,
-+					    u64 scratch);
-+	enum irdma_status_code (*destroy_ah)(struct irdma_sc_cqp *cqp,
-+					     struct irdma_ah_info *info,
-+					     u64 scratch);
-+	/* multicast */
-+	enum irdma_status_code (*mcast_grp_create)(struct irdma_sc_cqp *cqp,
-+						   struct irdma_mcast_grp_info *info,
-+						   u64 scratch);
-+	enum irdma_status_code (*mcast_grp_modify)(struct irdma_sc_cqp *cqp,
-+						   struct irdma_mcast_grp_info *info,
-+						   u64 scratch);
-+	enum irdma_status_code (*mcast_grp_destroy)(struct irdma_sc_cqp *cqp,
-+						    struct irdma_mcast_grp_info *info,
-+						    u64 scratch);
-+	enum irdma_status_code (*mcast_grp_add)(struct irdma_mcast_grp_info *ctx,
-+						struct irdma_mcast_grp_ctx_entry_info *mg);
-+	enum irdma_status_code (*mcast_grp_del)(struct irdma_mcast_grp_info *ctx,
-+						struct irdma_mcast_grp_ctx_entry_info *mg);
-+};
-+#endif /* IRDMA_UDA_H */
-diff --git a/drivers/infiniband/hw/irdma/uda_d.h b/drivers/infiniband/hw/irdma/uda_d.h
++#include "trace_cm.h"
+diff --git a/drivers/infiniband/hw/irdma/trace_cm.h b/drivers/infiniband/hw/irdma/trace_cm.h
 new file mode 100644
-index 0000000..212de00
+index 0000000..551d1f5
 --- /dev/null
-+++ b/drivers/infiniband/hw/irdma/uda_d.h
-@@ -0,0 +1,383 @@
++++ b/drivers/infiniband/hw/irdma/trace_cm.h
+@@ -0,0 +1,459 @@
 +/* SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB */
 +/* Copyright (c) 2019, Intel Corporation. */
 +
-+#ifndef IRDMA_UDA_D_H
-+#define IRDMA_UDA_D_H
-+
-+/* L4 packet type */
-+#define IRDMA_E_UDA_SQ_L4T_UNKNOWN	0
-+#define IRDMA_E_UDA_SQ_L4T_TCP		1
-+#define IRDMA_E_UDA_SQ_L4T_SCTP		2
-+#define IRDMA_E_UDA_SQ_L4T_UDP		3
-+
-+/* Inner IP header type */
-+#define IRDMA_E_UDA_SQ_IIPT_UNKNOWN		0
-+#define IRDMA_E_UDA_SQ_IIPT_IPV6		1
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_NO_CSUM	2
-+#define IRDMA_E_UDA_SQ_IIPT_IPV4_CSUM		3
-+
-+/* UDA defined fields for transmit descriptors */
-+#define IRDMA_UDA_QPSQ_PUSHWQE_S 56
-+#define IRDMA_UDA_QPSQ_PUSHWQE_M BIT_ULL(IRDMA_UDA_QPSQ_PUSHWQE_S)
-+
-+#define IRDMA_UDA_QPSQ_INLINEDATAFLAG_S 57
-+#define IRDMA_UDA_QPSQ_INLINEDATAFLAG_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_INLINEDATAFLAG_S)
-+
-+#define IRDMA_UDA_QPSQ_INLINEDATALEN_S 48
-+#define IRDMA_UDA_QPSQ_INLINEDATALEN_M \
-+	((u64)0xffULL << IRDMA_UDA_QPSQ_INLINEDATALEN_S)
-+
-+#define IRDMA_UDA_QPSQ_ADDFRAGCNT_S 38
-+#define IRDMA_UDA_QPSQ_ADDFRAGCNT_M \
-+	((u64)0x0F << IRDMA_UDA_QPSQ_ADDFRAGCNT_S)
-+
-+#define IRDMA_UDA_QPSQ_IPFRAGFLAGS_S 42
-+#define IRDMA_UDA_QPSQ_IPFRAGFLAGS_M \
-+	((u64)0x3 << IRDMA_UDA_QPSQ_IPFRAGFLAGS_S)
-+
-+#define IRDMA_UDA_QPSQ_NOCHECKSUM_S 45
-+#define IRDMA_UDA_QPSQ_NOCHECKSUM_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_NOCHECKSUM_S)
-+
-+#define IRDMA_UDA_QPSQ_AHIDXVALID_S 46
-+#define IRDMA_UDA_QPSQ_AHIDXVALID_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_AHIDXVALID_S)
-+
-+#define IRDMA_UDA_QPSQ_LOCAL_FENCE_S 61
-+#define IRDMA_UDA_QPSQ_LOCAL_FENCE_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_LOCAL_FENCE_S)
-+
-+#define IRDMA_UDA_QPSQ_AHIDX_S 0
-+#define IRDMA_UDA_QPSQ_AHIDX_M ((u64)0x1ffff << IRDMA_UDA_QPSQ_AHIDX_S)
-+
-+#define IRDMA_UDA_QPSQ_PROTOCOL_S 16
-+#define IRDMA_UDA_QPSQ_PROTOCOL_M \
-+	((u64)0xff << IRDMA_UDA_QPSQ_PROTOCOL_S)
-+
-+#define IRDMA_UDA_QPSQ_EXTHDRLEN_S 32
-+#define IRDMA_UDA_QPSQ_EXTHDRLEN_M \
-+	((u64)0x1ff << IRDMA_UDA_QPSQ_EXTHDRLEN_S)
-+
-+#define IRDMA_UDA_QPSQ_MULTICAST_S 63
-+#define IRDMA_UDA_QPSQ_MULTICAST_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_MULTICAST_S)
-+
-+#define IRDMA_UDA_QPSQ_MACLEN_S 56
-+#define IRDMA_UDA_QPSQ_MACLEN_M \
-+	((u64)0x7f << IRDMA_UDA_QPSQ_MACLEN_S)
-+#define IRDMA_UDA_QPSQ_MACLEN_LINE 2
-+
-+#define IRDMA_UDA_QPSQ_IPLEN_S 48
-+#define IRDMA_UDA_QPSQ_IPLEN_M \
-+	((u64)0x7f << IRDMA_UDA_QPSQ_IPLEN_S)
-+#define IRDMA_UDA_QPSQ_IPLEN_LINE 2
-+
-+#define IRDMA_UDA_QPSQ_L4T_S 30
-+#define IRDMA_UDA_QPSQ_L4T_M ((u64)0x3 << IRDMA_UDA_QPSQ_L4T_S)
-+#define IRDMA_UDA_QPSQ_L4T_LINE 2
-+
-+#define IRDMA_UDA_QPSQ_IIPT_S 28
-+#define IRDMA_UDA_QPSQ_IIPT_M ((u64)0x3 << IRDMA_UDA_QPSQ_IIPT_S)
-+#define IRDMA_UDA_QPSQ_IIPT_LINE 2
-+
-+#define IRDMA_UDA_QPSQ_DO_LPB_LINE 3
-+
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_S 45
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_M \
-+	BIT_ULL(IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_S)
-+#define IRDMA_UDA_QPSQ_FWD_PROG_CONFIRM_LINE 3
-+
-+#define IRDMA_UDA_QPSQ_IMMDATA_S 0
-+#define IRDMA_UDA_QPSQ_IMMDATA_M \
-+	((u64)0xffffffffffffffffULL << IRDMA_UDA_QPSQ_IMMDATA_S)
-+
-+/* Byte Offset 0 */
-+#define IRDMA_UDAQPC_IPV4_S 3
-+#define IRDMA_UDAQPC_IPV4_M BIT_ULL(IRDMAQPC_IPV4_S)
-+
-+#define IRDMA_UDAQPC_INSERTVLANTAG_S 5
-+#define IRDMA_UDAQPC_INSERTVLANTAG_M BIT_ULL(IRDMA_UDAQPC_INSERTVLANTAG_S)
-+
-+#define IRDMA_UDAQPC_ISQP1_S 6
-+#define IRDMA_UDAQPC_ISQP1_M BIT_ULL(IRDMA_UDAQPC_ISQP1_S)
-+
-+#define IRDMA_UDAQPC_RQWQESIZE_S IRDMAQPC_RQWQESIZE_S
-+#define IRDMA_UDAQPC_RQWQESIZE_M IRDMAQPC_RQWQESIZE_M
-+
-+#define IRDMA_UDAQPC_ECNENABLE_S 14
-+#define IRDMA_UDAQPC_ECNENABLE_M BIT_ULL(IRDMA_UDAQPC_ECNENABLE_S)
-+
-+#define IRDMA_UDAQPC_PDINDEXHI_S 20
-+#define IRDMA_UDAQPC_PDINDEXHI_M ((u64)3 << IRDMA_UDAQPC_PDINDEXHI_S)
-+
-+#define IRDMA_UDAQPC_DCTCPENABLE_S 25
-+#define IRDMA_UDAQPC_DCTCPENABLE_M BIT_ULL(IRDMA_UDAQPC_DCTCPENABLE_S)
-+
-+#define IRDMA_UDAQPC_RCVTPHEN_S IRDMAQPC_RCVTPHEN_S
-+#define IRDMA_UDAQPC_RCVTPHEN_M IRDMAQPC_RCVTPHEN_M
-+
-+#define IRDMA_UDAQPC_XMITTPHEN_S IRDMAQPC_XMITTPHEN_S
-+#define IRDMA_UDAQPC_XMITTPHEN_M IRDMAQPC_XMITTPHEN_M
-+
-+#define IRDMA_UDAQPC_RQTPHEN_S IRDMAQPC_RQTPHEN_S
-+#define IRDMA_UDAQPC_RQTPHEN_M IRDMAQPC_RQTPHEN_M
-+
-+#define IRDMA_UDAQPC_SQTPHEN_S IRDMAQPC_SQTPHEN_S
-+#define IRDMA_UDAQPC_SQTPHEN_M IRDMAQPC_SQTPHEN_M
-+
-+#define IRDMA_UDAQPC_PPIDX_S IRDMAQPC_PPIDX_S
-+#define IRDMA_UDAQPC_PPIDX_M IRDMAQPC_PPIDX_M
-+
-+#define IRDMA_UDAQPC_PMENA_S IRDMAQPC_PMENA_S
-+#define IRDMA_UDAQPC_PMENA_M IRDMAQPC_PMENA_M
-+
-+#define IRDMA_UDAQPC_INSERTTAG2_S 11
-+#define IRDMA_UDAQPC_INSERTTAG2_M BIT_ULL(IRDMA_UDAQPC_INSERTTAG2_S)
-+
-+#define IRDMA_UDAQPC_INSERTTAG3_S 14
-+#define IRDMA_UDAQPC_INSERTTAG3_M BIT_ULL(IRDMA_UDAQPC_INSERTTAG3_S)
-+
-+#define IRDMA_UDAQPC_RQSIZE_S IRDMAQPC_RQSIZE_S
-+#define IRDMA_UDAQPC_RQSIZE_M IRDMAQPC_RQSIZE_M
-+
-+#define IRDMA_UDAQPC_SQSIZE_S IRDMAQPC_SQSIZE_S
-+#define IRDMA_UDAQPC_SQSIZE_M IRDMAQPC_SQSIZE_M
-+
-+#define IRDMA_UDAQPC_TXCQNUM_S IRDMAQPC_TXCQNUM_S
-+#define IRDMA_UDAQPC_TXCQNUM_M IRDMAQPC_TXCQNUM_M
-+
-+#define IRDMA_UDAQPC_RXCQNUM_S IRDMAQPC_RXCQNUM_S
-+#define IRDMA_UDAQPC_RXCQNUM_M IRDMAQPC_RXCQNUM_M
-+
-+#define IRDMA_UDAQPC_QPCOMPCTX_S IRDMAQPC_QPCOMPCTX_S
-+#define IRDMA_UDAQPC_QPCOMPCTX_M IRDMAQPC_QPCOMPCTX_M
-+
-+#define IRDMA_UDAQPC_SQTPHVAL_S IRDMAQPC_SQTPHVAL_S
-+#define IRDMA_UDAQPC_SQTPHVAL_M IRDMAQPC_SQTPHVAL_M
-+
-+#define IRDMA_UDAQPC_RQTPHVAL_S IRDMAQPC_RQTPHVAL_S
-+#define IRDMA_UDAQPC_RQTPHVAL_M IRDMAQPC_RQTPHVAL_M
-+
-+#define IRDMA_UDAQPC_QSHANDLE_S IRDMAQPC_QSHANDLE_S
-+#define IRDMA_UDAQPC_QSHANDLE_M IRDMAQPC_QSHANDLE_M
-+
-+#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE_S 48
-+#define IRDMA_UDAQPC_RQHDRRINGBUFSIZE_M \
-+	((u64)0x3 << IRDMA_UDAQPC_RQHDRRINGBUFSIZE_S)
-+
-+#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE_S 32
-+#define IRDMA_UDAQPC_SQHDRRINGBUFSIZE_M \
-+	((u64)0x3 << IRDMA_UDAQPC_SQHDRRINGBUFSIZE_S)
-+
-+#define IRDMA_UDAQPC_PRIVILEGEENABLE_S 25
-+#define IRDMA_UDAQPC_PRIVILEGEENABLE_M \
-+	((u64)1 << IRDMA_UDAQPC_PRIVILEGEENABLE_S)
-+
-+#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_S 26
-+#define IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_M \
-+	((u64)1 << IRDMA_UDAQPC_USE_STATISTICS_INSTANCE_S)
-+
-+#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_S 0
-+#define IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_M \
-+	((u64)0x7F << IRDMA_UDAQPC_STATISTICS_INSTANCE_INDEX_S)
-+
-+#define IRDMA_UDAQPC_PRIVHDRGENENABLE_S 0
-+#define IRDMA_UDAQPC_PRIVHDRGENENABLE_M \
-+	BIT_ULL(IRDMA_UDAQPC_PRIVHDRGENENABLE_S)
-+
-+#define IRDMA_UDAQPC_RQHDRSPLITENABLE_S 3
-+#define IRDMA_UDAQPC_RQHDRSPLITENABLE_M \
-+	BIT_ULL(IRDMA_UDAQPC_RQHDRSPLITENABLE_S)
-+
-+#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE_S 2
-+#define IRDMA_UDAQPC_RQHDRRINGBUFENABLE_M \
-+	BIT_ULL(IRDMA_UDAQPC_RQHDRRINGBUFENABLE_S)
-+
-+#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE_S 1
-+#define IRDMA_UDAQPC_SQHDRRINGBUFENABLE_M \
-+	BIT_ULL(IRDMA_UDAQPC_SQHDRRINGBUFENABLE_S)
-+
-+#define IRDMA_UDAQPC_IPID_S 32
-+#define IRDMA_UDAQPC_IPID_M ((u64)0xffff << IRDMA_UDAQPC_IPID_S)
-+
-+#define IRDMA_UDAQPC_SNDMSS_S 16
-+#define IRDMA_UDAQPC_SNDMSS_M ((u64)0x3fff << IRDMA_UDAQPC_SNDMSS_S)
-+
-+#define IRDMA_UDAQPC_VLANTAG_S 0
-+#define IRDMA_UDAQPC_VLANTAG_M  ((u64)0xffff << IRDMA_UDAQPC_VLANTAG_S)
-+
-+/* Address Handle */
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_S 20
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_M \
-+	((u64)0x3 << IRDMA_UDA_CQPSQ_MAV_PDINDEXHI_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_S 48
-+#define IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_M \
-+	((u64)0xffff << IRDMA_UDA_CQPSQ_MAV_PDINDEXLO_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_S 24
-+#define IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_M \
-+	((u64)0x3f << IRDMA_UDA_CQPSQ_MAV_SRCMACADDRINDEX_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX_S 48
-+#define IRDMA_UDA_CQPSQ_MAV_ARPINDEX_M \
-+	((u64)0xffff << IRDMA_UDA_CQPSQ_MAV_ARPINDEX_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_TC_S 32
-+#define IRDMA_UDA_CQPSQ_MAV_TC_M ((u64)0xff << IRDMA_UDA_CQPSQ_MAV_TC_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_S 32
-+#define IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_M \
-+	((u64)0xff << IRDMA_UDA_CQPSQ_MAV_HOPLIMIT_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_S 0
-+#define IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_M \
-+	((u64)0xfffff << IRDMA_UDA_CQPSQ_MAV_FLOWLABEL_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR0_S 32
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR0_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR0_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR1_S 0
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR1_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR1_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR2_S 32
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR2_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR2_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR3_S 0
-+#define IRDMA_UDA_CQPSQ_MAV_ADDR3_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_MAV_ADDR3_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_WQEVALID_S 63
-+#define IRDMA_UDA_CQPSQ_MAV_WQEVALID_M \
-+	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_WQEVALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_OPCODE_S 32
-+#define IRDMA_UDA_CQPSQ_MAV_OPCODE_M \
-+	((u64)0x3f << IRDMA_UDA_CQPSQ_MAV_OPCODE_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_S 62
-+#define IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_M \
-+	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_DOLOOPBACKK_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID_S 59
-+#define IRDMA_UDA_CQPSQ_MAV_IPV4VALID_M \
-+	BIT_ULL(IRDMA_UDA_CQPSQ_MAV_IPV4VALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_AVIDX_S 0
-+#define IRDMA_UDA_CQPSQ_MAV_AVIDX_M \
-+	((u64)0x1ffff << IRDMA_UDA_CQPSQ_MAV_AVIDX_S)
-+
-+#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_S 60
-+#define IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_M BIT_ULL(IRDMA_UDA_CQPSQ_MAV_INSERTVLANTAG_S)
-+
-+/* UDA multicast group */
-+
-+#define IRDMA_UDA_MGCTX_VFFLAG_S 29
-+#define IRDMA_UDA_MGCTX_VFFLAG_M BIT_ULL(IRDMA_UDA_MGCTX_VFFLAG_S)
-+
-+#define IRDMA_UDA_MGCTX_DESTPORT_S 32
-+#define IRDMA_UDA_MGCTX_DESTPORT_M ((u64)0xffff << IRDMA_UDA_MGCTX_DESTPORT_S)
-+
-+#define IRDMA_UDA_MGCTX_VFID_S 22
-+#define IRDMA_UDA_MGCTX_VFID_M ((u64)0x7f << IRDMA_UDA_MGCTX_VFID_S)
-+
-+#define IRDMA_UDA_MGCTX_VALIDENT_S 31
-+#define IRDMA_UDA_MGCTX_VALIDENT_M BIT_ULL(IRDMA_UDA_MGCTX_VALIDENT_S)
-+
-+#define IRDMA_UDA_MGCTX_PFID_S 18
-+#define IRDMA_UDA_MGCTX_PFID_M ((u64)0xf << IRDMA_UDA_MGCTX_PFID_S)
-+
-+#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_S 30
-+#define IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_M \
-+	BIT_ULL(IRDMA_UDA_MGCTX_FLAGIGNOREDPORT_S)
-+
-+#define IRDMA_UDA_MGCTX_QPID_S 0
-+#define IRDMA_UDA_MGCTX_QPID_M ((u64)0x3ffff << IRDMA_UDA_MGCTX_QPID_S)
-+
-+/* multicast group create CQP command */
-+
-+#define IRDMA_UDA_CQPSQ_MG_WQEVALID_S 63
-+#define IRDMA_UDA_CQPSQ_MG_WQEVALID_M \
-+	BIT_ULL(IRDMA_UDA_CQPSQ_MG_WQEVALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_OPCODE_S 32
-+#define IRDMA_UDA_CQPSQ_MG_OPCODE_M ((u64)0x3f << IRDMA_UDA_CQPSQ_MG_OPCODE_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_MGIDX_S 0
-+#define IRDMA_UDA_CQPSQ_MG_MGIDX_M ((u64)0x1fff << IRDMA_UDA_CQPSQ_MG_MGIDX_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_IPV4VALID_S 60
-+#define IRDMA_UDA_CQPSQ_MG_IPV4VALID_M BIT_ULL(IRDMA_UDA_CQPSQ_MG_IPV4VALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_VLANVALID_S 59
-+#define IRDMA_UDA_CQPSQ_MG_VLANVALID_M BIT_ULL(IRDMA_UDA_CQPSQ_MG_VLANVALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_S 0
-+#define IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_M ((u64)0x3F << IRDMA_UDA_CQPSQ_MG_HMC_FCN_ID_S)
-+
-+#define IRDMA_UDA_CQPSQ_MG_VLANID_S 32
-+#define IRDMA_UDA_CQPSQ_MG_VLANID_M ((u64)0xFFF << IRDMA_UDA_CQPSQ_MG_VLANID_S)
-+
-+#define IRDMA_UDA_CQPSQ_QS_HANDLE_S 0
-+#define IRDMA_UDA_CQPSQ_QS_HANDLE_M ((u64)0x3FF << IRDMA_UDA_CQPSQ_QS_HANDLE_S)
-+
-+/* Quad hash table */
-+#define IRDMA_UDA_CQPSQ_QHASH_QPN_S 32
-+#define IRDMA_UDA_CQPSQ_QHASH_QPN_M \
-+	((u64)0x3ffff << IRDMA_UDA_CQPSQ_QHASH_QPN_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH__S 0
-+#define IRDMA_UDA_CQPSQ_QHASH__M BIT_ULL(IRDMA_UDA_CQPSQ_QHASH__S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_S 16
-+#define IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_M \
-+	((u64)0xffff << IRDMA_UDA_CQPSQ_QHASH_SRC_PORT_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_S 0
-+#define IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_M \
-+	((u64)0xffff << IRDMA_UDA_CQPSQ_QHASH_DEST_PORT_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR0_S 32
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR0_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR0_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR1_S 0
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR1_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR1_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR2_S 32
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR2_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR2_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR3_S 0
-+#define IRDMA_UDA_CQPSQ_QHASH_ADDR3_M \
-+	((u64)0xffffffff << IRDMA_UDA_CQPSQ_QHASH_ADDR3_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID_S 63
-+#define IRDMA_UDA_CQPSQ_QHASH_WQEVALID_M \
-+	BIT_ULL(IRDMA_UDA_CQPSQ_QHASH_WQEVALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_OPCODE_S 32
-+#define IRDMA_UDA_CQPSQ_QHASH_OPCODE_M \
-+	((u64)0x3f << IRDMA_UDA_CQPSQ_QHASH_OPCODE_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_MANAGE_S 61
-+#define IRDMA_UDA_CQPSQ_QHASH_MANAGE_M \
-+	((u64)0x3 << IRDMA_UDA_CQPSQ_QHASH_MANAGE_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_S 60
-+#define IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_M \
-+	((u64)0x1 << IRDMA_UDA_CQPSQ_QHASH_IPV4VALID_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_LANFWD_S 59
-+#define IRDMA_UDA_CQPSQ_QHASH_LANFWD_M \
-+	((u64)0x1 << IRDMA_UDA_CQPSQ_QHASH_LANFWD_S)
-+
-+#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_S 42
-+#define IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_M \
-+	((u64)0x7 << IRDMA_UDA_CQPSQ_QHASH_ENTRYTYPE_S)
-+#endif /* IRDMA_UDA_D_H */
++#if !defined(__TRACE_CM_H) || defined(TRACE_HEADER_MULTI_READ)
++#define __TRACE_CM_H
++
++#include <linux/tracepoint.h>
++#include <linux/trace_seq.h>
++
++#include "main.h"
++
++const char *print_ip_addr(struct trace_seq *p, u32 *addr, u16 port, bool ivp4);
++const char *parse_iw_event_type(enum iw_cm_event_type iw_type);
++const char *parse_cm_event_type(enum irdma_cm_event_type cm_type);
++const char *parse_cm_state(enum irdma_cm_node_state);
++#define __print_ip_addr(addr, port, ipv4) print_ip_addr(p, addr, port, ipv4)
++
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM icrdma_cm
++
++TRACE_EVENT(irdma_create_listen,
++	    TP_PROTO(struct irdma_device *iwdev, struct irdma_cm_info *cm_info),
++	    TP_ARGS(iwdev, cm_info),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __dynamic_array(u32, laddr, 4)
++			     __field(u16, lport)
++			     __field(bool, ipv4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++			   __entry->lport = cm_info->loc_port;
++			   __entry->ipv4 = cm_info->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_info->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  loc: %s",
++		      __entry->iwdev,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
++
++TRACE_EVENT(irdma_dec_refcnt_listen,
++	    TP_PROTO(struct irdma_cm_listener *listener, void *caller),
++	    TP_ARGS(listener, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __field(u32, refcnt)
++		    __dynamic_array(u32, laddr, 4)
++		    __field(u16, lport)
++		    __field(bool, ipv4)
++		    __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = listener->iwdev;
++			   __entry->lport = listener->loc_port;
++			   __entry->ipv4 = listener->ipv4;
++			   memcpy(__get_dynamic_array(laddr),
++				  listener->loc_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  loc: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4)
++		    )
++);
++
++DECLARE_EVENT_CLASS(listener_template,
++		    TP_PROTO(struct irdma_cm_listener *listener),
++		    TP_ARGS(listener),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __field(enum irdma_cm_listener_state,
++					     state)
++				     __dynamic_array(u32, laddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = listener->iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   __entry->state = listener->listener_state;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++			    )
++);
++
++DEFINE_EVENT(listener_template, irdma_find_listener,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
++
++DEFINE_EVENT(listener_template, irdma_del_multiple_qhash,
++	     TP_PROTO(struct irdma_cm_listener *listener),
++	     TP_ARGS(listener));
++
++TRACE_EVENT(irdma_negotiate_mpa_v2,
++	    TP_PROTO(struct irdma_cm_node *cm_node),
++	    TP_ARGS(cm_node),
++	    TP_STRUCT__entry(__field(struct irdma_cm_node *, cm_node)
++			     __field(u16, ord_size)
++			     __field(u16, ird_size)
++		    ),
++	    TP_fast_assign(__entry->cm_node = cm_node;
++			   __entry->ord_size = cm_node->ord_size;
++			   __entry->ird_size = cm_node->ird_size;
++		    ),
++	    TP_printk("MPVA2 Negotiated cm_node=%p ORD:[%d], IRD:[%d]",
++		      __entry->cm_node,
++		      __entry->ord_size,
++		      __entry->ird_size
++		    )
++);
++
++DECLARE_EVENT_CLASS(tos_template,
++		    TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++		    TP_ARGS(iwdev, tos, user_pri),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u8, tos)
++				     __field(u8, user_pri)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->tos = tos;
++				   __entry->user_pri = user_pri;
++			    ),
++		    TP_printk("iwdev=%p  TOS:[%d]  UP:[%d]",
++			      __entry->iwdev,
++			      __entry->tos,
++			      __entry->user_pri
++			    )
++);
++
++DEFINE_EVENT(tos_template, irdma_listener_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
++
++DEFINE_EVENT(tos_template, irdma_dcb_tos,
++	     TP_PROTO(struct irdma_device *iwdev, u8 tos, u8 user_pri),
++	     TP_ARGS(iwdev, tos, user_pri));
++
++DECLARE_EVENT_CLASS(qhash_template,
++		    TP_PROTO(struct irdma_device *iwdev,
++			     struct irdma_cm_listener *listener,
++			     char *dev_addr),
++		    TP_ARGS(iwdev, listener, dev_addr),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(u16, lport)
++				     __field(u16, vlan_id)
++				     __field(bool, ipv4)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, mac, ETH_ALEN)
++			    ),
++		    TP_fast_assign(__entry->iwdev = iwdev;
++				   __entry->lport = listener->loc_port;
++				   __entry->vlan_id = listener->vlan_id;
++				   __entry->ipv4 = listener->ipv4;
++				   memcpy(__get_dynamic_array(laddr),
++					  listener->loc_addr, 4);
++				   ether_addr_copy(__get_dynamic_array(mac),
++						   dev_addr);
++			    ),
++		    TP_printk("iwdev=%p  vlan=%d  MAC=%pM  loc: %s",
++			      __entry->iwdev,
++			      __entry->vlan_id,
++			      __get_dynamic_array(mac),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(qhash_template, irdma_add_mqh_6,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++DEFINE_EVENT(qhash_template, irdma_add_mqh_4,
++	     TP_PROTO(struct irdma_device *iwdev,
++		      struct irdma_cm_listener *listener, char *dev_addr),
++	     TP_ARGS(iwdev, listener, dev_addr));
++
++TRACE_EVENT(irdma_addr_resolve,
++	    TP_PROTO(struct irdma_device *iwdev, char *dev_addr),
++	    TP_ARGS(iwdev, dev_addr),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++		    __dynamic_array(u8, mac, ETH_ALEN)
++		    ),
++	    TP_fast_assign(__entry->iwdev = iwdev;
++		    ether_addr_copy(__get_dynamic_array(mac), dev_addr);
++		    ),
++	    TP_printk("iwdev=%p   MAC=%pM", __entry->iwdev,
++		      __get_dynamic_array(mac)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event,
++	    TP_PROTO(struct irdma_cm_node *cm_node, struct iw_cm_id *cm_id,
++		     enum iw_cm_event_type type, int status, void *caller),
++	    TP_ARGS(cm_node, cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(struct iw_cm_id *, cm_id)
++			     __field(u32, refcount)
++			     __field(u16, lport)
++			     __field(u16, rport)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, ipv4)
++			     __field(u16, vlan_id)
++			     __field(int, accel)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++			     __dynamic_array(u32, laddr, 4)
++			     __dynamic_array(u32, raddr, 4)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->cm_id = cm_id;
++			   __entry->refcount = atomic_read(&cm_node->ref_count);
++			   __entry->state = cm_node->state;
++			   __entry->lport = cm_node->loc_port;
++			   __entry->rport = cm_node->rem_port;
++			   __entry->ipv4 = cm_node->ipv4;
++			   __entry->vlan_id = cm_node->vlan_id;
++			   __entry->accel = cm_node->accelerated;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++			   memcpy(__get_dynamic_array(laddr),
++				  cm_node->loc_addr, 4);
++			   memcpy(__get_dynamic_array(raddr),
++				  cm_node->rem_addr, 4);
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  cm_id=%p  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  status=%d  loc: %s  rem: %s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_id,
++		      __entry->cm_node,
++		      __entry->refcount,
++		      __entry->vlan_id,
++		      __entry->accel,
++		      parse_cm_state(__entry->state),
++		      parse_iw_event_type(__entry->type),
++		      __entry->status,
++		      __print_ip_addr(__get_dynamic_array(laddr),
++				      __entry->lport, __entry->ipv4),
++		      __print_ip_addr(__get_dynamic_array(raddr),
++				      __entry->rport, __entry->ipv4)
++		    )
++);
++
++TRACE_EVENT(irdma_send_cm_event_no_node,
++	    TP_PROTO(struct iw_cm_id *cm_id, enum iw_cm_event_type type,
++		     int status, void *caller),
++	    TP_ARGS(cm_id, type, status, caller),
++	    TP_STRUCT__entry(__field(struct iw_cm_id *, cm_id)
++			     __field(enum iw_cm_event_type, type)
++			     __field(int, status)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->cm_id = cm_id;
++			   __entry->type = type;
++			   __entry->status = status;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("cm_id=%p  caller=%pS  event_type=%s  status=%d",
++		      __entry->cm_id,
++		      __entry->caller,
++		      parse_iw_event_type(__entry->type),
++		      __entry->status
++		    )
++);
++
++DECLARE_EVENT_CLASS(cm_node_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node,
++			     enum irdma_cm_event_type type, void *caller),
++		    TP_ARGS(cm_node, type, caller),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __field(enum irdma_cm_event_type, type)
++				     __field(void *, caller)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->refcount = atomic_read(&cm_node->ref_count);
++				   __entry->state = cm_node->state;
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   __entry->type = type;
++				   __entry->caller = caller;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  caller=%pS  node=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s  event_type=%s  loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->caller,
++			      __entry->cm_node,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      parse_cm_event_type(__entry->type),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_template, irdma_create_event,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_accept,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_connect,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_reject,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_find_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_send_reset,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_rem_ref_cm_node,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++DEFINE_EVENT(cm_node_template, irdma_cm_event_handler,
++	     TP_PROTO(struct irdma_cm_node *cm_node,
++		      enum irdma_cm_event_type type, void *caller),
++	     TP_ARGS(cm_node, type, caller));
++
++TRACE_EVENT(open_err_template,
++	    TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	    TP_ARGS(cm_node, reset, caller),
++	    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++			     __field(struct irdma_cm_node *, cm_node)
++			     __field(enum irdma_cm_node_state, state)
++			     __field(bool, reset)
++			     __field(void *, caller)
++		    ),
++	    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++			   __entry->cm_node = cm_node;
++			   __entry->state = cm_node->state;
++			   __entry->reset = reset;
++			   __entry->caller = caller;
++		    ),
++	    TP_printk("iwdev=%p  caller=%pS  node%p reset=%d  state=%s",
++		      __entry->iwdev,
++		      __entry->caller,
++		      __entry->cm_node,
++		      __entry->reset,
++		      parse_cm_state(__entry->state)
++		    )
++);
++
++DEFINE_EVENT(open_err_template, irdma_active_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DEFINE_EVENT(open_err_template, irdma_passive_open_err,
++	     TP_PROTO(struct irdma_cm_node *cm_node, bool reset, void *caller),
++	     TP_ARGS(cm_node, reset, caller));
++
++DECLARE_EVENT_CLASS(cm_node_ah_template,
++		    TP_PROTO(struct irdma_cm_node *cm_node),
++		    TP_ARGS(cm_node),
++		    TP_STRUCT__entry(__field(struct irdma_device *, iwdev)
++				     __field(struct irdma_cm_node *, cm_node)
++				     __field(struct irdma_sc_ah *, ah)
++				     __field(u32, refcount)
++				     __field(u16, lport)
++				     __field(u16, rport)
++				     __field(enum irdma_cm_node_state, state)
++				     __field(bool, ipv4)
++				     __field(u16, vlan_id)
++				     __field(int, accel)
++				     __dynamic_array(u32, laddr, 4)
++				     __dynamic_array(u32, raddr, 4)
++			    ),
++		    TP_fast_assign(__entry->iwdev = cm_node->iwdev;
++				   __entry->cm_node = cm_node;
++				   __entry->ah = cm_node->ah;
++				   __entry->refcount = atomic_read(&cm_node->ref_count);
++				   __entry->lport = cm_node->loc_port;
++				   __entry->rport = cm_node->rem_port;
++				   __entry->state = cm_node->state;
++				   __entry->ipv4 = cm_node->ipv4;
++				   __entry->vlan_id = cm_node->vlan_id;
++				   __entry->accel = cm_node->accelerated;
++				   memcpy(__get_dynamic_array(laddr),
++					  cm_node->loc_addr, 4);
++				   memcpy(__get_dynamic_array(raddr),
++					  cm_node->rem_addr, 4);
++			    ),
++		    TP_printk("iwdev=%p  node=%p  ah=%p  refcnt=%d  vlan_id=%d  accel=%d  state=%s loc: %s  rem: %s",
++			      __entry->iwdev,
++			      __entry->cm_node,
++			      __entry->ah,
++			      __entry->refcount,
++			      __entry->vlan_id,
++			      __entry->accel,
++			      parse_cm_state(__entry->state),
++			      __print_ip_addr(__get_dynamic_array(laddr),
++					      __entry->lport, __entry->ipv4),
++			      __print_ip_addr(__get_dynamic_array(raddr),
++					      __entry->rport, __entry->ipv4)
++		    )
++);
++
++DEFINE_EVENT(cm_node_ah_template, irdma_cm_free_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++DEFINE_EVENT(cm_node_ah_template, irdma_create_ah,
++	     TP_PROTO(struct irdma_cm_node *cm_node),
++	     TP_ARGS(cm_node));
++
++#endif  /* __TRACE_CM_H */
++
++#undef TRACE_INCLUDE_PATH
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_PATH .
++#define TRACE_INCLUDE_FILE trace_cm
++#include <trace/define_trace.h>
 -- 
 1.8.3.1
