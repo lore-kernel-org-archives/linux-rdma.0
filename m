@@ -1,35 +1,62 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [rdma-rc PATCH 0/2] iw_cxgb4: Adjust the cq/qp mask
-Date: Fri, 15 Feb 2019 15:47:46 -0700
-Message-ID: <20190215224746.GA19478@ziepe.ca>
-References: <20190214121054.11693-1-rajur@chelsio.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [LSF/MM TOPIC] Discuss least bad options for resolving
+ longterm-GUP usage by RDMA
+Date: Fri, 15 Feb 2019 15:38:29 -0800
+Message-ID: <20190215233828.GB30818@iweiny-DESK2.sc.intel.com>
+References: <CAPcyv4iHso+PqAm-4NfF0svoK4mELJMSWNp+vsG43UaW1S2eew@mail.gmail.com>
+ <20190211180654.GB24692@ziepe.ca>
+ <20190214202622.GB3420@redhat.com>
+ <20190214205049.GC12668@bombadil.infradead.org>
+ <20190214213922.GD3420@redhat.com>
+ <20190215011921.GS20493@dastard>
+ <01000168f1d25e3a-2857236c-a7cc-44b8-a5f3-f51c2cfe6ce4-000000@email.amazonses.com>
+ <20190215180852.GJ12668@bombadil.infradead.org>
+ <01000168f26d9e0c-aef3255a-5059-4657-b241-dae66663bbea-000000@email.amazonses.com>
+ <20190215220031.GB8001@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190214121054.11693-1-rajur@chelsio.com>
-Sender: netdev-owner@vger.kernel.org
-To: Raju Rangoju <rajur@chelsio.com>
-Cc: davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, swise@opengridcomputing.com
+In-Reply-To: <20190215220031.GB8001@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christopher Lameter <cl@linux.com>, Matthew Wilcox <willy@infradead.org>, Dave Chinner <david@fromorbit.com>, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Doug Ledford <dledford@redhat.com>, lsf-pc@lists.linux-foundation.org, linux-rdma <linux-rdma@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 14, 2019 at 05:40:52PM +0530, Raju Rangoju wrote:
-> Export the LLD sge_host_page_size field to ULDs via
-> cxgb4_lld_info, so that iw_cxgb4 can adjust the cq/qp
-> mask based on no.of bar2 pages in a host page.
+On Fri, Feb 15, 2019 at 03:00:31PM -0700, Jason Gunthorpe wrote:
+> On Fri, Feb 15, 2019 at 06:31:36PM +0000, Christopher Lameter wrote:
+> > On Fri, 15 Feb 2019, Matthew Wilcox wrote:
+> > 
+> > > > Since RDMA is something similar: Can we say that a file that is used for
+> > > > RDMA should not use the page cache?
+> > >
+> > > That makes no sense.  The page cache is the standard synchronisation point
+> > > for filesystems and processes.  The only problems come in for the things
+> > > which bypass the page cache like O_DIRECT and DAX.
+> > 
+> > It makes a lot of sense since the filesystems play COW etc games with the
+> > pages and RDMA is very much like O_DIRECT in that the pages are modified
+> > directly under I/O. It also bypasses the page cache in case you have
+> > not noticed yet.
 > 
-> This series has both net(cxgb4) and rdma(iw_cxgb4) changes,
-> and I would request this merge via rdma repo.
-> 
-> I have made sure this series applies cleanly on both net-next
-> and rdma-for-rc and doesn't cause any merge conflicts.
-> 
-> Raju Rangoju (2):
->   cxgb4: export sge_host_page_size to ulds
->   iw_cxgb4: cq/qp mask depends on bar2 pages in a host page
+> It is quite different, O_DIRECT modifies the physical blocks on the
+> storage, bypassing the memory copy.
+>
 
-As requested, applied to for-rc with some revisions to the commit
-messages.
+Really?  I thought O_DIRECT allowed the block drivers to write to/from user
+space buffers.  But the _storage_ was still under the control of the block
+drivers?
 
-Thanks,
-Jason
+>
+> RDMA modifies the memory copy.
+> 
+> pages are necessary to do RDMA, and those pages have to be flushed to
+> disk.. So I'm not seeing how it can be disconnected from the page
+> cache?
+
+I don't disagree with this.
+
+Ira
+
+> 
+> Jason
