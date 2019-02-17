@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH net-next 2/2] net/mlx5: Delete unused FPGA QPN variable
-Date: Sun, 17 Feb 2019 15:21:28 +0200
-Message-ID: <20190217132128.9709-3-leon@kernel.org>
+Subject: [PATCH net-next 1/2] net/mlx5e: Add missing static function annotation
+Date: Sun, 17 Feb 2019 15:21:27 +0200
+Message-ID: <20190217132128.9709-2-leon@kernel.org>
 References: <20190217132128.9709-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,38 +14,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-fpga_qpn was assigned but never used and compilation with W=1
-produced the following warning:
 
-drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c: In function _mlx5_fpga_event_:
-drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c:320:6: warning:
-variable _fpga_qpn_ set but not used [-Wunused-but-set-variable]
-  u32 fpga_qpn;
-      ^~~~~~~~
+Compilation with W=1 produces following warning:
 
-Fixes: 98db16bab59f ("net/mlx5: FPGA, Handle QP error event")
+drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c:69:6:
+warning: no previous prototype for _mlx5e_monitor_counter_start_ [-Wmissing-prototypes]
+ void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
+      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid it by declaring mlx5e_monitor_counter_start() as a static function.
+
+Fixes: 5c7e8bbb0257 ("net/mlx5e: Use monitor counters for update stats")
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c | 2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
-index 27c5f6c7d36a..d046d1ec2a86 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/core.c
-@@ -317,7 +317,6 @@ static int mlx5_fpga_event(struct mlx5_fpga_device *fdev,
- 	const char *event_name;
- 	bool teardown = false;
- 	unsigned long flags;
--	u32 fpga_qpn;
- 	u8 syndrome;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
+index 2ce420851e77..7cd5b02e0f10 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
+@@ -66,7 +66,7 @@ static int mlx5e_monitor_event_handler(struct notifier_block *nb,
+ 	return NOTIFY_OK;
+ }
 
- 	switch (event) {
-@@ -328,7 +327,6 @@ static int mlx5_fpga_event(struct mlx5_fpga_device *fdev,
- 	case MLX5_EVENT_TYPE_FPGA_QP_ERROR:
- 		syndrome = MLX5_GET(fpga_qp_error_event, data, syndrome);
- 		event_name = mlx5_fpga_qp_syndrome_to_string(syndrome);
--		fpga_qpn = MLX5_GET(fpga_qp_error_event, data, fpga_qpn);
- 		break;
- 	default:
- 		return NOTIFY_DONE;
+-void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
++static void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
+ {
+ 	MLX5_NB_INIT(&priv->monitor_counters_nb, mlx5e_monitor_event_handler,
+ 		     MONITOR_COUNTER);
