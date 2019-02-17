@@ -1,45 +1,111 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH net-next 1/2] net/mlx5e: Add missing static function annotation
-Date: Sun, 17 Feb 2019 15:21:27 +0200
-Message-ID: <20190217132128.9709-2-leon@kernel.org>
-References: <20190217132128.9709-1-leon@kernel.org>
+From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
+Subject: [PATCH v2] IB/mlx4: Increase the timeout for CM cache
+Date: Sun, 17 Feb 2019 15:45:12 +0100
+Message-ID: <20190217144512.1171546-1-haakon.bugge@oracle.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190217132128.9709-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, "David S . Miller" <davem@davemloft.net>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Eyal Davidovich <eyald@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, jackm@dev.mellanox.co.il, majd@mellanox.com
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+Using CX-3 virtual functions, either from a bare-metal machine or
+pass-through from a VM, MAD packets are proxied through the PF driver.
 
+Since the VF drivers have separate name spaces for MAD Transaction Ids
+(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
+in a cache.
 
-Compilation with W=1 produces following warning:
+Following the RDMA Connection Manager (CM) protocol, it is clear when
+an entry has to evicted form the cache. But life is not perfect,
+remote peers may die or be rebooted. Hence, it's a timeout to wipe out
+a cache entry, when the PF driver assumes the remote peer has gone.
 
-drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c:69:6:
-warning: no previous prototype for _mlx5e_monitor_counter_start_ [-Wmissing-prototypes]
- void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
-      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+During workloads where a high number of QPs are destroyed concurrently,
+excessive amount of CM DREQ retries has been observed
 
-Avoid it by declaring mlx5e_monitor_counter_start() as a static function.
+The problem can be demonstrated in a bare-metal environment, where two
+nodes have instantiated 8 VFs each. This using dual ported HCAs, so we
+have 16 vPorts per physical server.
 
-Fixes: 5c7e8bbb0257 ("net/mlx5e: Use monitor counters for update stats")
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+64 processes are associated with each vPort and creates and destroys
+one QP for each of the remote 64 processes. That is, 1024 QPs per
+vPort, all in all 16K QPs. The QPs are created/destroyed using the
+CM.
+
+When tearing down these 16K QPs, excessive CM DREQ retries (and
+duplicates) are observed. With some cat/paste/awk wizardry on the
+infiniband_cm sysfs, we observe as sum of the 16 vPorts on one of the
+nodes:
+
+cm_rx_duplicates:
+      dreq  2102
+cm_rx_msgs:
+      drep  1989
+      dreq  6195
+       rep  3968
+       req  4224
+       rtu  4224
+cm_tx_msgs:
+      drep  4093
+      dreq 27568
+       rep  4224
+       req  3968
+       rtu  3968
+cm_tx_retries:
+      dreq 23469
+
+Note that the active/passive side is equally distributed between the
+two nodes.
+
+Enabling pr_debug in cm.c gives tons of:
+
+[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
+1,sl_cm_id: 0xd393089f} is NULL!
+
+By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
+tear-down phase of the application is reduced from approximately 90 to
+50 seconds. Retries/duplicates are also significantly reduced:
+
+cm_rx_duplicates:
+      dreq  2460
+[]
+cm_tx_retries:
+      dreq  3010
+       req    47
+
+Increasing the timeout further didn't help, as these duplicates and
+retries stems from a too short CMA timeout, which was 20 (~4 seconds)
+on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
+numbers fell down to about 10 for both of them.
+
+Adjustment of the CMA timeout is not part of this commit.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+
 ---
- drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c | 2 +-
+
+v1 -> v2:
+   * Reworded commit message to reflect the new test-setup using
+     multiple VFs
+---
+ drivers/infiniband/hw/mlx4/cm.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c b/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
-index 2ce420851e77..7cd5b02e0f10 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/en/monitor_stats.c
-@@ -66,7 +66,7 @@ static int mlx5e_monitor_event_handler(struct notifier_block *nb,
- 	return NOTIFY_OK;
- }
-
--void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
-+static void mlx5e_monitor_counter_start(struct mlx5e_priv *priv)
- {
- 	MLX5_NB_INIT(&priv->monitor_counters_nb, mlx5e_monitor_event_handler,
- 		     MONITOR_COUNTER);
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index fedaf8260105..8c79a480f2b7 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -39,7 +39,7 @@
+ 
+ #include "mlx4_ib.h"
+ 
+-#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
++#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
+ 
+ struct id_map_entry {
+ 	struct rb_node node;
+-- 
+2.20.1
