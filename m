@@ -1,61 +1,38 @@
-From: Tariq Toukan <tariqt@mellanox.com>
-Subject: Re: [PATCH] net/mlx4_en: fix spelling mistake: "quiting" ->
- "quitting"
-Date: Mon, 18 Feb 2019 14:54:18 +0000
-Message-ID: <3dbc29c2-2f6f-5854-2ac6-729fba100f79@mellanox.com>
-References: <20190217230331.18678-1-colin.king@canonical.com>
- <2a1a6636-7795-addb-d7b7-711a23dbafa5@mellanox.com>
- <20190218102557.GC17104@kadam>
+From: Salil Mehta <salil.mehta@huawei.com>
+Subject: [PATCH net] net: hns: Fixes the missing put_device in positive leg for roce reset
+Date: Mon, 18 Feb 2019 17:40:32 +0000
+Message-ID: <20190218174032.22972-1-salil.mehta@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190218102557.GC17104@kadam>
-Content-Language: en-US
-Content-ID: <BD3D1790EF69374298A681E7FB132C31@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Tariq Toukan <tariqt@mellanox.com>
-Cc: Colin King <colin.king@canonical.com>, "David S . Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: salil.mehta@huawei.com, yisen.zhuang@huawei.com, lipeng321@huawei.com, mehta.salil@opnsrc.net, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDIvMTgvMjAxOSAxMjoyNSBQTSwgRGFuIENhcnBlbnRlciB3cm90ZToNCj4gT24gTW9u
-LCBGZWIgMTgsIDIwMTkgYXQgMDk6Mzc6MjJBTSArMDAwMCwgVGFyaXEgVG91a2FuIHdyb3RlOg0K
-Pj4NCj4+DQo+PiBPbiAyLzE4LzIwMTkgMTowMyBBTSwgQ29saW4gS2luZyB3cm90ZToNCj4+PiBG
-cm9tOiBDb2xpbiBJYW4gS2luZyA8Y29saW4ua2luZ0BjYW5vbmljYWwuY29tPg0KPj4+DQo+Pj4g
-VGhlcmUgaXMgYSBzcGVsbGluZyBtaXN0YWtlIGluIGEgZW5fZXJyIGVycm9yIG1lc3NhZ2UuIEZp
-eCBpdC4NCj4+Pg0KPj4+IFNpZ25lZC1vZmYtYnk6IENvbGluIElhbiBLaW5nIDxjb2xpbi5raW5n
-QGNhbm9uaWNhbC5jb20+DQo+Pj4gLS0tDQo+Pj4gICAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
-bGFub3gvbWx4NC9lbl9uZXRkZXYuYyB8IDIgKy0NCj4+PiAgICAxIGZpbGUgY2hhbmdlZCwgMSBp
-bnNlcnRpb24oKyksIDEgZGVsZXRpb24oLSkNCj4+Pg0KPj4+IGRpZmYgLS1naXQgYS9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg0L2VuX25ldGRldi5jIGIvZHJpdmVycy9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9uZXRkZXYuYw0KPj4+IGluZGV4IDZiODg4ODFiOGUzNS4u
-YzE0MzhhZTUyYTExIDEwMDY0NA0KPj4+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
-bm94L21seDQvZW5fbmV0ZGV2LmMNCj4+PiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxs
-YW5veC9tbHg0L2VuX25ldGRldi5jDQo+Pj4gQEAgLTMzNjAsNyArMzM2MCw3IEBAIGludCBtbHg0
-X2VuX2luaXRfbmV0ZGV2KHN0cnVjdCBtbHg0X2VuX2RldiAqbWRldiwgaW50IHBvcnQsDQo+Pj4g
-ICAgCWRldi0+YWRkcl9sZW4gPSBFVEhfQUxFTjsNCj4+PiAgICAJbWx4NF9lbl91NjRfdG9fbWFj
-KGRldi0+ZGV2X2FkZHIsIG1kZXYtPmRldi0+Y2Fwcy5kZWZfbWFjW3ByaXYtPnBvcnRdKTsNCj4+
-PiAgICAJaWYgKCFpc192YWxpZF9ldGhlcl9hZGRyKGRldi0+ZGV2X2FkZHIpKSB7DQo+Pj4gLQkJ
-ZW5fZXJyKHByaXYsICJQb3J0OiAlZCwgaW52YWxpZCBtYWMgYnVybmVkOiAlcE0sIHF1aXRpbmdc
-biIsDQo+Pj4gKwkJZW5fZXJyKHByaXYsICJQb3J0OiAlZCwgaW52YWxpZCBtYWMgYnVybmVkOiAl
-cE0sIHF1aXR0aW5nXG4iLA0KPj4+ICAgIAkJICAgICAgIHByaXYtPnBvcnQsIGRldi0+ZGV2X2Fk
-ZHIpOw0KPj4+ICAgIAkJZXJyID0gLUVJTlZBTDsNCj4+PiAgICAJCWdvdG8gb3V0Ow0KPj4+DQo+
-Pg0KPj4gSGkgQ29saW4sIHRoYW5rcyBmb3IgeW91ciBwYXRjaC4NCj4+DQo+PiBSZXZpZXdlZC1i
-eTogVGFyaXEgVG91a2FuIDx0YXJpcXRAbWVsbGFub3guY29tPg0KPj4NCj4+IEkgd291bGQgc3Vn
-Z2VzdCBhZGRpbmcgYSBGaXhlcyBsaW5lLCBidXQgbG9va2luZyBpbnRvIHRoZSBoaXN0b3J5IG9m
-IHRoZQ0KPj4gdHlwbywgaXQgd2VudCB0aHJvdWdoIG1hbnkgcGF0Y2hlcyB0aGF0IG1vZGlmaWVk
-IHRoaXMgbGluZSBidXQgcHJlc2VydmVkDQo+PiB0aGUgdHlwby4NCj4+IEFjdHVhbGx5LCBpdCBk
-YXRlcyBiYWNrIHRvIHRoZSB2ZXJ5IGZpcnN0IGNvbW1pdCB0aGF0IGludHJvZHVjZXMgbWx4NA0K
-Pj4gZHJpdmVyOg0KPj4NCj4+IFBhdGNoZXMgaGlzdG9yeToNCj4+IDJiM2RkZjI3ZjQ4YyBuZXQv
-bWx4NF9jb3JlOiBSZXBsYWNlIFZGIHplcm8gbWFjIHdpdGggcmFuZG9tIG1hYyBpbiBtbHg0X2Nv
-cmUNCj4+IGVmOTZmN2Q0NmFkOCBuZXQvbWx4NF9lbjogSGFuZGxlIHVuYXNzaWduZWQgVkYgTUFD
-IGFkZHJlc3MgY29ycmVjdGx5DQo+PiA2YmJiNmQ5OWYzZDIgbmV0L21seDRfZW46IE9wdGltaXpl
-IFJ4IGZhc3QgcGF0aCBmaWx0ZXIgY2hlY2tzDQo+PiA0NTNhNjA4Mjc3MzUgbWx4NF9lbjogR2l2
-aW5nIGludGVyZmFjZSBuYW1lIGluIGRlYnVnIG1lc3NhZ2VzDQo+PiBjMjdhMDJjZDk0ZDYgbWx4
-NF9lbjogQWRkIGRyaXZlciBmb3IgTWVsbGFub3ggQ29ubmVjdFggMTBHYkUgTklDDQo+Pg0KPj4g
-SSdtIG5vdCBzdXJlIHdoYXQgdGhlICJGaXhlczoiIHBvbGljeSBpcyBpbiB0aGVzZSBjYXNlcy4N
-Cj4gDQo+IEkgd291bGRuJ3QgbmVjZXNzYXJpbHkgcHV0IGEgRml4ZXMgdGFnIG9uIHRoaXMsIGJl
-Y2F1c2UgZG9lcyBmaXhpbmcgdGhlDQo+IHNwZWxsaW5nIHJlYWxseSBjb3VudCBhcyBhIGJ1Z2Zp
-eD8gIEl0J3MgYm9yZGVybGluZSB3aGV0aGVyIGl0J3MgYSBmaXgNCj4gb3IgYSBjbGVhbnVwLg0K
-PiANCj4gcmVnYXJkcywNCj4gZGFhbiBjYXJwZW50ZXINCj4gDQoNClRoYW5rcyBEYW4sIEknbSBm
-aW5lIHdpdGggdGhhdC4NCg==
+This patch fixes the missing device reference release-after-use in
+the positive leg of the roce reset API of the HNS DSAF.
+
+Fixes: c969c6e7ab8c ("net: hns: Fix object reference leaks in hns_dsaf_roce_reset()")
+Reported-by: John Garry <john.garry@huawei.com>
+Signed-off-by: Salil Mehta <salil.mehta@huawei.com>
+---
+ drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+index b8155f5..ac55db0 100644
+--- a/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
++++ b/drivers/net/ethernet/hisilicon/hns/hns_dsaf_main.c
+@@ -3128,6 +3128,9 @@ int hns_dsaf_roce_reset(struct fwnode_handle *dsaf_fwnode, bool dereset)
+ 		dsaf_set_bit(credit, DSAF_SBM_ROCEE_CFG_CRD_EN_B, 1);
+ 		dsaf_write_dev(dsaf_dev, DSAF_SBM_ROCEE_CFG_REG_REG, credit);
+ 	}
++
++	put_device(&pdev->dev);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(hns_dsaf_roce_reset);
+-- 
+2.7.4
