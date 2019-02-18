@@ -1,51 +1,70 @@
-From: Tariq Toukan <tariqt@mellanox.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
 Subject: Re: [PATCH] net/mlx4_en: fix spelling mistake: "quiting" ->
  "quitting"
-Date: Mon, 18 Feb 2019 09:37:22 +0000
-Message-ID: <2a1a6636-7795-addb-d7b7-711a23dbafa5@mellanox.com>
+Date: Mon, 18 Feb 2019 13:25:57 +0300
+Message-ID: <20190218102557.GC17104@kadam>
 References: <20190217230331.18678-1-colin.king@canonical.com>
+ <2a1a6636-7795-addb-d7b7-711a23dbafa5@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190217230331.18678-1-colin.king@canonical.com>
-Content-Language: en-US
-Content-ID: <F4FE1209D8BCC54098698E1E7606FDA6@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <2a1a6636-7795-addb-d7b7-711a23dbafa5@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, "David S . Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
-Cc: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tariq Toukan <tariqt@mellanox.com>
+Cc: Colin King <colin.king@canonical.com>, "David S . Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDIvMTgvMjAxOSAxOjAzIEFNLCBDb2xpbiBLaW5nIHdyb3RlOg0KPiBGcm9tOiBDb2xp
-biBJYW4gS2luZyA8Y29saW4ua2luZ0BjYW5vbmljYWwuY29tPg0KPiANCj4gVGhlcmUgaXMgYSBz
-cGVsbGluZyBtaXN0YWtlIGluIGEgZW5fZXJyIGVycm9yIG1lc3NhZ2UuIEZpeCBpdC4NCj4gDQo+
-IFNpZ25lZC1vZmYtYnk6IENvbGluIElhbiBLaW5nIDxjb2xpbi5raW5nQGNhbm9uaWNhbC5jb20+
-DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvZW5fbmV0ZGV2
-LmMgfCAyICstDQo+ICAgMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9u
-KC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4
-NC9lbl9uZXRkZXYuYyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvZW5fbmV0
-ZGV2LmMNCj4gaW5kZXggNmI4ODg4MWI4ZTM1Li5jMTQzOGFlNTJhMTEgMTAwNjQ0DQo+IC0tLSBh
-L2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvZW5fbmV0ZGV2LmMNCj4gKysrIGIv
-ZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9lbl9uZXRkZXYuYw0KPiBAQCAtMzM2
-MCw3ICszMzYwLDcgQEAgaW50IG1seDRfZW5faW5pdF9uZXRkZXYoc3RydWN0IG1seDRfZW5fZGV2
-ICptZGV2LCBpbnQgcG9ydCwNCj4gICAJZGV2LT5hZGRyX2xlbiA9IEVUSF9BTEVOOw0KPiAgIAlt
-bHg0X2VuX3U2NF90b19tYWMoZGV2LT5kZXZfYWRkciwgbWRldi0+ZGV2LT5jYXBzLmRlZl9tYWNb
-cHJpdi0+cG9ydF0pOw0KPiAgIAlpZiAoIWlzX3ZhbGlkX2V0aGVyX2FkZHIoZGV2LT5kZXZfYWRk
-cikpIHsNCj4gLQkJZW5fZXJyKHByaXYsICJQb3J0OiAlZCwgaW52YWxpZCBtYWMgYnVybmVkOiAl
-cE0sIHF1aXRpbmdcbiIsDQo+ICsJCWVuX2Vycihwcml2LCAiUG9ydDogJWQsIGludmFsaWQgbWFj
-IGJ1cm5lZDogJXBNLCBxdWl0dGluZ1xuIiwNCj4gICAJCSAgICAgICBwcml2LT5wb3J0LCBkZXYt
-PmRldl9hZGRyKTsNCj4gICAJCWVyciA9IC1FSU5WQUw7DQo+ICAgCQlnb3RvIG91dDsNCj4gDQoN
-CkhpIENvbGluLCB0aGFua3MgZm9yIHlvdXIgcGF0Y2guDQoNClJldmlld2VkLWJ5OiBUYXJpcSBU
-b3VrYW4gPHRhcmlxdEBtZWxsYW5veC5jb20+DQoNCkkgd291bGQgc3VnZ2VzdCBhZGRpbmcgYSBG
-aXhlcyBsaW5lLCBidXQgbG9va2luZyBpbnRvIHRoZSBoaXN0b3J5IG9mIHRoZSANCnR5cG8sIGl0
-IHdlbnQgdGhyb3VnaCBtYW55IHBhdGNoZXMgdGhhdCBtb2RpZmllZCB0aGlzIGxpbmUgYnV0IHBy
-ZXNlcnZlZCANCnRoZSB0eXBvLg0KQWN0dWFsbHksIGl0IGRhdGVzIGJhY2sgdG8gdGhlIHZlcnkg
-Zmlyc3QgY29tbWl0IHRoYXQgaW50cm9kdWNlcyBtbHg0IA0KZHJpdmVyOg0KDQpQYXRjaGVzIGhp
-c3Rvcnk6DQoyYjNkZGYyN2Y0OGMgbmV0L21seDRfY29yZTogUmVwbGFjZSBWRiB6ZXJvIG1hYyB3
-aXRoIHJhbmRvbSBtYWMgaW4gbWx4NF9jb3JlDQplZjk2ZjdkNDZhZDggbmV0L21seDRfZW46IEhh
-bmRsZSB1bmFzc2lnbmVkIFZGIE1BQyBhZGRyZXNzIGNvcnJlY3RseQ0KNmJiYjZkOTlmM2QyIG5l
-dC9tbHg0X2VuOiBPcHRpbWl6ZSBSeCBmYXN0IHBhdGggZmlsdGVyIGNoZWNrcw0KNDUzYTYwODI3
-NzM1IG1seDRfZW46IEdpdmluZyBpbnRlcmZhY2UgbmFtZSBpbiBkZWJ1ZyBtZXNzYWdlcw0KYzI3
-YTAyY2Q5NGQ2IG1seDRfZW46IEFkZCBkcml2ZXIgZm9yIE1lbGxhbm94IENvbm5lY3RYIDEwR2JF
-IE5JQw0KDQpJJ20gbm90IHN1cmUgd2hhdCB0aGUgIkZpeGVzOiIgcG9saWN5IGlzIGluIHRoZXNl
-IGNhc2VzLg0KDQpUaGFua3MsDQpUYXJpcQ0K
+On Mon, Feb 18, 2019 at 09:37:22AM +0000, Tariq Toukan wrote:
+> 
+> 
+> On 2/18/2019 1:03 AM, Colin King wrote:
+> > From: Colin Ian King <colin.king@canonical.com>
+> > 
+> > There is a spelling mistake in a en_err error message. Fix it.
+> > 
+> > Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> > ---
+> >   drivers/net/ethernet/mellanox/mlx4/en_netdev.c | 2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> > index 6b88881b8e35..c1438ae52a11 100644
+> > --- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> > +++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+> > @@ -3360,7 +3360,7 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+> >   	dev->addr_len = ETH_ALEN;
+> >   	mlx4_en_u64_to_mac(dev->dev_addr, mdev->dev->caps.def_mac[priv->port]);
+> >   	if (!is_valid_ether_addr(dev->dev_addr)) {
+> > -		en_err(priv, "Port: %d, invalid mac burned: %pM, quiting\n",
+> > +		en_err(priv, "Port: %d, invalid mac burned: %pM, quitting\n",
+> >   		       priv->port, dev->dev_addr);
+> >   		err = -EINVAL;
+> >   		goto out;
+> > 
+> 
+> Hi Colin, thanks for your patch.
+> 
+> Reviewed-by: Tariq Toukan <tariqt@mellanox.com>
+> 
+> I would suggest adding a Fixes line, but looking into the history of the 
+> typo, it went through many patches that modified this line but preserved 
+> the typo.
+> Actually, it dates back to the very first commit that introduces mlx4 
+> driver:
+> 
+> Patches history:
+> 2b3ddf27f48c net/mlx4_core: Replace VF zero mac with random mac in mlx4_core
+> ef96f7d46ad8 net/mlx4_en: Handle unassigned VF MAC address correctly
+> 6bbb6d99f3d2 net/mlx4_en: Optimize Rx fast path filter checks
+> 453a60827735 mlx4_en: Giving interface name in debug messages
+> c27a02cd94d6 mlx4_en: Add driver for Mellanox ConnectX 10GbE NIC
+> 
+> I'm not sure what the "Fixes:" policy is in these cases.
+
+I wouldn't necessarily put a Fixes tag on this, because does fixing the
+spelling really count as a bugfix?  It's borderline whether it's a fix
+or a cleanup.
+
+regards,
+daan carpenter
