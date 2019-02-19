@@ -1,103 +1,88 @@
 From: jglisse@redhat.com
-Subject: [PATCH v5 3/9] mm/mmu_notifier: convert mmu_notifier_range->blockable to a flags
-Date: Tue, 19 Feb 2019 15:04:24 -0500
-Message-ID: <20190219200430.11130-4-jglisse@redhat.com>
+Subject: [PATCH v5 4/9] mm/mmu_notifier: contextual information for event enums
+Date: Tue, 19 Feb 2019 15:04:25 -0500
+Message-ID: <20190219200430.11130-5-jglisse@redhat.com>
 References: <20190219200430.11130-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20190219200430.11130-1-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jérôme Glisse <jglisse@redhat.com>
-
-Use an unsigned field for flags other than blockable and convert
-the blockable field to be one of those flags.
-
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: kvm@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-rdma@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/mmu_notifier.h | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index e630def131ce..c8672c366f67 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -25,11 +25,13 @@ struct mmu_notifier_mm {
- 	spinlock_t lock;
- };
- 
-+#define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
-+
- struct mmu_notifier_range {
- 	struct mm_struct *mm;
- 	unsigned long start;
- 	unsigned long end;
--	bool blockable;
-+	unsigned flags;
- };
- 
- struct mmu_notifier_ops {
-@@ -229,7 +231,7 @@ extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
- static inline bool
- mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
- {
--	return range->blockable;
-+	return (range->flags & MMU_NOTIFIER_RANGE_BLOCKABLE);
- }
- 
- static inline void mmu_notifier_release(struct mm_struct *mm)
-@@ -275,7 +277,7 @@ static inline void
- mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
- {
- 	if (mm_has_notifiers(range->mm)) {
--		range->blockable = true;
-+		range->flags |= MMU_NOTIFIER_RANGE_BLOCKABLE;
- 		__mmu_notifier_invalidate_range_start(range);
- 	}
- }
-@@ -284,7 +286,7 @@ static inline int
- mmu_notifier_invalidate_range_start_nonblock(struct mmu_notifier_range *range)
- {
- 	if (mm_has_notifiers(range->mm)) {
--		range->blockable = false;
-+		range->flags &= ~MMU_NOTIFIER_RANGE_BLOCKABLE;
- 		return __mmu_notifier_invalidate_range_start(range);
- 	}
- 	return 0;
-@@ -331,6 +333,7 @@ static inline void mmu_notifier_range_init(struct mmu_notifier_range *range,
- 	range->mm = mm;
- 	range->start = start;
- 	range->end = end;
-+	range->flags = 0;
- }
- 
- #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
--- 
-2.17.2
+RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpDUFUgcGFnZSB0YWJs
+ZSB1cGRhdGUgY2FuIGhhcHBlbnMgZm9yIG1hbnkgcmVhc29ucywgbm90IG9ubHkgYXMgYSByZXN1
+bHQKb2YgYSBzeXNjYWxsIChtdW5tYXAoKSwgbXByb3RlY3QoKSwgbXJlbWFwKCksIG1hZHZpc2Uo
+KSwgLi4uKSBidXQgYWxzbwphcyBhIHJlc3VsdCBvZiBrZXJuZWwgYWN0aXZpdGllcyAobWVtb3J5
+IGNvbXByZXNzaW9uLCByZWNsYWltLCBtaWdyYXRpb24sCi4uLikuCgpUaGlzIHBhdGNoIGludHJv
+ZHVjZSBhIHNldCBvZiBlbnVtcyB0aGF0IGNhbiBiZSBhc3NvY2lhdGVkIHdpdGggZWFjaCBvZgp0
+aGUgZXZlbnRzIHRyaWdnZXJpbmcgYSBtbXUgbm90aWZpZXIuIExhdHRlciBwYXRjaGVzIHRha2Ug
+YWR2YW50YWdlcyBvZgp0aG9zZSBlbnVtIHZhbHVlcy4KCiAgICAtIFVOTUFQOiBtdW5tYXAoKSBv
+ciBtcmVtYXAoKQogICAgLSBDTEVBUjogcGFnZSB0YWJsZSBpcyBjbGVhcmVkIChtaWdyYXRpb24s
+IGNvbXBhY3Rpb24sIHJlY2xhaW0sIC4uLikKICAgIC0gUFJPVEVDVElPTl9WTUE6IGNoYW5nZSBp
+biBhY2Nlc3MgcHJvdGVjdGlvbnMgZm9yIHRoZSByYW5nZQogICAgLSBQUk9URUNUSU9OX1BBR0U6
+IGNoYW5nZSBpbiBhY2Nlc3MgcHJvdGVjdGlvbnMgZm9yIHBhZ2UgaW4gdGhlIHJhbmdlCiAgICAt
+IFNPRlRfRElSVFk6IHNvZnQgZGlydHluZXNzIHRyYWNraW5nCgpCZWluZyBhYmxlIHRvIGlkZW50
+aWZ5IG11bm1hcCgpIGFuZCBtcmVtYXAoKSBmcm9tIG90aGVyIHJlYXNvbnMgd2h5IHRoZQpwYWdl
+IHRhYmxlIGlzIGNsZWFyZWQgaXMgaW1wb3J0YW50IHRvIGFsbG93IHVzZXIgb2YgbW11IG5vdGlm
+aWVyIHRvCnVwZGF0ZSB0aGVpciBvd24gaW50ZXJuYWwgdHJhY2tpbmcgc3RydWN0dXJlIGFjY29y
+ZGluZ2x5IChvbiBtdW5tYXAgb3IKbXJlbWFwIGl0IGlzIG5vdCBsb25nZXIgbmVlZGVkIHRvIHRy
+YWNrIHJhbmdlIG9mIHZpcnR1YWwgYWRkcmVzcyBhcyBpdApiZWNvbWVzIGludmFsaWQpLgoKU2ln
+bmVkLW9mZi1ieTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CkNjOiBDaHJp
+c3RpYW4gS8O2bmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5jb20+CkNjOiBKb29uYXMgTGFodGlu
+ZW4gPGpvb25hcy5sYWh0aW5lbkBsaW51eC5pbnRlbC5jb20+CkNjOiBKYW5pIE5pa3VsYSA8amFu
+aS5uaWt1bGFAbGludXguaW50ZWwuY29tPgpDYzogUm9kcmlnbyBWaXZpIDxyb2RyaWdvLnZpdmlA
+aW50ZWwuY29tPgpDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KQ2M6IEFuZHJlYSBBcmNhbmdl
+bGkgPGFhcmNhbmdlQHJlZGhhdC5jb20+CkNjOiBQZXRlciBYdSA8cGV0ZXJ4QHJlZGhhdC5jb20+
+CkNjOiBGZWxpeCBLdWVobGluZyA8RmVsaXguS3VlaGxpbmdAYW1kLmNvbT4KQ2M6IEphc29uIEd1
+bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KQ2M6IFJvc3MgWndpc2xlciA8endpc2xlckBrZXJu
+ZWwub3JnPgpDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+CkNjOiBQ
+YW9sbyBCb256aW5pIDxwYm9uemluaUByZWRoYXQuY29tPgpDYzogUmFkaW0gS3LEjW3DocWZIDxy
+a3JjbWFyQHJlZGhhdC5jb20+CkNjOiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJuZWwub3JnPgpD
+YzogQ2hyaXN0aWFuIEtvZW5pZyA8Y2hyaXN0aWFuLmtvZW5pZ0BhbWQuY29tPgpDYzogUmFscGgg
+Q2FtcGJlbGwgPHJjYW1wYmVsbEBudmlkaWEuY29tPgpDYzogSm9obiBIdWJiYXJkIDxqaHViYmFy
+ZEBudmlkaWEuY29tPgpDYzoga3ZtQHZnZXIua2VybmVsLm9yZwpDYzogZHJpLWRldmVsQGxpc3Rz
+LmZyZWVkZXNrdG9wLm9yZwpDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IEFybmQg
+QmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+Ci0tLQogaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIu
+aCB8IDMwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogMSBmaWxlIGNoYW5nZWQsIDMw
+IGluc2VydGlvbnMoKykKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5o
+IGIvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaAppbmRleCBjODY3MmMzNjZmNjcuLjIzODZl
+NzFhYzFiOCAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaAorKysgYi9p
+bmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oCkBAIC0xMCw2ICsxMCwzNiBAQAogc3RydWN0IG1t
+dV9ub3RpZmllcjsKIHN0cnVjdCBtbXVfbm90aWZpZXJfb3BzOwogCisvKioKKyAqIGVudW0gbW11
+X25vdGlmaWVyX2V2ZW50IC0gcmVhc29uIGZvciB0aGUgbW11IG5vdGlmaWVyIGNhbGxiYWNrCisg
+KiBATU1VX05PVElGWV9VTk1BUDogZWl0aGVyIG11bm1hcCgpIHRoYXQgdW5tYXAgdGhlIHJhbmdl
+IG9yIGEgbXJlbWFwKCkgdGhhdAorICogbW92ZSB0aGUgcmFuZ2UKKyAqCisgKiBATU1VX05PVElG
+WV9DTEVBUjogY2xlYXIgcGFnZSB0YWJsZSBlbnRyeSAobWFueSByZWFzb25zIGZvciB0aGlzIGxp
+a2UKKyAqIG1hZHZpc2UoKSBvciByZXBsYWNpbmcgYSBwYWdlIGJ5IGFub3RoZXIgb25lLCAuLi4p
+LgorICoKKyAqIEBNTVVfTk9USUZZX1BST1RFQ1RJT05fVk1BOiB1cGRhdGUgaXMgZHVlIHRvIHBy
+b3RlY3Rpb24gY2hhbmdlIGZvciB0aGUgcmFuZ2UKKyAqIGllIHVzaW5nIHRoZSB2bWEgYWNjZXNz
+IHBlcm1pc3Npb24gKHZtX3BhZ2VfcHJvdCkgdG8gdXBkYXRlIHRoZSB3aG9sZSByYW5nZQorICog
+aXMgZW5vdWdoIG5vIG5lZWQgdG8gaW5zcGVjdCBjaGFuZ2VzIHRvIHRoZSBDUFUgcGFnZSB0YWJs
+ZSAobXByb3RlY3QoKQorICogc3lzY2FsbCkKKyAqCisgKiBATU1VX05PVElGWV9QUk9URUNUSU9O
+X1BBR0U6IHVwZGF0ZSBpcyBkdWUgdG8gY2hhbmdlIGluIHJlYWQvd3JpdGUgZmxhZyBmb3IKKyAq
+IHBhZ2VzIGluIHRoZSByYW5nZSBzbyB0byBtaXJyb3IgdGhvc2UgY2hhbmdlcyB0aGUgdXNlciBt
+dXN0IGluc3BlY3QgdGhlIENQVQorICogcGFnZSB0YWJsZSAoZnJvbSB0aGUgZW5kIGNhbGxiYWNr
+KS4KKyAqCisgKiBATU1VX05PVElGWV9TT0ZUX0RJUlRZOiBzb2Z0IGRpcnR5IGFjY291bnRpbmcg
+KHN0aWxsIHNhbWUgcGFnZSBhbmQgc2FtZQorICogYWNjZXNzIGZsYWdzKS4gVXNlciBzaG91bGQg
+c29mdCBkaXJ0eSB0aGUgcGFnZSBpbiB0aGUgZW5kIGNhbGxiYWNrIHRvIG1ha2UKKyAqIHN1cmUg
+dGhhdCBhbnlvbmUgcmVseWluZyBvbiBzb2Z0IGRpcnR5bmVzcyBjYXRjaCBwYWdlcyB0aGF0IG1p
+Z2h0IGJlIHdyaXR0ZW4KKyAqIHRocm91Z2ggbm9uIENQVSBtYXBwaW5ncy4KKyAqLworZW51bSBt
+bXVfbm90aWZpZXJfZXZlbnQgeworCU1NVV9OT1RJRllfVU5NQVAgPSAwLAorCU1NVV9OT1RJRllf
+Q0xFQVIsCisJTU1VX05PVElGWV9QUk9URUNUSU9OX1ZNQSwKKwlNTVVfTk9USUZZX1BST1RFQ1RJ
+T05fUEFHRSwKKwlNTVVfTk9USUZZX1NPRlRfRElSVFksCit9OworCiAjaWZkZWYgQ09ORklHX01N
+VV9OT1RJRklFUgogCiAvKgotLSAKMi4xNy4yCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kcmktZGV2ZWw=
