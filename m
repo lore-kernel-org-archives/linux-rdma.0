@@ -1,76 +1,115 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next] net/mlx5: Separate ODP capabilities
-Date: Tue, 19 Feb 2019 15:06:37 +0200
-Message-ID: <20190219130638.21981-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Moni Shoua <monis@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+From: Chuck Lever <chuck.lever@oracle.com>
+Subject: Re: [PATCH] RDMA/mlx4: Spread completion vectors for proxy CQs
+Date: Tue, 19 Feb 2019 09:58:24 -0500
+Message-ID: <38187795-4082-42C2-AF56-E6C89EE7DE39@oracle.com>
+References: <20190218183302.1242676-1-haakon.bugge@oracle.com>
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190218183302.1242676-1-haakon.bugge@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, jackm@dev.mellanox.co.il, majd@mellanox.com, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis@mellanox.com>
+Hey H=C3=A5kon-
 
-ODP support for XRC transport is not enabled by default in FW,
-so we need separate ODP checks to enable/disable it.
+> On Feb 18, 2019, at 1:33 PM, H=C3=A5kon Bugge =
+<haakon.bugge@oracle.com> wrote:
+>=20
+> MAD packet sending/receiving is not properly virtualized in
+> CX-3. Hence, these are proxied through the PF driver. The proxying
+> uses UD QPs. The associated CQs are created with completion vector
+> zero.
+>=20
+> This leads to great imbalance in CPU processing, in particular during
+> heavy RDMA CM traffic.
+>=20
+> Solved by selecting the completion vector on a round-robin base.
 
-While that, rewrite the set of ODP SRQ support capabilities in way
-that tests each field separately for clearness, which is not needed
-for current FW, but better to have it separated.
+I've got a similar patch for NFS and NFSD. I'm wondering if this
+should be turned into a core helper, simple as it is. Perhaps
+it would be beneficial if all participating ULPs used the same
+global counter?
 
-Signed-off-by: Moni Shoua <monis@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- .../net/ethernet/mellanox/mlx5/core/main.c    | 29 ++++++++++---------
- 1 file changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 025dfaf3466b..5cf557a77f0f 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -474,11 +474,6 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 	if (err)
- 		return err;
- 
--	if (!(MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive) ||
--	      MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive) ||
--	      MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive)))
--		return 0;
--
- 	set_sz = MLX5_ST_SZ_BYTES(set_hca_cap_in);
- 	set_ctx = kzalloc(set_sz, GFP_KERNEL);
- 	if (!set_ctx)
-@@ -488,15 +483,21 @@ static int handle_hca_cap_odp(struct mlx5_core_dev *dev)
- 	memcpy(set_hca_cap, dev->caps.hca_cur[MLX5_CAP_ODP],
- 	       MLX5_ST_SZ_BYTES(odp_cap));
- 
--	/* set ODP SRQ support for RC/UD and XRC transports */
--	MLX5_SET(odp_cap, set_hca_cap, ud_odp_caps.srq_receive,
--		 MLX5_CAP_ODP_MAX(dev, ud_odp_caps.srq_receive));
--
--	MLX5_SET(odp_cap, set_hca_cap, rc_odp_caps.srq_receive,
--		 MLX5_CAP_ODP_MAX(dev, rc_odp_caps.srq_receive));
--
--	MLX5_SET(odp_cap, set_hca_cap, xrc_odp_caps.srq_receive,
--		 MLX5_CAP_ODP_MAX(dev, xrc_odp_caps.srq_receive));
-+#define ODP_CAP_SET_MAX(dev, field)                                            \
-+	do {                                                                   \
-+		u32 _res = MLX5_CAP_ODP_MAX(dev, field);                       \
-+		if (_res)                                                      \
-+			MLX5_SET(odp_cap, set_hca_cap, field, _res);           \
-+	} while (0)
-+
-+	ODP_CAP_SET_MAX(dev, ud_odp_caps.srq_receive);
-+	ODP_CAP_SET_MAX(dev, rc_odp_caps.srq_receive);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.srq_receive);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.send);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.receive);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.write);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.read);
-+	ODP_CAP_SET_MAX(dev, xrc_odp_caps.atomic);
- 
- 	err = set_caps(dev, set_ctx, set_sz, MLX5_SET_HCA_CAP_OP_MOD_ODP);
- 
--- 
-2.19.1
+> The imbalance can be demonstrated in a bare-metal environment, where
+> two nodes have instantiated 8 VFs each. This using dual ported HCAs,
+> so we have 16 vPorts per physical server.
+>=20
+> 64 processes are associated with each vPort and creates and destroys
+> one QP for each of the remote 64 processes. That is, 1024 QPs per
+> vPort, all in all 16K QPs. The QPs are created/destroyed using the
+> CM.
+>=20
+> Before this commit, we have (excluding all completion IRQs with zero
+> interrupts):
+>=20
+> 396: mlx4-1@0000:94:00.0 199126
+> 397: mlx4-2@0000:94:00.0 1
+>=20
+> With this commit:
+>=20
+> 396: mlx4-1@0000:94:00.0 12568
+> 397: mlx4-2@0000:94:00.0 50772
+> 398: mlx4-3@0000:94:00.0 10063
+> 399: mlx4-4@0000:94:00.0 50753
+> 400: mlx4-5@0000:94:00.0 6127
+> 401: mlx4-6@0000:94:00.0 6114
+> []
+> 414: mlx4-19@0000:94:00.0 6122
+> 415: mlx4-20@0000:94:00.0 6117
+>=20
+> The added pr_info shows:
+>=20
+> create_pv_resources: slave:0 port:1, vector:0, num_comp_vectors:62
+> create_pv_resources: slave:0 port:1, vector:1, num_comp_vectors:62
+> create_pv_resources: slave:0 port:2, vector:2, num_comp_vectors:62
+> create_pv_resources: slave:0 port:2, vector:3, num_comp_vectors:62
+> create_pv_resources: slave:1 port:1, vector:4, num_comp_vectors:62
+> create_pv_resources: slave:1 port:2, vector:5, num_comp_vectors:62
+> []
+> create_pv_resources: slave:8 port:2, vector:18, num_comp_vectors:62
+> create_pv_resources: slave:8 port:1, vector:19, num_comp_vectors:62
+>=20
+> Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+> ---
+> drivers/infiniband/hw/mlx4/mad.c | 4 ++++
+> 1 file changed, 4 insertions(+)
+>=20
+> diff --git a/drivers/infiniband/hw/mlx4/mad.c =
+b/drivers/infiniband/hw/mlx4/mad.c
+> index 936ee1314bcd..300839e7f519 100644
+> --- a/drivers/infiniband/hw/mlx4/mad.c
+> +++ b/drivers/infiniband/hw/mlx4/mad.c
+> @@ -1973,6 +1973,7 @@ static int create_pv_resources(struct ib_device =
+*ibdev, int slave, int port,
+> {
+> 	int ret, cq_size;
+> 	struct ib_cq_init_attr cq_attr =3D {};
+> +	static atomic_t comp_vect =3D ATOMIC_INIT(-1);
+>=20
+> 	if (ctx->state !=3D DEMUX_PV_STATE_DOWN)
+> 		return -EEXIST;
+> @@ -2002,6 +2003,9 @@ static int create_pv_resources(struct ib_device =
+*ibdev, int slave, int port,
+> 		cq_size *=3D 2;
+>=20
+> 	cq_attr.cqe =3D cq_size;
+> +	cq_attr.comp_vector =3D atomic_inc_return(&comp_vect) % =
+ibdev->num_comp_vectors;
+> +	pr_info("slave:%d port:%d, vector:%d, num_comp_vectors:%d\n",
+> +		slave, port, cq_attr.comp_vector, =
+ibdev->num_comp_vectors);
+> 	ctx->cq =3D ib_create_cq(ctx->ib_dev, =
+mlx4_ib_tunnel_comp_handler,
+> 			       NULL, ctx, &cq_attr);
+> 	if (IS_ERR(ctx->cq)) {
+> --=20
+> 2.20.1
+>=20
+
+--
+Chuck Lever
