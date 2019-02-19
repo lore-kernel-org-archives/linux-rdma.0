@@ -1,77 +1,87 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Jerome Glisse <jglisse@redhat.com>
 Subject: Re: [PATCH v5 0/9] mmu notifier provide context informations
-Date: Tue, 19 Feb 2019 13:19:09 -0800
-Message-ID: <CAPcyv4hCNSsk5EP7+BcnVp-zJjQyQ701U3QXkQyUteQZr-ZumA@mail.gmail.com>
-References: <20190219200430.11130-1-jglisse@redhat.com> <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
- <20190219203032.GC3959@redhat.com> <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
+Date: Tue, 19 Feb 2019 16:30:33 -0500
+Message-ID: <20190219213032.GE3959@redhat.com>
+References: <20190219200430.11130-1-jglisse@redhat.com>
+ <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
+ <20190219203032.GC3959@redhat.com>
+ <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
  <20190219205751.GD3959@redhat.com>
+ <CAPcyv4hCNSsk5EP7+BcnVp-zJjQyQ701U3QXkQyUteQZr-ZumA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190219205751.GD3959@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vger.kernel.>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hCNSsk5EP7+BcnVp-zJjQyQ701U3QXkQyUteQZr-ZumA@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 19, 2019 at 12:58 PM Jerome Glisse <jglisse@redhat.com> wrote:
->
-> On Tue, Feb 19, 2019 at 12:40:37PM -0800, Dan Williams wrote:
-> > On Tue, Feb 19, 2019 at 12:30 PM Jerome Glisse <jglisse@redhat.com> wro=
-te:
-> > >
-> > > On Tue, Feb 19, 2019 at 12:15:55PM -0800, Dan Williams wrote:
-> > > > On Tue, Feb 19, 2019 at 12:04 PM <jglisse@redhat.com> wrote:
-> > > > >
-> > > > > From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-> > > > >
-> > > > > Since last version [4] i added the extra bits needed for the chan=
-ge_pte
-> > > > > optimization (which is a KSM thing). Here i am not posting users =
-of
-> > > > > this, they will be posted to the appropriate sub-systems (KVM, GP=
-U,
-> > > > > RDMA, ...) once this serie get upstream. If you want to look at u=
-sers
-> > > > > of this see [5] [6]. If this gets in 5.1 then i will be submittin=
-g
-> > > > > those users for 5.2 (including KVM if KVM folks feel comfortable =
-with
-> > > > > it).
-> > > >
-> > > > The users look small and straightforward. Why not await acks and
-> > > > reviewed-by's for the users like a typical upstream submission and
-> > > > merge them together? Is all of the functionality of this
-> > > > infrastructure consumed by the proposed users? Last time I checked =
-it
-> > > > was only a subset.
-> > >
-> > > Yes pretty much all is use, the unuse case is SOFT_DIRTY and CLEAR
-> > > vs UNMAP. Both of which i intend to use. The RDMA folks already ack
-> > > the patches IIRC, so did radeon and amdgpu. I believe the i915 folks
-> > > were ok with it too. I do not want to merge things through Andrew
-> > > for all of this we discussed that in the past, merge mm bits through
-> > > Andrew in one release and bits that use things in the next release.
-> >
-> > Ok, I was trying to find the links to the acks on the mailing list,
-> > those references would address my concerns. I see no reason to rush
-> > SOFT_DIRTY and CLEAR ahead of the upstream user.
->
-> I intend to post user for those in next couple weeks for 5.2 HMM bits.
-> So user for this (CLEAR/UNMAP/SOFTDIRTY) will definitly materialize in
-> time for 5.2.
->
-> ACKS AMD/RADEON https://lkml.org/lkml/2019/2/1/395
-> ACKS RDMA https://lkml.org/lkml/2018/12/6/1473
-
-Nice, thanks!
-
-> For KVM Andrea Arcangeli seems to like the whole idea to restore the
-> change_pte optimization but i have not got ACK from Radim or Paolo,
-> however given the small performance improvement figure i get with it
-> i do not see while they would not ACK.
-
-Sure, but no need to push ahead without that confirmation, right? At
-least for the piece that KVM cares about, maybe that's already covered
-in the infrastructure RDMA and RADEON are using?
+T24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMDE6MTk6MDlQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdy
+b3RlOgo+IE9uIFR1ZSwgRmViIDE5LCAyMDE5IGF0IDEyOjU4IFBNIEplcm9tZSBHbGlzc2UgPGpn
+bGlzc2VAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPgo+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkgYXQg
+MTI6NDA6MzdQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+ID4gPiBPbiBUdWUsIEZlYiAx
+OSwgMjAxOSBhdCAxMjozMCBQTSBKZXJvbWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+IHdy
+b3RlOgo+ID4gPiA+Cj4gPiA+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMTI6MTU6NTVQTSAt
+MDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+ID4gPiA+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkg
+YXQgMTI6MDQgUE0gPGpnbGlzc2VAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPiA+ID4gPiA+Cj4gPiA+
+ID4gPiA+IEZyb206IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgo+ID4gPiA+
+ID4gPgo+ID4gPiA+ID4gPiBTaW5jZSBsYXN0IHZlcnNpb24gWzRdIGkgYWRkZWQgdGhlIGV4dHJh
+IGJpdHMgbmVlZGVkIGZvciB0aGUgY2hhbmdlX3B0ZQo+ID4gPiA+ID4gPiBvcHRpbWl6YXRpb24g
+KHdoaWNoIGlzIGEgS1NNIHRoaW5nKS4gSGVyZSBpIGFtIG5vdCBwb3N0aW5nIHVzZXJzIG9mCj4g
+PiA+ID4gPiA+IHRoaXMsIHRoZXkgd2lsbCBiZSBwb3N0ZWQgdG8gdGhlIGFwcHJvcHJpYXRlIHN1
+Yi1zeXN0ZW1zIChLVk0sIEdQVSwKPiA+ID4gPiA+ID4gUkRNQSwgLi4uKSBvbmNlIHRoaXMgc2Vy
+aWUgZ2V0IHVwc3RyZWFtLiBJZiB5b3Ugd2FudCB0byBsb29rIGF0IHVzZXJzCj4gPiA+ID4gPiA+
+IG9mIHRoaXMgc2VlIFs1XSBbNl0uIElmIHRoaXMgZ2V0cyBpbiA1LjEgdGhlbiBpIHdpbGwgYmUg
+c3VibWl0dGluZwo+ID4gPiA+ID4gPiB0aG9zZSB1c2VycyBmb3IgNS4yIChpbmNsdWRpbmcgS1ZN
+IGlmIEtWTSBmb2xrcyBmZWVsIGNvbWZvcnRhYmxlIHdpdGgKPiA+ID4gPiA+ID4gaXQpLgo+ID4g
+PiA+ID4KPiA+ID4gPiA+IFRoZSB1c2VycyBsb29rIHNtYWxsIGFuZCBzdHJhaWdodGZvcndhcmQu
+IFdoeSBub3QgYXdhaXQgYWNrcyBhbmQKPiA+ID4gPiA+IHJldmlld2VkLWJ5J3MgZm9yIHRoZSB1
+c2VycyBsaWtlIGEgdHlwaWNhbCB1cHN0cmVhbSBzdWJtaXNzaW9uIGFuZAo+ID4gPiA+ID4gbWVy
+Z2UgdGhlbSB0b2dldGhlcj8gSXMgYWxsIG9mIHRoZSBmdW5jdGlvbmFsaXR5IG9mIHRoaXMKPiA+
+ID4gPiA+IGluZnJhc3RydWN0dXJlIGNvbnN1bWVkIGJ5IHRoZSBwcm9wb3NlZCB1c2Vycz8gTGFz
+dCB0aW1lIEkgY2hlY2tlZCBpdAo+ID4gPiA+ID4gd2FzIG9ubHkgYSBzdWJzZXQuCj4gPiA+ID4K
+PiA+ID4gPiBZZXMgcHJldHR5IG11Y2ggYWxsIGlzIHVzZSwgdGhlIHVudXNlIGNhc2UgaXMgU09G
+VF9ESVJUWSBhbmQgQ0xFQVIKPiA+ID4gPiB2cyBVTk1BUC4gQm90aCBvZiB3aGljaCBpIGludGVu
+ZCB0byB1c2UuIFRoZSBSRE1BIGZvbGtzIGFscmVhZHkgYWNrCj4gPiA+ID4gdGhlIHBhdGNoZXMg
+SUlSQywgc28gZGlkIHJhZGVvbiBhbmQgYW1kZ3B1LiBJIGJlbGlldmUgdGhlIGk5MTUgZm9sa3MK
+PiA+ID4gPiB3ZXJlIG9rIHdpdGggaXQgdG9vLiBJIGRvIG5vdCB3YW50IHRvIG1lcmdlIHRoaW5n
+cyB0aHJvdWdoIEFuZHJldwo+ID4gPiA+IGZvciBhbGwgb2YgdGhpcyB3ZSBkaXNjdXNzZWQgdGhh
+dCBpbiB0aGUgcGFzdCwgbWVyZ2UgbW0gYml0cyB0aHJvdWdoCj4gPiA+ID4gQW5kcmV3IGluIG9u
+ZSByZWxlYXNlIGFuZCBiaXRzIHRoYXQgdXNlIHRoaW5ncyBpbiB0aGUgbmV4dCByZWxlYXNlLgo+
+ID4gPgo+ID4gPiBPaywgSSB3YXMgdHJ5aW5nIHRvIGZpbmQgdGhlIGxpbmtzIHRvIHRoZSBhY2tz
+IG9uIHRoZSBtYWlsaW5nIGxpc3QsCj4gPiA+IHRob3NlIHJlZmVyZW5jZXMgd291bGQgYWRkcmVz
+cyBteSBjb25jZXJucy4gSSBzZWUgbm8gcmVhc29uIHRvIHJ1c2gKPiA+ID4gU09GVF9ESVJUWSBh
+bmQgQ0xFQVIgYWhlYWQgb2YgdGhlIHVwc3RyZWFtIHVzZXIuCj4gPgo+ID4gSSBpbnRlbmQgdG8g
+cG9zdCB1c2VyIGZvciB0aG9zZSBpbiBuZXh0IGNvdXBsZSB3ZWVrcyBmb3IgNS4yIEhNTSBiaXRz
+Lgo+ID4gU28gdXNlciBmb3IgdGhpcyAoQ0xFQVIvVU5NQVAvU09GVERJUlRZKSB3aWxsIGRlZmlu
+aXRseSBtYXRlcmlhbGl6ZSBpbgo+ID4gdGltZSBmb3IgNS4yLgo+ID4KPiA+IEFDS1MgQU1EL1JB
+REVPTiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8yLzEvMzk1Cj4gPiBBQ0tTIFJETUEgaHR0
+cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvMTIvNi8xNDczCj4gCj4gTmljZSwgdGhhbmtzIQo+IAo+
+ID4gRm9yIEtWTSBBbmRyZWEgQXJjYW5nZWxpIHNlZW1zIHRvIGxpa2UgdGhlIHdob2xlIGlkZWEg
+dG8gcmVzdG9yZSB0aGUKPiA+IGNoYW5nZV9wdGUgb3B0aW1pemF0aW9uIGJ1dCBpIGhhdmUgbm90
+IGdvdCBBQ0sgZnJvbSBSYWRpbSBvciBQYW9sbywKPiA+IGhvd2V2ZXIgZ2l2ZW4gdGhlIHNtYWxs
+IHBlcmZvcm1hbmNlIGltcHJvdmVtZW50IGZpZ3VyZSBpIGdldCB3aXRoIGl0Cj4gPiBpIGRvIG5v
+dCBzZWUgd2hpbGUgdGhleSB3b3VsZCBub3QgQUNLLgo+IAo+IFN1cmUsIGJ1dCBubyBuZWVkIHRv
+IHB1c2ggYWhlYWQgd2l0aG91dCB0aGF0IGNvbmZpcm1hdGlvbiwgcmlnaHQ/IEF0Cj4gbGVhc3Qg
+Zm9yIHRoZSBwaWVjZSB0aGF0IEtWTSBjYXJlcyBhYm91dCwgbWF5YmUgdGhhdCdzIGFscmVhZHkg
+Y292ZXJlZAo+IGluIHRoZSBpbmZyYXN0cnVjdHVyZSBSRE1BIGFuZCBSQURFT04gYXJlIHVzaW5n
+PwoKVGhlIGNoYW5nZV9wdGUoKSBmb3IgS1ZNIGlzIGp1c3Qgb25lIGJpdCBmbGFnIG9uIHRvcCBv
+ZiB0aGUgcmVzdC4gU28KaSBkb24ndCBzZWUgbXVjaCB2YWx1ZSBpbiBzYXZpbmcgdGhpcyBsYXN0
+IHBhdGNoLiBJIHdpbGwgYmUgd29ya2luZwp3aXRoIEtWTSBmb2xrcyB0byBtZXJnZSBLVk0gYml0
+cyBpbiA1LjIuIElmIHRoZXkgZG8gbm90IHdhbnQgdGhhdCB0aGVuCnJlbW92aW5nIHRoYXQgZXh0
+cmEgZmxhZ3MgaXMgbm90IG11Y2ggd29yay4KCkJ1dCBpZiB5b3UgcHJlZmVyIHRoYW4gQW5kcmV3
+IGNhbiBkcm9wIHRoZSBsYXN0IHBhdGNoIGluIHRoZSBzZXJpZS4KCkNoZWVycywKSsOpcsO0bWUK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
