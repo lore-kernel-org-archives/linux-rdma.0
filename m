@@ -1,91 +1,127 @@
 From: jglisse@redhat.com
-Subject: [PATCH v5 8/9] mm/mmu_notifier: mmu_notifier_range_update_to_read_only() helper
-Date: Tue, 19 Feb 2019 15:04:29 -0500
-Message-ID: <20190219200430.11130-9-jglisse@redhat.com>
+Subject: [PATCH v5 9/9] mm/mmu_notifier: set MMU_NOTIFIER_USE_CHANGE_PTE flag
+ where appropriate v2
+Date: Tue, 19 Feb 2019 15:04:30 -0500
+Message-ID: <20190219200430.11130-10-jglisse@redhat.com>
 References: <20190219200430.11130-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20190219200430.11130-1-jglisse@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org
+Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jérôme Glisse <jglisse@redhat.com>
-
-Helper to test if a range is updated to read only (it is still valid
-to read from the range). This is useful for device driver or anyone
-who wish to optimize out update when they know that they already have
-the range map read only.
-
-Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
-Cc: Christian König <christian.koenig@amd.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Ross Zwisler <zwisler@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Christian Koenig <christian.koenig@amd.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: kvm@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-rdma@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/mmu_notifier.h |  4 ++++
- mm/mmu_notifier.c            | 10 ++++++++++
- 2 files changed, 14 insertions(+)
-
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index 0379956fff23..b6c004bd9f6a 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -259,6 +259,8 @@ extern void __mmu_notifier_invalidate_range_end(struct mmu_notifier_range *r,
- 				  bool only_end);
- extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
- 				  unsigned long start, unsigned long end);
-+extern bool
-+mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range);
- 
- static inline bool
- mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
-@@ -568,6 +570,8 @@ static inline void mmu_notifier_mm_destroy(struct mm_struct *mm)
- {
- }
- 
-+#define mmu_notifier_range_update_to_read_only(r) false
-+
- #define ptep_clear_flush_young_notify ptep_clear_flush_young
- #define pmdp_clear_flush_young_notify pmdp_clear_flush_young
- #define ptep_clear_young_notify ptep_test_and_clear_young
-diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
-index abd88c466eb2..ee36068077b6 100644
---- a/mm/mmu_notifier.c
-+++ b/mm/mmu_notifier.c
-@@ -395,3 +395,13 @@ void mmu_notifier_unregister_no_release(struct mmu_notifier *mn,
- 	mmdrop(mm);
- }
- EXPORT_SYMBOL_GPL(mmu_notifier_unregister_no_release);
-+
-+bool
-+mmu_notifier_range_update_to_read_only(const struct mmu_notifier_range *range)
-+{
-+	if (!range->vma || range->event != MMU_NOTIFY_PROTECTION_VMA)
-+		return false;
-+	/* Return true if the vma still have the read flag set. */
-+	return range->vma->vm_flags & VM_READ;
-+}
-+EXPORT_SYMBOL_GPL(mmu_notifier_range_update_to_read_only);
--- 
-2.17.2
+RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpXaGVuIG5vdGlmeWlu
+ZyBjaGFuZ2UgZm9yIGEgcmFuZ2UgdXNlIE1NVV9OT1RJRklFUl9VU0VfQ0hBTkdFX1BURSBmbGFn
+CmZvciBwYWdlIHRhYmxlIHVwZGF0ZSB0aGF0IHVzZSBzZXRfcHRlX2F0X25vdGlmeSgpIGFuZCB3
+aGVyZSB0aGUgd2UgYXJlCmdvaW5nIGVpdGhlciBmcm9tIHJlYWQgYW5kIHdyaXRlIHRvIHJlYWQg
+b25seSB3aXRoIHNhbWUgcGZuIG9yIHJlYWQgb25seQp0byByZWFkIGFuZCB3cml0ZSB3aXRoIG5l
+dyBwZm4uCgpOb3RlIHRoYXQgc2V0X3B0ZV9hdF9ub3RpZnkoKSBpdHNlbGYgc2hvdWxkIG9ubHkg
+YmUgdXNlIGluIHJhcmUgY2FzZXMKaWUgd2UgZG8gbm90IHdhbnQgdG8gdXNlIGl0IHdoZW4gd2Ug
+YXJlIHVwZGF0aW5nIGEgc2lnbmlmaWNhbnQgcmFuZ2Ugb2YKdmlydHVhbCBhZGRyZXNzZXMgYW5k
+IHRodXMgYSBzaWduaWZpY2FudCBudW1iZXIgb2YgcHRlLiBJbnN0ZWFkIGZvcgp0aG9zZSBjYXNl
+cyB0aGUgZXZlbnQgcHJvdmlkZWQgdG8gbW11IG5vdGlmZXIgaW52YWxpZGF0ZV9yYW5nZV9zdGFy
+dCgpCmNhbGxiYWNrIHNob3VsZCBiZSB1c2UgZm9yIG9wdGltaXphdGlvbi4KCkNoYW5nZXMgc2lu
+Y2UgdjE6CiAgICAtIFVzZSB0aGUgbmV3IHVuc2lnbmVkIGZsYWdzIGZpZWxkIGluIHN0cnVjdCBt
+bXVfbm90aWZpZXJfcmFuZ2UKICAgIC0gVXNlIHRoZSBuZXcgZmxhZ3MgcGFyYW1ldGVyIHRvIG1t
+dV9ub3RpZmllcl9yYW5nZV9pbml0KCkKICAgIC0gRXhwbGljaXRseSBsaXN0IGFsbCB0aGUgcGF0
+dGVybnMgd2hlcmUgd2UgY2FuIHVzZSBjaGFuZ2VfcHRlKCkKClNpZ25lZC1vZmYtYnk6IErDqXLD
+tG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgpDYzogQ2hyaXN0aWFuIEvDtm5pZyA8Y2hy
+aXN0aWFuLmtvZW5pZ0BhbWQuY29tPgpDYzogSm9vbmFzIExhaHRpbmVuIDxqb29uYXMubGFodGlu
+ZW5AbGludXguaW50ZWwuY29tPgpDYzogSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGxpbnV4Lmlu
+dGVsLmNvbT4KQ2M6IFJvZHJpZ28gVml2aSA8cm9kcmlnby52aXZpQGludGVsLmNvbT4KQ2M6IEph
+biBLYXJhIDxqYWNrQHN1c2UuY3o+CkNjOiBBbmRyZWEgQXJjYW5nZWxpIDxhYXJjYW5nZUByZWRo
+YXQuY29tPgpDYzogUGV0ZXIgWHUgPHBldGVyeEByZWRoYXQuY29tPgpDYzogRmVsaXggS3VlaGxp
+bmcgPEZlbGl4Lkt1ZWhsaW5nQGFtZC5jb20+CkNjOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxs
+YW5veC5jb20+CkNjOiBSb3NzIFp3aXNsZXIgPHp3aXNsZXJAa2VybmVsLm9yZz4KQ2M6IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpDYzogUGFvbG8gQm9uemluaSA8cGJv
+bnppbmlAcmVkaGF0LmNvbT4KQ2M6IFJhZGltIEtyxI1tw6HFmSA8cmtyY21hckByZWRoYXQuY29t
+PgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Aa2VybmVsLm9yZz4KQ2M6IENocmlzdGlhbiBLb2Vu
+aWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KQ2M6IFJhbHBoIENhbXBiZWxsIDxyY2FtcGJl
+bGxAbnZpZGlhLmNvbT4KQ2M6IEpvaG4gSHViYmFyZCA8amh1YmJhcmRAbnZpZGlhLmNvbT4KQ2M6
+IGt2bUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
+Q2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCkNjOiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFy
+bmRiLmRlPgotLS0KIGluY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmggfCAzNCArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKy0tCiBtbS9rc20uYyAgICAgICAgICAgICAgICAgICAgIHwg
+MTEgKysrKysrLS0tLS0KIG1tL21lbW9yeS5jICAgICAgICAgICAgICAgICAgfCAgNSArKystLQog
+MyBmaWxlcyBjaGFuZ2VkLCA0MSBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2luY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmggYi9pbmNsdWRlL2xpbnV4L21tdV9u
+b3RpZmllci5oCmluZGV4IGI2YzAwNGJkOWY2YS4uMDIzMGE0YjA2YjQ2IDEwMDY0NAotLS0gYS9p
+bmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oCisrKyBiL2luY2x1ZGUvbGludXgvbW11X25vdGlm
+aWVyLmgKQEAgLTQwLDYgKzQwLDI2IEBAIGVudW0gbW11X25vdGlmaWVyX2V2ZW50IHsKIAlNTVVf
+Tk9USUZZX1NPRlRfRElSVFksCiB9OwogCisvKgorICogQE1NVV9OT1RJRklFUl9SQU5HRV9CTE9D
+S0FCTEU6IGNhbiB0aGUgbW11IG5vdGlmaWVyIHJhbmdlX3N0YXJ0L3JhbmdlX2VuZAorICogY2Fs
+bGJhY2sgYmxvY2sgb3Igbm90ID8gSWYgc2V0IHRoZW4gdGhlIGNhbGxiYWNrIGNhbiBibG9jay4K
+KyAqCisgKiBATU1VX05PVElGSUVSX1VTRV9DSEFOR0VfUFRFOiBvbmx5IHNldCB3aGVuIHRoZSBw
+YWdlIHRhYmxlIGl0IHVwZGF0ZWQgd2l0aAorICogdGhlIHNldF9wdGVfYXRfbm90aWZ5KCkgdGhl
+IHZhbGlkIHBhdHRlcm5zIGZvciB0aGlzIGFyZToKKyAqICAgICAgLSBwdGUgcmVhZCBhbmQgd3Jp
+dGUgdG8gcmVhZCBvbmx5IHNhbWUgcGZuCisgKiAgICAgIC0gcHRlIHJlYWQgb25seSB0byByZWFk
+IGFuZCB3cml0ZSAocGZuIGNhbiBjaGFuZ2Ugb3Igc3RheSB0aGUgc2FtZSkKKyAqICAgICAgLSBw
+dGUgcmVhZCBvbmx5IHRvIHJlYWQgb25seSB3aXRoIGRpZmZlcmVudCBwZm4KKyAqIEl0IGlzIGls
+bGVnYWwgdG8gc2V0IGluIGFueSBvdGhlciBjaXJjdW1zdGFuY2VzLgorICoKKyAqIE5vdGUgdGhh
+dCBzZXRfcHRlX2F0X25vdGlmeSgpIHNob3VsZCBub3QgYmUgdXNlIG91dHNpZGUgb2YgdGhlIGFi
+b3ZlIGNhc2VzLgorICogV2hlbiB1cGRhdGluZyBhIHJhbmdlIGluIGJhdGNoIChsaWtlIHdyaXRl
+IHByb3RlY3RpbmcgYSByYW5nZSkgaXQgaXMgYmV0dGVyCisgKiB0byByZWx5IG9uIGludmFsaWRh
+dGVfcmFuZ2Vfc3RhcnQoKSBhbmQgc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSB0byBpbmZlcgor
+ICogdGhlIGtpbmQgb2YgdXBkYXRlIHRoYXQgaXMgaGFwcGVuaW5nIChhcyBhbiBleGFtcGxlIHlv
+dSBjYW4gbG9vayBhdCB0aGUKKyAqIG1tdV9ub3RpZmllcl9yYW5nZV91cGRhdGVfdG9fcmVhZF9v
+bmx5KCkgZnVuY3Rpb24pLgorICovCisjZGVmaW5lIE1NVV9OT1RJRklFUl9SQU5HRV9CTE9DS0FC
+TEUgKDEgPDwgMCkKKyNkZWZpbmUgTU1VX05PVElGSUVSX1VTRV9DSEFOR0VfUFRFICgxIDw8IDEp
+CisKICNpZmRlZiBDT05GSUdfTU1VX05PVElGSUVSCiAKIC8qCkBAIC01NSw4ICs3NSw2IEBAIHN0
+cnVjdCBtbXVfbm90aWZpZXJfbW0gewogCXNwaW5sb2NrX3QgbG9jazsKIH07CiAKLSNkZWZpbmUg
+TU1VX05PVElGSUVSX1JBTkdFX0JMT0NLQUJMRSAoMSA8PCAwKQotCiBzdHJ1Y3QgbW11X25vdGlm
+aWVyX3JhbmdlIHsKIAlzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYTsKIAlzdHJ1Y3QgbW1fc3Ry
+dWN0ICptbTsKQEAgLTI2OCw2ICsyODYsMTIgQEAgbW11X25vdGlmaWVyX3JhbmdlX2Jsb2NrYWJs
+ZShjb25zdCBzdHJ1Y3QgbW11X25vdGlmaWVyX3JhbmdlICpyYW5nZSkKIAlyZXR1cm4gKHJhbmdl
+LT5mbGFncyAmIE1NVV9OT1RJRklFUl9SQU5HRV9CTE9DS0FCTEUpOwogfQogCitzdGF0aWMgaW5s
+aW5lIGJvb2wKK21tdV9ub3RpZmllcl9yYW5nZV91c2VfY2hhbmdlX3B0ZShjb25zdCBzdHJ1Y3Qg
+bW11X25vdGlmaWVyX3JhbmdlICpyYW5nZSkKK3sKKwlyZXR1cm4gKHJhbmdlLT5mbGFncyAmIE1N
+VV9OT1RJRklFUl9VU0VfQ0hBTkdFX1BURSk7Cit9CisKIHN0YXRpYyBpbmxpbmUgdm9pZCBtbXVf
+bm90aWZpZXJfcmVsZWFzZShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIHsKIAlpZiAobW1faGFzX25v
+dGlmaWVycyhtbSkpCkBAIC01MDksNiArNTMzLDEyIEBAIG1tdV9ub3RpZmllcl9yYW5nZV9ibG9j
+a2FibGUoY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqcmFuZ2UpCiAJcmV0dXJuIHRy
+dWU7CiB9CiAKK3N0YXRpYyBpbmxpbmUgYm9vbAorbW11X25vdGlmaWVyX3JhbmdlX3VzZV9jaGFu
+Z2VfcHRlKGNvbnN0IHN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2UgKnJhbmdlKQoreworCXJldHVy
+biBmYWxzZTsKK30KKwogc3RhdGljIGlubGluZSBpbnQgbW1faGFzX25vdGlmaWVycyhzdHJ1Y3Qg
+bW1fc3RydWN0ICptbSkKIHsKIAlyZXR1cm4gMDsKZGlmZiAtLWdpdCBhL21tL2tzbS5jIGIvbW0v
+a3NtLmMKaW5kZXggYjc4MmZhZGFkZThmLi40MWU1MTg4MmY5OTkgMTAwNjQ0Ci0tLSBhL21tL2tz
+bS5jCisrKyBiL21tL2tzbS5jCkBAIC0xMDY2LDkgKzEwNjYsOSBAQCBzdGF0aWMgaW50IHdyaXRl
+X3Byb3RlY3RfcGFnZShzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYSwgc3RydWN0IHBhZ2UgKnBh
+Z2UsCiAKIAlCVUdfT04oUGFnZVRyYW5zQ29tcG91bmQocGFnZSkpOwogCi0JbW11X25vdGlmaWVy
+X3JhbmdlX2luaXQoJnJhbmdlLCBNTVVfTk9USUZZX0NMRUFSLCAwLCB2bWEsIG1tLAotCQkJCXB2
+bXcuYWRkcmVzcywKLQkJCQlwdm13LmFkZHJlc3MgKyBQQUdFX1NJWkUpOworCW1tdV9ub3RpZmll
+cl9yYW5nZV9pbml0KCZyYW5nZSwgTU1VX05PVElGWV9DTEVBUiwKKwkJCQlNTVVfTk9USUZJRVJf
+VVNFX0NIQU5HRV9QVEUsIHZtYSwgbW0sCisJCQkJcHZtdy5hZGRyZXNzLCBwdm13LmFkZHJlc3Mg
+KyBQQUdFX1NJWkUpOwogCW1tdV9ub3RpZmllcl9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KCZyYW5n
+ZSk7CiAKIAlpZiAoIXBhZ2Vfdm1hX21hcHBlZF93YWxrKCZwdm13KSkKQEAgLTExNTUsOCArMTE1
+NSw5IEBAIHN0YXRpYyBpbnQgcmVwbGFjZV9wYWdlKHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1h
+LCBzdHJ1Y3QgcGFnZSAqcGFnZSwKIAlpZiAoIXBtZCkKIAkJZ290byBvdXQ7CiAKLQltbXVfbm90
+aWZpZXJfcmFuZ2VfaW5pdCgmcmFuZ2UsIE1NVV9OT1RJRllfQ0xFQVIsIDAsIHZtYSwgbW0sIGFk
+ZHIsCi0JCQkJYWRkciArIFBBR0VfU0laRSk7CisJbW11X25vdGlmaWVyX3JhbmdlX2luaXQoJnJh
+bmdlLCBNTVVfTk9USUZZX0NMRUFSLAorCQkJCU1NVV9OT1RJRklFUl9VU0VfQ0hBTkdFX1BURSwK
+KwkJCQl2bWEsIG1tLCBhZGRyLCBhZGRyICsgUEFHRV9TSVpFKTsKIAltbXVfbm90aWZpZXJfaW52
+YWxpZGF0ZV9yYW5nZV9zdGFydCgmcmFuZ2UpOwogCiAJcHRlcCA9IHB0ZV9vZmZzZXRfbWFwX2xv
+Y2sobW0sIHBtZCwgYWRkciwgJnB0bCk7CmRpZmYgLS1naXQgYS9tbS9tZW1vcnkuYyBiL21tL21l
+bW9yeS5jCmluZGV4IDQ1ZGJjMTc0YTg4Yy4uY2I3MWQzZmYxYjk3IDEwMDY0NAotLS0gYS9tbS9t
+ZW1vcnkuYworKysgYi9tbS9tZW1vcnkuYwpAQCAtMjI4Miw4ICsyMjgyLDkgQEAgc3RhdGljIHZt
+X2ZhdWx0X3Qgd3BfcGFnZV9jb3B5KHN0cnVjdCB2bV9mYXVsdCAqdm1mKQogCiAJX19TZXRQYWdl
+VXB0b2RhdGUobmV3X3BhZ2UpOwogCi0JbW11X25vdGlmaWVyX3JhbmdlX2luaXQoJnJhbmdlLCBN
+TVVfTk9USUZZX0NMRUFSLCAwLCB2bWEsIG1tLAotCQkJCXZtZi0+YWRkcmVzcyAmIFBBR0VfTUFT
+SywKKwltbXVfbm90aWZpZXJfcmFuZ2VfaW5pdCgmcmFuZ2UsIE1NVV9OT1RJRllfQ0xFQVIsCisJ
+CQkJTU1VX05PVElGSUVSX1VTRV9DSEFOR0VfUFRFLAorCQkJCXZtYSwgbW0sIHZtZi0+YWRkcmVz
+cyAmIFBBR0VfTUFTSywKIAkJCQkodm1mLT5hZGRyZXNzICYgUEFHRV9NQVNLKSArIFBBR0VfU0la
+RSk7CiAJbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoJnJhbmdlKTsKIAotLSAK
+Mi4xNy4yCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
