@@ -1,51 +1,48 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
+From: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [PATCH v5 0/9] mmu notifier provide context informations
-Date: Tue, 19 Feb 2019 20:40:26 +0000
-Message-ID: <20190219204017.GP738@mellanox.com>
-References: <20190219200430.11130-1-jglisse@redhat.com>
- <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
+Date: Tue, 19 Feb 2019 12:40:37 -0800
+Message-ID: <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
+References: <20190219200430.11130-1-jglisse@redhat.com> <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
  <20190219203032.GC3959@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190219203032.GC3959@redhat.com>
-Content-Language: en-US
-Content-ID: <E141E9B0AE16924A93A4E3D62440AD81@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jerome Glisse <jglisse@redhat.com>
-Cc: Dan Williams <dan.j.williams@intel.com>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?utf-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vge>
+Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vger.kernel.>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMDM6MzA6MzNQTSAtMDUwMCwgSmVyb21lIEdsaXNzZSB3
-cm90ZToNCj4gT24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMTI6MTU6NTVQTSAtMDgwMCwgRGFuIFdp
-bGxpYW1zIHdyb3RlOg0KPiA+IE9uIFR1ZSwgRmViIDE5LCAyMDE5IGF0IDEyOjA0IFBNIDxqZ2xp
-c3NlQHJlZGhhdC5jb20+IHdyb3RlOg0KPiA+ID4NCj4gPiA+IEZyb206IErDqXLDtG1lIEdsaXNz
-ZSA8amdsaXNzZUByZWRoYXQuY29tPg0KPiA+ID4NCj4gPiA+IFNpbmNlIGxhc3QgdmVyc2lvbiBb
-NF0gaSBhZGRlZCB0aGUgZXh0cmEgYml0cyBuZWVkZWQgZm9yIHRoZSBjaGFuZ2VfcHRlDQo+ID4g
-PiBvcHRpbWl6YXRpb24gKHdoaWNoIGlzIGEgS1NNIHRoaW5nKS4gSGVyZSBpIGFtIG5vdCBwb3N0
-aW5nIHVzZXJzIG9mDQo+ID4gPiB0aGlzLCB0aGV5IHdpbGwgYmUgcG9zdGVkIHRvIHRoZSBhcHBy
-b3ByaWF0ZSBzdWItc3lzdGVtcyAoS1ZNLCBHUFUsDQo+ID4gPiBSRE1BLCAuLi4pIG9uY2UgdGhp
-cyBzZXJpZSBnZXQgdXBzdHJlYW0uIElmIHlvdSB3YW50IHRvIGxvb2sgYXQgdXNlcnMNCj4gPiA+
-IG9mIHRoaXMgc2VlIFs1XSBbNl0uIElmIHRoaXMgZ2V0cyBpbiA1LjEgdGhlbiBpIHdpbGwgYmUg
-c3VibWl0dGluZw0KPiA+ID4gdGhvc2UgdXNlcnMgZm9yIDUuMiAoaW5jbHVkaW5nIEtWTSBpZiBL
-Vk0gZm9sa3MgZmVlbCBjb21mb3J0YWJsZSB3aXRoDQo+ID4gPiBpdCkuDQo+ID4gDQo+ID4gVGhl
-IHVzZXJzIGxvb2sgc21hbGwgYW5kIHN0cmFpZ2h0Zm9yd2FyZC4gV2h5IG5vdCBhd2FpdCBhY2tz
-IGFuZA0KPiA+IHJldmlld2VkLWJ5J3MgZm9yIHRoZSB1c2VycyBsaWtlIGEgdHlwaWNhbCB1cHN0
-cmVhbSBzdWJtaXNzaW9uIGFuZA0KPiA+IG1lcmdlIHRoZW0gdG9nZXRoZXI/IElzIGFsbCBvZiB0
-aGUgZnVuY3Rpb25hbGl0eSBvZiB0aGlzDQo+ID4gaW5mcmFzdHJ1Y3R1cmUgY29uc3VtZWQgYnkg
-dGhlIHByb3Bvc2VkIHVzZXJzPyBMYXN0IHRpbWUgSSBjaGVja2VkIGl0DQo+ID4gd2FzIG9ubHkg
-YSBzdWJzZXQuDQo+IA0KPiBZZXMgcHJldHR5IG11Y2ggYWxsIGlzIHVzZSwgdGhlIHVudXNlIGNh
-c2UgaXMgU09GVF9ESVJUWSBhbmQgQ0xFQVINCj4gdnMgVU5NQVAuIEJvdGggb2Ygd2hpY2ggaSBp
-bnRlbmQgdG8gdXNlLiBUaGUgUkRNQSBmb2xrcyBhbHJlYWR5IGFjaw0KPiB0aGUgcGF0Y2hlcyBJ
-SVJDLCBzbyBkaWQgcmFkZW9uIGFuZCBhbWRncHUuIEkgYmVsaWV2ZSB0aGUgaTkxNSBmb2xrcw0K
-PiB3ZXJlIG9rIHdpdGggaXQgdG9vLiBJIGRvIG5vdCB3YW50IHRvIG1lcmdlIHRoaW5ncyB0aHJv
-dWdoIEFuZHJldw0KPiBmb3IgYWxsIG9mIHRoaXMgd2UgZGlzY3Vzc2VkIHRoYXQgaW4gdGhlIHBh
-c3QsIG1lcmdlIG1tIGJpdHMgdGhyb3VnaA0KPiBBbmRyZXcgaW4gb25lIHJlbGVhc2UgYW5kIGJp
-dHMgdGhhdCB1c2UgdGhpbmdzIGluIHRoZSBuZXh0IHJlbGVhc2UuDQoNCkl0IGlzIHVzdWFsbHkg
-Y2xlYW5lciBmb3IgZXZlcnlvbmUgdG8gc3BsaXQgcGF0Y2hlcyBsaWtlIHRoaXMsIGZvcg0KaW5z
-dGFuY2UgSSBhbHdheXMgcHJlZmVyIHRvIG1lcmdlIFJETUEgcGF0Y2hlcyB2aWEgUkRNQSB3aGVu
-DQpwb3NzaWJsZS4gTGVzcyBjb25mbGljdHMuDQoNClRoZSBvdGhlciBzb21ld2hhdCByZWFzb25h
-YmxlIG9wdGlvbiBpcyB0byBnZXQgYWNrcyBhbmQgc2VuZCB5b3VyIG93bg0KY29tcGxldGUgUFIg
-dG8gTGludXMgbmV4dCB3ZWVrPyBUaGF0IHdvcmtzIE9LIGZvciB0cmVlLXdpZGUgY2hhbmdlcy4N
-Cg0KSmFzb24gDQo=
+On Tue, Feb 19, 2019 at 12:30 PM Jerome Glisse <jglisse@redhat.com> wrote:
+>
+> On Tue, Feb 19, 2019 at 12:15:55PM -0800, Dan Williams wrote:
+> > On Tue, Feb 19, 2019 at 12:04 PM <jglisse@redhat.com> wrote:
+> > >
+> > > From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+> > >
+> > > Since last version [4] i added the extra bits needed for the change_p=
+te
+> > > optimization (which is a KSM thing). Here i am not posting users of
+> > > this, they will be posted to the appropriate sub-systems (KVM, GPU,
+> > > RDMA, ...) once this serie get upstream. If you want to look at users
+> > > of this see [5] [6]. If this gets in 5.1 then i will be submitting
+> > > those users for 5.2 (including KVM if KVM folks feel comfortable with
+> > > it).
+> >
+> > The users look small and straightforward. Why not await acks and
+> > reviewed-by's for the users like a typical upstream submission and
+> > merge them together? Is all of the functionality of this
+> > infrastructure consumed by the proposed users? Last time I checked it
+> > was only a subset.
+>
+> Yes pretty much all is use, the unuse case is SOFT_DIRTY and CLEAR
+> vs UNMAP. Both of which i intend to use. The RDMA folks already ack
+> the patches IIRC, so did radeon and amdgpu. I believe the i915 folks
+> were ok with it too. I do not want to merge things through Andrew
+> for all of this we discussed that in the past, merge mm bits through
+> Andrew in one release and bits that use things in the next release.
+
+Ok, I was trying to find the links to the acks on the mailing list,
+those references would address my concerns. I see no reason to rush
+SOFT_DIRTY and CLEAR ahead of the upstream user.
