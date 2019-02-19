@@ -1,36 +1,36 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Jerome Glisse <jglisse@redhat.com>
 Subject: Re: [PATCH v5 0/9] mmu notifier provide context informations
-Date: Tue, 19 Feb 2019 12:49:36 -0800
-Message-ID: <CAPcyv4gZ=aJSixVwOCrxAf_fn4emx68_80SSFQdzGvvN0mHLGg@mail.gmail.com>
-References: <20190219200430.11130-1-jglisse@redhat.com> <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
- <20190219203032.GC3959@redhat.com> <20190219204017.GP738@mellanox.com>
+Date: Tue, 19 Feb 2019 15:57:52 -0500
+Message-ID: <20190219205751.GD3959@redhat.com>
+References: <20190219200430.11130-1-jglisse@redhat.com>
+ <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
+ <20190219203032.GC3959@redhat.com>
+ <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190219204017.GP738@mellanox.com>
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Jerome Glisse <jglisse@redhat.com>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vger.kernel.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidia.com>, KVM list <kvm@vger.kernel.>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 19, 2019 at 12:41 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> On Tue, Feb 19, 2019 at 03:30:33PM -0500, Jerome Glisse wrote:
+On Tue, Feb 19, 2019 at 12:40:37PM -0800, Dan Williams wrote:
+> On Tue, Feb 19, 2019 at 12:30 PM Jerome Glisse <jglisse@redhat.com> wrote:
+> >
 > > On Tue, Feb 19, 2019 at 12:15:55PM -0800, Dan Williams wrote:
 > > > On Tue, Feb 19, 2019 at 12:04 PM <jglisse@redhat.com> wrote:
 > > > >
-> > > > From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+> > > > From: Jérôme Glisse <jglisse@redhat.com>
 > > > >
-> > > > Since last version [4] i added the extra bits needed for the change=
-_pte
+> > > > Since last version [4] i added the extra bits needed for the change_pte
 > > > > optimization (which is a KSM thing). Here i am not posting users of
 > > > > this, they will be posted to the appropriate sub-systems (KVM, GPU,
-> > > > RDMA, ...) once this serie get upstream. If you want to look at use=
-rs
+> > > > RDMA, ...) once this serie get upstream. If you want to look at users
 > > > > of this see [5] [6]. If this gets in 5.1 then i will be submitting
-> > > > those users for 5.2 (including KVM if KVM folks feel comfortable wi=
-th
+> > > > those users for 5.2 (including KVM if KVM folks feel comfortable with
 > > > > it).
 > > >
 > > > The users look small and straightforward. Why not await acks and
@@ -45,14 +45,24 @@ th
 > > were ok with it too. I do not want to merge things through Andrew
 > > for all of this we discussed that in the past, merge mm bits through
 > > Andrew in one release and bits that use things in the next release.
->
-> It is usually cleaner for everyone to split patches like this, for
-> instance I always prefer to merge RDMA patches via RDMA when
-> possible. Less conflicts.
->
-> The other somewhat reasonable option is to get acks and send your own
-> complete PR to Linus next week? That works OK for tree-wide changes.
+> 
+> Ok, I was trying to find the links to the acks on the mailing list,
+> those references would address my concerns. I see no reason to rush
+> SOFT_DIRTY and CLEAR ahead of the upstream user.
 
-Yes, I'm not proposing that they be merged together, instead I'm just
-looking for the acked-by / reviewed-by tags even if those patches are
-targeting the next merge window.
+I intend to post user for those in next couple weeks for 5.2 HMM bits.
+So user for this (CLEAR/UNMAP/SOFTDIRTY) will definitly materialize in
+time for 5.2.
+
+ACKS AMD/RADEON https://lkml.org/lkml/2019/2/1/395
+ACKS RDMA https://lkml.org/lkml/2018/12/6/1473
+
+For KVM Andrea Arcangeli seems to like the whole idea to restore the
+change_pte optimization but i have not got ACK from Radim or Paolo,
+however given the small performance improvement figure i get with it
+i do not see while they would not ACK.
+
+https://lkml.org/lkml/2019/2/18/1530
+
+Cheers,
+Jérôme
