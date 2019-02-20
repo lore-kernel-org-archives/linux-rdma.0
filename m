@@ -1,36 +1,60 @@
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: KASAN: use-after-free Read in __list_add_valid (5)
-Date: Wed, 20 Feb 2019 16:42:47 +0100
-Message-ID: <CACT4Y+bm_nO=+Jzwr=d0j1u9F59BJB9fu8_5pY9n5ia4fU+y+A@mail.gmail.com>
-References: <089e0825fc78410eaa056845781e@google.com> <20180513230237.GG677@sol.localdomain>
- <CAL1RGDVNaJ8OG+4ajmCZN1GnvsZUAqY3LXMRPv57mGSPJyhwAQ@mail.gmail.com> <20180704232629.GJ725@sol.localdomain>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [RFC v1 17/19] RDMA/irdma: Add ABI definitions
+Date: Wed, 20 Feb 2019 09:50:11 -0700
+Message-ID: <20190220165011.GE8429@ziepe.ca>
+References: <20190215171107.6464-1-shiraz.saleem@intel.com>
+ <20190215171107.6464-18-shiraz.saleem@intel.com>
+ <20190215171638.GA30706@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7A5A46077@fmsmsx124.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180704232629.GJ725@sol.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Eric Biggers <ebiggers3@gmail.com>
-Cc: Roland Dreier <roland@purestorage.com>, linux-rdma@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, rds-devel@oss.oracle.com, syzbot <syzbot+db1c219466daac1083df@syzkaller.appspotmail.com>, LKML <linux-kernel@vger.kernel.org>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7A5A46077@fmsmsx124.amr.corp.intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 5, 2018 at 1:26 AM Eric Biggers <ebiggers3@gmail.com> wrote:
->
-> On Tue, May 15, 2018 at 01:49:23PM -0700, Roland Dreier wrote:
-> > > Still reproducible on Linus' tree (commit 66e1c94db3cd4e) and on linux-next
-> > > (next-20180511).  Here's a simplified reproducer:
+On Wed, Feb 20, 2019 at 02:52:03PM +0000, Saleem, Shiraz wrote:
+> >Subject: Re: [RFC v1 17/19] RDMA/irdma: Add ABI definitions
 > >
-> > Thanks!  That's a fantastic test case.
+> >On Fri, Feb 15, 2019 at 11:11:04AM -0600, Shiraz Saleem wrote:
+> >> From: Mustafa Ismail <mustafa.ismail@intel.com>
+> >>
+> >> Add ABI definitions for irdma.
+> 
+> [....]
+> >>
+> >> +
+> >> +#include <linux/types.h>
+> >> +
+> >> +#define IRDMA_ABI_VER	6
 > >
-> > The issue is a race where rdma_listen() sees invalid state in the
-> > middle of an rdma_bind_addr() call that will ultimately fail.  I'll
-> > send a proposed patch shortly.
-> >
-> >  - R.
->
-> Ping; there's still no fix merged for this.  The reproducer also works as an
-> unprivileged user.
+> >Starting with high numbers?
+> 
+> It's a bump on the current i40iw ABI ver. of 5 since we
+> want to be compatible and support current rdma-core's libi40iw
+> for Gen1 (X722) device.
 
-I don't see any patch similar to the tested one being merged. But this
-stopped happening, so let's do:
+i40iw is one of the drivers that doesn't do ABI versions right, so
+this is all meaningless. You should probably fix it:
 
-#syz fix: ucma: fix a use-after-free in ucma_resolve_ip()
+static const struct verbs_device_ops i40iw_udev_ops = {
+        .name = "i40iw",
+        .match_min_abi_version = 0,
+        .match_max_abi_version = INT_MAX,
+
+0 and INT_MAX need to be something sensible.
+
+> >This won't even compile like this - don't forget you have to send the rdma-core
+> >PR along with the kernel patches. You should already be running the travis
+> >checks yourself. rdma-core should detect malformed user space headers..
+> 
+> Yes. We will be sending the rdma-core patches soon.
+> Maybe we are missing something here, but this did compile with libirdma
+> in rdma-core-v22, but we havent run travis checks yet.
+
+travis does the tests.
+
+Jason
