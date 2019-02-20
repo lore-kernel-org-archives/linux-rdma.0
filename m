@@ -1,40 +1,48 @@
 From: Dmitry Vyukov <dvyukov@google.com>
-Subject: Re: KASAN: use-after-free Read in wait_for_completion
-Date: Wed, 20 Feb 2019 16:22:42 +0100
-Message-ID: <CACT4Y+aScrD4cnnRNVzOyge1LxLCyOqXE6b-Hwde6JpP=t6R=Q@mail.gmail.com>
-References: <000000000000c57a190578b9eb98@google.com>
+Subject: Re: KASAN: use-after-free Read in cma_acquire_dev
+Date: Wed, 20 Feb 2019 16:26:44 +0100
+Message-ID: <CACT4Y+bA05uP7xbNdEfhEz=HL9mUO7xPcTmgX=4_kXp81Zx-0A@mail.gmail.com>
+References: <000000000000195e0e057063783e@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <000000000000c57a190578b9eb98@google.com>
+In-Reply-To: <000000000000195e0e057063783e@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+f25db12f1fd508824eac@syzkaller.appspotmail.com>
-Cc: dledford@redhat.com, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, parav@mellanox.com, Roland Dreier <roland@purestorage.com>, swise@opengridcomputing.com, syzkaller-bugs <syzkaller-bugs@googlegroups.com>, Cong Wang <xiyou.wangcong@gmail.com>
+To: syzbot <syzbot+908eac39ffdc39221032@syzkaller.appspotmail.com>
+Cc: danielj@mellanox.com, dledford@redhat.com, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, monis@mellanox.com, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 21, 2018 at 11:40 AM syzbot
-<syzbot+f25db12f1fd508824eac@syzkaller.appspotmail.com> wrote:
+On Sat, Jul 7, 2018 at 9:10 AM syzbot
+<syzbot+908eac39ffdc39221032@syzkaller.appspotmail.com> wrote:
 >
 > Hello,
 >
 > syzbot found the following crash on:
 >
-> HEAD commit:    270b77a0f30e Merge tag 'drm-fixes-2018-10-20-1' of git://a..
+> HEAD commit:    fc36def997cf mm: teach dump_page() to correctly output poi..
 > git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=152bb709400000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=b3f55cb3dfcc6c33
-> dashboard link: https://syzkaller.appspot.com/bug?extid=f25db12f1fd508824eac
+> console output: https://syzkaller.appspot.com/x/log.txt?x=1378110c400000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=2ca6c7a31d407f86
+> dashboard link: https://syzkaller.appspot.com/bug?extid=908eac39ffdc39221032
 > compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
 >
 > Unfortunately, I don't have any reproducer for this crash yet.
 >
 > IMPORTANT: if you fix the bug, please add the following tag to the commit:
-> Reported-by: syzbot+f25db12f1fd508824eac@syzkaller.appspotmail.com
+> Reported-by: syzbot+908eac39ffdc39221032@syzkaller.appspotmail.com
 >
+> netlink: 4 bytes leftover after parsing attributes in process
+> `syz-executor0'.
+> QAT: Invalid ioctl
+> capability: warning: `syz-executor0' uses deprecated v2 capabilities in a
+> way that may be insecure
 > ==================================================================
-> BUG: KASAN: use-after-free in __lock_acquire+0x37c2/0x4ec0
-> kernel/locking/lockdep.c:3290
-> Read of size 8 at addr ffff8801d28a81a8 by task syz-executor4/12225
+> BUG: KASAN: use-after-free in rdma_ip2gid include/rdma/ib_addr.h:143
+> [inline]
+> BUG: KASAN: use-after-free in cma_acquire_dev+0xe56/0xea0
+> drivers/infiniband/core/cma.c:654
+> Read of size 2 at addr ffff88019c561360 by task syz-executor2/8894
+
 
 This seems to have been fixed by:
 
@@ -43,58 +51,55 @@ This seems to have been fixed by:
 So let's close the bug. Pile of neglected bug reports is not too useful.
 
 
-> CPU: 1 PID: 12225 Comm: syz-executor4 Not tainted 4.19.0-rc8+ #72
+
+> CPU: 1 PID: 8894 Comm: syz-executor2 Not tainted 4.18.0-rc3+ #131
 > Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS
 > Google 01/01/2011
 > Call Trace:
 >   __dump_stack lib/dump_stack.c:77 [inline]
->   dump_stack+0x1c4/0x2b4 lib/dump_stack.c:113
->   print_address_description.cold.8+0x9/0x1ff mm/kasan/report.c:256
+>   dump_stack+0x1c9/0x2b4 lib/dump_stack.c:113
+>   print_address_description+0x6c/0x20b mm/kasan/report.c:256
 >   kasan_report_error mm/kasan/report.c:354 [inline]
->   kasan_report.cold.9+0x242/0x309 mm/kasan/report.c:412
->   __asan_report_load8_noabort+0x14/0x20 mm/kasan/report.c:433
->   __lock_acquire+0x37c2/0x4ec0 kernel/locking/lockdep.c:3290
->   lock_acquire+0x1ed/0x520 kernel/locking/lockdep.c:3900
->   __raw_spin_lock_irq include/linux/spinlock_api_smp.h:128 [inline]
->   _raw_spin_lock_irq+0x61/0x80 kernel/locking/spinlock.c:160
->   spin_lock_irq include/linux/spinlock.h:354 [inline]
->   do_wait_for_common kernel/sched/completion.c:84 [inline]
->   __wait_for_common kernel/sched/completion.c:104 [inline]
->   wait_for_common kernel/sched/completion.c:115 [inline]
->   wait_for_completion+0x436/0x8a0 kernel/sched/completion.c:136
->   ucma_destroy_id+0x38a/0x550 drivers/infiniband/core/ucma.c:637
->   ucma_write+0x365/0x460 drivers/infiniband/core/ucma.c:1689
->   __vfs_write+0x119/0x9f0 fs/read_write.c:485
->   vfs_write+0x1fc/0x560 fs/read_write.c:549
+>   kasan_report.cold.7+0x242/0x2fe mm/kasan/report.c:412
+>   __asan_report_load2_noabort+0x14/0x20 mm/kasan/report.c:431
+>   rdma_ip2gid include/rdma/ib_addr.h:143 [inline]
+>   cma_acquire_dev+0xe56/0xea0 drivers/infiniband/core/cma.c:654
+>   rdma_bind_addr+0x248/0x23b0 drivers/infiniband/core/cma.c:3388
+>   cma_bind_addr drivers/infiniband/core/cma.c:2930 [inline]
+>   rdma_resolve_addr+0x500/0x28a0 drivers/infiniband/core/cma.c:2942
+>   ucma_resolve_ip+0x242/0x2a0 drivers/infiniband/core/ucma.c:711
+>   ucma_write+0x336/0x420 drivers/infiniband/core/ucma.c:1680
+>   __vfs_write+0x117/0x9f0 fs/read_write.c:485
+>   vfs_write+0x1f8/0x560 fs/read_write.c:549
 >   ksys_write+0x101/0x260 fs/read_write.c:598
 >   __do_sys_write fs/read_write.c:610 [inline]
 >   __se_sys_write fs/read_write.c:607 [inline]
 >   __x64_sys_write+0x73/0xb0 fs/read_write.c:607
 >   do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
 >   entry_SYSCALL_64_after_hwframe+0x49/0xbe
-> RIP: 0033:0x457569
-> Code: fd b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7
+> RIP: 0033:0x455ba9
+> Code: 1d ba fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7
 > 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff
-> ff 0f 83 cb b3 fb ff c3 66 2e 0f 1f 84 00 00 00 00
-> RSP: 002b:00007fe8a3f8ec78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
-> RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000457569
-> RDX: 0000000000000018 RSI: 0000000020000280 RDI: 0000000000000005
-> RBP: 000000000072bfa0 R08: 0000000000000000 R09: 0000000000000000
-> R10: 0000000000000000 R11: 0000000000000246 R12: 00007fe8a3f8f6d4
-> R13: 00000000004cb4f8 R14: 00000000004d8b68 R15: 00000000ffffffff
+> ff 0f 83 eb b9 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+> RSP: 002b:00007fb04c987c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+> RAX: ffffffffffffffda RBX: 00007fb04c9886d4 RCX: 0000000000455ba9
+> RDX: 0000000000000048 RSI: 00000000200002c0 RDI: 0000000000000015
+> RBP: 000000000072bea0 R08: 0000000000000000 R09: 0000000000000000
+> R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+> R13: 00000000004c7f98 R14: 00000000004d4160 R15: 0000000000000000
 >
-> Allocated by task 12210:
+> Allocated by task 8894:
 >   save_stack+0x43/0xd0 mm/kasan/kasan.c:448
 >   set_track mm/kasan/kasan.c:460 [inline]
->   kasan_kmalloc+0xc7/0xe0 mm/kasan/kasan.c:553
->   kmem_cache_alloc_trace+0x152/0x750 mm/slab.c:3620
+>   kasan_kmalloc+0xc4/0xe0 mm/kasan/kasan.c:553
+>   kmem_cache_alloc_trace+0x152/0x780 mm/slab.c:3620
 >   kmalloc include/linux/slab.h:513 [inline]
 >   kzalloc include/linux/slab.h:707 [inline]
->   ucma_alloc_ctx+0xce/0x690 drivers/infiniband/core/ucma.c:209
->   ucma_create_id+0x27d/0x990 drivers/infiniband/core/ucma.c:500
->   ucma_write+0x365/0x460 drivers/infiniband/core/ucma.c:1689
->   __vfs_write+0x119/0x9f0 fs/read_write.c:485
->   vfs_write+0x1fc/0x560 fs/read_write.c:549
+>   __rdma_create_id+0xdf/0x720 drivers/infiniband/core/cma.c:780
+>   ucma_create_id+0x399/0x9d0 drivers/infiniband/core/ucma.c:502
+>   ucma_write+0x336/0x420 drivers/infiniband/core/ucma.c:1680
+>   __vfs_write+0x117/0x9f0 fs/read_write.c:485
+>   vfs_write+0x1f8/0x560 fs/read_write.c:549
 >   ksys_write+0x101/0x260 fs/read_write.c:598
 >   __do_sys_write fs/read_write.c:610 [inline]
 >   __se_sys_write fs/read_write.c:607 [inline]
@@ -102,44 +107,44 @@ So let's close the bug. Pile of neglected bug reports is not too useful.
 >   do_syscall_64+0x1b9/0x820 arch/x86/entry/common.c:290
 >   entry_SYSCALL_64_after_hwframe+0x49/0xbe
 >
-> Freed by task 12210:
+> Freed by task 8905:
 >   save_stack+0x43/0xd0 mm/kasan/kasan.c:448
 >   set_track mm/kasan/kasan.c:460 [inline]
->   __kasan_slab_free+0x102/0x150 mm/kasan/kasan.c:521
+>   __kasan_slab_free+0x11a/0x170 mm/kasan/kasan.c:521
 >   kasan_slab_free+0xe/0x10 mm/kasan/kasan.c:528
 >   __cache_free mm/slab.c:3498 [inline]
->   kfree+0xcf/0x230 mm/slab.c:3813
->   ucma_free_ctx+0x9e6/0xdb0 drivers/infiniband/core/ucma.c:599
->   ucma_close+0x121/0x310 drivers/infiniband/core/ucma.c:1775
->   __fput+0x385/0xa30 fs/file_table.c:278
->   ____fput+0x15/0x20 fs/file_table.c:309
->   task_work_run+0x1e8/0x2a0 kernel/task_work.c:113
->   get_signal+0x155e/0x1980 kernel/signal.c:2343
->   do_signal+0x9c/0x21e0 arch/x86/kernel/signal.c:816
->   exit_to_usermode_loop+0x2e5/0x380 arch/x86/entry/common.c:162
+>   kfree+0xd9/0x260 mm/slab.c:3813
+>   rdma_destroy_id+0x8cd/0xe60 drivers/infiniband/core/cma.c:1703
+>   ucma_close+0x100/0x300 drivers/infiniband/core/ucma.c:1759
+>   __fput+0x355/0x8b0 fs/file_table.c:209
+>   ____fput+0x15/0x20 fs/file_table.c:243
+>   task_work_run+0x1ec/0x2a0 kernel/task_work.c:113
+>   tracehook_notify_resume include/linux/tracehook.h:192 [inline]
+>   exit_to_usermode_loop+0x313/0x370 arch/x86/entry/common.c:166
 >   prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
 >   syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
 >   do_syscall_64+0x6be/0x820 arch/x86/entry/common.c:293
 >   entry_SYSCALL_64_after_hwframe+0x49/0xbe
 >
-> The buggy address belongs to the object at ffff8801d28a8180
->   which belongs to the cache kmalloc-256 of size 256
-> The buggy address is located 40 bytes inside of
->   256-byte region [ffff8801d28a8180, ffff8801d28a8280)
+> The buggy address belongs to the object at ffff88019c561340
+>   which belongs to the cache kmalloc-2048 of size 2048
+> The buggy address is located 32 bytes inside of
+>   2048-byte region [ffff88019c561340, ffff88019c561b40)
 > The buggy address belongs to the page:
-> page:ffffea00074a2a00 count:1 mapcount:0 mapping:ffff8801da8007c0 index:0x0
-> flags: 0x2fffc0000000100(slab)
-> raw: 02fffc0000000100 ffffea000760b108 ffffea0007491148 ffff8801da8007c0
-> raw: 0000000000000000 ffff8801d28a8040 000000010000000c 0000000000000000
+> page:ffffea0006715800 count:1 mapcount:0 mapping:ffff8801da800c40
+> index:0xffff88019c560240 compound_mapcount: 0
+> flags: 0x2fffc0000008100(slab|head)
+> raw: 02fffc0000008100 ffffea00066fb108 ffffea000670dc08 ffff8801da800c40
+> raw: ffff88019c560240 ffff88019c560240 0000000100000002 0000000000000000
 > page dumped because: kasan: bad access detected
 >
 > Memory state around the buggy address:
->   ffff8801d28a8080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->   ffff8801d28a8100: 00 00 fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-> > ffff8801d28a8180: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->                                    ^
->   ffff8801d28a8200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->   ffff8801d28a8280: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>   ffff88019c561200: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>   ffff88019c561280: fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc fc
+> > ffff88019c561300: fc fc fc fc fc fc fc fc fb fb fb fb fb fb fb fb
+>                                                         ^
+>   ffff88019c561380: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>   ffff88019c561400: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
 > ==================================================================
 >
 >
@@ -155,5 +160,5 @@ So let's close the bug. Pile of neglected bug reports is not too useful.
 > --
 > You received this message because you are subscribed to the Google Groups "syzkaller-bugs" group.
 > To unsubscribe from this group and stop receiving emails from it, send an email to syzkaller-bugs+unsubscribe@googlegroups.com.
-> To view this discussion on the web visit https://groups.google.com/d/msgid/syzkaller-bugs/000000000000c57a190578b9eb98%40google.com.
+> To view this discussion on the web visit https://groups.google.com/d/msgid/syzkaller-bugs/000000000000195e0e057063783e%40google.com.
 > For more options, visit https://groups.google.com/d/optout.
