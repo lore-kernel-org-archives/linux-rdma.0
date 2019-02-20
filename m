@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 04/19] rdma: Provide parent context index for all objects except CM_ID
-Date: Wed, 20 Feb 2019 09:21:21 +0200
-Message-ID: <20190220072136.3840-5-leon@kernel.org>
+Subject: [PATCH iproute2-next v1 07/19] rdma: Move out resource CQ logic to separate file
+Date: Wed, 20 Feb 2019 09:21:24 +0200
+Message-ID: <20190220072136.3840-8-leon@kernel.org>
 References: <20190220072136.3840-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,276 +14,382 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Allow users to correlate allocated object with relevant parent
-
-[leonro@server ~]$ rdma res show pd
-dev mlx5_0 users 5 pid 0 comm [ib_core] pdn 1
-dev mlx5_0 users 7 pid 0 comm [ib_ipoib] pdn 2
-dev mlx5_0 users 0 pid 0 comm [mlx5_ib] pdn 3
-dev mlx5_0 users 2 pid 548 comm ibv_rc_pingpong ctxn 0 pdn 4
-
-[leonro@server ~]$ rdma res show cq cqn 0-100
-dev mlx5_0 cqe 2047 users 6 poll-ctx UNBOUND_WORKQUEUE pid 0 comm [ib_core] cqn 2
-dev mlx5_0 cqe 255 users 2 poll-ctx SOFTIRQ pid 0 comm [mlx5_ib] cqn 3
-dev mlx5_0 cqe 511 users 1 poll-ctx DIRECT pid 0 comm [ib_ipoib] cqn 4
-dev mlx5_0 cqe 255 users 1 poll-ctx DIRECT pid 0 comm [ib_ipoib] cqn 5
-dev mlx5_0 cqe 255 users 0 poll-ctx SOFTIRQ pid 0 comm [mlx5_ib] cqn 6
-dev mlx5_0 cqe 511 users 2 pid 548 comm ibv_rc_pingpong cqn 7 ctxn 0
-
-[leonro@server ~]$ rdma res show mr
-dev mlx5_0 mrlen 4096 pid 548 comm ibv_rc_pingpong mrn 4 pdn 0
-
-[leonro@nps-server-14-015 ~]$ /images/leonro/src/iproute2/rdma/rdma res show qp
-link mlx5_0/1 lqpn 0 type SMI state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 8 type UD state RTS sq-psn 0 pid 0 comm [ib_ipoib]
-link mlx5_0/1 lqpn 9 pdn 4 rqpn 0 type RC state INIT rq-psn 0 sq-psn 0 path-mig-state MIGRATED pid 548 comm ibv_rc_pingpong
+Logically separate resource CQ logic to separate file,
+in order to make CQ specific logic self-contained.
 
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/res.c | 110 +++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 72 insertions(+), 38 deletions(-)
+ rdma/Makefile |   2 +-
+ rdma/res-cq.c | 143 ++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma/res.c    | 147 --------------------------------------------------
+ rdma/res.h    |  13 +++++
+ 4 files changed, 157 insertions(+), 148 deletions(-)
+ create mode 100644 rdma/res-cq.c
 
-diff --git a/rdma/res.c b/rdma/res.c
-index f941de5c..308f66c0 100644
---- a/rdma/res.c
-+++ b/rdma/res.c
-@@ -320,6 +320,22 @@ static char *get_task_name(uint32_t pid)
- 	return comm;
- }
+diff --git a/rdma/Makefile b/rdma/Makefile
+index 0b4e1eef..e32ccd18 100644
+--- a/rdma/Makefile
++++ b/rdma/Makefile
+@@ -6,7 +6,7 @@ TARGETS :=
+ ifeq ($(HAVE_MNL),y)
+ CFLAGS += -I./include/uapi/
  
-+static void print_key(struct rd *rd, const char *name, uint64_t val)
+-RDMA_OBJ = rdma.o utils.o dev.o link.o res.o res-pd.o res-mr.o
++RDMA_OBJ = rdma.o utils.o dev.o link.o res.o res-pd.o res-mr.o res-cq.o
+ 
+ TARGETS += rdma
+ endif
+diff --git a/rdma/res-cq.c b/rdma/res-cq.c
+new file mode 100644
+index 00000000..fbfe593b
+--- /dev/null
++++ b/rdma/res-cq.c
+@@ -0,0 +1,143 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * res-cq.c	RDMA tool
++ * Authors:     Leon Romanovsky <leonro@mellanox.com>
++ */
++
++#include "res.h"
++#include <inttypes.h>
++
++static void print_cqe(struct rd *rd, uint32_t val)
 +{
 +	if (rd->json_output)
-+		jsonw_xint_field(rd->jw, name, val);
++		jsonw_uint_field(rd->jw, "cqe", val);
 +	else
-+		pr_out("%s 0x%" PRIx64 " ", name, val);
++		pr_out("cqe %u ", val);
 +}
 +
-+static void res_print_uint(struct rd *rd, const char *name, uint64_t val)
++static const char *poll_ctx_to_str(uint8_t idx)
 +{
-+	if (rd->json_output)
-+		jsonw_uint_field(rd->jw, name, val);
-+	else
-+		pr_out("%s %" PRIu64 " ", name, val);
++	static const char * const cm_id_states_str[] = {
++		"DIRECT", "SOFTIRQ", "WORKQUEUE", "UNBOUND_WORKQUEUE"};
++
++	if (idx < ARRAY_SIZE(cm_id_states_str))
++		return cm_id_states_str[idx];
++	return "UNKNOWN";
 +}
 +
- static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-@@ -343,6 +359,7 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
- 		uint8_t type, state, path_mig_state = 0;
- 		uint32_t port = 0, pid = 0;
-+		uint32_t pdn = 0;
- 		char *comm = NULL;
- 		int err;
- 
-@@ -369,6 +386,11 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "lqpn", lqpn))
- 			continue;
- 
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			pdn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
-+		if (rd_check_is_filtered(rd, "pdn", pdn))
++static void print_poll_ctx(struct rd *rd, uint8_t poll_ctx)
++{
++	if (rd->json_output) {
++		jsonw_string_field(rd->jw, "poll-ctx",
++				   poll_ctx_to_str(poll_ctx));
++		return;
++	}
++	pr_out("poll-ctx %s ", poll_ctx_to_str(poll_ctx));
++}
++
++int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
++	struct nlattr *nla_table, *nla_entry;
++	struct rd *rd = data;
++	const char *name;
++	uint32_t idx;
++
++	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
++	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
++	    !tb[RDMA_NLDEV_ATTR_RES_CQ])
++		return MNL_CB_ERROR;
++
++	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
++	idx = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	nla_table = tb[RDMA_NLDEV_ATTR_RES_CQ];
++
++	mnl_attr_for_each_nested(nla_entry, nla_table) {
++		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
++		char *comm = NULL;
++		uint32_t pid = 0;
++		uint8_t poll_ctx = 0;
++		uint32_t ctxn = 0;
++		uint32_t cqn = 0;
++		uint64_t users;
++		uint32_t cqe;
++		int err;
++
++		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
++		if (err != MNL_CB_OK)
++			return MNL_CB_ERROR;
++
++		if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
++		    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT] ||
++		    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
++		     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
++			return MNL_CB_ERROR;
++		}
++
++		cqe = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQE]);
++
++		users = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_USECNT]);
++		if (rd_check_is_filtered(rd, "users", users))
 +			continue;
 +
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN]) {
- 			rqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQPN]);
- 			if (rd_check_is_filtered(rd, "rqpn", rqpn))
-@@ -428,6 +450,8 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		print_link(rd, idx, name, port, nla_line);
- 
- 		print_lqpn(rd, lqpn);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			res_print_uint(rd, "pdn", pdn);
- 		print_rqpn(rd, rqpn, nla_line);
- 
- 		print_type(rd, type);
-@@ -549,22 +573,6 @@ static int ss_ntop(struct nlattr *nla_line, char *addr_str, uint16_t *port)
- 	return 0;
- }
- 
--static void print_key(struct rd *rd, const char *name, uint64_t val)
--{
--	if (rd->json_output)
--		jsonw_xint_field(rd->jw, name, val);
--	else
--		pr_out("%s 0x%" PRIx64 " ", name, val);
--}
--
--static void res_print_uint(struct rd *rd, const char *name, uint64_t val)
--{
--	if (rd->json_output)
--		jsonw_uint_field(rd->jw, name, val);
--	else
--		pr_out("%s %" PRIu64 " ", name, val);
--}
--
- static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-@@ -768,6 +776,7 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		char *comm = NULL;
- 		uint32_t pid = 0;
- 		uint8_t poll_ctx = 0;
-+		uint32_t ctxn = 0;
- 		uint32_t cqn = 0;
- 		uint64_t users;
- 		uint32_t cqe;
-@@ -815,6 +824,12 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "cqn", cqn))
- 			continue;
- 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]) {
++			poll_ctx = mnl_attr_get_u8(
++				nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]);
++			if (rd_check_is_string_filtered(
++				    rd, "poll-ctx", poll_ctx_to_str(poll_ctx)))
++				continue;
++		}
++
++		if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
++			pid = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_PID]);
++			comm = get_task_name(pid);
++		}
++
++		if (rd_check_is_filtered(rd, "pid", pid)) {
++			free(comm);
++			continue;
++		}
++
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			cqn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
++		if (rd_check_is_filtered(rd, "cqn", cqn))
++			continue;
++
 +		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
 +			ctxn = mnl_attr_get_u32(
-+				 nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
++				nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
 +		if (rd_check_is_filtered(rd, "ctxn", ctxn))
 +			continue;
 +
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
- 			/* discard const from mnl_attr_get_str */
- 			comm = (char *)mnl_attr_get_str(
-@@ -833,6 +848,8 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
- 
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
- 			res_print_uint(rd, "cqn", cqn);
++		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
++			/* discard const from mnl_attr_get_str */
++			comm = (char *)mnl_attr_get_str(
++				nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
++
++		if (rd->json_output)
++			jsonw_start_array(rd->jw);
++
++		print_dev(rd, idx, name);
++		print_cqe(rd, cqe);
++		print_users(rd, users);
++		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX])
++			print_poll_ctx(rd, poll_ctx);
++		print_pid(rd, pid);
++		print_comm(rd, comm, nla_line);
++
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			res_print_uint(rd, "cqn", cqn);
 +		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
 +			res_print_uint(rd, "ctxn", ctxn);
- 
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
- 			free(comm);
-@@ -866,6 +883,7 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t rkey = 0, lkey = 0;
- 		uint64_t iova = 0, mrlen;
- 		char *comm = NULL;
-+		uint32_t pdn = 0;
- 		uint32_t mrn = 0;
- 		uint32_t pid = 0;
- 		int err;
-@@ -911,6 +929,12 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "mrn", mrn))
- 			continue;
- 
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			pdn = mnl_attr_get_u32(
-+				nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
-+		if (rd_check_is_filtered(rd, "pdn", pdn))
-+			continue;
 +
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
- 			/* discard const from mnl_attr_get_str */
- 			comm = (char *)mnl_attr_get_str(
-@@ -933,6 +957,9 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
- 			res_print_uint(rd, "mrn", mrn);
- 
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			res_print_uint(rd, "pdn", pdn);
++		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
++			free(comm);
 +
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
- 			free(comm);
- 
-@@ -964,6 +991,7 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t local_dma_lkey = 0, unsafe_global_rkey = 0;
- 		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
- 		char *comm = NULL;
-+		uint32_t ctxn = 0;
- 		uint32_t pid = 0;
- 		uint32_t pdn = 0;
- 		uint64_t users;
-@@ -997,7 +1025,13 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 			comm = get_task_name(pid);
- 		}
- 
--		if (rd_check_is_filtered(rd, "pid", pid))
-+                if (rd_check_is_filtered(rd, "pid", pid))
-+			continue;
++		print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
++		newline(rd);
++	}
++	return MNL_CB_OK;
++}
 +
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			ctxn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+
-+		if (rd_check_is_filtered(rd, "ctxn", ctxn))
- 			continue;
+diff --git a/rdma/res.c b/rdma/res.c
+index 1de8c797..7956882e 100644
+--- a/rdma/res.c
++++ b/rdma/res.c
+@@ -695,14 +695,6 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
+ }
  
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-@@ -1022,6 +1056,8 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 			print_key(rd, "unsafe_global_rkey", unsafe_global_rkey);
- 		print_pid(rd, pid);
- 		print_comm(rd, comm, nla_line);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			res_print_uint(rd, "ctxn", ctxn);
+-static void print_cqe(struct rd *rd, uint32_t val)
+-{
+-	if (rd->json_output)
+-		jsonw_uint_field(rd->jw, "cqe", val);
+-	else
+-		pr_out("cqe %u ", val);
+-}
+-
+ void print_users(struct rd *rd, uint64_t val)
+ {
+ 	if (rd->json_output)
+@@ -711,133 +703,6 @@ void print_users(struct rd *rd, uint64_t val)
+ 		pr_out("users %" PRIu64 " ", val);
+ }
  
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
- 			res_print_uint(rd, "pdn", pdn);
-@@ -1038,24 +1074,18 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+-static const char *poll_ctx_to_str(uint8_t idx)
+-{
+-	static const char * const cm_id_states_str[] = {
+-		"DIRECT", "SOFTIRQ", "WORKQUEUE", "UNBOUND_WORKQUEUE"};
+-
+-	if (idx < ARRAY_SIZE(cm_id_states_str))
+-		return cm_id_states_str[idx];
+-	return "UNKNOWN";
+-}
+-
+-static void print_poll_ctx(struct rd *rd, uint8_t poll_ctx)
+-{
+-	if (rd->json_output) {
+-		jsonw_string_field(rd->jw, "poll-ctx",
+-				   poll_ctx_to_str(poll_ctx));
+-		return;
+-	}
+-	pr_out("poll-ctx %s ", poll_ctx_to_str(poll_ctx));
+-}
+-
+-static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+-{
+-	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
+-	struct nlattr *nla_table, *nla_entry;
+-	struct rd *rd = data;
+-	const char *name;
+-	uint32_t idx;
+-
+-	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
+-	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
+-	    !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
+-	    !tb[RDMA_NLDEV_ATTR_RES_CQ])
+-		return MNL_CB_ERROR;
+-
+-	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
+-	idx =  mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
+-	nla_table = tb[RDMA_NLDEV_ATTR_RES_CQ];
+-
+-	mnl_attr_for_each_nested(nla_entry, nla_table) {
+-		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
+-		char *comm = NULL;
+-		uint32_t pid = 0;
+-		uint8_t poll_ctx = 0;
+-		uint32_t ctxn = 0;
+-		uint32_t cqn = 0;
+-		uint64_t users;
+-		uint32_t cqe;
+-		int err;
+-
+-		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
+-		if (err != MNL_CB_OK)
+-			return MNL_CB_ERROR;
+-
+-		if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
+-		    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT] ||
+-		    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
+-		     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
+-			return MNL_CB_ERROR;
+-		}
+-
+-		cqe = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQE]);
+-
+-		users = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_USECNT]);
+-		if (rd_check_is_filtered(rd, "users", users))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]) {
+-			poll_ctx = mnl_attr_get_u8(
+-					nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]);
+-			if (rd_check_is_string_filtered(rd, "poll-ctx",
+-						poll_ctx_to_str(poll_ctx)))
+-				continue;
+-		}
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
+-			pid = mnl_attr_get_u32(
+-					nla_line[RDMA_NLDEV_ATTR_RES_PID]);
+-			comm = get_task_name(pid);
+-		}
+-
+-		if (rd_check_is_filtered(rd, "pid", pid)) {
+-			free(comm);
+-			continue;
+-		}
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
+-			cqn = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
+-		if (rd_check_is_filtered(rd, "cqn", cqn))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
+-			ctxn = mnl_attr_get_u32(
+-				 nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
+-		if (rd_check_is_filtered(rd, "ctxn", ctxn))
+-			continue;
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+-			/* discard const from mnl_attr_get_str */
+-			comm = (char *)mnl_attr_get_str(
+-				nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]);
+-
+-		if (rd->json_output)
+-			jsonw_start_array(rd->jw);
+-
+-		print_dev(rd, idx, name);
+-		print_cqe(rd, cqe);
+-		print_users(rd, users);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX])
+-			print_poll_ctx(rd, poll_ctx);
+-		print_pid(rd, pid);
+-		print_comm(rd, comm, nla_line);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
+-			res_print_uint(rd, "cqn", cqn);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
+-			res_print_uint(rd, "ctxn", ctxn);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+-			free(comm);
+-
+-		print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
+-		newline(rd);
+-	}
+-	return MNL_CB_OK;
+-}
+-
  RES_FUNC(res_no_args,	RDMA_NLDEV_CMD_RES_GET,	NULL, true);
  
  static const struct
--filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {{ .name = "link",
--						   .is_number = false },
--						   { .name = "lqpn",
--						   .is_number = true },
--						   { .name = "rqpn",
--						   .is_number = true },
--						   { .name = "pid",
--						   .is_number = true },
--						   { .name = "sq-psn",
--						   .is_number = true },
--						   { .name = "rq-psn",
--						   .is_number = true },
--						   { .name = "type",
--						   .is_number = false },
--						   { .name = "path-mig-state",
--						   .is_number = false },
--						   { .name = "state",
--						   .is_number = false } };
-+filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-+	{ .name = "link", .is_number = false },
-+	{ .name = "lqpn", .is_number = true },
-+	{ .name = "rqpn", .is_number = true },
-+	{ .name = "pid",  .is_number = true },
-+	{ .name = "sq-psn", .is_number = true },
-+	{ .name = "rq-psn", .is_number = true },
-+	{ .name = "type", .is_number = false },
-+	{ .name = "path-mig-state", .is_number = false },
-+	{ .name = "state", .is_number = false },
-+	{ .name = "pdn", .is_number = true },
-+};
+@@ -875,18 +740,6 @@ struct filters cm_id_valid_filters[MAX_NUMBER_OF_FILTERS] = {
  
- RES_FUNC(res_qp,	RDMA_NLDEV_CMD_RES_QP_GET, qp_valid_filters, false);
+ RES_FUNC(res_cm_id, RDMA_NLDEV_CMD_RES_CM_ID_GET, cm_id_valid_filters, false);
  
-@@ -1084,7 +1114,8 @@ struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- 	{ .name = "users", .is_number = true },
- 	{ .name = "poll-ctx", .is_number = false },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "cqn", .is_number = true }
-+	{ .name = "cqn", .is_number = true },
-+	{ .name = "ctxn", .is_number = true }
- };
+-static const
+-struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+-	{ .name = "dev", .is_number = false },
+-	{ .name = "users", .is_number = true },
+-	{ .name = "poll-ctx", .is_number = false },
+-	{ .name = "pid", .is_number = true },
+-	{ .name = "cqn", .is_number = true },
+-	{ .name = "ctxn", .is_number = true }
+-};
+-
+-RES_FUNC(res_cq, RDMA_NLDEV_CMD_RES_CQ_GET, cq_valid_filters, true);
+-
+ static int res_show(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+diff --git a/rdma/res.h b/rdma/res.h
+index e3619773..19f0d420 100644
+--- a/rdma/res.h
++++ b/rdma/res.h
+@@ -11,6 +11,7 @@
+ int _res_send_msg(struct rd *rd, uint32_t command, mnl_cb_t callback);
+ int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data);
+ int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data);
++int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data);
  
- RES_FUNC(res_cq, RDMA_NLDEV_CMD_RES_CQ_GET, cq_valid_filters, true);
-@@ -1096,7 +1127,8 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- 	{ .name = "lkey", .is_number = true },
- 	{ .name = "mrlen", .is_number = true },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "mrn", .is_number = true }
-+	{ .name = "mrn", .is_number = true },
-+	{ .name = "pdn", .is_number = true }
- };
+ #define RES_FUNC(name, command, valid_filters, strict_port) \
+ 	static inline int _##name(struct rd *rd)\
+@@ -58,6 +59,18 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
  
  RES_FUNC(res_mr, RDMA_NLDEV_CMD_RES_MR_GET, mr_valid_filters, true);
-@@ -1106,7 +1138,9 @@ struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
- 	{ .name = "dev", .is_number = false },
- 	{ .name = "users", .is_number = true },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "pdn", .is_number = true }
-+	{ .name = "ctxn", .is_number = true },
-+	{ .name = "pdn", .is_number = true },
-+	{ .name = "ctxn", .is_number = true }
- };
  
- RES_FUNC(res_pd, RDMA_NLDEV_CMD_RES_PD_GET, pd_valid_filters, true);
++static const
++struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
++	{ .name = "dev", .is_number = false },
++	{ .name = "users", .is_number = true },
++	{ .name = "poll-ctx", .is_number = false },
++	{ .name = "pid", .is_number = true },
++	{ .name = "cqn", .is_number = true },
++	{ .name = "ctxn", .is_number = true }
++};
++
++RES_FUNC(res_cq, RDMA_NLDEV_CMD_RES_CQ_GET, cq_valid_filters, true);
++
+ char *get_task_name(uint32_t pid);
+ void print_dev(struct rd *rd, uint32_t idx, const char *name);
+ void print_users(struct rd *rd, uint64_t val);
 -- 
 2.19.1
