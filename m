@@ -1,70 +1,72 @@
-From: =?utf-8?Q?H=C3=A5kon_Bugge?= <haakon.bugge@oracle.com>
-Subject: Re: [PATCH] RDMA/mlx4: Spread completion vectors for proxy CQs
-Date: Wed, 20 Feb 2019 18:46:47 +0100
-Message-ID: <A7FA2738-ACD2-42C7-A0AF-4343583CF87E@oracle.com>
-References: <20190218183302.1242676-1-haakon.bugge@oracle.com>
- <38187795-4082-42C2-AF56-E6C89EE7DE39@oracle.com>
- <66C92ED1-EE5E-4136-A7D7-DBF8A0816800@oracle.com>
- <20190220171441.GH8429@ziepe.ca>
-Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190220171441.GH8429@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Chuck Lever <chuck.lever@oracle.com>, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, jackm@dev.mellanox.co.il, majd@mellanox.com, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date: Wed, 20 Feb 2019 10:02:56 -0800
+Message-ID: <20190220180255.GA12020@iweiny-DESK2.sc.intel.com>
+References: <20190220053040.10831-1-ira.weiny@intel.com>
+ <20190220151930.GB11695@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20190220151930.GB11695@infradead.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-fbdev@vger.kernel.org, Michal Hocko <mhocko@suse.com>, kvm@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, linux-fpga@vger.kernel.org, Heiko Carstens <heiko.carstens@de.ibm.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, Ingo Molnar <mingo@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, kvm-ppc@vger.kernel.org, Borislav
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Feb 20, 2019 at 07:19:30AM -0800, Christoph Hellwig wrote:
+> On Tue, Feb 19, 2019 at 09:30:33PM -0800, ira.weiny@intel.com wrote:
+> > From: Ira Weiny <ira.weiny@intel.com>
+> > 
+> > Resending these as I had only 1 minor comment which I believe we have covered
+> > in this series.  I was anticipating these going through the mm tree as they
+> > depend on a cleanup patch there and the IB changes are very minor.  But they
+> > could just as well go through the IB tree.
+> > 
+> > NOTE: This series depends on my clean up patch to remove the write parameter
+> > from gup_fast_permitted()[1]
+> > 
+> > HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+> > advantages.  These pages can be held for a significant time.  But
+> > get_user_pages_fast() does not protect against mapping of FS DAX pages.
+> 
+> This I don't get - if you do lock down long term mappings performance
+> of the actual get_user_pages call shouldn't matter to start with.
+> 
+> What do I miss?
 
+A couple of points.
 
-> On 20 Feb 2019, at 18:14, Jason Gunthorpe <jgg@ziepe.ca> wrote:
->=20
-> On Tue, Feb 19, 2019 at 06:32:50PM +0100, H=C3=A5kon Bugge wrote:
->>   Anyway, Jason mentioned in a private email that maybe we could use =
-the
->>   new completion API or something? I am not familiar with that one
->>   (yet).
->=20
-> I was thinking of the stuff in core/cq.c - but it also doesn't have
-> automatic comp_vector balancing. It is the logical place to put
-> something like that though..
->=20
-> An API to manage a bundle of CPU affine CQ's is probably what most
-> ULPs really need.. (it makes little sense to create a unique CQ for
-> every QP)
+First "longterm" is a relative thing and at this point is probably a misnomer.
+This is really flagging a pin which is going to be given to hardware and can't
+move.  I've thought of a couple of alternative names but I think we have to
+settle on if we are going to use FL_LAYOUT or something else to solve the
+"longterm" problem.  Then I think we can change the flag to a better name.
 
-ULPs behave way differently. E.g. RDS creates one tx and one rx CQ per =
-QP.
+Second, It depends on how often you are registering memory.  I have spoken with
+some RDMA users who consider MR in the performance path...  For the overall
+application performance.  I don't have the numbers as the tests for HFI1 were
+done a long time ago.  But there was a significant advantage.  Some of which is
+probably due to the fact that you don't have to hold mmap_sem.
 
-As I wrote earlier, we do not have any modify_cq() that changes the =
-comp_vector (EQ association). We can balance #CQ associated with the =
-EQs, but we do not know their behaviour.
+Finally, architecturally I think it would be good for everyone to use *_fast.
+There are patches submitted to the RDMA list which would allow the use of
+*_fast (they reworking the use of mmap_sem) and as soon as they are accepted
+I'll submit a patch to convert the RDMA core as well.  Also to this point
+others are looking to use *_fast.[2]
 
-So, assume 2 completion EQs, and four CQs. CQa and CQb are associated =
-with the first EQ, the two others with the second EQ. That's the "best" =
-we can do. But, if CQa and CQb are the only ones generating events, we =
-will have all interrupt processing on a single CPU. But if we now could =
-modify CQa.comp_vector to be that of the second EQ, we could achieve =
-balance. But not sure if the drivers are able to do this at all.
+As an asside, Jasons pointed out in my previous submission that *_fast and
+*_unlocked look very much the same.  I agree and I think further cleanup will
+be coming.  But I'm focused on getting the final solution for DAX at the
+moment.
 
-> alloc_bundle()
-
-You mean alloc a bunch of CQs? How do you know their #cqes and =
-cq_context?
-
-
-H=C3=A5kon
-
-
-> get_cqn_for_flow(bundle)
-> alloc_qp()
-> destroy_qp()
-> put_cqn_for_flow(bundle)
-> destroy_bundle();
->=20
-> Let the core code balance the cqn's and allocate (shared) CQ
-> resources.
->=20
-> Jason
+Ira
