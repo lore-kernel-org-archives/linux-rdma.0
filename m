@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v1 01/19] rdma: update uapi headers
-Date: Wed, 20 Feb 2019 09:21:18 +0200
-Message-ID: <20190220072136.3840-2-leon@kernel.org>
+Subject: [PATCH iproute2-next v1 03/19] rdma: Provide unique indexes for all visible objects
+Date: Wed, 20 Feb 2019 09:21:20 +0200
+Message-ID: <20190220072136.3840-4-leon@kernel.org>
 References: <20190220072136.3840-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,150 +14,223 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Update rdma_netlink,h file upto kernel commit
-f2a0e45f36b0 RDMA/nldev: Don't expose number of not-visible entries
-
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 64 +++++++++++++++++++++------
- 1 file changed, 50 insertions(+), 14 deletions(-)
+ rdma/res.c | 83 +++++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 63 insertions(+), 20 deletions(-)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index 04c80ceb..5027c627 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -5,8 +5,7 @@
- #include <linux/types.h>
+diff --git a/rdma/res.c b/rdma/res.c
+index 87865ec8..f941de5c 100644
+--- a/rdma/res.c
++++ b/rdma/res.c
+@@ -549,6 +549,22 @@ static int ss_ntop(struct nlattr *nla_line, char *addr_str, uint16_t *port)
+ 	return 0;
+ }
  
- enum {
--	RDMA_NL_RDMA_CM = 1,
--	RDMA_NL_IWCM,
-+	RDMA_NL_IWCM = 2,
- 	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
- 	RDMA_NL_NLDEV,	/* RDMA device interface */
-@@ -14,8 +13,7 @@ enum {
- };
- 
- enum {
--	RDMA_NL_GROUP_CM = 1,
--	RDMA_NL_GROUP_IWPM,
-+	RDMA_NL_GROUP_IWPM = 2,
- 	RDMA_NL_GROUP_LS,
- 	RDMA_NL_NUM_GROUPS
- };
-@@ -24,15 +22,17 @@ enum {
- #define RDMA_NL_GET_OP(type) (type & ((1 << 10) - 1))
- #define RDMA_NL_GET_TYPE(client, op) ((client << 10) + op)
- 
--enum {
--	RDMA_NL_RDMA_CM_ID_STATS = 0,
--	RDMA_NL_RDMA_CM_NUM_OPS
--};
-+/* The minimum version that the iwpm kernel supports */
-+#define IWPM_UABI_VERSION_MIN	3
- 
-+/* The latest version that the iwpm kernel supports */
-+#define IWPM_UABI_VERSION	4
++static void print_key(struct rd *rd, const char *name, uint64_t val)
++{
++	if (rd->json_output)
++		jsonw_xint_field(rd->jw, name, val);
++	else
++		pr_out("%s 0x%" PRIx64 " ", name, val);
++}
 +
-+/* iwarp port mapper message flags */
- enum {
--	RDMA_NL_RDMA_CM_ATTR_SRC_ADDR = 1,
--	RDMA_NL_RDMA_CM_ATTR_DST_ADDR,
--	RDMA_NL_RDMA_CM_NUM_ATTR,
++static void res_print_uint(struct rd *rd, const char *name, uint64_t val)
++{
++	if (rd->json_output)
++		jsonw_uint_field(rd->jw, name, val);
++	else
++		pr_out("%s %" PRIu64 " ", name, val);
++}
 +
-+	/* Do not map the port for this IWPM request */
-+	IWPM_FLAGS_NO_PORT_MAP = (1 << 0),
+ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
+@@ -574,6 +590,7 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		uint32_t port = 0, pid = 0;
+ 		uint8_t type = 0, state;
+ 		uint32_t lqpn = 0, ps;
++		uint32_t cm_idn = 0;
+ 		char *comm = NULL;
+ 		int err;
+ 
+@@ -651,6 +668,12 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 			continue;
+ 		}
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN])
++			cm_idn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN]);
++		if (rd_check_is_filtered(rd, "cm-idn", cm_idn))
++			continue;
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]) {
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -669,6 +692,8 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_ps(rd, ps);
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN])
++			res_print_uint(rd, "cm-idn", cm_idn);
+ 
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_SRC_ADDR])
+ 			print_ipaddr(rd, "src-addr", src_addr_str, src_port);
+@@ -743,6 +768,7 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		char *comm = NULL;
+ 		uint32_t pid = 0;
+ 		uint8_t poll_ctx = 0;
++		uint32_t cqn = 0;
+ 		uint64_t users;
+ 		uint32_t cqe;
+ 		int err;
+@@ -783,6 +809,12 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 			continue;
+ 		}
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			cqn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
++		if (rd_check_is_filtered(rd, "cqn", cqn))
++			continue;
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -799,6 +831,9 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			res_print_uint(rd, "cqn", cqn);
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+ 			free(comm);
+ 
+@@ -808,22 +843,6 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-static void print_key(struct rd *rd, const char *name, uint64_t val)
+-{
+-	if (rd->json_output)
+-		jsonw_xint_field(rd->jw, name, val);
+-	else
+-		pr_out("%s 0x%" PRIx64 " ", name, val);
+-}
+-
+-static void res_print_uint(struct rd *rd, const char *name, uint64_t val)
+-{
+-	if (rd->json_output)
+-		jsonw_uint_field(rd->jw, name, val);
+-	else
+-		pr_out("%s %" PRIu64 " ", name, val);
+-}
+-
+ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
+@@ -847,6 +866,7 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		uint32_t rkey = 0, lkey = 0;
+ 		uint64_t iova = 0, mrlen;
+ 		char *comm = NULL;
++		uint32_t mrn = 0;
+ 		uint32_t pid = 0;
+ 		int err;
+ 
+@@ -885,6 +905,12 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 			continue;
+ 		}
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++			mrn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
++		if (rd_check_is_filtered(rd, "mrn", mrn))
++			continue;
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -904,6 +930,9 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++			res_print_uint(rd, "mrn", mrn);
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+ 			free(comm);
+ 
+@@ -936,6 +965,7 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
+ 		char *comm = NULL;
+ 		uint32_t pid = 0;
++		uint32_t pdn = 0;
+ 		uint64_t users;
+ 		int err;
+ 
+@@ -970,6 +1000,12 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		if (rd_check_is_filtered(rd, "pid", pid))
+ 			continue;
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++			pdn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
++		if (rd_check_is_filtered(rd, "pdn", pdn))
++			continue;
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -987,6 +1023,9 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++			res_print_uint(rd, "pdn", pdn);
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+ 			free(comm);
+ 
+@@ -1033,7 +1072,8 @@ struct filters cm_id_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "src-addr", .is_number = false },
+ 	{ .name = "src-port", .is_number = true },
+ 	{ .name = "dst-addr", .is_number = false },
+-	{ .name = "dst-port", .is_number = true }
++	{ .name = "dst-port", .is_number = true },
++	{ .name = "cm-idn", .is_number = true }
  };
  
- /* iwarp port mapper op-codes */
-@@ -45,6 +45,7 @@ enum {
- 	RDMA_NL_IWPM_HANDLE_ERR,
- 	RDMA_NL_IWPM_MAPINFO,
- 	RDMA_NL_IWPM_MAPINFO_NUM,
-+	RDMA_NL_IWPM_HELLO,
- 	RDMA_NL_IWPM_NUM_OPS
+ RES_FUNC(res_cm_id, RDMA_NLDEV_CMD_RES_CM_ID_GET, cm_id_valid_filters, false);
+@@ -1043,7 +1083,8 @@ struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "dev", .is_number = false },
+ 	{ .name = "users", .is_number = true },
+ 	{ .name = "poll-ctx", .is_number = false },
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "cqn", .is_number = true }
  };
  
-@@ -83,20 +84,38 @@ enum {
- 	IWPM_NLA_MANAGE_MAPPING_UNSPEC = 0,
- 	IWPM_NLA_MANAGE_MAPPING_SEQ,
- 	IWPM_NLA_MANAGE_ADDR,
--	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR,
-+	IWPM_NLA_MANAGE_FLAGS,
-+	IWPM_NLA_MANAGE_MAPPING_MAX
-+};
-+
-+enum {
-+	IWPM_NLA_RMANAGE_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_RMANAGE_MAPPING_SEQ,
-+	IWPM_NLA_RMANAGE_ADDR,
-+	IWPM_NLA_RMANAGE_MAPPED_LOC_ADDR,
-+	/* The following maintains bisectability of rdma-core */
-+	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR = IWPM_NLA_RMANAGE_MAPPED_LOC_ADDR,
- 	IWPM_NLA_RMANAGE_MAPPING_ERR,
- 	IWPM_NLA_RMANAGE_MAPPING_MAX
+ RES_FUNC(res_cq, RDMA_NLDEV_CMD_RES_CQ_GET, cq_valid_filters, true);
+@@ -1054,7 +1095,8 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "rkey", .is_number = true },
+ 	{ .name = "lkey", .is_number = true },
+ 	{ .name = "mrlen", .is_number = true },
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "mrn", .is_number = true }
  };
  
--#define IWPM_NLA_MANAGE_MAPPING_MAX 3
--#define IWPM_NLA_QUERY_MAPPING_MAX  4
- #define IWPM_NLA_MAPINFO_SEND_MAX   3
-+#define IWPM_NLA_REMOVE_MAPPING_MAX 3
- 
- enum {
- 	IWPM_NLA_QUERY_MAPPING_UNSPEC = 0,
- 	IWPM_NLA_QUERY_MAPPING_SEQ,
- 	IWPM_NLA_QUERY_LOCAL_ADDR,
- 	IWPM_NLA_QUERY_REMOTE_ADDR,
-+	IWPM_NLA_QUERY_FLAGS,
-+	IWPM_NLA_QUERY_MAPPING_MAX,
-+};
-+
-+enum {
-+	IWPM_NLA_RQUERY_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_RQUERY_MAPPING_SEQ,
-+	IWPM_NLA_RQUERY_LOCAL_ADDR,
-+	IWPM_NLA_RQUERY_REMOTE_ADDR,
- 	IWPM_NLA_RQUERY_MAPPED_LOC_ADDR,
- 	IWPM_NLA_RQUERY_MAPPED_REM_ADDR,
- 	IWPM_NLA_RQUERY_MAPPING_ERR,
-@@ -114,6 +133,7 @@ enum {
- 	IWPM_NLA_MAPINFO_UNSPEC = 0,
- 	IWPM_NLA_MAPINFO_LOCAL_ADDR,
- 	IWPM_NLA_MAPINFO_MAPPED_ADDR,
-+	IWPM_NLA_MAPINFO_FLAGS,
- 	IWPM_NLA_MAPINFO_MAX
+ RES_FUNC(res_mr, RDMA_NLDEV_CMD_RES_MR_GET, mr_valid_filters, true);
+@@ -1063,7 +1105,8 @@ static const
+ struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "dev", .is_number = false },
+ 	{ .name = "users", .is_number = true },
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "pdn", .is_number = true }
  };
  
-@@ -132,6 +152,12 @@ enum {
- 	IWPM_NLA_ERR_MAX
- };
- 
-+enum {
-+	IWPM_NLA_HELLO_UNSPEC = 0,
-+	IWPM_NLA_HELLO_ABI_VERSION,
-+	IWPM_NLA_HELLO_MAX
-+};
-+
- /*
-  * Local service operations:
-  *   RESOLVE - The client requests the local service to resolve a path.
-@@ -430,6 +456,16 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_DRIVER_S64,		/* s64 */
- 	RDMA_NLDEV_ATTR_DRIVER_U64,		/* u64 */
- 
-+	/*
-+	 * Indexes to get/set secific entry,
-+	 * for QP use RDMA_NLDEV_ATTR_RES_LQPN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PDN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CQN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_MRN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CM_IDN,            /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CTXN,	       /* u32 */
-+
- 	/*
- 	 * Always the end
- 	 */
+ RES_FUNC(res_pd, RDMA_NLDEV_CMD_RES_PD_GET, pd_valid_filters, true);
 -- 
 2.19.1
