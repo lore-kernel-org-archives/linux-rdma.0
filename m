@@ -1,91 +1,42 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFC v1 15/19] RDMA/irdma: Add miscellaneous utility definitions
-Date: Wed, 20 Feb 2019 09:53:55 -0700
-Message-ID: <20190220165355.GG8429@ziepe.ca>
-References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-16-shiraz.saleem@intel.com>
- <20190215174714.GE30706@ziepe.ca>
- <9DD61F30A802C4429A01CA4200E302A7A5A460B3@fmsmsx124.amr.corp.intel.com>
+Subject: Re: [PATCH] RDMA/mlx4: Spread completion vectors for proxy CQs
+Date: Wed, 20 Feb 2019 10:14:41 -0700
+Message-ID: <20190220171441.GH8429@ziepe.ca>
+References: <20190218183302.1242676-1-haakon.bugge@oracle.com>
+ <38187795-4082-42C2-AF56-E6C89EE7DE39@oracle.com>
+ <66C92ED1-EE5E-4136-A7D7-DBF8A0816800@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7A5A460B3@fmsmsx124.amr.corp.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>
+In-Reply-To: <66C92ED1-EE5E-4136-A7D7-DBF8A0816800@oracle.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: Chuck Lever <chuck.lever@oracle.com>, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, jackm@dev.mellanox.co.il, majd@mellanox.com, OFED mailing list <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 20, 2019 at 02:53:18PM +0000, Saleem, Shiraz wrote:
-> >Subject: Re: [RFC v1 15/19] RDMA/irdma: Add miscellaneous utility definitions
-> >
-> >On Fri, Feb 15, 2019 at 11:11:02AM -0600, Shiraz Saleem wrote:
-> >> From: Mustafa Ismail <mustafa.ismail@intel.com>
-> >>
-> >> Add miscellaneous utility functions and headers.
-> >>
-> 
-> [....]
-> 
-> >
-> >> +#define to_device(ptr)						\
-> >> +	(&((struct pci_dev *)((ptr)->hw->dev_context))->dev)
-> >
-> >?? Seems like this wants to be container_of??
-> 
-> Yes.
-> 
-> >
-> >> +/**
-> >> + * irdma_insert_wqe_hdr - write wqe header
-> >> + * @wqe: cqp wqe for header
-> >> + * @header: header for the cqp wqe
-> >> + */
-> >> +static inline void irdma_insert_wqe_hdr(__le64 *wqe, u64 hdr) {
-> >> +	wmb();   /* make sure WQE is populated before polarity is set */
-> >> +	set_64bit_val(wqe, 24, hdr);
-> >
-> >Generally don't like seeing wmbs in drivers.. Are you sure this isn't supposed to
-> >be smp_store_release(), or dma_wmb() perhaps?
-> 
-> Why is wmb() an issue in drivers?
+On Tue, Feb 19, 2019 at 06:32:50PM +0100, Håkon Bugge wrote:
+>    Anyway, Jason mentioned in a private email that maybe we could use the
+>    new completion API or something? I am not familiar with that one
+>    (yet).
 
-There are many ways to get a barrier that are much clearer and
-maintainable then some random wmb. Rarely do drivers actually need
-wmb.
+I was thinking of the stuff in core/cq.c - but it also doesn't have
+automatic comp_vector balancing. It is the logical place to put
+something like that though..
 
-> >> +/**
-> >> + * irdma_allocate_dma_mem - Memory alloc helper fn
-> >> + * @hw:   pointer to the HW structure
-> >> + * @mem:  ptr to mem struct to fill out
-> >> + * @size: size of memory requested
-> >> + * @alignment: what to align the allocation to  */ enum
-> >> +irdma_status_code irdma_allocate_dma_mem(struct irdma_hw *hw,
-> >> +					      struct irdma_dma_mem *mem,
-> >> +					      u64 size,
-> >> +					      u32 alignment)
-> >> +{
-> >> +	struct pci_dev *pcidev = (struct pci_dev *)hw->dev_context;
-> >> +
-> >> +	if (!mem)
-> >> +		return IRDMA_ERR_PARAM;
-> >> +
-> >> +	mem->size = ALIGN(size, alignment);
-> >> +	mem->va = dma_alloc_coherent(&pcidev->dev, mem->size,
-> >> +				     (dma_addr_t *)&mem->pa, GFP_KERNEL);
-> >> +	if (!mem->va)
-> >> +		return IRDMA_ERR_NO_MEMORY;
-> >> +
-> >> +	return 0;
-> >> +}
-> >
-> >More wrappers? Why?
-> 
-> I agree on your previous comment on wrapper for usecnt tracking but this does
-> consolidate some common code and avoid duplication.
+An API to manage a bundle of CPU affine CQ's is probably what most
+ULPs really need.. (it makes little sense to create a unique CQ for
+every QP)
 
-IRDMA_ERR_PARAM seems like an nonsense thing to do, and why does this
-driver have its own custom error codes anyhow? Don't like it, it is
-very stange. Once you strip that away there is no code to share.
+alloc_bundle()
+get_cqn_for_flow(bundle)
+alloc_qp()
+destroy_qp()
+put_cqn_for_flow(bundle)
+destroy_bundle();
+
+Let the core code balance the cqn's and allocate (shared) CQ
+resources.
 
 Jason
