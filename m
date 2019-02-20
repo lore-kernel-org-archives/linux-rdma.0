@@ -1,87 +1,44 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v5 0/9] mmu notifier provide context informations
-Date: Tue, 19 Feb 2019 16:30:33 -0500
-Message-ID: <20190219213032.GE3959@redhat.com>
-References: <20190219200430.11130-1-jglisse@redhat.com>
- <CAPcyv4gq23RXk3BTqP2O+gi3FGE85NSGXD8bdLk+_cgtZrn+Kg@mail.gmail.com>
- <20190219203032.GC3959@redhat.com>
- <CAPcyv4gUFSA6u77dGA6XxO41217zQ27DNteiHRG515Gtm_uGgg@mail.gmail.com>
- <20190219205751.GD3959@redhat.com>
- <CAPcyv4hCNSsk5EP7+BcnVp-zJjQyQ701U3QXkQyUteQZr-ZumA@mail.gmail.com>
+From: ira.weiny@intel.com
+Subject: [RESEND PATCH 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Date: Tue, 19 Feb 2019 21:30:38 -0800
+Message-ID: <20190220053040.10831-6-ira.weiny@intel.com>
+References: <20190220053040.10831-1-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hCNSsk5EP7+BcnVp-zJjQyQ701U3QXkQyUteQZr-ZumA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>, KVM list <kvm@vger.kernel.org>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Maling list - DRI developers <dri-devel@lists.freedesktop.org>, Michal Hocko <mhocko@kernel.org>, Linux MM <linux-mm@kvack.org>, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, kvm-ppc@vger.kernel.org, kvm@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMDE6MTk6MDlQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdy
-b3RlOgo+IE9uIFR1ZSwgRmViIDE5LCAyMDE5IGF0IDEyOjU4IFBNIEplcm9tZSBHbGlzc2UgPGpn
-bGlzc2VAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPgo+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkgYXQg
-MTI6NDA6MzdQTSAtMDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+ID4gPiBPbiBUdWUsIEZlYiAx
-OSwgMjAxOSBhdCAxMjozMCBQTSBKZXJvbWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+IHdy
-b3RlOgo+ID4gPiA+Cj4gPiA+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMTI6MTU6NTVQTSAt
-MDgwMCwgRGFuIFdpbGxpYW1zIHdyb3RlOgo+ID4gPiA+ID4gT24gVHVlLCBGZWIgMTksIDIwMTkg
-YXQgMTI6MDQgUE0gPGpnbGlzc2VAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPiA+ID4gPiA+Cj4gPiA+
-ID4gPiA+IEZyb206IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgo+ID4gPiA+
-ID4gPgo+ID4gPiA+ID4gPiBTaW5jZSBsYXN0IHZlcnNpb24gWzRdIGkgYWRkZWQgdGhlIGV4dHJh
-IGJpdHMgbmVlZGVkIGZvciB0aGUgY2hhbmdlX3B0ZQo+ID4gPiA+ID4gPiBvcHRpbWl6YXRpb24g
-KHdoaWNoIGlzIGEgS1NNIHRoaW5nKS4gSGVyZSBpIGFtIG5vdCBwb3N0aW5nIHVzZXJzIG9mCj4g
-PiA+ID4gPiA+IHRoaXMsIHRoZXkgd2lsbCBiZSBwb3N0ZWQgdG8gdGhlIGFwcHJvcHJpYXRlIHN1
-Yi1zeXN0ZW1zIChLVk0sIEdQVSwKPiA+ID4gPiA+ID4gUkRNQSwgLi4uKSBvbmNlIHRoaXMgc2Vy
-aWUgZ2V0IHVwc3RyZWFtLiBJZiB5b3Ugd2FudCB0byBsb29rIGF0IHVzZXJzCj4gPiA+ID4gPiA+
-IG9mIHRoaXMgc2VlIFs1XSBbNl0uIElmIHRoaXMgZ2V0cyBpbiA1LjEgdGhlbiBpIHdpbGwgYmUg
-c3VibWl0dGluZwo+ID4gPiA+ID4gPiB0aG9zZSB1c2VycyBmb3IgNS4yIChpbmNsdWRpbmcgS1ZN
-IGlmIEtWTSBmb2xrcyBmZWVsIGNvbWZvcnRhYmxlIHdpdGgKPiA+ID4gPiA+ID4gaXQpLgo+ID4g
-PiA+ID4KPiA+ID4gPiA+IFRoZSB1c2VycyBsb29rIHNtYWxsIGFuZCBzdHJhaWdodGZvcndhcmQu
-IFdoeSBub3QgYXdhaXQgYWNrcyBhbmQKPiA+ID4gPiA+IHJldmlld2VkLWJ5J3MgZm9yIHRoZSB1
-c2VycyBsaWtlIGEgdHlwaWNhbCB1cHN0cmVhbSBzdWJtaXNzaW9uIGFuZAo+ID4gPiA+ID4gbWVy
-Z2UgdGhlbSB0b2dldGhlcj8gSXMgYWxsIG9mIHRoZSBmdW5jdGlvbmFsaXR5IG9mIHRoaXMKPiA+
-ID4gPiA+IGluZnJhc3RydWN0dXJlIGNvbnN1bWVkIGJ5IHRoZSBwcm9wb3NlZCB1c2Vycz8gTGFz
-dCB0aW1lIEkgY2hlY2tlZCBpdAo+ID4gPiA+ID4gd2FzIG9ubHkgYSBzdWJzZXQuCj4gPiA+ID4K
-PiA+ID4gPiBZZXMgcHJldHR5IG11Y2ggYWxsIGlzIHVzZSwgdGhlIHVudXNlIGNhc2UgaXMgU09G
-VF9ESVJUWSBhbmQgQ0xFQVIKPiA+ID4gPiB2cyBVTk1BUC4gQm90aCBvZiB3aGljaCBpIGludGVu
-ZCB0byB1c2UuIFRoZSBSRE1BIGZvbGtzIGFscmVhZHkgYWNrCj4gPiA+ID4gdGhlIHBhdGNoZXMg
-SUlSQywgc28gZGlkIHJhZGVvbiBhbmQgYW1kZ3B1LiBJIGJlbGlldmUgdGhlIGk5MTUgZm9sa3MK
-PiA+ID4gPiB3ZXJlIG9rIHdpdGggaXQgdG9vLiBJIGRvIG5vdCB3YW50IHRvIG1lcmdlIHRoaW5n
-cyB0aHJvdWdoIEFuZHJldwo+ID4gPiA+IGZvciBhbGwgb2YgdGhpcyB3ZSBkaXNjdXNzZWQgdGhh
-dCBpbiB0aGUgcGFzdCwgbWVyZ2UgbW0gYml0cyB0aHJvdWdoCj4gPiA+ID4gQW5kcmV3IGluIG9u
-ZSByZWxlYXNlIGFuZCBiaXRzIHRoYXQgdXNlIHRoaW5ncyBpbiB0aGUgbmV4dCByZWxlYXNlLgo+
-ID4gPgo+ID4gPiBPaywgSSB3YXMgdHJ5aW5nIHRvIGZpbmQgdGhlIGxpbmtzIHRvIHRoZSBhY2tz
-IG9uIHRoZSBtYWlsaW5nIGxpc3QsCj4gPiA+IHRob3NlIHJlZmVyZW5jZXMgd291bGQgYWRkcmVz
-cyBteSBjb25jZXJucy4gSSBzZWUgbm8gcmVhc29uIHRvIHJ1c2gKPiA+ID4gU09GVF9ESVJUWSBh
-bmQgQ0xFQVIgYWhlYWQgb2YgdGhlIHVwc3RyZWFtIHVzZXIuCj4gPgo+ID4gSSBpbnRlbmQgdG8g
-cG9zdCB1c2VyIGZvciB0aG9zZSBpbiBuZXh0IGNvdXBsZSB3ZWVrcyBmb3IgNS4yIEhNTSBiaXRz
-Lgo+ID4gU28gdXNlciBmb3IgdGhpcyAoQ0xFQVIvVU5NQVAvU09GVERJUlRZKSB3aWxsIGRlZmlu
-aXRseSBtYXRlcmlhbGl6ZSBpbgo+ID4gdGltZSBmb3IgNS4yLgo+ID4KPiA+IEFDS1MgQU1EL1JB
-REVPTiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8yLzEvMzk1Cj4gPiBBQ0tTIFJETUEgaHR0
-cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvMTIvNi8xNDczCj4gCj4gTmljZSwgdGhhbmtzIQo+IAo+
-ID4gRm9yIEtWTSBBbmRyZWEgQXJjYW5nZWxpIHNlZW1zIHRvIGxpa2UgdGhlIHdob2xlIGlkZWEg
-dG8gcmVzdG9yZSB0aGUKPiA+IGNoYW5nZV9wdGUgb3B0aW1pemF0aW9uIGJ1dCBpIGhhdmUgbm90
-IGdvdCBBQ0sgZnJvbSBSYWRpbSBvciBQYW9sbywKPiA+IGhvd2V2ZXIgZ2l2ZW4gdGhlIHNtYWxs
-IHBlcmZvcm1hbmNlIGltcHJvdmVtZW50IGZpZ3VyZSBpIGdldCB3aXRoIGl0Cj4gPiBpIGRvIG5v
-dCBzZWUgd2hpbGUgdGhleSB3b3VsZCBub3QgQUNLLgo+IAo+IFN1cmUsIGJ1dCBubyBuZWVkIHRv
-IHB1c2ggYWhlYWQgd2l0aG91dCB0aGF0IGNvbmZpcm1hdGlvbiwgcmlnaHQ/IEF0Cj4gbGVhc3Qg
-Zm9yIHRoZSBwaWVjZSB0aGF0IEtWTSBjYXJlcyBhYm91dCwgbWF5YmUgdGhhdCdzIGFscmVhZHkg
-Y292ZXJlZAo+IGluIHRoZSBpbmZyYXN0cnVjdHVyZSBSRE1BIGFuZCBSQURFT04gYXJlIHVzaW5n
-PwoKVGhlIGNoYW5nZV9wdGUoKSBmb3IgS1ZNIGlzIGp1c3Qgb25lIGJpdCBmbGFnIG9uIHRvcCBv
-ZiB0aGUgcmVzdC4gU28KaSBkb24ndCBzZWUgbXVjaCB2YWx1ZSBpbiBzYXZpbmcgdGhpcyBsYXN0
-IHBhdGNoLiBJIHdpbGwgYmUgd29ya2luZwp3aXRoIEtWTSBmb2xrcyB0byBtZXJnZSBLVk0gYml0
-cyBpbiA1LjIuIElmIHRoZXkgZG8gbm90IHdhbnQgdGhhdCB0aGVuCnJlbW92aW5nIHRoYXQgZXh0
-cmEgZmxhZ3MgaXMgbm90IG11Y2ggd29yay4KCkJ1dCBpZiB5b3UgcHJlZmVyIHRoYW4gQW5kcmV3
-IGNhbiBkcm9wIHRoZSBsYXN0IHBhdGNoIGluIHRoZSBzZXJpZS4KCkNoZWVycywKSsOpcsO0bWUK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+From: Ira Weiny <ira.weiny@intel.com>
+
+Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
+FS DAX pages being mapped.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index 78ccacaf97d0..6a7f9cd5a94e 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+ 			    bool writable, struct page **pages)
+ {
+ 	int ret;
++	unsigned int gup_flags = writable ? FOLL_WRITE : 0;
+ 
+-	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
+-				  pages);
++	gup_flags |= FOLL_LONGTERM;
++
++	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+2.20.1
