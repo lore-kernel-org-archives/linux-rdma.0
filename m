@@ -1,75 +1,50 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next] net/mlx5: Separate ODP capabilities
-Date: Thu, 21 Feb 2019 12:21:46 +0000
-Message-ID: <20190221122143.GC17501@mtr-leonro.mtl.com>
-References: <20190219130638.21981-1-leon@kernel.org>
- <20190221121003.GB17501@mtr-leonro.mtl.com>
+From: "Wan, Kaike" <kaike.wan@intel.com>
+Subject: RE: [PATCH] IB/hfi1: Add missing break in switch statement
+Date: Thu, 21 Feb 2019 13:47:28 +0000
+Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB750DB973@CRSMSX101.amr.corp.intel.com>
+References: <20190221010233.GA29228@embeddedor>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="S1BNGpv0yoYahz37"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190221121003.GB17501@mtr-leonro.mtl.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190221010233.GA29228@embeddedor>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Moni Shoua <monis@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kees Cook <keescook@chromium.org>
 List-Id: linux-rdma@vger.kernel.org
 
---S1BNGpv0yoYahz37
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Feb 21, 2019 at 12:10:06PM +0000, Leon Romanovsky wrote:
-> On Tue, Feb 19, 2019 at 03:06:37PM +0200, Leon Romanovsky wrote:
-> > From: Moni Shoua <monis@mellanox.com>
-> >
-> > ODP support for XRC transport is not enabled by default in FW,
-> > so we need separate ODP checks to enable/disable it.
-> >
-> > While that, rewrite the set of ODP SRQ support capabilities in way
-> > that tests each field separately for clearness, which is not needed
-> > for current FW, but better to have it separated.
-> >
-> > Signed-off-by: Moni Shoua <monis@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > ---
-> >  .../net/ethernet/mellanox/mlx5/core/main.c    | 29 ++++++++++---------
-> >  1 file changed, 15 insertions(+), 14 deletions(-)
-> >
->
-> Thanks, applied to mlx5-next
-> f1463b9f1a97 net/mlx5: Separate ODP capabilities
->
-> Doug, Jason,
->
-> Can you please merge this branch into rdma-next as a preparation
-> to pull request?
-
-Sorry, it was a mistake, I dropped it.
-
->
-> Thanks
-
-
-
---S1BNGpv0yoYahz37
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcbpfXAAoJEORje4g2clinJtYP/1+kNlqLY4S+xWlmT6Fsot0D
-Nk8y4DOg4R8ddGi5oLPxOOXpRXvDtWO0yAL2lOCKqAld91DmVJq6viEY1V5zDFN7
-cW6VXwT2db0/AXvlYO7b0C1ts7KcckxFE8Hg+THjSt5GpuZN9OzBSKNe/6cAJqc0
-+zT6EGFdpE39YYc6ShLOMOV1+RMJ+4Tzxv4/qDluOsk36ml1mfu5QyRNCnQr1lq4
-ewKPrOPJhdouRPuw15t89L4vEe7HngsSmD0i+Sg+sK46du8ddlc5lJqW0GRqdYKN
-HI4nodaKx4wjH4QP7LCqRYGEGyRLrvXh3neE3hSHXUwVitB/X7DFIECi1WuZrPK1
-DYbAxAmoWT3N94bEiGSVTN3SvwnYxjJRpN7sZ4P95Evr66ycfGH7JzMvzY5e0DJK
-qLosoMNv+ZAdACHCHSborB/d0zQjIq0f/9Ev8v9Dc5NZmGFMXyDtgErC+Vaefn8r
-N1A3d/bZfErqlNMaK5JMYBqL1+bl79aFKNsepY2Q3i99eDAIkUNb99YdoJUI74b4
-WfjDxCtIPKXKuoIfQ/KCyJBXd5siYHnOHLUN8j5jrGGOEJQUTBxZfesaB8XYc2ZH
-Zz399lsC3jrIpjo4BV1kvVSK8xDIRjSXsiPguF7s2/0zL8tJjAiHg4VxJLu9nf4v
-As439fAkl6dE00Pgsn3T
-=eFtq
------END PGP SIGNATURE-----
-
---S1BNGpv0yoYahz37--
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogR3VzdGF2byBBLiBSLiBT
+aWx2YSBbbWFpbHRvOmd1c3Rhdm9AZW1iZWRkZWRvci5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwg
+RmVicnVhcnkgMjAsIDIwMTkgODowMyBQTQ0KPiBUbzogV2FuLCBLYWlrZSA8a2Fpa2Uud2FuQGlu
+dGVsLmNvbT47IE1hcmNpbmlzenluLCBNaWtlDQo+IDxtaWtlLm1hcmNpbmlzenluQGludGVsLmNv
+bT47IERhbGVzc2FuZHJvLCBEZW5uaXMNCj4gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+
+OyBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+Ow0KPiBKYXNvbiBHdW50aG9ycGUg
+PGpnZ0B6aWVwZS5jYT4NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnOyBHdXN0YXZvIEEuIFIuDQo+IFNpbHZhIDxndXN0YXZvQGVt
+YmVkZGVkb3IuY29tPjsgS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+DQo+IFN1Ympl
+Y3Q6IFtQQVRDSF0gSUIvaGZpMTogQWRkIG1pc3NpbmcgYnJlYWsgaW4gc3dpdGNoIHN0YXRlbWVu
+dA0KPiANCj4gRml4IHRoZSBmb2xsb3dpbmcgd2FybmluZyBieSBhZGRpbmcgYSBtaXNzaW5nIGJy
+ZWFrOg0KPiANCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEuYzogSW4gZnVu
+Y3Rpb24NCj4g4oCYaGZpMV90aWRfcmRtYV93cWVfaW50ZXJsb2Nr4oCZOg0KPiBkcml2ZXJzL2lu
+ZmluaWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jOjMyNTE6Mzogd2FybmluZzogdGhpcyBzdGF0ZW1l
+bnQgbWF5DQo+IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dDQo+ICAgIHN3
+aXRjaCAocHJldi0+d3Iub3Bjb2RlKSB7DQo+ICAgIF5+fn5+fg0KPiBkcml2ZXJzL2luZmluaWJh
+bmQvaHcvaGZpMS90aWRfcmRtYS5jOjMyNTk6Mjogbm90ZTogaGVyZQ0KPiAgIGNhc2UgSUJfV1Jf
+UkRNQV9SRUFEOg0KPiAgIF5+fn4NCj4gDQo+IFdhcm5pbmcgbGV2ZWwgMyB3YXMgdXNlZDogLVdp
+bXBsaWNpdC1mYWxsdGhyb3VnaD0zDQo+IA0KPiBUaGlzIHBhdGNoIGlzIHBhcnQgb2YgdGhlIG9u
+Z29pbmcgZWZmb3J0cyB0byBlbmFibGUgLVdpbXBsaWNpdC1mYWxsdGhyb3VnaC4NCj4gDQo+IEZp
+eGVzOiBjNmMyMzExNzVjY2QgKCJJQi9oZmkxOiBBZGQgaW50ZXJsb2NrIGJldHdlZW4gVElEIFJE
+TUEgV1JJVEUgYW5kDQo+IG90aGVyIHJlcXVlc3RzIikNCj4gU2lnbmVkLW9mZi1ieTogR3VzdGF2
+byBBLiBSLiBTaWx2YSA8Z3VzdGF2b0BlbWJlZGRlZG9yLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJz
+L2luZmluaWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jIHwgMSArDQo+ICAxIGZpbGUgY2hhbmdlZCwg
+MSBpbnNlcnRpb24oKykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcv
+aGZpMS90aWRfcmRtYS5jDQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEu
+Yw0KPiBpbmRleCBiYzJmZjgzMDI2ZjcuLmZkZGEzM2FjYTc3ZiAxMDA2NDQNCj4gLS0tIGEvZHJp
+dmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEuYw0KPiArKysgYi9kcml2ZXJzL2luZmlu
+aWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jDQo+IEBAIC0zMjU2LDYgKzMyNTYsNyBAQCBib29sIGhm
+aTFfdGlkX3JkbWFfd3FlX2ludGVybG9jayhzdHJ1Y3QgcnZ0X3FwDQo+ICpxcCwgc3RydWN0IHJ2
+dF9zd3FlICp3cWUpDQo+ICAJCWRlZmF1bHQ6DQo+ICAJCQlicmVhazsNCj4gIAkJfQ0KPiArCQli
+cmVhazsNCj4gIAljYXNlIElCX1dSX1JETUFfUkVBRDoNCj4gIAkJaWYgKHByZXYtPndyLm9wY29k
+ZSAhPSBJQl9XUl9USURfUkRNQV9XUklURSkNCj4gIAkJCWJyZWFrOw0KPiAtLQ0KDQpSZXZpZXdl
+ZC1ieTogS2Fpa2UgV2FuIDxLYWlrZS53YW5AaW50ZWwuY29tPg0KDQo+IDIuMjAuMQ0KDQo=
