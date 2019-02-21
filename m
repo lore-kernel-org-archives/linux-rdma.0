@@ -1,49 +1,79 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 1/1] RDMA/odp: convert to use HMM for ODP
-Date: Thu, 21 Feb 2019 15:59:37 -0700
-Message-ID: <20190221225937.GS17500@ziepe.ca>
-References: <20190129165839.4127-1-jglisse@redhat.com>
- <20190129165839.4127-2-jglisse@redhat.com>
- <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
- <20190212161123.GA4629@redhat.com>
- <20190220222020.GE8415@mellanox.com>
- <20190220222924.GE29398@redhat.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Thu, 21 Feb 2019 23:07:20 +0000
+Message-ID: <20190221230714.GA10656@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="X1bOJ3K7DJ5YkBrT"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190220222924.GE29398@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Haggai Eran <haggaie@mellanox.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Aviad Yehezkel <aviadye@mellanox.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 20, 2019 at 05:29:24PM -0500, Jerome Glisse wrote:
-> > > 
-> > > Yes it is safe, the hmm struct has its own refcount and mirror holds a
-> > > reference on it, the mm struct itself has a reference on the mm
-> > > struct.
-> > 
-> > The issue here is that that hmm_mirror_unregister() must be a strong
-> > fence that guarentees no callback is running or will run after
-> > return. mmu_notifier_unregister did not provide that.
-> > 
-> > I think I saw locking in hmm that was doing this..
-> 
-> So pattern is:
->     hmm_mirror_register(mirror);
-> 
->     // Safe for driver to call within HMM with mirror no matter what
-> 
->     hmm_mirror_unregister(mirror)
-> 
->     // Driver must no stop calling within HMM, it would be a use after
->     // free scenario
+--X1bOJ3K7DJ5YkBrT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This statement is the opposite direction
+Hi Linus,
 
-I want to know that HMM doesn't allow any driver callbacks to be
-running after unregister - because I am going to kfree mirror and
-other memory touched by the driver callbacks.
+Small set of three regression fixing patches, things are looking
+pretty good here. Thanks
 
-Jason
+The following changes since commit 8834f5600cf3c8db365e18a3d5cac2c2780c81e5:
+
+  Linux 5.0-rc5 (2019-02-03 13:48:04 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to f09ef134a7ca3f0d2ce485a757f5b79809ebb803:
+
+  iw_cxgb4: cq/qp mask depends on bar2 pages in a host page (2019-02-15 09:39:39 -0700)
+
+----------------------------------------------------------------
+Third 5.0 rc pull request
+
+Three smallish patches fixing regressions in v5.0:
+
+- Fix cxgb4 to work again with non-4k page sizes
+
+- NULL pointer oops in SRP during sg_reset
+
+----------------------------------------------------------------
+Bart Van Assche (1):
+      RDMA/srp: Rework SCSI device reset handling
+
+Raju Rangoju (2):
+      cxgb4: Export sge_host_page_size to ulds
+      iw_cxgb4: cq/qp mask depends on bar2 pages in a host page
+
+ drivers/infiniband/hw/cxgb4/device.c           | 15 +++++++++++++--
+ drivers/infiniband/ulp/srp/ib_srp.c            | 10 ----------
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.c |  1 +
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_uld.h |  1 +
+ 4 files changed, 15 insertions(+), 12 deletions(-)
+
+--X1bOJ3K7DJ5YkBrT
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlxvLx8ACgkQOG33FX4g
+mxoAfQ//fkI0f1urZsjloSiXrxiuQ2wRd6uHEywTtwVwWuad34WsvAvodQllnS+h
+AesDPOa4L1+RlSWQ+vZ1Mc+JmNNqZBADg7uFguf0nyeuO/Fbyhgi+C4rXrV/pSUT
+lhlgznAX9psj2KrV465D8uOrAj3LIfcARoqKeQuMMgnX13ld7paBAySQc4dlvc1L
+e2VGVDYz6j7XgY91+iCu1cddhlyUleGyP0Q4x0TVRWAWmviMMKgXFhM0Xl5R7z3q
+Y4NukzCAXC2lMDwT84NJdBg3pxqQk73V2QB2kKaTjVD4k4wqWD7zja+IeU5exygN
+zYMJqIa4/M85lJASuNCZ3pL8Y7eHiYnG0Ng8IVr28YhDL8mY/c96OJRmINP9H4kX
+4QVNa47tow2tNz6CSwcqQLJbgS4tQrEb1NZuxJsP6ACL1sLa0Q8S/ocTW6R6exJe
+fXEM4/P2S3lrx5l0r9hwo5LWlSWxzde7sNtSt78KLFAJAQYLfEJdeBmHfo7VniU6
+QFKDGLQXZ+FCTvqE9rTUnR1f+EniWPQddaaBeLNPO3IENaR4TEI08QZzJFhAlaEZ
+LX04Q4noRWBmhkulRgT45ytdcFWC1OlIJ4UVFJlbCajO7Imc4kD6wleMr8uGdrUi
+/YUuidQlgfKe4aCEDqmQUnRXiERE0oXr0H64Pdp/AtPDPV6e+MY=
+=/Qn6
+-----END PGP SIGNATURE-----
+
+--X1bOJ3K7DJ5YkBrT--
