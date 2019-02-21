@@ -1,56 +1,42 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH iproute2-next v1 19/19] rdma: Provide and reuse filter functions
-Date: Thu, 21 Feb 2019 14:39:51 -0600
-Message-ID: <021f01d4ca25$984115f0$c8c341d0$@opengridcomputing.com>
-References: <20190220072136.3840-1-leon@kernel.org> <20190220072136.3840-20-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] IB/hfi1: Add missing break in switch statement
+Date: Thu, 21 Feb 2019 14:09:02 -0700
+Message-ID: <20190221210902.GA25062@ziepe.ca>
+References: <20190221010233.GA29228@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190220072136.3840-20-leon@kernel.org>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Leon Romanovsky' <leon@kernel.org>, 'David Ahern' <dsahern@gmail.com>
-Cc: 'Leon Romanovsky' <leonro@mellanox.com>, 'netdev' <netdev@vger.kernel.org>, 'RDMA mailing list' <linux-rdma@vger.kernel.org>, 'Stephen Hemminger' <stephen@networkplumber.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190221010233.GA29228@embeddedor>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Kaike Wan <kaike.wan@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Kees Cook <keescook@chromium.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-> -----Original Message-----
-> From: linux-rdma-owner@vger.kernel.org <linux-rdma-
-> owner@vger.kernel.org> On Behalf Of Leon Romanovsky
-> Sent: Wednesday, February 20, 2019 1:22 AM
-> To: David Ahern <dsahern@gmail.com>
-> Cc: Leon Romanovsky <leonro@mellanox.com>; netdev
-> <netdev@vger.kernel.org>; RDMA mailing list <linux-
-> rdma@vger.kernel.org>; Stephen Hemminger
-> <stephen@networkplumber.org>
-> Subject: [PATCH iproute2-next v1 19/19] rdma: Provide and reuse filter
-> functions
+On Wed, Feb 20, 2019 at 07:02:33PM -0600, Gustavo A. R. Silva wrote:
+> Fix the following warning by adding a missing break:
 > 
-> From: Leon Romanovsky <leonro@mellanox.com>
+> drivers/infiniband/hw/hfi1/tid_rdma.c: In function ‘hfi1_tid_rdma_wqe_interlock’:
+> drivers/infiniband/hw/hfi1/tid_rdma.c:3251:3: warning: this statement may fall through [-Wimplicit-fallthrough=]
+>    switch (prev->wr.opcode) {
+>    ^~~~~~
+> drivers/infiniband/hw/hfi1/tid_rdma.c:3259:2: note: here
+>   case IB_WR_RDMA_READ:
+>   ^~~~
 > 
-> Globally replace all filter function in safer variants of those
-> is_filterred functions, which take into account the availability/lack
-
-"is_filterred" -> "is_filtered"
-
-> of netlink attributes.
+> Warning level 3 was used: -Wimplicit-fallthrough=3
 > 
-> Such conversion allowed to fix a number of places in the code, where
-> the previous implementation didn't honor filter requests if netlink
-> attribute wasn't present.
+> This patch is part of the ongoing efforts to enable
+> -Wimplicit-fallthrough.
 > 
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  rdma/rdma.h     |  7 +++---
->  rdma/res-cmid.c | 57 +++++++++++++++++++++++++++----------------------
->  rdma/res-cq.c   | 22 +++++++++++--------
->  rdma/res-mr.c   | 12 +++++++----
->  rdma/res-pd.c   | 12 +++++++----
->  rdma/res-qp.c   | 53 ++++++++++++++++++++++-----------------------
->  rdma/utils.c    | 26 ++++++++++++++++++----
->  7 files changed, 112 insertions(+), 77 deletions(-)
+> Fixes: c6c231175ccd ("IB/hfi1: Add interlock between TID RDMA WRITE and other requests")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> Reviewed-by: Kaike Wan <Kaike.wan@intel.com>
+> --
+>  drivers/infiniband/hw/hfi1/tid_rdma.c | 1 +
+>  1 file changed, 1 insertion(+)
 
-Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Applied to for-next, thanks
+
+Jason
