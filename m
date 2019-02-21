@@ -1,14 +1,14 @@
 From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH iproute2-next v1 17/19] rdma: Unify netlink attribute checks prior to prints
-Date: Thu, 21 Feb 2019 14:31:03 -0600
-Message-ID: <021a01d4ca24$5dbd7dc0$19387940$@opengridcomputing.com>
-References: <20190220072136.3840-1-leon@kernel.org> <20190220072136.3840-18-leon@kernel.org>
+Subject: RE: [PATCH iproute2-next v1 18/19] rdma: Perform single .doit call to query specific objects
+Date: Thu, 21 Feb 2019 14:35:59 -0600
+Message-ID: <021c01d4ca25$0e310000$2a930000$@opengridcomputing.com>
+References: <20190220072136.3840-1-leon@kernel.org> <20190220072136.3840-19-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain;
         charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190220072136.3840-18-leon@kernel.org>
+In-Reply-To: <20190220072136.3840-19-leon@kernel.org>
 Content-Language: en-us
 Sender: netdev-owner@vger.kernel.org
 To: 'Leon Romanovsky' <leon@kernel.org>, 'David Ahern' <dsahern@gmail.com>
@@ -26,25 +26,28 @@ List-Id: linux-rdma@vger.kernel.org
 > <netdev@vger.kernel.org>; RDMA mailing list <linux-
 > rdma@vger.kernel.org>; Stephen Hemminger
 > <stephen@networkplumber.org>
-> Subject: [PATCH iproute2-next v1 17/19] rdma: Unify netlink attribute
-checks
-> prior to prints
+> Subject: [PATCH iproute2-next v1 18/19] rdma: Perform single .doit call to
+> query specific objects
 > 
 > From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> Place check if netlink attribute available in general place,
-> instead of doing the same check in many paces.
+> If user provides specific index, we can speedup query
+> by using .doit callback and save full dump and filtering
+> after that.
 > 
 > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 > ---
->  rdma/res-cmid.c |  9 ++++-----
->  rdma/res-cq.c   | 22 +++++++++++-----------
->  rdma/res-mr.c   | 21 +++++++--------------
->  rdma/res-pd.c   | 20 +++++++++-----------
->  rdma/res-qp.c   | 10 +++++-----
->  rdma/res.c      | 16 +++++++++++++---
->  rdma/res.h      |  6 ++++--
->  7 files changed, 53 insertions(+), 51 deletions(-)
+>  rdma/rdma.h     | 10 +++++-
+>  rdma/res-cmid.c | 33 +++++++++++++------
+>  rdma/res-cq.c   | 34 ++++++++++++++------
+>  rdma/res-mr.c   | 33 ++++++++++++++-----
+>  rdma/res-pd.c   | 32 ++++++++++++++-----
+>  rdma/res-qp.c   | 32 ++++++++++++++-----
+>  rdma/res.c      | 34 +++++++++++++++++++-
+>  rdma/res.h      | 84 ++++++++++++++++++++++++++++++++-----------------
+>  rdma/utils.c    | 20 ++++++++++++
+>  9 files changed, 239 insertions(+), 73 deletions(-)
+> 
 
 
 Reviewed-by: Steve Wise <swise@opengridcomputing.com>
