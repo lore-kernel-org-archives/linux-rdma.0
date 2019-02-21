@@ -1,7 +1,7 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: [PATCH v1 iproute2-next 2/4] Sync up rdma_netlink.h
-Date: Thu, 21 Feb 2019 08:19:07 -0800
-Message-ID: <ff4f692bee0d683c0638cf88cbf14faf94ea87af.1550773362.git.swise@opengridcomputing.com>
+Subject: [PATCH v1 iproute2-next 3/4] rdma: add 'link add/delete' commands
+Date: Thu, 21 Feb 2019 08:19:12 -0800
+Message-ID: <5dd9d9aeada48bc5db0eb0394ed4e3ce38ee41bc.1550773362.git.swise@opengridcomputing.com>
 References: <cover.1550773362.git.swise@opengridcomputing.com>
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.1550773362.git.swise@opengridcomputing.com>
@@ -10,168 +10,134 @@ To: dsahern@gmail.com, leon@kernel.org
 Cc: stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Pull in the latest rdma_netlink.h to get the RDMA_NLDEV_CMD_NEWLINK /
-RDMA_NLDEV_CMD_DELLINK API.
+Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
+device to a netdev interface.
+
+EG:
+
+rdma link add rxe_eth0 type rxe netdev eth0
+rdma link delete rxe_eth0
 
 Signed-off-by: Steve Wise <swise@opengridcomputing.com>
 ---
- rdma/include/uapi/rdma/rdma_netlink.h | 74 +++++++++++++++++++++++++++--------
- 1 file changed, 58 insertions(+), 16 deletions(-)
+ rdma/link.c  | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma/rdma.h  |  1 +
+ rdma/utils.c |  2 +-
+ 3 files changed, 69 insertions(+), 1 deletion(-)
 
-diff --git a/rdma/include/uapi/rdma/rdma_netlink.h b/rdma/include/uapi/rdma/rdma_netlink.h
-index 04c80cebef49..23a90ad52485 100644
---- a/rdma/include/uapi/rdma/rdma_netlink.h
-+++ b/rdma/include/uapi/rdma/rdma_netlink.h
-@@ -5,8 +5,7 @@
- #include <linux/types.h>
+diff --git a/rdma/link.c b/rdma/link.c
+index c064be627be2..afaf19663728 100644
+--- a/rdma/link.c
++++ b/rdma/link.c
+@@ -14,6 +14,9 @@
+ static int link_help(struct rd *rd)
+ {
+ 	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
++	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
++	       rd->filename);
++	pr_out("Usage: %s link delete NAME\n", rd->filename);
+ 	return 0;
+ }
  
- enum {
--	RDMA_NL_RDMA_CM = 1,
--	RDMA_NL_IWCM,
-+	RDMA_NL_IWCM = 2,
- 	RDMA_NL_RSVD,
- 	RDMA_NL_LS,	/* RDMA Local Services */
- 	RDMA_NL_NLDEV,	/* RDMA device interface */
-@@ -14,8 +13,7 @@ enum {
- };
+@@ -341,10 +344,74 @@ static int link_show(struct rd *rd)
+ 	return rd_exec_link(rd, link_one_show, true);
+ }
  
- enum {
--	RDMA_NL_GROUP_CM = 1,
--	RDMA_NL_GROUP_IWPM,
-+	RDMA_NL_GROUP_IWPM = 2,
- 	RDMA_NL_GROUP_LS,
- 	RDMA_NL_NUM_GROUPS
- };
-@@ -24,15 +22,17 @@ enum {
- #define RDMA_NL_GET_OP(type) (type & ((1 << 10) - 1))
- #define RDMA_NL_GET_TYPE(client, op) ((client << 10) + op)
- 
--enum {
--	RDMA_NL_RDMA_CM_ID_STATS = 0,
--	RDMA_NL_RDMA_CM_NUM_OPS
--};
-+/* The minimum version that the iwpm kernel supports */
-+#define IWPM_UABI_VERSION_MIN	3
++static int link_add(struct rd *rd)
++{
++	char *name;
++	char *type = NULL;
++	char *dev = NULL;
++	uint32_t seq;
 +
-+/* The latest version that the iwpm kernel supports */
-+#define IWPM_UABI_VERSION	4
- 
-+/* iwarp port mapper message flags */
- enum {
--	RDMA_NL_RDMA_CM_ATTR_SRC_ADDR = 1,
--	RDMA_NL_RDMA_CM_ATTR_DST_ADDR,
--	RDMA_NL_RDMA_CM_NUM_ATTR,
++	if (rd_no_arg(rd)) {
++		pr_err("No link name was supplied\n");
++		return -EINVAL;
++	}
++	name = rd_argv(rd);
++	rd_arg_inc(rd);
++	while (!rd_no_arg(rd)) {
++		if (rd_argv_match(rd, "type")) {
++			rd_arg_inc(rd);
++			type = rd_argv(rd);
++		} else if (rd_argv_match(rd, "netdev")) {
++			rd_arg_inc(rd);
++			dev = rd_argv(rd);
++		} else {
++			pr_err("Invalid parameter %s\n", rd_argv(rd));
++			return -EINVAL;
++		}
++		rd_arg_inc(rd);
++	}
++	if (!type) {
++		pr_err("No type was supplied\n");
++		return -EINVAL;
++	}
++	if (!dev) {
++		pr_err("No net device was supplied\n");
++		return -EINVAL;
++	}
 +
-+	/* Do not map the port for this IWPM request */
-+	IWPM_FLAGS_NO_PORT_MAP = (1 << 0),
- };
- 
- /* iwarp port mapper op-codes */
-@@ -45,6 +45,7 @@ enum {
- 	RDMA_NL_IWPM_HANDLE_ERR,
- 	RDMA_NL_IWPM_MAPINFO,
- 	RDMA_NL_IWPM_MAPINFO_NUM,
-+	RDMA_NL_IWPM_HELLO,
- 	RDMA_NL_IWPM_NUM_OPS
- };
- 
-@@ -83,20 +84,38 @@ enum {
- 	IWPM_NLA_MANAGE_MAPPING_UNSPEC = 0,
- 	IWPM_NLA_MANAGE_MAPPING_SEQ,
- 	IWPM_NLA_MANAGE_ADDR,
--	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR,
-+	IWPM_NLA_MANAGE_FLAGS,
-+	IWPM_NLA_MANAGE_MAPPING_MAX
-+};
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, type);
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, dev);
++	return rd_sendrecv_msg(rd, seq);
++}
 +
-+enum {
-+	IWPM_NLA_RMANAGE_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_RMANAGE_MAPPING_SEQ,
-+	IWPM_NLA_RMANAGE_ADDR,
-+	IWPM_NLA_RMANAGE_MAPPED_LOC_ADDR,
-+	/* The following maintains bisectability of rdma-core */
-+	IWPM_NLA_MANAGE_MAPPED_LOC_ADDR = IWPM_NLA_RMANAGE_MAPPED_LOC_ADDR,
- 	IWPM_NLA_RMANAGE_MAPPING_ERR,
- 	IWPM_NLA_RMANAGE_MAPPING_MAX
- };
- 
--#define IWPM_NLA_MANAGE_MAPPING_MAX 3
--#define IWPM_NLA_QUERY_MAPPING_MAX  4
- #define IWPM_NLA_MAPINFO_SEND_MAX   3
-+#define IWPM_NLA_REMOVE_MAPPING_MAX 3
- 
- enum {
- 	IWPM_NLA_QUERY_MAPPING_UNSPEC = 0,
- 	IWPM_NLA_QUERY_MAPPING_SEQ,
- 	IWPM_NLA_QUERY_LOCAL_ADDR,
- 	IWPM_NLA_QUERY_REMOTE_ADDR,
-+	IWPM_NLA_QUERY_FLAGS,
-+	IWPM_NLA_QUERY_MAPPING_MAX,
-+};
++static int _link_del(struct rd *rd)
++{
++	uint32_t seq;
 +
-+enum {
-+	IWPM_NLA_RQUERY_MAPPING_UNSPEC = 0,
-+	IWPM_NLA_RQUERY_MAPPING_SEQ,
-+	IWPM_NLA_RQUERY_LOCAL_ADDR,
-+	IWPM_NLA_RQUERY_REMOTE_ADDR,
- 	IWPM_NLA_RQUERY_MAPPED_LOC_ADDR,
- 	IWPM_NLA_RQUERY_MAPPED_REM_ADDR,
- 	IWPM_NLA_RQUERY_MAPPING_ERR,
-@@ -114,6 +133,7 @@ enum {
- 	IWPM_NLA_MAPINFO_UNSPEC = 0,
- 	IWPM_NLA_MAPINFO_LOCAL_ADDR,
- 	IWPM_NLA_MAPINFO_MAPPED_ADDR,
-+	IWPM_NLA_MAPINFO_FLAGS,
- 	IWPM_NLA_MAPINFO_MAX
- };
- 
-@@ -132,6 +152,12 @@ enum {
- 	IWPM_NLA_ERR_MAX
- };
- 
-+enum {
-+	IWPM_NLA_HELLO_UNSPEC = 0,
-+	IWPM_NLA_HELLO_ABI_VERSION,
-+	IWPM_NLA_HELLO_MAX
-+};
++	if (!rd_no_arg(rd)) {
++		pr_err("Unknown parameter %s\n", rd_argv(rd));
++		return -EINVAL;
++	}
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_DELLINK, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	return rd_sendrecv_msg(rd, seq);
++}
 +
- /*
-  * Local service operations:
-  *   RESOLVE - The client requests the local service to resolve a path.
-@@ -229,9 +255,11 @@ enum rdma_nldev_command {
- 	RDMA_NLDEV_CMD_GET, /* can dump */
- 	RDMA_NLDEV_CMD_SET,
- 
--	/* 3 - 4 are free to use */
-+	RDMA_NLDEV_CMD_NEWLINK,
- 
--	RDMA_NLDEV_CMD_PORT_GET = 5, /* can dump */
-+	RDMA_NLDEV_CMD_DELLINK,
++static int link_del(struct rd *rd)
++{
++	return rd_exec_require_dev(rd, _link_del);
++}
 +
-+	RDMA_NLDEV_CMD_PORT_GET, /* can dump */
+ int cmd_link(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		link_show },
++		{ "add",	link_add },
++		{ "delete",	link_del },
+ 		{ "show",	link_show },
+ 		{ "list",	link_show },
+ 		{ "help",	link_help },
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index 20be2f12c4f8..af4597f45640 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -79,6 +79,7 @@ struct rd_cmd {
+  */
+ bool rd_no_arg(struct rd *rd);
+ void rd_arg_inc(struct rd *rd);
++bool rd_argv_match(struct rd *rd, const char *pattern);
  
- 	/* 6 - 8 are free to use */
+ char *rd_argv(struct rd *rd);
  
-@@ -431,6 +459,20 @@ enum rdma_nldev_attr {
- 	RDMA_NLDEV_ATTR_DRIVER_U64,		/* u64 */
+diff --git a/rdma/utils.c b/rdma/utils.c
+index a6f2826c9605..85a954167511 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -32,7 +32,7 @@ int strcmpx(const char *str1, const char *str2)
+ 	return strncmp(str1, str2, strlen(str1));
+ }
  
- 	/*
-+	 * Indexes to get/set secific entry,
-+	 * for QP use RDMA_NLDEV_ATTR_RES_LQPN
-+	 */
-+	RDMA_NLDEV_ATTR_RES_PDN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CQN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_MRN,               /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CM_IDN,            /* u32 */
-+	RDMA_NLDEV_ATTR_RES_CTXN,	       /* u32 */
-+	/*
-+	 * Identifies the rdma driver. eg: "rxe" or "siw"
-+	 */
-+	RDMA_NLDEV_ATTR_LINK_TYPE,		/* string */
-+
-+	/*
- 	 * Always the end
- 	 */
- 	RDMA_NLDEV_ATTR_MAX
+-static bool rd_argv_match(struct rd *rd, const char *pattern)
++bool rd_argv_match(struct rd *rd, const char *pattern)
+ {
+ 	if (!rd_argc(rd))
+ 		return false;
 -- 
 1.8.3.1
