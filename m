@@ -1,50 +1,50 @@
-From: "Wan, Kaike" <kaike.wan@intel.com>
-Subject: RE: [PATCH] IB/hfi1: Add missing break in switch statement
-Date: Thu, 21 Feb 2019 13:47:28 +0000
-Message-ID: <3F128C9216C9B84BB6ED23EF16290AFB750DB973@CRSMSX101.amr.corp.intel.com>
-References: <20190221010233.GA29228@embeddedor>
+From: David Ahern <dsahern@gmail.com>
+Subject: Re: [PATCH iproute2-next v1 02/19] rdma: Remove duplicated print code
+Date: Thu, 21 Feb 2019 10:23:01 -0500
+Message-ID: <c6f27ca0-55d6-4d3b-e498-ed700eb00844@gmail.com>
+References: <20190220072136.3840-1-leon@kernel.org>
+ <20190220072136.3840-3-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190221010233.GA29228@embeddedor>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190220072136.3840-3-leon@kernel.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Kees Cook <keescook@chromium.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogR3VzdGF2byBBLiBSLiBT
-aWx2YSBbbWFpbHRvOmd1c3Rhdm9AZW1iZWRkZWRvci5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwg
-RmVicnVhcnkgMjAsIDIwMTkgODowMyBQTQ0KPiBUbzogV2FuLCBLYWlrZSA8a2Fpa2Uud2FuQGlu
-dGVsLmNvbT47IE1hcmNpbmlzenluLCBNaWtlDQo+IDxtaWtlLm1hcmNpbmlzenluQGludGVsLmNv
-bT47IERhbGVzc2FuZHJvLCBEZW5uaXMNCj4gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+
-OyBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+Ow0KPiBKYXNvbiBHdW50aG9ycGUg
-PGpnZ0B6aWVwZS5jYT4NCj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnOyBsaW51eC1r
-ZXJuZWxAdmdlci5rZXJuZWwub3JnOyBHdXN0YXZvIEEuIFIuDQo+IFNpbHZhIDxndXN0YXZvQGVt
-YmVkZGVkb3IuY29tPjsgS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+DQo+IFN1Ympl
-Y3Q6IFtQQVRDSF0gSUIvaGZpMTogQWRkIG1pc3NpbmcgYnJlYWsgaW4gc3dpdGNoIHN0YXRlbWVu
-dA0KPiANCj4gRml4IHRoZSBmb2xsb3dpbmcgd2FybmluZyBieSBhZGRpbmcgYSBtaXNzaW5nIGJy
-ZWFrOg0KPiANCj4gZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEuYzogSW4gZnVu
-Y3Rpb24NCj4g4oCYaGZpMV90aWRfcmRtYV93cWVfaW50ZXJsb2Nr4oCZOg0KPiBkcml2ZXJzL2lu
-ZmluaWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jOjMyNTE6Mzogd2FybmluZzogdGhpcyBzdGF0ZW1l
-bnQgbWF5DQo+IGZhbGwgdGhyb3VnaCBbLVdpbXBsaWNpdC1mYWxsdGhyb3VnaD1dDQo+ICAgIHN3
-aXRjaCAocHJldi0+d3Iub3Bjb2RlKSB7DQo+ICAgIF5+fn5+fg0KPiBkcml2ZXJzL2luZmluaWJh
-bmQvaHcvaGZpMS90aWRfcmRtYS5jOjMyNTk6Mjogbm90ZTogaGVyZQ0KPiAgIGNhc2UgSUJfV1Jf
-UkRNQV9SRUFEOg0KPiAgIF5+fn4NCj4gDQo+IFdhcm5pbmcgbGV2ZWwgMyB3YXMgdXNlZDogLVdp
-bXBsaWNpdC1mYWxsdGhyb3VnaD0zDQo+IA0KPiBUaGlzIHBhdGNoIGlzIHBhcnQgb2YgdGhlIG9u
-Z29pbmcgZWZmb3J0cyB0byBlbmFibGUgLVdpbXBsaWNpdC1mYWxsdGhyb3VnaC4NCj4gDQo+IEZp
-eGVzOiBjNmMyMzExNzVjY2QgKCJJQi9oZmkxOiBBZGQgaW50ZXJsb2NrIGJldHdlZW4gVElEIFJE
-TUEgV1JJVEUgYW5kDQo+IG90aGVyIHJlcXVlc3RzIikNCj4gU2lnbmVkLW9mZi1ieTogR3VzdGF2
-byBBLiBSLiBTaWx2YSA8Z3VzdGF2b0BlbWJlZGRlZG9yLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJz
-L2luZmluaWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jIHwgMSArDQo+ICAxIGZpbGUgY2hhbmdlZCwg
-MSBpbnNlcnRpb24oKykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcv
-aGZpMS90aWRfcmRtYS5jDQo+IGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEu
-Yw0KPiBpbmRleCBiYzJmZjgzMDI2ZjcuLmZkZGEzM2FjYTc3ZiAxMDA2NDQNCj4gLS0tIGEvZHJp
-dmVycy9pbmZpbmliYW5kL2h3L2hmaTEvdGlkX3JkbWEuYw0KPiArKysgYi9kcml2ZXJzL2luZmlu
-aWJhbmQvaHcvaGZpMS90aWRfcmRtYS5jDQo+IEBAIC0zMjU2LDYgKzMyNTYsNyBAQCBib29sIGhm
-aTFfdGlkX3JkbWFfd3FlX2ludGVybG9jayhzdHJ1Y3QgcnZ0X3FwDQo+ICpxcCwgc3RydWN0IHJ2
-dF9zd3FlICp3cWUpDQo+ICAJCWRlZmF1bHQ6DQo+ICAJCQlicmVhazsNCj4gIAkJfQ0KPiArCQli
-cmVhazsNCj4gIAljYXNlIElCX1dSX1JETUFfUkVBRDoNCj4gIAkJaWYgKHByZXYtPndyLm9wY29k
-ZSAhPSBJQl9XUl9USURfUkRNQV9XUklURSkNCj4gIAkJCWJyZWFrOw0KPiAtLQ0KDQpSZXZpZXdl
-ZC1ieTogS2Fpa2UgV2FuIDxLYWlrZS53YW5AaW50ZWwuY29tPg0KDQo+IDIuMjAuMQ0KDQo=
+On 2/20/19 2:21 AM, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> There is no need to keep same print functions for
+> uint32_t and uint64_t, unify them into one function.
+> 
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> ---
+>  rdma/res.c | 22 +++++++---------------
+>  1 file changed, 7 insertions(+), 15 deletions(-)
+> 
+> diff --git a/rdma/res.c b/rdma/res.c
+> index 6b0f5fe3..87865ec8 100644
+> --- a/rdma/res.c
+> +++ b/rdma/res.c
+> @@ -808,28 +808,20 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+>  	return MNL_CB_OK;
+>  }
+>  
+> -static void print_key(struct rd *rd, const char *name, uint32_t val)
+> +static void print_key(struct rd *rd, const char *name, uint64_t val)
+>  {
+>  	if (rd->json_output)
+>  		jsonw_xint_field(rd->jw, name, val);
+>  	else
+> -		pr_out("%s 0x%x ", name, val);
+> +		pr_out("%s 0x%" PRIx64 " ", name, val);
+>  }
+
+what's the plan to move rdma tool to iproute2's json functions?
+
+I realize rdma tool inherited this from devlink, but this command does
+not need to continue managing this.
