@@ -1,57 +1,89 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH 1/1] RDMA/odp: convert to use HMM for ODP
-Date: Thu, 21 Feb 2019 21:01:35 -0500
-Message-ID: <20190222020134.GC10607@redhat.com>
-References: <20190129165839.4127-1-jglisse@redhat.com>
- <20190129165839.4127-2-jglisse@redhat.com>
- <f48ed64f-22fe-c366-6a0e-1433e72b9359@mellanox.com>
- <20190212161123.GA4629@redhat.com>
- <20190220222020.GE8415@mellanox.com>
- <20190220222924.GE29398@redhat.com>
- <20190221225937.GS17500@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] RDMA/cma: Make CM response timeout and # CM retries
+ configurable
+Date: Fri, 22 Feb 2019 09:36:37 -0700
+Message-ID: <20190222163637.GA9819@ziepe.ca>
+References: <20190217170909.1178575-1-haakon.bugge@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190221225937.GS17500@ziepe.ca>
+In-Reply-To: <20190217170909.1178575-1-haakon.bugge@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Haggai Eran <haggaie@mellanox.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Aviad Yehezkel <aviadye@mellanox.com>
+To: =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 21, 2019 at 03:59:37PM -0700, Jason Gunthorpe wrote:
-> On Wed, Feb 20, 2019 at 05:29:24PM -0500, Jerome Glisse wrote:
-> > > > 
-> > > > Yes it is safe, the hmm struct has its own refcount and mirror holds a
-> > > > reference on it, the mm struct itself has a reference on the mm
-> > > > struct.
-> > > 
-> > > The issue here is that that hmm_mirror_unregister() must be a strong
-> > > fence that guarentees no callback is running or will run after
-> > > return. mmu_notifier_unregister did not provide that.
-> > > 
-> > > I think I saw locking in hmm that was doing this..
-> > 
-> > So pattern is:
-> >     hmm_mirror_register(mirror);
-> > 
-> >     // Safe for driver to call within HMM with mirror no matter what
-> > 
-> >     hmm_mirror_unregister(mirror)
-> > 
-> >     // Driver must no stop calling within HMM, it would be a use after
-> >     // free scenario
+On Sun, Feb 17, 2019 at 06:09:09PM +0100, HÃ¥kon Bugge wrote:
+> During certain workloads, the default CM response timeout is too
+> short, leading to excessive retries. Hence, make it configurable
+> through sysctl. While at it, also make number of CM retries
+> configurable.
 > 
-> This statement is the opposite direction
+> The defaults are not changed.
 > 
-> I want to know that HMM doesn't allow any driver callbacks to be
-> running after unregister - because I am going to kfree mirror and
-> other memory touched by the driver callbacks.
+> Signed-off-by: HÃ¥kon Bugge <haakon.bugge@oracle.com>
+>  drivers/infiniband/core/cma.c | 51 ++++++++++++++++++++++++++++++-----
+>  1 file changed, 44 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+> index c43512752b8a..ce99e1cd1029 100644
+> +++ b/drivers/infiniband/core/cma.c
+> @@ -43,6 +43,7 @@
+>  #include <linux/inetdevice.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+> +#include <linux/sysctl.h>
+>  #include <net/route.h>
+>  
+>  #include <net/net_namespace.h>
+> @@ -68,13 +69,46 @@ MODULE_AUTHOR("Sean Hefty");
+>  MODULE_DESCRIPTION("Generic RDMA CM Agent");
+>  MODULE_LICENSE("Dual BSD/GPL");
+>  
+> -#define CMA_CM_RESPONSE_TIMEOUT 20
+>  #define CMA_QUERY_CLASSPORT_INFO_TIMEOUT 3000
+> -#define CMA_MAX_CM_RETRIES 15
+>  #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+>  #define CMA_IBOE_PACKET_LIFETIME 18
+>  #define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
+>  
+> +#define CMA_DFLT_CM_RESPONSE_TIMEOUT 20
+> +static int cma_cm_response_timeout = CMA_DFLT_CM_RESPONSE_TIMEOUT;
+> +static int cma_cm_response_timeout_min = 8;
+> +static int cma_cm_response_timeout_max = 31;
+> +#undef CMA_DFLT_CM_RESPONSE_TIMEOUT
+> +
+> +#define CMA_DFLT_MAX_CM_RETRIES 15
+> +static int cma_max_cm_retries = CMA_DFLT_MAX_CM_RETRIES;
+> +static int cma_max_cm_retries_min = 1;
+> +static int cma_max_cm_retries_max = 100;
+> +#undef CMA_DFLT_MAX_CM_RETRIES
+> +
+> +static struct ctl_table_header *cma_ctl_table_hdr;
+> +static struct ctl_table cma_ctl_table[] = {
+> +	{
+> +		.procname	= "cma_cm_response_timeout",
+> +		.data		= &cma_cm_response_timeout,
+> +		.maxlen		= sizeof(cma_cm_response_timeout),
+> +		.mode		= 0644,
+> +		.proc_handler	= proc_dointvec_minmax,
+> +		.extra1		= &cma_cm_response_timeout_min,
+> +		.extra2		= &cma_cm_response_timeout_max,
+> +	},
+> +	{
+> +		.procname	= "cma_max_cm_retries",
+> +		.data		= &cma_max_cm_retries,
+> +		.maxlen		= sizeof(cma_max_cm_retries),
+> +		.mode		= 0644,
+> +		.proc_handler	= proc_dointvec_minmax,
+> +		.extra1		= &cma_max_cm_retries_min,
+> +		.extra2		= &cma_max_cm_retries_max,
+> +	},
+> +	{ }
+> +};
 
-Sorry i miss-understood your question. Yes after hmm_mirror_unregister()
-you will no longer get a callback from HMM ie it is safe for you to free
-any data structure associated with HMM.
+Is sysctl the right approach here? Should it be rdma tool instead?
 
-Cheers,
-Jérôme
+Jason
