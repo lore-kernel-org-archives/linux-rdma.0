@@ -1,112 +1,141 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [RFC v1 01/19] net/i40e: Add peer register/unregister to struct
- i40e_netdev_priv
-Date: Fri, 22 Feb 2019 13:23:40 -0700
-Message-ID: <20190222202340.GY17500@ziepe.ca>
-References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-2-shiraz.saleem@intel.com>
- <20190215172233.GC30706@ziepe.ca>
- <9DD61F30A802C4429A01CA4200E302A7A5A471B8@fmsmsx124.amr.corp.intel.com>
- <20190221193523.GO17500@ziepe.ca>
- <2B0E3F215D1AB84DA946C8BEE234CCC97B11DF23@ORSMSX101.amr.corp.intel.com>
+From: Ralph Campbell <rcampbell@nvidia.com>
+Subject: Re: [PATCH v5 5/9] mm/mmu_notifier: contextual information for event
+ triggering invalidation v2
+Date: Fri, 22 Feb 2019 13:25:03 -0800
+Message-ID: <ff09d22f-8eb8-ea19-0a65-7f5b38928cea@nvidia.com>
+References: <20190219200430.11130-1-jglisse@redhat.com>
+ <20190219200430.11130-6-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2B0E3F215D1AB84DA946C8BEE234CCC97B11DF23@ORSMSX101.amr.corp.intel.com>
-Sender: netdev-owner@vger.kernel.org
-To: "Ertman, David M" <david.m.ertman@intel.com>
-Cc: "Saleem, Shiraz" <shiraz.saleem@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "Patil, Kiran" <kiran.patil@intel.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190219200430.11130-6-jglisse@redhat.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: jglisse@redhat.com, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 22, 2019 at 08:13:58PM +0000, Ertman, David M wrote:
-> > From: Jason Gunthorpe [mailto:jgg@ziepe.ca]
-> > Sent: Thursday, February 21, 2019 11:35 AM
-> > To: Saleem, Shiraz <shiraz.saleem@intel.com>
-> > Cc: dledford@redhat.com; davem@davemloft.net; linux-
-> > rdma@vger.kernel.org; netdev@vger.kernel.org; Ismail, Mustafa
-> > <mustafa.ismail@intel.com>; Kirsher, Jeffrey T <jeffrey.t.kirsher@intel.com>;
-> > Patil, Kiran <kiran.patil@intel.com>; Ertman, David M
-> > <david.m.ertman@intel.com>
-> > Subject: Re: [RFC v1 01/19] net/i40e: Add peer register/unregister to struct
-> > i40e_netdev_priv
-> > 
-> > On Thu, Feb 21, 2019 at 02:19:33AM +0000, Saleem, Shiraz wrote:
-> > > >Subject: Re: [RFC v1 01/19] net/i40e: Add peer register/unregister to
-> > > >struct i40e_netdev_priv
-> > > >
-> > > >On Fri, Feb 15, 2019 at 11:10:48AM -0600, Shiraz Saleem wrote:
-> > > >> Expose the register/unregister function pointers in the struct
-> > > >> i40e_netdev_priv which is accesible via the netdev_priv() interface
-> > > >> in the RDMA driver. On a netdev notification in the RDMA driver,
-> > > >> the appropriate LAN driver register/unregister functions are
-> > > >> invoked from the struct i40e_netdev_priv structure,
-> > > >
-> > > >Why? In later patches we get an entire device_add() based thing. Why
-> > > >do you need two things?
-> > > >
-> > > >The RDMA driver should bind to the thing that device_add created and
-> > > >from there reliably get the netdev. It should not listen to netdev notifiers for
-> > attachment.
-> > >
-> > > In the new IDC mechanism between ice<->irdma, the LAN driver setups up
-> > > the device for us and attaches it to a software bus via device_add() based
-> > mechanism.
-> > > However, RDMA driver binds to the device only when the LAN 'register'
-> > > function is called in irdma.
-> > 
-> > That doesn't make sense. The PCI driver should always create the required
-> > struct device attachment point when attachment is becomes possible.
-> > 
-> > > There is no ordering guarantee in which irdma, i40e and ice modules load.
-> > > The netdev notifier is for the case where the irdma loads before i40e
-> > > or ice.
-> > 
-> > You are supposed to use the driver core to handle this ordering.
-> > 
-> > The pci driver creates the attachment points in the correct order, when they
-> > are ready for use, and the driver core will automatically attach registered
-> > device drivers to the attachement points, no matter the module load loader.
-> > 
-> > You will have a netdev and a rdma attachment point, sounds like the RDMA one
-> > is created once the netdev is happy.
-> > 
-> > Maybe what you are missing is a struct device_driver?
-> > 
-> > Jason
-> 
-> I am assuming that the term PCI driver is being used to mean the PCI
-> subsystem in the kernel.  If this assumption is wrong, please disregard the next
-> paragraph, but the following points will still apply.
 
-No, I mean the driver that has the struct pci_driver for the PCI
-function. Maybe that is the LAN driver for this case.
+On 2/19/19 12:04 PM, jglisse@redhat.com wrote:
+> From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+>=20
+> CPU page table update can happens for many reasons, not only as a result
+> of a syscall (munmap(), mprotect(), mremap(), madvise(), ...) but also
+> as a result of kernel activities (memory compression, reclaim, migration,
+> ...).
+>=20
+> Users of mmu notifier API track changes to the CPU page table and take
+> specific action for them. While current API only provide range of virtual
+> address affected by the change, not why the changes is happening.
+>=20
+> This patchset do the initial mechanical convertion of all the places that
+> calls mmu_notifier_range_init to also provide the default MMU_NOTIFY_UNMA=
+P
+> event as well as the vma if it is know (most invalidation happens against
+> a given vma). Passing down the vma allows the users of mmu notifier to
+> inspect the new vma page protection.
+>=20
+> The MMU_NOTIFY_UNMAP is always the safe default as users of mmu notifier
+> should assume that every for the range is going away when that event
+> happens. A latter patch do convert mm call path to use a more appropriate
+> events for each call.
+>=20
+> Changes since v1:
+>      - add the flags parameter to init range flags
+>=20
+> This is done as 2 patches so that no call site is forgotten especialy
+> as it uses this following coccinelle patch:
+>=20
+> %<----------------------------------------------------------------------
+> @@
+> identifier I1, I2, I3, I4;
+> @@
+> static inline void mmu_notifier_range_init(struct mmu_notifier_range *I1,
+> +enum mmu_notifier_event event,
+> +unsigned flags,
+> +struct vm_area_struct *vma,
+> struct mm_struct *I2, unsigned long I3, unsigned long I4) { ... }
+>=20
+> @@
+> @@
+> -#define mmu_notifier_range_init(range, mm, start, end)
+> +#define mmu_notifier_range_init(range, event, flags, vma, mm, start, end=
+)
+>=20
+> @@
+> expression E1, E3, E4;
+> identifier I1;
+> @@
+> <...
+> mmu_notifier_range_init(E1,
+> +MMU_NOTIFY_UNMAP, 0, I1,
+> I1->vm_mm, E3, E4)
+> ...>
+>=20
+> @@
+> expression E1, E2, E3, E4;
+> identifier FN, VMA;
+> @@
+> FN(..., struct vm_area_struct *VMA, ...) {
+> <...
+> mmu_notifier_range_init(E1,
+> +MMU_NOTIFY_UNMAP, 0, VMA,
+> E2, E3, E4)
+> ...> }
+>=20
+> @@
+> expression E1, E2, E3, E4;
+> identifier FN, VMA;
+> @@
+> FN(...) {
+> struct vm_area_struct *VMA;
+> <...
+> mmu_notifier_range_init(E1,
+> +MMU_NOTIFY_UNMAP, 0, VMA,
+> E2, E3, E4)
+> ...> }
+>=20
+> @@
+> expression E1, E2, E3, E4;
+> identifier FN;
+> @@
+> FN(...) {
+> <...
+> mmu_notifier_range_init(E1,
+> +MMU_NOTIFY_UNMAP, 0, NULL,
+> E2, E3, E4)
+> ...> }
+> ---------------------------------------------------------------------->%
+>=20
+> Applied with:
+> spatch --all-includes --sp-file mmu-notifier.spatch fs/proc/task_mmu.c --=
+in-place
+> spatch --sp-file mmu-notifier.spatch --dir kernel/events/ --in-place
+> spatch --sp-file mmu-notifier.spatch --dir mm --in-place
+>=20
+> Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+> Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+> Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+> Cc: Jani Nikula <jani.nikula@linux.intel.com>
+> Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: Andrea Arcangeli <aarcange@redhat.com>
+> Cc: Peter Xu <peterx@redhat.com>
+> Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+> Cc: Jason Gunthorpe <jgg@mellanox.com>
+> Cc: Ross Zwisler <zwisler@kernel.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Paolo Bonzini <pbonzini@redhat.com>
+> Cc: Radim Kr=C4=8Dm=C3=A1=C5=99 <rkrcmar@redhat.com>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Christian Koenig <christian.koenig@amd.com>
+> Cc: Ralph Campbell <rcampbell@nvidia.com>
+> Cc: John Hubbard <jhubbard@nvidia.com>
+> Cc: kvm@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linux-rdma@vger.kernel.org
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> ---
 
-> bus, and has no ability to perform the described functions.  The
-> irdma driver cannot register with the software bus unless it
-> registers with the LAN driver that controls the bus.  The LAN
-> driver's register function will call "driver_register(&drv->driver)"
-> for the registering irdma driver.
-
-That isn't how to use the driver core.
-
-> Since the irdma driver is a consolidated driver (supports both ice and i40e LAN
-> drivers), we cannot guarantee that a given LAN driver will load before the irdma
-> driver.  Even if we use module dependencies to make irdma depend on (ice ||
-> i40e), we have to consider the situation where a machine will have both an ice
-> supported LAN device and an i40e supported LAN device in it.  In this case, the
-> load order could be (e.g.) i40e -> irdma -> ice.  The irdma driver can check all
-> present netdevs when it loads to find the one that has the correct function
-> pointers in it, but it will have no way of knowing that a new software bus was
-> created by the second LAN driver to load.
-
-This is why you use the driver core to manage driver binding.
-
-> This is why irdma is listening for netdev notifiers, so that whenever a new netdev
-> appears from a LAN driver loading after irdma, the irdma driver can evaluate
-> whether the new netdev was created by a LAN driver supported by irdma driver.
-
-Register a device driver to the driver core and wait for the driver
-core to call that driver's probe method.
-
-Jason
+Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
