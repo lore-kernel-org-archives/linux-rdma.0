@@ -1,143 +1,108 @@
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: Re: [PATCH v5 4/9] mm/mmu_notifier: contextual information for event
- enums
-Date: Fri, 22 Feb 2019 11:26:09 -0800
-Message-ID: <49d6489c-31b4-511b-2504-bc7aa5d44673@nvidia.com>
-References: <20190219200430.11130-1-jglisse@redhat.com>
- <20190219200430.11130-5-jglisse@redhat.com>
+From: "Ertman, David M" <david.m.ertman@intel.com>
+Subject: RE: [RFC v1 01/19] net/i40e: Add peer register/unregister to struct
+ i40e_netdev_priv
+Date: Fri, 22 Feb 2019 20:13:58 +0000
+Message-ID: <2B0E3F215D1AB84DA946C8BEE234CCC97B11DF23@ORSMSX101.amr.corp.intel.com>
+References: <20190215171107.6464-1-shiraz.saleem@intel.com>
+ <20190215171107.6464-2-shiraz.saleem@intel.com>
+ <20190215172233.GC30706@ziepe.ca>
+ <9DD61F30A802C4429A01CA4200E302A7A5A471B8@fmsmsx124.amr.corp.intel.com>
+ <20190221193523.GO17500@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190219200430.11130-5-jglisse@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190221193523.GO17500@ziepe.ca>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: jglisse@redhat.com, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>, "Saleem, Shiraz" <shiraz.saleem@intel.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, "Patil, Kiran" <kiran.patil@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+> -----Original Message-----
+> From: Jason Gunthorpe [mailto:jgg@ziepe.ca]
+> Sent: Thursday, February 21, 2019 11:35 AM
+> To: Saleem, Shiraz <shiraz.saleem@intel.com>
+> Cc: dledford@redhat.com; davem@davemloft.net; linux-
+> rdma@vger.kernel.org; netdev@vger.kernel.org; Ismail, Mustafa
+> <mustafa.ismail@intel.com>; Kirsher, Jeffrey T <jeffrey.t.kirsher@intel.com>;
+> Patil, Kiran <kiran.patil@intel.com>; Ertman, David M
+> <david.m.ertman@intel.com>
+> Subject: Re: [RFC v1 01/19] net/i40e: Add peer register/unregister to struct
+> i40e_netdev_priv
+> 
+> On Thu, Feb 21, 2019 at 02:19:33AM +0000, Saleem, Shiraz wrote:
+> > >Subject: Re: [RFC v1 01/19] net/i40e: Add peer register/unregister to
+> > >struct i40e_netdev_priv
+> > >
+> > >On Fri, Feb 15, 2019 at 11:10:48AM -0600, Shiraz Saleem wrote:
+> > >> Expose the register/unregister function pointers in the struct
+> > >> i40e_netdev_priv which is accesible via the netdev_priv() interface
+> > >> in the RDMA driver. On a netdev notification in the RDMA driver,
+> > >> the appropriate LAN driver register/unregister functions are
+> > >> invoked from the struct i40e_netdev_priv structure,
+> > >
+> > >Why? In later patches we get an entire device_add() based thing. Why
+> > >do you need two things?
+> > >
+> > >The RDMA driver should bind to the thing that device_add created and
+> > >from there reliably get the netdev. It should not listen to netdev notifiers for
+> attachment.
+> >
+> > In the new IDC mechanism between ice<->irdma, the LAN driver setups up
+> > the device for us and attaches it to a software bus via device_add() based
+> mechanism.
+> > However, RDMA driver binds to the device only when the LAN 'register'
+> > function is called in irdma.
+> 
+> That doesn't make sense. The PCI driver should always create the required
+> struct device attachment point when attachment is becomes possible.
+> 
+> > There is no ordering guarantee in which irdma, i40e and ice modules load.
+> > The netdev notifier is for the case where the irdma loads before i40e
+> > or ice.
+> 
+> You are supposed to use the driver core to handle this ordering.
+> 
+> The pci driver creates the attachment points in the correct order, when they
+> are ready for use, and the driver core will automatically attach registered
+> device drivers to the attachement points, no matter the module load loader.
+> 
+> You will have a netdev and a rdma attachment point, sounds like the RDMA one
+> is created once the netdev is happy.
+> 
+> Maybe what you are missing is a struct device_driver?
+> 
+> Jason
 
-On 2/19/19 12:04 PM, jglisse@redhat.com wrote:
-> From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
->=20
-> CPU page table update can happens for many reasons, not only as a result
+I am assuming that the term PCI driver is being used to mean the PCI
+subsystem in the kernel.  If this assumption is wrong, please disregard the next
+paragraph, but the following points will still apply.
 
-s/update/updates
-s/happens/happen
+The bus that the irdma driver is registering with is a software (pseudo) bus
+and not a hardware bus, and since this software bus is being defined by the LAN
+driver, the bus does not exist until a LAN driver is loaded, up, and ready to receive
+registration from the irdma peer.  The PCI driver does not have anything to with this
+bus, and has no ability to perform the described functions.  The irdma driver cannot
+register with the software bus unless it registers with the LAN driver that controls the
+bus.  The LAN driver's register function will call "driver_register(&drv->driver)" for the
+registering irdma driver.
 
-> of a syscall (munmap(), mprotect(), mremap(), madvise(), ...) but also
-> as a result of kernel activities (memory compression, reclaim, migration,
-> ...).
->=20
-> This patch introduce a set of enums that can be associated with each of
+Since the irdma driver is a consolidated driver (supports both ice and i40e LAN
+drivers), we cannot guarantee that a given LAN driver will load before the irdma
+driver.  Even if we use module dependencies to make irdma depend on (ice ||
+i40e), we have to consider the situation where a machine will have both an ice
+supported LAN device and an i40e supported LAN device in it.  In this case, the
+load order could be (e.g.) i40e -> irdma -> ice.  The irdma driver can check all
+present netdevs when it loads to find the one that has the correct function
+pointers in it, but it will have no way of knowing that a new software bus was
+created by the second LAN driver to load.
 
-s/introduce/introduces
+This is why irdma is listening for netdev notifiers, so that whenever a new netdev
+appears from a LAN driver loading after irdma, the irdma driver can evaluate
+whether the new netdev was created by a LAN driver supported by irdma driver.
 
-> the events triggering a mmu notifier. Latter patches take advantages of
-> those enum values.
+If I have misunderstood your concerns, I apologize and look forward to clarification.
 
-s/advantages/advantage
-
->=20
->      - UNMAP: munmap() or mremap()
->      - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
->      - PROTECTION_VMA: change in access protections for the range
->      - PROTECTION_PAGE: change in access protections for page in the rang=
-e
->      - SOFT_DIRTY: soft dirtyness tracking
->=20
-
-s/dirtyness/dirtiness
-
-> Being able to identify munmap() and mremap() from other reasons why the
-> page table is cleared is important to allow user of mmu notifier to
-> update their own internal tracking structure accordingly (on munmap or
-> mremap it is not longer needed to track range of virtual address as it
-> becomes invalid).
->=20
-> Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-> Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
-> Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
-> Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Andrea Arcangeli <aarcange@redhat.com>
-> Cc: Peter Xu <peterx@redhat.com>
-> Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-> Cc: Jason Gunthorpe <jgg@mellanox.com>
-> Cc: Ross Zwisler <zwisler@kernel.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Paolo Bonzini <pbonzini@redhat.com>
-> Cc: Radim Kr=C4=8Dm=C3=A1=C5=99 <rkrcmar@redhat.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Christian Koenig <christian.koenig@amd.com>
-> Cc: Ralph Campbell <rcampbell@nvidia.com>
-> Cc: John Hubbard <jhubbard@nvidia.com>
-> Cc: kvm@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> ---
->   include/linux/mmu_notifier.h | 30 ++++++++++++++++++++++++++++++
->   1 file changed, 30 insertions(+)
->=20
-> diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-> index c8672c366f67..2386e71ac1b8 100644
-> --- a/include/linux/mmu_notifier.h
-> +++ b/include/linux/mmu_notifier.h
-> @@ -10,6 +10,36 @@
->   struct mmu_notifier;
->   struct mmu_notifier_ops;
->  =20
-> +/**
-> + * enum mmu_notifier_event - reason for the mmu notifier callback
-> + * @MMU_NOTIFY_UNMAP: either munmap() that unmap the range or a mremap()=
- that
-> + * move the range
-
-I would say something about the VMA for the notifier range
-is being deleted.
-MMU notifier clients can then use this case to remove any policy or
-access counts associated with the range.
-Just changing the PTE to "no access" as in the CLEAR case
-doesn't mean a policy which prefers device private memory
-over system memory should be cleared.
-
-> + *
-> + * @MMU_NOTIFY_CLEAR: clear page table entry (many reasons for this like
-> + * madvise() or replacing a page by another one, ...).
-> + *
-> + * @MMU_NOTIFY_PROTECTION_VMA: update is due to protection change for th=
-e range
-> + * ie using the vma access permission (vm_page_prot) to update the whole=
- range
-> + * is enough no need to inspect changes to the CPU page table (mprotect(=
-)
-> + * syscall)
-> + *
-> + * @MMU_NOTIFY_PROTECTION_PAGE: update is due to change in read/write fl=
-ag for
-> + * pages in the range so to mirror those changes the user must inspect t=
-he CPU
-> + * page table (from the end callback).
-> + *
-> + * @MMU_NOTIFY_SOFT_DIRTY: soft dirty accounting (still same page and sa=
-me
-> + * access flags). User should soft dirty the page in the end callback to=
- make
-> + * sure that anyone relying on soft dirtyness catch pages that might be =
-written
-> + * through non CPU mappings.
-> + */
-> +enum mmu_notifier_event {
-> +	MMU_NOTIFY_UNMAP =3D 0,
-> +	MMU_NOTIFY_CLEAR,
-> +	MMU_NOTIFY_PROTECTION_VMA,
-> +	MMU_NOTIFY_PROTECTION_PAGE,
-> +	MMU_NOTIFY_SOFT_DIRTY,
-> +};
-> +
->   #ifdef CONFIG_MMU_NOTIFIER
->  =20
->   /*
->=20
+Thanks,
+-Dave Ertman
