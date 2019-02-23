@@ -1,194 +1,165 @@
-From: Ralph Campbell <rcampbell@nvidia.com>
-Subject: Re: [PATCH v5 9/9] mm/mmu_notifier: set MMU_NOTIFIER_USE_CHANGE_PTE
- flag where appropriate v2
-Date: Fri, 22 Feb 2019 15:01:16 -0800
-Message-ID: <af766eb9-c8a4-a8f7-6aad-f56845d514ce@nvidia.com>
-References: <20190219200430.11130-1-jglisse@redhat.com>
- <20190219200430.11130-10-jglisse@redhat.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] RDMA/cma: Make CM response timeout and # CM retries
+ configurable
+Date: Sat, 23 Feb 2019 10:49:30 +0200
+Message-ID: <20190223084930.GJ23561@mtr-leonro.mtl.com>
+References: <20190217170909.1178575-1-haakon.bugge@oracle.com>
+ <20190222163637.GA9819@ziepe.ca>
+ <afadc799-b547-5c20-64d2-75fa0f64cd9e@opengridcomputing.com>
+ <C7922E85-CA43-479A-8021-DADD59FF5BE7@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Zrag5V6pnZGjLKiw"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190219200430.11130-10-jglisse@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <C7922E85-CA43-479A-8021-DADD59FF5BE7@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: jglisse@redhat.com, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, John Hubbard <jhubbard@nvidia.com>, kvm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Doug Ledford <dledford@redhat.com>
+Cc: Steve Wise <swise@opengridcomputing.com>, Jason Gunthorpe <jgg@ziepe.ca>, =?iso-8859-1?Q?H=E5kon?= Bugge <haakon.bugge@oracle.com>, Parav Pandit <parav@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On 2/19/19 12:04 PM, jglisse@redhat.com wrote:
-> From: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
->=20
-> When notifying change for a range use MMU_NOTIFIER_USE_CHANGE_PTE flag
-> for page table update that use set_pte_at_notify() and where the we are
-> going either from read and write to read only with same pfn or read only
-> to read and write with new pfn.
->=20
-> Note that set_pte_at_notify() itself should only be use in rare cases
-> ie we do not want to use it when we are updating a significant range of
-> virtual addresses and thus a significant number of pte. Instead for
-> those cases the event provided to mmu notifer invalidate_range_start()
-> callback should be use for optimization.
->=20
-> Changes since v1:
->      - Use the new unsigned flags field in struct mmu_notifier_range
->      - Use the new flags parameter to mmu_notifier_range_init()
->      - Explicitly list all the patterns where we can use change_pte()
->=20
-> Signed-off-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-> Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
-> Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
-> Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Andrea Arcangeli <aarcange@redhat.com>
-> Cc: Peter Xu <peterx@redhat.com>
-> Cc: Felix Kuehling <Felix.Kuehling@amd.com>
-> Cc: Jason Gunthorpe <jgg@mellanox.com>
-> Cc: Ross Zwisler <zwisler@kernel.org>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Paolo Bonzini <pbonzini@redhat.com>
-> Cc: Radim Kr=C4=8Dm=C3=A1=C5=99 <rkrcmar@redhat.com>
-> Cc: Michal Hocko <mhocko@kernel.org>
-> Cc: Christian Koenig <christian.koenig@amd.com>
-> Cc: Ralph Campbell <rcampbell@nvidia.com>
-> Cc: John Hubbard <jhubbard@nvidia.com>
-> Cc: kvm@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linux-rdma@vger.kernel.org
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> ---
->   include/linux/mmu_notifier.h | 34 ++++++++++++++++++++++++++++++++--
->   mm/ksm.c                     | 11 ++++++-----
->   mm/memory.c                  |  5 +++--
->   3 files changed, 41 insertions(+), 9 deletions(-)
->=20
-> diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-> index b6c004bd9f6a..0230a4b06b46 100644
-> --- a/include/linux/mmu_notifier.h
-> +++ b/include/linux/mmu_notifier.h
-> @@ -40,6 +40,26 @@ enum mmu_notifier_event {
->   	MMU_NOTIFY_SOFT_DIRTY,
->   };
->  =20
-> +/*
-> + * @MMU_NOTIFIER_RANGE_BLOCKABLE: can the mmu notifier range_start/range=
-_end
-> + * callback block or not ? If set then the callback can block.
-> + *
-> + * @MMU_NOTIFIER_USE_CHANGE_PTE: only set when the page table it updated=
- with
-> + * the set_pte_at_notify() the valid patterns for this are:
-> + *      - pte read and write to read only same pfn
-> + *      - pte read only to read and write (pfn can change or stay the sa=
-me)
-> + *      - pte read only to read only with different pfn
-> + * It is illegal to set in any other circumstances.
-> + *
-> + * Note that set_pte_at_notify() should not be use outside of the above =
-cases.
-> + * When updating a range in batch (like write protecting a range) it is =
-better
-> + * to rely on invalidate_range_start() and struct mmu_notifier_range to =
-infer
-> + * the kind of update that is happening (as an example you can look at t=
-he
-> + * mmu_notifier_range_update_to_read_only() function).
-> + */
-> +#define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
-> +#define MMU_NOTIFIER_USE_CHANGE_PTE (1 << 1)
-> +
->   #ifdef CONFIG_MMU_NOTIFIER
->  =20
->   /*
-> @@ -55,8 +75,6 @@ struct mmu_notifier_mm {
->   	spinlock_t lock;
->   };
->  =20
-> -#define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
-> -
->   struct mmu_notifier_range {
->   	struct vm_area_struct *vma;
->   	struct mm_struct *mm;
-> @@ -268,6 +286,12 @@ mmu_notifier_range_blockable(const struct mmu_notifi=
-er_range *range)
->   	return (range->flags & MMU_NOTIFIER_RANGE_BLOCKABLE);
->   }
->  =20
-> +static inline bool
-> +mmu_notifier_range_use_change_pte(const struct mmu_notifier_range *range=
-)
-> +{
-> +	return (range->flags & MMU_NOTIFIER_USE_CHANGE_PTE);
-> +}
-> +
->   static inline void mmu_notifier_release(struct mm_struct *mm)
->   {
->   	if (mm_has_notifiers(mm))
-> @@ -509,6 +533,12 @@ mmu_notifier_range_blockable(const struct mmu_notifi=
-er_range *range)
->   	return true;
->   }
->  =20
-> +static inline bool
-> +mmu_notifier_range_use_change_pte(const struct mmu_notifier_range *range=
-)
-> +{
-> +	return false;
-> +}
-> +
->   static inline int mm_has_notifiers(struct mm_struct *mm)
->   {
->   	return 0;
-> diff --git a/mm/ksm.c b/mm/ksm.c
-> index b782fadade8f..41e51882f999 100644
-> --- a/mm/ksm.c
-> +++ b/mm/ksm.c
-> @@ -1066,9 +1066,9 @@ static int write_protect_page(struct vm_area_struct=
- *vma, struct page *page,
->  =20
->   	BUG_ON(PageTransCompound(page));
->  =20
-> -	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
-> -				pvmw.address,
-> -				pvmw.address + PAGE_SIZE);
-> +	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR,
-> +				MMU_NOTIFIER_USE_CHANGE_PTE, vma, mm,
-> +				pvmw.address, pvmw.address + PAGE_SIZE);
->   	mmu_notifier_invalidate_range_start(&range);
->  =20
->   	if (!page_vma_mapped_walk(&pvmw))
-> @@ -1155,8 +1155,9 @@ static int replace_page(struct vm_area_struct *vma,=
- struct page *page,
->   	if (!pmd)
->   		goto out;
->  =20
-> -	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, addr,
-> -				addr + PAGE_SIZE);
-> +	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR,
-> +				MMU_NOTIFIER_USE_CHANGE_PTE,
-> +				vma, mm, addr, addr + PAGE_SIZE);
->   	mmu_notifier_invalidate_range_start(&range);
->  =20
->   	ptep =3D pte_offset_map_lock(mm, pmd, addr, &ptl);
-> diff --git a/mm/memory.c b/mm/memory.c
-> index 45dbc174a88c..cb71d3ff1b97 100644
-> --- a/mm/memory.c
-> +++ b/mm/memory.c
-> @@ -2282,8 +2282,9 @@ static vm_fault_t wp_page_copy(struct vm_fault *vmf=
-)
->  =20
->   	__SetPageUptodate(new_page);
->  =20
-> -	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
-> -				vmf->address & PAGE_MASK,
-> +	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR,
-> +				MMU_NOTIFIER_USE_CHANGE_PTE,
-> +				vma, mm, vmf->address & PAGE_MASK,
->   				(vmf->address & PAGE_MASK) + PAGE_SIZE);
->   	mmu_notifier_invalidate_range_start(&range);
->  =20
->=20
+--Zrag5V6pnZGjLKiw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Ralph Campbell <rcampbell@nvidia.com>
+On Fri, Feb 22, 2019 at 12:51:55PM -0500, Doug Ledford wrote:
+>
+>
+> > On Feb 22, 2019, at 12:14 PM, Steve Wise <swise@opengridcomputing.com> =
+wrote:
+> >
+> >
+> > On 2/22/2019 10:36 AM, Jason Gunthorpe wrote:
+> >> On Sun, Feb 17, 2019 at 06:09:09PM +0100, H=C3=A5kon Bugge wrote:
+> >>> During certain workloads, the default CM response timeout is too
+> >>> short, leading to excessive retries. Hence, make it configurable
+> >>> through sysctl. While at it, also make number of CM retries
+> >>> configurable.
+> >>>
+> >>> The defaults are not changed.
+> >>>
+> >>> Signed-off-by: H=C3=A5kon Bugge <haakon.bugge@oracle.com>
+> >>> drivers/infiniband/core/cma.c | 51 ++++++++++++++++++++++++++++++-----
+> >>> 1 file changed, 44 insertions(+), 7 deletions(-)
+> >>>
+> >>> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/=
+cma.c
+> >>> index c43512752b8a..ce99e1cd1029 100644
+> >>> +++ b/drivers/infiniband/core/cma.c
+> >>> @@ -43,6 +43,7 @@
+> >>> #include <linux/inetdevice.h>
+> >>> #include <linux/slab.h>
+> >>> #include <linux/module.h>
+> >>> +#include <linux/sysctl.h>
+> >>> #include <net/route.h>
+> >>>
+> >>> #include <net/net_namespace.h>
+> >>> @@ -68,13 +69,46 @@ MODULE_AUTHOR("Sean Hefty");
+> >>> MODULE_DESCRIPTION("Generic RDMA CM Agent");
+> >>> MODULE_LICENSE("Dual BSD/GPL");
+> >>>
+> >>> -#define CMA_CM_RESPONSE_TIMEOUT 20
+> >>> #define CMA_QUERY_CLASSPORT_INFO_TIMEOUT 3000
+> >>> -#define CMA_MAX_CM_RETRIES 15
+> >>> #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
+> >>> #define CMA_IBOE_PACKET_LIFETIME 18
+> >>> #define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
+> >>>
+> >>> +#define CMA_DFLT_CM_RESPONSE_TIMEOUT 20
+> >>> +static int cma_cm_response_timeout =3D CMA_DFLT_CM_RESPONSE_TIMEOUT;
+> >>> +static int cma_cm_response_timeout_min =3D 8;
+> >>> +static int cma_cm_response_timeout_max =3D 31;
+> >>> +#undef CMA_DFLT_CM_RESPONSE_TIMEOUT
+> >>> +
+> >>> +#define CMA_DFLT_MAX_CM_RETRIES 15
+> >>> +static int cma_max_cm_retries =3D CMA_DFLT_MAX_CM_RETRIES;
+> >>> +static int cma_max_cm_retries_min =3D 1;
+> >>> +static int cma_max_cm_retries_max =3D 100;
+> >>> +#undef CMA_DFLT_MAX_CM_RETRIES
+> >>> +
+> >>> +static struct ctl_table_header *cma_ctl_table_hdr;
+> >>> +static struct ctl_table cma_ctl_table[] =3D {
+> >>> +	{
+> >>> +		.procname	=3D "cma_cm_response_timeout",
+> >>> +		.data		=3D &cma_cm_response_timeout,
+> >>> +		.maxlen		=3D sizeof(cma_cm_response_timeout),
+> >>> +		.mode		=3D 0644,
+> >>> +		.proc_handler	=3D proc_dointvec_minmax,
+> >>> +		.extra1		=3D &cma_cm_response_timeout_min,
+> >>> +		.extra2		=3D &cma_cm_response_timeout_max,
+> >>> +	},
+> >>> +	{
+> >>> +		.procname	=3D "cma_max_cm_retries",
+> >>> +		.data		=3D &cma_max_cm_retries,
+> >>> +		.maxlen		=3D sizeof(cma_max_cm_retries),
+> >>> +		.mode		=3D 0644,
+> >>> +		.proc_handler	=3D proc_dointvec_minmax,
+> >>> +		.extra1		=3D &cma_max_cm_retries_min,
+> >>> +		.extra2		=3D &cma_max_cm_retries_max,
+> >>> +	},
+> >>> +	{ }
+> >>> +};
+> >> Is sysctl the right approach here? Should it be rdma tool instead?
+> >>
+> >> Jason
+> >
+> > There are other rdma sysctls currently:  net.rdma_ucm.max_backlog and
+> > net.iw_cm.default_backlog.  The core network stack seems to use sysctl
+> > and not ip tool to set basically globals.
+> >
+> > To use rdma tool, we'd have to have some concept of a "module" object, I
+> > guess.  IE there's dev, link, and resource rdma tool objects currently.
+> > But these cma timeout settings are really not per dev, link, nor a
+> > resource.   Maybe we have just a "core" object:  rdma core set
+> > cma_max_cm_retries min 8 max 30.
+>
+> I don=E2=80=99t know, I think you make a fairly good argument for leaving=
+ it as a sysctl.  We have infrastructure in place for admins to set persist=
+ent sysctl settings.  The per device/link settings need something different=
+ because link names and such can change.  Since these are globals, I=E2=80=
+=99d leave them where they are.
+>
+
+I have patches from Parav which extend rdmatool to set global to whole
+stack parameters, something like "rdma system ...", so the option to
+set through rdmatool global parameters for modules e.g. "rdma system cma se=
+t ..."
+exists. But I'm not sure if it is right thing to do.
+
+> --
+> Doug Ledford <dledford@redhat.com>
+>     GPG KeyID: B826A3330E572FDD
+>     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+>
+>
+>
+>
+>
+>
+>
+
+
+
+--Zrag5V6pnZGjLKiw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJccQkaAAoJEORje4g2clinKGMP/1WTMBxq8GTQD2lnIFTMyrzC
+YeXQ9H7MAvM+4aQ45KU2F85hf5dJEBoayu2+aacCphwme3YApLEh4UmKKtiPjJ0q
+6N5/NO7Ru6Li3nI5kXzQka5AMnAPIoX9YaSDF8jOKQHWYSb2c2sse0Jld+Dt4iYl
+Qi1aK7ZSJT3pF5En2nAAwPXbmRk80bFFpocCTkLqhJEJ3Zt73K9l3+LP0B3LS16r
+C784cabgxkvbPkkc67YDLzixnuuTwsDu819drTi4edp87J5tHyj/BCtZclNu+ZiT
+15y65Ma+wW0SLt9BBl+K5KwqX3JfqoM7oX47eGrWpe1C+9kdaDSdCFe0SeN/wxSg
+/FL8ucw551hwYwKx5yPF38Jfkt7kJv/NlhBbOmqucTDCIGd6us0F5e4ixJhh5hA7
+wBV6tQESgtugWAdiHz6Pu1yAWXiOQuoekhmGxNf33Yt5Fe4QRs8i+uj+iIrLhQ8B
+mj9kpIFmR17w9OYhVU118wFuDiERM6LuVkyPN1jaVWwIXfvoSt44e/4gqkLW+Htk
+ioqjLbuzuu5zzzcUP4X2gsm//vJreglT6EjhMgDiTtWkOdSDn3hQj3Pm7aMhUYXm
+fnrdhkSCgGFdbStKL1EYwjC4rJE97cjM3YUqzEtAmwWmBz3d+vD3sF7hoUVYgk0B
+eKC4tCVyUQ0Ao4Cquefr
+=Rw17
+-----END PGP SIGNATURE-----
+
+--Zrag5V6pnZGjLKiw--
