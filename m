@@ -1,191 +1,85 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v1 iproute2-next 3/4] rdma: add 'link add/delete' commands
-Date: Sat, 23 Feb 2019 11:43:11 +0200
-Message-ID: <20190223094311.GP23561@mtr-leonro.mtl.com>
-References: <cover.1550773362.git.swise@opengridcomputing.com>
- <5dd9d9aeada48bc5db0eb0394ed4e3ce38ee41bc.1550773362.git.swise@opengridcomputing.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.20 22/72] RDMA/umem: Add missing initialization of owning_mm
+Date: Sat, 23 Feb 2019 16:03:32 -0500
+Message-ID: <20190223210422.199966-22-sashal@kernel.org>
+References: <20190223210422.199966-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="rf72Gf+bfLC8kxKs"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5dd9d9aeada48bc5db0eb0394ed4e3ce38ee41bc.1550773362.git.swise@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Artemy Kovalyov <artemyko@mellanox.com>
 
---rf72Gf+bfLC8kxKs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+[ Upstream commit a2093dd35f8cfb28dd7c878ccbd020c1bb20d0d7 ]
 
-On Thu, Feb 21, 2019 at 08:19:12AM -0800, Steve Wise wrote:
-> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
-> device to a netdev interface.
->
-> EG:
->
-> rdma link add rxe_eth0 type rxe netdev eth0
-> rdma link delete rxe_eth0
->
-> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-> ---
->  rdma/link.c  | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  rdma/rdma.h  |  1 +
->  rdma/utils.c |  2 +-
->  3 files changed, 69 insertions(+), 1 deletion(-)
->
-> diff --git a/rdma/link.c b/rdma/link.c
-> index c064be627be2..afaf19663728 100644
-> --- a/rdma/link.c
-> +++ b/rdma/link.c
-> @@ -14,6 +14,9 @@
->  static int link_help(struct rd *rd)
->  {
->  	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
-> +	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
-> +	       rd->filename);
-> +	pr_out("Usage: %s link delete NAME\n", rd->filename);
->  	return 0;
->  }
->
-> @@ -341,10 +344,74 @@ static int link_show(struct rd *rd)
->  	return rd_exec_link(rd, link_one_show, true);
->  }
->
-> +static int link_add(struct rd *rd)
-> +{
-> +	char *name;
-> +	char *type = NULL;
-> +	char *dev = NULL;
-> +	uint32_t seq;
-> +
-> +	if (rd_no_arg(rd)) {
-> +		pr_err("No link name was supplied\n");
+When allocating a umem leaf for implicit ODP MR during page fault the
+field owning_mm was not set.
 
-I think that it is better to have instruction message and not error
-message: "Please provide ...".
+Initialize and take a reference on this field to avoid kernel panic when
+trying to access this field.
 
-> +		return -EINVAL;
-> +	}
-> +	name = rd_argv(rd);
-> +	rd_arg_inc(rd);
-> +	while (!rd_no_arg(rd)) {
-> +		if (rd_argv_match(rd, "type")) {
-> +			rd_arg_inc(rd);
-> +			type = rd_argv(rd);
-> +		} else if (rd_argv_match(rd, "netdev")) {
-> +			rd_arg_inc(rd);
-> +			dev = rd_argv(rd);
-> +		} else {
-> +			pr_err("Invalid parameter %s\n", rd_argv(rd));
-> +			return -EINVAL;
-> +		}
-> +		rd_arg_inc(rd);
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000058
+ PGD 800000022dfed067 P4D 800000022dfed067 PUD 22dfcf067 PMD 0
+ Oops: 0000 [#1] SMP PTI
+ CPU: 0 PID: 634 Comm: kworker/u33:0 Not tainted 4.20.0-rc6+ #89
+ Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
+ Workqueue: mlx5_ib_page_fault mlx5_ib_eqe_pf_action [mlx5_ib]
+ RIP: 0010:ib_umem_odp_map_dma_pages+0xf3/0x710 [ib_core]
+ Code: 45 c0 48 21 f3 48 89 75 b0 31 f6 4a 8d 04 33 48 89 45 a8 49 8b 44 24 60 48 8b 78 10 e8 66 16 a8 c5 49 8b 54 24 08 48 89 45 98 <8b> 42 58 85 c0 0f 84 8e 05 00 00 8d 48 01 48 8d 72 58 f0 0f b1 4a
+ RSP: 0000:ffffb610813a7c20 EFLAGS: 00010202
+ RAX: ffff95ace6e8ac80 RBX: 0000000000000000 RCX: 000000000000000c
+ RDX: 0000000000000000 RSI: 0000000000000850 RDI: ffff95aceaadae80
+ RBP: ffffb610813a7ce0 R08: 0000000000000000 R09: 0000000000080c77
+ R10: ffff95acfffdbd00 R11: 0000000000000000 R12: ffff95aceaa20a00
+ R13: 0000000000001000 R14: 0000000000001000 R15: 000000000000000c
+ FS:  0000000000000000(0000) GS:ffff95acf7800000(0000) knlGS:0000000000000000
+ CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+ CR2: 0000000000000058 CR3: 000000022c834001 CR4: 00000000001606f0
+ Call Trace:
+  pagefault_single_data_segment+0x1df/0xc60 [mlx5_ib]
+  mlx5_ib_eqe_pf_action+0x7bc/0xa70 [mlx5_ib]
+  ? __switch_to+0xe1/0x470
+  process_one_work+0x174/0x390
+  worker_thread+0x4f/0x3e0
+  kthread+0x102/0x140
+  ? drain_workqueue+0x130/0x130
+  ? kthread_stop+0x110/0x110
+  ret_from_fork+0x1f/0x30
 
-Please use chains of struct rd_cmd and rd_exec_cmd() instead of
-open-coding parser.
+Fixes: f27a0d50a4bc ("RDMA/umem: Use umem->owning_mm inside ODP")
+Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+Signed-off-by: Moni Shoua <monis@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/core/umem_odp.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> +	}
-> +	if (!type) {
-> +		pr_err("No type was supplied\n");
-> +		return -EINVAL;
-
-General parser handle it.
-
-> +	}
-> +	if (!dev) {
-> +		pr_err("No net device was supplied\n");
-> +		return -EINVAL;
-> +	}
-
-rd_exec_require_dev() ???
-
-> +
-> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
-> +		       (NLM_F_REQUEST | NLM_F_ACK));
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, type);
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, dev);
-> +	return rd_sendrecv_msg(rd, seq);
-> +}
-> +
-> +static int _link_del(struct rd *rd)
-> +{
-> +	uint32_t seq;
-> +
-> +	if (!rd_no_arg(rd)) {
-> +		pr_err("Unknown parameter %s\n", rd_argv(rd));
-> +		return -EINVAL;
-> +	}
-> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_DELLINK, &seq,
-> +		       (NLM_F_REQUEST | NLM_F_ACK));
-> +	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-> +	return rd_sendrecv_msg(rd, seq);
-> +}
-> +
-> +static int link_del(struct rd *rd)
-> +{
-> +	return rd_exec_require_dev(rd, _link_del);
-> +}
-> +
->  int cmd_link(struct rd *rd)
->  {
->  	const struct rd_cmd cmds[] = {
->  		{ NULL,		link_show },
-> +		{ "add",	link_add },
-> +		{ "delete",	link_del },
->  		{ "show",	link_show },
->  		{ "list",	link_show },
->  		{ "help",	link_help },
-> diff --git a/rdma/rdma.h b/rdma/rdma.h
-> index 20be2f12c4f8..af4597f45640 100644
-> --- a/rdma/rdma.h
-> +++ b/rdma/rdma.h
-> @@ -79,6 +79,7 @@ struct rd_cmd {
->   */
->  bool rd_no_arg(struct rd *rd);
->  void rd_arg_inc(struct rd *rd);
-> +bool rd_argv_match(struct rd *rd, const char *pattern);
->
->  char *rd_argv(struct rd *rd);
->
-> diff --git a/rdma/utils.c b/rdma/utils.c
-> index a6f2826c9605..85a954167511 100644
-> --- a/rdma/utils.c
-> +++ b/rdma/utils.c
-> @@ -32,7 +32,7 @@ int strcmpx(const char *str1, const char *str2)
->  	return strncmp(str1, str2, strlen(str1));
->  }
->
-> -static bool rd_argv_match(struct rd *rd, const char *pattern)
-> +bool rd_argv_match(struct rd *rd, const char *pattern)
->  {
->  	if (!rd_argc(rd))
->  		return false;
-> --
-> 1.8.3.1
->
-
---rf72Gf+bfLC8kxKs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJccRWvAAoJEORje4g2clinUpgP/2PjDuLw3muWJvyYNHzLuOc8
-FNO+SeLSZrPrkeTWVOHSeWZO6u3yExeddGS8YEtw/AtCJZKgochQ1gDPOKbDW45R
-aov8UzYEDqg/GjJTvwhb5DJFG2qUo+Y9rAF2VuyvZm1u52sIbraUmvbMSf3ckZTo
-1C87QcHC8uBxDsRFnWpBh0Q9M75iVpXa2Lfy98fBmSTRAZwG4ohKYgkI1k74T36u
-IPyeEzwxqeqNrSsjC8vZAE19x3JVXiLM98tz4UiBKH3xWhGunyJ9WIKFvZrhg34/
-rhHRvPHiVle+BWLsmg0kKu52+Namp8wwEnWKQLfdfkQ4GsD24jNQSS9he2ROoG2P
-c8I1rozhoWUkq6jmwG4hnoE5MMBpbWqKoAVlz/+zir3pfvZwTlUnOfhcm2Vbv3O/
-DTsgAJC/89ZGPU1tDO42++vINxnc4MohYmjoBUlPBhzowqeZqPWq1g7Cg9UyTbhT
-x/l8H+Gp2c5Qs8fnPnJg1VtJcfOePyMQ9WuF1vD/X/1neDG7h6tFJuvpf9bihemS
-7s8XiUowsa8BKCnvH9k04T+Vui4soMgDa6stnJGJWpLF/dNhhhNpKzN2BJax/snP
-lC8eeXUTxMgKYmq497UkfnZK9NCKsf3qER4i8ZHNRLxYAh3yWHEz8uN0UuAulWVL
-4PqUjzlBfsgZYEElaAVJ
-=P9cm
------END PGP SIGNATURE-----
-
---rf72Gf+bfLC8kxKs--
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index 676c1fd1119d8..7ef385db52c35 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -356,6 +356,8 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
+ 	umem->writable   = 1;
+ 	umem->is_odp = 1;
+ 	odp_data->per_mm = per_mm;
++	umem->owning_mm  = per_mm->mm;
++	mmgrab(umem->owning_mm);
+ 
+ 	mutex_init(&odp_data->umem_mutex);
+ 	init_completion(&odp_data->notifier_completion);
+@@ -388,6 +390,7 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
+ out_page_list:
+ 	vfree(odp_data->page_list);
+ out_odp_data:
++	mmdrop(umem->owning_mm);
+ 	kfree(odp_data);
+ 	return ERR_PTR(ret);
+ }
+-- 
+2.19.1
