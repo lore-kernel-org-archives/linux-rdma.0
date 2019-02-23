@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v2 13/19] rdma: Refactor CQ prints
-Date: Sat, 23 Feb 2019 11:15:22 +0200
-Message-ID: <20190223091528.8509-14-leon@kernel.org>
+Subject: [PATCH iproute2-next v2 14/19] rdma: Move MR code to be suitable for per-line parsing
+Date: Sat, 23 Feb 2019 11:15:23 +0200
+Message-ID: <20190223091528.8509-15-leon@kernel.org>
 References: <20190223091528.8509-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -17,54 +17,49 @@ From: Leon Romanovsky <leonro@mellanox.com>
 Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/res-cq.c | 177 ++++++++++++++++++++++++++------------------------
- 1 file changed, 91 insertions(+), 86 deletions(-)
+ rdma/res-mr.c | 178 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 90 insertions(+), 88 deletions(-)
 
-diff --git a/rdma/res-cq.c b/rdma/res-cq.c
-index 93c18251..e50d76ce 100644
---- a/rdma/res-cq.c
-+++ b/rdma/res-cq.c
-@@ -27,11 +27,97 @@ static void print_poll_ctx(struct rd *rd, uint8_t poll_ctx)
- 	pr_out("poll-ctx %s ", poll_ctx_to_str(poll_ctx));
- }
+diff --git a/rdma/res-mr.c b/rdma/res-mr.c
+index e373035a..36993b5e 100644
+--- a/rdma/res-mr.c
++++ b/rdma/res-mr.c
+@@ -7,11 +7,96 @@
+ #include "res.h"
+ #include <inttypes.h>
  
-+static int res_cq_line(struct rd *rd, const char *name, int idx,
++static int res_mr_line(struct rd *rd, const char *name, int idx,
 +		       struct nlattr *nla_entry)
 +{
 +	struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
++	uint32_t rkey = 0, lkey = 0;
++	uint64_t iova = 0, mrlen;
 +	char *comm = NULL;
++	uint32_t pdn = 0;
++	uint32_t mrn = 0;
 +	uint32_t pid = 0;
-+	uint8_t poll_ctx = 0;
-+	uint32_t ctxn = 0;
-+	uint32_t cqn = 0;
-+	uint64_t users;
-+	uint32_t cqe;
 +	int err;
 +
 +	err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
 +	if (err != MNL_CB_OK)
 +		return MNL_CB_ERROR;
 +
-+	if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
-+	    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT] ||
++	if (!nla_line[RDMA_NLDEV_ATTR_RES_MRLEN] ||
 +	    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
 +	     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
 +		return MNL_CB_ERROR;
 +	}
 +
-+	cqe = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQE]);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
++		rkey = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RKEY]);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
++		lkey = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_LKEY]);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
++		iova = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_IOVA]);
 +
-+	users = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_USECNT]);
-+	if (rd_check_is_filtered(rd, "users", users))
++	mrlen = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_MRLEN]);
++	if (rd_check_is_filtered(rd, "mrlen", mrlen))
 +		goto out;
-+
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]) {
-+		poll_ctx =
-+			mnl_attr_get_u8(nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]);
-+		if (rd_check_is_string_filtered(rd, "poll-ctx",
-+						poll_ctx_to_str(poll_ctx)))
-+			goto out;
-+	}
 +
 +	if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
 +		pid = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PID]);
@@ -74,14 +69,14 @@ index 93c18251..e50d76ce 100644
 +	if (rd_check_is_filtered(rd, "pid", pid))
 +		goto out;
 +
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
-+		cqn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
-+	if (rd_check_is_filtered(rd, "cqn", cqn))
++	if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++		mrn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
++	if (rd_check_is_filtered(rd, "mrn", mrn))
 +		goto out;
 +
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+		ctxn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+	if (rd_check_is_filtered(rd, "ctxn", ctxn))
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++		pdn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
++	if (rd_check_is_filtered(rd, "pdn", pdn))
 +		goto out;
 +
 +	if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
@@ -93,27 +88,31 @@ index 93c18251..e50d76ce 100644
 +		jsonw_start_array(rd->jw);
 +
 +	print_dev(rd, idx, name);
-+	res_print_uint(rd, "cqe", cqe);
-+	res_print_uint(rd, "users", users);
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX])
-+		print_poll_ctx(rd, poll_ctx);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
++		print_key(rd, "rkey", rkey);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
++		print_key(rd, "lkey", lkey);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
++		print_key(rd, "iova", iova);
++	res_print_uint(rd, "mrlen", mrlen);
 +	res_print_uint(rd, "pid", pid);
 +	print_comm(rd, comm, nla_line);
 +
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
-+		res_print_uint(rd, "cqn", cqn);
-+	if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+		res_print_uint(rd, "ctxn", ctxn);
++	if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++		res_print_uint(rd, "mrn", mrn);
++
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
++		res_print_uint(rd, "pdn", pdn);
 +
 +	print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
 +	newline(rd);
 +
-+out:	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
++out:
++	if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
 +		free(comm);
 +	return MNL_CB_OK;
 +}
-+
- int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
  {
  	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
  	struct nlattr *nla_table, *nla_entry;
@@ -122,44 +121,42 @@ index 93c18251..e50d76ce 100644
  	const char *name;
  	uint32_t idx;
  
-@@ -45,91 +131,10 @@ int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
- 	nla_table = tb[RDMA_NLDEV_ATTR_RES_CQ];
+@@ -25,93 +110,10 @@ int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	nla_table = tb[RDMA_NLDEV_ATTR_RES_MR];
  
  	mnl_attr_for_each_nested(nla_entry, nla_table) {
 -		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
+-		uint32_t rkey = 0, lkey = 0;
+-		uint64_t iova = 0, mrlen;
 -		char *comm = NULL;
+-		uint32_t pdn = 0;
+-		uint32_t mrn = 0;
 -		uint32_t pid = 0;
--		uint8_t poll_ctx = 0;
--		uint32_t ctxn = 0;
--		uint32_t cqn = 0;
--		uint64_t users;
--		uint32_t cqe;
 -		int err;
 -
 -		err = mnl_attr_parse_nested(nla_entry, rd_attr_cb, nla_line);
 -		if (err != MNL_CB_OK)
 -			return MNL_CB_ERROR;
 -
--		if (!nla_line[RDMA_NLDEV_ATTR_RES_CQE] ||
--		    !nla_line[RDMA_NLDEV_ATTR_RES_USECNT] ||
+-		if (!nla_line[RDMA_NLDEV_ATTR_RES_MRLEN] ||
 -		    (!nla_line[RDMA_NLDEV_ATTR_RES_PID] &&
 -		     !nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])) {
 -			return MNL_CB_ERROR;
 -		}
 -
--		cqe = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CQE]);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
+-			rkey = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_RKEY]);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
+-			lkey = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_LKEY]);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
+-			iova = mnl_attr_get_u64(
+-				nla_line[RDMA_NLDEV_ATTR_RES_IOVA]);
 -
--		users = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_USECNT]);
--		if (rd_check_is_filtered(rd, "users", users))
+-		mrlen = mnl_attr_get_u64(nla_line[RDMA_NLDEV_ATTR_RES_MRLEN]);
+-		if (rd_check_is_filtered(rd, "mrlen", mrlen))
 -			continue;
--
--		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]) {
--			poll_ctx = mnl_attr_get_u8(
--				nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX]);
--			if (rd_check_is_string_filtered(
--				    rd, "poll-ctx", poll_ctx_to_str(poll_ctx)))
--				continue;
--		}
 -
 -		if (nla_line[RDMA_NLDEV_ATTR_RES_PID]) {
 -			pid = mnl_attr_get_u32(
@@ -172,16 +169,16 @@ index 93c18251..e50d76ce 100644
 -			continue;
 -		}
 -
--		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
--			cqn = mnl_attr_get_u32(
--				nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
--		if (rd_check_is_filtered(rd, "cqn", cqn))
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
+-			mrn = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
+-		if (rd_check_is_filtered(rd, "mrn", mrn))
 -			continue;
 -
--		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
--			ctxn = mnl_attr_get_u32(
--				nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
--		if (rd_check_is_filtered(rd, "ctxn", ctxn))
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
+-			pdn = mnl_attr_get_u32(
+-				nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
+-		if (rd_check_is_filtered(rd, "pdn", pdn))
 -			continue;
 -
 -		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
@@ -193,24 +190,28 @@ index 93c18251..e50d76ce 100644
 -			jsonw_start_array(rd->jw);
 -
 -		print_dev(rd, idx, name);
--		res_print_uint(rd, "cqe", cqe);
--		res_print_uint(rd, "users", users);
--		if (nla_line[RDMA_NLDEV_ATTR_RES_POLL_CTX])
--			print_poll_ctx(rd, poll_ctx);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_RKEY])
+-			print_key(rd, "rkey", rkey);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
+-			print_key(rd, "lkey", lkey);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
+-			print_key(rd, "iova", iova);
+-		res_print_uint(rd, "mrlen", mrlen);
 -		res_print_uint(rd, "pid", pid);
 -		print_comm(rd, comm, nla_line);
 -
--		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
--			res_print_uint(rd, "cqn", cqn);
--		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
--			res_print_uint(rd, "ctxn", ctxn);
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
+-			res_print_uint(rd, "mrn", mrn);
+-
+-		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
+-			res_print_uint(rd, "pdn", pdn);
 -
 -		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
 -			free(comm);
 -
 -		print_driver_table(rd, nla_line[RDMA_NLDEV_ATTR_DRIVER]);
 -		newline(rd);
-+		ret = res_cq_line(rd, name, idx, nla_entry);
++		ret = res_mr_line(rd, name, idx, nla_entry);
 +
 +		if (ret != MNL_CB_OK)
 +			break;
