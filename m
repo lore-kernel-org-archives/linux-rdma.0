@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v2 04/19] rdma: Provide parent context index for all objects except CM_ID
-Date: Sat, 23 Feb 2019 11:15:13 +0200
-Message-ID: <20190223091528.8509-5-leon@kernel.org>
+Subject: [PATCH iproute2-next v2 03/19] rdma: Provide unique indexes for all visible objects
+Date: Sat, 23 Feb 2019 11:15:12 +0200
+Message-ID: <20190223091528.8509-4-leon@kernel.org>
 References: <20190223091528.8509-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,44 +14,18 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Allow users to correlate allocated object with relevant parent
-
-[leonro@server ~]$ rdma res show pd
-dev mlx5_0 users 5 pid 0 comm [ib_core] pdn 1
-dev mlx5_0 users 7 pid 0 comm [ib_ipoib] pdn 2
-dev mlx5_0 users 0 pid 0 comm [mlx5_ib] pdn 3
-dev mlx5_0 users 2 pid 548 comm ibv_rc_pingpong ctxn 0 pdn 4
-
-[leonro@server ~]$ rdma res show cq cqn 0-100
-dev mlx5_0 cqe 2047 users 6 poll-ctx UNBOUND_WORKQUEUE pid 0 comm [ib_core] cqn 2
-dev mlx5_0 cqe 255 users 2 poll-ctx SOFTIRQ pid 0 comm [mlx5_ib] cqn 3
-dev mlx5_0 cqe 511 users 1 poll-ctx DIRECT pid 0 comm [ib_ipoib] cqn 4
-dev mlx5_0 cqe 255 users 1 poll-ctx DIRECT pid 0 comm [ib_ipoib] cqn 5
-dev mlx5_0 cqe 255 users 0 poll-ctx SOFTIRQ pid 0 comm [mlx5_ib] cqn 6
-dev mlx5_0 cqe 511 users 2 pid 548 comm ibv_rc_pingpong cqn 7 ctxn 0
-
-[leonro@server ~]$ rdma res show mr
-dev mlx5_0 mrlen 4096 pid 548 comm ibv_rc_pingpong mrn 4 pdn 0
-
-[leonro@nps-server-14-015 ~]$ /images/leonro/src/iproute2/rdma/rdma res show qp
-link mlx5_0/1 lqpn 0 type SMI state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 1 type GSI state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 7 type UD state RTS sq-psn 0 pid 0 comm [ib_core]
-link mlx5_0/1 lqpn 8 type UD state RTS sq-psn 0 pid 0 comm [ib_ipoib]
-link mlx5_0/1 lqpn 9 pdn 4 rqpn 0 type RC state INIT rq-psn 0 sq-psn 0 path-mig-state MIGRATED pid 548 comm ibv_rc_pingpong
-
 Reviewed-by: Steve Wise <swise@opengridcomputing.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- rdma/res.c | 110 +++++++++++++++++++++++++++++++++++------------------
- 1 file changed, 72 insertions(+), 38 deletions(-)
+ rdma/res.c | 83 +++++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 63 insertions(+), 20 deletions(-)
 
 diff --git a/rdma/res.c b/rdma/res.c
-index f941de5c..308f66c0 100644
+index 87865ec8..f941de5c 100644
 --- a/rdma/res.c
 +++ b/rdma/res.c
-@@ -320,6 +320,22 @@ static char *get_task_name(uint32_t pid)
- 	return comm;
+@@ -549,6 +549,22 @@ static int ss_ntop(struct nlattr *nla_line, char *addr_str, uint16_t *port)
+ 	return 0;
  }
  
 +static void print_key(struct rd *rd, const char *name, uint64_t val)
@@ -70,40 +44,72 @@ index f941de5c..308f66c0 100644
 +		pr_out("%s %" PRIu64 " ", name, val);
 +}
 +
- static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
+ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
  {
  	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-@@ -343,6 +359,7 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t lqpn, rqpn = 0, rq_psn = 0, sq_psn;
- 		uint8_t type, state, path_mig_state = 0;
+@@ -574,6 +590,7 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
  		uint32_t port = 0, pid = 0;
-+		uint32_t pdn = 0;
+ 		uint8_t type = 0, state;
+ 		uint32_t lqpn = 0, ps;
++		uint32_t cm_idn = 0;
  		char *comm = NULL;
  		int err;
  
-@@ -369,6 +386,11 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "lqpn", lqpn))
+@@ -651,6 +668,12 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
  			continue;
+ 		}
  
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			pdn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_PDN]);
-+		if (rd_check_is_filtered(rd, "pdn", pdn))
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN])
++			cm_idn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN]);
++		if (rd_check_is_filtered(rd, "cm-idn", cm_idn))
 +			continue;
 +
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_RQPN]) {
- 			rqpn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_RQPN]);
- 			if (rd_check_is_filtered(rd, "rqpn", rqpn))
-@@ -428,6 +450,8 @@ static int res_qp_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		print_link(rd, idx, name, port, nla_line);
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME]) {
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -669,6 +692,8 @@ static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_ps(rd, ps);
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CM_IDN])
++			res_print_uint(rd, "cm-idn", cm_idn);
  
- 		print_lqpn(rd, lqpn);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-+			res_print_uint(rd, "pdn", pdn);
- 		print_rqpn(rd, rqpn, nla_line);
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_SRC_ADDR])
+ 			print_ipaddr(rd, "src-addr", src_addr_str, src_port);
+@@ -743,6 +768,7 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		char *comm = NULL;
+ 		uint32_t pid = 0;
+ 		uint8_t poll_ctx = 0;
++		uint32_t cqn = 0;
+ 		uint64_t users;
+ 		uint32_t cqe;
+ 		int err;
+@@ -783,6 +809,12 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 			continue;
+ 		}
  
- 		print_type(rd, type);
-@@ -549,22 +573,6 @@ static int ss_ntop(struct nlattr *nla_line, char *addr_str, uint16_t *port)
- 	return 0;
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			cqn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_CQN]);
++		if (rd_check_is_filtered(rd, "cqn", cqn))
++			continue;
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
+ 			/* discard const from mnl_attr_get_str */
+ 			comm = (char *)mnl_attr_get_str(
+@@ -799,6 +831,9 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
++			res_print_uint(rd, "cqn", cqn);
++
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
+ 			free(comm);
+ 
+@@ -808,22 +843,6 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
  }
  
 -static void print_key(struct rd *rd, const char *name, uint64_t val)
@@ -122,49 +128,50 @@ index f941de5c..308f66c0 100644
 -		pr_out("%s %" PRIu64 " ", name, val);
 -}
 -
- static int res_cm_id_parse_cb(const struct nlmsghdr *nlh, void *data)
+ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
  {
  	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-@@ -768,6 +776,7 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+@@ -847,6 +866,7 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		uint32_t rkey = 0, lkey = 0;
+ 		uint64_t iova = 0, mrlen;
  		char *comm = NULL;
++		uint32_t mrn = 0;
  		uint32_t pid = 0;
- 		uint8_t poll_ctx = 0;
-+		uint32_t ctxn = 0;
- 		uint32_t cqn = 0;
- 		uint64_t users;
- 		uint32_t cqe;
-@@ -815,6 +824,12 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "cqn", cqn))
- 			continue;
+ 		int err;
  
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			ctxn = mnl_attr_get_u32(
-+				 nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+		if (rd_check_is_filtered(rd, "ctxn", ctxn))
+@@ -885,6 +905,12 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 			continue;
+ 		}
+ 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++			mrn = mnl_attr_get_u32(
++				nla_line[RDMA_NLDEV_ATTR_RES_MRN]);
++		if (rd_check_is_filtered(rd, "mrn", mrn))
 +			continue;
 +
  		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
  			/* discard const from mnl_attr_get_str */
  			comm = (char *)mnl_attr_get_str(
-@@ -833,6 +848,8 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+@@ -904,6 +930,9 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
  
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_CQN])
- 			res_print_uint(rd, "cqn", cqn);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			res_print_uint(rd, "ctxn", ctxn);
- 
++		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
++			res_print_uint(rd, "mrn", mrn);
++
  		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
  			free(comm);
-@@ -866,6 +883,7 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t rkey = 0, lkey = 0;
- 		uint64_t iova = 0, mrlen;
+ 
+@@ -936,6 +965,7 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
  		char *comm = NULL;
-+		uint32_t pdn = 0;
- 		uint32_t mrn = 0;
  		uint32_t pid = 0;
++		uint32_t pdn = 0;
+ 		uint64_t users;
  		int err;
-@@ -911,6 +929,12 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (rd_check_is_filtered(rd, "mrn", mrn))
+ 
+@@ -970,6 +1000,12 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		if (rd_check_is_filtered(rd, "pid", pid))
  			continue;
  
 +		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
@@ -176,9 +183,9 @@ index f941de5c..308f66c0 100644
  		if (nla_line[RDMA_NLDEV_ATTR_RES_KERN_NAME])
  			/* discard const from mnl_attr_get_str */
  			comm = (char *)mnl_attr_get_str(
-@@ -933,6 +957,9 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_MRN])
- 			res_print_uint(rd, "mrn", mrn);
+@@ -987,6 +1023,9 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
  
 +		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
 +			res_print_uint(rd, "pdn", pdn);
@@ -186,103 +193,43 @@ index f941de5c..308f66c0 100644
  		if (nla_line[RDMA_NLDEV_ATTR_RES_PID])
  			free(comm);
  
-@@ -964,6 +991,7 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 		uint32_t local_dma_lkey = 0, unsafe_global_rkey = 0;
- 		struct nlattr *nla_line[RDMA_NLDEV_ATTR_MAX] = {};
- 		char *comm = NULL;
-+		uint32_t ctxn = 0;
- 		uint32_t pid = 0;
- 		uint32_t pdn = 0;
- 		uint64_t users;
-@@ -997,7 +1025,13 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 			comm = get_task_name(pid);
- 		}
+@@ -1033,7 +1072,8 @@ struct filters cm_id_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "src-addr", .is_number = false },
+ 	{ .name = "src-port", .is_number = true },
+ 	{ .name = "dst-addr", .is_number = false },
+-	{ .name = "dst-port", .is_number = true }
++	{ .name = "dst-port", .is_number = true },
++	{ .name = "cm-idn", .is_number = true }
+ };
  
--		if (rd_check_is_filtered(rd, "pid", pid))
-+                if (rd_check_is_filtered(rd, "pid", pid))
-+			continue;
-+
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			ctxn = mnl_attr_get_u32(nla_line[RDMA_NLDEV_ATTR_RES_CTXN]);
-+
-+		if (rd_check_is_filtered(rd, "ctxn", ctxn))
- 			continue;
- 
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
-@@ -1022,6 +1056,8 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- 			print_key(rd, "unsafe_global_rkey", unsafe_global_rkey);
- 		print_pid(rd, pid);
- 		print_comm(rd, comm, nla_line);
-+		if (nla_line[RDMA_NLDEV_ATTR_RES_CTXN])
-+			res_print_uint(rd, "ctxn", ctxn);
- 
- 		if (nla_line[RDMA_NLDEV_ATTR_RES_PDN])
- 			res_print_uint(rd, "pdn", pdn);
-@@ -1038,24 +1074,18 @@ static int res_pd_parse_cb(const struct nlmsghdr *nlh, void *data)
- RES_FUNC(res_no_args,	RDMA_NLDEV_CMD_RES_GET,	NULL, true);
- 
- static const struct
--filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {{ .name = "link",
--						   .is_number = false },
--						   { .name = "lqpn",
--						   .is_number = true },
--						   { .name = "rqpn",
--						   .is_number = true },
--						   { .name = "pid",
--						   .is_number = true },
--						   { .name = "sq-psn",
--						   .is_number = true },
--						   { .name = "rq-psn",
--						   .is_number = true },
--						   { .name = "type",
--						   .is_number = false },
--						   { .name = "path-mig-state",
--						   .is_number = false },
--						   { .name = "state",
--						   .is_number = false } };
-+filters qp_valid_filters[MAX_NUMBER_OF_FILTERS] = {
-+	{ .name = "link", .is_number = false },
-+	{ .name = "lqpn", .is_number = true },
-+	{ .name = "rqpn", .is_number = true },
-+	{ .name = "pid",  .is_number = true },
-+	{ .name = "sq-psn", .is_number = true },
-+	{ .name = "rq-psn", .is_number = true },
-+	{ .name = "type", .is_number = false },
-+	{ .name = "path-mig-state", .is_number = false },
-+	{ .name = "state", .is_number = false },
-+	{ .name = "pdn", .is_number = true },
-+};
- 
- RES_FUNC(res_qp,	RDMA_NLDEV_CMD_RES_QP_GET, qp_valid_filters, false);
- 
-@@ -1084,7 +1114,8 @@ struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ RES_FUNC(res_cm_id, RDMA_NLDEV_CMD_RES_CM_ID_GET, cm_id_valid_filters, false);
+@@ -1043,7 +1083,8 @@ struct filters cq_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "dev", .is_number = false },
  	{ .name = "users", .is_number = true },
  	{ .name = "poll-ctx", .is_number = false },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "cqn", .is_number = true }
-+	{ .name = "cqn", .is_number = true },
-+	{ .name = "ctxn", .is_number = true }
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "cqn", .is_number = true }
  };
  
  RES_FUNC(res_cq, RDMA_NLDEV_CMD_RES_CQ_GET, cq_valid_filters, true);
-@@ -1096,7 +1127,8 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+@@ -1054,7 +1095,8 @@ struct filters mr_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+ 	{ .name = "rkey", .is_number = true },
  	{ .name = "lkey", .is_number = true },
  	{ .name = "mrlen", .is_number = true },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "mrn", .is_number = true }
-+	{ .name = "mrn", .is_number = true },
-+	{ .name = "pdn", .is_number = true }
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "mrn", .is_number = true }
  };
  
  RES_FUNC(res_mr, RDMA_NLDEV_CMD_RES_MR_GET, mr_valid_filters, true);
-@@ -1106,7 +1138,9 @@ struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
+@@ -1063,7 +1105,8 @@ static const
+ struct filters pd_valid_filters[MAX_NUMBER_OF_FILTERS] = {
  	{ .name = "dev", .is_number = false },
  	{ .name = "users", .is_number = true },
- 	{ .name = "pid", .is_number = true },
--	{ .name = "pdn", .is_number = true }
-+	{ .name = "ctxn", .is_number = true },
-+	{ .name = "pdn", .is_number = true },
-+	{ .name = "ctxn", .is_number = true }
+-	{ .name = "pid", .is_number = true }
++	{ .name = "pid", .is_number = true },
++	{ .name = "pdn", .is_number = true }
  };
  
  RES_FUNC(res_pd, RDMA_NLDEV_CMD_RES_PD_GET, pd_valid_filters, true);
