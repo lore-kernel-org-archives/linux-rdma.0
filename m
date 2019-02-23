@@ -1,15 +1,25 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 05/32] IB/{hfi1, qib}: Fix WC.byte_len calculation for UD_SEND_WITH_IMM
-Date: Sat, 23 Feb 2019 16:09:24 -0500
-Message-ID: <20190223210951.202268-5-sashal@kernel.org>
-References: <20190223210951.202268-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.4 04/26] IB/{hfi1,
+ qib}: Fix WC.byte_len calculation for UD_SEND_WITH_IMM
+Date: Sat, 23 Feb 2019 16:10:25 -0500
+Message-ID: <20190223211047.202725-4-sashal@kernel.org>
+References: <20190223211047.202725-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223210951.202268-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20190223211047.202725-1-sashal@kernel.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Brian Welty <brian.welty@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, devel@driverdev.osuosl.org, linux-rdma@vger.kernel.org, Brian Welty <brian.welty@intel.com>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
 From: Brian Welty <brian.welty@intel.com>
@@ -35,15 +45,15 @@ Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/ud.c    | 1 -
  drivers/infiniband/hw/qib/qib_ud.c | 1 -
+ drivers/staging/rdma/hfi1/ud.c     | 1 -
  2 files changed, 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 1a7ce1d740ce2..292d7b6a05368 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -772,7 +772,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
+index 59193f67ea787..56bd59bc08b54 100644
+--- a/drivers/infiniband/hw/qib/qib_ud.c
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -515,7 +515,6 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
  	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
  		wc.ex.imm_data = ohdr->u.ud.imm_data;
  		wc.wc_flags = IB_WC_WITH_IMM;
@@ -51,11 +61,11 @@ index 1a7ce1d740ce2..292d7b6a05368 100644
  	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
  		wc.ex.imm_data = 0;
  		wc.wc_flags = 0;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index f45cad1198b05..93012fba287da 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -525,7 +525,6 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
+diff --git a/drivers/staging/rdma/hfi1/ud.c b/drivers/staging/rdma/hfi1/ud.c
+index 5a9c784bec04c..a88e37444be0e 100644
+--- a/drivers/staging/rdma/hfi1/ud.c
++++ b/drivers/staging/rdma/hfi1/ud.c
+@@ -793,7 +793,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
  	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
  		wc.ex.imm_data = ohdr->u.ud.imm_data;
  		wc.wc_flags = IB_WC_WITH_IMM;
