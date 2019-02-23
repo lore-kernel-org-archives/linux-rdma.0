@@ -1,85 +1,156 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 22/72] RDMA/umem: Add missing initialization of owning_mm
-Date: Sat, 23 Feb 2019 16:03:32 -0500
-Message-ID: <20190223210422.199966-22-sashal@kernel.org>
-References: <20190223210422.199966-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 20/65] IB/ipoib: Fix for use-after-free in ipoib_cm_tx_start
+Date: Sat, 23 Feb 2019 16:05:55 -0500
+Message-ID: <20190223210640.200911-20-sashal@kernel.org>
+References: <20190223210640.200911-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Feras Daoud <ferasda@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Artemy Kovalyov <artemyko@mellanox.com>
+From: Feras Daoud <ferasda@mellanox.com>
 
-[ Upstream commit a2093dd35f8cfb28dd7c878ccbd020c1bb20d0d7 ]
+[ Upstream commit 6ab4aba00f811a5265acc4d3eb1863bb3ca60562 ]
 
-When allocating a umem leaf for implicit ODP MR during page fault the
-field owning_mm was not set.
+The following BUG was reported by kasan:
 
-Initialize and take a reference on this field to avoid kernel panic when
-trying to access this field.
+ BUG: KASAN: use-after-free in ipoib_cm_tx_start+0x430/0x1390 [ib_ipoib]
+ Read of size 80 at addr ffff88034c30bcd0 by task kworker/u16:1/24020
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000058
- PGD 800000022dfed067 P4D 800000022dfed067 PUD 22dfcf067 PMD 0
- Oops: 0000 [#1] SMP PTI
- CPU: 0 PID: 634 Comm: kworker/u33:0 Not tainted 4.20.0-rc6+ #89
- Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011
- Workqueue: mlx5_ib_page_fault mlx5_ib_eqe_pf_action [mlx5_ib]
- RIP: 0010:ib_umem_odp_map_dma_pages+0xf3/0x710 [ib_core]
- Code: 45 c0 48 21 f3 48 89 75 b0 31 f6 4a 8d 04 33 48 89 45 a8 49 8b 44 24 60 48 8b 78 10 e8 66 16 a8 c5 49 8b 54 24 08 48 89 45 98 <8b> 42 58 85 c0 0f 84 8e 05 00 00 8d 48 01 48 8d 72 58 f0 0f b1 4a
- RSP: 0000:ffffb610813a7c20 EFLAGS: 00010202
- RAX: ffff95ace6e8ac80 RBX: 0000000000000000 RCX: 000000000000000c
- RDX: 0000000000000000 RSI: 0000000000000850 RDI: ffff95aceaadae80
- RBP: ffffb610813a7ce0 R08: 0000000000000000 R09: 0000000000080c77
- R10: ffff95acfffdbd00 R11: 0000000000000000 R12: ffff95aceaa20a00
- R13: 0000000000001000 R14: 0000000000001000 R15: 000000000000000c
- FS:  0000000000000000(0000) GS:ffff95acf7800000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 0000000000000058 CR3: 000000022c834001 CR4: 00000000001606f0
+ Workqueue: ipoib_wq ipoib_cm_tx_start [ib_ipoib]
  Call Trace:
-  pagefault_single_data_segment+0x1df/0xc60 [mlx5_ib]
-  mlx5_ib_eqe_pf_action+0x7bc/0xa70 [mlx5_ib]
-  ? __switch_to+0xe1/0x470
-  process_one_work+0x174/0x390
-  worker_thread+0x4f/0x3e0
-  kthread+0x102/0x140
-  ? drain_workqueue+0x130/0x130
-  ? kthread_stop+0x110/0x110
-  ret_from_fork+0x1f/0x30
+  dump_stack+0x9a/0xeb
+  print_address_description+0xe3/0x2e0
+  kasan_report+0x18a/0x2e0
+  ? ipoib_cm_tx_start+0x430/0x1390 [ib_ipoib]
+  memcpy+0x1f/0x50
+  ipoib_cm_tx_start+0x430/0x1390 [ib_ipoib]
+  ? kvm_clock_read+0x1f/0x30
+  ? ipoib_cm_skb_reap+0x610/0x610 [ib_ipoib]
+  ? __lock_is_held+0xc2/0x170
+  ? process_one_work+0x880/0x1960
+  ? process_one_work+0x912/0x1960
+  process_one_work+0x912/0x1960
+  ? wq_pool_ids_show+0x310/0x310
+  ? lock_acquire+0x145/0x440
+  worker_thread+0x87/0xbb0
+  ? process_one_work+0x1960/0x1960
+  kthread+0x314/0x3d0
+  ? kthread_create_worker_on_cpu+0xc0/0xc0
+  ret_from_fork+0x3a/0x50
 
-Fixes: f27a0d50a4bc ("RDMA/umem: Use umem->owning_mm inside ODP")
-Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
-Signed-off-by: Moni Shoua <monis@mellanox.com>
+ Allocated by task 0:
+  kasan_kmalloc+0xa0/0xd0
+  kmem_cache_alloc_trace+0x168/0x3e0
+  path_rec_create+0xa2/0x1f0 [ib_ipoib]
+  ipoib_start_xmit+0xa98/0x19e0 [ib_ipoib]
+  dev_hard_start_xmit+0x159/0x8d0
+  sch_direct_xmit+0x226/0xb40
+  __dev_queue_xmit+0x1d63/0x2950
+  neigh_update+0x889/0x1770
+  arp_process+0xc47/0x21f0
+  arp_rcv+0x462/0x760
+  __netif_receive_skb_core+0x1546/0x2da0
+  netif_receive_skb_internal+0xf2/0x590
+  napi_gro_receive+0x28e/0x390
+  ipoib_ib_handle_rx_wc_rss+0x873/0x1b60 [ib_ipoib]
+  ipoib_rx_poll_rss+0x17d/0x320 [ib_ipoib]
+  net_rx_action+0x427/0xe30
+  __do_softirq+0x28e/0xc42
+
+ Freed by task 26680:
+  __kasan_slab_free+0x11d/0x160
+  kfree+0xf5/0x360
+  ipoib_flush_paths+0x532/0x9d0 [ib_ipoib]
+  ipoib_set_mode_rss+0x1ad/0x560 [ib_ipoib]
+  set_mode+0xc8/0x150 [ib_ipoib]
+  kernfs_fop_write+0x279/0x440
+  __vfs_write+0xd8/0x5c0
+  vfs_write+0x15e/0x470
+  ksys_write+0xb8/0x180
+  do_syscall_64+0x9b/0x420
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+ The buggy address belongs to the object at ffff88034c30bcc8
+                which belongs to the cache kmalloc-512 of size 512
+ The buggy address is located 8 bytes inside of
+                512-byte region [ffff88034c30bcc8, ffff88034c30bec8)
+ The buggy address belongs to the page:
+
+The following race between change mode and xmit flow is the reason for
+this use-after-free:
+
+Change mode     Send packet 1 to GID XX      Send packet 2 to GID XX
+     |                    |                             |
+   start                  |                             |
+     |                    |                             |
+     |                    |                             |
+     |         Create new path for GID XX               |
+     |           and update neigh path                  |
+     |                    |                             |
+     |                    |                             |
+     |                    |                             |
+ flush_paths              |                             |
+                          |                             |
+               queue_work(cm.start_task)                |
+                          |                 Path for GID XX not found
+                          |                      create new path
+                          |
+                          |
+               start_task runs with old
+                    released path
+
+There is no locking to protect the lifetime of the path through the
+ipoib_cm_tx struct, so delete it entirely and always use the newly looked
+up path under the priv->lock.
+
+Fixes: 546481c2816e ("IB/ipoib: Fix memory corruption in ipoib cm mode connect flow")
+Signed-off-by: Feras Daoud <ferasda@mellanox.com>
+Reviewed-by: Erez Shitrit <erezsh@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/core/umem_odp.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/infiniband/ulp/ipoib/ipoib.h    | 1 -
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c | 3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index 676c1fd1119d8..7ef385db52c35 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -356,6 +356,8 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
- 	umem->writable   = 1;
- 	umem->is_odp = 1;
- 	odp_data->per_mm = per_mm;
-+	umem->owning_mm  = per_mm->mm;
-+	mmgrab(umem->owning_mm);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
+index 1abe3c62f106d..b22d02c9de90f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib.h
++++ b/drivers/infiniband/ulp/ipoib/ipoib.h
+@@ -248,7 +248,6 @@ struct ipoib_cm_tx {
+ 	struct list_head     list;
+ 	struct net_device   *dev;
+ 	struct ipoib_neigh  *neigh;
+-	struct ipoib_path   *path;
+ 	struct ipoib_tx_buf *tx_ring;
+ 	unsigned int	     tx_head;
+ 	unsigned int	     tx_tail;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 0428e01e8f691..aa9dcfc36cd35 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -1312,7 +1312,6 @@ struct ipoib_cm_tx *ipoib_cm_create_tx(struct net_device *dev, struct ipoib_path
  
- 	mutex_init(&odp_data->umem_mutex);
- 	init_completion(&odp_data->notifier_completion);
-@@ -388,6 +390,7 @@ struct ib_umem_odp *ib_alloc_odp_umem(struct ib_ucontext_per_mm *per_mm,
- out_page_list:
- 	vfree(odp_data->page_list);
- out_odp_data:
-+	mmdrop(umem->owning_mm);
- 	kfree(odp_data);
- 	return ERR_PTR(ret);
- }
+ 	neigh->cm = tx;
+ 	tx->neigh = neigh;
+-	tx->path = path;
+ 	tx->dev = dev;
+ 	list_add(&tx->list, &priv->cm.start_list);
+ 	set_bit(IPOIB_FLAG_INITIALIZED, &tx->flags);
+@@ -1371,7 +1370,7 @@ static void ipoib_cm_tx_start(struct work_struct *work)
+ 				neigh->daddr + QPN_AND_OPTIONS_OFFSET);
+ 			goto free_neigh;
+ 		}
+-		memcpy(&pathrec, &p->path->pathrec, sizeof(pathrec));
++		memcpy(&pathrec, &path->pathrec, sizeof(pathrec));
+ 
+ 		spin_unlock_irqrestore(&priv->lock, flags);
+ 		netif_tx_unlock_bh(dev);
 -- 
 2.19.1
