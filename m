@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 05/45] IB/{hfi1, qib}: Fix WC.byte_len calculation for UD_SEND_WITH_IMM
-Date: Sat, 23 Feb 2019 16:07:55 -0500
-Message-ID: <20190223210835.201708-5-sashal@kernel.org>
-References: <20190223210835.201708-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 10/65] IB/{hfi1, qib}: Fix WC.byte_len calculation for UD_SEND_WITH_IMM
+Date: Sat, 23 Feb 2019 16:05:45 -0500
+Message-ID: <20190223210640.200911-10-sashal@kernel.org>
+References: <20190223210640.200911-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223210835.201708-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190223210640.200911-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Brian Welty <brian.welty@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
@@ -40,22 +40,22 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  2 files changed, 2 deletions(-)
 
 diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 37abd150fad39..74aff88c593dd 100644
+index 70d39fc450a1e..54eb695642649 100644
 --- a/drivers/infiniband/hw/hfi1/ud.c
 +++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -954,7 +954,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
+@@ -980,7 +980,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
  	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
- 		wc.ex.imm_data = ohdr->u.ud.imm_data;
+ 		wc.ex.imm_data = packet->ohdr->u.ud.imm_data;
  		wc.wc_flags = IB_WC_WITH_IMM;
 -		tlen -= sizeof(u32);
  	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
  		wc.ex.imm_data = 0;
  		wc.wc_flags = 0;
 diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index be4907453ac4d..5ef144e4a4cbf 100644
+index f8d029a2390ff..bce2b5cd3c7b7 100644
 --- a/drivers/infiniband/hw/qib/qib_ud.c
 +++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -515,7 +515,6 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
+@@ -513,7 +513,6 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
  	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
  		wc.ex.imm_data = ohdr->u.ud.imm_data;
  		wc.wc_flags = IB_WC_WITH_IMM;
