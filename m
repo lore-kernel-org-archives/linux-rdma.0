@@ -1,10 +1,12 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next v2 00/19] Export object IDs to users
-Date: Sat, 23 Feb 2019 11:15:09 +0200
-Message-ID: <20190223091528.8509-1-leon@kernel.org>
+Subject: [PATCH iproute2-next v2 02/19] rdma: Remove duplicated print code
+Date: Sat, 23 Feb 2019 11:15:11 +0200
+Message-ID: <20190223091528.8509-3-leon@kernel.org>
+References: <20190223091528.8509-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190223091528.8509-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: David Ahern <dsahern@gmail.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>, Steve Wise <swise@opengridcomputing.com>
@@ -12,60 +14,63 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Leon Romanovsky <leonro@mellanox.com>
 
-Changelog:
-v1->v2:
- * Fixed commit messages
- * Added Steve's ROB
-v0->v1:
- * Rebased to latest iproute2-next
- * Added latest rdma_netlink.h and updated commit message to point
-   to kernel SHA commit.
+There is no need to keep same print functions for
+uint32_t and uint64_t, unify them into one function.
 
-This series adds ability to present and query all known to rdmatool
-object by their respective, unique IDs (e.g. pdn. mrn, cqn e.t.c).
-All objects which have "parent" object has this information too.
+Reviewed-by: Steve Wise <swise@opengridcomputing.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ rdma/res.c | 22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-Thanks
-
-Leon Romanovsky (19):
-  rdma: update uapi headers
-  rdma: Remove duplicated print code
-  rdma: Provide unique indexes for all visible objects
-  rdma: Provide parent context index for all objects except CM_ID
-  rdma: Move resource PD logic to separate file
-  rdma: Refactor out resource MR logic to separate file
-  rdma: Move out resource CQ logic to separate file
-  rdma: Move out resource CM-ID logic to separate file
-  rdma: Move resource QP logic to separate file
-  rdma: Properly mark RDMAtool license
-  rdma: Simplify code to reuse existing functions
-  rdma: Simplify CM_ID print code
-  rdma: Refactor CQ prints
-  rdma: Move MR code to be suitable for per-line parsing
-  rdma: Place PD parsing print routine into separate function
-  rdma: Move QP code to separate function
-  rdma: Unify netlink attribute checks prior to prints
-  rdma: Perform single .doit call to query specific objects
-  rdma: Provide and reuse filter functions
-
- rdma/Makefile                         |   5 +-
- rdma/dev.c                            |   7 +-
- rdma/include/uapi/rdma/rdma_netlink.h |  64 +-
- rdma/link.c                           |   7 +-
- rdma/rdma.c                           |   7 +-
- rdma/rdma.h                           |  24 +-
- rdma/res-cmid.c                       | 275 ++++++++
- rdma/res-cq.c                         | 160 +++++
- rdma/res-mr.c                         | 133 ++++
- rdma/res-pd.c                         | 136 ++++
- rdma/res-qp.c                         | 240 +++++++
- rdma/res.c                            | 932 ++------------------------
- rdma/res.h                            | 148 ++++
- rdma/utils.c                          |  53 +-
- 14 files changed, 1257 insertions(+), 934 deletions(-)
- create mode 100644 rdma/res-cmid.c
- create mode 100644 rdma/res-cq.c
- create mode 100644 rdma/res-mr.c
- create mode 100644 rdma/res-pd.c
- create mode 100644 rdma/res-qp.c
- create mode 100644 rdma/res.h
+diff --git a/rdma/res.c b/rdma/res.c
+index 6b0f5fe3..87865ec8 100644
+--- a/rdma/res.c
++++ b/rdma/res.c
+@@ -808,28 +808,20 @@ static int res_cq_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 	return MNL_CB_OK;
+ }
+ 
+-static void print_key(struct rd *rd, const char *name, uint32_t val)
++static void print_key(struct rd *rd, const char *name, uint64_t val)
+ {
+ 	if (rd->json_output)
+ 		jsonw_xint_field(rd->jw, name, val);
+ 	else
+-		pr_out("%s 0x%x ", name, val);
++		pr_out("%s 0x%" PRIx64 " ", name, val);
+ }
+ 
+-static void print_iova(struct rd *rd, uint64_t val)
++static void res_print_uint(struct rd *rd, const char *name, uint64_t val)
+ {
+ 	if (rd->json_output)
+-		jsonw_xint_field(rd->jw, "iova", val);
++		jsonw_uint_field(rd->jw, name, val);
+ 	else
+-		pr_out("iova 0x%" PRIx64 " ", val);
+-}
+-
+-static void print_mrlen(struct rd *rd, uint64_t val)
+-{
+-	if (rd->json_output)
+-		jsonw_uint_field(rd->jw, "mrlen", val);
+-	else
+-		pr_out("mrlen %" PRIu64 " ", val);
++		pr_out("%s %" PRIu64 " ", name, val);
+ }
+ 
+ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+@@ -907,8 +899,8 @@ static int res_mr_parse_cb(const struct nlmsghdr *nlh, void *data)
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_LKEY])
+ 			print_key(rd, "lkey", lkey);
+ 		if (nla_line[RDMA_NLDEV_ATTR_RES_IOVA])
+-			print_iova(rd, iova);
+-		print_mrlen(rd, mrlen);
++			print_key(rd, "iova", iova);
++		res_print_uint(rd, "mrlen", mrlen);
+ 		print_pid(rd, pid);
+ 		print_comm(rd, comm, nla_line);
+ 
+-- 
+2.19.1
