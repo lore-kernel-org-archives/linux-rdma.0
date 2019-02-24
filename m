@@ -1,67 +1,126 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.20 13/72] IB/{hfi1, qib}: Fix WC.byte_len calculation for UD_SEND_WITH_IMM
-Date: Sat, 23 Feb 2019 16:03:23 -0500
-Message-ID: <20190223210422.199966-13-sashal@kernel.org>
-References: <20190223210422.199966-1-sashal@kernel.org>
+From: Gal Pressman <galpress@amazon.com>
+Subject: Re: [RFC v1 10/19] RDMA/irdma: Add connection manager
+Date: Sun, 24 Feb 2019 13:21:16 +0200
+Message-ID: <0eafe40b-4c54-dc12-6a85-3a821d99d2cd@amazon.com>
+References: <20190215171107.6464-1-shiraz.saleem@intel.com>
+ <20190215171107.6464-11-shiraz.saleem@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223210422.199966-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Brian Welty <brian.welty@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190215171107.6464-11-shiraz.saleem@intel.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Shiraz Saleem <shiraz.saleem@intel.com>, dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Brian Welty <brian.welty@intel.com>
+On 15-Feb-19 19:10, Shiraz Saleem wrote:
+> +/**
+> + * irdma_cm_teardown_connections - teardown QPs
+> + * @iwdev: device pointer
+> + * @ipaddr: Pointer to IPv4 or IPv6 address
+> + * @ipv4: flag indicating IPv4 when true
 
-[ Upstream commit 904bba211acc2112fdf866e5a2bc6cd9ecd0de1b ]
+There is no ipv4 parameter.
 
-The work completion length for a receiving a UD send with immediate is
-short by 4 bytes causing application using this opcode to fail.
+> + * @disconnect_all: flag indicating disconnect all QPs
+> + * teardown QPs where source or destination addr matches ip addr
+> + */
+> +void irdma_cm_teardown_connections(struct irdma_device *iwdev, u32 *ipaddr,
+> +				   struct irdma_cm_info *nfo,
+> +				   bool disconnect_all)
+> +{
+> +	struct irdma_cm_core *cm_core = &iwdev->cm_core;
+> +	struct list_head *list_core_temp;
+> +	struct list_head *list_node;
+> +	struct irdma_cm_node *cm_node;
+> +	struct list_head teardown_list;
+> +	struct ib_qp_attr attr;
+> +	struct irdma_sc_vsi *vsi = &iwdev->vsi;
+> +	struct irdma_sc_qp *sc_qp;
+> +	struct irdma_qp *qp;
+> +	int i;
+> +	unsigned long flags;
+> +
+> +	INIT_LIST_HEAD(&teardown_list);
+> +
+> +	spin_lock_irqsave(&cm_core->ht_lock, flags);
+> +	list_for_each_safe(list_node, list_core_temp,
+> +			   &cm_core->accelerated_list) {
+> +		cm_node = container_of(list_node, struct irdma_cm_node, list);
+> +		if (disconnect_all ||
+> +		    (nfo->vlan_id == cm_node->vlan_id &&
+> +		    !memcmp(cm_node->loc_addr, ipaddr, nfo->ipv4 ? 4 : 16))) {
+> +			atomic_inc(&cm_node->ref_count);
+> +			list_add(&cm_node->teardown_entry, &teardown_list);
+> +		}
+> +	}
+> +	list_for_each_safe(list_node, list_core_temp,
+> +			   &cm_core->non_accelerated_list) {
+> +		cm_node = container_of(list_node, struct irdma_cm_node, list);
+> +		if (disconnect_all ||
+> +		    (nfo->vlan_id == cm_node->vlan_id &&
+> +		    !memcmp(cm_node->loc_addr, ipaddr, nfo->ipv4 ? 4 : 16))) {
+> +			atomic_inc(&cm_node->ref_count);
+> +			list_add(&cm_node->teardown_entry, &teardown_list);
+> +		}
+> +	}
+> +	spin_unlock_irqrestore(&cm_core->ht_lock, flags);
+> +
+> +	list_for_each_safe(list_node, list_core_temp, &teardown_list) {
+> +		cm_node = container_of(list_node, struct irdma_cm_node,
+> +				       teardown_entry);
+> +		attr.qp_state = IB_QPS_ERR;
+> +		irdma_modify_qp(&cm_node->iwqp->ibqp, &attr, IB_QP_STATE, NULL);
+> +		if (iwdev->reset)
+> +			irdma_cm_disconn(cm_node->iwqp);
+> +		irdma_rem_ref_cm_node(cm_node);
+> +	}
+> +	if (!iwdev->roce_mode)
+> +		return;
+> +
+> +	INIT_LIST_HEAD(&teardown_list);
+> +	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
+> +		spin_lock_irqsave(&vsi->qos[i].lock, flags);
+> +		list_for_each_safe(list_node, list_core_temp, &vsi->qos[i].qplist) {
+> +			u32 qp_ip[4];
+> +
+> +			sc_qp = container_of(list_node, struct irdma_sc_qp, list);
+> +			if (sc_qp->qp_type != IRDMA_QP_TYPE_ROCE_RC)
+> +				continue;
+> +
+> +			qp = sc_qp->back_qp;
+> +			if (!disconnect_all) {
+> +				if (nfo->ipv4)
+> +					qp_ip[0] = qp->udp_info.local_ipaddr3;
+> +				else
+> +					memcpy(qp_ip,
+> +					       &qp->udp_info.local_ipaddr0,
+> +					       sizeof(qp_ip));
+> +			}
+> +
+> +			if (disconnect_all ||
+> +			    (nfo->vlan_id == qp->udp_info.vlan_tag &&
+> +			    !memcmp(qp_ip, ipaddr, nfo->ipv4 ? 4 : 16))) {
+> +				spin_lock_irqsave(&iwdev->rf->qptable_lock, flags);
 
-The UD receive logic incorrectly subtracts 4 bytes for immediate
-value. These bytes are already included in header length and are used to
-calculate header/payload split, so the result is these 4 bytes are
-subtracted twice, once when the header length subtracted from the overall
-length and once again in the UD opcode specific path.
+You should use different 'flags' here.
 
-Remove the extra subtraction when handling the opcode.
-
-Fixes: 7724105686e7 ("IB/hfi1: add driver files")
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Brian Welty <brian.welty@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hfi1/ud.c    | 1 -
- drivers/infiniband/hw/qib/qib_ud.c | 1 -
- 2 files changed, 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/ud.c b/drivers/infiniband/hw/hfi1/ud.c
-index 4baa8f4d49de1..46bf74375ea66 100644
---- a/drivers/infiniband/hw/hfi1/ud.c
-+++ b/drivers/infiniband/hw/hfi1/ud.c
-@@ -980,7 +980,6 @@ void hfi1_ud_rcv(struct hfi1_packet *packet)
- 	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
- 		wc.ex.imm_data = packet->ohdr->u.ud.imm_data;
- 		wc.wc_flags = IB_WC_WITH_IMM;
--		tlen -= sizeof(u32);
- 	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
- 		wc.ex.imm_data = 0;
- 		wc.wc_flags = 0;
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index 4d4c31ea4e2d4..90268b838d4eb 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -513,7 +513,6 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct ib_header *hdr,
- 	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
- 		wc.ex.imm_data = ohdr->u.ud.imm_data;
- 		wc.wc_flags = IB_WC_WITH_IMM;
--		tlen -= sizeof(u32);
- 	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
- 		wc.ex.imm_data = 0;
- 		wc.wc_flags = 0;
--- 
-2.19.1
+> +				if (iwdev->rf->qp_table[sc_qp->qp_uk.qp_id]) {
+> +					irdma_add_ref(&qp->ibqp);
+> +					list_add(&qp->teardown_entry, &teardown_list);
+> +				}
+> +				spin_unlock_irqrestore(&iwdev->rf->qptable_lock, flags);
+> +			}
+> +		}
+> +		spin_unlock_irqrestore(&vsi->qos[i].lock, flags);
+> +	}
+> +
+> +	list_for_each_safe(list_node, list_core_temp, &teardown_list) {
+> +		qp = container_of(list_node, struct irdma_qp, teardown_entry);
+> +		attr.qp_state = IB_QPS_ERR;
+> +		irdma_modify_qp_roce(&qp->ibqp, &attr, IB_QP_STATE, NULL);
+> +		irdma_rem_ref(&qp->ibqp);
+> +	}
+> +}
