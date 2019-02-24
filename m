@@ -1,14 +1,15 @@
 From: Gal Pressman <galpress@amazon.com>
-Subject: Re: [RFC v1 10/19] RDMA/irdma: Add connection manager
-Date: Sun, 24 Feb 2019 13:21:16 +0200
-Message-ID: <0eafe40b-4c54-dc12-6a85-3a821d99d2cd@amazon.com>
+Subject: Re: [RFC v1 08/19] RDMA/irdma: Add privileged UDA queue
+ implementation
+Date: Sun, 24 Feb 2019 13:42:17 +0200
+Message-ID: <bb00f433-d699-7091-964b-50ebc487290f@amazon.com>
 References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-11-shiraz.saleem@intel.com>
+ <20190215171107.6464-9-shiraz.saleem@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190215171107.6464-11-shiraz.saleem@intel.com>
+In-Reply-To: <20190215171107.6464-9-shiraz.saleem@intel.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 To: Shiraz Saleem <shiraz.saleem@intel.com>, dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net
@@ -17,110 +18,111 @@ List-Id: linux-rdma@vger.kernel.org
 
 On 15-Feb-19 19:10, Shiraz Saleem wrote:
 > +/**
-> + * irdma_cm_teardown_connections - teardown QPs
-> + * @iwdev: device pointer
-> + * @ipaddr: Pointer to IPv4 or IPv6 address
-> + * @ipv4: flag indicating IPv4 when true
-
-There is no ipv4 parameter.
-
-> + * @disconnect_all: flag indicating disconnect all QPs
-> + * teardown QPs where source or destination addr matches ip addr
+> + * irdma_puda_poll_info - poll cq for completion
+> + * @cq: cq for poll
+> + * @info: info return for successful completion
 > + */
-> +void irdma_cm_teardown_connections(struct irdma_device *iwdev, u32 *ipaddr,
-> +				   struct irdma_cm_info *nfo,
-> +				   bool disconnect_all)
+> +static enum irdma_status_code
+> +irdma_puda_poll_info(struct irdma_sc_cq *cq, struct irdma_puda_cmpl_info *info)
 > +{
-> +	struct irdma_cm_core *cm_core = &iwdev->cm_core;
-> +	struct list_head *list_core_temp;
-> +	struct list_head *list_node;
-> +	struct irdma_cm_node *cm_node;
-> +	struct list_head teardown_list;
-> +	struct ib_qp_attr attr;
-> +	struct irdma_sc_vsi *vsi = &iwdev->vsi;
-> +	struct irdma_sc_qp *sc_qp;
-> +	struct irdma_qp *qp;
-> +	int i;
-> +	unsigned long flags;
+> +	struct irdma_cq_uk *cq_uk = &cq->cq_uk;
+> +	u64 qword0, qword2, qword3, qword6;
+> +	__le64 *cqe;
+> +	__le64 *ext_cqe = NULL;
+> +	u64 qword7 = 0;
+> +	u64 comp_ctx;
+> +	bool valid_bit;
+> +	bool ext_valid = 0;
+> +	u32 major_err, minor_err;
+> +	u32 peek_head;
+> +	bool error;
+> +	u8 polarity;
 > +
-> +	INIT_LIST_HEAD(&teardown_list);
+> +	cqe = IRDMA_GET_CURRENT_CQ_ELEM(&cq->cq_uk);
+> +	get_64bit_val(cqe, 24, &qword3);
+> +	valid_bit = (bool)RS_64(qword3, IRDMA_CQ_VALID);
+> +	if (valid_bit != cq_uk->polarity)
+> +		return IRDMA_ERR_Q_EMPTY;
 > +
-> +	spin_lock_irqsave(&cm_core->ht_lock, flags);
-> +	list_for_each_safe(list_node, list_core_temp,
-> +			   &cm_core->accelerated_list) {
-> +		cm_node = container_of(list_node, struct irdma_cm_node, list);
-> +		if (disconnect_all ||
-> +		    (nfo->vlan_id == cm_node->vlan_id &&
-> +		    !memcmp(cm_node->loc_addr, ipaddr, nfo->ipv4 ? 4 : 16))) {
-> +			atomic_inc(&cm_node->ref_count);
-> +			list_add(&cm_node->teardown_entry, &teardown_list);
-> +		}
-> +	}
-> +	list_for_each_safe(list_node, list_core_temp,
-> +			   &cm_core->non_accelerated_list) {
-> +		cm_node = container_of(list_node, struct irdma_cm_node, list);
-> +		if (disconnect_all ||
-> +		    (nfo->vlan_id == cm_node->vlan_id &&
-> +		    !memcmp(cm_node->loc_addr, ipaddr, nfo->ipv4 ? 4 : 16))) {
-> +			atomic_inc(&cm_node->ref_count);
-> +			list_add(&cm_node->teardown_entry, &teardown_list);
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&cm_core->ht_lock, flags);
+> +	if (cq->dev->hw_attrs.hw_rev > IRDMA_GEN_1)
+> +		ext_valid = (bool)RS_64(qword3, IRDMA_CQ_EXTCQE);
 > +
-> +	list_for_each_safe(list_node, list_core_temp, &teardown_list) {
-> +		cm_node = container_of(list_node, struct irdma_cm_node,
-> +				       teardown_entry);
-> +		attr.qp_state = IB_QPS_ERR;
-> +		irdma_modify_qp(&cm_node->iwqp->ibqp, &attr, IB_QP_STATE, NULL);
-> +		if (iwdev->reset)
-> +			irdma_cm_disconn(cm_node->iwqp);
-> +		irdma_rem_ref_cm_node(cm_node);
-> +	}
-> +	if (!iwdev->roce_mode)
-> +		return;
+> +	if (ext_valid) {
+> +		enum irdma_status_code ret = 0;
 > +
-> +	INIT_LIST_HEAD(&teardown_list);
-> +	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
-> +		spin_lock_irqsave(&vsi->qos[i].lock, flags);
-> +		list_for_each_safe(list_node, list_core_temp, &vsi->qos[i].qplist) {
-> +			u32 qp_ip[4];
+> +		peek_head = (cq_uk->cq_ring.head + 1) % cq_uk->cq_ring.size;
+> +		ext_cqe = cq_uk->cq_base[peek_head].buf;
+> +		get_64bit_val(ext_cqe, 24, &qword7);
+> +		polarity = (u8)RS_64(qword7, IRDMA_CQ_VALID);
+> +		if (!peek_head)
+> +			polarity ^= 1;
+> +		if (polarity != cq_uk->polarity)
+> +			return IRDMA_ERR_Q_EMPTY;
 > +
-> +			sc_qp = container_of(list_node, struct irdma_sc_qp, list);
-> +			if (sc_qp->qp_type != IRDMA_QP_TYPE_ROCE_RC)
-> +				continue;
-> +
-> +			qp = sc_qp->back_qp;
-> +			if (!disconnect_all) {
-> +				if (nfo->ipv4)
-> +					qp_ip[0] = qp->udp_info.local_ipaddr3;
-> +				else
-> +					memcpy(qp_ip,
-> +					       &qp->udp_info.local_ipaddr0,
-> +					       sizeof(qp_ip));
-> +			}
-> +
-> +			if (disconnect_all ||
-> +			    (nfo->vlan_id == qp->udp_info.vlan_tag &&
-> +			    !memcmp(qp_ip, ipaddr, nfo->ipv4 ? 4 : 16))) {
-> +				spin_lock_irqsave(&iwdev->rf->qptable_lock, flags);
+> +		IRDMA_RING_MOVE_HEAD(cq_uk->cq_ring, ret);
 
-You should use different 'flags' here.
+Should you check for 'ret' value here? It was initialized to 0 and overriden
+here but I can't see any actual use for it.
 
-> +				if (iwdev->rf->qp_table[sc_qp->qp_uk.qp_id]) {
-> +					irdma_add_ref(&qp->ibqp);
-> +					list_add(&qp->teardown_entry, &teardown_list);
-> +				}
-> +				spin_unlock_irqrestore(&iwdev->rf->qptable_lock, flags);
-> +			}
-> +		}
-> +		spin_unlock_irqrestore(&vsi->qos[i].lock, flags);
+> +		if (IRDMA_RING_CURRENT_HEAD(cq_uk->cq_ring) == 0)
+> +			cq_uk->polarity = !cq_uk->polarity;
+> +		/* update cq tail in cq shadow memory also */
+> +		IRDMA_RING_MOVE_TAIL(cq_uk->cq_ring);
 > +	}
 > +
-> +	list_for_each_safe(list_node, list_core_temp, &teardown_list) {
-> +		qp = container_of(list_node, struct irdma_qp, teardown_entry);
-> +		attr.qp_state = IB_QPS_ERR;
-> +		irdma_modify_qp_roce(&qp->ibqp, &attr, IB_QP_STATE, NULL);
-> +		irdma_rem_ref(&qp->ibqp);
+> +	irdma_debug_buf(cq->dev, IRDMA_DEBUG_PUDA, "PUDA CQE", cqe, 32);
+> +	if (ext_valid)
+> +		irdma_debug_buf(cq->dev, IRDMA_DEBUG_PUDA, "PUDA EXT-CQE",
+> +				ext_cqe, 32);
+> +
+> +	error = (bool)RS_64(qword3, IRDMA_CQ_ERROR);
+> +	if (error) {
+> +		irdma_debug(cq->dev, IRDMA_DEBUG_PUDA, "receive error\n");
+> +		major_err = (u32)(RS_64(qword3, IRDMA_CQ_MAJERR));
+> +		minor_err = (u32)(RS_64(qword3, IRDMA_CQ_MINERR));
+> +		info->compl_error = major_err << 16 | minor_err;
+> +		return IRDMA_ERR_CQ_COMPL_ERROR;
 > +	}
+> +
+> +	get_64bit_val(cqe, 0, &qword0);
+> +	get_64bit_val(cqe, 16, &qword2);
+> +
+> +	info->q_type = (u8)RS_64(qword3, IRDMA_CQ_SQ);
+> +	info->qp_id = (u32)RS_64(qword2, IRDMACQ_QPID);
+> +	if (cq->dev->hw_attrs.hw_rev > IRDMA_GEN_1)
+> +		info->ipv4 = (bool)RS_64(qword3, IRDMACQ_IPV4);
+> +
+> +	get_64bit_val(cqe, 8, &comp_ctx);
+> +	info->qp = (struct irdma_qp_uk *)(unsigned long)comp_ctx;
+> +	info->wqe_idx = (u32)RS_64(qword3, IRDMA_CQ_WQEIDX);
+> +
+> +	if (info->q_type == IRDMA_CQE_QTYPE_RQ) {
+> +		if (ext_valid) {
+> +			info->vlan_valid = (bool)RS_64(qword7, IRDMA_CQ_UDVLANVALID);
+> +			if (info->vlan_valid) {
+> +				get_64bit_val(ext_cqe, 16, &qword6);
+> +				info->vlan = (u16)RS_64(qword6, IRDMA_CQ_UDVLAN);
+> +			}
+> +			info->smac_valid = (bool)RS_64(qword7, IRDMA_CQ_UDSMACVALID);
+> +			if (info->smac_valid) {
+> +				get_64bit_val(ext_cqe, 16, &qword6);
+> +				info->smac[0] = (u8)((qword6 >> 40) & 0xFF);
+> +				info->smac[1] = (u8)((qword6 >> 32) & 0xFF);
+> +				info->smac[2] = (u8)((qword6 >> 24) & 0xFF);
+> +				info->smac[3] = (u8)((qword6 >> 16) & 0xFF);
+> +				info->smac[4] = (u8)((qword6 >> 8) & 0xFF);
+> +				info->smac[5] = (u8)(qword6 & 0xFF);
+> +			}
+> +		}
+> +
+> +		if (cq->dev->hw_attrs.hw_rev == IRDMA_GEN_1) {
+> +			info->vlan_valid = (bool)RS_64(qword3, IRDMA_VLAN_TAG_VALID);
+> +			info->l4proto = (u8)RS_64(qword2, IRDMA_UDA_L4PROTO);
+> +			info->l3proto = (u8)RS_64(qword2, IRDMA_UDA_L3PROTO);
+> +		}
+> +
+> +		info->payload_len = (u32)RS_64(qword0, IRDMACQ_PAYLDLEN);
+> +	}
+> +
+> +	return 0;
 > +}
