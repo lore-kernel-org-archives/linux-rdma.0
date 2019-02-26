@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 2/3] IB/rdmavt: Fix concurrency panics in QP
- post_send and modify to error
-Date: Tue, 26 Feb 2019 08:45:25 -0800
-Message-ID: <20190226164521.31476.71662.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 3/3] IB/hfi1: Close race condition on user context
+ disable and close
+Date: Tue, 26 Feb 2019 08:45:35 -0800
+Message-ID: <20190226164530.31476.26502.stgit@scvm10.sc.intel.com>
 References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,135 +16,142 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-The RC/UC code path can go through a software loopback. In this code
-path the receive side QP is manipulated.
+When disabling and removing a receive context, it is possible for an
+asynchronous event (i.e IRQ) to occur.  Because of this, there is a
+race between cleaning up the context, and the context being used by
+the asynchronous event.
 
-If two threads are working on the QP receive side (i.e. post_send,
-and modify_qp to an error state), QP information can be corrupted.
+cpu 0  (context cleanup)
+    rc->ref_count-- (ref_count == 0)
+    hfi1_rcd_free()
+cpu 1  (IRQ (with rcd index))
+	rcd_get_by_index()
+	lock
+	ref_count+++     <-- reference count race (WARNING)
+	return rcd
+	unlock
+cpu 0
+    hfi1_free_ctxtdata() <-- incorrect free location
+    lock
+    remove rcd from array
+    unlock
+    free rcd
 
-(post_send via loopback)
-  set r_sge
-  loop
-     update r_sge
-(modify_qp)
-     take r_lock
-     update r_sge <---- r_sge is now incorrect
-(post_send)
-     update r_sge <---- crash, etc.
-     ...
+This race will cause the following WARNING trace:
 
-This can lead to one of the two following crashes:
+WARNING: CPU: 0 PID: 175027 at include/linux/kref.h:52 hfi1_rcd_get_by_index+0x84/0xa0 [hfi1]
+CPU: 0 PID: 175027 Comm: IMB-MPI1 Kdump: loaded Tainted: G OE ------------ 3.10.0-957.el7.x86_64 #1
+Hardware name: Intel Corporation S2600KP/S2600KP, BIOS SE5C610.86B.11.01.0076.C4.111920150602 11/19/2015
+Call Trace:
+  dump_stack+0x19/0x1b
+  __warn+0xd8/0x100
+  warn_slowpath_null+0x1d/0x20
+  hfi1_rcd_get_by_index+0x84/0xa0 [hfi1]
+  is_rcv_urgent_int+0x24/0x90 [hfi1]
+  general_interrupt+0x1b6/0x210 [hfi1]
+  __handle_irq_event_percpu+0x44/0x1c0
+  handle_irq_event_percpu+0x32/0x80
+  handle_irq_event+0x3c/0x60
+  handle_edge_irq+0x7f/0x150
+  handle_irq+0xe4/0x1a0
+  do_IRQ+0x4d/0xf0
+  common_interrupt+0x162/0x162
 
- BUG: unable to handle kernel NULL pointer dereference at (null)
-  IP:  hfi1_copy_sge+0xf1/0x2e0 [hfi1]
-  PGD 8000001fe6a57067 PUD 1fd9e0c067 PMD 0
- Call Trace:
-  ruc_loopback+0x49b/0xbc0 [hfi1]
-  hfi1_do_send+0x38e/0x3e0 [hfi1]
-  _hfi1_do_send+0x1e/0x20 [hfi1]
-  process_one_work+0x17f/0x440
-  worker_thread+0x126/0x3c0
-  kthread+0xd1/0xe0
-  ret_from_fork_nospec_begin+0x21/0x21
+The race can also lead to a use after free which could be similar
+to:
 
-or:
+general protection fault: 0000 1 SMP
+CPU: 71 PID: 177147 Comm: IMB-MPI1 Kdump: loaded Tainted: G W OE ------------ 3.10.0-957.el7.x86_64 #1
+Hardware name: Intel Corporation S2600KP/S2600KP, BIOS SE5C610.86B.11.01.0076.C4.111920150602 11/19/2015
+task: ffff9962a8098000 ti: ffff99717a508000 task.ti: ffff99717a508000 __kmalloc+0x94/0x230
+Call Trace:
+  ? hfi1_user_sdma_process_request+0x9c8/0x1250 [hfi1]
+  hfi1_user_sdma_process_request+0x9c8/0x1250 [hfi1]
+  hfi1_aio_write+0xba/0x110 [hfi1]
+  do_sync_readv_writev+0x7b/0xd0
+  do_readv_writev+0xce/0x260
+  ? handle_mm_fault+0x39d/0x9b0
+  ? pick_next_task_fair+0x5f/0x1b0
+  ? sched_clock_cpu+0x85/0xc0
+  ? __schedule+0x13a/0x890
+  vfs_writev+0x35/0x60
+  SyS_writev+0x7f/0x110
+  system_call_fastpath+0x22/0x27
 
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000048
-  IP:  rvt_clear_mr_refs+0x45/0x370 [rdmavt]
-  PGD 80000006ae5eb067 PUD ef15d0067 PMD 0
- Call Trace:
-  rvt_error_qp+0xaa/0x240 [rdmavt]
-  rvt_modify_qp+0x47f/0xaa0 [rdmavt]
-  ib_security_modify_qp+0x8f/0x400 [ib_core]
-  ib_modify_qp_with_udata+0x44/0x70 [ib_core]
-  modify_qp.isra.23+0x1eb/0x2b0 [ib_uverbs]
-  ib_uverbs_modify_qp+0xaa/0xf0 [ib_uverbs]
-  ib_uverbs_write+0x272/0x430 [ib_uverbs]
-  vfs_write+0xc0/0x1f0
-  SyS_write+0x7f/0xf0
-  system_call_fastpath+0x1c/0x21
+Use the appropriate kref API to verify access.
 
-Fix by using the appropriate locking on the receiving QP.
+Reorder context cleanup to ensure context removal before cleanup
+occurs correctly.
 
-Fixes: 15703461533a ("IB/{hfi1, qib, rdmavt}: Move ruc_loopback to rdmavt")
-Cc: <stable@vger.kernel.org> #v4.9+
+Cc: stable@vger.kernel.org # v4.14.0+
+Fixes: f683c80ca68e ("IB/hfi1: Resolve kernel panics by reference counting receive contexts")
 Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
 Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/sw/rdmavt/qp.c |   33 +++++++++++++++++++++++----------
- 1 files changed, 23 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 3373658..a34b9a2 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -2790,6 +2790,18 @@ void rvt_copy_sge(struct rvt_qp *qp, struct rvt_sge_state *ss,
- }
- EXPORT_SYMBOL(rvt_copy_sge);
+---
+Changes since v1:
+	adjust to use kref_get_unless_zero() instead of a flag
+---
+ drivers/infiniband/hw/hfi1/hfi.h  |    2 +-
+ drivers/infiniband/hw/hfi1/init.c |   14 +++++++++-----
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/hfi.h b/drivers/infiniband/hw/hfi1/hfi.h
+index 6582184..048b5d7 100644
+--- a/drivers/infiniband/hw/hfi1/hfi.h
++++ b/drivers/infiniband/hw/hfi1/hfi.h
+@@ -1455,7 +1455,7 @@ void hfi1_init_pportdata(struct pci_dev *pdev, struct hfi1_pportdata *ppd,
+ 			 struct hfi1_devdata *dd, u8 hw_pidx, u8 port);
+ void hfi1_free_ctxtdata(struct hfi1_devdata *dd, struct hfi1_ctxtdata *rcd);
+ int hfi1_rcd_put(struct hfi1_ctxtdata *rcd);
+-void hfi1_rcd_get(struct hfi1_ctxtdata *rcd);
++int hfi1_rcd_get(struct hfi1_ctxtdata *rcd);
+ struct hfi1_ctxtdata *hfi1_rcd_get_by_index_safe(struct hfi1_devdata *dd,
+ 						 u16 ctxt);
+ struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct hfi1_devdata *dd, u16 ctxt);
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index 7841a0a..2cc5164 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -214,12 +214,12 @@ static void hfi1_rcd_free(struct kref *kref)
+ 	struct hfi1_ctxtdata *rcd =
+ 		container_of(kref, struct hfi1_ctxtdata, kref);
  
-+static enum ib_wc_status loopback_qp_drop(struct rvt_ibport *rvp,
-+					  struct rvt_qp *sqp)
-+{
-+	rvp->n_pkt_drops++;
-+	/*
-+	 * For RC, the requester would timeout and retry so
-+	 * shortcut the timeouts and just signal too many retries.
-+	 */
-+	return sqp->ibqp.qp_type == IB_QPT_RC ?
-+		IB_WC_RETRY_EXC_ERR : IB_WC_SUCCESS;
-+}
+-	hfi1_free_ctxtdata(rcd->dd, rcd);
+-
+ 	spin_lock_irqsave(&rcd->dd->uctxt_lock, flags);
+ 	rcd->dd->rcd[rcd->ctxt] = NULL;
+ 	spin_unlock_irqrestore(&rcd->dd->uctxt_lock, flags);
+ 
++	hfi1_free_ctxtdata(rcd->dd, rcd);
 +
+ 	kfree(rcd);
+ }
+ 
+@@ -242,10 +242,13 @@ int hfi1_rcd_put(struct hfi1_ctxtdata *rcd)
+  * @rcd: pointer to an initialized rcd data structure
+  *
+  * Use this to get a reference after the init.
++ *
++ * Return : reflect kref_get_unless_zero(), which returns non-zero on
++ * increment, otherwise 0.
+  */
+-void hfi1_rcd_get(struct hfi1_ctxtdata *rcd)
++int hfi1_rcd_get(struct hfi1_ctxtdata *rcd)
+ {
+-	kref_get(&rcd->kref);
++	return kref_get_unless_zero(&rcd->kref);
+ }
+ 
  /**
-  * ruc_loopback - handle UC and RC loopback requests
-  * @sqp: the sending QP
-@@ -2862,17 +2874,14 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+@@ -325,7 +328,8 @@ struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct hfi1_devdata *dd, u16 ctxt)
+ 	spin_lock_irqsave(&dd->uctxt_lock, flags);
+ 	if (dd->rcd[ctxt]) {
+ 		rcd = dd->rcd[ctxt];
+-		hfi1_rcd_get(rcd);
++		if (!hfi1_rcd_get(rcd))
++			rcd = NULL;
  	}
- 	spin_unlock_irqrestore(&sqp->s_lock, flags);
+ 	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
  
--	if (!qp || !(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) ||
-+	if (!qp) {
-+		send_status = loopback_qp_drop(rvp, sqp);
-+		goto serr_no_r_lock;
-+	}
-+	spin_lock_irqsave(&qp->r_lock, flags);
-+	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) ||
- 	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
--		rvp->n_pkt_drops++;
--		/*
--		 * For RC, the requester would timeout and retry so
--		 * shortcut the timeouts and just signal too many retries.
--		 */
--		if (sqp->ibqp.qp_type == IB_QPT_RC)
--			send_status = IB_WC_RETRY_EXC_ERR;
--		else
--			send_status = IB_WC_SUCCESS;
-+		send_status = loopback_qp_drop(rvp, sqp);
- 		goto serr;
- 	}
- 
-@@ -3030,6 +3039,7 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
- 		     wqe->wr.send_flags & IB_SEND_SOLICITED);
- 
- send_comp:
-+	spin_unlock_irqrestore(&qp->r_lock, flags);
- 	spin_lock_irqsave(&sqp->s_lock, flags);
- 	rvp->n_loop_pkts++;
- flush_send:
-@@ -3056,6 +3066,7 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
- 	}
- 	if (sqp->s_rnr_retry_cnt < 7)
- 		sqp->s_rnr_retry--;
-+	spin_unlock_irqrestore(&qp->r_lock, flags);
- 	spin_lock_irqsave(&sqp->s_lock, flags);
- 	if (!(ib_rvt_state_ops[sqp->state] & RVT_PROCESS_RECV_OK))
- 		goto clr_busy;
-@@ -3084,6 +3095,8 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
- 	rvt_rc_error(qp, wc.status);
- 
- serr:
-+	spin_unlock_irqrestore(&qp->r_lock, flags);
-+serr_no_r_lock:
- 	spin_lock_irqsave(&sqp->s_lock, flags);
- 	rvt_send_complete(sqp, wqe, send_status);
- 	if (sqp->ibqp.qp_type == IB_QPT_RC) {
