@@ -1,8 +1,8 @@
 From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-next 1/3] IB/rdmavt: Fix loopback send with invalidate
- ordering
-Date: Tue, 26 Feb 2019 08:45:16 -0800
-Message-ID: <20190226164508.31476.45134.stgit@scvm10.sc.intel.com>
+Subject: [PATCH for-next 2/3] IB/rdmavt: Fix concurrency panics in QP
+ post_send and modify to error
+Date: Tue, 26 Feb 2019 08:45:25 -0800
+Message-ID: <20190226164521.31476.71662.stgit@scvm10.sc.intel.com>
 References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,71 +14,137 @@ To: jgg@ziepe.ca, dledford@redhat.com
 Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+From: Michael J. Ruhl <michael.j.ruhl@intel.com>
 
-The IBTA spec notes:
+The RC/UC code path can go through a software loopback. In this code
+path the receive side QP is manipulated.
 
-o9-5.2.1: For any HCA which supports SEND with Invalidate, upon receiving
-an IETH, the Invalidate operation must not take place until after
-the normal transport header validation checks have been successfully
-completed.
+If two threads are working on the QP receive side (i.e. post_send,
+and modify_qp to an error state), QP information can be corrupted.
 
-The rdmavt loopback code does the validation after the invalidate.
+(post_send via loopback)
+  set r_sge
+  loop
+     update r_sge
+(modify_qp)
+     take r_lock
+     update r_sge <---- r_sge is now incorrect
+(post_send)
+     update r_sge <---- crash, etc.
+     ...
 
-Fix by relocating the operation specific logic for all SEND variants
-until after the validity checks.
+This can lead to one of the two following crashes:
 
-Cc: <stable@vger.kernel.org> #v4.20+
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+ BUG: unable to handle kernel NULL pointer dereference at (null)
+  IP:  hfi1_copy_sge+0xf1/0x2e0 [hfi1]
+  PGD 8000001fe6a57067 PUD 1fd9e0c067 PMD 0
+ Call Trace:
+  ruc_loopback+0x49b/0xbc0 [hfi1]
+  hfi1_do_send+0x38e/0x3e0 [hfi1]
+  _hfi1_do_send+0x1e/0x20 [hfi1]
+  process_one_work+0x17f/0x440
+  worker_thread+0x126/0x3c0
+  kthread+0xd1/0xe0
+  ret_from_fork_nospec_begin+0x21/0x21
+
+or:
+
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000048
+  IP:  rvt_clear_mr_refs+0x45/0x370 [rdmavt]
+  PGD 80000006ae5eb067 PUD ef15d0067 PMD 0
+ Call Trace:
+  rvt_error_qp+0xaa/0x240 [rdmavt]
+  rvt_modify_qp+0x47f/0xaa0 [rdmavt]
+  ib_security_modify_qp+0x8f/0x400 [ib_core]
+  ib_modify_qp_with_udata+0x44/0x70 [ib_core]
+  modify_qp.isra.23+0x1eb/0x2b0 [ib_uverbs]
+  ib_uverbs_modify_qp+0xaa/0xf0 [ib_uverbs]
+  ib_uverbs_write+0x272/0x430 [ib_uverbs]
+  vfs_write+0xc0/0x1f0
+  SyS_write+0x7f/0xf0
+  system_call_fastpath+0x1c/0x21
+
+Fix by using the appropriate locking on the receiving QP.
+
+Fixes: 15703461533a ("IB/{hfi1, qib, rdmavt}: Move ruc_loopback to rdmavt")
+Cc: <stable@vger.kernel.org> #v4.9+
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
 Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 ---
- drivers/infiniband/sw/rdmavt/qp.c |   26 ++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
+ drivers/infiniband/sw/rdmavt/qp.c |   33 +++++++++++++++++++++++----------
+ 1 files changed, 23 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 72664f0..3373658 100644
+index 3373658..a34b9a2 100644
 --- a/drivers/infiniband/sw/rdmavt/qp.c
 +++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -2898,18 +2898,8 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
- 		goto send_comp;
+@@ -2790,6 +2790,18 @@ void rvt_copy_sge(struct rvt_qp *qp, struct rvt_sge_state *ss,
+ }
+ EXPORT_SYMBOL(rvt_copy_sge);
  
- 	case IB_WR_SEND_WITH_INV:
--		if (!rvt_invalidate_rkey(qp, wqe->wr.ex.invalidate_rkey)) {
--			wc.wc_flags = IB_WC_WITH_INVALIDATE;
--			wc.ex.invalidate_rkey = wqe->wr.ex.invalidate_rkey;
--		}
--		goto send;
--
- 	case IB_WR_SEND_WITH_IMM:
--		wc.wc_flags = IB_WC_WITH_IMM;
--		wc.ex.imm_data = wqe->wr.ex.imm_data;
--		/* FALLTHROUGH */
- 	case IB_WR_SEND:
--send:
- 		ret = rvt_get_rwqe(qp, false);
- 		if (ret < 0)
- 			goto op_err;
-@@ -2917,6 +2907,22 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
- 			goto rnr_nak;
- 		if (wqe->length > qp->r_len)
- 			goto inv_err;
-+		switch (wqe->wr.opcode) {
-+		case IB_WR_SEND_WITH_INV:
-+			if (!rvt_invalidate_rkey(qp,
-+						 wqe->wr.ex.invalidate_rkey)) {
-+				wc.wc_flags = IB_WC_WITH_INVALIDATE;
-+				wc.ex.invalidate_rkey =
-+					wqe->wr.ex.invalidate_rkey;
-+			}
-+			break;
-+		case IB_WR_SEND_WITH_IMM:
-+			wc.wc_flags = IB_WC_WITH_IMM;
-+			wc.ex.imm_data = wqe->wr.ex.imm_data;
-+			break;
-+		default:
-+			break;
-+		}
- 		break;
++static enum ib_wc_status loopback_qp_drop(struct rvt_ibport *rvp,
++					  struct rvt_qp *sqp)
++{
++	rvp->n_pkt_drops++;
++	/*
++	 * For RC, the requester would timeout and retry so
++	 * shortcut the timeouts and just signal too many retries.
++	 */
++	return sqp->ibqp.qp_type == IB_QPT_RC ?
++		IB_WC_RETRY_EXC_ERR : IB_WC_SUCCESS;
++}
++
+ /**
+  * ruc_loopback - handle UC and RC loopback requests
+  * @sqp: the sending QP
+@@ -2862,17 +2874,14 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 	}
+ 	spin_unlock_irqrestore(&sqp->s_lock, flags);
  
- 	case IB_WR_RDMA_WRITE_WITH_IMM:
+-	if (!qp || !(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) ||
++	if (!qp) {
++		send_status = loopback_qp_drop(rvp, sqp);
++		goto serr_no_r_lock;
++	}
++	spin_lock_irqsave(&qp->r_lock, flags);
++	if (!(ib_rvt_state_ops[qp->state] & RVT_PROCESS_RECV_OK) ||
+ 	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
+-		rvp->n_pkt_drops++;
+-		/*
+-		 * For RC, the requester would timeout and retry so
+-		 * shortcut the timeouts and just signal too many retries.
+-		 */
+-		if (sqp->ibqp.qp_type == IB_QPT_RC)
+-			send_status = IB_WC_RETRY_EXC_ERR;
+-		else
+-			send_status = IB_WC_SUCCESS;
++		send_status = loopback_qp_drop(rvp, sqp);
+ 		goto serr;
+ 	}
+ 
+@@ -3030,6 +3039,7 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 		     wqe->wr.send_flags & IB_SEND_SOLICITED);
+ 
+ send_comp:
++	spin_unlock_irqrestore(&qp->r_lock, flags);
+ 	spin_lock_irqsave(&sqp->s_lock, flags);
+ 	rvp->n_loop_pkts++;
+ flush_send:
+@@ -3056,6 +3066,7 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 	}
+ 	if (sqp->s_rnr_retry_cnt < 7)
+ 		sqp->s_rnr_retry--;
++	spin_unlock_irqrestore(&qp->r_lock, flags);
+ 	spin_lock_irqsave(&sqp->s_lock, flags);
+ 	if (!(ib_rvt_state_ops[sqp->state] & RVT_PROCESS_RECV_OK))
+ 		goto clr_busy;
+@@ -3084,6 +3095,8 @@ void rvt_ruc_loopback(struct rvt_qp *sqp)
+ 	rvt_rc_error(qp, wc.status);
+ 
+ serr:
++	spin_unlock_irqrestore(&qp->r_lock, flags);
++serr_no_r_lock:
+ 	spin_lock_irqsave(&sqp->s_lock, flags);
+ 	rvt_send_complete(sqp, wqe, send_status);
+ 	if (sqp->ibqp.qp_type == IB_QPT_RC) {
