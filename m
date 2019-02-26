@@ -1,134 +1,34 @@
-From: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>
-Subject: [PATCH v2] RDMA/cma: Make CM response timeout and # CM retries configurable
-Date: Tue, 26 Feb 2019 08:57:22 +0100
-Message-ID: <20190226075722.1692315-1-haakon.bugge@oracle.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-next 0/3] Driver fixes
+Date: Tue, 26 Feb 2019 08:45:02 -0800
+Message-ID: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, Parav Pandit <parav@mellanox.com>, Steve Wise <swise@opengridcomputing.com>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-During certain workloads, the default CM response timeout is too
-short, leading to excessive retries. Hence, make it configurable
-through sysctl. While at it, also make number of CM retries
-configurable.
+Hi Jason and Doug,
 
-The defaults are not changed.
+Here are some fixes that didn't quite make the boat for 5.0-rc. So we can
+go ahead and send them to -next. The third patch here is really a v2 of:
 
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+https://patchwork.kernel.org/patch/10769005/
 
 ---
-v1 -> v2:
-   * Added unregister_net_sysctl_table() in cma_cleanup()
----
- drivers/infiniband/core/cma.c | 52 ++++++++++++++++++++++++++++++-----
- 1 file changed, 45 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 68c997be2429..50abce078ff1 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -43,6 +43,7 @@
- #include <linux/inetdevice.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/sysctl.h>
- #include <net/route.h>
- 
- #include <net/net_namespace.h>
-@@ -68,13 +69,46 @@ MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("Generic RDMA CM Agent");
- MODULE_LICENSE("Dual BSD/GPL");
- 
--#define CMA_CM_RESPONSE_TIMEOUT 20
- #define CMA_QUERY_CLASSPORT_INFO_TIMEOUT 3000
--#define CMA_MAX_CM_RETRIES 15
- #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
- #define CMA_IBOE_PACKET_LIFETIME 18
- #define CMA_PREFERRED_ROCE_GID_TYPE IB_GID_TYPE_ROCE_UDP_ENCAP
- 
-+#define CMA_DFLT_CM_RESPONSE_TIMEOUT 20
-+static int cma_cm_response_timeout = CMA_DFLT_CM_RESPONSE_TIMEOUT;
-+static int cma_cm_response_timeout_min = 8;
-+static int cma_cm_response_timeout_max = 31;
-+#undef CMA_DFLT_CM_RESPONSE_TIMEOUT
-+
-+#define CMA_DFLT_MAX_CM_RETRIES 15
-+static int cma_max_cm_retries = CMA_DFLT_MAX_CM_RETRIES;
-+static int cma_max_cm_retries_min = 1;
-+static int cma_max_cm_retries_max = 100;
-+#undef CMA_DFLT_MAX_CM_RETRIES
-+
-+static struct ctl_table_header *cma_ctl_table_hdr;
-+static struct ctl_table cma_ctl_table[] = {
-+	{
-+		.procname	= "cma_cm_response_timeout",
-+		.data		= &cma_cm_response_timeout,
-+		.maxlen		= sizeof(cma_cm_response_timeout),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &cma_cm_response_timeout_min,
-+		.extra2		= &cma_cm_response_timeout_max,
-+	},
-+	{
-+		.procname	= "cma_max_cm_retries",
-+		.data		= &cma_max_cm_retries,
-+		.maxlen		= sizeof(cma_max_cm_retries),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= &cma_max_cm_retries_min,
-+		.extra2		= &cma_max_cm_retries_max,
-+	},
-+	{ }
-+};
-+
- static const char * const cma_events[] = {
- 	[RDMA_CM_EVENT_ADDR_RESOLVED]	 = "address resolved",
- 	[RDMA_CM_EVENT_ADDR_ERROR]	 = "address error",
-@@ -3744,8 +3778,8 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
- 	req.path = id_priv->id.route.path_rec;
- 	req.sgid_attr = id_priv->id.route.addr.dev_addr.sgid_attr;
- 	req.service_id = rdma_get_service_id(&id_priv->id, cma_dst_addr(id_priv));
--	req.timeout_ms = 1 << (CMA_CM_RESPONSE_TIMEOUT - 8);
--	req.max_cm_retries = CMA_MAX_CM_RETRIES;
-+	req.timeout_ms = 1 << (cma_cm_response_timeout - 8);
-+	req.max_cm_retries = cma_max_cm_retries;
- 
- 	ret = ib_send_cm_sidr_req(id_priv->cm_id.ib, &req);
- 	if (ret) {
-@@ -3815,9 +3849,9 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	req.flow_control = conn_param->flow_control;
- 	req.retry_count = min_t(u8, 7, conn_param->retry_count);
- 	req.rnr_retry_count = min_t(u8, 7, conn_param->rnr_retry_count);
--	req.remote_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
--	req.local_cm_response_timeout = CMA_CM_RESPONSE_TIMEOUT;
--	req.max_cm_retries = CMA_MAX_CM_RETRIES;
-+	req.remote_cm_response_timeout = cma_cm_response_timeout;
-+	req.local_cm_response_timeout = cma_cm_response_timeout;
-+	req.max_cm_retries = cma_max_cm_retries;
- 	req.srq = id_priv->srq ? 1 : 0;
- 
- 	ret = ib_send_cm_req(id_priv->cm_id.ib, &req);
-@@ -4700,6 +4734,9 @@ static int __init cma_init(void)
- 		goto err;
- 
- 	cma_configfs_init();
-+	cma_ctl_table_hdr = register_net_sysctl(&init_net, "net/rdma_cm", cma_ctl_table);
-+	if (!cma_ctl_table_hdr)
-+		pr_warn("rdma_cm: couldn't register sysctl path, using default values\n");
- 
- 	return 0;
- 
-@@ -4713,6 +4750,7 @@ static int __init cma_init(void)
- 
- static void __exit cma_cleanup(void)
- {
-+	unregister_net_sysctl_table(cma_ctl_table_hdr);
- 	cma_configfs_exit();
- 	ib_unregister_client(&cma_client);
- 	unregister_netdevice_notifier(&cma_nb);
--- 
-2.20.1
+Michael J. Ruhl (2):
+      IB/rdmavt: Fix concurrency panics in QP post_send and modify to error
+      IB/hfi1: Close race condition on user context disable and close
+
+Mike Marciniszyn (1):
+      IB/rdmavt: Fix loopback send with invalidate ordering
+
+
+ drivers/infiniband/hw/hfi1/hfi.h  |    2 +
+ drivers/infiniband/hw/hfi1/init.c |   14 ++++++---
+ drivers/infiniband/sw/rdmavt/qp.c |   59 ++++++++++++++++++++++++-------------
+ 3 files changed, 49 insertions(+), 26 deletions(-)
