@@ -1,16 +1,15 @@
 From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH v1 iproute2-next 1/4] rdma: add helper rd_sendrecv_msg()
-Date: Tue, 26 Feb 2019 11:19:12 -0600
-Message-ID: <7f48fc85-45ab-fe7d-9614-4c5eb50f8401@opengridcomputing.com>
+Subject: Re: [PATCH v1 iproute2-next 3/4] rdma: add 'link add/delete' commands
+Date: Tue, 26 Feb 2019 11:24:32 -0600
+Message-ID: <94c6a44c-6f08-ffe8-9798-a4faf14bd29a@opengridcomputing.com>
 References: <cover.1550773362.git.swise@opengridcomputing.com>
- <aa883bc5ffd63047cf57e2f9925002e7573fd7ac.1550773362.git.swise@opengridcomputing.com>
- <20190223092615.GM23561@mtr-leonro.mtl.com>
- <20190223093122.GO23561@mtr-leonro.mtl.com>
+ <5dd9d9aeada48bc5db0eb0394ed4e3ce38ee41bc.1550773362.git.swise@opengridcomputing.com>
+ <20190223094311.GP23561@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190223093122.GO23561@mtr-leonro.mtl.com>
+In-Reply-To: <20190223094311.GP23561@mtr-leonro.mtl.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
@@ -18,87 +17,102 @@ Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux
 List-Id: linux-rdma@vger.kernel.org
 
 
-On 2/23/2019 3:31 AM, Leon Romanovsky wrote:
-> On Sat, Feb 23, 2019 at 11:26:15AM +0200, Leon Romanovsky wrote:
->> On Thu, Feb 21, 2019 at 08:19:03AM -0800, Steve Wise wrote:
->>> This function sends the constructed netlink message and then
->>> receives the response, displaying any error text.
->>>
->>> Change 'rdma dev set' to use it.
->>>
->>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
->>> ---
->>>  rdma/dev.c   |  2 +-
->>>  rdma/rdma.h  |  1 +
->>>  rdma/utils.c | 21 +++++++++++++++++++++
->>>  3 files changed, 23 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/rdma/dev.c b/rdma/dev.c
->>> index 60ff4b31e320..d2949c378f08 100644
->>> --- a/rdma/dev.c
->>> +++ b/rdma/dev.c
->>> @@ -273,7 +273,7 @@ static int dev_set_name(struct rd *rd)
->>>  	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
->>>  	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
->>>
->>> -	return rd_send_msg(rd);
->>> +	return rd_sendrecv_msg(rd, seq);
->>>  }
->>>
->>>  static int dev_one_set(struct rd *rd)
->>> diff --git a/rdma/rdma.h b/rdma/rdma.h
->>> index 547bb5749a39..20be2f12c4f8 100644
->>> --- a/rdma/rdma.h
->>> +++ b/rdma/rdma.h
->>> @@ -115,6 +115,7 @@ bool rd_check_is_key_exist(struct rd *rd, const char *key);
->>>   */
->>>  int rd_send_msg(struct rd *rd);
->>>  int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, uint32_t seq);
->>> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq);
->>>  void rd_prepare_msg(struct rd *rd, uint32_t cmd, uint32_t *seq, uint16_t flags);
->>>  int rd_dev_init_cb(const struct nlmsghdr *nlh, void *data);
->>>  int rd_attr_cb(const struct nlattr *attr, void *data);
->>> diff --git a/rdma/utils.c b/rdma/utils.c
->>> index 069d44fece10..a6f2826c9605 100644
->>> --- a/rdma/utils.c
->>> +++ b/rdma/utils.c
->>> @@ -664,6 +664,27 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, unsigned int seq)
->>>  	return ret;
->>>  }
->>>
->>> +static int null_cb(const struct nlmsghdr *nlh, void *data)
->>> +{
->>> +	return MNL_CB_OK;
->>> +}
->>> +
->>> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq)
->>> +{
->>> +	int ret;
->>> +
->>> +	ret = rd_send_msg(rd);
->>> +	if (ret) {
->>> +		perror(NULL);
->> This is more or less already done in rd_send_msg() and that function
->> prints something in case of execution error. So the missing piece
->> is to update rd_recv_msg(), so all places will "magically" print errors
->> and not only dev_set_name().
+On 2/23/2019 3:43 AM, Leon Romanovsky wrote:
+> On Thu, Feb 21, 2019 at 08:19:12AM -0800, Steve Wise wrote:
+>> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
+>> device to a netdev interface.
 >>
->>> +		goto out;
->>> +	}
->>> +	ret = rd_recv_msg(rd, null_cb, rd, seq);
-> Will this "null_cb" work for all send/recv flows or only in flows where
-> response can be error only? 
+>> EG:
+>>
+>> rdma link add rxe_eth0 type rxe netdev eth0
+>> rdma link delete rxe_eth0
+>>
+>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+>> ---
+>>  rdma/link.c  | 67 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>  rdma/rdma.h  |  1 +
+>>  rdma/utils.c |  2 +-
+>>  3 files changed, 69 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/rdma/link.c b/rdma/link.c
+>> index c064be627be2..afaf19663728 100644
+>> --- a/rdma/link.c
+>> +++ b/rdma/link.c
+>> @@ -14,6 +14,9 @@
+>>  static int link_help(struct rd *rd)
+>>  {
+>>  	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
+>> +	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
+>> +	       rd->filename);
+>> +	pr_out("Usage: %s link delete NAME\n", rd->filename);
+>>  	return 0;
+>>  }
+>>
+>> @@ -341,10 +344,74 @@ static int link_show(struct rd *rd)
+>>  	return rd_exec_link(rd, link_one_show, true);
+>>  }
+>>
+>> +static int link_add(struct rd *rd)
+>> +{
+>> +	char *name;
+>> +	char *type = NULL;
+>> +	char *dev = NULL;
+>> +	uint32_t seq;
+>> +
+>> +	if (rd_no_arg(rd)) {
+>> +		pr_err("No link name was supplied\n");
+> I think that it is better to have instruction message and not error
+> message: "Please provide ...".
 
 
-Only those flows where no nl attributes are expected to be returned.
+Ok.  Perhaps a new utility rd_exec_require_link() can be created?
 
 
-> Will we need this recv_msg if we implement
-> extack support?
+>> +		return -EINVAL;
+>> +	}
+>> +	name = rd_argv(rd);
+>> +	rd_arg_inc(rd);
+>> +	while (!rd_no_arg(rd)) {
+>> +		if (rd_argv_match(rd, "type")) {
+>> +			rd_arg_inc(rd);
+>> +			type = rd_argv(rd);
+>> +		} else if (rd_argv_match(rd, "netdev")) {
+>> +			rd_arg_inc(rd);
+>> +			dev = rd_argv(rd);
+>> +		} else {
+>> +			pr_err("Invalid parameter %s\n", rd_argv(rd));
+>> +			return -EINVAL;
+>> +		}
+>> +		rd_arg_inc(rd);
+> Please use chains of struct rd_cmd and rd_exec_cmd() instead of
+> open-coding parser.
 
 
-I'm not sure how extack works.  Do you know?
+Ok.  Like your recently merged series did...
+
+
+>> +	}
+>> +	if (!type) {
+>> +		pr_err("No type was supplied\n");
+>> +		return -EINVAL;
+> General parser handle it.
+
+
+Ok.
+
+
+>> +	}
+>> +	if (!dev) {
+>> +		pr_err("No net device was supplied\n");
+>> +		return -EINVAL;
+>> +	}
+> rd_exec_require_dev() ???
+
+
+Looks like I can use that.  I'll try it.
+
 
 Thanks!
+
 
 Steve.
