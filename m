@@ -1,67 +1,56 @@
 From: "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Subject: RE: [RFC v1 10/19] RDMA/irdma: Add connection manager
-Date: Tue, 26 Feb 2019 21:07:51 +0000
-Message-ID: <9DD61F30A802C4429A01CA4200E302A7A5A4FAF6@fmsmsx124.amr.corp.intel.com>
+Subject: RE: [RFC v1 04/19] RDMA/irdma: Add driver framework definitions
+Date: Tue, 26 Feb 2019 21:08:06 +0000
+Message-ID: <9DD61F30A802C4429A01CA4200E302A7A5A4FB1F@fmsmsx124.amr.corp.intel.com>
 References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-11-shiraz.saleem@intel.com>
- <0eafe40b-4c54-dc12-6a85-3a821d99d2cd@amazon.com>
- <20190225184629.GC21863@ziepe.ca>
+ <20190215171107.6464-5-shiraz.saleem@intel.com>
+ <5215c158-2935-ef45-db49-44caa84e07d3@amazon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190225184629.GC21863@ziepe.ca>
+In-Reply-To: <5215c158-2935-ef45-db49-44caa84e07d3@amazon.com>
 Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: 'Jason Gunthorpe' <jgg@ziepe.ca>, Gal Pressman <galpress@amazon.com>
-Cc: "dledford@redhat.com" <dledford@redhat.com>, "davem@davemloft.net" <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>
+To: 'Gal Pressman' <galpress@amazon.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
->Subject: Re: [RFC v1 10/19] RDMA/irdma: Add connection manager
->
->On Sun, Feb 24, 2019 at 01:21:16PM +0200, Gal Pressman wrote:
->> On 15-Feb-19 19:10, Shiraz Saleem wrote:
->> > +/**
->> > + * irdma_cm_teardown_connections - teardown QPs
->> > + * @iwdev: device pointer
->> > + * @ipaddr: Pointer to IPv4 or IPv6 address
->> > + * @ipv4: flag indicating IPv4 when true
->>
->> There is no ipv4 parameter.
->
->Be sure to run code through make W=1 - it runs stuff that checks the kdocs.
-
-OK. Will do. Thanks! We have a few hits here.
-
->
->> > +	INIT_LIST_HEAD(&teardown_list);
->> > +	for (i = 0; i < IRDMA_MAX_USER_PRIORITY; i++) {
->> > +		spin_lock_irqsave(&vsi->qos[i].lock, flags);
->> > +		list_for_each_safe(list_node, list_core_temp, &vsi->qos[i].qplist) {
->> > +			u32 qp_ip[4];
->> > +
->> > +			sc_qp = container_of(list_node, struct irdma_sc_qp, list);
->> > +			if (sc_qp->qp_type != IRDMA_QP_TYPE_ROCE_RC)
->> > +				continue;
->> > +
->> > +			qp = sc_qp->back_qp;
->> > +			if (!disconnect_all) {
->> > +				if (nfo->ipv4)
->> > +					qp_ip[0] = qp->udp_info.local_ipaddr3;
->> > +				else
->> > +					memcpy(qp_ip,
->> > +					       &qp->udp_info.local_ipaddr0,
->> > +					       sizeof(qp_ip));
->> > +			}
->> > +
->> > +			if (disconnect_all ||
->> > +			    (nfo->vlan_id == qp->udp_info.vlan_tag &&
->> > +			    !memcmp(qp_ip, ipaddr, nfo->ipv4 ? 4 : 16))) {
->> > +				spin_lock_irqsave(&iwdev->rf->qptable_lock,
->flags);
->>
->> You should use different 'flags' here.
->
->If irqs are already proven disabled it is just spin_lock, right?
->
-Correct.
+PlN1YmplY3Q6IFJlOiBbUkZDIHYxIDA0LzE5XSBSRE1BL2lyZG1hOiBBZGQgZHJpdmVyIGZyYW1l
+d29yayBkZWZpbml0aW9ucw0KPg0KPk9uIDE1LUZlYi0xOSAxOToxMCwgU2hpcmF6IFNhbGVlbSB3
+cm90ZToNCj4+ICsvKiBjbGllbnQgaW50ZXJmYWNlIGZ1bmN0aW9ucyAqLw0KPj4gK3N0YXRpYyBj
+b25zdCBzdHJ1Y3QgaTQwZV9jbGllbnRfb3BzIGk0MGVfb3BzID0gew0KPj4gKwkub3BlbiA9IGk0
+MGl3X29wZW4sDQo+PiArCS5jbG9zZSA9IGk0MGl3X2Nsb3NlLA0KPj4gKwkubDJfcGFyYW1fY2hh
+bmdlID0gaTQwaXdfbDJwYXJhbV9jaGFuZ2UsDQo+PiArCS52aXJ0Y2hubF9yZWNlaXZlID0gTlVM
+TCwNCj4+ICsJLnZmX3Jlc2V0ID0gTlVMTCwNCj4+ICsJLnZmX2VuYWJsZSA9IE5VTEwsDQo+PiAr
+CS52Zl9jYXBhYmxlID0gTlVMTA0KPg0KPk5VTEwgYXNzaWdubWVudHMgYXJlIHJlZHVuZGFudC4N
+Cj4NCj4+ICt9Ow0KPj4gKw0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9p
+cmRtYS9pcmRtYV9pZi5jDQo+PiBiL2RyaXZlcnMvaW5maW5pYmFuZC9ody9pcmRtYS9pcmRtYV9p
+Zi5jDQo+PiBuZXcgZmlsZSBtb2RlIDEwMDY0NA0KPj4gaW5kZXggMDAwMDAwMC4uZjdiODllOQ0K
+Pj4gLS0tIC9kZXYvbnVsbA0KPj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2h3L2lyZG1hL2ly
+ZG1hX2lmLmMNCj4+IEBAIC0wLDAgKzEsNDMwIEBADQo+PiArLy8gU1BEWC1MaWNlbnNlLUlkZW50
+aWZpZXI6IEdQTC0yLjAgb3IgTGludXgtT3BlbklCDQo+PiArLyogQ29weXJpZ2h0IChjKSAyMDE5
+LCBJbnRlbCBDb3Jwb3JhdGlvbi4gKi8NCj4+ICsNCj4+ICsjaW5jbHVkZSA8bGludXgvbW9kdWxl
+Lmg+DQo+PiArI2luY2x1ZGUgPGxpbnV4L21vZHVsZXBhcmFtLmg+DQo+PiArI2luY2x1ZGUgPGlj
+ZV9pZGMuaD4NCj4+ICsjaW5jbHVkZSAibWFpbi5oIg0KPj4gKyNpbmNsdWRlICJ3cy5oIg0KPj4g
+KyNpbmNsdWRlICJpY3JkbWFfaHcuaCINCj4+ICsNCj4+ICt2b2lkIGlyZG1hX2FkZF9kZXZfcmVm
+KHN0cnVjdCBpcmRtYV9zY19kZXYgKmRldikgew0KPj4gKwl0cnlfbW9kdWxlX2dldChUSElTX01P
+RFVMRSk7DQo+PiArfQ0KPj4gKw0KPj4gK3ZvaWQgaXJkbWFfcHV0X2Rldl9yZWYoc3RydWN0IGly
+ZG1hX3NjX2RldiAqZGV2KSB7DQo+PiArCW1vZHVsZV9wdXQoVEhJU19NT0RVTEUpOw0KPj4gK30N
+Cj4NCj5XaGF0IGFyZSB0aGVzZSB1c2VkIGZvcj8NCj4NCj4+ICsNCj4+ICsvKioNCj4+ICsgKiBp
+cmRtYV9maW5kX2l3ZGV2IC0gZmluZCBhIHZzaSBkZXZpY2UgZ2l2ZW4gYSBuYW1lDQo+PiArICog
+QG5hbWU6IG5hbWUgb2YgaXdkZXYNCj4+ICsgKi8NCj4NCj5DYW4ndCBmaW5kIHVzZXMgb2YgdGhp
+cyBmdW5jdGlvbiBhcyB3ZWxsLg0KPg0KPj4gK3N0cnVjdCBpcmRtYV9kZXZpY2UgKmlyZG1hX2Zp
+bmRfaXdkZXYoY29uc3QgY2hhciAqbmFtZSkgew0KPj4gKwlzdHJ1Y3QgaXJkbWFfaGFuZGxlciAq
+aGRsOw0KPj4gKwlzdHJ1Y3QgbGlzdF9oZWFkICpwb3M7DQo+PiArCXN0cnVjdCBsaXN0X2hlYWQg
+KnRtcDsNCj4+ICsJc3RydWN0IGlyZG1hX2RldmljZSAqaXdkZXY7DQo+PiArCXVuc2lnbmVkIGxv
+bmcgZmxhZ3M7DQo+PiArDQo+PiArCXNwaW5fbG9ja19pcnFzYXZlKCZpcmRtYV9oYW5kbGVyX2xv
+Y2ssIGZsYWdzKTsNCj4+ICsJbGlzdF9mb3JfZWFjaF9lbnRyeShoZGwsICZpcmRtYV9oYW5kbGVy
+cywgbGlzdCkgew0KPj4gKwkJbGlzdF9mb3JfZWFjaF9zYWZlKHBvcywgdG1wLCAmaGRsLT5yZi52
+c2lfZGV2X2xpc3QpIHsNCj4+ICsJCQlpd2RldiA9IGNvbnRhaW5lcl9vZihwb3MsIHN0cnVjdCBp
+cmRtYV9kZXZpY2UsIGxpc3QpOw0KPj4gKwkJCWlmICghc3RyY21wKG5hbWUsIGl3ZGV2LT5pd2li
+ZGV2LT5pYmRldi5uYW1lKSkgew0KPj4gKwkJCQlzcGluX3VubG9ja19pcnFyZXN0b3JlKCZpcmRt
+YV9oYW5kbGVyX2xvY2ssDQo+PiArCQkJCQkJICAgICAgIGZsYWdzKTsNCj4+ICsJCQkJcmV0dXJu
+IGl3ZGV2Ow0KPj4gKwkJCX0NCj4+ICsJCX0NCj4+ICsJfQ0KPj4gKwlzcGluX3VubG9ja19pcnFy
+ZXN0b3JlKCZpcmRtYV9oYW5kbGVyX2xvY2ssIGZsYWdzKTsNCj4+ICsNCj4+ICsJcmV0dXJuIE5V
+TEw7DQo+PiArfQ0KPj4gKw0KDQpXaWxsIGFsbCBmaXggMyBjb21tZW50cy4gVGhhbmtzIQ0K
