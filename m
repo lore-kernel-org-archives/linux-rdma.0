@@ -1,43 +1,104 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: Re: [PATCH for-next 3/3] IB/hfi1: Close race condition on user
- context disable and close
-Date: Tue, 26 Feb 2019 12:15:59 -0500
-Message-ID: <316cda1d-eeaa-c75a-a4d8-fb087cd38714@intel.com>
-References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
- <20190226164530.31476.26502.stgit@scvm10.sc.intel.com>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH v1 iproute2-next 1/4] rdma: add helper rd_sendrecv_msg()
+Date: Tue, 26 Feb 2019 11:19:12 -0600
+Message-ID: <7f48fc85-45ab-fe7d-9614-4c5eb50f8401@opengridcomputing.com>
+References: <cover.1550773362.git.swise@opengridcomputing.com>
+ <aa883bc5ffd63047cf57e2f9925002e7573fd7ac.1550773362.git.swise@opengridcomputing.com>
+ <20190223092615.GM23561@mtr-leonro.mtl.com>
+ <20190223093122.GO23561@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190226164530.31476.26502.stgit@scvm10.sc.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190223093122.GO23561@mtr-leonro.mtl.com>
 Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/26/2019 11:45 AM, Dennis Dalessandro wrote:
->   struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct hfi1_devdata *dd, u16 ctxt);
-> diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-> index 7841a0a..2cc5164 100644
-> --- a/drivers/infiniband/hw/hfi1/init.c
-> +++ b/drivers/infiniband/hw/hfi1/init.c
-> @@ -214,12 +214,12 @@ static void hfi1_rcd_free(struct kref *kref)
->   	struct hfi1_ctxtdata *rcd =
->   		container_of(kref, struct hfi1_ctxtdata, kref);
->   
-> -	hfi1_free_ctxtdata(rcd->dd, rcd);
-> -
->   	spin_lock_irqsave(&rcd->dd->uctxt_lock, flags);
->   	rcd->dd->rcd[rcd->ctxt] = NULL;
->   	spin_unlock_irqrestore(&rcd->dd->uctxt_lock, flags);
->   
-> +	hfi1_free_ctxtdata(rcd->dd, rcd);
-> +
->   	kfree(rcd);
->   }
->   
-Whoops, hold off on pulling this one just yet. We need to take a closer 
-look at the above hunk.
 
--Denny
+On 2/23/2019 3:31 AM, Leon Romanovsky wrote:
+> On Sat, Feb 23, 2019 at 11:26:15AM +0200, Leon Romanovsky wrote:
+>> On Thu, Feb 21, 2019 at 08:19:03AM -0800, Steve Wise wrote:
+>>> This function sends the constructed netlink message and then
+>>> receives the response, displaying any error text.
+>>>
+>>> Change 'rdma dev set' to use it.
+>>>
+>>> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+>>> ---
+>>>  rdma/dev.c   |  2 +-
+>>>  rdma/rdma.h  |  1 +
+>>>  rdma/utils.c | 21 +++++++++++++++++++++
+>>>  3 files changed, 23 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/rdma/dev.c b/rdma/dev.c
+>>> index 60ff4b31e320..d2949c378f08 100644
+>>> --- a/rdma/dev.c
+>>> +++ b/rdma/dev.c
+>>> @@ -273,7 +273,7 @@ static int dev_set_name(struct rd *rd)
+>>>  	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
+>>>  	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
+>>>
+>>> -	return rd_send_msg(rd);
+>>> +	return rd_sendrecv_msg(rd, seq);
+>>>  }
+>>>
+>>>  static int dev_one_set(struct rd *rd)
+>>> diff --git a/rdma/rdma.h b/rdma/rdma.h
+>>> index 547bb5749a39..20be2f12c4f8 100644
+>>> --- a/rdma/rdma.h
+>>> +++ b/rdma/rdma.h
+>>> @@ -115,6 +115,7 @@ bool rd_check_is_key_exist(struct rd *rd, const char *key);
+>>>   */
+>>>  int rd_send_msg(struct rd *rd);
+>>>  int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, uint32_t seq);
+>>> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq);
+>>>  void rd_prepare_msg(struct rd *rd, uint32_t cmd, uint32_t *seq, uint16_t flags);
+>>>  int rd_dev_init_cb(const struct nlmsghdr *nlh, void *data);
+>>>  int rd_attr_cb(const struct nlattr *attr, void *data);
+>>> diff --git a/rdma/utils.c b/rdma/utils.c
+>>> index 069d44fece10..a6f2826c9605 100644
+>>> --- a/rdma/utils.c
+>>> +++ b/rdma/utils.c
+>>> @@ -664,6 +664,27 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, unsigned int seq)
+>>>  	return ret;
+>>>  }
+>>>
+>>> +static int null_cb(const struct nlmsghdr *nlh, void *data)
+>>> +{
+>>> +	return MNL_CB_OK;
+>>> +}
+>>> +
+>>> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq)
+>>> +{
+>>> +	int ret;
+>>> +
+>>> +	ret = rd_send_msg(rd);
+>>> +	if (ret) {
+>>> +		perror(NULL);
+>> This is more or less already done in rd_send_msg() and that function
+>> prints something in case of execution error. So the missing piece
+>> is to update rd_recv_msg(), so all places will "magically" print errors
+>> and not only dev_set_name().
+>>
+>>> +		goto out;
+>>> +	}
+>>> +	ret = rd_recv_msg(rd, null_cb, rd, seq);
+> Will this "null_cb" work for all send/recv flows or only in flows where
+> response can be error only? 
+
+
+Only those flows where no nl attributes are expected to be returned.
+
+
+> Will we need this recv_msg if we implement
+> extack support?
+
+
+I'm not sure how extack works.  Do you know?
+
+Thanks!
+
+Steve.
