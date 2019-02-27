@@ -1,207 +1,383 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [RFC v1 11/19] RDMA/irdma: Add PBLE resource manager
-Date: Wed, 27 Feb 2019 08:58:04 +0200
-Message-ID: <20190227065804.GD11231@mtr-leonro.mtl.com>
+From: Gal Pressman <galpress@amazon.com>
+Subject: Re: [RFC v1 12/19] RDMA/irdma: Implement device supported verb APIs
+Date: Wed, 27 Feb 2019 09:31:39 +0200
+Message-ID: <d4aec1c7-a840-d7d6-e2e3-b1501e8a1b8c@amazon.com>
 References: <20190215171107.6464-1-shiraz.saleem@intel.com>
- <20190215171107.6464-12-shiraz.saleem@intel.com>
+ <20190215171107.6464-13-shiraz.saleem@intel.com>
+ <01b0d571-81d8-ed6c-77b7-e83ee0ab9caa@amazon.com>
+ <9DD61F30A802C4429A01CA4200E302A7A5A4FB85@fmsmsx124.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="8G1nIWD3RY794FAy"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190215171107.6464-12-shiraz.saleem@intel.com>
+In-Reply-To: <9DD61F30A802C4429A01CA4200E302A7A5A4FB85@fmsmsx124.amr.corp.intel.com>
+Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Shiraz Saleem <shiraz.saleem@intel.com>
-Cc: dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com
+To: "Saleem, Shiraz" <shiraz.saleem@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "davem@davemloft.net" <davem@davemloft.net>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Ismail, Mustafa" <mustafa.ismail@intel.com>, "Kirsher, Jeffrey T" <jeffrey.t.kirsher@intel.com>, Yossi Leybovich <sleybo@amazon.com>
 List-Id: linux-rdma@vger.kernel.org
 
+On 26-Feb-19 23:09, Saleem, Shiraz wrote:
+>> Subject: Re: [RFC v1 12/19] RDMA/irdma: Implement device supported verb APIs
+>>
+>> On 15-Feb-19 19:10, Shiraz Saleem wrote:
+>>> /**
+>>>  * irdma_dealloc_ucontext - deallocate the user context data structure
+>>>  * @context: user context created during alloc  */ static int
+>>> irdma_dealloc_ucontext(struct ib_ucontext *context) {
+>>> 	struct irdma_ucontext *ucontext = to_ucontext(context);
+>>> 	unsigned long flags;
+>>>
+>>> 	spin_lock_irqsave(&ucontext->cq_reg_mem_list_lock, flags);
+>>> 	if (!list_empty(&ucontext->cq_reg_mem_list)) {
+>>> 		spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
+>>> 		return -EBUSY;
+>>> 	}
+>>> 	spin_unlock_irqrestore(&ucontext->cq_reg_mem_list_lock, flags);
+>>>
+>>> 	spin_lock_irqsave(&ucontext->qp_reg_mem_list_lock, flags);
+>>> 	if (!list_empty(&ucontext->qp_reg_mem_list)) {
+>>> 		spin_unlock_irqrestore(&ucontext->qp_reg_mem_list_lock, flags);
+>>> 		return -EBUSY;
+>>
+>> Drivers are not permitted to fail dealloc_ucontext.
+> 
+> This is fixed in RFC v1 submission. Maybe this was pasted from the v0 ver?
+> 
+> [..]
+> 
+>>> +/**
+>>> + * irdma_alloc_pd - allocate protection domain
+>>> + * @pd: PD pointer
+>>> + * @context: user context created during alloc
+>>> + * @udata: user data
+>>> + */
+>>> +static int irdma_alloc_pd(struct ib_pd *pd,
+>>> +			  struct ib_ucontext *context,
+>>> +			  struct ib_udata *udata)
+>>> +{
+>>> +	struct irdma_pd *iwpd = to_iwpd(pd);
+>>> +	struct irdma_device *iwdev = to_iwdev(pd->device);
+>>> +	struct irdma_sc_dev *dev = &iwdev->rf->sc_dev;
+>>> +	struct irdma_pci_f *rf = iwdev->rf;
+>>> +	struct irdma_alloc_pd_resp uresp = {};
+>>> +	struct irdma_sc_pd *sc_pd;
+>>> +	struct irdma_ucontext *ucontext;
+>>> +	u32 pd_id = 0;
+>>> +	int err;
+>>> +
+>>> +	if (iwdev->closing)
+>>> +		return -ENODEV;
+>>> +
+>>> +	err = irdma_alloc_rsrc(rf, rf->allocated_pds, rf->max_pd, &pd_id,
+>>> +			       &rf->next_pd);
+>>> +	if (err)
+>>> +		return err;
+>>> +
+>>> +	sc_pd = &iwpd->sc_pd;
+>>> +	if (context) {
+>>
+>> I think this should be 'if (udata)', this applies to many other places in this driver.
+> 
+> That’s right. Will fix it.
+> 
+>>
+>>> +		ucontext = to_ucontext(context);
+>>> +		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, ucontext->abi_ver);
+>>> +		uresp.pd_id = pd_id;
+>>> +		if (ib_copy_to_udata(udata, &uresp, sizeof(uresp))) {
+>>> +			err = -EFAULT;
+>>> +			goto error;
+>>> +		}
+>>> +	} else {
+>>> +		dev->iw_pd_ops->pd_init(dev, sc_pd, pd_id, -1);
+>>> +	}
+>>> +
+>>> +	irdma_add_pdusecount(iwpd);
+>>> +
+>>> +	return 0;
+>>> +error:
+>>> +	irdma_free_rsrc(rf, rf->allocated_pds, pd_id);
+>>> +
+>>> +	return err;
+>>> +}
+>>> +/**
+>>> + * irdma_create_qp - create qp
+>>> + * @ibpd: ptr of pd
+>>> + * @init_attr: attributes for qp
+>>> + * @udata: user data for create qp
+>>> + */
+>>> +static struct ib_qp *irdma_create_qp(struct ib_pd *ibpd,
+>>> +				     struct ib_qp_init_attr *init_attr,
+>>> +				     struct ib_udata *udata)
+>>> +{
+>>> +	struct irdma_pd *iwpd = to_iwpd(ibpd);
+>>> +	struct irdma_device *iwdev = to_iwdev(ibpd->device);
+>>> +	struct irdma_pci_f *rf = iwdev->rf;
+>>> +	struct irdma_cqp *iwcqp = &rf->cqp;
+>>> +	struct irdma_qp *iwqp;
+>>> +	struct irdma_ucontext *ucontext;
+>>> +	struct irdma_create_qp_req req;
+>>> +	struct irdma_create_qp_resp uresp = {};
+>>> +	struct i40iw_create_qp_resp uresp_gen1 = {};
+>>> +	u32 qp_num = 0;
+>>> +	void *mem;
+>>> +	enum irdma_status_code ret;
+>>> +	int err_code = 0;
+>>> +	int sq_size;
+>>> +	int rq_size;
+>>> +	struct irdma_sc_qp *qp;
+>>> +	struct irdma_sc_dev *dev = &rf->sc_dev;
+>>> +	struct irdma_qp_init_info init_info = {};
+>>> +	struct irdma_create_qp_info *qp_info;
+>>> +	struct irdma_cqp_request *cqp_request;
+>>> +	struct cqp_cmds_info *cqp_info;
+>>> +	struct irdma_qp_host_ctx_info *ctx_info;
+>>> +	struct irdma_iwarp_offload_info *iwarp_info;
+>>> +	struct irdma_roce_offload_info *roce_info;
+>>> +	struct irdma_udp_offload_info *udp_info;
+>>> +	unsigned long flags;
+>>> +
+>>> +	if (iwdev->closing)
+>>> +		return ERR_PTR(-ENODEV);
+>>> +
+>>> +	if (init_attr->create_flags)
+>>> +		return ERR_PTR(-EINVAL);
+>>> +
+>>> +	if (init_attr->cap.max_inline_data > dev->hw_attrs.max_hw_inline)
+>>> +		init_attr->cap.max_inline_data = dev->hw_attrs.max_hw_inline;
+>>> +
+>>> +	if (init_attr->cap.max_send_sge > dev->hw_attrs.max_hw_wq_frags)
+>>> +		init_attr->cap.max_send_sge = dev-
+>>> hw_attrs.max_hw_wq_frags;
+>>> +
+>>> +	if (init_attr->cap.max_recv_sge > dev->hw_attrs.max_hw_wq_frags)
+>>> +		init_attr->cap.max_recv_sge = dev->hw_attrs.max_hw_wq_frags;
+>>
+>> AFAIK, you can change the requested values to be greater than or equal to the
+>> values requested. I don't think you can change them to something smaller.
+> 
+> Hmm...This is a sanity check to make sure we don’t exceed the device supported values.
+> But we should fail the call.
+> 
+> [..]
+> 
+>>> +	mem = kzalloc(sizeof(*iwqp), GFP_KERNEL);
+>>> +	if (!mem)
+>>> +		return ERR_PTR(-ENOMEM);
+>>> +
+>>> +	iwqp = (struct irdma_qp *)mem;
+>>> +	iwqp->allocated_buf = mem;
+>>
+>> 'allocated_buf' feels redundant. Why is iwqp not sufficient?
+> 
+> I agree.
+> [..]
+> 
+>>> +	if (udata) {
+>>> +		err_code = ib_copy_from_udata(&req, udata, sizeof(req));
+>>
+>> Perhaps ib_copy_from_udata(&req, udata, min(sizeof(req), udata->inlen)?
+>> Applies to other call sites of ib_copy_from/to_udata as well.
+>>
+> 
+> It’s a good idea.
+> 
+>>> + * irdma_query - query qp attributes
+>>> + * @ibqp: qp pointer
+>>> + * @attr: attributes pointer
+>>> + * @attr_mask: Not used
+>>> + * @init_attr: qp attributes to return  */ static int
+>>> +irdma_query_qp(struct ib_qp *ibqp,
+>>> +			  struct ib_qp_attr *attr,
+>>> +			  int attr_mask,
+>>> +			  struct ib_qp_init_attr *init_attr) {
+>>> +	struct irdma_qp *iwqp = to_iwqp(ibqp);
+>>> +	struct irdma_sc_qp *qp = &iwqp->sc_qp;
+>>> +
+>>> +	attr->qp_state = iwqp->ibqp_state;
+>>> +	attr->cur_qp_state = iwqp->ibqp_state;
+>>> +	attr->qp_access_flags = 0;
+>>> +	attr->cap.max_send_wr = qp->qp_uk.sq_size - 1;
+>>> +	attr->cap.max_recv_wr = qp->qp_uk.rq_size - 1;
+>>
+>> Why -1?
+> 
+> It's reserved for HW. But the equation should be 
+> (sqdepth - I40IW_SQ_RSVD) >> sqshift.
+> 
+> [....]
+>>
+>>> +	attr->cap.max_inline_data = qp->qp_uk.max_inline_data;
+>>> +	attr->cap.max_send_sge = qp->qp_uk.max_sq_frag_cnt;
+>>> +	attr->cap.max_recv_sge = qp->qp_uk.max_rq_frag_cnt;
+>>> +	attr->qkey = iwqp->roce_info.qkey;
+>>> +
+>>> +	init_attr->event_handler = iwqp->ibqp.event_handler;
+>>> +	init_attr->qp_context = iwqp->ibqp.qp_context;
+>>> +	init_attr->send_cq = iwqp->ibqp.send_cq;
+>>> +	init_attr->recv_cq = iwqp->ibqp.recv_cq;
+>>> +	init_attr->srq = iwqp->ibqp.srq;
+>>> +	init_attr->cap = attr->cap;
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +/**
+>>> + * irdma_destroy_cq - destroy cq
+>>> + * @ib_cq: cq pointer
+>>> + */
+>>> +static int irdma_destroy_cq(struct ib_cq *ib_cq) {
+>>> +	struct irdma_cq *iwcq;
+>>> +	struct irdma_device *iwdev;
+>>> +	struct irdma_sc_cq *cq;
+>>> +
+>>> +	if (!ib_cq) {
+>>> +		irdma_pr_err("ib_cq == NULL\n");
+>>> +		return 0;
+>>> +	}
+>>
+>> Is this really needed? Which caller can pass NULL pointer?
+> 
+> Not needed.
+> 
+>>> +
+>>> +/**
+>>> + * board_id_show
+>>> + */
+>>> +static ssize_t board_id_show(struct device *dev,
+>>> +			     struct device_attribute *attr,
+>>> +			     char *buf)
+>>> +{
+>>> +	return sprintf(buf, "%.*s\n", 32, "IRDMA Board ID");
+>>
+>> That doesn't add much information.
+> 
+> Will fix.
+> 
+>>
+>>> +}
+>>> +
+>>> +static DEVICE_ATTR_RO(hw_rev);
+>>> +static DEVICE_ATTR_RO(hca_type);
+>>> +static DEVICE_ATTR_RO(board_id);
+>>> +
+>>> +static struct attribute *irdma_dev_attributes[] = {
+>>> +	&dev_attr_hw_rev.attr,
+>>> +	&dev_attr_hca_type.attr,
+>>> +	&dev_attr_board_id.attr,
+>>> +	NULL
+>>> +};
+>>> +
+>>> +static const struct attribute_group irdma_attr_group = {
+>>> +	.attrs = irdma_dev_attributes,
+>>> +};
+>>> +
+>>> +/**
+>>> + * irdma_modify_port  Modify port properties
+>>> + * @ibdev: device pointer from stack
+>>> + * @port: port number
+>>> + * @port_modify_mask: mask for port modifications
+>>> + * @props: port properties
+>>> + */
+>>> +static int irdma_modify_port(struct ib_device *ibdev,
+>>> +			     u8 port,
+>>> +			     int port_modify_mask,
+>>> +			     struct ib_port_modify *props) {
+>>> +	return 0;
+>>> +}
+>>
+>> Same question as disacossiate_ucontext.
+> 
+> This was likely added during early dev. and can be removed.
+> 
+>>
+>>> +
+>>> +/**
+>>> + * irdma_query_gid_roce - Query port GID for Roce
+>>> + * @ibdev: device pointer from stack
+>>> + * @port: port number
+>>> + * @index: Entry index
+>>> + * @gid: Global ID
+>>> + */
+>>> +static int irdma_query_gid_roce(struct ib_device *ibdev,
+>>> +				u8 port,
+>>> +				int index,
+>>> +				union ib_gid *gid)
+>>> +{
+>>> +	int ret;
+>>> +
+>>> +	ret = rdma_query_gid(ibdev, port, index, gid);
+>>> +	if (ret == -EAGAIN) {
+>>
+>> I can't see a path where rdma_query_gid returns -EAGAIN.
+> 
+> This function can be removed now. It's only applicable to non-Roce providers.
+> 
+>>
+>>> +		memcpy(gid, &zgid, sizeof(*gid));
+>>> +		return 0;
+>>> +	}
+>>> +
+>>> +	return ret;
+>>> +}
+>>> +
+>>
+>>> +/**
+>>> + * irdma_create_ah - create address handle
+>>> + * @ibpd: ptr to protection domain
+>>> + * @ah_attr: address handle attributes
+>>
+>> 'ah_attr' -> 'attr', missing flags and udata.
+> 
+> Will fix all these hits in the driver.
+> 
+> [..]
+>>> + */
+>>> +static int irdma_destroy_ah(struct ib_ah *ibah, u32 flags) {
+>>> +	struct irdma_device *iwdev = to_iwdev(ibah->device);
+>>> +	struct irdma_ah *ah = to_iwah(ibah);
+>>> +	int err;
+>>> +
+>>> +	if (!ah->sc_ah.ah_info.ah_valid)
+>>> +		return -EINVAL;
+>>> +
+>>> +	err = irdma_ah_cqp_op(iwdev->rf, &ah->sc_ah,
+>> IRDMA_OP_AH_DESTROY,
+>>> +			      flags & RDMA_DESTROY_AH_SLEEPABLE,
+>>> +			      irdma_destroy_ah_cb, ah);
+>>> +	if (!err)
+>>> +		return 0;
+>>
+>> Why are the rest of the cleanups only in case of error?
+> 
+> On success, the cleanup is done in the callback, irdma_destroy_ah_cb.
+> 
+> [...]
+> 
+> 
+>>> +static __be64 irdma_mac_to_guid(struct net_device *ndev) {
+>>> +	unsigned char *mac = ndev->dev_addr;
+>>> +	__be64 guid;
+>>> +	unsigned char *dst = (unsigned char *)&guid;
+>>> +
+>>> +	dst[0] = mac[0] ^ 2;
+>>> +	dst[1] = mac[1];
+>>> +	dst[2] = mac[2];
+>>> +	dst[3] = 0xff;
+>>> +	dst[4] = 0xfe;
+>>> +	dst[5] = mac[3];
+>>> +	dst[6] = mac[4];
+>>> +	dst[7] = mac[5];
+>>> +
+>>> +	return guid;
+>>> +}
+>>
+>> There's a variant of this function in irdma, bnxt_re, ocrdma and qedr.
+>> Maybe it's time to provide it in common code?
+> 
+> Agreed.
+> 
 
---8G1nIWD3RY794FAy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Feb 15, 2019 at 11:10:58AM -0600, Shiraz Saleem wrote:
-> From: Mustafa Ismail <mustafa.ismail@intel.com>
->
-> Implement a Physical Buffer List Entry (PBLE) resource manager
-> to manage a pool of PBLE HMC resource objects.
->
-> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
-> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
-> ---
->  drivers/infiniband/hw/irdma/pble.c | 520 +++++++++++++++++++++++++++++++++++++
->  drivers/infiniband/hw/irdma/pble.h | 135 ++++++++++
->  2 files changed, 655 insertions(+)
->  create mode 100644 drivers/infiniband/hw/irdma/pble.c
->  create mode 100644 drivers/infiniband/hw/irdma/pble.h
->
-> diff --git a/drivers/infiniband/hw/irdma/pble.c b/drivers/infiniband/hw/irdma/pble.c
-> new file mode 100644
-> index 0000000..66fab69
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/irdma/pble.c
-> @@ -0,0 +1,520 @@
-> +// SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
-> +/* Copyright (c) 2019, Intel Corporation. */
-> +
-> +#include "osdep.h"
-> +#include "status.h"
-> +#include "hmc.h"
-> +#include "defs.h"
-> +#include "type.h"
-> +#include "protos.h"
-> +#include "pble.h"
-> +
-> +static enum irdma_status_code add_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc);
-> +
-> +/**
-> + * irdma_destroy_pble_prm - destroy prm during module unload
-> + * @pble_rsrc:	pble resources
-> + */
-> +void irdma_destroy_pble_prm(struct irdma_hmc_pble_rsrc *pble_rsrc)
-> +{
-> +	struct irdma_sc_dev *dev = pble_rsrc->dev;
-> +	struct irdma_chunk *chunk;
-> +	struct irdma_pble_prm *pinfo = &pble_rsrc->pinfo;
-> +
-> +	while (!list_empty(&pinfo->clist)) {
-> +		chunk = (struct irdma_chunk *)pinfo->clist.next;
-> +		list_del(&chunk->list);
-> +		if (chunk->type == PBLE_SD_PAGED)
-> +			irdma_pble_free_paged_mem(chunk);
-> +		if (chunk->bitmapbuf)
-> +			irdma_free_virt_mem(dev->hw, &chunk->bitmapmem);
-> +		irdma_free_virt_mem(dev->hw, &chunk->chunkmem);
-> +	}
-> +}
-> +
-> +/**
-> + * irdma_hmc_init_pble - Initialize pble resources during module load
-> + * @dev: irdma_sc_dev struct
-> + * @pble_rsrc:	pble resources
-> + */
-> +enum irdma_status_code
-> +irdma_hmc_init_pble(struct irdma_sc_dev *dev,
-> +		    struct irdma_hmc_pble_rsrc *pble_rsrc)
-> +{
-> +	struct irdma_hmc_info *hmc_info;
-> +	u32 fpm_idx = 0;
-> +	enum irdma_status_code status = 0;
-> +
-> +	hmc_info = dev->hmc_info;
-> +	pble_rsrc->dev = dev;
-> +	pble_rsrc->fpm_base_addr = hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].base;
-> +	/* Start pble' on 4k boundary */
-> +	if (pble_rsrc->fpm_base_addr & 0xfff)
-> +		fpm_idx = (PAGE_SIZE - (pble_rsrc->fpm_base_addr & 0xfff)) >> 3;
-> +	pble_rsrc->unallocated_pble =
-> +		hmc_info->hmc_obj[IRDMA_HMC_IW_PBLE].cnt - fpm_idx;
-> +	pble_rsrc->next_fpm_addr = pble_rsrc->fpm_base_addr + (fpm_idx << 3);
-> +	pble_rsrc->pinfo.pble_shift = PBLE_SHIFT;
-> +
-> +	spin_lock_init(&pble_rsrc->pinfo.prm_lock);
-> +	INIT_LIST_HEAD(&pble_rsrc->pinfo.clist);
-> +	if (add_pble_prm(pble_rsrc)) {
-> +		irdma_destroy_pble_prm(pble_rsrc);
-> +		status = IRDMA_ERR_NO_MEMORY;
-> +	}
-> +
-> +	return status;
-> +}
-> +
-> +/**
-> + * get_sd_pd_idx -  Returns sd index, pd index and rel_pd_idx from fpm address
-> + * @ pble_rsrc:	structure containing fpm address
-> + * @ idx: where to return indexes
-> + */
-> +static void get_sd_pd_idx(struct irdma_hmc_pble_rsrc *pble_rsrc,
-> +			  struct sd_pd_idx *idx)
-> +{
-> +	idx->sd_idx = (u32)(pble_rsrc->next_fpm_addr) /
-> +		      IRDMA_HMC_DIRECT_BP_SIZE;
-> +	idx->pd_idx = (u32)(pble_rsrc->next_fpm_addr) / IRDMA_HMC_PAGED_BP_SIZE;
-> +	idx->rel_pd_idx = (idx->pd_idx % IRDMA_HMC_PD_CNT_IN_SD);
-
-The amount of type-casting in this driver is astonishing. It will be
-better to declare all types to be aligned from the beginning.
-
-
-> +}
-> +
-> +/**
-> + * add_sd_direct - add sd direct for pble
-> + * @pble_rsrc: pble resource ptr
-> + * @info: page info for sd
-> + */
-> +static enum irdma_status_code
-> +add_sd_direct(struct irdma_hmc_pble_rsrc *pble_rsrc,
-> +	      struct irdma_add_page_info *info)
-> +{
-> +	struct irdma_sc_dev *dev = pble_rsrc->dev;
-> +	enum irdma_status_code ret_code = 0;
-> +	struct sd_pd_idx *idx = &info->idx;
-> +	struct irdma_chunk *chunk = info->chunk;
-> +	struct irdma_hmc_info *hmc_info = info->hmc_info;
-> +	struct irdma_hmc_sd_entry *sd_entry = info->sd_entry;
-> +	u32 offset = 0;
-> +
-> +	if (!sd_entry->valid) {
-> +		ret_code = irdma_add_sd_table_entry(dev->hw, hmc_info,
-> +						    info->idx.sd_idx,
-> +						    IRDMA_SD_TYPE_DIRECT,
-> +						    IRDMA_HMC_DIRECT_BP_SIZE);
-> +		if (ret_code)
-> +			return ret_code;
-> +
-> +		chunk->type = PBLE_SD_CONTIGOUS;
-> +	}
-> +
-> +	offset = idx->rel_pd_idx << HMC_PAGED_BP_SHIFT;
-> +	chunk->size = info->pages << HMC_PAGED_BP_SHIFT;
-> +	chunk->vaddr = (u64)((u8 *)sd_entry->u.bp.addr.va + offset);
-> +	chunk->fpm_addr = pble_rsrc->next_fpm_addr;
-> +	irdma_debug(dev, IRDMA_DEBUG_PBLE,
-> +		    "chunk_size[%lld] = 0x%llx vaddr=0x%llx fpm_addr = %llx\n",
-> +		    chunk->size, chunk->size, chunk->vaddr, chunk->fpm_addr);
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * fpm_to_idx - given fpm address, get pble index
-> + * @pble_rsrc: pble resource management
-> + * @addr: fpm address for index
-> + */
-> +static u32 fpm_to_idx(struct irdma_hmc_pble_rsrc *pble_rsrc, u64 addr)
-> +{
-> +	u64 idx;
-> +
-> +	idx = (addr - (pble_rsrc->fpm_base_addr)) >> 3;
-> +
-> +	return (u32)idx;
-
-lower_32_bits()
-
-Thanks
-
---8G1nIWD3RY794FAy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcdjT8AAoJEORje4g2clinvVMQAIGpFwR0ehD7O5HJNeRaowjG
-m44GmDz89PvtiQqui0NBnAb8UT5EPsRdGpcZp2UbybTQZloy8u9wwaBt1Sp229xl
-Jf0Hi4Kt7/aVfP/8OhapqbOj0OlXlhBEbvIdoa8zEWg1nXfK9S4IUI6EPpsYQb/8
-WGmeaD+2tgaU6keATzttxAgRyvvGzm3zKcW+lCw3Bz35OiSk3JkLHY+KrRWNP5Y6
-vTaqX57Cu1vIO7+MzCAKQeLpit08fNNNjAQ1svQ/Xwc6tveuIDv5mZDTPC6Qq/eW
-FoGSVeWJXFiKdI4J2ETR5QNEZTgIDzApyZiAy/dDpGoLXbZ7tesLSeU0cubVNLd4
-kcCFYZDYTNaIfsFXsV3Vzx+tFBJtLLZv/6HdhUMzeDtPN7Kt9XoLc05Fst/tLixP
-0Ukgfpw93RayQJbP8bEw6hDLgxgiUe4YvOlqtrumUO/AjgUpNk6LY6NvMtX251Yh
-np6MXDXVp3xYY5EMCovBW4ECZykpZRhNIhDOLKwmNuAAXy679in4ZWKxKcUmqlkl
-V/16iN+dalds58XlKDuhhDCcAwoWVgJogMVqMBtnfGctEJwt3eGMGr5QXiEa6yka
-xPdF8wyH8So7xymnJN9nbyEG0JWd2Zkxvpm7F5UVqLWD96HTvBSXcWR+5UrRfONb
-7YWAjQwgwTfXBbwmLgn8
-=c0wF
------END PGP SIGNATURE-----
-
---8G1nIWD3RY794FAy--
+Other than that:
+Reviewed-by: Gal Pressman <galpress@amazon.com>
