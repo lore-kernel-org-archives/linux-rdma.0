@@ -1,80 +1,63 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next] rdma: Add the prefix for driver attributes
-Date: Wed, 27 Feb 2019 08:41:51 +0200
-Message-ID: <20190227064151.25445-1-leon@kernel.org>
+Subject: Re: [RFC v1 13/19] RDMA/irdma: Add RoCEv2 UD OP support
+Date: Wed, 27 Feb 2019 08:50:56 +0200
+Message-ID: <20190227065056.GC11231@mtr-leonro.mtl.com>
+References: <20190215171107.6464-1-shiraz.saleem@intel.com>
+ <20190215171107.6464-14-shiraz.saleem@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="96dIhm/ZjrNld+BP"
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190215171107.6464-14-shiraz.saleem@intel.com>
 Sender: netdev-owner@vger.kernel.org
-To: David Ahern <dsahern@gmail.com>, Lijun Ou <oulijun@huawei.com>, Steve Wise <swise@opengridcomputing.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
+To: Shiraz Saleem <shiraz.saleem@intel.com>
+Cc: dledford@redhat.com, jgg@ziepe.ca, davem@davemloft.net, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, mustafa.ismail@intel.com, jeffrey.t.kirsher@intel.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
 
-There is a need to distinguish between driver vs. general exposed
-attributes. The most common use case is to expose some internal
-garbage under extremely common and sexy name, e.g. pi, ci e.t.c
+--96dIhm/ZjrNld+BP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-In order to achieve that, we will add "drv_" prefix to all strings
-which were received through RDMA_NLDEV_ATTR_DRIVER_* attributes.
+On Fri, Feb 15, 2019 at 11:11:00AM -0600, Shiraz Saleem wrote:
+> From: Mustafa Ismail <mustafa.ismail@intel.com>
+>
+> Add the header, data structures and functions
+> to populate the WQE descriptors and issue the
+> Control QP commands that support RoCEv2 UD operations.
+>
+> Signed-off-by: Mustafa Ismail <mustafa.ismail@intel.com>
+> Signed-off-by: Shiraz Saleem <shiraz.saleem@intel.com>
+> ---
 
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>a
----
- rdma/utils.c | 34 ++++++++++++++++++++++------------
- 1 file changed, 22 insertions(+), 12 deletions(-)
+<...>
 
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 6bc14cd5..1f6bf330 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -829,27 +829,37 @@ static int print_driver_entry(struct rd *rd, struct nlattr *key_attr,
- 				struct nlattr *val_attr,
- 				enum rdma_nldev_print_type print_type)
- {
--	const char *key_str = mnl_attr_get_str(key_attr);
- 	int attr_type = nla_type(val_attr);
-+	int ret = -EINVAL;
-+	char *key_str;
-+
-+	if (asprintf(&key_str, "drv_%s", mnl_attr_get_str(key_attr)) == -1)
-+		return -ENOMEM;
+> +#define IRDMA_UDA_QPSQ_IMMDATA_M \
+> +	((u64)0xffffffffffffffffULL << IRDMA_UDA_QPSQ_IMMDATA_S)
 
- 	switch (attr_type) {
- 	case RDMA_NLDEV_ATTR_DRIVER_STRING:
--		return print_driver_string(rd, key_str,
--				mnl_attr_get_str(val_attr));
-+		ret = print_driver_string(rd, key_str,
-+					  mnl_attr_get_str(val_attr));
-+		break;
- 	case RDMA_NLDEV_ATTR_DRIVER_S32:
--		return print_driver_s32(rd, key_str,
--				mnl_attr_get_u32(val_attr), print_type);
-+		ret = print_driver_s32(rd, key_str, mnl_attr_get_u32(val_attr),
-+				       print_type);
-+		break;
- 	case RDMA_NLDEV_ATTR_DRIVER_U32:
--		return print_driver_u32(rd, key_str,
--				mnl_attr_get_u32(val_attr), print_type);
-+		ret = print_driver_u32(rd, key_str, mnl_attr_get_u32(val_attr),
-+				       print_type);
-+		break;
- 	case RDMA_NLDEV_ATTR_DRIVER_S64:
--		return print_driver_s64(rd, key_str,
--				mnl_attr_get_u64(val_attr), print_type);
-+		ret = print_driver_s64(rd, key_str, mnl_attr_get_u64(val_attr),
-+				       print_type);
-+		break;
- 	case RDMA_NLDEV_ATTR_DRIVER_U64:
--		return print_driver_u64(rd, key_str,
--				mnl_attr_get_u64(val_attr), print_type);
-+		ret = print_driver_u64(rd, key_str, mnl_attr_get_u64(val_attr),
-+				       print_type);
-+		break;
- 	}
--	return -EINVAL;
-+	free(key_str);
-+	return ret;
- }
+Both u64 and ULL?
 
- void print_driver_table(struct rd *rd, struct nlattr *tb)
+Thanks
+
+--96dIhm/ZjrNld+BP
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcdjNQAAoJEORje4g2clinWswP/2QNWjZLDmkDvVpZbm8jDyPS
+sO5bKtlb/wQ1kQkmB20pNNzWf5XCW87rF9KmfqZxllwRmMsLzTuNPLv4ely0Z/o3
+Y6XEC4plpvw6W7FbUShrkQqXbL0EznVs9PiXarqnqjui+baN1KOWGK/ICod0odnk
+B4ysjfE9gZY1lIcboTyBgj6UgV6ucsR9vz9fuL2c05AYJtanvF0GT1xGfIMfJ3iZ
+XDIT5frhyCokET5nyTSQmj6T6qpbBpmYsoFujcFBCJYWADxGnpsgdB0J4opbX+8l
+5T8iipA0dZBMjsL+j7nW5lnOlYZlam629bcIEeWy2ssoIfG4Qny3OEo87BqDHVTV
+C8ksREPk9p189B0LslGunJBscwmdTXRQzx1vqfGh/khwZzYhDyNXcMppEeH1UqhT
+TpwL4/qXkew200W1jHi+z3YL+ww4VJb/z+E9UTJ3WmM31DUyy77MTHvHneVnUvQy
+w7YTunH7ULeJYUaHGIgOhAZHlAu/5/HC5E2JVxYMGrXL3qStPNzvna1/FKrzKJhL
+VdzpmfY6NnHteAkSp0JbmIypAJxuo4RDyVcqhc4GsSm9Bmuyuqry0fxeDsPa/hW9
+VoBS4G2OfNPUUDySowr75Db9WMqMN5kj5sZSPhP4dmNoz4CLbcTBYD9Vioq1pVp0
+r1acJsEz00pAxUxo2a4R
+=wiU5
+-----END PGP SIGNATURE-----
+
+--96dIhm/ZjrNld+BP--
