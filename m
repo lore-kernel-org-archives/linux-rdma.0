@@ -1,104 +1,106 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
-Date: Wed, 27 Feb 2019 11:14:42 -0800
-Message-ID: <20190227191442.GB31669@iweiny-DESK2.sc.intel.com>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
+From: "Steve Wise" <swise@opengridcomputing.com>
+Subject: RE: [PATCH v1 iproute2-next 1/4] rdma: add helper rd_sendrecv_msg()
+Date: Wed, 27 Feb 2019 14:23:45 -0600
+Message-ID: <021201d4ceda$56d9e560$048db020$@opengridcomputing.com>
+References: <cover.1550773362.git.swise@opengridcomputing.com> <aa883bc5ffd63047cf57e2f9925002e7573fd7ac.1550773362.git.swise@opengridcomputing.com> <20190223092615.GM23561@mtr-leonro.mtl.com> <11ec7e04-1bff-e3b2-1b89-db134cd537ba@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, kvm-ppc@vger.kernel.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <11ec7e04-1bff-e3b2-1b89-db134cd537ba@opengridcomputing.com>
+Content-Language: en-us
+Sender: netdev-owner@vger.kernel.org
+To: 'Leon Romanovsky' <leon@kernel.org>
+Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBGZWIgMTksIDIwMTkgYXQgMDk6MzA6MzNQTSAtMDgwMCwgJ0lyYSBXZWlueScgd3Jv
-dGU6Cj4gRnJvbTogSXJhIFdlaW55IDxpcmEud2VpbnlAaW50ZWwuY29tPgo+IAo+IFJlc2VuZGlu
-ZyB0aGVzZSBhcyBJIGhhZCBvbmx5IDEgbWlub3IgY29tbWVudCB3aGljaCBJIGJlbGlldmUgd2Ug
-aGF2ZSBjb3ZlcmVkCj4gaW4gdGhpcyBzZXJpZXMuICBJIHdhcyBhbnRpY2lwYXRpbmcgdGhlc2Ug
-Z29pbmcgdGhyb3VnaCB0aGUgbW0gdHJlZSBhcyB0aGV5Cj4gZGVwZW5kIG9uIGEgY2xlYW51cCBw
-YXRjaCB0aGVyZSBhbmQgdGhlIElCIGNoYW5nZXMgYXJlIHZlcnkgbWlub3IuICBCdXQgdGhleQo+
-IGNvdWxkIGp1c3QgYXMgd2VsbCBnbyB0aHJvdWdoIHRoZSBJQiB0cmVlLgo+IAo+IE5PVEU6IFRo
-aXMgc2VyaWVzIGRlcGVuZHMgb24gbXkgY2xlYW4gdXAgcGF0Y2ggdG8gcmVtb3ZlIHRoZSB3cml0
-ZSBwYXJhbWV0ZXIKPiBmcm9tIGd1cF9mYXN0X3Blcm1pdHRlZCgpWzFdCj4gCj4gSEZJMSwgcWli
-LCBhbmQgbXRoY2EsIHVzZSBnZXRfdXNlcl9wYWdlc19mYXN0KCkgZHVlIHRvIGl0IHBlcmZvcm1h
-bmNlCj4gYWR2YW50YWdlcy4gIFRoZXNlIHBhZ2VzIGNhbiBiZSBoZWxkIGZvciBhIHNpZ25pZmlj
-YW50IHRpbWUuICBCdXQKPiBnZXRfdXNlcl9wYWdlc19mYXN0KCkgZG9lcyBub3QgcHJvdGVjdCBh
-Z2FpbnN0IG1hcHBpbmcgb2YgRlMgREFYIHBhZ2VzLgo+IAo+IEludHJvZHVjZSBGT0xMX0xPTkdU
-RVJNIGFuZCB1c2UgdGhpcyBmbGFnIGluIGdldF91c2VyX3BhZ2VzX2Zhc3QoKSB3aGljaAo+IHJl
-dGFpbnMgdGhlIHBlcmZvcm1hbmNlIHdoaWxlIGFsc28gYWRkaW5nIHRoZSBGUyBEQVggY2hlY2tz
-LiAgWERQIGhhcyBhbHNvCj4gc2hvd24gaW50ZXJlc3QgaW4gdXNpbmcgdGhpcyBmdW5jdGlvbmFs
-aXR5LlsyXQo+IAo+IEluIGFkZGl0aW9uIHdlIGNoYW5nZSBnZXRfdXNlcl9wYWdlcygpIHRvIHVz
-ZSB0aGUgbmV3IEZPTExfTE9OR1RFUk0gZmxhZyBhbmQKPiByZW1vdmUgdGhlIHNwZWNpYWxpemVk
-IGdldF91c2VyX3BhZ2VzX2xvbmd0ZXJtIGNhbGwuCj4gCj4gWzFdIGh0dHBzOi8vbGttbC5vcmcv
-bGttbC8yMDE5LzIvMTEvMjM3Cj4gWzJdIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE5LzIvMTEv
-MTc4OQoKSXMgdGhlcmUgYW55dGhpbmcgSSBuZWVkIHRvIGRvIG9uIHRoaXMgc2VyaWVzIG9yIGRv
-ZXMgYW55b25lIGhhdmUgYW55Cm9iamVjdGlvbnMgdG8gaXQgZ29pbmcgaW50byA1LjE/ICBBbmQg
-aWYgc28gd2hvJ3MgdHJlZSBpcyBpdCBnb2luZyB0byBnbwp0aHJvdWdoPwoKVGhhbmtzLApJcmEK
-Cj4gCj4gSXJhIFdlaW55ICg3KToKPiAgIG1tL2d1cDogUmVwbGFjZSBnZXRfdXNlcl9wYWdlc19s
-b25ndGVybSgpIHdpdGggRk9MTF9MT05HVEVSTQo+ICAgbW0vZ3VwOiBDaGFuZ2Ugd3JpdGUgcGFy
-YW1ldGVyIHRvIGZsYWdzIGluIGZhc3Qgd2Fsawo+ICAgbW0vZ3VwOiBDaGFuZ2UgR1VQIGZhc3Qg
-dG8gdXNlIGZsYWdzIHJhdGhlciB0aGFuIGEgd3JpdGUgJ2Jvb2wnCj4gICBtbS9ndXA6IEFkZCBG
-T0xMX0xPTkdURVJNIGNhcGFiaWxpdHkgdG8gR1VQIGZhc3QKPiAgIElCL2hmaTE6IFVzZSB0aGUg
-bmV3IEZPTExfTE9OR1RFUk0gZmxhZyB0byBnZXRfdXNlcl9wYWdlc19mYXN0KCkKPiAgIElCL3Fp
-YjogVXNlIHRoZSBuZXcgRk9MTF9MT05HVEVSTSBmbGFnIHRvIGdldF91c2VyX3BhZ2VzX2Zhc3Qo
-KQo+ICAgSUIvbXRoY2E6IFVzZSB0aGUgbmV3IEZPTExfTE9OR1RFUk0gZmxhZyB0byBnZXRfdXNl
-cl9wYWdlc19mYXN0KCkKPiAKPiAgYXJjaC9taXBzL21tL2d1cC5jICAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAxMSArLQo+ICBhcmNoL3Bvd2VycGMva3ZtL2Jvb2szc182NF9tbXVfaHYuYyAg
-ICAgICAgIHwgICA0ICstCj4gIGFyY2gvcG93ZXJwYy9rdm0vZTUwMF9tbXUuYyAgICAgICAgICAg
-ICAgICAgfCAgIDIgKy0KPiAgYXJjaC9wb3dlcnBjL21tL21tdV9jb250ZXh0X2lvbW11LmMgICAg
-ICAgICB8ICAgNCArLQo+ICBhcmNoL3MzOTAva3ZtL2ludGVycnVwdC5jICAgICAgICAgICAgICAg
-ICAgIHwgICAyICstCj4gIGFyY2gvczM5MC9tbS9ndXAuYyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgfCAgMTIgKy0KPiAgYXJjaC9zaC9tbS9ndXAuYyAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICB8ICAxMSArLQo+ICBhcmNoL3NwYXJjL21tL2d1cC5jICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICA5ICstCj4gIGFyY2gveDg2L2t2bS9wYWdpbmdfdG1wbC5oICAgICAgICAgICAgICAgICAg
-fCAgIDIgKy0KPiAgYXJjaC94ODYva3ZtL3N2bS5jICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgMiArLQo+ICBkcml2ZXJzL2ZwZ2EvZGZsLWFmdS1kbWEtcmVnaW9uLmMgICAgICAgICAgIHwg
-ICAyICstCj4gIGRyaXZlcnMvZ3B1L2RybS92aWEvdmlhX2RtYWJsaXQuYyAgICAgICAgICAgfCAg
-IDMgKy0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdW1lbS5jICAgICAgICAgICAgICB8ICAg
-NSArLQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvaGZpMS91c2VyX3BhZ2VzLmMgICAgIHwgICA1
-ICstCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tdGhjYS9tdGhjYV9tZW1mcmVlLmMgfCAgIDMg
-Ky0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfdXNlcl9wYWdlcy5jICB8ICAgOCAr
-LQo+ICBkcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl91c2VyX3NkbWEuYyAgIHwgICAyICst
-Cj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody91c25pYy91c25pY191aW9tLmMgICAgfCAgIDkgKy0K
-PiAgZHJpdmVycy9tZWRpYS92NGwyLWNvcmUvdmlkZW9idWYtZG1hLXNnLmMgICB8ICAgNiArLQo+
-ICBkcml2ZXJzL21pc2MvZ2Vud3FlL2NhcmRfdXRpbHMuYyAgICAgICAgICAgIHwgICAyICstCj4g
-IGRyaXZlcnMvbWlzYy92bXdfdm1jaS92bWNpX2hvc3QuYyAgICAgICAgICAgfCAgIDIgKy0KPiAg
-ZHJpdmVycy9taXNjL3Ztd192bWNpL3ZtY2lfcXVldWVfcGFpci5jICAgICB8ICAgNiArLQo+ICBk
-cml2ZXJzL3BsYXRmb3JtL2dvbGRmaXNoL2dvbGRmaXNoX3BpcGUuYyAgIHwgICAzICstCj4gIGRy
-aXZlcnMvcmFwaWRpby9kZXZpY2VzL3Jpb19tcG9ydF9jZGV2LmMgICAgfCAgIDQgKy0KPiAgZHJp
-dmVycy9zYnVzL2NoYXIvb3JhZGF4LmMgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBkcml2
-ZXJzL3Njc2kvc3QuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAzICstCj4gIGRyaXZl
-cnMvc3RhZ2luZy9nYXNrZXQvZ2Fza2V0X3BhZ2VfdGFibGUuYyAgfCAgIDQgKy0KPiAgZHJpdmVy
-cy90ZWUvdGVlX3NobS5jICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBkcml2ZXJz
-L3ZmaW8vdmZpb19pb21tdV9zcGFwcl90Y2UuYyAgICAgICAgIHwgICAzICstCj4gIGRyaXZlcnMv
-dmZpby92ZmlvX2lvbW11X3R5cGUxLmMgICAgICAgICAgICAgfCAgIDMgKy0KPiAgZHJpdmVycy92
-aG9zdC92aG9zdC5jICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBkcml2ZXJzL3Zp
-ZGVvL2ZiZGV2L3B2cjJmYi5jICAgICAgICAgICAgICAgIHwgICAyICstCj4gIGRyaXZlcnMvdmly
-dC9mc2xfaHlwZXJ2aXNvci5jICAgICAgICAgICAgICAgfCAgIDIgKy0KPiAgZHJpdmVycy94ZW4v
-Z250ZGV2LmMgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBmcy9vcmFuZ2Vmcy9v
-cmFuZ2Vmcy1idWZtYXAuYyAgICAgICAgICAgICAgIHwgICAyICstCj4gIGluY2x1ZGUvbGludXgv
-bW0uaCAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMTcgKy0KPiAga2VybmVsL2Z1dGV4LmMg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBsaWIvaW92X2l0ZXIuYyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICA3ICstCj4gIG1tL2d1cC5jICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAyMjAgKysrKysrKysrKysrLS0tLS0tLS0KPiAg
-bW0vZ3VwX2JlbmNobWFyay5jICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgNSArLQo+ICBt
-bS91dGlsLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICA4ICstCj4gIG5l
-dC9jZXBoL3BhZ2V2ZWMuYyAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDIgKy0KPiAgbmV0
-L3Jkcy9pbmZvLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMiArLQo+ICBuZXQv
-cmRzL3JkbWEuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAzICstCj4gIDQ0IGZp
-bGVzIGNoYW5nZWQsIDIzMiBpbnNlcnRpb25zKCspLCAxODAgZGVsZXRpb25zKC0pCj4gCj4gLS0g
-Cj4gMi4yMC4xCj4gCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9y
-ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZl
-bA==
+
+
+> -----Original Message-----
+> From: Steve Wise <swise@opengridcomputing.com>
+> Sent: Tuesday, February 26, 2019 11:14 AM
+> To: Leon Romanovsky <leon@kernel.org>
+> Cc: dsahern@gmail.com; stephen@networkplumber.org;
+> netdev@vger.kernel.org; linux-rdma@vger.kernel.org
+> Subject: Re: [PATCH v1 iproute2-next 1/4] rdma: add helper
+> rd_sendrecv_msg()
+> 
+> 
+> On 2/23/2019 3:26 AM, Leon Romanovsky wrote:
+> > On Thu, Feb 21, 2019 at 08:19:03AM -0800, Steve Wise wrote:
+> >> This function sends the constructed netlink message and then
+> >> receives the response, displaying any error text.
+> >>
+> >> Change 'rdma dev set' to use it.
+> >>
+> >> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
+> >> ---
+> >>  rdma/dev.c   |  2 +-
+> >>  rdma/rdma.h  |  1 +
+> >>  rdma/utils.c | 21 +++++++++++++++++++++
+> >>  3 files changed, 23 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/rdma/dev.c b/rdma/dev.c
+> >> index 60ff4b31e320..d2949c378f08 100644
+> >> --- a/rdma/dev.c
+> >> +++ b/rdma/dev.c
+> >> @@ -273,7 +273,7 @@ static int dev_set_name(struct rd *rd)
+> >>  	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd-
+> >dev_idx);
+> >>  	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME,
+> rd_argv(rd));
+> >>
+> >> -	return rd_send_msg(rd);
+> >> +	return rd_sendrecv_msg(rd, seq);
+> >>  }
+> >>
+> >>  static int dev_one_set(struct rd *rd)
+> >> diff --git a/rdma/rdma.h b/rdma/rdma.h
+> >> index 547bb5749a39..20be2f12c4f8 100644
+> >> --- a/rdma/rdma.h
+> >> +++ b/rdma/rdma.h
+> >> @@ -115,6 +115,7 @@ bool rd_check_is_key_exist(struct rd *rd, const
+> char *key);
+> >>   */
+> >>  int rd_send_msg(struct rd *rd);
+> >>  int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, uint32_t
+> seq);
+> >> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq);
+> >>  void rd_prepare_msg(struct rd *rd, uint32_t cmd, uint32_t *seq,
+uint16_t
+> flags);
+> >>  int rd_dev_init_cb(const struct nlmsghdr *nlh, void *data);
+> >>  int rd_attr_cb(const struct nlattr *attr, void *data);
+> >> diff --git a/rdma/utils.c b/rdma/utils.c
+> >> index 069d44fece10..a6f2826c9605 100644
+> >> --- a/rdma/utils.c
+> >> +++ b/rdma/utils.c
+> >> @@ -664,6 +664,27 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback,
+> void *data, unsigned int seq)
+> >>  	return ret;
+> >>  }
+> >>
+> >> +static int null_cb(const struct nlmsghdr *nlh, void *data)
+> >> +{
+> >> +	return MNL_CB_OK;
+> >> +}
+> >> +
+> >> +int rd_sendrecv_msg(struct rd *rd, unsigned int seq)
+> >> +{
+> >> +	int ret;
+> >> +
+> >> +	ret = rd_send_msg(rd);
+> >> +	if (ret) {
+> >> +		perror(NULL);
+> > This is more or less already done in rd_send_msg() and that function
+> > prints something in case of execution error. So the missing piece
+> > is to update rd_recv_msg(), so all places will "magically" print errors
+> > and not only dev_set_name().
+> 
+> Yea ok.
+> 
+
+dev_set_name() doesn't call rd_recv_msg().  So you're suggesting I fix up
+rd_recv_msg() to display errors and make dev_set_name() call rd_recv_msg()
+with the null_cb function?  You sure that's the way to go?
