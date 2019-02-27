@@ -1,43 +1,80 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 3/8] tlan: use pci_zalloc instead of pci_alloc
-Date: Tue, 26 Feb 2019 22:22:06 -0800
-Message-ID: <ce11feb21863662cf2ad96f0f7b69f0edcabfcf7.camel@perches.com>
-References: <cover.1551246708.git.bobbyeshleman@gmail.com>
-         <51125a3daac49f7b5bb360a422663aee26e6776b.1551246708.git.bobbyeshleman@gmail.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH iproute2-next] rdma: Add the prefix for driver attributes
+Date: Wed, 27 Feb 2019 08:41:51 +0200
+Message-ID: <20190227064151.25445-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <51125a3daac49f7b5bb360a422663aee26e6776b.1551246708.git.bobbyeshleman@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robert Eshleman <bobbyeshleman@gmail.com>
-Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Samuel Chessman <chessman@tux.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Ahern <dsahern@gmail.com>, Lijun Ou <oulijun@huawei.com>, Steve Wise <swise@opengridcomputing.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, netdev <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, Stephen Hemminger <stephen@networkplumber.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2019-02-26 at 22:09 -0800, Robert Eshleman wrote:
-> This patch replaces a pci_alloc_consistent and memset(,0) call
-> with a single call to pci_zalloc_consistent.
-[]
-> diff --git a/drivers/net/ethernet/ti/tlan.c b/drivers/net/ethernet/ti/tlan.c
-[]
-> @@ -845,17 +845,16 @@ static int tlan_init(struct net_device *dev)
->  
->  	dma_size = (TLAN_NUM_RX_LISTS + TLAN_NUM_TX_LISTS)
->  		* (sizeof(struct tlan_list));
-> -	priv->dma_storage = pci_alloc_consistent(priv->pci_dev,
-> -						 dma_size,
-> -						 &priv->dma_storage_dma);
-> +	priv->dma_storage = pci_zalloc_consistent(priv->pci_dev,
-> +						  dma_size,
-> +						  &priv->dma_storage_dma);
->  	priv->dma_size = dma_size;
->  
-> -	if (priv->dma_storage == NULL) {
-> +	if (!priv->dma_storage) {
->  		pr_err("Could not allocate lists and buffers for %s\n",
->  		       dev->name);
+From: Leon Romanovsky <leonro@mellanox.com>
 
-unrelated trivia:
+There is a need to distinguish between driver vs. general exposed
+attributes. The most common use case is to expose some internal
+garbage under extremely common and sexy name, e.g. pi, ci e.t.c
 
-This pr_err (and likely others in this file)
-could be replace by netdev_err
+In order to achieve that, we will add "drv_" prefix to all strings
+which were received through RDMA_NLDEV_ATTR_DRIVER_* attributes.
+
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>a
+---
+ rdma/utils.c | 34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
+
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 6bc14cd5..1f6bf330 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -829,27 +829,37 @@ static int print_driver_entry(struct rd *rd, struct nlattr *key_attr,
+ 				struct nlattr *val_attr,
+ 				enum rdma_nldev_print_type print_type)
+ {
+-	const char *key_str = mnl_attr_get_str(key_attr);
+ 	int attr_type = nla_type(val_attr);
++	int ret = -EINVAL;
++	char *key_str;
++
++	if (asprintf(&key_str, "drv_%s", mnl_attr_get_str(key_attr)) == -1)
++		return -ENOMEM;
+
+ 	switch (attr_type) {
+ 	case RDMA_NLDEV_ATTR_DRIVER_STRING:
+-		return print_driver_string(rd, key_str,
+-				mnl_attr_get_str(val_attr));
++		ret = print_driver_string(rd, key_str,
++					  mnl_attr_get_str(val_attr));
++		break;
+ 	case RDMA_NLDEV_ATTR_DRIVER_S32:
+-		return print_driver_s32(rd, key_str,
+-				mnl_attr_get_u32(val_attr), print_type);
++		ret = print_driver_s32(rd, key_str, mnl_attr_get_u32(val_attr),
++				       print_type);
++		break;
+ 	case RDMA_NLDEV_ATTR_DRIVER_U32:
+-		return print_driver_u32(rd, key_str,
+-				mnl_attr_get_u32(val_attr), print_type);
++		ret = print_driver_u32(rd, key_str, mnl_attr_get_u32(val_attr),
++				       print_type);
++		break;
+ 	case RDMA_NLDEV_ATTR_DRIVER_S64:
+-		return print_driver_s64(rd, key_str,
+-				mnl_attr_get_u64(val_attr), print_type);
++		ret = print_driver_s64(rd, key_str, mnl_attr_get_u64(val_attr),
++				       print_type);
++		break;
+ 	case RDMA_NLDEV_ATTR_DRIVER_U64:
+-		return print_driver_u64(rd, key_str,
+-				mnl_attr_get_u64(val_attr), print_type);
++		ret = print_driver_u64(rd, key_str, mnl_attr_get_u64(val_attr),
++				       print_type);
++		break;
+ 	}
+-	return -EINVAL;
++	free(key_str);
++	return ret;
+ }
+
+ void print_driver_table(struct rd *rd, struct nlattr *tb)
