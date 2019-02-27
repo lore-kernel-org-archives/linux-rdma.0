@@ -1,58 +1,43 @@
-From: Robert Eshleman <bobbyeshleman@gmail.com>
-Subject: [PATCH 1/8] net/mlx4: use kzalloc instead of kmalloc
-Date: Tue, 26 Feb 2019 22:09:56 -0800
-Message-ID: <b350ebb5410291e80e12244ccb41b4b4bae31e0c.1551246708.git.bobbyeshleman@gmail.com>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 3/8] tlan: use pci_zalloc instead of pci_alloc
+Date: Tue, 26 Feb 2019 22:22:06 -0800
+Message-ID: <ce11feb21863662cf2ad96f0f7b69f0edcabfcf7.camel@perches.com>
 References: <cover.1551246708.git.bobbyeshleman@gmail.com>
+         <51125a3daac49f7b5bb360a422663aee26e6776b.1551246708.git.bobbyeshleman@gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1551246708.git.bobbyeshleman@gmail.com>
+In-Reply-To: <51125a3daac49f7b5bb360a422663aee26e6776b.1551246708.git.bobbyeshleman@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bobbyeshleman@gmail.com
-Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Robert Eshleman <bobbyeshleman@gmail.com>
+Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Samuel Chessman <chessman@tux.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch replaces a kmalloc/memset(,0) call with a call to kzalloc.
-It also removes a memset(,0) call that always follows a *zalloc call.
+On Tue, 2019-02-26 at 22:09 -0800, Robert Eshleman wrote:
+> This patch replaces a pci_alloc_consistent and memset(,0) call
+> with a single call to pci_zalloc_consistent.
+[]
+> diff --git a/drivers/net/ethernet/ti/tlan.c b/drivers/net/ethernet/ti/tlan.c
+[]
+> @@ -845,17 +845,16 @@ static int tlan_init(struct net_device *dev)
+>  
+>  	dma_size = (TLAN_NUM_RX_LISTS + TLAN_NUM_TX_LISTS)
+>  		* (sizeof(struct tlan_list));
+> -	priv->dma_storage = pci_alloc_consistent(priv->pci_dev,
+> -						 dma_size,
+> -						 &priv->dma_storage_dma);
+> +	priv->dma_storage = pci_zalloc_consistent(priv->pci_dev,
+> +						  dma_size,
+> +						  &priv->dma_storage_dma);
+>  	priv->dma_size = dma_size;
+>  
+> -	if (priv->dma_storage == NULL) {
+> +	if (!priv->dma_storage) {
+>  		pr_err("Could not allocate lists and buffers for %s\n",
+>  		       dev->name);
 
-Signed-off-by: Robert Eshleman <bobbyeshleman@gmail.com>
----
- drivers/net/ethernet/mellanox/mlx4/cmd.c   | 1 -
- drivers/net/ethernet/mellanox/mlx4/en_rx.c | 3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+unrelated trivia:
 
-diff --git a/drivers/net/ethernet/mellanox/mlx4/cmd.c b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-index e65bc3c95630..7bfa6e850e5f 100644
---- a/drivers/net/ethernet/mellanox/mlx4/cmd.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/cmd.c
-@@ -3307,7 +3307,6 @@ int mlx4_get_counter_stats(struct mlx4_dev *dev, int counter_index,
- 	if (IS_ERR(mailbox))
- 		return PTR_ERR(mailbox);
- 
--	memset(mailbox->buf, 0, sizeof(struct mlx4_counter));
- 	if_stat_in_mod = counter_index;
- 	if (reset)
- 		if_stat_in_mod |= MLX4_QUERY_IF_STAT_RESET;
-diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-index 9a0881cb7f51..f55805d206ef 100644
---- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
-@@ -1044,7 +1044,7 @@ static int mlx4_en_config_rss_qp(struct mlx4_en_priv *priv, int qpn,
- 	struct mlx4_qp_context *context;
- 	int err = 0;
- 
--	context = kmalloc(sizeof(*context), GFP_KERNEL);
-+	context = kzalloc(sizeof(*context), GFP_KERNEL);
- 	if (!context)
- 		return -ENOMEM;
- 
-@@ -1055,7 +1055,6 @@ static int mlx4_en_config_rss_qp(struct mlx4_en_priv *priv, int qpn,
- 	}
- 	qp->event = mlx4_en_sqp_event;
- 
--	memset(context, 0, sizeof(*context));
- 	mlx4_en_fill_qp_context(priv, ring->actual_size, ring->stride, 0, 0,
- 				qpn, ring->cqn, -1, context);
- 	context->db_rec_addr = cpu_to_be64(ring->wqres.db.dma);
--- 
-2.20.1
+This pr_err (and likely others in this file)
+could be replace by netdev_err
