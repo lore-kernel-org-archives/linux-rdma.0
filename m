@@ -1,130 +1,50 @@
-From: "Steve Wise" <swise@opengridcomputing.com>
-Subject: RE: [PATCH v1 iproute2-next 3/4] rdma: add 'link add/delete' commands
-Date: Wed, 27 Feb 2019 15:18:17 -0600
-Message-ID: <021e01d4cee1$f54acaf0$dfe060d0$@opengridcomputing.com>
-References: <cover.1550773362.git.swise@opengridcomputing.com> <5dd9d9aeada48bc5db0eb0394ed4e3ce38ee41bc.1550773362.git.swise@opengridcomputing.com> <20190223094311.GP23561@mtr-leonro.mtl.com> <94c6a44c-6f08-ffe8-9798-a4faf14bd29a@opengridcomputing.com>
+From: Robert Eshleman <bobbyeshleman@gmail.com>
+Subject: Re: [PATCH 3/8] tlan: use pci_zalloc instead of pci_alloc
+Date: Wed, 27 Feb 2019 16:41:51 -0800
+Message-ID: <20190228004151.GA26282@bobby.localdomain>
+References: <cover.1551246708.git.bobbyeshleman@gmail.com>
+ <51125a3daac49f7b5bb360a422663aee26e6776b.1551246708.git.bobbyeshleman@gmail.com>
+ <ce11feb21863662cf2ad96f0f7b69f0edcabfcf7.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <94c6a44c-6f08-ffe8-9798-a4faf14bd29a@opengridcomputing.com>
-Content-Language: en-us
-Sender: netdev-owner@vger.kernel.org
-To: 'Leon Romanovsky' <leon@kernel.org>
-Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ce11feb21863662cf2ad96f0f7b69f0edcabfcf7.camel@perches.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: Tariq Toukan <tariqt@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Samuel Chessman <chessman@tux.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Feb 26, 2019 at 10:22:06PM -0800, Joe Perches wrote:
+> On Tue, 2019-02-26 at 22:09 -0800, Robert Eshleman wrote:
+> > This patch replaces a pci_alloc_consistent and memset(,0) call
+> > with a single call to pci_zalloc_consistent.
+> []
+> > diff --git a/drivers/net/ethernet/ti/tlan.c b/drivers/net/ethernet/ti/tlan.c
+> []
+> > @@ -845,17 +845,16 @@ static int tlan_init(struct net_device *dev)
+> >  
+> >  	dma_size = (TLAN_NUM_RX_LISTS + TLAN_NUM_TX_LISTS)
+> >  		* (sizeof(struct tlan_list));
+> > -	priv->dma_storage = pci_alloc_consistent(priv->pci_dev,
+> > -						 dma_size,
+> > -						 &priv->dma_storage_dma);
+> > +	priv->dma_storage = pci_zalloc_consistent(priv->pci_dev,
+> > +						  dma_size,
+> > +						  &priv->dma_storage_dma);
+> >  	priv->dma_size = dma_size;
+> >  
+> > -	if (priv->dma_storage == NULL) {
+> > +	if (!priv->dma_storage) {
+> >  		pr_err("Could not allocate lists and buffers for %s\n",
+> >  		       dev->name);
+> 
+> unrelated trivia:
+> 
+> This pr_err (and likely others in this file)
+> could be replace by netdev_err
+> 
 
+Definitely good to know (I may make that change too).  Thanks Joe.
 
-> -----Original Message-----
-> From: Steve Wise <swise@opengridcomputing.com>
-> Sent: Tuesday, February 26, 2019 11:25 AM
-> To: Leon Romanovsky <leon@kernel.org>
-> Cc: dsahern@gmail.com; stephen@networkplumber.org;
-> netdev@vger.kernel.org; linux-rdma@vger.kernel.org
-> Subject: Re: [PATCH v1 iproute2-next 3/4] rdma: add 'link add/delete'
-> commands
-> 
-> 
-> On 2/23/2019 3:43 AM, Leon Romanovsky wrote:
-> > On Thu, Feb 21, 2019 at 08:19:12AM -0800, Steve Wise wrote:
-> >> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-
-> rdma
-> >> device to a netdev interface.
-> >>
-> >> EG:
-> >>
-> >> rdma link add rxe_eth0 type rxe netdev eth0
-> >> rdma link delete rxe_eth0
-> >>
-> >> Signed-off-by: Steve Wise <swise@opengridcomputing.com>
-> >> ---
-> >>  rdma/link.c  | 67
-> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>  rdma/rdma.h  |  1 +
-> >>  rdma/utils.c |  2 +-
-> >>  3 files changed, 69 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/rdma/link.c b/rdma/link.c
-> >> index c064be627be2..afaf19663728 100644
-> >> --- a/rdma/link.c
-> >> +++ b/rdma/link.c
-> >> @@ -14,6 +14,9 @@
-> >>  static int link_help(struct rd *rd)
-> >>  {
-> >>  	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
-> >> +	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
-> >> +	       rd->filename);
-> >> +	pr_out("Usage: %s link delete NAME\n", rd->filename);
-> >>  	return 0;
-> >>  }
-> >>
-> >> @@ -341,10 +344,74 @@ static int link_show(struct rd *rd)
-> >>  	return rd_exec_link(rd, link_one_show, true);
-> >>  }
-> >>
-> >> +static int link_add(struct rd *rd)
-> >> +{
-> >> +	char *name;
-> >> +	char *type = NULL;
-> >> +	char *dev = NULL;
-> >> +	uint32_t seq;
-> >> +
-> >> +	if (rd_no_arg(rd)) {
-> >> +		pr_err("No link name was supplied\n");
-> > I think that it is better to have instruction message and not error
-> > message: "Please provide ...".
-> 
-> 
-> Ok.  Perhaps a new utility rd_exec_require_link() can be created?
-> 
-> 
-> >> +		return -EINVAL;
-> >> +	}
-> >> +	name = rd_argv(rd);
-> >> +	rd_arg_inc(rd);
-> >> +	while (!rd_no_arg(rd)) {
-> >> +		if (rd_argv_match(rd, "type")) {
-> >> +			rd_arg_inc(rd);
-> >> +			type = rd_argv(rd);
-> >> +		} else if (rd_argv_match(rd, "netdev")) {
-> >> +			rd_arg_inc(rd);
-> >> +			dev = rd_argv(rd);
-> >> +		} else {
-> >> +			pr_err("Invalid parameter %s\n", rd_argv(rd));
-> >> +			return -EINVAL;
-> >> +		}
-> >> +		rd_arg_inc(rd);
-> > Please use chains of struct rd_cmd and rd_exec_cmd() instead of
-> > open-coding parser.
-> 
-> 
-> Ok.  Like your recently merged series did...
-> 
-> 
-> >> +	}
-> >> +	if (!type) {
-> >> +		pr_err("No type was supplied\n");
-> >> +		return -EINVAL;
-> > General parser handle it.
-> 
-> 
-> Ok.
-> 
-> 
-> >> +	}
-> >> +	if (!dev) {
-> >> +		pr_err("No net device was supplied\n");
-> >> +		return -EINVAL;
-> >> +	}
-> > rd_exec_require_dev() ???
-> 
-> 
-> Looks like I can use that.  I'll try it.
-
-Actually, in the above code, the variable 'dev' is the netdev string, and
-that is the 3rd parameter to the 'link add' command, so it isn't appropriate
-for rd_exec_require_dev().
-
-Steve
+-Bobby
