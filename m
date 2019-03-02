@@ -1,95 +1,118 @@
-From: Shaobo He <shaobo@cs.utah.edu>
-Subject: Re: [PATCH] cxgb4: fix undefined behavior in mem.c
-Date: Fri, 1 Mar 2019 14:21:26 -0700
-Message-ID: <73050221-dd7f-169f-a3c0-69e022f13407@cs.utah.edu>
-References: <1551393519-96595-1-git-send-email-shaobo@cs.utah.edu>
- <1551394596.31902.209.camel@acm.org>
- <abf425b1-19ba-9cf5-8288-87ac0dbf6ac7@cs.utah.edu>
- <1551396788.31902.213.camel@acm.org>
- <a03cc0b7-c508-4937-f2dc-c5f9dbc356ba@cs.utah.edu>
- <d796cd9bea794179136b869218dcad5755380029.camel@redhat.com>
+From: Long Li <longli@linuxonhyperv.com>
+Subject: [PATCH 1/2] CIFS: Fix a bug with re-sending wdata when transport returning -EAGAIN
+Date: Sat,  2 Mar 2019 02:51:45 +0000
+Message-ID: <20190302025146.2935-1-longli@linuxonhyperv.com>
+Reply-To: longli@microsoft.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d796cd9bea794179136b869218dcad5755380029.camel@redhat.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org
-Cc: Steve Wise <swise@chelsio.com>, Jason Gunthorpe <jgg@ziepe.ca>, open list <linux-kernel@vger.kernel.org>, cl@linux.com
+To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Long Li <longli@microsoft.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Yes, why wouldn't they be real bugs? I was simply pointing out the irrational 
-conclusion if the C standard is strictly applied to kernel code.
+From: Long Li <longli@microsoft.com>
 
-I think the spirit of the C standard is that one shouldn't rely on the 
-assumption that the value of a freed pointer does not change, even though in 
-practice any compiler developers probably won't bother to implement the logic to 
-change the pointer value or optimizations leveraging it even they are allowed 
-to. In other words, the original code may be a little bit problematic in the 
-spirit of the C standard whereas the patch simply makes it totally valid.
+When sending a wdata, transport may return -EAGAIN. In this case
+we should re-obtain credits because the session may have been
+reconnected.
 
-If it can be finally submitted, that would be great. If not, I'm totally fine.
+Signed-off-by: Long Li <longli@microsoft.com>
+---
+ fs/cifs/file.c | 61 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 31 insertions(+), 30 deletions(-)
 
-Shaobo
-On 2019/3/1 7:26, Doug Ledford wrote:
-> On Thu, 2019-02-28 at 16:57 -0700, Shaobo He wrote:
->> Good catch. But if we agree on that memory management functions are those
->> specified by the C standard, would it be OK to ignore so-called use after free
->> or double free bugs for the kernel as C standard does not apply to kfree?
-> 
-> No, most kernel use-after-free bugs are real bugs.  This one might be
-> technically a bug by certain readings of the standard, but it's a non-
-> issue.  Real use-after-free bugs don't just look at the value of a local
-> stack variable to get the memory's old address (which is what this does,
-> and the same could be achieved and be totally in spec by doing this:
-> 
->      old_ptr = mhp;
->      kfree(mhp);
->      pr_debug("%p\n", old_ptr);)
-> 
-> Real use after free things would actually dereference the pointer to
-> either read or write from the old memory region.  That leads to data
-> corruption or kernel data leaks.  Plus, in this case, the purpose of
-> printing the literal value of mhp is simply to provide a unique name for
-> tracing purposes.  Since kfree() doesn't alter the local stack variable,
-> the name is still present in the local stack variable at the point you
-> call pr_debug().
-> 
-> It could be fixed.  It's not like this patch is wrong.  But I wouldn't
-> submit it this late in the -rc cycle, I'd just take it for next.
-> 
->> On 2/28/19 4:33 PM, Bart Van Assche wrote:
->>> On Thu, 2019-02-28 at 16:18 -0700, Shaobo He wrote:
->>>> I can't afford a pdf version of the C standard. So I looked at the draft version
->>>> used in the link I put in the commit message. It says (in 6.2.4:2),
->>>>
->>>> ```
->>>> The lifetime of an object is the portion of program execution during which
->>>> storage is guaranteed to be reserved for it. An object exists, has a constant
->>>> address, and retains its last-stored value throughout its lifetime. If an object
->>>> is referred to outside of its lifetime, the behavior is undefined. The value of
->>>> a pointer becomes indeterminate when the object it points to (or just past)
->>>> reaches the end of its lifetime.
->>>> ```
->>>> I couldn't find the definition of lifetime over a dynamically allocated object
->>>> in the draft of C standard. I refer to this link
->>>> (https://en.cppreference.com/w/c/language/lifetime) which suggests that the
->>>> lifetime of an allocated object ends after the deallocation function is called
->>>> upon it.
->>>>
->>>> I think maybe the more problematic issue is that the value of a freed pointer is
->>>> intermediate.
->>>
->>> In another section of the same draft I found the following:
->>>
->>> J.2 Undefined behavior [ ... ] The value of a pointer that refers to space
->>> deallocated by a call to the free or realloc function is used (7.22.3).
->>>
->>> Since the C standard explicitly refers to free() and realloc(), does that
->>> mean that that statement about undefined behavior does not apply to munmap()
->>> (for user space code) nor to kfree() (for kernel code)?
->>>
->>> Bart.
->>>
-> 
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 9b53f33137b3..08e73759d6ec 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2620,43 +2620,44 @@ cifs_resend_wdata(struct cifs_writedata *wdata, struct list_head *wdata_list,
+ 	struct TCP_Server_Info *server =
+ 		tlink_tcon(wdata->cfile->tlink)->ses->server;
+ 
+-	/*
+-	 * Wait for credits to resend this wdata.
+-	 * Note: we are attempting to resend the whole wdata not in segments
+-	 */
+ 	do {
+-		rc = server->ops->wait_mtu_credits(server, wdata->bytes, &wsize,
+-						   &credits);
+-
+-		if (rc)
+-			goto out;
+-
+-		if (wsize < wdata->bytes) {
+-			add_credits_and_wake_if(server, &credits, 0);
+-			msleep(1000);
+-		}
+-	} while (wsize < wdata->bytes);
++		/*
++		 * Wait for credits to resend this wdata.
++		 * Note: we are attempting to resend the whole wdata not in
++		 * segments
++		 */
++		do {
++			rc = server->ops->wait_mtu_credits(server, wdata->bytes,
++						&wsize, &credits);
++			if (rc)
++				goto fail;
++
++			if (wsize < wdata->bytes) {
++				add_credits_and_wake_if(server, &credits, 0);
++				msleep(1000);
++			}
++		} while (wsize < wdata->bytes);
+ 
+-	wdata->credits = credits;
+-	rc = -EAGAIN;
+-	while (rc == -EAGAIN) {
++		wdata->credits = credits;
+ 		rc = 0;
+ 		if (wdata->cfile->invalidHandle)
+ 			rc = cifs_reopen_file(wdata->cfile, false);
+ 		if (!rc)
+ 			rc = server->ops->async_writev(wdata,
+-					cifs_uncached_writedata_release);
+-	}
++				cifs_uncached_writedata_release);
+ 
+-	if (!rc) {
+-		list_add_tail(&wdata->list, wdata_list);
+-		return 0;
+-	}
++		/* If the write was successfully sent, we are done */
++		if (!rc) {
++			list_add_tail(&wdata->list, wdata_list);
++			return 0;
++		}
+ 
+-	add_credits_and_wake_if(server, &wdata->credits, 0);
+-out:
+-	kref_put(&wdata->refcount, cifs_uncached_writedata_release);
++		/* Roll back credits and retry if needed */
++		add_credits_and_wake_if(server, &wdata->credits, 0);
++	} while (rc == -EAGAIN);
+ 
++fail:
++	kref_put(&wdata->refcount, cifs_uncached_writedata_release);
+ 	return rc;
+ }
+ 
+@@ -2884,12 +2885,12 @@ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx)
+ 						wdata->bytes, &tmp_from,
+ 						ctx->cfile, cifs_sb, &tmp_list,
+ 						ctx);
++
++					kref_put(&wdata->refcount,
++						cifs_uncached_writedata_release);
+ 				}
+ 
+ 				list_splice(&tmp_list, &ctx->list);
+-
+-				kref_put(&wdata->refcount,
+-					 cifs_uncached_writedata_release);
+ 				goto restart_loop;
+ 			}
+ 		}
+-- 
+2.17.1
