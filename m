@@ -1,121 +1,140 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] RDMA/nes: remove redundant check on udata
-Date: Sat,  2 Mar 2019 23:06:36 +0000
-Message-ID: <20190302230637.8624-1-colin.king@canonical.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
+ handling paths
+Date: Sat, 2 Mar 2019 11:44:03 -0800
+Message-ID: <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
+References: <20190302032726.11769-2-jhubbard@nvidia.com>
+ <20190302202435.31889-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190302202435.31889-1-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: john.hubbard@gmail.com
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, artemyko@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+FWIW I don't have ODP hardware either.  So I can't test this either.
 
-The non-null check on udata is redundant as this check was performed
-just a few statements earlier and the check is always true as udata
-must be non-null at this point. Remove redundant the check on udata
-and the redundant else part that can never be executed.
+On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
+> 
+> 1. Bug fix: the error handling release pages starting
+> at the first page that experienced an error.
+> 
+> 2. Refinement: release_pages() is better than put_page()
+> in a loop.
+> 
+> 3. Dead code removal: the check for (user_virt & ~page_mask)
+> is checking for a condition that can never happen,
+> because earlier:
+> 
+>     user_virt = user_virt & page_mask;
+> 
+> ...so, remove that entire phrase.
+> 
+> 4. Minor: As long as I'm here, shorten up a couple of long lines
+> in the same function, without harming the ability to
+> grep for the printed error message.
+> 
+> Cc: Ira Weiny <ira.weiny@intel.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: linux-rdma@vger.kernel.org
+> Cc: linux-mm@kvack.org
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> ---
+> 
+> v2: Fixes a kbuild test robot reported build failure, by directly
+>     including pagemap.h
+> 
+>  drivers/infiniband/core/umem_odp.c | 25 ++++++++++---------------
+>  1 file changed, 10 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+> index acb882f279cb..83872c1f3f2c 100644
+> --- a/drivers/infiniband/core/umem_odp.c
+> +++ b/drivers/infiniband/core/umem_odp.c
+> @@ -40,6 +40,7 @@
+>  #include <linux/vmalloc.h>
+>  #include <linux/hugetlb.h>
+>  #include <linux/interval_tree_generic.h>
+> +#include <linux/pagemap.h>
+>  
+>  #include <rdma/ib_verbs.h>
+>  #include <rdma/ib_umem.h>
+> @@ -648,25 +649,17 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+>  
+>  		if (npages < 0) {
+>  			if (npages != -EAGAIN)
+> -				pr_warn("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
+> +				pr_warn("fail to get %zu user pages with error %d\n",
+> +					gup_num_pages, npages);
+>  			else
+> -				pr_debug("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
+> +				pr_debug("fail to get %zu user pages with error %d\n",
+> +					 gup_num_pages, npages);
+>  			break;
+>  		}
+>  
+>  		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
+>  		mutex_lock(&umem_odp->umem_mutex);
+>  		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
+> -			if (user_virt & ~page_mask) {
+> -				p += PAGE_SIZE;
+> -				if (page_to_phys(local_page_list[j]) != p) {
+> -					ret = -EFAULT;
+> -					break;
+> -				}
+> -				put_page(local_page_list[j]);
+> -				continue;
+> -			}
+> -
 
-Detected by CoverityScan, CID#1477317 ("Logically dead code")
+I think this is trying to account for compound pages. (ie page_mask could
+represent more than PAGE_SIZE which is what user_virt is being incrimented by.)
+But putting the page in that case seems to be the wrong thing to do?
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++--------------
- 1 file changed, 34 insertions(+), 39 deletions(-)
+Yes this was added by Artemy[1] now cc'ed.
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 828e4af3f951..526092d435df 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1039,53 +1039,48 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
- 				}
- 				if (req.user_qp_buffer)
- 					nesqp->nesuqp_addr = req.user_qp_buffer;
--				if (udata) {
--					nesqp->user_mode = 1;
--					if (virt_wqs) {
--						err = 1;
--						list_for_each_entry(nespbl, &nes_ucontext->qp_reg_mem_list, list) {
--							if (nespbl->user_base == (unsigned long )req.user_wqe_buffers) {
--								list_del(&nespbl->list);
--								err = 0;
--								nes_debug(NES_DBG_QP, "Found PBL for virtual QP. nespbl=%p. user_base=0x%lx\n",
--									  nespbl, nespbl->user_base);
--								break;
--							}
--						}
--						if (err) {
--							nes_debug(NES_DBG_QP, "Didn't Find PBL for virtual QP. address = %llx.\n",
--								  (long long unsigned int)req.user_wqe_buffers);
--							nes_free_resource(nesadapter, nesadapter->allocated_qps, qp_num);
--							kfree(nesqp->allocated_buffer);
--							return ERR_PTR(-EFAULT);
-+
-+				nesqp->user_mode = 1;
-+				if (virt_wqs) {
-+					err = 1;
-+					list_for_each_entry(nespbl, &nes_ucontext->qp_reg_mem_list, list) {
-+						if (nespbl->user_base == (unsigned long )req.user_wqe_buffers) {
-+							list_del(&nespbl->list);
-+							err = 0;
-+							nes_debug(NES_DBG_QP, "Found PBL for virtual QP. nespbl=%p. user_base=0x%lx\n",
-+								  nespbl, nespbl->user_base);
-+							break;
- 						}
- 					}
--
--					nesqp->mmap_sq_db_index =
--						find_next_zero_bit(nes_ucontext->allocated_wqs,
--								   NES_MAX_USER_WQ_REGIONS, nes_ucontext->first_free_wq);
--					/* nes_debug(NES_DBG_QP, "find_first_zero_biton wqs returned %u\n",
--							nespd->mmap_db_index); */
--					if (nesqp->mmap_sq_db_index >= NES_MAX_USER_WQ_REGIONS) {
--						nes_debug(NES_DBG_QP,
--							  "db index > max user regions, failing create QP\n");
-+					if (err) {
-+						nes_debug(NES_DBG_QP, "Didn't Find PBL for virtual QP. address = %llx.\n",
-+							  (long long unsigned int)req.user_wqe_buffers);
- 						nes_free_resource(nesadapter, nesadapter->allocated_qps, qp_num);
--						if (virt_wqs) {
--							pci_free_consistent(nesdev->pcidev, nespbl->pbl_size, nespbl->pbl_vbase,
--									    nespbl->pbl_pbase);
--							kfree(nespbl);
--						}
- 						kfree(nesqp->allocated_buffer);
--						return ERR_PTR(-ENOMEM);
-+						return ERR_PTR(-EFAULT);
- 					}
--					set_bit(nesqp->mmap_sq_db_index, nes_ucontext->allocated_wqs);
--					nes_ucontext->mmap_nesqp[nesqp->mmap_sq_db_index] = nesqp;
--					nes_ucontext->first_free_wq = nesqp->mmap_sq_db_index + 1;
--				} else {
-+				}
-+
-+				nesqp->mmap_sq_db_index =
-+					find_next_zero_bit(nes_ucontext->allocated_wqs,
-+							   NES_MAX_USER_WQ_REGIONS, nes_ucontext->first_free_wq);
-+				/* nes_debug(NES_DBG_QP, "find_first_zero_biton wqs returned %u\n",
-+						nespd->mmap_db_index); */
-+				if (nesqp->mmap_sq_db_index >= NES_MAX_USER_WQ_REGIONS) {
-+					nes_debug(NES_DBG_QP,
-+						  "db index > max user regions, failing create QP\n");
- 					nes_free_resource(nesadapter, nesadapter->allocated_qps, qp_num);
-+					if (virt_wqs) {
-+						pci_free_consistent(nesdev->pcidev, nespbl->pbl_size, nespbl->pbl_vbase,
-+								    nespbl->pbl_pbase);
-+						kfree(nespbl);
-+					}
- 					kfree(nesqp->allocated_buffer);
--					return ERR_PTR(-EFAULT);
-+					return ERR_PTR(-ENOMEM);
- 				}
-+				set_bit(nesqp->mmap_sq_db_index, nes_ucontext->allocated_wqs);
-+				nes_ucontext->mmap_nesqp[nesqp->mmap_sq_db_index] = nesqp;
-+				nes_ucontext->first_free_wq = nesqp->mmap_sq_db_index + 1;
- 			}
- 			err = (!virt_wqs) ? nes_setup_mmap_qp(nesqp, nesvnic, sq_size, rq_size) :
- 					nes_setup_virt_qp(nesqp, nespbl, nesvnic, sq_size, rq_size);
--- 
-2.20.1
+>  			ret = ib_umem_odp_map_dma_single_page(
+>  					umem_odp, k, local_page_list[j],
+>  					access_mask, current_seq);
+> @@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+>  		mutex_unlock(&umem_odp->umem_mutex);
+>  
+>  		if (ret < 0) {
+> -			/* Release left over pages when handling errors. */
+> -			for (++j; j < npages; ++j)
+> -				put_page(local_page_list[j]);
+> +			/*
+> +			 * Release pages, starting at the the first page
+> +			 * that experienced an error.
+> +			 */
+> +			release_pages(&local_page_list[j], npages - j);
+
+My concern here is that release_pages handle compound pages, perhaps
+differently from the above code so calling it may may not work?  But I've not
+really spent a lot of time on it...
+
+:-/
+
+Ira
+
+[1]
+
+commit 403cd12e2cf759ead5cbdcb62bf9872b9618d400
+Author: Artemy Kovalyov <artemyko@mellanox.com>
+Date:   Wed Apr 5 09:23:55 2017 +0300
+
+    IB/umem: Add contiguous ODP support
+
+    Currenlty ODP supports only regular MMU pages.
+    Add ODP support for regions consisting of physically contiguous chunks
+    of arbitrary order (huge pages for instance) to improve performance.
+
+    Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
+    Signed-off-by: Leon Romanovsky <leon@kernel.org>
+    Signed-off-by: Doug Ledford <dledford@redhat.com>
