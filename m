@@ -1,103 +1,43 @@
-From: Long Li <longli@linuxonhyperv.com>
-Subject: [PATCH 2/2] CIFS: Fix a bug with re-sending rdata when transport returning -EAGAIN
-Date: Sat,  2 Mar 2019 02:51:46 +0000
-Message-ID: <20190302025146.2935-2-longli@linuxonhyperv.com>
-References: <20190302025146.2935-1-longli@linuxonhyperv.com>
-Reply-To: longli@microsoft.com
+From: john.hubbard@gmail.com
+Subject: [PATCH 0/1] RDMA/umem: minor bug fix and cleanup in error handling paths
+Date: Fri,  1 Mar 2019 19:27:25 -0800
+Message-ID: <20190302032726.11769-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190302025146.2935-1-longli@linuxonhyperv.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Steve French <sfrench@samba.org>, linux-cifs@vger.kernel.org, samba-technical@lists.samba.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
-Cc: Long Li <longli@microsoft.com>
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Long Li <longli@microsoft.com>
+From: John Hubbard <jhubbard@nvidia.com>
 
-When sending a rdata, transport may return -EAGAIN. In this case
-we should re-obtain credits because the session may have been
-reconnected.
+Hi,
 
-Signed-off-by: Long Li <longli@microsoft.com>
----
- fs/cifs/file.c | 51 +++++++++++++++++++++++++-------------------------
- 1 file changed, 26 insertions(+), 25 deletions(-)
+Ira Weiny alerted me to a couple of places where I'd missed a change from
+put_page() to put_user_page(), in my pending patchsets. But when I
+attempted to dive more deeply into that code, I ran into things that I
+*think* should be fixed up a bit.
 
-diff --git a/fs/cifs/file.c b/fs/cifs/file.c
-index 08e73759d6ec..c83ca96f883b 100644
---- a/fs/cifs/file.c
-+++ b/fs/cifs/file.c
-@@ -3335,44 +3335,45 @@ static int cifs_resend_rdata(struct cifs_readdata *rdata,
- 	struct TCP_Server_Info *server =
- 		tlink_tcon(rdata->cfile->tlink)->ses->server;
- 
--	/*
--	 * Wait for credits to resend this rdata.
--	 * Note: we are attempting to resend the whole rdata not in segments
--	 */
- 	do {
--		rc = server->ops->wait_mtu_credits(server, rdata->bytes,
-+		/*
-+		 * Wait for credits to resend this rdata.
-+		 * Note: we are attempting to resend the whole rdata not in
-+		 * segments
-+		 */
-+		do {
-+			rc = server->ops->wait_mtu_credits(server, rdata->bytes,
- 						&rsize, &credits);
- 
--		if (rc)
--			goto out;
-+			if (rc)
-+				goto fail;
- 
--		if (rsize < rdata->bytes) {
--			add_credits_and_wake_if(server, &credits, 0);
--			msleep(1000);
--		}
--	} while (rsize < rdata->bytes);
-+			if (rsize < rdata->bytes) {
-+				add_credits_and_wake_if(server, &credits, 0);
-+				msleep(1000);
-+			}
-+		} while (rsize < rdata->bytes);
- 
--	rdata->credits = credits;
--	rc = -EAGAIN;
--	while (rc == -EAGAIN) {
-+		rdata->credits = credits;
- 		rc = 0;
- 		if (rdata->cfile->invalidHandle)
- 			rc = cifs_reopen_file(rdata->cfile, true);
- 		if (!rc)
- 			rc = server->ops->async_readv(rdata);
--	}
- 
--	if (!rc) {
--		/* Add to aio pending list */
--		list_add_tail(&rdata->list, rdata_list);
--		return 0;
--	}
-+		/* If the read was successfully sent, we are done */
-+		if (!rc) {
-+			/* Add to aio pending list */
-+			list_add_tail(&rdata->list, rdata_list);
-+			return 0;
-+		}
- 
--	add_credits_and_wake_if(server, &rdata->credits, 0);
--out:
--	kref_put(&rdata->refcount,
--		cifs_uncached_readdata_release);
-+		/* Roll back credits and retry if needed */
-+		add_credits_and_wake_if(server, &rdata->credits, 0);
-+	} while (rc == -EAGAIN);
- 
-+fail:
-+	kref_put(&rdata->refcount, cifs_uncached_readdata_release);
- 	return rc;
- }
- 
+I hope I didn't completely miss something. I am not set up to test this
+(no Infiniband hardware) so I'm not even sure I should send this out, but
+it seems like the best way to ask "is this code really working the way I
+think it does"?
+
+This applies to the latest linux.git tree.
+
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-mm@kvack.org
+
+John Hubbard (1):
+  RDMA/umem: minor bug fix and cleanup in error handling paths
+
+ drivers/infiniband/core/umem_odp.c | 24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
+
 -- 
-2.17.1
+2.21.0
