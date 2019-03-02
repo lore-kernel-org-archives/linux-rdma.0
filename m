@@ -1,96 +1,134 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH] RDMA/umem: minor bug fix and cleanup in error handling paths
-Date: Fri,  1 Mar 2019 19:27:26 -0800
-Message-ID: <20190302032726.11769-2-jhubbard@nvidia.com>
-References: <20190302032726.11769-1-jhubbard@nvidia.com>
+From: Steve French <smfrench@gmail.com>
+Subject: Re: [PATCH 1/2] CIFS: Fix a bug with re-sending wdata when transport
+ returning -EAGAIN
+Date: Fri, 1 Mar 2019 23:43:22 -0600
+Message-ID: <CAH2r5mt0=W54eWaH6JBEm9sfD8BWCqecV7SakC5U14QbYhChzA@mail.gmail.com>
+References: <20190302025146.2935-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190302032726.11769-1-jhubbard@nvidia.com>
+In-Reply-To: <20190302025146.2935-1-longli@linuxonhyperv.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+To: Long Li <longli@microsoft.com>
+Cc: Steve French <sfrench@samba.org>, CIFS <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+I tested this vs. Samba a few minutes ago with test 208 - looks like
+it works.   Thank you!
 
-1. Bug fix: the error handling release pages starting
-at the first page that experienced an error.
+Now just need some additional reviews as this can be a complex area of code.
 
-2. Refinement: release_pages() is better than put_page()
-in a loop.
+On Fri, Mar 1, 2019 at 9:04 PM Long Li <longli@linuxonhyperv.com> wrote:
+>
+> From: Long Li <longli@microsoft.com>
+>
+> When sending a wdata, transport may return -EAGAIN. In this case
+> we should re-obtain credits because the session may have been
+> reconnected.
+>
+> Signed-off-by: Long Li <longli@microsoft.com>
+> ---
+>  fs/cifs/file.c | 61 +++++++++++++++++++++++++-------------------------
+>  1 file changed, 31 insertions(+), 30 deletions(-)
+>
+> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+> index 9b53f33137b3..08e73759d6ec 100644
+> --- a/fs/cifs/file.c
+> +++ b/fs/cifs/file.c
+> @@ -2620,43 +2620,44 @@ cifs_resend_wdata(struct cifs_writedata *wdata, struct list_head *wdata_list,
+>         struct TCP_Server_Info *server =
+>                 tlink_tcon(wdata->cfile->tlink)->ses->server;
+>
+> -       /*
+> -        * Wait for credits to resend this wdata.
+> -        * Note: we are attempting to resend the whole wdata not in segments
+> -        */
+>         do {
+> -               rc = server->ops->wait_mtu_credits(server, wdata->bytes, &wsize,
+> -                                                  &credits);
+> -
+> -               if (rc)
+> -                       goto out;
+> -
+> -               if (wsize < wdata->bytes) {
+> -                       add_credits_and_wake_if(server, &credits, 0);
+> -                       msleep(1000);
+> -               }
+> -       } while (wsize < wdata->bytes);
+> +               /*
+> +                * Wait for credits to resend this wdata.
+> +                * Note: we are attempting to resend the whole wdata not in
+> +                * segments
+> +                */
+> +               do {
+> +                       rc = server->ops->wait_mtu_credits(server, wdata->bytes,
+> +                                               &wsize, &credits);
+> +                       if (rc)
+> +                               goto fail;
+> +
+> +                       if (wsize < wdata->bytes) {
+> +                               add_credits_and_wake_if(server, &credits, 0);
+> +                               msleep(1000);
+> +                       }
+> +               } while (wsize < wdata->bytes);
+>
+> -       wdata->credits = credits;
+> -       rc = -EAGAIN;
+> -       while (rc == -EAGAIN) {
+> +               wdata->credits = credits;
+>                 rc = 0;
+>                 if (wdata->cfile->invalidHandle)
+>                         rc = cifs_reopen_file(wdata->cfile, false);
+>                 if (!rc)
+>                         rc = server->ops->async_writev(wdata,
+> -                                       cifs_uncached_writedata_release);
+> -       }
+> +                               cifs_uncached_writedata_release);
+>
+> -       if (!rc) {
+> -               list_add_tail(&wdata->list, wdata_list);
+> -               return 0;
+> -       }
+> +               /* If the write was successfully sent, we are done */
+> +               if (!rc) {
+> +                       list_add_tail(&wdata->list, wdata_list);
+> +                       return 0;
+> +               }
+>
+> -       add_credits_and_wake_if(server, &wdata->credits, 0);
+> -out:
+> -       kref_put(&wdata->refcount, cifs_uncached_writedata_release);
+> +               /* Roll back credits and retry if needed */
+> +               add_credits_and_wake_if(server, &wdata->credits, 0);
+> +       } while (rc == -EAGAIN);
+>
+> +fail:
+> +       kref_put(&wdata->refcount, cifs_uncached_writedata_release);
+>         return rc;
+>  }
+>
+> @@ -2884,12 +2885,12 @@ static void collect_uncached_write_data(struct cifs_aio_ctx *ctx)
+>                                                 wdata->bytes, &tmp_from,
+>                                                 ctx->cfile, cifs_sb, &tmp_list,
+>                                                 ctx);
+> +
+> +                                       kref_put(&wdata->refcount,
+> +                                               cifs_uncached_writedata_release);
+>                                 }
+>
+>                                 list_splice(&tmp_list, &ctx->list);
+> -
+> -                               kref_put(&wdata->refcount,
+> -                                        cifs_uncached_writedata_release);
+>                                 goto restart_loop;
+>                         }
+>                 }
+> --
+> 2.17.1
+>
 
-3. Dead code removal: the check for (user_virt & ~page_mask)
-is checking for a condition that can never happen,
-because earlier:
 
-    user_virt = user_virt & page_mask;
-
-...so, remove that entire phrase.
-
-4. Minor: As long as I'm here, shorten up a couple of long lines
-in the same function, without harming the ability to
-grep for the printed error message.
-
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-mm@kvack.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/infiniband/core/umem_odp.c | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index acb882f279cb..294bf6676947 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -648,25 +648,17 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 
- 		if (npages < 0) {
- 			if (npages != -EAGAIN)
--				pr_warn("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
-+				pr_warn("fail to get %zu user pages with error %d\n",
-+					gup_num_pages, npages);
- 			else
--				pr_debug("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
-+				pr_debug("fail to get %zu user pages with error %d\n",
-+					 gup_num_pages, npages);
- 			break;
- 		}
- 
- 		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
- 		mutex_lock(&umem_odp->umem_mutex);
- 		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
--			if (user_virt & ~page_mask) {
--				p += PAGE_SIZE;
--				if (page_to_phys(local_page_list[j]) != p) {
--					ret = -EFAULT;
--					break;
--				}
--				put_page(local_page_list[j]);
--				continue;
--			}
--
- 			ret = ib_umem_odp_map_dma_single_page(
- 					umem_odp, k, local_page_list[j],
- 					access_mask, current_seq);
-@@ -684,9 +676,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 		mutex_unlock(&umem_odp->umem_mutex);
- 
- 		if (ret < 0) {
--			/* Release left over pages when handling errors. */
--			for (++j; j < npages; ++j)
--				put_page(local_page_list[j]);
-+			/*
-+			 * Release pages, starting at the the first page
-+			 * that experienced an error.
-+			 */
-+			release_pages(&local_page_list[j], npages - j);
- 			break;
- 		}
- 	}
 -- 
-2.21.0
+Thanks,
+
+Steve
