@@ -1,41 +1,108 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH][next] net/mlx5e: Remove redundant assignment
-Date: Sat, 2 Mar 2019 13:39:33 -0600
-Message-ID: <20190302193933.GA13467@embeddedor.com>
+From: john.hubbard@gmail.com
+Subject: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error handling paths
+Date: Sat,  2 Mar 2019 12:24:35 -0800
+Message-ID: <20190302202435.31889-1-jhubbard@nvidia.com>
+References: <20190302032726.11769-2-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20190302032726.11769-2-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Eli Britstein <elibr@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Remove redundant assignment to tun_entropy->enabled.
+From: John Hubbard <jhubbard@nvidia.com>
 
-Addesses-Coverity-ID: 1477328 ("Unused value")
-Fixes: 97417f6182f8 ("net/mlx5e: Fix GRE key by controlling port tunnel entropy calculation")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+1. Bug fix: the error handling release pages starting
+at the first page that experienced an error.
+
+2. Refinement: release_pages() is better than put_page()
+in a loop.
+
+3. Dead code removal: the check for (user_virt & ~page_mask)
+is checking for a condition that can never happen,
+because earlier:
+
+    user_virt = user_virt & page_mask;
+
+...so, remove that entire phrase.
+
+4. Minor: As long as I'm here, shorten up a couple of long lines
+in the same function, without harming the ability to
+grep for the printed error message.
+
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-mm@kvack.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
-index 40f4a19b1ce1..be69c1d7941a 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
-@@ -80,10 +80,8 @@ void mlx5_init_port_tun_entropy(struct mlx5_tun_entropy *tun_entropy,
- 	mlx5_query_port_tun_entropy(mdev, &entropy_flags);
- 	tun_entropy->num_enabling_entries = 0;
- 	tun_entropy->num_disabling_entries = 0;
--	tun_entropy->enabled = entropy_flags.calc_enabled;
--	tun_entropy->enabled =
--		(entropy_flags.calc_supported) ?
--		entropy_flags.calc_enabled : true;
-+	tun_entropy->enabled = entropy_flags.calc_supported ?
-+			       entropy_flags.calc_enabled : true;
- }
+v2: Fixes a kbuild test robot reported build failure, by directly
+    including pagemap.h
+
+ drivers/infiniband/core/umem_odp.c | 25 ++++++++++---------------
+ 1 file changed, 10 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index acb882f279cb..83872c1f3f2c 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -40,6 +40,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/hugetlb.h>
+ #include <linux/interval_tree_generic.h>
++#include <linux/pagemap.h>
  
- static int mlx5_set_entropy(struct mlx5_tun_entropy *tun_entropy,
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
+@@ -648,25 +649,17 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 
+ 		if (npages < 0) {
+ 			if (npages != -EAGAIN)
+-				pr_warn("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
++				pr_warn("fail to get %zu user pages with error %d\n",
++					gup_num_pages, npages);
+ 			else
+-				pr_debug("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
++				pr_debug("fail to get %zu user pages with error %d\n",
++					 gup_num_pages, npages);
+ 			break;
+ 		}
+ 
+ 		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
+ 		mutex_lock(&umem_odp->umem_mutex);
+ 		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
+-			if (user_virt & ~page_mask) {
+-				p += PAGE_SIZE;
+-				if (page_to_phys(local_page_list[j]) != p) {
+-					ret = -EFAULT;
+-					break;
+-				}
+-				put_page(local_page_list[j]);
+-				continue;
+-			}
+-
+ 			ret = ib_umem_odp_map_dma_single_page(
+ 					umem_odp, k, local_page_list[j],
+ 					access_mask, current_seq);
+@@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 		mutex_unlock(&umem_odp->umem_mutex);
+ 
+ 		if (ret < 0) {
+-			/* Release left over pages when handling errors. */
+-			for (++j; j < npages; ++j)
+-				put_page(local_page_list[j]);
++			/*
++			 * Release pages, starting at the the first page
++			 * that experienced an error.
++			 */
++			release_pages(&local_page_list[j], npages - j);
+ 			break;
+ 		}
+ 	}
 -- 
 2.21.0
