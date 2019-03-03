@@ -1,48 +1,154 @@
-From: Eli Britstein <elibr@mellanox.com>
-Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
-Date: Sun, 3 Mar 2019 17:31:54 +0000
-Message-ID: <5e256a0f-ef58-4b23-8d7f-08a6148782e6@mellanox.com>
-References: <20190302193933.GA13467@embeddedor.com>
- <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
+From: syzbot <syzbot+17335689e239ce135d8b@syzkaller.appspotmail.com>
+Subject: KASAN: use-after-free Read in alloc_workqueue
+Date: Sun, 03 Mar 2019 10:22:04 -0800
+Message-ID: <0000000000008a8bf4058334b76e@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
-Content-Language: en-US
-Content-ID: <C9B4F1449F4E374A93B23F8E7C36304B@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roi Dayan <roid@mellanox.com>, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: danitg@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, roland@purestorage.com, sean.hefty@intel.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com, xiyou.wangcong@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
-UmV2aWV3ZWQtYnk6IEVsaSBCcml0c3RlaW4gPGVsaWJyQG1lbGxhbm94LmNvbT4NCg0KT24gMy8z
-LzIwMTkgNToyMCBQTSwgUm9pIERheWFuIHdyb3RlOg0KPg0KPiBPbiAwMi8wMy8yMDE5IDIxOjM5
-LCBHdXN0YXZvIEEuIFIuIFNpbHZhIHdyb3RlOg0KPj4gUmVtb3ZlIHJlZHVuZGFudCBhc3NpZ25t
-ZW50IHRvIHR1bl9lbnRyb3B5LT5lbmFibGVkLg0KPj4NCj4+IEFkZGVzc2VzLUNvdmVyaXR5LUlE
-OiAxNDc3MzI4ICgiVW51c2VkIHZhbHVlIikNCj4+IEZpeGVzOiA5NzQxN2Y2MTgyZjggKCJuZXQv
-bWx4NWU6IEZpeCBHUkUga2V5IGJ5IGNvbnRyb2xsaW5nIHBvcnQgdHVubmVsIGVudHJvcHkgY2Fs
-Y3VsYXRpb24iKQ0KPiB0aGUgY29tbWl0IGRvZXNuJ3QgZml4IGFueSByZWFsIGlzc3VlIGJ1dCBp
-cyBtb3JlIG9mIGEgY2xlYW51cC4NCj4gc28gSSdtIG5vdCBzdXJlIGlmIGZpeGVzIGxpbmUgaXMg
-cmVsZXZhbnQgb3Igbm90Lg0KPiBiZXNpZGUgdGhhdCBsb29rcyBvay4NCj4NCj4gUmV2aWV3ZWQt
-Ynk6IFJvaSBEYXlhbiA8cm9pZEBtZWxsYW5veC5jb20+DQo+DQo+DQo+PiBTaWduZWQtb2ZmLWJ5
-OiBHdXN0YXZvIEEuIFIuIFNpbHZhIDxndXN0YXZvQGVtYmVkZGVkb3IuY29tPg0KPj4gLS0tDQo+
-PiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvcG9ydF90dW4u
-YyB8IDYgKystLS0tDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDQgZGVs
-ZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
-bm94L21seDUvY29yZS9saWIvcG9ydF90dW4uYyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
-bm94L21seDUvY29yZS9saWIvcG9ydF90dW4uYw0KPj4gaW5kZXggNDBmNGExOWIxY2UxLi5iZTY5
-YzFkNzk0MWEgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9t
-bHg1L2NvcmUvbGliL3BvcnRfdHVuLmMNCj4+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21l
-bGxhbm94L21seDUvY29yZS9saWIvcG9ydF90dW4uYw0KPj4gQEAgLTgwLDEwICs4MCw4IEBAIHZv
-aWQgbWx4NV9pbml0X3BvcnRfdHVuX2VudHJvcHkoc3RydWN0IG1seDVfdHVuX2VudHJvcHkgKnR1
-bl9lbnRyb3B5LA0KPj4gICAJbWx4NV9xdWVyeV9wb3J0X3R1bl9lbnRyb3B5KG1kZXYsICZlbnRy
-b3B5X2ZsYWdzKTsNCj4+ICAgCXR1bl9lbnRyb3B5LT5udW1fZW5hYmxpbmdfZW50cmllcyA9IDA7
-DQo+PiAgIAl0dW5fZW50cm9weS0+bnVtX2Rpc2FibGluZ19lbnRyaWVzID0gMDsNCj4+IC0JdHVu
-X2VudHJvcHktPmVuYWJsZWQgPSBlbnRyb3B5X2ZsYWdzLmNhbGNfZW5hYmxlZDsNCj4+IC0JdHVu
-X2VudHJvcHktPmVuYWJsZWQgPQ0KPj4gLQkJKGVudHJvcHlfZmxhZ3MuY2FsY19zdXBwb3J0ZWQp
-ID8NCj4+IC0JCWVudHJvcHlfZmxhZ3MuY2FsY19lbmFibGVkIDogdHJ1ZTsNCj4+ICsJdHVuX2Vu
-dHJvcHktPmVuYWJsZWQgPSBlbnRyb3B5X2ZsYWdzLmNhbGNfc3VwcG9ydGVkID8NCj4+ICsJCQkg
-ICAgICAgZW50cm9weV9mbGFncy5jYWxjX2VuYWJsZWQgOiB0cnVlOw0KPj4gICB9DQo+PiAgIA0K
-Pj4gICBzdGF0aWMgaW50IG1seDVfc2V0X2VudHJvcHkoc3RydWN0IG1seDVfdHVuX2VudHJvcHkg
-KnR1bl9lbnRyb3B5LA0KPj4NCg==
+Hello,
+
+syzbot found the following crash on:
+
+HEAD commit:    c63e9e91a254 Add linux-next specific files for 20190301
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=16ac728d200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=f5875f9dc6e009b2
+dashboard link: https://syzkaller.appspot.com/bug?extid=17335689e239ce135d8b
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=134808fb200000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1541889d200000
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+17335689e239ce135d8b@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: use-after-free in __read_once_size include/linux/compiler.h:197  
+[inline]
+BUG: KASAN: use-after-free in lockdep_register_key+0x3b9/0x490  
+kernel/locking/lockdep.c:1023
+Read of size 8 at addr ffff888090fc2698 by task syz-executor134/7858
+
+CPU: 1 PID: 7858 Comm: syz-executor134 Not tainted 5.0.0-rc8-next-20190301  
+#1
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+  kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+  __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+  __read_once_size include/linux/compiler.h:197 [inline]
+  lockdep_register_key+0x3b9/0x490 kernel/locking/lockdep.c:1023
+  wq_init_lockdep kernel/workqueue.c:3444 [inline]
+  alloc_workqueue+0x427/0xe70 kernel/workqueue.c:4263
+  ucma_open+0x76/0x290 drivers/infiniband/core/ucma.c:1732
+  misc_open+0x398/0x4c0 drivers/char/misc.c:141
+  chrdev_open+0x247/0x6b0 fs/char_dev.c:417
+  do_dentry_open+0x488/0x1160 fs/open.c:771
+  vfs_open+0xa0/0xd0 fs/open.c:880
+  do_last fs/namei.c:3416 [inline]
+  path_openat+0x10e9/0x46e0 fs/namei.c:3533
+  do_filp_open+0x1a1/0x280 fs/namei.c:3563
+  do_sys_open+0x3fe/0x5d0 fs/open.c:1063
+  __do_sys_openat fs/open.c:1090 [inline]
+  __se_sys_openat fs/open.c:1084 [inline]
+  __x64_sys_openat+0x9d/0x100 fs/open.c:1084
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x440fc9
+Code: e8 0c ad 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 bb 0a fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007ffc1cccc9c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000440fc9
+RDX: 0000000000000002 RSI: 0000000020000140 RDI: ffffffffffffff9c
+RBP: 00007ffc1cccc9e0 R08: 0000000000000002 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: ffffffffffffffff
+R13: 0000000000000003 R14: 0000000000000000 R15: 0000000000000000
+
+Allocated by task 7789:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_kmalloc mm/kasan/common.c:497 [inline]
+  __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+  kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+  __do_kmalloc mm/slab.c:3726 [inline]
+  __kmalloc+0x15c/0x740 mm/slab.c:3735
+  kmalloc include/linux/slab.h:553 [inline]
+  kzalloc include/linux/slab.h:743 [inline]
+  alloc_workqueue+0x13c/0xe70 kernel/workqueue.c:4236
+  ucma_open+0x76/0x290 drivers/infiniband/core/ucma.c:1732
+  misc_open+0x398/0x4c0 drivers/char/misc.c:141
+  chrdev_open+0x247/0x6b0 fs/char_dev.c:417
+  do_dentry_open+0x488/0x1160 fs/open.c:771
+  vfs_open+0xa0/0xd0 fs/open.c:880
+  do_last fs/namei.c:3416 [inline]
+  path_openat+0x10e9/0x46e0 fs/namei.c:3533
+  do_filp_open+0x1a1/0x280 fs/namei.c:3563
+  do_sys_open+0x3fe/0x5d0 fs/open.c:1063
+  __do_sys_openat fs/open.c:1090 [inline]
+  __se_sys_openat fs/open.c:1084 [inline]
+  __x64_sys_openat+0x9d/0x100 fs/open.c:1084
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 7789:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+  kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+  __cache_free mm/slab.c:3498 [inline]
+  kfree+0xcf/0x230 mm/slab.c:3821
+  alloc_workqueue+0xc3e/0xe70 kernel/workqueue.c:4295
+  ucma_open+0x76/0x290 drivers/infiniband/core/ucma.c:1732
+  misc_open+0x398/0x4c0 drivers/char/misc.c:141
+  chrdev_open+0x247/0x6b0 fs/char_dev.c:417
+  do_dentry_open+0x488/0x1160 fs/open.c:771
+  vfs_open+0xa0/0xd0 fs/open.c:880
+  do_last fs/namei.c:3416 [inline]
+  path_openat+0x10e9/0x46e0 fs/namei.c:3533
+  do_filp_open+0x1a1/0x280 fs/namei.c:3563
+  do_sys_open+0x3fe/0x5d0 fs/open.c:1063
+  __do_sys_openat fs/open.c:1090 [inline]
+  __se_sys_openat fs/open.c:1084 [inline]
+  __x64_sys_openat+0x9d/0x100 fs/open.c:1084
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff888090fc2580
+  which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 280 bytes inside of
+  512-byte region [ffff888090fc2580, ffff888090fc2780)
+The buggy address belongs to the page:
+page:ffffea000243f080 count:1 mapcount:0 mapping:ffff88812c3f0940  
+index:0xffff888090fc2300
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002417248 ffffea00024751c8 ffff88812c3f0940
+raw: ffff888090fc2300 ffff888090fc2080 0000000100000004 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff888090fc2580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff888090fc2600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ffff888090fc2680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                             ^
+  ffff888090fc2700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff888090fc2780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+==================================================================
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#bug-status-tracking for how to communicate with  
+syzbot.
+syzbot can test patches for this bug, for details see:
+https://goo.gl/tpsmEJ#testing-patches
