@@ -1,140 +1,58 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
- handling paths
-Date: Sat, 2 Mar 2019 11:44:03 -0800
-Message-ID: <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
+Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error handling
+ paths
+Date: Sun, 3 Mar 2019 11:52:41 +0200
+Message-ID: <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
 References: <20190302032726.11769-2-jhubbard@nvidia.com>
  <20190302202435.31889-1-jhubbard@nvidia.com>
+ <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190302202435.31889-1-jhubbard@nvidia.com>
+In-Reply-To: <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, artemyko@mellanox.com
+To: Ira Weiny <ira.weiny@intel.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-FWIW I don't have ODP hardware either.  So I can't test this either.
 
-On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
+
+On 02/03/2019 21:44, Ira Weiny wrote:
 > 
-> 1. Bug fix: the error handling release pages starting
-> at the first page that experienced an error.
+> On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrote:
+>> From: John Hubbard <jhubbard@nvidia.com>
+>>
+>> ...
+>> 3. Dead code removal: the check for (user_virt & ~page_mask)
+>> is checking for a condition that can never happen,
+>> because earlier:
+>>
+>>      user_virt = user_virt & page_mask;
+>>
+>> ...so, remove that entire phrase.
+>>
+>>   
+>>   		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
+>>   		mutex_lock(&umem_odp->umem_mutex);
+>>   		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
+>> -			if (user_virt & ~page_mask) {
+>> -				p += PAGE_SIZE;
+>> -				if (page_to_phys(local_page_list[j]) != p) {
+>> -					ret = -EFAULT;
+>> -					break;
+>> -				}
+>> -				put_page(local_page_list[j]);
+>> -				continue;
+>> -			}
+>> -
 > 
-> 2. Refinement: release_pages() is better than put_page()
-> in a loop.
+> I think this is trying to account for compound pages. (ie page_mask could
+> represent more than PAGE_SIZE which is what user_virt is being incrimented by.)
+> But putting the page in that case seems to be the wrong thing to do?
 > 
-> 3. Dead code removal: the check for (user_virt & ~page_mask)
-> is checking for a condition that can never happen,
-> because earlier:
-> 
->     user_virt = user_virt & page_mask;
-> 
-> ...so, remove that entire phrase.
-> 
-> 4. Minor: As long as I'm here, shorten up a couple of long lines
-> in the same function, without harming the ability to
-> grep for the printed error message.
-> 
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-mm@kvack.org
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> ---
-> 
-> v2: Fixes a kbuild test robot reported build failure, by directly
->     including pagemap.h
-> 
->  drivers/infiniband/core/umem_odp.c | 25 ++++++++++---------------
->  1 file changed, 10 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-> index acb882f279cb..83872c1f3f2c 100644
-> --- a/drivers/infiniband/core/umem_odp.c
-> +++ b/drivers/infiniband/core/umem_odp.c
-> @@ -40,6 +40,7 @@
->  #include <linux/vmalloc.h>
->  #include <linux/hugetlb.h>
->  #include <linux/interval_tree_generic.h>
-> +#include <linux/pagemap.h>
->  
->  #include <rdma/ib_verbs.h>
->  #include <rdma/ib_umem.h>
-> @@ -648,25 +649,17 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
->  
->  		if (npages < 0) {
->  			if (npages != -EAGAIN)
-> -				pr_warn("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
-> +				pr_warn("fail to get %zu user pages with error %d\n",
-> +					gup_num_pages, npages);
->  			else
-> -				pr_debug("fail to get %zu user pages with error %d\n", gup_num_pages, npages);
-> +				pr_debug("fail to get %zu user pages with error %d\n",
-> +					 gup_num_pages, npages);
->  			break;
->  		}
->  
->  		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
->  		mutex_lock(&umem_odp->umem_mutex);
->  		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
-> -			if (user_virt & ~page_mask) {
-> -				p += PAGE_SIZE;
-> -				if (page_to_phys(local_page_list[j]) != p) {
-> -					ret = -EFAULT;
-> -					break;
-> -				}
-> -				put_page(local_page_list[j]);
-> -				continue;
-> -			}
-> -
+> Yes this was added by Artemy[1] now cc'ed.
 
-I think this is trying to account for compound pages. (ie page_mask could
-represent more than PAGE_SIZE which is what user_virt is being incrimented by.)
-But putting the page in that case seems to be the wrong thing to do?
-
-Yes this was added by Artemy[1] now cc'ed.
-
->  			ret = ib_umem_odp_map_dma_single_page(
->  					umem_odp, k, local_page_list[j],
->  					access_mask, current_seq);
-> @@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
->  		mutex_unlock(&umem_odp->umem_mutex);
->  
->  		if (ret < 0) {
-> -			/* Release left over pages when handling errors. */
-> -			for (++j; j < npages; ++j)
-> -				put_page(local_page_list[j]);
-> +			/*
-> +			 * Release pages, starting at the the first page
-> +			 * that experienced an error.
-> +			 */
-> +			release_pages(&local_page_list[j], npages - j);
-
-My concern here is that release_pages handle compound pages, perhaps
-differently from the above code so calling it may may not work?  But I've not
-really spent a lot of time on it...
-
-:-/
-
-Ira
-
-[1]
-
-commit 403cd12e2cf759ead5cbdcb62bf9872b9618d400
-Author: Artemy Kovalyov <artemyko@mellanox.com>
-Date:   Wed Apr 5 09:23:55 2017 +0300
-
-    IB/umem: Add contiguous ODP support
-
-    Currenlty ODP supports only regular MMU pages.
-    Add ODP support for regions consisting of physically contiguous chunks
-    of arbitrary order (huge pages for instance) to improve performance.
-
-    Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
-    Signed-off-by: Leon Romanovsky <leon@kernel.org>
-    Signed-off-by: Doug Ledford <dledford@redhat.com>
+Right, this is for huge pages, please keep it.
+put_page() needed to decrement refcount of the head page.
