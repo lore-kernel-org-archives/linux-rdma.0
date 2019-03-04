@@ -1,134 +1,178 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
- handling paths
-Date: Mon, 4 Mar 2019 08:44:19 +0200
-Message-ID: <20190304064419.GB15253@mtr-leonro.mtl.com>
-References: <20190302032726.11769-2-jhubbard@nvidia.com>
- <20190302202435.31889-1-jhubbard@nvidia.com>
- <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
- <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
- <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] mellanox: Switch to bitmap_zalloc()
+Date: Mon,  4 Mar 2019 10:57:00 +0200
+Message-ID: <20190304085700.88095-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Zd8I2GZVcdxtyaG/"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, linux-rdma@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Switch to bitmap_zalloc() to show clearly what we are allocating.
+Besides that it returns pointer of bitmap type instead of opaque void *.
 
---Zd8I2GZVcdxtyaG/
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/net/ethernet/mellanox/mlx4/alloc.c         |  5 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/alloc.c    |  9 +++------
+ drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c |  5 ++---
+ drivers/net/ethernet/mellanox/mlx5/core/uar.c      | 12 ++++++------
+ drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c |  7 +++----
+ 5 files changed, 16 insertions(+), 22 deletions(-)
 
-On Sun, Mar 03, 2019 at 02:37:33PM -0800, John Hubbard wrote:
-> On 3/3/19 1:52 AM, Artemy Kovalyov wrote:
-> >
-> >
-> > On 02/03/2019 21:44, Ira Weiny wrote:
-> > >
-> > > On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrot=
-e:
-> > > > From: John Hubbard <jhubbard@nvidia.com>
-> > > >
-> > > > ...
-> > > > 3. Dead code removal: the check for (user_virt & ~page_mask)
-> > > > is checking for a condition that can never happen,
-> > > > because earlier:
-> > > >
-> > > > =A0=A0=A0=A0 user_virt =3D user_virt & page_mask;
-> > > >
-> > > > ...so, remove that entire phrase.
-> > > >
-> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 bcnt -=3D min_t(size_t, npages << PAGE_=
-SHIFT, bcnt);
-> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 mutex_lock(&umem_odp->umem_mutex);
-> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 for (j =3D 0; j < npages; j++, user_vir=
-t +=3D PAGE_SIZE) {
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (user_virt & ~page_mask) {
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 p +=3D PAGE_SIZE;
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (page_to_phys(loc=
-al_page_list[j]) !=3D p) {
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =3D =
--EFAULT;
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 break;
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 put_page(local_page_=
-list[j]);
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 continue;
-> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
-> > > > -
-> > >
-> > > I think this is trying to account for compound pages. (ie page_mask c=
-ould
-> > > represent more than PAGE_SIZE which is what user_virt is being incrim=
-ented by.)
-> > > But putting the page in that case seems to be the wrong thing to do?
-> > >
-> > > Yes this was added by Artemy[1] now cc'ed.
-> >
-> > Right, this is for huge pages, please keep it.
-> > put_page() needed to decrement refcount of the head page.
-> >
->
-> OK, thanks for explaining! Artemy, while you're here, any thoughts about =
-the
-> release_pages, and the change of the starting point, from the other part
-> of the patch:
-
-Your release pages code is right fix, it will be great if you prepare
-proper and standalone patch.
-
-Thanks
-
->
-> @@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp
-> *umem_odp, u64 user_virt,
-> 	mutex_unlock(&umem_odp->umem_mutex);
->
->  		if (ret < 0) {
-> -			/* Release left over pages when handling errors. */
-> -			for (++j; j < npages; ++j)
-> -				put_page(local_page_list[j]);
-> +			/*
-> +			 * Release pages, starting at the the first page
-> +			 * that experienced an error.
-> +			 */
-> +			release_pages(&local_page_list[j], npages - j);
->  			break;
->  		}
->  	}
->
-> ?
->
-> thanks,
-> --
-> John Hubbard
-> NVIDIA
->
-
---Zd8I2GZVcdxtyaG/
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcfMlDAAoJEORje4g2clin72MP/ibsjGMdgjy0b+1RJm1NeF5f
-OtglTfABByBidkhy1S+YICCsf0inIiBAnm3bHGzHT7DycmnHLBLVmHvARo3HeHNS
-NCCWvE5dNImmalxiu7CrMoeVhzLowBxXfLINxITC1TZr9+3nrJxRakh6p6tVVdYd
-u2403inffoLuBuTT2f5f8sk/U9ogLOmkSF4S4z2VQxjz1S58BpclLlDDanIak+R+
-ne4Lz6tFlnPBMbtXhzEucqbsEoielmh1I7bVtg05qtWqaVFFISiImq1qKTfrIvjR
-S8VEoYF06uV+O7XCRMP5yvHLDijnTOCwwFHImGo3/JYLwWVFs8rkYK/y2XjKuqpZ
-uo1UMyKJgpT1XTdRp19+iM9Bc9Sxk7fb+5WsCgyHTTKf+8E3u4sylASetKCCdZWy
-GO10Wf6ZgveMk1z/BNiVjiHCQtkzS2weNNkFqKnfxUnrnNXH1oXVQxpqJg2Td9hA
-9Y7miv0Q8mgsZbfNuYOzsry25cihN+RPQgzdnKOweNKuBNy83tQTuxRv6N3yszJo
-xWunaSZOX9GU4IHmTRZi0LC8FNDY0M3PM3ISmRI1Q69SAfBFN2ACaF0hYTxE74iw
-H6K46M2YF8DhHOV8TV/NjIh+x7PHBK9IXw3rQuPrE3FDeIrwwuif5uszJSEdS4jp
-jHFOkAAWZh2EAc5wwMjc
-=+eOE
------END PGP SIGNATURE-----
-
---Zd8I2GZVcdxtyaG/--
+diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+index dbc483e4a2ef..b330020dc0d6 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
+@@ -185,8 +185,7 @@ int mlx4_bitmap_init(struct mlx4_bitmap *bitmap, u32 num, u32 mask,
+ 	bitmap->avail = num - reserved_top - reserved_bot;
+ 	bitmap->effective_len = bitmap->avail;
+ 	spin_lock_init(&bitmap->lock);
+-	bitmap->table = kcalloc(BITS_TO_LONGS(bitmap->max), sizeof(long),
+-				GFP_KERNEL);
++	bitmap->table = bitmap_zalloc(bitmap->max, GFP_KERNEL);
+ 	if (!bitmap->table)
+ 		return -ENOMEM;
+ 
+@@ -197,7 +196,7 @@ int mlx4_bitmap_init(struct mlx4_bitmap *bitmap, u32 num, u32 mask,
+ 
+ void mlx4_bitmap_cleanup(struct mlx4_bitmap *bitmap)
+ {
+-	kfree(bitmap->table);
++	bitmap_free(bitmap->table);
+ }
+ 
+ struct mlx4_zone_allocator {
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+index 421b9c3c8bf7..9008e17126db 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
+@@ -186,10 +186,7 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
+ 	if (!pgdir)
+ 		return NULL;
+ 
+-	pgdir->bitmap = kcalloc(BITS_TO_LONGS(db_per_page),
+-				sizeof(unsigned long),
+-				GFP_KERNEL);
+-
++	pgdir->bitmap = bitmap_zalloc(db_per_page, GFP_KERNEL);
+ 	if (!pgdir->bitmap) {
+ 		kfree(pgdir);
+ 		return NULL;
+@@ -200,7 +197,7 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
+ 	pgdir->db_page = mlx5_dma_zalloc_coherent_node(dev, PAGE_SIZE,
+ 						       &pgdir->db_dma, node);
+ 	if (!pgdir->db_page) {
+-		kfree(pgdir->bitmap);
++		bitmap_free(pgdir->bitmap);
+ 		kfree(pgdir);
+ 		return NULL;
+ 	}
+@@ -280,7 +277,7 @@ void mlx5_db_free(struct mlx5_core_dev *dev, struct mlx5_db *db)
+ 		dma_free_coherent(&(dev->pdev->dev), PAGE_SIZE,
+ 				  db->u.pgdir->db_page, db->u.pgdir->db_dma);
+ 		list_del(&db->u.pgdir->list);
+-		kfree(db->u.pgdir->bitmap);
++		bitmap_free(db->u.pgdir->bitmap);
+ 		kfree(db->u.pgdir);
+ 	}
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
+index 98359559c77e..a71d5b9c7ab2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
+@@ -108,8 +108,7 @@ int mlx5_mpfs_init(struct mlx5_core_dev *dev)
+ 
+ 	mutex_init(&mpfs->lock);
+ 	mpfs->size   = l2table_size;
+-	mpfs->bitmap = kcalloc(BITS_TO_LONGS(l2table_size),
+-			       sizeof(uintptr_t), GFP_KERNEL);
++	mpfs->bitmap = bitmap_zalloc(l2table_size, GFP_KERNEL);
+ 	if (!mpfs->bitmap) {
+ 		kfree(mpfs);
+ 		return -ENOMEM;
+@@ -127,7 +126,7 @@ void mlx5_mpfs_cleanup(struct mlx5_core_dev *dev)
+ 		return;
+ 
+ 	WARN_ON(!hlist_empty(mpfs->hash));
+-	kfree(mpfs->bitmap);
++	bitmap_free(mpfs->bitmap);
+ 	kfree(mpfs);
+ }
+ 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/uar.c b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
+index 8b97066dd1f1..94464723ff77 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/uar.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
+@@ -90,8 +90,8 @@ static void up_rel_func(struct kref *kref)
+ 	iounmap(up->map);
+ 	if (mlx5_cmd_free_uar(up->mdev, up->index))
+ 		mlx5_core_warn(up->mdev, "failed to free uar index %d\n", up->index);
+-	kfree(up->reg_bitmap);
+-	kfree(up->fp_bitmap);
++	bitmap_free(up->reg_bitmap);
++	bitmap_free(up->fp_bitmap);
+ 	kfree(up);
+ }
+ 
+@@ -110,11 +110,11 @@ static struct mlx5_uars_page *alloc_uars_page(struct mlx5_core_dev *mdev,
+ 		return ERR_PTR(err);
+ 
+ 	up->mdev = mdev;
+-	up->reg_bitmap = kcalloc(BITS_TO_LONGS(bfregs), sizeof(unsigned long), GFP_KERNEL);
++	up->reg_bitmap = bitmap_zalloc(bfregs, GFP_KERNEL);
+ 	if (!up->reg_bitmap)
+ 		goto error1;
+ 
+-	up->fp_bitmap = kcalloc(BITS_TO_LONGS(bfregs), sizeof(unsigned long), GFP_KERNEL);
++	up->fp_bitmap = bitmap_zalloc(bfregs, GFP_KERNEL);
+ 	if (!up->fp_bitmap)
+ 		goto error1;
+ 
+@@ -157,8 +157,8 @@ static struct mlx5_uars_page *alloc_uars_page(struct mlx5_core_dev *mdev,
+ 	if (mlx5_cmd_free_uar(mdev, up->index))
+ 		mlx5_core_warn(mdev, "failed to free uar index %d\n", up->index);
+ error1:
+-	kfree(up->fp_bitmap);
+-	kfree(up->reg_bitmap);
++	bitmap_free(up->fp_bitmap);
++	bitmap_free(up->reg_bitmap);
+ 	kfree(up);
+ 	return ERR_PTR(err);
+ }
+diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
+index 9d9aa28684af..46baf3b44309 100644
+--- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
++++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
+@@ -1188,8 +1188,7 @@ static int mlxsw_sp_fid_family_register(struct mlxsw_sp *mlxsw_sp,
+ 
+ 	fid_family->mlxsw_sp = mlxsw_sp;
+ 	INIT_LIST_HEAD(&fid_family->fids_list);
+-	fid_family->fids_bitmap = kcalloc(BITS_TO_LONGS(nr_fids),
+-					  sizeof(unsigned long), GFP_KERNEL);
++	fid_family->fids_bitmap = bitmap_zalloc(nr_fids, GFP_KERNEL);
+ 	if (!fid_family->fids_bitmap) {
+ 		err = -ENOMEM;
+ 		goto err_alloc_fids_bitmap;
+@@ -1206,7 +1205,7 @@ static int mlxsw_sp_fid_family_register(struct mlxsw_sp *mlxsw_sp,
+ 	return 0;
+ 
+ err_fid_flood_tables_init:
+-	kfree(fid_family->fids_bitmap);
++	bitmap_free(fid_family->fids_bitmap);
+ err_alloc_fids_bitmap:
+ 	kfree(fid_family);
+ 	return err;
+@@ -1217,7 +1216,7 @@ mlxsw_sp_fid_family_unregister(struct mlxsw_sp *mlxsw_sp,
+ 			       struct mlxsw_sp_fid_family *fid_family)
+ {
+ 	mlxsw_sp->fid_core->fid_family_arr[fid_family->type] = NULL;
+-	kfree(fid_family->fids_bitmap);
++	bitmap_free(fid_family->fids_bitmap);
+ 	WARN_ON_ONCE(!list_empty(&fid_family->fids_list));
+ 	kfree(fid_family);
+ }
+-- 
+2.20.1
