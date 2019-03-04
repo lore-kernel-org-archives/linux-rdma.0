@@ -1,7 +1,7 @@
 From: Ira Weiny <ira.weiny@intel.com>
 Subject: Re: [PATCH v3] RDMA/umem: minor bug fix in error handling path
-Date: Mon, 4 Mar 2019 03:57:14 -0800
-Message-ID: <20190304115713.GD30058@iweiny-DESK2.sc.intel.com>
+Date: Mon, 4 Mar 2019 03:58:15 -0800
+Message-ID: <20190304115814.GE30058@iweiny-DESK2.sc.intel.com>
 References: <20190304194645.10422-1-jhubbard@nvidia.com>
  <20190304194645.10422-2-jhubbard@nvidia.com>
 Mime-Version: 1.0
@@ -33,7 +33,14 @@ On Mon, Mar 04, 2019 at 11:46:45AM -0800, john.hubbard@gmail.com wrote:
 > Cc: linux-mm@kvack.org
 > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+I meant...
+
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+
+<sigh>  just a bit too quick on the keyboard before lunch...  ;-)
+
+Ira
+
 
 > ---
 >  drivers/infiniband/core/umem_odp.c | 9 ++++++---
