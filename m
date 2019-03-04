@@ -1,44 +1,42 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v3] RDMA/umem: minor bug fix in error handling path
-Date: Mon, 4 Mar 2019 16:31:32 -0400
-Message-ID: <20190304203132.GA1055@ziepe.ca>
-References: <20190304194645.10422-1-jhubbard@nvidia.com>
- <20190304194645.10422-2-jhubbard@nvidia.com>
+Subject: Re: [PATCH for-next 3/3] IB/hfi1: Close race condition on user
+ context disable and close
+Date: Mon, 4 Mar 2019 16:41:53 -0400
+Message-ID: <20190304204153.GF8613@ziepe.ca>
+References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
+ <20190226164530.31476.26502.stgit@scvm10.sc.intel.com>
+ <316cda1d-eeaa-c75a-a4d8-fb087cd38714@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190304194645.10422-2-jhubbard@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Ira Weiny <ira.weiny@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+In-Reply-To: <316cda1d-eeaa-c75a-a4d8-fb087cd38714@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 04, 2019 at 11:46:45AM -0800, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
-> 
-> 1. Bug fix: fix an off by one error in the code that
-> cleans up if it fails to dma-map a page, after having
-> done a get_user_pages_remote() on a range of pages.
-> 
-> 2. Refinement: for that same cleanup code, release_pages()
-> is better than put_page() in a loop.
-> 
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: linux-rdma@vger.kernel.org
-> Cc: linux-mm@kvack.org
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> Acked-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/infiniband/core/umem_odp.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
+On Tue, Feb 26, 2019 at 12:15:59PM -0500, Dennis Dalessandro wrote:
+> On 2/26/2019 11:45 AM, Dennis Dalessandro wrote:
+> >   struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct hfi1_devdata *dd, u16 ctxt);
+> > diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+> > index 7841a0a..2cc5164 100644
+> > +++ b/drivers/infiniband/hw/hfi1/init.c
+> > @@ -214,12 +214,12 @@ static void hfi1_rcd_free(struct kref *kref)
+> >   	struct hfi1_ctxtdata *rcd =
+> >   		container_of(kref, struct hfi1_ctxtdata, kref);
+> > -	hfi1_free_ctxtdata(rcd->dd, rcd);
+> > -
+> >   	spin_lock_irqsave(&rcd->dd->uctxt_lock, flags);
+> >   	rcd->dd->rcd[rcd->ctxt] = NULL;
+> >   	spin_unlock_irqrestore(&rcd->dd->uctxt_lock, flags);
+> > +	hfi1_free_ctxtdata(rcd->dd, rcd);
+> > +
+> >   	kfree(rcd);
+> >   }
+> Whoops, hold off on pulling this one just yet. We need to take a closer look
+> at the above hunk.
 
-Applied to for-next, thanks
+Oh, okay.. Please resend it
 
 Jason
