@@ -1,122 +1,77 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH] RDMA/cma: Make CM response timeout and # CM retries
- configurable
-Date: Mon, 4 Mar 2019 06:27:26 +0000
-Message-ID: <VI1PR0501MB2271E8A704DD21EF81C7DC24D1710@VI1PR0501MB2271.eurprd05.prod.outlook.com>
-References: <20190217170909.1178575-1-haakon.bugge@oracle.com>
- <20190222163637.GA9819@ziepe.ca>
- <afadc799-b547-5c20-64d2-75fa0f64cd9e@opengridcomputing.com>
- <C7922E85-CA43-479A-8021-DADD59FF5BE7@redhat.com>
- <20190223084930.GJ23561@mtr-leonro.mtl.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH][next] RDMA/nes: remove redundant check on udata
+Date: Mon, 4 Mar 2019 08:36:23 +0200
+Message-ID: <20190304063623.GA15253@mtr-leonro.mtl.com>
+References: <20190302230637.8624-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Ma2pZxZcUUd0eybH"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190223084930.GJ23561@mtr-leonro.mtl.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190302230637.8624-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>
-Cc: Steve Wise <swise@opengridcomputing.com>, Jason Gunthorpe <jgg@ziepe.ca>, =?utf-8?B?SMOla29uIEJ1Z2dl?= <haakon.bugge@oracle.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Colin King <colin.king@canonical.com>
+Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGVvbiBSb21hbm92c2t5
-IDxsZW9uQGtlcm5lbC5vcmc+DQo+IFNlbnQ6IFNhdHVyZGF5LCBGZWJydWFyeSAyMywgMjAxOSAy
-OjUwIEFNDQo+IFRvOiBEb3VnIExlZGZvcmQgPGRsZWRmb3JkQHJlZGhhdC5jb20+DQo+IENjOiBT
-dGV2ZSBXaXNlIDxzd2lzZUBvcGVuZ3JpZGNvbXB1dGluZy5jb20+OyBKYXNvbiBHdW50aG9ycGUN
-Cj4gPGpnZ0B6aWVwZS5jYT47IEjDpWtvbiBCdWdnZSA8aGFha29uLmJ1Z2dlQG9yYWNsZS5jb20+
-OyBQYXJhdiBQYW5kaXQNCj4gPHBhcmF2QG1lbGxhbm94LmNvbT47IGxpbnV4LXJkbWFAdmdlci5r
-ZXJuZWwub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBS
-ZTogW1BBVENIXSBSRE1BL2NtYTogTWFrZSBDTSByZXNwb25zZSB0aW1lb3V0IGFuZCAjIENNDQo+
-IHJldHJpZXMgY29uZmlndXJhYmxlDQo+IA0KPiBPbiBGcmksIEZlYiAyMiwgMjAxOSBhdCAxMjo1
-MTo1NVBNIC0wNTAwLCBEb3VnIExlZGZvcmQgd3JvdGU6DQo+ID4NCj4gPg0KPiA+ID4gT24gRmVi
-IDIyLCAyMDE5LCBhdCAxMjoxNCBQTSwgU3RldmUgV2lzZQ0KPiA8c3dpc2VAb3BlbmdyaWRjb21w
-dXRpbmcuY29tPiB3cm90ZToNCj4gPiA+DQo+ID4gPg0KPiA+ID4gT24gMi8yMi8yMDE5IDEwOjM2
-IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6DQo+ID4gPj4gT24gU3VuLCBGZWIgMTcsIDIwMTkg
-YXQgMDY6MDk6MDlQTSArMDEwMCwgSMOla29uIEJ1Z2dlIHdyb3RlOg0KPiA+ID4+PiBEdXJpbmcg
-Y2VydGFpbiB3b3JrbG9hZHMsIHRoZSBkZWZhdWx0IENNIHJlc3BvbnNlIHRpbWVvdXQgaXMgdG9v
-DQo+ID4gPj4+IHNob3J0LCBsZWFkaW5nIHRvIGV4Y2Vzc2l2ZSByZXRyaWVzLiBIZW5jZSwgbWFr
-ZSBpdCBjb25maWd1cmFibGUNCj4gPiA+Pj4gdGhyb3VnaCBzeXNjdGwuIFdoaWxlIGF0IGl0LCBh
-bHNvIG1ha2UgbnVtYmVyIG9mIENNIHJldHJpZXMNCj4gPiA+Pj4gY29uZmlndXJhYmxlLg0KPiA+
-ID4+Pg0KPiA+ID4+PiBUaGUgZGVmYXVsdHMgYXJlIG5vdCBjaGFuZ2VkLg0KPiA+ID4+Pg0KPiA+
-ID4+PiBTaWduZWQtb2ZmLWJ5OiBIw6Vrb24gQnVnZ2UgPGhhYWtvbi5idWdnZUBvcmFjbGUuY29t
-Pg0KPiA+ID4+PiBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYyB8IDUxDQo+ID4gPj4+ICsr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tDQo+ID4gPj4+IDEgZmlsZSBjaGFuZ2Vk
-LCA0NCBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQ0KPiA+ID4+Pg0KPiA+ID4+PiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21hLmMNCj4gPiA+Pj4gYi9kcml2ZXJz
-L2luZmluaWJhbmQvY29yZS9jbWEuYyBpbmRleCBjNDM1MTI3NTJiOGEuLmNlOTllMWNkMTAyOQ0K
-PiA+ID4+PiAxMDA2NDQNCj4gPiA+Pj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvY21h
-LmMNCj4gPiA+Pj4gQEAgLTQzLDYgKzQzLDcgQEANCj4gPiA+Pj4gI2luY2x1ZGUgPGxpbnV4L2lu
-ZXRkZXZpY2UuaD4NCj4gPiA+Pj4gI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4NCj4gPiA+Pj4gI2lu
-Y2x1ZGUgPGxpbnV4L21vZHVsZS5oPg0KPiA+ID4+PiArI2luY2x1ZGUgPGxpbnV4L3N5c2N0bC5o
-Pg0KPiA+ID4+PiAjaW5jbHVkZSA8bmV0L3JvdXRlLmg+DQo+ID4gPj4+DQo+ID4gPj4+ICNpbmNs
-dWRlIDxuZXQvbmV0X25hbWVzcGFjZS5oPg0KPiA+ID4+PiBAQCAtNjgsMTMgKzY5LDQ2IEBAIE1P
-RFVMRV9BVVRIT1IoIlNlYW4gSGVmdHkiKTsNCj4gPiA+Pj4gTU9EVUxFX0RFU0NSSVBUSU9OKCJH
-ZW5lcmljIFJETUEgQ00gQWdlbnQiKTsNCj4gTU9EVUxFX0xJQ0VOU0UoIkR1YWwNCj4gPiA+Pj4g
-QlNEL0dQTCIpOw0KPiA+ID4+Pg0KPiA+ID4+PiAtI2RlZmluZSBDTUFfQ01fUkVTUE9OU0VfVElN
-RU9VVCAyMCAjZGVmaW5lDQo+ID4gPj4+IENNQV9RVUVSWV9DTEFTU1BPUlRfSU5GT19USU1FT1VU
-IDMwMDAgLSNkZWZpbmUNCj4gQ01BX01BWF9DTV9SRVRSSUVTDQo+ID4gPj4+IDE1ICNkZWZpbmUg
-Q01BX0NNX01SQV9TRVRUSU5HIChJQl9DTV9NUkFfRkxBR19ERUxBWSB8IDI0KQ0KPiAjZGVmaW5l
-DQo+ID4gPj4+IENNQV9JQk9FX1BBQ0tFVF9MSUZFVElNRSAxOCAjZGVmaW5lDQo+IENNQV9QUkVG
-RVJSRURfUk9DRV9HSURfVFlQRQ0KPiA+ID4+PiBJQl9HSURfVFlQRV9ST0NFX1VEUF9FTkNBUA0K
-PiA+ID4+Pg0KPiA+ID4+PiArI2RlZmluZSBDTUFfREZMVF9DTV9SRVNQT05TRV9USU1FT1VUIDIw
-IHN0YXRpYyBpbnQNCj4gPiA+Pj4gK2NtYV9jbV9yZXNwb25zZV90aW1lb3V0ID0gQ01BX0RGTFRf
-Q01fUkVTUE9OU0VfVElNRU9VVDsNCj4gc3RhdGljDQo+ID4gPj4+ICtpbnQgY21hX2NtX3Jlc3Bv
-bnNlX3RpbWVvdXRfbWluID0gODsgc3RhdGljIGludA0KPiA+ID4+PiArY21hX2NtX3Jlc3BvbnNl
-X3RpbWVvdXRfbWF4ID0gMzE7ICN1bmRlZg0KPiA+ID4+PiArQ01BX0RGTFRfQ01fUkVTUE9OU0Vf
-VElNRU9VVA0KPiA+ID4+PiArDQo+ID4gPj4+ICsjZGVmaW5lIENNQV9ERkxUX01BWF9DTV9SRVRS
-SUVTIDE1IHN0YXRpYyBpbnQNCj4gY21hX21heF9jbV9yZXRyaWVzDQo+ID4gPj4+ICs9IENNQV9E
-RkxUX01BWF9DTV9SRVRSSUVTOyBzdGF0aWMgaW50IGNtYV9tYXhfY21fcmV0cmllc19taW4NCj4g
-PSAxOw0KPiA+ID4+PiArc3RhdGljIGludCBjbWFfbWF4X2NtX3JldHJpZXNfbWF4ID0gMTAwOyAj
-dW5kZWYNCj4gPiA+Pj4gK0NNQV9ERkxUX01BWF9DTV9SRVRSSUVTDQo+ID4gPj4+ICsNCj4gPiA+
-Pj4gK3N0YXRpYyBzdHJ1Y3QgY3RsX3RhYmxlX2hlYWRlciAqY21hX2N0bF90YWJsZV9oZHI7IHN0
-YXRpYyBzdHJ1Y3QNCj4gPiA+Pj4gK2N0bF90YWJsZSBjbWFfY3RsX3RhYmxlW10gPSB7DQo+ID4g
-Pj4+ICsJew0KPiA+ID4+PiArCQkucHJvY25hbWUJPSAiY21hX2NtX3Jlc3BvbnNlX3RpbWVvdXQi
-LA0KPiA+ID4+PiArCQkuZGF0YQkJPSAmY21hX2NtX3Jlc3BvbnNlX3RpbWVvdXQsDQo+ID4gPj4+
-ICsJCS5tYXhsZW4JCT0gc2l6ZW9mKGNtYV9jbV9yZXNwb25zZV90aW1lb3V0KSwNCj4gPiA+Pj4g
-KwkJLm1vZGUJCT0gMDY0NCwNCj4gPiA+Pj4gKwkJLnByb2NfaGFuZGxlcgk9IHByb2NfZG9pbnR2
-ZWNfbWlubWF4LA0KPiA+ID4+PiArCQkuZXh0cmExCQk9ICZjbWFfY21fcmVzcG9uc2VfdGltZW91
-dF9taW4sDQo+ID4gPj4+ICsJCS5leHRyYTIJCT0gJmNtYV9jbV9yZXNwb25zZV90aW1lb3V0X21h
-eCwNCj4gPiA+Pj4gKwl9LA0KPiA+ID4+PiArCXsNCj4gPiA+Pj4gKwkJLnByb2NuYW1lCT0gImNt
-YV9tYXhfY21fcmV0cmllcyIsDQo+ID4gPj4+ICsJCS5kYXRhCQk9ICZjbWFfbWF4X2NtX3JldHJp
-ZXMsDQo+ID4gPj4+ICsJCS5tYXhsZW4JCT0gc2l6ZW9mKGNtYV9tYXhfY21fcmV0cmllcyksDQo+
-ID4gPj4+ICsJCS5tb2RlCQk9IDA2NDQsDQo+ID4gPj4+ICsJCS5wcm9jX2hhbmRsZXIJPSBwcm9j
-X2RvaW50dmVjX21pbm1heCwNCj4gPiA+Pj4gKwkJLmV4dHJhMQkJPSAmY21hX21heF9jbV9yZXRy
-aWVzX21pbiwNCj4gPiA+Pj4gKwkJLmV4dHJhMgkJPSAmY21hX21heF9jbV9yZXRyaWVzX21heCwN
-Cj4gPiA+Pj4gKwl9LA0KPiA+ID4+PiArCXsgfQ0KPiA+ID4+PiArfTsNCj4gPiA+PiBJcyBzeXNj
-dGwgdGhlIHJpZ2h0IGFwcHJvYWNoIGhlcmU/IFNob3VsZCBpdCBiZSByZG1hIHRvb2wgaW5zdGVh
-ZD8NCj4gPiA+Pg0KPiA+ID4+IEphc29uDQo+ID4gPg0KPiA+ID4gVGhlcmUgYXJlIG90aGVyIHJk
-bWEgc3lzY3RscyBjdXJyZW50bHk6ICBuZXQucmRtYV91Y20ubWF4X2JhY2tsb2cNCj4gPiA+IGFu
-ZCBuZXQuaXdfY20uZGVmYXVsdF9iYWNrbG9nLiAgVGhlIGNvcmUgbmV0d29yayBzdGFjayBzZWVt
-cyB0byB1c2UNCj4gPiA+IHN5c2N0bCBhbmQgbm90IGlwIHRvb2wgdG8gc2V0IGJhc2ljYWxseSBn
-bG9iYWxzLg0KPiA+ID4NCj4gPiA+IFRvIHVzZSByZG1hIHRvb2wsIHdlJ2QgaGF2ZSB0byBoYXZl
-IHNvbWUgY29uY2VwdCBvZiBhICJtb2R1bGUiDQo+ID4gPiBvYmplY3QsIEkgZ3Vlc3MuICBJRSB0
-aGVyZSdzIGRldiwgbGluaywgYW5kIHJlc291cmNlIHJkbWEgdG9vbCBvYmplY3RzDQo+IGN1cnJl
-bnRseS4NCj4gPiA+IEJ1dCB0aGVzZSBjbWEgdGltZW91dCBzZXR0aW5ncyBhcmUgcmVhbGx5IG5v
-dCBwZXIgZGV2LCBsaW5rLCBub3IgYQ0KPiA+ID4gcmVzb3VyY2UuICAgTWF5YmUgd2UgaGF2ZSBq
-dXN0IGEgImNvcmUiIG9iamVjdDogIHJkbWEgY29yZSBzZXQNCj4gPiA+IGNtYV9tYXhfY21fcmV0
-cmllcyBtaW4gOCBtYXggMzAuDQo+ID4NCj4gPiBJIGRvbuKAmXQga25vdywgSSB0aGluayB5b3Ug
-bWFrZSBhIGZhaXJseSBnb29kIGFyZ3VtZW50IGZvciBsZWF2aW5nIGl0IGFzIGENCj4gc3lzY3Rs
-LiAgV2UgaGF2ZSBpbmZyYXN0cnVjdHVyZSBpbiBwbGFjZSBmb3IgYWRtaW5zIHRvIHNldCBwZXJz
-aXN0ZW50IHN5c2N0bA0KPiBzZXR0aW5ncy4gIFRoZSBwZXIgZGV2aWNlL2xpbmsgc2V0dGluZ3Mg
-bmVlZCBzb21ldGhpbmcgZGlmZmVyZW50IGJlY2F1c2UgbGluaw0KPiBuYW1lcyBhbmQgc3VjaCBj
-YW4gY2hhbmdlLiAgU2luY2UgdGhlc2UgYXJlIGdsb2JhbHMsIEnigJlkIGxlYXZlIHRoZW0gd2hl
-cmUNCj4gdGhleSBhcmUuDQo+ID4NCj4gDQo+IEkgaGF2ZSBwYXRjaGVzIGZyb20gUGFyYXYgd2hp
-Y2ggZXh0ZW5kIHJkbWF0b29sIHRvIHNldCBnbG9iYWwgdG8gd2hvbGUNCj4gc3RhY2sgcGFyYW1l
-dGVycywgc29tZXRoaW5nIGxpa2UgInJkbWEgc3lzdGVtIC4uLiIsIHNvIHRoZSBvcHRpb24gdG8g
-c2V0DQo+IHRocm91Z2ggcmRtYXRvb2wgZ2xvYmFsIHBhcmFtZXRlcnMgZm9yIG1vZHVsZXMgZS5n
-LiAicmRtYSBzeXN0ZW0gY21hIHNldA0KPiAuLi4iDQo+IGV4aXN0cy4gQnV0IEknbSBub3Qgc3Vy
-ZSBpZiBpdCBpcyByaWdodCB0aGluZyB0byBkby4NCj4NCg0KSSB0aGluayB3ZSBzaG91bGQgdXNl
-IHJkbWFfbmxfcmVnaXN0ZXIoUkRNQV9OTF9SRE1BX0NNLCBjbWFfY2JfdGFibGUpIHdoaWNoIHdh
-cyByZW1vdmVkIGFzIHBhcnQgb2YgSUQgc3RhdHMgcmVtb3ZhbC4NCkJlY2F1c2Ugb2YgYmVsb3cg
-cmVhc29ucy4NCjEuIHJkbWEgbmV0bGluayBjb21tYW5kIGF1dG8gbG9hZHMgdGhlIG1vZHVsZQ0K
-Mi4gd2UgZG9uJ3QgbmVlZCB0byB3cml0ZSBhbnkgZXh0cmEgY29kZSB0byBkbyByZWdpc3Rlcl9u
-ZXRfc3lzY3RsICgpIGluIGVhY2ggbmV0bnMuDQpDYWxsZXIncyBza2IncyBuZXRucyB3aWxsIHJl
-YWQvd3JpdGUgdmFsdWUgb2YgcmVzcG9uc2VfdGltZW91dCBpbiAnc3RydWN0IGNtYV9wZXJuZXQn
-Lg0KMy4gbGFzdCB0aW1lIHN5c2N0bCBhZGRlZCBpbiBpcHY2IHdhcyBpbiAyMDE3IGluIG5ldC9p
-cHY2L2FkZHJjb25mLmMsIGhvd2V2ZXIgaXB2NCB3YXMgZG9uZSBpbiAyMDE4Lg0KDQpDdXJyZW50
-bHkgcmRtYV9jbS9yZG1hX3VjbWEgaGFzIGNvbmZpZ2ZzLCBzeXNjdGwuDQpXZSBhcmUgYWRkaW5n
-IG5ldGxpbmsgc3lzIHBhcmFtcyB0byBpYl9jb3JlLg0KDQpXZSBhbHJlYWR5IGhhdmUgMyBjbGll
-bnRzIGFuZCBpbmZyYSBidWlsdCB1c2luZyByZG1hX25sX3JlZ2lzdGVyKCkgbmV0bGluayAsIHNv
-IGhvb2tpbmcgdXAgdG8gbmV0bGluayB3aWxsIHByb3ZpZGUgdW5pZmllZCB3YXkgdG8gc2V0IHJk
-bWEgcGFyYW1zLg0KTGV0J3MganVzdCB1c2UgbmV0bGluayBmb3IgYW55IG5ldyBwYXJhbXMgdW5s
-ZXNzIGl0IGlzIG5vdCBkb2FibGUuDQoNCg==
+
+--Ma2pZxZcUUd0eybH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sat, Mar 02, 2019 at 11:06:36PM +0000, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> The non-null check on udata is redundant as this check was performed
+> just a few statements earlier and the check is always true as udata
+> must be non-null at this point. Remove redundant the check on udata
+> and the redundant else part that can never be executed.
+>
+> Detected by CoverityScan, CID#1477317 ("Logically dead code")
+>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++--------------
+>  1 file changed, 34 insertions(+), 39 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+> index 828e4af3f951..526092d435df 100644
+> --- a/drivers/infiniband/hw/nes/nes_verbs.c
+> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
+> @@ -1039,53 +1039,48 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+>  				}
+>  				if (req.user_qp_buffer)
+>  					nesqp->nesuqp_addr = req.user_qp_buffer;
+> -				if (udata) {
+> -					nesqp->user_mode = 1;
+
+It was single place where user_mode was set, you should continue and
+remove all code which depends on "if (nesqp->user_mode)".
+
+I looked on the change which triggered Coverity warning and looks like
+your commit message should include this Fixes line:
+Fixes: 899444505473 ("IB/{hw,sw}: Remove 'uobject->context' dependency in object creation APIs")
+
+Thanks
+
+--Ma2pZxZcUUd0eybH
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcfMdnAAoJEORje4g2clin/0gP/3wzVBGqLbp+ZEORDYZus7nq
+xalQQ6UDevH70HB6XnxeApRH/qBfwntDhN5H0qqt1SP3E9xCuZh/1Hb2PofB8HgR
+H25DCA1pEihrLufrcU8ttGhEJk8JP19tCtqybpa4zAWLFXlO9f7Bn0vqAf8kzdoD
+dSuCCed5xj+10IHeR9oDsPm4wDXu1eAKKHD4tuRxicHkgkxuPTC2iipiUBXxfJB2
+UUVitYv9cg40SBRTQp5mjMnS4ZF+ItX7nWXmL9R+tCxsg8RIFXelfV5tjNIcA25I
+jVaQHHDxZM+vIy55K3Fcwl4XOT18ec3648pyoDVqz2EzlKqqOiCgTldoLKd2uPWk
+JSh+rWEZ5c6db93KloQpqkD42ZcPWkhOo6Bn3w5JFrud74kHS/HAHqzgTBjFNsOG
+SHUPOpfpelCku/eMTUiWI+wiuecD9CDrzlY65QGJLok8WxYPjexHDMaJTx3ZYzBm
+YiQ0e0Fpco24hL9Ft/1giw/eG8J5vGdo+ks6gdkJp3bRRM6kG1OpsaCpcKhhbtUF
+eqasCPqJ/3EzfqR0OW0iECx4ArDOYsLB2h8pEVAwIx5XI3bsdfDbf5O7Mqs7EZFS
+C/hxZr7A0HPCnPk+uUKkzFKjGadF9DXgqxBNksHrbd2u3vKeQfF+Mn1xIo28lem5
+HLtqDwjiVXPdoJFRwhEY
+=wQRA
+-----END PGP SIGNATURE-----
+
+--Ma2pZxZcUUd0eybH--
