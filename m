@@ -1,64 +1,34 @@
-From: john.hubbard@gmail.com
-Subject: [PATCH v3] RDMA/umem: minor bug fix in error handling path
-Date: Mon,  4 Mar 2019 11:46:45 -0800
-Message-ID: <20190304194645.10422-2-jhubbard@nvidia.com>
-References: <20190304194645.10422-1-jhubbard@nvidia.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-next 0/3] Driver fixes
+Date: Mon, 4 Mar 2019 15:49:35 -0400
+Message-ID: <20190304194935.GB1816@ziepe.ca>
+References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190304194645.10422-1-jhubbard@nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+On Tue, Feb 26, 2019 at 08:45:02AM -0800, Dennis Dalessandro wrote:
+> Hi Jason and Doug,
+> 
+> Here are some fixes that didn't quite make the boat for 5.0-rc. So we can
+> go ahead and send them to -next. The third patch here is really a v2 of:
+> 
+> https://patchwork.kernel.org/patch/10769005/
+> 
+> 
+> Michael J. Ruhl (2):
+>       IB/rdmavt: Fix concurrency panics in QP post_send and modify to error
+>       IB/hfi1: Close race condition on user context disable and close
+> 
+> Mike Marciniszyn (1):
+>       IB/rdmavt: Fix loopback send with invalidate ordering
 
-1. Bug fix: fix an off by one error in the code that
-cleans up if it fails to dma-map a page, after having
-done a get_user_pages_remote() on a range of pages.
+Applied to for-next, thanks
 
-2. Refinement: for that same cleanup code, release_pages()
-is better than put_page() in a loop.
-
-Cc: Leon Romanovsky <leon@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: linux-rdma@vger.kernel.org
-Cc: linux-mm@kvack.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
----
- drivers/infiniband/core/umem_odp.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
-index acb882f279cb..d45735b02e07 100644
---- a/drivers/infiniband/core/umem_odp.c
-+++ b/drivers/infiniband/core/umem_odp.c
-@@ -40,6 +40,7 @@
- #include <linux/vmalloc.h>
- #include <linux/hugetlb.h>
- #include <linux/interval_tree_generic.h>
-+#include <linux/pagemap.h>
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_umem.h>
-@@ -684,9 +685,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
- 		mutex_unlock(&umem_odp->umem_mutex);
- 
- 		if (ret < 0) {
--			/* Release left over pages when handling errors. */
--			for (++j; j < npages; ++j)
--				put_page(local_page_list[j]);
-+			/*
-+			 * Release pages, starting at the the first page
-+			 * that experienced an error.
-+			 */
-+			release_pages(&local_page_list[j], npages - j);
- 			break;
- 		}
- 	}
--- 
-2.21.0
+Jason
