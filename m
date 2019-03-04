@@ -1,178 +1,139 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] mellanox: Switch to bitmap_zalloc()
-Date: Mon,  4 Mar 2019 10:57:00 +0200
-Message-ID: <20190304085700.88095-1-andriy.shevchenko@linux.intel.com>
+From: Tariq Toukan <tariqt@mellanox.com>
+Subject: Re: [PATCH v1] mellanox: Switch to bitmap_zalloc()
+Date: Mon, 4 Mar 2019 12:02:34 +0000
+Message-ID: <5ace12dd-e8dd-069f-974e-949b0c7db07a@mellanox.com>
+References: <20190304085700.88095-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190304085700.88095-1-andriy.shevchenko@linux.intel.com>
+Content-Language: en-US
+Content-ID: <86E197DC247FB44E8D6B874804FEB3EE@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, linux-rdma@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Jiri Pirko <jiri@mellanox.com>, Ido Schimmel <idosch@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Switch to bitmap_zalloc() to show clearly what we are allocating.
-Besides that it returns pointer of bitmap type instead of opaque void *.
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/net/ethernet/mellanox/mlx4/alloc.c         |  5 ++---
- drivers/net/ethernet/mellanox/mlx5/core/alloc.c    |  9 +++------
- drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c |  5 ++---
- drivers/net/ethernet/mellanox/mlx5/core/uar.c      | 12 ++++++------
- drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c |  7 +++----
- 5 files changed, 16 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx4/alloc.c b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-index dbc483e4a2ef..b330020dc0d6 100644
---- a/drivers/net/ethernet/mellanox/mlx4/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx4/alloc.c
-@@ -185,8 +185,7 @@ int mlx4_bitmap_init(struct mlx4_bitmap *bitmap, u32 num, u32 mask,
- 	bitmap->avail = num - reserved_top - reserved_bot;
- 	bitmap->effective_len = bitmap->avail;
- 	spin_lock_init(&bitmap->lock);
--	bitmap->table = kcalloc(BITS_TO_LONGS(bitmap->max), sizeof(long),
--				GFP_KERNEL);
-+	bitmap->table = bitmap_zalloc(bitmap->max, GFP_KERNEL);
- 	if (!bitmap->table)
- 		return -ENOMEM;
- 
-@@ -197,7 +196,7 @@ int mlx4_bitmap_init(struct mlx4_bitmap *bitmap, u32 num, u32 mask,
- 
- void mlx4_bitmap_cleanup(struct mlx4_bitmap *bitmap)
- {
--	kfree(bitmap->table);
-+	bitmap_free(bitmap->table);
- }
- 
- struct mlx4_zone_allocator {
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-index 421b9c3c8bf7..9008e17126db 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/alloc.c
-@@ -186,10 +186,7 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
- 	if (!pgdir)
- 		return NULL;
- 
--	pgdir->bitmap = kcalloc(BITS_TO_LONGS(db_per_page),
--				sizeof(unsigned long),
--				GFP_KERNEL);
--
-+	pgdir->bitmap = bitmap_zalloc(db_per_page, GFP_KERNEL);
- 	if (!pgdir->bitmap) {
- 		kfree(pgdir);
- 		return NULL;
-@@ -200,7 +197,7 @@ static struct mlx5_db_pgdir *mlx5_alloc_db_pgdir(struct mlx5_core_dev *dev,
- 	pgdir->db_page = mlx5_dma_zalloc_coherent_node(dev, PAGE_SIZE,
- 						       &pgdir->db_dma, node);
- 	if (!pgdir->db_page) {
--		kfree(pgdir->bitmap);
-+		bitmap_free(pgdir->bitmap);
- 		kfree(pgdir);
- 		return NULL;
- 	}
-@@ -280,7 +277,7 @@ void mlx5_db_free(struct mlx5_core_dev *dev, struct mlx5_db *db)
- 		dma_free_coherent(&(dev->pdev->dev), PAGE_SIZE,
- 				  db->u.pgdir->db_page, db->u.pgdir->db_dma);
- 		list_del(&db->u.pgdir->list);
--		kfree(db->u.pgdir->bitmap);
-+		bitmap_free(db->u.pgdir->bitmap);
- 		kfree(db->u.pgdir);
- 	}
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
-index 98359559c77e..a71d5b9c7ab2 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/mpfs.c
-@@ -108,8 +108,7 @@ int mlx5_mpfs_init(struct mlx5_core_dev *dev)
- 
- 	mutex_init(&mpfs->lock);
- 	mpfs->size   = l2table_size;
--	mpfs->bitmap = kcalloc(BITS_TO_LONGS(l2table_size),
--			       sizeof(uintptr_t), GFP_KERNEL);
-+	mpfs->bitmap = bitmap_zalloc(l2table_size, GFP_KERNEL);
- 	if (!mpfs->bitmap) {
- 		kfree(mpfs);
- 		return -ENOMEM;
-@@ -127,7 +126,7 @@ void mlx5_mpfs_cleanup(struct mlx5_core_dev *dev)
- 		return;
- 
- 	WARN_ON(!hlist_empty(mpfs->hash));
--	kfree(mpfs->bitmap);
-+	bitmap_free(mpfs->bitmap);
- 	kfree(mpfs);
- }
- 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/uar.c b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-index 8b97066dd1f1..94464723ff77 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/uar.c
-@@ -90,8 +90,8 @@ static void up_rel_func(struct kref *kref)
- 	iounmap(up->map);
- 	if (mlx5_cmd_free_uar(up->mdev, up->index))
- 		mlx5_core_warn(up->mdev, "failed to free uar index %d\n", up->index);
--	kfree(up->reg_bitmap);
--	kfree(up->fp_bitmap);
-+	bitmap_free(up->reg_bitmap);
-+	bitmap_free(up->fp_bitmap);
- 	kfree(up);
- }
- 
-@@ -110,11 +110,11 @@ static struct mlx5_uars_page *alloc_uars_page(struct mlx5_core_dev *mdev,
- 		return ERR_PTR(err);
- 
- 	up->mdev = mdev;
--	up->reg_bitmap = kcalloc(BITS_TO_LONGS(bfregs), sizeof(unsigned long), GFP_KERNEL);
-+	up->reg_bitmap = bitmap_zalloc(bfregs, GFP_KERNEL);
- 	if (!up->reg_bitmap)
- 		goto error1;
- 
--	up->fp_bitmap = kcalloc(BITS_TO_LONGS(bfregs), sizeof(unsigned long), GFP_KERNEL);
-+	up->fp_bitmap = bitmap_zalloc(bfregs, GFP_KERNEL);
- 	if (!up->fp_bitmap)
- 		goto error1;
- 
-@@ -157,8 +157,8 @@ static struct mlx5_uars_page *alloc_uars_page(struct mlx5_core_dev *mdev,
- 	if (mlx5_cmd_free_uar(mdev, up->index))
- 		mlx5_core_warn(mdev, "failed to free uar index %d\n", up->index);
- error1:
--	kfree(up->fp_bitmap);
--	kfree(up->reg_bitmap);
-+	bitmap_free(up->fp_bitmap);
-+	bitmap_free(up->reg_bitmap);
- 	kfree(up);
- 	return ERR_PTR(err);
- }
-diff --git a/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c b/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
-index 9d9aa28684af..46baf3b44309 100644
---- a/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
-+++ b/drivers/net/ethernet/mellanox/mlxsw/spectrum_fid.c
-@@ -1188,8 +1188,7 @@ static int mlxsw_sp_fid_family_register(struct mlxsw_sp *mlxsw_sp,
- 
- 	fid_family->mlxsw_sp = mlxsw_sp;
- 	INIT_LIST_HEAD(&fid_family->fids_list);
--	fid_family->fids_bitmap = kcalloc(BITS_TO_LONGS(nr_fids),
--					  sizeof(unsigned long), GFP_KERNEL);
-+	fid_family->fids_bitmap = bitmap_zalloc(nr_fids, GFP_KERNEL);
- 	if (!fid_family->fids_bitmap) {
- 		err = -ENOMEM;
- 		goto err_alloc_fids_bitmap;
-@@ -1206,7 +1205,7 @@ static int mlxsw_sp_fid_family_register(struct mlxsw_sp *mlxsw_sp,
- 	return 0;
- 
- err_fid_flood_tables_init:
--	kfree(fid_family->fids_bitmap);
-+	bitmap_free(fid_family->fids_bitmap);
- err_alloc_fids_bitmap:
- 	kfree(fid_family);
- 	return err;
-@@ -1217,7 +1216,7 @@ mlxsw_sp_fid_family_unregister(struct mlxsw_sp *mlxsw_sp,
- 			       struct mlxsw_sp_fid_family *fid_family)
- {
- 	mlxsw_sp->fid_core->fid_family_arr[fid_family->type] = NULL;
--	kfree(fid_family->fids_bitmap);
-+	bitmap_free(fid_family->fids_bitmap);
- 	WARN_ON_ONCE(!list_empty(&fid_family->fids_list));
- 	kfree(fid_family);
- }
--- 
-2.20.1
+DQoNCk9uIDMvNC8yMDE5IDEwOjU3IEFNLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+IFN3aXRj
+aCB0byBiaXRtYXBfemFsbG9jKCkgdG8gc2hvdyBjbGVhcmx5IHdoYXQgd2UgYXJlIGFsbG9jYXRp
+bmcuDQo+IEJlc2lkZXMgdGhhdCBpdCByZXR1cm5zIHBvaW50ZXIgb2YgYml0bWFwIHR5cGUgaW5z
+dGVhZCBvZiBvcGFxdWUgdm9pZCAqLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogQW5keSBTaGV2Y2hl
+bmtvIDxhbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZl
+cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvYWxsb2MuYyAgICAgICAgIHwgIDUgKystLS0N
+Cj4gICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvYWxsb2MuYyAgICB8
+ICA5ICsrKy0tLS0tLQ0KPiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
+ZS9saWIvbXBmcy5jIHwgIDUgKystLS0NCj4gICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5v
+eC9tbHg1L2NvcmUvdWFyLmMgICAgICB8IDEyICsrKysrKy0tLS0tLQ0KPiAgIGRyaXZlcnMvbmV0
+L2V0aGVybmV0L21lbGxhbm94L21seHN3L3NwZWN0cnVtX2ZpZC5jIHwgIDcgKysrLS0tLQ0KPiAg
+IDUgZmlsZXMgY2hhbmdlZCwgMTYgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pDQo+IA0K
+DQpSZXZpZXdlZC1ieTogVGFyaXEgVG91a2FuIDx0YXJpcXRAbWVsbGFub3guY29tPg0KDQpUaGFu
+a3MgZm9yIHlvdXIgcGF0Y2guDQoNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
+L21lbGxhbm94L21seDQvYWxsb2MuYyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21s
+eDQvYWxsb2MuYw0KPiBpbmRleCBkYmM0ODNlNGEyZWYuLmIzMzAwMjBkYzBkNiAxMDA2NDQNCj4g
+LS0tIGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NC9hbGxvYy5jDQo+ICsrKyBi
+L2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDQvYWxsb2MuYw0KPiBAQCAtMTg1LDgg
+KzE4NSw3IEBAIGludCBtbHg0X2JpdG1hcF9pbml0KHN0cnVjdCBtbHg0X2JpdG1hcCAqYml0bWFw
+LCB1MzIgbnVtLCB1MzIgbWFzaywNCj4gICAJYml0bWFwLT5hdmFpbCA9IG51bSAtIHJlc2VydmVk
+X3RvcCAtIHJlc2VydmVkX2JvdDsNCj4gICAJYml0bWFwLT5lZmZlY3RpdmVfbGVuID0gYml0bWFw
+LT5hdmFpbDsNCj4gICAJc3Bpbl9sb2NrX2luaXQoJmJpdG1hcC0+bG9jayk7DQo+IC0JYml0bWFw
+LT50YWJsZSA9IGtjYWxsb2MoQklUU19UT19MT05HUyhiaXRtYXAtPm1heCksIHNpemVvZihsb25n
+KSwNCj4gLQkJCQlHRlBfS0VSTkVMKTsNCj4gKwliaXRtYXAtPnRhYmxlID0gYml0bWFwX3phbGxv
+YyhiaXRtYXAtPm1heCwgR0ZQX0tFUk5FTCk7DQo+ICAgCWlmICghYml0bWFwLT50YWJsZSkNCj4g
+ICAJCXJldHVybiAtRU5PTUVNOw0KPiAgIA0KPiBAQCAtMTk3LDcgKzE5Niw3IEBAIGludCBtbHg0
+X2JpdG1hcF9pbml0KHN0cnVjdCBtbHg0X2JpdG1hcCAqYml0bWFwLCB1MzIgbnVtLCB1MzIgbWFz
+aywNCj4gICANCj4gICB2b2lkIG1seDRfYml0bWFwX2NsZWFudXAoc3RydWN0IG1seDRfYml0bWFw
+ICpiaXRtYXApDQo+ICAgew0KPiAtCWtmcmVlKGJpdG1hcC0+dGFibGUpOw0KPiArCWJpdG1hcF9m
+cmVlKGJpdG1hcC0+dGFibGUpOw0KPiAgIH0NCj4gICANCj4gICBzdHJ1Y3QgbWx4NF96b25lX2Fs
+bG9jYXRvciB7DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9t
+bHg1L2NvcmUvYWxsb2MuYyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
+ZS9hbGxvYy5jDQo+IGluZGV4IDQyMWI5YzNjOGJmNy4uOTAwOGUxNzEyNmRiIDEwMDY0NA0KPiAt
+LS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvYWxsb2MuYw0KPiAr
+KysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvYWxsb2MuYw0KPiBA
+QCAtMTg2LDEwICsxODYsNyBAQCBzdGF0aWMgc3RydWN0IG1seDVfZGJfcGdkaXIgKm1seDVfYWxs
+b2NfZGJfcGdkaXIoc3RydWN0IG1seDVfY29yZV9kZXYgKmRldiwNCj4gICAJaWYgKCFwZ2RpcikN
+Cj4gICAJCXJldHVybiBOVUxMOw0KPiAgIA0KPiAtCXBnZGlyLT5iaXRtYXAgPSBrY2FsbG9jKEJJ
+VFNfVE9fTE9OR1MoZGJfcGVyX3BhZ2UpLA0KPiAtCQkJCXNpemVvZih1bnNpZ25lZCBsb25nKSwN
+Cj4gLQkJCQlHRlBfS0VSTkVMKTsNCj4gLQ0KPiArCXBnZGlyLT5iaXRtYXAgPSBiaXRtYXBfemFs
+bG9jKGRiX3Blcl9wYWdlLCBHRlBfS0VSTkVMKTsNCj4gICAJaWYgKCFwZ2Rpci0+Yml0bWFwKSB7
+DQo+ICAgCQlrZnJlZShwZ2Rpcik7DQo+ICAgCQlyZXR1cm4gTlVMTDsNCj4gQEAgLTIwMCw3ICsx
+OTcsNyBAQCBzdGF0aWMgc3RydWN0IG1seDVfZGJfcGdkaXIgKm1seDVfYWxsb2NfZGJfcGdkaXIo
+c3RydWN0IG1seDVfY29yZV9kZXYgKmRldiwNCj4gICAJcGdkaXItPmRiX3BhZ2UgPSBtbHg1X2Rt
+YV96YWxsb2NfY29oZXJlbnRfbm9kZShkZXYsIFBBR0VfU0laRSwNCj4gICAJCQkJCQkgICAgICAg
+JnBnZGlyLT5kYl9kbWEsIG5vZGUpOw0KPiAgIAlpZiAoIXBnZGlyLT5kYl9wYWdlKSB7DQo+IC0J
+CWtmcmVlKHBnZGlyLT5iaXRtYXApOw0KPiArCQliaXRtYXBfZnJlZShwZ2Rpci0+Yml0bWFwKTsN
+Cj4gICAJCWtmcmVlKHBnZGlyKTsNCj4gICAJCXJldHVybiBOVUxMOw0KPiAgIAl9DQo+IEBAIC0y
+ODAsNyArMjc3LDcgQEAgdm9pZCBtbHg1X2RiX2ZyZWUoc3RydWN0IG1seDVfY29yZV9kZXYgKmRl
+diwgc3RydWN0IG1seDVfZGIgKmRiKQ0KPiAgIAkJZG1hX2ZyZWVfY29oZXJlbnQoJihkZXYtPnBk
+ZXYtPmRldiksIFBBR0VfU0laRSwNCj4gICAJCQkJICBkYi0+dS5wZ2Rpci0+ZGJfcGFnZSwgZGIt
+PnUucGdkaXItPmRiX2RtYSk7DQo+ICAgCQlsaXN0X2RlbCgmZGItPnUucGdkaXItPmxpc3QpOw0K
+PiAtCQlrZnJlZShkYi0+dS5wZ2Rpci0+Yml0bWFwKTsNCj4gKwkJYml0bWFwX2ZyZWUoZGItPnUu
+cGdkaXItPmJpdG1hcCk7DQo+ICAgCQlrZnJlZShkYi0+dS5wZ2Rpcik7DQo+ICAgCX0NCj4gICAN
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9s
+aWIvbXBmcy5jIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2xpYi9t
+cGZzLmMNCj4gaW5kZXggOTgzNTk1NTljNzdlLi5hNzFkNWI5YzdhYjIgMTAwNjQ0DQo+IC0tLSBh
+L2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvbXBmcy5jDQo+ICsr
+KyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvbXBmcy5jDQo+
+IEBAIC0xMDgsOCArMTA4LDcgQEAgaW50IG1seDVfbXBmc19pbml0KHN0cnVjdCBtbHg1X2NvcmVf
+ZGV2ICpkZXYpDQo+ICAgDQo+ICAgCW11dGV4X2luaXQoJm1wZnMtPmxvY2spOw0KPiAgIAltcGZz
+LT5zaXplICAgPSBsMnRhYmxlX3NpemU7DQo+IC0JbXBmcy0+Yml0bWFwID0ga2NhbGxvYyhCSVRT
+X1RPX0xPTkdTKGwydGFibGVfc2l6ZSksDQo+IC0JCQkgICAgICAgc2l6ZW9mKHVpbnRwdHJfdCks
+IEdGUF9LRVJORUwpOw0KPiArCW1wZnMtPmJpdG1hcCA9IGJpdG1hcF96YWxsb2MobDJ0YWJsZV9z
+aXplLCBHRlBfS0VSTkVMKTsNCj4gICAJaWYgKCFtcGZzLT5iaXRtYXApIHsNCj4gICAJCWtmcmVl
+KG1wZnMpOw0KPiAgIAkJcmV0dXJuIC1FTk9NRU07DQo+IEBAIC0xMjcsNyArMTI2LDcgQEAgdm9p
+ZCBtbHg1X21wZnNfY2xlYW51cChzdHJ1Y3QgbWx4NV9jb3JlX2RldiAqZGV2KQ0KPiAgIAkJcmV0
+dXJuOw0KPiAgIA0KPiAgIAlXQVJOX09OKCFobGlzdF9lbXB0eShtcGZzLT5oYXNoKSk7DQo+IC0J
+a2ZyZWUobXBmcy0+Yml0bWFwKTsNCj4gKwliaXRtYXBfZnJlZShtcGZzLT5iaXRtYXApOw0KPiAg
+IAlrZnJlZShtcGZzKTsNCj4gICB9DQo+ICAgDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9l
+dGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvdWFyLmMgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9t
+ZWxsYW5veC9tbHg1L2NvcmUvdWFyLmMNCj4gaW5kZXggOGI5NzA2NmRkMWYxLi45NDQ2NDcyM2Zm
+NzcgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29y
+ZS91YXIuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+dWFyLmMNCj4gQEAgLTkwLDggKzkwLDggQEAgc3RhdGljIHZvaWQgdXBfcmVsX2Z1bmMoc3RydWN0
+IGtyZWYgKmtyZWYpDQo+ICAgCWlvdW5tYXAodXAtPm1hcCk7DQo+ICAgCWlmIChtbHg1X2NtZF9m
+cmVlX3Vhcih1cC0+bWRldiwgdXAtPmluZGV4KSkNCj4gICAJCW1seDVfY29yZV93YXJuKHVwLT5t
+ZGV2LCAiZmFpbGVkIHRvIGZyZWUgdWFyIGluZGV4ICVkXG4iLCB1cC0+aW5kZXgpOw0KPiAtCWtm
+cmVlKHVwLT5yZWdfYml0bWFwKTsNCj4gLQlrZnJlZSh1cC0+ZnBfYml0bWFwKTsNCj4gKwliaXRt
+YXBfZnJlZSh1cC0+cmVnX2JpdG1hcCk7DQo+ICsJYml0bWFwX2ZyZWUodXAtPmZwX2JpdG1hcCk7
+DQo+ICAgCWtmcmVlKHVwKTsNCj4gICB9DQo+ICAgDQo+IEBAIC0xMTAsMTEgKzExMCwxMSBAQCBz
+dGF0aWMgc3RydWN0IG1seDVfdWFyc19wYWdlICphbGxvY191YXJzX3BhZ2Uoc3RydWN0IG1seDVf
+Y29yZV9kZXYgKm1kZXYsDQo+ICAgCQlyZXR1cm4gRVJSX1BUUihlcnIpOw0KPiAgIA0KPiAgIAl1
+cC0+bWRldiA9IG1kZXY7DQo+IC0JdXAtPnJlZ19iaXRtYXAgPSBrY2FsbG9jKEJJVFNfVE9fTE9O
+R1MoYmZyZWdzKSwgc2l6ZW9mKHVuc2lnbmVkIGxvbmcpLCBHRlBfS0VSTkVMKTsNCj4gKwl1cC0+
+cmVnX2JpdG1hcCA9IGJpdG1hcF96YWxsb2MoYmZyZWdzLCBHRlBfS0VSTkVMKTsNCj4gICAJaWYg
+KCF1cC0+cmVnX2JpdG1hcCkNCj4gICAJCWdvdG8gZXJyb3IxOw0KPiAgIA0KPiAtCXVwLT5mcF9i
+aXRtYXAgPSBrY2FsbG9jKEJJVFNfVE9fTE9OR1MoYmZyZWdzKSwgc2l6ZW9mKHVuc2lnbmVkIGxv
+bmcpLCBHRlBfS0VSTkVMKTsNCj4gKwl1cC0+ZnBfYml0bWFwID0gYml0bWFwX3phbGxvYyhiZnJl
+Z3MsIEdGUF9LRVJORUwpOw0KPiAgIAlpZiAoIXVwLT5mcF9iaXRtYXApDQo+ICAgCQlnb3RvIGVy
+cm9yMTsNCj4gICANCj4gQEAgLTE1Nyw4ICsxNTcsOCBAQCBzdGF0aWMgc3RydWN0IG1seDVfdWFy
+c19wYWdlICphbGxvY191YXJzX3BhZ2Uoc3RydWN0IG1seDVfY29yZV9kZXYgKm1kZXYsDQo+ICAg
+CWlmIChtbHg1X2NtZF9mcmVlX3VhcihtZGV2LCB1cC0+aW5kZXgpKQ0KPiAgIAkJbWx4NV9jb3Jl
+X3dhcm4obWRldiwgImZhaWxlZCB0byBmcmVlIHVhciBpbmRleCAlZFxuIiwgdXAtPmluZGV4KTsN
+Cj4gICBlcnJvcjE6DQo+IC0Ja2ZyZWUodXAtPmZwX2JpdG1hcCk7DQo+IC0Ja2ZyZWUodXAtPnJl
+Z19iaXRtYXApOw0KPiArCWJpdG1hcF9mcmVlKHVwLT5mcF9iaXRtYXApOw0KPiArCWJpdG1hcF9m
+cmVlKHVwLT5yZWdfYml0bWFwKTsNCj4gICAJa2ZyZWUodXApOw0KPiAgIAlyZXR1cm4gRVJSX1BU
+UihlcnIpOw0KPiAgIH0NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxh
+bm94L21seHN3L3NwZWN0cnVtX2ZpZC5jIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
+bWx4c3cvc3BlY3RydW1fZmlkLmMNCj4gaW5kZXggOWQ5YWEyODY4NGFmLi40NmJhZjNiNDQzMDkg
+MTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seHN3L3NwZWN0
+cnVtX2ZpZC5jDQo+ICsrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seHN3L3Nw
+ZWN0cnVtX2ZpZC5jDQo+IEBAIC0xMTg4LDggKzExODgsNyBAQCBzdGF0aWMgaW50IG1seHN3X3Nw
+X2ZpZF9mYW1pbHlfcmVnaXN0ZXIoc3RydWN0IG1seHN3X3NwICptbHhzd19zcCwNCj4gICANCj4g
+ICAJZmlkX2ZhbWlseS0+bWx4c3dfc3AgPSBtbHhzd19zcDsNCj4gICAJSU5JVF9MSVNUX0hFQUQo
+JmZpZF9mYW1pbHktPmZpZHNfbGlzdCk7DQo+IC0JZmlkX2ZhbWlseS0+Zmlkc19iaXRtYXAgPSBr
+Y2FsbG9jKEJJVFNfVE9fTE9OR1MobnJfZmlkcyksDQo+IC0JCQkJCSAgc2l6ZW9mKHVuc2lnbmVk
+IGxvbmcpLCBHRlBfS0VSTkVMKTsNCj4gKwlmaWRfZmFtaWx5LT5maWRzX2JpdG1hcCA9IGJpdG1h
+cF96YWxsb2MobnJfZmlkcywgR0ZQX0tFUk5FTCk7DQo+ICAgCWlmICghZmlkX2ZhbWlseS0+Zmlk
+c19iaXRtYXApIHsNCj4gICAJCWVyciA9IC1FTk9NRU07DQo+ICAgCQlnb3RvIGVycl9hbGxvY19m
+aWRzX2JpdG1hcDsNCj4gQEAgLTEyMDYsNyArMTIwNSw3IEBAIHN0YXRpYyBpbnQgbWx4c3dfc3Bf
+ZmlkX2ZhbWlseV9yZWdpc3RlcihzdHJ1Y3QgbWx4c3dfc3AgKm1seHN3X3NwLA0KPiAgIAlyZXR1
+cm4gMDsNCj4gICANCj4gICBlcnJfZmlkX2Zsb29kX3RhYmxlc19pbml0Og0KPiAtCWtmcmVlKGZp
+ZF9mYW1pbHktPmZpZHNfYml0bWFwKTsNCj4gKwliaXRtYXBfZnJlZShmaWRfZmFtaWx5LT5maWRz
+X2JpdG1hcCk7DQo+ICAgZXJyX2FsbG9jX2ZpZHNfYml0bWFwOg0KPiAgIAlrZnJlZShmaWRfZmFt
+aWx5KTsNCj4gICAJcmV0dXJuIGVycjsNCj4gQEAgLTEyMTcsNyArMTIxNiw3IEBAIG1seHN3X3Nw
+X2ZpZF9mYW1pbHlfdW5yZWdpc3RlcihzdHJ1Y3QgbWx4c3dfc3AgKm1seHN3X3NwLA0KPiAgIAkJ
+CSAgICAgICBzdHJ1Y3QgbWx4c3dfc3BfZmlkX2ZhbWlseSAqZmlkX2ZhbWlseSkNCj4gICB7DQo+
+ICAgCW1seHN3X3NwLT5maWRfY29yZS0+ZmlkX2ZhbWlseV9hcnJbZmlkX2ZhbWlseS0+dHlwZV0g
+PSBOVUxMOw0KPiAtCWtmcmVlKGZpZF9mYW1pbHktPmZpZHNfYml0bWFwKTsNCj4gKwliaXRtYXBf
+ZnJlZShmaWRfZmFtaWx5LT5maWRzX2JpdG1hcCk7DQo+ICAgCVdBUk5fT05fT05DRSghbGlzdF9l
+bXB0eSgmZmlkX2ZhbWlseS0+Zmlkc19saXN0KSk7DQo+ICAgCWtmcmVlKGZpZF9mYW1pbHkpOw0K
+PiAgIH0NCj4gDQo=
