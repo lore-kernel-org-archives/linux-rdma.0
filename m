@@ -1,77 +1,134 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH][next] RDMA/nes: remove redundant check on udata
-Date: Mon, 4 Mar 2019 08:36:23 +0200
-Message-ID: <20190304063623.GA15253@mtr-leonro.mtl.com>
-References: <20190302230637.8624-1-colin.king@canonical.com>
+Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
+ handling paths
+Date: Mon, 4 Mar 2019 08:44:19 +0200
+Message-ID: <20190304064419.GB15253@mtr-leonro.mtl.com>
+References: <20190302032726.11769-2-jhubbard@nvidia.com>
+ <20190302202435.31889-1-jhubbard@nvidia.com>
+ <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
+ <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
+ <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Ma2pZxZcUUd0eybH"
+        protocol="application/pgp-signature"; boundary="Zd8I2GZVcdxtyaG/"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190302230637.8624-1-colin.king@canonical.com>
+In-Reply-To: <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: John Hubbard <jhubbard@nvidia.com>
+Cc: Artemy Kovalyov <artemyko@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---Ma2pZxZcUUd0eybH
-Content-Type: text/plain; charset=us-ascii
+--Zd8I2GZVcdxtyaG/
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, Mar 02, 2019 at 11:06:36PM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Sun, Mar 03, 2019 at 02:37:33PM -0800, John Hubbard wrote:
+> On 3/3/19 1:52 AM, Artemy Kovalyov wrote:
+> >
+> >
+> > On 02/03/2019 21:44, Ira Weiny wrote:
+> > >
+> > > On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrot=
+e:
+> > > > From: John Hubbard <jhubbard@nvidia.com>
+> > > >
+> > > > ...
+> > > > 3. Dead code removal: the check for (user_virt & ~page_mask)
+> > > > is checking for a condition that can never happen,
+> > > > because earlier:
+> > > >
+> > > > =A0=A0=A0=A0 user_virt =3D user_virt & page_mask;
+> > > >
+> > > > ...so, remove that entire phrase.
+> > > >
+> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 bcnt -=3D min_t(size_t, npages << PAGE_=
+SHIFT, bcnt);
+> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 mutex_lock(&umem_odp->umem_mutex);
+> > > > =A0=A0=A0=A0=A0=A0=A0=A0=A0 for (j =3D 0; j < npages; j++, user_vir=
+t +=3D PAGE_SIZE) {
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (user_virt & ~page_mask) {
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 p +=3D PAGE_SIZE;
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 if (page_to_phys(loc=
+al_page_list[j]) !=3D p) {
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ret =3D =
+-EFAULT;
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 break;
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 put_page(local_page_=
+list[j]);
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 continue;
+> > > > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 }
+> > > > -
+> > >
+> > > I think this is trying to account for compound pages. (ie page_mask c=
+ould
+> > > represent more than PAGE_SIZE which is what user_virt is being incrim=
+ented by.)
+> > > But putting the page in that case seems to be the wrong thing to do?
+> > >
+> > > Yes this was added by Artemy[1] now cc'ed.
+> >
+> > Right, this is for huge pages, please keep it.
+> > put_page() needed to decrement refcount of the head page.
+> >
 >
-> The non-null check on udata is redundant as this check was performed
-> just a few statements earlier and the check is always true as udata
-> must be non-null at this point. Remove redundant the check on udata
-> and the redundant else part that can never be executed.
->
-> Detected by CoverityScan, CID#1477317 ("Logically dead code")
->
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++--------------
->  1 file changed, 34 insertions(+), 39 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-> index 828e4af3f951..526092d435df 100644
-> --- a/drivers/infiniband/hw/nes/nes_verbs.c
-> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-> @@ -1039,53 +1039,48 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
->  				}
->  				if (req.user_qp_buffer)
->  					nesqp->nesuqp_addr = req.user_qp_buffer;
-> -				if (udata) {
-> -					nesqp->user_mode = 1;
+> OK, thanks for explaining! Artemy, while you're here, any thoughts about =
+the
+> release_pages, and the change of the starting point, from the other part
+> of the patch:
 
-It was single place where user_mode was set, you should continue and
-remove all code which depends on "if (nesqp->user_mode)".
-
-I looked on the change which triggered Coverity warning and looks like
-your commit message should include this Fixes line:
-Fixes: 899444505473 ("IB/{hw,sw}: Remove 'uobject->context' dependency in object creation APIs")
+Your release pages code is right fix, it will be great if you prepare
+proper and standalone patch.
 
 Thanks
 
---Ma2pZxZcUUd0eybH
+>
+> @@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp
+> *umem_odp, u64 user_virt,
+> 	mutex_unlock(&umem_odp->umem_mutex);
+>
+>  		if (ret < 0) {
+> -			/* Release left over pages when handling errors. */
+> -			for (++j; j < npages; ++j)
+> -				put_page(local_page_list[j]);
+> +			/*
+> +			 * Release pages, starting at the the first page
+> +			 * that experienced an error.
+> +			 */
+> +			release_pages(&local_page_list[j], npages - j);
+>  			break;
+>  		}
+>  	}
+>
+> ?
+>
+> thanks,
+> --
+> John Hubbard
+> NVIDIA
+>
+
+--Zd8I2GZVcdxtyaG/
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcfMdnAAoJEORje4g2clin/0gP/3wzVBGqLbp+ZEORDYZus7nq
-xalQQ6UDevH70HB6XnxeApRH/qBfwntDhN5H0qqt1SP3E9xCuZh/1Hb2PofB8HgR
-H25DCA1pEihrLufrcU8ttGhEJk8JP19tCtqybpa4zAWLFXlO9f7Bn0vqAf8kzdoD
-dSuCCed5xj+10IHeR9oDsPm4wDXu1eAKKHD4tuRxicHkgkxuPTC2iipiUBXxfJB2
-UUVitYv9cg40SBRTQp5mjMnS4ZF+ItX7nWXmL9R+tCxsg8RIFXelfV5tjNIcA25I
-jVaQHHDxZM+vIy55K3Fcwl4XOT18ec3648pyoDVqz2EzlKqqOiCgTldoLKd2uPWk
-JSh+rWEZ5c6db93KloQpqkD42ZcPWkhOo6Bn3w5JFrud74kHS/HAHqzgTBjFNsOG
-SHUPOpfpelCku/eMTUiWI+wiuecD9CDrzlY65QGJLok8WxYPjexHDMaJTx3ZYzBm
-YiQ0e0Fpco24hL9Ft/1giw/eG8J5vGdo+ks6gdkJp3bRRM6kG1OpsaCpcKhhbtUF
-eqasCPqJ/3EzfqR0OW0iECx4ArDOYsLB2h8pEVAwIx5XI3bsdfDbf5O7Mqs7EZFS
-C/hxZr7A0HPCnPk+uUKkzFKjGadF9DXgqxBNksHrbd2u3vKeQfF+Mn1xIo28lem5
-HLtqDwjiVXPdoJFRwhEY
-=wQRA
+iQIcBAEBAgAGBQJcfMlDAAoJEORje4g2clin72MP/ibsjGMdgjy0b+1RJm1NeF5f
+OtglTfABByBidkhy1S+YICCsf0inIiBAnm3bHGzHT7DycmnHLBLVmHvARo3HeHNS
+NCCWvE5dNImmalxiu7CrMoeVhzLowBxXfLINxITC1TZr9+3nrJxRakh6p6tVVdYd
+u2403inffoLuBuTT2f5f8sk/U9ogLOmkSF4S4z2VQxjz1S58BpclLlDDanIak+R+
+ne4Lz6tFlnPBMbtXhzEucqbsEoielmh1I7bVtg05qtWqaVFFISiImq1qKTfrIvjR
+S8VEoYF06uV+O7XCRMP5yvHLDijnTOCwwFHImGo3/JYLwWVFs8rkYK/y2XjKuqpZ
+uo1UMyKJgpT1XTdRp19+iM9Bc9Sxk7fb+5WsCgyHTTKf+8E3u4sylASetKCCdZWy
+GO10Wf6ZgveMk1z/BNiVjiHCQtkzS2weNNkFqKnfxUnrnNXH1oXVQxpqJg2Td9hA
+9Y7miv0Q8mgsZbfNuYOzsry25cihN+RPQgzdnKOweNKuBNy83tQTuxRv6N3yszJo
+xWunaSZOX9GU4IHmTRZi0LC8FNDY0M3PM3ISmRI1Q69SAfBFN2ACaF0hYTxE74iw
+H6K46M2YF8DhHOV8TV/NjIh+x7PHBK9IXw3rQuPrE3FDeIrwwuif5uszJSEdS4jp
+jHFOkAAWZh2EAc5wwMjc
+=+eOE
 -----END PGP SIGNATURE-----
 
---Ma2pZxZcUUd0eybH--
+--Zd8I2GZVcdxtyaG/--
