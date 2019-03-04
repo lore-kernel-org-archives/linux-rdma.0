@@ -1,39 +1,62 @@
-From: Yue Haibing <yuehaibing@huawei.com>
-Subject: [PATCH -next] RDMA/hns: Use GFP_ATOMIC in hns_roce_v2_modify_qp
-Date: Mon, 4 Mar 2019 10:56:20 +0800
-Message-ID: <20190304025620.27224-1-yuehaibing@huawei.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
+Date: Mon, 4 Mar 2019 08:26:45 +0200
+Message-ID: <20190304062645.GZ15253@mtr-leonro.mtl.com>
+References: <20190302193933.GA13467@embeddedor.com>
+ <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="9r3HF47jptiQlX4s"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: oulijun@huawei.com, xavier.huwei@huawei.com, dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+To: Roi Dayan <roid@mellanox.com>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Eli Britstein <elibr@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: YueHaibing <yuehaibing@huawei.com>
 
-In commit 0425e3e6e0c7, hns_roce_v2_modify_qp called inside
-spinlock which using GFP_KERNEL, it may sleep with holding
-the spinlock, so we should use GFP_ATOMIC instead.
+--9r3HF47jptiQlX4s
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Fixes: 0425e3e6e0c7 ("RDMA/hns: Support flush cqe for hip08 in kernel space")
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Sun, Mar 03, 2019 at 03:20:57PM +0000, Roi Dayan wrote:
+>
+>
+> On 02/03/2019 21:39, Gustavo A. R. Silva wrote:
+> > Remove redundant assignment to tun_entropy->enabled.
+> >
+> > Addesses-Coverity-ID: 1477328 ("Unused value")
+> > Fixes: 97417f6182f8 ("net/mlx5e: Fix GRE key by controlling port tunnel entropy calculation")
+>
+> the commit doesn't fix any real issue but is more of a cleanup.
+> so I'm not sure if fixes line is relevant or not.
+> beside that looks ok.
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-index 8795266..1c54390 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
-@@ -4027,7 +4027,7 @@ static int hns_roce_v2_modify_qp(struct ib_qp *ibqp,
- 	struct device *dev = hr_dev->dev;
- 	int ret = -EINVAL;
- 
--	context = kcalloc(2, sizeof(*context), GFP_KERNEL);
-+	context = kcalloc(2, sizeof(*context), GFP_ATOMIC);
- 	if (!context)
- 		return -ENOMEM;
- 
--- 
-2.7.0
+It doesn't matter if it is real issue or not, the code is wrong and
+should be fixed. This alone is enough to see the Fixes line.
+
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--9r3HF47jptiQlX4s
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcfMUlAAoJEORje4g2clinGywP/0ZpFYeue+bt8fx34KHJ8tyF
+bpIcORNXSGq00bKlxkQzVcXWxUl8PsWDpYjfnGVX3dq1GypbNkRcqIW8hWxvfyYR
+YmCTEsFFts1CguikXedcKIfBKg8dHWu4FZi2qzbAvn4nzdx/fUUK/1mu/P+3S+Gx
+lDaChHQn83cR7Raik28S8ArJZLbSqebaZyYL+DkG6r1NE8to6EzTmdL/V6f9Z79W
+DjZNbjJQ7ktZ0iHkPcSDDuPJadgAk6dViSiE4oYT8ZLGFo1v9Wj4S4BJiAkPlU1I
+UAI+fGx4TpKYijDZqcNCIDyM2F0PlZqQmk/4Bb9bfgJP0ZE9kEumIq7oHydumgfl
+C71HWwNnGXCbOYuk9xO5QSIIemn8fiOnWbQceckHIK9e39aKfFjp0io+rQ/JvMRP
+2gXHig1hZ+soFSKhVXP8uM9n0D83JMDMWR9drcO7w1hvSrXE5EhzmfQ0uEopaYpA
+H+4vSv6i8cnTNaYpSLF0aN6On+MzHXOwLs6eLRRtPqbSjJbA5Ul9GhQ/ZWq7w7u9
+91wGT6PbwcfGQkP2RRATahTw5CjLSZ53r5FUS4VKmj+IlI4c0GaQUhnN7vKBDz8f
++V/iaXJyeiDxNZK7EGSMK7aNC+l50AXfmA9oKgrQL+A4vBeUKBFoZeBYCtIiAWiV
++gu47+oFj1mntPV+xdxK
+=aGGP
+-----END PGP SIGNATURE-----
+
+--9r3HF47jptiQlX4s--
