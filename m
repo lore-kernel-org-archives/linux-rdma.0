@@ -1,74 +1,36 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error handling
- paths
-Date: Tue, 5 Mar 2019 12:10:03 -0800
-Message-ID: <9502d777-73e1-f96f-120d-acc1f31045ae@nvidia.com>
-References: <20190302032726.11769-2-jhubbard@nvidia.com>
- <20190302202435.31889-1-jhubbard@nvidia.com>
- <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
- <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
- <20190303165550.GB27123@iweiny-DESK2.sc.intel.com>
- <bef8680b-acc5-9f13-f49e-8f36f1939387@nvidia.com>
- <20190304201338.GA28731@iweiny-DESK2.sc.intel.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
+Date: Tue, 5 Mar 2019 22:21:39 +0000
+Message-ID: <176546c027a13f39c0dd8d5915b2d16b98637782.camel@mellanox.com>
+References: <20190302193933.GA13467@embeddedor.com>
+         <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
+         <20190304062645.GZ15253@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190304201338.GA28731@iweiny-DESK2.sc.intel.com>
-Content-Language: en-US-large
+In-Reply-To: <20190304062645.GZ15253@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <D29EA8F177736B419C08F6EDF67AFBAC@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Roi Dayan <roid@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, Eli Britstein <elibr@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/4/19 12:13 PM, Ira Weiny wrote:
-[snip]
->> And this reminds me that I have a problem to solve nearby: get_user_pages
->> on huge pages increments the page->_refcount *for each tail page* as well.
->> That's a minor problem for my put_user_page() 
->> patchset, because my approach so far assumed that I could just change us
->> over to:
->>
->> get_user_page(): increments page->_refcount by a large amount (1024)
->>
->> put_user_page(): decrements page->_refcount by a large amount (1024)
->>
->> ...and just stop doing the odd (to me) technique of incrementing once for
->> each tail page. I cannot see any reason why that's actually required, as
->> opposed to just "raise the page->_refcount enough to avoid losing the head
->> page too soon".
-> 
-> What about splitting a huge page?
-> 
-> From Documention/vm/transhuge.rst
-> 
-> <quoute>
-> split_huge_page internally has to distribute the refcounts in the head
-> page to the tail pages before clearing all PG_head/tail bits from the page
-> structures. It can be done easily for refcounts taken by page table
-> entries. But we don't have enough information on how to distribute any
-> additional pins (i.e. from get_user_pages). split_huge_page() fails any
-> requests to split pinned huge page: it expects page count to be equal to
-> sum of mapcount of all sub-pages plus one (split_huge_page caller must
-> have reference for head page).
-> </quote>
-> 
-
-heh, so in the end, split_huge_page just needs enough information to say
-"no" for gup pages. So as long as page->_refcount avoids one particular
-value, the code keeps working. :)
-
-
-> FWIW, I'm not sure why it needs to "store" the reference in the head page for
-> this.  I don't see any check to make sure the ref has been "stored" but I'm not
-> really familiar with the compound page code yet.
-> 
-> Ira
-> 
-
-Thanks for peeking at this, I'll look deeper too.
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+T24gTW9uLCAyMDE5LTAzLTA0IGF0IDA4OjI2ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
+DQo+IE9uIFN1biwgTWFyIDAzLCAyMDE5IGF0IDAzOjIwOjU3UE0gKzAwMDAsIFJvaSBEYXlhbiB3
+cm90ZToNCj4gPiANCj4gPiBPbiAwMi8wMy8yMDE5IDIxOjM5LCBHdXN0YXZvIEEuIFIuIFNpbHZh
+IHdyb3RlOg0KPiA+ID4gUmVtb3ZlIHJlZHVuZGFudCBhc3NpZ25tZW50IHRvIHR1bl9lbnRyb3B5
+LT5lbmFibGVkLg0KPiA+ID4gDQo+ID4gPiBBZGRlc3Nlcy1Db3Zlcml0eS1JRDogMTQ3NzMyOCAo
+IlVudXNlZCB2YWx1ZSIpDQo+ID4gPiBGaXhlczogOTc0MTdmNjE4MmY4ICgibmV0L21seDVlOiBG
+aXggR1JFIGtleSBieSBjb250cm9sbGluZyBwb3J0DQo+ID4gPiB0dW5uZWwgZW50cm9weSBjYWxj
+dWxhdGlvbiIpDQo+ID4gDQo+ID4gdGhlIGNvbW1pdCBkb2Vzbid0IGZpeCBhbnkgcmVhbCBpc3N1
+ZSBidXQgaXMgbW9yZSBvZiBhIGNsZWFudXAuDQo+ID4gc28gSSdtIG5vdCBzdXJlIGlmIGZpeGVz
+IGxpbmUgaXMgcmVsZXZhbnQgb3Igbm90Lg0KPiA+IGJlc2lkZSB0aGF0IGxvb2tzIG9rLg0KPiAN
+Cj4gSXQgZG9lc24ndCBtYXR0ZXIgaWYgaXQgaXMgcmVhbCBpc3N1ZSBvciBub3QsIHRoZSBjb2Rl
+IGlzIHdyb25nIGFuZA0KPiBzaG91bGQgYmUgZml4ZWQuIFRoaXMgYWxvbmUgaXMgZW5vdWdoIHRv
+IHNlZSB0aGUgRml4ZXMgbGluZS4NCj4gDQo+IFRoYW5rcywNCj4gQWNrZWQtYnk6IExlb24gUm9t
+YW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCg0KQWNrZWQtYnk6IFNhZWVkIE1haGFtZWVk
+IDxzYWVlZG1AbWVsbGFub3guY29tPg0KRGF2ZSwgRG8geW91IHRoaW5rIHN1Y2ggcGF0Y2ggc2hv
+dWxkIGdvIHRvIG5ldCwgb3IgZG8geW91IHdhbnQgbWUgdG8NCnNlbmQgaXQgaW4gbXkgbmV4dCBw
+dWxsIHJlcXVlc3QgdG8gbmV0LW5leHQsIG9uY2UgaXQgaXMgb3BlbiBvZiBjb3Vyc2UNCj8NCg==
