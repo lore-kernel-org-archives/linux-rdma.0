@@ -1,121 +1,88 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
- handling paths
-Date: Mon, 4 Mar 2019 12:13:39 -0800
-Message-ID: <20190304201338.GA28731@iweiny-DESK2.sc.intel.com>
-References: <20190302032726.11769-2-jhubbard@nvidia.com>
- <20190302202435.31889-1-jhubbard@nvidia.com>
- <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
- <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
- <20190303165550.GB27123@iweiny-DESK2.sc.intel.com>
- <bef8680b-acc5-9f13-f49e-8f36f1939387@nvidia.com>
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Subject: Re: [PATCH v3] RDMA/umem: minor bug fix in error handling path
+Date: Tue, 5 Mar 2019 17:04:06 +0200
+Message-ID: <20190305150406.GA12098@lap1>
+References: <20190304194645.10422-1-jhubbard@nvidia.com>
+ <20190304194645.10422-2-jhubbard@nvidia.com>
+ <20190304115814.GE30058@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <bef8680b-acc5-9f13-f49e-8f36f1939387@nvidia.com>
+In-Reply-To: <20190304115814.GE30058@iweiny-DESK2.sc.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: john.hubbard@gmail.com, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Leon Romanovsky <leon@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 04, 2019 at 03:11:05PM -0800, John Hubbard wrote:
-> On 3/3/19 8:55 AM, Ira Weiny wrote:
-> > On Sun, Mar 03, 2019 at 11:52:41AM +0200, Artemy Kovalyov wrote:
-> >>
-> >>
-> >> On 02/03/2019 21:44, Ira Weiny wrote:
-> >>>
-> >>> On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrote:
-> >>>> From: John Hubbard <jhubbard@nvidia.com>
-> >>>>
-> >>>> ...
-> >>>> 3. Dead code removal: the check for (user_virt & ~page_mask)
-> >>>> is checking for a condition that can never happen,
-> >>>> because earlier:
-> >>>>
-> >>>>      user_virt = user_virt & page_mask;
-> >>>>
-> >>>> ...so, remove that entire phrase.
-> >>>>
-> >>>>   		bcnt -= min_t(size_t, npages << PAGE_SHIFT, bcnt);
-> >>>>   		mutex_lock(&umem_odp->umem_mutex);
-> >>>>   		for (j = 0; j < npages; j++, user_virt += PAGE_SIZE) {
-> >>>> -			if (user_virt & ~page_mask) {
-> >>>> -				p += PAGE_SIZE;
-> >>>> -				if (page_to_phys(local_page_list[j]) != p) {
-> >>>> -					ret = -EFAULT;
-> >>>> -					break;
-> >>>> -				}
-> >>>> -				put_page(local_page_list[j]);
-> >>>> -				continue;
-> >>>> -			}
-> >>>> -
-> >>>
-> >>> I think this is trying to account for compound pages. (ie page_mask could
-> >>> represent more than PAGE_SIZE which is what user_virt is being incrimented by.)
-> >>> But putting the page in that case seems to be the wrong thing to do?
-> >>>
-> >>> Yes this was added by Artemy[1] now cc'ed.
-> >>
-> >> Right, this is for huge pages, please keep it.
-> >> put_page() needed to decrement refcount of the head page.
-> > 
-> > You mean decrement the refcount of the _non_-head pages?
-> > 
-> > Ira
-> > 
-> 
-> Actually, I'm sure Artemy means head page, because put_page() always
-> operates on the head page. 
-> 
-> And this reminds me that I have a problem to solve nearby: get_user_pages
-> on huge pages increments the page->_refcount *for each tail page* as well.
-> That's a minor problem for my put_user_page() 
-> patchset, because my approach so far assumed that I could just change us
-> over to:
-> 
-> get_user_page(): increments page->_refcount by a large amount (1024)
-> 
-> put_user_page(): decrements page->_refcount by a large amount (1024)
-> 
-> ...and just stop doing the odd (to me) technique of incrementing once for
-> each tail page. I cannot see any reason why that's actually required, as
-> opposed to just "raise the page->_refcount enough to avoid losing the head
-> page too soon".
+On Mon, Mar 04, 2019 at 03:58:15AM -0800, Ira Weiny wrote:
+> On Mon, Mar 04, 2019 at 11:46:45AM -0800, john.hubbard@gmail.com wrote:
+> > From: John Hubbard <jhubbard@nvidia.com>
+> >=20
+> > 1. Bug fix: fix an off by one error in the code that
+> > cleans up if it fails to dma-map a page, after having
+> > done a get_user_pages_remote() on a range of pages.
+> >=20
+> > 2. Refinement: for that same cleanup code, release_pages()
+> > is better than put_page() in a loop.
+> >=20
+> > Cc: Leon Romanovsky <leon@kernel.org>
+> > Cc: Ira Weiny <ira.weiny@intel.com>
+> > Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > Cc: Doug Ledford <dledford@redhat.com>
+> > Cc: linux-rdma@vger.kernel.org
+> > Cc: linux-mm@kvack.org
+> > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+>=20
+> I meant...
+>=20
+> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+>=20
+> <sigh>  just a bit too quick on the keyboard before lunch...  ;-)
+>=20
+> Ira
 
-What about splitting a huge page?
+I have this mapping in vimrc so i just have to do shift+!
 
->From Documention/vm/transhuge.rst
+map ! o=0DReviewed-by: Yuval Shaia <yuval.shaia@oracle.com>=0D=1B
 
-<quoute>
-split_huge_page internally has to distribute the refcounts in the head
-page to the tail pages before clearing all PG_head/tail bits from the page
-structures. It can be done easily for refcounts taken by page table
-entries. But we don't have enough information on how to distribute any
-additional pins (i.e. from get_user_pages). split_huge_page() fails any
-requests to split pinned huge page: it expects page count to be equal to
-sum of mapcount of all sub-pages plus one (split_huge_page caller must
-have reference for head page).
-</quote>
-
-FWIW, I'm not sure why it needs to "store" the reference in the head page for
-this.  I don't see any check to make sure the ref has been "stored" but I'm not
-really familiar with the compound page code yet.
-
-Ira
-
-> 
-> However, it may be tricky to do this in one pass. Probably at first, I'll have
-> to do this horrible thing approach:
-> 
-> get_user_page(): increments page->_refcount by a large amount (1024)
-> 
-> put_user_page(): decrements page->_refcount by a large amount (1024) MULTIPLIED
->                  by the number of tail pages. argghhh that's ugly.
-> 
-> thanks,
-> -- 
-> John Hubbard
-> NVIDIA
-> 
+>=20
+>=20
+> > ---
+> >  drivers/infiniband/core/umem_odp.c | 9 ++++++---
+> >  1 file changed, 6 insertions(+), 3 deletions(-)
+> >=20
+> > diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/co=
+re/umem_odp.c
+> > index acb882f279cb..d45735b02e07 100644
+> > --- a/drivers/infiniband/core/umem_odp.c
+> > +++ b/drivers/infiniband/core/umem_odp.c
+> > @@ -40,6 +40,7 @@
+> >  #include <linux/vmalloc.h>
+> >  #include <linux/hugetlb.h>
+> >  #include <linux/interval_tree_generic.h>
+> > +#include <linux/pagemap.h>
+> > =20
+> >  #include <rdma/ib_verbs.h>
+> >  #include <rdma/ib_umem.h>
+> > @@ -684,9 +685,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *=
+umem_odp, u64 user_virt,
+> >  		mutex_unlock(&umem_odp->umem_mutex);
+> > =20
+> >  		if (ret < 0) {
+> > -			/* Release left over pages when handling errors. */
+> > -			for (++j; j < npages; ++j)
+> > -				put_page(local_page_list[j]);
+> > +			/*
+> > +			 * Release pages, starting at the the first page
+> > +			 * that experienced an error.
+> > +			 */
+> > +			release_pages(&local_page_list[j], npages - j);
+> >  			break;
+> >  		}
+> >  	}
+> > --=20
+> > 2.21.0
+> >=20
