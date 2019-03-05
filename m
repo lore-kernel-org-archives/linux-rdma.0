@@ -1,96 +1,181 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v3] RDMA/umem: minor bug fix in error handling path
-Date: Tue, 5 Mar 2019 18:45:30 +0200
-Message-ID: <20190305164530.GO15253@mtr-leonro.mtl.com>
-References: <20190304194645.10422-1-jhubbard@nvidia.com>
- <20190304194645.10422-2-jhubbard@nvidia.com>
- <20190304115814.GE30058@iweiny-DESK2.sc.intel.com>
- <20190305150406.GA12098@lap1>
+From: Pavel Shilovsky <piastryyy@gmail.com>
+Subject: Re: [PATCH 1/2] CIFS: Fix a bug with re-sending wdata when transport
+ returning -EAGAIN
+Date: Tue, 5 Mar 2019 11:47:32 -0800
+Message-ID: <CAKywueRMhjoN3HiuF-WW=4Yt8kn-XA5t7uXWGveD8DT+vY=qGg@mail.gmail.com>
+References: <20190302025146.2935-1-longli@linuxonhyperv.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="o5hfEDzsoqw8wJwC"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190305150406.GA12098@lap1>
+In-Reply-To: <20190302025146.2935-1-longli@linuxonhyperv.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: Ira Weiny <ira.weiny@intel.com>, john.hubbard@gmail.com, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
+To: Long Li <longli@microsoft.com>
+Cc: Steve French <sfrench@samba.org>, linux-cifs <linux-cifs@vger.kernel.org>, samba-technical <samba-technical@lists.samba.org>, Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---o5hfEDzsoqw8wJwC
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, Mar 05, 2019 at 05:04:06PM +0200, Yuval Shaia wrote:
-> On Mon, Mar 04, 2019 at 03:58:15AM -0800, Ira Weiny wrote:
-> > On Mon, Mar 04, 2019 at 11:46:45AM -0800, john.hubbard@gmail.com wrote:
-> > > From: John Hubbard <jhubbard@nvidia.com>
-> > >
-> > > 1. Bug fix: fix an off by one error in the code that
-> > > cleans up if it fails to dma-map a page, after having
-> > > done a get_user_pages_remote() on a range of pages.
-> > >
-> > > 2. Refinement: for that same cleanup code, release_pages()
-> > > is better than put_page() in a loop.
-> > >
-> > > Cc: Leon Romanovsky <leon@kernel.org>
-> > > Cc: Ira Weiny <ira.weiny@intel.com>
-> > > Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> > > Cc: Andrew Morton <akpm@linux-foundation.org>
-> > > Cc: Doug Ledford <dledford@redhat.com>
-> > > Cc: linux-rdma@vger.kernel.org
-> > > Cc: linux-mm@kvack.org
-> > > Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-> >
-> > I meant...
-> >
-> > Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-> >
-> > <sigh>  just a bit too quick on the keyboard before lunch...  ;-)
-> >
-> > Ira
+=D0=BF=D1=82, 1 =D0=BC=D0=B0=D1=80. 2019 =D0=B3. =D0=B2 19:04, Long Li <lon=
+gli@linuxonhyperv.com>:
 >
-> I have this mapping in vimrc so i just have to do shift+!
+> From: Long Li <longli@microsoft.com>
 >
-> map ! o=0DReviewed-by: Yuval Shaia <yuval.shaia@oracle.com>=0D=1B
+> When sending a wdata, transport may return -EAGAIN. In this case
+> we should re-obtain credits because the session may have been
+> reconnected.
+>
+> Signed-off-by: Long Li <longli@microsoft.com>
+> ---
+>  fs/cifs/file.c | 61 +++++++++++++++++++++++++-------------------------
+>  1 file changed, 31 insertions(+), 30 deletions(-)
+>
+> diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+> index 9b53f33137b3..08e73759d6ec 100644
+> --- a/fs/cifs/file.c
+> +++ b/fs/cifs/file.c
+> @@ -2620,43 +2620,44 @@ cifs_resend_wdata(struct cifs_writedata *wdata, s=
+truct list_head *wdata_list,
+>         struct TCP_Server_Info *server =3D
+>                 tlink_tcon(wdata->cfile->tlink)->ses->server;
+>
+> -       /*
+> -        * Wait for credits to resend this wdata.
+> -        * Note: we are attempting to resend the whole wdata not in segme=
+nts
+> -        */
+>         do {
+> -               rc =3D server->ops->wait_mtu_credits(server, wdata->bytes=
+, &wsize,
+> -                                                  &credits);
+> -
+> -               if (rc)
+> -                       goto out;
+> -
+> -               if (wsize < wdata->bytes) {
+> -                       add_credits_and_wake_if(server, &credits, 0);
+> -                       msleep(1000);
+> -               }
+> -       } while (wsize < wdata->bytes);
+> +               /*
+> +                * Wait for credits to resend this wdata.
+> +                * Note: we are attempting to resend the whole wdata not =
+in
+> +                * segments
+> +                */
+> +               do {
+> +                       rc =3D server->ops->wait_mtu_credits(server, wdat=
+a->bytes,
+> +                                               &wsize, &credits);
 
-I have something similar, but limited to responses through mail client only
-and mapped to "rt" key combination.
+The steps in write/read codepaths have been recently re-ordered: now
+we need to first check the open handle, re-open it if needed and then
+attempt to get credits. This approach avoid a possibility to be stuck
+waiting for credits because generally cifs_reopen_file() may need a
+lot of credits to complete (up to 2 SMB2_CREATE commands and arbitrary
+number of SMB2_LOCK commands).
 
-in my .vimrc:
+Please look at this loop as an example:
+https://git.samba.org/?p=3Dsfrench/cifs-2.6.git;a=3Dblob;f=3Dfs/cifs/file.c=
+;h=3Dbf864123093162c7ef5cd49ee08d8b40ad7938c8;hb=3D778d81b65e4d596251943002=
+522d94a7c6fbcf69#l2690
 
-augroup filetypedetect
-	" Mail
-	autocmd BufRead,BufNewFile *mutt-* setfiletype mail
-	 " Add Reviewed-by tag and delete rest of the email
-	function! RBtag()
-		r~/.vim/mutt/rb-tag.txt
-	endfunction
-	nmap rt :call RBtag()<CR>2j<CR>dG<CR>
-augroup END
+> +                       if (rc)
+> +                               goto fail;
+> +
+> +                       if (wsize < wdata->bytes) {
+> +                               add_credits_and_wake_if(server, &credits,=
+ 0);
+> +                               msleep(1000);
+> +                       }
+> +               } while (wsize < wdata->bytes);
+>
+> -       wdata->credits =3D credits;
+> -       rc =3D -EAGAIN;
+> -       while (rc =3D=3D -EAGAIN) {
+> +               wdata->credits =3D credits;
 
-Thanks
+let's call adjust_credits before calling async_writev() as in the example a=
+bove.
 
---o5hfEDzsoqw8wJwC
-Content-Type: application/pgp-signature; name="signature.asc"
+>                 rc =3D 0;
+>                 if (wdata->cfile->invalidHandle)
+>                         rc =3D cifs_reopen_file(wdata->cfile, false);
+>                 if (!rc)
+>                         rc =3D server->ops->async_writev(wdata,
+> -                                       cifs_uncached_writedata_release);
+> -       }
+> +                               cifs_uncached_writedata_release);
+>
+> -       if (!rc) {
+> -               list_add_tail(&wdata->list, wdata_list);
+> -               return 0;
+> -       }
+> +               /* If the write was successfully sent, we are done */
+> +               if (!rc) {
+> +                       list_add_tail(&wdata->list, wdata_list);
+> +                       return 0;
+> +               }
+>
+> -       add_credits_and_wake_if(server, &wdata->credits, 0);
+> -out:
+> -       kref_put(&wdata->refcount, cifs_uncached_writedata_release);
+> +               /* Roll back credits and retry if needed */
+> +               add_credits_and_wake_if(server, &wdata->credits, 0);
+> +       } while (rc =3D=3D -EAGAIN);
 
------BEGIN PGP SIGNATURE-----
+I don't think there is a need for the nested loop here. How about just do:
 
-iQIcBAEBAgAGBQJcfqeqAAoJEORje4g2clinMKQP/1gRoq+qz5xGqSzz+mJjU+4C
-PJBCXt4vZF7+Gu/HfveIlS7wAB0jNAAd71Sg7rrO8U2iCBAzBopL98o2UK45vBvX
-d5FNoMi1WpbiiY3of2d2NbnWu+IhgjUNrixW257UjjBBCllXaxnnpgTsXtBspnFP
-wztRSNdIIksIlJBZJEBI/PqvbIs81vdGyQrN3Iiz64uRRinb6GAx75Rspk5M/YFq
-WDLMv1+ImDeG2GHOaaQHPK0n5Uaf6gU65vLOqGZp5haZK3lrG1RtcFIFhplqGNUh
-xRy+Q5Alsy9RO1E4gfg43bQs8yFgESuhYUHeQwUgENIMLYMwel5sMca6DQEbq1qo
-yupHSId4i4oLjujXjJoAsYJilxsjrMxTSAgc44EVhFzf5gYOYgVAccjBj6m7IZMQ
-i0E6KROm+XxOPXWXYYXGzO1r9h6RFDA70dH06xCl3011WnC28T4QoMeFRPiRdIX+
-sdQtVUEo1HG+x9hF3pmjj2eDCYQNh7olKJC+kIxA9bn9Luo8/Ipoxrohjuvhpmie
-52Ekt8ks6TteBjM9E0+msNLpYLL0nF45nvKpUxGW2q6tXTgLnf4epuDGbxTNmZmo
-ktbselHH74/nux7OYVG3pUd8w+4guXzmLky1w5aNfnbLsPNSv0shvQ1eJregy2JU
-bMNmng/g87i+g5NnWge+
-=lxM4
------END PGP SIGNATURE-----
+do {
+    if (wdata->cfile->invalidHandle) {
+         rc =3D cifs_reopen_file(...);
+         if (rc) break;
+    }
 
---o5hfEDzsoqw8wJwC--
+    // get_credits
+    // if not enough credits - wait and continue the loop.
+
+    rc =3D adjust_credits(...);
+    if (!rc) {
+         if (wdata->cfile->invalidHandle)
+             // set rc, put credits and continue the loop.
+        else
+            // send async write
+    }
+    // handle write errors
+} while(rc =3D=3D -EAGAIN);
+
+
+>
+> +fail:
+> +       kref_put(&wdata->refcount, cifs_uncached_writedata_release);
+>         return rc;
+>  }
+>
+> @@ -2884,12 +2885,12 @@ static void collect_uncached_write_data(struct ci=
+fs_aio_ctx *ctx)
+>                                                 wdata->bytes, &tmp_from,
+>                                                 ctx->cfile, cifs_sb, &tmp=
+_list,
+>                                                 ctx);
+> +
+> +                                       kref_put(&wdata->refcount,
+> +                                               cifs_uncached_writedata_r=
+elease);
+>                                 }
+>
+>                                 list_splice(&tmp_list, &ctx->list);
+> -
+> -                               kref_put(&wdata->refcount,
+> -                                        cifs_uncached_writedata_release)=
+;
+>                                 goto restart_loop;
+>                         }
+>                 }
+> --
+> 2.17.1
+>
+
+The similar concepts applies for async reads as well.
+
+--
+Best regards,
+Pavel Shilovsky
