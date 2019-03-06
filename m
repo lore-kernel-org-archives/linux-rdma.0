@@ -1,52 +1,52 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-next 3/3] IB/hfi1: Close race condition on user
- context disable and close
-Date: Wed, 6 Mar 2019 14:47:40 -0400
-Message-ID: <20190306184740.GH1662@ziepe.ca>
-References: <20190226164333.31476.43732.stgit@scvm10.sc.intel.com>
- <20190226164530.31476.26502.stgit@scvm10.sc.intel.com>
- <316cda1d-eeaa-c75a-a4d8-fb087cd38714@intel.com>
- <20190304204153.GF8613@ziepe.ca>
- <03a0a78b-8ae6-26b2-7d6c-9d605971d975@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <03a0a78b-8ae6-26b2-7d6c-9d605971d975@intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: dledford@redhat.com, linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Subject: [PATCH] drivers: infiniband: Kconfig: pedantic cleanups
+Date: Wed,  6 Mar 2019 19:49:27 +0100
+Message-ID: <1551898167-18310-1-git-send-email-info@metux.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 05, 2019 at 10:30:39AM -0500, Dennis Dalessandro wrote:
-> On 3/4/2019 3:41 PM, Jason Gunthorpe wrote:
-> > On Tue, Feb 26, 2019 at 12:15:59PM -0500, Dennis Dalessandro wrote:
-> > > On 2/26/2019 11:45 AM, Dennis Dalessandro wrote:
-> > > >    struct hfi1_ctxtdata *hfi1_rcd_get_by_index(struct hfi1_devdata *dd, u16 ctxt);
-> > > > diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-> > > > index 7841a0a..2cc5164 100644
-> > > > +++ b/drivers/infiniband/hw/hfi1/init.c
-> > > > @@ -214,12 +214,12 @@ static void hfi1_rcd_free(struct kref *kref)
-> > > >    	struct hfi1_ctxtdata *rcd =
-> > > >    		container_of(kref, struct hfi1_ctxtdata, kref);
-> > > > -	hfi1_free_ctxtdata(rcd->dd, rcd);
-> > > > -
-> > > >    	spin_lock_irqsave(&rcd->dd->uctxt_lock, flags);
-> > > >    	rcd->dd->rcd[rcd->ctxt] = NULL;
-> > > >    	spin_unlock_irqrestore(&rcd->dd->uctxt_lock, flags);
-> > > > +	hfi1_free_ctxtdata(rcd->dd, rcd);
-> > > > +
-> > > >    	kfree(rcd);
-> > > >    }
-> > > Whoops, hold off on pulling this one just yet. We need to take a closer look
-> > > at the above hunk.
-> > 
-> > Oh, okay.. Please resend it
-> 
-> We've talked it over, it is OK to take after all. Just needed to be sure and
-> folks were on vacation last week. If you still have the patch it's good to
-> go, if not I'll tack it on my next submit as well.
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ drivers/infiniband/hw/bnxt_re/Kconfig | 10 +++++-----
+ drivers/infiniband/ulp/iser/Kconfig   |  4 ++--
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-Okay I grabbed the old one
-
-Jason
+diff --git a/drivers/infiniband/hw/bnxt_re/Kconfig b/drivers/infiniband/hw/bnxt_re/Kconfig
+index 19982a4..05aa9fa 100644
+--- a/drivers/infiniband/hw/bnxt_re/Kconfig
++++ b/drivers/infiniband/hw/bnxt_re/Kconfig
+@@ -1,9 +1,9 @@
+ config INFINIBAND_BNXT_RE
+-    tristate "Broadcom Netxtreme HCA support"
+-    depends on ETHERNET && NETDEVICES && PCI && INET && DCB
+-    select NET_VENDOR_BROADCOM
+-    select BNXT
+-    ---help---
++	tristate "Broadcom Netxtreme HCA support"
++	depends on ETHERNET && NETDEVICES && PCI && INET && DCB
++	select NET_VENDOR_BROADCOM
++	select BNXT
++	---help---
+ 	  This driver supports Broadcom NetXtreme-E 10/25/40/50 gigabit
+ 	  RoCE HCAs.  To compile this driver as a module, choose M here:
+ 	  the module will be called bnxt_re.
+diff --git a/drivers/infiniband/ulp/iser/Kconfig b/drivers/infiniband/ulp/iser/Kconfig
+index d00af71..299268f 100644
+--- a/drivers/infiniband/ulp/iser/Kconfig
++++ b/drivers/infiniband/ulp/iser/Kconfig
+@@ -4,8 +4,8 @@ config INFINIBAND_ISER
+ 	select SCSI_ISCSI_ATTRS
+ 	---help---
+ 	  Support for the iSCSI Extensions for RDMA (iSER) Protocol
+-          over InfiniBand. This allows you to access storage devices
+-          that speak iSCSI over iSER over InfiniBand.
++	  over InfiniBand. This allows you to access storage devices
++	  that speak iSCSI over iSER over InfiniBand.
+ 
+ 	  The iSER protocol is defined by IETF.
+ 	  See <http://www.ietf.org/rfc/rfc5046.txt>
+-- 
+1.9.1
