@@ -1,52 +1,59 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error
- handling paths
-Date: Tue, 5 Mar 2019 21:51:23 -0400
-Message-ID: <20190306015123.GB1662@ziepe.ca>
-References: <20190302032726.11769-2-jhubbard@nvidia.com>
- <20190302202435.31889-1-jhubbard@nvidia.com>
- <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
- <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
- <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
- <903383a6-f2c9-4a69-83c0-9be9c052d4be@mellanox.com>
- <20190306013213.GA1662@ziepe.ca>
- <74f196a1-bd27-2e94-2f9f-0cf657eb0c91@nvidia.com>
- <be6303c6-d8d2-483a-5271-b6707c21178e@nvidia.com>
+From: john.hubbard@gmail.com
+Subject: [PATCH] RDMA/umem: updated bug fix in error handling path
+Date: Tue,  5 Mar 2019 18:00:22 -0800
+Message-ID: <20190306020022.21828-1-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <be6303c6-d8d2-483a-5271-b6707c21178e@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Hubbard <jhubbard@nvidia.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>, Ira Weiny <ira.weiny@intel.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Artemy Kovalyov <artemyko@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Ira Weiny <ira.weiny@intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 05, 2019 at 05:37:18PM -0800, John Hubbard wrote:
-> On 3/5/19 5:34 PM, John Hubbard wrote:
-> [snip]
-> >>> So release_pages(&local_page_list[j+1], npages - j-1) would be correct.
-> >>
-> >> Someone send a fixup patch please...
-> >>
-> >> Jason
-> > 
-> > Yeah, I'm on it. Just need to double-check that this is the case. But Jason,
-> > you're confirming it already, so that helps too.
+From: John Hubbard <jhubbard@nvidia.com>
 
-I didn't look, just assuming Artemy is right since he knows this
-code..
+The previous attempted bug fix overlooked the fact that
+ib_umem_odp_map_dma_single_page() was doing a put_page()
+upon hitting an error. So there was not really a bug there.
 
-> > Patch coming shortly.
-> > 
-> 
-> Jason, btw, do you prefer a patch that fixes the previous one, or a new 
-> patch that stands alone? (I'm not sure how this tree is maintained, exactly.)
+Therefore, this reverts the off-by-one change, but
+keeps the change to use release_pages() in the error path.
 
-It has past the point when I should apply a fixup, rdma is general has
-about an approximately 1 day period after the 'thanks applied' message
-where rebase is possible
+Fixes: commit xxxxxxxxxxxx ("RDMA/umem: minor bug fix in error handling path")
+Suggested-by: Artemy Kovalyov <artemyko@mellanox.com>
 
-Otherwise the tree is strictly no rebase
+Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org
+Cc: linux-mm@kvack.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/infiniband/core/umem_odp.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Jason
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index d45735b02e07..c9cafaa080e7 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -686,10 +686,13 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
+ 
+ 		if (ret < 0) {
+ 			/*
+-			 * Release pages, starting at the the first page
+-			 * that experienced an error.
++			 * Release pages, remembering that the first page
++			 * to hit an error was already released by
++			 * ib_umem_odp_map_dma_single_page().
+ 			 */
+-			release_pages(&local_page_list[j], npages - j);
++			if (npages - (j + 1) > 0)
++				release_pages(&local_page_list[j+1],
++					      npages - (j + 1));
+ 			break;
+ 		}
+ 	}
+-- 
+2.21.0
