@@ -1,36 +1,64 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
-Date: Tue, 5 Mar 2019 22:21:39 +0000
-Message-ID: <176546c027a13f39c0dd8d5915b2d16b98637782.camel@mellanox.com>
-References: <20190302193933.GA13467@embeddedor.com>
-         <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
-         <20190304062645.GZ15253@mtr-leonro.mtl.com>
+From: Artemy Kovalyov <artemyko@mellanox.com>
+Subject: Re: [PATCH v2] RDMA/umem: minor bug fix and cleanup in error handling
+ paths
+Date: Wed, 6 Mar 2019 03:02:36 +0200
+Message-ID: <903383a6-f2c9-4a69-83c0-9be9c052d4be@mellanox.com>
+References: <20190302032726.11769-2-jhubbard@nvidia.com>
+ <20190302202435.31889-1-jhubbard@nvidia.com>
+ <20190302194402.GA24732@iweiny-DESK2.sc.intel.com>
+ <2404c962-8f6d-1f6d-0055-eb82864ca7fc@mellanox.com>
+ <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190304062645.GZ15253@mtr-leonro.mtl.com>
+In-Reply-To: <332021c5-ab72-d54f-85c8-b2b12b76daed@nvidia.com>
 Content-Language: en-US
-Content-ID: <D29EA8F177736B419C08F6EDF67AFBAC@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Roi Dayan <roid@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, Eli Britstein <elibr@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: John Hubbard <jhubbard@nvidia.com>, Ira Weiny <ira.weiny@intel.com>, "john.hubbard@gmail.com" <john.hubbard@gmail.com>
+Cc: "linux-mm@kvack.org" <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTAzLTA0IGF0IDA4OjI2ICswMjAwLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6
-DQo+IE9uIFN1biwgTWFyIDAzLCAyMDE5IGF0IDAzOjIwOjU3UE0gKzAwMDAsIFJvaSBEYXlhbiB3
-cm90ZToNCj4gPiANCj4gPiBPbiAwMi8wMy8yMDE5IDIxOjM5LCBHdXN0YXZvIEEuIFIuIFNpbHZh
-IHdyb3RlOg0KPiA+ID4gUmVtb3ZlIHJlZHVuZGFudCBhc3NpZ25tZW50IHRvIHR1bl9lbnRyb3B5
-LT5lbmFibGVkLg0KPiA+ID4gDQo+ID4gPiBBZGRlc3Nlcy1Db3Zlcml0eS1JRDogMTQ3NzMyOCAo
-IlVudXNlZCB2YWx1ZSIpDQo+ID4gPiBGaXhlczogOTc0MTdmNjE4MmY4ICgibmV0L21seDVlOiBG
-aXggR1JFIGtleSBieSBjb250cm9sbGluZyBwb3J0DQo+ID4gPiB0dW5uZWwgZW50cm9weSBjYWxj
-dWxhdGlvbiIpDQo+ID4gDQo+ID4gdGhlIGNvbW1pdCBkb2Vzbid0IGZpeCBhbnkgcmVhbCBpc3N1
-ZSBidXQgaXMgbW9yZSBvZiBhIGNsZWFudXAuDQo+ID4gc28gSSdtIG5vdCBzdXJlIGlmIGZpeGVz
-IGxpbmUgaXMgcmVsZXZhbnQgb3Igbm90Lg0KPiA+IGJlc2lkZSB0aGF0IGxvb2tzIG9rLg0KPiAN
-Cj4gSXQgZG9lc24ndCBtYXR0ZXIgaWYgaXQgaXMgcmVhbCBpc3N1ZSBvciBub3QsIHRoZSBjb2Rl
-IGlzIHdyb25nIGFuZA0KPiBzaG91bGQgYmUgZml4ZWQuIFRoaXMgYWxvbmUgaXMgZW5vdWdoIHRv
-IHNlZSB0aGUgRml4ZXMgbGluZS4NCj4gDQo+IFRoYW5rcywNCj4gQWNrZWQtYnk6IExlb24gUm9t
-YW5vdnNreSA8bGVvbnJvQG1lbGxhbm94LmNvbT4NCg0KQWNrZWQtYnk6IFNhZWVkIE1haGFtZWVk
-IDxzYWVlZG1AbWVsbGFub3guY29tPg0KRGF2ZSwgRG8geW91IHRoaW5rIHN1Y2ggcGF0Y2ggc2hv
-dWxkIGdvIHRvIG5ldCwgb3IgZG8geW91IHdhbnQgbWUgdG8NCnNlbmQgaXQgaW4gbXkgbmV4dCBw
-dWxsIHJlcXVlc3QgdG8gbmV0LW5leHQsIG9uY2UgaXQgaXMgb3BlbiBvZiBjb3Vyc2UNCj8NCg==
+
+
+On 04/03/2019 00:37, John Hubbard wrote:
+> On 3/3/19 1:52 AM, Artemy Kovalyov wrote:
+>>
+>>
+>> On 02/03/2019 21:44, Ira Weiny wrote:
+>>>
+>>> On Sat, Mar 02, 2019 at 12:24:35PM -0800, john.hubbard@gmail.com wrote:
+>>>> From: John Hubbard <jhubbard@nvidia.com>
+>>>>
+>>>> ...
+> 
+> OK, thanks for explaining! Artemy, while you're here, any thoughts about the
+> release_pages, and the change of the starting point, from the other part of the
+> patch:
+> 
+> @@ -684,9 +677,11 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp,
+> u64 user_virt,
+> 	mutex_unlock(&umem_odp->umem_mutex);
+> 
+>    		if (ret < 0) {
+> -			/* Release left over pages when handling errors. */
+> -			for (++j; j < npages; ++j)
+release_pages() is an optimized batch put_page() so it's ok.
+but! release starting from page next to one cause failure in 
+ib_umem_odp_map_dma_single_page() is correct because failure flow of 
+this functions already called put_page().
+So release_pages(&local_page_list[j+1], npages - j-1) would be correct.
+> -				put_page(local_page_list[j]);
+> +			/*
+> +			 * Release pages, starting at the the first page
+> +			 * that experienced an error.
+> +			 */
+> +			release_pages(&local_page_list[j], npages - j);
+>    			break;
+>    		}
+>    	}
+> 
+> ?
+> 
+> thanks,
+> 
