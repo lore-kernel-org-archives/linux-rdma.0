@@ -1,110 +1,188 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH] Avoid that check_shl_overflow() triggers a compiler
- warning when building with W=1
-Date: Thu, 7 Mar 2019 07:24:32 +0000
-Message-ID: <20190307072428.GJ1789@mtr-leonro.mtl.com>
-References: <20190307010153.81157-1-bvanassche@acm.org>
- <20190307012417.GU1758@mellanox.com>
- <8a5bd9ae-ebfe-687c-2868-d0f2a610d1e0@acm.org>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH v1 iproute2-next 1/4] rdma: add helper rd_sendrecv_msg()
+Date: Thu, 7 Mar 2019 10:33:02 +0200
+Message-ID: <20190307083302.GM1789@mtr-leonro.mtl.com>
+References: <cover.1550773362.git.swise@opengridcomputing.com>
+ <aa883bc5ffd63047cf57e2f9925002e7573fd7ac.1550773362.git.swise@opengridcomputing.com>
+ <20190223092615.GM23561@mtr-leonro.mtl.com>
+ <11ec7e04-1bff-e3b2-1b89-db134cd537ba@opengridcomputing.com>
+ <021201d4ceda$56d9e560$048db020$@opengridcomputing.com>
+ <20190303135052.GY15253@mtr-leonro.mtl.com>
+ <007901d4d294$62d5d280$28817780$@opengridcomputing.com>
+ <b487f61e-d9a7-0151-51f5-25f79597a2fa@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="JbKQpFqZXJ2T76Sg"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8a5bd9ae-ebfe-687c-2868-d0f2a610d1e0@acm.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Kees Cook <keescook@chromium.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+        protocol="application/pgp-signature"; boundary="LZFKeWUZP29EKQNE"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <b487f61e-d9a7-0151-51f5-25f79597a2fa@opengridcomputing.com>
+Sender: netdev-owner@vger.kernel.org
+To: Steve Wise <swise@opengridcomputing.com>
+Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---JbKQpFqZXJ2T76Sg
-Content-Type: text/plain; charset=us-ascii
+
+--LZFKeWUZP29EKQNE
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 06, 2019 at 06:14:09PM -0800, Bart Van Assche wrote:
-> On 3/6/19 5:24 PM, Jason Gunthorpe wrote:
-> > On Wed, Mar 06, 2019 at 05:01:53PM -0800, Bart Van Assche wrote:
-> > > This patch avoids that the following warning is reported when building
-> > > the mlx5 driver with W=1:
-> > >
-> > > drivers/infiniband/hw/mlx5/qp.c: In function set_user_rq_size:
-> > > ./include/linux/overflow.h:230:6: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
-> > >     _s >= 0 && _s < 8 * sizeof(*d) ? _s : 0;  \
-> > >        ^
-> > > drivers/infiniband/hw/mlx5/qp.c:5820:6: note: in expansion of macro check_shl_overflow
-> > >    if (check_shl_overflow(rwq->wqe_count, rwq->wqe_shift, &rwq->buf_size))
-> > >        ^~~~~~~~~~~~~~~~~~
-> > >
-> > > Cc: Jason Gunthorpe <jgg@mellanox.com>
-> > > Cc: Leon Romanovsky <leonro@mellanox.com>
-> > > Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> > > Fixes: 0c66847793d1 ("overflow.h: Add arithmetic shift helper") # v4.19
-> > > Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-> > >   include/linux/overflow.h | 22 ++++++++++++++++++++--
-> > >   1 file changed, 20 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/include/linux/overflow.h b/include/linux/overflow.h
-> > > index 40b48e2133cb..8afe0c0ada6f 100644
-> > > +++ b/include/linux/overflow.h
-> > > @@ -202,6 +202,24 @@
-> > >   #endif /* COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
-> > > +/*
-> > > + * Evaluate a >= 0 without triggering a compiler warning if the type of a
-> > > + * is an unsigned type.
-> > > + */
-> > > +#define is_positive(a) ({					\
-> > > +	typeof(a) _minus_one = -1LL;				\
-> > > +	typeof((a) + 0U) _sign_mask = _minus_one > 0 ? 0 :	\
-> >
-> > This is probably just is_signed_type(a)
+On Wed, Mar 06, 2019 at 03:50:13PM -0600, Steve Wise wrote:
 >
-> Hi Jason,
->
-> I don't think that gcc accepts something like is_signed_type(typeof(a)) so
-> I'm not sure that the is_signed_type() macro is useful in this context.
->
-> > > +				1ULL << (8 * sizeof(a) - 1);	\
-> > > +								\
-> > > +	((a) & _sign_mask) == 0;				\
-> > This is the same sort of obfuscation that Leon was building, do you
-> > think the & is better than his ==, >  version?
+> On 3/4/2019 8:13 AM, Steve Wise wrote:
+> > Hey Leon, adding this to rd_recv_msg():
 > >
-> > Will gcc shortcircuit the warning if we write it as
+> > @@ -693,10 +693,28 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback,=
+ void
+> > *data, unsigned int seq)
+> >                 ret =3D mnl_cb_run(buf, ret, seq, portid, callback, dat=
+a);
+> >         } while (ret > 0);
 > >
-> > (is_signed_type(a) && a < 0)
+> > +       if (ret < 0)
+> > +               perror(NULL);
+> > +
+> >         mnl_socket_close(rd->nl);
+> >         return ret;
+> >  }
 > >
-> > ?
->
-> I have tested this patch. With this patch applied no warnings are reported
-> while building the mlx5 driver and the tests in lib/test_overflow.c pass.
+> > Results in unexpected errors being logged when doing a query such as:
+> >
+> > [root@stevo1 iproute2]# ./rdma/rdma res show qp lqpn 176
+> > error: Invalid argument
+> > link mlx5_0/1 lqpn 176 type UD state RTS sq-psn 0 comm [ib_core]
+> > error: Invalid argument
+> > error: No such file or directory
+> > error: Invalid argument
+> > error: No such file or directory
+> >
+> > It appears the "invalid argument" errors are due to rdmatool sending a
+> > RDMA_NLDEV_CMD_RES_QP_GET command using the doit kernel method to allow
+> > querying for just a QP with lqpn =3D 176.  However, rdmatool isn't pass=
+ing a
+> > port index in the messages that generate the "invalid argument" error f=
+rom
+> > the kernel.  IE you must provide a device index and port index when iss=
+uing
+> > a doit command vs a dumpit command.  I think.
 
-Bart,
+QPs are per-device and not per-port, so I can't issue "real" port on
+multi-port devices.
 
-My simple patch passes too :).
+> >
+> > This error was not found because rd_recv_msg() never displayed any erro=
+rs
+> > previously.  Further, the RES_FUNC() massive macro has code that will r=
+etry
+> > a failed doit call with a dumpit call.  I think _##name() should distin=
+guish
+> > between failures reported by the kernel doit function vs failures becau=
+se no
+> > doit function exists.  Not sure how to support that.
+
+We can suppress prints from failures to find .doit, by adding extra
+parameter to _res_send_idx_msg(): for example _res_send_idx_msg(..., no_err=
+or_print);
+and provide this "no_error_print" to rd_recv_msg(), through "void
+*data".
+
+> >
+> >
+> >         static inline int _##name(struct rd *rd)
+> > \
+> >         {
+> > \
+> >                 uint32_t idx;
+> > \
+> >                 int ret;
+> > \
+> >                 if (id) {
+> > \
+> >                         ret =3D rd_doit_index(rd, &idx);
+> > \
+> >                         if (ret) {
+> > \
+> >                                 ret =3D _res_send_idx_msg(rd, command,
+> > \
+> >                                                         name##_idx_pars=
+e_cb,
+> > \
+> >                                                         idx, id);
+> > \
+> >                                 if (!ret)
+> > \
+> >                                         return ret;
+> > \
+> >                                 /* Fallback for old systems without .do=
+it
+> > callbacks */ \
+> >                         }
+> > \
+> >                 }
+> > \
+> >                 return _res_send_msg(rd, command, name##_parse_cb);
+> > \
+> >         }
+> > \
+> >
+> >
+> >
+> > The "no such file or dir" errors are being returned because, in my setu=
+p,
+> > there are 2 other links that do not have lqpn 176.   So there are 2 iss=
+ues
+> > uncovered by adding generic printing of errors in rd_recv_msg()
+> >
+> > 1) the doit code in rdmatool is generating requests for a doit method i=
+n the
+> > kernel w/o providing a port index.
+> > 2) some paths in rdmatool should not print "benign" errors like filteri=
+ng on
+> > a GET command causing a "does not exist" error returned by the kernel d=
+oit
+> > func.
+> >
+> > #1 is a bug, IMO.  Can you propose a fix?
+> > #2 could be solved by adding an error callback func passed to rd_recv_m=
+sg().
+> > Then the RES_FUNC() functions could parse errors like "no such file or =
+dir"
+> > when doing a filtered query and silently drop them.  And functions like
+> > dev_set_name() would display all errors returned because there are no
+> > expected errors other than "success".
+> >
+> > Steve.
+> >
+>
+> Hey Leon, you've been quiet. :)=A0=A0 Thoughts?
+
+I missed your email, sorry.
 
 >
 > Thanks,
 >
-> Bart.
+> Steve.
+>
+>
 
---JbKQpFqZXJ2T76Sg
+--LZFKeWUZP29EKQNE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcgMcsAAoJEORje4g2clinN7wP/RCNy6kC+EsmjSjuH1eRgAS/
-6MX3F0bdMG/G97BeY+gDOlfjQEMKLMmMZAvodKphcxnSkpPX1IZ6qxf8MtysuYxb
-fZlihUBQv/yJI3EOO9Up2oF7q0l5uiT96iuEYKDYcP9dgcUn8Kd/gyORjRvWRC4o
-pjpLSnRwdXy0h6diibfjbqN/uaXEoEPnC+Ft2QaYYaQl2/V9WtQcJeIY7gYFjYyF
-1ZMLlM3IIXr1rHZUl7T7SAYfI76Hv/pUJQQxmut7t8Jz12ThHd6M4+GeDeM0c6F/
-UH4969dWytz5mqFILfW43bY1VTivSkwq9YdnqA5PqYBxsrDasdN3UZyePEho8NYt
-PYerMfZNL8f7oTL3tpBUr50rlFF/7xEDkm6/0mFHIvvclznwK6Yb4kBwkQptzRLa
-D9Fy+Sew+1GKzsakgBcyiN9Vd/tTaMf8gkExXF9GUIo2Ga2gftNoTCdXPoWK+Ajf
-pWUKAcwl0LdXsmebcb7xZJsdvYwWgTw33gEYm9Wph/qhZ6KBozvYAQsgnWj5bUIN
-8N/qfOIg4/BhVGCPW7jjLn1GdZLub691lm4r1kHHebEmeM1kCH8kagz7ii8tsfwR
-Xelr0MWx52aNGzBUQSbStJBto4TvEHCOG2b23VV2tVaoD4f+WE7c6ckAN4aBBcr9
-pTOtoYlyIVgELsDZBoIT
-=k04u
+iQIcBAEBAgAGBQJcgNc+AAoJEORje4g2clincREQAJhjX2qPnmVjkAAhmmOI3/2n
+BQ8FYKqrj17kFKe0UbtHTCn+Lc+QMrBOScj53dukC7hZec7EgEvtsviYStNYi66H
+Ej46ZedneQvvqMIcCgyP/my7coOFO0Bxey7CYSvYi5H7cXQ2UX+4886Ri8ELnJPd
+HawGC8gHs4OiG16wWMxrGWfKAM9CAIhulqKmo2miBGKUcHGI83AvQ/T+CFRRSgBL
+4EreimvnCK/PpeKUR3yeaY5LA3IWFlpzvGJ99pJUnJ+1iZDar/QRrSIV2Pp05Sjr
+JkhMUc3+BNx93RaAnRTG10A6LSQEclroL8xy6sUy634j5ixb7kBd6NERzC2YEXoh
+f14c4pLncyI4BavigsPDXDZC7Eg15lA8IomBUx9k2EOORAOYquys3tY1GdVuDCof
+syiC/y6bBfTXSuhW6j/ytBiPfDGZnuTgo4rVe0Qt5lID8JDy6NNXRX1DmyDlXILl
+Nq+EpJ22+Vo6amL34e32bG+w2a5rfL6gnyBICAB1u62kjwmhoX+OOubNNEdoT3Hr
+67NbaP1BhScmZ2EJ85f5ORGVdWoaMTfiFhBmkG0V588cTZeXeqvtMSleOmbPSe58
+0CGUyZ2fF/WhiC63VVfbSS6rfaImXvmgDaIn9p7ysjOdXJypCmJXUCKFkMVLHa0F
+Mv339YqlWt19asclhFlt
+=YI/5
 -----END PGP SIGNATURE-----
 
---JbKQpFqZXJ2T76Sg--
+--LZFKeWUZP29EKQNE--
