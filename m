@@ -1,38 +1,82 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH] Avoid that check_shl_overflow() triggers a compiler
- warning when building with W=1
-Date: Thu, 7 Mar 2019 08:52:51 -0800
-Message-ID: <CAGXu5jLBPpKOT-NV1P0nuFeSQYfoNY_8B0V4gcQg18xHPUVbhQ@mail.gmail.com>
-References: <20190307010153.81157-1-bvanassche@acm.org> <20190307012417.GU1758@mellanox.com>
- <8a5bd9ae-ebfe-687c-2868-d0f2a610d1e0@acm.org> <20190307072428.GJ1789@mtr-leonro.mtl.com>
- <4d90c392-5b6a-fea0-e6cf-c49ac19fdf30@acm.org> <20190307154020.GN1789@mtr-leonro.mtl.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH][next] RDMA/nes: remove redundant check on udata
+Date: Thu, 7 Mar 2019 19:01:08 +0200
+Message-ID: <20190307170108.GQ1789@mtr-leonro.mtl.com>
+References: <20190302230637.8624-1-colin.king@canonical.com>
+ <20190304063623.GA15253@mtr-leonro.mtl.com>
+ <815dea03-ef9a-39c0-3ec5-cdd58a545911@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Ah40dssYA/cDqAW1"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190307154020.GN1789@mtr-leonro.mtl.com>
+Content-Disposition: inline
+In-Reply-To: <815dea03-ef9a-39c0-3ec5-cdd58a545911@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Colin Ian King <colin.king@canonical.com>
+Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 7, 2019 at 7:40 AM Leon Romanovsky <leonro@mellanox.com> wrote:
->
-> On Thu, Mar 07, 2019 at 06:53:54AM -0800, Bart Van Assche wrote:
-> > On 3/6/19 11:24 PM, Leon Romanovsky wrote:
-> > > My simple patch passes too :).
+
+--Ah40dssYA/cDqAW1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Thu, Mar 07, 2019 at 10:23:28AM +0000, Colin Ian King wrote:
+> On 04/03/2019 06:36, Leon Romanovsky wrote:
+> > On Sat, Mar 02, 2019 at 11:06:36PM +0000, Colin King wrote:
+> >> From: Colin Ian King <colin.king@canonical.com>
+> >>
+> >> The non-null check on udata is redundant as this check was performed
+> >> just a few statements earlier and the check is always true as udata
+> >> must be non-null at this point. Remove redundant the check on udata
+> >> and the redundant else part that can never be executed.
+> >>
+> >> Detected by CoverityScan, CID#1477317 ("Logically dead code")
+> >>
+> >> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> >> ---
+> >>  drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++--------------
+> >>  1 file changed, 34 insertions(+), 39 deletions(-)
+> >>
+> >> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+> >> index 828e4af3f951..526092d435df 100644
+> >> --- a/drivers/infiniband/hw/nes/nes_verbs.c
+> >> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
+> >> @@ -1039,53 +1039,48 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+> >>  				}
+> >>  				if (req.user_qp_buffer)
+> >>  					nesqp->nesuqp_addr = req.user_qp_buffer;
+> >> -				if (udata) {
+> >> -					nesqp->user_mode = 1;
 > >
-> > Can you repost your patch?
+> > It was single place where user_mode was set, you should continue and
+> > remove all code which depends on "if (nesqp->user_mode)".
 >
-> https://patchwork.kernel.org/patch/10841079/
->
-> As Rasmus wrote, the thing is to avoid a < 0 check. In my patch,
-> I converted a <= 0 to !(a > 0 || a == 0) expression.
+> This is not the only place where user_mode is being set; we currently have:
 
-I'd be happy either way. Is there a larger benefit to having a safe
-"is_non_negative()" helper, or should we go with the minimal change to
-the shl macro?
+ok, It doesn't matter, I'll clean it later with my memory allocation
+conversion patches.
 
--Kees
+Thanks
 
--- 
-Kees Cook
+--Ah40dssYA/cDqAW1
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcgU5UAAoJEORje4g2clinhMYQAMVjNOhrTtcq5zyPak5Slih1
+fO1U0u7DXwIR4nyPd1Dim4+6/DsgX3Tzx7H7sjB+7kmBjQU/F0gppDuYvhH/+GA7
+zgcLhkHT9G52/fvH2CZPZNb2c9y1S3CweV2e4s4wr0bHSEjJ9UnfEdJQ6jRRS4/V
+gJlNWGM5Mv3f2GFmjpPeGGdmW7Z870y8aKS3TTTKt+YzcO7ArdJMfYS8LPSY2pds
+tbJdFnrrG4YE7wlpmfCkyOThaulnT12eKjR/Bmwrwv5vWPl+DrCrn0mZ/ZgGDIyV
+q/bNm5eRfIAt38pOFnC5vyAge8Pr3s05SW+rhqKGtVl4m0mbGumOEAKs5FZfT0iG
+ULAjcHyiZfb6aQrg5B9Mv5eWOok2q4OGzlG0R4QWrP8dnj4I6Gl1ZFwaL8T6qL+8
+ACfmtqZdR2PpHMf8YL7e/oNCRzGpZj9+w71r+cuBj6P44+PZbuDJ/PQ4mIoMUOII
+sIWMocbFOb6wPT+Hx5qFhrZncJpYlKYWTm5gy7zd9Mv4u3V8PYJjlzzXwSJSjupL
+XDdnwnBhpi7c2/28FrW6afd6qh+J2rYdQ2kP0DUL1Vvo6Ylxis3qy+Ce1CNLiQxN
+eS+F7d8MJHeQr+eU5nta3XAVHLLKWQy5VuIXCw36iuvBzXC/xCJIS/d7QUkNRX6c
+QMXOKHG/EXsJHpAn9S0m
+=aqqe
+-----END PGP SIGNATURE-----
+
+--Ah40dssYA/cDqAW1--
