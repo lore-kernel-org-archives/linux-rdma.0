@@ -1,57 +1,75 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Subject: [PATCH v2] drivers: infiniband: Kconfig: pedantic formatting
-Date: Wed,  6 Mar 2019 23:08:45 +0100
-Message-ID: <1551910125-26368-1-git-send-email-info@metux.net>
-References: <1551898167-18310-1-git-send-email-info@metux.net>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH] Avoid that check_shl_overflow() triggers a compiler warning when building with W=1
+Date: Wed,  6 Mar 2019 17:01:53 -0800
+Message-ID: <20190307010153.81157-1-bvanassche@acm.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1551898167-18310-1-git-send-email-info@metux.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>
 List-Id: linux-rdma@vger.kernel.org
 
-Formatting of Kconfig files doesn't look so pretty, so just
-take damp cloth and clean it up.
+This patch avoids that the following warning is reported when building
+the mlx5 driver with W=1:
 
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+drivers/infiniband/hw/mlx5/qp.c: In function set_user_rq_size:
+./include/linux/overflow.h:230:6: warning: comparison of unsigned expression >= 0 is always true [-Wtype-limits]
+   _s >= 0 && _s < 8 * sizeof(*d) ? _s : 0;  \
+      ^
+drivers/infiniband/hw/mlx5/qp.c:5820:6: note: in expansion of macro check_shl_overflow
+  if (check_shl_overflow(rwq->wqe_count, rwq->wqe_shift, &rwq->buf_size))
+      ^~~~~~~~~~~~~~~~~~
+
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Fixes: 0c66847793d1 ("overflow.h: Add arithmetic shift helper") # v4.19
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
 ---
- drivers/infiniband/hw/bnxt_re/Kconfig | 10 +++++-----
- drivers/infiniband/ulp/iser/Kconfig   |  4 ++--
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/overflow.h | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/bnxt_re/Kconfig b/drivers/infiniband/hw/bnxt_re/Kconfig
-index 19982a4..05aa9fa 100644
---- a/drivers/infiniband/hw/bnxt_re/Kconfig
-+++ b/drivers/infiniband/hw/bnxt_re/Kconfig
-@@ -1,9 +1,9 @@
- config INFINIBAND_BNXT_RE
--    tristate "Broadcom Netxtreme HCA support"
--    depends on ETHERNET && NETDEVICES && PCI && INET && DCB
--    select NET_VENDOR_BROADCOM
--    select BNXT
--    ---help---
-+	tristate "Broadcom Netxtreme HCA support"
-+	depends on ETHERNET && NETDEVICES && PCI && INET && DCB
-+	select NET_VENDOR_BROADCOM
-+	select BNXT
-+	---help---
- 	  This driver supports Broadcom NetXtreme-E 10/25/40/50 gigabit
- 	  RoCE HCAs.  To compile this driver as a module, choose M here:
- 	  the module will be called bnxt_re.
-diff --git a/drivers/infiniband/ulp/iser/Kconfig b/drivers/infiniband/ulp/iser/Kconfig
-index d00af71..299268f 100644
---- a/drivers/infiniband/ulp/iser/Kconfig
-+++ b/drivers/infiniband/ulp/iser/Kconfig
-@@ -4,8 +4,8 @@ config INFINIBAND_ISER
- 	select SCSI_ISCSI_ATTRS
- 	---help---
- 	  Support for the iSCSI Extensions for RDMA (iSER) Protocol
--          over InfiniBand. This allows you to access storage devices
--          that speak iSCSI over iSER over InfiniBand.
-+	  over InfiniBand. This allows you to access storage devices
-+	  that speak iSCSI over iSER over InfiniBand.
+diff --git a/include/linux/overflow.h b/include/linux/overflow.h
+index 40b48e2133cb..8afe0c0ada6f 100644
+--- a/include/linux/overflow.h
++++ b/include/linux/overflow.h
+@@ -202,6 +202,24 @@
  
- 	  The iSER protocol is defined by IETF.
- 	  See <http://www.ietf.org/rfc/rfc5046.txt>
+ #endif /* COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
+ 
++/*
++ * Evaluate a >= 0 without triggering a compiler warning if the type of a
++ * is an unsigned type.
++ */
++#define is_positive(a) ({					\
++	typeof(a) _minus_one = -1LL;				\
++	typeof((a) + 0U) _sign_mask = _minus_one > 0 ? 0 :	\
++				1ULL << (8 * sizeof(a) - 1);	\
++								\
++	((a) & _sign_mask) == 0;				\
++})
++
++/*
++ * Evaluate a < 0 without triggering a compiler warning if the type of a
++ * is an unsigned type.
++ */
++#define is_negative(a) !is_positive(a)
++
+ /** check_shl_overflow() - Calculate a left-shifted value and check overflow
+  *
+  * @a: Value to be shifted
+@@ -227,9 +245,9 @@
+ 	typeof(d) _d = d;						\
+ 	u64 _a_full = _a;						\
+ 	unsigned int _to_shift =					\
+-		_s >= 0 && _s < 8 * sizeof(*d) ? _s : 0;		\
++		is_positive(_s) && _s < 8 * sizeof(*d) ? _s : 0;	\
+ 	*_d = (_a_full << _to_shift);					\
+-	(_to_shift != _s || *_d < 0 || _a < 0 ||			\
++	(_to_shift != _s || is_negative(*_d) || is_negative(_a) ||	\
+ 		(*_d >> _to_shift) != _a);				\
+ })
+ 
 -- 
-1.9.1
+2.21.0
