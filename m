@@ -1,188 +1,140 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v1 iproute2-next 1/4] rdma: add helper rd_sendrecv_msg()
-Date: Thu, 7 Mar 2019 10:33:02 +0200
-Message-ID: <20190307083302.GM1789@mtr-leonro.mtl.com>
-References: <cover.1550773362.git.swise@opengridcomputing.com>
- <aa883bc5ffd63047cf57e2f9925002e7573fd7ac.1550773362.git.swise@opengridcomputing.com>
- <20190223092615.GM23561@mtr-leonro.mtl.com>
- <11ec7e04-1bff-e3b2-1b89-db134cd537ba@opengridcomputing.com>
- <021201d4ceda$56d9e560$048db020$@opengridcomputing.com>
- <20190303135052.GY15253@mtr-leonro.mtl.com>
- <007901d4d294$62d5d280$28817780$@opengridcomputing.com>
- <b487f61e-d9a7-0151-51f5-25f79597a2fa@opengridcomputing.com>
+From: Colin Ian King <colin.king@canonical.com>
+Subject: Re: [PATCH][next] RDMA/nes: remove redundant check on udata
+Date: Thu, 7 Mar 2019 10:23:28 +0000
+Message-ID: <815dea03-ef9a-39c0-3ec5-cdd58a545911@canonical.com>
+References: <20190302230637.8624-1-colin.king@canonical.com>
+ <20190304063623.GA15253@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="LZFKeWUZP29EKQNE"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b487f61e-d9a7-0151-51f5-25f79597a2fa@opengridcomputing.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <swise@opengridcomputing.com>
-Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="myIfY0JvAYSBM2eA8Dl78STvQBfRD0KHQ"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190304063623.GA15253@mtr-leonro.mtl.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--myIfY0JvAYSBM2eA8Dl78STvQBfRD0KHQ
+Content-Type: multipart/mixed; boundary="V9KKqdNrC9BAndZvoI3I7vIj8KsaMunRc";
+ protected-headers="v1"
+From: Colin Ian King <colin.king@canonical.com>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Faisal Latif <faisal.latif@intel.com>, Doug Ledford
+ <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>,
+ linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Message-ID: <815dea03-ef9a-39c0-3ec5-cdd58a545911@canonical.com>
+Subject: Re: [PATCH][next] RDMA/nes: remove redundant check on udata
+References: <20190302230637.8624-1-colin.king@canonical.com>
+ <20190304063623.GA15253@mtr-leonro.mtl.com>
+In-Reply-To: <20190304063623.GA15253@mtr-leonro.mtl.com>
 
---LZFKeWUZP29EKQNE
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+--V9KKqdNrC9BAndZvoI3I7vIj8KsaMunRc
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Mar 06, 2019 at 03:50:13PM -0600, Steve Wise wrote:
->
-> On 3/4/2019 8:13 AM, Steve Wise wrote:
-> > Hey Leon, adding this to rd_recv_msg():
-> >
-> > @@ -693,10 +693,28 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback,=
- void
-> > *data, unsigned int seq)
-> >                 ret =3D mnl_cb_run(buf, ret, seq, portid, callback, dat=
-a);
-> >         } while (ret > 0);
-> >
-> > +       if (ret < 0)
-> > +               perror(NULL);
-> > +
-> >         mnl_socket_close(rd->nl);
-> >         return ret;
-> >  }
-> >
-> > Results in unexpected errors being logged when doing a query such as:
-> >
-> > [root@stevo1 iproute2]# ./rdma/rdma res show qp lqpn 176
-> > error: Invalid argument
-> > link mlx5_0/1 lqpn 176 type UD state RTS sq-psn 0 comm [ib_core]
-> > error: Invalid argument
-> > error: No such file or directory
-> > error: Invalid argument
-> > error: No such file or directory
-> >
-> > It appears the "invalid argument" errors are due to rdmatool sending a
-> > RDMA_NLDEV_CMD_RES_QP_GET command using the doit kernel method to allow
-> > querying for just a QP with lqpn =3D 176.  However, rdmatool isn't pass=
-ing a
-> > port index in the messages that generate the "invalid argument" error f=
-rom
-> > the kernel.  IE you must provide a device index and port index when iss=
-uing
-> > a doit command vs a dumpit command.  I think.
+On 04/03/2019 06:36, Leon Romanovsky wrote:
+> On Sat, Mar 02, 2019 at 11:06:36PM +0000, Colin King wrote:
+>> From: Colin Ian King <colin.king@canonical.com>
+>>
+>> The non-null check on udata is redundant as this check was performed
+>> just a few statements earlier and the check is always true as udata
+>> must be non-null at this point. Remove redundant the check on udata
+>> and the redundant else part that can never be executed.
+>>
+>> Detected by CoverityScan, CID#1477317 ("Logically dead code")
+>>
+>> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+>> ---
+>>  drivers/infiniband/hw/nes/nes_verbs.c | 73 +++++++++++++-------------=
+-
+>>  1 file changed, 34 insertions(+), 39 deletions(-)
+>>
+>> diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniban=
+d/hw/nes/nes_verbs.c
+>> index 828e4af3f951..526092d435df 100644
+>> --- a/drivers/infiniband/hw/nes/nes_verbs.c
+>> +++ b/drivers/infiniband/hw/nes/nes_verbs.c
+>> @@ -1039,53 +1039,48 @@ static struct ib_qp *nes_create_qp(struct ib_p=
+d *ibpd,
+>>  				}
+>>  				if (req.user_qp_buffer)
+>>  					nesqp->nesuqp_addr =3D req.user_qp_buffer;
+>> -				if (udata) {
+>> -					nesqp->user_mode =3D 1;
+>=20
+> It was single place where user_mode was set, you should continue and
+> remove all code which depends on "if (nesqp->user_mode)".
 
-QPs are per-device and not per-port, so I can't issue "real" port on
-multi-port devices.
+This is not the only place where user_mode is being set; we currently hav=
+e:
 
-> >
-> > This error was not found because rd_recv_msg() never displayed any erro=
-rs
-> > previously.  Further, the RES_FUNC() massive macro has code that will r=
-etry
-> > a failed doit call with a dumpit call.  I think _##name() should distin=
-guish
-> > between failures reported by the kernel doit function vs failures becau=
-se no
-> > doit function exists.  Not sure how to support that.
 
-We can suppress prints from failures to find .doit, by adding extra
-parameter to _res_send_idx_msg(): for example _res_send_idx_msg(..., no_err=
-or_print);
-and provide this "no_error_print" to rd_recv_msg(), through "void
-*data".
+        if (udata) {
+                if (ib_copy_from_udata(&req, udata, sizeof(struct
+nes_create_qp_req))) {
+                        nes_free_resource(nesadapter,
+nesadapter->allocated_qps, qp_num);
+                        kfree(nesqp->allocated_buffer);
+                        nes_debug(NES_DBG_QP, "ib_copy_from_udata()
+Failed \n");
+                        return ERR_PTR(-EFAULT);
+                }
+                if (req.user_wqe_buffers) {
+                        virt_wqs =3D 1;
+                }
+                if (req.user_qp_buffer)
+                        nesqp->nesuqp_addr =3D req.user_qp_buffer;
+                if (udata) {
+                        nesqp->user_mode =3D 1;
+			...
 
-> >
-> >
-> >         static inline int _##name(struct rd *rd)
-> > \
-> >         {
-> > \
-> >                 uint32_t idx;
-> > \
-> >                 int ret;
-> > \
-> >                 if (id) {
-> > \
-> >                         ret =3D rd_doit_index(rd, &idx);
-> > \
-> >                         if (ret) {
-> > \
-> >                                 ret =3D _res_send_idx_msg(rd, command,
-> > \
-> >                                                         name##_idx_pars=
-e_cb,
-> > \
-> >                                                         idx, id);
-> > \
-> >                                 if (!ret)
-> > \
-> >                                         return ret;
-> > \
-> >                                 /* Fallback for old systems without .do=
-it
-> > callbacks */ \
-> >                         }
-> > \
-> >                 }
-> > \
-> >                 return _res_send_msg(rd, command, name##_parse_cb);
-> > \
-> >         }
-> > \
-> >
-> >
-> >
-> > The "no such file or dir" errors are being returned because, in my setu=
-p,
-> > there are 2 other links that do not have lqpn 176.   So there are 2 iss=
-ues
-> > uncovered by adding generic printing of errors in rd_recv_msg()
-> >
-> > 1) the doit code in rdmatool is generating requests for a doit method i=
-n the
-> > kernel w/o providing a port index.
-> > 2) some paths in rdmatool should not print "benign" errors like filteri=
-ng on
-> > a GET command causing a "does not exist" error returned by the kernel d=
-oit
-> > func.
-> >
-> > #1 is a bug, IMO.  Can you propose a fix?
-> > #2 could be solved by adding an error callback func passed to rd_recv_m=
-sg().
-> > Then the RES_FUNC() functions could parse errors like "no such file or =
-dir"
-> > when doing a filtered query and silently drop them.  And functions like
-> > dev_set_name() would display all errors returned because there are no
-> > expected errors other than "success".
-> >
-> > Steve.
-> >
->
-> Hey Leon, you've been quiet. :)=A0=A0 Thoughts?
 
-I missed your email, sorry.
+and I'm just removing the redudant 2nd if (udata) check, so the
+nesqp->user_mode =3D 1 assignment is still being kept hence it's not
+correct to remove all the if (nesqp->user_mode) releated code.
 
->
-> Thanks,
->
-> Steve.
->
->
 
---LZFKeWUZP29EKQNE
+>=20
+> I looked on the change which triggered Coverity warning and looks like
+> your commit message should include this Fixes line:
+> Fixes: 899444505473 ("IB/{hw,sw}: Remove 'uobject->context' dependency =
+in object creation APIs")
+
+Can that be added to the patch before it's applied?
+
+>=20
+> Thanks
+>=20
+
+Colin
+
+
+--V9KKqdNrC9BAndZvoI3I7vIj8KsaMunRc--
+
+--myIfY0JvAYSBM2eA8Dl78STvQBfRD0KHQ
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcgNc+AAoJEORje4g2clincREQAJhjX2qPnmVjkAAhmmOI3/2n
-BQ8FYKqrj17kFKe0UbtHTCn+Lc+QMrBOScj53dukC7hZec7EgEvtsviYStNYi66H
-Ej46ZedneQvvqMIcCgyP/my7coOFO0Bxey7CYSvYi5H7cXQ2UX+4886Ri8ELnJPd
-HawGC8gHs4OiG16wWMxrGWfKAM9CAIhulqKmo2miBGKUcHGI83AvQ/T+CFRRSgBL
-4EreimvnCK/PpeKUR3yeaY5LA3IWFlpzvGJ99pJUnJ+1iZDar/QRrSIV2Pp05Sjr
-JkhMUc3+BNx93RaAnRTG10A6LSQEclroL8xy6sUy634j5ixb7kBd6NERzC2YEXoh
-f14c4pLncyI4BavigsPDXDZC7Eg15lA8IomBUx9k2EOORAOYquys3tY1GdVuDCof
-syiC/y6bBfTXSuhW6j/ytBiPfDGZnuTgo4rVe0Qt5lID8JDy6NNXRX1DmyDlXILl
-Nq+EpJ22+Vo6amL34e32bG+w2a5rfL6gnyBICAB1u62kjwmhoX+OOubNNEdoT3Hr
-67NbaP1BhScmZ2EJ85f5ORGVdWoaMTfiFhBmkG0V588cTZeXeqvtMSleOmbPSe58
-0CGUyZ2fF/WhiC63VVfbSS6rfaImXvmgDaIn9p7ysjOdXJypCmJXUCKFkMVLHa0F
-Mv339YqlWt19asclhFlt
-=YI/5
+iQIzBAEBCAAdFiEEcGLapPABucZhZwDPaMKH38aoAiYFAlyA8SEACgkQaMKH38ao
+AiZLhg/8DCRIoCDwHqdfnn7+FxVJzm2jnhm/Dm43Pygc4v6bIVuMiNtIKYcoj/S8
+XvZri29vTgth8VZBLx9oeAwkEWD/8QOVEPpvf6IBFZljEWlwRNyLKl/dkSsnOt3a
+IGH5TZntsieXELKeyFD8FStjOlU8A0klSakB3x57a1uvsOrT905ui/852ONi0/rg
+DPLnHdmMNxJdNGHbOFALMDDXiWthHX07Rj0c9P2WYgauTE80++uln08PfrVgYLZ9
+Jz6xTDb/RXhc75RRofLUGaBgfJlhI97UyfNBCXR3JdEUGGwsZkLyqbBSEOrkvBVX
+Nj0Vk5zRE1q/ilwwLfX6MbWEeHY4tZG2vh+nVUMFKwnSbqlLo2PBzWCMBK0b2/4i
+7W1MaVXxWYPkt1NqtfLbkVJlhND9rFIcgAfe5YQkGVkoSXqqp92t06EXrudfkVXX
+H6kYvAy8is3btUXVMKts1MJcF3XdQJ2Iua88Yeq3SpQefts8fU74HGCej6bQ0cV+
+oQO0p4sTWd6d8kqvSZvAr03VgJYa3XK9Wxz6FK3KpxXfVQVBJ+OTzNF/l1Zq5uvh
+/R9EvTNur4Bc/FIQVmgPtpcJov1CFuE9YvTBAE8fDnSj0HJ51Zg3ANKyd7YXGuij
+CGpkr5m/q1DE5pfh8YHJaQRsU99PEomeeMvlfp8uSj64vfMJxss=
+=F1uf
 -----END PGP SIGNATURE-----
 
---LZFKeWUZP29EKQNE--
+--myIfY0JvAYSBM2eA8Dl78STvQBfRD0KHQ--
