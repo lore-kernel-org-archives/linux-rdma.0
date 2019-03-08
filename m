@@ -1,102 +1,77 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
+From: Leon Romanovsky <leonro@mellanox.com>
 Subject: Re: [PATCH] Avoid that check_shl_overflow() triggers a compiler
  warning when building with W=1
-Date: Fri, 8 Mar 2019 08:41:58 -0400
-Message-ID: <20190308124158.GD9321@ziepe.ca>
+Date: Fri, 8 Mar 2019 15:53:22 +0000
+Message-ID: <20190308155318.GG32625@mtr-leonro.mtl.com>
 References: <20190307010153.81157-1-bvanassche@acm.org>
  <20190307012417.GU1758@mellanox.com>
  <8a5bd9ae-ebfe-687c-2868-d0f2a610d1e0@acm.org>
  <2c122567-d14b-7867-9230-67f570c13d15@rasmusvillemoes.dk>
  <1552003703.45180.17.camel@acm.org>
- <2d60debb-2b64-1b1f-7e16-d20720c93e28@rasmusvillemoes.dk>
+ <20190308070107.GE32625@mtr-leonro.mtl.com>
+ <ca0d8714-3258-3155-247c-af2d63c28273@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="/aVve/J9H4Wl5yVO"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2d60debb-2b64-1b1f-7e16-d20720c93e28@rasmusvillemoes.dk>
+In-Reply-To: <ca0d8714-3258-3155-247c-af2d63c28273@rasmusvillemoes.dk>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Bart Van Assche <bvanassche@acm.org>, Kees Cook <keescook@chromium.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Leon Romanovsky <leonro@mellanox.com>
+Cc: Bart Van Assche <bvanassche@acm.org>, Jason Gunthorpe <jgg@mellanox.com>, Kees Cook <keescook@chromium.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 08, 2019 at 08:58:21AM +0100, Rasmus Villemoes wrote:
-> On 08/03/2019 01.08, Bart Van Assche wrote:
-> > On Thu, 2019-03-07 at 08:18 +0100, Rasmus Villemoes wrote:
-> >> On 07/03/2019 03.14, Bart Van Assche wrote:
-> >>> On 3/6/19 5:24 PM, Jason Gunthorpe wrote:
-> >>>>>
-> >>>>> diff --git a/include/linux/overflow.h b/include/linux/overflow.h
-> >>>>> index 40b48e2133cb..8afe0c0ada6f 100644
-> >>>>> +++ b/include/linux/overflow.h
-> >>>>> @@ -202,6 +202,24 @@
-> >>>>>     #endif /* COMPILER_HAS_GENERIC_BUILTIN_OVERFLOW */
-> >>>>>   +/*
-> >>>>> + * Evaluate a >= 0 without triggering a compiler warning if the type
-> >>>>> of a
-> >>>>> + * is an unsigned type.
-> >>>>> + */
-> >>>>> +#define is_positive(a) ({                    \
-> >>
-> >> is_non_negative, please! positive means > 0. And perhaps it's better to
-> >> move these utility macros closer to the top of the file, together with
-> >> the other type/range helpers.
-> > 
-> > Hi Rasmus,
-> > 
-> > Thank you for the feedback. But according to what I found online opinions
-> > about whether or not zero is a positive number seem to vary. From
-> > https://en.wikipedia.org/wiki/Sign_(mathematics):
-> 
-> Yes, I'm a mathematician, I'm aware of that. You can also find people
-> who use "less than" in the "<=" sense, and then say "strictly less than"
-> when they mean "<".
-> 
-> > Terminology for signs
-> > 
-> > When 0 is said to be neither positive nor negative, the following phrases
-> > may be used to refer to the sign of a number:
-> > * A number is positive if it is greater than zero.
-> > * A number is negative if it is less than zero.
-> > * A number is non-negative if it is greater than or equal to zero.
-> > * A number is non-positive if it is less than or equal to zero.
-> > 
-> > When 0 is said to be both positive and negative, modified phrases are used
-> > to refer to the sign of a number:
-> > * A number is strictly positive if it is greater than zero.
-> > * A number is strictly negative if it is less than zero.
-> > * A number is positive if it is greater than or equal to zero.
-> > * A number is negative if it is less than or equal to zero.
-> 
-> Right, but in no way does it ever make sense to mix these conventions.
-> So the options for describing ">= 0, < 0" are "non_negative, negative"
-> or "positive, strictly_negative".
-> 
-> In the context of the C language, the first convention is used. While
-> not explicitly stated, it can be inferred from usage of the terms.
-> First, the word nonnegative is used (e.g. in defining argc). Second, "If
-> the value of the right operand [in a shift expression] is negative [...]
-> the behaviour is undefined.", so certainly negative cannot include 0.
-> Third, E* constants are required to be positive, and "[errno] is never
-> set to zero by any library function". Etc. etc.
+--/aVve/J9H4Wl5yVO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Lets use is_unsigned() or is_unsigned_value() then for the name of the
-test, that is pretty unambiguous and alot nicer to read than
-is_not_negative()
+On Fri, Mar 08, 2019 at 09:09:46AM +0100, Rasmus Villemoes wrote:
+> On 08/03/2019 08.01, Leon Romanovsky wrote:
+> >
+> > Mathematical therm for discrete numbers greater or equal to zero is
+> > "normal numbers".
+>
+> Sorry, WHAT? "Normal" is used and abused for a lot of things in
+> mathematics, but I have never heard it used that way. When attached to
+> the word "number", it means a real number with certain properties
+> related to its digit expansion(s). And then of course there's the
+> isnormal() thing for floating point values in C/computing.
 
-FWIW, in computer science I generally see the terms used as:
+It is hard to argue with this type of arguments: "never heard -> doesn't
+exist". Luckily enough for me who can't find my fifth grade textbook
+=66rom school, we have Wikipedia which has pointer to ISO standard with
+clear declaration of "normal numbers" as 0,1,2, ....
 
-  negatve: < 0
-  positive: >= 0
-  natural: > 0
+https://en.wikipedia.org/wiki/Natural_number#cite_note-ISO80000-1
+ "Standard number sets and intervals". ISO 80000-2:2009. International
+ Organization for Standardization. p. 6.
 
-This language naturally follows the twos complement construction where
-it is very logical to say a number with the sign bit set is 'negative'
-and a number with it clear is 'positive', which means 0 is positive.
+>
+> Strong NAK to using is_normal/is_negative.
+>
+> Rasmus
+>
+>
 
-Which is probably enraging to mathematicians.. But has a certain
-logic.
+--/aVve/J9H4Wl5yVO
+Content-Type: application/pgp-signature; name="signature.asc"
 
-.. and most CS places don't actually care about the difference
-between > 0 and >= 0 , while < 0 is usually highly interesting.
+-----BEGIN PGP SIGNATURE-----
 
-Jason
+iQIcBAEBAgAGBQJcgo/uAAoJEORje4g2clind/0QAJOqxgxotPh9GL4ZtVmTw7z2
+f34auUTr+b0kOf75wVidwT3vKwj7t8AusO2TWB+vUflWEB7GPxU0GH8/RowS19eK
+3ErShQkPUoPjfVMf563twCh9GVigffWl513t/6/Gf2YghA+T8iMTZywVAqIIUPgU
+a/Nl5/OzKLbbkzQez06NVFLf0sOalas8H601HWdZ5SeilmH4+1JXqGw8LQVrsElX
+OByYOag9kAESwN+PrWReoSDb2hbLbVh1Fag/c9PG4ZG/7SMOzvWUxDxH8Uh2MGlk
+5MpOR3HXR4F5sZi79KtrQ8vQoj8jfNLaQuwgbJKRgqmBREBbbSrsQndah5nzX8lS
+lmZW2lThKBy/CnHMIYkqD2WdqnRA32Jy0AhVHNoXoYZGda5AExjSVzJ2X61kkGct
+4hYveN/ZuUXBjlpD1FmU/CgbAlGWy6DGA3K8shFGrpc17qWPTt1X8N4//k/mAsvw
+BIH4oeo8NXtFMGnqTCRmtRzGD9RWgDiInXq93J2yyeVRhXXUln5c9LO9VgCD/Q2h
+SpIR/Z3zAObPU0q3rZkLK+AZ0V2cdoVbMQQRcfz2fRQmYCqi3ubS871f94PEaR+N
+O0TdmGgRgaF4zsjXd7OWzdooWo0OdAoS8c6fVuY8P1xwy8oiZSIEE9x7HMkxt9Pj
+KLbvewlWk9H6zZZttcIF
+=Kvh+
+-----END PGP SIGNATURE-----
+
+--/aVve/J9H4Wl5yVO--
