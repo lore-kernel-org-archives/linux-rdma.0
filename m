@@ -1,38 +1,28 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH] net: mlx5: fix a potential NULL pointer dereference
-Date: Mon, 11 Mar 2019 18:46:31 +0000
-Message-ID: <8cac48f6d213302c63355d40c0fba36b9e966127.camel@mellanox.com>
+Date: Mon, 11 Mar 2019 13:38:38 -0700 (PDT)
+Message-ID: <20190311.133838.74958847820887089.davem@davemloft.net>
 References: <20190311063343.20188-1-kjlu@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190311063343.20188-1-kjlu@umn.edu>
-Content-Language: en-US
-Content-ID: <A4A77BDA2C0F984B84B18CD0FADCD5E2@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "kjlu@umn.edu" <kjlu@umn.edu>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "pakki001@umn.edu" <pakki001@umn.edu>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTAzLTExIGF0IDAxOjMzIC0wNTAwLCBLYW5namllIEx1IHdyb3RlOg0KPiBJ
-biBjYXNlIHNrYl9oZWFkZXJfcG9pbnRlciBmYWlscywgdGhlIGZpeCBpc3N1ZXMgYSB3YXJuaW5n
-Lg0KPiANCg0KVGhpcyBjYXNlIGlzIGltcG9zc2libGU6IG1seDUgZHJpdmVyIGJ1aWxkcyB0aGlz
-IHNrYiBpdHNlbGYgc28gd2UgYXJlDQpzdXJlIHNrYl9oZWFkZXJfcG9pbnRlciBuZXZlciBmYWls
-cy4NCg0KV2hhdCBpcyB0aGUgbW90aXZhdGlvbiBiZWhpbmQgdGhpcyBmaXg/IHN0YXRpYyBjaGVj
-a2VyIG9yIGFjdHVhbCBpc3N1ZQ0KPw0KDQo+IEEgYmV0dGVyIGZpeCByZXF1aXJlcyBtb2RpZnlp
-bmcgdGhlIHNpZ25hdHVyZSBvZiBtbHg1ZV9nZXRfZmNzIHRvDQo+IHBhc3MgYW4gZXJyb3IgY29k
-ZSB1cHN0cmVhbS4NCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEthbmdqaWUgTHUgPGtqbHVAdW1uLmVk
-dT4NCj4gLS0tDQo+ICBkcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5f
-cnguYyB8IDIgKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKykNCj4gDQo+IGRp
-ZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fcngu
-Yw0KPiBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lbl9yeC5jDQo+
-IGluZGV4IGJlMzk2ZTVlNGUzOS4uNmVjMWMxMTBlNGJlIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fcnguYw0KPiArKysgYi9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZW5fcnguYw0KPiBAQCAtNzE5LDYgKzcx
-OSw4IEBAIHN0YXRpYyB1MzIgbWx4NWVfZ2V0X2Zjcyhjb25zdCBzdHJ1Y3Qgc2tfYnVmZg0KPiAq
-c2tiKQ0KPiAgDQo+ICAJZmNzX2J5dGVzID0gc2tiX2hlYWRlcl9wb2ludGVyKHNrYiwgc2tiLT5s
-ZW4gLSBFVEhfRkNTX0xFTiwNCj4gIAkJCQkgICAgICAgRVRIX0ZDU19MRU4sICZfZmNzX2J5dGVz
-KTsNCj4gKwlpZiAodW5saWtlbHkoIWZjc19ieXRlcykpDQo+ICsJCXByX3dhcm5fb25jZSgic2ti
-X2hlYWRlcl9wb2ludGVyIHJldHVybnMgTlVMTFxuIik7DQo+ICANCj4gIAlyZXR1cm4gX19nZXRf
-dW5hbGlnbmVkX2NwdTMyKGZjc19ieXRlcyk7DQo+ICB9DQo=
+From: Kangjie Lu <kjlu@umn.edu>
+Date: Mon, 11 Mar 2019 01:33:43 -0500
+
+> In case skb_header_pointer fails, the fix issues a warning.
+> 
+> A better fix requires modifying the signature of mlx5e_get_fcs to
+> pass an error code upstream.
+> 
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+
+Saeed, I'll let you take this.
+
+Thanks.
