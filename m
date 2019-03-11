@@ -1,24 +1,35 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Sun, 10 Mar 2019 01:40:14 +0000
-Message-ID: <155218201474.32026.5898256217262679744.pr-tracker-bot@kernel.org>
-References: <20190307013411.GA6010@ziepe.ca>
+From: Kangjie Lu <kjlu@umn.edu>
+Subject: [PATCH] net: mlx5: fix a potential NULL pointer dereference
+Date: Mon, 11 Mar 2019 01:33:43 -0500
+Message-ID: <20190311063343.20188-1-kjlu@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190307013411.GA6010@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pull request you sent on Thu, 7 Mar 2019 01:34:16 +0000:
+In case skb_header_pointer fails, the fix issues a warning.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+A better fix requires modifying the signature of mlx5e_get_fcs to
+pass an error code upstream.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/a50243b1ddcdd766d0d17fbfeeb1a22e62fdc461
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/en_rx.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thank you!
-
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+index be396e5e4e39..6ec1c110e4be 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+@@ -719,6 +719,8 @@ static u32 mlx5e_get_fcs(const struct sk_buff *skb)
+ 
+ 	fcs_bytes = skb_header_pointer(skb, skb->len - ETH_FCS_LEN,
+ 				       ETH_FCS_LEN, &_fcs_bytes);
++	if (unlikely(!fcs_bytes))
++		pr_warn_once("skb_header_pointer returns NULL\n");
+ 
+ 	return __get_unaligned_cpu32(fcs_bytes);
+ }
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.17.1
