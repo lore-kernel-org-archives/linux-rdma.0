@@ -1,7 +1,7 @@
 From: ira.weiny@intel.com
-Subject: [RESEND 7/7] IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Date: Sun, 17 Mar 2019 11:34:38 -0700
-Message-ID: <20190317183438.2057-8-ira.weiny@intel.com>
+Subject: [RESEND 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Date: Sun, 17 Mar 2019 11:34:36 -0700
+Message-ID: <20190317183438.2057-6-ira.weiny@intel.com>
 References: <20190317183438.2057-1-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -19,22 +19,26 @@ FS DAX pages being mapped.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- drivers/infiniband/hw/mthca/mthca_memfree.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 112d2f38e0de..8ff0e90d7564 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -472,7 +472,8 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 		goto out;
- 	}
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index 78ccacaf97d0..6a7f9cd5a94e 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+ 			    bool writable, struct page **pages)
+ {
+ 	int ret;
++	unsigned int gup_flags = writable ? FOLL_WRITE : 0;
  
--	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
-+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1,
-+				  FOLL_WRITE | FOLL_LONGTERM, pages);
+-	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
+-				  pages);
++	gup_flags |= FOLL_LONGTERM;
++
++	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
  	if (ret < 0)
- 		goto out;
+ 		return ret;
  
 -- 
 2.20.1
