@@ -1,95 +1,88 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: [GIT PULL] Please pull RDMA subsystem changes
-Date: Mon, 18 Mar 2019 01:04:12 +0000
-Message-ID: <20190318010407.GA26545@ziepe.ca>
+From: ira.weiny@intel.com
+Subject: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date: Sun, 17 Mar 2019 11:34:31 -0700
+Message-ID: <20190317183438.2057-1-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Ira Weiny <ira.weiny@intel.com>
 
-Hi Linus,
+Resending after rebasing to the latest mm tree.
 
-First rc pull request - nothing too special, just some driver bug
-fixes that have been sitting during the merge window.
+HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+advantages.  These pages can be held for a significant time.  But
+get_user_pages_fast() does not protect against mapping FS DAX pages.
 
-Thanks,
-Jason
+Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+retains the performance while also adding the FS DAX checks.  XDP has also
+shown interest in using this functionality.[1]
 
-The following changes since commit 9e98c678c2d6ae3a17cb2de55d17f69dddaa231b:
+In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+remove the specialized get_user_pages_longterm call.
 
-  Linux 5.1-rc1 (2019-03-17 14:22:26 -0700)
+[1] https://lkml.org/lkml/2019/2/11/1789
 
-are available in the Git repository at:
+Ira Weiny (7):
+  mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+  mm/gup: Change write parameter to flags in fast walk
+  mm/gup: Change GUP fast to use flags rather than a write 'bool'
+  mm/gup: Add FOLL_LONGTERM capability to GUP fast
+  IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+ arch/mips/mm/gup.c                          |  11 +-
+ arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+ arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+ arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
+ arch/s390/kvm/interrupt.c                   |   2 +-
+ arch/s390/mm/gup.c                          |  12 +-
+ arch/sh/mm/gup.c                            |  11 +-
+ arch/sparc/mm/gup.c                         |   9 +-
+ arch/x86/kvm/paging_tmpl.h                  |   2 +-
+ arch/x86/kvm/svm.c                          |   2 +-
+ drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+ drivers/infiniband/core/umem.c              |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   5 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+ drivers/misc/genwqe/card_utils.c            |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+ drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+ drivers/sbus/char/oradax.c                  |   2 +-
+ drivers/scsi/st.c                           |   3 +-
+ drivers/staging/gasket/gasket_page_table.c  |   4 +-
+ drivers/tee/tee_shm.c                       |   2 +-
+ drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+ drivers/vfio/vfio_iommu_type1.c             |   3 +-
+ drivers/vhost/vhost.c                       |   2 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/virt/fsl_hypervisor.c               |   2 +-
+ drivers/xen/gntdev.c                        |   2 +-
+ fs/io_uring.c                               |   5 +-
+ fs/orangefs/orangefs-bufmap.c               |   2 +-
+ include/linux/mm.h                          |  18 +-
+ kernel/futex.c                              |   2 +-
+ lib/iov_iter.c                              |   7 +-
+ mm/gup.c                                    | 258 ++++++++++++--------
+ mm/gup_benchmark.c                          |   5 +-
+ mm/util.c                                   |   8 +-
+ net/ceph/pagevec.c                          |   2 +-
+ net/rds/info.c                              |   2 +-
+ net/rds/rdma.c                              |   3 +-
+ net/xdp/xdp_umem.c                          |   4 +-
+ 46 files changed, 262 insertions(+), 197 deletions(-)
 
-for you to fetch changes up to ec4fe4bcc584b55e24e8d1768f5510a62c0fd619:
-
-  i40iw: Avoid panic when handling the inetdev event (2019-03-17 21:40:40 -0300)
-
-----------------------------------------------------------------
-5.1 First RC pull request
-
-Several driver bug fixes post in the last three weeks
-
-- First part of a race condition fix in mlx4 with CATAS errors
-
-- Bad interaction with FW causing resource leaks in the mlx5 DCT flow
-
-- Bad reporting of link speed/width in new mlx5 devices
-
-- Userspace triggable OOPs in i40iw
-
-----------------------------------------------------------------
-Aya Levin (1):
-      IB/mlx5: Fix mapping of link-mode to IB width and speed
-
-Feng Tang (1):
-      i40iw: Avoid panic when handling the inetdev event
-
-Jack Morgenstein (1):
-      IB/mlx4: Fix race condition between catas error reset and aliasguid flows
-
-Yishai Hadas (2):
-      net/mlx5: Fix DCT creation bad flow
-      IB/mlx5: Use mlx5 core to create/destroy a DEVX DCT
-
- drivers/infiniband/hw/i40iw/i40iw_utils.c    | 12 ++++-
- drivers/infiniband/hw/mlx4/alias_GUID.c      |  2 +-
- drivers/infiniband/hw/mlx5/devx.c            | 34 +++++++++----
- drivers/infiniband/hw/mlx5/main.c            |  7 +++
- drivers/infiniband/hw/mlx5/qp.c              |  4 +-
- drivers/net/ethernet/mellanox/mlx5/core/qp.c | 72 +++++++++++++++-------------
- include/linux/mlx5/qp.h                      |  3 +-
- 7 files changed, 89 insertions(+), 45 deletions(-)
-
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlyO7oQACgkQOG33FX4g
-mxoq0A/8CVz+6BHYBGjJ2+oyoBCJXtApJzqEJdtGQhkqPdr0V5giW3hKOJNkveJk
-v0ul6T5f+eRkJjko4Wk1JTz1NrDtemlPDSLTwg7Q4ZJYENJC+y35X7AS2RTCWFI6
-Gs9doTx4EiyZbx3fizome3ZNgaGFmtSHvW+1ImIssP3neoK9ZFeMw/M58QpRpCIc
-tM+RoRA3jo7VwnNqzIiud5EJCz4tmy9+cqrHff0Z15j6bvfEyzbtmKq3oe2bFw9z
-Id3q4xBQ99pt51r3zVlMzFV6HCbDIJ2fUcl/Kp4m0Oj9dslBlBZrWUJ/pjaP/OkO
-1U8seQTnCj+fOkLzvQ6hjG/TaPm1dU/TtTk84Jv5g3WgzKj49Ak4ZmE/5IyOh2z+
-KMV8ooBDQnK35xF3dhwmWNpcAfNClLk3KEyK6lUPOrAfm4sXPevCD4SLovcZqmIa
-daYlfO7YEJ5+L/XgYbgRJb6qfaLWQtGYCUC9JPPmtf8oyKnHayf7lvzQ2X5Kv9pk
-krnRomQJNpV5FCgSF+JZ3Q5/SnGT6zZyMNWGPue/61L6/gLY/wwsdoVQuVF68DRB
-DtFrr4jVrItIRk85SdGczXZuYMQa/Kj2BndSuTl5HWBlnb0QfGN7bGpURGsCMT1K
-OufRuMC/2AgOB4qc7zTmEUAnuotsLZNZNIXqre5fXYtzpVtf7Gc=
-=+ta4
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+-- 
+2.20.1
