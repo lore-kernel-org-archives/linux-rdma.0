@@ -1,38 +1,37 @@
-From: "Saleem, Shiraz" <shiraz.saleem@intel.com>
-Subject: RE: [PATCH v2] infiniband: i40iw: fix potential NULL pointer
- dereferences
-Date: Mon, 18 Mar 2019 13:56:34 +0000
-Message-ID: <9DD61F30A802C4429A01CA4200E302A7A5A75387@fmsmsx124.amr.corp.intel.com>
-References: <9DD61F30A802C4429A01CA4200E302A7A5A6FAA8@fmsmsx124.amr.corp.intel.com>
- <20190315065715.18249-1-kjlu@umn.edu>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-rc 0/5] IB/hfi1: Fixes for 5.1 rc cycle
+Date: Mon, 18 Mar 2019 09:54:55 -0700
+Message-ID: <20190318165205.23550.97894.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190315065715.18249-1-kjlu@umn.edu>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kangjie Lu <kjlu@umn.edu>
-Cc: "Latif, Faisal" <faisal.latif@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
->Subject: [PATCH v2] infiniband: i40iw: fix potential NULL pointer dereferences
+Here is a set of small fixes that we would like to land in the rc cycle
+for 5.1. One of them is marked as stable.
 
-Something like "RDMA/i40iw: Handle workqueue allocation failure" is a more appropriate subject line. 
->
->alloc_ordered_workqueue may fail and return NULL.
->The fix captures the failure and handles it properly to avoid potential NULL pointer
->dereferences.
->
->Signed-off-by: Kangjie Lu <kjlu@umn.edu>
->---
->V2: add return value to capture the error code
->---
-> drivers/infiniband/hw/i40iw/i40iw.h      |  2 +-
-> drivers/infiniband/hw/i40iw/i40iw_cm.c   | 19 ++++++++++++++++---
-> drivers/infiniband/hw/i40iw/i40iw_main.c |  5 ++++-
-> 3 files changed, 21 insertions(+), 5 deletions(-)
->
-The patch itself looks ok to me now. Thanks!
+The first patch fixes an unnecessary stack trace due to incorrect WQ flags. The
+next three fix issues uncovered due to TID RDMA which was brought in for 5.1.
+The last one is a bug in VNIC.
 
-Shiraz
+---
+
+Kaike Wan (4):
+      IB/hfi1: Failed to drain send queue when QP is put into error state
+      IB/hfi1: Clear the IOWAIT pending bits when QP is put into error state
+      IB/hfi1: Eliminate opcode tests on mr deref
+      IB/hfi1: Fix the allocation of RSM table
+
+Mike Marciniszyn (1):
+      IB/hfi1: Fix WQ_MEM_RECLAIM warning
+
+
+ drivers/infiniband/hw/hfi1/chip.c |   26 +++++++++++++++++++-------
+ drivers/infiniband/hw/hfi1/init.c |    3 ++-
+ drivers/infiniband/hw/hfi1/qp.c   |    4 +++-
+ drivers/infiniband/hw/hfi1/rc.c   |    4 ++--
+ 4 files changed, 26 insertions(+), 11 deletions(-)
