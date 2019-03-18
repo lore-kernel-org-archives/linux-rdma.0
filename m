@@ -1,66 +1,68 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 2/5] IB/hfi1: Failed to drain send queue when QP is
- put into error state
-Date: Mon, 18 Mar 2019 09:55:19 -0700
-Message-ID: <20190318165514.23550.89083.stgit@scvm10.sc.intel.com>
-References: <20190318165205.23550.97894.stgit@scvm10.sc.intel.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
+Date: Mon, 18 Mar 2019 12:35:51 -0500
+Message-ID: <6cef0a46-d408-4b79-88ca-6c7da2538abf@embeddedor.com>
+References: <20190302193933.GA13467@embeddedor.com>
+ <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
+ <5e256a0f-ef58-4b23-8d7f-08a6148782e6@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190318165205.23550.97894.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5e256a0f-ef58-4b23-8d7f-08a6148782e6@mellanox.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Eli Britstein <elibr@mellanox.com>, Roi Dayan <roid@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan@intel.com>
+Hi all,
 
-When a QP is put into error state, all pending requests in the send
-work queue should be drained. The following sequence of events could
-lead to a failure, causing a request to hang:
-(1) The QP builds a packet and tries to send through SDMA engine.
-However, PIO engine is still busy. Consequently, this packet is put
-on the QP's tx list and the QP is put on the PIO waiting list. The
-field qp->s_flags is set with HFI1_S_WAIT_PIO_DRAIN;
-(2) The QP is put into error state by the user application and
-notify_error_qp() is called, which removes the QP from the PIO waiting
-list and the packet from the QP's tx list. In addition, qp->s_flags
-is cleared of RVT_S_ANY_WAIT_IO bits, which does not include
-HFI1_S_WAIT_PIO_DRAIN bit;
-(3) The hfi1_schdule_send() function is called to drain the QP's send
-queue. Subsequently, hfi1_do_send() is called. Since the flag bit
-HFI1_S_WAIT_PIO_DRAIN is set in qp->s_flags, hfi1_send_ok() fails.
-As a result, hfi1_do_send() bails out without draining any request
-from the send queue;
-(4) The PIO engine completes the sending and tries to wake up any QP
-on its waiting list. But the QP has been removed from the PIO waiting
-list and therefore is kept in sleep forever.
+Friendly ping:
 
-The fix is to clear qp->s_flags of HFI1_S_ANY_WAIT_IO bits in step (2).
-HFI1_S_ANY_WAIT_IO includes RVT_S_ANY_WAIT_IO and HFI1_S_WAIT_PIO_DRAIN.
+Who can take this?
 
+Thanks
+--
+Gustavo
 
-Fixes: 2e2ba09e48b7 ("IB/rdmavt, IB/hfi1: Create device dependent s_flags")
-Cc: <stable@vger.kernel.org> # 4.19.x+
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Alex Estrin <alex.estrin@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/qp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/qp.c b/drivers/infiniband/hw/hfi1/qp.c
-index 9b643c2..64889ed 100644
---- a/drivers/infiniband/hw/hfi1/qp.c
-+++ b/drivers/infiniband/hw/hfi1/qp.c
-@@ -898,7 +898,7 @@ void notify_error_qp(struct rvt_qp *qp)
- 		if (!list_empty(&priv->s_iowait.list) &&
- 		    !(qp->s_flags & RVT_S_BUSY) &&
- 		    !(priv->s_flags & RVT_S_BUSY)) {
--			qp->s_flags &= ~RVT_S_ANY_WAIT_IO;
-+			qp->s_flags &= ~HFI1_S_ANY_WAIT_IO;
- 			list_del_init(&priv->s_iowait.list);
- 			priv->s_iowait.lock = NULL;
- 			rvt_put_qp(qp);
+On 3/3/19 11:31 AM, Eli Britstein wrote:
+> Reviewed-by: Eli Britstein <elibr@mellanox.com>
+> 
+> On 3/3/2019 5:20 PM, Roi Dayan wrote:
+>>
+>> On 02/03/2019 21:39, Gustavo A. R. Silva wrote:
+>>> Remove redundant assignment to tun_entropy->enabled.
+>>>
+>>> Addesses-Coverity-ID: 1477328 ("Unused value")
+>>> Fixes: 97417f6182f8 ("net/mlx5e: Fix GRE key by controlling port tunnel entropy calculation")
+>> the commit doesn't fix any real issue but is more of a cleanup.
+>> so I'm not sure if fixes line is relevant or not.
+>> beside that looks ok.
+>>
+>> Reviewed-by: Roi Dayan <roid@mellanox.com>
+>>
+>>
+>>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+>>> ---
+>>>   drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c | 6 ++----
+>>>   1 file changed, 2 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
+>>> index 40f4a19b1ce1..be69c1d7941a 100644
+>>> --- a/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
+>>> +++ b/drivers/net/ethernet/mellanox/mlx5/core/lib/port_tun.c
+>>> @@ -80,10 +80,8 @@ void mlx5_init_port_tun_entropy(struct mlx5_tun_entropy *tun_entropy,
+>>>   	mlx5_query_port_tun_entropy(mdev, &entropy_flags);
+>>>   	tun_entropy->num_enabling_entries = 0;
+>>>   	tun_entropy->num_disabling_entries = 0;
+>>> -	tun_entropy->enabled = entropy_flags.calc_enabled;
+>>> -	tun_entropy->enabled =
+>>> -		(entropy_flags.calc_supported) ?
+>>> -		entropy_flags.calc_enabled : true;
+>>> +	tun_entropy->enabled = entropy_flags.calc_supported ?
+>>> +			       entropy_flags.calc_enabled : true;
+>>>   }
+>>>   
+>>>   static int mlx5_set_entropy(struct mlx5_tun_entropy *tun_entropy,
+>>>
