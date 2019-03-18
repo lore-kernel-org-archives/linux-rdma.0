@@ -1,64 +1,52 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
 Subject: Re: [PATCH][next] net/mlx5e: Remove redundant assignment
-Date: Mon, 18 Mar 2019 18:10:00 +0000
-Message-ID: <9c1a67b0c8e9c1e3a6448a9c3ac848c3b5d109b6.camel@mellanox.com>
+Date: Mon, 18 Mar 2019 14:25:25 -0500
+Message-ID: <939f78d4-2d56-3897-4d64-31f61abf5df5@embeddedor.com>
 References: <20190302193933.GA13467@embeddedor.com>
-         <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
-         <5e256a0f-ef58-4b23-8d7f-08a6148782e6@mellanox.com>
-         <6cef0a46-d408-4b79-88ca-6c7da2538abf@embeddedor.com>
+ <da1f1300-20f4-2929-078b-71ac1772a933@mellanox.com>
+ <5e256a0f-ef58-4b23-8d7f-08a6148782e6@mellanox.com>
+ <6cef0a46-d408-4b79-88ca-6c7da2538abf@embeddedor.com>
+ <9c1a67b0c8e9c1e3a6448a9c3ac848c3b5d109b6.camel@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <6cef0a46-d408-4b79-88ca-6c7da2538abf@embeddedor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9c1a67b0c8e9c1e3a6448a9c3ac848c3b5d109b6.camel@mellanox.com>
 Content-Language: en-US
-Content-ID: <0849FE448128264385CD7E6501AEAA38@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: "davem@davemloft.net" <davem@davemloft.net>, "gustavo@embeddedor.com" <gustavo@embeddedor.com>, Eli Britstein <elibr@mellanox.com>, Roi Dayan <roid@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, Eli Britstein <elibr@mellanox.com>, Roi Dayan <roid@mellanox.com>, "leon@kernel.org" <leon@kernel.org>
 Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTAzLTE4IGF0IDEyOjM1IC0wNTAwLCBHdXN0YXZvIEEuIFIuIFNpbHZhIHdy
-b3RlOg0KPiBIaSBhbGwsDQo+IA0KPiBGcmllbmRseSBwaW5nOg0KPiANCj4gV2hvIGNhbiB0YWtl
-IHRoaXM/DQo+IA0KDQoNCkhpIEd1c3Rhdm8sIA0KDQpJIGFscmVhZHkgcmVwbGllZCBvbiBNYXJj
-aCA4LCB0aGF0IHRoaXMgcGF0Y2ggd2FzIGFwcGxpZWQgdG8gbXkgYnJhbmNoLA0KbmV0LW5leHQt
-bWx4NSwNCg0KaHR0cHM6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQv
-c2FlZWQvbGludXguZ2l0L2NvbW1pdC8/aD1uZXQtbmV4dC1tbHg1JmlkPTYyNzk5OTljNmUzZGU1
-YTkzMzEyYTJkNjZiM2ZkNmFjODYzNmYyNjANCg0KT25jZSBuZXQtbmV4dCBpcyBvcGVuLCB0aGlz
-IHBhdGNoIGlzIGdvaW5nIHRvIG1ha2UgaXQgdGhlcmUgYXMgcGFydCBvZg0KbXkgbmV4dCBwdWxs
-IHJlcXVlc3QgdG8gRGF2ZS4NCg0KVGhhbmtzLA0KU2FlZWQuDQoNCj4gVGhhbmtzDQo+IC0tDQo+
-IEd1c3Rhdm8NCj4gDQo+IE9uIDMvMy8xOSAxMTozMSBBTSwgRWxpIEJyaXRzdGVpbiB3cm90ZToN
-Cj4gPiBSZXZpZXdlZC1ieTogRWxpIEJyaXRzdGVpbiA8ZWxpYnJAbWVsbGFub3guY29tPg0KPiA+
-IA0KPiA+IE9uIDMvMy8yMDE5IDU6MjAgUE0sIFJvaSBEYXlhbiB3cm90ZToNCj4gPiA+IE9uIDAy
-LzAzLzIwMTkgMjE6MzksIEd1c3Rhdm8gQS4gUi4gU2lsdmEgd3JvdGU6DQo+ID4gPiA+IFJlbW92
-ZSByZWR1bmRhbnQgYXNzaWdubWVudCB0byB0dW5fZW50cm9weS0+ZW5hYmxlZC4NCj4gPiA+ID4g
-DQo+ID4gPiA+IEFkZGVzc2VzLUNvdmVyaXR5LUlEOiAxNDc3MzI4ICgiVW51c2VkIHZhbHVlIikN
-Cj4gPiA+ID4gRml4ZXM6IDk3NDE3ZjYxODJmOCAoIm5ldC9tbHg1ZTogRml4IEdSRSBrZXkgYnkg
-Y29udHJvbGxpbmcNCj4gPiA+ID4gcG9ydCB0dW5uZWwgZW50cm9weSBjYWxjdWxhdGlvbiIpDQo+
-ID4gPiB0aGUgY29tbWl0IGRvZXNuJ3QgZml4IGFueSByZWFsIGlzc3VlIGJ1dCBpcyBtb3JlIG9m
-IGEgY2xlYW51cC4NCj4gPiA+IHNvIEknbSBub3Qgc3VyZSBpZiBmaXhlcyBsaW5lIGlzIHJlbGV2
-YW50IG9yIG5vdC4NCj4gPiA+IGJlc2lkZSB0aGF0IGxvb2tzIG9rLg0KPiA+ID4gDQo+ID4gPiBS
-ZXZpZXdlZC1ieTogUm9pIERheWFuIDxyb2lkQG1lbGxhbm94LmNvbT4NCj4gPiA+IA0KPiA+ID4g
-DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEd1c3Rhdm8gQS4gUi4gU2lsdmEgPGd1c3Rhdm9AZW1i
-ZWRkZWRvci5jb20+DQo+ID4gPiA+IC0tLQ0KPiA+ID4gPiAgIGRyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9saWIvcG9ydF90dW4uYyB8IDYNCj4gPiA+ID4gKystLS0tDQo+
-ID4gPiA+ICAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgNCBkZWxldGlvbnMoLSkN
-Cj4gPiA+ID4gDQo+ID4gPiA+IGRpZmYgLS1naXQNCj4gPiA+ID4gYS9kcml2ZXJzL25ldC9ldGhl
-cm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbGliL3BvcnRfdHVuLmMNCj4gPiA+ID4gYi9kcml2ZXJz
-L25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbGliL3BvcnRfdHVuLmMNCj4gPiA+ID4g
-aW5kZXggNDBmNGExOWIxY2UxLi5iZTY5YzFkNzk0MWEgMTAwNjQ0DQo+ID4gPiA+IC0tLSBhL2Ry
-aXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9saWIvcG9ydF90dW4uYw0KPiA+
-ID4gPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvbGliL3Bv
-cnRfdHVuLmMNCj4gPiA+ID4gQEAgLTgwLDEwICs4MCw4IEBAIHZvaWQgbWx4NV9pbml0X3BvcnRf
-dHVuX2VudHJvcHkoc3RydWN0DQo+ID4gPiA+IG1seDVfdHVuX2VudHJvcHkgKnR1bl9lbnRyb3B5
-LA0KPiA+ID4gPiAgIAltbHg1X3F1ZXJ5X3BvcnRfdHVuX2VudHJvcHkobWRldiwgJmVudHJvcHlf
-ZmxhZ3MpOw0KPiA+ID4gPiAgIAl0dW5fZW50cm9weS0+bnVtX2VuYWJsaW5nX2VudHJpZXMgPSAw
-Ow0KPiA+ID4gPiAgIAl0dW5fZW50cm9weS0+bnVtX2Rpc2FibGluZ19lbnRyaWVzID0gMDsNCj4g
-PiA+ID4gLQl0dW5fZW50cm9weS0+ZW5hYmxlZCA9IGVudHJvcHlfZmxhZ3MuY2FsY19lbmFibGVk
-Ow0KPiA+ID4gPiAtCXR1bl9lbnRyb3B5LT5lbmFibGVkID0NCj4gPiA+ID4gLQkJKGVudHJvcHlf
-ZmxhZ3MuY2FsY19zdXBwb3J0ZWQpID8NCj4gPiA+ID4gLQkJZW50cm9weV9mbGFncy5jYWxjX2Vu
-YWJsZWQgOiB0cnVlOw0KPiA+ID4gPiArCXR1bl9lbnRyb3B5LT5lbmFibGVkID0gZW50cm9weV9m
-bGFncy5jYWxjX3N1cHBvcnRlZCA/DQo+ID4gPiA+ICsJCQkgICAgICAgZW50cm9weV9mbGFncy5j
-YWxjX2VuYWJsZWQgOg0KPiA+ID4gPiB0cnVlOw0KPiA+ID4gPiAgIH0NCj4gPiA+ID4gICANCj4g
-PiA+ID4gICBzdGF0aWMgaW50IG1seDVfc2V0X2VudHJvcHkoc3RydWN0IG1seDVfdHVuX2VudHJv
-cHkNCj4gPiA+ID4gKnR1bl9lbnRyb3B5LA0KPiA+ID4gPiANCg==
+
+
+On 3/18/19 1:10 PM, Saeed Mahameed wrote:
+> On Mon, 2019-03-18 at 12:35 -0500, Gustavo A. R. Silva wrote:
+>> Hi all,
+>>
+>> Friendly ping:
+>>
+>> Who can take this?
+>>
+> 
+> 
+> Hi Gustavo, 
+> 
+> I already replied on March 8, that this patch was applied to my branch,
+> net-next-mlx5,
+> 
+
+Oh, somehow I missed that one.
+
+> https://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux.git/commit/?h=net-next-mlx5&id=6279999c6e3de5a93312a2d66b3fd6ac8636f260
+> 
+> Once net-next is open, this patch is going to make it there as part of
+> my next pull request to Dave.
+> 
+
+Sounds great. :)
+
+Thanks, Saeed.
+
+--
+Gustavo
