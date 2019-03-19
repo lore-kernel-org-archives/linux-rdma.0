@@ -1,62 +1,49 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
 Subject: Re: [PATCH v3] net: mlx5: Add a missing check on idr_find, free buf
-Date: Tue, 19 Mar 2019 18:25:15 +0200
-Message-ID: <20190319162514.GG32657@lap1>
-References: <20190319162406.7525-1-pakki001@umn.edu>
+Date: Tue, 19 Mar 2019 16:57:47 +0000
+Message-ID: <010498dc10890e09c18ab6941fa2abcde6a7b28e.camel@mellanox.com>
+References: <20190319155524.6978-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190319162406.7525-1-pakki001@umn.edu>
+In-Reply-To: <20190319155524.6978-1-pakki001@umn.edu>
+Content-Language: en-US
+Content-ID: <252F3ABE701D5744BFB0FF6E3863C8A9@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aditya Pakki <pakki001@umn.edu>
-Cc: kjlu@umn.edu, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "pakki001@umn.edu" <pakki001@umn.edu>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, "weiyongjun1@huawei.com" <weiyongjun1@huawei.com>, "kjlu@umn.edu" <kjlu@umn.edu>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 19, 2019 at 11:24:02AM -0500, Aditya Pakki wrote:
-> idr_find() can return a NULL value to 'flow' which is used without a check.
-> The patch adds a check to avoid potential NULL pointer dereference.
-> In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
-> using kzalloc.
-> 
-> ---
-> Fixes: ab412e1dd7db ('net/mlx5: Accel, add TLS rx offload routines')
-
-This should be part of the commit message
-
-> v2: failure to return in case of flow failure.
-> v1: Failed to free buf in case of flow failure.
-> 
-> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 7 +++++++
->  1 file changed, 7 insertions(+)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> index 5cf5f2a9d51f..224e0d7f6489 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> @@ -226,6 +226,11 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
->  	rcu_read_lock();
->  	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
->  	rcu_read_unlock();
-> +	if (!flow) {
-> +		WARN_ONCE(1, "Received NULL pointer for handle\n");
-> +		kfree(buf);
-> +		return -EINVAL;
-> +	}
->  	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
->  
->  	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
-> @@ -238,6 +243,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
->  	buf->complete = mlx_tls_kfree_complete;
->  
->  	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
-> +	if (ret < 0)
-> +		kfree(buf);
->  
->  	return ret;
->  }
-> -- 
-> 2.17.1
-> 
+T24gVHVlLCAyMDE5LTAzLTE5IGF0IDEwOjU1IC0wNTAwLCBBZGl0eWEgUGFra2kgd3JvdGU6DQo+
+IGlkcl9maW5kKCkgY2FuIHJldHVybiBhIE5VTEwgdmFsdWUgdG8gJ2Zsb3cnIHdoaWNoIGlzIHVz
+ZWQgd2l0aG91dCBhDQo+IGNoZWNrLg0KPiBUaGUgcGF0Y2ggYWRkcyBhIGNoZWNrIHRvIGF2b2lk
+IHBvdGVudGlhbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UuDQo+IEluIGNhc2Ugb2YgbWx4NV9m
+cGdhX3NidV9jb25uX3NlbmRtc2coKSBmYWlsdXJlLCBmcmVlIGJ1ZiBhbGxvY2F0ZWQNCj4gdXNp
+bmcga3phbGxvYy4NCj4gDQo+IC0tLQ0KPiB2MjogZmFpbHVyZSB0byByZXR1cm4gaW4gY2FzZSBv
+ZiBmbG93IGZhaWx1cmUuDQo+IHYxOiBGYWlsZWQgdG8gZnJlZSBidWYgaW4gY2FzZSBvZiBmbG93
+IGZhaWx1cmUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBBZGl0eWEgUGFra2kgPHBha2tpMDAxQHVt
+bi5lZHU+DQo+IC0tLQ0KPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
+L2ZwZ2EvdGxzLmMgfCA3ICsrKysrKysNCj4gIDEgZmlsZSBjaGFuZ2VkLCA3IGluc2VydGlvbnMo
+KykNCj4gDQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1
+L2NvcmUvZnBnYS90bHMuYw0KPiBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUv
+Y29yZS9mcGdhL3Rscy5jDQo+IGluZGV4IDVjZjVmMmE5ZDUxZi4uMjI0ZTBkN2Y2NDg5IDEwMDY0
+NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS90
+bHMuYw0KPiArKysgYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBn
+YS90bHMuYw0KPiBAQCAtMjI2LDYgKzIyNiwxMSBAQCBpbnQgbWx4NV9mcGdhX3Rsc19yZXN5bmNf
+cngoc3RydWN0IG1seDVfY29yZV9kZXYNCj4gKm1kZXYsIHUzMiBoYW5kbGUsIHUzMiBzZXEsDQo+
+ICAJcmN1X3JlYWRfbG9jaygpOw0KPiAgCWZsb3cgPSBpZHJfZmluZCgmbWRldi0+ZnBnYS0+dGxz
+LT5yeF9pZHIsIG50b2hsKGhhbmRsZSkpOw0KPiAgCXJjdV9yZWFkX3VubG9jaygpOw0KPiArCWlm
+ICghZmxvdykgew0KPiArCQlXQVJOX09OQ0UoMSwgIlJlY2VpdmVkIE5VTEwgcG9pbnRlciBmb3Ig
+aGFuZGxlXG4iKTsNCj4gKwkJa2ZyZWUoYnVmKTsNCj4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+ICsJ
+fQ0KDQpKdXN0IGEgc21hbGwgbml0LCBpdCB3b3VsZCBoYXZlIGJlZW4gc2ltcGxlciBpZiB5b3Ug
+anVzdCBjaGFuZ2VkIHRoZQ0Kb3JkZXIgYmV0d2VlbiBidWYgPSBremFsbG9jKC4uLikgYW5kIGZs
+b3cgPSBpZHJfZmluZCwgdG8gYXZvaWQNCmtmcmVlKGJ1Zikgb24gZXJyIGZsb3cuDQoNClBsZWFz
+ZSBhZGQgdGhlIGZpeGVzIHRhZyBhcyBFcmljIHN1Z2dlc3RlZC4NCg0KPiAgCW1seDVfZnBnYV90
+bHNfZmxvd190b19jbWQoZmxvdywgY21kKTsNCj4gIA0KPiAgCU1MWDVfU0VUKHRsc19jbWQsIGNt
+ZCwgc3dpZCwgbnRvaGwoaGFuZGxlKSk7DQo+IEBAIC0yMzgsNiArMjQzLDggQEAgaW50IG1seDVf
+ZnBnYV90bHNfcmVzeW5jX3J4KHN0cnVjdCBtbHg1X2NvcmVfZGV2DQo+ICptZGV2LCB1MzIgaGFu
+ZGxlLCB1MzIgc2VxLA0KPiAgCWJ1Zi0+Y29tcGxldGUgPSBtbHhfdGxzX2tmcmVlX2NvbXBsZXRl
+Ow0KPiAgDQo+ICAJcmV0ID0gbWx4NV9mcGdhX3NidV9jb25uX3NlbmRtc2cobWRldi0+ZnBnYS0+
+dGxzLT5jb25uLCBidWYpOw0KPiArCWlmIChyZXQgPCAwKQ0KPiArCQlrZnJlZShidWYpOw0KPiAg
+DQo+ICAJcmV0dXJuIHJldDsNCj4gIH0NCg==
