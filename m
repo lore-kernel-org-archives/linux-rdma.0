@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 4/4] IB/mlx5: Compare only index part of a memory window rkey
-Date: Tue, 19 Mar 2019 11:24:39 +0200
-Message-ID: <20190319092439.10701-5-leon@kernel.org>
+Subject: [PATCH rdma-next 2/4] IB/mlx5: WQE dump jumps over first 16 bytes
+Date: Tue, 19 Mar 2019 11:24:37 +0200
+Message-ID: <20190319092439.10701-3-leon@kernel.org>
 References: <20190319092439.10701-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,54 +14,39 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Artemy Kovalyov <artemyko@mellanox.com>
 
-The InfiniBand Architecture Specification section 10.6.7.2.4 TYPE
-2 MEMORY WINDOWS says that if the CI supports the Base Memory Management
-Extensions defined in this specification, the R_Key format for a Type
-2 Memory Window must consist of:
-* 24 bit index in the most significant bits of the R_Key, which is
-owned by the CI, and
-* 8 bit key in the least significant bits of the R_Key, which is
-owned by the Consumer.
+Move index increment after its is used or otherwise it will start the
+dump of the WQE from second WQE BB.
 
-This means that the kernel should compare only the index part of a R_Key
-to determine equality with another R_Key.
-
-Fixes: db570d7deafb ("IB/mlx5: Add ODP support to MW")
+Fixes: 34f4c9554d8b ("IB/mlx5: Use fragmented QP's buffer for in-kernel users")
 Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
 Signed-off-by: Moni Shoua <monis@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/odp.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx5/qp.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/odp.c b/drivers/infiniband/hw/mlx5/odp.c
-index 95dccac1f844..2b197da1cc37 100644
---- a/drivers/infiniband/hw/mlx5/odp.c
-+++ b/drivers/infiniband/hw/mlx5/odp.c
-@@ -711,6 +711,15 @@ struct pf_frame {
- 	int depth;
- };
- 
-+static bool mkey_is_eq(struct mlx5_core_mkey *mmkey, u32 key)
-+{
-+	if (!mmkey)
-+		return false;
-+	if (mmkey->type == MLX5_MKEY_MW)
-+		return mlx5_base_mkey(mmkey->key) == mlx5_base_mkey(key);
-+	return mmkey->key == key;
-+}
-+
- static int get_indirect_num_descs(struct mlx5_core_mkey *mmkey)
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 6b1f0e76900b..2014fd0fddc7 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -4724,16 +4724,15 @@ static void set_linv_wr(struct mlx5_ib_qp *qp, void **seg, int *size,
+ static void dump_wqe(struct mlx5_ib_qp *qp, u32 idx, int size_16)
  {
- 	struct mlx5_ib_mw *mw;
-@@ -760,7 +769,7 @@ static int pagefault_single_data_segment(struct mlx5_ib_dev *dev,
+ 	__be32 *p = NULL;
+-	u32 tidx = idx;
+ 	int i, j;
  
- next_mr:
- 	mmkey = __mlx5_mr_lookup(dev->mdev, mlx5_base_mkey(key));
--	if (!mmkey || mmkey->key != key) {
-+	if (!mkey_is_eq(mmkey, key)) {
- 		mlx5_ib_dbg(dev, "failed to find mkey %x\n", key);
- 		ret = -EFAULT;
- 		goto srcu_unlock;
+ 	pr_debug("dump WQE index %u:\n", idx);
+ 	for (i = 0, j = 0; i < size_16 * 4; i += 4, j += 4) {
+ 		if ((i & 0xf) == 0) {
+-			tidx = (tidx + 1) & (qp->sq.wqe_cnt - 1);
+-			p = mlx5_frag_buf_get_wqe(&qp->sq.fbc, tidx);
++			p = mlx5_frag_buf_get_wqe(&qp->sq.fbc, idx);
+ 			pr_debug("WQBB at %p:\n", (void *)p);
+ 			j = 0;
++			idx = (idx + 1) & (qp->sq.wqe_cnt - 1);
+ 		}
+ 		pr_debug("%08x %08x %08x %08x\n", be32_to_cpu(p[j]),
+ 			 be32_to_cpu(p[j + 1]), be32_to_cpu(p[j + 2]),
 -- 
 2.20.1
