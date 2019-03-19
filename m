@@ -1,7 +1,7 @@
 From: Aditya Pakki <pakki001@umn.edu>
-Subject: [PATCH v2] net: mlx5: Add a missing check on idr_find, free buf
-Date: Tue, 19 Mar 2019 10:46:06 -0500
-Message-ID: <20190319154611.6615-1-pakki001@umn.edu>
+Subject: [PATCH v3] net: mlx5: Add a missing check on idr_find, free buf
+Date: Tue, 19 Mar 2019 10:55:20 -0500
+Message-ID: <20190319155524.6978-1-pakki001@umn.edu>
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: pakki001@umn.edu
@@ -14,28 +14,31 @@ In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
 using kzalloc.
 
 ---
+v2: failure to return in case of flow failure.
 v1: Failed to free buf in case of flow failure.
+
 Signed-off-by: Aditya Pakki <pakki001@umn.edu>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-index 5cf5f2a9d51f..1b4e4cb1c082 100644
+index 5cf5f2a9d51f..224e0d7f6489 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-@@ -226,6 +226,10 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+@@ -226,6 +226,11 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
  	rcu_read_lock();
  	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
  	rcu_read_unlock();
 +	if (!flow) {
 +		WARN_ONCE(1, "Received NULL pointer for handle\n");
 +		kfree(buf);
++		return -EINVAL;
 +	}
  	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
  
  	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
-@@ -238,6 +242,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+@@ -238,6 +243,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
  	buf->complete = mlx_tls_kfree_complete;
  
  	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
