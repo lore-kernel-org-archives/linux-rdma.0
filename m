@@ -1,24 +1,67 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Tue, 19 Mar 2019 18:15:11 +0000
-Message-ID: <155301931160.12441.12123218680926000771.pr-tracker-bot@kernel.org>
-References: <20190318010407.GA26545@ziepe.ca>
+From: Aditya Pakki <pakki001@umn.edu>
+Subject: [PATCH v4] net: mlx5: Add a missing check on idr_find, free buf
+Date: Tue, 19 Mar 2019 16:42:40 -0500
+Message-ID: <20190319214244.20212-1-pakki001@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190318010407.GA26545@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: pakki001@umn.edu
+Cc: kjlu@umn.edu, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pull request you sent on Mon, 18 Mar 2019 01:04:12 +0000:
+idr_find() can return a NULL value to 'flow' which is used without a
+check. The patch adds a check to avoid potential NULL pointer dereference.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
+using kzalloc.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/01c8d80383d9076ab4fbebc3e60ae9abc70f70d5
+Fixes: ab412e1dd7db ("net/mlx5: Accel, add TLS rx offload routines")
+---
+v3: Reorder buf allocations and flow check.
+v2: failure to return in case of flow failure.
+v1: Failed to free buf in case of flow failure.
 
-Thank you!
+Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
+index 5cf5f2a9d51f..8de64e88c670 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
+@@ -217,15 +217,21 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+ 	void *cmd;
+ 	int ret;
+ 
++	rcu_read_lock();
++	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
++	rcu_read_unlock();
++
++	if (!flow) {
++		WARN_ONCE(1, "Received NULL pointer for handle\n");
++		return -EINVAL;
++	}
++
+ 	buf = kzalloc(size, GFP_ATOMIC);
+ 	if (!buf)
+ 		return -ENOMEM;
+ 
+ 	cmd = (buf + 1);
+ 
+-	rcu_read_lock();
+-	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
+-	rcu_read_unlock();
+ 	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
+ 
+ 	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
+@@ -238,6 +244,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+ 	buf->complete = mlx_tls_kfree_complete;
+ 
+ 	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
++	if (ret < 0)
++		kfree(buf);
+ 
+ 	return ret;
+ }
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+2.17.1
