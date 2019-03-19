@@ -1,67 +1,43 @@
-From: Aditya Pakki <pakki001@umn.edu>
-Subject: [PATCH v4] net: mlx5: Add a missing check on idr_find, free buf
-Date: Tue, 19 Mar 2019 16:42:40 -0500
-Message-ID: <20190319214244.20212-1-pakki001@umn.edu>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: pakki001@umn.edu
-Cc: kjlu@umn.edu, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date: Tue, 19 Mar 2019 15:19:30 -0700
+Message-ID: <20190319151930.bab575d62fb1a33094160fe3@linux-foundation.org>
+References: <20190317183438.2057-1-ira.weiny@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190317183438.2057-1-ira.weiny@intel.com>
+Sender: netdev-owner@vger.kernel.org
+To: ira.weiny@intel.com
+Cc: John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.orgl
 List-Id: linux-rdma@vger.kernel.org
 
-idr_find() can return a NULL value to 'flow' which is used without a
-check. The patch adds a check to avoid potential NULL pointer dereference.
+On Sun, 17 Mar 2019 11:34:31 -0700 ira.weiny@intel.com wrote:
 
-In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
-using kzalloc.
+> Resending after rebasing to the latest mm tree.
+> 
+> HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+> advantages.  These pages can be held for a significant time.  But
+> get_user_pages_fast() does not protect against mapping FS DAX pages.
+> 
+> Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+> retains the performance while also adding the FS DAX checks.  XDP has also
+> shown interest in using this functionality.[1]
+> 
+> In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+> remove the specialized get_user_pages_longterm call.
 
-Fixes: ab412e1dd7db ("net/mlx5: Accel, add TLS rx offload routines")
----
-v3: Reorder buf allocations and flow check.
-v2: failure to return in case of flow failure.
-v1: Failed to free buf in case of flow failure.
+It would be helpful to include your response to Christoph's question
+(http://lkml.kernel.org/r/20190220180255.GA12020@iweiny-DESK2.sc.intel.com)
+in the changelog.  Because if one person was wondering about this,
+others will likely do so.
 
-Signed-off-by: Aditya Pakki <pakki001@umn.edu>
----
- drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+We have no record of acks or reviewed-by's.  At least one was missed
+(http://lkml.kernel.org/r/CAOg9mSTTcD-9bCSDfC0WRYqfVrNB4TwOzL0c4+6QXi-N_Y43Vw@mail.gmail.com),
+but that is very very partial.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-index 5cf5f2a9d51f..8de64e88c670 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-@@ -217,15 +217,21 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
- 	void *cmd;
- 	int ret;
- 
-+	rcu_read_lock();
-+	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
-+	rcu_read_unlock();
-+
-+	if (!flow) {
-+		WARN_ONCE(1, "Received NULL pointer for handle\n");
-+		return -EINVAL;
-+	}
-+
- 	buf = kzalloc(size, GFP_ATOMIC);
- 	if (!buf)
- 		return -ENOMEM;
- 
- 	cmd = (buf + 1);
- 
--	rcu_read_lock();
--	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
--	rcu_read_unlock();
- 	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
- 
- 	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
-@@ -238,6 +244,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
- 	buf->complete = mlx_tls_kfree_complete;
- 
- 	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
-+	if (ret < 0)
-+		kfree(buf);
- 
- 	return ret;
- }
--- 
-2.17.1
+This patchset is fairly DAX-centered, but Dan wasn't cc'ed!
+
+So ho hum.  I'll scoop them up and shall make the above changes to the
+[1/n] changelog, but we still have some work to do.
