@@ -1,35 +1,82 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH v4] net: mlx5: Add a missing check on idr_find, free buf
-Date: Tue, 19 Mar 2019 22:37:46 +0000
-Message-ID: <03f5d2ac3d4e312cffcbc7e61cc10815c28dfeb7.camel@mellanox.com>
+Date: Tue, 19 Mar 2019 21:54:10 -0700
+Message-ID: <d65ddd7e-6553-00a4-c261-bd88b7476626@gmail.com>
 References: <20190319214244.20212-1-pakki001@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190319214244.20212-1-pakki001@umn.edu>
 Content-Language: en-US
-Content-ID: <6311568127E32E48B038A028A924A08B@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "pakki001@umn.edu" <pakki001@umn.edu>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, "weiyongjun1@huawei.com" <weiyongjun1@huawei.com>, "kjlu@umn.edu" <kjlu@umn.edu>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>
+To: Aditya Pakki <pakki001@umn.edu>
+Cc: kjlu@umn.edu, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCAyMDE5LTAzLTE5IGF0IDE2OjQyIC0wNTAwLCBBZGl0eWEgUGFra2kgd3JvdGU6DQo+
-IGlkcl9maW5kKCkgY2FuIHJldHVybiBhIE5VTEwgdmFsdWUgdG8gJ2Zsb3cnIHdoaWNoIGlzIHVz
-ZWQgd2l0aG91dCBhDQo+IGNoZWNrLiBUaGUgcGF0Y2ggYWRkcyBhIGNoZWNrIHRvIGF2b2lkIHBv
-dGVudGlhbCBOVUxMIHBvaW50ZXINCj4gZGVyZWZlcmVuY2UuDQo+IA0KPiBJbiBjYXNlIG9mIG1s
-eDVfZnBnYV9zYnVfY29ubl9zZW5kbXNnKCkgZmFpbHVyZSwgZnJlZSBidWYgYWxsb2NhdGVkDQo+
-IHVzaW5nIGt6YWxsb2MuDQo+IA0KPiBGaXhlczogYWI0MTJlMWRkN2RiICgibmV0L21seDU6IEFj
-Y2VsLCBhZGQgVExTIHJ4IG9mZmxvYWQgcm91dGluZXMiKQ0KPiAtLS0NCj4gdjM6IFJlb3JkZXIg
-YnVmIGFsbG9jYXRpb25zIGFuZCBmbG93IGNoZWNrLg0KPiB2MjogZmFpbHVyZSB0byByZXR1cm4g
-aW4gY2FzZSBvZiBmbG93IGZhaWx1cmUuDQo+IHYxOiBGYWlsZWQgdG8gZnJlZSBidWYgaW4gY2Fz
-ZSBvZiBmbG93IGZhaWx1cmUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBBZGl0eWEgUGFra2kgPHBh
-a2tpMDAxQHVtbi5lZHU+DQo+IC0tLQ0KPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gv
-bWx4NS9jb3JlL2ZwZ2EvdGxzLmMgfCAxNCArKysrKysrKysrKy0NCj4gLS0NCj4gIDEgZmlsZSBj
-aGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiANCg0KQXBwbGllZCB0
-byBuZXQtbWx4NSwgd2lsbCBiZSBzZW50IHVwc3RyZWFtIHNob3J0bHksDQoNCllvdSBtZXNzZWQg
-dXAgdGhlIFNpZ25lZC1vZmYgdGFnLCBpdCBhbHNvIHNob3VsZCBoYXZlIGJlZW4gcGFydCBvZiB0
-aGUNCmNvbW1pdCBtZXNzYWdlLCBidXQgZG9uJ3Qgd29ycnksIGkgZml4ZWQgaXQgdXAgYW5kIGFk
-ZGVkIFl1dmFsJ3MNClJldmlld2VkLWJ5Lg0KDQpUaGFua3MgQWRlaXR5YSBmb3IgaGFuZGxpbmcg
-YWxsIG9mIHRoZSBjb21tZW50cy4NClNhZWVkLg0KDQo=
+
+
+On 03/19/2019 02:42 PM, Aditya Pakki wrote:
+> idr_find() can return a NULL value to 'flow' which is used without a
+> check. The patch adds a check to avoid potential NULL pointer dereference.
+> 
+> In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
+> using kzalloc.
+> 
+> Fixes: ab412e1dd7db ("net/mlx5: Accel, add TLS rx offload routines")
+> ---
+> v3: Reorder buf allocations and flow check.
+> v2: failure to return in case of flow failure.
+> v1: Failed to free buf in case of flow failure.
+> 
+> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
+> ---
+>  drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 14 +++++++++++---
+>  1 file changed, 11 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
+> index 5cf5f2a9d51f..8de64e88c670 100644
+> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
+> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
+> @@ -217,15 +217,21 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+>  	void *cmd;
+>  	int ret;
+>  
+> +	rcu_read_lock();
+> +	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
+> +	rcu_read_unlock();
+
+This looks suspect (even before your patch)
+
+What prevents flow from disappearing after this rcu_read_lock() ?
+
+IMO your patch might prevent a NULL deref, but not use-after-free.
+
+> +
+> +	if (!flow) {
+> +		WARN_ONCE(1, "Received NULL pointer for handle\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	buf = kzalloc(size, GFP_ATOMIC);
+>  	if (!buf)
+>  		return -ENOMEM;
+>  
+>  	cmd = (buf + 1);
+>  
+> -	rcu_read_lock();
+> -	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
+> -	rcu_read_unlock();
+>  	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
+>  
+>  	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
+> @@ -238,6 +244,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
+>  	buf->complete = mlx_tls_kfree_complete;
+>  
+>  	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
+> +	if (ret < 0)
+> +		kfree(buf);
+>  
+>  	return ret;
+>  }
+> 
