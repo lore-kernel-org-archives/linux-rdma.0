@@ -1,78 +1,39 @@
-From: Boris Pismenny <borisp@mellanox.com>
-Subject: Re: [PATCH v4] net: mlx5: Add a missing check on idr_find, free buf
-Date: Wed, 20 Mar 2019 09:49:25 +0000
-Message-ID: <3549f722-bf9b-087b-b4d5-8d588f675eaa@mellanox.com>
-References: <20190319214244.20212-1-pakki001@umn.edu>
- <d65ddd7e-6553-00a4-c261-bd88b7476626@gmail.com>
- <c44f3a3f0d74e65b1db9544cf50555f76c8daab4.camel@mellanox.com>
+From: Yue Haibing <yuehaibing@huawei.com>
+Subject: [PATCH -next] RDMA/hns: Make hns_roce_cmq_send static
+Date: Wed, 20 Mar 2019 21:50:47 +0800
+Message-ID: <20190320135047.23184-1-yuehaibing@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c44f3a3f0d74e65b1db9544cf50555f76c8daab4.camel@mellanox.com>
-Content-Language: en-US
-Content-ID: <4579C8FE50862A4AB5173FA496BB6BB8@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, "eric.dumazet@gmail.com" <eric.dumazet@gmail.com>, "pakki001@umn.edu" <pakki001@umn.edu>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "weiyongjun1@huawei.com" <weiyongjun1@huawei.com>, "kjlu@umn.edu" <kjlu@umn.edu>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>
+To: oulijun@huawei.com, xavier.huwei@huawei.com, dledford@redhat.com, jgg@ziepe.ca
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDMvMjAvMjAxOSA3OjAyIEFNLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToNCj4gT24gVHVl
-LCAyMDE5LTAzLTE5IGF0IDIxOjU0IC0wNzAwLCBFcmljIER1bWF6ZXQgd3JvdGU6DQo+Pg0KPj4g
-T24gMDMvMTkvMjAxOSAwMjo0MiBQTSwgQWRpdHlhIFBha2tpIHdyb3RlOg0KPj4+IGlkcl9maW5k
-KCkgY2FuIHJldHVybiBhIE5VTEwgdmFsdWUgdG8gJ2Zsb3cnIHdoaWNoIGlzIHVzZWQgd2l0aG91
-dA0KPj4+IGENCj4+PiBjaGVjay4gVGhlIHBhdGNoIGFkZHMgYSBjaGVjayB0byBhdm9pZCBwb3Rl
-bnRpYWwgTlVMTCBwb2ludGVyDQo+Pj4gZGVyZWZlcmVuY2UuDQo+Pj4NCj4+PiBJbiBjYXNlIG9m
-IG1seDVfZnBnYV9zYnVfY29ubl9zZW5kbXNnKCkgZmFpbHVyZSwgZnJlZSBidWYgYWxsb2NhdGVk
-DQo+Pj4gdXNpbmcga3phbGxvYy4NCj4+Pg0KPj4+IEZpeGVzOiBhYjQxMmUxZGQ3ZGIgKCJuZXQv
-bWx4NTogQWNjZWwsIGFkZCBUTFMgcnggb2ZmbG9hZA0KPj4+IHJvdXRpbmVzIikNCj4+PiAtLS0N
-Cj4+PiB2MzogUmVvcmRlciBidWYgYWxsb2NhdGlvbnMgYW5kIGZsb3cgY2hlY2suDQo+Pj4gdjI6
-IGZhaWx1cmUgdG8gcmV0dXJuIGluIGNhc2Ugb2YgZmxvdyBmYWlsdXJlLg0KPj4+IHYxOiBGYWls
-ZWQgdG8gZnJlZSBidWYgaW4gY2FzZSBvZiBmbG93IGZhaWx1cmUuDQo+Pj4NCj4+PiBTaWduZWQt
-b2ZmLWJ5OiBBZGl0eWEgUGFra2kgPHBha2tpMDAxQHVtbi5lZHU+DQo+Pj4gLS0tDQo+Pj4gICBk
-cml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS90bHMuYyB8IDE0DQo+
-Pj4gKysrKysrKysrKystLS0NCj4+PiAgIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCsp
-LCAzIGRlbGV0aW9ucygtKQ0KPj4+DQo+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVy
-bmV0L21lbGxhbm94L21seDUvY29yZS9mcGdhL3Rscy5jDQo+Pj4gYi9kcml2ZXJzL25ldC9ldGhl
-cm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS90bHMuYw0KPj4+IGluZGV4IDVjZjVmMmE5ZDUx
-Zi4uOGRlNjRlODhjNjcwIDEwMDY0NA0KPj4+IC0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21l
-bGxhbm94L21seDUvY29yZS9mcGdhL3Rscy5jDQo+Pj4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJu
-ZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvdGxzLmMNCj4+PiBAQCAtMjE3LDE1ICsyMTcsMjEg
-QEAgaW50IG1seDVfZnBnYV90bHNfcmVzeW5jX3J4KHN0cnVjdA0KPj4+IG1seDVfY29yZV9kZXYg
-Km1kZXYsIHUzMiBoYW5kbGUsIHUzMiBzZXEsDQo+Pj4gICAJdm9pZCAqY21kOw0KPj4+ICAgCWlu
-dCByZXQ7DQo+Pj4gICANCj4+PiArCXJjdV9yZWFkX2xvY2soKTsNCj4+PiArCWZsb3cgPSBpZHJf
-ZmluZCgmbWRldi0+ZnBnYS0+dGxzLT5yeF9pZHIsIG50b2hsKGhhbmRsZSkpOw0KPj4+ICsJcmN1
-X3JlYWRfdW5sb2NrKCk7DQo+Pg0KPj4gVGhpcyBsb29rcyBzdXNwZWN0IChldmVuIGJlZm9yZSB5
-b3VyIHBhdGNoKQ0KPj4NCj4+IFdoYXQgcHJldmVudHMgZmxvdyBmcm9tIGRpc2FwcGVhcmluZyBh
-ZnRlciB0aGlzIHJjdV9yZWFkX2xvY2soKSA/DQo+Pg0KPj4gSU1PIHlvdXIgcGF0Y2ggbWlnaHQg
-cHJldmVudCBhIE5VTEwgZGVyZWYsIGJ1dCBub3QgdXNlLWFmdGVyLWZyZWUuDQo+IA0KPiBUaGF0
-IGNyb3NzZWQgbXkgbWluZCB3aGVuIGkgcmV2aWV3ZWQgdGhpcyBwYXRjaCBidXQgc2luY2UgdGhp
-cyBpcyBhbg0KPiBvbGQgaXNzdWUgaSBqdXN0IHB1dCBhIHRvZG8gYXNpZGUgdG8gaGFuZGxlIGl0
-IGxhdGVyDQo+IA0KPiBpIHRoaW5rIHRoZSBhdXRob3IgZGlkbid0IHdhbnQgdG8gZGVhbCB3aXRo
-IHVzZS1hZnRlci1mcmVlIGhlcmUsIGJ1dA0KPiBvbmx5IHdhbnRlZCB0byBrZWVwIHRoZSBkYXRh
-IHN0cnVjdHVyZSBzYWZlIGFnYWluc3QgYWRkL3JlbW92ZQ0KPiBvcGVyYXRpb25zLg0KPiANCj4g
-QW55d2F5IGFsbCB3ZSBuZWVkIGhlcmUgaXMNCj4gICANCj4gcmN1X3JlYWRfbG9jaygpDQo+IGZs
-b3cgPSBpZHJfZmluZCguLikNCj4gbWx4NV9mcGdhX3Rsc19mbG93X3RvX2NtZChmbG93LCBjbWQp
-Ow0KPiByY3VfcmVhZF91bmxvY2soKQ0KPiANCj4gV2lsbCBmaXggaXQgdXAgaW4gYSBmb2xsb3cg
-dXAgcGF0Y2gsDQo+IA0KPiBUaGFuayB5b3UgRXJpYyAhIQ0KPiANCg0KVGhpcyBmbG93IHdvbid0
-IGJlIHJlbW92ZWQgdW5sZXNzIHRoZSB0Y3AgY29ubmVjdGlvbiBjYWxsIHNrX2Rlc3RydWN0IG9y
-IA0KdGhlIG5ldGRldiBpcyByZW1vdmVkLg0KDQpUaHVzLCB0aGlzIGxvb2t1cCBzaG91bGQgKmFs
-d2F5cyogc3VjY2VlZC4NCg0KVGhpcywgaXMgYWxzbyB3aHkgSSB3YW50ZWQgdG8gYXNrIEFkaXR5
-YSBpZiB0aGlzIGZsb3cgd2FzIGFjdHVhbGx5IA0KZW5jb3VudGVyZWQgaW4gcHJhY3RpY2UuIEkn
-bSBzdXJlIHRoYXQgaWYgb3VyIGFzc3VtcHRpb24gYWJvdXQgdGhlIA0Kc2FmZXR5IG9mIHRoaXMg
-ZmxvdyBicmVha3MsIHRoZW4gb3RoZXIgcGFydHMgb2YgdGhlIFRMUyBkcml2ZXIgd2lsbCBmYWls
-IA0KYXMgd2VsbC4NCg0KPiANCj4+DQo+Pj4gKw0KPj4+ICsJaWYgKCFmbG93KSB7DQo+Pj4gKwkJ
-V0FSTl9PTkNFKDEsICJSZWNlaXZlZCBOVUxMIHBvaW50ZXIgZm9yIGhhbmRsZVxuIik7DQo+Pj4g
-KwkJcmV0dXJuIC1FSU5WQUw7DQo+Pj4gKwl9DQo+Pj4gKw0KPj4+ICAgCWJ1ZiA9IGt6YWxsb2Mo
-c2l6ZSwgR0ZQX0FUT01JQyk7DQo+Pj4gICAJaWYgKCFidWYpDQo+Pj4gICAJCXJldHVybiAtRU5P
-TUVNOw0KPj4+ICAgDQo+Pj4gICAJY21kID0gKGJ1ZiArIDEpOw0KPj4+ICAgDQo+Pj4gLQlyY3Vf
-cmVhZF9sb2NrKCk7DQo+Pj4gLQlmbG93ID0gaWRyX2ZpbmQoJm1kZXYtPmZwZ2EtPnRscy0+cnhf
-aWRyLCBudG9obChoYW5kbGUpKTsNCj4+PiAtCXJjdV9yZWFkX3VubG9jaygpOw0KPj4+ICAgCW1s
-eDVfZnBnYV90bHNfZmxvd190b19jbWQoZmxvdywgY21kKTsNCj4+PiAgIA0KPj4+ICAgCU1MWDVf
-U0VUKHRsc19jbWQsIGNtZCwgc3dpZCwgbnRvaGwoaGFuZGxlKSk7DQo+Pj4gQEAgLTIzOCw2ICsy
-NDQsOCBAQCBpbnQgbWx4NV9mcGdhX3Rsc19yZXN5bmNfcngoc3RydWN0DQo+Pj4gbWx4NV9jb3Jl
-X2RldiAqbWRldiwgdTMyIGhhbmRsZSwgdTMyIHNlcSwNCj4+PiAgIAlidWYtPmNvbXBsZXRlID0g
-bWx4X3Rsc19rZnJlZV9jb21wbGV0ZTsNCj4+PiAgIA0KPj4+ICAgCXJldCA9IG1seDVfZnBnYV9z
-YnVfY29ubl9zZW5kbXNnKG1kZXYtPmZwZ2EtPnRscy0+Y29ubiwgYnVmKTsNCj4+PiArCWlmIChy
-ZXQgPCAwKQ0KPj4+ICsJCWtmcmVlKGJ1Zik7DQo+Pj4gICANCj4+PiAgIAlyZXR1cm4gcmV0Ow0K
-Pj4+ICAgfQ0KPj4+DQo=
+From: YueHaibing <yuehaibing@huawei.com>
+
+Fix sparse warning:
+
+drivers/infiniband/hw/hns/hns_roce_hw_v2.c:1089:5:
+ warning: symbol 'hns_roce_cmq_send' was not declared. Should it be static?
+
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+---
+ drivers/infiniband/hw/hns/hns_roce_hw_v2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+index 1c54390..b13436e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hw_v2.c
+@@ -1086,7 +1086,7 @@ static int __hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 	return ret;
+ }
+ 
+-int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
++static int hns_roce_cmq_send(struct hns_roce_dev *hr_dev,
+ 			     struct hns_roce_cmq_desc *desc, int num)
+ {
+ 	int retval;
+-- 
+2.7.0
