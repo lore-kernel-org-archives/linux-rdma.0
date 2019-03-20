@@ -1,82 +1,68 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
 Subject: Re: [PATCH v4] net: mlx5: Add a missing check on idr_find, free buf
-Date: Tue, 19 Mar 2019 21:54:10 -0700
-Message-ID: <d65ddd7e-6553-00a4-c261-bd88b7476626@gmail.com>
+Date: Wed, 20 Mar 2019 05:02:00 +0000
+Message-ID: <c44f3a3f0d74e65b1db9544cf50555f76c8daab4.camel@mellanox.com>
 References: <20190319214244.20212-1-pakki001@umn.edu>
+         <d65ddd7e-6553-00a4-c261-bd88b7476626@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190319214244.20212-1-pakki001@umn.edu>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <d65ddd7e-6553-00a4-c261-bd88b7476626@gmail.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aditya Pakki <pakki001@umn.edu>
-Cc: kjlu@umn.edu, Boris Pismenny <borisp@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, "David S. Miller" <davem@davemloft.net>, Ilya Lesokhin <ilyal@mellanox.com>, Wei Yongjun <weiyongjun1@huawei.com>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-ID: <2254E96E98CAB14C92D91125D030440E@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: "eric.dumazet@gmail.com" <eric.dumazet@gmail.com>, "pakki001@umn.edu" <pakki001@umn.edu>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Boris Pismenny <borisp@mellanox.com>, "weiyongjun1@huawei.com" <weiyongjun1@huawei.com>, "kjlu@umn.edu" <kjlu@umn.edu>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ilya Lesokhin <ilyal@mellanox.com>, "davem@davemloft.net" <davem@davemloft.net>, "leon@kernel.org" <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-On 03/19/2019 02:42 PM, Aditya Pakki wrote:
-> idr_find() can return a NULL value to 'flow' which is used without a
-> check. The patch adds a check to avoid potential NULL pointer dereference.
-> 
-> In case of mlx5_fpga_sbu_conn_sendmsg() failure, free buf allocated
-> using kzalloc.
-> 
-> Fixes: ab412e1dd7db ("net/mlx5: Accel, add TLS rx offload routines")
-> ---
-> v3: Reorder buf allocations and flow check.
-> v2: failure to return in case of flow failure.
-> v1: Failed to free buf in case of flow failure.
-> 
-> Signed-off-by: Aditya Pakki <pakki001@umn.edu>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> index 5cf5f2a9d51f..8de64e88c670 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/tls.c
-> @@ -217,15 +217,21 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
->  	void *cmd;
->  	int ret;
->  
-> +	rcu_read_lock();
-> +	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
-> +	rcu_read_unlock();
-
-This looks suspect (even before your patch)
-
-What prevents flow from disappearing after this rcu_read_lock() ?
-
-IMO your patch might prevent a NULL deref, but not use-after-free.
-
-> +
-> +	if (!flow) {
-> +		WARN_ONCE(1, "Received NULL pointer for handle\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	buf = kzalloc(size, GFP_ATOMIC);
->  	if (!buf)
->  		return -ENOMEM;
->  
->  	cmd = (buf + 1);
->  
-> -	rcu_read_lock();
-> -	flow = idr_find(&mdev->fpga->tls->rx_idr, ntohl(handle));
-> -	rcu_read_unlock();
->  	mlx5_fpga_tls_flow_to_cmd(flow, cmd);
->  
->  	MLX5_SET(tls_cmd, cmd, swid, ntohl(handle));
-> @@ -238,6 +244,8 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
->  	buf->complete = mlx_tls_kfree_complete;
->  
->  	ret = mlx5_fpga_sbu_conn_sendmsg(mdev->fpga->tls->conn, buf);
-> +	if (ret < 0)
-> +		kfree(buf);
->  
->  	return ret;
->  }
-> 
+T24gVHVlLCAyMDE5LTAzLTE5IGF0IDIxOjU0IC0wNzAwLCBFcmljIER1bWF6ZXQgd3JvdGU6DQo+
+IA0KPiBPbiAwMy8xOS8yMDE5IDAyOjQyIFBNLCBBZGl0eWEgUGFra2kgd3JvdGU6DQo+ID4gaWRy
+X2ZpbmQoKSBjYW4gcmV0dXJuIGEgTlVMTCB2YWx1ZSB0byAnZmxvdycgd2hpY2ggaXMgdXNlZCB3
+aXRob3V0DQo+ID4gYQ0KPiA+IGNoZWNrLiBUaGUgcGF0Y2ggYWRkcyBhIGNoZWNrIHRvIGF2b2lk
+IHBvdGVudGlhbCBOVUxMIHBvaW50ZXINCj4gPiBkZXJlZmVyZW5jZS4NCj4gPiANCj4gPiBJbiBj
+YXNlIG9mIG1seDVfZnBnYV9zYnVfY29ubl9zZW5kbXNnKCkgZmFpbHVyZSwgZnJlZSBidWYgYWxs
+b2NhdGVkDQo+ID4gdXNpbmcga3phbGxvYy4NCj4gPiANCj4gPiBGaXhlczogYWI0MTJlMWRkN2Ri
+ICgibmV0L21seDU6IEFjY2VsLCBhZGQgVExTIHJ4IG9mZmxvYWQNCj4gPiByb3V0aW5lcyIpDQo+
+ID4gLS0tDQo+ID4gdjM6IFJlb3JkZXIgYnVmIGFsbG9jYXRpb25zIGFuZCBmbG93IGNoZWNrLg0K
+PiA+IHYyOiBmYWlsdXJlIHRvIHJldHVybiBpbiBjYXNlIG9mIGZsb3cgZmFpbHVyZS4NCj4gPiB2
+MTogRmFpbGVkIHRvIGZyZWUgYnVmIGluIGNhc2Ugb2YgZmxvdyBmYWlsdXJlLg0KPiA+IA0KPiA+
+IFNpZ25lZC1vZmYtYnk6IEFkaXR5YSBQYWtraSA8cGFra2kwMDFAdW1uLmVkdT4NCj4gPiAtLS0N
+Cj4gPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvdGxzLmMg
+fCAxNA0KPiA+ICsrKysrKysrKysrLS0tDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRp
+b25zKCspLCAzIGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL25l
+dC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS90bHMuYw0KPiA+IGIvZHJpdmVycy9u
+ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2ZwZ2EvdGxzLmMNCj4gPiBpbmRleCA1Y2Y1
+ZjJhOWQ1MWYuLjhkZTY0ZTg4YzY3MCAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhl
+cm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvZnBnYS90bHMuYw0KPiA+ICsrKyBiL2RyaXZlcnMvbmV0
+L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9mcGdhL3Rscy5jDQo+ID4gQEAgLTIxNywxNSAr
+MjE3LDIxIEBAIGludCBtbHg1X2ZwZ2FfdGxzX3Jlc3luY19yeChzdHJ1Y3QNCj4gPiBtbHg1X2Nv
+cmVfZGV2ICptZGV2LCB1MzIgaGFuZGxlLCB1MzIgc2VxLA0KPiA+ICAJdm9pZCAqY21kOw0KPiA+
+ICAJaW50IHJldDsNCj4gPiAgDQo+ID4gKwlyY3VfcmVhZF9sb2NrKCk7DQo+ID4gKwlmbG93ID0g
+aWRyX2ZpbmQoJm1kZXYtPmZwZ2EtPnRscy0+cnhfaWRyLCBudG9obChoYW5kbGUpKTsNCj4gPiAr
+CXJjdV9yZWFkX3VubG9jaygpOw0KPiANCj4gVGhpcyBsb29rcyBzdXNwZWN0IChldmVuIGJlZm9y
+ZSB5b3VyIHBhdGNoKQ0KPiANCj4gV2hhdCBwcmV2ZW50cyBmbG93IGZyb20gZGlzYXBwZWFyaW5n
+IGFmdGVyIHRoaXMgcmN1X3JlYWRfbG9jaygpID8NCj4gDQo+IElNTyB5b3VyIHBhdGNoIG1pZ2h0
+IHByZXZlbnQgYSBOVUxMIGRlcmVmLCBidXQgbm90IHVzZS1hZnRlci1mcmVlLg0KDQpUaGF0IGNy
+b3NzZWQgbXkgbWluZCB3aGVuIGkgcmV2aWV3ZWQgdGhpcyBwYXRjaCBidXQgc2luY2UgdGhpcyBp
+cyBhbg0Kb2xkIGlzc3VlIGkganVzdCBwdXQgYSB0b2RvIGFzaWRlIHRvIGhhbmRsZSBpdCBsYXRl
+cg0KDQppIHRoaW5rIHRoZSBhdXRob3IgZGlkbid0IHdhbnQgdG8gZGVhbCB3aXRoIHVzZS1hZnRl
+ci1mcmVlIGhlcmUsIGJ1dA0Kb25seSB3YW50ZWQgdG8ga2VlcCB0aGUgZGF0YSBzdHJ1Y3R1cmUg
+c2FmZSBhZ2FpbnN0IGFkZC9yZW1vdmUNCm9wZXJhdGlvbnMuDQoNCkFueXdheSBhbGwgd2UgbmVl
+ZCBoZXJlIGlzDQogDQpyY3VfcmVhZF9sb2NrKCkNCmZsb3cgPSBpZHJfZmluZCguLikNCm1seDVf
+ZnBnYV90bHNfZmxvd190b19jbWQoZmxvdywgY21kKTsgDQpyY3VfcmVhZF91bmxvY2soKQ0KDQpX
+aWxsIGZpeCBpdCB1cCBpbiBhIGZvbGxvdyB1cCBwYXRjaCwNCg0KVGhhbmsgeW91IEVyaWMgISEN
+Cg0KDQo+IA0KPiA+ICsNCj4gPiArCWlmICghZmxvdykgew0KPiA+ICsJCVdBUk5fT05DRSgxLCAi
+UmVjZWl2ZWQgTlVMTCBwb2ludGVyIGZvciBoYW5kbGVcbiIpOw0KPiA+ICsJCXJldHVybiAtRUlO
+VkFMOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiAgCWJ1ZiA9IGt6YWxsb2Moc2l6ZSwgR0ZQX0FUT01J
+Qyk7DQo+ID4gIAlpZiAoIWJ1ZikNCj4gPiAgCQlyZXR1cm4gLUVOT01FTTsNCj4gPiAgDQo+ID4g
+IAljbWQgPSAoYnVmICsgMSk7DQo+ID4gIA0KPiA+IC0JcmN1X3JlYWRfbG9jaygpOw0KPiA+IC0J
+ZmxvdyA9IGlkcl9maW5kKCZtZGV2LT5mcGdhLT50bHMtPnJ4X2lkciwgbnRvaGwoaGFuZGxlKSk7
+DQo+ID4gLQlyY3VfcmVhZF91bmxvY2soKTsNCj4gPiAgCW1seDVfZnBnYV90bHNfZmxvd190b19j
+bWQoZmxvdywgY21kKTsNCj4gPiAgDQo+ID4gIAlNTFg1X1NFVCh0bHNfY21kLCBjbWQsIHN3aWQs
+IG50b2hsKGhhbmRsZSkpOw0KPiA+IEBAIC0yMzgsNiArMjQ0LDggQEAgaW50IG1seDVfZnBnYV90
+bHNfcmVzeW5jX3J4KHN0cnVjdA0KPiA+IG1seDVfY29yZV9kZXYgKm1kZXYsIHUzMiBoYW5kbGUs
+IHUzMiBzZXEsDQo+ID4gIAlidWYtPmNvbXBsZXRlID0gbWx4X3Rsc19rZnJlZV9jb21wbGV0ZTsN
+Cj4gPiAgDQo+ID4gIAlyZXQgPSBtbHg1X2ZwZ2Ffc2J1X2Nvbm5fc2VuZG1zZyhtZGV2LT5mcGdh
+LT50bHMtPmNvbm4sIGJ1Zik7DQo+ID4gKwlpZiAocmV0IDwgMCkNCj4gPiArCQlrZnJlZShidWYp
+Ow0KPiA+ICANCj4gPiAgCXJldHVybiByZXQ7DQo+ID4gIH0NCj4gPiANCg==
