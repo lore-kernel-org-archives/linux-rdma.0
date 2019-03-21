@@ -1,65 +1,94 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
-Date: Thu, 21 Mar 2019 01:40:49 -0700
-Message-ID: <20190321084048.GA26439@iweiny-DESK2.sc.intel.com>
-References: <20190317183438.2057-1-ira.weiny@intel.com>
- <20190319151930.bab575d62fb1a33094160fe3@linux-foundation.org>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH] RDMA/srp: Accept again source addresses that do not have a port number
+Date: Thu, 21 Mar 2019 13:34:28 -0700
+Message-ID: <20190321203428.128471-1-bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190319151930.bab575d62fb1a33094160fe3@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.orgl
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 19, 2019 at 03:19:30PM -0700, Andrew Morton wrote:
-> On Sun, 17 Mar 2019 11:34:31 -0700 ira.weiny@intel.com wrote:
-> 
-> > Resending after rebasing to the latest mm tree.
-> > 
-> > HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
-> > advantages.  These pages can be held for a significant time.  But
-> > get_user_pages_fast() does not protect against mapping FS DAX pages.
-> > 
-> > Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
-> > retains the performance while also adding the FS DAX checks.  XDP has also
-> > shown interest in using this functionality.[1]
-> > 
-> > In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
-> > remove the specialized get_user_pages_longterm call.
-> 
-> It would be helpful to include your response to Christoph's question
-> (http://lkml.kernel.org/r/20190220180255.GA12020@iweiny-DESK2.sc.intel.com)
-> in the changelog.  Because if one person was wondering about this,
-> others will likely do so.
-> 
-> We have no record of acks or reviewed-by's.  At least one was missed
-> (http://lkml.kernel.org/r/CAOg9mSTTcD-9bCSDfC0WRYqfVrNB4TwOzL0c4+6QXi-N_Y43Vw@mail.gmail.com),
-> but that is very very partial.
+The function srp_parse_in() is used both for parsing source address
+specifications and for target address specifications. Target addresses
+must have a port number. Having to specify a port number for source
+addresses is inconvenient. Make sure that srp_parse_in() supports again
+parsing addresses with no port number.
 
-That is my bad.  Sorry to Mike.  And I have added him.
+Cc: Laurence Oberman <loberman@redhat.com>
+Cc: <stable@vger.kernel.org>
+Fixes: c62adb7def71 ("IB/srp: Fix IPv6 address parsing") # v4.17.
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-> 
-> This patchset is fairly DAX-centered, but Dan wasn't cc'ed!
-
-Agreed, I'm new to changing things which affect this many sub-systems and I
-struggled with who should be CC'ed (get_maintainer.pl returned a very large
-list  :-(.
-
-I fear I may have cc'ed too many people, and the wrong people apparently, so
-that may be affecting the review...
-
-So again my apologies.  I don't know if Dan is going to get a chance to put a
-reviewed-by on them this week but I thought I would send this note to let you
-know I'm not ignoring your feedback.  Just waiting a bit before resending to
-hopefully get some more acks/reviewed bys.
-
-Thanks,
-Ira
-
-> 
-> So ho hum.  I'll scoop them up and shall make the above changes to the
-> [1/n] changelog, but we still have some work to do.
-> 
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index a669c10f7adf..0c46f0d7cb7f 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3487,13 +3487,14 @@ static const match_table_t srp_opt_tokens = {
+  * @net:	   [in]  Network namespace.
+  * @sa:		   [out] Address family, IP address and port number.
+  * @addr_port_str: [in]  IP address and port number.
++ * @has_port:	   [out] Whether or not @addr_port_str includes a port number.
+  *
+  * Parse the following address formats:
+  * - IPv4: <ip_address>:<port>, e.g. 1.2.3.4:5.
+  * - IPv6: \[<ipv6_address>\]:<port>, e.g. [1::2:3%4]:5.
+  */
+ static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
+-			const char *addr_port_str)
++			const char *addr_port_str, bool *has_port)
+ {
+ 	char *addr_end, *addr = kstrdup(addr_port_str, GFP_KERNEL);
+ 	char *port_str;
+@@ -3502,9 +3503,12 @@ static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
+ 	if (!addr)
+ 		return -ENOMEM;
+ 	port_str = strrchr(addr, ':');
+-	if (!port_str)
+-		return -EINVAL;
+-	*port_str++ = '\0';
++	if (port_str && strchr(port_str, ']'))
++		port_str = NULL;
++	if (port_str)
++		*port_str++ = '\0';
++	if (has_port)
++		*has_port = port_str != NULL;
+ 	ret = inet_pton_with_scope(net, AF_INET, addr, port_str, sa);
+ 	if (ret && addr[0]) {
+ 		addr_end = addr + strlen(addr) - 1;
+@@ -3526,6 +3530,7 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 	char *p;
+ 	substring_t args[MAX_OPT_ARGS];
+ 	unsigned long long ull;
++	bool has_port;
+ 	int opt_mask = 0;
+ 	int token;
+ 	int ret = -EINVAL;
+@@ -3624,7 +3629,8 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+-			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p);
++			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p,
++					   NULL);
+ 			if (ret < 0) {
+ 				pr_warn("bad source parameter '%s'\n", p);
+ 				kfree(p);
+@@ -3640,7 +3646,10 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+-			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p);
++			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p,
++					   &has_port);
++			if (!has_port)
++				ret = -EINVAL;
+ 			if (ret < 0) {
+ 				pr_warn("bad dest parameter '%s'\n", p);
+ 				kfree(p);
+-- 
+2.21.0.155.ge902e9bcae20
