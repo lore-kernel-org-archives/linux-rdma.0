@@ -1,94 +1,77 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: [PATCH] RDMA/srp: Accept again source addresses that do not have a port number
-Date: Thu, 21 Mar 2019 13:34:28 -0700
-Message-ID: <20190321203428.128471-1-bvanassche@acm.org>
+From: jglisse@redhat.com
+Subject: [PATCH v2 0/1] Use HMM for ODP v2
+Date: Thu, 21 Mar 2019 21:13:16 -0400
+Message-ID: <20190322011317.6585-1-jglisse@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-The function srp_parse_in() is used both for parsing source address
-specifications and for target address specifications. Target addresses
-must have a port number. Having to specify a port number for source
-addresses is inconvenient. Make sure that srp_parse_in() supports again
-parsing addresses with no port number.
+From: Jérôme Glisse <jglisse@redhat.com>
 
-Cc: Laurence Oberman <loberman@redhat.com>
-Cc: <stable@vger.kernel.org>
-Fixes: c62adb7def71 ("IB/srp: Fix IPv6 address parsing") # v4.17.
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+This is just a rebase with minor changes and better comments in the code.
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index a669c10f7adf..0c46f0d7cb7f 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -3487,13 +3487,14 @@ static const match_table_t srp_opt_tokens = {
-  * @net:	   [in]  Network namespace.
-  * @sa:		   [out] Address family, IP address and port number.
-  * @addr_port_str: [in]  IP address and port number.
-+ * @has_port:	   [out] Whether or not @addr_port_str includes a port number.
-  *
-  * Parse the following address formats:
-  * - IPv4: <ip_address>:<port>, e.g. 1.2.3.4:5.
-  * - IPv6: \[<ipv6_address>\]:<port>, e.g. [1::2:3%4]:5.
-  */
- static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
--			const char *addr_port_str)
-+			const char *addr_port_str, bool *has_port)
- {
- 	char *addr_end, *addr = kstrdup(addr_port_str, GFP_KERNEL);
- 	char *port_str;
-@@ -3502,9 +3503,12 @@ static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
- 	if (!addr)
- 		return -ENOMEM;
- 	port_str = strrchr(addr, ':');
--	if (!port_str)
--		return -EINVAL;
--	*port_str++ = '\0';
-+	if (port_str && strchr(port_str, ']'))
-+		port_str = NULL;
-+	if (port_str)
-+		*port_str++ = '\0';
-+	if (has_port)
-+		*has_port = port_str != NULL;
- 	ret = inet_pton_with_scope(net, AF_INET, addr, port_str, sa);
- 	if (ret && addr[0]) {
- 		addr_end = addr + strlen(addr) - 1;
-@@ -3526,6 +3530,7 @@ static int srp_parse_options(struct net *net, const char *buf,
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
- 	unsigned long long ull;
-+	bool has_port;
- 	int opt_mask = 0;
- 	int token;
- 	int ret = -EINVAL;
-@@ -3624,7 +3629,8 @@ static int srp_parse_options(struct net *net, const char *buf,
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p);
-+			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p,
-+					   NULL);
- 			if (ret < 0) {
- 				pr_warn("bad source parameter '%s'\n", p);
- 				kfree(p);
-@@ -3640,7 +3646,10 @@ static int srp_parse_options(struct net *net, const char *buf,
- 				ret = -ENOMEM;
- 				goto out;
- 			}
--			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p);
-+			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p,
-+					   &has_port);
-+			if (!has_port)
-+				ret = -EINVAL;
- 			if (ret < 0) {
- 				pr_warn("bad dest parameter '%s'\n", p);
- 				kfree(p);
+Previous cover letter (slightly improved):
+
+This patchset convert RDMA ODP to use HMM underneath this is motivated
+by stronger code sharing for same feature (share virtual memory SVM or
+Share Virtual Address SVA) and also stronger integration with mm code to
+achieve that. It depends on HMM patchset [1].
+
+Moreover they are some features of HMM in the works like peer to peer
+support, fast CPU page table snapshot, fast IOMMU mapping update ...
+It will be easier for RDMA devices with ODP to leverage those if they
+use HMM underneath.
+
+Quick summary of what HMM is:
+    HMM is a toolbox for device driver to implement software support for
+    Share Virtual Memory (SVM). Not only it provides helpers to mirror a
+    process address space on a device (hmm_mirror). It also provides
+    helper to allow to use device memory to back regular valid virtual
+    address of a process (any valid mmap that is not an mmap of a device
+    or a DAX mapping). They are two kinds of device memory. Private memory
+    that is not accessible to CPU because it does not have all the expected
+    properties (this is for all PCIE devices) or public memory which can
+    also be access by CPU without restriction (with OpenCAPI or CCIX or
+    similar cache-coherent and atomic inter-connect).
+
+    Device driver can use each of HMM tools separatly. You do not have to
+    use all the tools it provides.
+
+For RDMA device i do not expect a need to use the device memory support
+of HMM. This device memory support is geared toward accelerator like GPU.
+
+
+You can find a branch [1] with all the prerequisite in. This patch is on
+top of 5.1rc1+ but i can rebase it on any specific branch once HMM pre-
+requisite is upstream.
+
+[1] https://cgit.freedesktop.org/~glisse/linux/log/?h=odp-hmm
+[2] https://cgit.freedesktop.org/~glisse/linux/log/?h=hmm-odp-v2
+
+Cc: linux-rdma@vger.kernel.org
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Artemy Kovalyov <artemyko@mellanox.com>
+Cc: Moni Shoua <monis@mellanox.com>,
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Cc: Kaike Wan <kaike.wan@intel.com>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+
+Jérôme Glisse (1):
+  RDMA/odp: convert to use HMM for ODP v2
+
+ drivers/infiniband/core/umem_odp.c | 488 ++++++++---------------------
+ drivers/infiniband/hw/mlx5/mem.c   |  20 +-
+ drivers/infiniband/hw/mlx5/mr.c    |   2 +-
+ drivers/infiniband/hw/mlx5/odp.c   | 106 ++++---
+ include/rdma/ib_umem_odp.h         |  48 ++-
+ 5 files changed, 217 insertions(+), 447 deletions(-)
+
 -- 
-2.21.0.155.ge902e9bcae20
+2.17.2
