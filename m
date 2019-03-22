@@ -1,77 +1,118 @@
-From: jglisse@redhat.com
-Subject: [PATCH v2 0/1] Use HMM for ODP v2
-Date: Thu, 21 Mar 2019 21:13:16 -0400
-Message-ID: <20190322011317.6585-1-jglisse@redhat.com>
+From: syzbot <syzbot+bd034f3fdc0402e942ed@syzkaller.appspotmail.com>
+Subject: KASAN: use-after-free Read in addr_resolve
+Date: Fri, 22 Mar 2019 01:11:04 -0700
+Message-ID: <0000000000006d637a0584aa6520@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: danielj@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jérôme Glisse <jglisse@redhat.com>
+Hello,
 
-This is just a rebase with minor changes and better comments in the code.
+syzbot found the following crash on:
 
-Previous cover letter (slightly improved):
+HEAD commit:    54c49016 Merge tag 'arc-5.1-rc2' of git://git.kernel.org/p..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16a8323b200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=9a31fb246de2a622
+dashboard link: https://syzkaller.appspot.com/bug?extid=bd034f3fdc0402e942ed
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
 
-This patchset convert RDMA ODP to use HMM underneath this is motivated
-by stronger code sharing for same feature (share virtual memory SVM or
-Share Virtual Address SVA) and also stronger integration with mm code to
-achieve that. It depends on HMM patchset [1].
+Unfortunately, I don't have any reproducer for this crash yet.
 
-Moreover they are some features of HMM in the works like peer to peer
-support, fast CPU page table snapshot, fast IOMMU mapping update ...
-It will be easier for RDMA devices with ODP to leverage those if they
-use HMM underneath.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+bd034f3fdc0402e942ed@syzkaller.appspotmail.com
 
-Quick summary of what HMM is:
-    HMM is a toolbox for device driver to implement software support for
-    Share Virtual Memory (SVM). Not only it provides helpers to mirror a
-    process address space on a device (hmm_mirror). It also provides
-    helper to allow to use device memory to back regular valid virtual
-    address of a process (any valid mmap that is not an mmap of a device
-    or a DAX mapping). They are two kinds of device memory. Private memory
-    that is not accessible to CPU because it does not have all the expected
-    properties (this is for all PCIE devices) or public memory which can
-    also be access by CPU without restriction (with OpenCAPI or CCIX or
-    similar cache-coherent and atomic inter-connect).
+==================================================================
+BUG: KASAN: use-after-free in addr_resolve+0x14f7/0x1730  
+drivers/infiniband/core/addr.c:561
+Read of size 8 at addr ffff88809dafeed0 by task kworker/u4:4/2568
 
-    Device driver can use each of HMM tools separatly. You do not have to
-    use all the tools it provides.
+CPU: 0 PID: 2568 Comm: kworker/u4:4 Not tainted 5.1.0-rc1+ #31
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Workqueue: ib_addr process_one_req
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+  kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+  __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+  addr_resolve+0x14f7/0x1730 drivers/infiniband/core/addr.c:561
+  process_one_req+0x31f/0x680 drivers/infiniband/core/addr.c:628
+  process_one_work+0x98e/0x1790 kernel/workqueue.c:2269
+  worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+  kthread+0x357/0x430 kernel/kthread.c:253
+  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
 
-For RDMA device i do not expect a need to use the device memory support
-of HMM. This device memory support is geared toward accelerator like GPU.
+Allocated by task 17026:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_kmalloc mm/kasan/common.c:497 [inline]
+  __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+  kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+  kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3621
+  kmalloc include/linux/slab.h:545 [inline]
+  kzalloc include/linux/slab.h:740 [inline]
+  __rdma_create_id+0x5f/0x4e0 drivers/infiniband/core/cma.c:878
+  ucma_create_id+0x1de/0x640 drivers/infiniband/core/ucma.c:506
+  ucma_write+0x2da/0x3c0 drivers/infiniband/core/ucma.c:1696
+  __vfs_write+0x8d/0x110 fs/read_write.c:485
+  vfs_write+0x20c/0x580 fs/read_write.c:549
+  ksys_write+0xea/0x1f0 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 17025:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+  kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+  __cache_free mm/slab.c:3498 [inline]
+  kfree+0xcf/0x230 mm/slab.c:3821
+  rdma_destroy_id+0x719/0xaa0 drivers/infiniband/core/cma.c:1852
+  ucma_close+0x115/0x320 drivers/infiniband/core/ucma.c:1777
+  __fput+0x2e5/0x8d0 fs/file_table.c:278
+  ____fput+0x16/0x20 fs/file_table.c:309
+  task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+  exit_to_usermode_loop+0x273/0x2c0 arch/x86/entry/common.c:166
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88809dafed40
+  which belongs to the cache kmalloc-2k of size 2048
+The buggy address is located 400 bytes inside of
+  2048-byte region [ffff88809dafed40, ffff88809daff540)
+The buggy address belongs to the page:
+page:ffffea000276bf80 count:1 mapcount:0 mapping:ffff88812c3f0c40 index:0x0  
+compound_mapcount: 0
+flags: 0x1fffc0000010200(slab|head)
+raw: 01fffc0000010200 ffffea000172c108 ffffea000173a288 ffff88812c3f0c40
+raw: 0000000000000000 ffff88809dafe4c0 0000000100000003 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff88809dafed80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff88809dafee00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ffff88809dafee80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+                                                  ^
+  ffff88809dafef00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+  ffff88809dafef80: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+==================================================================
 
 
-You can find a branch [1] with all the prerequisite in. This patch is on
-top of 5.1rc1+ but i can rebase it on any specific branch once HMM pre-
-requisite is upstream.
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-[1] https://cgit.freedesktop.org/~glisse/linux/log/?h=odp-hmm
-[2] https://cgit.freedesktop.org/~glisse/linux/log/?h=hmm-odp-v2
-
-Cc: linux-rdma@vger.kernel.org
-Cc: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Artemy Kovalyov <artemyko@mellanox.com>
-Cc: Moni Shoua <monis@mellanox.com>,
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Cc: Kaike Wan <kaike.wan@intel.com>
-Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-
-Jérôme Glisse (1):
-  RDMA/odp: convert to use HMM for ODP v2
-
- drivers/infiniband/core/umem_odp.c | 488 ++++++++---------------------
- drivers/infiniband/hw/mlx5/mem.c   |  20 +-
- drivers/infiniband/hw/mlx5/mr.c    |   2 +-
- drivers/infiniband/hw/mlx5/odp.c   | 106 ++++---
- include/rdma/ib_umem_odp.h         |  48 ++-
- 5 files changed, 217 insertions(+), 447 deletions(-)
-
--- 
-2.17.2
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
