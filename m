@@ -1,12 +1,12 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [RESEND 4/7] mm/gup: Add FOLL_LONGTERM capability to GUP fast
-Date: Fri, 22 Mar 2019 15:12:55 -0700
-Message-ID: <CAA9_cmcx-Bqo=CFuSj7Xcap3e5uaAot2reL2T74C47Ut6_KtQw@mail.gmail.com>
-References: <20190317183438.2057-1-ira.weiny@intel.com> <20190317183438.2057-5-ira.weiny@intel.com>
+Subject: Re: [RESEND 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Date: Fri, 22 Mar 2019 15:14:26 -0700
+Message-ID: <CAA9_cmdQjMekSFU09gLc87-PVx2iHeeh2jC6KeFY1UeadpPh4A@mail.gmail.com>
+References: <20190317183438.2057-1-ira.weiny@intel.com> <20190317183438.2057-6-ira.weiny@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190317183438.2057-5-ira.weiny@intel.com>
+In-Reply-To: <20190317183438.2057-6-ira.weiny@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: ira.weiny@intel.com
 Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>Linux Kernel Mailing List <l>
@@ -16,77 +16,39 @@ On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
 >
 > From: Ira Weiny <ira.weiny@intel.com>
 >
-> DAX pages were previously unprotected from longterm pins when users
-> called get_user_pages_fast().
->
-> Use the new FOLL_LONGTERM flag to check for DEVMAP pages and fall
-> back to regular GUP processing if a DEVMAP page is encountered.
+> Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
+> FS DAX pages being mapped.
 >
 > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 > ---
->  mm/gup.c | 29 +++++++++++++++++++++++++----
->  1 file changed, 25 insertions(+), 4 deletions(-)
+>  drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 >
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 0684a9536207..173db0c44678 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -1600,6 +1600,9 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
->                         goto pte_unmap;
->
->                 if (pte_devmap(pte)) {
-> +                       if (unlikely(flags & FOLL_LONGTERM))
-> +                               goto pte_unmap;
-> +
->                         pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
->                         if (unlikely(!pgmap)) {
->                                 undo_dev_pagemap(nr, nr_start, pages);
-> @@ -1739,8 +1742,11 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
->         if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
->                 return 0;
->
-> -       if (pmd_devmap(orig))
-> +       if (pmd_devmap(orig)) {
-> +               if (unlikely(flags & FOLL_LONGTERM))
-> +                       return 0;
->                 return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
-> +       }
->
->         refs = 0;
->         page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-> @@ -1777,8 +1783,11 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
->         if (!pud_access_permitted(orig, flags & FOLL_WRITE))
->                 return 0;
->
-> -       if (pud_devmap(orig))
-> +       if (pud_devmap(orig)) {
-> +               if (unlikely(flags & FOLL_LONGTERM))
-> +                       return 0;
->                 return __gup_device_huge_pud(orig, pudp, addr, end, pages, nr);
-> +       }
->
->         refs = 0;
->         page = pud_page(orig) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
-> @@ -2066,8 +2075,20 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
->                 start += nr << PAGE_SHIFT;
->                 pages += nr;
->
-> -               ret = get_user_pages_unlocked(start, nr_pages - nr, pages,
-> -                                             gup_flags);
-> +               if (gup_flags & FOLL_LONGTERM) {
-> +                       down_read(&current->mm->mmap_sem);
-> +                       ret = __gup_longterm_locked(current, current->mm,
-> +                                                   start, nr_pages - nr,
-> +                                                   pages, NULL, gup_flags);
-> +                       up_read(&current->mm->mmap_sem);
-> +               } else {
-> +                       /*
-> +                        * retain FAULT_FOLL_ALLOW_RETRY optimization if
-> +                        * possible
-> +                        */
-> +                       ret = get_user_pages_unlocked(start, nr_pages - nr,
-> +                                                     pages, gup_flags);
+> diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+> index 78ccacaf97d0..6a7f9cd5a94e 100644
+> --- a/drivers/infiniband/hw/hfi1/user_pages.c
+> +++ b/drivers/infiniband/hw/hfi1/user_pages.c
+> @@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+>                             bool writable, struct page **pages)
+>  {
+>         int ret;
+> +       unsigned int gup_flags = writable ? FOLL_WRITE : 0;
 
-I couldn't immediately grok why this path needs to branch on
-FOLL_LONGTERM? Won't get_user_pages_unlocked(..., FOLL_LONGTERM) do
-the right thing?
+Maybe:
+
+    unsigned int gup_flags = FOLL_LONGTERM | (writable ? FOLL_WRITE : 0);
+
+?
+
+>
+> -       ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
+> -                                 pages);
+> +       gup_flags |= FOLL_LONGTERM;
+> +
+> +       ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
+>         if (ret < 0)
+>                 return ret;
+>
+> --
+> 2.20.1
+>
