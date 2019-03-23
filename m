@@ -1,24 +1,52 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [RESEND 6/7] IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Date: Fri, 22 Mar 2019 15:15:10 -0700
-Message-ID: <CAA9_cmdDxh1ZYn1fO+ED1crzDMCPWk0fLjNPfxkFKUb5kNHgxA@mail.gmail.com>
-References: <20190317183438.2057-1-ira.weiny@intel.com> <20190317183438.2057-7-ira.weiny@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Kangjie Lu <kjlu@umn.edu>
+Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
+ dereference
+Date: Fri, 22 Mar 2019 21:37:46 -0500
+Message-ID: <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
+References: <20190309051921.15212-1-kjlu@umn.edu>
+Mime-Version: 1.0 (Mac OS X Mail 12.2 \(3445.102.3\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190317183438.2057-7-ira.weiny@intel.com>
+In-Reply-To: <20190309051921.15212-1-kjlu@umn.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ira.weiny@intel.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>Linux Kernel Mailing List <l>
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
->
-> From: Ira Weiny <ira.weiny@intel.com>
->
-> Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-> FS DAX pages being mapped.
->
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-Looks good modulo potential  __get_user_pages_fast() suggestion.
+
+> On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
+>=20
+> get_skb may fail and return NULL. The fix returns "ENOMEM"
+> when it fails to avoid NULL dereference.
+>=20
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+> ---
+> drivers/infiniband/hw/cxgb4/cm.c | 3 +++
+> 1 file changed, 3 insertions(+)
+>=20
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c =
+b/drivers/infiniband/hw/cxgb4/cm.c
+> index 8221813219e5..502a54d57e2c 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep =
+*ep, unsigned int atid)
+> 	int win;
+>=20
+> 	skb =3D get_skb(NULL, sizeof(*req), GFP_KERNEL);
+> +	if (!skb)
+> +		return -ENOMEM;
+> +
+
+Can someone review this patch? Thanks.
+
+> 	req =3D __skb_put_zero(skb, sizeof(*req));
+> 	req->op_compl =3D htonl(WR_OP_V(FW_OFLD_CONNECTION_WR));
+> 	req->len16_pkd =3D =
+htonl(FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*req), 16)));
+> --=20
+> 2.17.1
+>=20
