@@ -1,50 +1,36 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
- dereference
-Date: Sat, 23 Mar 2019 16:25:58 -0700
-Message-ID: <26f51579-c9bc-372d-3659-5cf778845215@acm.org>
-References: <20190309051921.15212-1-kjlu@umn.edu>
- <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
+From: syzbot <syzbot+e1628a5e87492e6f1b76@syzkaller.appspotmail.com>
+Subject: Re: INFO: trying to register non-static key in icmp_send
+Date: Sat, 23 Mar 2019 18:25:00 -0700
+Message-ID: <000000000000e560fa0584ccf44d@google.com>
+References: <0000000000007cd20e05809c2f96@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
-Content-Language: en-US
+In-Reply-To: <0000000000007cd20e05809c2f96@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kangjie Lu <kjlu@umn.edu>
-Cc: pakki001@umn.edu, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, dledford@redhat.com, jgg@ziepe.ca, kuznet@ms2.inr.ac.ru, kvalo@codeaurora.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, monis@mellanox.com, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/22/19 7:37 PM, Kangjie Lu wrote:
->> On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
->> get_skb may fail and return NULL. The fix returns "ENOMEM"
->> when it fails to avoid NULL dereference.
->>
->> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
->> ---
->> drivers/infiniband/hw/cxgb4/cm.c | 3 +++
->> 1 file changed, 3 insertions(+)
->>
->> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
->> index 8221813219e5..502a54d57e2c 100644
->> --- a/drivers/infiniband/hw/cxgb4/cm.c
->> +++ b/drivers/infiniband/hw/cxgb4/cm.c
->> @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
->> 	int win;
->>
->> 	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
->> +	if (!skb)
->> +		return -ENOMEM;
->> +
-> 
-> Can someone review this patch? Thanks.
+syzbot has bisected this bug to:
 
-Hi Kangjie,
+commit abd5f00844ec7fa507064ee4a22b3605c64c7d31
+Author: Kalle Valo <kvalo@codeaurora.org>
+Date:   Tue Mar 27 07:06:18 2018 +0000
 
-Please change the patch description to the imperative mood (see also 
-https://git.kernel.org/pub/scm/git/git.git/tree/Documentation/SubmittingPatches). 
-A good way to invite feedback is to add a relevant Cc-list to a patch. 
-The output of scripts/get_maintainer.pl can be a good start.
+     Merge ath-next from  
+git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git
 
-Bart.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12f9389b200000
+start commit:   4aa9fc2a Revert "mm, memory_hotplug: initialize struct pag..
+git tree:       upstream
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=11f9389b200000
+console output: https://syzkaller.appspot.com/x/log.txt?x=16f9389b200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4fceea9e2d99ac20
+dashboard link: https://syzkaller.appspot.com/bug?extid=e1628a5e87492e6f1b76
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=175c96ef400000
+
+Reported-by: syzbot+e1628a5e87492e6f1b76@syzkaller.appspotmail.com
+Fixes: abd5f00844ec ("Merge ath-next from  
+git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git")
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
