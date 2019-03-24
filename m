@@ -1,36 +1,34 @@
-From: syzbot <syzbot+e1628a5e87492e6f1b76@syzkaller.appspotmail.com>
-Subject: Re: INFO: trying to register non-static key in icmp_send
-Date: Sat, 23 Mar 2019 18:25:00 -0700
-Message-ID: <000000000000e560fa0584ccf44d@google.com>
-References: <0000000000007cd20e05809c2f96@google.com>
+From: syzbot <syzbot+b358909d8d01556b790b@syzkaller.appspotmail.com>
+Subject: Re: KASAN: use-after-free Read in addr_handler
+Date: Sun, 24 Mar 2019 04:50:01 -0700
+Message-ID: <0000000000001f5bce0584d5b095@google.com>
+References: <00000000000055ee31057ce8f277@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0000000000007cd20e05809c2f96@google.com>
+In-Reply-To: <00000000000055ee31057ce8f277@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: davem@davemloft.net, dledford@redhat.com, jgg@ziepe.ca, kuznet@ms2.inr.ac.ru, kvalo@codeaurora.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, monis@mellanox.com, netdev@vger.kernel.org, syzkaller-bugs@googlegroups.com, yoshfuji@linux-ipv6.org
+To: alexander.h.duyck@intel.com, amritha.nambiar@intel.com, andrew@lunn.ch, avagin@gmail.com, danielj@mellanox.com, davem@davemloft.net, dledford@redhat.com, dmitry.torokhov@gmail.com, gregory.clement@bootlin.com, jason@lakedaemon.net, jeffrey.t.kirsher@intel.com, jgg@ziepe.ca, joe@perches.com, leon@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, marc.zyngier@arm.com, miquel.raynal@bootlin.com, netdev@vger.kernel.org, parav@mellanox.com, sebastian.hesselbarth@gmail.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com, tglx@linutronix.de, tyhicks@canonical.com
 List-Id: linux-rdma@vger.kernel.org
 
 syzbot has bisected this bug to:
 
-commit abd5f00844ec7fa507064ee4a22b3605c64c7d31
-Author: Kalle Valo <kvalo@codeaurora.org>
-Date:   Tue Mar 27 07:06:18 2018 +0000
+commit 4f4c867c91e644fc9d461c8c5cf2f09d6d5bcac2
+Author: Miquel Raynal <miquel.raynal@bootlin.com>
+Date:   Tue Oct 2 08:54:16 2018 +0000
 
-     Merge ath-next from  
-git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git
+     irqchip/irq-mvebu-icu: Support ICU subnodes
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12f9389b200000
-start commit:   4aa9fc2a Revert "mm, memory_hotplug: initialize struct pag..
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=163319df200000
+start commit:   a3b22b9f Linux 5.0-rc7
 git tree:       upstream
-final crash:    https://syzkaller.appspot.com/x/report.txt?x=11f9389b200000
-console output: https://syzkaller.appspot.com/x/log.txt?x=16f9389b200000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4fceea9e2d99ac20
-dashboard link: https://syzkaller.appspot.com/bug?extid=e1628a5e87492e6f1b76
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=175c96ef400000
+final crash:    https://syzkaller.appspot.com/x/report.txt?x=153319df200000
+console output: https://syzkaller.appspot.com/x/log.txt?x=113319df200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7132344728e7ec3f
+dashboard link: https://syzkaller.appspot.com/bug?extid=b358909d8d01556b790b
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1493d4d0c00000
 
-Reported-by: syzbot+e1628a5e87492e6f1b76@syzkaller.appspotmail.com
-Fixes: abd5f00844ec ("Merge ath-next from  
-git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git")
+Reported-by: syzbot+b358909d8d01556b790b@syzkaller.appspotmail.com
+Fixes: 4f4c867c91e6 ("irqchip/irq-mvebu-icu: Support ICU subnodes")
 
 For information about bisection process see: https://goo.gl/tpsmEJ#bisection
