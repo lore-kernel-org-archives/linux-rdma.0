@@ -1,77 +1,229 @@
-From: Kevin Brodsky <kevin.brodsky-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v13 17/20] media/v4l2-core, arm64: untag user pointers in
- videobuf_dma_contig_user_get
-Date: Mon, 25 Mar 2019 14:08:30 +0000
-Message-ID: <bfaae923-98aa-63e7-c50b-8649dc5fe2bb@arm.com>
-References: <cover.1553093420.git.andreyknvl@google.com>
- <ae6961bcdd82e529c76d0747abd310546f81e58e.1553093421.git.andreyknvl@google.com>
- <20190322160726.GV13384@arrakis.emea.arm.com>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [RESEND 1/7] mm/gup: Replace get_user_pages_longterm() with
+ FOLL_LONGTERM
+Date: Sun, 24 Mar 2019 23:19:42 -0700
+Message-ID: <20190325061941.GA16366@iweiny-DESK2.sc.intel.com>
+References: <20190317183438.2057-1-ira.weiny@intel.com>
+ <20190317183438.2057-2-ira.weiny@intel.com>
+ <CAA9_cmffz1VBOJ0ykBtcj+hiznn-kbbuotu1uUhPiJtXiFjJXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190322160726.GV13384-pQd4kjVL+RGcEQQL7YIRtlaTQe2KTcn/@public.gmane.org>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ramana Radhakrishnan <Ramana.Radhakrishnan-5wv7dgnIgG8@public.gmane.org>, Dave Martin <Dave.Ma>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAA9_cmffz1VBOJ0ykBtcj+hiznn-kbbuotu1uUhPiJtXiFjJXg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjIvMDMvMjAxOSAxNjowNywgQ2F0YWxpbiBNYXJpbmFzIHdyb3RlOgo+IE9uIFdlZCwgTWFy
-IDIwLCAyMDE5IGF0IDAzOjUxOjMxUE0gKzAxMDAsIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6Cj4+
-IFRoaXMgcGF0Y2ggaXMgYSBwYXJ0IG9mIGEgc2VyaWVzIHRoYXQgZXh0ZW5kcyBhcm02NCBrZXJu
-ZWwgQUJJIHRvIGFsbG93IHRvCj4+IHBhc3MgdGFnZ2VkIHVzZXIgcG9pbnRlcnMgKHdpdGggdGhl
-IHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcgZWxzZSBvdGhlcgo+PiB0aGFuIDB4MDApIGFzIHN5
-c2NhbGwgYXJndW1lbnRzLgo+Pgo+PiB2aWRlb2J1Zl9kbWFfY29udGlnX3VzZXJfZ2V0KCkgdXNl
-cyBwcm92aWRlZCB1c2VyIHBvaW50ZXJzIGZvciB2bWEKPj4gbG9va3Vwcywgd2hpY2ggY2FuIG9u
-bHkgYnkgZG9uZSB3aXRoIHVudGFnZ2VkIHBvaW50ZXJzLgo+Pgo+PiBVbnRhZyB0aGUgcG9pbnRl
-cnMgaW4gdGhpcyBmdW5jdGlvbi4KPj4KPj4gU2lnbmVkLW9mZi1ieTogQW5kcmV5IEtvbm92YWxv
-diA8YW5kcmV5a252bEBnb29nbGUuY29tPgo+PiAtLS0KPj4gICBkcml2ZXJzL21lZGlhL3Y0bDIt
-Y29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMgfCA5ICsrKysrLS0tLQo+PiAgIDEgZmlsZSBjaGFu
-Z2VkLCA1IGluc2VydGlvbnMoKyksIDQgZGVsZXRpb25zKC0pCj4+Cj4+IGRpZmYgLS1naXQgYS9k
-cml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMgYi9kcml2ZXJzL21l
-ZGlhL3Y0bDItY29yZS92aWRlb2J1Zi1kbWEtY29udGlnLmMKPj4gaW5kZXggZTFiZjUwZGY0Yzcw
-Li44YTFkZGQxNDZiMTcgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Zp
-ZGVvYnVmLWRtYS1jb250aWcuYwo+PiArKysgYi9kcml2ZXJzL21lZGlhL3Y0bDItY29yZS92aWRl
-b2J1Zi1kbWEtY29udGlnLmMKPj4gQEAgLTE2MCw2ICsxNjAsNyBAQCBzdGF0aWMgdm9pZCB2aWRl
-b2J1Zl9kbWFfY29udGlnX3VzZXJfcHV0KHN0cnVjdCB2aWRlb2J1Zl9kbWFfY29udGlnX21lbW9y
-eSAqbWVtKQo+PiAgIHN0YXRpYyBpbnQgdmlkZW9idWZfZG1hX2NvbnRpZ191c2VyX2dldChzdHJ1
-Y3QgdmlkZW9idWZfZG1hX2NvbnRpZ19tZW1vcnkgKm1lbSwKPj4gICAJCQkJCXN0cnVjdCB2aWRl
-b2J1Zl9idWZmZXIgKnZiKQo+PiAgIHsKPj4gKwl1bnNpZ25lZCBsb25nIHVudGFnZ2VkX2JhZGRy
-ID0gdW50YWdnZWRfYWRkcih2Yi0+YmFkZHIpOwo+PiAgIAlzdHJ1Y3QgbW1fc3RydWN0ICptbSA9
-IGN1cnJlbnQtPm1tOwo+PiAgIAlzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZtYTsKPj4gICAJdW5z
-aWduZWQgbG9uZyBwcmV2X3BmbiwgdGhpc19wZm47Cj4+IEBAIC0xNjcsMjIgKzE2OCwyMiBAQCBz
-dGF0aWMgaW50IHZpZGVvYnVmX2RtYV9jb250aWdfdXNlcl9nZXQoc3RydWN0IHZpZGVvYnVmX2Rt
-YV9jb250aWdfbWVtb3J5ICptZW0sCj4+ICAgCXVuc2lnbmVkIGludCBvZmZzZXQ7Cj4+ICAgCWlu
-dCByZXQ7Cj4+ICAgCj4+IC0Jb2Zmc2V0ID0gdmItPmJhZGRyICYgflBBR0VfTUFTSzsKPj4gKwlv
-ZmZzZXQgPSB1bnRhZ2dlZF9iYWRkciAmIH5QQUdFX01BU0s7Cj4+ICAgCW1lbS0+c2l6ZSA9IFBB
-R0VfQUxJR04odmItPnNpemUgKyBvZmZzZXQpOwo+PiAgIAlyZXQgPSAtRUlOVkFMOwo+PiAgIAo+
-PiAgIAlkb3duX3JlYWQoJm1tLT5tbWFwX3NlbSk7Cj4+ICAgCj4+IC0Jdm1hID0gZmluZF92bWEo
-bW0sIHZiLT5iYWRkcik7Cj4+ICsJdm1hID0gZmluZF92bWEobW0sIHVudGFnZ2VkX2JhZGRyKTsK
-Pj4gICAJaWYgKCF2bWEpCj4+ICAgCQlnb3RvIG91dF91cDsKPj4gICAKPj4gLQlpZiAoKHZiLT5i
-YWRkciArIG1lbS0+c2l6ZSkgPiB2bWEtPnZtX2VuZCkKPj4gKwlpZiAoKHVudGFnZ2VkX2JhZGRy
-ICsgbWVtLT5zaXplKSA+IHZtYS0+dm1fZW5kKQo+PiAgIAkJZ290byBvdXRfdXA7Cj4+ICAgCj4+
-ICAgCXBhZ2VzX2RvbmUgPSAwOwo+PiAgIAlwcmV2X3BmbiA9IDA7IC8qIGtpbGwgd2FybmluZyAq
-Lwo+PiAtCXVzZXJfYWRkcmVzcyA9IHZiLT5iYWRkcjsKPj4gKwl1c2VyX2FkZHJlc3MgPSB1bnRh
-Z2dlZF9iYWRkcjsKPj4gICAKPj4gICAJd2hpbGUgKHBhZ2VzX2RvbmUgPCAobWVtLT5zaXplID4+
-IFBBR0VfU0hJRlQpKSB7Cj4+ICAgCQlyZXQgPSBmb2xsb3dfcGZuKHZtYSwgdXNlcl9hZGRyZXNz
-LCAmdGhpc19wZm4pOwo+IEkgZG9uJ3QgdGhpbmsgdmItPmJhZGRyIGhlcmUgaXMgYW5vbnltb3Vz
-IG1tYXAoKSBidXQgd29ydGggY2hlY2tpbmcgdGhlCj4gY2FsbCBwYXRocy4KCkkgc3BlbnQgc29t
-ZSB0aW1lIG9uIHRoaXMsIEkgZGlkbid0IGZpbmQgYW55IHJlc3RyaWN0aW9uIG9uIHRoZSBraW5k
-IG9mIG1hcHBpbmcgCnRoYXQncyBhbGxvd2VkIGhlcmUuIFRoZSBBUEkgcmVnYXJkaW5nIFY0TDJf
-TUVNT1JZX1VTRVJQVFIgZG9lc24ndCBzZWVtIHRvIHNheSAKYW55dGhpbmcgYWJvdXQgdGhhdCBl
-aXRoZXIgWzBdIFsxXS4gSXQncyBwcm9iYWJseSBiZXN0IHRvIGFzayB0aGUgVjRMMiBtYWludGFp
-bmVycy4KCktldmluCgpbMF0gaHR0cHM6Ly93d3cua2VybmVsLm9yZy9kb2MvaHRtbC9sYXRlc3Qv
-bWVkaWEvdWFwaS92NGwvdmlkaW9jLXFidWYuaHRtbApbMV0gaHR0cHM6Ly93d3cua2VybmVsLm9y
-Zy9kb2MvaHRtbC9sYXRlc3QvbWVkaWEvdWFwaS92NGwvdXNlcnAuaHRtbApfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAph
-bWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+On Fri, Mar 22, 2019 at 02:24:40PM -0700, Dan Williams wrote:
+> On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
+> >
+> > From: Ira Weiny <ira.weiny@intel.com>
+> >
+> > Rather than have a separate get_user_pages_longterm() call,
+> > introduce FOLL_LONGTERM and change the longterm callers to use
+> > it.
+> >
+> > This patch does not change any functionality.
+> >
+> > FOLL_LONGTERM can only be supported with get_user_pages() as it
+> > requires vmas to determine if DAX is in use.
+> >
+> > CC: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+> > CC: Andrew Morton <akpm@linux-foundation.org>
+> > CC: Michal Hocko <mhocko@kernel.org>
+> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> [..]
+> > diff --git a/include/linux/mm.h b/include/linux/mm.h
+> > index 2d483dbdffc0..6831077d126c 100644
+> > --- a/include/linux/mm.h
+> > +++ b/include/linux/mm.h
+> [..]
+> > @@ -2609,6 +2596,7 @@ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
+> >  #define FOLL_REMOTE    0x2000  /* we are working on non-current tsk/mm */
+> >  #define FOLL_COW       0x4000  /* internal GUP flag */
+> >  #define FOLL_ANON      0x8000  /* don't do file mappings */
+> > +#define FOLL_LONGTERM  0x10000 /* mapping is intended for a long term pin */
+> 
+> Let's change this comment to say something like /* mapping lifetime is
+> indefinite / at the discretion of userspace */, since "longterm is not
+> well defined.
+> 
+> I think it should also include a /* FIXME: */ to say something about
+> the havoc a long term pin might wreak on fs and mm code paths.
+
+Will do.
+
+> 
+> >  static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
+> >  {
+> > diff --git a/mm/gup.c b/mm/gup.c
+> > index f84e22685aaa..8cb4cff067bc 100644
+> > --- a/mm/gup.c
+> > +++ b/mm/gup.c
+> > @@ -1112,26 +1112,7 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+> >  }
+> >  EXPORT_SYMBOL(get_user_pages_remote);
+> >
+> > -/*
+> > - * This is the same as get_user_pages_remote(), just with a
+> > - * less-flexible calling convention where we assume that the task
+> > - * and mm being operated on are the current task's and don't allow
+> > - * passing of a locked parameter.  We also obviously don't pass
+> > - * FOLL_REMOTE in here.
+> > - */
+> > -long get_user_pages(unsigned long start, unsigned long nr_pages,
+> > -               unsigned int gup_flags, struct page **pages,
+> > -               struct vm_area_struct **vmas)
+> > -{
+> > -       return __get_user_pages_locked(current, current->mm, start, nr_pages,
+> > -                                      pages, vmas, NULL,
+> > -                                      gup_flags | FOLL_TOUCH);
+> > -}
+> > -EXPORT_SYMBOL(get_user_pages);
+> > -
+> >  #if defined(CONFIG_FS_DAX) || defined (CONFIG_CMA)
+> > -
+> > -#ifdef CONFIG_FS_DAX
+> >  static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
+> >  {
+> >         long i;
+> > @@ -1150,12 +1131,6 @@ static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
+> >         }
+> >         return false;
+> >  }
+> > -#else
+> > -static inline bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
+> > -{
+> > -       return false;
+> > -}
+> > -#endif
+> >
+> >  #ifdef CONFIG_CMA
+> >  static struct page *new_non_cma_page(struct page *page, unsigned long private)
+> > @@ -1209,10 +1184,13 @@ static struct page *new_non_cma_page(struct page *page, unsigned long private)
+> >         return __alloc_pages_node(nid, gfp_mask, 0);
+> >  }
+> >
+> > -static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
+> > -                                       unsigned int gup_flags,
+> > +static long check_and_migrate_cma_pages(struct task_struct *tsk,
+> > +                                       struct mm_struct *mm,
+> > +                                       unsigned long start,
+> > +                                       unsigned long nr_pages,
+> >                                         struct page **pages,
+> > -                                       struct vm_area_struct **vmas)
+> > +                                       struct vm_area_struct **vmas,
+> > +                                       unsigned int gup_flags)
+> >  {
+> >         long i;
+> >         bool drain_allow = true;
+> > @@ -1268,10 +1246,14 @@ static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
+> >                                 putback_movable_pages(&cma_page_list);
+> >                 }
+> >                 /*
+> > -                * We did migrate all the pages, Try to get the page references again
+> > -                * migrating any new CMA pages which we failed to isolate earlier.
+> > +                * We did migrate all the pages, Try to get the page references
+> > +                * again migrating any new CMA pages which we failed to isolate
+> > +                * earlier.
+> >                  */
+> > -               nr_pages = get_user_pages(start, nr_pages, gup_flags, pages, vmas);
+> > +               nr_pages = __get_user_pages_locked(tsk, mm, start, nr_pages,
+> > +                                                  pages, vmas, NULL,
+> > +                                                  gup_flags);
+> > +
+> 
+> Why did this need to change to __get_user_pages_locked?
+
+__get_uer_pages_locked() is now the "internal call" for get_user_pages.
+
+Technically it did not _have_ to change but there is no need to call
+get_user_pages() again because the FOLL_TOUCH flags is already set.  Also this
+call then matches the __get_user_pages_locked() which was called on the pages
+we migrated from.  Mostly this keeps the code "symmetrical" in that we called
+__get_user_pages_locked() on the pages we are migrating from and the same call
+on the pages we migrated to.
+
+While the change here looks funny I think the final code is better.
+
+> 
+> >                 if ((nr_pages > 0) && migrate_allow) {
+> >                         drain_allow = true;
+> >                         goto check_again;
+> > @@ -1281,66 +1263,115 @@ static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
+> >         return nr_pages;
+> >  }
+> >  #else
+> > -static inline long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
+> > -                                              unsigned int gup_flags,
+> > -                                              struct page **pages,
+> > -                                              struct vm_area_struct **vmas)
+> > +static long check_and_migrate_cma_pages(struct task_struct *tsk,
+> > +                                       struct mm_struct *mm,
+> > +                                       unsigned long start,
+> > +                                       unsigned long nr_pages,
+> > +                                       struct page **pages,
+> > +                                       struct vm_area_struct **vmas,
+> > +                                       unsigned int gup_flags)
+> >  {
+> >         return nr_pages;
+> >  }
+> >  #endif
+> >
+> >  /*
+> > - * This is the same as get_user_pages() in that it assumes we are
+> > - * operating on the current task's mm, but it goes further to validate
+> > - * that the vmas associated with the address range are suitable for
+> > - * longterm elevated page reference counts. For example, filesystem-dax
+> > - * mappings are subject to the lifetime enforced by the filesystem and
+> > - * we need guarantees that longterm users like RDMA and V4L2 only
+> > - * establish mappings that have a kernel enforced revocation mechanism.
+> > + * __gup_longterm_locked() is a wrapper for __get_uer_pages_locked which
+> 
+> s/uer/user/
+
+Check
+
+> 
+> > + * allows us to process the FOLL_LONGTERM flag if present.
+> > + *
+> > + * FOLL_LONGTERM Checks for either DAX VMAs or PPC CMA regions and either fails
+> > + * the pin or attempts to migrate the page as appropriate.
+> > + *
+> > + * In the filesystem-dax case mappings are subject to the lifetime enforced by
+> > + * the filesystem and we need guarantees that longterm users like RDMA and V4L2
+> > + * only establish mappings that have a kernel enforced revocation mechanism.
+> > + *
+> > + * In the CMA case pages can't be pinned in a CMA region as this would
+> > + * unnecessarily fragment that region.  So CMA attempts to migrate the page
+> > + * before pinning.
+> >   *
+> >   * "longterm" == userspace controlled elevated page count lifetime.
+> >   * Contrast this to iov_iter_get_pages() usages which are transient.
+> 
+> Ah, here's the longterm documentation, but if I was a developer
+> considering whether to use FOLL_LONGTERM or not I would expect to find
+> the documentation at the flag definition site.
+> 
+> I think it has become more clear since get_user_pages_longterm() was
+> initially merged that we need to warn people not to use it, or at
+> least seriously reconsider whether they want an interface to support
+> indefinite pins.
+
+Good point will move
+
+> 
+> >   */
+> > -long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
+> > -                            unsigned int gup_flags, struct page **pages,
+> > -                            struct vm_area_struct **vmas_arg)
+> > +static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
+> 
+> ...why the __always_inline?
+ 
+This was because it was only called from get_user_pages() in this patch.  But
+later on I use it elsewhere so __always_inline is wrong.
+
+Ira
