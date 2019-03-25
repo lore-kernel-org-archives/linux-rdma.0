@@ -1,30 +1,30 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: KASAN: use-after-free Read in addr_handler
-Date: Sun, 24 Mar 2019 14:20:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.21.1903241419510.1798@nanos.tec.linutronix.de>
-References: <0000000000001f5bce0584d5b095@google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-rc 2/5] IB/hfi1: Failed to drain send queue when QP
+ is put into error state
+Date: Mon, 25 Mar 2019 09:32:27 -0300
+Message-ID: <20190325123227.GA9949@ziepe.ca>
+References: <20190318165514.23550.89083.stgit@scvm10.sc.intel.com>
+ <20190325003824.8A64D20989@mail.kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <0000000000001f5bce0584d5b095@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+b358909d8d01556b790b@syzkaller.appspotmail.com>
-Cc: alexander.h.duyck@intel.com, amritha.nambiar@intel.com, andrew@lunn.ch, avagin@gmail.com, danielj@mellanox.com, davem@davemloft.net, dledford@redhat.com, dmitry.torokhov@gmail.com, gregory.clement@bootlin.com, jason@lakedaemon.net, jeffrey.t.kirsher@intel.com, jgg@ziepe.ca, joe@perches.com, leon@kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, marc.zyngier@arm.com, miquel.raynal@bootlin.com, netdev@vger.kernel.org, parav@mellanox.com, sebastian.hesselbarth@gmail.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com, tyhicks@canonical.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190325003824.8A64D20989@mail.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Sasha Levin <sashal@kernel.org>
+Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>, Kaike Wan <kaike.wan@intel.com>, dledford@redhat.com, linux-rdma@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 24 Mar 2019, syzbot wrote:
-
-> syzbot has bisected this bug to:
+On Mon, Mar 25, 2019 at 12:38:23AM +0000, Sasha Levin wrote:
+> Hi,
 > 
-> commit 4f4c867c91e644fc9d461c8c5cf2f09d6d5bcac2
-> Author: Miquel Raynal <miquel.raynal@bootlin.com>
-> Date:   Tue Oct 2 08:54:16 2018 +0000
+> [This is an automated email]
 > 
->    irqchip/irq-mvebu-icu: Support ICU subnodes
+> This commit has been processed because it contains a "Fixes:" tag,
+> fixing commit: 2e2ba09e48b7 IB/rdmavt, IB/hfi1: Create device
+> dependent s_flags.
 
-Yet another bogus bisect result. Why? That code is ARM only and cannot
-influence x86 by any means.
+This patch hasn't even been accepted to any trees yet. Why are you
+looking at it?
 
-Thanks,
-
-	tglx
+Jason
