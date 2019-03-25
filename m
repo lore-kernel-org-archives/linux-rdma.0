@@ -1,229 +1,154 @@
 From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RESEND 1/7] mm/gup: Replace get_user_pages_longterm() with
- FOLL_LONGTERM
-Date: Sun, 24 Mar 2019 23:19:42 -0700
-Message-ID: <20190325061941.GA16366@iweiny-DESK2.sc.intel.com>
+Subject: Re: [RESEND 3/7] mm/gup: Change GUP fast to use flags rather than a
+ write 'bool'
+Date: Mon, 25 Mar 2019 01:26:20 -0700
+Message-ID: <20190325082620.GB16366@iweiny-DESK2.sc.intel.com>
 References: <20190317183438.2057-1-ira.weiny@intel.com>
- <20190317183438.2057-2-ira.weiny@intel.com>
- <CAA9_cmffz1VBOJ0ykBtcj+hiznn-kbbuotu1uUhPiJtXiFjJXg@mail.gmail.com>
+ <20190317183438.2057-4-ira.weiny@intel.com>
+ <CAA9_cmd9gUWMbpkP_AuxZ08iqvZdxjbtDoR-FpSjAyhZJisRZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAA9_cmffz1VBOJ0ykBtcj+hiznn-kbbuotu1uUhPiJtXiFjJXg@mail.gmail.com>
+In-Reply-To: <CAA9_cmd9gUWMbpkP_AuxZ08iqvZdxjbtDoR-FpSjAyhZJisRZA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>Linux Kernel Mailing List <l>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 22, 2019 at 02:24:40PM -0700, Dan Williams wrote:
+On Fri, Mar 22, 2019 at 03:05:53PM -0700, Dan Williams wrote:
 > On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
 > >
 > > From: Ira Weiny <ira.weiny@intel.com>
 > >
-> > Rather than have a separate get_user_pages_longterm() call,
-> > introduce FOLL_LONGTERM and change the longterm callers to use
-> > it.
+> > To facilitate additional options to get_user_pages_fast() change the
+> > singular write parameter to be gup_flags.
 > >
-> > This patch does not change any functionality.
+> > This patch does not change any functionality.  New functionality will
+> > follow in subsequent patches.
 > >
-> > FOLL_LONGTERM can only be supported with get_user_pages() as it
-> > requires vmas to determine if DAX is in use.
+> > Some of the get_user_pages_fast() call sites were unchanged because they
+> > already passed FOLL_WRITE or 0 for the write parameter.
 > >
-> > CC: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-> > CC: Andrew Morton <akpm@linux-foundation.org>
-> > CC: Michal Hocko <mhocko@kernel.org>
 > > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> [..]
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index 2d483dbdffc0..6831077d126c 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> [..]
-> > @@ -2609,6 +2596,7 @@ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
-> >  #define FOLL_REMOTE    0x2000  /* we are working on non-current tsk/mm */
-> >  #define FOLL_COW       0x4000  /* internal GUP flag */
-> >  #define FOLL_ANON      0x8000  /* don't do file mappings */
-> > +#define FOLL_LONGTERM  0x10000 /* mapping is intended for a long term pin */
-> 
-> Let's change this comment to say something like /* mapping lifetime is
-> indefinite / at the discretion of userspace */, since "longterm is not
-> well defined.
-> 
-> I think it should also include a /* FIXME: */ to say something about
-> the havoc a long term pin might wreak on fs and mm code paths.
-
-Will do.
-
-> 
-> >  static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
-> >  {
-> > diff --git a/mm/gup.c b/mm/gup.c
-> > index f84e22685aaa..8cb4cff067bc 100644
-> > --- a/mm/gup.c
-> > +++ b/mm/gup.c
-> > @@ -1112,26 +1112,7 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
-> >  }
-> >  EXPORT_SYMBOL(get_user_pages_remote);
 > >
-> > -/*
-> > - * This is the same as get_user_pages_remote(), just with a
-> > - * less-flexible calling convention where we assume that the task
-> > - * and mm being operated on are the current task's and don't allow
-> > - * passing of a locked parameter.  We also obviously don't pass
-> > - * FOLL_REMOTE in here.
-> > - */
-> > -long get_user_pages(unsigned long start, unsigned long nr_pages,
-> > -               unsigned int gup_flags, struct page **pages,
-> > -               struct vm_area_struct **vmas)
-> > -{
-> > -       return __get_user_pages_locked(current, current->mm, start, nr_pages,
-> > -                                      pages, vmas, NULL,
-> > -                                      gup_flags | FOLL_TOUCH);
-> > -}
-> > -EXPORT_SYMBOL(get_user_pages);
-> > -
-> >  #if defined(CONFIG_FS_DAX) || defined (CONFIG_CMA)
-> > -
-> > -#ifdef CONFIG_FS_DAX
-> >  static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
-> >  {
-> >         long i;
-> > @@ -1150,12 +1131,6 @@ static bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
-> >         }
-> >         return false;
-> >  }
-> > -#else
-> > -static inline bool check_dax_vmas(struct vm_area_struct **vmas, long nr_pages)
-> > -{
-> > -       return false;
-> > -}
-> > -#endif
+> > ---
+> > Changes from V1:
+> >         Rebase to current merge tree
+> >         arch/powerpc/mm/mmu_context_iommu.c no longer calls gup_fast
+> >                 The gup_longterm was converted in patch 1
 > >
-> >  #ifdef CONFIG_CMA
-> >  static struct page *new_non_cma_page(struct page *page, unsigned long private)
-> > @@ -1209,10 +1184,13 @@ static struct page *new_non_cma_page(struct page *page, unsigned long private)
-> >         return __alloc_pages_node(nid, gfp_mask, 0);
-> >  }
+> >  arch/mips/mm/gup.c                         | 11 ++++++-----
+> >  arch/powerpc/kvm/book3s_64_mmu_hv.c        |  4 ++--
+> >  arch/powerpc/kvm/e500_mmu.c                |  2 +-
+> >  arch/s390/kvm/interrupt.c                  |  2 +-
+> >  arch/s390/mm/gup.c                         | 12 ++++++------
+> >  arch/sh/mm/gup.c                           | 11 ++++++-----
+> >  arch/sparc/mm/gup.c                        |  9 +++++----
+> >  arch/x86/kvm/paging_tmpl.h                 |  2 +-
+> >  arch/x86/kvm/svm.c                         |  2 +-
+> >  drivers/fpga/dfl-afu-dma-region.c          |  2 +-
+> >  drivers/gpu/drm/via/via_dmablit.c          |  3 ++-
+> >  drivers/infiniband/hw/hfi1/user_pages.c    |  3 ++-
+> >  drivers/misc/genwqe/card_utils.c           |  2 +-
+> >  drivers/misc/vmw_vmci/vmci_host.c          |  2 +-
+> >  drivers/misc/vmw_vmci/vmci_queue_pair.c    |  6 ++++--
+> >  drivers/platform/goldfish/goldfish_pipe.c  |  3 ++-
+> >  drivers/rapidio/devices/rio_mport_cdev.c   |  4 +++-
+> >  drivers/sbus/char/oradax.c                 |  2 +-
+> >  drivers/scsi/st.c                          |  3 ++-
+> >  drivers/staging/gasket/gasket_page_table.c |  4 ++--
+> >  drivers/tee/tee_shm.c                      |  2 +-
+> >  drivers/vfio/vfio_iommu_spapr_tce.c        |  3 ++-
+> >  drivers/vhost/vhost.c                      |  2 +-
+> >  drivers/video/fbdev/pvr2fb.c               |  2 +-
+> >  drivers/virt/fsl_hypervisor.c              |  2 +-
+> >  drivers/xen/gntdev.c                       |  2 +-
+> >  fs/orangefs/orangefs-bufmap.c              |  2 +-
+> >  include/linux/mm.h                         |  4 ++--
+> >  kernel/futex.c                             |  2 +-
+> >  lib/iov_iter.c                             |  7 +++++--
+> >  mm/gup.c                                   | 10 +++++-----
+> >  mm/util.c                                  |  8 ++++----
+> >  net/ceph/pagevec.c                         |  2 +-
+> >  net/rds/info.c                             |  2 +-
+> >  net/rds/rdma.c                             |  3 ++-
+> >  35 files changed, 79 insertions(+), 63 deletions(-)
+> 
+> 
 > >
-> > -static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
-> > -                                       unsigned int gup_flags,
-> > +static long check_and_migrate_cma_pages(struct task_struct *tsk,
-> > +                                       struct mm_struct *mm,
-> > +                                       unsigned long start,
-> > +                                       unsigned long nr_pages,
-> >                                         struct page **pages,
-> > -                                       struct vm_area_struct **vmas)
-> > +                                       struct vm_area_struct **vmas,
-> > +                                       unsigned int gup_flags)
-> >  {
-> >         long i;
-> >         bool drain_allow = true;
-> > @@ -1268,10 +1246,14 @@ static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
-> >                                 putback_movable_pages(&cma_page_list);
-> >                 }
-> >                 /*
-> > -                * We did migrate all the pages, Try to get the page references again
-> > -                * migrating any new CMA pages which we failed to isolate earlier.
-> > +                * We did migrate all the pages, Try to get the page references
-> > +                * again migrating any new CMA pages which we failed to isolate
-> > +                * earlier.
-> >                  */
-> > -               nr_pages = get_user_pages(start, nr_pages, gup_flags, pages, vmas);
-> > +               nr_pages = __get_user_pages_locked(tsk, mm, start, nr_pages,
-> > +                                                  pages, vmas, NULL,
-> > +                                                  gup_flags);
-> > +
-> 
-> Why did this need to change to __get_user_pages_locked?
-
-__get_uer_pages_locked() is now the "internal call" for get_user_pages.
-
-Technically it did not _have_ to change but there is no need to call
-get_user_pages() again because the FOLL_TOUCH flags is already set.  Also this
-call then matches the __get_user_pages_locked() which was called on the pages
-we migrated from.  Mostly this keeps the code "symmetrical" in that we called
-__get_user_pages_locked() on the pages we are migrating from and the same call
-on the pages we migrated to.
-
-While the change here looks funny I think the final code is better.
-
-> 
-> >                 if ((nr_pages > 0) && migrate_allow) {
-> >                         drain_allow = true;
-> >                         goto check_again;
-> > @@ -1281,66 +1263,115 @@ static long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
-> >         return nr_pages;
-> >  }
-> >  #else
-> > -static inline long check_and_migrate_cma_pages(unsigned long start, long nr_pages,
-> > -                                              unsigned int gup_flags,
-> > -                                              struct page **pages,
-> > -                                              struct vm_area_struct **vmas)
-> > +static long check_and_migrate_cma_pages(struct task_struct *tsk,
-> > +                                       struct mm_struct *mm,
-> > +                                       unsigned long start,
-> > +                                       unsigned long nr_pages,
-> > +                                       struct page **pages,
-> > +                                       struct vm_area_struct **vmas,
-> > +                                       unsigned int gup_flags)
-> >  {
-> >         return nr_pages;
-> >  }
-> >  #endif
-> >
-> >  /*
-> > - * This is the same as get_user_pages() in that it assumes we are
-> > - * operating on the current task's mm, but it goes further to validate
-> > - * that the vmas associated with the address range are suitable for
-> > - * longterm elevated page reference counts. For example, filesystem-dax
-> > - * mappings are subject to the lifetime enforced by the filesystem and
-> > - * we need guarantees that longterm users like RDMA and V4L2 only
-> > - * establish mappings that have a kernel enforced revocation mechanism.
-> > + * __gup_longterm_locked() is a wrapper for __get_uer_pages_locked which
-> 
-> s/uer/user/
-
-Check
-
-> 
-> > + * allows us to process the FOLL_LONGTERM flag if present.
-> > + *
-> > + * FOLL_LONGTERM Checks for either DAX VMAs or PPC CMA regions and either fails
-> > + * the pin or attempts to migrate the page as appropriate.
-> > + *
-> > + * In the filesystem-dax case mappings are subject to the lifetime enforced by
-> > + * the filesystem and we need guarantees that longterm users like RDMA and V4L2
-> > + * only establish mappings that have a kernel enforced revocation mechanism.
-> > + *
-> > + * In the CMA case pages can't be pinned in a CMA region as this would
-> > + * unnecessarily fragment that region.  So CMA attempts to migrate the page
-> > + * before pinning.
+> > diff --git a/arch/mips/mm/gup.c b/arch/mips/mm/gup.c
+> > index 0d14e0d8eacf..4c2b4483683c 100644
+> > --- a/arch/mips/mm/gup.c
+> > +++ b/arch/mips/mm/gup.c
+> > @@ -235,7 +235,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+> >   * get_user_pages_fast() - pin user pages in memory
+> >   * @start:     starting user address
+> >   * @nr_pages:  number of pages from start to pin
+> > - * @write:     whether pages will be written to
+> > + * @gup_flags: flags modifying pin behaviour
+> >   * @pages:     array that receives pointers to the pages pinned.
+> >   *             Should be at least nr_pages long.
 > >   *
-> >   * "longterm" == userspace controlled elevated page count lifetime.
-> >   * Contrast this to iov_iter_get_pages() usages which are transient.
-> 
-> Ah, here's the longterm documentation, but if I was a developer
-> considering whether to use FOLL_LONGTERM or not I would expect to find
-> the documentation at the flag definition site.
-> 
-> I think it has become more clear since get_user_pages_longterm() was
-> initially merged that we need to warn people not to use it, or at
-> least seriously reconsider whether they want an interface to support
-> indefinite pins.
-
-Good point will move
-
-> 
+> > @@ -247,8 +247,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+> >   * requested. If nr_pages is 0 or negative, returns 0. If no pages
+> >   * were pinned, returns -errno.
 > >   */
-> > -long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
-> > -                            unsigned int gup_flags, struct page **pages,
-> > -                            struct vm_area_struct **vmas_arg)
-> > +static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
+> > -int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+> > -                       struct page **pages)
+> > +int get_user_pages_fast(unsigned long start, int nr_pages,
+> > +                       unsigned int gup_flags, struct page **pages)
 > 
-> ...why the __always_inline?
- 
-This was because it was only called from get_user_pages() in this patch.  But
-later on I use it elsewhere so __always_inline is wrong.
+> This looks a tad scary given all related thrash especially when it's
+> only 1 user that wants to do get_user_page_fast_longterm, right?
+
+Agreed but the discussion back in Feb agreed that it would be better to make
+get_user_pages_fast() use flags rather than add another *_longterm call, and I
+agree.
+
+> Maybe
+> something like the following. Note I explicitly moved the flags to the
+> end so that someone half paying attention that calls
+> __get_user_pages_fast will get a compile error if they specify the
+> args in the same order.
+
+I did this to remain consistent with the other public calls.  They put the
+"return" pages parameter at the end.  For example get_user_pages() is defined
+this way with pages and vmas at the end.
+
+long get_user_pages(unsigned long start, unsigned long nr_pages,
+                unsigned int gup_flags, struct page **pages,
+                struct vm_area_struct **vmas)
+
+I'm pretty sure I got all the callers.  Is this worth making the signature
+"non-standard" WRT the other calls?
 
 Ira
+
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 76ba638ceda8..c6c743bc2c68 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -1505,8 +1505,15 @@ static inline long
+> get_user_pages_longterm(unsigned long start,
+>  }
+>  #endif /* CONFIG_FS_DAX */
+> 
+> -int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+> -                       struct page **pages);
+> +
+> +int __get_user_pages_fast(unsigned long start, int nr_pages,
+> +               struct page **pages, unsigned int gup_flags);
+> +
+> +static inline int get_user_pages_fast(unsigned long start, int
+> nr_pages, int write,
+> +                       struct page **pages)
+> +{
+> +       return __get_user_pages_fast(start, nr_pages, pages, write ?
+> FOLL_WRITE);
+> +}
+> 
+>  /* Container for pinned pfns / pages */
+>  struct frame_vector {
+> 
