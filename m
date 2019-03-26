@@ -1,70 +1,105 @@
 From: jglisse@redhat.com
-Subject: [PATCH v6 1/8] mm/mmu_notifier: helper to test if a range
- invalidation is blockable
-Date: Tue, 26 Mar 2019 12:47:40 -0400
-Message-ID: <20190326164747.24405-2-jglisse@redhat.com>
+Subject: [PATCH v6 3/8] mm/mmu_notifier: convert mmu_notifier_range->blockable to a flags
+Date: Tue, 26 Mar 2019 12:47:42 -0400
+Message-ID: <20190326164747.24405-4-jglisse@redhat.com>
 References: <20190326164747.24405-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190326164747.24405-1-jglisse@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, linux-fsdevel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvid>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpTaW1wbGUgaGVscGVy
-cyB0byB0ZXN0IGlmIHJhbmdlIGludmFsaWRhdGlvbiBpcyBibG9ja2FibGUuIExhdHRlcgpwYXRj
-aGVzIHVzZSBjb2Npbm5lbGxlIHRvIGNvbnZlcnQgYWxsIGRpcmVjdCBkZXJlZmVyZW5jZSBvZiBy
-YW5nZS0+CmJsb2NrYWJsZSB0byB1c2UgdGhpcyBmdW5jdGlvbiBpbnN0ZWFkIHNvIHRoYXQgd2Ug
-Y2FuIGNvbnZlcnQgdGhlCmJsb2NrYWJsZSBmaWVsZCB0byBhbiB1bnNpZ25lZCBmb3IgbW9yZSBm
-bGFncy4KClNpZ25lZC1vZmYtYnk6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29t
-PgpDYzogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KQ2M6IGxpbnV4
-LW1tQGt2YWNrLm9yZwpDYzogQ2hyaXN0aWFuIEvDtm5pZyA8Y2hyaXN0aWFuLmtvZW5pZ0BhbWQu
-Y29tPgpDYzogSm9vbmFzIExhaHRpbmVuIDxqb29uYXMubGFodGluZW5AbGludXguaW50ZWwuY29t
-PgpDYzogSmFuaSBOaWt1bGEgPGphbmkubmlrdWxhQGxpbnV4LmludGVsLmNvbT4KQ2M6IFJvZHJp
-Z28gVml2aSA8cm9kcmlnby52aXZpQGludGVsLmNvbT4KQ2M6IEphbiBLYXJhIDxqYWNrQHN1c2Uu
-Y3o+CkNjOiBBbmRyZWEgQXJjYW5nZWxpIDxhYXJjYW5nZUByZWRoYXQuY29tPgpDYzogUGV0ZXIg
-WHUgPHBldGVyeEByZWRoYXQuY29tPgpDYzogRmVsaXggS3VlaGxpbmcgPEZlbGl4Lkt1ZWhsaW5n
-QGFtZC5jb20+CkNjOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+CkNjOiBBbmRy
-ZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpDYzogUm9zcyBad2lzbGVyIDx6
-d2lzbGVyQGtlcm5lbC5vcmc+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVs
-LmNvbT4KQ2M6IFBhb2xvIEJvbnppbmkgPHBib256aW5pQHJlZGhhdC5jb20+CkNjOiBSYWRpbSBL
-csSNbcOhxZkgPHJrcmNtYXJAcmVkaGF0LmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtl
-cm5lbC5vcmc+CkNjOiBDaHJpc3RpYW4gS29lbmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5jb20+
-CkNjOiBSYWxwaCBDYW1wYmVsbCA8cmNhbXBiZWxsQG52aWRpYS5jb20+CkNjOiBKb2huIEh1YmJh
-cmQgPGpodWJiYXJkQG52aWRpYS5jb20+CkNjOiBrdm1Admdlci5rZXJuZWwub3JnCkNjOiBkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9y
-ZwpDYzogbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5lbC5vcmcKQ2M6IEFybmQgQmVyZ21hbm4gPGFy
-bmRAYXJuZGIuZGU+Ci0tLQogaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaCB8IDExICsrKysr
-KysrKysrCiAxIGZpbGUgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2lu
-Y2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmggYi9pbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5o
-CmluZGV4IDQwNTBlYzFjM2I0NS4uZTYzMGRlZjEzMWNlIDEwMDY0NAotLS0gYS9pbmNsdWRlL2xp
-bnV4L21tdV9ub3RpZmllci5oCisrKyBiL2luY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmgKQEAg
-LTIyNiw2ICsyMjYsMTIgQEAgZXh0ZXJuIHZvaWQgX19tbXVfbm90aWZpZXJfaW52YWxpZGF0ZV9y
-YW5nZV9lbmQoc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqciwKIGV4dGVybiB2b2lkIF9fbW11
-X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Uoc3RydWN0IG1tX3N0cnVjdCAqbW0sCiAJCQkJICB1
-bnNpZ25lZCBsb25nIHN0YXJ0LCB1bnNpZ25lZCBsb25nIGVuZCk7CiAKK3N0YXRpYyBpbmxpbmUg
-Ym9vbAorbW11X25vdGlmaWVyX3JhbmdlX2Jsb2NrYWJsZShjb25zdCBzdHJ1Y3QgbW11X25vdGlm
-aWVyX3JhbmdlICpyYW5nZSkKK3sKKwlyZXR1cm4gcmFuZ2UtPmJsb2NrYWJsZTsKK30KKwogc3Rh
-dGljIGlubGluZSB2b2lkIG1tdV9ub3RpZmllcl9yZWxlYXNlKHN0cnVjdCBtbV9zdHJ1Y3QgKm1t
-KQogewogCWlmIChtbV9oYXNfbm90aWZpZXJzKG1tKSkKQEAgLTQ1NSw2ICs0NjEsMTEgQEAgc3Rh
-dGljIGlubGluZSB2b2lkIF9tbXVfbm90aWZpZXJfcmFuZ2VfaW5pdChzdHJ1Y3QgbW11X25vdGlm
-aWVyX3JhbmdlICpyYW5nZSwKICNkZWZpbmUgbW11X25vdGlmaWVyX3JhbmdlX2luaXQocmFuZ2Us
-IG1tLCBzdGFydCwgZW5kKSBcCiAJX21tdV9ub3RpZmllcl9yYW5nZV9pbml0KHJhbmdlLCBzdGFy
-dCwgZW5kKQogCitzdGF0aWMgaW5saW5lIGJvb2wKK21tdV9ub3RpZmllcl9yYW5nZV9ibG9ja2Fi
-bGUoY29uc3Qgc3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqcmFuZ2UpCit7CisJcmV0dXJuIHRy
-dWU7Cit9CiAKIHN0YXRpYyBpbmxpbmUgaW50IG1tX2hhc19ub3RpZmllcnMoc3RydWN0IG1tX3N0
-cnVjdCAqbW0pCiB7Ci0tIAoyLjIwLjEKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2RyaS1kZXZlbA==
+From: Jérôme Glisse <jglisse@redhat.com>
+
+Use an unsigned field for flags other than blockable and convert
+the blockable field to be one of those flags.
+
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: kvm@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-rdma@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+ include/linux/mmu_notifier.h | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
+index e630def131ce..c8672c366f67 100644
+--- a/include/linux/mmu_notifier.h
++++ b/include/linux/mmu_notifier.h
+@@ -25,11 +25,13 @@ struct mmu_notifier_mm {
+ 	spinlock_t lock;
+ };
+ 
++#define MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
++
+ struct mmu_notifier_range {
+ 	struct mm_struct *mm;
+ 	unsigned long start;
+ 	unsigned long end;
+-	bool blockable;
++	unsigned flags;
+ };
+ 
+ struct mmu_notifier_ops {
+@@ -229,7 +231,7 @@ extern void __mmu_notifier_invalidate_range(struct mm_struct *mm,
+ static inline bool
+ mmu_notifier_range_blockable(const struct mmu_notifier_range *range)
+ {
+-	return range->blockable;
++	return (range->flags & MMU_NOTIFIER_RANGE_BLOCKABLE);
+ }
+ 
+ static inline void mmu_notifier_release(struct mm_struct *mm)
+@@ -275,7 +277,7 @@ static inline void
+ mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
+ {
+ 	if (mm_has_notifiers(range->mm)) {
+-		range->blockable = true;
++		range->flags |= MMU_NOTIFIER_RANGE_BLOCKABLE;
+ 		__mmu_notifier_invalidate_range_start(range);
+ 	}
+ }
+@@ -284,7 +286,7 @@ static inline int
+ mmu_notifier_invalidate_range_start_nonblock(struct mmu_notifier_range *range)
+ {
+ 	if (mm_has_notifiers(range->mm)) {
+-		range->blockable = false;
++		range->flags &= ~MMU_NOTIFIER_RANGE_BLOCKABLE;
+ 		return __mmu_notifier_invalidate_range_start(range);
+ 	}
+ 	return 0;
+@@ -331,6 +333,7 @@ static inline void mmu_notifier_range_init(struct mmu_notifier_range *range,
+ 	range->mm = mm;
+ 	range->start = start;
+ 	range->end = end;
++	range->flags = 0;
+ }
+ 
+ #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
+-- 
+2.20.1
