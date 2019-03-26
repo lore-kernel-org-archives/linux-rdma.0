@@ -1,7 +1,7 @@
 From: jglisse@redhat.com
-Subject: [PATCH v6 4/8] mm/mmu_notifier: contextual information for event enums
-Date: Tue, 26 Mar 2019 12:47:43 -0400
-Message-ID: <20190326164747.24405-5-jglisse@redhat.com>
+Subject: [PATCH v6 6/8] mm/mmu_notifier: use correct mmu_notifier events for each invalidation
+Date: Tue, 26 Mar 2019 12:47:45 -0400
+Message-ID: <20190326164747.24405-7-jglisse@redhat.com>
 References: <20190326164747.24405-1-jglisse@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -15,26 +15,9 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jérôme Glisse <jglisse@redhat.com>
 
-CPU page table update can happens for many reasons, not only as a result
-of a syscall (munmap(), mprotect(), mremap(), madvise(), ...) but also
-as a result of kernel activities (memory compression, reclaim, migration,
-...).
-
-This patch introduce a set of enums that can be associated with each of
-the events triggering a mmu notifier. Latter patches take advantages of
-those enum values.
-
-    - UNMAP: munmap() or mremap()
-    - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
-    - PROTECTION_VMA: change in access protections for the range
-    - PROTECTION_PAGE: change in access protections for page in the range
-    - SOFT_DIRTY: soft dirtyness tracking
-
-Being able to identify munmap() and mremap() from other reasons why the
-page table is cleared is important to allow user of mmu notifier to
-update their own internal tracking structure accordingly (on munmap or
-mremap it is not longer needed to track range of virtual address as it
-becomes invalid).
+This update each existing invalidation to use the correct mmu notifier
+event that represent what is happening to the CPU page table. See the
+patch which introduced the events to see the rational behind this.
 
 Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
@@ -61,49 +44,295 @@ Cc: dri-devel@lists.freedesktop.org
 Cc: linux-rdma@vger.kernel.org
 Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- include/linux/mmu_notifier.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ fs/proc/task_mmu.c      |  4 ++--
+ kernel/events/uprobes.c |  2 +-
+ mm/huge_memory.c        | 14 ++++++--------
+ mm/hugetlb.c            |  8 ++++----
+ mm/khugepaged.c         |  2 +-
+ mm/ksm.c                |  4 ++--
+ mm/madvise.c            |  2 +-
+ mm/memory.c             | 14 +++++++-------
+ mm/migrate.c            |  4 ++--
+ mm/mprotect.c           |  5 +++--
+ mm/rmap.c               |  6 +++---
+ 11 files changed, 32 insertions(+), 33 deletions(-)
 
-diff --git a/include/linux/mmu_notifier.h b/include/linux/mmu_notifier.h
-index c8672c366f67..2386e71ac1b8 100644
---- a/include/linux/mmu_notifier.h
-+++ b/include/linux/mmu_notifier.h
-@@ -10,6 +10,36 @@
- struct mmu_notifier;
- struct mmu_notifier_ops;
+diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+index fcbd0e574917..3b93ce496dd4 100644
+--- a/fs/proc/task_mmu.c
++++ b/fs/proc/task_mmu.c
+@@ -1151,8 +1151,8 @@ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+ 				break;
+ 			}
  
-+/**
-+ * enum mmu_notifier_event - reason for the mmu notifier callback
-+ * @MMU_NOTIFY_UNMAP: either munmap() that unmap the range or a mremap() that
-+ * move the range
-+ *
-+ * @MMU_NOTIFY_CLEAR: clear page table entry (many reasons for this like
-+ * madvise() or replacing a page by another one, ...).
-+ *
-+ * @MMU_NOTIFY_PROTECTION_VMA: update is due to protection change for the range
-+ * ie using the vma access permission (vm_page_prot) to update the whole range
-+ * is enough no need to inspect changes to the CPU page table (mprotect()
-+ * syscall)
-+ *
-+ * @MMU_NOTIFY_PROTECTION_PAGE: update is due to change in read/write flag for
-+ * pages in the range so to mirror those changes the user must inspect the CPU
-+ * page table (from the end callback).
-+ *
-+ * @MMU_NOTIFY_SOFT_DIRTY: soft dirty accounting (still same page and same
-+ * access flags). User should soft dirty the page in the end callback to make
-+ * sure that anyone relying on soft dirtyness catch pages that might be written
-+ * through non CPU mappings.
-+ */
-+enum mmu_notifier_event {
-+	MMU_NOTIFY_UNMAP = 0,
-+	MMU_NOTIFY_CLEAR,
-+	MMU_NOTIFY_PROTECTION_VMA,
-+	MMU_NOTIFY_PROTECTION_PAGE,
-+	MMU_NOTIFY_SOFT_DIRTY,
-+};
-+
- #ifdef CONFIG_MMU_NOTIFIER
+-			mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0,
+-						NULL, mm, 0, -1UL);
++			mmu_notifier_range_init(&range, MMU_NOTIFY_SOFT_DIRTY,
++						0, NULL, mm, 0, -1UL);
+ 			mmu_notifier_invalidate_range_start(&range);
+ 		}
+ 		walk_page_range(0, mm->highest_vm_end, &clear_refs_walk);
+diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
+index 77c3f079c723..79c84bb48ea9 100644
+--- a/kernel/events/uprobes.c
++++ b/kernel/events/uprobes.c
+@@ -161,7 +161,7 @@ static int __replace_page(struct vm_area_struct *vma, unsigned long addr,
+ 	struct mmu_notifier_range range;
+ 	struct mem_cgroup *memcg;
  
- /*
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, addr,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, addr,
+ 				addr + PAGE_SIZE);
+ 
+ 	VM_BUG_ON_PAGE(PageTransHuge(old_page), old_page);
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index 4309939be22d..f0ad70c29500 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -1184,9 +1184,8 @@ static vm_fault_t do_huge_pmd_wp_page_fallback(struct vm_fault *vmf,
+ 		cond_resched();
+ 	}
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
+-				haddr,
+-				haddr + HPAGE_PMD_SIZE);
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
++				haddr, haddr + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -1349,9 +1348,8 @@ vm_fault_t do_huge_pmd_wp_page(struct vm_fault *vmf, pmd_t orig_pmd)
+ 				    vma, HPAGE_PMD_NR);
+ 	__SetPageUptodate(new_page);
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
+-				haddr,
+-				haddr + HPAGE_PMD_SIZE);
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
++				haddr, haddr + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+ 	spin_lock(vmf->ptl);
+@@ -2026,7 +2024,7 @@ void __split_huge_pud(struct vm_area_struct *vma, pud_t *pud,
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address & HPAGE_PUD_MASK,
+ 				(address & HPAGE_PUD_MASK) + HPAGE_PUD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -2245,7 +2243,7 @@ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address & HPAGE_PMD_MASK,
+ 				(address & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index c20a8d2de3f3..44fe3565ef37 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -3247,7 +3247,7 @@ int copy_hugetlb_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 	cow = (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+ 
+ 	if (cow) {
+-		mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, src,
++		mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, src,
+ 					vma->vm_start,
+ 					vma->vm_end);
+ 		mmu_notifier_invalidate_range_start(&range);
+@@ -3628,7 +3628,7 @@ static vm_fault_t hugetlb_cow(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			    pages_per_huge_page(h));
+ 	__SetPageUptodate(new_page);
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, haddr,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, haddr,
+ 				haddr + huge_page_size(h));
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+@@ -4361,8 +4361,8 @@ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+ 	 * start/end.  Set range.start/range.end to cover the maximum possible
+ 	 * range if PMD sharing is possible.
+ 	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, start,
+-				end);
++	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_VMA,
++				0, vma, mm, start, end);
+ 	adjust_range_if_pmd_sharing_possible(vma, &range.start, &range.end);
+ 
+ 	BUG_ON(address >= end);
+diff --git a/mm/khugepaged.c b/mm/khugepaged.c
+index e7944f5e6258..579699d2b347 100644
+--- a/mm/khugepaged.c
++++ b/mm/khugepaged.c
+@@ -1016,7 +1016,7 @@ static void collapse_huge_page(struct mm_struct *mm,
+ 	pte = pte_offset_map(pmd, address);
+ 	pte_ptl = pte_lockptr(mm, pmd);
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, NULL, mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
+ 				address, address + HPAGE_PMD_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 	pmd_ptl = pmd_lock(mm, pmd); /* probably unnecessary */
+diff --git a/mm/ksm.c b/mm/ksm.c
+index 01f5fe2c90cf..81c20ed57bf6 100644
+--- a/mm/ksm.c
++++ b/mm/ksm.c
+@@ -1066,7 +1066,7 @@ static int write_protect_page(struct vm_area_struct *vma, struct page *page,
+ 
+ 	BUG_ON(PageTransCompound(page));
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
+ 				pvmw.address,
+ 				pvmw.address + PAGE_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -1155,7 +1155,7 @@ static int replace_page(struct vm_area_struct *vma, struct page *page,
+ 	if (!pmd)
+ 		goto out;
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm, addr,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm, addr,
+ 				addr + PAGE_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+ 
+diff --git a/mm/madvise.c b/mm/madvise.c
+index c617f53a9c09..a692d2a893b5 100644
+--- a/mm/madvise.c
++++ b/mm/madvise.c
+@@ -472,7 +472,7 @@ static int madvise_free_single_vma(struct vm_area_struct *vma,
+ 	range.end = min(vma->vm_end, end_addr);
+ 	if (range.end <= vma->vm_start)
+ 		return -EINVAL;
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
+ 				range.start, range.end);
+ 
+ 	lru_add_drain();
+diff --git a/mm/memory.c b/mm/memory.c
+index ac6754bb30c8..c24c5ffe950f 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -1010,8 +1010,8 @@ int copy_page_range(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 	is_cow = is_cow_mapping(vma->vm_flags);
+ 
+ 	if (is_cow) {
+-		mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma,
+-					src_mm, addr, end);
++		mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
++					0, vma, src_mm, addr, end);
+ 		mmu_notifier_invalidate_range_start(&range);
+ 	}
+ 
+@@ -1358,7 +1358,7 @@ void zap_page_range(struct vm_area_struct *vma, unsigned long start,
+ 	struct mmu_gather tlb;
+ 
+ 	lru_add_drain();
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				start, start + size);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm, start, range.end);
+ 	update_hiwater_rss(vma->vm_mm);
+@@ -1385,7 +1385,7 @@ static void zap_page_range_single(struct vm_area_struct *vma, unsigned long addr
+ 	struct mmu_gather tlb;
+ 
+ 	lru_add_drain();
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address, address + size);
+ 	tlb_gather_mmu(&tlb, vma->vm_mm, address, range.end);
+ 	update_hiwater_rss(vma->vm_mm);
+@@ -2282,7 +2282,7 @@ static vm_fault_t wp_page_copy(struct vm_fault *vmf)
+ 
+ 	__SetPageUptodate(new_page);
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, mm,
+ 				vmf->address & PAGE_MASK,
+ 				(vmf->address & PAGE_MASK) + PAGE_SIZE);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -4108,7 +4108,7 @@ static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
+ 			goto out;
+ 
+ 		if (range) {
+-			mmu_notifier_range_init(range, MMU_NOTIFY_UNMAP, 0,
++			mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0,
+ 						NULL, mm, address & PMD_MASK,
+ 						(address & PMD_MASK) + PMD_SIZE);
+ 			mmu_notifier_invalidate_range_start(range);
+@@ -4127,7 +4127,7 @@ static int __follow_pte_pmd(struct mm_struct *mm, unsigned long address,
+ 		goto out;
+ 
+ 	if (range) {
+-		mmu_notifier_range_init(range, MMU_NOTIFY_UNMAP, 0, NULL, mm,
++		mmu_notifier_range_init(range, MMU_NOTIFY_CLEAR, 0, NULL, mm,
+ 					address & PAGE_MASK,
+ 					(address & PAGE_MASK) + PAGE_SIZE);
+ 		mmu_notifier_invalidate_range_start(range);
+diff --git a/mm/migrate.c b/mm/migrate.c
+index 8f6e4382f0ad..f37b1a4bf9c0 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -2351,7 +2351,7 @@ static void migrate_vma_collect(struct migrate_vma *migrate)
+ 	mm_walk.mm = migrate->vma->vm_mm;
+ 	mm_walk.private = migrate;
+ 
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, NULL, mm_walk.mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, NULL, mm_walk.mm,
+ 				migrate->start,
+ 				migrate->end);
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -2760,7 +2760,7 @@ static void migrate_vma_pages(struct migrate_vma *migrate)
+ 				notified = true;
+ 
+ 				mmu_notifier_range_init(&range,
+-							MMU_NOTIFY_UNMAP, 0,
++							MMU_NOTIFY_CLEAR, 0,
+ 							NULL,
+ 							migrate->vma->vm_mm,
+ 							addr, migrate->end);
+diff --git a/mm/mprotect.c b/mm/mprotect.c
+index b10984052ae9..65242f1e4457 100644
+--- a/mm/mprotect.c
++++ b/mm/mprotect.c
+@@ -185,8 +185,9 @@ static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
+ 
+ 		/* invoke the mmu notifier if the pmd is populated */
+ 		if (!range.start) {
+-			mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0,
+-						vma, vma->vm_mm, addr, end);
++			mmu_notifier_range_init(&range,
++				MMU_NOTIFY_PROTECTION_VMA, 0,
++				vma, vma->vm_mm, addr, end);
+ 			mmu_notifier_invalidate_range_start(&range);
+ 		}
+ 
+diff --git a/mm/rmap.c b/mm/rmap.c
+index dba724f83ddd..c26becc3982c 100644
+--- a/mm/rmap.c
++++ b/mm/rmap.c
+@@ -896,8 +896,8 @@ static bool page_mkclean_one(struct page *page, struct vm_area_struct *vma,
+ 	 * We have to assume the worse case ie pmd for invalidation. Note that
+ 	 * the page can not be free from this function.
+ 	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
+-				address,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_PROTECTION_PAGE,
++				0, vma, vma->vm_mm, address,
+ 				min(vma->vm_end, address +
+ 				    (PAGE_SIZE << compound_order(page))));
+ 	mmu_notifier_invalidate_range_start(&range);
+@@ -1372,7 +1372,7 @@ static bool try_to_unmap_one(struct page *page, struct vm_area_struct *vma,
+ 	 * Note that the page can not be free in this function as call of
+ 	 * try_to_unmap() must hold a reference on the page.
+ 	 */
+-	mmu_notifier_range_init(&range, MMU_NOTIFY_UNMAP, 0, vma, vma->vm_mm,
++	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address,
+ 				min(vma->vm_end, address +
+ 				    (PAGE_SIZE << compound_order(page))));
 -- 
 2.20.1
