@@ -1,38 +1,69 @@
 From: Steve Wise <larrystevenwise@gmail.com>
-Subject: [PATCH v2 iproute2-next 1/4] Add .mailmap file
-Date: Tue, 26 Mar 2019 14:18:27 -0500
-Message-ID: <5f9d39d128770e3db7daea5d491207ca256239dc.1553627811.git.larrystevenwise@gmail.com>
-References: <cover.1553627811.git.larrystevenwise@gmail.com>
+Subject: [PATCH v2 iproute2-next 0/4] Dynamic rdma link creation
+Date: Tue, 26 Mar 2019 14:18:26 -0500
+Message-ID: <cover.1553627811.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1553627811.git.larrystevenwise@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: dsahern@gmail.com, leon@kernel.org
 Cc: Steve Wise <larrystevenwise@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-.mailmap allows tracking multiple email addresses to the proper user name.
+This series adds rdmatool support for creating/deleting rdma links.
+This will be used, mainly, by soft rdma drivers to allow adding/deleting
+rdma links over netdev interfaces.  It provides the user side for
+the following kernel changes merged in linux-5.1.
 
-Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
----
- .mailmap | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Changes since v1:
+
+- move error receive checking from rd_sendrecv_msg() to rd_recv_msg().
+- Add rd->suppress_errors to allow control over whether errors when
+  reading a response should be ignored.  Namely: resource queries can
+  get errors like "none found" when querying for resources, and this
+  error should not be displayed.  So on a rd object basis, error
+  suppression can be controlled.
+- Rebased on rdma/for-next UABI (no need to sync rdma_netlink.h now)
+- use chains of struct rd_cmd and rd_exec_cmd vs open coding the parsing
+  for the 'link add' command.
+- minor nit resolution
+- added .mailmap file.  If this is not desired for iproute2, then please
+  drop the patch.
+
+Changes since RFC:
+
+- add rd_sendrecv_msg() and make use of it in dev_set as well
+  as the new link commands.
+- fixed problems with the man pages
+- changed the command line to use "netdev" as the keyword
+  for the network device, do avoid confused with the ib_device
+  name.
+- got rid of the "type" parameter for link delete.  Also pass
+  down the device index instead of the name, using the common
+  rd services for validating the device name and fetching the
+  index.
+
+Thanks,
+
+Steve.
+
+----
+
+Steve Wise (4):
+  Add .mailmap file
+  rdma: add helper rd_sendrecv_msg()
+  rdma: add 'link add/delete' commands
+  rdma: man page update for link add/delete
+
+ .mailmap             |  8 +++++
+ man/man8/rdma-link.8 | 47 +++++++++++++++++++++++++
+ rdma/dev.c           |  2 +-
+ rdma/link.c          | 83 ++++++++++++++++++++++++++++++++++++++++++++
+ rdma/rdma.h          |  4 +++
+ rdma/res.h           |  1 +
+ rdma/utils.c         | 18 ++++++++++
+ 7 files changed, 162 insertions(+), 1 deletion(-)
  create mode 100644 .mailmap
 
-diff --git a/.mailmap b/.mailmap
-new file mode 100644
-index 00000000..c012d3d0
---- /dev/null
-+++ b/.mailmap
-@@ -0,0 +1,8 @@
-+#
-+# This list is used by git-shortlog to fix a few botched name translations
-+# in the git archive, either because the author's full name was messed up
-+# and/or not always written the same way, making contributions from the
-+# same person appearing not to be so or badly displayed.
-+#
-+Steve Wise <larrystevenwise@gmail.com> <swise@opengridcomputing.com>
-+Steve Wise <larrystevenwise@gmail.com> <swise@chelsio.com>
 -- 
 2.20.1
