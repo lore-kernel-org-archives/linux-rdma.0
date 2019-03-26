@@ -1,73 +1,148 @@
-From: jglisse@redhat.com
-Subject: [PATCH v6 7/8] mm/mmu_notifier: pass down vma and reasons why mmu
- notifier is happening v2
-Date: Tue, 26 Mar 2019 12:47:46 -0400
-Message-ID: <20190326164747.24405-8-jglisse@redhat.com>
-References: <20190326164747.24405-1-jglisse@redhat.com>
+From: Steve Wise <larrystevenwise@gmail.com>
+Subject: [PATCH v2 iproute2-next 3/4] rdma: add 'link add/delete' commands
+Date: Tue, 26 Mar 2019 14:18:29 -0500
+Message-ID: <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
+References: <cover.1553627811.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190326164747.24405-1-jglisse@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1553627811.git.larrystevenwise@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: dsahern@gmail.com, leon@kernel.org
+Cc: Steve Wise <larrystevenwise@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgpDUFUgcGFnZSB0YWJs
-ZSB1cGRhdGUgY2FuIGhhcHBlbnMgZm9yIG1hbnkgcmVhc29ucywgbm90IG9ubHkgYXMgYSByZXN1
-bHQKb2YgYSBzeXNjYWxsIChtdW5tYXAoKSwgbXByb3RlY3QoKSwgbXJlbWFwKCksIG1hZHZpc2Uo
-KSwgLi4uKSBidXQgYWxzbwphcyBhIHJlc3VsdCBvZiBrZXJuZWwgYWN0aXZpdGllcyAobWVtb3J5
-IGNvbXByZXNzaW9uLCByZWNsYWltLCBtaWdyYXRpb24sCi4uLikuCgpVc2VycyBvZiBtbXUgbm90
-aWZpZXIgQVBJIHRyYWNrIGNoYW5nZXMgdG8gdGhlIENQVSBwYWdlIHRhYmxlIGFuZCB0YWtlCnNw
-ZWNpZmljIGFjdGlvbiBmb3IgdGhlbS4gV2hpbGUgY3VycmVudCBBUEkgb25seSBwcm92aWRlIHJh
-bmdlIG9mIHZpcnR1YWwKYWRkcmVzcyBhZmZlY3RlZCBieSB0aGUgY2hhbmdlLCBub3Qgd2h5IHRo
-ZSBjaGFuZ2VzIGlzIGhhcHBlbmluZwoKVGhpcyBwYXRjaCBpcyBqdXN0IHBhc3NpbmcgZG93biB0
-aGUgbmV3IGluZm9ybWF0aW9ucyBieSBhZGRpbmcgaXQgdG8gdGhlCm1tdV9ub3RpZmllcl9yYW5n
-ZSBzdHJ1Y3R1cmUuCgpDaGFuZ2VzIHNpbmNlIHYxOgogICAgLSBJbml0aWFsaXplIGZsYWdzIGZp
-ZWxkIGZyb20gbW11X25vdGlmaWVyX3JhbmdlX2luaXQoKSBhcmd1bWVudHMKClNpZ25lZC1vZmYt
-Ynk6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29tPgpDYzogQW5kcmV3IE1vcnRv
-biA8YWtwbUBsaW51eC1mb3VuZGF0aW9uLm9yZz4KQ2M6IGxpbnV4LW1tQGt2YWNrLm9yZwpDYzog
-Q2hyaXN0aWFuIEvDtm5pZyA8Y2hyaXN0aWFuLmtvZW5pZ0BhbWQuY29tPgpDYzogSm9vbmFzIExh
-aHRpbmVuIDxqb29uYXMubGFodGluZW5AbGludXguaW50ZWwuY29tPgpDYzogSmFuaSBOaWt1bGEg
-PGphbmkubmlrdWxhQGxpbnV4LmludGVsLmNvbT4KQ2M6IFJvZHJpZ28gVml2aSA8cm9kcmlnby52
-aXZpQGludGVsLmNvbT4KQ2M6IEphbiBLYXJhIDxqYWNrQHN1c2UuY3o+CkNjOiBBbmRyZWEgQXJj
-YW5nZWxpIDxhYXJjYW5nZUByZWRoYXQuY29tPgpDYzogUGV0ZXIgWHUgPHBldGVyeEByZWRoYXQu
-Y29tPgpDYzogRmVsaXggS3VlaGxpbmcgPEZlbGl4Lkt1ZWhsaW5nQGFtZC5jb20+CkNjOiBKYXNv
-biBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+CkNjOiBSb3NzIFp3aXNsZXIgPHp3aXNsZXJA
-a2VybmVsLm9yZz4KQ2M6IERhbiBXaWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPgpD
-YzogUGFvbG8gQm9uemluaSA8cGJvbnppbmlAcmVkaGF0LmNvbT4KQ2M6IFJhZGltIEtyxI1tw6HF
-mSA8cmtyY21hckByZWRoYXQuY29tPgpDYzogTWljaGFsIEhvY2tvIDxtaG9ja29Aa2VybmVsLm9y
-Zz4KQ2M6IENocmlzdGlhbiBLb2VuaWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KQ2M6IFJh
-bHBoIENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KQ2M6IEpvaG4gSHViYmFyZCA8amh1
-YmJhcmRAbnZpZGlhLmNvbT4KQ2M6IGt2bUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGRyaS1kZXZlbEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnCkNjOiBB
-cm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgotLS0KIGluY2x1ZGUvbGludXgvbW11X25vdGlm
-aWVyLmggfCA2ICsrKysrLQogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMSBkZWxl
-dGlvbigtKQoKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmggYi9pbmNs
-dWRlL2xpbnV4L21tdV9ub3RpZmllci5oCmluZGV4IDYyZjk0Y2Q4NTQ1NS4uMDM3OTk1NmZmZjIz
-IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oCisrKyBiL2luY2x1ZGUv
-bGludXgvbW11X25vdGlmaWVyLmgKQEAgLTU4LDEwICs1OCwxMiBAQCBzdHJ1Y3QgbW11X25vdGlm
-aWVyX21tIHsKICNkZWZpbmUgTU1VX05PVElGSUVSX1JBTkdFX0JMT0NLQUJMRSAoMSA8PCAwKQog
-CiBzdHJ1Y3QgbW11X25vdGlmaWVyX3JhbmdlIHsKKwlzdHJ1Y3Qgdm1fYXJlYV9zdHJ1Y3QgKnZt
-YTsKIAlzdHJ1Y3QgbW1fc3RydWN0ICptbTsKIAl1bnNpZ25lZCBsb25nIHN0YXJ0OwogCXVuc2ln
-bmVkIGxvbmcgZW5kOwogCXVuc2lnbmVkIGZsYWdzOworCWVudW0gbW11X25vdGlmaWVyX2V2ZW50
-IGV2ZW50OwogfTsKIAogc3RydWN0IG1tdV9ub3RpZmllcl9vcHMgewpAQCAtMzYzLDEwICszNjUs
-MTIgQEAgc3RhdGljIGlubGluZSB2b2lkIG1tdV9ub3RpZmllcl9yYW5nZV9pbml0KHN0cnVjdCBt
-bXVfbm90aWZpZXJfcmFuZ2UgKnJhbmdlLAogCQkJCQkgICB1bnNpZ25lZCBsb25nIHN0YXJ0LAog
-CQkJCQkgICB1bnNpZ25lZCBsb25nIGVuZCkKIHsKKwlyYW5nZS0+dm1hID0gdm1hOworCXJhbmdl
-LT5ldmVudCA9IGV2ZW50OwogCXJhbmdlLT5tbSA9IG1tOwogCXJhbmdlLT5zdGFydCA9IHN0YXJ0
-OwogCXJhbmdlLT5lbmQgPSBlbmQ7Ci0JcmFuZ2UtPmZsYWdzID0gMDsKKwlyYW5nZS0+ZmxhZ3Mg
-PSBmbGFnczsKIH0KIAogI2RlZmluZSBwdGVwX2NsZWFyX2ZsdXNoX3lvdW5nX25vdGlmeShfX3Zt
-YSwgX19hZGRyZXNzLCBfX3B0ZXApCQlcCi0tIAoyLjIwLjEKCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
-dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbA==
+Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
+device to a netdev interface.
+
+EG:
+
+rdma link add rxe_eth0 type rxe netdev eth0
+rdma link delete rxe_eth0
+
+Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
+---
+ rdma/link.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ rdma/rdma.h |  2 ++
+ 2 files changed, 85 insertions(+)
+
+diff --git a/rdma/link.c b/rdma/link.c
+index 89e81b84..982c2b16 100644
+--- a/rdma/link.c
++++ b/rdma/link.c
+@@ -9,6 +9,9 @@
+ static int link_help(struct rd *rd)
+ {
+ 	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
++	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
++	       rd->filename);
++	pr_out("Usage: %s link delete NAME\n", rd->filename);
+ 	return 0;
+ }
+ 
+@@ -336,10 +339,90 @@ static int link_show(struct rd *rd)
+ 	return rd_exec_link(rd, link_one_show, true);
+ }
+ 
++static int link_add_netdev(struct rd *rd)
++{
++	rd->link_netdev = rd_argv(rd);
++	rd_arg_inc(rd);
++	return 0;
++}
++
++static int link_add_type(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		link_help},
++		{ "netdev",	link_add_netdev},
++		{ 0 }
++	};
++	rd->link_type = rd_argv(rd);
++	rd_arg_inc(rd);
++	return rd_exec_cmd(rd, cmds, "parameter");
++}
++
++static int link_add(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		link_help},
++		{ "type",	link_add_type},
++		{ 0 }
++	};
++
++	uint32_t seq;
++	char *name;
++	int ret;
++
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide a link name to add.\n");
++		return -EINVAL;
++	}
++	name = rd_argv(rd);
++	rd_arg_inc(rd);
++
++	ret = rd_exec_cmd(rd, cmds, "parameter");
++	if (ret)
++		return ret;
++
++	if (!rd->link_type) {
++		pr_err("Please provide a link type name.\n");
++		return -EINVAL;
++	}
++	if (!rd->link_netdev) {
++		pr_err("Please provide a net device name.\n");
++		return -EINVAL;
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, rd->link_type);
++	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, rd->link_netdev);
++	return rd_sendrecv_msg(rd, seq);
++}
++
++static int _link_del(struct rd *rd)
++{
++	uint32_t seq;
++
++	if (!rd_no_arg(rd)) {
++		pr_err("Unknown parameter %s\n", rd_argv(rd));
++		return -EINVAL;
++	}
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_DELLINK, &seq,
++		       (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	return rd_sendrecv_msg(rd, seq);
++}
++
++static int link_del(struct rd *rd)
++{
++	return rd_exec_require_dev(rd, _link_del);
++}
++
+ int cmd_link(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		link_show },
++		{ "add",	link_add },
++		{ "delete",	link_del },
+ 		{ "show",	link_show },
+ 		{ "list",	link_show },
+ 		{ "help",	link_help },
+diff --git a/rdma/rdma.h b/rdma/rdma.h
+index 6c7f7d15..070c8ddf 100644
+--- a/rdma/rdma.h
++++ b/rdma/rdma.h
+@@ -70,6 +70,8 @@ struct rd {
+ 	bool pretty_output;
+ 	bool suppress_errors;
+ 	struct list_head filter_list;
++	char *link_type;
++	char *link_netdev;
+ };
+ 
+ struct rd_cmd {
+-- 
+2.20.1
