@@ -1,43 +1,31 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [RESEND 4/7] mm/gup: Add FOLL_LONGTERM capability to GUP fast
-Date: Mon, 25 Mar 2019 07:54:11 -0700
-Message-ID: <20190325145411.GI16366@iweiny-DESK2.sc.intel.com>
-References: <20190317183438.2057-1-ira.weiny@intel.com>
- <20190317183438.2057-5-ira.weiny@intel.com>
- <CAA9_cmcx-Bqo=CFuSj7Xcap3e5uaAot2reL2T74C47Ut6_KtQw@mail.gmail.com>
- <20190325084225.GC16366@iweiny-DESK2.sc.intel.com>
- <20190325164713.GC9949@ziepe.ca>
- <20190325092314.GF16366@iweiny-DESK2.sc.intel.com>
- <20190325175150.GA21008@ziepe.ca>
- <20190325142125.GH16366@iweiny-DESK2.sc.intel.com>
- <CAPcyv4hG8WDhsWinXHYkReHKS6gdQ3gAHMcfVWvuP4c4SYBzXQ@mail.gmail.com>
+From: Dmitry Vyukov <dvyukov@google.com>
+Subject: Re: KASAN: use-after-free Read in addr_handler
+Date: Tue, 26 Mar 2019 10:56:08 +0100
+Message-ID: <CACT4Y+ZLkhCZv+x4Tf2y989JW79Ua9rpC1enmg+h4EXtXSJ0aw@mail.gmail.com>
+References: <0000000000001f5bce0584d5b095@google.com> <alpine.DEB.2.21.1903241419510.1798@nanos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4hG8WDhsWinXHYkReHKS6gdQ3gAHMcfVWvuP4c4SYBzXQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>Linux Kernel Mailing List <l>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.21.1903241419510.1798@nanos.tec.linutronix.de>
+Sender: netdev-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: syzbot <syzbot+b358909d8d01556b790b@syzkaller.appspotmail.com>, Alexander Duyck <alexander.h.duyck@intel.com>, amritha.nambiar@intel.com, andrew@lunn.ch, avagin@gmail.com, danielj@mellanox.com, David Miller <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, gregory.clement@bootlin.com, jason@lakedaemon.net, jeffrey.t.kirsher@intel.com, Jason Gunthorpe <jgg@ziepe.ca>, Joe Perches <joe@perches.com>, Leon Romanovsky <leon@kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, miquel.raynal@bootlin.com, netdev <netdev@vger.kernel.org>, parav@mellanox.com, sebastian.hesselbarth@gmail.com, swise@opengridcomputing.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 25, 2019 at 03:36:28PM -0700, Dan Williams wrote:
-> On Mon, Mar 25, 2019 at 3:22 PM Ira Weiny <ira.weiny@intel.com> wrote:
-> [..]
-> > FWIW this thread is making me think my original patch which simply implemented
-> > get_user_pages_fast_longterm() would be more clear.  There is some evidence
-> > that the GUP API was trending that way (see get_user_pages_remote).  That seems
-> > wrong but I don't know how to ensure users don't specify the wrong flag.
-> 
-> What about just making the existing get_user_pages_longterm() have a
-> fast path option?
+On Sun, Mar 24, 2019 at 2:21 PM Thomas Gleixner <tglx@linutronix.de> wrote:
+>
+> On Sun, 24 Mar 2019, syzbot wrote:
+>
+> > syzbot has bisected this bug to:
+> >
+> > commit 4f4c867c91e644fc9d461c8c5cf2f09d6d5bcac2
+> > Author: Miquel Raynal <miquel.raynal@bootlin.com>
+> > Date:   Tue Oct 2 08:54:16 2018 +0000
+> >
+> >    irqchip/irq-mvebu-icu: Support ICU subnodes
+>
+> Yet another bogus bisect result. Why? That code is ARM only and cannot
+> influence x86 by any means.
 
-That would work but was not the direction we agreed upon before.[1]
-
-At this point I would rather see this patch set applied, focus on fixing the
-filesystem issues, and once that is done determine if FOLL_LONGTERM is needed
-in any GUP calls.
-
-Ira
-
-[1] https://lkml.org/lkml/2019/2/11/2038
+>From the bisection log it seems the process diverged to a different
+bug mid way ("WARNING: ODEBUG bug in netdev_freemem").
