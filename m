@@ -1,123 +1,251 @@
 From: jglisse@redhat.com
-Subject: [PATCH v6 0/8] mmu notifier provide context informations
-Date: Tue, 26 Mar 2019 12:47:39 -0400
-Message-ID: <20190326164747.24405-1-jglisse@redhat.com>
+Subject: [PATCH v6 2/8] mm/mmu_notifier: convert user range->blockable to helper function
+Date: Tue, 26 Mar 2019 12:47:41 -0400
+Message-ID: <20190326164747.24405-3-jglisse@redhat.com>
+References: <20190326164747.24405-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190326164747.24405-1-jglisse@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Peter Xu <peterx@redhat.com>, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ben Skeggs <bskeggs@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alex Deucher <alexander.deucher@amd.com>, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Cc: =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?q?Radim=20Kr=C4=8Dm=C3=A1=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvid>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSsOpcsO0bWUgR2xpc3NlIDxqZ2xpc3NlQHJlZGhhdC5jb20+CgooQW5kcmV3IHRoaXMg
-YXBwbHkgb24gdG9wIG9mIG15IEhNTSBwYXRjaHNldCBhcyBvdGhlcndpc2UgeW91IHdpbGwgaGF2
-ZQogY29uZmxpY3Qgd2l0aCBjaGFuZ2VzIHRvIG1tL2htbS5jKQoKQ2hhbmdlcyBzaW5jZSB2NToK
-ICAgIC0gZHJvcCBLVk0gYml0cyB3YWl0aW5nIGZvciBLVk0gcGVvcGxlIHRvIGV4cHJlc3MgaW50
-ZXJlc3QgaWYgdGhleQogICAgICBkbyBub3QgdGhlbiBpIHdpbGwgcG9zdCBwYXRjaHNldCB0byBy
-ZW1vdmUgY2hhbmdlX3B0ZV9ub3RpZnkgYXMKICAgICAgd2l0aG91dCB0aGUgY2hhbmdlcyBpbiB2
-NSBjaGFuZ2VfcHRlX25vdGlmeSBpcyBqdXN0IHVzZWxlc3MgKGl0CiAgICAgIGl0IGlzIHVzZWxl
-c3MgdG9kYXkgdXBzdHJlYW0gaXQgaXMganVzdCB3YXN0aW5nIGNwdSBjeWNsZXMpCiAgICAtIHJl
-YmFzZSBvbiB0b3Agb2YgbGFzdGVzdCBMaW51cyB0cmVlCgpQcmV2aW91cyBjb3ZlciBsZXR0ZXIg
-d2l0aCBtaW5vciB1cGRhdGU6CgoKSGVyZSBpIGFtIG5vdCBwb3N0aW5nIHVzZXJzIG9mIHRoaXMs
-IHRoZXkgYWxyZWFkeSBoYXZlIGJlZW4gcG9zdGVkIHRvCmFwcHJvcHJpYXRlIG1haWxpbmcgbGlz
-dCBbNl0gYW5kIHdpbGwgYmUgbWVyZ2UgdGhyb3VnaCB0aGUgYXBwcm9wcmlhdGUKdHJlZSBvbmNl
-IHRoaXMgcGF0Y2hzZXQgaXMgdXBzdHJlYW0uCgpOb3RlIHRoYXQgdGhpcyBzZXJpZSBkb2VzIG5v
-dCBjaGFuZ2UgYW55IGJlaGF2aW9yIGZvciBhbnkgZXhpc3RpbmcKY29kZS4gSXQganVzdCBwYXNz
-IGRvd24gbW9yZSBpbmZvcm1hdGlvbiB0byBtbXUgbm90aWZpZXIgbGlzdGVuZXIuCgpUaGUgcmF0
-aW9uYWwgZm9yIHRoaXMgcGF0Y2hzZXQ6CgpDUFUgcGFnZSB0YWJsZSB1cGRhdGUgY2FuIGhhcHBl
-bnMgZm9yIG1hbnkgcmVhc29ucywgbm90IG9ubHkgYXMgYQpyZXN1bHQgb2YgYSBzeXNjYWxsICht
-dW5tYXAoKSwgbXByb3RlY3QoKSwgbXJlbWFwKCksIG1hZHZpc2UoKSwgLi4uKQpidXQgYWxzbyBh
-cyBhIHJlc3VsdCBvZiBrZXJuZWwgYWN0aXZpdGllcyAobWVtb3J5IGNvbXByZXNzaW9uLCByZWNs
-YWltLAptaWdyYXRpb24sIC4uLikuCgpUaGlzIHBhdGNoIGludHJvZHVjZSBhIHNldCBvZiBlbnVt
-cyB0aGF0IGNhbiBiZSBhc3NvY2lhdGVkIHdpdGggZWFjaApvZiB0aGUgZXZlbnRzIHRyaWdnZXJp
-bmcgYSBtbXUgbm90aWZpZXI6CgogICAgLSBVTk1BUDogbXVubWFwKCkgb3IgbXJlbWFwKCkKICAg
-IC0gQ0xFQVI6IHBhZ2UgdGFibGUgaXMgY2xlYXJlZCAobWlncmF0aW9uLCBjb21wYWN0aW9uLCBy
-ZWNsYWltLCAuLi4pCiAgICAtIFBST1RFQ1RJT05fVk1BOiBjaGFuZ2UgaW4gYWNjZXNzIHByb3Rl
-Y3Rpb25zIGZvciB0aGUgcmFuZ2UKICAgIC0gUFJPVEVDVElPTl9QQUdFOiBjaGFuZ2UgaW4gYWNj
-ZXNzIHByb3RlY3Rpb25zIGZvciBwYWdlIGluIHRoZSByYW5nZQogICAgLSBTT0ZUX0RJUlRZOiBz
-b2Z0IGRpcnR5bmVzcyB0cmFja2luZwoKQmVpbmcgYWJsZSB0byBpZGVudGlmeSBtdW5tYXAoKSBh
-bmQgbXJlbWFwKCkgZnJvbSBvdGhlciByZWFzb25zIHdoeSB0aGUKcGFnZSB0YWJsZSBpcyBjbGVh
-cmVkIGlzIGltcG9ydGFudCB0byBhbGxvdyB1c2VyIG9mIG1tdSBub3RpZmllciB0bwp1cGRhdGUg
-dGhlaXIgb3duIGludGVybmFsIHRyYWNraW5nIHN0cnVjdHVyZSBhY2NvcmRpbmdseSAob24gbXVu
-bWFwIG9yCm1yZW1hcCBpdCBpcyBub3QgbG9uZ2VyIG5lZWRlZCB0byB0cmFjayByYW5nZSBvZiB2
-aXJ0dWFsIGFkZHJlc3MgYXMgaXQKYmVjb21lcyBpbnZhbGlkKS4gV2l0aG91dCB0aGlzIHNlcmll
-LCBkcml2ZXIgYXJlIGZvcmNlIHRvIGFzc3VtZSB0aGF0CmV2ZXJ5IG5vdGlmaWNhdGlvbiBpcyBh
-biBtdW5tYXAgd2hpY2ggdHJpZ2dlcnMgdXNlbGVzcyB0cmFzaGluZyB3aXRoaW4KZHJpdmVycyB0
-aGF0IGFzc29jaWF0ZSBzdHJ1Y3R1cmUgd2l0aCByYW5nZSBvZiB2aXJ0dWFsIGFkZHJlc3MuIEVh
-Y2gKZHJpdmVyIGlzIGZvcmNlIHRvIGZyZWUgdXAgaXRzIHRyYWNraW5nIHN0cnVjdHVyZSBhbmQg
-dGhlbiByZXN0b3JlIGl0Cm9uIG5leHQgZGV2aWNlIHBhZ2UgZmF1bHQuIFdpdGggdGhpcyBzZXJp
-ZSB3ZSBjYW4gYWxzbyBvcHRpbWl6ZSBkZXZpY2UKcGFnZSB0YWJsZSB1cGRhdGUgWzZdLgoKTW9y
-ZSBvdmVyIHRoaXMgY2FuIGFsc28gYmUgdXNlIHRvIG9wdGltaXplIG91dCBzb21lIHBhZ2UgdGFi
-bGUgdXBkYXRlcwpsaWtlIGZvciBLVk0gd2hlcmUgd2UgY2FuIHVwZGF0ZSB0aGUgc2Vjb25kYXJ5
-IE1NVSBkaXJlY3RseSBmcm9tIHRoZQpjYWxsYmFjayBpbnN0ZWFkIG9mIGNsZWFyaW5nIGl0LgoK
-QUNLUyBBTUQvUkFERU9OIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE5LzIvMS8zOTUKQUNLUyBS
-RE1BIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE4LzEyLzYvMTQ3MwoKQ2hlZXJzLApKw6lyw7Rt
-ZQoKWzFdIHYxIGh0dHBzOi8vbGttbC5vcmcvbGttbC8yMDE4LzMvMjMvMTA0OQpbMl0gdjIgaHR0
-cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvMTIvNS8xMApbM10gdjMgaHR0cHM6Ly9sa21sLm9yZy9s
-a21sLzIwMTgvMTIvMTMvNjIwCls0XSB2NCBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzIz
-LzgzOApbNV0gdjUgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkvMi8xOS83NTIKWzZdIHBhdGNo
-ZXMgdG8gdXNlIHRoaXM6CiAgICBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzIzLzgzMwog
-ICAgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkvMS8yMy84MzQKICAgIGh0dHBzOi8vbGttbC5v
-cmcvbGttbC8yMDE5LzEvMjMvODMyCiAgICBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzIz
-LzgzMQoKQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgtZm91bmRhdGlvbi5vcmc+CkNjOiBs
-aW51eC1tbUBrdmFjay5vcmcKQ2M6IENocmlzdGlhbiBLw7ZuaWcgPGNocmlzdGlhbi5rb2VuaWdA
-YW1kLmNvbT4KQ2M6IEpvb25hcyBMYWh0aW5lbiA8am9vbmFzLmxhaHRpbmVuQGxpbnV4LmludGVs
-LmNvbT4KQ2M6IEphbmkgTmlrdWxhIDxqYW5pLm5pa3VsYUBsaW51eC5pbnRlbC5jb20+CkNjOiBS
-b2RyaWdvIFZpdmkgPHJvZHJpZ28udml2aUBpbnRlbC5jb20+CkNjOiBKYW4gS2FyYSA8amFja0Bz
-dXNlLmN6PgpDYzogQW5kcmVhIEFyY2FuZ2VsaSA8YWFyY2FuZ2VAcmVkaGF0LmNvbT4KQ2M6IFBl
-dGVyIFh1IDxwZXRlcnhAcmVkaGF0LmNvbT4KQ2M6IEZlbGl4IEt1ZWhsaW5nIDxGZWxpeC5LdWVo
-bGluZ0BhbWQuY29tPgpDYzogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgpDYzog
-Um9zcyBad2lzbGVyIDx6d2lzbGVyQGtlcm5lbC5vcmc+CkNjOiBEYW4gV2lsbGlhbXMgPGRhbi5q
-LndpbGxpYW1zQGludGVsLmNvbT4KQ2M6IFBhb2xvIEJvbnppbmkgPHBib256aW5pQHJlZGhhdC5j
-b20+CkNjOiBBbGV4IERldWNoZXIgPGFsZXhhbmRlci5kZXVjaGVyQGFtZC5jb20+CkNjOiBSYWRp
-bSBLcsSNbcOhxZkgPHJrcmNtYXJAcmVkaGF0LmNvbT4KQ2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tv
-QGtlcm5lbC5vcmc+CkNjOiBDaHJpc3RpYW4gS29lbmlnIDxjaHJpc3RpYW4ua29lbmlnQGFtZC5j
-b20+CkNjOiBCZW4gU2tlZ2dzIDxic2tlZ2dzQHJlZGhhdC5jb20+CkNjOiBSYWxwaCBDYW1wYmVs
-bCA8cmNhbXBiZWxsQG52aWRpYS5jb20+CkNjOiBKb2huIEh1YmJhcmQgPGpodWJiYXJkQG52aWRp
-YS5jb20+CkNjOiBrdm1Admdlci5rZXJuZWwub3JnCkNjOiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZwpDYzogQXJuZCBCZXJnbWFu
-biA8YXJuZEBhcm5kYi5kZT4KCkrDqXLDtG1lIEdsaXNzZSAoOCk6CiAgbW0vbW11X25vdGlmaWVy
-OiBoZWxwZXIgdG8gdGVzdCBpZiBhIHJhbmdlIGludmFsaWRhdGlvbiBpcyBibG9ja2FibGUKICBt
-bS9tbXVfbm90aWZpZXI6IGNvbnZlcnQgdXNlciByYW5nZS0+YmxvY2thYmxlIHRvIGhlbHBlciBm
-dW5jdGlvbgogIG1tL21tdV9ub3RpZmllcjogY29udmVydCBtbXVfbm90aWZpZXJfcmFuZ2UtPmJs
-b2NrYWJsZSB0byBhIGZsYWdzCiAgbW0vbW11X25vdGlmaWVyOiBjb250ZXh0dWFsIGluZm9ybWF0
-aW9uIGZvciBldmVudCBlbnVtcwogIG1tL21tdV9ub3RpZmllcjogY29udGV4dHVhbCBpbmZvcm1h
-dGlvbiBmb3IgZXZlbnQgdHJpZ2dlcmluZwogICAgaW52YWxpZGF0aW9uIHYyCiAgbW0vbW11X25v
-dGlmaWVyOiB1c2UgY29ycmVjdCBtbXVfbm90aWZpZXIgZXZlbnRzIGZvciBlYWNoIGludmFsaWRh
-dGlvbgogIG1tL21tdV9ub3RpZmllcjogcGFzcyBkb3duIHZtYSBhbmQgcmVhc29ucyB3aHkgbW11
-IG5vdGlmaWVyIGlzCiAgICBoYXBwZW5pbmcgdjIKICBtbS9tbXVfbm90aWZpZXI6IG1tdV9ub3Rp
-Zmllcl9yYW5nZV91cGRhdGVfdG9fcmVhZF9vbmx5KCkgaGVscGVyCgogZHJpdmVycy9ncHUvZHJt
-L2FtZC9hbWRncHUvYW1kZ3B1X21uLmMgIHwgIDggKystLQogZHJpdmVycy9ncHUvZHJtL2k5MTUv
-aTkxNV9nZW1fdXNlcnB0ci5jIHwgIDIgKy0KIGRyaXZlcnMvZ3B1L2RybS9yYWRlb24vcmFkZW9u
-X21uLmMgICAgICB8ICA0ICstCiBkcml2ZXJzL2luZmluaWJhbmQvY29yZS91bWVtX29kcC5jICAg
-ICAgfCAgNSArLQogZHJpdmVycy94ZW4vZ250ZGV2LmMgICAgICAgICAgICAgICAgICAgIHwgIDYg
-Ky0tCiBmcy9wcm9jL3Rhc2tfbW11LmMgICAgICAgICAgICAgICAgICAgICAgfCAgMyArLQogaW5j
-bHVkZS9saW51eC9tbXVfbm90aWZpZXIuaCAgICAgICAgICAgIHwgNjMgKysrKysrKysrKysrKysr
-KysrKysrKystLQoga2VybmVsL2V2ZW50cy91cHJvYmVzLmMgICAgICAgICAgICAgICAgIHwgIDMg
-Ky0KIG1tL2htbS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICA2ICstLQogbW0v
-aHVnZV9tZW1vcnkuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgMTQgKysrLS0tCiBtbS9odWdl
-dGxiLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxMiArKystLQogbW0va2h1Z2VwYWdl
-ZC5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDMgKy0KIG1tL2tzbS5jICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICB8ICA2ICsrLQogbW0vbWFkdmlzZS5jICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIHwgIDMgKy0KIG1tL21lbW9yeS5jICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8IDI1ICsrKysrKy0tLS0KIG1tL21pZ3JhdGUuYyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICA1ICstCiBtbS9tbXVfbm90aWZpZXIuYyAgICAgICAgICAgICAgICAgICAgICAgfCAx
-MiArKysrLQogbW0vbXByb3RlY3QuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0K
-IG1tL21yZW1hcC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAzICstCiBtbS9vb21f
-a2lsbC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgMyArLQogbW0vcm1hcC5jICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDYgKystCiB2aXJ0L2t2bS9rdm1fbWFpbi5jICAg
-ICAgICAgICAgICAgICAgICAgfCAgMyArLQogMjIgZmlsZXMgY2hhbmdlZCwgMTQ3IGluc2VydGlv
-bnMoKyksIDUyIGRlbGV0aW9ucygtKQoKLS0gCjIuMjAuMQoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2
-ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+From: Jérôme Glisse <jglisse@redhat.com>
+
+Use the mmu_notifier_range_blockable() helper function instead of
+directly dereferencing the range->blockable field. This is done to
+make it easier to change the mmu_notifier range field.
+
+This patch is the outcome of the following coccinelle patch:
+
+%<-------------------------------------------------------------------
+@@
+identifier I1, FN;
+@@
+FN(..., struct mmu_notifier_range *I1, ...) {
+<...
+-I1->blockable
++mmu_notifier_range_blockable(I1)
+...>
+}
+------------------------------------------------------------------->%
+
+spatch --in-place --sp-file blockable.spatch --dir .
+
+Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Ross Zwisler <zwisler@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: kvm@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-rdma@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c  | 8 ++++----
+ drivers/gpu/drm/i915/i915_gem_userptr.c | 2 +-
+ drivers/gpu/drm/radeon/radeon_mn.c      | 4 ++--
+ drivers/infiniband/core/umem_odp.c      | 5 +++--
+ drivers/xen/gntdev.c                    | 6 +++---
+ mm/hmm.c                                | 6 +++---
+ mm/mmu_notifier.c                       | 2 +-
+ virt/kvm/kvm_main.c                     | 3 ++-
+ 8 files changed, 19 insertions(+), 17 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+index 3e6823fdd939..58ed401c5996 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+@@ -256,14 +256,14 @@ static int amdgpu_mn_invalidate_range_start_gfx(struct mmu_notifier *mn,
+ 	/* TODO we should be able to split locking for interval tree and
+ 	 * amdgpu_mn_invalidate_node
+ 	 */
+-	if (amdgpu_mn_read_lock(amn, range->blockable))
++	if (amdgpu_mn_read_lock(amn, mmu_notifier_range_blockable(range)))
+ 		return -EAGAIN;
+ 
+ 	it = interval_tree_iter_first(&amn->objects, range->start, end);
+ 	while (it) {
+ 		struct amdgpu_mn_node *node;
+ 
+-		if (!range->blockable) {
++		if (!mmu_notifier_range_blockable(range)) {
+ 			amdgpu_mn_read_unlock(amn);
+ 			return -EAGAIN;
+ 		}
+@@ -299,7 +299,7 @@ static int amdgpu_mn_invalidate_range_start_hsa(struct mmu_notifier *mn,
+ 	/* notification is exclusive, but interval is inclusive */
+ 	end = range->end - 1;
+ 
+-	if (amdgpu_mn_read_lock(amn, range->blockable))
++	if (amdgpu_mn_read_lock(amn, mmu_notifier_range_blockable(range)))
+ 		return -EAGAIN;
+ 
+ 	it = interval_tree_iter_first(&amn->objects, range->start, end);
+@@ -307,7 +307,7 @@ static int amdgpu_mn_invalidate_range_start_hsa(struct mmu_notifier *mn,
+ 		struct amdgpu_mn_node *node;
+ 		struct amdgpu_bo *bo;
+ 
+-		if (!range->blockable) {
++		if (!mmu_notifier_range_blockable(range)) {
+ 			amdgpu_mn_read_unlock(amn);
+ 			return -EAGAIN;
+ 		}
+diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+index 1d3f9a31ad61..777b3f8727e7 100644
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -122,7 +122,7 @@ userptr_mn_invalidate_range_start(struct mmu_notifier *_mn,
+ 	while (it) {
+ 		struct drm_i915_gem_object *obj;
+ 
+-		if (!range->blockable) {
++		if (!mmu_notifier_range_blockable(range)) {
+ 			ret = -EAGAIN;
+ 			break;
+ 		}
+diff --git a/drivers/gpu/drm/radeon/radeon_mn.c b/drivers/gpu/drm/radeon/radeon_mn.c
+index b3019505065a..c9bd1278f573 100644
+--- a/drivers/gpu/drm/radeon/radeon_mn.c
++++ b/drivers/gpu/drm/radeon/radeon_mn.c
+@@ -133,7 +133,7 @@ static int radeon_mn_invalidate_range_start(struct mmu_notifier *mn,
+ 	/* TODO we should be able to split locking for interval tree and
+ 	 * the tear down.
+ 	 */
+-	if (range->blockable)
++	if (mmu_notifier_range_blockable(range))
+ 		mutex_lock(&rmn->lock);
+ 	else if (!mutex_trylock(&rmn->lock))
+ 		return -EAGAIN;
+@@ -144,7 +144,7 @@ static int radeon_mn_invalidate_range_start(struct mmu_notifier *mn,
+ 		struct radeon_bo *bo;
+ 		long r;
+ 
+-		if (!range->blockable) {
++		if (!mmu_notifier_range_blockable(range)) {
+ 			ret = -EAGAIN;
+ 			goto out_unlock;
+ 		}
+diff --git a/drivers/infiniband/core/umem_odp.c b/drivers/infiniband/core/umem_odp.c
+index e6ec79ad9cc8..59ef912fbe03 100644
+--- a/drivers/infiniband/core/umem_odp.c
++++ b/drivers/infiniband/core/umem_odp.c
+@@ -152,7 +152,7 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ 	struct ib_ucontext_per_mm *per_mm =
+ 		container_of(mn, struct ib_ucontext_per_mm, mn);
+ 
+-	if (range->blockable)
++	if (mmu_notifier_range_blockable(range))
+ 		down_read(&per_mm->umem_rwsem);
+ 	else if (!down_read_trylock(&per_mm->umem_rwsem))
+ 		return -EAGAIN;
+@@ -170,7 +170,8 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ 	return rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
+ 					     range->end,
+ 					     invalidate_range_start_trampoline,
+-					     range->blockable, NULL);
++					     mmu_notifier_range_blockable(range),
++					     NULL);
+ }
+ 
+ static int invalidate_range_end_trampoline(struct ib_umem_odp *item, u64 start,
+diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
+index 7cf9c51318aa..8012ab7f5120 100644
+--- a/drivers/xen/gntdev.c
++++ b/drivers/xen/gntdev.c
+@@ -526,20 +526,20 @@ static int mn_invl_range_start(struct mmu_notifier *mn,
+ 	struct gntdev_grant_map *map;
+ 	int ret = 0;
+ 
+-	if (range->blockable)
++	if (mmu_notifier_range_blockable(range))
+ 		mutex_lock(&priv->lock);
+ 	else if (!mutex_trylock(&priv->lock))
+ 		return -EAGAIN;
+ 
+ 	list_for_each_entry(map, &priv->maps, next) {
+ 		ret = unmap_if_in_range(map, range->start, range->end,
+-					range->blockable);
++					mmu_notifier_range_blockable(range));
+ 		if (ret)
+ 			goto out_unlock;
+ 	}
+ 	list_for_each_entry(map, &priv->freeable_maps, next) {
+ 		ret = unmap_if_in_range(map, range->start, range->end,
+-					range->blockable);
++					mmu_notifier_range_blockable(range));
+ 		if (ret)
+ 			goto out_unlock;
+ 	}
+diff --git a/mm/hmm.c b/mm/hmm.c
+index fd143251b157..25f372da325a 100644
+--- a/mm/hmm.c
++++ b/mm/hmm.c
+@@ -201,9 +201,9 @@ static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+ 	update.start = nrange->start;
+ 	update.end = nrange->end;
+ 	update.event = HMM_UPDATE_INVALIDATE;
+-	update.blockable = nrange->blockable;
++	update.blockable = mmu_notifier_range_blockable(nrange);
+ 
+-	if (nrange->blockable)
++	if (mmu_notifier_range_blockable(nrange))
+ 		mutex_lock(&hmm->lock);
+ 	else if (!mutex_trylock(&hmm->lock)) {
+ 		ret = -EAGAIN;
+@@ -218,7 +218,7 @@ static int hmm_invalidate_range_start(struct mmu_notifier *mn,
+ 	}
+ 	mutex_unlock(&hmm->lock);
+ 
+-	if (nrange->blockable)
++	if (mmu_notifier_range_blockable(nrange))
+ 		down_read(&hmm->mirrors_sem);
+ 	else if (!down_read_trylock(&hmm->mirrors_sem)) {
+ 		ret = -EAGAIN;
+diff --git a/mm/mmu_notifier.c b/mm/mmu_notifier.c
+index 9c884abc7850..abd88c466eb2 100644
+--- a/mm/mmu_notifier.c
++++ b/mm/mmu_notifier.c
+@@ -180,7 +180,7 @@ int __mmu_notifier_invalidate_range_start(struct mmu_notifier_range *range)
+ 			if (_ret) {
+ 				pr_info("%pS callback failed with %d in %sblockable context.\n",
+ 					mn->ops->invalidate_range_start, _ret,
+-					!range->blockable ? "non-" : "");
++					!mmu_notifier_range_blockable(range) ? "non-" : "");
+ 				ret = _ret;
+ 			}
+ 		}
+diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
+index f25aa98a94df..16edfc3e0d1a 100644
+--- a/virt/kvm/kvm_main.c
++++ b/virt/kvm/kvm_main.c
+@@ -391,7 +391,8 @@ static int kvm_mmu_notifier_invalidate_range_start(struct mmu_notifier *mn,
+ 	spin_unlock(&kvm->mmu_lock);
+ 
+ 	ret = kvm_arch_mmu_notifier_invalidate_range(kvm, range->start,
+-					range->end, range->blockable);
++					range->end,
++					mmu_notifier_range_blockable(range));
+ 
+ 	srcu_read_unlock(&kvm->srcu, idx);
+ 
+-- 
+2.20.1
