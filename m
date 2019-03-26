@@ -1,7 +1,7 @@
 From: Steve Wise <larrystevenwise@gmail.com>
-Subject: [PATCH v2 iproute2-next 3/4] rdma: add 'link add/delete' commands
-Date: Tue, 26 Mar 2019 14:18:29 -0500
-Message-ID: <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
+Subject: [PATCH v2 iproute2-next 2/4] rdma: add helper rd_sendrecv_msg()
+Date: Tue, 26 Mar 2019 14:18:28 -0500
+Message-ID: <06a2302a1dc575a0829a5b789bb7a412adb2ce95.1553627811.git.larrystevenwise@gmail.com>
 References: <cover.1553627811.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,137 +12,98 @@ To: dsahern@gmail.com, leon@kernel.org
 Cc: Steve Wise <larrystevenwise@gmail.com>, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
-device to a netdev interface.
+This function sends the constructed netlink message and then
+receives the response.
 
-EG:
+Change rd_recv_msg() to display any error messages.
 
-rdma link add rxe_eth0 type rxe netdev eth0
-rdma link delete rxe_eth0
+Change 'rdma dev set' to use rd_sendrecv_msg().
 
 Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
 ---
- rdma/link.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/rdma.h |  2 ++
- 2 files changed, 85 insertions(+)
+ rdma/dev.c   |  2 +-
+ rdma/rdma.h  |  2 ++
+ rdma/res.h   |  1 +
+ rdma/utils.c | 18 ++++++++++++++++++
+ 4 files changed, 22 insertions(+), 1 deletion(-)
 
-diff --git a/rdma/link.c b/rdma/link.c
-index 89e81b84..982c2b16 100644
---- a/rdma/link.c
-+++ b/rdma/link.c
-@@ -9,6 +9,9 @@
- static int link_help(struct rd *rd)
- {
- 	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
-+	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
-+	       rd->filename);
-+	pr_out("Usage: %s link delete NAME\n", rd->filename);
- 	return 0;
+diff --git a/rdma/dev.c b/rdma/dev.c
+index 954e0015..33962520 100644
+--- a/rdma/dev.c
++++ b/rdma/dev.c
+@@ -268,7 +268,7 @@ static int dev_set_name(struct rd *rd)
+ 	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
+ 	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, rd_argv(rd));
+ 
+-	return rd_send_msg(rd);
++	return rd_sendrecv_msg(rd, seq);
  }
  
-@@ -336,10 +339,90 @@ static int link_show(struct rd *rd)
- 	return rd_exec_link(rd, link_one_show, true);
- }
- 
-+static int link_add_netdev(struct rd *rd)
-+{
-+	rd->link_netdev = rd_argv(rd);
-+	rd_arg_inc(rd);
-+	return 0;
-+}
-+
-+static int link_add_type(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		link_help},
-+		{ "netdev",	link_add_netdev},
-+		{ 0 }
-+	};
-+	rd->link_type = rd_argv(rd);
-+	rd_arg_inc(rd);
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int link_add(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		link_help},
-+		{ "type",	link_add_type},
-+		{ 0 }
-+	};
-+
-+	uint32_t seq;
-+	char *name;
-+	int ret;
-+
-+	if (rd_no_arg(rd)) {
-+		pr_err("Please provide a link name to add.\n");
-+		return -EINVAL;
-+	}
-+	name = rd_argv(rd);
-+	rd_arg_inc(rd);
-+
-+	ret = rd_exec_cmd(rd, cmds, "parameter");
-+	if (ret)
-+		return ret;
-+
-+	if (!rd->link_type) {
-+		pr_err("Please provide a link type name.\n");
-+		return -EINVAL;
-+	}
-+	if (!rd->link_netdev) {
-+		pr_err("Please provide a net device name.\n");
-+		return -EINVAL;
-+	}
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
-+		       (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
-+	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, rd->link_type);
-+	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, rd->link_netdev);
-+	return rd_sendrecv_msg(rd, seq);
-+}
-+
-+static int _link_del(struct rd *rd)
-+{
-+	uint32_t seq;
-+
-+	if (!rd_no_arg(rd)) {
-+		pr_err("Unknown parameter %s\n", rd_argv(rd));
-+		return -EINVAL;
-+	}
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_DELLINK, &seq,
-+		       (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	return rd_sendrecv_msg(rd, seq);
-+}
-+
-+static int link_del(struct rd *rd)
-+{
-+	return rd_exec_require_dev(rd, _link_del);
-+}
-+
- int cmd_link(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
- 		{ NULL,		link_show },
-+		{ "add",	link_add },
-+		{ "delete",	link_del },
- 		{ "show",	link_show },
- 		{ "list",	link_show },
- 		{ "help",	link_help },
+ static int dev_one_set(struct rd *rd)
 diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 6c7f7d15..070c8ddf 100644
+index 1022e9a2..6c7f7d15 100644
 --- a/rdma/rdma.h
 +++ b/rdma/rdma.h
-@@ -70,6 +70,8 @@ struct rd {
+@@ -68,6 +68,7 @@ struct rd {
+ 	json_writer_t *jw;
+ 	bool json_output;
  	bool pretty_output;
- 	bool suppress_errors;
++	bool suppress_errors;
  	struct list_head filter_list;
-+	char *link_type;
-+	char *link_netdev;
  };
  
- struct rd_cmd {
+@@ -119,6 +120,7 @@ bool rd_is_string_filtered_attr(struct rd *rd, const char *key, const char *val,
+  */
+ int rd_send_msg(struct rd *rd);
+ int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, uint32_t seq);
++int rd_sendrecv_msg(struct rd *rd, unsigned int seq);
+ void rd_prepare_msg(struct rd *rd, uint32_t cmd, uint32_t *seq, uint16_t flags);
+ int rd_dev_init_cb(const struct nlmsghdr *nlh, void *data);
+ int rd_attr_cb(const struct nlattr *attr, void *data);
+diff --git a/rdma/res.h b/rdma/res.h
+index b4a7e552..525171fc 100644
+--- a/rdma/res.h
++++ b/rdma/res.h
+@@ -31,6 +31,7 @@ int res_qp_idx_parse_cb(const struct nlmsghdr *nlh, void *data);
+ 		if (id) {                                                              \
+ 			ret = rd_doit_index(rd, &idx);                                 \
+ 			if (ret) {                                                     \
++				rd->suppress_errors = true;                            \
+ 				ret = _res_send_idx_msg(rd, command,                   \
+ 							name##_idx_parse_cb,           \
+ 							idx, id);                      \
+diff --git a/rdma/utils.c b/rdma/utils.c
+index 1f6bf330..11ed8a73 100644
+--- a/rdma/utils.c
++++ b/rdma/utils.c
+@@ -693,10 +693,28 @@ int rd_recv_msg(struct rd *rd, mnl_cb_t callback, void *data, unsigned int seq)
+ 		ret = mnl_cb_run(buf, ret, seq, portid, callback, data);
+ 	} while (ret > 0);
+ 
++	if (ret < 0 && !rd->suppress_errors)
++		perror("error");
++
+ 	mnl_socket_close(rd->nl);
+ 	return ret;
+ }
+ 
++static int null_cb(const struct nlmsghdr *nlh, void *data)
++{
++	return MNL_CB_OK;
++}
++
++int rd_sendrecv_msg(struct rd *rd, unsigned int seq)
++{
++	int ret;
++
++	ret = rd_send_msg(rd);
++	if (!ret)
++		ret = rd_recv_msg(rd, null_cb, rd, seq);
++	return ret;
++}
++
+ static struct dev_map *_dev_map_lookup(struct rd *rd, const char *dev_name)
+ {
+ 	struct dev_map *dev_map;
 -- 
 2.20.1
