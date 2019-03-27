@@ -1,114 +1,90 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 34/87] IB/mlx4: Increase the timeout for CM cache
-Date: Wed, 27 Mar 2019 14:19:47 -0400
-Message-ID: <20190327182040.17444-34-sashal@kernel.org>
-References: <20190327182040.17444-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 007/123] net/mlx5: Avoid panic when setting vport mac, getting vport config
+Date: Wed, 27 Mar 2019 14:14:31 -0400
+Message-ID: <20190327181628.15899-7-sashal@kernel.org>
+References: <20190327181628.15899-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190327182040.17444-1-sashal@kernel.org>
+In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Tonghao Zhang <xiangxia.m.yue@gmail.com>, Eli Cohen <eli@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
 
-[ Upstream commit 2612d723aadcf8281f9bf8305657129bd9f3cd57 ]
+[ Upstream commit 6e77c413e8e73d0f36b5358b601389d75ec4451c ]
 
-Using CX-3 virtual functions, either from a bare-metal machine or
-pass-through from a VM, MAD packets are proxied through the PF driver.
+If we try to set VFs mac address on a VF (not PF) net device,
+the kernel will be crash. The commands are show as below:
 
-Since the VF drivers have separate name spaces for MAD Transaction Ids
-(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
-in a cache.
+$ echo 2 > /sys/class/net/$MLX_PF0/device/sriov_numvfs
+$ ip link set $MLX_VF0 vf 0 mac 00:11:22:33:44:00
 
-Following the RDMA Connection Manager (CM) protocol, it is clear when
-an entry has to evicted form the cache. But life is not perfect,
-remote peers may die or be rebooted. Hence, it's a timeout to wipe out
-a cache entry, when the PF driver assumes the remote peer has gone.
+[exception RIP: mlx5_eswitch_set_vport_mac+41]
+[ffffb8b7079e3688] do_setlink at ffffffff8f67f85b
+[ffffb8b7079e37a8] __rtnl_newlink at ffffffff8f683778
+[ffffb8b7079e3b68] rtnl_newlink at ffffffff8f683a63
+[ffffb8b7079e3b90] rtnetlink_rcv_msg at ffffffff8f67d812
+[ffffb8b7079e3c10] netlink_rcv_skb at ffffffff8f6b88ab
+[ffffb8b7079e3c60] netlink_unicast at ffffffff8f6b808f
+[ffffb8b7079e3ca0] netlink_sendmsg at ffffffff8f6b8412
+[ffffb8b7079e3d18] sock_sendmsg at ffffffff8f6452f6
+[ffffb8b7079e3d30] ___sys_sendmsg at ffffffff8f645860
+[ffffb8b7079e3eb0] __sys_sendmsg at ffffffff8f647a38
+[ffffb8b7079e3f38] do_syscall_64 at ffffffff8f00401b
+[ffffb8b7079e3f50] entry_SYSCALL_64_after_hwframe at ffffffff8f80008c
 
-During workloads where a high number of QPs are destroyed concurrently,
-excessive amount of CM DREQ retries has been observed
+and
 
-The problem can be demonstrated in a bare-metal environment, where two
-nodes have instantiated 8 VFs each. This using dual ported HCAs, so we
-have 16 vPorts per physical server.
+[exception RIP: mlx5_eswitch_get_vport_config+12]
+[ffffa70607e57678] mlx5e_get_vf_config at ffffffffc03c7f8f [mlx5_core]
+[ffffa70607e57688] do_setlink at ffffffffbc67fa59
+[ffffa70607e577a8] __rtnl_newlink at ffffffffbc683778
+[ffffa70607e57b68] rtnl_newlink at ffffffffbc683a63
+[ffffa70607e57b90] rtnetlink_rcv_msg at ffffffffbc67d812
+[ffffa70607e57c10] netlink_rcv_skb at ffffffffbc6b88ab
+[ffffa70607e57c60] netlink_unicast at ffffffffbc6b808f
+[ffffa70607e57ca0] netlink_sendmsg at ffffffffbc6b8412
+[ffffa70607e57d18] sock_sendmsg at ffffffffbc6452f6
+[ffffa70607e57d30] ___sys_sendmsg at ffffffffbc645860
+[ffffa70607e57eb0] __sys_sendmsg at ffffffffbc647a38
+[ffffa70607e57f38] do_syscall_64 at ffffffffbc00401b
+[ffffa70607e57f50] entry_SYSCALL_64_after_hwframe at ffffffffbc80008c
 
-64 processes are associated with each vPort and creates and destroys
-one QP for each of the remote 64 processes. That is, 1024 QPs per
-vPort, all in all 16K QPs. The QPs are created/destroyed using the
-CM.
-
-When tearing down these 16K QPs, excessive CM DREQ retries (and
-duplicates) are observed. With some cat/paste/awk wizardry on the
-infiniband_cm sysfs, we observe as sum of the 16 vPorts on one of the
-nodes:
-
-cm_rx_duplicates:
-      dreq  2102
-cm_rx_msgs:
-      drep  1989
-      dreq  6195
-       rep  3968
-       req  4224
-       rtu  4224
-cm_tx_msgs:
-      drep  4093
-      dreq 27568
-       rep  4224
-       req  3968
-       rtu  3968
-cm_tx_retries:
-      dreq 23469
-
-Note that the active/passive side is equally distributed between the
-two nodes.
-
-Enabling pr_debug in cm.c gives tons of:
-
-[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
-1,sl_cm_id: 0xd393089f} is NULL!
-
-By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
-tear-down phase of the application is reduced from approximately 90 to
-50 seconds. Retries/duplicates are also significantly reduced:
-
-cm_rx_duplicates:
-      dreq  2460
-[]
-cm_tx_retries:
-      dreq  3010
-       req    47
-
-Increasing the timeout further didn't help, as these duplicates and
-retries stems from a too short CMA timeout, which was 20 (~4 seconds)
-on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
-numbers fell down to about 10 for both of them.
-
-Adjustment of the CMA timeout is not part of this commit.
-
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Acked-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Fixes: a8d70a054a718 ("net/mlx5: E-Switch, Disallow vlan/spoofcheck setup if not being esw manager")
+Cc: Eli Cohen <eli@mellanox.com>
+Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+Reviewed-by: Roi Dayan <roid@mellanox.com>
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/mlx4/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index 39a488889fc7..5dc920fe1326 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -39,7 +39,7 @@
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 2aec0c021b6c..d2914116af8e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1719,7 +1719,7 @@ int mlx5_eswitch_set_vport_mac(struct mlx5_eswitch *esw,
+ 	u64 node_guid;
+ 	int err = 0;
  
- #include "mlx4_ib.h"
+-	if (!MLX5_CAP_GEN(esw->dev, vport_group_manager))
++	if (!esw || !MLX5_CAP_GEN(esw->dev, vport_group_manager))
+ 		return -EPERM;
+ 	if (!LEGAL_VPORT(esw, vport) || is_multicast_ether_addr(mac))
+ 		return -EINVAL;
+@@ -1793,7 +1793,7 @@ int mlx5_eswitch_get_vport_config(struct mlx5_eswitch *esw,
+ {
+ 	struct mlx5_vport *evport;
  
--#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
-+#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
- 
- struct id_map_entry {
- 	struct rb_node node;
+-	if (!MLX5_CAP_GEN(esw->dev, vport_group_manager))
++	if (!esw || !MLX5_CAP_GEN(esw->dev, vport_group_manager))
+ 		return -EPERM;
+ 	if (!LEGAL_VPORT(esw, vport))
+ 		return -EINVAL;
 -- 
 2.19.1
