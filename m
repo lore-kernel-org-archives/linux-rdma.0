@@ -1,70 +1,91 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 119/192] iw_cxgb4: fix srqidx leak during connection abort
-Date: Wed, 27 Mar 2019 14:09:11 -0400
-Message-ID: <20190327181025.13507-119-sashal@kernel.org>
-References: <20190327181025.13507-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 006/123] net/mlx5: Avoid panic when setting vport rate
+Date: Wed, 27 Mar 2019 14:14:30 -0400
+Message-ID: <20190327181628.15899-6-sashal@kernel.org>
+References: <20190327181628.15899-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Raju Rangoju <rajur@chelsio.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Tonghao Zhang <xiangxia.m.yue@gmail.com>, Mohamad Haj Yahia <mohamad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Raju Rangoju <rajur@chelsio.com>
+From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
 
-[ Upstream commit f368ff188ae4b3ef6f740a15999ea0373261b619 ]
+[ Upstream commit 24319258660a84dd77f4be026a55b10a12524919 ]
 
-When an application aborts the connection by moving QP from RTS to ERROR,
-then iw_cxgb4's modify_rc_qp() RTS->ERROR logic sets the
-*srqidxp to 0 via t4_set_wq_in_error(&qhp->wq, 0), and aborts the
-connection by calling c4iw_ep_disconnect().
+If we try to set VFs rate on a VF (not PF) net device, the kernel
+will be crash. The commands are show as below:
 
-c4iw_ep_disconnect() does the following:
- 1. sends up a close_complete_upcall(ep, -ECONNRESET) to libcxgb4.
- 2. sends abort request CPL to hw.
+$ echo 2 > /sys/class/net/$MLX_PF0/device/sriov_numvfs
+$ ip link set $MLX_VF0 vf 0 max_tx_rate 2 min_tx_rate 1
 
-But, since the close_complete_upcall() is sent before sending the
-ABORT_REQ to hw, libcxgb4 would fail to release the srqidx if the
-connection holds one. Because, the srqidx is passed up to libcxgb4 only
-after corresponding ABORT_RPL is processed by kernel in abort_rpl().
+If not applied the first patch ("net/mlx5: Avoid panic when setting
+vport mac, getting vport config"), the command:
 
-This patch handle the corner-case by moving the call to
-close_complete_upcall() from c4iw_ep_disconnect() to abort_rpl().  So that
-libcxgb4 is notified about the -ECONNRESET only after abort_rpl(), and
-libcxgb4 can relinquish the srqidx properly.
+$ ip link set $MLX_VF0 vf 0 rate 100
 
-Signed-off-by: Raju Rangoju <rajur@chelsio.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+can also crash the kernel.
+
+[ 1650.006388] RIP: 0010:mlx5_eswitch_set_vport_rate+0x1f/0x260 [mlx5_core]
+[ 1650.007092]  do_setlink+0x982/0xd20
+[ 1650.007129]  __rtnl_newlink+0x528/0x7d0
+[ 1650.007374]  rtnl_newlink+0x43/0x60
+[ 1650.007407]  rtnetlink_rcv_msg+0x2a2/0x320
+[ 1650.007484]  netlink_rcv_skb+0xcb/0x100
+[ 1650.007519]  netlink_unicast+0x17f/0x230
+[ 1650.007554]  netlink_sendmsg+0x2d2/0x3d0
+[ 1650.007592]  sock_sendmsg+0x36/0x50
+[ 1650.007625]  ___sys_sendmsg+0x280/0x2a0
+[ 1650.007963]  __sys_sendmsg+0x58/0xa0
+[ 1650.007998]  do_syscall_64+0x5b/0x180
+[ 1650.009438]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Fixes: c9497c98901c ("net/mlx5: Add support for setting VF min rate")
+Cc: Mohamad Haj Yahia <mohamad@mellanox.com>
+Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+Reviewed-by: Roi Dayan <roid@mellanox.com>
+Acked-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 0f83cbec33f3..a68569ec86bf 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1904,8 +1904,10 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	mutex_unlock(&ep->com.mutex);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 2f93e6e9dc9e..2aec0c021b6c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -1966,19 +1966,24 @@ static int normalize_vports_min_rate(struct mlx5_eswitch *esw, u32 divider)
+ int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, int vport,
+ 				u32 max_rate, u32 min_rate)
+ {
+-	u32 fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
+-	bool min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
+-					fw_max_bw_share >= MLX5_MIN_BW_SHARE;
+-	bool max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
+ 	struct mlx5_vport *evport;
++	u32 fw_max_bw_share;
+ 	u32 previous_min_rate;
+ 	u32 divider;
++	bool min_rate_supported;
++	bool max_rate_supported;
+ 	int err = 0;
  
--	if (release)
-+	if (release) {
-+		close_complete_upcall(ep, -ECONNRESET);
- 		release_ep_resources(ep);
-+	}
- 	c4iw_put_ep(&ep->com);
- 	return 0;
- }
-@@ -3608,7 +3610,6 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 	if (close) {
- 		if (abrupt) {
- 			set_bit(EP_DISC_ABORT, &ep->com.history);
--			close_complete_upcall(ep, -ECONNRESET);
- 			ret = send_abort(ep);
- 		} else {
- 			set_bit(EP_DISC_CLOSE, &ep->com.history);
+ 	if (!ESW_ALLOWED(esw))
+ 		return -EPERM;
+ 	if (!LEGAL_VPORT(esw, vport))
+ 		return -EINVAL;
++
++	fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
++	min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
++				fw_max_bw_share >= MLX5_MIN_BW_SHARE;
++	max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
++
+ 	if ((min_rate && !min_rate_supported) || (max_rate && !max_rate_supported))
+ 		return -EOPNOTSUPP;
+ 
 -- 
 2.19.1
