@@ -1,8 +1,8 @@
 From: Mukesh Ojha <mojha@codeaurora.org>
 Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
  dereference
-Date: Wed, 27 Mar 2019 17:43:29 +0530
-Message-ID: <7e949cd4-8ef7-a29b-83a0-9c15b68499e5@codeaurora.org>
+Date: Wed, 27 Mar 2019 17:45:46 +0530
+Message-ID: <a936f45c-adde-3aab-f85b-257d8185f6d5@codeaurora.org>
 References: <20190309051921.15212-1-kjlu@umn.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
@@ -22,7 +22,7 @@ On 3/9/2019 10:49 AM, Kangjie Lu wrote:
 >
 > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 
-Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
+Reviewed-by: Mukesh OJha <mojha@codeaurora.org>
 
 
 > ---
