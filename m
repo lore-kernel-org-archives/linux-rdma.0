@@ -1,114 +1,43 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 3.18 17/41] IB/mlx4: Increase the timeout for CM cache
-Date: Wed, 27 Mar 2019 14:24:54 -0400
-Message-ID: <20190327182518.19394-17-sashal@kernel.org>
-References: <20190327182518.19394-1-sashal@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 0/4] Small set of mlx5 related fixes
+Date: Wed, 27 Mar 2019 15:29:56 -0300
+Message-ID: <20190327182956.GA14341@ziepe.ca>
+References: <20190319092439.10701-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327182518.19394-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190319092439.10701-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Guy Levi <guyle@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Håkon Bugge <haakon.bugge@oracle.com>
+On Tue, Mar 19, 2019 at 11:24:35AM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> Hi,
+> 
+> Despite one change in mlx5_core, all those changes are for mlx5_ib. The
+> change in mlx5_core is related to MR cache initialization that is not
+> used in mlx5_core at all.
+> 
+> Thanks
+> 
+> Artemy Kovalyov (3):
+>   IB/mlx5: WQE dump jumps over first 16 bytes
+>   IB/mlx5: Compare only index part of a memory window rkey
 
-[ Upstream commit 2612d723aadcf8281f9bf8305657129bd9f3cd57 ]
+Applied to for-next
 
-Using CX-3 virtual functions, either from a bare-metal machine or
-pass-through from a VM, MAD packets are proxied through the PF driver.
+>   net/mlx5: Decrease default mr cache size
 
-Since the VF drivers have separate name spaces for MAD Transaction Ids
-(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
-in a cache.
-
-Following the RDMA Connection Manager (CM) protocol, it is clear when
-an entry has to evicted form the cache. But life is not perfect,
-remote peers may die or be rebooted. Hence, it's a timeout to wipe out
-a cache entry, when the PF driver assumes the remote peer has gone.
-
-During workloads where a high number of QPs are destroyed concurrently,
-excessive amount of CM DREQ retries has been observed
-
-The problem can be demonstrated in a bare-metal environment, where two
-nodes have instantiated 8 VFs each. This using dual ported HCAs, so we
-have 16 vPorts per physical server.
-
-64 processes are associated with each vPort and creates and destroys
-one QP for each of the remote 64 processes. That is, 1024 QPs per
-vPort, all in all 16K QPs. The QPs are created/destroyed using the
-CM.
-
-When tearing down these 16K QPs, excessive CM DREQ retries (and
-duplicates) are observed. With some cat/paste/awk wizardry on the
-infiniband_cm sysfs, we observe as sum of the 16 vPorts on one of the
-nodes:
-
-cm_rx_duplicates:
-      dreq  2102
-cm_rx_msgs:
-      drep  1989
-      dreq  6195
-       rep  3968
-       req  4224
-       rtu  4224
-cm_tx_msgs:
-      drep  4093
-      dreq 27568
-       rep  4224
-       req  3968
-       rtu  3968
-cm_tx_retries:
-      dreq 23469
-
-Note that the active/passive side is equally distributed between the
-two nodes.
-
-Enabling pr_debug in cm.c gives tons of:
-
-[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
-1,sl_cm_id: 0xd393089f} is NULL!
-
-By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
-tear-down phase of the application is reduced from approximately 90 to
-50 seconds. Retries/duplicates are also significantly reduced:
-
-cm_rx_duplicates:
-      dreq  2460
-[]
-cm_tx_retries:
-      dreq  3010
-       req    47
-
-Increasing the timeout further didn't help, as these duplicates and
-retries stems from a too short CMA timeout, which was 20 (~4 seconds)
-on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
-numbers fell down to about 10 for both of them.
-
-Adjustment of the CMA timeout is not part of this commit.
-
-Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
-Acked-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/mlx4/cm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
-index 56a593e0ae5d..2aedbd18ffbc 100644
---- a/drivers/infiniband/hw/mlx4/cm.c
-+++ b/drivers/infiniband/hw/mlx4/cm.c
-@@ -39,7 +39,7 @@
+For you and Saeed
  
- #include "mlx4_ib.h"
- 
--#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
-+#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
- 
- struct id_map_entry {
- 	struct rb_node node;
--- 
-2.19.1
+> Moni Shoua (1):
+>   IB/mlx5: Reset access mask when looping inside page fault handler
+
+I sent this one to for-rc since it is @stable
+
+Thanks,
+Jason
