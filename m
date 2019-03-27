@@ -1,91 +1,114 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 013/262] net/mlx5: Avoid panic when setting vport rate
-Date: Wed, 27 Mar 2019 13:57:48 -0400
-Message-ID: <20190327180158.10245-13-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 103/262] IB/mlx4: Increase the timeout for CM cache
+Date: Wed, 27 Mar 2019 13:59:18 -0400
+Message-ID: <20190327180158.10245-103-sashal@kernel.org>
 References: <20190327180158.10245-1-sashal@kernel.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tonghao Zhang <xiangxia.m.yue@gmail.com>, Mohamad Haj Yahia <mohamad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-[ Upstream commit 24319258660a84dd77f4be026a55b10a12524919 ]
+[ Upstream commit 2612d723aadcf8281f9bf8305657129bd9f3cd57 ]
 
-If we try to set VFs rate on a VF (not PF) net device, the kernel
-will be crash. The commands are show as below:
+Using CX-3 virtual functions, either from a bare-metal machine or
+pass-through from a VM, MAD packets are proxied through the PF driver.
 
-$ echo 2 > /sys/class/net/$MLX_PF0/device/sriov_numvfs
-$ ip link set $MLX_VF0 vf 0 max_tx_rate 2 min_tx_rate 1
+Since the VF drivers have separate name spaces for MAD Transaction Ids
+(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
+in a cache.
 
-If not applied the first patch ("net/mlx5: Avoid panic when setting
-vport mac, getting vport config"), the command:
+Following the RDMA Connection Manager (CM) protocol, it is clear when
+an entry has to evicted form the cache. But life is not perfect,
+remote peers may die or be rebooted. Hence, it's a timeout to wipe out
+a cache entry, when the PF driver assumes the remote peer has gone.
 
-$ ip link set $MLX_VF0 vf 0 rate 100
+During workloads where a high number of QPs are destroyed concurrently,
+excessive amount of CM DREQ retries has been observed
 
-can also crash the kernel.
+The problem can be demonstrated in a bare-metal environment, where two
+nodes have instantiated 8 VFs each. This using dual ported HCAs, so we
+have 16 vPorts per physical server.
 
-[ 1650.006388] RIP: 0010:mlx5_eswitch_set_vport_rate+0x1f/0x260 [mlx5_core]
-[ 1650.007092]  do_setlink+0x982/0xd20
-[ 1650.007129]  __rtnl_newlink+0x528/0x7d0
-[ 1650.007374]  rtnl_newlink+0x43/0x60
-[ 1650.007407]  rtnetlink_rcv_msg+0x2a2/0x320
-[ 1650.007484]  netlink_rcv_skb+0xcb/0x100
-[ 1650.007519]  netlink_unicast+0x17f/0x230
-[ 1650.007554]  netlink_sendmsg+0x2d2/0x3d0
-[ 1650.007592]  sock_sendmsg+0x36/0x50
-[ 1650.007625]  ___sys_sendmsg+0x280/0x2a0
-[ 1650.007963]  __sys_sendmsg+0x58/0xa0
-[ 1650.007998]  do_syscall_64+0x5b/0x180
-[ 1650.009438]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+64 processes are associated with each vPort and creates and destroys
+one QP for each of the remote 64 processes. That is, 1024 QPs per
+vPort, all in all 16K QPs. The QPs are created/destroyed using the
+CM.
 
-Fixes: c9497c98901c ("net/mlx5: Add support for setting VF min rate")
-Cc: Mohamad Haj Yahia <mohamad@mellanox.com>
-Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
-Reviewed-by: Roi Dayan <roid@mellanox.com>
-Acked-by: Saeed Mahameed <saeedm@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+When tearing down these 16K QPs, excessive CM DREQ retries (and
+duplicates) are observed. With some cat/paste/awk wizardry on the
+infiniband_cm sysfs, we observe as sum of the 16 vPorts on one of the
+nodes:
+
+cm_rx_duplicates:
+      dreq  2102
+cm_rx_msgs:
+      drep  1989
+      dreq  6195
+       rep  3968
+       req  4224
+       rtu  4224
+cm_tx_msgs:
+      drep  4093
+      dreq 27568
+       rep  4224
+       req  3968
+       rtu  3968
+cm_tx_retries:
+      dreq 23469
+
+Note that the active/passive side is equally distributed between the
+two nodes.
+
+Enabling pr_debug in cm.c gives tons of:
+
+[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
+1,sl_cm_id: 0xd393089f} is NULL!
+
+By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
+tear-down phase of the application is reduced from approximately 90 to
+50 seconds. Retries/duplicates are also significantly reduced:
+
+cm_rx_duplicates:
+      dreq  2460
+[]
+cm_tx_retries:
+      dreq  3010
+       req    47
+
+Increasing the timeout further didn't help, as these duplicates and
+retries stems from a too short CMA timeout, which was 20 (~4 seconds)
+on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
+numbers fell down to about 10 for both of them.
+
+Adjustment of the CMA timeout is not part of this commit.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Acked-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 5b492b67f4e1..3e8ed5586821 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -2059,19 +2059,24 @@ static int normalize_vports_min_rate(struct mlx5_eswitch *esw, u32 divider)
- int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, int vport,
- 				u32 max_rate, u32 min_rate)
- {
--	u32 fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
--	bool min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
--					fw_max_bw_share >= MLX5_MIN_BW_SHARE;
--	bool max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
- 	struct mlx5_vport *evport;
-+	u32 fw_max_bw_share;
- 	u32 previous_min_rate;
- 	u32 divider;
-+	bool min_rate_supported;
-+	bool max_rate_supported;
- 	int err = 0;
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index fedaf8260105..8c79a480f2b7 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -39,7 +39,7 @@
  
- 	if (!ESW_ALLOWED(esw))
- 		return -EPERM;
- 	if (!LEGAL_VPORT(esw, vport))
- 		return -EINVAL;
-+
-+	fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
-+	min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
-+				fw_max_bw_share >= MLX5_MIN_BW_SHARE;
-+	max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
-+
- 	if ((min_rate && !min_rate_supported) || (max_rate && !max_rate_supported))
- 		return -EOPNOTSUPP;
+ #include "mlx4_ib.h"
  
+-#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
++#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
+ 
+ struct id_map_entry {
+ 	struct rb_node node;
 -- 
 2.19.1
