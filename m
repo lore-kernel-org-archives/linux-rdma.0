@@ -1,90 +1,91 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 007/123] net/mlx5: Avoid panic when setting vport mac, getting vport config
-Date: Wed, 27 Mar 2019 14:14:31 -0400
-Message-ID: <20190327181628.15899-7-sashal@kernel.org>
-References: <20190327181628.15899-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 008/192] net/mlx5: Avoid panic when setting vport rate
+Date: Wed, 27 Mar 2019 14:07:20 -0400
+Message-ID: <20190327181025.13507-8-sashal@kernel.org>
+References: <20190327181025.13507-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190327181628.15899-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Tonghao Zhang <xiangxia.m.yue@gmail.com>, Eli Cohen <eli@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Tonghao Zhang <xiangxia.m.yue@gmail.com>, Mohamad Haj Yahia <mohamad@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 From: Tonghao Zhang <xiangxia.m.yue@gmail.com>
 
-[ Upstream commit 6e77c413e8e73d0f36b5358b601389d75ec4451c ]
+[ Upstream commit 24319258660a84dd77f4be026a55b10a12524919 ]
 
-If we try to set VFs mac address on a VF (not PF) net device,
-the kernel will be crash. The commands are show as below:
+If we try to set VFs rate on a VF (not PF) net device, the kernel
+will be crash. The commands are show as below:
 
 $ echo 2 > /sys/class/net/$MLX_PF0/device/sriov_numvfs
-$ ip link set $MLX_VF0 vf 0 mac 00:11:22:33:44:00
+$ ip link set $MLX_VF0 vf 0 max_tx_rate 2 min_tx_rate 1
 
-[exception RIP: mlx5_eswitch_set_vport_mac+41]
-[ffffb8b7079e3688] do_setlink at ffffffff8f67f85b
-[ffffb8b7079e37a8] __rtnl_newlink at ffffffff8f683778
-[ffffb8b7079e3b68] rtnl_newlink at ffffffff8f683a63
-[ffffb8b7079e3b90] rtnetlink_rcv_msg at ffffffff8f67d812
-[ffffb8b7079e3c10] netlink_rcv_skb at ffffffff8f6b88ab
-[ffffb8b7079e3c60] netlink_unicast at ffffffff8f6b808f
-[ffffb8b7079e3ca0] netlink_sendmsg at ffffffff8f6b8412
-[ffffb8b7079e3d18] sock_sendmsg at ffffffff8f6452f6
-[ffffb8b7079e3d30] ___sys_sendmsg at ffffffff8f645860
-[ffffb8b7079e3eb0] __sys_sendmsg at ffffffff8f647a38
-[ffffb8b7079e3f38] do_syscall_64 at ffffffff8f00401b
-[ffffb8b7079e3f50] entry_SYSCALL_64_after_hwframe at ffffffff8f80008c
+If not applied the first patch ("net/mlx5: Avoid panic when setting
+vport mac, getting vport config"), the command:
 
-and
+$ ip link set $MLX_VF0 vf 0 rate 100
 
-[exception RIP: mlx5_eswitch_get_vport_config+12]
-[ffffa70607e57678] mlx5e_get_vf_config at ffffffffc03c7f8f [mlx5_core]
-[ffffa70607e57688] do_setlink at ffffffffbc67fa59
-[ffffa70607e577a8] __rtnl_newlink at ffffffffbc683778
-[ffffa70607e57b68] rtnl_newlink at ffffffffbc683a63
-[ffffa70607e57b90] rtnetlink_rcv_msg at ffffffffbc67d812
-[ffffa70607e57c10] netlink_rcv_skb at ffffffffbc6b88ab
-[ffffa70607e57c60] netlink_unicast at ffffffffbc6b808f
-[ffffa70607e57ca0] netlink_sendmsg at ffffffffbc6b8412
-[ffffa70607e57d18] sock_sendmsg at ffffffffbc6452f6
-[ffffa70607e57d30] ___sys_sendmsg at ffffffffbc645860
-[ffffa70607e57eb0] __sys_sendmsg at ffffffffbc647a38
-[ffffa70607e57f38] do_syscall_64 at ffffffffbc00401b
-[ffffa70607e57f50] entry_SYSCALL_64_after_hwframe at ffffffffbc80008c
+can also crash the kernel.
 
-Fixes: a8d70a054a718 ("net/mlx5: E-Switch, Disallow vlan/spoofcheck setup if not being esw manager")
-Cc: Eli Cohen <eli@mellanox.com>
+[ 1650.006388] RIP: 0010:mlx5_eswitch_set_vport_rate+0x1f/0x260 [mlx5_core]
+[ 1650.007092]  do_setlink+0x982/0xd20
+[ 1650.007129]  __rtnl_newlink+0x528/0x7d0
+[ 1650.007374]  rtnl_newlink+0x43/0x60
+[ 1650.007407]  rtnetlink_rcv_msg+0x2a2/0x320
+[ 1650.007484]  netlink_rcv_skb+0xcb/0x100
+[ 1650.007519]  netlink_unicast+0x17f/0x230
+[ 1650.007554]  netlink_sendmsg+0x2d2/0x3d0
+[ 1650.007592]  sock_sendmsg+0x36/0x50
+[ 1650.007625]  ___sys_sendmsg+0x280/0x2a0
+[ 1650.007963]  __sys_sendmsg+0x58/0xa0
+[ 1650.007998]  do_syscall_64+0x5b/0x180
+[ 1650.009438]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+Fixes: c9497c98901c ("net/mlx5: Add support for setting VF min rate")
+Cc: Mohamad Haj Yahia <mohamad@mellanox.com>
 Signed-off-by: Tonghao Zhang <xiangxia.m.yue@gmail.com>
 Reviewed-by: Roi Dayan <roid@mellanox.com>
 Acked-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 2aec0c021b6c..d2914116af8e 100644
+index d6706475a3ba..886a4a77c47f 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -1719,7 +1719,7 @@ int mlx5_eswitch_set_vport_mac(struct mlx5_eswitch *esw,
- 	u64 node_guid;
+@@ -2044,19 +2044,24 @@ static int normalize_vports_min_rate(struct mlx5_eswitch *esw, u32 divider)
+ int mlx5_eswitch_set_vport_rate(struct mlx5_eswitch *esw, int vport,
+ 				u32 max_rate, u32 min_rate)
+ {
+-	u32 fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
+-	bool min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
+-					fw_max_bw_share >= MLX5_MIN_BW_SHARE;
+-	bool max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
+ 	struct mlx5_vport *evport;
++	u32 fw_max_bw_share;
+ 	u32 previous_min_rate;
+ 	u32 divider;
++	bool min_rate_supported;
++	bool max_rate_supported;
  	int err = 0;
  
--	if (!MLX5_CAP_GEN(esw->dev, vport_group_manager))
-+	if (!esw || !MLX5_CAP_GEN(esw->dev, vport_group_manager))
- 		return -EPERM;
- 	if (!LEGAL_VPORT(esw, vport) || is_multicast_ether_addr(mac))
- 		return -EINVAL;
-@@ -1793,7 +1793,7 @@ int mlx5_eswitch_get_vport_config(struct mlx5_eswitch *esw,
- {
- 	struct mlx5_vport *evport;
- 
--	if (!MLX5_CAP_GEN(esw->dev, vport_group_manager))
-+	if (!esw || !MLX5_CAP_GEN(esw->dev, vport_group_manager))
+ 	if (!ESW_ALLOWED(esw))
  		return -EPERM;
  	if (!LEGAL_VPORT(esw, vport))
  		return -EINVAL;
++
++	fw_max_bw_share = MLX5_CAP_QOS(esw->dev, max_tsar_bw_share);
++	min_rate_supported = MLX5_CAP_QOS(esw->dev, esw_bw_share) &&
++				fw_max_bw_share >= MLX5_MIN_BW_SHARE;
++	max_rate_supported = MLX5_CAP_QOS(esw->dev, esw_rate_limit);
++
+ 	if ((min_rate && !min_rate_supported) || (max_rate && !max_rate_supported))
+ 		return -EOPNOTSUPP;
+ 
 -- 
 2.19.1
