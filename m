@@ -1,61 +1,39 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH mlx5-next 3/4] net/mlx5: Decrease default mr cache size
-Date: Wed, 27 Mar 2019 16:24:27 +0200
-Message-ID: <CAJ3xEMgAB5aZQ5OGrzKk18xP+fYpSpFvaEAfGyhnMmw+vYnjQw@mail.gmail.com>
-References: <20190319092439.10701-1-leon@kernel.org> <20190319092439.10701-4-leon@kernel.org>
- <CAJ3xEMiMphpkF6B-Ns-+wPcso1Lk=12=jn3ZqLoAB5a-GLfVcw@mail.gmail.com>
- <20190327114101.GT22899@mtr-leonro.mtl.com> <CAJ3xEMiSo5p_hUodKbja7ux0+7W+9rGYq0d_jc=Vn47VNM3J6g@mail.gmail.com>
- <20190327133606.GY22899@mtr-leonro.mtl.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH for-rc 0/5] IB/hfi1: Fixes for 5.1 rc cycle
+Date: Wed, 27 Mar 2019 14:58:06 -0300
+Message-ID: <20190327175806.GA32589@ziepe.ca>
+References: <20190318165205.23550.97894.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190327133606.GY22899@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Guy Levi <guyle@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190318165205.23550.97894.stgit@scvm10.sc.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: dledford@redhat.com, Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, Alex Estrin <alex.estrin@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 27, 2019 at 3:36 PM Leon Romanovsky <leon@kernel.org> wrote:
-> On Wed, Mar 27, 2019 at 01:58:17PM +0200, Or Gerlitz wrote:
-> > On Wed, Mar 27, 2019 at 1:41 PM Leon Romanovsky <leon@kernel.org> wrote:
-> > > On Wed, Mar 27, 2019 at 12:07:54PM +0200, Or Gerlitz wrote:
-> > > > On Tue, Mar 19, 2019 at 11:25 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > > > From: Artemy Kovalyov <artemyko@mellanox.com>
-> > > > >
-> > > > > Delete initialization of high order entries in mr cache to decrease initial
-> > > > > memory footprint. When required, the administrator can populate the
-> > > > > entries with memory keys via the /sys interface.
-> > > >
-> > > > Please add here:
-> > > >
-> > > > This approach is very helpful to reduce the per HW function memory
-> > > > footprint in environments such as VMs. Before the patch we see
-> > > > consumption of 0.9GB per function and after the patch about 0.1GB
+On Mon, Mar 18, 2019 at 09:54:55AM -0700, Dennis Dalessandro wrote:
+> Here is a set of small fixes that we would like to land in the rc cycle
+> for 5.1. One of them is marked as stable.
+> 
+> The first patch fixes an unnecessary stack trace due to incorrect WQ flags. The
+> next three fix issues uncovered due to TID RDMA which was brought in for 5.1.
+> The last one is a bug in VNIC.
+> 
+> 
+> Kaike Wan (4):
+>       IB/hfi1: Failed to drain send queue when QP is put into error state
+>       IB/hfi1: Clear the IOWAIT pending bits when QP is put into error state
+>       IB/hfi1: Eliminate opcode tests on mr deref
+>       IB/hfi1: Fix the allocation of RSM table
 
-here it needs to be "per physical function" and not "per function"
+Applied these ones to for-rc
 
-> > > > Lets push it into stable kernels, a Fixes tag here will cause that
-> > > > to happen more easily, so please consider that.
+> Mike Marciniszyn (1):
+>       IB/hfi1: Fix WQ_MEM_RECLAIM warning
 
->>> I'll add it at the "apply" stage.
+Let us see how the discussion goes here
 
->> Just to make sure, by "add it" you mean the signatures, the text and
->> the Fixes that?
-
-> Yes, of course.
-
-thanks
-
->> Also, is there any reason not to eliminate the mr cache pre-population
->> all together?
-
-> AFAIK, pre-populated cache helps MPI application to start faster and
-> with out-of-box experience. Nobody seems to care enough to challenge
-> this internal assumption.
-
-I see, we are cutting here ~0.8GB so lets just do it and wonder on the
-remaining 0.1GB later..
-
-It would be good to push it into 5.1-rc so the fallout into stables
-will start right away and
-not only by 5.2 time - can we do that?
+Thanks,
+Jason
