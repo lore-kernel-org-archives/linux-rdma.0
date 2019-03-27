@@ -1,70 +1,114 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 166/262] iw_cxgb4: fix srqidx leak during connection abort
-Date: Wed, 27 Mar 2019 14:00:21 -0400
-Message-ID: <20190327180158.10245-166-sashal@kernel.org>
-References: <20190327180158.10245-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 069/192] IB/mlx4: Increase the timeout for CM cache
+Date: Wed, 27 Mar 2019 14:08:21 -0400
+Message-ID: <20190327181025.13507-69-sashal@kernel.org>
+References: <20190327181025.13507-1-sashal@kernel.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190327180158.10245-1-sashal@kernel.org>
+In-Reply-To: <20190327181025.13507-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Raju Rangoju <rajur@chelsio.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: =?UTF-8?q?H=C3=A5kon=20Bugge?= <haakon.bugge@oracle.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Raju Rangoju <rajur@chelsio.com>
+From: Håkon Bugge <haakon.bugge@oracle.com>
 
-[ Upstream commit f368ff188ae4b3ef6f740a15999ea0373261b619 ]
+[ Upstream commit 2612d723aadcf8281f9bf8305657129bd9f3cd57 ]
 
-When an application aborts the connection by moving QP from RTS to ERROR,
-then iw_cxgb4's modify_rc_qp() RTS->ERROR logic sets the
-*srqidxp to 0 via t4_set_wq_in_error(&qhp->wq, 0), and aborts the
-connection by calling c4iw_ep_disconnect().
+Using CX-3 virtual functions, either from a bare-metal machine or
+pass-through from a VM, MAD packets are proxied through the PF driver.
 
-c4iw_ep_disconnect() does the following:
- 1. sends up a close_complete_upcall(ep, -ECONNRESET) to libcxgb4.
- 2. sends abort request CPL to hw.
+Since the VF drivers have separate name spaces for MAD Transaction Ids
+(TIDs), the PF driver has to re-map the TIDs and keep the book keeping
+in a cache.
 
-But, since the close_complete_upcall() is sent before sending the
-ABORT_REQ to hw, libcxgb4 would fail to release the srqidx if the
-connection holds one. Because, the srqidx is passed up to libcxgb4 only
-after corresponding ABORT_RPL is processed by kernel in abort_rpl().
+Following the RDMA Connection Manager (CM) protocol, it is clear when
+an entry has to evicted form the cache. But life is not perfect,
+remote peers may die or be rebooted. Hence, it's a timeout to wipe out
+a cache entry, when the PF driver assumes the remote peer has gone.
 
-This patch handle the corner-case by moving the call to
-close_complete_upcall() from c4iw_ep_disconnect() to abort_rpl().  So that
-libcxgb4 is notified about the -ECONNRESET only after abort_rpl(), and
-libcxgb4 can relinquish the srqidx properly.
+During workloads where a high number of QPs are destroyed concurrently,
+excessive amount of CM DREQ retries has been observed
 
-Signed-off-by: Raju Rangoju <rajur@chelsio.com>
+The problem can be demonstrated in a bare-metal environment, where two
+nodes have instantiated 8 VFs each. This using dual ported HCAs, so we
+have 16 vPorts per physical server.
+
+64 processes are associated with each vPort and creates and destroys
+one QP for each of the remote 64 processes. That is, 1024 QPs per
+vPort, all in all 16K QPs. The QPs are created/destroyed using the
+CM.
+
+When tearing down these 16K QPs, excessive CM DREQ retries (and
+duplicates) are observed. With some cat/paste/awk wizardry on the
+infiniband_cm sysfs, we observe as sum of the 16 vPorts on one of the
+nodes:
+
+cm_rx_duplicates:
+      dreq  2102
+cm_rx_msgs:
+      drep  1989
+      dreq  6195
+       rep  3968
+       req  4224
+       rtu  4224
+cm_tx_msgs:
+      drep  4093
+      dreq 27568
+       rep  4224
+       req  3968
+       rtu  3968
+cm_tx_retries:
+      dreq 23469
+
+Note that the active/passive side is equally distributed between the
+two nodes.
+
+Enabling pr_debug in cm.c gives tons of:
+
+[171778.814239] <mlx4_ib> mlx4_ib_multiplex_cm_handler: id{slave:
+1,sl_cm_id: 0xd393089f} is NULL!
+
+By increasing the CM_CLEANUP_CACHE_TIMEOUT from 5 to 30 seconds, the
+tear-down phase of the application is reduced from approximately 90 to
+50 seconds. Retries/duplicates are also significantly reduced:
+
+cm_rx_duplicates:
+      dreq  2460
+[]
+cm_tx_retries:
+      dreq  3010
+       req    47
+
+Increasing the timeout further didn't help, as these duplicates and
+retries stems from a too short CMA timeout, which was 20 (~4 seconds)
+on the systems. By increasing the CMA timeout to 22 (~17 seconds), the
+numbers fell down to about 10 for both of them.
+
+Adjustment of the CMA timeout is not part of this commit.
+
+Signed-off-by: Håkon Bugge <haakon.bugge@oracle.com>
+Acked-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/cxgb4/cm.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/mlx4/cm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 8221813219e5..25a81fbb0d4d 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1903,8 +1903,10 @@ static int abort_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
- 	}
- 	mutex_unlock(&ep->com.mutex);
+diff --git a/drivers/infiniband/hw/mlx4/cm.c b/drivers/infiniband/hw/mlx4/cm.c
+index fedaf8260105..8c79a480f2b7 100644
+--- a/drivers/infiniband/hw/mlx4/cm.c
++++ b/drivers/infiniband/hw/mlx4/cm.c
+@@ -39,7 +39,7 @@
  
--	if (release)
-+	if (release) {
-+		close_complete_upcall(ep, -ECONNRESET);
- 		release_ep_resources(ep);
-+	}
- 	c4iw_put_ep(&ep->com);
- 	return 0;
- }
-@@ -3606,7 +3608,6 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
- 	if (close) {
- 		if (abrupt) {
- 			set_bit(EP_DISC_ABORT, &ep->com.history);
--			close_complete_upcall(ep, -ECONNRESET);
- 			ret = send_abort(ep);
- 		} else {
- 			set_bit(EP_DISC_CLOSE, &ep->com.history);
+ #include "mlx4_ib.h"
+ 
+-#define CM_CLEANUP_CACHE_TIMEOUT  (5 * HZ)
++#define CM_CLEANUP_CACHE_TIMEOUT  (30 * HZ)
+ 
+ struct id_map_entry {
+ 	struct rb_node node;
 -- 
 2.19.1
