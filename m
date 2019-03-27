@@ -1,51 +1,45 @@
-From: Or Gerlitz <gerlitz.or@gmail.com>
-Subject: Re: [PATCH mlx5-next 3/4] net/mlx5: Decrease default mr cache size
-Date: Wed, 27 Mar 2019 13:58:17 +0200
-Message-ID: <CAJ3xEMiSo5p_hUodKbja7ux0+7W+9rGYq0d_jc=Vn47VNM3J6g@mail.gmail.com>
-References: <20190319092439.10701-1-leon@kernel.org> <20190319092439.10701-4-leon@kernel.org>
- <CAJ3xEMiMphpkF6B-Ns-+wPcso1Lk=12=jn3ZqLoAB5a-GLfVcw@mail.gmail.com> <20190327114101.GT22899@mtr-leonro.mtl.com>
+From: Mukesh Ojha <mojha@codeaurora.org>
+Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
+ dereference
+Date: Wed, 27 Mar 2019 17:43:29 +0530
+Message-ID: <7e949cd4-8ef7-a29b-83a0-9c15b68499e5@codeaurora.org>
+References: <20190309051921.15212-1-kjlu@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190327114101.GT22899@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Artemy Kovalyov <artemyko@mellanox.com>, Guy Levi <guyle@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190309051921.15212-1-kjlu@umn.edu>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kangjie Lu <kjlu@umn.edu>
+Cc: pakki001@umn.edu, Steve Wise <swise@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 27, 2019 at 1:41 PM Leon Romanovsky <leon@kernel.org> wrote:
-> On Wed, Mar 27, 2019 at 12:07:54PM +0200, Or Gerlitz wrote:
-> > On Tue, Mar 19, 2019 at 11:25 AM Leon Romanovsky <leon@kernel.org> wrote:
-> > > From: Artemy Kovalyov <artemyko@mellanox.com>
-> > >
-> > > Delete initialization of high order entries in mr cache to decrease initial
-> > > memory footprint. When required, the administrator can populate the
-> > > entries with memory keys via the /sys interface.
-> >
-> > Please add here:
-> >
-> > This approach is very helpful to reduce the per HW function memory
-> > footprint in environments such as VMs. Before the patch we see
-> > consumption of 0.9GB per function and after the patch about 0.1GB
-> >
-> > > Signed-off-by: Artemy Kovalyov <artemyko@mellanox.com>
-> > > Signed-off-by: Moni Shoua <monis@mellanox.com>
-> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > Reported-by:  Shalom Toledo <shalomt@mellanox.com>
-> > Acked-by: Or Gerlitz <ogerlitz@mellanox.com>
-> >
-> > Lets push it into stable kernels, a Fixes tag here will cause that
-> > to happen more easily, so please consider that.
 
-> I'll add it at the "apply" stage.
+On 3/9/2019 10:49 AM, Kangjie Lu wrote:
+> get_skb may fail and return NULL. The fix returns "ENOMEM"
+> when it fails to avoid NULL dereference.
+>
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 
-Just to make sure, by "add it" you mean the signatures, the text and
-the Fixes that?
+Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
 
-Also, is there any reason not to eliminate the mr cache pre-population
-all together?
 
-Currently we consume 100-200MB per function after the patch which is
-also problematic for some
-environments.
+> ---
+>   drivers/infiniband/hw/cxgb4/cm.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> index 8221813219e5..502a54d57e2c 100644
+> --- a/drivers/infiniband/hw/cxgb4/cm.c
+> +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
+>   	int win;
+>   
+>   	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
+> +	if (!skb)
+> +		return -ENOMEM;
+> +
+>   	req = __skb_put_zero(skb, sizeof(*req));
+>   	req->op_compl = htonl(WR_OP_V(FW_OFLD_CONNECTION_WR));
+>   	req->len16_pkd = htonl(FW_WR_LEN16_V(DIV_ROUND_UP(sizeof(*req), 16)));
