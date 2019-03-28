@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 04/12] RDMA/mlx5: Free IB device on remove
-Date: Thu, 28 Mar 2019 15:27:34 +0200
-Message-ID: <20190328132742.12070-5-leon@kernel.org>
+Subject: [PATCH mlx5-next 02/12] net/mlx5: E-Switch, add a new prio to be used by the RDMA side
+Date: Thu, 28 Mar 2019 15:27:32 +0200
+Message-ID: <20190328132742.12070-3-leon@kernel.org>
 References: <20190328132742.12070-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,61 +14,48 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Simplify the code and move the deallocation of the IB device into the
-remove function.
+Create a new prio in the FDB, it will be used when inserting steering rules
+into the FDB from the RDMA side. We create a new PRIO so rules from the
+net side and rules from the RDMA side won't be inserted to the same PRIO,
+each side has it's own sandbox to play in.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
+Reviewed-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/ib_rep.c | 5 +----
- drivers/infiniband/hw/mlx5/main.c   | 4 ++--
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/mellanox/mlx5/core/fs_core.c | 7 +++++++
+ include/linux/mlx5/fs.h                           | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index b8639ac71336..87d553396fb4 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.c
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -65,10 +65,8 @@ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
- 	ibdev->mdev = dev;
- 	ibdev->num_ports = max(MLX5_CAP_GEN(dev, num_ports),
- 			       MLX5_CAP_GEN(dev, num_vhca_ports));
--	if (!__mlx5_ib_add(ibdev, profile)) {
--		ib_dealloc_device(&ibdev->ib_dev);
-+	if (!__mlx5_ib_add(ibdev, profile))
- 		return -EINVAL;
--	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+index f34515d03a3b..f0b460879c91 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fs_core.c
+@@ -2516,6 +2516,13 @@ static int init_fdb_root_ns(struct mlx5_flow_steering *steering)
+ 	if (!steering->fdb_sub_ns)
+ 		return -ENOMEM;
  
- 	rep->rep_if[REP_IB].priv = ibdev;
- 
-@@ -86,7 +84,6 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
- 	dev = mlx5_ib_rep_to_dev(rep);
- 	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
- 	rep->rep_if[REP_IB].priv = NULL;
--	ib_dealloc_device(&dev->ib_dev);
- }
- 
- static void *mlx5_ib_vport_get_proto_dev(struct mlx5_eswitch_rep *rep)
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index a8522a0dedae..df38e24119ff 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -6491,6 +6491,8 @@ void __mlx5_ib_remove(struct mlx5_ib_dev *dev,
- 		if (profile->stage[stage].cleanup)
- 			profile->stage[stage].cleanup(dev);
- 	}
++	maj_prio = fs_create_prio(&steering->fdb_root_ns->ns, FDB_BYPASS_PATH,
++				  1);
++	if (IS_ERR(maj_prio)) {
++		err = PTR_ERR(maj_prio);
++		goto out_err;
++	}
 +
-+	ib_dealloc_device(&dev->ib_dev);
- }
+ 	levels = 2 * FDB_MAX_PRIO * (FDB_MAX_CHAIN + 1);
+ 	maj_prio = fs_create_prio_chained(&steering->fdb_root_ns->ns,
+ 					  FDB_FAST_PATH,
+diff --git a/include/linux/mlx5/fs.h b/include/linux/mlx5/fs.h
+index 3eeb04154317..fd91df3a4e09 100644
+--- a/include/linux/mlx5/fs.h
++++ b/include/linux/mlx5/fs.h
+@@ -76,6 +76,7 @@ enum mlx5_flow_namespace_type {
+ };
  
- void *__mlx5_ib_add(struct mlx5_ib_dev *dev,
-@@ -6713,8 +6715,6 @@ static void mlx5_ib_remove(struct mlx5_core_dev *mdev, void *context)
- 
- 	dev = context;
- 	__mlx5_ib_remove(dev, dev->profile, MLX5_IB_STAGE_MAX);
--
--	ib_dealloc_device((struct ib_device *)dev);
- }
- 
- static struct mlx5_interface mlx5_ib_interface = {
+ enum {
++	FDB_BYPASS_PATH,
+ 	FDB_FAST_PATH,
+ 	FDB_SLOW_PATH,
+ };
 -- 
 2.20.1
