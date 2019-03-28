@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 08/12] RDMA/mlx5: Move default representors SQ steering to rule to modify QP
-Date: Thu, 28 Mar 2019 15:27:38 +0200
-Message-ID: <20190328132742.12070-9-leon@kernel.org>
+Subject: [PATCH rdma-next 11/12] RDMA/mlx5: Move to single device multiport ports in switchdev mode
+Date: Thu, 28 Mar 2019 15:27:41 +0200
+Message-ID: <20190328132742.12070-12-leon@kernel.org>
 References: <20190328132742.12070-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,187 +14,161 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Bloch <markb@mellanox.com>
 
-Currently the steering for SQs created on representors is done on creation,
-once we move to representors as ports of an IB device we need the port
-argument which is given only at the modify QP stage, adjust the code
-appropriately.
+Move from IB device (representor) per virtual function to single IB device
+with port per virtual function (port 1 represents the uplink). As number
+of ports is a static property of an IB device, declare the IB device with
+as many port as the possible according to the PCI bus.
 
 Signed-off-by: Mark Bloch <markb@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/ib_rep.c | 25 +++++++++---------
- drivers/infiniband/hw/mlx5/ib_rep.h | 13 ++++++----
- drivers/infiniband/hw/mlx5/qp.c     | 40 ++++++++++++++++++++---------
- 3 files changed, 48 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/mlx5/ib_rep.c  | 31 +++++++++++++++++++++++-----
+ drivers/infiniband/hw/mlx5/main.c    | 26 +++++++++++++++++++----
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  1 +
+ 3 files changed, 49 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/ib_rep.c b/drivers/infiniband/hw/mlx5/ib_rep.c
-index 64256dc1d1de..d3988f6ae2ae 100644
+index 7946cf26421b..224ef6c88d17 100644
 --- a/drivers/infiniband/hw/mlx5/ib_rep.c
 +++ b/drivers/infiniband/hw/mlx5/ib_rep.c
-@@ -146,22 +146,21 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw, int vport)
- 	return mlx5_eswitch_vport_rep(esw, vport);
- }
- 
--int create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
--			      struct mlx5_ib_sq *sq)
-+struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
-+						   struct mlx5_ib_sq *sq,
-+						   u16 port)
- {
--	struct mlx5_flow_handle *flow_rule;
- 	struct mlx5_eswitch *esw = dev->mdev->priv.eswitch;
-+	struct mlx5_eswitch_rep *rep;
- 
--	if (!dev->is_rep)
--		return 0;
-+	if (!dev->is_rep || !port)
-+		return NULL;
- 
--	flow_rule =
--		mlx5_eswitch_add_send_to_vport_rule(esw,
--						    dev->port[0].rep->vport,
--						    sq->base.mqp.qpn);
--	if (IS_ERR(flow_rule))
--		return PTR_ERR(flow_rule);
--	sq->flow_rule = flow_rule;
-+	if (!dev->port[port - 1].rep)
-+		return ERR_PTR(-EINVAL);
- 
--	return 0;
-+	rep = dev->port[port - 1].rep;
-+
-+	return mlx5_eswitch_add_send_to_vport_rule(esw, rep->vport,
-+						   sq->base.mqp.qpn);
- }
-diff --git a/drivers/infiniband/hw/mlx5/ib_rep.h b/drivers/infiniband/hw/mlx5/ib_rep.h
-index 798d41e61fb4..1d9778da8a50 100644
---- a/drivers/infiniband/hw/mlx5/ib_rep.h
-+++ b/drivers/infiniband/hw/mlx5/ib_rep.h
-@@ -20,8 +20,9 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
- 					   int vport_index);
- void mlx5_ib_register_vport_reps(struct mlx5_core_dev *mdev);
- void mlx5_ib_unregister_vport_reps(struct mlx5_core_dev *mdev);
--int create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
--			      struct mlx5_ib_sq *sq);
-+struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
-+						   struct mlx5_ib_sq *sq,
-+						   u16 port);
- struct net_device *mlx5_ib_get_rep_netdev(struct mlx5_eswitch *esw,
- 					  int vport_index);
- #else /* CONFIG_MLX5_ESWITCH */
-@@ -52,10 +53,12 @@ struct mlx5_eswitch_rep *mlx5_ib_vport_rep(struct mlx5_eswitch *esw,
- 
- static inline void mlx5_ib_register_vport_reps(struct mlx5_core_dev *mdev) {}
- static inline void mlx5_ib_unregister_vport_reps(struct mlx5_core_dev *mdev) {}
--static inline int create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
--					    struct mlx5_ib_sq *sq)
-+static inline
-+struct mlx5_flow_handle *create_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
-+						   struct mlx5_ib_sq *sq,
-+						   u16 port)
- {
--	return 0;
-+	return NULL;
- }
- 
- static inline
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index c597e0b7f904..3ff7c32207b9 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -93,6 +93,7 @@ struct mlx5_modify_raw_qp_param {
- 	struct mlx5_rate_limit rl;
- 
- 	u8 rq_q_ctr_id;
-+	u16 port;
+@@ -46,17 +46,36 @@ static const struct mlx5_ib_profile vf_rep_profile = {
+ 		     NULL),
  };
  
- static void get_cqs(enum ib_qp_type qp_type,
-@@ -1207,11 +1208,11 @@ static void destroy_raw_packet_qp_tis(struct mlx5_ib_dev *dev,
- 	mlx5_cmd_destroy_tis(dev->mdev, sq->tisn, to_mpd(pd)->uid);
- }
- 
--static void destroy_flow_rule_vport_sq(struct mlx5_ib_dev *dev,
--				       struct mlx5_ib_sq *sq)
-+static void destroy_flow_rule_vport_sq(struct mlx5_ib_sq *sq)
++static int
++mlx5_ib_set_vport_rep(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
++{
++	struct mlx5_ib_dev *ibdev;
++	int vport_index;
++
++	ibdev = mlx5_ib_get_uplink_ibdev(dev->priv.eswitch);
++	vport_index = ibdev->free_port++;
++
++	ibdev->port[vport_index].rep = rep;
++	write_lock(&ibdev->port[vport_index].roce.netdev_lock);
++	ibdev->port[vport_index].roce.netdev =
++		mlx5_ib_get_rep_netdev(dev->priv.eswitch, rep->vport);
++	write_unlock(&ibdev->port[vport_index].roce.netdev_lock);
++
++	return 0;
++}
++
+ static int
+ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
  {
- 	if (sq->flow_rule)
- 		mlx5_del_flow_rules(sq->flow_rule);
-+	sq->flow_rule = NULL;
- }
++	int num_ports = MLX5_TOTAL_VPORTS(dev);
+ 	const struct mlx5_ib_profile *profile;
+ 	struct mlx5_ib_dev *ibdev;
+-	int num_ports = 1;
++	int vport_index;
  
- static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
-@@ -1279,15 +1280,8 @@ static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
+ 	if (rep->vport == MLX5_VPORT_UPLINK)
+ 		profile = &uplink_rep_profile;
+ 	else
+-		profile = &vf_rep_profile;
++		return mlx5_ib_set_vport_rep(dev, rep);
+ 
+ 	ibdev = ib_alloc_device(mlx5_ib_dev, ib_dev);
+ 	if (!ibdev)
+@@ -70,8 +89,9 @@ mlx5_ib_vport_rep_load(struct mlx5_core_dev *dev, struct mlx5_eswitch_rep *rep)
+ 	}
+ 
+ 	ibdev->is_rep = true;
+-	ibdev->port[0].rep = rep;
+-	ibdev->port[0].roce.netdev =
++	vport_index = ibdev->free_port++;
++	ibdev->port[vport_index].rep = rep;
++	ibdev->port[vport_index].roce.netdev =
+ 		mlx5_ib_get_rep_netdev(dev->priv.eswitch, rep->vport);
+ 	ibdev->mdev = dev;
+ 	ibdev->num_ports = num_ports;
+@@ -89,7 +109,8 @@ mlx5_ib_vport_rep_unload(struct mlx5_eswitch_rep *rep)
+ {
+ 	struct mlx5_ib_dev *dev;
+ 
+-	if (!rep->rep_if[REP_IB].priv)
++	if (!rep->rep_if[REP_IB].priv ||
++	    rep->vport != MLX5_VPORT_UPLINK)
+ 		return;
+ 
+ 	dev = mlx5_ib_rep_to_dev(rep);
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 7eca3978c50c..57d269c1b874 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -506,9 +506,14 @@ static int mlx5_query_port_roce(struct ib_device *device, u8 port_num,
+ 
+ 	/* Possible bad flows are checked before filling out props so in case
+ 	 * of an error it will still be zeroed out.
++	 * Use native port in case of reps
+ 	 */
+-	err = mlx5_query_port_ptys(mdev, out, sizeof(out), MLX5_PTYS_EN,
+-				   mdev_port_num);
++	if (dev->is_rep)
++		err = mlx5_query_port_ptys(mdev, out, sizeof(out), MLX5_PTYS_EN,
++					   1);
++	else
++		err = mlx5_query_port_ptys(mdev, out, sizeof(out), MLX5_PTYS_EN,
++					   mdev_port_num);
  	if (err)
- 		goto err_umem;
- 
--	err = create_flow_rule_vport_sq(dev, sq);
--	if (err)
--		goto err_flow;
--
- 	return 0;
- 
--err_flow:
--	mlx5_core_destroy_sq_tracked(dev->mdev, &sq->base.mqp);
--
- err_umem:
- 	ib_umem_release(sq->ubuffer.umem);
- 	sq->ubuffer.umem = NULL;
-@@ -1298,7 +1292,7 @@ static int create_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
- static void destroy_raw_packet_qp_sq(struct mlx5_ib_dev *dev,
- 				     struct mlx5_ib_sq *sq)
+ 		goto out;
+ 	ext = MLX5_CAP_PCAM_FEATURE(dev->mdev, ptys_extended_ethernet);
+@@ -1432,7 +1437,9 @@ static int mlx5_ib_rep_query_port(struct ib_device *ibdev, u8 port,
  {
--	destroy_flow_rule_vport_sq(dev, sq);
-+	destroy_flow_rule_vport_sq(sq);
- 	mlx5_core_destroy_sq_tracked(dev->mdev, &sq->base.mqp);
- 	ib_umem_release(sq->ubuffer.umem);
+ 	int ret;
+ 
+-	/* Only link layer == ethernet is valid for representors */
++	/* Only link layer == ethernet is valid for representors
++	 * and we always use port 1
++	 */
+ 	ret = mlx5_query_port_roce(ibdev, port, props);
+ 	if (ret || !props)
+ 		return ret;
+@@ -4565,7 +4572,7 @@ static void get_ext_port_caps(struct mlx5_ib_dev *dev)
+ 		mlx5_query_ext_port_caps(dev, port);
  }
-@@ -3262,6 +3256,8 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 	}
  
- 	if (modify_sq) {
-+		struct mlx5_flow_handle *flow_rule;
-+
- 		if (tx_affinity) {
- 			err = modify_raw_packet_tx_affinity(dev->mdev, sq,
- 							    tx_affinity,
-@@ -3270,8 +3266,25 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 				return err;
- 		}
+-static int get_port_caps(struct mlx5_ib_dev *dev, u8 port)
++static int __get_port_caps(struct mlx5_ib_dev *dev, u8 port)
+ {
+ 	struct ib_device_attr *dprops = NULL;
+ 	struct ib_port_attr *pprops = NULL;
+@@ -4608,6 +4615,16 @@ static int get_port_caps(struct mlx5_ib_dev *dev, u8 port)
+ 	return err;
+ }
  
--		return modify_raw_packet_qp_sq(dev->mdev, sq, sq_state,
--					       raw_qp_param, qp->ibqp.pd);
-+		flow_rule = create_flow_rule_vport_sq(dev, sq,
-+						      raw_qp_param->port);
-+		if (IS_ERR(flow_rule))
-+			return err;
++static int get_port_caps(struct mlx5_ib_dev *dev, u8 port)
++{
++	/* For representors use port 1, is this is the only native
++	 * port
++	 */
++	if (dev->is_rep)
++		return __get_port_caps(dev, 1);
++	return __get_port_caps(dev, port);
++}
 +
-+		err = modify_raw_packet_qp_sq(dev->mdev, sq, sq_state,
-+					      raw_qp_param, qp->ibqp.pd);
-+		if (err) {
-+			if (flow_rule)
-+				mlx5_del_flow_rules(flow_rule);
-+			return err;
-+		}
-+
-+		if (flow_rule) {
-+			destroy_flow_rule_vport_sq(sq);
-+			sq->flow_rule = flow_rule;
-+		}
-+
-+		return err;
- 	}
+ static void destroy_umrc_res(struct mlx5_ib_dev *dev)
+ {
+ 	int err;
+@@ -6268,6 +6285,7 @@ static int mlx5_ib_stage_common_roce_init(struct mlx5_ib_dev *dev)
  
- 	return 0;
-@@ -3588,6 +3601,9 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
- 			raw_qp_param.set_mask |= MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID;
- 		}
+ 	port_num = mlx5_core_native_port_num(dev->mdev) - 1;
  
-+		if (attr_mask & IB_QP_PORT)
-+			raw_qp_param.port = attr->port_num;
-+
- 		if (attr_mask & IB_QP_RATE_LIMIT) {
- 			raw_qp_param.rl.rate = attr->rate_limit;
++	/* Register only for native ports */
+ 	return mlx5_add_netdev_notifier(dev, port_num);
+ }
  
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 885f87d0a3f9..7daa20102b1d 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -956,6 +956,7 @@ struct mlx5_ib_dev {
+ 	u16			devx_whitelist_uid;
+ 	struct mlx5_srq_table   srq_table;
+ 	struct mlx5_async_ctx   async_ctx;
++	int			free_port;
+ };
+ 
+ static inline struct mlx5_ib_cq *to_mibcq(struct mlx5_core_cq *mcq)
 -- 
 2.20.1
