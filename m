@@ -1,234 +1,140 @@
-From: ira.weiny@intel.com
-Subject: [PATCH V3 2/7] mm/gup: Change write parameter to flags in fast walk
-Date: Thu, 28 Mar 2019 01:44:17 -0700
-Message-ID: <20190328084422.29911-3-ira.weiny@intel.com>
-References: <20190328084422.29911-1-ira.weiny@intel.com>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH net] net: rds: force to destroy connection if t_sock is
+ NULL in rds_tcp_kill_sock().
+Date: Thu, 28 Mar 2019 10:14:35 -0700
+Message-ID: <8cd0e24f-9609-1126-50b1-71ef35ae6c66@oracle.com>
+References: <20190328091056.186547-1-maowenan@huawei.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
+In-Reply-To: <20190328091056.186547-1-maowenan@huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+To: Mao Wenan <maowenan@huawei.com>, davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
 
-In order to support more options in the GUP fast walk, change
-the write parameter to flags throughout the call stack.
+On 3/28/2019 2:10 AM, Mao Wenan wrote:
+> When it is to cleanup net namespace, rds_tcp_exit_net() will call
+> rds_tcp_kill_sock(), if t_sock is NULL, it will not call
+> rds_conn_destroy(), rds_conn_path_destroy() and rds_tcp_conn_free() to free
+> connection, and the worker cp_conn_w is not stopped, afterwards the net is freed in
+> net_drop_ns(); While cp_conn_w rds_connect_worker() will call rds_tcp_conn_path_connect()
+> and reference 'net' which has already been freed.
+> 
+> In rds_tcp_conn_path_connect(), rds_tcp_set_callbacks() will set t_sock = sock before
+> sock->ops->connect, but if connect() is failed, it will call
+> rds_tcp_restore_callbacks() and set t_sock = NULL, if connect is always
+> failed, rds_connect_worker() will try to reconnect all the time, so
+> rds_tcp_kill_sock() will never to cancel worker cp_conn_w and free the
+> connections.
+> 
+> Therefore, the condition !tc->t_sock is not needed if it is going to do
+> cleanup_net->rds_tcp_exit_net->rds_tcp_kill_sock, because tc->t_sock is always
+> NULL, and there is on other path to cancel cp_conn_w and free
+> connection. So this patch is to fix this.
+> 
+> rds_tcp_kill_sock():
+> ...
+> if (net != c_net || !tc->t_sock)
+> ...
+> ==================================================================
+> BUG: KASAN: use-after-free in inet_create+0xbcc/0xd28
+> net/ipv4/af_inet.c:340
+> Read of size 4 at addr ffff8003496a4684 by task kworker/u8:4/3721
+> 
+> CPU: 3 PID: 3721 Comm: kworker/u8:4 Not tainted 5.1.0 #11
+> Hardware name: linux,dummy-virt (DT)
+> Workqueue: krdsd rds_connect_worker
+> Call trace:
+>   dump_backtrace+0x0/0x3c0 arch/arm64/kernel/time.c:53
+>   show_stack+0x28/0x38 arch/arm64/kernel/traps.c:152
+>   __dump_stack lib/dump_stack.c:77 [inline]
+>   dump_stack+0x120/0x188 lib/dump_stack.c:113
+>   print_address_description+0x68/0x278 mm/kasan/report.c:253
+>   kasan_report_error mm/kasan/report.c:351 [inline]
+>   kasan_report+0x21c/0x348 mm/kasan/report.c:409
+>   __asan_report_load4_noabort+0x30/0x40 mm/kasan/report.c:429
+>   inet_create+0xbcc/0xd28 net/ipv4/af_inet.c:340
+>   __sock_create+0x4f8/0x770 net/socket.c:1276
+>   sock_create_kern+0x50/0x68 net/socket.c:1322
+>   rds_tcp_conn_path_connect+0x2b4/0x690 net/rds/tcp_connect.c:114
+>   rds_connect_worker+0x108/0x1d0 net/rds/threads.c:175
+>   process_one_work+0x6e8/0x1700 kernel/workqueue.c:2153
+>   worker_thread+0x3b0/0xdd0 kernel/workqueue.c:2296
+>   kthread+0x2f0/0x378 kernel/kthread.c:255
+>   ret_from_fork+0x10/0x18 arch/arm64/kernel/entry.S:1117
+> 
+> Allocated by task 687:
+>   save_stack mm/kasan/kasan.c:448 [inline]
+>   set_track mm/kasan/kasan.c:460 [inline]
+>   kasan_kmalloc+0xd4/0x180 mm/kasan/kasan.c:553
+>   kasan_slab_alloc+0x14/0x20 mm/kasan/kasan.c:490
+>   slab_post_alloc_hook mm/slab.h:444 [inline]
+>   slab_alloc_node mm/slub.c:2705 [inline]
+>   slab_alloc mm/slub.c:2713 [inline]
+>   kmem_cache_alloc+0x14c/0x388 mm/slub.c:2718
+>   kmem_cache_zalloc include/linux/slab.h:697 [inline]
+>   net_alloc net/core/net_namespace.c:384 [inline]
+>   copy_net_ns+0xc4/0x2d0 net/core/net_namespace.c:424
+>   create_new_namespaces+0x300/0x658 kernel/nsproxy.c:107
+>   unshare_nsproxy_namespaces+0xa0/0x198 kernel/nsproxy.c:206
+>   ksys_unshare+0x340/0x628 kernel/fork.c:2577
+>   __do_sys_unshare kernel/fork.c:2645 [inline]
+>   __se_sys_unshare kernel/fork.c:2643 [inline]
+>   __arm64_sys_unshare+0x38/0x58 kernel/fork.c:2643
+>   __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
+>   invoke_syscall arch/arm64/kernel/syscall.c:47 [inline]
+>   el0_svc_common+0x168/0x390 arch/arm64/kernel/syscall.c:83
+>   el0_svc_handler+0x60/0xd0 arch/arm64/kernel/syscall.c:129
+>   el0_svc+0x8/0xc arch/arm64/kernel/entry.S:960
+> 
+> Freed by task 264:
+>   save_stack mm/kasan/kasan.c:448 [inline]
+>   set_track mm/kasan/kasan.c:460 [inline]
+>   __kasan_slab_free+0x114/0x220 mm/kasan/kasan.c:521
+>   kasan_slab_free+0x10/0x18 mm/kasan/kasan.c:528
+>   slab_free_hook mm/slub.c:1370 [inline]
+>   slab_free_freelist_hook mm/slub.c:1397 [inline]
+>   slab_free mm/slub.c:2952 [inline]
+>   kmem_cache_free+0xb8/0x3a8 mm/slub.c:2968
+>   net_free net/core/net_namespace.c:400 [inline]
+>   net_drop_ns.part.6+0x78/0x90 net/core/net_namespace.c:407
+>   net_drop_ns net/core/net_namespace.c:406 [inline]
+>   cleanup_net+0x53c/0x6d8 net/core/net_namespace.c:569
+>   process_one_work+0x6e8/0x1700 kernel/workqueue.c:2153
+>   worker_thread+0x3b0/0xdd0 kernel/workqueue.c:2296
+>   kthread+0x2f0/0x378 kernel/kthread.c:255
+>   ret_from_fork+0x10/0x18 arch/arm64/kernel/entry.S:1117
+> 
+> The buggy address belongs to the object at ffff8003496a3f80
+>   which belongs to the cache net_namespace of size 7872
+> The buggy address is located 1796 bytes inside of
+>   7872-byte region [ffff8003496a3f80, ffff8003496a5e40)
+> The buggy address belongs to the page:
+> page:ffff7e000d25a800 count:1 mapcount:0 mapping:ffff80036ce4b000
+> index:0x0 compound_mapcount: 0
+> flags: 0xffffe0000008100(slab|head)
+> raw: 0ffffe0000008100 dead000000000100 dead000000000200 ffff80036ce4b000
+> raw: 0000000000000000 0000000080040004 00000001ffffffff 0000000000000000
+> page dumped because: kasan: bad access detected
+> 
+> Memory state around the buggy address:
+>   ffff8003496a4580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>   ffff8003496a4600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>> ffff8003496a4680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>                     ^
+>   ffff8003496a4700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+>   ffff8003496a4780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+> ==================================================================
+> 
+> Fixes: 467fa15356ac("RDS-TCP: Support multiple RDS-TCP listen endpoints, one per netns.")
+> 
+> Reported-by: Hulk Robot <hulkci@huawei.com>
+> Signed-off-by: Mao Wenan <maowenan@huawei.com>
+> ---
+Looks reasonable fix to me. Thanks !!
 
-This patch does not change functionality and passes FOLL_WRITE
-where write was previously used.
-
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
----
-Changes from V2
-	Add review by
-
- mm/gup.c | 52 ++++++++++++++++++++++++++--------------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
-
-diff --git a/mm/gup.c b/mm/gup.c
-index 12ce886733b9..6304317a308e 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1591,7 +1591,7 @@ static void undo_dev_pagemap(int *nr, int nr_start, struct page **pages)
- 
- #ifdef CONFIG_ARCH_HAS_PTE_SPECIAL
- static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
--			 int write, struct page **pages, int *nr)
-+			 unsigned int flags, struct page **pages, int *nr)
- {
- 	struct dev_pagemap *pgmap = NULL;
- 	int nr_start = *nr, ret = 0;
-@@ -1609,7 +1609,7 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
- 		if (pte_protnone(pte))
- 			goto pte_unmap;
- 
--		if (!pte_access_permitted(pte, write))
-+		if (!pte_access_permitted(pte, flags & FOLL_WRITE))
- 			goto pte_unmap;
- 
- 		if (pte_devmap(pte)) {
-@@ -1661,7 +1661,7 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
-  * useful to have gup_huge_pmd even if we can't operate on ptes.
-  */
- static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
--			 int write, struct page **pages, int *nr)
-+			 unsigned int flags, struct page **pages, int *nr)
- {
- 	return 0;
- }
-@@ -1744,12 +1744,12 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
- #endif
- 
- static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
--		unsigned long end, int write, struct page **pages, int *nr)
-+		unsigned long end, unsigned int flags, struct page **pages, int *nr)
- {
- 	struct page *head, *page;
- 	int refs;
- 
--	if (!pmd_access_permitted(orig, write))
-+	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
- 
- 	if (pmd_devmap(orig))
-@@ -1782,12 +1782,12 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
- }
- 
- static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
--		unsigned long end, int write, struct page **pages, int *nr)
-+		unsigned long end, unsigned int flags, struct page **pages, int *nr)
- {
- 	struct page *head, *page;
- 	int refs;
- 
--	if (!pud_access_permitted(orig, write))
-+	if (!pud_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
- 
- 	if (pud_devmap(orig))
-@@ -1820,13 +1820,13 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
- }
- 
- static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsigned long addr,
--			unsigned long end, int write,
-+			unsigned long end, unsigned int flags,
- 			struct page **pages, int *nr)
- {
- 	int refs;
- 	struct page *head, *page;
- 
--	if (!pgd_access_permitted(orig, write))
-+	if (!pgd_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
- 
- 	BUILD_BUG_ON(pgd_devmap(orig));
-@@ -1857,7 +1857,7 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsigned long addr,
- }
- 
- static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
--		int write, struct page **pages, int *nr)
-+		unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pmd_t *pmdp;
-@@ -1880,7 +1880,7 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
- 			if (pmd_protnone(pmd))
- 				return 0;
- 
--			if (!gup_huge_pmd(pmd, pmdp, addr, next, write,
-+			if (!gup_huge_pmd(pmd, pmdp, addr, next, flags,
- 				pages, nr))
- 				return 0;
- 
-@@ -1890,9 +1890,9 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
- 			 * pmd format and THP pmd format
- 			 */
- 			if (!gup_huge_pd(__hugepd(pmd_val(pmd)), addr,
--					 PMD_SHIFT, next, write, pages, nr))
-+					 PMD_SHIFT, next, flags, pages, nr))
- 				return 0;
--		} else if (!gup_pte_range(pmd, addr, next, write, pages, nr))
-+		} else if (!gup_pte_range(pmd, addr, next, flags, pages, nr))
- 			return 0;
- 	} while (pmdp++, addr = next, addr != end);
- 
-@@ -1900,7 +1900,7 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
- }
- 
- static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
--			 int write, struct page **pages, int *nr)
-+			 unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pud_t *pudp;
-@@ -1913,14 +1913,14 @@ static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
- 		if (pud_none(pud))
- 			return 0;
- 		if (unlikely(pud_huge(pud))) {
--			if (!gup_huge_pud(pud, pudp, addr, next, write,
-+			if (!gup_huge_pud(pud, pudp, addr, next, flags,
- 					  pages, nr))
- 				return 0;
- 		} else if (unlikely(is_hugepd(__hugepd(pud_val(pud))))) {
- 			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
--					 PUD_SHIFT, next, write, pages, nr))
-+					 PUD_SHIFT, next, flags, pages, nr))
- 				return 0;
--		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
-+		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr))
- 			return 0;
- 	} while (pudp++, addr = next, addr != end);
- 
-@@ -1928,7 +1928,7 @@ static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
- }
- 
- static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
--			 int write, struct page **pages, int *nr)
-+			 unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	p4d_t *p4dp;
-@@ -1943,9 +1943,9 @@ static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
- 		BUILD_BUG_ON(p4d_huge(p4d));
- 		if (unlikely(is_hugepd(__hugepd(p4d_val(p4d))))) {
- 			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
--					 P4D_SHIFT, next, write, pages, nr))
-+					 P4D_SHIFT, next, flags, pages, nr))
- 				return 0;
--		} else if (!gup_pud_range(p4d, addr, next, write, pages, nr))
-+		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr))
- 			return 0;
- 	} while (p4dp++, addr = next, addr != end);
- 
-@@ -1953,7 +1953,7 @@ static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
- }
- 
- static void gup_pgd_range(unsigned long addr, unsigned long end,
--		int write, struct page **pages, int *nr)
-+		unsigned int flags, struct page **pages, int *nr)
- {
- 	unsigned long next;
- 	pgd_t *pgdp;
-@@ -1966,14 +1966,14 @@ static void gup_pgd_range(unsigned long addr, unsigned long end,
- 		if (pgd_none(pgd))
- 			return;
- 		if (unlikely(pgd_huge(pgd))) {
--			if (!gup_huge_pgd(pgd, pgdp, addr, next, write,
-+			if (!gup_huge_pgd(pgd, pgdp, addr, next, flags,
- 					  pages, nr))
- 				return;
- 		} else if (unlikely(is_hugepd(__hugepd(pgd_val(pgd))))) {
- 			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
--					 PGDIR_SHIFT, next, write, pages, nr))
-+					 PGDIR_SHIFT, next, flags, pages, nr))
- 				return;
--		} else if (!gup_p4d_range(pgd, addr, next, write, pages, nr))
-+		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr))
- 			return;
- 	} while (pgdp++, addr = next, addr != end);
- }
-@@ -2027,7 +2027,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 	if (gup_fast_permitted(start, nr_pages)) {
- 		local_irq_save(flags);
--		gup_pgd_range(start, end, write, pages, &nr);
-+		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
- 		local_irq_restore(flags);
- 	}
- 
-@@ -2069,7 +2069,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 	if (gup_fast_permitted(start, nr_pages)) {
- 		local_irq_disable();
--		gup_pgd_range(addr, end, write, pages, &nr);
-+		gup_pgd_range(addr, end, write ? FOLL_WRITE : 0, pages, &nr);
- 		local_irq_enable();
- 		ret = nr;
- 	}
--- 
-2.20.1
+Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
