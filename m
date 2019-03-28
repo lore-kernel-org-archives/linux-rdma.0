@@ -1,149 +1,55 @@
-From: Mao Wenan <maowenan@huawei.com>
-Subject: [PATCH net] net: rds: force to destroy connection if t_sock is NULL in rds_tcp_kill_sock().
-Date: Thu, 28 Mar 2019 17:10:56 +0800
-Message-ID: <20190328091056.186547-1-maowenan@huawei.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
+ dereference
+Date: Thu, 28 Mar 2019 09:40:37 -0300
+Message-ID: <20190328124037.GJ21008@ziepe.ca>
+References: <20190309051921.15212-1-kjlu@umn.edu>
+ <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
+ <20190327133728.GA26660@chelsio.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190327133728.GA26660@chelsio.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, davem@davemloft.net
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+To: Potnuri Bharat Teja <bharat@chelsio.com>
+Cc: Kangjie Lu <kjlu@umn.edu>, "pakki001@umn.edu" <pakki001@umn.edu>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When it is to cleanup net namespace, rds_tcp_exit_net() will call
-rds_tcp_kill_sock(), if t_sock is NULL, it will not call
-rds_conn_destroy(), rds_conn_path_destroy() and rds_tcp_conn_free() to free
-connection, and the worker cp_conn_w is not stopped, afterwards the net is freed in
-net_drop_ns(); While cp_conn_w rds_connect_worker() will call rds_tcp_conn_path_connect()
-and reference 'net' which has already been freed.
+On Wed, Mar 27, 2019 at 07:08:54PM +0530, Potnuri Bharat Teja wrote:
+> On Saturday, March 03/23/19, 2019 at 08:07:46 +0530, Kangjie Lu wrote:
+> > 
+> > 
+> > > On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
+> > > 
+> > > get_skb may fail and return NULL. The fix returns "ENOMEM"
+> > > when it fails to avoid NULL dereference.
+> > > 
+> > > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+> > > drivers/infiniband/hw/cxgb4/cm.c | 3 +++
+> > > 1 file changed, 3 insertions(+)
+> > > 
+> > > diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> > > index 8221813219e5..502a54d57e2c 100644
+> > > +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> > > @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
+> > > 	int win;
+> > > 
+> > > 	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
+> > > +	if (!skb)
+> > > +		return -ENOMEM;
+> > > +
+> > 
+> > Can someone review this patch? Thanks.
+> 
+> Sorry for the late response.
+> I recommend an error print before the return.
+> if (!skb) {
+> 	pr_err("%s - failed to alloc skb\n", __func__);
+> 	return -ENOMEM;
+> }
 
-In rds_tcp_conn_path_connect(), rds_tcp_set_callbacks() will set t_sock = sock before
-sock->ops->connect, but if connect() is failed, it will call
-rds_tcp_restore_callbacks() and set t_sock = NULL, if connect is always
-failed, rds_connect_worker() will try to reconnect all the time, so
-rds_tcp_kill_sock() will never to cancel worker cp_conn_w and free the
-connections.
+no error prints on memory allocation failure, the kernel already
+prints enough on this
 
-Therefore, the condition !tc->t_sock is not needed if it is going to do
-cleanup_net->rds_tcp_exit_net->rds_tcp_kill_sock, because tc->t_sock is always
-NULL, and there is on other path to cancel cp_conn_w and free
-connection. So this patch is to fix this.
-
-rds_tcp_kill_sock():
-...
-if (net != c_net || !tc->t_sock)
-...
-==================================================================
-BUG: KASAN: use-after-free in inet_create+0xbcc/0xd28
-net/ipv4/af_inet.c:340
-Read of size 4 at addr ffff8003496a4684 by task kworker/u8:4/3721
-
-CPU: 3 PID: 3721 Comm: kworker/u8:4 Not tainted 5.1.0 #11
-Hardware name: linux,dummy-virt (DT)
-Workqueue: krdsd rds_connect_worker
-Call trace:
- dump_backtrace+0x0/0x3c0 arch/arm64/kernel/time.c:53
- show_stack+0x28/0x38 arch/arm64/kernel/traps.c:152
- __dump_stack lib/dump_stack.c:77 [inline]
- dump_stack+0x120/0x188 lib/dump_stack.c:113
- print_address_description+0x68/0x278 mm/kasan/report.c:253
- kasan_report_error mm/kasan/report.c:351 [inline]
- kasan_report+0x21c/0x348 mm/kasan/report.c:409
- __asan_report_load4_noabort+0x30/0x40 mm/kasan/report.c:429
- inet_create+0xbcc/0xd28 net/ipv4/af_inet.c:340
- __sock_create+0x4f8/0x770 net/socket.c:1276
- sock_create_kern+0x50/0x68 net/socket.c:1322
- rds_tcp_conn_path_connect+0x2b4/0x690 net/rds/tcp_connect.c:114
- rds_connect_worker+0x108/0x1d0 net/rds/threads.c:175
- process_one_work+0x6e8/0x1700 kernel/workqueue.c:2153
- worker_thread+0x3b0/0xdd0 kernel/workqueue.c:2296
- kthread+0x2f0/0x378 kernel/kthread.c:255
- ret_from_fork+0x10/0x18 arch/arm64/kernel/entry.S:1117
-
-Allocated by task 687:
- save_stack mm/kasan/kasan.c:448 [inline]
- set_track mm/kasan/kasan.c:460 [inline]
- kasan_kmalloc+0xd4/0x180 mm/kasan/kasan.c:553
- kasan_slab_alloc+0x14/0x20 mm/kasan/kasan.c:490
- slab_post_alloc_hook mm/slab.h:444 [inline]
- slab_alloc_node mm/slub.c:2705 [inline]
- slab_alloc mm/slub.c:2713 [inline]
- kmem_cache_alloc+0x14c/0x388 mm/slub.c:2718
- kmem_cache_zalloc include/linux/slab.h:697 [inline]
- net_alloc net/core/net_namespace.c:384 [inline]
- copy_net_ns+0xc4/0x2d0 net/core/net_namespace.c:424
- create_new_namespaces+0x300/0x658 kernel/nsproxy.c:107
- unshare_nsproxy_namespaces+0xa0/0x198 kernel/nsproxy.c:206
- ksys_unshare+0x340/0x628 kernel/fork.c:2577
- __do_sys_unshare kernel/fork.c:2645 [inline]
- __se_sys_unshare kernel/fork.c:2643 [inline]
- __arm64_sys_unshare+0x38/0x58 kernel/fork.c:2643
- __invoke_syscall arch/arm64/kernel/syscall.c:35 [inline]
- invoke_syscall arch/arm64/kernel/syscall.c:47 [inline]
- el0_svc_common+0x168/0x390 arch/arm64/kernel/syscall.c:83
- el0_svc_handler+0x60/0xd0 arch/arm64/kernel/syscall.c:129
- el0_svc+0x8/0xc arch/arm64/kernel/entry.S:960
-
-Freed by task 264:
- save_stack mm/kasan/kasan.c:448 [inline]
- set_track mm/kasan/kasan.c:460 [inline]
- __kasan_slab_free+0x114/0x220 mm/kasan/kasan.c:521
- kasan_slab_free+0x10/0x18 mm/kasan/kasan.c:528
- slab_free_hook mm/slub.c:1370 [inline]
- slab_free_freelist_hook mm/slub.c:1397 [inline]
- slab_free mm/slub.c:2952 [inline]
- kmem_cache_free+0xb8/0x3a8 mm/slub.c:2968
- net_free net/core/net_namespace.c:400 [inline]
- net_drop_ns.part.6+0x78/0x90 net/core/net_namespace.c:407
- net_drop_ns net/core/net_namespace.c:406 [inline]
- cleanup_net+0x53c/0x6d8 net/core/net_namespace.c:569
- process_one_work+0x6e8/0x1700 kernel/workqueue.c:2153
- worker_thread+0x3b0/0xdd0 kernel/workqueue.c:2296
- kthread+0x2f0/0x378 kernel/kthread.c:255
- ret_from_fork+0x10/0x18 arch/arm64/kernel/entry.S:1117
-
-The buggy address belongs to the object at ffff8003496a3f80
- which belongs to the cache net_namespace of size 7872
-The buggy address is located 1796 bytes inside of
- 7872-byte region [ffff8003496a3f80, ffff8003496a5e40)
-The buggy address belongs to the page:
-page:ffff7e000d25a800 count:1 mapcount:0 mapping:ffff80036ce4b000
-index:0x0 compound_mapcount: 0
-flags: 0xffffe0000008100(slab|head)
-raw: 0ffffe0000008100 dead000000000100 dead000000000200 ffff80036ce4b000
-raw: 0000000000000000 0000000080040004 00000001ffffffff 0000000000000000
-page dumped because: kasan: bad access detected
-
-Memory state around the buggy address:
- ffff8003496a4580: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff8003496a4600: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
->ffff8003496a4680: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-                   ^
- ffff8003496a4700: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
- ffff8003496a4780: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
-==================================================================
-
-Fixes: 467fa15356ac("RDS-TCP: Support multiple RDS-TCP listen endpoints, one per netns.")
-
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Mao Wenan <maowenan@huawei.com>
----
- net/rds/tcp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/rds/tcp.c b/net/rds/tcp.c
-index fd2694174607..faf726e00e27 100644
---- a/net/rds/tcp.c
-+++ b/net/rds/tcp.c
-@@ -608,7 +608,7 @@ static void rds_tcp_kill_sock(struct net *net)
- 	list_for_each_entry_safe(tc, _tc, &rds_tcp_conn_list, t_tcp_node) {
- 		struct net *c_net = read_pnet(&tc->t_cpath->cp_conn->c_net);
- 
--		if (net != c_net || !tc->t_sock)
-+		if (net != c_net)
- 			continue;
- 		if (!list_has_conn(&tmp_list, tc->t_cpath->cp_conn)) {
- 			list_move_tail(&tc->t_tcp_node, &tmp_list);
--- 
-2.20.1
+Jason
