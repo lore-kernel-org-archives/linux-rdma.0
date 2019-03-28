@@ -1,63 +1,58 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 10/12] RDMA/mlx5: Move SMI caps logic
-Date: Thu, 28 Mar 2019 15:27:40 +0200
-Message-ID: <20190328132742.12070-11-leon@kernel.org>
-References: <20190328132742.12070-1-leon@kernel.org>
+From: Potnuri Bharat Teja <bharat@chelsio.com>
+Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
+ dereference
+Date: Thu, 28 Mar 2019 19:50:23 +0530
+Message-ID: <20190328142022.GA13931@chelsio.com>
+References: <20190309051921.15212-1-kjlu@umn.edu>
+ <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
+ <20190327133728.GA26660@chelsio.com>
+ <20190328124037.GJ21008@ziepe.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190328132742.12070-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190328124037.GJ21008@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Kangjie Lu <kjlu@umn.edu>, "pakki001@umn.edu" <pakki001@umn.edu>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Bloch <markb@mellanox.com>
+On Thursday, March 03/28/19, 2019 at 18:10:37 +0530, Jason Gunthorpe wrote:
+> On Wed, Mar 27, 2019 at 07:08:54PM +0530, Potnuri Bharat Teja wrote:
+> > On Saturday, March 03/23/19, 2019 at 08:07:46 +0530, Kangjie Lu wrote:
+> > > 
+> > > 
+> > > > On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
+> > > > 
+> > > > get_skb may fail and return NULL. The fix returns "ENOMEM"
+> > > > when it fails to avoid NULL dereference.
+> > > > 
+> > > > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+> > > > drivers/infiniband/hw/cxgb4/cm.c | 3 +++
+> > > > 1 file changed, 3 insertions(+)
+> > > > 
+> > > > diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+> > > > index 8221813219e5..502a54d57e2c 100644
+> > > > +++ b/drivers/infiniband/hw/cxgb4/cm.c
+> > > > @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
+> > > > 	int win;
+> > > > 
+> > > > 	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
+> > > > +	if (!skb)
+> > > > +		return -ENOMEM;
+> > > > +
+> > > 
+> > > Can someone review this patch? Thanks.
+> > 
+> > Sorry for the late response.
+> > I recommend an error print before the return.
+> > if (!skb) {
+> > 	pr_err("%s - failed to alloc skb\n", __func__);
+> > 	return -ENOMEM;
+> > }
+> 
+> no error prints on memory allocation failure, the kernel already
+> prints enough on this
+Ok.
 
-We store the SMI information in the core device's struct, make sure
-we set that information only once (and not per port), while here make
-the for loop based on the actual size of the array.
-
-Signed-off-by: Mark Bloch <markb@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/hw/mlx5/main.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 9ce8ae5565a3..7eca3978c50c 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -4534,7 +4534,7 @@ static int set_has_smi_cap(struct mlx5_ib_dev *dev)
- 	int err;
- 	int port;
- 
--	for (port = 1; port <= dev->num_ports; port++) {
-+	for (port = 1; port <= ARRAY_SIZE(dev->mdev->port_caps); port++) {
- 		dev->mdev->port_caps[port - 1].has_smi = false;
- 		if (MLX5_CAP_GEN(dev->mdev, port_type) ==
- 		    MLX5_CAP_PORT_TYPE_IB) {
-@@ -4580,10 +4580,6 @@ static int get_port_caps(struct mlx5_ib_dev *dev, u8 port)
- 	if (!dprops)
- 		goto out;
- 
--	err = set_has_smi_cap(dev);
--	if (err)
--		goto out;
--
- 	err = mlx5_ib_query_device(&dev->ib_dev, dprops, &uhw);
- 	if (err) {
- 		mlx5_ib_warn(dev, "query_device failed %d\n", err);
-@@ -5960,6 +5956,10 @@ int mlx5_ib_stage_init_init(struct mlx5_ib_dev *dev)
- 	if (err)
- 		return err;
- 
-+	err = set_has_smi_cap(dev);
-+	if (err)
-+		return err;
-+
- 	if (!mlx5_core_mp_enabled(mdev)) {
- 		for (i = 1; i <= dev->num_ports; i++) {
- 			err = get_port_caps(dev, i);
--- 
-2.20.1
+Acked-by: Potnuri Bharat Teja <bharat@chelsio.com>
