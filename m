@@ -1,55 +1,66 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
- dereference
-Date: Thu, 28 Mar 2019 09:40:37 -0300
-Message-ID: <20190328124037.GJ21008@ziepe.ca>
-References: <20190309051921.15212-1-kjlu@umn.edu>
- <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
- <20190327133728.GA26660@chelsio.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 00/12] Move IB representors to single IB device multiple ports
+Date: Thu, 28 Mar 2019 15:27:30 +0200
+Message-ID: <20190328132742.12070-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190327133728.GA26660@chelsio.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Potnuri Bharat Teja <bharat@chelsio.com>
-Cc: Kangjie Lu <kjlu@umn.edu>, "pakki001@umn.edu" <pakki001@umn.edu>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 27, 2019 at 07:08:54PM +0530, Potnuri Bharat Teja wrote:
-> On Saturday, March 03/23/19, 2019 at 08:07:46 +0530, Kangjie Lu wrote:
-> > 
-> > 
-> > > On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
-> > > 
-> > > get_skb may fail and return NULL. The fix returns "ENOMEM"
-> > > when it fails to avoid NULL dereference.
-> > > 
-> > > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
-> > > drivers/infiniband/hw/cxgb4/cm.c | 3 +++
-> > > 1 file changed, 3 insertions(+)
-> > > 
-> > > diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> > > index 8221813219e5..502a54d57e2c 100644
-> > > +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> > > @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
-> > > 	int win;
-> > > 
-> > > 	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
-> > > +	if (!skb)
-> > > +		return -ENOMEM;
-> > > +
-> > 
-> > Can someone review this patch? Thanks.
-> 
-> Sorry for the late response.
-> I recommend an error print before the return.
-> if (!skb) {
-> 	pr_err("%s - failed to alloc skb\n", __func__);
-> 	return -ENOMEM;
-> }
+From: Leon Romanovsky <leonro@mellanox.com>
 
-no error prints on memory allocation failure, the kernel already
-prints enough on this
+>From Mark,
 
-Jason
+Hi,
+
+This series starts from two refactoring patches performed in mlx5_core
+and they are part of a larger series intended to expose the ability
+to insert FDB steering rules by the RDMA side.
+
+They are followed by patches which move IB representors to single IB
+device. Currently when moving to switchdev mode an IB device is created
+per virtual function (and one for the uplink). While initially this was
+right approach, the limitation of this model requires us to change it.
+
+Such limitations includes:
+ - Inability to share resources between IB devices.
+ - Lack of DEVX to allow more control and device specific functionality.
+ - Interacting with the E-Switch.
+ - Doesn't work well with namespaces.
+
+In this series we move to a single IB device with multiple ports where
+each port represents a different virtual function (port 1 is for the
+uplink). All the limitations listed above are now resolved and the
+software model exposed to users is more cohesive.
+
+Thanks
+
+Mark Bloch (12):
+  net/mlx5: E-Switch, don't use hardcoded values for FDB prios
+  net/mlx5: E-Switch, add a new prio to be used by the RDMA side
+  RDMA/mlx5: Move netdev info into the port struct
+  RDMA/mlx5: Free IB device on remove
+  RDMA/mlx5: Move ports allocation to outside of INIT stage
+  RDMA/mlx5: Use correct size for device resources
+  RDMA/mlx5: Move rep into port struct
+  RDMA/mlx5: Move default representors SQ steering to rule to modify QP
+  RDMA/mlx5: Refactor netdev affinity code
+  RDMA/mlx5: Move SMI caps logic
+  RDMA/mlx5: Move to single device multiport ports in switchdev mode
+  RDMA/mlx5: Remove VF representor profile
+
+ drivers/infiniband/hw/mlx5/devx.c             |   2 +-
+ drivers/infiniband/hw/mlx5/flow.c             |   2 +-
+ drivers/infiniband/hw/mlx5/ib_rep.c           | 109 +++++----
+ drivers/infiniband/hw/mlx5/ib_rep.h           |  13 +-
+ drivers/infiniband/hw/mlx5/main.c             | 207 ++++++++++--------
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  35 +--
+ drivers/infiniband/hw/mlx5/mr.c               |   6 +-
+ drivers/infiniband/hw/mlx5/qp.c               |  46 ++--
+ .../mellanox/mlx5/core/eswitch_offloads.c     |   5 -
+ .../net/ethernet/mellanox/mlx5/core/fs_core.c |  12 +-
+ include/linux/mlx5/fs.h                       |   6 +
+ 11 files changed, 239 insertions(+), 204 deletions(-)
