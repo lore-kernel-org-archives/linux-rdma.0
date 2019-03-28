@@ -1,64 +1,100 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] infiniband: cxgb4: fix a potential NULL pointer
- dereference
-Date: Thu, 28 Mar 2019 11:26:07 -0300
-Message-ID: <20190328142607.GM21008@ziepe.ca>
-References: <20190309051921.15212-1-kjlu@umn.edu>
- <CC1E06D8-7817-4314-AAD4-434FEB8C4157@umn.edu>
- <20190327133728.GA26660@chelsio.com>
- <20190328124037.GJ21008@ziepe.ca>
- <20190328142022.GA13931@chelsio.com>
+From: ira.weiny@intel.com
+Subject: [PATCH V3 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date: Thu, 28 Mar 2019 01:44:15 -0700
+Message-ID: <20190328084422.29911-1-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190328142022.GA13931@chelsio.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Potnuri Bharat Teja <bharat@chelsio.com>
-Cc: Kangjie Lu <kjlu@umn.edu>, "pakki001@umn.edu" <pakki001@umn.edu>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 28, 2019 at 07:50:23PM +0530, Potnuri Bharat Teja wrote:
-> On Thursday, March 03/28/19, 2019 at 18:10:37 +0530, Jason Gunthorpe wrote:
-> > On Wed, Mar 27, 2019 at 07:08:54PM +0530, Potnuri Bharat Teja wrote:
-> > > On Saturday, March 03/23/19, 2019 at 08:07:46 +0530, Kangjie Lu wrote:
-> > > > 
-> > > > 
-> > > > > On Mar 8, 2019, at 11:19 PM, Kangjie Lu <kjlu@umn.edu> wrote:
-> > > > > 
-> > > > > get_skb may fail and return NULL. The fix returns "ENOMEM"
-> > > > > when it fails to avoid NULL dereference.
-> > > > > 
-> > > > > Signed-off-by: Kangjie Lu <kjlu@umn.edu>
-> > > > > drivers/infiniband/hw/cxgb4/cm.c | 3 +++
-> > > > > 1 file changed, 3 insertions(+)
-> > > > > 
-> > > > > diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-> > > > > index 8221813219e5..502a54d57e2c 100644
-> > > > > +++ b/drivers/infiniband/hw/cxgb4/cm.c
-> > > > > @@ -1919,6 +1919,9 @@ static int send_fw_act_open_req(struct c4iw_ep *ep, unsigned int atid)
-> > > > > 	int win;
-> > > > > 
-> > > > > 	skb = get_skb(NULL, sizeof(*req), GFP_KERNEL);
-> > > > > +	if (!skb)
-> > > > > +		return -ENOMEM;
-> > > > > +
-> > > > 
-> > > > Can someone review this patch? Thanks.
-> > > 
-> > > Sorry for the late response.
-> > > I recommend an error print before the return.
-> > > if (!skb) {
-> > > 	pr_err("%s - failed to alloc skb\n", __func__);
-> > > 	return -ENOMEM;
-> > > }
-> > 
-> > no error prints on memory allocation failure, the kernel already
-> > prints enough on this
-> Ok.
-> 
-> Acked-by: Potnuri Bharat Teja <bharat@chelsio.com>
+From: Ira Weiny <ira.weiny@intel.com>
 
-It needs to be resent with Bart's comment addressed, and all the tags collected.
+Following discussion and review[1] here are the cleanups requested.
 
-Jason
+The biggest change for V3 was the disabling of the ability to use FOLL_LONGTERM
+in get_user_pages[unlocked|locked|remote]
+
+Comments were also enhanced throughout to show potential users what
+FOLL_LONGTERM is all about and limitations it has.
+
+Minor review comments were fixed
+
+Original cover letter:
+
+HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+advantages.  These pages can be held for a significant time.  But
+get_user_pages_fast() does not protect against mapping FS DAX pages.
+
+Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+retains the performance while also adding the FS DAX checks.  XDP has also
+shown interest in using this functionality.[1]
+
+In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+remove the specialized get_user_pages_longterm call.
+
+[1] https://lkml.org/lkml/2019/3/19/939
+
+
+
+Ira Weiny (7):
+  mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+  mm/gup: Change write parameter to flags in fast walk
+  mm/gup: Change GUP fast to use flags rather than a write 'bool'
+  mm/gup: Add FOLL_LONGTERM capability to GUP fast
+  IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+
+ arch/mips/mm/gup.c                          |  11 +-
+ arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+ arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+ arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
+ arch/s390/kvm/interrupt.c                   |   2 +-
+ arch/s390/mm/gup.c                          |  12 +-
+ arch/sh/mm/gup.c                            |  11 +-
+ arch/sparc/mm/gup.c                         |   9 +-
+ arch/x86/kvm/paging_tmpl.h                  |   2 +-
+ arch/x86/kvm/svm.c                          |   2 +-
+ drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+ drivers/infiniband/core/umem.c              |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   3 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+ drivers/misc/genwqe/card_utils.c            |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+ drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+ drivers/sbus/char/oradax.c                  |   2 +-
+ drivers/scsi/st.c                           |   3 +-
+ drivers/staging/gasket/gasket_page_table.c  |   4 +-
+ drivers/tee/tee_shm.c                       |   2 +-
+ drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+ drivers/vfio/vfio_iommu_type1.c             |   3 +-
+ drivers/vhost/vhost.c                       |   2 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/virt/fsl_hypervisor.c               |   2 +-
+ drivers/xen/gntdev.c                        |   2 +-
+ fs/io_uring.c                               |   5 +-
+ fs/orangefs/orangefs-bufmap.c               |   2 +-
+ include/linux/mm.h                          |  45 ++-
+ kernel/futex.c                              |   2 +-
+ lib/iov_iter.c                              |   7 +-
+ mm/gup.c                                    | 288 +++++++++++++-------
+ mm/gup_benchmark.c                          |   5 +-
+ mm/util.c                                   |   8 +-
+ net/ceph/pagevec.c                          |   2 +-
+ net/rds/info.c                              |   2 +-
+ net/rds/rdma.c                              |   3 +-
+ net/xdp/xdp_umem.c                          |   4 +-
+ 46 files changed, 314 insertions(+), 200 deletions(-)
+
+-- 
+2.20.1
