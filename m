@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 08/14] net/mlx5: Make mlx5_core messages independent from mdev->pdev
-Date: Fri, 29 Mar 2019 15:37:58 -0700
-Message-ID: <20190329223804.8954-9-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 07/14] net/mlx5: Break load_one into three stages
+Date: Fri, 29 Mar 2019 15:37:57 -0700
+Message-ID: <20190329223804.8954-8-saeedm@mellanox.com>
 References: <20190329223804.8954-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,77 +9,238 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190329223804.8954-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: saeed@mellanox.com, Leon Romanovsky <leonro@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Huy Nguyen <huyn@mellanox.com>, Vu Pham <vuhuong@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Vu Pham <vuhuong@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Huy Nguyen <huyn@mellanox.com>
+Using foundation from previous patches to factor mlx5_load_one flow
+into three stages:
+1. mlx5_function_setup() from previous patch to setup function
+2. mlx5_init_once() from previous patch to init software objects
+according to hw caps
+3. New mlx5_load() to load mlx5 components
 
-Detach mlx5_core mdev messages from pci device mdev->pdev messages and
-provide a better report/debug of different mlx5 device types.
+This provides a better logical separation of mlx5 core device
+initialization flow and will help to seamlessly support creating different
+mlx5 device types such as PF, VF and SF mlx5 sub-function virtual device.
 
 This patch does not change any functionality.
 
-Signed-off-by: Huy Nguyen <huyn@mellanox.com>
 Signed-off-by: Vu Pham <vuhuong@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   | 19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 148 +++++++++---------
+ 1 file changed, 77 insertions(+), 71 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-index 7b331674622c..052e81974c3b 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-@@ -48,12 +48,12 @@
- extern uint mlx5_core_debug_mask;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index d5a8ec8f587d..bdfc0429ee6e 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -925,6 +925,13 @@ static int mlx5_function_setup(struct mlx5_core_dev *dev, bool boot)
+ 	struct pci_dev *pdev = dev->pdev;
+ 	int err;
  
- #define mlx5_core_dbg(__dev, format, ...)				\
--	dev_dbg(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,		\
-+	pr_debug("%s:%s:%d:(pid %d): " format, (__dev)->priv.name,      \
- 		 __func__, __LINE__, current->pid,			\
- 		 ##__VA_ARGS__)
++	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
++		 fw_rev_min(dev), fw_rev_sub(dev));
++
++	/* Only PFs hold the relevant PCIe information for this query */
++	if (mlx5_core_is_pf(dev))
++		pcie_print_link_status(dev->pdev);
++
+ 	/* wait for firmware to accept initialization segments configurations
+ 	 */
+ 	err = wait_fw_init(dev, FW_PRE_INIT_TIMEOUT_MILI);
+@@ -1030,48 +1037,16 @@ static int mlx5_function_teardown(struct mlx5_core_dev *dev, bool boot)
+ 	return 0;
+ }
  
- #define mlx5_core_dbg_once(__dev, format, ...)				\
--	dev_dbg_once(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
-+	pr_debug_once("%s:%s:%d:(pid %d): " format, (__dev)->priv.name, \
- 		     __func__, __LINE__, current->pid,			\
- 		     ##__VA_ARGS__)
+-static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
++static int mlx5_load(struct mlx5_core_dev *dev)
+ {
+ 	struct pci_dev *pdev = dev->pdev;
+ 	int err;
  
-@@ -64,28 +64,27 @@ do {									\
- } while (0)
+-	dev->caps.embedded_cpu = mlx5_read_embedded_cpu(dev);
+-	mutex_lock(&dev->intf_state_mutex);
+-	if (test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
+-		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
+-			 __func__);
+-		goto out;
+-	}
+-
+-	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
+-		 fw_rev_min(dev), fw_rev_sub(dev));
+-
+-	/* Only PFs hold the relevant PCIe information for this query */
+-	if (mlx5_core_is_pf(dev))
+-		pcie_print_link_status(dev->pdev);
+-
+-	/* on load removing any previous indication of internal error, device is
+-	 * up
+-	 */
+-	dev->state = MLX5_DEVICE_STATE_UP;
+-
+-	err = mlx5_function_setup(dev, boot);
+-	if (err)
+-		goto out;
+-
+-	if (boot) {
+-		err = mlx5_init_once(dev);
+-		if (err) {
+-			dev_err(&pdev->dev, "sw objs init failed\n");
+-			goto function_teardown;
+-		}
+-	}
+-
+ 	dev->priv.uar = mlx5_get_uars_page(dev);
+ 	if (IS_ERR(dev->priv.uar)) {
+ 		dev_err(&pdev->dev, "Failed allocating uar, aborting\n");
+ 		err = PTR_ERR(dev->priv.uar);
+-		goto err_get_uars;
++		return err;
+ 	}
  
- #define mlx5_core_err(__dev, format, ...)				\
--	dev_err(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
-+	pr_err("%s:%s:%d:(pid %d): " format, (__dev)->priv.name,        \
- 		__func__, __LINE__, current->pid,	\
- 	       ##__VA_ARGS__)
+ 	mlx5_events_start(dev);
+@@ -1131,55 +1106,95 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
+ 		goto err_ec;
+ 	}
  
--#define mlx5_core_err_rl(__dev, format, ...)				\
--	dev_err_ratelimited(&(__dev)->pdev->dev,			\
--			   "%s:%d:(pid %d): " format,			\
--			   __func__, __LINE__, current->pid,		\
-+#define mlx5_core_err_rl(__dev, format, ...)				     \
-+	pr_err_ratelimited("%s:%s:%d:(pid %d): " format, (__dev)->priv.name, \
-+			   __func__, __LINE__, current->pid,		     \
- 			   ##__VA_ARGS__)
+-	if (mlx5_device_registered(dev)) {
+-		mlx5_attach_device(dev);
+-	} else {
+-		err = mlx5_register_device(dev);
+-		if (err) {
+-			dev_err(&pdev->dev, "mlx5_register_device failed %d\n", err);
+-			goto err_reg_dev;
+-		}
+-	}
+-
+-	set_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state);
+-out:
+-	mutex_unlock(&dev->intf_state_mutex);
+-
+ 	return 0;
  
- #define mlx5_core_warn(__dev, format, ...)				\
--	dev_warn(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
-+	pr_warn("%s:%s:%d:(pid %d): " format, (__dev)->priv.name,       \
- 		 __func__, __LINE__, current->pid,			\
- 		##__VA_ARGS__)
+-err_reg_dev:
+-	mlx5_ec_cleanup(dev);
+-
+ err_ec:
+ 	mlx5_sriov_detach(dev);
+-
+ err_sriov:
+ 	mlx5_cleanup_fs(dev);
+-
+ err_fs:
+ 	mlx5_accel_tls_cleanup(dev);
+-
+ err_tls_start:
+ 	mlx5_accel_ipsec_cleanup(dev);
+-
+ err_ipsec_start:
+ 	mlx5_fpga_device_stop(dev);
+-
+ err_fpga_start:
+ 	mlx5_fw_tracer_cleanup(dev->tracer);
+-
+ err_fw_tracer:
+ 	mlx5_eq_table_destroy(dev);
+-
+ err_eq_table:
+ 	mlx5_pagealloc_stop(dev);
+ 	mlx5_events_stop(dev);
+ 	mlx5_put_uars_page(dev, dev->priv.uar);
++	return err;
++}
++
++static void mlx5_unload(struct mlx5_core_dev *dev)
++{
++	mlx5_ec_cleanup(dev);
++	mlx5_sriov_detach(dev);
++	mlx5_cleanup_fs(dev);
++	mlx5_accel_ipsec_cleanup(dev);
++	mlx5_accel_tls_cleanup(dev);
++	mlx5_fpga_device_stop(dev);
++	mlx5_fw_tracer_cleanup(dev->tracer);
++	mlx5_eq_table_destroy(dev);
++	mlx5_pagealloc_stop(dev);
++	mlx5_events_stop(dev);
++	mlx5_put_uars_page(dev, dev->priv.uar);
++}
++
++static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
++{
++	struct pci_dev *pdev = dev->pdev;
++	int err = 0;
++
++	dev->caps.embedded_cpu = mlx5_read_embedded_cpu(dev);
++	mutex_lock(&dev->intf_state_mutex);
++	if (test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
++		mlx5_core_warn(dev, "interface is up, NOP\n");
++		goto out;
++	}
++	/* remove any previous indication of internal error */
++	dev->state = MLX5_DEVICE_STATE_UP;
++
++	err = mlx5_function_setup(dev, boot);
++	if (err)
++		goto out;
++
++	if (boot) {
++		err = mlx5_init_once(dev);
++		if (err) {
++			dev_err(&pdev->dev, "sw objs init failed\n");
++			goto function_teardown;
++		}
++	}
++
++	err = mlx5_load(dev);
++	if (err)
++		goto err_load;
++
++	if (mlx5_device_registered(dev)) {
++		mlx5_attach_device(dev);
++	} else {
++		err = mlx5_register_device(dev);
++		if (err) {
++			dev_err(&pdev->dev, "register device failed %d\n", err);
++			goto err_reg_dev;
++		}
++	}
++
++	set_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state);
++out:
++	mutex_unlock(&dev->intf_state_mutex);
  
- #define mlx5_core_warn_once(__dev, format, ...)				\
--	dev_warn_once(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,	\
-+	pr_warn_once("%s:%s:%d:(pid %d): " format, (__dev)->priv.name,  \
- 		      __func__, __LINE__, current->pid,			\
- 		      ##__VA_ARGS__)
+-err_get_uars:
++	return err;
++
++err_reg_dev:
++	mlx5_unload(dev);
++err_load:
+ 	if (boot)
+ 		mlx5_cleanup_once(dev);
+-
+ function_teardown:
+ 	mlx5_function_teardown(dev, boot);
+ 	dev->state = MLX5_DEVICE_STATE_INTERNAL_ERROR;
+@@ -1209,17 +1224,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, bool cleanup)
+ 	if (mlx5_device_registered(dev))
+ 		mlx5_detach_device(dev);
  
- #define mlx5_core_info(__dev, format, ...)				\
--	dev_info(&(__dev)->pdev->dev, format, ##__VA_ARGS__)
-+	pr_info("%s " format, (__dev)->priv.name, ##__VA_ARGS__)
+-	mlx5_ec_cleanup(dev);
+-	mlx5_sriov_detach(dev);
+-	mlx5_cleanup_fs(dev);
+-	mlx5_accel_ipsec_cleanup(dev);
+-	mlx5_accel_tls_cleanup(dev);
+-	mlx5_fpga_device_stop(dev);
+-	mlx5_fw_tracer_cleanup(dev->tracer);
+-	mlx5_eq_table_destroy(dev);
+-	mlx5_pagealloc_stop(dev);
+-	mlx5_events_stop(dev);
+-	mlx5_put_uars_page(dev, dev->priv.uar);
++	mlx5_unload(dev);
++
+ 	if (cleanup)
+ 		mlx5_cleanup_once(dev);
  
- enum {
- 	MLX5_CMD_DATA, /* print command payload only */
 -- 
 2.20.1
