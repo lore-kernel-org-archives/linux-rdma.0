@@ -1,92 +1,136 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 00/14] Mellanox, mlx5 next updates 2019-03-29
-Date: Fri, 29 Mar 2019 15:37:50 -0700
-Message-ID: <20190329223804.8954-1-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 02/14] net/mlx5: Remove spinlock support from mlx5_write64
+Date: Fri, 29 Mar 2019 15:37:52 -0700
+Message-ID: <20190329223804.8954-3-saeedm@mellanox.com>
+References: <20190329223804.8954-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190329223804.8954-1-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: saeed@mellanox.com, Leon Romanovsky <leonro@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Maxim Mikityanskiy <maximmi@mellanox.com>, Eran Ben Elisha <eranbe@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Maxim Mikityanskiy <maximmi@mellanox.com>
 
-This series includes some misc shared code updates for mlx5-next branch.
+As there is no user of mlx5_write64 that passes a spinlock to
+mlx5_write64, remove this functionality and simplify the function.
 
->From Maxim, Remove un-used macros and spinlock from mlx5 code.
-
->From Aya, Expose Management PCIE info register layout and add rate limit
-print macros.
-
->From Tariq, Compilation warning fix in fs_core.c
-
->From Vu, Huy and Saeed, Improve mlx5 initialization flow:
-The goal is to provide a better logical separation of mlx5 core
-device initialization flow and will help to seamlessly support
-creating different mlx5 device types such as PF, VF and SF
-mlx5 sub-function virtual devices.
-
-Mlx5_core driver needs to separate HCA resources from pci resources.
-Its initialize/load/unload will be broken into stages:
-1. Initialize common data structures
-2. Setup function which initializes pci resources (for PF/VF)
-   or some other specific resources for virtual device
-3. Initialize software objects according to hardware capabilities
-4. Load all mlx5_core components
-
-It is also necessary to detach mlx5_core mdev name/message from pci
-device mdev->pdev name/message for a clearer report/debug of
-different mlx5 device types.
-
-Thanks,
-Saeed.
-
+Signed-off-by: Maxim Mikityanskiy <maximmi@mellanox.com>
+Reviewed-by: Eran Ben Elisha <eranbe@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
+ drivers/infiniband/hw/mlx5/qp.c               |  2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en.h  |  2 +-
+ .../ethernet/mellanox/mlx5/core/fpga/conn.c   |  2 +-
+ include/linux/mlx5/cq.h                       |  2 +-
+ include/linux/mlx5/doorbell.h                 | 31 ++++++-------------
+ 5 files changed, 13 insertions(+), 26 deletions(-)
 
-Aya Levin (2):
-  net/mlx5: Add rate limit print macros
-  net/mlx5: Expose MPEIN (Management PCIE INfo) register layout
-
-Huy Nguyen (4):
-  net/mlx5: Make mlx5_core messages independent from mdev->pdev
-  net/mlx5: Use dev->priv.name instead of dev_name
-  net/mlx5: Replace dev_err/warn/info by mlx5_core_err/warn/info
-  net/mlx5: Add explicit bar address field
-
-Maxim Mikityanskiy (2):
-  net/mlx5: Remove unused MLX5_*_DOORBELL_LOCK macros
-  net/mlx5: Remove spinlock support from mlx5_write64
-
-Saeed Mahameed (5):
-  net/mlx5: Remove redundant init functions parameter
-  net/mlx5: Split mdev init and pci init
-  net/mlx5: Move health and page alloc init to mdev_init
-  net/mlx5: Function setup/teardown procedures
-  net/mlx5: Break load_one into three stages
-
-Tariq Toukan (1):
-  net/mlx5: Fix false compilation warning
-
- drivers/infiniband/hw/mlx5/cmd.c              |   4 +-
- drivers/infiniband/hw/mlx5/main.c             |   8 +-
- drivers/infiniband/hw/mlx5/mr.c               |   3 +-
- drivers/infiniband/hw/mlx5/qp.c               |   2 +-
- drivers/net/ethernet/mellanox/mlx5/core/cmd.c |  22 +-
- .../mlx5/core/diag/fw_tracer_tracepoint.h     |   4 +-
- drivers/net/ethernet/mellanox/mlx5/core/en.h  |   2 +-
- .../ethernet/mellanox/mlx5/core/fpga/conn.c   |   2 +-
- .../ethernet/mellanox/mlx5/core/fpga/core.h   |  21 +-
- .../net/ethernet/mellanox/mlx5/core/fs_core.c |   2 +-
- .../net/ethernet/mellanox/mlx5/core/health.c  |  44 +-
- .../net/ethernet/mellanox/mlx5/core/main.c    | 473 ++++++++++--------
- .../ethernet/mellanox/mlx5/core/mlx5_core.h   |  29 +-
- drivers/net/ethernet/mellanox/mlx5/core/uar.c |   2 +-
- include/linux/mlx5/cq.h                       |   2 +-
- include/linux/mlx5/doorbell.h                 |  39 +-
- include/linux/mlx5/driver.h                   |   3 +
- include/linux/mlx5/mlx5_ifc.h                 |  51 +-
- 18 files changed, 398 insertions(+), 315 deletions(-)
-
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index 7cd006da1dae..ef7d69269a88 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -5119,7 +5119,7 @@ static int _mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+ 		wmb();
+ 
+ 		/* currently we support only regular doorbells */
+-		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset, NULL);
++		mlx5_write64((__be32 *)ctrl, bf->bfreg->map + bf->offset);
+ 		/* Make sure doorbells don't leak out of SQ spinlock
+ 		 * and reach the HCA out of order.
+ 		 */
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en.h b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+index 71c65cc17904..8ce9b5186ff2 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en.h
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en.h
+@@ -929,7 +929,7 @@ void mlx5e_notify_hw(struct mlx5_wq_cyc *wq, u16 pc,
+ 	 */
+ 	wmb();
+ 
+-	mlx5_write64((__be32 *)ctrl, uar_map, NULL);
++	mlx5_write64((__be32 *)ctrl, uar_map);
+ }
+ 
+ static inline void mlx5e_cq_arm(struct mlx5e_cq *cq)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+index 873541ef4c1b..ca2296a2f9ee 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/fpga/conn.c
+@@ -135,7 +135,7 @@ static void mlx5_fpga_conn_notify_hw(struct mlx5_fpga_conn *conn, void *wqe)
+ 	*conn->qp.wq.sq.db = cpu_to_be32(conn->qp.sq.pc);
+ 	/* Make sure that doorbell record is visible before ringing */
+ 	wmb();
+-	mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET, NULL);
++	mlx5_write64(wqe, conn->fdev->conn_res.uar->map + MLX5_BF_OFFSET);
+ }
+ 
+ static void mlx5_fpga_conn_post_send(struct mlx5_fpga_conn *conn,
+diff --git a/include/linux/mlx5/cq.h b/include/linux/mlx5/cq.h
+index 612c8c2f2466..769326ea1d9b 100644
+--- a/include/linux/mlx5/cq.h
++++ b/include/linux/mlx5/cq.h
+@@ -170,7 +170,7 @@ static inline void mlx5_cq_arm(struct mlx5_core_cq *cq, u32 cmd,
+ 	doorbell[0] = cpu_to_be32(sn << 28 | cmd | ci);
+ 	doorbell[1] = cpu_to_be32(cq->cqn);
+ 
+-	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL, NULL);
++	mlx5_write64(doorbell, uar_page + MLX5_CQ_DOORBELL);
+ }
+ 
+ static inline void mlx5_cq_hold(struct mlx5_core_cq *cq)
+diff --git a/include/linux/mlx5/doorbell.h b/include/linux/mlx5/doorbell.h
+index 9ef3f9d00154..5c267707e1df 100644
+--- a/include/linux/mlx5/doorbell.h
++++ b/include/linux/mlx5/doorbell.h
+@@ -36,38 +36,25 @@
+ #define MLX5_BF_OFFSET	      0x800
+ #define MLX5_CQ_DOORBELL      0x20
+ 
+-#if BITS_PER_LONG == 64
+ /* Assume that we can just write a 64-bit doorbell atomically.  s390
+  * actually doesn't have writeq() but S/390 systems don't even have
+  * PCI so we won't worry about it.
++ *
++ * Note that the write is not atomic on 32-bit systems! In contrast to 64-bit
++ * ones, it requires proper locking. mlx5_write64 doesn't do any locking, so use
++ * it at your own discretion, protected by some kind of lock on 32 bits.
++ *
++ * TODO: use write{q,l}_relaxed()
+  */
+ 
+-static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+-				spinlock_t *doorbell_lock)
++static inline void mlx5_write64(__be32 val[2], void __iomem *dest)
+ {
++#if BITS_PER_LONG == 64
+ 	__raw_writeq(*(u64 *)val, dest);
+-}
+-
+ #else
+-
+-/* Just fall back to a spinlock to protect the doorbell if
+- * BITS_PER_LONG is 32 -- there's no portable way to do atomic 64-bit
+- * MMIO writes.
+- */
+-
+-static inline void mlx5_write64(__be32 val[2], void __iomem *dest,
+-				spinlock_t *doorbell_lock)
+-{
+-	unsigned long flags;
+-
+-	if (doorbell_lock)
+-		spin_lock_irqsave(doorbell_lock, flags);
+ 	__raw_writel((__force u32) val[0], dest);
+ 	__raw_writel((__force u32) val[1], dest + 4);
+-	if (doorbell_lock)
+-		spin_unlock_irqrestore(doorbell_lock, flags);
+-}
+-
+ #endif
++}
+ 
+ #endif /* MLX5_DOORBELL_H */
 -- 
 2.20.1
