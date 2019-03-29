@@ -1,7 +1,7 @@
 From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next 06/14] net/mlx5: Function setup/teardown procedures
-Date: Fri, 29 Mar 2019 15:37:56 -0700
-Message-ID: <20190329223804.8954-7-saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 05/14] net/mlx5: Move health and page alloc init to mdev_init
+Date: Fri, 29 Mar 2019 15:37:55 -0700
+Message-ID: <20190329223804.8954-6-saeedm@mellanox.com>
 References: <20190329223804.8954-1-saeedm@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,10 +12,7 @@ To: saeed@mellanox.com, Leon Romanovsky <leonro@mellanox.com>
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Saeed Mahameed <saeedm@mellanox.com>, Vu Pham <vuhuong@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Function setup and teardown procedures are the basic procedure that
-each mlx5 pci function should perform to boot up a mlx5 device function
-and initialize basic communication with FW, before allocating any higher
-level software/firmware resources.
+Software structure initialization should be in mdev_init stage.
 
 This provides a better logical separation of mlx5 core device
 initialization flow and will help to seamlessly support creating different
@@ -26,182 +23,125 @@ This patch does not change any functionality.
 Signed-off-by: Vu Pham <vuhuong@mellanox.com>
 Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
 ---
- .../net/ethernet/mellanox/mlx5/core/main.c    | 120 ++++++++++--------
- 1 file changed, 68 insertions(+), 52 deletions(-)
+ .../net/ethernet/mellanox/mlx5/core/health.c  |  7 ++++
+ .../net/ethernet/mellanox/mlx5/core/main.c    | 37 ++++++++++---------
+ include/linux/mlx5/driver.h                   |  1 +
+ 3 files changed, 28 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-index 131a00688438..d5a8ec8f587d 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
-@@ -920,44 +920,24 @@ static void mlx5_cleanup_once(struct mlx5_core_dev *dev)
- 	mlx5_devcom_unregister_device(dev->priv.devcom);
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/health.c b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+index cb9fa3430c53..b0e3f809e886 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/health.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/health.c
+@@ -352,6 +352,13 @@ void mlx5_drain_health_recovery(struct mlx5_core_dev *dev)
+ 	cancel_delayed_work_sync(&dev->priv.health.recover_work);
  }
  
--static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
-+static int mlx5_function_setup(struct mlx5_core_dev *dev, bool boot)
++void mlx5_health_flush(struct mlx5_core_dev *dev)
++{
++	struct mlx5_core_health *health = &dev->priv.health;
++
++	flush_workqueue(health->wq);
++}
++
+ void mlx5_health_cleanup(struct mlx5_core_dev *dev)
  {
- 	struct pci_dev *pdev = dev->pdev;
- 	int err;
+ 	struct mlx5_core_health *health = &dev->priv.health;
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/main.c b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+index 5c96f1136c0a..131a00688438 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/main.c
+@@ -1227,6 +1227,7 @@ static const struct devlink_ops mlx5_devlink_ops = {
+ static int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx, const char *name)
+ {
+ 	struct mlx5_priv *priv = &dev->priv;
++	int err;
  
--	dev->caps.embedded_cpu = mlx5_read_embedded_cpu(dev);
--	mutex_lock(&dev->intf_state_mutex);
--	if (test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
--		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
--			 __func__);
--		goto out;
--	}
--
--	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
--		 fw_rev_min(dev), fw_rev_sub(dev));
--
--	/* Only PFs hold the relevant PCIe information for this query */
--	if (mlx5_core_is_pf(dev))
--		pcie_print_link_status(dev->pdev);
--
--	/* on load removing any previous indication of internal error, device is
--	 * up
--	 */
--	dev->state = MLX5_DEVICE_STATE_UP;
--
- 	/* wait for firmware to accept initialization segments configurations
- 	 */
- 	err = wait_fw_init(dev, FW_PRE_INIT_TIMEOUT_MILI);
- 	if (err) {
- 		dev_err(&dev->pdev->dev, "Firmware over %d MS in pre-initializing state, aborting\n",
- 			FW_PRE_INIT_TIMEOUT_MILI);
--		goto out_err;
-+		return err;
+ 	strncpy(priv->name, name, MLX5_MAX_NAME_LEN);
+ 	priv->name[MLX5_MAX_NAME_LEN - 1] = 0;
+@@ -1254,11 +1255,28 @@ static int mlx5_mdev_init(struct mlx5_core_dev *dev, int profile_idx, const char
+ 		return -ENOMEM;
  	}
  
- 	err = mlx5_cmd_init(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "Failed initializing command interface, aborting\n");
--		goto out_err;
-+		return err;
- 	}
- 
- 	err = wait_fw_init(dev, FW_INIT_TIMEOUT_MILI);
-@@ -1016,14 +996,74 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
- 	err = mlx5_query_hca_caps(dev);
- 	if (err) {
- 		dev_err(&pdev->dev, "query hca failed\n");
--		goto err_stop_poll;
-+		goto stop_health;
-+	}
++	err = mlx5_health_init(dev);
++	if (err)
++		goto err_health_init;
 +
-+	return 0;
++	err = mlx5_pagealloc_init(dev);
++	if (err)
++		goto err_pagealloc_init;
 +
-+stop_health:
-+	mlx5_stop_health_poll(dev, boot);
-+reclaim_boot_pages:
-+	mlx5_reclaim_startup_pages(dev);
-+err_disable_hca:
-+	mlx5_core_disable_hca(dev, 0);
-+err_cmd_cleanup:
-+	mlx5_cmd_cleanup(dev);
+ 	return 0;
++
++err_pagealloc_init:
++	mlx5_health_cleanup(dev);
++err_health_init:
++	debugfs_remove(dev->priv.dbg_root);
 +
 +	return err;
-+}
-+
-+static int mlx5_function_teardown(struct mlx5_core_dev *dev, bool boot)
-+{
-+	int err;
-+
-+	mlx5_stop_health_poll(dev, boot);
-+	err = mlx5_cmd_teardown_hca(dev);
-+	if (err) {
-+		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
-+		return err;
-+	}
-+	mlx5_reclaim_startup_pages(dev);
-+	mlx5_core_disable_hca(dev, 0);
-+	mlx5_cmd_cleanup(dev);
-+
-+	return 0;
-+}
-+
-+static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
-+{
-+	struct pci_dev *pdev = dev->pdev;
-+	int err;
-+
-+	dev->caps.embedded_cpu = mlx5_read_embedded_cpu(dev);
-+	mutex_lock(&dev->intf_state_mutex);
-+	if (test_bit(MLX5_INTERFACE_STATE_UP, &dev->intf_state)) {
-+		dev_warn(&dev->pdev->dev, "%s: interface is up, NOP\n",
-+			 __func__);
-+		goto out;
+ }
+ 
+ static void mlx5_mdev_uninit(struct mlx5_core_dev *dev)
+ {
++	mlx5_pagealloc_cleanup(dev);
++	mlx5_health_cleanup(dev);
+ 	debugfs_remove_recursive(dev->priv.dbg_root);
+ }
+ 
+@@ -1287,16 +1305,6 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *id)
+ 		goto pci_init_err;
  	}
  
-+	dev_info(&pdev->dev, "firmware version: %d.%d.%d\n", fw_rev_maj(dev),
-+		 fw_rev_min(dev), fw_rev_sub(dev));
-+
-+	/* Only PFs hold the relevant PCIe information for this query */
-+	if (mlx5_core_is_pf(dev))
-+		pcie_print_link_status(dev->pdev);
-+
-+	/* on load removing any previous indication of internal error, device is
-+	 * up
-+	 */
-+	dev->state = MLX5_DEVICE_STATE_UP;
-+
-+	err = mlx5_function_setup(dev, boot);
-+	if (err)
-+		goto out;
-+
- 	if (boot) {
- 		err = mlx5_init_once(dev);
- 		if (err) {
- 			dev_err(&pdev->dev, "sw objs init failed\n");
--			goto err_stop_poll;
-+			goto function_teardown;
- 		}
- 	}
- 
-@@ -1140,23 +1180,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, bool boot)
- 	if (boot)
- 		mlx5_cleanup_once(dev);
- 
--err_stop_poll:
--	mlx5_stop_health_poll(dev, boot);
--	if (mlx5_cmd_teardown_hca(dev)) {
--		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
--		goto out_err;
--	}
--
--reclaim_boot_pages:
--	mlx5_reclaim_startup_pages(dev);
--
--err_disable_hca:
--	mlx5_core_disable_hca(dev, 0);
--
--err_cmd_cleanup:
--	mlx5_cmd_cleanup(dev);
--
--out_err:
-+function_teardown:
-+	mlx5_function_teardown(dev, boot);
- 	dev->state = MLX5_DEVICE_STATE_INTERNAL_ERROR;
- 	mutex_unlock(&dev->intf_state_mutex);
- 
-@@ -1197,17 +1222,8 @@ static int mlx5_unload_one(struct mlx5_core_dev *dev, bool cleanup)
- 	mlx5_put_uars_page(dev, dev->priv.uar);
- 	if (cleanup)
- 		mlx5_cleanup_once(dev);
--	mlx5_stop_health_poll(dev, cleanup);
--
--	err = mlx5_cmd_teardown_hca(dev);
+-	err = mlx5_health_init(dev);
 -	if (err) {
--		dev_err(&dev->pdev->dev, "tear_down_hca failed, skip cleanup\n");
--		goto out;
+-		dev_err(&pdev->dev, "mlx5_health_init failed with error code %d\n", err);
+-		goto close_pci;
 -	}
--	mlx5_reclaim_startup_pages(dev);
--	mlx5_core_disable_hca(dev, 0);
--	mlx5_cmd_cleanup(dev);
+-
+-	err = mlx5_pagealloc_init(dev);
+-	if (err)
+-		goto err_pagealloc_init;
+-
+ 	err = mlx5_load_one(dev, true);
+ 	if (err) {
+ 		dev_err(&pdev->dev, "mlx5_load_one failed with error code %d\n", err);
+@@ -1314,11 +1322,8 @@ static int init_one(struct pci_dev *pdev, const struct pci_device_id *id)
  
-+	mlx5_function_teardown(dev, cleanup);
- out:
- 	mutex_unlock(&dev->intf_state_mutex);
- 	return err;
+ clean_load:
+ 	mlx5_unload_one(dev, true);
++
+ err_load_one:
+-	mlx5_pagealloc_cleanup(dev);
+-err_pagealloc_init:
+-	mlx5_health_cleanup(dev);
+-close_pci:
+ 	mlx5_pci_close(dev);
+ pci_init_err:
+ 	mlx5_mdev_uninit(dev);
+@@ -1338,12 +1343,10 @@ static void remove_one(struct pci_dev *pdev)
+ 
+ 	if (mlx5_unload_one(dev, true)) {
+ 		dev_err(&dev->pdev->dev, "mlx5_unload_one failed\n");
+-		mlx5_health_cleanup(dev);
++		mlx5_health_flush(dev);
+ 		return;
+ 	}
+ 
+-	mlx5_pagealloc_cleanup(dev);
+-	mlx5_health_cleanup(dev);
+ 	mlx5_pci_close(dev);
+ 	mlx5_mdev_uninit(dev);
+ 	devlink_free(devlink);
+diff --git a/include/linux/mlx5/driver.h b/include/linux/mlx5/driver.h
+index 022541dc5dbf..302d65dfa17c 100644
+--- a/include/linux/mlx5/driver.h
++++ b/include/linux/mlx5/driver.h
+@@ -885,6 +885,7 @@ void mlx5_cmd_mbox_status(void *out, u8 *status, u32 *syndrome);
+ int mlx5_core_get_caps(struct mlx5_core_dev *dev, enum mlx5_cap_type cap_type);
+ int mlx5_cmd_alloc_uar(struct mlx5_core_dev *dev, u32 *uarn);
+ int mlx5_cmd_free_uar(struct mlx5_core_dev *dev, u32 uarn);
++void mlx5_health_flush(struct mlx5_core_dev *dev);
+ void mlx5_health_cleanup(struct mlx5_core_dev *dev);
+ int mlx5_health_init(struct mlx5_core_dev *dev);
+ void mlx5_start_health_poll(struct mlx5_core_dev *dev);
 -- 
 2.20.1
