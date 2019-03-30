@@ -1,80 +1,65 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH mlx5-next 08/14] net/mlx5: Make mlx5_core messages
- independent from mdev->pdev
-Date: Sat, 30 Mar 2019 08:08:56 +0000
-Message-ID: <20190330080851.GQ22899@mtr-leonro.mtl.com>
-References: <20190329223804.8954-1-saeedm@mellanox.com>
- <20190329223804.8954-9-saeedm@mellanox.com>
+From: syzbot <syzbot+6f39a9deb697359fe520@syzkaller.appspotmail.com>
+Subject: Re: BUG: MAX_STACK_TRACE_ENTRIES too low! (2)
+Date: Sat, 30 Mar 2019 04:10:04 -0700
+Message-ID: <00000000000056fddd05854dd4f0@google.com>
+References: <0000000000005ff8b20585395280@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ExIO7AL6tcaLjJBF"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190329223804.8954-9-saeedm@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: "saeed@mellanox.com" <saeed@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Huy Nguyen <huyn@mellanox.com>, Vu Pham <vuhuong@mellanox.com>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0000000000005ff8b20585395280@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: danitg@mellanox.com, darrick.wong@oracle.com, dledford@redhat.com, jannh@google.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-xfs@vger.kernel.org, roland@purestorage.com, shamir.rabinovitch@oracle.com, syzkaller-bugs@googlegroups.com, xiyou.wangcong@gmail.com
 List-Id: linux-rdma@vger.kernel.org
 
---ExIO7AL6tcaLjJBF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+syzbot has found a reproducer for the following crash on:
 
-On Fri, Mar 29, 2019 at 03:37:58PM -0700, Saeed Mahameed wrote:
-> From: Huy Nguyen <huyn@mellanox.com>
->
-> Detach mlx5_core mdev messages from pci device mdev->pdev messages and
-> provide a better report/debug of different mlx5 device types.
->
-> This patch does not change any functionality.
->
-> Signed-off-by: Huy Nguyen <huyn@mellanox.com>
-> Signed-off-by: Vu Pham <vuhuong@mellanox.com>
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> ---
->  .../ethernet/mellanox/mlx5/core/mlx5_core.h   | 19 +++++++++----------
->  1 file changed, 9 insertions(+), 10 deletions(-)
->
-> diff --git a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-> index 7b331674622c..052e81974c3b 100644
-> --- a/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-> +++ b/drivers/net/ethernet/mellanox/mlx5/core/mlx5_core.h
-> @@ -48,12 +48,12 @@
->  extern uint mlx5_core_debug_mask;
->
->  #define mlx5_core_dbg(__dev, format, ...)				\
-> -	dev_dbg(&(__dev)->pdev->dev, "%s:%d:(pid %d): " format,		\
-> +	pr_debug("%s:%s:%d:(pid %d): " format, (__dev)->priv.name,      \
->  		 __func__, __LINE__, current->pid,			\
+HEAD commit:    0e40da3e Merge tag 'kbuild-fixes-v5.1' of git://git.kernel..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=14d9123f200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8dcdce25ea72bedf
+dashboard link: https://syzkaller.appspot.com/bug?extid=6f39a9deb697359fe520
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+userspace arch: i386
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1244591f200000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12611c73200000
 
-I see that we printed PID even before this patch, but unfortunately it
-is wrong and doesn't handle correctly kernel contexts.
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+6f39a9deb697359fe520@syzkaller.appspotmail.com
 
-If you are changing those debug prints, it will be nicer to use
-CONFIG_PRINTK_CALLER instead like we are doing for the timestamps.
-
-https://marc.info/?l=linux-rdma&m=155289145403897&w=2
-
-Thanks
-
---ExIO7AL6tcaLjJBF
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcnyQTAAoJEORje4g2cline6YP/jBR3gTSHcmtttOFz18PLP5H
-8Lh8F8EDF0WGWjTggLyn+t1evTg2gO8GvII4Q5nbnQ9vnBed2TRoTvYLVpDJnQAE
-ZiRAiyPuqAqKUiRhMvSWjKcG2zaEcIjtuUtuHjXApYu9QMup94jk16QW9mJ8jPtY
-Jr/UAYQ5agjvUZFBk7UmJ1bM6l5OZgrncMsgtPcv8VzGLjri0K1aHoVeDWaGcgCH
-aGdxiNKYFUe8YmXAU2k3PVgkn+J1UFGLagdq071BCJX/iCtxG7c8XqUH+B/P92Q9
-GCsLbKF0Wb3qTxgcHZ8st0/7cnpGx/titEZfGSjGJ/du1Uc+RGhgzmxYqrVFjWbB
-ZVuqCrzLmFrPPSwT63PCpa2uuah2APDjPOQIDfBbR6sZ8SR+0SHXJ+eO/irkYz2g
-Jx0bXj10SsYSMU7GaSppU6LPAIbsRTtxec8kMt4DHONBPvTdmlLtteeyqvxpw0zx
-WIbtAGP3ynnidsmRgM3Y1SE0EycUYUOhLHqMMT4GrbW3LqJ/yQU/+aq3pofZHyXO
-P+8YXR0fHmPKSrdN6SEhCRrIjiNIMWKKJ7qbg2Y7z0S8bnedoqidTROJQyaLMY4g
-STd55Md4oUoQU0t07FwRwrbZ37CPkT7Rwvrjk0wnhLnEMLIZGTYUeyfIhuskJ1tQ
-XNvP8Ew+2jaHrzN9NxLb
-=yoJF
------END PGP SIGNATURE-----
-
---ExIO7AL6tcaLjJBF--
+BUG: MAX_STACK_TRACE_ENTRIES too low!
+turning off the locking correctness validator.
+CPU: 0 PID: 678 Comm: syz-executor519 Not tainted 5.1.0-rc2+ #43
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  save_trace kernel/locking/lockdep.c:467 [inline]
+  save_trace.cold+0x14/0x19 kernel/locking/lockdep.c:437
+  mark_lock+0x2fb/0x1380 kernel/locking/lockdep.c:3410
+  __lock_acquire+0x548/0x3fb0 kernel/locking/lockdep.c:3657
+  lock_acquire+0x16f/0x3f0 kernel/locking/lockdep.c:4211
+  flush_workqueue+0x126/0x14c0 kernel/workqueue.c:2774
+  drain_workqueue+0x1b4/0x470 kernel/workqueue.c:2939
+  destroy_workqueue+0x21/0x700 kernel/workqueue.c:4320
+  ucma_close+0x289/0x320 drivers/infiniband/core/ucma.c:1786
+  __fput+0x2e5/0x8d0 fs/file_table.c:278
+  ____fput+0x16/0x20 fs/file_table.c:309
+  task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+  exit_to_usermode_loop+0x273/0x2c0 arch/x86/entry/common.c:166
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_32_irqs_on arch/x86/entry/common.c:341 [inline]
+  do_fast_syscall_32+0xa9d/0xc98 arch/x86/entry/common.c:397
+  entry_SYSENTER_compat+0x70/0x7f arch/x86/entry/entry_64_compat.S:139
+RIP: 0023:0xf7fc4869
+Code: 85 d2 74 02 89 0a 5b 5d c3 8b 04 24 c3 8b 14 24 c3 8b 3c 24 c3 90 90  
+90 90 90 90 90 90 90 90 90 90 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90  
+90 90 90 eb 0d 90 90 90 90 90 90 90 90 90 90 90 90
+RSP: 002b:00000000ffc382bc EFLAGS: 00000246 ORIG_RAX: 0000000000000006
+RAX: 0000000000000000 RBX: 0000000000000003 RCX: 00000000200002c0
+RDX: 0000000000000004 RSI: 00000000080bc36e RDI: 00000000200002d8
+RBP: 00000000ffc38308 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
