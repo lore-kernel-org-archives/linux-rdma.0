@@ -1,12 +1,12 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 06/21] IB/mlx4: Fix race condition between catas error reset and aliasguid flows
-Date: Fri, 29 Mar 2019 20:56:34 -0400
-Message-ID: <20190330005649.28475-6-sashal@kernel.org>
-References: <20190330005649.28475-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 3.18 05/15] IB/mlx4: Fix race condition between catas error reset and aliasguid flows
+Date: Fri, 29 Mar 2019 20:57:20 -0400
+Message-ID: <20190330005730.28777-5-sashal@kernel.org>
+References: <20190330005730.28777-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330005649.28475-1-sashal@kernel.org>
+In-Reply-To: <20190330005730.28777-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
@@ -31,10 +31,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
-index 21cb41a60fe8..3a70b418d913 100644
+index 0eb141c41416..fb60229bf191 100644
 --- a/drivers/infiniband/hw/mlx4/alias_GUID.c
 +++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
-@@ -805,8 +805,8 @@ void mlx4_ib_destroy_alias_guid_service(struct mlx4_ib_dev *dev)
+@@ -579,8 +579,8 @@ void mlx4_ib_destroy_alias_guid_service(struct mlx4_ib_dev *dev)
  	unsigned long flags;
  
  	for (i = 0 ; i < dev->num_ports; i++) {
