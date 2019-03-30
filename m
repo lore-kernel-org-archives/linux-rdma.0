@@ -1,87 +1,48 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 15/67] i40iw: Avoid panic when handling the inetdev event
-Date: Fri, 29 Mar 2019 20:49:55 -0400
-Message-ID: <20190330005047.25998-15-sashal@kernel.org>
-References: <20190330005047.25998-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 13/52] IB/mlx4: Fix race condition between catas error reset and aliasguid flows
+Date: Fri, 29 Mar 2019 20:52:20 -0400
+Message-ID: <20190330005301.26868-13-sashal@kernel.org>
+References: <20190330005301.26868-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190330005047.25998-1-sashal@kernel.org>
+In-Reply-To: <20190330005301.26868-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Feng Tang <feng.tang@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Jack Morgenstein <jackm@dev.mellanox.co.il>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Feng Tang <feng.tang@intel.com>
+From: Jack Morgenstein <jackm@dev.mellanox.co.il>
 
-[ Upstream commit ec4fe4bcc584b55e24e8d1768f5510a62c0fd619 ]
+[ Upstream commit 587443e7773e150ae29e643ee8f41a1eed226565 ]
 
-There is a panic reported that on a system with x722 ethernet, when doing
-the operations like:
+Code review revealed a race condition which could allow the catas error
+flow to interrupt the alias guid query post mechanism at random points.
+Thiis is fixed by doing cancel_delayed_work_sync() instead of
+cancel_delayed_work() during the alias guid mechanism destroy flow.
 
-	# ip link add br0 type bridge
-	# ip link set eno1 master br0
-	# systemctl restart systemd-networkd
-
-The system will panic "BUG: unable to handle kernel null pointer
-dereference at 0000000000000034", with call chain:
-
-	i40iw_inetaddr_event
-	notifier_call_chain
-	blocking_notifier_call_chain
-	notifier_call_chain
-	__inet_del_ifa
-	inet_rtm_deladdr
-	rtnetlink_rcv_msg
-	netlink_rcv_skb
-	rtnetlink_rcv
-	netlink_unicast
-	netlink_sendmsg
-	sock_sendmsg
-	__sys_sendto
-
-It is caused by "local_ipaddr = ntohl(in->ifa_list->ifa_address)", while
-the in->ifa_list is NULL.
-
-So add a check for the "in->ifa_list == NULL" case, and skip the ARP
-operation accordingly.
-
-Signed-off-by: Feng Tang <feng.tang@intel.com>
+Fixes: a0c64a17aba8 ("mlx4: Add alias_guid mechanism")
+Signed-off-by: Jack Morgenstein <jackm@dev.mellanox.co.il>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/i40iw/i40iw_utils.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/infiniband/hw/mlx4/alias_GUID.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/i40iw/i40iw_utils.c b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-index 59e978141ad4..e99177533930 100644
---- a/drivers/infiniband/hw/i40iw/i40iw_utils.c
-+++ b/drivers/infiniband/hw/i40iw/i40iw_utils.c
-@@ -173,7 +173,12 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
+diff --git a/drivers/infiniband/hw/mlx4/alias_GUID.c b/drivers/infiniband/hw/mlx4/alias_GUID.c
+index 155b4dfc0ae8..baab9afa9174 100644
+--- a/drivers/infiniband/hw/mlx4/alias_GUID.c
++++ b/drivers/infiniband/hw/mlx4/alias_GUID.c
+@@ -804,8 +804,8 @@ void mlx4_ib_destroy_alias_guid_service(struct mlx4_ib_dev *dev)
+ 	unsigned long flags;
  
- 		rcu_read_lock();
- 		in = __in_dev_get_rcu(upper_dev);
--		local_ipaddr = ntohl(in->ifa_list->ifa_address);
-+
-+		if (!in->ifa_list)
-+			local_ipaddr = 0;
-+		else
-+			local_ipaddr = ntohl(in->ifa_list->ifa_address);
-+
- 		rcu_read_unlock();
- 	} else {
- 		local_ipaddr = ntohl(ifa->ifa_address);
-@@ -185,6 +190,11 @@ int i40iw_inetaddr_event(struct notifier_block *notifier,
- 	case NETDEV_UP:
- 		/* Fall through */
- 	case NETDEV_CHANGEADDR:
-+
-+		/* Just skip if no need to handle ARP cache */
-+		if (!local_ipaddr)
-+			break;
-+
- 		i40iw_manage_arp_cache(iwdev,
- 				       netdev->dev_addr,
- 				       &local_ipaddr,
+ 	for (i = 0 ; i < dev->num_ports; i++) {
+-		cancel_delayed_work(&dev->sriov.alias_guid.ports_guid[i].alias_guid_work);
+ 		det = &sriov->alias_guid.ports_guid[i];
++		cancel_delayed_work_sync(&det->alias_guid_work);
+ 		spin_lock_irqsave(&sriov->alias_guid.ag_work_lock, flags);
+ 		while (!list_empty(&det->cb_list)) {
+ 			cb_ctx = list_entry(det->cb_list.next,
 -- 
 2.19.1
