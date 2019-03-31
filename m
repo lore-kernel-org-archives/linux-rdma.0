@@ -1,81 +1,43 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 7/8] net/mlx5: Introduce new TIR creation core API
-Date: Sun, 31 Mar 2019 19:44:49 +0300
-Message-ID: <20190331164450.23618-8-leon@kernel.org>
+From: Jakub Kicinski <jakub.kicinski@netronome.com>
+Subject: Re: [PATCH rdma-next 0/8] User space steering
+Date: Sun, 31 Mar 2019 14:06:33 -0700
+Message-ID: <20190331140633.33df25a7@cakuba.hsd1.ca.comcast.net>
 References: <20190331164450.23618-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190331164450.23618-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ariel Levkovich <lariel@mellanox.com>
+On Sun, 31 Mar 2019 19:44:42 +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> From Ariel,
+> 
+> This series of patches adds user space managed steering infrastructure
+> to the mlx5_ib driver.
+> 
+> User space managed steering requires the means to access a dedicated
+> memory space that is used by the device to store the packet steering
+> and header modification tables and rules in order to manage them directly
+> without the device's firmware involvement. This dedicated memory is part
+> of the ICM memory space.
+> 
+> The changes are introducing the mlx5_ib API to allocate, deallocate and
+> register this dedicated SW ICM memory via the existing device memory API
+> using a private attribute which specifies the memory type.
+> 
+> The allocated memory itself is not IO mapped and user can only access it
+> using remote RDMA operations.
+> 
+> In addition, the series exposed the ICM address of the receive transport
+> interface (TIR) of Raw Packet and RSS QPs to user since they are required
+> to properly create and insert steering rules that direct flows to these QPs.
 
-Introducing new TIR creation core API which allows caller
-to receive back from the call the full command outbox.
-
-This comes as a preparation for the next patch that will
-retrieve the TIR ICM address from the command outbox.
-
-Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
-Reviewed-by: Eli Cohen <eli@mellanox.com>
-Reviewed-by: Mark Bloch <markb@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- .../net/ethernet/mellanox/mlx5/core/transobj.c | 18 +++++++++++++-----
- include/linux/mlx5/transobj.h                  |  3 +++
- 2 files changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-index c4d4b76096dc..b1068500f1df 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/transobj.c
-@@ -182,16 +182,24 @@ int mlx5_core_query_sq_state(struct mlx5_core_dev *dev, u32 sqn, u8 *state)
- }
- EXPORT_SYMBOL_GPL(mlx5_core_query_sq_state);
- 
-+int mlx5_core_create_tir_out(struct mlx5_core_dev *dev,
-+			     u32 *in, int inlen,
-+			     u32 *out, int outlen)
-+{
-+	MLX5_SET(create_tir_in, in, opcode, MLX5_CMD_OP_CREATE_TIR);
-+
-+	return mlx5_cmd_exec(dev, in, inlen, out, outlen);
-+}
-+EXPORT_SYMBOL(mlx5_core_create_tir_out);
-+
- int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *tirn)
- {
--	u32 out[MLX5_ST_SZ_DW(create_tir_out)] = {0};
-+	u32 out[MLX5_ST_SZ_DW(create_tir_out)] = {};
- 	int err;
- 
--	MLX5_SET(create_tir_in, in, opcode, MLX5_CMD_OP_CREATE_TIR);
--
--	memset(out, 0, sizeof(out));
--	err = mlx5_cmd_exec(dev, in, inlen, out, sizeof(out));
-+	err = mlx5_core_create_tir_out(dev, in, inlen,
-+				       out, sizeof(out));
- 	if (!err)
- 		*tirn = MLX5_GET(create_tir_out, out, tirn);
- 
-diff --git a/include/linux/mlx5/transobj.h b/include/linux/mlx5/transobj.h
-index a261d5528ff7..dc6b1e7cb8c4 100644
---- a/include/linux/mlx5/transobj.h
-+++ b/include/linux/mlx5/transobj.h
-@@ -50,6 +50,9 @@ int mlx5_core_query_sq(struct mlx5_core_dev *dev, u32 sqn, u32 *out);
- int mlx5_core_query_sq_state(struct mlx5_core_dev *dev, u32 sqn, u8 *state);
- int mlx5_core_create_tir(struct mlx5_core_dev *dev, u32 *in, int inlen,
- 			 u32 *tirn);
-+int mlx5_core_create_tir_out(struct mlx5_core_dev *dev,
-+			     u32 *in, int inlen,
-+			     u32 *out, int outlen);
- int mlx5_core_modify_tir(struct mlx5_core_dev *dev, u32 tirn, u32 *in,
- 			 int inlen);
- void mlx5_core_destroy_tir(struct mlx5_core_dev *dev, u32 tirn);
--- 
-2.20.1
+Hi Leon!  Out of curiosity what protocols are you guys steering here?
+Is this some form of RoCE or IB?  Is there a good resource to read up on
+the DEVX stuff? (I presume this series is related?)
