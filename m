@@ -1,50 +1,63 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: BUG: MAX_STACK_TRACE_ENTRIES too low! (2)
-Date: Sat, 30 Mar 2019 19:17:09 -0700
-Message-ID: <f71aaffa-ecf4-1def-fe50-91f37c677537@acm.org>
-References: <00000000000089a718058556e1d8@google.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 0/8] User space steering
+Date: Sun, 31 Mar 2019 19:44:42 +0300
+Message-ID: <20190331164450.23618-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <00000000000089a718058556e1d8@google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: syzbot <syzbot+6f39a9deb697359fe520@syzkaller.appspotmail.com>, akpm@linux-foundation.org, danitg@mellanox.com, darrick.wong@oracle.com, dledford@redhat.com, gustavo@embeddedor.com, jannh@google.com, jgg@ziepe.ca, johannes.berg@intel.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, linux-xfs@vger.kernel.org, longman@redhat.com, mingo@kernel.org, paulmck@linux.vnet.ibm.com, peterz@infradead.org, roland@purestorage.com, shamir.rabinovitch@oracle.com, syzkaller-bugs@googlegroups.com, tglx@linutronix.de, tj@kernel.org, torvalds@linux-foundation.org, will.deacon@arm.com, xiyou.wangcong@gmail.com, Dmitry Vyukov <dvyukov@google.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 3/30/19 2:58 PM, syzbot wrote:
-> syzbot has bisected this bug to:
-> 
-> commit 669de8bda87b92ab9a2fc663b3f5743c2ad1ae9f
-> Author: Bart Van Assche <bvanassche@acm.org>
-> Date:   Thu Feb 14 23:00:54 2019 +0000
-> 
->      kernel/workqueue: Use dynamic lockdep keys for workqueues
-> 
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=17f1bacd200000
-> start commit:   0e40da3e Merge tag 'kbuild-fixes-v5.1' of 
-> git://git.kernel..
-> git tree:       upstream
-> final crash:    https://syzkaller.appspot.com/x/report.txt?x=1409bacd200000
-> console output: https://syzkaller.appspot.com/x/log.txt?x=1009bacd200000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=8dcdce25ea72bedf
-> dashboard link: 
-> https://syzkaller.appspot.com/bug?extid=6f39a9deb697359fe520
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10e1bacd200000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1120fe0f200000
-> 
-> Reported-by: syzbot+6f39a9deb697359fe520@syzkaller.appspotmail.com
-> Fixes: 669de8bda87b ("kernel/workqueue: Use dynamic lockdep keys for 
-> workqueues")
-> 
-> For information about bisection process see: 
-> https://goo.gl/tpsmEJ#bisection
+From: Leon Romanovsky <leonro@mellanox.com>
 
-Hi Dmitry,
+>From Ariel,
 
-This bisection result doesn't make sense to me. As one can see, the 
-message "BUG: MAX_STACK_TRACE_ENTRIES too low!" does not occur in the 
-console output the above console output URL points at.
+This series of patches adds user space managed steering infrastructure
+to the mlx5_ib driver.
 
-Bart.
+User space managed steering requires the means to access a dedicated
+memory space that is used by the device to store the packet steering
+and header modification tables and rules in order to manage them directly
+without the device's firmware involvement. This dedicated memory is part
+of the ICM memory space.
+
+The changes are introducing the mlx5_ib API to allocate, deallocate and
+register this dedicated SW ICM memory via the existing device memory API
+using a private attribute which specifies the memory type.
+
+The allocated memory itself is not IO mapped and user can only access it
+using remote RDMA operations.
+
+In addition, the series exposed the ICM address of the receive transport
+interface (TIR) of Raw Packet and RSS QPs to user since they are required
+to properly create and insert steering rules that direct flows to these QPs.
+
+Thanks
+
+Ariel Levkovich (8):
+  net/mlx5: Expose SW ICM related device memory capabilities
+  IB/mlx5: Support device memory type attribute
+  IB/mlx5: Warn on allocated MEMIC buffers during cleanup
+  IB/mlx5: Add steering SW ICM device memory type
+  IB/mlx5: Device resource control for privileged DEVX user
+  net/mlx5: Expose TIR ICM address in command outbox
+  net/mlx5: Introduce new TIR creation core API
+  IB/mlx5: Expose TIR ICM address to user space
+
+ drivers/infiniband/hw/mlx5/Kconfig            |   2 +-
+ drivers/infiniband/hw/mlx5/cmd.c              | 155 +++++++++-
+ drivers/infiniband/hw/mlx5/cmd.h              |   8 +-
+ drivers/infiniband/hw/mlx5/devx.c             |   4 +
+ drivers/infiniband/hw/mlx5/main.c             | 264 +++++++++++++++---
+ drivers/infiniband/hw/mlx5/mlx5_ib.h          |  40 ++-
+ drivers/infiniband/hw/mlx5/mr.c               |  40 ++-
+ drivers/infiniband/hw/mlx5/qp.c               |  46 ++-
+ .../ethernet/mellanox/mlx5/core/transobj.c    |  18 +-
+ include/linux/mlx5/mlx5_ifc.h                 |  51 +++-
+ include/linux/mlx5/transobj.h                 |   3 +
+ include/uapi/rdma/mlx5-abi.h                  |   2 +
+ include/uapi/rdma/mlx5_user_ioctl_cmds.h      |   1 +
+ include/uapi/rdma/mlx5_user_ioctl_verbs.h     |   6 +
+ 14 files changed, 541 insertions(+), 99 deletions(-)
