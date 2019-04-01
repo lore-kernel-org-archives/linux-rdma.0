@@ -1,86 +1,143 @@
-From: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v13 17/20] media/v4l2-core,
- arm64: untag user pointers in videobuf_dma_contig_user_get
-Date: Mon, 1 Apr 2019 18:13:19 +0200
-Message-ID: <CAAeHK+wiGbDtJ3d3um=OQ3VBt1tfu0f2uZ73UfDUfvNFjqPGfw@mail.gmail.com>
-References: <cover.1553093420.git.andreyknvl@google.com>
- <ae6961bcdd82e529c76d0747abd310546f81e58e.1553093421.git.andreyknvl@google.com>
- <20190322160726.GV13384@arrakis.emea.arm.com>
- <bfaae923-98aa-63e7-c50b-8649dc5fe2bb@arm.com>
+From: syzbot <syzbot+70f6c187224c333bb8da@syzkaller.appspotmail.com>
+Subject: KASAN: use-after-free Read in cma_check_port
+Date: Mon, 01 Apr 2019 10:35:06 -0700
+Message-ID: <000000000000fe0a0c05857b70ed@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <bfaae923-98aa-63e7-c50b-8649dc5fe2bb-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>Ingo Molnar <m>
+Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: danielj@mellanox.com, danitg@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCBNYXIgMjUsIDIwMTkgYXQgMzowOCBQTSBLZXZpbiBCcm9kc2t5IDxrZXZpbi5icm9k
-c2t5QGFybS5jb20+IHdyb3RlOgo+Cj4gT24gMjIvMDMvMjAxOSAxNjowNywgQ2F0YWxpbiBNYXJp
-bmFzIHdyb3RlOgo+ID4gT24gV2VkLCBNYXIgMjAsIDIwMTkgYXQgMDM6NTE6MzFQTSArMDEwMCwg
-QW5kcmV5IEtvbm92YWxvdiB3cm90ZToKPiA+PiBUaGlzIHBhdGNoIGlzIGEgcGFydCBvZiBhIHNl
-cmllcyB0aGF0IGV4dGVuZHMgYXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0bwo+ID4+IHBhc3Mg
-dGFnZ2VkIHVzZXIgcG9pbnRlcnMgKHdpdGggdGhlIHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcg
-ZWxzZSBvdGhlcgo+ID4+IHRoYW4gMHgwMCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuCj4gPj4KPiA+
-PiB2aWRlb2J1Zl9kbWFfY29udGlnX3VzZXJfZ2V0KCkgdXNlcyBwcm92aWRlZCB1c2VyIHBvaW50
-ZXJzIGZvciB2bWEKPiA+PiBsb29rdXBzLCB3aGljaCBjYW4gb25seSBieSBkb25lIHdpdGggdW50
-YWdnZWQgcG9pbnRlcnMuCj4gPj4KPiA+PiBVbnRhZyB0aGUgcG9pbnRlcnMgaW4gdGhpcyBmdW5j
-dGlvbi4KPiA+Pgo+ID4+IFNpZ25lZC1vZmYtYnk6IEFuZHJleSBLb25vdmFsb3YgPGFuZHJleWtu
-dmxAZ29vZ2xlLmNvbT4KPiA+PiAtLS0KPiA+PiAgIGRyaXZlcnMvbWVkaWEvdjRsMi1jb3JlL3Zp
-ZGVvYnVmLWRtYS1jb250aWcuYyB8IDkgKysrKystLS0tCj4gPj4gICAxIGZpbGUgY2hhbmdlZCwg
-NSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQo+ID4+Cj4gPj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbWVkaWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYyBiL2RyaXZlcnMvbWVk
-aWEvdjRsMi1jb3JlL3ZpZGVvYnVmLWRtYS1jb250aWcuYwo+ID4+IGluZGV4IGUxYmY1MGRmNGM3
-MC4uOGExZGRkMTQ2YjE3IDEwMDY0NAo+ID4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3Jl
-L3ZpZGVvYnVmLWRtYS1jb250aWcuYwo+ID4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvdjRsMi1jb3Jl
-L3ZpZGVvYnVmLWRtYS1jb250aWcuYwo+ID4+IEBAIC0xNjAsNiArMTYwLDcgQEAgc3RhdGljIHZv
-aWQgdmlkZW9idWZfZG1hX2NvbnRpZ191c2VyX3B1dChzdHJ1Y3QgdmlkZW9idWZfZG1hX2NvbnRp
-Z19tZW1vcnkgKm1lbSkKPiA+PiAgIHN0YXRpYyBpbnQgdmlkZW9idWZfZG1hX2NvbnRpZ191c2Vy
-X2dldChzdHJ1Y3QgdmlkZW9idWZfZG1hX2NvbnRpZ19tZW1vcnkgKm1lbSwKPiA+PiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3RydWN0IHZpZGVvYnVmX2J1ZmZlciAqdmIp
-Cj4gPj4gICB7Cj4gPj4gKyAgICB1bnNpZ25lZCBsb25nIHVudGFnZ2VkX2JhZGRyID0gdW50YWdn
-ZWRfYWRkcih2Yi0+YmFkZHIpOwo+ID4+ICAgICAgc3RydWN0IG1tX3N0cnVjdCAqbW0gPSBjdXJy
-ZW50LT5tbTsKPiA+PiAgICAgIHN0cnVjdCB2bV9hcmVhX3N0cnVjdCAqdm1hOwo+ID4+ICAgICAg
-dW5zaWduZWQgbG9uZyBwcmV2X3BmbiwgdGhpc19wZm47Cj4gPj4gQEAgLTE2NywyMiArMTY4LDIy
-IEBAIHN0YXRpYyBpbnQgdmlkZW9idWZfZG1hX2NvbnRpZ191c2VyX2dldChzdHJ1Y3QgdmlkZW9i
-dWZfZG1hX2NvbnRpZ19tZW1vcnkgKm1lbSwKPiA+PiAgICAgIHVuc2lnbmVkIGludCBvZmZzZXQ7
-Cj4gPj4gICAgICBpbnQgcmV0Owo+ID4+Cj4gPj4gLSAgICBvZmZzZXQgPSB2Yi0+YmFkZHIgJiB+
-UEFHRV9NQVNLOwo+ID4+ICsgICAgb2Zmc2V0ID0gdW50YWdnZWRfYmFkZHIgJiB+UEFHRV9NQVNL
-Owo+ID4+ICAgICAgbWVtLT5zaXplID0gUEFHRV9BTElHTih2Yi0+c2l6ZSArIG9mZnNldCk7Cj4g
-Pj4gICAgICByZXQgPSAtRUlOVkFMOwo+ID4+Cj4gPj4gICAgICBkb3duX3JlYWQoJm1tLT5tbWFw
-X3NlbSk7Cj4gPj4KPiA+PiAtICAgIHZtYSA9IGZpbmRfdm1hKG1tLCB2Yi0+YmFkZHIpOwo+ID4+
-ICsgICAgdm1hID0gZmluZF92bWEobW0sIHVudGFnZ2VkX2JhZGRyKTsKPiA+PiAgICAgIGlmICgh
-dm1hKQo+ID4+ICAgICAgICAgICAgICBnb3RvIG91dF91cDsKPiA+Pgo+ID4+IC0gICAgaWYgKCh2
-Yi0+YmFkZHIgKyBtZW0tPnNpemUpID4gdm1hLT52bV9lbmQpCj4gPj4gKyAgICBpZiAoKHVudGFn
-Z2VkX2JhZGRyICsgbWVtLT5zaXplKSA+IHZtYS0+dm1fZW5kKQo+ID4+ICAgICAgICAgICAgICBn
-b3RvIG91dF91cDsKPiA+Pgo+ID4+ICAgICAgcGFnZXNfZG9uZSA9IDA7Cj4gPj4gICAgICBwcmV2
-X3BmbiA9IDA7IC8qIGtpbGwgd2FybmluZyAqLwo+ID4+IC0gICAgdXNlcl9hZGRyZXNzID0gdmIt
-PmJhZGRyOwo+ID4+ICsgICAgdXNlcl9hZGRyZXNzID0gdW50YWdnZWRfYmFkZHI7Cj4gPj4KPiA+
-PiAgICAgIHdoaWxlIChwYWdlc19kb25lIDwgKG1lbS0+c2l6ZSA+PiBQQUdFX1NISUZUKSkgewo+
-ID4+ICAgICAgICAgICAgICByZXQgPSBmb2xsb3dfcGZuKHZtYSwgdXNlcl9hZGRyZXNzLCAmdGhp
-c19wZm4pOwo+ID4gSSBkb24ndCB0aGluayB2Yi0+YmFkZHIgaGVyZSBpcyBhbm9ueW1vdXMgbW1h
-cCgpIGJ1dCB3b3J0aCBjaGVja2luZyB0aGUKPiA+IGNhbGwgcGF0aHMuCgpUaGUgY2FsbCBwYXRo
-IGlzCl9fdmlkZW9idWZfaW9sb2NrKCktPnZpZGVvYnVmX2RtYV9jb250aWdfdXNlcl9nZXQoKS0+
-ZmluZF92bWEoKS4KCj4KPiBJIHNwZW50IHNvbWUgdGltZSBvbiB0aGlzLCBJIGRpZG4ndCBmaW5k
-IGFueSByZXN0cmljdGlvbiBvbiB0aGUga2luZCBvZiBtYXBwaW5nCj4gdGhhdCdzIGFsbG93ZWQg
-aGVyZS4gVGhlIEFQSSByZWdhcmRpbmcgVjRMMl9NRU1PUllfVVNFUlBUUiBkb2Vzbid0IHNlZW0g
-dG8gc2F5Cj4gYW55dGhpbmcgYWJvdXQgdGhhdCBlaXRoZXIgWzBdIFsxXS4gSXQncyBwcm9iYWJs
-eSBiZXN0IHRvIGFzayB0aGUgVjRMMiBtYWludGFpbmVycy4KCk1hdXJvLCBjb3VsZCB5b3UgY29t
-bWVudCBvbiB3aGV0aGVyIHRoZSB2Yi0+YmFkZHIgYXJndW1lbnQgZm9yIHRoZQpWNEwyX01FTU9S
-WV9VU0VSUFRSIEFQSSBjYW4gY29tZSBmcm9tIGFuIGFub255bW91cyBtZW1vcnkgbWFwcGluZz8K
-Cj4KPiBLZXZpbgo+Cj4gWzBdIGh0dHBzOi8vd3d3Lmtlcm5lbC5vcmcvZG9jL2h0bWwvbGF0ZXN0
-L21lZGlhL3VhcGkvdjRsL3ZpZGlvYy1xYnVmLmh0bWwKPiBbMV0gaHR0cHM6Ly93d3cua2VybmVs
-Lm9yZy9kb2MvaHRtbC9sYXRlc3QvbWVkaWEvdWFwaS92NGwvdXNlcnAuaHRtbApfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlz
-dAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9w
-Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+Hello,
+
+syzbot found the following crash on:
+
+HEAD commit:    e3ecb83e Add linux-next specific files for 20190401
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=12e48937200000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=db6c9f2bfeb91a99
+dashboard link: https://syzkaller.appspot.com/bug?extid=70f6c187224c333bb8da
+compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+
+Unfortunately, I don't have any reproducer for this crash yet.
+
+IMPORTANT: if you fix the bug, please add the following tag to the commit:
+Reported-by: syzbot+70f6c187224c333bb8da@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: use-after-free in cma_check_port+0x8ce/0x8f0  
+drivers/infiniband/core/cma.c:3354
+Read of size 8 at addr ffff88809a6e7a08 by task syz-executor.2/901
+
+CPU: 0 PID: 901 Comm: syz-executor.2 Not tainted 5.1.0-rc2-next-20190401 #15
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
+Google 01/01/2011
+Call Trace:
+  __dump_stack lib/dump_stack.c:77 [inline]
+  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+  print_address_description.cold+0x7c/0x20d mm/kasan/report.c:187
+  kasan_report.cold+0x1b/0x40 mm/kasan/report.c:317
+  __asan_report_load8_noabort+0x14/0x20 mm/kasan/generic_report.c:132
+  cma_check_port+0x8ce/0x8f0 drivers/infiniband/core/cma.c:3354
+  cma_use_port drivers/infiniband/core/cma.c:3391 [inline]
+  cma_get_port drivers/infiniband/core/cma.c:3473 [inline]
+  rdma_bind_addr+0x19c3/0x1f80 drivers/infiniband/core/cma.c:3591
+  cma_bind_addr drivers/infiniband/core/cma.c:3121 [inline]
+  rdma_resolve_addr+0x437/0x21f0 drivers/infiniband/core/cma.c:3132
+  ucma_resolve_ip+0x153/0x210 drivers/infiniband/core/ucma.c:715
+  ucma_write+0x2da/0x3c0 drivers/infiniband/core/ucma.c:1696
+  __vfs_write+0x8d/0x110 fs/read_write.c:485
+  vfs_write+0x20c/0x580 fs/read_write.c:549
+  ksys_write+0xea/0x1f0 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+RIP: 0033:0x458209
+Code: ad b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00 00 66 90 48 89 f8 48 89 f7  
+48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff  
+ff 0f 83 7b b8 fb ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007f1cae168c78 EFLAGS: 00000246 ORIG_RAX: 0000000000000001
+RAX: ffffffffffffffda RBX: 0000000000000003 RCX: 0000000000458209
+RDX: 0000000000000048 RSI: 00000000200001c0 RDI: 000000000000000b
+RBP: 000000000073bfa0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f1cae1696d4
+R13: 00000000004ce0e8 R14: 00000000004dd828 R15: 00000000ffffffff
+
+Allocated by task 884:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_kmalloc mm/kasan/common.c:497 [inline]
+  __kasan_kmalloc.constprop.0+0xcf/0xe0 mm/kasan/common.c:470
+  kasan_kmalloc+0x9/0x10 mm/kasan/common.c:511
+  kmem_cache_alloc_trace+0x151/0x760 mm/slab.c:3622
+  kmalloc include/linux/slab.h:547 [inline]
+  kzalloc include/linux/slab.h:742 [inline]
+  cma_alloc_port+0x4f/0x1a0 drivers/infiniband/core/cma.c:3241
+  cma_use_port drivers/infiniband/core/cma.c:3389 [inline]
+  cma_get_port drivers/infiniband/core/cma.c:3473 [inline]
+  rdma_bind_addr+0x1bc0/0x1f80 drivers/infiniband/core/cma.c:3591
+  cma_bind_addr drivers/infiniband/core/cma.c:3121 [inline]
+  rdma_resolve_addr+0x437/0x21f0 drivers/infiniband/core/cma.c:3132
+  ucma_resolve_ip+0x153/0x210 drivers/infiniband/core/ucma.c:715
+  ucma_write+0x2da/0x3c0 drivers/infiniband/core/ucma.c:1696
+  __vfs_write+0x8d/0x110 fs/read_write.c:485
+  vfs_write+0x20c/0x580 fs/read_write.c:549
+  ksys_write+0xea/0x1f0 fs/read_write.c:598
+  __do_sys_write fs/read_write.c:610 [inline]
+  __se_sys_write fs/read_write.c:607 [inline]
+  __x64_sys_write+0x73/0xb0 fs/read_write.c:607
+  do_syscall_64+0x103/0x610 arch/x86/entry/common.c:290
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+Freed by task 881:
+  save_stack+0x45/0xd0 mm/kasan/common.c:75
+  set_track mm/kasan/common.c:87 [inline]
+  __kasan_slab_free+0x102/0x150 mm/kasan/common.c:459
+  kasan_slab_free+0xe/0x10 mm/kasan/common.c:467
+  __cache_free mm/slab.c:3499 [inline]
+  kfree+0xcf/0x230 mm/slab.c:3822
+  cma_release_port drivers/infiniband/core/cma.c:1773 [inline]
+  rdma_destroy_id+0x7fc/0xaa0 drivers/infiniband/core/cma.c:1840
+  ucma_close+0x115/0x320 drivers/infiniband/core/ucma.c:1777
+  __fput+0x2e5/0x8d0 fs/file_table.c:278
+  ____fput+0x16/0x20 fs/file_table.c:309
+  task_work_run+0x14a/0x1c0 kernel/task_work.c:113
+  tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+  exit_to_usermode_loop+0x273/0x2c0 arch/x86/entry/common.c:166
+  prepare_exit_to_usermode arch/x86/entry/common.c:197 [inline]
+  syscall_return_slowpath arch/x86/entry/common.c:268 [inline]
+  do_syscall_64+0x52d/0x610 arch/x86/entry/common.c:293
+  entry_SYSCALL_64_after_hwframe+0x49/0xbe
+
+The buggy address belongs to the object at ffff88809a6e7a00
+  which belongs to the cache kmalloc-32 of size 32
+The buggy address is located 8 bytes inside of
+  32-byte region [ffff88809a6e7a00, ffff88809a6e7a20)
+The buggy address belongs to the page:
+page:ffffea000269b9c0 count:1 mapcount:0 mapping:ffff88812c3f01c0  
+index:0xffff88809a6e7fc1
+flags: 0x1fffc0000000200(slab)
+raw: 01fffc0000000200 ffffea0002945248 ffffea00023b0f48 ffff88812c3f01c0
+raw: ffff88809a6e7fc1 ffff88809a6e7000 0000000100000039 0000000000000000
+page dumped because: kasan: bad access detected
+
+Memory state around the buggy address:
+  ffff88809a6e7900: 00 01 fc fc fc fc fc fc fb fb fb fb fc fc fc fc
+  ffff88809a6e7980: fb fb fb fb fc fc fc fc 00 00 fc fc fc fc fc fc
+> ffff88809a6e7a00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+                       ^
+  ffff88809a6e7a80: 00 00 00 00 fc fc fc fc fb fb fb fb fc fc fc fc
+  ffff88809a6e7b00: fb fb fb fb fc fc fc fc fb fb fb fb fc fc fc fc
+==================================================================
+
+
+---
+This bug is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this bug report. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
