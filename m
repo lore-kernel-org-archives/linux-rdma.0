@@ -1,56 +1,62 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2 iproute2-next 1/4] Add .mailmap file
-Date: Mon, 1 Apr 2019 09:29:47 +0300
-Message-ID: <20190401062947.GE8348@mtr-leonro.mtl.com>
+Subject: Re: [PATCH v2 iproute2-next 3/4] rdma: add 'link add/delete' commands
+Date: Mon, 1 Apr 2019 09:31:21 +0300
+Message-ID: <20190401063121.GF8348@mtr-leonro.mtl.com>
 References: <cover.1553627811.git.larrystevenwise@gmail.com>
- <5f9d39d128770e3db7daea5d491207ca256239dc.1553627811.git.larrystevenwise@gmail.com>
+ <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="/unnNtmY43mpUSKx"
+        protocol="application/pgp-signature"; boundary="OZkY3AIuv2LYvjdk"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5f9d39d128770e3db7daea5d491207ca256239dc.1553627811.git.larrystevenwise@gmail.com>
+In-Reply-To: <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: Steve Wise <larrystevenwise@gmail.com>
 Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---/unnNtmY43mpUSKx
+--OZkY3AIuv2LYvjdk
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Tue, Mar 26, 2019 at 02:18:27PM -0500, Steve Wise wrote:
-> .mailmap allows tracking multiple email addresses to the proper user name.
+On Tue, Mar 26, 2019 at 02:18:29PM -0500, Steve Wise wrote:
+> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
+> device to a netdev interface.
+>
+> EG:
+>
+> rdma link add rxe_eth0 type rxe netdev eth0
+> rdma link delete rxe_eth0
 >
 > Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
 > ---
->  .mailmap | 8 ++++++++
->  1 file changed, 8 insertions(+)
->  create mode 100644 .mailmap
+>  rdma/link.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  rdma/rdma.h |  2 ++
+>  2 files changed, 85 insertions(+)
 >
 
 Thanks,
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 
---/unnNtmY43mpUSKx
+--OZkY3AIuv2LYvjdk
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcoa/aAAoJEORje4g2clinVEcP/A3L2+T8Z14ZBmic0efFaDhD
-JJ5At/oiy5CDgRyvlWTsSVHtqrG+dRRXSobYyNdPtEidWuxdFor5Rsfua6XBGztb
-aaXzl/yPfZI7a8hlpYKZao6aIwCqjZO31GGb/1ScWYikPi3gd2R/ox/0mx+qrboi
-jWRHVvY0zHle3zLCjD/84e3I7Ob8h2o6XOcoUh1H72BvxQRJ7krEHigqECQxee6n
-ViUrGcp3efqmBLZFAVhFBR52Ir8KmrR8ozSMkgPFFYc8OgRFGmURIi29p8f97+C3
-E9KeFFq9X8q3Yhdo82TwQE1xBiQBPgniBmPIkAQdnjv46egCdXfJMMzfbnzvSvrX
-9dHEh3gsTNTHVB2l0VDHDnHKB7IpMqEjNoHmPzuIKV8Qnel31JDIsTUczU4Y0+jx
-T77IwFpH6sBsteo3vCadtpYYEYkkk6ng3t2uDcRdNRgdgROP+cLVlrupKMVmEIP9
-vdZAtKgWEG9bQcPlu+mhqqSAVEvKx66GzzBh9KR4USiqn3bPkO98qweEKT8SeT1s
-hhF5tW1gcExndc0pAb4Gxbd7iLEtaML5BZ3MvwRSXufCZOJk9hHSaiKwNsR3Jw8R
-frfjzqTnMR5KgJzLDz+UN00T9aUModKI/5T0lq73Ql3LhaxfTMmM1m2x3Dr4zkPP
-n1JCJ2uybZw2ppsKh8CR
-=nR1M
+iQIcBAEBAgAGBQJcobA5AAoJEORje4g2clin1dQP/2AvKpcYXH+2mrkWZ9ZcbFqM
+EGXHnw0J7Ceads6PsxKsyUGRM5GWbwGVV0UrqFoqOlsVO/4v0naFLUARBqXi9ygf
+QzFrIdgaQdrbT38ifUMAt2LwmS4On3RCrh9b/wEFrttZ7RpxqYKqgv7tHy6zri91
+dqT2ZW6WooHR0BD475A+r7H1AmjKsqjVVcdxctTKlhLBODN17ExYyeplKqC006mW
+vNr7fEfHr0cyM+1A7d/DMWPT35GLggbET1PYXUopiMWCHQEn+xfHSjbe48PjaxGi
+Y2y9AAj9tuYCKRJPovVIh21FrP2eT+2Uj2KeBFBz/tRtlaMBcjFxCFKRFrLvM08x
+8bbGSV0VRrl6qUtNN1gXGX56VEL2giq3NBQ8tPa5ujU3HG1ZCqcnhQkNlHkErnvJ
+KLaTLxRtjMvtm26l9LbZfhPX133WDFQEBGy+JLLbbUeeKy+2pYm4qddO81Bb/KEw
+KU10SIfuiQOgO0klD4utYvpp1OF/sgt/fIR/R3PxRqHqtsg8IYUCstfUdk8x3MmH
+0qmxFBrpQEHkRFGLaYFqVkA08RnlAAOcei8Pm/wUJ4ccboPVGvwNlNsMhgtIdN3/
+ahh3c3vyy0VXeTBsbS8MhvRiNiZwVYpuRjFvBoO9ray0WFrubdrqdQ/gm7FdouTP
+HwXpxsiYNmXvpJfQq2WJ
+=NzKT
 -----END PGP SIGNATURE-----
 
---/unnNtmY43mpUSKx--
+--OZkY3AIuv2LYvjdk--
