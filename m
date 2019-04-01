@@ -1,185 +1,71 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v2 iproute2-next 3/4] rdma: add 'link add/delete' commands
-Date: Mon, 1 Apr 2019 09:37:55 +0300
-Message-ID: <20190401063755.GG8348@mtr-leonro.mtl.com>
-References: <cover.1553627811.git.larrystevenwise@gmail.com>
- <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
+From: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v13 11/20] tracing,
+ arm64: untag user pointers in seq_print_user_ip
+Date: Mon, 1 Apr 2019 17:38:40 +0200
+Message-ID: <CAAeHK+zxo4aY0qLzSmT8QDHFhas0_=hrXBo6dSamuVE+-VUyQQ@mail.gmail.com>
+References: <cover.1553093420.git.andreyknvl@google.com>
+ <c9553c3a4850d43c8af0c00e97850d70428b7de7.1553093421.git.andreyknvl@google.com>
+ <20190322154513.GQ13384@arrakis.emea.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yRA+Bmk8aPhU85Qt"
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a1b4b7640efb89346c45db060e88bb66103b4f50.1553627811.git.larrystevenwise@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <larrystevenwise@gmail.com>
-Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20190322154513.GQ13384-pQd4kjVL+RGcEQQL7YIRtlaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov@go>
 List-Id: linux-rdma@vger.kernel.org
 
-
---yRA+Bmk8aPhU85Qt
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Mar 26, 2019 at 02:18:29PM -0500, Steve Wise wrote:
-> Add new 'link' subcommand 'add' and 'delete' to allow binding a soft-rdma
-> device to a netdev interface.
->
-> EG:
->
-> rdma link add rxe_eth0 type rxe netdev eth0
-> rdma link delete rxe_eth0
->
-> Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
-> ---
->  rdma/link.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->  rdma/rdma.h |  2 ++
->  2 files changed, 85 insertions(+)
->
-> diff --git a/rdma/link.c b/rdma/link.c
-> index 89e81b84..982c2b16 100644
-> --- a/rdma/link.c
-> +++ b/rdma/link.c
-> @@ -9,6 +9,9 @@
->  static int link_help(struct rd *rd)
->  {
->  	pr_out("Usage: %s link show [DEV/PORT_INDEX]\n", rd->filename);
-> +	pr_out("Usage: %s link add NAME type TYPE netdev NETDEV\n",
-> +	       rd->filename);
-> +	pr_out("Usage: %s link delete NAME\n", rd->filename);
->  	return 0;
->  }
->
-> @@ -336,10 +339,90 @@ static int link_show(struct rd *rd)
->  	return rd_exec_link(rd, link_one_show, true);
->  }
->
-> +static int link_add_netdev(struct rd *rd)
-> +{
-> +	rd->link_netdev = rd_argv(rd);
-> +	rd_arg_inc(rd);
-> +	return 0;
-> +}
-> +
-> +static int link_add_type(struct rd *rd)
-> +{
-> +	const struct rd_cmd cmds[] = {
-> +		{ NULL,		link_help},
-> +		{ "netdev",	link_add_netdev},
-> +		{ 0 }
-> +	};
-> +	rd->link_type = rd_argv(rd);
-> +	rd_arg_inc(rd);
-> +	return rd_exec_cmd(rd, cmds, "parameter");
-> +}
-> +
-> +static int link_add(struct rd *rd)
-> +{
-> +	const struct rd_cmd cmds[] = {
-> +		{ NULL,		link_help},
-> +		{ "type",	link_add_type},
-> +		{ 0 }
-> +	};
-> +
-> +	uint32_t seq;
-> +	char *name;
-> +	int ret;
-> +
-> +	if (rd_no_arg(rd)) {
-> +		pr_err("Please provide a link name to add.\n");
-> +		return -EINVAL;
-> +	}
-> +	name = rd_argv(rd);
-> +	rd_arg_inc(rd);
-> +
-> +	ret = rd_exec_cmd(rd, cmds, "parameter");
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (!rd->link_type) {
-> +		pr_err("Please provide a link type name.\n");
-> +		return -EINVAL;
-> +	}
-> +	if (!rd->link_netdev) {
-> +		pr_err("Please provide a net device name.\n");
-> +		return -EINVAL;
-> +	}
-
-After a little bit more thinking, the checks above are supposed to be
-part of rd_exec_cmd() execution of chains. E.g if (!rd->link_type) needs
-to be inside link_add_type().
-
-> +
-> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_NEWLINK, &seq,
-> +		       (NLM_F_REQUEST | NLM_F_ACK));
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_DEV_NAME, name);
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_LINK_TYPE, rd->link_type);
-> +	mnl_attr_put_strz(rd->nlh, RDMA_NLDEV_ATTR_NDEV_NAME, rd->link_netdev);
-> +	return rd_sendrecv_msg(rd, seq);
-> +}
-> +
-> +static int _link_del(struct rd *rd)
-> +{
-> +	uint32_t seq;
-> +
-> +	if (!rd_no_arg(rd)) {
-> +		pr_err("Unknown parameter %s\n", rd_argv(rd));
-> +		return -EINVAL;
-> +	}
-> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_DELLINK, &seq,
-> +		       (NLM_F_REQUEST | NLM_F_ACK));
-> +	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-> +	return rd_sendrecv_msg(rd, seq);
-> +}
-> +
-> +static int link_del(struct rd *rd)
-> +{
-> +	return rd_exec_require_dev(rd, _link_del);
-> +}
-> +
->  int cmd_link(struct rd *rd)
->  {
->  	const struct rd_cmd cmds[] = {
->  		{ NULL,		link_show },
-> +		{ "add",	link_add },
-> +		{ "delete",	link_del },
->  		{ "show",	link_show },
->  		{ "list",	link_show },
->  		{ "help",	link_help },
-> diff --git a/rdma/rdma.h b/rdma/rdma.h
-> index 6c7f7d15..070c8ddf 100644
-> --- a/rdma/rdma.h
-> +++ b/rdma/rdma.h
-> @@ -70,6 +70,8 @@ struct rd {
->  	bool pretty_output;
->  	bool suppress_errors;
->  	struct list_head filter_list;
-> +	char *link_type;
-> +	char *link_netdev;
->  };
->
->  struct rd_cmd {
-> --
-> 2.20.1
->
-
---yRA+Bmk8aPhU85Qt
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcobHDAAoJEORje4g2clin7ccP/1Ahjt71JDwKnxm8DwNOzda8
-ONLqq13usyAIuGV/n3sUkQpteuDk+ZpWiVn850pNGcaPCcPAAI7twPWCoPxuaEX/
-xt9qd6VhfrCh7yJimZrCYTu6kGZrctOtnytNDASc3q4LFal32XNQvXb9/yvsC44b
-K5krb10q7wURg1EQnnIE04tr8PKepST6yTUHUJOWEUC2bqtQSnD6bJpj8rqzavAk
-7zZ4Ex8Y9Tmaui7vSKmB+L1I9M4b2temoepvROqYX3DrJbjRV+tnTTPyVbptZpS4
-Zyw5iw7Y0cNgXevcZlrAuP3/dtrxOh7L7C4ufc+CUMYSZcImokmPjcquRwlDSr1j
-Z24Qc4sh8u3X6jarRTLgMYIhGysEClGThTQF4hp6wsJGPQtw83xNbBPGiKHZkLGJ
-/kMLDd7EmfjGG6biygwSv78HWmDi1iO97M3OkVf8R1mLCbf7pV1PBMMHbLe0Flio
-OJP+p+uNd0dvdNQlLKBuQ5y6mojplC33nnWMsq8zprv/Q5FLk8gRPdnEMfjzdX3o
-AfbI+2Bz4qpHMwTnP6ss9VtiaHI3uACxvIpV+ynQm0jBwySaKAqIvliSnMKgwCNG
-EQB+orZlbWRgyhF64SZqF9LqAfIW3gXosfvl4BnXWmKVY23TjAD/i88ZKMJ0TuO3
-dDESn77KzwgJJaTp3HyS
-=0cTe
------END PGP SIGNATURE-----
-
---yRA+Bmk8aPhU85Qt--
+T24gRnJpLCBNYXIgMjIsIDIwMTkgYXQgNDo0NSBQTSBDYXRhbGluIE1hcmluYXMgPGNhdGFsaW4u
+bWFyaW5hc0Bhcm0uY29tPiB3cm90ZToKPgo+IE9uIFdlZCwgTWFyIDIwLCAyMDE5IGF0IDAzOjUx
+OjI1UE0gKzAxMDAsIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6Cj4gPiBUaGlzIHBhdGNoIGlzIGEg
+cGFydCBvZiBhIHNlcmllcyB0aGF0IGV4dGVuZHMgYXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0
+bwo+ID4gcGFzcyB0YWdnZWQgdXNlciBwb2ludGVycyAod2l0aCB0aGUgdG9wIGJ5dGUgc2V0IHRv
+IHNvbWV0aGluZyBlbHNlIG90aGVyCj4gPiB0aGFuIDB4MDApIGFzIHN5c2NhbGwgYXJndW1lbnRz
+Lgo+ID4KPiA+IHNlcV9wcmludF91c2VyX2lwKCkgdXNlcyBwcm92aWRlZCB1c2VyIHBvaW50ZXJz
+IGZvciB2bWEgbG9va3Vwcywgd2hpY2gKPiA+IGNhbiBvbmx5IGJ5IGRvbmUgd2l0aCB1bnRhZ2dl
+ZCBwb2ludGVycy4KPiA+Cj4gPiBVbnRhZyB1c2VyIHBvaW50ZXJzIGluIHRoaXMgZnVuY3Rpb24u
+Cj4gPgo+ID4gU2lnbmVkLW9mZi1ieTogQW5kcmV5IEtvbm92YWxvdiA8YW5kcmV5a252bEBnb29n
+bGUuY29tPgo+ID4gLS0tCj4gPiAga2VybmVsL3RyYWNlL3RyYWNlX291dHB1dC5jIHwgNSArKyst
+LQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCj4g
+Pgo+ID4gZGlmZiAtLWdpdCBhL2tlcm5lbC90cmFjZS90cmFjZV9vdXRwdXQuYyBiL2tlcm5lbC90
+cmFjZS90cmFjZV9vdXRwdXQuYwo+ID4gaW5kZXggNTQzNzNkOTNlMjUxLi42Mzc2YmVlOTNjODQg
+MTAwNjQ0Cj4gPiAtLS0gYS9rZXJuZWwvdHJhY2UvdHJhY2Vfb3V0cHV0LmMKPiA+ICsrKyBiL2tl
+cm5lbC90cmFjZS90cmFjZV9vdXRwdXQuYwo+ID4gQEAgLTM3MCw2ICszNzAsNyBAQCBzdGF0aWMg
+aW50IHNlcV9wcmludF91c2VyX2lwKHN0cnVjdCB0cmFjZV9zZXEgKnMsIHN0cnVjdCBtbV9zdHJ1
+Y3QgKm1tLAo+ID4gIHsKPiA+ICAgICAgIHN0cnVjdCBmaWxlICpmaWxlID0gTlVMTDsKPiA+ICAg
+ICAgIHVuc2lnbmVkIGxvbmcgdm1zdGFydCA9IDA7Cj4gPiArICAgICB1bnNpZ25lZCBsb25nIHVu
+dGFnZ2VkX2lwID0gdW50YWdnZWRfYWRkcihpcCk7Cj4gPiAgICAgICBpbnQgcmV0ID0gMTsKPiA+
+Cj4gPiAgICAgICBpZiAocy0+ZnVsbCkKPiA+IEBAIC0zNzksNyArMzgwLDcgQEAgc3RhdGljIGlu
+dCBzZXFfcHJpbnRfdXNlcl9pcChzdHJ1Y3QgdHJhY2Vfc2VxICpzLCBzdHJ1Y3QgbW1fc3RydWN0
+ICptbSwKPiA+ICAgICAgICAgICAgICAgY29uc3Qgc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWE7
+Cj4gPgo+ID4gICAgICAgICAgICAgICBkb3duX3JlYWQoJm1tLT5tbWFwX3NlbSk7Cj4gPiAtICAg
+ICAgICAgICAgIHZtYSA9IGZpbmRfdm1hKG1tLCBpcCk7Cj4gPiArICAgICAgICAgICAgIHZtYSA9
+IGZpbmRfdm1hKG1tLCB1bnRhZ2dlZF9pcCk7Cj4gPiAgICAgICAgICAgICAgIGlmICh2bWEpIHsK
+PiA+ICAgICAgICAgICAgICAgICAgICAgICBmaWxlID0gdm1hLT52bV9maWxlOwo+ID4gICAgICAg
+ICAgICAgICAgICAgICAgIHZtc3RhcnQgPSB2bWEtPnZtX3N0YXJ0Owo+ID4gQEAgLTM4OCw3ICsz
+ODksNyBAQCBzdGF0aWMgaW50IHNlcV9wcmludF91c2VyX2lwKHN0cnVjdCB0cmFjZV9zZXEgKnMs
+IHN0cnVjdCBtbV9zdHJ1Y3QgKm1tLAo+ID4gICAgICAgICAgICAgICAgICAgICAgIHJldCA9IHRy
+YWNlX3NlcV9wYXRoKHMsICZmaWxlLT5mX3BhdGgpOwo+ID4gICAgICAgICAgICAgICAgICAgICAg
+IGlmIChyZXQpCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0cmFjZV9zZXFfcHJp
+bnRmKHMsICJbKzB4JWx4XSIsCj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIGlwIC0gdm1zdGFydCk7Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIHVudGFnZ2VkX2lwIC0gdm1zdGFydCk7Cj4gPiAgICAgICAg
+ICAgICAgIH0KPiA+ICAgICAgICAgICAgICAgdXBfcmVhZCgmbW0tPm1tYXBfc2VtKTsKPiA+ICAg
+ICAgIH0KPgo+IEhvdyB3b3VsZCB3ZSBlbmQgdXAgd2l0aCBhIHRhZ2dlZCBhZGRyZXNzIGhlcmU/
+IERvZXMgImlwIiBoZXJlIGltcGx5Cj4gaW5zdHJ1Y3Rpb24gcG9pbnRlciwgd2hpY2ggd2Ugd291
+bGRuJ3QgdGFnPwoKWWVzLCBpdCdzIHRoZSBpbnN0cnVjdGlvbiBwb2ludGVyLiBJIHRoaW5rIEkg
+Z290IGNvbmZ1c2VkIGFuZCBkZWNpZGVkCnRoYXQgaXQncyBPSyB0byBoYXZlIGluc3RydWN0aW9u
+IHBvaW50ZXIgdGFnZ2VkLCBidXQgSSBndWVzcyBpdCdzIG5vdAphIHBhcnQgb2YgdGhpcyBBQkkg
+cmVsYXhhdGlvbi4gSSdsbCBkcm9wIHRoZSBwYXRjaGVzIHRoYXQgdW50YWcKaW5zdHJ1Y3Rpb24g
+cG9pbnRlcnMuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBz
+Oi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
