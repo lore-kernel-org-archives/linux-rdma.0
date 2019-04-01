@@ -1,72 +1,149 @@
-From: syzbot <syzbot+2e3e485d5697ea610460@syzkaller.appspotmail.com>
-Subject: WARNING in cma_exit_net
-Date: Mon, 01 Apr 2019 10:36:05 -0700
-Message-ID: <0000000000008096f305857b74d1@google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: WARNING in cma_exit_net
+Date: Mon, 1 Apr 2019 14:45:54 -0300
+Message-ID: <20190401174554.GE6209@ziepe.ca>
+References: <0000000000008096f305857b74d1@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed; delsp=yes
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0000000000008096f305857b74d1@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: danielj@mellanox.com, danitg@mellanox.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
+To: syzbot <syzbot+2e3e485d5697ea610460@syzkaller.appspotmail.com>, Matthew Wilcox <willy@infradead.org>
+Cc: danielj@mellanox.com, danitg@mellanox.com, dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, swise@opengridcomputing.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Mon, Apr 01, 2019 at 10:36:05AM -0700, syzbot wrote:
+> Hello,
+> 
+> syzbot found the following crash on:
+> 
+> HEAD commit:    e3ecb83e Add linux-next specific files for 20190401
+> git tree:       linux-next
+> console output: https://syzkaller.appspot.com/x/log.txt?x=13bc36cd200000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=db6c9f2bfeb91a99
+> dashboard link: https://syzkaller.appspot.com/bug?extid=2e3e485d5697ea610460
+> compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+> 
+> Unfortunately, I don't have any reproducer for this crash yet.
+> 
+> IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> Reported-by: syzbot+2e3e485d5697ea610460@syzkaller.appspotmail.com
+> 
+> WARNING: CPU: 1 PID: 7 at drivers/infiniband/core/cma.c:4674
+> cma_exit_net+0x327/0x390 drivers/infiniband/core/cma.c:4674
+> Kernel panic - not syncing: panic_on_warn set ...
 
-syzbot found the following crash on:
+Matt: This is why the WARN_ON(!xa_empty()) is so valuable. Magically
+syzkaller can find something in this code is buggy.
 
-HEAD commit:    e3ecb83e Add linux-next specific files for 20190401
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=13bc36cd200000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=db6c9f2bfeb91a99
-dashboard link: https://syzkaller.appspot.com/bug?extid=2e3e485d5697ea610460
-compiler:       gcc (GCC) 9.0.0 20181231 (experimental)
+Mellanox is also showing a different testing failure over the weekend
+(use after free or something) from your 'cma: Convert portspace IDRs
+to XArray'
 
-Unfortunately, I don't have any reproducer for this crash yet.
+If you seem something obvious wrong in that patch please speak
+up.. Below is what I applied.
 
-IMPORTANT: if you fix the bug, please add the following tag to the commit:
-Reported-by: syzbot+2e3e485d5697ea610460@syzkaller.appspotmail.com
+Thanks,
+Jason
 
-WARNING: CPU: 1 PID: 7 at drivers/infiniband/core/cma.c:4674  
-cma_exit_net+0x327/0x390 drivers/infiniband/core/cma.c:4674
-Kernel panic - not syncing: panic_on_warn set ...
-CPU: 1 PID: 7 Comm: kworker/u4:0 Not tainted 5.1.0-rc2-next-20190401 #15
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS  
-Google 01/01/2011
-Workqueue: netns cleanup_net
-Call Trace:
-  __dump_stack lib/dump_stack.c:77 [inline]
-  dump_stack+0x172/0x1f0 lib/dump_stack.c:113
-  panic+0x2cb/0x65c kernel/panic.c:214
-  __warn.cold+0x20/0x45 kernel/panic.c:571
-  report_bug+0x263/0x2b0 lib/bug.c:186
-  fixup_bug arch/x86/kernel/traps.c:179 [inline]
-  fixup_bug arch/x86/kernel/traps.c:174 [inline]
-  do_error_trap+0x11b/0x200 arch/x86/kernel/traps.c:272
-  do_invalid_op+0x37/0x50 arch/x86/kernel/traps.c:291
-  invalid_op+0x14/0x20 arch/x86/entry/entry_64.S:973
-RIP: 0010:cma_exit_net+0x327/0x390 drivers/infiniband/core/cma.c:4674
-Code: 00 48 c7 c7 c0 4e ea 87 c6 05 89 86 4a 04 01 e8 ba cc 46 fc e9 c8 fd  
-ff ff e8 25 6c 5f fc 0f 0b e9 d7 fe ff ff e8 19 6c 5f fc <0f> 0b e8 12 6c  
-5f fc 48 8d 65 e8 5b 41 5c 41 5d 5d c3 e8 02 6c 5f
-RSP: 0000:ffff8880aa267bf0 EFLAGS: 00010293
-RAX: ffff8880aa2581c0 RBX: ffff8880a538d500 RCX: 1ffff1101544b146
-RDX: 0000000000000000 RSI: ffffffff85111537 RDI: ffff8880a538d618
-RBP: ffff8880aa267c08 R08: ffff8880aa2581c0 R09: 0000000000000004
-R10: ffffed1015d25bcf R11: ffff8880ae92de7b R12: 0000000000000001
-R13: ffff8880a90e84c0 R14: ffffffff891e29f8 R15: dffffc0000000000
-  ops_exit_list.isra.0+0xb0/0x160 net/core/net_namespace.c:153
-  cleanup_net+0x3fb/0x960 net/core/net_namespace.c:552
-  process_one_work+0x98e/0x1790 kernel/workqueue.c:2270
-  worker_thread+0x98/0xe40 kernel/workqueue.c:2416
-  kthread+0x357/0x430 kernel/kthread.c:254
-  ret_from_fork+0x3a/0x50 arch/x86/entry/entry_64.S:352
-Kernel Offset: disabled
-Rebooting in 86400 seconds..
-
-
----
-This bug is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this bug report. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 68c997be242930..a8b9c66c85252b 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -39,7 +39,7 @@
+ #include <linux/mutex.h>
+ #include <linux/random.h>
+ #include <linux/igmp.h>
+-#include <linux/idr.h>
++#include <linux/xarray.h>
+ #include <linux/inetdevice.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+@@ -191,10 +191,10 @@ static struct workqueue_struct *cma_wq;
+ static unsigned int cma_pernet_id;
+ 
+ struct cma_pernet {
+-	struct idr tcp_ps;
+-	struct idr udp_ps;
+-	struct idr ipoib_ps;
+-	struct idr ib_ps;
++	struct xarray tcp_ps;
++	struct xarray udp_ps;
++	struct xarray ipoib_ps;
++	struct xarray ib_ps;
+ };
+ 
+ static struct cma_pernet *cma_pernet(struct net *net)
+@@ -202,7 +202,8 @@ static struct cma_pernet *cma_pernet(struct net *net)
+ 	return net_generic(net, cma_pernet_id);
+ }
+ 
+-static struct idr *cma_pernet_idr(struct net *net, enum rdma_ucm_port_space ps)
++static
++struct xarray *cma_pernet_xa(struct net *net, enum rdma_ucm_port_space ps)
+ {
+ 	struct cma_pernet *pernet = cma_pernet(net);
+ 
+@@ -247,25 +248,25 @@ struct class_port_info_context {
+ static int cma_ps_alloc(struct net *net, enum rdma_ucm_port_space ps,
+ 			struct rdma_bind_list *bind_list, int snum)
+ {
+-	struct idr *idr = cma_pernet_idr(net, ps);
++	struct xarray *xa = cma_pernet_xa(net, ps);
+ 
+-	return idr_alloc(idr, bind_list, snum, snum + 1, GFP_KERNEL);
++	return xa_insert(xa, snum, bind_list, GFP_KERNEL);
+ }
+ 
+ static struct rdma_bind_list *cma_ps_find(struct net *net,
+ 					  enum rdma_ucm_port_space ps, int snum)
+ {
+-	struct idr *idr = cma_pernet_idr(net, ps);
++	struct xarray *xa = cma_pernet_xa(net, ps);
+ 
+-	return idr_find(idr, snum);
++	return xa_load(xa, snum);
+ }
+ 
+ static void cma_ps_remove(struct net *net, enum rdma_ucm_port_space ps,
+ 			  int snum)
+ {
+-	struct idr *idr = cma_pernet_idr(net, ps);
++	struct xarray *xa = cma_pernet_xa(net, ps);
+ 
+-	idr_remove(idr, snum);
++	xa_erase(xa, snum);
+ }
+ 
+ enum {
+@@ -4655,10 +4656,10 @@ static int cma_init_net(struct net *net)
+ {
+ 	struct cma_pernet *pernet = cma_pernet(net);
+ 
+-	idr_init(&pernet->tcp_ps);
+-	idr_init(&pernet->udp_ps);
+-	idr_init(&pernet->ipoib_ps);
+-	idr_init(&pernet->ib_ps);
++	xa_init(&pernet->tcp_ps);
++	xa_init(&pernet->udp_ps);
++	xa_init(&pernet->ipoib_ps);
++	xa_init(&pernet->ib_ps);
+ 
+ 	return 0;
+ }
+@@ -4667,10 +4668,10 @@ static void cma_exit_net(struct net *net)
+ {
+ 	struct cma_pernet *pernet = cma_pernet(net);
+ 
+-	idr_destroy(&pernet->tcp_ps);
+-	idr_destroy(&pernet->udp_ps);
+-	idr_destroy(&pernet->ipoib_ps);
+-	idr_destroy(&pernet->ib_ps);
++	WARN_ON(!xa_empty(&pernet->tcp_ps));
++	WARN_ON(!xa_empty(&pernet->udp_ps));
++	WARN_ON(!xa_empty(&pernet->ipoib_ps));
++	WARN_ON(!xa_empty(&pernet->ib_ps));
+ }
+ 
+ static struct pernet_operations cma_pernet_operations = {
