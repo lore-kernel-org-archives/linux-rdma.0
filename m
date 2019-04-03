@@ -1,56 +1,52 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH v3 iproute2-next 4/4] rdma: man page update for link
- add/delete
-Date: Wed, 3 Apr 2019 20:31:54 +0300
-Message-ID: <20190403173154.GY3201@mtr-leonro.mtl.com>
+Subject: Re: [PATCH v3 iproute2-next 0/4] Dynamic rdma link creation
+Date: Wed, 3 Apr 2019 20:32:53 +0300
+Message-ID: <20190403173253.GZ3201@mtr-leonro.mtl.com>
 References: <cover.1554304142.git.larrystevenwise@gmail.com>
- <abace9bd8aa00aaaaf9cdc1ecf1fc2f91e1f4f05.1554304142.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="59coWm5189RNS6mf"
+        protocol="application/pgp-signature"; boundary="p609JBPwWeYlfsbE"
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <abace9bd8aa00aaaaf9cdc1ecf1fc2f91e1f4f05.1554304142.git.larrystevenwise@gmail.com>
+In-Reply-To: <cover.1554304142.git.larrystevenwise@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: Steve Wise <larrystevenwise@gmail.com>
 Cc: dsahern@gmail.com, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---59coWm5189RNS6mf
+--p609JBPwWeYlfsbE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Apr 03, 2019 at 12:10:32PM -0500, Steve Wise wrote:
-> Update the 'rdma link' man page with 'link add/delete' info.
->
-> Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
-> ---
->  man/man8/rdma-link.8 | 47 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 47 insertions(+)
+On Wed, Apr 03, 2019 at 12:10:28PM -0500, Steve Wise wrote:
+> This series adds rdmatool support for creating/deleting rdma links.
+> This will be used, mainly, by soft rdma drivers to allow adding/deleting
+> rdma links over netdev interfaces.  It provides the user side for
+> the following kernel changes merged in linux-5.1.
 >
 
-Thanks,
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Thanks a lot Steve,
+Looks very good.
 
---59coWm5189RNS6mf
+--p609JBPwWeYlfsbE
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIcBAEBAgAGBQJcpO4KAAoJEORje4g2clin9dYP/3rTFO37UO+aCK/4CZVTM0Wz
-cmnl75WS9LSXoSjMpcds/5Zb/Xx6uaP6n/vUE33gtx+96Uf53C9e2aJByrmvMgml
-aXg/HB8zhXbfVIkPKDYLfzT9Ys8opztJVd8kRtSfZgbMsX0cPG4meHYHqRLTmkVG
-W5Lw6b4/POx+pBoiwanMIHaKTvCQZkUo05vKO2eOBtcTFnsNgrlzxYfhoGB9rYia
-Evri7Z3rs8I++CLkPc65FUWfa5xaCQ6s0N4fhSRhh5yLIE43L3BHl+kJ0xoVff1U
-PqHUkjzuG6ySlKi/BKUj9tfdW/I8++kEGTK6hOMx/cNkaWKl4PCLkGsRpwWGFGPQ
-66pphAaLRSMtDPOsIVBaaDt5sQjHCmtCtj8vAFEe1lof7l+qW9mUa/qaDQNjMZ1P
-c/CW6eXkrt89sjlEsk4uheeQFlQG9Y6SPmbngR7Wg9ZX/UM8LOOUjC248Op1U34m
-VQ2xlRLMyrtuDfEnB2H41K4201I1WnpXzIULYf45Ynkp8Q3ZOWMgAWUO3q2M3TWS
-fefq9JHgWDwG6jeoFcDyUS5a+TXN+AaKKv1RVWQ08Nx57xZQ+M04zwe+2k0EY6tm
-EJIIDJ1tSKY5nc0Wyg6rcGuVGc0rVdEmpzI9FDrC0LBWteDFrCZT4VOnjSju1rPn
-3r9EnIZRgYp2bt65hVVx
-=5oCY
+iQIcBAEBAgAGBQJcpO5FAAoJEORje4g2cling0cQAJ/IQnS0XTeRyWQKiDiGWLwU
+awzLXMoC5351u/wmJ1vrCV/NyC67J7KRHBNndgyY0B55jnZmMRtZW/CPvU6+fRjb
+L+O216/PrbwoE7TdS7n956Z/gWUcsvyl1eBDcs4nNNCv0dviEd3sZoqCuW2g/TNy
+XfrWfLnk1kgSl8kc7j6+JvvtaRiJknX26KzEF19KrKtsYR1Ne3xbHA4YTSFo+2k+
+w1CbJmXF4R85Td00WHAW14YFhbqQPjCTmKJC2QlwGeGxgEagnLuq2LEJAjrXU1GE
+7xwoA3tx4R8Fvl1eMs/JCvFHK0Bmyiphpu9ci0EHXLb9bKyTeiNKnxDzjmZ1s46h
+nWybkKQ4b7fOiYfePCnWXUYsQuEm8Vxe9O5Am8YCxawNmnNNgedoOBMDdgiKUQcj
+GQEPEwgPLovQwAFBUsi0mrHFRHfmDQh9dnic0fI+DS188L0V0nwwZtinD4i/qOON
+xlBJofV/VZbdkfpW7QRIQvfEtL836D6jJ3ZjlxzpOdyL/nw7DewA7JRnm5i2/fg6
+gnD9tIB0g2NS+XDUifN9GIXIpXwhXGBmSFWPHPk23tABscgy5P1Ua1aUG95xgdOq
+9rHlzpTDUBZJspV1KcmJVcMzTA3QDNX9MOSrvM+/435NPu7+LDSB3gy+cBycvZc2
+At2Y7PZSETE5M/tE29JI
+=t5oU
 -----END PGP SIGNATURE-----
 
---59coWm5189RNS6mf--
+--p609JBPwWeYlfsbE--
