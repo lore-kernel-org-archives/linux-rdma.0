@@ -1,7 +1,7 @@
 From: Steve Wise <larrystevenwise@gmail.com>
-Subject: [PATCH v3 iproute2-next 4/4] rdma: man page update for link add/delete
-Date: Wed,  3 Apr 2019 12:10:32 -0500
-Message-ID: <abace9bd8aa00aaaaf9cdc1ecf1fc2f91e1f4f05.1554304142.git.larrystevenwise@gmail.com>
+Subject: [PATCH v3 iproute2-next 1/4] Add .mailmap file
+Date: Wed,  3 Apr 2019 12:10:29 -0500
+Message-ID: <117ec8d5d01aa70fff44c515d9525bc21291cc04.1554304142.git.larrystevenwise@gmail.com>
 References: <cover.1554304142.git.larrystevenwise@gmail.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,87 +9,31 @@ Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <cover.1554304142.git.larrystevenwise@gmail.com>
 Sender: netdev-owner@vger.kernel.org
 To: dsahern@gmail.com
-Cc: Steve Wise <larrystevenwise@gmail.com>, leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Steve Wise <larrystevenwise@gmail.com>, leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Update the 'rdma link' man page with 'link add/delete' info.
+.mailmap allows tracking multiple email addresses to the proper user name.
 
 Signed-off-by: Steve Wise <larrystevenwise@gmail.com>
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- man/man8/rdma-link.8 | 47 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
+ .mailmap | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+ create mode 100644 .mailmap
 
-diff --git a/man/man8/rdma-link.8 b/man/man8/rdma-link.8
-index bddf3474..b3b40de7 100644
---- a/man/man8/rdma-link.8
-+++ b/man/man8/rdma-link.8
-@@ -22,6 +22,18 @@ rdma-link \- rdma link configuration
- .B rdma link show
- .RI "[ " DEV/PORT_INDEX " ]"
- 
-+.ti -8
-+.B rdma link add
-+.BR NAME
-+.BR type
-+.BR TYPE
-+.BR netdev
-+.BR NETDEV
-+
-+.ti -8
-+.B rdma link delete
-+.RI NAME
-+
- .ti -8
- .B rdma link help
- 
-@@ -33,6 +45,31 @@ rdma-link \- rdma link configuration
- - specifies the RDMA link to show.
- If this argument is omitted all links are listed.
- 
-+.SS rdma link add NAME type TYPE netdev NETDEV - add an rdma link for the specified type to the network device
-+.sp
-+.BR NAME
-+- specifies the new name of the rdma link to add
-+
-+.BR TYPE
-+- specifies which rdma type to use.  Link types:
-+.sp
-+.in +8
-+.B rxe
-+- Soft RoCE driver
-+.sp
-+.B siw
-+- Soft iWARP driver
-+.in -8
-+
-+.BR NETDEV
-+- specifies the network device to which the link is bound
-+
-+.SS rdma link delete NAME - delete an rdma link
-+.PP
-+.BR NAME
-+- specifies the name of the rdma link to delete
-+.PP
-+
- .SH "EXAMPLES"
- .PP
- rdma link show
-@@ -45,6 +82,16 @@ rdma link show mlx5_2/1
- Shows the state of specified rdma link.
- .RE
- .PP
-+rdma link add rxe_eth0 type rxe netdev eth0
-+.RS 4
-+Adds a RXE link named rxe_eth0 to network device eth0
-+.RE
-+.PP
-+rdma link del rxe_eth0
-+.RS 4
-+Removes RXE link rxe_eth0
-+.RE
-+.PP
- 
- .SH SEE ALSO
- .BR rdma (8),
+diff --git a/.mailmap b/.mailmap
+new file mode 100644
+index 00000000..c012d3d0
+--- /dev/null
++++ b/.mailmap
+@@ -0,0 +1,8 @@
++#
++# This list is used by git-shortlog to fix a few botched name translations
++# in the git archive, either because the author's full name was messed up
++# and/or not always written the same way, making contributions from the
++# same person appearing not to be so or badly displayed.
++#
++Steve Wise <larrystevenwise@gmail.com> <swise@opengridcomputing.com>
++Steve Wise <larrystevenwise@gmail.com> <swise@chelsio.com>
 -- 
 2.20.1
