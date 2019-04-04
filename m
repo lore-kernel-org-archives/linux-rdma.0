@@ -1,48 +1,62 @@
-From: Mukesh Ojha <mojha@codeaurora.org>
-Subject: Re: [PATCH][next] opa_vnic: fix check on record->event, incorrect
- operator used
-Date: Thu, 4 Apr 2019 17:06:12 +0530
-Message-ID: <4a9f82a4-b9d2-d8c7-1a61-9a3b3318ff49@codeaurora.org>
-References: <20190404100439.19696-1-colin.king@canonical.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 00/12] Move IB representors to single IB device
+ multiple ports
+Date: Thu, 4 Apr 2019 10:02:21 -0300
+Message-ID: <20190404130221.GA15890@ziepe.ca>
+References: <20190328132742.12070-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190404100439.19696-1-colin.king@canonical.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190328132742.12070-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Mar 28, 2019 at 03:27:30PM +0200, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
+> 
+> >From Mark,
+> 
+> Hi,
+> 
+> This series starts from two refactoring patches performed in mlx5_core
+> and they are part of a larger series intended to expose the ability
+> to insert FDB steering rules by the RDMA side.
+> 
+> They are followed by patches which move IB representors to single IB
+> device. Currently when moving to switchdev mode an IB device is created
+> per virtual function (and one for the uplink). While initially this was
+> right approach, the limitation of this model requires us to change it.
+> 
+> Such limitations includes:
+>  - Inability to share resources between IB devices.
+>  - Lack of DEVX to allow more control and device specific functionality.
+>  - Interacting with the E-Switch.
+>  - Doesn't work well with namespaces.
+> 
+> In this series we move to a single IB device with multiple ports where
+> each port represents a different virtual function (port 1 is for the
+> uplink). All the limitations listed above are now resolved and the
+> software model exposed to users is more cohesive.
+> 
+> Thanks
+> 
+> Mark Bloch (12):
+>   net/mlx5: E-Switch, don't use hardcoded values for FDB prios
+>   net/mlx5: E-Switch, add a new prio to be used by the RDMA side
+>   RDMA/mlx5: Move netdev info into the port struct
+>   RDMA/mlx5: Free IB device on remove
+>   RDMA/mlx5: Move ports allocation to outside of INIT stage
+>   RDMA/mlx5: Use correct size for device resources
+>   RDMA/mlx5: Move rep into port struct
+>   RDMA/mlx5: Move default representors SQ steering to rule to modify QP
+>   RDMA/mlx5: Refactor netdev affinity code
+>   RDMA/mlx5: Move SMI caps logic
+>   RDMA/mlx5: Move to single device multiport ports in switchdev mode
+>   RDMA/mlx5: Remove VF representor profile
 
-On 4/4/2019 3:34 PM, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->
-> The check on record->event is always true because the wrong operator
-> is being used, used && instead of ||
->
-> Addresses-Coverity: ("Constant expression result")
-> Fixes: fae7a699a925 ("opa_vnic: Convert vport_idr to XArray")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: Mukesh Ojha <mojha@codeaurora.org>
+This looks Ok, can you update the shared branch please
 
-Cheers,
--Mukesh
-> ---
->   drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
-> index 76cd09410d9a..be5befd92d16 100644
-> --- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
-> +++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
-> @@ -869,7 +869,7 @@ static void opa_vnic_event(struct ib_event_handler *handler,
->   	      record->event, dev_name(&record->device->dev),
->   	      record->element.port_num);
->   
-> -	if (record->event != IB_EVENT_PORT_ERR ||
-> +	if (record->event != IB_EVENT_PORT_ERR &&
->   	    record->event != IB_EVENT_PORT_ACTIVE)
->   		return;
->   
+Jason
