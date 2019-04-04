@@ -1,24 +1,40 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH v3 iproute2-next 0/4] Dynamic rdma link creation
-Date: Wed, 3 Apr 2019 13:06:35 -0600
-Message-ID: <01e977c5-d721-0210-9e9d-203e6caa6fd4@gmail.com>
-References: <cover.1554304142.git.larrystevenwise@gmail.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next] opa_vnic: fix check on record->event, incorrect operator used
+Date: Thu,  4 Apr 2019 11:04:39 +0100
+Message-ID: <20190404100439.19696-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <cover.1554304142.git.larrystevenwise@gmail.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Steve Wise <larrystevenwise@gmail.com>
-Cc: leon@kernel.org, stephen@networkplumber.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>, Niranjana Vishwanathapura <niranjana.vishwanathapura@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/3/19 11:10 AM, Steve Wise wrote:
-> This series adds rdmatool support for creating/deleting rdma links.
-> This will be used, mainly, by soft rdma drivers to allow adding/deleting
-> rdma links over netdev interfaces.  It provides the user side for
-> the following kernel changes merged in linux-5.1.
-> 
+From: Colin Ian King <colin.king@canonical.com>
 
-applied to iproute2-next. Thanks
+The check on record->event is always true because the wrong operator
+is being used, used && instead of ||
+
+Addresses-Coverity: ("Constant expression result")
+Fixes: fae7a699a925 ("opa_vnic: Convert vport_idr to XArray")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+index 76cd09410d9a..be5befd92d16 100644
+--- a/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
++++ b/drivers/infiniband/ulp/opa_vnic/opa_vnic_vema.c
+@@ -869,7 +869,7 @@ static void opa_vnic_event(struct ib_event_handler *handler,
+ 	      record->event, dev_name(&record->device->dev),
+ 	      record->element.port_num);
+ 
+-	if (record->event != IB_EVENT_PORT_ERR ||
++	if (record->event != IB_EVENT_PORT_ERR &&
+ 	    record->event != IB_EVENT_PORT_ACTIVE)
+ 		return;
+ 
+-- 
+2.20.1
