@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 09/17] IB/mlx5: Support statistic q counter configuration
-Date: Sun,  7 Apr 2019 10:50:05 +0300
-Message-ID: <20190407075013.12955-10-leon@kernel.org>
+Subject: [PATCH mlx5-next v1 01/17] net/mlx5: Add rts2rts_qp_counters_set_id field in hca cap
+Date: Sun,  7 Apr 2019 10:49:57 +0300
+Message-ID: <20190407075013.12955-2-leon@kernel.org>
 References: <20190407075013.12955-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,87 +14,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add support for ib callbacks counter_bind_qp() and counter_unbind_qp().
+Add rts2rts_qp_counters_set_id field in hca cap so that RTS2RTS
+qp modification can be used to change the counter of a QP.
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 55 +++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
+ include/linux/mlx5/mlx5_ifc.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index d0b3e916ca8e..8e9dfc1119c2 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5398,6 +5398,59 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 	return num_counters;
- }
+diff --git a/include/linux/mlx5/mlx5_ifc.h b/include/linux/mlx5/mlx5_ifc.h
+index 3b83288749c6..20c07cb87f6c 100644
+--- a/include/linux/mlx5/mlx5_ifc.h
++++ b/include/linux/mlx5/mlx5_ifc.h
+@@ -975,7 +975,9 @@ struct mlx5_ifc_cmd_hca_cap_bits {
+ 	u8         cc_modify_allowed[0x1];
+ 	u8         start_pad[0x1];
+ 	u8         cache_line_128byte[0x1];
+-	u8         reserved_at_165[0xa];
++	u8         reserved_at_165[0x4];
++	u8         rts2rts_qp_counters_set_id[0x1];
++	u8         reserved_at_16a[0x5];
+ 	u8         qcam_reg[0x1];
+ 	u8         gid_table_size[0x10];
  
-+static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
-+				   struct ib_qp *qp)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	u16 cnt_set_id = 0;
-+	int err;
-+
-+	if (counter->id == 0) {
-+		err = mlx5_cmd_alloc_q_counter(dev->mdev,
-+					       &cnt_set_id,
-+					       MLX5_SHARED_RESOURCE_UID);
-+		if (err)
-+			return err;
-+		counter->id = cnt_set_id;
-+	}
-+
-+	err = mlx5_ib_qp_set_counter(qp, counter);
-+	if (err)
-+		goto fail_set_counter;
-+
-+	return 0;
-+
-+fail_set_counter:
-+	if (cnt_set_id != 0) {
-+		mlx5_core_dealloc_q_counter(dev->mdev, cnt_set_id);
-+		counter->id = 0;
-+	}
-+
-+	return err;
-+}
-+
-+static int mlx5_ib_counter_unbind_qp(struct ib_qp *qp, bool force)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(qp->device);
-+	struct rdma_counter *counter = qp->counter;
-+	int err;
-+
-+	err = mlx5_ib_qp_set_counter(qp, NULL);
-+	if (err && !force)
-+		return err;
-+
-+	/*
-+	 * Deallocate the counter if this is the last QP bound on it;
-+	 * If @force is set then we still deallocate the q counter
-+	 * no matter if there's any error in previous. used for cases
-+	 * like qp destroy.
-+	 */
-+	if (atomic_read(&counter->usecnt) == 1)
-+		return mlx5_core_dealloc_q_counter(dev->mdev, counter->id);
-+
-+	return 0;
-+}
-+
- static int mlx5_ib_rn_get_params(struct ib_device *device, u8 port_num,
- 				 enum rdma_netdev_t type,
- 				 struct rdma_netdev_alloc_params *params)
-@@ -6276,6 +6329,8 @@ static void mlx5_ib_stage_odp_cleanup(struct mlx5_ib_dev *dev)
- static const struct ib_device_ops mlx5_ib_dev_hw_stats_ops = {
- 	.alloc_hw_stats = mlx5_ib_alloc_hw_stats,
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
-+	.counter_bind_qp = mlx5_ib_counter_bind_qp,
-+	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
- };
- 
- int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
 -- 
 2.20.1
