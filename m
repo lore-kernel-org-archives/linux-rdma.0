@@ -1,100 +1,99 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 00/12] Move IB representors to single IB device
- multiple ports
-Date: Thu, 4 Apr 2019 20:42:38 +0300
-Message-ID: <20190404174238.GC3201@mtr-leonro.mtl.com>
-References: <20190328132742.12070-1-leon@kernel.org>
- <20190404130221.GA15890@ziepe.ca>
+Subject: [PATCH rdma-next v1 00/17] Statistics counter support
+Date: Sun,  7 Apr 2019 10:49:56 +0300
+Message-ID: <20190407075013.12955-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="yTwVabqJa5IUz21H"
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190404130221.GA15890@ziepe.ca>
 Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+From: Leon Romanovsky <leonro@mellanox.com>
 
---yTwVabqJa5IUz21H
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Changelog:
+ v0 -> v1:
+ * Changed wording of counter comment
+ * Removed unneeded assignments
+ * Added extra patch to present global counters
 
-On Thu, Apr 04, 2019 at 10:02:21AM -0300, Jason Gunthorpe wrote:
-> On Thu, Mar 28, 2019 at 03:27:30PM +0200, Leon Romanovsky wrote:
-> > From: Leon Romanovsky <leonro@mellanox.com>
-> >
-> > >From Mark,
-> >
-> > Hi,
-> >
-> > This series starts from two refactoring patches performed in mlx5_core
-> > and they are part of a larger series intended to expose the ability
-> > to insert FDB steering rules by the RDMA side.
-> >
-> > They are followed by patches which move IB representors to single IB
-> > device. Currently when moving to switchdev mode an IB device is created
-> > per virtual function (and one for the uplink). While initially this was
-> > right approach, the limitation of this model requires us to change it.
-> >
-> > Such limitations includes:
-> >  - Inability to share resources between IB devices.
-> >  - Lack of DEVX to allow more control and device specific functionality.
-> >  - Interacting with the E-Switch.
-> >  - Doesn't work well with namespaces.
-> >
-> > In this series we move to a single IB device with multiple ports where
-> > each port represents a different virtual function (port 1 is for the
-> > uplink). All the limitations listed above are now resolved and the
-> > software model exposed to users is more cohesive.
-> >
-> > Thanks
-> >
-> > Mark Bloch (12):
-> >   net/mlx5: E-Switch, don't use hardcoded values for FDB prios
-> >   net/mlx5: E-Switch, add a new prio to be used by the RDMA side
-> >   RDMA/mlx5: Move netdev info into the port struct
-> >   RDMA/mlx5: Free IB device on remove
-> >   RDMA/mlx5: Move ports allocation to outside of INIT stage
-> >   RDMA/mlx5: Use correct size for device resources
-> >   RDMA/mlx5: Move rep into port struct
-> >   RDMA/mlx5: Move default representors SQ steering to rule to modify QP
-> >   RDMA/mlx5: Refactor netdev affinity code
-> >   RDMA/mlx5: Move SMI caps logic
-> >   RDMA/mlx5: Move to single device multiport ports in switchdev mode
-> >   RDMA/mlx5: Remove VF representor profile
->
-> This looks Ok, can you update the shared branch please
+ * I didn't change QP type from int to be enum ib_qp_type,
+   because it caused to cyclic dependency between ib_verbs.h and
+   rdma_counter.h.
 
-Thanks Jason,
+----------------------------------------------------
 
-I'll slightly delay update till Sunday, internally, we have doubts about
-"RDMA/mlx5: Use correct size for device resources" patch.
+Hi,
+
+This series from Mark provides dynamic statistics infrastructure.
+He uses netlink interface to configure and retrieve those counters.
+
+This infrastructure allows to users monitor various objects by binding
+to them counters. As the beginning, we used QP object as target for
+those counters, but future patches will include ODP MR information too.
+
+Two binding modes are supported:
+ - Auto: This allows a user to build automatic set of objects to a counter
+   according to common criteria. For example in a per-type scheme, where in
+   one process all QPs with same QP type are bound automatically to a single
+   counter.
+ - Manual: This allows a user to manually bind objects on a counter.
+
+Those two modes are mutual-exclusive with separation between processes,
+objects created by different processes cannot be bound to a same counter.
+
+For objects which don't support counter binding, we will return
+pre-allocated counters.
+
+$ rdma statistic qp set link mlx5_2/1 auto type on
+$ rdma statistic qp set link mlx5_2/1 auto off
+$ rdma statistic qp bind link mlx5_2/1 lqpn 178
+$ rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
+$ rdma statistic show
+$ rdma statistic qp mode
 
 Thanks
 
->
-> Jason
+Mark Zhang (17):
+  net/mlx5: Add rts2rts_qp_counters_set_id field in hca cap
+  RDMA/restrack: Introduce statistic counter
+  RDMA/restrack: Add an API to attach a task to a resource
+  RDMA/restrack: Make is_visible_in_pid_ns() as an API
+  RDMA/counter: Add set/clear per-port auto mode support
+  RDMA/counter: Add "auto" configuration mode support
+  IB/mlx5: Support set qp counter
+  IB/mlx5: Add counter set id as a parameter for
+    mlx5_ib_query_q_counters()
+  IB/mlx5: Support statistic q counter configuration
+  RDMA/nldev: Allow counter auto mode configration through RDMA netlink
+  RDMA/netlink: Implement counter dumpit calback
+  IB/mlx5: Add counter_alloc_stats() and counter_update_stats() support
+  RDMA/core: Get sum value of all counters when perform a sysfs stat
+    read
+  RDMA/counter: Allow manual mode configuration support
+  RDMA/nldev: Allow counter manual mode configration through RDMA
+    netlink
+  RDMA/nldev: Allow get counter mode through RDMA netlink
+  RDMA/nldev: Allow get default counter statistics through RDMA netlink
 
---yTwVabqJa5IUz21H
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcpkINAAoJEORje4g2clin6hAP/3FoAKd/nCicCMGzLaQICDKk
-hneuwbc5DeoW8yyxreD7yIdc0kZFHz6C+YNcKM0WEwJqseeDFfS4NoiDrpqUTbPx
-B21yYCyD+IvVjJ1lOFxCoSdRC45erKSMwLPWLj1U/HIMq/0AoV0qrkwFNU36KNBU
-FqZ7ZiEQH9CAUu5K3f0cAlMmYIH2oySfT9qo72wOm9Bs/hA9jhCYYEI36ONQA64x
-KLMdAq58V5G3GbBeVf+PIIE2bkky9Su670l9aRDNf118knmf1MCJUxg3llhqeGt+
-aINI6bHLHuAQCmpDzlelZaFcwCVoPDCBQjhD1hiFHg5CQozZDlJvAN9ydsWjk+P0
-RYjoV/dfVVwafRRNMCENA+Gh9QOnITUmkNBl06UXIeMLM4Q7gOmLXE9kK/25nzJm
-4BtqxVNvg5h1bAS7eO4lhpT/LRePr2r+adE8iVe5ggcj4VuHRj/lJd3T7cHnWhBu
-nLkp+VGRI32bH/MCn9w2+BfGgzyALifW0t8GY67g5iVmwTWpfPdrQTWZ69a+W2qI
-HRfOPcAx12pugLYLpIGr9hoPwShY6qEbcWRPNRXKBQX9wflzsa7lrYXbHhTlCz7d
-X9HW3bU3JW/IQXbcZIKTMQL4qzJZ/FKbMcmb+V9XSYQgjtnaT97/PcA9Bsynpg1C
-hxSRfVI7iv3ALFUxmXUB
-=y02s
------END PGP SIGNATURE-----
-
---yTwVabqJa5IUz21H--
+ drivers/infiniband/core/Makefile     |   2 +-
+ drivers/infiniband/core/counters.c   | 653 +++++++++++++++++++++++++++
+ drivers/infiniband/core/device.c     |  14 +
+ drivers/infiniband/core/nldev.c      | 524 ++++++++++++++++++++-
+ drivers/infiniband/core/restrack.c   |  49 +-
+ drivers/infiniband/core/restrack.h   |   3 +
+ drivers/infiniband/core/sysfs.c      |  10 +-
+ drivers/infiniband/core/verbs.c      |   9 +
+ drivers/infiniband/hw/mlx5/main.c    |  88 +++-
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 +
+ drivers/infiniband/hw/mlx5/qp.c      |  76 +++-
+ include/linux/mlx5/mlx5_ifc.h        |   4 +-
+ include/linux/mlx5/qp.h              |   1 +
+ include/rdma/ib_verbs.h              |  30 ++
+ include/rdma/rdma_counter.h          |  64 +++
+ include/rdma/restrack.h              |   4 +
+ include/uapi/rdma/rdma_netlink.h     |  52 ++-
+ 17 files changed, 1558 insertions(+), 31 deletions(-)
+ create mode 100644 drivers/infiniband/core/counters.c
+ create mode 100644 include/rdma/rdma_counter.h
