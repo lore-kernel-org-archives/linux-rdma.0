@@ -1,99 +1,139 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 00/17] Statistics counter support
-Date: Sun,  7 Apr 2019 10:49:56 +0300
-Message-ID: <20190407075013.12955-1-leon@kernel.org>
+Subject: [PATCH rdma-next v1 02/17] RDMA/restrack: Introduce statistic counter
+Date: Sun,  7 Apr 2019 10:49:58 +0300
+Message-ID: <20190407075013.12955-3-leon@kernel.org>
+References: <20190407075013.12955-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190407075013.12955-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
 Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+From: Mark Zhang <markz@mellanox.com>
 
-Changelog:
- v0 -> v1:
- * Changed wording of counter comment
- * Removed unneeded assignments
- * Added extra patch to present global counters
+Introduce statistic counter as a new resource. It allows a user
+to monitor specific objects (e.g., QPs) by binding to a counter.
 
- * I didn't change QP type from int to be enum ib_qp_type,
-   because it caused to cyclic dependency between ib_verbs.h and
-   rdma_counter.h.
+In some cases a user counter resource is created with task other then
+"current", because its creation is done as part of rdmatool call.
 
-----------------------------------------------------
-
-Hi,
-
-This series from Mark provides dynamic statistics infrastructure.
-He uses netlink interface to configure and retrieve those counters.
-
-This infrastructure allows to users monitor various objects by binding
-to them counters. As the beginning, we used QP object as target for
-those counters, but future patches will include ODP MR information too.
-
-Two binding modes are supported:
- - Auto: This allows a user to build automatic set of objects to a counter
-   according to common criteria. For example in a per-type scheme, where in
-   one process all QPs with same QP type are bound automatically to a single
-   counter.
- - Manual: This allows a user to manually bind objects on a counter.
-
-Those two modes are mutual-exclusive with separation between processes,
-objects created by different processes cannot be bound to a same counter.
-
-For objects which don't support counter binding, we will return
-pre-allocated counters.
-
-$ rdma statistic qp set link mlx5_2/1 auto type on
-$ rdma statistic qp set link mlx5_2/1 auto off
-$ rdma statistic qp bind link mlx5_2/1 lqpn 178
-$ rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
-$ rdma statistic show
-$ rdma statistic qp mode
-
-Thanks
-
-Mark Zhang (17):
-  net/mlx5: Add rts2rts_qp_counters_set_id field in hca cap
-  RDMA/restrack: Introduce statistic counter
-  RDMA/restrack: Add an API to attach a task to a resource
-  RDMA/restrack: Make is_visible_in_pid_ns() as an API
-  RDMA/counter: Add set/clear per-port auto mode support
-  RDMA/counter: Add "auto" configuration mode support
-  IB/mlx5: Support set qp counter
-  IB/mlx5: Add counter set id as a parameter for
-    mlx5_ib_query_q_counters()
-  IB/mlx5: Support statistic q counter configuration
-  RDMA/nldev: Allow counter auto mode configration through RDMA netlink
-  RDMA/netlink: Implement counter dumpit calback
-  IB/mlx5: Add counter_alloc_stats() and counter_update_stats() support
-  RDMA/core: Get sum value of all counters when perform a sysfs stat
-    read
-  RDMA/counter: Allow manual mode configuration support
-  RDMA/nldev: Allow counter manual mode configration through RDMA
-    netlink
-  RDMA/nldev: Allow get counter mode through RDMA netlink
-  RDMA/nldev: Allow get default counter statistics through RDMA netlink
-
- drivers/infiniband/core/Makefile     |   2 +-
- drivers/infiniband/core/counters.c   | 653 +++++++++++++++++++++++++++
- drivers/infiniband/core/device.c     |  14 +
- drivers/infiniband/core/nldev.c      | 524 ++++++++++++++++++++-
- drivers/infiniband/core/restrack.c   |  49 +-
- drivers/infiniband/core/restrack.h   |   3 +
- drivers/infiniband/core/sysfs.c      |  10 +-
- drivers/infiniband/core/verbs.c      |   9 +
- drivers/infiniband/hw/mlx5/main.c    |  88 +++-
- drivers/infiniband/hw/mlx5/mlx5_ib.h |   6 +
- drivers/infiniband/hw/mlx5/qp.c      |  76 +++-
- include/linux/mlx5/mlx5_ifc.h        |   4 +-
- include/linux/mlx5/qp.h              |   1 +
- include/rdma/ib_verbs.h              |  30 ++
- include/rdma/rdma_counter.h          |  64 +++
- include/rdma/restrack.h              |   4 +
- include/uapi/rdma/rdma_netlink.h     |  52 ++-
- 17 files changed, 1558 insertions(+), 31 deletions(-)
- create mode 100644 drivers/infiniband/core/counters.c
+Signed-off-by: Mark Zhang <markz@mellanox.com>
+Reviewed-by: Majd Dibbiny <majd@mellanox.com>
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ drivers/infiniband/core/restrack.c | 22 +++++++++++++++++-----
+ include/rdma/rdma_counter.h        | 18 ++++++++++++++++++
+ include/rdma/restrack.h            |  4 ++++
+ 3 files changed, 39 insertions(+), 5 deletions(-)
  create mode 100644 include/rdma/rdma_counter.h
+
+diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
+index 3b5ff2f7b5f8..95573f292aae 100644
+--- a/drivers/infiniband/core/restrack.c
++++ b/drivers/infiniband/core/restrack.c
+@@ -6,6 +6,7 @@
+ #include <rdma/rdma_cm.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/restrack.h>
++#include <rdma/rdma_counter.h>
+ #include <linux/mutex.h>
+ #include <linux/sched/task.h>
+ #include <linux/pid_namespace.h>
+@@ -45,6 +46,7 @@ static const char *type2str(enum rdma_restrack_type type)
+ 		[RDMA_RESTRACK_CM_ID] = "CM_ID",
+ 		[RDMA_RESTRACK_MR] = "MR",
+ 		[RDMA_RESTRACK_CTX] = "CTX",
++		[RDMA_RESTRACK_COUNTER] = "COUNTER",
+ 	};
+ 
+ 	return names[type];
+@@ -169,6 +171,8 @@ static struct ib_device *res_to_dev(struct rdma_restrack_entry *res)
+ 		return container_of(res, struct ib_mr, res)->device;
+ 	case RDMA_RESTRACK_CTX:
+ 		return container_of(res, struct ib_ucontext, res)->device;
++	case RDMA_RESTRACK_COUNTER:
++		return container_of(res, struct rdma_counter, res)->device;
+ 	default:
+ 		WARN_ONCE(true, "Wrong resource tracking type %u\n", res->type);
+ 		return NULL;
+@@ -203,15 +207,22 @@ static void rdma_restrack_add(struct rdma_restrack_entry *res)
+ 
+ 	kref_init(&res->kref);
+ 	init_completion(&res->comp);
+-	if (res->type != RDMA_RESTRACK_QP)
+-		ret = xa_alloc_cyclic(&rt->xa, &res->id, res, xa_limit_32b,
+-				&rt->next_id, GFP_KERNEL);
+-	else {
++	if (res->type == RDMA_RESTRACK_QP) {
+ 		/* Special case to ensure that LQPN points to right QP */
+ 		struct ib_qp *qp = container_of(res, struct ib_qp, res);
+ 
+ 		ret = xa_insert(&rt->xa, qp->qp_num, res, GFP_KERNEL);
+ 		res->id = ret ? 0 : qp->qp_num;
++	} else if (res->type == RDMA_RESTRACK_COUNTER) {
++		/* Special case to ensure that cntn points to right counter */
++		struct rdma_counter *counter;
++
++		counter = container_of(res, struct rdma_counter, res);
++		ret = xa_insert(&rt->xa, counter->id, res, GFP_KERNEL);
++		res->id = ret ? 0 : counter->id;
++	} else {
++		ret = xa_alloc_cyclic(&rt->xa, &res->id, res, xa_limit_32b,
++				      &rt->next_id, GFP_KERNEL);
+ 	}
+ 
+ 	if (!ret)
+@@ -237,7 +248,8 @@ EXPORT_SYMBOL(rdma_restrack_kadd);
+  */
+ void rdma_restrack_uadd(struct rdma_restrack_entry *res)
+ {
+-	if (res->type != RDMA_RESTRACK_CM_ID)
++	if ((res->type != RDMA_RESTRACK_CM_ID) &&
++	    (res->type != RDMA_RESTRACK_COUNTER))
+ 		res->task = NULL;
+ 
+ 	if (!res->task)
+diff --git a/include/rdma/rdma_counter.h b/include/rdma/rdma_counter.h
+new file mode 100644
+index 000000000000..283ac1a0cdb7
+--- /dev/null
++++ b/include/rdma/rdma_counter.h
+@@ -0,0 +1,18 @@
++/* SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB */
++/*
++ * Copyright (c) 2019 Mellanox Technologies. All rights reserved.
++ */
++
++#ifndef _RDMA_COUNTER_H_
++#define _RDMA_COUNTER_H_
++
++#include <rdma/ib_verbs.h>
++#include <rdma/restrack.h>
++
++struct rdma_counter {
++	struct rdma_restrack_entry	res;
++	struct ib_device		*device;
++	uint32_t			id;
++	u8				port;
++};
++#endif /* _RDMA_COUNTER_H_ */
+diff --git a/include/rdma/restrack.h b/include/rdma/restrack.h
+index ecf3c7702a4f..4041a4d96524 100644
+--- a/include/rdma/restrack.h
++++ b/include/rdma/restrack.h
+@@ -42,6 +42,10 @@ enum rdma_restrack_type {
+ 	 * @RDMA_RESTRACK_CTX: Verbs contexts (CTX)
+ 	 */
+ 	RDMA_RESTRACK_CTX,
++	/**
++	 * @RDMA_RESTRACK_COUNTER: Statistic Counter
++	 */
++	RDMA_RESTRACK_COUNTER,
+ 	/**
+ 	 * @RDMA_RESTRACK_MAX: Last entry, used for array dclarations
+ 	 */
+-- 
+2.20.1
