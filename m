@@ -1,114 +1,84 @@
-From: Mark Bloch <markb@mellanox.com>
-Subject: Re: general protection fault in rdma_listen (2)
-Date: Tue, 9 Apr 2019 17:18:45 +0000
-Message-ID: <8b2e0e44-56d6-a585-6096-24d8ccc021f6@mellanox.com>
-References: <000000000000396c09057a17b6fd@google.com>
- <0000000000008a1687057acbb692@google.com>
- <CACT4Y+bLW_qunREOz6NN_0eN5B_4iw+Cu3Sg2vLxOK3ktekkqA@mail.gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH v6 0/8] mmu notifier provide context informations
+Date: Tue, 9 Apr 2019 15:08:55 -0700
+Message-ID: <20190409150855.a6cfee7e7c5698a9cd8ecb7c@linux-foundation.org>
+References: <20190326164747.24405-1-jglisse@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACT4Y+bLW_qunREOz6NN_0eN5B_4iw+Cu3Sg2vLxOK3ktekkqA@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <1BA58934C299F4458B2C748C0E0B41AE@eurprd05.prod.outlook.com>
+In-Reply-To: <20190326164747.24405-1-jglisse@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dmitry Vyukov <dvyukov@google.com>, syzbot <syzbot+6b46b135602a3f3ac99e@syzkaller.appspotmail.com>
-Cc: Daniel Jurgens <danielj@mellanox.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Leon Romanovsky <leon@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Parav Pandit <parav@mellanox.com>, "swise@opengridcomputing.com" <swise@opengridcomputing.com>, syzkaller-bugs <syzkaller-bugs@googlegroups.com>
+To: jglisse@redhat.com
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, Radim =?UTF-8?Q?Kr=C4=8Dm=C3=A1?= =?UTF-8?Q?=C5=99?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ben Skeggs <bskeggs@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, John
 List-Id: linux-rdma@vger.kernel.org
 
-DQoNCk9uIDQvOS8xOSA2OjU3IEFNLCBEbWl0cnkgVnl1a292IHdyb3RlOg0KPiBPbiBGcmksIE5v
-diAxNiwgMjAxOCBhdCA2OjQ0IFBNIHN5emJvdA0KPiA8c3l6Ym90KzZiNDZiMTM1NjAyYTNmM2Fj
-OTllQHN5emthbGxlci5hcHBzcG90bWFpbC5jb20+IHdyb3RlOg0KPj4NCj4+IHN5emJvdCBoYXMg
-Zm91bmQgYSByZXByb2R1Y2VyIGZvciB0aGUgZm9sbG93aW5nIGNyYXNoIG9uOg0KPj4NCj4+IEhF
-QUQgY29tbWl0OiAgICBkYTUzMjJlNjU5NDAgTWVyZ2UgdGFnICdzZWxpbnV4LXByLTIwMTgxMTE1
-JyBvZiBnaXQ6Ly9naXQuLi4NCj4+IGdpdCB0cmVlOiAgICAgICB1cHN0cmVhbQ0KPj4gY29uc29s
-ZSBvdXRwdXQ6IGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvbG9nLnR4dD94PTEzYTA2
-ZjdiNDAwMDAwDQo+PiBrZXJuZWwgY29uZmlnOiAgaHR0cHM6Ly9zeXprYWxsZXIuYXBwc3BvdC5j
-b20veC8uY29uZmlnP3g9ZDg2ZjI0MzMzODgwYjYwNQ0KPj4gZGFzaGJvYXJkIGxpbms6IGh0dHBz
-Oi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL2J1Zz9leHRpZD02YjQ2YjEzNTYwMmEzZjNhYzk5ZQ0K
-Pj4gY29tcGlsZXI6ICAgICAgIGdjYyAoR0NDKSA4LjAuMSAyMDE4MDQxMyAoZXhwZXJpbWVudGFs
-KQ0KPj4gc3l6IHJlcHJvOiAgICAgIGh0dHBzOi8vc3l6a2FsbGVyLmFwcHNwb3QuY29tL3gvcmVw
-cm8uc3l6P3g9MTBmYThhNDc0MDAwMDANCj4+DQo+PiBJTVBPUlRBTlQ6IGlmIHlvdSBmaXggdGhl
-IGJ1ZywgcGxlYXNlIGFkZCB0aGUgZm9sbG93aW5nIHRhZyB0byB0aGUgY29tbWl0Og0KPj4gUmVw
-b3J0ZWQtYnk6IHN5emJvdCs2YjQ2YjEzNTYwMmEzZjNhYzk5ZUBzeXprYWxsZXIuYXBwc3BvdG1h
-aWwuY29tDQo+Pg0KPj4gSVB2NjogQUREUkNPTkYoTkVUREVWX0NIQU5HRSk6IHZldGgxOiBsaW5r
-IGJlY29tZXMgcmVhZHkNCj4+IElQdjY6IEFERFJDT05GKE5FVERFVl9DSEFOR0UpOiB2ZXRoMDog
-bGluayBiZWNvbWVzIHJlYWR5DQo+PiA4MDIxcTogYWRkaW5nIFZMQU4gMCB0byBIVyBmaWx0ZXIg
-b24gZGV2aWNlIHRlYW0wDQo+PiBrYXNhbjogQ09ORklHX0tBU0FOX0lOTElORSBlbmFibGVkDQo+
-PiBrYXNhbjogR1BGIGNvdWxkIGJlIGNhdXNlZCBieSBOVUxMLXB0ciBkZXJlZiBvciB1c2VyIG1l
-bW9yeSBhY2Nlc3MNCj4+IGdlbmVyYWwgcHJvdGVjdGlvbiBmYXVsdDogMDAwMCBbIzFdIFBSRUVN
-UFQgU01QIEtBU0FODQo+PiBDUFU6IDEgUElEOiA2MzI4IENvbW06IHN5ei1leGVjdXRvcjAgTm90
-IHRhaW50ZWQgNC4yMC4wLXJjMisgIzMzNw0KPj4gSGFyZHdhcmUgbmFtZTogR29vZ2xlIEdvb2ds
-ZSBDb21wdXRlIEVuZ2luZS9Hb29nbGUgQ29tcHV0ZSBFbmdpbmUsIEJJT1MNCj4+IEdvb2dsZSAw
-MS8wMS8yMDExDQo+PiBSSVA6IDAwMTA6Y21hX2JpbmRfbGlzdGVuIGRyaXZlcnMvaW5maW5pYmFu
-ZC9jb3JlL2NtYS5jOjMzNTUgW2lubGluZV0NCj4+IFJJUDogMDAxMDpyZG1hX2xpc3RlbisweDM1
-Ny8weDk5MCBkcml2ZXJzL2luZmluaWJhbmQvY29yZS9jbWEuYzozNDY5DQo+PiBDb2RlOiA0YyA4
-YiBhYiBjOCAwMSAwMCAwMCAzMSBmNiA0OCBjNyBjNyA2MCAzYiBkYiA4OSBlOCA5ZSBlYiAyNSAw
-MiA0OCBiOA0KPj4gMDAgMDAgMDAgMDAgMDAgZmMgZmYgZGYgNDkgOGQgN2QgMDggNDggODkgZmEg
-NDggYzEgZWEgMDMgPDgwPiAzYyAwMiAwMCAwZg0KPj4gODUgNjQgMDUgMDAgMDAgNDggYjggMDAg
-MDAgMDAgMDAgMDAgZmMgZmYgZGYgNGQgOGINCj4+IFJTUDogMDAxODpmZmZmODg4MWIyNjZmOTcw
-IEVGTEFHUzogMDAwMTAyMDINCj4+IFJBWDogZGZmZmZjMDAwMDAwMDAwMCBSQlg6IGZmZmY4ODgx
-YmE5YTZkODAgUkNYOiAwMDAwMDAwMDAwMDAwMDAwDQo+PiBSRFg6IDAwMDAwMDAwMDAwMDAwMDEg
-UlNJOiAwMDAwMDAwMDAwMDAwMDA0IFJESTogMDAwMDAwMDAwMDAwMDAwOA0KPj4gUkJQOiBmZmZm
-ODg4MWIyNjZmYTEwIFIwODogZmZmZmZiZmZmMTNiNjc3NSBSMDk6IGZmZmZmYmZmZjEzYjY3NzQN
-Cj4+IFIxMDogZmZmZjg4ODFiMjY2Zjk2MCBSMTE6IGZmZmZmZmZmODlkYjNiYTMgUjEyOiAxZmZm
-ZjExMDM2NGNkZjMxDQo+PiBSMTM6IDAwMDAwMDAwMDAwMDAwMDAgUjE0OiAwMDAwMDAwMDAwMDAw
-MDAzIFIxNTogZmZmZjg4ODFkOTA4ZmE4MA0KPj4gRlM6ICAwMDAwN2YyMmY5ZTI3NzAwKDAwMDAp
-IEdTOmZmZmY4ODgxZGFmMDAwMDAoMDAwMCkga25sR1M6MDAwMDAwMDAwMDAwMDAwMA0KPj4gQ1M6
-ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzMw0KPj4gQ1IyOiAw
-MDAwMDAwMDAwNGNlZjA4IENSMzogMDAwMDAwMDFiYTRiNDAwMCBDUjQ6IDAwMDAwMDAwMDAxNDA2
-ZTANCj4+IERSMDogMDAwMDAwMDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAgRFIyOiAw
-MDAwMDAwMDAwMDAwMDAwDQo+PiBEUjM6IDAwMDAwMDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAwMGZm
-ZmUwZmYwIERSNzogMDAwMDAwMDAwMDAwMDQwMA0KPj4gQ2FsbCBUcmFjZToNCj4+ICAgdWNtYV9s
-aXN0ZW4rMHgxYTQvMHgyNjAgZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdWNtYS5jOjExMDANCj4+
-ICAgdWNtYV93cml0ZSsweDM2NS8weDQ2MCBkcml2ZXJzL2luZmluaWJhbmQvY29yZS91Y21hLmM6
-MTY4OQ0KPj4gICBfX3Zmc193cml0ZSsweDExOS8weDlmMCBmcy9yZWFkX3dyaXRlLmM6NDg1DQo+
-PiAgIHZmc193cml0ZSsweDFmYy8weDU2MCBmcy9yZWFkX3dyaXRlLmM6NTQ5DQo+PiAgIGtzeXNf
-d3JpdGUrMHgxMDEvMHgyNjAgZnMvcmVhZF93cml0ZS5jOjU5OA0KPj4gICBfX2RvX3N5c193cml0
-ZSBmcy9yZWFkX3dyaXRlLmM6NjEwIFtpbmxpbmVdDQo+PiAgIF9fc2Vfc3lzX3dyaXRlIGZzL3Jl
-YWRfd3JpdGUuYzo2MDcgW2lubGluZV0NCj4+ICAgX194NjRfc3lzX3dyaXRlKzB4NzMvMHhiMCBm
-cy9yZWFkX3dyaXRlLmM6NjA3DQo+PiAgIGRvX3N5c2NhbGxfNjQrMHgxYjkvMHg4MjAgYXJjaC94
-ODYvZW50cnkvY29tbW9uLmM6MjkwDQo+PiAgIGVudHJ5X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFt
-ZSsweDQ5LzB4YmUNCj4+IFJJUDogMDAzMzoweDQ1NzU2OQ0KPj4gQ29kZTogZmQgYjMgZmIgZmYg
-YzMgNjYgMmUgMGYgMWYgODQgMDAgMDAgMDAgMDAgMDAgNjYgOTAgNDggODkgZjggNDggODkgZjcN
-Cj4+IDQ4IDg5IGQ2IDQ4IDg5IGNhIDRkIDg5IGMyIDRkIDg5IGM4IDRjIDhiIDRjIDI0IDA4IDBm
-IDA1IDw0OD4gM2QgMDEgZjAgZmYNCj4+IGZmIDBmIDgzIGNiIGIzIGZiIGZmIGMzIDY2IDJlIDBm
-IDFmIDg0IDAwIDAwIDAwIDAwDQo+PiBSU1A6IDAwMmI6MDAwMDdmMjJmOWUyNmM3OCBFRkxBR1M6
-IDAwMDAwMjQ2IE9SSUdfUkFYOiAwMDAwMDAwMDAwMDAwMDAxDQo+PiBSQVg6IGZmZmZmZmZmZmZm
-ZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAzIFJDWDogMDAwMDAwMDAwMDQ1NzU2OQ0KPj4gUkRY
-OiAwMDAwMDAwMDAwMDAwMDEwIFJTSTogMDAwMDAwMDAyMDAwMDBjMCBSREk6IDAwMDAwMDAwMDAw
-MDAwMDUNCj4+IFJCUDogMDAwMDAwMDAwMDcyYmYwMCBSMDg6IDAwMDAwMDAwMDAwMDAwMDAgUjA5
-OiAwMDAwMDAwMDAwMDAwMDAwDQo+PiBSMTA6IDAwMDAwMDAwMDAwMDAwMDAgUjExOiAwMDAwMDAw
-MDAwMDAwMjQ2IFIxMjogMDAwMDdmMjJmOWUyNzZkNA0KPj4gUjEzOiAwMDAwMDAwMDAwNGM1NzFm
-IFIxNDogMDAwMDAwMDAwMDRkOTM2MCBSMTU6IDAwMDAwMDAwZmZmZmZmZmYNCj4+IE1vZHVsZXMg
-bGlua2VkIGluOg0KPj4gLS0tWyBlbmQgdHJhY2UgYWQyNzZhMGJjYjMxNmZiMyBdLS0tDQo+PiBS
-SVA6IDAwMTA6Y21hX2JpbmRfbGlzdGVuIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL2NtYS5jOjMz
-NTUgW2lubGluZV0NCj4+IFJJUDogMDAxMDpyZG1hX2xpc3RlbisweDM1Ny8weDk5MCBkcml2ZXJz
-L2luZmluaWJhbmQvY29yZS9jbWEuYzozNDY5DQo+PiBDb2RlOiA0YyA4YiBhYiBjOCAwMSAwMCAw
-MCAzMSBmNiA0OCBjNyBjNyA2MCAzYiBkYiA4OSBlOCA5ZSBlYiAyNSAwMiA0OCBiOA0KPj4gMDAg
-MDAgMDAgMDAgMDAgZmMgZmYgZGYgNDkgOGQgN2QgMDggNDggODkgZmEgNDggYzEgZWEgMDMgPDgw
-PiAzYyAwMiAwMCAwZg0KPj4gODUgNjQgMDUgMDAgMDAgNDggYjggMDAgMDAgMDAgMDAgMDAgZmMg
-ZmYgZGYgNGQgOGINCj4+IFJTUDogMDAxODpmZmZmODg4MWIyNjZmOTcwIEVGTEFHUzogMDAwMTAy
-MDINCj4+IFJBWDogZGZmZmZjMDAwMDAwMDAwMCBSQlg6IGZmZmY4ODgxYmE5YTZkODAgUkNYOiAw
-MDAwMDAwMDAwMDAwMDAwDQo+PiBSRFg6IDAwMDAwMDAwMDAwMDAwMDEgUlNJOiAwMDAwMDAwMDAw
-MDAwMDA0IFJESTogMDAwMDAwMDAwMDAwMDAwOA0KPj4gUkJQOiBmZmZmODg4MWIyNjZmYTEwIFIw
-ODogZmZmZmZiZmZmMTNiNjc3NSBSMDk6IGZmZmZmYmZmZjEzYjY3NzQNCj4+IFIxMDogZmZmZjg4
-ODFiMjY2Zjk2MCBSMTE6IGZmZmZmZmZmODlkYjNiYTMgUjEyOiAxZmZmZjExMDM2NGNkZjMxDQo+
-PiBSMTM6IDAwMDAwMDAwMDAwMDAwMDAgUjE0OiAwMDAwMDAwMDAwMDAwMDAzIFIxNTogZmZmZjg4
-ODFkOTA4ZmE4MA0KPj4gRlM6ICAwMDAwN2YyMmY5ZTI3NzAwKDAwMDApIEdTOmZmZmY4ODgxZGFm
-MDAwMDAoMDAwMCkga25sR1M6MDAwMDAwMDAwMDAwMDAwMA0KPj4gQ1M6ICAwMDEwIERTOiAwMDAw
-IEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1MDAzMw0KPj4gQ1IyOiBmZmZmZmZmZmZmNjAwNDAw
-IENSMzogMDAwMDAwMDFiYTRiNDAwMCBDUjQ6IDAwMDAwMDAwMDAxNDA2ZTANCj4+IERSMDogMDAw
-MDAwMDAwMDAwMDAwMCBEUjE6IDAwMDAwMDAwMDAwMDAwMDAgRFIyOiAwMDAwMDAwMDAwMDAwMDAw
-DQo+PiBEUjM6IDAwMDAwMDAwMDAwMDAwMDAgRFI2OiAwMDAwMDAwMGZmZmUwZmYwIERSNzogMDAw
-MDAwMDAwMDAwMDQwMA0KPiANCj4gSGkgTWFyaywNCj4gDQo+IFlvdSB0ZXN0ZWQgc29tZSBmaXhl
-ZCBmb3IgdGhpcyBidWcuIFRoZSBsYXRlc3QgdGVzdGVkIHBhdGNoIGRpZCBub3QNCj4gdHJpZ2dl
-ciBjcmFzaC4gQnVnIHN5emJvdCBuZXZlciBzZWVuIGFueSBmaXhlcyBmb3IgdGhpcyBidWcuIElm
-IHlvdQ0KPiBzdWJtaXR0ZWQgdGhlIHBhdGNoLCBwbGVhc2UgbWFyayB0aGlzIGJ1ZyBhcyBmaXhl
-ZC4NCg0KSGkgRG1pdHJ5LA0KDQpJJ3ZlIHRhbGtlZCB3aXRoIEphc29uIChvZmYgbGlzdCkgYXQg
-dGhlIHRpbWUsIGFuZCB3ZSBhZ3JlZWQgdGhhdCB3aGlsZSB0aGUgcGF0Y2gNCmZpeGVzIHRoZSBp
-c3N1ZSwgaXQncyBqdXN0IGEgYmFuZC1haWQgdGhhdCBkb2Vzbid0IGZpeCB0aGUgdW5kZXJsaW5l
-IGlzc3VlcyB3aXRoIHRoYXQgY29kZS4NCg0KSSB0aGluayBQYXJhdiBoYXMvaGFkIHBsYW5zIGZv
-ciBhIG1vcmUgY29tcHJlaGVuc2l2ZSBmaXggZm9yIHRoYXQgZW50aXJlIHVjbWEuYyBjb2RlLg0K
-DQo+IA0KPiBUaGFua3MNCj4gDQoNClRoYW5rcw0K
+On Tue, 26 Mar 2019 12:47:39 -0400 jglisse@redhat.com wrote:
+
+> From: Jérôme Glisse <jglisse@redhat.com>
+> 
+> (Andrew this apply on top of my HMM patchset as otherwise you will have
+>  conflict with changes to mm/hmm.c)
+> 
+> Changes since v5:
+>     - drop KVM bits waiting for KVM people to express interest if they
+>       do not then i will post patchset to remove change_pte_notify as
+>       without the changes in v5 change_pte_notify is just useless (it
+>       it is useless today upstream it is just wasting cpu cycles)
+>     - rebase on top of lastest Linus tree
+> 
+> Previous cover letter with minor update:
+> 
+> 
+> Here i am not posting users of this, they already have been posted to
+> appropriate mailing list [6] and will be merge through the appropriate
+> tree once this patchset is upstream.
+> 
+> Note that this serie does not change any behavior for any existing
+> code. It just pass down more information to mmu notifier listener.
+> 
+> The rational for this patchset:
+> 
+> CPU page table update can happens for many reasons, not only as a
+> result of a syscall (munmap(), mprotect(), mremap(), madvise(), ...)
+> but also as a result of kernel activities (memory compression, reclaim,
+> migration, ...).
+> 
+> This patch introduce a set of enums that can be associated with each
+> of the events triggering a mmu notifier:
+> 
+>     - UNMAP: munmap() or mremap()
+>     - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
+>     - PROTECTION_VMA: change in access protections for the range
+>     - PROTECTION_PAGE: change in access protections for page in the range
+>     - SOFT_DIRTY: soft dirtyness tracking
+> 
+> Being able to identify munmap() and mremap() from other reasons why the
+> page table is cleared is important to allow user of mmu notifier to
+> update their own internal tracking structure accordingly (on munmap or
+> mremap it is not longer needed to track range of virtual address as it
+> becomes invalid). Without this serie, driver are force to assume that
+> every notification is an munmap which triggers useless trashing within
+> drivers that associate structure with range of virtual address. Each
+> driver is force to free up its tracking structure and then restore it
+> on next device page fault. With this serie we can also optimize device
+> page table update [6].
+> 
+> More over this can also be use to optimize out some page table updates
+> like for KVM where we can update the secondary MMU directly from the
+> callback instead of clearing it.
+
+We seem to be rather short of review input on this patchset.  ie: there
+is none.
+
+> ACKS AMD/RADEON https://lkml.org/lkml/2019/2/1/395
+
+OK, kind of ackish, but not a review.
+
+> ACKS RDMA https://lkml.org/lkml/2018/12/6/1473
+
+This actually acks the infiniband part of a patch which isn't in this
+series.
+
+
+So we have some work to do, please.  Who would be suitable reviewers?
