@@ -1,158 +1,113 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v1 10/17] RDMA/nldev: Allow counter auto mode configration through RDMA netlink
-Date: Sun,  7 Apr 2019 10:50:06 +0300
-Message-ID: <20190407075013.12955-11-leon@kernel.org>
-References: <20190407075013.12955-1-leon@kernel.org>
+From: Ira Weiny <ira.weiny@intel.com>
+Subject: Re: [PATCH V3 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Date: Mon, 8 Apr 2019 17:13:36 -0700
+Message-ID: <20190409001336.GB2049@iweiny-DESK2.sc.intel.com>
+References: <20190328084422.29911-1-ira.weiny@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190407075013.12955-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mark Zhang <markz@mellanox.com>
+On Thu, Mar 28, 2019 at 01:44:15AM -0700, 'Ira Weiny' wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Following discussion and review[1] here are the cleanups requested.
+> 
+> The biggest change for V3 was the disabling of the ability to use FOLL_LONGTERM
+> in get_user_pages[unlocked|locked|remote]
+> 
+> Comments were also enhanced throughout to show potential users what
+> FOLL_LONGTERM is all about and limitations it has.
 
-Provide an option to enable/disable per-port counter auto mode through
-RDMA netlink. Limit it to users with ADMIN capability only.
+Does anyone have any problems with these changes?
 
-Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Majd Dibbiny <majd@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/infiniband/core/nldev.c  | 78 ++++++++++++++++++++++++++++++++
- include/uapi/rdma/rdma_netlink.h |  8 ++++
- 2 files changed, 86 insertions(+)
+I would like to get official Reviewed-by tags if possible.
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 2da1703cbbb1..44c53d053089 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -120,6 +120,9 @@ static const struct nla_policy nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_DEV_PROTOCOL]		= { .type = NLA_NUL_STRING,
- 				    .len = RDMA_NLDEV_ATTR_ENTRY_STRLEN },
- 	[RDMA_NLDEV_NET_NS_FD]			= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_MODE]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_RES]		= { .type = NLA_U32 },
-+	[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK]	= { .type = NLA_U32 },
- };
- 
- static int put_driver_name_print_type(struct sk_buff *msg, const char *name,
-@@ -1385,6 +1388,78 @@ static int nldev_set_sys_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	return err;
- }
- 
-+static int nldev_stat_set_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			       struct netlink_ext_ack *extack)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	u32 index, port, mode, mask = 0;
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	int ret;
-+
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	/* Currently only counter for QP is supported */
-+	if (ret || !tb[RDMA_NLDEV_ATTR_STAT_RES] ||
-+	    !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX] || !tb[RDMA_NLDEV_ATTR_STAT_MODE])
-+		return -EINVAL;
-+
-+	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(sock_net(skb->sk), index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+	if (!rdma_is_port_valid(device, port)) {
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-+					 RDMA_NLDEV_CMD_STAT_SET),
-+			0, 0);
-+
-+	mode = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_MODE]);
-+	if (mode != RDMA_COUNTER_MODE_AUTO) {
-+		ret = -EMSGSIZE;
-+		goto err_msg;
-+	}
-+
-+	if (tb[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK])
-+		mask = nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK]);
-+
-+	ret = rdma_counter_set_auto_mode(device, port,
-+					 mask ? true : false, mask);
-+	if (ret)
-+		goto err_msg;
-+
-+	if (nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_MODE, mode) ||
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK, mask)) {
-+		ret = -EMSGSIZE;
-+		goto err_msg;
-+	}
-+
-+	nlmsg_end(msg, nlh);
-+	ib_device_put(device);
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_msg:
-+	nlmsg_free(msg);
-+err:
-+	ib_device_put(device);
-+	return ret;
-+}
-+
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -1435,6 +1510,9 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	},
- 	[RDMA_NLDEV_CMD_SYS_SET] = {
- 		.doit = nldev_set_sys_set_doit,
-+	},
-+	[RDMA_NLDEV_CMD_STAT_SET] = {
-+		.doit = nldev_stat_set_doit,
- 		.flags = RDMA_NL_ADMIN_PERM,
- 	},
- };
-diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
-index e910ff6a2a80..d1439df60ce5 100644
---- a/include/uapi/rdma/rdma_netlink.h
-+++ b/include/uapi/rdma/rdma_netlink.h
-@@ -267,6 +267,8 @@ enum rdma_nldev_command {
- 
- 	RDMA_NLDEV_CMD_RES_PD_GET, /* can dump */
- 
-+	RDMA_NLDEV_CMD_STAT_SET,
-+
- 	RDMA_NLDEV_NUM_OPS
- };
- 
-@@ -478,6 +480,12 @@ enum rdma_nldev_attr {
- 	 * Device protocol, e.g. ib, iw, usnic, roce and opa
- 	 */
- 	RDMA_NLDEV_ATTR_DEV_PROTOCOL,		/* string */
-+	/*
-+	 * Counter-specific attributes.
-+	 */
-+	RDMA_NLDEV_ATTR_STAT_MODE,		/* u32 */
-+	RDMA_NLDEV_ATTR_STAT_RES,		/* u32 */
-+	RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK,	/* u32 */
- 
- 	/*
- 	 * Always the end
--- 
-2.20.1
+Thanks,
+Ira
+
+> 
+> Minor review comments were fixed
+> 
+> Original cover letter:
+> 
+> HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+> advantages.  These pages can be held for a significant time.  But
+> get_user_pages_fast() does not protect against mapping FS DAX pages.
+> 
+> Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+> retains the performance while also adding the FS DAX checks.  XDP has also
+> shown interest in using this functionality.[1]
+> 
+> In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+> remove the specialized get_user_pages_longterm call.
+> 
+> [1] https://lkml.org/lkml/2019/3/19/939
+> 
+> 
+> 
+> Ira Weiny (7):
+>   mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+>   mm/gup: Change write parameter to flags in fast walk
+>   mm/gup: Change GUP fast to use flags rather than a write 'bool'
+>   mm/gup: Add FOLL_LONGTERM capability to GUP fast
+>   IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+>   IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+>   IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+> 
+>  arch/mips/mm/gup.c                          |  11 +-
+>  arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+>  arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+>  arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
+>  arch/s390/kvm/interrupt.c                   |   2 +-
+>  arch/s390/mm/gup.c                          |  12 +-
+>  arch/sh/mm/gup.c                            |  11 +-
+>  arch/sparc/mm/gup.c                         |   9 +-
+>  arch/x86/kvm/paging_tmpl.h                  |   2 +-
+>  arch/x86/kvm/svm.c                          |   2 +-
+>  drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+>  drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+>  drivers/infiniband/core/umem.c              |   5 +-
+>  drivers/infiniband/hw/hfi1/user_pages.c     |   3 +-
+>  drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+>  drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+>  drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+>  drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+>  drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+>  drivers/misc/genwqe/card_utils.c            |   2 +-
+>  drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+>  drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+>  drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+>  drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+>  drivers/sbus/char/oradax.c                  |   2 +-
+>  drivers/scsi/st.c                           |   3 +-
+>  drivers/staging/gasket/gasket_page_table.c  |   4 +-
+>  drivers/tee/tee_shm.c                       |   2 +-
+>  drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+>  drivers/vfio/vfio_iommu_type1.c             |   3 +-
+>  drivers/vhost/vhost.c                       |   2 +-
+>  drivers/video/fbdev/pvr2fb.c                |   2 +-
+>  drivers/virt/fsl_hypervisor.c               |   2 +-
+>  drivers/xen/gntdev.c                        |   2 +-
+>  fs/io_uring.c                               |   5 +-
+>  fs/orangefs/orangefs-bufmap.c               |   2 +-
+>  include/linux/mm.h                          |  45 ++-
+>  kernel/futex.c                              |   2 +-
+>  lib/iov_iter.c                              |   7 +-
+>  mm/gup.c                                    | 288 +++++++++++++-------
+>  mm/gup_benchmark.c                          |   5 +-
+>  mm/util.c                                   |   8 +-
+>  net/ceph/pagevec.c                          |   2 +-
+>  net/rds/info.c                              |   2 +-
+>  net/rds/rdma.c                              |   3 +-
+>  net/xdp/xdp_umem.c                          |   4 +-
+>  46 files changed, 314 insertions(+), 200 deletions(-)
+> 
+> -- 
+> 2.20.1
+> 
