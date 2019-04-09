@@ -1,45 +1,38 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 4.17-1-rc1 release is available
-Date: Tue, 9 Apr 2019 19:20:16 +0300
-Message-ID: <a2cccc40-2b36-0d6b-d829-9b57a819ad32@dev.mellanox.co.il>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [RFC PATCH 31/68] vfs: Convert qib_fs/ipathfs to use the new
+ mount API
+Date: Tue, 9 Apr 2019 13:14:58 -0400
+Message-ID: <9fd8642b-952b-7ed6-6543-fe3f35b504ca@intel.com>
+References: <155372999953.7602.13784796495137723805.stgit@warthog.procyon.org.uk>
+ <155373026764.7602.420612273283807556.stgit@warthog.procyon.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <155373026764.7602.420612273283807556.stgit@warthog.procyon.org.uk>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.openfabrics.org/mailman/options/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.openfabrics.org/mailman/listinfo/ewg>,
- <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-To: "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Howells <dhowells@redhat.com>, viro@zeniv.linux.org.uk
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGksCk9GRUQtNC4xNy0xLXJjMSBpcyBhdmFpbGFibGUgYXQ6Cmh0dHA6Ly9vcGVuZmFicmljcy5v
-cmcvZG93bmxvYWRzL09GRUQvb2ZlZC00LjE3LTEvT0ZFRC00LjE3LTEtcmMxLnRnegoKUGxlYXNl
-IHJlcG9ydCBhbnkgaXNzdWVzIGluIGJ1Z3ppbGxhCmh0dHBzOi8vYnVncy5vcGVuZmFicmljcy5v
-cmcvIGZvciBPRkVEIDQuMTctMS1yYzEKClJlbGVhc2Ugbm90ZXM6Cmh0dHBzOi8vb3BlbmZhYnJp
-Y3Mub3JnL2Rvd25sb2Fkcy9PRkVEL3JlbGVhc2Vfbm90ZXMvT0ZFRF80LjE3LTEtcmMxLXJlbGVh
-c2Vfbm90ZXMKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KT0ZFRC00LjE3LTEtcmMxIE1haW4gQ2hh
-bmdlcyBmcm9tIE9GRUQtNC4xNwotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCjEuIEFkZCBzdXBwb3J0
-IGZvciBSSEVMNy42IGFuZCBTTEVTMTIgU1A0CgoyLiBjb21wYXQtcmRtYQotIGJueHRfZW46IEZp
-eCBibnh0X2VuIGNvbXBpbGF0aW9uIGZvciBSSCA3LjYKLSBBZGQgdm13X3B2cmRtYSBwYXRjaCBm
-cm9tIGxpbnV4LW5leHQKLSBjb21wYXQ6IE1vdmUgYnBmX3Byb2dfc3ViIHRvIGJlIGV4cG9ydGVk
-IGJ5IGNvbXBhdAoKMy4gVXBkYXRlZCBwYWNrYWdlcwotIHJkbWEtY29yZSB2MTcuNAotIHBlcmZ0
-ZXN0LTQuNC0wLjMuZzdhOGU0MDkgKERvd25ncmFkZWQgZHVlIHRvIGJ1ZzogMjY5OCkKLSBtc3Rm
-bGludC00LjExLjAtNAotIGxpYmZhYnJpYy0xLjcuMQotIGZhYnRlc3RzLTEuNy4xCgo0LiBvZmVk
-LXNjcmlwdHMKLSBpbnN0YWxsLnBsOiBVcGRhdGVkIHJkbWEtY29yZSByZXF1aXJlbWVudHMKLSBp
-bnN0YWxsLnBsOiBEaXNhYmxlIGNvbXBhdC1yZG1hLWZpcm13YXJlIG9uIFNMRVMxMlNQNCBkdWUg
-dG8gY29uZmxpY3QKLSBpbnN0YWxsLnBsOiBBZGRlZCBTTEVTMTIgU1A0IHN1cHBvcnQKLSBpbnN0
-YWxsLnBsOiBBZGRlZCBSSEVMNy42IHN1cHBvcnQKLSBpbnN0YWxsLnBsOiBBZGRlZCBvcGVuc3Ns
-LWRldmVsIHJlcXVpcmVtZW50IGZvciBtc3RmbGludAoKUmVnYXJkcywKVmxhZGltaXIKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZXdnIG1haWxpbmcgbGlz
-dApld2dAbGlzdHMub3BlbmZhYnJpY3Mub3JnCmh0dHBzOi8vbGlzdHMub3BlbmZhYnJpY3Mub3Jn
-L21haWxtYW4vbGlzdGluZm8vZXdnCg==
+On 3/27/2019 7:44 PM, David Howells wrote:
+> Convert the qib_fs/ipathfs filesystem to the new internal mount API as the old
+> one will be obsoleted and removed.  This allows greater flexibility in
+> communication of mount parameters between userspace, the VFS and the
+> filesystem.
+> 
+> See Documentation/filesystems/mount_api.txt for more information.
+> 
+> [Q] Can qib_remove() race with qibfs_kill_super()?  Should qib_super
+>      accesses be serialised with some sort of lock?
+
+Sure looks to be possible to me. Although I don't think that's a reason 
+not to apply your patch, you aren't making it any worse I don't think.
+
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> cc: linux-rdma@vger.kernel.org
+
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
