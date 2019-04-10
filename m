@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH iproute2-next 8/8] rdma: Document counter statistic
-Date: Wed, 10 Apr 2019 14:21:21 +0300
-Message-ID: <20190410112121.6790-9-leon@kernel.org>
+Subject: [PATCH iproute2-next 7/8] rdma: Add default counter show support
+Date: Wed, 10 Apr 2019 14:21:20 +0300
+Message-ID: <20190410112121.6790-8-leon@kernel.org>
 References: <20190410112121.6790-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,254 +14,126 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add document of accessing the QP counter, including bind/unbind a QP
-to a counter manually or automatically, and dump counter statistics.
+Show default counter statistics, which are same through the sysfs
+interface: /sys/class/infiniband/<dev>/ports/<port>/hw_counters/
+
+Example:
+$ rdma stat show link mlx5_2/1
+link mlx5_2/1 rx_write_requests 8 rx_read_requests 4 rx_atomic_requests 0 out_of_buffer 0 out_of_sequence 0 duplicate_request 0 rnr_nak_retry_err 0 packet_seq_err 0 implied_nak_seq_err 0 local_ack_timeout_err 0 resp_local_length_error 0 resp_cqe_error 0 req_cqe_error 0 req_remote_invalid_request 0 req_remote_access_errors 0 resp_remote_access_errors 0 resp_cqe_flush_error 0 req_cqe_flush_error 0 rp_cnp_ignored 0 rp_cnp_handled 0 np_ecn_marked_roce_packets 0 np_cnp_sent 0 rx_icrc_encapsulated 0
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- man/man8/rdma-dev.8       |   1 +
- man/man8/rdma-link.8      |   1 +
- man/man8/rdma-resource.8  |   1 +
- man/man8/rdma-statistic.8 | 170 ++++++++++++++++++++++++++++++++++++++
- man/man8/rdma.8           |   5 ++
- 5 files changed, 178 insertions(+)
- create mode 100644 man/man8/rdma-statistic.8
+ rdma/stat.c | 80 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 79 insertions(+), 1 deletion(-)
 
-diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-index 069f4717..f1b81033 100644
---- a/man/man8/rdma-dev.8
-+++ b/man/man8/rdma-dev.8
-@@ -63,6 +63,7 @@ Renames the mlx5_3 device to rdma_0.
- .BR rdma (8),
- .BR rdma-link (8),
- .BR rdma-resource (8),
-+.BR rdma-statistic (8),
- .br
+diff --git a/rdma/stat.c b/rdma/stat.c
+index c5395692..cf2f0a02 100644
+--- a/rdma/stat.c
++++ b/rdma/stat.c
+@@ -22,6 +22,8 @@ static int stat_help(struct rd *rd)
+ 	pr_out("       %s statistic OBJECT set COUNTER_SCOPE [DEV/PORT_INDEX] auto {CRITERIA | off}\n", rd->filename);
+ 	pr_out("       %s statistic OBJECT bind COUNTER_SCOPE [DEV/PORT_INDEX] [OBJECT-ID] [COUNTER-ID]\n", rd->filename);
+ 	pr_out("       %s statistic OBJECT unbind COUNTER_SCOPE [DEV/PORT_INDEX] [COUNTER-ID]\n", rd->filename);
++	pr_out("       %s statistic show\n", rd->filename);
++	pr_out("       %s statistic show link [ DEV/PORT_INDEX ]\n", rd->filename);
+ 	pr_out("where  OBJECT: = { qp }\n");
+ 	pr_out("       CRITERIA : = { type }\n");
+ 	pr_out("       COUNTER_SCOPE: = { link | dev }\n");
+@@ -36,6 +38,8 @@ static int stat_help(struct rd *rd)
+ 	pr_out("       %s statistic qp bind link mlx5_2/1 lqpn 178 cntn 4\n", rd->filename);
+ 	pr_out("       %s statistic qp unbind link mlx5_2/1 cntn 4\n", rd->filename);
+ 	pr_out("       %s statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178\n", rd->filename);
++	pr_out("       %s statistic show\n", rd->filename);
++	pr_out("       %s statistic show link mlx5_2/1\n", rd->filename);
  
- .SH AUTHOR
-diff --git a/man/man8/rdma-link.8 b/man/man8/rdma-link.8
-index b3b40de7..32f80228 100644
---- a/man/man8/rdma-link.8
-+++ b/man/man8/rdma-link.8
-@@ -97,6 +97,7 @@ Removes RXE link rxe_eth0
- .BR rdma (8),
- .BR rdma-dev (8),
- .BR rdma-resource (8),
-+.BR rdma-statistic (8),
- .br
+ 	return 0;
+ }
+@@ -711,10 +715,84 @@ static int stat_qp(struct rd *rd)
+ 	return rd_exec_cmd(rd, cmds, "parameter");
+ }
  
- .SH AUTHOR
-diff --git a/man/man8/rdma-resource.8 b/man/man8/rdma-resource.8
-index 40b073db..05030d0a 100644
---- a/man/man8/rdma-resource.8
-+++ b/man/man8/rdma-resource.8
-@@ -103,6 +103,7 @@ Show CQs belonging to pid 30489
- .BR rdma (8),
- .BR rdma-dev (8),
- .BR rdma-link (8),
-+.BR rdma-statistic (8),
- .br
- 
- .SH AUTHOR
-diff --git a/man/man8/rdma-statistic.8 b/man/man8/rdma-statistic.8
-new file mode 100644
-index 00000000..3a48ae8d
---- /dev/null
-+++ b/man/man8/rdma-statistic.8
-@@ -0,0 +1,170 @@
-+.TH RDMA\-STATISTIC 8 "17 Mar 2019" "iproute2" "Linux"
-+.SH NAME
-+rdma-statistic \- RDMA statistic counter configuration
-+.SH SYNOPSIS
-+.sp
-+.ad l
-+.in +8
-+.ti -8
-+.B rdma
-+.RI "[ " OPTIONS " ]"
-+.B statistic
-+.RI  " { " COMMAND " | "
-+.BR help " }"
-+.sp
++static int stat_show_parse_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
++	struct rd *rd = data;
++	const char *name;
++	uint32_t port;
++	int ret;
 +
-+.ti -8
-+.B rdma statistic
-+.RI "[ " OBJECT " ]"
-+.B show
++	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
++	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_DEV_NAME] ||
++	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX] ||
++	    !tb[RDMA_NLDEV_ATTR_STAT_HWCOUNTERS])
++		return MNL_CB_ERROR;
 +
-+.ti -8
-+.B rdma statistic
-+.RI "[ " OBJECT " ]"
-+.B show link
-+.RI "[ " DEV/PORT_INDX " ]"
++	name = mnl_attr_get_str(tb[RDMA_NLDEV_ATTR_DEV_NAME]);
++	port = mnl_attr_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (rd->json_output) {
++		jsonw_string_field(rd->jw, "ifname", name);
++		jsonw_uint_field(rd->jw, "port", port);
++	} else {
++		pr_out("link %s/%u ", name, port);
++	}
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B mode
++	ret = res_show_hwcounters(rd, tb[RDMA_NLDEV_ATTR_STAT_HWCOUNTERS]);
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B set
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.B auto
-+.RI "{ " CRITERIA " | "
-+.BR off " }"
++	if (!rd->json_output)
++		pr_out("\n");
++	return ret;
++}
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B bind
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.RI "[ " OBJECT-ID " ]"
-+.RI "[ " COUNTER-ID " ]"
++static int stat_show_one_link(struct rd *rd)
++{
++	int flags = NLM_F_REQUEST | NLM_F_ACK;
++	uint32_t seq;
++	int ret;
 +
-+.ti -8
-+.B rdma statistic
-+.IR OBJECT
-+.B unbind
-+.IR COUNTER_SCOPE
-+.RI "[ " DEV/PORT_INDEX "]"
-+.RI "[ " COUNTER-ID " ]"
-+.RI "[ " OBJECT-ID " ]"
++	if (!rd->port_idx)
++		return 0;
 +
-+.ti -8
-+.IR COUNTER_SCOPE " := "
-+.RB "{ " link " | " dev " }"
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_STAT_GET, &seq,  flags);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_PORT_INDEX, rd->port_idx);
++	ret = rd_send_msg(rd);
++	if (ret)
++		return ret;
 +
-+.ti -8
-+.IR OBJECT " := "
-+.RB "{ " qp " }"
++	if (rd->json_output)
++		jsonw_start_object(rd->jw);
++	ret = rd_recv_msg(rd, stat_show_parse_cb, rd, seq);
++	if (rd->json_output)
++		jsonw_end_object(rd->jw);
 +
-+.ti -8
-+.IR CRITERIA " := "
-+.RB "{ " type " }"
++	return ret;
++}
 +
-+.SH "DESCRIPTION"
-+.SS rdma statistic [object] show - Queries the specified RDMA device for RDMA and driver-specific statistics. Show the default counter if object is not specified
++static int stat_show_link(struct rd *rd)
++{
++	return rd_exec_link(rd, stat_show_one_link, false);
++}
 +
-+.PP
-+.I "DEV"
-+- specifies counters on this RDMA device to show.
++static int stat_show(struct rd *rd)
++{
++	const struct rd_cmd cmds[] = {
++		{ NULL,		stat_show_link },
++		{ "link",	stat_show_link },
++		{ "help",	stat_help },
++		{ 0 }
++	};
 +
-+.I "PORT_INDEX"
-+- specifies counters on this RDMA port to show.
++	return rd_exec_cmd(rd, cmds, "parameter");
++}
 +
-+.SS rdma statistic <object> set - configure counter statistic auto-mode for a specific device/port
-+In auto mode all objects belong to one category are bind automatically to a single counter set.
-+
-+.SS rdma statistic <object> bind - manually bind an object (e.g., a qp) with a counter
-+When bound the statistics of this object are available in this counter.
-+
-+.SS rdma statistic <object> unbind - manually unbind an object (e.g., a qp) from the counter previously bound
-+When unbound the statistics of this object are no longer available in this counter; And if object id is not specified then all objects on this counter will be unbound.
-+
-+.I "LQPN"
-+- specifies the qp number to be bound/unbind.
-+
-+.I "COUNTER-ID"
-+- specifies the id of the counter to be bound.
-+If this argument is omitted then a new counter will be allocated.
-+
-+.SH "EXAMPLES"
-+.PP
-+rdma statistic show
-+.RS 4
-+Shows the state of the default counter of all RDMA devices on the system.
-+.RE
-+.PP
-+rdma statistic show link mlx5_2/1
-+.RS 4
-+Shows the state of the default counter of specified RDMA port
-+.RE
-+.PP
-+rdma statistic qp show
-+.RS 4
-+Shows the state of all qp counters of all RDMA devices on the system.
-+.RE
-+.PP
-+rdma statistic qp show link mlx5_2/1
-+.RS 4
-+Shows the state of all qp counters of specified RDMA port.
-+.RE
-+.PP
-+rdma statistic qp show link mlx5_2 pid 30489
-+.RS 4
-+Shows the state of all qp counters of specified RDMA port and belonging to pid 30489
-+.RE
-+.PP
-+rdma statistic qp mode
-+.RS 4
-+List current counter mode on all deivces
-+.RE
-+.PP
-+rdma statistic qp mode link mlx5_2/1
-+.RS 4
-+List current counter mode of deivce mlx5_2 port 1
-+.RE
-+.PP
-+rdma statistic qp set link mlx5_2/1 auto type on
-+.RS 4
-+On device mlx5_2 port 1, for each new QP bind it with a counter automatically. Per counter for QPs with same qp type in each process. Currently only "type" is supported.
-+.RE
-+.PP
-+rdma statistic qp set link mlx5_2/1 auto off
-+.RS 4
-+Turn-off auto mode on device mlx5_2 port 1. The allocated counters can be manually accessed.
-+.RE
-+.PP
-+rdma statistic qp bind link mlx5_2/1 lqpn 178
-+.RS 4
-+On device mlx5_2 port 1, allocate a counter and bind the specified qp on it
-+.RE
-+.PP
-+rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
-+.RS 4
-+On device mlx5_2 port 1, bind the specified qp on the specified counter
-+.RE
-+.PP
-+rdma statistic qp unbind link mlx5_2/1 cntn 4
-+.RS 4
-+On device mlx5_2 port 1, unbind all QPs on the specified counter. After that this counter will be released automatically by the kernel.
-+
-+.RE
-+.PP
-+
-+.SH SEE ALSO
-+.BR rdma (8),
-+.BR rdma-dev (8),
-+.BR rdma-link (8),
-+.BR rdma-resource (8),
-+.br
-+
-+.SH AUTHOR
-+Mark Zhang <markz@mellanox.com>
-diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
-index b2b5aef8..63a2dd21 100644
---- a/man/man8/rdma.8
-+++ b/man/man8/rdma.8
-@@ -70,6 +70,10 @@ Generate JSON output.
- .B link
- - RDMA port related.
- 
-+.TP
-+.B statistic
-+- RDMA counter statistic related.
-+
- .PP
- The names of all objects may be written in full or
- abbreviated form, for example
-@@ -107,6 +111,7 @@ Exit status is 0 if command was successful or a positive integer upon failure.
- .BR rdma-dev (8),
- .BR rdma-link (8),
- .BR rdma-resource (8),
-+.BR rdma-statistic (8),
- .br
- 
- .SH REPORTING BUGS
+ int cmd_stat(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] =  {
+-		{ NULL,		stat_help },
++		{ NULL,		stat_show },
++		{ "show",	stat_show },
++		{ "list",	stat_show },
+ 		{ "help",	stat_help },
+ 		{ "qp",		stat_qp },
+ 		{ 0 }
 -- 
 2.20.1
