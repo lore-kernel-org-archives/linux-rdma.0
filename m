@@ -1,115 +1,85 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH v6 0/8] mmu notifier provide context informations
-Date: Wed, 10 Apr 2019 12:06:27 -0400
-Message-ID: <20190410160626.GA3273@redhat.com>
-References: <20190326164747.24405-1-jglisse@redhat.com>
- <20190409150855.a6cfee7e7c5698a9cd8ecb7c@linux-foundation.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 00/12] Move IB representors to single IB device
+ multiple ports
+Date: Wed, 10 Apr 2019 15:06:40 -0300
+Message-ID: <20190410180640.GO8997@ziepe.ca>
+References: <20190328132742.12070-1-leon@kernel.org>
+ <20190404130221.GA15890@ziepe.ca>
+ <20190404174238.GC3201@mtr-leonro.mtl.com>
+ <20190410064840.GJ3201@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190409150855.a6cfee7e7c5698a9cd8ecb7c@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Alex Deucher <alexander.deucher@amd.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ben Skeggs <bskeggs@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, John Hubbard <jhubbard@nvidi>
+In-Reply-To: <20190410064840.GJ3201@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 09, 2019 at 03:08:55PM -0700, Andrew Morton wrote:
-> On Tue, 26 Mar 2019 12:47:39 -0400 jglisse@redhat.com wrote:
+On Wed, Apr 10, 2019 at 09:48:40AM +0300, Leon Romanovsky wrote:
+> > > > Mark Bloch (12):
+> > > >   net/mlx5: E-Switch, don't use hardcoded values for FDB prios
+> > > >   net/mlx5: E-Switch, add a new prio to be used by the RDMA side
+> > > >   RDMA/mlx5: Move netdev info into the port struct
+> > > >   RDMA/mlx5: Free IB device on remove
+> > > >   RDMA/mlx5: Move ports allocation to outside of INIT stage
+> > > >   RDMA/mlx5: Use correct size for device resources
+> > > >   RDMA/mlx5: Move rep into port struct
+> > > >   RDMA/mlx5: Move default representors SQ steering to rule to modify QP
+> > > >   RDMA/mlx5: Refactor netdev affinity code
+> > > >   RDMA/mlx5: Move SMI caps logic
+> > > >   RDMA/mlx5: Move to single device multiport ports in switchdev mode
+> > > >   RDMA/mlx5: Remove VF representor profile
+> > >
+> > > This looks Ok, can you update the shared branch please
+> >
+> > Thanks Jason,
+> >
+> > I'll slightly delay update till Sunday, internally, we have doubts about
+> > "RDMA/mlx5: Use correct size for device resources" patch.
 > 
-> > From: Jérôme Glisse <jglisse@redhat.com>
-> > 
-> > (Andrew this apply on top of my HMM patchset as otherwise you will have
-> >  conflict with changes to mm/hmm.c)
-> > 
-> > Changes since v5:
-> >     - drop KVM bits waiting for KVM people to express interest if they
-> >       do not then i will post patchset to remove change_pte_notify as
-> >       without the changes in v5 change_pte_notify is just useless (it
-> >       it is useless today upstream it is just wasting cpu cycles)
-> >     - rebase on top of lastest Linus tree
-> > 
-> > Previous cover letter with minor update:
-> > 
-> > 
-> > Here i am not posting users of this, they already have been posted to
-> > appropriate mailing list [6] and will be merge through the appropriate
-> > tree once this patchset is upstream.
-> > 
-> > Note that this serie does not change any behavior for any existing
-> > code. It just pass down more information to mmu notifier listener.
-> > 
-> > The rational for this patchset:
-> > 
-> > CPU page table update can happens for many reasons, not only as a
-> > result of a syscall (munmap(), mprotect(), mremap(), madvise(), ...)
-> > but also as a result of kernel activities (memory compression, reclaim,
-> > migration, ...).
-> > 
-> > This patch introduce a set of enums that can be associated with each
-> > of the events triggering a mmu notifier:
-> > 
-> >     - UNMAP: munmap() or mremap()
-> >     - CLEAR: page table is cleared (migration, compaction, reclaim, ...)
-> >     - PROTECTION_VMA: change in access protections for the range
-> >     - PROTECTION_PAGE: change in access protections for page in the range
-> >     - SOFT_DIRTY: soft dirtyness tracking
-> > 
-> > Being able to identify munmap() and mremap() from other reasons why the
-> > page table is cleared is important to allow user of mmu notifier to
-> > update their own internal tracking structure accordingly (on munmap or
-> > mremap it is not longer needed to track range of virtual address as it
-> > becomes invalid). Without this serie, driver are force to assume that
-> > every notification is an munmap which triggers useless trashing within
-> > drivers that associate structure with range of virtual address. Each
-> > driver is force to free up its tracking structure and then restore it
-> > on next device page fault. With this serie we can also optimize device
-> > page table update [6].
-> > 
-> > More over this can also be use to optimize out some page table updates
-> > like for KVM where we can update the secondary MMU directly from the
-> > callback instead of clearing it.
+> Hi Jason,
 > 
-> We seem to be rather short of review input on this patchset.  ie: there
-> is none.
-
-I forgot to update the review tag but Ralph did review v5:
-https://lkml.org/lkml/2019/2/22/564
-https://lkml.org/lkml/2019/2/22/561
-https://lkml.org/lkml/2019/2/22/558
-https://lkml.org/lkml/2019/2/22/710
-https://lkml.org/lkml/2019/2/22/711
-https://lkml.org/lkml/2019/2/22/695
-https://lkml.org/lkml/2019/2/22/738
-https://lkml.org/lkml/2019/2/22/757
-
-and since this v6 is a rebase just with better comments here and
-there i believe those reviews holds.
-
+> I updated our mlx5-next with first two patches.
+> d9cb06759eca net/mlx5: E-Switch, add a new prio to be used by the RDMA side
+> b6d9ccb11250 net/mlx5: E-Switch, don't use hardcoded values for FDB prios
 > 
-> > ACKS AMD/RADEON https://lkml.org/lkml/2019/2/1/395
+> We found the reason for instability over bond interface and it was related to the patch
+> "RDMA/mlx5: Move netdev info into the port struct". The following fixup is needed.
+> It will be helpful if you can apply it internally, or I can resend rest of the series.
 > 
-> OK, kind of ackish, but not a review.
+> commit 775efa8dd53e5148d8d4942d2d0b7e72ca606d40
+> Author: Mark Bloch <markb@mellanox.com>
+> Date:   Tue Apr 9 03:28:59 2019 +0000
 > 
-> > ACKS RDMA https://lkml.org/lkml/2018/12/6/1473
+>     fixup! RDMA/mlx5: Move netdev info into the port struct
 > 
-> This actually acks the infiniband part of a patch which isn't in this
-> series.
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index fdcc76383ae9..6f479dc66b78 100644
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -1958,7 +1958,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
+>  	print_lib_caps(dev, context->lib_caps);
+> 
+>  	if (dev->lag_active) {
+> -		u8 port = mlx5_core_native_port_num(dev->mdev);
+> +		u8 port = mlx5_core_native_port_num(dev->mdev) - 1;
+> 
+>  		atomic_set(&context->tx_port_affinity,
+>  			   atomic_add_return(
+> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+> index 832f6d176e25..31039fe1dd20 100644
+> +++ b/drivers/infiniband/hw/mlx5/qp.c
+> @@ -3491,7 +3491,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+>  		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
+>  		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
+>  			if (dev->lag_active) {
+> -				u8 p = mlx5_core_native_port_num(dev->mdev);
+> +				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
+>  				tx_affinity = get_tx_affinity(dev, pd, base, p,
+>  							      udata);
+>  				context->flags |= cpu_to_be32(tx_affinity << 24);
 
-This to show that they are end user and that those end user are
-wanted. Also obviously i will be using this within HMM and thus
-it will be use by mlx5, nouveau and amdgpu (which are all the
-HMM user that are either upstream or queue up for 5.2 or 5.3).
+Okay, done
 
-> So we have some work to do, please.  Who would be suitable reviewers?
-
-Anyone willing to review mmu notifier code. I believe this patchset is
-not that hard to review this is about giving contextual informations
-on why mmu notifier are happening it does not change the logic of any-
-thing. They are no maintainers for the mmu notifier so i don't have a
-person i can single out for review, thought given i have been the one
-doing most changes in that area it could fall on me ...
-
-Cheers,
-Jérôme
+Jason
