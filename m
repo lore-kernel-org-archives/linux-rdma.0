@@ -1,85 +1,101 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 00/12] Move IB representors to single IB device
- multiple ports
-Date: Wed, 10 Apr 2019 15:06:40 -0300
-Message-ID: <20190410180640.GO8997@ziepe.ca>
-References: <20190328132742.12070-1-leon@kernel.org>
- <20190404130221.GA15890@ziepe.ca>
- <20190404174238.GC3201@mtr-leonro.mtl.com>
- <20190410064840.GJ3201@mtr-leonro.mtl.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Wed, 10 Apr 2019 18:46:23 +0000
+Message-ID: <20190410184618.GA6370@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190410064840.GJ3201@mtr-leonro.mtl.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="OgqxwSJOaUobr8KG"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 10, 2019 at 09:48:40AM +0300, Leon Romanovsky wrote:
-> > > > Mark Bloch (12):
-> > > >   net/mlx5: E-Switch, don't use hardcoded values for FDB prios
-> > > >   net/mlx5: E-Switch, add a new prio to be used by the RDMA side
-> > > >   RDMA/mlx5: Move netdev info into the port struct
-> > > >   RDMA/mlx5: Free IB device on remove
-> > > >   RDMA/mlx5: Move ports allocation to outside of INIT stage
-> > > >   RDMA/mlx5: Use correct size for device resources
-> > > >   RDMA/mlx5: Move rep into port struct
-> > > >   RDMA/mlx5: Move default representors SQ steering to rule to modify QP
-> > > >   RDMA/mlx5: Refactor netdev affinity code
-> > > >   RDMA/mlx5: Move SMI caps logic
-> > > >   RDMA/mlx5: Move to single device multiport ports in switchdev mode
-> > > >   RDMA/mlx5: Remove VF representor profile
-> > >
-> > > This looks Ok, can you update the shared branch please
-> >
-> > Thanks Jason,
-> >
-> > I'll slightly delay update till Sunday, internally, we have doubts about
-> > "RDMA/mlx5: Use correct size for device resources" patch.
-> 
-> Hi Jason,
-> 
-> I updated our mlx5-next with first two patches.
-> d9cb06759eca net/mlx5: E-Switch, add a new prio to be used by the RDMA side
-> b6d9ccb11250 net/mlx5: E-Switch, don't use hardcoded values for FDB prios
-> 
-> We found the reason for instability over bond interface and it was related to the patch
-> "RDMA/mlx5: Move netdev info into the port struct". The following fixup is needed.
-> It will be helpful if you can apply it internally, or I can resend rest of the series.
-> 
-> commit 775efa8dd53e5148d8d4942d2d0b7e72ca606d40
-> Author: Mark Bloch <markb@mellanox.com>
-> Date:   Tue Apr 9 03:28:59 2019 +0000
-> 
->     fixup! RDMA/mlx5: Move netdev info into the port struct
-> 
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index fdcc76383ae9..6f479dc66b78 100644
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -1958,7 +1958,7 @@ static int mlx5_ib_alloc_ucontext(struct ib_ucontext *uctx,
->  	print_lib_caps(dev, context->lib_caps);
-> 
->  	if (dev->lag_active) {
-> -		u8 port = mlx5_core_native_port_num(dev->mdev);
-> +		u8 port = mlx5_core_native_port_num(dev->mdev) - 1;
-> 
->  		atomic_set(&context->tx_port_affinity,
->  			   atomic_add_return(
-> diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-> index 832f6d176e25..31039fe1dd20 100644
-> +++ b/drivers/infiniband/hw/mlx5/qp.c
-> @@ -3491,7 +3491,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
->  		    (ibqp->qp_type == IB_QPT_XRC_INI) ||
->  		    (ibqp->qp_type == IB_QPT_XRC_TGT)) {
->  			if (dev->lag_active) {
-> -				u8 p = mlx5_core_native_port_num(dev->mdev);
-> +				u8 p = mlx5_core_native_port_num(dev->mdev) - 1;
->  				tx_affinity = get_tx_affinity(dev, pd, base, p,
->  							      udata);
->  				context->flags |= cpu_to_be32(tx_affinity << 24);
+--OgqxwSJOaUobr8KG
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Okay, done
+Hi Linus,
 
-Jason
+Second rc pull request
+
+The following changes since commit 8c2ffd9174779014c3fe1f96d9dc3641d9175f00:
+
+  Linux 5.1-rc2 (2019-03-24 14:02:26 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to d737b25b1ae0540ba13cbd45ebb9b58a1d6d7f0d:
+
+  IB/hfi1: Do not flush send queue in the TID RDMA second leg (2019-04-10 15:09:30 -0300)
+
+----------------------------------------------------------------
+5.1 Second RC pull request
+
+Several driver bug fixes posted in the last several weeks
+
+- Several bug fixes for the hfi1 driver 'TID RDMA' functionality merged
+  into 5.1. Since TID RDMA is on by default these all seem to be
+  regressions.
+
+- Wrong software permission checks on memory in mlx5
+
+- Memory leak in vmw_pvrdma during driver remove
+
+- Several bug fixes for hns driver features merged into 5.1
+
+----------------------------------------------------------------
+Kaike Wan (5):
+      IB/hfi1: Failed to drain send queue when QP is put into error state
+      IB/hfi1: Clear the IOWAIT pending bits when QP is put into error state
+      IB/hfi1: Eliminate opcode tests on mr deref
+      IB/hfi1: Fix the allocation of RSM table
+      IB/hfi1: Do not flush send queue in the TID RDMA second leg
+
+Kamal Heib (1):
+      RDMA/vmw_pvrdma: Fix memory leak on pvrdma_pci_remove
+
+Lijun Ou (1):
+      RDMA/hns: Fix bug that caused srq creation to fail
+
+Moni Shoua (1):
+      IB/mlx5: Reset access mask when looping inside page fault handler
+
+Yangyang Li (1):
+      RDMA/hns: Bugfix for SCC hem free
+
+ drivers/infiniband/hw/hfi1/chip.c              | 26 +++++++++++++++------
+ drivers/infiniband/hw/hfi1/qp.c                |  4 +++-
+ drivers/infiniband/hw/hfi1/rc.c                |  4 ++--
+ drivers/infiniband/hw/hfi1/tid_rdma.c          | 31 +++++++-------------------
+ drivers/infiniband/hw/hns/hns_roce_hem.c       |  6 +++--
+ drivers/infiniband/hw/hns/hns_roce_mr.c        |  4 ++--
+ drivers/infiniband/hw/hns/hns_roce_qp.c        |  3 ---
+ drivers/infiniband/hw/mlx5/odp.c               |  3 ++-
+ drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c |  2 ++
+ 9 files changed, 42 insertions(+), 41 deletions(-)
+
+--OgqxwSJOaUobr8KG
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlyuOfcACgkQOG33FX4g
+mxpNXRAAiJwNLggwfD3C90U4f/yXq7aAAEQjjbnu0q0LYkkAO+11OTyyu3X9maWr
+Lyz4kZI4SUcW/cQNq04r0thMU7bmwJeifmiTTUVAn8KTisvbfHg7/4DAg1uOR+pf
+1QamYCqwN4tYZuFpBEzn9nkOEeuN+ZplgLHwJLOMBKk9BIuJx1HhSoqvWr9UZjZm
+Y7x8fWBmkgFB9p1xLzRznepxTZLL/r6YMRQxLeVVuTDmTqJ9Qz35oMi3fspHpPaD
+v9isrQfrAYlxKePhk+cDcxE04FhTw2m63qUIiG0R2/f9npJiHfIkMebXX0gqhE1g
+OzUUyMXY2d8F4V6J/Rt7Gje7colHLadFl4jYKEwMzJTcRBa+/XqfqVkVcrmQNI2D
+d6GqWGmw6bW9YA8FV0jzh+7N5wPqYPC4kmAvScWuEpFIKde7dFxM6un4xq9fDJr0
+0XzlialrNBLu79RjqPVKjkyfrjoKiByFB5grLq3gDMolyF6fQklp0fualRpJklfE
+NrM6fjo6HHW0426ETZdbONnZPDFm6AV8o1KqcEEweHzK+gXW7IjWQVlELek7grls
+LQVoQ6ZDDcsR3G2qJG4P+8R/S3lTxTsXvqSsA+tDgmCsZmcK1c7w+mv7B5D09tSo
+wYT5xVhhr3Sxme8cBijJ6TUEm+sBnSUUBb1ytl7YniDrONPRwIY=
+=gApV
+-----END PGP SIGNATURE-----
+
+--OgqxwSJOaUobr8KG--
