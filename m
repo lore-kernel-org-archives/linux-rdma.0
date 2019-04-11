@@ -1,112 +1,94 @@
-From: Leon Romanovsky <leonro@mellanox.com>
-Subject: Re: [PATCH v3 0/1] Use HMM for ODP v3
-Date: Thu, 11 Apr 2019 12:29:43 +0000
-Message-ID: <20190411122940.GZ3201@mtr-leonro.mtl.com>
-References: <20190410154125.21350-1-jglisse@redhat.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v6 7/8] mm/mmu_notifier: pass down vma and reasons why
+ mmu notifier is happening v2
+Date: Thu, 11 Apr 2019 10:39:19 -0400
+Message-ID: <20190411143918.GA4266@redhat.com>
+References: <20190326164747.24405-1-jglisse@redhat.com>
+ <20190326164747.24405-8-jglisse@redhat.com>
+ <20190410234124.GE22989@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="Tdr039sUWCyRuLRO"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190410154125.21350-1-jglisse@redhat.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "jglisse@redhat.com" <jglisse@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Jason Gunthorpe <jgg@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190410234124.GE22989@iweiny-DESK2.sc.intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Ross Zwisler <zwisler@kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Ralph Campbell <rcampbell@nvidia.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, Peter Xu <peterx@redhat.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dan Williams <dan.j.williams@intel.com>, Felix Kuehling <Felix.Kuehling@amd.com>, linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
---Tdr039sUWCyRuLRO
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Wed, Apr 10, 2019 at 11:41:24AM -0400, jglisse@redhat.com wrote:
-> From: J=E9r=F4me Glisse <jglisse@redhat.com>
->
-> Changes since v1/v2 are about rebase and better comments in the code.
-> Previous cover letter slightly updated.
->
->
-> This patchset convert RDMA ODP to use HMM underneath this is motivated
-> by stronger code sharing for same feature (share virtual memory SVM or
-> Share Virtual Address SVA) and also stronger integration with mm code to
-> achieve that. It depends on HMM patchset posted for inclusion in 5.2 [2]
-> and [3].
->
-> It has been tested with pingpong test with -o and others flags to test
-> different size/features associated with ODP.
->
-> Moreover they are some features of HMM in the works like peer to peer
-> support, fast CPU page table snapshot, fast IOMMU mapping update ...
-> It will be easier for RDMA devices with ODP to leverage those if they
-> use HMM underneath.
->
-> Quick summary of what HMM is:
->     HMM is a toolbox for device driver to implement software support for
->     Share Virtual Memory (SVM). Not only it provides helpers to mirror a
->     process address space on a device (hmm_mirror). It also provides
->     helper to allow to use device memory to back regular valid virtual
->     address of a process (any valid mmap that is not an mmap of a device
->     or a DAX mapping). They are two kinds of device memory. Private memory
->     that is not accessible to CPU because it does not have all the expect=
-ed
->     properties (this is for all PCIE devices) or public memory which can
->     also be access by CPU without restriction (with OpenCAPI or CCIX or
->     similar cache-coherent and atomic inter-connect).
->
->     Device driver can use each of HMM tools separatly. You do not have to
->     use all the tools it provides.
->
-> For RDMA device i do not expect a need to use the device memory support
-> of HMM. This device memory support is geared toward accelerator like GPU.
->
->
-> You can find a branch [1] with all the prerequisite in. This patch is on
-> top of rdma-next with the HMM patchset [2] and mmu notifier patchset [3]
-> applied on top of it.
->
-> [1] https://cgit.freedesktop.org/~glisse/linux/log/?h=3Drdma-5.2
-
-Hi Jerome,
-
-I took this branch and merged with our latest rdma-next, but it doesn't
-compile.
-
-In file included from drivers/infiniband/hw/mlx5/mem.c:35:
-=2E/include/rdma/ib_umem_odp.h:110:20: error: field _mirror_ has
-incomplete type
-  struct hmm_mirror mirror;
-                      ^~~~~~
-=2E/include/rdma/ib_umem_odp.h:132:18: warning: _struct hmm_range_ declared=
- inside parameter list will not be visible outside of this definition or de=
-claration
-struct hmm_range *range);
-	^~~~~~~~~
-make[4]: *** [scripts/Makefile.build:276: drivers/infiniband/hw/mlx5/mem.o]=
- Error 1
-
-The reason to it that in my .config, ZONE_DEVICE, MEMORY_HOTPLUG and HMM op=
-tions were disabled.
-
-Thanks
-
---Tdr039sUWCyRuLRO
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcrzM0AAoJEORje4g2clinEt4P/3wiD/ydhWQnQz/BSONuyzO9
-TpkWmDo9g8kUY53myMIlmzDSdoAS4SaJmTBCE/gwotsqQ3WUpCovy7p4oY+W6oK7
-kwgHSTKqTT76oSNM609j4fYn45TK2kvZ+n4XXW9gvdmXnbVsQV8NvpCKU01JuTuf
-mfqL5HVk5QMwnAHDW/7+E8hBEt28DF2nSizD66qs4pZUhv8cLFcPrL0HcqdtRew1
-m4YZEPvnqkDfyBou4Elje+g2UipqIiF/fLE3p9kBp0uxPP5MVbjxGG+tQ/8AA/WA
-dbHIU+sNevjfeM0rblA83wsX5kWYOE1e3umk2IZYVvB5xzrfgbnRbPzHH7OqyM/r
-YVQUvZpglLd7dX6Ciwny3qICEphvH9375i9WkKlGRLXbvUATqdDwghfHbjxNSfwe
-dnRpjY6H+7ARPtxonoLPVIDPgVt2BJ07YRyDApY6yu3H/TKwVXu9tTgVmYuUslmE
-bk2hAfxRX8fnYHUVKVyx3cRdvn1pt3uSUAimtBe23xYfuEQ4CioNBjtKRiV8Glg3
-Q1yJadrdcNBwB8MWP24V46K30edgGi5pEa8A1K2jjt3zSb5Fe33q4Jdjq2S9B3/O
-4RFeNtsdkfqCuLbB3f3gG7StuNlKfjb/5h3UuRFFDMFMk49hzleBYGUJhirWgylJ
-EB1NHvWV1nG5yhJTCnFN
-=3csj
------END PGP SIGNATURE-----
-
---Tdr039sUWCyRuLRO--
+T24gV2VkLCBBcHIgMTAsIDIwMTkgYXQgMDQ6NDE6NTdQTSAtMDcwMCwgSXJhIFdlaW55IHdyb3Rl
+Ogo+IE9uIFR1ZSwgTWFyIDI2LCAyMDE5IGF0IDEyOjQ3OjQ2UE0gLTA0MDAsIEplcm9tZSBHbGlz
+c2Ugd3JvdGU6Cj4gPiBGcm9tOiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4K
+PiA+IAo+ID4gQ1BVIHBhZ2UgdGFibGUgdXBkYXRlIGNhbiBoYXBwZW5zIGZvciBtYW55IHJlYXNv
+bnMsIG5vdCBvbmx5IGFzIGEgcmVzdWx0Cj4gPiBvZiBhIHN5c2NhbGwgKG11bm1hcCgpLCBtcHJv
+dGVjdCgpLCBtcmVtYXAoKSwgbWFkdmlzZSgpLCAuLi4pIGJ1dCBhbHNvCj4gPiBhcyBhIHJlc3Vs
+dCBvZiBrZXJuZWwgYWN0aXZpdGllcyAobWVtb3J5IGNvbXByZXNzaW9uLCByZWNsYWltLCBtaWdy
+YXRpb24sCj4gPiAuLi4pLgo+ID4gCj4gPiBVc2VycyBvZiBtbXUgbm90aWZpZXIgQVBJIHRyYWNr
+IGNoYW5nZXMgdG8gdGhlIENQVSBwYWdlIHRhYmxlIGFuZCB0YWtlCj4gPiBzcGVjaWZpYyBhY3Rp
+b24gZm9yIHRoZW0uIFdoaWxlIGN1cnJlbnQgQVBJIG9ubHkgcHJvdmlkZSByYW5nZSBvZiB2aXJ0
+dWFsCj4gPiBhZGRyZXNzIGFmZmVjdGVkIGJ5IHRoZSBjaGFuZ2UsIG5vdCB3aHkgdGhlIGNoYW5n
+ZXMgaXMgaGFwcGVuaW5nCj4gPiAKPiA+IFRoaXMgcGF0Y2ggaXMganVzdCBwYXNzaW5nIGRvd24g
+dGhlIG5ldyBpbmZvcm1hdGlvbnMgYnkgYWRkaW5nIGl0IHRvIHRoZQo+ID4gbW11X25vdGlmaWVy
+X3JhbmdlIHN0cnVjdHVyZS4KPiA+IAo+ID4gQ2hhbmdlcyBzaW5jZSB2MToKPiA+ICAgICAtIElu
+aXRpYWxpemUgZmxhZ3MgZmllbGQgZnJvbSBtbXVfbm90aWZpZXJfcmFuZ2VfaW5pdCgpIGFyZ3Vt
+ZW50cwo+ID4gCj4gPiBTaWduZWQtb2ZmLWJ5OiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVk
+aGF0LmNvbT4KPiA+IENjOiBBbmRyZXcgTW9ydG9uIDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3Jn
+Pgo+ID4gQ2M6IGxpbnV4LW1tQGt2YWNrLm9yZwo+ID4gQ2M6IENocmlzdGlhbiBLw7ZuaWcgPGNo
+cmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KPiA+IENjOiBKb29uYXMgTGFodGluZW4gPGpvb25hcy5s
+YWh0aW5lbkBsaW51eC5pbnRlbC5jb20+Cj4gPiBDYzogSmFuaSBOaWt1bGEgPGphbmkubmlrdWxh
+QGxpbnV4LmludGVsLmNvbT4KPiA+IENjOiBSb2RyaWdvIFZpdmkgPHJvZHJpZ28udml2aUBpbnRl
+bC5jb20+Cj4gPiBDYzogSmFuIEthcmEgPGphY2tAc3VzZS5jej4KPiA+IENjOiBBbmRyZWEgQXJj
+YW5nZWxpIDxhYXJjYW5nZUByZWRoYXQuY29tPgo+ID4gQ2M6IFBldGVyIFh1IDxwZXRlcnhAcmVk
+aGF0LmNvbT4KPiA+IENjOiBGZWxpeCBLdWVobGluZyA8RmVsaXguS3VlaGxpbmdAYW1kLmNvbT4K
+PiA+IENjOiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+Cj4gPiBDYzogUm9zcyBa
+d2lzbGVyIDx6d2lzbGVyQGtlcm5lbC5vcmc+Cj4gPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53
+aWxsaWFtc0BpbnRlbC5jb20+Cj4gPiBDYzogUGFvbG8gQm9uemluaSA8cGJvbnppbmlAcmVkaGF0
+LmNvbT4KPiA+IENjOiBSYWRpbSBLcsSNbcOhxZkgPHJrcmNtYXJAcmVkaGF0LmNvbT4KPiA+IENj
+OiBNaWNoYWwgSG9ja28gPG1ob2Nrb0BrZXJuZWwub3JnPgo+ID4gQ2M6IENocmlzdGlhbiBLb2Vu
+aWcgPGNocmlzdGlhbi5rb2VuaWdAYW1kLmNvbT4KPiA+IENjOiBSYWxwaCBDYW1wYmVsbCA8cmNh
+bXBiZWxsQG52aWRpYS5jb20+Cj4gPiBDYzogSm9obiBIdWJiYXJkIDxqaHViYmFyZEBudmlkaWEu
+Y29tPgo+ID4gQ2M6IGt2bUB2Z2VyLmtlcm5lbC5vcmcKPiA+IENjOiBkcmktZGV2ZWxAbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnCj4gPiBDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5lbC5vcmcKPiA+IENj
+OiBBcm5kIEJlcmdtYW5uIDxhcm5kQGFybmRiLmRlPgo+ID4gLS0tCj4gPiAgaW5jbHVkZS9saW51
+eC9tbXVfbm90aWZpZXIuaCB8IDYgKysrKystCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0
+aW9ucygrKSwgMSBkZWxldGlvbigtKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51
+eC9tbXVfbm90aWZpZXIuaCBiL2luY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmgKPiA+IGluZGV4
+IDYyZjk0Y2Q4NTQ1NS4uMDM3OTk1NmZmZjIzIDEwMDY0NAo+ID4gLS0tIGEvaW5jbHVkZS9saW51
+eC9tbXVfbm90aWZpZXIuaAo+ID4gKysrIGIvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaAo+
+ID4gQEAgLTU4LDEwICs1OCwxMiBAQCBzdHJ1Y3QgbW11X25vdGlmaWVyX21tIHsKPiA+ICAjZGVm
+aW5lIE1NVV9OT1RJRklFUl9SQU5HRV9CTE9DS0FCTEUgKDEgPDwgMCkKPiA+ICAKPiA+ICBzdHJ1
+Y3QgbW11X25vdGlmaWVyX3JhbmdlIHsKPiA+ICsJc3RydWN0IHZtX2FyZWFfc3RydWN0ICp2bWE7
+Cj4gPiAgCXN0cnVjdCBtbV9zdHJ1Y3QgKm1tOwo+ID4gIAl1bnNpZ25lZCBsb25nIHN0YXJ0Owo+
+ID4gIAl1bnNpZ25lZCBsb25nIGVuZDsKPiA+ICAJdW5zaWduZWQgZmxhZ3M7Cj4gPiArCWVudW0g
+bW11X25vdGlmaWVyX2V2ZW50IGV2ZW50Owo+ID4gIH07Cj4gPiAgCj4gPiAgc3RydWN0IG1tdV9u
+b3RpZmllcl9vcHMgewo+ID4gQEAgLTM2MywxMCArMzY1LDEyIEBAIHN0YXRpYyBpbmxpbmUgdm9p
+ZCBtbXVfbm90aWZpZXJfcmFuZ2VfaW5pdChzdHJ1Y3QgbW11X25vdGlmaWVyX3JhbmdlICpyYW5n
+ZSwKPiA+ICAJCQkJCSAgIHVuc2lnbmVkIGxvbmcgc3RhcnQsCj4gPiAgCQkJCQkgICB1bnNpZ25l
+ZCBsb25nIGVuZCkKPiA+ICB7Cj4gPiArCXJhbmdlLT52bWEgPSB2bWE7Cj4gPiArCXJhbmdlLT5l
+dmVudCA9IGV2ZW50Owo+ID4gIAlyYW5nZS0+bW0gPSBtbTsKPiA+ICAJcmFuZ2UtPnN0YXJ0ID0g
+c3RhcnQ7Cj4gPiAgCXJhbmdlLT5lbmQgPSBlbmQ7Cj4gPiAtCXJhbmdlLT5mbGFncyA9IDA7Cj4g
+PiArCXJhbmdlLT5mbGFncyA9IGZsYWdzOwo+IAo+IFdoaWNoIG9mIHRoZSAidXNlciBwYXRjaCBz
+ZXRzIiB1c2VzIHRoZSBuZXcgZmxhZ3M/Cj4gCj4gSSdtIG5vdCBzZWVpbmcgdGhhdCB1c2VyIHll
+dC4gIEluIGdlbmVyYWwgSSBkb24ndCBzZWUgYW55dGhpbmcgd3Jvbmcgd2l0aCB0aGUKPiBzZXJp
+ZXMgYW5kIEkgbGlrZSB0aGUgaWRlYSBvZiB0ZWxsaW5nIGRyaXZlcnMgd2h5IHRoZSBpbnZhbGlk
+YXRlIGhhcyBmaXJlZC4KPiAKPiBCdXQgaXMgdGhlIGZsYWdzIGEgZnV0dXJlIGZlYXR1cmU/Cj4g
+CgpJIGJlbGlldmUgdGhlIGxpbmsgd2VyZSBpbiB0aGUgY292ZXI6CgpodHRwczovL2xrbWwub3Jn
+L2xrbWwvMjAxOS8xLzIzLzgzMwpodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzIzLzgzNApo
+dHRwczovL2xrbWwub3JnL2xrbWwvMjAxOS8xLzIzLzgzMgpodHRwczovL2xrbWwub3JnL2xrbWwv
+MjAxOS8xLzIzLzgzMQoKSSBoYXZlIG1vcmUgY29taW5nIGZvciBITU0gYnV0IGkgYW0gd2FpdGlu
+ZyBhZnRlciA1LjIgb25jZSBhbWRncHUKSE1NIHBhdGNoIGFyZSBtZXJnZSB1cHN0cmVhbSBhcyBp
+dCB3aWxsIGNoYW5nZSB3aGF0IGlzIHBhc3NlZCBkb3duCnRvIGRyaXZlciBhbmQgaXQgd291bGQg
+Y29uZmxpY3Qgd2l0aCBub24gbWVyZ2VkIEhNTSBkcml2ZXIgKGxpa2UKYW1kZ3B1IHRvZGF5KS4K
+CkNoZWVycywKSsOpcsO0bWUKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
+LWRldmVs
