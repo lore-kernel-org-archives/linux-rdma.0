@@ -1,98 +1,146 @@
-From: "Weiny, Ira" <ira.weiny@intel.com>
-Subject: RE: [PATCH v6 7/8] mm/mmu_notifier: pass down vma and reasons why
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v6 7/8] mm/mmu_notifier: pass down vma and reasons why
  mmu notifier is happening v2
-Date: Thu, 11 Apr 2019 15:21:08 +0000
-Message-ID: <2807E5FD2F6FDA4886F6618EAC48510E79CAEBED@CRSMSX101.amr.corp.intel.com>
+Date: Thu, 11 Apr 2019 13:00:54 -0400
+Message-ID: <20190411170054.GB4266@redhat.com>
 References: <20190326164747.24405-1-jglisse@redhat.com>
  <20190326164747.24405-8-jglisse@redhat.com>
  <20190410234124.GE22989@iweiny-DESK2.sc.intel.com>
  <20190411143918.GA4266@redhat.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E79CAEBED@CRSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190411143918.GA4266@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E79CAEBED@CRSMSX101.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, "Vivi, Rodrigo" <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, =?utf-8?B?UmFkaW0gS3JjbcOhcg==?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.>
+To: "Weiny, Ira" <ira.weiny@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Jani Nikula <jani.nikula@linux.intel.com>, "Vivi, Rodrigo" <rodrigo.vivi@intel.com>, Jan Kara <jack@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>, Peter Xu <peterx@redhat.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Jason Gunthorpe <jgg@mellanox.com>, Ross Zwisler <zwisler@kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>, Paolo Bonzini <pbonzini@redhat.com>, Radim =?iso-8859-1?Q?Krcm=E1r?= <rkrcmar@redhat.com>, Michal Hocko <mhocko@kernel.org>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBPbiBXZWQsIEFwciAxMCwgMjAxOSBhdCAwNDo0MTo1N1BNIC0wNzAwLCBJcmEgV2Vpbnkgd3Jv
-dGU6DQo+ID4gT24gVHVlLCBNYXIgMjYsIDIwMTkgYXQgMTI6NDc6NDZQTSAtMDQwMCwgSmVyb21l
-IEdsaXNzZSB3cm90ZToNCj4gPiA+IEZyb206IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRo
-YXQuY29tPg0KPiA+ID4NCj4gPiA+IENQVSBwYWdlIHRhYmxlIHVwZGF0ZSBjYW4gaGFwcGVucyBm
-b3IgbWFueSByZWFzb25zLCBub3Qgb25seSBhcyBhDQo+ID4gPiByZXN1bHQgb2YgYSBzeXNjYWxs
-IChtdW5tYXAoKSwgbXByb3RlY3QoKSwgbXJlbWFwKCksIG1hZHZpc2UoKSwgLi4uKQ0KPiA+ID4g
-YnV0IGFsc28gYXMgYSByZXN1bHQgb2Yga2VybmVsIGFjdGl2aXRpZXMgKG1lbW9yeSBjb21wcmVz
-c2lvbiwNCj4gPiA+IHJlY2xhaW0sIG1pZ3JhdGlvbiwgLi4uKS4NCj4gPiA+DQo+ID4gPiBVc2Vy
-cyBvZiBtbXUgbm90aWZpZXIgQVBJIHRyYWNrIGNoYW5nZXMgdG8gdGhlIENQVSBwYWdlIHRhYmxl
-IGFuZA0KPiA+ID4gdGFrZSBzcGVjaWZpYyBhY3Rpb24gZm9yIHRoZW0uIFdoaWxlIGN1cnJlbnQg
-QVBJIG9ubHkgcHJvdmlkZSByYW5nZQ0KPiA+ID4gb2YgdmlydHVhbCBhZGRyZXNzIGFmZmVjdGVk
-IGJ5IHRoZSBjaGFuZ2UsIG5vdCB3aHkgdGhlIGNoYW5nZXMgaXMNCj4gPiA+IGhhcHBlbmluZw0K
-PiA+ID4NCj4gPiA+IFRoaXMgcGF0Y2ggaXMganVzdCBwYXNzaW5nIGRvd24gdGhlIG5ldyBpbmZv
-cm1hdGlvbnMgYnkgYWRkaW5nIGl0IHRvDQo+ID4gPiB0aGUgbW11X25vdGlmaWVyX3JhbmdlIHN0
-cnVjdHVyZS4NCj4gPiA+DQo+ID4gPiBDaGFuZ2VzIHNpbmNlIHYxOg0KPiA+ID4gICAgIC0gSW5p
-dGlhbGl6ZSBmbGFncyBmaWVsZCBmcm9tIG1tdV9ub3RpZmllcl9yYW5nZV9pbml0KCkNCj4gPiA+
-IGFyZ3VtZW50cw0KPiA+ID4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IErDqXLDtG1lIEdsaXNzZSA8
-amdsaXNzZUByZWRoYXQuY29tPg0KPiA+ID4gQ2M6IEFuZHJldyBNb3J0b24gPGFrcG1AbGludXgt
-Zm91bmRhdGlvbi5vcmc+DQo+ID4gPiBDYzogbGludXgtbW1Aa3ZhY2sub3JnDQo+ID4gPiBDYzog
-Q2hyaXN0aWFuIEvDtm5pZyA8Y2hyaXN0aWFuLmtvZW5pZ0BhbWQuY29tPg0KPiA+ID4gQ2M6IEpv
-b25hcyBMYWh0aW5lbiA8am9vbmFzLmxhaHRpbmVuQGxpbnV4LmludGVsLmNvbT4NCj4gPiA+IENj
-OiBKYW5pIE5pa3VsYSA8amFuaS5uaWt1bGFAbGludXguaW50ZWwuY29tPg0KPiA+ID4gQ2M6IFJv
-ZHJpZ28gVml2aSA8cm9kcmlnby52aXZpQGludGVsLmNvbT4NCj4gPiA+IENjOiBKYW4gS2FyYSA8
-amFja0BzdXNlLmN6Pg0KPiA+ID4gQ2M6IEFuZHJlYSBBcmNhbmdlbGkgPGFhcmNhbmdlQHJlZGhh
-dC5jb20+DQo+ID4gPiBDYzogUGV0ZXIgWHUgPHBldGVyeEByZWRoYXQuY29tPg0KPiA+ID4gQ2M6
-IEZlbGl4IEt1ZWhsaW5nIDxGZWxpeC5LdWVobGluZ0BhbWQuY29tPg0KPiA+ID4gQ2M6IEphc29u
-IEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4NCj4gPiA+IENjOiBSb3NzIFp3aXNsZXIgPHp3
-aXNsZXJAa2VybmVsLm9yZz4NCj4gPiA+IENjOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1z
-QGludGVsLmNvbT4NCj4gPiA+IENjOiBQYW9sbyBCb256aW5pIDxwYm9uemluaUByZWRoYXQuY29t
-Pg0KPiA+ID4gQ2M6IFJhZGltIEtyxI1tw6HFmSA8cmtyY21hckByZWRoYXQuY29tPg0KPiA+ID4g
-Q2M6IE1pY2hhbCBIb2NrbyA8bWhvY2tvQGtlcm5lbC5vcmc+DQo+ID4gPiBDYzogQ2hyaXN0aWFu
-IEtvZW5pZyA8Y2hyaXN0aWFuLmtvZW5pZ0BhbWQuY29tPg0KPiA+ID4gQ2M6IFJhbHBoIENhbXBi
-ZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4NCj4gPiA+IENjOiBKb2huIEh1YmJhcmQgPGpodWJi
-YXJkQG52aWRpYS5jb20+DQo+ID4gPiBDYzoga3ZtQHZnZXIua2VybmVsLm9yZw0KPiA+ID4gQ2M6
-IGRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcNCj4gPiA+IENjOiBsaW51eC1yZG1hQHZn
-ZXIua2VybmVsLm9yZw0KPiA+ID4gQ2M6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+DQo+
-ID4gPiAtLS0NCj4gPiA+ICBpbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oIHwgNiArKysrKy0N
-Cj4gPiA+ICAxIGZpbGUgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+
-ID4gPg0KPiA+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbW11X25vdGlmaWVyLmgNCj4g
-PiA+IGIvaW5jbHVkZS9saW51eC9tbXVfbm90aWZpZXIuaCBpbmRleCA2MmY5NGNkODU0NTUuLjAz
-Nzk5NTZmZmYyMw0KPiA+ID4gMTAwNjQ0DQo+ID4gPiAtLS0gYS9pbmNsdWRlL2xpbnV4L21tdV9u
-b3RpZmllci5oDQo+ID4gPiArKysgYi9pbmNsdWRlL2xpbnV4L21tdV9ub3RpZmllci5oDQo+ID4g
-PiBAQCAtNTgsMTAgKzU4LDEyIEBAIHN0cnVjdCBtbXVfbm90aWZpZXJfbW0geyAgI2RlZmluZQ0K
-PiA+ID4gTU1VX05PVElGSUVSX1JBTkdFX0JMT0NLQUJMRSAoMSA8PCAwKQ0KPiA+ID4NCj4gPiA+
-ICBzdHJ1Y3QgbW11X25vdGlmaWVyX3JhbmdlIHsNCj4gPiA+ICsJc3RydWN0IHZtX2FyZWFfc3Ry
-dWN0ICp2bWE7DQo+ID4gPiAgCXN0cnVjdCBtbV9zdHJ1Y3QgKm1tOw0KPiA+ID4gIAl1bnNpZ25l
-ZCBsb25nIHN0YXJ0Ow0KPiA+ID4gIAl1bnNpZ25lZCBsb25nIGVuZDsNCj4gPiA+ICAJdW5zaWdu
-ZWQgZmxhZ3M7DQo+ID4gPiArCWVudW0gbW11X25vdGlmaWVyX2V2ZW50IGV2ZW50Ow0KPiA+ID4g
-IH07DQo+ID4gPg0KPiA+ID4gIHN0cnVjdCBtbXVfbm90aWZpZXJfb3BzIHsNCj4gPiA+IEBAIC0z
-NjMsMTAgKzM2NSwxMiBAQCBzdGF0aWMgaW5saW5lIHZvaWQNCj4gbW11X25vdGlmaWVyX3Jhbmdl
-X2luaXQgKHN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2UgKnJhbmdlLA0KPiA+ID4gIAkJCQkJICAg
-dW5zaWduZWQgbG9uZyBzdGFydCwNCj4gPiA+ICAJCQkJCSAgIHVuc2lnbmVkIGxvbmcgZW5kKQ0K
-PiA+ID4gIHsNCj4gPiA+ICsJcmFuZ2UtPnZtYSA9IHZtYTsNCj4gPiA+ICsJcmFuZ2UtPmV2ZW50
-ID0gZXZlbnQ7DQo+ID4gPiAgCXJhbmdlLT5tbSA9IG1tOw0KPiA+ID4gIAlyYW5nZS0+c3RhcnQg
-PSBzdGFydDsNCj4gPiA+ICAJcmFuZ2UtPmVuZCA9IGVuZDsNCj4gPiA+IC0JcmFuZ2UtPmZsYWdz
-ID0gMDsNCj4gPiA+ICsJcmFuZ2UtPmZsYWdzID0gZmxhZ3M7DQo+ID4NCj4gPiBXaGljaCBvZiB0
-aGUgInVzZXIgcGF0Y2ggc2V0cyIgdXNlcyB0aGUgbmV3IGZsYWdzPw0KPiA+DQo+ID4gSSdtIG5v
-dCBzZWVpbmcgdGhhdCB1c2VyIHlldC4gIEluIGdlbmVyYWwgSSBkb24ndCBzZWUgYW55dGhpbmcg
-d3JvbmcNCj4gPiB3aXRoIHRoZSBzZXJpZXMgYW5kIEkgbGlrZSB0aGUgaWRlYSBvZiB0ZWxsaW5n
-IGRyaXZlcnMgd2h5IHRoZSBpbnZhbGlkYXRlIGhhcw0KPiBmaXJlZC4NCj4gPg0KPiA+IEJ1dCBp
-cyB0aGUgZmxhZ3MgYSBmdXR1cmUgZmVhdHVyZT8NCj4gPg0KPiANCj4gSSBiZWxpZXZlIHRoZSBs
-aW5rIHdlcmUgaW4gdGhlIGNvdmVyOg0KPiANCj4gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkv
-MS8yMy84MzMNCj4gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTkvMS8yMy84MzQNCj4gaHR0cHM6
-Ly9sa21sLm9yZy9sa21sLzIwMTkvMS8yMy84MzINCj4gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIw
-MTkvMS8yMy84MzENCj4gDQo+IEkgaGF2ZSBtb3JlIGNvbWluZyBmb3IgSE1NIGJ1dCBpIGFtIHdh
-aXRpbmcgYWZ0ZXIgNS4yIG9uY2UgYW1kZ3B1IEhNTQ0KPiBwYXRjaCBhcmUgbWVyZ2UgdXBzdHJl
-YW0gYXMgaXQgd2lsbCBjaGFuZ2Ugd2hhdCBpcyBwYXNzZWQgZG93biB0byBkcml2ZXINCj4gYW5k
-IGl0IHdvdWxkIGNvbmZsaWN0IHdpdGggbm9uIG1lcmdlZCBITU0gZHJpdmVyIChsaWtlIGFtZGdw
-dSB0b2RheSkuDQo+IA0KDQpVbmZvcnR1bmF0ZWx5IHRoaXMgZG9lcyBub3QgYW5zd2VyIG15IHF1
-ZXN0aW9uLiAgWWVzIEkgc2F3IHRoZSBsaW5rcyB0byB0aGUgcGF0Y2hlcyB3aGljaCB1c2UgdGhp
-cyBpbiB0aGUgaGVhZGVyLiAgRnVydGhlcm1vcmUsIEkgY2hlY2tlZCB0aGUgbGlua3MgYWdhaW4s
-IEkgc3RpbGwgZG8gbm90IHNlZSBhIHVzZSBvZiByYW5nZS0+ZmxhZ3Mgbm9yIGEgdXNlIG9mIHRo
-ZSBuZXcgZmxhZ3MgcGFyYW1ldGVyIHRvIG1tdV9ub3RpZmllcl9yYW5nZV9pbml0KCkuDQoNCkkg
-c3RpbGwgZ2F2ZSBhIHJldmlld2VkIGJ5IGJlY2F1c2UgSSdtIG5vdCBzYXlpbmcgaXQgaXMgd3Jv
-bmcgSSdtIGp1c3QgdHJ5aW5nIHRvIHVuZGVyc3RhbmQgd2hhdCB1c2UgZHJpdmVycyBoYXZlIG9m
-IHRoaXMgZmxhZy4NCg0KU28gYWdhaW4gSSdtIGN1cmlvdXMgd2hhdCBpcyB0aGUgdXNlIGNhc2Ug
-b2YgdGhlc2UgZmxhZ3MgYW5kIHRoZSB1c2UgY2FzZSBvZiBleHBvc2luZyBpdCB0byB0aGUgdXNl
-cnMgb2YgTU1VIG5vdGlmaWVycz8NCg0KSXJhDQoNCj4gQ2hlZXJzLA0KPiBKw6lyw7RtZQ0K
+On Thu, Apr 11, 2019 at 03:21:08PM +0000, Weiny, Ira wrote:
+> > On Wed, Apr 10, 2019 at 04:41:57PM -0700, Ira Weiny wrote:
+> > > On Tue, Mar 26, 2019 at 12:47:46PM -0400, Jerome Glisse wrote:
+> > > > From: Jérôme Glisse <jglisse@redhat.com>
+> > > >
+> > > > CPU page table update can happens for many reasons, not only as a
+> > > > result of a syscall (munmap(), mprotect(), mremap(), madvise(), ...)
+> > > > but also as a result of kernel activities (memory compression,
+> > > > reclaim, migration, ...).
+> > > >
+> > > > Users of mmu notifier API track changes to the CPU page table and
+> > > > take specific action for them. While current API only provide range
+> > > > of virtual address affected by the change, not why the changes is
+> > > > happening
+> > > >
+> > > > This patch is just passing down the new informations by adding it to
+> > > > the mmu_notifier_range structure.
+> > > >
+> > > > Changes since v1:
+> > > >     - Initialize flags field from mmu_notifier_range_init()
+> > > > arguments
+> > > >
+> > > > Signed-off-by: Jérôme Glisse <jglisse@redhat.com>
+> > > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > > Cc: linux-mm@kvack.org
+> > > > Cc: Christian König <christian.koenig@amd.com>
+> > > > Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+> > > > Cc: Jani Nikula <jani.nikula@linux.intel.com>
+> > > > Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+> > > > Cc: Jan Kara <jack@suse.cz>
+> > > > Cc: Andrea Arcangeli <aarcange@redhat.com>
+> > > > Cc: Peter Xu <peterx@redhat.com>
+> > > > Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+> > > > Cc: Jason Gunthorpe <jgg@mellanox.com>
+> > > > Cc: Ross Zwisler <zwisler@kernel.org>
+> > > > Cc: Dan Williams <dan.j.williams@intel.com>
+> > > > Cc: Paolo Bonzini <pbonzini@redhat.com>
+> > > > Cc: Radim Krčmář <rkrcmar@redhat.com>
+> > > > Cc: Michal Hocko <mhocko@kernel.org>
+> > > > Cc: Christian Koenig <christian.koenig@amd.com>
+> > > > Cc: Ralph Campbell <rcampbell@nvidia.com>
+> > > > Cc: John Hubbard <jhubbard@nvidia.com>
+> > > > Cc: kvm@vger.kernel.org
+> > > > Cc: dri-devel@lists.freedesktop.org
+> > > > Cc: linux-rdma@vger.kernel.org
+> > > > Cc: Arnd Bergmann <arnd@arndb.de>
+> > > > ---
+> > > >  include/linux/mmu_notifier.h | 6 +++++-
+> > > >  1 file changed, 5 insertions(+), 1 deletion(-)
+> > > >
+> > > > diff --git a/include/linux/mmu_notifier.h
+> > > > b/include/linux/mmu_notifier.h index 62f94cd85455..0379956fff23
+> > > > 100644
+> > > > --- a/include/linux/mmu_notifier.h
+> > > > +++ b/include/linux/mmu_notifier.h
+> > > > @@ -58,10 +58,12 @@ struct mmu_notifier_mm {  #define
+> > > > MMU_NOTIFIER_RANGE_BLOCKABLE (1 << 0)
+> > > >
+> > > >  struct mmu_notifier_range {
+> > > > +	struct vm_area_struct *vma;
+> > > >  	struct mm_struct *mm;
+> > > >  	unsigned long start;
+> > > >  	unsigned long end;
+> > > >  	unsigned flags;
+> > > > +	enum mmu_notifier_event event;
+> > > >  };
+> > > >
+> > > >  struct mmu_notifier_ops {
+> > > > @@ -363,10 +365,12 @@ static inline void
+> > mmu_notifier_range_init (struct mmu_notifier_range *range,
+> > > >  					   unsigned long start,
+> > > >  					   unsigned long end)
+> > > >  {
+> > > > +	range->vma = vma;
+> > > > +	range->event = event;
+> > > >  	range->mm = mm;
+> > > >  	range->start = start;
+> > > >  	range->end = end;
+> > > > -	range->flags = 0;
+> > > > +	range->flags = flags;
+> > >
+> > > Which of the "user patch sets" uses the new flags?
+> > >
+> > > I'm not seeing that user yet.  In general I don't see anything wrong
+> > > with the series and I like the idea of telling drivers why the invalidate has
+> > fired.
+> > >
+> > > But is the flags a future feature?
+> > >
+> > 
+> > I believe the link were in the cover:
+> > 
+> > https://lkml.org/lkml/2019/1/23/833
+> > https://lkml.org/lkml/2019/1/23/834
+> > https://lkml.org/lkml/2019/1/23/832
+> > https://lkml.org/lkml/2019/1/23/831
+> > 
+> > I have more coming for HMM but i am waiting after 5.2 once amdgpu HMM
+> > patch are merge upstream as it will change what is passed down to driver
+> > and it would conflict with non merged HMM driver (like amdgpu today).
+> > 
+> 
+> Unfortunately this does not answer my question.  Yes I saw the links to the patches which use this in the header.  Furthermore, I checked the links again, I still do not see a use of range->flags nor a use of the new flags parameter to mmu_notifier_range_init().
+> 
+> I still gave a reviewed by because I'm not saying it is wrong I'm just trying to understand what use drivers have of this flag.
+> 
+> So again I'm curious what is the use case of these flags and the use case of exposing it to the users of MMU notifiers?
+
+Oh sorry did miss the exact question, not enough coffee. The
+flags is use for BLOCKABLE i converted the bool blockable to
+an int flags field so that we can have flags in the future.
+The first user is probably gonna be for restoring the KVM
+change_pte() optimization.
+
+https://lkml.org/lkml/2019/2/19/754
+https://lkml.org/lkml/2019/2/20/1087
+
+I droped the CHANGE_PTE flags from this version as i need to
+harass the KVM people some more for them to review this as
+today the change_pte() optimization does not work so today
+the change_pte() callback are useless and just wasting CPU
+cycles.
+
+Cheers,
+Jérôme
