@@ -1,88 +1,62 @@
-From: Devesh Sharma via Qemu-devel <qemu-devel@nongnu.org>
-Subject: Re: [RFC 0/3] VirtIO RDMA
-Date: Fri, 12 Apr 2019 15:21:56 +0530
-Message-ID: <CANjDDBj0rqZEmHzMH+2461_DvjV5K4hT=hJ_usBuucV4Xwh84g@mail.gmail.com>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411190215.2163572e.cohuck@redhat.com>
-	<20190411172402.GA14509@mellanox.com>
-	<20190411173419.GB6259@lap1> <20190411174124.GA6428@lap1>
-Reply-To: Devesh Sharma <devesh.sharma@broadcom.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH][next] RDMA/mlx5: check for error return in flow_rule
+ rather than err
+Date: Fri, 12 Apr 2019 18:52:34 +0300
+Message-ID: <20190412155234.GE3201@mtr-leonro.mtl.com>
+References: <20190412104017.25507-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-In-Reply-To: <20190411174124.GA6428@lap1>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: "mst@redhat.com" <mst@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Cornelia Huck <cohuck@redhat.com>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, Jason Gunthorpe <jgg@mellanox.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="CqVFb5A8LpjztvkH"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190412104017.25507-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 11, 2019 at 11:11 PM Yuval Shaia <yuval.shaia@oracle.com> wrote:
->
-> On Thu, Apr 11, 2019 at 08:34:20PM +0300, Yuval Shaia wrote:
-> > On Thu, Apr 11, 2019 at 05:24:08PM +0000, Jason Gunthorpe wrote:
-> > > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
-> > > > On Thu, 11 Apr 2019 14:01:54 +0300
-> > > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> > > >
-> > > > > Data center backends use more and more RDMA or RoCE devices and more and
-> > > > > more software runs in virtualized environment.
-> > > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
-> > > > >
-> > > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
-> > > > > technology and also because the Virtio specification
-> > > > > allows Hardware Vendors to support Virtio protocol natively in order to
-> > > > > achieve bare metal performance.
-> > > > >
-> > > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
-> > > > > Virtio Specification and a look forward on possible implementation
-> > > > > techniques.
-> > > > >
-> > > > > Open issues/Todo list:
-> > > > > List is huge, this is only start point of the project.
-> > > > > Anyway, here is one example of item in the list:
-> > > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
-> > > > >   in order to support for example 32K QPs we will need 64K VirtQ. Not sure
-> > > > >   that this is reasonable so one option is to have one for all and
-> > > > >   multiplex the traffic on it. This is not good approach as by design it
-> > > > >   introducing an optional starvation. Another approach would be multi
-> > > > >   queues and round-robin (for example) between them.
-> > > > >
-> > > > > Expectations from this posting:
-> > > > > In general, any comment is welcome, starting from hey, drop this as it is a
-> > > > > very bad idea, to yeah, go ahead, we really want it.
-> > > > > Idea here is that since it is not a minor effort i first want to know if
-> > > > > there is some sort interest in the community for such device.
-> > > >
-> > > > My first reaction is: Sounds sensible, but it would be good to have a
-> > > > spec for this :)
-> > >
-> > > I'm unclear why you'd want to have a virtio queue for anything other
-> > > that some kind of command channel.
-> > >
-> > > I'm not sure a QP or CQ benefits from this??
-> >
-> > Virtqueue is a standard mechanism to pass data from guest to host. By
->
-> And vice versa (CQ?)
->
-> > saying that - it really sounds like QP send and recv rings. So my thought
-> > is to use a standard way for rings. As i've learned this is how it is used
-> > by other virtio devices ex virtio-net.
-> >
-> > >
-> > > Jason
-> >
-I would like to ask more basic question, how virtio queue will glue
-with actual h/w qps? I may be to naive though.
 
--Regards
-Devesh
+--CqVFb5A8LpjztvkH
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Fri, Apr 12, 2019 at 11:40:17AM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+>
+> Currently when the call to create_flow_rule_vport_sq fails, the error
+> check is being performed on err rather than on the return pointer
+> flow_rule.  The return flow_rule maybe NULL (which is not considered
+> an error) or an error code, so check for the error on flow_rule.
+>
+> Addresses-Coverity: ("Uninitialized scalar variable")
+> Fixes: d5ed8ac34cef ("RDMA/mlx5: Move default representors SQ steering to rule to modify QP")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
+>  drivers/infiniband/hw/mlx5/qp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+
+Thanks,
+Acked-by: Leon Romanovsky <leonro@mellanox.com>
+
+--CqVFb5A8LpjztvkH
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBAgAGBQJcsLRCAAoJEORje4g2clinJTgP/2fgwFUh66hOcloEsSa6Yv0x
+SjrXPwLwu+ppyOsmqyYHv3bgHmqkAH2h04hCRjeWHOfEU5hK4tmqnLuSM3cQ2Uxg
+sXGaRSaQ6aqlQldjWtEM0Qtu9PdxeA1HVyLRyACtUdp9ze/pIKRU4DNVswoCazkA
+RdhtjyEwq3pmZz7GkBYNjEtQFLxSnshEaghQvVdfcSdKBDZ7atlNeoKYgmz5LepZ
+Xs5UIjKC+9oqD1Fv5yajbWBbAbJ9GCjSVkt5XW7P+G7fwlafUZ97jUF0kgEVC4Ib
+LmKBniv3bmTLOnT5n2np+U7HJBUzpJmn0eDELVjZefBZAoTtcceK+xCT+J2Kf2QY
+VhTXrUBrkgrZn8p8V+25655Hd4fHLujyvaC07Yn8evbBD3k5A6iysnkctbi3cPUS
+Rhwa/vYJA6v+CDpUrBo2fg2KRrvIi6ghRUsiV6ItwQFF2WZQp6rBUsq8Hyxv6fSE
+zr3Kh8GZ9lifEAJU57fE/I7m3yN3u0lPc6nVrtL5oR3KCdK6ZvYBG7njuBUDDg9m
+7LtHN6syTZu/XUVJQkOKahYBicapEJusvReP74HtEYtVk53q1wToRnlyBbcLB2Za
+5anuw9n7kKIzEJZNlxe77lJ+ZIE5SauT97n+m2qRBsOydnmlVp5GIE1+KmumQ7ZC
+ny0e5BqclAnp/pnO3lUX
+=j6pB
+-----END PGP SIGNATURE-----
+
+--CqVFb5A8LpjztvkH--
