@@ -1,37 +1,36 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: [PATCH][next] RDMA/mlx5: check for error return in flow_rule
- rather than err
-Date: Fri, 12 Apr 2019 19:00:16 +0000
-Message-ID: <20190412142143.GA22222@mellanox.com>
-References: <20190412104017.25507-1-colin.king@canonical.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] RDMA/cma: Make CM response timeout and # CM retries
+ configurable
+Date: Fri, 12 Apr 2019 16:30:24 -0300
+Message-ID: <20190412193024.GB4690@ziepe.ca>
+References: <20190217170909.1178575-1-haakon.bugge@oracle.com>
+ <20190222163637.GA9819@ziepe.ca>
+ <afadc799-b547-5c20-64d2-75fa0f64cd9e@opengridcomputing.com>
+ <C7922E85-CA43-479A-8021-DADD59FF5BE7@redhat.com>
+ <20190223084930.GJ23561@mtr-leonro.mtl.com>
+ <VI1PR0501MB2271E8A704DD21EF81C7DC24D1710@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190412104017.25507-1-colin.king@canonical.com>
-Content-Language: en-US
-Content-ID: <13CCEDE948459F429CB18B4A1A8DA5EB@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <VI1PR0501MB2271E8A704DD21EF81C7DC24D1710@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Parav Pandit <parav@mellanox.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Steve Wise <swise@opengridcomputing.com>, =?utf-8?B?SMOla29u?= Bugge <haakon.bugge@oracle.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 12, 2019 at 11:40:17AM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
->=20
-> Currently when the call to create_flow_rule_vport_sq fails, the error
-> check is being performed on err rather than on the return pointer
-> flow_rule.  The return flow_rule maybe NULL (which is not considered
-> an error) or an error code, so check for the error on flow_rule.
->=20
-> Addresses-Coverity: ("Uninitialized scalar variable")
-> Fixes: d5ed8ac34cef ("RDMA/mlx5: Move default representors SQ steering to=
- rule to modify QP")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
->  drivers/infiniband/hw/mlx5/qp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Mar 04, 2019 at 06:27:26AM +0000, Parav Pandit wrote:
 
-Applied to for-next, thanks
+> I think we should use rdma_nl_register(RDMA_NL_RDMA_CM, cma_cb_table) which was removed as part of ID stats removal.
+> Because of below reasons.
+> 1. rdma netlink command auto loads the module
+
+This is probably the best argument to stay away from sysctl for module
+parameters.. It is tricky to make sure the rdma module is loaded
+before sysctl runs in boot, and I don't think sysctl autoloads missing
+modules, or somehow copes with dynamic module loading, does it?
+
+To that end we should probably have the entire sysctl configurable
+available in netlink
 
 Jason
