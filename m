@@ -1,42 +1,88 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH][next] RDMA/mlx5: check for error return in flow_rule rather than err
-Date: Fri, 12 Apr 2019 11:40:17 +0100
-Message-ID: <20190412104017.25507-1-colin.king@canonical.com>
+From: Devesh Sharma via Qemu-devel <qemu-devel@nongnu.org>
+Subject: Re: [RFC 0/3] VirtIO RDMA
+Date: Fri, 12 Apr 2019 15:21:56 +0530
+Message-ID: <CANjDDBj0rqZEmHzMH+2461_DvjV5K4hT=hJ_usBuucV4Xwh84g@mail.gmail.com>
+References: <20190411110157.14252-1-yuval.shaia@oracle.com>
+	<20190411190215.2163572e.cohuck@redhat.com>
+	<20190411172402.GA14509@mellanox.com>
+	<20190411173419.GB6259@lap1> <20190411174124.GA6428@lap1>
+Reply-To: Devesh Sharma <devesh.sharma@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+In-Reply-To: <20190411174124.GA6428@lap1>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: "mst@redhat.com" <mst@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Cornelia Huck <cohuck@redhat.com>, "qemu-devel@nongnu.org" <qemu-devel@nongnu.org>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, Jason Gunthorpe <jgg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+On Thu, Apr 11, 2019 at 11:11 PM Yuval Shaia <yuval.shaia@oracle.com> wrote:
+>
+> On Thu, Apr 11, 2019 at 08:34:20PM +0300, Yuval Shaia wrote:
+> > On Thu, Apr 11, 2019 at 05:24:08PM +0000, Jason Gunthorpe wrote:
+> > > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
+> > > > On Thu, 11 Apr 2019 14:01:54 +0300
+> > > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
+> > > >
+> > > > > Data center backends use more and more RDMA or RoCE devices and more and
+> > > > > more software runs in virtualized environment.
+> > > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
+> > > > >
+> > > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
+> > > > > technology and also because the Virtio specification
+> > > > > allows Hardware Vendors to support Virtio protocol natively in order to
+> > > > > achieve bare metal performance.
+> > > > >
+> > > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
+> > > > > Virtio Specification and a look forward on possible implementation
+> > > > > techniques.
+> > > > >
+> > > > > Open issues/Todo list:
+> > > > > List is huge, this is only start point of the project.
+> > > > > Anyway, here is one example of item in the list:
+> > > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
+> > > > >   in order to support for example 32K QPs we will need 64K VirtQ. Not sure
+> > > > >   that this is reasonable so one option is to have one for all and
+> > > > >   multiplex the traffic on it. This is not good approach as by design it
+> > > > >   introducing an optional starvation. Another approach would be multi
+> > > > >   queues and round-robin (for example) between them.
+> > > > >
+> > > > > Expectations from this posting:
+> > > > > In general, any comment is welcome, starting from hey, drop this as it is a
+> > > > > very bad idea, to yeah, go ahead, we really want it.
+> > > > > Idea here is that since it is not a minor effort i first want to know if
+> > > > > there is some sort interest in the community for such device.
+> > > >
+> > > > My first reaction is: Sounds sensible, but it would be good to have a
+> > > > spec for this :)
+> > >
+> > > I'm unclear why you'd want to have a virtio queue for anything other
+> > > that some kind of command channel.
+> > >
+> > > I'm not sure a QP or CQ benefits from this??
+> >
+> > Virtqueue is a standard mechanism to pass data from guest to host. By
+>
+> And vice versa (CQ?)
+>
+> > saying that - it really sounds like QP send and recv rings. So my thought
+> > is to use a standard way for rings. As i've learned this is how it is used
+> > by other virtio devices ex virtio-net.
+> >
+> > >
+> > > Jason
+> >
+I would like to ask more basic question, how virtio queue will glue
+with actual h/w qps? I may be to naive though.
 
-Currently when the call to create_flow_rule_vport_sq fails, the error
-check is being performed on err rather than on the return pointer
-flow_rule.  The return flow_rule maybe NULL (which is not considered
-an error) or an error code, so check for the error on flow_rule.
-
-Addresses-Coverity: ("Uninitialized scalar variable")
-Fixes: d5ed8ac34cef ("RDMA/mlx5: Move default representors SQ steering to rule to modify QP")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/mlx5/qp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
-index 99ed77e7d7af..98c3241547fd 100644
---- a/drivers/infiniband/hw/mlx5/qp.c
-+++ b/drivers/infiniband/hw/mlx5/qp.c
-@@ -3276,7 +3276,7 @@ static int modify_raw_packet_qp(struct mlx5_ib_dev *dev, struct mlx5_ib_qp *qp,
- 		flow_rule = create_flow_rule_vport_sq(dev, sq,
- 						      raw_qp_param->port);
- 		if (IS_ERR(flow_rule))
--			return err;
-+			return PTR_ERR(flow_rule);
- 
- 		err = modify_raw_packet_qp_sq(dev->mdev, sq, sq_state,
- 					      raw_qp_param, qp->ibqp.pd);
--- 
-2.20.1
+-Regards
+Devesh
