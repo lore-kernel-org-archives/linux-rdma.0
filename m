@@ -1,42 +1,40 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] RDMA/cxgb4: fix null pointer dereference on alloc_skb failure
-Date: Sat, 13 Apr 2019 17:00:26 +0100
-Message-ID: <20190413160026.5873-1-colin.king@canonical.com>
+From: Yuval Shaia <yuval.shaia@oracle.com>
+Subject: Re: [RFC 3/3] RDMA/virtio-rdma: VirtIO rdma driver
+Date: Sun, 14 Apr 2019 08:20:25 +0300
+Message-ID: <20190414052024.GA2842@lap1>
+References: <20190411110157.14252-1-yuval.shaia@oracle.com>
+	<20190411110157.14252-4-yuval.shaia@oracle.com>
+	<199a70a8-5926-66af-d2d7-b19a0a0f46a2@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Potnuri Bharat Teja <bharat@chelsio.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+Content-Disposition: inline
+In-Reply-To: <199a70a8-5926-66af-d2d7-b19a0a0f46a2@oracle.com>
+List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
+List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
+List-Post: <mailto:qemu-devel@nongnu.org>
+List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
+List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
+	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
+Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
+Sender: "Qemu-devel"
+	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
+To: Yanjun Zhu <yanjun.zhu@oracle.com>
+Cc: mst@redhat.com, linux-rdma@vger.kernel.org, cohuck@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, jgg@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+> > +
+> > +	wake_up(&dev->acked);
+> > +
+> > +	printk("%s\n", __func__);
+> 
+> Cool:-)
+> 
+> this line should be for debug?
 
-Currently if alloc_skb fails to allocate the skb a null skb is passed
-to t4_set_arp_err_handler and this ends up dereferencing the null skb.
-Avoid the null pointer dereference by checking for a null skb and
-returning early.
+Yes
 
-Addresses-Coverity: ("Dereference null return")
-Fixes: b38a0ad8ec11 ("RDMA/cxgb4: Set arp error handler for PASS_ACCEPT_RPL messages")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/infiniband/hw/cxgb4/cm.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 1e68d87b663d..0f3b1193d5f8 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -460,6 +460,8 @@ static struct sk_buff *get_skb(struct sk_buff *skb, int len, gfp_t gfp)
- 		skb_reset_transport_header(skb);
- 	} else {
- 		skb = alloc_skb(len, gfp);
-+		if (!skb)
-+			return NULL;
- 	}
- 	t4_set_arp_err_handler(skb, NULL, NULL);
- 	return skb;
--- 
-2.20.1
+> 
+> Zhu Yanjun
+> 
