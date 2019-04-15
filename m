@@ -1,94 +1,141 @@
-From: "Collier, Josh D" <josh.d.collier@intel.com>
-Subject: RE: [PATCH for-rc] IB/rdmavt: Fix frwr memory registration
-Date: Mon, 15 Apr 2019 20:47:04 +0000
-Message-ID: <DCBFDAA3074904408488FD0876284E633C587BA1@ORSMSX115.amr.corp.intel.com>
+From: Tom Talpey <tom@talpey.com>
+Subject: Re: [PATCH for-rc] IB/rdmavt: Fix frwr memory registration
+Date: Mon, 15 Apr 2019 16:55:37 -0400
+Message-ID: <170c1b29-6237-fc20-a148-d80bb6c4120c@talpey.com>
 References: <20190415183415.24136.56776.stgit@scvm10.sc.intel.com>
  <aae2112c-9896-8807-721d-c1182867a618@talpey.com>
+ <DCBFDAA3074904408488FD0876284E633C587BA1@ORSMSX115.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <aae2112c-9896-8807-721d-c1182867a618@talpey.com>
+In-Reply-To: <DCBFDAA3074904408488FD0876284E633C587BA1@ORSMSX115.amr.corp.intel.com>
 Content-Language: en-US
 Sender: stable-owner@vger.kernel.org
-To: Tom Talpey <tom@talpey.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>
+To: "Collier, Josh D" <josh.d.collier@intel.com>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>
 Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Ruhl, Michael J" <michael.j.ruhl@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbSBUYWxwZXkgW21haWx0
-bzp0b21AdGFscGV5LmNvbV0NCj4gU2VudDogTW9uZGF5LCBBcHJpbCAxNSwgMjAxOSAzOjE1IFBN
-DQo+IFRvOiBEYWxlc3NhbmRybywgRGVubmlzIDxkZW5uaXMuZGFsZXNzYW5kcm9AaW50ZWwuY29t
-PjsgamdnQHppZXBlLmNhOw0KPiBkbGVkZm9yZEByZWRoYXQuY29tDQo+IENjOiBsaW51eC1yZG1h
-QHZnZXIua2VybmVsLm9yZzsgUnVobCwgTWljaGFlbCBKIDxtaWNoYWVsLmoucnVobEBpbnRlbC5j
-b20+Ow0KPiBNYXJjaW5pc3p5biwgTWlrZSA8bWlrZS5tYXJjaW5pc3p5bkBpbnRlbC5jb20+OyBD
-b2xsaWVyLCBKb3NoIEQNCj4gPGpvc2guZC5jb2xsaWVyQGludGVsLmNvbT47IHN0YWJsZUB2Z2Vy
-Lmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCBmb3ItcmNdIElCL3JkbWF2dDogRml4
-IGZyd3IgbWVtb3J5IHJlZ2lzdHJhdGlvbg0KPiANCj4gT24gNC8xNS8yMDE5IDI6MzQgUE0sIERl
-bm5pcyBEYWxlc3NhbmRybyB3cm90ZToNCj4gPiBGcm9tOiBKb3NoIENvbGxpZXIgPGpvc2guZC5j
-b2xsaWVyQGludGVsLmNvbT4NCj4gPg0KPiA+IEN1cnJlbnQgaW1wbGVtZW50YXRpb24gd2FzIG5v
-dCBwcm9wZXJseSBoYW5kbGluZyBmcndyIG1lbW9yeQ0KPiA+IHJlZ2lzdHJhdGlvbnMuIFRoaXMg
-d2FzIHVuY292ZXJlZCBieToNCj4gPiAgICBjb21taXQgMjdmMjZjZWM3NjFkYXMNCj4gPiAgICB4
-cHJ0cmRtYTogUGxhbnQgWElEIGluIG9uLXRoZS13aXJlIFJETUEgb2Zmc2V0IChGUldSKSBpbiB3
-aGljaA0KPiA+IHhwcnRyZG1hLCB3aGljaCBpcyB1c2VkIGZvciBORlMgb3ZlciBSRE1BLCBzdGFy
-dGVkIGZhaWxpbmcgYXMgaXQgd2FzDQo+ID4gdGhlIGZpcnN0IFVMUCB0byBtb2RpZnkgdGhlIGli
-X21yIGlvdmEgcmVzdWx0aW5nIGluIHRoZSBORlMgc2VydmVyDQo+ID4gZ2V0dGluZyBSRU1PVEUg
-QUNDRVNTIEVSUk9SIHdoZW4gYXR0ZW1wdGluZyB0byBwZXJmb3JtIFJETUEgV3JpdGVzDQo+IHRv
-DQo+ID4gdGhlIGNsaWVudC4NCj4gPg0KPiA+IFRoZSBmaXggaXMgdG8gcHJvcGVybHkgY2FwdHVy
-ZSB0aGUgdHJ1ZSBpb3ZhLCBvZmZzZXQsIGFuZCBsZW5ndGggaW4NCj4gPiB0aGUgY2FsbCB0byBp
-Yl9tYXBfbXJfc2csIGFuZCB0aGVuIHVwZGF0ZSB0aGUgaW92YSB3aGVuIHByb2Nlc3NpbmcgdGhl
-DQo+ID4gSUJfV1JfUkVHX01FTSBvbiB0aGUgc2VuZCBxdWV1ZS4NCj4gPg0KPiA+IEZpeGVzOiBh
-NDEwODFhYTU5MzYgKCJJQi9yZG1hdnQ6IEFkZCBzdXBwb3J0IGZvciBpYl9tYXBfbXJfc2ciKQ0K
-PiA+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnDQo+ID4gUmV2aWV3ZWQtYnk6IE1pa2UgTWFy
-Y2luaXN6eW4gPG1pa2UubWFyY2luaXN6eW5AaW50ZWwuY29tPg0KPiA+IFJldmlld2VkLWJ5OiBE
-ZW5uaXMgRGFsZXNzYW5kcm8gPGRlbm5pcy5kYWxlc3NhbmRyb0BpbnRlbC5jb20+DQo+ID4gUmV2
-aWV3ZWQtYnk6IE1pY2hhZWwgSi4gUnVobCA8bWljaGFlbC5qLnJ1aGxAaW50ZWwuY29tPg0KPiA+
-IFNpZ25lZC1vZmYtYnk6IEpvc2ggQ29sbGllciA8am9zaC5kLmNvbGxpZXJAaW50ZWwuY29tPg0K
-PiA+IFNpZ25lZC1vZmYtYnk6IERlbm5pcyBEYWxlc3NhbmRybyA8ZGVubmlzLmRhbGVzc2FuZHJv
-QGludGVsLmNvbT4NCj4gPiAtLS0NCj4gPiAgIGRyaXZlcnMvaW5maW5pYmFuZC9zdy9yZG1hdnQv
-bXIuYyB8ICAgMTcgKysrKysrKysrKy0tLS0tLS0NCj4gPiAgIDEgZmlsZXMgY2hhbmdlZCwgMTAg
-aW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2luZmluaWJhbmQvc3cvcmRtYXZ0L21yLmMNCj4gPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9z
-dy9yZG1hdnQvbXIuYw0KPiA+IGluZGV4IDcyODc5NTAuLjBiYjZlMzkgMTAwNjQ0DQo+ID4gLS0t
-IGEvZHJpdmVycy9pbmZpbmliYW5kL3N3L3JkbWF2dC9tci5jDQo+ID4gKysrIGIvZHJpdmVycy9p
-bmZpbmliYW5kL3N3L3JkbWF2dC9tci5jDQo+ID4gQEAgLTYwOCwxMSArNjA4LDYgQEAgc3RhdGlj
-IGludCBydnRfc2V0X3BhZ2Uoc3RydWN0IGliX21yICppYm1yLCB1NjQNCj4gYWRkcikNCj4gPiAg
-IAlpZiAodW5saWtlbHkobWFwcGVkX3NlZ3MgPT0gbXItPm1yLm1heF9zZWdzKSkNCj4gPiAgIAkJ
-cmV0dXJuIC1FTk9NRU07DQo+ID4NCj4gPiAtCWlmIChtci0+bXIubGVuZ3RoID09IDApIHsNCj4g
-PiAtCQltci0+bXIudXNlcl9iYXNlID0gYWRkcjsNCj4gPiAtCQltci0+bXIuaW92YSA9IGFkZHI7
-DQo+ID4gLQl9DQo+ID4gLQ0KPiA+ICAgCW0gPSBtYXBwZWRfc2VncyAvIFJWVF9TRUdTWjsNCj4g
-PiAgIAluID0gbWFwcGVkX3NlZ3MgJSBSVlRfU0VHU1o7DQo+ID4gICAJbXItPm1yLm1hcFttXS0+
-c2Vnc1tuXS52YWRkciA9ICh2b2lkICopYWRkcjsgQEAgLTYzMCwxNyArNjI1LDI0DQo+IEBADQo+
-ID4gc3RhdGljIGludCBydnRfc2V0X3BhZ2Uoc3RydWN0IGliX21yICppYm1yLCB1NjQgYWRkcikN
-Cj4gPiAgICAqIEBzZ19uZW50czogbnVtYmVyIG9mIGVudHJpZXMgaW4gc2cNCj4gPiAgICAqIEBz
-Z19vZmZzZXQ6IG9mZnNldCBpbiBieXRlcyBpbnRvIHNnDQo+ID4gICAgKg0KPiA+ICsgKiBPdmVy
-d3JpdGUgcnZ0X21yIGxlbmd0aCB3aXRoIG1yIGxlbmd0aCBjYWxjdWxhdGVkIGJ5IGliX3NnX3Rv
-X3BhZ2VzLg0KPiA+ICsgKg0KPiA+ICAgICogUmV0dXJuOiBudW1iZXIgb2Ygc2cgZWxlbWVudHMg
-bWFwcGVkIHRvIHRoZSBtZW1vcnkgcmVnaW9uDQo+ID4gICAgKi8NCj4gPiAgIGludCBydnRfbWFw
-X21yX3NnKHN0cnVjdCBpYl9tciAqaWJtciwgc3RydWN0IHNjYXR0ZXJsaXN0ICpzZywNCj4gPiAg
-IAkJICBpbnQgc2dfbmVudHMsIHVuc2lnbmVkIGludCAqc2dfb2Zmc2V0KQ0KPiA+ICAgew0KPiA+
-ICAgCXN0cnVjdCBydnRfbXIgKm1yID0gdG9faW1yKGlibXIpOw0KPiA+ICsJaW50IHJldDsNCj4g
-Pg0KPiA+ICAgCW1yLT5tci5sZW5ndGggPSAwOw0KPiANCj4gVGhlIGFib3ZlIG1yLmxlbmd0aCBh
-c3NpZ25tZW50IGlzIG5vIGxvbmdlciBuZWVkZWQsIHNpbmNlIGl0IGlzDQo+IHVuY29uZGl0aW9u
-YWxseSBvdmVyd3JpdHRlbiBzZXZlcmFsIGxpbmVzIGJlbG93Lg0KDQpUaGUgbXIubGVuZ3RoIGlz
-IHN0aWxsIHRlbXBvcmFyaWx5IHVzZWQgYnkgb3VyIHJ2dF9zZXRfcGFnZSBmdW5jdGlvbiBlZmZl
-Y3RpdmVseQ0KYXMgYSBwYWdlIGluZGV4IGFuZCBuZWVkcyB0byBjb250aW51ZSB0byBiZSBpbml0
-aWFsaXplZCBmb3IgdGhhdCBwdXJwb3NlLg0KDQo+IA0KPiA+ICAgCW1yLT5tci5wYWdlX3NoaWZ0
-ID0gUEFHRV9TSElGVDsNCj4gPiAtCXJldHVybiBpYl9zZ190b19wYWdlcyhpYm1yLCBzZywgc2df
-bmVudHMsIHNnX29mZnNldCwNCj4gPiAtCQkJICAgICAgcnZ0X3NldF9wYWdlKTsNCj4gPiArCXJl
-dCA9IGliX3NnX3RvX3BhZ2VzKGlibXIsIHNnLCBzZ19uZW50cywgc2dfb2Zmc2V0LCBydnRfc2V0
-X3BhZ2UpOw0KPiA+ICsJbXItPm1yLnVzZXJfYmFzZSA9IGlibXItPmlvdmE7DQo+ID4gKwltci0+
-bXIuaW92YSA9IGlibXItPmlvdmE7DQo+ID4gKwltci0+bXIub2Zmc2V0ID0gaWJtci0+aW92YSAt
-ICh1NjQpbXItPm1yLm1hcFswXS0+c2Vnc1swXS52YWRkcjsNCj4gPiArCW1yLT5tci5sZW5ndGgg
-PSAoc2l6ZV90KWlibXItPmxlbmd0aDsNCj4gPiArCXJldHVybiByZXQ7DQo+ID4gICB9DQo+ID4N
-Cj4gPiAgIC8qKg0KPiA+IEBAIC02NzEsNiArNjczLDcgQEAgaW50IHJ2dF9mYXN0X3JlZ19tcihz
-dHJ1Y3QgcnZ0X3FwICpxcCwgc3RydWN0IGliX21yDQo+ICppYm1yLCB1MzIga2V5LA0KPiA+ICAg
-CWlibXItPnJrZXkgPSBrZXk7DQo+ID4gICAJbXItPm1yLmxrZXkgPSBrZXk7DQo+ID4gICAJbXIt
-Pm1yLmFjY2Vzc19mbGFncyA9IGFjY2VzczsNCj4gPiArCW1yLT5tci5pb3ZhID0gaWJtci0+aW92
-YTsNCj4gDQo+IElzbid0IHRoaXMgYSByZWR1bmRhbnQgYXNzaWdubWVudD8gSWYgaXQgaXNuJ3Qs
-IHRoZW4gd2h5IGlzIHRoZQ0KPiBtci0+bXIub2Zmc2V0IG5vdCBiZWluZyByZWNhbGN1bGF0ZWQ/
-DQoNClRoZSBpYl9tciBpb3ZhIGNhbiBiZSBjaGFuZ2VkIGJ5IHRoZSBVTFAgdG8gYW55IHZhbHVl
-LCBidXQgYW55IHZhbHVlIHNob3VsZA0KaW5kZXggdG8gdGhlIHByZXZpb3VzbHkgbWFwcGVkIE1S
-J3Mgc3RhcnRpbmcgcGFnZSBhbmQgb2Zmc2V0LCBoZW5jZSB0aG9zZSBkbw0Kbm90IGNoYW5nZSwg
-YW5kIHdlIG9ubHkgdXBkYXRlIHRoZSBpb3ZhLg0KDQo+IA0KPiA+ICAgCWF0b21pY19zZXQoJm1y
-LT5tci5sa2V5X2ludmFsaWQsIDApOw0KPiA+DQo+ID4gICAJcmV0dXJuIDA7DQo+ID4NCj4gPg0K
-PiA+DQo=
+On 4/15/2019 4:47 PM, Collier, Josh D wrote:
+> 
+>> -----Original Message-----
+>> From: Tom Talpey [mailto:tom@talpey.com]
+>> Sent: Monday, April 15, 2019 3:15 PM
+>> To: Dalessandro, Dennis <dennis.dalessandro@intel.com>; jgg@ziepe.ca;
+>> dledford@redhat.com
+>> Cc: linux-rdma@vger.kernel.org; Ruhl, Michael J <michael.j.ruhl@intel.com>;
+>> Marciniszyn, Mike <mike.marciniszyn@intel.com>; Collier, Josh D
+>> <josh.d.collier@intel.com>; stable@vger.kernel.org
+>> Subject: Re: [PATCH for-rc] IB/rdmavt: Fix frwr memory registration
+>>
+>> On 4/15/2019 2:34 PM, Dennis Dalessandro wrote:
+>>> From: Josh Collier <josh.d.collier@intel.com>
+>>>
+>>> Current implementation was not properly handling frwr memory
+>>> registrations. This was uncovered by:
+>>>     commit 27f26cec761das
+>>>     xprtrdma: Plant XID in on-the-wire RDMA offset (FRWR) in which
+>>> xprtrdma, which is used for NFS over RDMA, started failing as it was
+>>> the first ULP to modify the ib_mr iova resulting in the NFS server
+>>> getting REMOTE ACCESS ERROR when attempting to perform RDMA Writes
+>> to
+>>> the client.
+>>>
+>>> The fix is to properly capture the true iova, offset, and length in
+>>> the call to ib_map_mr_sg, and then update the iova when processing the
+>>> IB_WR_REG_MEM on the send queue.
+>>>
+>>> Fixes: a41081aa5936 ("IB/rdmavt: Add support for ib_map_mr_sg")
+>>> Cc: stable@vger.kernel.org
+>>> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+>>> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+>>> Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+>>> Signed-off-by: Josh Collier <josh.d.collier@intel.com>
+>>> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+>>> ---
+>>>    drivers/infiniband/sw/rdmavt/mr.c |   17 ++++++++++-------
+>>>    1 files changed, 10 insertions(+), 7 deletions(-)
+>>>
+>>> diff --git a/drivers/infiniband/sw/rdmavt/mr.c
+>>> b/drivers/infiniband/sw/rdmavt/mr.c
+>>> index 7287950..0bb6e39 100644
+>>> --- a/drivers/infiniband/sw/rdmavt/mr.c
+>>> +++ b/drivers/infiniband/sw/rdmavt/mr.c
+>>> @@ -608,11 +608,6 @@ static int rvt_set_page(struct ib_mr *ibmr, u64
+>> addr)
+>>>    	if (unlikely(mapped_segs == mr->mr.max_segs))
+>>>    		return -ENOMEM;
+>>>
+>>> -	if (mr->mr.length == 0) {
+>>> -		mr->mr.user_base = addr;
+>>> -		mr->mr.iova = addr;
+>>> -	}
+>>> -
+>>>    	m = mapped_segs / RVT_SEGSZ;
+>>>    	n = mapped_segs % RVT_SEGSZ;
+>>>    	mr->mr.map[m]->segs[n].vaddr = (void *)addr; @@ -630,17 +625,24
+>> @@
+>>> static int rvt_set_page(struct ib_mr *ibmr, u64 addr)
+>>>     * @sg_nents: number of entries in sg
+>>>     * @sg_offset: offset in bytes into sg
+>>>     *
+>>> + * Overwrite rvt_mr length with mr length calculated by ib_sg_to_pages.
+>>> + *
+>>>     * Return: number of sg elements mapped to the memory region
+>>>     */
+>>>    int rvt_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+>>>    		  int sg_nents, unsigned int *sg_offset)
+>>>    {
+>>>    	struct rvt_mr *mr = to_imr(ibmr);
+>>> +	int ret;
+>>>
+>>>    	mr->mr.length = 0;
+>>
+>> The above mr.length assignment is no longer needed, since it is
+>> unconditionally overwritten several lines below.
+> 
+> The mr.length is still temporarily used by our rvt_set_page function effectively
+> as a page index and needs to continue to be initialized for that purpose.
+
+Hmm, ok I guess. It seems quite odd to need to initialize it
+to zero just to have it set by the callee to the proper value.
+
+>>>    	mr->mr.page_shift = PAGE_SHIFT;
+>>> -	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset,
+>>> -			      rvt_set_page);
+>>> +	ret = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, rvt_set_page);
+>>> +	mr->mr.user_base = ibmr->iova;
+>>> +	mr->mr.iova = ibmr->iova;
+>>> +	mr->mr.offset = ibmr->iova - (u64)mr->mr.map[0]->segs[0].vaddr;
+>>> +	mr->mr.length = (size_t)ibmr->length;
+>>> +	return ret;
+>>>    }
+>>>
+>>>    /**
+>>> @@ -671,6 +673,7 @@ int rvt_fast_reg_mr(struct rvt_qp *qp, struct ib_mr
+>> *ibmr, u32 key,
+>>>    	ibmr->rkey = key;
+>>>    	mr->mr.lkey = key;
+>>>    	mr->mr.access_flags = access;
+>>> +	mr->mr.iova = ibmr->iova;
+>>
+>> Isn't this a redundant assignment? If it isn't, then why is the
+>> mr->mr.offset not being recalculated?
+> 
+> The ib_mr iova can be changed by the ULP to any value, but any value should
+> index to the previously mapped MR's starting page and offset, hence those do
+> not change, and we only update the iova.
+
+Ah, got it. The ULP changes iova between the map and the fastreg,
+so the mr captures the fastreg value. Agreed.
+
+Tom.
+
+> 
+>>
+>>>    	atomic_set(&mr->mr.lkey_invalid, 0);
+>>>
+>>>    	return 0;
+>>>
+>>>
+>>>
