@@ -1,97 +1,90 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [RFC 0/3] VirtIO RDMA
-Date: Mon, 15 Apr 2019 13:35:47 +0300
-Message-ID: <20190415103546.GA6854@lap1>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411190215.2163572e.cohuck@redhat.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: [PATCH for-rc] IB/rdmavt: Fix frwr memory registration
+Date: Mon, 15 Apr 2019 11:34:22 -0700
+Message-ID: <20190415183415.24136.56776.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-Content-Disposition: inline
-In-Reply-To: <20190411190215.2163572e.cohuck@redhat.com>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Cornelia Huck <cohuck@redhat.com>
-Cc: mst@redhat.com, linux-rdma@vger.kernel.org, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, jgg@mellanox.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: jgg@ziepe.ca, dledford@redhat.com
+Cc: linux-rdma@vger.kernel.org, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Josh Collier <josh.d.collier@intel.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
-> On Thu, 11 Apr 2019 14:01:54 +0300
-> Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> 
-> > Data center backends use more and more RDMA or RoCE devices and more and
-> > more software runs in virtualized environment.
-> > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
-> > 
-> > Virtio is the optimal solution since is the de-facto para-virtualizaton
-> > technology and also because the Virtio specification
-> > allows Hardware Vendors to support Virtio protocol natively in order to
-> > achieve bare metal performance.
-> > 
-> > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
-> > Virtio Specification and a look forward on possible implementation
-> > techniques.
-> > 
-> > Open issues/Todo list:
-> > List is huge, this is only start point of the project.
-> > Anyway, here is one example of item in the list:
-> > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
-> >   in order to support for example 32K QPs we will need 64K VirtQ. Not sure
-> >   that this is reasonable so one option is to have one for all and
-> >   multiplex the traffic on it. This is not good approach as by design it
-> >   introducing an optional starvation. Another approach would be multi
-> >   queues and round-robin (for example) between them.
-> > 
-> > Expectations from this posting:
-> > In general, any comment is welcome, starting from hey, drop this as it is a
-> > very bad idea, to yeah, go ahead, we really want it.
-> > Idea here is that since it is not a minor effort i first want to know if
-> > there is some sort interest in the community for such device.
-> 
-> My first reaction is: Sounds sensible, but it would be good to have a
-> spec for this :)
-> 
-> You'll need a spec if you want this to go forward anyway, so at least a
-> sketch would be good to answer questions such as how many virtqueues
-> you use for which purpose, what is actually put on the virtqueues,
-> whether there are negotiable features, and what the expectations for
-> the device and the driver are. It also makes it easier to understand
-> how this is supposed to work in practice.
-> 
-> If folks agree that this sounds useful, the next step would be to
-> reserve an id for the device type.
+From: Josh Collier <josh.d.collier@intel.com>
 
-Thanks for the tips, will sure do that, it is that first i wanted to make
-sure there is a use case here.
+Current implementation was not properly handling frwr memory
+registrations. This was uncovered by:
+  commit 27f26cec761das
+  xprtrdma: Plant XID in on-the-wire RDMA offset (FRWR)
+in which xprtrdma, which is used for NFS over RDMA, started
+failing as it was the first ULP to modify the ib_mr iova
+resulting in the NFS server getting REMOTE ACCESS ERROR
+when attempting to perform RDMA Writes to the client.
 
-Waiting for any feedback from the community.
+The fix is to properly capture the true iova, offset, and length
+in the call to ib_map_mr_sg, and then update the iova when
+processing the IB_WR_REG_MEM on the send queue.
 
-> 
-> > 
-> > The scope of the implementation is limited to probing the device and doing
-> > some basic ibverbs commands. Data-path is not yet implemented. So with this
-> > one can expect only that driver is (partialy) loaded and basic queries and
-> > resource allocation is done.
-> > 
-> > One note regarding the patchset.
-> > I know it is not standard to collaps patches from several repos as i did
-> > here (qemu and linux) but decided to do it anyway so the whole picture can
-> > be seen.
-> > 
-> > patch 1: virtio-net: Move some virtio-net-pci decl to include/hw/virtio
-> > 	This is a prelimenary patch just as a hack so i will not need to
-> > 	impelement new netdev
-> > patch 2: hw/virtio-rdma: VirtIO rdma device
-> > 	The implementation of the device
-> > patch 3: RDMA/virtio-rdma: VirtIO rdma driver
-> > 	The device driver
-> > 
-> 
+Fixes: a41081aa5936 ("IB/rdmavt: Add support for ib_map_mr_sg")
+Cc: stable@vger.kernel.org
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Josh Collier <josh.d.collier@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+---
+ drivers/infiniband/sw/rdmavt/mr.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/infiniband/sw/rdmavt/mr.c b/drivers/infiniband/sw/rdmavt/mr.c
+index 7287950..0bb6e39 100644
+--- a/drivers/infiniband/sw/rdmavt/mr.c
++++ b/drivers/infiniband/sw/rdmavt/mr.c
+@@ -608,11 +608,6 @@ static int rvt_set_page(struct ib_mr *ibmr, u64 addr)
+ 	if (unlikely(mapped_segs == mr->mr.max_segs))
+ 		return -ENOMEM;
+ 
+-	if (mr->mr.length == 0) {
+-		mr->mr.user_base = addr;
+-		mr->mr.iova = addr;
+-	}
+-
+ 	m = mapped_segs / RVT_SEGSZ;
+ 	n = mapped_segs % RVT_SEGSZ;
+ 	mr->mr.map[m]->segs[n].vaddr = (void *)addr;
+@@ -630,17 +625,24 @@ static int rvt_set_page(struct ib_mr *ibmr, u64 addr)
+  * @sg_nents: number of entries in sg
+  * @sg_offset: offset in bytes into sg
+  *
++ * Overwrite rvt_mr length with mr length calculated by ib_sg_to_pages.
++ *
+  * Return: number of sg elements mapped to the memory region
+  */
+ int rvt_map_mr_sg(struct ib_mr *ibmr, struct scatterlist *sg,
+ 		  int sg_nents, unsigned int *sg_offset)
+ {
+ 	struct rvt_mr *mr = to_imr(ibmr);
++	int ret;
+ 
+ 	mr->mr.length = 0;
+ 	mr->mr.page_shift = PAGE_SHIFT;
+-	return ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset,
+-			      rvt_set_page);
++	ret = ib_sg_to_pages(ibmr, sg, sg_nents, sg_offset, rvt_set_page);
++	mr->mr.user_base = ibmr->iova;
++	mr->mr.iova = ibmr->iova;
++	mr->mr.offset = ibmr->iova - (u64)mr->mr.map[0]->segs[0].vaddr;
++	mr->mr.length = (size_t)ibmr->length;
++	return ret;
+ }
+ 
+ /**
+@@ -671,6 +673,7 @@ int rvt_fast_reg_mr(struct rvt_qp *qp, struct ib_mr *ibmr, u32 key,
+ 	ibmr->rkey = key;
+ 	mr->mr.lkey = key;
+ 	mr->mr.access_flags = access;
++	mr->mr.iova = ibmr->iova;
+ 	atomic_set(&mr->mr.lkey_invalid, 0);
+ 
+ 	return 0;
