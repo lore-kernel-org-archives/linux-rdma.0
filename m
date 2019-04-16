@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 2/6] RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
-Date: Tue, 16 Apr 2019 14:07:26 +0300
-Message-ID: <20190416110730.32230-3-leon@kernel.org>
+Subject: [PATCH rdma-next 3/6] RDMA/ucontext: Do not allow BAR mappings to be executable
+Date: Tue, 16 Apr 2019 14:07:27 +0300
+Message-ID: <20190416110730.32230-4-leon@kernel.org>
 References: <20190416110730.32230-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,40 +14,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-Since mlx5 supports device disassociate it must use this API for all
-BAR page mmaps, otherwise the pages can remain mapped after the device
-is unplugged causing a system crash.
+These are not code pages and should never be executed.
 
 Cc: stable@vger.kernel.org
 Fixes: 5f9794dc94f5 ("RDMA/ucontext: Add a core API for mmaping driver IO memory")
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Reviewed-by: Haggai Eran <haggaie@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 73b7f9636f82..77b018c0923f 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2244,14 +2244,12 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
- 		if (PAGE_SIZE > 4096)
- 			return -EOPNOTSUPP;
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index fef4519d1241..3ef6474cd201 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -889,6 +889,10 @@ static struct rdma_umap_priv *rdma_user_mmap_pre(struct ib_ucontext *ucontext,
+ 	struct ib_uverbs_file *ufile = ucontext->ufile;
+ 	struct rdma_umap_priv *priv;
  
--		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
- 		pfn = (dev->mdev->iseg_base +
- 		       offsetof(struct mlx5_init_seg, internal_timer_h)) >>
- 			PAGE_SHIFT;
--		if (io_remap_pfn_range(vma, vma->vm_start, pfn,
--				       PAGE_SIZE, vma->vm_page_prot))
--			return -EAGAIN;
--		break;
-+		return rdma_user_mmap_io(&context->ibucontext, vma, pfn,
-+					 PAGE_SIZE,
-+					 pgprot_noncached(vma->vm_page_prot));
- 	case MLX5_IB_MMAP_CLOCK_INFO:
- 		return mlx5_ib_mmap_clock_info_page(dev, vma, context);
++	if (vma->vm_flags & VM_EXEC)
++		return ERR_PTR(-EINVAL);
++	vma->vm_flags &= ~VM_MAYEXEC;
++
+ 	if (vma->vm_end - vma->vm_start != size)
+ 		return ERR_PTR(-EINVAL);
  
 -- 
 2.20.1
