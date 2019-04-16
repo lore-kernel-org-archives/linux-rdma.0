@@ -1,121 +1,48 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [RFC 3/3] RDMA/virtio-rdma: VirtIO rdma driver
-Date: Tue, 16 Apr 2019 11:56:21 +0300
-Message-ID: <20190416085620.GA4493@lap1>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411110157.14252-4-yuval.shaia@oracle.com>
-	<f133d122-5b00-2e3b-f5cc-efc6d2cc3d3b@acm.org>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH for-rc] IB/rdmavt: Fix frwr memory registration
+Date: Tue, 16 Apr 2019 10:15:24 +0000
+Message-ID: <20190416101521.GA18792@mellanox.com>
+References: <20190415183415.24136.56776.stgit@scvm10.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-Content-Disposition: inline
-In-Reply-To: <f133d122-5b00-2e3b-f5cc-efc6d2cc3d3b@acm.org>
-List-Unsubscribe: <https://lists.nongnu.org/mailman/options/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=unsubscribe>
-List-Archive: <http://lists.nongnu.org/archive/html/qemu-devel/>
-List-Post: <mailto:qemu-devel@nongnu.org>
-List-Help: <mailto:qemu-devel-request@nongnu.org?subject=help>
-List-Subscribe: <https://lists.nongnu.org/mailman/listinfo/qemu-devel>,
-	<mailto:qemu-devel-request@nongnu.org?subject=subscribe>
-Errors-To: qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org
-Sender: "Qemu-devel"
-	<qemu-devel-bounces+gceq-qemu-devel2=m.gmane.org@nongnu.org>
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: mst@redhat.com, linux-rdma@vger.kernel.org, cohuck@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, jgg@mellanox.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190415183415.24136.56776.stgit@scvm10.sc.intel.com>
+Content-Language: en-US
+Content-ID: <44A88D06D421E24288BCDFD3D9FC08A2@eurprd05.prod.outlook.com>
+Sender: stable-owner@vger.kernel.org
+To: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Michael J. Ruhl" <michael.j.ruhl@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Josh Collier <josh.d.collier@intel.com>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 15, 2019 at 06:07:52PM -0700, Bart Van Assche wrote:
-> On 4/11/19 4:01 AM, Yuval Shaia wrote:
-> > +++ b/drivers/infiniband/hw/virtio/Kconfig
-> > @@ -0,0 +1,6 @@
-> > +config INFINIBAND_VIRTIO_RDMA
-> > +	tristate "VirtIO Paravirtualized RDMA Driver"
-> > +	depends on NETDEVICES && ETHERNET && PCI && INET
-> > +	---help---
-> > +	  This driver provides low-level support for VirtIO Paravirtual
-> > +	  RDMA adapter.
-> 
-> Does this driver really depend on Ethernet, or does it also work with
-> Ethernet support disabled?
+On Mon, Apr 15, 2019 at 11:34:22AM -0700, Dennis Dalessandro wrote:
+> From: Josh Collier <josh.d.collier@intel.com>
+>=20
+> Current implementation was not properly handling frwr memory
+> registrations. This was uncovered by:
+>   commit 27f26cec761das
+>   xprtrdma: Plant XID in on-the-wire RDMA offset (FRWR)
+> in which xprtrdma, which is used for NFS over RDMA, started
+> failing as it was the first ULP to modify the ib_mr iova
+> resulting in the NFS server getting REMOTE ACCESS ERROR
+> when attempting to perform RDMA Writes to the client.
+>=20
+> The fix is to properly capture the true iova, offset, and length
+> in the call to ib_map_mr_sg, and then update the iova when
+> processing the IB_WR_REG_MEM on the send queue.
+>=20
+> Fixes: a41081aa5936 ("IB/rdmavt: Add support for ib_map_mr_sg")
+> Cc: stable@vger.kernel.org
+> Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+> Signed-off-by: Josh Collier <josh.d.collier@intel.com>
+> Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> ---
+>  drivers/infiniband/sw/rdmavt/mr.c |   17 ++++++++++-------
+>  1 files changed, 10 insertions(+), 7 deletions(-)
 
-The device should eventually expose Ethernet interface as well as IB.
+Applied to for-rc
 
-> 
-> > +static inline struct virtio_rdma_info *to_vdev(struct ib_device *ibdev)
-> > +{
-> > +	return container_of(ibdev, struct virtio_rdma_info, ib_dev);
-> > +}
-> 
-> Is it really worth to introduce this function? Have you considered to
-> use container_of(ibdev, struct virtio_rdma_info, ib_dev) directly instead
-> of to_vdev()?
-
-Agree, not sure really needed, just saw that some drivers uses this pattern.
-
-> 
-> > +static void rdma_ctrl_ack(struct virtqueue *vq)
-> > +{
-> > +	struct virtio_rdma_info *dev = vq->vdev->priv;
-> > +
-> > +	wake_up(&dev->acked);
-> > +
-> > +	printk("%s\n", __func__);
-> > +}
-> 
-> Should that printk() be changed into pr_debug()? The same comment holds for
-> all other printk() calls.
-
-All prints will be removed, this is still wip.
-
-> 
-> > +#define VIRTIO_RDMA_BOARD_ID	1
-> > +#define VIRTIO_RDMA_HW_NAME	"virtio-rdma"
-> > +#define VIRTIO_RDMA_HW_REV	1
-> > +#define VIRTIO_RDMA_DRIVER_VER	"1.0"
-> 
-> Is a driver version number useful in an upstream driver?
-
-I've noticed that other drivers exposes this in sysfs.
-
-> 
-> > +struct ib_cq *virtio_rdma_create_cq(struct ib_device *ibdev,
-> > +				    const struct ib_cq_init_attr *attr,
-> > +				    struct ib_ucontext *context,
-> > +				    struct ib_udata *udata)
-> > +{
-> > +	struct scatterlist in, out;
-> > +	struct virtio_rdma_ib_cq *vcq;
-> > +	struct cmd_create_cq *cmd;
-> > +	struct rsp_create_cq *rsp;
-> > +	struct ib_cq *cq = NULL;
-> > +	int rc;
-> > +
-> > +	/* TODO: Check MAX_CQ */
-> > +
-> > +	cmd = kmalloc(sizeof(*cmd), GFP_ATOMIC);
-> > +	if (!cmd)
-> > +		return ERR_PTR(-ENOMEM);
-> > +
-> > +	rsp = kmalloc(sizeof(*rsp), GFP_ATOMIC);
-> > +	if (!rsp) {
-> > +		kfree(cmd);
-> > +		return ERR_PTR(-ENOMEM);
-> > +	}
-> > +
-> > +	vcq = kzalloc(sizeof(*vcq), GFP_KERNEL);
-> > +	if (!vcq)
-> > +		goto out;
-> 
-> Are you sure that you want to mix GFP_ATOMIC and GFP_KERNEL in a single
-> function?
-
-Right, a mistake.
-
-> 
-> Thanks,
-> 
-> Bart.
-
-Thanks.
-
-> 
+Thanks,
+Jason
