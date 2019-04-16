@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 1/6] RDMA/mlx5: Do not allow the user to write to the clock page
-Date: Tue, 16 Apr 2019 14:07:25 +0300
-Message-ID: <20190416110730.32230-2-leon@kernel.org>
+Subject: [PATCH rdma-next 2/6] RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
+Date: Tue, 16 Apr 2019 14:07:26 +0300
+Message-ID: <20190416110730.32230-3-leon@kernel.org>
 References: <20190416110730.32230-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,37 +14,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-The intent of this VMA was to be read-only from user space, but the
-VM_MAYWRITE masking was missed, so mprotect could make it writable.
+Since mlx5 supports device disassociate it must use this API for all
+BAR page mmaps, otherwise the pages can remain mapped after the device
+is unplugged causing a system crash.
 
 Cc: stable@vger.kernel.org
-Fixes: 5c99eaecb1fc ("IB/mlx5: Mmap the HCA's clock info to user-space")
+Fixes: 5f9794dc94f5 ("RDMA/ucontext: Add a core API for mmaping driver IO memory")
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Reviewed-by: Haggai Eran <haggaie@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/mlx5/main.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 15676a149680..73b7f9636f82 100644
+index 73b7f9636f82..77b018c0923f 100644
 --- a/drivers/infiniband/hw/mlx5/main.c
 +++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2072,6 +2072,7 @@ static int mlx5_ib_mmap_clock_info_page(struct mlx5_ib_dev *dev,
- 
- 	if (vma->vm_flags & VM_WRITE)
- 		return -EPERM;
-+	vma->vm_flags &= ~VM_MAYWRITE;
- 
- 	if (!dev->mdev->clock_info_page)
- 		return -EOPNOTSUPP;
-@@ -2237,6 +2238,7 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
- 
- 		if (vma->vm_flags & VM_WRITE)
- 			return -EPERM;
-+		vma->vm_flags &= ~VM_MAYWRITE;
- 
- 		/* Don't expose to user-space information it shouldn't have */
+@@ -2244,14 +2244,12 @@ static int mlx5_ib_mmap(struct ib_ucontext *ibcontext, struct vm_area_struct *vm
  		if (PAGE_SIZE > 4096)
+ 			return -EOPNOTSUPP;
+ 
+-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+ 		pfn = (dev->mdev->iseg_base +
+ 		       offsetof(struct mlx5_init_seg, internal_timer_h)) >>
+ 			PAGE_SHIFT;
+-		if (io_remap_pfn_range(vma, vma->vm_start, pfn,
+-				       PAGE_SIZE, vma->vm_page_prot))
+-			return -EAGAIN;
+-		break;
++		return rdma_user_mmap_io(&context->ibucontext, vma, pfn,
++					 PAGE_SIZE,
++					 pgprot_noncached(vma->vm_page_prot));
+ 	case MLX5_IB_MMAP_CLOCK_INFO:
+ 		return mlx5_ib_mmap_clock_info_page(dev, vma, context);
+ 
 -- 
 2.20.1
