@@ -1,541 +1,622 @@
-From: Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 00/57] Convert files to ReST
-Date: Mon, 15 Apr 2019 23:55:25 -0300
-Message-ID: <cover.1555382110.git.mchehab+samsung@kernel.org>
+From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+Subject: [PATCH 17/57] docs: infiniband: convert it to ReST format
+Date: Mon, 15 Apr 2019 23:55:42 -0300
+Message-ID: <e970a98fd804de0cf1663ad3e3b9144027e29eb6.1555382110.git.mchehab+samsung@kernel.org>
+References: <cover.1555382110.git.mchehab+samsung@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/kexec/>
-List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
- <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
-Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
-To: Linux Doc Mailing List <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fpga-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, target-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-riscv-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-stm32-XDFAJ8BFU24N7RejjzZ/Li2xQDfSxrLKVpNB7YpNyf8@public.gmane.org, xdp-newbies-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-samsung-soc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mauro Carvalho Chehab <mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, linux-kbuild-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-fy+rA21nqHI@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1555382110.git.mchehab+samsung@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-This series convert lots of files to be properly parsed by Sphinx
-as ReST files.
+The InfiniBand docs are plain text with no markups.
+So, all we needed to do were to add the title markups and
+some markup sequences in order to properly parse tables,
+lists and literal blocks.
 
-As it touches on lot of stuff, the series is based on linux-next.
+Signed-off-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+---
+ Documentation/infiniband/core_locking.txt |  64 +++++++------
+ Documentation/infiniband/ipoib.txt        |  24 +++--
+ Documentation/infiniband/opa_vnic.txt     | 108 ++++++++++++----------
+ Documentation/infiniband/sysfs.txt        |   4 +-
+ Documentation/infiniband/tag_matching.txt |   5 +
+ Documentation/infiniband/user_mad.txt     |  33 +++++--
+ Documentation/infiniband/user_verbs.txt   |  12 ++-
+ 7 files changed, 149 insertions(+), 101 deletions(-)
 
-I have a separate patch series with do the actual rename and
-adjustment of references. I opted to submit this first, as it
-sounds easier to merge this way, as each subsystem maintainer
-can apply the conversion directly on their trees (or at docs
-tree), avoiding merge conflects.
-
-Both this series and  the next steps are on my devel git tree,
-at:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=all_with_indexes-v3
-
-The final output in html can be seen at:
-
-	https://www.infradead.org/~mchehab/rst_conversion/
-
-Mauro Carvalho Chehab (57):
-  docs: trace: fix some Sphinx warnings
-  docs: acpi: convert text files to ReST
-  docs: aoe: convert text files to ReST
-  docs: arm64: convert documentation to ReST format
-  docs: cdrom/cdrom-standard.tex: convert from LaTeX to ReST
-  docs: cdrom: convert remaining files to ReST
-  docs: cgroup-v1: convert to ReST file format
-  docs: cgroup-v1/blkio-controller.rst: add a note about CFQ scheduler
-  docs: cpu-freq: convert files to ReST
-  docs: device-mapper: convert it to ReST format
-  docs: extcon: move it to acpi dir and convert it to ReST
-  docs: fault-injection: convert it to ReST format
-  docs: fb: convert documentation to ReST format
-  docs: fpga: convert it to ReST
-  docs: gpio: convert it to ReST
-  docs: ide: convert it to ReST format
-  docs: infiniband: convert it to ReST format
-  docs: kbuild: convert it to ReST output
-  docs: kdump: convert it to ReST
-  docs: livepatch: convert it to ReST format
-  docs: locking: convert docs to ReST format
-  docs: mic: convert it to ReST format
-  docs: netlabel: convert it to ReST
-  docs: pcmcia: convert it to ReST format
-  docs: power: convert docs to ReST
-  docs: powerpc: convert docs to ReST
-  docs: pps/pps.txt convert it to ReST and move to API book
-  docs: ptp.txt: convert to ReST and move to driver-api
-  docs: riscv: convert it to ReST format
-  docs: s390: Debugging390.txt: convert table to ascii artwork
-  docs: s390: convert text files to ReST format
-  s390: include/asm/debug.h add kerneldoc markups
-  docs: serial: convert it to ReST format
-  docs: target: convert it to ReST format
-  docs: timers: convert documentation to ReST
-  docs: usb: convert documents to ReST
-  docs: watchdog: convert documents to ReST format
-  docs: x86: convert text files to ReST
-  docs: xilinx: convert eemi.txt to ReST
-  docs: scheduler: convert files to ReST
-  docs: EDID/HOWTO.txt: convert to ReST and move to kernel-API
-  docs: connector.txt: convert to ReST
-  docs: lcd-panel-cgram.txt convert it to ReST and move to admin-guide
-  docs: lp855x-driver.txt: convert to ReST and move to kernel-api
-  docs: m68k: convert it to ReST file format and add to arch bookset
-  docs: cma/debugfs.txt: convert to ReST and move to admin-guide/mm
-  docs: console.txt: convert to ReST format
-  docs: pti_intel_mid.txt: convert to ReST
-  docs: early-userspace: convert docs to ReST
-  docs: driver-model: convert it to ReST format
-  docs: arm: convert text files to ReST format
-  docs: memory-devices: convert ti-emif.txt to ReST format
-  docs: xen-tpmfront.txt: convert the file to ReST format
-  docs: bus-devices: ti-gpmc.txt: convert it to ReST
-  docs: nvmem: convert file to ReST format
-  docs: phy: convert samsung-usb2.txt to ReST format
-  docs: Prepare files to be renamed to *.rst
-
- Documentation/EDID/HOWTO.txt                  |   29 +-
- Documentation/acpi/DSD-properties-rules.txt   |    4 +-
- Documentation/acpi/acpi-lid.txt               |   37 +-
- Documentation/acpi/aml-debugger.txt           |   31 +-
- Documentation/acpi/apei/einj.txt              |   59 +-
- Documentation/acpi/apei/output_format.txt     |  247 +-
- Documentation/acpi/cppc_sysfs.txt             |   52 +-
- Documentation/acpi/debug.txt                  |   20 +-
- .../drivers/extcon-intel-int3496.txt}         |   14 +-
- .../acpi/dsd/data-node-references.txt         |   11 +-
- Documentation/acpi/dsd/graph.txt              |   24 +-
- Documentation/acpi/dsd/leds.txt               |   18 +-
- Documentation/acpi/dsdt-override.txt          |    4 +-
- Documentation/acpi/enumeration.txt            |   42 +-
- Documentation/acpi/gpio-properties.txt        |   42 +-
- Documentation/acpi/i2c-muxes.txt              |   21 +-
- Documentation/acpi/initrd_table_override.txt  |   90 +-
- Documentation/acpi/linuxized-acpica.txt       |   58 +-
- Documentation/acpi/lpit.txt                   |    8 +-
- Documentation/acpi/method-customizing.txt     |   48 +-
- Documentation/acpi/method-tracing.txt         |  132 +-
- Documentation/acpi/namespace.txt              |  323 +-
- Documentation/acpi/osi.txt                    |    3 +-
- Documentation/acpi/scan_handlers.txt          |    9 +-
- Documentation/acpi/ssdt-overlays.txt          |  128 +-
- Documentation/acpi/video_extension.txt        |   16 +-
- Documentation/aoe/aoe.txt                     |   63 +-
- Documentation/aoe/todo.txt                    |    3 +
- Documentation/aoe/udev.txt                    |    2 +-
- Documentation/arm/Booting                     |   71 +-
- Documentation/arm/IXP4xx                      |   61 +-
- Documentation/arm/Interrupts                  |   86 +-
- Documentation/arm/Marvell/README              |  537 ++--
- Documentation/arm/Microchip/README            |   63 +-
- Documentation/arm/Netwinder                   |   59 +-
- Documentation/arm/OMAP/DSS                    |  112 +-
- Documentation/arm/OMAP/README                 |    7 +
- Documentation/arm/OMAP/omap_pm                |   55 +-
- Documentation/arm/Porting                     |   14 +-
- Documentation/arm/README                      |   50 +-
- Documentation/arm/SA1100/ADSBitsy             |   14 +-
- Documentation/arm/SA1100/Assabet              |  185 +-
- Documentation/arm/SA1100/Brutus               |   45 +-
- Documentation/arm/SA1100/CERF                 |   10 +-
- Documentation/arm/SA1100/FreeBird             |   26 +-
- Documentation/arm/SA1100/GraphicsClient       |   46 +-
- Documentation/arm/SA1100/GraphicsMaster       |   13 +-
- Documentation/arm/SA1100/HUW_WEBPANEL         |    8 +-
- Documentation/arm/SA1100/Itsy                 |   14 +-
- Documentation/arm/SA1100/LART                 |    3 +-
- Documentation/arm/SA1100/PLEB                 |    6 +-
- Documentation/arm/SA1100/Pangolin             |   10 +-
- Documentation/arm/SA1100/Tifon                |    4 +-
- Documentation/arm/SA1100/Yopy                 |    5 +-
- Documentation/arm/SA1100/empeg                |    2 -
- Documentation/arm/SA1100/nanoEngine           |    6 +-
- Documentation/arm/SA1100/serial_UART          |   60 +-
- Documentation/arm/SPEAr/overview.txt          |   20 +-
- Documentation/arm/Samsung-S3C24XX/CPUfreq.txt |    5 +-
- .../arm/Samsung-S3C24XX/EB2410ITX.txt         |    5 +-
- Documentation/arm/Samsung-S3C24XX/GPIO.txt    |   21 +-
- Documentation/arm/Samsung-S3C24XX/H1940.txt   |    5 +-
- Documentation/arm/Samsung-S3C24XX/NAND.txt    |    6 +-
- .../arm/Samsung-S3C24XX/Overview.txt          |   15 +-
- Documentation/arm/Samsung-S3C24XX/S3C2412.txt |    5 +-
- Documentation/arm/Samsung-S3C24XX/S3C2413.txt |    7 +-
- .../arm/Samsung-S3C24XX/SMDK2440.txt          |    5 +-
- Documentation/arm/Samsung-S3C24XX/Suspend.txt |   20 +-
- .../arm/Samsung-S3C24XX/USB-Host.txt          |   16 +-
- .../arm/Samsung/Bootloader-interface.txt      |   27 +-
- Documentation/arm/Samsung/GPIO.txt            |    5 +-
- Documentation/arm/Samsung/Overview.txt        |   11 +-
- Documentation/arm/Setup                       |   49 +-
- Documentation/arm/VFP/release-notes.txt       |    4 +-
- .../arm/cluster-pm-race-avoidance.txt         |  177 +-
- Documentation/arm/firmware.txt                |   14 +-
- Documentation/arm/kernel_mode_neon.txt        |    3 +
- Documentation/arm/kernel_user_helpers.txt     |   79 +-
- Documentation/arm/keystone/Overview.txt       |   47 +-
- Documentation/arm/keystone/knav-qmss.txt      |    6 +-
- Documentation/arm/mem_alignment               |   11 +-
- Documentation/arm/memory.txt                  |    9 +-
- Documentation/arm/nwfpe/NOTES                 |    3 +
- Documentation/arm/nwfpe/README                |   10 +-
- Documentation/arm/nwfpe/README.FPE            |   24 +-
- Documentation/arm/nwfpe/TODO                  |   47 +-
- Documentation/arm/pxa/mfp.txt                 |  106 +-
- Documentation/arm/sti/overview.txt            |   21 +-
- Documentation/arm/sti/stih407-overview.txt    |    9 +-
- Documentation/arm/sti/stih415-overview.txt    |    8 +-
- Documentation/arm/sti/stih416-overview.txt    |    5 +-
- Documentation/arm/sti/stih418-overview.txt    |    9 +-
- .../arm/stm32/stm32f429-overview.rst          |    5 +-
- .../arm/stm32/stm32f746-overview.rst          |    5 +-
- .../arm/stm32/stm32f769-overview.rst          |    5 +-
- .../arm/stm32/stm32h743-overview.rst          |    5 +-
- .../arm/stm32/stm32mp157-overview.rst         |    1 +
- Documentation/arm/sunxi/README                |   98 +-
- Documentation/arm/sunxi/clocks.txt            |    7 +-
- Documentation/arm/swp_emulation               |   24 +-
- Documentation/arm/tcm.txt                     |   54 +-
- Documentation/arm/uefi.txt                    |   39 +-
- Documentation/arm/vlocks.txt                  |    9 +-
- Documentation/arm64/acpi_object_usage.txt     |  288 +-
- Documentation/arm64/arm-acpi.txt              |  153 +-
- Documentation/arm64/booting.txt               |   91 +-
- Documentation/arm64/cpu-feature-registers.txt |  190 +-
- Documentation/arm64/elf_hwcaps.txt            |   50 +-
- Documentation/arm64/hugetlbpage.txt           |    7 +-
- Documentation/arm64/legacy_instructions.txt   |   43 +-
- Documentation/arm64/memory.txt                |   91 +-
- .../arm64/pointer-authentication.txt          |    2 +
- Documentation/arm64/silicon-errata.txt        |   63 +-
- Documentation/arm64/sve.txt                   |   10 +-
- Documentation/arm64/tagged-pointers.txt       |    6 +-
- Documentation/auxdisplay/lcd-panel-cgram.txt  |    7 +-
- Documentation/backlight/lp855x-driver.txt     |   65 +-
- Documentation/bt8xxgpio.txt                   |    1 -
- Documentation/bus-devices/ti-gpmc.txt         |  157 +-
- Documentation/bus-virt-phys-mapping.txt       |   50 +-
- Documentation/cdrom/Makefile                  |   21 -
- Documentation/cdrom/cdrom-standard.tex        | 1026 -------
- Documentation/cdrom/cdrom-standard.txt        | 1063 +++++++
- Documentation/cdrom/ide-cd                    |  178 +-
- Documentation/cdrom/packet-writing.txt        |   27 +-
- Documentation/cgroup-v1/blkio-controller.txt  |  103 +-
- Documentation/cgroup-v1/cgroups.txt           |  180 +-
- Documentation/cgroup-v1/cpuacct.txt           |   15 +-
- Documentation/cgroup-v1/cpusets.txt           |  203 +-
- Documentation/cgroup-v1/devices.txt           |   40 +-
- Documentation/cgroup-v1/freezer-subsystem.txt |   14 +-
- Documentation/cgroup-v1/hugetlb.txt           |   31 +-
- Documentation/cgroup-v1/memcg_test.txt        |  259 +-
- Documentation/cgroup-v1/memory.txt            |  449 +--
- Documentation/cgroup-v1/net_cls.txt           |   37 +-
- Documentation/cgroup-v1/net_prio.txt          |   24 +-
- Documentation/cgroup-v1/pids.txt              |   78 +-
- Documentation/cgroup-v1/rdma.txt              |   66 +-
- Documentation/cma/debugfs.txt                 |    6 +-
- Documentation/connector/connector.txt         |  128 +-
- Documentation/console/console.txt             |   61 +-
- Documentation/cpu-freq/amd-powernow.txt       |   11 +-
- Documentation/cpu-freq/core.txt               |   66 +-
- Documentation/cpu-freq/cpu-drivers.txt        |  217 +-
- Documentation/cpu-freq/cpufreq-nforce2.txt    |   12 +-
- Documentation/cpu-freq/cpufreq-stats.txt      |  141 +-
- Documentation/cpu-freq/pcc-cpufreq.txt        |  102 +-
- .../device-mapper/cache-policies.txt          |   24 +-
- Documentation/device-mapper/cache.txt         |  206 +-
- Documentation/device-mapper/delay.txt         |   29 +-
- Documentation/device-mapper/dm-crypt.txt      |   57 +-
- Documentation/device-mapper/dm-flakey.txt     |   45 +-
- Documentation/device-mapper/dm-init.txt       |   75 +-
- Documentation/device-mapper/dm-integrity.txt  |   55 +-
- Documentation/device-mapper/dm-io.txt         |   14 +-
- Documentation/device-mapper/dm-log.txt        |    5 +-
- .../device-mapper/dm-queue-length.txt         |   25 +-
- Documentation/device-mapper/dm-raid.txt       |  225 +-
- .../device-mapper/dm-service-time.txt         |   68 +-
- Documentation/device-mapper/dm-uevent.txt     |  143 +-
- Documentation/device-mapper/dm-zoned.txt      |   10 +-
- Documentation/device-mapper/era.txt           |   36 +-
- Documentation/device-mapper/kcopyd.txt        |   10 +-
- Documentation/device-mapper/linear.txt        |  100 +-
- Documentation/device-mapper/log-writes.txt    |   91 +-
- .../device-mapper/persistent-data.txt         |    4 +
- Documentation/device-mapper/snapshot.txt      |  116 +-
- Documentation/device-mapper/statistics.txt    |   62 +-
- Documentation/device-mapper/striped.txt       |   68 +-
- Documentation/device-mapper/switch.txt        |   47 +-
- .../device-mapper/thin-provisioning.txt       |   68 +-
- Documentation/device-mapper/unstriped.txt     |  111 +-
- Documentation/device-mapper/verity.txt        |   20 +-
- Documentation/device-mapper/writecache.txt    |   13 +-
- Documentation/device-mapper/zero.txt          |   14 +-
- Documentation/driver-model/binding.txt        |   20 +-
- Documentation/driver-model/bus.txt            |   69 +-
- Documentation/driver-model/class.txt          |   74 +-
- .../driver-model/design-patterns.txt          |  106 +-
- Documentation/driver-model/device.txt         |   57 +-
- Documentation/driver-model/devres.txt         |   50 +-
- Documentation/driver-model/driver.txt         |  112 +-
- Documentation/driver-model/overview.txt       |   37 +-
- Documentation/driver-model/platform.txt       |   30 +-
- Documentation/driver-model/porting.txt        |  333 +--
- Documentation/early-userspace/README          |    3 +
- .../early-userspace/buffer-format.txt         |   19 +-
- .../fault-injection/fault-injection.txt       |  265 +-
- .../fault-injection/notifier-error-inject.txt |   18 +-
- .../fault-injection/nvme-fault-injection.txt  |  174 +-
- .../fault-injection/provoke-crashes.txt       |   40 +-
- Documentation/fb/api.txt                      |   29 +-
- Documentation/fb/arkfb.txt                    |    8 +-
- Documentation/fb/aty128fb.txt                 |   31 +-
- Documentation/fb/cirrusfb.txt                 |   47 +-
- Documentation/fb/cmap_xfbdev.txt              |   57 +-
- Documentation/fb/deferred_io.txt              |   28 +-
- Documentation/fb/efifb.txt                    |   18 +-
- Documentation/fb/ep93xx-fb.txt                |   25 +-
- Documentation/fb/fbcon.txt                    |  177 +-
- Documentation/fb/framebuffer.txt              |   79 +-
- Documentation/fb/gxfb.txt                     |   22 +-
- Documentation/fb/intel810.txt                 |   77 +-
- Documentation/fb/intelfb.txt                  |   62 +-
- Documentation/fb/internals.txt                |   24 +-
- Documentation/fb/lxfb.txt                     |   23 +-
- Documentation/fb/matroxfb.txt                 |  526 ++--
- Documentation/fb/metronomefb.txt              |    8 +-
- Documentation/fb/modedb.txt                   |   44 +-
- Documentation/fb/pvr2fb.txt                   |   55 +-
- Documentation/fb/pxafb.txt                    |   81 +-
- Documentation/fb/s3fb.txt                     |    8 +-
- Documentation/fb/sa1100fb.txt                 |   23 +-
- Documentation/fb/sh7760fb.txt                 |  153 +-
- Documentation/fb/sisfb.txt                    |   40 +-
- Documentation/fb/sm501.txt                    |    7 +-
- Documentation/fb/sm712fb.txt                  |   18 +-
- Documentation/fb/sstfb.txt                    |  231 +-
- Documentation/fb/tgafb.txt                    |   30 +-
- Documentation/fb/tridentfb.txt                |   34 +-
- Documentation/fb/udlfb.txt                    |   55 +-
- Documentation/fb/uvesafb.txt                  |  128 +-
- Documentation/fb/vesafb.txt                   |  121 +-
- Documentation/fb/viafb.txt                    |  393 +--
- Documentation/fb/vt8623fb.txt                 |   10 +-
- Documentation/fpga/dfl.txt                    |   58 +-
- Documentation/gpio/sysfs.txt                  |   39 +-
- Documentation/highuid.txt                     |    2 +-
- Documentation/ide/ide-tape.txt                |   23 +-
- Documentation/ide/ide.txt                     |  147 +-
- Documentation/ide/warm-plug-howto.txt         |   10 +-
- Documentation/index.rst                       |    1 +
- Documentation/infiniband/core_locking.txt     |   64 +-
- Documentation/infiniband/ipoib.txt            |   24 +-
- Documentation/infiniband/opa_vnic.txt         |  108 +-
- Documentation/infiniband/sysfs.txt            |    4 +-
- Documentation/infiniband/tag_matching.txt     |    5 +
- Documentation/infiniband/user_mad.txt         |   33 +-
- Documentation/infiniband/user_verbs.txt       |   12 +-
- Documentation/kbuild/headers_install.txt      |    5 +-
- Documentation/kbuild/kbuild.txt               |  119 +-
- Documentation/kbuild/kconfig-language.txt     |  232 +-
- .../kbuild/kconfig-macro-language.txt         |   37 +-
- Documentation/kbuild/kconfig.txt              |  136 +-
- Documentation/kbuild/makefiles.txt            |  518 ++--
- Documentation/kbuild/modules.txt              |  166 +-
- Documentation/kdump/kdump.txt                 |  131 +-
- Documentation/kdump/vmcoreinfo.txt            |   59 +-
- Documentation/kobject.txt                     |    2 +-
- Documentation/ldm.txt                         |    3 +-
- Documentation/livepatch/callbacks.txt         |   12 +-
- .../livepatch/cumulative-patches.txt          |   14 +-
- Documentation/livepatch/livepatch.txt         |   56 +-
- Documentation/livepatch/module-elf-format.txt |  211 +-
- Documentation/livepatch/shadow-vars.txt       |   65 +-
- Documentation/locking/lockdep-design.txt      |   41 +-
- Documentation/locking/lockstat.txt            |  219 +-
- Documentation/locking/locktorture.txt         |  105 +-
- Documentation/locking/mutex-design.txt        |   26 +-
- Documentation/locking/rt-mutex-design.txt     |  135 +-
- Documentation/locking/rt-mutex.txt            |   30 +-
- Documentation/locking/spinlocks.txt           |   32 +-
- Documentation/locking/ww-mutex-design.txt     |   82 +-
- Documentation/m68k/kernel-options.txt         |  319 +-
- Documentation/memory-barriers.txt             |    2 +-
- Documentation/memory-devices/ti-emif.txt      |   25 +-
- Documentation/mic/mic_overview.txt            |    6 +-
- Documentation/mic/scif_overview.txt           |   58 +-
- Documentation/netlabel/cipso_ipv4.txt         |   19 +-
- Documentation/netlabel/introduction.txt       |   16 +-
- Documentation/netlabel/lsm_interface.txt      |   16 +-
- Documentation/numastat.txt                    |    1 -
- Documentation/nvmem/nvmem.txt                 |  110 +-
- Documentation/pcmcia/devicetable.txt          |    4 +
- Documentation/pcmcia/driver-changes.txt       |   35 +-
- Documentation/pcmcia/driver.txt               |   18 +-
- Documentation/pcmcia/locking.txt              |   39 +-
- Documentation/phy/samsung-usb2.txt            |   60 +-
- Documentation/pnp.txt                         |   11 +-
- Documentation/power/apm-acpi.txt              |   10 +-
- Documentation/power/basic-pm-debugging.txt    |   77 +-
- Documentation/power/charger-manager.txt       |  101 +-
- Documentation/power/drivers-testing.txt       |    5 +
- Documentation/power/energy-model.txt          |  101 +-
- Documentation/power/freezing-of-tasks.txt     |   91 +-
- Documentation/power/interface.txt             |   20 +-
- Documentation/power/opp.txt                   |  175 +-
- Documentation/power/pci.txt                   |   77 +-
- Documentation/power/pm_qos_interface.txt      |  127 +-
- Documentation/power/power_supply_class.txt    |  269 +-
- Documentation/power/powercap/powercap.txt     |  297 +-
- Documentation/power/regulator/consumer.txt    |  141 +-
- Documentation/power/regulator/design.txt      |    9 +-
- Documentation/power/regulator/machine.txt     |   47 +-
- Documentation/power/regulator/overview.txt    |   51 +-
- Documentation/power/regulator/regulator.txt   |   18 +-
- Documentation/power/runtime_pm.txt            |  234 +-
- Documentation/power/s2ram.txt                 |   20 +-
- .../power/suspend-and-cpuhotplug.txt          |   42 +-
- .../power/suspend-and-interrupts.txt          |    2 +
- Documentation/power/swsusp-and-swap-files.txt |   15 +-
- Documentation/power/swsusp-dmcrypt.txt        |  118 +-
- Documentation/power/swsusp.txt                |  639 ++--
- Documentation/power/tricks.txt                |    6 +-
- Documentation/power/userland-swsusp.txt       |   53 +-
- Documentation/power/video.txt                 |  156 +-
- Documentation/powerpc/DAWR-POWER9.txt         |   10 +-
- Documentation/powerpc/bootwrapper.txt         |   28 +-
- Documentation/powerpc/cpu_families.txt        |   23 +-
- Documentation/powerpc/cpu_features.txt        |    6 +-
- Documentation/powerpc/cxl.txt                 |   46 +-
- Documentation/powerpc/cxlflash.txt            |    8 +-
- Documentation/powerpc/dscr.txt                |   18 +-
- .../powerpc/eeh-pci-error-recovery.txt        |  108 +-
- .../powerpc/firmware-assisted-dump.txt        |  117 +-
- Documentation/powerpc/hvcs.txt                |  108 +-
- Documentation/powerpc/isa-versions.rst        |   13 +-
- Documentation/powerpc/mpc52xx.txt             |   12 +-
- .../powerpc/pci_iov_resource_on_powernv.txt   |   15 +-
- Documentation/powerpc/pmu-ebb.txt             |    1 +
- Documentation/powerpc/ptrace.txt              |  169 +-
- Documentation/powerpc/qe_firmware.txt         |   37 +-
- Documentation/powerpc/syscall64-abi.txt       |   29 +-
- .../powerpc/transactional_memory.txt          |   45 +-
- Documentation/pps/pps.txt                     |   67 +-
- Documentation/preempt-locking.txt             |    2 +-
- Documentation/pti/pti_intel_mid.txt           |  135 +-
- Documentation/ptp/ptp.txt                     |   26 +-
- Documentation/rbtree.txt                      |   52 +-
- Documentation/riscv/pmu.txt                   |   98 +-
- Documentation/rtc.txt                         |    6 +-
- Documentation/s390/3270.txt                   |   85 +-
- Documentation/s390/CommonIO                   |   47 +-
- Documentation/s390/DASD                       |   33 +-
- Documentation/s390/Debugging390.txt           | 2599 ++++++++++-------
- Documentation/s390/cds.txt                    |  354 ++-
- Documentation/s390/driver-model.txt           |  179 +-
- Documentation/s390/monreader.txt              |   85 +-
- Documentation/s390/qeth.txt                   |   36 +-
- Documentation/s390/s390dbf.txt                |  639 ++--
- Documentation/s390/vfio-ap.txt                |  487 +--
- Documentation/s390/vfio-ccw.txt               |   88 +-
- Documentation/s390/zfcpdump.txt               |    2 +
- Documentation/scheduler/completion.txt        |   38 +-
- Documentation/scheduler/sched-arch.txt        |   18 +-
- Documentation/scheduler/sched-bwc.txt         |   28 +-
- Documentation/scheduler/sched-deadline.txt    |  293 +-
- Documentation/scheduler/sched-design-CFS.txt  |   15 +-
- Documentation/scheduler/sched-domains.txt     |    8 +-
- Documentation/scheduler/sched-energy.txt      |   47 +-
- Documentation/scheduler/sched-nice-design.txt |    6 +-
- Documentation/scheduler/sched-rt-group.txt    |   28 +-
- Documentation/scheduler/sched-stats.txt       |   35 +-
- Documentation/security/tpm/xen-tpmfront.txt   |  101 +-
- Documentation/serial/README.cycladesZ         |    5 +-
- Documentation/serial/driver                   |  113 +-
- Documentation/serial/moxa-smartio             |  750 ++---
- Documentation/serial/n_gsm.txt                |   81 +-
- Documentation/serial/rocket.txt               |  144 +-
- Documentation/serial/serial-iso7816.txt       |   21 +-
- Documentation/serial/serial-rs485.txt         |   22 +-
- Documentation/serial/tty.txt                  |  111 +-
- Documentation/target/tcm_mod_builder.txt      |  200 +-
- Documentation/target/tcmu-design.txt          |  268 +-
- Documentation/timers/NO_HZ.txt                |   40 +-
- Documentation/timers/highres.txt              |   11 +-
- Documentation/timers/hpet.txt                 |    4 +-
- Documentation/timers/hrtimers.txt             |    6 +-
- Documentation/timers/timekeeping.txt          |    3 +-
- Documentation/timers/timers-howto.txt         |   15 +-
- Documentation/trace/ftrace.rst                |    1 +
- Documentation/trace/histogram.rst             |   86 +-
- Documentation/usb/WUSB-Design-overview.txt    |   56 +-
- Documentation/usb/acm.txt                     |  156 +-
- Documentation/usb/authorization.txt           |   75 +-
- Documentation/usb/chipidea.txt                |  101 +-
- Documentation/usb/dwc3.txt                    |   12 +-
- Documentation/usb/ehci.txt                    |   42 +-
- Documentation/usb/functionfs.txt              |   17 +-
- Documentation/usb/gadget-testing.txt          |  609 ++--
- Documentation/usb/gadget_configfs.txt         |  302 +-
- Documentation/usb/gadget_hid.txt              |  175 +-
- Documentation/usb/gadget_multi.txt            |   43 +-
- Documentation/usb/gadget_printer.txt          |  155 +-
- Documentation/usb/gadget_serial.txt           |   73 +-
- Documentation/usb/iuu_phoenix.txt             |   34 +-
- Documentation/usb/mass-storage.txt            |   19 +-
- Documentation/usb/misc_usbsevseg.txt          |    9 +-
- Documentation/usb/mtouchusb.txt               |   42 +-
- Documentation/usb/ohci.txt                    |    5 +-
- Documentation/usb/rio.txt                     |   83 +-
- Documentation/usb/usb-help.txt                |   21 +-
- Documentation/usb/usb-serial.txt              |  203 +-
- Documentation/usb/usbip_protocol.txt          |  552 ++--
- Documentation/usb/usbmon.txt                  |  100 +-
- .../convert_drivers_to_kernel_api.txt         |  109 +-
- Documentation/watchdog/hpwdt.txt              |   23 +-
- Documentation/watchdog/mlx-wdt.txt            |   24 +-
- Documentation/watchdog/pcwd-watchdog.txt      |   13 +-
- Documentation/watchdog/watchdog-api.txt       |   76 +-
- .../watchdog/watchdog-kernel-api.txt          |   89 +-
- .../watchdog/watchdog-parameters.txt          |  672 +++--
- Documentation/watchdog/watchdog-pm.txt        |    3 +
- Documentation/watchdog/wdt.txt                |   31 +-
- Documentation/x86/amd-memory-encryption.txt   |   10 +-
- Documentation/x86/boot.txt                    |  578 ++--
- Documentation/x86/earlyprintk.txt             |   69 +-
- Documentation/x86/entry_64.txt                |   11 +-
- Documentation/x86/exception-tables.txt        |  245 +-
- Documentation/x86/i386/IO-APIC.txt            |   23 +-
- Documentation/x86/intel_mpx.txt               |   55 +-
- Documentation/x86/microcode.txt               |   51 +-
- Documentation/x86/mtrr.txt                    |  442 +--
- Documentation/x86/orc-unwinder.txt            |    1 +
- Documentation/x86/pat.txt                     |  217 +-
- Documentation/x86/protection-keys.txt         |   33 +-
- Documentation/x86/pti.txt                     |    8 +-
- Documentation/x86/resctrl_ui.txt              |  621 ++--
- Documentation/x86/tlb.txt                     |   12 +-
- Documentation/x86/topology.txt                |   26 +-
- Documentation/x86/usb-legacy-support.txt      |   33 +-
- Documentation/x86/x86_64/5level-paging.txt    |   14 +-
- Documentation/x86/x86_64/boot-options.txt     |   98 +-
- Documentation/x86/x86_64/mm.txt               |  212 +-
- Documentation/x86/x86_64/uefi.txt             |   21 +-
- Documentation/x86/zero-page.txt               |   67 +-
- Documentation/xilinx/eemi.txt                 |    8 +-
- Documentation/zorro.txt                       |    5 +-
- MAINTAINERS                                   |    2 +-
- arch/arm64/kernel/kexec_image.c               |    2 +-
- arch/s390/include/asm/debug.h                 |  231 ++
- drivers/cdrom/cdrom.c                         |    2 +-
- include/linux/connector.h                     |   63 +-
- 433 files changed, 21459 insertions(+), 16370 deletions(-)
- rename Documentation/{extcon/intel-int3496.txt => acpi/drivers/extcon-intel-int3496.txt} (66%)
- delete mode 100644 Documentation/arm/SA1100/empeg
- delete mode 100644 Documentation/cdrom/Makefile
- delete mode 100644 Documentation/cdrom/cdrom-standard.tex
- create mode 100644 Documentation/cdrom/cdrom-standard.txt
-
+diff --git a/Documentation/infiniband/core_locking.txt b/Documentation/infiniband/core_locking.txt
+index 4b1f36b6ada0..f34669beb4fe 100644
+--- a/Documentation/infiniband/core_locking.txt
++++ b/Documentation/infiniband/core_locking.txt
+@@ -1,4 +1,6 @@
+-INFINIBAND MIDLAYER LOCKING
++===========================
++InfiniBand Midlayer Locking
++===========================
+ 
+   This guide is an attempt to make explicit the locking assumptions
+   made by the InfiniBand midlayer.  It describes the requirements on
+@@ -6,45 +8,47 @@ INFINIBAND MIDLAYER LOCKING
+   protocols that use the midlayer.
+ 
+ Sleeping and interrupt context
++==============================
+ 
+   With the following exceptions, a low-level driver implementation of
+   all of the methods in struct ib_device may sleep.  The exceptions
+   are any methods from the list:
+ 
+-    create_ah
+-    modify_ah
+-    query_ah
+-    destroy_ah
+-    post_send
+-    post_recv
+-    poll_cq
+-    req_notify_cq
+-    map_phys_fmr
++    - create_ah
++    - modify_ah
++    - query_ah
++    - destroy_ah
++    - post_send
++    - post_recv
++    - poll_cq
++    - req_notify_cq
++    - map_phys_fmr
+ 
+   which may not sleep and must be callable from any context.
+ 
+   The corresponding functions exported to upper level protocol
+   consumers:
+ 
+-    ib_create_ah
+-    ib_modify_ah
+-    ib_query_ah
+-    ib_destroy_ah
+-    ib_post_send
+-    ib_post_recv
+-    ib_req_notify_cq
+-    ib_map_phys_fmr
++    - ib_create_ah
++    - ib_modify_ah
++    - ib_query_ah
++    - ib_destroy_ah
++    - ib_post_send
++    - ib_post_recv
++    - ib_req_notify_cq
++    - ib_map_phys_fmr
+ 
+   are therefore safe to call from any context.
+ 
+   In addition, the function
+ 
+-    ib_dispatch_event
++    - ib_dispatch_event
+ 
+   used by low-level drivers to dispatch asynchronous events through
+   the midlayer is also safe to call from any context.
+ 
+ Reentrancy
++----------
+ 
+   All of the methods in struct ib_device exported by a low-level
+   driver must be fully reentrant.  The low-level driver is required to
+@@ -62,6 +66,7 @@ Reentrancy
+   information between different calls of ib_poll_cq() is not defined.
+ 
+ Callbacks
++---------
+ 
+   A low-level driver must not perform a callback directly from the
+   same callchain as an ib_device method call.  For example, it is not
+@@ -74,18 +79,18 @@ Callbacks
+   completion event handlers for the same CQ are not called
+   simultaneously.  The driver must guarantee that only one CQ event
+   handler for a given CQ is running at a time.  In other words, the
+-  following situation is not allowed:
++  following situation is not allowed::
+ 
+-        CPU1                                    CPU2
++          CPU1                                    CPU2
+ 
+-  low-level driver ->
+-    consumer CQ event callback:
+-      /* ... */
+-      ib_req_notify_cq(cq, ...);
+-                                        low-level driver ->
+-      /* ... */                           consumer CQ event callback:
+-                                            /* ... */
+-      return from CQ event handler
++    low-level driver ->
++      consumer CQ event callback:
++        /* ... */
++        ib_req_notify_cq(cq, ...);
++                                          low-level driver ->
++        /* ... */                           consumer CQ event callback:
++                                              /* ... */
++        return from CQ event handler
+ 
+   The context in which completion event and asynchronous event
+   callbacks run is not defined.  Depending on the low-level driver, it
+@@ -93,6 +98,7 @@ Callbacks
+   Upper level protocol consumers may not sleep in a callback.
+ 
+ Hot-plug
++--------
+ 
+   A low-level driver announces that a device is ready for use by
+   consumers when it calls ib_register_device(), all initialization
+diff --git a/Documentation/infiniband/ipoib.txt b/Documentation/infiniband/ipoib.txt
+index 47c1dd9818f2..0dd36154c0c9 100644
+--- a/Documentation/infiniband/ipoib.txt
++++ b/Documentation/infiniband/ipoib.txt
+@@ -1,4 +1,6 @@
+-IP OVER INFINIBAND
++==================
++IP over InfiniBand
++==================
+ 
+   The ib_ipoib driver is an implementation of the IP over InfiniBand
+   protocol as specified by RFC 4391 and 4392, issued by the IETF ipoib
+@@ -8,16 +10,17 @@ IP OVER INFINIBAND
+   masqueraded to the kernel as ethernet interfaces).
+ 
+ Partitions and P_Keys
++=====================
+ 
+   When the IPoIB driver is loaded, it creates one interface for each
+   port using the P_Key at index 0.  To create an interface with a
+   different P_Key, write the desired P_Key into the main interface's
+-  /sys/class/net/<intf name>/create_child file.  For example:
++  /sys/class/net/<intf name>/create_child file.  For example::
+ 
+     echo 0x8001 > /sys/class/net/ib0/create_child
+ 
+   This will create an interface named ib0.8001 with P_Key 0x8001.  To
+-  remove a subinterface, use the "delete_child" file:
++  remove a subinterface, use the "delete_child" file::
+ 
+     echo 0x8001 > /sys/class/net/ib0/delete_child
+ 
+@@ -28,6 +31,7 @@ Partitions and P_Keys
+   rtnl_link_ops, where children created using either way behave the same.
+ 
+ Datagram vs Connected modes
++===========================
+ 
+   The IPoIB driver supports two modes of operation: datagram and
+   connected.  The mode is set and read through an interface's
+@@ -51,6 +55,7 @@ Datagram vs Connected modes
+   networking stack to use the smaller UD MTU for these neighbours.
+ 
+ Stateless offloads
++==================
+ 
+   If the IB HW supports IPoIB stateless offloads, IPoIB advertises
+   TCP/IP checksum and/or Large Send (LSO) offloading capability to the
+@@ -60,9 +65,10 @@ Stateless offloads
+   on/off using ethtool calls.  Currently LRO is supported only for
+   checksum offload capable devices.
+ 
+-  Stateless offloads are supported only in datagram mode.  
++  Stateless offloads are supported only in datagram mode.
+ 
+ Interrupt moderation
++====================
+ 
+   If the underlying IB device supports CQ event moderation, one can
+   use ethtool to set interrupt mitigation parameters and thus reduce
+@@ -71,6 +77,7 @@ Interrupt moderation
+   moderation is supported.
+ 
+ Debugging Information
++=====================
+ 
+   By compiling the IPoIB driver with CONFIG_INFINIBAND_IPOIB_DEBUG set
+   to 'y', tracing messages are compiled into the driver.  They are
+@@ -79,7 +86,7 @@ Debugging Information
+   runtime through files in /sys/module/ib_ipoib/.
+ 
+   CONFIG_INFINIBAND_IPOIB_DEBUG also enables files in the debugfs
+-  virtual filesystem.  By mounting this filesystem, for example with
++  virtual filesystem.  By mounting this filesystem, for example with::
+ 
+     mount -t debugfs none /sys/kernel/debug
+ 
+@@ -96,10 +103,13 @@ Debugging Information
+   performance, because it adds tests to the fast path.
+ 
+ References
++==========
+ 
+   Transmission of IP over InfiniBand (IPoIB) (RFC 4391)
+-    http://ietf.org/rfc/rfc4391.txt 
++    http://ietf.org/rfc/rfc4391.txt
++
+   IP over InfiniBand (IPoIB) Architecture (RFC 4392)
+-    http://ietf.org/rfc/rfc4392.txt 
++    http://ietf.org/rfc/rfc4392.txt
++
+   IP over InfiniBand: Connected Mode (RFC 4755)
+     http://ietf.org/rfc/rfc4755.txt
+diff --git a/Documentation/infiniband/opa_vnic.txt b/Documentation/infiniband/opa_vnic.txt
+index 282e17be798a..2f888d9ffec0 100644
+--- a/Documentation/infiniband/opa_vnic.txt
++++ b/Documentation/infiniband/opa_vnic.txt
+@@ -1,3 +1,7 @@
++=================================================================
++Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC)
++=================================================================
++
+ Intel Omni-Path (OPA) Virtual Network Interface Controller (VNIC) feature
+ supports Ethernet functionality over Omni-Path fabric by encapsulating
+ the Ethernet packets between HFI nodes.
+@@ -17,70 +21,72 @@ an independent Ethernet network. The configuration is performed by an
+ Ethernet Manager (EM) which is part of the trusted Fabric Manager (FM)
+ application. HFI nodes can have multiple VNICs each connected to a
+ different virtual Ethernet switch. The below diagram presents a case
+-of two virtual Ethernet switches with two HFI nodes.
++of two virtual Ethernet switches with two HFI nodes::
+ 
+-                             +-------------------+
+-                             |      Subnet/      |
+-                             |     Ethernet      |
+-                             |      Manager      |
+-                             +-------------------+
+-                                /          /
+-                              /           /
+-                            /            /
+-                          /             /
+-+-----------------------------+  +------------------------------+
+-|  Virtual Ethernet Switch    |  |  Virtual Ethernet Switch     |
+-|  +---------+    +---------+ |  | +---------+    +---------+   |
+-|  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
+-+--+---------+----+---------+-+  +-+---------+----+---------+---+
+-         |                 \        /                 |
+-         |                   \    /                   |
+-         |                     \/                     |
+-         |                    /  \                    |
+-         |                  /      \                  |
+-     +-----------+------------+  +-----------+------------+
+-     |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
+-     +-----------+------------+  +-----------+------------+
+-     |          HFI           |  |          HFI           |
+-     +------------------------+  +------------------------+
++                               +-------------------+
++                               |      Subnet/      |
++                               |     Ethernet      |
++                               |      Manager      |
++                               +-------------------+
++                                  /          /
++                                /           /
++                              /            /
++                            /             /
++  +-----------------------------+  +------------------------------+
++  |  Virtual Ethernet Switch    |  |  Virtual Ethernet Switch     |
++  |  +---------+    +---------+ |  | +---------+    +---------+   |
++  |  | VPORT   |    |  VPORT  | |  | |  VPORT  |    |  VPORT  |   |
++  +--+---------+----+---------+-+  +-+---------+----+---------+---+
++           |                 \        /                 |
++           |                   \    /                   |
++           |                     \/                     |
++           |                    /  \                    |
++           |                  /      \                  |
++       +-----------+------------+  +-----------+------------+
++       |   VNIC    |    VNIC    |  |    VNIC   |    VNIC    |
++       +-----------+------------+  +-----------+------------+
++       |          HFI           |  |          HFI           |
++       +------------------------+  +------------------------+
+ 
+ 
+ The Omni-Path encapsulated Ethernet packet format is as described below.
+ 
+-Bits          Field
+-------------------------------------
++==================== ================================
++Bits                 Field
++==================== ================================
+ Quad Word 0:
+-0-19      SLID (lower 20 bits)
+-20-30     Length (in Quad Words)
+-31        BECN bit
+-32-51     DLID (lower 20 bits)
+-52-56     SC (Service Class)
+-57-59     RC (Routing Control)
+-60        FECN bit
+-61-62     L2 (=10, 16B format)
+-63        LT (=1, Link Transfer Head Flit)
++0-19                 SLID (lower 20 bits)
++20-30                Length (in Quad Words)
++31                   BECN bit
++32-51                DLID (lower 20 bits)
++52-56                SC (Service Class)
++57-59                RC (Routing Control)
++60                   FECN bit
++61-62                L2 (=10, 16B format)
++63                   LT (=1, Link Transfer Head Flit)
+ 
+ Quad Word 1:
+-0-7       L4 type (=0x78 ETHERNET)
+-8-11      SLID[23:20]
+-12-15     DLID[23:20]
+-16-31     PKEY
+-32-47     Entropy
+-48-63     Reserved
++0-7                  L4 type (=0x78 ETHERNET)
++8-11                 SLID[23:20]
++12-15                DLID[23:20]
++16-31                PKEY
++32-47                Entropy
++48-63                Reserved
+ 
+ Quad Word 2:
+-0-15      Reserved
+-16-31     L4 header
+-32-63     Ethernet Packet
++0-15                 Reserved
++16-31                L4 header
++32-63                Ethernet Packet
+ 
+ Quad Words 3 to N-1:
+-0-63      Ethernet packet (pad extended)
++0-63                 Ethernet packet (pad extended)
+ 
+ Quad Word N (last):
+-0-23      Ethernet packet (pad extended)
+-24-55     ICRC
+-56-61     Tail
+-62-63     LT (=01, Link Transfer Tail Flit)
++0-23                 Ethernet packet (pad extended)
++24-55                ICRC
++56-61                Tail
++62-63                LT (=01, Link Transfer Tail Flit)
++==================== ================================
+ 
+ Ethernet packet is padded on the transmit side to ensure that the VNIC OPA
+ packet is quad word aligned. The 'Tail' field contains the number of bytes
+@@ -123,7 +129,7 @@ operation. It also handles the encapsulation of Ethernet packets with an
+ Omni-Path header in the transmit path. For each VNIC interface, the
+ information required for encapsulation is configured by the EM via VEMA MAD
+ interface. It also passes any control information to the HW dependent driver
+-by invoking the RDMA netdev control operations.
++by invoking the RDMA netdev control operations::
+ 
+         +-------------------+ +----------------------+
+         |                   | |       Linux          |
+diff --git a/Documentation/infiniband/sysfs.txt b/Documentation/infiniband/sysfs.txt
+index 9fab5062f84b..f0abd6fa48f4 100644
+--- a/Documentation/infiniband/sysfs.txt
++++ b/Documentation/infiniband/sysfs.txt
+@@ -1,4 +1,6 @@
+-SYSFS FILES
++===========
++Sysfs files
++===========
+ 
+ The sysfs interface has moved to
+ Documentation/ABI/stable/sysfs-class-infiniband.
+diff --git a/Documentation/infiniband/tag_matching.txt b/Documentation/infiniband/tag_matching.txt
+index d2a3bf819226..ef56ea585f92 100644
+--- a/Documentation/infiniband/tag_matching.txt
++++ b/Documentation/infiniband/tag_matching.txt
+@@ -1,12 +1,16 @@
++==================
+ Tag matching logic
++==================
+ 
+ The MPI standard defines a set of rules, known as tag-matching, for matching
+ source send operations to destination receives.  The following parameters must
+ match the following source and destination parameters:
++
+ *	Communicator
+ *	User tag - wild card may be specified by the receiver
+ *	Source rank – wild car may be specified by the receiver
+ *	Destination rank – wild
++
+ The ordering rules require that when more than one pair of send and receive
+ message envelopes may match, the pair that includes the earliest posted-send
+ and the earliest posted-receive is the pair that must be used to satisfy the
+@@ -35,6 +39,7 @@ the header to initiate an RDMA READ operation directly to the matching buffer.
+ A fin message needs to be received in order for the buffer to be reused.
+ 
+ Tag matching implementation
++===========================
+ 
+ There are two types of matching objects used, the posted receive list and the
+ unexpected message list. The application posts receive buffers through calls
+diff --git a/Documentation/infiniband/user_mad.txt b/Documentation/infiniband/user_mad.txt
+index 7aca13a54a3a..d88abfc0e370 100644
+--- a/Documentation/infiniband/user_mad.txt
++++ b/Documentation/infiniband/user_mad.txt
+@@ -1,6 +1,9 @@
+-USERSPACE MAD ACCESS
++====================
++Userspace MAD access
++====================
+ 
+ Device files
++============
+ 
+   Each port of each InfiniBand device has a "umad" device and an
+   "issm" device attached.  For example, a two-port HCA will have two
+@@ -8,12 +11,13 @@ Device files
+   device of each type (for switch port 0).
+ 
+ Creating MAD agents
++===================
+ 
+   A MAD agent can be created by filling in a struct ib_user_mad_reg_req
+   and then calling the IB_USER_MAD_REGISTER_AGENT ioctl on a file
+   descriptor for the appropriate device file.  If the registration
+   request succeeds, a 32-bit id will be returned in the structure.
+-  For example:
++  For example::
+ 
+ 	struct ib_user_mad_reg_req req = { /* ... */ };
+ 	ret = ioctl(fd, IB_USER_MAD_REGISTER_AGENT, (char *) &req);
+@@ -26,12 +30,14 @@ Creating MAD agents
+   ioctl.  Also, all agents registered through a file descriptor will
+   be unregistered when the descriptor is closed.
+ 
+-  2014 -- a new registration ioctl is now provided which allows additional
++  2014
++       a new registration ioctl is now provided which allows additional
+        fields to be provided during registration.
+        Users of this registration call are implicitly setting the use of
+        pkey_index (see below).
+ 
+ Receiving MADs
++==============
+ 
+   MADs are received using read().  The receive side now supports
+   RMPP. The buffer passed to read() must be at least one
+@@ -41,7 +47,8 @@ Receiving MADs
+   MAD (RMPP), the errno is set to ENOSPC and the length of the
+   buffer needed is set in mad.length.
+ 
+-  Example for normal MAD (non RMPP) reads:
++  Example for normal MAD (non RMPP) reads::
++
+ 	struct ib_user_mad *mad;
+ 	mad = malloc(sizeof *mad + 256);
+ 	ret = read(fd, mad, sizeof *mad + 256);
+@@ -50,7 +57,8 @@ Receiving MADs
+ 		free(mad);
+ 	}
+ 
+-  Example for RMPP reads:
++  Example for RMPP reads::
++
+ 	struct ib_user_mad *mad;
+ 	mad = malloc(sizeof *mad + 256);
+ 	ret = read(fd, mad, sizeof *mad + 256);
+@@ -76,11 +84,12 @@ Receiving MADs
+   poll()/select() may be used to wait until a MAD can be read.
+ 
+ Sending MADs
++============
+ 
+   MADs are sent using write().  The agent ID for sending should be
+   filled into the id field of the MAD, the destination LID should be
+   filled into the lid field, and so on.  The send side does support
+-  RMPP so arbitrary length MAD can be sent. For example:
++  RMPP so arbitrary length MAD can be sent. For example::
+ 
+ 	struct ib_user_mad *mad;
+ 
+@@ -97,6 +106,7 @@ Sending MADs
+ 		perror("write");
+ 
+ Transaction IDs
++===============
+ 
+   Users of the umad devices can use the lower 32 bits of the
+   transaction ID field (that is, the least significant half of the
+@@ -105,6 +115,7 @@ Transaction IDs
+   the kernel and will be overwritten before a MAD is sent.
+ 
+ P_Key Index Handling
++====================
+ 
+   The old ib_umad interface did not allow setting the P_Key index for
+   MADs that are sent and did not provide a way for obtaining the P_Key
+@@ -119,6 +130,7 @@ P_Key Index Handling
+   default, and the IB_USER_MAD_ENABLE_PKEY ioctl will be removed.
+ 
+ Setting IsSM Capability Bit
++===========================
+ 
+   To set the IsSM capability bit for a port, simply open the
+   corresponding issm device file.  If the IsSM bit is already set,
+@@ -129,25 +141,26 @@ Setting IsSM Capability Bit
+   the issm file.
+ 
+ /dev files
++==========
+ 
+   To create the appropriate character device files automatically with
+-  udev, a rule like
++  udev, a rule like::
+ 
+     KERNEL=="umad*", NAME="infiniband/%k"
+     KERNEL=="issm*", NAME="infiniband/%k"
+ 
+-  can be used.  This will create device nodes named
++  can be used.  This will create device nodes named::
+ 
+     /dev/infiniband/umad0
+     /dev/infiniband/issm0
+ 
+   for the first port, and so on.  The InfiniBand device and port
+-  associated with these devices can be determined from the files
++  associated with these devices can be determined from the files::
+ 
+     /sys/class/infiniband_mad/umad0/ibdev
+     /sys/class/infiniband_mad/umad0/port
+ 
+-  and
++  and::
+ 
+     /sys/class/infiniband_mad/issm0/ibdev
+     /sys/class/infiniband_mad/issm0/port
+diff --git a/Documentation/infiniband/user_verbs.txt b/Documentation/infiniband/user_verbs.txt
+index 47ebf2f80b2b..8ddc4b1cfef2 100644
+--- a/Documentation/infiniband/user_verbs.txt
++++ b/Documentation/infiniband/user_verbs.txt
+@@ -1,4 +1,6 @@
+-USERSPACE VERBS ACCESS
++======================
++Userspace verbs access
++======================
+ 
+   The ib_uverbs module, built by enabling CONFIG_INFINIBAND_USER_VERBS,
+   enables direct userspace access to IB hardware via "verbs," as
+@@ -13,6 +15,7 @@ USERSPACE VERBS ACCESS
+   libmthca userspace driver be installed.
+ 
+ User-kernel communication
++=========================
+ 
+   Userspace communicates with the kernel for slow path, resource
+   management operations via the /dev/infiniband/uverbsN character
+@@ -28,6 +31,7 @@ User-kernel communication
+   system call.
+ 
+ Resource management
++===================
+ 
+   Since creation and destruction of all IB resources is done by
+   commands passed through a file descriptor, the kernel can keep track
+@@ -41,6 +45,7 @@ Resource management
+   prevent one process from touching another process's resources.
+ 
+ Memory pinning
++==============
+ 
+   Direct userspace I/O requires that memory regions that are potential
+   I/O targets be kept resident at the same physical address.  The
+@@ -54,13 +59,14 @@ Memory pinning
+   number of pages pinned by a process.
+ 
+ /dev files
++==========
+ 
+   To create the appropriate character device files automatically with
+-  udev, a rule like
++  udev, a rule like::
+ 
+     KERNEL=="uverbs*", NAME="infiniband/%k"
+ 
+-  can be used.  This will create device nodes named
++  can be used.  This will create device nodes named::
+ 
+     /dev/infiniband/uverbs0
+ 
 -- 
 2.20.1
