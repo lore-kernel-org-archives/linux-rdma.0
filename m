@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 4/6] RDMA/ucontext: Fix regression with disassociate
-Date: Tue, 16 Apr 2019 14:07:28 +0300
-Message-ID: <20190416110730.32230-5-leon@kernel.org>
+Subject: [PATCH rdma-next 6/6] RDMA: Remove rdma_user_mmap_page
+Date: Tue, 16 Apr 2019 14:07:30 +0300
+Message-ID: <20190416110730.32230-7-leon@kernel.org>
 References: <20190416110730.32230-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,134 +14,177 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <jgg@mellanox.com>
 
-When this code was consolidated the intention was that the VMA would
-become backed by anonymous zero pages after the zap_vma_pte - however this
-very subtly relied on setting the vm_ops = NULL and clearing the VM_SHARED
-bits to transform the VMA into an anonymous VMA. Since the vm_ops was
-removed this broke.
+Upon further research drivers that want this should simply call the core
+function vm_insert_page(). The VMA holds a reference on the page and it
+will be automatically freed when the last reference drops. No need for
+disassociate to sequence the cleanup.
 
-Now userspace gets a SIGBUS if it touches the vma after disassociation.
-
-Instead of converting the VMA to anonymous provide a fault handler that
-puts a zero'd page into the VMA when user-space touches it after
-disassociation.
-
-Cc: stable@vger.kernel.org
-Suggested-by: Andrea Arcangeli <aarcange@redhat.com>
-Fixes: 5f9794dc94f5 ("RDMA/ucontext: Add a core API for mmaping driver IO memory")
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/uverbs.h      |  1 +
- drivers/infiniband/core/uverbs_main.c | 51 +++++++++++++++++++++++++--
- 2 files changed, 49 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/uverbs_main.c | 64 +++++----------------------
+ drivers/infiniband/hw/mlx5/main.c     | 12 ++---
+ include/rdma/ib_verbs.h               |  9 ----
+ 3 files changed, 18 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 0fc71ad42490..d2c29868172c 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -160,6 +160,7 @@ struct ib_uverbs_file {
- 
- 	struct mutex umap_lock;
- 	struct list_head umaps;
-+	struct page *disassociate_page;
- 
- 	struct idr		idr;
- 	/* spinlock protects write access to idr */
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 3ef6474cd201..4a7cf5fddaee 100644
+index 4a7cf5fddaee..d252825930f6 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -208,6 +208,9 @@ void ib_uverbs_release_file(struct kref *ref)
- 		kref_put(&file->async_file->ref,
- 			 ib_uverbs_release_async_event_file);
- 	put_device(&file->device->dev);
-+
-+	if (file->disassociate_page)
-+		__free_pages(file->disassociate_page, 0);
- 	kfree(file);
- }
- 
-@@ -877,9 +880,50 @@ static void rdma_umap_close(struct vm_area_struct *vma)
- 	kfree(priv);
- }
- 
-+/*
-+ * Once the zap_vma_ptes has been called touches to the VMA will come here and
-+ * we return a dummy writable zero page for all the pfns.
-+ */
-+static vm_fault_t rdma_umap_fault(struct vm_fault *vmf)
-+{
-+	struct ib_uverbs_file *ufile = vmf->vma->vm_file->private_data;
-+	struct rdma_umap_priv *priv = vmf->vma->vm_private_data;
-+	vm_fault_t ret = 0;
-+
-+	if (!priv)
-+		return VM_FAULT_SIGBUS;
-+
-+	/* Read only pages can just use the system zero page. */
-+	if (!(vmf->vma->vm_flags & (VM_WRITE | VM_MAYWRITE))) {
-+		vmf->page = ZERO_PAGE(vmf->vm_start);
-+		get_page(vmf->page);
-+		return 0;
-+	}
-+
-+	mutex_lock(&ufile->umap_lock);
-+	if (!ufile->disassociate_page)
-+		ufile->disassociate_page =
-+			alloc_pages(vmf->gfp_mask | __GFP_ZERO, 0);
-+
-+	if (ufile->disassociate_page) {
-+		/*
-+		 * This VMA is forced to always be shared so this doesn't have
-+		 * to worry about COW.
-+		 */
-+		vmf->page = ufile->disassociate_page;
-+		get_page(vmf->page);
-+	} else {
-+		ret = VM_FAULT_SIGBUS;
-+	}
-+	mutex_unlock(&ufile->umap_lock);
-+
-+	return ret;
-+}
-+
- static const struct vm_operations_struct rdma_umap_ops = {
- 	.open = rdma_umap_open,
- 	.close = rdma_umap_close,
-+	.fault = rdma_umap_fault,
+@@ -926,46 +926,35 @@ static const struct vm_operations_struct rdma_umap_ops = {
+ 	.fault = rdma_umap_fault,
  };
  
- static struct rdma_umap_priv *rdma_user_mmap_pre(struct ib_ucontext *ucontext,
-@@ -889,6 +933,8 @@ static struct rdma_umap_priv *rdma_user_mmap_pre(struct ib_ucontext *ucontext,
+-static struct rdma_umap_priv *rdma_user_mmap_pre(struct ib_ucontext *ucontext,
+-						 struct vm_area_struct *vma,
+-						 unsigned long size)
++/*
++ * Map IO memory into a process. This is to be called by drivers as part of
++ * their mmap() functions if they wish to send something like PCI-E BAR memory
++ * to userspace.
++ */
++int rdma_user_mmap_io(struct ib_ucontext *ucontext, struct vm_area_struct *vma,
++		      unsigned long pfn, unsigned long size, pgprot_t prot)
+ {
  	struct ib_uverbs_file *ufile = ucontext->ufile;
  	struct rdma_umap_priv *priv;
  
-+	if (!(vma->vm_flags & VM_SHARED))
-+		return ERR_PTR(-EINVAL);
+ 	if (!(vma->vm_flags & VM_SHARED))
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
  	if (vma->vm_flags & VM_EXEC)
- 		return ERR_PTR(-EINVAL);
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
  	vma->vm_flags &= ~VM_MAYEXEC;
-@@ -996,7 +1042,7 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
- 		 * at a time to get the lock ordering right. Typically there
- 		 * will only be one mm, so no big deal.
- 		 */
--		down_write(&mm->mmap_sem);
-+		down_read(&mm->mmap_sem);
- 		mutex_lock(&ufile->umap_lock);
- 		list_for_each_entry_safe (priv, next_priv, &ufile->umaps,
- 					  list) {
-@@ -1008,10 +1054,9 @@ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
  
- 			zap_vma_ptes(vma, vma->vm_start,
- 				     vma->vm_end - vma->vm_start);
--			vma->vm_flags &= ~(VM_SHARED | VM_MAYSHARE);
- 		}
- 		mutex_unlock(&ufile->umap_lock);
--		up_write(&mm->mmap_sem);
-+		up_read(&mm->mmap_sem);
- 		mmput(mm);
- 	}
+ 	if (vma->vm_end - vma->vm_start != size)
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 
+ 	/* Driver is using this wrong, must be called by ib_uverbs_mmap */
+ 	if (WARN_ON(!vma->vm_file ||
+ 		    vma->vm_file->private_data != ufile))
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	lockdep_assert_held(&ufile->device->disassociate_srcu);
+ 
+ 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (!priv)
+-		return ERR_PTR(-ENOMEM);
+-	return priv;
+-}
+-
+-/*
+- * Map IO memory into a process. This is to be called by drivers as part of
+- * their mmap() functions if they wish to send something like PCI-E BAR memory
+- * to userspace.
+- */
+-int rdma_user_mmap_io(struct ib_ucontext *ucontext, struct vm_area_struct *vma,
+-		      unsigned long pfn, unsigned long size, pgprot_t prot)
+-{
+-	struct rdma_umap_priv *priv = rdma_user_mmap_pre(ucontext, vma, size);
+-
+-	if (IS_ERR(priv))
+-		return PTR_ERR(priv);
++		return -ENOMEM;
+ 
+ 	vma->vm_page_prot = prot;
+ 	if (io_remap_pfn_range(vma, vma->vm_start, pfn, size, prot)) {
+@@ -978,35 +967,6 @@ int rdma_user_mmap_io(struct ib_ucontext *ucontext, struct vm_area_struct *vma,
  }
+ EXPORT_SYMBOL(rdma_user_mmap_io);
+ 
+-/*
+- * The page case is here for a slightly different reason, the driver expects
+- * to be able to free the page it is sharing to user space when it destroys
+- * its ucontext, which means we need to zap the user space references.
+- *
+- * We could handle this differently by providing an API to allocate a shared
+- * page and then only freeing the shared page when the last ufile is
+- * destroyed.
+- */
+-int rdma_user_mmap_page(struct ib_ucontext *ucontext,
+-			struct vm_area_struct *vma, struct page *page,
+-			unsigned long size)
+-{
+-	struct rdma_umap_priv *priv = rdma_user_mmap_pre(ucontext, vma, size);
+-
+-	if (IS_ERR(priv))
+-		return PTR_ERR(priv);
+-
+-	if (remap_pfn_range(vma, vma->vm_start, page_to_pfn(page), size,
+-			    vma->vm_page_prot)) {
+-		kfree(priv);
+-		return -EAGAIN;
+-	}
+-
+-	rdma_umap_priv_init(priv, vma);
+-	return 0;
+-}
+-EXPORT_SYMBOL(rdma_user_mmap_page);
+-
+ void uverbs_user_mmap_disassociate(struct ib_uverbs_file *ufile)
+ {
+ 	struct rdma_umap_priv *priv, *next_priv;
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index 9a718258b8eb..692759914d20 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2064,22 +2064,22 @@ static int mlx5_ib_mmap_clock_info_page(struct mlx5_ib_dev *dev,
+ 					struct vm_area_struct *vma,
+ 					struct mlx5_ib_ucontext *context)
+ {
+-	if (vma->vm_end - vma->vm_start != PAGE_SIZE)
++	if ((vma->vm_end - vma->vm_start != PAGE_SIZE) ||
++	    !(vma->vm_flags & VM_SHARED))
+ 		return -EINVAL;
+ 
+ 	if (get_index(vma->vm_pgoff) != MLX5_IB_CLOCK_INFO_V1)
+ 		return -EOPNOTSUPP;
+ 
+-	if (vma->vm_flags & VM_WRITE)
++	if (vma->vm_flags & (VM_WRITE | VM_EXEC))
+ 		return -EPERM;
+-	vma->vm_flags &= ~VM_MAYWRITE;
++	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
+ 
+ 	if (!dev->mdev->clock_info)
+ 		return -EOPNOTSUPP;
+ 
+-	return rdma_user_mmap_page(&context->ibucontext, vma,
+-				   virt_to_page(dev->mdev->clock_info),
+-				   PAGE_SIZE);
++	return vm_insert_page(vma, vma->vm_start,
++			      virt_to_page(dev->mdev->clock_info));
+ }
+ 
+ static int uar_mmap(struct mlx5_ib_dev *dev, enum mlx5_ib_mmap_cmd cmd,
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index cc311f14f41a..8014dec3bd07 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -2754,9 +2754,6 @@ void ib_set_device_ops(struct ib_device *device,
+ #if IS_ENABLED(CONFIG_INFINIBAND_USER_ACCESS)
+ int rdma_user_mmap_io(struct ib_ucontext *ucontext, struct vm_area_struct *vma,
+ 		      unsigned long pfn, unsigned long size, pgprot_t prot);
+-int rdma_user_mmap_page(struct ib_ucontext *ucontext,
+-			struct vm_area_struct *vma, struct page *page,
+-			unsigned long size);
+ #else
+ static inline int rdma_user_mmap_io(struct ib_ucontext *ucontext,
+ 				    struct vm_area_struct *vma,
+@@ -2765,12 +2762,6 @@ static inline int rdma_user_mmap_io(struct ib_ucontext *ucontext,
+ {
+ 	return -EINVAL;
+ }
+-static inline int rdma_user_mmap_page(struct ib_ucontext *ucontext,
+-				struct vm_area_struct *vma, struct page *page,
+-				unsigned long size)
+-{
+-	return -EINVAL;
+-}
+ #endif
+ 
+ static inline int ib_copy_from_udata(void *dest, struct ib_udata *udata, size_t len)
 -- 
 2.20.1
