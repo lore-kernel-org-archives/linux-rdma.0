@@ -1,189 +1,68 @@
-From: Douglas Gilbert <dgilbert@interlog.com>
-Subject: Re: [PATCH v3 00/26] compat_ioctl: cleanups
-Date: Tue, 16 Apr 2019 18:33:35 -0400
-Message-ID: <c379ed8d-1f33-e391-a1b5-810da77605f2@interlog.com>
-References: <20190416202013.4034148-1-arnd@arndb.de>
-Reply-To: dgilbert@interlog.com
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [ANNOUNCE] ibsim 0.8 release
+Date: Wed, 17 Apr 2019 09:51:35 +0300
+Message-ID: <24c5340b-3df4-e585-b0f4-8130d0a14ae4@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190416202013.4034148-1-arnd@arndb.de>
-Content-Language: en-CA
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org, y2038@lists.linaro.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Karsten Keil <isdn@linux-pingi.de>, "James E.J. Bottomley" <jejb@linux.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Marcel Holtmann <marcel@holtmann.org>, netdev@vger.kernel.org, devel@driverdev.osuosl.org, linux-integrity@vger.kernel.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linux1394-devel@lists.sourceforge.net, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-usb@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ide@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vge
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.openfabrics.org/mailman/options/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg/>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.openfabrics.org/mailman/listinfo/ewg>,
+ <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: "ewg" <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 2019-04-16 4:19 p.m., Arnd Bergmann wrote:
-> Hi Al,
-> 
-> It took me way longer than I had hoped to revisit this series, see
-> https://lore.kernel.org/lkml/20180912150142.157913-1-arnd@arndb.de/
-> for the previously posted version.
-> 
-> I've come to the point where all conversion handlers and most
-> COMPATIBLE_IOCTL() entries are gone from this file, but for
-> now, this series only has the parts that have either been reviewed
-> previously, or that are simple enough to include.
-> 
-> The main missing piece is the SG_IO/SG_GET_REQUEST_TABLE conversion.
-> I'll post the patches I made for that later, as they need more
-> testing and review from the scsi maintainers.
-
-Perhaps you could look at the document in this url:
-     http://sg.danny.cz/sg/sg_v40.html
-
-It is work-in-progress to modernize the SCSI generic driver. It
-extends ioctl(sg_fd, SG_IO, &pt_obj) to additionally accept the sg v4
-interface as defined in include/uapi/linux/bsg.h . Currently only the
-bsg driver uses the sg v4 interface. Since struct sg_io_v4 is all
-explicitly sized integers, I'm guessing it is immune "compat" problems.
-[I can see no reference to bsg nor struct sg_io_v4 in the current
-fs/compat_ioctl.c file.]
-
-Other additions described in the that document are these new ioctls:
-   - SG_IOSUBMIT    ultimately to replace write(sg_fd, ...)
-   - SG_IORECEIVE              to replace read(sg_fd, ...)
-   - SG_IOABORT     abort SCSI cmd in progress; new functionality
-   - SG_SET_GET_EXTENDED   has associated struct sg_extended_info
-
-The first three take a pointer to a struct sg_io_hdr (v3 interface) or
-a struct sg_io_v4 object. Both objects start with a 32 bit integer:
-'S' identifies the v3 interface while 'Q' identifies the v4 interface.
-
-The SG_SET_GET_EXTENDED ioctl takes a pointer to a struct
-sg_extended_info object which contains explicitly sized integers so it
-may also be immune from "compat" problems. The ioctls section (13) of
-that document referenced above has a table showing how many "sets and
-gets" are hiding in the SG_SET_GET_EXTENDED ioctl.
-
-BTW No change is proposed for this case:
-     ioctl(normal_block_device, SG_IO, &sg_v3_obj)
-which is handled by block/scsi_ioctl.c
-
-
-This would be a good time for me to address any "compat" concerns in the
-proposed sg driver update.
-
-Doug Gilbert
-
-
-> I hope you can still take these for the coming merge window, unless
-> new problems come up.
-> 
->        Arnd
-> 
-> Arnd Bergmann (26):
->    compat_ioctl: pppoe: fix PPPOEIOCSFWD handling
->    compat_ioctl: move simple ppp command handling into driver
->    compat_ioctl: avoid unused function warning for do_ioctl
->    compat_ioctl: move PPPIOCSCOMPRESS32 to ppp-generic.c
->    compat_ioctl: move PPPIOCSPASS32/PPPIOCSACTIVE32 to ppp_generic.c
->    compat_ioctl: handle PPPIOCGIDLE for 64-bit time_t
->    compat_ioctl: move rtc handling into rtc-dev.c
->    compat_ioctl: add compat_ptr_ioctl()
->    compat_ioctl: move drivers to compat_ptr_ioctl
->    compat_ioctl: use correct compat_ptr() translation in drivers
->    ceph: fix compat_ioctl for ceph_dir_operations
->    compat_ioctl: move more drivers to compat_ptr_ioctl
->    compat_ioctl: move tape handling into drivers
->    compat_ioctl: move ATYFB_CLK handling to atyfb driver
->    compat_ioctl: move isdn/capi ioctl translation into driver
->    compat_ioctl: move rfcomm handlers into driver
->    compat_ioctl: move hci_sock handlers into driver
->    compat_ioctl: remove HCIUART handling
->    compat_ioctl: remove HIDIO translation
->    compat_ioctl: remove translation for sound ioctls
->    compat_ioctl: remove IGNORE_IOCTL()
->    compat_ioctl: remove /dev/random commands
->    compat_ioctl: remove joystick ioctl translation
->    compat_ioctl: remove PCI ioctl translation
->    compat_ioctl: remove /dev/raw ioctl translation
->    compat_ioctl: remove last RAID handling code
-> 
->   Documentation/networking/ppp_generic.txt    |   2 +
->   arch/um/drivers/hostaudio_kern.c            |   1 +
->   drivers/android/binder.c                    |   2 +-
->   drivers/char/ppdev.c                        |  12 +-
->   drivers/char/random.c                       |   1 +
->   drivers/char/tpm/tpm_vtpm_proxy.c           |  12 +-
->   drivers/crypto/qat/qat_common/adf_ctl_drv.c |   2 +-
->   drivers/dma-buf/dma-buf.c                   |   4 +-
->   drivers/dma-buf/sw_sync.c                   |   2 +-
->   drivers/dma-buf/sync_file.c                 |   2 +-
->   drivers/firewire/core-cdev.c                |  12 +-
->   drivers/gpu/drm/amd/amdkfd/kfd_chardev.c    |   2 +-
->   drivers/hid/hidraw.c                        |   4 +-
->   drivers/hid/usbhid/hiddev.c                 |  11 +-
->   drivers/hwtracing/stm/core.c                |  12 +-
->   drivers/ide/ide-tape.c                      |  31 +-
->   drivers/iio/industrialio-core.c             |   2 +-
->   drivers/infiniband/core/uverbs_main.c       |   4 +-
->   drivers/isdn/capi/capi.c                    |  31 +
->   drivers/isdn/i4l/isdn_ppp.c                 |  14 +-
->   drivers/media/rc/lirc_dev.c                 |   4 +-
->   drivers/mfd/cros_ec_dev.c                   |   4 +-
->   drivers/misc/cxl/flash.c                    |   8 +-
->   drivers/misc/genwqe/card_dev.c              |  23 +-
->   drivers/misc/mei/main.c                     |  22 +-
->   drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
->   drivers/mtd/ubi/cdev.c                      |  36 +-
->   drivers/net/ppp/ppp_generic.c               |  99 +++-
->   drivers/net/ppp/pppoe.c                     |   7 +
->   drivers/net/ppp/pptp.c                      |   3 +
->   drivers/net/tap.c                           |  12 +-
->   drivers/nvdimm/bus.c                        |   4 +-
->   drivers/nvme/host/core.c                    |   2 +-
->   drivers/pci/switch/switchtec.c              |   2 +-
->   drivers/platform/x86/wmi.c                  |   2 +-
->   drivers/rpmsg/rpmsg_char.c                  |   4 +-
->   drivers/rtc/dev.c                           |  13 +-
->   drivers/rtc/rtc-vr41xx.c                    |  10 +
->   drivers/s390/char/tape_char.c               |  41 +-
->   drivers/sbus/char/display7seg.c             |   2 +-
->   drivers/sbus/char/envctrl.c                 |   4 +-
->   drivers/scsi/3w-xxxx.c                      |   4 +-
->   drivers/scsi/cxlflash/main.c                |   2 +-
->   drivers/scsi/esas2r/esas2r_main.c           |   2 +-
->   drivers/scsi/megaraid/megaraid_mm.c         |  28 +-
->   drivers/scsi/osst.c                         |  34 +-
->   drivers/scsi/pmcraid.c                      |   4 +-
->   drivers/scsi/st.c                           |  35 +-
->   drivers/staging/android/ion/ion.c           |   4 +-
->   drivers/staging/pi433/pi433_if.c            |  12 +-
->   drivers/staging/vme/devices/vme_user.c      |   2 +-
->   drivers/tee/tee_core.c                      |   2 +-
->   drivers/usb/class/cdc-wdm.c                 |   2 +-
->   drivers/usb/class/usbtmc.c                  |   4 +-
->   drivers/usb/core/devio.c                    |  16 +-
->   drivers/usb/gadget/function/f_fs.c          |  12 +-
->   drivers/vfio/vfio.c                         |  39 +-
->   drivers/vhost/net.c                         |  12 +-
->   drivers/vhost/scsi.c                        |  12 +-
->   drivers/vhost/test.c                        |  12 +-
->   drivers/vhost/vsock.c                       |  12 +-
->   drivers/video/fbdev/aty/atyfb_base.c        |  12 +-
->   drivers/virt/fsl_hypervisor.c               |   2 +-
->   fs/btrfs/super.c                            |   2 +-
->   fs/ceph/dir.c                               |   1 +
->   fs/ceph/file.c                              |   2 +-
->   fs/compat_ioctl.c                           | 602 +-------------------
->   fs/fat/file.c                               |  13 +-
->   fs/fuse/dev.c                               |   2 +-
->   fs/notify/fanotify/fanotify_user.c          |   2 +-
->   fs/userfaultfd.c                            |   2 +-
->   include/linux/fs.h                          |   7 +
->   include/linux/if_pppox.h                    |   2 +
->   include/linux/mtio.h                        |  58 ++
->   include/uapi/linux/ppp-ioctl.h              |   2 +
->   include/uapi/linux/ppp_defs.h               |  14 +
->   net/bluetooth/hci_sock.c                    |  21 +-
->   net/bluetooth/rfcomm/sock.c                 |  14 +-
->   net/l2tp/l2tp_ppp.c                         |   3 +
->   net/rfkill/core.c                           |   2 +-
->   sound/core/oss/pcm_oss.c                    |   4 +
->   sound/oss/dmasound/dmasound_core.c          |   2 +
->   82 files changed, 452 insertions(+), 1034 deletions(-)
->   create mode 100644 include/linux/mtio.h
-> 
+VGhlcmUgaXMgYSBuZXcgMC44IHJlbGVhc2Ugb2YgaWJzaW0uCgpodHRwczovL2dpdGh1Yi5jb20v
+bGludXgtcmRtYS9pYnNpbS9yZWxlYXNlcy90YWcvMC44CgpOZXcgZmVhdHVyZXMgc2luY2UgMC43
+OgpFeHRlbmRlZCBzcGVlZCBzdXBwb3J0IGluY2x1ZGluZyBIRFIgYW5kIEZEUjEwCjJ4IGxpbmsg
+c3VwcG9ydApMaW5rIHNwZWVkLCBlc3BlZWQsIGFuZCB3aWR0aCBjaGFuZ2Ugc3VwcG9ydApTdXBw
+b3J0IGZvciBQb3J0WG1pdFdhaXQgZmllbGQgaW4gUG9ydENvdW50ZXJzCk1pbm9yIGNoYW5nZXMv
+YnVnIGZpeGVzIGFzIG5vdGVkIGJlbG93CgpBbGwgY29tcG9uZW50IHZlcnNpb25zIGFyZSBmcm9t
+IHJlY2VudCBtYXN0ZXIgYnJhbmNoLiBGdWxsIGxpc3Qgb2YKY2hhbmdlcyBpcyBiZWxvdy4KCkhv
+bmdnYW5nIExpICgxOCk6CiAgICAgIE1vdmUgc2ltX2NtZF9maWxlIGZ1bmN0aW9uIGZyb20gaWJz
+aW0uYyB0byBzaW1fY21kLmMKICAgICAgUmV0dXJuICdOVUxMJyBpbnN0ZWFkIG9mICcwJyBpZiBm
+dW5jdGlvbiByZXR1cm5zIGEgcG9pbnRlcgogICAgICBzaW1fbmV0LmM6IEF2b2lkIGNvcHlpbmcg
+Z2FyYmFnZSBmb3IgdmxhcmIgaW4gaW5pdF9wb3J0cwogICAgICBzaW1fY21kLmM6IEZpeCDigJhv
+cmln4oCZIG1heSBiZSB1c2VkIHVuaW5pdGlhbGl6ZWQgaW4gZG9fcGVyZl9jb3VudGVyX3NldAog
+ICAgICBzaW1fbWFkLmM6IEZpeCBzb21lIGNsYW5nIGNvbXBpbGF0aW9uIGVycm9ycwogICAgICBp
+YnNpbS5zcGVjLmluOiBBcHBlbmQgZ2NjIGludG8gdGhlIEJ1aWxkUmVxdWlyZXMgdGFnCiAgICAg
+IHNpbV9uZXQuYzogRGVsZXRlIHBsYWNlaG9sZGVyICduZXdfaGNhJyBmdW5jdGlvbgogICAgICBz
+aW1fY21kLmM6IGRvX3NldF9ndWlkIHNob3VsZCBkZXJlZmVyZW5jZSB0aGUgY2hhciBwb2ludGVy
+CiAgICAgIHNpbV9jbWQuYzogc2ltX2NtZF9maWxlIHNob3VsZCBjaGVjayB0aGUgY2hhciBwb2lu
+dGVyIGJlZm9yZSBkZXJlZmVyZW5jaW5nCiAgICAgIHNpbV9tYWQuYzogRml4IE5PX0VGRkVDVCBp
+c3N1ZSBmb3IgZG9fbGluZWFyZm9yd3RibAogICAgICBzaW1fbmV0LmM6IEluaXRpYWxpemUgdGhl
+IHBvaW50ZXIgc3Agd2l0aCBOVUxMIGZvciBwYXJzZV9wb3J0CiAgICAgIHNpbV9jbWQuYzogRGVs
+ZXRlIHVudXNlZCB1cGRhdGUgb2YgYSB2YWx1ZQogICAgICBzaW1fbmV0LmM6IEZyZWUgcGF0dGVy
+biBidWZmZXIgaW4gcGFyc2VfcG9ydF9jb25uZWN0aW9uX2RhdGEKICAgICAgc2ltX21hZC5jOiBG
+aXggcG90ZW50aWFsIGRlcmVmZXJlbmNlIG9mIGEgbnVsbCBwb2ludGVyIGluIGRvX3NsMnZsCiAg
+ICAgIHNpbV9tYWQuYzogRml4IGFjY2Vzc2luZyBvZiB1bmluaXRpYWxpemVkIG1lbW9yeSBpbiBz
+ZW5kX3RyYXAKICAgICAgdW1hZDJzaW0uYzogRml4IGEgZmV3IHBvdGVudGlhbCBidWZmZXIgb3Zl
+cmZsb3cgaXNzdWVzCiAgICAgIHVtYWQyc2ltLmM6IG1ha2VfcGF0aCBzaG91bGQgY2hlY2sgdGhl
+IHJldHVybiB2YWx1ZSBvZiBta2RpcgogICAgICBzaW1fY21kLmM6IEZpeCBvdXQgb2YgYm91bmQg
+bWVtb3J5IGFjY2VzcyBpbiBkb19jbWQKCkhhbCBSb3NlbnN0b2NrICgxMik6CiAgICAgIFN1cHBv
+cnQgMnggbGluayB3aWR0aHMKICAgICAgQWRkIHN1cHBvcnQgZm9yIEhEUiBleHRlbmRlZCBsaW5r
+IHNwZWVkCiAgICAgIHNpbV9tYWQuYzogRml4IGNvbXBpbGUgd2FybmluZyBpbiBkb19wb3J0aW5m
+bwogICAgICB1bWFkMnNpbS91bWFkMnNpbS5jOiBGaXggaWJzaW0gZm9yIGxhdGVzdCBsaWJpYnVt
+YWQgaW4gcmRtYS1jb3JlCiAgICAgIG5ldC1leGFtcGxlczogRml4IGNvbW1lbnRhcnkgdHlwb3MK
+ICAgICAgUkVBRE1FOiBVcGRhdGVkIG1haW50YWluZXIKICAgICAgc2ltX21hZC5jOiBDb21iaW5l
+IGxpbmt3aWR0aCBjYXNlcyBpbiBkb19wb3J0aW5mbwogICAgICBzaW1fbWFkLmM6IENvbWJpbmUg
+bGlua3NwZWVkL2xpbmtzcGVlZGV4dCBjYXNlcyBpbiBkb19wb3J0aW5mbwogICAgICBzaW1fbmV0
+LmM6IFJlZHVjZSByZWdmcmVlIGNhbGxzIGluIHBhcnNlX3BvcnRfY29ubmVjdGlvbl9kYXRhCiAg
+ICAgIHNpbV9jbWQuYzogRml4IENPTlNUQU5UX0VYUFJFU1NJT05fUkVTVUxUIGluIGR1bXBfcm91
+dGUKICAgICAgc2ltX21hZC5jOiBGaXggYSBDT05TVEFOVF9FWFBSRVNTSU9OX1JFU1VMVCBpbiBz
+d2l0Y2hfbG9va3VwCiAgICAgIGlic2ltL2lic2ltLmM6IEJ1bXAgdmVyc2lvbiB0byAwLjgKCkRh
+bmllbCBLbGVpbiAoMik6CiAgICAgIEFkZCBleHRlbmRlZCBsaW5rIHNwZWVkIHN1cHBvcnQKICAg
+ICAgRkRSMTAgbGluayBzcGVlZCBzdXBwb3J0CgpDeXJpbGxlIFZlcnJpZXIgKDEpOgogICAgICBT
+ZXQgUG9ydENvdW50ZXJzWG1pdFdhaXRTdXBwb3J0ZWQgZmxhZwoKaG5yb3NlICgxKToKICAgICAg
+TWVyZ2UgcHVsbCByZXF1ZXN0ICMxIGZyb20gY3lyaWxsZXZlcnJpZXIvbWFzdGVyCgpqZWNhdmls
+ICgxKToKICAgICAgTGluayBzcGVlZCwgZXNwZWVkLCBhbmQgd2lkdGggY2hhbmdlIHN1cHBvcnQK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmV3ZyBtYWls
+aW5nIGxpc3QKZXdnQGxpc3RzLm9wZW5mYWJyaWNzLm9yZwpodHRwczovL2xpc3RzLm9wZW5mYWJy
+aWNzLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2V3Zwo=
