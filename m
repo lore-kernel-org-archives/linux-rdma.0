@@ -1,28 +1,36 @@
-From: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: Avoiding merge conflicts while adding new docs - Was: Re:
- [PATCH 00/57] Convert files to ReST
-Date: Fri, 19 Apr 2019 16:10:58 -0600
-Message-ID: <20190419161058.3628a29b@lwn.net>
-References: <cover.1555382110.git.mchehab+samsung@kernel.org>
-        <20190418091526.00e074d1@coco.lan>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH] net/mlx5e: remove meaningless CFLAGS_tracepoint.o
+Date: Fri, 19 Apr 2019 23:16:31 +0000
+Message-ID: <d938a56a3350fba18bd23f43efb582835c90c94d.camel@mellanox.com>
+References: <20190419051731.15111-1-yamada.masahiro@socionext.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190418091526.00e074d1@coco.lan>
+In-Reply-To: <20190419051731.15111-1-yamada.masahiro@socionext.com>
+Content-Language: en-US
+Content-ID: <493D3B4CCE26FB4EA6A41ACDFCF00A0C@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, linux-fbdev@vger.kernel.org, linux-s390@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-watchdog@vger.kernel.org, xdp-newbies@vger.kernel.org, linux-samsung-soc@vger.kernel.org, linux-acpi@vger.kernel.org, linux-stm32@st-md-mailman.stormreply.com, bpf@vger.kernel.org, linux-ide@vger.kernel.org, linux-pm@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-scsi@vger.kernel.org, linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, dm-devel@redhat.com, target-devel@vger.kernel.org, netdev@vger.kernel.org, kexec@lists.infradead.org, linux-fpga@vger.kernel.org, linux-rdma@vger.ke
+To: "yamada.masahiro@socionext.com" <yamada.masahiro@socionext.com>
+Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 18 Apr 2019 09:42:23 -0300
-Mauro Carvalho Chehab <mchehab+samsung@kernel.org> wrote:
-
-> After thinking a little bit and doing some tests, I think a good solution
-> would be to add ":orphan:" markup to the new .rst files that were not
-> added yet into the main body (e. g. something like the enclosed example).
-
-Interesting...I didn't know about that.  Yes, I think it makes sense to
-put that in...
-
-jon
+T24gRnJpLCAyMDE5LTA0LTE5IGF0IDE0OjE3ICswOTAwLCBNYXNhaGlybyBZYW1hZGEgd3JvdGU6
+DQo+IENGTEFHU190cmFjZXBvaW50Lm8gc3BlY2lmaWVzIENGTEFHUyBmb3IgY29tcGlsaW5nIHRy
+YWNlcG9pbnQuYyBidXQNCj4gaXQgZG9lcyBub3QgZXhpc3QgdW5kZXIgZHJpdmVycy9uZXQvZXRo
+ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlLy4NCj4gDQo+IENGTEFHU190cmFjZXBvaW50Lm8gaXMg
+dW51c2VkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFzYWhpcm8gWWFtYWRhIDx5YW1hZGEubWFz
+YWhpcm9Ac29jaW9uZXh0LmNvbT4NCj4gLS0tDQo+IA0KPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQv
+bWVsbGFub3gvbWx4NS9jb3JlL01ha2VmaWxlIHwgMiAtLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIg
+ZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
+bGFub3gvbWx4NS9jb3JlL01ha2VmaWxlDQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFu
+b3gvbWx4NS9jb3JlL01ha2VmaWxlDQo+IGluZGV4IDFhMTZmNmQ3M2NiYy4uZmExMmMyY2E5ZmM1
+IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
+TWFrZWZpbGUNCj4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
+L01ha2VmaWxlDQo+IEBAIC01Nyw1ICs1NywzIEBAIG1seDVfY29yZS0kKENPTkZJR19NTFg1X0VO
+X0lQU0VDKSArPQ0KPiBlbl9hY2NlbC9pcHNlYy5vIGVuX2FjY2VsL2lwc2VjX3J4dHgubyBcDQo+
+ICAJCQkJICAgICBlbl9hY2NlbC9pcHNlY19zdGF0cy5vDQo+ICANCj4gIG1seDVfY29yZS0kKENP
+TkZJR19NTFg1X0VOX1RMUykgKz0gZW5fYWNjZWwvdGxzLm8NCj4gZW5fYWNjZWwvdGxzX3J4dHgu
+byBlbl9hY2NlbC90bHNfc3RhdHMubw0KPiAtDQo+IC1DRkxBR1NfdHJhY2Vwb2ludC5vIDo9IC1J
+JChzcmMpDQoNCkxHVE0sIGFwcGxpZWQgdG8gbWx4NSBicmFuY2gsIHdpbGwgYmUgc2VudCB1cHN0
+cmVhbSBzaG9ydGx5Lg0KDQpUaGFua3MsDQpTYWVlZC4NCg==
