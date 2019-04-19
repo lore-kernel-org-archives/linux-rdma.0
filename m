@@ -1,53 +1,100 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] IB/hfi1: Failed to drain send queue when QP is put into
- error state
-Date: Thu, 18 Apr 2019 17:50:49 +0200
-Message-ID: <20190418155049.GA28185@kroah.com>
-References: <20190418130033.11508.931.stgit@scvm10.sc.intel.com>
+From: Hannes Reinecke <hare@suse.de>
+Subject: Re: [Qemu-devel] [RFC 0/3] VirtIO RDMA
+Date: Fri, 19 Apr 2019 13:16:06 +0200
+Message-ID: <e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
+References: <20190411110157.14252-1-yuval.shaia@oracle.com>
+	<20190411190215.2163572e.cohuck@redhat.com>
+	<20190415103546.GA6854@lap1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190418130033.11508.931.stgit@scvm10.sc.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Kaike Wan <kaike.wan@intel.com>
-Cc: stable@vger.kernel.org, linux-rdma@vger.kernel.org, stable-commits@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+In-Reply-To: <20190415103546.GA6854@lap1>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: Yuval Shaia <yuval.shaia@oracle.com>, Cornelia Huck <cohuck@redhat.com>
+Cc: linux-rdma@vger.kernel.org, jgg@mellanox.com, virtualization@lists.linux-foundation.org, qemu-devel@nongnu.org, mst@redhat.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 18, 2019 at 06:00:37AM -0700, Kaike Wan wrote:
-> commit 662d66466637862ef955f7f6e78a286d8cf0ebef upstream.
-> 
-> When a QP is put into error state, all pending requests in the send work
-> queue should be drained. The following sequence of events could lead to a
-> failure, causing a request to hang:
-> 
-> (1) The QP builds a packet and tries to send through SDMA engine.
->     However, PIO engine is still busy. Consequently, this packet is put on
->     the QP's tx list and the QP is put on the PIO waiting list. The field
->     qp->s_flags is set with HFI1_S_WAIT_PIO_DRAIN;
-> 
-> (2) The QP is put into error state by the user application and
->     notify_error_qp() is called, which removes the QP from the PIO waiting
->     list and the packet from the QP's tx list. In addition, qp->s_flags is
->     cleared of RVT_S_ANY_WAIT_IO bits, which does not include
->     HFI1_S_WAIT_PIO_DRAIN bit;
-> 
-> (3) The hfi1_schdule_send() function is called to drain the QP's send
->     queue. Subsequently, hfi1_do_send() is called. Since the flag bit
->     HFI1_S_WAIT_PIO_DRAIN is set in qp->s_flags, hfi1_send_ok() fails.  As
->     a result, hfi1_do_send() bails out without draining any request from
->     the send queue;
-> 
-> (4) The PIO engine completes the sending and tries to wake up any QP on
->     its waiting list. But the QP has been removed from the PIO waiting
->     list and therefore is kept in sleep forever.
-> 
-> The fix is to clear qp->s_flags of HFI1_S_ANY_WAIT_IO bits in step (2).
-> HFI1_S_ANY_WAIT_IO includes RVT_S_ANY_WAIT_IO and HFI1_S_WAIT_PIO_DRAIN.
-> 
-> [ Corrected commit message to match upstream ]
-> 
-> Fixes: 2e2ba09e48b7 ("IB/rdmavt, IB/hfi1: Create device dependent s_flags")
-> Cc: <stable@vger.kernel.org> # 4.19.x+
-
-Thanks, now queued up.
+T24gNC8xNS8xOSAxMjozNSBQTSwgWXV2YWwgU2hhaWEgd3JvdGU6Cj4gT24gVGh1LCBBcHIgMTEs
+IDIwMTkgYXQgMDc6MDI6MTVQTSArMDIwMCwgQ29ybmVsaWEgSHVjayB3cm90ZToKPj4gT24gVGh1
+LCAxMSBBcHIgMjAxOSAxNDowMTo1NCArMDMwMAo+PiBZdXZhbCBTaGFpYSA8eXV2YWwuc2hhaWFA
+b3JhY2xlLmNvbT4gd3JvdGU6Cj4+Cj4+PiBEYXRhIGNlbnRlciBiYWNrZW5kcyB1c2UgbW9yZSBh
+bmQgbW9yZSBSRE1BIG9yIFJvQ0UgZGV2aWNlcyBhbmQgbW9yZSBhbmQKPj4+IG1vcmUgc29mdHdh
+cmUgcnVucyBpbiB2aXJ0dWFsaXplZCBlbnZpcm9ubWVudC4KPj4+IFRoZXJlIGlzIGEgbmVlZCBm
+b3IgYSBzdGFuZGFyZCB0byBlbmFibGUgUkRNQS9Sb0NFIG9uIFZpcnR1YWwgTWFjaGluZXMuCj4+
+Pgo+Pj4gVmlydGlvIGlzIHRoZSBvcHRpbWFsIHNvbHV0aW9uIHNpbmNlIGlzIHRoZSBkZS1mYWN0
+byBwYXJhLXZpcnR1YWxpemF0b24KPj4+IHRlY2hub2xvZ3kgYW5kIGFsc28gYmVjYXVzZSB0aGUg
+VmlydGlvIHNwZWNpZmljYXRpb24KPj4+IGFsbG93cyBIYXJkd2FyZSBWZW5kb3JzIHRvIHN1cHBv
+cnQgVmlydGlvIHByb3RvY29sIG5hdGl2ZWx5IGluIG9yZGVyIHRvCj4+PiBhY2hpZXZlIGJhcmUg
+bWV0YWwgcGVyZm9ybWFuY2UuCj4+Pgo+Pj4gVGhpcyBSRkMgaXMgYW4gZWZmb3J0IHRvIGFkZHJl
+c3NlcyBjaGFsbGVuZ2VzIGluIGRlZmluaW5nIHRoZSBSRE1BL1JvQ0UKPj4+IFZpcnRpbyBTcGVj
+aWZpY2F0aW9uIGFuZCBhIGxvb2sgZm9yd2FyZCBvbiBwb3NzaWJsZSBpbXBsZW1lbnRhdGlvbgo+
+Pj4gdGVjaG5pcXVlcy4KPj4+Cj4+PiBPcGVuIGlzc3Vlcy9Ub2RvIGxpc3Q6Cj4+PiBMaXN0IGlz
+IGh1Z2UsIHRoaXMgaXMgb25seSBzdGFydCBwb2ludCBvZiB0aGUgcHJvamVjdC4KPj4+IEFueXdh
+eSwgaGVyZSBpcyBvbmUgZXhhbXBsZSBvZiBpdGVtIGluIHRoZSBsaXN0Ogo+Pj4gLSBNdWx0aSBW
+aXJ0UTogRXZlcnkgUVAgaGFzIHR3byByaW5ncyBhbmQgZXZlcnkgQ1EgaGFzIG9uZS4gVGhpcyBt
+ZWFucyB0aGF0Cj4+PiAgICBpbiBvcmRlciB0byBzdXBwb3J0IGZvciBleGFtcGxlIDMySyBRUHMg
+d2Ugd2lsbCBuZWVkIDY0SyBWaXJ0US4gTm90IHN1cmUKPj4+ICAgIHRoYXQgdGhpcyBpcyByZWFz
+b25hYmxlIHNvIG9uZSBvcHRpb24gaXMgdG8gaGF2ZSBvbmUgZm9yIGFsbCBhbmQKPj4+ICAgIG11
+bHRpcGxleCB0aGUgdHJhZmZpYyBvbiBpdC4gVGhpcyBpcyBub3QgZ29vZCBhcHByb2FjaCBhcyBi
+eSBkZXNpZ24gaXQKPj4+ICAgIGludHJvZHVjaW5nIGFuIG9wdGlvbmFsIHN0YXJ2YXRpb24uIEFu
+b3RoZXIgYXBwcm9hY2ggd291bGQgYmUgbXVsdGkKPj4+ICAgIHF1ZXVlcyBhbmQgcm91bmQtcm9i
+aW4gKGZvciBleGFtcGxlKSBiZXR3ZWVuIHRoZW0uCj4+PgpUeXBpY2FsbHkgdGhlcmUgd2lsbCBi
+ZSBhIG9uZS10by1vbmUgbWFwcGluZyBiZXR3ZWVuIFFQcyBhbmQgQ1BVcyAob24gCnRoZSBndWVz
+dCkuIFNvIHdoaWxlIG9uZSB3b3VsZCBuZWVkIHRvIGJlIHByZXBhcmVkIHRvIHN1cHBvcnQgcXVp
+dGUgc29tZSAKUVBzLCB0aGUgZXhwZWN0YXRpb24gaXMgdGhhdCB0aGUgYWN0dWFsIG51bWJlciBv
+ZiBRUHMgdXNlZCB3aWxsIGJlIApyYXRoZXIgbG93LgpJbiBhIHNpbWlsYXIgdmVpbiwgbXVsdGlw
+bGV4aW5nIFFQcyB3b3VsZCBiZSBkZWZlYXRpbmcgdGhlIHB1cnBvc2UsIGFzIAp0aGUgb3ZlcmFs
+bCBpZGVhIHdhcyB0byBoYXZlIF9pbmRlcGVuZGVudF8gUVBzIHRvIGVuaGFuY2UgcGFyYWxsZWxp
+c20uCgo+Pj4gRXhwZWN0YXRpb25zIGZyb20gdGhpcyBwb3N0aW5nOgo+Pj4gSW4gZ2VuZXJhbCwg
+YW55IGNvbW1lbnQgaXMgd2VsY29tZSwgc3RhcnRpbmcgZnJvbSBoZXksIGRyb3AgdGhpcyBhcyBp
+dCBpcyBhCj4+PiB2ZXJ5IGJhZCBpZGVhLCB0byB5ZWFoLCBnbyBhaGVhZCwgd2UgcmVhbGx5IHdh
+bnQgaXQuCj4+PiBJZGVhIGhlcmUgaXMgdGhhdCBzaW5jZSBpdCBpcyBub3QgYSBtaW5vciBlZmZv
+cnQgaSBmaXJzdCB3YW50IHRvIGtub3cgaWYKPj4+IHRoZXJlIGlzIHNvbWUgc29ydCBpbnRlcmVz
+dCBpbiB0aGUgY29tbXVuaXR5IGZvciBzdWNoIGRldmljZS4KPj4KPj4gTXkgZmlyc3QgcmVhY3Rp
+b24gaXM6IFNvdW5kcyBzZW5zaWJsZSwgYnV0IGl0IHdvdWxkIGJlIGdvb2QgdG8gaGF2ZSBhCj4+
+IHNwZWMgZm9yIHRoaXMgOikKPj4KPj4gWW91J2xsIG5lZWQgYSBzcGVjIGlmIHlvdSB3YW50IHRo
+aXMgdG8gZ28gZm9yd2FyZCBhbnl3YXksIHNvIGF0IGxlYXN0IGEKPj4gc2tldGNoIHdvdWxkIGJl
+IGdvb2QgdG8gYW5zd2VyIHF1ZXN0aW9ucyBzdWNoIGFzIGhvdyBtYW55IHZpcnRxdWV1ZXMKPj4g
+eW91IHVzZSBmb3Igd2hpY2ggcHVycG9zZSwgd2hhdCBpcyBhY3R1YWxseSBwdXQgb24gdGhlIHZp
+cnRxdWV1ZXMsCj4+IHdoZXRoZXIgdGhlcmUgYXJlIG5lZ290aWFibGUgZmVhdHVyZXMsIGFuZCB3
+aGF0IHRoZSBleHBlY3RhdGlvbnMgZm9yCj4+IHRoZSBkZXZpY2UgYW5kIHRoZSBkcml2ZXIgYXJl
+LiBJdCBhbHNvIG1ha2VzIGl0IGVhc2llciB0byB1bmRlcnN0YW5kCj4+IGhvdyB0aGlzIGlzIHN1
+cHBvc2VkIHRvIHdvcmsgaW4gcHJhY3RpY2UuCj4+Cj4+IElmIGZvbGtzIGFncmVlIHRoYXQgdGhp
+cyBzb3VuZHMgdXNlZnVsLCB0aGUgbmV4dCBzdGVwIHdvdWxkIGJlIHRvCj4+IHJlc2VydmUgYW4g
+aWQgZm9yIHRoZSBkZXZpY2UgdHlwZS4KPiAKPiBUaGFua3MgZm9yIHRoZSB0aXBzLCB3aWxsIHN1
+cmUgZG8gdGhhdCwgaXQgaXMgdGhhdCBmaXJzdCBpIHdhbnRlZCB0byBtYWtlCj4gc3VyZSB0aGVy
+ZSBpcyBhIHVzZSBjYXNlIGhlcmUuCj4gCj4gV2FpdGluZyBmb3IgYW55IGZlZWRiYWNrIGZyb20g
+dGhlIGNvbW11bml0eS4KPiAKSSByZWFsbHkgZG8gbGlrZSB0aGUgaWRlczsgaW4gZmFjdCwgaXQg
+c2F2ZWQgbWUgZnJvbSBjb2RpbmcgYSBzaW1pbGFyIAp0aGluZyBteXNlbGYgOi0pCgpIb3dldmVy
+LCBJJ20gc3RpbGwgY3VyaW91cyBhYm91dCB0aGUgb3ZlcmFsbCBpbnRlbnQgb2YgdGhpcyBkcml2
+ZXIuIApXaGVyZSB3b3VsZCB0aGUgSS9PIGJlIHJvdXRlZCBfdG9fID8KSXQncyBuaWNlIHRoYXQg
+d2UgaGF2ZSBhIHZpcnR1YWxpemVkIGRyaXZlciwgYnV0IHRoaXMgZHJpdmVyIGlzCmludGVuZGVk
+IHRvIGRvIEkvTyAoZXZlbiBpZiBpdCBkb2Vzbid0IF9kb18gYW55IEkvTyBBVE0gOi0pCkFuZCB0
+aGlzIEkvTyBuZWVkcyB0byBiZSBzZW5kIHRvIChhbmQgcG9zc2libHkgcmVjZWl2ZWQgZnJvbSkK
+c29tZXRoaW5nLgoKU28gd2hhdCBleGFjdGx5IGlzIHRoaXMgc29tZXRoaW5nPwpBbiBleGlzdGlu
+ZyBwaWVjZSBvZiBIVyBvbiB0aGUgaG9zdD8KSWYgc28sIHdvdWxkbid0IGl0IGJlIG1vcmUgZWZm
+aWNpZW50IHRvIHVzZSB2ZmlvLCBlaXRoZXIgYnkgdXNpbmcgU1ItSU9WIApvciBieSB1c2luZyB2
+aXJ0aW8tbWRldj8KCkFub3RoZXIgZ3Vlc3Q/CklmIHNvLCBob3cgd291bGQgd2Ugcm91dGUgdGhl
+IEkvTyBmcm9tIG9uZSBndWVzdCB0byB0aGUgb3RoZXI/ClNoYXJlZCBtZW1vcnk/IEltcGxlbWVu
+dGluZyBhIGZ1bGwtYmxvd24gUkRNQSBzd2l0Y2ggaW4gcWVtdT8KCk9oLCBhbmQgSSB3b3VsZCBf
+bG92ZV8gdG8gaGF2ZSBhIGRpc2N1c3Npb24gYWJvdXQgdGhpcyBhdCBLVk0gRm9ydW0uCk1heWJl
+IEknbGwgbWFuYWdlIHRvIHdoaXAgdXAgZ3Vlc3QtdG8tZ3Vlc3QgUkRNQSBjb25uZWN0aW9uIHVz
+aW5nIAppdnNobWVtIC4uLiBsZXQncyBzZWUuCgpDaGVlcnMsCgpIYW5uZXMKLS0gCkRyLiBIYW5u
+ZXMgUmVpbmVja2UgICAgICAgICAgICBUZWFtbGVhZCBTdG9yYWdlICYgTmV0d29ya2luZwpoYXJl
+QHN1c2UuZGUgICAgICAgICAgICAgICAgICAgICAgICAgICAgICArNDkgOTExIDc0MDUzIDY4OApT
+VVNFIExJTlVYIEdtYkgsIE1heGZlbGRzdHIuIDUsIDkwNDA5IE7DvHJuYmVyZwpHRjogRmVsaXgg
+SW1lbmTDtnJmZmVyLCBNYXJ5IEhpZ2dpbnMsIFNyaSBSYXNpYWgKSFJCIDIxMjg0IChBRyBOw7xy
+bmJlcmcpCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fClZp
+cnR1YWxpemF0aW9uIG1haWxpbmcgbGlzdApWaXJ0dWFsaXphdGlvbkBsaXN0cy5saW51eC1mb3Vu
+ZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9saXN0
+aW5mby92aXJ0dWFsaXphdGlvbg==
