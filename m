@@ -1,36 +1,48 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH] net/mlx5e: remove meaningless CFLAGS_tracepoint.o
-Date: Fri, 19 Apr 2019 23:16:31 +0000
-Message-ID: <d938a56a3350fba18bd23f43efb582835c90c94d.camel@mellanox.com>
-References: <20190419051731.15111-1-yamada.masahiro@socionext.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [RFC 2/3] hw/virtio-rdma: VirtIO rdma device
+Date: Fri, 19 Apr 2019 19:20:22 -0400
+Message-ID: <20190419191910-mutt-send-email-mst@kernel.org>
+References: <20190411110157.14252-1-yuval.shaia@oracle.com>
+	<20190411110157.14252-3-yuval.shaia@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190419051731.15111-1-yamada.masahiro@socionext.com>
-Content-Language: en-US
-Content-ID: <493D3B4CCE26FB4EA6A41ACDFCF00A0C@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "yamada.masahiro@socionext.com" <yamada.masahiro@socionext.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20190411110157.14252-3-yuval.shaia@oracle.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: Yuval Shaia <yuval.shaia@oracle.com>
+Cc: linux-rdma@vger.kernel.org, cohuck@redhat.com, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, jgg@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyMDE5LTA0LTE5IGF0IDE0OjE3ICswOTAwLCBNYXNhaGlybyBZYW1hZGEgd3JvdGU6
-DQo+IENGTEFHU190cmFjZXBvaW50Lm8gc3BlY2lmaWVzIENGTEFHUyBmb3IgY29tcGlsaW5nIHRy
-YWNlcG9pbnQuYyBidXQNCj4gaXQgZG9lcyBub3QgZXhpc3QgdW5kZXIgZHJpdmVycy9uZXQvZXRo
-ZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlLy4NCj4gDQo+IENGTEFHU190cmFjZXBvaW50Lm8gaXMg
-dW51c2VkLg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFzYWhpcm8gWWFtYWRhIDx5YW1hZGEubWFz
-YWhpcm9Ac29jaW9uZXh0LmNvbT4NCj4gLS0tDQo+IA0KPiAgZHJpdmVycy9uZXQvZXRoZXJuZXQv
-bWVsbGFub3gvbWx4NS9jb3JlL01ha2VmaWxlIHwgMiAtLQ0KPiAgMSBmaWxlIGNoYW5nZWQsIDIg
-ZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVs
-bGFub3gvbWx4NS9jb3JlL01ha2VmaWxlDQo+IGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFu
-b3gvbWx4NS9jb3JlL01ha2VmaWxlDQo+IGluZGV4IDFhMTZmNmQ3M2NiYy4uZmExMmMyY2E5ZmM1
-IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUv
-TWFrZWZpbGUNCj4gKysrIGIvZHJpdmVycy9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3Jl
-L01ha2VmaWxlDQo+IEBAIC01Nyw1ICs1NywzIEBAIG1seDVfY29yZS0kKENPTkZJR19NTFg1X0VO
-X0lQU0VDKSArPQ0KPiBlbl9hY2NlbC9pcHNlYy5vIGVuX2FjY2VsL2lwc2VjX3J4dHgubyBcDQo+
-ICAJCQkJICAgICBlbl9hY2NlbC9pcHNlY19zdGF0cy5vDQo+ICANCj4gIG1seDVfY29yZS0kKENP
-TkZJR19NTFg1X0VOX1RMUykgKz0gZW5fYWNjZWwvdGxzLm8NCj4gZW5fYWNjZWwvdGxzX3J4dHgu
-byBlbl9hY2NlbC90bHNfc3RhdHMubw0KPiAtDQo+IC1DRkxBR1NfdHJhY2Vwb2ludC5vIDo9IC1J
-JChzcmMpDQoNCkxHVE0sIGFwcGxpZWQgdG8gbWx4NSBicmFuY2gsIHdpbGwgYmUgc2VudCB1cHN0
-cmVhbSBzaG9ydGx5Lg0KDQpUaGFua3MsDQpTYWVlZC4NCg==
+On Thu, Apr 11, 2019 at 02:01:56PM +0300, Yuval Shaia wrote:
+> diff --git a/include/standard-headers/linux/virtio_ids.h b/include/standard-headers/linux/virtio_ids.h
+> index 6d5c3b2d4f..bd2c699450 100644
+> --- a/include/standard-headers/linux/virtio_ids.h
+> +++ b/include/standard-headers/linux/virtio_ids.h
+> @@ -43,5 +43,6 @@
+>  #define VIRTIO_ID_INPUT        18 /* virtio input */
+>  #define VIRTIO_ID_VSOCK        19 /* virtio vsock transport */
+>  #define VIRTIO_ID_CRYPTO       20 /* virtio crypto */
+> +#define VIRTIO_ID_RDMA         26 /* virtio crypto */
+>  
+>  #endif /* _LINUX_VIRTIO_IDS_H */
+
+
+Please reserve an ID with the virtio TC.
+Process:
+- create a github issue
+- post patch with Fixes: tag
+- wait a bit
+- if no comments on either ask for a vote
+
+> -- 
+> 2.20.1
