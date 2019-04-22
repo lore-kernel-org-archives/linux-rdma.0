@@ -1,55 +1,95 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v2 64/79] docs: ioctl-number.txt: convert it to ReST
- format
-Date: Mon, 22 Apr 2019 11:17:25 -0300
-Message-ID: <20190422111725.18c06ea2@coco.lan>
-References: <cover.1555938375.git.mchehab+samsung@kernel.org>
-        <16911408d1ac64c0df5ef3ecdae9cf1cc2df58e4.1555938376.git.mchehab+samsung@kernel.org>
-        <32310473e6aef679d00c39028adcfcf4c31f47f7.camel@redhat.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [Qemu-devel] [RFC 0/3] VirtIO RDMA
+Date: Mon, 22 Apr 2019 13:45:27 -0300
+Message-ID: <20190422164527.GF21588@ziepe.ca>
+References: <20190411110157.14252-1-yuval.shaia@oracle.com>
+	<20190411190215.2163572e.cohuck@redhat.com>
+	<20190415103546.GA6854@lap1>
+	<e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <32310473e6aef679d00c39028adcfcf4c31f47f7.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Linux Doc Mailing List <linux-doc@vger.kernel.org>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Federico Vaga <federico.vaga@vaga.pv.it>, Harry Wei <harryxiyou@gmail.com>, Alex Shi <alex.shi@linux.alibaba.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Return-path: <virtualization-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
+List-Post: <mailto:virtualization@lists.linux-foundation.org>
+List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
+	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
+Sender: virtualization-bounces@lists.linux-foundation.org
+Errors-To: virtualization-bounces@lists.linux-foundation.org
+To: Hannes Reinecke <hare@suse.de>
+Cc: mst@redhat.com, linux-rdma@vger.kernel.org, Cornelia Huck <cohuck@redhat.com>, qemu-devel@nongnu.org, Yuval Shaia <yuval.shaia@oracle.com>, virtualization@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-Em Mon, 22 Apr 2019 10:05:39 -0400
-Doug Ledford <dledford@redhat.com> escreveu:
+On Fri, Apr 19, 2019 at 01:16:06PM +0200, Hannes Reinecke wrote:
+> On 4/15/19 12:35 PM, Yuval Shaia wrote:
+> > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
+> > > On Thu, 11 Apr 2019 14:01:54 +0300
+> > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
+> > > 
+> > > > Data center backends use more and more RDMA or RoCE devices and more and
+> > > > more software runs in virtualized environment.
+> > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
+> > > > 
+> > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
+> > > > technology and also because the Virtio specification
+> > > > allows Hardware Vendors to support Virtio protocol natively in order to
+> > > > achieve bare metal performance.
+> > > > 
+> > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
+> > > > Virtio Specification and a look forward on possible implementation
+> > > > techniques.
+> > > > 
+> > > > Open issues/Todo list:
+> > > > List is huge, this is only start point of the project.
+> > > > Anyway, here is one example of item in the list:
+> > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
+> > > >    in order to support for example 32K QPs we will need 64K VirtQ. Not sure
+> > > >    that this is reasonable so one option is to have one for all and
+> > > >    multiplex the traffic on it. This is not good approach as by design it
+> > > >    introducing an optional starvation. Another approach would be multi
+> > > >    queues and round-robin (for example) between them.
+> > > > 
+> Typically there will be a one-to-one mapping between QPs and CPUs (on the
+> guest). 
 
-> On Mon, 2019-04-22 at 10:27 -0300, Mauro Carvalho Chehab wrote:
-> > +0x1b  all                                                            InfiniBand Subsystem
-> > +                                                                     <http://infiniband.sourceforge.net/>  
-> 
-> I did not know this link was in there.  That sourceforge site is 15
-> years old and totally obsolete/irrelevant at this point.  This patch
-> doesn't have the purpose of fixing this up, but now that it's pointed
-> out, we'll make a follow up patch to correct this.
+Er we are really overloading words here.. The typical expectation is
+that a 'RDMA QP' will have thousands and thousands of instances on a
+system.
 
-Yeah, I suspect that there are lots of broken links over there.
+Most likely I think mapping 1:1 a virtio queue to a 'RDMA QP, CQ, SRQ,
+etc' is a bad idea...
 
-It seems that some people ended by prepending some broken URLs with:
+> However, I'm still curious about the overall intent of this driver. Where
+> would the I/O be routed _to_ ?
+> It's nice that we have a virtualized driver, but this driver is
+> intended to do I/O (even if it doesn't _do_ any I/O ATM :-)
+> And this I/O needs to be send to (and possibly received from)
+> something.
 
-	http://web.archive.org/web/%2A/
+As yet I have never heard of public RDMA HW that could be coupled to a
+virtio scheme. All HW defines their own queue ring buffer formats
+without standardization.
 
-In order to use the web archive to get an old copy of such documents.
+> If so, wouldn't it be more efficient to use vfio, either by using SR-IOV or
+> by using virtio-mdev?
 
-So, replacing the link with something like:
+Using PCI pass through means the guest has to have drivers for the
+device. A generic, perhaps slower, virtio path has some appeal in some
+cases.
 
-	http://web.archive.org/web/%2A/http://infiniband.sourceforge.net/
+> If so, how would we route the I/O from one guest to the other?
+> Shared memory? Implementing a full-blown RDMA switch in qemu?
 
-Would allow retrieving pages. It seems that the last version is there
-at:
+RoCE rides over the existing ethernet switching layer quemu plugs
+into
 
-	https://web.archive.org/web/20190212201603/http://infiniband.sourceforge.net/
+So if you built a shared memory, local host only, virtio-rdma then
+you'd probably run through the ethernet switch upon connection
+establishment to match the participating VMs.
 
-Yet, if are there any new repository with updated info, it would make sense
-to replace it by the new stuff. 
-
-Alternatively, one could import existing docs (if license is compatible
-with GPLv2) and add to the Kernel documentation.
-
-Thanks,
-Mauro
+Jason
