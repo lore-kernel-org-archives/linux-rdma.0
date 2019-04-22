@@ -1,134 +1,59 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [Qemu-devel] [RFC 0/3] VirtIO RDMA
-Date: Mon, 22 Apr 2019 09:00:34 +0300
-Message-ID: <20190422060034.GA27901@mtr-leonro.mtl.com>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411190215.2163572e.cohuck@redhat.com>
-	<20190415103546.GA6854@lap1>
-	<e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 3/6] RDMA/ucontext: Do not allow BAR mappings
+ to be executable
+Date: Mon, 22 Apr 2019 09:51:38 -0300
+Message-ID: <20190422125138.GB21588@ziepe.ca>
+References: <20190416110730.32230-1-leon@kernel.org>
+ <20190416110730.32230-4-leon@kernel.org>
+ <14063C7AD467DE4B82DEDB5C278E8663BE6A5513@FMSMSX108.amr.corp.intel.com>
+ <20190418055759.GA3155@mellanox.com>
+ <CAGXu5jKH-YwkzEp4UFckabJV_WOTAEQWSZ7787ovhSs215v2+Q@mail.gmail.com>
+ <20190418070128.GE3206@ziepe.ca>
+ <CAGXu5jKE-o11YeYyLOL4arJA-O5_BKYdtrdfLthFsm2pfjGnGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Hannes Reinecke <hare@suse.de>
-Cc: mst@redhat.com, linux-rdma@vger.kernel.org, Cornelia Huck <cohuck@redhat.com>, qemu-devel@nongnu.org, Yuval Shaia <yuval.shaia@oracle.com>, virtualization@lists.linux-foundation.org, jgg@mellanox.com
+In-Reply-To: <CAGXu5jKE-o11YeYyLOL4arJA-O5_BKYdtrdfLthFsm2pfjGnGg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: "Ruhl, Michael J" <michael.j.ruhl@intel.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, Feras Daoud <ferasda@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Apr 19, 2019 at 01:16:06PM +0200, Hannes Reinecke wrote:
-> On 4/15/19 12:35 PM, Yuval Shaia wrote:
-> > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
-> > > On Thu, 11 Apr 2019 14:01:54 +0300
-> > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> > >
-> > > > Data center backends use more and more RDMA or RoCE devices and more and
-> > > > more software runs in virtualized environment.
-> > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
-> > > >
-> > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
-> > > > technology and also because the Virtio specification
-> > > > allows Hardware Vendors to support Virtio protocol natively in order to
-> > > > achieve bare metal performance.
-> > > >
-> > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
-> > > > Virtio Specification and a look forward on possible implementation
-> > > > techniques.
-> > > >
-> > > > Open issues/Todo list:
-> > > > List is huge, this is only start point of the project.
-> > > > Anyway, here is one example of item in the list:
-> > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
-> > > >    in order to support for example 32K QPs we will need 64K VirtQ. Not sure
-> > > >    that this is reasonable so one option is to have one for all and
-> > > >    multiplex the traffic on it. This is not good approach as by design it
-> > > >    introducing an optional starvation. Another approach would be multi
-> > > >    queues and round-robin (for example) between them.
-> > > >
-> Typically there will be a one-to-one mapping between QPs and CPUs (on the
-> guest). So while one would need to be prepared to support quite some QPs,
-> the expectation is that the actual number of QPs used will be rather low.
-> In a similar vein, multiplexing QPs would be defeating the purpose, as the
-> overall idea was to have _independent_ QPs to enhance parallelism.
->
-> > > > Expectations from this posting:
-> > > > In general, any comment is welcome, starting from hey, drop this as it is a
-> > > > very bad idea, to yeah, go ahead, we really want it.
-> > > > Idea here is that since it is not a minor effort i first want to know if
-> > > > there is some sort interest in the community for such device.
-> > >
-> > > My first reaction is: Sounds sensible, but it would be good to have a
-> > > spec for this :)
-> > >
-> > > You'll need a spec if you want this to go forward anyway, so at least a
-> > > sketch would be good to answer questions such as how many virtqueues
-> > > you use for which purpose, what is actually put on the virtqueues,
-> > > whether there are negotiable features, and what the expectations for
-> > > the device and the driver are. It also makes it easier to understand
-> > > how this is supposed to work in practice.
-> > >
-> > > If folks agree that this sounds useful, the next step would be to
-> > > reserve an id for the device type.
+On Thu, Apr 18, 2019 at 02:23:26AM -0500, Kees Cook wrote:
+> On Thu, Apr 18, 2019 at 2:01 AM Jason Gunthorpe <jgg@ziepe.ca> wrote:
 > >
-> > Thanks for the tips, will sure do that, it is that first i wanted to make
-> > sure there is a use case here.
+> > On Thu, Apr 18, 2019 at 01:30:07AM -0500, Kees Cook wrote:
 > >
-> > Waiting for any feedback from the community.
+> > > Anything running with READ_IMPLIES_EXEC (i.e. a gnu stack marked WITH
+> > > execute) should be considered broken. Now, the trouble is that this
+> > > personality flag is carried across execve(), so if you have a launcher
+> > > that doesn't fix up the personality for children, you'll see this
+> > > spread all over your process tree. What is doing rdma mmap calls with
+> > > an executable stack? That really feels to me like the real source of
+> > > the problem.
 > >
-> I really do like the ides; in fact, it saved me from coding a similar thing
-> myself :-)
->
-> However, I'm still curious about the overall intent of this driver. Where
-> would the I/O be routed _to_ ?
-> It's nice that we have a virtualized driver, but this driver is
-> intended to do I/O (even if it doesn't _do_ any I/O ATM :-)
-> And this I/O needs to be send to (and possibly received from)
-> something.
->
-> So what exactly is this something?
-> An existing piece of HW on the host?
-> If so, wouldn't it be more efficient to use vfio, either by using SR-IOV or
-> by using virtio-mdev?
->
-> Another guest?
-> If so, how would we route the I/O from one guest to the other?
-> Shared memory? Implementing a full-blown RDMA switch in qemu?
->
-> Oh, and I would _love_ to have a discussion about this at KVM Forum.
-> Maybe I'll manage to whip up guest-to-guest RDMA connection using ivshmem
-> ... let's see.
+> > Apparently the Fortran runtime forces the READ_IMPLIES_EXEC and
+> > requires it for some real reason or another - Fortran and RDMA go
+> > together in alot of cases.
+> 
+> That's pretty unfortunate for the security of the resulting proceses. :(
 
-Following success in previous years to transfer ideas into code,
-we started to prepare RDMA miniconference in LPC 2019, which will
-be co-located with Kernel Summit and networking track.
+I think it probably arises from a need for exec stacks in the
+runtime... That Linux escalates that to full READ_IMPLIES_EXEC seems
+quite unfortunate. Hopefully your patch will get accepted as it makes
+a lot of sense.
 
-I'm confident that such broad audience of kernel developers
-will be good fit for such discussion.
+> I wonder if we could simply make devtmpfs ignore READ_IMPLIES_EXEC
+> entirely, though? And I wonder if we could defang READ_IMPLIES_EXEC a
+> bit in general. It was _supposed_ to be for the cases where binaries
+> were missing exec bits and a processor was just gaining NX ability. I
+> know this has been discussed before... ah-ha, here it is:
+> http://lkml.kernel.org/r/1462963502-11636-1-git-send-email-hecmargi@upv.es
 
-Previous years:
-2016: https://www.spinics.net/lists/linux-rdma/msg43074.html
-2017: https://lwn.net/Articles/734163/
-2018: It was so full in audience and intensive that I failed to
-summarize it :(
+Globally banning VM_EXEC from char device nodes also sounds very
+appealing to me (particularly from a W^X sense)... There are not very
+many grep hits on VM_EXEC in drivers/*, and none of the ones I looked
+at seemed problematic.
 
-Thanks
-
->
-> Cheers,
->
-> Hannes
-> --
-> Dr. Hannes Reinecke            Teamlead Storage & Networking
-> hare@suse.de                              +49 911 74053 688
-> SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N??rnberg
-> GF: Felix Imend??rffer, Mary Higgins, Sri Rasiah
-> HRB 21284 (AG N??rnberg)
+Jason
