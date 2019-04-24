@@ -1,103 +1,57 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 4/8] IB/mlx5: Add steering SW ICM device memory
- type
-Date: Wed, 24 Apr 2019 13:39:26 -0300
-Message-ID: <20190424163926.GL16061@ziepe.ca>
-References: <20190424130440.GA5196@ziepe.ca>
- <20190424131222.GG27901@mtr-leonro.mtl.com>
- <20190424131405.GE16061@ziepe.ca>
- <20190424132516.GH27901@mtr-leonro.mtl.com>
- <20190424133553.GF16061@ziepe.ca>
- <20190424134604.GI27901@mtr-leonro.mtl.com>
- <20190424134703.GG16061@ziepe.ca>
- <20190424154937.GJ27901@mtr-leonro.mtl.com>
- <20190424155313.GI16061@ziepe.ca>
- <20190424162736.GK27901@mtr-leonro.mtl.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/8] User space steering
+Date: Wed, 24 Apr 2019 16:40:54 +0000
+Message-ID: <4604e35554bb26c781bb685ae515fdfc06272d55.camel@mellanox.com>
+References: <20190331164450.23618-1-leon@kernel.org>
+         <20190424130714.GB5196@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190424162736.GK27901@mtr-leonro.mtl.com>
+In-Reply-To: <20190424130714.GB5196@ziepe.ca>
+Content-Language: en-US
+Content-ID: <A58A049004DB5C48B47E06DF4A65D295@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
+Cc: Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Mark Bloch <markb@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 07:27:36PM +0300, Leon Romanovsky wrote:
-> On Wed, Apr 24, 2019 at 12:53:13PM -0300, Jason Gunthorpe wrote:
-> > On Wed, Apr 24, 2019 at 06:49:37PM +0300, Leon Romanovsky wrote:
-> > > On Wed, Apr 24, 2019 at 10:47:03AM -0300, Jason Gunthorpe wrote:
-> > > > On Wed, Apr 24, 2019 at 04:46:04PM +0300, Leon Romanovsky wrote:
-> > > > > On Wed, Apr 24, 2019 at 10:35:53AM -0300, Jason Gunthorpe wrote:
-> > > > > > On Wed, Apr 24, 2019 at 04:25:16PM +0300, Leon Romanovsky wrote:
-> > > > > > > On Wed, Apr 24, 2019 at 10:14:05AM -0300, Jason Gunthorpe wrote:
-> > > > > > > > On Wed, Apr 24, 2019 at 04:12:22PM +0300, Leon Romanovsky wrote:
-> > > > > > > > > On Wed, Apr 24, 2019 at 10:04:40AM -0300, Jason Gunthorpe wrote:
-> > > > > > > > > > On Sun, Mar 31, 2019 at 07:44:46PM +0300, Leon Romanovsky wrote:
-> > > > > > > > > > > From: Ariel Levkovich <lariel@mellanox.com>
-> > > > > > > > > > >
-> > > > > > > > > > > This patch adds support for allocating, deallocating and registering
-> > > > > > > > > > > a new device memory type, STEERING_SW_ICM.
-> > > > > > > > > > > This memory can be allocated and used by a privileged user for direct
-> > > > > > > > > > > rule insertion and management of the device's steering tables.
-> > > > > > > > > > >
-> > > > > > > > > > > The type is provided by the user via the dedicated attribute in
-> > > > > > > > > > > the alloc_dm ioctl command.
-> > > > > > > > > > >
-> > > > > > > > > > > Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
-> > > > > > > > > > > Reviewed-by: Eli Cohen <eli@mellanox.com>
-> > > > > > > > > > > Reviewed-by: Mark Bloch <markb@mellanox.com>
-> > > > > > > > > > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/Kconfig        |   2 +-
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/cmd.c          | 127 +++++++++++++++++++-
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/cmd.h          |   6 +-
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/main.c         | 136 +++++++++++++++++++++-
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/mlx5_ib.h      |  17 +++
-> > > > > > > > > > >  drivers/infiniband/hw/mlx5/mr.c           |   7 ++
-> > > > > > > > > > >  include/uapi/rdma/mlx5_user_ioctl_verbs.h |   2 +
-> > > > > > > > > > >  7 files changed, 291 insertions(+), 6 deletions(-)
-> > > > > > > > > > >
-> > > > > > > > > > > diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw/mlx5/Kconfig
-> > > > > > > > > > > index 8d651c05de62..347d457fcb2f 100644
-> > > > > > > > > > > +++ b/drivers/infiniband/hw/mlx5/Kconfig
-> > > > > > > > > > > @@ -1,6 +1,6 @@
-> > > > > > > > > > >  config MLX5_INFINIBAND
-> > > > > > > > > > >  	tristate "Mellanox 5th generation network adapters (ConnectX series) support"
-> > > > > > > > > > > -	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE
-> > > > > > > > > > > +	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE && PHYS_ADDR_T_64BIT
-> > > > > > > > > >
-> > > > > > > > > > Why do we need this?
-> > > > > > > > >
-> > > > > > > > > We are using phys_addr_t type and not u64 as an input to FW to emphasize
-> > > > > > > > > the caller interface, but it is different between 32 and 64 bits systems.
-> > > > > > > > > Such PHYS_ADDR_T_64BIT will ensure that phys_addr_t will be always 64 bits.
-> > > > > > > >
-> > > > > > > > ???
-> > > > > > > >
-> > > > > > > > PHYS_ADDR_T should only ever be used to store a bus address - and if
-> > > > > > > > you are passing a bus address to/from FW then you 0 extend it on 32
-> > > > > > > > bit, and range check on 64 bit.
-> > > > > > > >
-> > > > > > > > This is not a reason to force PHYS_ADDR_T_64BIT from a driver
-> > > > > > >
-> > > > > > > So how will I mark that we are forwarding physical address to FW?
-> > > > > >
-> > > > > > I don't know what this means.. phys_addr_t will transparently 0 extend
-> > > > > > to 64 bit which is the correct thing to do when passing a phys_addr_t
-> > > > > > to HW.
-> > > > >
-> > > > > It looks to me very similar to what I wanted: mark input as an address
-> > > > > and ensure that it is always u64 as our FW expects.
-> > > >
-> > > > So there is no reason for the kconfig hunk then
-> > >
-> > > The kconfig is needed to ensure that u64 value is truncated to be u32 on
-> > > 32bits systems.
-> >
-> > What?
-> 
-> I wanted to say "not truncated", sorry about that.
-
-Are we reading back a u64 physical value from the HW? Where?
-
-Jason
+T24gV2VkLCAyMDE5LTA0LTI0IGF0IDEwOjA3IC0wMzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFN1biwgTWFyIDMxLCAyMDE5IGF0IDA3OjQ0OjQyUE0gKzAzMDAsIExlb24gUm9tYW5v
+dnNreSB3cm90ZToNCj4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5j
+b20+DQo+ID4gDQo+ID4gPiBGcm9tIEFyaWVsLA0KPiA+IA0KPiA+IFRoaXMgc2VyaWVzIG9mIHBh
+dGNoZXMgYWRkcyB1c2VyIHNwYWNlIG1hbmFnZWQgc3RlZXJpbmcNCj4gPiBpbmZyYXN0cnVjdHVy
+ZQ0KPiA+IHRvIHRoZSBtbHg1X2liIGRyaXZlci4NCj4gPiANCj4gPiBVc2VyIHNwYWNlIG1hbmFn
+ZWQgc3RlZXJpbmcgcmVxdWlyZXMgdGhlIG1lYW5zIHRvIGFjY2VzcyBhDQo+ID4gZGVkaWNhdGVk
+DQo+ID4gbWVtb3J5IHNwYWNlIHRoYXQgaXMgdXNlZCBieSB0aGUgZGV2aWNlIHRvIHN0b3JlIHRo
+ZSBwYWNrZXQNCj4gPiBzdGVlcmluZw0KPiA+IGFuZCBoZWFkZXIgbW9kaWZpY2F0aW9uIHRhYmxl
+cyBhbmQgcnVsZXMgaW4gb3JkZXIgdG8gbWFuYWdlIHRoZW0NCj4gPiBkaXJlY3RseQ0KPiA+IHdp
+dGhvdXQgdGhlIGRldmljZSdzIGZpcm13YXJlIGludm9sdmVtZW50LiBUaGlzIGRlZGljYXRlZCBt
+ZW1vcnkgaXMNCj4gPiBwYXJ0DQo+ID4gb2YgdGhlIElDTSBtZW1vcnkgc3BhY2UuDQo+ID4gDQo+
+ID4gVGhlIGNoYW5nZXMgYXJlIGludHJvZHVjaW5nIHRoZSBtbHg1X2liIEFQSSB0byBhbGxvY2F0
+ZSwgZGVhbGxvY2F0ZQ0KPiA+IGFuZA0KPiA+IHJlZ2lzdGVyIHRoaXMgZGVkaWNhdGVkIFNXIElD
+TSBtZW1vcnkgdmlhIHRoZSBleGlzdGluZyBkZXZpY2UNCj4gPiBtZW1vcnkgQVBJDQo+ID4gdXNp
+bmcgYSBwcml2YXRlIGF0dHJpYnV0ZSB3aGljaCBzcGVjaWZpZXMgdGhlIG1lbW9yeSB0eXBlLg0K
+PiA+IA0KPiA+IFRoZSBhbGxvY2F0ZWQgbWVtb3J5IGl0c2VsZiBpcyBub3QgSU8gbWFwcGVkIGFu
+ZCB1c2VyIGNhbiBvbmx5DQo+ID4gYWNjZXNzIGl0DQo+ID4gdXNpbmcgcmVtb3RlIFJETUEgb3Bl
+cmF0aW9ucy4NCj4gPiANCj4gPiBJbiBhZGRpdGlvbiwgdGhlIHNlcmllcyBleHBvc2VkIHRoZSBJ
+Q00gYWRkcmVzcyBvZiB0aGUgcmVjZWl2ZQ0KPiA+IHRyYW5zcG9ydA0KPiA+IGludGVyZmFjZSAo
+VElSKSBvZiBSYXcgUGFja2V0IGFuZCBSU1MgUVBzIHRvIHVzZXIgc2luY2UgdGhleSBhcmUNCj4g
+PiByZXF1aXJlZA0KPiA+IHRvIHByb3Blcmx5IGNyZWF0ZSBhbmQgaW5zZXJ0IHN0ZWVyaW5nIHJ1
+bGVzIHRoYXQgZGlyZWN0IGZsb3dzIHRvDQo+ID4gdGhlc2UgUVBzLg0KPiA+IA0KPiA+IFRoYW5r
+cw0KPiA+IA0KPiA+IEFyaWVsIExldmtvdmljaCAoOCk6DQo+ID4gICBuZXQvbWx4NTogRXhwb3Nl
+IFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQo+ID4gICBJQi9tbHg1
+OiBTdXBwb3J0IGRldmljZSBtZW1vcnkgdHlwZSBhdHRyaWJ1dGUNCj4gPiAgIElCL21seDU6IFdh
+cm4gb24gYWxsb2NhdGVkIE1FTUlDIGJ1ZmZlcnMgZHVyaW5nIGNsZWFudXANCj4gPiAgIElCL21s
+eDU6IEFkZCBzdGVlcmluZyBTVyBJQ00gZGV2aWNlIG1lbW9yeSB0eXBlDQo+ID4gICBJQi9tbHg1
+OiBEZXZpY2UgcmVzb3VyY2UgY29udHJvbCBmb3IgcHJpdmlsZWdlZCBERVZYIHVzZXINCj4gDQo+
+IFRoaXMgZG9lc24ndCBhcHBseSwgaXQgY29uZmxpY3RzIHdpdGggcGF0Y2hlcyBpbiBtbHg1LW5l
+eHQsIHBsZWFzZQ0KPiByZXNlbnQNCj4gDQo+ID4gICBuZXQvbWx4NTogRXhwb3NlIFRJUiBJQ00g
+YWRkcmVzcyBpbiBjb21tYW5kIG91dGJveA0KPiA+ICAgbmV0L21seDU6IEludHJvZHVjZSBuZXcg
+VElSIGNyZWF0aW9uIGNvcmUgQVBJDQo+ID4gICBJQi9tbHg1OiBFeHBvc2UgVElSIElDTSBhZGRy
+ZXNzIHRvIHVzZXIgc3BhY2UNCj4gDQoNCml0IGlzIGEgMyBwYXRjaCBzZXJpZXM6DQogIG5ldC9t
+bHg1OiBFeHBvc2UgVElSIElDTSBhZGRyZXNzIGluIGNvbW1hbmQgb3V0Ym94DQogIG5ldC9tbHg1
+OiBJbnRyb2R1Y2UgbmV3IFRJUiBjcmVhdGlvbiBjb3JlIEFQSQ0KICBuZXQvbWx4NTogRXhwb3Nl
+IFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQoNCkxHVE0sIEkgY2Fu
+IGFwcGx5IHRoZW0gaWYgeW91IHdhbnQsIG9yIGRvIHlvdSB3YW50IHRvIHdhaXQgZm9yIGxlb24g
+Pw0KDQo=
