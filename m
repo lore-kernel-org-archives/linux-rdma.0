@@ -1,55 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/1] net: rds: exchange of 8K and 1M pool
-Date: Wed, 24 Apr 2019 12:08:21 -0700 (PDT)
-Message-ID: <20190424.120821.1238263614541182985.davem@davemloft.net>
-References: <20190424065642.28630-1-yanjun.zhu@oracle.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 0/6] BAR mappings fixes in RDMA
+Date: Wed, 24 Apr 2019 16:24:29 -0300
+Message-ID: <20190424192429.GA31203@ziepe.ca>
+References: <20190416110730.32230-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190424065642.28630-1-yanjun.zhu@oracle.com>
+Content-Disposition: inline
+In-Reply-To: <20190416110730.32230-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: yanjun.zhu@oracle.com
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, Feras Daoud <ferasda@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Date: Wed, 24 Apr 2019 02:56:42 -0400
-
-> Before the commit 490ea5967b0d ("RDS: IB: move FMR code to its own file"),
-> when the dirty_count is greater than 9/10 of max_items of 8K pool,
-> 1M pool is used, Vice versa. After the commit 490ea5967b0d ("RDS: IB: move
-> FMR code to its own file"), the above is removed. When we make the
-> following tests.
+On Tue, Apr 16, 2019 at 02:07:24PM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> Server:
->   rds-stress -r 1.1.1.16 -D 1M
+> >From Jason,
 > 
-> Client:
->   rds-stress -r 1.1.1.14 -s 1.1.1.16 -D 1M
+> Upon review it turns out there are some long standing problems in BAR
+> mapping area:
+>  * BAR pages are being allowed to be executable.
+>  * BAR pages intended for read-only can be switched to writable via mprotect.
+>  * Missing use of rdma_user_mmap_io for the mlx5 clock BAR page.
+>  * Disassociate causes SIGBUS when touching the pages.
+>  * CPU pages are being mapped through to the process via remap_pfn_range
+>    instead of the more appropriate vm_insert_page, causing weird behaviors
+>    during disassociation.
 > 
-> The following will appear.
-> "
-> connecting to 1.1.1.16:4000
-> negotiated options, tasks will start in 2 seconds
-> Starting up..header from 1.1.1.166:4001 to id 4001 bogus
-> ..
-> tsks  tx/s  rx/s tx+rx K/s  mbi K/s  mbo K/s tx us/c  rtt us
-> cpu %
->    1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
->    1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
->    1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
->    1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
->    1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-> ... 
-> "
-> So this exchange between 8K and 1M pool is added back.
+> This series adds the missing VM_* flag manipulation, adds faulting a zero
+> page for disassociation and revises the CPU page mappings to use vm_insert_page.
 > 
-> Fixes: commit 490ea5967b0d ("RDS: IB: move FMR code to its own file")
+> Thanks
+> 
+> Jason Gunthorpe (6):
+>   RDMA/mlx5: Do not allow the user to write to the clock page
+>   RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
+>   RDMA/ucontext: Fix regression with disassociate
 
-Please don't put this string "commit " in Fixes: tags.  I've removed
-it for you this time.
+Applied to for-rc
 
-> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+>   RDMA/mlx5: Use get_zeroed_page() for clock_info
+>   RDMA: Remove rdma_user_mmap_page
 
-Applied and queued up for -stable, thank you.
+Applied to for-next
+
+I dropped this patch:
+
+>   RDMA/ucontext: Do not allow BAR mappings to be executable
+
+Jason
