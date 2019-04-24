@@ -1,57 +1,49 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH rdma-next 0/8] User space steering
-Date: Wed, 24 Apr 2019 16:40:54 +0000
-Message-ID: <4604e35554bb26c781bb685ae515fdfc06272d55.camel@mellanox.com>
-References: <20190331164450.23618-1-leon@kernel.org>
-         <20190424130714.GB5196@ziepe.ca>
+From: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Subject: Re: [PATCH 1/1] net: rds: exchange of 8K and 1M pool
+Date: Wed, 24 Apr 2019 09:59:42 -0700
+Message-ID: <b005573c-1dfe-649d-dcc3-c5e72c82d22c@oracle.com>
+References: <20190424065642.28630-1-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190424130714.GB5196@ziepe.ca>
+In-Reply-To: <20190424065642.28630-1-yanjun.zhu@oracle.com>
 Content-Language: en-US
-Content-ID: <A58A049004DB5C48B47E06DF4A65D295@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "jgg@ziepe.ca" <jgg@ziepe.ca>, "leon@kernel.org" <leon@kernel.org>
-Cc: Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "dledford@redhat.com" <dledford@redhat.com>, Mark Bloch <markb@mellanox.com>
+To: Zhu Yanjun <yanjun.zhu@oracle.com>, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE5LTA0LTI0IGF0IDEwOjA3IC0wMzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFN1biwgTWFyIDMxLCAyMDE5IGF0IDA3OjQ0OjQyUE0gKzAzMDAsIExlb24gUm9tYW5v
-dnNreSB3cm90ZToNCj4gPiBGcm9tOiBMZW9uIFJvbWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5j
-b20+DQo+ID4gDQo+ID4gPiBGcm9tIEFyaWVsLA0KPiA+IA0KPiA+IFRoaXMgc2VyaWVzIG9mIHBh
-dGNoZXMgYWRkcyB1c2VyIHNwYWNlIG1hbmFnZWQgc3RlZXJpbmcNCj4gPiBpbmZyYXN0cnVjdHVy
-ZQ0KPiA+IHRvIHRoZSBtbHg1X2liIGRyaXZlci4NCj4gPiANCj4gPiBVc2VyIHNwYWNlIG1hbmFn
-ZWQgc3RlZXJpbmcgcmVxdWlyZXMgdGhlIG1lYW5zIHRvIGFjY2VzcyBhDQo+ID4gZGVkaWNhdGVk
-DQo+ID4gbWVtb3J5IHNwYWNlIHRoYXQgaXMgdXNlZCBieSB0aGUgZGV2aWNlIHRvIHN0b3JlIHRo
-ZSBwYWNrZXQNCj4gPiBzdGVlcmluZw0KPiA+IGFuZCBoZWFkZXIgbW9kaWZpY2F0aW9uIHRhYmxl
-cyBhbmQgcnVsZXMgaW4gb3JkZXIgdG8gbWFuYWdlIHRoZW0NCj4gPiBkaXJlY3RseQ0KPiA+IHdp
-dGhvdXQgdGhlIGRldmljZSdzIGZpcm13YXJlIGludm9sdmVtZW50LiBUaGlzIGRlZGljYXRlZCBt
-ZW1vcnkgaXMNCj4gPiBwYXJ0DQo+ID4gb2YgdGhlIElDTSBtZW1vcnkgc3BhY2UuDQo+ID4gDQo+
-ID4gVGhlIGNoYW5nZXMgYXJlIGludHJvZHVjaW5nIHRoZSBtbHg1X2liIEFQSSB0byBhbGxvY2F0
-ZSwgZGVhbGxvY2F0ZQ0KPiA+IGFuZA0KPiA+IHJlZ2lzdGVyIHRoaXMgZGVkaWNhdGVkIFNXIElD
-TSBtZW1vcnkgdmlhIHRoZSBleGlzdGluZyBkZXZpY2UNCj4gPiBtZW1vcnkgQVBJDQo+ID4gdXNp
-bmcgYSBwcml2YXRlIGF0dHJpYnV0ZSB3aGljaCBzcGVjaWZpZXMgdGhlIG1lbW9yeSB0eXBlLg0K
-PiA+IA0KPiA+IFRoZSBhbGxvY2F0ZWQgbWVtb3J5IGl0c2VsZiBpcyBub3QgSU8gbWFwcGVkIGFu
-ZCB1c2VyIGNhbiBvbmx5DQo+ID4gYWNjZXNzIGl0DQo+ID4gdXNpbmcgcmVtb3RlIFJETUEgb3Bl
-cmF0aW9ucy4NCj4gPiANCj4gPiBJbiBhZGRpdGlvbiwgdGhlIHNlcmllcyBleHBvc2VkIHRoZSBJ
-Q00gYWRkcmVzcyBvZiB0aGUgcmVjZWl2ZQ0KPiA+IHRyYW5zcG9ydA0KPiA+IGludGVyZmFjZSAo
-VElSKSBvZiBSYXcgUGFja2V0IGFuZCBSU1MgUVBzIHRvIHVzZXIgc2luY2UgdGhleSBhcmUNCj4g
-PiByZXF1aXJlZA0KPiA+IHRvIHByb3Blcmx5IGNyZWF0ZSBhbmQgaW5zZXJ0IHN0ZWVyaW5nIHJ1
-bGVzIHRoYXQgZGlyZWN0IGZsb3dzIHRvDQo+ID4gdGhlc2UgUVBzLg0KPiA+IA0KPiA+IFRoYW5r
-cw0KPiA+IA0KPiA+IEFyaWVsIExldmtvdmljaCAoOCk6DQo+ID4gICBuZXQvbWx4NTogRXhwb3Nl
-IFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQo+ID4gICBJQi9tbHg1
-OiBTdXBwb3J0IGRldmljZSBtZW1vcnkgdHlwZSBhdHRyaWJ1dGUNCj4gPiAgIElCL21seDU6IFdh
-cm4gb24gYWxsb2NhdGVkIE1FTUlDIGJ1ZmZlcnMgZHVyaW5nIGNsZWFudXANCj4gPiAgIElCL21s
-eDU6IEFkZCBzdGVlcmluZyBTVyBJQ00gZGV2aWNlIG1lbW9yeSB0eXBlDQo+ID4gICBJQi9tbHg1
-OiBEZXZpY2UgcmVzb3VyY2UgY29udHJvbCBmb3IgcHJpdmlsZWdlZCBERVZYIHVzZXINCj4gDQo+
-IFRoaXMgZG9lc24ndCBhcHBseSwgaXQgY29uZmxpY3RzIHdpdGggcGF0Y2hlcyBpbiBtbHg1LW5l
-eHQsIHBsZWFzZQ0KPiByZXNlbnQNCj4gDQo+ID4gICBuZXQvbWx4NTogRXhwb3NlIFRJUiBJQ00g
-YWRkcmVzcyBpbiBjb21tYW5kIG91dGJveA0KPiA+ICAgbmV0L21seDU6IEludHJvZHVjZSBuZXcg
-VElSIGNyZWF0aW9uIGNvcmUgQVBJDQo+ID4gICBJQi9tbHg1OiBFeHBvc2UgVElSIElDTSBhZGRy
-ZXNzIHRvIHVzZXIgc3BhY2UNCj4gDQoNCml0IGlzIGEgMyBwYXRjaCBzZXJpZXM6DQogIG5ldC9t
-bHg1OiBFeHBvc2UgVElSIElDTSBhZGRyZXNzIGluIGNvbW1hbmQgb3V0Ym94DQogIG5ldC9tbHg1
-OiBJbnRyb2R1Y2UgbmV3IFRJUiBjcmVhdGlvbiBjb3JlIEFQSQ0KICBuZXQvbWx4NTogRXhwb3Nl
-IFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQoNCkxHVE0sIEkgY2Fu
-IGFwcGx5IHRoZW0gaWYgeW91IHdhbnQsIG9yIGRvIHlvdSB3YW50IHRvIHdhaXQgZm9yIGxlb24g
-Pw0KDQo=
+On 4/23/2019 11:56 PM, Zhu Yanjun wrote:
+> Before the commit 490ea5967b0d ("RDS: IB: move FMR code to its own file"),
+> when the dirty_count is greater than 9/10 of max_items of 8K pool,
+> 1M pool is used, Vice versa. After the commit 490ea5967b0d ("RDS: IB: move
+> FMR code to its own file"), the above is removed. When we make the
+> following tests.
+> 
+> Server:
+>    rds-stress -r 1.1.1.16 -D 1M
+> 
+> Client:
+>    rds-stress -r 1.1.1.14 -s 1.1.1.16 -D 1M
+> 
+> The following will appear.
+> "
+> connecting to 1.1.1.16:4000
+> negotiated options, tasks will start in 2 seconds
+> Starting up..header from 1.1.1.166:4001 to id 4001 bogus
+> ..
+> tsks  tx/s  rx/s tx+rx K/s  mbi K/s  mbo K/s tx us/c  rtt us
+> cpu %
+>     1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
+>     1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
+>     1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
+>     1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
+>     1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
+> ...
+> "
+> So this exchange between 8K and 1M pool is added back.
+> 
+> Fixes: commit 490ea5967b0d ("RDS: IB: move FMR code to its own file")
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
+Acked-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
