@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 09/28] net/mlx5: E-Switch, Fix esw manager vport indication for more vport commands
-Date: Wed, 24 Apr 2019 10:49:53 -0400
-Message-ID: <20190424145012.30886-9-sashal@kernel.org>
-References: <20190424145012.30886-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.14 10/35] net/mlx5: E-Switch, Fix esw manager vport indication for more vport commands
+Date: Wed, 24 Apr 2019 10:46:44 -0400
+Message-ID: <20190424144709.30215-10-sashal@kernel.org>
+References: <20190424144709.30215-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190424145012.30886-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190424144709.30215-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Omri Kahalon <omrik@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
@@ -33,10 +33,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index da9246f6c31e..d1a3a35ba87b 100644
+index d2914116af8e..090d54275a7d 100644
 --- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
 +++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -92,8 +92,7 @@ static int arm_vport_context_events_cmd(struct mlx5_core_dev *dev, u16 vport,
+@@ -79,8 +79,7 @@ static int arm_vport_context_events_cmd(struct mlx5_core_dev *dev, u16 vport,
  		 opcode, MLX5_CMD_OP_MODIFY_NIC_VPORT_CONTEXT);
  	MLX5_SET(modify_nic_vport_context_in, in, field_select.change_event, 1);
  	MLX5_SET(modify_nic_vport_context_in, in, vport_number, vport);
@@ -46,7 +46,7 @@ index da9246f6c31e..d1a3a35ba87b 100644
  	nic_vport_ctx = MLX5_ADDR_OF(modify_nic_vport_context_in,
  				     in, nic_vport_context);
  
-@@ -121,8 +120,7 @@ static int modify_esw_vport_context_cmd(struct mlx5_core_dev *dev, u16 vport,
+@@ -108,8 +107,7 @@ static int modify_esw_vport_context_cmd(struct mlx5_core_dev *dev, u16 vport,
  	MLX5_SET(modify_esw_vport_context_in, in, opcode,
  		 MLX5_CMD_OP_MODIFY_ESW_VPORT_CONTEXT);
  	MLX5_SET(modify_esw_vport_context_in, in, vport_number, vport);
