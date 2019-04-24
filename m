@@ -1,46 +1,44 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] IB/mlx5: add checking for "vf" from do_setvfinfo()
-Date: Wed, 24 Apr 2019 11:24:26 -0300
-Message-ID: <20190424142426.GH16061@ziepe.ca>
-References: <VI1PR0501MB22714D465D6CD60511FDFFD5D1280@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <20190415094610.GO6095@kadam>
- <VI1PR0501MB22713CCB1141529CCB6934B1D12B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <20190416082112.GA27670@kadam>
- <AM4PR0501MB22609E4C9D126A096DD7F614D1240@AM4PR0501MB2260.eurprd05.prod.outlook.com>
- <20190420095102.GA14798@kadam>
- <VI1PR0501MB22713B232B3CF42B849F959BD1220@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <20190423154943.GC14820@kadam>
- <AM4PR0501MB2260ADC1DA37E87D01979969D1230@AM4PR0501MB2260.eurprd05.prod.outlook.com>
- <20190424140820.GB14798@kadam>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 24/66] net/mlx5: E-Switch, Protect from invalid memory access in offload fdb table
+Date: Wed, 24 Apr 2019 10:32:58 -0400
+Message-ID: <20190424143341.27665-24-sashal@kernel.org>
+References: <20190424143341.27665-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190424140820.GB14798@kadam>
-Sender: netdev-owner@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Parav Pandit <parav@mellanox.com>, netdev@vger.kernel.org, Leon Romanovsky <leon@kernel.org>, Eli Cohen <eli@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190424143341.27665-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Roi Dayan <roid@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 05:08:20PM +0300, Dan Carpenter wrote:
-> I think I'm just going to ask netdev for an opinion on this.  It could
-> be that we're just reading the code wrong...
+From: Roi Dayan <roid@mellanox.com>
 
-I don't think you are reading it wrong.
+[ Upstream commit 5c1d260ed10cf08dd7a0299c103ad0a3f9a9f7a1 ]
 
-Allowing the compiler to implicitly cast a user controlled u32 to an
-int is simply wrong in all cases, IMHO. 
+The esw offloads structures share a union with the legacy mode structs.
+Reset the offloads struct to zero in init to protect from null
+assumptions made by the legacy mode code.
 
-If the value was intended to be signed from the user it should have
-been a s32. Allowing an unsigned value to become interpreted as
-negative so often leads to security bugs.
+Signed-off-by: Roi Dayan <roid@mellanox.com>
+Reviewed-by: Or Gerlitz <ogerlitz@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Sasha Levin (Microsoft) <sashal@kernel.org>
+---
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-IMHO it would be a good thing for smatch to warn on the general case
-of implicit casting of user controlled data to a smaller range
-type. Particularly it can do a bounds analysis to show the control
-flow hasn't somehow restricted the bounds to be compatible.
-
-I've seen more that a few real world security bugs that are caused by
-wrong use of 'int' like this :(
-
-Jason
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index d4e6fe5b9300..ce5766a26baa 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -1402,6 +1402,7 @@ int esw_offloads_init(struct mlx5_eswitch *esw, int nvports)
+ {
+ 	int err;
+ 
++	memset(&esw->fdb_table.offloads, 0, sizeof(struct offloads_fdb));
+ 	mutex_init(&esw->fdb_table.offloads.fdb_prio_lock);
+ 
+ 	err = esw_create_offloads_fdb_tables(esw, nvports);
+-- 
+2.19.1
