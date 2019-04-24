@@ -1,67 +1,67 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH rdma-next 0/8] User space steering
-Date: Wed, 24 Apr 2019 19:41:15 +0000
-Message-ID: <9208d7d1da533d1cc8d807bccd43395fceeb8485.camel@mellanox.com>
-References: <20190331164450.23618-1-leon@kernel.org>
-         <20190424130714.GB5196@ziepe.ca>
-         <4604e35554bb26c781bb685ae515fdfc06272d55.camel@mellanox.com>
-         <20190424190341.GM16061@ziepe.ca>
+From: Parav Pandit <parav@mellanox.com>
+Subject: RE: [PATCH] IB/mlx5: add checking for "vf" from do_setvfinfo()
+Date: Wed, 24 Apr 2019 22:12:42 +0000
+Message-ID: <AM4PR0501MB22605B8B202CCE1D9B06350AD13C0@AM4PR0501MB2260.eurprd05.prod.outlook.com>
+References: <VI1PR0501MB22714D465D6CD60511FDFFD5D1280@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+ <20190415094610.GO6095@kadam>
+ <VI1PR0501MB22713CCB1141529CCB6934B1D12B0@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+ <20190416082112.GA27670@kadam>
+ <AM4PR0501MB22609E4C9D126A096DD7F614D1240@AM4PR0501MB2260.eurprd05.prod.outlook.com>
+ <20190420095102.GA14798@kadam>
+ <VI1PR0501MB22713B232B3CF42B849F959BD1220@VI1PR0501MB2271.eurprd05.prod.outlook.com>
+ <20190423154943.GC14820@kadam>
+ <AM4PR0501MB2260ADC1DA37E87D01979969D1230@AM4PR0501MB2260.eurprd05.prod.outlook.com>
+ <20190424140820.GB14798@kadam> <20190424142426.GH16061@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190424190341.GM16061@ziepe.ca>
+In-Reply-To: <20190424142426.GH16061@ziepe.ca>
 Content-Language: en-US
-Content-ID: <49A380946DCB8B43921ED1D6D421D0F7@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: "jgg@ziepe.ca" <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Eli Cohen <eli@mellanox.com>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE5LTA0LTI0IGF0IDE2OjAzIC0wMzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
-DQo+IE9uIFdlZCwgQXByIDI0LCAyMDE5IGF0IDA0OjQwOjU0UE0gKzAwMDAsIFNhZWVkIE1haGFt
-ZWVkIHdyb3RlOg0KPiA+IE9uIFdlZCwgMjAxOS0wNC0yNCBhdCAxMDowNyAtMDMwMCwgSmFzb24g
-R3VudGhvcnBlIHdyb3RlOg0KPiA+ID4gT24gU3VuLCBNYXIgMzEsIDIwMTkgYXQgMDc6NDQ6NDJQ
-TSArMDMwMCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiA+ID4gPiBGcm9tOiBMZW9uIFJvbWFu
-b3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+ID4gPiA+IA0KPiA+ID4gPiA+IEZyb20gQXJp
-ZWwsDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIHNlcmllcyBvZiBwYXRjaGVzIGFkZHMgdXNlciBz
-cGFjZSBtYW5hZ2VkIHN0ZWVyaW5nDQo+ID4gPiA+IGluZnJhc3RydWN0dXJlDQo+ID4gPiA+IHRv
-IHRoZSBtbHg1X2liIGRyaXZlci4NCj4gPiA+ID4gDQo+ID4gPiA+IFVzZXIgc3BhY2UgbWFuYWdl
-ZCBzdGVlcmluZyByZXF1aXJlcyB0aGUgbWVhbnMgdG8gYWNjZXNzIGENCj4gPiA+ID4gZGVkaWNh
-dGVkDQo+ID4gPiA+IG1lbW9yeSBzcGFjZSB0aGF0IGlzIHVzZWQgYnkgdGhlIGRldmljZSB0byBz
-dG9yZSB0aGUgcGFja2V0DQo+ID4gPiA+IHN0ZWVyaW5nDQo+ID4gPiA+IGFuZCBoZWFkZXIgbW9k
-aWZpY2F0aW9uIHRhYmxlcyBhbmQgcnVsZXMgaW4gb3JkZXIgdG8gbWFuYWdlDQo+ID4gPiA+IHRo
-ZW0NCj4gPiA+ID4gZGlyZWN0bHkNCj4gPiA+ID4gd2l0aG91dCB0aGUgZGV2aWNlJ3MgZmlybXdh
-cmUgaW52b2x2ZW1lbnQuIFRoaXMgZGVkaWNhdGVkDQo+ID4gPiA+IG1lbW9yeSBpcw0KPiA+ID4g
-PiBwYXJ0DQo+ID4gPiA+IG9mIHRoZSBJQ00gbWVtb3J5IHNwYWNlLg0KPiA+ID4gPiANCj4gPiA+
-ID4gVGhlIGNoYW5nZXMgYXJlIGludHJvZHVjaW5nIHRoZSBtbHg1X2liIEFQSSB0byBhbGxvY2F0
-ZSwNCj4gPiA+ID4gZGVhbGxvY2F0ZQ0KPiA+ID4gPiBhbmQNCj4gPiA+ID4gcmVnaXN0ZXIgdGhp
-cyBkZWRpY2F0ZWQgU1cgSUNNIG1lbW9yeSB2aWEgdGhlIGV4aXN0aW5nIGRldmljZQ0KPiA+ID4g
-PiBtZW1vcnkgQVBJDQo+ID4gPiA+IHVzaW5nIGEgcHJpdmF0ZSBhdHRyaWJ1dGUgd2hpY2ggc3Bl
-Y2lmaWVzIHRoZSBtZW1vcnkgdHlwZS4NCj4gPiA+ID4gDQo+ID4gPiA+IFRoZSBhbGxvY2F0ZWQg
-bWVtb3J5IGl0c2VsZiBpcyBub3QgSU8gbWFwcGVkIGFuZCB1c2VyIGNhbiBvbmx5DQo+ID4gPiA+
-IGFjY2VzcyBpdA0KPiA+ID4gPiB1c2luZyByZW1vdGUgUkRNQSBvcGVyYXRpb25zLg0KPiA+ID4g
-PiANCj4gPiA+ID4gSW4gYWRkaXRpb24sIHRoZSBzZXJpZXMgZXhwb3NlZCB0aGUgSUNNIGFkZHJl
-c3Mgb2YgdGhlIHJlY2VpdmUNCj4gPiA+ID4gdHJhbnNwb3J0DQo+ID4gPiA+IGludGVyZmFjZSAo
-VElSKSBvZiBSYXcgUGFja2V0IGFuZCBSU1MgUVBzIHRvIHVzZXIgc2luY2UgdGhleQ0KPiA+ID4g
-PiBhcmUNCj4gPiA+ID4gcmVxdWlyZWQNCj4gPiA+ID4gdG8gcHJvcGVybHkgY3JlYXRlIGFuZCBp
-bnNlcnQgc3RlZXJpbmcgcnVsZXMgdGhhdCBkaXJlY3QgZmxvd3MNCj4gPiA+ID4gdG8NCj4gPiA+
-ID4gdGhlc2UgUVBzLg0KPiA+ID4gPiANCj4gPiA+ID4gVGhhbmtzDQo+ID4gPiA+IA0KPiA+ID4g
-PiBBcmllbCBMZXZrb3ZpY2ggKDgpOg0KPiA+ID4gPiAgIG5ldC9tbHg1OiBFeHBvc2UgU1cgSUNN
-IHJlbGF0ZWQgZGV2aWNlIG1lbW9yeSBjYXBhYmlsaXRpZXMNCj4gPiA+ID4gICBJQi9tbHg1OiBT
-dXBwb3J0IGRldmljZSBtZW1vcnkgdHlwZSBhdHRyaWJ1dGUNCj4gPiA+ID4gICBJQi9tbHg1OiBX
-YXJuIG9uIGFsbG9jYXRlZCBNRU1JQyBidWZmZXJzIGR1cmluZyBjbGVhbnVwDQo+ID4gPiA+ICAg
-SUIvbWx4NTogQWRkIHN0ZWVyaW5nIFNXIElDTSBkZXZpY2UgbWVtb3J5IHR5cGUNCj4gPiA+ID4g
-ICBJQi9tbHg1OiBEZXZpY2UgcmVzb3VyY2UgY29udHJvbCBmb3IgcHJpdmlsZWdlZCBERVZYIHVz
-ZXINCj4gPiA+IA0KPiA+ID4gVGhpcyBkb2Vzbid0IGFwcGx5LCBpdCBjb25mbGljdHMgd2l0aCBw
-YXRjaGVzIGluIG1seDUtbmV4dCwNCj4gPiA+IHBsZWFzZQ0KPiA+ID4gcmVzZW50DQo+ID4gPiAN
-Cj4gPiA+ID4gICBuZXQvbWx4NTogRXhwb3NlIFRJUiBJQ00gYWRkcmVzcyBpbiBjb21tYW5kIG91
-dGJveA0KPiA+ID4gPiAgIG5ldC9tbHg1OiBJbnRyb2R1Y2UgbmV3IFRJUiBjcmVhdGlvbiBjb3Jl
-IEFQSQ0KPiA+ID4gPiAgIElCL21seDU6IEV4cG9zZSBUSVIgSUNNIGFkZHJlc3MgdG8gdXNlciBz
-cGFjZQ0KPiA+IA0KPiA+IGl0IGlzIGEgMyBwYXRjaCBzZXJpZXM6DQo+ID4gICBuZXQvbWx4NTog
-RXhwb3NlIFRJUiBJQ00gYWRkcmVzcyBpbiBjb21tYW5kIG91dGJveA0KPiA+ICAgbmV0L21seDU6
-IEludHJvZHVjZSBuZXcgVElSIGNyZWF0aW9uIGNvcmUgQVBJDQo+ID4gICBuZXQvbWx4NTogRXhw
-b3NlIFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQo+ID4gDQo+ID4g
-TEdUTSwgSSBjYW4gYXBwbHkgdGhlbSBpZiB5b3Ugd2FudCwgb3IgZG8geW91IHdhbnQgdG8gd2Fp
-dCBmb3IgbGVvbg0KPiA+ID8NCj4gDQo+IEZpbmUgYnkgbWUNCj4gDQoNCnRoZSBhYm92ZSAzIG1s
-eDUtbmV4dCBwYXRjaGVzIGFwcGxpZWQuDQoNClRoYW5rcywNClNhZWVkLg0KDQo+IEphc29uIA0K
+
+
+> -----Original Message-----
+> From: Jason Gunthorpe <jgg@ziepe.ca>
+> Sent: Wednesday, April 24, 2019 9:24 AM
+> To: Dan Carpenter <dan.carpenter@oracle.com>
+> Cc: Parav Pandit <parav@mellanox.com>; netdev@vger.kernel.org; Leon
+> Romanovsky <leon@kernel.org>; Eli Cohen <eli@mellanox.com>; Doug
+> Ledford <dledford@redhat.com>; linux-rdma@vger.kernel.org; kernel-
+> janitors@vger.kernel.org
+> Subject: Re: [PATCH] IB/mlx5: add checking for "vf" from do_setvfinfo()
+>=20
+> On Wed, Apr 24, 2019 at 05:08:20PM +0300, Dan Carpenter wrote:
+> > I think I'm just going to ask netdev for an opinion on this.  It could
+> > be that we're just reading the code wrong...
+>=20
+> I don't think you are reading it wrong.
+>=20
+> Allowing the compiler to implicitly cast a user controlled u32 to an int =
+is
+> simply wrong in all cases, IMHO.
+>=20
+> If the value was intended to be signed from the user it should have been =
+a
+> s32. Allowing an unsigned value to become interpreted as negative so ofte=
+n
+> leads to security bugs.
+>=20
+> IMHO it would be a good thing for smatch to warn on the general case of
+> implicit casting of user controlled data to a smaller range type. Particu=
+larly it
+> can do a bounds analysis to show the control flow hasn't somehow
+> restricted the bounds to be compatible.
+>=20
+> I've seen more that a few real world security bugs that are caused by wro=
+ng
+> use of 'int' like this :(
+>=20
+> Jason
+
+Hence we should fix the type to be u32 in ndo ops to match netlink type cor=
+e and in driver, instead of < 0 check.
