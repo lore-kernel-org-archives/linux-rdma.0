@@ -1,83 +1,53 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCH 1/1] net: rds: exchange of 8K and 1M pool
-Date: Wed, 24 Apr 2019 02:56:42 -0400
-Message-ID: <20190424065642.28630-1-yanjun.zhu@oracle.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next 4/8] IB/mlx5: Add steering SW ICM device memory
+ type
+Date: Wed, 24 Apr 2019 10:04:40 -0300
+Message-ID: <20190424130440.GA5196@ziepe.ca>
+References: <20190331164450.23618-1-leon@kernel.org>
+ <20190331164450.23618-5-leon@kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190331164450.23618-5-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Before the commit 490ea5967b0d ("RDS: IB: move FMR code to its own file"),
-when the dirty_count is greater than 9/10 of max_items of 8K pool,
-1M pool is used, Vice versa. After the commit 490ea5967b0d ("RDS: IB: move
-FMR code to its own file"), the above is removed. When we make the
-following tests.
+On Sun, Mar 31, 2019 at 07:44:46PM +0300, Leon Romanovsky wrote:
+> From: Ariel Levkovich <lariel@mellanox.com>
+> 
+> This patch adds support for allocating, deallocating and registering
+> a new device memory type, STEERING_SW_ICM.
+> This memory can be allocated and used by a privileged user for direct
+> rule insertion and management of the device's steering tables.
+> 
+> The type is provided by the user via the dedicated attribute in
+> the alloc_dm ioctl command.
+> 
+> Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
+> Reviewed-by: Eli Cohen <eli@mellanox.com>
+> Reviewed-by: Mark Bloch <markb@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/hw/mlx5/Kconfig        |   2 +-
+>  drivers/infiniband/hw/mlx5/cmd.c          | 127 +++++++++++++++++++-
+>  drivers/infiniband/hw/mlx5/cmd.h          |   6 +-
+>  drivers/infiniband/hw/mlx5/main.c         | 136 +++++++++++++++++++++-
+>  drivers/infiniband/hw/mlx5/mlx5_ib.h      |  17 +++
+>  drivers/infiniband/hw/mlx5/mr.c           |   7 ++
+>  include/uapi/rdma/mlx5_user_ioctl_verbs.h |   2 +
+>  7 files changed, 291 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw/mlx5/Kconfig
+> index 8d651c05de62..347d457fcb2f 100644
+> +++ b/drivers/infiniband/hw/mlx5/Kconfig
+> @@ -1,6 +1,6 @@
+>  config MLX5_INFINIBAND
+>  	tristate "Mellanox 5th generation network adapters (ConnectX series) support"
+> -	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE
+> +	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE && PHYS_ADDR_T_64BIT
 
-Server:
-  rds-stress -r 1.1.1.16 -D 1M
+Why do we need this?
 
-Client:
-  rds-stress -r 1.1.1.14 -s 1.1.1.16 -D 1M
-
-The following will appear.
-"
-connecting to 1.1.1.16:4000
-negotiated options, tasks will start in 2 seconds
-Starting up..header from 1.1.1.166:4001 to id 4001 bogus
-..
-tsks  tx/s  rx/s tx+rx K/s  mbi K/s  mbo K/s tx us/c  rtt us
-cpu %
-   1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-   1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-   1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-   1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-   1    0    0     0.00     0.00     0.00    0.00 0.00 -1.00
-... 
-"
-So this exchange between 8K and 1M pool is added back.
-
-Fixes: commit 490ea5967b0d ("RDS: IB: move FMR code to its own file")
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
----
- net/rds/ib_fmr.c  | 11 +++++++++++
- net/rds/ib_rdma.c |  3 ---
- 2 files changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/net/rds/ib_fmr.c b/net/rds/ib_fmr.c
-index 4fe8f4f..6fc5e2c 100644
---- a/net/rds/ib_fmr.c
-+++ b/net/rds/ib_fmr.c
-@@ -44,6 +44,17 @@ struct rds_ib_mr *rds_ib_alloc_fmr(struct rds_ib_device *rds_ibdev, int npages)
- 	else
- 		pool = rds_ibdev->mr_1m_pool;
- 
-+	if (atomic_read(&pool->dirty_count) >= pool->max_items / 10)
-+		queue_delayed_work(rds_ib_mr_wq, &pool->flush_worker, 10);
-+
-+	/* Switch pools if one of the pool is reaching upper limit */
-+	if (atomic_read(&pool->dirty_count) >=  pool->max_items * 9 / 10) {
-+		if (pool->pool_type == RDS_IB_MR_8K_POOL)
-+			pool = rds_ibdev->mr_1m_pool;
-+		else
-+			pool = rds_ibdev->mr_8k_pool;
-+	}
-+
- 	ibmr = rds_ib_try_reuse_ibmr(pool);
- 	if (ibmr)
- 		return ibmr;
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index f7164ac..eb0b1cd 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -441,9 +441,6 @@ struct rds_ib_mr *rds_ib_try_reuse_ibmr(struct rds_ib_mr_pool *pool)
- 	struct rds_ib_mr *ibmr = NULL;
- 	int iter = 0;
- 
--	if (atomic_read(&pool->dirty_count) >= pool->max_items_soft / 10)
--		queue_delayed_work(rds_ib_mr_wq, &pool->flush_worker, 10);
--
- 	while (1) {
- 		ibmr = rds_ib_reuse_mr(pool);
- 		if (ibmr)
--- 
-2.7.4
+Jason
