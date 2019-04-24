@@ -1,52 +1,67 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next 0/6] BAR mappings fixes in RDMA
-Date: Wed, 24 Apr 2019 16:24:29 -0300
-Message-ID: <20190424192429.GA31203@ziepe.ca>
-References: <20190416110730.32230-1-leon@kernel.org>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH rdma-next 0/8] User space steering
+Date: Wed, 24 Apr 2019 19:41:15 +0000
+Message-ID: <9208d7d1da533d1cc8d807bccd43395fceeb8485.camel@mellanox.com>
+References: <20190331164450.23618-1-leon@kernel.org>
+         <20190424130714.GB5196@ziepe.ca>
+         <4604e35554bb26c781bb685ae515fdfc06272d55.camel@mellanox.com>
+         <20190424190341.GM16061@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190416110730.32230-1-leon@kernel.org>
+In-Reply-To: <20190424190341.GM16061@ziepe.ca>
+Content-Language: en-US
+Content-ID: <49A380946DCB8B43921ED1D6D421D0F7@eurprd05.prod.outlook.com>
 Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Andrea Arcangeli <aarcange@redhat.com>, Feras Daoud <ferasda@mellanox.com>, Haggai Eran <haggaie@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: "jgg@ziepe.ca" <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Mark Bloch <markb@mellanox.com>, Eli Cohen <eli@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 16, 2019 at 02:07:24PM +0300, Leon Romanovsky wrote:
-> From: Leon Romanovsky <leonro@mellanox.com>
-> 
-> >From Jason,
-> 
-> Upon review it turns out there are some long standing problems in BAR
-> mapping area:
->  * BAR pages are being allowed to be executable.
->  * BAR pages intended for read-only can be switched to writable via mprotect.
->  * Missing use of rdma_user_mmap_io for the mlx5 clock BAR page.
->  * Disassociate causes SIGBUS when touching the pages.
->  * CPU pages are being mapped through to the process via remap_pfn_range
->    instead of the more appropriate vm_insert_page, causing weird behaviors
->    during disassociation.
-> 
-> This series adds the missing VM_* flag manipulation, adds faulting a zero
-> page for disassociation and revises the CPU page mappings to use vm_insert_page.
-> 
-> Thanks
-> 
-> Jason Gunthorpe (6):
->   RDMA/mlx5: Do not allow the user to write to the clock page
->   RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
->   RDMA/ucontext: Fix regression with disassociate
-
-Applied to for-rc
-
->   RDMA/mlx5: Use get_zeroed_page() for clock_info
->   RDMA: Remove rdma_user_mmap_page
-
-Applied to for-next
-
-I dropped this patch:
-
->   RDMA/ucontext: Do not allow BAR mappings to be executable
-
-Jason
+T24gV2VkLCAyMDE5LTA0LTI0IGF0IDE2OjAzIC0wMzAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFdlZCwgQXByIDI0LCAyMDE5IGF0IDA0OjQwOjU0UE0gKzAwMDAsIFNhZWVkIE1haGFt
+ZWVkIHdyb3RlOg0KPiA+IE9uIFdlZCwgMjAxOS0wNC0yNCBhdCAxMDowNyAtMDMwMCwgSmFzb24g
+R3VudGhvcnBlIHdyb3RlOg0KPiA+ID4gT24gU3VuLCBNYXIgMzEsIDIwMTkgYXQgMDc6NDQ6NDJQ
+TSArMDMwMCwgTGVvbiBSb21hbm92c2t5IHdyb3RlOg0KPiA+ID4gPiBGcm9tOiBMZW9uIFJvbWFu
+b3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+DQo+ID4gPiA+IA0KPiA+ID4gPiA+IEZyb20gQXJp
+ZWwsDQo+ID4gPiA+IA0KPiA+ID4gPiBUaGlzIHNlcmllcyBvZiBwYXRjaGVzIGFkZHMgdXNlciBz
+cGFjZSBtYW5hZ2VkIHN0ZWVyaW5nDQo+ID4gPiA+IGluZnJhc3RydWN0dXJlDQo+ID4gPiA+IHRv
+IHRoZSBtbHg1X2liIGRyaXZlci4NCj4gPiA+ID4gDQo+ID4gPiA+IFVzZXIgc3BhY2UgbWFuYWdl
+ZCBzdGVlcmluZyByZXF1aXJlcyB0aGUgbWVhbnMgdG8gYWNjZXNzIGENCj4gPiA+ID4gZGVkaWNh
+dGVkDQo+ID4gPiA+IG1lbW9yeSBzcGFjZSB0aGF0IGlzIHVzZWQgYnkgdGhlIGRldmljZSB0byBz
+dG9yZSB0aGUgcGFja2V0DQo+ID4gPiA+IHN0ZWVyaW5nDQo+ID4gPiA+IGFuZCBoZWFkZXIgbW9k
+aWZpY2F0aW9uIHRhYmxlcyBhbmQgcnVsZXMgaW4gb3JkZXIgdG8gbWFuYWdlDQo+ID4gPiA+IHRo
+ZW0NCj4gPiA+ID4gZGlyZWN0bHkNCj4gPiA+ID4gd2l0aG91dCB0aGUgZGV2aWNlJ3MgZmlybXdh
+cmUgaW52b2x2ZW1lbnQuIFRoaXMgZGVkaWNhdGVkDQo+ID4gPiA+IG1lbW9yeSBpcw0KPiA+ID4g
+PiBwYXJ0DQo+ID4gPiA+IG9mIHRoZSBJQ00gbWVtb3J5IHNwYWNlLg0KPiA+ID4gPiANCj4gPiA+
+ID4gVGhlIGNoYW5nZXMgYXJlIGludHJvZHVjaW5nIHRoZSBtbHg1X2liIEFQSSB0byBhbGxvY2F0
+ZSwNCj4gPiA+ID4gZGVhbGxvY2F0ZQ0KPiA+ID4gPiBhbmQNCj4gPiA+ID4gcmVnaXN0ZXIgdGhp
+cyBkZWRpY2F0ZWQgU1cgSUNNIG1lbW9yeSB2aWEgdGhlIGV4aXN0aW5nIGRldmljZQ0KPiA+ID4g
+PiBtZW1vcnkgQVBJDQo+ID4gPiA+IHVzaW5nIGEgcHJpdmF0ZSBhdHRyaWJ1dGUgd2hpY2ggc3Bl
+Y2lmaWVzIHRoZSBtZW1vcnkgdHlwZS4NCj4gPiA+ID4gDQo+ID4gPiA+IFRoZSBhbGxvY2F0ZWQg
+bWVtb3J5IGl0c2VsZiBpcyBub3QgSU8gbWFwcGVkIGFuZCB1c2VyIGNhbiBvbmx5DQo+ID4gPiA+
+IGFjY2VzcyBpdA0KPiA+ID4gPiB1c2luZyByZW1vdGUgUkRNQSBvcGVyYXRpb25zLg0KPiA+ID4g
+PiANCj4gPiA+ID4gSW4gYWRkaXRpb24sIHRoZSBzZXJpZXMgZXhwb3NlZCB0aGUgSUNNIGFkZHJl
+c3Mgb2YgdGhlIHJlY2VpdmUNCj4gPiA+ID4gdHJhbnNwb3J0DQo+ID4gPiA+IGludGVyZmFjZSAo
+VElSKSBvZiBSYXcgUGFja2V0IGFuZCBSU1MgUVBzIHRvIHVzZXIgc2luY2UgdGhleQ0KPiA+ID4g
+PiBhcmUNCj4gPiA+ID4gcmVxdWlyZWQNCj4gPiA+ID4gdG8gcHJvcGVybHkgY3JlYXRlIGFuZCBp
+bnNlcnQgc3RlZXJpbmcgcnVsZXMgdGhhdCBkaXJlY3QgZmxvd3MNCj4gPiA+ID4gdG8NCj4gPiA+
+ID4gdGhlc2UgUVBzLg0KPiA+ID4gPiANCj4gPiA+ID4gVGhhbmtzDQo+ID4gPiA+IA0KPiA+ID4g
+PiBBcmllbCBMZXZrb3ZpY2ggKDgpOg0KPiA+ID4gPiAgIG5ldC9tbHg1OiBFeHBvc2UgU1cgSUNN
+IHJlbGF0ZWQgZGV2aWNlIG1lbW9yeSBjYXBhYmlsaXRpZXMNCj4gPiA+ID4gICBJQi9tbHg1OiBT
+dXBwb3J0IGRldmljZSBtZW1vcnkgdHlwZSBhdHRyaWJ1dGUNCj4gPiA+ID4gICBJQi9tbHg1OiBX
+YXJuIG9uIGFsbG9jYXRlZCBNRU1JQyBidWZmZXJzIGR1cmluZyBjbGVhbnVwDQo+ID4gPiA+ICAg
+SUIvbWx4NTogQWRkIHN0ZWVyaW5nIFNXIElDTSBkZXZpY2UgbWVtb3J5IHR5cGUNCj4gPiA+ID4g
+ICBJQi9tbHg1OiBEZXZpY2UgcmVzb3VyY2UgY29udHJvbCBmb3IgcHJpdmlsZWdlZCBERVZYIHVz
+ZXINCj4gPiA+IA0KPiA+ID4gVGhpcyBkb2Vzbid0IGFwcGx5LCBpdCBjb25mbGljdHMgd2l0aCBw
+YXRjaGVzIGluIG1seDUtbmV4dCwNCj4gPiA+IHBsZWFzZQ0KPiA+ID4gcmVzZW50DQo+ID4gPiAN
+Cj4gPiA+ID4gICBuZXQvbWx4NTogRXhwb3NlIFRJUiBJQ00gYWRkcmVzcyBpbiBjb21tYW5kIG91
+dGJveA0KPiA+ID4gPiAgIG5ldC9tbHg1OiBJbnRyb2R1Y2UgbmV3IFRJUiBjcmVhdGlvbiBjb3Jl
+IEFQSQ0KPiA+ID4gPiAgIElCL21seDU6IEV4cG9zZSBUSVIgSUNNIGFkZHJlc3MgdG8gdXNlciBz
+cGFjZQ0KPiA+IA0KPiA+IGl0IGlzIGEgMyBwYXRjaCBzZXJpZXM6DQo+ID4gICBuZXQvbWx4NTog
+RXhwb3NlIFRJUiBJQ00gYWRkcmVzcyBpbiBjb21tYW5kIG91dGJveA0KPiA+ICAgbmV0L21seDU6
+IEludHJvZHVjZSBuZXcgVElSIGNyZWF0aW9uIGNvcmUgQVBJDQo+ID4gICBuZXQvbWx4NTogRXhw
+b3NlIFNXIElDTSByZWxhdGVkIGRldmljZSBtZW1vcnkgY2FwYWJpbGl0aWVzDQo+ID4gDQo+ID4g
+TEdUTSwgSSBjYW4gYXBwbHkgdGhlbSBpZiB5b3Ugd2FudCwgb3IgZG8geW91IHdhbnQgdG8gd2Fp
+dCBmb3IgbGVvbg0KPiA+ID8NCj4gDQo+IEZpbmUgYnkgbWUNCj4gDQoNCnRoZSBhYm92ZSAzIG1s
+eDUtbmV4dCBwYXRjaGVzIGFwcGxpZWQuDQoNClRoYW5rcywNClNhZWVkLg0KDQo+IEphc29uIA0K
