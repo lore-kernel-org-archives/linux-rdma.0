@@ -1,73 +1,70 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to
- compat_ptr_ioctl
-Date: Fri, 26 Apr 2019 09:46:13 +0200
-Message-ID: <CAK8P3a3CzKLvpUiVV_k__kkaZ=wg2fqnFEzWYL9qNwBfxMKZ9w@mail.gmail.com>
-References: <20190416202013.4034148-1-arnd@arndb.de>
- <20190416202701.127745-1-arnd@arndb.de>
- <20190425122153.450fc094@coco.lan> <20190425153534.GS2217@ZenIV.linux.org.uk>
- <CAK8P3a2HmiYQJ2FV2FgLiFsD8M9UKteC9Jetx7ja06PQVZWYfA@mail.gmail.com>
- <5511420228cb38d08a67c0f6a614b7671d7d23d4.camel@sipsolutions.net>
+From: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v13 10/20] kernel, arm64: untag user pointers in
+ prctl_set_mm*
+Date: Fri, 26 Apr 2019 15:50:25 +0100
+Message-ID: <20190426145024.GC54863@arrakis.emea.arm.com>
+References: <cover.1553093420.git.andreyknvl@google.com>
+ <76f96eb9162b3a7fa5949d71af38bf8fdf6924c4.1553093421.git.andreyknvl@google.com>
+ <20190322154136.GP13384@arrakis.emea.arm.com>
+ <CAAeHK+yHp27eT+wTE3Uy4DkN8XN3ZjHATE+=HgjgRjrHjiXs3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <5511420228cb38d08a67c0f6a614b7671d7d23d4.camel-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sean Young <sean-hENCXIMQXOg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, driverdevel <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, y2038 Mailman List <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "open list:HID CORE LAYER" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jonathan Cameron <Jonathan.Cameron@h>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAAeHK+yHp27eT+wTE3Uy4DkN8XN3ZjHATE+=HgjgRjrHjiXs3Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov@go>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 25, 2019 at 11:25 PM Johannes Berg
-<johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org> wrote:
-> On Thu, 2019-04-25 at 17:55 +0200, Arnd Bergmann wrote:
-> > On Thu, Apr 25, 2019 at 5:35 PM Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org> wrote:
-> > >
-> > > On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
-> > >
-> > > > If I understand your patch description well, using compat_ptr_ioctl
-> > > > only works if the driver is not for s390, right?
-> > >
-> > > No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
-> > > and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
-> > > s390 is the reason for having compat_ptr_ioctl() in the first place;
-> > > that thing works on all biarch architectures, as long as all stuff
-> > > handled by ->ioctl() takes pointer to arch-independent object as
-> > > argument.  IOW,
-> > >         argument ignored => OK
-> > >         any arithmetical type => no go, compat_ptr() would bugger it
-> > >         pointer to int => OK
-> > >         pointer to string => OK
-> > >         pointer to u64 => OK
-> > >         pointer to struct {u64 addr; char s[11];} => OK
-> >
-> > To be extra pedantic, the 'struct {u64 addr; char s[11];} '
-> > case is also broken on x86, because sizeof (obj) is smaller
-> > on i386, even though the location of the members are
-> > the same. i.e. you can copy_from_user() this
->
-> Actually, you can't even do that because the struct might sit at the end
-> of a page and then you'd erroneously fault in this case.
->
-> We had this a while ago with struct ifreq, see commit 98406133dd and its
-> parents.
-
-Yes, you are right. Very rare to hit with real-life code, but easily
-reproduced by intentionally hitting it and clearly a bug.
-
-As the saying goes
-
-  | the difference between "always works" and "almost always works"
-  | is called data corruption
-
-here the difference is an -EFAULT.
-
-      Arnd
+T24gTW9uLCBBcHIgMDEsIDIwMTkgYXQgMDY6NDQ6MzRQTSArMDIwMCwgQW5kcmV5IEtvbm92YWxv
+diB3cm90ZToKPiBPbiBGcmksIE1hciAyMiwgMjAxOSBhdCA0OjQxIFBNIENhdGFsaW4gTWFyaW5h
+cyA8Y2F0YWxpbi5tYXJpbmFzQGFybS5jb20+IHdyb3RlOgo+ID4gT24gV2VkLCBNYXIgMjAsIDIw
+MTkgYXQgMDM6NTE6MjRQTSArMDEwMCwgQW5kcmV5IEtvbm92YWxvdiB3cm90ZToKPiA+ID4gQEAg
+LTIxMjAsMTMgKzIxMzUsMTQgQEAgc3RhdGljIGludCBwcmN0bF9zZXRfbW0oaW50IG9wdCwgdW5z
+aWduZWQgbG9uZyBhZGRyLAo+ID4gPiAgICAgICBpZiAob3B0ID09IFBSX1NFVF9NTV9BVVhWKQo+
+ID4gPiAgICAgICAgICAgICAgIHJldHVybiBwcmN0bF9zZXRfYXV4dihtbSwgYWRkciwgYXJnNCk7
+Cj4gPiA+Cj4gPiA+IC0gICAgIGlmIChhZGRyID49IFRBU0tfU0laRSB8fCBhZGRyIDwgbW1hcF9t
+aW5fYWRkcikKPiA+ID4gKyAgICAgaWYgKHVudGFnZ2VkX2FkZHIoYWRkcikgPj0gVEFTS19TSVpF
+IHx8Cj4gPiA+ICsgICAgICAgICAgICAgICAgICAgICB1bnRhZ2dlZF9hZGRyKGFkZHIpIDwgbW1h
+cF9taW5fYWRkcikKPiA+ID4gICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsKPiA+ID4KPiA+
+ID4gICAgICAgZXJyb3IgPSAtRUlOVkFMOwo+ID4gPgo+ID4gPiAgICAgICBkb3duX3dyaXRlKCZt
+bS0+bW1hcF9zZW0pOwo+ID4gPiAtICAgICB2bWEgPSBmaW5kX3ZtYShtbSwgYWRkcik7Cj4gPiA+
+ICsgICAgIHZtYSA9IGZpbmRfdm1hKG1tLCB1bnRhZ2dlZF9hZGRyKGFkZHIpKTsKPiA+ID4KPiA+
+ID4gICAgICAgcHJjdGxfbWFwLnN0YXJ0X2NvZGUgICAgPSBtbS0+c3RhcnRfY29kZTsKPiA+ID4g
+ICAgICAgcHJjdGxfbWFwLmVuZF9jb2RlICAgICAgPSBtbS0+ZW5kX2NvZGU7Cj4gPgo+ID4gRG9l
+cyB0aGlzIG1lYW4gdGhhdCB3ZSBhcmUgbGVmdCB3aXRoIHRhZ2dlZCBhZGRyZXNzZXMgZm9yIHRo
+ZQo+ID4gbW0tPnN0YXJ0X2NvZGUgZXRjLiB2YWx1ZXM/IEkgcmVhbGx5IGRvbid0IHRoaW5rIHdl
+IHNob3VsZCBhbGxvdyB0aGlzLAo+ID4gSSdtIG5vdCBzdXJlIHdoYXQgdGhlIGltcGxpY2F0aW9u
+cyBhcmUgaW4gb3RoZXIgcGFydHMgb2YgdGhlIGtlcm5lbC4KPiA+Cj4gPiBBcmd1YWJseSwgdGhl
+c2UgYXJlIG5vdCBldmVuIHBvaW50ZXIgdmFsdWVzIGJ1dCBzb21lIGFkZHJlc3MgcmFuZ2VzLiBJ
+Cj4gPiBrbm93IHdlIGRlY2lkZWQgdG8gcmVsYXggdGhpcyBub3Rpb24gZm9yIG1tYXAvbXByb3Rl
+Y3QvbWFkdmlzZSgpIHNpbmNlCj4gPiB0aGUgdXNlciBmdW5jdGlvbiBwcm90b3R5cGVzIHRha2Ug
+cG9pbnRlciBhcyBhcmd1bWVudHMgYnV0IGl0IGZlZWxzIGxpa2UKPiA+IHdlIGFyZSBvdmVyZG9p
+bmcgaXQgaGVyZSAoc3RydWN0IHByY3RsX21tX21hcCBkb2Vzbid0IGV2ZW4gaGF2ZQo+ID4gcG9p
+bnRlcnMpLgo+ID4KPiA+IFdoYXQgaXMgdGhlIHVzZS1jYXNlIGZvciBhbGxvd2luZyB0YWdnZWQg
+YWRkcmVzc2VzIGhlcmU/IENhbiB1c2VyIHNwYWNlCj4gPiBoYW5kbGUgdW50YWdnaW5nPwo+IAo+
+IEkgZG9uJ3Qga25vdyBhbnkgdXNlIGNhc2VzIGZvciB0aGlzLiBJIGRpZCBpdCBiZWNhdXNlIGl0
+IHNlZW1zIHRvIGJlCj4gY292ZXJlZCBieSB0aGUgcmVsYXhlZCBBQkkuIEknbSBub3QgZW50aXJl
+bHkgc3VyZSB3aGF0IHRvIGRvIGhlcmUsCj4gc2hvdWxkIEkganVzdCBkcm9wIHRoaXMgcGF0Y2g/
+CgpJZiB3ZSBhbGxvdyB0YWdnZWQgYWRkcmVzc2VzIHRvIGJlIHBhc3NlZCBoZXJlLCB3ZSdkIGhh
+dmUgdG8gdW50YWcgdGhlbQpiZWZvcmUgdGhleSBlbmQgdXAgaW4gdGhlIG1tLT5zdGFydF9jb2Rl
+IGV0Yy4gbWVtYmVycy4KCkkga25vdyB3ZSBhcmUgdHJ5aW5nIHRvIHJlbGF4IHRoZSBBQkkgaGVy
+ZSB3LnIudC4gYWRkcmVzcyByYW5nZXMgYnV0Cm1vc3RseSBiZWNhdXNlIHdlIGNvdWxkbid0IGZp
+Z3VyZSBvdXQgYSB3YXkgdG8gZG9jdW1lbnQgdW5hbWJpZ3VvdXNseQp0aGUgZGlmZmVyZW5jZSBi
+ZXR3ZWVuIGEgdXNlciBwb2ludGVyIHRoYXQgbWF5IGJlIGRlcmVmZXJlbmNlZCBieSB0aGUKa2Vy
+bmVsICh0YWdzIGFsbG93ZWQpIGFuZCBhbiBhZGRyZXNzIHR5cGljYWxseSB1c2VkIGZvciBtYW5h
+Z2luZyB0aGUKYWRkcmVzcyBzcGFjZSBsYXlvdXQuIFN1Z2dlc3Rpb25zIHdlbGNvbWVkLgoKSSdk
+IHNheSBqdXN0IGRyb3AgdGhpcyBwYXRjaCBhbmQgY2FwdHVyZSBpdCBpbiB0aGUgQUJJIGRvY3Vt
+ZW50LgoKLS0gCkNhdGFsaW4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
