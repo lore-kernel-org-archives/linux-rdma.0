@@ -1,41 +1,62 @@
-From: Jakub Kicinski <jakub.kicinski@netronome.com>
-Subject: Re: [PATCH mlx5-next 00/11] Mellanox, mlx5-next updates 2019-04-25
-Date: Fri, 26 Apr 2019 16:01:49 -0700
-Message-ID: <20190426160149.73d00a6c@cakuba.netronome.com>
-References: <20190426215732.29761-1-saeedm@mellanox.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 25/79] IB/hfi1: Eliminate opcode tests on mr deref
+Date: Fri, 26 Apr 2019 21:37:44 -0400
+Message-ID: <20190427013838.6596-25-sashal@kernel.org>
+References: <20190427013838.6596-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190426215732.29761-1-saeedm@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190427013838.6596-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Kaike Wan <kaike.wan@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 26 Apr 2019 21:58:02 +0000, Saeed Mahameed wrote:
-> Hi,
-> 
-> This series provides misc low level updates to mlx5 core driver, to be
-> shared between rdma and net-next trees.
-> 
-> 1) From Aya: Enable general events on all physical link types and 
-> restrict general event handling of subtype DELAY_DROP_TIMEOUT in mlx5 rdma
-> driver to ethernet links only as it was intended.
-> 
-> 2) From Eli: Introduce low level bits for prio tag mode
-> 
-> 3) From Maor: Low level steering updates to support RDMA RX flow
-> steering and enables RoCE loopback traffic when switchdev is enabled.
-> 
-> 4) From Vu and Parav: Two small mlx5 core cleanups
-> 
-> 5) From Yevgeny add HW definitions of geneve offloads
-> 
-> In case of no objections this series will be applied to mlx5-next
-> branch.
+From: Kaike Wan <kaike.wan@intel.com>
 
-I can't really speak to implications of patch 9, but otherwise seems
-inoffensive from netdev perspective :)
+[ Upstream commit a8639a79e85c18c16c10089edd589c7948f19bbd ]
 
-Acked-by: Jakub Kicinski <jakub.kicinski@netronome.com>
+When an old ack_queue entry is used to store an incoming request, it may
+need to clean up the old entry if it is still referencing the
+MR. Originally only RDMA READ request needed to reference MR on the
+responder side and therefore the opcode was tested when cleaning up the
+old entry. The introduction of tid rdma specific operations in the
+ack_queue makes the specific opcode tests wrong.  Multiple opcodes (RDMA
+READ, TID RDMA READ, and TID RDMA WRITE) may need MR ref cleanup.
+
+Remove the opcode specific tests associated with the ack_queue.
+
+Fixes: f48ad614c100 ("IB/hfi1: Move driver out of staging")
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/infiniband/hw/hfi1/rc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index be603f35d7e4..cfde43b1df96 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -2302,7 +2302,7 @@ send_last:
+ 			update_ack_queue(qp, next);
+ 		}
+ 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
+-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
++		if (e->rdma_sge.mr) {
+ 			rvt_put_mr(e->rdma_sge.mr);
+ 			e->rdma_sge.mr = NULL;
+ 		}
+@@ -2376,7 +2376,7 @@ send_last:
+ 			update_ack_queue(qp, next);
+ 		}
+ 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
+-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
++		if (e->rdma_sge.mr) {
+ 			rvt_put_mr(e->rdma_sge.mr);
+ 			e->rdma_sge.mr = NULL;
+ 		}
+-- 
+2.19.1
