@@ -1,89 +1,62 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 39/53] RDMA/hns: Fix bug that caused srq creation to fail
-Date: Fri, 26 Apr 2019 21:40:36 -0400
-Message-ID: <20190427014051.7522-39-sashal@kernel.org>
-References: <20190427014051.7522-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 05/16] IB/hfi1: Eliminate opcode tests on mr deref
+Date: Fri, 26 Apr 2019 21:43:13 -0400
+Message-ID: <20190427014325.8704-5-sashal@kernel.org>
+References: <20190427014325.8704-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190427014051.7522-1-sashal@kernel.org>
+In-Reply-To: <20190427014325.8704-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Lijun Ou <oulijun@huawei.com>, chenglang <chenglang@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Kaike Wan <kaike.wan@intel.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Lijun Ou <oulijun@huawei.com>
+From: Kaike Wan <kaike.wan@intel.com>
 
-[ Upstream commit 4772e03d239484f3461e33c79d721c8ea03f7416 ]
+[ Upstream commit a8639a79e85c18c16c10089edd589c7948f19bbd ]
 
-Due to the incorrect use of the seg and obj information, the position of
-the mtt is calculated incorrectly, and the free space of the page is not
-enough to store the entire mtt, resulting in access to the next page. This
-patch fixes this problem.
+When an old ack_queue entry is used to store an incoming request, it may
+need to clean up the old entry if it is still referencing the
+MR. Originally only RDMA READ request needed to reference MR on the
+responder side and therefore the opcode was tested when cleaning up the
+old entry. The introduction of tid rdma specific operations in the
+ack_queue makes the specific opcode tests wrong.  Multiple opcodes (RDMA
+READ, TID RDMA READ, and TID RDMA WRITE) may need MR ref cleanup.
 
- Unable to handle kernel paging request at virtual address ffff00006e3cd000
- ...
- Call trace:
-  hns_roce_write_mtt+0x154/0x2f0 [hns_roce]
-  hns_roce_buf_write_mtt+0xa8/0xd8 [hns_roce]
-  hns_roce_create_srq+0x74c/0x808 [hns_roce]
-  ib_create_srq+0x28/0xc8
+Remove the opcode specific tests associated with the ack_queue.
 
-Fixes: 0203b14c4f32 ("RDMA/hns: Unify the calculation for hem index in hip08")
-Signed-off-by: chenglang <chenglang@huawei.com>
-Signed-off-by: Lijun Ou <oulijun@huawei.com>
+Fixes: f48ad614c100 ("IB/hfi1: Move driver out of staging")
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hns/hns_roce_hem.c | 6 ++++--
- drivers/infiniband/hw/hns/hns_roce_mr.c  | 4 ++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/hfi1/rc.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
-index f6faefed96e8..a73d388b7093 100644
---- a/drivers/infiniband/hw/hns/hns_roce_hem.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
-@@ -745,6 +745,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 		idx_offset = (obj & (table->num_obj - 1)) % obj_per_chunk;
- 		dma_offset = offset = idx_offset * table->obj_size;
- 	} else {
-+		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
-+
- 		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
- 		/* mtt mhop */
- 		i = mhop.l0_idx;
-@@ -756,8 +758,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
- 			hem_idx = i;
- 
- 		hem = table->hem[hem_idx];
--		dma_offset = offset = (obj & (table->num_obj - 1)) *
--				       table->obj_size % mhop.bt_chunk_size;
-+		dma_offset = offset = (obj & (table->num_obj - 1)) * seg_size %
-+				       mhop.bt_chunk_size;
- 		if (mhop.hop_num == 2)
- 			dma_offset = offset = 0;
- 	}
-diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
-index eb26a5f6fc58..41a538d23b80 100644
---- a/drivers/infiniband/hw/hns/hns_roce_mr.c
-+++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
-@@ -707,7 +707,6 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
- 	struct hns_roce_hem_table *table;
- 	dma_addr_t dma_handle;
- 	__le64 *mtts;
--	u32 s = start_index * sizeof(u64);
- 	u32 bt_page_size;
- 	u32 i;
- 
-@@ -730,7 +729,8 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
- 		table = &hr_dev->mr_table.mtt_cqe_table;
- 
- 	mtts = hns_roce_table_find(hr_dev, table,
--				mtt->first_seg + s / hr_dev->caps.mtt_entry_sz,
-+				mtt->first_seg +
-+				start_index / HNS_ROCE_MTT_ENTRY_PER_SEG,
- 				&dma_handle);
- 	if (!mtts)
- 		return -ENOMEM;
+diff --git a/drivers/infiniband/hw/hfi1/rc.c b/drivers/infiniband/hw/hfi1/rc.c
+index e8e0fa58cb71..b08786614c1b 100644
+--- a/drivers/infiniband/hw/hfi1/rc.c
++++ b/drivers/infiniband/hw/hfi1/rc.c
+@@ -2394,7 +2394,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 			update_ack_queue(qp, next);
+ 		}
+ 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
+-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
++		if (e->rdma_sge.mr) {
+ 			rvt_put_mr(e->rdma_sge.mr);
+ 			e->rdma_sge.mr = NULL;
+ 		}
+@@ -2469,7 +2469,7 @@ void hfi1_rc_rcv(struct hfi1_packet *packet)
+ 			update_ack_queue(qp, next);
+ 		}
+ 		e = &qp->s_ack_queue[qp->r_head_ack_queue];
+-		if (e->opcode == OP(RDMA_READ_REQUEST) && e->rdma_sge.mr) {
++		if (e->rdma_sge.mr) {
+ 			rvt_put_mr(e->rdma_sge.mr);
+ 			e->rdma_sge.mr = NULL;
+ 		}
 -- 
 2.19.1
