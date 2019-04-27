@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 38/53] RDMA/vmw_pvrdma: Fix memory leak on pvrdma_pci_remove
-Date: Fri, 26 Apr 2019 21:40:35 -0400
-Message-ID: <20190427014051.7522-38-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 20/53] IB/hfi1: Fix the allocation of RSM table
+Date: Fri, 26 Apr 2019 21:40:17 -0400
+Message-ID: <20190427014051.7522-20-sashal@kernel.org>
 References: <20190427014051.7522-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,36 +9,103 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190427014051.7522-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Kamal Heib <kamalheib1@gmail.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kamal Heib <kamalheib1@gmail.com>
+From: Kaike Wan <kaike.wan@intel.com>
 
-[ Upstream commit ea7a5c706fa49273cf6d1d9def053ecb50db2076 ]
+[ Upstream commit d0294344470e6b52d097aa7369173f32d11f2f52 ]
 
-Make sure to free the DSR on pvrdma_pci_remove() to avoid the memory leak.
+The receive side mapping (RSM) on hfi1 hardware is a special
+matching mechanism to direct an incoming packet to a given
+hardware receive context. It has 4 instances of matching capabilities
+(RSM0 - RSM3) that share the same RSM table (RMT). The RMT has a total of
+256 entries, each of which points to a receive context.
 
-Fixes: 29c8d9eba550 ("IB: Add vmw_pvrdma driver")
-Signed-off-by: Kamal Heib <kamalheib1@gmail.com>
-Acked-by: Adit Ranadive <aditr@vmware.com>
+Currently, three instances of RSM have been used:
+1. RSM0 by QOS;
+2. RSM1 by PSM FECN;
+3. RSM2 by VNIC.
+
+Each RSM instance should reserve enough entries in RMT to function
+properly. Since both PSM and VNIC could allocate any receive context
+between dd->first_dyn_alloc_ctxt and dd->num_rcv_contexts, PSM FECN must
+reserve enough RMT entries to cover the entire receive context index
+range (dd->num_rcv_contexts - dd->first_dyn_alloc_ctxt) instead of only
+the user receive contexts allocated for PSM
+(dd->num_user_contexts). Consequently, the sizing of
+dd->num_user_contexts in set_up_context_variables is incorrect.
+
+Fixes: 2280740f01ae ("IB/hfi1: Virtual Network Interface Controller (VNIC) HW support")
+Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Kaike Wan <kaike.wan@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/infiniband/hw/hfi1/chip.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-index a5719899f49a..ed99f0a08dc4 100644
---- a/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-+++ b/drivers/infiniband/hw/vmw_pvrdma/pvrdma_main.c
-@@ -1123,6 +1123,8 @@ static void pvrdma_pci_remove(struct pci_dev *pdev)
- 	pvrdma_page_dir_cleanup(dev, &dev->cq_pdir);
- 	pvrdma_page_dir_cleanup(dev, &dev->async_pdir);
- 	pvrdma_free_slots(dev);
-+	dma_free_coherent(&pdev->dev, sizeof(*dev->dsr), dev->dsr,
-+			  dev->dsrbase);
+diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
+index 902d12d6d88b..b12c8ff8ed66 100644
+--- a/drivers/infiniband/hw/hfi1/chip.c
++++ b/drivers/infiniband/hw/hfi1/chip.c
+@@ -13388,7 +13388,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 	int total_contexts;
+ 	int ret;
+ 	unsigned ngroups;
+-	int qos_rmt_count;
++	int rmt_count;
+ 	int user_rmt_reduced;
+ 	u32 n_usr_ctxts;
+ 	u32 send_contexts = chip_send_contexts(dd);
+@@ -13450,10 +13450,20 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
+ 		n_usr_ctxts = rcv_contexts - total_contexts;
+ 	}
  
- 	iounmap(dev->regs);
- 	kfree(dev->sgid_tbl);
+-	/* each user context requires an entry in the RMT */
+-	qos_rmt_count = qos_rmt_entries(dd, NULL, NULL);
+-	if (qos_rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
+-		user_rmt_reduced = NUM_MAP_ENTRIES - qos_rmt_count;
++	/*
++	 * The RMT entries are currently allocated as shown below:
++	 * 1. QOS (0 to 128 entries);
++	 * 2. FECN for PSM (num_user_contexts + num_vnic_contexts);
++	 * 3. VNIC (num_vnic_contexts).
++	 * It should be noted that PSM FECN oversubscribe num_vnic_contexts
++	 * entries of RMT because both VNIC and PSM could allocate any receive
++	 * context between dd->first_dyn_alloc_text and dd->num_rcv_contexts,
++	 * and PSM FECN must reserve an RMT entry for each possible PSM receive
++	 * context.
++	 */
++	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_vnic_contexts * 2);
++	if (rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
++		user_rmt_reduced = NUM_MAP_ENTRIES - rmt_count;
+ 		dd_dev_err(dd,
+ 			   "RMT size is reducing the number of user receive contexts from %u to %d\n",
+ 			   n_usr_ctxts,
+@@ -14441,9 +14451,11 @@ static void init_user_fecn_handling(struct hfi1_devdata *dd,
+ 	u64 reg;
+ 	int i, idx, regoff, regidx;
+ 	u8 offset;
++	u32 total_cnt;
+ 
+ 	/* there needs to be enough room in the map table */
+-	if (rmt->used + dd->num_user_contexts >= NUM_MAP_ENTRIES) {
++	total_cnt = dd->num_rcv_contexts - dd->first_dyn_alloc_ctxt;
++	if (rmt->used + total_cnt >= NUM_MAP_ENTRIES) {
+ 		dd_dev_err(dd, "User FECN handling disabled - too many user contexts allocated\n");
+ 		return;
+ 	}
+@@ -14497,7 +14509,7 @@ static void init_user_fecn_handling(struct hfi1_devdata *dd,
+ 	/* add rule 1 */
+ 	add_rsm_rule(dd, RSM_INS_FECN, &rrd);
+ 
+-	rmt->used += dd->num_user_contexts;
++	rmt->used += total_cnt;
+ }
+ 
+ /* Initialize RSM for VNIC */
 -- 
 2.19.1
