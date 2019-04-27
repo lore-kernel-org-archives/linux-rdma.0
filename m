@@ -1,7 +1,7 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 26/79] IB/hfi1: Fix the allocation of RSM table
-Date: Fri, 26 Apr 2019 21:37:45 -0400
-Message-ID: <20190427013838.6596-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.0 50/79] RDMA/hns: Fix bug that caused srq creation to fail
+Date: Fri, 26 Apr 2019 21:38:09 -0400
+Message-ID: <20190427013838.6596-50-sashal@kernel.org>
 References: <20190427013838.6596-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,103 +9,81 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190427013838.6596-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+Cc: Lijun Ou <oulijun@huawei.com>, chenglang <chenglang@huawei.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Kaike Wan <kaike.wan@intel.com>
+From: Lijun Ou <oulijun@huawei.com>
 
-[ Upstream commit d0294344470e6b52d097aa7369173f32d11f2f52 ]
+[ Upstream commit 4772e03d239484f3461e33c79d721c8ea03f7416 ]
 
-The receive side mapping (RSM) on hfi1 hardware is a special
-matching mechanism to direct an incoming packet to a given
-hardware receive context. It has 4 instances of matching capabilities
-(RSM0 - RSM3) that share the same RSM table (RMT). The RMT has a total of
-256 entries, each of which points to a receive context.
+Due to the incorrect use of the seg and obj information, the position of
+the mtt is calculated incorrectly, and the free space of the page is not
+enough to store the entire mtt, resulting in access to the next page. This
+patch fixes this problem.
 
-Currently, three instances of RSM have been used:
-1. RSM0 by QOS;
-2. RSM1 by PSM FECN;
-3. RSM2 by VNIC.
+ Unable to handle kernel paging request at virtual address ffff00006e3cd000
+ ...
+ Call trace:
+  hns_roce_write_mtt+0x154/0x2f0 [hns_roce]
+  hns_roce_buf_write_mtt+0xa8/0xd8 [hns_roce]
+  hns_roce_create_srq+0x74c/0x808 [hns_roce]
+  ib_create_srq+0x28/0xc8
 
-Each RSM instance should reserve enough entries in RMT to function
-properly. Since both PSM and VNIC could allocate any receive context
-between dd->first_dyn_alloc_ctxt and dd->num_rcv_contexts, PSM FECN must
-reserve enough RMT entries to cover the entire receive context index
-range (dd->num_rcv_contexts - dd->first_dyn_alloc_ctxt) instead of only
-the user receive contexts allocated for PSM
-(dd->num_user_contexts). Consequently, the sizing of
-dd->num_user_contexts in set_up_context_variables is incorrect.
-
-Fixes: 2280740f01ae ("IB/hfi1: Virtual Network Interface Controller (VNIC) HW support")
-Reviewed-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Fixes: 0203b14c4f32 ("RDMA/hns: Unify the calculation for hem index in hip08")
+Signed-off-by: chenglang <chenglang@huawei.com>
+Signed-off-by: Lijun Ou <oulijun@huawei.com>
 Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/infiniband/hw/hfi1/chip.c | 26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 6 ++++--
+ drivers/infiniband/hw/hns/hns_roce_mr.c  | 4 ++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index b443642eac02..0ae05e9249b3 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -13219,7 +13219,7 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 	int total_contexts;
- 	int ret;
- 	unsigned ngroups;
--	int qos_rmt_count;
-+	int rmt_count;
- 	int user_rmt_reduced;
- 	u32 n_usr_ctxts;
- 	u32 send_contexts = chip_send_contexts(dd);
-@@ -13281,10 +13281,20 @@ static int set_up_context_variables(struct hfi1_devdata *dd)
- 		n_usr_ctxts = rcv_contexts - total_contexts;
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index 4cdbcafa5915..cae23364cfea 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -763,6 +763,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
+ 		idx_offset = (obj & (table->num_obj - 1)) % obj_per_chunk;
+ 		dma_offset = offset = idx_offset * table->obj_size;
+ 	} else {
++		u32 seg_size = 64; /* 8 bytes per BA and 8 BA per segment */
++
+ 		hns_roce_calc_hem_mhop(hr_dev, table, &mhop_obj, &mhop);
+ 		/* mtt mhop */
+ 		i = mhop.l0_idx;
+@@ -774,8 +776,8 @@ void *hns_roce_table_find(struct hns_roce_dev *hr_dev,
+ 			hem_idx = i;
+ 
+ 		hem = table->hem[hem_idx];
+-		dma_offset = offset = (obj & (table->num_obj - 1)) *
+-				       table->obj_size % mhop.bt_chunk_size;
++		dma_offset = offset = (obj & (table->num_obj - 1)) * seg_size %
++				       mhop.bt_chunk_size;
+ 		if (mhop.hop_num == 2)
+ 			dma_offset = offset = 0;
  	}
+diff --git a/drivers/infiniband/hw/hns/hns_roce_mr.c b/drivers/infiniband/hw/hns/hns_roce_mr.c
+index ee5991bd4171..dd4bb0ec6113 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_mr.c
++++ b/drivers/infiniband/hw/hns/hns_roce_mr.c
+@@ -746,7 +746,6 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
+ 	struct hns_roce_hem_table *table;
+ 	dma_addr_t dma_handle;
+ 	__le64 *mtts;
+-	u32 s = start_index * sizeof(u64);
+ 	u32 bt_page_size;
+ 	u32 i;
  
--	/* each user context requires an entry in the RMT */
--	qos_rmt_count = qos_rmt_entries(dd, NULL, NULL);
--	if (qos_rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
--		user_rmt_reduced = NUM_MAP_ENTRIES - qos_rmt_count;
-+	/*
-+	 * The RMT entries are currently allocated as shown below:
-+	 * 1. QOS (0 to 128 entries);
-+	 * 2. FECN for PSM (num_user_contexts + num_vnic_contexts);
-+	 * 3. VNIC (num_vnic_contexts).
-+	 * It should be noted that PSM FECN oversubscribe num_vnic_contexts
-+	 * entries of RMT because both VNIC and PSM could allocate any receive
-+	 * context between dd->first_dyn_alloc_text and dd->num_rcv_contexts,
-+	 * and PSM FECN must reserve an RMT entry for each possible PSM receive
-+	 * context.
-+	 */
-+	rmt_count = qos_rmt_entries(dd, NULL, NULL) + (num_vnic_contexts * 2);
-+	if (rmt_count + n_usr_ctxts > NUM_MAP_ENTRIES) {
-+		user_rmt_reduced = NUM_MAP_ENTRIES - rmt_count;
- 		dd_dev_err(dd,
- 			   "RMT size is reducing the number of user receive contexts from %u to %d\n",
- 			   n_usr_ctxts,
-@@ -14272,9 +14282,11 @@ static void init_user_fecn_handling(struct hfi1_devdata *dd,
- 	u64 reg;
- 	int i, idx, regoff, regidx;
- 	u8 offset;
-+	u32 total_cnt;
+@@ -780,7 +779,8 @@ static int hns_roce_write_mtt_chunk(struct hns_roce_dev *hr_dev,
+ 		return -EINVAL;
  
- 	/* there needs to be enough room in the map table */
--	if (rmt->used + dd->num_user_contexts >= NUM_MAP_ENTRIES) {
-+	total_cnt = dd->num_rcv_contexts - dd->first_dyn_alloc_ctxt;
-+	if (rmt->used + total_cnt >= NUM_MAP_ENTRIES) {
- 		dd_dev_err(dd, "User FECN handling disabled - too many user contexts allocated\n");
- 		return;
- 	}
-@@ -14328,7 +14340,7 @@ static void init_user_fecn_handling(struct hfi1_devdata *dd,
- 	/* add rule 1 */
- 	add_rsm_rule(dd, RSM_INS_FECN, &rrd);
- 
--	rmt->used += dd->num_user_contexts;
-+	rmt->used += total_cnt;
- }
- 
- /* Initialize RSM for VNIC */
+ 	mtts = hns_roce_table_find(hr_dev, table,
+-				mtt->first_seg + s / hr_dev->caps.mtt_entry_sz,
++				mtt->first_seg +
++				start_index / HNS_ROCE_MTT_ENTRY_PER_SEG,
+ 				&dma_handle);
+ 	if (!mtts)
+ 		return -ENOMEM;
 -- 
 2.19.1
