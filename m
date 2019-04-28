@@ -1,107 +1,136 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next 4/8] IB/mlx5: Add steering SW ICM device memory
- type
-Date: Sun, 28 Apr 2019 14:38:48 +0300
-Message-ID: <20190428113848.GK6705@mtr-leonro.mtl.com>
-References: <20190424131222.GG27901@mtr-leonro.mtl.com>
- <20190424131405.GE16061@ziepe.ca>
- <20190424132516.GH27901@mtr-leonro.mtl.com>
- <20190424133553.GF16061@ziepe.ca>
- <20190424134604.GI27901@mtr-leonro.mtl.com>
- <20190424134703.GG16061@ziepe.ca>
- <20190424154937.GJ27901@mtr-leonro.mtl.com>
- <20190424155313.GI16061@ziepe.ca>
- <20190424162736.GK27901@mtr-leonro.mtl.com>
- <20190424163926.GL16061@ziepe.ca>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Sun, 28 Apr 2019 11:52:12 +0000
+Message-ID: <20190428115207.GA11924@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190424163926.GL16061@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 24, 2019 at 01:39:26PM -0300, Jason Gunthorpe wrote:
-> On Wed, Apr 24, 2019 at 07:27:36PM +0300, Leon Romanovsky wrote:
-> > On Wed, Apr 24, 2019 at 12:53:13PM -0300, Jason Gunthorpe wrote:
-> > > On Wed, Apr 24, 2019 at 06:49:37PM +0300, Leon Romanovsky wrote:
-> > > > On Wed, Apr 24, 2019 at 10:47:03AM -0300, Jason Gunthorpe wrote:
-> > > > > On Wed, Apr 24, 2019 at 04:46:04PM +0300, Leon Romanovsky wrote:
-> > > > > > On Wed, Apr 24, 2019 at 10:35:53AM -0300, Jason Gunthorpe wrote:
-> > > > > > > On Wed, Apr 24, 2019 at 04:25:16PM +0300, Leon Romanovsky wrote:
-> > > > > > > > On Wed, Apr 24, 2019 at 10:14:05AM -0300, Jason Gunthorpe wrote:
-> > > > > > > > > On Wed, Apr 24, 2019 at 04:12:22PM +0300, Leon Romanovsky wrote:
-> > > > > > > > > > On Wed, Apr 24, 2019 at 10:04:40AM -0300, Jason Gunthorpe wrote:
-> > > > > > > > > > > On Sun, Mar 31, 2019 at 07:44:46PM +0300, Leon Romanovsky wrote:
-> > > > > > > > > > > > From: Ariel Levkovich <lariel@mellanox.com>
-> > > > > > > > > > > >
-> > > > > > > > > > > > This patch adds support for allocating, deallocating and registering
-> > > > > > > > > > > > a new device memory type, STEERING_SW_ICM.
-> > > > > > > > > > > > This memory can be allocated and used by a privileged user for direct
-> > > > > > > > > > > > rule insertion and management of the device's steering tables.
-> > > > > > > > > > > >
-> > > > > > > > > > > > The type is provided by the user via the dedicated attribute in
-> > > > > > > > > > > > the alloc_dm ioctl command.
-> > > > > > > > > > > >
-> > > > > > > > > > > > Signed-off-by: Ariel Levkovich <lariel@mellanox.com>
-> > > > > > > > > > > > Reviewed-by: Eli Cohen <eli@mellanox.com>
-> > > > > > > > > > > > Reviewed-by: Mark Bloch <markb@mellanox.com>
-> > > > > > > > > > > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/Kconfig        |   2 +-
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/cmd.c          | 127 +++++++++++++++++++-
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/cmd.h          |   6 +-
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/main.c         | 136 +++++++++++++++++++++-
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/mlx5_ib.h      |  17 +++
-> > > > > > > > > > > >  drivers/infiniband/hw/mlx5/mr.c           |   7 ++
-> > > > > > > > > > > >  include/uapi/rdma/mlx5_user_ioctl_verbs.h |   2 +
-> > > > > > > > > > > >  7 files changed, 291 insertions(+), 6 deletions(-)
-> > > > > > > > > > > >
-> > > > > > > > > > > > diff --git a/drivers/infiniband/hw/mlx5/Kconfig b/drivers/infiniband/hw/mlx5/Kconfig
-> > > > > > > > > > > > index 8d651c05de62..347d457fcb2f 100644
-> > > > > > > > > > > > +++ b/drivers/infiniband/hw/mlx5/Kconfig
-> > > > > > > > > > > > @@ -1,6 +1,6 @@
-> > > > > > > > > > > >  config MLX5_INFINIBAND
-> > > > > > > > > > > >  	tristate "Mellanox 5th generation network adapters (ConnectX series) support"
-> > > > > > > > > > > > -	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE
-> > > > > > > > > > > > +	depends on NETDEVICES && ETHERNET && PCI && MLX5_CORE && PHYS_ADDR_T_64BIT
-> > > > > > > > > > >
-> > > > > > > > > > > Why do we need this?
-> > > > > > > > > >
-> > > > > > > > > > We are using phys_addr_t type and not u64 as an input to FW to emphasize
-> > > > > > > > > > the caller interface, but it is different between 32 and 64 bits systems.
-> > > > > > > > > > Such PHYS_ADDR_T_64BIT will ensure that phys_addr_t will be always 64 bits.
-> > > > > > > > >
-> > > > > > > > > ???
-> > > > > > > > >
-> > > > > > > > > PHYS_ADDR_T should only ever be used to store a bus address - and if
-> > > > > > > > > you are passing a bus address to/from FW then you 0 extend it on 32
-> > > > > > > > > bit, and range check on 64 bit.
-> > > > > > > > >
-> > > > > > > > > This is not a reason to force PHYS_ADDR_T_64BIT from a driver
-> > > > > > > >
-> > > > > > > > So how will I mark that we are forwarding physical address to FW?
-> > > > > > >
-> > > > > > > I don't know what this means.. phys_addr_t will transparently 0 extend
-> > > > > > > to 64 bit which is the correct thing to do when passing a phys_addr_t
-> > > > > > > to HW.
-> > > > > >
-> > > > > > It looks to me very similar to what I wanted: mark input as an address
-> > > > > > and ensure that it is always u64 as our FW expects.
-> > > > >
-> > > > > So there is no reason for the kconfig hunk then
-> > > >
-> > > > The kconfig is needed to ensure that u64 value is truncated to be u32 on
-> > > > 32bits systems.
-> > >
-> > > What?
-> >
-> > I wanted to say "not truncated", sorry about that.
->
-> Are we reading back a u64 physical value from the HW? Where?
+--0OAP2g/MAC+5xKAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-No, we are setting address only.
+Hi Linus,
 
->
-> Jason
+Third rc pull request
+
+Nothing particularly special here. There is a small merge conflict
+with Adrea's mm_still_valid patches which is resolved as below:
+
+diff --cc drivers/infiniband/core/uverbs_main.c
+index db20b6e0f253c9,f2e7ffe6fc5466..7843e89235c34b
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@@ -1039,7 -992,9 +1039,9 @@@ void uverbs_user_mmap_disassociate(stru
+  		 * at a time to get the lock ordering right. Typically there
+  		 * will only be one mm, so no big deal.
+  		 */
+ -		down_write(&mm->mmap_sem);
+ +		down_read(&mm->mmap_sem);
++ 		if (!mmget_still_valid(mm))
++ 			goto skip_mm;
+  		mutex_lock(&ufile->umap_lock);
+  		list_for_each_entry_safe (priv, next_priv, &ufile->umaps,
+  					  list) {
+@@@ -1051,9 -1006,11 +1053,10 @@@
+ =20
+  			zap_vma_ptes(vma, vma->vm_start,
+  				     vma->vm_end - vma->vm_start);
+ -			vma->vm_flags &=3D ~(VM_SHARED | VM_MAYSHARE);
+  		}
+  		mutex_unlock(&ufile->umap_lock);
++ 	skip_mm:
+ -		up_write(&mm->mmap_sem);
+ +		up_read(&mm->mmap_sem);
+  		mmput(mm);
+  	}
+  }
+
+The tag for-linus-merged with my merge resolution to your tree is also avai=
+lable to pull.
+
+Thanks,
+Jason
+
+The following changes since commit dc4060a5dc2557e6b5aa813bf5b73677299d62d2:
+
+  Linux 5.1-rc5 (2019-04-14 15:17:41 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+for you to fetch changes up to 2557fabd6e29f349bfa0ac13f38ac98aa5eafc74:
+
+  RDMA/hns: Bugfix for mapping user db (2019-04-25 10:40:04 -0300)
+
+----------------------------------------------------------------
+5.1 Third RC pull request
+
+One core bug fix and a few driver ones
+
+- FRWR memory registration for hfi1/qib didn't work with with some iovas
+  causing a NFSoRDMA failure regression due to a fix in the NFS side
+
+- A command flow error in mlx5 allowed user space to send a corrupt
+  command (and also smash the kernel stack we've since learned)
+
+- Fix a regression and some bugs with device hot unplug that was
+  discovered while reviewing Andrea's patches
+
+- hns has a failure if the user asks for certain QP configurations
+
+----------------------------------------------------------------
+Guy Levi (1):
+      IB/mlx5: Fix scatter to CQE in DCT QP creation
+
+Jason Gunthorpe (3):
+      RDMA/mlx5: Do not allow the user to write to the clock page
+      RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
+      RDMA/ucontext: Fix regression with disassociate
+
+Josh Collier (1):
+      IB/rdmavt: Fix frwr memory registration
+
+Lijun Ou (1):
+      RDMA/hns: Bugfix for mapping user db
+
+ drivers/infiniband/core/uverbs.h        |  1 +
+ drivers/infiniband/core/uverbs_main.c   | 52 +++++++++++++++++++++++++++++=
+++--
+ drivers/infiniband/hw/hns/hns_roce_qp.c |  2 +-
+ drivers/infiniband/hw/mlx5/main.c       | 12 ++++----
+ drivers/infiniband/hw/mlx5/qp.c         | 11 ++++---
+ drivers/infiniband/sw/rdmavt/mr.c       | 17 ++++++-----
+ include/uapi/rdma/mlx5-abi.h            |  1 +
+ 7 files changed, 76 insertions(+), 20 deletions(-)
+(diffstat from tag for-linus-merged)
+
+--0OAP2g/MAC+5xKAE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlzFk+QACgkQOG33FX4g
+mxqIkA/+JBDrzPRJjwhMY0PJLS+MYMKNnFLRkU7JymP40qMKVxSfqxiNTHztP+Rb
+UoKipsXh654KpVWCwaPS2JvEcy4BNRLhI15zym5fFXsgCGK1oxlnjLbI22lBBshm
+8YXK1KVZtzdXkPpdgR+kz8whssk0HzKKPIh0sloph/RG8+VR47Kl17y3bo2NuOP6
+tBfyVRUdSPd0tPXmqaEo7UqokMcw/DBXL08U0QTkISzQgqvWI4DdQnxo+u5L85V/
+wyvK26TOZaKU/Lb4zMWOgy5NTrmwNwcuxpdWl2z4oTcb0DQKNMkCYWW1UIfC9azW
+1com9jPngNnivOAWYp1qLvpwMfBia7yJnMfr6te0swXQUfrVeyStndRiuAOMM4E5
+3Y5YJ51VynWT1cpky+tLiKUGl2BMlD/vu7x7VV2OR2V+hIoYyd2eDJ0qun7K7Ytq
+hXM4MOhTfuVDnGZxpIWf+92GwzqJjgQYzqi175nTDWcUdCKwM4NM/fUUEHMy4gmb
+rbUtCxq4JPq65a64tfJt8D2lu6Ppp09U6d2hrtUfcAcwZWOT+DSSoJrzVivW9Hiq
+xKjU64LDk9v3G1kHKsV5NRXuQeLDQn7sxzE8T+cZR6YvoLopX6LlBw9DwYrJglgO
+1lgBNNBzQQsexkqw9PQkrusLq/h1/RozDaXvsOYr2s5+/Z9R9tc=
+=2zuv
+-----END PGP SIGNATURE-----
+
+--0OAP2g/MAC+5xKAE--
