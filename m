@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 12/17] IB/mlx5: Add counter_alloc_stats() and counter_update_stats() support
-Date: Mon, 29 Apr 2019 11:34:48 +0300
-Message-ID: <20190429083453.16654-13-leon@kernel.org>
+Subject: [PATCH rdma-next v2 17/17] RDMA/nldev: Allow get default counter statistics through RDMA netlink
+Date: Mon, 29 Apr 2019 11:34:53 +0300
+Message-ID: <20190429083453.16654-18-leon@kernel.org>
 References: <20190429083453.16654-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,56 +14,133 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Add support for ib callback counter_alloc_stats() and
-counter_update_stats().
+This patch adds the ability to return the hwstats of per-port default
+counters (which can also be queried through sysfs nodes).
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
-Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/infiniband/core/nldev.c | 101 +++++++++++++++++++++++++++++++-
+ 1 file changed, 99 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 18a3e855d45b..d69cfe511c37 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -5450,6 +5450,27 @@ static int mlx5_ib_get_hw_stats(struct ib_device *ibdev,
- 	return num_counters;
+diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
+index 53c1d2d82a06..cb2dd38f49f1 100644
+--- a/drivers/infiniband/core/nldev.c
++++ b/drivers/infiniband/core/nldev.c
+@@ -1709,6 +1709,98 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	return ret;
  }
  
-+static struct rdma_hw_stats *
-+mlx5_ib_counter_alloc_stats(struct rdma_counter *counter)
++static int nldev_res_get_default_counter_doit(struct sk_buff *skb,
++					      struct nlmsghdr *nlh,
++					      struct netlink_ext_ack *extack,
++					      struct nlattr *tb[])
 +{
-+	struct mlx5_ib_dev *dev = to_mdev(counter->device);
-+	struct mlx5_ib_port *port = &dev->port[counter->port - 1];
++	struct rdma_hw_stats *stats;
++	struct nlattr *table_attr;
++	struct ib_device *device;
++	int ret, num_cnts, i;
++	struct sk_buff *msg;
++	u32 index, port;
++	u64 v;
 +
-+	/* Q counters are in the beginning of all counters */
-+	return rdma_alloc_hw_stats_struct(port->cnts.names,
-+					  port->cnts.num_q_counters,
-+					  RDMA_HW_STATS_DEFAULT_LIFESPAN);
++	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
++		return -EINVAL;
++
++	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
++	device = ib_device_get_by_index(sock_net(skb->sk), index);
++	if (!device)
++		return -EINVAL;
++
++	if (!device->ops.alloc_hw_stats || !device->ops.get_hw_stats) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
++	if (!rdma_is_port_valid(device, port)) {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
++	if (!msg) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
++			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
++					 RDMA_NLDEV_CMD_STAT_GET),
++			0, 0);
++
++	if (fill_nldev_handle(msg, device) ||
++	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port)) {
++		ret = -EMSGSIZE;
++		goto err_msg;
++	}
++
++	stats = device->ops.alloc_hw_stats(device, port);
++	if (!stats) {
++		ret = -ENOMEM;
++		goto err_msg;
++	}
++
++	num_cnts = device->ops.get_hw_stats(device, stats, port, 0);
++	if (num_cnts < 0) {
++		ret = -EINVAL;
++		goto err_stats;
++	}
++
++	table_attr = nla_nest_start(msg, RDMA_NLDEV_ATTR_STAT_HWCOUNTERS);
++	if (!table_attr) {
++		ret = -EMSGSIZE;
++		goto err_stats;
++	}
++	for (i = 0; i < num_cnts; i++) {
++		v = stats->value[i] +
++			rdma_counter_get_hwstat_value(device, port, i);
++		if (fill_stat_hwcounter_entry(msg, stats->names[i], v)) {
++			ret = -EMSGSIZE;
++			goto err_table;
++		}
++	}
++	nla_nest_end(msg, table_attr);
++
++	kfree(stats);
++	nlmsg_end(msg, nlh);
++	ib_device_put(device);
++	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
++
++err_table:
++	nla_nest_cancel(msg, table_attr);
++err_stats:
++	kfree(stats);
++err_msg:
++	nlmsg_free(msg);
++err:
++	ib_device_put(device);
++	return ret;
 +}
 +
-+static int mlx5_ib_counter_update_stats(struct rdma_counter *counter)
-+{
-+	struct mlx5_ib_dev *dev = to_mdev(counter->device);
-+	struct mlx5_ib_port *port = &dev->port[counter->port - 1];
-+
-+	return mlx5_ib_query_q_counters(dev->mdev, port,
-+					counter->stats, counter->id);
-+}
-+
- static int mlx5_ib_counter_bind_qp(struct rdma_counter *counter,
- 				   struct ib_qp *qp)
+ static int nldev_stat_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 			       struct netlink_ext_ack *extack)
  {
-@@ -6361,6 +6382,8 @@ static const struct ib_device_ops mlx5_ib_dev_hw_stats_ops = {
- 	.get_hw_stats = mlx5_ib_get_hw_stats,
- 	.counter_bind_qp = mlx5_ib_counter_bind_qp,
- 	.counter_unbind_qp = mlx5_ib_counter_unbind_qp,
-+	.counter_alloc_stats = mlx5_ib_counter_alloc_stats,
-+	.counter_update_stats = mlx5_ib_counter_update_stats,
- };
+@@ -1725,8 +1817,13 @@ static int nldev_stat_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
+ 	if (ret)
+ 		return -EINVAL;
  
- static int mlx5_ib_stage_counters_init(struct mlx5_ib_dev *dev)
+-	if (!tb[RDMA_NLDEV_ATTR_STAT_MODE])
+-		return nldev_res_get_counter_doit(skb, nlh, extack);
++	if (!tb[RDMA_NLDEV_ATTR_STAT_MODE]) {
++		if (!tb[RDMA_NLDEV_ATTR_STAT_COUNTER_ID])
++			return nldev_res_get_default_counter_doit(skb, nlh,
++								  extack, tb);
++		else
++			return nldev_res_get_counter_doit(skb, nlh, extack);
++	}
+ 
+ 	if (!tb[RDMA_NLDEV_ATTR_STAT_RES] || !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
+ 	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
 -- 
 2.20.1
