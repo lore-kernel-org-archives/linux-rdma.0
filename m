@@ -1,91 +1,69 @@
-From: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Subject: RE: [PATCH 5/5] IB/hfi1: Fix improper uses of
- smp_mb__before_atomic()
-Date: Mon, 29 Apr 2019 21:24:24 +0000
-Message-ID: <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
-References: <1556568902-12464-1-git-send-email-andrea.parri@amarulasolutions.com>
- <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
+From: Mark Bloch <markb@mellanox.com>
+Subject: Re: [PATCH V2 mlx5-next 09/11] net/mlx5: Eswitch, enable RoCE
+ loopback traffic
+Date: Mon, 29 Apr 2019 22:30:36 +0000
+Message-ID: <e08a2f83-03ac-61cf-322f-652f4549e074@mellanox.com>
+References: <20190429181326.6262-1-saeedm@mellanox.com>
+ <20190429181326.6262-10-saeedm@mellanox.com>
+ <20190429184116.GB6705@mtr-leonro.mtl.com>
+ <VI1PR0501MB22712A3E3743FE283308771ED1390@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <VI1PR0501MB22712A3E3743FE283308771ED1390@VI1PR0501MB2271.eurprd05.prod.outlook.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrea Parri <andrea.parri@amarulasolutions.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "stable@vger.kernel.org" <stable@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-ID: <41041E1F57FA0D49947933CC6DC24E9E@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Parav Pandit <parav@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>
 List-Id: linux-rdma@vger.kernel.org
 
->-----Original Message-----
->From: linux-rdma-owner@vger.kernel.org [mailto:linux-rdma-
->owner@vger.kernel.org] On Behalf Of Andrea Parri
->Sent: Monday, April 29, 2019 4:15 PM
->To: linux-kernel@vger.kernel.org
->Cc: Andrea Parri <andrea.parri@amarulasolutions.com>;
->stable@vger.kernel.org; Dalessandro, Dennis
-><dennis.dalessandro@intel.com>; Marciniszyn, Mike
-><mike.marciniszyn@intel.com>; Doug Ledford <dledford@redhat.com>;
->Jason Gunthorpe <jgg@ziepe.ca>; linux-rdma@vger.kernel.org
->Subject: [PATCH 5/5] IB/hfi1: Fix improper uses of smp_mb__before_atomic()
->
->This barrier only applies to the read-modify-write operations; in
->particular, it does not apply to the atomic_read() primitive.
->
->Replace the barrier with an smp_mb().
-
-This is one of a couple of barrier issues that we are currently looking into.
-
-See:
-
-[PATCH for-next 6/9] IB/rdmavt: Add new completion inline
-
-We will take a look at this one as well.
-
-Thanks,
-
-Mike
-
->Fixes: 856cc4c237add ("IB/hfi1: Add the capability for reserved operations")
->Cc: stable@vger.kernel.org
->Reported-by: "Paul E. McKenney" <paulmck@linux.ibm.com>
->Reported-by: Peter Zijlstra <peterz@infradead.org>
->Signed-off-by: Andrea Parri <andrea.parri@amarulasolutions.com>
->Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
->Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
->Cc: Doug Ledford <dledford@redhat.com>
->Cc: Jason Gunthorpe <jgg@ziepe.ca>
->Cc: linux-rdma@vger.kernel.org
->---
-> drivers/infiniband/sw/rdmavt/qp.c | 6 +++---
-> 1 file changed, 3 insertions(+), 3 deletions(-)
->
->diff --git a/drivers/infiniband/sw/rdmavt/qp.c
->b/drivers/infiniband/sw/rdmavt/qp.c
->index a34b9a2a32b60..b64fd151d31fb 100644
->--- a/drivers/infiniband/sw/rdmavt/qp.c
->+++ b/drivers/infiniband/sw/rdmavt/qp.c
->@@ -1863,11 +1863,11 @@ static inline int rvt_qp_is_avail(
-> 	u32 reserved_used;
->
-> 	/* see rvt_qp_wqe_unreserve() */
->-	smp_mb__before_atomic();
->+	smp_mb();
-> 	reserved_used = atomic_read(&qp->s_reserved_used);
-> 	if (unlikely(reserved_op)) {
-> 		/* see rvt_qp_wqe_unreserve() */
->-		smp_mb__before_atomic();
->+		smp_mb();
-> 		if (reserved_used >= rdi->dparms.reserved_operations)
-> 			return -ENOMEM;
-> 		return 0;
->@@ -1882,7 +1882,7 @@ static inline int rvt_qp_is_avail(
-> 		avail = slast - qp->s_head;
->
-> 	/* see rvt_qp_wqe_unreserve() */
->-	smp_mb__before_atomic();
->+	smp_mb();
-> 	reserved_used = atomic_read(&qp->s_reserved_used);
-> 	avail =  avail - 1 -
-> 		(rdi->dparms.reserved_operations - reserved_used);
->--
->2.7.4
+DQoNCk9uIDQvMjkvMTkgMTE6NDUgQU0sIFBhcmF2IFBhbmRpdCB3cm90ZToNCj4gDQo+IA0KPj4g
+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+IEZyb206IG5ldGRldi1vd25lckB2Z2VyLmtl
+cm5lbC5vcmcgPG5ldGRldi1vd25lckB2Z2VyLmtlcm5lbC5vcmc+IE9uDQo+PiBCZWhhbGYgT2Yg
+TGVvbiBSb21hbm92c2t5DQo+PiBTZW50OiBNb25kYXksIEFwcmlsIDI5LCAyMDE5IDE6NDEgUE0N
+Cj4+IFRvOiBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCj4+IENjOiBKYXNv
+biBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+OyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBs
+aW51eC0NCj4+IHJkbWFAdmdlci5rZXJuZWwub3JnOyBNYW9yIEdvdHRsaWViIDxtYW9yZ0BtZWxs
+YW5veC5jb20+OyBNYXJrIEJsb2NoDQo+PiA8bWFya2JAbWVsbGFub3guY29tPg0KPj4gU3ViamVj
+dDogUmU6IFtQQVRDSCBWMiBtbHg1LW5leHQgMDkvMTFdIG5ldC9tbHg1OiBFc3dpdGNoLCBlbmFi
+bGUgUm9DRQ0KPj4gbG9vcGJhY2sgdHJhZmZpYw0KPj4NCj4+IE9uIE1vbiwgQXByIDI5LCAyMDE5
+IGF0IDA2OjE0OjE2UE0gKzAwMDAsIFNhZWVkIE1haGFtZWVkIHdyb3RlOg0KPj4+IEZyb206IE1h
+b3IgR290dGxpZWIgPG1hb3JnQG1lbGxhbm94LmNvbT4NCj4+Pg0KPj4+IFdoZW4gaW4gc3dpdGNo
+ZGV2IG1vZGUsIHdlIHdvdWxkIGxpa2UgdG8gdHJlYXQgbG9vcGJhY2sgUm9DRSB0cmFmZmljDQo+
+Pj4gKG9uIGVzd2l0Y2ggbWFuYWdlcikgYXMgUkRNQSBhbmQgbm90IGFzIHJlZ3VsYXIgRXRoZXJu
+ZXQgdHJhZmZpYyBJbg0KPj4+IG9yZGVyIHRvIGVuYWJsZSBpdCB3ZSBhZGQgZmxvdyBzdGVlcmlu
+ZyBydWxlIHRoYXQgZm9yd2FyZCBSb0NFDQo+Pj4gbG9vcGJhY2sgdHJhZmZpYyB0byB0aGUgSFcg
+Um9DRSBmaWx0ZXIgKGJ5IGFkZGluZyBhbGxvdyBydWxlKS4NCj4+PiBJbiBhZGRpdGlvbiB3ZSBh
+ZGQgUm9DRSBhZGRyZXNzIGluIEdJRCBpbmRleCAwLCB3aGljaCB3aWxsIGJlIHNldCBpbg0KPj4+
+IHRoZSBSb0NFIGxvb3BiYWNrIHBhY2tldC4NCj4+Pg0KPiBJIGxpa2VseSBkb24ndCB1bmRlcnN0
+YW5kIG5vciBJIHJldmlld2VkIHRoZSBwYXRjaGVzLg0KPiBQYXJ0IHRoYXQgSSBkb24ndCB1bmRl
+cnN0YW5kIGlzIEdJRCBpbmRleCAwIGZvciBSb0NFLg0KPiBSb0NFIHRyYWZmaWMgcnVucyBvdmVy
+IGFsbCB0aGUgR0lEIGVudHJpZXMgYW5kIGZvciBhbGwgcHJhY3RpY2FsIHB1cnBvc2VzIGZyb20g
+bm9uX3plcm8gaW5kZXguDQo+IEhvdyB3aWxsIGl0IHdvcms/DQoNCkN1cnJlbnRseSBpbiBzd2l0
+Y2hkZXYgbW9kZSB3ZSBvbmx5IHN1cHBvcnQgUkFXIEV0aGVybmV0IFFQIGFuZCBubyBSb0NFIGNh
+cGFiaWxpdGllcyBhcmUgcmVwb3J0ZWQgdG8gaWJfY29yZS4NCldoaWNoIG1lYW5zIG5vIEdJRHMg
+YXJlIGluc2VydGVkIHRvIHRoZSBIVydzIEdJRCB0YWJsZSBhbmQgUm9DRSBpc24ndCBlbmFibGVk
+IG9uIHRoZSB2cG9ydC4NCg0KSG93ZXZlciwgdGhlcmUgYXJlIGNhc2VzIHdoZXJlIGFuIGludGVy
+bmFsIFJDIFFQIG1pZ2h0IGJlIG5lZWRlZCwgYW5kIGZvciB0aGF0IHdlIG5lZWQgYSBHSUQuDQpU
+aGUgcGF0Y2hlcyBmcm9tIE1hb3IgbWFrZSBzdXJlIGEgR0lEIGVudHJ5IGF0IGluZGV4IDAgaXMg
+dmFsaWQgKGFuZCB3ZSBkbyB0aGF0IG9ubHkgaW4gc3dpdGNoZGV2IG1vZGUpLA0KYW5kIHdpdGgg
+c3RlZXJpbmcgd2UgbWFrZSBzdXJlIHN1Y2ggdHJhZmZpYyBpcyBvbmx5IHVzZWQgZm9yIGxvb3Bi
+YWNrIHB1cnBvc2VzLg0KDQpNYXJrDQogDQo+IEl0IGlzIGJldHRlciBpZiB5b3UgZXhwbGFpbiBp
+dCBpbiB0aGUgY29tbWl0IGxvZywgd2h5IGl0cyBkb25lIHRoaXMgd2F5LCAnd2hhdCcgcGFydCBp
+cyBhbHJlYWR5IHByZXNlbnQgdGhlIHBhdGNoLg0KPiANCj4gDQo+Pj4gU2lnbmVkLW9mZi1ieTog
+TWFvciBHb3R0bGllYiA8bWFvcmdAbWVsbGFub3guY29tPg0KPj4+IFJldmlld2VkLWJ5OiBNYXJr
+IEJsb2NoIDxtYXJrYkBtZWxsYW5veC5jb20+DQo+Pj4gU2lnbmVkLW9mZi1ieTogU2FlZWQgTWFo
+YW1lZWQgPHNhZWVkbUBtZWxsYW5veC5jb20+DQo+Pj4gLS0tDQo+Pj4gIC4uLi9uZXQvZXRoZXJu
+ZXQvbWVsbGFub3gvbWx4NS9jb3JlL01ha2VmaWxlICB8ICAgMiArLQ0KPj4+ICAuLi4vbWVsbGFu
+b3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyAgICAgfCAgIDQgKw0KPj4+ICAuLi4vbmV0
+L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9yZG1hLmMgICAgfCAxODIgKysrKysrKysrKysr
+KysrKysrDQo+Pj4gIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3JkbWEuaCAg
+ICB8ICAyMCArKw0KPj4+ICBpbmNsdWRlL2xpbnV4L21seDUvZHJpdmVyLmggICAgICAgICAgICAg
+ICAgICAgfCAgIDcgKw0KPj4+ICA1IGZpbGVzIGNoYW5nZWQsIDIxNCBpbnNlcnRpb25zKCspLCAx
+IGRlbGV0aW9uKC0pICBjcmVhdGUgbW9kZSAxMDA2NDQNCj4+PiBkcml2ZXJzL25ldC9ldGhlcm5l
+dC9tZWxsYW5veC9tbHg1L2NvcmUvcmRtYS5jDQo+Pj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2
+ZXJzL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvcmRtYS5oDQo+Pj4NCj4+DQo+PiBU
+aGFua3MsDQo+PiBBY2tlZC1ieTogTGVvbiBSb21hbm92c2t5IDxsZW9ucm9AbWVsbGFub3guY29t
+Pg0K
