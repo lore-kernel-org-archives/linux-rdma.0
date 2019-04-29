@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 04/17] RDMA/restrack: Make is_visible_in_pid_ns() as an API
-Date: Mon, 29 Apr 2019 11:34:40 +0300
-Message-ID: <20190429083453.16654-5-leon@kernel.org>
+Subject: [PATCH mlx5-next v2 07/17] IB/mlx5: Support set qp counter
+Date: Mon, 29 Apr 2019 11:34:43 +0300
+Message-ID: <20190429083453.16654-8-leon@kernel.org>
 References: <20190429083453.16654-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,88 +14,184 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Remove is_visible_in_pid_ns() from nldev.c and make it as a restrack API,
-so that it can be taken advantage by other parts like counter.
+Support bind a qp with counter. If counter is null then bind the qp to
+the default counter. Different QP state has different operation:
+- RESET: Set the counter field so that it will take effective
+  during RST2INIT change;
+- RTS: Issue an RTS2RTS change to update the QP counter;
+- Other: Set the counter field and mark the counter_pending flag,
+  when QP is moved to RTS state and this flag is set, then issue
+  an RTS2RTS modification to update the counter.
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/nldev.c    | 15 ++-------------
- drivers/infiniband/core/restrack.c | 13 +++++++++++++
- drivers/infiniband/core/restrack.h |  1 +
- 3 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mlx5/mlx5_ib.h |  6 +++
+ drivers/infiniband/hw/mlx5/qp.c      | 76 +++++++++++++++++++++++++++-
+ include/linux/mlx5/qp.h              |  1 +
+ 3 files changed, 81 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index bced945a456d..4fb6d4285970 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -991,17 +991,6 @@ static const struct nldev_fill_res_entry fill_entries[RDMA_RESTRACK_MAX] = {
- 	},
+diff --git a/drivers/infiniband/hw/mlx5/mlx5_ib.h b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+index 55b8bdb402b6..447f8ad5abbd 100644
+--- a/drivers/infiniband/hw/mlx5/mlx5_ib.h
++++ b/drivers/infiniband/hw/mlx5/mlx5_ib.h
+@@ -437,6 +437,10 @@ struct mlx5_ib_qp {
+ 	u32			flags_en;
+ 	/* storage for qp sub type when core qp type is IB_QPT_DRIVER */
+ 	enum ib_qp_type		qp_sub_type;
++	/* A flag to indicate if there's a new counter is configured
++	 * but not take effective
++	 */
++	u32                     counter_pending;
  };
  
--static bool is_visible_in_pid_ns(struct rdma_restrack_entry *res)
--{
--	/*
--	 * 1. Kern resources should be visible in init name space only
--	 * 2. Present only resources visible in the current namespace
--	 */
--	if (rdma_is_kernel_res(res))
--		return task_active_pid_ns(current) == &init_pid_ns;
--	return task_active_pid_ns(current) == task_active_pid_ns(res->task);
--}
--
- static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 			       struct netlink_ext_ack *extack,
- 			       enum rdma_restrack_type res_type)
-@@ -1046,7 +1035,7 @@ static int res_get_common_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 		goto err;
- 	}
- 
--	if (!is_visible_in_pid_ns(res)) {
-+	if (!rdma_is_visible_in_pid_ns(res)) {
- 		ret = -ENOENT;
- 		goto err_get;
- 	}
-@@ -1158,7 +1147,7 @@ static int res_get_common_dumpit(struct sk_buff *skb,
- 	 * objects.
- 	 */
- 	xa_for_each(&rt->xa, id, res) {
--		if (!is_visible_in_pid_ns(res))
-+		if (!rdma_is_visible_in_pid_ns(res))
- 			continue;
- 
- 		if (idx < start || !rdma_restrack_get(res))
-diff --git a/drivers/infiniband/core/restrack.c b/drivers/infiniband/core/restrack.c
-index 3714634ae296..bddff426ee0f 100644
---- a/drivers/infiniband/core/restrack.c
-+++ b/drivers/infiniband/core/restrack.c
-@@ -349,3 +349,16 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
- 	}
- }
- EXPORT_SYMBOL(rdma_restrack_del);
+ struct mlx5_ib_cq_buf {
+@@ -1418,4 +1422,6 @@ void mlx5_ib_put_xlt_emergency_page(void);
+ int bfregn_to_uar_index(struct mlx5_ib_dev *dev,
+ 			struct mlx5_bfreg_info *bfregi, u32 bfregn,
+ 			bool dyn_bfreg);
 +
-+bool rdma_is_visible_in_pid_ns(struct rdma_restrack_entry *res)
++int mlx5_ib_qp_set_counter(struct ib_qp *qp, struct rdma_counter *counter);
+ #endif /* MLX5_IB_H */
+diff --git a/drivers/infiniband/hw/mlx5/qp.c b/drivers/infiniband/hw/mlx5/qp.c
+index efe1f6f0c351..29e3fcd66510 100644
+--- a/drivers/infiniband/hw/mlx5/qp.c
++++ b/drivers/infiniband/hw/mlx5/qp.c
+@@ -34,6 +34,7 @@
+ #include <rdma/ib_umem.h>
+ #include <rdma/ib_cache.h>
+ #include <rdma/ib_user_verbs.h>
++#include <rdma/rdma_counter.h>
+ #include <linux/mlx5/fs.h>
+ #include "mlx5_ib.h"
+ #include "ib_rep.h"
+@@ -3365,6 +3366,35 @@ static unsigned int get_tx_affinity(struct mlx5_ib_dev *dev,
+ 	return tx_port_affinity;
+ }
+ 
++static int __mlx5_ib_qp_set_counter(struct ib_qp *qp,
++				    struct rdma_counter *counter)
 +{
-+	/*
-+	 * 1. Kern resources should be visible in init
-+	 *    namespace only
-+	 * 2. Present only resources visible in the current
-+	 *     namespace
-+	 */
-+	if (rdma_is_kernel_res(res))
-+		return task_active_pid_ns(current) == &init_pid_ns;
-+	return task_active_pid_ns(current) == task_active_pid_ns(res->task);
++	struct mlx5_ib_dev *dev = to_mdev(qp->device);
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	struct mlx5_qp_context context = {};
++	struct mlx5_ib_port *mibport = NULL;
++	struct mlx5_ib_qp_base *base;
++	u32 set_id;
++
++	if (!MLX5_CAP_GEN(dev->mdev, rts2rts_qp_counters_set_id))
++		return 0;
++
++	if (counter) {
++		set_id = counter->id;
++	} else {
++		mibport = &dev->port[mqp->port - 1];
++		set_id = mibport->cnts.set_id;
++	}
++
++	base = &mqp->trans_qp.base;
++	context.qp_counter_set_usr_page &= cpu_to_be32(0xffffff);
++	context.qp_counter_set_usr_page |= cpu_to_be32(set_id << 24);
++	return mlx5_core_qp_modify(dev->mdev,
++				   MLX5_CMD_OP_RTS2RTS_QP,
++				   MLX5_QP_OPTPAR_COUNTER_SET_ID,
++				   &context, &base->mqp);
 +}
-diff --git a/drivers/infiniband/core/restrack.h b/drivers/infiniband/core/restrack.h
-index d084e5f89849..7bd177cc0a61 100644
---- a/drivers/infiniband/core/restrack.h
-+++ b/drivers/infiniband/core/restrack.h
-@@ -27,4 +27,5 @@ int rdma_restrack_init(struct ib_device *dev);
- void rdma_restrack_clean(struct ib_device *dev);
- void rdma_restrack_attach_task(struct rdma_restrack_entry *res,
- 			       struct task_struct *task);
-+bool rdma_is_visible_in_pid_ns(struct rdma_restrack_entry *res);
- #endif /* _RDMA_CORE_RESTRACK_H_ */
++
+ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 			       const struct ib_qp_attr *attr, int attr_mask,
+ 			       enum ib_qp_state cur_state,
+@@ -3418,6 +3448,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 	struct mlx5_ib_port *mibport = NULL;
+ 	enum mlx5_qp_state mlx5_cur, mlx5_new;
+ 	enum mlx5_qp_optpar optpar;
++	u32 set_id = 0;
+ 	int mlx5_st;
+ 	int err;
+ 	u16 op;
+@@ -3580,8 +3611,12 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 			port_num = 0;
+ 
+ 		mibport = &dev->port[port_num];
++		if (ibqp->counter)
++			set_id = ibqp->counter->id;
++		else
++			set_id = mibport->cnts.set_id;
+ 		context->qp_counter_set_usr_page |=
+-			cpu_to_be32((u32)(mibport->cnts.set_id) << 24);
++			cpu_to_be32(set_id << 24);
+ 	}
+ 
+ 	if (!ibqp->uobject && cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT)
+@@ -3609,7 +3644,7 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 
+ 		raw_qp_param.operation = op;
+ 		if (cur_state == IB_QPS_RESET && new_state == IB_QPS_INIT) {
+-			raw_qp_param.rq_q_ctr_id = mibport->cnts.set_id;
++			raw_qp_param.rq_q_ctr_id = set_id;
+ 			raw_qp_param.set_mask |= MLX5_RAW_QP_MOD_SET_RQ_Q_CTR_ID;
+ 		}
+ 
+@@ -3686,6 +3721,12 @@ static int __mlx5_ib_modify_qp(struct ib_qp *ibqp,
+ 		qp->db.db[MLX5_SND_DBR] = 0;
+ 	}
+ 
++	if ((new_state == IB_QPS_RTS) && qp->counter_pending) {
++		err = __mlx5_ib_qp_set_counter(ibqp, ibqp->counter);
++		if (!err)
++			qp->counter_pending = 0;
++	}
++
+ out:
+ 	kfree(context);
+ 	return err;
+@@ -6347,3 +6388,34 @@ void mlx5_ib_drain_rq(struct ib_qp *qp)
+ 
+ 	handle_drain_completion(cq, &rdrain, dev);
+ }
++
++/**
++ * Bind a qp to a counter. If @counter is NULL then bind the qp to
++ * the default counter
++ */
++int mlx5_ib_qp_set_counter(struct ib_qp *qp, struct rdma_counter *counter)
++{
++	struct mlx5_ib_qp *mqp = to_mqp(qp);
++	int err = 0;
++
++	mutex_lock(&mqp->mutex);
++	if (mqp->state == IB_QPS_RESET) {
++		qp->counter = counter;
++		goto out;
++	}
++
++	if (mqp->state == IB_QPS_RTS) {
++		err = __mlx5_ib_qp_set_counter(qp, counter);
++		if (!err)
++			qp->counter = counter;
++
++		goto out;
++	}
++
++	mqp->counter_pending = 1;
++	qp->counter = counter;
++
++out:
++	mutex_unlock(&mqp->mutex);
++	return err;
++}
+diff --git a/include/linux/mlx5/qp.h b/include/linux/mlx5/qp.h
+index 0343c81d4c5f..b0b47106bc76 100644
+--- a/include/linux/mlx5/qp.h
++++ b/include/linux/mlx5/qp.h
+@@ -70,6 +70,7 @@ enum mlx5_qp_optpar {
+ 	MLX5_QP_OPTPAR_CQN_RCV			= 1 << 19,
+ 	MLX5_QP_OPTPAR_DC_HS			= 1 << 20,
+ 	MLX5_QP_OPTPAR_DC_KEY			= 1 << 21,
++	MLX5_QP_OPTPAR_COUNTER_SET_ID		= 1 << 25,
+ };
+ 
+ enum mlx5_qp_state {
 -- 
 2.20.1
