@@ -1,79 +1,47 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Mon, 29 Apr 2019 12:19:38 +0300
-Message-ID: <20190429091938.GS6705@mtr-leonro.mtl.com>
-References: <20190428115207.GA11924@ziepe.ca>
- <20190429060947.GB3665@osiris>
- <20190429084030.GA4275@mellanox.com>
- <20190429090040.GB21672@unicorn.suse.cz>
+Subject: Re: Build regressions/improvements in v5.1-rc7
+Date: Mon, 29 Apr 2019 12:21:32 +0300
+Message-ID: <20190429092132.GT6705@mtr-leonro.mtl.com>
+References: <20190429082645.9394-1-geert@linux-m68k.org>
+ <CAMuHMdUuPPf8T2_WK2V_zW8kxb1ZfzvyKJck9D3MEHMRvYrmdA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190429090040.GB21672@unicorn.suse.cz>
+In-Reply-To: <CAMuHMdUuPPf8T2_WK2V_zW8kxb1ZfzvyKJck9D3MEHMRvYrmdA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Kubecek <mkubecek@suse.cz>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Doug Ledford <dledford@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 29, 2019 at 11:00:40AM +0200, Michal Kubecek wrote:
-> On Mon, Apr 29, 2019 at 08:40:37AM +0000, Jason Gunthorpe wrote:
-> > On Mon, Apr 29, 2019 at 08:09:47AM +0200, Heiko Carstens wrote:
-> > > On Sun, Apr 28, 2019 at 11:52:12AM +0000, Jason Gunthorpe wrote:
-> > > > Hi Linus,
-> > > >
-> > > > Third rc pull request
-> > > >
-> > > > Nothing particularly special here. There is a small merge conflict
-> > > > with Adrea's mm_still_valid patches which is resolved as below:
-> > > ...
-> > > > Jason Gunthorpe (3):
-> > > >       RDMA/mlx5: Do not allow the user to write to the clock page
-> > > >       RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
-> > > >       RDMA/ucontext: Fix regression with disassociate
-> > >
-> > > This doesn't compile. The patch below would fix it, but not sure if
-> > > this is what is intended:
-> > >
-> > > drivers/infiniband/core/uverbs_main.c: In function 'rdma_umap_fault':
-> > > drivers/infiniband/core/uverbs_main.c:898:28: error: 'struct vm_fault' has no member named 'vm_start'
-> > >    vmf->page = ZERO_PAGE(vmf->vm_start);
-> > >                             ^~
-> > > diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-> > > index 7843e89235c3..65fe89b3fa2d 100644
-> > > +++ b/drivers/infiniband/core/uverbs_main.c
-> > > @@ -895,7 +895,7 @@ static vm_fault_t rdma_umap_fault(struct vm_fault *vmf)
-> > >
-> > >  	/* Read only pages can just use the system zero page. */
-> > >  	if (!(vmf->vma->vm_flags & (VM_WRITE | VM_MAYWRITE))) {
-> > > -		vmf->page = ZERO_PAGE(vmf->vm_start);
-> > > +		vmf->page = ZERO_PAGE(vmf->vma->vm_start);
-> > >  		get_page(vmf->page);
-> > >  		return 0;
-> > >  	}
-> > >
-> >
-> > Thanks Heiko, this looks right to me.
-> >
-> > I'm surprised to be seeing this at this point, these patches should
-> > have been seen by 0 day for several days now, and they were in
-> > linux-next already too..
+On Mon, Apr 29, 2019 at 10:30:06AM +0200, Geert Uytterhoeven wrote:
+> On Mon, Apr 29, 2019 at 10:28 AM Geert Uytterhoeven
+> <geert@linux-m68k.org> wrote:
+> > JFYI, when comparing v5.1-rc7[1] to v5.1-rc6[3], the summaries are:
+> >   - build errors: +1/-0
 >
-> Most architectures have versions of ZERO_PAGE() which ignore the
-> argument so that the code builds anyway. I'm not sure if 0-day also
-> tests s390x builds (which is where I ran into this).
+>   + /kisskb/src/drivers/infiniband/core/uverbs_main.c: error: 'struct
+> vm_fault' has no member named 'vm_start':  => 898:15, 898:28
+>
+> mips-allmodconfig
+> mips-allmodconfig
+> s390-allmodconfig
+> s390-allyesconfig
+>
+> > [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/37624b58542fb9f2d9a70e6ea006ef8a5f66c30b/ (all 236 configs)
+> > [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/085b7755808aa11f78ab9377257e1dad2e6fa4bb/ (all 236 configs)
 
-According to 0-build results for this patch, the answer is yes, it builds.
-s390                        default_defconfig
-
-And it compiles uverbs_main.c (CONFIG_INFINIBAND_USER_ACCESS)
-  kernel git:(rdma-next) grep INFIN arch/s390/configs/debug_defconfig
-CONFIG_INFINIBAND=m
-CONFIG_INFINIBAND_USER_ACCESS=m
-CONFIG_MLX4_INFINIBAND=m
-CONFIG_MLX5_INFINIBAND=m
-
-Thanks
+Thanks,
+https://patchwork.kernel.org/patch/10920895/#22610993
 
 >
-> Michal Kubecek
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
