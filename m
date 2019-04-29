@@ -1,64 +1,35 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: RE: [PATCH V2 mlx5-next 09/11] net/mlx5: Eswitch, enable RoCE
- loopback traffic
-Date: Mon, 29 Apr 2019 22:34:51 +0000
-Message-ID: <VI1PR0501MB22719EBFAF3F1BBEF81D7823D1390@VI1PR0501MB2271.eurprd05.prod.outlook.com>
-References: <20190429181326.6262-1-saeedm@mellanox.com>
- <20190429181326.6262-10-saeedm@mellanox.com>
- <20190429184116.GB6705@mtr-leonro.mtl.com>
- <VI1PR0501MB22712A3E3743FE283308771ED1390@VI1PR0501MB2271.eurprd05.prod.outlook.com>
- <e08a2f83-03ac-61cf-322f-652f4549e074@mellanox.com>
+From: Andrea Parri <andrea.parri@amarulasolutions.com>
+Subject: Re: [PATCH 5/5] IB/hfi1: Fix improper uses of smp_mb__before_atomic()
+Date: Tue, 30 Apr 2019 01:16:57 +0200
+Message-ID: <20190429231657.GA2733@andrea>
+References: <1556568902-12464-1-git-send-email-andrea.parri@amarulasolutions.com>
+ <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
+ <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <e08a2f83-03ac-61cf-322f-652f4549e074@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Mark Bloch <markb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgTWFyaywNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNYXJrIEJs
-b2NoDQo+IFNlbnQ6IE1vbmRheSwgQXByaWwgMjksIDIwMTkgNTozMSBQTQ0KPiBUbzogUGFyYXYg
-UGFuZGl0IDxwYXJhdkBtZWxsYW5veC5jb20+OyBMZW9uIFJvbWFub3Zza3kNCj4gPGxlb25yb0Bt
-ZWxsYW5veC5jb20+OyBTYWVlZCBNYWhhbWVlZCA8c2FlZWRtQG1lbGxhbm94LmNvbT4NCj4gQ2M6
-IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT47IG5ldGRldkB2Z2VyLmtlcm5lbC5v
-cmc7IGxpbnV4LQ0KPiByZG1hQHZnZXIua2VybmVsLm9yZzsgTWFvciBHb3R0bGllYiA8bWFvcmdA
-bWVsbGFub3guY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIFYyIG1seDUtbmV4dCAwOS8xMV0g
-bmV0L21seDU6IEVzd2l0Y2gsIGVuYWJsZSBSb0NFDQo+IGxvb3BiYWNrIHRyYWZmaWMNCj4gDQo+
-IA0KPiANCj4gT24gNC8yOS8xOSAxMTo0NSBBTSwgUGFyYXYgUGFuZGl0IHdyb3RlOg0KPiA+DQo+
-ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogbmV0ZGV2LW93
-bmVyQHZnZXIua2VybmVsLm9yZyA8bmV0ZGV2LW93bmVyQHZnZXIua2VybmVsLm9yZz4NCj4gT24N
-Cj4gPj4gQmVoYWxmIE9mIExlb24gUm9tYW5vdnNreQ0KPiA+PiBTZW50OiBNb25kYXksIEFwcmls
-IDI5LCAyMDE5IDE6NDEgUE0NCj4gPj4gVG86IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFu
-b3guY29tPg0KPiA+PiBDYzogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPjsgbmV0
-ZGV2QHZnZXIua2VybmVsLm9yZzsNCj4gPj4gbGludXgtIHJkbWFAdmdlci5rZXJuZWwub3JnOyBN
-YW9yIEdvdHRsaWViIDxtYW9yZ0BtZWxsYW5veC5jb20+Ow0KPiBNYXJrDQo+ID4+IEJsb2NoIDxt
-YXJrYkBtZWxsYW5veC5jb20+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggVjIgbWx4NS1uZXh0
-IDA5LzExXSBuZXQvbWx4NTogRXN3aXRjaCwgZW5hYmxlDQo+ID4+IFJvQ0UgbG9vcGJhY2sgdHJh
-ZmZpYw0KPiA+Pg0KPiA+PiBPbiBNb24sIEFwciAyOSwgMjAxOSBhdCAwNjoxNDoxNlBNICswMDAw
-LCBTYWVlZCBNYWhhbWVlZCB3cm90ZToNCj4gPj4+IEZyb206IE1hb3IgR290dGxpZWIgPG1hb3Jn
-QG1lbGxhbm94LmNvbT4NCj4gPj4+DQo+ID4+PiBXaGVuIGluIHN3aXRjaGRldiBtb2RlLCB3ZSB3
-b3VsZCBsaWtlIHRvIHRyZWF0IGxvb3BiYWNrIFJvQ0UgdHJhZmZpYw0KPiA+Pj4gKG9uIGVzd2l0
-Y2ggbWFuYWdlcikgYXMgUkRNQSBhbmQgbm90IGFzIHJlZ3VsYXIgRXRoZXJuZXQgdHJhZmZpYyBJ
-bg0KPiA+Pj4gb3JkZXIgdG8gZW5hYmxlIGl0IHdlIGFkZCBmbG93IHN0ZWVyaW5nIHJ1bGUgdGhh
-dCBmb3J3YXJkIFJvQ0UNCj4gPj4+IGxvb3BiYWNrIHRyYWZmaWMgdG8gdGhlIEhXIFJvQ0UgZmls
-dGVyIChieSBhZGRpbmcgYWxsb3cgcnVsZSkuDQo+ID4+PiBJbiBhZGRpdGlvbiB3ZSBhZGQgUm9D
-RSBhZGRyZXNzIGluIEdJRCBpbmRleCAwLCB3aGljaCB3aWxsIGJlIHNldCBpbg0KPiA+Pj4gdGhl
-IFJvQ0UgbG9vcGJhY2sgcGFja2V0Lg0KPiA+Pj4NCj4gPiBJIGxpa2VseSBkb24ndCB1bmRlcnN0
-YW5kIG5vciBJIHJldmlld2VkIHRoZSBwYXRjaGVzLg0KPiA+IFBhcnQgdGhhdCBJIGRvbid0IHVu
-ZGVyc3RhbmQgaXMgR0lEIGluZGV4IDAgZm9yIFJvQ0UuDQo+ID4gUm9DRSB0cmFmZmljIHJ1bnMg
-b3ZlciBhbGwgdGhlIEdJRCBlbnRyaWVzIGFuZCBmb3IgYWxsIHByYWN0aWNhbCBwdXJwb3NlcyBm
-cm9tDQo+IG5vbl96ZXJvIGluZGV4Lg0KPiA+IEhvdyB3aWxsIGl0IHdvcms/DQo+IA0KPiBDdXJy
-ZW50bHkgaW4gc3dpdGNoZGV2IG1vZGUgd2Ugb25seSBzdXBwb3J0IFJBVyBFdGhlcm5ldCBRUCBh
-bmQgbm8gUm9DRQ0KPiBjYXBhYmlsaXRpZXMgYXJlIHJlcG9ydGVkIHRvIGliX2NvcmUuDQo+IFdo
-aWNoIG1lYW5zIG5vIEdJRHMgYXJlIGluc2VydGVkIHRvIHRoZSBIVydzIEdJRCB0YWJsZSBhbmQg
-Um9DRSBpc24ndA0KPiBlbmFibGVkIG9uIHRoZSB2cG9ydC4NCj4gDQo+IEhvd2V2ZXIsIHRoZXJl
-IGFyZSBjYXNlcyB3aGVyZSBhbiBpbnRlcm5hbCBSQyBRUCBtaWdodCBiZSBuZWVkZWQsIGFuZCBm
-b3INCj4gdGhhdCB3ZSBuZWVkIGEgR0lELg0KPiBUaGUgcGF0Y2hlcyBmcm9tIE1hb3IgbWFrZSBz
-dXJlIGEgR0lEIGVudHJ5IGF0IGluZGV4IDAgaXMgdmFsaWQgKGFuZCB3ZSBkbw0KPiB0aGF0IG9u
-bHkgaW4gc3dpdGNoZGV2IG1vZGUpLCBhbmQgd2l0aCBzdGVlcmluZyB3ZSBtYWtlIHN1cmUgc3Vj
-aCB0cmFmZmljIGlzDQo+IG9ubHkgdXNlZCBmb3IgbG9vcGJhY2sgcHVycG9zZXMuDQoNCkdvdCBp
-dC4gVGhhbmtzIGZvciB0aGUgZGV0YWlsZWQgZGVzY3JpcHRpb24uIEl0cyBjbGVhciB0byBtZSBu
-b3cuDQo=
+Hi Mike,
+
+> >This barrier only applies to the read-modify-write operations; in
+> >particular, it does not apply to the atomic_read() primitive.
+> >
+> >Replace the barrier with an smp_mb().
+> 
+> This is one of a couple of barrier issues that we are currently looking into.
+> 
+> See:
+> 
+> [PATCH for-next 6/9] IB/rdmavt: Add new completion inline
+> 
+> We will take a look at this one as well.
+
+Thank you for the reference and for looking into this,
+
+  Andrea
