@@ -1,114 +1,90 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH V2 mlx5-next 11/11] net/mlx5: Geneve, Add flow table
- capabilities for Geneve decap with TLV options
-Date: Mon, 29 Apr 2019 18:14:20 +0000
-Message-ID: <20190429181326.6262-12-saeedm@mellanox.com>
-References: <20190429181326.6262-1-saeedm@mellanox.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [GIT PULL] Please pull rdma.git
+Date: Mon, 29 Apr 2019 14:17:35 -0400
+Message-ID: <acf2b9a82e0c28a9c63d04a8153e1ff4fc814327.camel@redhat.com>
+References: <48cbd548d153d1d2a1cf6c4f2127a6cef5d55deb.camel@redhat.com>
+         <CAHk-=wiYHXxkHrbDACc1-5bqJPuiMnmwbStSYBYo82zsO=gstQ@mail.gmail.com>
+         <a532d88432b2fd581d39faf12ce3c3c31015b45a.camel@redhat.com>
+         <20190429180055.GX6705@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190429181326.6262-1-saeedm@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>, Oz Shlomo <ozsh@mellanox.com>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-2eZdFUzIMtb2itTLVoq5"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190429180055.GX6705@mtr-leonro.mtl.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Gunthorpe, Jason" <jgg@ziepe.ca>
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogWWV2Z2VueSBLbGl0ZXluaWsgPGtsaXRleW5AbWVsbGFub3guY29tPg0KDQpJbnRyb2R1
-Y2Ugc3BlY2lmaWNhdGlvbiBmb3IgR2VuZXZlIGRlY2FwIGZsb3cgd2l0aCBlbmNhcHN1bGF0aW9u
-IG9wdGlvbnMNCmFuZCBhbGxvdyBjcmVhdGlvbiBvZiBydWxlcyB0aGF0IGFyZSBtYXRjaGluZyBv
-biBHZW5ldmUgVExWIG9wdGlvbnMuDQoNClJldmlld2VkLWJ5OiBPeiBTaGxvbW8gPG96c2hAbWVs
-bGFub3guY29tPg0KU2lnbmVkLW9mZi1ieTogWWV2Z2VueSBLbGl0ZXluaWsgPGtsaXRleW5AbWVs
-bGFub3guY29tPg0KU2lnbmVkLW9mZi1ieTogU2FlZWQgTWFoYW1lZWQgPHNhZWVkbUBtZWxsYW5v
-eC5jb20+DQotLS0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9mc19jb3Jl
-LmggfCAgMiArLQ0KIGluY2x1ZGUvbGludXgvbWx4NS9kZXZpY2UuaCAgICAgICAgICAgICAgICAg
-ICB8ICA0ICstDQogaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmggICAgICAgICAgICAgICAg
-IHwgNTAgKysrKysrKysrKysrKysrKystLQ0KIDMgZmlsZXMgY2hhbmdlZCwgNDkgaW5zZXJ0aW9u
-cygrKSwgNyBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbmV0L2V0aGVybmV0
-L21lbGxhbm94L21seDUvY29yZS9mc19jb3JlLmggYi9kcml2ZXJzL25ldC9ldGhlcm5ldC9tZWxs
-YW5veC9tbHg1L2NvcmUvZnNfY29yZS5oDQppbmRleCAwYzZjNWZlZjQ1NDguLmEwOGMzZDA5YTUw
-ZiAxMDA2NDQNCi0tLSBhL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9m
-c19jb3JlLmgNCisrKyBiL2RyaXZlcnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9m
-c19jb3JlLmgNCkBAIC0xNTIsNyArMTUyLDcgQEAgc3RydWN0IG1seDVfZnRfdW5kZXJsYXlfcXAg
-ew0KIAl1MzIgcXBuOw0KIH07DQogDQotI2RlZmluZSBNTFg1X0ZURV9NQVRDSF9QQVJBTV9SRVNF
-UlZFRAlyZXNlcnZlZF9hdF84MDANCisjZGVmaW5lIE1MWDVfRlRFX01BVENIX1BBUkFNX1JFU0VS
-VkVECXJlc2VydmVkX2F0X2EwMA0KIC8qIENhbGN1bGF0ZSB0aGUgZnRlX21hdGNoX3BhcmFtIGxl
-bmd0aCBhbmQgd2l0aG91dCB0aGUgcmVzZXJ2ZWQgbGVuZ3RoLg0KICAqIE1ha2Ugc3VyZSB0aGUg
-cmVzZXJ2ZWQgZmllbGQgaXMgdGhlIGxhc3QuDQogICovDQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9s
-aW51eC9tbHg1L2RldmljZS5oIGIvaW5jbHVkZS9saW51eC9tbHg1L2RldmljZS5oDQppbmRleCAy
-OGViYjZjOTM1NDIuLjRhYjgwMTA0MGU5OCAxMDA2NDQNCi0tLSBhL2luY2x1ZGUvbGludXgvbWx4
-NS9kZXZpY2UuaA0KKysrIGIvaW5jbHVkZS9saW51eC9tbHg1L2RldmljZS5oDQpAQCAtMTAwMSw3
-ICsxMDAxLDggQEAgZW51bSB7DQogCU1MWDVfTUFUQ0hfT1VURVJfSEVBREVSUwk9IDEgPDwgMCwN
-CiAJTUxYNV9NQVRDSF9NSVNDX1BBUkFNRVRFUlMJPSAxIDw8IDEsDQogCU1MWDVfTUFUQ0hfSU5O
-RVJfSEVBREVSUwk9IDEgPDwgMiwNCi0NCisJTUxYNV9NQVRDSF9NSVNDX1BBUkFNRVRFUlNfMgk9
-IDEgPDwgMywNCisJTUxYNV9NQVRDSF9NSVNDX1BBUkFNRVRFUlNfMwk9IDEgPDwgNCwNCiB9Ow0K
-IA0KIGVudW0gew0KQEAgLTEwNDUsNiArMTA0Niw3IEBAIGVudW0gbWx4NV9tcGxzX3N1cHBvcnRl
-ZF9maWVsZHMgew0KIH07DQogDQogZW51bSBtbHg1X2ZsZXhfcGFyc2VyX3Byb3RvcyB7DQorCU1M
-WDVfRkxFWF9QUk9UT19HRU5FVkUJICAgICAgPSAxIDw8IDMsDQogCU1MWDVfRkxFWF9QUk9UT19D
-V19NUExTX0dSRSAgID0gMSA8PCA0LA0KIAlNTFg1X0ZMRVhfUFJPVE9fQ1dfTVBMU19VRFAgICA9
-IDEgPDwgNSwNCiB9Ow0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5o
-IGIvaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgNCmluZGV4IDI2OGFjMTI2YjNiYi4uNmE3
-ZmMxOGE5ZmUzIDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgNCisr
-KyBiL2luY2x1ZGUvbGludXgvbWx4NS9tbHg1X2lmYy5oDQpAQCAtODYsNiArODYsMTEgQEAgZW51
-bSB7DQogDQogZW51bSB7DQogCU1MWDVfR0VORVJBTF9PQkpfVFlQRVNfQ0FQX1NXX0lDTSA9ICgx
-VUxMIDw8IE1MWDVfT0JKX1RZUEVfU1dfSUNNKSwNCisJTUxYNV9HRU5FUkFMX09CSl9UWVBFU19D
-QVBfR0VORVZFX1RMVl9PUFQgPSAoMVVMTCA8PCAxMSksDQorfTsNCisNCitlbnVtIHsNCisJTUxY
-NV9PQkpfVFlQRV9HRU5FVkVfVExWX09QVCA9IDB4MDAwYiwNCiB9Ow0KIA0KIGVudW0gew0KQEAg
-LTMzOSw3ICszNDQsOCBAQCBzdHJ1Y3QgbWx4NV9pZmNfZmxvd190YWJsZV9maWVsZHNfc3VwcG9y
-dGVkX2JpdHMgew0KIAl1OCAgICAgICAgIGlubmVyX3RjcF9mbGFnc1sweDFdOw0KIAl1OCAgICAg
-ICAgIHJlc2VydmVkX2F0XzM3WzB4OV07DQogDQotCXU4ICAgICAgICAgcmVzZXJ2ZWRfYXRfNDBb
-MHg1XTsNCisJdTggICAgICAgICBnZW5ldmVfdGx2X29wdGlvbl8wX2RhdGFbMHgxXTsNCisJdTgg
-ICAgICAgICByZXNlcnZlZF9hdF80MVsweDRdOw0KIAl1OCAgICAgICAgIG91dGVyX2ZpcnN0X21w
-bHNfb3Zlcl91ZHBbMHg0XTsNCiAJdTggICAgICAgICBvdXRlcl9maXJzdF9tcGxzX292ZXJfZ3Jl
-WzB4NF07DQogCXU4ICAgICAgICAgaW5uZXJfZmlyc3RfbXBsc1sweDRdOw0KQEAgLTUyOCw2ICs1
-MzQsMTIgQEAgc3RydWN0IG1seDVfaWZjX2Z0ZV9tYXRjaF9zZXRfbWlzYzJfYml0cyB7DQogCXU4
-ICAgICAgICAgcmVzZXJ2ZWRfYXRfMWEwWzB4NjBdOw0KIH07DQogDQorc3RydWN0IG1seDVfaWZj
-X2Z0ZV9tYXRjaF9zZXRfbWlzYzNfYml0cyB7DQorCXU4ICAgICAgICAgcmVzZXJ2ZWRfYXRfMFsw
-eDEyMF07DQorCXU4ICAgICAgICAgZ2VuZXZlX3Rsdl9vcHRpb25fMF9kYXRhWzB4MjBdOw0KKwl1
-OCAgICAgICAgIHJlc2VydmVkX2F0XzE0MFsweGMwXTsNCit9Ow0KKw0KIHN0cnVjdCBtbHg1X2lm
-Y19jbWRfcGFzX2JpdHMgew0KIAl1OCAgICAgICAgIHBhX2hbMHgyMF07DQogDQpAQCAtMTI0Nyw5
-ICsxMjU5LDEzIEBAIHN0cnVjdCBtbHg1X2lmY19jbWRfaGNhX2NhcF9iaXRzIHsNCiAJdTgJICAg
-bnVtX29mX3VhcnNfcGVyX3BhZ2VbMHgyMF07DQogDQogCXU4ICAgICAgICAgZmxleF9wYXJzZXJf
-cHJvdG9jb2xzWzB4MjBdOw0KLQl1OCAgICAgICAgIHJlc2VydmVkX2F0XzU2MFsweDIwXTsNCiAN
-Ci0JdTggICAgICAgICByZXNlcnZlZF9hdF81ODBbMHgzY107DQorCXU4ICAgICAgICAgbWF4X2dl
-bmV2ZV90bHZfb3B0aW9uc1sweDhdOw0KKwl1OCAgICAgICAgIHJlc2VydmVkX2F0XzU2OFsweDNd
-Ow0KKwl1OCAgICAgICAgIG1heF9nZW5ldmVfdGx2X29wdGlvbl9kYXRhX2xlblsweDVdOw0KKwl1
-OCAgICAgICAgIHJlc2VydmVkX2F0XzU3MFsweDEwXTsNCisNCisJdTggICAgICAgICByZXNlcnZl
-ZF9hdF81ODBbMHgxY107DQogCXU4ICAgICAgICAgbWluaV9jcWVfcmVzcF9zdHJpZGVfaW5kZXhb
-MHgxXTsNCiAJdTggICAgICAgICBjcWVfMTI4X2Fsd2F5c1sweDFdOw0KIAl1OCAgICAgICAgIGNx
-ZV9jb21wcmVzc2lvbl8xMjhbMHgxXTsNCkBAIC0xMjgzLDcgKzEyOTksOSBAQCBzdHJ1Y3QgbWx4
-NV9pZmNfY21kX2hjYV9jYXBfYml0cyB7DQogDQogCXU4ICAgICAgICAgdWN0eF9jYXBbMHgyMF07
-DQogDQotCXU4CSAgIHJlc2VydmVkX2F0XzZjMFsweDE0MF07DQorCXU4ICAgICAgICAgcmVzZXJ2
-ZWRfYXRfNmMwWzB4NF07DQorCXU4ICAgICAgICAgZmxleF9wYXJzZXJfaWRfZ2VuZXZlX3Rsdl9v
-cHRpb25fMFsweDRdOw0KKwl1OCAgICAgICAgIHJlc2VydmVkX2F0XzZjOFsweDEzOF07DQogfTsN
-CiANCiBlbnVtIG1seDVfZmxvd19kZXN0aW5hdGlvbl90eXBlIHsNCkBAIC0xMzQxLDcgKzEzNTks
-OSBAQCBzdHJ1Y3QgbWx4NV9pZmNfZnRlX21hdGNoX3BhcmFtX2JpdHMgew0KIA0KIAlzdHJ1Y3Qg
-bWx4NV9pZmNfZnRlX21hdGNoX3NldF9taXNjMl9iaXRzIG1pc2NfcGFyYW1ldGVyc18yOw0KIA0K
-LQl1OCAgICAgICAgIHJlc2VydmVkX2F0XzgwMFsweDgwMF07DQorCXN0cnVjdCBtbHg1X2lmY19m
-dGVfbWF0Y2hfc2V0X21pc2MzX2JpdHMgbWlzY19wYXJhbWV0ZXJzXzM7DQorDQorCXU4ICAgICAg
-ICAgcmVzZXJ2ZWRfYXRfYTAwWzB4NjAwXTsNCiB9Ow0KIA0KIGVudW0gew0KQEAgLTQ4NTAsNiAr
-NDg3MCw3IEBAIGVudW0gew0KIAlNTFg1X1FVRVJZX0ZMT1dfR1JPVVBfT1VUX01BVENIX0NSSVRF
-UklBX0VOQUJMRV9NSVNDX1BBUkFNRVRFUlMgID0gMHgxLA0KIAlNTFg1X1FVRVJZX0ZMT1dfR1JP
-VVBfT1VUX01BVENIX0NSSVRFUklBX0VOQUJMRV9JTk5FUl9IRUFERVJTICAgID0gMHgyLA0KIAlN
-TFg1X1FVRVJZX0ZMT1dfR1JPVVBfSU5fTUFUQ0hfQ1JJVEVSSUFfRU5BQkxFX01JU0NfUEFSQU1F
-VEVSU18yID0gMHgzLA0KKwlNTFg1X1FVRVJZX0ZMT1dfR1JPVVBfSU5fTUFUQ0hfQ1JJVEVSSUFf
-RU5BQkxFX01JU0NfUEFSQU1FVEVSU18zID0gMHg0LA0KIH07DQogDQogc3RydWN0IG1seDVfaWZj
-X3F1ZXJ5X2Zsb3dfZ3JvdXBfb3V0X2JpdHMgew0KQEAgLTk1NDUsNiArOTU2NiwyMCBAQCBzdHJ1
-Y3QgbWx4NV9pZmNfc3dfaWNtX2JpdHMgew0KIAl1OCAgICAgICAgIHN3X2ljbV9zdGFydF9hZGRy
-WzB4NDBdOw0KIA0KIAl1OCAgICAgICAgIHJlc2VydmVkX2F0X2MwWzB4MTQwXTsNCit9OyANCisN
-CitzdHJ1Y3QgbWx4NV9pZmNfZ2VuZXZlX3Rsdl9vcHRpb25fYml0cyB7DQorCXU4ICAgICAgICAg
-bW9kaWZ5X2ZpZWxkX3NlbGVjdFsweDQwXTsNCisNCisJdTggICAgICAgICByZXNlcnZlZF9hdF80
-MFsweDE4XTsNCisJdTggICAgICAgICBnZW5ldmVfb3B0aW9uX2Z0ZV9pbmRleFsweDhdOw0KKw0K
-Kwl1OCAgICAgICAgIG9wdGlvbl9jbGFzc1sweDEwXTsNCisJdTggICAgICAgICBvcHRpb25fdHlw
-ZVsweDhdOw0KKwl1OCAgICAgICAgIHJlc2VydmVkX2F0Xzc4WzB4M107DQorCXU4ICAgICAgICAg
-b3B0aW9uX2RhdGFfbGVuZ3RoWzB4NV07DQorDQorCXU4ICAgICAgICAgcmVzZXJ2ZWRfYXRfODBb
-MHgxODBdOw0KIH07DQogDQogc3RydWN0IG1seDVfaWZjX2NyZWF0ZV91bWVtX2luX2JpdHMgew0K
-QEAgLTk1ODksNiArOTYyNCwxMSBAQCBzdHJ1Y3QgbWx4NV9pZmNfY3JlYXRlX3N3X2ljbV9pbl9i
-aXRzIHsNCiAJc3RydWN0IG1seDVfaWZjX3N3X2ljbV9iaXRzCQkgICAgICBzd19pY207DQogfTsN
-CiANCitzdHJ1Y3QgbWx4NV9pZmNfY3JlYXRlX2dlbmV2ZV90bHZfb3B0aW9uX2luX2JpdHMgew0K
-KwlzdHJ1Y3QgbWx4NV9pZmNfZ2VuZXJhbF9vYmpfaW5fY21kX2hkcl9iaXRzICAgaGRyOw0KKwlz
-dHJ1Y3QgbWx4NV9pZmNfZ2VuZXZlX3Rsdl9vcHRpb25fYml0cyAgICAgICAgZ2VuZXZlX3Rsdl9v
-cHQ7DQorfTsNCisNCiBzdHJ1Y3QgbWx4NV9pZmNfbXRyY19zdHJpbmdfZGJfcGFyYW1fYml0cyB7
-DQogCXU4ICAgICAgICAgc3RyaW5nX2RiX2Jhc2VfYWRkcmVzc1sweDIwXTsNCiANCi0tIA0KMi4y
-MC4xDQoNCg==
+
+--=-2eZdFUzIMtb2itTLVoq5
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2019-04-29 at 21:00 +0300, Leon Romanovsky wrote:
+> On Mon, Apr 29, 2019 at 01:13:01PM -0400, Doug Ledford wrote:
+> > On Mon, 2019-04-29 at 09:48 -0700, Linus Torvalds wrote:
+> > > On Mon, Apr 29, 2019 at 9:29 AM Doug Ledford <dledford@redhat.com> wr=
+ote:
+> > > >  drivers/infiniband/core/uverbs_main.c | 2 +-
+> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >=20
+> > > This trivial one-liner is actually incorrect.
+> > >=20
+> > > It should use 'vmf->address', because the point of the ZERO_PAGE
+> > > argument is to pick the page with the right virtual address alias for
+> > > broken architectures that need those kinds.
+> > >=20
+> > > I'm actually surprised s390 wants it, usually it's just MIPS that has
+> > > the horribly broken virtual address translation stuff. But it looks
+> > > like for s390 it's at least only a performance issue (ie it causes
+> > > some aliases in L1 that cause cacheline ping-pong rather than anythin=
+g
+> > > else).
+> >=20
+> > That's what I get for listening to Jason ;-)
+> >=20
+> > Well, since you have just essentially re-written the patch to be
+> > correct, you are now the developer of origin.  Do you want to commit th=
+e
+> > fix directly or shall I respin it for you to pull?
+>=20
+> Linus already committed it.
+>=20
+> The whole breakage is mystery for me, the patch which introduced
+> breakage, got successful build report from 0-build.
+
+Yeah, successful 0-day build is a good indicator, but not a guarantee.=20
+You just can't test all possible permutations and sometimes things slip
+by.  But it's still way better than 20 years ago when half the patches
+weren't even compile tested before coming to Linus ;-)
+
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-2eZdFUzIMtb2itTLVoq5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlzHP78ACgkQuCajMw5X
+L92gIhAAhHD/7IR34R4xzYk2X98RUqCX2VTgKH7h6OBT64zivmEk/LD2La5hIztt
+BwcUg1rPJRW57zRBCLHjvVuc81nxgKHBs7LEoOlk8CRrE/kao2MyzvaOBwAr/k/K
+6Gj29sYFNGh0MX7/zPsccMCHR5B0vyJyn2C5XDyTflEhC2QKXiXJCKkq3cQZ63uv
+21bpojWSYrYoedrTFzzakZkapX2qCxK53jKZWcqllNzjtNAbMlPctuNAReoa15bd
+fUYQg6ZUQ1XhZ8H1aVBDICKvFNK1D0eNdGjhpaIlwGGCpEYzPo+EJknlIpQzJIR5
+IuAbVVZ04pGpzVL71Z+XXCC3B4M4O0Gxr+6yHZ7sGD/76KZM6cAdu572kFWDoJ/J
+1gAC+svTgHat7kbH/YZXaVAED7Bf5mPbcq0pfSeAbbdwtktMgNcm1rwURc/ByAFT
+MQ/0X3Hz0x9gtglnX+OgBCuf/JcSSsfNHJrG7fB5UAxxrMs6gVwk1s51Ayo7Gr+l
+1Grn7ESSb0cQMgs4VmzkZGzE/FtuWMor+idFp/ytSI7UrhPYTswDftVt8/9WuK7m
+GteXJ0BF39SDp0UZMrY+SYRJXI8mjLSoANn/JSA+7UOMPOdKJB/rI6y1K7HM/qZD
+VoWKibOfLnv58LF653qlXAAp3pmoBDLDTMktwWCWgVlEhZyTJHM=
+=8lQW
+-----END PGP SIGNATURE-----
+
+--=-2eZdFUzIMtb2itTLVoq5--
