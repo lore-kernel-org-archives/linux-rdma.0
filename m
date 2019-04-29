@@ -1,98 +1,78 @@
 From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Mon, 29 Apr 2019 11:42:59 -0400
-Message-ID: <00c2666a46b22f004429abc9c4530bbf21fe6e43.camel@redhat.com>
-References: <20190428115207.GA11924@ziepe.ca> <20190429060947.GB3665@osiris>
-         <20190429084030.GA4275@mellanox.com>
+Subject: [GIT PULL] Please pull rdma.git
+Date: Mon, 29 Apr 2019 12:28:57 -0400
+Message-ID: <48cbd548d153d1d2a1cf6c4f2127a6cef5d55deb.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg="pgp-sha256";
-        protocol="application/pgp-signature"; boundary="=-mzcW/QoMlvpvSjLBBkEq"
+        protocol="application/pgp-signature"; boundary="=-uUtEAudNqpCcJkrqUv+r"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190429084030.GA4275@mellanox.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Torvalds, Linus" <torvalds@linux-foundation.org>
+Cc: linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Gunthorpe, Jason" <jgg@ziepe.ca>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-mzcW/QoMlvpvSjLBBkEq
+--=-uUtEAudNqpCcJkrqUv+r
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2019-04-29 at 08:40 +0000, Jason Gunthorpe wrote:
-> On Mon, Apr 29, 2019 at 08:09:47AM +0200, Heiko Carstens wrote:
-> > On Sun, Apr 28, 2019 at 11:52:12AM +0000, Jason Gunthorpe wrote:
-> > > Hi Linus,
-> > >=20
-> > > Third rc pull request
-> > >=20
-> > > Nothing particularly special here. There is a small merge conflict
-> > > with Adrea's mm_still_valid patches which is resolved as below:
-> > ...
-> > > Jason Gunthorpe (3):
-> > >       RDMA/mlx5: Do not allow the user to write to the clock page
-> > >       RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
-> > >       RDMA/ucontext: Fix regression with disassociate
-> >=20
-> > This doesn't compile. The patch below would fix it, but not sure if
-> > this is what is intended:
-> >=20
-> > drivers/infiniband/core/uverbs_main.c: In function 'rdma_umap_fault':
-> > drivers/infiniband/core/uverbs_main.c:898:28: error: 'struct vm_fault' =
-has no member named 'vm_start'
-> >    vmf->page =3D ZERO_PAGE(vmf->vm_start);
-> >                             ^~
-> > diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband=
-/core/uverbs_main.c
-> > index 7843e89235c3..65fe89b3fa2d 100644
-> > +++ b/drivers/infiniband/core/uverbs_main.c
-> > @@ -895,7 +895,7 @@ static vm_fault_t rdma_umap_fault(struct vm_fault *=
-vmf)
-> > =20
-> >  	/* Read only pages can just use the system zero page. */
-> >  	if (!(vmf->vma->vm_flags & (VM_WRITE | VM_MAYWRITE))) {
-> > -		vmf->page =3D ZERO_PAGE(vmf->vm_start);
-> > +		vmf->page =3D ZERO_PAGE(vmf->vma->vm_start);
-> >  		get_page(vmf->page);
-> >  		return 0;
-> >  	}
-> >=20
->=20
-> Thanks Heiko, this looks right to me.=20
->=20
-> I'm surprised to be seeing this at this point, these patches should
-> have been seen by 0 day for several days now, and they were in
-> linux-next already too..
->=20
-> Doug, can you send this to Linus today?
+Hi Linus,
 
-Yep.
+As per the thread on our last pull request, this is the two line build
+fix for s390 and mips.
+
+The following changes since commit
+2557fabd6e29f349bfa0ac13f38ac98aa5eafc74:
+
+  RDMA/hns: Bugfix for mapping user db (2019-04-25 10:40:04 -0300)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-
+linus
+
+for you to fetch changes up to d79a26b99f5f40db6863b1973750fd1d134d99b4:
+
+  RDMA/uverbs: Fix compilation error on s390 and mips platforms (2019-
+04-29 11:47:55 -0400)
+
+----------------------------------------------------------------
+Pull request for 5.1-rc
+
+- Build fix for the last pull request on s390
+
+----------------------------------------------------------------
+Leon Romanovsky (1):
+      RDMA/uverbs: Fix compilation error on s390 and mips platforms
+
+ drivers/infiniband/core/uverbs_main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 --=20
 Doug Ledford <dledford@redhat.com>
     GPG KeyID: B826A3330E572FDD
     Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
 
---=-mzcW/QoMlvpvSjLBBkEq
+--=-uUtEAudNqpCcJkrqUv+r
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part
 Content-Transfer-Encoding: 7bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlzHG4MACgkQuCajMw5X
-L91tQhAAta0q1pZ9kNDLRR7iMYU1dTbBuzlfyv6/bwsyY8C8SQt7TY2Q3vyNBHAp
-AOuQcDMTAg7FT2EqIATXrSlPOA+mt132MO0HvgPydt/iBNW6LGQCvwW/Kevn5NMk
-/G6P8SpV58YMJKotRTdD0dd2t8uQgx6Cqlq+d/Us88ioHFMvztDvJ4ztfaAdvhdV
-1reQwGmItiu1LSZZXqKrjC2oQ01jZNopWkiywZ/NLW5FXIBgnTgKXe2D8XcbeE/I
-/mEgc5V7wmncHLQaL+WvikRhzf10uz4nqXX4IchNHgX0ic/+ps/jhVYPAsko4Chn
-p6nGvr9Jv9Zc/I0wOzlJjiROqtGgjGsz+ZvYfozDQCFK4f0Ui1j6z9UO7LRpjkue
-MBksv0aYZSEX0Y8i6rVu4VBPs+oHStPtFn04W5IS0Emxb/W/+f02uRNm6PkzeNTQ
-PdCbepECCnqduhSmUWYLMNmma8+tkmzYUneDxacVfX5RZg5q4M0jPBNV8sCHoqyQ
-lmjrd17h33ddNtdy4Ai0o05IrPowdk+byc/cVuusGyCs4UUEyVJBuf9r+aoN3yp5
-PaBphMczFQQtnhZgHsZoMe7yATmTyrHPwCXAsxsrtSaCJ6ivDbzdoERgn+QK971F
-0X4i6SL94TSGR0yOLSJfbcTlRVq0aYmUvN6FbjjoFt+b880eg74=
-=zkfn
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlzHJkkACgkQuCajMw5X
+L91InBAAl9wPAKjtoPDTK8G+FYEtytb74NlBVxkJXyh8axLo1YETZYy+Qv3S27L6
+mnY5lK3ottBBCtiho1XxtG5mqKWmWWC1to5cSx/UG90oc8s3NXZ5dhmMEtLLEVbG
+txuTL4X/TYy0veTlowDCUyYimPO8VZUy9agoybU6FBrvylobf/qU2gw0oP42oMr4
+2AiAK/9XiZTOwswG/PVuTy4UUYwM5hzEH7un74Qb/gaeQKYyGwwk2wQUtOZ7bgmh
+AoW1XnoAz2rrcvJGOGjpjY2ftHHIpB4ITIdBDC7sypNF9GJGYWMaVqLSe3L8DKNg
+BwboJ+ZCYelbRHGO0SPy5f68bP+S64XHcW1skvPc/+XEQF+8qYXWTPwjMtCWs5aY
+f67aC5k6yakbEDZ8vRp3tTqYXXzCcVNU27V+TCz2KyPas1hW/1x7ATo/czLjWP/1
+Pw0sYrWl0cOdNw4Uk9jJPhgYDZmbbQILPSBbif7Njuuyf5cvRP/o8IDktThBCm7z
+GKZguuTLJpHGwiE8VN6zntfB5s9jOPLPYO7K8dxsKNcmY8/RpVShibIK+T0d9PlD
+qT9r7lha7ZimdS14I1M1fgGtsBBk6TXCwxQ9Pifxq5QDIw08mhI3TdlmuexMPmYB
+3wgi6V1gWhlXZnulp3239r06xDSKU7iLmYfgHUVe8dA+ql6rpN4=
+=SufS
 -----END PGP SIGNATURE-----
 
---=-mzcW/QoMlvpvSjLBBkEq--
+--=-uUtEAudNqpCcJkrqUv+r--
