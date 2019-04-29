@@ -1,46 +1,48 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Sun, 28 Apr 2019 17:09:08 -0700
-Message-ID: <CAHk-=whWh+5-jGmgw2HPM8XhzXzvGcLo19UGLtqYe_teJsRgRA@mail.gmail.com>
-References: <20190428115207.GA11924@ziepe.ca> <CAHk-=wj4ay=jy6wuN4d9p9v+O32i0aH9SMfu39VKP-Ai7hKp=g@mail.gmail.com>
- <20190428234935.GA15233@mellanox.com>
+Date: Mon, 29 Apr 2019 08:09:47 +0200
+Message-ID: <20190429060947.GB3665@osiris>
+References: <20190428115207.GA11924@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190428234935.GA15233@mellanox.com>
+Content-Disposition: inline
+In-Reply-To: <20190428115207.GA11924@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 28, 2019 at 4:49 PM Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> It is for high availability - we have situations where the hardware
-> can fault and needs some kind of destructive recovery. For instance a
-> firmware reboot, or a VM migration.
->
-> In these designs there may be multiple cards in the system and the
-> userspace application could be using both. Just because one card
-> crashed we can't send SIGBUS and kill the application, that breaks the
-> HA design.
+On Sun, Apr 28, 2019 at 11:52:12AM +0000, Jason Gunthorpe wrote:
+> Hi Linus,
+> 
+> Third rc pull request
+> 
+> Nothing particularly special here. There is a small merge conflict
+> with Adrea's mm_still_valid patches which is resolved as below:
+...
+> Jason Gunthorpe (3):
+>       RDMA/mlx5: Do not allow the user to write to the clock page
+>       RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
+>       RDMA/ucontext: Fix regression with disassociate
 
-Why can't this magical application that is *so* special that it is HA
-and does magic mmap's of special rdma areas just catch the SIGBUS?
+This doesn't compile. The patch below would fix it, but not sure if
+this is what is intended:
 
-Honestly, the whole "it's for HA" excuse stinks. It stinks because you
-now silently just replace the mapping with *garbage*. That's not HA,
-that's just random.
-
-Wouldn't it be a lot better to just get the SIGBUS, and then that
-magical application knows that "oh, it's gone", and it could - in its
-SIGBUS handler - just do the dummy anonymous mmap() with /dev/zero it
-if it wants to?
-
-Whatever. It really sounds like this is yet another horrible back for
-bad interfaces for all these "super-special high-end enterprise
-people".
-
-I hope that some day enterprise people will wake up and realize that
-"enterprise" seems to be often a code name for "lots of random hacks".
-
-                    Linus
+drivers/infiniband/core/uverbs_main.c: In function 'rdma_umap_fault':
+drivers/infiniband/core/uverbs_main.c:898:28: error: 'struct vm_fault' has no member named 'vm_start'
+   vmf->page = ZERO_PAGE(vmf->vm_start);
+                            ^~
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 7843e89235c3..65fe89b3fa2d 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -895,7 +895,7 @@ static vm_fault_t rdma_umap_fault(struct vm_fault *vmf)
+ 
+ 	/* Read only pages can just use the system zero page. */
+ 	if (!(vmf->vma->vm_flags & (VM_WRITE | VM_MAYWRITE))) {
+-		vmf->page = ZERO_PAGE(vmf->vm_start);
++		vmf->page = ZERO_PAGE(vmf->vma->vm_start);
+ 		get_page(vmf->page);
+ 		return 0;
+ 	}
