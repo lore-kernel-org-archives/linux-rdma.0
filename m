@@ -1,35 +1,34 @@
-From: Andrea Parri <andrea.parri@amarulasolutions.com>
-Subject: Re: [PATCH 5/5] IB/hfi1: Fix improper uses of smp_mb__before_atomic()
-Date: Tue, 30 Apr 2019 01:16:57 +0200
-Message-ID: <20190429231657.GA2733@andrea>
-References: <1556568902-12464-1-git-send-email-andrea.parri@amarulasolutions.com>
- <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
- <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [PATCH V2 mlx5-next 00/11] Mellanox, mlx5-next updates 2019-04-25
+Date: Mon, 29 Apr 2019 23:56:50 +0000
+Message-ID: <d9de66c0da44c294809b32a8420d2a16b02c327e.camel@mellanox.com>
+References: <20190429181326.6262-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190429181326.6262-1-saeedm@mellanox.com>
+Content-Language: en-US
+Content-ID: <FDD646D0202A3B4FA142F3AAF12A4D6E@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leonro@mellanox.com>
+Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Mike,
-
-> >This barrier only applies to the read-modify-write operations; in
-> >particular, it does not apply to the atomic_read() primitive.
-> >
-> >Replace the barrier with an smp_mb().
-> 
-> This is one of a couple of barrier issues that we are currently looking into.
-> 
-> See:
-> 
-> [PATCH for-next 6/9] IB/rdmavt: Add new completion inline
-> 
-> We will take a look at this one as well.
-
-Thank you for the reference and for looking into this,
-
-  Andrea
+T24gTW9uLCAyMDE5LTA0LTI5IGF0IDE4OjEzICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
+Cj4gSGksDQo+IA0KPiBUaGlzIHNlcmllcyBwcm92aWRlcyBtaXNjIGxvdyBsZXZlbCB1cGRhdGVz
+IHRvIG1seDUgY29yZSBkcml2ZXIsIHRvDQo+IGJlDQo+IHNoYXJlZCBiZXR3ZWVuIHJkbWEgYW5k
+IG5ldC1uZXh0IHRyZWVzLg0KPiANCj4gMSkgRnJvbSBBeWE6IEVuYWJsZSBnZW5lcmFsIGV2ZW50
+cyBvbiBhbGwgcGh5c2ljYWwgbGluayB0eXBlcyBhbmQgDQo+IHJlc3RyaWN0IGdlbmVyYWwgZXZl
+bnQgaGFuZGxpbmcgb2Ygc3VidHlwZSBERUxBWV9EUk9QX1RJTUVPVVQgaW4gbWx4NQ0KPiByZG1h
+DQo+IGRyaXZlciB0byBldGhlcm5ldCBsaW5rcyBvbmx5IGFzIGl0IHdhcyBpbnRlbmRlZC4NCj4g
+DQo+IDIpIEZyb20gRWxpOiBJbnRyb2R1Y2UgbG93IGxldmVsIGJpdHMgZm9yIHByaW8gdGFnIG1v
+ZGUNCj4gDQo+IDMpIEZyb20gTWFvcjogTG93IGxldmVsIHN0ZWVyaW5nIHVwZGF0ZXMgdG8gc3Vw
+cG9ydCBSRE1BIFJYIGZsb3cNCj4gc3RlZXJpbmcgYW5kIGVuYWJsZXMgUm9DRSBsb29wYmFjayB0
+cmFmZmljIHdoZW4gc3dpdGNoZGV2IGlzIGVuYWJsZWQuDQo+IA0KPiA0KSBGcm9tIFZ1IGFuZCBQ
+YXJhdjogVHdvIHNtYWxsIG1seDUgY29yZSBjbGVhbnVwcw0KPiANCj4gNSkgRnJvbSBZZXZnZW55
+IGFkZCBIVyBkZWZpbml0aW9ucyBvZiBnZW5ldmUgb2ZmbG9hZHMNCj4gDQo+IEluIGNhc2Ugb2Yg
+bm8gb2JqZWN0aW9ucyB0aGlzIHNlcmllcyB3aWxsIGJlIGFwcGxpZWQgdG8gbWx4NS1uZXh0DQo+
+IGJyYW5jaC4NCj4gDQo+IHYyOg0KPiAtICBBZGRyZXNzIGNvbW1lbnRzIGZyb20gTGVvbi4NCj4g
+LSAgU3RhdGljIGNoZWNrZXIgZml4ZXMuDQo+IA0KPiBUaGFua3MsDQo+IFNhZWVkLg0KPiANCj4g
+DQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0LA0KDQpUaGFua3MgIQ0K
