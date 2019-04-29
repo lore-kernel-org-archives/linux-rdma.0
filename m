@@ -1,75 +1,98 @@
-From: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v13 10/20] kernel,
- arm64: untag user pointers in prctl_set_mm*
-Date: Mon, 29 Apr 2019 16:23:32 +0200
-Message-ID: <CAAeHK+ww=6-fTnHN_33EEiKdMqXq5bNU4oW9oOMcfz1N_+Kisw@mail.gmail.com>
-References: <cover.1553093420.git.andreyknvl@google.com>
- <76f96eb9162b3a7fa5949d71af38bf8fdf6924c4.1553093421.git.andreyknvl@google.com>
- <20190322154136.GP13384@arrakis.emea.arm.com>
- <CAAeHK+yHp27eT+wTE3Uy4DkN8XN3ZjHATE+=HgjgRjrHjiXs3Q@mail.gmail.com>
- <20190426145024.GC54863@arrakis.emea.arm.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+Date: Mon, 29 Apr 2019 11:42:59 -0400
+Message-ID: <00c2666a46b22f004429abc9c4530bbf21fe6e43.camel@redhat.com>
+References: <20190428115207.GA11924@ziepe.ca> <20190429060947.GB3665@osiris>
+         <20190429084030.GA4275@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190426145024.GC54863-pQd4kjVL+RGcEQQL7YIRtlaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ramana Radhakrishnan <Ramana.Radhakr>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+        protocol="application/pgp-signature"; boundary="=-mzcW/QoMlvpvSjLBBkEq"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190429084030.GA4275@mellanox.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>, Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCBBcHIgMjYsIDIwMTkgYXQgNDo1MCBQTSBDYXRhbGluIE1hcmluYXMgPGNhdGFsaW4u
-bWFyaW5hc0Bhcm0uY29tPiB3cm90ZToKPgo+IE9uIE1vbiwgQXByIDAxLCAyMDE5IGF0IDA2OjQ0
-OjM0UE0gKzAyMDAsIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6Cj4gPiBPbiBGcmksIE1hciAyMiwg
-MjAxOSBhdCA0OjQxIFBNIENhdGFsaW4gTWFyaW5hcyA8Y2F0YWxpbi5tYXJpbmFzQGFybS5jb20+
-IHdyb3RlOgo+ID4gPiBPbiBXZWQsIE1hciAyMCwgMjAxOSBhdCAwMzo1MToyNFBNICswMTAwLCBB
-bmRyZXkgS29ub3ZhbG92IHdyb3RlOgo+ID4gPiA+IEBAIC0yMTIwLDEzICsyMTM1LDE0IEBAIHN0
-YXRpYyBpbnQgcHJjdGxfc2V0X21tKGludCBvcHQsIHVuc2lnbmVkIGxvbmcgYWRkciwKPiA+ID4g
-PiAgICAgICBpZiAob3B0ID09IFBSX1NFVF9NTV9BVVhWKQo+ID4gPiA+ICAgICAgICAgICAgICAg
-cmV0dXJuIHByY3RsX3NldF9hdXh2KG1tLCBhZGRyLCBhcmc0KTsKPiA+ID4gPgo+ID4gPiA+IC0g
-ICAgIGlmIChhZGRyID49IFRBU0tfU0laRSB8fCBhZGRyIDwgbW1hcF9taW5fYWRkcikKPiA+ID4g
-PiArICAgICBpZiAodW50YWdnZWRfYWRkcihhZGRyKSA+PSBUQVNLX1NJWkUgfHwKPiA+ID4gPiAr
-ICAgICAgICAgICAgICAgICAgICAgdW50YWdnZWRfYWRkcihhZGRyKSA8IG1tYXBfbWluX2FkZHIp
-Cj4gPiA+ID4gICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsKPiA+ID4gPgo+ID4gPiA+ICAg
-ICAgIGVycm9yID0gLUVJTlZBTDsKPiA+ID4gPgo+ID4gPiA+ICAgICAgIGRvd25fd3JpdGUoJm1t
-LT5tbWFwX3NlbSk7Cj4gPiA+ID4gLSAgICAgdm1hID0gZmluZF92bWEobW0sIGFkZHIpOwo+ID4g
-PiA+ICsgICAgIHZtYSA9IGZpbmRfdm1hKG1tLCB1bnRhZ2dlZF9hZGRyKGFkZHIpKTsKPiA+ID4g
-Pgo+ID4gPiA+ICAgICAgIHByY3RsX21hcC5zdGFydF9jb2RlICAgID0gbW0tPnN0YXJ0X2NvZGU7
-Cj4gPiA+ID4gICAgICAgcHJjdGxfbWFwLmVuZF9jb2RlICAgICAgPSBtbS0+ZW5kX2NvZGU7Cj4g
-PiA+Cj4gPiA+IERvZXMgdGhpcyBtZWFuIHRoYXQgd2UgYXJlIGxlZnQgd2l0aCB0YWdnZWQgYWRk
-cmVzc2VzIGZvciB0aGUKPiA+ID4gbW0tPnN0YXJ0X2NvZGUgZXRjLiB2YWx1ZXM/IEkgcmVhbGx5
-IGRvbid0IHRoaW5rIHdlIHNob3VsZCBhbGxvdyB0aGlzLAo+ID4gPiBJJ20gbm90IHN1cmUgd2hh
-dCB0aGUgaW1wbGljYXRpb25zIGFyZSBpbiBvdGhlciBwYXJ0cyBvZiB0aGUga2VybmVsLgo+ID4g
-Pgo+ID4gPiBBcmd1YWJseSwgdGhlc2UgYXJlIG5vdCBldmVuIHBvaW50ZXIgdmFsdWVzIGJ1dCBz
-b21lIGFkZHJlc3MgcmFuZ2VzLiBJCj4gPiA+IGtub3cgd2UgZGVjaWRlZCB0byByZWxheCB0aGlz
-IG5vdGlvbiBmb3IgbW1hcC9tcHJvdGVjdC9tYWR2aXNlKCkgc2luY2UKPiA+ID4gdGhlIHVzZXIg
-ZnVuY3Rpb24gcHJvdG90eXBlcyB0YWtlIHBvaW50ZXIgYXMgYXJndW1lbnRzIGJ1dCBpdCBmZWVs
-cyBsaWtlCj4gPiA+IHdlIGFyZSBvdmVyZG9pbmcgaXQgaGVyZSAoc3RydWN0IHByY3RsX21tX21h
-cCBkb2Vzbid0IGV2ZW4gaGF2ZQo+ID4gPiBwb2ludGVycykuCj4gPiA+Cj4gPiA+IFdoYXQgaXMg
-dGhlIHVzZS1jYXNlIGZvciBhbGxvd2luZyB0YWdnZWQgYWRkcmVzc2VzIGhlcmU/IENhbiB1c2Vy
-IHNwYWNlCj4gPiA+IGhhbmRsZSB1bnRhZ2dpbmc/Cj4gPgo+ID4gSSBkb24ndCBrbm93IGFueSB1
-c2UgY2FzZXMgZm9yIHRoaXMuIEkgZGlkIGl0IGJlY2F1c2UgaXQgc2VlbXMgdG8gYmUKPiA+IGNv
-dmVyZWQgYnkgdGhlIHJlbGF4ZWQgQUJJLiBJJ20gbm90IGVudGlyZWx5IHN1cmUgd2hhdCB0byBk
-byBoZXJlLAo+ID4gc2hvdWxkIEkganVzdCBkcm9wIHRoaXMgcGF0Y2g/Cj4KPiBJZiB3ZSBhbGxv
-dyB0YWdnZWQgYWRkcmVzc2VzIHRvIGJlIHBhc3NlZCBoZXJlLCB3ZSdkIGhhdmUgdG8gdW50YWcg
-dGhlbQo+IGJlZm9yZSB0aGV5IGVuZCB1cCBpbiB0aGUgbW0tPnN0YXJ0X2NvZGUgZXRjLiBtZW1i
-ZXJzLgo+Cj4gSSBrbm93IHdlIGFyZSB0cnlpbmcgdG8gcmVsYXggdGhlIEFCSSBoZXJlIHcuci50
-LiBhZGRyZXNzIHJhbmdlcyBidXQKPiBtb3N0bHkgYmVjYXVzZSB3ZSBjb3VsZG4ndCBmaWd1cmUg
-b3V0IGEgd2F5IHRvIGRvY3VtZW50IHVuYW1iaWd1b3VzbHkKPiB0aGUgZGlmZmVyZW5jZSBiZXR3
-ZWVuIGEgdXNlciBwb2ludGVyIHRoYXQgbWF5IGJlIGRlcmVmZXJlbmNlZCBieSB0aGUKPiBrZXJu
-ZWwgKHRhZ3MgYWxsb3dlZCkgYW5kIGFuIGFkZHJlc3MgdHlwaWNhbGx5IHVzZWQgZm9yIG1hbmFn
-aW5nIHRoZQo+IGFkZHJlc3Mgc3BhY2UgbGF5b3V0LiBTdWdnZXN0aW9ucyB3ZWxjb21lZC4KPgo+
-IEknZCBzYXkganVzdCBkcm9wIHRoaXMgcGF0Y2ggYW5kIGNhcHR1cmUgaXQgaW4gdGhlIEFCSSBk
-b2N1bWVudC4KCk9LLCB3aWxsIGRvIGluIHYxNC4KClZpbmNlbnpvLCBjb3VsZCB5b3UgYWRkIGEg
-bm90ZSBhYm91dCB0aGlzIGludG8gdG91ciBwYXRjaHNldD8KCj4KPiAtLQo+IENhdGFsaW4KX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWls
-aW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
+
+--=-mzcW/QoMlvpvSjLBBkEq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Mon, 2019-04-29 at 08:40 +0000, Jason Gunthorpe wrote:
+> On Mon, Apr 29, 2019 at 08:09:47AM +0200, Heiko Carstens wrote:
+> > On Sun, Apr 28, 2019 at 11:52:12AM +0000, Jason Gunthorpe wrote:
+> > > Hi Linus,
+> > >=20
+> > > Third rc pull request
+> > >=20
+> > > Nothing particularly special here. There is a small merge conflict
+> > > with Adrea's mm_still_valid patches which is resolved as below:
+> > ...
+> > > Jason Gunthorpe (3):
+> > >       RDMA/mlx5: Do not allow the user to write to the clock page
+> > >       RDMA/mlx5: Use rdma_user_map_io for mapping BAR pages
+> > >       RDMA/ucontext: Fix regression with disassociate
+> >=20
+> > This doesn't compile. The patch below would fix it, but not sure if
+> > this is what is intended:
+> >=20
+> > drivers/infiniband/core/uverbs_main.c: In function 'rdma_umap_fault':
+> > drivers/infiniband/core/uverbs_main.c:898:28: error: 'struct vm_fault' =
+has no member named 'vm_start'
+> >    vmf->page =3D ZERO_PAGE(vmf->vm_start);
+> >                             ^~
+> > diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband=
+/core/uverbs_main.c
+> > index 7843e89235c3..65fe89b3fa2d 100644
+> > +++ b/drivers/infiniband/core/uverbs_main.c
+> > @@ -895,7 +895,7 @@ static vm_fault_t rdma_umap_fault(struct vm_fault *=
+vmf)
+> > =20
+> >  	/* Read only pages can just use the system zero page. */
+> >  	if (!(vmf->vma->vm_flags & (VM_WRITE | VM_MAYWRITE))) {
+> > -		vmf->page =3D ZERO_PAGE(vmf->vm_start);
+> > +		vmf->page =3D ZERO_PAGE(vmf->vma->vm_start);
+> >  		get_page(vmf->page);
+> >  		return 0;
+> >  	}
+> >=20
+>=20
+> Thanks Heiko, this looks right to me.=20
+>=20
+> I'm surprised to be seeing this at this point, these patches should
+> have been seen by 0 day for several days now, and they were in
+> linux-next already too..
+>=20
+> Doug, can you send this to Linus today?
+
+Yep.
+
+--=20
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint =3D AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+
+--=-mzcW/QoMlvpvSjLBBkEq
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEErmsb2hIrI7QmWxJ0uCajMw5XL90FAlzHG4MACgkQuCajMw5X
+L91tQhAAta0q1pZ9kNDLRR7iMYU1dTbBuzlfyv6/bwsyY8C8SQt7TY2Q3vyNBHAp
+AOuQcDMTAg7FT2EqIATXrSlPOA+mt132MO0HvgPydt/iBNW6LGQCvwW/Kevn5NMk
+/G6P8SpV58YMJKotRTdD0dd2t8uQgx6Cqlq+d/Us88ioHFMvztDvJ4ztfaAdvhdV
+1reQwGmItiu1LSZZXqKrjC2oQ01jZNopWkiywZ/NLW5FXIBgnTgKXe2D8XcbeE/I
+/mEgc5V7wmncHLQaL+WvikRhzf10uz4nqXX4IchNHgX0ic/+ps/jhVYPAsko4Chn
+p6nGvr9Jv9Zc/I0wOzlJjiROqtGgjGsz+ZvYfozDQCFK4f0Ui1j6z9UO7LRpjkue
+MBksv0aYZSEX0Y8i6rVu4VBPs+oHStPtFn04W5IS0Emxb/W/+f02uRNm6PkzeNTQ
+PdCbepECCnqduhSmUWYLMNmma8+tkmzYUneDxacVfX5RZg5q4M0jPBNV8sCHoqyQ
+lmjrd17h33ddNtdy4Ai0o05IrPowdk+byc/cVuusGyCs4UUEyVJBuf9r+aoN3yp5
+PaBphMczFQQtnhZgHsZoMe7yATmTyrHPwCXAsxsrtSaCJ6ivDbzdoERgn+QK971F
+0X4i6SL94TSGR0yOLSJfbcTlRVq0aYmUvN6FbjjoFt+b880eg74=
+=zkfn
+-----END PGP SIGNATURE-----
+
+--=-mzcW/QoMlvpvSjLBBkEq--
