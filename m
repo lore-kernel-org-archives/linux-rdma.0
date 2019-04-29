@@ -1,84 +1,62 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [GIT PULL] Please pull rdma.git
-Date: Mon, 29 Apr 2019 21:00:55 +0300
-Message-ID: <20190429180055.GX6705@mtr-leonro.mtl.com>
-References: <48cbd548d153d1d2a1cf6c4f2127a6cef5d55deb.camel@redhat.com>
- <CAHk-=wiYHXxkHrbDACc1-5bqJPuiMnmwbStSYBYo82zsO=gstQ@mail.gmail.com>
- <a532d88432b2fd581d39faf12ce3c3c31015b45a.camel@redhat.com>
+From: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v13 16/20] IB/mlx4, arm64: untag user pointers in
+ mlx4_get_umem_mr
+Date: Mon, 29 Apr 2019 21:09:15 +0300
+Message-ID: <20190429180915.GZ6705@mtr-leonro.mtl.com>
+References: <cover.1553093420.git.andreyknvl@google.com>
+ <1e2824fd77e8eeb351c6c6246f384d0d89fd2d58.1553093421.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="wac7ysb48OaltWcw"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <a532d88432b2fd581d39faf12ce3c3c31015b45a.camel@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-rdma <linux-rdma@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, "Gunthorpe, Jason" <jgg@ziepe.ca>
+In-Reply-To: <1e2824fd77e8eeb351c6c6246f384d0d89fd2d58.1553093421.git.andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ramana Radhakrishnan <Ramana.R>
 List-Id: linux-rdma@vger.kernel.org
 
-
---wac7ysb48OaltWcw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Apr 29, 2019 at 01:13:01PM -0400, Doug Ledford wrote:
-> On Mon, 2019-04-29 at 09:48 -0700, Linus Torvalds wrote:
-> > On Mon, Apr 29, 2019 at 9:29 AM Doug Ledford <dledford@redhat.com> wrote:
-> > >
-> > >  drivers/infiniband/core/uverbs_main.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > This trivial one-liner is actually incorrect.
-> >
-> > It should use 'vmf->address', because the point of the ZERO_PAGE
-> > argument is to pick the page with the right virtual address alias for
-> > broken architectures that need those kinds.
-> >
-> > I'm actually surprised s390 wants it, usually it's just MIPS that has
-> > the horribly broken virtual address translation stuff. But it looks
-> > like for s390 it's at least only a performance issue (ie it causes
-> > some aliases in L1 that cause cacheline ping-pong rather than anything
-> > else).
->
-> That's what I get for listening to Jason ;-)
->
-> Well, since you have just essentially re-written the patch to be
-> correct, you are now the developer of origin.  Do you want to commit the
-> fix directly or shall I respin it for you to pull?
-
-Linus already committed it.
-
-The whole breakage is mystery for me, the patch which introduced
-breakage, got successful build report from 0-build.
-
-Thanks
-
->
-> --
-> Doug Ledford <dledford@redhat.com>
->     GPG KeyID: B826A3330E572FDD
->     Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
-
-
-
---wac7ysb48OaltWcw
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBAgAGBQJcxzvXAAoJEORje4g2clinNg0P/04kAMArpOP6S4eKNROZLfoO
-wgoAQXtUOrLXPlcEmi4fbZ7N254b/PxHaXx0PAXu8xdnGZ263KYByRbzTK4WqWH5
-RpPEdQGbi1wwGBxnycsxhubJBFZxjULjQNivOBEq1tpQ8jjgBsIp1QfmX5j5Vq+P
-TexksU4wpTs4/XEaJWwEaThHeVnk/wW4W7MeSc52qkgU0UI1V2ziuaMOneZ4xk7j
-2F4QsyCV4dU2VWYuu9Y76e14sQ8nKV7cvL5uTfiQ6Y9jhTKwnLJGQWCbR+gM2pAf
-s9b/U9l/izJwjD+P1U+bwAjLZEJv5SzXziZuzSnRzYi8lkaF9lC4Crz4LSHDNcPv
-pX9ooUfMDBAczvSG2wDUhhohSB4cPBu74ZkOO4u7aWq6tM2XzE0VFqErSQJ80wIk
-6DRNqrtR1l7z50lrSbSaRcG8UpHZDScsPBk88Fw5HDDuptZqMnZz6dwXekDbNdNT
-R4VO508NMLIVlfpkjHc5Qs0ieeiclwt4NQt+PpkR02lm1U443hQFGViVsHZD3mQU
-8GppR/rHJRX0aUUEaFVDhQkkwud85cyUQVtkqSCPW0oK1+TpGEKwV6R80Pe+MBwC
-LPCHK9Pn3hK1aiFXOYkc22LT3ubG+Ga081c0PqUH8toCCveXBas11u2Q/eWvVW5D
-yzkWI2tDNdY+l99ak7s6
-=5kYY
------END PGP SIGNATURE-----
-
---wac7ysb48OaltWcw--
+T24gV2VkLCBNYXIgMjAsIDIwMTkgYXQgMDM6NTE6MzBQTSArMDEwMCwgQW5kcmV5IEtvbm92YWxv
+diB3cm90ZToKPiBUaGlzIHBhdGNoIGlzIGEgcGFydCBvZiBhIHNlcmllcyB0aGF0IGV4dGVuZHMg
+YXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0bwo+IHBhc3MgdGFnZ2VkIHVzZXIgcG9pbnRlcnMg
+KHdpdGggdGhlIHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcgZWxzZSBvdGhlcgo+IHRoYW4gMHgw
+MCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuCj4KPiBtbHg0X2dldF91bWVtX21yKCkgdXNlcyBwcm92
+aWRlZCB1c2VyIHBvaW50ZXJzIGZvciB2bWEgbG9va3Vwcywgd2hpY2ggY2FuCj4gb25seSBieSBk
+b25lIHdpdGggdW50YWdnZWQgcG9pbnRlcnMuCj4KPiBVbnRhZyB1c2VyIHBvaW50ZXJzIGluIHRo
+aXMgZnVuY3Rpb24uCj4KPiBTaWduZWQtb2ZmLWJ5OiBBbmRyZXkgS29ub3ZhbG92IDxhbmRyZXlr
+bnZsQGdvb2dsZS5jb20+Cj4gLS0tCj4gIGRyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21yLmMg
+fCA3ICsrKystLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlv
+bnMoLSkKPgo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tci5jIGIv
+ZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbXIuYwo+IGluZGV4IDM5NTM3OWE0ODBjYi4uOWEz
+NWVkMmM2YTZmIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21yLmMK
+PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tci5jCj4gQEAgLTM3OCw2ICszNzgs
+NyBAQCBzdGF0aWMgc3RydWN0IGliX3VtZW0gKm1seDRfZ2V0X3VtZW1fbXIoc3RydWN0IGliX3Vk
+YXRhICp1ZGF0YSwgdTY0IHN0YXJ0LAo+ICAJICogYWdhaW4KPiAgCSAqLwo+ICAJaWYgKCFpYl9h
+Y2Nlc3Nfd3JpdGFibGUoYWNjZXNzX2ZsYWdzKSkgewo+ICsJCXVuc2lnbmVkIGxvbmcgdW50YWdn
+ZWRfc3RhcnQgPSB1bnRhZ2dlZF9hZGRyKHN0YXJ0KTsKPiAgCQlzdHJ1Y3Qgdm1fYXJlYV9zdHJ1
+Y3QgKnZtYTsKPgo+ICAJCWRvd25fcmVhZCgmY3VycmVudC0+bW0tPm1tYXBfc2VtKTsKPiBAQCAt
+Mzg2LDkgKzM4Nyw5IEBAIHN0YXRpYyBzdHJ1Y3QgaWJfdW1lbSAqbWx4NF9nZXRfdW1lbV9tcihz
+dHJ1Y3QgaWJfdWRhdGEgKnVkYXRhLCB1NjQgc3RhcnQsCj4gIAkJICogY292ZXIgdGhlIG1lbW9y
+eSwgYnV0IGZvciBub3cgaXQgcmVxdWlyZXMgYSBzaW5nbGUgdm1hIHRvCj4gIAkJICogZW50aXJl
+bHkgY292ZXIgdGhlIE1SIHRvIHN1cHBvcnQgUk8gbWFwcGluZ3MuCj4gIAkJICovCj4gLQkJdm1h
+ID0gZmluZF92bWEoY3VycmVudC0+bW0sIHN0YXJ0KTsKPiAtCQlpZiAodm1hICYmIHZtYS0+dm1f
+ZW5kID49IHN0YXJ0ICsgbGVuZ3RoICYmCj4gLQkJICAgIHZtYS0+dm1fc3RhcnQgPD0gc3RhcnQp
+IHsKPiArCQl2bWEgPSBmaW5kX3ZtYShjdXJyZW50LT5tbSwgdW50YWdnZWRfc3RhcnQpOwo+ICsJ
+CWlmICh2bWEgJiYgdm1hLT52bV9lbmQgPj0gdW50YWdnZWRfc3RhcnQgKyBsZW5ndGggJiYKPiAr
+CQkgICAgdm1hLT52bV9zdGFydCA8PSB1bnRhZ2dlZF9zdGFydCkgewo+ICAJCQlpZiAodm1hLT52
+bV9mbGFncyAmIFZNX1dSSVRFKQo+ICAJCQkJYWNjZXNzX2ZsYWdzIHw9IElCX0FDQ0VTU19MT0NB
+TF9XUklURTsKPiAgCQl9IGVsc2Ugewo+IC0tCgpUaGFua3MsClJldmlld2VkLWJ5OiBMZW9uIFJv
+bWFub3Zza3kgPGxlb25yb0BtZWxsYW5veC5jb20+CgpJbnRlcmVzdGluZywgdGhlIGZvbGxvd3Vw
+IHF1ZXN0aW9uIGlzIHdoeSBtbHg0IGlzIG9ubHkgb25lIGRyaXZlciBpbiBJQiB3aGljaApuZWVk
+cyBzdWNoIGNvZGUgaW4gdW1lbV9tci4gSSdsbCB0YWtlIGEgbG9vayBvbiBpdC4KClRoYW5rcwpf
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1h
+aWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZy
+ZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
