@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next v2 16/17] RDMA/nldev: Allow get counter mode through RDMA netlink
-Date: Mon, 29 Apr 2019 11:34:52 +0300
-Message-ID: <20190429083453.16654-17-leon@kernel.org>
+Subject: [PATCH rdma-next v2 05/17] RDMA/counter: Add set/clear per-port auto mode support
+Date: Mon, 29 Apr 2019 11:34:41 +0300
+Message-ID: <20190429083453.16654-6-leon@kernel.org>
 References: <20190429083453.16654-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,135 +14,242 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Mark Zhang <markz@mellanox.com>
 
-Provide an option to get current counter mode through RDMA netlink.
+Add an API to support set/clear per-port auto mode.
 
 Signed-off-by: Mark Zhang <markz@mellanox.com>
 Reviewed-by: Majd Dibbiny <majd@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/core/counters.c | 13 +++++
- drivers/infiniband/core/nldev.c    | 78 +++++++++++++++++++++++++++++-
- 2 files changed, 90 insertions(+), 1 deletion(-)
+ drivers/infiniband/core/Makefile   |  2 +-
+ drivers/infiniband/core/counters.c | 77 ++++++++++++++++++++++++++++++
+ drivers/infiniband/core/device.c   |  4 ++
+ include/rdma/ib_verbs.h            |  2 +
+ include/rdma/rdma_counter.h        | 24 ++++++++++
+ include/uapi/rdma/rdma_netlink.h   | 26 ++++++++++
+ 6 files changed, 134 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/infiniband/core/counters.c
 
-diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
-index 6f58352a29ee..a3151799f625 100644
---- a/drivers/infiniband/core/counters.c
-+++ b/drivers/infiniband/core/counters.c
-@@ -596,6 +596,19 @@ int rdma_counter_unbind_qpn(struct ib_device *dev, u8 port,
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index 313f2349b518..cddf748c15c9 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+ 				device.o fmr_pool.o cache.o netlink.o \
+ 				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+ 				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+-				nldev.o restrack.o
++				nldev.o restrack.o counters.o
  
-+int rdma_counter_get_mode(struct ib_device *dev, u8 port,
-+			  enum rdma_nl_counter_mode *mode,
-+			  enum rdma_nl_counter_mask *mask)
+ ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
+ ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+new file mode 100644
+index 000000000000..bda8d945a758
+--- /dev/null
++++ b/drivers/infiniband/core/counters.c
+@@ -0,0 +1,77 @@
++// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
++/*
++ * Copyright (c) 2019 Mellanox Technologies. All rights reserved.
++ */
++#include <rdma/ib_verbs.h>
++#include <rdma/rdma_counter.h>
++
++#include "core_priv.h"
++#include "restrack.h"
++
++#define ALL_AUTO_MODE_MASKS (RDMA_COUNTER_MASK_QP_TYPE)
++
++static int __counter_set_mode(struct rdma_counter_mode *curr,
++			      enum rdma_nl_counter_mode new_mode,
++			      enum rdma_nl_counter_mask new_mask)
 +{
-+	struct rdma_port_counter *port_counter;
++	if ((new_mode == RDMA_COUNTER_MODE_AUTO) &&
++	    ((new_mask & (~ALL_AUTO_MODE_MASKS)) ||
++	     (curr->mode != RDMA_COUNTER_MODE_NONE)))
++		return -EINVAL;
 +
-+	port_counter = &dev->port_data[port].port_counter;
-+	*mode = port_counter->mode.mode;
-+	*mask = port_counter->mode.mask;
-+
++	curr->mode = new_mode;
++	curr->mask = new_mask;
 +	return 0;
 +}
 +
- int rdma_counter_init(struct ib_device *dev)
- {
- 	struct rdma_port_counter *port_counter;
-diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-index 6b7bc1a3d61d..53c1d2d82a06 100644
---- a/drivers/infiniband/core/nldev.c
-+++ b/drivers/infiniband/core/nldev.c
-@@ -1709,6 +1709,82 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	return ret;
- }
- 
-+static int nldev_stat_get_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-+			       struct netlink_ext_ack *extack)
++/**
++ * rdma_counter_set_auto_mode() - Turn on/off per-port auto mode
++ *
++ * When @on is true, the @mask must be set
++ */
++int rdma_counter_set_auto_mode(struct ib_device *dev, u8 port,
++			       bool on, enum rdma_nl_counter_mask mask)
 +{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX];
-+	static enum rdma_nl_counter_mode mode;
-+	static enum rdma_nl_counter_mask mask;
-+	struct ib_device *device;
-+	struct sk_buff *msg;
-+	u32 index, port;
++	struct rdma_port_counter *port_counter;
 +	int ret;
 +
-+	ret = nlmsg_parse(nlh, 0, tb, RDMA_NLDEV_ATTR_MAX - 1,
-+			  nldev_policy, extack);
-+	if (ret)
++	if (!rdma_is_port_valid(dev, port))
 +		return -EINVAL;
 +
-+	if (!tb[RDMA_NLDEV_ATTR_STAT_MODE])
-+		return nldev_res_get_counter_doit(skb, nlh, extack);
-+
-+	if (!tb[RDMA_NLDEV_ATTR_STAT_RES] || !tb[RDMA_NLDEV_ATTR_DEV_INDEX] ||
-+	    !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-+		return -EINVAL;
-+
-+	if (nla_get_u32(tb[RDMA_NLDEV_ATTR_STAT_RES]) != RDMA_NLDEV_ATTR_RES_QP)
-+		return -EINVAL;
-+
-+	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-+	device = ib_device_get_by_index(sock_net(skb->sk), index);
-+	if (!device)
-+		return -EINVAL;
-+
-+	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-+	if (!rdma_is_port_valid(device, port)) {
-+		ret = -EINVAL;
-+		goto err;
++	port_counter = &dev->port_data[port].port_counter;
++	mutex_lock(&port_counter->lock);
++	if (on) {
++		ret = __counter_set_mode(&port_counter->mode,
++					 RDMA_COUNTER_MODE_AUTO, mask);
++	} else {
++		if (port_counter->mode.mode != RDMA_COUNTER_MODE_AUTO) {
++			ret = -EINVAL;
++			goto out;
++		}
++		ret = __counter_set_mode(&port_counter->mode,
++					 RDMA_COUNTER_MODE_NONE, 0);
 +	}
 +
-+	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-+	if (!msg) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-+			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-+					 RDMA_NLDEV_CMD_STAT_GET),
-+			0, 0);
-+
-+	ret = rdma_counter_get_mode(device, port, &mode, &mask);
-+	if (ret)
-+		goto err_msg;
-+
-+	if (fill_nldev_handle(msg, device) ||
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port) ||
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_MODE, mode)) {
-+		ret = -EMSGSIZE;
-+		goto err_msg;
-+	}
-+
-+	if ((mode == RDMA_COUNTER_MODE_AUTO) &&
-+	    nla_put_u32(msg, RDMA_NLDEV_ATTR_STAT_AUTO_MODE_MASK, mask)) {
-+		ret = -EMSGSIZE;
-+		goto err_msg;
-+	}
-+
-+	nlmsg_end(msg, nlh);
-+	ib_device_put(device);
-+	return rdma_nl_unicast(msg, NETLINK_CB(skb).portid);
-+
-+err_msg:
-+	nlmsg_free(msg);
-+err:
-+	ib_device_put(device);
++out:
++	mutex_unlock(&port_counter->lock);
 +	return ret;
 +}
 +
- static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 	[RDMA_NLDEV_CMD_GET] = {
- 		.doit = nldev_get_doit,
-@@ -1765,7 +1841,7 @@ static const struct rdma_nl_cbs nldev_cb_table[RDMA_NLDEV_NUM_OPS] = {
- 		.flags = RDMA_NL_ADMIN_PERM,
- 	},
- 	[RDMA_NLDEV_CMD_STAT_GET] = {
--		.doit = nldev_res_get_counter_doit,
-+		.doit = nldev_stat_get_doit,
- 		.dump = nldev_res_get_counter_dumpit,
- 	},
- 	[RDMA_NLDEV_CMD_STAT_DEL] = {
++void rdma_counter_init(struct ib_device *dev)
++{
++	struct rdma_port_counter *port_counter;
++	u32 port;
++
++	if (!dev->ops.alloc_hw_stats)
++		return;
++
++	rdma_for_each_port(dev, port) {
++		port_counter = &dev->port_data[port].port_counter;
++		port_counter->mode.mode = RDMA_COUNTER_MODE_NONE;
++		mutex_init(&port_counter->lock);
++	}
++}
++
++void rdma_counter_cleanup(struct ib_device *dev)
++{
++}
+diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
+index fcbf2d4c865d..9204b4251fc8 100644
+--- a/drivers/infiniband/core/device.c
++++ b/drivers/infiniband/core/device.c
+@@ -46,6 +46,7 @@
+ #include <rdma/rdma_netlink.h>
+ #include <rdma/ib_addr.h>
+ #include <rdma/ib_cache.h>
++#include <rdma/rdma_counter.h>
+ 
+ #include "core_priv.h"
+ #include "restrack.h"
+@@ -1254,6 +1255,8 @@ int ib_register_device(struct ib_device *device, const char *name)
+ 		goto dev_cleanup;
+ 	}
+ 
++	rdma_counter_init(device);
++
+ 	ret = enable_device_and_get(device);
+ 	if (ret) {
+ 		void (*dealloc_fn)(struct ib_device *);
+@@ -1304,6 +1307,7 @@ static void __ib_unregister_device(struct ib_device *ib_dev)
+ 		goto out;
+ 
+ 	disable_device(ib_dev);
++	rdma_counter_cleanup(ib_dev);
+ 
+ 	/* Expedite removing unregistered pointers from the hash table */
+ 	free_netdevs(ib_dev);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 737ef5ed3930..003d7b49ea54 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -62,6 +62,7 @@
+ #include <linux/irqflags.h>
+ #include <linux/preempt.h>
+ #include <uapi/rdma/ib_user_verbs.h>
++#include <rdma/rdma_counter.h>
+ #include <rdma/restrack.h>
+ #include <uapi/rdma/rdma_user_ioctl.h>
+ #include <uapi/rdma/ib_user_ioctl_verbs.h>
+@@ -2213,6 +2214,7 @@ struct ib_port_data {
+ 	spinlock_t netdev_lock;
+ 	struct net_device __rcu *netdev;
+ 	struct hlist_node ndev_hash_link;
++	struct rdma_port_counter port_counter;
+ };
+ 
+ /* rdma netdev type - specifies protocol type */
+diff --git a/include/rdma/rdma_counter.h b/include/rdma/rdma_counter.h
+index 283ac1a0cdb7..a8a7c1627800 100644
+--- a/include/rdma/rdma_counter.h
++++ b/include/rdma/rdma_counter.h
+@@ -6,8 +6,26 @@
+ #ifndef _RDMA_COUNTER_H_
+ #define _RDMA_COUNTER_H_
+ 
++#include <linux/mutex.h>
++
+ #include <rdma/ib_verbs.h>
+ #include <rdma/restrack.h>
++#include <rdma/rdma_netlink.h>
++
++struct auto_mode_param {
++	int qp_type;
++};
++
++struct rdma_counter_mode {
++	enum rdma_nl_counter_mode mode;
++	enum rdma_nl_counter_mask mask;
++	struct auto_mode_param param;
++};
++
++struct rdma_port_counter {
++	struct rdma_counter_mode mode;
++	struct mutex lock;
++};
+ 
+ struct rdma_counter {
+ 	struct rdma_restrack_entry	res;
+@@ -15,4 +33,10 @@ struct rdma_counter {
+ 	uint32_t			id;
+ 	u8				port;
+ };
++
++void rdma_counter_init(struct ib_device *dev);
++void rdma_counter_cleanup(struct ib_device *dev);
++int rdma_counter_set_auto_mode(struct ib_device *dev, u8 port,
++			       bool on, enum rdma_nl_counter_mask mask);
++
+ #endif /* _RDMA_COUNTER_H_ */
+diff --git a/include/uapi/rdma/rdma_netlink.h b/include/uapi/rdma/rdma_netlink.h
+index 42a8bdc40a14..cd3cace46b27 100644
+--- a/include/uapi/rdma/rdma_netlink.h
++++ b/include/uapi/rdma/rdma_netlink.h
+@@ -484,4 +484,30 @@ enum rdma_nldev_attr {
+ 	 */
+ 	RDMA_NLDEV_ATTR_MAX
+ };
++
++/*
++ * Supported counter bind modes. All modes are mutual-exclusive.
++ */
++enum rdma_nl_counter_mode {
++	RDMA_COUNTER_MODE_NONE,
++
++	/*
++	 * A qp is bound with a counter automatically during initialization
++	 * based on the auto mode (e.g., qp type, ...)
++	 */
++	RDMA_COUNTER_MODE_AUTO,
++
++	/*
++	 * Always the end
++	 */
++	RDMA_COUNTER_MODE_MAX,
++};
++
++/*
++ * Supported criteria in counter auto mode.
++ * Currently only "qp type" is supported
++ */
++enum rdma_nl_counter_mask {
++	RDMA_COUNTER_MASK_QP_TYPE = 1,
++};
+ #endif /* _UAPI_RDMA_NETLINK_H */
 -- 
 2.20.1
