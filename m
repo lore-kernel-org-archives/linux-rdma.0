@@ -1,7 +1,7 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v14 12/17] drm/radeon, arm64: untag user pointers
-Date: Tue, 30 Apr 2019 15:25:08 +0200
-Message-ID: <9a50ef07d927cbccd9620894bda825e551168c3d.1556630205.git.andreyknvl@google.com>
+Subject: [PATCH v14 11/17] drm/amdgpu, arm64: untag user pointers
+Date: Tue, 30 Apr 2019 15:25:07 +0200
+Message-ID: <2e827b5c484be14044933049fec180cd6acb054b.1556630205.git.andreyknvl@google.com>
 References: <cover.1556630205.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -16,27 +16,44 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-radeon_ttm_tt_pin_userptr() uses provided user pointers for vma
+amdgpu_ttm_tt_get_user_pages() uses provided user pointers for vma
 lookups, which can only by done with untagged pointers. This patch
-untags user pointers when they are being set in
-radeon_ttm_tt_pin_userptr().
+untag user pointers when they are being set in
+amdgpu_ttm_tt_set_userptr().
 
-In amdgpu_gem_userptr_ioctl() an MMU notifier is set up with a (tagged)
-userspace pointer. The untagged address should be used so that MMU
-notifiers for the untagged address get correctly matched up with the right
-BO. This patch untags user pointers in radeon_gem_userptr_ioctl().
+In amdgpu_gem_userptr_ioctl() and amdgpu_amdkfd_gpuvm.c/init_user_pages()
+an MMU notifier is set up with a (tagged) userspace pointer. The untagged
+address should be used so that MMU notifiers for the untagged address get
+correctly matched up with the right BO. This patch untag user pointers in
+amdgpu_gem_userptr_ioctl() for the GEM case and in
+amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu() for the KFD case.
 
+Suggested-by: Kuehling, Felix <Felix.Kuehling@amd.com>
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/gpu/drm/radeon/radeon_gem.c | 2 ++
- drivers/gpu/drm/radeon/radeon_ttm.c | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c | 2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c          | 2 ++
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c          | 2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/radeon/radeon_gem.c b/drivers/gpu/drm/radeon/radeon_gem.c
-index 44617dec8183..90eb78fb5eb2 100644
---- a/drivers/gpu/drm/radeon/radeon_gem.c
-+++ b/drivers/gpu/drm/radeon/radeon_gem.c
-@@ -291,6 +291,8 @@ int radeon_gem_userptr_ioctl(struct drm_device *dev, void *data,
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
+index 1921dec3df7a..20cac44ed449 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gpuvm.c
+@@ -1121,7 +1121,7 @@ int amdgpu_amdkfd_gpuvm_alloc_memory_of_gpu(
+ 		alloc_flags = 0;
+ 		if (!offset || !*offset)
+ 			return -EINVAL;
+-		user_addr = *offset;
++		user_addr = untagged_addr(*offset);
+ 	} else if (flags & ALLOC_MEM_FLAGS_DOORBELL) {
+ 		domain = AMDGPU_GEM_DOMAIN_GTT;
+ 		alloc_domain = AMDGPU_GEM_DOMAIN_CPU;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+index d21dd2f369da..985cb82b2aa6 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+@@ -286,6 +286,8 @@ int amdgpu_gem_userptr_ioctl(struct drm_device *dev, void *data,
  	uint32_t handle;
  	int r;
  
@@ -45,18 +62,18 @@ index 44617dec8183..90eb78fb5eb2 100644
  	if (offset_in_page(args->addr | args->size))
  		return -EINVAL;
  
-diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
-index 9920a6fc11bf..dce722c494c1 100644
---- a/drivers/gpu/drm/radeon/radeon_ttm.c
-+++ b/drivers/gpu/drm/radeon/radeon_ttm.c
-@@ -742,7 +742,7 @@ int radeon_ttm_tt_set_userptr(struct ttm_tt *ttm, uint64_t addr,
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+index 73e71e61dc99..1d30e97ac2c4 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -1248,7 +1248,7 @@ int amdgpu_ttm_tt_set_userptr(struct ttm_tt *ttm, uint64_t addr,
  	if (gtt == NULL)
  		return -EINVAL;
  
 -	gtt->userptr = addr;
 +	gtt->userptr = untagged_addr(addr);
- 	gtt->usermm = current->mm;
  	gtt->userflags = flags;
- 	return 0;
+ 
+ 	if (gtt->usertask)
 -- 
 2.21.0.593.g511ec345e18-goog
