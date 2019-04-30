@@ -1,139 +1,72 @@
-From: Yuval Shaia <yuval.shaia@oracle.com>
-Subject: Re: [Qemu-devel] [RFC 0/3] VirtIO RDMA
-Date: Tue, 30 Apr 2019 20:16:37 +0300
-Message-ID: <20190430171635.GA2937@lap1>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411190215.2163572e.cohuck@redhat.com>
-	<20190415103546.GA6854@lap1>
-	<e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
-	<20190422060034.GA27901@mtr-leonro.mtl.com>
+From: "Kuehling, Felix" <Felix.Kuehling@amd.com>
+Subject: Re: [PATCH v14 12/17] drm/radeon, arm64: untag user pointers
+Date: Tue, 30 Apr 2019 17:57:12 +0000
+Message-ID: <bfe5e11e-6dc4-352f-57eb-d527f965a2ef@amd.com>
+References: <cover.1556630205.git.andreyknvl@google.com>
+ <9a50ef07d927cbccd9620894bda825e551168c3d.1556630205.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20190422060034.GA27901@mtr-leonro.mtl.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: mst@redhat.com, linux-rdma@vger.kernel.org, Cornelia Huck <cohuck@redhat.com>, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org, jgg@mellanox.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <9a50ef07d927cbccd9620894bda825e551168c3d.1556630205.git.andreyknvl@google.com>
+Content-Language: en-US
+Content-ID: <ABB2DFC9857E044B9516BE64C1265F1E@namprd12.prod.outlook.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Andrey Konovalov <andreyknvl@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-kselftest@vger.kernel.org" <linux-kselftest@vger.kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, "Koenig@google.com" <Koenig@google.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Chintan Pandya <cpandya@codeaurora.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, "Kuehling@google.com" <Kuehling@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Lee Smith <Lee.Smith@arm.com>, "Deucher@google.com" <Deucher@google.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yis
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 22, 2019 at 09:00:34AM +0300, Leon Romanovsky wrote:
-> On Fri, Apr 19, 2019 at 01:16:06PM +0200, Hannes Reinecke wrote:
-> > On 4/15/19 12:35 PM, Yuval Shaia wrote:
-> > > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
-> > > > On Thu, 11 Apr 2019 14:01:54 +0300
-> > > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> > > >
-> > > > > Data center backends use more and more RDMA or RoCE devices and more and
-> > > > > more software runs in virtualized environment.
-> > > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
-> > > > >
-> > > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
-> > > > > technology and also because the Virtio specification
-> > > > > allows Hardware Vendors to support Virtio protocol natively in order to
-> > > > > achieve bare metal performance.
-> > > > >
-> > > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
-> > > > > Virtio Specification and a look forward on possible implementation
-> > > > > techniques.
-> > > > >
-> > > > > Open issues/Todo list:
-> > > > > List is huge, this is only start point of the project.
-> > > > > Anyway, here is one example of item in the list:
-> > > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
-> > > > >    in order to support for example 32K QPs we will need 64K VirtQ. Not sure
-> > > > >    that this is reasonable so one option is to have one for all and
-> > > > >    multiplex the traffic on it. This is not good approach as by design it
-> > > > >    introducing an optional starvation. Another approach would be multi
-> > > > >    queues and round-robin (for example) between them.
-> > > > >
-> > Typically there will be a one-to-one mapping between QPs and CPUs (on the
-> > guest). So while one would need to be prepared to support quite some QPs,
-> > the expectation is that the actual number of QPs used will be rather low.
-> > In a similar vein, multiplexing QPs would be defeating the purpose, as the
-> > overall idea was to have _independent_ QPs to enhance parallelism.
-> >
-> > > > > Expectations from this posting:
-> > > > > In general, any comment is welcome, starting from hey, drop this as it is a
-> > > > > very bad idea, to yeah, go ahead, we really want it.
-> > > > > Idea here is that since it is not a minor effort i first want to know if
-> > > > > there is some sort interest in the community for such device.
-> > > >
-> > > > My first reaction is: Sounds sensible, but it would be good to have a
-> > > > spec for this :)
-> > > >
-> > > > You'll need a spec if you want this to go forward anyway, so at least a
-> > > > sketch would be good to answer questions such as how many virtqueues
-> > > > you use for which purpose, what is actually put on the virtqueues,
-> > > > whether there are negotiable features, and what the expectations for
-> > > > the device and the driver are. It also makes it easier to understand
-> > > > how this is supposed to work in practice.
-> > > >
-> > > > If folks agree that this sounds useful, the next step would be to
-> > > > reserve an id for the device type.
-> > >
-> > > Thanks for the tips, will sure do that, it is that first i wanted to make
-> > > sure there is a use case here.
-> > >
-> > > Waiting for any feedback from the community.
-> > >
-> > I really do like the ides; in fact, it saved me from coding a similar thing
-> > myself :-)
-> >
-> > However, I'm still curious about the overall intent of this driver. Where
-> > would the I/O be routed _to_ ?
-> > It's nice that we have a virtualized driver, but this driver is
-> > intended to do I/O (even if it doesn't _do_ any I/O ATM :-)
-> > And this I/O needs to be send to (and possibly received from)
-> > something.
-> >
-> > So what exactly is this something?
-> > An existing piece of HW on the host?
-> > If so, wouldn't it be more efficient to use vfio, either by using SR-IOV or
-> > by using virtio-mdev?
-> >
-> > Another guest?
-> > If so, how would we route the I/O from one guest to the other?
-> > Shared memory? Implementing a full-blown RDMA switch in qemu?
-> >
-> > Oh, and I would _love_ to have a discussion about this at KVM Forum.
-> > Maybe I'll manage to whip up guest-to-guest RDMA connection using ivshmem
-> > ... let's see.
-> 
-> Following success in previous years to transfer ideas into code,
-> we started to prepare RDMA miniconference in LPC 2019, which will
-> be co-located with Kernel Summit and networking track.
-> 
-> I'm confident that such broad audience of kernel developers
-> will be good fit for such discussion.
-
-Just posted a proposal for a talk at Linux Plumbers.
-
-> 
-> Previous years:
-> 2016: https://www.spinics.net/lists/linux-rdma/msg43074.html
-> 2017: https://lwn.net/Articles/734163/
-> 2018: It was so full in audience and intensive that I failed to
-> summarize it :(
-> 
-> Thanks
-> 
-> >
-> > Cheers,
-> >
-> > Hannes
-> > --
-> > Dr. Hannes Reinecke            Teamlead Storage & Networking
-> > hare@suse.de                              +49 911 74053 688
-> > SUSE LINUX GmbH, Maxfeldstr. 5, 90409 N??rnberg
-> > GF: Felix Imend??rffer, Mary Higgins, Sri Rasiah
-> > HRB 21284 (AG N??rnberg)
+T24gMjAxOS0wNC0zMCA5OjI1IGEubS4sIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6DQo+IFtDQVVU
+SU9OOiBFeHRlcm5hbCBFbWFpbF0NCj4NCj4gVGhpcyBwYXRjaCBpcyBhIHBhcnQgb2YgYSBzZXJp
+ZXMgdGhhdCBleHRlbmRzIGFybTY0IGtlcm5lbCBBQkkgdG8gYWxsb3cgdG8NCj4gcGFzcyB0YWdn
+ZWQgdXNlciBwb2ludGVycyAod2l0aCB0aGUgdG9wIGJ5dGUgc2V0IHRvIHNvbWV0aGluZyBlbHNl
+IG90aGVyDQo+IHRoYW4gMHgwMCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuDQo+DQo+IHJhZGVvbl90
+dG1fdHRfcGluX3VzZXJwdHIoKSB1c2VzIHByb3ZpZGVkIHVzZXIgcG9pbnRlcnMgZm9yIHZtYQ0K
+PiBsb29rdXBzLCB3aGljaCBjYW4gb25seSBieSBkb25lIHdpdGggdW50YWdnZWQgcG9pbnRlcnMu
+IFRoaXMgcGF0Y2gNCj4gdW50YWdzIHVzZXIgcG9pbnRlcnMgd2hlbiB0aGV5IGFyZSBiZWluZyBz
+ZXQgaW4NCj4gcmFkZW9uX3R0bV90dF9waW5fdXNlcnB0cigpLg0KPg0KPiBJbiBhbWRncHVfZ2Vt
+X3VzZXJwdHJfaW9jdGwoKSBhbiBNTVUgbm90aWZpZXIgaXMgc2V0IHVwIHdpdGggYSAodGFnZ2Vk
+KQ0KPiB1c2Vyc3BhY2UgcG9pbnRlci4gVGhlIHVudGFnZ2VkIGFkZHJlc3Mgc2hvdWxkIGJlIHVz
+ZWQgc28gdGhhdCBNTVUNCj4gbm90aWZpZXJzIGZvciB0aGUgdW50YWdnZWQgYWRkcmVzcyBnZXQg
+Y29ycmVjdGx5IG1hdGNoZWQgdXAgd2l0aCB0aGUgcmlnaHQNCj4gQk8uIFRoaXMgcGF0Y2ggdW50
+YWdzIHVzZXIgcG9pbnRlcnMgaW4gcmFkZW9uX2dlbV91c2VycHRyX2lvY3RsKCkuDQo+DQo+IFNp
+Z25lZC1vZmYtYnk6IEFuZHJleSBLb25vdmFsb3YgPGFuZHJleWtudmxAZ29vZ2xlLmNvbT4NCj4g
+LS0tDQo+ICAgZHJpdmVycy9ncHUvZHJtL3JhZGVvbi9yYWRlb25fZ2VtLmMgfCAyICsrDQo+ICAg
+ZHJpdmVycy9ncHUvZHJtL3JhZGVvbi9yYWRlb25fdHRtLmMgfCAyICstDQo+ICAgMiBmaWxlcyBj
+aGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4NCj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvZ3B1L2RybS9yYWRlb24vcmFkZW9uX2dlbS5jIGIvZHJpdmVycy9ncHUvZHJtL3Jh
+ZGVvbi9yYWRlb25fZ2VtLmMNCj4gaW5kZXggNDQ2MTdkZWM4MTgzLi45MGViNzhmYjVlYjIgMTAw
+NjQ0DQo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9yYWRlb24vcmFkZW9uX2dlbS5jDQo+ICsrKyBi
+L2RyaXZlcnMvZ3B1L2RybS9yYWRlb24vcmFkZW9uX2dlbS5jDQo+IEBAIC0yOTEsNiArMjkxLDgg
+QEAgaW50IHJhZGVvbl9nZW1fdXNlcnB0cl9pb2N0bChzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LCB2
+b2lkICpkYXRhLA0KPiAgICAgICAgICB1aW50MzJfdCBoYW5kbGU7DQo+ICAgICAgICAgIGludCBy
+Ow0KPg0KPiArICAgICAgIGFyZ3MtPmFkZHIgPSB1bnRhZ2dlZF9hZGRyKGFyZ3MtPmFkZHIpOw0K
+PiArDQo+ICAgICAgICAgIGlmIChvZmZzZXRfaW5fcGFnZShhcmdzLT5hZGRyIHwgYXJncy0+c2l6
+ZSkpDQo+ICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+DQo+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL2dwdS9kcm0vcmFkZW9uL3JhZGVvbl90dG0uYyBiL2RyaXZlcnMvZ3B1L2RybS9y
+YWRlb24vcmFkZW9uX3R0bS5jDQo+IGluZGV4IDk5MjBhNmZjMTFiZi4uZGNlNzIyYzQ5NGMxIDEw
+MDY0NA0KPiAtLS0gYS9kcml2ZXJzL2dwdS9kcm0vcmFkZW9uL3JhZGVvbl90dG0uYw0KPiArKysg
+Yi9kcml2ZXJzL2dwdS9kcm0vcmFkZW9uL3JhZGVvbl90dG0uYw0KPiBAQCAtNzQyLDcgKzc0Miw3
+IEBAIGludCByYWRlb25fdHRtX3R0X3NldF91c2VycHRyKHN0cnVjdCB0dG1fdHQgKnR0bSwgdWlu
+dDY0X3QgYWRkciwNCj4gICAgICAgICAgaWYgKGd0dCA9PSBOVUxMKQ0KPiAgICAgICAgICAgICAg
+ICAgIHJldHVybiAtRUlOVkFMOw0KPg0KPiAtICAgICAgIGd0dC0+dXNlcnB0ciA9IGFkZHI7DQo+
+ICsgICAgICAgZ3R0LT51c2VycHRyID0gdW50YWdnZWRfYWRkcihhZGRyKTsNCg0KRG9pbmcgdGhp
+cyBoZXJlIHNlZW1zIHVubmVjZXNzYXJ5LCBiZWNhdXNlIHlvdSBhbHJlYWR5IHVudGFnZ2VkIHRo
+ZSANCmFkZHJlc3MgaW4gdGhlIG9ubHkgY2FsbGVyIG9mIHRoaXMgZnVuY3Rpb24gaW4gcmFkZW9u
+X2dlbV91c2VycHRyX2lvY3RsLiANClRoZSBjaGFuZ2UgdGhlcmUgd2lsbCBhZmZlY3QgYm90aCB0
+aGUgdXNlcnB0ciBhbmQgTU1VIG5vdGlmaWVyIHNldHVwIGFuZCANCm1ha2VzIHN1cmUgdGhhdCBi
+b3RoIGFyZSBpbiBzeW5jLCB1c2luZyB0aGUgc2FtZSB1bnRhZ2dlZCBhZGRyZXNzLg0KDQpSZWdh
+cmRzLA0KIMKgIEZlbGl4DQoNCg0KPiAgICAgICAgICBndHQtPnVzZXJtbSA9IGN1cnJlbnQtPm1t
+Ow0KPiAgICAgICAgICBndHQtPnVzZXJmbGFncyA9IGZsYWdzOw0KPiAgICAgICAgICByZXR1cm4g
+MDsNCj4gLS0NCj4gMi4yMS4wLjU5My5nNTExZWMzNDVlMTgtZ29vZw0KPg0KX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlz
+dApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0
+b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
