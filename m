@@ -1,34 +1,73 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH V2 mlx5-next 00/11] Mellanox, mlx5-next updates 2019-04-25
-Date: Mon, 29 Apr 2019 23:56:50 +0000
-Message-ID: <d9de66c0da44c294809b32a8420d2a16b02c327e.camel@mellanox.com>
-References: <20190429181326.6262-1-saeedm@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190429181326.6262-1-saeedm@mellanox.com>
-Content-Language: en-US
-Content-ID: <FDD646D0202A3B4FA142F3AAF12A4D6E@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: Jason Gunthorpe <jgg@mellanox.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+From: Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH V2] rds: ib: force endiannes annotation
+Date: Tue, 30 Apr 2019 05:12:57 +0200
+Message-ID: <1556593977-15828-1-git-send-email-hofrat@osadl.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org, Nicholas Mc Guire <hofrat@osadl.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCAyMDE5LTA0LTI5IGF0IDE4OjEzICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
-Cj4gSGksDQo+IA0KPiBUaGlzIHNlcmllcyBwcm92aWRlcyBtaXNjIGxvdyBsZXZlbCB1cGRhdGVz
-IHRvIG1seDUgY29yZSBkcml2ZXIsIHRvDQo+IGJlDQo+IHNoYXJlZCBiZXR3ZWVuIHJkbWEgYW5k
-IG5ldC1uZXh0IHRyZWVzLg0KPiANCj4gMSkgRnJvbSBBeWE6IEVuYWJsZSBnZW5lcmFsIGV2ZW50
-cyBvbiBhbGwgcGh5c2ljYWwgbGluayB0eXBlcyBhbmQgDQo+IHJlc3RyaWN0IGdlbmVyYWwgZXZl
-bnQgaGFuZGxpbmcgb2Ygc3VidHlwZSBERUxBWV9EUk9QX1RJTUVPVVQgaW4gbWx4NQ0KPiByZG1h
-DQo+IGRyaXZlciB0byBldGhlcm5ldCBsaW5rcyBvbmx5IGFzIGl0IHdhcyBpbnRlbmRlZC4NCj4g
-DQo+IDIpIEZyb20gRWxpOiBJbnRyb2R1Y2UgbG93IGxldmVsIGJpdHMgZm9yIHByaW8gdGFnIG1v
-ZGUNCj4gDQo+IDMpIEZyb20gTWFvcjogTG93IGxldmVsIHN0ZWVyaW5nIHVwZGF0ZXMgdG8gc3Vw
-cG9ydCBSRE1BIFJYIGZsb3cNCj4gc3RlZXJpbmcgYW5kIGVuYWJsZXMgUm9DRSBsb29wYmFjayB0
-cmFmZmljIHdoZW4gc3dpdGNoZGV2IGlzIGVuYWJsZWQuDQo+IA0KPiA0KSBGcm9tIFZ1IGFuZCBQ
-YXJhdjogVHdvIHNtYWxsIG1seDUgY29yZSBjbGVhbnVwcw0KPiANCj4gNSkgRnJvbSBZZXZnZW55
-IGFkZCBIVyBkZWZpbml0aW9ucyBvZiBnZW5ldmUgb2ZmbG9hZHMNCj4gDQo+IEluIGNhc2Ugb2Yg
-bm8gb2JqZWN0aW9ucyB0aGlzIHNlcmllcyB3aWxsIGJlIGFwcGxpZWQgdG8gbWx4NS1uZXh0DQo+
-IGJyYW5jaC4NCj4gDQo+IHYyOg0KPiAtICBBZGRyZXNzIGNvbW1lbnRzIGZyb20gTGVvbi4NCj4g
-LSAgU3RhdGljIGNoZWNrZXIgZml4ZXMuDQo+IA0KPiBUaGFua3MsDQo+IFNhZWVkLg0KPiANCj4g
-DQoNCkFwcGxpZWQgdG8gbWx4NS1uZXh0LA0KDQpUaGFua3MgIQ0K
+While the endiannes is being handled correctly as indicated by the comment
+above the offending line - sparse was unhappy with the missing annotation
+as be64_to_cpu() expects a __be64 argument. To mitigate this annotation
+all involved variables are changed to a consistent __le64 and the
+ conversion to uint64_t delayed to the call to rds_cong_map_updated().
+
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
+
+Problem located by an experimental coccinelle script to locate
+patters that make sparse unhappy (false positives):
+net/rds/ib_recv.c:827:23: warning: cast to restricted __le64
+
+V2: Edward Cree <ecree@solarflare.com> rejected the need for using __force
+    here - instead solve the sparse issue by updating all of the involved
+    variables - which results in an identical binary as well without using
+    the __force "solution" to the sparse warning. Thanks !
+
+Patch was compile-tested with: x86_64_defconfig + INFINIBAND=m, RDS_RDMA=m
+
+Patch was verified not to change the binary by diffing the
+generated object code before and after applying the patch.
+
+Patch is against 5.1-rc6 (localversion-next is 20190429)
+
+ net/rds/ib_recv.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index 7055985..8946c89 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -772,7 +772,7 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
+ 	unsigned long frag_off;
+ 	unsigned long to_copy;
+ 	unsigned long copied;
+-	uint64_t uncongested = 0;
++	__le64 uncongested = 0;
+ 	void *addr;
+ 
+ 	/* catch completely corrupt packets */
+@@ -789,7 +789,7 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
+ 	copied = 0;
+ 
+ 	while (copied < RDS_CONG_MAP_BYTES) {
+-		uint64_t *src, *dst;
++		__le64 *src, *dst;
+ 		unsigned int k;
+ 
+ 		to_copy = min(RDS_FRAG_SIZE - frag_off, PAGE_SIZE - map_off);
+@@ -824,9 +824,7 @@ static void rds_ib_cong_recv(struct rds_connection *conn,
+ 	}
+ 
+ 	/* the congestion map is in little endian order */
+-	uncongested = le64_to_cpu(uncongested);
+-
+-	rds_cong_map_updated(map, uncongested);
++	rds_cong_map_updated(map, le64_to_cpu(uncongested));
+ }
+ 
+ static void rds_ib_process_recv(struct rds_connection *conn,
+-- 
+2.1.4
