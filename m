@@ -1,26 +1,27 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: Re: [PATCH mlx5-next] net/mlx5: Fix broken hca cap offset
-Date: Wed, 1 May 2019 20:55:49 +0000
-Message-ID: <0d704ab0b2bde282cd845d061b44ede87876be6f.camel@mellanox.com>
-References: <20190501032037.30846-1-saeedm@mellanox.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH V2] rds: ib: force endiannes annotation
+Date: Wed, 01 May 2019 17:15:56 -0400 (EDT)
+Message-ID: <20190501.171556.558136305355226946.davem@davemloft.net>
+References: <1556593977-15828-1-git-send-email-hofrat@osadl.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190501032037.30846-1-saeedm@mellanox.com>
-Content-Language: en-US
-Content-ID: <4741BB41B9B3604DBE324554C7462CCD@eurprd05.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leonro@mellanox.com>
-Cc: "cai@lca.pw" <cai@lca.pw>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Yevgeny Kliteynik <kliteyn@mellanox.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1556593977-15828-1-git-send-email-hofrat@osadl.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: hofrat@osadl.org
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCAyMDE5LTA1LTAxIGF0IDAzOjIxICswMDAwLCBTYWVlZCBNYWhhbWVlZCB3cm90ZToN
-Cj4gVGhlIGNpdGVkIGNvbW1pdCBicm9rZSB0aGUgb2Zmc2V0cyBvZiBoY2EgY2FwIHN0cnVjdCwg
-Zml4IGl0Lg0KPiBXaGlsZSBhdCBpdCwgY2xlYW51cCBhIHdoaXRlIHNwYWNlIGludHJvZHVjZWQg
-YnkgdGhlIHNhbWUgY29tbWl0Lg0KPiANCj4gRml4ZXM6IGIxNjllNjRhMjQ0NCAoIm5ldC9tbHg1
-OiBHZW5ldmUsIEFkZCBmbG93IHRhYmxlIGNhcGFiaWxpdGllcw0KPiBmb3IgR2VuZXZlIGRlY2Fw
-IHdpdGggVExWIG9wdGlvbnMiKQ0KPiBSZXBvcnRlZC1ieTogUWlhbiBDYWkgPGNhaUBsY2EucHc+
-DQo+IENjOiBZZXZnZW55IEtsaXRleW5payA8a2xpdGV5bkBtZWxsYW5veC5jb20+DQo+IFNpZ25l
-ZC1vZmYtYnk6IFNhZWVkIE1haGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KPiAtLS0NCg0K
-DQpBcHBsaWVkIHRvIG1seDUtbmV4dA0KDQpUaGFua3MhDQoNCg==
+From: Nicholas Mc Guire <hofrat@osadl.org>
+Date: Tue, 30 Apr 2019 05:12:57 +0200
+
+> While the endiannes is being handled correctly as indicated by the comment
+> above the offending line - sparse was unhappy with the missing annotation
+> as be64_to_cpu() expects a __be64 argument. To mitigate this annotation
+> all involved variables are changed to a consistent __le64 and the
+>  conversion to uint64_t delayed to the call to rds_cong_map_updated().
+> 
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+
+Applied.
