@@ -1,127 +1,81 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-for-next 0/9] drivers/infiniband: Introduce rdma_dim
-Date: Wed, 1 May 2019 13:04:09 -0300
-Message-ID: <20190501160409.GA15547@ziepe.ca>
-References: <1556721879-35987-1-git-send-email-talgi@mellanox.com>
+From: Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v13 10/20] kernel, arm64: untag user pointers in
+ prctl_set_mm*
+Date: Wed, 1 May 2019 15:43:28 +0100
+Message-ID: <c00bde00-3026-7c01-df0e-b374582b5825@arm.com>
+References: <cover.1553093420.git.andreyknvl@google.com>
+ <76f96eb9162b3a7fa5949d71af38bf8fdf6924c4.1553093421.git.andreyknvl@google.com>
+ <20190322154136.GP13384@arrakis.emea.arm.com>
+ <CAAeHK+yHp27eT+wTE3Uy4DkN8XN3ZjHATE+=HgjgRjrHjiXs3Q@mail.gmail.com>
+ <20190426145024.GC54863@arrakis.emea.arm.com>
+ <CAAeHK+ww=6-fTnHN_33EEiKdMqXq5bNU4oW9oOMcfz1N_+Kisw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1556721879-35987-1-git-send-email-talgi@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Tal Gilboa <talgi@mellanox.com>
-Cc: linux-rdma@vger.kernel.org, linux-nvme@lists.infradead.org, linux-block@vger.kernel.org, Yishai Hadas <yishaih@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Tariq Toukan <tariqt@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Idan Burstein <idanb@mellanox.com>, Yamin Friedman <yaminf@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <CAAeHK+ww=6-fTnHN_33EEiKdMqXq5bNU4oW9oOMcfz1N_+Kisw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Kate Stewart <kstewart-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Alexei Starovoitov <ast-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Eric Dumazet <edumazet-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Shuah Khan <shuah-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-arch <linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Ramana Radhakrishnan <Ramana.Radhakr>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 01, 2019 at 05:44:30PM +0300, Tal Gilboa wrote:
-> net_dim.h lib exposes an implementation of the DIM algorithm for dynamically-tuned interrupt
-> moderation for networking interfaces.
-> 
-> We want a similar functionality for RDMA. The main motivation is to benefit from maximized
-> completion rate and reduced interrupt overhead that DIM may provide.
-> 
-> Current DIM implementation prioritizes reducing interrupt overhead over latency. Also, in
-> order to reduce DIM's own overhead, the algorithm might take take some time to identify it
-> needs to change profiles. For these reasons we got to the understanding that a slightly
-> modified algorithm is needed. Early tests with current implementation show it doesn't react
-> fast and sharply enough in order to satisfy the RDMA CQ needs.
-> 
-> I would like to suggest an implementation for RDMA DIM. The idea is to expose the new
-> functionality without the risk of breaking Net DIM behavior for netdev. Below are main
-> similarities and differences between the two implementations and general guidelines for the
-> suggested solution.
-> 
-> Performance improvement (ConnectX-5 100GbE, x86) running FIO benchmark over
-> NVMf between two equal end-hosts with 56 cores across a Mellanox switch
-> using null_blk device:
-> 
-> READS without DIM:
-> blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
-> 512B     | 3.8GiB/s | 7.7M | 1401  usec               | 2442  usec
-> 4k       | 7.0GiB/s | 1.8M | 4817  usec               | 6587  usec
-> 64k      | 10.7GiB/s| 175k | 9896  usec               | 10028 usec
-> 
-> IO WRITES without DIM:
-> blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
-> 512B     | 3.6GiB/s | 7.5M | 1434  usec               | 2474  usec
-> 4k       | 6.3GiB/s | 1.6M | 938   usec               | 1221  usec
-> 64k      | 10.7GiB/s| 175k | 8979  usec               | 12780 usec
-> 
-> IO READS with DIM:
-> blk size | BW       | IOPS | 99th percentile latency  | 99.99th latency
-> 512B     | 4GiB/s   | 8.2M | 816    usec              | 889   usec
-> 4k       | 10.1GiB/s| 2.65M| 3359   usec              | 5080  usec
-> 64k      | 10.7GiB/s| 175k | 9896   usec              | 10028 usec
-> 
-> IO WRITES with DIM:
-> blk size | BW       | IOPS  | 99th percentile latency | 99.99th latency
-> 512B     | 3.9GiB/s | 8.1M  | 799   usec              | 922   usec
-> 4k       | 9.6GiB/s | 2.5M  | 717   usec              | 1004  usec
-> 64k      | 10.7GiB/s| 176k  | 8586  usec              | 12256 usec
-> 
-> Common logic, main DIM procedure:
-> - Calculate current stats from a given sample
-> - Compare current stats vs. previous iteration stats
-> - Make a decision -> choose a new profile
-> 
-> Differences:
-> - Different parameters for moving between profiles
-> - Different moderation values and number of profiles
-> - Different sampled data
-> 
-> Suggested solution:
-> - Common logic will be declared in include/linux/dim.h and implemented in lib/dim/dim.c
-> - Net DIM (existing) logic will be declared in include/linux/net_dim.h and implemented in
->   lib/dim/net_dim.c, which will use the common logic from dim.h
-> - RDMA DIM logic will be declared in /include/linux/rdma_dim.h and implemented in
->   lib/dim/rdma_dim.c.
->   This new implementation will expose modified versions of profiles, dim_step() and dim_decision()
-> 
-> Pros for this solution are:
-> - Zero impact on existing net_dim implementation and usage
-> - Relatively more code reuse (compared to two separate solutions)
-> - Readiness for future implementations
->  
-> Tal Gilboa (6):
->   linux/dim: Move logic to dim.h
->   linux/dim: Remove "net" prefix from internal DIM members
->   linux/dim: Rename externally exposed macros
->   linux/dim: Rename net_dim_sample() to net_dim_create_sample()
->   linux/dim: Rename externally used net_dim members
->   linux/dim: Move implementation to .c files
-> 
-> Yamin Friedman (3):
->   linux/dim: Add completions count to dim_sample
->   linux/dim: Implement rdma_dim
->   drivers/infiniband: Use rdma_dim in infiniband driver
-> 
->  MAINTAINERS                                        |   3 +
->  drivers/infiniband/core/cq.c                       |  79 ++++-
->  drivers/infiniband/hw/mlx4/qp.c                    |   2 +-
->  drivers/infiniband/hw/mlx5/qp.c                    |   2 +-
->  drivers/net/ethernet/broadcom/bcmsysport.c         |  20 +-
->  drivers/net/ethernet/broadcom/bcmsysport.h         |   2 +-
->  drivers/net/ethernet/broadcom/bnxt/bnxt.c          |  13 +-
->  drivers/net/ethernet/broadcom/bnxt/bnxt.h          |   2 +-
->  drivers/net/ethernet/broadcom/bnxt/bnxt_debugfs.c  |   4 +-
->  drivers/net/ethernet/broadcom/bnxt/bnxt_dim.c      |   7 +-
->  drivers/net/ethernet/broadcom/genet/bcmgenet.c     |  18 +-
->  drivers/net/ethernet/broadcom/genet/bcmgenet.h     |   2 +-
->  drivers/net/ethernet/mellanox/mlx5/core/en.h       |   8 +-
->  drivers/net/ethernet/mellanox/mlx5/core/en_dim.c   |  12 +-
->  .../net/ethernet/mellanox/mlx5/core/en_ethtool.c   |   4 +-
->  drivers/net/ethernet/mellanox/mlx5/core/en_main.c  |  22 +-
->  drivers/net/ethernet/mellanox/mlx5/core/en_txrx.c  |  12 +-
-
-A lot of this is touching netdev, why wasn't netdev cc'd?
-
-Who is supposed to merge this? 
-
-I think you need to take two steps and have netdev merge the above
-part and then send the single patch to RDMA for the last part, I don't
-really want to take so much netdev code here.
-
-The maintainers file should also have some indication which tree
-patches for lib/dim/* this should go through..
-
-Jason
+SGkgQW5kcmV5LAoKc29ycnkgZm9yIHRoZSBsYXRlIHJlcGx5LCBJIGNhbWUgYmFjayBmcm9tIGhv
+bGlkYXkgYW5kIHRyeSB0byBjYXRjaCB1cCB3aXRoIHRoZQplbWFpbHMuCgpPbiA0LzI5LzE5IDM6
+MjMgUE0sIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6Cj4gT24gRnJpLCBBcHIgMjYsIDIwMTkgYXQg
+NDo1MCBQTSBDYXRhbGluIE1hcmluYXMgPGNhdGFsaW4ubWFyaW5hc0Bhcm0uY29tPiB3cm90ZToK
+Pj4KPj4gT24gTW9uLCBBcHIgMDEsIDIwMTkgYXQgMDY6NDQ6MzRQTSArMDIwMCwgQW5kcmV5IEtv
+bm92YWxvdiB3cm90ZToKPj4+IE9uIEZyaSwgTWFyIDIyLCAyMDE5IGF0IDQ6NDEgUE0gQ2F0YWxp
+biBNYXJpbmFzIDxjYXRhbGluLm1hcmluYXNAYXJtLmNvbT4gd3JvdGU6Cj4+Pj4gT24gV2VkLCBN
+YXIgMjAsIDIwMTkgYXQgMDM6NTE6MjRQTSArMDEwMCwgQW5kcmV5IEtvbm92YWxvdiB3cm90ZToK
+Pj4+Pj4gQEAgLTIxMjAsMTMgKzIxMzUsMTQgQEAgc3RhdGljIGludCBwcmN0bF9zZXRfbW0oaW50
+IG9wdCwgdW5zaWduZWQgbG9uZyBhZGRyLAo+Pj4+PiAgICAgICBpZiAob3B0ID09IFBSX1NFVF9N
+TV9BVVhWKQo+Pj4+PiAgICAgICAgICAgICAgIHJldHVybiBwcmN0bF9zZXRfYXV4dihtbSwgYWRk
+ciwgYXJnNCk7Cj4+Pj4+Cj4+Pj4+IC0gICAgIGlmIChhZGRyID49IFRBU0tfU0laRSB8fCBhZGRy
+IDwgbW1hcF9taW5fYWRkcikKPj4+Pj4gKyAgICAgaWYgKHVudGFnZ2VkX2FkZHIoYWRkcikgPj0g
+VEFTS19TSVpFIHx8Cj4+Pj4+ICsgICAgICAgICAgICAgICAgICAgICB1bnRhZ2dlZF9hZGRyKGFk
+ZHIpIDwgbW1hcF9taW5fYWRkcikKPj4+Pj4gICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsK
+Pj4+Pj4KPj4+Pj4gICAgICAgZXJyb3IgPSAtRUlOVkFMOwo+Pj4+Pgo+Pj4+PiAgICAgICBkb3du
+X3dyaXRlKCZtbS0+bW1hcF9zZW0pOwo+Pj4+PiAtICAgICB2bWEgPSBmaW5kX3ZtYShtbSwgYWRk
+cik7Cj4+Pj4+ICsgICAgIHZtYSA9IGZpbmRfdm1hKG1tLCB1bnRhZ2dlZF9hZGRyKGFkZHIpKTsK
+Pj4+Pj4KPj4+Pj4gICAgICAgcHJjdGxfbWFwLnN0YXJ0X2NvZGUgICAgPSBtbS0+c3RhcnRfY29k
+ZTsKPj4+Pj4gICAgICAgcHJjdGxfbWFwLmVuZF9jb2RlICAgICAgPSBtbS0+ZW5kX2NvZGU7Cj4+
+Pj4KPj4+PiBEb2VzIHRoaXMgbWVhbiB0aGF0IHdlIGFyZSBsZWZ0IHdpdGggdGFnZ2VkIGFkZHJl
+c3NlcyBmb3IgdGhlCj4+Pj4gbW0tPnN0YXJ0X2NvZGUgZXRjLiB2YWx1ZXM/IEkgcmVhbGx5IGRv
+bid0IHRoaW5rIHdlIHNob3VsZCBhbGxvdyB0aGlzLAo+Pj4+IEknbSBub3Qgc3VyZSB3aGF0IHRo
+ZSBpbXBsaWNhdGlvbnMgYXJlIGluIG90aGVyIHBhcnRzIG9mIHRoZSBrZXJuZWwuCj4+Pj4KPj4+
+PiBBcmd1YWJseSwgdGhlc2UgYXJlIG5vdCBldmVuIHBvaW50ZXIgdmFsdWVzIGJ1dCBzb21lIGFk
+ZHJlc3MgcmFuZ2VzLiBJCj4+Pj4ga25vdyB3ZSBkZWNpZGVkIHRvIHJlbGF4IHRoaXMgbm90aW9u
+IGZvciBtbWFwL21wcm90ZWN0L21hZHZpc2UoKSBzaW5jZQo+Pj4+IHRoZSB1c2VyIGZ1bmN0aW9u
+IHByb3RvdHlwZXMgdGFrZSBwb2ludGVyIGFzIGFyZ3VtZW50cyBidXQgaXQgZmVlbHMgbGlrZQo+
+Pj4+IHdlIGFyZSBvdmVyZG9pbmcgaXQgaGVyZSAoc3RydWN0IHByY3RsX21tX21hcCBkb2Vzbid0
+IGV2ZW4gaGF2ZQo+Pj4+IHBvaW50ZXJzKS4KPj4+Pgo+Pj4+IFdoYXQgaXMgdGhlIHVzZS1jYXNl
+IGZvciBhbGxvd2luZyB0YWdnZWQgYWRkcmVzc2VzIGhlcmU/IENhbiB1c2VyIHNwYWNlCj4+Pj4g
+aGFuZGxlIHVudGFnZ2luZz8KPj4+Cj4+PiBJIGRvbid0IGtub3cgYW55IHVzZSBjYXNlcyBmb3Ig
+dGhpcy4gSSBkaWQgaXQgYmVjYXVzZSBpdCBzZWVtcyB0byBiZQo+Pj4gY292ZXJlZCBieSB0aGUg
+cmVsYXhlZCBBQkkuIEknbSBub3QgZW50aXJlbHkgc3VyZSB3aGF0IHRvIGRvIGhlcmUsCj4+PiBz
+aG91bGQgSSBqdXN0IGRyb3AgdGhpcyBwYXRjaD8KPj4KPj4gSWYgd2UgYWxsb3cgdGFnZ2VkIGFk
+ZHJlc3NlcyB0byBiZSBwYXNzZWQgaGVyZSwgd2UnZCBoYXZlIHRvIHVudGFnIHRoZW0KPj4gYmVm
+b3JlIHRoZXkgZW5kIHVwIGluIHRoZSBtbS0+c3RhcnRfY29kZSBldGMuIG1lbWJlcnMuCj4+Cj4+
+IEkga25vdyB3ZSBhcmUgdHJ5aW5nIHRvIHJlbGF4IHRoZSBBQkkgaGVyZSB3LnIudC4gYWRkcmVz
+cyByYW5nZXMgYnV0Cj4+IG1vc3RseSBiZWNhdXNlIHdlIGNvdWxkbid0IGZpZ3VyZSBvdXQgYSB3
+YXkgdG8gZG9jdW1lbnQgdW5hbWJpZ3VvdXNseQo+PiB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIGEg
+dXNlciBwb2ludGVyIHRoYXQgbWF5IGJlIGRlcmVmZXJlbmNlZCBieSB0aGUKPj4ga2VybmVsICh0
+YWdzIGFsbG93ZWQpIGFuZCBhbiBhZGRyZXNzIHR5cGljYWxseSB1c2VkIGZvciBtYW5hZ2luZyB0
+aGUKPj4gYWRkcmVzcyBzcGFjZSBsYXlvdXQuIFN1Z2dlc3Rpb25zIHdlbGNvbWVkLgo+Pgo+PiBJ
+J2Qgc2F5IGp1c3QgZHJvcCB0aGlzIHBhdGNoIGFuZCBjYXB0dXJlIGl0IGluIHRoZSBBQkkgZG9j
+dW1lbnQuCj4gCj4gT0ssIHdpbGwgZG8gaW4gdjE0Lgo+IAo+IFZpbmNlbnpvLCBjb3VsZCB5b3Ug
+YWRkIGEgbm90ZSBhYm91dCB0aGlzIGludG8gdG91ciBwYXRjaHNldD8KPgoKT2ssIEkgd2lsbCBh
+ZGQgYSBub3RlIHRoYXQgY292ZXJzIHRoaXMgY2FzZSBpbiB2MyBvZiBteSBkb2N1bWVudC4KCj4+
+Cj4+IC0tCj4+IENhdGFsaW4KCi0tIApSZWdhcmRzLApWaW5jZW56bwpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQt
+Z2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
