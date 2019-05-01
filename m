@@ -1,36 +1,38 @@
-From: Saeed Mahameed <saeedm@mellanox.com>
-Subject: [PATCH mlx5-next] net/mlx5: Fix broken hca cap offset
-Date: Wed, 1 May 2019 03:21:05 +0000
-Message-ID: <20190501032037.30846-1-saeedm@mellanox.com>
+From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
+Subject: Re: mlx5_core failed to load with 5.1.0-rc7-next-20190430+
+Date: Tue, 30 Apr 2019 20:26:22 -0700
+Message-ID: <CALzJLG-5ZXeOrOa3rsVEF0nHrfkxJ=65nEH2H7Sfa9pYyDpmRg@mail.gmail.com>
+References: <bab2ed8b-70dc-4a00-6c68-06a2df6ccb62@lca.pw> <CALzJLG-TgHP8tgv_1eqYmWjpO4nRD3=7QRdyGXGp1x_qQdKErg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Qian Cai <cai@lca.pw>, Yevgeny Kliteynik <kliteyn@mellanox.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CALzJLG-TgHP8tgv_1eqYmWjpO4nRD3=7QRdyGXGp1x_qQdKErg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Qian Cai <cai@lca.pw>
+Cc: kliteyn@mellanox.com, ozsh@mellanox.com, Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leon@kernel.org>, Linux Netdev List <netdev@vger.kernel.org>, RDMA mailing list <linux-rdma@vger.kernel.org>, linux kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-VGhlIGNpdGVkIGNvbW1pdCBicm9rZSB0aGUgb2Zmc2V0cyBvZiBoY2EgY2FwIHN0cnVjdCwgZml4
-IGl0Lg0KV2hpbGUgYXQgaXQsIGNsZWFudXAgYSB3aGl0ZSBzcGFjZSBpbnRyb2R1Y2VkIGJ5IHRo
-ZSBzYW1lIGNvbW1pdC4NCg0KRml4ZXM6IGIxNjllNjRhMjQ0NCAoIm5ldC9tbHg1OiBHZW5ldmUs
-IEFkZCBmbG93IHRhYmxlIGNhcGFiaWxpdGllcyBmb3IgR2VuZXZlIGRlY2FwIHdpdGggVExWIG9w
-dGlvbnMiKQ0KUmVwb3J0ZWQtYnk6IFFpYW4gQ2FpIDxjYWlAbGNhLnB3Pg0KQ2M6IFlldmdlbnkg
-S2xpdGV5bmlrIDxrbGl0ZXluQG1lbGxhbm94LmNvbT4NClNpZ25lZC1vZmYtYnk6IFNhZWVkIE1h
-aGFtZWVkIDxzYWVlZG1AbWVsbGFub3guY29tPg0KLS0tDQogaW5jbHVkZS9saW51eC9tbHg1L21s
-eDVfaWZjLmggfCA0ICsrLS0NCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRl
-bGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgg
-Yi9pbmNsdWRlL2xpbnV4L21seDUvbWx4NV9pZmMuaA0KaW5kZXggNmE3ZmMxOGE5ZmUzLi42YjJl
-NmI3MTBhYzAgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L21seDUvbWx4NV9pZmMuaA0KKysr
-IGIvaW5jbHVkZS9saW51eC9tbHg1L21seDVfaWZjLmgNCkBAIC0xMjY1LDcgKzEyNjUsNyBAQCBz
-dHJ1Y3QgbWx4NV9pZmNfY21kX2hjYV9jYXBfYml0cyB7DQogCXU4ICAgICAgICAgbWF4X2dlbmV2
-ZV90bHZfb3B0aW9uX2RhdGFfbGVuWzB4NV07DQogCXU4ICAgICAgICAgcmVzZXJ2ZWRfYXRfNTcw
-WzB4MTBdOw0KIA0KLQl1OCAgICAgICAgIHJlc2VydmVkX2F0XzU4MFsweDFjXTsNCisJdTggICAg
-ICAgICByZXNlcnZlZF9hdF81ODBbMHgzY107DQogCXU4ICAgICAgICAgbWluaV9jcWVfcmVzcF9z
-dHJpZGVfaW5kZXhbMHgxXTsNCiAJdTggICAgICAgICBjcWVfMTI4X2Fsd2F5c1sweDFdOw0KIAl1
-OCAgICAgICAgIGNxZV9jb21wcmVzc2lvbl8xMjhbMHgxXTsNCkBAIC05NTY2LDcgKzk1NjYsNyBA
-QCBzdHJ1Y3QgbWx4NV9pZmNfc3dfaWNtX2JpdHMgew0KIAl1OCAgICAgICAgIHN3X2ljbV9zdGFy
-dF9hZGRyWzB4NDBdOw0KIA0KIAl1OCAgICAgICAgIHJlc2VydmVkX2F0X2MwWzB4MTQwXTsNCi19
-OyANCit9Ow0KIA0KIHN0cnVjdCBtbHg1X2lmY19nZW5ldmVfdGx2X29wdGlvbl9iaXRzIHsNCiAJ
-dTggICAgICAgICBtb2RpZnlfZmllbGRfc2VsZWN0WzB4NDBdOw0KLS0gDQoyLjIwLjENCg0K
+On Tue, Apr 30, 2019 at 8:00 PM Saeed Mahameed
+<saeedm@dev.mellanox.co.il> wrote:
+>
+> On Tue, Apr 30, 2019 at 6:23 PM Qian Cai <cai@lca.pw> wrote:
+> >
+> > Reverted the commit b169e64a2444 ("net/mlx5: Geneve, Add flow table capabilities
+> > for Geneve decap with TLV options") fixed the problem below during boot ends up
+> > without networking.
+> >
+>
+> Hi Qian, thanks for the report, i clearly see where the issue is,
+> mlx5_ifc_cmd_hca_cap_bits offsets are all off ! due to cited patch,
+> will fix ASAP.
+>
+
+Hi Qian, can you please try the following commit :
+
+[mlx5-next] net/mlx5: Fix broken hca cap offset1093551diffmboxseries
+https://patchwork.ozlabs.org/patch/1093551/
+
+$ curl -s https://patchwork.ozlabs.org/patch/1093551//mbox/ | git am
+
+Thanks,
+Saeed.
