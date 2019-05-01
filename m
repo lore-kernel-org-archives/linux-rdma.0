@@ -1,89 +1,190 @@
-From: "Kuehling, Felix" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>
-Subject: Re: [PATCH v14 11/17] drm/amdgpu, arm64: untag user pointers
-Date: Tue, 30 Apr 2019 18:03:12 +0000
-Message-ID: <3108d33e-8e18-a73e-5e1a-f0db64f02ab3@amd.com>
-References: <cover.1556630205.git.andreyknvl@google.com>
- <2e827b5c484be14044933049fec180cd6acb054b.1556630205.git.andreyknvl@google.com>
+From: Qian Cai <cai@lca.pw>
+Subject: mlx5_core failed to load with 5.1.0-rc7-next-20190430+
+Date: Tue, 30 Apr 2019 21:23:17 -0400
+Message-ID: <bab2ed8b-70dc-4a00-6c68-06a2df6ccb62@lca.pw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <2e827b5c484be14044933049fec180cd6acb054b.1556630205.git.andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Language: en-US
-Content-ID: <C547763D046D774F9BA7C517CFFB0B87-asWib9pRmPqcE4WynfumptQqCkab/8FMAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "Koenig-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <Koenig-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Kostya Serebryany <kcc-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Kuehling-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <Kuehling-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Dave Martin <Dave.Martin-5wv7dgnIgG8@public.gmane.org>, Evgeniy Stepanov <eugenis-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Kevin Brodsky <kevin.brodsky-5wv7dgnIgG8@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan-5wv7dgnIgG8@public.gmane.org>, Lee Smith <Lee.Smith-5wv7dgnIgG8@public.gmane.org>, "Deucher-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <Deucher-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dmitry Vyukov <dvyukov-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Yis
+Sender: linux-kernel-owner@vger.kernel.org
+To: kliteyn@mellanox.com
+Cc: ozsh@mellanox.com, saeedm@mellanox.com, leon@kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gMjAxOS0wNC0zMCA5OjI1IGEubS4sIEFuZHJleSBLb25vdmFsb3Ygd3JvdGU6DQo+IFtDQVVU
-SU9OOiBFeHRlcm5hbCBFbWFpbF0NCj4NCj4gVGhpcyBwYXRjaCBpcyBhIHBhcnQgb2YgYSBzZXJp
-ZXMgdGhhdCBleHRlbmRzIGFybTY0IGtlcm5lbCBBQkkgdG8gYWxsb3cgdG8NCj4gcGFzcyB0YWdn
-ZWQgdXNlciBwb2ludGVycyAod2l0aCB0aGUgdG9wIGJ5dGUgc2V0IHRvIHNvbWV0aGluZyBlbHNl
-IG90aGVyDQo+IHRoYW4gMHgwMCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuDQo+DQo+IGFtZGdwdV90
-dG1fdHRfZ2V0X3VzZXJfcGFnZXMoKSB1c2VzIHByb3ZpZGVkIHVzZXIgcG9pbnRlcnMgZm9yIHZt
-YQ0KPiBsb29rdXBzLCB3aGljaCBjYW4gb25seSBieSBkb25lIHdpdGggdW50YWdnZWQgcG9pbnRl
-cnMuIFRoaXMgcGF0Y2gNCj4gdW50YWcgdXNlciBwb2ludGVycyB3aGVuIHRoZXkgYXJlIGJlaW5n
-IHNldCBpbg0KPiBhbWRncHVfdHRtX3R0X3NldF91c2VycHRyKCkuDQo+DQo+IEluIGFtZGdwdV9n
-ZW1fdXNlcnB0cl9pb2N0bCgpIGFuZCBhbWRncHVfYW1ka2ZkX2dwdXZtLmMvaW5pdF91c2VyX3Bh
-Z2VzKCkNCj4gYW4gTU1VIG5vdGlmaWVyIGlzIHNldCB1cCB3aXRoIGEgKHRhZ2dlZCkgdXNlcnNw
-YWNlIHBvaW50ZXIuIFRoZSB1bnRhZ2dlZA0KPiBhZGRyZXNzIHNob3VsZCBiZSB1c2VkIHNvIHRo
-YXQgTU1VIG5vdGlmaWVycyBmb3IgdGhlIHVudGFnZ2VkIGFkZHJlc3MgZ2V0DQo+IGNvcnJlY3Rs
-eSBtYXRjaGVkIHVwIHdpdGggdGhlIHJpZ2h0IEJPLiBUaGlzIHBhdGNoIHVudGFnIHVzZXIgcG9p
-bnRlcnMgaW4NCj4gYW1kZ3B1X2dlbV91c2VycHRyX2lvY3RsKCkgZm9yIHRoZSBHRU0gY2FzZSBh
-bmQgaW4NCj4gYW1kZ3B1X2FtZGtmZF9ncHV2bV9hbGxvY19tZW1vcnlfb2ZfZ3B1KCkgZm9yIHRo
-ZSBLRkQgY2FzZS4NCj4NCj4gU3VnZ2VzdGVkLWJ5OiBLdWVobGluZywgRmVsaXggPEZlbGl4Lkt1
-ZWhsaW5nQGFtZC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEFuZHJleSBLb25vdmFsb3YgPGFuZHJl
-eWtudmxAZ29vZ2xlLmNvbT4NCj4gLS0tDQo+ICAgZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUv
-YW1kZ3B1X2FtZGtmZF9ncHV2bS5jIHwgMiArLQ0KPiAgIGRyaXZlcnMvZ3B1L2RybS9hbWQvYW1k
-Z3B1L2FtZGdwdV9nZW0uYyAgICAgICAgICB8IDIgKysNCj4gICBkcml2ZXJzL2dwdS9kcm0vYW1k
-L2FtZGdwdS9hbWRncHVfdHRtLmMgICAgICAgICAgfCAyICstDQo+ICAgMyBmaWxlcyBjaGFuZ2Vk
-LCA0IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pDQo+DQo+IGRpZmYgLS1naXQgYS9kcml2
-ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfYW1ka2ZkX2dwdXZtLmMgYi9kcml2ZXJzL2dw
-dS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfYW1ka2ZkX2dwdXZtLmMNCj4gaW5kZXggMTkyMWRlYzNk
-ZjdhLi4yMGNhYzQ0ZWQ0NDkgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1k
-Z3B1L2FtZGdwdV9hbWRrZmRfZ3B1dm0uYw0KPiArKysgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2Ft
-ZGdwdS9hbWRncHVfYW1ka2ZkX2dwdXZtLmMNCj4gQEAgLTExMjEsNyArMTEyMSw3IEBAIGludCBh
-bWRncHVfYW1ka2ZkX2dwdXZtX2FsbG9jX21lbW9yeV9vZl9ncHUoDQo+ICAgICAgICAgICAgICAg
-ICAgYWxsb2NfZmxhZ3MgPSAwOw0KPiAgICAgICAgICAgICAgICAgIGlmICghb2Zmc2V0IHx8ICEq
-b2Zmc2V0KQ0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+IC0g
-ICAgICAgICAgICAgICB1c2VyX2FkZHIgPSAqb2Zmc2V0Ow0KPiArICAgICAgICAgICAgICAgdXNl
-cl9hZGRyID0gdW50YWdnZWRfYWRkcigqb2Zmc2V0KTsNCj4gICAgICAgICAgfSBlbHNlIGlmIChm
-bGFncyAmIEFMTE9DX01FTV9GTEFHU19ET09SQkVMTCkgew0KPiAgICAgICAgICAgICAgICAgIGRv
-bWFpbiA9IEFNREdQVV9HRU1fRE9NQUlOX0dUVDsNCj4gICAgICAgICAgICAgICAgICBhbGxvY19k
-b21haW4gPSBBTURHUFVfR0VNX0RPTUFJTl9DUFU7DQo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dw
-dS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfZ2VtLmMgYi9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdw
-dS9hbWRncHVfZ2VtLmMNCj4gaW5kZXggZDIxZGQyZjM2OWRhLi45ODVjYjgyYjJhYTYgMTAwNjQ0
-DQo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV9nZW0uYw0KPiArKysg
-Yi9kcml2ZXJzL2dwdS9kcm0vYW1kL2FtZGdwdS9hbWRncHVfZ2VtLmMNCj4gQEAgLTI4Niw2ICsy
-ODYsOCBAQCBpbnQgYW1kZ3B1X2dlbV91c2VycHRyX2lvY3RsKHN0cnVjdCBkcm1fZGV2aWNlICpk
-ZXYsIHZvaWQgKmRhdGEsDQo+ICAgICAgICAgIHVpbnQzMl90IGhhbmRsZTsNCj4gICAgICAgICAg
-aW50IHI7DQo+DQo+ICsgICAgICAgYXJncy0+YWRkciA9IHVudGFnZ2VkX2FkZHIoYXJncy0+YWRk
-cik7DQo+ICsNCj4gICAgICAgICAgaWYgKG9mZnNldF9pbl9wYWdlKGFyZ3MtPmFkZHIgfCBhcmdz
-LT5zaXplKSkNCj4gICAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsNCj4NCj4gZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV90dG0uYyBiL2RyaXZlcnMv
-Z3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV90dG0uYw0KPiBpbmRleCA3M2U3MWU2MWRjOTkuLjFk
-MzBlOTdhYzJjNCAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9ncHUvZHJtL2FtZC9hbWRncHUvYW1k
-Z3B1X3R0bS5jDQo+ICsrKyBiL2RyaXZlcnMvZ3B1L2RybS9hbWQvYW1kZ3B1L2FtZGdwdV90dG0u
-Yw0KPiBAQCAtMTI0OCw3ICsxMjQ4LDcgQEAgaW50IGFtZGdwdV90dG1fdHRfc2V0X3VzZXJwdHIo
-c3RydWN0IHR0bV90dCAqdHRtLCB1aW50NjRfdCBhZGRyLA0KPiAgICAgICAgICBpZiAoZ3R0ID09
-IE5VTEwpDQo+ICAgICAgICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+DQo+IC0gICAgICAg
-Z3R0LT51c2VycHRyID0gYWRkcjsNCj4gKyAgICAgICBndHQtPnVzZXJwdHIgPSB1bnRhZ2dlZF9h
-ZGRyKGFkZHIpOw0KDQpEb2luZyB0aGlzIGhlcmUgc2VlbXMgdW5uZWNlc3NhcnkuIFlvdSBhbHJl
-YWR5IHVudGFnZ2VkIHRoZSBhZGRyZXNzIGluIA0KYm90aCBjYWxsZXJzIG9mIHRoaXMgZnVuY3Rp
-b24uIFVudGFnZ2luZyBpbiB0aGUgdHdvIGNhbGxlcnMgZW5zdXJlcyB0aGF0IA0KdGhlIHVzZXJw
-dHIgYW5kIE1NVSBub3RpZmllciBhcmUgaW4gc3luYywgdXNpbmcgdGhlIHNhbWUgdW50YWdnZWQg
-DQphZGRyZXNzLiBEb2luZyBpdCBhZ2FpbiBoZXJlIGlzIHJlZHVuZGFudC4NCg0KUmVnYXJkcywN
-CiDCoCBGZWxpeA0KDQoNCj4gICAgICAgICAgZ3R0LT51c2VyZmxhZ3MgPSBmbGFnczsNCj4NCj4g
-ICAgICAgICAgaWYgKGd0dC0+dXNlcnRhc2spDQo+IC0tDQo+IDIuMjEuMC41OTMuZzUxMWVjMzQ1
-ZTE4LWdvb2cNCj4NCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
-dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
+Reverted the commit b169e64a2444 ("net/mlx5: Geneve, Add flow table capabilities
+for Geneve decap with TLV options") fixed the problem below during boot ends up
+without networking.
+
+[   92.471247] mlx5_core 0000:0b:00.0: mlx5_cmd_check:744:(pid 13):
+CREATE_EQ(0x301) op_mod(0x0) failed, status bad parameter(0x3), syndrome (0x8fef)
+[   92.484824] mlx5_core 0000:0b:00.0: create_async_eqs:572:(pid 13): failed to
+create async EQ -22
+[   92.603279] mlx5_core 0000:0b:00.0: mlx5_eq_table_create:1007:(pid 13):
+Failed to create async EQs
+[   92.630541] mlx5_core 0000:0b:00.0: mlx5_load:1053:(pid 13): Failed to create EQs
+[   94.866908] mlx5_core 0000:0b:00.0: init_one:1329:(pid 13): mlx5_load_one
+failed with error code -22
+[   94.879657] mlx5_core: probe of 0000:0b:00.0 failed with error -22
+[   94.887784] mlx5_core 0000:0b:00.1: Adding to iommu group 2
+[   95.017012] mlx5_core 0000:0b:00.1: firmware version: 14.21.1000
+[   95.023090] mlx5_core 0000:0b:00.1: 63.008 Gb/s available PCIe bandwidth (8
+GT/s x8 link)
+[   96.155792] mlx5_core 0000:0b:00.1: mlx5_cmd_check:744:(pid 13):
+CREATE_EQ(0x301) op_mod(0x0) failed, status bad parameter(0x3), syndrome (0x8fef)
+[   96.169220] mlx5_core 0000:0b:00.1: create_async_eqs:572:(pid 13): failed to
+create async EQ -22
+[   96.199340] mlx5_core 0000:0b:00.1: mlx5_eq_table_create:1007:(pid 13):
+Failed to create async EQs
+[   96.224004] mlx5_core 0000:0b:00.1: mlx5_load:1053:(pid 13): Failed to create EQs
+[   97.681695] mlx5_core 0000:0b:00.1: init_one:1329:(pid 13): mlx5_load_one
+failed with error code -22
+[   97.692749] mlx5_core: probe of 0000:0b:00.1 failed with error -22
+
+# lspci -vvv
+...
+0b:00.0 Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]
+	Subsystem: Hewlett Packard Enterprise Device 028a
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping-
+SERR+ FastB2B- DisINTx+
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort-
+<MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin A routed to IRQ 23
+	NUMA node: 0
+	Region 0: Memory at 10000000000 (64-bit, prefetchable) [size=32M]
+	Expansion ROM at 43000000 [disabled] [size=1M]
+	Capabilities: [60] Express (v2) Endpoint, MSI 00
+		DevCap:	MaxPayload 512 bytes, PhantFunc 0, Latency L0s unlimited, L1 unlimited
+			ExtTag+ AttnBtn- AttnInd- PwrInd- RBE+ FLReset+ SlotPowerLimit 0.000W
+		DevCtl:	Report errors: Correctable+ Non-Fatal+ Fatal+ Unsupported+
+			RlxdOrd+ ExtTag+ PhantFunc- AuxPwr- NoSnoop+ FLReset-
+			MaxPayload 128 bytes, MaxReadReq 512 bytes
+		DevSta:	CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 8GT/s, Width x8, ASPM not supported
+			ClockPM- Surprise- LLActRep- BwNot- ASPMOptComp+
+		LnkCtl:	ASPM Disabled; RCB 64 bytes Disabled- CommClk-
+			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+		LnkSta:	Speed 8GT/s, Width x8, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+		DevCap2: Completion Timeout: Range ABCD, TimeoutDis+, LTR-, OBFF Not Supported
+			 AtomicOpsCap: 32bit- 64bit- 128bitCAS-
+		DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-, LTR-, OBFF Disabled
+			 AtomicOpsCtl: ReqEn-
+		LnkCtl2: Target Link Speed: 8GT/s, EnterCompliance- SpeedDis-
+			 Transmit Margin: Normal Operating Range, EnterModifiedCompliance- ComplianceSOS-
+			 Compliance De-emphasis: -6dB
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete+,
+EqualizationPhase1+
+			 EqualizationPhase2+, EqualizationPhase3+, LinkEqualizationRequest-
+	Capabilities: [48] Vital Product Data
+		End
+	Capabilities: [9c] MSI-X: Enable+ Count=64 Masked-
+		Vector table: BAR=0 offset=00002000
+		PBA: BAR=0 offset=00003000
+	Capabilities: [c0] Vendor Specific Information: Len=18 <?>
+	Capabilities: [40] Power Management version 3
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0-,D1-,D2-,D3hot-,D3cold+)
+		Status: D0 NoSoftRst+ PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [100 v1] Advanced Error Reporting
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC-
+UnsupReq- ACSViol-
+		UEMsk:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC-
+UnsupReq- ACSViol-
+		UESvrt:	DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ MalfTLP+
+ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
+		CEMsk:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
+		AERCap:	First Error Pointer: 04, ECRCGenCap+ ECRCGenEn- ECRCChkCap+ ECRCChkEn-
+			MultHdrRecCap- MultHdrRecEn- TLPPfxPres- HdrLogCap-
+		HeaderLog: 00000000 00000000 00000000 00000000
+	Capabilities: [150 v1] Alternative Routing-ID Interpretation (ARI)
+		ARICap:	MFVC- ACS-, Next Function: 1
+		ARICtl:	MFVC- ACS-, Function Group: 0
+	Capabilities: [180 v1] Single Root I/O Virtualization (SR-IOV)
+		IOVCap:	Migration-, Interrupt Message Number: 000
+		IOVCtl:	Enable- Migration- Interrupt- MSE- ARIHierarchy+
+		IOVSta:	Migration-
+		Initial VFs: 8, Total VFs: 8, Number of VFs: 0, Function Dependency Link: 00
+		VF offset: 2, stride: 1, Device ID: 1016
+		Supported Page Size: 000007ff, System Page Size: 00000001
+		Region 0: Memory at 0000010004800000 (64-bit, prefetchable)
+		VF Migration: offset: 00000000, BIR: 0
+	Capabilities: [1c0 v1] #19
+	Capabilities: [230 v1] Access Control Services
+		ACSCap:	SrcValid- TransBlk- ReqRedir- CmpltRedir- UpstreamFwd- EgressCtrl-
+DirectTrans-
+		ACSCtl:	SrcValid- TransBlk- ReqRedir- CmpltRedir- UpstreamFwd- EgressCtrl-
+DirectTrans-
+	Kernel driver in use: mlx5_core
+	Kernel modules: mlx5_core
+
+0b:00.1 Ethernet controller: Mellanox Technologies MT27710 Family [ConnectX-4 Lx]
+	Subsystem: Hewlett Packard Enterprise Device 028a
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping-
+SERR+ FastB2B- DisINTx+
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort-
+<MAbort- >SERR- <PERR- INTx-
+	Latency: 0
+	Interrupt: pin B routed to IRQ 24
+	NUMA node: 0
+	Region 0: Memory at 10002000000 (64-bit, prefetchable) [size=32M]
+	Expansion ROM at 43100000 [disabled] [size=1M]
+	Capabilities: [60] Express (v2) Endpoint, MSI 00
+		DevCap:	MaxPayload 512 bytes, PhantFunc 0, Latency L0s unlimited, L1 unlimited
+			ExtTag+ AttnBtn- AttnInd- PwrInd- RBE+ FLReset+ SlotPowerLimit 0.000W
+		DevCtl:	Report errors: Correctable+ Non-Fatal+ Fatal+ Unsupported+
+			RlxdOrd+ ExtTag+ PhantFunc- AuxPwr- NoSnoop+ FLReset-
+			MaxPayload 128 bytes, MaxReadReq 512 bytes
+		DevSta:	CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 8GT/s, Width x8, ASPM not supported
+			ClockPM- Surprise- LLActRep- BwNot- ASPMOptComp+
+		LnkCtl:	ASPM Disabled; RCB 64 bytes Disabled- CommClk-
+			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+		LnkSta:	Speed 8GT/s, Width x8, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+		DevCap2: Completion Timeout: Range ABCD, TimeoutDis+, LTR-, OBFF Not Supported
+			 AtomicOpsCap: 32bit- 64bit- 128bitCAS-
+		DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-, LTR-, OBFF Disabled
+			 AtomicOpsCtl: ReqEn-
+		LnkSta2: Current De-emphasis Level: -6dB, EqualizationComplete-,
+EqualizationPhase1-
+			 EqualizationPhase2-, EqualizationPhase3-, LinkEqualizationRequest-
+	Capabilities: [48] Vital Product Data
+		End
+	Capabilities: [9c] MSI-X: Enable+ Count=64 Masked-
+		Vector table: BAR=0 offset=00002000
+		PBA: BAR=0 offset=00003000
+	Capabilities: [c0] Vendor Specific Information: Len=18 <?>
+	Capabilities: [40] Power Management version 3
+		Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0-,D1-,D2-,D3hot-,D3cold+)
+		Status: D0 NoSoftRst+ PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [100 v1] Advanced Error Reporting
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC-
+UnsupReq- ACSViol-
+		UEMsk:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC-
+UnsupReq- ACSViol-
+		UESvrt:	DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ MalfTLP+
+ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
+		CEMsk:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
+		AERCap:	First Error Pointer: 04, ECRCGenCap+ ECRCGenEn- ECRCChkCap+ ECRCChkEn-
+			MultHdrRecCap- MultHdrRecEn- TLPPfxPres- HdrLogCap-
+		HeaderLog: 00000000 00000000 00000000 00000000
+	Capabilities: [150 v1] Alternative Routing-ID Interpretation (ARI)
+		ARICap:	MFVC- ACS-, Next Function: 0
+		ARICtl:	MFVC- ACS-, Function Group: 0
+	Capabilities: [180 v1] Single Root I/O Virtualization (SR-IOV)
+		IOVCap:	Migration-, Interrupt Message Number: 000
+		IOVCtl:	Enable- Migration- Interrupt- MSE- ARIHierarchy-
+		IOVSta:	Migration-
+		Initial VFs: 8, Total VFs: 8, Number of VFs: 0, Function Dependency Link: 00
+		VF offset: 9, stride: 1, Device ID: 1016
+		Supported Page Size: 000007ff, System Page Size: 00000001
+		Region 0: Memory at 0000010004000000 (64-bit, prefetchable)
+		VF Migration: offset: 00000000, BIR: 0
+	Capabilities: [230 v1] Access Control Services
+		ACSCap:	SrcValid- TransBlk- ReqRedir- CmpltRedir- UpstreamFwd- EgressCtrl-
+DirectTrans-
+		ACSCtl:	SrcValid- TransBlk- ReqRedir- CmpltRedir- UpstreamFwd- EgressCtrl-
+DirectTrans-
+	Kernel driver in use: mlx5_core
+	Kernel modules: mlx5_core
