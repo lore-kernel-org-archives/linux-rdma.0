@@ -1,27 +1,33 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH V2] rds: ib: force endiannes annotation
-Date: Wed, 01 May 2019 17:15:56 -0400 (EDT)
-Message-ID: <20190501.171556.558136305355226946.davem@davemloft.net>
-References: <1556593977-15828-1-git-send-email-hofrat@osadl.org>
+Subject: Re: [PATCH net-next 07/10] qed*: Add iWARP 100g support
+Date: Wed, 01 May 2019 20:35:22 -0400 (EDT)
+Message-ID: <20190501.203522.1577716429222042609.davem@davemloft.net>
+References: <20190501095722.6902-1-michal.kalderon@marvell.com>
+        <20190501095722.6902-8-michal.kalderon@marvell.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1556593977-15828-1-git-send-email-hofrat@osadl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: hofrat@osadl.org
-Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190501095722.6902-8-michal.kalderon@marvell.com>
+Sender: netdev-owner@vger.kernel.org
+To: michal.kalderon@marvell.com
+Cc: ariel.elior@marvell.com, jgg@ziepe.ca, dledford@redhat.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Mc Guire <hofrat@osadl.org>
-Date: Tue, 30 Apr 2019 05:12:57 +0200
+From: Michal Kalderon <michal.kalderon@marvell.com>
+Date: Wed, 1 May 2019 12:57:19 +0300
 
-> While the endiannes is being handled correctly as indicated by the comment
-> above the offending line - sparse was unhappy with the missing annotation
-> as be64_to_cpu() expects a __be64 argument. To mitigate this annotation
-> all involved variables are changed to a consistent __le64 and the
->  conversion to uint64_t delayed to the call to rds_cong_map_updated().
-> 
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+> diff --git a/drivers/infiniband/hw/qedr/main.c b/drivers/infiniband/hw/qedr/main.c
+> index d93c8a893a89..8bc6775abb79 100644
+> --- a/drivers/infiniband/hw/qedr/main.c
+> +++ b/drivers/infiniband/hw/qedr/main.c
+> @@ -52,6 +52,10 @@ MODULE_DESCRIPTION("QLogic 40G/100G ROCE Driver");
+>  MODULE_AUTHOR("QLogic Corporation");
+>  MODULE_LICENSE("Dual BSD/GPL");
+>  
+> +static uint iwarp_cmt;
+> +module_param(iwarp_cmt, uint, 0444);
+> +MODULE_PARM_DESC(iwarp_cmt, " iWARP: Support CMT mode. 0 - Disabled, 1 - Enabled. Default: Disabled");
+> +
 
-Applied.
+Sorry no, this is totally beneath us.
