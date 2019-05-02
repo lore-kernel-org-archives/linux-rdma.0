@@ -1,92 +1,92 @@
-From: Michal Kalderon <mkalderon@marvell.com>
-Subject: RE: [EXT] Re: [PATCH net-next 07/10] qed*: Add iWARP 100g support
-Date: Thu, 2 May 2019 20:38:56 +0000
-Message-ID: <BLUPR18MB013088A1CA1A8C618B0D4443A1340@BLUPR18MB0130.namprd18.prod.outlook.com>
-References: <20190501095722.6902-1-michal.kalderon@marvell.com>
- <20190501095722.6902-8-michal.kalderon@marvell.com>
- <20190501.203522.1577716429222042609.davem@davemloft.net>
- <20190502051320.GF7676@mtr-leonro.mtl.com>
- <BLUPR18MB0130AF99D6AB674A85E075D9A1340@BLUPR18MB0130.namprd18.prod.outlook.com>
- <20190502123118.GR7676@mtr-leonro.mtl.com>
+From: Kenny Ho <y2kenny@gmail.com>
+Subject: Re: [RFC PATCH 0/5] cgroup support for GPU devices
+Date: Thu, 2 May 2019 18:48:00 -0400
+Message-ID: <CAOWid-cYknxeTQvP9vQf3-i3Cpux+bs7uBs7_o-YMFjVCo19bg@mail.gmail.com>
+References: <20190501140438.9506-1-brian.welty@intel.com>
+ <20190502083433.GP7676@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190502123118.GR7676@mtr-leonro.mtl.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20190502083433.GP7676@mtr-leonro.mtl.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: Leon Romanovsky <leon@kernel.org>
-Cc: David Miller <davem@davemloft.net>, Ariel Elior <aelior@marvell.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+Cc: Parav Pandit <parav@mellanox.com>, David Airlie <airlied@linux.ie>, intel-gfx@lists.freedesktop.org, Brian Welty <brian.welty@intel.com>, cgroups@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, linux-mm@kvack.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Li Zefan <lizefan@huawei.com>, Vladimir Davydov <vdavydov.dev@gmail.com>, Alex Deucher <alexander.deucher@amd.com>, Tejun Heo <tj@kernel.org>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Leon Romanovsky <leon@kernel.org>
-> Sent: Thursday, May 2, 2019 3:31 PM
->=20
-> On Thu, May 02, 2019 at 12:10:39PM +0000, Michal Kalderon wrote:
-> > > From: Leon Romanovsky <leon@kernel.org>
-> > > Sent: Thursday, May 2, 2019 8:13 AM
-> > > On Wed, May 01, 2019 at 08:35:22PM -0400, David Miller wrote:
-> > > > From: Michal Kalderon <michal.kalderon@marvell.com>
-> > > > Date: Wed, 1 May 2019 12:57:19 +0300
-> > > >
-> > > > > diff --git a/drivers/infiniband/hw/qedr/main.c
-> > > > > b/drivers/infiniband/hw/qedr/main.c
-> > > > > index d93c8a893a89..8bc6775abb79 100644
-> > > > > --- a/drivers/infiniband/hw/qedr/main.c
-> > > > > +++ b/drivers/infiniband/hw/qedr/main.c
-> > > > > @@ -52,6 +52,10 @@ MODULE_DESCRIPTION("QLogic 40G/100G
-> ROCE
-> > > > > Driver");  MODULE_AUTHOR("QLogic Corporation");
-> > > > > MODULE_LICENSE("Dual BSD/GPL");
-> > > > >
-> > > > > +static uint iwarp_cmt;
-> > > > > +module_param(iwarp_cmt, uint, 0444);
-> > > MODULE_PARM_DESC(iwarp_cmt, "
-> > > > > +iWARP: Support CMT mode. 0 - Disabled, 1 - Enabled. Default:
-> > > > > +Disabled");
-> > > > > +
-> > > >
-> > > > Sorry no, this is totally beneath us.
-> > >
-> > > It is not acceptable for RDMA too.
-> >
-> > Dave and Leon,
-> >
-> > This is a bit of a special case related specifically to our hardware.
-> > Enabling iWARP on this kind of configuration impacts L2 performance.
-> > We don't want this to happen implicitly once the rdma driver is loaded
-> > since that can happen automatically and could lead to unexpected behavi=
-or
-> from user perspective.
-> > Therefore we need a way of giving the user control to decide whether
-> > they want iWARP at the cost of L2 performance degradation.
-> > We also need this information as soon as the iWARP device registers, so
-> using the rdma-tool would be too late.
-> >
-> > If module parameter is not an option, could you please advise what woul=
-d
-> be ok ?
-> > ethtool private flags ?
-> > devlink ?
->=20
-> Yes, devlink params are modern way to have same functionality as module
-> parameters.
->=20
-> This patch can help you in order to get a sense of how to do it.
-> https://lore.kernel.org/patchwork/patch/959195/
->=20
-Thanks Leon,=20
-Michal
-
-> Thanks
->=20
-> >
-> > thanks,
-> > Michal
-> >
-> > >
-> > > Also please don't use comments inside function calls, it complicates
-> > > various checkers without real need.
-> > > dev->ops->iwarp_set_engine_affin(dev->cdev, true /* reset */);
-> > >                                                 ^^^^^^^^^^^^^^
-> > > Thanks
+PiBDb3VudCB1cyAoTWVsbGFub3gpIHRvbywgb3VyIFJETUEgZGV2aWNlcyBhcmUgZXhwb3Npbmcg
+c3BlY2lhbCBhbmQKPiBsaW1pdGVkIGluIHNpemUgZGV2aWNlIG1lbW9yeSB0byB0aGUgdXNlcnMg
+YW5kIHdlIHdvdWxkIGxpa2UgdG8gcHJvdmlkZQo+IGFuIG9wdGlvbiB0byB1c2UgY2dyb3VwIHRv
+IGNvbnRyb2wgaXRzIGV4cG9zdXJlLgpEb2Vzbid0IFJETUEgYWxyZWFkeSBoYXMgYSBzZXBhcmF0
+ZSBjZ3JvdXA/ICBXaHkgbm90IGltcGxlbWVudCBpdCB0aGVyZT8KCgo+ID4gYW5kIHdpdGggZnV0
+dXJlIHdvcmssIHdlIGNvdWxkIGV4dGVuZCB0bzoKPiA+ICogIHRyYWNrIGFuZCBjb250cm9sIHNo
+YXJlIG9mIEdQVSB0aW1lIChyZXVzZSBvZiBjcHUvY3B1YWNjdCkKPiA+ICogIGFwcGx5IG1hc2sg
+b2YgYWxsb3dlZCBleGVjdXRpb24gZW5naW5lcyAocmV1c2Ugb2YgY3B1c2V0cykKPiA+Cj4gPiBJ
+bnN0ZWFkIG9mIGludHJvZHVjaW5nIGEgbmV3IGNncm91cCBzdWJzeXN0ZW0gZm9yIEdQVSBkZXZp
+Y2VzLCBhIG5ldwo+ID4gZnJhbWV3b3JrIGlzIHByb3Bvc2VkIHRvIGFsbG93IGRldmljZXMgdG8g
+cmVnaXN0ZXIgd2l0aCBleGlzdGluZyBjZ3JvdXAKPiA+IGNvbnRyb2xsZXJzLCB3aGljaCBjcmVh
+dGVzIHBlci1kZXZpY2UgY2dyb3VwX3N1YnN5c19zdGF0ZSB3aXRoaW4gdGhlCj4gPiBjZ3JvdXAu
+ICBUaGlzIGdpdmVzIGRldmljZSBkcml2ZXJzIHRoZWlyIG93biBwcml2YXRlIGNncm91cCBjb250
+cm9scwo+ID4gKHN1Y2ggYXMgbWVtb3J5IGxpbWl0cyBvciBvdGhlciBwYXJhbWV0ZXJzKSB0byBi
+ZSBhcHBsaWVkIHRvIGRldmljZQo+ID4gcmVzb3VyY2VzIGluc3RlYWQgb2YgaG9zdCBzeXN0ZW0g
+cmVzb3VyY2VzLgo+ID4gRGV2aWNlIGRyaXZlcnMgKEdQVSBvciBvdGhlcikgYXJlIHRoZW4gYWJs
+ZSB0byByZXVzZSB0aGUgZXhpc3RpbmcgY2dyb3VwCj4gPiBjb250cm9scywgaW5zdGVhZCBvZiBp
+bnZlbnRpbmcgc2ltaWxhciBvbmVzLgo+ID4KPiA+IFBlci1kZXZpY2UgY29udHJvbHMgd291bGQg
+YmUgZXhwb3NlZCBpbiBjZ3JvdXAgZmlsZXN5c3RlbSBhczoKPiA+ICAgICBtb3VudC88Y2dyb3Vw
+X25hbWU+LzxzdWJzeXNfbmFtZT4uZGV2aWNlcy88ZGV2X25hbWU+LzxzdWJzeXNfZmlsZXM+Cj4g
+PiBzdWNoIGFzIChmb3IgZXhhbXBsZSk6Cj4gPiAgICAgbW91bnQvPGNncm91cF9uYW1lPi9tZW1v
+cnkuZGV2aWNlcy88ZGV2X25hbWU+L21lbW9yeS5tYXgKPiA+ICAgICBtb3VudC88Y2dyb3VwX25h
+bWU+L21lbW9yeS5kZXZpY2VzLzxkZXZfbmFtZT4vbWVtb3J5LmN1cnJlbnQKPiA+ICAgICBtb3Vu
+dC88Y2dyb3VwX25hbWU+L2NwdS5kZXZpY2VzLzxkZXZfbmFtZT4vY3B1LnN0YXQKPiA+ICAgICBt
+b3VudC88Y2dyb3VwX25hbWU+L2NwdS5kZXZpY2VzLzxkZXZfbmFtZT4vY3B1LndlaWdodAo+ID4K
+PiA+IFRoZSBkcm0vaTkxNSBwYXRjaCBpbiB0aGlzIHNlcmllcyBpcyBiYXNlZCBvbiB0b3Agb2Yg
+b3RoZXIgUkZDIHdvcmsgWzFdCj4gPiBmb3IgaTkxNSBkZXZpY2UgbWVtb3J5IHN1cHBvcnQuCj4g
+Pgo+ID4gQU1EIFsyXSBhbmQgSW50ZWwgWzNdIGhhdmUgcHJvcG9zZWQgcmVsYXRlZCB3b3JrIGlu
+IHRoaXMgYXJlYSB3aXRoaW4gdGhlCj4gPiBsYXN0IGZldyB5ZWFycywgbGlzdGVkIGJlbG93IGFz
+IHJlZmVyZW5jZS4gIFRoaXMgbmV3IFJGQyByZXVzZXMgZXhpc3RpbmcKPiA+IGNncm91cCBjb250
+cm9sbGVycyBhbmQgdGFrZXMgYSBkaWZmZXJlbnQgYXBwcm9hY2ggdGhhbiBwcmlvciB3b3JrLgo+
+ID4KPiA+IEZpbmFsbHksIHNvbWUgcG90ZW50aWFsIGRpc2N1c3Npb24gcG9pbnRzIGZvciB0aGlz
+IHNlcmllczoKPiA+ICogbWVyZ2UgcHJvcG9zZWQgPHN1YnN5c19uYW1lPi5kZXZpY2VzIGludG8g
+YSBzaW5nbGUgZGV2aWNlcyBkaXJlY3Rvcnk/Cj4gPiAqIGFsbG93IGRldmljZXMgdG8gaGF2ZSBt
+dWx0aXBsZSByZWdpc3RyYXRpb25zIGZvciBzdWJzZXRzIG9mIHJlc291cmNlcz8KPiA+ICogZG9j
+dW1lbnQgYSAnY29tbW9uIGNoYXJnaW5nIHBvbGljeScgZm9yIGRldmljZSBkcml2ZXJzIHRvIGZv
+bGxvdz8KPiA+Cj4gPiBbMV0gaHR0cHM6Ly9wYXRjaHdvcmsuZnJlZWRlc2t0b3Aub3JnL3Nlcmll
+cy81NjY4My8KPiA+IFsyXSBodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9hcmNoaXZlcy9k
+cmktZGV2ZWwvMjAxOC1Ob3ZlbWJlci8xOTcxMDYuaHRtbAo+ID4gWzNdIGh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL2FyY2hpdmVzL2ludGVsLWdmeC8yMDE4LUphbnVhcnkvMTUzMTU2Lmh0
+bWwKPiA+Cj4gPgo+ID4gQnJpYW4gV2VsdHkgKDUpOgo+ID4gICBjZ3JvdXA6IEFkZCBjZ3JvdXBf
+c3Vic3lzIHBlci1kZXZpY2UgcmVnaXN0cmF0aW9uIGZyYW1ld29yawo+ID4gICBjZ3JvdXA6IENo
+YW5nZSBrZXJuZnNfbm9kZSBmb3IgZGlyZWN0b3JpZXMgdG8gc3RvcmUKPiA+ICAgICBjZ3JvdXBf
+c3Vic3lzX3N0YXRlCj4gPiAgIG1lbWNnOiBBZGQgcGVyLWRldmljZSBzdXBwb3J0IHRvIG1lbW9y
+eSBjZ3JvdXAgc3Vic3lzdGVtCj4gPiAgIGRybTogQWRkIG1lbW9yeSBjZ3JvdXAgcmVnaXN0cmF0
+aW9uIGFuZCBEUklWRVJfQ0dST1VQUyBmZWF0dXJlIGJpdAo+ID4gICBkcm0vaTkxNTogVXNlIG1l
+bW9yeSBjZ3JvdXAgZm9yIGVuZm9yY2luZyBkZXZpY2UgbWVtb3J5IGxpbWl0Cj4gPgo+ID4gIGRy
+aXZlcnMvZ3B1L2RybS9kcm1fZHJ2LmMgICAgICAgICAgICAgICAgICB8ICAxMiArCj4gPiAgZHJp
+dmVycy9ncHUvZHJtL2RybV9nZW0uYyAgICAgICAgICAgICAgICAgIHwgICA3ICsKPiA+ICBkcml2
+ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2Rydi5jICAgICAgICAgICAgfCAgIDIgKy0KPiA+ICBkcml2
+ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9tZW1vcnlfcmVnaW9uLmMgfCAgMjQgKy0KPiA+ICBpbmNs
+dWRlL2RybS9kcm1fZGV2aWNlLmggICAgICAgICAgICAgICAgICAgfCAgIDMgKwo+ID4gIGluY2x1
+ZGUvZHJtL2RybV9kcnYuaCAgICAgICAgICAgICAgICAgICAgICB8ICAgOCArCj4gPiAgaW5jbHVk
+ZS9kcm0vZHJtX2dlbS5oICAgICAgICAgICAgICAgICAgICAgIHwgIDExICsKPiA+ICBpbmNsdWRl
+L2xpbnV4L2Nncm91cC1kZWZzLmggICAgICAgICAgICAgICAgfCAgMjggKysKPiA+ICBpbmNsdWRl
+L2xpbnV4L2Nncm91cC5oICAgICAgICAgICAgICAgICAgICAgfCAgIDMgKwo+ID4gIGluY2x1ZGUv
+bGludXgvbWVtY29udHJvbC5oICAgICAgICAgICAgICAgICB8ICAxMCArCj4gPiAga2VybmVsL2Nn
+cm91cC9jZ3JvdXAtdjEuYyAgICAgICAgICAgICAgICAgIHwgIDEwICstCj4gPiAga2VybmVsL2Nn
+cm91cC9jZ3JvdXAuYyAgICAgICAgICAgICAgICAgICAgIHwgMzEwICsrKysrKysrKysrKysrKysr
+Ky0tLQo+ID4gIG1tL21lbWNvbnRyb2wuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICB8IDE4
+MyArKysrKysrKysrKy0KPiA+ICAxMyBmaWxlcyBjaGFuZ2VkLCA1NTIgaW5zZXJ0aW9ucygrKSwg
+NTkgZGVsZXRpb25zKC0pCj4gPgo+ID4gLS0KPiA+IDIuMjEuMAo+ID4KPiBfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwo+IGRyaS1kZXZlbCBtYWlsaW5nIGxp
+c3QKPiBkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4gaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRl
+bC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4
