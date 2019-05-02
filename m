@@ -1,77 +1,39 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [EXT] Re: [PATCH net-next 07/10] qed*: Add iWARP 100g support
-Date: Thu, 2 May 2019 15:31:18 +0300
-Message-ID: <20190502123118.GR7676@mtr-leonro.mtl.com>
-References: <20190501095722.6902-1-michal.kalderon@marvell.com>
- <20190501095722.6902-8-michal.kalderon@marvell.com>
- <20190501.203522.1577716429222042609.davem@davemloft.net>
- <20190502051320.GF7676@mtr-leonro.mtl.com>
- <BLUPR18MB0130AF99D6AB674A85E075D9A1340@BLUPR18MB0130.namprd18.prod.outlook.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v13 16/20] IB/mlx4, arm64: untag user pointers in
+ mlx4_get_umem_mr
+Date: Thu, 2 May 2019 15:44:42 -0300
+Message-ID: <20190502184442.GA31165@ziepe.ca>
+References: <cover.1553093420.git.andreyknvl@google.com>
+ <1e2824fd77e8eeb351c6c6246f384d0d89fd2d58.1553093421.git.andreyknvl@google.com>
+ <20190429180915.GZ6705@mtr-leonro.mtl.com>
+ <20190430111625.GD29799@arrakis.emea.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <BLUPR18MB0130AF99D6AB674A85E075D9A1340@BLUPR18MB0130.namprd18.prod.outlook.com>
-Sender: netdev-owner@vger.kernel.org
-To: Michal Kalderon <mkalderon@marvell.com>
-Cc: David Miller <davem@davemloft.net>, Ariel Elior <aelior@marvell.com>, "jgg@ziepe.ca" <jgg@ziepe.ca>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>
+In-Reply-To: <20190430111625.GD29799@arrakis.emea.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Leon Romanovsky <leon@kernel.org>, Andrey Konovalov <andreyknvl@google.com>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Kees Cook <keescook@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Eric Dumazet <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>, Yishai Hadas <yishaih@mellanox.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Vyukov <dvyukov@google.com>, Kostya Serebryany <kcc@google.com>, Evgeniy Stepanov <eugenis@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@a>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 02, 2019 at 12:10:39PM +0000, Michal Kalderon wrote:
-> > From: Leon Romanovsky <leon@kernel.org>
-> > Sent: Thursday, May 2, 2019 8:13 AM
-> > On Wed, May 01, 2019 at 08:35:22PM -0400, David Miller wrote:
-> > > From: Michal Kalderon <michal.kalderon@marvell.com>
-> > > Date: Wed, 1 May 2019 12:57:19 +0300
-> > >
-> > > > diff --git a/drivers/infiniband/hw/qedr/main.c
-> > > > b/drivers/infiniband/hw/qedr/main.c
-> > > > index d93c8a893a89..8bc6775abb79 100644
-> > > > --- a/drivers/infiniband/hw/qedr/main.c
-> > > > +++ b/drivers/infiniband/hw/qedr/main.c
-> > > > @@ -52,6 +52,10 @@ MODULE_DESCRIPTION("QLogic 40G/100G ROCE
-> > > > Driver");  MODULE_AUTHOR("QLogic Corporation");
-> > > > MODULE_LICENSE("Dual BSD/GPL");
-> > > >
-> > > > +static uint iwarp_cmt;
-> > > > +module_param(iwarp_cmt, uint, 0444);
-> > MODULE_PARM_DESC(iwarp_cmt, "
-> > > > +iWARP: Support CMT mode. 0 - Disabled, 1 - Enabled. Default:
-> > > > +Disabled");
-> > > > +
-> > >
-> > > Sorry no, this is totally beneath us.
-> >
-> > It is not acceptable for RDMA too.
->
-> Dave and Leon,
->
-> This is a bit of a special case related specifically to our hardware.
-> Enabling iWARP on this kind of configuration impacts L2 performance.
-> We don't want this to happen implicitly once the rdma driver is loaded since
-> that can happen automatically and could lead to unexpected behavior from user perspective.
-> Therefore we need a way of giving the user control to decide whether they want iWARP at the cost
-> of L2 performance degradation.
-> We also need this information as soon as the iWARP device registers, so using the rdma-tool would be too late.
->
-> If module parameter is not an option, could you please advise what would be ok ?
-> ethtool private flags ?
-> devlink ?
+On Tue, Apr 30, 2019 at 12:16:25PM +0100, Catalin Marinas wrote:
+> > Interesting, the followup question is why mlx4 is only one driver in IB which
+> > needs such code in umem_mr. I'll take a look on it.
+> 
+> I don't know. Just using the light heuristics of find_vma() shows some
+> other places. For example, ib_umem_odp_get() gets the umem->address via
+> ib_umem_start(). This was previously set in ib_umem_get() as called from
+> mlx4_get_umem_mr(). Should the above patch have just untagged "start" on
+> entry?
 
-Yes, devlink params are modern way to have same functionality as module
-parameters.
+I have a feeling that there needs to be something for this in the odp
+code..
 
-This patch can help you in order to get a sense of how to do it.
-https://lore.kernel.org/patchwork/patch/959195/
+Presumably mmu notifiers and what not also use untagged pointers? Most
+likely then the umem should also be storing untagged pointers.
 
-Thanks
+This probably becomes problematic because we do want the tag in cases
+talking about the base VA of the MR..
 
->
-> thanks,
-> Michal
->
-> >
-> > Also please don't use comments inside function calls, it complicates various
-> > checkers without real need.
-> > dev->ops->iwarp_set_engine_affin(dev->cdev, true /* reset */);
-> >                                                 ^^^^^^^^^^^^^^ Thanks
+Jason
