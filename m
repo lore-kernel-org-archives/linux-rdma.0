@@ -1,62 +1,37 @@
-From: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v14 13/17] IB/mlx4, arm64: untag user pointers in
- mlx4_get_umem_mr
-Date: Fri, 3 May 2019 18:03:10 +0100
-Message-ID: <20190503170310.GL55449@arrakis.emea.arm.com>
-References: <cover.1556630205.git.andreyknvl@google.com>
- <05c0c078b8b5984af4cc3b105a58c711dcd83342.1556630205.git.andreyknvl@google.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] net: rds: fix spelling mistake "syctl" -> "sysctl"
+Date: Fri,  3 May 2019 13:10:17 +0100
+Message-ID: <20190503121017.5227-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <05c0c078b8b5984af4cc3b105a58c711dcd83342.1556630205.git.andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Andrey Konovalov <andreyknvl-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Koenig-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Szabolcs Nagy <Szabolcs.Nagy-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-kselftest-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Chintan Pandya <cpandya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Felix <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, Vincenzo Frascino <vincenzo.frascino-5wv7dgnIgG8@public.gmane.org>, Jacob Bramley <Jacob.Bramley-5wv7dgnIgG8@public.gmane.org>, Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dave Martin <Dave.Martin-5wv7dgnIgG8@public.gmane.org>, Evgeniy Stepanov <eugenis-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Brodsky <kevin.brodsky-5wv7dgnIgG8@public.gmane.org>, Kees Cook <keescook-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan-5wv7dgnIgG8@public.gmane.org>, Ramana Radhakrishnan <Ramana.Radhakrishnan-5wv7dgnIgG8@public.gmane.org>, Deucher-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Leon Romanovsky <leonro-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Alex Williamson <alex>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@oracle.com>, "David S . Miller" <davem@davemloft.net>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBBcHIgMzAsIDIwMTkgYXQgMDM6MjU6MDlQTSArMDIwMCwgQW5kcmV5IEtvbm92YWxv
-diB3cm90ZToKPiBUaGlzIHBhdGNoIGlzIGEgcGFydCBvZiBhIHNlcmllcyB0aGF0IGV4dGVuZHMg
-YXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0bwo+IHBhc3MgdGFnZ2VkIHVzZXIgcG9pbnRlcnMg
-KHdpdGggdGhlIHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcgZWxzZSBvdGhlcgo+IHRoYW4gMHgw
-MCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuCj4gCj4gbWx4NF9nZXRfdW1lbV9tcigpIHVzZXMgcHJv
-dmlkZWQgdXNlciBwb2ludGVycyBmb3Igdm1hIGxvb2t1cHMsIHdoaWNoIGNhbgo+IG9ubHkgYnkg
-ZG9uZSB3aXRoIHVudGFnZ2VkIHBvaW50ZXJzLgo+IAo+IFVudGFnIHVzZXIgcG9pbnRlcnMgaW4g
-dGhpcyBmdW5jdGlvbi4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBbmRyZXkgS29ub3ZhbG92IDxhbmRy
-ZXlrbnZsQGdvb2dsZS5jb20+Cj4gUmV2aWV3ZWQtYnk6IExlb24gUm9tYW5vdnNreSA8bGVvbnJv
-QG1lbGxhbm94LmNvbT4KPiAtLS0KPiAgZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbXIuYyB8
-IDcgKysrKy0tLQo+ICAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9u
-cygtKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tci5jIGIv
-ZHJpdmVycy9pbmZpbmliYW5kL2h3L21seDQvbXIuYwo+IGluZGV4IDM5NTM3OWE0ODBjYi4uOWEz
-NWVkMmM2YTZmIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L21yLmMK
-PiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9tci5jCj4gQEAgLTM3OCw2ICszNzgs
-NyBAQCBzdGF0aWMgc3RydWN0IGliX3VtZW0gKm1seDRfZ2V0X3VtZW1fbXIoc3RydWN0IGliX3Vk
-YXRhICp1ZGF0YSwgdTY0IHN0YXJ0LAo+ICAJICogYWdhaW4KPiAgCSAqLwo+ICAJaWYgKCFpYl9h
-Y2Nlc3Nfd3JpdGFibGUoYWNjZXNzX2ZsYWdzKSkgewo+ICsJCXVuc2lnbmVkIGxvbmcgdW50YWdn
-ZWRfc3RhcnQgPSB1bnRhZ2dlZF9hZGRyKHN0YXJ0KTsKPiAgCQlzdHJ1Y3Qgdm1fYXJlYV9zdHJ1
-Y3QgKnZtYTsKPiAgCj4gIAkJZG93bl9yZWFkKCZjdXJyZW50LT5tbS0+bW1hcF9zZW0pOwo+IEBA
-IC0zODYsOSArMzg3LDkgQEAgc3RhdGljIHN0cnVjdCBpYl91bWVtICptbHg0X2dldF91bWVtX21y
-KHN0cnVjdCBpYl91ZGF0YSAqdWRhdGEsIHU2NCBzdGFydCwKPiAgCQkgKiBjb3ZlciB0aGUgbWVt
-b3J5LCBidXQgZm9yIG5vdyBpdCByZXF1aXJlcyBhIHNpbmdsZSB2bWEgdG8KPiAgCQkgKiBlbnRp
-cmVseSBjb3ZlciB0aGUgTVIgdG8gc3VwcG9ydCBSTyBtYXBwaW5ncy4KPiAgCQkgKi8KPiAtCQl2
-bWEgPSBmaW5kX3ZtYShjdXJyZW50LT5tbSwgc3RhcnQpOwo+IC0JCWlmICh2bWEgJiYgdm1hLT52
-bV9lbmQgPj0gc3RhcnQgKyBsZW5ndGggJiYKPiAtCQkgICAgdm1hLT52bV9zdGFydCA8PSBzdGFy
-dCkgewo+ICsJCXZtYSA9IGZpbmRfdm1hKGN1cnJlbnQtPm1tLCB1bnRhZ2dlZF9zdGFydCk7Cj4g
-KwkJaWYgKHZtYSAmJiB2bWEtPnZtX2VuZCA+PSB1bnRhZ2dlZF9zdGFydCArIGxlbmd0aCAmJgo+
-ICsJCSAgICB2bWEtPnZtX3N0YXJ0IDw9IHVudGFnZ2VkX3N0YXJ0KSB7Cj4gIAkJCWlmICh2bWEt
-PnZtX2ZsYWdzICYgVk1fV1JJVEUpCj4gIAkJCQlhY2Nlc3NfZmxhZ3MgfD0gSUJfQUNDRVNTX0xP
-Q0FMX1dSSVRFOwo+ICAJCX0gZWxzZSB7CgpEaXNjdXNzaW9uIG9uZ29pbmcgb24gdGhlIHByZXZp
-b3VzIHZlcnNpb24gb2YgdGhlIHBhdGNoIGJ1dCBJJ20gbW9yZQppbmNsaW5lZCB0byBkbyB0aGlz
-IGluIGliX3V2ZXJic18ocmUpcmVnX21yKCkgb24gY21kLnN0YXJ0LgoKLS0gCkNhdGFsaW4KX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWls
-aW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
+From: Colin Ian King <colin.king@canonical.com>
+
+There is a spelling mistake in a pr_warn warning. Fix it.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ net/rds/tcp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/rds/tcp.c b/net/rds/tcp.c
+index faf726e00e27..66121bc6f34e 100644
+--- a/net/rds/tcp.c
++++ b/net/rds/tcp.c
+@@ -551,7 +551,7 @@ static __net_init int rds_tcp_init_net(struct net *net)
+ 		tbl = kmemdup(rds_tcp_sysctl_table,
+ 			      sizeof(rds_tcp_sysctl_table), GFP_KERNEL);
+ 		if (!tbl) {
+-			pr_warn("could not set allocate syctl table\n");
++			pr_warn("could not set allocate sysctl table\n");
+ 			return -ENOMEM;
+ 		}
+ 		rtn->ctl_table = tbl;
+-- 
+2.20.1
