@@ -1,64 +1,126 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v13 16/20] IB/mlx4, arm64: untag user pointers in
- mlx4_get_umem_mr
-Date: Fri, 3 May 2019 20:52:56 -0300
-Message-ID: <20190503235256.GB6660@ziepe.ca>
-References: <cover.1553093420.git.andreyknvl@google.com>
- <1e2824fd77e8eeb351c6c6246f384d0d89fd2d58.1553093421.git.andreyknvl@google.com>
- <20190429180915.GZ6705@mtr-leonro.mtl.com>
- <20190430111625.GD29799@arrakis.emea.arm.com>
- <20190502184442.GA31165@ziepe.ca>
- <20190503162846.GI55449@arrakis.emea.arm.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [RFC PATCH 0/5] cgroup support for GPU devices
+Date: Sun, 5 May 2019 10:14:36 +0300
+Message-ID: <20190505071436.GD6938@mtr-leonro.mtl.com>
+References: <20190501140438.9506-1-brian.welty@intel.com>
+ <20190502083433.GP7676@mtr-leonro.mtl.com>
+ <CAOWid-cYknxeTQvP9vQf3-i3Cpux+bs7uBs7_o-YMFjVCo19bg@mail.gmail.com>
+ <bb001de0-e4e5-6b3f-7ced-9d0fb329635b@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20190503162846.GI55449@arrakis.emea.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Leon Romanovsky <leon@kernel.org>, Andrey Konovalov <andreyknvl@google.com>, Will Deacon <will.deacon@arm.com>, Robin Murphy <robin.murphy@arm.com>, Kees Cook <keescook@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Eric Dumazet <edumazet@google.com>, "David S. Miller" <davem@davemloft.net>, Yishai Hadas <yishaih@mellanox.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-arch@vger.kernel.org, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Dmitry Vyukov <dvyukov@google.com>, Kostya Serebryany <kcc@google.com>, Evgeniy Stepanov <eugenis@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@a>
+In-Reply-To: <bb001de0-e4e5-6b3f-7ced-9d0fb329635b@intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Welty, Brian" <brian.welty@intel.com>
+Cc: Parav Pandit <parav@mellanox.com>, David Airlie <airlied@linux.ie>, kenny.ho@amd.com, intel-gfx@lists.freedesktop.org, Johannes Weiner <hannes@cmpxchg.org>, cgroups@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, J??r??me Glisse <jglisse@redhat.com>, Li Zefan <lizefan@huawei.com>, Kenny Ho <y2kenny@gmail.com>, Vladimir Davydov <vdavydov.dev@gmail.com>, Alex Deucher <alexander.deucher@amd.com>, Tejun Heo <tj@kernel.org>, Christian K??nig <christian.koenig@amd.com>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 03, 2019 at 05:28:46PM +0100, Catalin Marinas wrote:
-> Thanks Jason and Leon for the information.
-> 
-> On Thu, May 02, 2019 at 03:44:42PM -0300, Jason Gunthorpe wrote:
-> > On Tue, Apr 30, 2019 at 12:16:25PM +0100, Catalin Marinas wrote:
-> > > > Interesting, the followup question is why mlx4 is only one driver in IB which
-> > > > needs such code in umem_mr. I'll take a look on it.
-> > > 
-> > > I don't know. Just using the light heuristics of find_vma() shows some
-> > > other places. For example, ib_umem_odp_get() gets the umem->address via
-> > > ib_umem_start(). This was previously set in ib_umem_get() as called from
-> > > mlx4_get_umem_mr(). Should the above patch have just untagged "start" on
-> > > entry?
-> > 
-> > I have a feeling that there needs to be something for this in the odp
-> > code..
-> > 
-> > Presumably mmu notifiers and what not also use untagged pointers? Most
-> > likely then the umem should also be storing untagged pointers.
-> 
-> Yes.
-> 
-> > This probably becomes problematic because we do want the tag in cases
-> > talking about the base VA of the MR..
-> 
-> It depends on whether the tag is relevant to the kernel or not. The only
-> useful case so far is for the kernel performing copy_form_user() etc.
-> accesses so they'd get checked in the presence of hardware memory
-> tagging (MTE; but it's not mandatory, a 0 tag would do as well).
-> 
-> If we talk about a memory range where the content is relatively opaque
-> (or irrelevant) to the kernel code, we don't really need the tag. I'm
-> not familiar to RDMA but I presume it would be a device accessing such
-> MR but not through the user VA directly. 
-
-RDMA exposes the user VA directly (the IOVA) as part of the wire
-protocol, we must preserve the tag in these cases as that is what the
-userspace is using for the pointer.
-
-So the ODP stuff will definately need some adjusting when it interacts
-with the mmu notifiers and get user pages.
-
-Jason
+T24gRnJpLCBNYXkgMDMsIDIwMTkgYXQgMDI6MTQ6MzNQTSAtMDcwMCwgV2VsdHksIEJyaWFuIHdy
+b3RlOgo+Cj4gT24gNS8yLzIwMTkgMzo0OCBQTSwgS2VubnkgSG8gd3JvdGU6Cj4gPiBPbiA1LzIv
+MjAxOSAxOjM0IEFNLCBMZW9uIFJvbWFub3Zza3kgd3JvdGU6Cj4gPj4gQ291bnQgdXMgKE1lbGxh
+bm94KSB0b28sIG91ciBSRE1BIGRldmljZXMgYXJlIGV4cG9zaW5nIHNwZWNpYWwgYW5kCj4gPj4g
+bGltaXRlZCBpbiBzaXplIGRldmljZSBtZW1vcnkgdG8gdGhlIHVzZXJzIGFuZCB3ZSB3b3VsZCBs
+aWtlIHRvIHByb3ZpZGUKPiA+PiBhbiBvcHRpb24gdG8gdXNlIGNncm91cCB0byBjb250cm9sIGl0
+cyBleHBvc3VyZS4KPgo+IEhpIExlb24sIGdyZWF0IHRvIGhlYXIgYW5kIGhhcHB5IHRvIHdvcmsg
+d2l0aCB5b3UgYW5kIFJETUEgY29tbXVuaXR5Cj4gdG8gc2hhcGUgdGhpcyBmcmFtZXdvcmsgZm9y
+IHVzZSBieSBSRE1BIGRldmljZXMgYXMgd2VsbC4gIFRoZSBpbnRlbnQKPiB3YXMgdG8gc3VwcG9y
+dCBtb3JlIHRoYW4gR1BVIGRldmljZXMuCj4KPiBJbmNpZGVudGFsbHksIEkgYWxzbyB3YW50ZWQg
+dG8gYXNrIGFib3V0IHRoZSByZG1hIGNncm91cCBjb250cm9sbGVyCj4gYW5kIGlmIHRoZXJlIGlz
+IGludGVyZXN0IGluIHVwZGF0aW5nIHRoZSBkZXZpY2UgcmVnaXN0cmF0aW9uIGltcGxlbWVudGVk
+Cj4gaW4gdGhhdCBjb250cm9sbGVyLiAgSXQgY291bGQgdXNlIHRoZSBjZ3JvdXBfZGV2aWNlX3Jl
+Z2lzdGVyKCkgdGhhdCBpcwo+IHByb3Bvc2VkIGhlcmUuICAgQnV0IHRoaXMgaXMgcGVyaGFwcyBm
+dXR1cmUgd29yaywgc28gY2FuIGRpc2N1c3Mgc2VwYXJhdGVseS4KCkknbGwgdHJ5IHRvIHRha2Ug
+YSBsb29rIGxhdGVyIHRoaXMgd2Vlay4KCj4KPgo+ID4gRG9lc24ndCBSRE1BIGFscmVhZHkgaGFz
+IGEgc2VwYXJhdGUgY2dyb3VwPyAgV2h5IG5vdCBpbXBsZW1lbnQgaXQgdGhlcmU/Cj4gPgo+Cj4g
+SGkgS2VubnksIEkgY2FuJ3QgYW5zd2VyIGZvciBMZW9uLCBidXQgSSdtIGhvcGVmdWwgaGUgYWdy
+ZWVzIHdpdGggcmF0aW9uYWxlCj4gSSBnYXZlIGluIHRoZSBjb3ZlciBsZXR0ZXIuICBOYW1lbHks
+IHRvIGltcGxlbWVudCBpbiByZG1hIGNvbnRyb2xsZXIsIHdvdWxkCj4gbWVhbiBkdXBsaWNhdGlu
+ZyBleGlzdGluZyBtZW1jZyBjb250cm9scyB0aGVyZS4KCkV4YWN0bHksIEkgZGlkbid0IGZlZWwg
+Y29tZm9ydGFibGUgdG8gYWRkIG5vdGlvbiBvZiAiZGV2aWNlIG1lbW9yeSIKdG8gUkRNQSBjZ3Jv
+dXAgYW5kIHBvc3Rwb25lZCB0aGF0IGRlY2lzaW9uIHRvIGxhdGVyIHBvaW50IG9mIHRpbWUuClJE
+TUEgb3BlcmF0ZXMgd2l0aCB2ZXJicyBvYmplY3RzIGFuZCBhbGwgb3VyIHVzZXIgc3BhY2UgQVBJ
+IGlzIGJhc2VkIGFyb3VuZAp0aGF0IGNvbmNlcHQuIEF0IHRoZSBlbmQsIHN5c3RlbSBhZG1pbmlz
+dHJhdG9yIHdpbGwgaGF2ZSBoYXJkIHRpbWUgdG8KdW5kZXJzdGFuZCB0aGUgZGlmZmVyZW5jZXMg
+YmV0d2VlbiBtZW1jZyBhbmQgUkRNQSBtZW1vcnkuCgo+Cj4gSXMgQU1EIGludGVyZXN0ZWQgaW4g
+Y29sbGFib3JhdGluZyB0byBoZWxwIHNoYXBlIHRoaXMgZnJhbWV3b3JrPwo+IEl0IGlzIGludGVu
+ZGVkIHRvIGJlIGRldmljZS1uZXV0cmFsLCBzbyBjb3VsZCBiZSBsZXZlcmFnZWQgYnkgdmFyaW91
+cwo+IHR5cGVzIG9mIGRldmljZXMuCj4gSWYgeW91IGhhdmUgYW4gYWx0ZXJuYXRpdmUgc29sdXRp
+b24gd2VsbCB1bmRlcndheSwgdGhlbiBtYXliZQo+IHdlIGNhbiB3b3JrIHRvZ2V0aGVyIHRvIG1l
+cmdlIG91ciBlZmZvcnRzIGludG8gb25lLgo+IEluIHRoZSBlbmQsIHRoZSBEUk0gY29tbXVuaXR5
+IGlzIGJlc3Qgc2VydmVkIHdpdGggY29tbW9uIHNvbHV0aW9uLgo+Cj4KPiA+Cj4gPj4+IGFuZCB3
+aXRoIGZ1dHVyZSB3b3JrLCB3ZSBjb3VsZCBleHRlbmQgdG86Cj4gPj4+ICogIHRyYWNrIGFuZCBj
+b250cm9sIHNoYXJlIG9mIEdQVSB0aW1lIChyZXVzZSBvZiBjcHUvY3B1YWNjdCkKPiA+Pj4gKiAg
+YXBwbHkgbWFzayBvZiBhbGxvd2VkIGV4ZWN1dGlvbiBlbmdpbmVzIChyZXVzZSBvZiBjcHVzZXRz
+KQo+ID4+Pgo+ID4+PiBJbnN0ZWFkIG9mIGludHJvZHVjaW5nIGEgbmV3IGNncm91cCBzdWJzeXN0
+ZW0gZm9yIEdQVSBkZXZpY2VzLCBhIG5ldwo+ID4+PiBmcmFtZXdvcmsgaXMgcHJvcG9zZWQgdG8g
+YWxsb3cgZGV2aWNlcyB0byByZWdpc3RlciB3aXRoIGV4aXN0aW5nIGNncm91cAo+ID4+PiBjb250
+cm9sbGVycywgd2hpY2ggY3JlYXRlcyBwZXItZGV2aWNlIGNncm91cF9zdWJzeXNfc3RhdGUgd2l0
+aGluIHRoZQo+ID4+PiBjZ3JvdXAuICBUaGlzIGdpdmVzIGRldmljZSBkcml2ZXJzIHRoZWlyIG93
+biBwcml2YXRlIGNncm91cCBjb250cm9scwo+ID4+PiAoc3VjaCBhcyBtZW1vcnkgbGltaXRzIG9y
+IG90aGVyIHBhcmFtZXRlcnMpIHRvIGJlIGFwcGxpZWQgdG8gZGV2aWNlCj4gPj4+IHJlc291cmNl
+cyBpbnN0ZWFkIG9mIGhvc3Qgc3lzdGVtIHJlc291cmNlcy4KPiA+Pj4gRGV2aWNlIGRyaXZlcnMg
+KEdQVSBvciBvdGhlcikgYXJlIHRoZW4gYWJsZSB0byByZXVzZSB0aGUgZXhpc3RpbmcgY2dyb3Vw
+Cj4gPj4+IGNvbnRyb2xzLCBpbnN0ZWFkIG9mIGludmVudGluZyBzaW1pbGFyIG9uZXMuCj4gPj4+
+Cj4gPj4+IFBlci1kZXZpY2UgY29udHJvbHMgd291bGQgYmUgZXhwb3NlZCBpbiBjZ3JvdXAgZmls
+ZXN5c3RlbSBhczoKPiA+Pj4gICAgIG1vdW50LzxjZ3JvdXBfbmFtZT4vPHN1YnN5c19uYW1lPi5k
+ZXZpY2VzLzxkZXZfbmFtZT4vPHN1YnN5c19maWxlcz4KPiA+Pj4gc3VjaCBhcyAoZm9yIGV4YW1w
+bGUpOgo+ID4+PiAgICAgbW91bnQvPGNncm91cF9uYW1lPi9tZW1vcnkuZGV2aWNlcy88ZGV2X25h
+bWU+L21lbW9yeS5tYXgKPiA+Pj4gICAgIG1vdW50LzxjZ3JvdXBfbmFtZT4vbWVtb3J5LmRldmlj
+ZXMvPGRldl9uYW1lPi9tZW1vcnkuY3VycmVudAo+ID4+PiAgICAgbW91bnQvPGNncm91cF9uYW1l
+Pi9jcHUuZGV2aWNlcy88ZGV2X25hbWU+L2NwdS5zdGF0Cj4gPj4+ICAgICBtb3VudC88Y2dyb3Vw
+X25hbWU+L2NwdS5kZXZpY2VzLzxkZXZfbmFtZT4vY3B1LndlaWdodAo+ID4+Pgo+ID4+PiBUaGUg
+ZHJtL2k5MTUgcGF0Y2ggaW4gdGhpcyBzZXJpZXMgaXMgYmFzZWQgb24gdG9wIG9mIG90aGVyIFJG
+QyB3b3JrIFsxXQo+ID4+PiBmb3IgaTkxNSBkZXZpY2UgbWVtb3J5IHN1cHBvcnQuCj4gPj4+Cj4g
+Pj4+IEFNRCBbMl0gYW5kIEludGVsIFszXSBoYXZlIHByb3Bvc2VkIHJlbGF0ZWQgd29yayBpbiB0
+aGlzIGFyZWEgd2l0aGluIHRoZQo+ID4+PiBsYXN0IGZldyB5ZWFycywgbGlzdGVkIGJlbG93IGFz
+IHJlZmVyZW5jZS4gIFRoaXMgbmV3IFJGQyByZXVzZXMgZXhpc3RpbmcKPiA+Pj4gY2dyb3VwIGNv
+bnRyb2xsZXJzIGFuZCB0YWtlcyBhIGRpZmZlcmVudCBhcHByb2FjaCB0aGFuIHByaW9yIHdvcmsu
+Cj4gPj4+Cj4gPj4+IEZpbmFsbHksIHNvbWUgcG90ZW50aWFsIGRpc2N1c3Npb24gcG9pbnRzIGZv
+ciB0aGlzIHNlcmllczoKPiA+Pj4gKiBtZXJnZSBwcm9wb3NlZCA8c3Vic3lzX25hbWU+LmRldmlj
+ZXMgaW50byBhIHNpbmdsZSBkZXZpY2VzIGRpcmVjdG9yeT8KPiA+Pj4gKiBhbGxvdyBkZXZpY2Vz
+IHRvIGhhdmUgbXVsdGlwbGUgcmVnaXN0cmF0aW9ucyBmb3Igc3Vic2V0cyBvZiByZXNvdXJjZXM/
+Cj4gPj4+ICogZG9jdW1lbnQgYSAnY29tbW9uIGNoYXJnaW5nIHBvbGljeScgZm9yIGRldmljZSBk
+cml2ZXJzIHRvIGZvbGxvdz8KPiA+Pj4KPiA+Pj4gWzFdIGh0dHBzOi8vcGF0Y2h3b3JrLmZyZWVk
+ZXNrdG9wLm9yZy9zZXJpZXMvNTY2ODMvCj4gPj4+IFsyXSBodHRwczovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9hcmNoaXZlcy9kcmktZGV2ZWwvMjAxOC1Ob3ZlbWJlci8xOTcxMDYuaHRtbAo+ID4+
+PiBbM10gaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvYXJjaGl2ZXMvaW50ZWwtZ2Z4LzIw
+MTgtSmFudWFyeS8xNTMxNTYuaHRtbAo+ID4+Pgo+ID4+Pgo+ID4+PiBCcmlhbiBXZWx0eSAoNSk6
+Cj4gPj4+ICAgY2dyb3VwOiBBZGQgY2dyb3VwX3N1YnN5cyBwZXItZGV2aWNlIHJlZ2lzdHJhdGlv
+biBmcmFtZXdvcmsKPiA+Pj4gICBjZ3JvdXA6IENoYW5nZSBrZXJuZnNfbm9kZSBmb3IgZGlyZWN0
+b3JpZXMgdG8gc3RvcmUKPiA+Pj4gICAgIGNncm91cF9zdWJzeXNfc3RhdGUKPiA+Pj4gICBtZW1j
+ZzogQWRkIHBlci1kZXZpY2Ugc3VwcG9ydCB0byBtZW1vcnkgY2dyb3VwIHN1YnN5c3RlbQo+ID4+
+PiAgIGRybTogQWRkIG1lbW9yeSBjZ3JvdXAgcmVnaXN0cmF0aW9uIGFuZCBEUklWRVJfQ0dST1VQ
+UyBmZWF0dXJlIGJpdAo+ID4+PiAgIGRybS9pOTE1OiBVc2UgbWVtb3J5IGNncm91cCBmb3IgZW5m
+b3JjaW5nIGRldmljZSBtZW1vcnkgbGltaXQKPiA+Pj4KPiA+Pj4gIGRyaXZlcnMvZ3B1L2RybS9k
+cm1fZHJ2LmMgICAgICAgICAgICAgICAgICB8ICAxMiArCj4gPj4+ICBkcml2ZXJzL2dwdS9kcm0v
+ZHJtX2dlbS5jICAgICAgICAgICAgICAgICAgfCAgIDcgKwo+ID4+PiAgZHJpdmVycy9ncHUvZHJt
+L2k5MTUvaTkxNV9kcnYuYyAgICAgICAgICAgIHwgICAyICstCj4gPj4+ICBkcml2ZXJzL2dwdS9k
+cm0vaTkxNS9pbnRlbF9tZW1vcnlfcmVnaW9uLmMgfCAgMjQgKy0KPiA+Pj4gIGluY2x1ZGUvZHJt
+L2RybV9kZXZpY2UuaCAgICAgICAgICAgICAgICAgICB8ICAgMyArCj4gPj4+ICBpbmNsdWRlL2Ry
+bS9kcm1fZHJ2LmggICAgICAgICAgICAgICAgICAgICAgfCAgIDggKwo+ID4+PiAgaW5jbHVkZS9k
+cm0vZHJtX2dlbS5oICAgICAgICAgICAgICAgICAgICAgIHwgIDExICsKPiA+Pj4gIGluY2x1ZGUv
+bGludXgvY2dyb3VwLWRlZnMuaCAgICAgICAgICAgICAgICB8ICAyOCArKwo+ID4+PiAgaW5jbHVk
+ZS9saW51eC9jZ3JvdXAuaCAgICAgICAgICAgICAgICAgICAgIHwgICAzICsKPiA+Pj4gIGluY2x1
+ZGUvbGludXgvbWVtY29udHJvbC5oICAgICAgICAgICAgICAgICB8ICAxMCArCj4gPj4+ICBrZXJu
+ZWwvY2dyb3VwL2Nncm91cC12MS5jICAgICAgICAgICAgICAgICAgfCAgMTAgKy0KPiA+Pj4gIGtl
+cm5lbC9jZ3JvdXAvY2dyb3VwLmMgICAgICAgICAgICAgICAgICAgICB8IDMxMCArKysrKysrKysr
+KysrKysrKystLS0KPiA+Pj4gIG1tL21lbWNvbnRyb2wuYyAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICB8IDE4MyArKysrKysrKysrKy0KPiA+Pj4gIDEzIGZpbGVzIGNoYW5nZWQsIDU1MiBpbnNl
+cnRpb25zKCspLCA1OSBkZWxldGlvbnMoLSkKPiA+Pj4KPiA+Pj4gLS0KPiA+Pj4gMi4yMS4wCj4g
+Pj4+Cj4gPj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+PiA+PiBkcmktZGV2ZWwgbWFpbGluZyBsaXN0Cj4gPj4gZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwo+ID4+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGlu
+Zm8vZHJpLWRldmVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9y
+ZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdm
+eA==
