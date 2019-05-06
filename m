@@ -1,7 +1,7 @@
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH v15 13/17] IB, arm64: untag user pointers in ib_uverbs_(re)reg_mr()
-Date: Mon,  6 May 2019 18:30:59 +0200
-Message-ID: <66d044ab9445dcf36a96205a109458ac23f38b73.1557160186.git.andreyknvl@google.com>
+Subject: [PATCH v15 14/17] media/v4l2-core, arm64: untag user pointers in videobuf_dma_contig_user_get
+Date: Mon,  6 May 2019 18:31:00 +0200
+Message-ID: <b7999d13af54eb3ed8d7b0192397c7cde3df0b28.1557160186.git.andreyknvl@google.com>
 References: <cover.1557160186.git.andreyknvl@google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
@@ -16,37 +16,54 @@ This patch is a part of a series that extends arm64 kernel ABI to allow to
 pass tagged user pointers (with the top byte set to something else other
 than 0x00) as syscall arguments.
 
-ib_uverbs_(re)reg_mr() use provided user pointers for vma lookups (through
-e.g. mlx4_get_umem_mr()), which can only by done with untagged pointers.
+videobuf_dma_contig_user_get() uses provided user pointers for vma
+lookups, which can only by done with untagged pointers.
 
-Untag user pointers in these functions.
+Untag the pointers in this function.
 
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 ---
- drivers/infiniband/core/uverbs_cmd.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 062a86c04123..36e7b52577d0 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -708,6 +708,8 @@ static int ib_uverbs_reg_mr(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		return ret;
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index e1bf50df4c70..8a1ddd146b17 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -160,6 +160,7 @@ static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
+ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
+ 					struct videobuf_buffer *vb)
+ {
++	unsigned long untagged_baddr = untagged_addr(vb->baddr);
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	unsigned long prev_pfn, this_pfn;
+@@ -167,22 +168,22 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
+ 	unsigned int offset;
+ 	int ret;
  
-+	cmd.start = untagged_addr(cmd.start);
-+
- 	if ((cmd.start & ~PAGE_MASK) != (cmd.hca_va & ~PAGE_MASK))
- 		return -EINVAL;
+-	offset = vb->baddr & ~PAGE_MASK;
++	offset = untagged_baddr & ~PAGE_MASK;
+ 	mem->size = PAGE_ALIGN(vb->size + offset);
+ 	ret = -EINVAL;
  
-@@ -790,6 +792,8 @@ static int ib_uverbs_rereg_mr(struct uverbs_attr_bundle *attrs)
- 	if (ret)
- 		return ret;
+ 	down_read(&mm->mmap_sem);
  
-+	cmd.start = untagged_addr(cmd.start);
-+
- 	if (cmd.flags & ~IB_MR_REREG_SUPPORTED || !cmd.flags)
- 		return -EINVAL;
+-	vma = find_vma(mm, vb->baddr);
++	vma = find_vma(mm, untagged_baddr);
+ 	if (!vma)
+ 		goto out_up;
  
+-	if ((vb->baddr + mem->size) > vma->vm_end)
++	if ((untagged_baddr + mem->size) > vma->vm_end)
+ 		goto out_up;
+ 
+ 	pages_done = 0;
+ 	prev_pfn = 0; /* kill warning */
+-	user_address = vb->baddr;
++	user_address = untagged_baddr;
+ 
+ 	while (pages_done < (mem->size >> PAGE_SHIFT)) {
+ 		ret = follow_pfn(vma, user_address, &this_pfn);
 -- 
 2.21.0.1020.gf2820cf01a-goog
