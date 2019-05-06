@@ -1,20 +1,13 @@
-From: Chris Down <chris@chrisdown.name>
-Subject: Re: [RFC PATCH 0/5] cgroup support for GPU devices
-Date: Sun, 5 May 2019 12:46:19 -0400
-Message-ID: <20190505164619.GA59027@chrisdown.name>
-References: <20190501140438.9506-1-brian.welty@intel.com>
- <20190502083433.GP7676@mtr-leonro.mtl.com>
- <CAOWid-cYknxeTQvP9vQf3-i3Cpux+bs7uBs7_o-YMFjVCo19bg@mail.gmail.com>
- <bb001de0-e4e5-6b3f-7ced-9d0fb329635b@intel.com>
- <20190505071436.GD6938@mtr-leonro.mtl.com>
- <CAOWid-di8kcC2bYKq1KJo+rWfVjwQ13mcVRjaBjhFRzTO=c16Q@mail.gmail.com>
- <20190505160506.GF6938@mtr-leonro.mtl.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v3 00/26] compat_ioctl: cleanups
+Date: Mon, 6 May 2019 12:03:42 +0300
+Message-ID: <CAHp75Vc2-zzRYk0vpdPQm5duZwW+v=svEndTPV4Sr59QrGcMHg@mail.gmail.com>
+References: <20190416202013.4034148-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190505160506.GF6938@mtr-leonro.mtl.com>
+In-Reply-To: <20190416202013.4034148-1-arnd@arndb.de>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
@@ -24,25 +17,27 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
  <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
 Errors-To: dri-devel-bounces@lists.freedesktop.org
 Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Parav Pandit <parav@mellanox.com>, David Airlie <airlied@linux.ie>, kenny.ho@amd.com, intel-gfx@lists.freedesktop.org, "Welty,
- Brian" <brian.welty@intel.com>, Harish.Kasiviswanathan@amd.com, cgroups@vger.kernel.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, linux-mm@kvack.org, J??r??me Glisse <jglisse@redhat.com>, Li Zefan <lizefan@huawei.com>, Kenny Ho <y2kenny@gmail.com>, Vladimir Davydov <vdavydov.dev@gmail.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Alex Deucher <alexander.deucher@amd.com>, Tejun Heo <tj@kernel.org>, Christian K??nig <christian.koenig@amd.com>, RDMA mailing list <linux-rdma@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux NVMe Mailinglist <linux-nvme@lists.infradead.org>, linux-iio <linux-iio@vger.kernel.org>, linux-remoteproc@vger.kernel.org, linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org, Platform Driver <platform-driver-x86@vger.kernel.org>, linux-ide@vger.kernel.org, "open list:MEMORY TECHNOLOGY..." <linux-mtd@lists.infradead.org>, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-scsi <linux-scsi@vger.kernel.org>, linux-bluetooth@vger.kernel.org, y2038@lists.linaro.org, qat-linux@intel.com, amd-gfx@lists.freedesktop.org, linux-input <linux-input@vger.kernel.org>, Marcel Holtmann <marcel@holtmann.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, "open list:REAL TIME CLOCK (RTC) SUBSYSTEM" <linux-rtc@vger.kernel.org>, ALSA Development Mailing List <alsa-devel@alsa-project.o>
 List-Id: linux-rdma@vger.kernel.org
 
-TGVvbiBSb21hbm92c2t5IHdyaXRlczoKPkZpcnN0IGdyb3VwIChwcm9ncmFtbWVycykgaXMgdXNp
-bmcgc3BlY2lhbCBBUEkgWzFdIHRocm91Z2ggbGliaWJ2ZXJicyBbMl0KPndpdGhvdXQgYW55IG5v
-dGlvbiBvZiBjZ3JvdXBzIG9yIGFueSBsaW1pdGF0aW9ucy4gU2Vjb25kIGdyb3VwIChzeXNhZG1p
-bnMpCj5pcyBsZXNzIGludGVyZXN0ZWQgaW4gYXBwbGljYXRpb24gc3BlY2lmaWNzIGFuZCBmb3Ig
-dGhlbSAiZGV2aWNlIG1lbW9yeSIgbWVhbnMKPiJtZW1vcnkiIGFuZCBub3QgInJkbWEsIG5pYyBz
-cGVjaWZpYywgaW50ZXJuYWwgbWVtb3J5Ii4KCkknZCBzdWdnZXN0IG90aGVyd2lzZSwgYmFzZWQg
-b24gaGlzdG9yaWMgcHJlY2VkZW50IC0tIHN5c2FkbWlucyBhcmUgdHlwaWNhbGx5IAp2ZXJ5IG9w
-aW5pb25hdGVkIGFib3V0IG9wZXJhdGlvbiBvZiB0aGUgbWVtb3J5IHN1YnN5c3RlbSAoaGVuY2Ug
-dGhlIGVuZGxlc3MgCmRpc2N1c3Npb25zIGFib3V0IHN3YXAsIGNhY2hpbmcgYmVoYXZpb3VyLCBl
-dGMpLgoKRXNwZWNpYWxseSBpbiB0aGlzIGNhc2UsIHRoZXNlIHR5cGVzIG9mIG1lbW9yeSBvcGVy
-YXRlIGZ1bmRhbWVudGFsbHkgCmRpZmZlcmVudGx5IGFuZCBoYXZlIHNpZ25pZmljYW50bHkgZGlm
-ZmVyZW50IHBlcmZvcm1hbmNlIGFuZCBhdmFpbGFiaWxpdHkgCmNoYXJhY3RlcmlzdGljcy4gVGhh
-dCdzIG5vdCBzb21ldGhpbmcgdGhhdCBjYW4gYmUgdHJpdmlhbGx5IGFic3RyYWN0ZWQgb3ZlciAK
-d2l0aG91dCBub24tdHJpdmlhbCBkcmF3YmFja3MuCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxp
-c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2RyaS1kZXZlbA==
+T24gVHVlLCBBcHIgMTYsIDIwMTkgYXQgMTE6MjMgUE0gQXJuZCBCZXJnbWFubiA8YXJuZEBhcm5k
+Yi5kZT4gd3JvdGU6Cj4KPiBIaSBBbCwKPgo+IEl0IHRvb2sgbWUgd2F5IGxvbmdlciB0aGFuIEkg
+aGFkIGhvcGVkIHRvIHJldmlzaXQgdGhpcyBzZXJpZXMsIHNlZQo+IGh0dHBzOi8vbG9yZS5rZXJu
+ZWwub3JnL2xrbWwvMjAxODA5MTIxNTAxNDIuMTU3OTEzLTEtYXJuZEBhcm5kYi5kZS8KPiBmb3Ig
+dGhlIHByZXZpb3VzbHkgcG9zdGVkIHZlcnNpb24uCj4KPiBJJ3ZlIGNvbWUgdG8gdGhlIHBvaW50
+IHdoZXJlIGFsbCBjb252ZXJzaW9uIGhhbmRsZXJzIGFuZCBtb3N0Cj4gQ09NUEFUSUJMRV9JT0NU
+TCgpIGVudHJpZXMgYXJlIGdvbmUgZnJvbSB0aGlzIGZpbGUsIGJ1dCBmb3IKPiBub3csIHRoaXMg
+c2VyaWVzIG9ubHkgaGFzIHRoZSBwYXJ0cyB0aGF0IGhhdmUgZWl0aGVyIGJlZW4gcmV2aWV3ZWQK
+PiBwcmV2aW91c2x5LCBvciB0aGF0IGFyZSBzaW1wbGUgZW5vdWdoIHRvIGluY2x1ZGUuCj4KPiBU
+aGUgbWFpbiBtaXNzaW5nIHBpZWNlIGlzIHRoZSBTR19JTy9TR19HRVRfUkVRVUVTVF9UQUJMRSBj
+b252ZXJzaW9uLgo+IEknbGwgcG9zdCB0aGUgcGF0Y2hlcyBJIG1hZGUgZm9yIHRoYXQgbGF0ZXIs
+IGFzIHRoZXkgbmVlZCBtb3JlCj4gdGVzdGluZyBhbmQgcmV2aWV3IGZyb20gdGhlIHNjc2kgbWFp
+bnRhaW5lcnMuCj4KPiBJIGhvcGUgeW91IGNhbiBzdGlsbCB0YWtlIHRoZXNlIGZvciB0aGUgY29t
+aW5nIG1lcmdlIHdpbmRvdywgdW5sZXNzCj4gbmV3IHByb2JsZW1zIGNvbWUgdXAuCgo+ICBkcml2
+ZXJzL3BsYXRmb3JtL3g4Ni93bWkuYyAgICAgICAgICAgICAgICAgIHwgICAyICstCgpBY2tlZC1i
+eTogQW5keSBTaGV2Y2hlbmtvIDxhbmR5LnNoZXZjaGVua29AZ21haWwuY29tPgoKLS0gCldpdGgg
+QmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVua28KX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vZHJpLWRldmVs
