@@ -1,81 +1,71 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [Qemu-devel] [RFC 0/3] VirtIO RDMA
-Date: Tue, 7 May 2019 16:43:08 -0300
-Message-ID: <20190507194308.GK6201@ziepe.ca>
-References: <20190411110157.14252-1-yuval.shaia@oracle.com>
-	<20190411190215.2163572e.cohuck@redhat.com>
-	<20190415103546.GA6854@lap1>
-	<e73e03c2-ea2b-6ffc-cd23-e8e44d42ce80@suse.de>
-	<20190422164527.GF21588@ziepe.ca> <20190430171350.GA2763@lap1>
+From: "Welty, Brian" <brian.welty@intel.com>
+Subject: Re: [RFC PATCH 0/5] cgroup support for GPU devices
+Date: Tue, 7 May 2019 12:50:50 -0700
+Message-ID: <cf58b047-d678-ad89-c9b6-96fc6b01c1d7@intel.com>
+References: <20190501140438.9506-1-brian.welty@intel.com>
+ <20190506152643.GL374014@devbig004.ftw2.facebook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <virtualization-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20190430171350.GA2763@lap1>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/virtualization/>
-List-Post: <mailto:virtualization@lists.linux-foundation.org>
-List-Help: <mailto:virtualization-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/virtualization>,
-	<mailto:virtualization-request@lists.linux-foundation.org?subject=subscribe>
-Sender: virtualization-bounces@lists.linux-foundation.org
-Errors-To: virtualization-bounces@lists.linux-foundation.org
-To: Yuval Shaia <yuval.shaia@oracle.com>
-Cc: mst@redhat.com, linux-rdma@vger.kernel.org, Cornelia Huck <cohuck@redhat.com>, qemu-devel@nongnu.org, virtualization@lists.linux-foundation.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20190506152643.GL374014@devbig004.ftw2.facebook.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Tejun Heo <tj@kernel.org>
+Cc: Leon Romanovsky <leon@kernel.org>, David Airlie <airlied@linux.ie>, kenny.ho@amd.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, Li Zefan <lizefan@huawei.com>, Vladimir Davydov <vdavydov.dev@gmail.com>, Johannes Weiner <hannes@cmpxchg.org>, cgroups@vger.kernel.org, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, RDMA mailing list <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Apr 30, 2019 at 08:13:54PM +0300, Yuval Shaia wrote:
-> On Mon, Apr 22, 2019 at 01:45:27PM -0300, Jason Gunthorpe wrote:
-> > On Fri, Apr 19, 2019 at 01:16:06PM +0200, Hannes Reinecke wrote:
-> > > On 4/15/19 12:35 PM, Yuval Shaia wrote:
-> > > > On Thu, Apr 11, 2019 at 07:02:15PM +0200, Cornelia Huck wrote:
-> > > > > On Thu, 11 Apr 2019 14:01:54 +0300
-> > > > > Yuval Shaia <yuval.shaia@oracle.com> wrote:
-> > > > > 
-> > > > > > Data center backends use more and more RDMA or RoCE devices and more and
-> > > > > > more software runs in virtualized environment.
-> > > > > > There is a need for a standard to enable RDMA/RoCE on Virtual Machines.
-> > > > > > 
-> > > > > > Virtio is the optimal solution since is the de-facto para-virtualizaton
-> > > > > > technology and also because the Virtio specification
-> > > > > > allows Hardware Vendors to support Virtio protocol natively in order to
-> > > > > > achieve bare metal performance.
-> > > > > > 
-> > > > > > This RFC is an effort to addresses challenges in defining the RDMA/RoCE
-> > > > > > Virtio Specification and a look forward on possible implementation
-> > > > > > techniques.
-> > > > > > 
-> > > > > > Open issues/Todo list:
-> > > > > > List is huge, this is only start point of the project.
-> > > > > > Anyway, here is one example of item in the list:
-> > > > > > - Multi VirtQ: Every QP has two rings and every CQ has one. This means that
-> > > > > >    in order to support for example 32K QPs we will need 64K VirtQ. Not sure
-> > > > > >    that this is reasonable so one option is to have one for all and
-> > > > > >    multiplex the traffic on it. This is not good approach as by design it
-> > > > > >    introducing an optional starvation. Another approach would be multi
-> > > > > >    queues and round-robin (for example) between them.
-> > > > > > 
-> > > Typically there will be a one-to-one mapping between QPs and CPUs (on the
-> > > guest). 
-> > 
-> > Er we are really overloading words here.. The typical expectation is
-> > that a 'RDMA QP' will have thousands and thousands of instances on a
-> > system.
-> > 
-> > Most likely I think mapping 1:1 a virtio queue to a 'RDMA QP, CQ, SRQ,
-> > etc' is a bad idea...
-> 
-> We have three options, no virtqueue for QP, 1 to 1 or multiplexing. What
-> would be your vote on that?
-> I think you are for option #1, right? but in this case there is actually no
-> use of having a virtio-driver, isn't it?
-
-The virtio driver is supposed to be a standard, like a hardware
-standard, for doing the operation.
-
-It doesn't mean that every single element under the driver needs to
-use the virtio format QP.
-
-Jason
+Ck9uIDUvNi8yMDE5IDg6MjYgQU0sIFRlanVuIEhlbyB3cm90ZToKPiBIZWxsbywKPiAKPiBPbiBX
+ZWQsIE1heSAwMSwgMjAxOSBhdCAxMDowNDozM0FNIC0wNDAwLCBCcmlhbiBXZWx0eSB3cm90ZToK
+Pj4gVGhlIHBhdGNoIHNlcmllcyBlbmFibGVzIGRldmljZSBkcml2ZXJzIHRvIHVzZSBjZ3JvdXBz
+IHRvIGNvbnRyb2wgdGhlCj4+IGZvbGxvd2luZyByZXNvdXJjZXMgd2l0aGluIGEgR1BVIChvciBv
+dGhlciBhY2NlbGVyYXRvciBkZXZpY2UpOgo+PiAqICBjb250cm9sIGFsbG9jYXRpb24gb2YgZGV2
+aWNlIG1lbW9yeSAocmV1c2Ugb2YgbWVtY2cpCj4+IGFuZCB3aXRoIGZ1dHVyZSB3b3JrLCB3ZSBj
+b3VsZCBleHRlbmQgdG86Cj4+ICogIHRyYWNrIGFuZCBjb250cm9sIHNoYXJlIG9mIEdQVSB0aW1l
+IChyZXVzZSBvZiBjcHUvY3B1YWNjdCkKPj4gKiAgYXBwbHkgbWFzayBvZiBhbGxvd2VkIGV4ZWN1
+dGlvbiBlbmdpbmVzIChyZXVzZSBvZiBjcHVzZXRzKQo+Pgo+PiBJbnN0ZWFkIG9mIGludHJvZHVj
+aW5nIGEgbmV3IGNncm91cCBzdWJzeXN0ZW0gZm9yIEdQVSBkZXZpY2VzLCBhIG5ldwo+PiBmcmFt
+ZXdvcmsgaXMgcHJvcG9zZWQgdG8gYWxsb3cgZGV2aWNlcyB0byByZWdpc3RlciB3aXRoIGV4aXN0
+aW5nIGNncm91cAo+PiBjb250cm9sbGVycywgd2hpY2ggY3JlYXRlcyBwZXItZGV2aWNlIGNncm91
+cF9zdWJzeXNfc3RhdGUgd2l0aGluIHRoZQo+PiBjZ3JvdXAuICBUaGlzIGdpdmVzIGRldmljZSBk
+cml2ZXJzIHRoZWlyIG93biBwcml2YXRlIGNncm91cCBjb250cm9scwo+PiAoc3VjaCBhcyBtZW1v
+cnkgbGltaXRzIG9yIG90aGVyIHBhcmFtZXRlcnMpIHRvIGJlIGFwcGxpZWQgdG8gZGV2aWNlCj4+
+IHJlc291cmNlcyBpbnN0ZWFkIG9mIGhvc3Qgc3lzdGVtIHJlc291cmNlcy4KPj4gRGV2aWNlIGRy
+aXZlcnMgKEdQVSBvciBvdGhlcikgYXJlIHRoZW4gYWJsZSB0byByZXVzZSB0aGUgZXhpc3Rpbmcg
+Y2dyb3VwCj4+IGNvbnRyb2xzLCBpbnN0ZWFkIG9mIGludmVudGluZyBzaW1pbGFyIG9uZXMuCj4g
+Cj4gSSdtIHJlYWxseSBza2VwdGljYWwgYWJvdXQgdGhpcyBhcHByb2FjaC4gIFdoZW4gY3JlYXRp
+bmcgcmVzb3VyY2UKPiBjb250cm9sbGVycywgSSB0aGluayB3aGF0J3MgdGhlIG1vc3QgaW1wb3J0
+YW50IGFuZCBjaGFsbGVuZ2luZyBpcwo+IGVzdGFibGlzaGluZyByZXNvdXJjZSBtb2RlbCAtIHdo
+YXQgcmVzb3VyY2VzIGFyZSBhbmQgaG93IHRoZXkgY2FuIGJlCj4gZGlzdHJpYnV0ZWQuICBUaGlz
+IHBhdGNoc2V0IGlzIGdvaW5nIHRoZSBvdGhlciB3YXkgYXJvdW5kIC0gYnVpbGRpbmcKPiBvdXQg
+Y29yZSBpbmZyYXN0cnVjdHVyZSBmb3IgYm9saWVycGxhdGVzIGF0IGEgc2lnbmlmaWNhbnQgcmlz
+ayBvZgo+IG1peGluZyB1cCByZXNvdXJjZSBtb2RlbHMgYWNyb3NzIGRpZmZlcmVudCB0eXBlcyBv
+ZiByZXNvdXJjZXMuCj4gCj4gSU8gY29udHJvbGxlcnMgYWxyZWFkeSBpbXBsZW1lbnQgcGVyLWRl
+dmljZSBjb250cm9scy4gIEknZCBzdWdnZXN0Cj4gZm9sbG93aW5nIHRoZSBzYW1lIGludGVyZmFj
+ZSBjb252ZW50aW9ucyBhbmQgaW1wbGVtZW50aW5nIGEgZGVkaWNhdGVkCj4gY29udHJvbGxlciBm
+b3IgdGhlIHN1YnN5c3RlbS4KPgpPa2F5LCB0aGFua3MgZm9yIGZlZWRiYWNrLiAgUHJlZmVyZW5j
+ZSBpcyBjbGVhciB0byBzZWUgdGhpcyBkb25lIGFzCmRlZGljYXRlZCBjZ3JvdXAgY29udHJvbGxl
+ci4KClBhcnQgb2YgbXkgcHJvcG9zYWwgd2FzIGFuIGF0dGVtcHQgZm9yIGRldmljZXMgd2l0aCAi
+bWVtIGxpa2UiIGFuZCAiY3B1IApsaWtlIiBhdHRyaWJ1dGVzIHRvIGJlIG1hbmFnZWQgYnkgY29t
+bW9uIGNvbnRyb2xsZXIuICAgV2UgY2FuIGlnbm9yZSB0aGlzCmlkZWEgZm9yIGNwdSBhdHRyaWJ1
+dGVzLCBhcyB0aG9zZSBjYW4ganVzdCBnbyBpbiBhIEdQVSBjb250cm9sbGVyLgoKVGhlcmUgbWln
+aHQgc3RpbGwgYmUgbWVyaXQgaW4gaGF2aW5nIGEgJ2RldmljZSBtZW0nIGNncm91cCBjb250cm9s
+bGVyLgpUaGUgcmVzb3VyY2UgbW9kZWwgYXQgbGVhc3QgaXMgdGhlbiBubyBsb25nZXIgbWl4ZWQg
+dXAgd2l0aCBob3N0IG1lbW9yeS4KUkRNQSBjb21tdW5pdHkgc2VlbWVkIHRvIGhhdmUgc29tZSBp
+bnRlcmVzdCBpbiBhIGNvbW1vbiBjb250cm9sbGVyIGF0CmxlYXN0IGZvciBkZXZpY2UgbWVtb3J5
+IGFzcGVjdHMuClRob3VnaHRzIG9uIHRoaXM/ICAgSSBiZWxpZXZlIGNvdWxkIHN0aWxsIHJldXNl
+IHRoZSAnc3RydWN0IG1lbV9jZ3JvdXAnIGRhdGEKc3RydWN0dXJlLiAgVGhlcmUgc2hvdWxkIGJl
+IHNvbWUgb3Bwb3J0dW5pdHkgdG8gcmV1c2UgY2hhcmdpbmcgQVBJcyBhbmQKaGF2ZSBzb21lIG5p
+Y2UgaW50ZWdyYXRpb24gd2l0aCBITU0gZm9yIGNoYXJnaW5nIHRvIGRldmljZSBtZW1vcnksIGRl
+cGVuZGluZwpvbiBiYWNraW5nIHN0b3JlLgoKLUJyaWFuCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4
+QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWls
+bWFuL2xpc3RpbmZvL2ludGVsLWdmeA==
