@@ -1,46 +1,46 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [RFC PATCH 0/5] cgroup support for GPU devices
-Date: Thu, 9 May 2019 09:52:32 -0700
-Message-ID: <20190509165232.GW374014@devbig004.ftw2.facebook.com>
-References: <20190501140438.9506-1-brian.welty@intel.com>
- <20190506152643.GL374014@devbig004.ftw2.facebook.com>
- <cf58b047-d678-ad89-c9b6-96fc6b01c1d7@intel.com>
+From: Andrea Parri <andrea.parri@amarulasolutions.com>
+Subject: Re: [PATCH 5/5] IB/hfi1: Fix improper uses of smp_mb__before_atomic()
+Date: Thu, 9 May 2019 23:12:21 +0200
+Message-ID: <20190509211221.GA4966@andrea>
+References: <1556568902-12464-1-git-send-email-andrea.parri@amarulasolutions.com>
+ <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
+ <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
+ <20190429231657.GA2733@andrea>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <cf58b047-d678-ad89-c9b6-96fc6b01c1d7@intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "Welty, Brian" <brian.welty@intel.com>
-Cc: Leon Romanovsky <leon@kernel.org>, David Airlie <airlied@linux.ie>, kenny.ho@amd.com, intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Li Zefan <lizefan@huawei.com>, Vladimir Davydov <vdavydov.dev@gmail.com>, Johannes Weiner <hannes@cmpxchg.org>, cgroups@vger.kernel.org, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, RDMA mailing list <linux-rdma@vger.kernel.org>
+In-Reply-To: <20190429231657.GA2733@andrea>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Ruhl, Michael J" <michael.j.ruhl@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGVsbG8sCgpPbiBUdWUsIE1heSAwNywgMjAxOSBhdCAxMjo1MDo1MFBNIC0wNzAwLCBXZWx0eSwg
-QnJpYW4gd3JvdGU6Cj4gVGhlcmUgbWlnaHQgc3RpbGwgYmUgbWVyaXQgaW4gaGF2aW5nIGEgJ2Rl
-dmljZSBtZW0nIGNncm91cCBjb250cm9sbGVyLgo+IFRoZSByZXNvdXJjZSBtb2RlbCBhdCBsZWFz
-dCBpcyB0aGVuIG5vIGxvbmdlciBtaXhlZCB1cCB3aXRoIGhvc3QgbWVtb3J5Lgo+IFJETUEgY29t
-bXVuaXR5IHNlZW1lZCB0byBoYXZlIHNvbWUgaW50ZXJlc3QgaW4gYSBjb21tb24gY29udHJvbGxl
-ciBhdAo+IGxlYXN0IGZvciBkZXZpY2UgbWVtb3J5IGFzcGVjdHMuCj4gVGhvdWdodHMgb24gdGhp
-cz8gICBJIGJlbGlldmUgY291bGQgc3RpbGwgcmV1c2UgdGhlICdzdHJ1Y3QgbWVtX2Nncm91cCcg
-ZGF0YQo+IHN0cnVjdHVyZS4gIFRoZXJlIHNob3VsZCBiZSBzb21lIG9wcG9ydHVuaXR5IHRvIHJl
-dXNlIGNoYXJnaW5nIEFQSXMgYW5kCj4gaGF2ZSBzb21lIG5pY2UgaW50ZWdyYXRpb24gd2l0aCBI
-TU0gZm9yIGNoYXJnaW5nIHRvIGRldmljZSBtZW1vcnksIGRlcGVuZGluZwo+IG9uIGJhY2tpbmcg
-c3RvcmUuCgpMaWJyYXJ5LWlzaCBzaGFyaW5nIGlzIGZpbmUgYnV0IGluIHRlcm1zIG9mIGludGVy
-ZmFjZSwgSSB0aGluayBpdCdkIGJlCmJldHRlciB0byBrZWVwIHRoZW0gc2VwYXJhdGUgYXQgbGVh
-c3QgZm9yIG5vdy4gIERvd24gdGhlIGxpbmUgbWF5YmUKdGhlc2UgcmVzb3VyY2VzIHdpbGwgaW50
-ZXJhY3Qgd2l0aCBlYWNoIG90aGVyIGluIGEgbW9yZSBpbnRlZ3JhdGVkIHdheQpidXQgSSBkb24n
-dCB0aGluayBpdCdzIGEgZ29vZCBpZGVhIHRvIHRyeSB0byBkZXNpZ24gYW5kIGltcGxlbWVudApy
-ZXNvdXJjZSBtb2RlbHMgZm9yIHNvbWV0aGluZyBsaWtlIHRoYXQgcHJlZW1wdGl2ZWx5LgoKVGhh
-bmtzLgoKLS0gCnRlanVuCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1k
-ZXZlbA==
+On Tue, Apr 30, 2019 at 01:16:57AM +0200, Andrea Parri wrote:
+> Hi Mike,
+> 
+> > >This barrier only applies to the read-modify-write operations; in
+> > >particular, it does not apply to the atomic_read() primitive.
+> > >
+> > >Replace the barrier with an smp_mb().
+> > 
+> > This is one of a couple of barrier issues that we are currently looking into.
+> > 
+> > See:
+> > 
+> > [PATCH for-next 6/9] IB/rdmavt: Add new completion inline
+> > 
+> > We will take a look at this one as well.
+> 
+> Thank you for the reference and for looking into this,
+
+So, I'm planning to just drop this patch; or can I do something to help?
+
+Please let me know.
+
+Thanx,
+  Andrea
+
+
+> 
+>   Andrea
