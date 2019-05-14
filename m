@@ -1,52 +1,79 @@
-From: Andrea Parri <andrea.parri@amarulasolutions.com>
-Subject: Re: [PATCH 5/5] IB/hfi1: Fix improper uses of smp_mb__before_atomic()
-Date: Tue, 14 May 2019 16:48:06 +0200
-Message-ID: <20190514144806.GA14962@andrea>
-References: <1556568902-12464-1-git-send-email-andrea.parri@amarulasolutions.com>
- <1556568902-12464-6-git-send-email-andrea.parri@amarulasolutions.com>
- <14063C7AD467DE4B82DEDB5C278E8663BE6AADCE@FMSMSX108.amr.corp.intel.com>
- <20190429231657.GA2733@andrea>
- <20190509211221.GA4966@andrea>
- <0a78eded-6c08-8d32-ec31-d62d6feb2118@intel.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: undefined reference to `__aeabi_uldivmod' after 25c13324d03d
+ ("IB/mlx5: Add steering SW ICM device memory type")
+Date: Tue, 14 May 2019 12:45:10 -0700
+Message-ID: <20190514194510.GA15465@archlinux-i9>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <0a78eded-6c08-8d32-ec31-d62d6feb2118@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: "Ruhl, Michael J" <michael.j.ruhl@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Marciniszyn, Mike" <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "Paul E. McKenney" <paulmck@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>
+To: Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@ziepe.ca>, Doug Ledford <dledford@redhat.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 14, 2019 at 08:32:52AM -0400, Dennis Dalessandro wrote:
-> On 5/9/2019 5:12 PM, Andrea Parri wrote:
-> >On Tue, Apr 30, 2019 at 01:16:57AM +0200, Andrea Parri wrote:
-> >>Hi Mike,
-> >>
-> >>>>This barrier only applies to the read-modify-write operations; in
-> >>>>particular, it does not apply to the atomic_read() primitive.
-> >>>>
-> >>>>Replace the barrier with an smp_mb().
-> >>>
-> >>>This is one of a couple of barrier issues that we are currently looking into.
-> >>>
-> >>>See:
-> >>>
-> >>>[PATCH for-next 6/9] IB/rdmavt: Add new completion inline
-> >>>
-> >>>We will take a look at this one as well.
-> >>
-> >>Thank you for the reference and for looking into this,
-> >
-> >So, I'm planning to just drop this patch; or can I do something to help?
-> >
-> >Please let me know.
-> 
-> Mike was looking into this, and I've got a handful of patches from him to
-> review. He's unavailable for a while but if it's not included in the patches
-> I've got we'll get something out shortly. So yes I think we can hold off on
-> this patch for now. Thanks.
+Hi all,
 
-Thank you for the confirmation, Dennis.  I'll hold off on this one.
+I checked the RDMA mailing list and trees and I haven't seen this
+reported/fixed yet (forgive me if it has) but when building for arm32
+with multi_v7_defconfig and the following configs (distilled from
+allyesconfig):
 
-  Andrea
+CONFIG_INFINIBAND=y
+CONFIG_INFINIBAND_ON_DEMAND_PAGING=y
+CONFIG_INFINIBAND_USER_ACCESS=y
+CONFIG_MLX5_CORE=y
+CONFIG_MLX5_INFINIBAND=y
+
+The following link time errors occur:
+
+arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/main.o: in function `mlx5_ib_alloc_dm':
+main.c:(.text+0x60c): undefined reference to `__aeabi_uldivmod'
+arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/cmd.o: in function `mlx5_cmd_alloc_sw_icm':
+cmd.c:(.text+0x6d4): undefined reference to `__aeabi_uldivmod'
+arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/cmd.o: in function `mlx5_cmd_dealloc_sw_icm':
+cmd.c:(.text+0x9ec): undefined reference to `__aeabi_uldivmod'
+
+Bisect log:
+
+git bisect start
+# good: [e93c9c99a629c61837d5a7fc2120cd2b6c70dbdd] Linux 5.1
+git bisect good e93c9c99a629c61837d5a7fc2120cd2b6c70dbdd
+# bad: [63863ee8e2f6f6ae47be3dff4af2f2806f5ca2dd] Merge tag 'gcc-plugins-v5.2-rc1' of ssh://gitolite.kernel.org/pub/scm/linux/kernel/git/kees/linux
+git bisect bad 63863ee8e2f6f6ae47be3dff4af2f2806f5ca2dd
+# good: [80f232121b69cc69a31ccb2b38c1665d770b0710] Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next
+git bisect good 80f232121b69cc69a31ccb2b38c1665d770b0710
+# good: [a2d635decbfa9c1e4ae15cb05b68b2559f7f827c] Merge tag 'drm-next-2019-05-09' of git://anongit.freedesktop.org/drm/drm
+git bisect good a2d635decbfa9c1e4ae15cb05b68b2559f7f827c
+# bad: [8e4ff713ce313dcabbb60e6ede1ffc193e67631f] Merge tag 'rtc-5.2' of git://git.kernel.org/pub/scm/linux/kernel/git/abelloni/linux
+git bisect bad 8e4ff713ce313dcabbb60e6ede1ffc193e67631f
+# good: [055128ee008b00fba14e3638e7e84fc2cff8d77d] Merge tag 'dmaengine-5.2-rc1' of git://git.infradead.org/users/vkoul/slave-dma
+git bisect good 055128ee008b00fba14e3638e7e84fc2cff8d77d
+# bad: [abde77eb5c66b2f98539c4644b54f34b7e179e6b] Merge branch 'for-5.2' of git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup
+git bisect bad abde77eb5c66b2f98539c4644b54f34b7e179e6b
+# good: [3b70508a6bfbdc78b565e9da22fd98483263494e] RDMA/mlx5: Create flow table with max size supported
+git bisect good 3b70508a6bfbdc78b565e9da22fd98483263494e
+# bad: [e7a5b4aafd82771f8924905c208d5d236ddcb671] RDMA/device: Don't fire uevent before device is fully initialized
+git bisect bad e7a5b4aafd82771f8924905c208d5d236ddcb671
+# good: [dd05cb828d0ebecd3d772075fccb85ec3618bedf] RDMA: Get rid of iw_cm_verbs
+git bisect good dd05cb828d0ebecd3d772075fccb85ec3618bedf
+# bad: [a808273a495c657e33281b181fd7fcc2bb28f662] RDMA/verbs: Add a DMA iterator to return aligned contiguous memory blocks
+git bisect bad a808273a495c657e33281b181fd7fcc2bb28f662
+# good: [3a4ef2e2b5cf9a34bcc66c0d33f7eba180a14535] RDMA/rdmavt: Catch use-after-free access of AH structures
+git bisect good 3a4ef2e2b5cf9a34bcc66c0d33f7eba180a14535
+# bad: [33cde96fb5d7ae36207541c8a832d7fae3cadbde] IB/mlx5: Device resource control for privileged DEVX user
+git bisect bad 33cde96fb5d7ae36207541c8a832d7fae3cadbde
+# good: [4056b12efd43248d8331b6ed93df5ea5250106a9] IB/mlx5: Warn on allocated MEMIC buffers during cleanup
+git bisect good 4056b12efd43248d8331b6ed93df5ea5250106a9
+# bad: [25c13324d03d004f9e8071bf5bf5d5c6fdace71e] IB/mlx5: Add steering SW ICM device memory type
+git bisect bad 25c13324d03d004f9e8071bf5bf5d5c6fdace71e
+# first bad commit: [25c13324d03d004f9e8071bf5bf5d5c6fdace71e] IB/mlx5: Add steering SW ICM device memory type
+
+DIV_ROUND_UP is u64 / u32 in this case. I think DIV_ROUND_UP_ULL is
+needed but I am not sure if that has any unintended side effects so I
+didn't want to send a patch.
+
+I would appreciate if you guys could look into this.
+
+Cheers,
+Nathan
