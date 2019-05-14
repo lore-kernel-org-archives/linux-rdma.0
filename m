@@ -1,54 +1,139 @@
-From: Jason Gunthorpe <jgg@mellanox.com>
-Subject: Re: Annoying gcc / rdma / networking warnings
-Date: Mon, 13 May 2019 18:30:58 +0000
-Message-ID: <20190513183053.GI7948@mellanox.com>
-References: <CAHk-=whbuwm5FbkPSfftZ3oHMWw43ZNFXqvW1b6KFMEj5wBipA@mail.gmail.com>
- <20190513011131.GA7948@mellanox.com>
- <20190512.201701.1918995863082655897.davem@davemloft.net>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: [PATCH v2] RDMA: Directly cast the sockaddr union to sockaddr
+Date: Mon, 13 May 2019 21:55:21 -0300
+Message-ID: <20190514005521.GA18085@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190512.201701.1918995863082655897.davem@davemloft.net>
-Content-Language: en-US
-Content-ID: <93EB29960ADB1A469EF8B5521F803208@eurprd05.prod.outlook.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>, "g@mellanox.com" <g@mellanox.com>
-Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Miller <davem@davemloft.net>, Doug Ledford <dledford@redhat.com>, linux-rdma <linux-rdma@vger.kernel.org>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, Netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, May 12, 2019 at 08:17:01PM -0700, David Miller wrote:
-> From: Jason Gunthorpe <jgg@mellanox.com>
-> Date: Mon, 13 May 2019 01:11:42 +0000
->=20
-> > I think the specific sockaddr types should only ever be used if we
-> > *know* the sa_family is that type. If the sa_family is not known then
-> > it should be sockaddr or sockaddr_storage. Otherwise things get very
-> > confusing.
-> >=20
-> > When using sockaddr_storage code always has the cast to sockaddr
-> > anyhow, as it is not a union, so this jaunty cast is not out of place
-> > in sockets code.
->=20
-> From what I can see, each and every call side of these helpers like
-> rdma_gid2ip() et al. redefine this union type over and over and over
-> again in the local function.
+gcc 9 now does allocation size tracking and thinks that passing the member
+of a union and then accessing beyond that member's bounds is an overflow.
 
-Yes, the repeated union is very ugly and could be consolidated - or
-should just use sockaddr_storage in the first place.
+Instead of using the union member, use the entire union with a cast to
+get to the sockaddr. gcc will now know that the memory extends the full
+size of the union.
 
-> It seems that if we just defined it explicitly in one place, like
-> include/rdma/ib_addr.h, then we could have tdma_gid2ip(), addr_resolve(),
-> and rdma_resolve_ip() take that type explcitily.
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
+---
+ drivers/infiniband/core/addr.c           | 16 ++++++++--------
+ drivers/infiniband/hw/ocrdma/ocrdma_ah.c |  5 ++---
+ drivers/infiniband/hw/ocrdma/ocrdma_hw.c |  5 ++---
+ 3 files changed, 12 insertions(+), 14 deletions(-)
 
-I pulled on this thread for a while and the number of places that
-would need to convert to use a global 'union rdma_sockaddr_inet'
-started to become pretty silly and weird. I eventually reached a point
-where I had to cast a sockaddr * to the union - which is something
-that makes no sense and I gave up.
+I missed the ocrdma files in the v1
 
-So, I think this feels simpler to follow the usual sockaddr_storage
-pattern and only use the union to declare the initial storage. Then
-everything else just uses the sockaddr * plus casts..
+We can revisit what to do with that repetitive union after the merge
+window, but this simple patch will eliminate the warnings for now.
 
+Linus, I'll send this as a PR tomorrow - there is also a bug fix for
+the rdma-netlink changes posted that should go too.
+
+Thanks,
 Jason
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index ba01b90c04e775..2f7d14159841f8 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -731,8 +731,8 @@ int roce_resolve_route_from_path(struct sa_path_rec *rec,
+ 	if (rec->roce.route_resolved)
+ 		return 0;
+ 
+-	rdma_gid2ip(&sgid._sockaddr, &rec->sgid);
+-	rdma_gid2ip(&dgid._sockaddr, &rec->dgid);
++	rdma_gid2ip((struct sockaddr *)&sgid, &rec->sgid);
++	rdma_gid2ip((struct sockaddr *)&dgid, &rec->dgid);
+ 
+ 	if (sgid._sockaddr.sa_family != dgid._sockaddr.sa_family)
+ 		return -EINVAL;
+@@ -743,7 +743,7 @@ int roce_resolve_route_from_path(struct sa_path_rec *rec,
+ 	dev_addr.net = &init_net;
+ 	dev_addr.sgid_attr = attr;
+ 
+-	ret = addr_resolve(&sgid._sockaddr, &dgid._sockaddr,
++	ret = addr_resolve((struct sockaddr *)&sgid, (struct sockaddr *)&dgid,
+ 			   &dev_addr, false, true, 0);
+ 	if (ret)
+ 		return ret;
+@@ -815,22 +815,22 @@ int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
+ 	struct rdma_dev_addr dev_addr;
+ 	struct resolve_cb_context ctx;
+ 	union {
+-		struct sockaddr     _sockaddr;
+ 		struct sockaddr_in  _sockaddr_in;
+ 		struct sockaddr_in6 _sockaddr_in6;
+ 	} sgid_addr, dgid_addr;
+ 	int ret;
+ 
+-	rdma_gid2ip(&sgid_addr._sockaddr, sgid);
+-	rdma_gid2ip(&dgid_addr._sockaddr, dgid);
++	rdma_gid2ip((struct sockaddr *)&sgid_addr, sgid);
++	rdma_gid2ip((struct sockaddr *)&dgid_addr, dgid);
+ 
+ 	memset(&dev_addr, 0, sizeof(dev_addr));
+ 	dev_addr.net = &init_net;
+ 	dev_addr.sgid_attr = sgid_attr;
+ 
+ 	init_completion(&ctx.comp);
+-	ret = rdma_resolve_ip(&sgid_addr._sockaddr, &dgid_addr._sockaddr,
+-			      &dev_addr, 1000, resolve_cb, true, &ctx);
++	ret = rdma_resolve_ip((struct sockaddr *)&sgid_addr,
++			      (struct sockaddr *)&dgid_addr, &dev_addr, 1000,
++			      resolve_cb, true, &ctx);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+index 1d4ea135c28f2a..8d3e36d548aae9 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_ah.c
+@@ -83,7 +83,6 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 	struct iphdr ipv4;
+ 	const struct ib_global_route *ib_grh;
+ 	union {
+-		struct sockaddr     _sockaddr;
+ 		struct sockaddr_in  _sockaddr_in;
+ 		struct sockaddr_in6 _sockaddr_in6;
+ 	} sgid_addr, dgid_addr;
+@@ -133,9 +132,9 @@ static inline int set_av_attr(struct ocrdma_dev *dev, struct ocrdma_ah *ah,
+ 		ipv4.tot_len = htons(0);
+ 		ipv4.ttl = ib_grh->hop_limit;
+ 		ipv4.protocol = nxthdr;
+-		rdma_gid2ip(&sgid_addr._sockaddr, sgid);
++		rdma_gid2ip((struct sockaddr *)&sgid_addr, sgid);
+ 		ipv4.saddr = sgid_addr._sockaddr_in.sin_addr.s_addr;
+-		rdma_gid2ip(&dgid_addr._sockaddr, &ib_grh->dgid);
++		rdma_gid2ip((struct sockaddr*)&dgid_addr, &ib_grh->dgid);
+ 		ipv4.daddr = dgid_addr._sockaddr_in.sin_addr.s_addr;
+ 		memcpy((u8 *)ah->av + eth_sz, &ipv4, sizeof(struct iphdr));
+ 	} else {
+diff --git a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+index 32674b291f60da..5127e2ea4bdd2d 100644
+--- a/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
++++ b/drivers/infiniband/hw/ocrdma/ocrdma_hw.c
+@@ -2499,7 +2499,6 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 	u16 vlan_id = 0xFFFF;
+ 	u8 mac_addr[6], hdr_type;
+ 	union {
+-		struct sockaddr     _sockaddr;
+ 		struct sockaddr_in  _sockaddr_in;
+ 		struct sockaddr_in6 _sockaddr_in6;
+ 	} sgid_addr, dgid_addr;
+@@ -2542,8 +2541,8 @@ static int ocrdma_set_av_params(struct ocrdma_qp *qp,
+ 
+ 	hdr_type = rdma_gid_attr_network_type(sgid_attr);
+ 	if (hdr_type == RDMA_NETWORK_IPV4) {
+-		rdma_gid2ip(&sgid_addr._sockaddr, &sgid_attr->gid);
+-		rdma_gid2ip(&dgid_addr._sockaddr, &grh->dgid);
++		rdma_gid2ip((struct sockaddr *)&sgid_addr, &sgid_attr->gid);
++		rdma_gid2ip((struct sockaddr *)&dgid_addr, &grh->dgid);
+ 		memcpy(&cmd->params.dgid[0],
+ 		       &dgid_addr._sockaddr_in.sin_addr.s_addr, 4);
+ 		memcpy(&cmd->params.sgid[0],
+-- 
+2.21.0
