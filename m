@@ -1,40 +1,46 @@
-From: Saeed Mahameed <saeedm@dev.mellanox.co.il>
-Subject: Re: [PATCH mlx5-next 2/2] net/mlx5: Set completion EQs as shared resources
-Date: Tue, 14 May 2019 13:14:56 -0700
-Message-ID: <CALzJLG8R-MMef5_y37p=dh4iOG2Bt7=AKNq+3+uTg5=cgbDRRg@mail.gmail.com>
-References: <20190514114412.30604-1-leon@kernel.org> <20190514114412.30604-3-leon@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: undefined reference to `__aeabi_uldivmod' after 25c13324d03d
+ ("IB/mlx5: Add steering SW ICM device memory type")
+Date: Tue, 14 May 2019 21:32:02 -0300
+Message-ID: <20190515003202.GA14522@ziepe.ca>
+References: <20190514194510.GA15465@archlinux-i9>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190514114412.30604-3-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Saeed Mahameed <saeedm@mellanox.com>, Yishai Hadas <yishaih@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190514194510.GA15465@archlinux-i9>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nathan Chancellor <natechancellor@gmail.com>, fengguang.wu@intel.com, kbuild@01.org
+Cc: Ariel Levkovich <lariel@mellanox.com>, Eli Cohen <eli@mellanox.com>, Mark Bloch <markb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 14, 2019 at 4:44 AM Leon Romanovsky <leon@kernel.org> wrote:
->
-> From: Yishai Hadas <yishaih@mellanox.com>
->
-> Mark completion EQs as shared resources so that they can be used by CQs
-> with uid != 0.
->
-> Fixes: 7efce3691d33 ("IB/mlx5: Add obj create and destroy functionality")
-> Signed-off-by: Yishai Hadas <yishaih@mellanox.com>
-> Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> ---
->  drivers/net/ethernet/mellanox/mlx5/core/eq.c | 3 +++
->  include/linux/mlx5/mlx5_ifc.h                | 2 +-
->  2 files changed, 4 insertions(+), 1 deletion(-)
->
+On Tue, May 14, 2019 at 12:45:10PM -0700, Nathan Chancellor wrote:
+> Hi all,
+> 
+> I checked the RDMA mailing list and trees and I haven't seen this
+> reported/fixed yet (forgive me if it has) but when building for arm32
+> with multi_v7_defconfig and the following configs (distilled from
+> allyesconfig):
+> 
+> CONFIG_INFINIBAND=y
+> CONFIG_INFINIBAND_ON_DEMAND_PAGING=y
+> CONFIG_INFINIBAND_USER_ACCESS=y
+> CONFIG_MLX5_CORE=y
+> CONFIG_MLX5_INFINIBAND=y
+> 
+> The following link time errors occur:
+> 
+> arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/main.o: in function `mlx5_ib_alloc_dm':
+> main.c:(.text+0x60c): undefined reference to `__aeabi_uldivmod'
+> arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/cmd.o: in function `mlx5_cmd_alloc_sw_icm':
+> cmd.c:(.text+0x6d4): undefined reference to `__aeabi_uldivmod'
+> arm-linux-gnueabi-ld: drivers/infiniband/hw/mlx5/cmd.o: in function `mlx5_cmd_dealloc_sw_icm':
+> cmd.c:(.text+0x9ec): undefined reference to `__aeabi_uldivmod'
 
-Hi leon,
+Fengguang, I'm surprised that 0-day didn't report this earlier.. 
 
-I see the patch is marked for mlx5-next,
-As we spoke earlier, let's push this directly to rdma-next and skip
-mlx5-next, we will need to reset the branch soon, so let's keep it
-clean.
+and come to think of it, I haven't seen a success email from 0-day for
+the rdma trees in some time - is it still working?
 
 Thanks,
-Saeed
+Jason
