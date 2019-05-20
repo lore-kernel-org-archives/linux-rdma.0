@@ -1,79 +1,45 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Fri, 17 May 2019 15:49:31 +0100
-Message-ID: <20190517144931.GA56186@arrakis.emea.arm.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: [PATCH rdma-next 01/15] rds: Don't check return value from destroy CQ
+Date: Mon, 20 May 2019 09:54:19 +0300
+Message-ID: <20190520065433.8734-2-leon@kernel.org>
+References: <20190520065433.8734-1-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1557160186.git.andreyknvl@google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190520065433.8734-1-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
+Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Glenn Streiff <gstreiff@neteffect.com>, Steve Wise <swise@opengridcomputing.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrey,
+From: Leon Romanovsky <leonro@mellanox.com>
 
-On Mon, May 06, 2019 at 06:30:46PM +0200, Andrey Konovalov wrote:
-> One of the alternative approaches to untagging that was considered is to
-> completely strip the pointer tag as the pointer enters the kernel with
-> some kind of a syscall wrapper, but that won't work with the countless
-> number of different ioctl calls. With this approach we would need a custom
-> wrapper for each ioctl variation, which doesn't seem practical.
+There is no value in checking ib_destroy_cq() result and skipping
+to clear struct ic fields. This connection needs to be reinitialized
+anyway.
 
-The more I look at this problem, the less convinced I am that we can
-solve it in a way that results in a stable ABI covering ioctls(). While
-for the Android kernel codebase it could be simpler as you don't upgrade
-the kernel version every 2.5 months, for the mainline kernel this
-doesn't scale. Any run-time checks are relatively limited in terms of
-drivers covered. Better static checking would be nice as a long term
-solution but we didn't get anywhere with the discussion last year.
+Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+---
+ net/rds/ib_cm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-IMO (RFC for now), I see two ways forward:
-
-1. Make this a user space problem and do not allow tagged pointers into
-   the syscall ABI. A libc wrapper would have to convert structures,
-   parameters before passing them into the kernel. Note that we can
-   still support the hardware MTE in the kernel by enabling tagged
-   memory ranges, saving/restoring tags etc. but not allowing tagged
-   addresses at the syscall boundary.
-
-2. Similar shim to the above libc wrapper but inside the kernel
-   (arch/arm64 only; most pointer arguments could be covered with an
-   __SC_CAST similar to the s390 one). There are two differences from
-   what we've discussed in the past:
-
-   a) this is an opt-in by the user which would have to explicitly call
-      prctl(). If it returns -ENOTSUPP etc., the user won't be allowed
-      to pass tagged pointers to the kernel. This would probably be the
-      responsibility of the C lib to make sure it doesn't tag heap
-      allocations. If the user did not opt-in, the syscalls are routed
-      through the normal path (no untagging address shim).
-
-   b) ioctl() and other blacklisted syscalls (prctl) will not accept
-      tagged pointers (to be documented in Vicenzo's ABI patches).
-
-It doesn't solve the problems we are trying to address but 2.a saves us
-from blindly relaxing the ABI without knowing how to easily assess new
-code being merged (over 500K lines between kernel versions). Existing
-applications (who don't opt-in) won't inadvertently start using the new
-ABI which could risk becoming de-facto ABI that we need to support on
-the long run.
-
-Option 1 wouldn't solve the ioctl() problem either and while it makes
-things simpler for the kernel, I am aware that it's slightly more
-complicated in user space (but I really don't mind if you prefer option
-1 ;)).
-
-The tagged pointers (whether hwasan or MTE) should ideally be a
-transparent feature for the application writer but I don't think we can
-solve it entirely and make it seamless for the multitude of ioctls().
-I'd say you only opt in to such feature if you know what you are doing
-and the user code takes care of specific cases like ioctl(), hence the
-prctl() proposal even for the hwasan.
-
-Comments welcomed.
-
--- 
-Catalin
+diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
+index 66c6eb56072b..5a42ebb892cd 100644
+--- a/net/rds/ib_cm.c
++++ b/net/rds/ib_cm.c
+@@ -611,11 +611,11 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
+ qp_out:
+ 	rdma_destroy_qp(ic->i_cm_id);
+ recv_cq_out:
+-	if (!ib_destroy_cq(ic->i_recv_cq))
+-		ic->i_recv_cq = NULL;
++	ib_destroy_cq(ic->i_recv_cq);
++	ic->i_recv_cq = NULL;
+ send_cq_out:
+-	if (!ib_destroy_cq(ic->i_send_cq))
+-		ic->i_send_cq = NULL;
++	ib_destroy_cq(ic->i_send_cq);
++	ic->i_send_cq = NULL;
+ rds_ibdev_out:
+ 	rds_ib_remove_conn(rds_ibdev, conn);
+ out:
