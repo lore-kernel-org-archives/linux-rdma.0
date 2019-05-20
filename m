@@ -1,45 +1,82 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 01/15] rds: Don't check return value from destroy CQ
-Date: Mon, 20 May 2019 09:54:19 +0300
-Message-ID: <20190520065433.8734-2-leon@kernel.org>
-References: <20190520065433.8734-1-leon@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190520065433.8734-1-leon@kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Glenn Streiff <gstreiff@neteffect.com>, Steve Wise <swise@opengridcomputing.com>, "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH] mlx5: avoid 64-bit division
+Date: Mon, 20 May 2019 13:19:02 +0200 (CEST)
+Message-ID: <20190520111902.7104DE0184@unicorn.suse.cz>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Ariel Levkovich <lariel@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Leon Romanovsky <leonro@mellanox.com>
+Commit 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
+breaks i386 build by introducing three 64-bit divisions. As the divisor
+is MLX5_SW_ICM_BLOCK_SIZE() which is always a power of 2, we can replace
+the division with bit operations.
 
-There is no value in checking ib_destroy_cq() result and skipping
-to clear struct ic fields. This connection needs to be reinitialized
-anyway.
-
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Fixes: 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 ---
- net/rds/ib_cm.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx5/cmd.c  | 9 +++++++--
+ drivers/infiniband/hw/mlx5/main.c | 2 +-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/net/rds/ib_cm.c b/net/rds/ib_cm.c
-index 66c6eb56072b..5a42ebb892cd 100644
---- a/net/rds/ib_cm.c
-+++ b/net/rds/ib_cm.c
-@@ -611,11 +611,11 @@ static int rds_ib_setup_qp(struct rds_connection *conn)
- qp_out:
- 	rdma_destroy_qp(ic->i_cm_id);
- recv_cq_out:
--	if (!ib_destroy_cq(ic->i_recv_cq))
--		ic->i_recv_cq = NULL;
-+	ib_destroy_cq(ic->i_recv_cq);
-+	ic->i_recv_cq = NULL;
- send_cq_out:
--	if (!ib_destroy_cq(ic->i_send_cq))
--		ic->i_send_cq = NULL;
-+	ib_destroy_cq(ic->i_send_cq);
-+	ic->i_send_cq = NULL;
- rds_ibdev_out:
- 	rds_ib_remove_conn(rds_ibdev, conn);
- out:
+diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
+index e3ec79b8f7f5..6c8645033102 100644
+--- a/drivers/infiniband/hw/mlx5/cmd.c
++++ b/drivers/infiniband/hw/mlx5/cmd.c
+@@ -190,12 +190,12 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+ 			  u16 uid, phys_addr_t *addr, u32 *obj_id)
+ {
+ 	struct mlx5_core_dev *dev = dm->dev;
+-	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
+ 	u32 in[MLX5_ST_SZ_DW(create_sw_icm_in)] = {};
+ 	unsigned long *block_map;
+ 	u64 icm_start_addr;
+ 	u32 log_icm_size;
++	u32 num_blocks;
+ 	u32 max_blocks;
+ 	u64 block_idx;
+ 	void *sw_icm;
+@@ -224,6 +224,8 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+ 		return -EINVAL;
+ 	}
+ 
++	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
++		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
+ 	max_blocks = BIT(log_icm_size - MLX5_LOG_SW_ICM_BLOCK_SIZE(dev));
+ 	spin_lock(&dm->lock);
+ 	block_idx = bitmap_find_next_zero_area(block_map,
+@@ -266,13 +268,16 @@ int mlx5_cmd_dealloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+ 			    u16 uid, phys_addr_t addr, u32 obj_id)
+ {
+ 	struct mlx5_core_dev *dev = dm->dev;
+-	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
+ 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
+ 	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
+ 	unsigned long *block_map;
++	u32 num_blocks;
+ 	u64 start_idx;
+ 	int err;
+ 
++	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
++		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
++
+ 	switch (type) {
+ 	case MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM:
+ 		start_idx =
+diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+index abac70ad5c7c..340290b883fe 100644
+--- a/drivers/infiniband/hw/mlx5/main.c
++++ b/drivers/infiniband/hw/mlx5/main.c
+@@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
+ 	/* Allocation size must a multiple of the basic block size
+ 	 * and a power of 2.
+ 	 */
+-	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
++	act_size = round_up(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
+ 	act_size = roundup_pow_of_two(act_size);
+ 
+ 	dm->size = act_size;
+-- 
+2.21.0
