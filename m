@@ -1,7 +1,7 @@
 From: Parav Pandit <parav@mellanox.com>
-Subject: [PATCH iproute2-next 4/4] rdma: Add man page for rdma dev set netns command
-Date: Tue, 21 May 2019 09:22:44 -0500
-Message-ID: <20190521142244.8452-5-parav@mellanox.com>
+Subject: [PATCH iproute2-next 3/4] rdma: Add an option to set net namespace of rdma device
+Date: Tue, 21 May 2019 09:22:43 -0500
+Message-ID: <20190521142244.8452-4-parav@mellanox.com>
 References: <20190521142244.8452-1-parav@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,60 +12,93 @@ To: dsahern@gmail.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com, parav@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Add man page to describe additional set netns command
-for rdma device.
+Enrich rdma tool with an option to set network namespace of RDMA
+device. After successful execution of it, rdma device will
+be accessible only in assigned network namespace.
+
+rdma tool command examples and output.
+
+First set netns mode to exclusive.
+
+$ rdma system set netns exclusive
+
+Now create network namespace and assign RDMA device to this
+network namespace.
+
+$ ip netns add foo
+$ rdma dev set mlx5_1 netns foo
 
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
- man/man8/rdma-dev.8 | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ rdma/dev.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-index 069f4717..38e34b3b 100644
---- a/man/man8/rdma-dev.8
-+++ b/man/man8/rdma-dev.8
-@@ -28,13 +28,19 @@ rdma-dev \- RDMA device configuration
- .BR name
- .BR NEWNAME
+diff --git a/rdma/dev.c b/rdma/dev.c
+index 90483622..d28bf6b3 100644
+--- a/rdma/dev.c
++++ b/rdma/dev.c
+@@ -4,12 +4,14 @@
+  * Authors:     Leon Romanovsky <leonro@mellanox.com>
+  */
  
-+.ti -8
-+.B rdma dev set
-+.RI "[ " DEV " ]"
-+.BR netns
-+.BR NSNAME
++#include <fcntl.h>
+ #include "rdma.h"
+ 
+ static int dev_help(struct rd *rd)
+ {
+ 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
+ 	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
++	pr_out("       %s dev set [DEV] netns NSNAME\n", rd->filename);
+ 	return 0;
+ }
+ 
+@@ -272,11 +274,46 @@ static int dev_set_name(struct rd *rd)
+ 	return rd_sendrecv_msg(rd, seq);
+ }
+ 
++static int dev_set_netns(struct rd *rd)
++{
++	char *netns_path;
++	uint32_t seq;
++	int netns;
++	int ret;
 +
- .ti -8
- .B rdma dev help
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide device name.\n");
++		return -EINVAL;
++	}
++
++	if (asprintf(&netns_path, "%s/%s", NETNS_RUN_DIR, rd_argv(rd)) < 0)
++		return -ENOMEM;
++
++	netns = open(netns_path, O_RDONLY | O_CLOEXEC);
++	if (netns < 0) {
++		fprintf(stderr, "Cannot open network namespace \"%s\": %s\n",
++			rd_argv(rd), strerror(errno));
++		ret = -EINVAL;
++		goto done;
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
++		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_NET_NS_FD, netns);
++	ret = rd_sendrecv_msg(rd, seq);
++	close(netns);
++done:
++	free(netns_path);
++	return ret;
++}
++
+ static int dev_one_set(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		dev_help},
+ 		{ "name",	dev_set_name},
++		{ "netns",	dev_set_netns},
+ 		{ 0 }
+ 	};
  
- .SH "DESCRIPTION"
--.SS rdma dev set - rename rdma device
-+.SS rdma dev set - rename RDMA device or set network namespace
- 
--.SS rdma dev show - display rdma device attributes
-+.SS rdma dev show - display RDMA device attributes
- 
- .PP
- .I "DEV"
-@@ -58,11 +64,19 @@ rdma dev set mlx5_3 name rdma_0
- Renames the mlx5_3 device to rdma_0.
- .RE
- .PP
-+rdma dev set mlx5_3 netns foo
-+.RS 4
-+Changes the network namespace of RDMA device to foo where foo is
-+previously created using iproute2 ip command.
-+.RE
-+.PP
- 
- .SH SEE ALSO
-+.BR ip (8),
- .BR rdma (8),
- .BR rdma-link (8),
- .BR rdma-resource (8),
-+.BR rdma-system (8),
- .br
- 
- .SH AUTHOR
 -- 
 2.19.2
