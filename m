@@ -1,104 +1,123 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: [PATCH iproute2-next 3/4] rdma: Add an option to set net namespace of rdma device
-Date: Tue, 21 May 2019 09:22:43 -0500
-Message-ID: <20190521142244.8452-4-parav@mellanox.com>
-References: <20190521142244.8452-1-parav@mellanox.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Tue, 21 May 2019 19:29:33 +0100
+Message-ID: <20190521182932.sm4vxweuwo5ermyd@mbp>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190521142244.8452-1-parav@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: dsahern@gmail.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com, parav@mellanox.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Evgenii Stepanov <eugenis@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd>
 List-Id: linux-rdma@vger.kernel.org
 
-Enrich rdma tool with an option to set network namespace of RDMA
-device. After successful execution of it, rdma device will
-be accessible only in assigned network namespace.
+On Mon, May 20, 2019 at 04:53:07PM -0700, Evgenii Stepanov wrote:
+> On Fri, May 17, 2019 at 7:49 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > IMO (RFC for now), I see two ways forward:
+> >
+> > 1. Make this a user space problem and do not allow tagged pointers into
+> >    the syscall ABI. A libc wrapper would have to convert structures,
+> >    parameters before passing them into the kernel. Note that we can
+> >    still support the hardware MTE in the kernel by enabling tagged
+> >    memory ranges, saving/restoring tags etc. but not allowing tagged
+> >    addresses at the syscall boundary.
+> >
+> > 2. Similar shim to the above libc wrapper but inside the kernel
+> >    (arch/arm64 only; most pointer arguments could be covered with an
+> >    __SC_CAST similar to the s390 one). There are two differences from
+> >    what we've discussed in the past:
+> >
+> >    a) this is an opt-in by the user which would have to explicitly call
+> >       prctl(). If it returns -ENOTSUPP etc., the user won't be allowed
+> >       to pass tagged pointers to the kernel. This would probably be the
+> >       responsibility of the C lib to make sure it doesn't tag heap
+> >       allocations. If the user did not opt-in, the syscalls are routed
+> >       through the normal path (no untagging address shim).
+> >
+> >    b) ioctl() and other blacklisted syscalls (prctl) will not accept
+> >       tagged pointers (to be documented in Vicenzo's ABI patches).
+[...]
+> Any userspace shim approach is problematic for Android because of the
+> apps that use raw system calls. AFAIK, all apps written in Go are in
+> that camp - I'm not sure how common they are, but getting them all
+> recompiled is probably not realistic.
 
-rdma tool command examples and output.
+That's a fair point (I wasn't expecting it would get much traction
+anyway ;)). OTOH, it allows upstreaming of the MTE patches while we
+continue the discussions around TBI.
 
-First set netns mode to exclusive.
+> The way I see it, a patch that breaks handling of tagged pointers is
+> not that different from, say, a patch that adds a wild pointer
+> dereference. Both are bugs; the difference is that (a) the former
+> breaks a relatively uncommon target and (b) it's arguably an easier
+> mistake to make. If MTE adoption goes well, (a) will not be the case
+> for long.
 
-$ rdma system set netns exclusive
+It's also the fact such patch would go unnoticed for a long time until
+someone exercises that code path. And when they do, the user would be
+pretty much in the dark trying to figure what what went wrong, why a
+SIGSEGV or -EFAULT happened. What's worse, we can't even say we fixed
+all the places where it matters in the current kernel codebase (ignoring
+future patches).
 
-Now create network namespace and assign RDMA device to this
-network namespace.
+I think we should revisit the static checking discussions we had last
+year. Run-time checking (even with compiler instrumentation and
+syzkaller fuzzing) would only cover the code paths specific to a Linux
+or Android installation.
 
-$ ip netns add foo
-$ rdma dev set mlx5_1 netns foo
+> This is a bit of a chicken-and-egg problem. In a world where memory
+> allocators on one or several popular platforms generate pointers with
+> non-zero tags, any such breakage will be caught in testing.
+> Unfortunately to reach that state we need the kernel to start
+> accepting tagged pointers first, and then hold on for a couple of
+> years until userspace catches up.
 
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Parav Pandit <parav@mellanox.com>
----
- rdma/dev.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+Would the kernel also catch up with providing a stable ABI? Because we
+have two moving targets.
 
-diff --git a/rdma/dev.c b/rdma/dev.c
-index 90483622..d28bf6b3 100644
---- a/rdma/dev.c
-+++ b/rdma/dev.c
-@@ -4,12 +4,14 @@
-  * Authors:     Leon Romanovsky <leonro@mellanox.com>
-  */
- 
-+#include <fcntl.h>
- #include "rdma.h"
- 
- static int dev_help(struct rd *rd)
- {
- 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
- 	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
-+	pr_out("       %s dev set [DEV] netns NSNAME\n", rd->filename);
- 	return 0;
- }
- 
-@@ -272,11 +274,46 @@ static int dev_set_name(struct rd *rd)
- 	return rd_sendrecv_msg(rd, seq);
- }
- 
-+static int dev_set_netns(struct rd *rd)
-+{
-+	char *netns_path;
-+	uint32_t seq;
-+	int netns;
-+	int ret;
-+
-+	if (rd_no_arg(rd)) {
-+		pr_err("Please provide device name.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (asprintf(&netns_path, "%s/%s", NETNS_RUN_DIR, rd_argv(rd)) < 0)
-+		return -ENOMEM;
-+
-+	netns = open(netns_path, O_RDONLY | O_CLOEXEC);
-+	if (netns < 0) {
-+		fprintf(stderr, "Cannot open network namespace \"%s\": %s\n",
-+			rd_argv(rd), strerror(errno));
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
-+	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_NET_NS_FD, netns);
-+	ret = rd_sendrecv_msg(rd, seq);
-+	close(netns);
-+done:
-+	free(netns_path);
-+	return ret;
-+}
-+
- static int dev_one_set(struct rd *rd)
- {
- 	const struct rd_cmd cmds[] = {
- 		{ NULL,		dev_help},
- 		{ "name",	dev_set_name},
-+		{ "netns",	dev_set_netns},
- 		{ 0 }
- 	};
- 
+On one hand, you have Android or some Linux distro that stick to a
+stable kernel version for some time, so they have better chance of
+clearing most of the problems. On the other hand, we have mainline
+kernel that gets over 500K lines every release. As maintainer, I can't
+rely on my testing alone as this is on a limited number of platforms. So
+my concern is that every kernel release has a significant chance of
+breaking the ABI, unless we have a better way of identifying potential
+issues.
+
+> Perhaps we can start by whitelisting ioctls by driver?
+
+This was also raised by Ruben in private but without a (static) tool to
+to check, manually going through all the drivers doesn't scale. It's
+very likely that most drivers don't care, just a get_user/put_user is
+already handled by these patches. Searching for find_vma() was
+identifying one such use-case but is this sufficient? Are there other
+cases we need to explicitly untag a pointer?
+
+
+The other point I'd like feedback on is 2.a above. I see _some_ value
+into having the user opt-in to this relaxed ABI rather than blinding
+exposing it to all applications. Dave suggested (in private) a new
+personality (e.g. PER_LINUX_TBI) inherited by children. It would be the
+responsibility of the C library to check the current personality bits
+and only tag pointers on allocation *if* the kernel allowed it. The
+kernel could provide the AT_FLAGS bit as in Vincenzo's patches if the
+personality was set but can't set it retrospectively if the user called
+sys_personality. By default, /sbin/init would not have this personality
+and libc would not tag pointers, so we can guarantee that your distro
+boots normally with a new kernel version. We could have an envp that
+gets caught by /sbin/init so you can pass it on the kernel command line
+(or a dynamic loader at run-time). But the default should be the current
+ABI behaviour.
+
+We can enforce the current behaviour by having access_ok() check the
+personality or a TIF flag but we may relax this enforcement at some
+point in the future as we learn more about the implications of TBI.
+
+Thanks.
+
 -- 
-2.19.2
+Catalin
