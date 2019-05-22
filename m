@@ -1,137 +1,122 @@
-From: Jerome Glisse <jglisse@redhat.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Wed, 22 May 2019 18:42:11 -0400
-Message-ID: <20190522224211.GF20179@redhat.com>
+Date: Wed, 22 May 2019 19:43:20 -0300
+Message-ID: <20190522224320.GB15389@ziepe.ca>
 References: <20190411181314.19465-1-jglisse@redhat.com>
  <20190506195657.GA30261@ziepe.ca>
  <20190521205321.GC3331@redhat.com>
  <20190522005225.GA30819@ziepe.ca>
  <20190522174852.GA23038@redhat.com>
- <20190522201247.GH6054@ziepe.ca>
- <20190522220419.GB20179@redhat.com>
- <20190522223906.GA15389@ziepe.ca>
+ <20190522192219.GF6054@ziepe.ca>
+ <20190522214917.GA20179@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190522223906.GA15389@ziepe.ca>
+In-Reply-To: <20190522214917.GA20179@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 07:39:06PM -0300, Jason Gunthorpe wrote:
-> On Wed, May 22, 2019 at 06:04:20PM -0400, Jerome Glisse wrote:
-> > On Wed, May 22, 2019 at 05:12:47PM -0300, Jason Gunthorpe wrote:
-> > > On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
+On Wed, May 22, 2019 at 05:49:18PM -0400, Jerome Glisse wrote:
+> > > > So why is mm suddenly guarenteed valid? It was a bug report that
+> > > > triggered the race the mmget_not_zero is fixing, so I need a better
+> > > > explanation why it is now safe. From what I see the hmm_range_fault
+> > > > is doing stuff like find_vma without an active mmget??
 > > > 
-> > > >  static void put_per_mm(struct ib_umem_odp *umem_odp)
-> > > >  {
-> > > >  	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
-> > > > @@ -325,9 +283,10 @@ static void put_per_mm(struct ib_umem_odp *umem_odp)
-> > > >  	up_write(&per_mm->umem_rwsem);
-> > > >  
-> > > >  	WARN_ON(!RB_EMPTY_ROOT(&per_mm->umem_tree.rb_root));
-> > > > -	mmu_notifier_unregister_no_release(&per_mm->mn, per_mm->mm);
-> > > > +	hmm_mirror_unregister(&per_mm->mirror);
-> > > >  	put_pid(per_mm->tgid);
-> > > > -	mmu_notifier_call_srcu(&per_mm->rcu, free_per_mm);
-> > > > +
-> > > > +	kfree(per_mm);
-> > > 
-> > > Notice that mmu_notifier only uses SRCU to fence in-progress ops
-> > > callbacks, so I think hmm internally has the bug that this ODP
-> > > approach prevents.
-> > > 
-> > > hmm should follow the same pattern ODP has and 'kfree_srcu' the hmm
-> > > struct, use container_of in the mmu_notifier callbacks, and use the
-> > > otherwise vestigal kref_get_unless_zero() to bail:
-> > > 
-> > > From 0cb536dc0150ba964a1d655151d7b7a84d0f915a Mon Sep 17 00:00:00 2001
-> > > From: Jason Gunthorpe <jgg@mellanox.com>
-> > > Date: Wed, 22 May 2019 16:52:52 -0300
-> > > Subject: [PATCH] hmm: Fix use after free with struct hmm in the mmu notifiers
-> > > 
-> > > mmu_notifier_unregister_no_release() is not a fence and the mmu_notifier
-> > > system will continue to reference hmm->mn until the srcu grace period
-> > > expires.
-> > > 
-> > >          CPU0                                     CPU1
-> > >                                                __mmu_notifier_invalidate_range_start()
-> > >                                                  srcu_read_lock
-> > >                                                  hlist_for_each ()
-> > >                                                    // mn == hmm->mn
-> > > hmm_mirror_unregister()
-> > >   hmm_put()
-> > >     hmm_free()
-> > >       mmu_notifier_unregister_no_release()
-> > >          hlist_del_init_rcu(hmm-mn->list)
-> > > 			                           mn->ops->invalidate_range_start(mn, range);
-> > > 					             mm_get_hmm()
-> > >       mm->hmm = NULL;
-> > >       kfree(hmm)
-> > >                                                      mutex_lock(&hmm->lock);
-> > > 
-> > > Use SRCU to kfree the hmm memory so that the notifiers can rely on hmm
-> > > existing. Get the now-safe hmm struct through container_of and directly
-> > > check kref_get_unless_zero to lock it against free.
+> > > So the mm struct can not go away as long as we hold a reference on
+> > > the hmm struct and we hold a reference on it through both hmm_mirror
+> > > and hmm_range struct. So struct mm can not go away and thus it is
+> > > safe to try to take its mmap_sem.
 > > 
-> > It is already badly handled with BUG_ON()
+> > This was always true here, though, so long as the umem_odp exists the
+> > the mm has a grab on it. But a grab is not a get..
+> > 
+> > The point here was the old code needed an mmget() in order to do
+> > get_user_pages_remote()
+> > 
+> > If hmm does not need an external mmget() then fine, we delete this
+> > stuff and rely on hmm.
+> > 
+> > But I don't think that is true as we have:
+> > 
+> >           CPU 0                                           CPU1
+> >                                                        mmput()
+> >                        				        __mmput()
+> > 							 exit_mmap()
+> > down_read(&mm->mmap_sem);
+> > hmm_range_dma_map(range, device,..
+> >   ret = hmm_range_fault(range, block);
+> >      if (hmm->mm == NULL || hmm->dead)
+> > 							   mmu_notifier_release()
+> > 							     hmm->dead = true
+> >      vma = find_vma(hmm->mm, start);
+> >         .. rb traversal ..                                 while (vma) remove_vma()
+> > 
+> > *goes boom*
+> > 
+> > I think this is violating the basic constraint of the mm by acting on
+> > a mm's VMA's without holding a mmget() to prevent concurrent
+> > destruction.
+> > 
+> > In other words, mmput() destruction does not respect the mmap_sem - so
+> > holding the mmap sem alone is not enough locking.
+> > 
+> > The unlucked hmm->dead simply can't save this. Frankly every time I
+> > look a struct with 'dead' in it, I find races like this.
+> > 
+> > Thus we should put the mmget_notzero back in.
 > 
-> You can't crash the kernel because userspace forced a race, and no it
-> isn't handled today because there is no RCU locking in mm_get_hmm nor
-> is there a kfree_rcu for the struct hmm to make the
-> kref_get_unless_zero work without use-after-free.
-> 
-> > i just need to convert those to return and to use
-> > mmu_notifier_call_srcu() to free hmm struct.
-> 
-> Isn't that what this patch does?
+> So for some reason i thought exit_mmap() was setting the mm_rb
+> to empty node and flushing vmacache so that find_vma() would
+> fail.
 
-Yes but other chunk just need to replace BUG_ON with return
+It would still be racy without locks.
 
-> 
-> > The way race is avoided is because mm->hmm will either be NULL or
-> > point to another hmm struct before an existing hmm is free. 
-> 
-> There is no locking on mm->hmm so it is useless to prevent races.
+> Note that right before find_vma() there is also range->valid
+> check which will also intercept mm release.
 
-There is locking on mm->hmm
+There is no locking on range->valid so it is just moves the race
+around. You can't solve races with unlocked/non-atomic variables.
 
-> 
-> > Also if range_start/range_end use kref_get_unless_zero() but right
-> > now this is BUG_ON if it turn out to be NULL, it should just return
-> > on NULL.
-> 
-> Still needs rcu.
-> 
-> Also the container_of is necessary to avoid some race where you could
-> be doing:
-> 
->                   CPU0                                     CPU1                         CPU2
->                                                        hlist_for_each ()
->        mmu_notifier_unregister_no_release(hmm1)             
->        spin_lock(&mm->page_table_lock);                                
->        mm->hmm = NULL
->        spin_unlock(&mm->page_table_lock);                                                                                      
->                                                       				 hmm2 = hmm_get_or_create()
->                                                         mn == hmm1->mn
->                                                         mn->ops->invalidate_range_start(mn, range)
-> 							  mm_get_mm() == hmm2
->                                                       hist_for_each con't
->                                                         mn == hmm2->mn
->                                                         mn->ops->invalidate_range_start(mn, range)
-> 							  mm_get_mm() == hmm2
-> 
-> Now we called the same notifier twice on hmm2. Ooops.
-> 
-> There is no reason to risk this confusion just to avoid container_of.
-> 
-> So we agree this patch is necessary? Can you test it an ack it please?
+> Anyway the easy fix is to get ref on mm user in range_register.
 
-A slightly different patch than this one is necessary i will work on
-it tomorrow.
+Yes a mmget_not_zero inside range_register would be fine.
 
-Cheers,
-Jérôme
+How do you want to handle that patch?
+
+> > I saw some other funky looking stuff in hmm as well..
+> > 
+> > > Hence it is safe to take mmap_sem and it is safe to call in hmm, if
+> > > mm have been kill it will return EFAULT and this will propagate to
+> > > RDMA.
+> >  
+> > > As per_mm i removed the per_mm->mm = NULL from release so that it is
+> > > always safe to use that field even in face of racing mm "killing".
+> > 
+> > Yes, that certainly wasn't good.
+> > 
+> > > > > -	 * An array of the pages included in the on-demand paging umem.
+> > > > > -	 * Indices of pages that are currently not mapped into the device will
+> > > > > -	 * contain NULL.
+> > > > > +	 * An array of the pages included in the on-demand paging umem. Indices
+> > > > > +	 * of pages that are currently not mapped into the device will contain
+> > > > > +	 * 0.
+> > > > >  	 */
+> > > > > -	struct page		**page_list;
+> > > > > +	uint64_t *pfns;
+> > > > 
+> > > > Are these actually pfns, or are they mangled with some shift? (what is range->pfn_shift?)
+> > > 
+> > > They are not pfns they have flags (hence range->pfn_shift) at the
+> > > bottoms i just do not have a better name for this.
+> > 
+> > I think you need to have a better name then
+> 
+> Suggestion ? i have no idea for a better name, it has pfn value
+> in it.
+
+pfn_flags?
+
+Jason
