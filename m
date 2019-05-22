@@ -1,8 +1,8 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH rdma-next v2 11/17] RDMA/netlink: Implement counter
  dumpit calback
-Date: Wed, 22 May 2019 14:21:37 -0300
-Message-ID: <20190522172137.GD15023@ziepe.ca>
+Date: Wed, 22 May 2019 14:22:16 -0300
+Message-ID: <20190522172216.GE15023@ziepe.ca>
 References: <20190429083453.16654-1-leon@kernel.org>
  <20190429083453.16654-12-leon@kernel.org>
 Mime-Version: 1.0
@@ -42,8 +42,47 @@ On Mon, Apr 29, 2019 at 11:34:47AM +0300, Leon Romanovsky wrote:
 > +	if (!dev->ops.counter_alloc_stats)
 > +		return NULL;
 > +
+>  	counter = kzalloc(sizeof(*counter), GFP_KERNEL);
+>  	if (!counter)
+>  		return NULL;
+> @@ -69,16 +72,25 @@ static struct rdma_counter *rdma_counter_alloc(struct ib_device *dev, u8 port,
+>  	counter->device    = dev;
+>  	counter->port      = port;
+>  	counter->res.type  = RDMA_RESTRACK_COUNTER;
+> +	counter->stats     = dev->ops.counter_alloc_stats(counter);
+> +	if (!counter->stats)
+> +		goto err_stats;
+> +
+>  	counter->mode.mode = mode;
+>  	atomic_set(&counter->usecnt, 0);
+>  	mutex_init(&counter->lock);
+>  
+>  	return counter;
+> +
+> +err_stats:
+> +	kfree(counter);
+> +	return NULL;
+>  }
+>  
+>  static void rdma_counter_dealloc(struct rdma_counter *counter)
+>  {
+>  	rdma_restrack_del(&counter->res);
+> +	kfree(counter->stats);
+>  	kfree(counter);
+>  }
+>  
+> @@ -279,6 +291,22 @@ int rdma_counter_unbind_qp(struct ib_qp *qp, bool force)
+>  	return 0;
+>  }
+>  
+> +int rdma_counter_query_stats(struct rdma_counter *counter)
+> +{
+> +	int ret;
+> +
+> +	struct ib_device *dev = counter->device;
+> +
 
-Seems weird to add this now, why was it Ok to have counters prior to
-this patch?
+Extra blank line
+Something about festive trees
 
 Jason
