@@ -1,223 +1,203 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Tue, 21 May 2019 21:52:25 -0300
-Message-ID: <20190522005225.GA30819@ziepe.ca>
-References: <20190411181314.19465-1-jglisse@redhat.com>
- <20190506195657.GA30261@ziepe.ca>
- <20190521205321.GC3331@redhat.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Wed, 22 May 2019 11:11:11 +0100
+Message-ID: <20190522101110.m2stmpaj7seezveq@mbp>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20190521205321.GC3331@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+In-Reply-To: <201905211633.6C0BF0C2@keescook>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kees Cook <keescook@chromium.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Yishai
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 21, 2019 at 04:53:22PM -0400, Jerome Glisse wrote:
-> On Mon, May 06, 2019 at 04:56:57PM -0300, Jason Gunthorpe wrote:
-> > On Thu, Apr 11, 2019 at 02:13:13PM -0400, jglisse@redhat.com wrote:
-> > > From: Jérôme Glisse <jglisse@redhat.com>
-> > > 
-> > > Just fixed Kconfig and build when ODP was not enabled, other than that
-> > > this is the same as v3. Here is previous cover letter:
-> > > 
-> > > Git tree with all prerequisite:
-> > > https://cgit.freedesktop.org/~glisse/linux/log/?h=rdma-odp-hmm-v4
-> > > 
-> > > This patchset convert RDMA ODP to use HMM underneath this is motivated
-> > > by stronger code sharing for same feature (share virtual memory SVM or
-> > > Share Virtual Address SVA) and also stronger integration with mm code to
-> > > achieve that. It depends on HMM patchset posted for inclusion in 5.2 [2]
-> > > and [3].
-> > > 
-> > > It has been tested with pingpong test with -o and others flags to test
-> > > different size/features associated with ODP.
-> > > 
-> > > Moreover they are some features of HMM in the works like peer to peer
-> > > support, fast CPU page table snapshot, fast IOMMU mapping update ...
-> > > It will be easier for RDMA devices with ODP to leverage those if they
-> > > use HMM underneath.
-> > > 
-> > > Quick summary of what HMM is:
-> > >     HMM is a toolbox for device driver to implement software support for
-> > >     Share Virtual Memory (SVM). Not only it provides helpers to mirror a
-> > >     process address space on a device (hmm_mirror). It also provides
-> > >     helper to allow to use device memory to back regular valid virtual
-> > >     address of a process (any valid mmap that is not an mmap of a device
-> > >     or a DAX mapping). They are two kinds of device memory. Private memory
-> > >     that is not accessible to CPU because it does not have all the expected
-> > >     properties (this is for all PCIE devices) or public memory which can
-> > >     also be access by CPU without restriction (with OpenCAPI or CCIX or
-> > >     similar cache-coherent and atomic inter-connect).
-> > > 
-> > >     Device driver can use each of HMM tools separatly. You do not have to
-> > >     use all the tools it provides.
-> > > 
-> > > For RDMA device i do not expect a need to use the device memory support
-> > > of HMM. This device memory support is geared toward accelerator like GPU.
-> > > 
-> > > 
-> > > You can find a branch [1] with all the prerequisite in. This patch is on
-> > > top of rdma-next with the HMM patchset [2] and mmu notifier patchset [3]
-> > > applied on top of it.
-> > > 
-> > > [1] https://cgit.freedesktop.org/~glisse/linux/log/?h=rdma-odp-hmm-v4
-> > > [2] https://lkml.org/lkml/2019/4/3/1032
-> > > [3] https://lkml.org/lkml/2019/3/26/900
+Hi Kees,
+
+Thanks for joining the thread ;).
+
+On Tue, May 21, 2019 at 05:04:39PM -0700, Kees Cook wrote:
+> On Tue, May 21, 2019 at 07:29:33PM +0100, Catalin Marinas wrote:
+> > On Mon, May 20, 2019 at 04:53:07PM -0700, Evgenii Stepanov wrote:
+> > > On Fri, May 17, 2019 at 7:49 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > > > IMO (RFC for now), I see two ways forward:
+> > > > [...]
+> > > > 2. Similar shim to the above libc wrapper but inside the kernel
+> > > >    (arch/arm64 only; most pointer arguments could be covered with an
+> > > >    __SC_CAST similar to the s390 one). There are two differences from
+> > > >    what we've discussed in the past:
+> > > >
+> > > >    a) this is an opt-in by the user which would have to explicitly call
+> > > >       prctl(). If it returns -ENOTSUPP etc., the user won't be allowed
+> > > >       to pass tagged pointers to the kernel. This would probably be the
+> > > >       responsibility of the C lib to make sure it doesn't tag heap
+> > > >       allocations. If the user did not opt-in, the syscalls are routed
+> > > >       through the normal path (no untagging address shim).
+> > > >
+> > > >    b) ioctl() and other blacklisted syscalls (prctl) will not accept
+> > > >       tagged pointers (to be documented in Vicenzo's ABI patches).
+> > >
+> > > The way I see it, a patch that breaks handling of tagged pointers is
+> > > not that different from, say, a patch that adds a wild pointer
+> > > dereference. Both are bugs; the difference is that (a) the former
+> > > breaks a relatively uncommon target and (b) it's arguably an easier
+> > > mistake to make. If MTE adoption goes well, (a) will not be the case
+> > > for long.
 > > 
-> > Jerome, please let me know if these dependent series are merged during
-> > the first week of the merge window.
-> > 
-> > This patch has been tested and could go along next week if the
-> > dependencies are met.
-> > 
+> > It's also the fact such patch would go unnoticed for a long time until
+> > someone exercises that code path. And when they do, the user would be
+> > pretty much in the dark trying to figure what what went wrong, why a
+> > SIGSEGV or -EFAULT happened. What's worse, we can't even say we fixed
+> > all the places where it matters in the current kernel codebase (ignoring
+> > future patches).
 > 
-> So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
-> (prefetch and not and different sizes). Seems to work ok.
+> So, looking forward a bit, this isn't going to be an ARM-specific issue
+> for long.
 
-Urk, it already doesn't apply to the rdma tree :(
+I do hope so.
 
-The conflicts are a little more extensive than I'd prefer to handle..
-Can I ask you to rebase it on top of this branch please:
+> In fact, I think we shouldn't have arm-specific syscall wrappers
+> in this series: I think untagged_addr() should likely be added at the
+> top-level and have it be a no-op for other architectures.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
+That's what the current patchset does, so we have this as a starting
+point. Kostya raised another potential issue with the syscall wrappers:
+with MTE the kernel will be forced to enable the match-all (wildcard)
+pointers for user space accesses since copy_from_user() would only get a
+0 tag. So it has wider implications than just uaccess routines not
+checking the colour.
 
-Specifically it conflicts with this patch:
+> So given this becoming a kernel-wide multi-architecture issue (under
+> the assumption that x86, RISC-V, and others will gain similar TBI or
+> MTE things), we should solve it in a way that we can re-use.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
+Can we do any better to aid the untagged_addr() placement (e.g. better
+type annotations, better static analysis)? We have to distinguish
+between user pointers that may be dereferenced by the kernel (I think
+almost fully covered with this patchset) and user addresses represented
+as ulong that may:
 
-> +long ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp,
-> +			       struct hmm_range *range)
->  {
-> +	struct device *device = umem_odp->umem.context->device->dma_device;
-> +	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
->  	struct ib_umem *umem = &umem_odp->umem;
-> -	struct task_struct *owning_process  = NULL;
-> -	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
-> -	struct page       **local_page_list = NULL;
-> -	u64 page_mask, off;
-> -	int j, k, ret = 0, start_idx, npages = 0, page_shift;
-> -	unsigned int flags = 0;
-> -	phys_addr_t p = 0;
-> -
-> -	if (access_mask == 0)
-> +	struct mm_struct *mm = per_mm->mm;
-> +	unsigned long idx, npages;
-> +	long ret;
-> +
-> +	if (mm == NULL)
-> +		return -ENOENT;
-> +
-> +	/* Only drivers with invalidate support can use this function. */
-> +	if (!umem->context->invalidate_range)
->  		return -EINVAL;
->  
-> -	if (user_virt < ib_umem_start(umem) ||
-> -	    user_virt + bcnt > ib_umem_end(umem))
-> -		return -EFAULT;
-> +	/* Sanity checks. */
-> +	if (range->default_flags == 0)
-> +		return -EINVAL;
->  
-> -	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
-> -	if (!local_page_list)
-> -		return -ENOMEM;
-> +	if (range->start < ib_umem_start(umem) ||
-> +	    range->end > ib_umem_end(umem))
-> +		return -EINVAL;
->  
-> -	page_shift = umem->page_shift;
-> -	page_mask = ~(BIT(page_shift) - 1);
-> -	off = user_virt & (~page_mask);
-> -	user_virt = user_virt & page_mask;
-> -	bcnt += off; /* Charge for the first page offset as well. */
-> +	idx = (range->start - ib_umem_start(umem)) >> umem->page_shift;
+a) be converted to a user pointer and dereferenced; I think that's the
+   case for many overloaded ulong/u64 arguments
 
-Is this math OK? What is supposed to happen if the range->start is not
-page aligned to the internal page size?
+b) used for address space management, rbtree look-ups etc. where the tag
+   is no longer relevant and it even gets in the way
 
-> +	range->pfns = &umem_odp->pfns[idx];
-> +	range->pfn_shift = ODP_FLAGS_BITS;
-> +	range->values = odp_hmm_values;
-> +	range->flags = odp_hmm_flags;
->  
->  	/*
-> -	 * owning_process is allowed to be NULL, this means somehow the mm is
-> -	 * existing beyond the lifetime of the originating process.. Presumably
-> -	 * mmget_not_zero will fail in this case.
-> +	 * If mm is dying just bail out early without trying to take mmap_sem.
-> +	 * Note that this might race with mm destruction but that is fine the
-> +	 * is properly refcounted so are all HMM structure.
->  	 */
-> -	owning_process = get_pid_task(umem_odp->per_mm->tgid, PIDTYPE_PID);
-> -	if (!owning_process || !mmget_not_zero(owning_mm)) {
+We tried last year to identify void __user * casts to unsigned long
+using sparse on the assumption that pointers can be tagged while ulong
+is about address space management and needs to lose such tag. I think we
+could have pushed this further. For example, get_user_pages() takes an
+unsigned long but it is perfectly capable of untagging the address
+itself. Shall we change its first argument to void __user * (together
+with all its callers)?
 
-But we are not in a HMM context here, and per_mm is not a HMM
-structure. 
+find_vma(), OTOH, could untag the address but it doesn't help since
+vm_start/end don't have such information (that's more about the content
+or type that the user decided) and the callers check against it.
 
-So why is mm suddenly guarenteed valid? It was a bug report that
-triggered the race the mmget_not_zero is fixing, so I need a better
-explanation why it is now safe. From what I see the hmm_range_fault
-is doing stuff like find_vma without an active mmget??
+Are there any other places where this matters? These patches tracked
+down find_vma() as some heuristics but we may need better static
+analysis to identify other cases.
 
-> @@ -603,11 +603,29 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
->  
->  next_mr:
->  	size = min_t(size_t, bcnt, ib_umem_end(&odp->umem) - io_virt);
-> -
->  	page_shift = mr->umem->page_shift;
->  	page_mask = ~(BIT(page_shift) - 1);
-> +	/*
-> +	 * We need to align io_virt on page size so off is the extra bytes we
-> +	 * will be faulting and fault_size is the page aligned size we are
-> +	 * faulting.
-> +	 */
-> +	io_virt = io_virt & page_mask;
-> +	off = (io_virt & (~page_mask));
-> +	fault_size = ALIGN(size + off, 1UL << page_shift);
-> +
-> +	if (io_virt < ib_umem_start(&odp->umem))
-> +		return -EINVAL;
-> +
->  	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
-> -	access_mask = ODP_READ_ALLOWED_BIT;
-> +
-> +	if (odp_mr->per_mm == NULL || odp_mr->per_mm->mm == NULL)
-> +		return -ENOENT;
+> We need something that is going to work everywhere. And it needs to be
+> supported by the kernel for the simple reason that the kernel needs to
+> do MTE checks during copy_from_user(): having that information stripped
+> means we lose any userspace-assigned MTE protections if they get handled
+> by the kernel, which is a total non-starter, IMO.
 
-How can this happen? Where is the locking?
+Such feedback is welcomed ;).
 
-per_mm is supposed to outlive any odp_mr's the refer to it, and the mm
-is supposed to remain grab'd as long as the per_mm exists..
+> As an aside: I think Sparc ADI support in Linux actually side-stepped
+> this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
+> be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
+> for kernel code.") I think this was a mistake we should not repeat for
+> arm64 (we do seem to be at least in agreement about this, I think).
+> 
+> [1] https://lore.kernel.org/patchwork/patch/654481/
 
-> diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
-> index eeec4e53c448..70b2df8e5a6c 100644
-> +++ b/include/rdma/ib_umem_odp.h
-> @@ -36,6 +36,7 @@
->  #include <rdma/ib_umem.h>
->  #include <rdma/ib_verbs.h>
->  #include <linux/interval_tree.h>
-> +#include <linux/hmm.h>
->  
->  struct umem_odp_node {
->  	u64 __subtree_last;
-> @@ -47,11 +48,11 @@ struct ib_umem_odp {
->  	struct ib_ucontext_per_mm *per_mm;
->  
->  	/*
-> -	 * An array of the pages included in the on-demand paging umem.
-> -	 * Indices of pages that are currently not mapped into the device will
-> -	 * contain NULL.
-> +	 * An array of the pages included in the on-demand paging umem. Indices
-> +	 * of pages that are currently not mapped into the device will contain
-> +	 * 0.
->  	 */
-> -	struct page		**page_list;
-> +	uint64_t *pfns;
+I tried to drag the SPARC guys into this discussion but without much
+success.
 
-Are these actually pfns, or are they mangled with some shift? (what is range->pfn_shift?)
+> > > This is a bit of a chicken-and-egg problem. In a world where memory
+> > > allocators on one or several popular platforms generate pointers with
+> > > non-zero tags, any such breakage will be caught in testing.
+> > > Unfortunately to reach that state we need the kernel to start
+> > > accepting tagged pointers first, and then hold on for a couple of
+> > > years until userspace catches up.
+> > 
+> > Would the kernel also catch up with providing a stable ABI? Because we
+> > have two moving targets.
+> > 
+> > On one hand, you have Android or some Linux distro that stick to a
+> > stable kernel version for some time, so they have better chance of
+> > clearing most of the problems. On the other hand, we have mainline
+> > kernel that gets over 500K lines every release. As maintainer, I can't
+> > rely on my testing alone as this is on a limited number of platforms. So
+> > my concern is that every kernel release has a significant chance of
+> > breaking the ABI, unless we have a better way of identifying potential
+> > issues.
+> 
+> I just want to make sure I fully understand your concern about this
+> being an ABI break, and I work best with examples. The closest situation
+> I can see would be:
+> 
+> - some program has no idea about MTE
 
-Jason
+Apart from some libraries like libc (and maybe those that handle
+specific device ioctls), I think most programs should have no idea about
+MTE. I wouldn't expect programmers to have to change their app just
+because we have a new feature that colours heap allocations.
+
+> - malloc() starts returning MTE-tagged addresses
+> - program doesn't break from that change
+> - program uses some syscall that is missing untagged_addr() and fails
+> - kernel has now broken userspace that used to work
+
+That's one aspect though probably more of a case of plugging in a new
+device (graphics card, network etc.) and the ioctl to the new device
+doesn't work.
+
+The other is that, assuming we reach a point where the kernel entirely
+supports this relaxed ABI, can we guarantee that it won't break in the
+future. Let's say some subsequent kernel change (some refactoring)
+misses out an untagged_addr(). This renders a previously TBI/MTE-capable
+syscall unusable. Can we rely only on testing?
+
+> The trouble I see with this is that it is largely theoretical and
+> requires part of userspace to collude to start using a new CPU feature
+> that tickles a bug in the kernel. As I understand the golden rule,
+> this is a bug in the kernel (a missed ioctl() or such) to be fixed,
+> not a global breaking of some userspace behavior.
+
+Yes, we should follow the rule that it's a kernel bug but it doesn't
+help the user that a newly installed kernel causes user space to no
+longer reach a prompt. Hence the proposal of an opt-in via personality
+(for MTE we would need an explicit opt-in by the user anyway since the
+top byte is no longer ignored but checked against the allocation tag).
+
+> I feel like I'm missing something about this being seen as an ABI
+> break. The kernel already fails on userspace addresses that have high
+> bits set -- are there things that _depend_ on this failure to operate?
+
+It's about providing a relaxed ABI which allows non-zero top byte and
+breaking it later inadvertently without having something better in place
+to analyse the kernel changes.
+
+Thanks.
+
+-- 
+Catalin
