@@ -1,13 +1,13 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.4 22/92] RDMA/cma: Consider scope_id while binding to ipv6 ll address
-Date: Wed, 22 May 2019 15:30:17 -0400
-Message-ID: <20190522193127.27079-22-sashal@kernel.org>
-References: <20190522193127.27079-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 032/114] RDMA/cma: Consider scope_id while binding to ipv6 ll address
+Date: Wed, 22 May 2019 15:28:55 -0400
+Message-ID: <20190522193017.26567-32-sashal@kernel.org>
+References: <20190522193017.26567-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522193127.27079-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190522193017.26567-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc: Parav Pandit <parav@mellanox.com>, Daniel Jurgens <danielj@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
@@ -47,10 +47,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 19 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 1454290078def..76e7eca35a110 100644
+index 85d4ef319c905..0c7d63e0f0fde 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -902,18 +902,31 @@ static inline int cma_any_addr(struct sockaddr *addr)
+@@ -1021,18 +1021,31 @@ static inline int cma_any_addr(struct sockaddr *addr)
  	return cma_zero_addr(addr) || cma_loopback_addr(addr);
  }
  
