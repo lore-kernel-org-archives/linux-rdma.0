@@ -1,137 +1,117 @@
-From: enh <enh@google.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Wed, 22 May 2019 09:58:22 -0700
-Message-ID: <CAJgzZooc+wXBBXenm62n2zR8TVrv-y1pXMmHSdxeaNYhFLSzBA@mail.gmail.com>
-References: <cover.1557160186.git.andreyknvl@google.com> <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
- <20190522101110.m2stmpaj7seezveq@mbp> <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
- <20190522163527.rnnc6t4tll7tk5zw@mbp>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 13/17] RDMA/core: Get sum value of all
+ counters when perform a sysfs stat read
+Date: Wed, 22 May 2019 14:10:42 -0300
+Message-ID: <20190522171042.GA15023@ziepe.ca>
+References: <20190429083453.16654-1-leon@kernel.org>
+ <20190429083453.16654-14-leon@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522163527.rnnc6t4tll7tk5zw@mbp>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190429083453.16654-14-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 9:35 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
->
-> On Wed, May 22, 2019 at 08:30:21AM -0700, enh wrote:
-> > On Wed, May 22, 2019 at 3:11 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > On Tue, May 21, 2019 at 05:04:39PM -0700, Kees Cook wrote:
-> > > > I just want to make sure I fully understand your concern about this
-> > > > being an ABI break, and I work best with examples. The closest situation
-> > > > I can see would be:
-> > > >
-> > > > - some program has no idea about MTE
-> > >
-> > > Apart from some libraries like libc (and maybe those that handle
-> > > specific device ioctls), I think most programs should have no idea about
-> > > MTE. I wouldn't expect programmers to have to change their app just
-> > > because we have a new feature that colours heap allocations.
-> >
-> > obviously i'm biased as a libc maintainer, but...
-> >
-> > i don't think it helps to move this to libc --- now you just have an
-> > extra dependency where to have a guaranteed working system you need to
-> > update your kernel and libc together. (or at least update your libc to
-> > understand new ioctls etc _before_ you can update your kernel.)
->
-> That's not what I meant (or I misunderstood you). If we have a relaxed
-> ABI in the kernel and a libc that returns tagged pointers on malloc() I
-> wouldn't expect the programmer to do anything different in the
-> application code like explicit untagging. Basically the program would
-> continue to run unmodified irrespective of whether you use an old libc
-> without tagged pointers or a new one which tags heap allocations.
->
-> What I do expect is that the libc checks for the presence of the relaxed
-> ABI, currently proposed as an AT_FLAGS bit (for MTE we'd have a
-> HWCAP_MTE), and only tag the malloc() pointers if the kernel supports
-> the relaxed ABI. As you said, you shouldn't expect that the C library
-> and kernel are upgraded together, so they should be able to work in any
-> new/old version combination.
+On Mon, Apr 29, 2019 at 11:34:49AM +0300, Leon Romanovsky wrote:
+> From: Mark Zhang <markz@mellanox.com>
+> 
+> Since a QP can only be bound to one counter, then if it is bound to a
+> separate counter, for backward compatibility purpose, the statistic
+> value must be:
+> * stat of default counter
+> + stat of all running allocated counters
+> + stat of all deallocated counters (history stats)
+> 
+> Signed-off-by: Mark Zhang <markz@mellanox.com>
+> Reviewed-by: Majd Dibbiny <majd@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/core/counters.c | 99 +++++++++++++++++++++++++++++-
+>  drivers/infiniband/core/device.c   |  8 ++-
+>  drivers/infiniband/core/sysfs.c    | 10 ++-
+>  include/rdma/rdma_counter.h        |  5 +-
+>  4 files changed, 113 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+> index 36cd9eca1e46..f598b1cdb241 100644
+> +++ b/drivers/infiniband/core/counters.c
+> @@ -146,6 +146,20 @@ static int __rdma_counter_bind_qp(struct rdma_counter *counter,
+>  	return ret;
+>  }
+>  
+> +static void counter_history_stat_update(const struct rdma_counter *counter)
+> +{
+> +	struct ib_device *dev = counter->device;
+> +	struct rdma_port_counter *port_counter;
+> +	int i;
+> +
+> +	port_counter = &dev->port_data[counter->port].port_counter;
+> +	if (!port_counter->hstats)
+> +		return;
+> +
+> +	for (i = 0; i < counter->stats->num_counters; i++)
+> +		port_counter->hstats->value[i] += counter->stats->value[i];
+> +}
+> +
+>  static int __rdma_counter_unbind_qp(struct ib_qp *qp, bool force)
+>  {
+>  	struct rdma_counter *counter = qp->counter;
+> @@ -285,8 +299,10 @@ int rdma_counter_unbind_qp(struct ib_qp *qp, bool force)
+>  		return ret;
+>  
+>  	rdma_restrack_put(&counter->res);
+> -	if (atomic_dec_and_test(&counter->usecnt))
+> +	if (atomic_dec_and_test(&counter->usecnt)) {
+> +		counter_history_stat_update(counter);
+>  		rdma_counter_dealloc(counter);
+> +	}
+>  
+>  	return 0;
+>  }
+> @@ -307,21 +323,98 @@ int rdma_counter_query_stats(struct rdma_counter *counter)
+>  	return ret;
+>  }
+>  
+> -void rdma_counter_init(struct ib_device *dev)
+> +static u64 get_running_counters_hwstat_sum(struct ib_device *dev,
+> +					   u8 port, u32 index)
+> +{
+> +	struct rdma_restrack_entry *res;
+> +	struct rdma_restrack_root *rt;
+> +	struct rdma_counter *counter;
+> +	unsigned long id = 0;
+> +	u64 sum = 0;
+> +
+> +	rt = &dev->res[RDMA_RESTRACK_COUNTER];
+> +	xa_lock(&rt->xa);
+> +	xa_for_each(&rt->xa, id, res) {
+> +		if (!rdma_restrack_get(res))
+> +			continue;
 
-yes, that part makes sense. i do think we'd use the AT_FLAGS bit, for
-exactly this.
+Why do we need to get refcounts if we are holding the xa_lock?
 
-i was questioning the argument about the ioctl issues, and saying that
-from my perspective, untagging bugs are not really any different than
-any other kind of kernel bug.
+> +
+> +		counter = container_of(res, struct rdma_counter, res);
+> +		if ((counter->device != dev) || (counter->port != port))
+> +			goto next;
+> +
+> +		if (rdma_counter_query_stats(counter))
+> +			goto next;
 
-> > > > The trouble I see with this is that it is largely theoretical and
-> > > > requires part of userspace to collude to start using a new CPU feature
-> > > > that tickles a bug in the kernel. As I understand the golden rule,
-> > > > this is a bug in the kernel (a missed ioctl() or such) to be fixed,
-> > > > not a global breaking of some userspace behavior.
-> > >
-> > > Yes, we should follow the rule that it's a kernel bug but it doesn't
-> > > help the user that a newly installed kernel causes user space to no
-> > > longer reach a prompt. Hence the proposal of an opt-in via personality
-> > > (for MTE we would need an explicit opt-in by the user anyway since the
-> > > top byte is no longer ignored but checked against the allocation tag).
-> >
-> > but realistically would this actually get used in this way? or would
-> > any given system either be MTE or non-MTE. in which case a kernel
-> > configuration option would seem to make more sense. (because either
-> > way, the hypothetical user basically needs to recompile the kernel to
-> > get back on their feet. or all of userspace.)
->
-> The two hard requirements I have for supporting any new hardware feature
-> in Linux are (1) a single kernel image binary continues to run on old
-> hardware while making use of the new feature if available and (2) old
-> user space continues to run on new hardware while new user space can
-> take advantage of the new feature.
->
-> The distro user space usually has a hard requirement that it continues
-> to run on (certain) old hardware. We can't enforce this in the kernel
-> but we offer the option to user space developers of checking feature
-> availability through HWCAP bits.
->
-> The Android story may be different as you have more control about which
-> kernel configurations are deployed on specific SoCs. I'm looking more
-> from a Linux distro angle where you just get an off-the-shelf OS image
-> and install it on your hardware, either taking advantage of new features
-> or just not using them if the software was not updated. Or, if updated
-> software is installed on old hardware, it would just run.
->
-> For MTE, we just can't enable it by default since there are applications
-> who use the top byte of a pointer and expect it to be ignored rather
-> than failing with a mismatched tag. Just think of a hwasan compiled
-> binary where TBI is expected to work and you try to run it with MTE
-> turned on.
->
-> I would also expect the C library or dynamic loader to check for the
-> presence of a HWCAP_MTE bit before starting to tag memory allocations,
-> otherwise it would get SIGILL on the first MTE instruction it tries to
-> execute.
+And rdma_counter_query_stats does
 
-(a bit off-topic, but i thought the MTE instructions were encoded in
-the no-op space, to avoid this?)
++	mutex_lock(&counter->lock);
 
-> > i'm not sure i see this new way for a kernel update to break my system
-> > and need to be fixed forward/rolled back as any different from any of
-> > the existing ways in which this can happen :-) as an end-user i have
-> > to rely on whoever's sending me software updates to test adequately
-> > enough that they find the problems. as an end user, there isn't any
-> > difference between "my phone rebooted when i tried to take a photo
-> > because of a kernel/driver leak", say, and "my phone rebooted when i
-> > tried to take a photo because of missing untagging of a pointer passed
-> > via ioctl".
-> >
-> > i suspect you and i have very different people in mind when we say "user" :-)
->
-> Indeed, I think we have different users in mind. I didn't mean the end
-> user who doesn't really care which C library version it's running on
-> their phone but rather advanced users (not necessarily kernel
-> developers) that prefer to build their own kernels with every release.
-> We could extend this to kernel developers who don't have time to track
-> down why a new kernel triggers lots of SIGSEGVs during boot.
+So this was never tested as it will insta-crash with lockdep.
 
-i still don't see how this isn't just a regular testing/CI issue, the
-same as any other kind of kernel bug. it's already the case that i can
-get a bad kernel...
+Presumably this is why it is using xa_for_each and restrack_get - but
+it needs to drop the lock after successful get.
 
-> --
-> Catalin
+This sort of comment applies to nearly evey place in this series that
+uses xa_for_each. 
+
+This needs to be tested with lockdep.
+
+Jason
