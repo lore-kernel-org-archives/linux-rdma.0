@@ -1,72 +1,173 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.0 006/317] IB/hfi1: Fix WQ_MEM_RECLAIM warning
-Date: Wed, 22 May 2019 15:18:27 -0400
-Message-ID: <20190522192338.23715-6-sashal@kernel.org>
-References: <20190522192338.23715-1-sashal@kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Wed, 22 May 2019 16:22:19 -0300
+Message-ID: <20190522192219.GF6054@ziepe.ca>
+References: <20190411181314.19465-1-jglisse@redhat.com>
+ <20190506195657.GA30261@ziepe.ca>
+ <20190521205321.GC3331@redhat.com>
+ <20190522005225.GA30819@ziepe.ca>
+ <20190522174852.GA23038@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522192338.23715-1-sashal@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190522174852.GA23038@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
 
-[ Upstream commit 4c4b1996b5db688e2dcb8242b0a3bf7b1e845e42 ]
+> > > +long ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp,
+> > > +			       struct hmm_range *range)
+> > >  {
+> > > +	struct device *device = umem_odp->umem.context->device->dma_device;
+> > > +	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
+> > >  	struct ib_umem *umem = &umem_odp->umem;
+> > > -	struct task_struct *owning_process  = NULL;
+> > > -	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
+> > > -	struct page       **local_page_list = NULL;
+> > > -	u64 page_mask, off;
+> > > -	int j, k, ret = 0, start_idx, npages = 0, page_shift;
+> > > -	unsigned int flags = 0;
+> > > -	phys_addr_t p = 0;
+> > > -
+> > > -	if (access_mask == 0)
+> > > +	struct mm_struct *mm = per_mm->mm;
+> > > +	unsigned long idx, npages;
+> > > +	long ret;
+> > > +
+> > > +	if (mm == NULL)
+> > > +		return -ENOENT;
+> > > +
+> > > +	/* Only drivers with invalidate support can use this function. */
+> > > +	if (!umem->context->invalidate_range)
+> > >  		return -EINVAL;
+> > >  
+> > > -	if (user_virt < ib_umem_start(umem) ||
+> > > -	    user_virt + bcnt > ib_umem_end(umem))
+> > > -		return -EFAULT;
+> > > +	/* Sanity checks. */
+> > > +	if (range->default_flags == 0)
+> > > +		return -EINVAL;
+> > >  
+> > > -	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
+> > > -	if (!local_page_list)
+> > > -		return -ENOMEM;
+> > > +	if (range->start < ib_umem_start(umem) ||
+> > > +	    range->end > ib_umem_end(umem))
+> > > +		return -EINVAL;
+> > >  
+> > > -	page_shift = umem->page_shift;
+> > > -	page_mask = ~(BIT(page_shift) - 1);
+> > > -	off = user_virt & (~page_mask);
+> > > -	user_virt = user_virt & page_mask;
+> > > -	bcnt += off; /* Charge for the first page offset as well. */
+> > > +	idx = (range->start - ib_umem_start(umem)) >> umem->page_shift;
+> > 
+> > Is this math OK? What is supposed to happen if the range->start is not
+> > page aligned to the internal page size?
+> 
+> range->start is align on 1 << page_shift boundary within pagefault_mr
+> thus the above math is ok. We can add a BUG_ON() and comments if you
+> want.
 
-The work_item cancels that occur when a QP is destroyed can elicit the
-following trace:
+OK
 
- workqueue: WQ_MEM_RECLAIM ipoib_wq:ipoib_cm_tx_reap [ib_ipoib] is flushing !WQ_MEM_RECLAIM hfi0_0:_hfi1_do_send [hfi1]
- WARNING: CPU: 7 PID: 1403 at kernel/workqueue.c:2486 check_flush_dependency+0xb1/0x100
- Call Trace:
-  __flush_work.isra.29+0x8c/0x1a0
-  ? __switch_to_asm+0x40/0x70
-  __cancel_work_timer+0x103/0x190
-  ? schedule+0x32/0x80
-  iowait_cancel_work+0x15/0x30 [hfi1]
-  rvt_reset_qp+0x1f8/0x3e0 [rdmavt]
-  rvt_destroy_qp+0x65/0x1f0 [rdmavt]
-  ? _cond_resched+0x15/0x30
-  ib_destroy_qp+0xe9/0x230 [ib_core]
-  ipoib_cm_tx_reap+0x21c/0x560 [ib_ipoib]
-  process_one_work+0x171/0x370
-  worker_thread+0x49/0x3f0
-  kthread+0xf8/0x130
-  ? max_active_store+0x80/0x80
-  ? kthread_bind+0x10/0x10
-  ret_from_fork+0x35/0x40
+> > > +	range->pfns = &umem_odp->pfns[idx];
+> > > +	range->pfn_shift = ODP_FLAGS_BITS;
+> > > +	range->values = odp_hmm_values;
+> > > +	range->flags = odp_hmm_flags;
+> > >  
+> > >  	/*
+> > > -	 * owning_process is allowed to be NULL, this means somehow the mm is
+> > > -	 * existing beyond the lifetime of the originating process.. Presumably
+> > > -	 * mmget_not_zero will fail in this case.
+> > > +	 * If mm is dying just bail out early without trying to take mmap_sem.
+> > > +	 * Note that this might race with mm destruction but that is fine the
+> > > +	 * is properly refcounted so are all HMM structure.
+> > >  	 */
+> > > -	owning_process = get_pid_task(umem_odp->per_mm->tgid, PIDTYPE_PID);
+> > > -	if (!owning_process || !mmget_not_zero(owning_mm)) {
+> > 
+> > But we are not in a HMM context here, and per_mm is not a HMM
+> > structure. 
+> > 
+> > So why is mm suddenly guarenteed valid? It was a bug report that
+> > triggered the race the mmget_not_zero is fixing, so I need a better
+> > explanation why it is now safe. From what I see the hmm_range_fault
+> > is doing stuff like find_vma without an active mmget??
+> 
+> So the mm struct can not go away as long as we hold a reference on
+> the hmm struct and we hold a reference on it through both hmm_mirror
+> and hmm_range struct. So struct mm can not go away and thus it is
+> safe to try to take its mmap_sem.
 
-Since QP destruction frees memory, hfi1_wq should have the WQ_MEM_RECLAIM.
+This was always true here, though, so long as the umem_odp exists the
+the mm has a grab on it. But a grab is not a get..
 
-The hfi1_wq does not allocate memory with GFP_KERNEL or otherwise become
-entangled with memory reclaim, so this flag is appropriate.
+The point here was the old code needed an mmget() in order to do
+get_user_pages_remote()
 
-Fixes: 0a226edd203f ("staging/rdma/hfi1: Use parallel workqueue for SDMA engines")
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hfi1/init.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+If hmm does not need an external mmget() then fine, we delete this
+stuff and rely on hmm.
 
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index c532ceb0bb9af..b66c4fe8151a1 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -797,7 +797,8 @@ static int create_workqueues(struct hfi1_devdata *dd)
- 			ppd->hfi1_wq =
- 				alloc_workqueue(
- 				    "hfi%d_%d",
--				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
-+				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE |
-+				    WQ_MEM_RECLAIM,
- 				    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
- 				    dd->unit, pidx);
- 			if (!ppd->hfi1_wq)
--- 
-2.20.1
+But I don't think that is true as we have:
+
+          CPU 0                                           CPU1
+                                                       mmput()
+                       				        __mmput()
+							 exit_mmap()
+down_read(&mm->mmap_sem);
+hmm_range_dma_map(range, device,..
+  ret = hmm_range_fault(range, block);
+     if (hmm->mm == NULL || hmm->dead)
+							   mmu_notifier_release()
+							     hmm->dead = true
+     vma = find_vma(hmm->mm, start);
+        .. rb traversal ..                                 while (vma) remove_vma()
+
+*goes boom*
+
+I think this is violating the basic constraint of the mm by acting on
+a mm's VMA's without holding a mmget() to prevent concurrent
+destruction.
+
+In other words, mmput() destruction does not respect the mmap_sem - so
+holding the mmap sem alone is not enough locking.
+
+The unlucked hmm->dead simply can't save this. Frankly every time I
+look a struct with 'dead' in it, I find races like this.
+
+Thus we should put the mmget_notzero back in.
+
+I saw some other funky looking stuff in hmm as well..
+
+> Hence it is safe to take mmap_sem and it is safe to call in hmm, if
+> mm have been kill it will return EFAULT and this will propagate to
+> RDMA.
+ 
+> As per_mm i removed the per_mm->mm = NULL from release so that it is
+> always safe to use that field even in face of racing mm "killing".
+
+Yes, that certainly wasn't good.
+
+> > > -	 * An array of the pages included in the on-demand paging umem.
+> > > -	 * Indices of pages that are currently not mapped into the device will
+> > > -	 * contain NULL.
+> > > +	 * An array of the pages included in the on-demand paging umem. Indices
+> > > +	 * of pages that are currently not mapped into the device will contain
+> > > +	 * 0.
+> > >  	 */
+> > > -	struct page		**page_list;
+> > > +	uint64_t *pfns;
+> > 
+> > Are these actually pfns, or are they mangled with some shift? (what is range->pfn_shift?)
+> 
+> They are not pfns they have flags (hence range->pfn_shift) at the
+> bottoms i just do not have a better name for this.
+
+I think you need to have a better name then
+
+Jason
