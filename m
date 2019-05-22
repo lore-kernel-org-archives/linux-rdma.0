@@ -1,161 +1,72 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.1 040/375] net/mlx5: E-Switch, Use atomic rep state to serialize state change
-Date: Wed, 22 May 2019 15:15:40 -0400
-Message-ID: <20190522192115.22666-40-sashal@kernel.org>
-References: <20190522192115.22666-1-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 004/244] IB/hfi1: Fix WQ_MEM_RECLAIM warning
+Date: Wed, 22 May 2019 15:22:30 -0400
+Message-ID: <20190522192630.24917-4-sashal@kernel.org>
+References: <20190522192630.24917-1-sashal@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190522192115.22666-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190522192630.24917-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Bodong Wang <bodong@mellanox.com>, Parav Pandit <parav@mellanox.com>, Vu Pham <vuhuong@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bodong Wang <bodong@mellanox.com>
+From: Mike Marciniszyn <mike.marciniszyn@intel.com>
 
-[ Upstream commit 6f4e02193c9a9ea54dd3151cf97489fa787cd0e6 ]
+[ Upstream commit 4c4b1996b5db688e2dcb8242b0a3bf7b1e845e42 ]
 
-When the state of rep was introduced, it was also designed to prevent
-duplicate unloading of the same rep. Considering the following two
-flows when an eswitch manager is at switchdev mode with n VF reps loaded.
+The work_item cancels that occur when a QP is destroyed can elicit the
+following trace:
 
-+--------------------------------------+--------------------------------+
-| cpu-0                                | cpu-1                          |
-| --------                             | --------                       |
-| mlx5_ib_remove                       | mlx5_eswitch_disable_sriov     |
-|  mlx5_ib_unregister_vport_reps       |  esw_offloads_cleanup          |
-|   mlx5_eswitch_unregister_vport_reps |   esw_offloads_unload_all_reps |
-|    __unload_reps_all_vport           |    __unload_reps_all_vport     |
-+--------------------------------------+--------------------------------+
+ workqueue: WQ_MEM_RECLAIM ipoib_wq:ipoib_cm_tx_reap [ib_ipoib] is flushing !WQ_MEM_RECLAIM hfi0_0:_hfi1_do_send [hfi1]
+ WARNING: CPU: 7 PID: 1403 at kernel/workqueue.c:2486 check_flush_dependency+0xb1/0x100
+ Call Trace:
+  __flush_work.isra.29+0x8c/0x1a0
+  ? __switch_to_asm+0x40/0x70
+  __cancel_work_timer+0x103/0x190
+  ? schedule+0x32/0x80
+  iowait_cancel_work+0x15/0x30 [hfi1]
+  rvt_reset_qp+0x1f8/0x3e0 [rdmavt]
+  rvt_destroy_qp+0x65/0x1f0 [rdmavt]
+  ? _cond_resched+0x15/0x30
+  ib_destroy_qp+0xe9/0x230 [ib_core]
+  ipoib_cm_tx_reap+0x21c/0x560 [ib_ipoib]
+  process_one_work+0x171/0x370
+  worker_thread+0x49/0x3f0
+  kthread+0xf8/0x130
+  ? max_active_store+0x80/0x80
+  ? kthread_bind+0x10/0x10
+  ret_from_fork+0x35/0x40
 
-These two flows will try to unload the same rep. Per original design,
-once one flow unloads the rep, the state moves to REGISTERED. The 2nd
-flow will no longer needs to do the unload and bails out. However, as
-read and write of the state is not atomic, when 1st flow is doing the
-unload, the state is still LOADED, 2nd flow is able to do the same
-unload action. Kernel crash will happen.
+Since QP destruction frees memory, hfi1_wq should have the WQ_MEM_RECLAIM.
 
-To solve this, driver should do atomic test-and-set for the state. So
-that only one flow can change the rep state from LOADED to REGISTERED,
-and proceed to do the actual unloading.
+The hfi1_wq does not allocate memory with GFP_KERNEL or otherwise become
+entangled with memory reclaim, so this flag is appropriate.
 
-Since the state is changing to atomic type, all other read/write should
-be atomic action as well.
-
-Fixes: f121e0ea9586 (net/mlx5: E-Switch, Add state to eswitch vport representors)
-Signed-off-by: Bodong Wang <bodong@mellanox.com>
-Reviewed-by: Parav Pandit <parav@mellanox.com>
-Reviewed-by: Vu Pham <vuhuong@mellanox.com>
-Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Fixes: 0a226edd203f ("staging/rdma/hfi1: Use parallel workqueue for SDMA engines")
+Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
+Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- .../mellanox/mlx5/core/eswitch_offloads.c     | 36 +++++++++----------
- include/linux/mlx5/eswitch.h                  |  2 +-
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ drivers/infiniband/hw/hfi1/init.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-index 9b2d78ee22b88..d2d8da133082c 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
-@@ -363,7 +363,7 @@ static int esw_set_global_vlan_pop(struct mlx5_eswitch *esw, u8 val)
- 	esw_debug(esw->dev, "%s applying global %s policy\n", __func__, val ? "pop" : "none");
- 	for (vf_vport = 1; vf_vport < esw->enabled_vports; vf_vport++) {
- 		rep = &esw->offloads.vport_reps[vf_vport];
--		if (rep->rep_if[REP_ETH].state != REP_LOADED)
-+		if (atomic_read(&rep->rep_if[REP_ETH].state) != REP_LOADED)
- 			continue;
- 
- 		err = __mlx5_eswitch_set_vport_vlan(esw, rep->vport, 0, 0, val);
-@@ -1306,7 +1306,8 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
- 		ether_addr_copy(rep->hw_id, hw_id);
- 
- 		for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++)
--			rep->rep_if[rep_type].state = REP_UNREGISTERED;
-+			atomic_set(&rep->rep_if[rep_type].state,
-+				   REP_UNREGISTERED);
- 	}
- 
- 	return 0;
-@@ -1315,11 +1316,9 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
- static void __esw_offloads_unload_rep(struct mlx5_eswitch *esw,
- 				      struct mlx5_eswitch_rep *rep, u8 rep_type)
- {
--	if (rep->rep_if[rep_type].state != REP_LOADED)
--		return;
--
--	rep->rep_if[rep_type].unload(rep);
--	rep->rep_if[rep_type].state = REP_REGISTERED;
-+	if (atomic_cmpxchg(&rep->rep_if[rep_type].state,
-+			   REP_LOADED, REP_REGISTERED) == REP_LOADED)
-+		rep->rep_if[rep_type].unload(rep);
- }
- 
- static void __unload_reps_special_vport(struct mlx5_eswitch *esw, u8 rep_type)
-@@ -1380,16 +1379,15 @@ static int __esw_offloads_load_rep(struct mlx5_eswitch *esw,
- {
- 	int err = 0;
- 
--	if (rep->rep_if[rep_type].state != REP_REGISTERED)
--		return 0;
--
--	err = rep->rep_if[rep_type].load(esw->dev, rep);
--	if (err)
--		return err;
--
--	rep->rep_if[rep_type].state = REP_LOADED;
-+	if (atomic_cmpxchg(&rep->rep_if[rep_type].state,
-+			   REP_REGISTERED, REP_LOADED) == REP_REGISTERED) {
-+		err = rep->rep_if[rep_type].load(esw->dev, rep);
-+		if (err)
-+			atomic_set(&rep->rep_if[rep_type].state,
-+				   REP_REGISTERED);
-+	}
- 
--	return 0;
-+	return err;
- }
- 
- static int __load_reps_special_vport(struct mlx5_eswitch *esw, u8 rep_type)
-@@ -2076,7 +2074,7 @@ void mlx5_eswitch_register_vport_reps(struct mlx5_eswitch *esw,
- 		rep_if->get_proto_dev = __rep_if->get_proto_dev;
- 		rep_if->priv = __rep_if->priv;
- 
--		rep_if->state = REP_REGISTERED;
-+		atomic_set(&rep_if->state, REP_REGISTERED);
- 	}
- }
- EXPORT_SYMBOL(mlx5_eswitch_register_vport_reps);
-@@ -2091,7 +2089,7 @@ void mlx5_eswitch_unregister_vport_reps(struct mlx5_eswitch *esw, u8 rep_type)
- 		__unload_reps_all_vport(esw, max_vf, rep_type);
- 
- 	mlx5_esw_for_all_reps(esw, i, rep)
--		rep->rep_if[rep_type].state = REP_UNREGISTERED;
-+		atomic_set(&rep->rep_if[rep_type].state, REP_UNREGISTERED);
- }
- EXPORT_SYMBOL(mlx5_eswitch_unregister_vport_reps);
- 
-@@ -2111,7 +2109,7 @@ void *mlx5_eswitch_get_proto_dev(struct mlx5_eswitch *esw,
- 
- 	rep = mlx5_eswitch_get_rep(esw, vport);
- 
--	if (rep->rep_if[rep_type].state == REP_LOADED &&
-+	if (atomic_read(&rep->rep_if[rep_type].state) == REP_LOADED &&
- 	    rep->rep_if[rep_type].get_proto_dev)
- 		return rep->rep_if[rep_type].get_proto_dev(rep);
- 	return NULL;
-diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
-index 96d8435421de8..0ca77dd1429c0 100644
---- a/include/linux/mlx5/eswitch.h
-+++ b/include/linux/mlx5/eswitch.h
-@@ -35,7 +35,7 @@ struct mlx5_eswitch_rep_if {
- 	void		       (*unload)(struct mlx5_eswitch_rep *rep);
- 	void		       *(*get_proto_dev)(struct mlx5_eswitch_rep *rep);
- 	void			*priv;
--	u8			state;
-+	atomic_t		state;
- };
- 
- struct mlx5_eswitch_rep {
+diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
+index da786eb18558d..368f4f08b6866 100644
+--- a/drivers/infiniband/hw/hfi1/init.c
++++ b/drivers/infiniband/hw/hfi1/init.c
+@@ -798,7 +798,8 @@ static int create_workqueues(struct hfi1_devdata *dd)
+ 			ppd->hfi1_wq =
+ 				alloc_workqueue(
+ 				    "hfi%d_%d",
+-				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
++				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE |
++				    WQ_MEM_RECLAIM,
+ 				    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
+ 				    dd->unit, pidx);
+ 			if (!ppd->hfi1_wq)
 -- 
 2.20.1
