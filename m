@@ -1,194 +1,190 @@
-From: Evgenii Stepanov <eugenis@google.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory syscalls
-Date: Wed, 22 May 2019 14:16:57 -0700
-Message-ID: <CAFKCwrjyP+x0JJy=qpBFsp4pub3He6UkvU0qnf1UOKt6W1LPRQ@mail.gmail.com>
-References: <cover.1557160186.git.andreyknvl@google.com> <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
- <20190522114910.emlckebwzv2qz42i@mbp>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Wed, 22 May 2019 17:49:18 -0400
+Message-ID: <20190522214917.GA20179@redhat.com>
+References: <20190411181314.19465-1-jglisse@redhat.com>
+ <20190506195657.GA30261@ziepe.ca>
+ <20190521205321.GC3331@redhat.com>
+ <20190522005225.GA30819@ziepe.ca>
+ <20190522174852.GA23038@redhat.com>
+ <20190522192219.GF6054@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522114910.emlckebwzv2qz42i@mbp>
+Content-Disposition: inline
+In-Reply-To: <20190522192219.GF6054@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 4:49 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
->
-> On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
-> > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > pass tagged user pointers (with the top byte set to something else other
-> > than 0x00) as syscall arguments.
-> >
-> > This patch allows tagged pointers to be passed to the following memory
-> > syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
-> > mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
-> > remap_file_pages, shmat and shmdt.
-> >
-> > This is done by untagging pointers passed to these syscalls in the
-> > prologues of their handlers.
->
-> I'll go through them one by one to see if we can tighten the expected
-> ABI while having the MTE in mind.
->
-> > diff --git a/arch/arm64/kernel/sys.c b/arch/arm64/kernel/sys.c
-> > index b44065fb1616..933bb9f3d6ec 100644
-> > --- a/arch/arm64/kernel/sys.c
-> > +++ b/arch/arm64/kernel/sys.c
-> > @@ -35,10 +35,33 @@ SYSCALL_DEFINE6(mmap, unsigned long, addr, unsigned long, len,
-> >  {
-> >       if (offset_in_page(off) != 0)
-> >               return -EINVAL;
-> > -
-> > +     addr = untagged_addr(addr);
-> >       return ksys_mmap_pgoff(addr, len, prot, flags, fd, off >> PAGE_SHIFT);
-> >  }
->
-> If user passes a tagged pointer to mmap() and the address is honoured
-> (or MAP_FIXED is given), what is the expected return pointer? Does it
-> need to be tagged with the value from the hint?
+On Wed, May 22, 2019 at 04:22:19PM -0300, Jason Gunthorpe wrote:
+> On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
+> 
+> > > > +long ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp,
+> > > > +			       struct hmm_range *range)
+> > > >  {
+> > > > +	struct device *device = umem_odp->umem.context->device->dma_device;
+> > > > +	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
+> > > >  	struct ib_umem *umem = &umem_odp->umem;
+> > > > -	struct task_struct *owning_process  = NULL;
+> > > > -	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
+> > > > -	struct page       **local_page_list = NULL;
+> > > > -	u64 page_mask, off;
+> > > > -	int j, k, ret = 0, start_idx, npages = 0, page_shift;
+> > > > -	unsigned int flags = 0;
+> > > > -	phys_addr_t p = 0;
+> > > > -
+> > > > -	if (access_mask == 0)
+> > > > +	struct mm_struct *mm = per_mm->mm;
+> > > > +	unsigned long idx, npages;
+> > > > +	long ret;
+> > > > +
+> > > > +	if (mm == NULL)
+> > > > +		return -ENOENT;
+> > > > +
+> > > > +	/* Only drivers with invalidate support can use this function. */
+> > > > +	if (!umem->context->invalidate_range)
+> > > >  		return -EINVAL;
+> > > >  
+> > > > -	if (user_virt < ib_umem_start(umem) ||
+> > > > -	    user_virt + bcnt > ib_umem_end(umem))
+> > > > -		return -EFAULT;
+> > > > +	/* Sanity checks. */
+> > > > +	if (range->default_flags == 0)
+> > > > +		return -EINVAL;
+> > > >  
+> > > > -	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
+> > > > -	if (!local_page_list)
+> > > > -		return -ENOMEM;
+> > > > +	if (range->start < ib_umem_start(umem) ||
+> > > > +	    range->end > ib_umem_end(umem))
+> > > > +		return -EINVAL;
+> > > >  
+> > > > -	page_shift = umem->page_shift;
+> > > > -	page_mask = ~(BIT(page_shift) - 1);
+> > > > -	off = user_virt & (~page_mask);
+> > > > -	user_virt = user_virt & page_mask;
+> > > > -	bcnt += off; /* Charge for the first page offset as well. */
+> > > > +	idx = (range->start - ib_umem_start(umem)) >> umem->page_shift;
+> > > 
+> > > Is this math OK? What is supposed to happen if the range->start is not
+> > > page aligned to the internal page size?
+> > 
+> > range->start is align on 1 << page_shift boundary within pagefault_mr
+> > thus the above math is ok. We can add a BUG_ON() and comments if you
+> > want.
+> 
+> OK
+> 
+> > > > +	range->pfns = &umem_odp->pfns[idx];
+> > > > +	range->pfn_shift = ODP_FLAGS_BITS;
+> > > > +	range->values = odp_hmm_values;
+> > > > +	range->flags = odp_hmm_flags;
+> > > >  
+> > > >  	/*
+> > > > -	 * owning_process is allowed to be NULL, this means somehow the mm is
+> > > > -	 * existing beyond the lifetime of the originating process.. Presumably
+> > > > -	 * mmget_not_zero will fail in this case.
+> > > > +	 * If mm is dying just bail out early without trying to take mmap_sem.
+> > > > +	 * Note that this might race with mm destruction but that is fine the
+> > > > +	 * is properly refcounted so are all HMM structure.
+> > > >  	 */
+> > > > -	owning_process = get_pid_task(umem_odp->per_mm->tgid, PIDTYPE_PID);
+> > > > -	if (!owning_process || !mmget_not_zero(owning_mm)) {
+> > > 
+> > > But we are not in a HMM context here, and per_mm is not a HMM
+> > > structure. 
+> > > 
+> > > So why is mm suddenly guarenteed valid? It was a bug report that
+> > > triggered the race the mmget_not_zero is fixing, so I need a better
+> > > explanation why it is now safe. From what I see the hmm_range_fault
+> > > is doing stuff like find_vma without an active mmget??
+> > 
+> > So the mm struct can not go away as long as we hold a reference on
+> > the hmm struct and we hold a reference on it through both hmm_mirror
+> > and hmm_range struct. So struct mm can not go away and thus it is
+> > safe to try to take its mmap_sem.
+> 
+> This was always true here, though, so long as the umem_odp exists the
+> the mm has a grab on it. But a grab is not a get..
+> 
+> The point here was the old code needed an mmget() in order to do
+> get_user_pages_remote()
+> 
+> If hmm does not need an external mmget() then fine, we delete this
+> stuff and rely on hmm.
+> 
+> But I don't think that is true as we have:
+> 
+>           CPU 0                                           CPU1
+>                                                        mmput()
+>                        				        __mmput()
+> 							 exit_mmap()
+> down_read(&mm->mmap_sem);
+> hmm_range_dma_map(range, device,..
+>   ret = hmm_range_fault(range, block);
+>      if (hmm->mm == NULL || hmm->dead)
+> 							   mmu_notifier_release()
+> 							     hmm->dead = true
+>      vma = find_vma(hmm->mm, start);
+>         .. rb traversal ..                                 while (vma) remove_vma()
+> 
+> *goes boom*
+> 
+> I think this is violating the basic constraint of the mm by acting on
+> a mm's VMA's without holding a mmget() to prevent concurrent
+> destruction.
+> 
+> In other words, mmput() destruction does not respect the mmap_sem - so
+> holding the mmap sem alone is not enough locking.
+> 
+> The unlucked hmm->dead simply can't save this. Frankly every time I
+> look a struct with 'dead' in it, I find races like this.
+> 
+> Thus we should put the mmget_notzero back in.
 
-For HWASan the most convenient would be to use the tag from the hint.
-But since in the TBI (not MTE) mode the kernel has no idea what
-meaning userspace assigns to pointer tags, perhaps it should not try
-to guess, and should return raw (zero-tagged) address instead.
+So for some reason i thought exit_mmap() was setting the mm_rb
+to empty node and flushing vmacache so that find_vma() would
+fail. Might have been in some patch that never went upstream.
 
-> With MTE, we may want to use this as a request for the default colour of
-> the mapped pages (still under discussion).
+Note that right before find_vma() there is also range->valid
+check which will also intercept mm release.
 
-I like this - and in that case it would make sense to return the
-pointer that can be immediately dereferenced without crashing the
-process, i.e. with the matching tag.
+Anyway the easy fix is to get ref on mm user in range_register.
 
-> > +SYSCALL_DEFINE6(arm64_mmap_pgoff, unsigned long, addr, unsigned long, len,
-> > +             unsigned long, prot, unsigned long, flags,
-> > +             unsigned long, fd, unsigned long, pgoff)
-> > +{
-> > +     addr = untagged_addr(addr);
-> > +     return ksys_mmap_pgoff(addr, len, prot, flags, fd, pgoff);
-> > +}
->
-> We don't have __NR_mmap_pgoff on arm64.
->
-> > +SYSCALL_DEFINE5(arm64_mremap, unsigned long, addr, unsigned long, old_len,
-> > +             unsigned long, new_len, unsigned long, flags,
-> > +             unsigned long, new_addr)
-> > +{
-> > +     addr = untagged_addr(addr);
-> > +     new_addr = untagged_addr(new_addr);
-> > +     return ksys_mremap(addr, old_len, new_len, flags, new_addr);
-> > +}
->
-> Similar comment as for mmap(), do we want the tag from new_addr to be
-> preserved? In addition, should we check that the two tags are identical
-> or mremap() should become a way to repaint a memory region?
->
-> > +SYSCALL_DEFINE2(arm64_munmap, unsigned long, addr, size_t, len)
-> > +{
-> > +     addr = untagged_addr(addr);
-> > +     return ksys_munmap(addr, len);
-> > +}
->
-> This looks fine.
->
-> > +SYSCALL_DEFINE1(arm64_brk, unsigned long, brk)
-> > +{
-> > +     brk = untagged_addr(brk);
-> > +     return ksys_brk(brk);
-> > +}
->
-> I wonder whether brk() should simply not accept tags, and should not
-> return them (similar to the prctl(PR_SET_MM) discussion). We could
-> document this in the ABI requirements.
->
-> > +SYSCALL_DEFINE5(arm64_get_mempolicy, int __user *, policy,
-> > +             unsigned long __user *, nmask, unsigned long, maxnode,
-> > +             unsigned long, addr, unsigned long, flags)
-> > +{
-> > +     addr = untagged_addr(addr);
-> > +     return ksys_get_mempolicy(policy, nmask, maxnode, addr, flags);
-> > +}
-> > +
-> > +SYSCALL_DEFINE3(arm64_madvise, unsigned long, start,
-> > +             size_t, len_in, int, behavior)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_madvise(start, len_in, behavior);
-> > +}
-> > +
-> > +SYSCALL_DEFINE6(arm64_mbind, unsigned long, start, unsigned long, len,
-> > +             unsigned long, mode, const unsigned long __user *, nmask,
-> > +             unsigned long, maxnode, unsigned int, flags)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_mbind(start, len, mode, nmask, maxnode, flags);
-> > +}
-> > +
-> > +SYSCALL_DEFINE2(arm64_mlock, unsigned long, start, size_t, len)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_mlock(start, len, VM_LOCKED);
-> > +}
-> > +
-> > +SYSCALL_DEFINE2(arm64_mlock2, unsigned long, start, size_t, len)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_mlock(start, len, VM_LOCKED);
-> > +}
-> > +
-> > +SYSCALL_DEFINE2(arm64_munlock, unsigned long, start, size_t, len)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_munlock(start, len);
-> > +}
-> > +
-> > +SYSCALL_DEFINE3(arm64_mprotect, unsigned long, start, size_t, len,
-> > +             unsigned long, prot)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_mprotect_pkey(start, len, prot, -1);
-> > +}
-> > +
-> > +SYSCALL_DEFINE3(arm64_msync, unsigned long, start, size_t, len, int, flags)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_msync(start, len, flags);
-> > +}
-> > +
-> > +SYSCALL_DEFINE3(arm64_mincore, unsigned long, start, size_t, len,
-> > +             unsigned char __user *, vec)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_mincore(start, len, vec);
-> > +}
->
-> These look fine.
->
-> > +SYSCALL_DEFINE5(arm64_remap_file_pages, unsigned long, start,
-> > +             unsigned long, size, unsigned long, prot,
-> > +             unsigned long, pgoff, unsigned long, flags)
-> > +{
-> > +     start = untagged_addr(start);
-> > +     return ksys_remap_file_pages(start, size, prot, pgoff, flags);
-> > +}
->
-> While this has been deprecated for some time, I presume user space still
-> invokes it?
->
-> > +SYSCALL_DEFINE3(arm64_shmat, int, shmid, char __user *, shmaddr, int, shmflg)
-> > +{
-> > +     shmaddr = untagged_addr(shmaddr);
-> > +     return ksys_shmat(shmid, shmaddr, shmflg);
-> > +}
-> > +
-> > +SYSCALL_DEFINE1(arm64_shmdt, char __user *, shmaddr)
-> > +{
-> > +     shmaddr = untagged_addr(shmaddr);
-> > +     return ksys_shmdt(shmaddr);
-> > +}
->
-> Do we actually want to allow shared tagged memory? Who's going to tag
-> it? If not, we can document it as not supported.
->
-> --
-> Catalin
+> 
+> I saw some other funky looking stuff in hmm as well..
+> 
+> > Hence it is safe to take mmap_sem and it is safe to call in hmm, if
+> > mm have been kill it will return EFAULT and this will propagate to
+> > RDMA.
+>  
+> > As per_mm i removed the per_mm->mm = NULL from release so that it is
+> > always safe to use that field even in face of racing mm "killing".
+> 
+> Yes, that certainly wasn't good.
+> 
+> > > > -	 * An array of the pages included in the on-demand paging umem.
+> > > > -	 * Indices of pages that are currently not mapped into the device will
+> > > > -	 * contain NULL.
+> > > > +	 * An array of the pages included in the on-demand paging umem. Indices
+> > > > +	 * of pages that are currently not mapped into the device will contain
+> > > > +	 * 0.
+> > > >  	 */
+> > > > -	struct page		**page_list;
+> > > > +	uint64_t *pfns;
+> > > 
+> > > Are these actually pfns, or are they mangled with some shift? (what is range->pfn_shift?)
+> > 
+> > They are not pfns they have flags (hence range->pfn_shift) at the
+> > bottoms i just do not have a better name for this.
+> 
+> I think you need to have a better name then
+
+Suggestion ? i have no idea for a better name, it has pfn value
+in it.
+
+Cheers,
+Jérôme
