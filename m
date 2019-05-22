@@ -1,119 +1,223 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Tue, 21 May 2019 17:04:39 -0700
-Message-ID: <201905211633.6C0BF0C2@keescook>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Tue, 21 May 2019 21:52:25 -0300
+Message-ID: <20190522005225.GA30819@ziepe.ca>
+References: <20190411181314.19465-1-jglisse@redhat.com>
+ <20190506195657.GA30261@ziepe.ca>
+ <20190521205321.GC3331@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190521182932.sm4vxweuwo5ermyd@mbp>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Yishai
+In-Reply-To: <20190521205321.GC3331@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVHVlLCBNYXkgMjEsIDIwMTkgYXQgMDc6Mjk6MzNQTSArMDEwMCwgQ2F0YWxpbiBNYXJpbmFz
-IHdyb3RlOgo+IE9uIE1vbiwgTWF5IDIwLCAyMDE5IGF0IDA0OjUzOjA3UE0gLTA3MDAsIEV2Z2Vu
-aWkgU3RlcGFub3Ygd3JvdGU6Cj4gPiBPbiBGcmksIE1heSAxNywgMjAxOSBhdCA3OjQ5IEFNIENh
-dGFsaW4gTWFyaW5hcyA8Y2F0YWxpbi5tYXJpbmFzQGFybS5jb20+IHdyb3RlOgo+ID4gPiBJTU8g
-KFJGQyBmb3Igbm93KSwgSSBzZWUgdHdvIHdheXMgZm9yd2FyZDoKPiA+ID4gWy4uLl0KPiA+ID4g
-Mi4gU2ltaWxhciBzaGltIHRvIHRoZSBhYm92ZSBsaWJjIHdyYXBwZXIgYnV0IGluc2lkZSB0aGUg
-a2VybmVsCj4gPiA+ICAgIChhcmNoL2FybTY0IG9ubHk7IG1vc3QgcG9pbnRlciBhcmd1bWVudHMg
-Y291bGQgYmUgY292ZXJlZCB3aXRoIGFuCj4gPiA+ICAgIF9fU0NfQ0FTVCBzaW1pbGFyIHRvIHRo
-ZSBzMzkwIG9uZSkuIFRoZXJlIGFyZSB0d28gZGlmZmVyZW5jZXMgZnJvbQo+ID4gPiAgICB3aGF0
-IHdlJ3ZlIGRpc2N1c3NlZCBpbiB0aGUgcGFzdDoKPiA+ID4KPiA+ID4gICAgYSkgdGhpcyBpcyBh
-biBvcHQtaW4gYnkgdGhlIHVzZXIgd2hpY2ggd291bGQgaGF2ZSB0byBleHBsaWNpdGx5IGNhbGwK
-PiA+ID4gICAgICAgcHJjdGwoKS4gSWYgaXQgcmV0dXJucyAtRU5PVFNVUFAgZXRjLiwgdGhlIHVz
-ZXIgd29uJ3QgYmUgYWxsb3dlZAo+ID4gPiAgICAgICB0byBwYXNzIHRhZ2dlZCBwb2ludGVycyB0
-byB0aGUga2VybmVsLiBUaGlzIHdvdWxkIHByb2JhYmx5IGJlIHRoZQo+ID4gPiAgICAgICByZXNw
-b25zaWJpbGl0eSBvZiB0aGUgQyBsaWIgdG8gbWFrZSBzdXJlIGl0IGRvZXNuJ3QgdGFnIGhlYXAK
-PiA+ID4gICAgICAgYWxsb2NhdGlvbnMuIElmIHRoZSB1c2VyIGRpZCBub3Qgb3B0LWluLCB0aGUg
-c3lzY2FsbHMgYXJlIHJvdXRlZAo+ID4gPiAgICAgICB0aHJvdWdoIHRoZSBub3JtYWwgcGF0aCAo
-bm8gdW50YWdnaW5nIGFkZHJlc3Mgc2hpbSkuCj4gPiA+Cj4gPiA+ICAgIGIpIGlvY3RsKCkgYW5k
-IG90aGVyIGJsYWNrbGlzdGVkIHN5c2NhbGxzIChwcmN0bCkgd2lsbCBub3QgYWNjZXB0Cj4gPiA+
-ICAgICAgIHRhZ2dlZCBwb2ludGVycyAodG8gYmUgZG9jdW1lbnRlZCBpbiBWaWNlbnpvJ3MgQUJJ
-IHBhdGNoZXMpLgo+ID4KPiA+IFRoZSB3YXkgSSBzZWUgaXQsIGEgcGF0Y2ggdGhhdCBicmVha3Mg
-aGFuZGxpbmcgb2YgdGFnZ2VkIHBvaW50ZXJzIGlzCj4gPiBub3QgdGhhdCBkaWZmZXJlbnQgZnJv
-bSwgc2F5LCBhIHBhdGNoIHRoYXQgYWRkcyBhIHdpbGQgcG9pbnRlcgo+ID4gZGVyZWZlcmVuY2Uu
-IEJvdGggYXJlIGJ1Z3M7IHRoZSBkaWZmZXJlbmNlIGlzIHRoYXQgKGEpIHRoZSBmb3JtZXIKPiA+
-IGJyZWFrcyBhIHJlbGF0aXZlbHkgdW5jb21tb24gdGFyZ2V0IGFuZCAoYikgaXQncyBhcmd1YWJs
-eSBhbiBlYXNpZXIKPiA+IG1pc3Rha2UgdG8gbWFrZS4gSWYgTVRFIGFkb3B0aW9uIGdvZXMgd2Vs
-bCwgKGEpIHdpbGwgbm90IGJlIHRoZSBjYXNlCj4gPiBmb3IgbG9uZy4KPiAKPiBJdCdzIGFsc28g
-dGhlIGZhY3Qgc3VjaCBwYXRjaCB3b3VsZCBnbyB1bm5vdGljZWQgZm9yIGEgbG9uZyB0aW1lIHVu
-dGlsCj4gc29tZW9uZSBleGVyY2lzZXMgdGhhdCBjb2RlIHBhdGguIEFuZCB3aGVuIHRoZXkgZG8s
-IHRoZSB1c2VyIHdvdWxkIGJlCj4gcHJldHR5IG11Y2ggaW4gdGhlIGRhcmsgdHJ5aW5nIHRvIGZp
-Z3VyZSB3aGF0IHdoYXQgd2VudCB3cm9uZywgd2h5IGEKPiBTSUdTRUdWIG9yIC1FRkFVTFQgaGFw
-cGVuZWQuIFdoYXQncyB3b3JzZSwgd2UgY2FuJ3QgZXZlbiBzYXkgd2UgZml4ZWQKPiBhbGwgdGhl
-IHBsYWNlcyB3aGVyZSBpdCBtYXR0ZXJzIGluIHRoZSBjdXJyZW50IGtlcm5lbCBjb2RlYmFzZSAo
-aWdub3JpbmcKPiBmdXR1cmUgcGF0Y2hlcykuCgpTbywgbG9va2luZyBmb3J3YXJkIGEgYml0LCB0
-aGlzIGlzbid0IGdvaW5nIHRvIGJlIGFuIEFSTS1zcGVjaWZpYyBpc3N1ZQpmb3IgbG9uZy4gSW4g
-ZmFjdCwgSSB0aGluayB3ZSBzaG91bGRuJ3QgaGF2ZSBhcm0tc3BlY2lmaWMgc3lzY2FsbCB3cmFw
-cGVycwppbiB0aGlzIHNlcmllczogSSB0aGluayB1bnRhZ2dlZF9hZGRyKCkgc2hvdWxkIGxpa2Vs
-eSBiZSBhZGRlZCBhdCB0aGUKdG9wLWxldmVsIGFuZCBoYXZlIGl0IGJlIGEgbm8tb3AgZm9yIG90
-aGVyIGFyY2hpdGVjdHVyZXMuIFNvIGdpdmVuIHRoaXMKYmVjb21pbmcgYSBrZXJuZWwtd2lkZSBt
-dWx0aS1hcmNoaXRlY3R1cmUgaXNzdWUgKHVuZGVyIHRoZSBhc3N1bXB0aW9uCnRoYXQgeDg2LCBS
-SVNDLVYsIGFuZCBvdGhlcnMgd2lsbCBnYWluIHNpbWlsYXIgVEJJIG9yIE1URSB0aGluZ3MpLAp3
-ZSBzaG91bGQgc29sdmUgaXQgaW4gYSB3YXkgdGhhdCB3ZSBjYW4gcmUtdXNlLgoKV2UgbmVlZCBz
-b21ldGhpbmcgdGhhdCBpcyBnb2luZyB0byB3b3JrIGV2ZXJ5d2hlcmUuIEFuZCBpdCBuZWVkcyB0
-byBiZQpzdXBwb3J0ZWQgYnkgdGhlIGtlcm5lbCBmb3IgdGhlIHNpbXBsZSByZWFzb24gdGhhdCB0
-aGUga2VybmVsIG5lZWRzIHRvCmRvIE1URSBjaGVja3MgZHVyaW5nIGNvcHlfZnJvbV91c2VyKCk6
-IGhhdmluZyB0aGF0IGluZm9ybWF0aW9uIHN0cmlwcGVkCm1lYW5zIHdlIGxvc2UgYW55IHVzZXJz
-cGFjZS1hc3NpZ25lZCBNVEUgcHJvdGVjdGlvbnMgaWYgdGhleSBnZXQgaGFuZGxlZApieSB0aGUg
-a2VybmVsLCB3aGljaCBpcyBhIHRvdGFsIG5vbi1zdGFydGVyLCBJTU8uCgpBcyBhbiBhc2lkZTog
-SSB0aGluayBTcGFyYyBBREkgc3VwcG9ydCBpbiBMaW51eCBhY3R1YWxseSBzaWRlLXN0ZXBwZWQK
-dGhpc1sxXSAoaS5lLiBjaG9zZSAic29sdXRpb24gMSIpOiAiQWxsIGFkZHJlc3NlcyBwYXNzZWQg
-dG8ga2VybmVsIG11c3QKYmUgbm9uLUFESSB0YWdnZWQgYWRkcmVzc2VzLiIgKEFuZCBzYWRseSwg
-Iktlcm5lbCBkb2VzIG5vdCBlbmFibGUgQURJCmZvciBrZXJuZWwgY29kZS4iKSBJIHRoaW5rIHRo
-aXMgd2FzIGEgbWlzdGFrZSB3ZSBzaG91bGQgbm90IHJlcGVhdCBmb3IKYXJtNjQgKHdlIGRvIHNl
-ZW0gdG8gYmUgYXQgbGVhc3QgaW4gYWdyZWVtZW50IGFib3V0IHRoaXMsIEkgdGhpbmspLgoKWzFd
-IGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL3BhdGNod29yay9wYXRjaC82NTQ0ODEvCgo+ID4gVGhp
-cyBpcyBhIGJpdCBvZiBhIGNoaWNrZW4tYW5kLWVnZyBwcm9ibGVtLiBJbiBhIHdvcmxkIHdoZXJl
-IG1lbW9yeQo+ID4gYWxsb2NhdG9ycyBvbiBvbmUgb3Igc2V2ZXJhbCBwb3B1bGFyIHBsYXRmb3Jt
-cyBnZW5lcmF0ZSBwb2ludGVycyB3aXRoCj4gPiBub24temVybyB0YWdzLCBhbnkgc3VjaCBicmVh
-a2FnZSB3aWxsIGJlIGNhdWdodCBpbiB0ZXN0aW5nLgo+ID4gVW5mb3J0dW5hdGVseSB0byByZWFj
-aCB0aGF0IHN0YXRlIHdlIG5lZWQgdGhlIGtlcm5lbCB0byBzdGFydAo+ID4gYWNjZXB0aW5nIHRh
-Z2dlZCBwb2ludGVycyBmaXJzdCwgYW5kIHRoZW4gaG9sZCBvbiBmb3IgYSBjb3VwbGUgb2YKPiA+
-IHllYXJzIHVudGlsIHVzZXJzcGFjZSBjYXRjaGVzIHVwLgo+IAo+IFdvdWxkIHRoZSBrZXJuZWwg
-YWxzbyBjYXRjaCB1cCB3aXRoIHByb3ZpZGluZyBhIHN0YWJsZSBBQkk/IEJlY2F1c2Ugd2UKPiBo
-YXZlIHR3byBtb3ZpbmcgdGFyZ2V0cy4KPiAKPiBPbiBvbmUgaGFuZCwgeW91IGhhdmUgQW5kcm9p
-ZCBvciBzb21lIExpbnV4IGRpc3RybyB0aGF0IHN0aWNrIHRvIGEKPiBzdGFibGUga2VybmVsIHZl
-cnNpb24gZm9yIHNvbWUgdGltZSwgc28gdGhleSBoYXZlIGJldHRlciBjaGFuY2Ugb2YKPiBjbGVh
-cmluZyBtb3N0IG9mIHRoZSBwcm9ibGVtcy4gT24gdGhlIG90aGVyIGhhbmQsIHdlIGhhdmUgbWFp
-bmxpbmUKPiBrZXJuZWwgdGhhdCBnZXRzIG92ZXIgNTAwSyBsaW5lcyBldmVyeSByZWxlYXNlLiBB
-cyBtYWludGFpbmVyLCBJIGNhbid0Cj4gcmVseSBvbiBteSB0ZXN0aW5nIGFsb25lIGFzIHRoaXMg
-aXMgb24gYSBsaW1pdGVkIG51bWJlciBvZiBwbGF0Zm9ybXMuIFNvCj4gbXkgY29uY2VybiBpcyB0
-aGF0IGV2ZXJ5IGtlcm5lbCByZWxlYXNlIGhhcyBhIHNpZ25pZmljYW50IGNoYW5jZSBvZgo+IGJy
-ZWFraW5nIHRoZSBBQkksIHVubGVzcyB3ZSBoYXZlIGEgYmV0dGVyIHdheSBvZiBpZGVudGlmeWlu
-ZyBwb3RlbnRpYWwKPiBpc3N1ZXMuCgpJIGp1c3Qgd2FudCB0byBtYWtlIHN1cmUgSSBmdWxseSB1
-bmRlcnN0YW5kIHlvdXIgY29uY2VybiBhYm91dCB0aGlzCmJlaW5nIGFuIEFCSSBicmVhaywgYW5k
-IEkgd29yayBiZXN0IHdpdGggZXhhbXBsZXMuIFRoZSBjbG9zZXN0IHNpdHVhdGlvbgpJIGNhbiBz
-ZWUgd291bGQgYmU6CgotIHNvbWUgcHJvZ3JhbSBoYXMgbm8gaWRlYSBhYm91dCBNVEUKLSBtYWxs
-b2MoKSBzdGFydHMgcmV0dXJuaW5nIE1URS10YWdnZWQgYWRkcmVzc2VzCi0gcHJvZ3JhbSBkb2Vz
-bid0IGJyZWFrIGZyb20gdGhhdCBjaGFuZ2UKLSBwcm9ncmFtIHVzZXMgc29tZSBzeXNjYWxsIHRo
-YXQgaXMgbWlzc2luZyB1bnRhZ2dlZF9hZGRyKCkgYW5kIGZhaWxzCi0ga2VybmVsIGhhcyBub3cg
-YnJva2VuIHVzZXJzcGFjZSB0aGF0IHVzZWQgdG8gd29yawoKVGhlIHRyb3VibGUgSSBzZWUgd2l0
-aCB0aGlzIGlzIHRoYXQgaXQgaXMgbGFyZ2VseSB0aGVvcmV0aWNhbCBhbmQKcmVxdWlyZXMgcGFy
-dCBvZiB1c2Vyc3BhY2UgdG8gY29sbHVkZSB0byBzdGFydCB1c2luZyBhIG5ldyBDUFUgZmVhdHVy
-ZQp0aGF0IHRpY2tsZXMgYSBidWcgaW4gdGhlIGtlcm5lbC4gQXMgSSB1bmRlcnN0YW5kIHRoZSBn
-b2xkZW4gcnVsZSwKdGhpcyBpcyBhIGJ1ZyBpbiB0aGUga2VybmVsIChhIG1pc3NlZCBpb2N0bCgp
-IG9yIHN1Y2gpIHRvIGJlIGZpeGVkLApub3QgYSBnbG9iYWwgYnJlYWtpbmcgb2Ygc29tZSB1c2Vy
-c3BhY2UgYmVoYXZpb3IuCgpJIGZlZWwgbGlrZSBJJ20gbWlzc2luZyBzb21ldGhpbmcgYWJvdXQg
-dGhpcyBiZWluZyBzZWVuIGFzIGFuIEFCSQpicmVhay4gVGhlIGtlcm5lbCBhbHJlYWR5IGZhaWxz
-IG9uIHVzZXJzcGFjZSBhZGRyZXNzZXMgdGhhdCBoYXZlIGhpZ2gKYml0cyBzZXQgLS0gYXJlIHRo
-ZXJlIHRoaW5ncyB0aGF0IF9kZXBlbmRfIG9uIHRoaXMgZmFpbHVyZSB0byBvcGVyYXRlPwoKLS0g
-CktlZXMgQ29vawpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
-aHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWw=
+On Tue, May 21, 2019 at 04:53:22PM -0400, Jerome Glisse wrote:
+> On Mon, May 06, 2019 at 04:56:57PM -0300, Jason Gunthorpe wrote:
+> > On Thu, Apr 11, 2019 at 02:13:13PM -0400, jglisse@redhat.com wrote:
+> > > From: Jérôme Glisse <jglisse@redhat.com>
+> > > 
+> > > Just fixed Kconfig and build when ODP was not enabled, other than that
+> > > this is the same as v3. Here is previous cover letter:
+> > > 
+> > > Git tree with all prerequisite:
+> > > https://cgit.freedesktop.org/~glisse/linux/log/?h=rdma-odp-hmm-v4
+> > > 
+> > > This patchset convert RDMA ODP to use HMM underneath this is motivated
+> > > by stronger code sharing for same feature (share virtual memory SVM or
+> > > Share Virtual Address SVA) and also stronger integration with mm code to
+> > > achieve that. It depends on HMM patchset posted for inclusion in 5.2 [2]
+> > > and [3].
+> > > 
+> > > It has been tested with pingpong test with -o and others flags to test
+> > > different size/features associated with ODP.
+> > > 
+> > > Moreover they are some features of HMM in the works like peer to peer
+> > > support, fast CPU page table snapshot, fast IOMMU mapping update ...
+> > > It will be easier for RDMA devices with ODP to leverage those if they
+> > > use HMM underneath.
+> > > 
+> > > Quick summary of what HMM is:
+> > >     HMM is a toolbox for device driver to implement software support for
+> > >     Share Virtual Memory (SVM). Not only it provides helpers to mirror a
+> > >     process address space on a device (hmm_mirror). It also provides
+> > >     helper to allow to use device memory to back regular valid virtual
+> > >     address of a process (any valid mmap that is not an mmap of a device
+> > >     or a DAX mapping). They are two kinds of device memory. Private memory
+> > >     that is not accessible to CPU because it does not have all the expected
+> > >     properties (this is for all PCIE devices) or public memory which can
+> > >     also be access by CPU without restriction (with OpenCAPI or CCIX or
+> > >     similar cache-coherent and atomic inter-connect).
+> > > 
+> > >     Device driver can use each of HMM tools separatly. You do not have to
+> > >     use all the tools it provides.
+> > > 
+> > > For RDMA device i do not expect a need to use the device memory support
+> > > of HMM. This device memory support is geared toward accelerator like GPU.
+> > > 
+> > > 
+> > > You can find a branch [1] with all the prerequisite in. This patch is on
+> > > top of rdma-next with the HMM patchset [2] and mmu notifier patchset [3]
+> > > applied on top of it.
+> > > 
+> > > [1] https://cgit.freedesktop.org/~glisse/linux/log/?h=rdma-odp-hmm-v4
+> > > [2] https://lkml.org/lkml/2019/4/3/1032
+> > > [3] https://lkml.org/lkml/2019/3/26/900
+> > 
+> > Jerome, please let me know if these dependent series are merged during
+> > the first week of the merge window.
+> > 
+> > This patch has been tested and could go along next week if the
+> > dependencies are met.
+> > 
+> 
+> So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
+> (prefetch and not and different sizes). Seems to work ok.
+
+Urk, it already doesn't apply to the rdma tree :(
+
+The conflicts are a little more extensive than I'd prefer to handle..
+Can I ask you to rebase it on top of this branch please:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
+
+Specifically it conflicts with this patch:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
+
+> +long ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp,
+> +			       struct hmm_range *range)
+>  {
+> +	struct device *device = umem_odp->umem.context->device->dma_device;
+> +	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
+>  	struct ib_umem *umem = &umem_odp->umem;
+> -	struct task_struct *owning_process  = NULL;
+> -	struct mm_struct *owning_mm = umem_odp->umem.owning_mm;
+> -	struct page       **local_page_list = NULL;
+> -	u64 page_mask, off;
+> -	int j, k, ret = 0, start_idx, npages = 0, page_shift;
+> -	unsigned int flags = 0;
+> -	phys_addr_t p = 0;
+> -
+> -	if (access_mask == 0)
+> +	struct mm_struct *mm = per_mm->mm;
+> +	unsigned long idx, npages;
+> +	long ret;
+> +
+> +	if (mm == NULL)
+> +		return -ENOENT;
+> +
+> +	/* Only drivers with invalidate support can use this function. */
+> +	if (!umem->context->invalidate_range)
+>  		return -EINVAL;
+>  
+> -	if (user_virt < ib_umem_start(umem) ||
+> -	    user_virt + bcnt > ib_umem_end(umem))
+> -		return -EFAULT;
+> +	/* Sanity checks. */
+> +	if (range->default_flags == 0)
+> +		return -EINVAL;
+>  
+> -	local_page_list = (struct page **)__get_free_page(GFP_KERNEL);
+> -	if (!local_page_list)
+> -		return -ENOMEM;
+> +	if (range->start < ib_umem_start(umem) ||
+> +	    range->end > ib_umem_end(umem))
+> +		return -EINVAL;
+>  
+> -	page_shift = umem->page_shift;
+> -	page_mask = ~(BIT(page_shift) - 1);
+> -	off = user_virt & (~page_mask);
+> -	user_virt = user_virt & page_mask;
+> -	bcnt += off; /* Charge for the first page offset as well. */
+> +	idx = (range->start - ib_umem_start(umem)) >> umem->page_shift;
+
+Is this math OK? What is supposed to happen if the range->start is not
+page aligned to the internal page size?
+
+> +	range->pfns = &umem_odp->pfns[idx];
+> +	range->pfn_shift = ODP_FLAGS_BITS;
+> +	range->values = odp_hmm_values;
+> +	range->flags = odp_hmm_flags;
+>  
+>  	/*
+> -	 * owning_process is allowed to be NULL, this means somehow the mm is
+> -	 * existing beyond the lifetime of the originating process.. Presumably
+> -	 * mmget_not_zero will fail in this case.
+> +	 * If mm is dying just bail out early without trying to take mmap_sem.
+> +	 * Note that this might race with mm destruction but that is fine the
+> +	 * is properly refcounted so are all HMM structure.
+>  	 */
+> -	owning_process = get_pid_task(umem_odp->per_mm->tgid, PIDTYPE_PID);
+> -	if (!owning_process || !mmget_not_zero(owning_mm)) {
+
+But we are not in a HMM context here, and per_mm is not a HMM
+structure. 
+
+So why is mm suddenly guarenteed valid? It was a bug report that
+triggered the race the mmget_not_zero is fixing, so I need a better
+explanation why it is now safe. From what I see the hmm_range_fault
+is doing stuff like find_vma without an active mmget??
+
+> @@ -603,11 +603,29 @@ static int pagefault_mr(struct mlx5_ib_dev *dev, struct mlx5_ib_mr *mr,
+>  
+>  next_mr:
+>  	size = min_t(size_t, bcnt, ib_umem_end(&odp->umem) - io_virt);
+> -
+>  	page_shift = mr->umem->page_shift;
+>  	page_mask = ~(BIT(page_shift) - 1);
+> +	/*
+> +	 * We need to align io_virt on page size so off is the extra bytes we
+> +	 * will be faulting and fault_size is the page aligned size we are
+> +	 * faulting.
+> +	 */
+> +	io_virt = io_virt & page_mask;
+> +	off = (io_virt & (~page_mask));
+> +	fault_size = ALIGN(size + off, 1UL << page_shift);
+> +
+> +	if (io_virt < ib_umem_start(&odp->umem))
+> +		return -EINVAL;
+> +
+>  	start_idx = (io_virt - (mr->mmkey.iova & page_mask)) >> page_shift;
+> -	access_mask = ODP_READ_ALLOWED_BIT;
+> +
+> +	if (odp_mr->per_mm == NULL || odp_mr->per_mm->mm == NULL)
+> +		return -ENOENT;
+
+How can this happen? Where is the locking?
+
+per_mm is supposed to outlive any odp_mr's the refer to it, and the mm
+is supposed to remain grab'd as long as the per_mm exists..
+
+> diff --git a/include/rdma/ib_umem_odp.h b/include/rdma/ib_umem_odp.h
+> index eeec4e53c448..70b2df8e5a6c 100644
+> +++ b/include/rdma/ib_umem_odp.h
+> @@ -36,6 +36,7 @@
+>  #include <rdma/ib_umem.h>
+>  #include <rdma/ib_verbs.h>
+>  #include <linux/interval_tree.h>
+> +#include <linux/hmm.h>
+>  
+>  struct umem_odp_node {
+>  	u64 __subtree_last;
+> @@ -47,11 +48,11 @@ struct ib_umem_odp {
+>  	struct ib_ucontext_per_mm *per_mm;
+>  
+>  	/*
+> -	 * An array of the pages included in the on-demand paging umem.
+> -	 * Indices of pages that are currently not mapped into the device will
+> -	 * contain NULL.
+> +	 * An array of the pages included in the on-demand paging umem. Indices
+> +	 * of pages that are currently not mapped into the device will contain
+> +	 * 0.
+>  	 */
+> -	struct page		**page_list;
+> +	uint64_t *pfns;
+
+Are these actually pfns, or are they mangled with some shift? (what is range->pfn_shift?)
+
+Jason
