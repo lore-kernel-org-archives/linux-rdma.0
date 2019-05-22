@@ -1,38 +1,38 @@
-From: Jerome Glisse <jglisse@redhat.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
 Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Wed, 22 May 2019 18:06:49 -0400
-Message-ID: <20190522220649.GC20179@redhat.com>
+Date: Wed, 22 May 2019 19:39:06 -0300
+Message-ID: <20190522223906.GA15389@ziepe.ca>
 References: <20190411181314.19465-1-jglisse@redhat.com>
  <20190506195657.GA30261@ziepe.ca>
  <20190521205321.GC3331@redhat.com>
  <20190522005225.GA30819@ziepe.ca>
  <20190522174852.GA23038@redhat.com>
  <20190522201247.GH6054@ziepe.ca>
- <05e7f491-b8a4-4214-ab75-9ecf1128aaa6@nvidia.com>
+ <20190522220419.GB20179@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <05e7f491-b8a4-4214-ab75-9ecf1128aaa6@nvidia.com>
+In-Reply-To: <20190522220419.GB20179@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 02:12:31PM -0700, Ralph Campbell wrote:
-> 
-> On 5/22/19 1:12 PM, Jason Gunthorpe wrote:
+On Wed, May 22, 2019 at 06:04:20PM -0400, Jerome Glisse wrote:
+> On Wed, May 22, 2019 at 05:12:47PM -0300, Jason Gunthorpe wrote:
 > > On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
 > > 
-> > >   static void put_per_mm(struct ib_umem_odp *umem_odp)
-> > >   {
-> > >   	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
+> > >  static void put_per_mm(struct ib_umem_odp *umem_odp)
+> > >  {
+> > >  	struct ib_ucontext_per_mm *per_mm = umem_odp->per_mm;
 > > > @@ -325,9 +283,10 @@ static void put_per_mm(struct ib_umem_odp *umem_odp)
-> > >   	up_write(&per_mm->umem_rwsem);
-> > >   	WARN_ON(!RB_EMPTY_ROOT(&per_mm->umem_tree.rb_root));
+> > >  	up_write(&per_mm->umem_rwsem);
+> > >  
+> > >  	WARN_ON(!RB_EMPTY_ROOT(&per_mm->umem_tree.rb_root));
 > > > -	mmu_notifier_unregister_no_release(&per_mm->mn, per_mm->mm);
 > > > +	hmm_mirror_unregister(&per_mm->mirror);
-> > >   	put_pid(per_mm->tgid);
+> > >  	put_pid(per_mm->tgid);
 > > > -	mmu_notifier_call_srcu(&per_mm->rcu, free_per_mm);
 > > > +
 > > > +	kfree(per_mm);
@@ -44,12 +44,81 @@ On Wed, May 22, 2019 at 02:12:31PM -0700, Ralph Campbell wrote:
 > > hmm should follow the same pattern ODP has and 'kfree_srcu' the hmm
 > > struct, use container_of in the mmu_notifier callbacks, and use the
 > > otherwise vestigal kref_get_unless_zero() to bail:
+> > 
+> > From 0cb536dc0150ba964a1d655151d7b7a84d0f915a Mon Sep 17 00:00:00 2001
+> > From: Jason Gunthorpe <jgg@mellanox.com>
+> > Date: Wed, 22 May 2019 16:52:52 -0300
+> > Subject: [PATCH] hmm: Fix use after free with struct hmm in the mmu notifiers
+> > 
+> > mmu_notifier_unregister_no_release() is not a fence and the mmu_notifier
+> > system will continue to reference hmm->mn until the srcu grace period
+> > expires.
+> > 
+> >          CPU0                                     CPU1
+> >                                                __mmu_notifier_invalidate_range_start()
+> >                                                  srcu_read_lock
+> >                                                  hlist_for_each ()
+> >                                                    // mn == hmm->mn
+> > hmm_mirror_unregister()
+> >   hmm_put()
+> >     hmm_free()
+> >       mmu_notifier_unregister_no_release()
+> >          hlist_del_init_rcu(hmm-mn->list)
+> > 			                           mn->ops->invalidate_range_start(mn, range);
+> > 					             mm_get_hmm()
+> >       mm->hmm = NULL;
+> >       kfree(hmm)
+> >                                                      mutex_lock(&hmm->lock);
+> > 
+> > Use SRCU to kfree the hmm memory so that the notifiers can rely on hmm
+> > existing. Get the now-safe hmm struct through container_of and directly
+> > check kref_get_unless_zero to lock it against free.
 > 
-> You might also want to look at my patch where
-> I try to fix some of these same issues (5/5).
-> 
-> https://marc.info/?l=linux-mm&m=155718572908765&w=2
+> It is already badly handled with BUG_ON()
 
-I need to review the patchset but i do not want to invert referencing
-ie having mm hold reference on hmm. Will review tommorrow. I wanted to
-do that today but did not had time.
+You can't crash the kernel because userspace forced a race, and no it
+isn't handled today because there is no RCU locking in mm_get_hmm nor
+is there a kfree_rcu for the struct hmm to make the
+kref_get_unless_zero work without use-after-free.
+
+> i just need to convert those to return and to use
+> mmu_notifier_call_srcu() to free hmm struct.
+
+Isn't that what this patch does?
+
+> The way race is avoided is because mm->hmm will either be NULL or
+> point to another hmm struct before an existing hmm is free. 
+
+There is no locking on mm->hmm so it is useless to prevent races.
+
+> Also if range_start/range_end use kref_get_unless_zero() but right
+> now this is BUG_ON if it turn out to be NULL, it should just return
+> on NULL.
+
+Still needs rcu.
+
+Also the container_of is necessary to avoid some race where you could
+be doing:
+
+                  CPU0                                     CPU1                         CPU2
+                                                       hlist_for_each ()
+       mmu_notifier_unregister_no_release(hmm1)             
+       spin_lock(&mm->page_table_lock);                                
+       mm->hmm = NULL
+       spin_unlock(&mm->page_table_lock);                                                                                      
+                                                      				 hmm2 = hmm_get_or_create()
+                                                        mn == hmm1->mn
+                                                        mn->ops->invalidate_range_start(mn, range)
+							  mm_get_mm() == hmm2
+                                                      hist_for_each con't
+                                                        mn == hmm2->mn
+                                                        mn->ops->invalidate_range_start(mn, range)
+							  mm_get_mm() == hmm2
+
+Now we called the same notifier twice on hmm2. Ooops.
+
+There is no reason to risk this confusion just to avoid container_of.
+
+So we agree this patch is necessary? Can you test it an ack it please?
+
+Jason
