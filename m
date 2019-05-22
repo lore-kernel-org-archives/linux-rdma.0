@@ -1,72 +1,49 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.14 004/167] IB/hfi1: Fix WQ_MEM_RECLAIM warning
-Date: Wed, 22 May 2019 15:25:59 -0400
-Message-ID: <20190522192842.25858-4-sashal@kernel.org>
-References: <20190522192842.25858-1-sashal@kernel.org>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [PATCH] RDMA/mlx5: Use DIV_ROUND_UP_ULL macro to allow 32 bit
+ to build
+Date: Wed, 22 May 2019 15:43:05 -0400
+Message-ID: <20190522154305.615d1d76@gandalf.local.home>
+References: <20190522145450.25ff483d@gandalf.local.home>
+        <20190522192821.GG6054@ziepe.ca>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190522192842.25858-1-sashal@kernel.org>
+In-Reply-To: <20190522192821.GG6054@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, "Michael J . Ruhl" <michael.j.ruhl@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Jason Gunthorpe <jgg@mellanox.com>, Sasha Levin <sashal@kernel.org>, linux-rdma@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: LKML <linux-kernel@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
+On Wed, 22 May 2019 16:28:21 -0300
+Jason Gunthorpe <jgg@ziepe.ca> wrote:
 
-[ Upstream commit 4c4b1996b5db688e2dcb8242b0a3bf7b1e845e42 ]
+> On Wed, May 22, 2019 at 02:54:50PM -0400, Steven Rostedt wrote:
+> > 
+> > From: Steven Rostedt (VMware) <rostedt@goodmis.org>
+> > 
+> > When testing 32 bit x86, my build failed with:
+> > 
+> >   ERROR: "__udivdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
+> > 
+> > It appears that a few non-ULL roundup() calls were made, which uses a
+> > normal division against a 64 bit number. This is fine for x86_64, but
+> > on 32 bit x86, it causes the compiler to look for a helper function
+> > __udivdi3, which we do not have in the kernel, and thus fails to build.
+> > 
+> > Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+> > ---  
+> 
+> Do you like this version better?
+> 
+> https://patchwork.kernel.org/patch/10950913/
+> 
 
-The work_item cancels that occur when a QP is destroyed can elicit the
-following trace:
+Honestly, I don't care ;-)
 
- workqueue: WQ_MEM_RECLAIM ipoib_wq:ipoib_cm_tx_reap [ib_ipoib] is flushing !WQ_MEM_RECLAIM hfi0_0:_hfi1_do_send [hfi1]
- WARNING: CPU: 7 PID: 1403 at kernel/workqueue.c:2486 check_flush_dependency+0xb1/0x100
- Call Trace:
-  __flush_work.isra.29+0x8c/0x1a0
-  ? __switch_to_asm+0x40/0x70
-  __cancel_work_timer+0x103/0x190
-  ? schedule+0x32/0x80
-  iowait_cancel_work+0x15/0x30 [hfi1]
-  rvt_reset_qp+0x1f8/0x3e0 [rdmavt]
-  rvt_destroy_qp+0x65/0x1f0 [rdmavt]
-  ? _cond_resched+0x15/0x30
-  ib_destroy_qp+0xe9/0x230 [ib_core]
-  ipoib_cm_tx_reap+0x21c/0x560 [ib_ipoib]
-  process_one_work+0x171/0x370
-  worker_thread+0x49/0x3f0
-  kthread+0xf8/0x130
-  ? max_active_store+0x80/0x80
-  ? kthread_bind+0x10/0x10
-  ret_from_fork+0x35/0x40
+As long as it is correct and doesn't break my builds. I really prefer
+if these kinds of things don't make it into Linus's tree to begin with.
+I'm surprised the zero-day bot didn't catch this. Because this is
+something that it normally does.
 
-Since QP destruction frees memory, hfi1_wq should have the WQ_MEM_RECLAIM.
-
-The hfi1_wq does not allocate memory with GFP_KERNEL or otherwise become
-entangled with memory reclaim, so this flag is appropriate.
-
-Fixes: 0a226edd203f ("staging/rdma/hfi1: Use parallel workqueue for SDMA engines")
-Reviewed-by: Michael J. Ruhl <michael.j.ruhl@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Signed-off-by: Jason Gunthorpe <jgg@mellanox.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/infiniband/hw/hfi1/init.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/init.c b/drivers/infiniband/hw/hfi1/init.c
-index b7481701542e9..27e7de4c4a34b 100644
---- a/drivers/infiniband/hw/hfi1/init.c
-+++ b/drivers/infiniband/hw/hfi1/init.c
-@@ -769,7 +769,8 @@ static int create_workqueues(struct hfi1_devdata *dd)
- 			ppd->hfi1_wq =
- 				alloc_workqueue(
- 				    "hfi%d_%d",
--				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE,
-+				    WQ_SYSFS | WQ_HIGHPRI | WQ_CPU_INTENSIVE |
-+				    WQ_MEM_RECLAIM,
- 				    HFI1_MAX_ACTIVE_WORKQUEUE_ENTRIES,
- 				    dd->unit, pidx);
- 			if (!ppd->hfi1_wq)
--- 
-2.20.1
+-- Steve
