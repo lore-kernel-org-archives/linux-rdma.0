@@ -1,124 +1,145 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Wed, 22 May 2019 17:35:27 +0100
-Message-ID: <20190522163527.rnnc6t4tll7tk5zw@mbp>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp>
- <201905211633.6C0BF0C2@keescook>
- <20190522101110.m2stmpaj7seezveq@mbp>
- <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 05/17] RDMA/counter: Add set/clear per-port
+ auto mode support
+Date: Wed, 22 May 2019 13:56:08 -0300
+Message-ID: <20190522165608.GA14554@ziepe.ca>
+References: <20190429083453.16654-1-leon@kernel.org>
+ <20190429083453.16654-6-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: enh <enh@google.com>
-Cc: Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>
+In-Reply-To: <20190429083453.16654-6-leon@kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 08:30:21AM -0700, enh wrote:
-> On Wed, May 22, 2019 at 3:11 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Tue, May 21, 2019 at 05:04:39PM -0700, Kees Cook wrote:
-> > > I just want to make sure I fully understand your concern about this
-> > > being an ABI break, and I work best with examples. The closest situation
-> > > I can see would be:
-> > >
-> > > - some program has no idea about MTE
-> >
-> > Apart from some libraries like libc (and maybe those that handle
-> > specific device ioctls), I think most programs should have no idea about
-> > MTE. I wouldn't expect programmers to have to change their app just
-> > because we have a new feature that colours heap allocations.
+On Mon, Apr 29, 2019 at 11:34:41AM +0300, Leon Romanovsky wrote:
+> From: Mark Zhang <markz@mellanox.com>
 > 
-> obviously i'm biased as a libc maintainer, but...
+> Add an API to support set/clear per-port auto mode.
 > 
-> i don't think it helps to move this to libc --- now you just have an
-> extra dependency where to have a guaranteed working system you need to
-> update your kernel and libc together. (or at least update your libc to
-> understand new ioctls etc _before_ you can update your kernel.)
-
-That's not what I meant (or I misunderstood you). If we have a relaxed
-ABI in the kernel and a libc that returns tagged pointers on malloc() I
-wouldn't expect the programmer to do anything different in the
-application code like explicit untagging. Basically the program would
-continue to run unmodified irrespective of whether you use an old libc
-without tagged pointers or a new one which tags heap allocations.
-
-What I do expect is that the libc checks for the presence of the relaxed
-ABI, currently proposed as an AT_FLAGS bit (for MTE we'd have a
-HWCAP_MTE), and only tag the malloc() pointers if the kernel supports
-the relaxed ABI. As you said, you shouldn't expect that the C library
-and kernel are upgraded together, so they should be able to work in any
-new/old version combination.
-
-> > > The trouble I see with this is that it is largely theoretical and
-> > > requires part of userspace to collude to start using a new CPU feature
-> > > that tickles a bug in the kernel. As I understand the golden rule,
-> > > this is a bug in the kernel (a missed ioctl() or such) to be fixed,
-> > > not a global breaking of some userspace behavior.
-> >
-> > Yes, we should follow the rule that it's a kernel bug but it doesn't
-> > help the user that a newly installed kernel causes user space to no
-> > longer reach a prompt. Hence the proposal of an opt-in via personality
-> > (for MTE we would need an explicit opt-in by the user anyway since the
-> > top byte is no longer ignored but checked against the allocation tag).
+> Signed-off-by: Mark Zhang <markz@mellanox.com>
+> Reviewed-by: Majd Dibbiny <majd@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+>  drivers/infiniband/core/Makefile   |  2 +-
+>  drivers/infiniband/core/counters.c | 77 ++++++++++++++++++++++++++++++
+>  drivers/infiniband/core/device.c   |  4 ++
+>  include/rdma/ib_verbs.h            |  2 +
+>  include/rdma/rdma_counter.h        | 24 ++++++++++
+>  include/uapi/rdma/rdma_netlink.h   | 26 ++++++++++
+>  6 files changed, 134 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/infiniband/core/counters.c
 > 
-> but realistically would this actually get used in this way? or would
-> any given system either be MTE or non-MTE. in which case a kernel
-> configuration option would seem to make more sense. (because either
-> way, the hypothetical user basically needs to recompile the kernel to
-> get back on their feet. or all of userspace.)
+> diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+> index 313f2349b518..cddf748c15c9 100644
+> +++ b/drivers/infiniband/core/Makefile
+> @@ -12,7 +12,7 @@ ib_core-y :=			packer.o ud_header.o verbs.o cq.o rw.o sysfs.o \
+>  				device.o fmr_pool.o cache.o netlink.o \
+>  				roce_gid_mgmt.o mr_pool.o addr.o sa_query.o \
+>  				multicast.o mad.o smi.o agent.o mad_rmpp.o \
+> -				nldev.o restrack.o
+> +				nldev.o restrack.o counters.o
+>  
+>  ib_core-$(CONFIG_SECURITY_INFINIBAND) += security.o
+>  ib_core-$(CONFIG_CGROUP_RDMA) += cgroup.o
+> diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+> new file mode 100644
+> index 000000000000..bda8d945a758
+> +++ b/drivers/infiniband/core/counters.c
+> @@ -0,0 +1,77 @@
+> +// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
+> +/*
+> + * Copyright (c) 2019 Mellanox Technologies. All rights reserved.
+> + */
+> +#include <rdma/ib_verbs.h>
+> +#include <rdma/rdma_counter.h>
+> +
+> +#include "core_priv.h"
+> +#include "restrack.h"
+> +
+> +#define ALL_AUTO_MODE_MASKS (RDMA_COUNTER_MASK_QP_TYPE)
+> +
+> +static int __counter_set_mode(struct rdma_counter_mode *curr,
+> +			      enum rdma_nl_counter_mode new_mode,
+> +			      enum rdma_nl_counter_mask new_mask)
+> +{
+> +	if ((new_mode == RDMA_COUNTER_MODE_AUTO) &&
+> +	    ((new_mask & (~ALL_AUTO_MODE_MASKS)) ||
+> +	     (curr->mode != RDMA_COUNTER_MODE_NONE)))
+> +		return -EINVAL;
+> +
+> +	curr->mode = new_mode;
+> +	curr->mask = new_mask;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * rdma_counter_set_auto_mode() - Turn on/off per-port auto mode
+> + *
+> + * When @on is true, the @mask must be set
+> + */
+> +int rdma_counter_set_auto_mode(struct ib_device *dev, u8 port,
+> +			       bool on, enum rdma_nl_counter_mask mask)
+> +{
+> +	struct rdma_port_counter *port_counter;
+> +	int ret;
+> +
+> +	if (!rdma_is_port_valid(dev, port))
+> +		return -EINVAL;
+> +
+> +	port_counter = &dev->port_data[port].port_counter;
+> +	mutex_lock(&port_counter->lock);
+> +	if (on) {
+> +		ret = __counter_set_mode(&port_counter->mode,
+> +					 RDMA_COUNTER_MODE_AUTO, mask);
+> +	} else {
+> +		if (port_counter->mode.mode != RDMA_COUNTER_MODE_AUTO) {
+> +			ret = -EINVAL;
+> +			goto out;
+> +		}
+> +		ret = __counter_set_mode(&port_counter->mode,
+> +					 RDMA_COUNTER_MODE_NONE, 0);
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&port_counter->lock);
+> +	return ret;
+> +}
+> +
+> +void rdma_counter_init(struct ib_device *dev)
+> +{
+> +	struct rdma_port_counter *port_counter;
+> +	u32 port;
+> +
+> +	if (!dev->ops.alloc_hw_stats)
+> +		return;
+> +
+> +	rdma_for_each_port(dev, port) {
+> +		port_counter = &dev->port_data[port].port_counter;
+> +		port_counter->mode.mode = RDMA_COUNTER_MODE_NONE;
+> +		mutex_init(&port_counter->lock);
+> +	}
+> +}
+> +
+> +void rdma_counter_cleanup(struct ib_device *dev)
+> +{
+> +}
 
-The two hard requirements I have for supporting any new hardware feature
-in Linux are (1) a single kernel image binary continues to run on old
-hardware while making use of the new feature if available and (2) old
-user space continues to run on new hardware while new user space can
-take advantage of the new feature.
+Please don't add empty functions
 
-The distro user space usually has a hard requirement that it continues
-to run on (certain) old hardware. We can't enforce this in the kernel
-but we offer the option to user space developers of checking feature
-availability through HWCAP bits.
+> @@ -1304,6 +1307,7 @@ static void __ib_unregister_device(struct ib_device *ib_dev)
+>  		goto out;
+>  
+>  	disable_device(ib_dev);
+> +	rdma_counter_cleanup(ib_dev);
 
-The Android story may be different as you have more control about which
-kernel configurations are deployed on specific SoCs. I'm looking more
-from a Linux distro angle where you just get an off-the-shelf OS image
-and install it on your hardware, either taking advantage of new features
-or just not using them if the software was not updated. Or, if updated
-software is installed on old hardware, it would just run.
+This is the wrong place to call this, the patch that actually adds a
+body is just doing kfree's so it is properly called
+'rdma_counter_release' and it belongs in ib_device_release()
 
-For MTE, we just can't enable it by default since there are applications
-who use the top byte of a pointer and expect it to be ignored rather
-than failing with a mismatched tag. Just think of a hwasan compiled
-binary where TBI is expected to work and you try to run it with MTE
-turned on.
+And it shouldn't test hw_stats, and it shouldn't have a 'fail' stanza
+for allocation either.
 
-I would also expect the C library or dynamic loader to check for the
-presence of a HWCAP_MTE bit before starting to tag memory allocations,
-otherwise it would get SIGILL on the first MTE instruction it tries to
-execute.
-
-> i'm not sure i see this new way for a kernel update to break my system
-> and need to be fixed forward/rolled back as any different from any of
-> the existing ways in which this can happen :-) as an end-user i have
-> to rely on whoever's sending me software updates to test adequately
-> enough that they find the problems. as an end user, there isn't any
-> difference between "my phone rebooted when i tried to take a photo
-> because of a kernel/driver leak", say, and "my phone rebooted when i
-> tried to take a photo because of missing untagging of a pointer passed
-> via ioctl".
-> 
-> i suspect you and i have very different people in mind when we say "user" :-)
-
-Indeed, I think we have different users in mind. I didn't mean the end
-user who doesn't really care which C library version it's running on
-their phone but rather advanced users (not necessarily kernel
-developers) that prefer to build their own kernels with every release.
-We could extend this to kernel developers who don't have time to track
-down why a new kernel triggers lots of SIGSEGVs during boot.
-
--- 
-Catalin
+Jason
