@@ -1,97 +1,63 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH rdma-next v2 17/17] RDMA/nldev: Allow get default counter
- statistics through RDMA netlink
-Date: Wed, 22 May 2019 14:30:11 -0300
-Message-ID: <20190522173011.GG15023@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 00/17] Statistics counter support
+Date: Wed, 22 May 2019 14:31:17 -0300
+Message-ID: <20190522173117.GH15023@ziepe.ca>
 References: <20190429083453.16654-1-leon@kernel.org>
- <20190429083453.16654-18-leon@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190429083453.16654-18-leon@kernel.org>
+In-Reply-To: <20190429083453.16654-1-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: Leon Romanovsky <leon@kernel.org>
 Cc: Doug Ledford <dledford@redhat.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Apr 29, 2019 at 11:34:53AM +0300, Leon Romanovsky wrote:
-> From: Mark Zhang <markz@mellanox.com>
+On Mon, Apr 29, 2019 at 11:34:36AM +0300, Leon Romanovsky wrote:
+> From: Leon Romanovsky <leonro@mellanox.com>
 > 
-> This patch adds the ability to return the hwstats of per-port default
-> counters (which can also be queried through sysfs nodes).
+> Changelog:
+>  v1 -> v2:
+>  * Rebased to latest rdma-next
+>  v0 -> v1:
+>  * Changed wording of counter comment
+>  * Removed unneeded assignments
+>  * Added extra patch to present global counters
 > 
-> Signed-off-by: Mark Zhang <markz@mellanox.com>
-> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
->  drivers/infiniband/core/nldev.c | 101 +++++++++++++++++++++++++++++++-
->  1 file changed, 99 insertions(+), 2 deletions(-)
+>  * I didn't change QP type from int to be enum ib_qp_type,
+>    because it caused to cyclic dependency between ib_verbs.h and
+>    rdma_counter.h.
 > 
-> diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-> index 53c1d2d82a06..cb2dd38f49f1 100644
-> +++ b/drivers/infiniband/core/nldev.c
-> @@ -1709,6 +1709,98 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
->  	return ret;
->  }
->  
-> +static int nldev_res_get_default_counter_doit(struct sk_buff *skb,
-> +					      struct nlmsghdr *nlh,
-> +					      struct netlink_ext_ack *extack,
-> +					      struct nlattr *tb[])
-> +{
-> +	struct rdma_hw_stats *stats;
-> +	struct nlattr *table_attr;
-> +	struct ib_device *device;
-> +	int ret, num_cnts, i;
-> +	struct sk_buff *msg;
-> +	u32 index, port;
-> +	u64 v;
-> +
-> +	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-> +		return -EINVAL;
-> +
-> +	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-> +	device = ib_device_get_by_index(sock_net(skb->sk), index);
-> +	if (!device)
-> +		return -EINVAL;
-> +
-> +	if (!device->ops.alloc_hw_stats || !device->ops.get_hw_stats) {
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-> +	if (!rdma_is_port_valid(device, port)) {
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-> +	if (!msg) {
-> +		ret = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-> +			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-> +					 RDMA_NLDEV_CMD_STAT_GET),
-> +			0, 0);
-> +
-> +	if (fill_nldev_handle(msg, device) ||
-> +	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port)) {
-> +		ret = -EMSGSIZE;
-> +		goto err_msg;
-> +	}
-> +
-> +	stats = device->ops.alloc_hw_stats(device, port);
-> +	if (!stats) {
-> +		ret = -ENOMEM;
-> +		goto err_msg;
-> +	}
+> 
+> Hi,
+> 
+> This series from Mark provides dynamic statistics infrastructure.
+> He uses netlink interface to configure and retrieve those counters.
+> 
+> This infrastructure allows to users monitor various objects by binding
+> to them counters. As the beginning, we used QP object as target for
+> those counters, but future patches will include ODP MR information too.
+> 
+> Two binding modes are supported:
+>  - Auto: This allows a user to build automatic set of objects to a counter
+>    according to common criteria. For example in a per-type scheme, where in
+>    one process all QPs with same QP type are bound automatically to a single
+>    counter.
+>  - Manual: This allows a user to manually bind objects on a counter.
+> 
+> Those two modes are mutual-exclusive with separation between processes,
+> objects created by different processes cannot be bound to a same counter.
+> 
+> For objects which don't support counter binding, we will return
+> pre-allocated counters.
+> 
+> $ rdma statistic qp set link mlx5_2/1 auto type on
+> $ rdma statistic qp set link mlx5_2/1 auto off
+> $ rdma statistic qp bind link mlx5_2/1 lqpn 178
+> $ rdma statistic qp unbind link mlx5_2/1 cntn 4 lqpn 178
+> $ rdma statistic show
+> $ rdma statistic qp mode
 
-Why do we need yet another one of these to be allocated?
-
-> +	num_cnts = device->ops.get_hw_stats(device, stats, port, 0);
-
-Is '0' right here?
+Can you please include the command outputs?
 
 Jason
