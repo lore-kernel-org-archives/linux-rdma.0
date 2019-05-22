@@ -1,63 +1,136 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: [PATCH] RDMA/mlx5: Use DIV_ROUND_UP_ULL macro to allow 32 bit to
- build
-Date: Wed, 22 May 2019 14:54:50 -0400
-Message-ID: <20190522145450.25ff483d@gandalf.local.home>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Wed, 22 May 2019 12:21:27 -0700
+Message-ID: <201905221157.A9BAB1F296@keescook>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
+ <20190522101110.m2stmpaj7seezveq@mbp>
+ <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: enh <enh@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex
 List-Id: linux-rdma@vger.kernel.org
 
-
-From: Steven Rostedt (VMware) <rostedt@goodmis.org>
-
-When testing 32 bit x86, my build failed with:
-
-  ERROR: "__udivdi3" [drivers/infiniband/hw/mlx5/mlx5_ib.ko] undefined!
-
-It appears that a few non-ULL roundup() calls were made, which uses a
-normal division against a 64 bit number. This is fine for x86_64, but
-on 32 bit x86, it causes the compiler to look for a helper function
-__udivdi3, which we do not have in the kernel, and thus fails to build.
-
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
----
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index e3ec79b8f7f5..f080df9934e8 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -190,7 +190,7 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
- 			  u16 uid, phys_addr_t *addr, u32 *obj_id)
- {
- 	struct mlx5_core_dev *dev = dm->dev;
--	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
-+	u32 num_blocks = DIV_ROUND_UP_ULL(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
- 	u32 in[MLX5_ST_SZ_DW(create_sw_icm_in)] = {};
- 	unsigned long *block_map;
-@@ -266,7 +266,7 @@ int mlx5_cmd_dealloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
- 			    u16 uid, phys_addr_t addr, u32 obj_id)
- {
- 	struct mlx5_core_dev *dev = dm->dev;
--	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
-+	u32 num_blocks = DIV_ROUND_UP_ULL(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
- 	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
- 	unsigned long *block_map;
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index abac70ad5c7c..40d4c5f7ea43 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
- 	/* Allocation size must a multiple of the basic block size
- 	 * and a power of 2.
- 	 */
--	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-+	act_size = DIV_ROUND_UP_ULL(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
- 	act_size = roundup_pow_of_two(act_size);
- 
- 	dm->size = act_size;
+T24gV2VkLCBNYXkgMjIsIDIwMTkgYXQgMDg6MzA6MjFBTSAtMDcwMCwgZW5oIHdyb3RlOgo+IE9u
+IFdlZCwgTWF5IDIyLCAyMDE5IGF0IDM6MTEgQU0gQ2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1h
+cmluYXNAYXJtLmNvbT4gd3JvdGU6Cj4gPiBPbiBUdWUsIE1heSAyMSwgMjAxOSBhdCAwNTowNDoz
+OVBNIC0wNzAwLCBLZWVzIENvb2sgd3JvdGU6Cj4gPiA+IEkganVzdCB3YW50IHRvIG1ha2Ugc3Vy
+ZSBJIGZ1bGx5IHVuZGVyc3RhbmQgeW91ciBjb25jZXJuIGFib3V0IHRoaXMKPiA+ID4gYmVpbmcg
+YW4gQUJJIGJyZWFrLCBhbmQgSSB3b3JrIGJlc3Qgd2l0aCBleGFtcGxlcy4gVGhlIGNsb3Nlc3Qg
+c2l0dWF0aW9uCj4gPiA+IEkgY2FuIHNlZSB3b3VsZCBiZToKPiA+ID4KPiA+ID4gLSBzb21lIHBy
+b2dyYW0gaGFzIG5vIGlkZWEgYWJvdXQgTVRFCj4gPgo+ID4gQXBhcnQgZnJvbSBzb21lIGxpYnJh
+cmllcyBsaWtlIGxpYmMgKGFuZCBtYXliZSB0aG9zZSB0aGF0IGhhbmRsZQo+ID4gc3BlY2lmaWMg
+ZGV2aWNlIGlvY3RscyksIEkgdGhpbmsgbW9zdCBwcm9ncmFtcyBzaG91bGQgaGF2ZSBubyBpZGVh
+IGFib3V0Cj4gPiBNVEUuIEkgd291bGRuJ3QgZXhwZWN0IHByb2dyYW1tZXJzIHRvIGhhdmUgdG8g
+Y2hhbmdlIHRoZWlyIGFwcCBqdXN0Cj4gPiBiZWNhdXNlIHdlIGhhdmUgYSBuZXcgZmVhdHVyZSB0
+aGF0IGNvbG91cnMgaGVhcCBhbGxvY2F0aW9ucy4KClJpZ2h0IC0tIHRoaW5ncyBzaG91bGQgSnVz
+dCBXb3JrIGZyb20gdGhlIGFwcGxpY2F0aW9uIHBlcnNwZWN0aXZlLgoKPiBvYnZpb3VzbHkgaSdt
+IGJpYXNlZCBhcyBhIGxpYmMgbWFpbnRhaW5lciwgYnV0Li4uCj4gCj4gaSBkb24ndCB0aGluayBp
+dCBoZWxwcyB0byBtb3ZlIHRoaXMgdG8gbGliYyAtLS0gbm93IHlvdSBqdXN0IGhhdmUgYW4KPiBl
+eHRyYSBkZXBlbmRlbmN5IHdoZXJlIHRvIGhhdmUgYSBndWFyYW50ZWVkIHdvcmtpbmcgc3lzdGVt
+IHlvdSBuZWVkIHRvCj4gdXBkYXRlIHlvdXIga2VybmVsIGFuZCBsaWJjIHRvZ2V0aGVyLiAob3Ig
+YXQgbGVhc3QgdXBkYXRlIHlvdXIgbGliYyB0bwo+IHVuZGVyc3RhbmQgbmV3IGlvY3RscyBldGMg
+X2JlZm9yZV8geW91IGNhbiB1cGRhdGUgeW91ciBrZXJuZWwuKQoKSSB0aGluayAoaG9wZT8pIHdl
+J3ZlIGFsbCBhZ3JlZWQgdGhhdCB3ZSBzaG91bGRuJ3QgcGFzcyB0aGlzIG9mZiB0bwp1c2Vyc3Bh
+Y2UuIEF0IHRoZSB2ZXJ5IGxlYXN0LCBpdCByZWR1Y2VzIHRoZSB1dGlsaXR5IG9mIE1URSwgYW5k
+IGF0IHdvcnN0Cml0IGNvbXBsaWNhdGVzIHVzZXJzcGFjZSB3aGVuIHRoaXMgaXMgY2xlYXJseSBh
+IGtlcm5lbC9hcmNoaXRlY3R1cmUgaXNzdWUuCgo+IAo+ID4gPiAtIG1hbGxvYygpIHN0YXJ0cyBy
+ZXR1cm5pbmcgTVRFLXRhZ2dlZCBhZGRyZXNzZXMKPiA+ID4gLSBwcm9ncmFtIGRvZXNuJ3QgYnJl
+YWsgZnJvbSB0aGF0IGNoYW5nZQo+ID4gPiAtIHByb2dyYW0gdXNlcyBzb21lIHN5c2NhbGwgdGhh
+dCBpcyBtaXNzaW5nIHVudGFnZ2VkX2FkZHIoKSBhbmQgZmFpbHMKPiA+ID4gLSBrZXJuZWwgaGFz
+IG5vdyBicm9rZW4gdXNlcnNwYWNlIHRoYXQgdXNlZCB0byB3b3JrCj4gPgo+ID4gVGhhdCdzIG9u
+ZSBhc3BlY3QgdGhvdWdoIHByb2JhYmx5IG1vcmUgb2YgYSBjYXNlIG9mIHBsdWdnaW5nIGluIGEg
+bmV3Cj4gPiBkZXZpY2UgKGdyYXBoaWNzIGNhcmQsIG5ldHdvcmsgZXRjLikgYW5kIHRoZSBpb2N0
+bCB0byB0aGUgbmV3IGRldmljZQo+ID4gZG9lc24ndCB3b3JrLgoKSSB0aGluayBNVEUgd2lsbCBs
+aWtlbHkgYmUgcmF0aGVyIGxpa2UgTlgvUFhOIGFuZCBTTUFQL1BBTjogdGhlcmUgd2lsbApiZSBn
+bGl0Y2hlcywgYW5kIHdlIGNhbiBkaXNhYmxlIHN0dWZmIGVpdGhlciB2aWEgQ09ORklHIG9yIChh
+cyBpcyBtb3JlCmNvbW1vbiBub3cpIHZpYSBhIGtlcm5lbCBjb21tYW5kbGluZSB3aXRoIHVudGFn
+Z2VkX2FkZHIoKSBjb250YWluaW5nIGEKc3RhdGljIGJyYW5jaCwgZXRjLiBCdXQgSSBhY3R1YWxs
+eSBkb24ndCB0aGluayB3ZSBuZWVkIHRvIGdvIHRoaXMgcm91dGUKKHNlZSBiZWxvdy4uLikKCj4g
+PiBUaGUgb3RoZXIgaXMgdGhhdCwgYXNzdW1pbmcgd2UgcmVhY2ggYSBwb2ludCB3aGVyZSB0aGUg
+a2VybmVsIGVudGlyZWx5Cj4gPiBzdXBwb3J0cyB0aGlzIHJlbGF4ZWQgQUJJLCBjYW4gd2UgZ3Vh
+cmFudGVlIHRoYXQgaXQgd29uJ3QgYnJlYWsgaW4gdGhlCj4gPiBmdXR1cmUuIExldCdzIHNheSBz
+b21lIHN1YnNlcXVlbnQga2VybmVsIGNoYW5nZSAoc29tZSByZWZhY3RvcmluZykKPiA+IG1pc3Nl
+cyBvdXQgYW4gdW50YWdnZWRfYWRkcigpLiBUaGlzIHJlbmRlcnMgYSBwcmV2aW91c2x5IFRCSS9N
+VEUtY2FwYWJsZQo+ID4gc3lzY2FsbCB1bnVzYWJsZS4gQ2FuIHdlIHJlbHkgb25seSBvbiB0ZXN0
+aW5nPwo+ID4KPiA+ID4gVGhlIHRyb3VibGUgSSBzZWUgd2l0aCB0aGlzIGlzIHRoYXQgaXQgaXMg
+bGFyZ2VseSB0aGVvcmV0aWNhbCBhbmQKPiA+ID4gcmVxdWlyZXMgcGFydCBvZiB1c2Vyc3BhY2Ug
+dG8gY29sbHVkZSB0byBzdGFydCB1c2luZyBhIG5ldyBDUFUgZmVhdHVyZQo+ID4gPiB0aGF0IHRp
+Y2tsZXMgYSBidWcgaW4gdGhlIGtlcm5lbC4gQXMgSSB1bmRlcnN0YW5kIHRoZSBnb2xkZW4gcnVs
+ZSwKPiA+ID4gdGhpcyBpcyBhIGJ1ZyBpbiB0aGUga2VybmVsIChhIG1pc3NlZCBpb2N0bCgpIG9y
+IHN1Y2gpIHRvIGJlIGZpeGVkLAo+ID4gPiBub3QgYSBnbG9iYWwgYnJlYWtpbmcgb2Ygc29tZSB1
+c2Vyc3BhY2UgYmVoYXZpb3IuCj4gPgo+ID4gWWVzLCB3ZSBzaG91bGQgZm9sbG93IHRoZSBydWxl
+IHRoYXQgaXQncyBhIGtlcm5lbCBidWcgYnV0IGl0IGRvZXNuJ3QKPiA+IGhlbHAgdGhlIHVzZXIg
+dGhhdCBhIG5ld2x5IGluc3RhbGxlZCBrZXJuZWwgY2F1c2VzIHVzZXIgc3BhY2UgdG8gbm8KPiA+
+IGxvbmdlciByZWFjaCBhIHByb21wdC4gSGVuY2UgdGhlIHByb3Bvc2FsIG9mIGFuIG9wdC1pbiB2
+aWEgcGVyc29uYWxpdHkKPiA+IChmb3IgTVRFIHdlIHdvdWxkIG5lZWQgYW4gZXhwbGljaXQgb3B0
+LWluIGJ5IHRoZSB1c2VyIGFueXdheSBzaW5jZSB0aGUKPiA+IHRvcCBieXRlIGlzIG5vIGxvbmdl
+ciBpZ25vcmVkIGJ1dCBjaGVja2VkIGFnYWluc3QgdGhlIGFsbG9jYXRpb24gdGFnKS4KPiAKPiBi
+dXQgcmVhbGlzdGljYWxseSB3b3VsZCB0aGlzIGFjdHVhbGx5IGdldCB1c2VkIGluIHRoaXMgd2F5
+PyBvciB3b3VsZAo+IGFueSBnaXZlbiBzeXN0ZW0gZWl0aGVyIGJlIE1URSBvciBub24tTVRFLiBp
+biB3aGljaCBjYXNlIGEga2VybmVsCj4gY29uZmlndXJhdGlvbiBvcHRpb24gd291bGQgc2VlbSB0
+byBtYWtlIG1vcmUgc2Vuc2UuIChiZWNhdXNlIGVpdGhlcgo+IHdheSwgdGhlIGh5cG90aGV0aWNh
+bCB1c2VyIGJhc2ljYWxseSBuZWVkcyB0byByZWNvbXBpbGUgdGhlIGtlcm5lbCB0bwo+IGdldCBi
+YWNrIG9uIHRoZWlyIGZlZXQuIG9yIGFsbCBvZiB1c2Vyc3BhY2UuKQoKUmlnaHQ6IHRoZSBwb2lu
+dCBpcyB0byBkZXNpZ24gdGhpbmdzIHNvIHRoYXQgd2UgZG8gb3VyIGJlc3QgdG8gbm90IGJyZWFr
+CnVzZXJzcGFjZSB0aGF0IGlzIHVzaW5nIHRoZSBuZXcgZmVhdHVyZSAod2hpY2ggSSB0aGluayB0
+aGlzIHNlcmllcyBoYXMKZG9uZSB3ZWxsKS4gQnV0IHN1cHBvcnRpbmcgTVRFL1RCSSBpcyBqdXN0
+IGxpa2Ugc3VwcG9ydGluZyBQQU46IGlmIHNvbWVvbmUKcmVmYWN0b3JzIGEgZHJpdmVyIGFuZCBz
+d2FwcyBhIGNvcHlfZnJvbV91c2VyKCkgdG8gYSBtZW1jcHkoKSwgaXQncyBnb2luZwp0byBicmVh
+ayB1bmRlciBQQU4uIFRoZXJlIHdpbGwgYmUgdGhlIHNhbWUgbG9uZyB0YWlsIG9mIHRoZXNlIGJ1
+Z3MgbGlrZQphbnkgb3RoZXIsIGJ1dCBteSBzZW5zZSBpcyB0aGF0IHRoZXkgYXJlIHNtYWxsIGFu
+ZCByYXJlLiBCdXQgSSBhZ3JlZToKdGhleSdyZSBnb2luZyB0byBiZSBwcmV0dHkgd2VpcmQgYnVn
+cyB0byB0cmFjayBkb3duLiBUaGUgZmluYWwgcmVzdWx0LApob3dldmVyLCB3aWxsIGJlIGV4Y2Vs
+bGVudCBhbm5vdGF0aW9uIGluIHRoZSBrZXJuZWwgZm9yIHdoZXJlIHVzZXJzcGFjZQphZGRyZXNz
+ZXMgZ2V0IHVzZWQgYW5kIHBlb3BsZSBtYWtlIGFzc3VtcHRpb25zIGFib3V0IHRoZW0uCgpUaGUg
+c29vbmVyIHdlIGdldCB0aGUgc2VyaWVzIGxhbmRlZCBhbmQgZ2FpbiBRRU1VIHN1cHBvcnQgKG9y
+IHJlYWwKaGFyZHdhcmUpLCB0aGUgZmFzdGVyIHdlIGNhbiBoYW1tZXIgb3V0IHRoZXNlIG1pc3Nl
+ZCBjb3JuZXItY2FzZXMuCldoYXQncyB0aGUgdGltZWxpbmUgZm9yIGVpdGhlciBvZiB0aG9zZSB0
+aGluZ3MsIEJUVz8KCj4gPiA+IEkgZmVlbCBsaWtlIEknbSBtaXNzaW5nIHNvbWV0aGluZyBhYm91
+dCB0aGlzIGJlaW5nIHNlZW4gYXMgYW4gQUJJCj4gPiA+IGJyZWFrLiBUaGUga2VybmVsIGFscmVh
+ZHkgZmFpbHMgb24gdXNlcnNwYWNlIGFkZHJlc3NlcyB0aGF0IGhhdmUgaGlnaAo+ID4gPiBiaXRz
+IHNldCAtLSBhcmUgdGhlcmUgdGhpbmdzIHRoYXQgX2RlcGVuZF8gb24gdGhpcyBmYWlsdXJlIHRv
+IG9wZXJhdGU/Cj4gPgo+ID4gSXQncyBhYm91dCBwcm92aWRpbmcgYSByZWxheGVkIEFCSSB3aGlj
+aCBhbGxvd3Mgbm9uLXplcm8gdG9wIGJ5dGUgYW5kCj4gPiBicmVha2luZyBpdCBsYXRlciBpbmFk
+dmVydGVudGx5IHdpdGhvdXQgaGF2aW5nIHNvbWV0aGluZyBiZXR0ZXIgaW4gcGxhY2UKPiA+IHRv
+IGFuYWx5c2UgdGhlIGtlcm5lbCBjaGFuZ2VzLgoKSXQgc291bmRzIGxpa2UgdGhlIHF1ZXN0aW9u
+IGlzIGhvdyB0byBzd2l0Y2ggYSBwcm9jZXNzIGluIG9yIG91dCBvZiB0aGlzCkFCSSAoYnV0IEkg
+ZG9uJ3QgdGhpbmsgdGhhdCdzIHRoZSByZWFsIGlzc3VlOiBJIHRoaW5rIGl0J3MganVzdCBhIG1h
+dHRlcgpvZiB3aGV0aGVyIG9yIG5vdCBhIHByb2Nlc3MgdXNlcyB0YWdzIGF0IGFsbCkuIERvaW5n
+IGl0IGF0IHRoZSBwcmN0bCgpCmxldmVsIGRvZXNuJ3QgbWFrZSBzZW5zZSB0byBtZSwgZXhjZXB0
+IG1heWJlIHRvIGRldGVjdCBNVEUgc3VwcG9ydCBvcgpzb21ldGhpbmcuICgiU2hvdWxkIEkgdGFn
+IGFsbG9jYXRpb25zPyIpIEFuZCB0aGF0IHN0YXRlIGlzIGNvbnRyb2xsZWQKYnkgdGhlIGtlcm5l
+bDogdGhlIGtlcm5lbCBkb2VzIGl0IG9yIGl0IGRvZXNuJ3QuCgpJZiBhIHByb2Nlc3Mgd2FudHMg
+dG8gbm90IHRhZywgdGhhdCdzIGFsc28gdXAgdG8gdGhlIGFsbG9jYXRvciB3aGVyZQppdCBjYW4g
+ZGVjaWRlIG5vdCB0byBhc2sgdGhlIGtlcm5lbCwgYW5kIGp1c3Qgbm90IHRhZy4gTm90aGluZyBi
+cmVha3MgaW4KdXNlcnNwYWNlIGlmIGEgcHJvY2VzcyBpcyBOT1QgdGFnZ2luZyBhbmQgdW50YWdn
+ZWRfYWRkcigpIGV4aXN0cyBvciBpcwptaXNzaW5nLiBUaGlzLCBJIHRoaW5rLCBpcyB0aGUgY29y
+ZSB3YXkgdGhpcyBkb2Vzbid0IHRyaXAgb3ZlciB0aGUKZ29sZGVuIHJ1bGU6IGFuIG9sZCBzeXN0
+ZW0gaW1hZ2Ugd2lsbCBydW4gZmluZSAoYmVjYXVzZSBpdCdzIG5vdAp0YWdnaW5nKS4gQSAqbmV3
+KiBzeXN0ZW0gbWF5IGVuY291bnRlciBidWdzIHdpdGggdGFnZ2luZyBiZWNhdXNlIGl0J3MgYQpu
+ZXcgZmVhdHVyZTogdGhpcyBpcyBUaGUgV2F5IE9mIFRoaW5ncy4gQnV0IHdlIGRvbid0IGJyZWFr
+IG9sZCB1c2Vyc3BhY2UKYmVjYXVzZSBvbGQgdXNlcnNwYWNlIGlzbid0IHVzaW5nIHRhZ3MuCgpT
+byB0aGUgYWdyZWVtZW50IGFwcGVhcnMgdG8gYmUgYmV0d2VlbiB0aGUga2VybmVsIGFuZCB0aGUg
+YWxsb2NhdG9yLgpLZXJuZWwgc2F5cyAiSSBzdXBwb3J0IHRoaXMiIG9yIG5vdC4gVGVsbGluZyB0
+aGUgYWxsb2NhdG9yIHRvIG5vdCB0YWcgaWYKc29tZXRoaW5nIGJyZWFrcyBzb3VuZHMgbGlrZSBh
+biBlbnRpcmVseSB1c2Vyc3BhY2UgZGVjaXNpb24sIHllcz8KCi0tIApLZWVzIENvb2sKX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
+bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
+ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
