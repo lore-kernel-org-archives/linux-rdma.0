@@ -1,136 +1,161 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Wed, 22 May 2019 12:21:27 -0700
-Message-ID: <201905221157.A9BAB1F296@keescook>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp>
- <201905211633.6C0BF0C2@keescook>
- <20190522101110.m2stmpaj7seezveq@mbp>
- <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.1 040/375] net/mlx5: E-Switch, Use atomic rep state to serialize state change
+Date: Wed, 22 May 2019 15:15:40 -0400
+Message-ID: <20190522192115.22666-40-sashal@kernel.org>
+References: <20190522192115.22666-1-sashal@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: enh <enh@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20190522192115.22666-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Bodong Wang <bodong@mellanox.com>, Parav Pandit <parav@mellanox.com>, Vu Pham <vuhuong@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, Sasha Levin <sashal@kernel.org>, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gV2VkLCBNYXkgMjIsIDIwMTkgYXQgMDg6MzA6MjFBTSAtMDcwMCwgZW5oIHdyb3RlOgo+IE9u
-IFdlZCwgTWF5IDIyLCAyMDE5IGF0IDM6MTEgQU0gQ2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1h
-cmluYXNAYXJtLmNvbT4gd3JvdGU6Cj4gPiBPbiBUdWUsIE1heSAyMSwgMjAxOSBhdCAwNTowNDoz
-OVBNIC0wNzAwLCBLZWVzIENvb2sgd3JvdGU6Cj4gPiA+IEkganVzdCB3YW50IHRvIG1ha2Ugc3Vy
-ZSBJIGZ1bGx5IHVuZGVyc3RhbmQgeW91ciBjb25jZXJuIGFib3V0IHRoaXMKPiA+ID4gYmVpbmcg
-YW4gQUJJIGJyZWFrLCBhbmQgSSB3b3JrIGJlc3Qgd2l0aCBleGFtcGxlcy4gVGhlIGNsb3Nlc3Qg
-c2l0dWF0aW9uCj4gPiA+IEkgY2FuIHNlZSB3b3VsZCBiZToKPiA+ID4KPiA+ID4gLSBzb21lIHBy
-b2dyYW0gaGFzIG5vIGlkZWEgYWJvdXQgTVRFCj4gPgo+ID4gQXBhcnQgZnJvbSBzb21lIGxpYnJh
-cmllcyBsaWtlIGxpYmMgKGFuZCBtYXliZSB0aG9zZSB0aGF0IGhhbmRsZQo+ID4gc3BlY2lmaWMg
-ZGV2aWNlIGlvY3RscyksIEkgdGhpbmsgbW9zdCBwcm9ncmFtcyBzaG91bGQgaGF2ZSBubyBpZGVh
-IGFib3V0Cj4gPiBNVEUuIEkgd291bGRuJ3QgZXhwZWN0IHByb2dyYW1tZXJzIHRvIGhhdmUgdG8g
-Y2hhbmdlIHRoZWlyIGFwcCBqdXN0Cj4gPiBiZWNhdXNlIHdlIGhhdmUgYSBuZXcgZmVhdHVyZSB0
-aGF0IGNvbG91cnMgaGVhcCBhbGxvY2F0aW9ucy4KClJpZ2h0IC0tIHRoaW5ncyBzaG91bGQgSnVz
-dCBXb3JrIGZyb20gdGhlIGFwcGxpY2F0aW9uIHBlcnNwZWN0aXZlLgoKPiBvYnZpb3VzbHkgaSdt
-IGJpYXNlZCBhcyBhIGxpYmMgbWFpbnRhaW5lciwgYnV0Li4uCj4gCj4gaSBkb24ndCB0aGluayBp
-dCBoZWxwcyB0byBtb3ZlIHRoaXMgdG8gbGliYyAtLS0gbm93IHlvdSBqdXN0IGhhdmUgYW4KPiBl
-eHRyYSBkZXBlbmRlbmN5IHdoZXJlIHRvIGhhdmUgYSBndWFyYW50ZWVkIHdvcmtpbmcgc3lzdGVt
-IHlvdSBuZWVkIHRvCj4gdXBkYXRlIHlvdXIga2VybmVsIGFuZCBsaWJjIHRvZ2V0aGVyLiAob3Ig
-YXQgbGVhc3QgdXBkYXRlIHlvdXIgbGliYyB0bwo+IHVuZGVyc3RhbmQgbmV3IGlvY3RscyBldGMg
-X2JlZm9yZV8geW91IGNhbiB1cGRhdGUgeW91ciBrZXJuZWwuKQoKSSB0aGluayAoaG9wZT8pIHdl
-J3ZlIGFsbCBhZ3JlZWQgdGhhdCB3ZSBzaG91bGRuJ3QgcGFzcyB0aGlzIG9mZiB0bwp1c2Vyc3Bh
-Y2UuIEF0IHRoZSB2ZXJ5IGxlYXN0LCBpdCByZWR1Y2VzIHRoZSB1dGlsaXR5IG9mIE1URSwgYW5k
-IGF0IHdvcnN0Cml0IGNvbXBsaWNhdGVzIHVzZXJzcGFjZSB3aGVuIHRoaXMgaXMgY2xlYXJseSBh
-IGtlcm5lbC9hcmNoaXRlY3R1cmUgaXNzdWUuCgo+IAo+ID4gPiAtIG1hbGxvYygpIHN0YXJ0cyBy
-ZXR1cm5pbmcgTVRFLXRhZ2dlZCBhZGRyZXNzZXMKPiA+ID4gLSBwcm9ncmFtIGRvZXNuJ3QgYnJl
-YWsgZnJvbSB0aGF0IGNoYW5nZQo+ID4gPiAtIHByb2dyYW0gdXNlcyBzb21lIHN5c2NhbGwgdGhh
-dCBpcyBtaXNzaW5nIHVudGFnZ2VkX2FkZHIoKSBhbmQgZmFpbHMKPiA+ID4gLSBrZXJuZWwgaGFz
-IG5vdyBicm9rZW4gdXNlcnNwYWNlIHRoYXQgdXNlZCB0byB3b3JrCj4gPgo+ID4gVGhhdCdzIG9u
-ZSBhc3BlY3QgdGhvdWdoIHByb2JhYmx5IG1vcmUgb2YgYSBjYXNlIG9mIHBsdWdnaW5nIGluIGEg
-bmV3Cj4gPiBkZXZpY2UgKGdyYXBoaWNzIGNhcmQsIG5ldHdvcmsgZXRjLikgYW5kIHRoZSBpb2N0
-bCB0byB0aGUgbmV3IGRldmljZQo+ID4gZG9lc24ndCB3b3JrLgoKSSB0aGluayBNVEUgd2lsbCBs
-aWtlbHkgYmUgcmF0aGVyIGxpa2UgTlgvUFhOIGFuZCBTTUFQL1BBTjogdGhlcmUgd2lsbApiZSBn
-bGl0Y2hlcywgYW5kIHdlIGNhbiBkaXNhYmxlIHN0dWZmIGVpdGhlciB2aWEgQ09ORklHIG9yIChh
-cyBpcyBtb3JlCmNvbW1vbiBub3cpIHZpYSBhIGtlcm5lbCBjb21tYW5kbGluZSB3aXRoIHVudGFn
-Z2VkX2FkZHIoKSBjb250YWluaW5nIGEKc3RhdGljIGJyYW5jaCwgZXRjLiBCdXQgSSBhY3R1YWxs
-eSBkb24ndCB0aGluayB3ZSBuZWVkIHRvIGdvIHRoaXMgcm91dGUKKHNlZSBiZWxvdy4uLikKCj4g
-PiBUaGUgb3RoZXIgaXMgdGhhdCwgYXNzdW1pbmcgd2UgcmVhY2ggYSBwb2ludCB3aGVyZSB0aGUg
-a2VybmVsIGVudGlyZWx5Cj4gPiBzdXBwb3J0cyB0aGlzIHJlbGF4ZWQgQUJJLCBjYW4gd2UgZ3Vh
-cmFudGVlIHRoYXQgaXQgd29uJ3QgYnJlYWsgaW4gdGhlCj4gPiBmdXR1cmUuIExldCdzIHNheSBz
-b21lIHN1YnNlcXVlbnQga2VybmVsIGNoYW5nZSAoc29tZSByZWZhY3RvcmluZykKPiA+IG1pc3Nl
-cyBvdXQgYW4gdW50YWdnZWRfYWRkcigpLiBUaGlzIHJlbmRlcnMgYSBwcmV2aW91c2x5IFRCSS9N
-VEUtY2FwYWJsZQo+ID4gc3lzY2FsbCB1bnVzYWJsZS4gQ2FuIHdlIHJlbHkgb25seSBvbiB0ZXN0
-aW5nPwo+ID4KPiA+ID4gVGhlIHRyb3VibGUgSSBzZWUgd2l0aCB0aGlzIGlzIHRoYXQgaXQgaXMg
-bGFyZ2VseSB0aGVvcmV0aWNhbCBhbmQKPiA+ID4gcmVxdWlyZXMgcGFydCBvZiB1c2Vyc3BhY2Ug
-dG8gY29sbHVkZSB0byBzdGFydCB1c2luZyBhIG5ldyBDUFUgZmVhdHVyZQo+ID4gPiB0aGF0IHRp
-Y2tsZXMgYSBidWcgaW4gdGhlIGtlcm5lbC4gQXMgSSB1bmRlcnN0YW5kIHRoZSBnb2xkZW4gcnVs
-ZSwKPiA+ID4gdGhpcyBpcyBhIGJ1ZyBpbiB0aGUga2VybmVsIChhIG1pc3NlZCBpb2N0bCgpIG9y
-IHN1Y2gpIHRvIGJlIGZpeGVkLAo+ID4gPiBub3QgYSBnbG9iYWwgYnJlYWtpbmcgb2Ygc29tZSB1
-c2Vyc3BhY2UgYmVoYXZpb3IuCj4gPgo+ID4gWWVzLCB3ZSBzaG91bGQgZm9sbG93IHRoZSBydWxl
-IHRoYXQgaXQncyBhIGtlcm5lbCBidWcgYnV0IGl0IGRvZXNuJ3QKPiA+IGhlbHAgdGhlIHVzZXIg
-dGhhdCBhIG5ld2x5IGluc3RhbGxlZCBrZXJuZWwgY2F1c2VzIHVzZXIgc3BhY2UgdG8gbm8KPiA+
-IGxvbmdlciByZWFjaCBhIHByb21wdC4gSGVuY2UgdGhlIHByb3Bvc2FsIG9mIGFuIG9wdC1pbiB2
-aWEgcGVyc29uYWxpdHkKPiA+IChmb3IgTVRFIHdlIHdvdWxkIG5lZWQgYW4gZXhwbGljaXQgb3B0
-LWluIGJ5IHRoZSB1c2VyIGFueXdheSBzaW5jZSB0aGUKPiA+IHRvcCBieXRlIGlzIG5vIGxvbmdl
-ciBpZ25vcmVkIGJ1dCBjaGVja2VkIGFnYWluc3QgdGhlIGFsbG9jYXRpb24gdGFnKS4KPiAKPiBi
-dXQgcmVhbGlzdGljYWxseSB3b3VsZCB0aGlzIGFjdHVhbGx5IGdldCB1c2VkIGluIHRoaXMgd2F5
-PyBvciB3b3VsZAo+IGFueSBnaXZlbiBzeXN0ZW0gZWl0aGVyIGJlIE1URSBvciBub24tTVRFLiBp
-biB3aGljaCBjYXNlIGEga2VybmVsCj4gY29uZmlndXJhdGlvbiBvcHRpb24gd291bGQgc2VlbSB0
-byBtYWtlIG1vcmUgc2Vuc2UuIChiZWNhdXNlIGVpdGhlcgo+IHdheSwgdGhlIGh5cG90aGV0aWNh
-bCB1c2VyIGJhc2ljYWxseSBuZWVkcyB0byByZWNvbXBpbGUgdGhlIGtlcm5lbCB0bwo+IGdldCBi
-YWNrIG9uIHRoZWlyIGZlZXQuIG9yIGFsbCBvZiB1c2Vyc3BhY2UuKQoKUmlnaHQ6IHRoZSBwb2lu
-dCBpcyB0byBkZXNpZ24gdGhpbmdzIHNvIHRoYXQgd2UgZG8gb3VyIGJlc3QgdG8gbm90IGJyZWFr
-CnVzZXJzcGFjZSB0aGF0IGlzIHVzaW5nIHRoZSBuZXcgZmVhdHVyZSAod2hpY2ggSSB0aGluayB0
-aGlzIHNlcmllcyBoYXMKZG9uZSB3ZWxsKS4gQnV0IHN1cHBvcnRpbmcgTVRFL1RCSSBpcyBqdXN0
-IGxpa2Ugc3VwcG9ydGluZyBQQU46IGlmIHNvbWVvbmUKcmVmYWN0b3JzIGEgZHJpdmVyIGFuZCBz
-d2FwcyBhIGNvcHlfZnJvbV91c2VyKCkgdG8gYSBtZW1jcHkoKSwgaXQncyBnb2luZwp0byBicmVh
-ayB1bmRlciBQQU4uIFRoZXJlIHdpbGwgYmUgdGhlIHNhbWUgbG9uZyB0YWlsIG9mIHRoZXNlIGJ1
-Z3MgbGlrZQphbnkgb3RoZXIsIGJ1dCBteSBzZW5zZSBpcyB0aGF0IHRoZXkgYXJlIHNtYWxsIGFu
-ZCByYXJlLiBCdXQgSSBhZ3JlZToKdGhleSdyZSBnb2luZyB0byBiZSBwcmV0dHkgd2VpcmQgYnVn
-cyB0byB0cmFjayBkb3duLiBUaGUgZmluYWwgcmVzdWx0LApob3dldmVyLCB3aWxsIGJlIGV4Y2Vs
-bGVudCBhbm5vdGF0aW9uIGluIHRoZSBrZXJuZWwgZm9yIHdoZXJlIHVzZXJzcGFjZQphZGRyZXNz
-ZXMgZ2V0IHVzZWQgYW5kIHBlb3BsZSBtYWtlIGFzc3VtcHRpb25zIGFib3V0IHRoZW0uCgpUaGUg
-c29vbmVyIHdlIGdldCB0aGUgc2VyaWVzIGxhbmRlZCBhbmQgZ2FpbiBRRU1VIHN1cHBvcnQgKG9y
-IHJlYWwKaGFyZHdhcmUpLCB0aGUgZmFzdGVyIHdlIGNhbiBoYW1tZXIgb3V0IHRoZXNlIG1pc3Nl
-ZCBjb3JuZXItY2FzZXMuCldoYXQncyB0aGUgdGltZWxpbmUgZm9yIGVpdGhlciBvZiB0aG9zZSB0
-aGluZ3MsIEJUVz8KCj4gPiA+IEkgZmVlbCBsaWtlIEknbSBtaXNzaW5nIHNvbWV0aGluZyBhYm91
-dCB0aGlzIGJlaW5nIHNlZW4gYXMgYW4gQUJJCj4gPiA+IGJyZWFrLiBUaGUga2VybmVsIGFscmVh
-ZHkgZmFpbHMgb24gdXNlcnNwYWNlIGFkZHJlc3NlcyB0aGF0IGhhdmUgaGlnaAo+ID4gPiBiaXRz
-IHNldCAtLSBhcmUgdGhlcmUgdGhpbmdzIHRoYXQgX2RlcGVuZF8gb24gdGhpcyBmYWlsdXJlIHRv
-IG9wZXJhdGU/Cj4gPgo+ID4gSXQncyBhYm91dCBwcm92aWRpbmcgYSByZWxheGVkIEFCSSB3aGlj
-aCBhbGxvd3Mgbm9uLXplcm8gdG9wIGJ5dGUgYW5kCj4gPiBicmVha2luZyBpdCBsYXRlciBpbmFk
-dmVydGVudGx5IHdpdGhvdXQgaGF2aW5nIHNvbWV0aGluZyBiZXR0ZXIgaW4gcGxhY2UKPiA+IHRv
-IGFuYWx5c2UgdGhlIGtlcm5lbCBjaGFuZ2VzLgoKSXQgc291bmRzIGxpa2UgdGhlIHF1ZXN0aW9u
-IGlzIGhvdyB0byBzd2l0Y2ggYSBwcm9jZXNzIGluIG9yIG91dCBvZiB0aGlzCkFCSSAoYnV0IEkg
-ZG9uJ3QgdGhpbmsgdGhhdCdzIHRoZSByZWFsIGlzc3VlOiBJIHRoaW5rIGl0J3MganVzdCBhIG1h
-dHRlcgpvZiB3aGV0aGVyIG9yIG5vdCBhIHByb2Nlc3MgdXNlcyB0YWdzIGF0IGFsbCkuIERvaW5n
-IGl0IGF0IHRoZSBwcmN0bCgpCmxldmVsIGRvZXNuJ3QgbWFrZSBzZW5zZSB0byBtZSwgZXhjZXB0
-IG1heWJlIHRvIGRldGVjdCBNVEUgc3VwcG9ydCBvcgpzb21ldGhpbmcuICgiU2hvdWxkIEkgdGFn
-IGFsbG9jYXRpb25zPyIpIEFuZCB0aGF0IHN0YXRlIGlzIGNvbnRyb2xsZWQKYnkgdGhlIGtlcm5l
-bDogdGhlIGtlcm5lbCBkb2VzIGl0IG9yIGl0IGRvZXNuJ3QuCgpJZiBhIHByb2Nlc3Mgd2FudHMg
-dG8gbm90IHRhZywgdGhhdCdzIGFsc28gdXAgdG8gdGhlIGFsbG9jYXRvciB3aGVyZQppdCBjYW4g
-ZGVjaWRlIG5vdCB0byBhc2sgdGhlIGtlcm5lbCwgYW5kIGp1c3Qgbm90IHRhZy4gTm90aGluZyBi
-cmVha3MgaW4KdXNlcnNwYWNlIGlmIGEgcHJvY2VzcyBpcyBOT1QgdGFnZ2luZyBhbmQgdW50YWdn
-ZWRfYWRkcigpIGV4aXN0cyBvciBpcwptaXNzaW5nLiBUaGlzLCBJIHRoaW5rLCBpcyB0aGUgY29y
-ZSB3YXkgdGhpcyBkb2Vzbid0IHRyaXAgb3ZlciB0aGUKZ29sZGVuIHJ1bGU6IGFuIG9sZCBzeXN0
-ZW0gaW1hZ2Ugd2lsbCBydW4gZmluZSAoYmVjYXVzZSBpdCdzIG5vdAp0YWdnaW5nKS4gQSAqbmV3
-KiBzeXN0ZW0gbWF5IGVuY291bnRlciBidWdzIHdpdGggdGFnZ2luZyBiZWNhdXNlIGl0J3MgYQpu
-ZXcgZmVhdHVyZTogdGhpcyBpcyBUaGUgV2F5IE9mIFRoaW5ncy4gQnV0IHdlIGRvbid0IGJyZWFr
-IG9sZCB1c2Vyc3BhY2UKYmVjYXVzZSBvbGQgdXNlcnNwYWNlIGlzbid0IHVzaW5nIHRhZ3MuCgpT
-byB0aGUgYWdyZWVtZW50IGFwcGVhcnMgdG8gYmUgYmV0d2VlbiB0aGUga2VybmVsIGFuZCB0aGUg
-YWxsb2NhdG9yLgpLZXJuZWwgc2F5cyAiSSBzdXBwb3J0IHRoaXMiIG9yIG5vdC4gVGVsbGluZyB0
-aGUgYWxsb2NhdG9yIHRvIG5vdCB0YWcgaWYKc29tZXRoaW5nIGJyZWFrcyBzb3VuZHMgbGlrZSBh
-biBlbnRpcmVseSB1c2Vyc3BhY2UgZGVjaXNpb24sIHllcz8KCi0tIApLZWVzIENvb2sKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxp
-bmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+From: Bodong Wang <bodong@mellanox.com>
+
+[ Upstream commit 6f4e02193c9a9ea54dd3151cf97489fa787cd0e6 ]
+
+When the state of rep was introduced, it was also designed to prevent
+duplicate unloading of the same rep. Considering the following two
+flows when an eswitch manager is at switchdev mode with n VF reps loaded.
+
++--------------------------------------+--------------------------------+
+| cpu-0                                | cpu-1                          |
+| --------                             | --------                       |
+| mlx5_ib_remove                       | mlx5_eswitch_disable_sriov     |
+|  mlx5_ib_unregister_vport_reps       |  esw_offloads_cleanup          |
+|   mlx5_eswitch_unregister_vport_reps |   esw_offloads_unload_all_reps |
+|    __unload_reps_all_vport           |    __unload_reps_all_vport     |
++--------------------------------------+--------------------------------+
+
+These two flows will try to unload the same rep. Per original design,
+once one flow unloads the rep, the state moves to REGISTERED. The 2nd
+flow will no longer needs to do the unload and bails out. However, as
+read and write of the state is not atomic, when 1st flow is doing the
+unload, the state is still LOADED, 2nd flow is able to do the same
+unload action. Kernel crash will happen.
+
+To solve this, driver should do atomic test-and-set for the state. So
+that only one flow can change the rep state from LOADED to REGISTERED,
+and proceed to do the actual unloading.
+
+Since the state is changing to atomic type, all other read/write should
+be atomic action as well.
+
+Fixes: f121e0ea9586 (net/mlx5: E-Switch, Add state to eswitch vport representors)
+Signed-off-by: Bodong Wang <bodong@mellanox.com>
+Reviewed-by: Parav Pandit <parav@mellanox.com>
+Reviewed-by: Vu Pham <vuhuong@mellanox.com>
+Signed-off-by: Saeed Mahameed <saeedm@mellanox.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ .../mellanox/mlx5/core/eswitch_offloads.c     | 36 +++++++++----------
+ include/linux/mlx5/eswitch.h                  |  2 +-
+ 2 files changed, 18 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+index 9b2d78ee22b88..d2d8da133082c 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch_offloads.c
+@@ -363,7 +363,7 @@ static int esw_set_global_vlan_pop(struct mlx5_eswitch *esw, u8 val)
+ 	esw_debug(esw->dev, "%s applying global %s policy\n", __func__, val ? "pop" : "none");
+ 	for (vf_vport = 1; vf_vport < esw->enabled_vports; vf_vport++) {
+ 		rep = &esw->offloads.vport_reps[vf_vport];
+-		if (rep->rep_if[REP_ETH].state != REP_LOADED)
++		if (atomic_read(&rep->rep_if[REP_ETH].state) != REP_LOADED)
+ 			continue;
+ 
+ 		err = __mlx5_eswitch_set_vport_vlan(esw, rep->vport, 0, 0, val);
+@@ -1306,7 +1306,8 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
+ 		ether_addr_copy(rep->hw_id, hw_id);
+ 
+ 		for (rep_type = 0; rep_type < NUM_REP_TYPES; rep_type++)
+-			rep->rep_if[rep_type].state = REP_UNREGISTERED;
++			atomic_set(&rep->rep_if[rep_type].state,
++				   REP_UNREGISTERED);
+ 	}
+ 
+ 	return 0;
+@@ -1315,11 +1316,9 @@ int esw_offloads_init_reps(struct mlx5_eswitch *esw)
+ static void __esw_offloads_unload_rep(struct mlx5_eswitch *esw,
+ 				      struct mlx5_eswitch_rep *rep, u8 rep_type)
+ {
+-	if (rep->rep_if[rep_type].state != REP_LOADED)
+-		return;
+-
+-	rep->rep_if[rep_type].unload(rep);
+-	rep->rep_if[rep_type].state = REP_REGISTERED;
++	if (atomic_cmpxchg(&rep->rep_if[rep_type].state,
++			   REP_LOADED, REP_REGISTERED) == REP_LOADED)
++		rep->rep_if[rep_type].unload(rep);
+ }
+ 
+ static void __unload_reps_special_vport(struct mlx5_eswitch *esw, u8 rep_type)
+@@ -1380,16 +1379,15 @@ static int __esw_offloads_load_rep(struct mlx5_eswitch *esw,
+ {
+ 	int err = 0;
+ 
+-	if (rep->rep_if[rep_type].state != REP_REGISTERED)
+-		return 0;
+-
+-	err = rep->rep_if[rep_type].load(esw->dev, rep);
+-	if (err)
+-		return err;
+-
+-	rep->rep_if[rep_type].state = REP_LOADED;
++	if (atomic_cmpxchg(&rep->rep_if[rep_type].state,
++			   REP_REGISTERED, REP_LOADED) == REP_REGISTERED) {
++		err = rep->rep_if[rep_type].load(esw->dev, rep);
++		if (err)
++			atomic_set(&rep->rep_if[rep_type].state,
++				   REP_REGISTERED);
++	}
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int __load_reps_special_vport(struct mlx5_eswitch *esw, u8 rep_type)
+@@ -2076,7 +2074,7 @@ void mlx5_eswitch_register_vport_reps(struct mlx5_eswitch *esw,
+ 		rep_if->get_proto_dev = __rep_if->get_proto_dev;
+ 		rep_if->priv = __rep_if->priv;
+ 
+-		rep_if->state = REP_REGISTERED;
++		atomic_set(&rep_if->state, REP_REGISTERED);
+ 	}
+ }
+ EXPORT_SYMBOL(mlx5_eswitch_register_vport_reps);
+@@ -2091,7 +2089,7 @@ void mlx5_eswitch_unregister_vport_reps(struct mlx5_eswitch *esw, u8 rep_type)
+ 		__unload_reps_all_vport(esw, max_vf, rep_type);
+ 
+ 	mlx5_esw_for_all_reps(esw, i, rep)
+-		rep->rep_if[rep_type].state = REP_UNREGISTERED;
++		atomic_set(&rep->rep_if[rep_type].state, REP_UNREGISTERED);
+ }
+ EXPORT_SYMBOL(mlx5_eswitch_unregister_vport_reps);
+ 
+@@ -2111,7 +2109,7 @@ void *mlx5_eswitch_get_proto_dev(struct mlx5_eswitch *esw,
+ 
+ 	rep = mlx5_eswitch_get_rep(esw, vport);
+ 
+-	if (rep->rep_if[rep_type].state == REP_LOADED &&
++	if (atomic_read(&rep->rep_if[rep_type].state) == REP_LOADED &&
+ 	    rep->rep_if[rep_type].get_proto_dev)
+ 		return rep->rep_if[rep_type].get_proto_dev(rep);
+ 	return NULL;
+diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
+index 96d8435421de8..0ca77dd1429c0 100644
+--- a/include/linux/mlx5/eswitch.h
++++ b/include/linux/mlx5/eswitch.h
+@@ -35,7 +35,7 @@ struct mlx5_eswitch_rep_if {
+ 	void		       (*unload)(struct mlx5_eswitch_rep *rep);
+ 	void		       *(*get_proto_dev)(struct mlx5_eswitch_rep *rep);
+ 	void			*priv;
+-	u8			state;
++	atomic_t		state;
+ };
+ 
+ struct mlx5_eswitch_rep {
+-- 
+2.20.1
