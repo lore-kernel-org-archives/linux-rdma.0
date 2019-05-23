@@ -1,98 +1,96 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
-Date: Thu, 23 May 2019 11:27:40 -0400
-Message-ID: <20190523112740.7167aba4@gandalf.local.home>
-References: <20190523100013.52a8d2a6@gandalf.local.home>
-        <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [PATCH 1/1] infiniband/mm: convert put_page() to put_user_page*()
+Date: Thu, 23 May 2019 11:31:33 -0400
+Message-ID: <20190523153133.GB5104@redhat.com>
+References: <20190523072537.31940-1-jhubbard@nvidia.com>
+ <20190523072537.31940-2-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20190523072537.31940-2-jhubbard@nvidia.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, nouveau@lists.freedesktop.org, linux-rdma <linux-rdma@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+To: john.hubbard@gmail.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@mellanox.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 23 May 2019 08:10:44 -0700
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
-> On Thu, May 23, 2019 at 7:00 AM Steven Rostedt <rostedt@goodmis.org> wrote:
-> >
-> > +# define roundup_64(x, y) (                            \
-> > +{                                                      \
-> > +       typeof(y) __y = y;                              \
-> > +       typeof(x) __x = (x) + (__y - 1);                \
-> > +       do_div(__x, __y);                               \
-> > +       __x * __y;                                      \
-> > +}                                                      \
+On Thu, May 23, 2019 at 12:25:37AM -0700, john.hubbard@gmail.com wrote:
+> From: John Hubbard <jhubbard@nvidia.com>
 > 
-> The thing about this is that it absolutely sucks for power-of-two arguments.
+> For infiniband code that retains pages via get_user_pages*(),
+> release those pages via the new put_user_page(), or
+> put_user_pages*(), instead of put_page()
 > 
-> The regular roundup() that uses division has the compiler at least
-> optimize them to shifts - at least for constant cases. But do_div() is
-> meant for "we already know it's not a power of two", and the compiler
-> doesn't have any understanding of the internals.
+> This is a tiny part of the second step of fixing the problem described
+> in [1]. The steps are:
 > 
-> And it looks to me like the use case you want this for is very much
-> probably a power of two. In which case division is all kinds of just
-> stupid.
+> 1) Provide put_user_page*() routines, intended to be used
+>    for releasing pages that were pinned via get_user_pages*().
 > 
-> And we already have a power-of-two round up function that works on
-> u64. It's called "round_up()".
+> 2) Convert all of the call sites for get_user_pages*(), to
+>    invoke put_user_page*(), instead of put_page(). This involves dozens of
+>    call sites, and will take some time.
 > 
-> I wish we had a better visual warning about the differences between
-> "round_up()" (limited to powers-of-two, but efficient, and works with
-> any size) and "roundup()" (generic, potentially horribly slow, and
-> doesn't work for 64-bit on 32-bit).
+> 3) After (2) is complete, use get_user_pages*() and put_user_page*() to
+>    implement tracking of these pages. This tracking will be separate from
+>    the existing struct page refcounting.
 > 
-> Side note: "round_up()" has the problem that it uses "x" twice.
+> 4) Use the tracking and identification of these pages, to implement
+>    special handling (especially in writeback paths) when the pages are
+>    backed by a filesystem. Again, [1] provides details as to why that is
+>    desirable.
 > 
-> End result: somebody should look at this, but I really don't like the
-> "force division" case that is likely horribly slow and nasty.
+> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+> 
+> Cc: Doug Ledford <dledford@redhat.com>
+> Cc: Jason Gunthorpe <jgg@ziepe.ca>
+> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
+> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Cc: Christian Benvenuti <benve@cisco.com>
+> 
+> Reviewed-by: Jan Kara <jack@suse.cz>
+> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
+> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+> Tested-by: Ira Weiny <ira.weiny@intel.com>
+> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 
-I haven't yet tested this, but what about something like the following:
+Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
 
-# define roundup_64(x, y) (				\
-{							\
-	typeof(y) __y;					\
-	typeof(x) __x;					\
-							\
-	if (__builtin_constant_p(y) &&			\
-	    !(y & (y >> 1))) {				\
-		__x = round_up(x, y);			\
-	} else {					\
-		__y = y;				\
-		__x = (x) + (__y - 1);			\
-		do_div(__x, __y);			\
-		__x = __x * __y;			\
-	}						\
-	__x;						\
-}							\
-)
+Between i have a wishlist see below
 
-If the compiler knows enough that y is a power of two, it will use the
-shift version. Otherwise, it doesn't know enough and would divide
-regardless. Or perhaps forget about the constant check, and just force
-the power of two check:
 
-# define roundup_64(x, y) (				\
-{							\
-	typeof(y) __y = y;				\
-	typeof(x) __x;					\
-							\
-	if (!(__y & (__y >> 1))) {			\
-		__x = round_up(x, y);			\
-	} else {					\
-		__x = (x) + (__y - 1);			\
-		do_div(__x, __y);			\
-		__x = __x * __y;			\
-	}						\
-	__x;						\
-}							\
-)
+> ---
+>  drivers/infiniband/core/umem.c              |  7 ++++---
+>  drivers/infiniband/core/umem_odp.c          | 10 +++++-----
+>  drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
+>  drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
+>  drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
+>  drivers/infiniband/hw/qib/qib_user_sdma.c   |  6 +++---
+>  drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
+>  7 files changed, 27 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> index e7ea819fcb11..673f0d240b3e 100644
+> --- a/drivers/infiniband/core/umem.c
+> +++ b/drivers/infiniband/core/umem.c
+> @@ -54,9 +54,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+>  
+>  	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
+>  		page = sg_page_iter_page(&sg_iter);
+> -		if (!PageDirty(page) && umem->writable && dirty)
+> -			set_page_dirty_lock(page);
+> -		put_page(page);
+> +		if (umem->writable && dirty)
+> +			put_user_pages_dirty_lock(&page, 1);
+> +		else
+> +			put_user_page(page);
 
-This way even if the compiler doesn't know that this is a power of two,
-it will still do the shift if y ends up being one.
+Can we get a put_user_page_dirty(struct page 8*pages, bool dirty, npages) ?
 
--- Steve
+It is a common pattern that we might have to conditionaly dirty the pages
+and i feel it would look cleaner if we could move the branch within the
+put_user_page*() function.
+
+Cheers,
+Jérôme
