@@ -1,96 +1,81 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [PATCH 1/1] infiniband/mm: convert put_page() to put_user_page*()
-Date: Thu, 23 May 2019 11:31:33 -0400
-Message-ID: <20190523153133.GB5104@redhat.com>
-References: <20190523072537.31940-1-jhubbard@nvidia.com>
- <20190523072537.31940-2-jhubbard@nvidia.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Thu, 23 May 2019 12:41:49 -0300
+Message-ID: <20190523154149.GB12159@ziepe.ca>
+References: <20190411181314.19465-1-jglisse@redhat.com>
+ <20190506195657.GA30261@ziepe.ca>
+ <20190521205321.GC3331@redhat.com>
+ <20190522005225.GA30819@ziepe.ca>
+ <20190522174852.GA23038@redhat.com>
+ <20190522235737.GD15389@ziepe.ca>
+ <20190523150432.GA5104@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190523072537.31940-2-jhubbard@nvidia.com>
+In-Reply-To: <20190523150432.GA5104@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: john.hubbard@gmail.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@mellanox.com>, Ira Weiny <ira.weiny@intel.com>
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 23, 2019 at 12:25:37AM -0700, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
+On Thu, May 23, 2019 at 11:04:32AM -0400, Jerome Glisse wrote:
+> On Wed, May 22, 2019 at 08:57:37PM -0300, Jason Gunthorpe wrote:
+> > On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
+> > 
+> > > > > So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
+> > > > > (prefetch and not and different sizes). Seems to work ok.
+> > > > 
+> > > > Urk, it already doesn't apply to the rdma tree :(
+> > > > 
+> > > > The conflicts are a little more extensive than I'd prefer to handle..
+> > > > Can I ask you to rebase it on top of this branch please:
+> > > > 
+> > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
+> > > > 
+> > > > Specifically it conflicts with this patch:
+> > > > 
+> > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
+> > 
+> > There is at least one more serious blocker here:
+> > 
+> > config ARCH_HAS_HMM_MIRROR
+> >         bool
+> >         default y
+> >         depends on (X86_64 || PPC64)
+> >         depends on MMU && 64BIT
+> > 
+> > I can't loose ARM64 support for ODP by merging this, that is too
+> > serious of a regression.
+> > 
+> > Can you fix it?
 > 
-> For infiniband code that retains pages via get_user_pages*(),
-> release those pages via the new put_user_page(), or
-> put_user_pages*(), instead of put_page()
-> 
-> This is a tiny part of the second step of fixing the problem described
-> in [1]. The steps are:
-> 
-> 1) Provide put_user_page*() routines, intended to be used
->    for releasing pages that were pinned via get_user_pages*().
-> 
-> 2) Convert all of the call sites for get_user_pages*(), to
->    invoke put_user_page*(), instead of put_page(). This involves dozens of
->    call sites, and will take some time.
-> 
-> 3) After (2) is complete, use get_user_pages*() and put_user_page*() to
->    implement tracking of these pages. This tracking will be separate from
->    the existing struct page refcounting.
-> 
-> 4) Use the tracking and identification of these pages, to implement
->    special handling (especially in writeback paths) when the pages are
->    backed by a filesystem. Again, [1] provides details as to why that is
->    desirable.
-> 
-> [1] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
-> 
-> Cc: Doug Ledford <dledford@redhat.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>
-> Cc: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Cc: Christian Benvenuti <benve@cisco.com>
-> 
-> Reviewed-by: Jan Kara <jack@suse.cz>
-> Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
-> Acked-by: Jason Gunthorpe <jgg@mellanox.com>
-> Tested-by: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+> 5.2 already has patch to fix the Kconfig (ARCH_HAS_HMM_MIRROR and
+> ARCH_HAS_HMM_DEVICE replacing ARCH_HAS_HMM) I need to update nouveau
 
-Reviewed-by: Jérôme Glisse <jglisse@redhat.com>
+Newer than 5.2-rc1? Is this why ARCH_HAS_HMM_MIRROR is not used anywhere?
 
-Between i have a wishlist see below
+> in 5.3 so that i can drop the old ARCH_HAS_HMM and then convert
+> core mm in 5.4 to use ARCH_HAS_HMM_MIRROR and ARCH_HAS_HMM_DEVICE
+> instead of ARCH_HAS_HMM
 
+My problem is that ODP needs HMM_MIRROR which needs HMM & ARCH_HAS_HMM
+- and then even if fixed we still have the ARCH_HAS_HMM_MIRROR
+restricted to ARM64..
 
-> ---
->  drivers/infiniband/core/umem.c              |  7 ++++---
->  drivers/infiniband/core/umem_odp.c          | 10 +++++-----
->  drivers/infiniband/hw/hfi1/user_pages.c     | 11 ++++-------
->  drivers/infiniband/hw/mthca/mthca_memfree.c |  6 +++---
->  drivers/infiniband/hw/qib/qib_user_pages.c  | 11 ++++-------
->  drivers/infiniband/hw/qib/qib_user_sdma.c   |  6 +++---
->  drivers/infiniband/hw/usnic/usnic_uiom.c    |  7 ++++---
->  7 files changed, 27 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> index e7ea819fcb11..673f0d240b3e 100644
-> --- a/drivers/infiniband/core/umem.c
-> +++ b/drivers/infiniband/core/umem.c
-> @@ -54,9 +54,10 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
->  
->  	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
->  		page = sg_page_iter_page(&sg_iter);
-> -		if (!PageDirty(page) && umem->writable && dirty)
-> -			set_page_dirty_lock(page);
-> -		put_page(page);
-> +		if (umem->writable && dirty)
-> +			put_user_pages_dirty_lock(&page, 1);
-> +		else
-> +			put_user_page(page);
+Can we broaden HMM_MIRROR to all arches? I would very much prefer
+that.
 
-Can we get a put_user_page_dirty(struct page 8*pages, bool dirty, npages) ?
+> So it seems it will have to wait 5.4 for ODP. I will re-spin the
+> patch for ODP once i am done reviewing Ralph changes and yours
+> for 5.3.
 
-It is a common pattern that we might have to conditionaly dirty the pages
-and i feel it would look cleaner if we could move the branch within the
-put_user_page*() function.
+I think we are still OK for 5.3.
 
-Cheers,
-Jérôme
+If mm takes the fixup patches so hmm mirror is as reliable as ODP's
+existing stuff, and patch from you to enable ARM64, then we can
+continue to merge into 5.3
+
+So, let us try to get acks on those other threads..
+
+Jason
