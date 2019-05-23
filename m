@@ -1,125 +1,67 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH] RDMA/mlx5: Use DIV_ROUND_UP_ULL macro to allow 32 bit
- to build
-Date: Thu, 23 May 2019 09:36:01 -0400
-Message-ID: <20190523093601.39c7dcf2@gandalf.local.home>
-References: <20190522145450.25ff483d@gandalf.local.home>
-        <20190523065803.GB30439@unicorn.suse.cz>
-        <20190523084812.325454f6@gandalf.local.home>
+From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
+Subject: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
+Date: Thu, 23 May 2019 10:00:13 -0400
+Message-ID: <20190523100013.52a8d2a6@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523084812.325454f6@gandalf.local.home>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Kubecek <mkubecek@suse.cz>
-Cc: LKML <linux-kernel@vger.kernel.org>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 23 May 2019 08:48:12 -0400
-Steven Rostedt <rostedt@goodmis.org> wrote:
-
-> I think I'll go and just add a roundup_64()!
-
-Perhaps something like this?
-
-diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
-index 34a998012bf6..cdacfe1f732c 100644
---- a/drivers/gpu/drm/nouveau/nouveau_bo.c
-+++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
-@@ -143,14 +143,6 @@ nouveau_bo_del_ttm(struct ttm_buffer_object *bo)
- 	kfree(nvbo);
- }
- 
--static inline u64
--roundup_64(u64 x, u32 y)
--{
--	x += y - 1;
--	do_div(x, y);
--	return x * y;
--}
--
- static void
- nouveau_bo_fixup_align(struct nouveau_bo *nvbo, u32 flags,
- 		       int *align, u64 *size)
-diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-index e3ec79b8f7f5..f080df9934e8 100644
---- a/drivers/infiniband/hw/mlx5/cmd.c
-+++ b/drivers/infiniband/hw/mlx5/cmd.c
-@@ -190,7 +190,7 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
- 			  u16 uid, phys_addr_t *addr, u32 *obj_id)
- {
- 	struct mlx5_core_dev *dev = dm->dev;
--	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
-+	u32 num_blocks = DIV_ROUND_UP_ULL(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
- 	u32 in[MLX5_ST_SZ_DW(create_sw_icm_in)] = {};
- 	unsigned long *block_map;
-@@ -266,7 +266,7 @@ int mlx5_cmd_dealloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
- 			    u16 uid, phys_addr_t addr, u32 obj_id)
- {
- 	struct mlx5_core_dev *dev = dm->dev;
--	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
-+	u32 num_blocks = DIV_ROUND_UP_ULL(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
- 	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
- 	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
- 	unsigned long *block_map;
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index abac70ad5c7c..2d48c0e55ed2 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
- 	/* Allocation size must a multiple of the basic block size
- 	 * and a power of 2.
- 	 */
--	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-+	act_size = roundup_64(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
- 	act_size = roundup_pow_of_two(act_size);
- 
- 	dm->size = act_size;
-diff --git a/fs/xfs/xfs_linux.h b/fs/xfs/xfs_linux.h
-index edbd5a210df2..13de9d49bd52 100644
---- a/fs/xfs/xfs_linux.h
-+++ b/fs/xfs/xfs_linux.h
-@@ -207,13 +207,6 @@ static inline xfs_dev_t linux_to_xfs_dev_t(dev_t dev)
- #define xfs_sort(a,n,s,fn)	sort(a,n,s,fn,NULL)
- #define xfs_stack_trace()	dump_stack()
- 
--static inline uint64_t roundup_64(uint64_t x, uint32_t y)
--{
--	x += y - 1;
--	do_div(x, y);
--	return x * y;
--}
--
- static inline uint64_t howmany_64(uint64_t x, uint32_t y)
- {
- 	x += y - 1;
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 74b1ee9027f5..cd0063629357 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -115,6 +115,20 @@
- 	(((x) + (__y - 1)) / __y) * __y;		\
- }							\
- )
-+
-+#if BITS_PER_LONG == 32
-+# define roundup_64(x, y) (				\
-+{							\
-+	typeof(y) __y = y;				\
-+	typeof(x) __x = (x) + (__y - 1);		\
-+	do_div(__x, __y);				\
-+	__x * __y;					\
-+}							\
-+)
-+#else
-+# define roundup_64(x, y)	roundup(x, y)
-+#endif
-+
- /**
-  * rounddown - round down to next specified multiple
-  * @x: the value to round
-
-
--- Steve
+CkZyb206IFN0ZXZlbiBSb3N0ZWR0IChWTXdhcmUpIDxyb3N0ZWR0QGdvb2RtaXMub3JnPgoKSW4g
+ZGlzY3Vzc2luZyBhIGJ1aWxkIGZhaWx1cmUgb24geDg2XzMyIGR1ZSB0byB0aGUgdXNlIG9mIHJv
+dW5kdXAoKSBvbgphIDY0IGJpdCBudW1iZXIsIEkgcmVhbGl6ZWQgdGhhdCB0aGVyZSdzIG5vIGdl
+bmVyaWMgZXF1aXZhbGVudApyb3VuZHVwXzY0KCkuIEl0IGlzIGltcGxlbWVudGVkIGluIHR3byBz
+ZXBhcmF0ZSBwbGFjZXMgaW4gdGhlIGtlcm5lbCwKYnV0IHRoZXJlIHJlYWxseSBzaG91bGQgYmUg
+anVzdCBvbmUgdGhhdCBhbGwgY2FuIHVzZS4KCkFsdGhvdWdoIHRoZSBvdGhlciBpbXBsZW1lbnRh
+dGlvbnMgYXJlIGEgc3RhdGljIGlubGluZSBmdW5jdGlvbiwgdGhpcwppbXBsZW1lbnRhdGlvbiBp
+cyBhIG1hY3JvIHRvIGFsbG93IHRoZSB1c2Ugb2YgdHlwZW9mKHgpIHRvIGRlbm90ZSB0aGUKdHlw
+ZSB0aGF0IGlzIGJlaW5nIHVzZWQuIElmIHRoZSBidWlsZCBpcyBvbiBhIDY0IGJpdCBtYWNoaW5l
+LCB0aGVuIHRoZQpyb3VuZHVwXzY0KCkgbWFjcm8gd2lsbCBqdXN0IGRlZmF1bHQgYmFjayB0byBy
+b3VuZHVwKCkuIEJ1dCBmb3IgMzIgYml0Cm1hY2hpbmVzLCBpdCB3aWxsIHVzZSB0aGUgdmVyc2lv
+biB0aGF0IGlzIHdpbGwgbm90IGNhdXNlIGlzc3VlcyB3aXRoCmRpdmlkaW5nIGEgNjQgYml0IG51
+bWJlciBvbiBhIDMyIGJpdCBtYWNoaW5lLgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9y
+LzIwMTkwNTIyMTQ1NDUwLjI1ZmY0ODNkQGdhbmRhbGYubG9jYWwuaG9tZQoKU2lnbmVkLW9mZi1i
+eTogU3RldmVuIFJvc3RlZHQgKFZNd2FyZSkgPHJvc3RlZHRAZ29vZG1pcy5vcmc+Ci0tLQpkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jIGIvZHJpdmVycy9n
+cHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jCmluZGV4IDM0YTk5ODAxMmJmNi4uY2RhY2ZlMWY3
+MzJjIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2JvLmMKKysr
+IGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jCkBAIC0xNDMsMTQgKzE0Myw2
+IEBAIG5vdXZlYXVfYm9fZGVsX3R0bShzdHJ1Y3QgdHRtX2J1ZmZlcl9vYmplY3QgKmJvKQogCWtm
+cmVlKG52Ym8pOwogfQogCi1zdGF0aWMgaW5saW5lIHU2NAotcm91bmR1cF82NCh1NjQgeCwgdTMy
+IHkpCi17Ci0JeCArPSB5IC0gMTsKLQlkb19kaXYoeCwgeSk7Ci0JcmV0dXJuIHggKiB5OwotfQot
+CiBzdGF0aWMgdm9pZAogbm91dmVhdV9ib19maXh1cF9hbGlnbihzdHJ1Y3Qgbm91dmVhdV9ibyAq
+bnZibywgdTMyIGZsYWdzLAogCQkgICAgICAgaW50ICphbGlnbiwgdTY0ICpzaXplKQpkaWZmIC0t
+Z2l0IGEvZnMveGZzL3hmc19saW51eC5oIGIvZnMveGZzL3hmc19saW51eC5oCmluZGV4IGVkYmQ1
+YTIxMGRmMi4uMTNkZTlkNDliZDUyIDEwMDY0NAotLS0gYS9mcy94ZnMveGZzX2xpbnV4LmgKKysr
+IGIvZnMveGZzL3hmc19saW51eC5oCkBAIC0yMDcsMTMgKzIwNyw2IEBAIHN0YXRpYyBpbmxpbmUg
+eGZzX2Rldl90IGxpbnV4X3RvX3hmc19kZXZfdChkZXZfdCBkZXYpCiAjZGVmaW5lIHhmc19zb3J0
+KGEsbixzLGZuKQlzb3J0KGEsbixzLGZuLE5VTEwpCiAjZGVmaW5lIHhmc19zdGFja190cmFjZSgp
+CWR1bXBfc3RhY2soKQogCi1zdGF0aWMgaW5saW5lIHVpbnQ2NF90IHJvdW5kdXBfNjQodWludDY0
+X3QgeCwgdWludDMyX3QgeSkKLXsKLQl4ICs9IHkgLSAxOwotCWRvX2Rpdih4LCB5KTsKLQlyZXR1
+cm4geCAqIHk7Ci19Ci0KIHN0YXRpYyBpbmxpbmUgdWludDY0X3QgaG93bWFueV82NCh1aW50NjRf
+dCB4LCB1aW50MzJfdCB5KQogewogCXggKz0geSAtIDE7CmRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
+bnV4L2tlcm5lbC5oIGIvaW5jbHVkZS9saW51eC9rZXJuZWwuaAppbmRleCA3NGIxZWU5MDI3ZjUu
+LmNkMDA2MzYyOTM1NyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9rZXJuZWwuaAorKysgYi9p
+bmNsdWRlL2xpbnV4L2tlcm5lbC5oCkBAIC0xMTUsNiArMTE1LDIwIEBACiAJKCgoeCkgKyAoX195
+IC0gMSkpIC8gX195KSAqIF9feTsJCVwKIH0JCQkJCQkJXAogKQorCisjaWYgQklUU19QRVJfTE9O
+RyA9PSAzMgorIyBkZWZpbmUgcm91bmR1cF82NCh4LCB5KSAoCQkJCVwKK3sJCQkJCQkJXAorCXR5
+cGVvZih5KSBfX3kgPSB5OwkJCQlcCisJdHlwZW9mKHgpIF9feCA9ICh4KSArIChfX3kgLSAxKTsJ
+CVwKKwlkb19kaXYoX194LCBfX3kpOwkJCQlcCisJX194ICogX195OwkJCQkJXAorfQkJCQkJCQlc
+CispCisjZWxzZQorIyBkZWZpbmUgcm91bmR1cF82NCh4LCB5KQlyb3VuZHVwKHgsIHkpCisjZW5k
+aWYKKwogLyoqCiAgKiByb3VuZGRvd24gLSByb3VuZCBkb3duIHRvIG5leHQgc3BlY2lmaWVkIG11
+bHRpcGxlCiAgKiBAeDogdGhlIHZhbHVlIHRvIHJvdW5kCl9fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZlYXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
+bGlzdGluZm8vbm91dmVhdQ==
