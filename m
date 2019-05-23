@@ -1,144 +1,67 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Thu, 23 May 2019 14:55:46 -0300
-Message-ID: <20190523175546.GE12159@ziepe.ca>
-References: <20190506195657.GA30261@ziepe.ca>
- <20190521205321.GC3331@redhat.com>
- <20190522005225.GA30819@ziepe.ca>
- <20190522174852.GA23038@redhat.com>
- <20190522235737.GD15389@ziepe.ca>
- <20190523150432.GA5104@redhat.com>
- <20190523154149.GB12159@ziepe.ca>
- <20190523155207.GC5104@redhat.com>
- <20190523163429.GC12159@ziepe.ca>
- <20190523173302.GD5104@redhat.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH 1/1] infiniband/mm: convert put_page() to put_user_page*()
+Date: Thu, 23 May 2019 10:56:56 -0700
+Message-ID: <708b9fc4-9afd-345e-83f7-2ceae673a4fd@nvidia.com>
+References: <20190523072537.31940-1-jhubbard@nvidia.com>
+ <20190523072537.31940-2-jhubbard@nvidia.com>
+ <20190523153133.GB5104@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190523173302.GD5104@redhat.com>
+In-Reply-To: <20190523153133.GB5104@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jerome Glisse <jglisse@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@mellanox.com>, Ira Weiny <ira.weiny@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 23, 2019 at 01:33:03PM -0400, Jerome Glisse wrote:
-> On Thu, May 23, 2019 at 01:34:29PM -0300, Jason Gunthorpe wrote:
-> > On Thu, May 23, 2019 at 11:52:08AM -0400, Jerome Glisse wrote:
-> > > On Thu, May 23, 2019 at 12:41:49PM -0300, Jason Gunthorpe wrote:
-> > > > On Thu, May 23, 2019 at 11:04:32AM -0400, Jerome Glisse wrote:
-> > > > > On Wed, May 22, 2019 at 08:57:37PM -0300, Jason Gunthorpe wrote:
-> > > > > > On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
-> > > > > > 
-> > > > > > > > > So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
-> > > > > > > > > (prefetch and not and different sizes). Seems to work ok.
-> > > > > > > > 
-> > > > > > > > Urk, it already doesn't apply to the rdma tree :(
-> > > > > > > > 
-> > > > > > > > The conflicts are a little more extensive than I'd prefer to handle..
-> > > > > > > > Can I ask you to rebase it on top of this branch please:
-> > > > > > > > 
-> > > > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
-> > > > > > > > 
-> > > > > > > > Specifically it conflicts with this patch:
-> > > > > > > > 
-> > > > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
-> > > > > > 
-> > > > > > There is at least one more serious blocker here:
-> > > > > > 
-> > > > > > config ARCH_HAS_HMM_MIRROR
-> > > > > >         bool
-> > > > > >         default y
-> > > > > >         depends on (X86_64 || PPC64)
-> > > > > >         depends on MMU && 64BIT
-> > > > > > 
-> > > > > > I can't loose ARM64 support for ODP by merging this, that is too
-> > > > > > serious of a regression.
-> > > > > > 
-> > > > > > Can you fix it?
-> > > > > 
-> > > > > 5.2 already has patch to fix the Kconfig (ARCH_HAS_HMM_MIRROR and
-> > > > > ARCH_HAS_HMM_DEVICE replacing ARCH_HAS_HMM) I need to update nouveau
-> > > > 
-> > > > Newer than 5.2-rc1? Is this why ARCH_HAS_HMM_MIRROR is not used anywhere?
-> > > 
-> > > Yes this is multi-step update, first add the new Kconfig release n,
-> > > update driver in release n+1, update core Kconfig in release n+2
-> > > 
-> > > So we are in release n (5.2), in 5.3 i will update nouveau and amdgpu
-> > > so that in 5.4 in ca remove the old ARCH_HAS_HMM
-> > 
-> > Why don't you just send the patch for both parts to mm or to DRM?
-> > 
-> > This is very normal - as long as the resulting conflicts would be
-> > small during there is no reason not to do this. Can you share the
-> > combined patch?
-> 
-> This was tested in the past an resulted in failure. So for now i am
-> taking the simplest and easiest path with the least burden for every
-> maintainer. It only complexify my life.
+On 5/23/19 8:31 AM, Jerome Glisse wrote:
+[...]
+>=20
+> Reviewed-by: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
+>=20
 
-I don't know what you tried to do in the past, but it happens all the
-time, every merge cycle with success. Not everything can be done, but
-changing the signature of one function with one call site should
-really not be a problem.
+Thanks for the review!
 
-> Note that mm is not a git tree and thus i can not play any git trick
-> to help in this endeavor.
+> Between i have a wishlist see below
+[...]
+>> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/um=
+em.c
+>> index e7ea819fcb11..673f0d240b3e 100644
+>> --- a/drivers/infiniband/core/umem.c
+>> +++ b/drivers/infiniband/core/umem.c
+>> @@ -54,9 +54,10 @@ static void __ib_umem_release(struct ib_device *dev, =
+struct ib_umem *umem, int d
+>>  =20
+>>   	for_each_sg_page(umem->sg_head.sgl, &sg_iter, umem->sg_nents, 0) {
+>>   		page =3D sg_page_iter_page(&sg_iter);
+>> -		if (!PageDirty(page) && umem->writable && dirty)
+>> -			set_page_dirty_lock(page);
+>> -		put_page(page);
+>> +		if (umem->writable && dirty)
+>> +			put_user_pages_dirty_lock(&page, 1);
+>> +		else
+>> +			put_user_page(page);
+>=20
+> Can we get a put_user_page_dirty(struct page 8*pages, bool dirty, npages)=
+ ?
+>=20
+> It is a common pattern that we might have to conditionaly dirty the pages
+> and i feel it would look cleaner if we could move the branch within the
+> put_user_page*() function.
+>=20
 
-I am aware..
+This sounds reasonable to me, do others have a preference on this? Last tim=
+e
+we discussed it, I recall there was interest in trying to handle the sg lis=
+ts,
+which was where a lot of focus was. I'm not sure if there was a preference =
+one=20
+way or the other, on adding more of these helpers.
 
-> > > > If mm takes the fixup patches so hmm mirror is as reliable as ODP's
-> > > > existing stuff, and patch from you to enable ARM64, then we can
-> > > > continue to merge into 5.3
-> > > > 
-> > > > So, let us try to get acks on those other threads..
-> > > 
-> > > I will be merging your patchset and Ralph and repost, they are only
-> > > minor change mostly that you can not update the driver API in just
-> > > one release.
-> > 
-> > Of course you can, we do it all the time. It requires some
-> > co-ordination, but as long as the merge conflicts are not big it is
-> > fine.
-> > 
-> > Merge the driver API change and the call site updates to -mm and
-> > refain from merging horrendously conflicting patches through DRM.
-> > 
-> > In the case of the changes in my HMM RFC it is something like 2
-> > lines in DRM that need touching, no problem at all.
-> > 
-> > If you want help I can volunteer make a hmm PR for Linus just for this
-> > during the merge window - but Andrew would need to agree and ack the
-> > patches.
-> 
-> This was tested in the past and i do not want to go over this issue
-> again (or re-iterate the long emails discussion associated with that).
-> It failed and it put the burden on every maintainers. So it is easier
-> to do the multi-step thing.
-> 
-> You can take a peak at Ralph patchset and yours into one with minor
-> changes here:
-> 
-> https://cgit.freedesktop.org/~glisse/linux/log/?h=hmm-5.3
 
-Okay..
-
-This patch needs to use down_read(&mm->mmap_sem) not READ_ONCE:
-
- mm/hmm: do not try to create hmm struct from within hmm_range_register()
- Driver should never call hmm_range_register() without a valid and active
- registered hmm_mirror and thus without a valid and active hmm struct. So
- if that happens just return -EFAULT.
-
-Otherwise it is inconsisent with the locking scheme and has a use
-after free race. 
-
-I was not sure if the lock could be obtained safely here so I
-preferred to use the no-lock alternative of passing in mirror. I still
-think you should just change the single call site and sent to -mm.
-
-Thank you for all the other fixes, they look great.
-
-Regards,
-Jason
+thanks,
+--=20
+John Hubbard
+NVIDIA
