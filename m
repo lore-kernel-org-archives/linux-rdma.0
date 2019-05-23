@@ -1,73 +1,46 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: Re: [PATCH 1/1] infiniband/mm: convert put_page() to put_user_page*()
-Date: Thu, 23 May 2019 10:46:38 -0700
-Message-ID: <fa6d7d7c-13a3-0586-6384-768ebb7f0561@nvidia.com>
-References: <20190523072537.31940-1-jhubbard@nvidia.com>
- <20190523072537.31940-2-jhubbard@nvidia.com>
- <20190523172852.GA27175@iweiny-DESK2.sc.intel.com>
- <20190523173222.GH12145@mellanox.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Thu, 23 May 2019 11:51:40 -0600
+Message-ID: <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523173222.GH12145@mellanox.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201905211633.6C0BF0C2@keescook>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>, Ira Weiny <ira.weiny@intel.com>
-Cc: "john.hubbard@gmail.com" <john.hubbard@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Kees Cook <keescook@chromium.org>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, Mauro
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/23/19 10:32 AM, Jason Gunthorpe wrote:
-> On Thu, May 23, 2019 at 10:28:52AM -0700, Ira Weiny wrote:
->>>   
->>> @@ -686,8 +686,8 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
->>>   			 * ib_umem_odp_map_dma_single_page().
->>>   			 */
->>>   			if (npages - (j + 1) > 0)
->>> -				release_pages(&local_page_list[j+1],
->>> -					      npages - (j + 1));
->>> +				put_user_pages(&local_page_list[j+1],
->>> +					       npages - (j + 1));
->>
->> I don't know if we discussed this before but it looks like the use of
->> release_pages() was not entirely correct (or at least not necessary) here.  So
->> I think this is ok.
+On 5/21/19 6:04 PM, Kees Cook wrote:
+> As an aside: I think Sparc ADI support in Linux actually side-stepped
+> this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
+> be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
+> for kernel code.") I think this was a mistake we should not repeat for
+> arm64 (we do seem to be at least in agreement about this, I think).
 > 
-> Oh? John switched it from a put_pages loop to release_pages() here:
-> 
-> commit 75a3e6a3c129cddcc683538d8702c6ef998ec589
-> Author: John Hubbard <jhubbard@nvidia.com>
-> Date:   Mon Mar 4 11:46:45 2019 -0800
-> 
->      RDMA/umem: minor bug fix in error handling path
->      
->      1. Bug fix: fix an off by one error in the code that cleans up if it fails
->         to dma-map a page, after having done a get_user_pages_remote() on a
->         range of pages.
->      
->      2. Refinement: for that same cleanup code, release_pages() is better than
->         put_page() in a loop.
->      
-> 
-> And now we are going to back something called put_pages() that
-> implements the same for loop the above removed?
-> 
-> Seems like we are going in circles?? John?
-> 
-
-put_user_pages() is meant to be a drop-in replacement for release_pages(),
-so I made the above change as an interim step in moving the callsite from
-a loop, to a single call.
-
-And at some point, it may be possible to find a way to optimize put_user_pages()
-in a similar way to the batching that release_pages() does, that was part
-of the plan for this.
-
-But I do see what you mean: in the interim, maybe put_user_pages() should
-just be calling release_pages(), how does that change sound?
+> [1] https://lore.kernel.org/patchwork/patch/654481/
 
 
-thanks,
--- 
-John Hubbard
-NVIDIA
+That is a very early version of the sparc ADI patch. Support for tagged
+addresses in syscalls was added in later versions and is in the patch
+that is in the kernel.
+
+That part "Kernel does not enable ADI for kernel code." is correct. It
+is a possible enhancement for future.
+
+--
+Khalid
