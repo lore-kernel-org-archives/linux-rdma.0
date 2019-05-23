@@ -1,45 +1,54 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Thu, 23 May 2019 21:11:05 +0100
-Message-ID: <20190523201105.oifkksus4rzcwqt4@mbp>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp>
- <201905211633.6C0BF0C2@keescook>
- <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
+Date: Thu, 23 May 2019 14:19:25 -0700
+Message-ID: <CAHk-=whATjcpjVmTtM-MJw=XWY9kxq2xc67wA4_UkmVgF1mf2Q@mail.gmail.com>
+References: <20190523100013.52a8d2a6@gandalf.local.home> <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
+ <20190523112740.7167aba4@gandalf.local.home> <CAHk-=whFJqTOk0mSxJGeh38ZxDksgRaMrNV8hqTngiuokyJzew@mail.gmail.com>
+ <20190523133648.591f9e78@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
+In-Reply-To: <20190523133648.591f9e78@gandalf.local.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, nouveau@lists.freedesktop.org, linux-rdma <linux-rdma@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Khalid,
+On Thu, May 23, 2019 at 10:36 AM Steven Rostedt <rostedt@goodmis.org> wrote:
+>
+> >
+> > Of course, you probably want the usual "at least use 'int'" semantics,
+> > in which case the "type" should be "(x)+0":
+> >
+> >      #define round_up(x, y) size_fn((x)+0, round_up_size, x, y)
+> >
+> >  and the 8-bit and 16-bit cases will never be used.
+>
+> I'm curious to what the advantage of that is?
 
-On Thu, May 23, 2019 at 11:51:40AM -0600, Khalid Aziz wrote:
-> On 5/21/19 6:04 PM, Kees Cook wrote:
-> > As an aside: I think Sparc ADI support in Linux actually side-stepped
-> > this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
-> > be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
-> > for kernel code.") I think this was a mistake we should not repeat for
-> > arm64 (we do seem to be at least in agreement about this, I think).
-> > 
-> > [1] https://lore.kernel.org/patchwork/patch/654481/
-> 
-> That is a very early version of the sparc ADI patch. Support for tagged
-> addresses in syscalls was added in later versions and is in the patch
-> that is in the kernel.
+Let's say that you have a structure with a 'unsigned char' member,
+because the value range is 0-255.
 
-I tried to figure out but I'm not familiar with the sparc port. How did
-you solve the tagged address going into various syscall implementations
-in the kernel (e.g. sys_write)? Is the tag removed on kernel entry or it
-ends up deeper in the core code?
+What happens if you do
 
-Thanks.
+   x = round_up(p->member, 4);
 
--- 
-Catalin
+and the value is 255?
+
+Now, if you stay in 'unsigned char' the end result is 0. If you follow
+the usual C integer promotion rules ("all arithmetic promotes to at
+least 'int'"), you get 256.
+
+Most people probably expect 256, and that implies that even if you
+pass an 'unsigned char' to an arithmetic function like this, you
+expect any math to be done in 'int'. Doing the "(x)+0" forces that,
+because the "+0" changes the type of the expression from "unsigned
+char" to "int" due to C integer promotion.
+
+Yes. The C integer type rules are subtle and sometimes surprising. One
+of the things I've wanted is to have some way to limit silent
+promotion (and silent truncation!), and cause warnings. 'sparse' does
+some of that with some special-case types (ie __bitwise), but it's
+pretty limited.
+
+              Linus
