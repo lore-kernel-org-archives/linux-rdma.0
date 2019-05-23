@@ -1,36 +1,45 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Thu, 23 May 2019 16:10:38 -0300
-Message-ID: <20190523191038.GG12159@ziepe.ca>
-References: <20190522005225.GA30819@ziepe.ca>
- <20190522174852.GA23038@redhat.com>
- <20190522235737.GD15389@ziepe.ca>
- <20190523150432.GA5104@redhat.com>
- <20190523154149.GB12159@ziepe.ca>
- <20190523155207.GC5104@redhat.com>
- <20190523163429.GC12159@ziepe.ca>
- <20190523173302.GD5104@redhat.com>
- <20190523175546.GE12159@ziepe.ca>
- <20190523182458.GA3571@redhat.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Thu, 23 May 2019 21:11:05 +0100
+Message-ID: <20190523201105.oifkksus4rzcwqt4@mbp>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
+ <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190523182458.GA3571@redhat.com>
+In-Reply-To: <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Khalid,
 
-On Thu, May 23, 2019 at 02:24:58PM -0400, Jerome Glisse wrote:
-> I can not take mmap_sem in range_register, the READ_ONCE is fine and
-> they are no race as we do take a reference on the hmm struct thus
+On Thu, May 23, 2019 at 11:51:40AM -0600, Khalid Aziz wrote:
+> On 5/21/19 6:04 PM, Kees Cook wrote:
+> > As an aside: I think Sparc ADI support in Linux actually side-stepped
+> > this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
+> > be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
+> > for kernel code.") I think this was a mistake we should not repeat for
+> > arm64 (we do seem to be at least in agreement about this, I think).
+> > 
+> > [1] https://lore.kernel.org/patchwork/patch/654481/
+> 
+> That is a very early version of the sparc ADI patch. Support for tagged
+> addresses in syscalls was added in later versions and is in the patch
+> that is in the kernel.
 
-Of course there are use after free races with a READ_ONCE scheme, I
-shouldn't have to explain this.
+I tried to figure out but I'm not familiar with the sparc port. How did
+you solve the tagged address going into various syscall implementations
+in the kernel (e.g. sys_write)? Is the tag removed on kernel entry or it
+ends up deeper in the core code?
 
-If you cannot take the read mmap sem (why not?), then please use my
-version and push the update to the driver through -mm..
+Thanks.
 
-Jason
+-- 
+Catalin
