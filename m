@@ -1,39 +1,49 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Thu, 23 May 2019 16:08:14 +0100
-Message-ID: <20190523150813.x4btg5zxa4gl5o4q@mbp>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp>
- <201905211633.6C0BF0C2@keescook>
- <20190522101110.m2stmpaj7seezveq@mbp>
- <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
- <201905221157.A9BAB1F296@keescook>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
+Date: Thu, 23 May 2019 08:10:44 -0700
+Message-ID: <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
+References: <20190523100013.52a8d2a6@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201905221157.A9BAB1F296@keescook>
+In-Reply-To: <20190523100013.52a8d2a6@gandalf.local.home>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: enh <enh@google.com>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>Felix Kuehling <F>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, nouveau@lists.freedesktop.org, linux-rdma <linux-rdma@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 12:21:27PM -0700, Kees Cook wrote:
-> If a process wants to not tag, that's also up to the allocator where
-> it can decide not to ask the kernel, and just not tag. Nothing breaks in
-> userspace if a process is NOT tagging and untagged_addr() exists or is
-> missing. This, I think, is the core way this doesn't trip over the
-> golden rule: an old system image will run fine (because it's not
-> tagging). A *new* system may encounter bugs with tagging because it's a
-> new feature: this is The Way Of Things. But we don't break old userspace
-> because old userspace isn't using tags.
+On Thu, May 23, 2019 at 7:00 AM Steven Rostedt <rostedt@goodmis.org> wrote:
+>
+> +# define roundup_64(x, y) (                            \
+> +{                                                      \
+> +       typeof(y) __y = y;                              \
+> +       typeof(x) __x = (x) + (__y - 1);                \
+> +       do_div(__x, __y);                               \
+> +       __x * __y;                                      \
+> +}                                                      \
 
-With this series and hwasan binaries, at some point in the future they
-will be considered "old userspace" and they do use pointer tags which
-expect to be ignored by both the hardware and the kernel. MTE breaks
-this assumption.
+The thing about this is that it absolutely sucks for power-of-two arguments.
 
--- 
-Catalin
+The regular roundup() that uses division has the compiler at least
+optimize them to shifts - at least for constant cases. But do_div() is
+meant for "we already know it's not a power of two", and the compiler
+doesn't have any understanding of the internals.
+
+And it looks to me like the use case you want this for is very much
+probably a power of two. In which case division is all kinds of just
+stupid.
+
+And we already have a power-of-two round up function that works on
+u64. It's called "round_up()".
+
+I wish we had a better visual warning about the differences between
+"round_up()" (limited to powers-of-two, but efficient, and works with
+any size) and "roundup()" (generic, potentially horribly slow, and
+doesn't work for 64-bit on 32-bit).
+
+Side note: "round_up()" has the problem that it uses "x" twice.
+
+End result: somebody should look at this, but I really don't like the
+"force division" case that is likely horribly slow and nasty.
+
+                  Linus
