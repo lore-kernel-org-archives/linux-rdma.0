@@ -1,7 +1,7 @@
 From: Khalid Aziz <khalid.aziz@oracle.com>
 Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Thu, 23 May 2019 15:42:33 -0600
-Message-ID: <047e3b90-d73e-0ca8-869c-d03b7580e644@oracle.com>
+Date: Thu, 23 May 2019 15:49:05 -0600
+Message-ID: <ffe58af3-7c70-d559-69f6-1f6ebcb0fec6@oracle.com>
 References: <cover.1557160186.git.andreyknvl@google.com>
  <20190517144931.GA56186@arrakis.emea.arm.com>
  <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
@@ -48,23 +48,45 @@ On 5/23/19 2:11 PM, Catalin Marinas wrote:
 > you solve the tagged address going into various syscall implementations
 > in the kernel (e.g. sys_write)? Is the tag removed on kernel entry or it
 > ends up deeper in the core code?
+> 
 
-Tag is not removed from the user addresses. Kernel passes tagged
-addresses to copy_from_user and copy_to_user. MMU checks the tag
-embedded in the address when kernel accesses userspace addresses. This
-maintains the ADI integrity even when userspace attempts to access any
-userspace addresses through system calls.
+Another spot I should point out in ADI patch - Tags are not stored in
+VMAs and IOMMU does not support ADI tags on M7. ADI tags are stripped
+before userspace addresses are passed to IOMMU in the following snippet
+from the patch:
 
-On sparc, access_ok() is defined as:
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+index 5335ba3c850e..357b6047653a 100644
+--- a/arch/sparc/mm/gup.c
++++ b/arch/sparc/mm/gup.c
+@@ -201,6 +202,24 @@ int __get_user_pages_fast(unsigned long start, int
+nr_pages
+, int write,
+        pgd_t *pgdp;
+        int nr = 0;
 
-#define access_ok(addr, size) __access_ok((unsigned long)(addr), size)
-#define __access_ok(addr, size) (__user_ok((addr) & get_fs().seg, (size)))
-#define __user_ok(addr, size) ({ (void)(size); (addr) < STACK_TOP; })
++#ifdef CONFIG_SPARC64
++       if (adi_capable()) {
++               long addr = start;
++
++               /* If userspace has passed a versioned address, kernel
++                * will not find it in the VMAs since it does not store
++                * the version tags in the list of VMAs. Storing version
++                * tags in list of VMAs is impractical since they can be
++                * changed any time from userspace without dropping into
++                * kernel. Any address search in VMAs will be done with
++                * non-versioned addresses. Ensure the ADI version bits
++                * are dropped here by sign extending the last bit before
++                * ADI bits. IOMMU does not implement version tags.
++                */
++               addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
++               start = addr;
++       }
++#endif
+        start &= PAGE_MASK;
+        addr = start;
+        len = (unsigned long) nr_pages << PAGE_SHIFT;
 
-STACK_TOP for M7 processor (which is the first sparc processor to
-support ADI) is 0xfff8000000000000UL. Tagged addresses pass the
-access_ok() check fine. Any tag mismatches that happen during kernel
-access to userspace addresses are handled by do_mcd_err().
 
 --
 Khalid
