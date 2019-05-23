@@ -1,70 +1,73 @@
-From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
-Date: Thu, 23 May 2019 09:51:29 -0700
-Message-ID: <CAHk-=whFJqTOk0mSxJGeh38ZxDksgRaMrNV8hqTngiuokyJzew@mail.gmail.com>
-References: <20190523100013.52a8d2a6@gandalf.local.home>
- <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
- <20190523112740.7167aba4@gandalf.local.home>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Thu, 23 May 2019 17:57:09 +0100
+Message-ID: <20190523165708.q6ru7xg45aqfjzpr@mbp>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <20190521184856.GC2922@ziepe.ca>
+ <20190522134925.GV28398@e103592.cambridge.arm.com>
+ <20190523002052.GF15389@ziepe.ca>
+ <20190523104256.GX28398@e103592.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190523112740.7167aba4-f9ZlEuEWxVcJvu8Pb33WZ0EMvNT87kid@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190523104256.GX28398@e103592.cambridge.arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Martin <Dave.Martin@arm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Christian Koenig <Christian.Koenig@amd.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Lee Smith <Lee.Smith@arm.com>, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsky@arm.c>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBNYXkgMjMsIDIwMTkgYXQgODoyNyBBTSBTdGV2ZW4gUm9zdGVkdCA8cm9zdGVkdEBn
-b29kbWlzLm9yZz4gd3JvdGU6Cj4KPiBJIGhhdmVuJ3QgeWV0IHRlc3RlZCB0aGlzLCBidXQgd2hh
-dCBhYm91dCBzb21ldGhpbmcgbGlrZSB0aGUgZm9sbG93aW5nOgoKU28gdGhhdCBhdCBsZWFzdCBo
-YW5kbGVzIHRoZSBjb25zdGFudCBjYXNlIHRoYXQgdGhlIG5vcm1hbCAicm91bmR1cCgpIgpjYXNl
-IGFsc28gaGFuZGxlcy4KCkF0IHRoZSBzYW1lIHRpbWUsIGluIHRoZSBjYXNlIHlvdSBhcmUgdGFs
-a2luZyBhYm91dCwgSSByZWFsbHkgZG8Kc3VzcGVjdCB0aGF0IHdlIGhhdmUgYSAobm9uLWNvbnN0
-YW50KSBwb3dlciBvZiB0d28sIGFuZCB0aGF0IHlvdQpzaG91bGQgaGF2ZSBqdXN0IHVzZWQgInJv
-dW5kX3VwKCkiIHdoaWNoIHdvcmtzIGZpbmUgcmVnYXJkbGVzcyBvZgpzaXplLCBhbmQgaXMgYWx3
-YXlzIGVmZmljaWVudC4KCk9uIGEgc2xpZ2h0IHRhbmdlbnQuLiBNYXliZSB3ZSBzaG91bGQgaGF2
-ZSBzb21ldGhpbmcgbGlrZSB0aGlzOgoKI2RlZmluZSBzaXplX2ZuKHgsIHByZWZpeCwgLi4uKSAo
-eyAgICAgICAgICAgICAgICAgICAgICBcCiAgICAgICAgdHlwZW9mKHgpIF9fcmV0OyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgIHN3aXRjaCAoc2l6ZW9mKHgpKSB7ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIFwKICAgICAgICBjYXNlIDE6IF9fcmV0ID0gcHJlZml4
-IyM4KF9fVkFfQVJHU19fKTsgYnJlYWs7ICBcCiAgICAgICAgY2FzZSAyOiBfX3JldCA9IHByZWZp
-eCMjMTYoX19WQV9BUkdTX18pOyBicmVhazsgXAogICAgICAgIGNhc2UgNDogX19yZXQgPSBwcmVm
-aXgjIzMyKF9fVkFfQVJHU19fKTsgYnJlYWs7IFwKICAgICAgICBjYXNlIDg6IF9fcmV0ID0gcHJl
-Zml4IyM2NChfX1ZBX0FSR1NfXyk7IGJyZWFrOyBcCiAgICAgICAgZGVmYXVsdDogX19yZXQgPSBw
-cmVmaXgjI2JhZChfX1ZBX0FSR1NfXyk7ICAgICAgXAogICAgICAgIH0gX19yZXQ7IH0pCgojZGVm
-aW5lIHR5cGVfZm4oeCwgcHJlZml4LCAuLi4pICh7ICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgXAogICAgICAgIHR5cGVvZih4KSBfX3JldDsgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgXAogICAgICAgIGlmICgodHlwZW9mKHgpKS0xID4gMSkgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICAgICAgX19yZXQgPSBzaXplX2ZuKHgs
-IHByZWZpeCMjX3UsIF9fVkFfQVJHU19fKTsgICAgXAogICAgICAgIGVsc2UgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXAogICAgICAgICAgICAgICAg
-X19yZXQgPSBzaXplX2ZuKHgsIHByZWZpeCMjX3MsIF9fVkFfQVJHU19fKTsgICAgXAogICAgICAg
-IF9fcmV0OyB9KQoKd2hpY2ggd291bGQgYWxsb3cgdHlwZWQgaW50ZWdlciBmdW5jdGlvbnMgbGlr
-ZSB0aGlzLiBTbyB5b3UgY291bGQgZG8Kc29tZXRoaW5nIGxpa2UKCiAgICAgI2RlZmluZSByb3Vu
-ZF91cCh4LCB5KSBzaXplX2ZuKHgsIHJvdW5kX3VwX3NpemUsIHgsIHkpCgphbmQgdGhlbiB5b3Ug
-ZGVmaW5lIGZ1bmN0aW9ucyBmb3Igcm91bmRfdXBfc2l6ZTgvMTYvMzIvNjQgKGFuZCB5b3UKaGF2
-ZSB0b2kgZGVjbGFyZSAtIGJ1dCBub3QgZGVmaW5lIC0gcm91bmRfdXBfc2l6ZWJhZCgpKS4KCk9m
-IGNvdXJzZSwgeW91IHByb2JhYmx5IHdhbnQgdGhlIHVzdWFsICJhdCBsZWFzdCB1c2UgJ2ludCci
-IHNlbWFudGljcywKaW4gd2hpY2ggY2FzZSB0aGUgInR5cGUiIHNob3VsZCBiZSAiKHgpKzAiOgoK
-ICAgICAjZGVmaW5lIHJvdW5kX3VwKHgsIHkpIHNpemVfZm4oKHgpKzAsIHJvdW5kX3VwX3NpemUs
-IHgsIHkpCgogYW5kIHRoZSA4LWJpdCBhbmQgMTYtYml0IGNhc2VzIHdpbGwgbmV2ZXIgYmUgdXNl
-ZC4KCldlIGhhdmUgYSBsb3Qgb2YgY2FzZXMgd2hlcmUgd2UgZW5kIHVwIHVzaW5nICJ0eXBlIG92
-ZXJsb2FkaW5nIiBieQpzaXplLiBUaGUgbW9zdCBleHBsaWNpdCBjYXNlIGlzIHBlcmhhcHMgImdl
-dF91c2VyKCkiIGFuZCAicHV0X3VzZXIoKSIsCmJ1dCB0aGlzIHdob2xlIHJvdW5kX3VwIHRoaW5n
-IGlzIGFub3RoZXIgZXhhbXBsZS4KCk1heWJlIHdlIG5ldmVyIHJlYWxseSBjYXJlIGFib3V0ICJj
-aGFyIiBhbmQgInNob3J0IiwgYW5kIGFsd2F5cyB3YW50Cmp1c3QgdGhlICJpbnQtdnMtbG9uZy12
-cy1sb25nbG9uZyI/IFRoYXQgd291bGQgbWFrZSB0aGUgY2FzZXMgc2ltcGxlcgooMzIgYW5kIDY0
-KS4gQW5kIG1heWJlIHdlIG5ldmVyIGNhcmUgYWJvdXQgc2lnbi4gQnV0IHdlIGNvdWxkIHRyeSB0
-bwpoYXZlIHNvbWUgdW5pZmllZCBoZWxwZXIgbW9kZWwgbGlrZSB0aGUgYWJvdmUuLgoKICAgICAg
-ICAgICAgICAgICAgTGludXMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1
+On Thu, May 23, 2019 at 11:42:57AM +0100, Dave P Martin wrote:
+> On Wed, May 22, 2019 at 09:20:52PM -0300, Jason Gunthorpe wrote:
+> > On Wed, May 22, 2019 at 02:49:28PM +0100, Dave Martin wrote:
+> > > If multiple people will care about this, perhaps we should try to
+> > > annotate types more explicitly in SYSCALL_DEFINEx() and ABI data
+> > > structures.
+> > > 
+> > > For example, we could have a couple of mutually exclusive modifiers
+> > > 
+> > > T __object *
+> > > T __vaddr * (or U __vaddr)
+> > > 
+> > > In the first case the pointer points to an object (in the C sense)
+> > > that the call may dereference but not use for any other purpose.
+> > 
+> > How would you use these two differently?
+> > 
+> > So far the kernel has worked that __user should tag any pointer that
+> > is from userspace and then you can't do anything with it until you
+> > transform it into a kernel something
+> 
+> Ultimately it would be good to disallow casting __object pointers execpt
+> to compatible __object pointer types, and to make get_user etc. demand
+> __object.
+> 
+> __vaddr pointers / addresses would be freely castable, but not to
+> __object and so would not be dereferenceable even indirectly.
+
+I think it gets too complicated and there are ambiguous cases that we
+may not be able to distinguish. For example copy_from_user() may be used
+to copy a user data structure into the kernel, hence __object would
+work, while the same function may be used to copy opaque data to a file,
+so __vaddr may be a better option (unless I misunderstood your
+proposal).
+
+We currently have T __user * and I think it's a good starting point. The
+prior attempt [1] was shut down because it was just hiding the cast
+using __force. We'd need to work through those cases again and rather
+start changing the function prototypes to avoid unnecessary casting in
+the callers (e.g. get_user_pages(void __user *) or come up with a new
+type) while changing the explicit casting to a macro where it needs to
+be obvious that we are converting a user pointer, potentially typed
+(tagged), to an untyped address range. We may need a user_ptr_to_ulong()
+macro or similar (it seems that we have a u64_to_user_ptr, wasn't aware
+of it).
+
+It may actually not be far from what you suggested but I'd keep the
+current T __user * to denote possible dereference.
+
+[1] https://lore.kernel.org/lkml/5d54526e5ff2e5ad63d0dfdd9ab17cf359afa4f2.1535629099.git.andreyknvl@google.com/
+
+-- 
+Catalin
