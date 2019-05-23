@@ -1,46 +1,144 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Thu, 23 May 2019 11:51:40 -0600
-Message-ID: <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Thu, 23 May 2019 14:55:46 -0300
+Message-ID: <20190523175546.GE12159@ziepe.ca>
+References: <20190506195657.GA30261@ziepe.ca>
+ <20190521205321.GC3331@redhat.com>
+ <20190522005225.GA30819@ziepe.ca>
+ <20190522174852.GA23038@redhat.com>
+ <20190522235737.GD15389@ziepe.ca>
+ <20190523150432.GA5104@redhat.com>
+ <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201905211633.6C0BF0C2@keescook>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kees Cook <keescook@chromium.org>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Yishai Hadas <yishaih@mellanox.com>, Mauro
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190523173302.GD5104@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/21/19 6:04 PM, Kees Cook wrote:
-> As an aside: I think Sparc ADI support in Linux actually side-stepped
-> this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
-> be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
-> for kernel code.") I think this was a mistake we should not repeat for
-> arm64 (we do seem to be at least in agreement about this, I think).
+On Thu, May 23, 2019 at 01:33:03PM -0400, Jerome Glisse wrote:
+> On Thu, May 23, 2019 at 01:34:29PM -0300, Jason Gunthorpe wrote:
+> > On Thu, May 23, 2019 at 11:52:08AM -0400, Jerome Glisse wrote:
+> > > On Thu, May 23, 2019 at 12:41:49PM -0300, Jason Gunthorpe wrote:
+> > > > On Thu, May 23, 2019 at 11:04:32AM -0400, Jerome Glisse wrote:
+> > > > > On Wed, May 22, 2019 at 08:57:37PM -0300, Jason Gunthorpe wrote:
+> > > > > > On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
+> > > > > > 
+> > > > > > > > > So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
+> > > > > > > > > (prefetch and not and different sizes). Seems to work ok.
+> > > > > > > > 
+> > > > > > > > Urk, it already doesn't apply to the rdma tree :(
+> > > > > > > > 
+> > > > > > > > The conflicts are a little more extensive than I'd prefer to handle..
+> > > > > > > > Can I ask you to rebase it on top of this branch please:
+> > > > > > > > 
+> > > > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
+> > > > > > > > 
+> > > > > > > > Specifically it conflicts with this patch:
+> > > > > > > > 
+> > > > > > > > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
+> > > > > > 
+> > > > > > There is at least one more serious blocker here:
+> > > > > > 
+> > > > > > config ARCH_HAS_HMM_MIRROR
+> > > > > >         bool
+> > > > > >         default y
+> > > > > >         depends on (X86_64 || PPC64)
+> > > > > >         depends on MMU && 64BIT
+> > > > > > 
+> > > > > > I can't loose ARM64 support for ODP by merging this, that is too
+> > > > > > serious of a regression.
+> > > > > > 
+> > > > > > Can you fix it?
+> > > > > 
+> > > > > 5.2 already has patch to fix the Kconfig (ARCH_HAS_HMM_MIRROR and
+> > > > > ARCH_HAS_HMM_DEVICE replacing ARCH_HAS_HMM) I need to update nouveau
+> > > > 
+> > > > Newer than 5.2-rc1? Is this why ARCH_HAS_HMM_MIRROR is not used anywhere?
+> > > 
+> > > Yes this is multi-step update, first add the new Kconfig release n,
+> > > update driver in release n+1, update core Kconfig in release n+2
+> > > 
+> > > So we are in release n (5.2), in 5.3 i will update nouveau and amdgpu
+> > > so that in 5.4 in ca remove the old ARCH_HAS_HMM
+> > 
+> > Why don't you just send the patch for both parts to mm or to DRM?
+> > 
+> > This is very normal - as long as the resulting conflicts would be
+> > small during there is no reason not to do this. Can you share the
+> > combined patch?
 > 
-> [1] https://lore.kernel.org/patchwork/patch/654481/
+> This was tested in the past an resulted in failure. So for now i am
+> taking the simplest and easiest path with the least burden for every
+> maintainer. It only complexify my life.
 
+I don't know what you tried to do in the past, but it happens all the
+time, every merge cycle with success. Not everything can be done, but
+changing the signature of one function with one call site should
+really not be a problem.
 
-That is a very early version of the sparc ADI patch. Support for tagged
-addresses in syscalls was added in later versions and is in the patch
-that is in the kernel.
+> Note that mm is not a git tree and thus i can not play any git trick
+> to help in this endeavor.
 
-That part "Kernel does not enable ADI for kernel code." is correct. It
-is a possible enhancement for future.
+I am aware..
 
---
-Khalid
+> > > > If mm takes the fixup patches so hmm mirror is as reliable as ODP's
+> > > > existing stuff, and patch from you to enable ARM64, then we can
+> > > > continue to merge into 5.3
+> > > > 
+> > > > So, let us try to get acks on those other threads..
+> > > 
+> > > I will be merging your patchset and Ralph and repost, they are only
+> > > minor change mostly that you can not update the driver API in just
+> > > one release.
+> > 
+> > Of course you can, we do it all the time. It requires some
+> > co-ordination, but as long as the merge conflicts are not big it is
+> > fine.
+> > 
+> > Merge the driver API change and the call site updates to -mm and
+> > refain from merging horrendously conflicting patches through DRM.
+> > 
+> > In the case of the changes in my HMM RFC it is something like 2
+> > lines in DRM that need touching, no problem at all.
+> > 
+> > If you want help I can volunteer make a hmm PR for Linus just for this
+> > during the merge window - but Andrew would need to agree and ack the
+> > patches.
+> 
+> This was tested in the past and i do not want to go over this issue
+> again (or re-iterate the long emails discussion associated with that).
+> It failed and it put the burden on every maintainers. So it is easier
+> to do the multi-step thing.
+> 
+> You can take a peak at Ralph patchset and yours into one with minor
+> changes here:
+> 
+> https://cgit.freedesktop.org/~glisse/linux/log/?h=hmm-5.3
+
+Okay..
+
+This patch needs to use down_read(&mm->mmap_sem) not READ_ONCE:
+
+ mm/hmm: do not try to create hmm struct from within hmm_range_register()
+ Driver should never call hmm_range_register() without a valid and active
+ registered hmm_mirror and thus without a valid and active hmm struct. So
+ if that happens just return -EFAULT.
+
+Otherwise it is inconsisent with the locking scheme and has a use
+after free race. 
+
+I was not sure if the lock could be obtained safely here so I
+preferred to use the no-lock alternative of passing in mirror. I still
+think you should just change the single call site and sent to -mm.
+
+Thank you for all the other fixes, they look great.
+
+Regards,
+Jason
