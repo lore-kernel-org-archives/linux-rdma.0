@@ -1,50 +1,71 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
-Date: Wed, 22 May 2019 20:57:37 -0300
-Message-ID: <20190522235737.GD15389@ziepe.ca>
-References: <20190411181314.19465-1-jglisse@redhat.com>
- <20190506195657.GA30261@ziepe.ca>
- <20190521205321.GC3331@redhat.com>
- <20190522005225.GA30819@ziepe.ca>
- <20190522174852.GA23038@redhat.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Wed, 22 May 2019 21:20:52 -0300
+Message-ID: <20190523002052.GF15389@ziepe.ca>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <20190521184856.GC2922@ziepe.ca>
+ <20190522134925.GV28398@e103592.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190522174852.GA23038@redhat.com>
+In-Reply-To: <20190522134925.GV28398@e103592.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>
+To: Dave Martin <Dave.Martin@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 01:48:52PM -0400, Jerome Glisse wrote:
-
-> > > So attached is a rebase on top of 5.2-rc1, i have tested with pingpong
-> > > (prefetch and not and different sizes). Seems to work ok.
+On Wed, May 22, 2019 at 02:49:28PM +0100, Dave Martin wrote:
+> On Tue, May 21, 2019 at 03:48:56PM -0300, Jason Gunthorpe wrote:
+> > On Fri, May 17, 2019 at 03:49:31PM +0100, Catalin Marinas wrote:
 > > 
-> > Urk, it already doesn't apply to the rdma tree :(
+> > > The tagged pointers (whether hwasan or MTE) should ideally be a
+> > > transparent feature for the application writer but I don't think we can
+> > > solve it entirely and make it seamless for the multitude of ioctls().
+> > > I'd say you only opt in to such feature if you know what you are doing
+> > > and the user code takes care of specific cases like ioctl(), hence the
+> > > prctl() proposal even for the hwasan.
 > > 
-> > The conflicts are a little more extensive than I'd prefer to handle..
-> > Can I ask you to rebase it on top of this branch please:
+> > I'm not sure such a dire view is warrented.. 
 > > 
-> > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=wip/jgg-for-next
+> > The ioctl situation is not so bad, other than a few special cases,
+> > most drivers just take a 'void __user *' and pass it as an argument to
+> > some function that accepts a 'void __user *'. sparse et al verify
+> > this. 
 > > 
-> > Specifically it conflicts with this patch:
+> > As long as the core functions do the right thing the drivers will be
+> > OK.
 > > 
-> > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/commit/?h=wip/jgg-for-next&id=d2183c6f1958e6b6dfdde279f4cee04280710e34
+> > The only place things get dicy is if someone casts to unsigned long
+> > (ie for vma work) but I think that reflects that our driver facing
+> > APIs for VMAs are compatible with static analysis (ie I have no
+> > earthly idea why get_user_pages() accepts an unsigned long), not that
+> > this is too hard.
+> 
+> If multiple people will care about this, perhaps we should try to
+> annotate types more explicitly in SYSCALL_DEFINEx() and ABI data
+> structures.
+> 
+> For example, we could have a couple of mutually exclusive modifiers
+> 
+> T __object *
+> T __vaddr * (or U __vaddr)
+> 
+> In the first case the pointer points to an object (in the C sense)
+> that the call may dereference but not use for any other purpose.
 
-There is at least one more serious blocker here:
+How would you use these two differently?
 
-config ARCH_HAS_HMM_MIRROR
-        bool
-        default y
-        depends on (X86_64 || PPC64)
-        depends on MMU && 64BIT
+So far the kernel has worked that __user should tag any pointer that
+is from userspace and then you can't do anything with it until you
+transform it into a kernel something
 
-I can't loose ARM64 support for ODP by merging this, that is too
-serious of a regression.
+> to tell static analysers the real type of pointers smuggled through
+> UAPI disguised as other types (*cough* KVM, etc.)
 
-Can you fix it?
+Yes, that would help alot, we often have to pass pointers through a
+u64 in the uAPI, and there is no static checker support to make sure
+they are run through the u64_to_user_ptr() helper.
 
-Thanks,
 Jason
