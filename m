@@ -1,67 +1,141 @@
-From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Subject: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
-Date: Thu, 23 May 2019 10:00:13 -0400
-Message-ID: <20190523100013.52a8d2a6@gandalf.local.home>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Thu, 23 May 2019 15:44:49 +0100
+Message-ID: <20190523144449.waam2mkyzhjpqpur@mbp>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
+ <20190522101110.m2stmpaj7seezveq@mbp>
+ <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
+ <20190522163527.rnnc6t4tll7tk5zw@mbp>
+ <201905221316.865581CF@keescook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <201905221316.865581CF@keescook>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kees Cook <keescook@chromium.org>
+Cc: enh <enh@google.com>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>Felix Kuehling <F>
 List-Id: linux-rdma@vger.kernel.org
 
-CkZyb206IFN0ZXZlbiBSb3N0ZWR0IChWTXdhcmUpIDxyb3N0ZWR0QGdvb2RtaXMub3JnPgoKSW4g
-ZGlzY3Vzc2luZyBhIGJ1aWxkIGZhaWx1cmUgb24geDg2XzMyIGR1ZSB0byB0aGUgdXNlIG9mIHJv
-dW5kdXAoKSBvbgphIDY0IGJpdCBudW1iZXIsIEkgcmVhbGl6ZWQgdGhhdCB0aGVyZSdzIG5vIGdl
-bmVyaWMgZXF1aXZhbGVudApyb3VuZHVwXzY0KCkuIEl0IGlzIGltcGxlbWVudGVkIGluIHR3byBz
-ZXBhcmF0ZSBwbGFjZXMgaW4gdGhlIGtlcm5lbCwKYnV0IHRoZXJlIHJlYWxseSBzaG91bGQgYmUg
-anVzdCBvbmUgdGhhdCBhbGwgY2FuIHVzZS4KCkFsdGhvdWdoIHRoZSBvdGhlciBpbXBsZW1lbnRh
-dGlvbnMgYXJlIGEgc3RhdGljIGlubGluZSBmdW5jdGlvbiwgdGhpcwppbXBsZW1lbnRhdGlvbiBp
-cyBhIG1hY3JvIHRvIGFsbG93IHRoZSB1c2Ugb2YgdHlwZW9mKHgpIHRvIGRlbm90ZSB0aGUKdHlw
-ZSB0aGF0IGlzIGJlaW5nIHVzZWQuIElmIHRoZSBidWlsZCBpcyBvbiBhIDY0IGJpdCBtYWNoaW5l
-LCB0aGVuIHRoZQpyb3VuZHVwXzY0KCkgbWFjcm8gd2lsbCBqdXN0IGRlZmF1bHQgYmFjayB0byBy
-b3VuZHVwKCkuIEJ1dCBmb3IgMzIgYml0Cm1hY2hpbmVzLCBpdCB3aWxsIHVzZSB0aGUgdmVyc2lv
-biB0aGF0IGlzIHdpbGwgbm90IGNhdXNlIGlzc3VlcyB3aXRoCmRpdmlkaW5nIGEgNjQgYml0IG51
-bWJlciBvbiBhIDMyIGJpdCBtYWNoaW5lLgoKTGluazogaHR0cDovL2xrbWwua2VybmVsLm9yZy9y
-LzIwMTkwNTIyMTQ1NDUwLjI1ZmY0ODNkQGdhbmRhbGYubG9jYWwuaG9tZQoKU2lnbmVkLW9mZi1i
-eTogU3RldmVuIFJvc3RlZHQgKFZNd2FyZSkgPHJvc3RlZHRAZ29vZG1pcy5vcmc+Ci0tLQpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jIGIvZHJpdmVycy9n
-cHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jCmluZGV4IDM0YTk5ODAxMmJmNi4uY2RhY2ZlMWY3
-MzJjIDEwMDY0NAotLS0gYS9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2JvLmMKKysr
-IGIvZHJpdmVycy9ncHUvZHJtL25vdXZlYXUvbm91dmVhdV9iby5jCkBAIC0xNDMsMTQgKzE0Myw2
-IEBAIG5vdXZlYXVfYm9fZGVsX3R0bShzdHJ1Y3QgdHRtX2J1ZmZlcl9vYmplY3QgKmJvKQogCWtm
-cmVlKG52Ym8pOwogfQogCi1zdGF0aWMgaW5saW5lIHU2NAotcm91bmR1cF82NCh1NjQgeCwgdTMy
-IHkpCi17Ci0JeCArPSB5IC0gMTsKLQlkb19kaXYoeCwgeSk7Ci0JcmV0dXJuIHggKiB5OwotfQot
-CiBzdGF0aWMgdm9pZAogbm91dmVhdV9ib19maXh1cF9hbGlnbihzdHJ1Y3Qgbm91dmVhdV9ibyAq
-bnZibywgdTMyIGZsYWdzLAogCQkgICAgICAgaW50ICphbGlnbiwgdTY0ICpzaXplKQpkaWZmIC0t
-Z2l0IGEvZnMveGZzL3hmc19saW51eC5oIGIvZnMveGZzL3hmc19saW51eC5oCmluZGV4IGVkYmQ1
-YTIxMGRmMi4uMTNkZTlkNDliZDUyIDEwMDY0NAotLS0gYS9mcy94ZnMveGZzX2xpbnV4LmgKKysr
-IGIvZnMveGZzL3hmc19saW51eC5oCkBAIC0yMDcsMTMgKzIwNyw2IEBAIHN0YXRpYyBpbmxpbmUg
-eGZzX2Rldl90IGxpbnV4X3RvX3hmc19kZXZfdChkZXZfdCBkZXYpCiAjZGVmaW5lIHhmc19zb3J0
-KGEsbixzLGZuKQlzb3J0KGEsbixzLGZuLE5VTEwpCiAjZGVmaW5lIHhmc19zdGFja190cmFjZSgp
-CWR1bXBfc3RhY2soKQogCi1zdGF0aWMgaW5saW5lIHVpbnQ2NF90IHJvdW5kdXBfNjQodWludDY0
-X3QgeCwgdWludDMyX3QgeSkKLXsKLQl4ICs9IHkgLSAxOwotCWRvX2Rpdih4LCB5KTsKLQlyZXR1
-cm4geCAqIHk7Ci19Ci0KIHN0YXRpYyBpbmxpbmUgdWludDY0X3QgaG93bWFueV82NCh1aW50NjRf
-dCB4LCB1aW50MzJfdCB5KQogewogCXggKz0geSAtIDE7CmRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
-bnV4L2tlcm5lbC5oIGIvaW5jbHVkZS9saW51eC9rZXJuZWwuaAppbmRleCA3NGIxZWU5MDI3ZjUu
-LmNkMDA2MzYyOTM1NyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9rZXJuZWwuaAorKysgYi9p
-bmNsdWRlL2xpbnV4L2tlcm5lbC5oCkBAIC0xMTUsNiArMTE1LDIwIEBACiAJKCgoeCkgKyAoX195
-IC0gMSkpIC8gX195KSAqIF9feTsJCVwKIH0JCQkJCQkJXAogKQorCisjaWYgQklUU19QRVJfTE9O
-RyA9PSAzMgorIyBkZWZpbmUgcm91bmR1cF82NCh4LCB5KSAoCQkJCVwKK3sJCQkJCQkJXAorCXR5
-cGVvZih5KSBfX3kgPSB5OwkJCQlcCisJdHlwZW9mKHgpIF9feCA9ICh4KSArIChfX3kgLSAxKTsJ
-CVwKKwlkb19kaXYoX194LCBfX3kpOwkJCQlcCisJX194ICogX195OwkJCQkJXAorfQkJCQkJCQlc
-CispCisjZWxzZQorIyBkZWZpbmUgcm91bmR1cF82NCh4LCB5KQlyb3VuZHVwKHgsIHkpCisjZW5k
-aWYKKwogLyoqCiAgKiByb3VuZGRvd24gLSByb3VuZCBkb3duIHRvIG5leHQgc3BlY2lmaWVkIG11
-bHRpcGxlCiAgKiBAeDogdGhlIHZhbHVlIHRvIHJvdW5kCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCk5vdXZlYXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vbm91dmVhdQ==
+On Wed, May 22, 2019 at 01:47:36PM -0700, Kees Cook wrote:
+> On Wed, May 22, 2019 at 05:35:27PM +0100, Catalin Marinas wrote:
+> > The two hard requirements I have for supporting any new hardware feature
+> > in Linux are (1) a single kernel image binary continues to run on old
+> > hardware while making use of the new feature if available and (2) old
+> > user space continues to run on new hardware while new user space can
+> > take advantage of the new feature.
+> 
+> Agreed! And I think the series meets these requirements, yes?
+
+Yes. I mentioned this just to make sure people don't expect different
+kernel builds for different hardware features.
+
+There is also the obvious requirement which I didn't mention: new user
+space continues to run on new/subsequent kernel versions. That's one of
+the points of contention for this series (ignoring MTE) with the
+maintainers having to guarantee this without much effort. IOW, do the
+500K+ new lines in a subsequent kernel version break any user space out
+there? I'm only talking about the relaxed TBI ABI. Are the usual LTP,
+syskaller sufficient? Better static analysis would definitely help.
+
+> > For MTE, we just can't enable it by default since there are applications
+> > who use the top byte of a pointer and expect it to be ignored rather
+> > than failing with a mismatched tag. Just think of a hwasan compiled
+> > binary where TBI is expected to work and you try to run it with MTE
+> > turned on.
+> 
+> Ah! Okay, here's the use-case I wasn't thinking of: the concern is TBI
+> conflicting with MTE. And anything that starts using TBI suddenly can't
+> run in the future because it's being interpreted as MTE bits? (Is that
+> the ABI concern?
+
+That's another aspect to figure out when we add the MTE support. I don't
+think we'd be able to do this without an explicit opt-in by the user.
+
+Or, if we ever want MTE to be turned on by default (i.e. tag checking),
+even if everything is tagged with 0, we have to disallow TBI for user
+and this includes hwasan. There were a small number of programs using
+the TBI (I think some JavaScript compilers tried this). But now we are
+bringing in the hwasan support and this can be a large user base. Shall
+we add an ELF note for such binaries that use TBI/hwasan?
+
+This series is still required for MTE but we may decide not to relax the
+ABI blindly, therefore the opt-in (prctl) or personality idea.
+
+> I feel like we got into the weeds about ioctl()s and one-off bugs...)
+
+This needs solving as well. Most driver developers won't know why
+untagged_addr() is needed unless we have more rigorous types or type
+annotations and a tool to check them (we should probably revive the old
+sparse thread).
+
+> So there needs to be some way to let the kernel know which of three
+> things it should be doing:
+> 1- leaving userspace addresses as-is (present)
+> 2- wiping the top bits before using (this series)
+
+(I'd say tolerating rather than wiping since get_user still uses the tag
+in the current series)
+
+The current series does not allow any choice between 1 and 2, the
+default ABI basically becomes option 2.
+
+> 3- wiping the top bits for most things, but retaining them for MTE as
+>    needed (the future)
+
+2 and 3 are not entirely compatible as a tagged pointer may be checked
+against the memory colour by the hardware. So you can't have hwasan
+binary with MTE enabled.
+
+> I expect MTE to be the "default" in the future. Once a system's libc has
+> grown support for it, everything will be trying to use MTE. TBI will be
+> the special case (but TBI is effectively a prerequisite).
+
+The kernel handling of tagged pointers is indeed a prerequisite. The ABI
+distinction between the above 2 and 3 needs to be solved.
+
+> AFAICT, the only difference I see between 2 and 3 will be the tag handling
+> in usercopy (all other places will continue to ignore the top bits). Is
+> that accurate?
+
+Yes, mostly (for the kernel). If MTE is enabled by default for a hwasan
+binary, it will SEGFAULT (either in user space or in kernel uaccess).
+How does the kernel choose between 2 and 3?
+
+> Is "1" a per-process state we want to keep? (I assume not, but rather it
+> is available via no TBI/MTE CONFIG or a boot-time option, if at all?)
+
+Possibly, though not necessarily per process. For testing or if
+something goes wrong during boot, a command line option with a static
+label would do. The AT_FLAGS bit needs to be checked by user space. My
+preference would be per-process.
+
+> To choose between "2" and "3", it seems we need a per-process flag to
+> opt into TBI (and out of MTE).
+
+Or leave option 2 the default and get it to opt in to MTE.
+
+> For userspace, how would a future binary choose TBI over MTE? If it's
+> a library issue, we can't use an ELF bit, since the choice may be
+> "late" after ELF load (this implies the need for a prctl().) If it's
+> binary-only ("built with HWKASan") then an ELF bit seems sufficient.
+> And without the marking, I'd expect the kernel to enforce MTE when
+> there are high bits.
+
+The current plan is that a future binary issues a prctl(), after
+checking the HWCAP_MTE bit (as I replied to Elliot, the MTE instructions
+are not in the current NOP space). I'd expect this to be done by the
+libc or dynamic loader under the assumption that the binaries it loads
+do _not_ use the top pointer byte for anything else. With hwasan
+compiled objects this gets more confusing (any ELF note to identify
+them?).
+
+(there is also the risk of existing applications using TBI already but
+I'm not aware of any still using this feature other than hwasan)
+
+-- 
+Catalin
