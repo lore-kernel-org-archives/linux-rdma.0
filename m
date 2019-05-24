@@ -1,81 +1,105 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Subject: Re: [PATCH v15 14/17] media/v4l2-core, arm64: untag user pointers
- in videobuf_dma_contig_user_get
-Date: Fri, 24 May 2019 10:13:45 -0300
-Message-ID: <20190524101345.67c425fa@coco.lan>
+From: Dave Martin <Dave.Martin@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Fri, 24 May 2019 15:23:54 +0100
+Message-ID: <20190524142352.GY28398@e103592.cambridge.arm.com>
 References: <cover.1557160186.git.andreyknvl@google.com>
-        <b7999d13af54eb3ed8d7b0192397c7cde3df0b28.1557160186.git.andreyknvl@google.com>
+ <20190517144931.GA56186@arrakis.emea.arm.com>
+ <20190521184856.GC2922@ziepe.ca>
+ <20190522134925.GV28398@e103592.cambridge.arm.com>
+ <20190523002052.GF15389@ziepe.ca>
+ <20190523104256.GX28398@e103592.cambridge.arm.com>
+ <20190523165708.q6ru7xg45aqfjzpr@mbp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b7999d13af54eb3ed8d7b0192397c7cde3df0b28.1557160186.git.andreyknvl@google.com>
+Content-Disposition: inline
+In-Reply-To: <20190523165708.q6ru7xg45aqfjzpr@mbp>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Jens Wiklander <jens.wiklander@linaro.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Alex Williamson <ale>
 List-Id: linux-rdma@vger.kernel.org
 
-Em Mon,  6 May 2019 18:31:00 +0200
-Andrey Konovalov <andreyknvl@google.com> escreveu:
-
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
+On Thu, May 23, 2019 at 05:57:09PM +0100, Catalin Marinas wrote:
+> On Thu, May 23, 2019 at 11:42:57AM +0100, Dave P Martin wrote:
+> > On Wed, May 22, 2019 at 09:20:52PM -0300, Jason Gunthorpe wrote:
+> > > On Wed, May 22, 2019 at 02:49:28PM +0100, Dave Martin wrote:
+> > > > If multiple people will care about this, perhaps we should try to
+> > > > annotate types more explicitly in SYSCALL_DEFINEx() and ABI data
+> > > > structures.
+> > > > 
+> > > > For example, we could have a couple of mutually exclusive modifiers
+> > > > 
+> > > > T __object *
+> > > > T __vaddr * (or U __vaddr)
+> > > > 
+> > > > In the first case the pointer points to an object (in the C sense)
+> > > > that the call may dereference but not use for any other purpose.
+> > > 
+> > > How would you use these two differently?
+> > > 
+> > > So far the kernel has worked that __user should tag any pointer that
+> > > is from userspace and then you can't do anything with it until you
+> > > transform it into a kernel something
+> > 
+> > Ultimately it would be good to disallow casting __object pointers execpt
+> > to compatible __object pointer types, and to make get_user etc. demand
+> > __object.
+> > 
+> > __vaddr pointers / addresses would be freely castable, but not to
+> > __object and so would not be dereferenceable even indirectly.
 > 
-> videobuf_dma_contig_user_get() uses provided user pointers for vma
-> lookups, which can only by done with untagged pointers.
+> I think it gets too complicated and there are ambiguous cases that we
+> may not be able to distinguish. For example copy_from_user() may be used
+> to copy a user data structure into the kernel, hence __object would
+> work, while the same function may be used to copy opaque data to a file,
+> so __vaddr may be a better option (unless I misunderstood your
+> proposal).
+
+Can you illustrate?  I'm not sure of your point here.
+
+> We currently have T __user * and I think it's a good starting point. The
+> prior attempt [1] was shut down because it was just hiding the cast
+> using __force. We'd need to work through those cases again and rather
+> start changing the function prototypes to avoid unnecessary casting in
+> the callers (e.g. get_user_pages(void __user *) or come up with a new
+> type) while changing the explicit casting to a macro where it needs to
+> be obvious that we are converting a user pointer, potentially typed
+> (tagged), to an untyped address range. We may need a user_ptr_to_ulong()
+> macro or similar (it seems that we have a u64_to_user_ptr, wasn't aware
+> of it).
 > 
-> Untag the pointers in this function.
-> 
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> It may actually not be far from what you suggested but I'd keep the
+> current T __user * to denote possible dereference.
 
-Acked-by: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
+This may not have been clear, but __object and __vaddr would be
+orthogonal to __user.  Since __object and __vaddr strictly constrain
+what can be done with an lvalue, they could be cast on, but not be
+cast off without __force.
 
-> ---
->  drivers/media/v4l2-core/videobuf-dma-contig.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> index e1bf50df4c70..8a1ddd146b17 100644
-> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> @@ -160,6 +160,7 @@ static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
->  static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
->  					struct videobuf_buffer *vb)
->  {
-> +	unsigned long untagged_baddr = untagged_addr(vb->baddr);
->  	struct mm_struct *mm = current->mm;
->  	struct vm_area_struct *vma;
->  	unsigned long prev_pfn, this_pfn;
-> @@ -167,22 +168,22 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
->  	unsigned int offset;
->  	int ret;
->  
-> -	offset = vb->baddr & ~PAGE_MASK;
-> +	offset = untagged_baddr & ~PAGE_MASK;
->  	mem->size = PAGE_ALIGN(vb->size + offset);
->  	ret = -EINVAL;
->  
->  	down_read(&mm->mmap_sem);
->  
-> -	vma = find_vma(mm, vb->baddr);
-> +	vma = find_vma(mm, untagged_baddr);
->  	if (!vma)
->  		goto out_up;
->  
-> -	if ((vb->baddr + mem->size) > vma->vm_end)
-> +	if ((untagged_baddr + mem->size) > vma->vm_end)
->  		goto out_up;
->  
->  	pages_done = 0;
->  	prev_pfn = 0; /* kill warning */
-> -	user_address = vb->baddr;
-> +	user_address = untagged_baddr;
->  
->  	while (pages_done < (mem->size >> PAGE_SHIFT)) {
->  		ret = follow_pfn(vma, user_address, &this_pfn);
+Syscall arguments and pointer in ioctl structs etc. would typically
+be annotated as __object __user * or __vaddr __user *.  Plain old
+__user * would work as before, but would be more permissive and give
+static analysers less information to go on.
+
+Conversion or use or __object or __vaddr pointers would require specific
+APIs in the kernel, so that we can be clear about the semantics.
+
+Doing things this way would allow migration to annotation of most or all
+ABI pointers with __object or __vaddr over time, but we wouldn't have to
+do it all in one go.  Problem cases (which won't be the majority) could
+continue to be plain __user.
 
 
+This does not magically solve the challenges of MTE, but might provide
+tools that are useful to help avoid bitrot and regressions over time.
 
-Thanks,
-Mauro
+I agree though that there might be a fair number of of cases that don't
+conveniently fall under __object or __vaddr semantics.  It's hard to
+know without trying it.
+
+_Most_ syscall arguments seem to be fairly obviously one or another
+though, and this approach has some possibility of scaling to ioctls
+and other odd interfaces.
+
+Cheers
+---Dave
