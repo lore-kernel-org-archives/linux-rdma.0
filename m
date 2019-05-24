@@ -1,96 +1,65 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: RFC: Run a dedicated hmm.git for 5.3
-Date: Fri, 24 May 2019 18:27:09 +0200
-Message-ID: <20190524162709.GD21222@phenom.ffwll.local>
-References: <20190523150432.GA5104@redhat.com>
- <20190523154149.GB12159@ziepe.ca>
- <20190523155207.GC5104@redhat.com>
- <20190523163429.GC12159@ziepe.ca>
- <20190523173302.GD5104@redhat.com>
- <20190523175546.GE12159@ziepe.ca>
- <20190523182458.GA3571@redhat.com>
- <20190523191038.GG12159@ziepe.ca>
- <20190524064051.GA28855@infradead.org>
- <20190524124455.GB16845@ziepe.ca>
+From: Nikolay Borisov <nborisov@suse.com>
+Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
+Date: Fri, 24 May 2019 19:30:45 +0300
+Message-ID: <bd4a85fc-dc56-aae0-4986-003ad4a11ef4@suse.com>
+References: <20190523100013.52a8d2a6@gandalf.local.home>
+ <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
+ <20190523112740.7167aba4@gandalf.local.home>
+ <e4e875f0-2aa5-89f4-f462-78bedb9c5cde@filmlight.ltd.uk>
+ <20190524112656.5ef67c6c@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190524124455.GB16845@ziepe.ca>
+In-Reply-To: <20190524112656.5ef67c6c@gandalf.local.home>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Christoph Hellwig <hch@infradead.org>, akpm@linux-foundation.org, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jerome Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org, dri-devel <dri-devel@lists.freedesktop.org>
+To: Steven Rostedt <rostedt@goodmis.org>, Roger Willcocks <roger@filmlight.ltd.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "Darrick J. Wong" <darrick.wong@oracle.com>, linux-xfs@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, nouveau@lists.freedesktop.org, linux-rdma <linux-rdma@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 24, 2019 at 09:44:55AM -0300, Jason Gunthorpe wrote:
-> On Thu, May 23, 2019 at 11:40:51PM -0700, Christoph Hellwig wrote:
-> > On Thu, May 23, 2019 at 04:10:38PM -0300, Jason Gunthorpe wrote:
-> > > 
-> > > On Thu, May 23, 2019 at 02:24:58PM -0400, Jerome Glisse wrote:
-> > > > I can not take mmap_sem in range_register, the READ_ONCE is fine and
-> > > > they are no race as we do take a reference on the hmm struct thus
-> > > 
-> > > Of course there are use after free races with a READ_ONCE scheme, I
-> > > shouldn't have to explain this.
-> > > 
-> > > If you cannot take the read mmap sem (why not?), then please use my
-> > > version and push the update to the driver through -mm..
-> > 
-> > I think it would really help if we queue up these changes in a git tree
-> > that can be pulled into the driver trees.  Given that you've been
-> > doing so much work to actually make it usable I'd nominate rdma for the
-> > "lead" tree.
-> 
-> Sure, I'm willing to do that. RDMA has experience successfully running
-> shared git trees with netdev. It can work very well, but requires
-> discipline and understanding of the limitations.
-> 
-> I really want to see the complete HMM solution from Jerome (ie the
-> kconfig fixes, arm64, api fixes, etc) in one cohesive view, not
-> forced to be sprinkled across multiple kernel releases to work around
-> a submission process/coordination problem.
-> 
-> Now that -mm merged the basic hmm API skeleton I think running like
-> this would get us quickly to the place we all want: comprehensive in tree
-> users of hmm.
-> 
-> Andrew, would this be acceptable to you?
-> 
-> Dave, would you be willing to merge a clean HMM tree into DRM if it is
-> required for DRM driver work in 5.3?
-> 
-> I'm fine to merge a tree like this for RDMA, we already do this
-> pattern with netdev.
-> 
-> Background: The issue that is motivating this is we want to make
-> changes to some of the API's for hmm, which mean changes in existing
-> DRM, changes in to-be-accepted RDMA code, and to-be-accepted DRM
-> driver code. Coordintating the mm/hmm.c, RDMA and DRM changes is best
-> done with the proven shared git tree pattern. As CH explains I would
-> run a clean/minimal hmm tree that can be merged into driver trees as
-> required, and I will commit to sending a PR to Linus for this tree
-> very early in the merge window so that driver PR's are 'clean'.
-> 
-> The tree will only contain uncontroversial hmm related commits, bug
-> fixes, etc.
-> 
-> Obviouisly I will also commit to providing review for patches flowing
-> through this tree.
 
-Sure topic branch sounds fine, we do that all the time with various
-subsystems all over. We have ready made scripts for topic branches and
-applying pulls from all over, so we can even soak test everything in our
-integration tree. In case there's conflicts or just to make sure
-everything works, before we bake the topic branch into permanent history
-(the main drm.git repo just can't be rebased, too much going on and too
-many people involvd).
 
-If Jerome is ok with wrestling with our scripting we could even pull these
-updates in while the hmm.git tree is evolving.
+On 24.05.19 г. 18:26 ч., Steven Rostedt wrote:
+> On Fri, 24 May 2019 16:11:14 +0100
+> Roger Willcocks <roger@filmlight.ltd.uk> wrote:
+> 
+>> On 23/05/2019 16:27, Steven Rostedt wrote:
+>>>
+>>> I haven't yet tested this, but what about something like the following:
+>>>
+>>> ...perhaps forget about the constant check, and just force
+>>> the power of two check:
+>>>
+>>> 							\
+>>> 	if (!(__y & (__y >> 1))) {			\
+>>> 		__x = round_up(x, y);			\
+>>> 	} else {					\  
+>>
+>> You probably want
+>>
+>>             if (!(__y & (__y - 1))
+>>
+>> --
+> 
+> Yes I do. I corrected it in my next email.
+> 
+>  http://lkml.kernel.org/r/20190523133648.591f9e78@gandalf.local.home
 
-Cheers, Daniel
-(drm co-maintainer fwiw)
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Or perhaps just using is_power_of_2 from include/linux/log2.h ?
+> 
+>> #define roundup(x, y) (					\
+>> {							\
+>> 	typeof(y) __y = y;				\
+>> 	typeof(x) __x;					\
+>> 							\
+>> 	if (__y & (__y - 1))				\
+>> 		__x = round_up(x, __y);			\
+>> 	else						\
+>> 		__x = (((x) + (__y - 1)) / __y) * __y;	\
+>> 	__x;						\
+>> })
+> 
+> 
+> -- Steve
+> 
