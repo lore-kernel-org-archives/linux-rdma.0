@@ -1,37 +1,40 @@
-From: Steven Rostedt <rostedt-nx8X9YLhiw1AfugRpC6u6w@public.gmane.org>
-Subject: Re: [RFC][PATCH] kernel.h: Add generic roundup_64() macro
-Date: Fri, 24 May 2019 12:36:02 -0400
-Message-ID: <20190524123602.402c01b4@gandalf.local.home>
-References: <20190523100013.52a8d2a6@gandalf.local.home>
- <CAHk-=wg5HqJ2Kfgpub+tCWQ2_FiFwEW9H1Rm+an-BLGaGvDDXw@mail.gmail.com>
- <20190523112740.7167aba4@gandalf.local.home>
- <e4e875f0-2aa5-89f4-f462-78bedb9c5cde@filmlight.ltd.uk>
- <20190524112656.5ef67c6c@gandalf.local.home>
- <bd4a85fc-dc56-aae0-4986-003ad4a11ef4@suse.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: RFC: Run a dedicated hmm.git for 5.3
+Date: Fri, 24 May 2019 13:53:01 -0300
+Message-ID: <20190524165301.GD16845@ziepe.ca>
+References: <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
+ <20190523175546.GE12159@ziepe.ca>
+ <20190523182458.GA3571@redhat.com>
+ <20190523191038.GG12159@ziepe.ca>
+ <20190524064051.GA28855@infradead.org>
+ <20190524124455.GB16845@ziepe.ca>
+ <20190524162709.GD21222@phenom.ffwll.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <bd4a85fc-dc56-aae0-4986-003ad4a11ef4-IBi9RG/b67k@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Nikolay Borisov <nborisov-IBi9RG/b67k@public.gmane.org>
-Cc: Leon Romanovsky <leon-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-cv59FeDIM0c@public.gmane.org>, nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Daniel Vetter <daniel-/w4YWyX8dFk@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Roger Willcocks <roger-nMHR1cC4sak0YOejwGmHqw@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190524162709.GD21222@phenom.ffwll.local>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>, akpm@linux-foundation.org, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jerome Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org, dri-devel <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyNCBNYXkgMjAxOSAxOTozMDo0NSArMDMwMApOaWtvbGF5IEJvcmlzb3YgPG5ib3Jp
-c292QHN1c2UuY29tPiB3cm90ZToKCgo+ID4gWWVzIEkgZG8uIEkgY29ycmVjdGVkIGl0IGluIG15
-IG5leHQgZW1haWwuCj4gPiAKPiA+ICBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMjAxOTA1MjMx
-MzM2NDguNTkxZjllNzhAZ2FuZGFsZi5sb2NhbC5ob21lICAKPiAKPiBPciBwZXJoYXBzIGp1c3Qg
-dXNpbmcgaXNfcG93ZXJfb2ZfMiBmcm9tIGluY2x1ZGUvbGludXgvbG9nMi5oID8KCkV2ZW4gYmV0
-dGVyLiBUaGFua3MsCgotLSBTdGV2ZQoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fCk5vdXZlYXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-bm91dmVhdQ==
+On Fri, May 24, 2019 at 06:27:09PM +0200, Daniel Vetter wrote:
+> Sure topic branch sounds fine, we do that all the time with various
+> subsystems all over. We have ready made scripts for topic branches and
+> applying pulls from all over, so we can even soak test everything in our
+> integration tree. In case there's conflicts or just to make sure
+> everything works, before we bake the topic branch into permanent history
+> (the main drm.git repo just can't be rebased, too much going on and too
+> many people involvd).
+
+We don't rebase rdma.git either for the same reasons and nor does
+netdev
+
+So the usual flow for a shared topic branch is also no-rebase -
+testing/etc needs to be done before things get applied to it.
+
+Cheers,
+Jason
