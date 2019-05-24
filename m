@@ -1,105 +1,118 @@
-From: Dave Martin <Dave.Martin@arm.com>
+From: Khalid Aziz <khalid.aziz@oracle.com>
 Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Fri, 24 May 2019 15:23:54 +0100
-Message-ID: <20190524142352.GY28398@e103592.cambridge.arm.com>
+Date: Fri, 24 May 2019 08:25:42 -0600
+Message-ID: <c6dd53d8-142b-3d8d-6a40-d21c5ee9d272@oracle.com>
 References: <cover.1557160186.git.andreyknvl@google.com>
  <20190517144931.GA56186@arrakis.emea.arm.com>
- <20190521184856.GC2922@ziepe.ca>
- <20190522134925.GV28398@e103592.cambridge.arm.com>
- <20190523002052.GF15389@ziepe.ca>
- <20190523104256.GX28398@e103592.cambridge.arm.com>
- <20190523165708.q6ru7xg45aqfjzpr@mbp>
+ <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
+ <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
+ <20190523201105.oifkksus4rzcwqt4@mbp>
+ <ffe58af3-7c70-d559-69f6-1f6ebcb0fec6@oracle.com>
+ <20190524101139.36yre4af22bkvatx@mbp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190523165708.q6ru7xg45aqfjzpr@mbp>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20190524101139.36yre4af22bkvatx@mbp>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Alex Williamson <ale>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, Linux Memory Management List <linux-mm@kvack.org>, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgenii Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Yishai
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 23, 2019 at 05:57:09PM +0100, Catalin Marinas wrote:
-> On Thu, May 23, 2019 at 11:42:57AM +0100, Dave P Martin wrote:
-> > On Wed, May 22, 2019 at 09:20:52PM -0300, Jason Gunthorpe wrote:
-> > > On Wed, May 22, 2019 at 02:49:28PM +0100, Dave Martin wrote:
-> > > > If multiple people will care about this, perhaps we should try to
-> > > > annotate types more explicitly in SYSCALL_DEFINEx() and ABI data
-> > > > structures.
-> > > > 
-> > > > For example, we could have a couple of mutually exclusive modifiers
-> > > > 
-> > > > T __object *
-> > > > T __vaddr * (or U __vaddr)
-> > > > 
-> > > > In the first case the pointer points to an object (in the C sense)
-> > > > that the call may dereference but not use for any other purpose.
-> > > 
-> > > How would you use these two differently?
-> > > 
-> > > So far the kernel has worked that __user should tag any pointer that
-> > > is from userspace and then you can't do anything with it until you
-> > > transform it into a kernel something
-> > 
-> > Ultimately it would be good to disallow casting __object pointers execpt
-> > to compatible __object pointer types, and to make get_user etc. demand
-> > __object.
-> > 
-> > __vaddr pointers / addresses would be freely castable, but not to
-> > __object and so would not be dereferenceable even indirectly.
+On 5/24/19 4:11 AM, Catalin Marinas wrote:
+> On Thu, May 23, 2019 at 03:49:05PM -0600, Khalid Aziz wrote:
+>> On 5/23/19 2:11 PM, Catalin Marinas wrote:
+>>> On Thu, May 23, 2019 at 11:51:40AM -0600, Khalid Aziz wrote:
+>>>> On 5/21/19 6:04 PM, Kees Cook wrote:
+>>>>> As an aside: I think Sparc ADI support in Linux actually side-stepped
+>>>>> this[1] (i.e. chose "solution 1"): "All addresses passed to kernel must
+>>>>> be non-ADI tagged addresses." (And sadly, "Kernel does not enable ADI
+>>>>> for kernel code.") I think this was a mistake we should not repeat for
+>>>>> arm64 (we do seem to be at least in agreement about this, I think).
+>>>>>
+>>>>> [1] https://lore.kernel.org/patchwork/patch/654481/
+>>>>
+>>>> That is a very early version of the sparc ADI patch. Support for tagged
+>>>> addresses in syscalls was added in later versions and is in the patch
+>>>> that is in the kernel.
+>>>
+>>> I tried to figure out but I'm not familiar with the sparc port. How did
+>>> you solve the tagged address going into various syscall implementations
+>>> in the kernel (e.g. sys_write)? Is the tag removed on kernel entry or it
+>>> ends up deeper in the core code?
+>>
+>> Another spot I should point out in ADI patch - Tags are not stored in
+>> VMAs and IOMMU does not support ADI tags on M7. ADI tags are stripped
+>> before userspace addresses are passed to IOMMU in the following snippet
+>> from the patch:
+>>
+>> diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+>> index 5335ba3c850e..357b6047653a 100644
+>> --- a/arch/sparc/mm/gup.c
+>> +++ b/arch/sparc/mm/gup.c
+>> @@ -201,6 +202,24 @@ int __get_user_pages_fast(unsigned long start, int
+>> nr_pages
+>> , int write,
+>>         pgd_t *pgdp;
+>>         int nr = 0;
+>>
+>> +#ifdef CONFIG_SPARC64
+>> +       if (adi_capable()) {
+>> +               long addr = start;
+>> +
+>> +               /* If userspace has passed a versioned address, kernel
+>> +                * will not find it in the VMAs since it does not store
+>> +                * the version tags in the list of VMAs. Storing version
+>> +                * tags in list of VMAs is impractical since they can be
+>> +                * changed any time from userspace without dropping into
+>> +                * kernel. Any address search in VMAs will be done with
+>> +                * non-versioned addresses. Ensure the ADI version bits
+>> +                * are dropped here by sign extending the last bit before
+>> +                * ADI bits. IOMMU does not implement version tags.
+>> +                */
+>> +               addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
+>> +               start = addr;
+>> +       }
+>> +#endif
+>>         start &= PAGE_MASK;
+>>         addr = start;
+>>         len = (unsigned long) nr_pages << PAGE_SHIFT;
 > 
-> I think it gets too complicated and there are ambiguous cases that we
-> may not be able to distinguish. For example copy_from_user() may be used
-> to copy a user data structure into the kernel, hence __object would
-> work, while the same function may be used to copy opaque data to a file,
-> so __vaddr may be a better option (unless I misunderstood your
-> proposal).
+> Thanks Khalid. I missed that sparc does not enable HAVE_GENERIC_GUP, so
+> you fix this case here. If we add the generic untagged_addr() macro in
+> the generic code, I think sparc can start making use of it rather than
+> open-coding the shifts.
 
-Can you illustrate?  I'm not sure of your point here.
+Hi Catalin,
 
-> We currently have T __user * and I think it's a good starting point. The
-> prior attempt [1] was shut down because it was just hiding the cast
-> using __force. We'd need to work through those cases again and rather
-> start changing the function prototypes to avoid unnecessary casting in
-> the callers (e.g. get_user_pages(void __user *) or come up with a new
-> type) while changing the explicit casting to a macro where it needs to
-> be obvious that we are converting a user pointer, potentially typed
-> (tagged), to an untyped address range. We may need a user_ptr_to_ulong()
-> macro or similar (it seems that we have a u64_to_user_ptr, wasn't aware
-> of it).
+Yes, that will be good. Right now addresses are untagged in sparc code
+in only two spots but that will expand as we expand use of tags.
+Scalabale solution is definitely better.
+
 > 
-> It may actually not be far from what you suggested but I'd keep the
-> current T __user * to denote possible dereference.
+> There are a few other other places where tags can leak and the core code
+> would get confused (for example, madvise()). I presume your user space
+> doesn't exercise them. On arm64 we plan to just allow the C library to
+> tag any new memory allocation, so those core code paths would need to be
+> covered.
+> 
+> And similarly, devices, IOMMU, any DMA would ignore tags.
+> 
 
-This may not have been clear, but __object and __vaddr would be
-orthogonal to __user.  Since __object and __vaddr strictly constrain
-what can be done with an lvalue, they could be cast on, but not be
-cast off without __force.
+Right. You are doing lot more with tags than sparc code intended to do.
+I had looked into implementing just malloc(), mmap() and possibly
+shmat() in library that automatically tags pointers. Expanding tags to
+any pointers in C library will require covering lot more paths in kernel.
 
-Syscall arguments and pointer in ioctl structs etc. would typically
-be annotated as __object __user * or __vaddr __user *.  Plain old
-__user * would work as before, but would be more permissive and give
-static analysers less information to go on.
-
-Conversion or use or __object or __vaddr pointers would require specific
-APIs in the kernel, so that we can be clear about the semantics.
-
-Doing things this way would allow migration to annotation of most or all
-ABI pointers with __object or __vaddr over time, but we wouldn't have to
-do it all in one go.  Problem cases (which won't be the majority) could
-continue to be plain __user.
-
-
-This does not magically solve the challenges of MTE, but might provide
-tools that are useful to help avoid bitrot and regressions over time.
-
-I agree though that there might be a fair number of of cases that don't
-conveniently fall under __object or __vaddr semantics.  It's hard to
-know without trying it.
-
-_Most_ syscall arguments seem to be fairly obviously one or another
-though, and this approach has some possibility of scaling to ioctls
-and other odd interfaces.
-
-Cheers
----Dave
+--
+Khalid
