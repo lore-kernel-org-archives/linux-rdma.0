@@ -1,132 +1,96 @@
-From: Andrew Murray <andrew.murray@arm.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
- syscalls
-Date: Fri, 24 May 2019 16:41:44 +0100
-Message-ID: <20190524154143.GG8268@e119886-lin.cambridge.arm.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: RFC: Run a dedicated hmm.git for 5.3
+Date: Fri, 24 May 2019 18:27:09 +0200
+Message-ID: <20190524162709.GD21222@phenom.ffwll.local>
+References: <20190523150432.GA5104@redhat.com>
+ <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
+ <20190523175546.GE12159@ziepe.ca>
+ <20190523182458.GA3571@redhat.com>
+ <20190523191038.GG12159@ziepe.ca>
+ <20190524064051.GA28855@infradead.org>
+ <20190524124455.GB16845@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+In-Reply-To: <20190524124455.GB16845@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Christoph Hellwig <hch@infradead.org>, akpm@linux-foundation.org, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jerome Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org, dri-devel <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
+On Fri, May 24, 2019 at 09:44:55AM -0300, Jason Gunthorpe wrote:
+> On Thu, May 23, 2019 at 11:40:51PM -0700, Christoph Hellwig wrote:
+> > On Thu, May 23, 2019 at 04:10:38PM -0300, Jason Gunthorpe wrote:
+> > > 
+> > > On Thu, May 23, 2019 at 02:24:58PM -0400, Jerome Glisse wrote:
+> > > > I can not take mmap_sem in range_register, the READ_ONCE is fine and
+> > > > they are no race as we do take a reference on the hmm struct thus
+> > > 
+> > > Of course there are use after free races with a READ_ONCE scheme, I
+> > > shouldn't have to explain this.
+> > > 
+> > > If you cannot take the read mmap sem (why not?), then please use my
+> > > version and push the update to the driver through -mm..
+> > 
+> > I think it would really help if we queue up these changes in a git tree
+> > that can be pulled into the driver trees.  Given that you've been
+> > doing so much work to actually make it usable I'd nominate rdma for the
+> > "lead" tree.
 > 
-> This patch allows tagged pointers to be passed to the following memory
-> syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
-> mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
-> remap_file_pages, shmat and shmdt.
+> Sure, I'm willing to do that. RDMA has experience successfully running
+> shared git trees with netdev. It can work very well, but requires
+> discipline and understanding of the limitations.
 > 
-> This is done by untagging pointers passed to these syscalls in the
-> prologues of their handlers.
+> I really want to see the complete HMM solution from Jerome (ie the
+> kconfig fixes, arm64, api fixes, etc) in one cohesive view, not
+> forced to be sprinkled across multiple kernel releases to work around
+> a submission process/coordination problem.
 > 
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> ---
-
-
-> +SYSCALL_DEFINE2(arm64_mlock, unsigned long, start, size_t, len)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_mlock(start, len, VM_LOCKED);
-> +}
-> +
-> +SYSCALL_DEFINE2(arm64_mlock2, unsigned long, start, size_t, len)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_mlock(start, len, VM_LOCKED);
-> +}
-
-I think this may be a copy/paste error...
-
-Shouldn't mlock2 have a third 'flags' argument to distinguish is from mlock?
-
-Thanks,
-
-Andrew Murray
-
-> +
-> +SYSCALL_DEFINE2(arm64_munlock, unsigned long, start, size_t, len)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_munlock(start, len);
-> +}
-> +
-> +SYSCALL_DEFINE3(arm64_mprotect, unsigned long, start, size_t, len,
-> +		unsigned long, prot)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_mprotect_pkey(start, len, prot, -1);
-> +}
-> +
-> +SYSCALL_DEFINE3(arm64_msync, unsigned long, start, size_t, len, int, flags)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_msync(start, len, flags);
-> +}
-> +
-> +SYSCALL_DEFINE3(arm64_mincore, unsigned long, start, size_t, len,
-> +		unsigned char __user *, vec)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_mincore(start, len, vec);
-> +}
-> +
-> +SYSCALL_DEFINE5(arm64_remap_file_pages, unsigned long, start,
-> +		unsigned long, size, unsigned long, prot,
-> +		unsigned long, pgoff, unsigned long, flags)
-> +{
-> +	start = untagged_addr(start);
-> +	return ksys_remap_file_pages(start, size, prot, pgoff, flags);
-> +}
-> +
-> +SYSCALL_DEFINE3(arm64_shmat, int, shmid, char __user *, shmaddr, int, shmflg)
-> +{
-> +	shmaddr = untagged_addr(shmaddr);
-> +	return ksys_shmat(shmid, shmaddr, shmflg);
-> +}
-> +
-> +SYSCALL_DEFINE1(arm64_shmdt, char __user *, shmaddr)
-> +{
-> +	shmaddr = untagged_addr(shmaddr);
-> +	return ksys_shmdt(shmaddr);
-> +}
-> +
->  /*
->   * Wrappers to pass the pt_regs argument.
->   */
->  #define sys_personality		sys_arm64_personality
-> +#define sys_mmap_pgoff		sys_arm64_mmap_pgoff
-> +#define sys_mremap		sys_arm64_mremap
-> +#define sys_munmap		sys_arm64_munmap
-> +#define sys_brk			sys_arm64_brk
-> +#define sys_get_mempolicy	sys_arm64_get_mempolicy
-> +#define sys_madvise		sys_arm64_madvise
-> +#define sys_mbind		sys_arm64_mbind
-> +#define sys_mlock		sys_arm64_mlock
-> +#define sys_mlock2		sys_arm64_mlock2
-> +#define sys_munlock		sys_arm64_munlock
-> +#define sys_mprotect		sys_arm64_mprotect
-> +#define sys_msync		sys_arm64_msync
-> +#define sys_mincore		sys_arm64_mincore
-> +#define sys_remap_file_pages	sys_arm64_remap_file_pages
-> +#define sys_shmat		sys_arm64_shmat
-> +#define sys_shmdt		sys_arm64_shmdt
->  
->  asmlinkage long sys_ni_syscall(const struct pt_regs *);
->  #define __arm64_sys_ni_syscall	sys_ni_syscall
-> -- 
-> 2.21.0.1020.gf2820cf01a-goog
+> Now that -mm merged the basic hmm API skeleton I think running like
+> this would get us quickly to the place we all want: comprehensive in tree
+> users of hmm.
 > 
+> Andrew, would this be acceptable to you?
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> Dave, would you be willing to merge a clean HMM tree into DRM if it is
+> required for DRM driver work in 5.3?
+> 
+> I'm fine to merge a tree like this for RDMA, we already do this
+> pattern with netdev.
+> 
+> Background: The issue that is motivating this is we want to make
+> changes to some of the API's for hmm, which mean changes in existing
+> DRM, changes in to-be-accepted RDMA code, and to-be-accepted DRM
+> driver code. Coordintating the mm/hmm.c, RDMA and DRM changes is best
+> done with the proven shared git tree pattern. As CH explains I would
+> run a clean/minimal hmm tree that can be merged into driver trees as
+> required, and I will commit to sending a PR to Linus for this tree
+> very early in the merge window so that driver PR's are 'clean'.
+> 
+> The tree will only contain uncontroversial hmm related commits, bug
+> fixes, etc.
+> 
+> Obviouisly I will also commit to providing review for patches flowing
+> through this tree.
+
+Sure topic branch sounds fine, we do that all the time with various
+subsystems all over. We have ready made scripts for topic branches and
+applying pulls from all over, so we can even soak test everything in our
+integration tree. In case there's conflicts or just to make sure
+everything works, before we bake the topic branch into permanent history
+(the main drm.git repo just can't be rebased, too much going on and too
+many people involvd).
+
+If Jerome is ok with wrestling with our scripting we could even pull these
+updates in while the hmm.git tree is evolving.
+
+Cheers, Daniel
+(drm co-maintainer fwiw)
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
