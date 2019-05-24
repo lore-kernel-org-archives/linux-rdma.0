@@ -1,78 +1,40 @@
-From: Evgenii Stepanov <eugenis@google.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory syscalls
-Date: Thu, 23 May 2019 21:23:13 -0700
-Message-ID: <CAFKCwrgk0+yR48Z5nhuZG5f7g==vRb4u+CS-4FS0mM7Eriavgw@mail.gmail.com>
-References: <cover.1557160186.git.andreyknvl@google.com> <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
- <20190522114910.emlckebwzv2qz42i@mbp> <CAFKCwrjyP+x0JJy=qpBFsp4pub3He6UkvU0qnf1UOKt6W1LPRQ@mail.gmail.com>
- <20190523090427.GA44383@arrakis.emea.arm.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v4 0/1] Use HMM for ODP v4
+Date: Thu, 23 May 2019 23:40:51 -0700
+Message-ID: <20190524064051.GA28855@infradead.org>
+References: <20190522174852.GA23038@redhat.com>
+ <20190522235737.GD15389@ziepe.ca>
+ <20190523150432.GA5104@redhat.com>
+ <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
+ <20190523175546.GE12159@ziepe.ca>
+ <20190523182458.GA3571@redhat.com>
+ <20190523191038.GG12159@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190523090427.GA44383@arrakis.emea.arm.com>
+Content-Disposition: inline
+In-Reply-To: <20190523191038.GG12159@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jerome Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org, akpm@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 23, 2019 at 2:04 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
->
-> On Wed, May 22, 2019 at 02:16:57PM -0700, Evgenii Stepanov wrote:
-> > On Wed, May 22, 2019 at 4:49 AM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > > On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
-> > > > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > > > pass tagged user pointers (with the top byte set to something else other
-> > > > than 0x00) as syscall arguments.
-> > > >
-> > > > This patch allows tagged pointers to be passed to the following memory
-> > > > syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
-> > > > mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
-> > > > remap_file_pages, shmat and shmdt.
-> > > >
-> > > > This is done by untagging pointers passed to these syscalls in the
-> > > > prologues of their handlers.
-> > >
-> > > I'll go through them one by one to see if we can tighten the expected
-> > > ABI while having the MTE in mind.
-> > >
-> > > > diff --git a/arch/arm64/kernel/sys.c b/arch/arm64/kernel/sys.c
-> > > > index b44065fb1616..933bb9f3d6ec 100644
-> > > > --- a/arch/arm64/kernel/sys.c
-> > > > +++ b/arch/arm64/kernel/sys.c
-> > > > @@ -35,10 +35,33 @@ SYSCALL_DEFINE6(mmap, unsigned long, addr, unsigned long, len,
-> > > >  {
-> > > >       if (offset_in_page(off) != 0)
-> > > >               return -EINVAL;
-> > > > -
-> > > > +     addr = untagged_addr(addr);
-> > > >       return ksys_mmap_pgoff(addr, len, prot, flags, fd, off >> PAGE_SHIFT);
-> > > >  }
-> > >
-> > > If user passes a tagged pointer to mmap() and the address is honoured
-> > > (or MAP_FIXED is given), what is the expected return pointer? Does it
-> > > need to be tagged with the value from the hint?
-> >
-> > For HWASan the most convenient would be to use the tag from the hint.
-> > But since in the TBI (not MTE) mode the kernel has no idea what
-> > meaning userspace assigns to pointer tags, perhaps it should not try
-> > to guess, and should return raw (zero-tagged) address instead.
->
-> Then, just to relax the ABI for hwasan, shall we simply disallow tagged
-> pointers on mmap() arguments? We can leave them in for
-> mremap(old_address), madvise().
+On Thu, May 23, 2019 at 04:10:38PM -0300, Jason Gunthorpe wrote:
+> 
+> On Thu, May 23, 2019 at 02:24:58PM -0400, Jerome Glisse wrote:
+> > I can not take mmap_sem in range_register, the READ_ONCE is fine and
+> > they are no race as we do take a reference on the hmm struct thus
+> 
+> Of course there are use after free races with a READ_ONCE scheme, I
+> shouldn't have to explain this.
+> 
+> If you cannot take the read mmap sem (why not?), then please use my
+> version and push the update to the driver through -mm..
 
-I think this would be fine. We should allow tagged in pointers in
-mprotect though.
-
-> > > With MTE, we may want to use this as a request for the default colour of
-> > > the mapped pages (still under discussion).
-> >
-> > I like this - and in that case it would make sense to return the
-> > pointer that can be immediately dereferenced without crashing the
-> > process, i.e. with the matching tag.
->
-> This came up from the Android investigation work where large memory
-> allocations (using mmap) could be more efficiently pre-tagged by the
-> kernel on page fault. Not sure about the implementation details yet.
->
-> --
-> Catalin
+I think it would really help if we queue up these changes in a git tree
+that can be pulled into the driver trees.  Given that you've been
+doing so much work to actually make it usable I'd nominate rdma for the
+"lead" tree.
