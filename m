@@ -1,69 +1,43 @@
-From: YueHaibing <yuehaibing@huawei.com>
-Subject: [PATCH -next] IB/hfi1: remove set but not used variables 'offset' and 'fspsn'
-Date: Sat, 25 May 2019 20:57:37 +0800
-Message-ID: <20190525125737.15648-1-yuehaibing@huawei.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: RFC: Run a dedicated hmm.git for 5.3
+Date: Sat, 25 May 2019 15:52:10 -0700
+Message-ID: <20190525155210.8a9a66385ac8169d0e144225@linux-foundation.org>
+References: <20190522235737.GD15389@ziepe.ca>
+ <20190523150432.GA5104@redhat.com>
+ <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
+ <20190523175546.GE12159@ziepe.ca>
+ <20190523182458.GA3571@redhat.com>
+ <20190523191038.GG12159@ziepe.ca>
+ <20190524064051.GA28855@infradead.org>
+ <20190524124455.GB16845@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: mike.marciniszyn@intel.com, dennis.dalessandro@intel.com, dledford@redhat.com, jgg@ziepe.ca
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, YueHaibing <yuehaibing@huawei.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190524124455.GB16845@ziepe.ca>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-kernel@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, Kaike Wan <kaike.wan@intel.com>, Christoph Hellwig <hch@infradead.org>, Leon Romanovsky <leonro@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fixes gcc '-Wunused-but-set-variable' warning:
-
-drivers/infiniband/hw/hfi1/tid_rdma.c: In function tid_rdma_rcv_error:
-drivers/infiniband/hw/hfi1/tid_rdma.c:2029:7: warning: variable offset set but not used [-Wunused-but-set-variable]
-drivers/infiniband/hw/hfi1/tid_rdma.c: In function hfi1_rc_rcv_tid_rdma_ack:
-drivers/infiniband/hw/hfi1/tid_rdma.c:4555:35: warning: variable fspsn set but not used [-Wunused-but-set-variable]
-
-'offset' is never used since introduction in
-commit d0d564a1caac ("IB/hfi1: Add functions to receive TID RDMA READ request")
-
-'fspsn' is never used since introduciotn in
-commit 9e93e967f7b4 ("IB/hfi1: Add a function to receive TID RDMA ACK packet")
-
-Signed-off-by: YueHaibing <yuehaibing@huawei.com>
----
- drivers/infiniband/hw/hfi1/tid_rdma.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/tid_rdma.c b/drivers/infiniband/hw/hfi1/tid_rdma.c
-index 6fb93032fbef..bdf1c313e13f 100644
---- a/drivers/infiniband/hw/hfi1/tid_rdma.c
-+++ b/drivers/infiniband/hw/hfi1/tid_rdma.c
-@@ -2026,7 +2026,6 @@ static int tid_rdma_rcv_error(struct hfi1_packet *packet,
- 	trace_hfi1_tid_req_rcv_err(qp, 0, e->opcode, e->psn, e->lpsn, req);
- 	if (e->opcode == TID_OP(READ_REQ)) {
- 		struct ib_reth *reth;
--		u32 offset;
- 		u32 len;
- 		u32 rkey;
- 		u64 vaddr;
-@@ -2038,7 +2037,6 @@ static int tid_rdma_rcv_error(struct hfi1_packet *packet,
- 		 * The requester always restarts from the start of the original
- 		 * request.
- 		 */
--		offset = delta_psn(psn, e->psn) * qp->pmtu;
- 		len = be32_to_cpu(reth->length);
- 		if (psn != e->psn || len != req->total_len)
- 			goto unlock;
-@@ -4552,7 +4550,7 @@ void hfi1_rc_rcv_tid_rdma_ack(struct hfi1_packet *packet)
- 	struct rvt_swqe *wqe;
- 	struct tid_rdma_request *req;
- 	struct tid_rdma_flow *flow;
--	u32 aeth, psn, req_psn, ack_psn, fspsn, resync_psn, ack_kpsn;
-+	u32 aeth, psn, req_psn, ack_psn, resync_psn, ack_kpsn;
- 	unsigned long flags;
- 	u16 fidx;
- 
-@@ -4756,7 +4754,6 @@ void hfi1_rc_rcv_tid_rdma_ack(struct hfi1_packet *packet)
- 			IB_AETH_CREDIT_MASK) {
- 		case 0: /* PSN sequence error */
- 			flow = &req->flows[req->acked_tail];
--			fspsn = full_flow_psn(flow, flow->flow_state.spsn);
- 			trace_hfi1_tid_flow_rcv_tid_ack(qp, req->acked_tail,
- 							flow);
- 			req->r_ack_psn = mask_psn(be32_to_cpu(ohdr->bth[2]));
--- 
-2.17.1
+T24gRnJpLCAyNCBNYXkgMjAxOSAwOTo0NDo1NSAtMDMwMCBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6
+aWVwZS5jYT4gd3JvdGU6Cgo+IE5vdyB0aGF0IC1tbSBtZXJnZWQgdGhlIGJhc2ljIGhtbSBBUEkg
+c2tlbGV0b24gSSB0aGluayBydW5uaW5nIGxpa2UKPiB0aGlzIHdvdWxkIGdldCB1cyBxdWlja2x5
+IHRvIHRoZSBwbGFjZSB3ZSBhbGwgd2FudDogY29tcHJlaGVuc2l2ZSBpbiB0cmVlCj4gdXNlcnMg
+b2YgaG1tLgo+IAo+IEFuZHJldywgd291bGQgdGhpcyBiZSBhY2NlcHRhYmxlIHRvIHlvdT8KClN1
+cmUuICBQbGVhc2UgdGFrZSBjYXJlIG5vdCB0byBwZXJtaXQgdGhpcyB0byByZWR1Y2UgdGhlIGFt
+b3VudCBvZgpleHBvc3VyZSBhbmQgcmV2aWV3IHdoaWNoIHRoZSBjb3JlIEhNTSBwaWVjZXMgZ2V0
+LgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
+dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
