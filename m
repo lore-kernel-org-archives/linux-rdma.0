@@ -1,105 +1,45 @@
-From: Michal Kalderon <michal.kalderon@marvell.com>
-Subject: [PATCH v2 net-next 11/11] qedf: Use hwfns and affin_hwfn_idx to get MSI-X vector index to use
-Date: Sun, 26 May 2019 15:22:30 +0300
-Message-ID: <20190526122230.30039-12-michal.kalderon@marvell.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2 net-next 00/11] qed*: Improve performance on 100G
+ link for offload protocols
+Date: Sun, 26 May 2019 13:04:32 -0700 (PDT)
+Message-ID: <20190526.130432.605011257219662109.davem@davemloft.net>
 References: <20190526122230.30039-1-michal.kalderon@marvell.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <20190526122230.30039-1-michal.kalderon@marvell.com>
 Sender: netdev-owner@vger.kernel.org
-To: michal.kalderon@marvell.com, ariel.elior@marvell.com, davem@davemloft.net
-Cc: dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, Chad Dupuis <cdupuis@marvell.com>, Saurav Kashyap <skashyap@marvell.com>
+To: michal.kalderon@marvell.com
+Cc: ariel.elior@marvell.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Chad Dupuis <cdupuis@marvell.com>
+From: Michal Kalderon <michal.kalderon@marvell.com>
+Date: Sun, 26 May 2019 15:22:19 +0300
 
-MSI-X vector index is determined using qed device information and
-affinity to use.
+> This patch series modifies the current implementation of PF selection.
+> The refactoring of the llh code enables setting additional filters
+> (mac / protocol) per PF, and improves performance for offload protocols
+> (RoCE, iWARP, iSCSI, fcoe) on 100G link (was capped at 90G per single
+> PF).
+> 
+> Improved performance on 100G link is achieved by configuring engine
+> affinty to each PF.
+> The engine affinity is read from the Management FW and hw is configured accordingly.
+> A new hw resource called PPFID is exposed and an API is introduced to utilize
+> it. This additional resource enables setting the affinity of a PF and providing
+> more classification rules per PF.
+> qedr,qedi,qedf are also modified as part of the series. Without the
+> changes functionality is broken.
+> 
+> v1 --> v2
+> ---------
+> - Remove iWARP module parameter. Instead use devlink param infrastructure
+>   for setting the iwarp_cmt mode. Additional patch added to the series for
+>   adding the devlink support.
+> 
+> - Fix kbuild test robot warning on qed_llh_filter initialization.
+> 
+> - Remove comments inside function calls
 
-Signed-off-by: Chad Dupuis <cdupuis@marvell.com>
-Signed-off-by: Saurav Kashyap <skashyap@marvell.com>
-Signed-off-by: Michal Kalderon <michal.kalderon@marvell.com>
----
- drivers/scsi/qedf/qedf_main.c | 39 ++++++++++++++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/scsi/qedf/qedf_main.c b/drivers/scsi/qedf/qedf_main.c
-index 9f9431a4cc0e..dc4cad1d5dcc 100644
---- a/drivers/scsi/qedf/qedf_main.c
-+++ b/drivers/scsi/qedf/qedf_main.c
-@@ -2086,16 +2086,21 @@ static void qedf_simd_int_handler(void *cookie)
- static void qedf_sync_free_irqs(struct qedf_ctx *qedf)
- {
- 	int i;
-+	u16 vector_idx = 0;
-+	u32 vector;
- 
- 	if (qedf->int_info.msix_cnt) {
- 		for (i = 0; i < qedf->int_info.used_cnt; i++) {
--			synchronize_irq(qedf->int_info.msix[i].vector);
--			irq_set_affinity_hint(qedf->int_info.msix[i].vector,
--			    NULL);
--			irq_set_affinity_notifier(qedf->int_info.msix[i].vector,
--			    NULL);
--			free_irq(qedf->int_info.msix[i].vector,
--			    &qedf->fp_array[i]);
-+			vector_idx = i * qedf->dev_info.common.num_hwfns +
-+				qed_ops->common->get_affin_hwfn_idx(qedf->cdev);
-+			QEDF_INFO(&qedf->dbg_ctx, QEDF_LOG_DISC,
-+				  "Freeing IRQ #%d vector_idx=%d.\n",
-+				  i, vector_idx);
-+			vector = qedf->int_info.msix[vector_idx].vector;
-+			synchronize_irq(vector);
-+			irq_set_affinity_hint(vector, NULL);
-+			irq_set_affinity_notifier(vector, NULL);
-+			free_irq(vector, &qedf->fp_array[i]);
- 		}
- 	} else
- 		qed_ops->common->simd_handler_clean(qedf->cdev,
-@@ -2108,11 +2113,19 @@ static void qedf_sync_free_irqs(struct qedf_ctx *qedf)
- static int qedf_request_msix_irq(struct qedf_ctx *qedf)
- {
- 	int i, rc, cpu;
-+	u16 vector_idx = 0;
-+	u32 vector;
- 
- 	cpu = cpumask_first(cpu_online_mask);
- 	for (i = 0; i < qedf->num_queues; i++) {
--		rc = request_irq(qedf->int_info.msix[i].vector,
--		    qedf_msix_handler, 0, "qedf", &qedf->fp_array[i]);
-+		vector_idx = i * qedf->dev_info.common.num_hwfns +
-+			qed_ops->common->get_affin_hwfn_idx(qedf->cdev);
-+		QEDF_INFO(&qedf->dbg_ctx, QEDF_LOG_DISC,
-+			  "Requesting IRQ #%d vector_idx=%d.\n",
-+			  i, vector_idx);
-+		vector = qedf->int_info.msix[vector_idx].vector;
-+		rc = request_irq(vector, qedf_msix_handler, 0, "qedf",
-+				 &qedf->fp_array[i]);
- 
- 		if (rc) {
- 			QEDF_WARN(&(qedf->dbg_ctx), "request_irq failed.\n");
-@@ -2121,8 +2134,7 @@ static int qedf_request_msix_irq(struct qedf_ctx *qedf)
- 		}
- 
- 		qedf->int_info.used_cnt++;
--		rc = irq_set_affinity_hint(qedf->int_info.msix[i].vector,
--		    get_cpu_mask(cpu));
-+		rc = irq_set_affinity_hint(vector, get_cpu_mask(cpu));
- 		cpu = cpumask_next(cpu, cpu_online_mask);
- 	}
- 
-@@ -3068,6 +3080,11 @@ static int __qedf_probe(struct pci_dev *pdev, int mode)
- 		goto err1;
- 	}
- 
-+	QEDF_INFO(&qedf->dbg_ctx, QEDF_LOG_DISC,
-+		  "dev_info: num_hwfns=%d affin_hwfn_idx=%d.\n",
-+		  qedf->dev_info.common.num_hwfns,
-+		  qed_ops->common->get_affin_hwfn_idx(qedf->cdev));
-+
- 	/* queue allocation code should come here
- 	 * order should be
- 	 * 	slowpath_start
--- 
-2.14.5
+Series applied, thanks.
