@@ -1,43 +1,49 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: RFC: Run a dedicated hmm.git for 5.3
-Date: Sat, 25 May 2019 15:52:10 -0700
-Message-ID: <20190525155210.8a9a66385ac8169d0e144225@linux-foundation.org>
-References: <20190522235737.GD15389@ziepe.ca>
- <20190523150432.GA5104@redhat.com>
- <20190523154149.GB12159@ziepe.ca>
- <20190523155207.GC5104@redhat.com>
- <20190523163429.GC12159@ziepe.ca>
- <20190523173302.GD5104@redhat.com>
- <20190523175546.GE12159@ziepe.ca>
- <20190523182458.GA3571@redhat.com>
- <20190523191038.GG12159@ziepe.ca>
- <20190524064051.GA28855@infradead.org>
- <20190524124455.GB16845@ziepe.ca>
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH v2] infiniband/mm: convert put_page() to put_user_page*()
+Date: Sun, 26 May 2019 04:06:31 -0700
+Message-ID: <20190526110631.GD1075@bombadil.infradead.org>
+References: <20190525014522.8042-1-jhubbard@nvidia.com>
+ <20190525014522.8042-2-jhubbard@nvidia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190524124455.GB16845@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, linux-mm@kvack.org, linux-rdma@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-kernel@vger.kernel.org, dri-devel <dri-devel@lists.freedesktop.org>, Kaike Wan <kaike.wan@intel.com>, Christoph Hellwig <hch@infradead.org>, Leon Romanovsky <leonro@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190525014522.8042-2-jhubbard@nvidia.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: john.hubbard@gmail.com
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org, linux-fsdevel@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gRnJpLCAyNCBNYXkgMjAxOSAwOTo0NDo1NSAtMDMwMCBKYXNvbiBHdW50aG9ycGUgPGpnZ0B6
-aWVwZS5jYT4gd3JvdGU6Cgo+IE5vdyB0aGF0IC1tbSBtZXJnZWQgdGhlIGJhc2ljIGhtbSBBUEkg
-c2tlbGV0b24gSSB0aGluayBydW5uaW5nIGxpa2UKPiB0aGlzIHdvdWxkIGdldCB1cyBxdWlja2x5
-IHRvIHRoZSBwbGFjZSB3ZSBhbGwgd2FudDogY29tcHJlaGVuc2l2ZSBpbiB0cmVlCj4gdXNlcnMg
-b2YgaG1tLgo+IAo+IEFuZHJldywgd291bGQgdGhpcyBiZSBhY2NlcHRhYmxlIHRvIHlvdT8KClN1
-cmUuICBQbGVhc2UgdGFrZSBjYXJlIG5vdCB0byBwZXJtaXQgdGhpcyB0byByZWR1Y2UgdGhlIGFt
-b3VudCBvZgpleHBvc3VyZSBhbmQgcmV2aWV3IHdoaWNoIHRoZSBjb3JlIEhNTSBwaWVjZXMgZ2V0
-LgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRl
-dmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
-bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Fri, May 24, 2019 at 06:45:22PM -0700, john.hubbard@gmail.com wrote:
+> For infiniband code that retains pages via get_user_pages*(),
+> release those pages via the new put_user_page(), or
+> put_user_pages*(), instead of put_page()
+
+I have no objection to this particular patch, but ...
+
+> This is a tiny part of the second step of fixing the problem described
+> in [1]. The steps are:
+> 
+> 1) Provide put_user_page*() routines, intended to be used
+>    for releasing pages that were pinned via get_user_pages*().
+> 
+> 2) Convert all of the call sites for get_user_pages*(), to
+>    invoke put_user_page*(), instead of put_page(). This involves dozens of
+>    call sites, and will take some time.
+> 
+> 3) After (2) is complete, use get_user_pages*() and put_user_page*() to
+>    implement tracking of these pages. This tracking will be separate from
+>    the existing struct page refcounting.
+> 
+> 4) Use the tracking and identification of these pages, to implement
+>    special handling (especially in writeback paths) when the pages are
+>    backed by a filesystem. Again, [1] provides details as to why that is
+>    desirable.
+
+I thought we agreed at LSFMM that the future is a new get_user_bvec()
+/ put_user_bvec().  This is largely going to touch the same places as
+step 2 in your list above.  Is it worth doing step 2?
+
+One of the advantages of put_user_bvec() is that it would be quite easy
+to miss a conversion from put_page() to put_user_page(), but it'll be
+a type error to miss a conversion from put_page() to put_user_bvec().
