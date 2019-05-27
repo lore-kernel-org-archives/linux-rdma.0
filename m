@@ -1,45 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 net-next 00/11] qed*: Improve performance on 100G
- link for offload protocols
-Date: Sun, 26 May 2019 13:04:32 -0700 (PDT)
-Message-ID: <20190526.130432.605011257219662109.davem@davemloft.net>
-References: <20190526122230.30039-1-michal.kalderon@marvell.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
+ syscalls
+Date: Mon, 27 May 2019 10:42:48 +0100
+Message-ID: <20190527094247.GA45660@MBP.local>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190526122230.30039-1-michal.kalderon@marvell.com>
-Sender: netdev-owner@vger.kernel.org
-To: michal.kalderon@marvell.com
-Cc: ariel.elior@marvell.com, dledford@redhat.com, jgg@ziepe.ca, leon@kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Michal Kalderon <michal.kalderon@marvell.com>
-Date: Sun, 26 May 2019 15:22:19 +0300
+On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
+> +SYSCALL_DEFINE2(arm64_mlock2, unsigned long, start, size_t, len)
+> +{
+> +	start = untagged_addr(start);
+> +	return ksys_mlock(start, len, VM_LOCKED);
+> +}
 
-> This patch series modifies the current implementation of PF selection.
-> The refactoring of the llh code enables setting additional filters
-> (mac / protocol) per PF, and improves performance for offload protocols
-> (RoCE, iWARP, iSCSI, fcoe) on 100G link (was capped at 90G per single
-> PF).
-> 
-> Improved performance on 100G link is achieved by configuring engine
-> affinty to each PF.
-> The engine affinity is read from the Management FW and hw is configured accordingly.
-> A new hw resource called PPFID is exposed and an API is introduced to utilize
-> it. This additional resource enables setting the affinity of a PF and providing
-> more classification rules per PF.
-> qedr,qedi,qedf are also modified as part of the series. Without the
-> changes functionality is broken.
-> 
-> v1 --> v2
-> ---------
-> - Remove iWARP module parameter. Instead use devlink param infrastructure
->   for setting the iwarp_cmt mode. Additional patch added to the series for
->   adding the devlink support.
-> 
-> - Fix kbuild test robot warning on qed_llh_filter initialization.
-> 
-> - Remove comments inside function calls
+Copy/paste error: sys_mlock2() has 3 arguments and should call
+ksys_mlock2().
 
-Series applied, thanks.
+Still tracking down an LTP failure on test mlock01.
+
+-- 
+Catalin
