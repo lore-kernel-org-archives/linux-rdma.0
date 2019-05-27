@@ -1,50 +1,57 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [PATCH] mlx5: avoid 64-bit division
-Date: Mon, 27 May 2019 22:47:27 +0200
-Message-ID: <20190527204727.GH30439@unicorn.suse.cz>
-References: <20190520111902.7104DE0184@unicorn.suse.cz>
- <20190527181534.GA10029@ziepe.ca>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH v2] infiniband/mm: convert put_page() to put_user_page*()
+Date: Mon, 27 May 2019 22:56:56 +0000
+Message-ID: <20190527225651.GA18539@mellanox.com>
+References: <20190525014522.8042-1-jhubbard@nvidia.com>
+ <20190525014522.8042-2-jhubbard@nvidia.com>
+ <20190526110631.GD1075@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190527181534.GA10029@ziepe.ca>
+In-Reply-To: <20190526110631.GD1075@bombadil.infradead.org>
+Content-Language: en-US
+Content-ID: <5BC0AB5A2E48604C93A93DEB61B51614@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Ariel Levkovich <lariel@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Matthew Wilcox <willy@infradead.org>
+Cc: "john.hubbard@gmail.com" <john.hubbard@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, John Hubbard <jhubbard@nvidia.com>, Doug Ledford <dledford@redhat.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, Christian Benvenuti <benve@cisco.com>, Jan Kara <jack@suse.cz>, Ira Weiny <ira.weiny@intel.com>, =?iso-8859-1?Q?J=E9r=F4me_Glisse?= <jglisse@redhat.com>, Christoph Hellwig <hch@infradead.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 27, 2019 at 03:15:34PM -0300, Jason Gunthorpe wrote:
-> On Mon, May 20, 2019 at 01:19:02PM +0200, Michal Kubecek wrote:
-> > diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> > index abac70ad5c7c..340290b883fe 100644
-> > +++ b/drivers/infiniband/hw/mlx5/main.c
-> > @@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
-> >  	/* Allocation size must a multiple of the basic block size
-> >  	 * and a power of 2.
-> >  	 */
-> > -	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-> > +	act_size = round_up(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-> >  	act_size = roundup_pow_of_two(act_size);
-> 
-> It is kind of weird that we have round_up and the bitshift
-> version.. None of this is performance critical so why not just use
-> round_up everywhere?
-> 
-> Ariel, it is true MLX5_SW_ICM_BLOCK_SIZE will always be a power of
-> two?
+On Sun, May 26, 2019 at 04:06:31AM -0700, Matthew Wilcox wrote:
+> On Fri, May 24, 2019 at 06:45:22PM -0700, john.hubbard@gmail.com wrote:
+> > For infiniband code that retains pages via get_user_pages*(),
+> > release those pages via the new put_user_page(), or
+> > put_user_pages*(), instead of put_page()
+>=20
+> I have no objection to this particular patch, but ...
+>=20
+> > This is a tiny part of the second step of fixing the problem described
+> > in [1]. The steps are:
+> >=20
+> > 1) Provide put_user_page*() routines, intended to be used
+> >    for releasing pages that were pinned via get_user_pages*().
+> >=20
+> > 2) Convert all of the call sites for get_user_pages*(), to
+> >    invoke put_user_page*(), instead of put_page(). This involves dozens=
+ of
+> >    call sites, and will take some time.
+> >=20
+> > 3) After (2) is complete, use get_user_pages*() and put_user_page*() to
+> >    implement tracking of these pages. This tracking will be separate fr=
+om
+> >    the existing struct page refcounting.
+> >=20
+> > 4) Use the tracking and identification of these pages, to implement
+> >    special handling (especially in writeback paths) when the pages are
+> >    backed by a filesystem. Again, [1] provides details as to why that i=
+s
+> >    desirable.
+>=20
+> I thought we agreed at LSFMM that the future is a new get_user_bvec()
+> / put_user_bvec().  This is largely going to touch the same places as
+> step 2 in your list above.  Is it worth doing step 2?
 
-If it weren't, the requirements from the comment above could never be
-satisfied as a power of two can only be a multiple of another power of
-two. Which also means that what the code above does is in fact
-equivalent to
+I think so, as these two conversions can run in parallel, whichever we
+finish first, biovec or put_user_pages lets John progress to step #3
 
-	act_size = max_t(u64, roundup_pow_of_two(attr->length),
-			 MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-
-or
-
-	act_size = roundup_pow_of_two(max_t(u64, attr->length,
-					    MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-
-Michal Kubecek
+Jason
