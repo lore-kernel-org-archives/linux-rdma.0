@@ -1,39 +1,90 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
- syscalls
-Date: Mon, 27 May 2019 15:37:20 +0100
-Message-ID: <20190527143719.GA59948@MBP.local>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH] mlx5: avoid 64-bit division
+Date: Mon, 27 May 2019 15:15:34 -0300
+Message-ID: <20190527181534.GA10029@ziepe.ca>
+References: <20190520111902.7104DE0184@unicorn.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+In-Reply-To: <20190520111902.7104DE0184@unicorn.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
+To: Michal Kubecek <mkubecek@suse.cz>
+Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Ariel Levkovich <lariel@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
+On Mon, May 20, 2019 at 01:19:02PM +0200, Michal Kubecek wrote:
+> Commit 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
+> breaks i386 build by introducing three 64-bit divisions. As the divisor
+> is MLX5_SW_ICM_BLOCK_SIZE() which is always a power of 2, we can replace
+> the division with bit operations.
 > 
-> This patch allows tagged pointers to be passed to the following memory
-> syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
-> mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
-> remap_file_pages, shmat and shmdt.
+> Fixes: 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
+> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+>  drivers/infiniband/hw/mlx5/cmd.c  | 9 +++++++--
+>  drivers/infiniband/hw/mlx5/main.c | 2 +-
+>  2 files changed, 8 insertions(+), 3 deletions(-)
 > 
-> This is done by untagging pointers passed to these syscalls in the
-> prologues of their handlers.
-> 
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
+> index e3ec79b8f7f5..6c8645033102 100644
+> +++ b/drivers/infiniband/hw/mlx5/cmd.c
+> @@ -190,12 +190,12 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+>  			  u16 uid, phys_addr_t *addr, u32 *obj_id)
+>  {
+>  	struct mlx5_core_dev *dev = dm->dev;
+> -	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
+>  	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
+>  	u32 in[MLX5_ST_SZ_DW(create_sw_icm_in)] = {};
+>  	unsigned long *block_map;
+>  	u64 icm_start_addr;
+>  	u32 log_icm_size;
+> +	u32 num_blocks;
+>  	u32 max_blocks;
+>  	u64 block_idx;
+>  	void *sw_icm;
+> @@ -224,6 +224,8 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+>  		return -EINVAL;
+>  	}
+>  
+> +	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
+> +		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
+>  	max_blocks = BIT(log_icm_size - MLX5_LOG_SW_ICM_BLOCK_SIZE(dev));
+>  	spin_lock(&dm->lock);
+>  	block_idx = bitmap_find_next_zero_area(block_map,
+> @@ -266,13 +268,16 @@ int mlx5_cmd_dealloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
+>  			    u16 uid, phys_addr_t addr, u32 obj_id)
+>  {
+>  	struct mlx5_core_dev *dev = dm->dev;
+> -	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
+>  	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
+>  	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
+>  	unsigned long *block_map;
+> +	u32 num_blocks;
+>  	u64 start_idx;
+>  	int err;
+>  
+> +	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
+> +		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
+> +
+>  	switch (type) {
+>  	case MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM:
+>  		start_idx =
+> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
+> index abac70ad5c7c..340290b883fe 100644
+> +++ b/drivers/infiniband/hw/mlx5/main.c
+> @@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
+>  	/* Allocation size must a multiple of the basic block size
+>  	 * and a power of 2.
+>  	 */
+> -	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
+> +	act_size = round_up(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
+>  	act_size = roundup_pow_of_two(act_size);
 
-Actually, I don't think any of these wrappers get called (have you
-tested this patch?). Following commit 4378a7d4be30 ("arm64: implement
-syscall wrappers"), I think we have other macro names for overriding the
-sys_* ones.
+It is kind of weird that we have round_up and the bitshift
+version.. None of this is performance critical so why not just use
+round_up everywhere?
 
--- 
-Catalin
+Ariel, it is true MLX5_SW_ICM_BLOCK_SIZE will always be a power of
+two?
+
+Jason
