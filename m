@@ -1,90 +1,59 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] mlx5: avoid 64-bit division
-Date: Mon, 27 May 2019 15:15:34 -0300
-Message-ID: <20190527181534.GA10029@ziepe.ca>
-References: <20190520111902.7104DE0184@unicorn.suse.cz>
+Subject: Re: RFC: Run a dedicated hmm.git for 5.3
+Date: Mon, 27 May 2019 16:12:47 -0300
+Message-ID: <20190527191247.GA12540@ziepe.ca>
+References: <20190523154149.GB12159@ziepe.ca>
+ <20190523155207.GC5104@redhat.com>
+ <20190523163429.GC12159@ziepe.ca>
+ <20190523173302.GD5104@redhat.com>
+ <20190523175546.GE12159@ziepe.ca>
+ <20190523182458.GA3571@redhat.com>
+ <20190523191038.GG12159@ziepe.ca>
+ <20190524064051.GA28855@infradead.org>
+ <20190524124455.GB16845@ziepe.ca>
+ <20190525155210.8a9a66385ac8169d0e144225@linux-foundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190520111902.7104DE0184@unicorn.suse.cz>
+In-Reply-To: <20190525155210.8a9a66385ac8169d0e144225@linux-foundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Kubecek <mkubecek@suse.cz>
-Cc: Leon Romanovsky <leon@kernel.org>, Doug Ledford <dledford@redhat.com>, Ariel Levkovich <lariel@mellanox.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Jerome Glisse <jglisse@redhat.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, Artemy Kovalyov <artemyko@mellanox.com>, Moni Shoua <monis@mellanox.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Kaike Wan <kaike.wan@intel.com>, Dennis Dalessandro <dennis.dalessandro@intel.com>, linux-mm@kvack.org, dri-devel <dri-devel@lists.freedesktop.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 20, 2019 at 01:19:02PM +0200, Michal Kubecek wrote:
-> Commit 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
-> breaks i386 build by introducing three 64-bit divisions. As the divisor
-> is MLX5_SW_ICM_BLOCK_SIZE() which is always a power of 2, we can replace
-> the division with bit operations.
+On Sat, May 25, 2019 at 03:52:10PM -0700, Andrew Morton wrote:
+> On Fri, 24 May 2019 09:44:55 -0300 Jason Gunthorpe <jgg@ziepe.ca> wrote:
 > 
-> Fixes: 25c13324d03d ("IB/mlx5: Add steering SW ICM device memory type")
-> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
->  drivers/infiniband/hw/mlx5/cmd.c  | 9 +++++++--
->  drivers/infiniband/hw/mlx5/main.c | 2 +-
->  2 files changed, 8 insertions(+), 3 deletions(-)
+> > Now that -mm merged the basic hmm API skeleton I think running like
+> > this would get us quickly to the place we all want: comprehensive in tree
+> > users of hmm.
+> > 
+> > Andrew, would this be acceptable to you?
 > 
-> diff --git a/drivers/infiniband/hw/mlx5/cmd.c b/drivers/infiniband/hw/mlx5/cmd.c
-> index e3ec79b8f7f5..6c8645033102 100644
-> +++ b/drivers/infiniband/hw/mlx5/cmd.c
-> @@ -190,12 +190,12 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
->  			  u16 uid, phys_addr_t *addr, u32 *obj_id)
->  {
->  	struct mlx5_core_dev *dev = dm->dev;
-> -	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
->  	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
->  	u32 in[MLX5_ST_SZ_DW(create_sw_icm_in)] = {};
->  	unsigned long *block_map;
->  	u64 icm_start_addr;
->  	u32 log_icm_size;
-> +	u32 num_blocks;
->  	u32 max_blocks;
->  	u64 block_idx;
->  	void *sw_icm;
-> @@ -224,6 +224,8 @@ int mlx5_cmd_alloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
->  		return -EINVAL;
->  	}
->  
-> +	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
-> +		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
->  	max_blocks = BIT(log_icm_size - MLX5_LOG_SW_ICM_BLOCK_SIZE(dev));
->  	spin_lock(&dm->lock);
->  	block_idx = bitmap_find_next_zero_area(block_map,
-> @@ -266,13 +268,16 @@ int mlx5_cmd_dealloc_sw_icm(struct mlx5_dm *dm, int type, u64 length,
->  			    u16 uid, phys_addr_t addr, u32 obj_id)
->  {
->  	struct mlx5_core_dev *dev = dm->dev;
-> -	u32 num_blocks = DIV_ROUND_UP(length, MLX5_SW_ICM_BLOCK_SIZE(dev));
->  	u32 out[MLX5_ST_SZ_DW(general_obj_out_cmd_hdr)] = {};
->  	u32 in[MLX5_ST_SZ_DW(general_obj_in_cmd_hdr)] = {};
->  	unsigned long *block_map;
-> +	u32 num_blocks;
->  	u64 start_idx;
->  	int err;
->  
-> +	num_blocks = (length + MLX5_SW_ICM_BLOCK_SIZE(dev) - 1) >>
-> +		     MLX5_LOG_SW_ICM_BLOCK_SIZE(dev);
-> +
->  	switch (type) {
->  	case MLX5_IB_UAPI_DM_TYPE_STEERING_SW_ICM:
->  		start_idx =
-> diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-> index abac70ad5c7c..340290b883fe 100644
-> +++ b/drivers/infiniband/hw/mlx5/main.c
-> @@ -2344,7 +2344,7 @@ static int handle_alloc_dm_sw_icm(struct ib_ucontext *ctx,
->  	/* Allocation size must a multiple of the basic block size
->  	 * and a power of 2.
->  	 */
-> -	act_size = roundup(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
-> +	act_size = round_up(attr->length, MLX5_SW_ICM_BLOCK_SIZE(dm_db->dev));
->  	act_size = roundup_pow_of_two(act_size);
+> Sure.  Please take care not to permit this to reduce the amount of
+> exposure and review which the core HMM pieces get.
 
-It is kind of weird that we have round_up and the bitshift
-version.. None of this is performance critical so why not just use
-round_up everywhere?
+Certainly, thanks all
 
-Ariel, it is true MLX5_SW_ICM_BLOCK_SIZE will always be a power of
-two?
+Jerome: I started a HMM branch on v5.2-rc2 in the rdma.git here:
 
+git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
+https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=hmm
+
+Please send a series with the initial cross tree stuff:
+ - kconfig fixing patches
+ - The full removal of all the 'temporary for merging' APIs
+ - Fixing the API of hmm_range_register to accept a mirror
+
+When these are ready I'll send a hmm PR to DRM so everyone is on the
+same API page.
+
+I'll also move the hugetlb patch that Andrew picked up into this git
+so we don't have a merge conflict risk
+
+In parallel let us also finish revising the mirror API and going
+through the ODP stuff.
+
+Regards,
 Jason
