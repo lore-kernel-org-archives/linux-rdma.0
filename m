@@ -1,62 +1,84 @@
-From: Andrew Murray <andrew.murray@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
 Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
  syscalls
-Date: Tue, 28 May 2019 15:54:11 +0100
-Message-ID: <20190528145411.GA709@e119886-lin.cambridge.arm.com>
+Date: Tue, 28 May 2019 16:40:58 +0100
+Message-ID: <20190528154057.GD32006@arrakis.emea.arm.com>
 References: <cover.1557160186.git.andreyknvl@google.com>
  <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
  <20190527143719.GA59948@MBP.local>
+ <20190528145411.GA709@e119886-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190527143719.GA59948@MBP.local>
+In-Reply-To: <20190528145411.GA709@e119886-lin.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
+To: Andrew Murray <andrew.murray@arm.com>
 Cc: Andrey Konovalov <andreyknvl@google.com>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, May 27, 2019 at 03:37:20PM +0100, Catalin Marinas wrote:
-> On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
-> > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > pass tagged user pointers (with the top byte set to something else other
-> > than 0x00) as syscall arguments.
+On Tue, May 28, 2019 at 03:54:11PM +0100, Andrew Murray wrote:
+> On Mon, May 27, 2019 at 03:37:20PM +0100, Catalin Marinas wrote:
+> > On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
+> > > This patch is a part of a series that extends arm64 kernel ABI to allow to
+> > > pass tagged user pointers (with the top byte set to something else other
+> > > than 0x00) as syscall arguments.
+> > > 
+> > > This patch allows tagged pointers to be passed to the following memory
+> > > syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
+> > > mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
+> > > remap_file_pages, shmat and shmdt.
+> > > 
+> > > This is done by untagging pointers passed to these syscalls in the
+> > > prologues of their handlers.
+> > > 
+> > > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 > > 
-> > This patch allows tagged pointers to be passed to the following memory
-> > syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
-> > mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
-> > remap_file_pages, shmat and shmdt.
-> > 
-> > This is done by untagging pointers passed to these syscalls in the
-> > prologues of their handlers.
-> > 
-> > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> > Actually, I don't think any of these wrappers get called (have you
+> > tested this patch?). Following commit 4378a7d4be30 ("arm64: implement
+> > syscall wrappers"), I think we have other macro names for overriding the
+> > sys_* ones.
 > 
-> Actually, I don't think any of these wrappers get called (have you
-> tested this patch?). Following commit 4378a7d4be30 ("arm64: implement
-> syscall wrappers"), I think we have other macro names for overriding the
-> sys_* ones.
+> What is the value in adding these wrappers?
 
-What is the value in adding these wrappers?
+Not much value, initially proposed just to keep the core changes small.
+I'm fine with moving them back in the generic code (but see below).
 
-The untagged_addr macro is defined for all in linux/mm.h and these patches
-already use untagged_addr in generic code. Thus adding a few more
-untagged_addr in the generic syscall handlers (which turn to a nop for most)
-is surely better than adding wrappers?
+I think another aspect is how we define the ABI. Is allowing tags to
+mlock() for example something specific to arm64 or would sparc ADI need
+the same? In the absence of other architectures defining such ABI, my
+preference would be to keep the wrappers in the arch code.
 
-Even if other architectures implement untagged_addr in the future it would
-be more consistent if they untagged in the same places and thus not adding
-these wrappers enforces that.
+Assuming sparc won't implement untagged_addr(), we can place the macros
+back in the generic code but, as per the review here, we need to be more
+restrictive on where we allow tagged addresses. For example, if mmap()
+gets a tagged address with MAP_FIXED, is it expected to return the tag?
 
-Thanks,
+My thoughts on allowing tags (quick look):
 
-Andrew Murray
+brk - no
+get_mempolicy - yes
+madvise - yes
+mbind - yes
+mincore - yes
+mlock, mlock2, munlock - yes
+mmap - no (we may change this with MTE but not for TBI)
+mmap_pgoff - not used on arm64
+mprotect - yes
+mremap - yes for old_address, no for new_address (on par with mmap)
+msync - yes
+munmap - probably no (mmap does not return tagged ptrs)
+remap_file_pages - no (also deprecated syscall)
+shmat, shmdt - shall we allow tagged addresses on shared memory?
 
-> 
-> -- 
-> Catalin
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+The above is only about the TBI ABI while ignoring hardware MTE. For the
+latter, we may want to change the mmap() to allow pre-colouring on page
+fault which means that munmap()/mprotect() should also support tagged
+pointers. Possibly mremap() as well but we need to decide whether it
+should allow re-colouring the page (probably no, in which case
+old_address and new_address should have the same tag). For some of these
+we'll end up with arm64 specific wrappers again, unless sparc ADI adopts
+exactly the same ABI restrictions.
+
+-- 
+Catalin
