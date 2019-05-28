@@ -1,62 +1,85 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
- syscalls
-Date: Tue, 28 May 2019 17:34:00 +0100
-Message-ID: <20190528163400.GE32006@arrakis.emea.arm.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
- <20190527143719.GA59948@MBP.local>
- <20190528145411.GA709@e119886-lin.cambridge.arm.com>
- <20190528154057.GD32006@arrakis.emea.arm.com>
- <20190528155644.GD28398@e103592.cambridge.arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Tue, 28 May 2019 18:02:45 +0100
+Message-ID: <20190528170244.GF32006@arrakis.emea.arm.com>
+References: <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
+ <20190522101110.m2stmpaj7seezveq@mbp>
+ <CAJgzZoosKBwqXRyA6fb8QQSZXFqfHqe9qO9je5TogHhzuoGXJQ@mail.gmail.com>
+ <20190522163527.rnnc6t4tll7tk5zw@mbp>
+ <201905221316.865581CF@keescook>
+ <20190523144449.waam2mkyzhjpqpur@mbp>
+ <201905230917.DEE7A75EF0@keescook>
+ <20190523174345.6sv3kcipkvlwfmox@mbp>
+ <201905231327.77CA8D0A36@keescook>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190528155644.GD28398@e103592.cambridge.arm.com>
+In-Reply-To: <201905231327.77CA8D0A36@keescook>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Martin <Dave.Martin@arm.com>
-Cc: Andrew Murray <andrew.murray@arm.com>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Christian Koenig <Christian.Koenig@amd.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Lee Smith <Lee.Smith@arm.com>, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsk>
+To: Kees Cook <keescook@chromium.org>
+Cc: enh <enh@google.com>, Evgenii Stepanov <eugenis@google.com>, Andrey Konovalov <andreyknvl@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>Felix Kuehling <F>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, May 28, 2019 at 04:56:45PM +0100, Dave P Martin wrote:
-> On Tue, May 28, 2019 at 04:40:58PM +0100, Catalin Marinas wrote:
+On Thu, May 23, 2019 at 02:31:16PM -0700, Kees Cook wrote:
+> syzkaller already attempts to randomly inject non-canonical and
+> 0xFFFF....FFFF addresses for user pointers in syscalls in an effort to
+> find bugs like CVE-2017-5123 where waitid() via unchecked put_user() was
+> able to write directly to kernel memory[1].
 > 
-> [...]
+> It seems that using TBI by default and not allowing a switch back to
+> "normal" ABI without a reboot actually means that userspace cannot inject
+> kernel pointers into syscalls any more, since they'll get universally
+> stripped now. Is my understanding correct, here? i.e. exploiting
+> CVE-2017-5123 would be impossible under TBI?
 > 
-> > My thoughts on allowing tags (quick look):
-> >
-> > brk - no
+> If so, then I think we should commit to the TBI ABI and have a boot
+> flag to disable it, but NOT have a process flag, as that would allow
+> attackers to bypass the masking. The only flag should be "TBI or MTE".
 > 
-> [...]
-> 
-> > mlock, mlock2, munlock - yes
-> > mmap - no (we may change this with MTE but not for TBI)
-> 
-> [...]
-> 
-> > mprotect - yes
-> 
-> I haven't following this discussion closely... what's the rationale for
-> the inconsistencies here (feel free to refer me back to the discussion
-> if it's elsewhere).
+> If so, can I get top byte masking for other architectures too? Like,
+> just to strip high bits off userspace addresses? ;)
 
-_My_ rationale (feel free to disagree) is that mmap() by default would
-not return a tagged address (ignoring MTE for now). If it gets passed a
-tagged address or a "tagged NULL" (for lack of a better name) we don't
-have clear semantics of whether the returned address should be tagged in
-this ABI relaxation. I'd rather reserve this specific behaviour if we
-overload the non-zero tag meaning of mmap() for MTE. Similar reasoning
-for mremap(), at least on the new_address argument (not entirely sure
-about old_address).
+Just for fun, hack/attempt at your idea which should not interfere with
+TBI. Only briefly tested on arm64 (and the s390 __TYPE_IS_PTR macro is
+pretty weird ;)):
 
-munmap() should probably follow the mmap() rules.
-
-As for brk(), I don't see why the user would need to pass a tagged
-address, we can't associate any meaning to this tag.
-
-For the rest, since it's likely such addresses would have been tagged by
-malloc() in user space, we should allow tagged pointers.
+--------------------------8<---------------------------------
+diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
+index 63b46e30b2c3..338455a74eff 100644
+--- a/arch/s390/include/asm/compat.h
++++ b/arch/s390/include/asm/compat.h
+@@ -11,9 +11,6 @@
+ 
+ #include <asm-generic/compat.h>
+ 
+-#define __TYPE_IS_PTR(t) (!__builtin_types_compatible_p( \
+-				typeof(0?(__force t)0:0ULL), u64))
+-
+ #define __SC_DELOUSE(t,v) ({ \
+ 	BUILD_BUG_ON(sizeof(t) > 4 && !__TYPE_IS_PTR(t)); \
+ 	(__force t)(__TYPE_IS_PTR(t) ? ((v) & 0x7fffffff) : (v)); \
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index e2870fe1be5b..b1b9fe8502da 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -119,8 +119,15 @@ struct io_uring_params;
+ #define __TYPE_IS_L(t)	(__TYPE_AS(t, 0L))
+ #define __TYPE_IS_UL(t)	(__TYPE_AS(t, 0UL))
+ #define __TYPE_IS_LL(t) (__TYPE_AS(t, 0LL) || __TYPE_AS(t, 0ULL))
++#define __TYPE_IS_PTR(t) (!__builtin_types_compatible_p(typeof(0 ? (__force t)0 : 0ULL), u64))
+ #define __SC_LONG(t, a) __typeof(__builtin_choose_expr(__TYPE_IS_LL(t), 0LL, 0L)) a
++#ifdef CONFIG_64BIT
++#define __SC_CAST(t, a)	(__TYPE_IS_PTR(t) \
++				? (__force t) ((__u64)a & ~(1UL << 55)) \
++				: (__force t) a)
++#else
+ #define __SC_CAST(t, a)	(__force t) a
++#endif
+ #define __SC_ARGS(t, a)	a
+ #define __SC_TEST(t, a) (void)BUILD_BUG_ON_ZERO(!__TYPE_IS_LL(t) && sizeof(t) > sizeof(long))
+ 
 
 -- 
 Catalin
