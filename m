@@ -1,36 +1,32 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
-Date: Tue, 28 May 2019 16:14:45 +0200
-Message-ID: <CAAeHK+yAUsZWhp6xPAbWewX5Nbw+-G3svUyPmhXu5MVeEDKYvA@mail.gmail.com>
-References: <cover.1557160186.git.andreyknvl@google.com> <20190517144931.GA56186@arrakis.emea.arm.com>
- <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
- <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
- <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com> <20190523201105.oifkksus4rzcwqt4@mbp>
- <ffe58af3-7c70-d559-69f6-1f6ebcb0fec6@oracle.com> <20190524101139.36yre4af22bkvatx@mbp>
- <c6dd53d8-142b-3d8d-6a40-d21c5ee9d272@oracle.com>
+From: Ariel Levkovich <lariel@mellanox.com>
+Subject: Re: [PATCH] mlx5: avoid 64-bit division
+Date: Tue, 28 May 2019 14:44:09 +0000
+Message-ID: <849F6C89-EB21-4EAA-A1C0-1E4941B4812E@mellanox.com>
+References: <20190520111902.7104DE0184@unicorn.suse.cz>
+ <20190520112835.GF4573@mtr-leonro.mtl.com>
+ <20190528140145.GO4633@mtr-leonro.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c6dd53d8-142b-3d8d-6a40-d21c5ee9d272@oracle.com>
+In-Reply-To: <20190528140145.GO4633@mtr-leonro.mtl.com>
+Content-Language: en-US
+Content-ID: <8D2E75104A3334448B4F36227A58C61E@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Kees Cook <keescook@chromium.org>
-Cc: Evgenii Stepanov <eugenis@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koe>
+To: Leon Romanovsky <leon@kernel.org>, Michal Kubecek <mkubecek@suse.cz>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks for a lot of valuable input! I've read through all the replies
-and got somewhat lost. What are the changes I need to do to this
-series?
-
-1. Should I move untagging for memory syscalls back to the generic
-code so other arches would make use of it as well, or should I keep
-the arm64 specific memory syscalls wrappers and address the comments
-on that patch?
-
-2. Should I make untagging opt-in and controlled by a command line argument?
-
-3. Should I "add Documentation/core-api/user-addresses.rst to describe
-proper care and handling of user space pointers with untagged_addr(),
-with examples based on all the cases seen so far in this series"?
-Which examples specifically should it cover?
-
-Is there something else?
+DQogICBPbiBNb24sIE1heSAyMCwgMjAxOSBhdCAwMjoyODozNVBNICswMzAwLCBMZW9uIFJvbWFu
+b3Zza3kgd3JvdGU6DQogICAgPiA+IE9uIE1vbiwgTWF5IDIwLCAyMDE5IGF0IDAxOjE5OjAyUE0g
+KzAyMDAsIE1pY2hhbCBLdWJlY2VrIHdyb3RlOg0KICAgID4gPiA+IENvbW1pdCAyNWMxMzMyNGQw
+M2QgKCJJQi9tbHg1OiBBZGQgc3RlZXJpbmcgU1cgSUNNIGRldmljZSBtZW1vcnkgdHlwZSIpDQog
+ICAgPiA+ID4gYnJlYWtzIGkzODYgYnVpbGQgYnkgaW50cm9kdWNpbmcgdGhyZWUgNjQtYml0IGRp
+dmlzaW9ucy4gQXMgdGhlIGRpdmlzb3INCiAgICA+ID4gPiBpcyBNTFg1X1NXX0lDTV9CTE9DS19T
+SVpFKCkgd2hpY2ggaXMgYWx3YXlzIGEgcG93ZXIgb2YgMiwgd2UgY2FuIHJlcGxhY2UNCiAgICA+
+ID4gPiB0aGUgZGl2aXNpb24gd2l0aCBiaXQgb3BlcmF0aW9ucy4NCiAgICA+ID4NCiAgICA+ID4g
+SW50ZXJlc3RpbmcsIHdlIHRyaWVkIHRvIHNvbHZlIGl0IGRpZmZlcmVudGx5Lg0KICAgID4gPiBJ
+IGFkZGVkIGl0IHRvIG91ciByZWdyZXNzaW9uIHRvIGJlIG9uIHRoZSBzYW1lIHNpZGUuDQogICAg
+DQogICAgPiBUaGlzIHBhdGNoIHdvcmtzIGZvciB1cy4NCiAgICANCiAgIFllcywgdGhpcyB2YWx1
+ZSBpcyBndWFyYW50ZWVkIHRvIGJlIGEgcG93ZXIgb2YgMi4gIFdlIHNhZmVseSB1c2Ugcm91bmRf
+dXAoKSBpbnN0ZWFkIGFzIHN1Z2dlc3RlZCBpbiB0aGUgcGF0Y2guDQoNCg==
