@@ -1,32 +1,62 @@
-From: Ariel Levkovich <lariel@mellanox.com>
-Subject: Re: [PATCH] mlx5: avoid 64-bit division
-Date: Tue, 28 May 2019 14:44:09 +0000
-Message-ID: <849F6C89-EB21-4EAA-A1C0-1E4941B4812E@mellanox.com>
-References: <20190520111902.7104DE0184@unicorn.suse.cz>
- <20190520112835.GF4573@mtr-leonro.mtl.com>
- <20190528140145.GO4633@mtr-leonro.mtl.com>
+From: Andrew Murray <andrew.murray@arm.com>
+Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
+ syscalls
+Date: Tue, 28 May 2019 15:54:11 +0100
+Message-ID: <20190528145411.GA709@e119886-lin.cambridge.arm.com>
+References: <cover.1557160186.git.andreyknvl@google.com>
+ <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
+ <20190527143719.GA59948@MBP.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190528140145.GO4633@mtr-leonro.mtl.com>
-Content-Language: en-US
-Content-ID: <8D2E75104A3334448B4F36227A58C61E@eurprd05.prod.outlook.com>
+Content-Disposition: inline
+In-Reply-To: <20190527143719.GA59948@MBP.local>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leon Romanovsky <leon@kernel.org>, Michal Kubecek <mkubecek@suse.cz>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>, Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, linux-kselftest@vger.kernel.org, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.>
 List-Id: linux-rdma@vger.kernel.org
 
-DQogICBPbiBNb24sIE1heSAyMCwgMjAxOSBhdCAwMjoyODozNVBNICswMzAwLCBMZW9uIFJvbWFu
-b3Zza3kgd3JvdGU6DQogICAgPiA+IE9uIE1vbiwgTWF5IDIwLCAyMDE5IGF0IDAxOjE5OjAyUE0g
-KzAyMDAsIE1pY2hhbCBLdWJlY2VrIHdyb3RlOg0KICAgID4gPiA+IENvbW1pdCAyNWMxMzMyNGQw
-M2QgKCJJQi9tbHg1OiBBZGQgc3RlZXJpbmcgU1cgSUNNIGRldmljZSBtZW1vcnkgdHlwZSIpDQog
-ICAgPiA+ID4gYnJlYWtzIGkzODYgYnVpbGQgYnkgaW50cm9kdWNpbmcgdGhyZWUgNjQtYml0IGRp
-dmlzaW9ucy4gQXMgdGhlIGRpdmlzb3INCiAgICA+ID4gPiBpcyBNTFg1X1NXX0lDTV9CTE9DS19T
-SVpFKCkgd2hpY2ggaXMgYWx3YXlzIGEgcG93ZXIgb2YgMiwgd2UgY2FuIHJlcGxhY2UNCiAgICA+
-ID4gPiB0aGUgZGl2aXNpb24gd2l0aCBiaXQgb3BlcmF0aW9ucy4NCiAgICA+ID4NCiAgICA+ID4g
-SW50ZXJlc3RpbmcsIHdlIHRyaWVkIHRvIHNvbHZlIGl0IGRpZmZlcmVudGx5Lg0KICAgID4gPiBJ
-IGFkZGVkIGl0IHRvIG91ciByZWdyZXNzaW9uIHRvIGJlIG9uIHRoZSBzYW1lIHNpZGUuDQogICAg
-DQogICAgPiBUaGlzIHBhdGNoIHdvcmtzIGZvciB1cy4NCiAgICANCiAgIFllcywgdGhpcyB2YWx1
-ZSBpcyBndWFyYW50ZWVkIHRvIGJlIGEgcG93ZXIgb2YgMi4gIFdlIHNhZmVseSB1c2Ugcm91bmRf
-dXAoKSBpbnN0ZWFkIGFzIHN1Z2dlc3RlZCBpbiB0aGUgcGF0Y2guDQoNCg==
+On Mon, May 27, 2019 at 03:37:20PM +0100, Catalin Marinas wrote:
+> On Mon, May 06, 2019 at 06:30:51PM +0200, Andrey Konovalov wrote:
+> > This patch is a part of a series that extends arm64 kernel ABI to allow to
+> > pass tagged user pointers (with the top byte set to something else other
+> > than 0x00) as syscall arguments.
+> > 
+> > This patch allows tagged pointers to be passed to the following memory
+> > syscalls: brk, get_mempolicy, madvise, mbind, mincore, mlock, mlock2,
+> > mmap, mmap_pgoff, mprotect, mremap, msync, munlock, munmap,
+> > remap_file_pages, shmat and shmdt.
+> > 
+> > This is done by untagging pointers passed to these syscalls in the
+> > prologues of their handlers.
+> > 
+> > Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> 
+> Actually, I don't think any of these wrappers get called (have you
+> tested this patch?). Following commit 4378a7d4be30 ("arm64: implement
+> syscall wrappers"), I think we have other macro names for overriding the
+> sys_* ones.
+
+What is the value in adding these wrappers?
+
+The untagged_addr macro is defined for all in linux/mm.h and these patches
+already use untagged_addr in generic code. Thus adding a few more
+untagged_addr in the generic syscall handlers (which turn to a nop for most)
+is surely better than adding wrappers?
+
+Even if other architectures implement untagged_addr in the future it would
+be more consistent if they untagged in the same places and thus not adding
+these wrappers enforces that.
+
+Thanks,
+
+Andrew Murray
+
+> 
+> -- 
+> Catalin
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
