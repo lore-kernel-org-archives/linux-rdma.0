@@ -1,105 +1,49 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH rdma-next v2 17/17] RDMA/nldev: Allow get default counter
- statistics through RDMA netlink
-Date: Wed, 29 May 2019 14:54:53 +0300
-Message-ID: <20190529115453.GY4633@mtr-leonro.mtl.com>
-References: <20190429083453.16654-1-leon@kernel.org>
- <20190429083453.16654-18-leon@kernel.org>
- <20190522173011.GG15023@ziepe.ca>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Wed, 29 May 2019 13:12:25 +0100
+Message-ID: <20190529121225.q2zjgurxqnohvmkg@mbp>
+References: <CAFKCwrj6JEtp4BzhqO178LFJepmepoMx=G+YdC8sqZ3bcBp3EQ@mail.gmail.com>
+ <20190521182932.sm4vxweuwo5ermyd@mbp>
+ <201905211633.6C0BF0C2@keescook>
+ <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com>
+ <20190523201105.oifkksus4rzcwqt4@mbp>
+ <ffe58af3-7c70-d559-69f6-1f6ebcb0fec6@oracle.com>
+ <20190524101139.36yre4af22bkvatx@mbp>
+ <c6dd53d8-142b-3d8d-6a40-d21c5ee9d272@oracle.com>
+ <CAAeHK+yAUsZWhp6xPAbWewX5Nbw+-G3svUyPmhXu5MVeEDKYvA@mail.gmail.com>
+ <20190529061126.GA18124@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190522173011.GG15023@ziepe.ca>
-Sender: netdev-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+In-Reply-To: <20190529061126.GA18124@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Andrey Konovalov <andreyknvl@google.com>, Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 22, 2019 at 02:30:11PM -0300, Jason Gunthorpe wrote:
-> On Mon, Apr 29, 2019 at 11:34:53AM +0300, Leon Romanovsky wrote:
-> > From: Mark Zhang <markz@mellanox.com>
-> >
-> > This patch adds the ability to return the hwstats of per-port default
-> > counters (which can also be queried through sysfs nodes).
-> >
-> > Signed-off-by: Mark Zhang <markz@mellanox.com>
-> > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
-> >  drivers/infiniband/core/nldev.c | 101 +++++++++++++++++++++++++++++++-
-> >  1 file changed, 99 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/infiniband/core/nldev.c b/drivers/infiniband/core/nldev.c
-> > index 53c1d2d82a06..cb2dd38f49f1 100644
-> > +++ b/drivers/infiniband/core/nldev.c
-> > @@ -1709,6 +1709,98 @@ static int nldev_stat_del_doit(struct sk_buff *skb, struct nlmsghdr *nlh,
-> >  	return ret;
-> >  }
-> >
-> > +static int nldev_res_get_default_counter_doit(struct sk_buff *skb,
-> > +					      struct nlmsghdr *nlh,
-> > +					      struct netlink_ext_ack *extack,
-> > +					      struct nlattr *tb[])
-> > +{
-> > +	struct rdma_hw_stats *stats;
-> > +	struct nlattr *table_attr;
-> > +	struct ib_device *device;
-> > +	int ret, num_cnts, i;
-> > +	struct sk_buff *msg;
-> > +	u32 index, port;
-> > +	u64 v;
-> > +
-> > +	if (!tb[RDMA_NLDEV_ATTR_DEV_INDEX] || !tb[RDMA_NLDEV_ATTR_PORT_INDEX])
-> > +		return -EINVAL;
-> > +
-> > +	index = nla_get_u32(tb[RDMA_NLDEV_ATTR_DEV_INDEX]);
-> > +	device = ib_device_get_by_index(sock_net(skb->sk), index);
-> > +	if (!device)
-> > +		return -EINVAL;
-> > +
-> > +	if (!device->ops.alloc_hw_stats || !device->ops.get_hw_stats) {
-> > +		ret = -EINVAL;
-> > +		goto err;
-> > +	}
-> > +
-> > +	port = nla_get_u32(tb[RDMA_NLDEV_ATTR_PORT_INDEX]);
-> > +	if (!rdma_is_port_valid(device, port)) {
-> > +		ret = -EINVAL;
-> > +		goto err;
-> > +	}
-> > +
-> > +	msg = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_KERNEL);
-> > +	if (!msg) {
-> > +		ret = -ENOMEM;
-> > +		goto err;
-> > +	}
-> > +
-> > +	nlh = nlmsg_put(msg, NETLINK_CB(skb).portid, nlh->nlmsg_seq,
-> > +			RDMA_NL_GET_TYPE(RDMA_NL_NLDEV,
-> > +					 RDMA_NLDEV_CMD_STAT_GET),
-> > +			0, 0);
-> > +
-> > +	if (fill_nldev_handle(msg, device) ||
-> > +	    nla_put_u32(msg, RDMA_NLDEV_ATTR_PORT_INDEX, port)) {
-> > +		ret = -EMSGSIZE;
-> > +		goto err_msg;
-> > +	}
-> > +
-> > +	stats = device->ops.alloc_hw_stats(device, port);
-> > +	if (!stats) {
-> > +		ret = -ENOMEM;
-> > +		goto err_msg;
-> > +	}
->
-> Why do we need yet another one of these to be allocated?
+On Tue, May 28, 2019 at 11:11:26PM -0700, Christoph Hellwig wrote:
+> On Tue, May 28, 2019 at 04:14:45PM +0200, Andrey Konovalov wrote:
+> > Thanks for a lot of valuable input! I've read through all the replies
+> > and got somewhat lost. What are the changes I need to do to this
+> > series?
+> > 
+> > 1. Should I move untagging for memory syscalls back to the generic
+> > code so other arches would make use of it as well, or should I keep
+> > the arm64 specific memory syscalls wrappers and address the comments
+> > on that patch?
+> 
+> It absolutely needs to move to common code.  Having arch code leads
+> to pointless (often unintentional) semantic difference between
+> architectures, and lots of boilerplate code.
 
-I would say that it is bug.
+That's fine by me as long as we agree on the semantics (which shouldn't
+be hard; Khalid already following up). We should probably also move the
+proposed ABI document [1] into a common place (or part of since we'll
+have arm64-specifics like prctl() calls to explicitly opt in to memory
+tagging).
 
->
-> > +	num_cnts = device->ops.get_hw_stats(device, stats, port, 0);
->
-> Is '0' right here?
+[1] https://lore.kernel.org/lkml/20190318163533.26838-1-vincenzo.frascino@arm.com/T/#u
 
-I think that "index" (third parameter) is not used at all.
-
->
-> Jason
+-- 
+Catalin
