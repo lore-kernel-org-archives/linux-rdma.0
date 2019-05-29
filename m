@@ -1,7 +1,7 @@
 From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH][next] IB/rdmavt: Use struct_size() helper
-Date: Wed, 29 May 2019 10:12:48 -0500
-Message-ID: <20190529151248.GA24080@embeddedor>
+Subject: [PATCH][next] IB/qib: Use struct_size() helper
+Date: Wed, 29 May 2019 10:13:26 -0500
+Message-ID: <20190529151326.GA24109@embeddedor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
@@ -17,13 +17,11 @@ context in which this code is being used.
 
 So, replace the following form:
 
-sizeof(struct rvt_sge) * init_attr->cap.max_send_sge + sizeof(struct rvt_swqe)
+sizeof(*pkt) + sizeof(pkt->addr[0])*n
 
 with:
 
-struct_size(swq, sg_list, init_attr->cap.max_send_sge)
-
-and so on...
+struct_size(pkt, addr, n)
 
 Also, notice that variable size is unnecessary, hence it is removed.
 
@@ -31,23 +29,26 @@ This code was detected with the help of Coccinelle.
 
 Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- drivers/infiniband/sw/rdmavt/qp.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/infiniband/hw/qib/qib_user_sdma.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-index 31a2e65e4906..a60f5faea198 100644
---- a/drivers/infiniband/sw/rdmavt/qp.c
-+++ b/drivers/infiniband/sw/rdmavt/qp.c
-@@ -988,9 +988,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
- 	case IB_QPT_UC:
- 	case IB_QPT_RC:
- 	case IB_QPT_UD:
--		sz = sizeof(struct rvt_sge) *
--			init_attr->cap.max_send_sge +
--			sizeof(struct rvt_swqe);
-+		sz = struct_size(swq, sg_list, init_attr->cap.max_send_sge);
- 		swq = vzalloc_node(array_size(sz, sqsize), rdi->dparms.node);
- 		if (!swq)
- 			return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 0c204776263f..97649f64e09e 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -904,10 +904,11 @@ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
+ 		}
+ 
+ 		if (frag_size) {
+-			int pktsize, tidsmsize, n;
++			int tidsmsize, n;
++			size_t pktsize;
+ 
+ 			n = npages*((2*PAGE_SIZE/frag_size)+1);
+-			pktsize = sizeof(*pkt) + sizeof(pkt->addr[0])*n;
++			pktsize = struct_size(pkt, addr, n);
+ 
+ 			/*
+ 			 * Determine if this is tid-sdma or just sdma.
 -- 
 2.21.0
