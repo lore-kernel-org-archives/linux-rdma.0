@@ -1,95 +1,104 @@
-From: Dave Martin <Dave.Martin@arm.com>
-Subject: Re: [PATCH v15 05/17] arms64: untag user pointers passed to memory
- syscalls
-Date: Wed, 29 May 2019 16:18:40 +0100
-Message-ID: <20190529151839.GF28398@e103592.cambridge.arm.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <00eb4c63fefc054e2c8d626e8fedfca11d7c2600.1557160186.git.andreyknvl@google.com>
- <20190527143719.GA59948@MBP.local>
- <20190528145411.GA709@e119886-lin.cambridge.arm.com>
- <20190528154057.GD32006@arrakis.emea.arm.com>
- <20190528155644.GD28398@e103592.cambridge.arm.com>
- <20190528163400.GE32006@arrakis.emea.arm.com>
- <20190529124224.GE28398@e103592.cambridge.arm.com>
- <20190529132341.27t3knoxpb7t7y3g@mbp>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH rdma-next v2 13/17] RDMA/core: Get sum value of all
+ counters when perform a sysfs stat read
+Date: Wed, 29 May 2019 12:41:58 -0300
+Message-ID: <20190529154158.GA8567@ziepe.ca>
+References: <20190429083453.16654-1-leon@kernel.org>
+ <20190429083453.16654-14-leon@kernel.org>
+ <20190522171042.GA15023@ziepe.ca>
+ <20190529111544.GV4633@mtr-leonro.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190529132341.27t3knoxpb7t7y3g@mbp>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Christian Koenig <Christian.Koenig@amd.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Lee Smith <Lee.Smith@arm.com>, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Alex Williamson <alex.willi>
+In-Reply-To: <20190529111544.GV4633@mtr-leonro.mtl.com>
+Sender: netdev-owner@vger.kernel.org
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Majd Dibbiny <majd@mellanox.com>, Mark Zhang <markz@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 29, 2019 at 02:23:42PM +0100, Catalin Marinas wrote:
-> On Wed, May 29, 2019 at 01:42:25PM +0100, Dave P Martin wrote:
-> > On Tue, May 28, 2019 at 05:34:00PM +0100, Catalin Marinas wrote:
-> > > On Tue, May 28, 2019 at 04:56:45PM +0100, Dave P Martin wrote:
-> > > > On Tue, May 28, 2019 at 04:40:58PM +0100, Catalin Marinas wrote:
-> > > > 
-> > > > [...]
-> > > > 
-> > > > > My thoughts on allowing tags (quick look):
-> > > > >
-> > > > > brk - no
-> > > > 
-> > > > [...]
-> > > > 
-> > > > > mlock, mlock2, munlock - yes
-> > > > > mmap - no (we may change this with MTE but not for TBI)
-> > > > 
-> > > > [...]
-> > > > 
-> > > > > mprotect - yes
-> > > > 
-> > > > I haven't following this discussion closely... what's the rationale for
-> > > > the inconsistencies here (feel free to refer me back to the discussion
-> > > > if it's elsewhere).
-> > > 
-> > > _My_ rationale (feel free to disagree) is that mmap() by default would
-> > > not return a tagged address (ignoring MTE for now). If it gets passed a
-> > > tagged address or a "tagged NULL" (for lack of a better name) we don't
-> > > have clear semantics of whether the returned address should be tagged in
-> > > this ABI relaxation. I'd rather reserve this specific behaviour if we
-> > > overload the non-zero tag meaning of mmap() for MTE. Similar reasoning
-> > > for mremap(), at least on the new_address argument (not entirely sure
-> > > about old_address).
-> > > 
-> > > munmap() should probably follow the mmap() rules.
-> > > 
-> > > As for brk(), I don't see why the user would need to pass a tagged
-> > > address, we can't associate any meaning to this tag.
-> > > 
-> > > For the rest, since it's likely such addresses would have been tagged by
-> > > malloc() in user space, we should allow tagged pointers.
-> > 
-> > Those arguments seem reasonable.  We should try to capture this
-> > somewhere when documenting the ABI.
-> > 
-> > To be clear, I'm not sure that we should guarantee anywhere that a
-> > tagged pointer is rejected: rather the behaviour should probably be
-> > left unspecified.  Then we can tidy it up incrementally.
-> > 
-> > (The behaviour is unspecified today, in any case.)
+On Wed, May 29, 2019 at 02:15:44PM +0300, Leon Romanovsky wrote:
+> On Wed, May 22, 2019 at 02:10:42PM -0300, Jason Gunthorpe wrote:
+> > On Mon, Apr 29, 2019 at 11:34:49AM +0300, Leon Romanovsky wrote:
+> > > From: Mark Zhang <markz@mellanox.com>
+> > >
+> > > Since a QP can only be bound to one counter, then if it is bound to a
+> > > separate counter, for backward compatibility purpose, the statistic
+> > > value must be:
+> > > * stat of default counter
+> > > + stat of all running allocated counters
+> > > + stat of all deallocated counters (history stats)
+> > >
+> > > Signed-off-by: Mark Zhang <markz@mellanox.com>
+> > > Reviewed-by: Majd Dibbiny <majd@mellanox.com>
+> > > Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+> > >  drivers/infiniband/core/counters.c | 99 +++++++++++++++++++++++++++++-
+> > >  drivers/infiniband/core/device.c   |  8 ++-
+> > >  drivers/infiniband/core/sysfs.c    | 10 ++-
+> > >  include/rdma/rdma_counter.h        |  5 +-
+> > >  4 files changed, 113 insertions(+), 9 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/core/counters.c b/drivers/infiniband/core/counters.c
+> > > index 36cd9eca1e46..f598b1cdb241 100644
+> > > +++ b/drivers/infiniband/core/counters.c
+> > > @@ -146,6 +146,20 @@ static int __rdma_counter_bind_qp(struct rdma_counter *counter,
+> > >  	return ret;
+> > >  }
+> > >
+> > > +static void counter_history_stat_update(const struct rdma_counter *counter)
+> > > +{
+> > > +	struct ib_device *dev = counter->device;
+> > > +	struct rdma_port_counter *port_counter;
+> > > +	int i;
+> > > +
+> > > +	port_counter = &dev->port_data[counter->port].port_counter;
+> > > +	if (!port_counter->hstats)
+> > > +		return;
+> > > +
+> > > +	for (i = 0; i < counter->stats->num_counters; i++)
+> > > +		port_counter->hstats->value[i] += counter->stats->value[i];
+> > > +}
+> > > +
+> > >  static int __rdma_counter_unbind_qp(struct ib_qp *qp, bool force)
+> > >  {
+> > >  	struct rdma_counter *counter = qp->counter;
+> > > @@ -285,8 +299,10 @@ int rdma_counter_unbind_qp(struct ib_qp *qp, bool force)
+> > >  		return ret;
+> > >
+> > >  	rdma_restrack_put(&counter->res);
+> > > -	if (atomic_dec_and_test(&counter->usecnt))
+> > > +	if (atomic_dec_and_test(&counter->usecnt)) {
+> > > +		counter_history_stat_update(counter);
+> > >  		rdma_counter_dealloc(counter);
+> > > +	}
+> > >
+> > >  	return 0;
+> > >  }
+> > > @@ -307,21 +323,98 @@ int rdma_counter_query_stats(struct rdma_counter *counter)
+> > >  	return ret;
+> > >  }
+> > >
+> > > -void rdma_counter_init(struct ib_device *dev)
+> > > +static u64 get_running_counters_hwstat_sum(struct ib_device *dev,
+> > > +					   u8 port, u32 index)
+> > > +{
+> > > +	struct rdma_restrack_entry *res;
+> > > +	struct rdma_restrack_root *rt;
+> > > +	struct rdma_counter *counter;
+> > > +	unsigned long id = 0;
+> > > +	u64 sum = 0;
+> > > +
+> > > +	rt = &dev->res[RDMA_RESTRACK_COUNTER];
+> > > +	xa_lock(&rt->xa);
+> > > +	xa_for_each(&rt->xa, id, res) {
+> > > +		if (!rdma_restrack_get(res))
+> > > +			continue;
+> >
+> > Why do we need to get refcounts if we are holding the xa_lock?
 > 
-> What is specified (or rather de-facto ABI) today is that passing a user
-> address above TASK_SIZE (e.g. non-zero top byte) would fail in most
-> cases. If we relax this with the TBI we may end up with some de-facto
+> Don't we need to protect an entry itself from disappearing?
 
-I may be being too picky, but "would fail in most cases" sounds like
-"unspecified" ?
+xa_lock prevents xa_erase and xa_erase should be done before any
+parallel kfree.
 
-> ABI before we actually get MTE hardware. Tightening it afterwards may be
-> slightly more problematic, although MTE needs to be an explicit opt-in.
-> 
-> IOW, I wouldn't want to unnecessarily relax the ABI if we don't need to.
-
-So long we don't block foreseeable future developments unnecessarily
-either -- I agree there's a balance to be struck.
-
-I guess this can be reviewed when we have nailed down the details a bit
-further.
-
-Cheers
----Dave
+Jason
