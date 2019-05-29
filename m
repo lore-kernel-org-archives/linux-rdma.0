@@ -1,96 +1,94 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next 1/4] rdma: Add an option to query,set net
- namespace sharing sys parameter
-Date: Wed, 29 May 2019 10:12:32 -0600
-Message-ID: <014b3e56-9aa0-4b20-158c-d4907078d224@gmail.com>
-References: <20190521142244.8452-1-parav@mellanox.com>
- <20190521142244.8452-2-parav@mellanox.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH, RESEND] RDMA/srp: Accept again source addresses that do not have a port number
+Date: Wed, 29 May 2019 09:38:31 -0700
+Message-ID: <20190529163831.138926-1-bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190521142244.8452-2-parav@mellanox.com>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Bart Van Assche <bvanassche@acm.org>, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/21/19 8:22 AM, Parav Pandit wrote:
-> diff --git a/rdma/sys.c b/rdma/sys.c
-> new file mode 100644
-> index 00000000..78e5198f
-> --- /dev/null
-> +++ b/rdma/sys.c
-> @@ -0,0 +1,143 @@
-> +/*
-> + * sys.c	RDMA tool
-> + *
-> + *              This program is free software; you can redistribute it and/or
-> + *              modify it under the terms of the GNU General Public License
-> + *              as published by the Free Software Foundation; either version
-> + *              2 of the License, or (at your option) any later version.
-> + */
+The function srp_parse_in() is used both for parsing source address
+specifications and for target address specifications. Target addresses
+must have a port number. Having to specify a port number for source
+addresses is inconvenient. Make sure that srp_parse_in() supports again
+parsing addresses with no port number.
 
-Please use the SPDX line like the other rdma files.
+Cc: Laurence Oberman <loberman@redhat.com>
+Cc: <stable@vger.kernel.org>
+Fixes: c62adb7def71 ("IB/srp: Fix IPv6 address parsing") # v4.17.
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-> +
-> +#include "rdma.h"
-> +
-> +static int sys_help(struct rd *rd)
-> +{
-> +	pr_out("Usage: %s system show [ netns ]\n", rd->filename);
-> +	pr_out("       %s system set netns { shared | exclusive }\n", rd->filename);
-> +	return 0;
-> +}
-> +
-> +static const char *netns_modes_str[] = {
-> +	"exclusive",
-> +	"shared",
-> +};
-> +
-> +static int sys_show_parse_cb(const struct nlmsghdr *nlh, void *data)
-> +{
-> +	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-> +	struct rd *rd = data;
-> +
-> +	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-> +
-> +	if (tb[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]) {
-> +		const char *mode_str;
-> +		uint8_t netns_mode;
-> +
-> +		netns_mode =
-> +			mnl_attr_get_u8(tb[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]);
-> +
-> +		if (netns_mode <= ARRAY_SIZE(netns_modes_str))
-> +			mode_str = netns_modes_str[netns_mode];
-> +		else
-> +			mode_str = "unknown";
-> +
-> +		if (rd->json_output)
-> +			jsonw_string_field(rd->jw, "netns", mode_str);
-> +		else
-> +			pr_out("netns %s\n", mode_str);
-> +	}
-> +	return MNL_CB_OK;
-> +}
-> +
-> +static int sys_show_no_args(struct rd *rd)
-> +{
-> +	uint32_t seq;
-> +	int ret;
-> +
-> +	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SYS_GET,
-> +		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-> +	ret = rd_send_msg(rd);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = rd_recv_msg(rd, sys_show_parse_cb, rd, seq);
-> +	return ret;
-
-since you are fixing the header, why not just
-	return rd_recv_msg(rd, sys_show_parse_cb, rd, seq);
-
-like the other functions?
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index be9ddcad8f28..87848faa7502 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -3481,13 +3481,14 @@ static const match_table_t srp_opt_tokens = {
+  * @net:	   [in]  Network namespace.
+  * @sa:		   [out] Address family, IP address and port number.
+  * @addr_port_str: [in]  IP address and port number.
++ * @has_port:	   [out] Whether or not @addr_port_str includes a port number.
+  *
+  * Parse the following address formats:
+  * - IPv4: <ip_address>:<port>, e.g. 1.2.3.4:5.
+  * - IPv6: \[<ipv6_address>\]:<port>, e.g. [1::2:3%4]:5.
+  */
+ static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
+-			const char *addr_port_str)
++			const char *addr_port_str, bool *has_port)
+ {
+ 	char *addr_end, *addr = kstrdup(addr_port_str, GFP_KERNEL);
+ 	char *port_str;
+@@ -3496,9 +3497,12 @@ static int srp_parse_in(struct net *net, struct sockaddr_storage *sa,
+ 	if (!addr)
+ 		return -ENOMEM;
+ 	port_str = strrchr(addr, ':');
+-	if (!port_str)
+-		return -EINVAL;
+-	*port_str++ = '\0';
++	if (port_str && strchr(port_str, ']'))
++		port_str = NULL;
++	if (port_str)
++		*port_str++ = '\0';
++	if (has_port)
++		*has_port = port_str != NULL;
+ 	ret = inet_pton_with_scope(net, AF_INET, addr, port_str, sa);
+ 	if (ret && addr[0]) {
+ 		addr_end = addr + strlen(addr) - 1;
+@@ -3520,6 +3524,7 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 	char *p;
+ 	substring_t args[MAX_OPT_ARGS];
+ 	unsigned long long ull;
++	bool has_port;
+ 	int opt_mask = 0;
+ 	int token;
+ 	int ret = -EINVAL;
+@@ -3618,7 +3623,8 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+-			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p);
++			ret = srp_parse_in(net, &target->rdma_cm.src.ss, p,
++					   NULL);
+ 			if (ret < 0) {
+ 				pr_warn("bad source parameter '%s'\n", p);
+ 				kfree(p);
+@@ -3634,7 +3640,10 @@ static int srp_parse_options(struct net *net, const char *buf,
+ 				ret = -ENOMEM;
+ 				goto out;
+ 			}
+-			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p);
++			ret = srp_parse_in(net, &target->rdma_cm.dst.ss, p,
++					   &has_port);
++			if (!has_port)
++				ret = -EINVAL;
+ 			if (ret < 0) {
+ 				pr_warn("bad dest parameter '%s'\n", p);
+ 				kfree(p);
+-- 
+2.22.0.rc1
