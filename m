@@ -1,68 +1,61 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH][next] IB/rdmavt: Use struct_size() helper
-Date: Thu, 30 May 2019 15:29:05 -0300
-Message-ID: <20190530182905.GE13475@ziepe.ca>
-References: <20190529151248.GA24080@embeddedor>
- <09563aec-f6d0-f27f-4f67-1e21cebd997c@intel.com>
+From: Dennis Dalessandro <dennis.dalessandro@intel.com>
+Subject: Re: [PATCH][next] IB/qib: Use struct_size() helper
+Date: Thu, 30 May 2019 14:29:13 -0400
+Message-ID: <a72f82a8-717c-3d5e-644c-4d7f30d3c43b@intel.com>
+References: <20190529151326.GA24109@embeddedor>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <09563aec-f6d0-f27f-4f67-1e21cebd997c@intel.com>
+In-Reply-To: <20190529151326.GA24109@embeddedor>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 30, 2019 at 02:26:22PM -0400, Dennis Dalessandro wrote:
-> On 5/29/2019 11:12 AM, Gustavo A. R. Silva wrote:
-> > Make use of the struct_size() helper instead of an open-coded version
-> > in order to avoid any potential type mistakes, in particular in the
-> > context in which this code is being used.
-> > 
-> > So, replace the following form:
-> > 
-> > sizeof(struct rvt_sge) * init_attr->cap.max_send_sge + sizeof(struct rvt_swqe)
-> > 
-> > with:
-> > 
-> > struct_size(swq, sg_list, init_attr->cap.max_send_sge)
-> > 
-> > and so on...
-> > 
-> > Also, notice that variable size is unnecessary, hence it is removed.
-> > 
-> > This code was detected with the help of Coccinelle.
-> > 
-> > Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> >   drivers/infiniband/sw/rdmavt/qp.c | 4 +---
-> >   1 file changed, 1 insertion(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/infiniband/sw/rdmavt/qp.c b/drivers/infiniband/sw/rdmavt/qp.c
-> > index 31a2e65e4906..a60f5faea198 100644
-> > +++ b/drivers/infiniband/sw/rdmavt/qp.c
-> > @@ -988,9 +988,7 @@ struct ib_qp *rvt_create_qp(struct ib_pd *ibpd,
-> >   	case IB_QPT_UC:
-> >   	case IB_QPT_RC:
-> >   	case IB_QPT_UD:
-> > -		sz = sizeof(struct rvt_sge) *
-> > -			init_attr->cap.max_send_sge +
-> > -			sizeof(struct rvt_swqe);
-> > +		sz = struct_size(swq, sg_list, init_attr->cap.max_send_sge);
-> >   		swq = vzalloc_node(array_size(sz, sqsize), rdi->dparms.node);
-> >   		if (!swq)
-> >   			return ERR_PTR(-ENOMEM);
-> > 
+On 5/29/2019 11:13 AM, Gustavo A. R. Silva wrote:
+> Make use of the struct_size() helper instead of an open-coded version
+> in order to avoid any potential type mistakes, in particular in the
+> context in which this code is being used.
 > 
-> Looks correct, I don't think this makes the code easier to read though. The
-> macro name "struct_size" is misleading to me. Maybe that's just me, and in
-> any case...
+> So, replace the following form:
+> 
+> sizeof(*pkt) + sizeof(pkt->addr[0])*n
+> 
+> with:
+> 
+> struct_size(pkt, addr, n)
+> 
+> Also, notice that variable size is unnecessary, hence it is removed.
+> 
+> This code was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>   drivers/infiniband/hw/qib/qib_user_sdma.c | 5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> index 0c204776263f..97649f64e09e 100644
+> --- a/drivers/infiniband/hw/qib/qib_user_sdma.c
+> +++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+> @@ -904,10 +904,11 @@ static int qib_user_sdma_queue_pkts(const struct qib_devdata *dd,
+>   		}
+>   
+>   		if (frag_size) {
+> -			int pktsize, tidsmsize, n;
+> +			int tidsmsize, n;
+> +			size_t pktsize;
+>   
+>   			n = npages*((2*PAGE_SIZE/frag_size)+1);
+> -			pktsize = sizeof(*pkt) + sizeof(pkt->addr[0])*n;
+> +			pktsize = struct_size(pkt, addr, n);
+>   
+>   			/*
+>   			 * Determine if this is tid-sdma or just sdma.
+> 
 
-It is struct_size because it computes the full size of a struct ending in a
-variable length array with N items.
+Again, same minor objection but correct patch none the less.
 
-The previous code was wonky because it assumes that struct rvt_swqe is
-the underlying type of sg_list, while the new version gets the type
-information automatically.
-
-Jason
+Reviewed-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
