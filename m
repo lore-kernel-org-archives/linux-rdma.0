@@ -1,67 +1,144 @@
 From: Parav Pandit <parav@mellanox.com>
-Subject: [PATCH iproute2-next v1 0/4] Enrich rdma tool for net namespace commands
-Date: Thu, 30 May 2019 22:11:13 -0500
-Message-ID: <20190531031117.60984-1-parav@mellanox.com>
+Subject: [PATCH iproute2-next v1 2/4] rdma: Add man pages for rdma system commands
+Date: Thu, 30 May 2019 22:11:15 -0500
+Message-ID: <20190531031117.60984-3-parav@mellanox.com>
+References: <20190531031117.60984-1-parav@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190531031117.60984-1-parav@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 To: dsahern@gmail.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com, parav@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-RDMA subsystem can be running in either of the modes.
-(a) Sharing RDMA devices among multiple net namespaces or
-(b) Exclusive mode where RDMA device is bound to single net namespace 
-
-This patch series adds
-(1) query command to query rdma subsystem sharing mode
-(2) set command to change rdma subsystem sharing mode
-(3) assign rdma device to a net namespace
-
-rdma tool examples:
-(a) Query current rdma subsys net namespace sharing mode 
-$ rdma sys show
-netns shared
-
-(b) Change rdma subsys mode to exclusive mode
-$ rdma sys set netns exclusive
-
-$ rdma sys show
-netns exclusive
-
-(c) Assign rdma device to a specific newly created net namespace
-$ ip netns add foo
-$ rdma dev set mlx5_1 netns foo 
-
+Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
+Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
-Changelog:
----
-v0->v1:
- - Addressed David Ahern's below comments
- - Updated license of rdma/sys.c to follow SPDX style
- - Avoid using ret variable in calling rd_recv_msg in sys_show_no_args()
-
-
-
-Parav Pandit (4):
-  rdma: Add an option to query,set net namespace sharing sys parameter
-  rdma: Add man pages for rdma system commands
-  rdma: Add an option to set net namespace of rdma device
-  rdma: Add man page for rdma dev set netns command
-
- man/man8/rdma-dev.8    |  18 +++++-
- man/man8/rdma-system.8 |  82 ++++++++++++++++++++++++
- man/man8/rdma.8        |   7 ++-
- rdma/Makefile          |   2 +-
- rdma/dev.c             |  37 +++++++++++
- rdma/rdma.c            |   3 +-
- rdma/rdma.h            |   1 +
- rdma/sys.c             | 138 +++++++++++++++++++++++++++++++++++++++++
- rdma/utils.c           |   1 +
- 9 files changed, 284 insertions(+), 5 deletions(-)
+ man/man8/rdma-system.8 | 82 ++++++++++++++++++++++++++++++++++++++++++
+ man/man8/rdma.8        |  7 +++-
+ 2 files changed, 88 insertions(+), 1 deletion(-)
  create mode 100644 man/man8/rdma-system.8
- create mode 100644 rdma/sys.c
 
+diff --git a/man/man8/rdma-system.8 b/man/man8/rdma-system.8
+new file mode 100644
+index 00000000..a6873b52
+--- /dev/null
++++ b/man/man8/rdma-system.8
+@@ -0,0 +1,82 @@
++.TH RDMA\-SYSTEM 8 "06 Jul 2017" "iproute2" "Linux"
++.SH NAME
++rdma-system \- RDMA subsystem configuration
++.SH SYNOPSIS
++.sp
++.ad l
++.in +8
++.ti -8
++.B rdma
++.RI "[ " OPTIONS " ]"
++.B sys
++.RI  " { " COMMAND " | "
++.BR help " }"
++.sp
++
++.ti -8
++.IR OPTIONS " := { "
++\fB\-V\fR[\fIersion\fR] |
++\fB\-d\fR[\fIetails\fR] }
++
++.ti -8
++.B rdma system show
++
++.ti -8
++.B rdma system set
++.BR netns
++.BR NEWMODE
++
++.ti -8
++.B rdma system help
++
++.SH "DESCRIPTION"
++.SS rdma system set - set RDMA subsystem network namespace mode
++
++.SS rdma system show - display RDMA subsystem network namespace mode
++
++.PP
++.I "NEWMODE"
++- specifies the RDMA subsystem mode. Either exclusive or shared.
++When user wants to assign dedicated RDMA device to a particular
++network namespace, exclusive mode should be set before creating
++any network namespace. If there are active network namespaces and if
++one or more RDMA devices exist, changing mode from shared to
++exclusive returns error code EBUSY.
++
++When RDMA subsystem is in shared mode, RDMA device is accessible in
++all network namespace. When RDMA device isolation among multiple
++network namespaces is not needed, shared mode can be used.
++
++It is preferred to not change the subsystem mode when there is active
++RDMA traffic running, even though it is supported.
++
++.SH "EXAMPLES"
++.PP
++rdma system show
++.RS 4
++Shows the state of RDMA subsystem network namespace mode on the system.
++.RE
++.PP
++rdma system set netns exclusive
++.RS 4
++Sets the RDMA subsystem in network namespace exclusive mode. In this mode RDMA devices
++are visible only in single network namespace.
++.RE
++.PP
++rdma system set netns shared
++.RS 4
++Sets the RDMA subsystem in network namespace shared mode. In this mode RDMA devices
++are shared among network namespaces.
++.RE
++.PP
++
++.SH SEE ALSO
++.BR rdma (8),
++.BR rdma-link (8),
++.BR rdma-resource (8),
++.BR network_namespaces(7),
++.BR namespaces(7),
++.br
++
++.SH AUTHOR
++Parav Pandit <parav@mellanox.com>
+diff --git a/man/man8/rdma.8 b/man/man8/rdma.8
+index b2b5aef8..3ae33987 100644
+--- a/man/man8/rdma.8
++++ b/man/man8/rdma.8
+@@ -19,7 +19,7 @@ rdma \- RDMA tool
+ 
+ .ti -8
+ .IR OBJECT " := { "
+-.BR dev " | " link " }"
++.BR dev " | " link " | " system " }"
+ .sp
+ 
+ .ti -8
+@@ -70,6 +70,10 @@ Generate JSON output.
+ .B link
+ - RDMA port related.
+ 
++.TP
++.B sys
++- RDMA subsystem related.
++
+ .PP
+ The names of all objects may be written in full or
+ abbreviated form, for example
+@@ -107,6 +111,7 @@ Exit status is 0 if command was successful or a positive integer upon failure.
+ .BR rdma-dev (8),
+ .BR rdma-link (8),
+ .BR rdma-resource (8),
++.BR rdma-system (8),
+ .br
+ 
+ .SH REPORTING BUGS
 -- 
 2.19.2
