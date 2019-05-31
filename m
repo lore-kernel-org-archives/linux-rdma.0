@@ -1,42 +1,65 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v15 17/17] selftests, arm64: add a selftest for passing
- tagged pointers to kernel
-Date: Fri, 31 May 2019 17:22:06 +0100
-Message-ID: <20190531162206.GB3568@arrakis.emea.arm.com>
-References: <cover.1557160186.git.andreyknvl@google.com>
- <e31d9364eb0c2eba8ce246a558422e811d82d21b.1557160186.git.andreyknvl@google.com>
- <20190522141612.GA28122@arrakis.emea.arm.com>
- <CAAeHK+wUerHQOV2PuaTwTxcCucZHZodLwg48228SB+ymxEqT2A@mail.gmail.com>
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: Re: [PATCH v15 00/17] arm64: untag user pointers passed to the kernel
+Date: Fri, 31 May 2019 18:24:06 +0200
+Message-ID: <CAAeHK+zRDD7ZPPUA9cpwHOdgTRrJLWAby8Wg9oPgmhqMpHwvFw@mail.gmail.com>
+References: <20190521182932.sm4vxweuwo5ermyd@mbp> <201905211633.6C0BF0C2@keescook>
+ <6049844a-65f5-f513-5b58-7141588fef2b@oracle.com> <20190523201105.oifkksus4rzcwqt4@mbp>
+ <ffe58af3-7c70-d559-69f6-1f6ebcb0fec6@oracle.com> <20190524101139.36yre4af22bkvatx@mbp>
+ <c6dd53d8-142b-3d8d-6a40-d21c5ee9d272@oracle.com> <CAAeHK+yAUsZWhp6xPAbWewX5Nbw+-G3svUyPmhXu5MVeEDKYvA@mail.gmail.com>
+ <20190530171540.GD35418@arrakis.emea.arm.com> <CAAeHK+y34+SNz3Vf+_378bOxrPaj_3GaLCeC2Y2rHAczuaSz1A@mail.gmail.com>
+ <20190531161954.GA3568@arrakis.emea.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAAeHK+wUerHQOV2PuaTwTxcCucZHZodLwg48228SB+ymxEqT2A@mail.gmail.com>
+In-Reply-To: <20190531161954.GA3568@arrakis.emea.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@>
+To: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kees Cook <keescook@chromium.org>, Evgenii Stepanov <eugenis@google.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Memory Management List <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, "open list:KERNEL SELFTEST FRAMEWORK" <linux-kselftest@vger.kernel.org>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.co>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 31, 2019 at 04:21:48PM +0200, Andrey Konovalov wrote:
-> On Wed, May 22, 2019 at 4:16 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
-> > On Mon, May 06, 2019 at 06:31:03PM +0200, Andrey Konovalov wrote:
-> > > This patch is a part of a series that extends arm64 kernel ABI to allow to
-> > > pass tagged user pointers (with the top byte set to something else other
-> > > than 0x00) as syscall arguments.
+On Fri, May 31, 2019 at 6:20 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
+>
+> On Fri, May 31, 2019 at 04:29:10PM +0200, Andrey Konovalov wrote:
+> > On Thu, May 30, 2019 at 7:15 PM Catalin Marinas <catalin.marinas@arm.com> wrote:
+> > > On Tue, May 28, 2019 at 04:14:45PM +0200, Andrey Konovalov wrote:
+> > > > Thanks for a lot of valuable input! I've read through all the replies
+> > > > and got somewhat lost. What are the changes I need to do to this
+> > > > series?
+> > > >
+> > > > 1. Should I move untagging for memory syscalls back to the generic
+> > > > code so other arches would make use of it as well, or should I keep
+> > > > the arm64 specific memory syscalls wrappers and address the comments
+> > > > on that patch?
 > > >
-> > > This patch adds a simple test, that calls the uname syscall with a
-> > > tagged user pointer as an argument. Without the kernel accepting tagged
-> > > user pointers the test fails with EFAULT.
+> > > Keep them generic again but make sure we get agreement with Khalid on
+> > > the actual ABI implications for sparc.
 > >
-> > That's probably sufficient for a simple example. Something we could add
-> > to Documentation maybe is a small library that can be LD_PRELOAD'ed so
-> > that you can run a lot more tests like LTP.
-> 
-> Should I add this into this series, or should this go into Vincenzo's patchset?
+> > OK, will do. I find it hard to understand what the ABI implications
+> > are. I'll post the next version without untagging in brk, mmap,
+> > munmap, mremap (for new_address), mmap_pgoff, remap_file_pages, shmat
+> > and shmdt.
+>
+> It's more about not relaxing the ABI to accept non-zero top-byte unless
+> we have a use-case for it. For mmap() etc., I don't think that's needed
+> but if you think otherwise, please raise it.
+>
+> > > > 2. Should I make untagging opt-in and controlled by a command line argument?
+> > >
+> > > Opt-in, yes, but per task rather than kernel command line option.
+> > > prctl() is a possibility of opting in.
+> >
+> > OK. Should I store a flag somewhere in task_struct? Should it be
+> > inheritable on clone?
+>
+> A TIF flag would do but I'd say leave it out for now (default opted in)
+> until we figure out the best way to do this (can be a patch on top of
+> this series).
 
-If you can tweak the selftest Makefile to build a library and force it
-with LD_PRELOAD, you can keep it with this patch. It would be easier to
-extend to other syscall tests, signal handling etc.
+You mean leave the whole opt-in/prctl part out? So the only change
+would be to move untagging for memory syscalls into generic code?
 
--- 
-Catalin
+>
+> Thanks.
+>
+> --
+> Catalin
