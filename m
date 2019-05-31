@@ -1,7 +1,7 @@
 From: Parav Pandit <parav@mellanox.com>
-Subject: [PATCH iproute2-next v1 1/4] rdma: Add an option to query,set net namespace sharing sys parameter
-Date: Thu, 30 May 2019 22:11:14 -0500
-Message-ID: <20190531031117.60984-2-parav@mellanox.com>
+Subject: [PATCH iproute2-next v1 3/4] rdma: Add an option to set net namespace of rdma device
+Date: Thu, 30 May 2019 22:11:16 -0500
+Message-ID: <20190531031117.60984-4-parav@mellanox.com>
 References: <20190531031117.60984-1-parav@mellanox.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,232 +12,93 @@ To: dsahern@gmail.com
 Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com, parav@mellanox.com
 List-Id: linux-rdma@vger.kernel.org
 
-Enrich rdmatool with an option to query rdma subsystem parameter
-whether rdma devices are shared among multiple network namespaces
-or exclusive to single network namespace.
+Enrich rdmatool with an option to set network namespace of RDMA
+device. After successful execution of it, rdma device will
+be accessible only in assigned network namespace.
 
 rdma tool command examples and output.
 
-$ rdma system show
-netns shared
+First set netns mode to exclusive.
 
 $ rdma system set netns exclusive
 
-$ rdma system show
-netns exclusive
+Now create network namespace and assign RDMA device to this
+network namespace.
+
+$ ip netns add foo
+$ rdma dev set mlx5_1 netns foo
 
 Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
 Signed-off-by: Parav Pandit <parav@mellanox.com>
 ---
- rdma/Makefile |   2 +-
- rdma/rdma.c   |   3 +-
- rdma/rdma.h   |   1 +
- rdma/sys.c    | 138 ++++++++++++++++++++++++++++++++++++++++++++++++++
- rdma/utils.c  |   1 +
- 5 files changed, 143 insertions(+), 2 deletions(-)
- create mode 100644 rdma/sys.c
+ rdma/dev.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
 
-diff --git a/rdma/Makefile b/rdma/Makefile
-index 6a424234..4847f27e 100644
---- a/rdma/Makefile
-+++ b/rdma/Makefile
-@@ -7,7 +7,7 @@ ifeq ($(HAVE_MNL),y)
- CFLAGS += -I./include/uapi/
+diff --git a/rdma/dev.c b/rdma/dev.c
+index 90483622..d28bf6b3 100644
+--- a/rdma/dev.c
++++ b/rdma/dev.c
+@@ -4,12 +4,14 @@
+  * Authors:     Leon Romanovsky <leonro@mellanox.com>
+  */
  
- RDMA_OBJ = rdma.o utils.o dev.o link.o res.o res-pd.o res-mr.o res-cq.o \
--	   res-cmid.o res-qp.o
-+	   res-cmid.o res-qp.o sys.o
++#include <fcntl.h>
+ #include "rdma.h"
  
- TARGETS += rdma
- endif
-diff --git a/rdma/rdma.c b/rdma/rdma.c
-index 676e03c2..e9f1b4bb 100644
---- a/rdma/rdma.c
-+++ b/rdma/rdma.c
-@@ -11,7 +11,7 @@ static void help(char *name)
+ static int dev_help(struct rd *rd)
  {
- 	pr_out("Usage: %s [ OPTIONS ] OBJECT { COMMAND | help }\n"
- 	       "       %s [ -f[orce] ] -b[atch] filename\n"
--	       "where  OBJECT := { dev | link | resource | help }\n"
-+	       "where  OBJECT := { dev | link | resource | system | help }\n"
- 	       "       OPTIONS := { -V[ersion] | -d[etails] | -j[son] | -p[retty]}\n", name, name);
+ 	pr_out("Usage: %s dev show [DEV]\n", rd->filename);
+ 	pr_out("       %s dev set [DEV] name DEVNAME\n", rd->filename);
++	pr_out("       %s dev set [DEV] netns NSNAME\n", rd->filename);
+ 	return 0;
  }
  
-@@ -29,6 +29,7 @@ static int rd_cmd(struct rd *rd, int argc, char **argv)
- 		{ "dev",	cmd_dev },
- 		{ "link",	cmd_link },
- 		{ "resource",	cmd_res },
-+		{ "system",	cmd_sys },
- 		{ 0 }
- 	};
+@@ -272,11 +274,46 @@ static int dev_set_name(struct rd *rd)
+ 	return rd_sendrecv_msg(rd, seq);
+ }
  
-diff --git a/rdma/rdma.h b/rdma/rdma.h
-index 9ed9e045..885a751e 100644
---- a/rdma/rdma.h
-+++ b/rdma/rdma.h
-@@ -93,6 +93,7 @@ char *rd_argv(struct rd *rd);
- int cmd_dev(struct rd *rd);
- int cmd_link(struct rd *rd);
- int cmd_res(struct rd *rd);
-+int cmd_sys(struct rd *rd);
- int rd_exec_cmd(struct rd *rd, const struct rd_cmd *c, const char *str);
- int rd_exec_dev(struct rd *rd, int (*cb)(struct rd *rd));
- int rd_exec_require_dev(struct rd *rd, int (*cb)(struct rd *rd));
-diff --git a/rdma/sys.c b/rdma/sys.c
-new file mode 100644
-index 00000000..cef39081
---- /dev/null
-+++ b/rdma/sys.c
-@@ -0,0 +1,138 @@
-+// SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
-+/*
-+ * sys.c	RDMA tool
-+ */
-+
-+#include "rdma.h"
-+
-+static int sys_help(struct rd *rd)
++static int dev_set_netns(struct rd *rd)
 +{
-+	pr_out("Usage: %s system show [ netns ]\n", rd->filename);
-+	pr_out("       %s system set netns { shared | exclusive }\n", rd->filename);
-+	return 0;
-+}
-+
-+static const char *netns_modes_str[] = {
-+	"exclusive",
-+	"shared",
-+};
-+
-+static int sys_show_parse_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *tb[RDMA_NLDEV_ATTR_MAX] = {};
-+	struct rd *rd = data;
-+
-+	mnl_attr_parse(nlh, 0, rd_attr_cb, tb);
-+
-+	if (tb[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]) {
-+		const char *mode_str;
-+		uint8_t netns_mode;
-+
-+		netns_mode =
-+			mnl_attr_get_u8(tb[RDMA_NLDEV_SYS_ATTR_NETNS_MODE]);
-+
-+		if (netns_mode <= ARRAY_SIZE(netns_modes_str))
-+			mode_str = netns_modes_str[netns_mode];
-+		else
-+			mode_str = "unknown";
-+
-+		if (rd->json_output)
-+			jsonw_string_field(rd->jw, "netns", mode_str);
-+		else
-+			pr_out("netns %s\n", mode_str);
-+	}
-+	return MNL_CB_OK;
-+}
-+
-+static int sys_show_no_args(struct rd *rd)
-+{
++	char *netns_path;
 +	uint32_t seq;
++	int netns;
 +	int ret;
 +
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SYS_GET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+	ret = rd_send_msg(rd);
-+	if (ret)
-+		return ret;
-+
-+	return rd_recv_msg(rd, sys_show_parse_cb, rd, seq);
-+}
-+
-+static int sys_show(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		sys_show_no_args},
-+		{ "netns",	sys_show_no_args},
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+static int sys_set_netns_cmd(struct rd *rd, bool enable)
-+{
-+	uint32_t seq;
-+
-+	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SYS_SET,
-+		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
-+	mnl_attr_put_u8(rd->nlh, RDMA_NLDEV_SYS_ATTR_NETNS_MODE, enable);
-+
-+	return rd_sendrecv_msg(rd, seq);
-+}
-+
-+static bool sys_valid_netns_cmd(const char *cmd)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(netns_modes_str); i++) {
-+		if (!strcmp(cmd, netns_modes_str[i]))
-+			return true;
-+	}
-+	return false;
-+}
-+
-+static int sys_set_netns_args(struct rd *rd)
-+{
-+	bool cmd;
-+
-+	if (rd_no_arg(rd) || !sys_valid_netns_cmd(rd_argv(rd))) {
-+		pr_err("valid options are: { shared | exclusive }\n");
++	if (rd_no_arg(rd)) {
++		pr_err("Please provide device name.\n");
 +		return -EINVAL;
 +	}
 +
-+	cmd = (strcmp(rd_argv(rd), "shared") == 0) ? true : false;
++	if (asprintf(&netns_path, "%s/%s", NETNS_RUN_DIR, rd_argv(rd)) < 0)
++		return -ENOMEM;
 +
-+	return sys_set_netns_cmd(rd, cmd);
++	netns = open(netns_path, O_RDONLY | O_CLOEXEC);
++	if (netns < 0) {
++		fprintf(stderr, "Cannot open network namespace \"%s\": %s\n",
++			rd_argv(rd), strerror(errno));
++		ret = -EINVAL;
++		goto done;
++	}
++
++	rd_prepare_msg(rd, RDMA_NLDEV_CMD_SET,
++		       &seq, (NLM_F_REQUEST | NLM_F_ACK));
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_ATTR_DEV_INDEX, rd->dev_idx);
++	mnl_attr_put_u32(rd->nlh, RDMA_NLDEV_NET_NS_FD, netns);
++	ret = rd_sendrecv_msg(rd, seq);
++	close(netns);
++done:
++	free(netns_path);
++	return ret;
 +}
 +
-+static int sys_set_help(struct rd *rd)
-+{
-+	pr_out("Usage: %s system set [PARAM] value\n", rd->filename);
-+	pr_out("            system set netns { shared | exclusive }\n");
-+	return 0;
-+}
-+
-+static int sys_set(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,			sys_set_help },
-+		{ "help",		sys_set_help },
-+		{ "netns",		sys_set_netns_args},
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "parameter");
-+}
-+
-+int cmd_sys(struct rd *rd)
-+{
-+	const struct rd_cmd cmds[] = {
-+		{ NULL,		sys_show },
-+		{ "show",	sys_show },
-+		{ "set",	sys_set },
-+		{ "help",	sys_help },
-+		{ 0 }
-+	};
-+
-+	return rd_exec_cmd(rd, cmds, "system command");
-+}
-diff --git a/rdma/utils.c b/rdma/utils.c
-index 11ed8a73..558d1c29 100644
---- a/rdma/utils.c
-+++ b/rdma/utils.c
-@@ -435,6 +435,7 @@ static const enum mnl_attr_data_type nldev_policy[RDMA_NLDEV_ATTR_MAX] = {
- 	[RDMA_NLDEV_ATTR_DRIVER_U32] = MNL_TYPE_U32,
- 	[RDMA_NLDEV_ATTR_DRIVER_S64] = MNL_TYPE_U64,
- 	[RDMA_NLDEV_ATTR_DRIVER_U64] = MNL_TYPE_U64,
-+	[RDMA_NLDEV_SYS_ATTR_NETNS_MODE] = MNL_TYPE_U8,
- };
+ static int dev_one_set(struct rd *rd)
+ {
+ 	const struct rd_cmd cmds[] = {
+ 		{ NULL,		dev_help},
+ 		{ "name",	dev_set_name},
++		{ "netns",	dev_set_netns},
+ 		{ 0 }
+ 	};
  
- int rd_attr_check(const struct nlattr *attr, int *typep)
 -- 
 2.19.2
