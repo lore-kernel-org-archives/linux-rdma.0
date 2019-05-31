@@ -1,71 +1,44 @@
-From: Parav Pandit <parav@mellanox.com>
-Subject: [PATCH iproute2-next v1 4/4] rdma: Add man page for rdma dev set netns command
-Date: Thu, 30 May 2019 22:11:17 -0500
-Message-ID: <20190531031117.60984-5-parav@mellanox.com>
-References: <20190531031117.60984-1-parav@mellanox.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH 2/2][next] RDMA/hns: fix inverted logic of readl read and shift
+Date: Fri, 31 May 2019 10:21:01 +0100
+Message-ID: <20190531092101.28772-2-colin.king@canonical.com>
+References: <20190531092101.28772-1-colin.king@canonical.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190531031117.60984-1-parav@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: dsahern@gmail.com
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com, parav@mellanox.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190531092101.28772-1-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add man page to describe additional set netns command
-for rdma device.
+From: Colin Ian King <colin.king@canonical.com>
 
-Reviewed-by: Leon Romanovsky <leonro@mellanox.com>
-Signed-off-by: Parav Pandit <parav@mellanox.com>
+A previous change incorrectly changed the inverted logic and logically
+negated the readl rather than the shifted readl result. Fix this by
+adding in missing parentheses around the expression that needs to be
+logically negated.
+
+Addresses-Coverity: ("Logically dead code")
+Fixes: 669cefb654cb ("RDMA/hns: Remove jiffies operation in disable interrupt context")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- man/man8/rdma-dev.8 | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/hns/hns_roce_hem.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/man/man8/rdma-dev.8 b/man/man8/rdma-dev.8
-index 069f4717..38e34b3b 100644
---- a/man/man8/rdma-dev.8
-+++ b/man/man8/rdma-dev.8
-@@ -28,13 +28,19 @@ rdma-dev \- RDMA device configuration
- .BR name
- .BR NEWNAME
+diff --git a/drivers/infiniband/hw/hns/hns_roce_hem.c b/drivers/infiniband/hw/hns/hns_roce_hem.c
+index b3641aeff27a..a8e9329cbf4e 100644
+--- a/drivers/infiniband/hw/hns/hns_roce_hem.c
++++ b/drivers/infiniband/hw/hns/hns_roce_hem.c
+@@ -378,7 +378,7 @@ static int hns_roce_set_hem(struct hns_roce_dev *hr_dev,
  
-+.ti -8
-+.B rdma dev set
-+.RI "[ " DEV " ]"
-+.BR netns
-+.BR NSNAME
-+
- .ti -8
- .B rdma dev help
+ 		end = HW_SYNC_TIMEOUT_MSECS;
+ 		while (end > 0) {
+-			if (!readl(bt_cmd) >> BT_CMD_SYNC_SHIFT)
++			if (!(readl(bt_cmd) >> BT_CMD_SYNC_SHIFT))
+ 				break;
  
- .SH "DESCRIPTION"
--.SS rdma dev set - rename rdma device
-+.SS rdma dev set - rename RDMA device or set network namespace
- 
--.SS rdma dev show - display rdma device attributes
-+.SS rdma dev show - display RDMA device attributes
- 
- .PP
- .I "DEV"
-@@ -58,11 +64,19 @@ rdma dev set mlx5_3 name rdma_0
- Renames the mlx5_3 device to rdma_0.
- .RE
- .PP
-+rdma dev set mlx5_3 netns foo
-+.RS 4
-+Changes the network namespace of RDMA device to foo where foo is
-+previously created using iproute2 ip command.
-+.RE
-+.PP
- 
- .SH SEE ALSO
-+.BR ip (8),
- .BR rdma (8),
- .BR rdma-link (8),
- .BR rdma-resource (8),
-+.BR rdma-system (8),
- .br
- 
- .SH AUTHOR
+ 			mdelay(HW_SYNC_SLEEP_TIME_INTERVAL);
 -- 
-2.19.2
+2.20.1
