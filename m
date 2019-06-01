@@ -1,28 +1,72 @@
-From: David Ahern <dsahern@gmail.com>
-Subject: Re: [PATCH iproute2-next v1 2/4] rdma: Add man pages for rdma system
- commands
-Date: Fri, 31 May 2019 16:13:46 -0600
-Message-ID: <6f0ff987-62d8-a314-6d9e-636363729d6a@gmail.com>
-References: <20190531031117.60984-1-parav@mellanox.com>
- <20190531031117.60984-3-parav@mellanox.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Subject: [PATCH 1/1] net: rds: add per rds connection cache statistics
+Date: Sat,  1 Jun 2019 03:54:34 -0400
+Message-ID: <1559375674-17913-1-git-send-email-yanjun.zhu@oracle.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190531031117.60984-3-parav@mellanox.com>
-Content-Language: en-US
 Sender: netdev-owner@vger.kernel.org
-To: Parav Pandit <parav@mellanox.com>
-Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, stephen@networkplumber.org, leonro@mellanox.com
+To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/30/19 9:11 PM, Parav Pandit wrote:
-> +
-> +.SH SEE ALSO
-> +.BR rdma (8),
-> +.BR rdma-link (8),
-> +.BR rdma-resource (8),
-> +.BR network_namespaces(7),
-> +.BR namespaces(7),
+The variable cache_allocs is to indicate how many frags (KiB) are in one
+rds connection frag cache.
+The command "rds-info -Iv" will output the rds connection cache
+statistics as below:
+"
+RDS IB Connections:
+      LocalAddr RemoteAddr Tos SL  LocalDev            RemoteDev
+      1.1.1.14 1.1.1.14   58 255  fe80::2:c903:a:7a31 fe80::2:c903:a:7a31
+      send_wr=256, recv_wr=1024, send_sge=8, rdma_mr_max=4096,
+      rdma_mr_size=257, cache_allocs=12
+"
+This means that there are about 12KiB frag in this rds connection frag
+ cache.
 
-Added the missing space before (7) and applied all of them to iproute2-next.
+Tested-by: RDS CI <rdsci_oslo@no.oracle.com>
+Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+---
+ include/uapi/linux/rds.h | 2 ++
+ net/rds/ib.c             | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/include/uapi/linux/rds.h b/include/uapi/linux/rds.h
+index 5d0f76c..fd6b5f6 100644
+--- a/include/uapi/linux/rds.h
++++ b/include/uapi/linux/rds.h
+@@ -250,6 +250,7 @@ struct rds_info_rdma_connection {
+ 	__u32		rdma_mr_max;
+ 	__u32		rdma_mr_size;
+ 	__u8		tos;
++	__u32		cache_allocs;
+ };
+ 
+ struct rds6_info_rdma_connection {
+@@ -264,6 +265,7 @@ struct rds6_info_rdma_connection {
+ 	__u32		rdma_mr_max;
+ 	__u32		rdma_mr_size;
+ 	__u8		tos;
++	__u32		cache_allocs;
+ };
+ 
+ /* RDS message Receive Path Latency points */
+diff --git a/net/rds/ib.c b/net/rds/ib.c
+index 2da9b75..f9baf2d 100644
+--- a/net/rds/ib.c
++++ b/net/rds/ib.c
+@@ -318,6 +318,7 @@ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
+ 		iinfo->max_recv_wr = ic->i_recv_ring.w_nr;
+ 		iinfo->max_send_sge = rds_ibdev->max_sge;
+ 		rds_ib_get_mr_info(rds_ibdev, iinfo);
++		iinfo->cache_allocs = atomic_read(&ic->i_cache_allocs);
+ 	}
+ 	return 1;
+ }
+@@ -351,6 +352,7 @@ static int rds6_ib_conn_info_visitor(struct rds_connection *conn,
+ 		iinfo6->max_recv_wr = ic->i_recv_ring.w_nr;
+ 		iinfo6->max_send_sge = rds_ibdev->max_sge;
+ 		rds6_ib_get_mr_info(rds_ibdev, iinfo6);
++		iinfo6->cache_allocs = atomic_read(&ic->i_cache_allocs);
+ 	}
+ 	return 1;
+ }
+-- 
+2.7.4
