@@ -1,77 +1,144 @@
 From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCHv2 1/1] net: rds: add per rds connection cache statistics
-Date: Mon,  3 Jun 2019 00:28:01 -0400
-Message-ID: <1559536081-25401-1-git-send-email-yanjun.zhu@oracle.com>
+Subject: [PATCH 1/1] net: rds: fix memory leak when unload rds_rdma
+Date: Mon,  3 Jun 2019 08:48:19 -0400
+Message-ID: <1559566099-30289-1-git-send-email-yanjun.zhu@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
-The variable cache_allocs is to indicate how many frags (KiB) are in one
-rds connection frag cache.
-The command "rds-info -Iv" will output the rds connection cache
-statistics as below:
-"
-RDS IB Connections:
-      LocalAddr RemoteAddr Tos SL  LocalDev            RemoteDev
-      1.1.1.14 1.1.1.14   58 255  fe80::2:c903:a:7a31 fe80::2:c903:a:7a31
-      send_wr=256, recv_wr=1024, send_sge=8, rdma_mr_max=4096,
-      rdma_mr_size=257, cache_allocs=12
-"
-This means that there are about 12KiB frag in this rds connection frag
-cache. 
-Since rds.h in rds-tools is not related with the kernel rds.h, the change
-in kernel rds.h does not affect rds-tools.
-rds-info in rds-tools 2.0.5 and 2.0.6 is tested with this commit. It works
-well.
+When KASAN is enabled, after several rds connections are
+created, then "rmmod rds_rdma" is run. The following will
+appear.
 
+"
+BUG rds_ib_incoming (Not tainted): Objects remaining
+in rds_ib_incoming on __kmem_cache_shutdown()
+
+Call Trace:
+ dump_stack+0x71/0xab
+ slab_err+0xad/0xd0
+ __kmem_cache_shutdown+0x17d/0x370
+ shutdown_cache+0x17/0x130
+ kmem_cache_destroy+0x1df/0x210
+ rds_ib_recv_exit+0x11/0x20 [rds_rdma]
+ rds_ib_exit+0x7a/0x90 [rds_rdma]
+ __x64_sys_delete_module+0x224/0x2c0
+ ? __ia32_sys_delete_module+0x2c0/0x2c0
+ do_syscall_64+0x73/0x190
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+"
+This is rds connection memory leak. The root cause is:
+When "rmmod rds_rdma" is run, rds_ib_remove_one will call
+rds_ib_dev_shutdown to drop the rds connections.
+rds_ib_dev_shutdown will call rds_conn_drop to drop rds
+connections as below.
+"
+rds_conn_path_drop(&conn->c_path[0], false);
+"
+In the above, destroy is set to false.
+void rds_conn_path_drop(struct rds_conn_path *cp, bool destroy)
+{
+        atomic_set(&cp->cp_state, RDS_CONN_ERROR);
+
+        rcu_read_lock();
+        if (!destroy && rds_destroy_pending(cp->cp_conn)) {
+                rcu_read_unlock();
+                return;
+        }
+        queue_work(rds_wq, &cp->cp_down_w);
+        rcu_read_unlock();
+}
+In the above function, destroy is set to false. rds_destroy_pending
+is called. This does not move rds connections to ib_nodev_conns.
+So destroy is set to true to move rds connections to ib_nodev_conns.
+In rds_ib_unregister_client, flush_workqueue is called to make rds_wq
+finsh shutdown rds connections. The function rds_ib_destroy_nodev_conns
+is called to shutdown rds connections finally.
+Then rds_ib_recv_exit is called to destroy slab.
+
+void rds_ib_recv_exit(void)
+{
+        kmem_cache_destroy(rds_ib_incoming_slab);
+        kmem_cache_destroy(rds_ib_frag_slab);
+}
+The above slab memory leak will not occur again.
+
+>From tests,
+256 rds connections
+[root@ca-dev14 ~]# time rmmod rds_rdma
+
+real    0m16.522s
+user    0m0.000s
+sys     0m8.152s
+512 rds connections
+[root@ca-dev14 ~]# time rmmod rds_rdma
+
+real    0m32.054s
+user    0m0.000s
+sys     0m15.568s
+
+To rmmod rds_rdma with 256 rds connections, about 16 seconds are needed.
+And with 512 rds connections, about 32 seconds are needed.
+>From ftrace, when one rds connection is destroyed,
+
+"
+ 19)               |  rds_conn_destroy [rds]() {
+ 19)   7.782 us    |    rds_conn_path_drop [rds]();
+ 15)               |  rds_shutdown_worker [rds]() {
+ 15)               |    rds_conn_shutdown [rds]() {
+ 15)   1.651 us    |      rds_send_path_reset [rds]();
+ 15)   7.195 us    |    }
+ 15) + 11.434 us   |  }
+ 19)   2.285 us    |    rds_cong_remove_conn [rds]();
+ 19) * 24062.76 us |  }
+"
+So if many rds connections will be destroyed, this function
+rds_ib_destroy_nodev_conns uses most of time.
+
+Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
 Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
 ---
-V1->V2: RDS CI is removed. 
----
- include/uapi/linux/rds.h | 2 ++
- net/rds/ib.c             | 2 ++
- 2 files changed, 4 insertions(+)
+ net/rds/ib.c      | 2 +-
+ net/rds/ib_recv.c | 3 +++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/rds.h b/include/uapi/linux/rds.h
-index 5d0f76c..fd6b5f6 100644
---- a/include/uapi/linux/rds.h
-+++ b/include/uapi/linux/rds.h
-@@ -250,6 +250,7 @@ struct rds_info_rdma_connection {
- 	__u32		rdma_mr_max;
- 	__u32		rdma_mr_size;
- 	__u8		tos;
-+	__u32		cache_allocs;
- };
- 
- struct rds6_info_rdma_connection {
-@@ -264,6 +265,7 @@ struct rds6_info_rdma_connection {
- 	__u32		rdma_mr_max;
- 	__u32		rdma_mr_size;
- 	__u8		tos;
-+	__u32		cache_allocs;
- };
- 
- /* RDS message Receive Path Latency points */
 diff --git a/net/rds/ib.c b/net/rds/ib.c
-index 2da9b75..f9baf2d 100644
+index f9baf2d..ec05d91 100644
 --- a/net/rds/ib.c
 +++ b/net/rds/ib.c
-@@ -318,6 +318,7 @@ static int rds_ib_conn_info_visitor(struct rds_connection *conn,
- 		iinfo->max_recv_wr = ic->i_recv_ring.w_nr;
- 		iinfo->max_send_sge = rds_ibdev->max_sge;
- 		rds_ib_get_mr_info(rds_ibdev, iinfo);
-+		iinfo->cache_allocs = atomic_read(&ic->i_cache_allocs);
- 	}
- 	return 1;
+@@ -87,7 +87,7 @@ static void rds_ib_dev_shutdown(struct rds_ib_device *rds_ibdev)
+ 
+ 	spin_lock_irqsave(&rds_ibdev->spinlock, flags);
+ 	list_for_each_entry(ic, &rds_ibdev->conn_list, ib_node)
+-		rds_conn_drop(ic->conn);
++		rds_conn_path_drop(&ic->conn->c_path[0], true);
+ 	spin_unlock_irqrestore(&rds_ibdev->spinlock, flags);
  }
-@@ -351,6 +352,7 @@ static int rds6_ib_conn_info_visitor(struct rds_connection *conn,
- 		iinfo6->max_recv_wr = ic->i_recv_ring.w_nr;
- 		iinfo6->max_send_sge = rds_ibdev->max_sge;
- 		rds6_ib_get_mr_info(rds_ibdev, iinfo6);
-+		iinfo6->cache_allocs = atomic_read(&ic->i_cache_allocs);
+ 
+diff --git a/net/rds/ib_recv.c b/net/rds/ib_recv.c
+index 8946c89..3cae88c 100644
+--- a/net/rds/ib_recv.c
++++ b/net/rds/ib_recv.c
+@@ -168,6 +168,7 @@ void rds_ib_recv_free_caches(struct rds_ib_connection *ic)
+ 		list_del(&inc->ii_cache_entry);
+ 		WARN_ON(!list_empty(&inc->ii_frags));
+ 		kmem_cache_free(rds_ib_incoming_slab, inc);
++		atomic_dec(&rds_ib_allocation);
  	}
- 	return 1;
+ 
+ 	rds_ib_cache_xfer_to_ready(&ic->i_cache_frags);
+@@ -1057,6 +1058,8 @@ int rds_ib_recv_init(void)
+ 
+ void rds_ib_recv_exit(void)
+ {
++	WARN_ON(atomic_read(&rds_ib_allocation));
++
+ 	kmem_cache_destroy(rds_ib_incoming_slab);
+ 	kmem_cache_destroy(rds_ib_frag_slab);
  }
 -- 
 2.7.4
