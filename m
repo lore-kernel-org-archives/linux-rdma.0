@@ -1,95 +1,44 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: [PATCH v2 hmm 01/11] mm/hmm: fix use after free with struct hmm in
- the mmu notifiers
-Date: Thu,  6 Jun 2019 15:44:28 -0300
-Message-ID: <20190606184438.31646-2-jgg@ziepe.ca>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Thu, 6 Jun 2019 16:46:52 -0300
+Message-ID: <20190606194652.GI17373@ziepe.ca>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <c559c2ce-50dc-d143-5741-fe3d21d0305c@nvidia.com>
+ <20190606171158.GB11374@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190606184438.31646-1-jgg-uk2M96/98Pc@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190606171158.GB11374@iweiny-DESK2.sc.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: John Hubbard <jhubbard@nvidia.com>, Dan Williams <dan.j.williams@intel.com>, Jan Kara <jack@suse.cz>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-RnJvbTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgoKbW11X25vdGlmaWVyX3Vu
-cmVnaXN0ZXJfbm9fcmVsZWFzZSgpIGlzIG5vdCBhIGZlbmNlIGFuZCB0aGUgbW11X25vdGlmaWVy
-CnN5c3RlbSB3aWxsIGNvbnRpbnVlIHRvIHJlZmVyZW5jZSBobW0tPm1uIHVudGlsIHRoZSBzcmN1
-IGdyYWNlIHBlcmlvZApleHBpcmVzLgoKUmVzdWx0aW5nIGluIHVzZSBhZnRlciBmcmVlIHJhY2Vz
-IGxpa2UgdGhpczoKCiAgICAgICAgIENQVTAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgQ1BVMQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IF9fbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQoKQogICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3JjdV9yZWFkX2xvY2sKICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGhsaXN0X2Zvcl9lYWNoICgp
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8vIG1u
-ID09IGhtbS0+bW4KaG1tX21pcnJvcl91bnJlZ2lzdGVyKCkKICBobW1fcHV0KCkKICAgIGhtbV9m
-cmVlKCkKICAgICAgbW11X25vdGlmaWVyX3VucmVnaXN0ZXJfbm9fcmVsZWFzZSgpCiAgICAgICAg
-IGhsaXN0X2RlbF9pbml0X3JjdShobW0tbW4tPmxpc3QpCgkJCSAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIG1uLT5vcHMtPmludmFsaWRhdGVfcmFuZ2Vfc3RhcnQobW4sIHJhbmdlKTsKCQkJCQkg
-ICAgICAgICAgICAgbW1fZ2V0X2htbSgpCiAgICAgIG1tLT5obW0gPSBOVUxMOwogICAgICBrZnJl
-ZShobW0pCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgbXV0ZXhfbG9jaygmaG1tLT5sb2NrKTsKClVzZSBTUkNVIHRvIGtmcmVlIHRoZSBobW0gbWVt
-b3J5IHNvIHRoYXQgdGhlIG5vdGlmaWVycyBjYW4gcmVseSBvbiBobW0KZXhpc3RpbmcuIEdldCB0
-aGUgbm93LXNhZmUgaG1tIHN0cnVjdCB0aHJvdWdoIGNvbnRhaW5lcl9vZiBhbmQgZGlyZWN0bHkK
-Y2hlY2sga3JlZl9nZXRfdW5sZXNzX3plcm8gdG8gbG9jayBpdCBhZ2FpbnN0IGZyZWUuCgpTaWdu
-ZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5veC5jb20+Ci0tLQp2MjoKLSBT
-cGVsbCAnZnJlZScgcHJvcGVybHkgKEplcm9tZS9SYWxwaCkKLS0tCiBpbmNsdWRlL2xpbnV4L2ht
-bS5oIHwgIDEgKwogbW0vaG1tLmMgICAgICAgICAgICB8IDI1ICsrKysrKysrKysrKysrKysrKyst
-LS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMjAgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2htbS5oIGIvaW5jbHVkZS9saW51eC9obW0uaApp
-bmRleCAwOTJmMDIzNGJmZTkxNy4uNjg4YzVjYTcwNjg3OTUgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUv
-bGludXgvaG1tLmgKKysrIGIvaW5jbHVkZS9saW51eC9obW0uaApAQCAtMTAyLDYgKzEwMiw3IEBA
-IHN0cnVjdCBobW0gewogCXN0cnVjdCBtbXVfbm90aWZpZXIJbW11X25vdGlmaWVyOwogCXN0cnVj
-dCByd19zZW1hcGhvcmUJbWlycm9yc19zZW07CiAJd2FpdF9xdWV1ZV9oZWFkX3QJd3E7CisJc3Ry
-dWN0IHJjdV9oZWFkCQlyY3U7CiAJbG9uZwkJCW5vdGlmaWVyczsKIAlib29sCQkJZGVhZDsKIH07
-CmRpZmYgLS1naXQgYS9tbS9obW0uYyBiL21tL2htbS5jCmluZGV4IDhlNzQwM2YwODFmNDRhLi41
-NDcwMDJmNTZhMTYzZCAxMDA2NDQKLS0tIGEvbW0vaG1tLmMKKysrIGIvbW0vaG1tLmMKQEAgLTEx
-Myw2ICsxMTMsMTEgQEAgc3RhdGljIHN0cnVjdCBobW0gKmhtbV9nZXRfb3JfY3JlYXRlKHN0cnVj
-dCBtbV9zdHJ1Y3QgKm1tKQogCXJldHVybiBOVUxMOwogfQogCitzdGF0aWMgdm9pZCBobW1fZnJl
-ZV9yY3Uoc3RydWN0IHJjdV9oZWFkICpyY3UpCit7CisJa2ZyZWUoY29udGFpbmVyX29mKHJjdSwg
-c3RydWN0IGhtbSwgcmN1KSk7Cit9CisKIHN0YXRpYyB2b2lkIGhtbV9mcmVlKHN0cnVjdCBrcmVm
-ICprcmVmKQogewogCXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9vZihrcmVmLCBzdHJ1Y3Qg
-aG1tLCBrcmVmKTsKQEAgLTEyNSw3ICsxMzAsNyBAQCBzdGF0aWMgdm9pZCBobW1fZnJlZShzdHJ1
-Y3Qga3JlZiAqa3JlZikKIAkJbW0tPmhtbSA9IE5VTEw7CiAJc3Bpbl91bmxvY2soJm1tLT5wYWdl
-X3RhYmxlX2xvY2spOwogCi0Ja2ZyZWUoaG1tKTsKKwltbXVfbm90aWZpZXJfY2FsbF9zcmN1KCZo
-bW0tPnJjdSwgaG1tX2ZyZWVfcmN1KTsKIH0KIAogc3RhdGljIGlubGluZSB2b2lkIGhtbV9wdXQo
-c3RydWN0IGhtbSAqaG1tKQpAQCAtMTUzLDEwICsxNTgsMTQgQEAgdm9pZCBobW1fbW1fZGVzdHJv
-eShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKIAogc3RhdGljIHZvaWQgaG1tX3JlbGVhc2Uoc3RydWN0
-IG1tdV9ub3RpZmllciAqbW4sIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQogewotCXN0cnVjdCBobW0g
-KmhtbSA9IG1tX2dldF9obW0obW0pOworCXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9vZiht
-biwgc3RydWN0IGhtbSwgbW11X25vdGlmaWVyKTsKIAlzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9y
-OwogCXN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlOwogCisJLyogaG1tIGlzIGluIHByb2dyZXNzIHRv
-IGZyZWUgKi8KKwlpZiAoIWtyZWZfZ2V0X3VubGVzc196ZXJvKCZobW0tPmtyZWYpKQorCQlyZXR1
-cm47CisKIAkvKiBSZXBvcnQgdGhpcyBITU0gYXMgZHlpbmcuICovCiAJaG1tLT5kZWFkID0gdHJ1
-ZTsKIApAQCAtMTk0LDEzICsyMDMsMTUgQEAgc3RhdGljIHZvaWQgaG1tX3JlbGVhc2Uoc3RydWN0
-IG1tdV9ub3RpZmllciAqbW4sIHN0cnVjdCBtbV9zdHJ1Y3QgKm1tKQogc3RhdGljIGludCBobW1f
-aW52YWxpZGF0ZV9yYW5nZV9zdGFydChzdHJ1Y3QgbW11X25vdGlmaWVyICptbiwKIAkJCWNvbnN0
-IHN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2UgKm5yYW5nZSkKIHsKLQlzdHJ1Y3QgaG1tICpobW0g
-PSBtbV9nZXRfaG1tKG5yYW5nZS0+bW0pOworCXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9v
-Zihtbiwgc3RydWN0IGhtbSwgbW11X25vdGlmaWVyKTsKIAlzdHJ1Y3QgaG1tX21pcnJvciAqbWly
-cm9yOwogCXN0cnVjdCBobW1fdXBkYXRlIHVwZGF0ZTsKIAlzdHJ1Y3QgaG1tX3JhbmdlICpyYW5n
-ZTsKIAlpbnQgcmV0ID0gMDsKIAotCVZNX0JVR19PTighaG1tKTsKKwkvKiBobW0gaXMgaW4gcHJv
-Z3Jlc3MgdG8gZnJlZSAqLworCWlmICgha3JlZl9nZXRfdW5sZXNzX3plcm8oJmhtbS0+a3JlZikp
-CisJCXJldHVybiAwOwogCiAJdXBkYXRlLnN0YXJ0ID0gbnJhbmdlLT5zdGFydDsKIAl1cGRhdGUu
-ZW5kID0gbnJhbmdlLT5lbmQ7CkBAIC0yNDUsOSArMjU2LDExIEBAIHN0YXRpYyBpbnQgaG1tX2lu
-dmFsaWRhdGVfcmFuZ2Vfc3RhcnQoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCiBzdGF0aWMgdm9p
-ZCBobW1faW52YWxpZGF0ZV9yYW5nZV9lbmQoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sCiAJCQlj
-b25zdCBzdHJ1Y3QgbW11X25vdGlmaWVyX3JhbmdlICpucmFuZ2UpCiB7Ci0Jc3RydWN0IGhtbSAq
-aG1tID0gbW1fZ2V0X2htbShucmFuZ2UtPm1tKTsKKwlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWlu
-ZXJfb2YobW4sIHN0cnVjdCBobW0sIG1tdV9ub3RpZmllcik7CiAKLQlWTV9CVUdfT04oIWhtbSk7
-CisJLyogaG1tIGlzIGluIHByb2dyZXNzIHRvIGZyZWUgKi8KKwlpZiAoIWtyZWZfZ2V0X3VubGVz
-c196ZXJvKCZobW0tPmtyZWYpKQorCQlyZXR1cm47CiAKIAltdXRleF9sb2NrKCZobW0tPmxvY2sp
-OwogCWhtbS0+bm90aWZpZXJzLS07Ci0tIAoyLjIxLjAKCl9fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4v
-bGlzdGluZm8vYW1kLWdmeA==
+On Thu, Jun 06, 2019 at 10:11:58AM -0700, Ira Weiny wrote:
+
+> 2) This is a bit more subtle and something I almost delayed sending these out
+>    for.  Currently the implementation of a lease break actually removes the
+>    lease from the file.  I did not want this to happen and I was thinking of
+>    delaying this patch set to implement something which keeps the lease around
+>    but I figured I should get something out for comments.  Jan has proposed
+>    something along these lines and I agree with him so I'm going to ask you to
+>    read my response to him about the details.
+>
+> 
+>    Anyway so the key here is that currently an app needs the SIGIO to retake
+>    the lease if they want to map the file again or in parts based on usage.
+>    For example, they may only want to map some of the file for when they are
+>    using it and then map another part later.  Without the SIGIO they would lose
+>    their lease or would have to just take the lease for each GUP pin (which
+>    adds overhead).  Like I said I did not like this but I left it to get
+>    something which works out.
+
+So to be clear.. 
+
+Even though the lease is broken the GUP remains, the pages remain
+pined, and truncate/etc continues to fail? 
+
+I like Jan's take on this actually.. see other email.
+
+Jason
