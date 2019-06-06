@@ -1,7 +1,7 @@
 From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH rdma-next 3/3] RDMA/mlx5: Enable decap and packet reformat on FDB
-Date: Thu,  6 Jun 2019 14:06:09 +0300
-Message-ID: <20190606110609.11588-4-leon@kernel.org>
+Subject: [PATCH mlx5-next 1/3] net/mlx5: Expose eswitch encap mode
+Date: Thu,  6 Jun 2019 14:06:07 +0300
+Message-ID: <20190606110609.11588-2-leon@kernel.org>
 References: <20190606110609.11588-1-leon@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -14,32 +14,63 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Maor Gottlieb <maorg@mellanox.com>
 
-If FDB flow tables support decap operation, enable it on creation,
-This allows to perform decapsulation of tunnelled packets by steering
-rules. If FDB flow tables support reformat operation, enable it on
-creation as well.
+Add API to get the current Eswitch encap mode.
+It will be used in downstream patches to check if
+flow table can be created with encap support or not.
 
 Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
 Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
 ---
- drivers/infiniband/hw/mlx5/main.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 10 ++++++++++
+ include/linux/mlx5/eswitch.h                      | 10 ++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff --git a/drivers/infiniband/hw/mlx5/main.c b/drivers/infiniband/hw/mlx5/main.c
-index 70d565283508..cd0c005d1120 100644
---- a/drivers/infiniband/hw/mlx5/main.c
-+++ b/drivers/infiniband/hw/mlx5/main.c
-@@ -3917,6 +3917,11 @@ _get_flow_table(struct mlx5_ib_dev *dev,
- 	} else if (fs_matcher->ns_type == MLX5_FLOW_NAMESPACE_FDB) {
- 		max_table_size = BIT(
- 			MLX5_CAP_ESW_FLOWTABLE_FDB(dev->mdev, log_max_ft_size));
-+		if (MLX5_CAP_ESW_FLOWTABLE_FDB(dev->mdev, decap) && esw_encap)
-+			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_DECAP;
-+		if (MLX5_CAP_ESW_FLOWTABLE_FDB(dev->mdev, reformat_l3_tunnel_to_l2) &&
-+		    esw_encap)
-+			flags |= MLX5_FLOW_TABLE_TUNNEL_EN_REFORMAT;
- 		priority = FDB_BYPASS_PATH;
- 	}
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+index 9ea0ccfe5ef5..1da7f9569ee8 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
+@@ -2452,6 +2452,16 @@ u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw)
+ }
+ EXPORT_SYMBOL_GPL(mlx5_eswitch_mode);
  
++u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev)
++{
++	struct mlx5_eswitch *esw;
++
++	esw = dev->priv.eswitch;
++	return ESW_ALLOWED(esw) ? esw->offloads.encap :
++		DEVLINK_ESWITCH_ENCAP_MODE_NONE;
++}
++EXPORT_SYMBOL(mlx5_eswitch_get_encap_mode);
++
+ bool mlx5_esw_lag_prereq(struct mlx5_core_dev *dev0, struct mlx5_core_dev *dev1)
+ {
+ 	if ((dev0->priv.eswitch->mode == SRIOV_NONE &&
+diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
+index 0ca77dd1429c..7be43c0fcdc5 100644
+--- a/include/linux/mlx5/eswitch.h
++++ b/include/linux/mlx5/eswitch.h
+@@ -7,6 +7,7 @@
+ #define _MLX5_ESWITCH_
+ 
+ #include <linux/mlx5/driver.h>
++#include <net/devlink.h>
+ 
+ #define MLX5_ESWITCH_MANAGER(mdev) MLX5_CAP_GEN(mdev, eswitch_manager)
+ 
+@@ -60,4 +61,13 @@ u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw);
+ struct mlx5_flow_handle *
+ mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw,
+ 				    int vport, u32 sqn);
++
++#ifdef CONFIG_MLX5_ESWITCH
++u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev);
++#else  /* CONFIG_MLX5_ESWITCH */
++static inline u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev)
++{
++	return DEVLINK_ESWITCH_ENCAP_MODE_NONE;
++}
++#endif /* CONFIG_MLX5_ESWITCH */
+ #endif
 -- 
 2.20.1
