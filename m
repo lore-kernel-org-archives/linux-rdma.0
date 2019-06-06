@@ -1,41 +1,41 @@
-From: Sagi Grimberg <sagi@grimberg.me>
-Subject: Re: [PATCH 08/13] IB/iser: set virt_boundary_mask in the scsi host
-Date: Wed, 5 Jun 2019 16:35:12 -0700
-Message-ID: <b3e46295-4257-86ad-6994-f83b736c8f40@grimberg.me>
-References: <20190605190836.32354-1-hch@lst.de>
- <20190605190836.32354-9-hch@lst.de> <20190605202235.GC3273@ziepe.ca>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCHv2 1/1] net: rds: add per rds connection cache statistics
+Date: Wed, 05 Jun 2019 17:07:20 -0700 (PDT)
+Message-ID: <20190605.170720.1054035351724704869.davem@davemloft.net>
+References: <1559536081-25401-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190605202235.GC3273@ziepe.ca>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>, Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, Sebastian Ott <sebott@linux.ibm.com>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1559536081-25401-1-git-send-email-yanjun.zhu@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+To: yanjun.zhu@oracle.com
+Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
+From: Zhu Yanjun <yanjun.zhu@oracle.com>
+Date: Mon,  3 Jun 2019 00:28:01 -0400
 
->> This ensures all proper DMA layer handling is taken care of by the
->> SCSI midlayer.
+> The variable cache_allocs is to indicate how many frags (KiB) are in one
+> rds connection frag cache.
+> The command "rds-info -Iv" will output the rds connection cache
+> statistics as below:
+> "
+> RDS IB Connections:
+>       LocalAddr RemoteAddr Tos SL  LocalDev            RemoteDev
+>       1.1.1.14 1.1.1.14   58 255  fe80::2:c903:a:7a31 fe80::2:c903:a:7a31
+>       send_wr=256, recv_wr=1024, send_sge=8, rdma_mr_max=4096,
+>       rdma_mr_size=257, cache_allocs=12
+> "
+> This means that there are about 12KiB frag in this rds connection frag
+> cache. 
+> Since rds.h in rds-tools is not related with the kernel rds.h, the change
+> in kernel rds.h does not affect rds-tools.
+> rds-info in rds-tools 2.0.5 and 2.0.6 is tested with this commit. It works
+> well.
 > 
-> Maybe not entirely related to this series, but it looks like the SCSI
-> layer is changing the device global dma_set_max_seg_size() - at least
-> in RDMA the dma device is being shared between many users, so we
-> really don't want SCSI to make this value smaller.
-> 
-> Can we do something about this?
+> Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
+> ---
+> V1->V2: RDS CI is removed. 
 
-srp seems to do the right thing:
-target_host->max_segment_size = ib_dma_max_seg_size(ibdev);
-
-But iser does not, which means that scsi limits it to:
-BLK_MAX_SEGMENT_SIZE (64k)
-
-I can send a fix to iser.
-
-> Wondering about other values too, and the interaction with the new
-> combining stuff in umem.c
-
-The only other values AFAICT is the dma_boundary that rdma llds don't
-set...
+Applied to net-next.
