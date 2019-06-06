@@ -1,41 +1,44 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCHv2 1/1] net: rds: add per rds connection cache statistics
-Date: Wed, 05 Jun 2019 17:07:20 -0700 (PDT)
-Message-ID: <20190605.170720.1054035351724704869.davem@davemloft.net>
-References: <1559536081-25401-1-git-send-email-yanjun.zhu@oracle.com>
+Subject: Re: [PATCH 1/1] net: rds: fix memory leak when unload rds_rdma
+Date: Wed, 05 Jun 2019 17:08:52 -0700 (PDT)
+Message-ID: <20190605.170852.389314570750893823.davem@davemloft.net>
+References: <1559566099-30289-1-git-send-email-yanjun.zhu@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1559536081-25401-1-git-send-email-yanjun.zhu@oracle.com>
+In-Reply-To: <1559566099-30289-1-git-send-email-yanjun.zhu@oracle.com>
 Sender: netdev-owner@vger.kernel.org
 To: yanjun.zhu@oracle.com
 Cc: santosh.shilimkar@oracle.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
 List-Id: linux-rdma@vger.kernel.org
 
 From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Date: Mon,  3 Jun 2019 00:28:01 -0400
+Date: Mon,  3 Jun 2019 08:48:19 -0400
 
-> The variable cache_allocs is to indicate how many frags (KiB) are in one
-> rds connection frag cache.
-> The command "rds-info -Iv" will output the rds connection cache
-> statistics as below:
+> When KASAN is enabled, after several rds connections are
+> created, then "rmmod rds_rdma" is run. The following will
+> appear.
+ ...
+> This is rds connection memory leak. The root cause is:
+> When "rmmod rds_rdma" is run, rds_ib_remove_one will call
+> rds_ib_dev_shutdown to drop the rds connections.
+> rds_ib_dev_shutdown will call rds_conn_drop to drop rds
+> connections as below.
 > "
-> RDS IB Connections:
->       LocalAddr RemoteAddr Tos SL  LocalDev            RemoteDev
->       1.1.1.14 1.1.1.14   58 255  fe80::2:c903:a:7a31 fe80::2:c903:a:7a31
->       send_wr=256, recv_wr=1024, send_sge=8, rdma_mr_max=4096,
->       rdma_mr_size=257, cache_allocs=12
+> rds_conn_path_drop(&conn->c_path[0], false);
 > "
-> This means that there are about 12KiB frag in this rds connection frag
-> cache. 
-> Since rds.h in rds-tools is not related with the kernel rds.h, the change
-> in kernel rds.h does not affect rds-tools.
-> rds-info in rds-tools 2.0.5 and 2.0.6 is tested with this commit. It works
-> well.
-> 
+> In the above, destroy is set to false.
+ ...
+> In the above function, destroy is set to false. rds_destroy_pending
+> is called. This does not move rds connections to ib_nodev_conns.
+> So destroy is set to true to move rds connections to ib_nodev_conns.
+> In rds_ib_unregister_client, flush_workqueue is called to make rds_wq
+> finsh shutdown rds connections. The function rds_ib_destroy_nodev_conns
+> is called to shutdown rds connections finally.
+> Then rds_ib_recv_exit is called to destroy slab.
+ ...
+> Suggested-by: Håkon Bugge <haakon.bugge@oracle.com>
 > Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
-> ---
-> V1->V2: RDS CI is removed. 
 
-Applied to net-next.
+Applied.
