@@ -1,143 +1,123 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: RFC: Run a dedicated hmm.git for 5.3
-Date: Fri, 7 Jun 2019 05:53:34 +1000
-Message-ID: <20190607055334.2bdea125@canb.auug.org.au>
-References: <20190523155207.GC5104@redhat.com>
- <20190523163429.GC12159@ziepe.ca>
- <20190523173302.GD5104@redhat.com>
- <20190523175546.GE12159@ziepe.ca>
- <20190523182458.GA3571@redhat.com>
- <20190523191038.GG12159@ziepe.ca>
- <20190524064051.GA28855@infradead.org>
- <20190524124455.GB16845@ziepe.ca>
- <20190525155210.8a9a66385ac8169d0e144225@linux-foundation.org>
- <20190527191247.GA12540@ziepe.ca>
- <20190606152543.GE17392@mellanox.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: [GIT PULL] Please pull RDMA subsystem changes
+Date: Thu, 6 Jun 2019 20:14:24 +0000
+Message-ID: <20190606201420.GA9763@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1337183434=="
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20190606152543.GE17392@mellanox.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Mike Marciniszyn <mike.marciniszyn@intel.com>, Doug Ledford <dledford@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Daniel Vetter <daniel.vetter@ffwll.ch>, Dennis Dalessandro <dennis.dalessandro@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Kaike Wan <kaike.wan@intel.com>, Christoph Hellwig <hch@infradead.org>, Leon Romanovsky <leonro@mellanox.com>, Jerome Glisse <jglisse@redhat.com>, Moni Shoua <monis@mellanox.com>, Artemy Kovalyov <artemyko@mellanox.com>, Dave Airlie <airlied@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ew6BAiZeqk4r7MaW"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
---===============1337183434==
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/l+KwJlP++eQB4BpW/9k.220"; protocol="application/pgp-signature"
+--ew6BAiZeqk4r7MaW
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
---Sig_/l+KwJlP++eQB4BpW/9k.220
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi Linus,
 
-Hi Jason,
+Things are looking pretty quiet here in RDMA, not too many bug fixes rolling
+in right now. Here is the first batch of proposed rc fixes.
 
-On Thu, 6 Jun 2019 15:25:49 +0000 Jason Gunthorpe <jgg@mellanox.com> wrote:
->
-> On Mon, May 27, 2019 at 04:12:47PM -0300, Jason Gunthorpe wrote:
-> > On Sat, May 25, 2019 at 03:52:10PM -0700, Andrew Morton wrote: =20
-> > > On Fri, 24 May 2019 09:44:55 -0300 Jason Gunthorpe <jgg@ziepe.ca> wro=
-te:
-> > >  =20
-> > > > Now that -mm merged the basic hmm API skeleton I think running like
-> > > > this would get us quickly to the place we all want: comprehensive i=
-n tree
-> > > > users of hmm.
-> > > >=20
-> > > > Andrew, would this be acceptable to you? =20
-> > >=20
-> > > Sure.  Please take care not to permit this to reduce the amount of
-> > > exposure and review which the core HMM pieces get. =20
-> >=20
-> > Certainly, thanks all
-> >=20
-> > Jerome: I started a HMM branch on v5.2-rc2 in the rdma.git here:
-> >=20
-> > git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git
-> > https://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git/log/?h=3D=
-hmm =20
->=20
-> I did a first round of collecting patches for hmm.git
->=20
-> Andrew, I'm checking linux-next and to stay co-ordinated, I see the
-> patches below are in your tree and now also in hmm.git. Can you please
-> drop them from your tree?=20
->=20
-> 5b693741de2ace mm/hmm.c: suppress compilation warnings when CONFIG_HUGETL=
-B_PAGE is not set
-> b2870fb882599a mm/hmm.c: only set FAULT_FLAG_ALLOW_RETRY for non-blocking
-> dff7babf8ae9f1 mm/hmm.c: support automatic NUMA balancing
->=20
-> I checked that the other two patches in -next also touching hmm.c are
-> best suited to go through your tree:
->=20
-> a76b9b318a7180 mm/devm_memremap_pages: fix final page put race
-> fc64c058d01b98 mm/memremap: rename and consolidate SECTION_SIZE
->=20
-> StephenR: Can you pick up the hmm branch from rdma.git for linux-next for
-> this cycle? As above we are moving the patches from -mm to hmm.git, so
-> there will be a conflict in -next until Andrew adjusts his tree,
-> thanks!
+Thanks,
+Jason
 
-I have added the hmm branch from today with currently just you as the
-contact.  I also removed the three commits above from Andrew's tree.
+The following changes since commit a188339ca5a396acc588e5851ed7e19f66b0ebd9:
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgement of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
+  Linux 5.2-rc1 (2019-05-19 15:47:09 -0700)
 
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
+are available in the Git repository at:
 
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
+  git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
 
---=20
-Cheers,
-Stephen Rothwell=20
-sfr@canb.auug.org.au
+for you to fetch changes up to 4f240dfec6bcc852b124ea7c419fb590949fbd4c:
 
---Sig_/l+KwJlP++eQB4BpW/9k.220
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+  RDMA/efa: Remove MAYEXEC flag check from mmap flow (2019-05-29 13:13:03 -0300)
+
+----------------------------------------------------------------
+5.2 First rc pull request
+
+The usual driver bug fixes and fixes for a couple of regressions introduced in
+5.2:
+
+- Fix a race on bootup with RDMA device renaming and srp. SRP also needs to
+  rename its internal sys files
+
+- Fix a memory leak in hns
+
+- Don't leak resources in efa on certain error unwinds
+
+- Don't panic in certain error unwinds in ib_register_device
+
+- Various small user visible bug fix patches for the hfi and efa drivers
+
+- Fix the 32 bit compilation break
+
+----------------------------------------------------------------
+Gal Pressman (2):
+      RDMA/uverbs: Pass udata on uverbs error unwind
+      RDMA/efa: Remove MAYEXEC flag check from mmap flow
+
+Jason Gunthorpe (1):
+      RDMA/core: Clear out the udata before error unwind
+
+Kamal Heib (1):
+      RDMA/core: Fix panic when port_data isn't initialized
+
+Kamenee Arumugam (1):
+      IB/hfi1: Validate page aligned for a given virtual address
+
+Leon Romanovsky (2):
+      RDMA/srp: Rename SRP sysfs name after IB device rename trigger
+      RDMA/hns: Fix PD memory leak for internal allocation
+
+Michal Kubecek (1):
+      mlx5: avoid 64-bit division
+
+Mike Marciniszyn (3):
+      IB/rdmavt: Fix alloc_qpn() WARN_ON()
+      IB/hfi1: Insure freeze_work work_struct is canceled on shutdown
+      IB/{qib, hfi1, rdmavt}: Correct ibv_devinfo max_mr value
+
+ drivers/infiniband/core/device.c              | 49 +++++++++++++++++++--------
+ drivers/infiniband/core/rdma_core.h           |  2 ++
+ drivers/infiniband/core/uverbs_cmd.c          | 30 +++++++++++-----
+ drivers/infiniband/core/uverbs_std_types_cq.c |  2 +-
+ drivers/infiniband/core/uverbs_std_types_mr.c |  2 +-
+ drivers/infiniband/hw/efa/efa_verbs.c         |  1 -
+ drivers/infiniband/hw/hfi1/chip.c             |  1 +
+ drivers/infiniband/hw/hfi1/user_exp_rcv.c     |  3 ++
+ drivers/infiniband/hw/hfi1/verbs.c            |  2 --
+ drivers/infiniband/hw/hns/hns_roce_hw_v1.c    |  1 +
+ drivers/infiniband/hw/mlx5/cmd.c              |  9 +++--
+ drivers/infiniband/hw/mlx5/main.c             |  2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c         |  2 --
+ drivers/infiniband/sw/rdmavt/mr.c             |  2 ++
+ drivers/infiniband/sw/rdmavt/qp.c             |  3 +-
+ drivers/infiniband/ulp/srp/ib_srp.c           | 18 +++++++++-
+ include/rdma/ib_verbs.h                       |  1 +
+ 17 files changed, 95 insertions(+), 35 deletions(-)
+
+--ew6BAiZeqk4r7MaW
+Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAlz5bz4ACgkQAVBC80lX
-0Gz42ggAjd2XdELh29gxYaa3AGGZx68tH5E3qcBVYvxP3IEAfi0bUSvxNXFhstk6
-YaxWX9oxbApTS2Uj3++jezF4Xjj2Y73HGUjGLQ3Otw3Mnqcf6jXCMx8Z++gM7yyC
-VCZzpR+3xAuAY21M7Ov9ZplyOO2h0UgAm8zaMi5hxEyGVAKjncUBDg4Y0qrh0UAl
-AnZKxV4zQyp4/PvVuYFQa+g8igqB+cGfBLY36wP0k2p3f7btC0m1JSgADRiqg0lA
-reZ+53oVo8c90IhdJp2lysklnxwDvfGMcl5S93eBGYfT0TdJ0XWriIgIy+uwt6mx
-VsgPHJUvyidpJbGyRC/m2LJnhvk19w==
-=dJb7
+iQIzBAABCgAdFiEEfB7FMLh+8QxL+6i3OG33FX4gmxoFAlz5dBkACgkQOG33FX4g
+mxqKzA/6A4oEKSMyJt3TMx2Z6sJoHYWqibV/AZsra4wgA0rzGPdV3cpIwg7qeccD
+dMAecHl6GILXs3dCZVKs/C5cLL9YDBBpwFWlVR4eu4BppeDA9dKt66rI2a+JFbUb
+taSjmTnNUAiBWG9HhZAy2KQMARgNcvwQ+4z5USMzUXclDTTQ3w2s4hjtxDrxOb2V
+24Xnep5VGS7ca0wNocypa1SwbilRR0Z+3axHbKvMFXT0LsJsDf52VRcX2JaxMNXG
+7L/HKI78PVQLiz0Y8qJjTiiHeM8RDpgrf8pEIa+XnUKXvTn5YoVDI8RwOyZ3qC9G
+5dLVOXOAvvJ8pLRXGwsAwvxwqHkV2EbbsODXqwXx8tqlvID7ENVMn3sZDIc9l9cp
+j3aEuh1mL3iQLxuLz9Ye2cWgUEEzrQkpIGfI25lV5VFZ/G1h77aUIANkB561jWM+
+TiVMo3/2qbY/KBQ8M7chYCx+EgrCisd6Yw4l7ghbVR5q69RMWdhNT7QP9frblva4
+p1kRW2FyQcstLol87jQJn5eSngU9lF9W4C+o28mG97Nn6pIFX7pivTwrRFi9A6LE
+5OvTvYjB7kuJNNtGmG/H1DWLBv7TIw/0Xp9X/bJs2ULG9tjYuS17gNhmH0YnX2NK
+tY59L6/d849+9Nn+28uOOoB76cugQHG6qFe2e5TzuqZMAFmxKbI=
+=FV44
 -----END PGP SIGNATURE-----
 
---Sig_/l+KwJlP++eQB4BpW/9k.220--
-
---===============1337183434==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlz
-dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
-
---===============1337183434==--
+--ew6BAiZeqk4r7MaW--
