@@ -1,91 +1,126 @@
-From: Zhu Yanjun <yanjun.zhu@oracle.com>
-Subject: [PATCH 1/1] net: rds: fix memory leak in rds_ib_flush_mr_pool
-Date: Thu,  6 Jun 2019 04:00:03 -0400
-Message-ID: <1559808003-1030-1-git-send-email-yanjun.zhu@oracle.com>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [pull request][for-next 0/9] Generic DIM lib for netdev and RDMA
+Date: Thu, 6 Jun 2019 10:53:31 +0300
+Message-ID: <20190606075331.GW5261@mtr-leonro.mtl.com>
+References: <20190605232348.6452-1-saeedm@mellanox.com>
+ <20190606071427.GU5261@mtr-leonro.mtl.com>
+ <898e0df0-b73c-c6d7-9cbe-084163643236@mellanox.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <898e0df0-b73c-c6d7-9cbe-084163643236@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
-To: santosh.shilimkar@oracle.com, davem@davemloft.net, netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rds-devel@oss.oracle.com
+To: Max Gurtovoy <maxg@mellanox.com>
+Cc: Saeed Mahameed <saeedm@mellanox.com>, "David S. Miller" <davem@davemloft.net>, Jason Gunthorpe <jgg@mellanox.com>, Doug Ledford <dledford@redhat.com>, Michael Chan <michael.chan@broadcom.com>, Andy Gospodarek <andy@greyhouse.net>, Tal Gilboa <talgi@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When the following tests last for several hours, the problem will occur.
+On Thu, Jun 06, 2019 at 10:19:41AM +0300, Max Gurtovoy wrote:
+>
+> On 6/6/2019 10:14 AM, Leon Romanovsky wrote:
+> > On Wed, Jun 05, 2019 at 11:24:31PM +0000, Saeed Mahameed wrote:
+> > > Hi Dave, Doug & Jason
+> > >
+> > > This series improves DIM - Dynamically-tuned Interrupt
+> > > Moderation- to be generic for netdev and RDMA use-cases.
+> > >
+> > >  From Tal and Yamin:
+> > > The first 7 patches provide the necessary refactoring to current net_dim
+> > > library which affect some net drivers who are using the API.
+> > >
+> > > The last 2 patches provide the RDMA implementation for DIM.
+> > >
+> > > For more information please see tag log below.
+> > >
+> > > Once we are all happy with the series, please pull to net-next and
+> > > rdma-next trees.
+> > >
+> > > Thanks,
+> > > Saeed.
+> > >
+> > > ---
+> > > The following changes since commit cd6c84d8f0cdc911df435bb075ba22ce3c605b07:
+> > >
+> > >    Linux 5.2-rc2 (2019-05-26 16:49:19 -0700)
+> > >
+> > > are available in the Git repository at:
+> > >
+> > >    git://git.kernel.org/pub/scm/linux/kernel/git/saeed/linux.git tags/dim-updates-2019-06-05
+> > >
+> > > for you to fetch changes up to 1ec9974e75e7a58bff1ab17c4fcda17b180ed3bb:
+> > >
+> > >    RDMA/core: Provide RDMA DIM support for ULPs (2019-06-05 16:09:02 -0700)
+> > >
+> > > ----------------------------------------------------------------
+> > > dim-updates-2019-06-05
+> > >
+> > > From: Tal Gilboa
+> > >
+> > > Implement net DIM over a generic DIM library
+> > >
+> > > net_dim.h lib exposes an implementation of the DIM algorithm for
+> > > dynamically-tuned interrupt moderation for networking interfaces.
+> > >
+> > > We want a similar functionality for other protocols, which might need to
+> > > optimize interrupts differently. Main motivation here is DIM for NVMf
+> > > storage protocol.
+> > >
+> > > Current DIM implementation prioritizes reducing interrupt overhead over
+> > > latency. Also, in order to reduce DIM's own overhead, the algorithm might
+> > > take some time to identify it needs to change profiles. While this is
+> > > acceptable for networking, it might not work well on other scenarios.
+> > >
+> > > Here I propose a new structure to DIM. The idea is to allow a slightly
+> > > modified functionality without the risk of breaking Net DIM behavior for
+> > > netdev. I verified there are no degradations in current DIM behavior with
+> > > the modified solution.
+> > >
+> > > Solution:
+> > > - Common logic is declared in include/linux/dim.h and implemented in
+> > >    lib/dim/dim.c
+> > > - Net DIM (existing) logic is declared in include/linux/net_dim.h and
+> > >    implemented in lib/dim/net_dim.c, which uses the common logic from dim.h
+> > > - Any new DIM logic will be declared in "/include/linux/new_dim.h" and
+> > >     implemented in "lib/dim/new_dim.c".
+> > > - This new implementation will expose modified versions of profiles,
+> > >    dim_step() and dim_decision().
+> > >
+> > > Pros for this solution are:
+> > > - Zero impact on existing net_dim implementation and usage
+> > > - Relatively more code reuse (compared to two separate solutions)
+> > > - Increased extensibility
+> > >
+> > > ----------------------------------------------------------------
+> > > Tal Gilboa (6):
+> > >        linux/dim: Move logic to dim.h
+> > >        linux/dim: Remove "net" prefix from internal DIM members
+> > >        linux/dim: Rename externally exposed macros
+> > >        linux/dim: Rename net_dim_sample() to net_dim_update_sample()
+> > >        linux/dim: Rename externally used net_dim members
+> > >        linux/dim: Move implementation to .c files
+> > >
+> > > Yamin Friedman (3):
+> > >        linux/dim: Add completions count to dim_sample
+> > >        linux/dim: Implement rdma_dim
+> > >        RDMA/core: Provide RDMA DIM support for ULPs
+> > Saeed,
+> >
+> > No, for the RDMA patches.
+> > We need to see usage of those APIs before merging.
+>
+> I've asked Yamin to prepare patches for NVMeoF initiator and target for
+> review, so I guess he has it on his plate (this is how he tested it..).
+>
+> It might cause conflict with NVMe/blk branch maintained by Sagi, Christoph
+> and Jens.
+>
+> So we need a plan here.
 
-Server:
-    rds-stress -r 1.1.1.16 -D 1M
-Client:
-    rds-stress -r 1.1.1.14 -s 1.1.1.16 -D 1M -T 30
+We are on top of it and will handle.
 
-The following will occur.
+Thanks
 
-"
-Starting up....
-tsks   tx/s   rx/s  tx+rx K/s    mbi K/s    mbo K/s tx us/c   rtt us cpu
-%
-  1      0      0       0.00       0.00       0.00    0.00 0.00 -1.00
-  1      0      0       0.00       0.00       0.00    0.00 0.00 -1.00
-  1      0      0       0.00       0.00       0.00    0.00 0.00 -1.00
-  1      0      0       0.00       0.00       0.00    0.00 0.00 -1.00
-"
->From vmcore, we can find that clean_list is NULL.
-
->From the source code, rds_mr_flushd calls rds_ib_mr_pool_flush_worker.
-Then rds_ib_mr_pool_flush_worker calls
-"
- rds_ib_flush_mr_pool(pool, 0, NULL);
-"
-Then in function
-"
-int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
-                         int free_all, struct rds_ib_mr **ibmr_ret)
-"
-ibmr_ret is NULL.
-
-In the source code,
-"
-...
-list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
-if (ibmr_ret)
-        *ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
-
-/* more than one entry in llist nodes */
-if (clean_nodes->next)
-        llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
-...
-"
-When ibmr_ret is NULL, llist_entry is not executed. clean_nodes->next
-instead of clean_nodes is added in clean_list.
-So clean_nodes is discarded. It can not be used again.
-The workqueue is executed periodically. So more and more clean_nodes are
-discarded. Finally the clean_list is NULL.
-Then this problem will occur.
-
-Fixes: 1bc144b62524 ("net, rds, Replace xlist in net/rds/xlist.h with llist")
-Signed-off-by: Zhu Yanjun <yanjun.zhu@oracle.com>
----
- net/rds/ib_rdma.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/rds/ib_rdma.c b/net/rds/ib_rdma.c
-index d664e9a..0b347f4 100644
---- a/net/rds/ib_rdma.c
-+++ b/net/rds/ib_rdma.c
-@@ -428,12 +428,14 @@ int rds_ib_flush_mr_pool(struct rds_ib_mr_pool *pool,
- 		wait_clean_list_grace();
- 
- 		list_to_llist_nodes(pool, &unmap_list, &clean_nodes, &clean_tail);
--		if (ibmr_ret)
-+		if (ibmr_ret) {
- 			*ibmr_ret = llist_entry(clean_nodes, struct rds_ib_mr, llnode);
--
-+			clean_nodes = clean_nodes->next;
-+		}
- 		/* more than one entry in llist nodes */
--		if (clean_nodes->next)
--			llist_add_batch(clean_nodes->next, clean_tail, &pool->clean_list);
-+		if (clean_nodes)
-+			llist_add_batch(clean_nodes, clean_tail,
-+					&pool->clean_list);
- 
- 	}
- 
--- 
-2.7.4
+>
+>
+> >
+> > Thanks
