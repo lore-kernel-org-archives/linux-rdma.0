@@ -1,76 +1,31 @@
-From: Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mlx5-next 1/3] net/mlx5: Expose eswitch encap mode
-Date: Thu,  6 Jun 2019 14:06:07 +0300
-Message-ID: <20190606110609.11588-2-leon@kernel.org>
+From: Petr Vorel <pvorel@suse.cz>
+Subject: Re: [PATCH mlx5-next 1/3] net/mlx5: Expose eswitch encap mode
+Date: Thu, 6 Jun 2019 13:56:36 +0200
+Message-ID: <20190606115635.GA30976@dell5510>
 References: <20190606110609.11588-1-leon@kernel.org>
+ <20190606110609.11588-2-leon@kernel.org>
+Reply-To: Petr Vorel <pvorel@suse.cz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20190606110609.11588-1-leon@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190606110609.11588-2-leon@kernel.org>
 Sender: netdev-owner@vger.kernel.org
-To: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>
-Cc: Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
+To: Leon Romanovsky <leon@kernel.org>
+Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, RDMA mailing list <linux-rdma@vger.kernel.org>, Maor Gottlieb <maorg@mellanox.com>, Mark Bloch <markb@mellanox.com>, Saeed Mahameed <saeedm@mellanox.com>, linux-netdev <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Maor Gottlieb <maorg@mellanox.com>
+Hi,
 
-Add API to get the current Eswitch encap mode.
-It will be used in downstream patches to check if
-flow table can be created with encap support or not.
+> From: Maor Gottlieb <maorg@mellanox.com>
 
-Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
-Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
----
- drivers/net/ethernet/mellanox/mlx5/core/eswitch.c | 10 ++++++++++
- include/linux/mlx5/eswitch.h                      | 10 ++++++++++
- 2 files changed, 20 insertions(+)
+> Add API to get the current Eswitch encap mode.
+> It will be used in downstream patches to check if
+> flow table can be created with encap support or not.
 
-diff --git a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-index 9ea0ccfe5ef5..1da7f9569ee8 100644
---- a/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-+++ b/drivers/net/ethernet/mellanox/mlx5/core/eswitch.c
-@@ -2452,6 +2452,16 @@ u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw)
- }
- EXPORT_SYMBOL_GPL(mlx5_eswitch_mode);
- 
-+u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev)
-+{
-+	struct mlx5_eswitch *esw;
-+
-+	esw = dev->priv.eswitch;
-+	return ESW_ALLOWED(esw) ? esw->offloads.encap :
-+		DEVLINK_ESWITCH_ENCAP_MODE_NONE;
-+}
-+EXPORT_SYMBOL(mlx5_eswitch_get_encap_mode);
-+
- bool mlx5_esw_lag_prereq(struct mlx5_core_dev *dev0, struct mlx5_core_dev *dev1)
- {
- 	if ((dev0->priv.eswitch->mode == SRIOV_NONE &&
-diff --git a/include/linux/mlx5/eswitch.h b/include/linux/mlx5/eswitch.h
-index 0ca77dd1429c..7be43c0fcdc5 100644
---- a/include/linux/mlx5/eswitch.h
-+++ b/include/linux/mlx5/eswitch.h
-@@ -7,6 +7,7 @@
- #define _MLX5_ESWITCH_
- 
- #include <linux/mlx5/driver.h>
-+#include <net/devlink.h>
- 
- #define MLX5_ESWITCH_MANAGER(mdev) MLX5_CAP_GEN(mdev, eswitch_manager)
- 
-@@ -60,4 +61,13 @@ u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw);
- struct mlx5_flow_handle *
- mlx5_eswitch_add_send_to_vport_rule(struct mlx5_eswitch *esw,
- 				    int vport, u32 sqn);
-+
-+#ifdef CONFIG_MLX5_ESWITCH
-+u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev);
-+#else  /* CONFIG_MLX5_ESWITCH */
-+static inline u16 mlx5_eswitch_get_encap_mode(struct mlx5_core_dev *dev)
-+{
-+	return DEVLINK_ESWITCH_ENCAP_MODE_NONE;
-+}
-+#endif /* CONFIG_MLX5_ESWITCH */
- #endif
--- 
-2.20.1
+> Signed-off-by: Maor Gottlieb <maorg@mellanox.com>
+> Signed-off-by: Leon Romanovsky <leonro@mellanox.com>
+Reviewed-by: Petr Vorel <pvorel@suse.cz>
+
+Kind regards,
+Petr
