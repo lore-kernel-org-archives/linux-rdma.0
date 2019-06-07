@@ -1,95 +1,91 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [pull request][for-next 0/9] Generic DIM lib for netdev and RDMA
-Date: Fri, 7 Jun 2019 15:57:49 -0300
-Message-ID: <20190607185749.GQ14802@ziepe.ca>
-References: <20190605232348.6452-1-saeedm@mellanox.com>
- <20190606071427.GU5261@mtr-leonro.mtl.com>
- <898e0df0-b73c-c6d7-9cbe-084163643236@mellanox.com>
- <20190606130713.GC17392@mellanox.com>
- <9faeadac971aaf481b1066b1dde0fc9e77e893a5.camel@mellanox.com>
+From: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 03/11] mm/hmm: Hold a mmgrab from hmm to mm
+Date: Fri, 7 Jun 2019 11:41:20 -0700
+Message-ID: <605172dc-5c66-123f-61a3-8e6880678aef@nvidia.com>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-4-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <9faeadac971aaf481b1066b1dde0fc9e77e893a5.camel@mellanox.com>
-Sender: netdev-owner@vger.kernel.org
-To: Saeed Mahameed <saeedm@mellanox.com>
-Cc: Max Gurtovoy <maxg@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "andy@greyhouse.net" <andy@greyhouse.net>, Tal Gilboa <talgi@mellanox.com>, "michael.chan@broadcom.com" <michael.chan@broadcom.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20190606184438.31646-4-jgg-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John
+ Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 07, 2019 at 06:14:11PM +0000, Saeed Mahameed wrote:
-> On Thu, 2019-06-06 at 13:07 +0000, Jason Gunthorpe wrote:
-> > On Thu, Jun 06, 2019 at 10:19:41AM +0300, Max Gurtovoy wrote:
-> > > > > Solution:
-> > > > > - Common logic is declared in include/linux/dim.h and
-> > > > > implemented in
-> > > > >    lib/dim/dim.c
-> > > > > - Net DIM (existing) logic is declared in
-> > > > > include/linux/net_dim.h and
-> > > > >    implemented in lib/dim/net_dim.c, which uses the common
-> > > > > logic from dim.h
-> > > > > - Any new DIM logic will be declared in
-> > > > > "/include/linux/new_dim.h" and
-> > > > >     implemented in "lib/dim/new_dim.c".
-> > > > > - This new implementation will expose modified versions of
-> > > > > profiles,
-> > > > >    dim_step() and dim_decision().
-> > > > > 
-> > > > > Pros for this solution are:
-> > > > > - Zero impact on existing net_dim implementation and usage
-> > > > > - Relatively more code reuse (compared to two separate
-> > > > > solutions)
-> > > > > - Increased extensibility
-> > > > > 
-> > > > > Tal Gilboa (6):
-> > > > >        linux/dim: Move logic to dim.h
-> > > > >        linux/dim: Remove "net" prefix from internal DIM members
-> > > > >        linux/dim: Rename externally exposed macros
-> > > > >        linux/dim: Rename net_dim_sample() to
-> > > > > net_dim_update_sample()
-> > > > >        linux/dim: Rename externally used net_dim members
-> > > > >        linux/dim: Move implementation to .c files
-> > > > > 
-> > > > > Yamin Friedman (3):
-> > > > >        linux/dim: Add completions count to dim_sample
-> > > > >        linux/dim: Implement rdma_dim
-> > > > >        RDMA/core: Provide RDMA DIM support for ULPs
-> > > > Saeed,
-> > > > 
-> > > > No, for the RDMA patches.
-> > > > We need to see usage of those APIs before merging.
-> > > 
-> > > I've asked Yamin to prepare patches for NVMeoF initiator and target
-> > > for
-> > > review, so I guess he has it on his plate (this is how he tested
-> > > it..).
-> > > 
-> > > It might cause conflict with NVMe/blk branch maintained by Sagi,
-> > > Christoph
-> > > and Jens.
-> > 
-> > It looks like nvme could pull this series + the RDMA patches into the
-> > nvme tree via PR? I'm not familiar with how that tree works.
-> > 
-> > But we need to get the patches posted right away..
-> > 
-> 
-> What do you suggest here ?
-> I think the netdev community also deserve to see the rdma patches, at
-> least with an external link, I can drop the last patch (or two ) ? but
-> i need an external rdma link for people who are going to review this
-> series.
-
-Yes, all the patches need to be posted. We should have a 'double
-branch' where you send the linux/dim & net stuff to net and then we
-add the RDMA stuff on top and send to nvme & rdma with the ULP
-patches
-
-Assuming nvme takes pull requests.
-
-But the whole thing should be posted as a single series on the list to
-get acks before the PRs are generated.
-
-Similar to how we've run the mlx5 shared branch
-
-Jason
+Ck9uIDYvNi8xOSAxMTo0NCBBTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+IEZyb206IEphc29u
+IEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiAKPiBTbyBsb25nIGEgYSBzdHJ1Y3QgaG1t
+IHBvaW50ZXIgZXhpc3RzLCBzbyBzaG91bGQgdGhlIHN0cnVjdCBtbSBpdCBpcwoKcy9hIGEvYXMg
+YS8KCj4gbGlua2VkIHRvby4gSG9sZCB0aGUgbW1ncmFiKCkgYXMgc29vbiBhcyBhIGhtbSBpcyBj
+cmVhdGVkLCBhbmQgbW1kcm9wKCkgaXQKPiBvbmNlIHRoZSBobW0gcmVmY291bnQgZ29lcyB0byB6
+ZXJvLgo+IAo+IFNpbmNlIG1tZHJvcCgpIChpZSBhIDAga3JlZiBvbiBzdHJ1Y3QgbW0pIGlzIG5v
+dyBpbXBvc3NpYmxlIHdpdGggYSAhTlVMTAo+IG1tLT5obW0gZGVsZXRlIHRoZSBobW1faG1tX2Rl
+c3Ryb3koKS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9ycGUgPGpnZ0BtZWxsYW5v
+eC5jb20+Cj4gUmV2aWV3ZWQtYnk6IErDqXLDtG1lIEdsaXNzZSA8amdsaXNzZUByZWRoYXQuY29t
+PgoKUmV2aWV3ZWQtYnk6IFJhbHBoIENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KCj4g
+LS0tCj4gdjI6Cj4gICAtIEZpeCBlcnJvciB1bndpbmQgcGF0aHMgaW4gaG1tX2dldF9vcl9jcmVh
+dGUgKEplcm9tZS9KYXNvbikKPiAtLS0KPiAgIGluY2x1ZGUvbGludXgvaG1tLmggfCAgMyAtLS0K
+PiAgIGtlcm5lbC9mb3JrLmMgICAgICAgfCAgMSAtCj4gICBtbS9obW0uYyAgICAgICAgICAgIHwg
+MjIgKysrKy0tLS0tLS0tLS0tLS0tLS0tLQo+ICAgMyBmaWxlcyBjaGFuZ2VkLCA0IGluc2VydGlv
+bnMoKyksIDIyIGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2ht
+bS5oIGIvaW5jbHVkZS9saW51eC9obW0uaAo+IGluZGV4IDJkNTE5Nzk3Y2IxMzRhLi40ZWUzYWNh
+YmU1ZWQyMiAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL2xpbnV4L2htbS5oCj4gKysrIGIvaW5jbHVk
+ZS9saW51eC9obW0uaAo+IEBAIC01ODYsMTQgKzU4NiwxMSBAQCBzdGF0aWMgaW5saW5lIGludCBo
+bW1fdm1hX2ZhdWx0KHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IsCj4gICB9Cj4gICAKPiAgIC8q
+IEJlbG93IGFyZSBmb3IgSE1NIGludGVybmFsIHVzZSBvbmx5ISBOb3QgdG8gYmUgdXNlZCBieSBk
+ZXZpY2UgZHJpdmVyISAqLwo+IC12b2lkIGhtbV9tbV9kZXN0cm95KHN0cnVjdCBtbV9zdHJ1Y3Qg
+Km1tKTsKPiAtCj4gICBzdGF0aWMgaW5saW5lIHZvaWQgaG1tX21tX2luaXQoc3RydWN0IG1tX3N0
+cnVjdCAqbW0pCj4gICB7Cj4gICAJbW0tPmhtbSA9IE5VTEw7Cj4gICB9Cj4gICAjZWxzZSAvKiBJ
+U19FTkFCTEVEKENPTkZJR19ITU1fTUlSUk9SKSAqLwo+IC1zdGF0aWMgaW5saW5lIHZvaWQgaG1t
+X21tX2Rlc3Ryb3koc3RydWN0IG1tX3N0cnVjdCAqbW0pIHt9Cj4gICBzdGF0aWMgaW5saW5lIHZv
+aWQgaG1tX21tX2luaXQoc3RydWN0IG1tX3N0cnVjdCAqbW0pIHt9Cj4gICAjZW5kaWYgLyogSVNf
+RU5BQkxFRChDT05GSUdfSE1NX01JUlJPUikgKi8KPiAgIAo+IGRpZmYgLS1naXQgYS9rZXJuZWwv
+Zm9yay5jIGIva2VybmVsL2ZvcmsuYwo+IGluZGV4IGIyYjg3ZDQ1MGI4MGI1Li41ODhjNzY4YWU3
+MjQ1MSAxMDA2NDQKPiAtLS0gYS9rZXJuZWwvZm9yay5jCj4gKysrIGIva2VybmVsL2ZvcmsuYwo+
+IEBAIC02NzMsNyArNjczLDYgQEAgdm9pZCBfX21tZHJvcChzdHJ1Y3QgbW1fc3RydWN0ICptbSkK
+PiAgIAlXQVJOX09OX09OQ0UobW0gPT0gY3VycmVudC0+YWN0aXZlX21tKTsKPiAgIAltbV9mcmVl
+X3BnZChtbSk7Cj4gICAJZGVzdHJveV9jb250ZXh0KG1tKTsKPiAtCWhtbV9tbV9kZXN0cm95KG1t
+KTsKPiAgIAltbXVfbm90aWZpZXJfbW1fZGVzdHJveShtbSk7Cj4gICAJY2hlY2tfbW0obW0pOwo+
+ICAgCXB1dF91c2VyX25zKG1tLT51c2VyX25zKTsKPiBkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9t
+bS9obW0uYwo+IGluZGV4IDg3OTY0NDcyOTkwMjNjLi5jYzdjMjZmZGEzMzAwZSAxMDA2NDQKPiAt
+LS0gYS9tbS9obW0uYwo+ICsrKyBiL21tL2htbS5jCj4gQEAgLTI5LDYgKzI5LDcgQEAKPiAgICNp
+bmNsdWRlIDxsaW51eC9zd2Fwb3BzLmg+Cj4gICAjaW5jbHVkZSA8bGludXgvaHVnZXRsYi5oPgo+
+ICAgI2luY2x1ZGUgPGxpbnV4L21lbXJlbWFwLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9zY2hlZC9t
+bS5oPgo+ICAgI2luY2x1ZGUgPGxpbnV4L2p1bXBfbGFiZWwuaD4KPiAgICNpbmNsdWRlIDxsaW51
+eC9kbWEtbWFwcGluZy5oPgo+ICAgI2luY2x1ZGUgPGxpbnV4L21tdV9ub3RpZmllci5oPgo+IEBA
+IC04Miw2ICs4Myw3IEBAIHN0YXRpYyBzdHJ1Y3QgaG1tICpobW1fZ2V0X29yX2NyZWF0ZShzdHJ1
+Y3QgbW1fc3RydWN0ICptbSkKPiAgIAlobW0tPm5vdGlmaWVycyA9IDA7Cj4gICAJaG1tLT5kZWFk
+ID0gZmFsc2U7Cj4gICAJaG1tLT5tbSA9IG1tOwo+ICsJbW1ncmFiKGhtbS0+bW0pOwo+ICAgCj4g
+ICAJc3Bpbl9sb2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKPiAgIAlpZiAoIW1tLT5obW0pCj4g
+QEAgLTEwOSw2ICsxMTEsNyBAQCBzdGF0aWMgc3RydWN0IGhtbSAqaG1tX2dldF9vcl9jcmVhdGUo
+c3RydWN0IG1tX3N0cnVjdCAqbW0pCj4gICAJCW1tLT5obW0gPSBOVUxMOwo+ICAgCXNwaW5fdW5s
+b2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKPiAgIGVycm9yOgo+ICsJbW1kcm9wKGhtbS0+bW0p
+Owo+ICAgCWtmcmVlKGhtbSk7Cj4gICAJcmV0dXJuIE5VTEw7Cj4gICB9Cj4gQEAgLTEzMCw2ICsx
+MzMsNyBAQCBzdGF0aWMgdm9pZCBobW1fZnJlZShzdHJ1Y3Qga3JlZiAqa3JlZikKPiAgIAkJbW0t
+PmhtbSA9IE5VTEw7Cj4gICAJc3Bpbl91bmxvY2soJm1tLT5wYWdlX3RhYmxlX2xvY2spOwo+ICAg
+Cj4gKwltbWRyb3AoaG1tLT5tbSk7Cj4gICAJbW11X25vdGlmaWVyX2NhbGxfc3JjdSgmaG1tLT5y
+Y3UsIGhtbV9mcmVlX3JjdSk7Cj4gICB9Cj4gICAKPiBAQCAtMTM4LDI0ICsxNDIsNiBAQCBzdGF0
+aWMgaW5saW5lIHZvaWQgaG1tX3B1dChzdHJ1Y3QgaG1tICpobW0pCj4gICAJa3JlZl9wdXQoJmht
+bS0+a3JlZiwgaG1tX2ZyZWUpOwo+ICAgfQo+ICAgCj4gLXZvaWQgaG1tX21tX2Rlc3Ryb3koc3Ry
+dWN0IG1tX3N0cnVjdCAqbW0pCj4gLXsKPiAtCXN0cnVjdCBobW0gKmhtbTsKPiAtCj4gLQlzcGlu
+X2xvY2soJm1tLT5wYWdlX3RhYmxlX2xvY2spOwo+IC0JaG1tID0gbW1fZ2V0X2htbShtbSk7Cj4g
+LQltbS0+aG1tID0gTlVMTDsKPiAtCWlmIChobW0pIHsKPiAtCQlobW0tPm1tID0gTlVMTDsKPiAt
+CQlobW0tPmRlYWQgPSB0cnVlOwo+IC0JCXNwaW5fdW5sb2NrKCZtbS0+cGFnZV90YWJsZV9sb2Nr
+KTsKPiAtCQlobW1fcHV0KGhtbSk7Cj4gLQkJcmV0dXJuOwo+IC0JfQo+IC0KPiAtCXNwaW5fdW5s
+b2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKPiAtfQo+IC0KPiAgIHN0YXRpYyB2b2lkIGhtbV9y
+ZWxlYXNlKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLCBzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiAg
+IHsKPiAgIAlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWluZXJfb2YobW4sIHN0cnVjdCBobW0sIG1t
+dV9ub3RpZmllcik7Cj4gCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
