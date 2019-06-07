@@ -1,101 +1,61 @@
-From: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 02/11] mm/hmm: Use hmm_mirror not mm as an argument
- for hmm_range_register
-Date: Fri, 7 Jun 2019 11:24:44 -0700
-Message-ID: <4a391bd4-287c-5f13-3bca-c6a46ff8d08c@nvidia.com>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-3-jgg@ziepe.ca>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Fri, 7 Jun 2019 15:50:19 -0300
+Message-ID: <20190607185019.GP14802@ziepe.ca>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190606184438.31646-3-jgg-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, John
- Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ira Weiny <ira.weiny@intel.com>
+Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Dave Chinner <david@fromorbit.com>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?utf-8?B?SsOpcsO0bWU=?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ck9uIDYvNi8xOSAxMTo0NCBBTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+IEZyb206IEphc29u
-IEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiAKPiBSYWxwaCBvYnNlcnZlcyB0aGF0IGht
-bV9yYW5nZV9yZWdpc3RlcigpIGNhbiBvbmx5IGJlIGNhbGxlZCBieSBhIGRyaXZlcgo+IHdoaWxl
-IGEgbWlycm9yIGlzIHJlZ2lzdGVyZWQuIE1ha2UgdGhpcyBjbGVhciBpbiB0aGUgQVBJIGJ5IHBh
-c3NpbmcgaW4gdGhlCj4gbWlycm9yIHN0cnVjdHVyZSBhcyBhIHBhcmFtZXRlci4KPiAKPiBUaGlz
-IGFsc28gc2ltcGxpZmllcyB1bmRlcnN0YW5kaW5nIHRoZSBsaWZldGltZSBtb2RlbCBmb3Igc3Ry
-dWN0IGhtbSwgYXMKPiB0aGUgaG1tIHBvaW50ZXIgbXVzdCBiZSB2YWxpZCBhcyBwYXJ0IG9mIGEg
-cmVnaXN0ZXJlZCBtaXJyb3Igc28gYWxsIHdlCj4gbmVlZCBpbiBobW1fcmVnaXN0ZXJfcmFuZ2Uo
-KSBpcyBhIHNpbXBsZSBrcmVmX2dldC4KPiAKPiBTdWdnZXN0ZWQtYnk6IFJhbHBoIENhbXBiZWxs
-IDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KPiBTaWduZWQtb2ZmLWJ5OiBKYXNvbiBHdW50aG9ycGUg
-PGpnZ0BtZWxsYW5veC5jb20+CgpZb3UgbWlnaHQgQ0MgQmVuIGZvciB0aGUgbm91dmVhdSBwYXJ0
-LgpDQzogQmVuIFNrZWdncyA8YnNrZWdnc0ByZWRoYXQuY29tPgoKUmV2aWV3ZWQtYnk6IFJhbHBo
-IENhbXBiZWxsIDxyY2FtcGJlbGxAbnZpZGlhLmNvbT4KCgo+IC0tLQo+IHYyCj4gLSBJbmNsdWRl
-IHRoZSBvbmVsaW5lIHBhdGNoIHRvIG5vdXZlYXVfc3ZtLmMKPiAtLS0KPiAgIGRyaXZlcnMvZ3B1
-L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMgfCAgMiArLQo+ICAgaW5jbHVkZS9saW51eC9obW0u
-aCAgICAgICAgICAgICAgICAgICB8ICA3ICsrKystLS0KPiAgIG1tL2htbS5jICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgfCAxNSArKysrKystLS0tLS0tLS0KPiAgIDMgZmlsZXMgY2hhbmdl
-ZCwgMTEgaW5zZXJ0aW9ucygrKSwgMTMgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMgYi9kcml2ZXJzL2dwdS9kcm0vbm91
-dmVhdS9ub3V2ZWF1X3N2bS5jCj4gaW5kZXggOTNlZDQzYzQxM2YwYmIuLjhjOTIzNzRhZmNmMjI3
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMKPiAr
-KysgYi9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X3N2bS5jCj4gQEAgLTY0OSw3ICs2
-NDksNyBAQCBub3V2ZWF1X3N2bV9mYXVsdChzdHJ1Y3QgbnZpZl9ub3RpZnkgKm5vdGlmeSkKPiAg
-IAkJcmFuZ2UudmFsdWVzID0gbm91dmVhdV9zdm1fcGZuX3ZhbHVlczsKPiAgIAkJcmFuZ2UucGZu
-X3NoaWZ0ID0gTlZJRl9WTU1fUEZOTUFQX1YwX0FERFJfU0hJRlQ7Cj4gICBhZ2FpbjoKPiAtCQly
-ZXQgPSBobW1fdm1hX2ZhdWx0KCZyYW5nZSwgdHJ1ZSk7Cj4gKwkJcmV0ID0gaG1tX3ZtYV9mYXVs
-dCgmc3ZtbS0+bWlycm9yLCAmcmFuZ2UsIHRydWUpOwo+ICAgCQlpZiAocmV0ID09IDApIHsKPiAg
-IAkJCW11dGV4X2xvY2soJnN2bW0tPm11dGV4KTsKPiAgIAkJCWlmICghaG1tX3ZtYV9yYW5nZV9k
-b25lKCZyYW5nZSkpIHsKPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9obW0uaCBiL2luY2x1
-ZGUvbGludXgvaG1tLmgKPiBpbmRleCA2ODhjNWNhNzA2ODc5NS4uMmQ1MTk3OTdjYjEzNGEgMTAw
-NjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9obW0uaAo+ICsrKyBiL2luY2x1ZGUvbGludXgvaG1t
-LmgKPiBAQCAtNTA1LDcgKzUwNSw3IEBAIHN0YXRpYyBpbmxpbmUgYm9vbCBobW1fbWlycm9yX21t
-X2lzX2FsaXZlKHN0cnVjdCBobW1fbWlycm9yICptaXJyb3IpCj4gICAgKiBQbGVhc2Ugc2VlIERv
-Y3VtZW50YXRpb24vdm0vaG1tLnJzdCBmb3IgaG93IHRvIHVzZSB0aGUgcmFuZ2UgQVBJLgo+ICAg
-ICovCj4gICBpbnQgaG1tX3JhbmdlX3JlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlLAo+
-IC0JCSAgICAgICBzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiArCQkgICAgICAgc3RydWN0IGhtbV9t
-aXJyb3IgKm1pcnJvciwKPiAgIAkJICAgICAgIHVuc2lnbmVkIGxvbmcgc3RhcnQsCj4gICAJCSAg
-ICAgICB1bnNpZ25lZCBsb25nIGVuZCwKPiAgIAkJICAgICAgIHVuc2lnbmVkIHBhZ2Vfc2hpZnQp
-Owo+IEBAIC01NDEsNyArNTQxLDggQEAgc3RhdGljIGlubGluZSBib29sIGhtbV92bWFfcmFuZ2Vf
-ZG9uZShzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSkKPiAgIH0KPiAgIAo+ICAgLyogVGhpcyBpcyBh
-IHRlbXBvcmFyeSBoZWxwZXIgdG8gYXZvaWQgbWVyZ2UgY29uZmxpY3QgYmV0d2VlbiB0cmVlcy4g
-Ki8KPiAtc3RhdGljIGlubGluZSBpbnQgaG1tX3ZtYV9mYXVsdChzdHJ1Y3QgaG1tX3JhbmdlICpy
-YW5nZSwgYm9vbCBibG9jaykKPiArc3RhdGljIGlubGluZSBpbnQgaG1tX3ZtYV9mYXVsdChzdHJ1
-Y3QgaG1tX21pcnJvciAqbWlycm9yLAo+ICsJCQkJc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UsIGJv
-b2wgYmxvY2spCj4gICB7Cj4gICAJbG9uZyByZXQ7Cj4gICAKPiBAQCAtNTU0LDcgKzU1NSw3IEBA
-IHN0YXRpYyBpbmxpbmUgaW50IGhtbV92bWFfZmF1bHQoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2Us
-IGJvb2wgYmxvY2spCj4gICAJcmFuZ2UtPmRlZmF1bHRfZmxhZ3MgPSAwOwo+ICAgCXJhbmdlLT5w
-Zm5fZmxhZ3NfbWFzayA9IC0xVUw7Cj4gICAKPiAtCXJldCA9IGhtbV9yYW5nZV9yZWdpc3Rlcihy
-YW5nZSwgcmFuZ2UtPnZtYS0+dm1fbW0sCj4gKwlyZXQgPSBobW1fcmFuZ2VfcmVnaXN0ZXIocmFu
-Z2UsIG1pcnJvciwKPiAgIAkJCQkgcmFuZ2UtPnN0YXJ0LCByYW5nZS0+ZW5kLAo+ICAgCQkJCSBQ
-QUdFX1NISUZUKTsKPiAgIAlpZiAocmV0KQo+IGRpZmYgLS1naXQgYS9tbS9obW0uYyBiL21tL2ht
-bS5jCj4gaW5kZXggNTQ3MDAyZjU2YTE2M2QuLjg3OTY0NDcyOTkwMjNjIDEwMDY0NAo+IC0tLSBh
-L21tL2htbS5jCj4gKysrIGIvbW0vaG1tLmMKPiBAQCAtOTI1LDEzICs5MjUsMTMgQEAgc3RhdGlj
-IHZvaWQgaG1tX3BmbnNfY2xlYXIoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UsCj4gICAgKiBUcmFj
-ayB1cGRhdGVzIHRvIHRoZSBDUFUgcGFnZSB0YWJsZSBzZWUgaW5jbHVkZS9saW51eC9obW0uaAo+
-ICAgICovCj4gICBpbnQgaG1tX3JhbmdlX3JlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdl
-LAo+IC0JCSAgICAgICBzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiArCQkgICAgICAgc3RydWN0IGht
-bV9taXJyb3IgKm1pcnJvciwKPiAgIAkJICAgICAgIHVuc2lnbmVkIGxvbmcgc3RhcnQsCj4gICAJ
-CSAgICAgICB1bnNpZ25lZCBsb25nIGVuZCwKPiAgIAkJICAgICAgIHVuc2lnbmVkIHBhZ2Vfc2hp
-ZnQpCj4gICB7Cj4gICAJdW5zaWduZWQgbG9uZyBtYXNrID0gKCgxVUwgPDwgcGFnZV9zaGlmdCkg
-LSAxVUwpOwo+IC0Jc3RydWN0IGhtbSAqaG1tOwo+ICsJc3RydWN0IGhtbSAqaG1tID0gbWlycm9y
-LT5obW07Cj4gICAKPiAgIAlyYW5nZS0+dmFsaWQgPSBmYWxzZTsKPiAgIAlyYW5nZS0+aG1tID0g
-TlVMTDsKPiBAQCAtOTQ1LDE1ICs5NDUsMTIgQEAgaW50IGhtbV9yYW5nZV9yZWdpc3RlcihzdHJ1
-Y3QgaG1tX3JhbmdlICpyYW5nZSwKPiAgIAlyYW5nZS0+c3RhcnQgPSBzdGFydDsKPiAgIAlyYW5n
-ZS0+ZW5kID0gZW5kOwo+ICAgCj4gLQlobW0gPSBobW1fZ2V0X29yX2NyZWF0ZShtbSk7Cj4gLQlp
-ZiAoIWhtbSkKPiAtCQlyZXR1cm4gLUVGQVVMVDsKPiAtCj4gICAJLyogQ2hlY2sgaWYgaG1tX21t
-X2Rlc3Ryb3koKSB3YXMgY2FsbC4gKi8KPiAtCWlmIChobW0tPm1tID09IE5VTEwgfHwgaG1tLT5k
-ZWFkKSB7Cj4gLQkJaG1tX3B1dChobW0pOwo+ICsJaWYgKGhtbS0+bW0gPT0gTlVMTCB8fCBobW0t
-PmRlYWQpCj4gICAJCXJldHVybiAtRUZBVUxUOwo+IC0JfQo+ICsKPiArCXJhbmdlLT5obW0gPSBo
-bW07Cj4gKwlrcmVmX2dldCgmaG1tLT5rcmVmKTsKPiAgIAo+ICAgCS8qIEluaXRpYWxpemUgcmFu
-Z2UgdG8gdHJhY2sgQ1BVIHBhZ2UgdGFibGUgdXBkYXRlcy4gKi8KPiAgIAltdXRleF9sb2NrKCZo
-bW0tPmxvY2spOwo+IApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
+
+> And I think this is related to what Christoph Hellwig is doing with bio_vec and
+> dma.  Really we want drivers out of the page processing business.
+
+At least for RDMA, and a few other places I've noticed, I'd really
+like to get totally out of the handling struct pages game.
+
+We are DMA based and really only want DMA addresses for the target
+device. I know other places need CPU pages or more complicated
+things.. But I also know there are other drivers like RDMA..
+
+So I think it would be very helpful to have a driver API something
+like:
+
+int get_user_mem_for_dma(struct device *dma_device,
+                void __user *mem, size_t length,
+                struct gup_handle *res,
+                struct 'bio dma list' *dma_list,
+                const struct dma_params *params);
+void put_user_mem_for_dma(struct gup_handle *res, 
+                 struct 'bio dma list' *dma_list);
+
+And we could hope to put in there all the specialty logic we want to
+have for this flow:
+ - The weird HMM stuff in hmm_range_dma_map()
+ - Interaction with DAX
+ - Interaction with DMA BUF
+ - Holding file leases
+ - PCI peer 2 peer features
+ - Optimizations for huge pages
+ - Handling page dirtying from DMA
+ - etc
+
+I think Matthew was suggesting something like this at LS/MM, so +1
+from here..
+
+When Christoph sends his BIO dma work I was thinking of investigating
+this avenue, as we already have something quite similiar in RDMA that
+could perhaps be hoisted out for re-use into mm/
+
+Jason
