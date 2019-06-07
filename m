@@ -1,32 +1,60 @@
-From: Jens Axboe <axboe@kernel.dk>
-Subject: Re: properly communicate queue limits to the DMA layer
-Date: Thu, 6 Jun 2019 23:52:35 -0600
-Message-ID: <f07d0abf-b3eb-f530-37b9-e66454740b3f@kernel.dk>
-References: <20190605190836.32354-1-hch@lst.de>
- <591cfa1e-fecb-7d00-c855-3b9eb8eb8a2a@kernel.dk>
- <20190605192405.GA18243@lst.de>
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: Re: [PATCH v2 hmm 09/11] mm/hmm: Poison hmm_range during unregister
+Date: Thu, 6 Jun 2019 20:37:42 -0700
+Message-ID: <c00da0f2-b4b8-813b-0441-a50d4de9d8be@nvidia.com>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-10-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190605192405.GA18243@lst.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20190606184438.31646-10-jgg@ziepe.ca>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Jason Gunthorpe <jgg@ziepe.ca>, Jerome Glisse <jglisse@redhat.com>, Ralph
+ Campbell <rcampbell@nvidia.com>, Felix.Kuehling@amd.com
+Cc: Andrea Arcangeli <aarcange@redhat.com>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, linux-mm@kvack.org, Jason Gunthorpe <jgg@mellanox.com>, dri-devel@lists.freedesktop.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/5/19 1:24 PM, Christoph Hellwig wrote:
-> On Wed, Jun 05, 2019 at 01:17:15PM -0600, Jens Axboe wrote:
->> Since I'm heading out shortly and since I think this should make
->> the next -rc, I'll tentatively queue this up.
-> 
-> The SCSI bits will need a bit more review, and possibly tweaking
-> fo megaraid and mpt3sas.  But they are really independent of the
-> other patches, so maybe skip them for now and leave them for Martin
-> to deal with.
-
-I dropped the SCSI bits.
-
--- 
-Jens Axboe
+T24gNi82LzE5IDExOjQ0IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gRnJvbTogSmFzb24g
+R3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgo+IAo+IFRyeWluZyB0byBtaXN1c2UgYSByYW5n
+ZSBvdXRzaWRlIGl0cyBsaWZldGltZSBpcyBhIGtlcm5lbCBidWcuIFVzZSBXQVJOX09OCj4gYW5k
+IHBvaXNvbiBieXRlcyB0byBkZXRlY3QgdGhpcyBjb25kaXRpb24uCj4gCj4gU2lnbmVkLW9mZi1i
+eTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgo+IFJldmlld2VkLWJ5OiBKw6ly
+w7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KPiAtLS0KPiB2Mgo+IC0gS2VlcCByYW5n
+ZSBzdGFydC9lbmQgdmFsaWQgYWZ0ZXIgdW5yZWdpc3RyYXRpb24gKEplcm9tZSkKPiAtLS0KPiAg
+bW0vaG1tLmMgfCA3ICsrKysrLS0KPiAgMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwg
+MiBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvbW0vaG1tLmMgYi9tbS9obW0uYwo+IGlu
+ZGV4IDY4MDJkZTcwODBkMTcyLi5jMmZlY2IzZWNiMTFlMSAxMDA2NDQKPiAtLS0gYS9tbS9obW0u
+Ywo+ICsrKyBiL21tL2htbS5jCj4gQEAgLTkzNyw3ICs5MzcsNyBAQCB2b2lkIGhtbV9yYW5nZV91
+bnJlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQo+ICAJc3RydWN0IGhtbSAqaG1tID0g
+cmFuZ2UtPmhtbTsKPiAgCj4gIAkvKiBTYW5pdHkgY2hlY2sgdGhpcyByZWFsbHkgc2hvdWxkIG5v
+dCBoYXBwZW4uICovCgpUaGF0IGNvbW1lbnQgY2FuIGFsc28gYmUgZGVsZXRlZCwgYXMgaXQgaGFz
+IHRoZSBzYW1lIG1lYW5pbmcgYXMKdGhlIFdBUk5fT04oKSB0aGF0IHlvdSBqdXN0IGFkZGVkLgoK
+PiAtCWlmIChobW0gPT0gTlVMTCB8fCByYW5nZS0+ZW5kIDw9IHJhbmdlLT5zdGFydCkKPiArCWlm
+IChXQVJOX09OKHJhbmdlLT5lbmQgPD0gcmFuZ2UtPnN0YXJ0KSkKPiAgCQlyZXR1cm47Cj4gIAo+
+ICAJbXV0ZXhfbG9jaygmaG1tLT5sb2NrKTsKPiBAQCAtOTQ4LDcgKzk0OCwxMCBAQCB2b2lkIGht
+bV9yYW5nZV91bnJlZ2lzdGVyKHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQo+ICAJcmFuZ2UtPnZh
+bGlkID0gZmFsc2U7Cj4gIAltbXB1dChobW0tPm1tKTsKPiAgCWhtbV9wdXQoaG1tKTsKPiAtCXJh
+bmdlLT5obW0gPSBOVUxMOwo+ICsKPiArCS8qIFRoZSByYW5nZSBpcyBub3cgaW52YWxpZCwgbGVh
+dmUgaXQgcG9pc29uZWQuICovCgpUbyBiZSBwcmVjaXNlLCB3ZSBhcmUgcG9pc29uaW5nIHRoZSBy
+YW5nZSdzIGJhY2sgcG9pbnRlciB0byBpdCdzCm93bmluZyBobW0gaW5zdGFuY2UuICBNYXliZSB0
+aGlzIGlzIGNsZWFyZXI6CgoJLyoKCSAqIFRoZSByYW5nZSBpcyBub3cgaW52YWxpZCwgc28gcG9p
+c29uIGl0J3MgaG1tIHBvaW50ZXIuIAoJICogTGVhdmUgb3RoZXIgcmFuZ2UtPiBmaWVsZHMgaW4g
+cGxhY2UsIGZvciB0aGUgY2FsbGVyJ3MgdXNlLgoJICovCgouLi5vciBzb21ldGhpbmcgbGlrZSB0
+aGF0PwoKPiArCXJhbmdlLT52YWxpZCA9IGZhbHNlOwo+ICsJbWVtc2V0KCZyYW5nZS0+aG1tLCBQ
+T0lTT05fSU5VU0UsIHNpemVvZihyYW5nZS0+aG1tKSk7Cj4gIH0KPiAgRVhQT1JUX1NZTUJPTCho
+bW1fcmFuZ2VfdW5yZWdpc3Rlcik7Cj4gIAo+IAoKVGhlIGFib3ZlIGFyZSB2ZXJ5IG1pbm9yIGRv
+Y3VtZW50YXRpb24gcG9pbnRzLCBzbzoKCiAgICBSZXZpZXdlZC1ieTogSm9obiBIdWJiYXJkIDxq
+aHViYmFyZEBudmlkaWEuY29tPgoKCnRoYW5rcywKLS0gCkpvaG4gSHViYmFyZApOVklESUEKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1h
+aWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
