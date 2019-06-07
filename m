@@ -1,24 +1,34 @@
-From: pr-tracker-bot@kernel.org
-Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
-Date: Fri, 07 Jun 2019 16:45:11 +0000
-Message-ID: <155992591105.2725.17839182914999758884.pr-tracker-bot@kernel.org>
-References: <20190606201420.GA9763@ziepe.ca>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190606201420.GA9763@ziepe.ca>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@mellanox.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: [PATCH, RESEND] RDMA/srp: Accept again source addresses that do
+ not have a port number
+Date: Fri, 7 Jun 2019 13:53:37 -0300
+Message-ID: <20190607165337.GB22304@ziepe.ca>
+References: <20190529163831.138926-1-bvanassche@acm.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190529163831.138926-1-bvanassche@acm.org>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: Leon Romanovsky <leonro@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, Laurence Oberman <loberman@redhat.com>, stable@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-The pull request you sent on Thu, 6 Jun 2019 20:14:24 +0000:
+On Wed, May 29, 2019 at 09:38:31AM -0700, Bart Van Assche wrote:
+> The function srp_parse_in() is used both for parsing source address
+> specifications and for target address specifications. Target addresses
+> must have a port number. Having to specify a port number for source
+> addresses is inconvenient. Make sure that srp_parse_in() supports again
+> parsing addresses with no port number.
+> 
+> Cc: Laurence Oberman <loberman@redhat.com>
+> Cc: <stable@vger.kernel.org>
+> Fixes: c62adb7def71 ("IB/srp: Fix IPv6 address parsing") # v4.17.
+> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+> ---
+>  drivers/infiniband/ulp/srp/ib_srp.c | 21 +++++++++++++++------
+>  1 file changed, 15 insertions(+), 6 deletions(-)
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+Applied to for-next, thanks
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/6e38335dcc70f03faba26bf1260ee024d930afe1
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+Jason
