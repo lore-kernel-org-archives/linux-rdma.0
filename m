@@ -1,130 +1,75 @@
-From: Dennis Dalessandro <dennis.dalessandro@intel.com>
-Subject: [PATCH for-rc 3/3] IB/hfi1: Correct tid qp rcd to match verbs
- context
-Date: Fri, 07 Jun 2019 08:25:38 -0400
-Message-ID: <20190607122538.158478.62945.stgit@awfm-01.aw.intel.com>
-References: <20190607113807.157915.48581.stgit@awfm-01.aw.intel.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 01/11] mm/hmm: fix use after free with struct hmm
+ in the mmu notifiers
+Date: Fri, 7 Jun 2019 09:34:32 -0300
+Message-ID: <20190607123432.GB14802@ziepe.ca>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-2-jgg@ziepe.ca>
+ <9c72d18d-2924-cb90-ea44-7cd4b10b5bc2@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20190607113807.157915.48581.stgit@awfm-01.aw.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: jgg@ziepe.ca, dledford@redhat.com
-Cc: linux-rdma@vger.kernel.org, Mike Marciniszyn <mike.marciniszyn@intel.com>, stable@vger.kernel.org, Kaike Wan <kaike.wan@intel.com>
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <9c72d18d-2924-cb90-ea44-7cd4b10b5bc2-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mike Marciniszyn <mike.marciniszyn@intel.com>
-
-The qp priv rcd pointer doesn't match the context being
-used for verbs causing issues when 9B and kdeth packets
-are processed by different receive contexts and hence
-different CPUs.
-
-When running on different CPUs the following panic can
-occur:
-[476262.398106] WARNING: CPU: 3 PID: 2584 at lib/list_debug.c:59 __list_del_entry+0xa1/0xd0
-[476262.398109] list_del corruption. prev->next should be ffff9a7ac31f7a30, but was ffff9a7c3bc89230
-[476262.398266] CPU: 3 PID: 2584 Comm: z_wr_iss Kdump: loaded Tainted: P           OE  ------------   3.10.0-862.2.3.el7_lustre.x86_64 #1
-[476262.398272] Call Trace:
-[476262.398277]  <IRQ>  [<ffffffffb7b0d78e>] dump_stack+0x19/0x1b
-[476262.398314]  [<ffffffffb74916d8>] __warn+0xd8/0x100
-[476262.398317]  [<ffffffffb749175f>] warn_slowpath_fmt+0x5f/0x80
-[476262.398320]  [<ffffffffb7768671>] __list_del_entry+0xa1/0xd0
-[476262.398402]  [<ffffffffc0c7a945>] process_rcv_qp_work+0xb5/0x160 [hfi1]
-[476262.398424]  [<ffffffffc0c7bc2b>] handle_receive_interrupt_nodma_rtail+0x20b/0x2b0 [hfi1]
-[476262.398438]  [<ffffffffc0c70683>] receive_context_interrupt+0x23/0x40 [hfi1]
-[476262.398447]  [<ffffffffb7540a94>] __handle_irq_event_percpu+0x44/0x1c0
-[476262.398450]  [<ffffffffb7540c42>] handle_irq_event_percpu+0x32/0x80
-[476262.398454]  [<ffffffffb7540ccc>] handle_irq_event+0x3c/0x60
-[476262.398460]  [<ffffffffb7543a1f>] handle_edge_irq+0x7f/0x150
-[476262.398469]  [<ffffffffb742d504>] handle_irq+0xe4/0x1a0
-[476262.398475]  [<ffffffffb7b23f7d>] do_IRQ+0x4d/0xf0
-[476262.398481]  [<ffffffffb7b16362>] common_interrupt+0x162/0x162
-[476262.398482]  <EOI>  [<ffffffffb775a326>] ? memcpy+0x6/0x110
-[476262.398645]  [<ffffffffc109210d>] ? abd_copy_from_buf_off_cb+0x1d/0x30 [zfs]
-[476262.398678]  [<ffffffffc10920f0>] ? abd_copy_to_buf_off_cb+0x30/0x30 [zfs]
-[476262.398696]  [<ffffffffc1093257>] abd_iterate_func+0x97/0x120 [zfs]
-[476262.398710]  [<ffffffffc10934d9>] abd_copy_from_buf_off+0x39/0x60 [zfs]
-[476262.398726]  [<ffffffffc109b828>] arc_write_ready+0x178/0x300 [zfs]
-[476262.398732]  [<ffffffffb7b11032>] ? mutex_lock+0x12/0x2f
-[476262.398734]  [<ffffffffb7b11032>] ? mutex_lock+0x12/0x2f
-[476262.398837]  [<ffffffffc1164d05>] zio_ready+0x65/0x3d0 [zfs]
-[476262.398884]  [<ffffffffc04d725e>] ? tsd_get_by_thread+0x2e/0x50 [spl]
-[476262.398893]  [<ffffffffc04d1318>] ? taskq_member+0x18/0x30 [spl]
-[476262.398968]  [<ffffffffc115ef22>] zio_execute+0xa2/0x100 [zfs]
-[476262.398982]  [<ffffffffc04d1d2c>] taskq_thread+0x2ac/0x4f0 [spl]
-[476262.399001]  [<ffffffffb74cee80>] ? wake_up_state+0x20/0x20
-[476262.399043]  [<ffffffffc115ee80>] ? zio_taskq_member.isra.7.constprop.10+0x80/0x80 [zfs]
-[476262.399055]  [<ffffffffc04d1a80>] ? taskq_thread_spawn+0x60/0x60 [spl]
-[476262.399067]  [<ffffffffb74bae31>] kthread+0xd1/0xe0
-[476262.399072]  [<ffffffffb74bad60>] ? insert_kthread_work+0x40/0x40
-[476262.399082]  [<ffffffffb7b1f5f7>] ret_from_fork_nospec_begin+0x21/0x21
-[476262.399087]  [<ffffffffb74bad60>] ? insert_kthread_work+0x40/0x40
-
-Fix by reading the map entry in the same manner as the
-hardware so that the kdeth and verbs contexts match.
-
-Fixes: 5190f052a365 ("IB/hfi1: Allow the driver to initialize QP priv struct")
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Kaike Wan <kaike.wan@intel.com>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn@intel.com>
-Signed-off-by: Dennis Dalessandro <dennis.dalessandro@intel.com>
----
- drivers/infiniband/hw/hfi1/chip.c     |   13 +++++++++++++
- drivers/infiniband/hw/hfi1/chip.h     |    1 +
- drivers/infiniband/hw/hfi1/tid_rdma.c |    5 ++---
- 3 files changed, 16 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/hw/hfi1/chip.c b/drivers/infiniband/hw/hfi1/chip.c
-index 4221a99e..674f62a 100644
---- a/drivers/infiniband/hw/hfi1/chip.c
-+++ b/drivers/infiniband/hw/hfi1/chip.c
-@@ -14032,6 +14032,19 @@ static void init_kdeth_qp(struct hfi1_devdata *dd)
- }
- 
- /**
-+ * hfi1_get_qp_map
-+ * @dd: device data
-+ * @idx: index to read
-+ */
-+u8 hfi1_get_qp_map(struct hfi1_devdata *dd, u8 idx)
-+{
-+	u64 reg = read_csr(dd, RCV_QP_MAP_TABLE + (idx / 8) * 8);
-+
-+	reg >>= (idx % 8) * 8;
-+	return (u8)reg;
-+}
-+
-+/**
-  * init_qpmap_table
-  * @dd - device data
-  * @first_ctxt - first context
-diff --git a/drivers/infiniband/hw/hfi1/chip.h b/drivers/infiniband/hw/hfi1/chip.h
-index 4e6c355..b76cf81 100644
---- a/drivers/infiniband/hw/hfi1/chip.h
-+++ b/drivers/infiniband/hw/hfi1/chip.h
-@@ -1445,6 +1445,7 @@ int hfi1_set_ctxt_pkey(struct hfi1_devdata *dd, struct hfi1_ctxtdata *ctxt,
- void remap_intr(struct hfi1_devdata *dd, int isrc, int msix_intr);
- void remap_sdma_interrupts(struct hfi1_devdata *dd, int engine, int msix_intr);
- void reset_interrupts(struct hfi1_devdata *dd);
-+u8 hfi1_get_qp_map(struct hfi1_devdata *dd, u8 idx);
- 
- /*
-  * Interrupt source table.
-diff --git a/drivers/infiniband/hw/hfi1/tid_rdma.c b/drivers/infiniband/hw/hfi1/tid_rdma.c
-index 6fb9303..d77276d 100644
---- a/drivers/infiniband/hw/hfi1/tid_rdma.c
-+++ b/drivers/infiniband/hw/hfi1/tid_rdma.c
-@@ -312,9 +312,8 @@ static struct hfi1_ctxtdata *qp_to_rcd(struct rvt_dev_info *rdi,
- 	if (qp->ibqp.qp_num == 0)
- 		ctxt = 0;
- 	else
--		ctxt = ((qp->ibqp.qp_num >> dd->qos_shift) %
--			(dd->n_krcv_queues - 1)) + 1;
--
-+		ctxt = hfi1_get_qp_map(dd,
-+				       (u8)(qp->ibqp.qp_num >> dd->qos_shift));
- 	return dd->rcd[ctxt];
- }
- 
+T24gVGh1LCBKdW4gMDYsIDIwMTkgYXQgMDc6Mjk6MDhQTSAtMDcwMCwgSm9obiBIdWJiYXJkIHdy
+b3RlOgo+IE9uIDYvNi8xOSAxMTo0NCBBTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+ID4gRnJv
+bTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgo+IC4uLgo+ID4gZGlmZiAtLWdp
+dCBhL21tL2htbS5jIGIvbW0vaG1tLmMKPiA+IGluZGV4IDhlNzQwM2YwODFmNDRhLi41NDcwMDJm
+NTZhMTYzZCAxMDA2NDQKPiA+ICsrKyBiL21tL2htbS5jCj4gLi4uCj4gPiBAQCAtMTI1LDcgKzEz
+MCw3IEBAIHN0YXRpYyB2b2lkIGhtbV9mcmVlKHN0cnVjdCBrcmVmICprcmVmKQo+ID4gIAkJbW0t
+PmhtbSA9IE5VTEw7Cj4gPiAgCXNwaW5fdW5sb2NrKCZtbS0+cGFnZV90YWJsZV9sb2NrKTsKPiA+
+ICAKPiA+IC0Ja2ZyZWUoaG1tKTsKPiA+ICsJbW11X25vdGlmaWVyX2NhbGxfc3JjdSgmaG1tLT5y
+Y3UsIGhtbV9mcmVlX3JjdSk7Cj4gCj4gCj4gSXQgb2NjdXJyZWQgdG8gbWUgdG8gd29uZGVyIGlm
+IGl0IGlzIGJlc3QgdG8gdXNlIHRoZSBNTVUgbm90aWZpZXIncwo+IGluc3RhbmNlIG9mIHNyY3Us
+IGluc3RlYWQgb2YgY3JlYXRpbmcgYSBzZXBhcmF0ZSBpbnN0YW5jZSBmb3IgSE1NLgoKSXQgKmhh
+cyogdG8gYmUgdGhlIE1NVSBub3RpZmllciBTUkNVIGJlY2F1c2Ugd2UgYXJlIHN5bmNob3JuaXpp
+bmcKYWdhaW5zdCB0aGUgcmVhZCBzaWRlIG9mIHRoYXQgU1JVIGluc2lkZSB0aGUgbW11IG5vdGlm
+aWVyIGNvZGUsIGllOgoKaW50IF9fbW11X25vdGlmaWVyX2ludmFsaWRhdGVfcmFuZ2Vfc3RhcnQo
+c3RydWN0IG1tdV9ub3RpZmllcl9yYW5nZSAqcmFuZ2UpCiAgICAgICAgaWQgPSBzcmN1X3JlYWRf
+bG9jaygmc3JjdSk7CiAgICAgICAgaGxpc3RfZm9yX2VhY2hfZW50cnlfcmN1KG1uLCAmcmFuZ2Ut
+Pm1tLT5tbXVfbm90aWZpZXJfbW0tPmxpc3QsIGhsaXN0KSB7CiAgICAgICAgICAgICAgICBpZiAo
+bW4tPm9wcy0+aW52YWxpZGF0ZV9yYW5nZV9zdGFydCkgewogICAgICAgICAgICAgICAgICAgXl5e
+Xl4KCkhlcmUgJ21uJyBpcyByZWFsbHkgaG1tIChobW0gPSBjb250YWluZXJfb2YobW4sIHN0cnVj
+dCBobW0sCm1tdV9ub3RpZmllcikpLCBzbyB3ZSBtdXN0IHByb3RlY3QgdGhlIG1lbW9yeSBhZ2Fp
+bnN0IGZyZWUgZm9yIHRoZSBtbXUKbm90aWZpZXIgY29yZS4KClRodXMgd2UgaGF2ZSBubyBjaG9p
+Y2UgYnV0IHRvIHVzZSBpdHMgU1JDVS4KCkNIIGFsc28gcG9pbnRlZCBvdXQgYSBtb3JlIGVsZWdh
+bnQgc29sdXRpb24sIHdoaWNoIGlzIHRvIGdldCB0aGUgd3JpdGUKc2lkZSBvZiB0aGUgbW1hcF9z
+ZW0gZHVyaW5nIGhtbV9taXJyb3JfdW5yZWdpc3RlciAtIG5vIG5vdGlmaWVyCmNhbGxiYWNrIGNh
+biBiZSBydW5uaW5nIGluIHRoaXMgY2FzZS4gVGhlbiB3ZSBkZWxldGUgdGhlIGtyZWYsIHNyY3UK
+YW5kIHNvIGZvcnRoLgoKVGhpcyBpcyBtdWNoIGNsZWFyZXIvc2FuZXIvYmV0dGVyLCBidXQuLiBy
+ZXF1cmllcyB0aGUgY2FsbGVycyBvZgpobW1fbWlycm9yX3VucmVnaXN0ZXIgdG8gYmUgc2FmZSB0
+byBnZXQgdGhlIG1tYXBfc2VtIHdyaXRlIHNpZGUuCgpJIHRoaW5rIHRoaXMgaXMgdHJ1ZSwgc28g
+bWF5YmUgdGhpcyBwYXRjaCBzaG91bGQgYmUgc3dpdGNoZWQsIHdoYXQgZG8KeW91IHRoaW5rPwoK
+PiA+IEBAIC0xNTMsMTAgKzE1OCwxNCBAQCB2b2lkIGhtbV9tbV9kZXN0cm95KHN0cnVjdCBtbV9z
+dHJ1Y3QgKm1tKQo+ID4gIAo+ID4gIHN0YXRpYyB2b2lkIGhtbV9yZWxlYXNlKHN0cnVjdCBtbXVf
+bm90aWZpZXIgKm1uLCBzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiA+ICB7Cj4gPiAtCXN0cnVjdCBo
+bW0gKmhtbSA9IG1tX2dldF9obW0obW0pOwo+ID4gKwlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWlu
+ZXJfb2YobW4sIHN0cnVjdCBobW0sIG1tdV9ub3RpZmllcik7Cj4gPiAgCXN0cnVjdCBobW1fbWly
+cm9yICptaXJyb3I7Cj4gPiAgCXN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlOwo+ID4gIAo+ID4gKwkv
+KiBobW0gaXMgaW4gcHJvZ3Jlc3MgdG8gZnJlZSAqLwo+IAo+IFdlbGwsIHNvbWV0aW1lcywgeWVz
+LiA6KQoKSXQgdGhpbmsgaXQgaXMgaW4gYWxsIGNhc2VzIGFjdHVhbGx5Li4gVGhlIG9ubHkgd2F5
+IHdlIHNlZSBhIDAga3JlZgphbmQgc3RpbGwgcmVhY2ggdGhpcyBjb2RlIHBhdGggaXMgaWYgYW5v
+dGhlciB0aHJlYWQgaGFzIGFscmVheSBzZXR1cAp0aGUgaG1tX2ZyZWUgaW4gdGhlIGNhbGxfc3Jj
+dS4uCgo+IE1heWJlIHRoaXMgd29yZGluZyBpcyBjbGVhcmVyIChpZiB3ZSBuZWVkIGFueSBjb21t
+ZW50IGF0IGFsbCk6CgpJIGFsd2F5cyBmaW5kIHRoaXMgaGFyZC4uIFRoaXMgaXMgYSB2ZXJ5IHN0
+YW5kYXJkIHBhdHRlcm4gd2hlbiB3b3JraW5nCndpdGggUkNVIC0gaG93ZXZlciBpbiBteSBleHBl
+cmllbmNlIGZldyBwZW9wbGUgYWN0dWFsbHkga25vdyB0aGUgUkNVCnBhdHRlcm5zLCBhbmQgbWlz
+c2luZyB0aGUgX3VubGVzc196ZXJvIGlzIGEgY29tbW9uIGJ1ZyBJIGZpbmQgd2hlbgpsb29raW5n
+IGF0IGNvZGUuCgpUaGlzIGlzIG1tLyBzbyBJIGNhbiBkcm9wIGl0LCB3aGF0IGRvIHlvdSB0aGlu
+az8KClRoYW5rcywKSmFzb24KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
