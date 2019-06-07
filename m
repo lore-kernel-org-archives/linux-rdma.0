@@ -1,38 +1,63 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH] RDMA/ucma: Use struct_size() helper
-Date: Fri, 7 Jun 2019 15:05:08 -0300
-Message-ID: <20190607180508.GA29136@ziepe.ca>
-References: <20190604154222.GA8938@embeddedor>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: Re: [pull request][for-next 0/9] Generic DIM lib for netdev and RDMA
+Date: Fri, 7 Jun 2019 18:14:11 +0000
+Message-ID: <9faeadac971aaf481b1066b1dde0fc9e77e893a5.camel@mellanox.com>
+References: <20190605232348.6452-1-saeedm@mellanox.com>
+         <20190606071427.GU5261@mtr-leonro.mtl.com>
+         <898e0df0-b73c-c6d7-9cbe-084163643236@mellanox.com>
+         <20190606130713.GC17392@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190604154222.GA8938@embeddedor>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20190606130713.GC17392@mellanox.com>
+Content-Language: en-US
+Content-ID: <1A0DC2BB92C7FF45BDE44F866FEB6869@eurprd05.prod.outlook.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>, Max Gurtovoy <maxg@mellanox.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "andy@greyhouse.net" <andy@greyhouse.net>, Tal Gilboa <talgi@mellanox.com>, "michael.chan@broadcom.com" <michael.chan@broadcom.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "leon@kernel.org" <leon@kernel.org>, "dledford@redhat.com" <dledford@redhat.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 04, 2019 at 10:42:22AM -0500, Gustavo A. R. Silva wrote:
-> Make use of the struct_size() helper instead of an open-coded version
-> in order to avoid any potential type mistakes, in particular in the
-> context in which this code is being used.
-> 
-> So, replace the following form:
-> 
-> sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))
-> 
-> with:
-> 
-> struct_size(resp, path_data, i)
-> 
-> This code was detected with the help of Coccinelle.
-> 
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
->  drivers/infiniband/core/ucma.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-
-Applied to for-next, thanks
-
-Jason
+T24gVGh1LCAyMDE5LTA2LTA2IGF0IDEzOjA3ICswMDAwLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6
+DQo+IE9uIFRodSwgSnVuIDA2LCAyMDE5IGF0IDEwOjE5OjQxQU0gKzAzMDAsIE1heCBHdXJ0b3Zv
+eSB3cm90ZToNCj4gPiA+ID4gU29sdXRpb246DQo+ID4gPiA+IC0gQ29tbW9uIGxvZ2ljIGlzIGRl
+Y2xhcmVkIGluIGluY2x1ZGUvbGludXgvZGltLmggYW5kDQo+ID4gPiA+IGltcGxlbWVudGVkIGlu
+DQo+ID4gPiA+ICAgIGxpYi9kaW0vZGltLmMNCj4gPiA+ID4gLSBOZXQgRElNIChleGlzdGluZykg
+bG9naWMgaXMgZGVjbGFyZWQgaW4NCj4gPiA+ID4gaW5jbHVkZS9saW51eC9uZXRfZGltLmggYW5k
+DQo+ID4gPiA+ICAgIGltcGxlbWVudGVkIGluIGxpYi9kaW0vbmV0X2RpbS5jLCB3aGljaCB1c2Vz
+IHRoZSBjb21tb24NCj4gPiA+ID4gbG9naWMgZnJvbSBkaW0uaA0KPiA+ID4gPiAtIEFueSBuZXcg
+RElNIGxvZ2ljIHdpbGwgYmUgZGVjbGFyZWQgaW4NCj4gPiA+ID4gIi9pbmNsdWRlL2xpbnV4L25l
+d19kaW0uaCIgYW5kDQo+ID4gPiA+ICAgICBpbXBsZW1lbnRlZCBpbiAibGliL2RpbS9uZXdfZGlt
+LmMiLg0KPiA+ID4gPiAtIFRoaXMgbmV3IGltcGxlbWVudGF0aW9uIHdpbGwgZXhwb3NlIG1vZGlm
+aWVkIHZlcnNpb25zIG9mDQo+ID4gPiA+IHByb2ZpbGVzLA0KPiA+ID4gPiAgICBkaW1fc3RlcCgp
+IGFuZCBkaW1fZGVjaXNpb24oKS4NCj4gPiA+ID4gDQo+ID4gPiA+IFByb3MgZm9yIHRoaXMgc29s
+dXRpb24gYXJlOg0KPiA+ID4gPiAtIFplcm8gaW1wYWN0IG9uIGV4aXN0aW5nIG5ldF9kaW0gaW1w
+bGVtZW50YXRpb24gYW5kIHVzYWdlDQo+ID4gPiA+IC0gUmVsYXRpdmVseSBtb3JlIGNvZGUgcmV1
+c2UgKGNvbXBhcmVkIHRvIHR3byBzZXBhcmF0ZQ0KPiA+ID4gPiBzb2x1dGlvbnMpDQo+ID4gPiA+
+IC0gSW5jcmVhc2VkIGV4dGVuc2liaWxpdHkNCj4gPiA+ID4gDQo+ID4gPiA+IFRhbCBHaWxib2Eg
+KDYpOg0KPiA+ID4gPiAgICAgICAgbGludXgvZGltOiBNb3ZlIGxvZ2ljIHRvIGRpbS5oDQo+ID4g
+PiA+ICAgICAgICBsaW51eC9kaW06IFJlbW92ZSAibmV0IiBwcmVmaXggZnJvbSBpbnRlcm5hbCBE
+SU0gbWVtYmVycw0KPiA+ID4gPiAgICAgICAgbGludXgvZGltOiBSZW5hbWUgZXh0ZXJuYWxseSBl
+eHBvc2VkIG1hY3Jvcw0KPiA+ID4gPiAgICAgICAgbGludXgvZGltOiBSZW5hbWUgbmV0X2RpbV9z
+YW1wbGUoKSB0bw0KPiA+ID4gPiBuZXRfZGltX3VwZGF0ZV9zYW1wbGUoKQ0KPiA+ID4gPiAgICAg
+ICAgbGludXgvZGltOiBSZW5hbWUgZXh0ZXJuYWxseSB1c2VkIG5ldF9kaW0gbWVtYmVycw0KPiA+
+ID4gPiAgICAgICAgbGludXgvZGltOiBNb3ZlIGltcGxlbWVudGF0aW9uIHRvIC5jIGZpbGVzDQo+
+ID4gPiA+IA0KPiA+ID4gPiBZYW1pbiBGcmllZG1hbiAoMyk6DQo+ID4gPiA+ICAgICAgICBsaW51
+eC9kaW06IEFkZCBjb21wbGV0aW9ucyBjb3VudCB0byBkaW1fc2FtcGxlDQo+ID4gPiA+ICAgICAg
+ICBsaW51eC9kaW06IEltcGxlbWVudCByZG1hX2RpbQ0KPiA+ID4gPiAgICAgICAgUkRNQS9jb3Jl
+OiBQcm92aWRlIFJETUEgRElNIHN1cHBvcnQgZm9yIFVMUHMNCj4gPiA+IFNhZWVkLA0KPiA+ID4g
+DQo+ID4gPiBObywgZm9yIHRoZSBSRE1BIHBhdGNoZXMuDQo+ID4gPiBXZSBuZWVkIHRvIHNlZSB1
+c2FnZSBvZiB0aG9zZSBBUElzIGJlZm9yZSBtZXJnaW5nLg0KPiA+IA0KPiA+IEkndmUgYXNrZWQg
+WWFtaW4gdG8gcHJlcGFyZSBwYXRjaGVzIGZvciBOVk1lb0YgaW5pdGlhdG9yIGFuZCB0YXJnZXQN
+Cj4gPiBmb3INCj4gPiByZXZpZXcsIHNvIEkgZ3Vlc3MgaGUgaGFzIGl0IG9uIGhpcyBwbGF0ZSAo
+dGhpcyBpcyBob3cgaGUgdGVzdGVkDQo+ID4gaXQuLikuDQo+ID4gDQo+ID4gSXQgbWlnaHQgY2F1
+c2UgY29uZmxpY3Qgd2l0aCBOVk1lL2JsayBicmFuY2ggbWFpbnRhaW5lZCBieSBTYWdpLA0KPiA+
+IENocmlzdG9waA0KPiA+IGFuZCBKZW5zLg0KPiANCj4gSXQgbG9va3MgbGlrZSBudm1lIGNvdWxk
+IHB1bGwgdGhpcyBzZXJpZXMgKyB0aGUgUkRNQSBwYXRjaGVzIGludG8gdGhlDQo+IG52bWUgdHJl
+ZSB2aWEgUFI/IEknbSBub3QgZmFtaWxpYXIgd2l0aCBob3cgdGhhdCB0cmVlIHdvcmtzLg0KPiAN
+Cj4gQnV0IHdlIG5lZWQgdG8gZ2V0IHRoZSBwYXRjaGVzIHBvc3RlZCByaWdodCBhd2F5Li4NCj4g
+DQoNCldoYXQgZG8geW91IHN1Z2dlc3QgaGVyZSA/DQpJIHRoaW5rIHRoZSBuZXRkZXYgY29tbXVu
+aXR5IGFsc28gZGVzZXJ2ZSB0byBzZWUgdGhlIHJkbWEgcGF0Y2hlcywgYXQNCmxlYXN0IHdpdGgg
+YW4gZXh0ZXJuYWwgbGluaywgSSBjYW4gZHJvcCB0aGUgbGFzdCBwYXRjaCAob3IgdHdvICkgPyBi
+dXQNCmkgbmVlZCBhbiBleHRlcm5hbCByZG1hIGxpbmsgZm9yIHBlb3BsZSB3aG8gYXJlIGdvaW5n
+IHRvIHJldmlldyB0aGlzDQpzZXJpZXMuDQoNCj4gSmFzb24NCg==
