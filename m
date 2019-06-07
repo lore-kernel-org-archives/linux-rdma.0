@@ -1,101 +1,49 @@
-From: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 02/11] mm/hmm: Use hmm_mirror not mm as an argument
- for hmm_range_register
-Date: Thu, 6 Jun 2019 19:36:15 -0700
-Message-ID: <7902a4fa-f789-de3f-e448-a8cfc412f40b@nvidia.com>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-3-jgg@ziepe.ca>
+From: Jens Wiklander <jens.wiklander@linaro.org>
+Subject: Re: [PATCH v16 14/16] tee, arm64: untag user pointers in tee_shm_register
+Date: Fri, 7 Jun 2019 07:33:38 +0200
+Message-ID: <CAHUa44E+g3YTcja+7qgx+iABVd48DbrMMOm0sbyMwf0U6F5NPw@mail.gmail.com>
+References: <cover.1559580831.git.andreyknvl@google.com> <dc3f3092abbc0d48e51b2e2a2ca8f4c4f69fa0f4.1559580831.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190606184438.31646-3-jgg-uk2M96/98Pc@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph
- Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <dc3f3092abbc0d48e51b2e2a2ca8f4c4f69fa0f4.1559580831.git.andreyknvl@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: Linux ARM <linux-arm-kernel@lists.infradead.org>, linux-mm@kvack.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNi82LzE5IDExOjQ0IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gRnJvbTogSmFzb24g
-R3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgo+IAo+IFJhbHBoIG9ic2VydmVzIHRoYXQgaG1t
-X3JhbmdlX3JlZ2lzdGVyKCkgY2FuIG9ubHkgYmUgY2FsbGVkIGJ5IGEgZHJpdmVyCj4gd2hpbGUg
-YSBtaXJyb3IgaXMgcmVnaXN0ZXJlZC4gTWFrZSB0aGlzIGNsZWFyIGluIHRoZSBBUEkgYnkgcGFz
-c2luZyBpbiB0aGUKPiBtaXJyb3Igc3RydWN0dXJlIGFzIGEgcGFyYW1ldGVyLgo+IAo+IFRoaXMg
-YWxzbyBzaW1wbGlmaWVzIHVuZGVyc3RhbmRpbmcgdGhlIGxpZmV0aW1lIG1vZGVsIGZvciBzdHJ1
-Y3QgaG1tLCBhcwo+IHRoZSBobW0gcG9pbnRlciBtdXN0IGJlIHZhbGlkIGFzIHBhcnQgb2YgYSBy
-ZWdpc3RlcmVkIG1pcnJvciBzbyBhbGwgd2UKPiBuZWVkIGluIGhtbV9yZWdpc3Rlcl9yYW5nZSgp
-IGlzIGEgc2ltcGxlIGtyZWZfZ2V0Lgo+IAo+IFN1Z2dlc3RlZC1ieTogUmFscGggQ2FtcGJlbGwg
-PHJjYW1wYmVsbEBudmlkaWEuY29tPgo+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8
-amdnQG1lbGxhbm94LmNvbT4KPiAtLS0KPiB2Mgo+IC0gSW5jbHVkZSB0aGUgb25lbGluZSBwYXRj
-aCB0byBub3V2ZWF1X3N2bS5jCj4gLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZl
-YXVfc3ZtLmMgfCAgMiArLQo+ICBpbmNsdWRlL2xpbnV4L2htbS5oICAgICAgICAgICAgICAgICAg
-IHwgIDcgKysrKy0tLQo+ICBtbS9obW0uYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwg
-MTUgKysrKysrLS0tLS0tLS0tCj4gIDMgZmlsZXMgY2hhbmdlZCwgMTEgaW5zZXJ0aW9ucygrKSwg
-MTMgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1
-L25vdXZlYXVfc3ZtLmMgYi9kcml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X3N2bS5jCj4g
-aW5kZXggOTNlZDQzYzQxM2YwYmIuLjhjOTIzNzRhZmNmMjI3IDEwMDY0NAo+IC0tLSBhL2RyaXZl
-cnMvZ3B1L2RybS9ub3V2ZWF1L25vdXZlYXVfc3ZtLmMKPiArKysgYi9kcml2ZXJzL2dwdS9kcm0v
-bm91dmVhdS9ub3V2ZWF1X3N2bS5jCj4gQEAgLTY0OSw3ICs2NDksNyBAQCBub3V2ZWF1X3N2bV9m
-YXVsdChzdHJ1Y3QgbnZpZl9ub3RpZnkgKm5vdGlmeSkKPiAgCQlyYW5nZS52YWx1ZXMgPSBub3V2
-ZWF1X3N2bV9wZm5fdmFsdWVzOwo+ICAJCXJhbmdlLnBmbl9zaGlmdCA9IE5WSUZfVk1NX1BGTk1B
-UF9WMF9BRERSX1NISUZUOwo+ICBhZ2FpbjoKPiAtCQlyZXQgPSBobW1fdm1hX2ZhdWx0KCZyYW5n
-ZSwgdHJ1ZSk7Cj4gKwkJcmV0ID0gaG1tX3ZtYV9mYXVsdCgmc3ZtbS0+bWlycm9yLCAmcmFuZ2Us
-IHRydWUpOwo+ICAJCWlmIChyZXQgPT0gMCkgewo+ICAJCQltdXRleF9sb2NrKCZzdm1tLT5tdXRl
-eCk7Cj4gIAkJCWlmICghaG1tX3ZtYV9yYW5nZV9kb25lKCZyYW5nZSkpIHsKPiBkaWZmIC0tZ2l0
-IGEvaW5jbHVkZS9saW51eC9obW0uaCBiL2luY2x1ZGUvbGludXgvaG1tLmgKPiBpbmRleCA2ODhj
-NWNhNzA2ODc5NS4uMmQ1MTk3OTdjYjEzNGEgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9saW51eC9o
-bW0uaAo+ICsrKyBiL2luY2x1ZGUvbGludXgvaG1tLmgKPiBAQCAtNTA1LDcgKzUwNSw3IEBAIHN0
-YXRpYyBpbmxpbmUgYm9vbCBobW1fbWlycm9yX21tX2lzX2FsaXZlKHN0cnVjdCBobW1fbWlycm9y
-ICptaXJyb3IpCj4gICAqIFBsZWFzZSBzZWUgRG9jdW1lbnRhdGlvbi92bS9obW0ucnN0IGZvciBo
-b3cgdG8gdXNlIHRoZSByYW5nZSBBUEkuCj4gICAqLwo+ICBpbnQgaG1tX3JhbmdlX3JlZ2lzdGVy
-KHN0cnVjdCBobW1fcmFuZ2UgKnJhbmdlLAo+IC0JCSAgICAgICBzdHJ1Y3QgbW1fc3RydWN0ICpt
-bSwKPiArCQkgICAgICAgc3RydWN0IGhtbV9taXJyb3IgKm1pcnJvciwKPiAgCQkgICAgICAgdW5z
-aWduZWQgbG9uZyBzdGFydCwKPiAgCQkgICAgICAgdW5zaWduZWQgbG9uZyBlbmQsCj4gIAkJICAg
-ICAgIHVuc2lnbmVkIHBhZ2Vfc2hpZnQpOwo+IEBAIC01NDEsNyArNTQxLDggQEAgc3RhdGljIGlu
-bGluZSBib29sIGhtbV92bWFfcmFuZ2VfZG9uZShzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSkKPiAg
-fQo+ICAKPiAgLyogVGhpcyBpcyBhIHRlbXBvcmFyeSBoZWxwZXIgdG8gYXZvaWQgbWVyZ2UgY29u
-ZmxpY3QgYmV0d2VlbiB0cmVlcy4gKi8KPiAtc3RhdGljIGlubGluZSBpbnQgaG1tX3ZtYV9mYXVs
-dChzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSwgYm9vbCBibG9jaykKPiArc3RhdGljIGlubGluZSBp
-bnQgaG1tX3ZtYV9mYXVsdChzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9yLAo+ICsJCQkJc3RydWN0
-IGhtbV9yYW5nZSAqcmFuZ2UsIGJvb2wgYmxvY2spCj4gIHsKPiAgCWxvbmcgcmV0Owo+ICAKPiBA
-QCAtNTU0LDcgKzU1NSw3IEBAIHN0YXRpYyBpbmxpbmUgaW50IGhtbV92bWFfZmF1bHQoc3RydWN0
-IGhtbV9yYW5nZSAqcmFuZ2UsIGJvb2wgYmxvY2spCj4gIAlyYW5nZS0+ZGVmYXVsdF9mbGFncyA9
-IDA7Cj4gIAlyYW5nZS0+cGZuX2ZsYWdzX21hc2sgPSAtMVVMOwo+ICAKPiAtCXJldCA9IGhtbV9y
-YW5nZV9yZWdpc3RlcihyYW5nZSwgcmFuZ2UtPnZtYS0+dm1fbW0sCj4gKwlyZXQgPSBobW1fcmFu
-Z2VfcmVnaXN0ZXIocmFuZ2UsIG1pcnJvciwKPiAgCQkJCSByYW5nZS0+c3RhcnQsIHJhbmdlLT5l
-bmQsCj4gIAkJCQkgUEFHRV9TSElGVCk7Cj4gIAlpZiAocmV0KQo+IGRpZmYgLS1naXQgYS9tbS9o
-bW0uYyBiL21tL2htbS5jCj4gaW5kZXggNTQ3MDAyZjU2YTE2M2QuLjg3OTY0NDcyOTkwMjNjIDEw
-MDY0NAo+IC0tLSBhL21tL2htbS5jCj4gKysrIGIvbW0vaG1tLmMKPiBAQCAtOTI1LDEzICs5MjUs
-MTMgQEAgc3RhdGljIHZvaWQgaG1tX3BmbnNfY2xlYXIoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2Us
-Cj4gICAqIFRyYWNrIHVwZGF0ZXMgdG8gdGhlIENQVSBwYWdlIHRhYmxlIHNlZSBpbmNsdWRlL2xp
-bnV4L2htbS5oCj4gICAqLwo+ICBpbnQgaG1tX3JhbmdlX3JlZ2lzdGVyKHN0cnVjdCBobW1fcmFu
-Z2UgKnJhbmdlLAo+IC0JCSAgICAgICBzdHJ1Y3QgbW1fc3RydWN0ICptbSwKPiArCQkgICAgICAg
-c3RydWN0IGhtbV9taXJyb3IgKm1pcnJvciwKPiAgCQkgICAgICAgdW5zaWduZWQgbG9uZyBzdGFy
-dCwKPiAgCQkgICAgICAgdW5zaWduZWQgbG9uZyBlbmQsCj4gIAkJICAgICAgIHVuc2lnbmVkIHBh
-Z2Vfc2hpZnQpCj4gIHsKPiAgCXVuc2lnbmVkIGxvbmcgbWFzayA9ICgoMVVMIDw8IHBhZ2Vfc2hp
-ZnQpIC0gMVVMKTsKPiAtCXN0cnVjdCBobW0gKmhtbTsKPiArCXN0cnVjdCBobW0gKmhtbSA9IG1p
-cnJvci0+aG1tOwo+ICAKPiAgCXJhbmdlLT52YWxpZCA9IGZhbHNlOwo+ICAJcmFuZ2UtPmhtbSA9
-IE5VTEw7Cj4gQEAgLTk0NSwxNSArOTQ1LDEyIEBAIGludCBobW1fcmFuZ2VfcmVnaXN0ZXIoc3Ry
-dWN0IGhtbV9yYW5nZSAqcmFuZ2UsCj4gIAlyYW5nZS0+c3RhcnQgPSBzdGFydDsKPiAgCXJhbmdl
-LT5lbmQgPSBlbmQ7Cj4gIAo+IC0JaG1tID0gaG1tX2dldF9vcl9jcmVhdGUobW0pOwo+IC0JaWYg
-KCFobW0pCj4gLQkJcmV0dXJuIC1FRkFVTFQ7Cj4gLQo+ICAJLyogQ2hlY2sgaWYgaG1tX21tX2Rl
-c3Ryb3koKSB3YXMgY2FsbC4gKi8KPiAtCWlmIChobW0tPm1tID09IE5VTEwgfHwgaG1tLT5kZWFk
-KSB7Cj4gLQkJaG1tX3B1dChobW0pOwo+ICsJaWYgKGhtbS0+bW0gPT0gTlVMTCB8fCBobW0tPmRl
-YWQpCj4gIAkJcmV0dXJuIC1FRkFVTFQ7Cj4gLQl9Cj4gKwo+ICsJcmFuZ2UtPmhtbSA9IGhtbTsK
-PiArCWtyZWZfZ2V0KCZobW0tPmtyZWYpOwo+ICAKPiAgCS8qIEluaXRpYWxpemUgcmFuZ2UgdG8g
-dHJhY2sgQ1BVIHBhZ2UgdGFibGUgdXBkYXRlcy4gKi8KPiAgCW11dGV4X2xvY2soJmhtbS0+bG9j
-ayk7Cj4gCgpJJ20gbm90IGEgcXVhbGlmaWVkIE5vdXZlYXUgcmV2aWV3ZXIsIGJ1dCB0aGlzIGxv
-b2tzIG9idmlvdXNseSBjb3JyZWN0LApzbzoKCiAgICBSZXZpZXdlZC1ieTogSm9obiBIdWJiYXJk
-IDxqaHViYmFyZEBudmlkaWEuY29tPgoKCnRoYW5rcywKLS0gCkpvaG4gSHViYmFyZApOVklESUEK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBt
-YWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5m
-cmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
+On Mon, Jun 3, 2019 at 6:56 PM Andrey Konovalov <andreyknvl@google.com> wrote:
+>
+> This patch is a part of a series that extends arm64 kernel ABI to allow to
+> pass tagged user pointers (with the top byte set to something else other
+> than 0x00) as syscall arguments.
+>
+> tee_shm_register()->optee_shm_unregister()->check_mem_type() uses provided
+> user pointers for vma lookups (via __check_mem_type()), which can only by
+> done with untagged pointers.
+>
+> Untag user pointers in this function.
+>
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+
+Acked-by: Jens Wiklander <jens.wiklander@linaro.org>
+
+> ---
+>  drivers/tee/tee_shm.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/tee/tee_shm.c b/drivers/tee/tee_shm.c
+> index 49fd7312e2aa..96945f4cefb8 100644
+> --- a/drivers/tee/tee_shm.c
+> +++ b/drivers/tee/tee_shm.c
+> @@ -263,6 +263,7 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
+>         shm->teedev = teedev;
+>         shm->ctx = ctx;
+>         shm->id = -1;
+> +       addr = untagged_addr(addr);
+>         start = rounddown(addr, PAGE_SIZE);
+>         shm->offset = addr - start;
+>         shm->size = length;
+> --
+> 2.22.0.rc1.311.g5d7573a151-goog
+>
