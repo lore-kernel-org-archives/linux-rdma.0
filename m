@@ -1,62 +1,24 @@
-From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 09/11] mm/hmm: Poison hmm_range during unregister
-Date: Fri, 7 Jun 2019 11:03:13 -0300
-Message-ID: <20190607140313.GI14802@ziepe.ca>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-10-jgg@ziepe.ca>
- <c00da0f2-b4b8-813b-0441-a50d4de9d8be@nvidia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <c00da0f2-b4b8-813b-0441-a50d4de9d8be-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL] Please pull RDMA subsystem changes
+Date: Fri, 07 Jun 2019 16:45:11 +0000
+Message-ID: <155992591105.2725.17839182914999758884.pr-tracker-bot@kernel.org>
+References: <20190606201420.GA9763@ziepe.ca>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190606201420.GA9763@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@mellanox.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Doug Ledford <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBKdW4gMDYsIDIwMTkgYXQgMDg6Mzc6NDJQTSAtMDcwMCwgSm9obiBIdWJiYXJkIHdy
-b3RlOgo+IE9uIDYvNi8xOSAxMTo0NCBBTSwgSmFzb24gR3VudGhvcnBlIHdyb3RlOgo+ID4gRnJv
-bTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgo+ID4gCj4gPiBUcnlpbmcgdG8g
-bWlzdXNlIGEgcmFuZ2Ugb3V0c2lkZSBpdHMgbGlmZXRpbWUgaXMgYSBrZXJuZWwgYnVnLiBVc2Ug
-V0FSTl9PTgo+ID4gYW5kIHBvaXNvbiBieXRlcyB0byBkZXRlY3QgdGhpcyBjb25kaXRpb24uCj4g
-PiAKPiA+IFNpZ25lZC1vZmYtYnk6IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4K
-PiA+IFJldmlld2VkLWJ5OiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KPiA+
-IHYyCj4gPiAtIEtlZXAgcmFuZ2Ugc3RhcnQvZW5kIHZhbGlkIGFmdGVyIHVucmVnaXN0cmF0aW9u
-IChKZXJvbWUpCj4gPiAgbW0vaG1tLmMgfCA3ICsrKysrLS0KPiA+ICAxIGZpbGUgY2hhbmdlZCwg
-NSBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQo+ID4gCj4gPiBkaWZmIC0tZ2l0IGEvbW0v
-aG1tLmMgYi9tbS9obW0uYwo+ID4gaW5kZXggNjgwMmRlNzA4MGQxNzIuLmMyZmVjYjNlY2IxMWUx
-IDEwMDY0NAo+ID4gKysrIGIvbW0vaG1tLmMKPiA+IEBAIC05MzcsNyArOTM3LDcgQEAgdm9pZCBo
-bW1fcmFuZ2VfdW5yZWdpc3RlcihzdHJ1Y3QgaG1tX3JhbmdlICpyYW5nZSkKPiA+ICAJc3RydWN0
-IGhtbSAqaG1tID0gcmFuZ2UtPmhtbTsKPiA+ICAKPiA+ICAJLyogU2FuaXR5IGNoZWNrIHRoaXMg
-cmVhbGx5IHNob3VsZCBub3QgaGFwcGVuLiAqLwo+IAo+IFRoYXQgY29tbWVudCBjYW4gYWxzbyBi
-ZSBkZWxldGVkLCBhcyBpdCBoYXMgdGhlIHNhbWUgbWVhbmluZyBhcwo+IHRoZSBXQVJOX09OKCkg
-dGhhdCB5b3UganVzdCBhZGRlZC4KPiAKPiA+IC0JaWYgKGhtbSA9PSBOVUxMIHx8IHJhbmdlLT5l
-bmQgPD0gcmFuZ2UtPnN0YXJ0KQo+ID4gKwlpZiAoV0FSTl9PTihyYW5nZS0+ZW5kIDw9IHJhbmdl
-LT5zdGFydCkpCj4gPiAgCQlyZXR1cm47Cj4gPiAgCj4gPiAgCW11dGV4X2xvY2soJmhtbS0+bG9j
-ayk7Cj4gPiBAQCAtOTQ4LDcgKzk0OCwxMCBAQCB2b2lkIGhtbV9yYW5nZV91bnJlZ2lzdGVyKHN0
-cnVjdCBobW1fcmFuZ2UgKnJhbmdlKQo+ID4gIAlyYW5nZS0+dmFsaWQgPSBmYWxzZTsKPiA+ICAJ
-bW1wdXQoaG1tLT5tbSk7Cj4gPiAgCWhtbV9wdXQoaG1tKTsKPiA+IC0JcmFuZ2UtPmhtbSA9IE5V
-TEw7Cj4gPiArCj4gPiArCS8qIFRoZSByYW5nZSBpcyBub3cgaW52YWxpZCwgbGVhdmUgaXQgcG9p
-c29uZWQuICovCj4gCj4gVG8gYmUgcHJlY2lzZSwgd2UgYXJlIHBvaXNvbmluZyB0aGUgcmFuZ2Un
-cyBiYWNrIHBvaW50ZXIgdG8gaXQncwo+IG93bmluZyBobW0gaW5zdGFuY2UuICBNYXliZSB0aGlz
-IGlzIGNsZWFyZXI6Cj4gCj4gCS8qCj4gCSAqIFRoZSByYW5nZSBpcyBub3cgaW52YWxpZCwgc28g
-cG9pc29uIGl0J3MgaG1tIHBvaW50ZXIuIAo+IAkgKiBMZWF2ZSBvdGhlciByYW5nZS0+IGZpZWxk
-cyBpbiBwbGFjZSwgZm9yIHRoZSBjYWxsZXIncyB1c2UuCj4gCSAqLwo+IAo+IC4uLm9yIHNvbWV0
-aGluZyBsaWtlIHRoYXQ/Cj4gCj4gPiArCXJhbmdlLT52YWxpZCA9IGZhbHNlOwo+ID4gKwltZW1z
-ZXQoJnJhbmdlLT5obW0sIFBPSVNPTl9JTlVTRSwgc2l6ZW9mKHJhbmdlLT5obW0pKTsKPiA+ICB9
-Cj4gPiAgRVhQT1JUX1NZTUJPTChobW1fcmFuZ2VfdW5yZWdpc3Rlcik7Cj4gPiAgCj4gPiAKPiAK
-PiBUaGUgYWJvdmUgYXJlIHZlcnkgbWlub3IgZG9jdW1lbnRhdGlvbiBwb2ludHMsIHNvOgo+IAo+
-ICAgICBSZXZpZXdlZC1ieTogSm9obiBIdWJiYXJkIDxqaHViYmFyZEBudmlkaWEuY29tPgoKZG9u
-ZSB0aGFua3MKCkphc29uCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmFtZC1nZnggbWFpbGluZyBsaXN0CmFtZC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vYW1kLWdmeA==
+The pull request you sent on Thu, 6 Jun 2019 20:14:24 +0000:
+
+> git://git.kernel.org/pub/scm/linux/kernel/git/rdma/rdma.git tags/for-linus
+
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/6e38335dcc70f03faba26bf1260ee024d930afe1
+
+Thank you!
+
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
