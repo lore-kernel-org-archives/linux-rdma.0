@@ -1,68 +1,76 @@
-From: Dave Chinner <david@fromorbit.com>
-Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Date: Fri, 7 Jun 2019 08:28:53 +1000
-Message-ID: <20190606222853.GD14308@dread.disaster.area>
-References: <20190606014544.8339-1-ira.weiny@intel.com>
- <20190606104203.GF7433@quack2.suse.cz>
- <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+From: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 01/11] mm/hmm: fix use after free with struct hmm
+ in the mmu notifiers
+Date: Thu, 6 Jun 2019 19:29:08 -0700
+Message-ID: <9c72d18d-2924-cb90-ea44-7cd4b10b5bc2@nvidia.com>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-2-jgg@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ira Weiny <ira.weiny@intel.com>
-Cc: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>, Theodore Ts'o <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>, Matthew Wilcox <willy@infradead.org>, linux-xfs@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse@redhat.com>, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, linux-ext4@vger.kernel.org, linux-mm@kvack.org, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+In-Reply-To: <20190606184438.31646-2-jgg-uk2M96/98Pc@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
+List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
+ <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph
+ Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 06, 2019 at 03:03:30PM -0700, Ira Weiny wrote:
-> On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
-> > On Wed 05-06-19 18:45:33, ira.weiny@intel.com wrote:
-> > So I'd like to actually mandate that you *must* hold the file lease until
-> > you unpin all pages in the given range (not just that you have an option to
-> > hold a lease). And I believe the kernel should actually enforce this. That
-> > way we maintain a sane state that if someone uses a physical location of
-> > logical file offset on disk, he has a layout lease. Also once this is done,
-> > sysadmin has a reasonably easy way to discover run-away RDMA application
-> > and kill it if he wishes so.
-> 
-> Fair enough.
-> 
-> I was kind of heading that direction but had not thought this far forward.  I
-> was exploring how to have a lease remain on the file even after a "lease
-> break".  But that is incompatible with the current semantics of a "layout"
-> lease (as currently defined in the kernel).  [In the end I wanted to get an RFC
-> out to see what people think of this idea so I did not look at keeping the
-> lease.]
-> 
-> Also hitch is that currently a lease is forcefully broken after
-> <sysfs>/lease-break-time.  To do what you suggest I think we would need a new
-> lease type with the semantics you describe.
-
-That just requires a flag when gaining the layout lease to say it is
-an "unbreakable layout lease". That gives the kernel the information
-needed to determine whether it should attempt to break the lease on
-truncate or just return ETXTBSY....
-
-i.e. it allows gup-pinning applications that want to behave nicely
-with other users to drop their gup pins and release the lease when
-something else wants to truncate/hole punch the file rather than
-have truncate return an error. e.g. to allow apps to cleanly interop
-with other breakable layout leases (e.g. pNFS) on the same
-filesystem.
-
-FWIW, I'd also like to see the "truncate fails when unbreakable
-layout lease is held" behaviour to be common across all
-filesystem/storage types, not be confined to DAX only. i.e. truncate
-should return ETXTBSY when an unbreakable layout lease is held
-by an application, not just when "DAX+gup-pinned" is triggered....
-
-Whatever we decide, the behaviour of truncate et al needs to be
-predictable, consistent and easily discoverable...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+T24gNi82LzE5IDExOjQ0IEFNLCBKYXNvbiBHdW50aG9ycGUgd3JvdGU6Cj4gRnJvbTogSmFzb24g
+R3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29tPgouLi4KPiBkaWZmIC0tZ2l0IGEvbW0vaG1tLmMg
+Yi9tbS9obW0uYwo+IGluZGV4IDhlNzQwM2YwODFmNDRhLi41NDcwMDJmNTZhMTYzZCAxMDA2NDQK
+PiAtLS0gYS9tbS9obW0uYwo+ICsrKyBiL21tL2htbS5jCi4uLgo+IEBAIC0xMjUsNyArMTMwLDcg
+QEAgc3RhdGljIHZvaWQgaG1tX2ZyZWUoc3RydWN0IGtyZWYgKmtyZWYpCj4gIAkJbW0tPmhtbSA9
+IE5VTEw7Cj4gIAlzcGluX3VubG9jaygmbW0tPnBhZ2VfdGFibGVfbG9jayk7Cj4gIAo+IC0Ja2Zy
+ZWUoaG1tKTsKPiArCW1tdV9ub3RpZmllcl9jYWxsX3NyY3UoJmhtbS0+cmN1LCBobW1fZnJlZV9y
+Y3UpOwoKCkl0IG9jY3VycmVkIHRvIG1lIHRvIHdvbmRlciBpZiBpdCBpcyBiZXN0IHRvIHVzZSB0
+aGUgTU1VIG5vdGlmaWVyJ3MKaW5zdGFuY2Ugb2Ygc3JjdSwgaW5zdGVhZCBvZiBjcmVhdGluZyBh
+IHNlcGFyYXRlIGluc3RhbmNlIGZvciBITU0uCkJ1dCB0aGlzIHJlYWxseSBkb2VzIHNlZW0gYXBw
+cm9wcmlhdGUsIHNpbmNlIHdlIGFyZSBhZnRlciBhbGwgdXNpbmcKdGhpcyB0byBzeW5jaHJvbml6
+ZSB3aXRoIE1NVSBub3RpZmllciBjYWxsYmFja3MuIFNvLCBmaW5lLgoKCj4gIH0KPiAgCj4gIHN0
+YXRpYyBpbmxpbmUgdm9pZCBobW1fcHV0KHN0cnVjdCBobW0gKmhtbSkKPiBAQCAtMTUzLDEwICsx
+NTgsMTQgQEAgdm9pZCBobW1fbW1fZGVzdHJveShzdHJ1Y3QgbW1fc3RydWN0ICptbSkKPiAgCj4g
+IHN0YXRpYyB2b2lkIGhtbV9yZWxlYXNlKHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLCBzdHJ1Y3Qg
+bW1fc3RydWN0ICptbSkKPiAgewo+IC0Jc3RydWN0IGhtbSAqaG1tID0gbW1fZ2V0X2htbShtbSk7
+Cj4gKwlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWluZXJfb2YobW4sIHN0cnVjdCBobW0sIG1tdV9u
+b3RpZmllcik7Cj4gIAlzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9yOwo+ICAJc3RydWN0IGhtbV9y
+YW5nZSAqcmFuZ2U7Cj4gIAo+ICsJLyogaG1tIGlzIGluIHByb2dyZXNzIHRvIGZyZWUgKi8KCldl
+bGwsIHNvbWV0aW1lcywgeWVzLiA6KQoKTWF5YmUgdGhpcyB3b3JkaW5nIGlzIGNsZWFyZXIgKGlm
+IHdlIG5lZWQgYW55IGNvbW1lbnQgYXQgYWxsKToKCgkvKiBCYWlsIG91dCBpZiBobW0gaXMgaW4g
+dGhlIHByb2Nlc3Mgb2YgYmVpbmcgZnJlZWQgKi8KCj4gKwlpZiAoIWtyZWZfZ2V0X3VubGVzc196
+ZXJvKCZobW0tPmtyZWYpKQo+ICsJCXJldHVybjsKPiArCj4gIAkvKiBSZXBvcnQgdGhpcyBITU0g
+YXMgZHlpbmcuICovCj4gIAlobW0tPmRlYWQgPSB0cnVlOwo+ICAKPiBAQCAtMTk0LDEzICsyMDMs
+MTUgQEAgc3RhdGljIHZvaWQgaG1tX3JlbGVhc2Uoc3RydWN0IG1tdV9ub3RpZmllciAqbW4sIHN0
+cnVjdCBtbV9zdHJ1Y3QgKm1tKQo+ICBzdGF0aWMgaW50IGhtbV9pbnZhbGlkYXRlX3JhbmdlX3N0
+YXJ0KHN0cnVjdCBtbXVfbm90aWZpZXIgKm1uLAo+ICAJCQljb25zdCBzdHJ1Y3QgbW11X25vdGlm
+aWVyX3JhbmdlICpucmFuZ2UpCj4gIHsKPiAtCXN0cnVjdCBobW0gKmhtbSA9IG1tX2dldF9obW0o
+bnJhbmdlLT5tbSk7Cj4gKwlzdHJ1Y3QgaG1tICpobW0gPSBjb250YWluZXJfb2YobW4sIHN0cnVj
+dCBobW0sIG1tdV9ub3RpZmllcik7Cj4gIAlzdHJ1Y3QgaG1tX21pcnJvciAqbWlycm9yOwo+ICAJ
+c3RydWN0IGhtbV91cGRhdGUgdXBkYXRlOwo+ICAJc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2U7Cj4g
+IAlpbnQgcmV0ID0gMDsKPiAgCj4gLQlWTV9CVUdfT04oIWhtbSk7Cj4gKwkvKiBobW0gaXMgaW4g
+cHJvZ3Jlc3MgdG8gZnJlZSAqLwoKU2FtZSBoZXJlLgoKPiArCWlmICgha3JlZl9nZXRfdW5sZXNz
+X3plcm8oJmhtbS0+a3JlZikpCj4gKwkJcmV0dXJuIDA7Cj4gIAo+ICAJdXBkYXRlLnN0YXJ0ID0g
+bnJhbmdlLT5zdGFydDsKPiAgCXVwZGF0ZS5lbmQgPSBucmFuZ2UtPmVuZDsKPiBAQCAtMjQ1LDkg
+KzI1NiwxMSBAQCBzdGF0aWMgaW50IGhtbV9pbnZhbGlkYXRlX3JhbmdlX3N0YXJ0KHN0cnVjdCBt
+bXVfbm90aWZpZXIgKm1uLAo+ICBzdGF0aWMgdm9pZCBobW1faW52YWxpZGF0ZV9yYW5nZV9lbmQo
+c3RydWN0IG1tdV9ub3RpZmllciAqbW4sCj4gIAkJCWNvbnN0IHN0cnVjdCBtbXVfbm90aWZpZXJf
+cmFuZ2UgKm5yYW5nZSkKPiAgewo+IC0Jc3RydWN0IGhtbSAqaG1tID0gbW1fZ2V0X2htbShucmFu
+Z2UtPm1tKTsKPiArCXN0cnVjdCBobW0gKmhtbSA9IGNvbnRhaW5lcl9vZihtbiwgc3RydWN0IGht
+bSwgbW11X25vdGlmaWVyKTsKPiAgCj4gLQlWTV9CVUdfT04oIWhtbSk7Cj4gKwkvKiBobW0gaXMg
+aW4gcHJvZ3Jlc3MgdG8gZnJlZSAqLwoKQW5kIGhlcmUuCgo+ICsJaWYgKCFrcmVmX2dldF91bmxl
+c3NfemVybygmaG1tLT5rcmVmKSkKPiArCQlyZXR1cm47Cj4gIAo+ICAJbXV0ZXhfbG9jaygmaG1t
+LT5sb2NrKTsKPiAgCWhtbS0+bm90aWZpZXJzLS07Cj4gCgpFbGVnYW50IGZpeC4gUmVnYXJkbGVz
+cyBvZiB0aGUgYWJvdmUgY2hhdHRlciBJIGFkZGVkLCB5b3UgY2FuIGFkZDoKCiAgICBSZXZpZXdl
+ZC1ieTogSm9obiBIdWJiYXJkIDxqaHViYmFyZEBudmlkaWEuY29tPgoKCnRoYW5rcywKLS0gCkpv
+aG4gSHViYmFyZApOVklESUEKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18KYW1kLWdmeCBtYWlsaW5nIGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4
