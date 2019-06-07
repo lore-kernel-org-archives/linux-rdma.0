@@ -1,40 +1,38 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH 1/2][next] RDMA/hns: fix comparison of unsigned long
- variable 'end' with less than zero
-Date: Fri, 7 Jun 2019 14:57:49 -0300
-Message-ID: <20190607175749.GB25014@ziepe.ca>
-References: <20190531092101.28772-1-colin.king@canonical.com>
+Subject: Re: [PATCH] RDMA/ucma: Use struct_size() helper
+Date: Fri, 7 Jun 2019 15:05:08 -0300
+Message-ID: <20190607180508.GA29136@ziepe.ca>
+References: <20190604154222.GA8938@embeddedor>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190531092101.28772-1-colin.king@canonical.com>
+In-Reply-To: <20190604154222.GA8938@embeddedor>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Lijun Ou <oulijun@huawei.com>, Wei Hu <xavier.huwei@huawei.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 31, 2019 at 10:21:00AM +0100, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Tue, Jun 04, 2019 at 10:42:22AM -0500, Gustavo A. R. Silva wrote:
+> Make use of the struct_size() helper instead of an open-coded version
+> in order to avoid any potential type mistakes, in particular in the
+> context in which this code is being used.
 > 
-> Currently the comparison of end with less than zero is always false
-> because end is an unsigned long.  Also, replace checks of end with
-> non-zero with end > 0 as it is possible that the #defined decrement
-> may be changed in the future causing end to step over zero and go
-> negative.
+> So, replace the following form:
 > 
-> The initialization of end with 0 is also redundant as this value is
-> never read and is later set to HW_SYNC_TIMEOUT_MSECS, so fix this by
-> initializing it with this value to begin with.
+> sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))
 > 
-> Addresses-Coverity: ("Unsigned compared against 0")
-> Fixes: 669cefb654cb ("RDMA/hns: Remove jiffies operation in disable interrupt context")
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> with:
+> 
+> struct_size(resp, path_data, i)
+> 
+> This code was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 > ---
->  drivers/infiniband/hw/hns/hns_roce_hem.c   |  4 ++--
->  drivers/infiniband/hw/hns/hns_roce_hw_v1.c | 12 ++++++------
->  2 files changed, 8 insertions(+), 8 deletions(-)
+>  drivers/infiniband/core/ucma.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
 
-hns team: Can you please comment on this patch
+Applied to for-next, thanks
 
 Jason
