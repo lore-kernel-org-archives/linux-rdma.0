@@ -1,70 +1,54 @@
 From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH v16 03/16] lib, arm64: untag user pointers in strn*_user
-Date: Fri, 7 Jun 2019 20:48:07 -0700
-Message-ID: <201906072047.50371DBE2@keescook>
+Subject: Re: [PATCH v16 04/16] mm: untag user pointers in do_pages_move
+Date: Fri, 7 Jun 2019 20:49:05 -0700
+Message-ID: <201906072049.C71D545@keescook>
 References: <cover.1559580831.git.andreyknvl@google.com>
- <14f17ef1902aa4f07a39f96879394e718a1f5dc1.1559580831.git.andreyknvl@google.com>
+ <e410843d00a4ecd7e525a7a949e605ffc6c394c4.1559580831.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <14f17ef1902aa4f07a39f96879394e718a1f5dc1.1559580831.git.andreyknvl@google.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <e410843d00a4ecd7e525a7a949e605ffc6c394c4.1559580831.git.andreyknvl@google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrey Konovalov <andreyknvl@google.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Khalid Aziz <khalid.aziz@oracle.com>, linux-kselftest@vger.kernel.org, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex
+Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gTW9uLCBKdW4gMDMsIDIwMTkgYXQgMDY6NTU6MDVQTSArMDIwMCwgQW5kcmV5IEtvbm92YWxv
-diB3cm90ZToKPiBUaGlzIHBhdGNoIGlzIGEgcGFydCBvZiBhIHNlcmllcyB0aGF0IGV4dGVuZHMg
-YXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0bwo+IHBhc3MgdGFnZ2VkIHVzZXIgcG9pbnRlcnMg
-KHdpdGggdGhlIHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcgZWxzZSBvdGhlcgo+IHRoYW4gMHgw
-MCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuCj4gCj4gc3RybmNweV9mcm9tX3VzZXIgYW5kIHN0cm5s
-ZW5fdXNlciBhY2NlcHQgdXNlciBhZGRyZXNzZXMgYXMgYXJndW1lbnRzLCBhbmQKPiBkbyBub3Qg
-Z28gdGhyb3VnaCB0aGUgc2FtZSBwYXRoIGFzIGNvcHlfZnJvbV91c2VyIGFuZCBvdGhlcnMsIHNv
-IGhlcmUgd2UKPiBuZWVkIHRvIGhhbmRsZSB0aGUgY2FzZSBvZiB0YWdnZWQgdXNlciBhZGRyZXNz
-ZXMgc2VwYXJhdGVseS4KPiAKPiBVbnRhZyB1c2VyIHBvaW50ZXJzIHBhc3NlZCB0byB0aGVzZSBm
-dW5jdGlvbnMuCj4gCj4gTm90ZSwgdGhhdCB0aGlzIHBhdGNoIG9ubHkgdGVtcG9yYXJpbHkgdW50
-YWdzIHRoZSBwb2ludGVycyB0byBwZXJmb3JtCj4gdmFsaWRpdHkgY2hlY2tzLCBidXQgdGhlbiB1
-c2VzIHRoZW0gYXMgaXMgdG8gcGVyZm9ybSB1c2VyIG1lbW9yeSBhY2Nlc3Nlcy4KPiAKPiBSZXZp
-ZXdlZC1ieTogQ2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1hcmluYXNAYXJtLmNvbT4KPiBTaWdu
-ZWQtb2ZmLWJ5OiBBbmRyZXkgS29ub3ZhbG92IDxhbmRyZXlrbnZsQGdvb2dsZS5jb20+CgpBY2tl
-ZC1ieTogS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+CgotS2VlcwoKPiAtLS0KPiAg
-bGliL3N0cm5jcHlfZnJvbV91c2VyLmMgfCAzICsrLQo+ICBsaWIvc3Rybmxlbl91c2VyLmMgICAg
-ICB8IDMgKystCj4gIDIgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
-cygtKQo+IAo+IGRpZmYgLS1naXQgYS9saWIvc3RybmNweV9mcm9tX3VzZXIuYyBiL2xpYi9zdHJu
-Y3B5X2Zyb21fdXNlci5jCj4gaW5kZXggMDIzYmE5ZjNiOTlmLi5kY2NiOTVhZjYwMDMgMTAwNjQ0
-Cj4gLS0tIGEvbGliL3N0cm5jcHlfZnJvbV91c2VyLmMKPiArKysgYi9saWIvc3RybmNweV9mcm9t
-X3VzZXIuYwo+IEBAIC02LDYgKzYsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvdWFjY2Vzcy5oPgo+
-ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgo+
-ICsjaW5jbHVkZSA8bGludXgvbW0uaD4KPiAgCj4gICNpbmNsdWRlIDxhc20vYnl0ZW9yZGVyLmg+
-Cj4gICNpbmNsdWRlIDxhc20vd29yZC1hdC1hLXRpbWUuaD4KPiBAQCAtMTA4LDcgKzEwOSw3IEBA
-IGxvbmcgc3RybmNweV9mcm9tX3VzZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyIF9fdXNlciAqc3Jj
-LCBsb25nIGNvdW50KQo+ICAJCXJldHVybiAwOwo+ICAKPiAgCW1heF9hZGRyID0gdXNlcl9hZGRy
-X21heCgpOwo+IC0Jc3JjX2FkZHIgPSAodW5zaWduZWQgbG9uZylzcmM7Cj4gKwlzcmNfYWRkciA9
-ICh1bnNpZ25lZCBsb25nKXVudGFnZ2VkX2FkZHIoc3JjKTsKPiAgCWlmIChsaWtlbHkoc3JjX2Fk
-ZHIgPCBtYXhfYWRkcikpIHsKPiAgCQl1bnNpZ25lZCBsb25nIG1heCA9IG1heF9hZGRyIC0gc3Jj
-X2FkZHI7Cj4gIAkJbG9uZyByZXR2YWw7Cj4gZGlmZiAtLWdpdCBhL2xpYi9zdHJubGVuX3VzZXIu
-YyBiL2xpYi9zdHJubGVuX3VzZXIuYwo+IGluZGV4IDdmMmRiM2ZlMzExZi4uMjhmZjU1NGExYmU4
-IDEwMDY0NAo+IC0tLSBhL2xpYi9zdHJubGVuX3VzZXIuYwo+ICsrKyBiL2xpYi9zdHJubGVuX3Vz
-ZXIuYwo+IEBAIC0yLDYgKzIsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gICNp
-bmNsdWRlIDxsaW51eC9leHBvcnQuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L3VhY2Nlc3MuaD4KPiAr
-I2luY2x1ZGUgPGxpbnV4L21tLmg+Cj4gIAo+ICAjaW5jbHVkZSA8YXNtL3dvcmQtYXQtYS10aW1l
-Lmg+Cj4gIAo+IEBAIC0xMDksNyArMTEwLDcgQEAgbG9uZyBzdHJubGVuX3VzZXIoY29uc3QgY2hh
-ciBfX3VzZXIgKnN0ciwgbG9uZyBjb3VudCkKPiAgCQlyZXR1cm4gMDsKPiAgCj4gIAltYXhfYWRk
-ciA9IHVzZXJfYWRkcl9tYXgoKTsKPiAtCXNyY19hZGRyID0gKHVuc2lnbmVkIGxvbmcpc3RyOwo+
-ICsJc3JjX2FkZHIgPSAodW5zaWduZWQgbG9uZyl1bnRhZ2dlZF9hZGRyKHN0cik7Cj4gIAlpZiAo
-bGlrZWx5KHNyY19hZGRyIDwgbWF4X2FkZHIpKSB7Cj4gIAkJdW5zaWduZWQgbG9uZyBtYXggPSBt
-YXhfYWRkciAtIHNyY19hZGRyOwo+ICAJCWxvbmcgcmV0dmFsOwo+IC0tIAo+IDIuMjIuMC5yYzEu
-MzExLmc1ZDc1NzNhMTUxLWdvb2cKPiAKCi0tIApLZWVzIENvb2sKX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
-ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
+On Mon, Jun 03, 2019 at 06:55:06PM +0200, Andrey Konovalov wrote:
+> This patch is a part of a series that extends arm64 kernel ABI to allow to
+> pass tagged user pointers (with the top byte set to something else other
+> than 0x00) as syscall arguments.
+> 
+> do_pages_move() is used in the implementation of the move_pages syscall.
+> 
+> Untag user pointers in this function.
+> 
+> Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+
+Reviewed-by: Kees Cook <keescook@chromium.org>
+
+-Kees
+
+> ---
+>  mm/migrate.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/mm/migrate.c b/mm/migrate.c
+> index f2ecc2855a12..3930bb6fa656 100644
+> --- a/mm/migrate.c
+> +++ b/mm/migrate.c
+> @@ -1617,6 +1617,7 @@ static int do_pages_move(struct mm_struct *mm, nodemask_t task_nodes,
+>  		if (get_user(node, nodes + i))
+>  			goto out_flush;
+>  		addr = (unsigned long)p;
+> +		addr = untagged_addr(addr);
+>  
+>  		err = -ENODEV;
+>  		if (node < 0 || node >= MAX_NUMNODES)
+> -- 
+> 2.22.0.rc1.311.g5d7573a151-goog
+> 
+
+-- 
+Kees Cook
