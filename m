@@ -1,50 +1,91 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Subject: Re: [PATCH v2 hmm 10/11] mm/hmm: Do not use list*_rcu() for
- hmm->ranges
-Date: Fri, 7 Jun 2019 16:02:46 -0700
-Message-ID: <20190607230246.GI14559@iweiny-DESK2.sc.intel.com>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-11-jgg@ziepe.ca>
+From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Sat, 8 Jun 2019 10:10:36 +1000
+Message-ID: <20190608001036.GF14308@dread.disaster.area>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20190606184438.31646-11-jgg@ziepe.ca>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Andrea Arcangeli <aarcange@redhat.com>, Ralph Campbell <rcampbell@nvidia.com>, linux-rdma@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, Felix.Kuehling@amd.com, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Jerome Glisse <jglisse@redhat.com>, Jason Gunthorpe <jgg@mellanox.com>, amd-gfx@lists.freedesktop.org
+In-Reply-To: <20190607182534.GC14559-J5EW/p2F9lUlb2qzJQmr9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBKdW4gMDYsIDIwMTkgYXQgMDM6NDQ6MzdQTSAtMDMwMCwgSmFzb24gR3VudGhvcnBl
-IHdyb3RlOgo+IEZyb206IEphc29uIEd1bnRob3JwZSA8amdnQG1lbGxhbm94LmNvbT4KPiAKPiBU
-aGlzIGxpc3QgaXMgYWx3YXlzIHJlYWQgYW5kIHdyaXR0ZW4gd2hpbGUgaG9sZGluZyBobW0tPmxv
-Y2sgc28gdGhlcmUgaXMKPiBubyBuZWVkIGZvciB0aGUgY29uZnVzaW5nIF9yY3UgYW5ub3RhdGlv
-bnMuCj4gCj4gU2lnbmVkLW9mZi1ieTogSmFzb24gR3VudGhvcnBlIDxqZ2dAbWVsbGFub3guY29t
-Pgo+IFJldmlld2VkLWJ5OiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KClJl
-dmlld2VkLWJ5OiBJcmEgV2VpbnkgPGl3ZWlueUBpbnRlbC5jb20+Cgo+IC0tLQo+ICBtbS9obW0u
-YyB8IDQgKystLQo+ICAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
-cygtKQo+IAo+IGRpZmYgLS1naXQgYS9tbS9obW0uYyBiL21tL2htbS5jCj4gaW5kZXggYzJmZWNi
-M2VjYjExZTEuLjcwOWQxMzhkZDQ5MDI3IDEwMDY0NAo+IC0tLSBhL21tL2htbS5jCj4gKysrIGIv
-bW0vaG1tLmMKPiBAQCAtOTExLDcgKzkxMSw3IEBAIGludCBobW1fcmFuZ2VfcmVnaXN0ZXIoc3Ry
-dWN0IGhtbV9yYW5nZSAqcmFuZ2UsCj4gIAltdXRleF9sb2NrKCZobW0tPmxvY2spOwo+ICAKPiAg
-CXJhbmdlLT5obW0gPSBobW07Cj4gLQlsaXN0X2FkZF9yY3UoJnJhbmdlLT5saXN0LCAmaG1tLT5y
-YW5nZXMpOwo+ICsJbGlzdF9hZGQoJnJhbmdlLT5saXN0LCAmaG1tLT5yYW5nZXMpOwo+ICAKPiAg
-CS8qCj4gIAkgKiBJZiB0aGVyZSBhcmUgYW55IGNvbmN1cnJlbnQgbm90aWZpZXJzIHdlIGhhdmUg
-dG8gd2FpdCBmb3IgdGhlbSBmb3IKPiBAQCAtOTQxLDcgKzk0MSw3IEBAIHZvaWQgaG1tX3Jhbmdl
-X3VucmVnaXN0ZXIoc3RydWN0IGhtbV9yYW5nZSAqcmFuZ2UpCj4gIAkJcmV0dXJuOwo+ICAKPiAg
-CW11dGV4X2xvY2soJmhtbS0+bG9jayk7Cj4gLQlsaXN0X2RlbF9yY3UoJnJhbmdlLT5saXN0KTsK
-PiArCWxpc3RfZGVsKCZyYW5nZS0+bGlzdCk7Cj4gIAltdXRleF91bmxvY2soJmhtbS0+bG9jayk7
-Cj4gIAo+ICAJLyogRHJvcCByZWZlcmVuY2UgdGFrZW4gYnkgaG1tX3JhbmdlX3JlZ2lzdGVyKCkg
-Ki8KPiAtLSAKPiAyLjIxLjAKPiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8v
-ZHJpLWRldmVs
+On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
+> On Fri, Jun 07, 2019 at 01:04:26PM +0200, Jan Kara wrote:
+> > On Thu 06-06-19 15:03:30, Ira Weiny wrote:
+> > > On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
+> > > > On Wed 05-06-19 18:45:33, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > 
+> > > > So I'd like to actually mandate that you *must* hold the file lease until
+> > > > you unpin all pages in the given range (not just that you have an option to
+> > > > hold a lease). And I believe the kernel should actually enforce this. That
+> > > > way we maintain a sane state that if someone uses a physical location of
+> > > > logical file offset on disk, he has a layout lease. Also once this is done,
+> > > > sysadmin has a reasonably easy way to discover run-away RDMA application
+> > > > and kill it if he wishes so.
+> > > 
+> > > Fair enough.
+> > > 
+> > > I was kind of heading that direction but had not thought this far forward.  I
+> > > was exploring how to have a lease remain on the file even after a "lease
+> > > break".  But that is incompatible with the current semantics of a "layout"
+> > > lease (as currently defined in the kernel).  [In the end I wanted to get an RFC
+> > > out to see what people think of this idea so I did not look at keeping the
+> > > lease.]
+> > > 
+> > > Also hitch is that currently a lease is forcefully broken after
+> > > <sysfs>/lease-break-time.  To do what you suggest I think we would need a new
+> > > lease type with the semantics you describe.
+> > 
+> > I'd do what Dave suggested - add flag to mark lease as unbreakable by
+> > truncate and teach file locking core to handle that. There actually is
+> > support for locks that are not broken after given timeout so there
+> > shouldn't be too many changes need.
+> >  
+> > > Previously I had thought this would be a good idea (for other reasons).  But
+> > > what does everyone think about using a "longterm lease" similar to [1] which
+> > > has the semantics you proppose?  In [1] I was not sure "longterm" was a good
+> > > name but with your proposal I think it makes more sense.
+> > 
+> > As I wrote elsewhere in this thread I think FL_LAYOUT name still makes
+> > sense and I'd add there FL_UNBREAKABLE to mark unusal behavior with
+> > truncate.
+> 
+> Ok I want to make sure I understand what you and Dave are suggesting.
+> 
+> Are you suggesting that we have something like this from user space?
+> 
+> 	fcntl(fd, F_SETLEASE, F_LAYOUT | F_UNBREAKABLE);
+
+Rather than "unbreakable", perhaps a clearer description of the
+policy it entails is "exclusive"?
+
+i.e. what we are talking about here is an exclusive lease that
+prevents other processes from changing the layout. i.e. the
+mechanism used to guarantee a lease is exclusive is that the layout
+becomes "unbreakable" at the filesystem level, but the policy we are
+actually presenting to uses is "exclusive access"...
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
