@@ -1,58 +1,36 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH v16 14/16] tee, arm64: untag user pointers in
- tee_shm_register
-Date: Fri, 7 Jun 2019 21:05:02 -0700
-Message-ID: <201906072104.B6A89D8CB@keescook>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <dc3f3092abbc0d48e51b2e2a2ca8f4c4f69fa0f4.1559580831.git.andreyknvl@google.com>
+From: Jens Axboe <axboe@kernel.dk>
+Subject: Re: properly communicate queue limits to the DMA layer
+Date: Sat, 8 Jun 2019 02:10:44 -0600
+Message-ID: <379c82a1-f61d-7463-791e-57f1cdeaa9db@kernel.dk>
+References: <20190605190836.32354-1-hch@lst.de>
+ <591cfa1e-fecb-7d00-c855-3b9eb8eb8a2a@kernel.dk>
+ <20190605192405.GA18243@lst.de>
+ <f07d0abf-b3eb-f530-37b9-e66454740b3f@kernel.dk> <yq1o939i9qh.fsf@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <dc3f3092abbc0d48e51b2e2a2ca8f4c4f69fa0f4.1559580831.git.andreyknvl@google.com>
+In-Reply-To: <yq1o939i9qh.fsf@oracle.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro>
+To: "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>, Sebastian Ott <sebott@linux.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Max Gurtovoy <maxg@mellanox.com>, Bart Van Assche <bvanassche@acm.org>, Ulf Hansson <ulf.hansson@linaro.org>, Alan Stern <stern@rowland.harvard.edu>, Oliver Neukum <oneukum@suse.com>, linux-block@vger.kernel.org, linux-rdma@vger.kernel.org, linux-mmc@vger.kernel.org, linux-nvme@lists.infradead.org, linux-scsi@vger.kernel.org, megaraidlinux.pdl@broadcom.com, MPT-FusionLinux.pdl@broadcom.com, linux-hyperv@vger.kernel.org, linux-usb@vger.kernel.org, usb-storage@lists.one-eyed-alien.net, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 03, 2019 at 06:55:16PM +0200, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
+On 6/7/19 11:30 AM, Martin K. Petersen wrote:
 > 
-> tee_shm_register()->optee_shm_unregister()->check_mem_type() uses provided
-> user pointers for vma lookups (via __check_mem_type()), which can only by
-> done with untagged pointers.
+> Jens,
 > 
-> Untag user pointers in this function.
+>>> The SCSI bits will need a bit more review, and possibly tweaking
+>>> fo megaraid and mpt3sas.  But they are really independent of the
+>>> other patches, so maybe skip them for now and leave them for Martin
+>>> to deal with.
+>>
+>> I dropped the SCSI bits.
 > 
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+> I'll monitor and merge them.
 
-"tee: shm: untag user pointers in tee_shm_register"
-
-Reviewed-by: Kees Cook <keescook@chromium.org>
-
--Kees
-
-> ---
->  drivers/tee/tee_shm.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/tee/tee_shm.c b/drivers/tee/tee_shm.c
-> index 49fd7312e2aa..96945f4cefb8 100644
-> --- a/drivers/tee/tee_shm.c
-> +++ b/drivers/tee/tee_shm.c
-> @@ -263,6 +263,7 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
->  	shm->teedev = teedev;
->  	shm->ctx = ctx;
->  	shm->id = -1;
-> +	addr = untagged_addr(addr);
->  	start = rounddown(addr, PAGE_SIZE);
->  	shm->offset = addr - start;
->  	shm->size = length;
-> -- 
-> 2.22.0.rc1.311.g5d7573a151-goog
-> 
+Great, thanks Martin.
 
 -- 
-Kees Cook
+Jens Axboe
