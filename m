@@ -1,91 +1,70 @@
-From: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
-Date: Sat, 8 Jun 2019 10:10:36 +1000
-Message-ID: <20190608001036.GF14308@dread.disaster.area>
-References: <20190606014544.8339-1-ira.weiny@intel.com>
- <20190606104203.GF7433@quack2.suse.cz>
- <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
- <20190607110426.GB12765@quack2.suse.cz>
- <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH v16 03/16] lib, arm64: untag user pointers in strn*_user
+Date: Fri, 7 Jun 2019 20:48:07 -0700
+Message-ID: <201906072047.50371DBE2@keescook>
+References: <cover.1559580831.git.andreyknvl@google.com>
+ <14f17ef1902aa4f07a39f96879394e718a1f5dc1.1559580831.git.andreyknvl@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 Content-Disposition: inline
-In-Reply-To: <20190607182534.GC14559-J5EW/p2F9lUlb2qzJQmr9q2pdiUAq4bhAL8bYrjMMd8@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <14f17ef1902aa4f07a39f96879394e718a1f5dc1.1559580831.git.andreyknvl@google.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Andrey Konovalov <andreyknvl@google.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, kvm@vger.kernel.org, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Khalid Aziz <khalid.aziz@oracle.com>, linux-kselftest@vger.kernel.org, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, linux-rdma@vger.kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, linux-media@vger.kernel.org, Kevin Brodsky <kevin.brodsky@arm.com>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
-> On Fri, Jun 07, 2019 at 01:04:26PM +0200, Jan Kara wrote:
-> > On Thu 06-06-19 15:03:30, Ira Weiny wrote:
-> > > On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
-> > > > On Wed 05-06-19 18:45:33, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> > > > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> > > > 
-> > > > So I'd like to actually mandate that you *must* hold the file lease until
-> > > > you unpin all pages in the given range (not just that you have an option to
-> > > > hold a lease). And I believe the kernel should actually enforce this. That
-> > > > way we maintain a sane state that if someone uses a physical location of
-> > > > logical file offset on disk, he has a layout lease. Also once this is done,
-> > > > sysadmin has a reasonably easy way to discover run-away RDMA application
-> > > > and kill it if he wishes so.
-> > > 
-> > > Fair enough.
-> > > 
-> > > I was kind of heading that direction but had not thought this far forward.  I
-> > > was exploring how to have a lease remain on the file even after a "lease
-> > > break".  But that is incompatible with the current semantics of a "layout"
-> > > lease (as currently defined in the kernel).  [In the end I wanted to get an RFC
-> > > out to see what people think of this idea so I did not look at keeping the
-> > > lease.]
-> > > 
-> > > Also hitch is that currently a lease is forcefully broken after
-> > > <sysfs>/lease-break-time.  To do what you suggest I think we would need a new
-> > > lease type with the semantics you describe.
-> > 
-> > I'd do what Dave suggested - add flag to mark lease as unbreakable by
-> > truncate and teach file locking core to handle that. There actually is
-> > support for locks that are not broken after given timeout so there
-> > shouldn't be too many changes need.
-> >  
-> > > Previously I had thought this would be a good idea (for other reasons).  But
-> > > what does everyone think about using a "longterm lease" similar to [1] which
-> > > has the semantics you proppose?  In [1] I was not sure "longterm" was a good
-> > > name but with your proposal I think it makes more sense.
-> > 
-> > As I wrote elsewhere in this thread I think FL_LAYOUT name still makes
-> > sense and I'd add there FL_UNBREAKABLE to mark unusal behavior with
-> > truncate.
-> 
-> Ok I want to make sure I understand what you and Dave are suggesting.
-> 
-> Are you suggesting that we have something like this from user space?
-> 
-> 	fcntl(fd, F_SETLEASE, F_LAYOUT | F_UNBREAKABLE);
-
-Rather than "unbreakable", perhaps a clearer description of the
-policy it entails is "exclusive"?
-
-i.e. what we are talking about here is an exclusive lease that
-prevents other processes from changing the layout. i.e. the
-mechanism used to guarantee a lease is exclusive is that the layout
-becomes "unbreakable" at the filesystem level, but the policy we are
-actually presenting to uses is "exclusive access"...
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
+T24gTW9uLCBKdW4gMDMsIDIwMTkgYXQgMDY6NTU6MDVQTSArMDIwMCwgQW5kcmV5IEtvbm92YWxv
+diB3cm90ZToKPiBUaGlzIHBhdGNoIGlzIGEgcGFydCBvZiBhIHNlcmllcyB0aGF0IGV4dGVuZHMg
+YXJtNjQga2VybmVsIEFCSSB0byBhbGxvdyB0bwo+IHBhc3MgdGFnZ2VkIHVzZXIgcG9pbnRlcnMg
+KHdpdGggdGhlIHRvcCBieXRlIHNldCB0byBzb21ldGhpbmcgZWxzZSBvdGhlcgo+IHRoYW4gMHgw
+MCkgYXMgc3lzY2FsbCBhcmd1bWVudHMuCj4gCj4gc3RybmNweV9mcm9tX3VzZXIgYW5kIHN0cm5s
+ZW5fdXNlciBhY2NlcHQgdXNlciBhZGRyZXNzZXMgYXMgYXJndW1lbnRzLCBhbmQKPiBkbyBub3Qg
+Z28gdGhyb3VnaCB0aGUgc2FtZSBwYXRoIGFzIGNvcHlfZnJvbV91c2VyIGFuZCBvdGhlcnMsIHNv
+IGhlcmUgd2UKPiBuZWVkIHRvIGhhbmRsZSB0aGUgY2FzZSBvZiB0YWdnZWQgdXNlciBhZGRyZXNz
+ZXMgc2VwYXJhdGVseS4KPiAKPiBVbnRhZyB1c2VyIHBvaW50ZXJzIHBhc3NlZCB0byB0aGVzZSBm
+dW5jdGlvbnMuCj4gCj4gTm90ZSwgdGhhdCB0aGlzIHBhdGNoIG9ubHkgdGVtcG9yYXJpbHkgdW50
+YWdzIHRoZSBwb2ludGVycyB0byBwZXJmb3JtCj4gdmFsaWRpdHkgY2hlY2tzLCBidXQgdGhlbiB1
+c2VzIHRoZW0gYXMgaXMgdG8gcGVyZm9ybSB1c2VyIG1lbW9yeSBhY2Nlc3Nlcy4KPiAKPiBSZXZp
+ZXdlZC1ieTogQ2F0YWxpbiBNYXJpbmFzIDxjYXRhbGluLm1hcmluYXNAYXJtLmNvbT4KPiBTaWdu
+ZWQtb2ZmLWJ5OiBBbmRyZXkgS29ub3ZhbG92IDxhbmRyZXlrbnZsQGdvb2dsZS5jb20+CgpBY2tl
+ZC1ieTogS2VlcyBDb29rIDxrZWVzY29va0BjaHJvbWl1bS5vcmc+CgotS2VlcwoKPiAtLS0KPiAg
+bGliL3N0cm5jcHlfZnJvbV91c2VyLmMgfCAzICsrLQo+ICBsaWIvc3Rybmxlbl91c2VyLmMgICAg
+ICB8IDMgKystCj4gIDIgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9u
+cygtKQo+IAo+IGRpZmYgLS1naXQgYS9saWIvc3RybmNweV9mcm9tX3VzZXIuYyBiL2xpYi9zdHJu
+Y3B5X2Zyb21fdXNlci5jCj4gaW5kZXggMDIzYmE5ZjNiOTlmLi5kY2NiOTVhZjYwMDMgMTAwNjQ0
+Cj4gLS0tIGEvbGliL3N0cm5jcHlfZnJvbV91c2VyLmMKPiArKysgYi9saWIvc3RybmNweV9mcm9t
+X3VzZXIuYwo+IEBAIC02LDYgKzYsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgvdWFjY2Vzcy5oPgo+
+ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9lcnJuby5oPgo+
+ICsjaW5jbHVkZSA8bGludXgvbW0uaD4KPiAgCj4gICNpbmNsdWRlIDxhc20vYnl0ZW9yZGVyLmg+
+Cj4gICNpbmNsdWRlIDxhc20vd29yZC1hdC1hLXRpbWUuaD4KPiBAQCAtMTA4LDcgKzEwOSw3IEBA
+IGxvbmcgc3RybmNweV9mcm9tX3VzZXIoY2hhciAqZHN0LCBjb25zdCBjaGFyIF9fdXNlciAqc3Jj
+LCBsb25nIGNvdW50KQo+ICAJCXJldHVybiAwOwo+ICAKPiAgCW1heF9hZGRyID0gdXNlcl9hZGRy
+X21heCgpOwo+IC0Jc3JjX2FkZHIgPSAodW5zaWduZWQgbG9uZylzcmM7Cj4gKwlzcmNfYWRkciA9
+ICh1bnNpZ25lZCBsb25nKXVudGFnZ2VkX2FkZHIoc3JjKTsKPiAgCWlmIChsaWtlbHkoc3JjX2Fk
+ZHIgPCBtYXhfYWRkcikpIHsKPiAgCQl1bnNpZ25lZCBsb25nIG1heCA9IG1heF9hZGRyIC0gc3Jj
+X2FkZHI7Cj4gIAkJbG9uZyByZXR2YWw7Cj4gZGlmZiAtLWdpdCBhL2xpYi9zdHJubGVuX3VzZXIu
+YyBiL2xpYi9zdHJubGVuX3VzZXIuYwo+IGluZGV4IDdmMmRiM2ZlMzExZi4uMjhmZjU1NGExYmU4
+IDEwMDY0NAo+IC0tLSBhL2xpYi9zdHJubGVuX3VzZXIuYwo+ICsrKyBiL2xpYi9zdHJubGVuX3Vz
+ZXIuYwo+IEBAIC0yLDYgKzIsNyBAQAo+ICAjaW5jbHVkZSA8bGludXgva2VybmVsLmg+Cj4gICNp
+bmNsdWRlIDxsaW51eC9leHBvcnQuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L3VhY2Nlc3MuaD4KPiAr
+I2luY2x1ZGUgPGxpbnV4L21tLmg+Cj4gIAo+ICAjaW5jbHVkZSA8YXNtL3dvcmQtYXQtYS10aW1l
+Lmg+Cj4gIAo+IEBAIC0xMDksNyArMTEwLDcgQEAgbG9uZyBzdHJubGVuX3VzZXIoY29uc3QgY2hh
+ciBfX3VzZXIgKnN0ciwgbG9uZyBjb3VudCkKPiAgCQlyZXR1cm4gMDsKPiAgCj4gIAltYXhfYWRk
+ciA9IHVzZXJfYWRkcl9tYXgoKTsKPiAtCXNyY19hZGRyID0gKHVuc2lnbmVkIGxvbmcpc3RyOwo+
+ICsJc3JjX2FkZHIgPSAodW5zaWduZWQgbG9uZyl1bnRhZ2dlZF9hZGRyKHN0cik7Cj4gIAlpZiAo
+bGlrZWx5KHNyY19hZGRyIDwgbWF4X2FkZHIpKSB7Cj4gIAkJdW5zaWduZWQgbG9uZyBtYXggPSBt
+YXhfYWRkciAtIHNyY19hZGRyOwo+ICAJCWxvbmcgcmV0dmFsOwo+IC0tIAo+IDIuMjIuMC5yYzEu
+MzExLmc1ZDc1NzNhMTUxLWdvb2cKPiAKCi0tIApLZWVzIENvb2sKX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmkt
+ZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+L21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVs
