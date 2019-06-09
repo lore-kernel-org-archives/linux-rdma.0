@@ -1,39 +1,98 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH] IB/mlx4: prevent undefined shift in set_user_sq_size()
-Date: Sat, 8 Jun 2019 12:22:31 +0300
-Message-ID: <20190608092231.GA28890@mwanda>
+From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC 00/10] RDMA/FS DAX truncate proposal
+Date: Sat, 8 Jun 2019 18:29:32 -0700
+Message-ID: <20190609012931.GA19825@iweiny-DESK2.sc.intel.com>
+References: <20190606014544.8339-1-ira.weiny@intel.com>
+ <20190606104203.GF7433@quack2.suse.cz>
+ <20190606220329.GA11698@iweiny-DESK2.sc.intel.com>
+ <20190607110426.GB12765@quack2.suse.cz>
+ <20190607182534.GC14559@iweiny-DESK2.sc.intel.com>
+ <20190608001036.GF14308@dread.disaster.area>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Yishai Hadas <yishaih@mellanox.com>
-Cc: Doug Ledford <dledford@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20190608001036.GF14308-pA1nmv6sEBkOM8BvhN4Z8vybgvtCy99p@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
+Cc: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, =?iso-8859-1?B?Suly9G1l?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The ucmd->log_sq_bb_count is a u8 that comes from the user.  If it's
-larger than the number of bits in an int then that's undefined behavior.
-It turns out this doesn't really cause an issue at runtime but it's
-still nice to clean it up.
+On Sat, Jun 08, 2019 at 10:10:36AM +1000, Dave Chinner wrote:
+> On Fri, Jun 07, 2019 at 11:25:35AM -0700, Ira Weiny wrote:
+> > On Fri, Jun 07, 2019 at 01:04:26PM +0200, Jan Kara wrote:
+> > > On Thu 06-06-19 15:03:30, Ira Weiny wrote:
+> > > > On Thu, Jun 06, 2019 at 12:42:03PM +0200, Jan Kara wrote:
+> > > > > On Wed 05-06-19 18:45:33, ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+> > > > > > From: Ira Weiny <ira.weiny-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > > > > 
+> > > > > So I'd like to actually mandate that you *must* hold the file lease until
+> > > > > you unpin all pages in the given range (not just that you have an option to
+> > > > > hold a lease). And I believe the kernel should actually enforce this. That
+> > > > > way we maintain a sane state that if someone uses a physical location of
+> > > > > logical file offset on disk, he has a layout lease. Also once this is done,
+> > > > > sysadmin has a reasonably easy way to discover run-away RDMA application
+> > > > > and kill it if he wishes so.
+> > > > 
+> > > > Fair enough.
+> > > > 
+> > > > I was kind of heading that direction but had not thought this far forward.  I
+> > > > was exploring how to have a lease remain on the file even after a "lease
+> > > > break".  But that is incompatible with the current semantics of a "layout"
+> > > > lease (as currently defined in the kernel).  [In the end I wanted to get an RFC
+> > > > out to see what people think of this idea so I did not look at keeping the
+> > > > lease.]
+> > > > 
+> > > > Also hitch is that currently a lease is forcefully broken after
+> > > > <sysfs>/lease-break-time.  To do what you suggest I think we would need a new
+> > > > lease type with the semantics you describe.
+> > > 
+> > > I'd do what Dave suggested - add flag to mark lease as unbreakable by
+> > > truncate and teach file locking core to handle that. There actually is
+> > > support for locks that are not broken after given timeout so there
+> > > shouldn't be too many changes need.
+> > >  
+> > > > Previously I had thought this would be a good idea (for other reasons).  But
+> > > > what does everyone think about using a "longterm lease" similar to [1] which
+> > > > has the semantics you proppose?  In [1] I was not sure "longterm" was a good
+> > > > name but with your proposal I think it makes more sense.
+> > > 
+> > > As I wrote elsewhere in this thread I think FL_LAYOUT name still makes
+> > > sense and I'd add there FL_UNBREAKABLE to mark unusal behavior with
+> > > truncate.
+> > 
+> > Ok I want to make sure I understand what you and Dave are suggesting.
+> > 
+> > Are you suggesting that we have something like this from user space?
+> > 
+> > 	fcntl(fd, F_SETLEASE, F_LAYOUT | F_UNBREAKABLE);
+> 
+> Rather than "unbreakable", perhaps a clearer description of the
+> policy it entails is "exclusive"?
+> 
+> i.e. what we are talking about here is an exclusive lease that
+> prevents other processes from changing the layout. i.e. the
+> mechanism used to guarantee a lease is exclusive is that the layout
+> becomes "unbreakable" at the filesystem level, but the policy we are
+> actually presenting to uses is "exclusive access"...
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
- drivers/infiniband/hw/mlx4/qp.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+That sounds good.
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 5221c0794d1d..9f6eb23e8044 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -439,7 +439,8 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
- 			    struct mlx4_ib_create_qp *ucmd)
- {
- 	/* Sanity check SQ size before proceeding */
--	if ((1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
-+	if (ucmd->log_sq_bb_count > 31					 ||
-+	    (1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
- 	    ucmd->log_sq_stride >
- 		ilog2(roundup_pow_of_two(dev->dev->caps.max_sq_desc_sz)) ||
- 	    ucmd->log_sq_stride < MLX4_IB_MIN_SQ_STRIDE)
--- 
-2.20.1
+Ira
+
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org
