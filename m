@@ -1,34 +1,46 @@
-From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH v2 hmm 01/11] mm/hmm: fix use after free with struct hmm
- in the mmu notifiers
-Date: Sat, 8 Jun 2019 01:49:48 -0700
-Message-ID: <20190608084948.GA32185@infradead.org>
-References: <20190606184438.31646-1-jgg@ziepe.ca>
- <20190606184438.31646-2-jgg@ziepe.ca>
+From: Leon Romanovsky <leon@kernel.org>
+Subject: Re: [PATCH] IB/mlx4: prevent undefined shift in set_user_sq_size()
+Date: Mon, 10 Jun 2019 17:08:58 +0300
+Message-ID: <20190610140858.GA6369@mtr-leonro.mtl.com>
+References: <20190608092231.GA28890@mwanda>
+ <20190610132849.GD18468@ziepe.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190606184438.31646-2-jgg-uk2M96/98Pc@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+In-Reply-To: <20190610132849.GD18468@ziepe.ca>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-SSBzdGlsbCB0aGluayBzcnVjdCBobW0gc2hvdWxkIGRpZS4gIFdlIGFscmVhZHkgaGF2ZSBhIHN0
-cnVjdHVyZSB1c2VkCmZvciBhZGRpdGlvbmFsIGluZm9ybWF0aW9uIGZvciBkcml2ZXJzIGhhdmlu
-ZyBjcmF6bHkgdGlnaHQgaW50ZWdyYXRpb24KaW50byB0aGUgVk0sIGFuZCBpdCBpcyBjYWxsZWQg
-c3RydWN0IG1tdV9ub3RpZmllcl9tbS4gIFdlIHJlYWxseSBuZWVkCnRvIHJldXNlIHRoYXQgaW50
-ZWFkIG9mIGR1cGxpY2F0aW5nIGl0IGJhZGx5LgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZy
-ZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2FtZC1nZng=
+On Mon, Jun 10, 2019 at 10:28:49AM -0300, Jason Gunthorpe wrote:
+> On Sat, Jun 08, 2019 at 12:22:31PM +0300, Dan Carpenter wrote:
+> > The ucmd->log_sq_bb_count is a u8 that comes from the user.  If it's
+> > larger than the number of bits in an int then that's undefined behavior.
+> > It turns out this doesn't really cause an issue at runtime but it's
+> > still nice to clean it up.
+> >
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> >  drivers/infiniband/hw/mlx4/qp.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> > index 5221c0794d1d..9f6eb23e8044 100644
+> > --- a/drivers/infiniband/hw/mlx4/qp.c
+> > +++ b/drivers/infiniband/hw/mlx4/qp.c
+> > @@ -439,7 +439,8 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
+> >  			    struct mlx4_ib_create_qp *ucmd)
+> >  {
+> >  	/* Sanity check SQ size before proceeding */
+> > -	if ((1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
+> > +	if (ucmd->log_sq_bb_count > 31					 ||
+> > +	    (1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
+>
+> Surely this should use check_shl_overflow() ?
+
+Yes
+
+>
+> Jason
