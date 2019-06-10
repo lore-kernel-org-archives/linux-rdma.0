@@ -1,69 +1,132 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v16 02/16] arm64: untag user pointers in access_ok and
- __uaccess_mask_ptr
-Date: Mon, 10 Jun 2019 19:53:30 +0100
-Message-ID: <20190610185329.xhjawzfy4uddrkrj@mbp>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <4327b260fb17c4776a1e3c844f388e4948cfb747.1559580831.git.andreyknvl@google.com>
- <20190610175326.GC25803@arrakis.emea.arm.com>
- <201906101106.3CA50745E3@keescook>
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Subject: Re: WARNING: bad unlock balance in ucma_event_handler
+Date: Mon, 10 Jun 2019 16:47:32 -0300
+Message-ID: <20190610194732.GH18468@ziepe.ca>
+References: <000000000000af6530056e863794@google.com>
+ <20180613170543.GB30019@ziepe.ca>
+ <20190610184853.GG63833@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <201906101106.3CA50745E3@keescook>
+In-Reply-To: <20190610184853.GG63833@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.>
+To: Eric Biggers <ebiggers@kernel.org>
+Cc: syzbot <syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com>, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 11:07:03AM -0700, Kees Cook wrote:
-> On Mon, Jun 10, 2019 at 06:53:27PM +0100, Catalin Marinas wrote:
-> > On Mon, Jun 03, 2019 at 06:55:04PM +0200, Andrey Konovalov wrote:
-> > > diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
-> > > index e5d5f31c6d36..9164ecb5feca 100644
-> > > --- a/arch/arm64/include/asm/uaccess.h
-> > > +++ b/arch/arm64/include/asm/uaccess.h
-> > > @@ -94,7 +94,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
-> > >  	return ret;
-> > >  }
-> > >  
-> > > -#define access_ok(addr, size)	__range_ok(addr, size)
-> > > +#define access_ok(addr, size)	__range_ok(untagged_addr(addr), size)
-[...]
-> > diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-> > index 3767fb21a5b8..fd191c5b92aa 100644
-> > --- a/arch/arm64/kernel/process.c
-> > +++ b/arch/arm64/kernel/process.c
-> > @@ -552,3 +552,18 @@ void arch_setup_new_exec(void)
-> >  
-> >  	ptrauth_thread_init_user(current);
-> >  }
-> > +
-> > +/*
-> > + * Enable the relaxed ABI allowing tagged user addresses into the kernel.
-> > + */
-> > +int untagged_uaddr_set_mode(unsigned long arg)
-> > +{
-> > +	if (is_compat_task())
-> > +		return -ENOTSUPP;
-> > +	if (arg)
-> > +		return -EINVAL;
-> > +
-> > +	set_thread_flag(TIF_UNTAGGED_UADDR);
-> > +
-> > +	return 0;
-> > +}
+On Mon, Jun 10, 2019 at 11:48:54AM -0700, Eric Biggers wrote:
+> On Wed, Jun 13, 2018 at 11:05:43AM -0600, Jason Gunthorpe wrote:
+> > On Wed, Jun 13, 2018 at 06:47:02AM -0700, syzbot wrote:
+> > > Hello,
+> > > 
+> > > syzbot found the following crash on:
+> > > 
+> > > HEAD commit:    73fcb1a370c7 Merge branch 'akpm' (patches from Andrew)
+> > > git tree:       upstream
+> > > console output: https://syzkaller.appspot.com/x/log.txt?x=16d70827800000
+> > > kernel config:  https://syzkaller.appspot.com/x/.config?x=f3b4e30da84ec1ed
+> > > dashboard link: https://syzkaller.appspot.com/bug?extid=e5579222b6a3edd96522
+> > > compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> > > syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=176daf97800000
+> > > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15e7bd57800000
+> > > 
+> > > IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> > > Reported-by: syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com
+> > > 
+> > > 
+> > > =====================================
+> > > WARNING: bad unlock balance detected!
+> > > 4.17.0-rc5+ #58 Not tainted
+> > > kworker/u4:0/6 is trying to release lock (&file->mut) at:
+> > > [<ffffffff8593ecc0>] ucma_event_handler+0x780/0xff0
+> > > drivers/infiniband/core/ucma.c:390
+> > > but there are no more locks to release!
+> > > 
+> > > other info that might help us debug this:
+> > > 4 locks held by kworker/u4:0/6:
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > > __write_once_size include/linux/compiler.h:215 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > > arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic64_set
+> > > include/asm-generic/atomic-instrumented.h:40 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic_long_set
+> > > include/asm-generic/atomic-long.h:57 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: set_work_data
+> > > kernel/workqueue.c:617 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > > set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+> > >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > > process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+> > >  #1:         (ptrval) ((work_completion)(&(&req->work)->work)){+.+.}, at:
+> > > process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+> > >  #2:         (ptrval) (&id_priv->handler_mutex){+.+.}, at:
+> > > addr_handler+0xa6/0x3d0 drivers/infiniband/core/cma.c:2796
+> > >  #3:         (ptrval) (&file->mut){+.+.}, at: ucma_event_handler+0x10e/0xff0
+> > > drivers/infiniband/core/ucma.c:350
+> > 
+> > I think this is probably a use-after-free race, eg when we do
+> > ctx->file->mut we have raced with ucma_free_ctx() ..
+> > 
+> > Which probably means something along the way to free_ctx() did not
+> > call rdma_addr_cancel?
+> > 
+> > Jason
 > 
-> I think this should be paired with a flag clearing in copy_thread(),
-> yes? (i.e. each binary needs to opt in)
+> This is still happening.  Just FYI, ignoring these reports doesn't make the bugs
+> go away.  Here's a crash report from v5.2.0-rc4:
 
-It indeed needs clearing though not in copy_thread() as that's used on
-clone/fork but rather in flush_thread(), called on the execve() path.
+There are many unfixed syzkaller bugs in rdma_cm, so I'm not surprised
+it is still happening..
 
-And a note to myself: I think PR_UNTAGGED_ADDR (not UADDR) looks better
-in a uapi header, the user doesn't differentiate between uaddr and
-kaddr.
+Nobody has stepped forward to work on this code, and it is not a
+simple mess to understand, let alone try to fix.
 
--- 
-Catalin
+> =====================================
+> WARNING: bad unlock balance detected!
+> 5.2.0-rc4 #44 Not tainted
+> kworker/u4:2/61 is trying to release lock (&file->mut) at:
+> [<ffffffff851a3f81>] ucma_event_handler+0x711/0xef0 drivers/infiniband/core/ucma.c:394
+> but there are no more locks to release!
+> 
+> other info that might help us debug this:
+> 4 locks held by kworker/u4:2/61:
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: __write_once_size include/linux/compiler.h:221 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: set_work_data kernel/workqueue.c:620 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:647 [inline]
+>  #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: process_one_work+0x87e/0x1790 kernel/workqueue.c:2240
+>  #1: 00000000d75dabcd ((work_completion)(&(&req->work)->work)){+.+.}, at: process_one_work+0x8b4/0x1790 kernel/workqueue.c:2244
+>  #2: 0000000058b7aa49 (&id_priv->handler_mutex){+.+.}, at: addr_handler+0xaf/0x3d0 drivers/infiniband/core/cma.c:3031
+>  #3: 00000000e5042b0a (&file->mut){+.+.}, at: ucma_event_handler+0xb3/0xef0 drivers/infiniband/core/ucma.c:354
+
+Well, it is holding the (logical) lock it is releasing, so this
+probably menas ctx->file changed value while this event handler is
+running. :\
+
+A quick look suggests ucma_migrate_id does that..
+
+.. and we can quickly see the bug, we try to obtain a lock:
+
+        mutex_lock(&ctx->file->mut);
+
+while another thread is changing that pointer under the lock we are
+trying to get:
+
+        ctx->file = new_file;
+
+So probably mutex_lock went to sleep, holding &ctx->file->mut in a
+register, then the thing in the lock changed ctx->file, finally the
+unlock reloaded ctx->file and got the new unlocked value, and crash.
+
+Which just an insane design in the first place.
+
+That is as far as I can get, trying to figure out how to rework
+ctx->file to be properly ref counted, accessed and locked, is a major
+task.. I don't even know right now what migrate_id is supposed to be
+for :(
+
+Jason
