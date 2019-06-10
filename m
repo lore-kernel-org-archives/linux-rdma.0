@@ -1,48 +1,63 @@
-From: shuah <shuah@kernel.org>
-Subject: Re: [PATCH v16 16/16] selftests, arm64: add a selftest for passing
- tagged pointers to kernel
-Date: Mon, 10 Jun 2019 16:08:10 -0600
-Message-ID: <2bc277f8-e67e-30e0-5824-8184c2b03237@kernel.org>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <9e1b5998a28f82b16076fc85ab4f88af5381cf74.1559580831.git.andreyknvl@google.com>
- <201906072055.7DFED7B@keescook>
+From: Saeed Mahameed <saeedm@mellanox.com>
+Subject: [PATCH mlx5-next 00/16] Mellanox, mlx5 next updates 10-06-2019
+Date: Mon, 10 Jun 2019 23:38:11 +0000
+Message-ID: <20190610233733.12155-1-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201906072055.7DFED7B@keescook>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro>
+Sender: netdev-owner@vger.kernel.org
+To: Saeed Mahameed <saeedm@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 6/7/19 9:56 PM, Kees Cook wrote:
-> On Mon, Jun 03, 2019 at 06:55:18PM +0200, Andrey Konovalov wrote:
->> This patch is a part of a series that extends arm64 kernel ABI to allow to
->> pass tagged user pointers (with the top byte set to something else other
->> than 0x00) as syscall arguments.
->>
->> This patch adds a simple test, that calls the uname syscall with a
->> tagged user pointer as an argument. Without the kernel accepting tagged
->> user pointers the test fails with EFAULT.
->>
->> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> 
-> I'm adding Shuah to CC in case she has some suggestions about the new
-> selftest.
-
-Thanks Kees.
-
-> 
-> Reviewed-by: Kees Cook <keescook@chromium.org>
-> 
-> -Kees
-> 
-
-Looks good to me.
-
-Acked-by: Shuah Khan <skhan@linuxfoundation.org>
-
-thanks,
--- Shuah
+SGkgQWxsLA0KDQpUaGlzIHNlcmllcyBpcyBhaW1lZCBtbHg1LW5leHQgYnJhbmNoLCBpdCBpbmNs
+dWRlcyBhIGNvdXBsZSBvZiBsb3cgbGV2ZWwNCnVwZGF0ZXMgZm9yIG1seDVfY29yZSBkcml2ZXIs
+IG5lZWRlZCBmb3IgYm90aCByZG1hIGFuZCBuZXQtbmV4dCB0cmVlcy4NCg0KMSkgQm9kb25nIHJl
+ZmFjdG9ycyBxdWVyeSBlc3cgZnVuY3Rpb25zIHNvIGhlIGNvdWxkIHVzZSBpdCB0byBzdXBwb3J0
+DQpxdWVyeWluZyBtYXggVkZzIGZyb20gZGV2aWNlLg0KDQoyKSBWdSwgaGFuZGxlcyBWRiByZXBy
+ZXNlbnRvcnMgY3JlYXRpb24gZnJvbSBWRiBjcmVhdGlvbiBoYW5kbGVyDQpjb250ZXh0Lg0KDQoz
+KSBEYW5pZWwsIGluY3JlYXNlZCB0aGUgZncgaW5pdGlhbGl6YXRpb24gd2FpdCB0aW1lb3V0IGZv
+ciBsYXJnZSBzcmlvdg0KY29uZmlndXJhdGlvbi4NCg0KNCkgWXV2YWwsIHJlZmFjdG9ycyBJUlEg
+dmVjdG9ycyBtYW5hZ2VtZW50IGFuZCBzZXBhcmF0ZXMgdGhlbSBmcm9tIEVRcywNCnNvIElSUXMg
+Y2FuIGJlIHNoYXJlZCBiZXR3ZWVuIGRpZmZlcmVudCBFUXMgdG8gc2F2ZSBzeXN0ZW0gcmVzb3Vy
+Y2VzLA0KZXNwZWNpYWxseSBvbiBWTXMgYW5kIFZGIGZ1bmN0aW9ucy4NCg0KNSkgQXJpZWwsIGV4
+cGxvaXRzIFl1dmFsJ3Mgd29yayBhbmQgdXNlcyBvbmx5IG9uZSBJUlEgZm9yIHRoZSA0IGFzeW5j
+DQpFUXMgd2UgaGF2ZSBwZXIgZnVuY3Rpb24gKFNvIHdlIGNhbiBzYXZlIDMgSVJRIHZlY3RvcnMg
+cGVyIGZ1bmN0aW9uKS4NCg0KVGhhbmtzLA0KU2FlZWQuDQoNCi0tLQ0KDQpBcmllbCBMZXZrb3Zp
+Y2ggKDEpOg0KICBuZXQvbWx4NTogVXNlIGEgc2luZ2xlIElSUSBmb3IgYWxsIGFzeW5jIEVRcw0K
+DQpCb2RvbmcgV2FuZyAoMik6DQogIG5ldC9tbHg1OiBFLVN3aXRjaCwgUmV0dXJuIHJhdyBvdXRw
+dXQgZm9yIHF1ZXJ5IGVzdyBmdW5jdGlvbnMNCiAgbmV0L21seDU6IFN1cHBvcnQgcXVlcnlpbmcg
+bWF4IFZGcyBmcm9tIGRldmljZQ0KDQpEYW5pZWwgSnVyZ2VucyAoMSk6DQogIG5ldC9tbHg1OiBJ
+bmNyZWFzZSB3YWl0IHRpbWUgZm9yIGZ3IGluaXRpYWxpemF0aW9uDQoNClZ1IFBoYW0gKDEpOg0K
+ICBuZXQvbWx4NTogRS1Td2l0Y2gsIEhhbmRsZSByZXByZXNlbnRvcnMgY3JlYXRpb24gaW4gaGFu
+ZGxlciBjb250ZXh0DQoNCll1dmFsIEF2bmVyeSAoMTEpOg0KICBuZXQvbWx4NTogSW50cm9kdWNl
+IEVRIHBvbGxpbmcgYnVkZ2V0DQogIG5ldC9tbHg1OiBDaGFuZ2UgaW50ZXJydXB0IGhhbmRsZXIg
+dG8gY2FsbCBjaGFpbiBub3RpZmllcg0KICBuZXQvbWx4NTogU2VwYXJhdGUgSVJRIHJlcXVlc3Qv
+ZnJlZSBmcm9tIEVRIGxpZmUgY3ljbGUNCiAgbmV0L21seDU6IFNlcGFyYXRlIElSUSBkYXRhIGZy
+b20gRVEgdGFibGUgZGF0YQ0KICBuZXQvbWx4NTogTW92ZSBJUlEgcm1hcCBjcmVhdGlvbiB0byBJ
+UlEgYWxsb2NhdGlvbiBwaGFzZQ0KICBuZXQvbWx4NTogTW92ZSBJUlEgYWZmaW5pdHkgc2V0IHRv
+IElSUSBhbGxvY2F0aW9uIHBoYXNlDQogIG5ldC9tbHg1OiBTZXBhcmF0ZSBJUlEgdGFibGUgY3Jl
+YXRpb24gZnJvbSBFUSB0YWJsZSBjcmVhdGlvbg0KICBuZXQvbWx4NTogR2VuZXJhbGl6ZSBJUlEg
+aW50ZXJmYWNlIHRvIHdvcmsgd2l0aCBpcnFfdGFibGUNCiAgbmV0L21seDU6IE1vdmUgYWxsIElS
+USBsb2dpYyB0byBwY2lfaXJxLmMNCiAgbmV0L21seDU6IFJlbmFtZSBtbHg1X2lycV9pbmZvIHRv
+IG1seDVfaXJxDQogIG5ldC9tbHg1OiBBZGQgRVEgZW5hYmxlL2Rpc2FibGUgQVBJDQoNCiBkcml2
+ZXJzL2luZmluaWJhbmQvaHcvbWx4NS9tbHg1X2liLmggICAgICAgICAgfCAgIDEgKw0KIGRyaXZl
+cnMvaW5maW5pYmFuZC9ody9tbHg1L29kcC5jICAgICAgICAgICAgICB8ICAyMSArLQ0KIC4uLi9u
+ZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL01ha2VmaWxlICB8ICAgMiArLQ0KIGRyaXZl
+cnMvbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lcS5jICB8IDQzOSArKysrKysrLS0t
+LS0tLS0tLS0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoLmMg
+fCAgMzMgKy0NCiAuLi4vbmV0L2V0aGVybmV0L21lbGxhbm94L21seDUvY29yZS9lc3dpdGNoLmgg
+fCAgIDcgKy0NCiAuLi4vbWVsbGFub3gvbWx4NS9jb3JlL2Vzd2l0Y2hfb2ZmbG9hZHMuYyAgICAg
+fCAgOTQgKystLQ0KIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL2xpYi9lcS5o
+ICB8ICAgOSArLQ0KIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21haW4uYyAg
+ICB8ICA1NiArKy0NCiAuLi4vZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL21seDVfY29yZS5o
+ICAgfCAgMTMgKw0KIC4uLi9uZXQvZXRoZXJuZXQvbWVsbGFub3gvbWx4NS9jb3JlL3BjaV9pcnEu
+YyB8IDMzNCArKysrKysrKysrKysrDQogLi4uL25ldC9ldGhlcm5ldC9tZWxsYW5veC9tbHg1L2Nv
+cmUvc3Jpb3YuYyAgIHwgIDIyICsNCiBpbmNsdWRlL2xpbnV4L21seDUvZHJpdmVyLmggICAgICAg
+ICAgICAgICAgICAgfCAgMTAgKy0NCiBpbmNsdWRlL2xpbnV4L21seDUvZXEuaCAgICAgICAgICAg
+ICAgICAgICAgICAgfCAgMjMgKy0NCiBpbmNsdWRlL2xpbnV4L21seDUvbWx4NV9pZmMuaCAgICAg
+ICAgICAgICAgICAgfCAgIDIgKy0NCiAxNSBmaWxlcyBjaGFuZ2VkLCA2NzMgaW5zZXJ0aW9ucygr
+KSwgMzkzIGRlbGV0aW9ucygtKQ0KIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL25ldC9ldGhl
+cm5ldC9tZWxsYW5veC9tbHg1L2NvcmUvcGNpX2lycS5jDQoNCi0tIA0KMi4yMS4wDQoNCg==
