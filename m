@@ -1,47 +1,41 @@
 From: Jason Gunthorpe <jgg@ziepe.ca>
-Subject: Re: [PATCH for-rc 3/3] IB/hfi1: Correct tid qp rcd to match verbs
- context
-Date: Mon, 10 Jun 2019 10:25:11 -0300
-Message-ID: <20190610132511.GB18468@ziepe.ca>
-References: <20190607113807.157915.48581.stgit@awfm-01.aw.intel.com>
- <20190607122538.158478.62945.stgit@awfm-01.aw.intel.com>
- <20190608081533.GO5261@mtr-leonro.mtl.com>
- <32E1700B9017364D9B60AED9960492BC70DA2848@fmsmsx120.amr.corp.intel.com>
+Subject: Re: [PATCH] IB/mlx4: prevent undefined shift in set_user_sq_size()
+Date: Mon, 10 Jun 2019 10:28:49 -0300
+Message-ID: <20190610132849.GD18468@ziepe.ca>
+References: <20190608092231.GA28890@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <32E1700B9017364D9B60AED9960492BC70DA2848@fmsmsx120.amr.corp.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: "Marciniszyn, Mike" <mike.marciniszyn@intel.com>
-Cc: Leon Romanovsky <leon@kernel.org>, "Dalessandro, Dennis" <dennis.dalessandro@intel.com>, "dledford@redhat.com" <dledford@redhat.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "Wan, Kaike" <kaike.wan@intel.com>
+In-Reply-To: <20190608092231.GA28890@mwanda>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Yishai Hadas <yishaih@mellanox.com>, Doug Ledford <dledford@redhat.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 01:03:54PM +0000, Marciniszyn, Mike wrote:
-> > > diff --git a/drivers/infiniband/hw/hfi1/tid_rdma.c
-> > b/drivers/infiniband/hw/hfi1/tid_rdma.c
-> > > index 6fb9303..d77276d 100644
-> > > +++ b/drivers/infiniband/hw/hfi1/tid_rdma.c
-> > > @@ -312,9 +312,8 @@ static struct hfi1_ctxtdata *qp_to_rcd(struct
-> > rvt_dev_info *rdi,
-> > >  	if (qp->ibqp.qp_num == 0)
-> > >  		ctxt = 0;
-> > >  	else
-> > > -		ctxt = ((qp->ibqp.qp_num >> dd->qos_shift) %
-> > > -			(dd->n_krcv_queues - 1)) + 1;
-> > > -
-> > > +		ctxt = hfi1_get_qp_map(dd,
-> > > +				       (u8)(qp->ibqp.qp_num >> dd-
-> > >qos_shift));
-> > 
-> > It is one time use functions, why don't you handle this (u8) casting
-> > inside of hfi1_get_qp_map()?
-> > 
+On Sat, Jun 08, 2019 at 12:22:31PM +0300, Dan Carpenter wrote:
+> The ucmd->log_sq_bb_count is a u8 that comes from the user.  If it's
+> larger than the number of bits in an int then that's undefined behavior.
+> It turns out this doesn't really cause an issue at runtime but it's
+> still nice to clean it up.
 > 
-> I assume the suggestion is to remove the u8 cast at the call site?
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+>  drivers/infiniband/hw/mlx4/qp.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> The function return value already is a u8 and there is a cast of the 64 bit CSR read result.
+> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+> index 5221c0794d1d..9f6eb23e8044 100644
+> --- a/drivers/infiniband/hw/mlx4/qp.c
+> +++ b/drivers/infiniband/hw/mlx4/qp.c
+> @@ -439,7 +439,8 @@ static int set_user_sq_size(struct mlx4_ib_dev *dev,
+>  			    struct mlx4_ib_create_qp *ucmd)
+>  {
+>  	/* Sanity check SQ size before proceeding */
+> -	if ((1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
+> +	if (ucmd->log_sq_bb_count > 31					 ||
+> +	    (1 << ucmd->log_sq_bb_count) > dev->dev->caps.max_wqes	 ||
 
-Why do you need an explicit cast at all?
+Surely this should use check_shl_overflow() ?
 
 Jason
