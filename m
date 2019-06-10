@@ -1,16 +1,18 @@
-From: John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC] mm/hmm: pass mmu_notifier_range to
- sync_cpu_device_pagetables
-Date: Sun, 9 Jun 2019 17:16:07 -0700
-Message-ID: <2be4987a-eede-c864-c69c-382698641d25@nvidia.com>
-References: <20190608001452.7922-1-rcampbell@nvidia.com>
- <20190608091008.GC32185@infradead.org> <20190608114133.GA14873@mellanox.com>
+From: Jason Gunthorpe <jgg-uk2M96/98Pc@public.gmane.org>
+Subject: Re: [PATCH v2 hmm 02/11] mm/hmm: Use hmm_mirror not mm as an
+ argument for hmm_range_register
+Date: Mon, 10 Jun 2019 10:09:15 -0300
+Message-ID: <20190610130915.GA18468@ziepe.ca>
+References: <20190606184438.31646-1-jgg@ziepe.ca>
+ <20190606184438.31646-3-jgg@ziepe.ca>
+ <4a391bd4-287c-5f13-3bca-c6a46ff8d08c@nvidia.com>
+ <e460ddf5-9ed3-7f3b-98ce-526c12fdb8b1@nvidia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20190608114133.GA14873-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <e460ddf5-9ed3-7f3b-98ce-526c12fdb8b1-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
 List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
  <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
 List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
@@ -20,52 +22,17 @@ List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
  <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
 Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Felix.Kuehling-5C7GfCeVMHo@public.gmane.org" <Felix.Kuehling-5C7GfCeVMHo@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Ralph Campbell <rcampbell-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>
+Cc: Andrea Arcangeli <aarcange-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Felix.Kuehling-5C7GfCeVMHo@public.gmane.org, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-T24gNi84LzE5IDQ6NDEgQU0sIEphc29uIEd1bnRob3JwZSB3cm90ZToKPiBPbiBTYXQsIEp1biAw
-OCwgMjAxOSBhdCAwMjoxMDowOEFNIC0wNzAwLCBDaHJpc3RvcGggSGVsbHdpZyB3cm90ZToKPj4g
-T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDU6MTQ6NTJQTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
-d3JvdGU6Cj4+PiBITU0gZGVmaW5lcyBpdHMgb3duIHN0cnVjdCBobW1fdXBkYXRlIHdoaWNoIGlz
-IHBhc3NlZCB0byB0aGUKPj4+IHN5bmNfY3B1X2RldmljZV9wYWdldGFibGVzKCkgY2FsbGJhY2sg
-ZnVuY3Rpb24uIFRoaXMgaXMKPj4+IHN1ZmZpY2llbnQgd2hlbiB0aGUgb25seSBhY3Rpb24gaXMg
-dG8gaW52YWxpZGF0ZS4gSG93ZXZlciwKPj4+IGEgZGV2aWNlIG1heSB3YW50IHRvIGtub3cgdGhl
-IHJlYXNvbiBmb3IgdGhlIGludmFsaWRhdGlvbiBhbmQKPj4+IGJlIGFibGUgdG8gc2VlIHRoZSBu
-ZXcgcGVybWlzc2lvbnMgb24gYSByYW5nZSwgdXBkYXRlIGRldmljZSBhY2Nlc3MKPj4+IHJpZ2h0
-cyBvciByYW5nZSBzdGF0aXN0aWNzLiBTaW5jZSBzeW5jX2NwdV9kZXZpY2VfcGFnZXRhYmxlcygp
-Cj4+PiBjYW4gYmUgY2FsbGVkIGZyb20gdHJ5X3RvX3VubWFwKCksIHRoZSBtbWFwX3NlbSBtYXkg
-bm90IGJlIGhlbGQKPj4+IGFuZCBmaW5kX3ZtYSgpIGlzIG5vdCBzYWZlIHRvIGJlIGNhbGxlZC4K
-Pj4+IFBhc3MgdGhlIHN0cnVjdCBtbXVfbm90aWZpZXJfcmFuZ2UgdG8gc3luY19jcHVfZGV2aWNl
-X3BhZ2V0YWJsZXMoKQo+Pj4gdG8gYWxsb3cgdGhlIGZ1bGwgaW52YWxpZGF0aW9uIGluZm9ybWF0
-aW9uIHRvIGJlIHVzZWQuCj4+Pgo+Pj4gU2lnbmVkLW9mZi1ieTogUmFscGggQ2FtcGJlbGwgPHJj
-YW1wYmVsbEBudmlkaWEuY29tPgo+Pj4KPj4+IEknbSBzZW5kaW5nIHRoaXMgb3V0IG5vdyBzaW5j
-ZSB3ZSBhcmUgdXBkYXRpbmcgbWFueSBvZiB0aGUgSE1NIEFQSXMKPj4+IGFuZCBJIHRoaW5rIGl0
-IHdpbGwgYmUgdXNlZnVsLgo+Pgo+PiBUaGlzIGlzIHRoZSByaWdodCB0aGluZyB0byBkby4gIEJ1
-dCB0aGUgcmVhbGx5IHJpZ2h0IHRoaW5nIGlzIHRvIGp1c3QKPj4ga2lsbCB0aGUgaG1tX21pcnJv
-ciBBUEkgZW50aXJlbHkgYW5kIG1vdmUgdG8gbW11X25vdGlmaWVycy4gIEF0IGxlYXN0Cj4+IGZv
-ciBub3ZlYXUgdGhpcyBhbHJlYWR5IGlzIHdheSBzaW1wbGVyLCBhbHRob3VnaCByaWdodCBub3cg
-aXQgZGVmZWF0cwo+PiBKYXNvbnMgcGF0Y2ggdG8gYXZvaWQgYWxsb2NhdGluZyB0aGUgc3RydWN0
-IGhtbSBpbiB0aGUgZmF1bHQgcGF0aC4KPj4gQnV0IGFzIHNhaWQgYmVmb3JlIHRoYXQgY2FuIGJl
-IGF2b2lkZWQgYnkganVzdCBraWxsaW5nIHN0cnVjdCBobW0sCj4+IHdoaWNoIGZvciBtYW55IHJl
-YXNvbnMgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGFueXdheS4KPj4KPj4gSSd2ZSBnb3QgYSBz
-ZXJpZXMgaGVyZSwgd2hpY2ggaXMgYSBiaXQgYnJva2VuIChlcGVjaWFsbHkgdGhlIGxhc3QKPj4g
-cGF0Y2ggY2FuJ3Qgd29yayBhcy1pcyksIGJ1dCBzaG91bGQgZXhwbGFpbiB3aGVyZSBJJ20gdHJ5
-aW5nIHRvIGhlYWQ6Cj4+Cj4+IGh0dHA6Ly9naXQuaW5mcmFkZWFkLm9yZy91c2Vycy9oY2gvbWlz
-Yy5naXQvc2hvcnRsb2cvcmVmcy9oZWFkcy9obW0tbWlycm9yLXNpbXBsaWZpY2F0aW9uCj4gCj4g
-QXQgbGVhc3QgdGhlIGN1cnJlbnQgaG1tIGFwcHJvYWNoIGRvZXMgcmVseSBvbiB0aGUgY29sbGlz
-aW9uIHJldHJ5Cj4gbG9ja2luZyBzY2hlbWUgaW4gc3RydWN0IGhtbS9zdHJ1Y3QgaG1tX3Jhbmdl
-IGZvciB0aGUgcGFnZWZhdWx0IHNpZGUKPiB0byB3b3JrIHJpZ2h0Lgo+IAo+IFNvLCBiZWZvcmUg
-d2UgY2FuIGFwcGx5IHBhdGNoIG9uZSBpbiB0aGlzIHNlcmllcyB3ZSBuZWVkIHRvIGZpeAo+IGht
-bV92bWFfZmF1bHQoKSBhbmQgYWxsIGl0cyB2YXJpZW50cy4gT3RoZXJ3aXNlIHRoZSBkcml2ZXIg
-d2lsbCBiZQo+IGJyb2tlbi4KPiAKPiBJJ20gaG9waW5nIHRvIGZpcnN0IGRlZmluZSB3aGF0IHRo
-aXMgbG9ja2luZyBzaG91bGQgYmUgKHNlZSBvdGhlcgo+IGVtYWlscyB0byBSYWxwaCkgdGhlbiwg
-aWRlYWxseSwgc2VlIGlmIHdlIGNhbiBleHRlbmQgbW11IG5vdGlmaWVycyB0bwo+IGdldCBpdCBk
-aXJlY3RseSB3aXRob3V0aCBobW0gc3R1ZmYuCj4gCj4gVGhlbiB3ZSBhcHBseSB5b3VyIHBhdGNo
-IG9uZSBhbmQgdGhlIGhtbSBvcHMgd3JhcHBlciBkaWVzLgo+IAoKVGhpcyBhbGwgbWFrZXMgc2Vu
-c2UsIGFuZCB0aGFua3MgZm9yIGFsbCB0aGlzIHdvcmsgdG8gc2ltcGxpZnkgYW5kIGNsYXJpZnkK
-SE1NLiBJdCdzIGdvaW5nIHRvIG1ha2UgaXQgYSBsb3QgZWFzaWVyIHRvIHdvcmsgd2l0aCwgd2hl
-biB0aGUgZHVzdCBzZXR0bGVzLgoKdGhhbmtzLAotLSAKSm9obiBIdWJiYXJkCk5WSURJQQpfX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4IG1haWxp
-bmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVk
-ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
+T24gRnJpLCBKdW4gMDcsIDIwMTkgYXQgMDM6Mzk6MDZQTSAtMDcwMCwgUmFscGggQ2FtcGJlbGwg
+d3JvdGU6Cj4gPiA+ICvCoMKgwqAgcmFuZ2UtPmhtbSA9IGhtbTsKPiA+ID4gK8KgwqDCoCBrcmVm
+X2dldCgmaG1tLT5rcmVmKTsKPiA+ID4gwqDCoMKgwqDCoCAvKiBJbml0aWFsaXplIHJhbmdlIHRv
+IHRyYWNrIENQVSBwYWdlIHRhYmxlIHVwZGF0ZXMuICovCj4gPiA+IMKgwqDCoMKgwqAgbXV0ZXhf
+bG9jaygmaG1tLT5sb2NrKTsKPiA+ID4gCj4gCj4gSSBmb3Jnb3QgdG8gYWRkIHRoYXQgSSB0aGlu
+ayB5b3UgY2FuIGRlbGV0ZSB0aGUgZHVwbGljYXRlCj4gICAgICJyYW5nZS0+aG1tID0gaG1tOyIK
+PiBoZXJlIGJldHdlZW4gdGhlIG11dGV4X2xvY2svdW5sb2NrLgoKRG9uZSwgdGhhbmtzCgpKYXNv
+bgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwphbWQtZ2Z4
+IG1haWxpbmcgbGlzdAphbWQtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3Rz
+LmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2FtZC1nZng=
