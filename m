@@ -1,29 +1,37 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v16 07/16] mm, arm64: untag user pointers in
- get_vaddr_frames
-Date: Mon, 10 Jun 2019 15:29:34 +0100
-Message-ID: <20190610142933.GC10165@c02tf0j2hf1t.cambridge.arm.com>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <da1d0e0f6d69c15a12987379e372182f416cbc02.1559580831.git.andreyknvl@google.com>
+From: Jason Gunthorpe <jgg@mellanox.com>
+Subject: Re: [PATCH] [v4.14.y] infiniband: fix race condition between
+ infiniband mlx4, mlx5  driver and core dumping
+Date: Mon, 10 Jun 2019 16:05:27 +0000
+Message-ID: <20190610160521.GJ18446@mellanox.com>
+References: <1560199937-23476-1-git-send-email-akaher@vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <da1d0e0f6d69c15a12987379e372182f416cbc02.1559580831.git.andreyknvl@google.com>
+In-Reply-To: <1560199937-23476-1-git-send-email-akaher@vmware.com>
+Content-Language: en-US
+Content-ID: <ACA6821CDC8397409049C57892C1C405@eurprd05.prod.outlook.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrey Konovalov <andreyknvl@google.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kees Cook <keescook@chromium.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.org>
+To: Ajay Kaher <akaher@vmware.com>
+Cc: "aarcange@redhat.com" <aarcange@redhat.com>, "jannh@google.com" <jannh@google.com>, "oleg@redhat.com" <oleg@redhat.com>, "peterx@redhat.com" <peterx@redhat.com>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "mhocko@suse.com" <mhocko@suse.com>, Yishai Hadas <yishaih@mellanox.com>, "dledford@redhat.com" <dledford@redhat.com>, "sean.hefty@intel.com" <sean.hefty@intel.com>, "hal.rosenstock@gmail.com" <hal.rosenstock@gmail.com>, Matan Barak <matanb@mellanox.com>, Leon Romanovsky <leonro@mellanox.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "srivatsab@vmware.com" <srivatsab@vmware.com>, "amakhalov@vmware.com" <amakhalov@vmware.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 03, 2019 at 06:55:09PM +0200, Andrey Konovalov wrote:
-> This patch is a part of a series that extends arm64 kernel ABI to allow to
-> pass tagged user pointers (with the top byte set to something else other
-> than 0x00) as syscall arguments.
-> 
-> get_vaddr_frames uses provided user pointers for vma lookups, which can
-> only by done with untagged pointers. Instead of locating and changing
-> all callers of this function, perform untagging in it.
-> 
-> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+On Tue, Jun 11, 2019 at 02:22:17AM +0530, Ajay Kaher wrote:
+> This patch is the extension of following upstream commit to fix
+> the race condition between get_task_mm() and core dumping
+> for IB->mlx4 and IB->mlx5 drivers:
+>=20
+> commit 04f5866e41fb ("coredump: fix race condition between
+> mmget_not_zero()/get_task_mm() and core dumping")'
+>=20
+> Thanks to Jason for pointing this.
+>=20
+> Signed-off-by: Ajay Kaher <akaher@vmware.com>
+> ---
+>  drivers/infiniband/hw/mlx4/main.c | 4 +++-
+>  drivers/infiniband/hw/mlx5/main.c | 3 +++
+>  2 files changed, 6 insertions(+), 1 deletion(-)
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Jason Gunthorpe <jgg@mellanox.com>
+
+Jason
