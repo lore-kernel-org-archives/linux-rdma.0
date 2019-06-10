@@ -1,132 +1,122 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH v16 02/16] arm64: untag user pointers in access_ok and
- __uaccess_mask_ptr
-Date: Mon, 10 Jun 2019 11:07:03 -0700
-Message-ID: <201906101106.3CA50745E3@keescook>
-References: <cover.1559580831.git.andreyknvl@google.com>
- <4327b260fb17c4776a1e3c844f388e4948cfb747.1559580831.git.andreyknvl@google.com>
- <20190610175326.GC25803@arrakis.emea.arm.com>
+From: Eric Biggers <ebiggers@kernel.org>
+Subject: Re: WARNING: bad unlock balance in ucma_event_handler
+Date: Mon, 10 Jun 2019 11:48:54 -0700
+Message-ID: <20190610184853.GG63833@gmail.com>
+References: <000000000000af6530056e863794@google.com>
+ <20180613170543.GB30019@ziepe.ca>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190610175326.GC25803@arrakis.emea.arm.com>
+In-Reply-To: <20180613170543.GB30019@ziepe.ca>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro.>
+To: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: syzbot <syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com>, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 06:53:27PM +0100, Catalin Marinas wrote:
-> On Mon, Jun 03, 2019 at 06:55:04PM +0200, Andrey Konovalov wrote:
-> > diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
-> > index e5d5f31c6d36..9164ecb5feca 100644
-> > --- a/arch/arm64/include/asm/uaccess.h
-> > +++ b/arch/arm64/include/asm/uaccess.h
-> > @@ -94,7 +94,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
-> >  	return ret;
-> >  }
-> >  
-> > -#define access_ok(addr, size)	__range_ok(addr, size)
-> > +#define access_ok(addr, size)	__range_ok(untagged_addr(addr), size)
+On Wed, Jun 13, 2018 at 11:05:43AM -0600, Jason Gunthorpe wrote:
+> On Wed, Jun 13, 2018 at 06:47:02AM -0700, syzbot wrote:
+> > Hello,
+> > 
+> > syzbot found the following crash on:
+> > 
+> > HEAD commit:    73fcb1a370c7 Merge branch 'akpm' (patches from Andrew)
+> > git tree:       upstream
+> > console output: https://syzkaller.appspot.com/x/log.txt?x=16d70827800000
+> > kernel config:  https://syzkaller.appspot.com/x/.config?x=f3b4e30da84ec1ed
+> > dashboard link: https://syzkaller.appspot.com/bug?extid=e5579222b6a3edd96522
+> > compiler:       gcc (GCC) 8.0.1 20180413 (experimental)
+> > syzkaller repro:https://syzkaller.appspot.com/x/repro.syz?x=176daf97800000
+> > C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15e7bd57800000
+> > 
+> > IMPORTANT: if you fix the bug, please add the following tag to the commit:
+> > Reported-by: syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com
+> > 
+> > 
+> > =====================================
+> > WARNING: bad unlock balance detected!
+> > 4.17.0-rc5+ #58 Not tainted
+> > kworker/u4:0/6 is trying to release lock (&file->mut) at:
+> > [<ffffffff8593ecc0>] ucma_event_handler+0x780/0xff0
+> > drivers/infiniband/core/ucma.c:390
+> > but there are no more locks to release!
+> > 
+> > other info that might help us debug this:
+> > 4 locks held by kworker/u4:0/6:
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > __write_once_size include/linux/compiler.h:215 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic64_set
+> > include/asm-generic/atomic-instrumented.h:40 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: atomic_long_set
+> > include/asm-generic/atomic-long.h:57 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at: set_work_data
+> > kernel/workqueue.c:617 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > set_work_pool_and_clear_pending kernel/workqueue.c:644 [inline]
+> >  #0:         (ptrval) ((wq_completion)"ib_addr"){+.+.}, at:
+> > process_one_work+0xaef/0x1b50 kernel/workqueue.c:2116
+> >  #1:         (ptrval) ((work_completion)(&(&req->work)->work)){+.+.}, at:
+> > process_one_work+0xb46/0x1b50 kernel/workqueue.c:2120
+> >  #2:         (ptrval) (&id_priv->handler_mutex){+.+.}, at:
+> > addr_handler+0xa6/0x3d0 drivers/infiniband/core/cma.c:2796
+> >  #3:         (ptrval) (&file->mut){+.+.}, at: ucma_event_handler+0x10e/0xff0
+> > drivers/infiniband/core/ucma.c:350
 > 
-> I'm going to propose an opt-in method here (RFC for now). We can't have
-> a check in untagged_addr() since this is already used throughout the
-> kernel for both user and kernel addresses (khwasan) but we can add one
-> in __range_ok(). The same prctl() option will be used for controlling
-> the precise/imprecise mode of MTE later on. We can use a TIF_ flag here
-> assuming that this will be called early on and any cloned thread will
-> inherit this.
+> I think this is probably a use-after-free race, eg when we do
+> ctx->file->mut we have raced with ucma_free_ctx() ..
 > 
-> Anyway, it's easier to paste some diff than explain but Vincenzo can
-> fold them into his ABI patches that should really go together with
-> these. I added a couple of MTE definitions for prctl() as an example,
-> not used currently:
+> Which probably means something along the way to free_ctx() did not
+> call rdma_addr_cancel?
 > 
-> ------------------8<---------------------------------------------
-> diff --git a/arch/arm64/include/asm/processor.h b/arch/arm64/include/asm/processor.h
-> index fcd0e691b1ea..2d4cb7e4edab 100644
-> --- a/arch/arm64/include/asm/processor.h
-> +++ b/arch/arm64/include/asm/processor.h
-> @@ -307,6 +307,10 @@ extern void __init minsigstksz_setup(void);
->  /* PR_PAC_RESET_KEYS prctl */
->  #define PAC_RESET_KEYS(tsk, arg)	ptrauth_prctl_reset_keys(tsk, arg)
->  
-> +/* PR_UNTAGGED_UADDR prctl */
-> +int untagged_uaddr_set_mode(unsigned long arg);
-> +#define SET_UNTAGGED_UADDR_MODE(arg)	untagged_uaddr_set_mode(arg)
-> +
->  /*
->   * For CONFIG_GCC_PLUGIN_STACKLEAK
->   *
-> diff --git a/arch/arm64/include/asm/thread_info.h b/arch/arm64/include/asm/thread_info.h
-> index c285d1ce7186..89ce77773c49 100644
-> --- a/arch/arm64/include/asm/thread_info.h
-> +++ b/arch/arm64/include/asm/thread_info.h
-> @@ -101,6 +101,7 @@ void arch_release_task_struct(struct task_struct *tsk);
->  #define TIF_SVE			23	/* Scalable Vector Extension in use */
->  #define TIF_SVE_VL_INHERIT	24	/* Inherit sve_vl_onexec across exec */
->  #define TIF_SSBD		25	/* Wants SSB mitigation */
-> +#define TIF_UNTAGGED_UADDR	26
->  
->  #define _TIF_SIGPENDING		(1 << TIF_SIGPENDING)
->  #define _TIF_NEED_RESCHED	(1 << TIF_NEED_RESCHED)
-> @@ -116,6 +117,7 @@ void arch_release_task_struct(struct task_struct *tsk);
->  #define _TIF_FSCHECK		(1 << TIF_FSCHECK)
->  #define _TIF_32BIT		(1 << TIF_32BIT)
->  #define _TIF_SVE		(1 << TIF_SVE)
-> +#define _TIF_UNTAGGED_UADDR	(1 << TIF_UNTAGGED_UADDR)
->  
->  #define _TIF_WORK_MASK		(_TIF_NEED_RESCHED | _TIF_SIGPENDING | \
->  				 _TIF_NOTIFY_RESUME | _TIF_FOREIGN_FPSTATE | \
-> diff --git a/arch/arm64/include/asm/uaccess.h b/arch/arm64/include/asm/uaccess.h
-> index 9164ecb5feca..54f5bbaebbc4 100644
-> --- a/arch/arm64/include/asm/uaccess.h
-> +++ b/arch/arm64/include/asm/uaccess.h
-> @@ -73,6 +73,9 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
->  {
->  	unsigned long ret, limit = current_thread_info()->addr_limit;
->  
-> +	if (test_thread_flag(TIF_UNTAGGED_UADDR))
-> +		addr = untagged_addr(addr);
-> +
->  	__chk_user_ptr(addr);
->  	asm volatile(
->  	// A + B <= C + 1 for all A,B,C, in four easy steps:
-> @@ -94,7 +97,7 @@ static inline unsigned long __range_ok(const void __user *addr, unsigned long si
->  	return ret;
->  }
->  
-> -#define access_ok(addr, size)	__range_ok(untagged_addr(addr), size)
-> +#define access_ok(addr, size)	__range_ok(addr, size)
->  #define user_addr_max			get_fs
->  
->  #define _ASM_EXTABLE(from, to)						\
-> diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-> index 3767fb21a5b8..fd191c5b92aa 100644
-> --- a/arch/arm64/kernel/process.c
-> +++ b/arch/arm64/kernel/process.c
-> @@ -552,3 +552,18 @@ void arch_setup_new_exec(void)
->  
->  	ptrauth_thread_init_user(current);
->  }
-> +
-> +/*
-> + * Enable the relaxed ABI allowing tagged user addresses into the kernel.
-> + */
-> +int untagged_uaddr_set_mode(unsigned long arg)
-> +{
-> +	if (is_compat_task())
-> +		return -ENOTSUPP;
-> +	if (arg)
-> +		return -EINVAL;
-> +
-> +	set_thread_flag(TIF_UNTAGGED_UADDR);
-> +
-> +	return 0;
-> +}
+> Jason
 
-I think this should be paired with a flag clearing in copy_thread(),
-yes? (i.e. each binary needs to opt in)
+This is still happening.  Just FYI, ignoring these reports doesn't make the bugs
+go away.  Here's a crash report from v5.2.0-rc4:
 
--- 
-Kees Cook
+https://syzkaller.appspot.com/text?tag=CrashReport&x=102aa7c1a00000
+
+=====================================
+WARNING: bad unlock balance detected!
+5.2.0-rc4 #44 Not tainted
+-------------------------------------
+kworker/u4:2/61 is trying to release lock (&file->mut) at:
+[<ffffffff851a3f81>] ucma_event_handler+0x711/0xef0 drivers/infiniband/core/ucma.c:394
+but there are no more locks to release!
+
+other info that might help us debug this:
+4 locks held by kworker/u4:2/61:
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: __write_once_size include/linux/compiler.h:221 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: arch_atomic64_set arch/x86/include/asm/atomic64_64.h:34 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: atomic64_set include/asm-generic/atomic-instrumented.h:855 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: atomic_long_set include/asm-generic/atomic-long.h:40 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: set_work_data kernel/workqueue.c:620 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: set_work_pool_and_clear_pending kernel/workqueue.c:647 [inline]
+ #0: 000000005ff5546b ((wq_completion)ib_addr){+.+.}, at: process_one_work+0x87e/0x1790 kernel/workqueue.c:2240
+ #1: 00000000d75dabcd ((work_completion)(&(&req->work)->work)){+.+.}, at: process_one_work+0x8b4/0x1790 kernel/workqueue.c:2244
+ #2: 0000000058b7aa49 (&id_priv->handler_mutex){+.+.}, at: addr_handler+0xaf/0x3d0 drivers/infiniband/core/cma.c:3031
+ #3: 00000000e5042b0a (&file->mut){+.+.}, at: ucma_event_handler+0xb3/0xef0 drivers/infiniband/core/ucma.c:354
+
+stack backtrace:
+CPU: 1 PID: 61 Comm: kworker/u4:2 Not tainted 5.2.0-rc4 #44
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Workqueue: ib_addr process_one_req
+Call Trace:
+ __dump_stack lib/dump_stack.c:77 [inline]
+ dump_stack+0x172/0x1f0 lib/dump_stack.c:113
+ print_unlock_imbalance_bug kernel/locking/lockdep.c:3846 [inline]
+ print_unlock_imbalance_bug.cold+0x114/0x123 kernel/locking/lockdep.c:3823
+ __lock_release kernel/locking/lockdep.c:4062 [inline]
+ lock_release+0x67b/0xa00 kernel/locking/lockdep.c:4322
+ __mutex_unlock_slowpath+0x8e/0x6b0 kernel/locking/mutex.c:1198
+ mutex_unlock+0xd/0x10 kernel/locking/mutex.c:714
+ ucma_event_handler+0x711/0xef0 drivers/infiniband/core/ucma.c:394
+ addr_handler+0x2e9/0x3d0 drivers/infiniband/core/cma.c:3064
+ process_one_req+0x106/0x680 drivers/infiniband/core/addr.c:644
+ process_one_work+0x989/0x1790 kernel/workqueue.c:2269
+ worker_thread+0x98/0xe40 kernel/workqueue.c:2415
+ kthread+0x354/0x420 kernel/kthread.c:255
+ ret_from_fork+0x24/0x30 arch/x86/entry/entry_64.S:352
+
+- Eric
