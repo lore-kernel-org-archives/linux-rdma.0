@@ -1,31 +1,48 @@
-From: Eric Biggers <ebiggers@kernel.org>
-Subject: Re: WARNING: bad unlock balance in ucma_event_handler
-Date: Mon, 10 Jun 2019 13:45:24 -0700
-Message-ID: <20190610204523.GK63833@gmail.com>
-References: <000000000000af6530056e863794@google.com>
- <20180613170543.GB30019@ziepe.ca>
- <20190610184853.GG63833@gmail.com>
- <20190610194732.GH18468@ziepe.ca>
+From: shuah <shuah@kernel.org>
+Subject: Re: [PATCH v16 16/16] selftests, arm64: add a selftest for passing
+ tagged pointers to kernel
+Date: Mon, 10 Jun 2019 16:08:10 -0600
+Message-ID: <2bc277f8-e67e-30e0-5824-8184c2b03237@kernel.org>
+References: <cover.1559580831.git.andreyknvl@google.com>
+ <9e1b5998a28f82b16076fc85ab4f88af5381cf74.1559580831.git.andreyknvl@google.com>
+ <201906072055.7DFED7B@keescook>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190610194732.GH18468@ziepe.ca>
+In-Reply-To: <201906072055.7DFED7B@keescook>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: syzbot <syzbot+e5579222b6a3edd96522@syzkaller.appspotmail.com>, dasaratharaman.chandramouli@intel.com, dledford@redhat.com, leon@kernel.org, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, parav@mellanox.com, roland@purestorage.com, sean.hefty@intel.com, syzkaller-bugs@googlegroups.com
+To: Kees Cook <keescook@chromium.org>, Andrey Konovalov <andreyknvl@google.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, kvm@vger.kernel.org, linux-kselftest@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Christian Koenig <Christian.Koenig@amd.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Jens Wiklander <jens.wiklander@linaro>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 10, 2019 at 04:47:32PM -0300, Jason Gunthorpe wrote:
+On 6/7/19 9:56 PM, Kees Cook wrote:
+> On Mon, Jun 03, 2019 at 06:55:18PM +0200, Andrey Konovalov wrote:
+>> This patch is a part of a series that extends arm64 kernel ABI to allow to
+>> pass tagged user pointers (with the top byte set to something else other
+>> than 0x00) as syscall arguments.
+>>
+>> This patch adds a simple test, that calls the uname syscall with a
+>> tagged user pointer as an argument. Without the kernel accepting tagged
+>> user pointers the test fails with EFAULT.
+>>
+>> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 > 
-> There are many unfixed syzkaller bugs in rdma_cm, so I'm not surprised
-> it is still happening..
+> I'm adding Shuah to CC in case she has some suggestions about the new
+> selftest.
+
+Thanks Kees.
+
 > 
-> Nobody has stepped forward to work on this code, and it is not a
-> simple mess to understand, let alone try to fix.
+> Reviewed-by: Kees Cook <keescook@chromium.org>
+> 
+> -Kees
 > 
 
-But people still use it, right?  Do they not care that it's spewing syzbot
-reports?  Are they depending on the kernel to provide any security properties?
+Looks good to me.
 
-- Eric
+Acked-by: Shuah Khan <skhan@linuxfoundation.org>
+
+thanks,
+-- Shuah
